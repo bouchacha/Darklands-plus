@@ -484,6 +484,7 @@ class FileDec:
         self.farabs = {}        # (seg, off) -> True   (address taken)
         self.callees = {}       # name -> {'ret': 0/2/4, 'far': True}
         self.strings = {}       # dgroup offset -> bytes
+        self.arrays = {}        # base -> loop-filled array info
         self.structs = {}
 
     def is_literal(self, off):
@@ -519,6 +520,9 @@ class Lifter:
         self.fd, self.fn = fd, fn
         self.prog = fd.prog
         self.calln = 0
+        self.loopvars = []
+        self.struct_locals = set()
+        self.shared_cleanup = set()
         self.locals = {}        # bp offset -> {'size': n, 'array': bool, 'init0': n}
         self.regvars = set()
         self.ret_size = None    # 0 void, 2 int, 4 struct/long
@@ -608,6 +612,8 @@ class Lifter:
         if r in R8:
             full, hi = R8[r]
             v = st[full]
+            if v is not None and v.k == 'phi':
+                raise PhiRead(r)
             if v is None:
                 raise DecompileError('read of undefined %s' % r)
             if v.k == 'bytes':
@@ -625,8 +631,12 @@ class Lifter:
                 return C(v.a[0] & 0xff, 1)
             return E('cast', 'char', v, size=1)
         if r in SREG:
+            if st[r] is not None and st[r].k == 'phi':
+                raise PhiRead(r)
             return st[r] if st[r] is not None else E('seg', r)
         v = st[r]
+        if v is not None and v.k == 'phi':
+            raise PhiRead(r)
         if v is None:
             if r in ('si', 'di'):
                 self.regvars.add(r)
@@ -706,6 +716,12 @@ class Lifter:
             n = int(i_next.op_str[4:], 0) // 2
         if n is None and i_next is not None and i_next.mnemonic == 'mov' and i_next.op_str == 'sp, bp':
             n = len(st['stack'])
+        if n is None and i_next is not None and i_next.mnemonic == 'jmp' and i_next.operands[0].type == X.X86_OP_IMM:
+            # cleanup shared by several call sites (cross-jumping): jmp to 'add sp, N'
+            t = self.fn.insns.get(i_next.operands[0].imm)
+            if t is not None and t.mnemonic == 'add' and re.match(r'sp, (0x[0-9a-f]+|\d+)$', t.op_str):
+                n = int(t.op_str[4:], 0) // 2
+                self.shared_cleanup.add(t.address)
         if n is None:
             n = self.prog.argc(name) or 0
             variants = self.prog.argc_variants(name)
@@ -791,7 +807,7 @@ def group_args(words):
 
 
 # =============================================================================== block lifting
-class PhiRead(Exception):
+class PhiRead(DecompileError):
     pass
 
 
@@ -819,6 +835,8 @@ RE_LITCPY = re.compile(
     r'(?P<body>(?:mov cx, 0x[0-9a-f]+;rep movsw [^;]*;|movsw [^;]*;)*(?:movsb [^;]*;)?)')
 RE_MEMSET = re.compile(
     r'^mov (?P<r>bx|dx), (?P<dst>[^;]+);mov cx, (?P<n>[^;]+);mov di, (?P=r);push ds;pop es;rep stos(?P<w>[bw]) [^;]*;')
+RE_MEMSET3 = re.compile(
+    r'^mov di, (?P<dst>[^;]+);mov cx, (?P<n>[^;]+);push ds;pop es;rep stos(?P<w>[bw]) [^;]*;')
 RE_MEMSET2 = re.compile(r'^mov di, (?P<dst>[^;]+);mov cx, (?P<n>[^;]+);rep stos(?P<w>[bw]) [^;]*;')
 RE_ZINIT = re.compile(
     r'^mov byte ptr \[bp - (?P<a>0x[0-9a-f]+)\], 0;sub ax, ax;mov cx, (?P<n>[^;]+);lea di, \[bp - (?P<b>0x[0-9a-f]+)\];'
@@ -837,7 +855,10 @@ class FuncLifter(Lifter):
         self.instances = []          # dicts: block, stmts, term, state, inline, src (pred instance, edge)
         self.by_block = collections.defaultdict(list)
         self.zinit = {}              # bp offset -> total size of zero-initialised local array
-        for a in fn.order:
+        oi = 0
+        while oi < len(fn.order):
+            a = fn.order[oi]
+            oi += 1
             b = fn.blocks[a]
             if a == fn.start:
                 entries = [(None, new_state())]
@@ -852,6 +873,13 @@ class FuncLifter(Lifter):
                         entries.append((inst, inst['state']))
                 if not entries and not b.preds:
                     continue        # unreachable
+                if not lifted and len(entries) == 1 and b.start in b.succ:
+                    inst = self.try_arrloop(b, entries[0][1])
+                    if inst is not None:
+                        inst['inline'] = False
+                        inst['src'] = None
+                        self.add_instance(inst)
+                        continue
                 if not lifted or not entries:
                     # loop header reached by a back edge: nothing carried except register variables
                     st = new_state()
@@ -871,8 +899,15 @@ class FuncLifter(Lifter):
                     continue
                 except PhiRead:
                     need_inline = True
+                    if self.split_after_phi(b, merged, self._cur_k):
+                        # the block was split: only the prefix that reads the merged registers is copied
+                        pass
             if not need_inline:
-                inst = self.run_block(b, copy_state(entries[0][1]))
+                inst = None
+                if b.start in b.succ:
+                    inst = self.try_arrloop(b, entries[0][1])
+                if inst is None:
+                    inst = self.run_block(b, copy_state(entries[0][1]))
                 inst['inline'] = False
                 inst['src'] = None
                 self.add_instance(inst)
@@ -885,6 +920,59 @@ class FuncLifter(Lifter):
                 inst['src'] = src
                 self.add_instance(inst)
         return self
+
+    def split_after_phi(self, b, merged, kfail):
+        """Split block b after the instructions that consume registers whose value depends on the
+        predecessor, so that only that prefix is copied per predecessor."""
+        fn = self.fn
+        rn = fn.md.reg_name
+        phi = {r for r in list(R16) + ['es'] if merged.get(r) is not None and merged[r].k == 'phi'}
+        ins = b.insns
+        last = len(ins) - (1 if ins and ins[-1].mnemonic.startswith('j') else 0)
+
+        def regs(i):
+            rr, ww = i.regs_access()
+            f = lambda x: {{'al': 'ax', 'ah': 'ax', 'bl': 'bx', 'bh': 'bx', 'cl': 'cx', 'ch': 'cx', 'dl': 'dx',
+                            'dh': 'dx', 'eax': 'ax'}.get(rn(y), rn(y)) for y in x}
+            r, w = f(rr), f(ww)
+            if i.mnemonic in ('lcall', 'call'):
+                w |= {'ax', 'bx', 'cx', 'dx', 'es'}
+            return r, w
+        written = set()
+        for p in range(1, last):
+            r, w = regs(ins[p - 1])
+            written |= w
+            if p <= kfail:
+                continue
+            live = phi - written
+            ok = True
+            wr2 = set()
+            for i in ins[p:]:
+                r2, w2 = regs(i)
+                if (r2 - wr2) & live:
+                    ok = False
+                    break
+                wr2 |= w2
+            if not ok:
+                continue
+            if ins[p].address in fn.epi:
+                return False
+            # split
+            nb = Block(ins[p].address)
+            nb.insns = ins[p:]
+            nb.term = b.term
+            nb.succ = b.succ
+            nb.preds = [b.start]
+            b.insns = ins[:p]
+            b.term = ('fall', nb.start)
+            for sx in nb.succ:
+                if sx in fn.blocks:
+                    fn.blocks[sx].preds = [nb.start if x == b.start else x for x in fn.blocks[sx].preds]
+            b.succ = [nb.start]
+            fn.blocks[nb.start] = nb
+            fn.order = sorted(fn.blocks)
+            return True
+        return False
 
     def add_instance(self, inst):
         if len(self.instances) > 3 * len(self.fn.blocks) + 20:
@@ -904,20 +992,142 @@ class FuncLifter(Lifter):
             else:
                 st[r] = E('phi', r)
         st['axf'] = all(s.get('axf') for s in states)
+        fl = [s.get('flags') for s in states]
+        st['flags'] = fl[0] if all(f is not None and f[0] == fl[0][0] and all(
+            isinstance(x, E) and isinstance(y, E) and x.eq(y) for x, y in zip(f[1:], fl[0][1:])) for f in fl) else None
         return st
+
+    # ---------------------------------------------------------------- strength-reduced init loops
+    def try_arrloop(self, b, st):
+        """A single-block loop that fills arrays with constants:
+            [mov byte ptr [di-K], v] add bx,S  mov [bx+-d], v ...  [inc di]  cmp bx, END  jb/jl self
+        -> for (i = 0; i < N; i++) { A[i] = v; B[i][j] = w; ... }"""
+        fn = self.fn
+        if b.start not in b.succ or b.term[0] != 'jcc' or b.term[2] != b.start:
+            return None
+        ins = b.insns
+        if len(ins) < 4:
+            return None
+        bx0 = st.get('bx')
+        if bx0 is None or bx0.k != 'const':
+            return None
+        B0 = bx0.a[0]
+        rn = fn.md.reg_name
+        off = 0               # bx relative to B0 + S*i at this point of the body
+        S = None
+        stores = []           # (kind 'bx'/'di', addr at i=0, size, value E)
+        uses_di = False
+        k = 0
+        while k < len(ins) - 2:
+            i = ins[k]
+            mn = i.mnemonic
+            if mn == 'add' and i.op_str.startswith('bx, ') and i.operands[1].type == X.X86_OP_IMM:
+                if S is not None:
+                    return None
+                S = i.operands[1].imm
+                off += S
+            elif mn == 'inc' and i.op_str == 'di':
+                uses_di = True
+            elif mn == 'mov' and i.operands[0].type == X.X86_OP_MEM and i.operands[1].type == X.X86_OP_IMM:
+                m = i.operands[0].mem
+                base = rn(m.base) if m.base else None
+                if m.index or m.segment:
+                    return None
+                size = i.operands[0].size
+                imm = i.operands[1].imm & (0xffff if size == 2 else 0xff)
+                reloc = (i.address + i.size - 2) in fn.relocs
+                v = E('segconst', imm) if reloc else C(imm, size)
+                if base == 'bx':
+                    stores.append(('bx', (B0 + off + m.disp) & 0xffff, size, v))
+                elif base == 'di':
+                    stores.append(('di', m.disp & 0xffff, size, v))
+                else:
+                    return None
+            else:
+                return None
+            k += 1
+        cmpi, jcc = ins[-2], ins[-1]
+        if cmpi.mnemonic != 'cmp' or not cmpi.op_str.startswith('bx, ') or cmpi.operands[1].type != X.X86_OP_IMM:
+            return None
+        if S is None or S <= 0:
+            return None
+        END = cmpi.operands[1].imm & 0xffff
+        # compared after the increment: iterations while B0 + S*(i+1) < END
+        n = (END - B0) // S
+        if (END - B0) % S or n <= 0:
+            return None
+        if uses_di:
+            dv = st.get('di')
+        # group bx stores into arrays (row stride S)
+        bx_st = sorted([x for x in stores if x[0] == 'bx'], key=lambda x: x[1])
+        groups = []
+        for x in bx_st:
+            if groups and x[1] - groups[-1][0] < S and x[1] >= groups[-1][0]:
+                groups[-1][1].append(x)
+            else:
+                groups.append([x[1], [x]])
+        body = []
+        for x in stores:
+            if x[0] == 'di':
+                body.append((x[1], 1, None, 0, x[2], x[3]))
+        for base, items in groups:
+            for kind, addr, size, v in items:
+                body.append((base, S, addr - base, 0, size, v))
+        # restore source order of the stores
+        order = {id(x): n_ for n_, x in enumerate(stores)}
+        out = []
+        for kind, addr, size, v in stores:
+            if kind == 'di':
+                out.append(('di', addr, 1, 0, size, v))
+            else:
+                g = [gg for gg in groups if any(it[1] == addr for it in gg[1])][0]
+                out.append(('bx', g[0], S, addr - g[0], size, v))
+        # combine offset/segment word pairs into far pointers
+        comb = []
+        j = 0
+        while j < len(out):
+            a = out[j]
+            if j + 1 < len(out):
+                b2 = out[j + 1]
+                if a[0] == b2[0] == 'bx' and a[1] == b2[1] and b2[3] == a[3] + 2 and a[4] == b2[4] == 2 and \
+                        a[5].k == 'const' and b2[5].k == 'segconst':
+                    comb.append((a[0], a[1], a[2], a[3], 4, E('fptr_const', b2[5].a[0], a[5], size=4)))
+                    j += 2
+                    continue
+            comb.append(a)
+            j += 1
+        self.loopn = getattr(self, 'loopn', 0) + 1
+        ivar = 'v_di' if uses_di else 'k_%d' % self.loopn
+        if not uses_di:
+            self.loopvars.append(ivar)
+        else:
+            self.regvars.add('di')
+        for kind, base, stride, fo, size, v in comb:
+            info = self.fd.arrays.setdefault(base, {'n': 0, 'stride': stride, 'fields': {}, 'elem': None})
+            info['n'] = max(info['n'], n)
+            info['stride'] = stride
+            info['fields'][fo] = (size, v.k)
+        st2 = copy_state(st)
+        st2['bx'] = None
+        st2['di'] = None
+        st2['flags'] = None
+        return {'block': b.start, 'stmts': [('arrloop', ivar, n, comb, uses_di)], 'term': ('goto', b.term[3]),
+                'state': st2}
 
     # ---------------------------------------------------------------- one block
     def run_block(self, b, st):
         fn = self.fn
         st = copy_state(st)
         st['stmts'] = []
-        st['flags'] = None
         st['ax_pending'] = None
+        st['axc'] = None
+        st['axc_done'] = []
         ins = b.insns
         k = fn.prologue_len if b.start == fn.start else 0
         term = None
         while k < len(ins):
             i = ins[k]
+            self._cur_k = k
             if i.address in fn.epi or (k == len(ins) - 1 and i.mnemonic.startswith('j')):
                 k += 1
                 continue
@@ -939,6 +1149,8 @@ class FuncLifter(Lifter):
                     fn.md.reg_name(i.operands[0].reg) in ('ax', 'al') and i.operands[1].type == X.X86_OP_MEM:
                 st['ax_pending'] = (len(st['stmts']), st['ax'])
             k += 1
+        st['axc'] = None
+        self.apply_axc(st)
         t = b.term
         if t[0] == 'ret':
             term = ('ret', self.ret_value(b, st))
@@ -976,8 +1188,61 @@ class FuncLifter(Lifter):
         if sets_flags:
             st['flag_ax'] = bool((w | r) & {'ax', 'al', 'ah', 'eax'})
 
+    def track_axc(self, i, st):
+        """A constant loaded into AX, stored exactly once and then overwritten: MSC only does that
+        when the constant was also assigned to something that is overwritten later (a dead store):
+        'y = c; x = c; ... y = ...;'."""
+        rn = self.fn.md.reg_name
+        axc = st.get('axc')
+        mn = i.mnemonic
+        if mn == 'mov' and i.operands[0].type == X.X86_OP_REG and rn(i.operands[0].reg) == 'ax' and \
+                i.operands[1].type == X.X86_OP_IMM:
+            self.finish_axc(st)
+            st['axc'] = {'v': i.operands[1].imm, 'uses': 0, 'store_pos': None}
+            return
+        if axc is None:
+            return
+        if mn in ('lcall', 'call'):
+            self.finish_axc(st)
+            return
+        rr, ww = i.regs_access()
+        r = {rn(x) for x in rr}
+        w = {rn(x) for x in ww}
+        if r & {'ax', 'al', 'ah', 'eax'}:
+            if mn == 'mov' and i.operands[0].type == X.X86_OP_MEM and i.op_str.endswith(', ax'):
+                axc['uses'] += 1
+                axc['store_pos'] = len(st['stmts'])
+            else:
+                axc['uses'] += 100
+        if w & {'ax', 'al', 'ah', 'eax'}:
+            self.finish_axc(st)
+
+    def finish_axc(self, st):
+        axc = st.get('axc')
+        st['axc'] = None
+        if axc is None or axc['uses'] != 1 or axc['store_pos'] is None:
+            return
+        st.setdefault('axc_done', []).append(axc)
+
+    def apply_axc(self, st):
+        for axc in sorted(st.pop('axc_done', []), key=lambda a: -a['store_pos']):
+            self.apply_one_axc(st, axc)
+
+    def apply_one_axc(self, st, axc):
+        stmts = st['stmts']
+        p = axc['store_pos']
+        if p >= len(stmts) or stmts[p][0] != 'assign':
+            return
+        mine = stmts[p][1]
+        for q in range(p + 1, len(stmts)):
+            sq = stmts[q]
+            if sq[0] == 'assign' and sq[1].k == 'local' and not sq[1].eq(mine):
+                stmts.insert(p, ('assign', sq[1], E('const', axc['v'], size=sq[1].size)))
+                return
+
     def track_ax(self, i, st):
         """A value loaded into AX and overwritten unused is a dead store's load: 'x = v; x = w;'."""
+        self.track_axc(i, st)
         pend = st.get('ax_pending')
         if pend is None:
             return
@@ -1007,6 +1272,9 @@ class FuncLifter(Lifter):
     def ret_value(self, b, st):
         """Value returned by a block ending in the epilogue (None: whatever AX happens to hold)."""
         ax, dx = st['ax'], st['dx']
+        if dx is not None and dx.k == 'local' and dx.a[0] < 0 and st.get('dxf') and ax is not None and \
+                ax.k not in ('phi', 'stale'):
+            return E('pair', dx, ax, size=4)
         if ax is None or ax.k in ('phi', 'stale', 'call', 'icall'):
             return None
         if not st.get('axf'):
@@ -1100,7 +1368,7 @@ class FuncLifter(Lifter):
             st['cx'] = None
             st['es'] = E('seg', m.group('seg'))
             return m.group(0).count(';')
-        m = RE_MEMSET.match(win)
+        m = RE_MEMSET.match(win) or RE_MEMSET3.match(win)
         if m:
             used = m.group(0).count(';')
             val = st['ax']
@@ -1496,6 +1764,25 @@ def arith(op, a, b, size):
         if op == 'neg':
             return E('un', '-', a, size=size)
         return E('un', '~', a, size=size)
+    # signed division by powers of two:  (x - cwd(x)) >> 1   and   ((|x| >> n) ^ s) - s
+    if b.k == 'cwd':
+        x = b.a[0]
+        if op == '-' and a.eq(x):
+            return E('xmcwd', x)
+        if op == '^' and a.eq(x):
+            return E('sgnxor', x)
+        if op == '-' and a.k == 'sgnxor' and a.a[0].eq(x):
+            return E('absx', x)
+        if op == '^' and a.k == 'absshr' and a.a[0].eq(x):
+            return E('sgnxor2', x, a.a[1])
+        if op == '-' and a.k == 'sgnxor2' and a.a[0].eq(x):
+            return E('bin', '/', x, C(1 << a.a[1]), size=size)
+        if op == '&' and is_const(a) is False:
+            pass
+    if op == '>>' and a.k == 'xmcwd' and is_const(b, 1):
+        return E('bin', '/', a.a[0], C(2), size=size)
+    if op == '>>' and a.k == 'absx' and b.k == 'const':
+        return E('absshr', a.a[0], b.a[0])
     # fold (x + c1) + c2
     if op in ('+', '-') and b.k == 'const' and a.k == 'bin' and a.a[0] in ('+', '-') and is_const(a.a[2]):
         c1 = sconst(a.a[2]) * (1 if a.a[0] == '+' else -1)
@@ -1579,6 +1866,10 @@ class Printer:
             return 'r.' + ('a' if off == L.ret_struct else 'b')
         if off > 0:
             return 'p_%x' % off
+        if off in L.struct_locals:
+            return 'l_%x.a' % -off
+        if off - 2 in L.struct_locals:
+            return 'l_%x.b' % -(off - 2)
         return 'l_%x' % -off
 
     def lvalue_type(self, e):
@@ -1604,6 +1895,9 @@ class Printer:
             return self.num(e), 16
         if k == 'g':
             off = e.a[0]
+            ao = self.fd.array_of(off)
+            if ao is not None:
+                return 'D_%04x%s' % ao, 16
             g = self.fd.globals.get(off)
             decl = self.fd.gsize(off)
             nm = self.gname(off)
@@ -1614,6 +1908,8 @@ class Printer:
             return nm, 16
         if k == 'gidx':
             base, idx, scale, size = e.a[0], e.a[1], e.a[2], e.size
+            if base in self.fd.arrays and self.fd.arrays[base]['stride'] != self.fd.arr_elem(base):
+                raise DecompileError('1-d access to a 2-d array')
             return '%s[%s]' % (self.gname(base), self.ex(idx)[0]), 16
         if k == 'local':
             return self.lname(e.a[0]), 16
@@ -1880,6 +2176,8 @@ class FuncEmitter:
         if s[0] == 'assign':
             lhs, v = s[1], s[2]
             lt = P.ex(lhs)[0]
+            if lhs.k == 'local' and lhs.a[0] in self.L.struct_locals and v.k in ('call', 'icall'):
+                return '%s = %s;' % (lt[:-2], P.ex(v)[0])
             if v.k == 'bin' and v.a[0] in ('+', '-', '&', '|', '^', '<<', '>>', '*') and v.a[1].eq(lhs):
                 if v.a[0] in ('+', '-') and is_const(v.a[2], 1):
                     return '%s%s;' % (lt, '++' if v.a[0] == '+' else '--')
@@ -1891,6 +2189,20 @@ class FuncEmitter:
             if s[1].sid in used:
                 return None
             return P.ex(s[1])[0] + ';'
+        if s[0] == 'arrloop':
+            ivar, n, comb, uses_di = s[1], s[2], s[3], s[4]
+            lines = ['for (%s = 0; %s < %d; %s++) {' % (ivar, ivar, n, ivar)]
+            for kind, base, stride, fo, size, v in comb:
+                nm = 'D_%04x' % base
+                info = self.fd.arrays.get(base)
+                es = self.fd.arr_elem(base)
+                if stride == es or kind == 'di':
+                    ref = '%s[%s]' % (nm, ivar)
+                else:
+                    ref = '%s[%s][%d]' % (nm, ivar, fo // es)
+                lines.append('\t%s = %s;' % (ref, P.ex(v)[0]))
+            lines.append('}')
+            return '\n'.join(lines)
         if s[0] == 'copy':
             dst, src, n = s[1], s[2], s[3]
             self.fd.copy_sizes.add(n)
@@ -1963,13 +2275,17 @@ class FuncEmitter:
             elif k == 'stmt':
                 t = self.stmt_text(it[1], self.used)
                 if t is not None:
-                    out.append((ind, t))
+                    for ln in t.split('\n'):
+                        out.append((ind + ln.count('\t'), ln.lstrip('\t')))
             elif k == 'ret':
                 v = it[1]
                 if self.returns:
                     if v is None:
                         out.append((ind, 'return;'))
                     elif self.L.ret_struct is not None and v.k == 'pair':
+                        ax_ = v.a[1]
+                        if not (ax_.k == 'local' and ax_.a[0] == self.L.ret_struct):
+                            out.append((ind, 'r.a = %s;' % P.ex(ax_)[0]))
                         out.append((ind, 'return r;'))
                     else:
                         out.append((ind, 'return %s;' % P.ex(v)[0]))
@@ -2015,7 +2331,8 @@ class FuncEmitter:
         for s in inst['stmts']:
             t = self.stmt_text(s, self.used)
             if t is not None:
-                out.append((ind, t))
+                for ln in t.split('\n'):
+                    out.append((ind + ln.count('\t'), ln.lstrip('\t')))
         t = inst['term']
         P = self.P
         if t[0] == 'ret':
@@ -2024,6 +2341,9 @@ class FuncEmitter:
                 if v is None:
                     out.append((ind, 'return;'))
                 elif self.L.ret_struct is not None and v.k == 'pair':
+                    ax_ = v.a[1]
+                    if not (ax_.k == 'local' and ax_.a[0] == self.L.ret_struct):
+                        out.append((ind, 'r.a = %s;' % P.ex(ax_)[0]))
                     out.append((ind, 'return r;'))
                 else:
                     out.append((ind, 'return %s;' % P.ex(v)[0]))
@@ -2285,7 +2605,7 @@ class Structurer:
         else:
             if t[1] is None:
                 return False
-            subj = base_subject(t[1])
+            subj = base_subject(base_index(t[1]))
         if subj.k == 'const':
             return False
         sk = subj.key()
@@ -2304,7 +2624,7 @@ class Structurer:
                 if ok and c.a[1].k == 'bin':
                     uses_arith = True
             elif ok:
-                ok = n.term[1] is not None and base_subject(n.term[1]).key() == sk
+                ok = n.term[1] is not None and base_subject(base_index(n.term[1])).key() == sk
             if ok:
                 tree.add(x)
                 work.extend(self.succs(n))
@@ -2446,6 +2766,7 @@ class Structurer:
         self.ip = self.ipdom()
         self.gotos = set()
         self.emitted = set()
+        self.emitted_labels_needed = set()
         body = self.region(0, len(self.order), {'follow': None, 'brk': None, 'cont': None})
         return body
 
@@ -2574,6 +2895,15 @@ class Structurer:
         return True
 
     def jump(self, tgt, nxt, ctx):
+        # thread through empty nodes (shared stack cleanup etc.)
+        seen = set()
+        while tgt not in seen and tgt != nxt and tgt not in (ctx.get('brk'), ctx.get('cont')):
+            seen.add(tgt)
+            n = self.nodes[tgt]
+            if not self.visible(n) and n.term[0] == 'goto' and n.id not in self.emitted_labels_needed:
+                tgt = n.term[1]
+            else:
+                break
         if tgt == nxt:
             return []
         if tgt == ctx.get('brk'):
@@ -2652,11 +2982,103 @@ def _fd_methods():
             raise DecompileError('far constant %04x:%04x' % (seg, off))
         self.fnrefs.add(n)
         return cname(n)
-    for f in (gsize, is_array, gtype, farname, expr_unsigned, code_or_data_at):
+    def arr_elem(self, base):
+        a = self.arrays[base]
+        sizes = {sz for sz, kind in a['fields'].values()}
+        return max(sizes) if sizes else 1
+
+    def array_of(self, addr):
+        """(base, index expression text parts) if addr lies inside a loop-filled array."""
+        for base, a in self.arrays.items():
+            ext = a['n'] * a['stride']
+            if base <= addr < base + ext:
+                es = self.arr_elem(base)
+                rel = addr - base
+                row, col = divmod(rel, a['stride'])
+                if a['stride'] == es:
+                    return base, '[%d]' % row
+                if col % es:
+                    return None
+                return base, '[%d][%d]' % (row, col // es)
+        return None
+
+    def arr_decl(self, base):
+        a = self.arrays[base]
+        es = self.arr_elem(base)
+        kinds = {kind for sz, kind in a['fields'].values()}
+        if es == 4 and 'fptr_const' in kinds:
+            ty = 'fnptr'
+        else:
+            ty = CTYPE.get(es, 'int')
+        dims = '[%d]' % a['n'] if a['stride'] == es else '[%d][%d]' % (a['n'], a['stride'] // es)
+        if ty == 'fnptr':
+            return '%s (far *D_%04x%s)()' % (self.fnptr_ret(base, self._rtypes), base, dims)
+        return '%s D_%04x%s' % (ty, base, dims)
+
+    def fnptr_ret(self, base, rtypes):
+        if base in self.fnret:
+            return self.fnret[base]
+        # the functions stored into it decide
+        rs = {rtypes.get(n) for n in self.fnstores.get(base, ())}
+        if rs == {'struct res'}:
+            return 'struct res'
+        return 'void'
+    for f in (gsize, is_array, gtype, farname, expr_unsigned, code_or_data_at, arr_elem, array_of, arr_decl,
+              fnptr_ret):
         setattr(FileDec, f.__name__, f)
 
 
 _fd_methods()
+
+
+def find_struct_temps(fd, fn, L):
+    """Locals that receive a 4-byte (struct) call result of which only the first word is kept:
+    the frame is larger than the locals that are accessed."""
+    neg = {o: i for o, i in L.locals.items() if o < 0}
+    used = 0
+    for o, i in neg.items():
+        if L.ret_struct is not None and o in (L.ret_struct, L.ret_struct + 2):
+            continue
+        used += max(i['size'], 1) if not i.get('array') else 0
+    arrays = [o for o, i in neg.items() if i.get('array')]
+    if arrays:
+        return
+    accounted = used + (4 if L.ret_struct is not None else 0)
+    slack = fn.frame_size - accounted
+    if slack < 2:
+        return
+    srcs = collections.defaultdict(list)
+    for inst in L.instances:
+        for st in inst['stmts']:
+            if st[0] == 'assign' and st[1].k == 'local' and st[1].a[0] < 0:
+                srcs[st[1].a[0]].append(st[2])
+    for o in sorted(neg):
+        if slack < 2:
+            break
+        if neg[o]['size'] != 2 or o + 2 in neg or o + 2 >= 0 and o + 2 != 0:
+            continue
+        if L.ret_struct is not None and o + 2 == L.ret_struct:
+            continue
+        v = srcs.get(o)
+        if v and all(x.k in ('call', 'icall') for x in v):
+            L.struct_locals.add(o)
+            slack -= 2
+            for x in v:
+                if x.k == 'icall':
+                    t = x.a[0]
+                    if t.k in ('gidx', 'g'):
+                        fd.fnret[t.a[0]] = 'struct res'
+                else:
+                    fd.sret_callees.add(x.a[0])
+
+
+def note_fnstore(fd, base, v):
+    seg, off = v.a
+    off = off.a[0] if isinstance(off, E) else off
+    n = fd.prog.addr2name.get((fd.img, seg * 16 + off)) or fd.prog.name_at_any(seg * 16 + off, seg)
+    if n:
+        # a store into an element of a table counts for the table (D_ea18 is D_ea14[1])
+        fd.fnstores[base].add(n)
 
 
 def type_evidence(fd, L):
@@ -2680,17 +3102,22 @@ def type_evidence(fd, L):
                 seg = s[2].a[0]
                 if seg not in fd.prog.data_segs:
                     fd.gkinds[s[1].a[0]] = 'fnptr'
+                    note_fnstore(fd, s[1].a[0], s[2])
                 else:
                     fd.gkinds[s[1].a[0]] = 'fptr'
+            if s[0] == 'arrloop':
+                for kind, base, stride, fo, size, v in s[3]:
+                    if v.k == 'fptr_const':
+                        note_fnstore(fd, base, v)
         t = inst['term']
         if t:
             for x in t[1:]:
                 walk(x, visit)
 
 
-def decl_of(ty, name, array=False):
+def decl_of(ty, name, array=False, ret='void'):
     if ty == 'fnptr':
-        return 'void (far *%s%s)()' % (name, '[]' if array else '')
+        return '%s (far *%s%s)()' % (ret, name, '[]' if array else '')
     if ty == 'fptr':
         return 'char far *%s%s' % (name, '[]' if array else '')
     return '%s %s%s' % (ty, name, '[]' if array else '')
@@ -2698,6 +3125,10 @@ def decl_of(ty, name, array=False):
 
 def decompile_file(prog, img, frame, only=None):
     fd = FileDec(prog, img, frame)
+    fd.fnret = {}
+    fd.fnstores = collections.defaultdict(set)
+    fd.sret_callees = set()
+    fd._rtypes = {}
     fd.gkinds = {}
     fd.fnrefs = set()
     fd.copy_sizes = set()
@@ -2716,13 +3147,13 @@ def decompile_file(prog, img, frame, only=None):
         rs = set()
         rets = [inst['term'][1] for inst in L.instances if inst['term'] and inst['term'][0] == 'ret']
         for v in rets:
-            if v is not None and v.k == 'pair' and v.a[1].k == 'local' and v.a[0].k == 'local' and \
-                    v.a[0].a[0] == v.a[1].a[0] + 2:
-                rs.add(v.a[1].a[0])
+            if v is not None and v.k == 'pair' and v.a[0].k == 'local' and v.a[0].a[0] < 0:
+                rs.add(v.a[0].a[0] - 2)
         if len(rs) == 1 and returns:
             L.ret_struct = rs.pop()
         for inst in L.instances:
             inst['stmts'] = combine_far_stores(inst['stmts'])
+        find_struct_temps(fd, fn, L)
         type_evidence(fd, L)
         funcs.append((name, fn, L, returns))
     collect_usage(fd, [f[2] for f in funcs if f[2] is not None])
@@ -2814,7 +3245,11 @@ def ret_type(L, returns):
     return 'int'
 
 
-def render_file(prog, img, frame, fd, bodies):
+def render_file(prog, img, frame, fd, bodies, stubs=()):
+    if stubs:
+        bodies = [(n, fn, None, False, None) if n in stubs else (n, fn, L, r, ln) for n, fn, L, r, ln in bodies]
+        for n in stubs:
+            fd.failed.setdefault(n, 'does not compile')
     out = []
     first = fd.funcs[0][1]
     out.append('/* place: %s %04x:%04x */' % (img, frame, first - frame * 16))
@@ -2824,6 +3259,9 @@ def render_file(prog, img, frame, fd, bodies):
     out.append('struct res { int a; int b; };')
     for n in sorted(fd.copy_sizes):
         out.append('struct blk%d { char b[%d]; };' % (n, n))
+    rtypes = {}
+    for name, fn, L, returns, lines in bodies:
+        rtypes[name] = ret_type(L, returns) if L is not None else 'void'
     # far data structs
     for slot in sorted(fd.fars):
         fr = fd.fars[slot]
@@ -2845,22 +3283,24 @@ def render_file(prog, img, frame, fd, bodies):
     for (seg, off) in sorted(fd.farabs):
         out.append('extern char far F_%04x_%04x[];' % (seg, off))
     # globals
+    fd._rtypes = rtypes
+    for base in sorted(fd.arrays):
+        out.append('extern %s;' % fd.arr_decl(base))
     for off in sorted(fd.globals):
+        if fd.array_of(off) is not None or off in fd.arrays:
+            continue
         g = fd.globals[off]
         ty = fd.gtype(off)
-        out.append('extern %s;' % decl_of(ty, 'D_%04x' % off, fd.is_array(off)))
+        out.append('extern %s;' % decl_of(ty, 'D_%04x' % off, fd.is_array(off), fd.fnptr_ret(off, rtypes)))
     # callees
     local = {n for n, s, e in fd.funcs}
-    rtypes = {}
-    for name, fn, L, returns, lines in bodies:
-        rtypes[name] = ret_type(L, returns) if L is not None else 'void'
     for n in sorted(fd.callees):
         if n in local:
             continue
         if n in INTRINSIC_PROTOS:
             out.append(INTRINSIC_PROTOS[n])
             continue
-        out.append('int far %s();' % cname(n))
+        out.append('%s far %s();' % ('struct res' if n in fd.sret_callees else 'int', cname(n)))
     for n in sorted(fd.fnrefs - local - set(fd.callees)):
         out.append('int far %s();' % cname(n))
     for name, fn, L, returns, lines in bodies:
@@ -2890,6 +3330,8 @@ def render_file(prog, img, frame, fd, bodies):
             if L.ret_struct is not None and o in (L.ret_struct, L.ret_struct + 2):
                 continue
             info = L.locals[o]
+            if o in L.struct_locals:
+                continue
             if info.get('array'):
                 above = [x for x in neg if x > o and not (L.ret_struct is not None and x in (L.ret_struct, L.ret_struct + 2))]
                 if L.ret_struct is not None and L.ret_struct > o:
@@ -2899,8 +3341,12 @@ def render_file(prog, img, frame, fd, bodies):
                 decls.append('char l_%x[%d]%s;' % (-o, size, init))
             else:
                 decls.append('%s l_%x;' % (CTYPE.get(info['size'] or 2, 'int'), -o))
+        for o in sorted(L.struct_locals):
+            decls.append('struct res l_%x;' % -o)
         for r in sorted(L.regvars):
             decls.append('int v_%s;' % r)
+        for v in L.loopvars:
+            decls.append('int %s;' % v)
         for d in decls:
             out.append('    ' + d)
         for ind, t in lines:

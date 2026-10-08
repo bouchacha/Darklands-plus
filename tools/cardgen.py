@@ -33,15 +33,34 @@ def work(job):
         out['error'] = 'render: %s' % e
         out['trace'] = traceback.format_exc()[-800:]
         return out
-    open(path, 'w').write(text)
+    stubs = set()
+    for attempt in range(8):
+        open(path, 'w').write(text)
+        try:
+            r = fmatch.check(path, quiet=True)
+        except Exception as e:
+            out['error'] = 'fmatch: %s' % e
+            out['trace'] = traceback.format_exc()[-800:]
+            return out
+        ce = r.get('error')
+        if not ce:
+            break
+        # stub out the functions the compiler complained about and try again
+        lines = text.split('\n')
+        starts = [(k, m.group(1)) for k, l in enumerate(lines)
+                  for m in [re.match(r'^\S.* far (sub_\w+)\(.*\)$', l)] if m]
+        bad = set()
+        for m in re.finditer(r'X\.C\((\d+)\) : (?:fatal )?error', ce):
+            ln = int(m.group(1)) - 1
+            owner = [n for k, n in starts if k <= ln]
+            if owner:
+                bad.add(owner[-1])
+        if not bad or bad <= stubs:
+            break
+        stubs |= bad
+        text = dec16.render_file(_prog, img, frame, fd, bodies, stubs=stubs)
     out['failed'] = fd.failed
     out['nfuncs'] = len(fd.funcs)
-    try:
-        r = fmatch.check(path, quiet=True)
-    except Exception as e:
-        out['error'] = 'fmatch: %s' % e
-        out['trace'] = traceback.format_exc()[-800:]
-        return out
     out['compile_error'] = r.get('error')
     out['functions'] = [(f['name'], f['match'], f['first_diff'], f['len'], f['orig_len']) for f in r['functions']]
     out['file_match'] = r['file_match']

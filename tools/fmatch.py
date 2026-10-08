@@ -156,11 +156,44 @@ def check(path, verbose=False, flags=None, quiet=False, only=None):
             continue
         addend = struct.unpack_from('<H', code, off)[0]
         ow = struct.unpack_from('<H', mem, loc - lo)[0]
+        if off >= 1 and code[off - 1] != mem[loc - lo - 1]:
+            continue
         place = (ow - disp - addend) & 0xffff
         votes.setdefault(tn, {}).setdefault(place, 0)
         votes[tn][place] += 1
     for tn, v in votes.items():
         data_place[tn] = max(v.items(), key=lambda kv: kv[1])[0]
+    # the vote can be misled by functions that do not match; prefer a place where the original
+    # DGROUP holds exactly the compiled data
+    dmem0 = ctx['exe'].section_memory(136)
+    dlo0 = ctx['exe'].sections[136].load_seg * 16
+    for tn in list(c['datasegs']):
+        if tn in c['data']:
+            continue        # explicit hint
+        di = [i for i in range(1, len(m.segs)) if m.segs[i][0] == tn][0]
+        dbuf = bytearray(segs[tn][0][:c['datasegs'][tn]])
+        for si2, off2, lt2, M2, fr2, tg2, dp2 in m.fixups:
+            if si2 == di and lt2 == 2 and tg2[0] == 2:
+                r = resolve(m.exts[tg2[1]], ctx['syms'])
+                if r:
+                    struct.pack_into('<H', dbuf, off2, r[2])
+        if not any(dbuf):
+            continue
+        base = DG * 16 - dlo0
+        hay = bytes(dmem0[base:base + 0x10000])
+        v = data_place.get(tn)
+        if v is not None and hay[v:v + len(dbuf)] == bytes(dbuf):
+            continue
+        occ = []
+        p0 = hay.find(bytes(dbuf))
+        while p0 >= 0 and len(occ) < 5000:
+            occ.append(p0)
+            p0 = hay.find(bytes(dbuf), p0 + 1)
+        if not occ:
+            continue
+        v = data_place.get(tn)
+        if v not in occ:
+            data_place[tn] = min(occ, key=lambda o: abs(o - (v if v is not None else o)))
     unresolved = set()
     bad_at = set()
     for fsi, off, loctype, M, fr, target, disp in m.fixups:
