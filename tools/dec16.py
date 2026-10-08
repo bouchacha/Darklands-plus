@@ -637,7 +637,7 @@ class Lifter:
         v = st[r]
         if v is not None and v.k == 'phi':
             raise PhiRead(r)
-        if v is None:
+        if v is None or (r in ('si', 'di') and not st.get(r + '_temp')):
             if r in ('si', 'di'):
                 self.regvars.add(r)
                 return E('reg', r)
@@ -855,7 +855,7 @@ def itext(i):
 
 
 RE_STRCPY = re.compile(
-    r'^(?P<setup>(?:(?:mov|lea) (?:di|si), [^;]+;){2})push (?P<seg>ds|ss);pop es;mov cx, 0xffff;xor ax, ax;'
+    r'^(?P<setup>(?:(?:mov|lea) (?:di|si), [^;]+;){0,2})push (?P<seg>ds|ss);pop es;mov cx, 0xffff;xor ax, ax;'
     r'repne scasb [^;]*;not cx;sub di, cx;xchg si, di;shr cx, 1;rep movsw [^;]*;adc cx, cx;rep movsb [^;]*;')
 RE_LITCPY = re.compile(
     r'^(?P<setup>(?:mov ax, [^;]+;mov di, ax;|(?:mov|lea) di, [^;]+;)(?:mov|lea) si, [^;]+;)push (?P<seg>ds|ss);pop es;'
@@ -897,7 +897,7 @@ class FuncLifter(Lifter):
                         lifted = False
                         continue
                     for inst in self.by_block[p]:
-                        entries.append((inst, inst['state']))
+                        entries.append((inst, self.edge_state(inst, a)))
                 if not entries and not b.preds:
                     continue        # unreachable
                 if not lifted and len(entries) == 1 and b.start in b.succ:
@@ -939,6 +939,8 @@ class FuncLifter(Lifter):
                 inst['src'] = None
                 self.add_instance(inst)
                 continue
+            if any(s['stack'] for _, s in entries) and len(entries) > 1:
+                self.split_after_drain(b, entries)
             for src, s in entries:
                 if src is None:
                     raise DecompileError('inline block without predecessor at %x' % a)
@@ -947,6 +949,45 @@ class FuncLifter(Lifter):
                 inst['src'] = src
                 self.add_instance(inst)
         return self
+
+    def split_after_drain(self, b, entries):
+        """A block entered with arguments already pushed (cross-jumped call tails): only the part
+        up to the call that consumes them is copied per predecessor; the rest is shared."""
+        probe = []
+        saved = (self.calln, len(self.locals))
+        try:
+            self.run_block(b, copy_state(entries[0][1]), probe)
+        except DecompileError:
+            return False
+        ins = b.insns
+        last = len(ins) - (1 if ins and ins[-1].mnemonic.startswith('j') else 0)
+        for k, depth in probe:
+            if depth == 0:
+                p = k + 1
+                if p < len(ins) and ins[p].mnemonic == 'add' and ins[p].op_str.startswith('sp'):
+                    p += 1
+                if p >= last or ins[p].address in self.fn.epi:
+                    return False
+                self._split(b, p)
+                return True
+        return False
+
+    def _split(self, b, p):
+        fn = self.fn
+        ins = b.insns
+        nb = Block(ins[p].address)
+        nb.insns = ins[p:]
+        nb.term = b.term
+        nb.succ = b.succ
+        nb.preds = [b.start]
+        b.insns = ins[:p]
+        b.term = ('fall', nb.start)
+        for sx in nb.succ:
+            if sx in fn.blocks:
+                fn.blocks[sx].preds = [nb.start if x == b.start else x for x in fn.blocks[sx].preds]
+        b.succ = [nb.start]
+        fn.blocks[nb.start] = nb
+        fn.order = sorted(fn.blocks)
 
     def split_after_phi(self, b, merged, kfail):
         """Split block b after the instructions that consume registers whose value depends on the
@@ -965,11 +1006,20 @@ class FuncLifter(Lifter):
             if i.mnemonic in ('lcall', 'call'):
                 w |= {'ax', 'bx', 'cx', 'dx', 'es'}
             return r, w
+        # never split inside an inline string idiom
+        inside = set()
+        for k in range(len(ins)):
+            win = ';'.join(itext(i) for i in ins[k:k + 18]) + ';'
+            for rx in (RE_STRCPY, RE_LITCPY, RE_MEMSET, RE_MEMSET3, RE_ZINIT):
+                mm = rx.match(win)
+                if mm:
+                    n = mm.group(0).count(';')
+                    inside.update(range(k + 1, k + n))
         written = set()
         for p in range(1, last):
             r, w = regs(ins[p - 1])
             written |= w
-            if p <= kfail:
+            if p <= kfail or p in inside:
                 continue
             live = phi - written
             ok = True
@@ -1001,6 +1051,11 @@ class FuncLifter(Lifter):
             return True
         return False
 
+    def edge_state(self, inst, target):
+        if inst.get('eq_edge') == target:
+            return inst['eq_state']
+        return inst['state']
+
     def add_instance(self, inst):
         if len(self.instances) > 3 * len(self.fn.blocks) + 20:
             raise DecompileError('too many inlined block copies')
@@ -1019,6 +1074,8 @@ class FuncLifter(Lifter):
             else:
                 st[r] = E('phi', r)
         st['axf'] = all(s.get('axf') for s in states)
+        for r in ('si', 'di'):
+            st[r + '_temp'] = any(s.get(r + '_temp') for s in states)
         fl = [s.get('flags') for s in states]
         st['flags'] = fl[0] if all(f is not None and f[0] == fl[0][0] and all(
             isinstance(x, E) and isinstance(y, E) and x.eq(y) for x, y in zip(f[1:], fl[0][1:])) for f in fl) else None
@@ -1142,7 +1199,7 @@ class FuncLifter(Lifter):
                 'state': st2}
 
     # ---------------------------------------------------------------- one block
-    def run_block(self, b, st):
+    def run_block(self, b, st, probe=None):
         fn = self.fn
         st = copy_state(st)
         st['stmts'] = []
@@ -1170,6 +1227,8 @@ class FuncLifter(Lifter):
             self.track_ax(i, st)
             self.fresh_ax(i, st)
             self.step(i, nxt, st)
+            if probe is not None:
+                probe.append((k, len(st['stack'])))
             if i.mnemonic == 'cwde' and pend is not None:
                 st['ax_pending'] = (pend[0], st['ax'])
             elif i.mnemonic == 'mov' and i.operands[0].type == X.X86_OP_REG and \
@@ -1187,7 +1246,23 @@ class FuncLifter(Lifter):
             term = ('if', self.condition(st, t[1]), t[2], t[3])
         elif t[0] == 'table':
             term = ('table', st.get('bx'), t[1])
-        return {'block': b.start, 'stmts': st.pop('stmts'), 'term': term, 'state': st}
+        res = {'block': b.start, 'stmts': st.pop('stmts'), 'term': term, 'state': st}
+        # on the edge where 'x == c' holds, registers holding x hold c (MSC uses that)
+        if term and term[0] == 'if' and term[2] != term[3]:
+            c = term[1]
+            if c.k == 'cmp' and c.a[0] in ('==', '!=') and is_const(c.a[2]):
+                x = c.a[1]
+                st_eq = copy_state(st)
+                hit = False
+                for r in ('ax', 'bx', 'cx', 'dx'):
+                    v = st_eq.get(r)
+                    if v is not None and (v is x or v.eq(x)):
+                        st_eq[r] = C(c.a[2].a[0])
+                        hit = True
+                if hit:
+                    res['eq_state'] = st_eq
+                    res['eq_edge'] = term[2] if c.a[0] == '==' else term[3]
+        return res
 
     def fresh_ax(self, i, st):
         """st['axf'] / st['dxf']: AX / DX hold a value written and not used since (return candidates)."""
@@ -1311,14 +1386,45 @@ class FuncLifter(Lifter):
         return ax
 
     # ---------------------------------------------------------------- idioms
+    def string_temp(self, i, r):
+        """Is this write to si/di the operand setup of a following string idiom?"""
+        fn = self.fn
+        a = i.address + i.size
+        for _ in range(8):
+            j = fn.insns.get(a)
+            if j is None:
+                return False
+            if j.mnemonic == 'jmp' and j.operands[0].type == X.X86_OP_IMM:
+                a = j.operands[0].imm
+                continue
+            if j.mnemonic in ('repne scasb', 'rep movsw', 'movsw', 'movsb', 'rep movsb', 'rep stosw', 'rep stosb'):
+                return True
+            if j.mnemonic in ('push', 'pop', 'xor') or (j.mnemonic in ('mov', 'lea') and
+                                                      re.match(r'(si|di|cx|ax), ', j.op_str)):
+                if j.mnemonic in ('mov', 'lea') and j.op_str.startswith(r + ','):
+                    return False
+                a = j.address + j.size
+                continue
+            return False
+        return False
+
     def idiom(self, ins, k, st):
-        if ins[k].mnemonic not in ('mov', 'lea', 'sub'):
+        if ins[k].mnemonic not in ('mov', 'lea', 'sub', 'push'):
             return 0
         win = ';'.join(itext(i) for i in ins[k:k + 18]) + ';'
         m = RE_STRCPY.match(win)
         if m:
             src = dst = None
+            for r in ('si', 'di'):
+                if st.get(r + '_temp') and st.get(r) is not None and st[r].k == 'phi':
+                    raise PhiRead(r)
+            if st.get('di_temp') and st.get('di') is not None:
+                src = self.ptr_value(st['di'])
+            if st.get('si_temp') and st.get('si') is not None:
+                dst = self.ptr_value(st['si'])
             for part in m.group('setup').rstrip(';').split(';'):
+                if not part:
+                    continue
                 mn, rest = part.split(' ', 1)
                 r, opnd = rest.split(', ', 1)
                 v = self.ptr_operand(st, mn, opnd)
@@ -1326,6 +1432,11 @@ class FuncLifter(Lifter):
                     src = v
                 else:
                     dst = v
+            if src is None or dst is None:
+                raise DecompileError('strcpy operands unknown')
+            for r in ('si', 'di'):
+                st[r] = None
+                st[r + '_temp'] = False
             self.emit(st, ('expr', E('call', 'strcpy', [dst, src], 0)))
             self.fd.callees['strcpy'] = {'ret': 2, 'intrinsic': True}
             st['ax'] = None
@@ -1423,6 +1534,16 @@ class FuncLifter(Lifter):
             return used
         return 0
 
+    def ptr_value(self, v):
+        if v.k == 'const':
+            off = v.a[0]
+            s = self.fd.is_literal(off)
+            if s is not None:
+                return E('str', off, s)
+            self.fd.note_global(off, 1, addr_taken=True)
+            return E('addr', E('g', off, size=1))
+        return v
+
     def ptr_operand(self, st, mn, opnd):
         """Pointer value of a setup operand of a string idiom."""
         if mn == 'lea':
@@ -1478,6 +1599,10 @@ class FuncLifter(Lifter):
             if d.type == X.X86_OP_REG:
                 r = rn(d.reg)
                 if r in ('si', 'di'):
+                    if self.string_temp(i, r):
+                        st[r] = v
+                        st[r + '_temp'] = True
+                        return
                     self.regvars.add(r)
                     self.emit(st, ('assign', E('reg', r), v))
                     st[r] = None
@@ -1764,7 +1889,9 @@ class FuncLifter(Lifter):
         # (x - c) == 0  ->  x == c
         if is_const(b, 0) and a.k == 'bin' and a.a[0] in ('+', '-') and is_const(a.a[2]) and op in ('==', '!='):
             c = sconst(a.a[2])
-            return E('cmp', op, a.a[1], C(c if a.a[0] == '-' else -c))
+            r = E('cmp', op, a.a[1], C(c if a.a[0] == '-' else -c))
+            r.uns = 'arith'         # value tested through dec/sub on a copy: switch code
+            return r
         return E('cmp', op, a, b)
 
 
@@ -2421,7 +2548,9 @@ class Node:
 
 def cnot(c):
     if c.k == 'cmp':
-        return E('cmp', NEG[c.a[0]], c.a[1], c.a[2])
+        r = E('cmp', NEG[c.a[0]], c.a[1], c.a[2])
+        r.uns = c.uns
+        return r
     if c.k == 'not':
         return c.a[0]
     if c.k == 'and':
@@ -2648,7 +2777,7 @@ class Structurer:
             if ok and n.term[0] == 'if':
                 c = n.term[1]
                 ok = c.k == 'cmp' and is_const(c.a[2]) and base_subject(c.a[1]).key() == sk
-                if ok and c.a[1].k == 'bin':
+                if ok and (c.a[1].k == 'bin' or c.uns == 'arith'):
                     uses_arith = True
             elif ok:
                 ok = n.term[1] is not None and base_subject(base_index(n.term[1])).key() == sk
@@ -2659,7 +2788,7 @@ class Structurer:
                 leaves.add(x)
         leaves -= tree
         has_table = any(self.nodes[x].term[0] == 'table' for x in tree)
-        if t[0] == 'if' and root.term[1].a[1].k == 'bin':
+        if t[0] == 'if' and (root.term[1].a[1].k == 'bin' or root.term[1].uns == 'arith'):
             uses_arith = True
         if len(tree) < 2 and not has_table:
             return False
@@ -2678,6 +2807,7 @@ class Structurer:
             for d in range(-40, 41):
                 cand.add(c + d)
         result = {}
+        stubs = set()
         for v in sorted(cand):
             x = root.id
             steps = 0
@@ -2697,6 +2827,16 @@ class Structurer:
                     if idx >= len(tg):
                         return False        # bounds were checked before; unreachable
                     x = tg[idx]
+            # thread through empty jump stubs (MSC's 'jmp default' trampolines)
+            seen_ = set()
+            while x not in tree and x not in seen_:
+                seen_.add(x)
+                n2 = self.nodes[x]
+                if n2.term[0] == 'goto' and not self.visible(n2) and all(p in tree for p in n2.preds):
+                    stubs.add(x)
+                    x = n2.term[1]
+                else:
+                    break
             result[v] = x
         cnt = collections.Counter(result.values())
         # default = target of values far from every case
@@ -2707,6 +2847,9 @@ class Structurer:
             return False
         for x in tree:
             if x != root.id:
+                del self.nodes[x]
+        for x in stubs:
+            if x in self.nodes and x not in cases.values() and x != default:
                 del self.nodes[x]
         root.term = ('switch', subj, cases, default)
         return True
@@ -2859,7 +3002,7 @@ class Structurer:
                     lastn = nodes[order[k - 1]]
                     if lastn.term[0] == 'goto' and pos.get(lastn.term[1], -1) > k and \
                             (pos[lastn.term[1]] <= hi or lastn.term[1] == ctx['follow']) and \
-                            lastn.term[1] not in (ctx.get('brk'),) and self.enclosed(k, pos[lastn.term[1]], None, extra={order[k - 1]}):
+                            lastn.term[1] not in (ctx.get('brk'),) and self.enclosed(k, pos[lastn.term[1]], nid):
                         e = lastn.term[1]
                         ectx = dict(ctx, follow=e)
                         then = self.region(i + 1, k, ectx)
