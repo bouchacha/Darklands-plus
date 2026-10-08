@@ -25,7 +25,7 @@ There are two goals: a **matching decompilation** as a verifiable baseline, then
 3. Port a whole original module (one region / `.asm` file) at a time. That way `push cs` / `call near` same-module calls match.
 4. Verify with `tools/build.py`. A matched function leaves the EXE byte-identical.
 
-**The card scripts are mostly templates.** s044–s135 hold 8,130 of the 9,697 functions (about 900 KB, 65% of all code). There are only 1,723 distinct instruction shapes among them. The ten most common shapes cover 4,420 functions; the most common one, 1,763 functions, just copies a help string ("No risk.", "Enter Combat") and returns -2. 76% of the script functions use a shape that occurs at least five times.
+**The card scripts are mostly templates.** s044–s135 hold 8,130 of the 9,697 functions (about 900 KB, 65% of all code). `tools/card_templates.py` groups the 7,905 script functions by code template, where only the constants differ. It finds 1,739 templates, and the 10 most common cover 56% of the functions. The top 50 cover 72% and the top 200 cover 80%. The most common template, 1,763 functions, just copies a help string ("No risk.", "Enter Combat") and returns -2. Two other templates are 793 copies of identical code.
 
 This code was almost certainly produced by a card-script generator. So for most of it, matching C can be generated mechanically: write each template once, then extract the constants from every instance. That turns the biggest part of the job into a tooling task.
 
