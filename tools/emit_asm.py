@@ -86,6 +86,7 @@ class Emitter:
                                   relocs=set(e.reloc_sites(s.index)),
                                   parent=None if s.parent == 0xffff else 's%03d' % s.parent)
         self.data_img = 's136'
+        self.dgroup_init_end = len(self.exe.sections[136].image)
         # jump table bytes per image
         self.jt_at = {}
         for (img, tl), jt in self.jump_tables.items():
@@ -334,6 +335,25 @@ class Emitter:
             o += ', 1'
         return (m + ' ' + o).strip()
 
+    def string_note(self, r):
+        """Comment text for 'push imm16' / 'mov reg, imm16' whose value starts a DGROUP C string."""
+        raw = r[3]
+        if not ((raw[:1] == b'\x68' and len(raw) == 3) or (0xb8 <= raw[0] <= 0xbf and len(raw) == 3)):
+            return ''
+        v = struct.unpack_from('<H', raw, 1)[0]
+        d = self.images[self.data_img]
+        lin = 0x321a0 + v - d['base'] * 16
+        mem = d['mem']
+        if lin <= 0 or lin >= self.dgroup_init_end or mem[lin - 1] != 0:
+            return ''
+        end = mem.find(b'\0', lin, lin + 120)
+        if end < 0 or end - lin < 3:
+            return ''
+        t = bytes(mem[lin:end])
+        if sum(32 <= c < 127 for c in t) < len(t):
+            return ''
+        return '  "%s"' % t.decode('latin-1').replace('"', "'")
+
     def far_pointer_label(self, img, seg, off):
         """Label for a far pointer seg:off if it points at a known label whose frame is seg."""
         if seg == 0x9c0 and off in self.vectors:
@@ -421,7 +441,8 @@ class Emitter:
                 txt = self.insn_text(img, p, r, (frame, start, end), ext)
                 if txt is not None:
                     flush()
-                    body.append('\t%-40s; @%05x %s' % (txt, p, r[3].hex()))
+                    note = self.string_note(r)
+                    body.append('\t%-40s; @%05x %s%s' % (txt, p, r[3].hex(), note))
                     self.emitted.append((img, p, txt, r[3], self._last_symbolic))
                     p += r[0]
                     continue
