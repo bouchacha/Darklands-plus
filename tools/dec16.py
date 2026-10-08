@@ -3410,6 +3410,19 @@ def decompile_file(prog, img, frame, only=None):
                 rs.add(v.a[0].a[0] - 2)
         if len(rs) == 1 and returns:
             L.ret_struct = rs.pop()
+            # 'r.a = f(); ... return r;' where r.a only ever lived in AX: assign at the call
+            for inst in L.instances:
+                t = inst['term']
+                if not t or t[0] != 'ret' or t[1] is None or t[1].k != 'pair':
+                    continue
+                ax_ = t[1].a[1]
+                if ax_.k not in ('call', 'icall'):
+                    continue
+                for k_, st_ in enumerate(inst['stmts']):
+                    if st_[0] == 'call' and st_[1] is ax_:
+                        inst['stmts'][k_] = ('assign', E('local', L.ret_struct, size=2), ax_)
+                        inst['term'] = ('ret', E('pair', t[1].a[0], E('local', L.ret_struct, size=2), size=4))
+                        break
         for inst in L.instances:
             inst['stmts'] = combine_far_stores(inst['stmts'])
         find_struct_temps(fd, fn, L)
