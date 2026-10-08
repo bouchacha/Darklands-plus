@@ -217,8 +217,9 @@ class Linker:
         self.placed = []            # (module, seg index, image, frame)
 
     def place(self, mods):
-        segmap = self.L['modules']
         for m in mods:
+            segmap = dict(self.L['modules'])
+            segmap.update(self.L.get('object_modules', {}).get(m.path, {}))
             for si in range(1, len(m.segs)):
                 sname, slen = m.segs[si]
                 if sname not in segmap:
@@ -349,9 +350,14 @@ class Linker:
             hint = L['reloc_order'].get(name, [])
             have = dict(I['relocs'])
             out = []
-            for lin in hint:
+            for h in hint:
+                lin, hf = (h if isinstance(h, list) else (h, None))
                 if lin in have:
-                    out.append((lin, have.pop(lin)))
+                    f = have.pop(lin)
+                    # keep the original frame for the entry when it can express this address
+                    if hf is not None and 0 <= lin - hf * 16 <= 0xffff:
+                        f = hf
+                    out.append((lin, f))
             out.extend(sorted(have.items()))
             return [((lin - f * 16), f) for lin, f in out]
 

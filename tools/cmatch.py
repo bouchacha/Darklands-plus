@@ -52,6 +52,7 @@ def check(path, flags=None, verbose=False, exe=None):
     mem = exe.root_memory() if img == 'root' else exe.section_memory(int(img[1:]))
     lo = 0 if img == 'root' else exe.sections[int(img[1:])].load_seg * 16
     start = s['frame'] * 16 + s['offset']
+    cport.infer_data_placement(c, bytes(mem[start - lo: start - lo + c['length']]))
     segs, m = msc.obj_code(open(c['obj'], 'rb').read())
     code = bytearray(segs[c['segment']][0])
     seg_index = [i for i in range(1, len(m.segs)) if m.segs[i][0] == c['segment']][0]
@@ -62,12 +63,19 @@ def check(path, flags=None, verbose=False, exe=None):
             continue
         tm, ti = target
         if tm == 0:
-            if m.segs[ti][0] != c['segment']:
-                unresolved.append('segment target %s' % m.segs[ti][0])
+            tn = m.segs[ti][0]
+            if tn in c['data']:
+                tlin, tfr = 0x321a0 + c['data'][tn] + disp, 0x321a
+            elif tn != c['segment']:
+                unresolved.append('segment target %s' % tn)
                 continue
-            tlin, tfr = start + disp, s['frame']
+            else:
+                tlin, tfr = start + disp, s['frame']
         elif tm == 2:
             r = resolve(m.exts[ti], syms)
+            own = [o for n, s_, o in m.pubs if n == m.exts[ti] and s_ == seg_index]
+            if own:
+                r = [img, start + own[0], s['frame']]
             if r is None:
                 unresolved.append(m.exts[ti])
                 continue
@@ -91,6 +99,21 @@ def check(path, flags=None, verbose=False, exe=None):
             struct.pack_into('<H', code, off + 2, fr)
     orig = bytes(mem[start - lo: start - lo + len(code)])
     ok = orig == bytes(code) and not unresolved
+    # data segments: compare placed bytes (with segment fixups) against the original DGROUP
+    dmem = exe.section_memory(136)
+    dlo = exe.sections[136].load_seg * 16
+    for dn, doff in c['data'].items():
+        di = [i for i in range(1, len(m.segs)) if m.segs[i][0] == dn][0]
+        dbuf = bytearray(segs[dn][0][:c['datasegs'][dn]])
+        for si2, off2, lt2, M2, fr2, tg2, dp2 in m.fixups:
+            if si2 == di and lt2 == 2 and tg2[0] == 2:
+                r = resolve(m.exts[tg2[1]], syms)
+                if r:
+                    struct.pack_into('<H', dbuf, off2, r[2])
+        o = bytes(dmem[0x321a0 + doff - dlo: 0x321a0 + doff - dlo + len(dbuf)])
+        if o != bytes(dbuf):
+            ok = False
+            print('  data segment %s at DGROUP:%04x differs: %s vs original %s' % (dn, doff, dbuf.hex(), o.hex()))
     # which original functions does the range cover?
     print('%s: %d bytes at %s %04x:%04x -> %s' % (os.path.relpath(path, REPO), len(code), img, s['frame'],
                                                   s['offset'], 'MATCH' if ok else 'DIFFERENT'))

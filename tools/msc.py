@@ -78,7 +78,7 @@ def disasm(code, fixups=()):
         note = ''
         for k in range(i.address, i.address + i.size):
             if k in fxat:
-                note = '  <fixup %s>' % (fxat[k][4] or fxat[k][3])
+                note = '  <fixup %s>' % (fxat[k][4] or str(fxat[k][3]))
         lines.append('%04x  %-16s %s %s%s' % (i.address, i.bytes.hex(), i.mnemonic, i.op_str, note))
     return '\n'.join(lines)
 

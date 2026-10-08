@@ -36,9 +36,10 @@ def make_layout(exe, regions):
     L['mz'] = {k: mz[k] for k in ('min_alloc', 'max_alloc', 'ss', 'sp', 'ip', 'cs')}
     L['manager'] = {'seg': exe.mgr_seg, 'table': exe.table_ptr}
     L['groups'] = {'DGROUP': 0x321a}
-    L['reloc_order']['root'] = [seg * 16 + off for off, seg in exe.mz_relocs]
+    # original relocation order and (frame) representation - cosmetic, for byte identity
+    L['reloc_order']['root'] = [[seg * 16 + off, seg] for off, seg in exe.mz_relocs]
     for s in exe.sections:
-        L['reloc_order']['s%03d' % s.index] = [seg * 16 + off for off, seg in s.relocs]
+        L['reloc_order']['s%03d' % s.index] = [[seg * 16 + off, seg] for off, seg in s.relocs]
     for r in regions:
         L['modules'][r['segment']] = {'image': r['image'], 'frame': r['frame']}
     return L
@@ -152,6 +153,13 @@ def main():
         if (c['image'], start) not in entries:
             raise SystemExit('%s: placement %s %04x:%04x is not a function entry' % (
                 c['path'], c['image'], c['frame'], c['offset']))
+        im = exe.root_memory() if c['image'] == 'root' else exe.section_memory(int(c['image'][1:]))
+        ilo = 0 if c['image'] == 'root' else exe.sections[int(c['image'][1:])].load_seg * 16
+        cport.infer_data_placement(c, bytes(im[start - ilo: start - ilo + c['length']]))
+        # the module's data (literals, segment words) replaces the same bytes of DGROUP
+        for dn, doff in c['data'].items():
+            dl = 0x321a0 + doff
+            holes.append(('s136', dl, dl + c['datasegs'][dn], {}))
         names = {start + off: n for n, off in c['publics']}
         holes.append((c['image'], start, end, names))
         cobjs.append(c)
@@ -193,8 +201,12 @@ def main():
         if not new:
             break
     L = make_layout(exe, layout['regions'])
+    per_obj = {}
     for c in cobjs:
         L['modules'][c['segment']] = {'image': c['image'], 'frame': c['frame'], 'offset': c['offset']}
+        # data segments have common names (_DATA/CONST) - give each object its own mapping
+        per_obj[c['obj']] = {n: {'image': 's136', 'frame': 0x321a, 'offset': off} for n, off in c['data'].items()}
+    L['object_modules'] = per_obj
     json.dump(L, open(os.path.join(work, 'layout.json'), 'w'))
     objs = [os.path.join(obj_dir, os.path.splitext(os.path.basename(f))[0] + '.obj') for f in files]
     objs += [c['obj'] for c in cobjs]
