@@ -1,5 +1,5 @@
 /* place: s035 1462:0000 */
-/* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* data: _DATA=37ba */
 /* data: CONST=7e94 */
 /* Item cache screen (overlay s035): get / put items between a party member and a
@@ -14,6 +14,8 @@ struct find_t {
     char name[13];
 };
 typedef struct _iobuf FILE;
+#define FP_SEG(fp) (*((unsigned _far *)&(fp) + 1))
+#define MK_FP(seg, off) ((unsigned char far *)(((unsigned long)(seg) << 16) | (off)))
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {
@@ -59,7 +61,8 @@ struct loc { char pad[0x18]; int cache; };
 
 extern int D_2816, D_2804, D_e7a2, D_e7a0;
 extern char D_907c, D_907b;
-extern int D_89f2, D_89ee, D_2800, D_89f8, D_907e;
+extern int D_89f2, D_89ee, D_89f8, D_907e;
+extern volatile int D_2800;          /* text colour */
 extern volatile int D_6ef0, D_6eec, D_6eee;   /* mouse buttons, x, y */
 extern char D_27f4[], D_2806[], D_e48c[], D_9419[];
 extern int D_906b, D_906d, D_906f;
@@ -73,16 +76,17 @@ extern struct fchar far F_2e38_0000[];
 extern struct itemdef far * far F_2e38_0890[];
 extern struct cent far F_2e38_37f4[];
 
-extern int D_37ba[], D_37c4[], D_37e2[], D_37ce[], D_37d8[], D_37ec[];
-
-int D_37ba[5] = {0};            /* items the member has */
-int D_37c4[5] = {0};            /* 0: member list active, 1: cache list active */
-int D_37ce[5] = {0};            /* member list scroll */
-int D_37d8[5] = {0};            /* cache list scroll */
-int D_37e2[5] = {0};            /* member list cursor */
-int D_37ec[5] = {0};            /* cache list cursor */
-char str_get[] = "\x8c G\xff" "et an item from cache";
-char str_put[] = "\x8c P\xff" "ut an item into cache";
+/* Module data (DGROUP 37ba..382a), per party member [5].  D_37e2/D_37ce are declared
+   first: MSC orders the operands of D_37ce[x] + D_37e2[x] by declaration order. */
+static int D_37e2[5], D_37ce[5];
+static int D_37ba[5] = {0};     /* number of items the member carries */
+static int D_37c4[5] = {0};     /* active list: 0 = member's items, 1 = cache */
+static int D_37ce[5] = {0};     /* member list: first visible item */
+static int D_37d8[5] = {0};     /* cache list: first visible entry */
+static int D_37e2[5] = {0};     /* member list: cursor row */
+static int D_37ec[5] = {0};     /* cache list: cursor row */
+static char str_get[] = "\x8c G\xff" "et an item from cache";
+static char str_put[] = "\x8c P\xff" "ut an item into cache";
 
 int sprintf(char *, const char *, ...);
 int printf(const char *, ...);
@@ -112,9 +116,9 @@ void far sub_root_0000_1716(int);
 void far sub_root_0000_13a0(void);
 void far sub_root_0617_024a(int, char *, char *);
 void far sub_root_0617_011e(char *, void far *);
-unsigned far sub_root_05ba_0004(long, char *);
-void far sub_root_05ba_00c2(unsigned, char *);
-unsigned far sub_root_06a1_2c9e(char *, unsigned, int *);
+unsigned far alloc_buffer(unsigned long, char *);
+void far free_buffer(unsigned, char *);
+unsigned far sub_root_06a1_2c9e(char *, unsigned, int *);   /* _dos_open */
 int far vec_1fdb(int);
 int far vec_2003(int, int);
 int far vec_1f6d(int, struct item);
@@ -416,7 +420,8 @@ void far cache_key(int key)
         sub_root_0000_1588(0x100);
         sub_root_0000_1716(0x100);
         do {
-            D_89f2 = (D_89f2 + 1) % D_a67e;
+            D_89f2++;
+            D_89f2 %= D_a67e;
         } while (D_9c69[D_89f2].present == 0);
         redraw_cache_screen(D_89f2, D_89f8);
         sub_root_047c_04dc(D_27f4, 0x50, 0x33, 0xc8, 9, 8, 9);
@@ -485,7 +490,7 @@ void far cache_key(int key)
             D_37d8[D_89f2]++;
             draw_cache_items(D_907e);
             sub_root_047c_04dc(D_27f4, 0x52, D_37ec[D_89f2] * 8 + 0x55, 0xb9, 8, 8, 9);
-        } else if (!D_37c4[D_89f2] && D_37e2[D_89f2] >= 4 && D_37e2[D_89f2] + D_37ce[D_89f2] < D_37ba[D_89f2]) {
+        } else if (!D_37c4[D_89f2] && D_37e2[D_89f2] >= 4 && D_37ce[D_89f2] + D_37e2[D_89f2] < D_37ba[D_89f2]) {
             D_37e2[D_89f2]--;
             D_37ce[D_89f2]++;
             draw_member_items(D_89f2);
@@ -493,7 +498,7 @@ void far cache_key(int key)
         } else {
             if (D_37ec[D_89f2] >= D_89f0)
                 D_37ec[D_89f2]--;
-            if (D_37e2[D_89f2] >= D_37ba[D_89f2])
+            if (D_37ba[D_89f2] <= D_37e2[D_89f2])
                 D_37e2[D_89f2]--;
             if (D_37ec[D_89f2] >= 4)
                 D_37ec[D_89f2] = 3;
@@ -521,11 +526,10 @@ void far cache_add(int id, int who, int qual)
             return;
         }
     }
-    D_89f0 = D_89f6 + 1;
+    D_89f0 = ++D_89f6;
     F_2e38_37f4[i].id = id;
     F_2e38_37f4[i].qual = qual;
     F_2e38_37f4[i].cnt = 1;
-    D_89f6++;
 }
 
 /* cache_take: remove one item from cache entry idx */
@@ -539,7 +543,7 @@ void far cache_take(unsigned idx)
             F_2e38_37f4[i].qual = F_2e38_37f4[i + 1].qual;
             F_2e38_37f4[i].cnt = F_2e38_37f4[i + 1].cnt;
         }
-        D_89f6 = D_89f0 = i - 1;
+        D_89f0 = --D_89f6;
     }
 }
 
@@ -575,15 +579,14 @@ void far draw_cache_items(int unused)
     sub_root_047c_1293();
 }
 
-/* cache_load: read cache number `handle` from cache.tmp */
+/* cache_load: read cache number `handle` from cache.tmp into the cache table */
 void far cache_load(int handle)
 {
     struct find_t ft;
-    unsigned char far *data;
-    unsigned char far *tab;
+    unsigned char far *buf;
+    int i;
     unsigned char far *p;
-    unsigned seg;
-    unsigned i;
+    unsigned char far *q;
 
     if (handle == -1) {
         D_89f6 = 0;
@@ -594,15 +597,13 @@ void far cache_load(int handle)
         exit_(1);
         return;
     }
-    seg = sub_root_05ba_0004(ft.size, "cache mem");
-    data = (unsigned char far *)((unsigned long)seg << 16);
-    tab = data;
-    p = data;
-    sub_root_0617_011e("cache.tmp", data);
-    tab++;
-    tab += handle * 2 - 1;
-    p += *tab++;
-    p += *tab << 8;
+    p = buf = q = MK_FP(alloc_buffer(ft.size, "cache mem"), 0);
+    sub_root_0617_011e("cache.tmp", buf);
+    /* header: byte 0, byte 1 = number of caches, then a 16-bit offset per cache */
+    q++;
+    q += handle * 2 - 1;
+    p += *q;
+    p += *++q << 8;
     D_89f6 = *p++;
     for (i = 0; i < D_89f6; i++) {
         F_2e38_37f4[i].id = *p++;
@@ -610,22 +611,25 @@ void far cache_load(int handle)
         F_2e38_37f4[i].qual = *p++;
         F_2e38_37f4[i].cnt = *p++;
     }
-    sub_root_05ba_00c2(seg, "Cache");
+    free_buffer(FP_SEG(buf), "Cache");
 }
 
-/* cache_save: write the cache back into cache.tmp; handle -1 appends a new cache */
+/* cache_save: write the cache table back into cache.tmp; handle -1 appends it as a new cache
+   and stores the new handle in the current location */
 void far cache_save(int handle)
 {
     struct find_t ft;
-    int fh;
-    unsigned nw;
-    FILE *fp;
     long pos;
-    unsigned seg;
-    unsigned char far *data;
-    char far *p;
-    int n, i, k;
+    int k;
+    FILE *fp;
     unsigned ncache;
+    unsigned i;
+    int fh;
+    unsigned n;
+    unsigned nw;
+    char far *p;
+    unsigned char far *buf;
+    unsigned char far *q;
 
     if (_dos_findfirst("cache.tmp", 0, &ft)) {
         printf("No cache file\n");
@@ -634,29 +638,27 @@ void far cache_save(int handle)
         sub_root_06a1_2c9e("cache.tmp", 2, &fh);
         fp = fdopen(fh, "r+");
         fgetc(fp);
-        n = fgetc(fp);
+        ncache = fgetc(fp);
         fseek(fp, 0L, 2);
         pos = ftell(fp);
         fputc(D_89f0, fp);
         fseek(fp, 0L, 2);
         _dos_write(fh, F_2e38_37f4, D_89f0 << 2, &nw);
-        fseek(fp, (long)((n + 1) * 2), 0);
+        fseek(fp, (long)((ncache + 1) * 2), 0);
         fputc((int)pos, fp);
         fputc((int)(pos >> 8), fp);
         fseek(fp, 1L, 0);
-        fputc(++n, fp);
+        fputc(++ncache, fp);
         fclose(fp);
-        F_2e38_10be[D_907e]->cache = n;
+        F_2e38_10be[D_907e]->cache = ncache;
     } else {
-        seg = sub_root_05ba_0004(ft.size, "cache mem");
-        data = (unsigned char far *)((unsigned long)seg << 16);
-        p = (char far *)data;
-        sub_root_0617_011e("cache.tmp", data);
+        p = buf = q = MK_FP(alloc_buffer(ft.size, "cache mem"), 0);
+        sub_root_0617_011e("cache.tmp", buf);
         sub_root_06a1_2c9e("cache.tmp", 1, &fh);
         fp = fdopen(fh, "wb");
-        n = data[0];
-        ncache = data[1];
-        p += data[2];
+        n = *q++;
+        ncache = *q++;
+        p += (char)*q;
         fputc(n, fp);
         fputc(ncache, fp);
         for (i = 0; i < n; i++)
@@ -671,7 +673,8 @@ void far cache_save(int handle)
                 fputc(D_89f0, fp);
                 fseek(fp, 0L, 1);
                 _dos_write(fh, F_2e38_37f4, D_89f0 << 2, &nw);
-                p += *p++ << 2;
+                k = *p++;
+                p += k << 2;
             } else {
                 k = *p;
                 pos = ftell(fp);
@@ -683,7 +686,7 @@ void far cache_save(int handle)
                 p += (k << 2) + 1;
             }
         }
-        sub_root_05ba_00c2(seg, "Cache");
+        free_buffer(FP_SEG(buf), "Cache");
         fclose(fp);
     }
 }

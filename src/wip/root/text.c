@@ -49,11 +49,13 @@ long far measure_text_wrapped(struct textwin *w, char *text, int width, int x, i
                               int spacing, struct hotspots *hs, int a, int leading, int icon,
                               int b);
 
-void far draw_text_far(register struct textwin *w, int x, int y, char far *s)
+void far draw_text_far(struct textwin *w0, int x, int y, char far *s)
 {
     char buf[200];
     int hires;
+    register struct textwin *w;
 
+    w = w0;
     if ((hires = sub_root_047c_053e(6)) != 0) {
         x <<= 1;
         w->x0 <<= 1;
@@ -68,10 +70,12 @@ void far draw_text_far(register struct textwin *w, int x, int y, char far *s)
     }
 }
 
-void far draw_text(register struct textwin *w, int x, int y, char *s)
+void far draw_text(struct textwin *w0, int x, int y, char *s)
 {
     int hires;
+    register struct textwin *w;
 
+    w = w0;
     if ((hires = sub_root_047c_053e(6)) != 0) {
         x <<= 1;
         w->x0 <<= 1;
