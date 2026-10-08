@@ -132,6 +132,19 @@ def check(path, verbose=False, flags=None, quiet=False, only=None):
         end = pubs[k + 1][0] if k + 1 < len(pubs) else len(code)
         comp.append((n, off, end))
     pairs = list(zip(comp, origs or []))
+    # if every compiled function carries its original address in its name, pair by address
+    # (a file may contain functions nobody references, which the analysis did not list)
+    named = [re.match(r'^_sub_%s_([0-9a-f]{4})_([0-9a-f]{4})$' % img, n) for n, coff, cend in comp]
+    if comp and all(named) and origs:
+        fend = origs[-1][2]
+        addrs = [int(m_.group(1), 16) * 16 + int(m_.group(2), 16) for m_ in named]
+        if addrs == sorted(addrs) and addrs[0] == origs[0][1]:
+            new = []
+            for k, (cn, coff, cend) in enumerate(comp):
+                oend = addrs[k + 1] if k + 1 < len(addrs) else fend
+                new.append(((cn, coff, cend), (cn[1:], addrs[k], oend)))
+            pairs = new
+            origs = [p_[1] for p_ in pairs]
     cstarts = [p[0][1] for p in pairs]
 
     def comp_to_orig(t):

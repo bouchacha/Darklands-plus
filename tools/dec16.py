@@ -874,6 +874,30 @@ def imm_of(txt):
     return int(txt, 0)
 
 
+def rpo_order(fn):
+    """Blocks in reverse postorder from the entry (unreachable blocks last, by address)."""
+    seen = set()
+    post = []
+    stack = [(fn.start, iter(fn.blocks[fn.start].succ))]
+    seen.add(fn.start)
+    while stack:
+        a, it = stack[-1]
+        nxt = None
+        for sx in it:
+            if sx in fn.blocks and sx not in seen:
+                nxt = sx
+                break
+        if nxt is None:
+            post.append(a)
+            stack.pop()
+        else:
+            seen.add(nxt)
+            stack.append((nxt, iter(fn.blocks[nxt].succ)))
+    order = post[::-1]
+    order += sorted(x for x in fn.blocks if x not in seen)
+    return order
+
+
 class FuncLifter(Lifter):
     def lift(self):
         fn = self.fn
@@ -882,6 +906,7 @@ class FuncLifter(Lifter):
         self.instances = []          # dicts: block, stmts, term, state, inline, src (pred instance, edge)
         self.by_block = collections.defaultdict(list)
         self.zinit = {}              # bp offset -> total size of zero-initialised local array
+        fn.order = rpo_order(fn)
         oi = 0
         while oi < len(fn.order):
             a = fn.order[oi]
@@ -893,8 +918,8 @@ class FuncLifter(Lifter):
                 entries = []
                 lifted = True
                 for p in b.preds:
-                    if p not in self.by_block or p >= a and not self.by_block[p]:
-                        lifted = False
+                    if not self.by_block.get(p):
+                        lifted = False      # a back edge (reverse postorder: every other predecessor is done)
                         continue
                     for inst in self.by_block[p]:
                         entries.append((inst, self.edge_state(inst, a)))
@@ -987,7 +1012,7 @@ class FuncLifter(Lifter):
                 fn.blocks[sx].preds = [nb.start if x == b.start else x for x in fn.blocks[sx].preds]
         b.succ = [nb.start]
         fn.blocks[nb.start] = nb
-        fn.order = sorted(fn.blocks)
+        fn.order.insert(fn.order.index(b.start) + 1, nb.start)
 
     def split_after_phi(self, b, merged, kfail):
         """Split block b after the instructions that consume registers whose value depends on the
@@ -1047,7 +1072,7 @@ class FuncLifter(Lifter):
                     fn.blocks[sx].preds = [nb.start if x == b.start else x for x in fn.blocks[sx].preds]
             b.succ = [nb.start]
             fn.blocks[nb.start] = nb
-            fn.order = sorted(fn.blocks)
+            fn.order.insert(fn.order.index(b.start) + 1, nb.start)
             return True
         return False
 
@@ -1984,6 +2009,13 @@ def function_returns(fn, prog):
             kinds.append(k)
     if 'value' in kinds:
         return True
+    # DX loaded from the frame right before returning: a struct return whose first word is in AX
+    for b in fn.blocks.values():
+        if b.term[0] != 'ret':
+            continue
+        body = [i for i in b.insns if i.address not in fn.epi]
+        if body and body[-1].mnemonic == 'mov' and re.match(r'dx, word ptr \[bp - ', body[-1].op_str):
+            return True
     if prog.result_used(fn.name):
         return True
     return False
@@ -3295,6 +3327,41 @@ def decl_of(ty, name, array=False, ret='void'):
     return '%s %s%s' % (ty, name, '[]' if array else '')
 
 
+def split_unlisted_functions(fd):
+    """Code after a function's last reachable instruction (before the next listed function) is a
+    function nobody calls directly (e.g. an empty 'retf' callback): give it its own entry."""
+    prog = fd.prog
+    out = []
+    work = list(fd.funcs)
+    while work:
+        name, s, e = work.pop(0)
+        fn = Func(prog, fd.img, fd.frame, name, s, e, fd.funcs)
+        try:
+            fn.decode()
+        except DecompileError:
+            out.append((name, s, e))
+            continue
+        covered = set()
+        for a, i in fn.insns.items():
+            covered.update(range(a, a + i.size))
+        for a, jt in fn.tables.items():
+            t0 = jt['table']
+            covered.update(range(t0, t0 + 2 * jt['count']))
+        end = max(covered) + 1 if covered else s
+        mem, lo = fn.mem, fn.lo
+        p = end
+        while p < e and mem[p - lo] == 0x90:
+            p += 1
+        if p < e and p % 2 == 0 and mem[p - lo] in (0xcb, 0xc8, 0x55, 0x56, 0x57, 0x68, 0x6a, 0x9a, 0xc7, 0xa1, 0x0e):
+            nm = 'sub_%s_%04x_%04x' % (fd.img, fd.frame, p - fd.frame * 16)
+            out.append((name, s, p))
+            work.insert(0, (nm, p, e))
+            continue
+        out.append((name, s, e))
+    fd.funcs = out
+    fd.local_names = {n for n, s, e in out}
+
+
 def decompile_file(prog, img, frame, only=None):
     fd = FileDec(prog, img, frame)
     fd.fnret = {}
@@ -3306,6 +3373,7 @@ def decompile_file(prog, img, frame, only=None):
     fd.copy_sizes = set()
     funcs = []
     fd.failed = {}
+    split_unlisted_functions(fd)
     for name, s, e in fd.funcs:
         fn = Func(prog, img, frame, name, s, e, fd.funcs)
         try:
