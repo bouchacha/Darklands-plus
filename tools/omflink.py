@@ -261,6 +261,9 @@ class Linker:
     def resolve_ext(self, name):
         if name in self.symbols:
             return self.symbols[name]
+        al = self.L.get('aliases', {}).get(name)
+        if al and al in self.symbols:
+            return self.symbols[al]
         if name.startswith('FRM_abs_'):
             f = int(name[8:], 16)
             return (None, f * 16, f)

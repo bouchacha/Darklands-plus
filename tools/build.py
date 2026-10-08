@@ -146,6 +146,7 @@ def main():
     an = pickle.load(open(pk, 'rb'))
     entries = set(k for k in an['entries'] if k in an['insns'])
     cobjs, holes = [], []
+    aliases = {}
     for src in cport.sources(REPO):
         c = cport.compile_source(src, os.path.join(work, 'cobj'))
         start = c['frame'] * 16 + c['offset']
@@ -162,6 +163,12 @@ def main():
             holes.append(('s136', dl, dl + c['datasegs'][dn], {}))
         names = {start + off: n for n, off in c['publics']}
         holes.append((c['image'], start, end, names))
+        # the original generated labels of ported functions stay valid as aliases, so other C
+        # files (and asm) can keep calling sub_<image>_<frame>_<offset>
+        for lin, n in names.items():
+            gen = 'sub_%s_%04x_%04x' % (c['image'], c['frame'], lin - c['frame'] * 16)
+            aliases[gen] = n
+            aliases['_' + gen] = n
         cobjs.append(c)
     if cobjs:
         print('C modules: %d files, %d functions, %d bytes' % (
@@ -201,6 +208,7 @@ def main():
         if not new:
             break
     L = make_layout(exe, layout['regions'])
+    L['aliases'] = aliases
     per_obj = {}
     for c in cobjs:
         L['modules'][c['segment']] = {'image': c['image'], 'frame': c['frame'], 'offset': c['offset']}
@@ -217,7 +225,11 @@ def main():
     out = os.path.join(work, 'DARKLAND.EXE')
     data = lk.write_exe(out)
     # symbol table for quick per-file checks (tools/cmatch.py)
-    json.dump({n: list(v) for n, v in lk.symbols.items()}, open(os.path.join(work, 'symbols.json'), 'w'))
+    symtab = {n: list(v) for n, v in lk.symbols.items()}
+    for al, n in aliases.items():
+        if n in lk.symbols and al not in symtab:
+            symtab[al] = list(lk.symbols[n])
+    json.dump(symtab, open(os.path.join(work, 'symbols.json'), 'w'))
     ref = open(a.exe, 'rb').read()
     print('rebuilt %s: %d bytes md5 %s' % (out, len(data), hashlib.md5(data).hexdigest()))
     print('original      : %d bytes md5 %s' % (len(ref), hashlib.md5(ref).hexdigest()))
