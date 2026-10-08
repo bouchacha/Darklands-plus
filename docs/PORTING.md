@@ -71,4 +71,14 @@ Unknown prototypes are fine. Declare what you need at the top of the file, e.g. 
 - **switch** shows up as `dec ax`/`sub ax,N` chains or `jmp cs:[bx+T]` jump tables on a copy in AX. Compares directly on a variable (`cmp si,-1`, `or si,si`) are `if` chains.
 - **Functions returning garbage.** An `int` function may fall off the end; AX then holds whatever was last computed. Do not write `return f();` for a call whose result is merely left in AX — the call would move.
 - **Locals layout** follows usage (reference counts, first use, size), not declaration order, so reproducing the code's uses reproduces the layout.
-- **MSC 6.00 vs 6.00A.** The game was built with a slightly different 6.00 release. Known differences: memset with `rep stosw` (handled by `cport.compat600`), and constants kept in a register for later pushes (`sub ax,ax; mov [x],ax; push ax; push ax` — 6.00A pushes immediates; no C form reproduces this yet).
+- **Equal-arm ternary.** `call f; sub ax,ax; add ax,4; mov [g],ax` is `g = f() ? 4 : 4;`. Ternaries in general: `cmp ax,1; sbb r,r; and r,K; add r,M` is one `v = f() ? M : K+M;`, never split statements.
+- **Return of an assignment.** `mov ax,K; mov [g],ax; (epilogue)` is `return g = K;`. `mov [g],K` followed by `mov ax,K` is `g = K;` at the end of each arm plus one `return K;`.
+- **Void switch functions.** `dec ax; je ...` chains leave AX behind; that is garbage, not a return value. Write a `void` function with `switch (f()) { ... }` (often with `default:` first in the source).
+- **Case ranges.** `dec ax; jge L; jmp out; L: dec ax; jle C12` are consecutive case labels `case 1: case 2:` on one body; no default.
+- **Jump-table switch bodies** are laid out in case-value order whatever the source order, but string literals go into `_DATA` in source order: order the cases like the strings.
+- **Values in DX across compares.** `mov dx,[g]; cmp dx,6; je; cmp dx,8` comes from a temporary: `t = g; if (t == 6 || t == 8)`.
+- **Uninitialised locals** are real: `mov di,[bp-2]` with [bp-2] never written is a local that is read without being set (or set on one path only).
+- **Evaluation order of two calls in one expression** depends on MSC's internal state (symbol table), not only on the source. If everything else matches, extra (unused) `extern` declarations before the function can flip it.
+- **`#pragma optimize("a", on)` … `#pragma optimize("", on)`** around one function reproduces aliasing-dependent code (values kept in registers across far stores, loop-invariant loads) where `/Oa` for the whole file breaks other functions.
+- **128-byte party records**: `shl bx,7; [bx-6397h]` is `struct member D_9c69[]` with 128-byte elements, not a char array.
+- **MSC 6.00 vs 6.00A.** The game was built with a slightly different 6.00 release. Known differences: memset with `rep stosw` (handled by `cport.compat600`), and constants kept in a register for later pushes (`sub ax,ax; mov [x],ax; push ax; push ax`; 6.00A pushes immediates, but `D_x = 0; t.b = 0; f(.., t.b, t.b)` with a dead struct field reproduces it).
