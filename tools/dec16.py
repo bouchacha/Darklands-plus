@@ -1414,6 +1414,52 @@ class FuncLifter(Lifter):
         return ax
 
     # ---------------------------------------------------------------- idioms
+    def expr_temp(self, i, r):
+        """si/di used by MSC to park a value in the middle of one expression: written, read once by
+        an arithmetic instruction in the same block, and dead afterwards."""
+        fn = self.fn
+        rn = fn.md.reg_name
+        a = i.address + i.size
+        uses = 0
+        b = None
+        for blk in fn.blocks.values():
+            if blk.insns and blk.insns[0].address <= i.address <= blk.insns[-1].address:
+                b = blk
+                break
+        if b is None:
+            return False
+        idx = [x.address for x in b.insns].index(i.address)
+        for j in b.insns[idx + 1:]:
+            if j.address in fn.epi:
+                return uses == 1
+            rr, ww = j.regs_access()
+            reads = r in {rn(x) for x in rr}
+            writes = r in {rn(x) for x in ww}
+            if reads:
+                if uses or j.mnemonic not in ('add', 'sub', 'imul', 'and', 'or', 'xor', 'cmp') or \
+                        j.op_str.split(', ')[0] == r:
+                    return False
+                uses += 1
+                if writes:
+                    return False
+                continue
+            if writes:
+                return uses == 1
+        if uses != 1:
+            return False
+        # live out of the block?
+        for sx in b.succ:
+            nb = fn.blocks.get(sx)
+            if nb is None:
+                continue
+            for j in nb.insns:
+                rr, ww = j.regs_access()
+                if r in {rn(x) for x in rr} and j.address not in fn.epi:
+                    return False
+                if r in {rn(x) for x in ww}:
+                    break
+        return True
+
     def sbb_seq(self, ins, k, st):
         """cmp x,1 / [cmc] / sbb r,r / and r,K / add r,M  ->  r = x ? A : B   (r = si/di/ax)"""
         j = k
@@ -1675,10 +1721,11 @@ class FuncLifter(Lifter):
             if d.type == X.X86_OP_REG:
                 r = rn(d.reg)
                 if r in ('si', 'di'):
-                    if self.string_temp(i, r):
+                    if self.string_temp(i, r) or self.expr_temp(i, r):
                         st[r] = v
                         st[r + '_temp'] = True
                         return
+                    st[r + '_temp'] = False
                     self.regvars.add(r)
                     self.emit(st, ('assign', E('reg', r), v))
                     st[r] = None
@@ -2251,6 +2298,10 @@ class Printer:
                 return '%s %s %s' % (ta, o, self.par(b, PREC[o] + 1)), PREC[o]
             if op == '+' and b.k == 'const' and sconst(b) < 0:
                 return '%s - %s' % (self.par(a, 12), self.hexs(-sconst(b))), 12
+            if op in ('+', '*', '&', '|', '^'):
+                ca, cb = first_call(a), first_call(b)
+                if ca is not None and cb is not None and ca < cb:
+                    a, b = b, a         # MSC evaluates the right operand first when both are calls
             pr = PREC[op]
             return '%s %s %s' % (self.par(a, pr), op, self.par(b, pr + 1)), pr
         if k == 'un':
@@ -2315,6 +2366,18 @@ class Printer:
         if e.k == 'cmp' and e.a[0] in ('==',) and is_const(e.a[2], 0):
             return '!' + self.par(e.a[1], 14)
         return self.ex(e)[0]
+
+
+def first_call(e):
+    """Sequence number of the first call inside e (None without calls)."""
+    best = [None]
+
+    def v(x):
+        if x.k in ('call', 'icall') and x.a[2]:
+            if best[0] is None or x.a[2] < best[0]:
+                best[0] = x.a[2]
+    walk(e, v)
+    return best[0]
 
 
 def cstr(b):
