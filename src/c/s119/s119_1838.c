@@ -146,10 +146,9 @@ int far sub_s119_1838_0000(void)
             sub_root_047c_12c3();
             if (!D_ee6e) {
                 l_4 = (*D_ea14[v_si])();
-                goto L_019e;
+            } else {
+                l_4 = (*D_eb0a[D_ee6a])();
             }
-            l_4 = (*D_eb0a[D_ee6a])();
-L_019e:
             switch (v_si) {
             case 0:
                 sub_s119_1838_023a(l_4.a);
@@ -339,11 +338,9 @@ void far sub_s119_1838_04f6(int p_6)
 {
     if (sub_root_0000_0c70(0x64) <= p_6) {
         sub_s043_150b_03b0(8, 0);
-        D_a766 = 1;
-        D_e48a = -3;
-        return;
+    } else {
+        sub_s043_150b_03b0(9, 0);
     }
-    sub_s043_150b_03b0(9, 0);
     D_a766 = 1;
     D_e48a = -3;
 }

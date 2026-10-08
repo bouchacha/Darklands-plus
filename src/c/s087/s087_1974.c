@@ -33,56 +33,41 @@ void far sub_s087_1974_000e(void)
     D_e48a = 0xae;
     if ((char)sub_s029_0e76_1a7e(0x20) & 1) {
         sub_s043_150b_03b0(1, 1);
-        goto L_0088;
+    } else {
+        if ((char)sub_s029_0e76_1a7e(0x20) & 2) {
+            sub_s043_150b_03b0(2, 1);
+        }
     }
-    if ((char)sub_s029_0e76_1a7e(0x20) & 2) {
-        sub_s043_150b_03b0(2, 1);
-    }
-L_0088:
     if ((char)sub_s029_0e76_1a7e(0x20) & -0x80) {
         sub_s043_150b_03b0(9, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
+    } else {
+        if (sub_s029_0e76_3878(0x42, D_907e)) {
+            sub_s043_150b_03b0(8, 1);
+        } else {
+            if (sub_s029_0e76_3470(2, D_907e)) {
+                sub_s043_150b_03b0(3, 1);
+            } else {
+                v_si = sub_s029_0e76_1a7e(0x21) % 0x14;
+                if (v_si == 0x14) {
+                    sub_s043_150b_03b0(4, 1);
+                } else {
+                    if (v_si > 0xe) {
+                        sub_s043_150b_03b0(5, 1);
+                    } else {
+                        if (v_si > 9) {
+                            sub_s043_150b_03b0(6, 1);
+                        } else {
+                            if (v_si > 4) {
+                                sub_s043_150b_03b0(7, 1);
+                            } else {
+                                sub_s043_150b_03b0(0, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    if (sub_s029_0e76_3878(0x42, D_907e)) {
-        sub_s043_150b_03b0(8, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    if (sub_s029_0e76_3470(2, D_907e)) {
-        sub_s043_150b_03b0(3, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    v_si = sub_s029_0e76_1a7e(0x21) % 0x14;
-    if (v_si == 0x14) {
-        sub_s043_150b_03b0(4, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    if (v_si > 0xe) {
-        sub_s043_150b_03b0(5, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    if (v_si > 9) {
-        sub_s043_150b_03b0(6, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    if (v_si > 4) {
-        sub_s043_150b_03b0(7, 1);
-        sub_s029_1367_05c8(1);
-        D_e48a = D_e896;
-        return;
-    }
-    sub_s043_150b_03b0(0, 1);
     sub_s029_1367_05c8(1);
     D_e48a = D_e896;
 }

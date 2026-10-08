@@ -120,85 +120,75 @@ int far sub_s069_19ad_000a(void)
     }
     if (!(sub_s029_0e76_1a8e(D_907e, 0x21) % 5)) {
         sub_s029_1367_0db4(*(int far *)(D_9785 + 0x56) + 0xc, 1, 1);
-        sub_s029_1367_0db4(*(int far *)(D_9785 + 0x56) + 0x16, 2, 0);
-        sub_s069_19ad_058e();
-        if (D_e48a == 0x67) {
-            goto L_0122;
-        }
-        goto L_02b0;
+    } else {
+        sub_s029_1367_0db4(*(int far *)(D_9785 + 0x56) + 0xc, 0, 1);
     }
-    sub_s029_1367_0db4(*(int far *)(D_9785 + 0x56) + 0xc, 0, 1);
     sub_s029_1367_0db4(*(int far *)(D_9785 + 0x56) + 0x16, 2, 0);
     sub_s069_19ad_058e();
     if (D_e48a == 0x67) {
-        goto L_0122;
+        do {
+            D_e99c[0] = (char)D_ee76;
+            D_e99c[1] = (char)D_ee78;
+            D_e99c[2] = (char)D_ee7a;
+            D_e99c[3] = (char)D_ee7c;
+            D_e99c[4] = (char)D_ee7e;
+            D_e99c[5] = (char)D_ee80;
+            D_e99c[6] = (char)D_ee82;
+            D_e99c[7] = (char)D_ee84;
+            D_e99c[8] = (char)D_ee86;
+            D_e99c[9] = (char)D_ee88;
+            D_ea14[0] = sub_s069_19ad_02c0;
+            D_ea14[1] = sub_s069_19ad_032e;
+            D_ea14[2] = sub_s069_19ad_03ac;
+            D_ea14[3] = sub_s069_19ad_03e6;
+            D_ea14[4] = sub_s069_19ad_0424;
+            D_ea14[5] = sub_s069_19ad_045e;
+            D_ea14[6] = sub_s069_19ad_0498;
+            D_ea14[7] = sub_s069_19ad_04d2;
+            D_ea14[8] = sub_s069_19ad_050c;
+            D_ea14[9] = sub_s069_19ad_0556;
+            sub_s043_150b_049a(0);
+            sub_root_047c_1293();
+            v_si = sub_s043_150b_1142(D_017c, D_0154);
+            sub_root_047c_12c3();
+            if (!D_ee6e) {
+                l_4 = (*D_ea14[v_si])();
+            } else {
+                l_4 = (*D_eb0a[D_ee6a])();
+            }
+            switch (v_si) {
+            case 0:
+                sub_s069_19ad_02b8(l_4.a);
+                break;
+            case 1:
+                sub_s069_19ad_02f8(l_4.a);
+                break;
+            case 2:
+                sub_s069_19ad_0366(l_4.a);
+                break;
+            case 3:
+                sub_s069_19ad_03e4(l_4.a);
+                break;
+            case 4:
+                sub_s069_19ad_0422(l_4.a);
+                break;
+            case 5:
+                sub_s069_19ad_045c(l_4.a);
+                break;
+            case 6:
+                sub_s069_19ad_0496(l_4.a);
+                break;
+            case 7:
+                sub_s069_19ad_04d0(l_4.a);
+                break;
+            case 8:
+                sub_s069_19ad_050a(l_4.a);
+                break;
+            case 9:
+                sub_s069_19ad_0544(l_4.a);
+            }
+        } while (D_e48a == 0x67);
     }
-    goto L_02b0;
-    do {
-L_0122:
-        D_e99c[0] = (char)D_ee76;
-        D_e99c[1] = (char)D_ee78;
-        D_e99c[2] = (char)D_ee7a;
-        D_e99c[3] = (char)D_ee7c;
-        D_e99c[4] = (char)D_ee7e;
-        D_e99c[5] = (char)D_ee80;
-        D_e99c[6] = (char)D_ee82;
-        D_e99c[7] = (char)D_ee84;
-        D_e99c[8] = (char)D_ee86;
-        D_e99c[9] = (char)D_ee88;
-        D_ea14[0] = sub_s069_19ad_02c0;
-        D_ea14[1] = sub_s069_19ad_032e;
-        D_ea14[2] = sub_s069_19ad_03ac;
-        D_ea14[3] = sub_s069_19ad_03e6;
-        D_ea14[4] = sub_s069_19ad_0424;
-        D_ea14[5] = sub_s069_19ad_045e;
-        D_ea14[6] = sub_s069_19ad_0498;
-        D_ea14[7] = sub_s069_19ad_04d2;
-        D_ea14[8] = sub_s069_19ad_050c;
-        D_ea14[9] = sub_s069_19ad_0556;
-        sub_s043_150b_049a(0);
-        sub_root_047c_1293();
-        v_si = sub_s043_150b_1142(D_017c, D_0154);
-        sub_root_047c_12c3();
-        if (!D_ee6e) {
-            l_4 = (*D_ea14[v_si])();
-            goto L_021c;
-        }
-        l_4 = (*D_eb0a[D_ee6a])();
-L_021c:
-        switch (v_si) {
-        case 0:
-            sub_s069_19ad_02b8(l_4.a);
-            break;
-        case 1:
-            sub_s069_19ad_02f8(l_4.a);
-            break;
-        case 2:
-            sub_s069_19ad_0366(l_4.a);
-            break;
-        case 3:
-            sub_s069_19ad_03e4(l_4.a);
-            break;
-        case 4:
-            sub_s069_19ad_0422(l_4.a);
-            break;
-        case 5:
-            sub_s069_19ad_045c(l_4.a);
-            break;
-        case 6:
-            sub_s069_19ad_0496(l_4.a);
-            break;
-        case 7:
-            sub_s069_19ad_04d0(l_4.a);
-            break;
-        case 8:
-            sub_s069_19ad_050a(l_4.a);
-            break;
-        case 9:
-            sub_s069_19ad_0544(l_4.a);
-        }
-    } while (D_e48a == 0x67);
-L_02b0:
     return D_e48a;
 }
 

@@ -2104,6 +2104,14 @@ class Printer:
         if k == 'far':
             slot, seg, disp = e.a
             return '%s.f_%04x' % (self.fd.farname(slot), disp), 16
+        if k == 'farindex':
+            slot, seg, ptr, disp = e.a
+            idx, scale = unscale(ptr)
+            fa = self.fd.fars[slot].setdefault('arrays', {})
+            if fa.get(disp, scale) != scale or scale != e.size and e.size != scale:
+                raise DecompileError('far struct array with element size %d / access %d' % (scale, e.size))
+            fa[disp] = scale
+            return '%s.f_%04x[%s]' % (self.fd.farname(slot), disp, self.ex(idx)[0]), 16
         if k == 'fderef':
             ptr, disp = e.a
             ty = {1: 'char', 2: 'int', 4: 'long'}[e.size]
@@ -2576,6 +2584,17 @@ class Node:
     def __init__(self, nid, key, addr, stmts, term):
         self.id, self.key, self.addr, self.stmts, self.term = nid, key, addr, stmts, term
         self.preds = []
+
+
+def unscale(b):
+    """(index, element size) of a scaled index expression."""
+    if b.k == 'bin' and b.a[0] == '<<' and is_const(b.a[2]):
+        return b.a[1], 1 << b.a[2].a[0]
+    if b.k == 'bin' and b.a[0] == '*' and is_const(b.a[2]):
+        return b.a[1], b.a[2].a[0]
+    if b.k == 'bin' and b.a[0] == '+' and b.a[1].eq(b.a[2]):
+        return b.a[1], 2
+    return b, 1
 
 
 def cnot(c):
@@ -3448,6 +3467,7 @@ def collect_usage(fd, lifters):
     fd.globals = {}
     for slot in fd.fars:
         fd.fars[slot]['fields'] = {}
+        fd.fars[slot]['arrays'] = {}
 
     def g(off):
         return fd.globals.setdefault(off, {'sizes': collections.Counter(), 'uns': collections.Counter(),
@@ -3476,6 +3496,11 @@ def collect_usage(fd, lifters):
         elif k == 'far':
             f = fd.fars[e.a[0]]['fields']
             f[e.a[2]] = max(f.get(e.a[2], 0), e.size)
+        elif k == 'farindex':
+            f = fd.fars[e.a[0]]['fields']
+            idx, scale = unscale(e.a[2])
+            f[e.a[3]] = max(f.get(e.a[3], 0), scale)
+            fd.fars[e.a[0]].setdefault('arrays', {})[e.a[3]] = scale
         for x in e.a:
             if isinstance(x, (E, list)):
                 visit(x)
@@ -3539,13 +3564,21 @@ def render_file(prog, img, frame, fd, bodies, stubs=()):
             continue
         parts = []
         pos = 0
-        for disp, size in fields:
+        arrs = fr.get('arrays', {})
+        for n_, (disp, size) in enumerate(fields):
             if disp < pos:
                 raise DecompileError('overlapping far fields in %s' % nm)
             if disp > pos:
                 parts.append('char _p%04x[0x%x];' % (pos, disp - pos))
-            parts.append('%s f_%04x;' % (CTYPE[size] if size != 4 else 'char far *', disp))
-            pos = disp + size
+            ty = CTYPE[size] if size != 4 else 'char far *'
+            if disp in arrs:
+                nxt = fields[n_ + 1][0] if n_ + 1 < len(fields) else None
+                cnt = max(1, (nxt - disp) // size) if nxt is not None else 1
+                parts.append('%s f_%04x[%d];' % (ty, disp, cnt))
+                pos = disp + cnt * size
+            else:
+                parts.append('%s f_%04x;' % (ty, disp))
+                pos = disp + size
         out.append('struct %s_t { %s };' % (nm, ' '.join(parts)))
         out.append('extern struct %s_t far %s;' % (nm, nm))
     for (seg, off) in sorted(fd.farabs):

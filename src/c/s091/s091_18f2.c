@@ -131,10 +131,9 @@ int far sub_s091_18f2_0008(void)
             sub_root_047c_12c3();
             if (!D_ee6e) {
                 l_4 = (*D_ea14[v_si])();
-                goto L_018e;
+            } else {
+                l_4 = (*D_eb0a[D_ee6a])();
             }
-            l_4 = (*D_eb0a[D_ee6a])();
-L_018e:
             switch (v_si) {
             case 0:
                 sub_s091_18f2_022a(l_4.a);

@@ -80,6 +80,8 @@ def main():
     ap.add_argument('--images', default='s044-s135')
     ap.add_argument('--jobs', type=int, default=8)
     ap.add_argument('--only')
+    ap.add_argument('--promote', action='store_true',
+                    help='copy every completely matching file to src/c/<image>/ (hand-written files win)')
     a = ap.parse_args()
     files = json.load(open(os.path.join(REPO, 'build', 'analysis', 'srcfiles.json')))
     lo, hi = a.images.split('-') if '-' in a.images else (a.images, a.images)
@@ -114,6 +116,28 @@ def main():
         print('  %5d  %s' % (c, m))
     diff = sum(1 for r in res for f in r.get('functions', []) if not f[1] and f[0] not in (r.get('failed') or {}))
     print('compiled but different: %d functions' % diff)
+    if a.promote:
+        import shutil
+        n = 0
+        for r in res:
+            if not r.get('file_match'):
+                continue
+            img, fr = r['image'], r['frame']
+            ddir = os.path.join(REPO, 'src', 'c', img)
+            os.makedirs(ddir, exist_ok=True)
+            dst = os.path.join(ddir, '%s_%s.c' % (img, fr))
+            hand = False
+            for f in os.listdir(ddir):
+                pth = os.path.join(ddir, f)
+                if pth != dst and ('place: %s %s:' % (img, fr)) in open(pth, encoding='latin-1').read(300):
+                    hand = True
+            if hand:
+                continue
+            src = os.path.join(GEN, img, '%s_%s.c' % (img, fr))
+            if not os.path.exists(dst) or open(dst).read() != open(src).read():
+                shutil.copy(src, dst)
+                n += 1
+        print('promoted %d new or changed files to src/c' % n)
 
 
 if __name__ == '__main__':
