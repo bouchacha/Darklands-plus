@@ -14,7 +14,7 @@ There are two goals: a **matching decompilation** as a verifiable baseline, then
 | C run-time library and entry points named | done (`symbols/names.txt`) |
 | Game-module map (combat, battlefield, overland, inventory, barter, alchemy, saints, character creation, card engine, card scripts) | done (`docs/MODULE_MAP.md`) |
 | Data files: readers/writers with byte-identical round trips on every shipped file | done (`formats/`) |
-| Ghidra pseudo-C for every function (reference for C porting) | generated into `build/ghidra/out/c/` |
+| Ghidra pseudo-C as a reference for C porting | done for the resident code and s000–s043: 1,704 of 1,792 functions (95%). The card scripts are skipped in favour of `tools/card_templates.py`; `tools/run_ghidra.sh` generates them too (several hours) |
 
 ## Phase 1: matching C, module by module
 

@@ -11,7 +11,7 @@ This repository contains **no game files** and no code generated from them. Ever
 * **Module map.** It records which overlay is combat, battlefield generation, the overland map, inventory, barter, alchemy, saints, character creation and save/load, the card engine, and the 92 town/event card-script overlays (`docs/MODULE_MAP.md`).
 * **Toolchain identified.** Microsoft C 6.0, medium model, `/G2`, linked with RTLink/Plus (`docs/TOOLCHAIN.md`).
 * **Data files.** There are readers for every shipped data format and writers for nearly all of them, verified by byte-identical round trips on all 1,648 files and archive entries (`formats/`).
-* **Ghidra pseudo-C** for every function, as a porting reference (`tools/run_ghidra.sh`).
+* **Ghidra pseudo-C** as a porting reference (`tools/run_ghidra.sh`). It is done for all non-card-script code: 1,704 functions.
 
 ## Quick start
 
