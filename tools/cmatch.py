@@ -40,8 +40,9 @@ def check(path, flags=None, verbose=False, exe=None):
         # allow files outside src/c with a place: line
         head = open(path, encoding='latin-1').read(2000)
         m = cport.PLACE.search(head)
+        fm = cport.FLAGS.search(head)
         src = [{'path': path, 'image': m.group(1), 'frame': int(m.group(2), 16), 'offset': int(m.group(3), 16),
-                'flags': list(msc.DEFAULT)}]
+                'flags': fm.group(1).split() if fm else list(msc.DEFAULT)}]
     s = dict(src[0])
     if flags:
         s['flags'] = flags.split()
