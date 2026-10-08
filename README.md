@@ -6,7 +6,7 @@ This repository contains **no game files** and no code generated from them. Ever
 
 ## What works today
 
-* **Byte-identical rebuild.** `tools/build.py` disassembles the 1.6 MB executable into 490 reassemblable source modules (one per original segment, plus split-out functions), assembles them with JWasm, and links them with a purpose-built RTLink/Plus-compatible linker. The result is a byte-identical `DARKLAND.EXE` (MD5 `0d51cc9458a6724e1bd34a9fe0d81e7f`). All relocation tables, the overlay section table and the MZ header are regenerated, not copied.
+* **Byte-identical rebuild.** `tools/build.py` disassembles the 1.6 MB executable into 489 reassemblable source modules (one per original segment, plus split-out functions), assembles them with JWasm, and links them with a purpose-built RTLink/Plus-compatible linker. The result is a byte-identical `DARKLAND.EXE` (MD5 `0d51cc9458a6724e1bd34a9fe0d81e7f`). All relocation tables, the overlay section table and the MZ header are regenerated, not copied.
 * **Whole-program map.** It covers 9,697 functions across the resident root and 136 overlay sections, classified as compiled C (about 94% of the code by size), hand-written assembly, the C run-time library and the overlay manager. Callers, callees and referenced strings are in `build/analysis/functions.json`.
 * **Module map.** It records which overlay is combat, battlefield generation, the overland map, inventory, barter, alchemy, saints, character creation and save/load, the card engine, and the 92 town/event card-script overlays (`docs/MODULE_MAP.md`).
 * **Toolchain identified.** Microsoft C 6.0, medium model, `/G2`, linked with RTLink/Plus (`docs/TOOLCHAIN.md`).
