@@ -34,6 +34,7 @@ def make_layout(exe, regions):
     mz = exe.mz
     L['mz'] = {k: mz[k] for k in ('min_alloc', 'max_alloc', 'ss', 'sp', 'ip', 'cs')}
     L['manager'] = {'seg': exe.mgr_seg, 'table': exe.table_ptr}
+    L['groups'] = {'DGROUP': 0x321a}
     L['reloc_order']['root'] = [seg * 16 + off for off, seg in exe.mz_relocs]
     for s in exe.sections:
         L['reloc_order']['s%03d' % s.index] = [seg * 16 + off for off, seg in s.relocs]

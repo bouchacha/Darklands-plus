@@ -224,9 +224,11 @@ class Linker:
                 if sname not in segmap:
                     raise LinkError('%s: segment %s not in layout' % (m.path, sname))
                 img, frame = segmap[sname]['image'], segmap[sname]['frame']
-                m.__dict__.setdefault('segplace', {})[si] = (img, frame)
+                base = segmap[sname].get('offset', 0)    # e.g. a compiled C _TEXT placed mid-segment
+                m.__dict__.setdefault('segplace', {})[si] = (img, frame, base)
             for si, off, blob in m.data:
-                img, frame = m.segplace[si]
+                img, frame, base = m.segplace[si]
+                off += base
                 I = self.images[img]
                 lin = frame * 16 + off - I['lo']
                 if lin < 0 or lin + len(blob) > len(I['mem']):
@@ -237,10 +239,20 @@ class Linker:
                     I['mem'][lin + k] = bt
                     I['written'][lin + k] = 1
             for n, si, off in m.pubs:
-                img, frame = m.segplace[si]
+                if si == 0:
+                    continue                                # absolute public (EQU) - not needed
+                img, frame, base = m.segplace[si]
                 if n in self.symbols:
                     raise LinkError('duplicate symbol %s (%s)' % (n, m.path))
-                self.symbols[n] = (img, frame * 16 + off, frame)
+                self.symbols[n] = (img, frame * 16 + base + off, frame)
+
+    def group_frame(self, m, gi):
+        """Groups (e.g. DGROUP from compiled C) map to a fixed frame given in layout['groups']."""
+        gname = m.groups[gi][0]
+        g = self.L.get('groups', {}).get(gname)
+        if g is None:
+            raise LinkError('%s: group %s not in layout' % (m.path, gname))
+        return g
 
     def resolve_ext(self, name):
         if name in self.symbols:
@@ -253,24 +265,27 @@ class Linker:
     def apply(self, mods):
         for m in mods:
             for si, loc_off, loctype, M, frame, target, disp in m.fixups:
-                limg, lframe = m.segplace[si]
+                limg, lframe, lbase = m.segplace[si]
                 I = self.images[limg]
-                loc_lin = lframe * 16 + loc_off
+                loc_lin = lframe * 16 + lbase + loc_off
                 p = loc_lin - I['lo']
                 tm, ti = target
                 if tm == 0:
-                    timg, tframe = m.segplace[ti]
-                    tlin, tfr = tframe * 16 + disp, tframe
+                    timg, tframe, tbase = m.segplace[ti]
+                    tlin, tfr = tframe * 16 + tbase + disp, tframe
                 elif tm == 2:
                     timg, slin, tfr = self.resolve_ext(m.exts[ti])
                     tlin = slin + disp
                 elif tm == 1:
-                    raise LinkError('group targets not supported')
+                    gf = self.group_frame(m, ti)
+                    timg, tlin, tfr = None, gf * 16 + disp, gf
                 else:
                     raise LinkError('target method %d' % tm)
                 fm, fi = frame
                 if fm == 0:
                     fr = m.segplace[fi][1]
+                elif fm == 1:
+                    fr = self.group_frame(m, fi)
                 elif fm == 2:
                     fr = self.resolve_ext(m.exts[fi])[2]
                 elif fm == 4:

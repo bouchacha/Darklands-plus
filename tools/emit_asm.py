@@ -92,6 +92,14 @@ class Emitter:
             self.jt_at[(img, tl)] = jt
         # labels needed: (img, lin)
         self.emitted = []
+        self.far_ptr_sym = 0
+        sp = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'symbols', 'split.txt')
+        self.split = set()
+        if os.path.exists(sp):
+            for line in open(sp):
+                line = line.split(';')[0].strip()
+                if line and not line.startswith('#'):
+                    self.split.add(line)
         self.names = load_names()
         self.labels = set()
         self.ext_refs = collections.defaultdict(set)   # region -> set of (kind, name)
@@ -326,6 +334,24 @@ class Emitter:
             o += ', 1'
         return (m + ' ' + o).strip()
 
+    def far_pointer_label(self, img, seg, off):
+        """Label for a far pointer seg:off if it points at a known label whose frame is seg."""
+        if seg == 0x9c0 and off in self.vectors:
+            return 'vec_%04x' % off
+        timg = self.resolve_frame(img, seg)
+        if timg is None or timg == self.data_img:
+            return None
+        tlin = seg * 16 + off
+        if (timg, tlin) not in self.labels:
+            return None
+        f, _, _ = self.region_of(timg, tlin)
+        if f != seg:
+            return None
+        return self.label_name(timg, tlin)
+
+    def is_local(self, img, name, frame, start, end):
+        return name in self._local_names
+
     def seg_symbol(self, img, v, ext):
         timg = self.resolve_frame(img, v)
         if timg is None:
@@ -336,11 +362,11 @@ class Emitter:
         return name
 
     # ------------------------------------------------------------------ region emission
-    def emit_region(self, img, frame, start, end):
+    def emit_region(self, img, frame, start, end, rname=None):
         I = self.images[img]
         mem = I['mem']
         base = I['base'] * 16
-        rname = self.region_name(img, frame)
+        rname = rname or self.region_name(img, frame)
         ext = set()
         body = []
         pub = set()
@@ -352,6 +378,9 @@ class Emitter:
         anylab = set(labset)
         if img == 'root':
             anylab |= {l for l in self.vec_names if start <= l < hi}
+        self._local_names = {self.label_name(img, l) for l in labset}
+        if img == 'root':
+            self._local_names |= {self.vec_names[l] for l in self.vec_names if start <= l < hi}
         jt_bytes = {}
         for (i, tl), jt in self.jump_tables.items():
             if i == img and start <= tl < hi:
@@ -426,6 +455,20 @@ class Emitter:
                     body.append('\tdw %s\t; @%05x case %d (numeric)' % (hexm(v), p, kk))
                 p += 2
                 continue
+            if (p + 2) in I['relocs'] and p not in I['relocs'] and (p + 1) not in I['relocs'] \
+                    and p + 4 <= hi and not any(q in anylab for q in (p + 1, p + 2, p + 3)) \
+                    and (img, p) not in self.insns:
+                # far pointer stored as data: offset word + relocated segment word
+                off, v = struct.unpack_from('<HH', mem, p - base)
+                nm = self.far_pointer_label(img, v, off)
+                if nm:
+                    flush()
+                    if not self.is_local(img, nm, frame, start, end):
+                        ext.add(('FAR', nm))
+                    body.append('\tdd %s\t; @%05x far ptr' % (nm, p))
+                    self.far_ptr_sym += 1
+                    p += 4
+                    continue
             if p in I['relocs']:
                 flush()
                 v = struct.unpack_from('<H', mem, p - base)[0]
@@ -451,18 +494,21 @@ class Emitter:
         out.append('.286')
         out.append('OPTION NOLJMP')
         fsym = self.frame_symbol(img, frame)
-        defined = R['pub'] | {fsym}
+        owns_frame = rname == self.region_name(img, frame)   # split-off parts reference the anchor
+        defined = R['pub'] | ({fsym} if owns_frame else set())
         for kind, nm in sorted(R['ext']):
             if nm in defined:
                 continue
             out.append('EXTERN %s:%s' % (nm, kind))
         out.append('%s SEGMENT BYTE PUBLIC \'CODE\'' % seg_name)
         out.append('ASSUME CS:%s, DS:NOTHING, ES:NOTHING, SS:NOTHING' % seg_name)
-        out.append('PUBLIC %s' % fsym)
+        if owns_frame:
+            out.append('PUBLIC %s' % fsym)
         for nm in sorted(R['pub']):
             if nm in exported or nm.startswith('sub_') or nm.startswith('vec_') or not nm.startswith('loc_'):
                 out.append('PUBLIC %s' % nm)
-        out.append('%s LABEL BYTE' % fsym)
+        if owns_frame:
+            out.append('%s LABEL BYTE' % fsym)
         if start - frame * 16:
             out.append('ORG %s' % hexm(start - frame * 16))
         out.extend(R['body'])
@@ -486,15 +532,32 @@ class Emitter:
                 e = min(e, hi)
                 if i == 0 and s2 > lo:
                     s2 = lo
-                if e > s2:
-                    yield img, f, s2, e
+                if e <= s2:
+                    continue
+                # functions listed in symbols/split.txt become modules of their own (the unit
+                # that a compiled C replacement takes over); the rest of the region is split around them
+                cuts = []
+                ents = sorted(l for (i, l) in self.entries if i == img and s2 <= l < e and (i, l) in self.insns)
+                for k, l in enumerate(ents):
+                    if self.label_name(img, l) in self.split:
+                        fe = ents[k + 1] if k + 1 < len(ents) else e
+                        cuts.append((l, fe, self.label_name(img, l)))
+                pos = s2
+                base_name = self.region_name(img, f)
+                for fs, fe, nm in cuts:
+                    if fs > pos:
+                        yield img, f, pos, fs, base_name if pos == s2 else '%s_%05x' % (base_name, pos)
+                    yield img, f, fs, fe, '%s__%s' % (base_name, nm.lstrip('_'))
+                    pos = fe
+                if pos < e:
+                    yield img, f, pos, e, base_name if pos == s2 else '%s_%05x' % (base_name, pos)
 
     def emit_all(self, out_dir, only=None):
         files = []
         layout = {'regions': []}
         regs = []
-        for img, f, st, e in self.regions():
-            regs.append(self.emit_region(img, f, st, e))
+        for img, f, st, e, rn in self.regions():
+            regs.append(self.emit_region(img, f, st, e, rn))
         exported = set()
         for R in regs:
             exported |= {nm for kind, nm in R['ext']}
