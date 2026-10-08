@@ -402,14 +402,126 @@ class Analyzer:
                 if key not in self.insns:
                     self.explore(*key)
             self.prologue_scan()
+            self.scan_far_imm_pairs()
             for key in list(self.func_entries):
                 if key not in self.insns:
                     self.explore(*key)
+            if not (len(self.insns) != before):
+                self.gap_scan()
+                for key in list(self.func_entries):
+                    if key not in self.insns:
+                        self.explore(*key)
             changed = len(self.insns) != before
             if rounds > 10:
                 break
         self.find_noreturn()
         return self
+
+    def scan_far_imm_pairs(self):
+        """Far code pointers built in code: 'mov word ptr [m], off' + 'mov word ptr [m+2], SEG'."""
+        p = self.p
+        by_img = collections.defaultdict(list)
+        for (img, lin), r in self.insns.items():
+            if r[3][:1] == b'\xc7':
+                by_img[img].append(lin)
+        for img, lins in by_img.items():
+            I = p.images[img]
+            lins.sort()
+            prev = None
+            for lin in lins:
+                r = self.insns[(img, lin)]
+                raw = r[3]
+                if (lin + r[0] - 2) in I.reloc_sites and prev is not None:
+                    pr = self.insns[(img, prev)]
+                    praw = pr[3]
+                    if prev + pr[0] == lin and len(praw) == len(raw) and praw[1] == raw[1] and len(raw) >= 5:
+                        # same addressing mode; displacement must differ by 2
+                        dl = len(raw) - 3
+                        if dl >= 1:
+                            d0 = int.from_bytes(praw[2:2 + dl - 1 + 1 - 1 + 1][:dl - 0], 'little', signed=True) if False else None
+                        disp_a = int.from_bytes(praw[2:len(praw) - 2], 'little', signed=True) if len(praw) > 4 else 0
+                        disp_b = int.from_bytes(raw[2:len(raw) - 2], 'little', signed=True) if len(raw) > 4 else 0
+                        if disp_b - disp_a == 2:
+                            off = int.from_bytes(praw[-2:], 'little')
+                            seg = int.from_bytes(raw[-2:], 'little')
+                            if seg == MGR_SEG:
+                                if off in p.vectors:
+                                    tname, tlin, vseg = p.vectors[off]
+                                    self.add_entry(tname, tlin, 'far_ptr_code_vector', vseg)
+                                prev = lin
+                                continue
+                            t = p.resolve(img, seg * 16 + off)
+                            if t and not p.images[t].is_data:
+                                self.add_entry(t, seg * 16 + off, 'far_ptr_code', seg)
+                prev = lin
+
+    def gap_scan(self):
+        """Undiscovered code between functions (dead code, or reached only through tables we
+        cannot see): a gap that decodes cleanly into a function ending in ret/retf, with every
+        relocation inside it at an operand position, becomes a function."""
+        p = self.p
+        for name, I in p.images.items():
+            if I.is_data or name == 'root':      # root holds RTLink tables between its code
+                continue
+            st, fr = I.seg_ranges if hasattr(I, 'seg_ranges') else ([], [])
+            cov = self.covered(name)
+            for k in range(len(self.data_bytes[name])):
+                break
+            lin = I.lo
+            hi = I.hi
+            jt = self.data_bytes[name]
+            while lin < hi:
+                if lin in cov or lin in jt:
+                    lin += 1
+                    continue
+                g0 = lin
+                while lin < hi and lin not in cov and lin not in jt:
+                    lin += 1
+                g1 = lin
+                q = g0
+                # skip alignment padding
+                while q < g1 and I.byte(q) in (0x90, 0x00) and (q - g0) < 2:
+                    q += 1
+                if g1 - q < 3:
+                    continue
+                self.try_gap_function(name, q, g1)
+
+    def try_gap_function(self, name, start, end):
+        I = self.p.images[name]
+        # typical MSC function starts only
+        if I.byte(start) not in (0x55, 0xc8, 0x56, 0x57, 0x6a, 0x68, 0x1e, 0xa1, 0xa0, 0xc7, 0xc6, 0x8b,
+                                 0x2b, 0x33, 0x83, 0x80, 0x3d, 0x3c, 0x8e, 0x9a, 0xb8, 0xb9, 0xba, 0xbb,
+                                 0xbe, 0xbf, 0xff, 0x26, 0xcb):
+            return
+        frame = self.frame_for(name, start)
+        cur = start
+        ok = False
+        n = 0
+        while cur < end and n < 400:
+            code = I.bytes_at(cur, 16)
+            try:
+                ins = next(md.disasm(code, cur - frame * 16, 1))
+            except StopIteration:
+                return
+            if ins.mnemonic in ('(bad)',) or cur + ins.size > end:
+                return
+            raw = bytes(ins.bytes)
+            for rs in range(cur, cur + ins.size):
+                if rs in I.reloc_sites:
+                    if not ((raw[0] in (0x9a, 0xea) and rs == cur + 3) or (0xb8 <= raw[0] <= 0xbf and rs == cur + 1)
+                            or (raw[0] in (0xc7, 0x68) and rs == cur + ins.size - 2)):
+                        return
+            if (cur - 1) in I.reloc_sites:
+                return
+            if ins.mnemonic in ('hlt', 'int3', 'in', 'out', 'les', 'lds') and n == 0:
+                return
+            n += 1
+            cur += ins.size
+            if raw[0] in (0xc3, 0xcb, 0xc2, 0xca, 0xcf) or raw[0] in (0xe9, 0xeb, 0xea):
+                ok = True
+                break
+        if ok and n >= 2:
+            self.add_entry(name, start, 'gap_scan', frame)
 
     def scan_far_pointers(self):
         p = self.p

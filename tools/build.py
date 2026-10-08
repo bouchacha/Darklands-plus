@@ -18,7 +18,8 @@ import sys, os, json, subprocess, argparse, collections, struct, re, hashlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from rtlink import RTLinkExe
-import emit_asm, omflink
+import emit_asm, omflink, cport
+REPO = os.path.dirname(HERE)
 
 JWASM = os.environ.get('JWASM', '/home/claude/tools_ext/jwasm-bin')
 
@@ -139,8 +140,26 @@ def main():
     asm_dir = os.path.join(work, 'asm')
     obj_dir = os.path.join(work, 'obj')
     os.makedirs(obj_dir, exist_ok=True)
+    # ---- matching C: compile src/c/**.c with MSC 6.00A and cut their ranges out of the asm
+    import pickle
+    an = pickle.load(open(pk, 'rb'))
+    entries = set(k for k in an['entries'] if k in an['insns'])
+    cobjs, holes = [], []
+    for src in cport.sources(REPO):
+        c = cport.compile_source(src, os.path.join(work, 'cobj'))
+        start = c['frame'] * 16 + c['offset']
+        end = start + c['length']
+        if (c['image'], start) not in entries:
+            raise SystemExit('%s: placement %s %04x:%04x is not a function entry' % (
+                c['path'], c['image'], c['frame'], c['offset']))
+        names = {start + off: n for n, off in c['publics']}
+        holes.append((c['image'], start, end, names))
+        cobjs.append(c)
+    if cobjs:
+        print('C modules: %d files, %d functions, %d bytes' % (
+            len(cobjs), sum(len(c['publics']) for c in cobjs), sum(c['length'] for c in cobjs)))
     for it in range(6):
-        em = emit_asm.Emitter(a.exe, pk, force)
+        em = emit_asm.Emitter(a.exe, pk, force, holes)
         files, layout = em.emit_all(asm_dir)
         new = encoding_check(em.emitted, work)
         new -= force
@@ -174,14 +193,19 @@ def main():
         if not new:
             break
     L = make_layout(exe, layout['regions'])
+    for c in cobjs:
+        L['modules'][c['segment']] = {'image': c['image'], 'frame': c['frame'], 'offset': c['offset']}
     json.dump(L, open(os.path.join(work, 'layout.json'), 'w'))
     objs = [os.path.join(obj_dir, os.path.splitext(os.path.basename(f))[0] + '.obj') for f in files]
+    objs += [c['obj'] for c in cobjs]
     mods = [omflink.Module(o) for o in objs]
     lk = omflink.Linker(L)
     lk.place(mods)
     lk.apply(mods)
     out = os.path.join(work, 'DARKLAND.EXE')
     data = lk.write_exe(out)
+    # symbol table for quick per-file checks (tools/cmatch.py)
+    json.dump({n: list(v) for n, v in lk.symbols.items()}, open(os.path.join(work, 'symbols.json'), 'w'))
     ref = open(a.exe, 'rb').read()
     print('rebuilt %s: %d bytes md5 %s' % (out, len(data), hashlib.md5(data).hexdigest()))
     print('original      : %d bytes md5 %s' % (len(ref), hashlib.md5(ref).hexdigest()))
@@ -190,6 +214,17 @@ def main():
     else:
         diffs = [i for i in range(min(len(ref), len(data))) if ref[i] != data[i]]
         print('DIFFERENT: %d differing bytes; first %s' % (len(diffs), [hex(x) for x in diffs[:16]]))
+        # attribute differences to C modules (image-level compare)
+        rexe = RTLinkExe(a.exe)
+        for c in cobjs:
+            st = c['frame'] * 16 + c['offset']
+            img = c['image']
+            orig = rexe.root_memory() if img == 'root' else rexe.section_memory(int(img[1:]))
+            new = lk.images[img]['mem']
+            lo = lk.images[img]['lo']
+            seg = bytes(orig[st - lo: st - lo + c['length']]) == bytes(new[st - lo: st - lo + c['length']])
+            print('  %-40s %s' % (os.path.relpath(c['path'], REPO), 'match' if seg else 'MISMATCH'))
+        sys.exit(1)
     stats = {'regions': len(files), 'symbolic_instructions': len(em.emitted), 'forced_db': len(force)}
     json.dump(stats, open(os.path.join(work, 'build_stats.json'), 'w'))
 

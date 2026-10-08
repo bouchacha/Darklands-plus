@@ -66,7 +66,13 @@ def load_names(path=None):
 
 
 class Emitter:
-    def __init__(self, exe_path, pickle_path, force_db=()):
+    def __init__(self, exe_path, pickle_path, force_db=(), holes=()):
+        # holes: (image, lin_start, lin_end, {lin: public name}) ranges supplied by compiled C
+        self.holes = list(holes)
+        self.overrides = {}
+        for img, a, b, names in self.holes:
+            for lin, nm in names.items():
+                self.overrides[(img, lin)] = nm
         self.exe = RTLinkExe(exe_path)
         d = pickle.load(open(pickle_path, 'rb'))
         self.insns = d['insns']
@@ -124,6 +130,8 @@ class Emitter:
         return '%s_%04x' % (img, frame)
 
     def label_name(self, img, lin):
+        if (img, lin) in self.overrides:
+            return self.overrides[(img, lin)]
         f, _, _ = self.region_of(img, lin)
         kind = 'sub' if (img, lin) in self.entries else 'loc'
         gen = '%s_%s_%04x_%04x' % (kind, img, f, lin - f * 16)
@@ -563,12 +571,20 @@ class Emitter:
                     if self.label_name(img, l) in self.split:
                         fe = ents[k + 1] if k + 1 < len(ents) else e
                         cuts.append((l, fe, self.label_name(img, l)))
+                for himg, ha, hb, _ in self.holes:
+                    if himg == img and s2 <= ha < e:
+                        if hb > e:
+                            raise SystemExit('C replacement %s:%05x-%05x crosses a segment boundary' % (img, ha, hb))
+                        cuts = [c for c in cuts if not (ha <= c[0] < hb)]
+                        cuts.append((ha, hb, None))
+                cuts.sort()
                 pos = s2
                 base_name = self.region_name(img, f)
                 for fs, fe, nm in cuts:
                     if fs > pos:
                         yield img, f, pos, fs, base_name if pos == s2 else '%s_%05x' % (base_name, pos)
-                    yield img, f, fs, fe, '%s__%s' % (base_name, nm.lstrip('_'))
+                    if nm is not None:
+                        yield img, f, fs, fe, '%s__%s' % (base_name, nm.lstrip('_'))
                     pos = fe
                 if pos < e:
                     yield img, f, pos, e, base_name if pos == s2 else '%s_%05x' % (base_name, pos)

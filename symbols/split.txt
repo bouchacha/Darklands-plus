@@ -1,5 +1,3 @@
 # Functions emitted as standalone modules (one .asm each), ready to be replaced by compiled C.
 # One label or name per line.
-_main
 sub_s014_0e76_4188
-_random_n

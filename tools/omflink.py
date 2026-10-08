@@ -21,7 +21,7 @@ Supported OMF subset: THEADR, COMENT, LNAMES, SEGDEF(16), GRPDEF, PUBDEF(16/32),
 LEDATA(16/32), LIDATA(16), FIXUPP (threads + fixups; location types 0,1,2,3,4,5),
 MODEND. One or more segments per module.
 """
-import sys, os, json, struct, collections
+import sys, os, json, struct, collections, re
 
 
 class LinkError(Exception):
@@ -222,6 +222,9 @@ class Linker:
             for si in range(1, len(m.segs)):
                 sname, slen = m.segs[si]
                 if sname not in segmap:
+                    if slen == 0:
+                        m.__dict__.setdefault('segplace', {})[si] = None    # empty (e.g. C _DATA)
+                        continue
                     raise LinkError('%s: segment %s not in layout' % (m.path, sname))
                 img, frame = segmap[sname]['image'], segmap[sname]['frame']
                 base = segmap[sname].get('offset', 0)    # e.g. a compiled C _TEXT placed mid-segment
@@ -260,6 +263,17 @@ class Linker:
         if name.startswith('FRM_abs_'):
             f = int(name[8:], 16)
             return (None, f * 16, f)
+        # names used from C: _D_xxxx = DGROUP:xxxx, _F_ssss_xxxx = far data, _foo = asm label foo
+        mm = re.match(r'^_D_([0-9a-fA-F]{1,4})$', name)
+        if mm:
+            dg = self.L['groups']['DGROUP']
+            return ('s136', dg * 16 + int(mm.group(1), 16), dg)
+        mm = re.match(r'^_F_([0-9a-fA-F]{4})_([0-9a-fA-F]{1,4})$', name)
+        if mm:
+            f = int(mm.group(1), 16)
+            return ('s136', f * 16 + int(mm.group(2), 16), f)
+        if name.startswith('_') and name[1:] in self.symbols:
+            return self.symbols[name[1:]]
         raise LinkError('unresolved external %s' % name)
 
     def apply(self, mods):
