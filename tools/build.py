@@ -54,12 +54,12 @@ def run_jwasm(src, obj, lst=None, fmt='-omf'):
 def encoding_check(emitted, work):
     """Assemble each distinct label-free instruction text once; return set of (img, lin) to force to db."""
     texts = collections.defaultdict(list)
-    for img, lin, txt, raw in emitted:
-        if re.search(r'\b(sub|loc|vec|FRM)_', txt):
+    for img, lin, txt, raw, symbolic in emitted:
+        if symbolic:
             continue
         texts[txt].append((img, lin, raw))
     order = sorted(texts)
-    src = os.path.join(work, 'enccheck.asm')
+    src = os.path.join(work, 'enccheck.asm')  # JWasm writes <name>.err to cwd on errors
     with open(src, 'w') as f:
         f.write('.286\nOPTION NOLJMP\nT SEGMENT BYTE PUBLIC \'CODE\'\nASSUME CS:T,DS:NOTHING,ES:NOTHING,SS:NOTHING\n')
         for i, t in enumerate(order):

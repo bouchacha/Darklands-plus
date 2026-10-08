@@ -1,0 +1,128 @@
+# Symbol names: <generated label> <name> [; evidence]
+# Generated labels are sub_<image>_<frame>_<offset> (see tools/emit_asm.py). Names here are
+# applied by the emitter, listings and the Ghidra export. Only confident identifications.
+#
+# ---- program entry / RTLink/Plus overlay manager (root 09c0, 0d14)
+sub_root_09c0_06fd  rtl_start            ; MZ entry point: RTLink init, then jmp far __astart
+sub_root_09c0_052b  rtl_vector_handler   ; every overlay vector stub calls this (load section, jump)
+# ---- Microsoft C 6.0 run-time library (root 06a1 = _TEXT of crt0 + LLIBCE/MLIBCE)
+sub_root_06a1_001a  __astart             ; C start-up: DOS version check, stack/DGROUP setup, calls main
+sub_root_06a1_01d7  _exit_               ; exit(): runs atexit/onexit tables, flushes, int 21h/4Ch  (named _exit_ to avoid clash)
+sub_root_06a1_01de  __exit               ; _exit()
+sub_root_06a1_01e6  __cexit              ; _cexit()
+sub_root_06a1_01f0  __c_exit             ; _c_exit()
+sub_root_06a1_025a  __ctermsub           ; restore interrupt vectors on exit
+sub_root_06a1_0287  __initterm           ; walk a table of far function pointers
+sub_root_06a1_029a  __FF_MSGBANNER       ; "run-time error" banner
+sub_root_06a1_02bc  __amsg_exit          ; fatal run-time error exit
+sub_root_06a1_02c2  __chkstk             ; stack probe (pop cx/dx; sub bx,ax; compare with STKHQQ)
+sub_root_06a1_02e6  __nullcheck          ; checksum of DGROUP:0000-0041 ("null pointer assignment")
+sub_root_06a1_030a  __setargv            ; parse PSP command tail / environment
+sub_root_06a1_049c  __NMSG_TEXT
+sub_root_06a1_04c7  __NMSG_WRITE
+sub_root_06a1_054c  __dosmaperr          ; DOS error -> errno
+sub_root_06a1_05e2  _fclose
+sub_root_06a1_069c  __fsopen
+sub_root_06a1_06c8  _fopen               ; fopen(name, mode) -> _fsopen(name, mode, 0)
+sub_root_06a1_06de  _fprintf
+sub_root_06a1_0716  _fread
+sub_root_06a1_07fa  _fwrite
+sub_root_06a1_0900  _printf              ; uses stdout (DGROUP:77c0)
+sub_root_06a1_093e  __filbuf
+sub_root_06a1_09d4  __flsbuf
+sub_root_06a1_0ab8  __freebuf
+sub_root_06a1_0ae4  __getbuf
+sub_root_06a1_0b28  __openfile           ; parses "r", "w", "a", "+", "b", "t"
+sub_root_06a1_0c10  __stbuf
+sub_root_06a1_0c83  __ftbuf
+sub_root_06a1_0cc2  _fflush
+sub_root_06a1_0d36  _flushall
+sub_root_06a1_0d3e  __flsall
+sub_root_06a1_0d9a  __output             ; printf engine
+sub_root_06a1_1272  __getstream
+sub_root_06a1_12a6  _putchar
+sub_root_06a1_12ae  _fputc
+sub_root_06a1_12d4  _getchar
+sub_root_06a1_12dc  _fgetc
+sub_root_06a1_131a  _lseek
+sub_root_06a1_1394  _open
+sub_root_06a1_1550  _read                ; handles text-mode CR/LF and ^Z
+sub_root_06a1_163a  _write
+sub_root_06a1_177a  _stackavail
+sub_root_06a1_178e  _malloc              ; -> _nmalloc (near heap: medium model)
+sub_root_06a1_1794  _free                ; -> _nfree
+sub_root_06a1_179a  __nfree
+sub_root_06a1_17bb  __nmalloc
+sub_root_06a1_195e  _strcat
+sub_root_06a1_199e  _strcpy
+sub_root_06a1_19d0  _strlen
+sub_root_06a1_19ec  _strncpy
+sub_root_06a1_1a4e  _atoi
+sub_root_06a1_1a52  _atol
+sub_root_06a1_1aaa  _itoa
+sub_root_06a1_1ac6  _ltoa
+sub_root_06a1_1ad0  _ultoa
+sub_root_06a1_1ada  __toupper
+sub_root_06a1_1ae6  _toupper
+sub_root_06a1_1afc  _abort
+sub_root_06a1_1b1c  _getenv
+sub_root_06a1_1c0a  _kbhit
+sub_root_06a1_1c30  _getch
+sub_root_06a1_1c58  _int86               ; builds "int nn; retf" on the stack
+sub_root_06a1_1d04  _fcloseall
+sub_root_06a1_1d2a  _fdopen
+sub_root_06a1_1de2  _fseek
+sub_root_06a1_1e62  _ftell
+sub_root_06a1_1fd8  _puts
+sub_root_06a1_2096  _sprintf             ; near buffer: medium model
+sub_root_06a1_20f0  _creat
+sub_root_06a1_21c6  _intdos
+sub_root_06a1_220e  _intdosx
+sub_root_06a1_226c  _movedata
+sub_root_06a1_228a  _inp
+sub_root_06a1_2298  _outp
+sub_root_06a1_22a6  _ftime
+sub_root_06a1_23a8  _time
+sub_root_06a1_23fc  __tzset
+sub_root_06a1_240e  _tzset
+sub_root_06a1_24b6  __isindst
+sub_root_06a1_2682  _clock
+sub_root_06a1_26de  __strdate
+sub_root_06a1_2724  __strtime
+sub_root_06a1_278a  _stricmp
+sub_root_06a1_27cc  _strnicmp
+sub_root_06a1_287e  _memcpy
+sub_root_06a1_2916  _raise
+sub_root_06a1_29a4  _srand
+sub_root_06a1_29b6  _rand                ; holdrand = holdrand*214013 + 2531011
+sub_root_06a1_29de  _setjmp
+sub_root_06a1_2a01  _longjmp
+sub_root_06a1_2adc  _signal
+sub_root_06a1_2ba4  __assert             ; "Assertion failed: %s, file %s, line %d"
+sub_root_06a1_2bd4  _remove
+sub_root_06a1_2be2  __dos_allocmem
+sub_root_06a1_2bfa  __bios_timeofday
+sub_root_06a1_2c28  __dos_close
+sub_root_06a1_2c36  __dos_creatnew
+sub_root_06a1_2c3d  __dos_creat
+sub_root_06a1_2c60  __dos_findnext
+sub_root_06a1_2c6b  __dos_findfirst
+sub_root_06a1_2cb6  __dos_read
+sub_root_06a1_2cbd  __dos_write
+sub_root_06a1_2ce6  __dos_freemem
+sub_root_06a1_2cf4  __dos_getdate
+sub_root_06a1_2d0e  __dos_gettime
+sub_root_06a1_2d28  __aFldiv             ; signed 32-bit divide helper
+sub_root_06a1_2dc2  __aFlmul             ; 32-bit multiply helper
+sub_root_06a1_2df4  __aFlrem             ; signed 32-bit remainder helper
+sub_root_06a1_2e94  __aFNaldiv           ; long /= long (in place)
+sub_root_06a1_2eb4  __fmemcpy
+sub_root_06a1_2f12  __fstricmp
+sub_root_06a1_2f94  __fstrncpy
+sub_root_06a1_2fbe  __fstrcmp
+sub_root_06a1_2fe8  __fstrcpy            ; most-called function in the game (1998 call sites)
+sub_root_06a1_301e  __fstrcat
+sub_root_06a1_3064  __fmemset
+# ---- game
+sub_s000_0e76_0022  _main                ; called by __astart through RTLink vector 1923
+sub_root_0410_0008  _random_n            ; (rand()*2 * n) >> 16 : random number in [0,n)

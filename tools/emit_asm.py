@@ -49,6 +49,22 @@ def masm_operands(ops):
     return ops
 
 
+def load_names(path=None):
+    """symbols/names.txt: '<generated label> <name> [; comment]' lines."""
+    path = path or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'symbols', 'names.txt')
+    names = {}
+    if os.path.exists(path):
+        for line in open(path):
+            line = line.split(';')[0].strip()
+            if not line or line.startswith('#'):
+                continue
+            a, b = line.split()[:2]
+            names[a] = b
+    if len(set(names.values())) != len(names):
+        raise SystemExit('duplicate names in symbols/names.txt')
+    return names
+
+
 class Emitter:
     def __init__(self, exe_path, pickle_path, force_db=()):
         self.exe = RTLinkExe(exe_path)
@@ -76,6 +92,7 @@ class Emitter:
             self.jt_at[(img, tl)] = jt
         # labels needed: (img, lin)
         self.emitted = []
+        self.names = load_names()
         self.labels = set()
         self.ext_refs = collections.defaultdict(set)   # region -> set of (kind, name)
         # vector stubs in the RTLink manager segment: label each stub, and resolve its far jmp
@@ -100,7 +117,8 @@ class Emitter:
     def label_name(self, img, lin):
         f, _, _ = self.region_of(img, lin)
         kind = 'sub' if (img, lin) in self.entries else 'loc'
-        return '%s_%s_%04x_%04x' % (kind, img, f, lin - f * 16)
+        gen = '%s_%s_%04x_%04x' % (kind, img, f, lin - f * 16)
+        return self.names.get(gen, gen)
 
     def frame_symbol(self, img, frame):
         return 'FRM_%s_%04x' % (img, frame)
@@ -172,6 +190,14 @@ class Emitter:
     # ------------------------------------------------------------------ instruction text
     def insn_text(self, img, lin, r, region, ext):
         """Return MASM text for the instruction or None if it must be emitted as bytes."""
+        n0 = len(ext)
+        self._sym_hint = False
+        t = self._insn_text(img, lin, r, region, ext)
+        self._last_symbolic = bool(t) and (len(ext) != n0 or self._sym_hint or
+                                           bool(re.search(r'\b(sub|loc|vec|FRM)_', t)) or ' ptr _' in t or 'SEG ' in t)
+        return t
+
+    def _insn_text(self, img, lin, r, region, ext):
         size, mn, ops, raw, frame, off = r
         I = self.images[img]
         if (img, lin) in self.force_db:
@@ -195,6 +221,7 @@ class Emitter:
                     return None
                 name = self.label_name(timg, tlin)
                 ext.add(('FAR', name))
+                self._sym_hint = True
                 return 'jmp far ptr %s' % name
             if tseg == 0x9c0 and toff in self.vectors and img != 'root':
                 # call through RTLink vector: target label is the vector stub in root
@@ -215,6 +242,7 @@ class Emitter:
                     self.labels.add((timg, tlin))
                 if (timg, f2) != (img, rf) or name.startswith('vec_'):
                     ext.add(('FAR', name))
+            self._sym_hint = True
             return '%s far ptr %s' % ('call' if op == 0x9a else 'jmp', name)
         if reloc_in:
             # mov r16, SEG x
@@ -244,6 +272,7 @@ class Emitter:
         if tgt is not None:
             same = rs <= tgt and (re_ is None or tgt < re_)
             name = self.label_name(img, tgt)
+            self._sym_hint = True
             if op == 0xe8 and k == 0:
                 if not same:
                     ext.add(('NEAR', name))
@@ -266,6 +295,7 @@ class Emitter:
             if jts and mm and jts[0]['seg'] == rf:
                 tl = rf * 16 + int(mm.group(2), 16)
                 if rs <= tl and (re_ is None or tl < re_):
+                    self._sym_hint = True
                     return 'jmp word ptr cs:%s[%s]' % (self.label_name(img, tl), mm.group(1))
         # ---- generic
         m = MNEMONIC_FIX.get(mn, mn)
@@ -363,7 +393,7 @@ class Emitter:
                 if txt is not None:
                     flush()
                     body.append('\t%-40s; @%05x %s' % (txt, p, r[3].hex()))
-                    self.emitted.append((img, p, txt, r[3]))
+                    self.emitted.append((img, p, txt, r[3], self._last_symbolic))
                     p += r[0]
                     continue
                 # emit as bytes, with relocs as SEG words
@@ -430,7 +460,7 @@ class Emitter:
         out.append('ASSUME CS:%s, DS:NOTHING, ES:NOTHING, SS:NOTHING' % seg_name)
         out.append('PUBLIC %s' % fsym)
         for nm in sorted(R['pub']):
-            if nm in exported or nm.startswith('sub_') or nm.startswith('vec_'):
+            if nm in exported or nm.startswith('sub_') or nm.startswith('vec_') or not nm.startswith('loc_'):
                 out.append('PUBLIC %s' % nm)
         out.append('%s LABEL BYTE' % fsym)
         if start - frame * 16:
