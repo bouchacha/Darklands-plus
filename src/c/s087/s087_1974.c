@@ -20,9 +20,9 @@ int far sub_s029_0e76_3878();
 int far sub_s029_1367_05c8();
 int far sub_s043_150b_000a();
 int far sub_s043_150b_03b0();
-void far sub_s087_1974_000e();
+int far sub_s087_1974_000e();
 
-void far sub_s087_1974_000e(void)
+int far sub_s087_1974_000e(void)
 {
     int v_si;
     strcpy(D_e3d4, "$Situa01");
@@ -69,5 +69,5 @@ void far sub_s087_1974_000e(void)
         }
     }
     sub_s029_1367_05c8(1);
-    D_e48a = D_e896;
+    return D_e48a = D_e896;
 }

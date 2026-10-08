@@ -62,7 +62,7 @@ int far sub_s043_150b_168c();
 int far sub_s119_1838_0000();
 void far sub_s119_1838_023a();
 struct res far sub_s119_1838_0248();
-void far sub_s119_1838_0280();
+int far sub_s119_1838_0280();
 struct res far sub_s119_1838_02a8();
 int far sub_s119_1838_02e0();
 struct res far sub_s119_1838_031a();
@@ -74,7 +74,7 @@ void far sub_s119_1838_03f0();
 struct res far sub_s119_1838_040a();
 void far sub_s119_1838_0442();
 struct res far sub_s119_1838_045c();
-void far sub_s119_1838_0494();
+int far sub_s119_1838_0494();
 struct res far sub_s119_1838_04be();
 void far sub_s119_1838_04f6();
 struct res far sub_s119_1838_0526();
@@ -200,7 +200,7 @@ struct res far sub_s119_1838_0248(void)
     return r;
 }
 
-void far sub_s119_1838_0280(void)
+int far sub_s119_1838_0280(void)
 {
     D_ee53 = 1;
     D_ee80 = 1;
@@ -212,7 +212,7 @@ void far sub_s119_1838_0280(void)
     D_ee7c = 0;
     D_ee7e = 0;
     D_ee86 = 0;
-    D_ee88 = 0;
+    return D_ee88 = 0;
 }
 
 struct res far sub_s119_1838_02a8(void)
@@ -310,7 +310,7 @@ struct res far sub_s119_1838_045c(void)
     return r;
 }
 
-void far sub_s119_1838_0494(void)
+int far sub_s119_1838_0494(void)
 {
     D_ee53 = 7;
     D_ee76 = 0;
@@ -322,7 +322,7 @@ void far sub_s119_1838_0494(void)
     D_ee82 = 0;
     D_ee84 = 0;
     D_ee86 = 1;
-    D_ee88 = 1;
+    return D_ee88 = 1;
 }
 
 struct res far sub_s119_1838_04be(void)

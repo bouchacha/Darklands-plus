@@ -139,15 +139,15 @@ int far sub_s099_1935_000a(void)
 void far sub_s099_1935_01bc(void)
 {
     switch (vec_2193()) {
-    case 1:
-        D_e48a = 0xe7;
-        break;
-    case 2:
-        D_e48a = 0xeb;
-        break;
     default:
         D_e48a = 0xe6;
-        break;
+        return;
+    case 1:
+        D_e48a = 0xe7;
+        return;
+    case 2:
+        D_e48a = 0xeb;
+        return;
     }
 }
 

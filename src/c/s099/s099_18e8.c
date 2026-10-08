@@ -132,14 +132,15 @@ void far sub_s099_18e8_019e(void)
 {
     sub_s029_1367_05c8(1);
     switch (vec_2193()) {
-    case 1:
-        D_e48a = 0xe7;
-        break;
-    case 2:
-        D_e48a = 0xeb;
-        break;
     default:
         D_e48a = 0xe6;
+        return;
+    case 1:
+        D_e48a = 0xe7;
+        return;
+    case 2:
+        D_e48a = 0xeb;
+        return;
     }
 }
 

@@ -80,8 +80,7 @@ int far sub_s130_19c2_000c(void)
         sub_s043_150b_000a(D_e3d4, (char far *)D_e3e3);
         sub_s043_150b_03b0(3, 0);
         D_a766 = 1;
-        D_e48a = -2;
-        return D_e48a;
+        return D_e48a = -2;
     }
     _fstrcpy((char far *)D_e3e3, F_2caf_0000.f_0ec7);
     sub_s043_150b_000a(D_e3d4, (char far *)D_e3e3);

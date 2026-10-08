@@ -53,7 +53,7 @@ int far sub_s043_150b_000a();
 int far sub_s043_150b_049a();
 int far sub_s043_150b_1142();
 int far sub_s073_190b_0006();
-void far sub_s073_190b_0232();
+int far sub_s073_190b_0232();
 struct res far sub_s073_190b_0246();
 void far sub_s073_190b_0282();
 struct res far sub_s073_190b_0296();
@@ -63,11 +63,11 @@ void far sub_s073_190b_0318();
 struct res far sub_s073_190b_032a();
 void far sub_s073_190b_0362();
 struct res far sub_s073_190b_0374();
-void far sub_s073_190b_03ac();
+int far sub_s073_190b_03ac();
 struct res far sub_s073_190b_03ca();
-void far sub_s073_190b_0402();
+int far sub_s073_190b_0402();
 struct res far sub_s073_190b_0420();
-void far sub_s073_190b_0458();
+int far sub_s073_190b_0458();
 struct res far sub_s073_190b_0476();
 void far sub_s073_190b_04ae();
 struct res far sub_s073_190b_04c0();
@@ -180,9 +180,10 @@ int far sub_s073_190b_0006(void)
     return D_e48a;
 }
 
-void far sub_s073_190b_0232(void)
+int far sub_s073_190b_0232(void)
 {
     D_e48a = sub_s029_1367_072a() ? 0x12 : 0x19;
+    return D_e48a;
 }
 
 struct res far sub_s073_190b_0246(void)
@@ -256,10 +257,11 @@ struct res far sub_s073_190b_0374(void)
     return r;
 }
 
-void far sub_s073_190b_03ac(void)
+int far sub_s073_190b_03ac(void)
 {
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 0x12 : 0x19;
+    return D_e48a;
 }
 
 struct res far sub_s073_190b_03ca(void)
@@ -271,10 +273,11 @@ struct res far sub_s073_190b_03ca(void)
     return r;
 }
 
-void far sub_s073_190b_0402(void)
+int far sub_s073_190b_0402(void)
 {
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 6 : 8;
+    return D_e48a;
 }
 
 struct res far sub_s073_190b_0420(void)
@@ -286,10 +289,11 @@ struct res far sub_s073_190b_0420(void)
     return r;
 }
 
-void far sub_s073_190b_0458(void)
+int far sub_s073_190b_0458(void)
 {
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 9 : 0xa;
+    return D_e48a;
 }
 
 struct res far sub_s073_190b_0476(void)

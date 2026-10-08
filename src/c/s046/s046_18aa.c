@@ -77,7 +77,7 @@ int far sub_s043_150b_1142();
 int far vec_20e9();
 int far vec_20f3();
 int far sub_s046_18aa_0004();
-void far sub_s046_18aa_044e();
+int far sub_s046_18aa_044e();
 struct res far sub_s046_18aa_0496();
 void far sub_s046_18aa_04ee();
 struct res far sub_s046_18aa_0528();
@@ -210,8 +210,8 @@ int far sub_s046_18aa_0004(void)
         } while (D_e48a == 9);
     }
     if (sub_s029_0e76_3470(2, D_907e) && sub_s029_0e76_3742(2, 0, D_907e) == -1) {
-        v_si = sub_s029_1367_072a() ? 5 : 15;
-        v_si += 0x21 - sub_s029_0e76_16fe(3);
+        v_si = sub_s029_1367_072a() ? 5 : 0xf;
+        v_si += -(sub_s029_0e76_16fe(3) - 0x21);
         if (sub_s029_0e76_360c(2, 6, D_907e)) {
             v_si += 0xa;
         }
@@ -235,7 +235,7 @@ int far sub_s046_18aa_0004(void)
     return D_e48a;
 }
 
-void far sub_s046_18aa_044e(int p_6)
+int far sub_s046_18aa_044e(int p_6)
 {
     if (sub_root_0000_0c70(0x64) >= p_6 && D_57c8) {
         sub_s029_1367_05c8(0);
@@ -244,6 +244,7 @@ void far sub_s046_18aa_044e(int p_6)
     }
     sub_s029_1367_05c8(0);
     D_e48a = sub_s029_1367_072a() ? 6 : 8;
+    return D_e48a;
 }
 
 struct res far sub_s046_18aa_0496(void)

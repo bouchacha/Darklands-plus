@@ -59,7 +59,7 @@ int far sub_s043_150b_1142();
 int far sub_s043_150b_168c();
 int far vec_1c1b();
 int far sub_s107_1b0a_0008();
-int far sub_s107_1b0a_0240();
+void far sub_s107_1b0a_0240();
 struct res far sub_s107_1b0a_02dc();
 int far sub_s107_1b0a_0314();
 struct res far sub_s107_1b0a_0358();
@@ -183,7 +183,7 @@ int far sub_s107_1b0a_0008(void)
     return D_e48a;
 }
 
-int far sub_s107_1b0a_0240(void)
+void far sub_s107_1b0a_0240(void)
 {
     sub_s029_1367_05c8(1);
     switch (D_907e % 4) {

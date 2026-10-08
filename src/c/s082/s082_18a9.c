@@ -137,22 +137,22 @@ int far sub_s082_18a9_000c(void)
 void far sub_s082_18a9_0180(void)
 {
     switch (sub_s029_0e76_2278(0x65, -1, 0x29, 3, sub_root_0000_0c70(5) + 3, 0x27, 4, sub_root_0000_0c70(4) + 3, -1, 0, 0)) {
+    default:
+        return;
     case 0:
         _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0bff);
         sub_s043_150b_0110(D_e3d4, D_e95f);
         sub_s043_150b_03b0(1, 0);
         sub_s029_0e76_2c4e(-2, D_907e, 0x5f, 2, 0, 0x63, 0, 0x150, 0, 4);
         D_e48a = 0x99;
-        break;
+        return;
     case 1:
     case 2:
         sub_s029_0e76_2434();
         _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0dfb);
         sub_s043_150b_0110(D_e3d4, D_e95f);
         sub_s043_150b_03b0(2, 0);
-        D_907e = -1;
-        D_e48a = 0xc;
-        break;
+        goto L_0311;
     case 3:
         sub_s029_0e76_2434();
         vec_1eb9(-2);
@@ -160,8 +160,7 @@ void far sub_s082_18a9_0180(void)
         sub_s043_150b_0110(D_e3d4, D_e95f);
         sub_s043_150b_03b0(3, 0);
         sub_s029_1367_05c8(1);
-        D_e48a = 0xc;
-        break;
+        goto L_0317;
     case 4:
         sub_s029_0e76_2434();
         sub_s029_0e76_0988(-2, 6, 0);
@@ -170,9 +169,75 @@ void far sub_s082_18a9_0180(void)
         sub_s043_150b_0110(D_e3d4, D_e95f);
         sub_s043_150b_03b0(4, 0);
         sub_s029_1367_05c8(1);
+L_0311:
         D_907e = -1;
+L_0317:
         D_e48a = 0xc;
-        break;
+    case -0x40:
+    case -0x3f:
+    case -0x3e:
+    case -0x3d:
+    case -0x3c:
+    case -0x3b:
+    case -0x3a:
+    case -0x39:
+    case -0x38:
+    case -0x37:
+    case -0x36:
+    case -0x35:
+    case -0x34:
+    case -0x33:
+    case -0x32:
+    case -0x31:
+    case -0x30:
+    case -0x2f:
+    case -0x2e:
+    case -0x2d:
+    case -0x2c:
+    case -0x2b:
+    case -0x2a:
+    case -0x29:
+    case -0x28:
+    case -0x27:
+    case -0x26:
+    case -0x25:
+    case -0x24:
+    case -0x23:
+    case -0x22:
+    case -0x21:
+    case -0x20:
+    case -0x1f:
+    case -0x1e:
+    case -0x1d:
+    case -0x1c:
+    case -0x1b:
+    case -0x1a:
+    case -0x19:
+    case -0x18:
+    case -0x17:
+    case -0x16:
+    case -0x15:
+    case -0x14:
+    case -0x13:
+    case -0x12:
+    case -0x11:
+    case -0x10:
+    case -0xf:
+    case -0xe:
+    case -0xd:
+    case -0xc:
+    case -0xb:
+    case -0xa:
+    case -9:
+    case -8:
+    case -7:
+    case -6:
+    case -5:
+    case -4:
+    case -3:
+    case -2:
+    case -1:
+        return;
     }
 }
 

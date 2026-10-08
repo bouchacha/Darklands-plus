@@ -103,15 +103,15 @@ int far sub_s128_1a1a_0008(void)
 void far sub_s128_1a1a_012e(void)
 {
     switch (vec_2193()) {
-    case 1:
-        D_e48a = 0xe7;
-        break;
-    case 2:
-        D_e48a = 0xeb;
-        break;
     default:
         D_e48a = 0xe6;
-        break;
+        return;
+    case 1:
+        D_e48a = 0xe7;
+        return;
+    case 2:
+        D_e48a = 0xeb;
+        return;
     }
 }
 

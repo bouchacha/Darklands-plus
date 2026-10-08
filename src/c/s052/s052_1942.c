@@ -50,9 +50,9 @@ int far sub_s043_150b_03b0();
 int far sub_s043_150b_049a();
 int far sub_s043_150b_1142();
 int far sub_s052_1942_0006();
-void far sub_s052_1942_022a();
+int far sub_s052_1942_022a();
 struct res far sub_s052_1942_0254();
-void far sub_s052_1942_028e();
+int far sub_s052_1942_028e();
 struct res far sub_s052_1942_02b8();
 void far sub_s052_1942_02f2();
 struct res far sub_s052_1942_036a();
@@ -66,9 +66,9 @@ void far sub_s052_1942_0472();
 struct res far sub_s052_1942_047e();
 void far sub_s052_1942_04b8();
 struct res far sub_s052_1942_04c4();
-void far sub_s052_1942_04fe();
+int far sub_s052_1942_04fe();
 struct res far sub_s052_1942_051c();
-void far sub_s052_1942_0556();
+int far sub_s052_1942_0556();
 struct res far sub_s052_1942_0574();
 void far sub_s052_1942_05ae();
 struct res far sub_s052_1942_05d0();
@@ -162,11 +162,12 @@ int far sub_s052_1942_0006(void)
     return D_e48a;
 }
 
-void far sub_s052_1942_022a(void)
+int far sub_s052_1942_022a(void)
 {
     sub_s043_150b_03b0(1, 0);
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 0x21 : 0x22;
+    return D_e48a;
 }
 
 struct res far sub_s052_1942_0254(void)
@@ -178,11 +179,12 @@ struct res far sub_s052_1942_0254(void)
     return r;
 }
 
-void far sub_s052_1942_028e(void)
+int far sub_s052_1942_028e(void)
 {
     sub_s043_150b_03b0(2, 0);
     sub_s029_1367_05c8(3);
     D_e48a = sub_s029_1367_072a() ? 0x21 : 0x22;
+    return D_e48a;
 }
 
 struct res far sub_s052_1942_02b8(void)
@@ -286,10 +288,11 @@ struct res far sub_s052_1942_04c4(void)
     return r;
 }
 
-void far sub_s052_1942_04fe(void)
+int far sub_s052_1942_04fe(void)
 {
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 6 : 8;
+    return D_e48a;
 }
 
 struct res far sub_s052_1942_051c(void)
@@ -301,10 +304,11 @@ struct res far sub_s052_1942_051c(void)
     return r;
 }
 
-void far sub_s052_1942_0556(void)
+int far sub_s052_1942_0556(void)
 {
     sub_s029_1367_05c8(1);
     D_e48a = sub_s029_1367_072a() ? 9 : 0xa;
+    return D_e48a;
 }
 
 struct res far sub_s052_1942_0574(void)

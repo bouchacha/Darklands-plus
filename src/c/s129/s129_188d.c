@@ -141,13 +141,13 @@ void far sub_s129_188d_01bc(void)
     switch (vec_2193()) {
     default:
         D_e48a = 0xe6;
-        break;
+        return;
     case 1:
         D_e48a = 0xe7;
-        break;
+        return;
     case 2:
         D_e48a = 0xeb;
-        break;
+        return;
     }
 }
 

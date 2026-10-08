@@ -57,9 +57,9 @@ int far sub_s043_150b_000a();
 int far sub_s043_150b_049a();
 int far sub_s043_150b_1142();
 int far sub_s051_1838_0000();
-void far sub_s051_1838_0244();
+int far sub_s051_1838_0244();
 struct res far sub_s051_1838_0262();
-void far sub_s051_1838_029c();
+int far sub_s051_1838_029c();
 struct res far sub_s051_1838_02ba();
 void far sub_s051_1838_02f2();
 struct res far sub_s051_1838_02fe();
@@ -71,11 +71,11 @@ void far sub_s051_1838_03be();
 struct res far sub_s051_1838_03ca();
 void far sub_s051_1838_0402();
 struct res far sub_s051_1838_040e();
-void far sub_s051_1838_0446();
+int far sub_s051_1838_0446();
 struct res far sub_s051_1838_045a();
-void far sub_s051_1838_0494();
+int far sub_s051_1838_0494();
 struct res far sub_s051_1838_04a8();
-void far sub_s051_1838_04e0();
+int far sub_s051_1838_04e0();
 struct res far sub_s051_1838_04f4();
 void far sub_s051_1838_052c();
 struct res far sub_s051_1838_05ce();
@@ -184,10 +184,11 @@ int far sub_s051_1838_0000(void)
     return D_e48a;
 }
 
-void far sub_s051_1838_0244(void)
+int far sub_s051_1838_0244(void)
 {
     sub_s029_1367_05c8(0);
     D_e48a = sub_s029_1367_072a() ? 6 : 8;
+    return D_e48a;
 }
 
 struct res far sub_s051_1838_0262(void)
@@ -199,10 +200,11 @@ struct res far sub_s051_1838_0262(void)
     return r;
 }
 
-void far sub_s051_1838_029c(void)
+int far sub_s051_1838_029c(void)
 {
     sub_s029_1367_05c8(0);
     D_e48a = sub_s029_1367_072a() ? 9 : 0xa;
+    return D_e48a;
 }
 
 struct res far sub_s051_1838_02ba(void)
@@ -284,9 +286,10 @@ struct res far sub_s051_1838_040e(void)
     return r;
 }
 
-void far sub_s051_1838_0446(void)
+int far sub_s051_1838_0446(void)
 {
     D_e48a = sub_s029_1367_072a() ? 0x12 : 0x19;
+    return D_e48a;
 }
 
 struct res far sub_s051_1838_045a(void)
@@ -298,9 +301,10 @@ struct res far sub_s051_1838_045a(void)
     return r;
 }
 
-void far sub_s051_1838_0494(void)
+int far sub_s051_1838_0494(void)
 {
     D_e48a = sub_s029_1367_072a() ? 6 : 8;
+    return D_e48a;
 }
 
 struct res far sub_s051_1838_04a8(void)
@@ -312,9 +316,10 @@ struct res far sub_s051_1838_04a8(void)
     return r;
 }
 
-void far sub_s051_1838_04e0(void)
+int far sub_s051_1838_04e0(void)
 {
     D_e48a = sub_s029_1367_072a() ? 9 : 0xa;
+    return D_e48a;
 }
 
 struct res far sub_s051_1838_04f4(void)

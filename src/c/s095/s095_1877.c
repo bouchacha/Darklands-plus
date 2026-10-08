@@ -51,9 +51,9 @@ int far sub_s095_1877_0000();
 void far sub_s095_1877_0148();
 void far sub_s095_1877_016a();
 struct res far sub_s095_1877_01b2();
-int far sub_s095_1877_01ec();
+void far sub_s095_1877_01ec();
 struct res far sub_s095_1877_02a2();
-int far sub_s095_1877_02dc();
+void far sub_s095_1877_02dc();
 struct res far sub_s095_1877_0392();
 void far sub_s095_1877_03cc();
 struct res far sub_s095_1877_03da();
@@ -117,13 +117,13 @@ void far sub_s095_1877_0148(void)
     switch (vec_2193()) {
     default:
         D_e48a = 0xe3;
-        break;
+        return;
     case 1:
         D_e48a = 0xe7;
-        break;
+        return;
     case 2:
         D_e48a = 0xea;
-        break;
+        return;
     }
 }
 
@@ -145,7 +145,7 @@ struct res far sub_s095_1877_01b2(void)
     return r;
 }
 
-int far sub_s095_1877_01ec(void)
+void far sub_s095_1877_01ec(void)
 {
     if (sub_s029_0e76_360c(0xc, 2, D_907e)) {
         _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0da7);
@@ -172,7 +172,7 @@ struct res far sub_s095_1877_02a2(void)
     return r;
 }
 
-int far sub_s095_1877_02dc(void)
+void far sub_s095_1877_02dc(void)
 {
     if (sub_s029_0e76_360c(0xc, 3, D_907e)) {
         _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0da7);

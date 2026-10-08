@@ -58,7 +58,7 @@ void far sub_s096_18a9_0296();
 struct res far sub_s096_18a9_02d2();
 void far sub_s096_18a9_030c();
 struct res far sub_s096_18a9_0354();
-void far sub_s096_18a9_038e();
+int far sub_s096_18a9_038e();
 struct res far sub_s096_18a9_03a8();
 void far sub_s096_18a9_03e2();
 struct res far sub_s096_18a9_03f0();
@@ -132,13 +132,13 @@ void far sub_s096_18a9_0188(void)
     switch (vec_2193()) {
     default:
         D_e48a = 0xe5;
-        break;
+        return;
     case 1:
         D_e48a = 0xe7;
-        break;
+        return;
     case 2:
         D_e48a = 0xea;
-        break;
+        return;
     }
 }
 
@@ -214,7 +214,7 @@ struct res far sub_s096_18a9_0354(void)
     return r;
 }
 
-void far sub_s096_18a9_038e(void)
+int far sub_s096_18a9_038e(void)
 {
     D_ee8c = D_907b;
     sub_s043_150b_03b0(2, 0);

@@ -71,17 +71,17 @@ void far sub_s123_1982_032c();
 struct res far sub_s123_1982_0334();
 void far sub_s123_1982_036c();
 struct res far sub_s123_1982_0374();
-void far sub_s123_1982_03ac();
+int far sub_s123_1982_03ac();
 struct res far sub_s123_1982_0404();
 void far sub_s123_1982_043c();
 struct res far sub_s123_1982_0444();
-void far sub_s123_1982_047c();
+int far sub_s123_1982_047c();
 struct res far sub_s123_1982_051c();
 void far sub_s123_1982_0554();
 struct res far sub_s123_1982_057e();
 void far sub_s123_1982_05b6();
 struct res far sub_s123_1982_05ca();
-void far sub_s123_1982_0602();
+int far sub_s123_1982_0602();
 struct res far sub_s123_1982_06e0();
 int far sub_s123_1982_0718();
 struct res far sub_s123_1982_07a4();
@@ -251,7 +251,7 @@ struct res far sub_s123_1982_0374(void)
     return r;
 }
 
-void far sub_s123_1982_03ac(void)
+int far sub_s123_1982_03ac(void)
 {
     D_ee76 = 0;
     D_ee78 = 0;
@@ -291,7 +291,7 @@ struct res far sub_s123_1982_0444(void)
     return r;
 }
 
-void far sub_s123_1982_047c(void)
+int far sub_s123_1982_047c(void)
 {
     _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0c77);
     sub_s043_150b_0110(D_e3d4, D_e95f);
@@ -352,7 +352,7 @@ struct res far sub_s123_1982_05ca(void)
     return r;
 }
 
-void far sub_s123_1982_0602(void)
+int far sub_s123_1982_0602(void)
 {
     switch (sub_s029_0e76_2278(0x46, -1, 3, 1, 4, -1, 0, 0, -1, 0, 0)) {
     case 0:

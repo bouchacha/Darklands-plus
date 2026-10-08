@@ -45,8 +45,7 @@ int far sub_s132_1838_0000(void)
     D_a766 = 0;
     D_a768 = 0x57;
     D_a76a = sub_root_0000_0c70(0x3e8);
-    D_e48a = -2;
-    return D_e48a;
+    return D_e48a = -2;
 }
 
 void far sub_s132_1838_008c(void)

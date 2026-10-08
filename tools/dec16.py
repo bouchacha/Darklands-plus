@@ -1238,6 +1238,8 @@ class FuncLifter(Lifter):
             i = ins[k]
             self._cur_k = k
             if i.address in fn.epi or (k == len(ins) - 1 and i.mnemonic.startswith('j')):
+                if i.mnemonic.startswith('j'):
+                    self.fresh_ax(i, st)
                 k += 1
                 continue
             n = self.idiom(ins, k, st)
@@ -1306,11 +1308,12 @@ class FuncLifter(Lifter):
         w = {rn(x) for x in ww}
         sets_flags = mn in ('cmp', 'test', 'add', 'sub', 'and', 'or', 'xor', 'inc', 'dec', 'neg', 'shl',
                             'shr', 'sar', 'sbb', 'adc')
+        store = mn == 'mov' and i.operands[0].type == X.X86_OP_MEM
         for reg, key in (({'ax', 'al', 'ah', 'eax'}, 'axf'), ({'dx', 'dl', 'dh', 'edx'}, 'dxf')):
             if w & reg:
                 st[key] = not mn.startswith('rep') and mn not in ('xchg', 'mul', 'imul', 'div', 'idiv') or \
                     (key == 'axf' and mn in ('mul', 'imul', 'div', 'idiv'))
-            elif r & reg:
+            elif r & reg and not store:
                 st[key] = False
         if sets_flags:
             st['flag_ax'] = bool((w | r) & {'ax', 'al', 'ah', 'eax'})
@@ -1411,6 +1414,52 @@ class FuncLifter(Lifter):
         return ax
 
     # ---------------------------------------------------------------- idioms
+    def sbb_seq(self, ins, k, st):
+        """cmp x,1 / [cmc] / sbb r,r / and r,K / add r,M  ->  r = x ? A : B   (r = si/di/ax)"""
+        j = k
+        if ins[j].mnemonic == 'cmc':
+            j += 1
+        if j >= len(ins) or ins[j].mnemonic != 'sbb':
+            return 0
+        m = re.match(r'^(si|di|ax), \1$', ins[j].op_str)
+        if not m:
+            return 0
+        r = m.group(1)
+        f = st['flags']
+        if f is None or f[0] != 'cmp':
+            return 0
+        jb = 'jae' if ins[k].mnemonic == 'cmc' else 'jb'
+        c = canon_cond(self.cond_from_flags(st, jb))
+        v = E('cond', c, C(-1), C(0))
+        j += 1
+        while j < len(ins):
+            i = ins[j]
+            mm = re.match(r'^(and|add|sub|or|xor) (%s|%s), (0x[0-9a-f]+|-?\d+)$' % (r, 'al' if r == 'ax' else r), i.op_str and
+                          '%s %s' % (i.mnemonic, i.op_str))
+            if mm:
+                imm = int(mm.group(3), 0)
+                if mm.group(2) == 'al':
+                    if mm.group(1) != 'and':
+                        break
+                    imm = 0xff00 | (imm & 0xff)
+                v = arith({'and': '&', 'add': '+', 'sub': '-', 'or': '|', 'xor': '^'}[mm.group(1)], v, C(imm), 2)
+                j += 1
+                continue
+            if i.mnemonic in ('inc', 'dec', 'neg', 'not') and i.op_str == r:
+                v = arith({'inc': '+', 'dec': '-', 'neg': 'neg', 'not': '~'}[i.mnemonic], v,
+                          C(1) if i.mnemonic in ('inc', 'dec') else None, 2)
+                j += 1
+                continue
+            break
+        if r in ('si', 'di'):
+            self.regvars.add(r)
+            self.emit(st, ('assign', E('reg', r), v))
+            st[r] = None
+        else:
+            st['ax'] = v
+        st['flags'] = None
+        return j - k
+
     def string_temp(self, i, r):
         """Is this write to si/di the operand setup of a following string idiom?"""
         fn = self.fn
@@ -1434,6 +1483,8 @@ class FuncLifter(Lifter):
         return False
 
     def idiom(self, ins, k, st):
+        if ins[k].mnemonic in ('sbb', 'cmc'):
+            return self.sbb_seq(ins, k, st)
         if ins[k].mnemonic not in ('mov', 'lea', 'sub', 'push'):
             return 0
         win = ';'.join(itext(i) for i in ins[k:k + 18]) + ';'
@@ -1631,6 +1682,10 @@ class FuncLifter(Lifter):
                     self.regvars.add(r)
                     self.emit(st, ('assign', E('reg', r), v))
                     st[r] = None
+                    if v.k in ('call', 'icall'):
+                        for rr in ('ax', 'bx', 'cx', 'dx'):
+                            if st.get(rr) is v:
+                                st[rr] = E('reg', r)
                     return
                 self.setreg(st, r, v)
                 if r in ('ax', 'al'):
@@ -1706,6 +1761,12 @@ class FuncLifter(Lifter):
                     v = E('cond', c, C(-1), C(0))
                 else:
                     v = C(0, size)
+                    axv = st.get('ax')
+                    if r == 'ax' and nxt is not None and nxt.mnemonic == 'add' and nxt.op_str.startswith('ax, ') and \
+                            axv is not None and axv.k in ('call', 'icall') and st['stmts'] and \
+                            st['stmts'][-1][0] == 'call' and st['stmts'][-1][1] is axv:
+                        # 'x = f() ? K : K': the and-mask of the sbb ternary was 0
+                        v = E('cond', E('cmp', '!=', axv, C(0)), C(0), C(0))
                 self.setreg(st, r, v) if r not in ('si', 'di') else self.store(st, d, v, size)
                 if r in ('ax', 'al'):
                     st['ax_fresh'] = True
@@ -1979,6 +2040,7 @@ def last_ax_write(fn, b):
     """Kind of the last write to AX in block b before its epilogue: 'call', 'value', or None
     (None also when AX is read afterwards)."""
     ins = [i for i in b.insns if i.address not in fn.epi]
+    after_jcc = False
     for i in reversed(ins):
         rr, ww = i.regs_access()
         names_r = {fn.md.reg_name(r) for r in rr}
@@ -1988,11 +2050,20 @@ def last_ax_write(fn, b):
                 return 'call'
             if i.mnemonic.startswith('rep') or i.mnemonic in ('xchg',):
                 return None
+            if after_jcc and i.mnemonic in ('dec', 'inc', 'sub', 'add', 'and', 'or', 'xor', 'neg'):
+                return None         # computed for a branch (switch arithmetic), not returned
             return 'value'
         if names_r & {'ax', 'al', 'ah', 'eax'}:
+            # only stores of AX into memory: 'return g = v;'
+            if i.mnemonic == 'mov' and i.operands[0].type == X.X86_OP_MEM:
+                continue
             return None
         if i.mnemonic.startswith('j'):
+            if i.mnemonic != 'jmp':
+                after_jcc = True
             continue
+        if i.mnemonic in ('cmp', 'test') or 'flags' in names_w:
+            after_jcc = False
     return 'none'
 
 
@@ -2473,6 +2544,13 @@ class FuncEmitter:
                         out.append((ind + ln.count('\t'), ln.lstrip('\t')))
             elif k == 'ret':
                 v = it[1]
+                if self.returns and v is not None and v.k != 'pair' and out and len(it) > 2 and it[2] is not None:
+                    # 'x = v; return v;' compiled as 'mov ax,v; mov [x],ax': return x = v;
+                    lhs = it[2]
+                    if out[-1] == (ind, self.stmt_text(('assign', lhs, v), self.used)):
+                        out.pop()
+                        out.append((ind, 'return %s = %s;' % (P.ex(lhs)[0], P.ex(v)[0])))
+                        continue
                 if self.returns:
                     if v is None:
                         out.append((ind, 'return;'))
@@ -3035,7 +3113,11 @@ class Structurer:
             t = n.term
             nxt = order[i + 1] if i + 1 < hi else ctx['follow']
             if t[0] == 'ret':
-                out.append(('ret', t[1]))
+                vis = self.visible(n)
+                lhs = None
+                if vis and vis[-1][0] == 'assign' and t[1] is not None and vis[-1][2].eq(t[1]):
+                    lhs = vis[-1][1]
+                out.append(('ret', t[1], lhs))
                 i += 1
                 continue
             if t[0] == 'loopend':

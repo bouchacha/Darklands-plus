@@ -7,7 +7,7 @@ struct F_2caf_0000_t { char _p0000[0xa47]; char far * f_0a47; };
 extern struct F_2caf_0000_t far F_2caf_0000;
 extern char D_e99c[20];
 extern struct res (far *D_ea14[20])();
-extern void (far *D_ec00[5][4])();
+extern struct res (far *D_ec00[5][4])();
 extern struct res (far *D_ecf6[5][4])();
 extern int D_0154;
 extern int D_017c;

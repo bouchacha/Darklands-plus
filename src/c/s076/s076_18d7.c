@@ -44,7 +44,7 @@ void far sub_s076_18d7_0186();
 struct res far sub_s076_18d7_018e();
 void far sub_s076_18d7_01c6();
 struct res far sub_s076_18d7_01ce();
-void far sub_s076_18d7_0206();
+int far sub_s076_18d7_0206();
 struct res far sub_s076_18d7_021a();
 void far sub_s076_18d7_0252();
 struct res far sub_s076_18d7_0274();
@@ -140,9 +140,10 @@ struct res far sub_s076_18d7_01ce(void)
     return r;
 }
 
-void far sub_s076_18d7_0206(void)
+int far sub_s076_18d7_0206(void)
 {
     D_e48a = sub_s029_1367_072a() ? 0x1f : 0x20;
+    return D_e48a;
 }
 
 struct res far sub_s076_18d7_021a(void)

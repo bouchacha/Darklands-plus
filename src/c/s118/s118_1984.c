@@ -71,7 +71,7 @@ int far sub_s043_150b_049a();
 int far sub_s043_150b_1142();
 int far sub_s043_150b_168c();
 int far sub_s118_1984_0002();
-void far sub_s118_1984_023a();
+int far sub_s118_1984_023a();
 struct res far sub_s118_1984_0282();
 void far sub_s118_1984_02ba();
 struct res far sub_s118_1984_02c2();
@@ -195,7 +195,7 @@ int far sub_s118_1984_0002(void)
     return D_e48a;
 }
 
-void far sub_s118_1984_023a(void)
+int far sub_s118_1984_023a(void)
 {
     sub_s029_0e76_2930(0x64, 1);
     D_a768 = 0x5e;
@@ -240,29 +240,31 @@ int far sub_s118_1984_02fa(void)
     D_ee7a = 2;
     if (v_si) {
         switch (D_ee6a) {
+        default:
+            return;
         case 0:
             sub_s043_150b_03b0(1, 0);
-            break;
+            return;
         case 1:
             sub_s043_150b_03b0(3, 0);
-            break;
+            return;
         case 2:
             sub_s043_150b_03b0(4, 0);
-            break;
+            return;
         case 3:
             sub_s029_0e76_2c4e(-2, D_907e, 0, 0x1c, 0x12, 0, 0, D_270f, 0, 1);
             _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0d1b);
             sub_s043_150b_0110(D_e3d4, D_e95f);
             sub_s043_150b_03b0(5, 0);
-            sub_s043_150b_0110(D_e3d4, D_e3e3);
-            break;
+            goto L_03d4;
         }
     } else {
         _fstrcpy((char far *)D_e95f, F_2caf_0000.f_0d1f);
         sub_s043_150b_0110(D_e3d4, D_e95f);
         sub_s043_150b_03b0(6, 0);
-        sub_s043_150b_0110(D_e3d4, D_e3e3);
     }
+L_03d4:
+    sub_s043_150b_0110(D_e3d4, D_e3e3);
 }
 
 struct res far sub_s118_1984_03e4(void)
