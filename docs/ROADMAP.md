@@ -21,9 +21,10 @@ There are two goals: a **matching decompilation** as a verifiable baseline, then
 **Needs: a copy of Microsoft C 6.00 or 6.00A.** CL.EXE, C1/C2/C3 and MLIBCE.LIB, run headless under DOSBox the way the F-15 SE2 project does. Nothing else is missing.
 
 1. Pin the flags. Compile three or four known functions with candidates (`/AM /G2 /Gs /Ox`, `/Os`, `/Zp1` and so on) until the bytes match.
-2. Port leaf modules first: the root utilities, then the strategic screens (s031 inventory, s032 barter, s035 cache, s040 loot, s033 alchemy, s034 saints). These are small and self-contained, and their data formats are already documented.
-3. Port a whole original module (one region / `.asm` file) at a time. That way `push cs` / `call near` same-module calls match.
-4. Verify with `tools/build.py`. A matched function leaves the EXE byte-identical.
+2. Name the graphics-driver calls. Root segment 047c holds the same self-patching far-jump slot table that F-15 SE2 uses to call `MGRAPHIC.EXE`/`MISC.EXE`, and that project's `slot.h` documents 84 graphics slots by name. Mapping those names onto 047c names much of one of the most-called segments in the game (2,440 call sites).
+3. Port leaf modules first: the root utilities, then the strategic screens (s031 inventory, s032 barter, s035 cache, s040 loot, s033 alchemy, s034 saints). These are small and self-contained, and their data formats are already documented.
+4. Port a whole original module (one region / `.asm` file) at a time. That way `push cs` / `call near` same-module calls match.
+5. Verify with `tools/build.py`. A matched function leaves the EXE byte-identical.
 
 **The card scripts are mostly templates.** s044–s135 hold 8,130 of the 9,697 functions (about 900 KB, 65% of all code). `tools/card_templates.py` groups the 7,905 script functions by code template, where only the constants differ. It finds 1,739 templates, and the 10 most common cover 56% of the functions. The top 50 cover 72% and the top 200 cover 80%. The most common template, 1,763 functions, just copies a help string ("No risk.", "Enter Combat") and returns -2. Two other templates are 793 copies of identical code.
 
