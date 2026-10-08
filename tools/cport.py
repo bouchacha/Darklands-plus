@@ -91,6 +91,15 @@ def compat600(obj):
                             r += 8
                         q = r
                         continue
+                # mov di,X / mov cx,2n / push ds / pop es / rep stosb  (AX byte-replicated)
+                if b[q] == 0xbf and b[q + 3] == 0xb9 and b[q + 6:q + 10] == b'\x1e\x07\xf3\xaa':
+                    n = struct.unpack_from('<H', b, q + 4)[0]
+                    prev = bytes(b[max(q0, q - 3):q])
+                    if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
+                        struct.pack_into('<H', b, q + 4, n // 2)
+                        b[q + 9] = 0xab
+                        q += 10
+                        continue
                 q += 1
         p += 3 + ln
     return bytes(out)
@@ -104,7 +113,7 @@ def compile_source(src, cache_dir, extra_headers=()):
     blob = open(src['path'], 'rb').read()
     for h in extra_headers:
         blob += open(h, 'rb').read()
-    key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v1').hexdigest()[:16]
+    key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v2').hexdigest()[:16]
     objp = os.path.join(cache_dir, '%s_%s.obj' % (seg, key))
     msg = ''
     if not os.path.exists(objp):

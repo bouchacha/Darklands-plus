@@ -709,6 +709,28 @@ class Lifter:
             if v is not None and reads(v) and not v.eq(lhs):
                 st[r] = E('stale', r)
 
+    def cleanup_skipped(self, i_next):
+        """The call is followed (directly or after stores / a jump) by the function epilogue."""
+        fn = self.fn
+        a = i_next.address if i_next is not None else None
+        steps = 0
+        while a is not None and steps < 12:
+            steps += 1
+            i = fn.insns.get(a)
+            if i is None:
+                return False
+            if a in fn.epi or i.mnemonic in ('leave', 'retf'):
+                return True
+            if i.mnemonic == 'jmp' and i.operands[0].type == X.X86_OP_IMM:
+                a = i.operands[0].imm
+                continue
+            if i.mnemonic in ('lcall', 'call', 'push', 'pop') or i.mnemonic.startswith('j'):
+                return False
+            if i.mnemonic == 'add' and i.op_str.startswith('sp'):
+                return False
+            a = i.address + i.size
+        return False
+
     # --- call
     def do_call(self, st, name, i_next):
         n = None
@@ -722,6 +744,9 @@ class Lifter:
             if t is not None and t.mnemonic == 'add' and re.match(r'sp, (0x[0-9a-f]+|\d+)$', t.op_str):
                 n = int(t.op_str[4:], 0) // 2
                 self.shared_cleanup.add(t.address)
+        if n is None and self.cleanup_skipped(i_next):
+            # no 'add sp' because the function returns right away: every pending push is an argument
+            n = len(st['stack'])
         if n is None:
             n = self.prog.argc(name) or 0
             variants = self.prog.argc_variants(name)
@@ -748,9 +773,9 @@ def _addr_const(self, w):
         return w
     s = self.fd.is_literal(v)
     if s is not None:
-        return E('str', v, s)
+        return E('str', v, s, 'guess')
     self.fd.note_global(v, 1, addr_taken=True)
-    return E('addr', E('g', v, size=1))
+    return E('addr', E('g', v, size=1), 'guess')
 
 
 Lifter.addr_const = _addr_const
@@ -766,6 +791,8 @@ def group_args(words):
         if nx is not None:
             # offset then segment
             if nx.k == 'seg' and nx.a[0] in ('ds', 'ss'):
+                if w.k == 'str' and len(w.a) > 2:
+                    w = E('str', w.a[0], w.a[1])        # a far pointer to DGROUP: certainly data
                 out.append(E('fptr_near', w, nx.a[0], size=4))
                 k += 2
                 continue
@@ -2638,6 +2665,8 @@ class Structurer:
             return False
         if not (has_table or uses_arith or len(leaves) >= 3):
             return False
+        if not (has_table or uses_arith) and subj.k in ('reg', 'local', 'g', 'gidx', 'far'):
+            return False        # compares on a variable: an if-chain
         # evaluate the tree for candidate values
         consts = set()
         for x in tree:
@@ -3156,6 +3185,7 @@ def decompile_file(prog, img, frame, only=None):
         find_struct_temps(fd, fn, L)
         type_evidence(fd, L)
         funcs.append((name, fn, L, returns))
+    prune_guessed_literals(fd, [f[2] for f in funcs if f[2] is not None])
     collect_usage(fd, [f[2] for f in funcs if f[2] is not None])
     # emit bodies
     bodies = []
@@ -3172,6 +3202,33 @@ def decompile_file(prog, img, frame, only=None):
             continue
         bodies.append((name, fn, L, returns, lines))
     return fd, bodies
+
+
+def prune_guessed_literals(fd, lifters):
+    """A pushed constant taken for a string literal must lie in the file's literal pool."""
+    sure, guessed = set(), []
+
+    def visit(e):
+        if e.k == 'str':
+            if len(e.a) > 2:
+                guessed.append(e)
+            else:
+                sure.add(e.a[0])
+    for L in lifters:
+        for inst in L.instances:
+            for st in inst['stmts']:
+                for x in st[1:]:
+                    walk(x, visit)
+            t = inst['term']
+            if t:
+                for x in t[1:]:
+                    walk(x, visit)
+    pool = sorted(sure)
+    for e in guessed:
+        v = e.a[0]
+        near = any(abs(v - p) < 0x100 for p in pool) or any(abs(v - g.a[0]) < 0x40 and g is not e for g in guessed)
+        if not near:
+            e.k, e.a = 'const', (v,)
 
 
 def collect_usage(fd, lifters):
