@@ -1,0 +1,9 @@
+# generated artefacts and anything derived from the game's copyrighted files
+build/
+__pycache__/
+*.pyc
+# never commit game files
+*.EXE
+*.exe
+*.CAT
+*.PIC
