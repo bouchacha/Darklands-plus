@@ -53,56 +53,81 @@ def compat600(obj):
 
     6.00A always fills with 'rep stosb'; the game's code (built with a different 6.00 release)
     fills even-sized blocks with 'rep stosw' and keeps the address in BX. Both forms have the
-    same length, so the rewrite is purely byte-for-byte inside LEDATA records:
+    same length, so the rewrite is purely byte-for-byte inside the code:
         mov dx,X / mov cx,2n / mov di,dx / push ds / pop es / rep stosb
      -> mov bx,X / mov cx,n  / mov di,bx / push ds / pop es / rep stosw
-    plus a following 'mov di,Y / mov cx,2n / rep stosb' that reuses ES and AX.
-    Only applied where AX holds a byte-replicated value (sub ax,ax or mov ax,0FFFFh)."""
+    plus a following 'mov di,Y / mov cx,2n / rep stosb' that reuses ES and AX, and
+        mov di,X / mov cx,2n / push ds / pop es / rep stosb  ->  ... mov cx,n ... rep stosw
+    Only applied where AX holds a byte-replicated value (sub ax,ax or mov ax,0FFFFh).
+    The pattern is matched on each segment's data as a whole: MSC splits code into LEDATA
+    records at arbitrary points."""
     out = bytearray(obj)
+    recs = []                 # (segment index, segment offset, data start in obj, data length)
     p = 0
     while p < len(out):
         rt = out[p]
         ln = struct.unpack_from('<H', out, p + 1)[0]
         if rt == 0xa0:
             q0 = p + 3
-            # skip segment index (1 or 2 bytes) + 16-bit offset
-            q0 += 2 if out[q0] & 0x80 else 1
+            if out[q0] & 0x80:
+                si = ((out[q0] & 0x7f) << 8) | out[q0 + 1]
+                q0 += 2
+            else:
+                si = out[q0]
+                q0 += 1
+            off = struct.unpack_from('<H', out, q0)[0]
             q0 += 2
-            end = p + 3 + ln - 1
-            q = q0
-            while q < end - 11:
-                b = out
-                if b[q] == 0xba and b[q + 3] == 0xb9 and b[q + 6:q + 8] == b'\x8b\xfa' and \
-                        b[q + 8:q + 12] == b'\x1e\x07\xf3\xaa':
-                    n = struct.unpack_from('<H', b, q + 4)[0]
-                    prev = bytes(b[max(q0, q - 3):q])
-                    if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
-                        b[q] = 0xbb
-                        struct.pack_into('<H', b, q + 4, n // 2)
-                        b[q + 6:q + 8] = b'\x8b\xfb'
-                        b[q + 11] = 0xab
-                        r = q + 12
-                        while r + 8 <= end and b[r] == 0xbf and b[r + 3] == 0xb9 and b[r + 6:r + 8] == b'\xf3\xaa':
-                            m = struct.unpack_from('<H', b, r + 4)[0]
-                            if m % 2:
-                                break
-                            struct.pack_into('<H', b, r + 4, m // 2)
-                            b[r + 7] = 0xab
-                            r += 8
-                        q = r
-                        continue
-                # mov di,X / mov cx,2n / push ds / pop es / rep stosb  (AX byte-replicated)
-                if b[q] == 0xbf and b[q + 3] == 0xb9 and b[q + 6:q + 10] == b'\x1e\x07\xf3\xaa':
-                    n = struct.unpack_from('<H', b, q + 4)[0]
-                    prev = bytes(b[max(q0, q - 3):q])
-                    if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
-                        struct.pack_into('<H', b, q + 4, n // 2)
-                        b[q + 9] = 0xab
-                        q += 10
-                        continue
-                q += 1
+            recs.append((si, off, q0, p + 3 + ln - 1 - q0))
         p += 3 + ln
+    by_seg = {}
+    for si, off, q0, n in recs:
+        by_seg.setdefault(si, []).append((off, q0, n))
+    for si, parts in by_seg.items():
+        size = max(off + n for off, q0, n in parts)
+        buf = bytearray(size)
+        for off, q0, n in parts:
+            buf[off:off + n] = out[q0:q0 + n]
+        orig = bytes(buf)
+        _rewrite_memset(buf)
+        if bytes(buf) != orig:
+            for off, q0, n in parts:
+                out[q0:q0 + n] = buf[off:off + n]
     return bytes(out)
+
+
+def _rewrite_memset(b):
+    end = len(b)
+    q = 0
+    while q < end - 9:
+        if q + 12 <= end and b[q] == 0xba and b[q + 3] == 0xb9 and b[q + 6:q + 8] == b'\x8b\xfa' and \
+                b[q + 8:q + 12] == b'\x1e\x07\xf3\xaa':
+            n = struct.unpack_from('<H', b, q + 4)[0]
+            prev = bytes(b[max(0, q - 3):q])
+            if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
+                b[q] = 0xbb
+                struct.pack_into('<H', b, q + 4, n // 2)
+                b[q + 6:q + 8] = b'\x8b\xfb'
+                b[q + 11] = 0xab
+                r = q + 12
+                while r + 8 <= end and b[r] == 0xbf and b[r + 3] == 0xb9 and b[r + 6:r + 8] == b'\xf3\xaa':
+                    m = struct.unpack_from('<H', b, r + 4)[0]
+                    if m % 2:
+                        break
+                    struct.pack_into('<H', b, r + 4, m // 2)
+                    b[r + 7] = 0xab
+                    r += 8
+                q = r
+                continue
+        # mov di,X / mov cx,2n / push ds / pop es / rep stosb  (AX byte-replicated)
+        if q + 10 <= end and b[q] == 0xbf and b[q + 3] == 0xb9 and b[q + 6:q + 10] == b'\x1e\x07\xf3\xaa':
+            n = struct.unpack_from('<H', b, q + 4)[0]
+            prev = bytes(b[max(0, q - 3):q])
+            if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
+                struct.pack_into('<H', b, q + 4, n // 2)
+                b[q + 9] = 0xab
+                q += 10
+                continue
+        q += 1
 
 
 def compile_source(src, cache_dir, extra_headers=()):
@@ -113,7 +138,7 @@ def compile_source(src, cache_dir, extra_headers=()):
     blob = open(src['path'], 'rb').read()
     for h in extra_headers:
         blob += open(h, 'rb').read()
-    key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v2').hexdigest()[:16]
+    key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v3').hexdigest()[:16]
     objp = os.path.join(cache_dir, '%s_%s.obj' % (seg, key))
     msg = ''
     if not os.path.exists(objp):
