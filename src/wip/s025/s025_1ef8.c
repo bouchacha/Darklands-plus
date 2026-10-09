@@ -1,4 +1,5 @@
 /* place: s025 1ef8:0000 */
+/* orig: size=0ddc CONST=7d1c+000c _DATA=2600+0073 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 6/7. 0000 decoded fully but blocked: the original keeps SI live across inline
  * block copies with push si/push di (6.00); 6.00A splits the register variable instead. Combat overlay s025 (child of s014): enemy placement and animation buffers.

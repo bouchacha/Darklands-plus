@@ -1,4 +1,5 @@
 /* place: s031 1462:0000 */
+/* orig: size=4850 CONST=7e4e+0014 _DATA=2a56+04c1 */
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* Inventory screen (overlay s031, main file): the "arms" screen where a party member's
    equipment and pack are shown and items are moved, used, dropped or traded.

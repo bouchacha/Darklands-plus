@@ -1,4 +1,5 @@
 /* place: s015 1ef8:0000 */
+/* orig: size=1160 CONST=7cf8+0002 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 4/7 (0000, 0046, 00dc, 01a8). 01c6/0708/0c0e: dead induction-variable home
  * stores and SI/DI choice of the 6.00 compiler (`mov [bp-4],0`, `mov [bp-2],3Ch; mov si,[bp-2]`). Combat overlay s015 (child of s014): debug/statistics screens.

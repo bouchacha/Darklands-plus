@@ -1,4 +1,5 @@
 /* place: s031 18e7:0000 */
+/* orig: size=191c CONST=7e62+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: _DATA=0000 */
 /* Inventory helpers (overlay s031, second file): add / remove / move items in a party

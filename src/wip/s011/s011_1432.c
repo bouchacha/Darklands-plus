@@ -1,4 +1,5 @@
 /* place: s011 1432:0000 */
+/* orig: size=2160 CONST=7d32+0002 _DATA=15bd+0030 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): Templar fortress & tombs battlefields. Written: 16d2 (random monster
  * type 0x96..0xab; code right, jump table only relocates once 0000..1794 have their lengths),

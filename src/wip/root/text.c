@@ -1,4 +1,5 @@
 /* place: root 0265:0004 */
+/* orig: size=0a60 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e3): 8/10 match. Open: 0134 draw_text_wrapped (locals renamed for 6.00A hash order,
    frame layout now right; left: memcpy count kept in a temp (frame 0xc0 vs 0xbe), loop shapes of

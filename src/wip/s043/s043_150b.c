@@ -1,4 +1,5 @@
 /* place: s043 150b:000a */
+/* orig: size=2d9e CONST=7ee6+0016 _DATA=51f4+0110 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: WIP (e2, 2026-10-09 session 3): 23/28 functions match (fmatch), _DATA matches.
  *   match: 000a 0110 01e0 020e 03b0 049a 04c4 06fe 10fc 1142 13a0 1374 13f2 168c 16e8 1f3e

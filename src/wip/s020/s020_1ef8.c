@@ -1,4 +1,5 @@
 /* place: s020 1ef8:0000 */
+/* orig: size=0774 _DATA=2242+008b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 1/3 (05e6). 06b6 blocked by memset chain form (cport.compat600 only rewrites
  * the first memset after `sub ax,ax`); 0000: 3-byte struct copy `mov cx,1; rep movsw` (6.00). Combat level loader (overlay s020, child of s014):

@@ -1,4 +1,5 @@
 /* place: s030 1462:0000 */
+/* orig: size=305e CONST=7e3e+0010 _DATA=2872+01c8 */
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* Overland travel map (overlay s030): the screen where the party travels
    across the map of medieval Germany.  Note /Oa (assume no aliasing): it is

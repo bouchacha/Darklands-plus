@@ -1,4 +1,5 @@
 /* place: s040 1462:0000 */
+/* orig: size=1524 CONST=7edc+0004 _DATA=4bbc+0231 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
 /* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 8/10. */
 /* data: _DATA=4bbc */ /* data: CONST=7edc */

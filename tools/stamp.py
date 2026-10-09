@@ -34,10 +34,45 @@ def stamp_line(c):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--force', action='store_true')
+    ap.add_argument('--wip', action='store_true',
+                    help='stamp complete but not (yet) matching files (e.g. src/wip/**): the original '
+                         'range comes from the original source file, data placement from fmatch')
     ap.add_argument('files', nargs='*')
     a = ap.parse_args()
     exe = RTLinkExe(EXE)
     n = 0
+    if a.wip:
+        import fmatch, io, contextlib
+        for f in a.files:
+            with contextlib.redirect_stdout(io.StringIO()):
+                r = fmatch.check(f, quiet=True)
+            if r.get('error') or r.get('count_mismatch') or not r.get('data_ok'):
+                print('skip %s: %s' % (f, r.get('error') and 'compile error' or
+                                       r.get('count_mismatch') and 'function count %s' % (r['count_mismatch'],)
+                                       or 'data differs'))
+                continue
+            src = dict(cport.sources(os.path.dirname(os.path.abspath(f)), sub='')[0]) if False else None
+            text = open(f, encoding='latin-1').read()
+            m = cport.PLACE.search(text)
+            img, fr, off = m.group(1), int(m.group(2), 16), int(m.group(3), 16)
+            ctx = fmatch.load_ctx()
+            origs = fmatch.orig_functions(ctx, img, fr, off)
+            start = fr * 16 + off
+            size = origs[-1][2] - start
+            fm = cport.FLAGS.search(text[:3000])
+            c = cport.compile_source({'path': f, 'image': img, 'frame': fr, 'offset': off,
+                                      'flags': fm.group(1).split() if fm else list(cport.msc.DEFAULT)},
+                                     os.path.join(REPO, 'build', 'cobj'))
+            c['length'] = size
+            c['data'] = {k: v for k, v in r['data_place'].items() if k in c['datasegs']}
+            line = stamp_line(c)
+            text = cport.ORIG_LINE.sub('', text)
+            m = cport.PLACE.search(text)
+            eol = text.index('\n', m.end()) + 1
+            open(f, 'w', encoding='latin-1').write(text[:eol] + line + '\n' + text[eol:])
+            n += 1
+            print('stamped %s: %s' % (f, line))
+        return
     for src in cport.sources(REPO):
         if a.files and not any(os.path.samefile(src['path'], f) for f in a.files):
             continue

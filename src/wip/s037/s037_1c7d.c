@@ -1,4 +1,5 @@
 /* place: s037 1c7d:0002 */
+/* orig: size=1a96 CONST=7ec4+000e _DATA=479e+01c3 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: 8/11 match, data matches. 0d24 (save loader) MATCHES.
    0002: row/k share SI in 6.00A, original has row in DI, k in SI, key at [bp-2], last spilled

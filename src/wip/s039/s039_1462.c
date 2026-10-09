@@ -1,4 +1,5 @@
 /* place: s039 1462:0000 */
+/* orig: size=1fa0 CONST=7ed6+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: WIP (e2, 2026-10-09): 34/43 functions match (fmatch).  Event-rules toolkit part 1:
  *   helpers used by the card scripts for timed events (F_2e38_1b2c, s029 2c4e/2e74/3b62),

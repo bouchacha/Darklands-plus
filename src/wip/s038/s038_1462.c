@@ -1,4 +1,5 @@
 /* place: s038 1462:0000 */
+/* orig: size=26be CONST=7ed2+0004 _DATA=4a06+0154 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: 5/7 match (0292 23ec 25ca 01fe 024e; _DATA complete once 02f8's literals are in).
    02f8 (8.4 KB) written in full, 8428/8436 bytes, frame/slots match (hash-ordered local names,

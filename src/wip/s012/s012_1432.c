@@ -1,4 +1,5 @@
 /* place: s012 1432:0000 */
+/* orig: size=0a7c CONST=7d34+0002 _DATA=15ee+0015 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): 5/6 functions match. 028a (battlefield cell layout) has the right
  * code and frame size (enter 0x16) but 6.00A gives the locals other stack slots: original

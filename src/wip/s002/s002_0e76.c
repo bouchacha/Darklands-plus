@@ -1,4 +1,5 @@
 /* place: s002 0e76:0000 */
+/* orig: size=1aa6 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): dec16 output only (17ea matches). Battle entry/exit. The module's
  * _DATA holds initialised tables (near string-pointer tables at 0x114e.., byte tables

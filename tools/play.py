@@ -19,7 +19,14 @@ The game directory is copied first, so the original install is never modified.
 """
 import sys, os, subprocess, time, shutil, tempfile
 
-DISPLAY = ':77'
+
+
+def _free_display():
+    """A display number nobody uses, so several runs can go in parallel."""
+    for n in range(77, 200):
+        if not os.path.exists('/tmp/.X%d-lock' % n) and not os.path.exists('/tmp/.X11-unix/X%d' % n):
+            return ':%d' % n
+    raise SystemExit('no free X display')
 
 
 # screen pixels of relative motion per game pixel (calibrated with the main menu)
@@ -76,6 +83,7 @@ cd \\DARKLAND
 %s
 exit
 ''' % (cycles, work, exe))
+    DISPLAY = _free_display()
     xvfb = subprocess.Popen(['Xvfb', DISPLAY, '-screen', '0', '800x600x24'], stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
     time.sleep(1.5)

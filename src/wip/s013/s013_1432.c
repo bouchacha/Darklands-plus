@@ -1,4 +1,5 @@
 /* place: s013 1432:0000 */
+/* orig: size=0d78 _DATA=1604+0171 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): 0000 matches; 0338 047a 05bc 06fe 0848 098a 0adc 0c1e (one template:
  * load lc_* level, set door ids, save level0.flr, load .fil/.atv, remap group monsters) differ

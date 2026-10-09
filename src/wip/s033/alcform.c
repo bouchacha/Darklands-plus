@@ -1,4 +1,5 @@
 /* place: s033 15d1:000a */
+/* orig: size=04a2 CONST=7e7c+0006 _DATA=335c+0092 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Alchemy formula viewer (overlay s033, segment 15d1): loads DARKLAND.ALC, counts the
    party's ingredients and shows one formula page with its ingredient list. */

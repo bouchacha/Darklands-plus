@@ -1,4 +1,5 @@
 /* place: root 0617:000e */
+/* orig: size=08ac */
 /* flags: /AM /Gs /Zp1 */
 /* status (e3): 8/29 match (locals renamed for the 6.00A name-hash slot order in 000e/00d4/011e). Functions renamed to their sub_root_0617_ names (old names in the
    comments). This module was not built like the rest of the game: no /G2, loop variables
