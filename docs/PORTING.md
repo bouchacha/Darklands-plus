@@ -82,3 +82,14 @@ Unknown prototypes are fine. Declare what you need at the top of the file, e.g. 
 - **`#pragma optimize("a", on)` … `#pragma optimize("", on)`** around one function reproduces aliasing-dependent code (values kept in registers across far stores, loop-invariant loads) where `/Oa` for the whole file breaks other functions.
 - **128-byte party records**: `shl bx,7; [bx-6397h]` is `struct member D_9c69[]` with 128-byte elements, not a char array.
 - **MSC 6.00 vs 6.00A.** The game was built with a slightly different 6.00 release. Known differences: memset with `rep stosw` (handled by `cport.compat600`), and constants kept in a register for later pushes (`sub ax,ax; mov [x],ax; push ax; push ax`; 6.00A pushes immediates, but `D_x = 0; t.b = 0; f(.., t.b, t.b)` with a dead struct field reproduces it).
+
+## Round 3 findings (details: docs/PORTING_NOTES.md, helpers: tools/porting/)
+
+- **Declaration position decides order.** Call order inside one expression, operand order of sums of globals and the direction of compares (`cmp si,[g]` vs `cmp [g],si`) follow the position of the prototypes/extern lines in the file (MSC's symbol table), not the source order. Move `extern` lines or insert unused `extern int D_ffxx;` lines; `tools/porting/declpos.py` searches positions automatically.
+- **One expression vs. temporaries.** `push args; mov si,ax` with the store scheduled after the next pushes means the original was one big expression.
+- **Pragmas that help:** `#pragma optimize("a", on)` (reuse of a global in DX, register vars kept), `#pragma optimize("e", off)` / `volatile` (keep a local on the stack), `#pragma optimize("l", off)` (loop shapes).
+- **Frames:** `enter N,0` bigger than the visible locals means a local assigned a constant and later passed, a `struct res` whose `.a` is returned, or a user temp left in AX.
+- **Shared tails:** write every switch/if arm out in full; MSC cross-jumps identical tails itself.
+- **Strings:** split hex escapes (`"\xff" "egain"`); a string pushed by many calls but stored once is `char *m = "...";`.
+- **Twins:** many card functions are copies of functions in other files with constants changed; grep src/c first.
+- **Known unsolved (probably MSC 6.00 vs 6.00A):** party-loop bottom test `cmp si,[a67e]; jl` in some files (sometimes fixed by extern position), DS reload placement in s033 alcform, `long` return clobbered by idiv.
