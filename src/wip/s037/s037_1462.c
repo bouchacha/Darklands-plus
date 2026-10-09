@@ -1,8 +1,9 @@
 /* place: s037 1462:0000 */
 /* orig: size=4664 CONST=7ea6+0008 _DATA=403c+03b1 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 13/20 match (0348 0390 03d4 2922 2a68 38aa
-   3992 3a8a 3ae2 3cd6 3f30 4048 4562). Character creation main menu (pics\cretscrn.pic) -
+/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 14/20 match (0348 0390 03d4 2922 2a68 38aa
+   3992 3a8a 3ae2 3b58 3cd6 3f30 4048 4562). 3b58 MATCHED (m1) by reordering its local
+   declarations (n, i, nr, ids, h, c, fp): the `cmp dx,di` operand order follows them. Character creation main menu (pics\cretscrn.pic) -
    twin of s038 1462 (its 0000/01fe/024e/0292/02f8/23ec/25ca are 0000/0348/0390/03d4/0444/
    2760/2922 here; see that file for the charactr.tmp layout), plus save game (2a68/2ace),
    party add/remove (3cd6/3b58/3f30), charactr.tmp record helpers and the text input box.
@@ -17,7 +18,6 @@
      - 2ace (save game, 3550/3548): `n > i` loop compares (`mov ax,i; cmp [n],ax`) come out
        reversed; needs #pragma optimize("a") for D_017c kept in BX.
      - 2760: slot/register layout of the list loop (6.00 temp [bp-2] = &ids).
-     - 3b58: `cmp dx,di` operand order.
      - 4184: 6.00 turned the unused-index copy loop into a `dec si; jne` countdown.
      - 43e6: 6.00 keeps i in SI and FP_OFF(buf) in DI; 6.00A spills i to [bp-2].
    _DATA notes: "Saving Game" and the 0x30-byte zero block are initialised globals; MSC
@@ -2343,12 +2343,12 @@ int far sub_s037_1462_3ae2(int c)
 /* remove party member p (record written back to charactr.tmp) */
 void far sub_s037_1462_3b58(int p)
 {
-    int ids[5];
     int n;
+    int i;
     int nr;
+    int ids[5];
     int h;
     int c;
-    int i;
     FILE *fp;
     if (D_907b == p) {
         for (i = 0; i < 5; i++)

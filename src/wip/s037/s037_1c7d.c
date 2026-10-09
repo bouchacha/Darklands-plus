@@ -1,17 +1,17 @@
 /* place: s037 1c7d:0002 */
 /* orig: size=1a96 CONST=7ec4+000e _DATA=479e+01c3 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: 9/11 match, data matches. 0d24 (save loader) MATCHES.
-   0002 MATCHES: no `k = key` copy; key itself is used after the mouse part (6.00A then
-         keeps it in SI there and gives row DI).
-   030a: same length now: the constant temp is `h = 0x10; f(.., h, 0x12, h);` (h is
-         address-taken, so the store stays: `mov ax,10h; mov [bp-8],ax; push ax; push 12h;
-         push ax`). Left: the original stores it to [bp-2] (the ids loop's byte offset). An
-         explicit user loop (`for (p = &D_9c69[0][1], k = 0; k < 10; p += 0x80, k += 2)` +
-         `*(volatile int *)&k = 0x10`) gets [bp-2]/[bp-4] used like the original but the frame
-         is 2 bytes short (original has an unused slot at [bp-6]) and p/k slots swapped.
-   09c6: q = &F_2e38_1ffc is constant-propagated by 6.00A (original keeps it at [bp-6] and
-         reloads with les); frame 8 vs 6.
+/* status: FILE MATCH (m0, 2026-10-09).
+   0002: no `k = key` copy; key itself is used after the mouse part.
+   030a: the ids loop is a user loop over a byte offset and a member pointer held in one
+         struct (`struct { char *p; int k; } s;` puts p at [bp-4], k at [bp-2]; as separate
+         locals 6.00A swaps them whatever the names/declaration order), k is address-taken by
+         a volatile read in the ids test so `s.k = 0x10; f(.., s.k, 0x12, s.k)` keeps the 6.00
+         constant-temp store; the handle is `int h[2]` (h[1] = the original's unused [bp-6])
+         and n/nr share `int nn[2]`.
+   09c6: q = &F_2e38_1ffc kept in its slot by a dead `&q;`, the free_buffer argument read
+         through `**(unsigned far * volatile *)&q` (gives push es:[bx]), and the clears as
+         separate statements `D_2870 = 0; *q = 0; D_e416 = 0;`.
    Load-game screen (pics\loadscrn.pic): list of saves\*.sav, delete,
    load (0d24 reads the whole save file).
 
@@ -305,10 +305,9 @@ void far sub_s037_1c7d_02ce(void)
    0x4700 home, 0x4800/0x4b00 up, 0x4d00/0x5000 down, 0x4f00 end */
 int far sub_s037_1c7d_030a(int key)
 {
-    int i;
-    int h;
-    int nr;
-    int n;
+    struct { char *p; int k; } s;
+    int h[2];
+    int nn[2];
     int ids[5];
     char name[20];
     switch (key) {
@@ -324,20 +323,20 @@ int far sub_s037_1c7d_030a(int key)
             D_2800 = 8;
             sub_root_0265_0004(D_27f4, 0x52, 0x30, F_290e_0000.s[0]);
             sub_s037_1c7d_0d24((char far *)F_2e38_3b2e[D_8c50]);
-            sub_root_06a1_2c9e("charactr.tmp", 0, &h);
-            _dos_read(h, (int far *)&n, 2, &nr);
-            _dos_read(h, (int far *)ids, 10, &nr);
-            _dos_close(h);
-            for (i = 0; i < 5; i++) {
-                D_a2d7[i] = 0;
-                if (ids[i] != -1) {
+            sub_root_06a1_2c9e("charactr.tmp", 0, h);
+            _dos_read(h[0], (int far *)&nn[0], 2, &nn[1]);
+            _dos_read(h[0], (int far *)ids, 10, &nn[1]);
+            _dos_close(h[0]);
+            for (s.p = &D_9c69[0][1], s.k = 0; s.k < 10; s.p += 0x80, s.k += 2) {
+                *(unsigned *)((char *)D_a2d7 + s.k) = 0;
+                if (*(int *)((char *)ids + *(volatile int *)&s.k) != -1) {
                     sub_root_047c_0545();
                     strcpy(name, "pics\\");
                     strcat(name, "shield");
-                    name[11] = D_9c69[i][1];
+                    name[11] = *s.p;
                     name[12] = 0;
                     strcat(name, ".pic");
-                    D_a2d7[i] = sub_root_0617_045c(name);
+                    *(unsigned *)((char *)D_a2d7 + s.k) = sub_root_0617_045c(name);
                     sub_root_047c_04f8();
                 }
             }
@@ -372,8 +371,8 @@ int far sub_s037_1c7d_030a(int key)
         break;
     case 0x4800:
     case 0x4b00:
-        h = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, h, 0x12, h);
+        s.k = 0x10;
+        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
         if (--D_8c50 < 0) {
             if (D_8c52) {
                 D_8c52--;
@@ -386,8 +385,8 @@ int far sub_s037_1c7d_030a(int key)
         break;
     case 0x4d00:
     case 0x5000:
-        h = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, h, 0x12, h);
+        s.k = 0x10;
+        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
         if (++D_8c50 >= D_8c54) {
             if (D_8c4c - 9 < ++D_8c52) {
                 D_8c50--;
@@ -560,11 +559,14 @@ void far sub_s037_1c7d_09c6(void)
         if (D_2870)
             free_buffer(D_2870, "Map");
         q = &F_2e38_1ffc;
+        &q;
         if (*q)
-            free_buffer(*q, "S");
+            free_buffer(**(unsigned far * volatile *)&q, "S");
         if (D_e416)
             _dos_freemem(D_e416);
-        D_e416 = *q = D_2870 = 0;
+        D_2870 = 0;
+        *q = 0;
+        D_e416 = 0;
     }
     for (i = 0; i < 0x12c; i++) {
         if (F_2e38_1b2c[i]) {

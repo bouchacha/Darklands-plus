@@ -24,7 +24,10 @@
            nitems straight from memory instead of saving it in the [bp-0ah] byte temp.
      Session e4: 14b6 `q = i; type = t;` gives the original store order but q's slot moves
            above type (slots follow first-store order); `if ((type = t) == -1)` / `if (t != -1)
-           { ... }` / found = -1 before the test: no match (best stays 2 lines). */
+           { ... }` / found = -1 before the test: no match (best stays 2 lines).
+     Session m0: 14b6 `int q[1]; q[0] = i; type = t;` gives the original store order (aggregates
+           go below scalars) but then found lands above q; found in a struct/array changes
+           register allocation (who di -> si). struct {q,type} / {found,q,type}: worse. */
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {

@@ -1,6 +1,7 @@
 /* place: s014 18bf:0002 */
-/* orig: size=10e4 CONST=7d8e+0016 */
+/* orig: size=10e4 CONST=7d8c+0016 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* data: CONST=7d8c */
 /* s014 18bf: ATTACK RESOLUTION AND DAMAGE.
      0002  attack rate: D_d493[i] = 6000 / delay (melee) or 100 (missile, + aim value +0x1d)
      0102  one attack a -> t: to-hit (02a8), damage (0778), choose the swing/hit animation and

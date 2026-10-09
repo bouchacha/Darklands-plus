@@ -1,10 +1,18 @@
 /* place: s012 1432:0000 */
 /* orig: size=0a7c CONST=7d34+0002 _DATA=15ee+0015 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): 5/6 functions match. 028a (battlefield cell layout) has the right
- * code and frame size (enter 0x16) but 6.00A gives the locals other stack slots: original
- * top-down r c4 c6 c8 ca cc, d (char), row home, first, e (char), n. Tried: renames (no effect),
- * declaration order (no effect), chain/statement orders, volatile vars (build/agent/e6/bf*.py).
+/* status (m0, 2026-10-09): 5/6 functions match. 028a (battlefield cell layout): code and frame
+ * size right, only stack slots differ. Original top-down: r c4 c6 c8 ca cc, d (char), row's
+ * home (6.00A also stores di there once per row, never reads it), first, e (char), n.
+ * m0: n/e/first in one struct `lo` (aggregates go below all scalars in 6.00A) puts n, e and
+ * first in the original slots; row2 was not needed (the [bp-10h] store is row's own home);
+ * `int col;` must be declared before `int row;` for `mov ax,si; add ax,di`.
+ * Left: scalar order - 6.00A gives d -1, row -4, r -6, c8 -8, c6 -0a, c4 -0c, cc -0e, ca -10
+ * (chars first, then by use: reordering the `cc = ca = .. = r = 0` chain reorders the c's;
+ * names and declaration order have no effect). The original order equals the push order of
+ * the last 07e2 call (r, c4, c6, c8, ca, cc, d, row). Struct holders for the c's push r from
+ * memory instead of `push ax`; a struct can't hold row (register var with a home).
+ * Earlier: renames, declaration order, chain/statement orders, volatile vars (build/agent/e6/bf*.py).
  * The V() volatile reads at the call and `r` as the zero argument reproduce 6.00's
  * memory pushes and `push ax` zero pushes.
  * Dragon cave battlefield (fixed battle map "cavedrag").
@@ -206,90 +214,86 @@ void far sub_s012_1432_010a(int kind)
 #define V(x) (*(volatile int *)&(x))
 void far sub_s012_1432_028a(int kind)
 {
-    int n;
     int r;
     int c4;
     int c6;
     int c8;
     int ca;
     int cc;
+    unsigned char d;
     int col;
     int row;
-    int first;
-    int row2;
-    unsigned char d;
-    unsigned char e;
+    struct { int n; char p1; unsigned char e; int first; } lo;
 
-    *(volatile int *)&n = 0;
-    sub_s012_1432_07e2(3, 4, &n, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(3, 5, &n, 5, 0, 0x0a, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(3, 6, &n, 7, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(3, 7, &n, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(4, 4, &n, 5, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(4, 5, &n, 7, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(4, 6, &n, 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(4, 7, &n, 7, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(5, 4, &n, 1, 1, 0x0b, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+    *(volatile int *)&lo.n = 0;
+    sub_s012_1432_07e2(3, 4, &lo.n, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(3, 5, &lo.n, 5, 0, 0x0a, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(3, 6, &lo.n, 7, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(3, 7, &lo.n, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(4, 4, &lo.n, 5, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(4, 5, &lo.n, 7, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(4, 6, &lo.n, 6, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(4, 7, &lo.n, 7, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(5, 4, &lo.n, 1, 1, 0x0b, 0, 1, 0, 0, 0, 0, 0, 0, 0);
     if (kind == 0x64)
-        sub_s012_1432_07e2(5, 5, &n, 1, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        sub_s012_1432_07e2(5, 5, &lo.n, 1, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     else
-        sub_s012_1432_07e2(5, 5, &n, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(5, 6, &n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(5, 7, &n, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(5, 8, &n, 7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(6, 4, &n, 1, 0, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(6, 5, &n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(6, 6, &n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(6, 7, &n, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(6, 8, &n, 7, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(7, 4, &n, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(7, 5, &n, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(7, 6, &n, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(7, 7, &n, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(7, 8, &n, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(9, 7, &n, 3, 0, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    sub_s012_1432_07e2(0x0d, 8, &n, 3, 0, 0x0c, 0, 0, 0, 1, 0, 1, 0, 0, 0);
-    sub_s012_1432_07e2(0x0d, 5, &n, 9, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0);
+        sub_s012_1432_07e2(5, 5, &lo.n, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(5, 6, &lo.n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(5, 7, &lo.n, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(5, 8, &lo.n, 7, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(6, 4, &lo.n, 1, 0, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(6, 5, &lo.n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(6, 6, &lo.n, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(6, 7, &lo.n, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(6, 8, &lo.n, 7, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(7, 4, &lo.n, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(7, 5, &lo.n, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(7, 6, &lo.n, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(7, 7, &lo.n, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(7, 8, &lo.n, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(9, 7, &lo.n, 3, 0, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sub_s012_1432_07e2(0x0d, 8, &lo.n, 3, 0, 0x0c, 0, 0, 0, 1, 0, 1, 0, 0, 0);
+    sub_s012_1432_07e2(0x0d, 5, &lo.n, 9, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0);
     for (row = 8; row <= 13; row++) {
         if (row < 10)
             col = 4;
         else
             col = 5;
-        V(first) = col;
+        V(lo.first) = col;
         for (; col <= 8; col++) {
-            row2 = row;
-            e = 0;
+            lo.e = 0;
             r = sub_s004_0e76_20f6(1, 100);
             if ((row + col) % 2 == 0) {
                 d = 3;
                 if (r <= 15)
-                    e = 3;
+                    lo.e = 3;
                 else if (r <= 30)
-                    e = 4;
+                    lo.e = 4;
             } else {
                 int t;
                 d = 4;
                 if ((t = r) <= 60)
-                    e = 3;
+                    lo.e = 3;
                 else if (t <= 75)
-                    e = 4;
+                    lo.e = 4;
             }
             cc = V(ca) = c8 = c6 = c4 = r = 0;
-            if (first == col)
+            if (lo.first == col)
                 cc = 1;
             if (col == 8) {
                 c8 = 1;
                 c6 = 0;
             }
-            if (row == 13 || (row == 9 && first == col)) {
+            if (row == 13 || (row == 9 && lo.first == col)) {
                 c4 = 1;
                 r = 0;
             }
-            sub_s012_1432_07e2(row, col, &n, d, e, r, r, V(cc), V(ca), V(c8), V(c6), V(c4), V(r), r, r);
+            sub_s012_1432_07e2(row, col, &lo.n, d, lo.e, r, r, V(cc), V(ca), V(c8), V(c6), V(c4), V(r), r, r);
         }
     }
     F_20a5_0000.x248a = 0;
-    F_20a5_0000.list[n] = -1;
+    F_20a5_0000.list[lo.n] = -1;
     F_20a5_0000.x1f4c = 0x170;
     F_20a5_0000.x1f4e = 0x68;
     F_20a5_0000.x1f50 = 6;

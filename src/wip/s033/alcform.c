@@ -3,19 +3,11 @@
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Alchemy formula viewer (overlay s033, segment 15d1): loads DARKLAND.ALC, counts the
    party's ingredients and shows one formula page with its ingredient list. */
-/* STATUS (e0, 2026-10-09): 7/8 functions match.  sub_s033_15d1_0106 (alc_load): in the
-   ingredient-count loop the original loads DS=2e38 around the inner (item) loop only;
-   6.00A hoists the DS load to the outer (character) loop and reads nitems via ss:.
-   Tried: count locals, /Oa pragma, volatile/far D_9cd3.  Everything else matches.
-   Session 3: an extra guard `if (D_9cd3[i].nitems > 0)` around the inner for loop puts the
-   DS=2e38 load/restore exactly where the original has them (but duplicates the guard
-   compare); while/do/label variants do not.  Also left: original loads D_a67e into bx for
-   the outer guard (`mov bx,[a67e]; or bx,bx`), 6.00A compares with the known-zero ax.
-   Session 5: `j = 0; if (D_9cd3[i].nitems > 0) for (; j < ..; j++)` gives the original DS
-   placement and length without a duplicated compare.  Left: original `mov bx,[a67e]; or bx,bx;
-   ... mov [bp-0Ch],bx` (6.00A: `cmp [a67e],ax` with i's 0 in ax, then reload) and cx vs dx for
-   the outer pointer.  A local/param loop bound gives the bx form (but a store); an extra outer
-   `if (D_a67e > 0)` or a block boundary before the loop gives the right registers (but code).
+/* STATUS (m0, 2026-10-09): FILE MATCH.  sub_s033_15d1_0106 (alc_load): the 0x2e-byte clear
+   is not memset but a fill loop `for (i = 0; i < 0x17; i++) D_e7a6[i] = 0;` under
+   `#pragma optimize("a", on)` (6.00A turns it into the same `rep stosw`; with the memset
+   intrinsic 6.00A compared `cmp [a67e],ax` with the known-zero AX), plus the session-5 inner
+   loop `j = 0; if (D_9cd3[i].nitems > 0) for (; j < ..; j++)` for the DS=2e38 placement.
    Functions carry their original sub_ names; the descriptive names are in the comments. */
 
 struct find_t {
@@ -137,6 +129,7 @@ int far sub_s033_15d1_00e6(int r)
 }
 
 /* sub_s033_15d1_0106 (alc_load): read DARKLAND.ALC, index its formulas and count the party's ingredients */
+#pragma optimize("a", on)
 void far sub_s033_15d1_0106(int a, int idx)
 {
     char msg[] = "alchemy file\n";
@@ -158,7 +151,8 @@ void far sub_s033_15d1_0106(int a, int idx)
             p += 0x68;
         }
     }
-    memset(D_e7a6, 0, 0x2e);
+    for (i = 0; i < 0x17; i++)
+        D_e7a6[i] = 0;
     for (i = 0; i < D_a67e; i++) {
         j = 0;
         if (D_9cd3[i].nitems > 0) {
@@ -173,6 +167,7 @@ void far sub_s033_15d1_0106(int a, int idx)
 }
 
 /* sub_s033_15d1_0260 (alc_draw): draw the page for formula idx */
+#pragma optimize("", on)
 void far sub_s033_15d1_0260(int a, int idx)
 {
     char buf[120];

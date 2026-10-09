@@ -1,6 +1,7 @@
 /* place: s014 14f7:0008 */
 /* orig: size=3c7a CONST=7d50+002e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* data: CONST=7d50 */
 /* s014 14f7: COMBAT RENDERER.
    0008 draws one frame: lays out effect puffs (3682/3a46), positions combatants (31e6) and
    missiles (3404), erases last frame's logged sprites, queues map pieces that changed

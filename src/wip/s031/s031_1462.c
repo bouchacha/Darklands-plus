@@ -3,17 +3,16 @@
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* Inventory screen (overlay s031, main file): the "arms" screen where a party member's
    equipment and pack are shown and items are moved, used, dropped or traded.
-   STATUS (e1d, 2026-10-09): all 19 functions written, _DATA and CONST match; 16/19 match (+43b2 only its jump table).
+   STATUS (m0, 2026-10-09): all 19 functions written, _DATA and CONST match; 18/19 match.
      0124 [1 diff line]: `cmp si,di` for `m == who` (ours `cmp di,si`; who is region-cached in
        si there, m is the di register var).  Tried both operand orders, (m = ..) == who,
        who - m == 0, unsigned m/casts, renaming m and who, pragmas a/c/w/z, and a dummy
        extern at every top-level position: no flip.  (Frame fixed in e1d: [bp-8] is MSC's CSE
        of D_867c, not a named k; the ph+iy temp lands at [bp-0ch] once k is gone.)
-     433c [1 instruction]: the original keeps a dead `mov word ptr [bp-2],80h` (b = 0x80 before
-       the loops); 6.00A deletes it (constant propagation + global DSE, independent of
-       /Oe /Og /Ol /Oc).  Everything else matches (no v local: the byte is a hoisted temp).
-       Keeping it via volatile/union/struct/&b stops b being cached in bx.  433c is therefore
-       5 bytes short and 43b2's jump table (absolute offsets) is off by 5.
+     433c MATCHED (m0): the 0x80 is a mask variable `m = 0x80; ... (m >> b)` sharing b's slot
+       (6.00A keeps that store); 43b2 follows.  0124 (m0): `D_9c69[who = m]` flips the compare
+       to `cmp si,di` (but moves `mov si,di` too); local decl permutations, i/key for m,
+       if/else forms, `D_867d = who = m`: no effect.
      42ac matched in e1d: no `f` local (hoisted CSE temp) and a do-while loop (the for loop gave
        `mov cx,ax` instead of `mov cx,bx` in the i*3 return blocks).
      43b2: code identical; only its jump table differs (433c length).
@@ -1604,13 +1603,13 @@ int far sub_s031_1462_42ac(int who, int n)
 /* n-th set bit in who's 17 bit bytes at 2e38:082c */
 int far sub_s031_1462_433c(int who, int n)
 {
-    int i, b;
+    int i, b, m;
 
-    b = 0x80;               /* dead store; the original keeps it (mov [bp-2],80h), 6.00A drops it */
+    m = 0x80;               /* mask variable: 6.00A keeps this store (mov [bp-2],80h) */
     for (i = 0; i < 17; i++) {
         b = 0;
         for (; b < 8; b++)
-            if ((F_2e38_082c[who][i] & (0x80 >> b)) && n-- <= 0)
+            if ((F_2e38_082c[who][i] & (m >> b)) && n-- <= 0)
                 return i * 8 + b;
     }
 }

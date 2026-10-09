@@ -8,7 +8,8 @@
  * slot order). Close: 1830 (only the 16-byte memsets: original `mov dx,addr ... rep stosb`,
  * cport.compat600 turns ours into stosw), 0000 (k*i loop operand order, `sub ax,ax; push ax;
  * push ax`), 0c8c (6.00 keeps &rec[t] in a stack temp across _fmemcpy), 0806 (two stack slots
- * swapped), 1762 (strcpy SI/DI), 168a (strength-reduced D_ca45 pointer). Known limit: 1a7a
+ * swapped), 1762 (m1: it is strcpy(*p, r[i].name) - names copied INTO the table; left: the loop pointer init
+ * goes to SI instead of DI), 168a (strength-reduced D_ca45 pointer). Known limit: 1a7a
  * (far memset intrinsic `rep stosw` into F_2e38_0bb6 - 6.00A calls _fmemset).
  * Data: tables D_114a (name strings: party names, cfile.dat, terrain.fil, portrait codes),
  * D_1182, D_11b2, D_11c8.. are defined here and emitted after 0000's literals.
@@ -873,7 +874,7 @@ void far sub_s002_0e76_1762(void)
     fclose(f);
     for (i = 0, p = &D_114a[2]; p < &D_114a[12]; p++, i++) {
         r[i].x1d = 0;
-        strcpy(r[i].name, *p);
+        strcpy(*p, r[i].name);
     }
 }
 

@@ -1,7 +1,9 @@
 /* place: s037 18c8:0004 */
 /* orig: size=3b4e CONST=7eae+0016 _DATA=442e+0370 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 7/15 match (0004 047c 04b2 053e 1738 3890 39ca).
+/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 9/15 match (0004 047c 04b2 053e 1738 38a6 3890 39ca 3a9e).
+   3a9e MATCHED (m1): `it.id = k = id;` with k indexing F_2e38_0890 (k in SI, stored to it.id).
+   38a6 MATCHED (m1): `for (n = i = 0; ...)` (chain order decides SI/DI).
    058e (key handler): same length; left are 6.00 code-placement choices in the key
    compare tree: which `return` sites get an inline epilogue vs `jmp` to the shared one
    (0eb6, 1032) and which copy of the cross-jumped 0x2247/0x3042 tail survives (1049..107c).
@@ -13,8 +15,8 @@
    memset(D_4402, 0, 0x25) (odd size) stays `rep stosb` with DX. 22be (profession list,
    conditions extracted mechanically, see e4/NOTES): 22 bytes short - 6.00A threads
    `je L; jmp skip` into a short jump to a nearby `jmp skip`, and one cross-jumped tail (case
-   31 into case 30) differs. 3a9e (add item): `id` in SI in 6.00, BX in 6.00A.
-   356c (career step): `w` in SI instead of BX. 38a6 (virtues list): i/n SI/DI swapped.
+   31 into case 30) differs.
+   356c (career step): `w` in SI instead of BX.
    372a (career events): 6.00 layout of the jump-table bodies (7/0x12 after 0x0c-group, 6-group
    after 0x1a, 4-group last; case 9 jumps BACK into case 8) - 6.00A sorts bodies by smallest
    label and keeps the later cross-jump copy; splitting groups fixed 4/6/7, not 8/9.
@@ -1489,8 +1491,7 @@ void far sub_s037_18c8_38a6(void)
     if (i)
         sub_root_05ba_00c2(i, "x");
     D_2800 = 8;
-    n = 0;
-    for (i = 0; i < 22; i++) {
+    for (n = i = 0; i < 22; i++) {
         if (F_2e38_3b04[i] & 1)
             sub_root_0265_0004(D_27f4, 0x32, (n++ + 8) << 3, F_2e38_1736[i][0]);
         if (F_2e38_3b04[i] & 2)
@@ -1542,10 +1543,11 @@ void far sub_s037_18c8_3a9e(int id)
     struct item it;
     struct item far *p;
     int i;
-    it.id = id;
-    it.f2 = F_2e38_0890[id]->f1e;
-    it.qual = F_2e38_0890[id]->f26;
-    it.f5 = F_2e38_0890[id]->f25;
+    int k;
+    it.id = k = id;
+    it.f2 = F_2e38_0890[k]->f1e;
+    it.qual = F_2e38_0890[k]->f26;
+    it.f5 = F_2e38_0890[k]->f25;
     it.cnt = 1;
     for (i = 0; i < D_e888; i++)
         if (F_2e38_3984[i].id == it.id && F_2e38_3984[i].f2 == it.f2

@@ -1,6 +1,7 @@
 /* place: s014 1db7:0008 */
-/* orig: size=1118 CONST=7db0+000c */
+/* orig: size=1118 CONST=7db2+0006 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* data: CONST=7db2 */
 /* s014 1db7: COMBAT AI (target selection and melee engagement).
      0008  AI tick: reach table (09ae), react to moved targets (026a); in real combat
            (D_a6c1 == 1) also engage idle neighbours (06cc), fight back (0840) and
@@ -19,7 +20,8 @@
      0cfa  F_20a5_7c4d[i] = endurance * 64 / max endurance (255 = out)
      0e22  re-evaluate the target of i: keep it, help a friend being attacked, or pick the
            weakest reachable opponent (endurance fraction + path cost / 5)
-   status: 16/16 written, 5 match. 0028 (far) and the near functions 06cc 0840 09ae 0ba8 0c2a 0cfa
+   status: 16/16 written, 6 match (0c2a now: AI tables are one far struct F_20a5_787e, CONST
+   7db2/7db4/7db6 like the original, re-stamped e8 2026-10-09). 0028 (far) and the near functions 06cc 0840 09ae 0ba8 0c2a 0cfa
    0d36 0e22 as in the original. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
@@ -93,10 +95,17 @@ void near sub_s014_1db7_0e22(int, int);
 void far sub_s014_1db7_026a(void);
 
 extern struct cbt D_9c55[];
-extern int far F_20a5_787e[];           /* path cost rows: [i*5 + j] (rows overlap!) */
-extern char far F_20a5_7900[13][13];    /* within melee reach */
-extern int far F_20a5_79a9[13][13][2];  /* remembered target positions */
-extern unsigned char far F_20a5_7c4d[13]; /* AI preference value */
+/* the AI tables 20a5:787e..7c59 are ONE far variable in the original (CONST slot 7db2) */
+struct aitab {
+    int cost[65];                       /* 787e path cost rows: [i*5 + j] (rows overlap!) */
+    char reach[13][13];                 /* 7900 within melee reach */
+    int pos[13][13][2];                 /* 79a9 remembered target positions */
+    unsigned char pref[13];             /* 7c4d AI preference value */
+};
+extern struct aitab far F_20a5_787e;
+#define F_20a5_7900 (F_20a5_787e.reach)
+#define F_20a5_79a9 (F_20a5_787e.pos)
+#define F_20a5_7c4d (F_20a5_787e.pref)
 extern int far F_20a5_72b4[];           /* waypoint x */
 extern int far F_20a5_7304[];           /* waypoint y */
 extern char far F_2e38_0bd8[][20];      /* animation set names */
@@ -163,7 +172,7 @@ void far sub_s014_1db7_0028(int i, int lo, int hi)
 
     best = 32000;
     if (D_9c55[i].status == 1) {
-        row = &F_20a5_787e[i * 5];
+        row = &F_20a5_787e.cost[i * 5];
         sub_root_0410_007e(row, 32000, 13);
         for (j = lo; j < hi; j++) {
             if (D_9c55[j].status != 1)
@@ -183,9 +192,9 @@ void far sub_s014_1db7_0028(int i, int lo, int hi)
             D_d73e.ty = D_9c55[j].y;
             D_d73e.target = j;
             if (sub_s014_12f7_03ea(&D_d73e) == 1) {
-                row[j] = D_e116;
+                F_20a5_787e.cost[i * 5 + j] = D_e116;
                 if (D_e116 < best)
-                    best = row[j];
+                    best = F_20a5_787e.cost[i * 5 + j];
             }
         }
     }
@@ -497,7 +506,7 @@ void near sub_s014_1db7_0c2a(int i, int t)
     D_9c55[i].target = t;
     D_9c55[i].tx = D_9c55[t].x;
     D_9c55[i].ty = D_9c55[t].y;
-    if (F_20a5_787e[i * 5 + t] == 0) {
+    if (F_20a5_787e.cost[i * 5 + t] == 0) {
         /* already adjacent */
         sub_s014_0e76_3d0c(i);
         D_9c55[i].f10 = sub_s014_1db7_0ba8(i, t, 1);
@@ -564,7 +573,7 @@ void near sub_s014_1db7_0e22(int i, int t)
     int far *row;
     int j, lo, hi, w, sel, first;
 
-    row = &F_20a5_787e[i * 5];
+    row = &F_20a5_787e.cost[i * 5];
     if (D_c21a != 0 && i == 5)
         return;
     if (D_9c55[t].status == 1 && F_20a5_7900[i][t] == 0 && D_ca57[t] != 3

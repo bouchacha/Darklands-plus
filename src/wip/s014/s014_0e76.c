@@ -1,4 +1,5 @@
 /* place: s014 0e76:0000 */
+/* orig: size=481a CONST=7d36+0012 _DATA=1776+014c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 0e76: TACTICAL COMBAT MAIN LOOP AND ACTION STATE MACHINE.
      0000  combat entry: load the level (s020/s024), place the party, open/close doors and
@@ -22,8 +23,12 @@
      3d2c  load a sprite file into a slot (catalogue, header, frame tables)
      4442  activation records: hidden encounters start when seen / approached
      45ae  endurance recovery outside battle
-   status: 39 of 39 functions written, 4 match (2a04, 38b6, 3c86, 4694).  1158 is inline asm in the
-   original; data (0x1776..0x18c1) still extern, so DATA DIFFERS (see NOTES). */
+   status: 39 of 39 functions written, 5 match (2a04, 38b6, 3c86, 4694, 4780).  45ae: only the frame
+   differs (orig 8 bytes, `st` in its own slot; 6.00A overlaps it with `max`).  1158 is inline asm in the
+   original.  DATA MATCHES (e8, 2026-10-09; stamped --wip): _DATA 1776..18c1 is defined here (facing
+   tables before 0620, 17e2..18c1 as one packed struct because 6.00A word-aligns each definition);
+   the 9 CONST slots need the floor image as ONE far struct (struct floor F_20a5_000, slot 7d36) plus
+   a second name F_20a5_0 for the door cell lists (slot 7d3a). */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     int scrx;                   /* +00 screen x */
@@ -70,14 +75,37 @@ struct dmg { char endur; char str; };
 struct wtab { char v[63]; };
 
 extern struct cbt D_9c55[];
-extern struct trig far F_20a5_2186[];
-extern char far F_20a5_2184;
-extern char far F_20a5_1f51;            /* door opened by the arrival */
-extern int far F_20a5_1f4c, F_20a5_1f4e;    /* arrival effect position */
-extern char far F_20a5_1f50;
-extern int far F_20a5_1f42, F_20a5_1f46, F_20a5_1f48, F_20a5_1f4a;   /* exit codes */
-extern unsigned *far F_20a5_248a[];     /* cells hidden behind each door */
-extern unsigned char far F_20a5_0000[][40][4]; /* map cells (byte 3 bit 7: hidden) */
+/* the floor image 20a5:0000 (level%d.flr, 0x33fc bytes) is ONE far variable in the original
+   source (every field is reached through CONST slot 7d36); the door cell lists (near offsets
+   into the same segment) are read through a second name for 20a5:0000 (slot 7d3a) */
+struct floor {
+    unsigned char cell[40][40][4];      /* 0000 map cells (byte 3 bit 7: hidden) */
+    char p1900[0x1f42 - 0x1900];
+    int x1f42, x1f44, x1f46, x1f48, x1f4a;  /* 1f42 exit codes */
+    int x1f4c, x1f4e;                   /* 1f4c arrival effect position */
+    char x1f50;
+    char x1f51;                         /* 1f51 door opened by the arrival */
+    char p1f52[0x2184 - 0x1f52];
+    char ntrig;                         /* 2184 */
+    char p2185;
+    struct trig trig[55];               /* 2186 */
+    char p2488[2];
+    unsigned doors[16];                 /* 248a cells hidden behind each door (offsets) */
+};
+extern struct floor far F_20a5_000;
+extern int far F_20a5_0;
+#define F_20a5_0000 (F_20a5_000.cell)
+#define F_20a5_1f42 (F_20a5_000.x1f42)
+#define F_20a5_1f46 (F_20a5_000.x1f46)
+#define F_20a5_1f48 (F_20a5_000.x1f48)
+#define F_20a5_1f4a (F_20a5_000.x1f4a)
+#define F_20a5_1f4c (F_20a5_000.x1f4c)
+#define F_20a5_1f4e (F_20a5_000.x1f4e)
+#define F_20a5_1f50 (F_20a5_000.x1f50)
+#define F_20a5_1f51 (F_20a5_000.x1f51)
+#define F_20a5_2184 (F_20a5_000.ntrig)
+#define F_20a5_2186 (F_20a5_000.trig)
+#define DOORLIST(d) ((unsigned far *)((char far *)&F_20a5_0 + F_20a5_000.doors[d]))
 extern unsigned long far F_2e38_0bb6[];  /* doors opened, per level */
 struct atv { int f0; int f2; char pad[26]; };  /* activation record, 30 bytes: x, y, ... */
 struct atvs { struct atv a[64]; };
@@ -228,7 +256,7 @@ void far sub_s014_0e76_0000(void)
         if (F_20a5_1f51 >= 0) {
             mask = 1L << F_20a5_1f51;
             F_2e38_0bb6[D_11ca] |= mask;
-            for (k = 0; (v = F_20a5_248a[F_20a5_1f51][k]) != 0xffff; k++)
+            for (k = 0; (v = DOORLIST(F_20a5_1f51)[k]) != 0xffff; k++)
                 F_20a5_0000[v >> 8][v & 0xff][3] &= 0x7f;
             D_d4e4 = 1;
         }
@@ -395,6 +423,13 @@ void far sub_s014_0e76_0000(void)
 }
 
 /* re-activate the first disabled activation record (copy it to the end) */
+/* module data (DGROUP 179b..17bd) */
+char D_179c[10] = {0, 1, 2, 3, 4, 5, 6, 7, 1, 5};      /* path facing -> sprite facing */
+char D_17a6[10] = {4, 5, 6, 7, 0, 1, 2, 3, 5, 1};      /* push direction -> facing */
+char D_17b0 = 0;
+char D_17b1 = 0;
+char D_17b2[12] = {2, 1, 0, 2, 3, 4, 6, 5, 4, 6, 7, 0};
+
 void far sub_s014_0e76_0620(void)
 {
     int k;
@@ -1646,7 +1681,50 @@ int far sub_s014_0e76_2a04(int i)
 }
 
 extern int D_e096;
-extern char D_17e2[][4];                /* [quadrant][slope] -> facing */
+struct catn { char s[9]; };             /* sprite catalogue file name */
+/* module data DGROUP 17e2..18c1 as one packed struct: the game's compiler did not word-align the
+   odd-sized items ("wk", the 9-byte catalogue names, ".imc"); 6.00A aligns every definition */
+struct dat17e2 {
+    char t17e2[4][4];                   /* 17e2 [quadrant][slope] -> facing */
+    char wk[3], cb[3], dy[3];           /* 17f2 sprite file kinds: walk, combat, dying */
+    struct catn a00c, c00c, e00c, m00c, f60c, f01c;     /* 17fb catalogues */
+    char imc[5];                        /* 1831 */
+    int t1836[0x38];                    /* 1836 2-letter weapon animation codes */
+    char t18a6[8], t18ae[8];            /* 18a6 view offset per facing */
+    char t18b6[6], t18bc[6];            /* 18b6 effect area half sizes by size class */
+} D_17e2_ = {
+    {{2, 1, 0, 0}, {2, 3, 4, 5}, {6, 5, 0, 0}, {6, 7, 0, 1}},
+    "wk", "cb", "dy",
+    {"A00C.cat"}, {"C00C.cat"}, {"E00C.cat"}, {"M00C.cat"}, {"F60C.cat"}, {"F01C.cat"},
+    ".imc",
+    {
+      'S' | '2' << 8, 'S' | 'W' << 8, 'C' | 'D' << 8, 'D' | 'R' << 8, 'A' | '2' << 8, 'A' | 'X' << 8, 'D' | 'X' << 8, 'H' | '2' << 8,
+      'M' | '2' << 8, 'H' | 'M' << 8, 'M' | 'C' << 8, 'F' | '2' << 8, 'F' | 'L' << 8, 'S' | 'P' << 8, 'S' | 'Y' << 8, 'Q' | 'S' << 8,
+      'S' | 'L' << 8, 'T' | 'A' << 8, 'D' | 'T' << 8, 'T' | 'K' << 8, 'B' | 'W' << 8, 'C' | 'B' << 8, 'H' | 'G' << 8, 'P' | 'T' << 8,
+      'P' | 'Y' << 8, 'D' | 'P' << 8, 'V' | 'L' << 8, 'D' | '7' << 8, 'B' | 'E' << 8, 'G' | 'G' << 8, 'G' | 'F' << 8, 'H' | 'H' << 8,
+      'T' | 'Z' << 8, 'W' | 'W' << 8, 'W' | 'F' << 8, 'S' | 'D' << 8, 'H' | 'P' << 8, 'C' | 'A' << 8, 'A' | 'U' << 8, 'U' | 'N' << 8,
+      'B' | 'R' << 8, 'W' | 'V' << 8, 'G' | 'N' << 8, 'M' | 'N' << 8, 'M' | 'M' << 8, 'H' | 'B' << 8, 'C' | 'L' << 8, 'W' | 'H' << 8,
+      'K' | 'B' << 8, 'S' | 'K' << 8, 'S' | 'C' << 8, 'O' | 'G' << 8, 'W' | 'S' << 8, 'D' | 'Z' << 8, 'P' | '7' << 8, 'P' | 'C' << 8
+    },
+    {0, 4, 12, 12, 0, -4, -12, -12}, {-16, -16, 0, 16, 16, 16, 0, -16},
+    {0, 8, 16, 24, 32, 0}, {0, 4, 8, 12, 16, 0}
+};
+#define D_17e2 (D_17e2_.t17e2)
+#define D_17f2 (D_17e2_.wk)
+#define D_17f5 (D_17e2_.cb)
+#define D_17f8 (D_17e2_.dy)
+#define D_17fb (D_17e2_.a00c)
+#define D_1804 (D_17e2_.c00c)
+#define D_180d (D_17e2_.e00c)
+#define D_1816 (D_17e2_.m00c)
+#define D_181f (D_17e2_.f60c)
+#define D_1828 (D_17e2_.f01c)
+#define D_1831 (D_17e2_.imc)
+#define D_1836 (D_17e2_.t1836)
+#define D_18a6 (D_17e2_.t18a6)
+#define D_18ae (D_17e2_.t18ae)
+#define D_18b6 (D_17e2_.t18b6)
+#define D_18bc (D_17e2_.t18bc)                /* [quadrant][slope] -> facing */
 void far sub_s014_18bf_0002(int);
 int far sub_s014_18bf_0102(int, int);
 int far sub_s014_0e76_47ae(int, int);
@@ -2146,7 +2224,6 @@ void far sub_s014_0e76_35fc(void)
 }
 
 extern char *D_1166[], *D_1174[];       /* sprite file prefix / suffix per animation kind */
-extern char D_17f5[], D_17f8[], D_17f2[];   /* "cb" combat, "dy" dying, "wk" walking */
 extern char *D_11b2[];                  /* sprite file loaded in each slot */
 extern char D_cab4[][0x90];             /* walk sprite info per kind */
 extern char D_ceae[][0x70];             /* combat sprite info */
@@ -2282,10 +2359,6 @@ void far sub_s014_0e76_3d0c(int i)
     memset(D_d9e6[i], 0, 6);
 }
 
-struct catn { char s[9]; };             /* sprite catalogue file name */
-extern struct catn D_17fb, D_1804, D_180d, D_1816, D_181f, D_1828;  /* A00C/C00C/E00C/M00C/F60C/F01C.cat */
-extern char D_1831[];                   /* ".imc" */
-extern int D_1836[0x38];                /* 2-letter weapon animation codes "S2","SW","CD",... */
 struct anim { char seq[10]; char a; char b; char c; unsigned char flags; char e; };   /* 15 bytes */
 extern struct anim far F_20a5_4276[];   /* attack animation per weapon code */
 extern char far *D_c103;                /* load buffer */
@@ -2397,7 +2470,7 @@ void far sub_s014_0e76_3d2c(int i, char *name, int *frames, int slot, int mem)
         sub_s014_1ec9_00da(D_9c55[i].kind, n - 4, mem);
 }
 
-extern char D_18a6[], D_18ae[];         /* view offset per facing */
+         /* view offset per facing */
 
 /* place the party around (x, y) facing dir (arrival through an exit/door): first
    in formation, then at random spots nearby that can see the point; after 500
@@ -2497,7 +2570,7 @@ again:
 
 extern int D_a691, D_a693;              /* cursors: orders / normal */
 extern char D_01be, D_01bf;             /* sound options */
-extern char D_18b6[], D_18bc[];         /* effect area half sizes by size class */
+         /* effect area half sizes by size class */
 extern char *D_21b2[], *D_21bc[];       /* effect area shapes */
 extern char D_a5cc[];                   /* [13] side */
 extern char D_e0ac[];                   /* [13] 1 = hostile */
@@ -2553,35 +2626,36 @@ skip:
 }
 
 /* out of battle: party members slowly recover endurance up to 3/4 of the maximum */
+#pragma optimize("a", on)
+#pragma optimize("g", off)
 void far sub_s014_0e76_45ae(void)
 {
     int max, e, i;
     char st;
-    unsigned t;
 
     for (i = 0; i < 5; i++) {
         st = D_9c55[i].status;
-        if ((st == 1 || st == 2) && D_da55[i] < (t = D_07d4)) {
+        if ((st == 1 || st == 2) && D_da55[i] < D_07d4) {
             max = D_9c55[i].maxend;
             e = D_9c55[i].endur;
             if ((max >> 2) + (max >> 1) <= e)
-                D_da55[i] = t + 2700;
+                D_da55[i] = D_07d4 + 2700;
             else {
                 D_9c55[i].endur++;
                 if (max >> 3 > e)
-                    t += 300;
+                    D_da55[i] = D_07d4 + 300;
                 else if (max >> 2 > e)
-                    t += 900;
+                    D_da55[i] = D_07d4 + 900;
                 else if (max >> 1 > e)
-                    t += 1800;
+                    D_da55[i] = D_07d4 + 1800;
                 else
-                    t += 2700;
-                D_da55[i] = t;
+                    D_da55[i] = D_07d4 + 2700;
                 sub_root_0000_1716(i);
             }
         }
     }
 }
+#pragma optimize("", on)
 
 /* play sound n if the sound options allow it */
 void far sub_s014_0e76_465e(int n)
@@ -2627,7 +2701,10 @@ int far sub_s014_0e76_469e(int *e, int i)
 void far sub_s014_0e76_4780(void)
 {
     sub_root_047c_12c3();
-    sub_root_047c_124f(0, 0, D_a695 == 0 ? D_a693 : D_a691);
+    if (D_a695 == 0)
+        sub_root_047c_124f(0, 0, D_a693);
+    else
+        sub_root_047c_124f(0, 0, D_a691);
     sub_root_047c_1293();
     D_a68f = D_9c42;
 }

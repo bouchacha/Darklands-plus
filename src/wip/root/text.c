@@ -5,8 +5,11 @@
    frame layout now right; left: memcpy count kept in a temp (frame 0xc0 vs 0xbe), loop shapes of
    the trailing-space and copy loops (6.00 left them unrotated: jmp test / out-of-line increment),
    switch tail `hs->count++` not shared, `push ax` for x, `cmp [start],cur` operand order).
-   0654 measure_text_wrapped: code identical, only two stack-slot pairs swapped (newline/cur,
-   start/font); names do not matter there, slot order depends on use weights. */
+   0654 measure_text_wrapped: (m0) `start = line = cur = text;` puts start/font in the original
+   slots and line in DX.  Left: the original loads text into AX and stores start first
+   (`mov ax,[bp+8]; mov [bp-14h],ax; mov dx,ax; mov si,ax`; ours `mov si,[bp+8]; mov dx,si;
+   mov [bp-14h],si`) and newline/cur slots (orig -5/-8, ours -7/-6); a struct for cur/newline
+   or `char nl[2]` is much worse, `&text[0]` gives the AX load but the wrong order. */
 /* Text output (root segment 0265): draw strings in a text window, word-wrapped text with
    embedded control codes and hyperlink-like hotspots, number formatting.
    (The empty function at 0x2652 in front of this module belongs to segment 0000; it is
@@ -354,7 +357,7 @@ long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int
     had_icon = 0;
     link = 0;
     lw = width;
-    cur = line = start = text;
+    start = line = cur = text;
     font = w->font;
     newline = 1;
     more = 1;

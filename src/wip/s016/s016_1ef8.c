@@ -3,10 +3,15 @@
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s016: combat command keys - party movement modes (group / individual / single file),
    active-member selection, stairs/portal commands, command letter display.
-   status: all 59 functions written; 54/59 match. Blockers (MSC 6.00 vs 6.00A): 0000 switch
-   layout (6.00: tree spine inline, bodies in source order), 0bd6/0cdc odd-size memset
-   (rep stosw + stosb), 0da6 placement of the shared rebuild block; 15be differs only in its
-   jump table (absolute offsets, follows from the earlier lengths). Notes: build/agent/e7/NOTES.md */
+   status: all 59 functions written; 56/59 match. Blockers (MSC 6.00 vs 6.00A): 0000 switch
+   layout (6.00: tree spine inline, bodies in source order), 0da6 placement of the shared
+   rebuild block (switch(D_c629) form: worse); 15be differs only in its jump table (absolute
+   offsets, follows from the earlier lengths). Notes: build/agent/e7/NOTES.md
+   0bd6/0cdc MATCHED (m0): the 5-byte clear is a fill loop `for (i = 0; i < 5; i++)
+   D_a6d3[i] = 0;` under #pragma optimize("a") (gives `mov cx,2; rep stosw; stosb`), and the
+   following party loop runs on a char pointer to f4a initialised BEFORE the clear
+   (`k = 0; p = &D_9c55[0].f4a; <clear>; for (; p < &D_9c55[5].f4a; k++, p += sizeof(struct cbt))`,
+   f10 as `*(int *)(p - 0x3a)`), which reproduces 6.00's memory homes of k/p around the clear. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -606,10 +611,13 @@ void far sub_s016_1ef8_0b92(void)
 }
 
 /* toggle "travel as a group" */
+#pragma optimize("a", on)
 void far sub_s016_1ef8_0bd6(void)
 {
     char msg[80];
     int k;
+    int i;
+    char *p;
 
     D_c102 = D_c102 != 1 ? 1 : 0;
     if (D_c102 == 1) {
@@ -618,11 +626,14 @@ void far sub_s016_1ef8_0bd6(void)
         D_07aa = 1;
         D_d7fe = 1;
         sub_s016_1ef8_0da6(1);
-        memset(D_a6d3, 0, 5);
-        for (k = 0; k < 5; k++) {
-            D_9c55[k].f4a = -1;
+        k = 0;
+        p = &D_9c55[0].f4a;
+        for (i = 0; i < 5; i++)
+            D_a6d3[i] = 0;
+        for (; p < &D_9c55[5].f4a; k++, p += sizeof(struct cbt)) {
+            *p = -1;
             sub_s014_0e76_3d0c(k);
-            D_9c55[k].f10 = 0;
+            *(int *)(p - 0x3a) = 0;
         }
     } else {
         strcpy(msg, D_0768);
@@ -631,10 +642,12 @@ void far sub_s016_1ef8_0bd6(void)
         D_d7fe = 0;
         if (D_d610 == 0)
             D_9681 = 2;
-        memset(D_a6d3, 0, 5);
-        for (k = 0; k < 5; k++) {
-            D_9c55[k].f4a = -1;
-            D_9c55[k].f10 = 0;
+        p = &D_9c55[0].f4a;
+        for (i = 0; i < 5; i++)
+            D_a6d3[i] = 0;
+        for (; p < &D_9c55[5].f4a; p += sizeof(struct cbt)) {
+            *p = -1;
+            *(int *)(p - 0x3a) = 0;
         }
     }
     sub_root_0000_24bc(msg, 0x3c);
@@ -642,12 +655,15 @@ void far sub_s016_1ef8_0bd6(void)
     if (D_a695 == 1)
         D_9609 = 1;
 }
+#pragma optimize("", on)
 
 /* toggle "travel in single file" */
+#pragma optimize("a", on)
 void far sub_s016_1ef8_0cdc(void)
 {
     char msg[80];
-    int k;
+    int i;
+    char *p;
 
     D_d7fe = 0;
     D_c102 = D_c102 != 2 ? 2 : 0;
@@ -663,10 +679,12 @@ void far sub_s016_1ef8_0cdc(void)
         D_07bc = 2;
         if (D_d610 == 0)
             D_9695 = 2;
-        memset(D_a6d3, 0, 5);
-        for (k = 0; k < 5; k++) {
-            D_9c55[k].f4a = -1;
-            D_9c55[k].f10 = 0;
+        p = &D_9c55[0].f4a;
+        for (i = 0; i < 5; i++)
+            D_a6d3[i] = 0;
+        for (; p < &D_9c55[5].f4a; p += sizeof(struct cbt)) {
+            *p = -1;
+            *(int *)(p - 0x3a) = 0;
         }
     }
     sub_root_0000_24bc(msg, 0x3c);
@@ -674,6 +692,7 @@ void far sub_s016_1ef8_0cdc(void)
     if (D_a695 == 1)
         D_9609 = 1;
 }
+#pragma optimize("", on)
 
 /* rebuild the marching order D_c624 unless it still lists exactly the active members */
 void far sub_s016_1ef8_0da6(int p)

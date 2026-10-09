@@ -8,8 +8,13 @@
    The directory is a table of 100 8-byte entries (0x320 bytes) kept at D_8ca (D_8ce
    when loaded).  Every block in a store starts with a 0x18-byte header (struct hdr) kept
    in far data at 2e38:001e; the entry found last is at 2e38:0036.
-   Functions 0a78, 0b04, 0ba8 and 0c4a contain inline assembly (DOS int 21h calls) in
-   the original and can not match without _asm; they are written with the C library here. */
+   Functions 0a78, 0b04, 0ba8 and 0c4a contain inline _asm blocks (DOS int 21h calls) in
+   the original, written the same way here: with D_8d6 & 0xff00 (no swap store could be set
+   up, s028) blocks are plain files called name.
+   status (e9, 2026-10-09): all 21 functions written, 13 match (0a78 0b04 0ba8 0c4a added;
+   store table now the s028 layout D_c09b[type] {handle, size, base}).  See
+   build/agent/e9/NOTES.md for the remaining near misses (0000 076c 09aa 015a 00a2 0298
+   0480 05fe). */
 
 struct hdr {                    /* block header, 0x18 bytes */
     int type;                   /* +00 1 = used, 2 = free */
@@ -22,10 +27,10 @@ struct ent {                    /* directory entry, 8 bytes */
     int type;                   /* +02 store */
     long off;                   /* +04 offset of the block header in the store */
 };
-struct store {                  /* per store type, 10 bytes (D_c09d[type - 1]) */
-    long base;
-    long size;
+struct store {                  /* per store type, 10 bytes (D_c09b[type], as in s028) */
     int handle;
+    long size;                  /* end of the store (end marker at size - 0x18) */
+    long base;                  /* first block (after the directory, if held here) */
 };
 
 int far _fstrcmp(const char far *, const char far *);
@@ -49,7 +54,7 @@ extern int D_8d8;
 extern int D_8da;                       /* current store type */
 extern long D_8dc[];                    /* per store: offset of the free block */
 extern int D_c099;
-extern struct store D_c09d[];
+extern struct store D_c09b[];
 extern int (far *D_2674)(long);         /* allocate a block: returns the store type */
 extern int D_2678;
 extern struct hdr far F_2e38_001e;      /* header of the current block */
@@ -108,23 +113,23 @@ struct ent far *far sub_s027_1f48_00a2(void)
         p = D_8ce;
         break;
     case 2:
-        sub_s026_1ef8_0000(0x320L, D_8ca, D_c09d[1].handle, (long)p);
+        sub_s026_1ef8_0000(0x320L, D_8ca, D_c09b[2].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 3:
-        sub_s026_1f1d_013e(0x320L, D_8ca, D_c09d[2].handle, (long)p);
+        sub_s026_1f1d_013e(0x320L, D_8ca, D_c09b[3].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 5:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09d[4].handle, (long)p);
+        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[5].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 6:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09d[5].handle, (long)p);
+        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[6].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 7:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09d[6].handle, (long)p);
+        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[7].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 8:
@@ -144,19 +149,19 @@ struct ent far *far sub_s027_1f48_015a(void)
         r = D_8ce;
         break;
     case 2:
-        sub_s026_1ef8_008e(0x320L, D_8ca, D_c09d[1].handle, (long)r);
+        sub_s026_1ef8_008e(0x320L, D_8ca, D_c09b[2].handle, (long)r);
         break;
     case 3:
-        sub_s026_1f1d_0000(0x320L, D_8ca, D_c09d[2].handle, (long)r);
+        sub_s026_1f1d_0000(0x320L, D_8ca, D_c09b[3].handle, (long)r);
         break;
     case 5:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09d[4].handle, (long)r);
+        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[5].handle, (long)r);
         break;
     case 6:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09d[5].handle, (long)r);
+        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[6].handle, (long)r);
         break;
     case 7:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09d[6].handle, (long)r);
+        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[7].handle, (long)r);
         break;
     case 8:
         D_8ce = r = (struct ent far *)0L;
@@ -258,7 +263,7 @@ int far sub_s027_1f48_0480(long size)
         F_2e38_0036.off = r;
         return D_c099;
     }
-    D_8dc[D_c099] = D_c09d[D_c099].base - 0x18;
+    D_8dc[D_c099] = D_c09b[D_c099].size - 0x18;
     si = 2;
     next = si;
     bit = 1;
@@ -281,14 +286,14 @@ int far sub_s027_1f48_0480(long size)
             D_c099 = si;
             if (start != si) {
                 D_8da = si;
-                D_8dc[si] = D_c09d[si].size;
+                D_8dc[si] = D_c09b[si].base;
                 r = sub_s027_1f48_05fe(size);
                 if (r != -1L) {
                     F_2e38_0036.off = r;
                     return D_8da;
                 }
                 si = D_8da;
-                D_8dc[si] = D_c09d[si].base - 0x18;
+                D_8dc[si] = D_c09b[si].size - 0x18;
             }
         }
         si++;
@@ -386,19 +391,19 @@ int far sub_s027_1f48_0876(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s026_1ef8_008e(len, buf, D_c09d[1].handle, off);
+        r = sub_s026_1ef8_008e(len, buf, D_c09b[2].handle, off);
         break;
     case 3:
-        r = sub_s026_1f1d_0000(len, buf, D_c09d[2].handle, off);
+        r = sub_s026_1f1d_0000(len, buf, D_c09b[3].handle, off);
         break;
     case 5:
-        r = sub_s026_1f09_000c(len, buf, D_c09d[4].handle, off);
+        r = sub_s026_1f09_000c(len, buf, D_c09b[5].handle, off);
         break;
     case 6:
-        r = sub_s026_1f09_000c(len, buf, D_c09d[5].handle, off);
+        r = sub_s026_1f09_000c(len, buf, D_c09b[6].handle, off);
         break;
     case 7:
-        r = sub_s026_1f09_000c(len, buf, D_c09d[6].handle, off);
+        r = sub_s026_1f09_000c(len, buf, D_c09b[7].handle, off);
         break;
     }
     return r;
@@ -411,19 +416,19 @@ int far sub_s027_1f48_0910(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s026_1ef8_0000(len, buf, D_c09d[1].handle, off);
+        r = sub_s026_1ef8_0000(len, buf, D_c09b[2].handle, off);
         break;
     case 3:
-        r = sub_s026_1f1d_013e(len, buf, D_c09d[2].handle, off);
+        r = sub_s026_1f1d_013e(len, buf, D_c09b[3].handle, off);
         break;
     case 5:
-        r = sub_s026_1f09_00a6(len, buf, D_c09d[4].handle, off);
+        r = sub_s026_1f09_00a6(len, buf, D_c09b[5].handle, off);
         break;
     case 6:
-        r = sub_s026_1f09_00a6(len, buf, D_c09d[5].handle, off);
+        r = sub_s026_1f09_00a6(len, buf, D_c09b[6].handle, off);
         break;
     case 7:
-        r = sub_s026_1f09_00a6(len, buf, D_c09d[6].handle, off);
+        r = sub_s026_1f09_00a6(len, buf, D_c09b[7].handle, off);
         break;
     }
     return r;
@@ -474,72 +479,198 @@ int far sub_s027_1f48_0a14(long size)
         return 1;
 }
 
-/* save n bytes from buf under name (to a file named name when D_8d7) -- inline asm in
-   the original */
-int far sub_s027_1f48_0a78(unsigned n, int unused, void far *buf, char *name)
+/* save n bytes from buf under name; with D_8d6 & 0xff00 (no swap store) into a file
+   called name instead (inline _asm, int 21h create/write/close) */
+int far sub_s027_1f48_0a78(long n, void far *buf, char *name)
 {
-    int ok = 0;
-    unsigned cnt = n;
-    int fh;
+    int oki;
+    unsigned cntl;
+    int fhd;
+    int padk;
 
-    if (D_8d7) {
-        /* original: int 21h ah=3Ch (create), ah=40h (write), ah=3Eh (close) */
-        return ok;
+    oki = 0;
+    cntl = (unsigned)n;
+    if (*(int *)&D_8d6 & 0xff00) {
+        _asm {
+            push ds
+            mov dx, name
+            mov ah, 3Ch
+            mov cx, 0
+            push ss
+            pop ds
+            int 21h
+            pop ds
+            jb done
+            mov fhd, ax
+            mov bx, ax
+            mov cx, cntl
+            push ds
+            lds dx, buf
+            mov ah, 40h
+            int 21h
+            pop ds
+            jb done
+            mov oki, 1
+            mov bx, fhd
+            mov ah, 3Eh
+            int 21h
+        }
+    done:
+        return oki;
     }
-    if (!sub_s027_1f48_0298((long)n, name))
-        return ok;
-    return sub_s027_1f48_0876((long)n, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18);
+    if (!sub_s027_1f48_0298(n, name))
+        return oki;
+    oki = sub_s027_1f48_0876(n, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18);
+    return oki;
 }
 
-/* load n bytes of the block name into buf -- inline asm in the original */
+/* load n bytes of the block (or file) name into buf */
 int far sub_s027_1f48_0b04(long n, void far *buf, char *name)
 {
-    int ok = 0;
+    int okh;
+    int fhc;
+    unsigned cntk;
 
-    if (D_8d7) {
-        /* original: int 21h ah=3Dh (open), ah=3Fh (read), ah=3Eh (close) */
-        return ok;
+    okh = 0;
+    cntk = (unsigned)n;
+    if (*(int *)&D_8d6 & 0xff00) {
+        _asm {
+            push ds
+            mov dx, name
+            mov al, 0
+            push ss
+            pop ds
+            mov ah, 3Dh
+            int 21h
+            pop ds
+            jb done
+            mov fhc, ax
+            mov bx, ax
+            mov cx, cntk
+            push ds
+            lds dx, buf
+            mov ah, 3Fh
+            int 21h
+            pop ds
+            jb done
+            mov bx, fhc
+            mov ah, 3Eh
+            int 21h
+            jb done
+            mov okh, 1
+        }
+    done:
+        return okh;
     }
     if (!sub_s027_1f48_0000(name))
-        return ok;
-    if (F_2e38_001e.size < n)
-        return ok;
-    return sub_s027_1f48_0910(n, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18);
+        return okh;
+    if (F_2e38_001e.size >= n)
+        okh = sub_s027_1f48_0910(n, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18);
+    goto done;
 }
 
-/* load the whole block name into buf; returns its size -- inline asm in the original */
+/* load the whole block (or file, at most 0xffff bytes) name into buf; its size or 0 */
 int far sub_s027_1f48_0ba8(void far *buf, char *name)
 {
-    if (D_8d7) {
-        /* original: int 21h ah=3Dh/3Fh/3Eh, reading at most 0xffff bytes */
-        return 0;
+    int okh;
+    int fhc;
+    unsigned cntk;
+
+    okh = 0;
+    cntk = 0xffff;
+    if (*(int *)&D_8d6 & 0xff00) {
+        _asm {
+            push ds
+            mov dx, name
+            mov al, 0
+            push ss
+            pop ds
+            mov ah, 3Dh
+            int 21h
+            pop ds
+            jb done
+            mov fhc, ax
+            mov bx, ax
+            mov cx, cntk
+            push ds
+            lds dx, buf
+            mov ah, 3Fh
+            int 21h
+            pop ds
+            jb done
+            mov bx, fhc
+            mov ah, 3Eh
+            int 21h
+            jb done
+            mov okh, 1
+        }
+    done:
+        return okh;
     }
     if (!sub_s027_1f48_0000(name))
-        return 0;
-    if (sub_s027_1f48_0910(F_2e38_001e.size, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18) == 1)
+        return okh;
+    if ((okh = sub_s027_1f48_0910(F_2e38_001e.size, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18)) == 1)
         return (int)F_2e38_001e.size;
     return 0;
 }
 
-/* load the whole block name into buf and free it -- inline asm in the original */
+/* load the whole block (or file) name into buf and free (delete) it; its size or 0 */
 int far sub_s027_1f48_0c4a(void far *buf, char *name)
 {
-    if (D_8d7) {
-        /* original: int 21h ah=3Dh/3Fh/3Eh, then ah=41h (delete) */
-        return 0;
+    int okh;
+    int fhc;
+    unsigned cntk;
+
+    okh = 0;
+    cntk = 0xffff;
+    if (*(int *)&D_8d6 & 0xff00) {
+        _asm {
+            push ds
+            mov dx, name
+            mov al, 0
+            push ss
+            pop ds
+            mov ah, 3Dh
+            int 21h
+            pop ds
+            jb done
+            mov fhc, ax
+            mov bx, ax
+            mov cx, cntk
+            push ds
+            lds dx, buf
+            mov ah, 3Fh
+            int 21h
+            pop ds
+            jb done
+            mov bx, fhc
+            mov ah, 3Eh
+            int 21h
+            push ds
+            mov dx, name
+            push ss
+            pop ds
+            mov ah, 41h
+            int 21h
+            pop ds
+            jb done
+            mov okh, 1
+        }
+    done:
+        return okh;
     }
     if (!sub_s027_1f48_0000(name))
-        return 0;
-    if (sub_s027_1f48_0910(F_2e38_001e.size, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18) == 1
+        return okh;
+    if ((okh = sub_s027_1f48_0910(F_2e38_001e.size, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18)) == 1
         && sub_s027_1f48_076c(name))
         return (int)F_2e38_001e.size;
     return 0;
 }
 
 /* entry points with the arguments reordered */
-int far sub_s027_1f48_0d06(char *name, void far *buf, unsigned n, int unused)
+int far sub_s027_1f48_0d06(char *name, void far *buf, long n)
 {
-    return sub_s027_1f48_0a78(n, unused, buf, name);
+    return sub_s027_1f48_0a78(n, buf, name);
 }
 
 int far sub_s027_1f48_0d1e(char *name, void far *buf)

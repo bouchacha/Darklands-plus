@@ -10,7 +10,9 @@
  * 2-byte frame), 0102 (location -> battlefield type, nested random switches falling through),
  * 0292, 02cc, 058c, 079a (tile descriptions: struct based pointer + pragma "a"), 114e, 2de0.
  * Close: 11aa 1516 1b22 2030 26f8 2b42 (register/slot choices), 1abc (6.00 uses `loop`), 2a2c,
- * 2526. 02cc flips operand order when symbols are declared before it - keep new struct tags /
+ * 2526 (e10: pragma "a", far pointer o; the only differences left are that 6.00 loads
+ * `f1 = ft1` into DI where it is written while 6.00A sinks it to its use, so the K chain lands in
+ * DI instead of SI). 02cc flips operand order when symbols are declared before it - keep new struct tags /
  * externs below it (struct exit, group, mon are declared further down for that reason).
  * Level: party start 0x1f4c/0x1f4e (+0x1f50 facing, 0x1f51), 14-byte records at 0x1f54 (count
  * 0x1f52), objects at 0x2186 (count 0x2184; group markers type 0x65 with id at x0a), 0x2488,
@@ -967,7 +969,7 @@ extern struct group _based(D_dadd) *D_db2d;
 extern int D_db05[];
 int far sub_s004_0e76_2160();
 
-/* clear flag x7 of the records with id `id` and of their partners */
+#pragma optimize("a", on)
 void far sub_s010_1432_1abc(struct level far *lv, int id)
 {
     struct r14 far *p;
@@ -976,11 +978,11 @@ void far sub_s010_1432_1abc(struct level far *lv, int id)
     for (i = 0; i < lv->n1f52; i++) {
         p = &lv->r1f54[i];
         if (p->x6 == id) {
-            p->x7 = 0;
-            lv->r1f54[p->x0c].x7 = 0;
+            lv->r1f54[p->x0c].x7 = p->x7 = 0;
         }
     }
 }
+#pragma optimize("", on)
 
 struct mon { char p0[0x8c]; char x8c; char p8d[0xd6 - 0x8d]; };
 extern struct mon _based(D_dadd) *D_db2b;
@@ -1276,6 +1278,7 @@ void far sub_s010_1432_2030(int t, int k0, int k1)
 
 /* outdoor battlefield (type 7): prepared map icity.600 + random variant, party start at a
  * random group marker, enemies at another */
+#pragma optimize("a", on)
 int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
     int ft3, int fq3, int fn3)
 {
@@ -1284,6 +1287,7 @@ int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     int m1, m2, m3;
     int k;
     int f1;
+    struct obj far *o;
 
     sub_root_05d9_019a("icity.600", (struct level far *)D_e03f);
     k = sub_s004_0e76_20f6(1, 8) - 1;
@@ -1292,11 +1296,13 @@ int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     sub_s010_1432_26f8(t);
     *(volatile char *)&a = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
     f1 = ft1;
-    k = sub_s010_1432_2a2c(0, a ? 0x16 : 0x17, &n);
-    D_e03f->x1f4c = D_e03f->obj[k].x0 + 16;
-    D_e03f->x1f4e = D_e03f->obj[k].x2 + 8;
+    k = a ? 0x16 : 0x17;
+    k = sub_s010_1432_2a2c(0, k, &n);
+    o = &D_e03f->obj[k];
+    D_e03f->x1f4c = o->x0 + 16;
+    D_e03f->x1f4e = o->x2 + 8;
     D_e03f->x1f50 = 0;
-    D_e03f->x1f51 = D_e03f->obj[k].x0c;
+    D_e03f->x1f51 = o->x0c;
     m3 = m2 = m1 = -1;
     if (f1 >= 0 && fn1 > 0)
         m1 = sub_s004_0e76_06aa(0, f1, fq1);
@@ -1305,15 +1311,21 @@ int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     if (ft3 >= 0 && fn3 > 0)
         m3 = sub_s004_0e76_06aa(0, ft3, fq3);
     b = 0;
-    if (p6 == 0x15)
+    switch (p6) {
+    case 0x15:
         b = 1;
-    c = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
-    sub_s010_1432_2b42(p6, 0, 0, sub_s010_1432_2a2c(0, sub_s010_1432_114e(a, c, b), &n),
+        break;
+    }
+    *(volatile char *)&c = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    k = sub_s010_1432_114e(a, c, b);
+    k = sub_s010_1432_2a2c(0, k, &n);
+    sub_s010_1432_2b42(p6, 0, 0, k,
         -1, 0, 0, 1, 1, m1, fn1, m2, fn2, m3, fn3);
     D_e03f->nobj = 0;
     sub_s010_1432_2de0(0);
     return 1;
 }
+#pragma optimize("", on)
 
 /* randomise the outdoor map: tile variants of the floor (types 11..13), height nibbles,
  * wall nibbles, and raise the rectangles listed at 0x3326 to height 0x40 */
@@ -1391,27 +1403,34 @@ void far sub_s010_1432_26f8(int t)
 
 /* pick one of the group markers (type 0x65) with id `id` in level buffer k at random:
  * *n = its rank (1..count), returns its object index (-1/0 if none) */
+#pragma optimize("a", on)
 int far sub_s010_1432_2a2c(int k, int id, int *n)
 {
     struct level far *lv;
     int cnt, i, c;
+    struct obj far *o;
 
     if (k < 0 || k >= 2)
         return 0;
     cnt = 0;
     lv = D_e03f + k;
-    for (i = 0; i < lv->nobj; i++)
-        if (lv->obj[i].type == 0x65 && *(int far *)&lv->obj[i].x0a == id)
+    for (i = 0; i < lv->nobj; i++) {
+        o = &lv->obj[i];
+        if (o->type == 0x65 && *(int far *)&o->x0a == id)
             cnt++;
+    }
     if (cnt == 0)
         return *n = 0;
     *n = sub_s004_0e76_20f6(1, cnt);
     c = 0;
-    for (i = 0; i < lv->nobj && *n > c; i++)
-        if (lv->obj[i].type == 0x65 && *(int far *)&lv->obj[i].x0a == id)
+    for (i = 0; i < lv->nobj && *n > c; i++) {
+        o = &lv->obj[i];
+        if (o->type == 0x65 && *(int far *)&o->x0a == id)
             c++;
+    }
     return i - 1;
 }
+#pragma optimize("", on)
 
 /* create an enemy group of up to three monster kinds at object idx of level buffer lvl;
  * idx2 >= 0: the second kind is a separate sub-group at object idx2 */

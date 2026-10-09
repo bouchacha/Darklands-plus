@@ -1,6 +1,14 @@
 /* place: s001 0e76:0000 */
 /* orig: size=09d2 CONST=7d18+000a _DATA=0e30+007f */
 /* PLAY-TEST (2026-10-09): in a --functional build Quickstart gives every member three "Hand Axe 00q (0)" instead of the default equipment: the item records written here are wrong somewhere. */
+/* e8 (2026-10-09): every item-record store was compared with build/asm/s001/s001_0e76.asm (full aligned diff,
+ * build/agent/e1/fdiff.py): same offsets (inventory 2e38:003e, 64 x 6-byte records per member, stride 0x180;
+ * id word +0, f2 +2, f3 +3, f4 +4, weight +5; counts at member +0x6a = 3/3/8/3), same values, same CONST
+ * slots (7d18 0890, 7d1a 082c, 7d1c 07be, 7d1e 003e, 7d20 20a5:33fc). The only differences were register
+ * choice (dl/cl) and 6.00A re-reading F_2e38_0890[43]->weight through a cached pointer, which made the
+ * function 16 bytes LONGER than the original (0x9e2 > 0x9d2 + 14-byte tail) and forced a relayout of the
+ * s001 overlay. Now `[1][1].f5 = [0][1].f5` (same value: the weight of item 43 stored just before): the
+ * function is 2512 bytes, fits the original range, no relayout. Needs a re-play-test before it leaves EXCLUDE. */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Overlay s001: set up the default (quick-start) party: four members with names,
    attributes, skills and starting equipment, and load the item definitions from
@@ -243,7 +251,7 @@ void far sub_s001_0e76_0000(void)
     F_2e38_003e[1][1].id = 0x2b;
     F_2e38_003e[0][1].f2 = 0x4a;
     F_2e38_003e[1][1].f2 = 0x4a;
-    F_2e38_003e[1][1].f5 = F_2e38_0890[43]->weight;
+    F_2e38_003e[1][1].f5 = F_2e38_003e[0][1].f5;   /* = weight of item 43, stored above */
     VFW(F_2e38_003e[1][2].id) = 0x31;
     VFB(F_2e38_003e[1][2].f2) = 0x50;
     F_2e38_003e[1][2].f5 = F_2e38_0890[49]->weight;

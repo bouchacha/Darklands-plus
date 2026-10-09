@@ -1,7 +1,11 @@
 /* place: s023 1ef8:0000 */
+/* orig: size=1acc CONST=7df4+000e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 1/16 (0d1a), ALL 16 functions written (functional drafts). 03ca/0734: the original
- * repeats `leave; ret` after every case (6.00A jumps to one epilogue). CONST slots still differ.
+/* status: wip 2/16 (0d1a, 0d88), ALL 16 functions written (functional drafts). 03ca/0734: the original
+ * repeats `leave; ret` after every case (6.00A jumps to one epilogue). DATA MATCHES (e8, stamped --wip):
+ * the module owns 7 CONST slots 7df4..7e00 (7e02.. are s024's): 2e38:0bb6, the floor struct
+ * F_20a5_0000, F_20a5_000 (cell-list reads), 76e7, 76a8, F_2e38_03e, 47ee. Every floor access goes
+ * through F_20a5_0000 (6.00A gives a far name a slot when one access in a function is not CSE'd).
  * Combat dungeon features (overlay s023, child of s014): doors, locks, secret doors and traps
  * of the current level's floor image (20a5:0000, level%d.flr):
  * 0000 open a wall group (handler h, wall list w): reveal its walls, toggle handler h,
@@ -216,9 +220,9 @@ void far sub_s023_1ef8_17d2(int, char *);
     if (u.w != -1) { \
         j = 0; \
         do { \
-            F_20a5_0[u.b.hi][u.b.lo].b3 &= 0x7f; \
+            F_20a5_0000.c[u.b.hi][u.b.lo].b3 &= 0x7f; \
             j += 2; \
-            u.w = *(int far *)((char far *)F_20a5_00 + F_20a5_248a[n] + j); \
+            u.w = *(int far *)((char far *)&F_20a5_000 + F_20a5_0000.list[n] + j); \
         } while (u.w != -1); \
     }
 
@@ -249,16 +253,16 @@ void far sub_s023_1ef8_00b8(int n, int who)
         REVEAL(w, u, j)
     }
     if (D_c678[who] == 1)
-        F_20a5_33d3[n] = 1;
+        F_20a5_0000.open[n] = 1;
     else
-        F_20a5_33d3[n] = 0;
+        F_20a5_0000.open[n] = 0;
     F_20a5_0000.d[n].state = 0;
     if (F_20a5_0000.d[n].link != -1) {
         F_20a5_0000.d[F_20a5_0000.d[n].link].state = 0;
         if (D_c678[who] == 1)
-            F_20a5_33d3[F_20a5_0000.d[n].link] = 1;
+            F_20a5_0000.open[F_20a5_0000.d[n].link] = 1;
         else
-            F_20a5_33d3[F_20a5_0000.d[n].link] = 0;
+            F_20a5_0000.open[F_20a5_0000.d[n].link] = 0;
     }
     x = F_20a5_0000.d[n].x & 0x3f;
     y = F_20a5_0000.d[n].y & 0x3f;
@@ -305,7 +309,7 @@ void far sub_s023_1ef8_00b8(int n, int who)
     /* wake the activation spot that waits behind this wall group */
     if (w != -1 && D_d6f0 == 1)
         for (k = 0; k < D_d6cc; k++)
-            if (F_20a5_47f4[k * 0x1e] == w && F_20a5_47ee.r[k].sprd > 0) {
+            if (F_20a5_47ee.r[k].rm == w && F_20a5_47ee.r[k].sprd > 0) {
                 if (vec_1d29(0, &F_20a5_47ee.r[k], who) == 1) {
                     D_d6f4 = 1;
                     D_c19b = random_n(300) + D_07d4 + 300;
@@ -437,9 +441,9 @@ void far sub_s023_1ef8_0812(int who, int h, unsigned rec, int roll)
     n = rec & 0xff;
     h2 = rec >> 8;
     if (D_9c55[who].f60 > roll) {
-        F_20a5_2184[h].on = -F_20a5_2184[h].on;
+        F_20a5_0000.t[h].on = -F_20a5_0000.t[h].on;
         if (h2 != 0xff)
-            F_20a5_2184[h2].on = -F_20a5_2184[h2].on;
+            F_20a5_0000.t[h2].on = -F_20a5_0000.t[h2].on;
         if ((F_20a5_0000.d[n].x & 0x80) == 0x80)
             D_c6ef[who] = 0;
         else if ((F_20a5_0000.d[n].x & 0x40) == 0x40)
@@ -452,20 +456,20 @@ void far sub_s023_1ef8_0812(int who, int h, unsigned rec, int roll)
         y = F_20a5_0000.d[n].y & 0x3f;
         switch (D_c6ef[who]) {
         case 0:
-            F_20a5_0[x][y].b2 &= 0xf0;
-            F_20a5_0[x][y - 1].b3 &= 0xf0;
+            F_20a5_0000.c[x][y].b2 &= 0xf0;
+            F_20a5_0000.c[x][y - 1].b3 &= 0xf0;
             break;
         case 1:
-            F_20a5_0[x][y].b0 &= 0xf0;
-            F_20a5_0[x + 1][y].b1 &= 0xf0;
+            F_20a5_0000.c[x][y].b0 &= 0xf0;
+            F_20a5_0000.c[x + 1][y].b1 &= 0xf0;
             break;
         case 2:
-            F_20a5_0[x][y].b3 &= 0xf0;
-            F_20a5_0[x][y + 1].b2 &= 0xf0;
+            F_20a5_0000.c[x][y].b3 &= 0xf0;
+            F_20a5_0000.c[x][y + 1].b2 &= 0xf0;
             break;
         case 3:
-            F_20a5_0[x][y].b1 &= 0xf0;
-            F_20a5_0[x - 1][y].b0 &= 0xf0;
+            F_20a5_0000.c[x][y].b1 &= 0xf0;
+            F_20a5_0000.c[x - 1][y].b0 &= 0xf0;
             break;
         }
         strcpy(msg, D_9c55[who].name);
@@ -483,12 +487,12 @@ void far sub_s023_1ef8_0812(int who, int h, unsigned rec, int roll)
 
 void far sub_s023_1ef8_0aea(int n, int h)
 {
-    F_20a5_2184[h].on = -F_20a5_2184[h].on;
+    F_20a5_0000.t[h].on = -F_20a5_0000.t[h].on;
     D_d4e4 = 1;
-    if (F_20a5_3350[n].x)
-        F_20a5_0[F_20a5_3350[n].x][F_20a5_3350[n].y].b0 &= 0x0f;
-    if (F_20a5_3350[n].x2)
-        F_20a5_0[F_20a5_3350[n].x2][F_20a5_3350[n].y2].b0 &= 0x0f;
+    if (F_20a5_0000.sd[n].x)
+        F_20a5_0000.c[F_20a5_0000.sd[n].x][F_20a5_0000.sd[n].y].b0 &= 0x0f;
+    if (F_20a5_0000.sd[n].x2)
+        F_20a5_0000.c[F_20a5_0000.sd[n].x2][F_20a5_0000.sd[n].y2].b0 &= 0x0f;
 }
 
 void far sub_s023_1ef8_0b6e(int n, int h)
@@ -552,7 +556,7 @@ void far sub_s023_1ef8_0d88(int who, int h, int t)
              F_20a5_0000.m[t].u.c.b, who, D_11ca);
     F_20a5_0000.t[h].on = -F_20a5_0000.t[h].on;
     if (F_20a5_0000.t[F_20a5_0000.m[t].link].on >= 0)
-        F_20a5_2184[F_20a5_316e[t].link].on = -F_20a5_2184[F_20a5_316e[t].link].on;
+        F_20a5_0000.t[F_20a5_0000.m[t].link].on = -F_20a5_0000.t[F_20a5_0000.m[t].link].on;
 }
 
 /* missile trap t (and its twin t2, 0xff none) fires its darts along the wall line */
@@ -715,13 +719,13 @@ void far sub_s023_1ef8_13d0(int who)
     struct chest far *c;
 
     D_07d3++;
-    c = &F_20a5_3014[D_c784[who]];
-    if ((F_20a5_0[c->x][c->y].b0 & 0xf0) == 0x50)
-        *(long far *)&F_20a5_0[F_20a5_3014[D_c784[who]].x][F_20a5_3014[D_c784[who]].y] += 0x10;
+    c = &F_20a5_0000.ch[D_c784[who]];
+    if ((F_20a5_0000.c[c->x][c->y].b0 & 0xf0) == 0x50)
+        *(long far *)&F_20a5_0000.c[F_20a5_0000.ch[D_c784[who]].x][F_20a5_0000.ch[D_c784[who]].y] += 0x10;
     h = D_c7a4[F_20a5_0000.ch[D_c784[who]].idx];
     n = F_20a5_0000.ch[D_c784[who]].n;
     sub_s014_19cd_3258(&n, &h, 1, 0);
-    sub_s014_19cd_2e50(D_c654, D_c656, &D_c67f, (char far *)F_20a5_3014[D_c784[who]].it, who);
+    sub_s014_19cd_2e50(D_c654, D_c656, &D_c67f, (char far *)F_20a5_0000.ch[D_c784[who]].it, who);
     D_d4e4 = 1;
     F_20a5_0000.ch[D_c784[who]].it[0] = 0;
     F_20a5_0000.ch[D_c784[who]].it[1] = 0;
@@ -768,10 +772,10 @@ void far sub_s023_1ef8_1618(int n, int who)
     unsigned char far *c;
 
     old = D_11ca;
-    s = F_20a5_2fb8[n];
-    wall = F_20a5_2fb8[n].wall;
-    F_20a5_2fb8[n].wall = -1;
-    lvl = F_20a5_2fb8[n].lvl;
+    s = F_20a5_0000.s[n];
+    wall = F_20a5_0000.s[n].wall;
+    F_20a5_0000.s[n].wall = -1;
+    lvl = F_20a5_0000.s[n].lvl;
     D_a6b4[who] = lvl;
     alone = 1;
     for (i = 0, p = D_9c55; p < D_9c55 + 5; p++, i++)
@@ -788,10 +792,10 @@ void far sub_s023_1ef8_1618(int n, int who)
         j = 0;
         if (*(int far *)((char far *)&F_20a5_000 + F_20a5_0000.list[wall]) != -1)
             do {
-                c = (unsigned char far *)F_20a5_00 + F_20a5_248a[wall] + j;
-                F_20a5_0[c[1]][c[0]].b3 &= 0x7f;
+                c = (unsigned char far *)&F_20a5_000 + F_20a5_0000.list[wall] + j;
+                F_20a5_0000.c[c[1]][c[0]].b3 &= 0x7f;
                 j += 2;
-            } while (*(int far *)((char far *)F_20a5_00 + F_20a5_248a[wall] + j) != -1);
+            } while (*(int far *)((char far *)&F_20a5_000 + F_20a5_0000.list[wall] + j) != -1);
         D_d4e4 = 1;
     }
     vec_1e05(who, (char *)&s);

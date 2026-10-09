@@ -1,6 +1,7 @@
 /* place: s014 12f7:000a */
-/* orig: size=16b0 CONST=7d48+000e */
+/* orig: size=16b0 CONST=7d48+0006 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* data: CONST=7d48 */
 /* s014 12f7: PATHFINDER.
    A "bug" algorithm with up to 10 parallel trackers (all state in a far work area addressed
    by _based(D_d6f7) pointers):
@@ -22,7 +23,9 @@
    0xff end) with waypoints F_20a5_72b4/7304/716a; 1166 then shortcuts between waypoints.
    1554/15d0 copy a path to the combatant's own path F_20a5_6238[i] (161a adds the facing
    in the high nibble and removes single-step facing jitter).
-   status: 18/18 written, 10 match. */
+   status: 18/18 written, 11 match (034a: `i >= 5`). e8 2026-10-09: CONST = 3 slots like the original
+   (floor struct F_20a5_0000 for 1f52/1f54, 2e38:0c00, path result struct F_20a5_716a); door record
+   `closed` byte fixed to +7 (was +9: enemies tested the wrong byte). Re-stamped. */
 
 #pragma optimize("w", on)
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
@@ -64,15 +67,31 @@ extern int _based(D_d6f7) *D_e110;      /* best shortcut: waypoint y */
 extern unsigned char _based(D_d6f7) *D_e112; /* [10][40] waypoint wall side */
 extern int _based(D_d6f7) *D_e114;      /* [10] first own waypoint */
 
-extern char far F_20a5_71ba[250];       /* resulting path (steps, 0xff end) */
-extern int far F_20a5_716a[40];         /* its waypoints: step */
-extern int far F_20a5_72b4[40];         /* x */
-extern int far F_20a5_7304[40];         /* y */
+/* the path result 20a5:716a..7353 and the floor image are each ONE far variable in the original
+   (CONST slots 7d4c and 7d48) */
+struct pathres {
+    int wstep[40];                      /* 716a waypoints: step */
+    char path[250];                     /* 71ba resulting path (steps, 0xff end) */
+    int wx[40];                         /* 72b4 x */
+    int wy[40];                         /* 7304 y */
+};
+extern struct pathres far F_20a5_716a;
+#define F_20a5_71ba (F_20a5_716a.path)
+#define F_20a5_72b4 (F_20a5_716a.wx)
+#define F_20a5_7304 (F_20a5_716a.wy)
 extern char far F_20a5_6238[13][250];   /* path of every combatant */
 extern char far F_20a5_6331[];          /* alias: last byte of F_20a5_6238[0] */
 extern char far F_20a5_33d3[40];        /* door states of the floor */
-extern char far F_20a5_1f52;            /* number of doors */
-extern struct door { int f0; char f2[7]; char closed; char pad[4]; } far F_20a5_1f54[]; /* 14 bytes */
+struct door { int f0; char f2[5]; char closed; char pad[6]; };   /* 14 bytes; +7 closed (was wrongly +9) */
+struct floor {
+    char pad0[0x1f52];
+    char ndoors;                        /* 1f52 number of doors */
+    char p1f53;
+    struct door d[40];                  /* 1f54 */
+};
+extern struct floor far F_20a5_0000;
+#define F_20a5_1f52 (F_20a5_0000.ndoors)
+#define F_20a5_1f54 (F_20a5_0000.d)
 extern char far F_2e38_0c00[40];        /* door locked flags */
 extern char far F_2e38_0c64[250];       /* saved path */
 #define FP_SEG(fp) (*((unsigned *)&(fp) + 1))
@@ -188,14 +207,14 @@ int far sub_s014_12f7_000a(int i)
         _fmemcpy(F_20a5_71ba, D_e0ea + D_84e6 * 250, D_e116 + 1);
         _fmemcpy(F_20a5_72b4, D_e102 + D_84e6 * 40, D_e108[D_84e6] * 2);
         _fmemcpy(F_20a5_7304, D_e104 + D_84e6 * 40, D_e108[D_84e6] * 2);
-        _fmemcpy(F_20a5_716a, D_e106 + D_84e6 * 40, D_e108[D_84e6] * 2);
+        _fmemcpy(F_20a5_716a.wstep, D_e106 + D_84e6 * 40, D_e108[D_84e6] * 2);
         D_e118 = D_e116;
         D_e11a = D_e108[D_84e6];
         /* drop waypoints where the direction did not really change */
         for (k = 0; k < D_e11a - 1; k++)
-            if (F_20a5_71ba[F_20a5_716a[k] + 1] == F_20a5_71ba[F_20a5_716a[k]]) {
+            if (F_20a5_71ba[F_20a5_716a.wstep[k] + 1] == F_20a5_71ba[F_20a5_716a.wstep[k]]) {
                 for (m = k, n = D_e11a - k - 1; k < D_e11a - 1 && n != 0; n--, m++) {
-                    F_20a5_716a[m] = F_20a5_716a[m + 1];
+                    F_20a5_716a.wstep[m] = F_20a5_716a.wstep[m + 1];
                     F_20a5_72b4[m] = F_20a5_72b4[m + 1];
                     F_20a5_7304[m] = F_20a5_7304[m + 1];
                 }
@@ -224,7 +243,7 @@ void far sub_s014_12f7_034a(int i)
 {
     int k;
 
-    if (i > 4) {
+    if (i >= 5) {
         for (k = 0; k < F_20a5_1f52; k++)
             if (F_2e38_0c00[k] == 0 && F_20a5_1f54[k].f0 > 0)
                 vec_1d6f(k, D_e0c0[k], 0);
@@ -616,7 +635,7 @@ int far sub_s014_12f7_1166(struct cbt *rec)
             rec->ty = F_20a5_7304[a];
             if (sub_s014_12f7_03ea(rec) == 2)
                 return 2;
-            if (D_e116 + base < F_20a5_716a[a]) {
+            if (D_e116 + base < F_20a5_716a.wstep[a]) {
                 /* direct route to waypoint a is shorter: remember it */
                 _fmemcpy(D_e10a, D_e0ea + D_84e6 * 250, D_e116 + 1);
                 _fmemcpy(D_e10e, D_e102 + D_84e6 * 40, D_e108[D_84e6] * 2);
@@ -625,16 +644,16 @@ int far sub_s014_12f7_1166(struct cbt *rec)
                 D_84e2 = D_84dc;
                 D_84e4 = D_84de;
                 D_84e0 = D_e116;
-                d = D_e116 - F_20a5_716a[a];
+                d = D_e116 - F_20a5_716a.wstep[a];
                 for (m = a; m < D_e11a; m++)
-                    F_20a5_716a[m] -= -base - d;
+                    F_20a5_716a.wstep[m] -= -base - d;
             } else if (D_84e2 != -1) {
                 /* take the best shortcut found so far */
                 _fmemcpy(F_20a5_71ba + len, D_e10a, D_84e0);
                 len += D_84e0;
                 rec->x = D_84e2;
                 rec->y = D_84e4;
-                base = F_20a5_716a[a - 1];
+                base = F_20a5_716a.wstep[a - 1];
                 a0 = a + 1;
                 D_84e2 = -1;
                 if (D_e11a == a)

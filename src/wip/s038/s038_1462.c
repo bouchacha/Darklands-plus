@@ -17,6 +17,9 @@
    (row DI). Left: the original has an unused 2-byte slot at [bp-2] above key ([bp-4]);
    unused/dead locals get no slot in 6.00A, a dead struct (`r.a = f(); return r.a;`) gets
    one but below the scalars (tried 16 names, both positions).
+   m0: `int km[2]` for the mouse-part key (km[0], km[1] = the hole) + `key = km[0];` after
+   0000(9419) gives enter 4 and the right slots, but then row and key share SI (no DI);
+   register/declaration order/comma placement of the copy: no change.
    Character creation main menu (pics\cretscr3.pic): list of saved characters from charactr.tmp.
 
    charactr.tmp layout: int count; int ids[5] (party slot -> character index, -1 = empty);

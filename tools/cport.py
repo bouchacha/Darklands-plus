@@ -65,7 +65,22 @@ def sources(repo, sub=os.path.join('src', 'c')):
     return sorted(out, key=lambda s: s['path'])
 
 
-def compat600(obj):
+def keep_ranges(obj, names):
+    """(segment index, start, end) of the named functions in an object (for compat600 opt-outs)."""
+    if not names:
+        return []
+    segs, m = msc.obj_code(obj)
+    out = []
+    for si in range(1, len(m.segs)):
+        pubs = sorted((off, n) for n, s_, off in m.pubs if s_ == si)
+        for k, (off, n) in enumerate(pubs):
+            if n.lstrip('_') in names:
+                end = pubs[k + 1][0] if k + 1 < len(pubs) else m.segs[si][1]
+                out.append((si, off, end))
+    return out
+
+
+def compat600(obj, keep=()):
     """Rewrite MSC 6.00A's memset intrinsic into the form found in DARKLAND.EXE.
 
     6.00A always fills with 'rep stosb'; the game's code (built with a different 6.00 release)
@@ -106,6 +121,9 @@ def compat600(obj):
             buf[off:off + n] = out[q0:q0 + n]
         orig = bytes(buf)
         _rewrite_memset(buf)
+        for ksi, a, b in keep:                   # functions that keep 6.00A's stosb form
+            if ksi == si:
+                buf[a:b] = orig[a:b]
         if bytes(buf) != orig:
             for off, q0, n in parts:
                 out[q0:q0 + n] = buf[off:off + n]
@@ -205,9 +223,12 @@ def compile_source(src, cache_dir, extra_headers=()):
     key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v3').hexdigest()[:16]
     objp = os.path.join(cache_dir, '%s_%s.obj' % (seg, key))
     msg = ''
+    # '/* compat600-off: sub_x sub_y */' keeps 6.00A's 'rep stosb' memset in those functions
+    offn = set(re.findall(r'\w+', ' '.join(re.findall(r'/\*\s*compat600-off:([^*]*)\*/',
+                                                       open(src['path'], encoding='latin-1').read()))))
     if os.path.exists(objp):
         o = open(objp, 'rb').read()
-        o2 = compat600(o)          # cached objects pick up newer compat rules
+        o2 = compat600(o, keep_ranges(o, offn))          # cached objects pick up newer compat rules
         if o2 != o:
             open(objp, 'wb').write(o2)
     else:
@@ -215,7 +236,7 @@ def compile_source(src, cache_dir, extra_headers=()):
         msg = out
         if obj is None or re.search(r'error [CD]\d+', out):
             raise SystemExit('compile failed: %s\n%s' % (src['path'], out))
-        open(objp, 'wb').write(compat600(obj))
+        open(objp, 'wb').write(compat600(obj, keep_ranges(obj, offn)))
     segs, m = msc.obj_code(open(objp, 'rb').read())
     code = segs.get(seg)
     if code is None:

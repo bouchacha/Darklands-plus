@@ -8,6 +8,17 @@
  * 0x0e..0x10), 0x66..0x69, 0x6c, 0x6d, 0x7f..0x81.
  * Globals: D_e005/D_dffd/D_e001/D_dff9 (long, 03ca: per-level parameters), D_e009 (long, 07d0),
  * D_e035 (char flag), D_db35 (0x2e-byte records based on D_dae3, x25 = default count?).
+ * STATUS (m1, 2026-10-09): 7/16 match (0002 03ca 05a2 07d0 0938 10a8 1146).
+ *   03ca: long ternary `? 1L : 2L` (sub dx,dx) + goto from the 0x0e lv1 copy into the 0x0d one.
+ *   061a: 0x7f..0x86 cases added, chains reversed, gotos to the 0x6c/0x6d bodies; left: 0x0d lv11
+ *     keeps the `*c = 12` tail (orig: 0x6c's); a goto into it changes dx tracking of `a`.
+ *   07d0: random switch written out in all four places, `? 9L : 10L`.
+ *   1146: #pragma optimize("a", on).
+ *   0db6: code and frame right (k as a stored dead local, n as the init loop counter, no q);
+ *     only its jump table differs - waits for 09b4's length (1038/1026, cross-jump puzzle).
+ *   11b2: all-empty switch; 6.00 keeps the 174-byte dispatch, 6.00A deletes it (and drops
+ *     empty cases even with volatile params): likely a 6.00 vs 6.00A limit -> no FILE MATCH.
+ *   20a4: 6.00A keeps the last `return 6` copy / moves the labelled block; 0fe6/219e: jump tables.
  */
 
 struct res { int a; int b; };
@@ -204,7 +215,7 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
     *out = 0;
     switch (p6) {
     case 0x0a:
-        D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 2;
+        D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
         break;
     case 0x0b:
     case 0x82:
@@ -212,7 +223,7 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
         case 1:
         case 2:
         case 3:
-            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 2;
+            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
             break;
         case 11:
             *out = 6;
@@ -232,7 +243,8 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
     case 0x83:
         switch (lv) {
         case 1:
-            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 2;
+        L0d1:
+            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
             break;
         case 2:
         case 6:
@@ -258,7 +270,7 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
     case 0x86:
         switch (lv) {
         case 1:
-            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 2;
+            goto L0d1;
             break;
         case 2:
         case 3:
@@ -345,6 +357,7 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
         *b = 4;
         break;
     case 0x0b:
+    case 0x82:
         switch (lv) {
         case 1:
         case 2:
@@ -356,7 +369,7 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
             *b = 5;
             break;
         case 11:
-            *b = *a = 3;
+            *a = *b = 3;
             break;
         case 13:
         case 14:
@@ -366,11 +379,15 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
         }
         break;
     case 0x0c:
+    case 0x7f:
+    case 0x80:
+    case 0x81:
         *b = 2;
         *a = 5;
         *c = 3;
         break;
     case 0x0d:
+    case 0x83:
         switch (lv) {
         case 1:
             *b = 4;
@@ -384,21 +401,17 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
             *c = 6;
             break;
         case 8:
-            *b = 4;
-            *a = 3;
-            *c = 12;
-            break;
+            goto L6c;
         case 10:
             *b = 5;
             *c = 6;
             break;
         case 11:
-            *b = *a = 3;
+            *a = *b = 3;
             *c = 12;
             break;
         case 12:
-            *b = *c = 0;
-            break;
+            goto L6d;
         default:
             *c = 6;
             break;
@@ -407,6 +420,10 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
     case 0x0e:
     case 0x0f:
     case 0x10:
+    case 0x84:
+    case 0x85:
+    case 0x86:
+
         switch (lv) {
         case 1:
             *b = 4;
@@ -417,7 +434,7 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
             break;
         case 6:
         case 10:
-            *b = *a = 3;
+            *a = *b = 3;
             *c = 6;
             break;
         default:
@@ -436,12 +453,14 @@ void far sub_s009_182c_061a(int p6, int lv, int *a, int *b, int *c)
         *c = 10;
         break;
     case 0x6c:
+    L6c:
         *b = 4;
         *a = 3;
         *c = 12;
         break;
     case 0x6d:
-        *b = *c = 0;
+    L6d:
+        *c = *b = 0;
         break;
     }
 }
@@ -453,7 +472,6 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     D_e009 = 1;
     switch (p6) {
     case 0x0a:
-    rnd:
         switch (sub_s004_0e76_20f6(1, 3)) {
         case 2:
             D_e009 = 2;
@@ -470,11 +488,20 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
         case 1:
         case 2:
         case 3:
-            goto rnd;
+            switch (sub_s004_0e76_20f6(1, 3)) {
+            case 2:
+                D_e009 = 2;
+                break;
+            case 3:
+                D_e009 = 3;
+                *out = 2;
+                break;
+            }
+            break;
         case 11:
         case 13:
         case 14:
-            D_e009 = D_dff9 == 11 ? 9 : 10;
+            D_e009 = D_dff9 == 11 ? 9L : 10L;
             break;
         default:
             D_e009 = 5;
@@ -486,7 +513,16 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     case 0x83:
         switch (lv) {
         case 1:
-            goto rnd;
+            switch (sub_s004_0e76_20f6(1, 3)) {
+            case 2:
+                D_e009 = 2;
+                break;
+            case 3:
+                D_e009 = 3;
+                *out = 2;
+                break;
+            }
+            break;
         case 8:
             D_e009 = 11;
             *out = 2;
@@ -508,7 +544,16 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     case 0x86:
         switch (lv) {
         case 1:
-            goto rnd;
+            switch (sub_s004_0e76_20f6(1, 3)) {
+            case 2:
+                D_e009 = 2;
+                break;
+            case 3:
+                D_e009 = 3;
+                *out = 2;
+                break;
+            }
+            break;
         case 2:
         case 3:
         case 4:
@@ -521,7 +566,7 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
             *out = 2;
             break;
         default:
-            D_e009 = D_dff9 == 11 ? 9 : 10;
+            D_e009 = D_dff9 == 11 ? 9L : 10L;
             break;
         }
         break;
@@ -823,7 +868,6 @@ void far sub_s009_182c_09b4(int p6, int lv, int *a, int *b, int *c)
 char far sub_s009_182c_0db6(char far *lvp, struct grp far *g, int p6, int lv, int flag)
 {
     int idx[10];
-    int *q;
     int a, b, k, n, i;
 
     if (!flag) {
@@ -888,13 +932,12 @@ char far sub_s009_182c_0db6(char far *lvp, struct grp far *g, int p6, int lv, in
     if (!D_e035 && sub_s004_0e76_20f6(1, 10) > 5)
         return 0;
     g->x10 = sub_s004_0e76_20f6(1, 10);
-    for (i = 0; i < 10; i++)
-        idx[i] = i;
+    for (n = 0; n < 10; n++)
+        idx[n] = n;
     n = 10;
     while (g->n < 4) {
         k = sub_s004_0e76_20f6(1, n) - 1;
-        q = &idx[k];
-        switch (*q) {
+        switch (idx[k]) {
         case 0: a = 0x48; b = 0x6d; break;
         case 1: a = 0x4f; b = 0x74; break;
         case 2: a = 0x49; b = 0x6e; break;
@@ -907,7 +950,7 @@ char far sub_s009_182c_0db6(char far *lvp, struct grp far *g, int p6, int lv, in
         case 9: a = 0x5a; b = 0x7f; break;
         }
         sub_s009_182c_10a8(g, p6, lv, a, b);
-        *q = idx[n];
+        idx[k] = idx[n];
         if (--n <= 0)
             break;
     }
@@ -972,6 +1015,7 @@ void far sub_s009_182c_10a8(struct grp far *g, int p6, int lv, int type, int x)
 }
 
 /* append entry {type, x2, x3, n, D_db35[type].x25} to group g */
+#pragma optimize("a", on)
 void far sub_s009_182c_1146(struct grp far *g, int type, char x2, char x3, int n)
 {
     struct ent far *e;
@@ -985,6 +1029,7 @@ void far sub_s009_182c_1146(struct grp far *g, int type, char x2, char x3, int n
     e->n = n;
     e->x5 = D_db35[type].x25;
 }
+#pragma optimize("", on)
 
 /* empty per-type/level switch (code removed in the original) */
 void far sub_s009_182c_11b2(int p6, int lv)
