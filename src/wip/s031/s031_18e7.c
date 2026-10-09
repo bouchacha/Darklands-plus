@@ -16,7 +16,11 @@
            D_9c69[who].nitems) DOES produce the dead [bp-2] loop-base temp, but then nitems is
            not cached in [bp-a]; any named char n (also block-scoped / array / struct /
            volatile / register) sits at [bp-3] above the SR temps and kills the [bp-2] temp.
-           Variant: build/agent/e1/cse01b4.txt. */
+           Variant: build/agent/e1/cse01b4.txt.
+     Session 4 (e1d): 14b6 slot order follows the first stores after DSE (dead early
+           `type = 0;` / `(void)type;` and `type = t, q = i;` change nothing; int v[3] / struct /
+           union holders are worse).  01b4: the CSE variant with pragma a on/off still compares
+           nitems straight from memory instead of saving it in the [bp-0ah] byte temp. */
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {

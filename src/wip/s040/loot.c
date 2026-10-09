@@ -23,6 +23,8 @@
  *     of the shared tails (original: Up's pile-cursor draw and inv-scroll tail, Down's
  *     pile-scroll tail; 6.00A picks the opposite ones).  Tried if/else orientation, goto/label
  *     placements, several loop shapes for 'D' (do/while, (x+1)%5, split status tests).
+ *   Session 5: line layout of the shared tails (one-line calls, `}`/`else` joined, 255 combos)
+ *     and case order: no effect on which copy cross-jumping keeps.
  * These look like optimizer differences between the game's MSC 6.00 and 6.00A.
  */
 

@@ -2,16 +2,20 @@
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* Inventory screen (overlay s031, main file): the "arms" screen where a party member's
    equipment and pack are shown and items are moved, used, dropped or traded.
-   STATUS (e1c, 2026-10-09): all 19 functions written, _DATA and CONST match; 15/19 match.
-     0124 [4 diff lines]: frame 0x12 vs 0xe and its CSE temp (ph + iy) at [bp-10h] vs
-       [bp-0ch] (6.00A reserves 8 bytes of compiler temps, 6.00 4); `cmp si,di` for
-       `m == who` (ours `cmp di,si`; no spelling found).  `k` lives in a struct so that it
-       stays in memory at [bp-8] like the original (as a scalar 6.00A puts it in si).
-     42ac, 433c: 6.00 cached memory locals in bx/di inside loops (433c: i and the bit index
-       both in bx, i spilled to [bp-4]; n in di, written back to [bp+8]); 6.00A uses si/di
-       register variables or, with /Oe off, plain memory operands.  Not reproduced.
-     43b2: code identical; only its jump table differs because 433c (before it) is 18 bytes
-       short (table entries are absolute offsets).
+   STATUS (e1d, 2026-10-09): all 19 functions written, _DATA and CONST match; 16/19 match (+43b2 only its jump table).
+     0124 [1 diff line]: `cmp si,di` for `m == who` (ours `cmp di,si`; who is region-cached in
+       si there, m is the di register var).  Tried both operand orders, (m = ..) == who,
+       who - m == 0, unsigned m/casts, renaming m and who, pragmas a/c/w/z, and a dummy
+       extern at every top-level position: no flip.  (Frame fixed in e1d: [bp-8] is MSC's CSE
+       of D_867c, not a named k; the ph+iy temp lands at [bp-0ch] once k is gone.)
+     433c [1 instruction]: the original keeps a dead `mov word ptr [bp-2],80h` (b = 0x80 before
+       the loops); 6.00A deletes it (constant propagation + global DSE, independent of
+       /Oe /Og /Ol /Oc).  Everything else matches (no v local: the byte is a hoisted temp).
+       Keeping it via volatile/union/struct/&b stops b being cached in bx.  433c is therefore
+       5 bytes short and 43b2's jump table (absolute offsets) is off by 5.
+     42ac matched in e1d: no `f` local (hoisted CSE temp) and a do-while loop (the for loop gave
+       `mov cx,ax` instead of `mov cx,bx` in the i*3 return blocks).
+     43b2: code identical; only its jump table differs (433c length).
      Notes: the box table externs are declared a few bytes early (see there) to get the
      original operand order of `x + w`; D_867e must be unsigned char or `1d44(D_867e = 0, 12)`
      pushes an immediate.  Declarations anywhere in the file can flip operand orders in
@@ -251,7 +255,6 @@ int far sub_s031_1462_0000(int who)
 int far sub_s031_1462_0124(int who)
 {
     int key, m, i;
-    struct { int k, pad2, pad3; } v;
 
     if (D_9c69[who].present == 0 || D_9c69[who].present == 5)
         return -1;
@@ -271,19 +274,19 @@ int far sub_s031_1462_0124(int who)
         key = 0;
         if (D_6ef0 & 1) {
             if (D_6eec > 0x3c) {
-                if (D_867e && (F_290e_3557[v.k = D_867c].flags & 2)
+                if (D_867e && (F_290e_3557[D_867c].flags & 2)
                         && F_290e_3557[D_867c].ix <= D_6eec && F_290e_3557[D_867c].pw + F_290e_3557[D_867c].ix >= D_6eec
                         && F_290e_3557[D_867c].iy + 9 <= D_6eee && F_290e_3557[D_867c].ph + F_290e_3557[D_867c].iy - 0xe >= D_6eee) {
-                    sub_s031_1462_1e42(v.k, who, D_6eee);
-                } else if (D_867e && (F_290e_3557[v.k = D_867c].flags & 2)
+                    sub_s031_1462_1e42(D_867c, who, D_6eee);
+                } else if (D_867e && (F_290e_3557[D_867c].flags & 2)
                         && F_290e_3557[D_867c].ix <= D_6eec && F_290e_3557[D_867c].pw + F_290e_3557[D_867c].ix >= D_6eec
                         && F_290e_3557[D_867c].iy <= D_6eee && F_290e_3557[D_867c].iy + 9 >= D_6eee) {
                     while (D_6ef0 & 1) {
-                        v.k = D_867c;
+                        D_867c;
                         if (F_290e_3557[D_867c].sel[who] == 0) {
                             if (F_290e_3557[D_867c].top[who] != 0)
                                 F_290e_3557[D_867c].top[who]--;
-                            sub_s031_1462_25de(v.k, who);
+                            sub_s031_1462_25de(D_867c, who);
                         } else {
                             sub_root_047c_12c3();
                             sub_root_047c_04dc(&D_27f4, F_290e_3557[D_867c].ix + 8, F_290e_3557[D_867c].sel[who] * 8 + F_290e_3557[D_867c].iy + 9,
@@ -295,16 +298,16 @@ int far sub_s031_1462_0124(int who)
                         }
                         vec_1fef(200, 0);
                     }
-                } else if (D_867e && (F_290e_3557[v.k = D_867c].flags & 2)
+                } else if (D_867e && (F_290e_3557[D_867c].flags & 2)
                         && F_290e_3557[D_867c].ix <= D_6eec && F_290e_3557[D_867c].pw + F_290e_3557[D_867c].ix >= D_6eec
                         && F_290e_3557[D_867c].ph + F_290e_3557[D_867c].iy - 0xe <= D_6eee && F_290e_3557[D_867c].ph + F_290e_3557[D_867c].iy >= D_6eee) {
                     while (D_6ef0 & 1) {
-                        v.k = D_867c;
+                        D_867c;
                         if (F_290e_3557[D_867c].sel[who] >= F_290e_3557[D_867c].nvis - 1) {
                             if (F_290e_3557[D_867c].top[who] + F_290e_3557[D_867c].sel[who] >= D_e7a4)
                                 break;
                             F_290e_3557[D_867c].top[who]++;
-                            sub_s031_1462_25de(v.k, who);
+                            sub_s031_1462_25de(D_867c, who);
                         } else {
                             if (F_290e_3557[D_867c].top[who] + F_290e_3557[D_867c].sel[who] >= D_e7a4 - 1)
                                 break;
@@ -1585,30 +1588,28 @@ void far sub_s031_1462_39c6(int i, int who, struct gfx g)
 int far sub_s031_1462_42ac(int who, int n)
 {
     int i;
-    unsigned char f;
 
-    for (i = 0; i < 22; i++) {
-        f = F_2e38_07be[who][i];
-        if ((f & 1) && n-- <= 0)
+    i = 0;
+    do {
+        if ((F_2e38_07be[who][i] & 1) && n-- <= 0)
             return i * 3;
-        if ((f & 2) && n-- <= 0)
+        if ((F_2e38_07be[who][i] & 2) && n-- <= 0)
             return i * 3 + 1;
-        if ((f & 4) && n-- <= 0)
+        if ((F_2e38_07be[who][i] & 4) && n-- <= 0)
             return i * 3 + 2;
-    }
+    } while (++i < 22);
 }
 
 /* n-th set bit in who's 17 bit bytes at 2e38:082c */
 int far sub_s031_1462_433c(int who, int n)
 {
-    int i, b, v;
+    int i, b;
 
-    b = 0x80;
+    b = 0x80;               /* dead store; the original keeps it (mov [bp-2],80h), 6.00A drops it */
     for (i = 0; i < 17; i++) {
         b = 0;
-        v = F_2e38_082c[who][i];
         for (; b < 8; b++)
-            if ((v & (0x80 >> b)) && n-- <= 0)
+            if ((F_2e38_082c[who][i] & (0x80 >> b)) && n-- <= 0)
                 return i * 8 + b;
     }
 }

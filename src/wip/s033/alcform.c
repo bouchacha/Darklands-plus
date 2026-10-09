@@ -10,6 +10,11 @@
    DS=2e38 load/restore exactly where the original has them (but duplicates the guard
    compare); while/do/label variants do not.  Also left: original loads D_a67e into bx for
    the outer guard (`mov bx,[a67e]; or bx,bx`), 6.00A compares with the known-zero ax.
+   Session 5: `j = 0; if (D_9cd3[i].nitems > 0) for (; j < ..; j++)` gives the original DS
+   placement and length without a duplicated compare.  Left: original `mov bx,[a67e]; or bx,bx;
+   ... mov [bp-0Ch],bx` (6.00A: `cmp [a67e],ax` with i's 0 in ax, then reload) and cx vs dx for
+   the outer pointer.  A local/param loop bound gives the bx form (but a store); an extra outer
+   `if (D_a67e > 0)` or a block boundary before the loop gives the right registers (but code).
    Functions carry their original sub_ names; the descriptive names are in the comments. */
 
 struct find_t {
@@ -154,9 +159,12 @@ void far sub_s033_15d1_0106(int a, int idx)
     }
     memset(D_e7a6, 0, 0x2e);
     for (i = 0; i < D_a67e; i++) {
-        for (j = 0; j < D_9cd3[i].nitems; j++) {
+        j = 0;
+        if (D_9cd3[i].nitems > 0) {
+            for (; j < D_9cd3[i].nitems; j++) {
             if (F_2e38_003e[i].it[j].id >= 0x48 && F_2e38_003e[i].it[j].id <= 0x5f)
                 D_e7a6[F_2e38_003e[i].it[j].id - 0x48] += F_2e38_003e[i].it[j].qty;
+            }
         }
     }
     D_2806.color = 8;

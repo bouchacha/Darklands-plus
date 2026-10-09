@@ -9,9 +9,10 @@
  *   0000 in the source) and 0628 frees with the literal "alc".
  *   Match: 0628, 0d54, 1018, 10f8, 125c, 12ec, 1334, 14e6 (needs pragma "a"), 1630.
  *   Left:
- *   0658: only the slot of the strength-reduced k*3 temp ([bp-2] in the original, [bp-4] here,
- *     k itself is eliminated into bx); renames, declaration order, block scope, explicit f
- *     variable all leave k at [bp-2].
+ *   0658 (session 5): the party ingredient loop reuses k as its item counter (the original
+ *     shares k's slot [bp-2] between the k*3 IV and the item pointer); now only the init order
+ *     differs: original `mov bx,si; mov [bp-2],bx; imul ..` vs 6.00A `mov [bp-2],si; imul ..;
+ *     mov bx,si` (init forms, types, decl order, pragmas, explicit stride var: no change).
  *   094a: one store order: original `mov [bp-2],cx` (v's home) before `or cx,cx; jl; mov si,cx`;
  *     6.00A copies to si first.  Same pattern in 1390.
  *   0f6e: 6.00A spills the CSE'd &F_28f5_0000[D_e7d4] of the F case to [bp-2] (the original
@@ -21,6 +22,9 @@
  *   1116/0796: original caches D_e7d4 in cx across the list loop and keeps row in memory
  *     ([bp-82h]) with a di copy; 6.00A makes row a register variable.
  *   0000: big key loop, structure right; key lives in [bp-8] in the original (6.00A: si).
+ *     [bp-8] is also p's segment word there (6.00 packed key into p's high half); a
+ *     `union { unsigned char far *p; int w[2]; } u;` puts key in memory but at [bp-6].
+ *   094a/1390: also tried goto forms, `pct = i >= 0 ? ..`, volatile stores of a separate v.
  *   F_28f5_0000 is an array of 6-byte batch records {formula, count, x4}; D_e716[id] is the
  *   ingredient count table (alcform's D_e7a6 = D_e716 + 0x48 ints).
  */
@@ -362,9 +366,9 @@ void far sub_s033_1462_0658(int who)
     sub_s033_1462_14e6();
     for (i = 0; i < 5; i++)
         if (D_9c69[i].present)
-            for (j = 0; j < D_9c69[i].nitems; j++)
-                if (F_2e38_003e[i].it[j].id >= 0x48 && F_2e38_003e[i].it[j].id < 0x5f)
-                    D_e716[F_2e38_003e[i].it[j].id & 0xfff] += F_2e38_003e[i].it[j].qty;
+            for (k = 0; k < D_9c69[i].nitems; k++)
+                if (F_2e38_003e[i].it[k].id >= 0x48 && F_2e38_003e[i].it[k].id < 0x5f)
+                    D_e716[F_2e38_003e[i].it[k].id & 0xfff] += F_2e38_003e[i].it[k].qty;
     D_2806.color = 8;
     sub_root_047c_058b(D_e48c);
 }

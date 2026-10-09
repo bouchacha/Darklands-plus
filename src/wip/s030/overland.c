@@ -3,8 +3,16 @@
 /* Overland travel map (overlay s030): the screen where the party travels
    across the map of medieval Germany.  Note /Oa (assume no aliasing): it is
    what makes MSC address DGROUP through ss: while DS may hold a far segment.
-   STATUS (e1c, 2026-10-09): all 22 functions written; 15/22 match (0000 00a8 02c0 1c4e 20d2
-     271a 27aa 2842 28f2 29bc 29fa 2ac8 2bb0 2d44 2dd6); DATA and CONST match.
+   STATUS (e1d, 2026-10-09): all 22 functions written; 16/22 match (0000 00a8 02c0 1c4e 1f30
+     20d2 271a 27aa 2842 28f2 29bc 29fa 2ac8 2bb0 2d44 2dd6); DATA and CONST match.
+     1f30 matched (e1d): the second loop reuses r as its counter and k holds r's old value
+       (`for (k = r, r = 0; ...) ICONS[k - 1 + r]`), so k no longer shares r's slot.  Adding a
+       4th local instead also matched 1f30 but flipped 29fa/2dd6 (symbol count).
+     16c6 (e1d): removing xa and writing `(x + (cond ? 16 : 24))` twice gets the cx CSE and
+       the frame (14 lines, but the sbb form of the ternary, and it flips 2ac8 2d44 2dd6);
+       the branchy `cond ? x + 16 : x + 24` is not CSE'd by 6.00A.  A union `tl` {v, xa}
+       gives the right frame but xa stays in memory.
+     25be: renames, pragmas a/c/g/l/e/w/t, register hints, a D_2866 copy: si/bx stay swapped.
      2dd6 matched with `unsigned v` (flips `cmp dx,si`); fragile: other declarations flip it back.
      1c76: code identical; its jump table entries are absolute and stay off until the functions
        before it (0c44 -4, 1300 +2, 16c6 +4 bytes) have the right length.
@@ -14,7 +22,6 @@
      20d2 matched with hash-ordered names + unused gap arrays + the position of
        `extern int D_286e;` (decides `D_286e + row` operand order; moving it changes 0c44/16c6).
      1c76: only the jump table differs (relocation; case 4 written on one line, last).
-     1f30 [1]: frame 8 vs 6 (one unused slot; an unused local did not help here).
      25be [17]: speed/x in bx/si (ours si/bx).
      16c6: slots fixed by renaming; `xa` (x+16/x+24 column) lives in cx in the original,
        ours [bp-18]; operand orders of `global + local` sums depend on extern positions.
@@ -1202,9 +1209,9 @@ void far sub_s030_1462_1f30(void)
         for (c = 0; c < 16; c++)
             ICONS[r - 1][c] = sub_root_047c_04d5(1, c * 16, r * 12, 16, 12);
     sub_root_0617_0264(1, "pics\\mapicon2.pic");
-    for (k = 0; k < 16; k++)
+    for (k = r, r = 0; r < 16; r++)
         for (c = 0; c < 16; c++)
-            ICONS[r - 1 + k][c] = sub_root_047c_04d5(1, c * 16, k * 12, 16, 12);
+            ICONS[k - 1 + r][c] = sub_root_047c_04d5(1, c * 16, r * 12, 16, 12);
     sub_root_0617_0264(1, "pics\\charicon.pic");
     for (r = 0; r < 10; r++)
         for (c = 0; c < 8; c++)

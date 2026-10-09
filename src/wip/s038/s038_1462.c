@@ -1,0 +1,307 @@
+/* place: s038 1462:0000 */
+/* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* status: 0292 23ec 25ca match; 01fe/024e match once 02f8's string literals are in place;
+   0000 differs only in the frame (key at [bp-4], row di / k si); 02f8 (8.4 KB) not written.
+   Character creation main menu (pics\cretscr3.pic): list of saved characters from charactr.tmp
+   (word count, int ids[5] party slots, 20 bytes D_a668, then per character 0x80 bytes D_8d2e
+   + 0x1aa bytes D_9085). */
+
+struct res { int a; int b; };
+extern int D_907e;   /* position matters: compare direction in 23ec */
+struct font { char _p0[0xc]; int color; };
+/* character record as stored in charactr.tmp (0x80 bytes, cf. party member records D_9c69) */
+struct chr { int id; char _p2[0x12]; char status; char _p15[0x10]; char name[0x5b]; };
+extern struct chr D_8d2e;
+extern int D_8d06[];
+extern char D_9085[];
+extern char D_a668[];
+extern char D_9c69[][0x80];
+extern struct { char _p[0x1ddf]; char far *s[0x41]; } far F_290e_0000;
+int far sub_root_0000_1588();
+int far sub_root_0000_1716();
+int far sub_root_047c_055a();
+int far _dos_close();
+extern char D_27f4[];
+extern int D_2804;
+extern int D_2812;
+extern int D_2816;
+extern volatile int D_6ef0, D_6eec, D_6eee;
+extern char D_9419[];
+extern char D_9920;
+extern char D_9934;
+extern int D_9c46;
+extern char D_e48c[];
+extern int D_e7a0;
+extern int D_e7a2;
+extern int D_e7da;
+extern int D_e7dc;
+extern int D_e88a;
+extern int D_e88e;
+int far _dos_freemem();
+int far _dos_read();
+int far fdopen();
+int far sub_root_0000_0000();
+int far sub_root_0265_0004();
+int far sub_root_047c_04dc();
+int far sub_root_047c_04f8();
+int far sub_root_047c_0545();
+int far sub_root_047c_0553();
+int far sub_root_047c_0568();
+int far sub_root_047c_056f();
+int far sub_root_047c_058b();
+int far sub_root_047c_05a5();
+int far sub_root_047c_073d();
+int far sub_root_047c_0744();
+int far sub_root_047c_1293();
+int far sub_root_047c_12c3();
+int far sub_root_047c_1320();
+int far sub_root_05ba_00c2();
+int far sub_root_0617_024a();
+int far sub_root_0617_045c();
+int far sub_root_06a1_2c9e();
+int far sub_s029_0e76_392c();
+int far vec_20ad();
+int far vec_20c1();
+int far sub_s038_1462_0000();
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_01fe();
+int far sub_s038_1462_024e();
+void far sub_s038_1462_0292();
+int far sub_s038_1462_02f8();
+void far sub_s038_1462_23ec(struct font *);
+void far sub_s038_1462_25ca(struct font *);
+
+int far sub_s038_1462_0000(void)
+{
+    volatile int key;   /* TODO: original key at [bp-4], row in di, k in si; 6.00A shares si for row/k */
+    int row;
+    int k;
+    sub_root_047c_0568();
+    D_9920 = 2;
+    D_9934 = 2;
+    D_e7a2 = D_2816;
+    D_e7a0 = D_2804;
+    D_e88e = 0;
+    vec_20c1();
+    sub_s038_1462_024e();
+    sub_s038_1462_0292();
+    sub_root_047c_056f();
+    while (D_6ef0 & 1)
+        ;
+    do {
+        key = 0;
+        if ((D_6ef0 & 1) && D_6eec > 0x46 && D_6eec < 0xc8 && D_6eee > 0x2d && D_6eee < 0xa5) {
+            while (D_6ef0 & 1)
+                ;
+            switch (row = (D_6eee - 0x2d) / 15) {
+            case 0:
+                key = 0x2e43;
+                break;
+            case 1:
+                key = 0x1e41;
+                break;
+            case 2:
+                key = 0x2348;
+                break;
+            case 3:
+                key = 0x1f53;
+                break;
+            case 4:
+                key = 0x231;
+                break;
+            case 5:
+                key = 0x332;
+                break;
+            case 6:
+                key = 0x433;
+                break;
+            case 7:
+                key = 0x11b;
+                break;
+            }
+        } else if ((D_6ef0 & 1) && D_6eec > 0xc5 && D_6eec < 0x138 && D_6eee > 0x14 && D_6eee < 0xb4) {
+            while (D_6ef0 & 1)
+                ;
+            row = (D_6eee - 0x14) / 8;
+            if (D_e7dc > row) {
+                sub_root_047c_12c3();
+                sub_root_047c_04dc(D_27f4, 0xc6, (D_e7da << 3) + 0x16, 0x71, 8, 0x12, 0x10);
+                D_e7da = row;
+                sub_root_047c_04dc(D_27f4, 0xc6, (row << 3) + 0x16, 0x71, 8, 0x10, 0x12);
+                sub_root_047c_1293();
+            }
+        }
+        sub_root_0000_0000(D_9419, 0);
+        k = key;
+        if (D_9c46) {
+            D_9c46 = 0;
+            sub_root_047c_0568();
+            sub_s038_1462_024e();
+            sub_s038_1462_0292();
+            sub_root_047c_056f();
+            k = 0;
+        }
+        if (sub_root_047c_073d())
+            k = sub_root_047c_0744();
+            if (k == 0x11b || k == 0x1352 || k == 0x1372)
+            return sub_s038_1462_01fe(0);
+    } while (!k || sub_s038_1462_02f8(k) != 0x11b);
+    return sub_s038_1462_01fe(1);
+}
+
+int far sub_s038_1462_01fe(int p_6)
+{
+    if (D_e88e) {
+        _dos_freemem(D_e88e);
+    }
+    sub_root_05ba_00c2(D_e88a, "b");
+    D_2816 = D_e7a2;
+    D_2804 = D_e7a0;
+    D_9920 = 1;
+    D_9934 = 1;
+    do {
+    } while (D_6ef0 & 1);
+    sub_root_047c_1320(6, 0, 0, 0);
+    return p_6;
+}
+
+int far sub_s038_1462_024e(void)
+{
+    sub_root_0617_024a(1, "pics\\cretscr3.pic", D_e48c);
+    sub_root_047c_0545();
+    D_e88a = sub_root_0617_045c("pics\\buttnCR2.pic");
+    sub_root_047c_04f8();
+    sub_root_047c_058b(D_e48c);
+    D_2812 = 8;
+    D_2816 = 1;
+    return D_2804 = 1;
+}
+
+void far sub_s038_1462_0292(void)
+{
+    int i;
+    sub_s038_1462_25ca((struct font *)0x2806);
+    sub_s038_1462_23ec((struct font *)0x2806);
+    sub_root_047c_12c3();
+    sub_root_047c_0553(0x2806, 0, 0, 0x140, 0xc8, D_27f4, 0, 0);
+    for (i = 0; i < 5; i++) {
+        if (D_9c69[i][0]) {
+            sub_root_0000_1588(i);
+            sub_root_0000_1716(i);
+        }
+    }
+    sub_root_047c_1293();
+}
+
+/* sub_s038_1462_02f8: not decompiled: base+index addressing */
+int far sub_s038_1462_02f8(int key) { }
+
+/* list of the characters saved in charactr.tmp (right-hand column); '+' marks party members */
+void far sub_s038_1462_23ec(struct font *f)
+{
+    int ids[5];
+    int n;
+    int nr;
+    int h;
+    int *slot;
+    int i;
+    int shown;
+    int y;
+    int j;
+    sub_root_047c_12c3();
+    sub_root_06a1_2c9e("charactr.tmp", 0, &h);
+    _dos_read(h, (int far *)&n, 2, &nr);
+    _dos_read(h, (int far *)ids, 10, &nr);
+    _dos_read(h, (char far *)D_a668, 0x14, &nr);
+    shown = 0;
+    for (i = 0; i < n; i++) {
+        _dos_read(h, (char far *)&D_8d2e, 0x80, &nr);
+        _dos_read(h, (char far *)D_9085, 0x1aa, &nr);
+        if ((D_8d2e.id == D_907e || D_8d2e.status) && D_8d2e.status != 5
+            && (!D_8d2e.status || !sub_s029_0e76_392c(0x43, vec_20ad(i)))) {
+            D_8d06[shown] = i;
+            sub_root_047c_0553(0x2806, 0xc5, 0x18 + shown * 8, 0x73, 8, D_27f4, 0xc5, 0x18 + shown * 8);
+            for (j = 0; j < 5; j++) {
+                if (shown == ids[j]) {
+                    f->color = 0x11;
+                    sub_root_047c_055a(f, 200, 0x18 + shown * 8, "+");
+                    f->color = 0x10;
+                    sub_root_047c_055a(f, 199, 0x18 + shown * 8 - 1, "+");
+                }
+            }
+            f->color = 0x11;
+            sub_root_047c_055a(f, 0xd0, 0x18 + shown * 8 - 1, D_8d2e.name);
+            f->color = 0x10;
+            sub_root_047c_055a(f, 0xcf, 0x18 + shown * 8 - 2, D_8d2e.name);
+            shown++;
+        }
+    }
+    _dos_close(h);
+    D_e7dc = n;
+    sub_root_047c_04dc(f, 0xc6, (D_e7da << 3) + 0x16, 0x71, 8, 0x10, 0x12);
+    sub_root_047c_1293();
+}
+
+/* the eight attribute names */
+void far sub_s038_1462_25ca(struct font *f)
+{
+    sub_root_047c_12c3();
+    f->color = 8;
+    sub_root_0265_0004(f, 0x48, 0x30, F_290e_0000.s[1]);
+    sub_root_0265_0004(f, 0x48, 0x3f, F_290e_0000.s[0]);
+    sub_root_0265_0004(f, 0x48, 0x4e, F_290e_0000.s[0x40]);
+    sub_root_0265_0004(f, 0x48, 0x5d, F_290e_0000.s[0x1a]);
+    sub_root_0265_0004(f, 0x48, 0x6c, F_290e_0000.s[0x3d]);
+    sub_root_0265_0004(f, 0x48, 0x7b, F_290e_0000.s[0x3e]);
+    sub_root_0265_0004(f, 0x48, 0x8a, F_290e_0000.s[0x3f]);
+    sub_root_0265_0004(f, 0x48, 0x99, F_290e_0000.s[0x3c]);
+    sub_root_047c_1293();
+}
