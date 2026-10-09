@@ -60,6 +60,8 @@ def image_mem(ctx, img):
 def resolve(name, syms):
     if name == '__aFchkstk':            # MSC 6.00A's name for the stack probe the game calls __chkstk
         name = '__chkstk'
+    if name == '__AHINCR':             # huge-pointer segment increment (absolute 1000h in real mode)
+        return [None, 0x1000, 0]
     if name in syms:
         return syms[name]
     m = re.match(r'^_D_([0-9a-fA-F]{1,4})$', name)
@@ -192,6 +194,7 @@ def check(path, verbose=False, flags=None, quiet=False, only=None):
                 r = resolve(m.exts[tg2[1]], ctx['syms'])
                 if r:
                     struct.pack_into('<H', dbuf, off2, r[2])
+
         if not any(dbuf):
             continue
         base = DG * 16 - dlo0
@@ -281,6 +284,19 @@ def check(path, verbose=False, flags=None, quiet=False, only=None):
                 r = resolve(m.exts[tg2[1]], ctx['syms'])
                 if r:
                     struct.pack_into('<H', dbuf, off2, r[2])
+            elif si2 == di and lt2 in (1, 5) and M2:
+                # near pointers in initialised data (e.g. a table of string addresses)
+                v = None
+                if tg2[0] == 0 and m.segs[tg2[1]][0] in data_place:
+                    v = data_place[m.segs[tg2[1]][0]] + dp2
+                elif tg2[0] == 2:
+                    r = resolve(m.exts[tg2[1]], ctx['syms'])
+                    if r:
+                        v = r[1] - DG * 16 + dp2
+                elif tg2[0] == 1:
+                    v = dp2
+                if v is not None:
+                    struct.pack_into('<H', dbuf, off2, (struct.unpack_from('<H', dbuf, off2)[0] + v) & 0xffff)
         o = bytes(dmem[DG * 16 + doff - dlo: DG * 16 + doff - dlo + len(dbuf)])
         if o != bytes(dbuf):
             res['data_ok'] = False

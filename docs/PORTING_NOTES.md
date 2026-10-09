@@ -648,6 +648,116 @@ Raw notes collected while porting (rounds 3+). The most important points are sum
 - s104_190e_0002: under every variant tried (plain/register/copy var, pragmas a/e), l_2 is never cached in si inside the
   if block; the original does `mov si,[bp-2]; mov ax,si; shl si,2 ... mov si,ax`. Unsolved.
 
+## r5w0
+
+- **Random multi-decl position search beats 1-D scans.** build/agent/r5w0/t/rsearch.py FILE _func N "decl1" "decl2" ...
+  puts ALL given prototype lines at random top-level positions at once (+0-3 dummy `extern int D_ffxx;`), scores
+  score.py(target) + 50 per other broken function (whole-file fmatch), stops at 0 and keeps FILE.zero.c.
+  Solved s059_1838_0864 (call order 1800/01c0/1326, "no decl position found" by 1-D scans) in 2 trials and
+  s063_1a3b_0726 in 33 trials. Env: SEED, J (jobs), DUM (max dummies), IGN (functions to ignore).
+- s063_1a3b_0726 (phantom slot with `c = D_907b` copy var): no variable at all for the sum, one expression
+  `v_si = D_907b; r.a = f0066(1, 0x63, f1a7e(0) + f01a0(v_si, 0xa) + f05ee(v_si, 5));` (1a7e result goes to cx
+  then di = MSC temp), then call order via rsearch on the three prototypes.
+- **Single-use register var kept (`mov si,ax; push si`) where the inner value goes through `push ax`** (s067_1869_04ba):
+  split the inner call out into the SAME var first: `v_si = f086a(0x13); v_si = f0094(v_si / 2, 3); f05c8(v_si);`
+  (the first store is dead but makes MSC keep v_si a real register variable for the second one).
+- **6.00 "zero kept in a register var" pushes (`sub si,si; push si` x3) SOLVED** (s070_1ac1_0532): keep the 0 store
+  live by USING the old value later on one path: `v_si = 0; f(5, v_si); ... g(.., v_si, ..); if (..) {...} else
+  { v_si += c70(2); v_si++; }` (instead of `v_si = c70(2); v_si++;`). 6.00A then really keeps 0 in SI and pushes SI
+  for every `v_si` argument; the `+=` on a known 0 folds to the original `mov si,ax`.
+- s110_1838 FILE MATCH: 031a party loop si/di swap = just `#pragma optimize("a", on)` around the function;
+  0bb4/0c14 `if (c) r.a = K; else r.a = f(..);` with `mov [bp-4],K` in the then-arm = dead temp in the else arm
+  `r.a = t = f(..);` (int t) + rsearch on the 088e/vec_205d prototypes for the call order.
+- **SOLVED the "nested ternary into a global through DX" family** (s124_199d_000c; also listed unsolved for
+  s126_1838_0000, s046_194b_0002): `mov dx,K1 / mov dx,[g] / mov dx,K2; mov ax,dx; mov [g],dx` =
+  `return t = D_e48a = c1 ? K1 : c2 ? D_e48a : K2;` with a plain `int t;` local and `#pragma optimize("a", on)`
+  around the function (without "a", or with `D_e48a = t = ...`, it goes per-arm / through AX).
+- **Found-flag loop + `v = t; if (ok) v = 0;` with the final value in the loop counter's register** (s058_1838_0606,
+  frame 2 too big): drop the copy and modify t itself: `if (ok) t = 0; r.a = f(0, 0x63, t);` - MSC loads t into the
+  freed SI (`mov si,[bp-4]; ...; sub si,si; push si`). Same shape as s057_192f_0a16 (try it there).
+- **`mov si,[bp+6]` at the top of an if-arm (6.00A sinks a `v = p_6;` copy below the calls)** (s054_19df_0298):
+  no copy - use the parameter directly in that arm (`if (p_6) f(p_6, 0);`); MSC enregisters the param into the
+  free SI at the start of the region, like the original.
+- **Store order of a local in a chained-constant block SOLVED** (s068_19f9_0004: `mov ax,1; mov [bp-4],ax; mov [ee76],ax..`
+  and later `mov di,[bp-4]` when the loop is skipped): dec16's `v_di = l_4;` was wrong; the source is a flag register
+  var initialised FIRST: `v_di = 1; D_ee76 = 1; ...; for (..) { if (f(i,0x3b) >= 1) v_di = 1; else v_di = 0; }`.
+  6.00A writes the register var's stack home ([bp-4]) and reloads it on the zero-trip path, exactly like 6.00.
+- **Dead constant store to a parameter kept with an immediate** (`mov word ptr [bp+6],64h; push 64h; call c70; cmp ax,64h`,
+  bp frame with `mov sp,bp` cleanups): declare the parameter `volatile int p_6` and keep `p_6 = 0x64;`
+  (s055_1932_0196). Probably also fixes s073_1a7e_059e (score 3 with the identical-arms trick).
+- Entry functions with si/di swapped in the party max loop + 2-byte orphan frame slot (s055_1932_0000): plain
+  `for (v_di = 0; v_di < D_a67e; v_di++) { v_si = f(v_di, 1); if (D_8dfc < v_si) {..} }` + `#pragma optimize("a", on)`
+  fixed both (dec16's guarded do-while did not).
+- s079_19a0 FILE MATCH: typed `struct town far *f_10be[]` (from src/c/s079/s079_1a6e.c) instead of dec16's
+  `*(int far *)(p + 0xc)`, every function with far-table stores wrapped in `#pragma optimize("a", on)`, and the
+  `les si,..; mov es:[si+0Ch],K; mov es,[slot]; les bx,..; or es:[bx+14h],4` form = first store through
+  `((volatile struct F_2e38_0000_t far *)&F_2e38_0000)->f_10be[D_907e]->f_0c = K;`, second store plain.
+  Wrong push/`add sp` vs `mov sp,bp` (si saved or not) disappears once SI is really used (les si).
+- s105_1a12_0006 (frame 8 with `mov di,dx` = dead high word): the 00f2 helper returns a `long`; call it through a
+  cast `(unsigned)((long (far *)())sub_s029_1367_00f2)(D_9072) / 0x64` (frame +4 comes from the long temp; no user
+  var needed). Left: `add bx,si` vs `add si,bx` for `(int)(X/100 + Y/100) + vec_2161()*0x14` (score 2; rsearch on
+  vec_2161/00f2 positions found nothing in ~60 trials).
+- s070_19af: 000a written from asm (pragma "a" for the `mov dx,[e3d0]; cmp dx,4..` chain; the `push ax` zero for
+  `03b0(6, 0)` after `or ax,ax; jne` comes out by itself), 0abc and 08c8 written from asm (`int k;` uninitialised
+  default of a `% 7` jump-table switch = `mov cx,[bp-2]`). 08c8: two jump tables (one per if-arm) pointing at the SAME
+  case bodies = the first switch's cases are `goto Lxx;` to labels on the second switch's bodies
+  (`case 0: case 2: goto L78;` ... / `L78: vec_2085(-2, 0x78); break;`). Duplicated bodies instead leave a dead
+  `jmp` after the first table in 6.00A. -> s070_19af FILE MATCH (055e/071c/0abc call orders by rsearch over the
+  01a0/05ee/1326/1a7e prototypes, multi-function scoring `_055e,_071c,_0abc`).
+- **Jump-table body order 0x79 before 0x78 for `case 0: case 2:`** (s070_19af 0abc/08c8): split the group,
+  `case 0: k = 0x78; break;` ON ONE LINE + `case 1:` + `case 2:` multi-line; MSC keeps the case-2 copy (e1 line-layout rule).
+  A jump-table base off by 2 (`jmp cs:[bx+0b3e]` vs 0b3c) is only the length of an EARLIER function.
+- s084_199a_044e: as a `long` function `D_ee8c = D_907b; return ((long)D_ee8c << 16) | (unsigned)(v / 3);` gives
+  the frameless dx:ax form but 6.00A then forgets to save DX around `cwd; idiv` (picks `bx` as divisor, no
+  `mov bx,dx`) - looks like a 6.00A codegen difference; unsolved.
+- s115_19bf_0222 / s082_1845_0152 / s044_18d1_000e / s049_19f7_0002: "6.00A moves a small block out of line /
+  6.00 keeps it" family; tried one-line layouts, case orders, default/goto, all pragmas: unsolved.
+
+## r5w1
+
+- vt.py FILE FULLFUNCNAME VARIANTS [JOBS]: variants (full function text, may include pragma lines) separated by
+  `\n====\n`, scored by r3w2/score.py; `APPLY=k` writes variant k into FILE.
+- s074_1995_04b4 (min-over-party loop, best in SI / i in DI swapped): `#pragma optimize("a", on)` around the function. SOLVED.
+- s077_1838_0626 (stack slots of `best` and volatile loop pointer `p` swapped; renaming did nothing): make `best` an
+  array `int best[1];` (aggregates go below the scalars) -> FILE MATCH.
+- s104_190e_0002 (`mov [bp-2],ax; inc ax; je; mov si,[bp-2]` = local stored, compare uses AX, then reloaded into SI
+  inside the if): `l_2 = f(); if (l_2 != -1) { v_si = *(volatile int *)&l_2; ... use v_si ... }` inside
+  `#pragma optimize("a", on)`. A volatile declaration makes the compare re-read memory too. SOLVED.
+- s053_1924_07b8: twin of matched s062_19fe_0764 - one expression `v_di = 1a7e(0) + (01a0(D_907b,10) + 05ee(D_907b,5));`
+  (D_907b CSE'd into SI, 1a7e result parked in CX) + declpos on the `sub_s029_0e76_1a7e` prototype. SOLVED.
+  Lesson: grep src/c for a sibling with the same call constants before experimenting.
+- dput.py FILE DECLLINE POS [OUT]: move a declaration line to a declpos.py position (to check the whole file).
+- s057_192f_0a16 still score 3 (final temp in CX, orig SI): tried separate k/register/block vars, ternary forms, volatile-read casts, pragmas a/g/c/l/w/z/t/s, dead later uses. Unsolved.
+- s070_18c8_000e: only `cmp cx,ax; jg` vs ours `cmp ax,cx; jl` for `c70(0x64) <= l_2*3/4`. Tried declpos of 0c70/184a/09f0 protos + dummy extern, operand orders, swapped if/else arms, local perms/renames, pragmas, temps. Unsolved (score 2).
+- s073_1a7e_059e: dead constant store kept as immediate `mov [bp+6],64h` (6.00A routes it through AX and reuses AX for the push): `*(volatile int *)&p_6 = 0x64;`. SOLVED. General: volatile-cast lvalue stores/loads give 6.00-style memory ops without making the variable volatile.
+- s046_194b_0002 tail `mov ax,dx; mov [e48a],dx`: tried return/store splits, volatile casts, type casts, register temps, pragmas a / c-off. Best is `mov ax,dx; mov [e48a],ax` (or swapped order with volatile store). Unsolved.
+- **`mov cx,4; cwd; idiv cx` for a signed /4** (6.00A uses the shift idiom for `x / 4` and for `x /= 4` on a plain
+  local): the compound division must be on an AGGREGATE member: `int sum[1]; ... sum[0] /= 4; f(sum[0]);`
+  (or `struct {int s;} sum; sum.s /= 4;`, or a struct res field `r.a /= 2` as in s044). Plus declpos of
+  `extern int D_a67e;` for the loop bottom test. s080_18a5_055a SOLVED.
+- s081_1962_000c (l_2 in memory, loaded into DI only for the loop): volatile-cast stores `*(volatile int *)&l_2 = 0xc;`
+  + a copy register var for the loop gives exact code but a phantom 2-byte slot (enter 8); using an unused
+  PARAMETER as the copy (`int f(int p_6) ... p_6 = l_2; do {... 049a(p_6) ...}`) avoids the slot but 6.00A adds
+  `mov [bp+6],di`. Score 2, unsolved.
+- s106_19bc_049e SOLVED (bp frame without locals + `cmp dx,1` + else-arm jumping back into the first arm):
+  `t = D_e7d8; if (!t) { if (!f()) { A1; D_e48a = 0xc; return; } A2; D_e48a = 0xc; return; } if (t == 1 && t) {...; return;} ...`
+  in an `int` function with bare `return;` (no values). The early-return form gave the frame AND the original
+  cross-jump direction; the if/else / switch forms gave neither.
+- s126_1838_0000 tail is the same `mov ax,dx; mov [e48a],dx` family as s046_194b_0002 - unsolved.
+- s118_1838 SOLVED by rewriting dec16's bogus long-switch as `long far 00f2(); if (f() >= 0x3e8L) {..} else {..}`, `(f(1) - 0x23) * 5`, and a goto mess as if + switch with full arms.
+- **Single-use register var kept in SI (`mov si,ax; sub si,cx; add si,64h; push si; call f`)**: assign the call
+  result back to the var: `v = expr; v = f(v); r.a = v;` (s057_1a02_07b0). The call-arg value then stays in SI.
+- s057_1a02 SOLVED: long 00f2 compares, `(unsigned)00f2() * 9 / 10`, one-expression 2278 args written inline, switch(D_a88d) {default; case 6/8 fallthrough into 9/10} + switch(v_si) with full arms (dec16 had gotos and bogus negative cases).
+- s057_1838: 03cc fixed (pragma a + one-expression sum + declpos 01a0 pos 56). 0500 (value switch into CX with gotos into case bodies) best score 16-17 with if/else + goto L_0561/L_0577 forms; stubs 0000/0214/067c not written.
+- s066_1b35 SOLVED (8 functions): `extern char D_9c69[][0x80]` + `D_9c69[D_ee8c][0] = 0;` (shl bx,7 + push [ee8c]);
+  `mov ax,[g]; or ax,ax / dec ax; je` on D_ee53 = `switch (D_ee53)` (not if); struct-res callback switch with
+  `r.a = call` per arm; ALL dec16 gotos replaced by full tails per arm (MSC cross-jumps them back exactly);
+  stub 0196 = `switch (D_ee53 %= 5) { default: ...; case 0: ... }`; declpos for 05ee/01a0 order in 0e68.
+- s064_190c (partial): 04bc SOLVED with `v_si = D_907b; v_si = 0094(v_si = 05ee(v_si,4) + 05ee(v_si,3), v_di); r.a = 000a(v_si);`.
+  0774 uses the s062/s053 twin form but declpos of 1a7e alone only reaches score 4 (needs a 2-D scan with 01a0/05ee).
+  0350: `register int p_6` used directly fixes the prologue load; left `cmp si,di; jl` vs ours `cmp di,si; jg` (score 2).
+  Stubs 0520/0a1a not written; 0008/081e/095c/0bb4 not attempted.
+
 ## e0
 
 - **Loading a data file into a fresh buffer** (`call alloc_buffer; sub cx,cx; mov [bp-x],ax;
@@ -734,6 +844,50 @@ Raw notes collected while porting (rounds 3+). The most important points are sum
   DGROUP`) is unresolved; find the start by dumping DGROUP before the first string the
   asm annotates (s033_1462: 3202).
 
+## Session 4 (2026-10-09)
+
+- **Union for a register-only temp** (s036 1b80 MATCHED): 6.00A gives every named local a frame
+  slot even when it only ever lives in AX, so an if/else temp `d` added a slot the original
+  doesn't have. Putting it in a union with the char local that owns the original slot,
+  `union { int d; char t; } u;` (`u.d = 3/2/1; total -= u.d; u.t = sk66;`), reproduces both
+  the `mov ax,3` arm and the frame. Try this whenever "a temp gives the right code but an
+  extra slot".
+- **Same variable reused for unrelated values** shows up as one [bp-x] slot written by two
+  different computations (s033 1390/094a: v and the ingredient loop counter; s032 1d18: the
+  uninitialised `town` read and `size` stored to the same [bp-2]). Write one variable.
+- **Module-owned initialised data** (s033_1462: D_3244..D_3250 = 0,0,0,0,0,0,-1 between
+  0000's literals and 0628's "alc"): define them in the file (`int D_3244 = 0;` ...) placed
+  *before* the function whose literals precede them; placed before 0628 the literal "alc"
+  still came first. Keep `extern` declarations at the top for earlier uses.
+- **CONST slot order** follows first reference of each far symbol in the file; writing the
+  stub functions fixed the slot numbers of already-correct functions (s033 1018, 14e6).
+- **6.00A sum order**: `a + (b - c) + q + D_g` with q a register always comes out as
+  `+ D_g` then `+ q`; source order, separate statements, casts and extern position don't
+  change it (s033 1390 left; 094a has the other order in the original and matches).
+- **`D_g < K && D_g != -1 ? x + D_h : D_h + D_g`**: 6.00A caches D_g in DX with /Oa;
+  `#pragma optimize("a", off)` around the function plus an if/else of two whole calls
+  (`if (..) srand(x + D_h); else srand(D_h + D_g);`) and the extern position of D_h
+  reproduce it (s032 078e; only an i/y slot swap left).
+- **6.00A global register allocation switches off in big functions**: in s036 0082 no
+  variable becomes a register variable at all (only block-local caching in si/di) once the
+  main if/else chain is complete; removing any one large branch gives `register si = ...`
+  again. A small function of the same shape gets i=di, key=si. So the original's
+  whole-function i=di/key=si cannot be had there; `register`, volatile, pragma "e"/"l" tried.
+- `#pragma optimize("e", off)` makes 6.00A ignore `register` completely (no si/di vars).
+- **Declaration order of locals decides operand order** (s036 197e MATCHED): in
+  `(x + t + b + c + a) * sz` 6.00A emitted the memory operands c, b, a whatever the source
+  order; declaring `int b, c, a;` gave the original a, c, b. The compare `best < val`
+  (`mov ax,[val]; cmp [best],ax; jge`) likewise flipped with the order of the
+  `best`/`val` declarations (`int i; int besti; int best; int val;`). Slots did not move.
+  So for locals, permute declarations before trying expression rewrites (vt-style batch:
+  all permutations, score by diff lines). No effect on register choice (s036 10d0, 147a).
+- Tools (build/agent/e0): `vt.py FILE FUNC VARFILE [JOBS]` runs snippet variants in parallel
+  (VARFILE: original snippet, then alternatives, separated by lines `====`) and prints the
+  fmatch line plus `sc=` (number of differing instructions from sd.py); `vs.py FILE FUNC
+  VARFILE K [apply]` shows/applies variant K; `dp.py FILE FUNC "DECLLINE" [STEP]` moves a
+  declaration line through the file header and scores each position; `regs.py` prints
+  the register/enter lines of a function for each variant.
+
 ## e1
 
 - **Forward tail merging = duplicated source.** When several identical `return -1` / processing
@@ -803,3 +957,215 @@ Raw notes collected while porting (rounds 3+). The most important points are sum
   20d2 `int gam[6], gbb[1]`): the original's never-used locals (6.00 kept slots for them)
   can be reproduced with unused arrays of the right size, given hash-ordered names. With that,
   s030 20d2's frame and every slot match (only `D_286e + row` operand order left).
+- (session 3, e1c) **JUMP TABLES NEED THE PRECEDING FUNCTIONS' LENGTHS.** A `jmp cs:[bx+T]` table
+  holds absolute offsets; fmatch relocates code but the table entries stay off by the length
+  difference of all earlier functions in the file. A function whose only diff is its table is
+  done (s030 1c76; s031_1462 0b22 10ae 2b14 39c6 43b2) - fix the earlier functions' lengths.
+- (session 3) **OPERAND ORDER OF FAR STRUCT FIELDS DEPENDS ON THE BASE SYMBOL.** `F[k].x + F[k].w`
+  loaded `w` first with `extern struct box far F_290e_3829[]`; declaring the table a few bytes
+  early (`F_290e_3825[]`, struct with `char lead[4]`) gave `x` first and the CSE of `x` into cx
+  (s031_1462 2518/1d44). Same address, so data refs are unchanged. Shifting by n*recsize with
+  `[k + n]` works too. MSC 6.00A seems to order equal-cost operands by a hash of symbol+offset.
+- (session 3) **Any new declaration can flip operand orders in other functions** (struct types,
+  externs, a local struct in another function): s030 2dd6 `cmp si,dx`, s031_1462 43b2 `t + hi`,
+  2518 all flipped while editing other functions. Keep backups; re-run the whole fmatch.
+  build/agent/e1/ins.py FILE 'decl' inserts a dummy declaration at every top-level position.
+- (session 3) `unsigned v` (instead of int) flipped `cmp dx,si` to `cmp si,dx` (s030 2dd6).
+- (session 3) Original `test es:[bx],3 / jne L / mov [s],0 / jmp / L: mov [s],1`: 6.00A turns
+  `if (*p & 3) s = 1; else s = 0;` into `and al,3 / cmp al,1 / sbb / inc`; writing
+  `if (*p & 1 || *p & 2)` keeps the branches (MSC still merges it into one `test ..,3`) (1e42).
+- (session 3) Ternary chains: write `if (q <= A) t = 3; else if (q <= B) t = 4; else t = 5;` -
+  MSC turns it into the `mov ax,K / jmp / ... / mov [t],ax` shape in arm order; a nested `?:`
+  puts the last arm first (s031_1462 43b2).
+- (session 3) 6.00A folds `(x & 0xf) + (x & 0xf0)` to `x`; `x % 16 + (x & 0xf0)` keeps both ands.
+- (session 3) Jump threading `cmp ..; jge next_test` from an inner if to the next `else if`:
+  `if (k == 10 && e < lim) f(); else if (k == 11 && e < lim) g();` (1e42).
+- (session 3) A duplicated flag test `cmp [x],0; je A; je B` is `if (x && (!x || y == i))`.
+- (session 3) `if (!cond) break; {...}` in a switch case (instead of `if (cond) {...}`) changed CSE
+  across a store and the loop layout (2b14 case 9).
+- (session 3) `cnt = n = j = 0` vs `j = n = 0`: the rightmost-assigned register is zeroed first.
+- (session 3) Two-assignment arg `f(D_x = 0, 12)`: 6.00 `sub al,al / mov [x],al / push ax`,
+  6.00A stores and pushes the immediate; no fix found (s031_1462 0124).
+- (session 3) A local `struct { int y2, pad1, k, pad2, pad3; } v;` pins memory locals to fixed
+  slots below the scalars (fixed 0124's [bp-8]/[bp-0c]) but 6.00A adds 8 unused frame bytes.
+- (session 3) 6.00 kept small-loop counters in bx (no register variable; 433c even shares bx
+  between two loop counters, spilling one to [bp-4]); 6.00A uses si/di - not reproduced (42ac 433c).
+- (session 3) Helpers (copied from the session scratchpad, set SCR=dir for temp files):
+  jd.py FILE FUNC = fdiff that skips jump tables and masks string/CONST addresses (counts
+  DIFFLINES; use it to see real code diffs when data placement is still off); mk.py FILE FUNC
+  < [[(old,new),..],..] writes v.txt variants ('$PRE'/'$POST' add lines around the function,
+  '\b...' = regex, member-safe); pj.py FILE FUNC [K] scores v.txt variants with jd; fvj.py
+  whole-file variants; lst.py FILE SUFFIX = /Fc listing; asm.sh IMAGE_FRAME OFF = compact asm;
+  dstr.py LO HI = DGROUP strings.
+- (session 3) Strings decide _DATA placement: a file only gets "DATA" right when every
+  function's literals are present in order, so stub unwritten functions with their literals
+  (e.g. `free_buffer(D_867a, "b")`) to make the others match early.
+
+## e2
+
+- s043 17e5 (palette fade) is compiled with DIFFERENT flags: `/AM /Zp1` only (no /G2 /Gs /Ox):
+  `push bp; mov bp,sp; mov ax,N; call __chkstk`, locals in memory, no loop opts. fmatch resolves
+  6.00A's __aFchkstk. Local slots there follow the name-hash order (e1 lmap.py/hname.py) -> FILE MATCH.
+- s043 1810 is hand-written asm (`push si; push di` order, `xor ah,ah`, `shl ax,1; adc dx,0` rounding). Skip.
+- **MSC emits an initialised global AFTER the literals of the next function.** DGROUP order in
+  s043_1462: quality-name literals (table initialiser), then function 0000's literals, then the
+  globals D_4ec4..D_4fce, then 0100's literals. So the globals are defined before function 0000.
+  Char-array globals are word aligned (single 0 pad bytes between strings).
+- fmatch limitation: near pointers in initialised data pointing into the module's own _DATA
+  (`char *D_4fce[] = {"very poor", ...}`) are not relocated in the data comparison -> "DATA
+  DIFFERS" although the bytes are right (checked by replacing the table with the int values).
+- fmatch limitation: `__AHINCR` (huge pointer increment, `add word ptr [bp-2],1000h`) is unresolved.
+  `char huge *p; *p++ = c;` is the right source (s043_1462_09c8).
+- `fprintf(f, fmt, ..., vec_1c1b(), D_e4, D_e2, ...)`: a call with no args in the middle of an
+  argument list. Do not mistake the following pushes for the inner call's arguments (the caller's
+  single `add sp,1ah` gives it away).
+- FP_SEG/FP_OFF on a far lvalue must use `unsigned far *`, or the segment is silently dropped.
+- s043_1462_0000: register var reused (D_7760 kept in di, later the event counter in di) needed
+  `#pragma optimize("a", on)`.
+- One local reused for unrelated jobs (`nr` = nread for _dos_read AND the low byte of a count)
+  shows up as one shared stack slot; separate locals make the frame 2 bytes bigger.
+- **Inline far strcpy/strcat in /AM** (`les di,[bp+8]` ... `push ds; push es; pop ds; pop es`
+  ... `rep movsw`): call strcpy/strcat WITHOUT a prototype (no <string.h>) and pass the far
+  pointer directly: `strcpy(D_ee5b, pic)` with `char far *pic`. 6.00A has no intrinsic
+  _fstrcpy, and redeclaring strcpy with far params is an error (C2086). (s043_150b_000a)
+- **Tables addressed from one base pointer are one struct.** s043_150b_020e fills three int
+  tables (e8a7/e8d9/e925) through one strength-reduced pointer `di` ([di-32h], [di], [di+4Ch]);
+  separate externs give absolute addresses. `extern struct blocks { int ofs[25]; int x[25];
+  unsigned char y[26]; int w[25]; } D_e8a7;` reproduces it.
+- `x = *pic == 'x' ? 15 : 0;` vs `if (*pic == 'x') x = 15; else x = 0;` give different code
+  (the if/else reuses AX=0 left by an inline strcat). Try both.
+- `unsigned char *out` (instead of char *) stopped 6.00A from reusing AL=0 for
+  `out[0] = 0; flag = 0;` (original: two immediate byte stores). (06fe)
+- Uninitialised register local read at loop entry (`mov si,[bp-2]`) came from the decompiler;
+  the original simply has `int key;` used uninitialised on a path; no extra local. (2826)
+- `#pragma check_stack(on)` around a function: `push bp; mov bp,sp; mov ax,N; call __chkstk`
+  (resolved by fmatch). (06fe)
+- fmatch compares jump tables after relocation only when the function lands at its original
+  offset: while earlier functions in the file are stubs, a switch function with identical code
+  shows DIFF at its table (2d3a).
+- ptry.py with 4 jobs sometimes prints bogus "MATCH" with an empty summary (compile clash);
+  re-run with 1-2 jobs before trusting it.
+- `#pragma optimize("a", on)` fixed the pointer-global reuse in s043_150b_1f40
+  (`mov bx,[104h]` once for two stores through D_0104).
+
+## e3
+
+- **6.00A turns `while (x > 23) { y++; x -= 24; }` into division** (`q = x/24 (div); y += q;
+  x += q * -24` or `imul +24; sub`), for globals and far-pointer fields; not for near-pointer
+  fields. The game's 6.00 did it for some (near pointer, s029 08ae) and not others (globals,
+  s029 05c8). To keep a loop on globals: `while (*(volatile int *)&g > 23) { y++;
+  *(volatile int *)&g -= 24; }`. To get the division form on near-pointer fields write it out:
+  `d->day += (unsigned)d->hour / 24; d->hour += (unsigned)d->hour / 24 * -24;` with
+  `#pragma optimize("a", on)` (CSE of the quotient across the store).
+- **The canonical sign of `x -= q*K` (`imul K; sub` vs `imul -K; add`) depends on whether the
+  constant -K appears elsewhere in the file** (constant table shared between functions?):
+  s029 09ea loop form gave `imul 18h; sub` only after the explicit `* -365` spelling in two
+  other functions was replaced by `while (d >= 365) d -= 365;`. Symptom: a function matches
+  alone/when any other function is deleted, but not in the full file.
+- **Loop-carried local kept in memory** (`mov [bp-2],ax; cmp ax,[g]; jge; L: mov ax,[bp-2] ...`):
+  `volatile int dm;` plus the guard-duplicated shape
+  `if ((dm = T[i]) < g) do { ...; } while ((dm = T[i]) < g);`. When the use should be a
+  memory operand (`sub di,[bp-2]`), make only the store volatile:
+  `(*(volatile int *)&dm = T[m]) < d` and read `dm` plainly.
+- **`for (i = 0; i < n; i++)` gives `jle` guard, original `je`**: declare `unsigned i`.
+- **clamp with `mov dx,63h; mov ax,dx` returns**: `r = v; if (r > 99) r = 99; else if (v < 0)
+  r = 0; return r;`.
+- **cmp operand direction for two params** (`cmp dx,bx` with dx=hi): copy to a local first,
+  `r = hi; if (r < v) return hi; r = lo; if (r > v) return lo; return v;`.
+- Char buffer overlapping locals: `enter 14h` with flags at [bp-2]/[bp-4] and a buffer at
+  [bp-14h] means the buffer is 16 bytes, not 20.
+- `strcat(buf, c ? "a" : "b")` loads the string into ax; the original's `mov di,str` comes
+  from `if (c) strcat(buf, "a"); else strcat(buf, "b");`.
+- **Register variable written to its stack home once** (`mov [bp-4],si` with [bp-4] never read,
+  e.g. root 0265 0882/09b2 number formatting): 6.00 stored a register local to its home slot.
+  6.00A does it when a volatile access happens while the local is live: keep the pointer in
+  a separate local `p = buf;` and write the next plain store through a volatile cast,
+  `*(volatile char *)&started = 0;`. A `char * volatile p0 = buf` instead also flushes the
+  *parameter* home (`mov [bp+0Ah],si`). (09b2 matched with `p0 = buf; p = p0;`.)
+- **`lodsb; push ax`** for `f(font, *p++)`: `for (n = 0, p = s; *p; ) n += f(font, *p++);`
+  with a separate pointer local (a param pointer `*s++` gives `mov di,si; mov al,[di]`).
+- `*cur > '@'` compiled `ja`/`jb`: the pointer is `unsigned char *`.
+- root 0617 (file I/O) was not compiled like the rest: `add sp,N` before `pop bp` at the
+  end of frame functions with no locals, `mov ax,1; push ax` (no /G2), loop vars spilled back
+  after loops. Default flags `/AM /Gs /Zp1` (= /Ot) come closest; the epilogue `add sp` form
+  is found nowhere else in the game and 6.00A always turns it into `mov sp,bp` - probably an
+  older compiler (5.x).
+
+## s029 0e76 (party/event core), session e3
+
+- Work file src/wip/s029/s029_0e76.c (started from build/agent/gen_engine output; splice new
+  functions in with build/agent/e3/splice.py WIP NEW.c, which also replaces the prototype line).
+  build/agent/e3/slotonly.py WIP lists functions whose only difference is the CONST slot of a
+  far table (`mov es,[7eXX]`): the slots are handed out in order of first use in the file, so
+  they only line up once the earlier users (02ea, 0792, 118e, 1260, 199c, 1fb8, 20c6, 21aa,
+  2930, 3f30) are all ported. Original slot order: 7E18 (02ea), 7E1A (0792), 7E1C 0x75f table
+  (118e), 7E1E 0x82c bits (1260), 7E20 F_2e38_10be (199c), 7E22..7E2A five tables (1fb8),
+  7E2C F_290e_2937 saints (20c6), 7E2E F_290e_207f (21aa), 7E30 F_2e38_1b2c events (2930),
+  7E32 0x290f table (3f30).
+- Member records: `extern char D_9c69[][0x80]` and one alias extern per field
+  (`extern char D_9cb2[][0x80]` = +0x49 attributes, D_9cb9 +0x50 attribute maxima,
+  D_9cc0 +0x57 skills, D_9c9e +0x35, D_9cd3 +0x6a item count, `extern unsigned D_9c67[][0x40]`
+  = age in days at [-2]). The base symbol decides the strength-reduced loop pointer: 1128
+  needed `D_9c69[i][0x6a]` (pointer based on the record, status at [si-6Ah]).
+- **Dead-looking frame slots** in 6.00 code come from locals whose stores 6.00A drops.
+  `*(volatile T *)&x = value;` with plain reads afterwards reproduces "store to [bp-x],
+  keep using the register" (s029 0e76 01c0, 18f2, 4442 partly; s029 1367 0938/0982).
+  A volatile store also flushes register variables to their stack homes (`mov [bp+6],di`
+  for a reassigned parameter in 01c0).
+- Uninitialised `mov cx,[bp-2]` before a party loop (007c, 1972, 11fa) is what 6.00A also
+  emits for a plain `for (i = 0; i < 5; i++) if (D_9c69[i][0] ...)` loop: write the loop.
+- `i = 0; n = 0;` vs `n = i = 0;` decides `sub di,di; mov si,di` vs `sub si,si; mov di,si`
+  (37b8, 4db6, 4e0c).
+- The compare direction against a global (`cmp ax,cx` vs `cmp cx,ax` in 164a/16fe/174a)
+  flipped with the position of `extern unsigned char D_9c1d;` among the prototypes
+  (tools/porting/declpos.py found a position) - and flips back whenever lines are added
+  above; redo at the end.
+- Original bugs worth knowing for mods: 0b84 computes the 0..99 clamp of a new skill value
+  and stores the unclamped value; 01c0 sets D_99eb for every skill (missing braces); 1696 and
+  179c store 2*a instead of a+b; 18a8 discards the clamp of v; 39f0 reads event -1 when no
+  event exists; 4db6/4e0c return garbage when the scan reaches slot 300.
+- **Struct local initialised with constants and then pushed** (`mov [bp-0Ah],17h ...` then
+  `push [bp-4]`, s029 0e76 2930) plus an int local kept in memory (`mov [bp-2],ax; inc ax`):
+  `#pragma optimize("e", off)` around the function and `volatile struct {..} x;` (6.00A
+  constant-propagates plain struct fields and enregisters the int).
+- `fseek(f = fdopen(h, "r"), (long)city * 0x26e + 1, 0);` reproduces the interleaved
+  `push 0; ...imul...; push dx; push ax; call fdopen; mov si,ax; push si; call fseek`
+  (s029 0e76 4e68, city loader). String literals are placed in code-generation (push) order:
+  `fopen("darkland.dsc", "r")` puts "r" first.
+- `#define FP_SEG(fp) (*((unsigned far *)&(fp) + 1))` for far-table elements; with a near
+  `unsigned *` cast 6.00A silently drops the segment override.
+- root 0617 (fileio.c, compiled without /Ox): stack slots follow the 6.00A *name-hash* order
+  even in small functions (bucket = sum of name chars % 16, ascending from [bp-2] down; the
+  struct/array locals take part). Renaming locals fixed 00d4/011e and the frame of 000e.
+  build/agent/e3/hperm.py FILE FUNC tries every top-down order of a function's locals.
+
+## e3 tools (build/agent/e3)
+splice.py (insert/replace functions + prototypes in a wip file), slotonly.py (DIFFs that are
+only CONST-slot loads), hperm.py (try all hash-bucket orders of a function's locals by
+renaming), hren.py (rename locals for a given top-down order), lay.py (stack slot map per
+variant), prag_all.py (try optimize pragmas on every non-matching function), ptry/tv/apply as
+in e1. PT=xx env var gives ptry separate temp files when two runs overlap.
+
+## What s029 1367 computes (FILE MATCH, src/c/s029/s029_1367.c)
+- clamps 0..99 (000a), 0..100 (0028), -100..100 (0046), lo..hi (0066), max (0084), min (0094)
+- money {florins, groschen, pfennigs}, 1 fl = 20 gr, 1 gr = 12 pf: set+normalise (00a4),
+  value in pfennigs (00f2), add/subtract amounts (0130/0180), copy (01ce), add/sub money
+  (01ec/023e), multiply (0290), compare (02d4), format "3 florins, 2 groschen and 1 pfennig"
+  (0376), add a per-member cost for every active member (054e, 0594)
+- calendar: D_00e0 hour, D_00e2 day, D_00e4 month (0-11), D_00e6 year, D_2776 days per month
+  (no leap years); advance by hours (05c8: hourly hook 0e76_255a, vec_1f95 for >2 h, monthly
+  hook 0e76_281c, event expiry 0e76_3f30, reseeds rand) and by days (0680); wait until an
+  hour (0716 via 086a); daylight 5:00-18:59 (072a); 3-hour time-of-day bands (0744/0796/07ee);
+  date struct copy/set/normalise/add-hours (088a/08ae/09ea); month and day of a day-of-year
+  (0938/0982); day of year (09cc); absolute day number = year*365 + 13288 + ... (0a6c);
+  days since/until/between dates (0a96/0b1c/0ba4, the last capped at 32000)
+- UI: message box + key (0c30), "Chance of success is X% to Y%" (0c52; D_906a 0 = numbers,
+  1 = words D_4fce[x/20], 2 = off), random personal names from first-name/surname tables seeded
+  by D_9c4a + seed (0db4).
+- Event fill (0e76 3034, 21 parameters stored into one far record) needed
+  `#pragma optimize("a", on)`; with it 6.00A also switches DS to the far segment for the whole
+  function like the original. build/agent/e3/keep.py NEW.c splices into the best-so-far copy
+  and keeps the result only if the total match count goes up (useful because of the flips).
+
+## End of session e3: s029 1367 FILE MATCH; root 0265 text.c 8/10; root 0617 fileio.c 8/29;
+## s029 0e76 84/143 (+6 differing only in a CONST slot).

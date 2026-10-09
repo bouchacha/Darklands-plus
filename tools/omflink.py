@@ -375,6 +375,8 @@ class Linker:
     def resolve_ext(self, name):
         if name in self.symbols:
             return self.symbols[name]
+        if name == '__AHINCR':                      # huge-pointer segment increment
+            return (None, 0x1000, 0)
         if name == '__aFchkstk':                    # MSC 6.00A's name for the stack probe
             name = '__chkstk'
             if name in self.symbols:

@@ -3,15 +3,17 @@
 /* Overland travel map (overlay s030): the screen where the party travels
    across the map of medieval Germany.  Note /Oa (assume no aliasing): it is
    what makes MSC address DGROUP through ss: while DS may hold a far segment.
-   STATUS (e1b, 2026-10-09): all 22 functions written; 13/22 match (0000 00a8 02c0 1c4e 20d2
-     271a 27aa 2842 28f2 29bc 29fa 2ac8 2d44); DATA and CONST match.  [n] = fdskip.py lines.
+   STATUS (e1c, 2026-10-09): all 22 functions written; 15/22 match (0000 00a8 02c0 1c4e 20d2
+     271a 27aa 2842 28f2 29bc 29fa 2ac8 2bb0 2d44 2dd6); DATA and CONST match.
+     2dd6 matched with `unsigned v` (flips `cmp dx,si`); fragile: other declarations flip it back.
+     1c76: code identical; its jump table entries are absolute and stay off until the functions
+       before it (0c44 -4, 1300 +2, 16c6 +4 bytes) have the right length.
+     (older notes below)  [n] = fdskip.py lines.
      02c0 matched after renaming its locals (hash order) and choosing one-line vs two-line
        `case ..: return K;` arms (build/agent/e1/greedy_lines.py) - see e1 NOTES.
      20d2 matched with hash-ordered names + unused gap arrays + the position of
        `extern int D_286e;` (decides `D_286e + row` operand order; moving it changes 0c44/16c6).
      1c76: only the jump table differs (relocation; case 4 written on one line, last).
-     2dd6 [1]: `cmp si,dx` (ours `cmp dx,si`).
-     2bb0 [1]: matches except __aFchkstk (6.00A name of the stack probe; game: __chkstk).
      1f30 [1]: frame 8 vs 6 (one unused slot; an unused local did not help here).
      25be [17]: speed/x in bx/si (ours si/bx).
      16c6: slots fixed by renaming; `xa` (x+16/x+24 column) lives in cx in the original,
@@ -1648,7 +1650,8 @@ int far sub_s030_1462_2d44(int type, int loc)
 #pragma optimize("a", off)
 void far sub_s030_1462_2dd6(void)
 {
-    int changed, old, v;
+    int changed, old;
+    unsigned v;                     /* unsigned: gives `cmp si,dx` (int: `cmp dx,si`) */
 
     changed = 0;
     old = D_2860;

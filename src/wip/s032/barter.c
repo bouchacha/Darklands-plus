@@ -1,6 +1,14 @@
 /* place: s032 1462:0000 */
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
-/* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 5/11. */
+/* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 5/11.
+ * Session 4: 078e down to one difference: i and y slots swapped ([bp-4]/[bp-6]); needed
+ *   `#pragma optimize("a", off)`, srand as an if/else of two calls and `extern int D_9c4a;`
+ *   moved before `extern int D_2800;`.  Declaration order, names, loop-init order, y as a
+ *   strength-reduced i*8+0x93: no effect on the slot order.
+ *   1d18: the uninitialised `town` and `size` are one variable in the original (both [bp-2]);
+ *   writing them as one makes size a register variable in 6.00A (worse), so left as is.
+ *   CONST: the original reaches F_2e38_10be (192e/1b26) through DS=2e38 (no CONST slot) and
+ *   has an unused 28f5 slot at 7e6e; ours gives 10be a slot. */
 /* data: _DATA=2f18 */
 /* data: CONST=7e66 */
 /* Barter screen (overlay s032): buy and sell items at a shop. */
@@ -55,11 +63,12 @@ extern int D_2816, D_2804, D_2812, D_e7a2, D_e7a0;
 extern char D_9920, D_9934;
 extern char D_907c, D_907b;
 extern int D_884e, D_884c, D_907e;
+extern int D_9c4a;
 extern int D_2800;
 extern volatile int D_6ef0, D_6eec, D_6eee;
 extern char D_27f4[], D_2806[], D_e48c[], D_9419[];
 extern int D_906b, D_906d, D_906f;
-extern int D_9c46, D_9c4a;
+extern int D_9c46;
 extern struct member D_9c69[];
 extern struct city far *D_9785;
 extern char far *D_869c;            /* shop name */
@@ -333,6 +342,7 @@ int far sub_s032_1462_076c(int ret, int shop)
 }
 
 /* sub_s032_1462_078e (draw_barter_screen): draw the screen and collect the items the shop sells */
+#pragma optimize("a", off)
 void far sub_s032_1462_078e(int who, char far *name, long cats)
 {
     char buf[120];
@@ -381,7 +391,10 @@ void far sub_s032_1462_078e(int who, char far *name, long cats)
                 F_2e38_0000[who].items[i].cnt, F_2e38_0000[who].items[i].qual);
         sub_root_047c_055a(D_27f4, 0x75, y, buf);
     }
-    srand(D_907e < 0x5c && D_907e != -1 ? D_9785->seed + D_9c4a : D_9c4a + D_907e);
+    if (D_907e < 0x5c && D_907e != -1)
+        srand(D_9785->seed + D_9c4a);
+    else
+        srand(D_9c4a + D_907e);
     for (k = D_8850 = 0; k < 200; k++) {
         if (sub_s032_1462_1d18(k)) {
             if (D_8850 < 4) {
@@ -399,6 +412,7 @@ void far sub_s032_1462_078e(int who, char far *name, long cats)
     D_885c = D_8850;
     sub_root_047c_1293();
 }
+#pragma optimize("", on)
 
 /* sub_s032_1462_0b30 (redraw_barter_screen): redraw the screen (other party member or after a change) */
 void far sub_s032_1462_0b30(int who, char far *name, long cats)
