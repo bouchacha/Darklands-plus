@@ -1,20 +1,21 @@
 /* place: s040 1462:0000 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
+/* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 8/10. */
 /* data: _DATA=4bbc */ /* data: CONST=7edc */
 /* Loot distribution: share found items and cash between the party (overlay s040). */
 /*
  * STATUS (e0, 2026-10-08): 8/10 functions match (check: python3 -I tools/fmatch.py src/wip/s040/loot.c).
- *   loot_distribute (0000) now matches: the buffer pointer is built once from alloc_buffer's
+ *   sub_s040_1462_0000 (0000) now matches: the buffer pointer is built once from alloc_buffer's
  *     result (p = (far *)((unsigned long)alloc_buffer(..) << 16); D_a889 = p;) and the two
  *     skipped header bytes are dead reads (st = *buf++; st = *buf++;).
  * Still different:
- *   loot_screen (01c8): after "cash[0] = 0" the original re-reads es:[si] when pushing cash[0]
+ *   sub_s040_1462_01c8 (01c8): after "cash[0] = 0" the original re-reads es:[si] when pushing cash[0]
  *     for sub_s029_1367_0130; 6.00A (with /Oa, needed for the rep stosw init loops) keeps the
  *     constant 0 across the two far calls.  Tried *cash, cash[0] as clamp argument, D_8dcc[0],
  *     volatile casts/globals (ignored); `int volatile far *cash` fixes the push but then the
  *     store moves before the first argument push (original: between pushes).
  *     #pragma optimize("a", off) fixes the push but loses the rep stosw loops.
- *   loot_key (0c22): (a) in the 'D' loop the original indexes D_a6b4 with bx and D_9c69 with dx
+ *   sub_s040_1462_0c22 (0c22): (a) in the 'D' loop the original indexes D_a6b4 with bx and D_9c69 with dx
  *     (mine: the other way round); (b) cross-jumping in the Up/Down cases keeps different copies
  *     of the shared tails (original: Up's pile-cursor draw and inv-scroll tail, Down's
  *     pile-scroll tail; 6.00A picks the opposite ones).  Tried if/else orientation, goto/label
@@ -107,18 +108,18 @@ int far vec_1f6d(int, struct invitem);
 void far vec_1d51(int);
 
 extern int n_items[], side[], inv_top[], pile_top[], inv_sel[], pile_sel[];
-void far loot_screen(struct invitem far *items, unsigned char *count, int far *cash);
-int far loot_close(int r);
-void far loot_draw(int ch);
-void far loot_redraw(int ch);
-void far loot_key(int key);
-void far loot_add(int type, int ch, int quality);
-void far loot_remove(int idx);
-void far loot_draw_inv(int ch);
-void far loot_draw_pile(int unused);
+void far sub_s040_1462_01c8(struct invitem far *items, unsigned char *count, int far *cash);
+int far sub_s040_1462_06c8(int r);
+void far sub_s040_1462_06e2(int ch);
+void far sub_s040_1462_0952(int ch);
+void far sub_s040_1462_0c22(int key);
+void far sub_s040_1462_1242(int type, int ch, int quality);
+void far sub_s040_1462_12ec(int idx);
+void far sub_s040_1462_1372(int ch);
+void far sub_s040_1462_145e(int unused);
 
 /* Entry: load the item list, fix up the qualities of the found items and run the screen. */
-void far loot_distribute(struct invitem far *items, unsigned char *count, int far *cash)
+void far sub_s040_1462_0000(struct invitem far *items, unsigned char *count, int far *cash)
 {
     char *msg;
     unsigned seg;
@@ -167,7 +168,7 @@ void far loot_distribute(struct invitem far *items, unsigned char *count, int fa
         }
     }
     sub_root_047c_1293();
-    loot_screen(items, count, cash);
+    sub_s040_1462_01c8(items, count, cash);
     free_buffer(((unsigned *)&D_a889)[1], "Saint");
     sub_root_047c_0568();
 }
@@ -184,7 +185,7 @@ char menu_dist[] = "\214 D\377istribute to a different person";
 char menu_leave[] = "\214 L\377eave";
 
 /* The loot screen's main loop. */
-void far loot_screen(struct invitem far *items, unsigned char *count, int far *cash)
+void far sub_s040_1462_01c8(struct invitem far *items, unsigned char *count, int far *cash)
 {
     int key;
     int sel;
@@ -212,7 +213,7 @@ void far loot_screen(struct invitem far *items, unsigned char *count, int far *c
     D_2800 = 8;
     sub_s029_1367_0130(D_906b, cash[0], cash[1], cash[2]);
     sub_root_047c_0568();
-    loot_draw(D_907b);
+    sub_s040_1462_06e2(D_907b);
     sub_root_047c_056f();
     while (D_6ef0 & 1)
         ;
@@ -298,16 +299,16 @@ void far loot_screen(struct invitem far *items, unsigned char *count, int far *c
         if (sub_root_047c_073d())
             key = sub_root_047c_0744();
         if (key == 0x11b || key == 0x264c || key == 0x266c) {
-            loot_close(-1);
+            sub_s040_1462_06c8(-1);
             return;
         }
         if (key)
-            loot_key(key);
+            sub_s040_1462_0c22(key);
     }
 }
 
 /* Restore the display state and the selected party member. */
-int far loot_close(int r)
+int far sub_s040_1462_06c8(int r)
 {
     D_2816 = D_e7a2;
     D_2804 = D_e7a0;
@@ -316,7 +317,7 @@ int far loot_close(int r)
 }
 
 /* First drawing of the screen. */
-void far loot_draw(int ch)
+void far sub_s040_1462_06e2(int ch)
 {
     char buf[120];
     int i;
@@ -362,7 +363,7 @@ void far loot_draw(int ch)
 }
 
 /* Redraw everything after switching to another party member. */
-void far loot_redraw(int ch)
+void far sub_s040_1462_0952(int ch)
 {
     char buf[120];
     int i;
@@ -402,19 +403,19 @@ void far loot_redraw(int ch)
 }
 
 /* Keyboard commands. */
-void far loot_key(int key)
+void far sub_s040_1462_0c22(int key)
 {
     struct invitem it;
 
     switch (key) {
     case 0x1000:
-        loot_close(-1);
+        sub_s040_1462_06c8(-1);
         sub_root_0000_13a0();
         return;
     case 0x1950: case 0x1970:
         if (side[D_8dc4] || !n_items[D_8dc4])
             return;
-        loot_add(F_2e38_003e[D_8dc4][inv_top[D_8dc4] + inv_sel[D_8dc4]].type & 0xfff, D_8dc4,
+        sub_s040_1462_1242(F_2e38_003e[D_8dc4][inv_top[D_8dc4] + inv_sel[D_8dc4]].type & 0xfff, D_8dc4,
                  F_2e38_003e[D_8dc4][inv_top[D_8dc4] + inv_sel[D_8dc4]].quality);
         n_items[D_8dc4] = vec_2003(D_8dc4, inv_top[D_8dc4] + inv_sel[D_8dc4]);
         if (inv_top[D_8dc4] + inv_sel[D_8dc4] + 1 >= n_items[D_8dc4]) {
@@ -423,8 +424,8 @@ void far loot_key(int key)
             else if (inv_sel[D_8dc4])
                 inv_sel[D_8dc4]--;
         }
-        loot_draw_pile(D_907e);
-        loot_draw_inv(D_8dc4);
+        sub_s040_1462_145e(D_907e);
+        sub_s040_1462_1372(D_8dc4);
         sub_root_047c_04dc(&D_27f4, 0x72, inv_sel[D_8dc4] * 8 + 0x93, 0xb9, 8, 8, 9);
         return;
     case 0x2044: case 0x2064:
@@ -442,7 +443,7 @@ void far loot_key(int key)
             if (D_9c69[D_8dc4].status != 0 && D_9c69[D_8dc4].status != 3)
                 break;
         }
-        loot_redraw(D_8dc4);
+        sub_s040_1462_0952(D_8dc4);
         sub_root_047c_04dc(&D_27f4, 0x50, 0x2b, 0xc8, 9, 8, 9);
         return;
     case 0x2247: case 0x2267:
@@ -454,15 +455,15 @@ void far loot_key(int key)
         it.f5 = F_2e38_0890[D_8db6[pile_top[D_8dc4] + pile_sel[D_8dc4]].type]->f25;
         it.count = 1;
         n_items[D_8dc4] = vec_1f6d(D_8dc4, it);
-        loot_remove(pile_top[D_8dc4] + pile_sel[D_8dc4]);
+        sub_s040_1462_12ec(pile_top[D_8dc4] + pile_sel[D_8dc4]);
         if (pile_top[D_8dc4] + pile_sel[D_8dc4] + 1 > D_8dbc) {
             if (pile_top[D_8dc4])
                 pile_top[D_8dc4]--;
             else if (pile_sel[D_8dc4])
                 pile_sel[D_8dc4]--;
         }
-        loot_draw_pile(D_907e);
-        loot_draw_inv(D_8dc4);
+        sub_s040_1462_145e(D_907e);
+        sub_s040_1462_1372(D_8dc4);
         sub_root_047c_04dc(&D_27f4, 0x52, pile_sel[D_8dc4] * 8 + 0x55, 0xfa, 8, 8, 9);
         return;
     case 0x4800:
@@ -474,12 +475,12 @@ void far loot_key(int key)
         if (side[D_8dc4] && pile_sel[D_8dc4] < 0 && pile_top[D_8dc4] > 0) {
             pile_sel[D_8dc4]++;
             pile_top[D_8dc4]--;
-            loot_draw_pile(D_907e);
+            sub_s040_1462_145e(D_907e);
             sub_root_047c_04dc(&D_27f4, 0x52, pile_sel[D_8dc4] * 8 + 0x55, 0xfa, 8, 8, 9);
         } else if (!side[D_8dc4] && inv_sel[D_8dc4] < 0 && inv_top[D_8dc4] > 0) {
             inv_sel[D_8dc4]++;
             inv_top[D_8dc4]--;
-            loot_draw_inv(D_8dc4);
+            sub_s040_1462_1372(D_8dc4);
             sub_root_047c_04dc(&D_27f4, 0x72, inv_sel[D_8dc4] * 8 + 0x93, 0xb9, 8, 8, 9);
         } else {
             if (pile_sel[D_8dc4] < 0)
@@ -524,12 +525,12 @@ void far loot_key(int key)
         if (side[D_8dc4] && pile_sel[D_8dc4] >= 4 && pile_top[D_8dc4] + pile_sel[D_8dc4] < D_8dbc) {
             pile_sel[D_8dc4]--;
             pile_top[D_8dc4]++;
-            loot_draw_pile(D_907e);
+            sub_s040_1462_145e(D_907e);
             sub_root_047c_04dc(&D_27f4, 0x52, pile_sel[D_8dc4] * 8 + 0x55, 0xfa, 8, 8, 9);
         } else if (!side[D_8dc4] && inv_sel[D_8dc4] >= 4 && inv_top[D_8dc4] + inv_sel[D_8dc4] < n_items[D_8dc4]) {
             inv_sel[D_8dc4]--;
             inv_top[D_8dc4]++;
-            loot_draw_inv(D_8dc4);
+            sub_s040_1462_1372(D_8dc4);
             sub_root_047c_04dc(&D_27f4, 0x72, inv_sel[D_8dc4] * 8 + 0x93, 0xb9, 8, 8, 9);
         } else {
             if (pile_sel[D_8dc4] >= 4)
@@ -550,7 +551,7 @@ void far loot_key(int key)
 }
 
 /* Put an item into the loot pile, stacking it with an identical one if possible. */
-void far loot_add(int type, int ch, int quality)
+void far sub_s040_1462_1242(int type, int ch, int quality)
 {
     int i;
 
@@ -570,7 +571,7 @@ void far loot_add(int type, int ch, int quality)
 }
 
 /* Take one item off a loot pile entry, closing the gap when it runs out. */
-void far loot_remove(int idx)
+void far sub_s040_1462_12ec(int idx)
 {
     int i;
 
@@ -586,7 +587,7 @@ void far loot_remove(int idx)
 }
 
 /* The member's inventory list. */
-void far loot_draw_inv(int ch)
+void far sub_s040_1462_1372(int ch)
 {
     char buf[60];
     int i;
@@ -603,7 +604,7 @@ void far loot_draw_inv(int ch)
 }
 
 /* The loot pile list. */
-void far loot_draw_pile(int unused)
+void far sub_s040_1462_145e(int unused)
 {
     char buf[120];
     int i;

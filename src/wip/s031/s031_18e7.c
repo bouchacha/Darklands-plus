@@ -4,7 +4,12 @@
 /* Inventory helpers (overlay s031, second file): add / remove / move items in a party
    member's inventory and keep the equipment slots in step.
    who: party member 0..4, -1 = the current member (D_907b), -2 = every member.
-   STATUS: work in progress, see fmatch. */
+   STATUS: 25/27 functions match.
+     01b4: needs MSC CSE temps the original has (nitems byte at [bp-a], loop base at [bp-2]);
+           best attempt keeps a `char n` (DIFF@f, see build/agent/e1/v_01b4n.txt).
+     14b6: best variant (switch into temps t/i, then `type = t; q = i; i = 0; found = -1;`)
+           differs only in the order of the two stores (original stores q first but keeps
+           type at [bp-4]); see build/agent/e1/v_14x.txt. */
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {
@@ -155,6 +160,7 @@ void far sub_s031_18e7_016e(int who, int code, int qual)
 int far sub_s031_18e7_01b4(int who, struct item it)
 {
     int i;
+    char n;
 
     if (who == -1) {
         who = D_907b;
@@ -166,13 +172,14 @@ int far sub_s031_18e7_01b4(int who, struct item it)
                 return D_9c69[who].nitems;
             }
         }
-        if (D_9c69[who].nitems >= 0x40)
-            return D_9c69[who].nitems;
+        if ((n = D_9c69[who].nitems) >= 0x40)
+            return n;
         F_2e38_0000[who].items[D_9c69[who].nitems] = it;
         D_9c69[who].nitems++;
     } else if (who == -2) {
         for (who = 0; who < 5; who++) {
             if (D_9c69[who].present) {
+                n = D_9c69[who].nitems;
                 for (i = 0; i < D_9c69[who].nitems; i++) {
                     if (F_2e38_0000[who].items[i].code == it.code && F_2e38_0000[who].items[i].type == it.type
                             && F_2e38_0000[who].items[i].qual == it.qual
@@ -181,13 +188,14 @@ int far sub_s031_18e7_01b4(int who, struct item it)
                         break;
                     }
                 }
-                if (D_9c69[who].nitems < 0x40) {
-                    F_2e38_0000[who].items[D_9c69[who].nitems] = it;
+                if (n < 0x40) {
+                    F_2e38_0000[who].items[n] = it;
                     D_9c69[who].nitems++;
                 }
             }
         }
     } else {
+        n = D_9c69[who].nitems;
         for (i = 0; i < D_9c69[who].nitems; i++) {
             if (F_2e38_0000[who].items[i].code == it.code && F_2e38_0000[who].items[i].type == it.type
                     && F_2e38_0000[who].items[i].qual == it.qual
@@ -238,6 +246,11 @@ int far sub_s031_18e7_04d4(int who, int code)
                 break;
         if (i >= D_9c69[who].nitems)
             return -1;
+        if (--F_2e38_0000[who].items[i].cnt)
+            return D_9c69[who].nitems;
+        sub_s031_18e7_12e8(who, i, 9);
+        sub_s031_18e7_0406(who, i);
+        return D_9c69[who].nitems;
     } else if (who == -2) {
         for (j = 0; j < 5; j++) {
             if (D_9c69[j].present) {
@@ -260,12 +273,12 @@ int far sub_s031_18e7_04d4(int who, int code)
                 break;
         if (i >= D_9c69[who].nitems)
             return -1;
-    }
-    if (--F_2e38_0000[who].items[i].cnt == 0) {
+        if (--F_2e38_0000[who].items[i].cnt)
+            return D_9c69[who].nitems;
         sub_s031_18e7_12e8(who, i, 9);
         sub_s031_18e7_0406(who, i);
+        return D_9c69[who].nitems;
     }
-    return D_9c69[who].nitems;
 }
 
 /* remove the first stack of item `code`; -1 if there is none */
@@ -281,6 +294,9 @@ int far sub_s031_18e7_0668(int who, int code)
                 break;
         if (i >= D_9c69[who].nitems)
             return -1;
+        sub_s031_18e7_12e8(who, i, 9);
+        sub_s031_18e7_0406(who, i);
+        return D_9c69[who].nitems;
     } else if (who == -2) {
         for (j = 0; j < 5; j++) {
             if (D_9c69[j].present) {
@@ -301,10 +317,10 @@ int far sub_s031_18e7_0668(int who, int code)
                 break;
         if (i >= D_9c69[who].nitems)
             return -1;
+        sub_s031_18e7_12e8(who, i, 9);
+        sub_s031_18e7_0406(who, i);
+        return D_9c69[who].nitems;
     }
-    sub_s031_18e7_12e8(who, i, 9);
-    sub_s031_18e7_0406(who, i);
-    return D_9c69[who].nitems;
 }
 
 /* remove stack idx */
@@ -482,10 +498,10 @@ int far sub_s031_18e7_0e14(int who, long mask)
     } else {
         for (i = 0; i < D_9c69[who].nitems; i++) {
             if (F_2e38_0890[F_2e38_0000[who].items[i].code]->flags & mask) {
-                if (--F_2e38_0000[who].items[i].cnt == 0) {
-                    sub_s031_18e7_12e8(who, i, 9);
-                    sub_s031_18e7_0406(who, i);
-                }
+                if (--F_2e38_0000[who].items[i].cnt)
+                    return D_9c69[who].nitems;
+                sub_s031_18e7_12e8(who, i, 9);
+                sub_s031_18e7_0406(who, i);
                 return D_9c69[who].nitems;
             }
         }
@@ -535,10 +551,10 @@ void far sub_s031_18e7_10d2(int who, int from, int to)
 }
 
 /* equip entry idx */
+#pragma optimize("a", on)
 void far sub_s031_18e7_11b2(int who, int idx)
 {
     long flags;
-    unsigned char t;
 
     flags = F_2e38_0890[F_2e38_0000[who].items[idx].code & 0xfff]->flags;
     if (flags & 0xf) {
@@ -547,18 +563,19 @@ void far sub_s031_18e7_11b2(int who, int idx)
     } else if (flags & 0x8000030L) {
         D_9c69[who].missile_type = F_2e38_0000[who].items[idx].type;
         D_9c69[who].missile_q = F_2e38_0000[who].items[idx].qual;
-    } else if ((t = F_2e38_0000[who].items[idx].type) >= 0x43 && t < 0x4c) {
-        D_9c69[who].vital_type = t;
+    } else if (F_2e38_0000[who].items[idx].type >= 0x43 && F_2e38_0000[who].items[idx].type < 0x4c) {
+        D_9c69[who].vital_type = F_2e38_0000[who].items[idx].type;
         D_9c69[who].vital_q = F_2e38_0000[who].items[idx].qual;
-    } else if (t >= 0x4c && t < 0x5f) {
-        D_9c69[who].limb_type = t;
+    } else if (F_2e38_0000[who].items[idx].type >= 0x4c && F_2e38_0000[who].items[idx].type < 0x5f) {
+        D_9c69[who].limb_type = F_2e38_0000[who].items[idx].type;
         D_9c69[who].limb_q = F_2e38_0000[who].items[idx].qual;
-    } else if (t >= 0x5f && t <= 0x61) {
-        D_9c69[who].shield_type = t;
+    } else if (F_2e38_0000[who].items[idx].type >= 0x5f && F_2e38_0000[who].items[idx].type <= 0x61) {
+        D_9c69[who].shield_type = F_2e38_0000[who].items[idx].type;
         D_9c69[who].shield_q = F_2e38_0000[who].items[idx].qual;
     }
     sub_s031_18e7_140a(who);
 }
+#pragma optimize("", on)
 
 /* unequip entry idx if it is equipped */
 void far sub_s031_18e7_12e8(int who, int idx, int slot)
@@ -618,36 +635,39 @@ int far sub_s031_18e7_1460(int who, int slot)
 /* item code equipped in slot, -1 if none */
 int far sub_s031_18e7_14b6(int who, int slot)
 {
-    int type, q, i, found;
+    int type, q, i, found, t;
 
     switch (slot) {
     case 0:
-        type = D_9c69[who].weapon_type;
-        q = D_9c69[who].weapon_q;
+        t = D_9c69[who].weapon_type;
+        i = D_9c69[who].weapon_q;
         break;
     case 1:
-        type = D_9c69[who].vital_type;
-        q = D_9c69[who].vital_q;
+        t = D_9c69[who].vital_type;
+        i = D_9c69[who].vital_q;
         break;
     case 2:
-        type = D_9c69[who].limb_type;
-        q = D_9c69[who].limb_q;
+        t = D_9c69[who].limb_type;
+        i = D_9c69[who].limb_q;
         break;
     case 3:
-        type = D_9c69[who].shield_type;
-        q = D_9c69[who].shield_q;
+        t = D_9c69[who].shield_type;
+        i = D_9c69[who].shield_q;
         break;
     case 4:
-        type = D_9c69[who].missile_type;
-        q = D_9c69[who].missile_q;
+        t = D_9c69[who].missile_type;
+        i = D_9c69[who].missile_q;
         break;
     default:
-        return -1;
+        goto fail;
     }
-    if (type == -1)
-        return -1;
+    if (t == -1)
+        goto fail;
+    type = t;
+    q = i;
+    i = 0;
     found = -1;
-    for (i = 0; i < D_9c69[who].nitems; i++) {
+    for (; i < D_9c69[who].nitems; i++) {
         if (F_2e38_0000[who].items[i].type == type) {
             found = i;
             D_99eb = i;
@@ -655,9 +675,10 @@ int far sub_s031_18e7_14b6(int who, int slot)
                 return F_2e38_0000[who].items[i].code;
         }
     }
-    if (found == -1)
-        return -1;
-    return F_2e38_0000[who].items[found].code;
+    if (found != -1)
+        return F_2e38_0000[who].items[found].code;
+fail:
+    return -1;
 }
 
 /* quality of entry idx */

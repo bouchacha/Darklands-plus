@@ -1,5 +1,6 @@
 /* place: s032 1462:0000 */
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
+/* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 5/11. */
 /* data: _DATA=2f18 */
 /* data: CONST=7e66 */
 /* Barter screen (overlay s032): buy and sell items at a shop. */
@@ -113,21 +114,21 @@ int far vec_1fdb(int);
 int far vec_2003(int, int);
 int far vec_1f6d(int, struct item);
 
-int far barter_close(int ret, int shop);
-void far draw_barter_screen(int who, char far *name, long cats);
-void far redraw_barter_screen(int who, char far *name, long cats);
-int far item_quality(int k);
-int far barter_key(int key);
-void far draw_member_items(int who);
-void far draw_shop_items(int unused);
-int far buy_price(int k);
-int far sell_price(int k, int qual);
-int far shop_has_item(int k);
+int far sub_s032_1462_076c(int ret, int shop);
+void far sub_s032_1462_078e(int who, char far *name, long cats);
+void far sub_s032_1462_0b30(int who, char far *name, long cats);
+int far sub_s032_1462_0efa(int k);
+int far sub_s032_1462_0f60(int key);
+void far sub_s032_1462_1770(int who);
+void far sub_s032_1462_1870(int unused);
+int far sub_s032_1462_192e(int k);
+int far sub_s032_1462_1b26(int k, int qual);
+int far sub_s032_1462_1d18(int k);
 
 extern char str_sell[], str_buy[], str_space[];
 
-/* barter_screen: main loop of the barter screen for shop `shop` */
-void far barter_screen(int shop, char far *name, long cats)
+/* sub_s032_1462_0000 (barter_screen): main loop of the barter screen for shop `shop` */
+void far sub_s032_1462_0000(int shop, char far *name, long cats)
 {
     char buf[136];
     int hover;
@@ -162,7 +163,7 @@ void far barter_screen(int shop, char far *name, long cats)
         D_8832 = 0;
     }
     sub_root_047c_0568();
-    draw_barter_screen(D_907b, D_869c, cats);
+    sub_s032_1462_078e(D_907b, D_869c, cats);
     sub_root_047c_056f();
     while (D_6ef0 & 1)
         ;
@@ -287,7 +288,7 @@ void far barter_screen(int shop, char far *name, long cats)
             sub_root_047c_058b(D_e48c);
             sub_root_0000_1588(0x100);
             sub_root_0000_1716(0x100);
-            redraw_barter_screen(D_884e, D_869c, cats);
+            sub_s032_1462_0b30(D_884e, D_869c, cats);
             sub_root_047c_056f();
             while (D_6ef0 & 1)
                 ;
@@ -300,17 +301,17 @@ void far barter_screen(int shop, char far *name, long cats)
             sub_root_047c_058b(D_e48c);
             sub_root_0000_1588(0x100);
             sub_root_0000_1716(0x100);
-            redraw_barter_screen(D_884e, D_869c, cats);
+            sub_s032_1462_0b30(D_884e, D_869c, cats);
             sub_root_047c_056f();
         }
         if (sub_root_047c_073d())
             mkey = sub_root_047c_0744();
         if (mkey == 0x11b || mkey == 0x264c || mkey == 0x266c) {
-            barter_close(-1, shop);
+            sub_s032_1462_076c(-1, shop);
             return;
         }
-        if (mkey && barter_key(mkey) == 0x11b) {
-            barter_close(-1, shop);
+        if (mkey && sub_s032_1462_0f60(mkey) == 0x11b) {
+            sub_s032_1462_076c(-1, shop);
             return;
         }
     }
@@ -320,8 +321,8 @@ char str_sell[] = "\x8c S\xff" "ell an item";
 char str_buy[] = "\x8c P\xff" "urchase an item";
 char str_space[] = " ";
 
-/* barter_close: restore the screen state on leaving */
-int far barter_close(int ret, int shop)
+/* sub_s032_1462_076c (barter_close): restore the screen state on leaving */
+int far sub_s032_1462_076c(int ret, int shop)
 {
     D_2816 = D_e7a2;
     D_2804 = D_e7a0;
@@ -331,8 +332,8 @@ int far barter_close(int ret, int shop)
     return ret;
 }
 
-/* draw_barter_screen: draw the screen and collect the items the shop sells */
-void far draw_barter_screen(int who, char far *name, long cats)
+/* sub_s032_1462_078e (draw_barter_screen): draw the screen and collect the items the shop sells */
+void far sub_s032_1462_078e(int who, char far *name, long cats)
 {
     char buf[120];
     char self[10];
@@ -375,17 +376,17 @@ void far draw_barter_screen(int who, char far *name, long cats)
     sub_root_047c_055a(D_27f4, 0x81, 0x83, buf);
     for (i = 0, y = 0x93; y < 0xb3 && i < D_9c69[who].nitems; i++, y += 8) {
         sprintf(buf, "%5upf  %Fs  (%3d) %2dq",
-                sell_price(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
+                sub_s032_1462_1b26(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
                 F_2e38_0890[F_2e38_0000[who].items[i].id & 0xfff],
                 F_2e38_0000[who].items[i].cnt, F_2e38_0000[who].items[i].qual);
         sub_root_047c_055a(D_27f4, 0x75, y, buf);
     }
     srand(D_907e < 0x5c && D_907e != -1 ? D_9785->seed + D_9c4a : D_9c4a + D_907e);
     for (k = D_8850 = 0; k < 200; k++) {
-        if (shop_has_item(k)) {
+        if (sub_s032_1462_1d18(k)) {
             if (D_8850 < 4) {
-                sprintf(buf, "%5upf  %Fs  %3dq  %3dlbs", buy_price(k), F_2e38_0890[k],
-                        item_quality(k), F_2e38_0890[k]->weight);
+                sprintf(buf, "%5upf  %Fs  %3dq  %3dlbs", sub_s032_1462_192e(k), F_2e38_0890[k],
+                        sub_s032_1462_0efa(k), F_2e38_0890[k]->weight);
                 sub_root_047c_055a(D_27f4, 0x55, (D_8850 - D_8852[D_884e]) * 8 + 0x55, buf);
             }
             D_86a2[D_8850] = k;
@@ -399,8 +400,8 @@ void far draw_barter_screen(int who, char far *name, long cats)
     sub_root_047c_1293();
 }
 
-/* redraw_barter_screen: redraw the screen (other party member or after a change) */
-void far redraw_barter_screen(int who, char far *name, long cats)
+/* sub_s032_1462_0b30 (redraw_barter_screen): redraw the screen (other party member or after a change) */
+void far sub_s032_1462_0b30(int who, char far *name, long cats)
 {
     char buf[120];
     char self[10];
@@ -441,14 +442,14 @@ void far redraw_barter_screen(int who, char far *name, long cats)
     sub_root_047c_055a(D_27f4, 0x81, 0x83, buf);
     for (i = D_8852[D_884e]; i < D_8852[D_884e] + 4 && i < D_9c69[who].nitems; i++) {
         sprintf(buf, "%5upf  %Fs  (%3d) %2dq",
-                sell_price(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
+                sub_s032_1462_1b26(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
                 F_2e38_0890[F_2e38_0000[who].items[i].id & 0xfff],
                 F_2e38_0000[who].items[i].cnt, F_2e38_0000[who].items[i].qual);
         sub_root_047c_055a(D_27f4, 0x75, (i - D_8852[D_884e]) * 8 + 0x93, buf);
     }
     for (i = D_86a0; i < D_86a0 + 4 && i < D_885c; i++) {
-        sprintf(buf, "%5upf  %Fs  %3dq  %3dlbs", buy_price(D_86a2[i]), F_2e38_0890[D_86a2[i]],
-                item_quality(D_86a2[i]), F_2e38_0890[D_86a2[i]]->weight);
+        sprintf(buf, "%5upf  %Fs  %3dq  %3dlbs", sub_s032_1462_192e(D_86a2[i]), F_2e38_0890[D_86a2[i]],
+                sub_s032_1462_0efa(D_86a2[i]), F_2e38_0890[D_86a2[i]]->weight);
         sub_root_047c_055a(D_27f4, 0x55, (i - D_86a0) * 8 + 0x55, buf);
     }
     if (D_8842[D_884e])
@@ -459,8 +460,8 @@ void far redraw_barter_screen(int who, char far *name, long cats)
     sub_root_047c_1293();
 }
 
-/* item_quality: quality of the items of type k the shop offers */
-int far item_quality(int k)
+/* sub_s032_1462_0efa (item_quality): quality of the items of type k the shop offers */
+int far sub_s032_1462_0efa(int k)
 {
     struct itemdef far *d;
 
@@ -470,8 +471,8 @@ int far item_quality(int k)
     return (F_2e38_0890[k]->qual + D_8834) / 2;
 }
 
-/* barter_key: handle one key press; returns the key (0x11b = leave) */
-int far barter_key(int key)
+/* sub_s032_1462_0f60 (barter_key): handle one key press; returns the key (0x11b = leave) */
+int far sub_s032_1462_0f60(int key)
 {
     char buf[120];
     struct money price;
@@ -480,7 +481,7 @@ int far barter_key(int key)
 
     switch (key) {
     case 0x1000:
-        barter_close(-1, 0);
+        sub_s032_1462_076c(-1, 0);
         sub_root_0000_13a0();
         break;
     case 0x1950:
@@ -489,22 +490,22 @@ int far barter_key(int key)
             break;
         if (D_885c == 0)
             break;
-        sub_s029_1367_00a4(&price, 0, 0, buy_price(D_86a2[D_8832 + D_86a0]));
+        sub_s029_1367_00a4(&price, 0, 0, sub_s032_1462_192e(D_86a2[D_8832 + D_86a0]));
         if (sub_s029_1367_02d4(&D_906b, &price) == -1)
             break;
         it.id = D_86a2[D_8832 + D_86a0];
         it.f2 = F_2e38_0890[it.id]->type;
-        it.qual = item_quality(it.id);
+        it.qual = sub_s032_1462_0efa(it.id);
         it.f5 = F_2e38_0890[D_86a2[D_8832 + D_86a0]]->weight;
         it.cnt = 1;
-        sub_s029_1367_0180(&D_906b, 0, 0, buy_price(D_86a2[D_8832 + D_86a0]));
+        sub_s029_1367_0180(&D_906b, 0, 0, sub_s032_1462_192e(D_86a2[D_8832 + D_86a0]));
         sub_root_047c_0553(D_2806, 0x49, 9, 0xee, 9, D_27f4, 0x49, 9);
         D_2800 = 8;
         sprintf(buf, "%s holds the purse of %dfl, %dgr, %dpf (%lupf).", D_9c69[D_907b].name,
                 D_906b, D_906d, D_906f, sub_s029_1367_00f2(&D_906b));
         sub_root_047c_055a(D_27f4, 0x49, 9, buf);
         D_8838[D_884e] = vec_1f6d(D_884e, it);
-        draw_member_items(D_884e);
+        sub_s032_1462_1770(D_884e);
         sub_root_047c_04dc(D_27f4, 0x52, D_8832 * 8 + 0x55, 0x5f, 8, 8, 9);
         break;
     case 0x1f53:
@@ -517,7 +518,7 @@ int far barter_key(int key)
         if (F_2e38_0890[id]->flags & 0x80)
             break;
         sub_s029_1367_0130(&D_906b, 0, 0,
-                           sell_price(id, F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].qual));
+                           sub_s032_1462_1b26(id, F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].qual));
         sub_root_047c_0553(D_2806, 0x49, 9, 0xee, 9, D_27f4, 0x49, 9);
         D_2800 = 8;
         sprintf(buf, "%s holds the purse of %dfl, %dgr, %dpf (%lupf).", D_9c69[D_907b].name,
@@ -530,7 +531,7 @@ int far barter_key(int key)
             else if (D_885e[D_884e] != 0)
                 D_885e[D_884e]--;
         }
-        draw_member_items(D_884e);
+        sub_s032_1462_1770(D_884e);
         sub_root_047c_04dc(D_27f4, 0x72, D_885e[D_884e] * 8 + 0x93, 0xb9, 8, 8, 9);
         break;
     case 0x2044:
@@ -538,7 +539,7 @@ int far barter_key(int key)
         if (D_8842[D_884e] != 0)
             break;
         D_8838[D_884e] = vec_2003(D_907b, D_885e[D_884e] + D_8852[D_884e]);
-        draw_member_items(D_884e);
+        sub_s032_1462_1770(D_884e);
         sub_root_047c_04dc(D_27f4, 0x50, D_885e[D_884e] * 8 + 0x1b, 0x5f, 8, 8, 9);
         break;
     case 0x264c:
@@ -552,7 +553,7 @@ int far barter_key(int key)
             D_884e++;
             D_884e %= 5;
         } while (D_9c69[D_884e].present == 0);
-        redraw_barter_screen(D_884e, D_869c, D_8868);
+        sub_s032_1462_0b30(D_884e, D_869c, D_8868);
         sub_root_047c_04dc(D_27f4, 0x50, 0x33, 0xc8, 9, 8, 9);
         break;
     case 0x4800:            /* up */
@@ -564,12 +565,12 @@ int far barter_key(int key)
         if (D_8842[D_884e] && D_8832 < 0 && D_86a0 > 0) {
             D_8832++;
             D_86a0--;
-            draw_shop_items(D_907e);
+            sub_s032_1462_1870(D_907e);
             sub_root_047c_04dc(D_27f4, 0x52, D_8832 * 8 + 0x55, 0xb9, 8, 8, 9);
         } else if (!D_8842[D_884e] && D_885e[D_884e] < 0 && D_8852[D_884e] > 0) {
             D_885e[D_884e]++;
             D_8852[D_884e]--;
-            draw_member_items(D_884e);
+            sub_s032_1462_1770(D_884e);
             sub_root_047c_04dc(D_27f4, 0x72, D_885e[D_884e] * 8 + 0x93, 0xb9, 8, 8, 9);
         } else {
             if (D_8832 < 0)
@@ -593,12 +594,12 @@ int far barter_key(int key)
         if (D_8842[D_884e] && D_8832 >= 4 && D_86a0 + D_8832 < D_885c) {
             D_8832--;
             D_86a0++;
-            draw_shop_items(D_907e);
+            sub_s032_1462_1870(D_907e);
             sub_root_047c_04dc(D_27f4, 0x52, D_8832 * 8 + 0x55, 0xb9, 8, 8, 9);
         } else if (!D_8842[D_884e] && D_885e[D_884e] >= 4 && D_885e[D_884e] + D_8852[D_884e] < D_8838[D_884e]) {
             D_885e[D_884e]--;
             D_8852[D_884e]++;
-            draw_member_items(D_884e);
+            sub_s032_1462_1770(D_884e);
             sub_root_047c_04dc(D_27f4, 0x72, D_885e[D_884e] * 8 + 0x93, 0xb9, 8, 8, 9);
         } else {
             if (D_8832 >= D_885c)
@@ -657,8 +658,8 @@ int far barter_key(int key)
     return key;
 }
 
-/* draw_member_items: list four of the member's items with their sell prices */
-void far draw_member_items(int who)
+/* sub_s032_1462_1770 (draw_member_items): list four of the member's items with their sell prices */
+void far sub_s032_1462_1770(int who)
 {
     char buf[60];
     int i;
@@ -668,7 +669,7 @@ void far draw_member_items(int who)
     sub_root_047c_0553(D_2806, 0x72, 0x93, 0xb6, 0x20, D_27f4, 0x72, 0x93);
     for (i = D_8852[D_884e]; i < D_8852[D_884e] + 4 && i < D_9c69[who].nitems; i++) {
         sprintf(buf, "%5upf  %Fs  (%3d) %2dq",
-                sell_price(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
+                sub_s032_1462_1b26(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
                 F_2e38_0890[F_2e38_0000[who].items[i].id & 0xfff],
                 F_2e38_0000[who].items[i].cnt, F_2e38_0000[who].items[i].qual);
         sub_root_047c_055a(D_27f4, 0x75, (i - D_8852[D_884e]) * 8 + 0x93, buf);
@@ -676,8 +677,8 @@ void far draw_member_items(int who)
     sub_root_047c_1293();
 }
 
-/* draw_shop_items: list four of the items for sale with their prices */
-void far draw_shop_items(int unused)
+/* sub_s032_1462_1870 (draw_shop_items): list four of the items for sale with their prices */
+void far sub_s032_1462_1870(int unused)
 {
     char buf[120];
     int i;
@@ -686,15 +687,15 @@ void far draw_shop_items(int unused)
     D_2800 = 8;
     sub_root_047c_0553(D_2806, 0x52, 0x55, 0xb9, 0x20, D_27f4, 0x52, 0x55);
     for (i = D_86a0; i < D_86a0 + 4 && i < D_885c; i++) {
-        sprintf(buf, "%3dpf  %Fs  %3dq  %3dlbs", buy_price(D_86a2[i]), F_2e38_0890[D_86a2[i]],
-                item_quality(D_86a2[i]), F_2e38_0890[D_86a2[i]]->weight);
+        sprintf(buf, "%3dpf  %Fs  %3dq  %3dlbs", sub_s032_1462_192e(D_86a2[i]), F_2e38_0890[D_86a2[i]],
+                sub_s032_1462_0efa(D_86a2[i]), F_2e38_0890[D_86a2[i]]->weight);
         sub_root_047c_055a(D_27f4, 0x55, (i - D_86a0) * 8 + 0x55, buf);
     }
     sub_root_047c_1293();
 }
 
-/* buy_price: price in pfennigs the shop asks for an item of type k */
-int far buy_price(int k)
+/* sub_s032_1462_192e (buy_price): price in pfennigs the shop asks for an item of type k */
+int far sub_s032_1462_192e(int k)
 {
     unsigned char flags;
     long price;
@@ -704,7 +705,7 @@ int far buy_price(int k)
     long value;
 
     value = F_2e38_0890[k]->value;
-    q = item_quality(k);
+    q = sub_s032_1462_0efa(k);
     rarity = F_2e38_0890[k]->rarity;
     size = D_907e < 0x5c && D_907e != -1 ? D_9785->size : 2;
     if (D_907e != -1) {
@@ -726,8 +727,8 @@ int far buy_price(int k)
     return price;
 }
 
-/* sell_price: price in pfennigs the shop pays for an item of type k and quality qual */
-int far sell_price(int k, int qual)
+/* sub_s032_1462_1b26 (sell_price): price in pfennigs the shop pays for an item of type k and quality qual */
+int far sub_s032_1462_1b26(int k, int qual)
 {
     unsigned char flags;
     long price;
@@ -761,8 +762,8 @@ int far sell_price(int k, int qual)
     return price;
 }
 
-/* shop_has_item: whether the shop offers items of type k today */
-int far shop_has_item(int k)
+/* sub_s032_1462_1d18 (shop_has_item): whether the shop offers items of type k today */
+int far sub_s032_1462_1d18(int k)
 {
     int size;
     int town;
@@ -776,7 +777,7 @@ int far shop_has_item(int k)
         if (size > 9)
             size = 9;
         r = F_2e38_0890[k]->rarity;
-        q = item_quality(k);
+        q = sub_s032_1462_0efa(k);
         if (q < 0x17)
             r++;
         else if (q > 0x1d)

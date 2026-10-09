@@ -2,6 +2,11 @@
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Alchemy formula viewer (overlay s033, segment 15d1): loads DARKLAND.ALC, counts the
    party's ingredients and shows one formula page with its ingredient list. */
+/* STATUS (e0, 2026-10-09): 7/8 functions match.  sub_s033_15d1_0106 (alc_load): in the
+   ingredient-count loop the original loads DS=2e38 around the inner (item) loop only;
+   6.00A hoists the DS load to the outer (character) loop and reads nitems via ss:.
+   Tried: count locals, /Oa pragma, volatile/far D_9cd3.  Everything else matches.
+   Functions carry their original sub_ names; the descriptive names are in the comments. */
 
 struct find_t {
     char reserved[21];
@@ -65,22 +70,22 @@ void far sub_root_047c_055a(struct gfx *, int, int, char *);
 void far sub_root_047c_0553(struct gfx *, int, int, int, int, struct gfx *, int, int);
 void far sub_root_0265_0134(struct gfx *, char *, int, int, int, int, int, int, int, int, int, int);
 
-int far alc_leave(int r);
-void far alc_load(int a, int idx);
-void far alc_draw(int a, int idx);
-void far alc_key(int key);
-void far alc_draw_names(int idx, struct gfx *g);
-void far alc_draw_ingredients(int idx, struct gfx *g);
-void far alc_draw_extra(int idx, struct gfx *g);
+int far sub_s033_15d1_00e6(int r);
+void far sub_s033_15d1_0106(int a, int idx);
+void far sub_s033_15d1_0260(int a, int idx);
+void far sub_s033_15d1_0320(int key);
+void far sub_s033_15d1_033a(int idx, struct gfx *g);
+void far sub_s033_15d1_03ce(int idx, struct gfx *g);
+void far sub_s033_15d1_04aa(int idx, struct gfx *g);
 
-/* alc_view: formula viewer main loop; Esc (0x11b) leaves */
-void far alc_view(int a, int idx)
+/* sub_s033_15d1_000a (alc_view): formula viewer main loop; Esc (0x11b) leaves */
+void far sub_s033_15d1_000a(int a, int idx)
 {
     int key;
     D_e7a2 = D_2816;
     D_e7a0 = D_2804;
-    alc_load(a, idx);
-    alc_draw(a, idx);
+    sub_s033_15d1_0106(a, idx);
+    sub_s033_15d1_0260(a, idx);
     while (D_6ef0 & 1)
         ;
     for (;;) {
@@ -98,7 +103,7 @@ void far alc_view(int a, int idx)
             sub_root_047c_058b(D_e48c);
             sub_root_0000_1588(0x100);
             sub_root_0000_1716(0x100);
-            alc_draw(a, idx);
+            sub_s033_15d1_0260(a, idx);
             sub_root_047c_056f();
             key = 0;
         }
@@ -107,13 +112,13 @@ void far alc_view(int a, int idx)
         if (key == 0x11b)
             break;
         if (key)
-            alc_key(key);
+            sub_s033_15d1_0320(key);
     }
-    alc_leave(-1);
+    sub_s033_15d1_00e6(-1);
 }
 
-/* alc_leave: restore the saved state and free the formula file */
-int far alc_leave(int r)
+/* sub_s033_15d1_00e6 (alc_leave): restore the saved state and free the formula file */
+int far sub_s033_15d1_00e6(int r)
 {
     D_2816 = D_e7a2;
     D_2804 = D_e7a0;
@@ -121,8 +126,8 @@ int far alc_leave(int r)
     return r;
 }
 
-/* alc_load: read DARKLAND.ALC, index its formulas and count the party's ingredients */
-void far alc_load(int a, int idx)
+/* sub_s033_15d1_0106 (alc_load): read DARKLAND.ALC, index its formulas and count the party's ingredients */
+void far sub_s033_15d1_0106(int a, int idx)
 {
     char msg[] = "alchemy file\n";
     struct find_t ff;
@@ -154,8 +159,8 @@ void far alc_load(int a, int idx)
     sub_root_047c_058b(D_e48c);
 }
 
-/* alc_draw: draw the page for formula idx */
-void far alc_draw(int a, int idx)
+/* sub_s033_15d1_0260 (alc_draw): draw the page for formula idx */
+void far sub_s033_15d1_0260(int a, int idx)
 {
     char buf[120];
     sub_root_047c_12c3();
@@ -164,24 +169,24 @@ void far alc_draw(int a, int idx)
     sub_root_047c_055a(&D_2806, 100, 9, buf);
     sprintf(buf, "Mystical Number - %d", F_2e38_35e4[idx]->mystic);
     sub_root_047c_055a(&D_2806, 100, 0x12, buf);
-    alc_draw_names(idx, &D_2806);
-    alc_draw_ingredients(idx, &D_2806);
-    alc_draw_extra(idx, &D_2806);
+    sub_s033_15d1_033a(idx, &D_2806);
+    sub_s033_15d1_03ce(idx, &D_2806);
+    sub_s033_15d1_04aa(idx, &D_2806);
     sub_root_047c_0553(&D_2806, 0x3c, 0, 0x104, 200, &D_27f4, 0x3c, 0);
     sub_root_047c_1293();
 }
 
-/* alc_key: key handler */
-void far alc_key(int key)
+/* sub_s033_15d1_0320 (alc_key): key handler */
+void far sub_s033_15d1_0320(int key)
 {
     switch (key) {
     case 0x1000:
-        alc_leave(-1);
+        sub_s033_15d1_00e6(-1);
         sub_root_0000_13a0();
     }
 }
 
-void far alc_draw_names(int idx, struct gfx *g)
+void far sub_s033_15d1_033a(int idx, struct gfx *g)
 {
     char buf[120];
     g->color = 8;
@@ -191,8 +196,8 @@ void far alc_draw_names(int idx, struct gfx *g)
     sub_root_0265_0134(g, buf, 0x5f, 0x49, 0x52, 8, 0, 0, 0, 1, 0, 0);
 }
 
-/* alc_draw_ingredients: list the five ingredients, grey when the party has too few */
-void far alc_draw_ingredients(int idx, struct gfx *g)
+/* sub_s033_15d1_03ce (alc_draw_ingredients): list the five ingredients, grey when the party has too few */
+void far sub_s033_15d1_03ce(int idx, struct gfx *g)
 {
     char buf[40];
     int k, y;
@@ -211,6 +216,6 @@ void far alc_draw_ingredients(int idx, struct gfx *g)
     }
 }
 
-void far alc_draw_extra(int idx, struct gfx *g)
+void far sub_s033_15d1_04aa(int idx, struct gfx *g)
 {
 }

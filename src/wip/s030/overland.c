@@ -2,7 +2,15 @@
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* Overland travel map (overlay s030): the screen where the party travels
    across the map of medieval Germany.  Note /Oa (assume no aliasing): it is
-   what makes MSC address DGROUP through ss: while DS may hold a far segment. */
+   what makes MSC address DGROUP through ss: while DS may hold a far segment.
+   STATUS (e1, 2026-10-09): only the first 3 of 22 functions are written.
+     0000 matches.  00a8 matches except calls to functions of this file that are
+     not written yet (they compile as far calls instead of push cs/call near).
+     02c0 (2.4 KB): code is right but the stack locals are laid out differently
+     (e.g. original [bp-6]=0x1e counter, [bp-46]/[bp-48] saved 2866/2868, buffer at
+     [bp-3a]); needs the locals' first-use order reworked.
+     0c44 .. 2dd6 (19 functions, about 10 KB): still to be written from the asm
+     (build/agent/gen_engine/s030/s030_1462.c has only stubs for them). */
 
 typedef struct { int x, y; } XY;
 
