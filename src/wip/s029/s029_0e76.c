@@ -1,14 +1,16 @@
 /* place: s029 0e76:0000 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: hand port (e3). All 143 functions written; 109/143 match, _DATA and CONST slots
-   match the original. Open: 013a 01c0 118e 1260 18f2 3180 31e6 324c 3b62 4442 4b08 (length
-   differences: they also shift the jump tables of 1a8e/1dfe/1fb8, which are otherwise right
-   or near), 1446 3cde 4aa4 (register flips), 33a2..3742 2e74 3c28 (`mov bx,ax` vs
-   `mov bx,si` after `(i = f()) == -1`), 1600/1800 (divisor kept in SI, frame 6), 1a8e case 1
-   and 35, 2116, 255a (cap compares preload the current value), 2d5c, 4650 (inline far
-   memset: 6.00 only). Several matches depend on declaration positions/orders (symbol table)
-   and flip when lines are added above them: re-check the whole file after every change
-   (build/agent/e3/keep.py, dperm.py). See build/agent/e3/NOTES.md. */
+/* status: hand port (e3). All 143 functions written; 130/143 match, _DATA and CONST slots
+   match the original. Open: 013a 18f2 (6.00 keeps the current value in AX across a branch
+   target and copies who to BX; 6.00A does neither - these two also keep the jump tables of
+   1a8e/1dfe/1fb8 two bytes off), 1260 (loop-invariant bit>>3 / mask in registers), 1446
+   (sum operand order: symbol-table state, see D_fff0), 1a8e case 1 and 35, 255a (cap compares
+   preload the current value), 2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits
+   `inc si`; 2e74 needs #pragma optimize("a", on) for the 3144 test), 4aa4 (frame 6 vs 4),
+   4b08 (d kept in memory, slot order), 4650 (inline far memset: 6.00 only). Several
+   matches depend on the symbol table (prototype text, local names, extern lines): re-check
+   the whole file after every change (build/agent/e3/keep.py; NOPROTO=1 for splice.py;
+   dperm.py on 4378/4c04 when they flip). See build/agent/e3/NOTES.md. */
 /* Strategic core (s029 0e76): party member accessors (member records D_9c69[5][0x80],
    index -1 = the active member D_907b), ... */
 
@@ -435,18 +437,20 @@ int far sub_s029_0e76_01a0(int who, int k)
     return D_9cc0[who][k];
 }
 
+/* highest of the seven skills +0x57..+0x5d of a member into D_99e6 (original bug: D_99eb is set
+   to every index because the braces are missing, so it ends as 6) */
 int far sub_s029_0e76_01c0(int who)
 {
-    char t[2];
+    char t;
     int i;
+    char c;
 
     if (who == -1)
         who = D_907b;
     *(volatile unsigned char *)&D_99e6 = 0;
     for (i = 0; i < 7; i++) {
-        *(volatile char *)t = D_9cc0[who][i];
-        if (t[0] > D_99e6)
-            D_99e6 = t[0];
+        if ((c = *(volatile char *)&t = D_9cc0[who][i]) > D_99e6)
+            D_99e6 = c;
         D_99eb = i;
     }
     if (D_99eb == -1) {
@@ -920,14 +924,13 @@ int far sub_s029_0e76_1128(int code)
 int far sub_s029_0e76_118e(int who, int code)
 {
     int j;
-    char cnt[2];
 
     j = 0;
-    if ((cnt[0] = D_9cd3[who][0]) > 0)
+    if (D_9cd3[who][0] > 0)
         do {
             if ((F_2e38_003e[who][j].code & 0xfff) == code)
                 return 1;
-        } while (++j < cnt[0]);
+        } while (++j < D_9cd3[who][0]);
     if (F_2e38_075f[who][code])
         return 2;
     return 0;
@@ -1123,7 +1126,6 @@ int far sub_s029_0e76_1600(int k)
     int i;
     int sum;
     int n;
-    int d;
 
     sum = n = 0;
     for (i = 0; i < 5; i++)
@@ -1131,8 +1133,8 @@ int far sub_s029_0e76_1600(int k)
             sum += D_9cc0[i][k];
             n++;
         }
-    d = n ? n : 1;
-    return D_99e6 = sum / d;
+    n = n ? n : 1;
+    return D_99e6 = sum / n;
 }
 
 /* lowest attribute k over status-1 members -> D_9c1d (D_9a44, D_991d: member) */
@@ -1215,7 +1217,6 @@ int far sub_s029_0e76_1800(int k)
     int i;
     int sum;
     int n;
-    int d;
 
     sum = n = 0;
     for (i = 0; i < 5; i++)
@@ -1223,11 +1224,12 @@ int far sub_s029_0e76_1800(int k)
             sum += D_9cb2[i][k];
             n++;
         }
-    d = n ? n : 1;
-    return D_9c1d = sum / d;
+    n = n ? n : 1;
+    return D_9c1d = sum / n;
 }
 
 /* highest attribute a + skill b over present members */
+extern int D_fff0;  /* unused: shifts the symbol table so 184a gets the original operand order */
 int far sub_s029_0e76_184a(int a, int b)
 {
     int i;
@@ -1538,15 +1540,13 @@ int far sub_s029_0e76_20c6(int who, int s)
     return F_290e_2937[s](who, cost, 7);
 }
 
-/* invoke saint s with the cost (mode 3) limited by the divine favour */
 void far sub_s029_0e76_2116(int who, int s)
 {
     int cost;
-    int dfv;
 
     cost = F_290e_2937[s](who, 0, 3);
-    if ((dfv = D_9cb8[who][0]) < cost)
-        cost = dfv;
+    if (D_9cb8[who][0] < cost)
+        cost = D_9cb8[who][0];
     F_290e_2937[s](who, cost, 7);
 }
 
@@ -2102,23 +2102,21 @@ int far sub_s029_0e76_3144(void)
 /* has event i started (start date <= now)? */
 int far sub_s029_0e76_3180(int i)
 {
-    struct event far *e;
-
-    if ((e = F_2e38_1b2c[i]) == 0)
+    if (F_2e38_1b2c[i] == 0)
         return 0;
-    if (e->year0 > D_00e6)
+    if (F_2e38_1b2c[i]->year0 > D_00e6)
         return 0;
-    if (e->year0 < D_00e6)
+    if (F_2e38_1b2c[i]->year0 < D_00e6)
         return 1;
-    if (e->month0 > D_00e4)
+    if (F_2e38_1b2c[i]->month0 > D_00e4)
         return 0;
-    if (e->month0 < D_00e4)
+    if (F_2e38_1b2c[i]->month0 < D_00e4)
         return 1;
-    if (e->day0 > D_00e2)
+    if (F_2e38_1b2c[i]->day0 > D_00e2)
         return 0;
-    if (e->day0 < D_00e2)
+    if (F_2e38_1b2c[i]->day0 < D_00e2)
         return 1;
-    if (e->hour0 > D_00e0)
+    if (F_2e38_1b2c[i]->hour0 > D_00e0)
         return 0;
     return 1;
 }
@@ -2126,37 +2124,31 @@ int far sub_s029_0e76_3180(int i)
 /* has event i ended (end date <= now)? */
 int far sub_s029_0e76_31e6(int i)
 {
-    struct event far *e;
-
-    if ((e = F_2e38_1b2c[i]) == 0)
+    if (F_2e38_1b2c[i] == 0)
         return 0;
-    if (e->year1 > D_00e6)
+    if (F_2e38_1b2c[i]->year1 > D_00e6)
         return 0;
-    if (e->year1 < D_00e6)
+    if (F_2e38_1b2c[i]->year1 < D_00e6)
         return 1;
-    if (e->month1 > D_00e4)
+    if (F_2e38_1b2c[i]->month1 > D_00e4)
         return 0;
-    if (e->month1 < D_00e4)
+    if (F_2e38_1b2c[i]->month1 < D_00e4)
         return 1;
-    if (e->day1 > D_00e2)
+    if (F_2e38_1b2c[i]->day1 > D_00e2)
         return 0;
-    if (e->day1 < D_00e2)
+    if (F_2e38_1b2c[i]->day1 < D_00e2)
         return 1;
-    if (e->hour1 > D_00e0)
+    if (F_2e38_1b2c[i]->hour1 > D_00e0)
         return 0;
     return 1;
 }
 
-/* find the next event of kind k from index i (kind 0x1c also matches kind 8) -> D_e3ce */
+/* next event slot >= i of kind k (kind 0x1c also accepts kind 8); -1 if none */
 int far sub_s029_0e76_324c(int k, int i)
 {
-    int t;
-
-    for (; i < 300; i++) {
-        t = F_2e38_1b2c[i]->kind;
-        if (t == k || k == 0x1c && t == 8)
+    for (; i < 300; i++)
+        if (F_2e38_1b2c[i]->kind == k || k == 0x1c && F_2e38_1b2c[i]->kind == 8)
             return D_e3ce = i;
-    }
     return -1;
 }
 
@@ -2215,7 +2207,6 @@ int far sub_s029_0e76_3350(int v)
     return 0;
 }
 
-/* started event of kind 0x24 with +0x28 == v, f1c == a -> 1, else 0 */
 int far sub_s029_0e76_33a2(int v, int a)
 {
     int i;
@@ -2223,14 +2214,13 @@ int far sub_s029_0e76_33a2(int v, int a)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x24, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x24 with +0x28 == v, f1c == b, f1a == a -> 1, else 0 */
 int far sub_s029_0e76_3404(int v, int a, int b)
 {
     int i;
@@ -2238,14 +2228,13 @@ int far sub_s029_0e76_3404(int v, int a, int b)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x24, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x8 with +0x28 == v, f1c == a -> 1, else 0 */
 int far sub_s029_0e76_3470(int v, int a)
 {
     int i;
@@ -2253,14 +2242,13 @@ int far sub_s029_0e76_3470(int v, int a)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x8 with +0x28 == v, f1c == b, f1a == a -> 1, else 0 */
 int far sub_s029_0e76_34d2(int v, int a, int b)
 {
     int i;
@@ -2268,14 +2256,13 @@ int far sub_s029_0e76_34d2(int v, int a, int b)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x8 with +0x28 == v, f1e == b, f1a == a -> 1, else 0 */
 int far sub_s029_0e76_353e(int v, int a, int b)
 {
     int i;
@@ -2283,14 +2270,13 @@ int far sub_s029_0e76_353e(int v, int a, int b)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1e == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x1c with +0x28 == v, type0 == a -> 1, else 0 */
 int far sub_s029_0e76_35aa(int v, int a)
 {
     int i;
@@ -2298,14 +2284,13 @@ int far sub_s029_0e76_35aa(int v, int a)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x1c with +0x28 == v, type0 == a, f1c == b -> 1, else 0 */
 int far sub_s029_0e76_360c(int v, int a, int b)
 {
     int i;
@@ -2313,7 +2298,7 @@ int far sub_s029_0e76_360c(int v, int a, int b)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b && sub_s029_0e76_3180(i))
             return 1;
     } while (++i < 300);
@@ -2335,7 +2320,6 @@ int far sub_s029_0e76_3676(int v)
     return 0;
 }
 
-/* started event of kind 0x1c with +0x28 == v, type0 == a -> its +0x1e, else 0 */
 int far sub_s029_0e76_36d4(int v, int a)
 {
     int i;
@@ -2343,14 +2327,13 @@ int far sub_s029_0e76_36d4(int v, int a)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && sub_s029_0e76_3180(i))
             return F_2e38_1b2c[i]->f1e;
     } while (++i < 300);
     return 0;
 }
 
-/* started event of kind 0x1c with +0x28 == v, type0 == a, f1c == b -> its +0x1e, else 0 */
 int far sub_s029_0e76_3742(int v, int a, int b)
 {
     int i;
@@ -2358,7 +2341,7 @@ int far sub_s029_0e76_3742(int v, int a, int b)
     i = 0;
     do {
         if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
-            break;
+            return 0;
         if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b && sub_s029_0e76_3180(i))
             return F_2e38_1b2c[i]->f1e;
     } while (++i < 300);
@@ -2537,67 +2520,54 @@ int far sub_s029_0e76_3aec(int k, int a, int b)
     return 0;
 }
 
-int far sub_s029_0e76_3b62(int p_6, int p_8, int p_a, int p_c, int p_e, int p_10)
+/* first event of kind k matching type t, f1c a, f1a b, f28 c, f2a d (-1 = any); -1 if none */
+int far sub_s029_0e76_3b62(int k, int t, int a, int b, int c, int d)
 {
-    int v_di;
-    int v_si;
-    v_si = 0;
-    v_di = p_8;
-    do {
-        v_si = sub_s029_0e76_324c(p_6, v_si);
-        if (v_si == -1) {
-            goto L_3c20;
-        }
-        if ((v_di == -1 || F_2e38_1b2c[v_si]->type0 == v_di) && (p_a == -1 || F_2e38_1b2c[v_si]->f1c == p_a) && (p_c == -1 || F_2e38_1b2c[v_si]->f1a == p_c) && (p_10 == -1 || F_2e38_1b2c[v_si]->f2a == p_10) && (p_e == -1 || F_2e38_1b2c[v_si]->f28 == p_e)) {
-            goto L_3c1a;
-        }
-        v_si++;
-    } while (v_si < 0x12c);
-    goto L_3c20;
-L_3c1a:
-    return v_si;
-L_3c20:
+    int i;
+
+    for (i = 0; i < 300; i++) {
+        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            return -1;
+        if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1c == a) &&
+            (b == -1 || F_2e38_1b2c[i]->f1a == b) && (d == -1 || F_2e38_1b2c[i]->f2a == d) &&
+            (c == -1 || F_2e38_1b2c[i]->f28 == c))
+            return i;
+    }
     return -1;
 }
 
-/* first event of kind k matching type0 / +0x1a / +0x2a / +0x28 (-1 = any) -> its +0x1c, else -1 */
 int far sub_s029_0e76_3c28(int k, int t, int a, int b, int c)
 {
     int i;
 
-    i = 0;
-    do {
+    for (i = 0; i < 300; i++) {
         if ((i = sub_s029_0e76_324c(k, i)) == -1)
-            break;
+            return -1;
         if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1a == a) &&
             (c == -1 || F_2e38_1b2c[i]->f2a == c) && (b == -1 || F_2e38_1b2c[i]->f28 == b))
             return F_2e38_1b2c[i]->f1c;
-    } while (++i < 300);
+    }
     return -1;
 }
 
-int far sub_s029_0e76_3cde(int p_6, int p_8, int p_a, int p_c, int p_e)
+/* remove the events of kind k matching type t, f1c a, f1a b, f28 c (-1 = any); returns the
+   count only when the scan runs out of events, garbage when it reaches slot 300 */
+int far sub_s029_0e76_3cde(int k, int t, int a, int b, int c)
 {
-    int l_2;
-    int v_di;
-    int v_si;
-    v_si = 0;
-    l_2 = v_si;
-    v_di = p_8;
+    int i;
+    int n;
+
+    i = 0;
+    n = i;
     do {
-        v_si = sub_s029_0e76_324c(p_6, v_si);
-        if (v_si == -1) {
-            goto L_3d8a;
+        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            return n;
+        if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1c == a) &&
+            (b == -1 || F_2e38_1b2c[i]->f1a == b) && (c == -1 || F_2e38_1b2c[i]->f28 == c)) {
+            sub_s029_0e76_30fe(i);
+            n++;
         }
-        if ((v_di == -1 || F_2e38_1b2c[v_si]->type0 == v_di) && (p_a == -1 || F_2e38_1b2c[v_si]->f1c == p_a) && (p_c == -1 || F_2e38_1b2c[v_si]->f1a == p_c) && (p_e == -1 || F_2e38_1b2c[v_si]->f28 == p_e)) {
-            sub_s029_0e76_30fe(v_si);
-            l_2++;
-        }
-        v_si++;
-    } while (v_si < 0x12c);
-    return;
-L_3d8a:
-    return l_2;
+    } while (++i < 300);
 }
 
 int far sub_s029_0e76_3d92(int v, int w)
@@ -2763,14 +2733,11 @@ void far sub_s029_0e76_4436(void)
     sub_s029_0e76_2930(0x3b, 0x18);
 }
 
-/* event i: message 0x47 about member type0 when that member is present */
+/* event i expires: message 0x47 to the party if its member (type0) is present */
 void far sub_s029_0e76_4442(int i)
 {
-    int w;
-
-    w = F_2e38_1b2c[i]->type0;
-    if (D_9c69[w][0])
-        sub_s029_0e76_2c4e(-2, D_907e, 0, 0x47, w, w, 0, D_270f, 0, 0);
+    if (D_9c69[F_2e38_1b2c[i]->type0][0])
+        sub_s029_0e76_2c4e(-2, D_907e, 0, 0x47, F_2e38_1b2c[i]->type0, F_2e38_1b2c[i]->type0, 0, D_270f, 0, 0);
 }
 
 /* undo an event's effect on member +0x1a (kinds 0x48 / 0x49: subtract +0x1e again) */
@@ -2967,40 +2934,33 @@ void far sub_s029_0e76_4aa4(int p_6)
     } while (v_si < 0x12c);
 }
 
-void far sub_s029_0e76_4b08(int p_6, int p_8, int p_a, int p_c)
+/* lower skill k of member who (-2: every present member) by up to d points of headroom:
+   d is capped at 99 - skill, applied through 02ea and recorded as a 0x49 event lasting
+   6 + rnd 3 + h - 5 hours.  Original bug: the -2 loop queries and changes member -2 (who)
+   instead of each present member, and the capped d carries over */
+void far sub_s029_0e76_4b08(int who, int k, int d, int h)
 {
-    int l_4;
-    int v_di;
-    int v_si;
-    v_di = p_6;
+    int i;
+    int t;
+
     D_26bc = 1;
-    if (v_di == -1) {
-        v_di = D_907b;
-    }
-    if (!D_01bd) {
+    if (who == -1)
+        who = D_907b;
+    if (!D_01bd)
         D_26bc = 0;
-    }
-    if (v_di == -2) {
-        l_4 = -0x6397;
-        p_6 = v_di;
-        do {
-            if (*(char *)l_4) {
-                if (-(sub_s029_0e76_01a0(v_di, p_8) - 0x63) < p_a) {
-                    p_a = -(sub_s029_0e76_01a0(v_di, p_8) - 0x63);
-                }
-                sub_s029_0e76_02ea(v_di, p_8);
-                sub_s029_0e76_2c4e(v_di, D_907e, 0x63, 0x49, p_8, 6, sub_root_0000_0c70(3) + p_c - 5, 1, 0);
+    if (who == -2) {
+        for (i = 0; i < 5; i++)
+            if (D_9c69[i][0]) {
+                if ((t = 99 - sub_s029_0e76_01a0(who, k)) < d)
+                    d = t;
+                sub_s029_0e76_02ea(who, k, d);
+                sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x49, k, d, 6, sub_root_0000_0c70(3) + h - 5, 1, 0);
             }
-            l_4 += 0x80;
-        } while ((unsigned)l_4 < -0x6117);
     } else {
-        if (-(sub_s029_0e76_01a0(v_di, p_8) - 0x63) >= p_a) {
-            v_si = p_a;
-        } else {
-            v_si = -(sub_s029_0e76_01a0(v_di, p_8) - 0x63);
-        }
-        sub_s029_0e76_02ea(v_di, p_8, v_si);
-        sub_s029_0e76_2c4e(v_di, D_907e, 0x63, 0x49, p_8, v_si, 6, sub_root_0000_0c70(3) + p_c - 5, 1, 0);
+        if ((t = 99 - sub_s029_0e76_01a0(who, k)) >= d)
+            t = d;
+        sub_s029_0e76_02ea(who, k, t);
+        sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x49, k, t, 6, sub_root_0000_0c70(3) + h - 5, 1, 0);
     }
     D_26bc = 1;
 }
@@ -3012,8 +2972,8 @@ void far sub_s029_0e76_4b08(int p_6, int p_8, int p_a, int p_c)
    than d ends the whole function, and the reduced d carries over to the next member. */
 void far sub_s029_0e76_4c04(int who, int k, int d, int h)
 {
-    int i;
     int n;
+    int i;
     int g;
 
     if (who == -1)

@@ -114,6 +114,13 @@ def compat600(obj):
 
 def _ax_known(b, q):
     """AX holds a byte-replicated value (0 or 0FFFFh) just before offset q."""
+    for _ in range(40):                 # skip back over 'mov [mem],ax' stores of that value
+        if q >= 3 and b[q - 3] == 0xa3 and not (q >= 5 and b[q - 5] in (0xb8, 0xa3) and False):
+            if bytes(b[max(0, q - 5):q - 3]) == b'\x2b\xc0' or b[q - 6:q - 3] == b'\xb8\xff\xff' or \
+                    (q >= 6 and b[q - 6] == 0xa3):
+                q -= 3
+                continue
+        break
     prev = bytes(b[max(0, q - 4):q])
     return prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0') or \
         (len(prev) == 4 and prev[:3] == b'\x0b\xc0\x75')      # or ax,ax / jne: falls through with AX = 0
@@ -132,13 +139,27 @@ def _rewrite_memset(b):
                 b[q + 6:q + 8] = b'\x8b\xfb'
                 b[q + 11] = 0xab
                 r = q + 12
-                while r + 8 <= end and b[r] == 0xbf and b[r + 3] == 0xb9 and b[r + 6:r + 8] == b'\xf3\xaa':
-                    m = struct.unpack_from('<H', b, r + 4)[0]
-                    if m % 2:
+                while True:
+                    if r + 8 <= end and b[r] == 0xbf and b[r + 3] == 0xb9 and b[r + 6:r + 8] == b'\xf3\xaa':
+                        m = struct.unpack_from('<H', b, r + 4)[0]
+                        if m % 2:
+                            break
+                        struct.pack_into('<H', b, r + 4, m // 2)
+                        b[r + 7] = 0xab
+                        r += 8
+                    elif r + 10 <= end and b[r] == 0xba and b[r + 3] == 0xb9 and \
+                            b[r + 6:r + 10] == b'\x8b\xfa\xf3\xaa':
+                        # next memset of a chain: mov dx,X / mov cx,2n / mov di,dx / rep stosb
+                        m = struct.unpack_from('<H', b, r + 4)[0]
+                        if m % 2:
+                            break
+                        b[r] = 0xbb
+                        struct.pack_into('<H', b, r + 4, m // 2)
+                        b[r + 6:r + 8] = b'\x8b\xfb'
+                        b[r + 9] = 0xab
+                        r += 10
+                    else:
                         break
-                    struct.pack_into('<H', b, r + 4, m // 2)
-                    b[r + 7] = 0xab
-                    r += 8
                 q = r
                 continue
         # mov di,X / mov cx,2n / push ds / pop es / rep stosb  (AX byte-replicated)

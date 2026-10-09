@@ -93,6 +93,19 @@ class Module:
                     si, q = read_index(rec, q + 1)
                     members.append(si)
                 self.groups.append((self.lnames[ni], members))
+            elif rt in (0xb0, 0xb8):
+                # COMDEF: communal variables (e.g. 'int far x;'). They share the external index
+                # space and resolve by name like EXTDEFs (_F_ssss_xxxx / _D_xxxx in this project)
+                q = 0
+                while q < len(rec):
+                    n, q = read_name(rec, q)
+                    _, q = read_index(rec, q)
+                    dt = rec[q]
+                    q += 1
+                    for _k in range(2 if dt == 0x61 else 1):
+                        v = rec[q]
+                        q += {0x81: 3, 0x84: 4, 0x88: 5}.get(v, 1)
+                    self.exts.append(n)
             elif rt in (0x8c, 0xb4):
                 q = 0
                 while q < len(rec):

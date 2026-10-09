@@ -1,28 +1,28 @@
 /* place: s043 150b:000a */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: WIP (e2, 2026-10-09 session 2): 20/28 functions match (fmatch), _DATA matches.
- *   match: 000a 0110 01e0 020e 03b0 049a 04c4 06fe 10fc 1142 1374 13f2 168c 16e8 1f3e 1f40
- *          2802 2826 28e6 2936.
- *   04c4, 13f2: contain the original inline _asm recolour block (unoptimised functions).
- *         NOTE 13f2 has the SAME _asm block as 04c4 (the task allowed _asm only in 04c4):
- *         keep it only if that is accepted; without it 13f2 cannot match.
+/* status: WIP (e2, 2026-10-09 session 3): 23/28 functions match (fmatch), _DATA matches.
+ *   match: 000a 0110 01e0 020e 03b0 049a 04c4 06fe 10fc 1142 13a0 1374 13f2 168c 16e8 1f3e
+ *          1f40 2252 2802 2826 28e6 2936 2a04.
+ *   04c4, 13f2: contain the original inline _asm recolour block (allowed for these two).
+ *   Several functions were compiled without global optimisation (probably the 1992 compiler
+ *   ran out of memory): 2252 `#pragma optimize("egl", off)`, 13a0 "eglc" off, 203a "eglc".
  *   0886: 2174/2166. (a) case 51's inner switch reloads `les bx,[9785]` for cases 1/2 (the
  *         original reuses es:bx from the f58/f5a ternary); (b) cross-jump direction: the
  *         original keeps the `mov dx,[9787]; add ax,6eh` tail in case 51's names[0] arm and
  *         case 52 jumps into it, 6.00A keeps case 52's copy (line layout/order tried).
- *   13a0: `cmp [a67e],si; jle` vs 6.00A `cmp si,[a67e]; jge`; extern position scan
- *         (all positions of `extern int D_a67e;`, 1..23 dummy externs) did not flip it.
- *   1744: code nearly identical; left: slot order (orig r at -8, line/kind at -0c/-0a;
- *         6.00A puts the first-used aggregate highest), `mov dx,[5202]` before the e96f
- *         load, click loop registers (orig di = index, si = mouse ptr) and the compare
- *         `cmp [si+4],ax`, shared `cbw; ret` tail of the two returns.
- *   1d56: only the 05a5 call: orig pushes D_a626 before computing `y = who*0x28+1`
- *         (6.00A hoists the embedded assignment).
- *   203a: needs #pragma optimize("g", off) (locals in memory); left: slot order of
- *         oldf/fnt/ya/x0, `x += w` via ax, out-of-line else block.
- *   2252: NOT WRITTEN (1456 bytes, skill-check text); stub holds its literals only.
- *   2a04: code identical; only slots: orig month -4 / h -6 (6.00A: h -4, month -6) and
- *         dim at -1c (6.00A overlaps it with frame at -2; `int dim[1]` gives -10).
+ *         egl/pragma sweep: no gain.
+ *   1744: 1556/1554 (D_8ddc used directly; a `register struct mouse *m` gives 1554 but
+ *         loads it at the assignment); left: `mov dx,[5202]` before the e96f load (operand order is
+ *         canonicalised, source order has no effect) and the click loop: the original
+ *         keeps j in DI and hoists D_8ddc into SI after the loop guard (6.00A reloads
+ *         [8ddc] every iteration; register m loads it at the assignment).
+ *   1d56: the 05a5 call: orig pushes D_a626 before computing `y = who*0x28+1`, and tests
+ *         `or ax,ax` after `mov si,ax`; 6.00A hoists the embedded assignment (pragma
+ *         combos, volatile, separate statements tried).
+ *   203a: eglc off + x as the reused register parameter p8: frame/registers right; left:
+ *         ternary/if arm layout (orig falls through to the `yaj` arm, else block of the x
+ *         clamp out of line) and the late stores of x1m/y1m embedded in the 0d62 args
+ *         (6.00A stores them before the pushes) - both look like 6.00 vs 6.00A.
  *   2d3a: code identical; jump-table words follow once earlier functions have the right length.
  *   X_1: unused extern, its position keeps 06fe's `[bx+si]` operand order.
  * The card/dialog engine.
@@ -926,6 +926,7 @@ void far sub_s043_150b_1374(struct gfx *win, int x, int y, int w, int h, int c1,
 }
 
 /* mouse click in the party portrait column: show that member's sheet (vec_1fdb) */
+#pragma optimize("eglc", off)
 int far sub_s043_150b_13a0(void)
 {
     register int m;
@@ -942,6 +943,7 @@ int far sub_s043_150b_13a0(void)
     }
     return 0;
 }
+#pragma optimize("", on)
 
 /* redraw the card after a party sheet / global screen (9c46 or 13a0): reload the picture
  * D_ee5b and the .msg file, then redraw the current text block D_e959 the way 04c4 drew it
@@ -1071,14 +1073,12 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
 {
     int i2;
     int u;
-    struct res q;               /* q.a = line, q.b = its kind */
     struct res r;
     int i;
     int flag;
     int show;
     int t;
-    int j;
-    struct mouse *m;
+    register int j;
 
     D_ed6c = 0;
     i = 0;
@@ -1113,8 +1113,8 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
         sub_root_047c_04dc(win, D_e972, D_e974[D_e96f], D_e970, D_e988[D_e96f = i], D_ee59, D_ee57 = 9);
         if (D_e9c4[D_e96f] == -1)
             sub_s043_150b_1f3e();
-        if ((q.b = D_e9c4[q.a = D_e96f]) > 0 && D_ee41 == 0) {
-            switch (q.b) {
+        if (D_e9c4[D_e96f] > 0 && D_ee41 == 0) {
+            switch (D_e9c4[D_e96f]) {
             case 1:
                 D_ea64 = D_eb5a;
                 break;
@@ -1122,7 +1122,7 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
                 D_ea64 = D_ec50;
                 break;
             }
-            sub_s043_150b_203a(win, win2, sub_s043_150b_2252(win, q.a, q.b));
+            sub_s043_150b_203a(win, win2, sub_s043_150b_2252(win, D_e96f, D_e9c4[D_e96f]));
             D_ee41 = 1;
             sub_s043_150b_2802(1);
         }
@@ -1178,7 +1178,7 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
         show = 1;
     else
         show = 0;
-    if (show && (t = D_5202) != D_e96f) {
+    if (show && D_e96f != (t = D_5202)) {
         if (t != -10 && D_906a != 2) {
             sub_root_0000_1588(0x100);
             sub_root_0000_1716(0x100);
@@ -1196,10 +1196,10 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
             sub_root_0000_1716(0x100);
         }
     }
-    if ((m = D_8ddc = sub_root_047c_1320(6, 0, 0, 0))->click > 0) {
+    if ((D_8ddc = sub_root_047c_1320(6, 0, 0, 0))->click > 0) {
         D_ed6c = 0;
         for (j = 0; j < D_e96e.n; j++)
-            if (m->x >= D_e972 + 0x3c && m->x <= D_e970 + D_e972 + 0x3c && D_e974[j] <= m->y && m->y <= D_e974[j] + D_e988[j]) {
+            if (D_e972 + 0x3c <= D_8ddc->x && D_8ddc->x <= D_e970 + D_e972 + 0x3c && D_e974[j] <= D_8ddc->y && D_8ddc->y <= D_e974[j] + D_e988[j]) {
                 D_ed6c = 1;
                 break;
             }
@@ -1319,8 +1319,8 @@ void far sub_s043_150b_1f40(register int v_di, int p_8)
 /* pop-up text box (D_9085, laid out into D_ea64) of width w next to the highlighted option
  * line; saves the screen under it in D_a776 (04d5) and remembers the box in D_ee0d (x),
  * D_ee0f (y), D_ee11 (w), D_ee10 (h) for 1744's hit test. */
-#pragma optimize("g", off)
-int far sub_s043_150b_203a(struct gfx *win, int p8, register int w)
+#pragma optimize("eglc", off)
+int far sub_s043_150b_203a(struct gfx *win, register int x, register int w)
 {
     int yg;
     int hi;
@@ -1330,7 +1330,6 @@ int far sub_s043_150b_203a(struct gfx *win, int p8, register int w)
     int oldf;
     int x1m;
     int y1m;
-    register int x;
 
     oldf = win->f10;
     hi = (int)(sub_root_0265_0654(win, D_9085, w, 0, 0, fntk = sub_root_047c_051b(win->f10 = 1), &D_ea64, 1, 0, 0, 0) >> 16) + 6;
@@ -1338,11 +1337,9 @@ int far sub_s043_150b_203a(struct gfx *win, int p8, register int w)
     yg = (yaj = D_e974[D_e96f]) + hi <= 0xc1 ? yaj : 0xc1 - hi;
     x += D_e970;
     x0j = x;
-    x += w;
-    if (x > 0xf5) {
-        x = 0xf5;
-        x -= w;
-    } else
+    if ((x += w) > 0xf5)
+        x = 0xf5 - w;
+    else
         x = x0j;
     if (D_a776)
         free_buffer(D_a776, "b");
@@ -1366,10 +1363,8 @@ int far sub_s043_150b_203a(struct gfx *win, int p8, register int w)
     sub_root_047c_12c3();
     if (D_ee72 >= 0) {
         sub_root_047c_0952(win, x, yg, w, hi, 0xff);
-        x1m = x + w - 1;
-        sub_root_047c_0d62(win, x, yg, x + w - 1, yg, 1);
-        y1m = yg + hi - 1;
-        sub_root_047c_0d62(win, x1m, yg, x1m, yg + hi - 1, 1);
+        sub_root_047c_0d62(win, x, yg, x1m = w + x - 1, yg, 1);
+        sub_root_047c_0d62(win, x1m, yg, x1m, y1m = hi + yg - 1, 1);
         sub_root_047c_0d62(win, x1m, y1m, x, y1m, 1);
         sub_root_047c_0d62(win, x, y1m, x, yg, 1);
     }
@@ -1384,35 +1379,133 @@ int far sub_s043_150b_203a(struct gfx *win, int p8, register int w)
 }
 #pragma optimize("", on)
 
-/* NOT WRITTEN YET (1456 bytes): success-chance text of a skill-check option line (kind 1
- * uses the skills D_ee43[4], kind 2 D_ee4b[4]; s029 0e76_1260/118e per member) into D_9085
- * with the control characters below; returns the box width for 203a.  Stub: literals only,
- * so that _DATA lines up. */
-int far sub_s043_150b_2252(void)
-{
-    char *s[19];
+extern char D_ea92[][4];
+extern char far * far F_2e38_3bc4[];
+int far sub_root_0265_084e();
+int far sub_s029_0e76_0c76(int, int);
 
-    s[0] = "\x81";
-    s[1] = "\n";
-    s[2] = "\x15\n";
-    s[3] = "\x15 ";
-    s[4] = "\x87";
-    s[5] = "\x8f";
-    s[6] = "\x80";
-    s[7] = "\n";
-    s[8] = "\x15 ";
-    s[9] = "\x87";
-    s[10] = "\x84";
-    s[11] = "\x8f";
-    s[12] = "\x80";
-    s[13] = "\x83";
-    s[14] = " (";
-    s[15] = ")";
-    s[16] = "\n";
-    s[17] = "\x15\n";
-    s[18] = "\x14";
-    sub_s043_150b_1f3e(s);
+/* skill-check pop-up text (kind 1: skills D_ee43[4] via s029 118e/0c76, kind 2: D_ee4b[4]
+ * via s029 1260): for each able member a line "\x81<name>\xff" and one line per skill:
+ * "\x15 " + colour code + skill name (+ " (chance)" for kind 1), or "\x15" when the member
+ * cannot act; D_ea92[member][skill] = 2 (leader's own/automatic), 1 (possible), 0 (no).
+ * The text goes into D_9085; returns the box width (widest line + 6) for 203a.
+ * Compiled without global opts (`egl` off: no loop opts, parameters in memory, only i in a
+ * register); local names chosen for the 6.00A name-hash slot order (r s maxw any j line num
+ * name sk w top-down). */
+#pragma optimize("egl", off)
+int far sub_s043_150b_2252(struct gfx *win, int unused, int kind)
+{
+    register int i;
+    int rn;
+    char sn[50];
+    int maxwe;
+    int anyk;
+    int jj;
+    char linem[160];
+    char numf[20];
+    char namef[40];
+    int skj[4];
+    int wb;
+
+    maxwe = -1;
+    D_9085[0] = 0;
+    if (kind == 1) {
+        for (i = 0; i < 4; i++)
+            skj[i] = D_ee43[i];
+    } else if (kind == 2) {
+        for (i = 0; i < 4; i++)
+            skj[i] = D_ee4b[i];
+    }
+    for (i = 0; i < 20; i++)
+        D_ea92[0][i] = 0;
+    for (i = 0; i < D_a67e; i++) {
+        if (D_9c69[i].status == 1) {
+            strcpy(namef, "\x81");
+            strcat(namef, D_9c69[i].name);
+            jj = strlen(namef);
+            namef[jj] = 0xff;
+            namef[jj + 1] = 0;
+            strcat(namef, "\n");
+            wb = sub_root_0265_084e(win, D_9c69[i].name);
+            if (wb > maxwe)
+                maxwe = wb;
+        }
+        linem[0] = 0;
+        anyk = 0;
+        for (jj = 0; jj < 4; jj++) {
+            if (D_9c69[i].status == 0 || D_9c69[i].status == 5) {
+                strcat(linem, "\x15\n");
+            } else if (kind == 2 && skj[jj] != -1 &&
+                       ((rn = sub_s029_0e76_1260(i, skj[jj])) != 0 ||
+                        (D_906a == 0 && D_907b == i) || D_5204 == 1)) {
+                anyk = 1;
+                strcpy(sn, "\x15 ");
+                if (D_906a == 0 && D_907b == i && rn == 0 && D_5204 == 0) {
+                    strcat(sn, "\x87");
+                    D_ea92[i][jj] = 2;
+                } else {
+                    if (D_e3e3[0] == 'x')
+                        strcat(sn, "\x8f");
+                    else
+                        strcat(sn, "\x80");
+                    D_ea92[i][jj] = 1;
+                }
+                _fstrcat(sn, F_2e38_3bc4[skj[jj]]);
+                strcat(sn, "\n");
+                wb = sub_root_0265_084e(win, sn);
+                if (wb > maxwe)
+                    maxwe = wb;
+                strcat(linem, sn);
+            } else if (kind == 1 && skj[jj] != -1 &&
+                       ((rn = sub_s029_0e76_118e(i, skj[jj])) != 0 ||
+                        (D_906a == 0 && D_907b == i) || D_5204 == 1)) {
+                anyk = 1;
+                strcpy(sn, "\x15 ");
+                if (D_906a == 0 && D_907b == i && rn == 0 && D_5204 == 0) {
+                    strcat(sn, "\x87");
+                    D_ea92[i][jj] = 2;
+                } else if (D_906a != 2 && rn == 2 && D_5204 == 0) {
+                    strcat(sn, "\x84");
+                    D_ea92[i][jj] = 2;
+                } else if (rn == 1 || D_5204 != 0) {
+                    if (D_e3e3[0] == 'x')
+                        strcat(sn, "\x8f");
+                    else
+                        strcat(sn, "\x80");
+                    D_ea92[i][jj] = 1;
+                } else {
+                    strcat(sn, "\x83");
+                    D_ea92[i][jj] = 0;
+                }
+                _fstrcat(sn, F_2e38_0890[skj[jj]]);
+                if (rn == 1) {
+                    strcat(sn, " (");
+                    sub_root_0265_09b2(rn = sub_s029_0e76_0c76(i, skj[jj]), numf);
+                    strcat(sn, numf);
+                    strcat(sn, ")");
+                }
+                strcat(sn, "\n");
+                wb = sub_root_0265_084e(win, sn);
+                if (wb > maxwe)
+                    maxwe = wb;
+                strcat(linem, sn);
+            } else {
+                strcat(linem, "\x15\n");
+            }
+        }
+        if (anyk == 1) {
+            strcat(D_9085, namef);
+            strcat(D_9085, linem);
+            strcat(D_9085, "\x14");
+        } else {
+            strcat(D_9085, linem);
+        }
+    }
+    if (D_9085[0])
+        D_9085[strlen(D_9085) - 2] = 0;
+    return maxwe + 6;
 }
+#pragma optimize("", on)
 
 int far sub_s043_150b_2802(int p_6)
 {
@@ -1522,7 +1615,6 @@ void far sub_s043_150b_2a04(int hours)
     int savee;
     int il;
     char numf[12];
-    int dimm;
 
     if ((hours /= 3) == 0)
         return;
@@ -1540,9 +1632,8 @@ void far sub_s043_150b_2a04(int hours)
     sub_root_047c_05a5(D_017c, 0x3c, 0x32, D_a62a);
     for (il = 0; il < hours; il++) {
         if (hj >= 8) {
-            dimm = D_2776[monthk];
-            if (++daye > dimm) {
-                daye -= dimm;
+            if (++daye > D_2776[monthk]) {
+                daye -= D_2776[monthk];
                 if (++monthk > 11)
                     monthk = 0;
             }
