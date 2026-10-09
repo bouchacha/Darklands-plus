@@ -375,6 +375,10 @@ class Linker:
     def resolve_ext(self, name):
         if name in self.symbols:
             return self.symbols[name]
+        if name == '__aFchkstk':                    # MSC 6.00A's name for the stack probe
+            name = '__chkstk'
+            if name in self.symbols:
+                return self.symbols[name]
         al = self.L.get('aliases', {}).get(name)
         if al and al in self.symbols:
             return self.symbols[al]

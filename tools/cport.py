@@ -112,6 +112,13 @@ def compat600(obj):
     return bytes(out)
 
 
+def _ax_known(b, q):
+    """AX holds a byte-replicated value (0 or 0FFFFh) just before offset q."""
+    prev = bytes(b[max(0, q - 4):q])
+    return prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0') or \
+        (len(prev) == 4 and prev[:3] == b'\x0b\xc0\x75')      # or ax,ax / jne: falls through with AX = 0
+
+
 def _rewrite_memset(b):
     end = len(b)
     q = 0
@@ -119,8 +126,7 @@ def _rewrite_memset(b):
         if q + 12 <= end and b[q] == 0xba and b[q + 3] == 0xb9 and b[q + 6:q + 8] == b'\x8b\xfa' and \
                 b[q + 8:q + 12] == b'\x1e\x07\xf3\xaa':
             n = struct.unpack_from('<H', b, q + 4)[0]
-            prev = bytes(b[max(0, q - 3):q])
-            if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
+            if n % 2 == 0 and _ax_known(b, q):
                 b[q] = 0xbb
                 struct.pack_into('<H', b, q + 4, n // 2)
                 b[q + 6:q + 8] = b'\x8b\xfb'
@@ -138,8 +144,7 @@ def _rewrite_memset(b):
         # mov di,X / mov cx,2n / push ds / pop es / rep stosb  (AX byte-replicated)
         if q + 10 <= end and b[q] == 0xbf and b[q + 3] == 0xb9 and b[q + 6:q + 10] == b'\x1e\x07\xf3\xaa':
             n = struct.unpack_from('<H', b, q + 4)[0]
-            prev = bytes(b[max(0, q - 3):q])
-            if n % 2 == 0 and (prev.endswith(b'\xb8\xff\xff') or prev.endswith(b'\x2b\xc0')):
+            if n % 2 == 0 and _ax_known(b, q):
                 struct.pack_into('<H', b, q + 4, n // 2)
                 b[q + 9] = 0xab
                 q += 10
@@ -158,7 +163,12 @@ def compile_source(src, cache_dir, extra_headers=()):
     key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v3').hexdigest()[:16]
     objp = os.path.join(cache_dir, '%s_%s.obj' % (seg, key))
     msg = ''
-    if not os.path.exists(objp):
+    if os.path.exists(objp):
+        o = open(objp, 'rb').read()
+        o2 = compat600(o)          # cached objects pick up newer compat rules
+        if o2 != o:
+            open(objp, 'wb').write(o2)
+    else:
         obj, out, _ = msc.compile_c(src['path'], flags, extra_files=extra_headers)
         msg = out
         if obj is None or re.search(r'error [CD]\d+', out):

@@ -58,6 +58,8 @@ def image_mem(ctx, img):
 
 
 def resolve(name, syms):
+    if name == '__aFchkstk':            # MSC 6.00A's name for the stack probe the game calls __chkstk
+        name = '__chkstk'
     if name in syms:
         return syms[name]
     m = re.match(r'^_D_([0-9a-fA-F]{1,4})$', name)
