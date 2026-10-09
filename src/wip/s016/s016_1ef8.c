@@ -1,4 +1,5 @@
 /* place: s016 1ef8:0000 */
+/* orig: size=1730 CONST=7dba+0002 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s016: combat command keys - party movement modes (group / individual / single file),
    active-member selection, stairs/portal commands, command letter display.

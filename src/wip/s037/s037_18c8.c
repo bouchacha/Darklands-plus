@@ -1,4 +1,5 @@
 /* place: s037 18c8:0004 */
+/* orig: size=3b4e CONST=7eae+0016 _DATA=442e+0370 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 7/15 match (0004 047c 04b2 053e 1738 3890 39ca).
    058e (key handler): same length; left are 6.00 code-placement choices in the key

@@ -1,4 +1,5 @@
 /* place: s014 19cd:0006 */
+/* orig: size=379a CONST=7d86+002a _DATA=1bca+006c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 19cd: COMBAT USER INTERFACE (mouse orders, location menus, loot piles).
    Screen -> map: the battle view is an oblique projection,

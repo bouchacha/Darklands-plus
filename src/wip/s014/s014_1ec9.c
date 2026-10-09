@@ -1,4 +1,5 @@
 /* place: s014 1ec9:0000 */
+/* orig: size=02ec */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 1ec9: sprite colour remapping and "is the line of fire blocked by an effect cloud".
    status: 4/4 written, 0 match - by design: the original functions contain inline assembly

@@ -1,4 +1,5 @@
 /* place: s008 1432:0000 */
+/* orig: size=30dc CONST=7d30+0002 _DATA=1458+0077 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: _DATA=1458 */
 /* status (e6, 2026-10-09): wilderness battlefields. Started from build/agent/gen_engine (dec16

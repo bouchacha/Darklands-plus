@@ -1,5 +1,5 @@
 /* place: s002 0e76:0000 */
-/* orig: size=1aa6 */
+/* orig: size=1aa6 CONST=7d22+0004 _DATA=0eb0+0411 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: _DATA=0eb0 */
 /* data: CONST=7d22 */

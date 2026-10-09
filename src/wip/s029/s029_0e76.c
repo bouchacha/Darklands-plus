@@ -1,6 +1,6 @@
 /* place: s029 0e76:0000 */
-/* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
+/* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: hand port (e3). All 143 functions written; 134/143 match, _DATA and CONST slots
    match the original, and every function now has its original length except 255a/2d5c/
    2e74/4650 (so 1dfe/1fb8 no longer depend on errors cancelling). Open: 013a (frame 2 vs

@@ -1,4 +1,5 @@
 /* place: s014 1d47:0000 */
+/* orig: size=022c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 1d47: missile flight (arrows, bolts, thrown items, spell missiles).
    0000 advances every active missile record one combat tick along a Bresenham line

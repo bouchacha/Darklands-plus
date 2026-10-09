@@ -1,4 +1,5 @@
 /* place: s037 1462:0000 */
+/* orig: size=4664 CONST=7ea6+0008 _DATA=403c+03b1 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 13/20 match (0348 0390 03d4 2922 2a68 38aa
    3992 3a8a 3ae2 3cd6 3f30 4048 4562). Character creation main menu (pics\cretscrn.pic) -

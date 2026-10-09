@@ -1,4 +1,5 @@
 /* place: s027 1f48:0000 */
+/* orig: size=0d42 CONST=7e14+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Overlay s027: named swap blocks ("heap/swap").  A block of data is saved under a name
    into one of the swap stores and read back later.  Store types (D_8d4 / entry.type):

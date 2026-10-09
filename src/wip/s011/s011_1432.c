@@ -1,5 +1,5 @@
 /* place: s011 1432:0000 */
-/* orig: size=2160 CONST=7d32+0002 _DATA=15bd+0030 */
+/* orig: size=2160 CONST=7d32+0002 _DATA=15a2+004b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): ALL 17 FUNCTIONS WRITTEN. Templar fortress & tombs battlefields.
  * Match: 0000 (fortress driver), 029e, 1794, 1f5c, 209e (+ 1f5c/209e need _DATA, which now lines up).

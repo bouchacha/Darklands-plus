@@ -1,4 +1,5 @@
 /* place: s017 1ef8:0000 */
+/* orig: size=0b9a CONST=7dc4+0022 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 0/1, ALL functions written (functional draft from the original code, not matched).
  * Combat dungeon view (overlay s017, child of s014): 0000 redraws the 14 x 10 cell window of the

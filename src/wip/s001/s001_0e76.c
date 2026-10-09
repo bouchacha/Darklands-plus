@@ -1,4 +1,6 @@
 /* place: s001 0e76:0000 */
+/* orig: size=09d2 CONST=7d18+000a _DATA=0e30+007f */
+/* PLAY-TEST (2026-10-09): in a --functional build Quickstart gives every member three "Hand Axe 00q (0)" instead of the default equipment: the item records written here are wrong somewhere. */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Overlay s001: set up the default (quick-start) party: four members with names,
    attributes, skills and starting equipment, and load the item definitions from

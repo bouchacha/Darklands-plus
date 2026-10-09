@@ -1,4 +1,5 @@
 /* place: s014 1db7:0008 */
+/* orig: size=1118 CONST=7db0+000c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 1db7: COMBAT AI (target selection and melee engagement).
      0008  AI tick: reach table (09ae), react to moved targets (026a); in real combat

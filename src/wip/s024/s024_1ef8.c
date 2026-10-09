@@ -1,4 +1,5 @@
 /* place: s024 1ef8:0000 */
+/* orig: size=0c92 CONST=7e02+0008 _DATA=23fc+0204 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 0/4, all functions written (functional drafts; 08f2 closest: one extra frame slot).
  * Combat level data (overlay s024, child of s014):

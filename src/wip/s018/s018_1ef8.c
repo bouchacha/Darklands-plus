@@ -1,4 +1,5 @@
 /* place: s018 1ef8:0000 */
+/* orig: size=04b6 CONST=7ddc+0002 _DATA=20de+0010 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 3/4, all functions written (027e, 02be, 03ae match). 0000: MSC 6.00A puts the
  * "monster" (M-path, stricmp m73/m90/m13) block inline and the spr=6/speed=20 block last; the

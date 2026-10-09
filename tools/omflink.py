@@ -219,7 +219,7 @@ class Module:
         return out, q
 
 
-def relayout(L, mods, fixed=('root', 's136'), pad=None):
+def relayout(L, mods, fixed=('root', 's136'), pad=None, shift_data=True):
     """Re-lay out the overlays for a build whose code no longer has the original sizes (a mod).
 
     Every placed segment is a piece of an original segment ('frame'). Pieces keep their order;
@@ -326,13 +326,29 @@ def relayout(L, mods, fixed=('root', 's136'), pad=None):
         if (base, mem) != (old_base, old_mem):
             report[n] = ((old_base, old_mem // 16), (base, mem // 16))
     top = images['s136']['base_seg']
-    for n in order:
-        if n in fixed:
-            continue
-        end = images[n]['base_seg'] + images[n]['mem_size'] // 16
-        if end > top:
+    ends = [(images[n]['base_seg'] + images[n]['mem_size'] // 16, n) for n in order if n not in fixed]
+    end, worst = max(ends)
+    if end > top:
+        if not shift_data:
             raise LinkError('overlay %s now ends at paragraph %04x, past the data section at %04x '
-                            '(%d paragraphs too large)' % (n, end, top, end - top))
+                            '(%d paragraphs too large)' % (worst, end, top, end - top))
+        # move the data section (far data, DGROUP, stack) up to make room for the overlays.
+        # Everything that refers to it is relocated or symbolic; absolute names (FRM_abs_,
+        # _F_ssss_, _D_) are shifted by the linker (L['data_shift']).
+        d = end - top
+        images['s136']['base_seg'] += d
+        for ent in segmap.values():
+            if ent['image'] == 's136':
+                ent['frame'] += d
+        for local in L.get('object_modules', {}).values():
+            for ent in local.values():
+                if ent['image'] == 's136':
+                    ent['frame'] += d
+        L['groups'] = {k: v + d for k, v in L['groups'].items()}
+        L['mz']['ss'] += d
+        L['mz']['min_alloc'] += d
+        L['data_shift'] = [top, d]
+        report['s136'] = ((top, images['s136']['mem_size'] // 16), (top + d, images['s136']['mem_size'] // 16))
     return report
 
 
@@ -400,8 +416,11 @@ class Linker:
         al = self.L.get('aliases', {}).get(name)
         if al and al in self.symbols:
             return self.symbols[al]
+        base, dshift = self.L.get('data_shift', (0x10000, 0))
         if name.startswith('FRM_abs_'):
             f = int(name[8:], 16)
+            if f >= base:
+                f += dshift
             return (None, f * 16, f)
         # names used from C: _D_xxxx = DGROUP:xxxx, _F_ssss_xxxx = far data, _foo = asm label foo
         mm = re.match(r'^_D_([0-9a-fA-F]{1,4})$', name)
@@ -411,6 +430,8 @@ class Linker:
         mm = re.match(r'^_F_([0-9a-fA-F]{4})_([0-9a-fA-F]{1,4})$', name)
         if mm:
             f = int(mm.group(1), 16)
+            if f >= base:
+                f += dshift
             return ('s136', f * 16 + int(mm.group(2), 16), f)
         if name.startswith('_') and name[1:] in self.symbols:
             return self.symbols[name[1:]]

@@ -1,4 +1,5 @@
 /* place: s039 165c:0000 */
+/* orig: size=79d4 CONST=7eda+0002 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: FILE MATCH (e2, 2026-10-09): 139/139 functions (fmatch; while build/symbols.json comes
  *   from a non-identical build, check with build/agent/e2/fm.py, which re-derives the sub_

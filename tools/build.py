@@ -135,6 +135,10 @@ def main():
     ap.add_argument('--overlay', action='append', default=[], metavar='DIR',
                     help='with --mod: C files under DIR replace the src/c file with the same '
                          '/* place: */ address (a mod kept outside the matching tree)')
+    ap.add_argument('--functional', action='store_true',
+                    help='with --mod: also use every complete draft in src/wip (stamped with '
+                         'tools/stamp.py --wip, not listed in src/wip/EXCLUDE, not root) - the '
+                         'whole game in C as far as it is written, for play-testing and mods')
     ap.add_argument('--pad', action='append', default=[], metavar='IMAGE=BYTES',
                     help='with --mod: add room at the end of an overlay section (moves its children); '
                          'a test of the relayout')
@@ -159,13 +163,25 @@ def main():
     aliases = {}
     changed = []
     srcs = cport.sources(REPO)
+    if a.functional:
+        if not a.mod:
+            raise SystemExit('--functional needs --mod')
+        excl = set()
+        ex = os.path.join(REPO, 'src', 'wip', 'EXCLUDE')
+        if os.path.exists(ex):
+            excl = {l.split('#')[0].strip() for l in open(ex)} - {''}
+        wip = [x for x in cport.sources(REPO, sub=os.path.join('src', 'wip'))
+               if x['orig_size'] is not None and x['image'] != 'root'
+               and os.path.relpath(x['path'], os.path.join(REPO, 'src', 'wip')) not in excl]
+        print('functional: %d drafts from src/wip' % len(wip))
+        a.overlay = list(a.overlay) + [('__list__', wip)]
     if a.overlay:
         if not a.mod:
             raise SystemExit('--overlay needs --mod')
         key = lambda x: (x['image'], x['frame'] * 16 + x['offset'])
         bykey = {key(x): x for x in srcs}
         for d in a.overlay:
-            for x in cport.sources(d, sub=''):
+            for x in (d[1] if isinstance(d, tuple) else cport.sources(d, sub='')):
                 old_ = bykey.get(key(x))
                 if old_ is not None:
                     if x['orig_size'] is None:

@@ -1,4 +1,5 @@
 /* place: s014 1462:000a */
+/* orig: size=094e CONST=7cf8+0002 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 1462: movement collision test for one combatant at its current position.
    000a(c) loads the combatant's bounding box (half sizes D_c80f/D_c831 by sprite index +0x1c)

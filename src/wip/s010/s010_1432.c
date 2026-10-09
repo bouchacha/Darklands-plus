@@ -1,4 +1,5 @@
 /* place: s010 1432:0000 */
+/* orig: size=2e36 _DATA=1536+006c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: _DATA=1536 */
 /* status (e6, 2026-10-09): started from build/agent/gen_engine; ALL 18 functions written, 9 match.

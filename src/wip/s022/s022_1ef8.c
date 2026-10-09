@@ -1,4 +1,5 @@
 /* place: s022 1ef8:0000 */
+/* orig: size=07da CONST=7df2+0002 _DATA=2358+008f */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 3/5, all functions written (03e4, 04e4, 07aa match).
  * 20a5 data: `extern int far F_20a5_1f44[];` (a far ARRAY gives `mov ax,SEG; mov es,ax`).

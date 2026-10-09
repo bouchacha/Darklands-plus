@@ -1,4 +1,5 @@
 /* place: s014 12f7:000a */
+/* orig: size=16b0 CONST=7d48+000e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 12f7: PATHFINDER.
    A "bug" algorithm with up to 10 parallel trackers (all state in a far work area addressed

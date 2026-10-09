@@ -1,4 +1,5 @@
 /* place: s028 1f48:0000 */
+/* orig: size=0fbc */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Overlay s028: set-up of the swap stores used by s027 (XMS, EMS, temporary files) and
    the XMS/EMS driver wrappers.  Store types: 2 = XMS, 3 = EMS, 5/6/7 = temporary files.

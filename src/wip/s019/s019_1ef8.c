@@ -1,4 +1,5 @@
 /* place: s019 1ef8:0000 */
+/* orig: size=0e1c CONST=7de4+0006 _DATA=223a+0007 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s019: combat spell/effect areas (three effect lists, per-combatant temporary modifiers).
    status: all 17 functions written; FILE MATCH. 0300 058a 0aac 0b44 0c28 are MSC near functions

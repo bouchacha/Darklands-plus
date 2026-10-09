@@ -1,4 +1,5 @@
 /* place: s018 1f43:0006 */
+/* orig: size=1088 CONST=7dde+0006 _DATA=216e+0006 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 2/6 (0fc2, 104c match); ALL functions written.
  * 0256: only 2 spots left: the ranged branch reloads `mov bx,e` in the original, and the

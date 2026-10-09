@@ -1,4 +1,5 @@
 /* place: root 0000:0000 */
+/* orig: size=2652 _DATA=020a+0074 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: hand port (e3 rounds 3-4), every function written; 26/38 match (fmatch counts 38
    because 0000:2652 - sub_root_0265_0002 - belongs to this file, see below).

@@ -1,4 +1,5 @@
 /* place: s014 1d69:000c */
+/* orig: size=04dc CONST=7cf8+0002 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 1d69: line of sight / line of fire.
    The segment (D_e0a5,D_e0a3)-(D_e0a9,D_e0a7) (pixel coordinates) is tested against

@@ -1,5 +1,5 @@
 /* place: root 030b:0004 */
-/* orig: size=0882 */
+/* orig: size=0966 _DATA=027e+010f */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: FILE MATCH (e2, 2026-10-09): 20/20 (the 17 listed functions + 014e (empty),
  *   0450 (interrupt handler) and 0508 (timer tick), which nothing references directly; all
