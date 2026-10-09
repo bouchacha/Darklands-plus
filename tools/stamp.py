@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""
+Record each matching C file's original extent in the file itself:
+
+    /* orig: size=06f4 _DATA=6a76+0009 CONST=829e+0002 */
+
+size  = bytes of original code the file replaces (from its placement address)
+_DATA/CONST = DGROUP offset + size of the module's data segments
+
+Run on files that match (the full build prints BYTE-IDENTICAL). 'build.py --mod' uses the stamp
+to cut the original range out of the program even after the C has been edited and its code
+no longer has the original length.
+
+  python3 -I tools/stamp.py            stamp every src/c file that has no stamp yet
+  python3 -I tools/stamp.py --force    re-stamp all files
+"""
+import sys, os, re, argparse
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import cport
+from rtlink import RTLinkExe
+
+REPO = os.path.dirname(HERE)
+EXE = os.environ.get('DARKLAND_EXE', '/home/claude/dl_raw/extracted/DARKLAND/DARKLAND.EXE')
+
+
+def stamp_line(c):
+    parts = ['size=%04x' % c['length']]
+    for n in sorted(c['datasegs']):
+        parts.append('%s=%04x+%04x' % (n, c['data'][n], c['datasegs'][n]))
+    return '/* orig: %s */' % ' '.join(parts)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--force', action='store_true')
+    ap.add_argument('files', nargs='*')
+    a = ap.parse_args()
+    exe = RTLinkExe(EXE)
+    n = 0
+    for src in cport.sources(REPO):
+        if a.files and not any(os.path.samefile(src['path'], f) for f in a.files):
+            continue
+        text = open(src['path'], encoding='latin-1').read()
+        if src['orig_size'] is not None and not a.force:
+            continue
+        c = cport.compile_source(src, os.path.join(REPO, 'build', 'cobj'))
+        c['data'] = {}
+        img = c['image']
+        mem = exe.root_memory() if img == 'root' else exe.section_memory(int(img[1:]))
+        lo = 0 if img == 'root' else exe.sections[int(img[1:])].load_seg * 16
+        st = c['frame'] * 16 + c['offset']
+        head = text[:3000]
+        c['data'] = dict((k, int(v, 16)) for k, v in re.findall(r'/\*\s*data:\s*(\w+)=([0-9a-fA-F]{1,4})\s*\*/', head))
+        cport.infer_data_placement(c, bytes(mem[st - lo: st - lo + c['length']]))
+        line = stamp_line(c)
+        text = cport.ORIG_LINE.sub('', text)
+        m = cport.PLACE.search(text)
+        eol = text.index('\n', m.end()) + 1
+        text = text[:eol] + line + '\n' + text[eol:]
+        open(src['path'], 'w', encoding='latin-1').write(text)
+        n += 1
+    print('stamped %d files' % n)
+
+
+if __name__ == '__main__':
+    main()

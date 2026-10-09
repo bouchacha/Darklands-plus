@@ -1,4 +1,5 @@
 /* place: root 05ba:0004 */
+/* orig: size=01f8 _DATA=07fa+0085 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* DOS memory buffers (root segment 05ba): allocate / free / resize a block of DOS memory,
    given as a byte count, and abort the game with a message when DOS refuses. The block's

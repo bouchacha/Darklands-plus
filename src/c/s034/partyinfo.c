@@ -1,4 +1,5 @@
 /* place: s034 1550:0006 */
+/* orig: size=0c86 CONST=7e88+000c _DATA=362c+018e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
 /* Party information screen: fame, date, wealth and the map of locations (overlay s034). */
 

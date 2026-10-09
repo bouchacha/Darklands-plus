@@ -1,4 +1,5 @@
 /* place: root 0410:0008 */
+/* orig: size=0012 */
 /* Random numbers (root segment 0410). */
 
 int rand(void);

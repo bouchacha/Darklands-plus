@@ -1,4 +1,5 @@
 /* place: s030 1767:000e */
+/* orig: size=010e _DATA=2a3a+001b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Low-level system helpers used by the overland map overlay (s030):
    BIOS video mode, exit to DOS, timed delay, vertical-retrace wait,

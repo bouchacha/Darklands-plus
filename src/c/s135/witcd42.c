@@ -1,4 +1,5 @@
 /* place: s135 1838:0000 */
+/* orig: size=06f4 CONST=829e+0002 _DATA=6a76+0009 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Card script module for card "$Witcd42" (overlay s135). */
 

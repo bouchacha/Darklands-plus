@@ -206,6 +206,120 @@ class Module:
         return out, q
 
 
+def relayout(L, mods, fixed=('root', 's136'), pad=None):
+    """Re-lay out the overlays for a build whose code no longer has the original sizes (a mod).
+
+    Every placed segment is a piece of an original segment ('frame'). Pieces keep their order;
+    a piece moves up when the piece before it grew (byte granular inside a frame), and later
+    frames move up by whole paragraphs, so unchanged code keeps its offsets within its frame.
+    Then the overlay tree is rebuilt: a child section is loaded right after its parent
+    (base = parent base + parent paragraphs), exactly as RTLink/Plus lays it out. The root and
+    the data section (DGROUP and far data) never move; every overlay branch must still end
+    below the data section. Updates L in place and returns a report {image: (old, new) paras}.
+
+    A piece's original size is 'orig_size' in its layout entry (the range a C file replaces);
+    asm pieces keep their size. 'pad' {image: bytes} adds room at the end of a section (a test
+    aid: padding a parent moves every overlay below it)."""
+    segmap = L['modules']
+    pieces = collections.defaultdict(list)
+    for m in mods:
+        local = L.get('object_modules', {}).get(m.path, {})
+        for si in range(1, len(m.segs)):
+            sname = m.segs[si][0]
+            if sname in local or sname not in segmap:
+                continue
+            ent = segmap[sname]
+            img = ent['image']
+            if img in fixed:
+                continue
+            offs = [(off, off + len(blob)) for s_, off, blob in m.data if s_ == si]
+            if not offs:
+                continue
+            first = min(o for o, _ in offs)
+            last = max(e for _, e in offs)
+            start = ent['frame'] * 16 + ent.get('offset', 0) + first
+            pieces[img].append({'ent': ent, 'frame': ent['frame'], 'start': start, 'first': first,
+                                'size': last - first, 'orig_size': ent.get('orig_size', last - first)})
+    images = L['images']
+    shifted = {}
+    for img, ps in pieces.items():
+        ps.sort(key=lambda p: p['start'])
+        for a, b in zip(ps, ps[1:]):
+            if a['start'] + a['orig_size'] > b['start']:
+                raise LinkError('%s: pieces overlap at %05x' % (img, b['start']))
+        shift = 0
+        prev_end = None
+        cur = None
+        new_frame = None
+        for p in ps:
+            if p['frame'] != cur:
+                cur = p['frame']
+                if prev_end is not None:
+                    shift = max(shift, prev_end - p['start'])
+                shift = (shift + 15) & ~15
+                new_frame = cur + shift // 16
+            elif prev_end is not None:
+                shift = max(shift, prev_end - p['start'])
+            ns = p['start'] + shift
+            p['new_start'], p['new_frame'] = ns, new_frame
+            off = ns - new_frame * 16
+            if off + p['size'] > 0x10000:
+                raise LinkError('%s: segment %04x grew past 64K' % (img, cur))
+            prev_end = ns + p['size']
+        im = images[img]
+        lo = im['base_seg'] * 16
+        need = max(prev_end - lo, im['mem_size'] + ((shift + 15) & ~15))
+        shifted[img] = (ps, (need + 15) & ~15)
+    # overlay tree: parents first; a child starts where its parent ends
+    order = sorted((n for n in images if n not in ('root',)), key=lambda n: images[n].get('section', 0))
+    report = {}
+    newbase = {}
+
+    def depth(n):
+        d, pi = 0, images[n].get('parent_index', 0xffff)
+        while pi != 0xffff:
+            d += 1
+            pi = images['s%03d' % pi].get('parent_index', 0xffff)
+        return d
+    for n in sorted(order, key=depth):
+        im = images[n]
+        if n in fixed:
+            continue
+        old_base, old_mem = im['base_seg'], im['mem_size']
+        pi = im.get('parent_index', 0xffff)
+        base = old_base
+        if pi != 0xffff:
+            par = 's%03d' % pi
+            base = newbase.get(par, images[par]['base_seg']) + images[par]['mem_size'] // 16
+        mem = shifted[n][1] if n in shifted else old_mem
+        if pad and n in pad:
+            mem += (pad[n] + 15) & ~15          # test aid: extra room at the end of the section
+        newbase[n] = base
+        delta = base - old_base
+        for p in (shifted[n][0] if n in shifted else []):
+            fr = p['new_frame'] + delta
+            p['ent']['frame'] = fr
+            p['ent']['offset'] = p['new_start'] + delta * 16 - fr * 16 - p['first']
+        if delta and n not in shifted:
+            for ent in segmap.values():
+                if ent['image'] == n:
+                    ent['frame'] += delta
+        im['base_seg'], im['mem_size'] = base, mem
+        if im['file_size'] == old_mem:
+            im['file_size'] = mem
+        if (base, mem) != (old_base, old_mem):
+            report[n] = ((old_base, old_mem // 16), (base, mem // 16))
+    top = images['s136']['base_seg']
+    for n in order:
+        if n in fixed:
+            continue
+        end = images[n]['base_seg'] + images[n]['mem_size'] // 16
+        if end > top:
+            raise LinkError('overlay %s now ends at paragraph %04x, past the data section at %04x '
+                            '(%d paragraphs too large)' % (n, end, top, end - top))
+    return report
+
+
 class Linker:
     def __init__(self, layout):
         self.L = layout

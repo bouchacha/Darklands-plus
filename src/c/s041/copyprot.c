@@ -1,4 +1,5 @@
 /* place: s041 1462:0000 */
+/* orig: size=05cc CONST=7ee0+0002 _DATA=4dee+0066 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
 /* Copy-protection screen: "SELECT THE SYMBOL FOR <substance>" (overlay s041). */
 

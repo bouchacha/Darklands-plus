@@ -1,4 +1,5 @@
 /* place: s034 1462:0000 */
+/* orig: size=0ee6 CONST=7e82+0006 _DATA=33ee+023e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
 /* Calling on a saint: the prayer screen (overlay s034). */
 

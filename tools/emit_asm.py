@@ -187,6 +187,69 @@ class Emitter:
                 self.labels.add((img, tgt))
         for o, (tname, tlin, tseg) in self.vectors.items():
             self.labels.add((tname, tlin))
+        self.find_far_offsets()
+
+    def find_far_offsets(self):
+        """Offset halves of far code pointers built in code. MSC writes a far function pointer as
+        two instructions, one with a relocated segment and one with a plain 16-bit offset:
+            mov word ptr [m], off   /  mov word ptr [m+2], SEG x       (store)
+            push SEG x              /  push off                        (argument)
+            mov ax, off             /  mov dx, SEG x                   (return value)
+        The offset is emitted as 'OFFSET label' so it follows the function if code moves
+        (tools/build.py --mod). Only offsets that land on a function entry of that frame count."""
+        self.far_off = {}
+        by_img = collections.defaultdict(list)
+        for (img, lin) in self.insns:
+            by_img[img].append(lin)
+        for img, lins in by_img.items():
+            I = self.images[img]
+            if img == self.data_img:
+                continue
+            lins.sort()
+            for k, lin in enumerate(lins):
+                size, mn, ops, raw, frame, off = self.insns[(img, lin)]
+                if not raw or raw[0] in PREFIXES:
+                    continue
+                op = raw[0]
+                cand = None
+                if op == 0xc7 and size >= 5 and (lin + size - 2) in I['relocs'] and k > 0:
+                    pl = lins[k - 1]
+                    pr = self.insns[(img, pl)]
+                    praw = pr[3]
+                    if pl + pr[0] == lin and praw[:2] == raw[:2] and len(praw) == len(raw) and \
+                            not any(q in I['relocs'] for q in range(pl, lin)):
+                        da = int.from_bytes(praw[2:len(praw) - 2], 'little', signed=True) if len(praw) > 4 else 0
+                        db = int.from_bytes(raw[2:len(raw) - 2], 'little', signed=True) if len(raw) > 4 else 0
+                        if db - da == 2:
+                            cand = (pl, len(praw) - 2)
+                elif op == 0x68 and size == 3 and (lin + 1) in I['relocs'] and k + 1 < len(lins):
+                    nl = lins[k + 1]
+                    nr = self.insns[(img, nl)]
+                    if lin + size == nl and nr[3][:1] == b'\x68' and nr[0] == 3 and (nl + 1) not in I['relocs']:
+                        cand = (nl, 1)
+                elif op == 0xba and size == 3 and (lin + 1) in I['relocs']:
+                    for j in (k - 1, k + 1):
+                        if 0 <= j < len(lins):
+                            ol = lins[j]
+                            orr = self.insns[(img, ol)]
+                            if orr[3][:1] == b'\xb8' and orr[0] == 3 and (ol + 1) not in I['relocs'] and \
+                                    (ol + orr[0] == lin or lin + size == ol):
+                                cand = (ol, 1)
+                if cand is None:
+                    continue
+                v = struct.unpack_from('<H', raw, size - 2 if op == 0xc7 else 1)[0]
+                timg = self.resolve_frame(img, v)
+                if timg is None or timg == self.data_img:
+                    continue
+                ol, at = cand
+                o = struct.unpack_from('<H', self.insns[(img, ol)][3], at)[0]
+                tlin = v * 16 + o
+                if (timg, tlin) not in self.entries or (timg, tlin) not in self.insns:
+                    continue
+                f2, _, _ = self.region_of(timg, tlin)
+                if f2 != v:
+                    continue
+                self.far_off[(img, ol)] = (timg, tlin)
 
     def branch_target(self, img, lin, r):
         size, mn, ops, raw, frame, off = r
@@ -284,6 +347,22 @@ class Emitter:
                     return None
                 return 'mov %s, SEG %s' % (masm_operands(m.group(1)), fs)
             return None
+        # ---- offset half of a far code pointer (see find_far_offsets)
+        if (img, lin) in self.far_off and k == 0:
+            timg, tlin = self.far_off[(img, lin)]
+            name = self.label_name(timg, tlin)
+            if not name.startswith('vec_'):
+                f2, _, _ = self.region_of(timg, tlin)
+                if (timg, f2) != (img, rf):
+                    ext.add(('FAR', name))
+                self._sym_hint = True
+                if op == 0x68:
+                    return 'push OFFSET %s' % name
+                if op == 0xb8:
+                    return 'mov ax, OFFSET %s' % name
+                m = re.match(r'(.*), (0x[0-9a-f]+|\d+)$', ops)
+                if op == 0xc7 and m:
+                    return 'mov %s, OFFSET %s' % (masm_operands(m.group(1)), name)
         # ---- branches
         tgt = self.branch_target(img, lin, r)
         if tgt is not None:
@@ -484,6 +563,20 @@ class Emitter:
                     body.append('\tdw %s\t; @%05x case %d (numeric)' % (hexm(v), p, kk))
                 p += 2
                 continue
+            if img == 'root' and (p - 1) in self.vec_jmp and (p + 2) in I['relocs'] and p + 4 <= hi:
+                # RTLink vector stub 'call handler / jmp far target / dw section': the jump target
+                # is a far pointer into an overlay; keep it symbolic so it follows the code
+                timg, tlin, tseg = self.vec_jmp[p - 1]
+                off, v = struct.unpack_from('<HH', mem, p - base)
+                f2, _, _ = self.region_of(timg, tlin)
+                if f2 == v and tlin == v * 16 + off:
+                    nm = self.label_name(timg, tlin)
+                    flush()
+                    ext.add(('FAR', nm))
+                    body.append('\tdd %s\t; @%05x vector target' % (nm, p))
+                    self.far_ptr_sym += 1
+                    p += 4
+                    continue
             if (p + 2) in I['relocs'] and p not in I['relocs'] and (p + 1) not in I['relocs'] \
                     and p + 4 <= hi and not any(q in anylab for q in (p + 1, p + 2, p + 3)) \
                     and (img, p) not in self.insns:

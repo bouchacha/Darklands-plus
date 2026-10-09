@@ -128,6 +128,16 @@ def main():
     ap.add_argument('exe')
     ap.add_argument('--work', default='build')
     ap.add_argument('--skip-analysis', action='store_true')
+    ap.add_argument('--mod', action='store_true',
+                    help='mod build: C files may differ from the original and change size; the '
+                         'overlays are re-laid out (needs the /* orig: */ stamps, tools/stamp.py)')
+    ap.add_argument('--out', help='output EXE (default <work>/DARKLAND.EXE)')
+    ap.add_argument('--overlay', action='append', default=[], metavar='DIR',
+                    help='with --mod: C files under DIR replace the src/c file with the same '
+                         '/* place: */ address (a mod kept outside the matching tree)')
+    ap.add_argument('--pad', action='append', default=[], metavar='IMAGE=BYTES',
+                    help='with --mod: add room at the end of an overlay section (moves its children); '
+                         'a test of the relayout')
     a = ap.parse_args()
     work = a.work
     os.makedirs(work, exist_ok=True)
@@ -147,21 +157,80 @@ def main():
     entries = set(k for k in an['entries'] if k in an['insns'])
     cobjs, holes = [], []
     aliases = {}
-    for src in cport.sources(REPO):
+    changed = []
+    srcs = cport.sources(REPO)
+    if a.overlay:
+        if not a.mod:
+            raise SystemExit('--overlay needs --mod')
+        key = lambda x: (x['image'], x['frame'] * 16 + x['offset'])
+        bykey = {key(x): x for x in srcs}
+        for d in a.overlay:
+            for x in cport.sources(d, sub=''):
+                old_ = bykey.get(key(x))
+                if old_ is not None:
+                    if x['orig_size'] is None:
+                        x['orig_size'], x['orig_slots'] = old_['orig_size'], old_['orig_slots']
+                    print('overlay: %s replaces %s' % (x['path'], os.path.relpath(old_['path'], REPO)))
+                bykey[key(x)] = x
+        srcs = sorted(bykey.values(), key=lambda x: x['path'])
+    for src in srcs:
         c = cport.compile_source(src, os.path.join(work, 'cobj'))
         start = c['frame'] * 16 + c['offset']
-        end = start + c['length']
         if (c['image'], start) not in entries:
             raise SystemExit('%s: placement %s %04x:%04x is not a function entry' % (
                 c['path'], c['image'], c['frame'], c['offset']))
-        im = exe.root_memory() if c['image'] == 'root' else exe.section_memory(int(c['image'][1:]))
-        ilo = 0 if c['image'] == 'root' else exe.sections[int(c['image'][1:])].load_seg * 16
-        cport.infer_data_placement(c, bytes(im[start - ilo: start - ilo + c['length']]))
-        # the module's data (literals, segment words) replaces the same bytes of DGROUP
-        for dn, doff in c['data'].items():
-            dl = 0x321a0 + doff
-            holes.append(('s136', dl, dl + c['datasegs'][dn], {}))
-        names = {start + off: n for n, off in c['publics']}
+        osize = c.get('orig_size')
+        if a.mod:
+            if osize is None:
+                raise SystemExit('%s: no /* orig: */ stamp; stamp it while it still matches '
+                                 '(python3 -I tools/stamp.py %s)' % (c['path'], c['path']))
+            end = start + osize
+            # data goes where the original module's data was; it may shrink but not grow
+            for dn, ln in c['datasegs'].items():
+                if dn not in c['orig_slots']:
+                    raise SystemExit('%s: the original module had no %s data; put new strings and '
+                                     'variables in far data (e.g. static char far s[] = "...";)' % (c['path'], dn))
+                soff, ssz = c['orig_slots'][dn]
+                if ln > ssz:
+                    raise SystemExit('%s: %s data grew from %d to %d bytes, but DGROUP is full; move '
+                                     'new strings to far data (static char far s[] = "...";)' % (
+                                         c['path'], dn, ssz, ln))
+                c['data'][dn] = soff
+            for dn, (soff, ssz) in c['orig_slots'].items():
+                dl = 0x321a0 + soff
+                holes.append(('s136', dl, dl + ssz, {}))
+            # original functions in the replaced range, paired in order with the compiled ones
+            ents = sorted(l for (i, l) in entries if i == c['image'] and start <= l < end)
+            pubs = sorted(c['publics'], key=lambda x: x[1])
+            names = {}
+            # a public that carries an original label name keeps it; the others pair in order
+            byname = {}
+            for n, off in pubs:
+                mm = re.match(r'^_?sub_%s_([0-9a-f]{4})_([0-9a-f]{4})$' % c['image'], n)
+                if mm:
+                    lin = int(mm.group(1), 16) * 16 + int(mm.group(2), 16)
+                    if lin in ents:
+                        byname[lin] = n
+            rest_e = [l for l in ents if l not in byname]
+            rest_p = [n for n, off in pubs if n not in byname.values()]
+            names = dict(byname)
+            if len(rest_e) == len(rest_p):
+                names.update(zip(rest_e, rest_p))
+            if c['length'] != osize:
+                changed.append((c, osize))
+        else:
+            end = start + c['length']
+            if osize is not None and osize != c['length']:
+                changed.append((c, osize))
+            im = exe.root_memory() if c['image'] == 'root' else exe.section_memory(int(c['image'][1:]))
+            ilo = 0 if c['image'] == 'root' else exe.sections[int(c['image'][1:])].load_seg * 16
+            cport.infer_data_placement(c, bytes(im[start - ilo: start - ilo + c['length']]))
+            # the module's data (literals, segment words) replaces the same bytes of DGROUP
+            for dn, doff in c['data'].items():
+                dl = 0x321a0 + doff
+                holes.append(('s136', dl, dl + c['datasegs'][dn], {}))
+            names = {start + off: n for n, off in c['publics']}
+        c['orig_end'] = end
         holes.append((c['image'], start, end, names))
         # the original generated labels of ported functions stay valid as aliases, so other C
         # files (and asm) can keep calling sub_<image>_<frame>_<offset>
@@ -170,6 +239,13 @@ def main():
             aliases[gen] = n
             aliases['_' + gen] = n
         cobjs.append(c)
+    if changed and not a.mod:
+        for c, osize in changed:
+            print('note: %s changed size (%04x -> %04x bytes); use --mod to build it' % (
+                os.path.relpath(c['path'], REPO), osize, c['length']))
+    if a.mod:
+        for c, osize in changed:
+            print('mod: %s %04x -> %04x bytes' % (os.path.relpath(c['path'], REPO), osize, c['length']))
     if cobjs:
         print('C modules: %d files, %d functions, %d bytes' % (
             len(cobjs), sum(len(c['publics']) for c in cobjs), sum(c['length'] for c in cobjs)))
@@ -211,7 +287,8 @@ def main():
     L['aliases'] = aliases
     per_obj = {}
     for c in cobjs:
-        L['modules'][c['segment']] = {'image': c['image'], 'frame': c['frame'], 'offset': c['offset']}
+        L['modules'][c['segment']] = {'image': c['image'], 'frame': c['frame'], 'offset': c['offset'],
+                                      'orig_size': c['orig_end'] - (c['frame'] * 16 + c['offset'])}
         # data segments have common names (_DATA/CONST) - give each object its own mapping
         per_obj[c['obj']] = {n: {'image': 's136', 'frame': 0x321a, 'offset': off} for n, off in c['data'].items()}
     L['object_modules'] = per_obj
@@ -219,10 +296,16 @@ def main():
     objs = [os.path.join(obj_dir, os.path.splitext(os.path.basename(f))[0] + '.obj') for f in files]
     objs += [c['obj'] for c in cobjs]
     mods = [omflink.Module(o) for o in objs]
+    if a.mod:
+        pad = {k: int(v, 0) for k, v in (x.split('=') for x in a.pad)}
+        rep = omflink.relayout(L, mods, pad=pad)
+        for n, ((ob, om), (nb, nm)) in sorted(rep.items()):
+            print('relayout: %s %04x+%04x -> %04x+%04x paragraphs' % (n, ob, om, nb, nm))
+        json.dump(L, open(os.path.join(work, 'layout_mod.json'), 'w'))
     lk = omflink.Linker(L)
     lk.place(mods)
     lk.apply(mods)
-    out = os.path.join(work, 'DARKLAND.EXE')
+    out = a.out or os.path.join(work, 'DARKLAND.EXE')
     data = lk.write_exe(out)
     # symbol table for quick per-file checks (tools/cmatch.py)
     symtab = {n: list(v) for n, v in lk.symbols.items()}
@@ -235,6 +318,9 @@ def main():
     print('original      : %d bytes md5 %s' % (len(ref), hashlib.md5(ref).hexdigest()))
     if data == ref:
         print('BYTE-IDENTICAL')
+    elif a.mod:
+        print('mod build written (differs from the original, as expected for a mod)')
+        return
     else:
         diffs = [i for i in range(min(len(ref), len(data))) if ref[i] != data[i]]
         print('DIFFERENT: %d differing bytes; first %s' % (len(diffs), [hex(x) for x in diffs[:16]]))

@@ -1,4 +1,5 @@
 /* place: root 03ec:000e */
+/* orig: size=023a */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Copy a rectangle between graphics pages, keeping copies of rectangles saved away from the
    screen in DOS memory blocks (root segment 03ec). */

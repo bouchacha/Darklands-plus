@@ -27,11 +27,26 @@ import msc
 
 PLACE = re.compile(r'/\*\s*place:\s*(\w+)\s+([0-9a-fA-F]{4}):([0-9a-fA-F]{4})\s*\*/')
 FLAGS = re.compile(r'/\*\s*flags:\s*([^*]+)\*/')
+# written by tools/stamp.py from a matching build: the size of the original code this file
+# replaces and where its data segments sit in DGROUP (offset+size). A modded file may change;
+# the stamp keeps the original range so 'build.py --mod' knows what it replaces.
+ORIG = re.compile(r'/\*\s*orig:\s*size=([0-9a-fA-F]+)((?:\s+\w+=[0-9a-fA-F]+\+[0-9a-fA-F]+)*)\s*\*/')
+ORIG_LINE = re.compile(r'^/\*\s*orig:[^\n]*\*/\n', re.M)
 
 
-def sources(repo):
+def parse_orig(head):
+    m = ORIG.search(head)
+    if not m:
+        return None, {}
+    slots = {}
+    for n, off, sz in re.findall(r'(\w+)=([0-9a-fA-F]+)\+([0-9a-fA-F]+)', m.group(2)):
+        slots[n] = (int(off, 16), int(sz, 16))
+    return int(m.group(1), 16), slots
+
+
+def sources(repo, sub=os.path.join('src', 'c')):
     out = []
-    base = os.path.join(repo, 'src', 'c')
+    base = os.path.join(repo, sub)
     for dp, dn, fn in os.walk(base):
         for f in sorted(fn):
             if not f.lower().endswith('.c'):
@@ -42,9 +57,11 @@ def sources(repo):
             if not m:
                 continue
             fm = FLAGS.search(head)
+            osize, slots = parse_orig(head)
             out.append({'path': p, 'image': m.group(1), 'frame': int(m.group(2), 16),
                         'offset': int(m.group(3), 16),
-                        'flags': fm.group(1).split() if fm else list(msc.DEFAULT)})
+                        'flags': fm.group(1).split() if fm else list(msc.DEFAULT),
+                        'orig_size': osize, 'orig_slots': slots})
     return sorted(out, key=lambda s: s['path'])
 
 
@@ -135,7 +152,7 @@ def compile_source(src, cache_dir, extra_headers=()):
     os.makedirs(cache_dir, exist_ok=True)
     seg = ('P_%s_%04x_%04x' % (src['image'], src['frame'], src['offset'])).upper()   # MSC upper-cases /NT
     flags = list(src['flags']) + ['/NT', seg]
-    blob = open(src['path'], 'rb').read()
+    blob = ORIG_LINE.sub('', open(src['path'], encoding='latin-1').read()).encode('latin-1')
     for h in extra_headers:
         blob += open(h, 'rb').read()
     key = hashlib.md5(blob + ' '.join(flags).encode() + b'compat600-v3').hexdigest()[:16]
