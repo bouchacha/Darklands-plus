@@ -2,17 +2,20 @@
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
 /* status: hand port (e3). All 143 functions written; 134/143 match, _DATA and CONST slots
-   match the original. Open: 013a (frame 2 vs 4: the +0x35 CSE spill goes to [bp-2], the
-   original has an unused slot above it; length is right), 1260 (-2 bytes; the far-pointer
-   loop in build/agent/e3/r3_1260_pform.c gets the length and frame right, only the loop
-   set-up differs, but it un-cancels the +2 of 1a8e), 1446 (sum operand order:
-   symbol-table state, see D_fff0/D_ffe0), 1a8e (+2: case 33 cross-jump/sum order and
-   case 35 loop/field reload; case 1 solved as an if/else chain in
-   build/agent/e3/r3_1a8e_case1.c), 255a (cap compares preload the current value),
+   match the original, and every function now has its original length except 255a/2d5c/
+   2e74/4650 (so 1dfe/1fb8 no longer depend on errors cancelling). Open: 013a (frame 2 vs
+   4: the +0x35 CSE spill goes to [bp-2], the original has an unused slot above it),
+   1260 (far-pointer loop form: length/frame/tail right, only the loop set-up differs:
+   6.00 `mov dx,9c69h; mov di,dx; mov cx,ax`, ours keeps both in stack slots),
+   1446 (sum operand order: symbol-table state, see D_fff0/D_ffe0/D_ffd0..3),
+   1a8e (case 1 as an if/else chain with volatile stores; 6.00 kept the dead stores to i in
+   case 1 *and* strength-reduced the case 35 loop on the same i - 6.00A does one or the
+   other (address-taken i is never strength-reduced), so case 35 now loops on a separate
+   j and 1a8e is only length-tuned: frame 4 vs 2, case 35 field CSE, case 33 sum order),
+   255a (cap compares preload the current value),
    2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits `inc si`; 2e74 needs
    #pragma optimize("a", on) for the 3144 test), 4b08 (d kept in memory, slot order),
-   4650 (inline far memset: 6.00 only). 1260 and 1a8e must be fixed together (their
-   length errors cancel for the jump tables of 1dfe/1fb8). Several
+   4650 (inline far memset: 6.00 only). Several
    matches depend on the symbol table (prototype text, local names, extern lines): re-check
    the whole file after every change (build/agent/e3/keep.py; NOPROTO=1 for splice.py;
    dperm.py on 4378/4c04 when they flip). See build/agent/e3/NOTES.md. */
@@ -415,6 +418,11 @@ void far sub_s029_0e76_010e(int who, char d)
 }
 #pragma optimize("", on)
 
+/* unused: four more symbol-table knobs (255a back to 706 bytes; 4378 re-ordered) */
+extern int D_ffd0;
+extern int D_ffd1;
+extern int D_ffd2;
+extern int D_ffd3;
 extern int D_ffe0;  /* unused: keeps the symbol-table state (1446/179c/184a) after 013a stopped using D_9cb3 */
 /* fatigue band of a member (-1: active member): with max = +0x49 + +0x4a (the two
    attributes behind endurance) and cur = +0x35 (accumulated fatigue): 0 while cur <= max/2,
@@ -956,16 +964,18 @@ int far sub_s029_0e76_11fa(int who, int k)
     return 0;
 }
 
-/* test event/knowledge bit `bit` of a member (-2: any present member) */
+/* test event/knowledge bit of a member (-2: any present member) */
 int far sub_s029_0e76_1260(int who, unsigned bit)
 {
     int mask;
     int i;
+    unsigned char far *p;
 
     mask = 0x80 >> (bit & 7);
     if (who == -2) {
-        for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0 && (F_2e38_082c[i][bit >> 3] & mask))
+        p = &F_2e38_082c[0][bit >> 3];
+        for (i = 0; i < 5; i++, p += 0x14)
+            if (D_9c69[i][0] != 0 && (*p & mask))
                 return 1;
         return 0;
     }
@@ -1316,26 +1326,25 @@ int far sub_s029_0e76_1a7e(int p_6)
     sub_s029_0e76_1a8e(D_907e, p_6);
 }
 
-/* location/city query: what = 0 reputation of location loc, 1 reputation band (0 best ..
-   5 worst), 2 city size class (1 outside a city, 2 for locations 0x5c and up), 3-11 city
-   bytes (+0x63, 62, 64, 67, 65, 68, 6a, 69, 66), 12-14 and 32 location bytes (+0x15-17,
-   +0x14), 15-31 city flag bits (+0x5e), 33 city seed (+0x56) + D_9c4a, 34 city word +0x46,
-   35 city festival within 14 days of the start of the month (+0x6c day of year),
-   37/38 location words +0x1c/+0x1a, 39 current location has +0x18 set, 40/41 city word
-   +0x5a/+0x58 depending on location flag 0x80.  Other values return garbage. */
 int far sub_s029_0e76_1a8e(int loc, unsigned what)
 {
     int r;
     int d;
     int i;
     int t;
+    int j;
 
     switch (what) {
     case 0:
         return F_2e38_10be[loc]->rep;
     case 1:
         r = F_2e38_10be[loc]->rep;
-        *(volatile int *)&i = r > -75 ? r > -40 ? r > -10 ? r > 10 ? r > 50 ? 0 : 1 : 2 : 3 : 4 : 5;
+        if (r <= -75) *(volatile int *)&i = 5;
+        else if (r <= -40) *(volatile int *)&i = 4;
+        else if (r <= -10) *(volatile int *)&i = 3;
+        else if (r <= 10) *(volatile int *)&i = 2;
+        else if (r <= 50) *(volatile int *)&i = 1;
+        else *(volatile int *)&i = 0;
         break;
     case 2:
         t = D_907e;
@@ -1399,13 +1408,16 @@ int far sub_s029_0e76_1a8e(int loc, unsigned what)
         if (t == -1)
             return D_9c4a + D_e3d2 + D_e3d0;
         if (t >= 0x5c)
-            return t + D_9c4a;
+            return D_907e + D_9c4a;
         return *(int far *)(D_9785 + 0x56) + D_9c4a;
     case 34:
         return *(int far *)(D_9785 + 0x46);
     case 35:
-        for (d = i = 0; i < D_00e4; i++)
-            d += D_2776[i];
+        /* within 14 days of the location's day of year +0x6c.  Original: one counter i
+           (`d = i = 0` kept in [bp-2], same slot as case 1's store); see status */
+        d = 0;
+        for (j = 0; j < D_00e4; j++)
+            d += D_2776[j];
         if (*(int far *)(D_9785 + 0x6c) > d)
             r = *(int far *)(D_9785 + 0x6c) - d;
         else
@@ -2712,8 +2724,8 @@ void far sub_s029_0e76_4180(int i)
 
 void far sub_s029_0e76_4378(int j)
 {
-    int i;
     int k;
+    int i;
 
     i = 0;
     do {

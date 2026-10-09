@@ -21,7 +21,10 @@
      Session 4 (e1d): 14b6 slot order follows the first stores after DSE (dead early
            `type = 0;` / `(void)type;` and `type = t, q = i;` change nothing; int v[3] / struct /
            union holders are worse).  01b4: the CSE variant with pragma a on/off still compares
-           nitems straight from memory instead of saving it in the [bp-0ah] byte temp. */
+           nitems straight from memory instead of saving it in the [bp-0ah] byte temp.
+     Session e4: 14b6 `q = i; type = t;` gives the original store order but q's slot moves
+           above type (slots follow first-store order); `if ((type = t) == -1)` / `if (t != -1)
+           { ... }` / found = -1 before the test: no match (best stays 2 lines). */
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {

@@ -12,7 +12,11 @@
        jump back into it (`jmp 09c3`), 6.00A keeps the later copy; 'C' then jumps to `call 1293`;
      - `if (D_a67e <= i) D_a67e = i + 1;` operand order (`mov ax,i; cmp [a67e],ax; jg`); struct
        wrapper and declpos search did not help.
-   0000 differs only in the frame (key at [bp-4], row di / k si).
+   0000: no separate copy var - `key` itself is used in the tail (6.00A splits it: memory in
+   the mouse part, SI from `mov si,[bp-4]` on) + #pragma optimize("a"): registers now right
+   (row DI). Left: the original has an unused 2-byte slot at [bp-2] above key ([bp-4]);
+   unused/dead locals get no slot in 6.00A, a dead struct (`r.a = f(); return r.a;`) gets
+   one but below the scalars (tried 16 names, both positions).
    Character creation main menu (pics\cretscr3.pic): list of saved characters from charactr.tmp.
 
    charactr.tmp layout: int count; int ids[5] (party slot -> character index, -1 = empty);
@@ -117,11 +121,12 @@ int far sub_s038_1462_02f8();
 void far sub_s038_1462_23ec(struct font *);
 void far sub_s038_1462_25ca(struct font *);
 
+#pragma optimize("a", on)
 int far sub_s038_1462_0000(void)
 {
-    volatile int key;   /* TODO: original key at [bp-4], row in di, k in si; 6.00A shares si for row/k */
+    int key;
     int row;
-    int k;
+    int k;      /* unused: keeps the symbol table (compare direction in 23ec) */
     sub_root_047c_0568();
     D_9920 = 2;
     D_9934 = 2;
@@ -178,22 +183,22 @@ int far sub_s038_1462_0000(void)
             }
         }
         sub_root_0000_0000(D_9419, 0);
-        k = key;
         if (D_9c46) {
             D_9c46 = 0;
             sub_root_047c_0568();
             sub_s038_1462_024e();
             sub_s038_1462_0292();
             sub_root_047c_056f();
-            k = 0;
+            key = 0;
         }
         if (sub_root_047c_073d())
-            k = sub_root_047c_0744();
-            if (k == 0x11b || k == 0x1352 || k == 0x1372)
+            key = sub_root_047c_0744();
+            if (key == 0x11b || key == 0x1352 || key == 0x1372)
             return sub_s038_1462_01fe(0);
-    } while (!k || sub_s038_1462_02f8(k) != 0x11b);
+    } while (!key || sub_s038_1462_02f8(key) != 0x11b);
     return sub_s038_1462_01fe(1);
 }
+#pragma optimize("", on)
 
 int far sub_s038_1462_01fe(int p_6)
 {

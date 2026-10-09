@@ -1,11 +1,11 @@
 /* place: s010 1432:0000 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: _DATA=1536 */
-/* status (e6, 2026-10-09): started from build/agent/gen_engine; 17 of 18 functions written
- * (08aa, the 2.2 KB street-battle setup, is still the dec16 stub with its literal).
+/* status (e6, 2026-10-09): started from build/agent/gen_engine; ALL 18 functions written, 9 match.
  * City battlefields, same scheme as s011 (up to 2 level buffers of 0x33fc bytes at D_e03f
  * based on D_e03d, saved as level%d.flr).
- * Match: 0000 (driver: buffer name through a union local -> `mov ax,1536h; push ax` and the
+ * Match: 08aa (street battle setup: hash-ordered local names, `g1 = g2 = g3 = -1` chains
+ * reversed, gotos for the shared 0x16/0x17 arms of the first switch), 0000 (driver: buffer name through a union local -> `mov ax,1536h; push ax` and the
  * 2-byte frame), 0102 (location -> battlefield type, nested random switches falling through),
  * 0292, 02cc, 058c, 079a (tile descriptions: struct based pointer + pragma "a"), 114e, 2de0.
  * Close: 11aa 1516 1b22 2030 26f8 2b42 (register/slot choices), 1abc (6.00 uses `loop`), 2a2c,
@@ -436,12 +436,264 @@ void far sub_s010_1432_079a(int t)
 }
 #pragma optimize("", on)
 
-/* sub_s010_1432_08aa: not decompiled: base+index addressing */
-int far sub_s010_1432_08aa(void)
+extern unsigned char D_9080;
+int far sub_s010_1432_114e(char, char, char);
+
+/* street battlefields (types 1..6): load prepared map icity.<t-1><nn> (random variant of the
+ * type, 4/2/2/3/2/1 variants), random wall/floor variation, party start at a random group
+ * marker; per location p6 the enemy groups are placed at fixed group markers.
+ * v = (t-1)*100 + variant; f7a/f4/f1c: random/location flags combined by sub_114e. */
+#pragma optimize("a", on)
+int far sub_s010_1432_08aa(int p6, int t, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
+    int ft3, int fq3, int fn3)
 {
-    sprintf("icity.%03d");
-    return 0;
+    int nvo[10];
+    char namef[0x50];
+    struct obj far *og;
+    int nd;
+    char f4g, f1cj, f7am;
+    int g2f, g1g, g3f;
+    int ag, bg, cg, di;
+    int vh, rc, x12a;
+
+    nvo[0] = 0;
+    nvo[1] = 4;
+    nvo[4] = 3;
+    nvo[2] = 2;
+    nvo[3] = 2;
+    nvo[5] = 2;
+    nvo[6] = 1;
+    nvo[7] = 1;
+    nvo[8] = 1;
+    nvo[9] = 1;
+    vh = sub_s004_0e76_20f6(1, nvo[t]) - 1;
+    vh += (t - 1) * 100;
+    sprintf(namef, "icity.%03d", vh);
+    sub_root_05d9_019a(namef, (struct level far *)D_e03f);
+    if (t == 6)
+        rc = 0;
+    else
+        rc = sub_s004_0e76_20f6(1, 8) - 1;
+    sub_s004_1091_000a((struct level far *)D_e03f, rc, 1);
+    D_e03f->x1f40 = 0;
+    sub_s010_1432_11aa(t);
+    f7am = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    switch (p6) {
+    default:
+        if (f7am)
+            goto l16;
+    l17:
+        ag = 0x17;
+        break;
+    case 0x1b:
+    case 0x2b:
+        ag = 0x15;
+        break;
+    case 0x1e:
+        if (f7am) {
+            if (vh == 1 || vh == 0xc9)
+                goto l17;
+        } else {
+            if (vh != 0xc8)
+                goto l17;
+        }
+    case 0x24:
+    case 0x26:
+    l16:
+        ag = 0x16;
+        break;
+    case 0x20:
+        if (f7am)
+            goto l16;
+        goto l17;
+    }
+    ag = sub_s010_1432_2a2c(0, ag, &nd);
+    og = &D_e03f->obj[ag];
+    D_e03f->x1f4c = og->x0 + 16;
+    D_e03f->x1f4e = og->x2 + 8;
+    D_e03f->x1f50 = 0;
+    D_e03f->x1f51 = og->x0c;
+    x12a = 0;
+    if (p6 == 0x20) {
+        x12a = fq3;
+        fq3 = fq2 - 1;
+    }
+    g1g = g2f = g3f = -1;
+    if (ft1 >= 0 && fn1 > 0)
+        g1g = sub_s004_0e76_06aa(0, ft1, fq1);
+    if (ft2 >= 0 && fn2 > 0)
+        g2f = sub_s004_0e76_06aa(0, ft2, fq2);
+    if (ft3 >= 0 && fn3 > 0)
+        g3f = sub_s004_0e76_06aa(0, ft3, fq3);
+    f1cj = 0;
+    switch (p6) {
+    case 0x11:
+    case 0x13:
+    case 0x15:
+    case 0x18:
+    case 0x1a:
+    case 0x56:
+        f1cj = 1;
+    }
+    f4g = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    ag = bg = cg = di = -1;
+    switch (p6) {
+    default:
+        sub_s010_1432_2b42(p6, 0, 0, ag = sub_s010_1432_2a2c(0, ag = sub_s010_1432_114e(f7am, f4g, f1cj), &nd),
+            -1, 0, 0, 1, 1, g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    case 0x1b:
+        ag = sub_s010_1432_2a2c(0, 2, &nd);
+        bg = sub_s010_1432_2a2c(0, 3, &nd);
+        cg = sub_s010_1432_2a2c(0, 4, &nd);
+        di = sub_s010_1432_2a2c(0, 5, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, -1, 0, 0, 1, 1, -1, 0, g2f, 1, -1, 0);
+        sub_s010_1432_2b42(p6, 0, 0, bg, -1, 0, 0, 0, 1, -1, 0, g1g, 1, -1, 0);
+        sub_s010_1432_2b42(p6, 0, 0, cg, di, 2, 8, 0, 1, -1, 0, g1g, fn1 - 1, g3f, fn3);
+        break;
+    case 0x1e:
+        if (f7am) {
+            switch (vh) {
+            case 0: ag = 4; break;
+            case 1: ag = 2; break;
+            case 2: ag = 10; break;
+            case 3: ag = 8; break;
+            case 100: ag = 6; break;
+            case 101: ag = 5; break;
+            case 200: ag = 10; break;
+            case 201: ag = 10; break;
+            }
+        } else {
+            switch (vh) {
+            case 0: ag = 9; break;
+            case 1: ag = 2; break;
+            case 2: ag = 10; break;
+            case 3: ag = 3; break;
+            case 100: ag = 2; break;
+            case 101: ag = 8; break;
+            case 200: ag = 10; break;
+            case 201: ag = 10; break;
+            }
+        }
+        sub_s010_1432_2b42(p6, 0, 0, ag = sub_s010_1432_2a2c(0, ag, &nd),
+            -1, 0, 0, 1, 1, g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    case 0x20:
+        if (f7am) {
+            di = 11;
+            switch (vh) {
+            case 2: ag = 4; bg = 10; break;
+            case 3: ag = 5; bg = 9; break;
+            default: ag = 4; bg = 5; break;
+            }
+        } else {
+            di = 12;
+            ag = 8;
+            bg = 10;
+            switch (vh) {
+            case 0: bg = 9; break;
+            case 3: ag = 3; bg = 9; break;
+            case 100: ag = 2; bg = 8; break;
+            case 101: ag = 5; bg = 8; break;
+            }
+        }
+        ag = sub_s010_1432_2a2c(0, ag, &nd);
+        bg = sub_s010_1432_2a2c(0, bg, &nd);
+        di = sub_s010_1432_2a2c(0, di, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, bg, -1, 0, 0, 0, 1, g1g, fn1 / 2, g2f, fn2 / 2,
+            g3f, fn3 / 2);
+        sub_s010_1432_2b42(p6, 0, 0, ag, di, 4, x12a, 1, 1, g1g, fn1 -= fn1 / 2, g2f, fn2 -= fn2 / 2,
+            g3f, fn3 -= fn3 / 2);
+        break;
+    case 0x22:
+        ag = sub_s010_1432_2a2c(0, ag = sub_s010_1432_114e(f7am, f4g, f1cj), &nd);
+        if (f7am)
+            bg = sub_s010_1432_2a2c(0, 11, &nd);
+        else
+            bg = sub_s010_1432_2a2c(0, 12, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, bg, 4, 8, 1, 1, g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    case 0x23:
+        if (f7am) {
+            ag = 5;
+            di = 13;
+            switch (vh) {
+            case 0: ag = 7; break;
+            case 2: ag = 4;
+            case 3: di = 11; break;
+            case 100: ag = 4; break;
+            case 302: ag = 10; break;
+            }
+        } else {
+            ag = 10;
+            di = 14;
+            switch (vh) {
+            case 0: ag = 3; break;
+            case 1: ag = 2; break;
+            case 100: ag = 9; break;
+            case 101: ag = 5; break;
+            case 302: ag = 9; break;
+            }
+        }
+        ag = sub_s010_1432_2a2c(0, ag, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, di = sub_s010_1432_2a2c(0, di, &nd), 3, fq3, 1, 1,
+            g1g, fn1, g2f, fn2, -1, 0);
+        break;
+    case 0x24:
+        ag = sub_s010_1432_2a2c(0, 6, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, di = sub_s010_1432_2a2c(0, 7, &nd), 3, fq3, 1, 1,
+            g1g, fn1, g2f, fn2, -1, 0);
+        break;
+    case 0x25:
+        if (f7am) {
+            ag = 5;
+            di = 13;
+            switch (vh) {
+            case 0: ag = 7; break;
+            case 2: ag = 4;
+            case 3: di = 11; break;
+            case 100: ag = 4; break;
+            case 302: ag = 10; break;
+            }
+        } else {
+            ag = 10;
+            di = 14;
+            switch (vh) {
+            case 0: ag = 3; break;
+            case 1: ag = 2; break;
+            case 100: ag = 9; break;
+            case 101: ag = 5; break;
+            case 302: ag = 9; break;
+            }
+        }
+        ag = sub_s010_1432_2a2c(0, ag, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, di = sub_s010_1432_2a2c(0, di, &nd), 4, 8, 1, 1,
+            g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    case 0x26:
+        if (vh == 400)
+            ag = 6;
+        else
+            ag = 4;
+        ag = sub_s010_1432_2a2c(0, ag, &nd);
+        sub_s010_1432_2b42(p6, 0, 0, ag, di = sub_s010_1432_2a2c(0, 5, &nd), 4, 12, 1, 1,
+            g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    case 0x2b:
+        sub_s010_1432_2b42(p6, 0, 0, ag = sub_s010_1432_2a2c(0, 2, &nd),
+            -1, 0, 0, 1, 1, g1g, fn1, g2f, fn2, g3f, fn3);
+        break;
+    }
+    switch (p6) {
+    case 0x1a:
+        D_9080 |= 0x40;
+        break;
+    }
+    D_e03f->nobj = 0;
+    sub_s010_1432_2de0(0);
+    return 1;
 }
+#pragma optimize("", on)
 
 /* direction code from three flags */
 int far sub_s010_1432_114e(char a, char b, char c)

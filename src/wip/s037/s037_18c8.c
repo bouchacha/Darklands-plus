@@ -1,12 +1,12 @@
 /* place: s037 18c8:0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 6/15 match (047c 04b2 053e 1738 3890 39ca).
+/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 7/15 match (0004 047c 04b2 053e 1738 3890 39ca).
    058e (key handler): same length; left are 6.00 code-placement choices in the key
    compare tree: which `return` sites get an inline epilogue vs `jmp` to the shared one
    (0eb6, 1032) and which copy of the cross-jumped 0x2247/0x3042 tail survives (1049..107c).
-   0004 (main loop): with #pragma optimize("a", on) same length (D_8c1e kept in BX across the
-   mouse tests); left: the key copy is in DI in 6.00 (SI in 6.00A, which shares SI with the
-   row - unsolved, like s038 1462 0000). 10da (left panel): 6.00 temp slot [bp-2] for the strength-reduced
+   0004 (main loop) MATCHES: #pragma optimize("a", on) (D_8c1e kept in BX) and no separate
+   key copy - k itself is tested/passed after the mouse part (6.00A splits k: stack home,
+   loaded into DI for the tail). 10da (left panel): 6.00 temp slot [bp-2] for the strength-reduced
    pointer init of the two list loops (`mov [bp-2],20abh; mov si,[bp-2]`). 20fa (reset):
    far memsets of F_2e38_3b1a/3b04 are `rep stosw` intrinsics in 6.00 (known 6.00A limit), and
    memset(D_4402, 0, 0x25) (odd size) stays `rep stosb` with DX. 22be (profession list,
@@ -151,7 +151,7 @@ void far sub_s037_18c8_0004(void)
     int f;
     int k;
     int row;
-    int key;
+    int key;    /* unused: keeps the symbol table (operand order in 1738) */
     t = 0x5dd;
     f = 0;
     D_8c1e = 0;
@@ -232,10 +232,9 @@ void far sub_s037_18c8_0004(void)
         } else if ((D_6ef0 & 1) && D_8c1e >= 3 && D_6eec > 0xae && D_6eec < 0xea && D_6eee > 0xb8 && D_6eee < 0xc4) {
             k = 0x5133;
         }
-        key = k;
         if (sub_root_047c_073d())
-            key = sub_root_047c_0744();
-        if (key == 0x11b) {
+            k = sub_root_047c_0744();
+        if (k == 0x11b) {
             if (D_8c1e == 2)
                 D_8c1e = 1;
             else if (D_8c1e == 4)
@@ -244,7 +243,7 @@ void far sub_s037_18c8_0004(void)
                 break;
             sub_s037_18c8_053e();
         }
-        if (key && sub_s037_18c8_058e(key) == 0x11b)
+        if (k && sub_s037_18c8_058e(k) == 0x11b)
             break;
     }
     sub_s037_18c8_047c();

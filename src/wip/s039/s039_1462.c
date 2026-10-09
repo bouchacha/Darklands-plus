@@ -1,28 +1,20 @@
 /* place: s039 1462:0000 */
 /* orig: size=1fa0 CONST=7ed6+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: WIP (e2, 2026-10-09): 38/43 functions match (fmatch); all functions are written
- *   (no empty stubs).  Event-rules toolkit part 1: helpers used by the card scripts for timed
- *   events (F_2e38_1b2c, s029 2c4e/2e74/3b62), quests (11fc type 4, 15c2 type 12, 1712 type 10,
+/* status: FILE MATCH (e2, 2026-10-09): 43/43 functions match (fmatch).
+ *   Event-rules toolkit part 1: helpers used by the card scripts for timed events
+ *   (F_2e38_1b2c, s029 2c4e/2e74/3b62), quests (11fc type 4, 15c2 type 12, 1712 type 10,
  *   1b0c type 1), location flags/standings (F_2e38_10be, s029 1a8e/3878/19d0), party skills
  *   and prices.
- *   NOTE: build/symbols.json currently comes from a non-identical build (s029 0e76 sub_ names
- *   shifted, e.g. 1a8e at 1a88), so tools/fmatch.py reports 12/43; build/agent/e2/fm.py
- *   re-derives sub_ addresses from their names and gives the real result.
- *   0504, 11fc: code identical; fmatch cannot resolve the DS restore (`mov ax, DGROUP` after the
- *         loop over F_2e38_10be with DS = its segment) because this module has no _DATA
- *         segment of its own ("unresolved: segment _DATA").  Tool problem.
- *   1712: code identical; its jump tables differ only by the 0x1a bytes 026a is short
- *         (fmatch compares tables only at the original offset).
- *   026a: the original evaluates the nested call chain strictly right to left (0b64 result
- *         pushed before the 0084 subtree); 6.00A hoists the embedded assignments `d = ...`
- *         (same issue as s043 150b 1d56/203a).  Known 6.00A limit.
- *   1c22: bodies identical; 6.00A leaves the default-equivalent cases 0..2 out of the jump
- *         table (orig table 0..11, 6.00A `sub ax,3` 3..11); tried case -1.., break cases.
- *         Session 4: giving cases 0..2 their own copy of the tail (no default) keeps the
- *         full 0..11 table, but then out-of-range values jump to the function end instead
- *         of that block (orig `ja 1c4c`); any `default:` / `goto` to the block makes 6.00A
- *         drop the cases again.  Looks like 6.00 vs 6.00A.
+ *   026a: NOT a 6.00A limit after all: the current value (s029 0b64) is fetched into a
+ *         temporary BEFORE the nested min/max chain (`m[0] = 0b64(..);`), the max (05ee) in
+ *         a statement of its own.  The frame (enter 8, slot -6 unused, temp at -8) needs the
+ *         temporary to be `int m[2]` using m[0].
+ *   1712: locals declared `ter ev v k` (ter at -8, ev at -6).
+ *   1c22: cases 0..2 get their own copy of the default tail AND the same code follows the
+ *         switch (`if (rand(2)) return 0x50; return 0x67;` both times): 6.00A keeps the
+ *         full 0..11 table and cross-jumping merges the two copies into one block that is
+ *         both the table target and the range-check target.
  *   0132 matched with a 3-int aggregate local (roll, limit, unused third word) + pragma a.
  *   Numbers 9998/9999/8760 (0x270e/0x270f/0x2238) are event durations in hours, not strings.
  */
@@ -226,20 +218,29 @@ void far sub_s039_1462_026a(int who, int a, int b, int mult)
     int i;
     register int d;
     register int s;
+    int m[2];
 
     if (who == -2) {
         for (i = 0; i < D_a67e; i++)
             if (D_9c69[i].status) {
-                d = sub_s029_1367_0094(d = sub_s029_1367_0084(d = sub_root_0000_0c70((d = mult * (d = sub_s029_0e76_05ee(i, 1)) / 40) + 1) - 1, a), sub_s029_0e76_0b64(i, 1));
+                d = sub_s029_0e76_05ee(i, 1);
+                m[0] = sub_s029_0e76_0b64(i, 1);
+                d = sub_s029_1367_0094(d = sub_s029_1367_0084(d = sub_root_0000_0c70((d = mult * d / 40) + 1) - 1, a), m[0]);
                 sub_s029_0e76_0a72(i, 1, -d);
-                s = sub_s029_1367_0094(s = sub_s029_1367_0084(s = sub_s029_1367_0084(s = sub_root_0000_0c70((s = mult * (s = sub_s029_0e76_05ee(i, 0)) / 20) + 1) - 1, d), b), sub_s029_0e76_0b64(i, 0));
+                s = sub_s029_0e76_05ee(i, 0);
+                m[0] = sub_s029_0e76_0b64(i, 0);
+                s = sub_s029_1367_0094(s = sub_s029_1367_0084(s = sub_s029_1367_0084(s = sub_root_0000_0c70((s = mult * s / 20) + 1) - 1, d), b), m[0]);
                 s = -s;
                 sub_s029_0e76_0a72(i, 0, s);
             }
     } else {
-        d = sub_s029_1367_0094(d = sub_s029_1367_0084(d = sub_root_0000_0c70((d = mult * (d = sub_s029_0e76_05ee(who, 1)) / 40) + 1) - 1, a), sub_s029_0e76_0b64(who, 1));
+        d = sub_s029_0e76_05ee(who, 1);
+        m[0] = sub_s029_0e76_0b64(who, 1);
+        d = sub_s029_1367_0094(d = sub_s029_1367_0084(d = sub_root_0000_0c70((d = mult * d / 40) + 1) - 1, a), m[0]);
         sub_s029_0e76_0a72(who, 1, -d);
-        s = sub_s029_1367_0094(s = sub_s029_1367_0084(s = sub_s029_1367_0084(s = sub_root_0000_0c70((s = mult * (s = sub_s029_0e76_05ee(who, 0)) / 20) + 1) - 1, d), b), sub_s029_0e76_0b64(who, 0));
+        s = sub_s029_0e76_05ee(who, 0);
+        m[0] = sub_s029_0e76_0b64(who, 0);
+        s = sub_s029_1367_0094(s = sub_s029_1367_0084(s = sub_s029_1367_0084(s = sub_root_0000_0c70((s = mult * s / 20) + 1) - 1, d), b), m[0]);
         s = -s;
         sub_s029_0e76_0a72(who, 0, s);
     }
@@ -951,8 +952,8 @@ void far sub_s039_1462_1710(void)
  * returned. */
 int far sub_s039_1462_1712(int t)
 {
-    int ev;
     int ter;
+    int ev;
     int v;
     int k;
 
@@ -1161,7 +1162,9 @@ int far sub_s039_1462_1c22(void)
     case 0:
     case 1:
     case 2:
-        break;
+        if (sub_root_0000_0c70(2))
+            return 0x50;
+        return 0x67;
     case 3:
         if (!sub_root_0000_0c70(2))
             return 0x91;
@@ -1190,9 +1193,9 @@ int far sub_s039_1462_1c22(void)
             return 0x168;
         return 0x50;
     }
-    if (!sub_root_0000_0c70(2))
-        return 0x67;
-    return 0x50;
+    if (sub_root_0000_0c70(2))
+        return 0x50;
+    return 0x67;
 }
 
 /* day of month / month (s029 1367 0982/0938) of the day-of-year value of event

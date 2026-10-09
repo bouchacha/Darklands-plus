@@ -17,6 +17,13 @@
      2dd6 matched with `unsigned v` (flips `cmp dx,si`); fragile: other declarations flip it back.
      1c76: code identical; its jump table entries are absolute and stay off until the functions
        before it (0c44 -4, 1300 +2, 16c6 +4 bytes) have the right length.
+     1dd4 (e4, 2026-10-09): `rows = -(d - 0x83);` (or `0x83u - d`) stops 6.00A from CSE-ing
+       0x83 - d with the 3108 size argument and reproduces the original call/reload code
+       (frame 0x12, d at [bp-12h]); left: loop temps/first/rows slots (orig first -8, rows
+       -0ah; ours one slot higher). NOT applied: it flips 2ac8/2d44/2dd6 (dummy locals in
+       1dd4 did not compensate).
+     25be (e4): `col = D_2866; col = (... ? col + 16 : col + 24) / 16;` gives the original
+       `mov si,[2866h]` start but keeps col in si to the loop and flips 3 other functions.
      (older notes below)  [n] = fdskip.py lines.
      02c0 matched after renaming its locals (hash order) and choosing one-line vs two-line
        `case ..: return K;` arms (build/agent/e1/greedy_lines.py) - see e1 NOTES.

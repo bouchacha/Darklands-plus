@@ -1,11 +1,15 @@
 /* place: s037 1c7d:0002 */
 /* orig: size=1a96 CONST=7ec4+000e _DATA=479e+01c3 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: 8/11 match, data matches. 0d24 (save loader) MATCHES.
-   0002: row/k share SI in 6.00A, original has row in DI, k in SI, key at [bp-2], last spilled
-         to [bp-4] (same problem as s038 1462 0000).
-   030a: only the 6.00 constant temp `mov ax,10h; mov [bp-2],ax; push ax; push 12h; push ax`
-         (cases 0x4800/0x4d00) is left; [bp-2] is the loop's induction temp slot in 6.00A.
+/* status: 9/11 match, data matches. 0d24 (save loader) MATCHES.
+   0002 MATCHES: no `k = key` copy; key itself is used after the mouse part (6.00A then
+         keeps it in SI there and gives row DI).
+   030a: same length now: the constant temp is `h = 0x10; f(.., h, 0x12, h);` (h is
+         address-taken, so the store stays: `mov ax,10h; mov [bp-8],ax; push ax; push 12h;
+         push ax`). Left: the original stores it to [bp-2] (the ids loop's byte offset). An
+         explicit user loop (`for (p = &D_9c69[0][1], k = 0; k < 10; p += 0x80, k += 2)` +
+         `*(volatile int *)&k = 0x10`) gets [bp-2]/[bp-4] used like the original but the frame
+         is 2 bytes short (original has an unused slot at [bp-6]) and p/k slots swapped.
    09c6: q = &F_2e38_1ffc is constant-propagated by 6.00A (original keeps it at [bp-6] and
          reloads with les); frame 8 vs 6.
    Load-game screen (pics\loadscrn.pic): list of saves\*.sav, delete,
@@ -197,7 +201,6 @@ int far sub_s037_1c7d_0002(void)
     int key;
     int last;
     int row;
-    int k;
     last = -1;
     sub_root_047c_0568();
     D_e7a2 = D_2816;
@@ -246,15 +249,14 @@ int far sub_s037_1c7d_0002(void)
                 sub_root_047c_1293();
             }
         }
-        k = key;
         if (sub_root_047c_073d())
-            k = sub_root_047c_0744();
+            key = sub_root_047c_0744();
         if (D_e89a == 1) {
-            if (k == 0x11b || k == 0x1352 || k == 0x1372)
+            if (key == 0x11b || key == 0x1352 || key == 0x1372)
                 return sub_s037_1c7d_0218(0);
-        } else if (k == 0x11b)
+        } else if (key == 0x11b)
             return sub_s037_1c7d_0218(0);
-        if (k && sub_s037_1c7d_030a(k) == 0x11b)
+        if (key && sub_s037_1c7d_030a(key) == 0x11b)
             return sub_s037_1c7d_0218(1);
     }
 }
@@ -370,8 +372,8 @@ int far sub_s037_1c7d_030a(int key)
         break;
     case 0x4800:
     case 0x4b00:
-        i = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, i, 0x12, i);
+        h = 0x10;
+        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, h, 0x12, h);
         if (--D_8c50 < 0) {
             if (D_8c52) {
                 D_8c52--;
@@ -384,8 +386,8 @@ int far sub_s037_1c7d_030a(int key)
         break;
     case 0x4d00:
     case 0x5000:
-        i = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, i, 0x12, i);
+        h = 0x10;
+        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, h, 0x12, h);
         if (++D_8c50 >= D_8c54) {
             if (D_8c4c - 9 < ++D_8c52) {
                 D_8c50--;

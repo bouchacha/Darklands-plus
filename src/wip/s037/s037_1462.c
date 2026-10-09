@@ -1,7 +1,7 @@
 /* place: s037 1462:0000 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 12/20 match (0348 0390 03d4 2922 2a68 38aa
-   3992 3a8a 3ae2 3cd6 4048 4562). Character creation main menu (pics\cretscrn.pic) -
+/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 13/20 match (0348 0390 03d4 2922 2a68 38aa
+   3992 3a8a 3ae2 3cd6 3f30 4048 4562). Character creation main menu (pics\cretscrn.pic) -
    twin of s038 1462 (its 0000/01fe/024e/0292/02f8/23ec/25ca are 0000/0348/0390/03d4/0444/
    2760/2922 here; see that file for the charactr.tmp layout), plus save game (2a68/2ace),
    party add/remove (3cd6/3b58/3f30), charactr.tmp record helpers and the text input box.
@@ -11,12 +11,12 @@
        (e4 gencol.py) - the 2nd case's fifth "A00" test cycles D_e894 (original bug, kept).
        Known 6.00 differences as in s038 (il*2 CSE in DI across calls, push di/pop di around
        inline strcpy, cross-jump copy choice), imul operand order D_e7da * h.
-     - 0000: 4 bytes short (key in [bp-4] / row DI / k SI register choice, as s038 0000).
+     - 0000: same length now (key used directly in the tail instead of a copy, pragma "a");
+       only the unused 2-byte slot above key is missing (key [bp-2] vs [bp-4]), as s038 0000.
      - 2ace (save game, 3550/3548): `n > i` loop compares (`mov ax,i; cmp [n],ax`) come out
        reversed; needs #pragma optimize("a") for D_017c kept in BX.
      - 2760: slot/register layout of the list loop (6.00 temp [bp-2] = &ids).
-     - 3b58: `cmp dx,di` operand order; 3f30: calls into s029 0e76 3b62/30fe resolve 0xe
-       bytes off in the current build (tool/symbol issue, the C is right).
+     - 3b58: `cmp dx,di` operand order.
      - 4184: 6.00 turned the unused-index copy loop into a `dec si; jne` countdown.
      - 43e6: 6.00 keeps i in SI and FP_OFF(buf) in DI; 6.00A spills i to [bp-2].
    _DATA notes: "Saving Game" and the 0x30-byte zero block are initialised globals; MSC
@@ -182,9 +182,10 @@ int far vec_1fdb();
 /* shown by 2ace */
 char saving_game[] = "Saving Game";
 
+#pragma optimize("a", on)
 int far sub_s037_1462_0000(void)
 {
-    volatile int key;
+    int key;
     int row;
     int k;
     vec_18f1(0x14);
@@ -290,14 +291,14 @@ int far sub_s037_1462_0000(void)
             while (D_6ef0 & 1)
                 ;
         }
-        k = key;
         if (sub_root_047c_073d())
-            k = sub_root_047c_0744();
-        if (k == 0x11b || k == 0x1352 || k == 0x1372)
+            key = sub_root_047c_0744();
+        if (key == 0x11b || key == 0x1352 || key == 0x1372)
             return sub_s037_1462_0348(0);
-    } while (!k || sub_s037_1462_0444(k) != 0x11b);
+    } while (!key || sub_s037_1462_0444(key) != 0x11b);
     return sub_s037_1462_0348(1);
 }
+#pragma optimize("", on)
 
 int far sub_s037_1462_0348(int p_6)
 {
