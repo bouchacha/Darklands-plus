@@ -9,7 +9,14 @@
            best attempt keeps a `char n` (DIFF@f, see build/agent/e1/v_01b4n.txt).
      14b6: best variant (switch into temps t/i, then `type = t; q = i; i = 0; found = -1;`)
            differs only in the order of the two stores (original stores q first but keeps
-           type at [bp-4]); see build/agent/e1/v_14x.txt. */
+           type at [bp-4]); see build/agent/e1/v_14x.txt.
+     Session 2 (e1b): 14b6 tried struct/array holders (struct {found,q,type} gives the right
+           store order but frame 10), volatile, dummy externs/locals, register hints, pragmas
+           e/g/l/c/a/w/z/p/t: no match.  01b4: removing the named `char n` (pure CSE of
+           D_9c69[who].nitems) DOES produce the dead [bp-2] loop-base temp, but then nitems is
+           not cached in [bp-a]; any named char n (also block-scoped / array / struct /
+           volatile / register) sits at [bp-3] above the SR temps and kills the [bp-2] temp.
+           Variant: build/agent/e1/cse01b4.txt. */
 
 /* party member record in DGROUP (0x80 bytes) */
 struct member {

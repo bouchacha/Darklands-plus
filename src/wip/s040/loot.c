@@ -4,7 +4,10 @@
 /* data: _DATA=4bbc */ /* data: CONST=7edc */
 /* Loot distribution: share found items and cash between the party (overlay s040). */
 /*
- * STATUS (e0, 2026-10-08): 8/10 functions match (check: python3 -I tools/fmatch.py src/wip/s040/loot.c).
+ * STATUS (e0, 2026-10-09 s3): 9/10 functions match; 01c8 matched by reading cash[0] for
+ *   sub_s029_1367_0130 through a cast (`*(unsigned far *)cash`), which 6.00A does not
+ *   constant-propagate.
+ * Old STATUS (2026-10-08): 8/10 functions match (check: python3 -I tools/fmatch.py src/wip/s040/loot.c).
  *   sub_s040_1462_0000 (0000) now matches: the buffer pointer is built once from alloc_buffer's
  *     result (p = (far *)((unsigned long)alloc_buffer(..) << 16); D_a889 = p;) and the two
  *     skipped header bytes are dead reads (st = *buf++; st = *buf++;).
@@ -211,7 +214,7 @@ void far sub_s040_1462_01c8(struct invitem far *items, unsigned char *count, int
     D_8dc4 = D_907b;
     D_8dba = D_907b;
     D_2800 = 8;
-    sub_s029_1367_0130(D_906b, cash[0], cash[1], cash[2]);
+    sub_s029_1367_0130(D_906b, *(unsigned far *)cash, cash[1], cash[2]);
     sub_root_047c_0568();
     sub_s040_1462_06e2(D_907b);
     sub_root_047c_056f();

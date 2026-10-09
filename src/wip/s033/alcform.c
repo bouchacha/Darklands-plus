@@ -6,6 +6,10 @@
    ingredient-count loop the original loads DS=2e38 around the inner (item) loop only;
    6.00A hoists the DS load to the outer (character) loop and reads nitems via ss:.
    Tried: count locals, /Oa pragma, volatile/far D_9cd3.  Everything else matches.
+   Session 3: an extra guard `if (D_9cd3[i].nitems > 0)` around the inner for loop puts the
+   DS=2e38 load/restore exactly where the original has them (but duplicates the guard
+   compare); while/do/label variants do not.  Also left: original loads D_a67e into bx for
+   the outer guard (`mov bx,[a67e]; or bx,bx`), 6.00A compares with the known-zero ax.
    Functions carry their original sub_ names; the descriptive names are in the comments. */
 
 struct find_t {
