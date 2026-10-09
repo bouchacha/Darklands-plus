@@ -228,6 +228,8 @@ def check(path, verbose=False, flags=None, quiet=False, only=None):
                 tlin, tfr = (t if t is not None else 0), frame
             elif tn in data_place:
                 tlin, tfr = DG * 16 + data_place[tn] + disp, DG
+            elif tn in ('_DATA', 'CONST', '_BSS', 'c_common', 'STACK'):
+                tlin, tfr = DG * 16 + disp, DG       # empty DGROUP segment (e.g. 'mov ax,SEG _DATA')
             else:
                 unresolved.add('segment ' + tn)
                 bad_at.add(off)

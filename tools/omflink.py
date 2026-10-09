@@ -424,7 +424,10 @@ class Linker:
                 loc_lin = lframe * 16 + lbase + loc_off
                 p = loc_lin - I['lo']
                 tm, ti = target
-                if tm == 0:
+                if tm == 0 and m.segplace[ti] is None and m.segs[ti][0] in ('_DATA', 'CONST', '_BSS', 'c_common'):
+                    gf = self.L['groups']['DGROUP']         # empty DGROUP segment of this module
+                    timg, tlin, tfr = None, gf * 16 + disp, gf
+                elif tm == 0:
                     timg, tframe, tbase = m.segplace[ti]
                     tlin, tfr = tframe * 16 + tbase + disp, tframe
                 elif tm == 2:
@@ -437,7 +440,7 @@ class Linker:
                     raise LinkError('target method %d' % tm)
                 fm, fi = frame
                 if fm == 0:
-                    fr = m.segplace[fi][1]
+                    fr = m.segplace[fi][1] if m.segplace[fi] is not None else self.L['groups']['DGROUP']
                 elif fm == 1:
                     fr = self.group_frame(m, fi)
                 elif fm == 2:
