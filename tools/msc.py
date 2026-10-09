@@ -9,7 +9,7 @@ Environment:
   MSC_DOS   DOS tree containing MSC\\BIN, MSC\\INCLUDE, MSC\\LIB (default /home/claude/dos)
   EMU2      emu2 binary (default /home/claude/tools_ext/emu2/emu2)
 """
-import sys, os, subprocess, shutil, tempfile, struct
+import sys, os, re, subprocess, shutil, tempfile, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import omflink
 
@@ -30,6 +30,17 @@ def compile_c(src, flags=None, extra_files=(), keep_asm=False):
     shutil.copy(src, os.path.join(work, name))
     for f in extra_files:
         shutil.copy(f, os.path.join(work, os.path.basename(f).upper()))
+    if extra_files:
+        # '#include "dir/x.h"' -> '#include "X.H"' (the header was copied flat; same line count)
+        bases = set(os.path.basename(f).upper() for f in extra_files)
+        text = open(src, encoding='latin-1').read()
+
+        def flat(m):
+            b = m.group(2).replace('\\', '/').split('/')[-1].upper()
+            return m.group(1) + '"' + b + '"' if b in bases else m.group(0)
+        new = re.sub(r'^([ \t]*#[ \t]*include[ \t]+)"([^"]+)"', flat, text, flags=re.M)
+        if new != text:
+            open(os.path.join(work, name), 'w', encoding='latin-1', newline='').write(new)
     dosdir = 'C:\\TMP\\' + os.path.basename(work).upper()
     # emu2 maps file names case-insensitively onto the unix tree
     env = dict(os.environ, EMU2_DRIVE_C=DOS, EMU2_CWD=dosdir)

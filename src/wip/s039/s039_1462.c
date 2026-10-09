@@ -1,21 +1,29 @@
 /* place: s039 1462:0000 */
 /* orig: size=1fa0 CONST=7ed6+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: WIP (e2, 2026-10-09): 34/43 functions match (fmatch).  Event-rules toolkit part 1:
- *   helpers used by the card scripts for timed events (F_2e38_1b2c, s029 2c4e/2e74/3b62),
- *   location flags/standings (F_2e38_10be, s029 1a8e/3878/19d0) and party skills.
- *   Not written yet: 11fc (788 bytes, start the type-4 quest: random location near the
- *   current one, kind-8/0x1c/0x2a/0x2b events, marks locations within 40/80 of it), 15c2,
- *   1712 (switch, 806 bytes), 1b0c, 1d2c.
- *   0132: frame/slot order (orig r -8, lim -6, an unused slot at -4; lim stored in the else
- *         branch although dead).
+/* status: WIP (e2, 2026-10-09): 38/43 functions match (fmatch); all functions are written
+ *   (no empty stubs).  Event-rules toolkit part 1: helpers used by the card scripts for timed
+ *   events (F_2e38_1b2c, s029 2c4e/2e74/3b62), quests (11fc type 4, 15c2 type 12, 1712 type 10,
+ *   1b0c type 1), location flags/standings (F_2e38_10be, s029 1a8e/3878/19d0), party skills
+ *   and prices.
+ *   NOTE: build/symbols.json currently comes from a non-identical build (s029 0e76 sub_ names
+ *   shifted, e.g. 1a8e at 1a88), so tools/fmatch.py reports 12/43; build/agent/e2/fm.py
+ *   re-derives sub_ addresses from their names and gives the real result.
+ *   0504, 11fc: code identical; fmatch cannot resolve the DS restore (`mov ax, DGROUP` after the
+ *         loop over F_2e38_10be with DS = its segment) because this module has no _DATA
+ *         segment of its own ("unresolved: segment _DATA").  Tool problem.
+ *   1712: code identical; its jump tables differ only by the 0x1a bytes 026a is short
+ *         (fmatch compares tables only at the original offset).
  *   026a: the original evaluates the nested call chain strictly right to left (0b64 result
  *         pushed before the 0084 subtree); 6.00A hoists the embedded assignments `d = ...`
- *         (same issue as s043 150b 1d56/203a).
- *   0504: code identical; fmatch cannot resolve the DS restore (`mov ax, DGROUP`) because
- *         this module has no _DATA segment of its own ("unresolved: segment _DATA").
+ *         (same issue as s043 150b 1d56/203a).  Known 6.00A limit.
  *   1c22: bodies identical; 6.00A leaves the default-equivalent cases 0..2 out of the jump
  *         table (orig table 0..11, 6.00A `sub ax,3` 3..11); tried case -1.., break cases.
+ *         Session 4: giving cases 0..2 their own copy of the tail (no default) keeps the
+ *         full 0..11 table, but then out-of-range values jump to the function end instead
+ *         of that block (orig `ja 1c4c`); any `default:` / `goto` to the block makes 6.00A
+ *         drop the cases again.  Looks like 6.00 vs 6.00A.
+ *   0132 matched with a 3-int aggregate local (roll, limit, unused third word) + pragma a.
  *   Numbers 9998/9999/8760 (0x270e/0x270f/0x2238) are event durations in hours, not strings.
  */
 
@@ -34,6 +42,8 @@ struct event {                  /* timed events, F_2e38_1b2c[300] (see s029 0e76
 };
 extern struct event far * far F_2e38_1b2c[];
 extern int D_00e4;
+extern int D_00e6;
+struct date { int hour; int day; int month; int year; };
 extern long D_10be[];
 extern char D_270f[];
 extern char D_906a;
@@ -111,7 +121,7 @@ void far sub_s039_1462_15c2();
 int far sub_s039_1462_16b4();
 int far sub_s039_1462_16e2();
 void far sub_s039_1462_1710();
-void far sub_s039_1462_1712();
+int far sub_s039_1462_1712();
 int far sub_s039_1462_1a38();
 int far sub_s039_1462_1a50();
 int far sub_s039_1462_1a68();
@@ -123,7 +133,7 @@ int far sub_s039_1462_1c22();
 void far sub_s039_1462_1cd2();
 void far sub_s039_1462_1ce8();
 int far sub_s039_1462_1cfe();
-void far sub_s039_1462_1d2c();
+int far sub_s039_1462_1d2c();
 int far sub_s039_1462_1de6();
 int far sub_s039_1462_1e06();
 int far sub_s039_1462_1e90();
@@ -181,30 +191,31 @@ int far sub_s039_1462_0102(void)
  * rolling separately) improves skill k (s029 01a0/02ea, the 7 bytes at +0x57) with a chance
  * of pct * 1.5 % (mode 1) or pct * 0.5 % (-2) / pct * 3.3 % or pct * 1.1 % (one member),
  * by s029 18a8(skill, lvl + 1, (lvl + 2) * 2), clamped to 1..99. */
+#pragma optimize("a", on)
 void far sub_s039_1462_0132(int who, int k, int mode, int pct, int lvl)
 {
     int i;
     int u;
-    int lim;
-    int r;
+    struct { int a; int b; int c; } t;   /* roll, limit, unused: the slot layout -8/-6/-4 */
 
     if (who == -1)
         who = D_907b;
     if (who == -2) {
-        lim = (mode == 1 ? pct * 15 : pct * 5) / 10;
+        t.b = (mode == 1 ? pct * 15 : pct * 5) / 10;
         for (i = 0; i < D_a67e; i++)
-            if (D_9c69[i].status == 1 && sub_root_0000_0c70(100) <= lim)
+            if (D_9c69[i].status == 1 && sub_root_0000_0c70(100) <= t.b)
                 sub_s029_0e76_02ea(i, k, sub_s029_1367_0066(1, 0x63,
                     sub_s029_0e76_18a8(sub_s029_0e76_01a0(i, k), lvl + 1, (lvl + 2) * 2)));
     } else {
-        *(volatile int *)&r = sub_root_0000_0c70(100);
-        if ((lim = (mode == 1 ? pct * 33 : pct * 11) / 10) >= r) {
+        *(volatile int *)&t.a = sub_root_0000_0c70(100);
+        if ((t.b = (mode == 1 ? pct * 33 : pct * 11) / 10) >= t.a) {
             u = sub_s029_0e76_18a8(sub_s029_0e76_01a0(who, k), lvl + 1, (lvl + 2) * 2);
             u = sub_s029_1367_0066(1, 0x63, u);
             sub_s029_0e76_02ea(who, k, u);
         }
     }
 }
+#pragma optimize("", on)
 
 /* damage member who (-2 = every present member): attribute 1 (s029 05ee max, 0b64
  * current) loses d = rand(mult * max1 / 40 + 1) - 1, at least a, at most the current value;
@@ -790,8 +801,70 @@ int far sub_s039_1462_10b6(int who, int b, int c, int v, int lvl, int x)
 }
 #pragma optimize("", on)
 
-/* sub_s039_1462_11fc: not decompiled: memory via unknown si */
-void far sub_s039_1462_11fc(void) { }
+/* start the type-4 quest unless one is active (s029 3b62 kind 8 type 4): a location di near
+ * the current one (vec_1f77; anywhere when D_907e is -1) gets a random site type (r = rand 4:
+ * 0x9d/0x9b/0x9e/0x9c), a kind-8 event (type 0x5f, 8760 hours, f28 r, f2a 30..49, f2c 4,
+ * f2e 0..15) and kind-0x2a/0x2b/0x1c events; every type-8 location within 40/80 of it becomes
+ * type 9 with site 0x88 and flag 0x20 (the first one site 0x9d when r == 0).  Without such a
+ * location and r == 0 the event's type0 becomes 1..3. */
+void far sub_s039_1462_11fc(void)
+{
+    register int loc;
+    register int ev;
+    int r;
+    int n;
+    int i;
+
+    if (sub_s029_0e76_3b62(8, -1, -1, -1, 4, -1) != -1)
+        return;
+    if (D_907e == -1)
+        loc = vec_1f77(sub_root_0000_0c70(300), sub_root_0000_0c70(900), 15);
+    else
+        loc = vec_1f77(F_2e38_10be[D_907e]->x, F_2e38_10be[D_907e]->y, 15);
+    switch (r = sub_root_0000_0c70(4)) {
+    case 0:
+        F_2e38_10be[loc]->fc = 0x9d;
+        break;
+    case 1:
+        F_2e38_10be[loc]->fc = 0x9b;
+        break;
+    case 2:
+        F_2e38_10be[loc]->fc = 0x9e;
+        break;
+    default:
+        F_2e38_10be[loc]->fc = 0x9c;
+        break;
+    }
+    ev = sub_s029_0e76_2c4e(-2, loc, 0x5f, 8, r,
+        vec_1fa9(F_2e38_10be[loc]->x, F_2e38_10be[loc]->y), 0, 8760, 0, 4);
+    F_2e38_1b2c[ev]->f2a = sub_root_0000_0c70(20) + 30;
+    F_2e38_1b2c[ev]->f2c = 4;
+    F_2e38_1b2c[ev]->f2e = sub_root_0000_0c70(16);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x2a, 0, 10, 0, 8760, 0, 0);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x2b, 0, 2, 0, 9999, 0, 0);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x1c, 1, 0, 0, 8760, 0, 4);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x1c, 3, 0, 0, 8760, 0, 4);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x1c, 4, 0, 0, 8760, 0, 4);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x1c, 7, 0, 0, 8760, 0, 4);
+    sub_s029_0e76_2c4e(-2, loc, 0, 0x1c, 6, 0, 0, 8760, 0, 4);
+    n = 0;
+    for (i = 0x5c; i < 0x19e; i++)
+        if (F_2e38_10be[loc]->x - 40 <= F_2e38_10be[i]->x &&
+            F_2e38_10be[loc]->x + 40 > F_2e38_10be[i]->x &&
+            F_2e38_10be[loc]->y - 80 <= F_2e38_10be[i]->y &&
+            F_2e38_10be[loc]->y + 80 > F_2e38_10be[i]->y &&
+            F_2e38_10be[i]->type == 8) {
+            if (n++ == 0 && r == 0)
+                F_2e38_10be[i]->fc = 0x9d;
+            else {
+                F_2e38_10be[i]->fc = 0x88;
+                F_2e38_10be[i]->f14 |= 0x20;
+                F_2e38_10be[i]->type = 9;
+            }
+        }
+    if (n == 0 && r == 0)
+        F_2e38_1b2c[ev]->type0 = sub_root_0000_0c70(3) + 1;
+}
 
 /* the active kind-8 event with type 4 (s029 3b62; the quest of 11fc): its f2e, f0, f1c
  * (each returns -1 when there is none) */
@@ -826,8 +899,28 @@ void far sub_s039_1462_159a(void)
     sub_s029_0e76_3e06(4, D_907e);
 }
 
-/* sub_s039_1462_15c2: not decompiled: es:[reg] unknown es=farslot(32470, 11832) ptr=None */
-void far sub_s039_1462_15c2(void) { }
+/* start the type-12 quest unless one is active: a location near the current one (vec_1f77;
+ * anywhere east when D_907e is -1) gets site type 0x2d and a kind-8 event (type 0x5f, 8760
+ * hours, f28 rand 3, f2a 40..49, f2c 3, f2e 0..37) */
+void far sub_s039_1462_15c2(void)
+{
+    register int loc;
+    register int ev;
+    int r;
+
+    if (sub_s029_0e76_3b62(8, -1, -1, -1, 12, -1) != -1)
+        return;
+    if (D_907e == -1)
+        loc = vec_1f77(sub_root_0000_0c70(300), sub_root_0000_0c70(600) + 300, 6);
+    else
+        loc = vec_1f77(F_2e38_10be[D_907e]->x, F_2e38_10be[D_907e]->y, 6);
+    r = sub_root_0000_0c70(3);
+    F_2e38_10be[loc]->fc = 0x2d;
+    ev = sub_s029_0e76_2c4e(-2, loc, 0x5f, 8, r, 0x63, 0, 8760, 0, 12);
+    F_2e38_1b2c[ev]->f2a = sub_root_0000_0c70(10) + 40;
+    F_2e38_1b2c[ev]->f2c = 3;
+    F_2e38_1b2c[ev]->f2e = sub_root_0000_0c70(0x26);
+}
 
 /* the same for the kind-8 event with type 12: f0, f2e */
 int far sub_s039_1462_16b4(void)
@@ -851,8 +944,151 @@ void far sub_s039_1462_1710(void)
 {
 }
 
-/* sub_s039_1462_1712: not decompiled: terminator table */
-void far sub_s039_1462_1712(void) { }
+/* start a kind-8 event of type 10 (9999 hours) for region kind t (0..10; 1, 2, 9 and others
+ * leave k/v uninitialised): a random k (0..11) with its value v (0x78..0x8a) by t, then a
+ * terrain from k (0x10/5/0x11, 0x12, 0xd/0/0x12/0x13, ...); D_e89b becomes a location of that
+ * terrain near the current one (vec_1f13); the event (f28 k, f2a 10..19, f2c 2, f2e v) is
+ * returned. */
+int far sub_s039_1462_1712(int t)
+{
+    int ev;
+    int ter;
+    int v;
+    int k;
+
+    switch (t) {
+    case 3:
+        switch (sub_root_0000_0c70(5)) {
+        case 0: k = 0; v = 0x81; break;
+        case 1: k = 1; v = 0x82; break;
+        case 2: k = 2; v = 0x83; break;
+        case 3: k = 3; v = 0x84; break;
+        default: k = 6; v = 0x7f; break;
+        }
+        break;
+    case 7:
+        switch (sub_root_0000_0c70(10)) {
+        case 0: k = 0; v = 0x81; break;
+        case 1: k = 1; v = 0x82; break;
+        case 2: k = 3; v = 0x84; break;
+        case 3: k = 4; v = 0x85; break;
+        case 4: k = 6; v = 0x7f; break;
+        case 5: k = 7; v = 0x87; break;
+        case 6: k = 8; v = 0x88; break;
+        case 7: k = 9; v = 0x89; break;
+        case 8: k = 10; v = 0x8a; break;
+        default: k = 11; v = 0x78; break;
+        }
+        break;
+    case 6:
+    case 8:
+        switch (sub_root_0000_0c70(9)) {
+        case 0: k = 0; v = 0x81; break;
+        case 1: k = 1; v = 0x82; break;
+        case 2: k = 3; v = 0x84; break;
+        case 3: k = 4; v = 0x85; break;
+        case 4: k = 7; v = 0x87; break;
+        case 5: k = 8; v = 0x88; break;
+        case 6: k = 9; v = 0x89; break;
+        case 7: k = 10; v = 0x8a; break;
+        default: k = 11; v = 0x78; break;
+        }
+        break;
+    case 10:
+        switch (sub_root_0000_0c70(8)) {
+        case 0: k = 0; v = 0x81; break;
+        case 1: k = 1; v = 0x82; break;
+        case 2: k = 3; v = 0x84; break;
+        case 3: k = 4; v = 0x85; break;
+        case 4: k = 6; v = 0x7f; break;
+        case 5: k = 7; v = 0x87; break;
+        case 6: k = 8; v = 0x88; break;
+        default: k = 9; v = 0x89; break;
+        }
+        break;
+    case 0:
+    case 4:
+        switch (sub_root_0000_0c70(7)) {
+        case 0: k = 0; v = 0x81; break;
+        case 1: k = 1; v = 0x82; break;
+        case 2: k = 3; v = 0x84; break;
+        case 3: k = 4; v = 0x85; break;
+        case 4: k = 7; v = 0x87; break;
+        case 5: k = 8; v = 0x88; break;
+        default: k = 9; v = 0x89; break;
+        }
+        break;
+    case 5:
+        switch (sub_root_0000_0c70(6)) {
+        case 0: k = 3; v = 0x84; break;
+        case 1: k = 4; v = 0x85; break;
+        case 2: k = 5; v = 0x86; break;
+        case 3: k = 7; v = 0x87; break;
+        case 4: k = 8; v = 0x88; break;
+        default: k = 9; v = 0x89; break;
+        }
+        break;
+    }
+    switch (k) {
+    case 0:
+    case 1:
+        switch (sub_root_0000_0c70(3)) {
+        case 0: ter = 0x10; break;
+        case 1: ter = 5; break;
+        case 2: ter = 0x11; break;
+        }
+        break;
+    case 2:
+        ter = 0x12;
+        break;
+    case 3:
+        switch (sub_root_0000_0c70(4)) {
+        case 0: ter = 0xd; break;
+        case 1: ter = 0; break;
+        case 2: ter = 0x12; break;
+        case 3: ter = 0x13; break;
+        }
+        break;
+    case 4:
+        if (sub_root_0000_0c70(2))
+            ter = 0xd;
+        else
+            ter = 0x14;
+        break;
+    case 5:
+        ter = 0x13;
+        break;
+    case 6:
+    case 9:
+    case 10:
+    case 11:
+        ter = 0;
+        break;
+    case 7:
+        switch (sub_root_0000_0c70(6)) {
+        case 0: ter = 0x10; break;
+        case 1: ter = 0x11; break;
+        case 2: ter = 5; break;
+        case 3: ter = 0x12; break;
+        case 4: ter = 0x13; break;
+        case 5: ter = 0xd; break;
+        }
+        break;
+    case 8:
+        switch (sub_root_0000_0c70(3)) {
+        case 0: ter = 0xd; break;
+        case 1: ter = 0x14; break;
+        case 2: ter = 0x13; break;
+        }
+        break;
+    }
+    D_e89b = vec_1f13(F_2e38_10be[D_907e]->x, F_2e38_10be[D_907e]->y, ter);
+    ev = sub_s029_0e76_2c4e(t, D_e89b, 0x5f, 8, k, D_907e, 0, 9999, 0, 10);
+    F_2e38_1b2c[ev]->f2a = sub_root_0000_0c70(10) + 10;
+    F_2e38_1b2c[ev]->f2c = 2;
+    F_2e38_1b2c[ev]->f2e = v;
+    return ev;
+}
 
 /* fields of timed event p_6 (F_2e38_1b2c): f1a, f1e, f1c, f2e, type0 */
 int far sub_s039_1462_1a38(int p_6)
@@ -893,8 +1129,29 @@ void far sub_s039_1462_1ab0(int b)
     }
 }
 
-/* sub_s039_1462_1b0c: not decompiled: es:[reg] unknown es=farslot(32472, 11832) ptr=None */
-void far sub_s039_1462_1b0c(void) { }
+/* start the type-1 event unless one is active: a kind-8 event (type 0x5f, 9999 hours, f28 1,
+ * f2a 60..69, f2c 6, f2e 0), a kind-0x1c event 4 lasting until feast day `day` (1c22; days
+ * until it via s029 1367 08ae/0b1c, times 24 hours) whose f2a is a random location
+ * (vec_1f77), and a kind-0x1c event 2 */
+void far sub_s039_1462_1b0c(void)
+{
+    register int ev;
+    register int day;
+    struct date d;
+
+    if (sub_s029_0e76_3b62(8, -1, -1, -1, 1, -1) != -1)
+        return;
+    ev = sub_s029_0e76_2c4e(-2, 0, 0x5f, 8, 0, 0x63, 0, 9999, 0, 1);
+    F_2e38_1b2c[ev]->f2a = sub_root_0000_0c70(10) + 60;
+    F_2e38_1b2c[ev]->f2c = 6;
+    F_2e38_1b2c[ev]->f2e = 0;
+    day = sub_s039_1462_1c22();
+    sub_s029_1367_08ae(&d, D_00e6, 0, day, 0);
+    ev = sub_s029_0e76_2c4e(-2, 0, 0x63, 0x1c, 4, day, 8,
+        sub_s029_1367_0b1c((struct date far *)&d) * 24, 1, 1);
+    F_2e38_1b2c[ev]->f2a = vec_1f77(sub_root_0000_0c70(300), sub_root_0000_0c70(900), 0x15);
+    sub_s029_0e76_2c4e(-2, 0, 0x5f, 0x1c, 2, 0, 0, 9999, 0, 1);
+}
 
 /* a random day of the year near the current month (D_00e4): equinoxes/solstices and
  * feast days (80, 103, 145, 162, 172, 265, 304, 360) */
@@ -959,8 +1216,27 @@ int far sub_s039_1462_1cfe(void)
         return F_2e38_1b2c[i]->f2a;
 }
 
-/* sub_s039_1462_1d2c: not decompiled: does not compile */
-void far sub_s039_1462_1d2c(void) { }
+/* price of v + 1 for the party: by reputation rep (<= -10: 4/3, >= 50: 1/2, >= 10: 7/10),
+ * at least 1, times the party size (1de6); 8/3 in a location of kind 2 (s029 1a8e 0x20),
+ * 5/3 in kind 8; clamped to 1..1000 */
+int far sub_s039_1462_1d2c(int rep, register int v)
+{
+    v++;
+    if (rep <= -10)
+        v = v * 4 / 3;
+    else if (rep >= 50)
+        v = v / 2;
+    else if (rep >= 10)
+        v = v * 7 / 10;
+    if (v < 1)
+        v = 1;
+    v *= sub_s039_1462_1de6();
+    if (D_907e != -1 && sub_s029_0e76_1a8e(D_907e, 0x20) == 2)
+        v = v * 8 / 3;
+    if ((D_907e != -1 || D_907e >= 0x5c) && sub_s029_0e76_1a8e(D_907e, 0x20) == 8)
+        v = v * 5 / 3;
+    return sub_s029_1367_0066(1, 1000, v);
+}
 
 /* number of present party members (of the 5 slots) */
 int far sub_s039_1462_1de6(void)

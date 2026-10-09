@@ -1,7 +1,10 @@
 /* place: s022 1ef8:0000 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 2/5 (04e4, 07aa match). 03e4 blocked: 20a5 data is communal far data
- * (needs COMDEF support in tools/omflink.py). 0000/051c: register/slot differences left. Combat overlay s022 (child of s014): 0000 character sheet from combat,
+/* status: wip 3/5, all functions written (03e4, 04e4, 07aa match).
+ * 20a5 data: `extern int far F_20a5_1f44[];` (a far ARRAY gives `mov ax,SEG; mov es,ax`).
+ * 051c blocked: 5-byte struct copy is `mov cx,2; rep movsw; movsb` (6.00A: movsw; movsw; movsb).
+ * 0000 blocked: loop-pointer home store scheduled before the 13-byte struct copy, copy uses
+ * `mov cx,6` first and `push ss; pop es` (6.00 vs 6.00A block-copy codegen). Combat overlay s022 (child of s014): 0000 character sheet from combat,
  * 03e4 surrender, 04e4 "%Fs%s%Fs" message about a combatant, 051c choose party order
  * (F1..F5 or click), 07aa (near) take member into the order list.
  * Combatants: 13 records of 0x80 bytes, D_9c65[0..4] party, [5..12] enemies
@@ -40,8 +43,7 @@ extern int D_a893;
 extern int D_ca3d;
 extern unsigned char D_c651;
 /* original: `mov ax,SEG 20a5` = communal `int far x;` (COMDEF), which omflink rejects */
-extern int far F_20a5_1f44;
-extern int far F_20a5_1f46;
+extern int far F_20a5_1f44[];  /* 20a5:1f44 */
 extern char far F_286b_0212[];
 extern char far F_286b_0222[];
 extern char far * far F_286b_0267[];
@@ -130,8 +132,9 @@ void far sub_s022_1ef8_0000(int y)
 
     idx = y / 40;
     freed = 0;
+    i = 0;
     save = D_c96b;
-    for (i = 0; i < 13; i++)
+    for (; i < 13; i++)
         saved[i] = D_9c65[i].f0b;
     st = D_9c65[idx].status;
     if (st == 1) {
@@ -246,15 +249,16 @@ void far sub_s022_1ef8_0000(int y)
         sub_s022_1ef8_04e4(idx);
 }
 
+#pragma optimize("a", on)
 void far sub_s022_1ef8_03e4(void)
 {
     int i;
-    volatile int any, other;
+    int any, other;
 
     if (D_a6c1 == 1 && sub_root_0000_2522("Do you really want to surrender?") == 1) {
         D_a893 = 4;
         other = any = 0;
-        D_ca3d = F_20a5_1f44;
+        D_ca3d = F_20a5_1f44[0];
         for (i = 5; i < 13; i++)
             if (D_9c65[i].status == 1) {
                 D_c651 = D_a6b4[i];
@@ -271,7 +275,7 @@ void far sub_s022_1ef8_03e4(void)
             }
         }
         if (any == 1) {
-            D_ca3d = F_20a5_1f46;
+            D_ca3d = F_20a5_1f44[1];
             for (i = 0; i < 5; i++)
                 if (D_a6b4[i] != 0x9d && (D_9c65[i].status == 1 || D_9c65[i].status == 2))
                     D_9c65[i].status = 5;
@@ -285,6 +289,8 @@ void far sub_s022_1ef8_03e4(void)
         }
     }
 }
+
+#pragma optimize("", on)
 
 void far sub_s022_1ef8_04e4(int i)
 {

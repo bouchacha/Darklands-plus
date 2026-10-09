@@ -219,6 +219,9 @@ def main():
             if c['length'] != osize:
                 changed.append((c, osize))
         else:
+            if c.get('fardata'):
+                raise SystemExit('%s: far data segment(s) %s exist only in mods; build with --mod'
+                                 % (c['path'], ', '.join(c['fardata'])))
             end = start + c['length']
             if osize is not None and osize != c['length']:
                 changed.append((c, osize))
@@ -291,6 +294,11 @@ def main():
                                       'orig_size': c['orig_end'] - (c['frame'] * 16 + c['offset'])}
         # data segments have common names (_DATA/CONST) - give each object its own mapping
         per_obj[c['obj']] = {n: {'image': 's136', 'frame': 0x321a, 'offset': off} for n, off in c['data'].items()}
+        # mod far data: a zero-size 'original' piece right after the code range, in the same frame
+        cend = c['orig_end']
+        for k, fn in enumerate(sorted(c.get('fardata', {}))):
+            per_obj[c['obj']][fn] = {'image': c['image'], 'frame': c['frame'],
+                                     'offset': cend - c['frame'] * 16, 'orig_size': 0, 'fardata': True}
     L['object_modules'] = per_obj
     json.dump(L, open(os.path.join(work, 'layout.json'), 'w'))
     objs = [os.path.join(obj_dir, os.path.splitext(os.path.basename(f))[0] + '.obj') for f in files]
@@ -312,7 +320,8 @@ def main():
     for al, n in aliases.items():
         if n in lk.symbols and al not in symtab:
             symtab[al] = list(lk.symbols[n])
-    json.dump(symtab, open(os.path.join(work, 'symbols.json'), 'w'))
+    # the checkers (cmatch/fmatch) resolve against the ORIGINAL layout: a mod build keeps its own table
+    json.dump(symtab, open(os.path.join(work, 'symbols_mod.json' if a.mod else 'symbols.json'), 'w'))
     ref = open(a.exe, 'rb').read()
     print('rebuilt %s: %d bytes md5 %s' % (out, len(data), hashlib.md5(data).hexdigest()))
     print('original      : %d bytes md5 %s' % (len(ref), hashlib.md5(ref).hexdigest()))

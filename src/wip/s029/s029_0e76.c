@@ -1,14 +1,18 @@
 /* place: s029 0e76:0000 */
-/* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: hand port (e3). All 143 functions written; 130/143 match, _DATA and CONST slots
-   match the original. Open: 013a 18f2 (6.00 keeps the current value in AX across a branch
-   target and copies who to BX; 6.00A does neither - these two also keep the jump tables of
-   1a8e/1dfe/1fb8 two bytes off), 1260 (loop-invariant bit>>3 / mask in registers), 1446
-   (sum operand order: symbol-table state, see D_fff0), 1a8e case 1 and 35, 255a (cap compares
-   preload the current value), 2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits
-   `inc si`; 2e74 needs #pragma optimize("a", on) for the 3144 test), 4aa4 (frame 6 vs 4),
-   4b08 (d kept in memory, slot order), 4650 (inline far memset: 6.00 only). Several
+/* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
+/* status: hand port (e3). All 143 functions written; 134/143 match, _DATA and CONST slots
+   match the original. Open: 013a (frame 2 vs 4: the +0x35 CSE spill goes to [bp-2], the
+   original has an unused slot above it; length is right), 1260 (-2 bytes; the far-pointer
+   loop in build/agent/e3/r3_1260_pform.c gets the length and frame right, only the loop
+   set-up differs, but it un-cancels the +2 of 1a8e), 1446 (sum operand order:
+   symbol-table state, see D_fff0/D_ffe0), 1a8e (+2: case 33 cross-jump/sum order and
+   case 35 loop/field reload; case 1 solved as an if/else chain in
+   build/agent/e3/r3_1a8e_case1.c), 255a (cap compares preload the current value),
+   2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits `inc si`; 2e74 needs
+   #pragma optimize("a", on) for the 3144 test), 4b08 (d kept in memory, slot order),
+   4650 (inline far memset: 6.00 only). 1260 and 1a8e must be fixed together (their
+   length errors cancel for the jump tables of 1dfe/1fb8). Several
    matches depend on the symbol table (prototype text, local names, extern lines): re-check
    the whole file after every change (build/agent/e3/keep.py; NOPROTO=1 for splice.py;
    dperm.py on 4378/4c04 when they flip). See build/agent/e3/NOTES.md. */
@@ -411,22 +415,20 @@ void far sub_s029_0e76_010e(int who, char d)
 }
 #pragma optimize("", on)
 
-/* band of +0x35 against (+0x49 + +0x4a): 0 up to half, 1 up to full, 2 up to 1.5x, else 3 */
+extern int D_ffe0;  /* unused: keeps the symbol-table state (1446/179c/184a) after 013a stopped using D_9cb3 */
+/* fatigue band of a member (-1: active member): with max = +0x49 + +0x4a (the two
+   attributes behind endurance) and cur = +0x35 (accumulated fatigue): 0 while cur <= max/2,
+   1 up to max, 2 up to 1.5 * max, else 3.  Written without a cur local and with D_9c69 as
+   the base (6.00 then keeps who in SI, indexes through BX and spills cur as a CSE). */
 int far sub_s029_0e76_013a(int who)
 {
     unsigned max;
-    unsigned cur;
-
     if (who == -1)
         who = D_907b;
-    max = D_9cb3[who][0] + D_9cb2[who][0];
-    cur = D_9c9e[who][0];
-    if (max / 2 >= cur)
-        return 0;
-    if (cur <= max)
-        return 1;
-    if (cur <= max * 3 / 2)
-        return 2;
+    max = D_9c69[who][0x4a] + D_9c69[who][0x49];
+    if (max / 2 >= D_9c69[who][0x35]) return 0;
+    if (D_9c69[who][0x35] <= max) return 1;
+    if (D_9c69[who][0x35] <= max * 3 / 2) return 2;
     return 3;
 }
 
@@ -1256,15 +1258,13 @@ int far sub_s029_0e76_18a8(int v, int lo, int hi)
 int far sub_s029_0e76_18f2(int who)
 {
     int m;
-    int cur;
 
-    m = (D_9cb2[who][0] + D_9cb3[who][0]) * 5 / 4;
-    *(volatile int *)&cur = D_9c9e[who][0];
-    if (m >= cur)
+    m = (D_9c69[who][0x49] + D_9c69[who][0x4a]) * 5 / 4;
+    if (m >= D_9c69[who][0x35])
         return 0;
-    if (cur <= m && cur >= m >> 1)
+    if (D_9c69[who][0x35] <= m && D_9c69[who][0x35] >= m >> 1)
         return 9;
-    if (cur <= m * 3 / 2 && cur >= m)
+    if (D_9c69[who][0x35] <= m * 3 / 2 && D_9c69[who][0x35] >= m)
         return 0x13;
     return -1;
 }
@@ -2916,18 +2916,22 @@ int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, i
     sub_root_0000_1716(0x100);
 }
 
+/* close every 0x43 event whose field +0x1e is p_6: log it as a 0x47 event for the party
+   (-2, lasting 9999) and remove it through 30fe.  No local copy of p_6 (a `v_di = p_6`
+   copy costs a frame slot); the dead `k = 0;` is needed, without it 6.00A lays the loop
+   out 6 bytes longer. */
 void far sub_s029_0e76_4aa4(int p_6)
 {
-    int v_di;
     int v_si;
+    int k;
+    k = 0;
     v_si = 0;
-    v_di = p_6;
     do {
         v_si = sub_s029_0e76_324c(0x43, v_si);
         if (v_si == -1) {
             break;
         }
-        if (F_2e38_1b2c[v_si]->f1e == v_di) {
+        if (F_2e38_1b2c[v_si]->f1e == p_6) {
             sub_s029_0e76_2c4e(-2, D_907e, 0, 0x47, F_2e38_1b2c[v_si]->type0, F_2e38_1b2c[v_si]->type0, 0, D_270f, 0, 0);
             sub_s029_0e76_30fe(v_si);
         }

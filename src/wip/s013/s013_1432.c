@@ -1,13 +1,17 @@
 /* place: s013 1432:0000 */
 /* orig: size=0d78 _DATA=1604+0171 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): 0000 matches; 0338 047a 05bc 06fe 0848 098a 0adc 0c1e (one template:
- * load lc_* level, set door ids, save level0.flr, load .fil/.atv, remap group monsters) differ
- * ONLY in the door loop: 6.00 reloads the level pointer with `les bx,[bp-0eh]` for the
+/* status (e6, 2026-10-09): ALL FUNCTIONS WRITTEN. 0000 matches; 0338 047a 05bc 06fe 0848 098a 0adc 0c1e
+ * (one template: load lc_* level, set door ids, save level0.flr, load .fil/.atv, remap group monsters)
+ * differ in the door loop: 6.00 reloads the level pointer with `les bx,[bp-0eh]` for the
  * `i < lv->nobj` test every iteration (es unknown at the loop head) and then uses `mov ax,es`
  * after the loop; 6.00A keeps es (`mov bx,[bp-0eh]`, later `mov ax,[bp-0ch]`). Tried pragma
- * sweeps, pointer/index forms, volatile pointee, D_c103 direct. 0098 (court, 7 doors + start
- * position bit masks from D_160c) is drafted, not matching (register choice, shift loop rotation).
+ * sweeps (incl. "egl"/"c" off), pointer/index forms, volatile far pointer local, volatile
+ * pointee / nobj field, a char far * to nobj, D_c103 direct, while form: none gives the les.
+ * `D_db05 = *(volatile int far *)cnt;` fixes the group-count re-read (`cmp es:[bx],0`) in
+ * 0338 047a 05bc 0848 098a 0adc (not in 06fe/0c1e, where it lengthens the code). 0098 (court,
+ * 7 doors + start position bit masks from D_160c) is drafted, not matching (register choice,
+ * shift loop rotation).
  * Baphomet's citadel (lcastle): one battlefield per room. Each sub loads a prepared level
  * file (map + objects + groups) into D_c103, fixes up door ids, saves the map as level0.flr
  * and loads the .fil (tile description) and .atv (enemy groups) files; the group monster
@@ -231,7 +235,7 @@ int far sub_s013_1432_0338(void)
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
     sub_root_05d9_019a("lc_g1.fil", (char far *)D_db33);
     sub_root_05d9_019a("lc_g1.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
         D_db2d[i].count[0] = 4;
@@ -266,7 +270,7 @@ int far sub_s013_1432_047a(void)
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
     sub_root_05d9_019a("lc_g2.fil", (char far *)D_db33);
     sub_root_05d9_019a("lc_g2.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
         D_db2d[i].count[0] = 2;
@@ -301,7 +305,7 @@ int far sub_s013_1432_05bc(void)
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
     sub_root_05d9_019a("lc_g3.fil", (char far *)D_db33);
     sub_root_05d9_019a("lc_g3.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 2);
         D_db2d[i].count[0] = 1;
@@ -372,7 +376,7 @@ int far sub_s013_1432_0848(void)
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
     sub_root_05d9_019a("lc_g4ns.fil", (char far *)D_db33);
     sub_root_05d9_019a("lc_g4ns.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
         D_db2d[i].count[0] = 1;
@@ -409,7 +413,7 @@ int far sub_s013_1432_098a(void)
     D_db33[0x44] = 8;
     D_db33[0x77] = 6;
     sub_root_05d9_019a("lc_g5.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
         D_db2d[i].count[0] = 1;
@@ -444,7 +448,7 @@ int far sub_s013_1432_0adc(void)
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
     sub_root_05d9_019a("lc_g7a.fil", (char far *)D_db33);
     sub_root_05d9_019a("lc_g7a.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    D_db05 = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
         D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
         D_db2d[i].count[0] = 1;

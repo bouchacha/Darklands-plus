@@ -1,9 +1,9 @@
 /* place: s043 150b:000a */
 /* orig: size=2d9e CONST=7ee6+0016 _DATA=51f4+0110 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: WIP (e2, 2026-10-09 session 3): 23/28 functions match (fmatch), _DATA matches.
+/* status: WIP (e2, 2026-10-09 session 4): 24/28 functions match (fmatch), _DATA matches.
  *   match: 000a 0110 01e0 020e 03b0 049a 04c4 06fe 10fc 1142 13a0 1374 13f2 168c 16e8 1f3e
- *          1f40 2252 2802 2826 28e6 2936 2a04.
+ *          1f40 2252 2802 2826 28e6 2936 2a04 1744.
  *   04c4, 13f2: contain the original inline _asm recolour block (allowed for these two).
  *   Several functions were compiled without global optimisation (probably the 1992 compiler
  *   ran out of memory): 2252 `#pragma optimize("egl", off)`, 13a0 "eglc" off, 203a "eglc".
@@ -12,11 +12,10 @@
  *         original keeps the `mov dx,[9787]; add ax,6eh` tail in case 51's names[0] arm and
  *         case 52 jumps into it, 6.00A keeps case 52's copy (line layout/order tried).
  *         egl/pragma sweep: no gain.
- *   1744: 1556/1554 (D_8ddc used directly; a `register struct mouse *m` gives 1554 but
- *         loads it at the assignment); left: `mov dx,[5202]` before the e96f load (operand order is
- *         canonicalised, source order has no effect) and the click loop: the original
- *         keeps j in DI and hoists D_8ddc into SI after the loop guard (6.00A reloads
- *         [8ddc] every iteration; register m loads it at the assignment).
+ *   1744: matched (session 4): `*(volatile char *)&D_e96f` in the Shift-hover compare (loads
+ *         D_5202 first), a `register struct mouse *m` set after the loop guard of the click
+ *         loop (do/while), and `extern int D_e972;` moved before `struct res` (compare
+ *         direction `cmp [si+4],ax`).
  *   1d56: the 05a5 call: orig pushes D_a626 before computing `y = who*0x28+1`, and tests
  *         `or ax,ax` after `mov si,ax`; 6.00A hoists the embedded assignment (pragma
  *         combos, volatile, separate statements tried).
@@ -63,6 +62,7 @@
  *   choose the leader.  2a04 lets hours pass with the hourglass (2d3a frames).
  */
 
+extern int D_e972;              /* position decides 1744's compare direction */
 struct res { int a; int b; };
 struct gfx { char pad[0xa]; int f0a; int color; char pad2[2]; int f10; };
 struct finfo { char pad[0x10]; long size; char pad2[4]; };
@@ -131,7 +131,6 @@ extern char *D_e957;
 extern int D_e959;              /* current text block */
 extern struct layout D_e96e;
 extern char D_e96f;
-extern int D_e972;
 extern int D_e970;
 extern unsigned char D_e974[];
 extern struct layout D_ea64, D_eb5a, D_ec50, D_a778;
@@ -1080,6 +1079,7 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
     int show;
     int t;
     register int j;
+    register struct mouse *m;
 
     D_ed6c = 0;
     i = 0;
@@ -1179,7 +1179,7 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
         show = 1;
     else
         show = 0;
-    if (show && D_e96f != (t = D_5202)) {
+    if (show && *(volatile char *)&D_e96f != (t = D_5202)) {
         if (t != -10 && D_906a != 2) {
             sub_root_0000_1588(0x100);
             sub_root_0000_1716(0x100);
@@ -1199,11 +1199,16 @@ int far sub_s043_150b_1744(struct gfx *win, struct gfx *win2)
     }
     if ((D_8ddc = sub_root_047c_1320(6, 0, 0, 0))->click > 0) {
         D_ed6c = 0;
-        for (j = 0; j < D_e96e.n; j++)
-            if (D_e972 + 0x3c <= D_8ddc->x && D_8ddc->x <= D_e970 + D_e972 + 0x3c && D_e974[j] <= D_8ddc->y && D_8ddc->y <= D_e974[j] + D_e988[j]) {
-                D_ed6c = 1;
-                break;
-            }
+        j = 0;
+        if (j < D_e96e.n) {
+            m = D_8ddc;
+            do {
+                if ((int)(D_e972 + 0x3c) <= m->x && m->x <= D_e970 + D_e972 + 0x3c && D_e974[j] <= m->y && m->y <= D_e974[j] + D_e988[j]) {
+                    D_ed6c = 1;
+                    break;
+                }
+            } while (++j < D_e96e.n);
+        }
         if (D_ed6c == 1) {
             if (D_ee42 == 0 && D_ee41 == 0) {
                 D_8dde = 1;

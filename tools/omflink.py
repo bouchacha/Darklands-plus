@@ -239,9 +239,12 @@ def relayout(L, mods, fixed=('root', 's136'), pad=None):
         local = L.get('object_modules', {}).get(m.path, {})
         for si in range(1, len(m.segs)):
             sname = m.segs[si][0]
-            if sname in local or sname not in segmap:
+            if sname in local and local[sname].get('fardata'):
+                ent = local[sname]
+            elif sname in local or sname not in segmap:
                 continue
-            ent = segmap[sname]
+            else:
+                ent = segmap[sname]
             img = ent['image']
             if img in fixed:
                 continue
@@ -256,7 +259,7 @@ def relayout(L, mods, fixed=('root', 's136'), pad=None):
     images = L['images']
     shifted = {}
     for img, ps in pieces.items():
-        ps.sort(key=lambda p: p['start'])
+        ps.sort(key=lambda p: (p['start'], 0 if p['orig_size'] == 0 else 1))
         for a, b in zip(ps, ps[1:]):
             if a['start'] + a['orig_size'] > b['start']:
                 raise LinkError('%s: pieces overlap at %05x' % (img, b['start']))

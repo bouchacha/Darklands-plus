@@ -1,8 +1,9 @@
 /* place: s020 1ef8:0000 */
 /* orig: size=0774 _DATA=2242+008b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 1/3 (05e6). 06b6 blocked by memset chain form (cport.compat600 only rewrites
- * the first memset after `sub ax,ax`); 0000: 3-byte struct copy `mov cx,1; rep movsw` (6.00). Combat level loader (overlay s020, child of s014):
+/* status: wip 1/3 (05e6), all functions written. 06b6: memsets now convert, but the original
+ * loads the next loop's pointers (si=a53e, dx=9c73) before the memset chain; 6.00A's memset uses
+ * DX itself so it never hoists them (6.00 vs 6.00A). 0000: 3-byte struct copy `mov cx,1; rep movsw` (6.00). Combat level loader (overlay s020, child of s014):
  * 0000 reads level%d.trn (enemy type table, 0xd6-byte records) into D_a895 count +
  * D_a896[] (0x122-byte enemy type records), writes level%d.enm, sizes the animation buffer
  * from tacanim.db; 05e6 sets far buffer pointers; 06b6 clears combat state. */
@@ -321,8 +322,7 @@ void far sub_s020_1ef8_05e6(void)
 
 void far sub_s020_1ef8_06b6(void)
 {
-    struct cm *p;
-    struct s12 *q;
+    int i;
 
     D_07d3 = 0;
     D_da4b = D_da49 = D_da4d = D_c2bb = D_da47 = D_da4f = D_da51 = D_da53 = D_07d4 = 0;
@@ -337,8 +337,8 @@ void far sub_s020_1ef8_06b6(void)
     memset(D_d962, 0, 26);
     memset(D_d97c, 0, 26);
     memset(D_d9ca, 0, 26);
-    for (p = &D_9c69[0], q = D_a53e; p < &D_9c69[13]; p++, q++) {
-        p->a = p->b = 8;
-        q->x = q->y = q->z = -536;
+    for (i = 0; i < 13; i++) {
+        D_9c69[i].b = D_9c69[i].a = 8;
+        D_a53e[i].z = D_a53e[i].y = D_a53e[i].x = -536;
     }
 }

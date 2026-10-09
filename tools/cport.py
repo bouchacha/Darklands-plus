@@ -173,9 +173,30 @@ def _rewrite_memset(b):
         q += 1
 
 
+INCLUDE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'include')
+LOCAL_INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]+"([^"]+)"', re.M)
+
+
+def local_headers(path):
+    """Headers named by '#include "x"' lines of a source, resolved next to the source or in
+    the repository's include/ directory (e.g. "darklands/card.h"). They are copied into the
+    DOS compile directory (msc.compile_c flattens the path) and are part of the cache key."""
+    out = []
+    text = open(path, encoding='latin-1').read()
+    for name in LOCAL_INCLUDE.findall(text):
+        for base in (os.path.dirname(os.path.abspath(path)), INCLUDE_DIR):
+            h = os.path.join(base, *name.split('/'))
+            if os.path.isfile(h):
+                if h not in out:
+                    out.append(h)
+                break
+    return out
+
+
 def compile_source(src, cache_dir, extra_headers=()):
     """Compile one placed source; returns dict with obj path, code segment, length, publics."""
     os.makedirs(cache_dir, exist_ok=True)
+    extra_headers = list(extra_headers) + [h for h in local_headers(src['path']) if h not in extra_headers]
     seg = ('P_%s_%04x_%04x' % (src['image'], src['frame'], src['offset'])).upper()   # MSC upper-cases /NT
     flags = list(src['flags']) + ['/NT', seg]
     blob = ORIG_LINE.sub('', open(src['path'], encoding='latin-1').read()).encode('latin-1')
@@ -205,6 +226,7 @@ def compile_source(src, cache_dir, extra_headers=()):
     head = open(src['path'], encoding='latin-1').read(3000)
     hints = dict((k, int(v, 16)) for k, v in re.findall(r'/\*\s*data:\s*(\w+)=([0-9a-fA-F]{1,4})\s*\*/', head))
     datasegs = {}
+    fardata = {}
     for i in range(1, len(m.segs)):
         n = m.segs[i][0]
         if n == seg:
@@ -213,12 +235,15 @@ def compile_source(src, cache_dir, extra_headers=()):
         if ext == 0:
             continue
         if n not in ('_DATA', 'CONST'):
-            raise SystemExit('%s: unsupported non-empty segment %s' % (src['path'], n))
+            # far data (e.g. 'static char far s[] = "...";' in a mod): placed next to the code
+            # by 'build.py --mod'; it can never be part of a matching file
+            fardata[n] = ext
+            continue
         datasegs[n] = ext
     si = [i for i in range(1, len(m.segs)) if m.segs[i][0] == seg][0]
     pubs = [(n, off) for n, s, off in m.pubs if s == si]
     return dict(src, obj=objp, segment=seg, length=len(code[0]), publics=pubs, messages=msg,
-                data=dict(hints), datasegs=datasegs)
+                data=dict(hints), datasegs=datasegs, fardata=fardata)
 
 
 def infer_data_placement(c, orig):
