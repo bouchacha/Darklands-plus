@@ -3,27 +3,22 @@
 /* data: _DATA=4bbc */ /* data: CONST=7edc */
 /* Loot distribution: share found items and cash between the party (overlay s040). */
 /*
- * STATUS: NOT MATCHING (check with: tools/cmatch.py --flags "/AM /G2 /Gs /Ox /Zp1 /Oa" ...;
- * cmatch ignores the flags line for files outside src/c).  The data hints are needed because
- * cport.infer_data_placement crashes when the compiled code is longer than the region.
- *
- * Functions that compile to the original instructions (modulo position):
- *   loot_close (06c8), loot_draw (06e2), loot_redraw (0952), loot_add (1242),
- *   loot_remove (12ec), loot_draw_inv (1372), loot_draw_pile (145e).
+ * STATUS (e0, 2026-10-08): 8/10 functions match (check: python3 -I tools/fmatch.py src/wip/s040/loot.c).
+ *   loot_distribute (0000) now matches: the buffer pointer is built once from alloc_buffer's
+ *     result (p = (far *)((unsigned long)alloc_buffer(..) << 16); D_a889 = p;) and the two
+ *     skipped header bytes are dead reads (st = *buf++; st = *buf++;).
  * Still different:
- *   loot_distribute (0000): the far value MK_FP(seg,0) is kept in di:si across the call to
- *     sub_root_0617_011e; the original spills it to [bp-3Ah] (and stores seg to [bp-2]),
- *     then computes buf+1 into di and adds 2 separately (6.00A folds this to +3) and re-reads
- *     D_8dd0 from memory.  Tried: a buf variable, buf = D_a889 = ..., MK_FP expression CSE,
- *     struct lst pointer, post-increment, separate += - none reproduces the spill.
  *   loot_screen (01c8): after "cash[0] = 0" the original re-reads es:[si] when pushing cash[0]
- *     for sub_s029_1367_0130; 6.00A propagates the constant 0 across the two far calls.
- *     Tried *cash, embedded assignment in the call, cash[0] = D_8dbc.
+ *     for sub_s029_1367_0130; 6.00A (with /Oa, needed for the rep stosw init loops) keeps the
+ *     constant 0 across the two far calls.  Tried *cash, cash[0] as clamp argument, D_8dcc[0],
+ *     volatile casts/globals (ignored); `int volatile far *cash` fixes the push but then the
+ *     store moves before the first argument push (original: between pushes).
+ *     #pragma optimize("a", off) fixes the push but loses the rep stosw loops.
  *   loot_key (0c22): (a) in the 'D' loop the original indexes D_a6b4 with bx and D_9c69 with dx
  *     (mine: the other way round); (b) cross-jumping in the Up/Down cases keeps different copies
  *     of the shared tails (original: Up's pile-cursor draw and inv-scroll tail, Down's
- *     pile-scroll tail; 6.00A picks the opposite ones).  Tried if/else orientation and
- *     goto/label placements (6.00A then relocates the labelled block).
+ *     pile-scroll tail; 6.00A picks the opposite ones).  Tried if/else orientation, goto/label
+ *     placements, several loop shapes for 'D' (do/while, (x+1)%5, split status tests).
  * These look like optimizer differences between the game's MSC 6.00 and 6.00A.
  */
 
@@ -148,12 +143,12 @@ void far loot_distribute(struct invitem far *items, unsigned char *count, int fa
         printf(msg, "list");
         exit_(1);
     } else {
-        seg = alloc_buffer(ft.size, "Item memory");
-        D_a889 = (unsigned char far *)((unsigned long)seg << 16);
-        buf = (unsigned char far *)((unsigned long)seg << 16);
+        buf = (unsigned char far *)((unsigned long)alloc_buffer(ft.size, "Item memory") << 16);
+        D_a889 = buf;
         sub_root_0617_011e("darkland.lst", buf);
         D_8dd0 = *buf++;
-        buf += 2;
+        st = *buf++;
+        st = *buf++;
         for (i = 0; i < D_8dd0; i++) {
             F_2e38_0890[i] = (struct itemdef far *)buf;
             buf += sizeof(struct itemdef);

@@ -54,7 +54,7 @@ extern int D_2816, D_2804, D_2812, D_e7a2, D_e7a0;
 extern char D_9920, D_9934;
 extern char D_907c, D_907b;
 extern int D_884e, D_884c, D_907e;
-extern volatile int D_2800;
+extern int D_2800;
 extern volatile int D_6ef0, D_6eec, D_6eee;
 extern char D_27f4[], D_2806[], D_e48c[], D_9419[];
 extern int D_906b, D_906d, D_906f;
@@ -316,6 +316,10 @@ void far barter_screen(int shop, char far *name, long cats)
     }
 }
 
+char str_sell[] = "\x8c S\xff" "ell an item";
+char str_buy[] = "\x8c P\xff" "urchase an item";
+char str_space[] = " ";
+
 /* barter_close: restore the screen state on leaving */
 int far barter_close(int ret, int shop)
 {
@@ -326,10 +330,6 @@ int far barter_close(int ret, int shop)
     D_907b = D_884c;
     return ret;
 }
-
-char str_sell[] = "\x8c S\xff" "ell an item";
-char str_buy[] = "\x8c P\xff" "urchase an item";
-char str_space[] = " ";
 
 /* draw_barter_screen: draw the screen and collect the items the shop sells */
 void far draw_barter_screen(int who, char far *name, long cats)
@@ -464,11 +464,10 @@ int far item_quality(int k)
 {
     struct itemdef far *d;
 
-    d = F_2e38_0890[k];
-    if (d->type == 0x40 || d->type == 0x41 || d->type == 0x42 || d->cats == 0x400L ||
-        d->type == 0x17 || d->type == 0x18 || d->type == 0x19)
+    if (F_2e38_0890[k]->type == 0x40 || F_2e38_0890[k]->type == 0x41 || F_2e38_0890[k]->type == 0x42 || F_2e38_0890[k]->cats == 0x400L ||
+        F_2e38_0890[k]->type == 0x17 || F_2e38_0890[k]->type == 0x18 || F_2e38_0890[k]->type == 0x19)
         return 25;
-    return (d->qual + D_8834) / 2;
+    return (F_2e38_0890[k]->qual + D_8834) / 2;
 }
 
 /* barter_key: handle one key press; returns the key (0x11b = leave) */
@@ -765,35 +764,32 @@ int far sell_price(int k, int qual)
 /* shop_has_item: whether the shop offers items of type k today */
 int far shop_has_item(int k)
 {
-    struct itemdef far *d;
     int size;
+    int town;
     int r;
     int q;
 
-    d = F_2e38_0890[k];
-    if (!(d->cats & D_8868))
-        return 0;
-    if (d->flags & 0x80)
-        return 0;
-    if (d->type == 0x40 || d->type == 0x41 || d->type == 0x42)
-        return 1;
-    size = size < 0x5c && size != -1 ? D_9785->size - 1 : 1;
-    if (size > 9)
-        size = 9;
-    r = d->rarity;
-    q = item_quality(k);
-    if (q < 0x17)
-        r++;
-    else if (q > 0x1d)
-        r -= 2;
-    else if (q > 0x1a)
-        r--;
-    if (r < 0)
-        r = 0;
-    else if (r > 11)
-        r = 11;
-    q = F_290e_399b[size][r];
-    if (random_n(100) > q)
-        return 0;
-    return 1;
+    if ((F_2e38_0890[k]->cats & D_8868) && !(F_2e38_0890[k]->flags & 0x80)) {
+        if (F_2e38_0890[k]->type == 0x40 || F_2e38_0890[k]->type == 0x41 || F_2e38_0890[k]->type == 0x42)
+            return 1;
+        size = town < 0x5c && town != -1 ? D_9785->size - 1 : 1;
+        if (size > 9)
+            size = 9;
+        r = F_2e38_0890[k]->rarity;
+        q = item_quality(k);
+        if (q < 0x17)
+            r++;
+        else if (q > 0x1d)
+            r -= 2;
+        else if (q > 0x1a)
+            r--;
+        if (r < 0)
+            r = 0;
+        else if (r > 11)
+            r = 11;
+        q = F_290e_399b[size][r];
+        if (random_n(100) <= q)
+            return 1;
+    }
+    return 0;
 }
