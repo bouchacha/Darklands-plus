@@ -6,12 +6,12 @@ This repository contains **no game files** and no code generated from them. Ever
 
 ## What works today
 
-* **Byte-identical rebuild.** `tools/build.py` disassembles the 1.6 MB executable into 489 reassemblable source modules (one per original segment, plus split-out functions), assembles them with JWasm, and links them with a purpose-built RTLink/Plus-compatible linker. The result is a byte-identical `DARKLAND.EXE` (MD5 `0d51cc9458a6724e1bd34a9fe0d81e7f`). All relocation tables, the overlay section table and the MZ header are regenerated, not copied.
-* **Whole-program map.** It covers 9,697 functions across the resident root and 136 overlay sections, classified as compiled C (about 94% of the code by size), hand-written assembly, the C run-time library and the overlay manager. Callers, callees and referenced strings are in `build/analysis/functions.json`.
-* **Module map.** It records which overlay is combat, battlefield generation, the overland map, inventory, barter, alchemy, saints, character creation and save/load, the card engine, and the 92 town/event card-script overlays (`docs/MODULE_MAP.md`).
-* **Toolchain identified.** Microsoft C 6.0, medium model, `/G2`, linked with RTLink/Plus (`docs/TOOLCHAIN.md`).
-* **Data files.** There are readers for every shipped data format and writers for nearly all of them, verified by byte-identical round trips on all 1,648 files and archive entries (`formats/`).
-* **Ghidra pseudo-C** as a porting reference (`tools/run_ghidra.sh`). It is done for all non-card-script code: 1,704 functions.
+* **Matching decompilation, in progress.** 370 original source files (about 8,400 of the ~10,100 functions, 880 KB of code) are C that Microsoft C 6.00A compiles back to the original bytes; `tools/build.py` rebuilds a **byte-identical** `DARKLAND.EXE` (MD5 `0d51cc9458a6724e1bd34a9fe0d81e7f`) from that C plus reassembled code for the rest. Nearly all town/event card scripts (s044–s135) are done, plus parts of the engine (strategic rules s029 1367, saints s039 165c, card engine pieces, combat sub-modules, character creation screens). Engine drafts that are complete but not yet byte-exact live in `src/wip/` (overland map, inventory, camping, alchemy, loot, card engine, strategic core, battlefields).
+* **Mod builds.** `tools/build.py --mod --overlay <mod dir>` builds a game in which edited C modules may grow or shrink: the linker re-lays out the overlay tree (`omflink.relayout`), and every code reference is symbolic. Tested in DOSBox: moving every card overlay and growing modules still plays correctly; the complete `src/wip` engine drafts run too (the overland map from C). See `docs/CARDS.md` and the example in `mods/rich_start/`.
+* **Readable card scripts.** `include/darklands/card.h` names ~280 engine variables and rule functions (`next_card`, `opt_fn`, `money_set`, `advance_hours`, `practice_skill` ...); all card files use them and still match. `docs/CARDS.md` is the modder's guide.
+* **Headless play-testing.** `tools/play.py` runs the game in DOSBox on a virtual display with scripted mouse/keys and screenshots (`QUICKSTART` macro starts a game).
+* **Toolchain.** MSC 6.00A runs under emu2 (`tools/msc.py`); `tools/dec16.py` decompiles MSC 6 code to C automatically (about 80% of card-script functions match straight away); `tools/fmatch.py` checks a C file function by function; `docs/PORTING.md` and `docs/PORTING_NOTES.md` collect the compiler idioms learned.
+* **Whole-program map, data formats, Ghidra export** as before: `docs/MODULE_MAP.md`, `formats/` (round-trip readers/writers for every shipped data file), `tools/run_ghidra.sh`.
 
 ## Quick start
 
