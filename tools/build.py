@@ -237,6 +237,10 @@ def main():
         holes.append((c['image'], start, end, names))
         # the original generated labels of ported functions stay valid as aliases, so other C
         # files (and asm) can keep calling sub_<image>_<frame>_<offset>
+        # the frame anchor FRM_<image>_<frame> (used as 'SEG FRM_...') is normally defined by the
+        # asm piece at the start of the frame; when C covers that start, any C symbol stands in
+        if c['publics']:
+            aliases.setdefault('FRM_%s_%04x' % (c['image'], c['frame']), c['publics'][0][0])
         for lin, n in names.items():
             gen = 'sub_%s_%04x_%04x' % (c['image'], c['frame'], lin - c['frame'] * 16)
             aliases[gen] = n
