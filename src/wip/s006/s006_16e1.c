@@ -1,4 +1,5 @@
 /* place: s006 16e1:000a */
+/* orig: size=0fe0 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): both functions written from Ghidra + asm (dec16 drafts were stubs).
  * Outer wall around the keep: 000a extends the 4 strips (D_db65 slots 0..3 of the level) along

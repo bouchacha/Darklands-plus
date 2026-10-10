@@ -1,4 +1,5 @@
 /* place: s006 18fa:0008 */
+/* orig: size=15d4 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): all 5 functions written from the asm + Ghidra (dec16 drafts were
  * stubs). Stairs: 0008 continues the stairs of the neighbouring level (D_db95 exits with

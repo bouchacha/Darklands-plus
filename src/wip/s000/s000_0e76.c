@@ -1,4 +1,5 @@
 /* place: s000 0e76:0000 */
+/* orig: size=13c8 _DATA=0946+035b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Start-up module: EMS error messages, main(), command line / config.drk / sound driver
    set-up (0114), game start (052a).

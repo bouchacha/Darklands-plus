@@ -1,4 +1,5 @@
 /* place: s006 17df:000a */
+/* orig: size=11ae */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): all 6 functions written from Ghidra + asm (dec16 drafts were
  * stubs; Ghidra timed out on 000a). Corridors between rooms (cells of kind 7): 000a picks

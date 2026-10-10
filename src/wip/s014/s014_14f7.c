@@ -1,5 +1,5 @@
 /* place: s014 14f7:0008 */
-/* orig: size=3c7a CONST=7d50+002e */
+/* orig: size=3c7a CONST=7d50+003c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: CONST=7d50 */
 /* s014 14f7: COMBAT RENDERER.
