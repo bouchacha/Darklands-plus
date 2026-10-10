@@ -2,7 +2,7 @@
 #define DL_DISPATCH_H
 typedef struct { unsigned lin; int sect; void (*f)(void); } FuncEntry;
 typedef struct { unsigned off; int sect; void (*f)(void); } VecEntry;
-typedef struct { const char *name; const FuncEntry *funcs; int count; } DriverImage;
+typedef struct { const char *name; const FuncEntry *funcs; int count; const unsigned *rets; int nrets; } DriverImage;
 extern const FuncEntry FUNC_TABLE[]; extern const int FUNC_COUNT;
 extern const VecEntry VEC_TABLE[]; extern const int VEC_COUNT;
 typedef struct { unsigned lin; int sect; } RetSite;

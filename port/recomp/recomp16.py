@@ -106,6 +106,7 @@ class Gen:
             ow_ = self.owner.get((i_, t_))
             if ow_ is not None and ow_ != self.owner.get((i_, lin_)) and t_ != ow_:
                 self.extra[(i_, ow_)].add(t_)
+        self.find_smc()
         self.extra_name = {}
         for (img, ow), ts in self.extra.items():
             for t in ts:
@@ -155,6 +156,34 @@ class Gen:
                     elif m in ('ret', 'retf', 'iret', 'ljmp', 'hlt'):
                         break
                     o = (o + ins.size) & 0xffff
+
+    def find_smc(self):
+        """Self-modifying code: instructions whose bytes are patched at run time by writes
+        through cs:[absolute]. Their non-branch ones are executed by the interpreter."""
+        cover = {}
+        for (img, lin), r in self.insns.items():
+            for k in range(r[0]):
+                cover[(img, lin + k)] = lin
+        wr = {'mov', 'add', 'sub', 'and', 'or', 'xor', 'inc', 'dec', 'adc', 'sbb', 'not', 'neg', 'xchg', 'pop'}
+        self.smc = set()
+        for (img, lin), r in self.insns.items():
+            if r[1] not in wr:
+                continue
+            ins = next(MD.disasm(bytes(r[3]), r[5]))
+            if not ins.operands:
+                continue
+            o = ins.operands[0]
+            if o.type != X.X86_OP_MEM or o.mem.segment != X.X86_REG_CS or o.mem.base or o.mem.index:
+                continue
+            t = r[4] * 16 + (o.mem.disp & 0xffff)
+            c = cover.get((img, t))
+            if c is None:
+                continue
+            tm = self.insns[(img, c)][1]
+            if tm in JCC or tm in ('jmp', 'ljmp', 'call', 'lcall', 'ret', 'retf', 'loop', 'jcxz'):
+                continue        # patched transfers: far ones are read from memory at run time
+            self.smc.add((img, c))
+            print('  self-modifying: %s %05x patches %05x (%s %s)' % (img, lin, c, tm, self.insns[(img, c)][2]))
 
     @staticmethod
     def fname(img, lin):
@@ -223,22 +252,28 @@ class Gen:
                 code = 'fatal("unsupported %s at %s:%05x");' % (str(e).replace('"', "'"), img, lin)
             out.append('L_%05x: %s' % (lin, code))
             if mn not in ('ret', 'retf', 'iret', 'jmp', 'ljmp', 'hlt') and (lin + size) not in own \
-                    and not code.endswith('(); return;'):
+                    and not code.endswith('(); return;') and not code.endswith('return; }'):
                 # falls through into code owned by another function
                 out.append('/* fallthrough */ %s' % self.target_code(img, ent, own, lin + size, lin, call=True))
         body = '\n'.join('    ' + l for l in out)
         ex = sorted(self.extra.get((img, ent), ()))
-        tag = '    FENTER(0x%x);\n' % (((self.section_of[img] + 2) << 20) | ent)
+        tag = '    FENTER(0x%x); const u16 my_sp = FRAME_SP();\n' % (((self.section_of[img] + 2) << 20) | ent)
+        sect = self.section_of[img]
+        def chk(t):
+            fr = self.insns[(img, t)][4]
+            return 'FCHECK(0x%x, 0x%x, %d);' % (t, fr, sect)
+        if lins[0] != ent and not ex:
+            body = '    goto L_%05x;\n' % ent + body     # the entry is not the lowest address
         body = tag + body
         if not ex:
-            return 'void %s(void)\n{\n%s\n}\n' % (self.fname(img, ent), body)
+            return 'void %s(void)\n{\n    %s\n%s\n}\n' % (self.fname(img, ent), chk(ent), body)
         # several entry points: one body with a dispatch on the entry, thin wrappers
         sw = ' '.join('case %d: goto L_%05x;' % (k + 1, t) for k, t in enumerate(ex))
         txt = 'static void B_%s_%05x(int e_)\n{\n%s    switch (e_) { %s default: goto L_%05x; }\n%s\n}\n' % (
             img, ent, tag, sw, ent, body[len(tag):])
-        txt += 'void %s(void) { B_%s_%05x(0); }\n' % (self.fname(img, ent), img, ent)
+        txt += 'void %s(void) { %s B_%s_%05x(0); }\n' % (self.fname(img, ent), chk(ent), img, ent)
         for k, t in enumerate(ex):
-            txt += 'void %s(void) { B_%s_%05x(%d); }\n' % (self.fname(img, t), img, ent, k + 1)
+            txt += 'void %s(void) { %s B_%s_%05x(%d); }\n' % (self.fname(img, t), chk(t), img, ent, k + 1)
         return txt
 
     def target_code(self, img, ent, own, tlin, cur_lin, call=False):
@@ -246,9 +281,9 @@ class Gen:
         if tlin in own and not call:
             return ('POLL(); ' if tlin <= cur_lin else '') + 'goto L_%05x;' % tlin
         if (img, tlin) in self.entryset:
-            return '%s(); return;' % self.fname(img, tlin)
+            return 'TAIL_SET(); %s(); return;' % self.fname(img, tlin)
         if (img, tlin) in self.extra_name:
-            return '%s(); return;' % self.extra_name[(img, tlin)][1]
+            return 'TAIL_SET(); %s(); return;' % self.extra_name[(img, tlin)][1]
         self.problems['jump to unknown code'] += 1
         return 'fatal("jump to unknown %s:%05x");' % (img, tlin)
 
@@ -266,6 +301,8 @@ class Gen:
         nxt = (off + size) & 0xffff
         csv = '(u16)(LOADSEG+0x%04x)' % frame
         self.cur_csv = csv
+        if (img, lin) in getattr(self, 'smc', ()):
+            return 'interp_step(%s, 0x%04x);' % (csv, off)
         relocs = self.has_reloc(img, lin, size)
         prefix = ''
         m = mn
@@ -449,10 +486,10 @@ class Gen:
                         # entry k sits at table + 2k; the register holds disp-relative byte offset
                         regval = (t['base'] + 2 * k - disp) & 0xffff
                         cases.append('case %d: %s' % (regval, self.target_code(img, ent, own, tg, lin)))
-                    return 'switch (%s) { %s default: { u16 t_ = %s; dispatch_jmp_near(%s, t_); return; } }' % (
+                    return 'switch (%s) { %s default: { u16 t_ = %s; TAIL_SET(); dispatch_jmp_near(%s, t_); return; } }' % (
                         idx_reg, ' '.join(cases), self.rd(o, ins, 2), csv)
             self.problems['indirect jmp'] += 1
-            return '{ u16 t_ = %s; dispatch_jmp_near(%s, t_); return; }' % (self.rd(o, ins, 2), csv)
+            return '{ u16 t_ = %s; TAIL_SET(); dispatch_jmp_near(%s, t_); return; }' % (self.rd(o, ins, 2), csv)
         if m == 'ljmp':
             o = ops[0]
             if o.type == X.X86_OP_IMM:
@@ -462,7 +499,7 @@ class Gen:
                 tseg, toff = ops[0].imm & 0xffff, ops[1].imm & 0xffff
                 return self.far_transfer(img, lin, size, tseg, toff, nxt, csv, jump=True)
             seg, o2 = self.ea(o, ins)
-            return '{ u16 o_ = %s; u16 t_ = rw(%s, o_); u16 s_ = rw(%s, (u16)(o_ + 2)); dispatch_jmp_far(s_, t_); return; }' % (
+            return '{ u16 o_ = %s; u16 t_ = rw(%s, o_); u16 s_ = rw(%s, (u16)(o_ + 2)); TAIL_SET(); dispatch_jmp_far(s_, t_); return; }' % (
                 o2, seg, seg)
         if m == 'call':
             o = ops[0]
@@ -471,26 +508,26 @@ class Gen:
                 if (img, tlin) in self.entryset:
                     if self.fname(img, tlin) in NORETURN:
                         return 'push16(0x%04x); %s(); return;' % (nxt, self.fname(img, tlin))
-                    return 'push16(0x%04x); %s();' % (nxt, self.fname(img, tlin))
+                    return 'push16(0x%04x); %s(); UNW_CHECK();' % (nxt, self.fname(img, tlin))
                 self.problems['near call to non-entry'] += 1
                 return 'push16(0x%04x); fatal("near call to non-entry %s:%05x");' % (nxt, img, tlin)
-            return '{ u16 t_ = %s; push16(0x%04x); dispatch_near(%s, t_); }' % (self.rd(o, ins, 2), nxt, csv)
+            return '{ u16 t_ = %s; push16(0x%04x); dispatch_near(%s, t_); } UNW_CHECK();' % (self.rd(o, ins, 2), nxt, csv)
         if m == 'lcall':
             if len(ops) == 2:
                 tseg, toff = ops[0].imm & 0xffff, ops[1].imm & 0xffff
                 return self.far_transfer(img, lin, size, tseg, toff, nxt, csv, jump=False)
             o = ops[0]
             seg, o2 = self.ea(o, ins)
-            return '{ u16 o_ = %s; u16 t_ = rw(%s, o_); u16 s_ = rw(%s, (u16)(o_ + 2)); push16(%s); push16(0x%04x); dispatch_far(s_, t_); }' % (
+            return '{ u16 o_ = %s; u16 t_ = rw(%s, o_); u16 s_ = rw(%s, (u16)(o_ + 2)); push16(%s); push16(0x%04x); dispatch_far(s_, t_); } UNW_CHECK();' % (
                 o2, seg, seg, csv, nxt)
         if m == 'ret':
             n = ops[0].imm if ops else 0
-            return 'SP = (u16)(SP + %d); return;' % (2 + n)
+            return 'RET_NEAR(%d, %s);' % (n, csv)
         if m == 'retf':
             n = ops[0].imm if ops else 0
-            return 'SP = (u16)(SP + %d); return;' % (4 + n)
+            return 'RET_FAR(%d);' % n
         if m == 'iret':
-            return '{ SP = (u16)(SP + 4); set_flags(pop16()); return; }'
+            return 'IRET();'
         if m == 'int':
             return 'hle_int(0x%02x);' % (ops[0].imm & 0xff)
         if m == 'in':
@@ -509,7 +546,7 @@ class Gen:
 
     def far_transfer(self, img, lin, size, tseg, toff, nxt, csv, jump):
         """direct far call/jmp. The segment word is relocated (link-time frame)."""
-        push = '' if jump else 'push16(%s); push16(0x%04x); ' % (csv, nxt)
+        push = 'TAIL_SET(); ' if jump else 'push16(%s); push16(0x%04x); ' % (csv, nxt)
         tail = ' return;' if jump else ''
         # RTLink vector stub in root 09c0
         if tseg == 0x9c0 and toff in self.vectors:
@@ -519,7 +556,7 @@ class Gen:
             if not jump and self.section_of[img] >= 0:
                 back = ' ovl_enter(%d);' % self.section_of[img]
             if (timg, tlin) in self.entryset:
-                return '%sovl_enter(%d); %s();%s%s' % (push, sect, self.fname(timg, tlin), back, tail)
+                return '%sovl_enter(%d); %s();%s%s' % (push, sect, self.fname(timg, tlin), back, tail or ' UNW_CHECK();')
             self.problems['vector to non-entry'] += 1
             return 'fatal("vector to non-entry %s:%05x");' % (timg, tlin)
         t = self.calls.get((img, lin))
@@ -528,14 +565,14 @@ class Gen:
             cand = []           # unrelocated far target: patched at run time (driver slots)
         if cand:
             timg, tlin = cand[0]
-            return '%s%s();%s' % (push, self.fname(timg, tlin), tail)
+            return '%s%s();%s' % (push, self.fname(timg, tlin), tail or ' UNW_CHECK();')
         # not resolved statically (e.g. driver slots patched at run time): read the operand
         # from memory at run time and dispatch
         self.problems['dynamic far ' + ('jmp' if jump else 'call')] += 1
         loc = 'LIN(LOADSEG + 0x%04x, 0x%04x)' % (self.insns[(img, lin)][4], (self.insns[(img, lin)][5] + 1) & 0xffff)
         fn = 'dispatch_jmp_far' if jump else 'dispatch_far'
         return '%s{ u32 l_ = %s; %s((u16)(M[l_ + 2] | (M[l_ + 3] << 8)), (u16)(M[l_] | (M[l_ + 1] << 8))); }%s' % (
-            push, loc, fn, tail)
+            push, loc, fn, tail or ' UNW_CHECK();')
 
     # ------------------------------------------------------------------ files
     def run(self, out_dir):

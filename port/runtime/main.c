@@ -66,6 +66,10 @@ int main(int argc, char **argv)
     M = calloc(1, MEM_SIZE);
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */
+      const char *ir = getenv("DL_INTERP");      /* lo-hi[@sect] link addresses, hex */
+      if (ir) { extern u32 interp_lo, interp_hi; extern int interp_sect; interp_lo = (u32)strtoul(ir, 0, 16);
+                const char *d = strchr(ir, '-'); interp_hi = d ? (u32)strtoul(d + 1, 0, 16) : interp_lo + 1;
+                const char *at = strchr(ir, '@'); if (at) interp_sect = atoi(at + 1); }
       if (w) { watch_lo = (u32)strtoul(w, 0, 16); const char *c = strchr(w, ':'); watch_len = c ? (u32)strtoul(c + 1, 0, 16) : 1; } }
 #endif
     plat_init(1);
@@ -134,6 +138,8 @@ int main(int argc, char **argv)
     } else {
         F_root_0a2fd();         /* RTLink start-up, which then runs __astart */
     }
+    if (unw_active) fprintf(stderr, "program left through an unmatched return (slot %04x -> %04x:%04x)\n", unw_sp, unw_cs, unw_ip);
+    else fprintf(stderr, "program returned from its entry point\n");
     plat_quit(0);
     return 0;
 }

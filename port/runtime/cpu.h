@@ -106,6 +106,23 @@ void f_daa(void); void f_das(void);
 #define C_O   (get_of())
 #define C_NO  (!get_of())
 
+/* frames. Every recompiled function knows the stack slot of its own return address
+ * (my_sp, SP at entry). A ret popping a slot above it returns from an outer frame: the
+ * native C frames in between unwind (UNW_CHECK after every call) until the frame that owns
+ * the slot, which then returns too. A ret popping a slot below it jumps to an address the
+ * function pushed itself. */
+extern int unw_active; extern u16 unw_sp, unw_ip, unw_cs; extern int unw_far;
+/* a jump into another function (tail call) keeps the frame: the callee takes my_sp over */
+extern int tail_pending; extern u16 tail_sp;
+#define TAIL_SET() (tail_sp = my_sp, tail_pending = 1)
+static inline u16 frame_sp(void) { if (tail_pending) { tail_pending = 0; return tail_sp; } return SP; }
+#define FRAME_SP() frame_sp()
+void ret_mismatch(u16 my_sp, int kind, u16 n, u16 cs);   /* kind 0 near, 1 far, 2 iret */
+#define UNW_CHECK() do { if (unw_active) { if (unw_sp == my_sp) unw_active = 0; return; } } while (0)
+#define RET_NEAR(n, cs) do { if (SP != my_sp) { ret_mismatch(my_sp, 0, (n), (cs)); return; } SP = (u16)(SP + 2 + (n)); return; } while (0)
+#define RET_FAR(n) do { if (SP != my_sp) { ret_mismatch(my_sp, 1, (n), 0); return; } SP = (u16)(SP + 4 + (n)); return; } while (0)
+#define IRET() do { if (SP != my_sp) { ret_mismatch(my_sp, 2, 0, 0); return; } SP = (u16)(SP + 4); set_flags(pop16()); return; } while (0)
+
 /* services (runtime) */
 void hle_int(int n);
 u8 hle_in8(u16 port); void hle_out8(u16 port, u8 v);
@@ -118,15 +135,26 @@ void poll(void);                        /* safe point: timer interrupts, input, 
 extern volatile int poll_flag;
 #define POLL() do { if (poll_flag) poll(); } while (0)
 void fatal(const char *fmt, ...);
+void interp_step(u16 cs, u16 ip);     /* execute one (patched, non-branch) instruction */
 extern u16 LOADSEG;                     /* paragraph where the program was loaded (PSP + 0x10) */
 /* debugging: shadow stack of recompiled function entries (build with -DFTRACE) */
 #ifdef FTRACE
 extern u32 ftrace_stack[4096]; extern int ftrace_depth;
-static inline int ftrace_push(u32 id) { if (ftrace_depth < 4096) ftrace_stack[ftrace_depth] = id; return ftrace_depth++; }
-static inline void ftrace_pop(int *d) { ftrace_depth = *d; }
+extern int watch_on; void watch_check(const char *where);
+extern u16 ftrace_bp[4096];
+void ftrace_bp_changed(int d);
+static inline int ftrace_push(u32 id) { if (watch_on) watch_check("function entry"); if (ftrace_depth < 4096) { ftrace_stack[ftrace_depth] = id; ftrace_bp[ftrace_depth] = R.bp; } return ftrace_depth++; }
+static inline void ftrace_pop(int *d) { if (*d < 4096 && ftrace_bp[*d] != R.bp) ftrace_bp_changed(*d); ftrace_depth = *d; }
 #define FENTER(id) int ft_ __attribute__((cleanup(ftrace_pop))) = ftrace_push(id)
+/* differential debugging: functions whose link address is in [interp_lo, interp_hi) run in
+ * the interpreter instead (DL_INTERP=lo-hi, hex) */
+extern u32 interp_lo, interp_hi; extern int interp_sect;
+void interp_run(u16 seg, u16 off);
+#define FCHECK(lin, frame, sect) do { if ((u32)(lin) - interp_lo < interp_hi - interp_lo && (interp_sect == -9 || interp_sect == (sect))) \
+    { interp_run((u16)(LOADSEG + (frame)), (u16)((lin) - (frame) * 16)); return; } } while (0)
 #else
 #define FENTER(id)
+#define FCHECK(lin, frame, sect)
 #endif
 void ftrace_dump(void);
 #endif

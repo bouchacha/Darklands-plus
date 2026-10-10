@@ -16,6 +16,16 @@ int native_target(u16 seg, u16 off);      /* dispatch.c */
 void native_go(u16 seg, u16 off);         /* dispatch.c: call native code (return address already pushed) */
 
 static u16 ip, cs_;
+static u32 ring[64]; static int ring_i;
+void interp_ring_dump(void)
+{
+    fprintf(stderr, "  interpreter, last instructions:");
+    for (int k = 0; k < 64; k++) { u32 v = ring[(ring_i + k) & 63]; if (v) fprintf(stderr, "%s%04x:%04x", k % 8 ? " " : "\n    ", v >> 16, v & 0xffff); }
+    fprintf(stderr, "\n");
+}
+#ifdef FTRACE
+u32 interp_lo, interp_hi; int interp_sect = -9;
+#endif
 static int seg_ovr;     /* -1 none, else segment value */
 static u16 *seg_ovr_reg;
 
@@ -107,9 +117,48 @@ static int logged(u32 lin)
 }
 
 /* far/near transfer from interpreted code: native if possible */
-static int call_to(u16 seg, u16 off)
+int ovl_section_at(u32 lin);
+/* the overlay section the interpreted caller runs in must be present again after the call
+ * (RTLink reloads it on return) */
+static int caller_section(void)
 {
-    if (native_target(seg, off)) { native_go(seg, off); return 1; }
+    u32 l = LIN(cs_, ip), b = (u32)LOADSEG << 4;
+    return l >= b ? ovl_section_at(l - b) : -1;
+}
+/* after native code returned to the interpreter: handle an unwinding return (a ret that
+ * popped some outer frame's return address). 0: continue, 1: leave interp_run */
+static int after_native(u16 entry_sp)
+{
+    if (!unw_active) return 0;
+    if (unw_sp == entry_sp) { unw_active = 0; return 1; }          /* our own entry frame returned */
+    if ((u16)(unw_sp - entry_sp) < 0x8000) return 1;                /* beyond us: keep unwinding */
+    ip = unw_ip; if (unw_far) cs_ = unw_cs;                         /* an interpreted frame returned */
+    unw_active = 0;
+    return 0;
+}
+
+/* an interpreted ret popped `slot`: our entry frame returns (1), an outer native frame
+ * returns (1, unwinding), or an interpreted frame returns (0) */
+static int ret_exit(u16 slot, u16 entry_ss, u16 entry_sp, int far)
+{
+    if (SS != entry_ss) return 0;
+    if (slot == entry_sp) return 1;
+    if ((u16)(slot - entry_sp) < 0x8000) {
+        unw_active = 1; unw_sp = slot; unw_ip = ip; unw_cs = cs_; unw_far = far;
+        return 1;
+    }
+    return 0;
+}
+
+/* 0: not native (caller transfers), 1: native call done, continue, 2: leave interp_run */
+static int call_to(u16 seg, u16 off, u16 entry_sp)
+{
+    if (native_target(seg, off)) {
+        int s = caller_section();
+        native_go(seg, off);
+        if (s >= 0) ovl_enter(s);
+        return after_native(entry_sp) ? 2 : 1;
+    }
     return 0;
 }
 
@@ -122,7 +171,10 @@ static int jump_to(u16 seg, u16 off, u16 entry_ss, u16 entry_sp)
     if (!native_target(seg, off)) { cs_ = seg; ip = off; return 0; }
     u16 ss0 = SS, sp0 = SP;
     u16 w0 = rw(SS, SP), w1 = rw(SS, (u16)(SP + 2));
+    int sec = caller_section();
     native_go(seg, off);
+    if (sec >= 0) ovl_enter(sec);
+    if (unw_active) return after_native(entry_sp);
     if (SS == entry_ss && SP > entry_sp) return 1;
     if (SS != ss0) fatal("interp: native jump target %04x:%04x switched stacks", seg, off);
     u16 delta = (u16)(SP - sp0);
@@ -130,14 +182,25 @@ static int jump_to(u16 seg, u16 off, u16 entry_ss, u16 entry_sp)
     return 0;
 }
 
+static int step_only;
+void interp_run(u16 seg, u16 off);
+void interp_step(u16 seg, u16 off)
+{
+    step_only = 1;
+    interp_run(seg, off);
+    step_only = 0;
+}
+
 void interp_run(u16 seg, u16 off)
 {
     static int log = -1;
     if (log < 0) log = getenv("DL_LOG_INTERP") != 0;
-    if (log && !logged(LIN(seg, off)))
+    int one = step_only; step_only = 0;
+    if (!one && log && !logged(LIN(seg, off)))
         { fprintf(stderr, "interp: entering %04x:%04x (link %05x)\n", seg, off, LIN(seg, off) - ((u32)LOADSEG << 4)); ftrace_dump(); }
     u16 save_ip = ip, save_cs = cs_;
     u16 entry_sp = SP, entry_ss = SS;
+    if (tail_pending) { entry_sp = tail_sp; tail_pending = 0; }
     cs_ = seg; ip = off;
     u32 count = 0;
     for (;;) {
@@ -145,6 +208,7 @@ void interp_run(u16 seg, u16 off)
         seg_ovr = -1;
         int rep = 0;
         u16 start = ip;
+        ring[ring_i++ & 63] = ((u32)cs_ << 16) | ip;
         u8 op;
     again:
         op = fetch8();
@@ -219,7 +283,7 @@ void interp_run(u16 seg, u16 off)
         case 0x98: AX = (u16)(s16)(s8)AL; break;
         case 0x99: DX = (AX & 0x8000) ? 0xffff : 0; break;
         case 0x9a: { u16 o = fetch16(), s = fetch16(); push16(cs_); push16(ip);
-            if (!call_to(s, o)) { cs_ = s; ip = o; } else { /* native returned: continue */ } break; }
+            { int r = call_to(s, o, entry_sp); if (r == 2) goto done_native; if (!r) { cs_ = s; ip = o; } } break; }
         case 0x9b: break;
         case 0x9c: push16(get_flags()); break;
         case 0x9d: set_flags(pop16()); break;
@@ -248,12 +312,12 @@ void interp_run(u16 seg, u16 off)
             int n = (op == 0xc0 || op == 0xc1) ? fetch8() : (op <= 0xd1 ? 1 : CL);
             if (op & 1) put16(&m, (u16)shift(m.reg, get16(&m), n, 16)); else put8(&m, (u8)shift(m.reg, get8(&m), n, 8));
             break; }
-        case 0xc2: case 0xc3: { u16 n = op == 0xc2 ? fetch16() : 0; ip = pop16(); SP = (u16)(SP + n);
-            if (SS == entry_ss && SP > entry_sp) goto done; break; }
-        case 0xca: case 0xcb: { u16 n = op == 0xca ? fetch16() : 0; ip = pop16(); cs_ = pop16(); SP = (u16)(SP + n);
-            if (SS == entry_ss && SP > entry_sp) goto done; break; }
-        case 0xcf: ip = pop16(); cs_ = pop16(); set_flags(pop16());
-            if (SS == entry_ss && SP > entry_sp) goto done; break;
+        case 0xc2: case 0xc3: { u16 n = op == 0xc2 ? fetch16() : 0; u16 slot = SP; ip = pop16(); SP = (u16)(SP + n);
+            if (ret_exit(slot, entry_ss, entry_sp, 0)) goto done; break; }
+        case 0xca: case 0xcb: { u16 n = op == 0xca ? fetch16() : 0; u16 slot = SP; ip = pop16(); cs_ = pop16(); SP = (u16)(SP + n);
+            if (ret_exit(slot, entry_ss, entry_sp, 1)) goto done; break; }
+        case 0xcf: { u16 slot = SP; ip = pop16(); cs_ = pop16(); set_flags(pop16());
+            if (ret_exit(slot, entry_ss, entry_sp, 1)) goto done; break; }
         case 0xc4: case 0xc5: { ModRM m; decode(&m); u16 v = rw(m.seg, m.off), s = rw(m.seg, (u16)(m.off + 2));
             *r16(m.reg) = v; if (op == 0xc4) ES = s; else DS = s; break; }
         case 0xc6: { ModRM m; decode(&m); put8(&m, fetch8()); break; }
@@ -279,7 +343,7 @@ void interp_run(u16 seg, u16 off)
         case 0xee: hle_out8(DX, AL); break;
         case 0xef: hle_out8(DX, AL); hle_out8((u16)(DX + 1), AH); break;
         case 0xe8: { s16 d = (s16)fetch16(); u16 t = (u16)(ip + d); push16(ip);
-            if (!call_to(cs_, t)) ip = t; break; }
+            { int r = call_to(cs_, t, entry_sp); if (r == 2) goto done_native; if (!r) ip = t; } break; }
         case 0xe9: { s16 d = (s16)fetch16(); u16 t = (u16)(ip + d);
             if (jump_to(cs_, t, entry_ss, entry_sp)) goto done_native; break; }
         case 0xea: { u16 o = fetch16(), s = fetch16(); if (jump_to(s, o, entry_ss, entry_sp)) goto done_native; break; }
@@ -312,9 +376,9 @@ void interp_run(u16 seg, u16 off)
             switch (m.reg) {
             case 0: put16(&m, (u16)f_inc(get16(&m), 16)); break;
             case 1: put16(&m, (u16)f_dec(get16(&m), 16)); break;
-            case 2: { u16 t = get16(&m); push16(ip); if (!call_to(cs_, t)) ip = t; break; }
+            case 2: { u16 t = get16(&m); push16(ip); int r = call_to(cs_, t, entry_sp); if (r == 2) goto done_native; if (!r) ip = t; break; }
             case 3: { u16 o = rw(m.seg, m.off), s = rw(m.seg, (u16)(m.off + 2)); push16(cs_); push16(ip);
-                if (!call_to(s, o)) { cs_ = s; ip = o; } break; }
+                int r = call_to(s, o, entry_sp); if (r == 2) goto done_native; if (!r) { cs_ = s; ip = o; } break; }
             case 4: { u16 t = get16(&m); if (jump_to(cs_, t, entry_ss, entry_sp)) goto done_native; break; }
             case 5: { u16 o = rw(m.seg, m.off), s = rw(m.seg, (u16)(m.off + 2));
                 if (jump_to(s, o, entry_ss, entry_sp)) goto done_native; break; }
@@ -328,6 +392,7 @@ void interp_run(u16 seg, u16 off)
         /* a near/far call or jump target may be native, checked at the transfer; a plain
          * fall-through into native code is not possible to detect cheaply and is rare */
         (void)start;
+        if (one) break;
     }
 done:
 done_native:

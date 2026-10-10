@@ -43,6 +43,8 @@ void ovl_init(const char *exe_path)
 static void load(int i)
 {
     Sect *s = &sect[i];
+    static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
+    if (tr) fprintf(stderr, "ovl: load s%03d at %04x\n", i, s->load_seg);
     if (s->parent != 0xffff && s->parent < nsect && !ovl_loaded[s->parent]) load(s->parent);
     u32 rbytes = s->nrelocs * 4u;
     u32 pad = (16 - rbytes % 16) % 16;
@@ -84,4 +86,23 @@ void ovl_preload(void)
 {
     for (int i = 0; i < nsect; i++)
         if ((sect[i].file_para_hi_flags >> 8) & 1) load(i);
+}
+
+void ovl_dump(void)
+{
+    fprintf(stderr, "  loaded overlay sections:");
+    for (int i = 0; i < nsect; i++) if (ovl_loaded[i]) fprintf(stderr, " s%03d@%04x", i, sect[i].load_seg);
+    fprintf(stderr, "\n");
+}
+
+/* the loaded overlay section containing a link-time linear address (-1: root / none) */
+int ovl_section_at(u32 lin)
+{
+    int best = -1;
+    for (int i = 0; i < nsect; i++) {
+        if (!ovl_loaded[i] || i == 136) continue;
+        u32 a = sect[i].load_seg * 16u, b = a + sect[i].mem_paras * 16u;
+        if (lin >= a && lin < b) best = i;
+    }
+    return best;
 }

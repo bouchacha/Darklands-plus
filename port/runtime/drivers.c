@@ -54,3 +54,24 @@ void (*driver_find(u16 seg, u16 off))(void)
     }
     return 0;
 }
+
+/* is seg:off the instruction after a call inside a loaded driver? */
+int driver_retsite(u16 seg, u16 off)
+{
+    u32 lin = LIN(seg, off);
+    for (int i = 0; DRIVERS[i]; i++) {
+        if (!active[i]) continue;
+        u32 base = (u32)*DRIVER_SEGS[i] << 4;
+        if (lin < base || lin >= base + drv_size[i]) continue;
+        u32 o = lin - base;
+        const DriverImage *d = DRIVERS[i];
+        int lo = 0, hi = d->nrets - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            if (d->rets[mid] == o) return 1;
+            if (d->rets[mid] < o) lo = mid + 1; else hi = mid - 1;
+        }
+        return 0;
+    }
+    return 0;
+}

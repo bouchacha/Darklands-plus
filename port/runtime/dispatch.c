@@ -6,6 +6,7 @@
 #include "hle.h"
 
 void interp_run(u16 seg, u16 off);
+int driver_retsite(u16 seg, u16 off);
 
 static void (*find_func(u32 lin))(void)
 {
@@ -81,11 +82,13 @@ int native_target(u16 seg, u16 off)
 {
     if (seg == HLE_SEG || seg == EMS_SEG) return 1;
     if (driver_find(seg, off)) return 1;
+    if (tiny_thunk(seg, off)) return 1;
     if (!in_program(seg, off)) return 0;
     u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
     return find_vector(lin) || find_func(lin);
 }
 
+static void go(u16 seg, u16 off, int is_call);
 static void go(u16 seg, u16 off, int is_call)
 {
     static int trace = -1;
@@ -95,9 +98,10 @@ static void go(u16 seg, u16 off, int is_call)
         static int ss = -2; if (ss == -2) { const char *e = getenv("DL_STACK_ON_SEG"); ss = e ? (int)strtol(e, 0, 16) : -1; }
         if (ss == seg) ftrace_dump();
     }
-    if (seg == HLE_SEG || seg == EMS_SEG) { hle_stub(seg, off); return; }
+    if (seg == HLE_SEG || seg == EMS_SEG) { tail_pending = 0; hle_stub(seg, off); return; }
     void (*df)(void) = driver_find(seg, off);
     if (df) { df(); return; }
+    if (!is_call && driver_retsite(seg, off)) { tail_pending = 0; return; }
     if (in_program(seg, off)) {
         u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
         const VecEntry *v = find_vector(lin);
@@ -105,13 +109,14 @@ static void go(u16 seg, u16 off, int is_call)
         void (*f)(void) = find_func(lin);
         if (f) { f(); return; }
         if (!is_call && is_retsite(lin)) {
+            tail_pending = 0;
             /* a jump to the instruction after a call: code that popped its own return
              * address and jumps back through it (MSC __setargv, ...). Returning from this
              * C function resumes that caller right there. */
             return;
         }
     }
-    if (tiny_thunk(seg, off)) { tiny_interp(seg, off); return; }
+    if (tiny_thunk(seg, off)) { tail_pending = 0; tiny_interp(seg, off); return; }
     interp_run(seg, off);
 }
 
@@ -120,3 +125,24 @@ void dispatch_far(u16 seg, u16 off) { go(seg, off, 1); }
 void dispatch_near(u16 cs, u16 off) { go(cs, off, 1); }
 void dispatch_jmp_far(u16 seg, u16 off) { go(seg, off, 0); }
 void dispatch_jmp_near(u16 cs, u16 off) { go(cs, off, 0); }
+
+int unw_active; u16 unw_sp, unw_ip, unw_cs; int unw_far;
+int tail_pending; u16 tail_sp;
+
+void ret_mismatch(u16 my_sp, int kind, u16 n, u16 cs)
+{
+    u16 slot = SP;
+    u16 ip = pop16();
+    u16 seg = kind ? pop16() : cs;
+    if (kind == 2) set_flags(pop16());
+    SP = (u16)(SP + n);
+    if ((u16)(slot - my_sp) < 0x8000) {
+        /* return from an outer frame */
+        unw_active = 1; unw_sp = slot; unw_ip = ip; unw_cs = seg; unw_far = kind != 0;
+        static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_UNW") != 0;
+        if (tr) { fprintf(stderr, "unwind: ret from slot %04x (frame %04x) to %04x:%04x\n", slot, my_sp, seg, ip); ftrace_dump(); }
+        return;
+    }
+    /* "push address; ret": a computed jump */
+    go(seg, ip, 0);
+}

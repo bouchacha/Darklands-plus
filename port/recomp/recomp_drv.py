@@ -152,6 +152,7 @@ class DrvGen(Gen):
             ow_ = self.owner.get((i_, t_))
             if ow_ is not None and ow_ != self.owner.get((i_, lin_)) and t_ != ow_:
                 self.extra[(i_, ow_)].add(t_)
+        self.find_smc()
         self.extra_name = {}
         for (i, ow), ts in self.extra.items():
             for t in ts:
@@ -176,7 +177,9 @@ class DrvGen(Gen):
         body.append('u16 drvseg_%s;' % img)
         body.append('static const FuncEntry tab_%s[] = {\n%s\n};' % (
             img, ',\n'.join('    {0x%05x, -2, %s}' % t for t in table)))
-        body.append('const DriverImage DRV_%s = {"%s", tab_%s, %d};' % (img, img, img, len(table)))
+        rs = sorted({lin + r[0] for (i, lin), r in self.insns.items() if r[1] in ('call', 'lcall')})
+        body.append('static const unsigned rets_%s[] = {%s};' % (img, ', '.join('0x%x' % x for x in rs) or '0'))
+        body.append('const DriverImage DRV_%s = {"%s", tab_%s, %d, rets_%s, %d};' % (img, img, img, len(table), img, len(rs)))
         open(os.path.join(out_dir, 'd_%s.c' % img), 'w').write('\n'.join(body) + '\n')
         print(img, 'functions:', len(table), dict(self.problems))
 

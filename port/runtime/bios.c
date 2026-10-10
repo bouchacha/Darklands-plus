@@ -19,6 +19,16 @@ int video_mode = 3;
 /* ---------------------------------------------------------------- helpers */
 #ifdef FTRACE
 u32 ftrace_stack[4096]; int ftrace_depth;
+u16 ftrace_bp[4096];
+void ftrace_bp_changed(int d)
+{
+    static u32 seen[256]; static int n;
+    u32 id = ftrace_stack[d];
+    for (int i = 0; i < n; i++) if (seen[i] == id) return;
+    if (n < 256) seen[n++] = id;
+    static int on = -1; if (on < 0) on = getenv("DL_CHECK_BP") != 0;
+    if (on) fprintf(stderr, "BP changed by function %x: %04x -> %04x\n", id, ftrace_bp[d], R.bp);
+}
 void ftrace_dump(void)
 {
     fprintf(stderr, "  call stack (innermost last):\n");
@@ -31,14 +41,15 @@ void ftrace_dump(void)
     }
 }
 u32 watch_lo = 0xffffffff, watch_len;
+int watch_on;
 static u8 watch_prev[64]; static int watch_init;
 void watch_check(const char *where)
 {
     if (watch_lo == 0xffffffff) return;
     u32 n = watch_len > 64 ? 64 : watch_len;
-    if (!watch_init) { memcpy(watch_prev, M + watch_lo, n); watch_init = 1; return; }
+    if (!watch_init) { memcpy(watch_prev, M + watch_lo, n); watch_init = 1; watch_on = 1; return; }
     if (memcmp(watch_prev, M + watch_lo, n)) {
-        fprintf(stderr, "watch: %05x changed by %s\n", watch_lo, where);
+        fprintf(stderr, "watch: %05x changed by %s (now %02x)\n", watch_lo, where, M[watch_lo]);
         ftrace_dump();
         memcpy(watch_prev, M + watch_lo, n);
     }
@@ -62,6 +73,7 @@ void fatal(const char *fmt, ...)
             CS, DS, ES, SS, SP, BP, AX, BX, CX, DX, SI, DI, LOADSEG);
     va_end(ap);
     ftrace_dump();
+    { void interp_ring_dump(void); interp_ring_dump(); void ovl_dump(void); ovl_dump(); }
     fflush(stderr);
     plat_quit(3);
 }
@@ -387,6 +399,7 @@ void hle_int(int n)
 {
 #ifdef FTRACE
     watch_check("code before int");
+    if (n == 0) { fprintf(stderr, "divide error AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x [BP+6]=%04x\n", AX, BX, CX, DX, BP, rw(SS, (u16)(BP + 6))); ftrace_dump(); }
 #endif
     if (ivt_hooked(n)) { call_handler(n); return; }
     service(n);
