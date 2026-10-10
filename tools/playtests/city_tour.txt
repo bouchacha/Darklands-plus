@@ -1,0 +1,8 @@
+# city_tour.txt: INTERACTIVE recipe (lockstep.py) through many city card scripts (s043 + cards): main street
+# -> Obermarkt/Stadtplatz (notices, gossip, jobs, Rathaus/Vogt), Schloss/Burg, churches (Dom: mass,
+# priest; Jakobikirche: mass, confession), Markt (goods merchant, herbalist = barter s032, quest offers
+# from merchants), craft guilds -> blacksmith, inn residence (s036: work, alchemy formula screens s033).
+# Option rows depend on the city's name lengths and on day/night, so look at each menu before clicking.
+# Best done from a loaded save (load_game.txt) so both builds have the same world seed.
+# Note: a night-time walk to the crafts district can start a street battle (known battle bug).
+# Found with it (2026-10-09): shop stock differs (s032 barter.c, see docs/QA.md round 2).

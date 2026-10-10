@@ -11,10 +11,20 @@
    Functions 0a78, 0b04, 0ba8 and 0c4a contain inline _asm blocks (DOS int 21h calls) in
    the original, written the same way here: with D_8d6 & 0xff00 (no swap store could be set
    up, s028) blocks are plain files called name.
-   status (e9, 2026-10-09): all 21 functions written, 13 match (0a78 0b04 0ba8 0c4a added;
-   store table now the s028 layout D_c09b[type] {handle, size, base}).  See
-   build/agent/e9/NOTES.md for the remaining near misses (0000 076c 09aa 015a 00a2 0298
-   0480 05fe). */
+   status (m3, 2026-10-09): 17/21 match (m3: 0000, 09aa, 015a/00a2 jump tables).
+   - 0000/076c: found/hash/tbl in one struct `s` (aggregate, first member lowest) gives the
+     original slots; `for (i = 0, off = 0; ..)` gives off in SI; pragma "a" gives `or dx,ax`
+     on the returned table pointer.  076c left: the second tbl[i].off read (6.00 recomputes
+     [bp-22h]+tbl, 6.00A CSEs it; a volatile read of tbl gives es:[bx+si+4], 8 lines).
+   - 09aa: `if (!0000(name)) return r;` + `break` in the switch arms.
+   - 0298: return-0 sites as `goto fail` at the end; type/hash in a struct for the slots;
+     left: 6.00A keeps the free-entry pointer e in SI in the search loop (orig: bx, stored
+     after the bound check).
+   - 0480: rewritten from the asm (frame right); 6.00 puts the two `if` bodies of the loop
+     (shift and store switch) and the first `return D_c099` out of line - 6.00A lays the
+     blocks out in source order whatever the source (gotos give identical code).
+   - 05fe: only the long compares `size <= h.size` differ (6.00 loads h.size, 6.00A loads
+     size, both source orders give the same code). */
 
 struct hdr {                    /* block header, 0x18 bytes */
     int type;                   /* +00 1 = used, 2 = free */
@@ -66,7 +76,7 @@ struct ent far *far sub_s027_1f48_015a(void);
 int far sub_s027_1f48_020e(struct ent far *e);
 int far sub_s027_1f48_0238(struct ent far *e);
 int far sub_s027_1f48_0298(long size, char *name);
-int far sub_s027_1f48_05fe(long size);
+long far sub_s027_1f48_05fe(long size);
 int far sub_s027_1f48_076c(char *name);
 int far sub_s027_1f48_0876(long len, void far *buf, int type, long off);
 int far sub_s027_1f48_0910(long len, void far *buf, int type, long off);
@@ -75,26 +85,25 @@ int far sub_s027_1f48_0a14(long size);
 
 /* find the block called name: reads its header into F_2e38_001e and its entry into
    F_2e38_0036; 1 when found */
+#pragma optimize("a", on)
 int far sub_s027_1f48_0000(char *name)
 {
+    struct { struct ent far *tbl; int hash; int found; } s;
     struct hdr h;
-    int found;
-    int hash;
-    struct ent far *tbl;
     int i;
     int off;
 
     h = D_8fe;
-    *(volatile int *)&found = 0;
-    hash = sub_s027_1f48_0262(name);
-    tbl = sub_s027_1f48_00a2();
-    if (tbl != 0) {
-        for (off = 0, i = 0; off < 0x320; i++, off += 8) {
-            if (*(int far *)((char far *)tbl + off) == hash) {
-                if (!sub_s027_1f48_020e((struct ent far *)((char far *)tbl + off)))
+    *(volatile int *)&s.found = 0;
+    s.hash = sub_s027_1f48_0262(name);
+    s.tbl = sub_s027_1f48_00a2();
+    if (s.tbl != 0) {
+        for (i = 0, off = 0; off < 0x320; i++, off += 8) {
+            if (*(int far *)((char far *)s.tbl + off) == s.hash) {
+                if (!sub_s027_1f48_020e((struct ent far *)((char far *)s.tbl + off)))
                     return 0;
                 if (_fstrcmp(name, F_2e38_001e.name) == 0) {
-                    _fmemcpy(&F_2e38_0036, &tbl[i], 8);
+                    _fmemcpy(&F_2e38_0036, &s.tbl[i], 8);
                     return 1;
                 }
             }
@@ -104,6 +113,7 @@ int far sub_s027_1f48_0000(char *name)
 }
 
 /* load the directory; returns it (0 when there is none) */
+#pragma optimize("a", off)
 struct ent far *far sub_s027_1f48_00a2(void)
 {
     struct ent far *p = 0;
@@ -201,8 +211,7 @@ int far sub_s027_1f48_0298(long size, char *name)
 {
     long old;
     struct ent far *e;
-    int type;
-    int hash;
+    struct { int hash; int type; } k;
 
     if (size & 1)
         size++;
@@ -213,34 +222,36 @@ int far sub_s027_1f48_0298(long size, char *name)
             return 1;
         sub_s027_1f48_076c(name);
     }
-    type = (*D_2674)(size);
-    if (!type)
-        return 0;
-    hash = sub_s027_1f48_0262(name);
+    k.type = (*D_2674)(size);
+    if (!k.type)
+        goto fail;
+    k.hash = sub_s027_1f48_0262(name);
     e = D_8ce - 1;
     do
         e++;
     while (e->hash != 0);
     if (e - D_8ce >= 100)
-        return 0;
-    e->hash = hash;
-    e->type = type;
+        goto fail;
+    e->hash = k.hash;
+    e->type = k.type;
     e->off = F_2e38_0036.off;
     F_2e38_0036 = *e;
     sub_s027_1f48_015a();
     old = F_2e38_001e.size;
     F_2e38_001e.type = 2;
-    F_2e38_001e.hash = 0;
+    *(volatile int far *)&F_2e38_001e.hash = 0;
     _fmemset(F_2e38_001e.name, 0, 16);
     F_2e38_001e.size = old - size - 0x18;
-    sub_s027_1f48_0876(0x18L, &F_2e38_001e, type, e->off + size + 0x18);
-    D_8dc[type] = e->off + size + 0x18;
+    sub_s027_1f48_0876(0x18L, &F_2e38_001e, k.type, e->off + size + 0x18);
+    D_8dc[k.type] = e->off + size + 0x18;
     F_2e38_001e.type = 1;
-    F_2e38_001e.hash = hash;
+    F_2e38_001e.hash = k.hash;
     _fstrcpy(F_2e38_001e.name, name);
     F_2e38_001e.size = size;
-    sub_s027_1f48_0876(0x18L, &F_2e38_001e, type, e->off);
+    sub_s027_1f48_0876(0x18L, &F_2e38_001e, k.type, e->off);
     return 1;
+fail:
+    return 0;
 }
 
 /* find a store with a free block of size bytes (the default D_2674); returns its type,
@@ -248,11 +259,11 @@ int far sub_s027_1f48_0298(long size, char *name)
 int far sub_s027_1f48_0480(long size)
 {
     long r;
-    int next;
     int bit;
+    int next;
     int start;
-    register int si;
-    register int di;
+    int type;
+    int k;
 
     size += 0x18;
     if (D_8d6 & 1)
@@ -264,49 +275,49 @@ int far sub_s027_1f48_0480(long size)
         return D_c099;
     }
     D_8dc[D_c099] = D_c09b[D_c099].size - 0x18;
-    si = 2;
-    next = si;
+    type = 2;
+    next = type;
     bit = 1;
     start = D_c099;
     do {
-        if (D_8d6 & bit) {
-            D_8da = si;
+        if (*(volatile unsigned *)&D_8d6 & bit) {
+            D_8da = type;
             vec_1937();
-            si = D_8da;
+            type = D_8da;
         }
-        di = bit;
-        if (si != next) {
-            int k;
-            D_8da = si;
-            for (k = si - next; k; k--)
-                di <<= 1;
-            si = D_8da;
+        if (type != next) {
+            k = type - next;
+            D_8da = type;
+            do
+                bit <<= 1;
+            while (--k);
+            type = D_8da;
         }
-        if (D_8d8 & di) {
-            D_c099 = si;
-            if (start != si) {
-                D_8da = si;
-                D_8dc[si] = D_c09b[si].base;
+        if (D_8d8 & bit) {
+            D_c099 = type;
+            if (start != type) {
+                D_8da = type;
+                D_8dc[type] = D_c09b[type].base;
                 r = sub_s027_1f48_05fe(size);
                 if (r != -1L) {
                     F_2e38_0036.off = r;
                     return D_8da;
                 }
-                si = D_8da;
-                D_8dc[si] = D_c09b[si].size - 0x18;
+                type = D_8da;
+                D_8dc[type] = D_c09b[type].size - 0x18;
             }
         }
-        si++;
-        next = si;
-        bit = di << 1;
-    } while (r == -1L && si < 8);
-    D_8da = si;
+        type++;
+        next = type;
+        bit <<= 1;
+    } while (r == -1L && type < 8);
+    D_8da = type;
     return 0;
 }
 
 /* search the current store (D_c099) for a free block of at least size bytes, merging
    neighbouring free blocks; returns its offset or -1 */
-int far sub_s027_1f48_05fe(long size)
+long far sub_s027_1f48_05fe(long size)
 {
     long off;
     struct hdr h;
@@ -336,9 +347,9 @@ int far sub_s027_1f48_05fe(long size)
                 sub_s027_1f48_0876(0x18L, &h, D_c099, off);
             if (size <= h.size)
                 break;
-            off += h.size + 0x30;
+            off += h2.size + h.size + 0x30;
         }
-    } while (h.size != -1L && h.type != -1);
+    } while (h.size != -1L && h2.size != -1L);
     if (size > h.size)
         return -1L;
     _fmemcpy(&F_2e38_001e, &h, 0x18);
@@ -346,36 +357,33 @@ int far sub_s027_1f48_05fe(long size)
 }
 
 /* free the block called name; 1 on success */
+#pragma optimize("a", on)
 int far sub_s027_1f48_076c(char *name)
 {
+    struct { struct ent far *tbl; int hash; int found; } s;
     struct hdr h;
-    int found;
-    int hash;
-    struct ent far *tbl;
     int i;
     int off;
-    int k;
 
     h = D_8fe;
-    *(volatile int *)&found = 0;
-    hash = sub_s027_1f48_0262(name);
-    tbl = sub_s027_1f48_00a2();
-    if (!tbl)
+    *(volatile int *)&s.found = 0;
+    s.hash = sub_s027_1f48_0262(name);
+    s.tbl = sub_s027_1f48_00a2();
+    if (!s.tbl)
         return 0;
-    for (off = 0, i = 0; off < 0x320; i++, off += 8) {
-        if (*(int far *)((char far *)tbl + off) == hash) {
-            if (!sub_s027_1f48_020e((struct ent far *)((char far *)tbl + off)))
+    for (i = 0, off = 0; off < 0x320; i++, off += 8) {
+        if (*(int far *)((char far *)s.tbl + off) == s.hash) {
+            if (!sub_s027_1f48_020e((struct ent far *)((char far *)s.tbl + off)))
                 return 0;
             if (_fstrcmp(name, F_2e38_001e.name) == 0) {
-                k = i * 8;
-                *(int far *)((char far *)tbl + k) = 0;
+                s.tbl[i].hash = 0;
                 F_2e38_001e.type = 2;
-                sub_s027_1f48_0238((struct ent far *)((char far *)tbl + k));
+                sub_s027_1f48_0238(&s.tbl[i]);
                 sub_s027_1f48_015a();
                 if (D_2678) {
-                    D_8da = ((struct ent far *)((char far *)tbl + k))->type;
-                    if (D_8dc[D_8da] > ((struct ent far *)((char far *)tbl + k))->off)
-                        D_8dc[D_8da] = ((struct ent far *)((char far *)tbl + k))->off;
+                    D_8da = s.tbl[i].type;
+                    if (D_8dc[D_8da] > s.tbl[i].off)
+                        D_8dc[D_8da] = (&(*(struct ent far * volatile *)&s.tbl)[i])->off;
                 }
                 return 1;
             }
@@ -385,6 +393,7 @@ int far sub_s027_1f48_076c(char *name)
 }
 
 /* write len bytes from buf at offset off of store type */
+#pragma optimize("a", off)
 int far sub_s027_1f48_0876(long len, void far *buf, int type, long off)
 {
     int r = 0;
@@ -439,27 +448,31 @@ int far sub_s027_1f48_09aa(char *name, long size)
 {
     register int r = 0;
 
-    if (sub_s027_1f48_0000(name)) {
+    if (!sub_s027_1f48_0000(name))
+        return r;
     switch (F_2e38_0036.type) {
     case 2:
         D_c099 = 2;
+        r = sub_s027_1f48_0a14(size);
         break;
     case 3:
         D_c099 = 3;
+        r = sub_s027_1f48_0a14(size);
         break;
     case 5:
         D_c099 = 5;
+        r = sub_s027_1f48_0a14(size);
         break;
     case 6:
         D_c099 = 6;
+        r = sub_s027_1f48_0a14(size);
         break;
     case 7:
         D_c099 = 7;
+        r = sub_s027_1f48_0a14(size);
         break;
     default:
-        return r;
-    }
-    r = sub_s027_1f48_0a14(size);
+        break;
     }
     return r;
 }

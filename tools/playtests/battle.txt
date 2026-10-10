@@ -15,3 +15,8 @@
 #   $L stop O X
 # Found with it (2026-10-09): garbled sidebar + view not on the party (all combat drafts, or
 # s002/s004-s013 + s015-s025 drafts); garbage loot names (s014 drafts). See build/qa/REPORT.md.
+# Faster (2026-10-09, QA2): tools/playtests/battle_start.sh NAME EXE [NAME2 EXE2] starts the session(s),
+# Quickstarts, leaves the city and runs hunt.py until a card shows ($LOCKSTEP_DIR/NAME/hunt.png). If the
+# card is a city gate ("Before you lies the walled city..."), click and pick "...decide to travel
+# elsewhere", then hunt.py --pts with points away from the city. Mind the scale of combined shots
+# (convert ... +append is 1x; -scale 150% is 1.5x) when reading option y positions.

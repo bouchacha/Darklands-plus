@@ -1,6 +1,8 @@
 /* place: s025 1ef8:0000 */
-/* orig: size=0ddc CONST=7d1c+000c _DATA=2600+0073 */
+/* orig: size=0ddc CONST=7e0a+000a _DATA=2600+0073 */
+/* data: CONST=7e0a */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 fix (2026-10-09): F_20a5_763b/F_20a5_763c were two far names -> 6 CONST slots instead of the original 5, so data-search stamped CONST at 7d1c (s001's and s002's slots!) and the --mod build overwrote their segment words: battle started garbled (s002) and Quickstart gave 'Hand Axe 00q' (s001). Now one far array F_20a5_763b[2]; a data: CONST=7e0a hint line; re-stamped CONST=7e0a+000a (tools/playtests/constcheck.py ok). */
 /* status: wip 6/7. 0000 decoded fully but blocked: the original keeps SI live across inline
  * block copies with push si/push di (6.00); 6.00A splits the register variable instead. Combat overlay s025 (child of s014): enemy placement and animation buffers.
  * 0000 places the enemies of the level (level%d.enm) into the combatant records 5..12;
@@ -87,7 +89,7 @@ extern char far F_2e38_0bd8[][0x14];
 extern struct grp far F_2e38_0bf6;
 extern struct money far F_2e38_0bb0;
 extern struct s6i far F_20a5_35ee[];
-extern char far F_20a5_763b, far F_20a5_763c;
+extern char far F_20a5_763b[];   /* 2 chars (763b, 763c): one far name -> one CONST slot */
 extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
 extern struct bits D_a696[];
 extern char D_ca64[], D_d4e5[], D_d4f2[], D_d5e9[], D_d4c7[], D_a6d3[], D_a6c4[];
@@ -363,11 +365,11 @@ int far sub_s025_1ef8_0000(int mode, struct enc far *enc, int who)
                 }
                 if (D_c21a && si == 5) {
                     if (D_c21a == 'I') {
-                        F_20a5_763b = 'D';
-                        F_20a5_763c = '7';
+                        F_20a5_763b[0] = 'D';
+                        F_20a5_763b[1] = '7';
                     } else {
-                        F_20a5_763b = 'C';
-                        F_20a5_763c = 'D';
+                        F_20a5_763b[0] = 'C';
+                        F_20a5_763b[1] = 'D';
                     }
                 }
                 D_c96b[si] = D_c908[slot];

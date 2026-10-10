@@ -1,2 +1,1 @@
 # Drafts that are complete but known to misbehave in play-tests; build.py --functional skips them.
-s001/s001_0e76.c     # default party: wrong starting equipment (all "Hand Axe 00q") - see its status comment

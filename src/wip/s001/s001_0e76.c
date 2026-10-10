@@ -22,6 +22,7 @@
  * CONST segment slots / far data shift in the functional build, or another draft that
  * overwrites or reads the inventory) - nothing changed here. */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 (2026-10-09): re-play-tested: Quickstart equipment is correct with only this draft and in the full --functional build. The 'Hand Axe 00q' result came from src/wip/s025 overwriting this module's CONST slots 7d1c-7d20 (wrong CONST stamp there); removed from src/wip/EXCLUDE. */
 /* Overlay s001: set up the default (quick-start) party: four members with names,
    attributes, skills and starting equipment, and load the item definitions from
    darkland.lst when they are not loaded yet (D_11dd == 1). */

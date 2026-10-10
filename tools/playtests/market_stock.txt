@@ -1,0 +1,6 @@
+# market_stock.txt: regression for the shop-stock bug (s032 barter.c sub_s032_1462_1d18): load a save made
+# in Freiberg (or any city), Markt -> pharmacists' stalls; the original herbalist offers 4+ items, the
+# s032 draft offers 1 (everyday-goods merchant: Torch/Rope/Lantern/Flute vs Torch/Lantern).
+# INTERACTIVE (option rows depend on the city): main street -> "the Markt" -> "the pharmacists' stalls".
+# Teschen Quickstart save: tavern menu y=80 (main street), click, y=77 (Markt), click, y=102 (pharmacists).
+# Reliability: high (deterministic once both builds load the same save).

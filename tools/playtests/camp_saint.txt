@@ -1,0 +1,14 @@
+# camp_saint.txt: INTERACTIVE recipe (lockstep.py) for overland travel + random encounter cards (s030, s043,
+# card scripts), praying to a saint from a card (s034/s039), throwing a potion from a card, the Party
+# Information screen (F6) and camping in the wilderness ('c' key, s036 mode 1).
+# Reliability: medium. Keys only reach the game when the mouse pointer is NOT over a menu option
+# (park it with `at 150 195` first) and work best sent to one session at a time, retrying until the
+# screen changes. Start both DOSBoxes on the same clock second or the cities differ.
+#   Quickstart, 5 clicks, `at 150 62; click` (leave the city), then travel with `at X Y; click; wait 20`.
+#   Party info: park mouse, key F6.   Camp: park mouse, key c -> camp screen; click a member (x=80,
+#   y=50/68/86/104) then an activity (x=250: pray y=68, alchemy 77, guard 95); spend a day y=174; leave y=183.
+#   Saint: wolves card "...call on a saint to calm the animals" -> saint list popup -> saint page with
+#   More/Less favor (y=161/169), Pray now (y=177).
+# Seen 2026-10-09 (orig vs functional): all identical (pilgrims, wolves + St. Aidan, Noxious Aroma potion,
+# bandit ambush, refugees, Magdeburg walls, camping with pray/guard). One run diverged (different
+# encounter after camping) but did not reproduce with the same steps; treat as input timing.

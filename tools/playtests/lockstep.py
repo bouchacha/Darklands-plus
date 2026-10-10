@@ -26,8 +26,9 @@ def start(name, exe):
     xv = subprocess.Popen(['Xvfb', disp, '-screen', '0', '800x600x24'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.5)
     env = dict(os.environ, DISPLAY=disp, SDL_AUDIODRIVER='dummy')
-    db = subprocess.Popen(['dosbox', '-conf', conf, '-noconsole'], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.makedirs(os.path.join(D, name), exist_ok=True)
+    log = open(os.path.join(D, name, 'dosbox.log'), 'w')   # kept after stop: why DOSBox exited
+    db = subprocess.Popen(['dosbox', '-conf', conf, '-noconsole'], env=env, stdout=log, stderr=log)
     os.makedirs(D, exist_ok=True)
     json.dump(dict(work=work, disp=disp, xv=xv.pid, db=db.pid, inside=False), open(st(name), 'w'))
 

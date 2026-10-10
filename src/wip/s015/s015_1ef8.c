@@ -1,6 +1,8 @@
 /* place: s015 1ef8:0000 */
-/* orig: size=1160 CONST=7cf8+0002 */
+/* orig: size=1160 CONST=7db8+0002 */
+/* data: CONST=7db8 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 fix (2026-10-09): CONST was stamped at 7cf8 (data search hit another module's slot); the original code uses 7db8: hint added, re-stamped CONST=7db8+0002. */
 /* status: wip 4/7 (0000, 0046, 00dc, 01a8). 01c6/0708/0c0e: dead induction-variable home
  * stores and SI/DI choice of the 6.00 compiler (`mov [bp-4],0`, `mov [bp-2],3Ch; mov si,[bp-2]`). Combat overlay s015 (child of s014): debug/statistics screens.
  * 0000 tracks the smallest free DOS memory seen (D_1fc2, bytes); 0046 shows it;

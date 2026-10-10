@@ -20,9 +20,12 @@
  *     (`n = 5; if (mode == 0) ...; for (i = 0; i < n; i++)`) for the extra frame slot.
  *   076a: matches once 0082 has the right length (its jump table holds absolute offsets).
  *   Remaining: 0082, 076a, 10d0, 147a (declaration permutations: no effect on 10d0/147a).
- *   0082: `#pragma optimize("l", off)` reproduces its unrotated, non-strength-reduced loops;
- *     still different: register allocation (original: i=di, key=si, mode stays in memory;
- *     6.00A puts mode in di) and a dead CSE spill of &F_2e38_1b28[i+1] (frame 0x8a vs 0x86).
+ *   0082 (m3): `#pragma optimize("egl", off)` + `register int key; register int i;` gives the
+ *     original i=di/key=si; with g off the slots follow the name hash (ascending from the top),
+ *     so locals renamed prowh msa menum ne areak text selb jm = original order.  Diff 265 -> 87
+ *     lines.  Left: frame 0x88 (a CSE temp), first loop is rotated in the original
+ *     (`goto lnx; do { ...; lnx:; } while (..)` reproduces it but flips 197e's sum order - not
+ *     applied), some cmp operand orders / late stores.
  *   10d0: `cost = mode == 3 ? 1 : vec_2099(.., mode == 2 ? mode : D_9785->size)` - 6.00A
  *     evaluates the inner ?: into SI and reuses DI (mode) for cost; the original pushes
  *     each arm directly (push di / push es:[bx+40h]).  if/else and ternary-of-calls tried.
@@ -251,28 +254,28 @@ void far sub_s036_1462_0000(int p_6)
 }
 
 /* sub_s036_1462_0082: camp / inn screen main loop (mode 1 = camping in the wild) */
-#pragma optimize("l", off)
+#pragma optimize("egl", off)
 void far sub_s036_1462_0082(int mode)
 {
     char text[120];
-    int j;
-    int sel;                        /* highlighted row of the activity menu */
-    int prow;                       /* highlighted row of the teacher list */
-    struct mouse *ms;
-    int menu;                       /* menu of the highlighted row: 1 or 2 */
-    int n;
-    int area;
-    int i;
-    int key;
+    int jm;
+    int selb;                        /* highlighted row of the activity menum */
+    int prowh;                       /* highlighted row of the teacher list */
+    struct mouse *msa;
+    int menum;                       /* menum of the highlighted row: 1 or 2 */
+    int ne;
+    int areak;
+    register int key;
+    register int i;
 
-    prow = sel = -1;
+    prowh = selb = -1;
     D_9920 = 2;
     D_9934 = 2;
     D_e7a2 = D_2816;
     D_e7a0 = D_2804;
     D_9c3d = vec_18f1(5);
-    menu = 0;
-    sub_root_047c_1320(6, menu, menu, menu);
+    menum = 0;
+    sub_root_047c_1320(6, menum, menum, menum);
     if (mode == 1)
         vec_18f1(0x15);
     else if (sub_root_0000_0c70(2))
@@ -282,10 +285,10 @@ void far sub_s036_1462_0082(int mode)
     D_907c = 3;
     D_8a32 = 0;
     D_89fa = 0;
-    n = sub_s029_0e76_37e2(0x28, D_907e);
-    for (i = 0, j = 0; j < n && (i = sub_s029_0e76_324c(0x28, i)) != -1; i++, j++) {
+    ne = sub_s029_0e76_37e2(0x28, D_907e);
+    for (i = 0, jm = 0; jm < ne && (i = sub_s029_0e76_324c(0x28, i)) != -1; i++, jm++) {
         if (sub_s029_0e76_3180(i) && F_2e38_1b28[i + 1]->loc == D_907e)
-            D_8a38[j] = F_2e38_1b28[i + 1]->name;
+            D_8a38[jm] = F_2e38_1b28[i + 1]->name;
     }
     D_3abe = 0;
     for (i = 0; i < 5; i++) {
@@ -301,17 +304,17 @@ void far sub_s036_1462_0082(int mode)
         ;
     for (;;) {
         key = 0;
-        ms = sub_root_047c_1320(6, key, key, key);
-        if (D_8a32 == 1 && ms->b == key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
+        msa = sub_root_047c_1320(6, key, key, key);
+        if (D_8a32 == 1 && msa->b == key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
             i = (D_6eee - 0x30) / 9;
-            if (prow != i) {
+            if (prowh != i) {
                 sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0xf6, prow * 9 + 0x30, 0x48, 9, 9, 8);
-                prow = i;
+                sub_root_047c_04dc(D_27f4, 0xf6, prowh * 9 + 0x30, 0x48, 9, 9, 8);
+                prowh = i;
                 sub_root_047c_04dc(D_27f4, 0xf6, i * 9 + 0x30, 0x48, 9, 8, 9);
                 sub_root_047c_1293();
             }
-        } else if (D_8a32 == 1 && ms->b != key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
+        } else if (D_8a32 == 1 && msa->b != key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
             while (D_6ef0 & 1)
                 ;
             i = (D_6eee - 0x30) / 9;
@@ -325,19 +328,19 @@ void far sub_s036_1462_0082(int mode)
                 D_89fc = 0;
                 sub_root_047c_1293();
             }
-        } else if (ms->b == key && sub_s036_1462_06d2(D_6eec, D_6eee) == 1) {
+        } else if (msa->b == key && sub_s036_1462_06d2(D_6eec, D_6eee) == 1) {
             i = sub_s036_1462_0734(1, D_6eec, D_6eee);
-            if (sel != i) {
+            if (selb != i) {
                 sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0x47, sel * 9 + 0xac, 0xed, 8, 0xb, 0xe);
-                sel = i;
+                sub_root_047c_04dc(D_27f4, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
+                selb = i;
                 sub_root_047c_04dc(D_27f4, 0x47, i * 9 + 0xac, 0xed, 8, 0xe, 0xb);
                 sub_root_047c_1293();
-                menu = 1;
+                menum = 1;
             }
-        } else if (ms->b == key && (area = sub_s036_1462_06d2(D_6eec, D_6eee)) == 2) {
-            i = sub_s036_1462_0734(area, D_6eec, D_6eee);
-            if (sel != i) {
+        } else if (msa->b == key && (areak = sub_s036_1462_06d2(D_6eec, D_6eee)) == 2) {
+            i = sub_s036_1462_0734(areak, D_6eec, D_6eee);
+            if (selb != i) {
                 sub_root_047c_12c3();
                 if (D_8a32 != key) {
                     D_8a32 = key;
@@ -345,8 +348,8 @@ void far sub_s036_1462_0082(int mode)
                     sub_root_05ba_00c2(D_89fc, "b");
                     D_89fc = key;
                 }
-                sub_root_047c_04dc(D_27f4, 0xce, sel * 9 + 0x2f, 0x65, 8, 0xb, mode == 1 ? 8 : 10);
-                sel = i;
+                sub_root_047c_04dc(D_27f4, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xb, mode == 1 ? 8 : 10);
+                selb = i;
                 if (mode == 1)
                     sub_root_047c_04dc(D_27f4, 0xce, i * 9 + 0x2f, 0x65, 8, 8, 0xb);
                 else
@@ -356,14 +359,14 @@ void far sub_s036_1462_0082(int mode)
                     D_8a32 = 1;
                 }
                 sub_root_047c_1293();
-                menu = 2;
+                menum = 2;
             }
-        } else if (ms->b != key && (area = sub_s036_1462_06d2(ms->x, ms->y)) != 0) {
-            i = sub_s036_1462_0734(area, ms->x, ms->y);
-            key = sub_s036_1462_076a(i, area);
+        } else if (msa->b != key && (areak = sub_s036_1462_06d2(msa->x, msa->y)) != 0) {
+            i = sub_s036_1462_0734(areak, msa->x, msa->y);
+            key = sub_s036_1462_076a(i, areak);
             while (D_6ef0 & 1)
                 ;
-        } else if (sel != -1) {
+        } else if (selb != -1) {
             sub_root_047c_12c3();
             if (D_8a32 != key) {
                 D_8a32 = key;
@@ -371,17 +374,17 @@ void far sub_s036_1462_0082(int mode)
                 sub_root_05ba_00c2(D_89fc, "b");
                 D_89fc = key;
             }
-            if (menu == 1)
-                sub_root_047c_04dc(D_27f4, 0x47, sel * 9 + 0xac, 0xed, 8, 0xb, 0xe);
+            if (menum == 1)
+                sub_root_047c_04dc(D_27f4, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
             else
-                sub_root_047c_04dc(D_27f4, 0xce, sel * 9 + 0x2f, 0x65, 8, 0xe, 0xb);
+                sub_root_047c_04dc(D_27f4, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xe, 0xb);
             sub_root_047c_1293();
-            sel = -1;
+            selb = -1;
         }
-        if (ms->b != 0 && ms->x < 0x3c) {
+        if (msa->b != 0 && msa->x < 0x3c) {
             while (D_6ef0 & 1)
                 ;
-            i = ms->y / 40;
+            i = msa->y / 40;
             if (D_9c69[i].status == 0)
                 return;
             i = vec_1fdb(i);

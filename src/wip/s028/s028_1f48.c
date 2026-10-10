@@ -2,17 +2,18 @@
 /* orig: size=0fbc _DATA=2682+003a */
 /* compat600-off: sub_s028_1f48_079c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e9, 2026-10-09): all 36 functions written; 29/36 match.
- *   0398: SI/DI swapped (drv/kb register choice; decl order, names, pragma a tried).
- *   0470: original has an `enter 2` frame (an unused local?); 6.00A drops it.
+/* status (m3, 2026-10-09): all 36 functions written; 33/36 match.
+ *   m3: 0398, 0470, 0e5e match under `#pragma optimize("egl", off)`: without global
+ *   optimisation 6.00A honours `register` (0398: kb/drv declaration order = SI/DI; 0e5e: n in
+ *   SI with the `add sp,2`) and keeps a stack slot for a local whose value stays in AX
+ *   (0470: `int r; if ((r = 08e8()) == -1)` gives the original's `enter 2`).
  *   0626: int 25h RAM-disk probe: device-chain loop shape (orig `sub bx,bx; adc ax,bx`,
  *         separate 0x80/0x20 tests, loop exit placed after the loop) not reproduced.
- *   079c: code identical except the memset of D_c0eb: the original (inline-asm function,
- *         compiled partly unoptimised) has `sub ax,ax; mov dx,..; rep stosb`, which
- *         tools/cport.py compat600 rewrites to the stosw form -> needs a tool exception.
- *   0b5a: an unused `name = "EMMXXXX0"` gives the second copy of the string; orig keeps the device pointer offset in SI and its segment at [bp-4] (frame 6).
- *   0d5a: 6.00A cross-jumps the two `return r;` tails.
- *   0e5e: 6.00A keeps n in CX (orig: register SI, `add sp,2` kept). */
+ *   0b5a: orig keeps the device pointer offset in SI and its segment at [bp-4] with an unused
+ *         word above (frame 6); 6.00A gives frame 4 (name dropped) or, with egl off / an
+ *         `int name[1]`, the right frame but p in memory or p's segment at [bp-2].
+ *   0d5a: 6.00A cross-jumps the two `return ro;` tails (pragmas, volatile, casts, asm `mov
+ *         ax,ro` endings tried). */
 /* Overlay s028: set-up of the swap stores used by s027 (XMS, EMS, temporary files) and
    the XMS/EMS/DOS wrappers.  Store types: 2 = XMS, 3 = EMS, 5 = file on a RAM disk,
    6 = file in %TMP%/%TEMP%, 7 = heap.fng in the current directory.
@@ -261,6 +262,7 @@ int far sub_s028_1f48_0258(void)
 #pragma optimize("", on)
 
 /* temporary file on the last RAM disk (type 5) */
+#pragma optimize("egl", off)
 int far sub_s028_1f48_0398(void)
 {
     register unsigned kb;
@@ -280,6 +282,7 @@ int far sub_s028_1f48_0398(void)
 }
 
 /* temporary file in %TMP% / %TEMP% (type 6), at most D_8fc KB */
+#pragma optimize("egl", on)
 int far sub_s028_1f48_03fe(void)
 {
     register int drv;
@@ -300,11 +303,12 @@ int far sub_s028_1f48_03fe(void)
 }
 
 /* heap.fng in the current directory (type 7), D_8fc KB */
+#pragma optimize("egl", off)
 int far sub_s028_1f48_0470(void)
 {
-    int unused;
+    int r;
 
-    if (sub_s028_1f48_08e8() == -1)
+    if ((r = sub_s028_1f48_08e8()) == -1)
         return 0;
     if ((D_c09b[7].handle = sub_root_06a1_13ae("heap.fng", 0x8102)) == 0) {
         D_08d6 ^= 0x20;
@@ -318,6 +322,7 @@ int far sub_s028_1f48_0470(void)
 
 /* initialise a temporary file store: directory (unless another store holds it), free
    block header and an end marker holding the file name */
+#pragma optimize("egl", on)
 int far sub_s028_1f48_04ca(struct store *st)
 {
     struct hdr end;
@@ -902,6 +907,7 @@ done:
 }
 
 /* XMS allocate size bytes in 64K units: (size >> 16) + 1 when size is non-zero */
+#pragma optimize("egl", off)
 int far sub_s028_1f48_0e5e(long size)
 {
     register int n;
@@ -912,6 +918,7 @@ int far sub_s028_1f48_0e5e(long size)
     return sub_s028_1f48_0e78(n);
 }
 
+#pragma optimize("egl", on)
 /* allocate an XMS block of kb KB; the handle or 0 */
 int far sub_s028_1f48_0e78(int kb)
 {

@@ -31,6 +31,16 @@ def stamp_line(c):
     return '/* orig: %s */' % ' '.join(parts)
 
 
+def all_slots():
+    """path -> (image, frame, offset, {seg: (dgroup offset, size)}) for every stamped file."""
+    out = {}
+    for sub in (os.path.join('src', 'c'), os.path.join('src', 'wip')):
+        for x in cport.sources(REPO, sub=sub):
+            if x['orig_slots']:
+                out[x['path']] = (x['image'], x['frame'], x['offset'], x['orig_slots'])
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--force', action='store_true')
@@ -78,6 +88,21 @@ def main():
                                      os.path.join(REPO, 'build', 'cobj'))
             c['length'] = size
             c['data'] = {k: v for k, v in r['data_place'].items() if k in c['datasegs']}
+            # refuse a placement that overlaps another module's data (fmatch may place CONST by
+            # searching DGROUP for equal words, and segment words repeat)
+            clash = []
+            for other, (o_img, o_fr, o_off, slots) in all_slots().items():
+                if os.path.abspath(other) == os.path.abspath(f) or \
+                        (o_img, o_fr, o_off) == (img, fr, off):
+                    continue
+                for dn, d0 in c['data'].items():
+                    d1 = d0 + c['datasegs'][dn]
+                    for on, (s0, sl) in slots.items():
+                        if d0 < s0 + sl and s0 < d1:
+                            clash.append('%s %04x-%04x overlaps %s %s' % (dn, d0, d1, os.path.relpath(other, REPO), on))
+            if clash:
+                print('skip %s: data placement clashes (add a /* data: NAME=xxxx */ hint): %s' % (f, '; '.join(clash[:3])))
+                continue
             line = stamp_line(c)
             text = cport.ORIG_LINE.sub('', text)
             m = cport.PLACE.search(text)

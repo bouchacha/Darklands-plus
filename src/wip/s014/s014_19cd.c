@@ -2,6 +2,7 @@
 /* orig: size=379a CONST=7da2+000e _DATA=1bca+006c */
 /* data: CONST=7da2 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 fix (2026-10-09): D_c291 is a POINTER to the near loot copy (s002: D_c291 = &D_a895); it was declared 'struct loot D_c291[]', so 34a0 and 2e50 copied the loot list over DGROUP c291.. and wrote that to the loot file. Re-stamped (data unchanged). */
 /* s014 19cd: COMBAT USER INTERFACE (mouse orders, location menus, loot piles).
    Screen -> map: the battle view is an oblique projection,
      map_y = mouse_y - F_20a5_41f4 + D_c293
@@ -1458,7 +1459,7 @@ extern unsigned char D_c783;            /* items of the fallen this fight */
 extern unsigned char D_c83e;
 extern char *D_1162;                    /* loot file name */
 extern char far *D_c103;                /* loot file image */
-extern struct loot D_c291[];            /* near copy of the list */
+extern struct loot *D_c291;   /* POINTER to the near copy of the list (set by s002: &D_a895), not an array */
 extern int D_c7a4[20];
 extern char D_c96b[13];
 extern char D_9085[];

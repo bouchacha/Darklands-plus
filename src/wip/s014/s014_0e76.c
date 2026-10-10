@@ -1,6 +1,7 @@
 /* place: s014 0e76:0000 */
 /* orig: size=481a CONST=7d36+0012 _DATA=1776+014c */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 fix (2026-10-09): garbage loot after battle. (1) 'extern struct item6 far F_2e38_003e[][64], F_2e38_0dbe[][16];' - in MSC far binds to the declarator, so the enemies' item table 0dbe was a NEAR array: a dead enemy's items were copied from DS:0bde+i*0x60. Now far on each declarator. (2) same for F_2e38_0bfd (reinforcement count, written to DS:0bfd); now one far array F_2e38_0bfc[2] (one CONST slot as in the original). (3) D_c291 is a pointer (s002 sets it to &D_a895), it was declared as an array (copies went to DS:c291). Re-stamped (data unchanged). */
 /* s014 0e76: TACTICAL COMBAT MAIN LOOP AND ACTION STATE MACHINE.
      0000  combat entry: load the level (s020/s024), place the party, open/close doors and
            triggers carried over (D_9080 flags), ready weapons, then loop:
@@ -1227,10 +1228,10 @@ extern struct pile far F_20a5_59c8[];
 extern unsigned char D_c80e;
 extern struct loot { int id; char a; char b; char cnt; char pad; } far *D_c654;
 extern unsigned D_c67f;
-extern struct loot D_c291[];
-extern struct item6 { char b[6]; } far F_2e38_003e[][64], F_2e38_0dbe[][16];
+extern struct loot *D_c291;   /* POINTER to the near copy (set by s002: &D_a895), not an array */
+extern struct item6 { char b[6]; } far F_2e38_003e[][64], far F_2e38_0dbe[][16];   /* 'far' on EACH declarator: without it 0dbe was a near (DS) array -> garbage loot */
 extern char D_d6ec;
-extern char far F_2e38_0bfc, F_2e38_0bfd;   /* reinforcements: wave size, remaining */
+extern char far F_2e38_0bfc[2];   /* reinforcements: [0] wave size, [1] remaining (2e38:0bfd); ONE far name = one CONST slot like the original (was 'char far F_2e38_0bfc, F_2e38_0bfd;': 0bfd lost its far and read DS:0bfd) */
 extern int D_940b;
 extern char D_d3fe[];
 extern int far F_20a5_5890[0x8c];
@@ -1572,11 +1573,11 @@ void near sub_s014_0e76_2324(int i, int set)
     else if (D_c83f[set] == 0)
         F_20a5_59c8[D_c80e].vis = 0;
     D_c80e++;
-    if (D_d6eb == 1 && i > 4 && ++D_d6ec == F_2e38_0bfc && F_2e38_0bfd > 0) {
+    if (D_d6eb == 1 && i > 4 && ++D_d6ec == F_2e38_0bfc[0] && F_2e38_0bfc[1] > 0) {
         /* a wave of reinforcements for every F_2e38_0bfc enemies killed */
         D_d6ec = 0;
-        if ((F_2e38_0bfd -= F_2e38_0bfc) < 0)
-            F_2e38_0bfc += F_2e38_0bfd;
+        if ((F_2e38_0bfc[1] -= F_2e38_0bfc[0]) < 0)
+            F_2e38_0bfc[0] += F_2e38_0bfc[1];
         vec_1d29(1);
     }
     for (k = 0; k < 13; k++)

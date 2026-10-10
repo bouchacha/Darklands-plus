@@ -1,6 +1,8 @@
 /* place: s017 1ef8:0000 */
-/* orig: size=0b9a CONST=7dc4+0022 */
+/* orig: size=0b9a CONST=7dbc+0020 */
+/* data: CONST=7dbc */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* QA2 fix (2026-10-09): (1) floor cells and floor art were two far names (F_20a5_0000, F_20a5_1900) -> 17 CONST slots, stamped at 7dc4 over s018/s019's slots; now one struct F_20a5_0000 {c; b;}, hint CONST=7dbc, re-stamped 7dbc+0020 like the original. (2) struct obj had pad[4] (13-byte stride; original 12). (3) the cell-code table was passed as F_20a5_589 (20a5:0589) instead of 20a5:5890. */
 /* status: wip 0/1, ALL functions written (functional draft from the original code, not matched).
  * Combat dungeon view (overlay s017, child of s014): 0000 redraws the 14 x 10 cell window of the
  * level floor around combatant who (who < 0: keep the last centre D_c866/D_c886). For each view
@@ -15,14 +17,14 @@
  * D_e178/D_e13d/D_e196 lists (max 15) collect animated walls/furniture/doors. */
 
 struct vrec { int wn, we, ws, wsd, wee, door, wsn, fl, ce; };   /* 18 bytes */
-struct obj { char lvl; int x, y, on; char dx, dy; char pad[4]; };   /* 12 bytes at 20a5:59cb */
+struct obj { char lvl; int x, y, on; char dx, dy; char pad[3]; };   /* 12 bytes at 20a5:59cb (was pad[4]: 13-byte stride) */
 struct cmb { char pad0[4]; int x, y; char pad8[0x78]; };
 
-extern struct { long c[40][40]; } far F_20a5_0000;          /* floor cells */
-extern struct { unsigned char b[40][40]; } far F_20a5_1900;  /* floor / ceiling art */
+/* floor image: cells + floor/ceiling art (20a5:1900) are ONE far name, so they share one CONST
+ * segment slot like the original (two names gave 17 slots and shifted the module's CONST) */
+extern struct { long c[40][40]; unsigned char b[40][40]; } far F_20a5_0000;
 extern struct { struct vrec r[140]; } far F_20a5_4eb8;
 extern struct { int v[140]; } far F_20a5_5890;               /* cell code (x << 8 | y) per slot */
-extern int far F_20a5_589[];                                 /* same table, as array */
 extern struct { char v[140]; } far F_20a5_363c;              /* cell x per slot (-1 none) */
 extern struct { char v[140]; } far F_20a5_36c8;              /* cell y per slot */
 extern struct { int v[140]; } far F_20a5_45be;               /* screen x of N/S walls */
@@ -127,7 +129,7 @@ void far sub_s017_1ef8_0000(int who)
             b2 = (unsigned char)(c >> 16) & 0x0f;
             obj = (unsigned char)(c >> 20) & 0x0f;
             b3 = (unsigned char)(c >> 24);
-            fl = F_20a5_1900.b[x][y];
+            fl = F_20a5_0000.b[x][y];
             ce = fl >> 4;
             fl &= 0x0f;
             s1 = (b0 >> 4) & 0x0f;
@@ -207,7 +209,7 @@ void far sub_s017_1ef8_0000(int who)
             }
             /* dropped objects on this cell */
             for (i = 0; i < D_c80e; i++)
-                if (sub_root_0410_02e6(F_20a5_589, (F_20a5_59cb.o[i].x & 0xffe0) * 8
+                if (sub_root_0410_02e6(F_20a5_5890.v, (F_20a5_59cb.o[i].x & 0xffe0) * 8
                                        + (F_20a5_59cb.o[i].y >> 4), 0x8c) == k
                         && F_20a5_59cb.o[i].lvl == D_11ca) {
                     t = F_20a5_59cb.o[i].y - D_c293;

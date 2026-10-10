@@ -1,0 +1,32 @@
+# load_game.txt: "The Story Continues" (s037 save/load list) -> Load Saved Game -> the game resumes at the
+# start-of-game cards -> tavern menu.  Needs a saves\DKSAVE0.SAV in the game copy: make one with
+# save_game.txt (or lockstep: F10/Alt-S), then copy SAVES/DKSAVE0.* into each session's DARKLAND/SAVES
+# right after `lockstep.py start` (the game only reads saves when the list opens). Loading the SAME save
+# into both builds makes the comparison deterministic (world seed D_9c4a comes from the save).
+# Reliability: high.
+# Also note: a save written by the original and by the functional build differ only in header bytes
+# 0x10-0x14 and 0x15+strlen(comment)..0x63 (uninitialised stack after the place name / comment, both
+# written with fixed lengths) and in the world seed word (creation-time clock), nothing else.
+wait 10
+key space
+click
+wait 3
+key space
+wait 6
+at 160 128
+click
+wait 6
+shot save_list
+at 120 49
+click
+wait 10
+shot loaded_card
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 4
+shot tavern_menu
