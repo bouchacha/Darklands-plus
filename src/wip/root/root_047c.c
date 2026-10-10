@@ -1,5 +1,4 @@
 /* place: root 047c:0066 */
-/* orig: size=137e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: NOT C (e2, 2026-10-09): 0/87.  The whole region is hand-written assembly (MASM);
  *   nothing here is MSC output, so this file only documents it and stays in src/wip.

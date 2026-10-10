@@ -51,7 +51,14 @@ def main():
                                        r.get('count_mismatch') and 'function count %s' % (r['count_mismatch'],)
                                        or 'data differs'))
                 continue
-            src = dict(cport.sources(os.path.dirname(os.path.abspath(f)), sub='')[0]) if False else None
+            stubs = [fn['name'] for fn in r['functions']
+                     if fn.get('orig_len') and fn['len'] * 4 < fn['orig_len'] and fn['orig_len'] > 24]
+            if stubs:
+                print('skip %s: unwritten (stub) functions %s' % (f, ', '.join(stubs)))
+                t = open(f, encoding='latin-1').read()
+                if cport.ORIG_LINE.search(t):          # an old stamp would let --functional use it
+                    open(f, 'w', encoding='latin-1').write(cport.ORIG_LINE.sub('', t))
+                continue
             text = open(f, encoding='latin-1').read()
             m = cport.PLACE.search(text)
             img, fr, off = m.group(1), int(m.group(2), 16), int(m.group(3), 16)
