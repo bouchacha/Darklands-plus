@@ -48,6 +48,14 @@ def convert(script, out_dir):
         elif c in ('click', 'rclick'):
             steps.append('%d:%s:%d,%d' % (t, c, x, y))
             t += 250
+        elif c == 'wshot':
+            p = os.path.join(out_dir, f[1] + '.bmp')
+            steps.append('%d:wshot:%s' % (t, p))
+            shots.append(p)
+            t += 100
+        elif c in ('utab', 'ugive', 'uclick', 'ucmd'):
+            steps.append('%d:%s:%s' % (t, c, ' '.join(f[1:])) if c != 'ucmd' else '%d:%s' % (t, ' '.join(f[1:])))
+            t += 100
         elif c == 'move':
             x += int(f[1]) // 2; y += int(f[2]) // 2
             steps.append('%d:move:%d,%d' % (t, x, y))
@@ -63,6 +71,8 @@ def main():
     ap.add_argument('--game', default='/home/claude/dl_raw/extracted/DARKLAND')
     ap.add_argument('--keep', action='store_true')
     ap.add_argument('--wine', action='store_true', help='run a Windows build under Wine')
+    ap.add_argument('--x11', action='store_true', help='run in a virtual X display (xvfb-run) with the window '
+                    'and the Darklands+ interface, so wshot/utab/ugive work')
     ap.add_argument('out_dir')
     ap.add_argument('script')
     a = ap.parse_args()
@@ -74,13 +84,17 @@ def main():
     work = tempfile.mkdtemp(prefix='nplay')
     gd = os.path.join(work, 'game')
     shutil.copytree(a.game, gd)
-    env = dict(os.environ, DL_HEADLESS='1', DL_SCRIPT=dl, SDL_AUDIODRIVER='dummy')
+    env = dict(os.environ, DL_SCRIPT=dl, SDL_AUDIODRIVER='dummy')
+    if not a.x11:
+        env['DL_HEADLESS'] = '1'
     cmd = [a.exe, gd]
     if a.wine:
         env.update(WINEDEBUG='-all')
         cmd = ['wine'] + cmd
+    if a.x11:
+        cmd = ['xvfb-run', '-a', '-s', '-screen 0 1280x800x24'] + cmd
     r = subprocess.run(cmd, env=env, capture_output=True, timeout=total / 1000 + 120)
-    err = r.stderr.decode('latin1')
+    err = r.stderr.decode('latin1') + (r.stdout.decode('latin1') if a.x11 else '')   # xvfb-run sends stderr to stdout
     if a.wine and os.path.exists(os.path.join(gd, 'darklands_port.log')):
         err += open(os.path.join(gd, 'darklands_port.log'), encoding='latin1').read()
     for line in err.splitlines():

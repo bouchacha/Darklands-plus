@@ -251,6 +251,7 @@ static void run_script(void)
         } else if (!strcmp(s->cmd, "release")) { mouse_b &= ~atoi(s->arg); send_mouse(); }
         else if (!strcmp(s->cmd, "shot")) save_bmp(s->arg);
         else if (!strcmp(s->cmd, "utab")) ui_select_tab(atoi(s->arg));
+        else if (!strcmp(s->cmd, "ugive")) { int a = 0, b = 0, c = 0; sscanf(s->arg, "%d,%d,%d", &a, &b, &c); void ui_give(int, int, int); ui_give(a, b, c); }
         else if (!strcmp(s->cmd, "uclick")) {            /* a click on the interface, window pixels */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             Uint32 wid = win ? SDL_GetWindowID(win) : 0;

@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
+#include "gamedata.h"
 
 extern "C" {
 #include "../runtime/cpu.h"
@@ -14,6 +15,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/mods.h"
 #include "ui.h"
+extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE;
 }
@@ -22,6 +24,9 @@ static bool open_menu;
 static int want_tab = -1;
 extern "C" void ui_select_tab(int t) { want_tab = t; }
 static ImFont *font_body, *font_head;
+ImFont *ui_font_small;
+extern "C" void tab_inventory(void);
+extern "C" void tab_alchemy(void);
 static SDL_Window *g_win;
 static int dirty_config;
 UiSettings ui_settings = { 1, 0, 0 };
@@ -48,9 +53,9 @@ static void style(void)
     c[ImGuiCol_Button] = ImVec4(0.55f, 0.24f, 0.13f, 1);
     c[ImGuiCol_ButtonHovered] = ImVec4(0.66f, 0.30f, 0.16f, 1);
     c[ImGuiCol_ButtonActive] = ImVec4(0.45f, 0.18f, 0.10f, 1);
-    c[ImGuiCol_Tab] = ImVec4(0.78f, 0.68f, 0.50f, 1);
-    c[ImGuiCol_TabHovered] = ImVec4(0.66f, 0.30f, 0.16f, 1);
-    c[ImGuiCol_TabActive] = ImVec4(0.55f, 0.24f, 0.13f, 1);
+    c[ImGuiCol_Tab] = ImVec4(0.74f, 0.63f, 0.45f, 1);
+    c[ImGuiCol_TabHovered] = ImVec4(0.90f, 0.80f, 0.60f, 1);
+    c[ImGuiCol_TabActive] = ImVec4(0.93f, 0.87f, 0.74f, 1);
     c[ImGuiCol_Header] = ImVec4(0.80f, 0.70f, 0.52f, 1);
     c[ImGuiCol_HeaderHovered] = ImVec4(0.85f, 0.75f, 0.56f, 1);
     c[ImGuiCol_HeaderActive] = ImVec4(0.75f, 0.64f, 0.46f, 1);
@@ -72,6 +77,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImFontConfig fc; fc.FontDataOwnedByAtlas = false;
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 24.0f, &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
+    ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
+    gamedata_load(game_dir);
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
     style();
@@ -189,16 +196,16 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
-        float w = fminf(io.DisplaySize.x * 0.8f, 900), h = fminf(io.DisplaySize.y * 0.85f, 700);
+        float w = fminf(io.DisplaySize.x * 0.9f, 1100), h = fminf(io.DisplaySize.y * 0.9f, 820);
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::PushFont(font_body);
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[4] = { "Mods", "Party", "Display", "About" };
-                void (*fns[4])(void) = { tab_mods, tab_party, tab_display, tab_about };
-                for (int t = 0; t < 4; t++) {
+                const char *names[6] = { "Inventory", "Alchemy", "Mods", "Display", "Item records", "About" };
+                void (*fns[6])(void) = { tab_inventory, tab_alchemy, tab_mods, tab_display, tab_party, tab_about };
+                for (int t = 0; t < 6; t++) {
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
                 }
                 want_tab = -1;

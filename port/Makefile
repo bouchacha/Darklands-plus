@@ -35,7 +35,7 @@ RTFLAGS  := $(EXTRA) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-funct
 RT_SRC   := $(wildcard runtime/*.c) third_party/nuked-opl3/opl3.c
 GEN_SRC  := $(wildcard $(GEN)/*.c)
 IMGUI    := third_party/imgui
-UI_OBJS  := $(OUT)/ui.o $(OUT)/fonts.o $(OUT)/mods_builtin.o \
+UI_OBJS  := $(OUT)/ui.o $(OUT)/ui_gamedata.o $(OUT)/ui_inventory.o $(OUT)/fonts.o $(OUT)/mods_builtin.o \
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
 CXXFLAGS := -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
@@ -45,6 +45,8 @@ all: $(BIN)
 $(BIN): $(OBJS)
 	$(CXX) $(LDEXTRA) -o $@ $^ $(SDL_LIBS)
 $(OUT)/ui.o: ui/ui.cpp ui/ui.h runtime/*.h mods/mods.h | $(OUT)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+$(OUT)/ui_%.o: ui/%.cpp ui/*.h runtime/*.h | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 $(OUT)/imgui_%.o: $(IMGUI)/%.cpp | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

@@ -106,3 +106,17 @@ int ovl_section_at(u32 lin)
     }
     return best;
 }
+
+/* the overlay area (all sections except the preloaded data section): for snapshots */
+void ovl_area(u32 *lin_start, u32 *lin_end)
+{
+    u32 a = 0xffffffff, b = 0;
+    for (int i = 0; i < nsect; i++) {
+        if ((sect[i].file_para_hi_flags >> 8) & 1) continue;      /* preloaded (data) */
+        u32 s0 = sect[i].load_seg * 16u, s1 = s0 + sect[i].mem_paras * 16u;
+        if (s0 < a) a = s0;
+        if (s1 > b) b = s1;
+    }
+    *lin_start = a; *lin_end = b;
+}
+int ovl_count(void) { return nsect; }

@@ -4,6 +4,9 @@
 #ifndef DL_GAME_H
 #define DL_GAME_H
 #include "cpu.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define G_DGROUP     ((u16)(LOADSEG + 0x321a))      /* the game's DS */
 #define G_FAR2E38    ((u16)(LOADSEG + 0x2e38))      /* far data: inventories, item tables */
@@ -11,11 +14,17 @@
 /* party member records: 5 x 128 bytes at DS:9c69 */
 #define G_PARTY        0x9c69
 #define G_MEMBER(m)    ((u16)(G_PARTY + (m) * 0x80))
-#define G_PARTY_SIZE   0x9c44                         /* not verified: see party_size */
+#define G_PARTY_SIZE   0xa67e    /* int: number of party members (card.h party_size) */
+#define G_LEADER       0x907b    /* char: active member */
+#define G_CUR_LOC      0x907e    /* int: current location (< 0x5c city), -1 wilderness */
+#define G_DIFFICULTY   0x906a    /* char: 0 basic, 1 standard, 2 expert (low bits) */
+#define G_PARTY_SEED   0x9c4a    /* int: fixed per game (shop stock seed) */
 #define G_M_FULLNAME   17        /* char[25] */
 #define G_M_SHORTNAME  42        /* char[?] */
-#define G_M_ATTR_MAX   0x49      /* END STR AGL PER INT CHR */
-#define G_M_ATTR_CUR   0x50
+#define G_M_STATUS     0x00      /* 1 = able */
+#define G_M_ATTR_CUR   0x49      /* END STR AGL PER INT CHR DF: current */
+#define G_M_ATTR_MAX   0x50      /* their maxima */
+#define G_M_LOAD       0x35      /* weight of the equipped items (capacity END + STR) */
 #define G_M_SKILLS     0x57      /* 19 skills */
 #define G_M_NITEMS     0x6a      /* number of inventory records */
 
@@ -48,4 +57,14 @@ static inline u32 g_itemdef(int id)
     if (!s) return 0;
     return ((u32)s << 16) | o;
 }
+
+/* what the game is doing now (from the resident overlays) */
+enum { GM_OTHER, GM_CARD, GM_MAP, GM_SCREEN, GM_BATTLE };
+int game_mode(void);
+
+/* call a far game function (link address sect seg:off) with cdecl word args; returns AX */
+int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args);
+#ifdef __cplusplus
+}
+#endif
 #endif

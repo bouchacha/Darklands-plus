@@ -480,10 +480,11 @@ static int in_irq;
 static u32 last_present;
 extern int poll_count_events;
 
+int in_game_call;
 void dl_poll(void)
 {
     poll_flag = 0;
-    if (in_irq) return;
+    if (in_irq || in_game_call) return;
     if (idle_hits > 300) plat_sleep_ms(1);     /* the game is busy-waiting: give the CPU back */
     idle_hits = 0;
     u32 now = plat_ticks_ms();
