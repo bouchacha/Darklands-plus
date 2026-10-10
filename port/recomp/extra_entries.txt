@@ -4,3 +4,5 @@ root 06a1:00dd     # C run-time divide-by-zero handler (int 0 vector)
 root 047c:01ea     # game timer interrupt handler (int 8)
 root 047c:1395     # mouse event handler (int 33h function 0Ch)
 root 044a:020e     # interrupt handler installed by 044a
+root 047c:000a     # timer tick routine (called far from the int 8 handler)
+root 047c:042a     # palette cycling step (timer)

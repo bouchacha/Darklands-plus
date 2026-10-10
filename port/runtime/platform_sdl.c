@@ -179,6 +179,7 @@ void plat_present(const u8 *vga, const u8 *pal)
 static void run_script(void)
 {
     u32 now = plat_ticks_ms();
+    if (step_i && step_i == nsteps) step_i = nsteps = 0;
     while (step_i < nsteps && steps[step_i].t <= now) {
         Step *s = &steps[step_i++];
         int x = 0, y = 0;
@@ -188,7 +189,12 @@ static void run_script(void)
             if (sc == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "script: unknown key %s\n", s->arg); continue; }
             if (getenv("DL_TRACE_INPUT")) fprintf(stderr, "script %u ms: %s %s (sc %d)\n", now, s->cmd, s->arg, (int)sc);
             if (strcmp(s->cmd, "up")) key(sc, 0);
-            if (strcmp(s->cmd, "down")) key(sc, 1);
+            if (!strcmp(s->cmd, "up")) key(sc, 1);
+            else if (!strcmp(s->cmd, "key")) {      /* release a little later, like a real key press */
+                Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
+                r->t = now + 60; snprintf(r->cmd, sizeof r->cmd, "up"); snprintf(r->arg, sizeof r->arg, "%s", s->arg);
+                for (int i = nsteps - 1; i > step_i && steps[i].t < steps[i - 1].t; i--) { Step t = steps[i]; steps[i] = steps[i - 1]; steps[i - 1] = t; }
+            }
         } else if (!strcmp(s->cmd, "move")) { mouse_x = x; mouse_y = y; send_mouse(); }
         else if (!strcmp(s->cmd, "click") || !strcmp(s->cmd, "rclick")) {
             int b = s->cmd[0] == 'r' ? 2 : 1;
@@ -205,9 +211,37 @@ static void run_script(void)
     }
 }
 
+/* DL_CTL=<file>: an external driver appends script steps ("cmd:arg", one per line); they run
+ * at once. Used for interactive automated play (port/tools/nctl.py). */
+static void run_ctl(void)
+{
+    static const char *path; static long pos; static int init;
+    if (!init) { init = 1; path = getenv("DL_CTL"); }
+    if (!path) return;
+    FILE *f = fopen(path, "rb");
+    if (!f) return;
+    fseek(f, pos, SEEK_SET);
+    char line[300];
+    while (fgets(line, sizeof line, f)) {
+        size_t n = strlen(line);
+        if (!n || line[n - 1] != '\n') break;          /* incomplete line: later */
+        pos += (long)n;
+        line[n - 1] = 0;
+        char *c = strchr(line, ':');
+        if (!c || nsteps >= 512) continue;
+        *c = 0;
+        /* insert as an immediate step */
+        Step st; st.t = 0; snprintf(st.cmd, sizeof st.cmd, "%s", line); snprintf(st.arg, sizeof st.arg, "%s", c + 1);
+        memmove(&steps[step_i + 1], &steps[step_i], (size_t)(nsteps - step_i) * sizeof(Step));
+        steps[step_i] = st; nsteps++;
+    }
+    fclose(f);
+}
+
 void plat_events(void)
 {
     SDL_Event e;
+    run_ctl();
     run_script();
     while (SDL_PollEvent(&e)) {
         switch (e.type) {

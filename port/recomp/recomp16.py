@@ -451,7 +451,7 @@ class Gen:
         if m == 'das':
             return 'f_das();'
         # --------------------------------------------------- string ops
-        sm = re.match(r'^(rep |repe |repne )?(movs|stos|lods|scas|cmps)([bw])$', m)
+        sm = re.match(r'^(rep |repe |repne )?(movs|stos|lods|scas|cmps|outs|ins)([bw])$', m)
         if sm:
             rep = (sm.group(1) or '').strip()
             op = sm.group(2)

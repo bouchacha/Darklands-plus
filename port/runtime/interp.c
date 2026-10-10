@@ -261,6 +261,19 @@ void interp_run(u16 seg, u16 off)
             *r16(op) = pop16(); break;
         case 0x60: { u16 t = SP; push16(AX); push16(CX); push16(DX); push16(BX); push16(t); push16(BP); push16(SI); push16(DI); break; }
         case 0x61: DI = pop16(); SI = pop16(); BP = pop16(); pop16(); BX = pop16(); DX = pop16(); CX = pop16(); AX = pop16(); break;
+        case 0x6c: case 0x6d: case 0x6e: case 0x6f: {      /* ins / outs */
+            u16 src = seg_ovr >= 0 ? (u16)seg_ovr : DS;
+            do {
+                if (rep && !CX) break;
+                switch (op) {
+                case 0x6c: wb(ES, DI, hle_in8(DX)); DI += R.df ? -1 : 1; break;
+                case 0x6d: wb(ES, DI, hle_in8(DX)); wb(ES, (u16)(DI + 1), hle_in8((u16)(DX + 1))); DI += R.df ? -2 : 2; break;
+                case 0x6e: hle_out8(DX, rb(src, SI)); SI += R.df ? -1 : 1; break;
+                case 0x6f: hle_out8(DX, rb(src, SI)); hle_out8((u16)(DX + 1), rb(src, (u16)(SI + 1))); SI += R.df ? -2 : 2; break;
+                }
+                if (rep) CX--;
+            } while (rep && CX);
+            break; }
         case 0x68: push16(fetch16()); break;
         case 0x6a: push16((u16)(s16)(s8)fetch8()); break;
         case 0x69: case 0x6b: { ModRM m; decode(&m); s16 a = (s16)get16(&m);

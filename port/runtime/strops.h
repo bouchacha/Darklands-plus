@@ -31,4 +31,12 @@ static inline void str_cmps8(int rep, u16 src) {
 static inline void str_cmps16(int rep, u16 src) {
     if (!rep) { f_sub(rw(src, SI), rw(ES, DI), 16); SI += STEP(2); DI += STEP(2); return; }
     while (CX) { f_sub(rw(src, SI), rw(ES, DI), 16); SI += STEP(2); DI += STEP(2); CX--; if (rep == 1 ? !get_zf() : get_zf()) break; } }
+static inline void str_outs8(int rep, u16 src) {
+    do { if (rep && !CX) break; hle_out8(DX, rb(src, SI)); SI += STEP(1); if (rep) CX--; } while (rep && CX); }
+static inline void str_outs16(int rep, u16 src) {
+    do { if (rep && !CX) break; hle_out8(DX, rb(src, SI)); hle_out8((u16)(DX + 1), rb(src, (u16)(SI + 1))); SI += STEP(2); if (rep) CX--; } while (rep && CX); }
+static inline void str_ins8(int rep, u16 src) { (void)src;
+    do { if (rep && !CX) break; wb(ES, DI, hle_in8(DX)); DI += STEP(1); if (rep) CX--; } while (rep && CX); }
+static inline void str_ins16(int rep, u16 src) { (void)src;
+    do { if (rep && !CX) break; wb(ES, DI, hle_in8(DX)); wb(ES, (u16)(DI + 1), hle_in8((u16)(DX + 1))); DI += STEP(2); if (rep) CX--; } while (rep && CX); }
 #endif

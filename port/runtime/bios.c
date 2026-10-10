@@ -506,8 +506,10 @@ void poll(void)
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
     }
     if (tick_us_acc > per * 8) tick_us_acc = per;   /* fell behind: drop ticks */
-    while (kq_head != kq_tail) {
+    static u32 last_key_ms;
+    while (kq_head != kq_tail && now - last_key_ms >= 10) {   /* one key event per 10 ms, as a keyboard would */
         port60 = kq[kq_head]; kq_head = (kq_head + 1) % 64;
+        if (port60 != 0xe0) last_key_ms = now;
         { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_INPUT") != 0;
           if (tr) fprintf(stderr, "kbd irq: %02x (int 9 %s)\n", port60, ivt_hooked(9) ? "game" : "bios"); }
         if (ivt_hooked(9)) call_handler(9); else bios_int9();
