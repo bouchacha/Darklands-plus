@@ -171,7 +171,7 @@ def main():
         if os.path.exists(ex):
             excl = {l.split('#')[0].strip() for l in open(ex)} - {''}
         wip = [x for x in cport.sources(REPO, sub=os.path.join('src', 'wip'))
-               if x['orig_size'] is not None and x['image'] != 'root'
+               if x['orig_size'] is not None
                and os.path.relpath(x['path'], os.path.join(REPO, 'src', 'wip')) not in excl]
         print('functional: %d drafts from src/wip' % len(wip))
         a.overlay = list(a.overlay) + [('__list__', wip)]
@@ -196,6 +196,11 @@ def main():
             raise SystemExit('%s: placement %s %04x:%04x is not a function entry' % (
                 c['path'], c['image'], c['frame'], c['offset']))
         osize = c.get('orig_size')
+        if a.mod and c['image'] == 'root' and osize is not None and c['length'] > osize and \
+                os.path.join('src', 'wip') in c['path']:
+            print('functional: skipping %s (root code cannot grow: %04x > %04x bytes)' % (
+                os.path.relpath(c['path'], REPO), c['length'], osize))
+            continue
         if a.mod:
             if osize is None:
                 raise SystemExit('%s: no /* orig: */ stamp; stamp it while it still matches '

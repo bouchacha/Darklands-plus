@@ -1,1 +1,2 @@
 # Drafts that are complete but known to misbehave in play-tests; build.py --functional skips them.
+root/fileio.c        # built with an older compiler; its stamped range crosses into the C library segment
