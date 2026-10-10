@@ -19,6 +19,10 @@
  *            flag is not saved with the battle: after a save and reload mid-battle the knight
  *            is already dead and leaving always counts as fleeing ("battle not ending").
  *            combat_over (s014 0e76:08fe) now also looks at the boss's dead flag.
+ *  bounty    A merchant's robber-knight bounty: $Merch03 (s092 188f:0222) hands $Raubi01
+ *            (s080 1870:000c) the castle as the quest giver (saved_card2), so the reward event
+ *            is not found; the card then reads and frees events[-1] (memory corruption) and the
+ *            reward can be claimed again and again. The giver is now corrected on the way in.
  *  alchemy   Brewing takes the ingredients with s033 1462:1630, which skips the stack that
  *            slides up when one is used up and forgets what it could not take: most batches
  *            cost only part of their ingredients. The remainder is now taken too. */
@@ -40,6 +44,8 @@ Fix FIXES[] = {
       "Items past the item list and empty stacks are no longer added to an inventory.", 1 },
     { "castle", "Castle battles end when the knight dies",
       "Even after saving and loading during the battle.", 1 },
+    { "bounty", "Robber-knight bounties from merchants pay out properly",
+      "The original looked up the wrong quest giver: garbled names, memory corruption, rewards claimable again.", 1 },
     { "alchemy", "Brewing uses up all the ingredients",
       "The original took only part of them when an ingredient was spread over several stacks.", 1 },
 };
@@ -115,6 +121,26 @@ static void castle_hook(void)              /* combat_over */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- bounty */
+static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
+{
+    int giver = (s16)g_rw(0xe896), loc = (s16)g_rw(G_CUR_LOC), match = 0, only = -1, n = 0;
+    for (int i = 0; i < 300; i++) {
+        u32 e = ev_ptr(i);
+        if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + 0x22)) != 0x24 || (s16)rw(s, (u16)(o + 0x28)) != 3 || (s16)rw(s, (u16)(o + 0x1c)) != loc) continue;
+        int owner = (s16)rw(s, (u16)(o + 0x1a));
+        if (owner == giver) match = 1;
+        only = owner; n++;
+    }
+    if (!match && n >= 1) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bounty: giver %d -> %d\n", giver, only);
+        g_ww(0xe896, (u16)only);
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- alchemy */
 static int stock(int id)
 {
@@ -153,7 +179,7 @@ static void alchemy_hook(void)             /* s033 1462:1630 (first, id, n): tak
 /* ---------------------------------------------------------------- switching */
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, nullitem_hook },
-    { 14, 0x0e76, 0x08fe, castle_hook }, { 33, 0x1462, 0x1630, alchemy_hook } };
+    { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook } };
 
 void fix_enable(int i, int on)
 {

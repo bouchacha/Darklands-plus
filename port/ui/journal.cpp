@@ -449,13 +449,20 @@ static void ingredients_page(void)
     }
 }
 
-int ui_want_subtab = -1;               /* scripted tests: utab 2.1 */
+int ui_want_subtab = -1;
+extern "C" void journal_quests(void);               /* scripted tests: utab 2.1 */
 
 extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
     if (ImGui::BeginTabBar("jtabs")) {
+        if (ImGui::BeginTabItem("Quests", nullptr, want == 3 ? ImGuiTabItemFlags_SetSelected : 0)) {
+            ImGui::BeginChild("q", ImVec2(0, 0));
+            journal_quests();
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Towns", nullptr, want == 0 ? ImGuiTabItemFlags_SetSelected : 0)) {
             ImGui::BeginChild("list", ImVec2(250, 0), ImGuiChildFlags_Border);
             town_list();
