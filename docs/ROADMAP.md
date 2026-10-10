@@ -1,20 +1,22 @@
 # Roadmap
 
-There are two goals: a **matching decompilation** as a verifiable baseline, then **moddable reimplementations** of each module.
+There are two goals: a **matching decompilation** as a verifiable baseline, then **moddable** C for every module.
 
-## Where things stand
+## Where things stand (2026-10-10)
 
 | milestone | status |
 |---|---|
-| Executable format fully decoded (MZ + RTLink/Plus overlay tree, vectors) | done; repack is byte-identical |
-| Whole-program disassembly with exact segment frames, overlay calls and switch tables resolved | done; 501,542 instructions, 9,697 functions |
-| Reassemblable source plus a replacement linker that rebuild the EXE **byte-identically** | done (`tools/build.py`) |
-| Any function can be split into its own module, still byte-identical | done (`symbols/split.txt`) |
-| Toolchain identified (MSC 6.0 medium model `/G2`, RTLink/Plus) | done (`docs/TOOLCHAIN.md`) |
-| C run-time library and entry points named | done (`symbols/names.txt`) |
-| Game-module map (combat, battlefield, overland, inventory, barter, alchemy, saints, character creation, card engine, card scripts) | done (`docs/MODULE_MAP.md`) |
-| Data files: readers/writers with byte-identical round trips on every shipped file | done (`formats/`) |
-| Ghidra pseudo-C as a reference for C porting | done for the resident code and s000–s043: 1,704 of 1,792 functions (95%). The card scripts are skipped in favour of `tools/card_templates.py`; `tools/run_ghidra.sh` generates them too (several hours) |
+| Byte-identical rebuild from reassembled code + C | done (`tools/build.py`) |
+| Matching C | 384 files, ~8,500 of ~10,100 functions (84%); all but ~12 card scripts; much of the engine |
+| Whole game from C ("functional" build) | ~9,500 functions (94%) from C incl. drafts in `src/wip/`; play-tested against the original (`docs/QA.md`) |
+| Mods that change code size | done: overlay relayout, data-section move, code-segment strings (`--mod`, `--overlay`, `--functional`) |
+| Readable names | `include/darklands/card.h`, `game.h`; guides `docs/CARDS.md`, `docs/ENGINE.md` |
+| Example mods | `mods/` (travel speed, inn price, combat damage, party stats, start money) |
+
+Remaining work:
+* **Last matches.** The non-matching functions are mostly code-generation differences between the game's MSC 6.00 and our 6.00A (block placement, register choice, far memset). An original MSC 6.00 would likely resolve many at once.
+* **Not C by nature:** C run-time library (could be matched by linking MSC's own library objects), RTLink/Plus manager, PKWARE DCL, graphics-driver glue (root 047c), a few hand-written routines.
+* **Card scripts as data:** card text already lives in `msgfiles/*.msg`; card logic is now readable C with a documented API. A higher-level card description format that generates this C is a possible next step.
 
 ## Phase 1: matching C, module by module
 
