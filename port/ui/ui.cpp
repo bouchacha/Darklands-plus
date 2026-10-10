@@ -2,6 +2,8 @@
 // (F12): mods, display settings, a party/inventory view. Dear ImGui on SDL_Renderer.
 #include <SDL.h>
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "imgui.h"
@@ -16,6 +18,7 @@ extern "C" {
 #include "../mods/mods.h"
 #include "../mods/assist.h"
 #include "../mods/travel.h"
+#include "../mods/fixes.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -109,6 +112,16 @@ extern "C" int ui_event(const SDL_Event *e)
     return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
 }
 
+/* a wrapped, dimmed explanation */
+static void hint(const char *fmt, ...)
+{
+    va_list ap; va_start(ap, fmt);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::TextWrappedV(fmt, ap);
+    ImGui::PopStyleColor();
+    va_end(ap);
+}
+
 /* ------------------------------------------------------------------ tabs */
 static void tab_mods(void)
 {
@@ -134,8 +147,43 @@ static void tab_mods(void)
     }
 }
 
+/* "play the original game": every change off, the player's choices kept to come back to */
+static int original_mode(void) { return config_get_int("original", 0); }
+static void set_original(bool on)
+{
+    if (on) {
+        char b[512]; int n = 0;
+        n += snprintf(b + n, sizeof b - n, "%d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
+        for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
+        for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
+        config_set("original.saved", b);
+        config_set("original.sound", config_get("sound.device", "fm"));
+        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast);
+        for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
+        for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
+        config_set("sound.device", "game");
+        config_set_int("original", 1);
+    } else {
+        const char *p = config_get("original.saved", "");
+        char *e;
+        auto next = [&](int def) { long v = strtol(p, &e, 10); if (e == p) return def; p = e; return (int)v; };
+        int ch = next(2), jo = next(1), pp = next(1), pe = next(0), ta = next(1), tf = next(1);
+        assist_set_chances(ch); journal_set(jo); pathfix_set(pp, pe); travel_set(ta, tf);
+        for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, next(1));
+        for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
+        config_set("sound.device", config_get("original.sound", "fm"));
+        config_set_int("original", 0);
+    }
+    dirty_config = 1;
+}
+
 static void tab_helpers(void)
 {
+    bool orig = original_mode();
+    if (ImGui::Checkbox("Play the original game", &orig)) set_original(orig);
+    hint("Switches everything below off and uses the game's own sound setup; your choices come back when you untick it.");
+    if (orig) { ImGui::TextWrapped("Darklands as it was in 1993 (version 483.07). Only the Darklands+ menu itself remains."); return; }
+
     ImGui::PushFont(font_head); ImGui::SeparatorText("Chances of success"); ImGui::PopFont();
     ImGui::TextWrapped("Town and encounter cards show the chance of success next to each option that has one, "
                        "and who would try it. (The original shows one at a time while you hold Shift.)");
@@ -149,7 +197,7 @@ static void tab_helpers(void)
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
-    ImGui::TextDisabled("Moves are planned around walls and furniture with a full route search instead of the "
+    hint("Moves are planned around walls and furniture with a full route search instead of the "
                         "original wall-following, which gives up on long or winding routes.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
@@ -163,7 +211,16 @@ static void tab_helpers(void)
     ImGui::PushFont(font_head); ImGui::SeparatorText("Town journal"); ImGui::PopFont();
     bool j = journal_enabled();
     if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }
-    ImGui::TextDisabled("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
+    hint("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
+
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Fixes for bugs of the original"); ImGui::PopFont();
+    for (int i = 0; i < FIX_COUNT; i++) {
+        bool on = FIXES[i].on;
+        ImGui::PushID(i);
+        if (ImGui::Checkbox(FIXES[i].name, &on)) { fix_enable(i, on); dirty_config = 1; }
+        ImGui::Indent(34); hint("%s", FIXES[i].desc); ImGui::Unindent(34);
+        ImGui::PopID();
+    }
 }
 
 static void tab_display(void)
@@ -186,7 +243,7 @@ static void tab_display(void)
     const char *cur = config_get("sound.device", "fm");
     for (int i = 0; i < 6; i++)
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
-    ImGui::TextDisabled("Takes effect after the next battle, or when the game is started again.");
+    hint("Takes effect after the next battle, or when the game is started again.");
     ImGui::TextWrapped("The GOG release plays battles through its Roland driver, which on a modern PC sounds like "
                        "\"random notes rather than clashing swords\". The Sound Blaster setting uses the game's own FM "
                        "drivers and digitized effects, as most players heard it in 1992.");
@@ -242,7 +299,7 @@ static void tab_about(void)
     ImGui::TextWrapped("F12 opens and closes this menu (Esc closes it). The game is paused while it is open.");
     ImGui::TextWrapped("Alt+Enter: full screen.  Ctrl+F12: screenshot.");
     ImGui::Spacing();
-    ImGui::TextDisabled("Font: EB Garamond (SIL Open Font License). Interface: Dear ImGui (MIT). "
+    hint("Font: EB Garamond (SIL Open Font License). Interface: Dear ImGui (MIT). "
                         "Music synthesis: your system's MIDI synthesizer.");
 }
 

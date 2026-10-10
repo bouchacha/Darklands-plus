@@ -60,7 +60,7 @@ extern "C" void tab_travel(void)
     }
     if (game_mode() != GM_MAP) {
         ImGui::TextWrapped("Journeys are planned on the travel map: leave the town (or finish the encounter) and open this tab there.");
-        ImGui::TextDisabled("On the map you can also hold Ctrl and click any spot to travel there.");
+        ImGui::TextWrapped("On the map you can also hold Ctrl and click any spot to travel there.");
         return;
     }
     ImGui::TextWrapped("Pick a destination: the party travels by the quickest way, keeping to roads and bridges. "
