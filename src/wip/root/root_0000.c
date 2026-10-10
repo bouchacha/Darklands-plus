@@ -1,14 +1,17 @@
 /* place: root 0000:0000 */
 /* orig: size=2652 _DATA=020a+0074 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: hand port (e3 rounds 3-4), every function written; 26/38 match (fmatch counts 38
+/* status: hand port (e3 rounds 3-4), every function written; 27/38 match (fmatch counts 38
    because 0000:2652 - sub_root_0265_0002 - belongs to this file, see below).
    Matching: 0bc2..0caa, 1080..1408 group, 14f6, 1588, 2286, 24bc.., 2648.  Open:
-   - 0000 (480/468), 1438 (6.00 keeps the constant 2 in AL), 23e6 (slot order bw/bh);
+   - 0000 (480/468), 1438 (6.00 keeps the constant 2 in AL), 23e6 (m5: locals in one struct
+     {tx, bx, bh, bw, by, ty} = original slots; left: 6.00 pushes `by` from AX before the r->x
+     store, 6.00A pushes it from memory after);
    - 14f6 matches only in some symbol-table states (cmp [si+6],ax and the h + y operand
      order flip when lines above change): the dummy D_ffe0 in front of it selects one;
      re-check it after every edit above it;
-   - 1716: only the stack slots differ (c at the top instead of the bottom, m/i swapped);
+   - 1716 MATCHED (m5): all memory locals in one struct in the original slot order
+     (c, pad, name[40], save, pic, i, m, y, bits - first member lowest);
      18fa: only its jump table, i.e. the length of an earlier function;
    - 06c2/07d4/0984/0dd2/01d4 (classified 'asm' in functions.json, but they are plain MSC
      code: inline strlen with loop, enter/leave) written from the asm, lengths within a
@@ -1129,45 +1132,38 @@ void far sub_root_0000_1588(int which)
 #pragma optimize("a", on)
 void far sub_root_0000_1716(int which)
 {
-    char c;
-    char name[40];
-    int save;
-    int *pic;
-    int i;
-    char *m;
-    int y;
-    int bits;
+    struct { char c; char pad; char name[40]; int save; int *pic; int i; char *m; int y; int bits; } s;
     int k;
 
     if (which == 0x100)
-        bits = 0x1f;
+        s.bits = 0x1f;
     else
-        bits = D_01e4[which];
-    save = D_0168->f0c;
-    for (i = 0, y = 1, m = D_9c69[0], pic = D_a2d7; pic < D_a2d7 + 5;
-         bits >>= 1, y += 0x28, m += 0x80, i++, pic++) {
-        if ((bits & 1) == 1) {
-            sub_root_047c_05a5(D_0168, 3, y, D_a626);
-            if ((c = m[0]) != 0) {
-                if (c == 3)
-                    sub_root_047c_05a5(D_0168, 6, y + 8, D_a2e5);
+        s.bits = D_01e4[which];
+    s.save = D_0168->f0c;
+    for (s.i = 0, s.y = 1, s.m = D_9c69[0], s.pic = D_a2d7; s.pic < D_a2d7 + 5;
+         s.bits >>= 1, s.y += 0x28, s.m += 0x80, s.i++, s.pic++) {
+        if ((s.bits & 1) == 1) {
+            sub_root_047c_05a5(D_0168, 3, s.y, D_a626);
+            if ((s.c = s.m[0]) != 0) {
+                if (s.c == 3)
+                    sub_root_047c_05a5(D_0168, 6, s.y + 8, D_a2e5);
                 else
-                    sub_root_047c_05a5(D_0168, 6, y + 8, *pic);
-                strcpy(name, m + 0x2a);
-                if (D_a6b3 == 1 && D_a6b2 != i || D_a6b4[i] == (char)0x9d ||
-                    (c = m[0]) == 3 || c == 5)
+                    sub_root_047c_05a5(D_0168, 6, s.y + 8, *s.pic);
+                strcpy(s.name, s.m + 0x2a);
+                if (D_a6b3 == 1 && D_a6b2 != s.i || D_a6b4[s.i] == (char)0x9d ||
+                    (s.c = s.m[0]) == 3 || s.c == 5)
                     D_0168->f0c = 7;
-                else if (D_907b == i)
+                else if (D_907b == s.i)
                     D_0168->f0c = 0x0e;
                 else
                     D_0168->f0c = 0x0f;
-                sub_root_0265_006e(D_0168, 4, y + 1, name);
-                sub_root_0000_1a9c(i);
-                sub_root_0000_18fa(i, D_0168);
+                sub_root_0265_006e(D_0168, 4, s.y + 1, s.name);
+                sub_root_0000_1a9c(s.i);
+                sub_root_0000_18fa(s.i, D_0168);
             }
-            if (m[0] == 3) {
+            if (s.m[0] == 3) {
                 D_0168->w = 3;
-                D_0168->f04 = y;
+                D_0168->f04 = s.y;
                 D_0168->x1 = 0x35;
                 D_0168->y1 = 0x26;
                 for (k = 5; k < 0x69; k += 10)
@@ -1179,11 +1175,11 @@ void far sub_root_0000_1716(int which)
             }
             if (D_6eec < 0x2d)
                 sub_root_047c_12c3();
-            sub_root_0000_14f6(D_0168, 3, y, 0x36, 0x26, D_0190, 3, y);
+            sub_root_0000_14f6(D_0168, 3, s.y, 0x36, 0x26, D_0190, 3, s.y);
             sub_root_047c_1293();
         }
     }
-    D_0168->f0c = save;
+    D_0168->f0c = s.save;
 }
 #pragma optimize("", on)
 
@@ -1479,33 +1475,28 @@ void far sub_root_0000_2286(struct win *w, int x, int y, int cw, int ch, int bg)
 void far sub_root_0000_23e6(struct win *w, int y, int save, char *text, struct win *dst,
                             struct rect *r)
 {
-    int ty;
+    struct { int tx; int bx; int bh; int bw; int by; int ty; } s;
     int tw;
-    int bw;
-    int bh;
-    int bx;
-    int by;
-    int tx;
 
     if (y != -1)
-        ty = y;
+        s.ty = y;
     else
-        ty = -(sub_root_047c_051b(w->f10) / 2 - 100);
+        s.ty = -(sub_root_047c_051b(w->f10) / 2 - 100);
     tw = sub_root_0265_084e(w, text);
-    bw = tw + 10;
-    bh = sub_root_047c_051b(w->f10) + 7;
-    tx = (0x140 - tw - w->w) / 2;
-    bx = tx - 5;
-    by = ty - 4;
+    s.bw = tw + 10;
+    s.bh = sub_root_047c_051b(w->f10) + 7;
+    s.tx = (0x140 - tw - w->w) / 2;
+    s.bx = s.tx - 5;
+    s.by = s.ty - 4;
     if (save) {
-        r->y = by;
-        r->w = bw;
-        r->h = bh;
-        r->x = bx;
-        copy_rect_saved(w, bx, by, bw, bh, dst, bx, by);
+        r->y = s.by;
+        r->w = s.bw;
+        r->h = s.bh;
+        r->x = s.bx;
+        copy_rect_saved(w, s.bx, s.by, s.bw, s.bh, dst, s.bx, s.by);
     }
-    sub_root_0000_2286(w, bx, by, bw, bh, w->f0e);
-    sub_root_0265_006e(w, tx, ty, text);
+    sub_root_0000_2286(w, s.bx, s.by, s.bw, s.bh, w->f0e);
+    sub_root_0265_006e(w, s.tx, s.ty, text);
 }
 
 /* message box for `ticks` timer ticks (0410_0302), then restore the screen */

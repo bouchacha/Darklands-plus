@@ -2,7 +2,9 @@
 /* orig: size=0fb8 _DATA=1406+003a */
 /* compat600-off: sub_s004_1336_0794 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): COMPLETE, 29/36 match. Twin of s028 1f48 (copied from src/wip/s028,
+/* status (e6, 2026-10-09): COMPLETE, 33/36 match (m5: 0392/046a/0e60 took the egl-off forms of
+ * their s028 twins 0398/0470/0e5e; 093a: `long spck` declared third - the declaration order
+ * decides the lmul operand order). Twin of s028 1f48 (copied from src/wip/s028,
  * functions renamed; vec_1e19/vec_1e0f -> s004 1262 015c/00a4). Differences to s028: 0006 lacks
  * the D_e23c save, the unreferenced 05a8 (s028 05ae, missing from srcfiles.json) restores
  * D_8d6 = 0x3b, 0b52 adds the far pointer (+, not |; frame 2 bytes short).
@@ -263,6 +265,7 @@ int far sub_s004_1336_0252(void)
 #pragma optimize("", on)
 
 /* temporary file on the last RAM disk (type 5) */
+#pragma optimize("egl", off)
 int far sub_s004_1336_0392(void)
 {
     register unsigned kb;
@@ -280,6 +283,7 @@ int far sub_s004_1336_0392(void)
     D_c09b[5].size = (long)kb << 10;
     return sub_s004_1336_04c4(&D_c09b[5]);
 }
+#pragma optimize("", on)
 
 /* temporary file in %TMP% / %TEMP% (type 6), at most D_8fc KB */
 int far sub_s004_1336_03f8(void)
@@ -302,11 +306,12 @@ int far sub_s004_1336_03f8(void)
 }
 
 /* heap.fng in the current directory (type 7), D_8fc KB */
+#pragma optimize("egl", off)
 int far sub_s004_1336_046a(void)
 {
-    int unused;
+    int r;
 
-    if (sub_s004_1336_08e0() == -1)
+    if ((r = sub_s004_1336_08e0()) == -1)
         return 0;
     if ((D_c09b[7].handle = sub_root_06a1_13ae("heap.fng", 0x8102)) == 0) {
         D_08d6 ^= 0x20;
@@ -317,6 +322,7 @@ int far sub_s004_1336_046a(void)
     D_c09b[7].size = (long)D_08fc << 10;
     return sub_s004_1336_04c4(&D_c09b[7]);
 }
+#pragma optimize("", on)
 
 /* initialise a temporary file store: directory (unless another store holds it), free
    block header and an end marker holding the file name */
@@ -533,8 +539,8 @@ int far sub_s004_1336_08f4(void)
 /* free space on drive (0 = A:) in KB */
 unsigned far sub_s004_1336_093a(int drive)
 {
-    long spck;
     long availc;
+    long spck;
     long bpsn;
     long totaln;
 
@@ -904,6 +910,7 @@ done:
 }
 
 /* XMS allocate size bytes in 64K units: (size >> 16) + 1 when size is non-zero */
+#pragma optimize("egl", off)
 int far sub_s004_1336_0e60(long size)
 {
     register int n;
@@ -913,6 +920,7 @@ int far sub_s004_1336_0e60(long size)
         n++;
     return sub_s004_1336_0e7a(n);
 }
+#pragma optimize("", on)
 
 /* allocate an XMS block of kb KB; the handle or 0 */
 int far sub_s004_1336_0e7a(int kb)

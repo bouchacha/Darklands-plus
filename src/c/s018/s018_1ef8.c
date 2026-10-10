@@ -1,10 +1,9 @@
 /* place: s018 1ef8:0000 */
 /* orig: size=04b6 CONST=7ddc+0002 _DATA=20de+0010 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 3/4, all functions written (027e, 02be, 03ae match). 0000: MSC 6.00A puts the
- * "monster" (M-path, stricmp m73/m90/m13) block inline and the spr=6/speed=20 block last; the
- * original has 6/20 falling into the common tail and the M-path out of line after it
- * (if/else order, goto and else-if forms all compile the same).
+/* status: FILE MATCH (m4, 2026-10-09). 0000 needed the 6/20 test split into
+ * if (E || e || m02) {6/20} else if (M || m) {monster} else {6/20} (duplicate tail cross-jumped),
+ * if (who == -1) moving = 0; else moving = 1; and #pragma optimize("a", on) (keeps p in BX/SI).
  * Combat projectile/effect list (overlay s018, child of s014):
  * 0000 add an effect record to D_944d[] (16 records of 0x1a bytes, count D_c180),
  * 027e remove record idx (shift the rest down), 02be walk a missile from its start
@@ -69,6 +68,7 @@ void far sub_s018_1ef8_027e(int);
 void far sub_s018_1ef8_02be(int, int, int);
 void far sub_s018_1ef8_03ae(int, char);
 
+#pragma optimize("a", on)
 void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
 {
     struct fx *p;
@@ -123,11 +123,10 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
         }
     } else {
         k = D_9c55[who].kind;
-        if (D_1166[k][0] == 'E' || D_1166[k][0] == 'e' || stricmp(D_1166[k], "m02") == 0 ||
-            (D_1166[k][0] != 'M' && D_1166[k][0] != 'm')) {
+        if (D_1166[k][0] == 'E' || D_1166[k][0] == 'e' || stricmp(D_1166[k], "m02") == 0) {
             spr = 6;
             speed = 20;
-        } else {
+        } else if (D_1166[k][0] == 'M' || D_1166[k][0] == 'm') {
             speed = 20;
             if (stricmp(D_1166[k], "m73") == 0)
                 spr = 8;
@@ -135,6 +134,9 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
                 spr = 9;
             else
                 spr = 7;
+        } else {
+            spr = 6;
+            speed = 20;
         }
     }
     p->sprite = spr;
@@ -163,13 +165,14 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
         p->facing = d;
         p->who = -1;
         p->tgt = tgt;
-        if (who != -1)
-            p->moving = 1;
-        else
+        if (who == -1)
             p->moving = 0;
+        else
+            p->moving = 1;
     }
     D_c180++;
 }
+#pragma optimize("", on)
 
 void far sub_s018_1ef8_027e(int idx)
 {

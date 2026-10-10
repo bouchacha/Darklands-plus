@@ -1,4 +1,6 @@
 /* place: s009 182c:0002 */
+/* orig: size=262a _DATA=1530+0005 */
+/* empty-ok: sub_s009_182c_11b2 */  /* an empty switch: 6.00A deletes it, behaviour is identical */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): mine battlefields, part 2 (tile description, mine parameters by
  * location type p6 and mine level lv, monster group contents). All 16 functions written

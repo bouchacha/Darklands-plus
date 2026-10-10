@@ -2,11 +2,14 @@
 /* orig: size=2160 CONST=7d32+0002 _DATA=15a2+004b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status (e6, 2026-10-09): ALL 17 FUNCTIONS WRITTEN. Templar fortress & tombs battlefields.
- * Match: 0000 (fortress driver), 029e, 1794, 1f5c, 209e (+ 1f5c/209e need _DATA, which now lines up).
+ * Match: 0000 (fortress driver), 029e, 1794, 1f5c, 1fb2 (m5: `struct { lv; name[20]; } s` puts the
+ * array above the far pointer), 209e (+ 1f5c/209e need _DATA, which now lines up).
  * Close (6.00 register/CSE choices): 0484 (k*0x33fc kept in a register across the call),
  * 05c6 (hgt nibbles share the long temp's slot in 6.00), 096a (6.00 makes a CSE temp per case for
- * &lv->grp[i] / lv), 17fa, 1a2a (code identical, stack slots only), 1bc0, 1cb4, 1ddc, 1968, 1d94,
- * 1fb2 (name[]/lv slot swap), 16d2 (jump table waits for earlier lengths).
+ * &lv->grp[i] / lv), 17fa, 1a2a (code identical, stack slots only: the original has two
+ * separate far-segment slots ([bp-10h] es early, [bp-2] cx later) where 6.00A reuses one, o at
+ * [bp-18h], lvl [bp-14h], t2 [bp-0ah], CSE temp [bp-1ah]; frame 0x1a), 1bc0, 1cb4, 1ddc, 1968, 1d94,
+ * 16d2 (jump table waits for earlier lengths).
  * Level buffer (struct level, 0x33fc): cells, heights, objects (type 1 placeholder, 2 item, 5,
  * 7/8 doors, 0x65 group marker), exits at 0x2fb8 (6 x 14 bytes, count at 0x2fb6), enemy groups at
  * 0x300e (8 x 0x2c), records at 0x316e/0x3236/0x3350/0x3382, monster set name at 0x33c8.
@@ -1009,16 +1012,15 @@ void far sub_s011_1432_1f5c(int k)
 
 int far sub_s011_1432_1fb2(int p_6, int p_8, int p_a, int count)
 {
-    char name[20];
-    struct level far *lv;
+    struct { struct level far *lv; char name[20]; } s;
     int n;
 
     sub_s004_0e76_20dc();
     sub_s011_1432_209e();
     n = sub_s004_0e76_20f6(1, 2);
-    sprintf(name, "imisctom.%03d", n);
-    lv = &F_20a5_0000;
-    sub_root_05d9_019a(name, lv);
+    sprintf(s.name, "imisctom.%03d", n);
+    s.lv = &F_20a5_0000;
+    sub_root_05d9_019a(s.name, s.lv);
     F_20a5_0000.x1f40 = 0;
     for (n = 0; n < 55 && F_20a5_0000.obj[n].type == 6; n++)
         ;
@@ -1028,10 +1030,10 @@ int far sub_s011_1432_1fb2(int p_6, int p_8, int p_a, int count)
     F_20a5_0000.x1f42[2] = -2;
     F_20a5_0000.x1f42[3] = -2;
     F_20a5_0000.x1f42[4] = -2;
-    sub_s011_1432_05c6(0, 0, (*(struct level far * volatile *)&lv));
+    sub_s011_1432_05c6(0, 0, (*(struct level far * volatile *)&s.lv));
     for (n = 1; n <= count; n++)
-        sub_s011_1432_1a2a((*(struct level far * volatile *)&lv), n, 0x2d, 2, 1, -1, 0, 0, 0, 0);
-    sub_s004_1262_0d0a("level0.flr", (*(struct level far * volatile *)&lv), 0x33fc, 0);
+        sub_s011_1432_1a2a((*(struct level far * volatile *)&s.lv), n, 0x2d, 2, 1, -1, 0, 0, 0, 0);
+    sub_s004_1262_0d0a("level0.flr", (*(struct level far * volatile *)&s.lv), 0x33fc, 0);
     return 1;
 }
 

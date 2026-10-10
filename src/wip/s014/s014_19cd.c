@@ -27,7 +27,13 @@
      28a2/29b8  build the order menu for the selected member
      2d08/2e50/3204/3258/33c0/34a0  loot piles (items of the fallen in a file, cache screen)
      36f0/3766  shield picture load / free
-   status: 34 of 34 functions written, 6 match (1714 1764 1d5e 209a 216a 3204; see e8 NOTES). */
+   status: 34 of 34 functions written, 10 match (1714 1764 1d5e 209a 216a 3204 2d08 069c 1db8 28a2; see e8 NOTES).
+   28a2 (m4): if/else instead of ternaries (both the D_9645 one and the strcpy sources).
+   1db8 (m4): box locals x1/y0/y1 in a struct {k, y1, y0, x1}, '? 1 : 2' result, D_11ca declared
+   after D_c623 (moved down: cmp direction).
+   069c: bit-field read ((struct a696bf *)D_a696)[i].b12 and a volatile store to D_a6b3.
+   m4: 2d08 has ONE int ofs (frame 6, no ofs[1] store); _fmemcpy is now prototyped, so the near
+   D_c291 is widened with DS (orig 'push ds') - without it only 2 bytes were pushed (behaviour bug). */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -154,6 +160,7 @@ extern int D_c941, D_c987, D_ca19, D_ca2a;   /* group cursor colours */
 extern int D_e1c0;
 extern char D_c624[];                   /* marching order */
 extern char D_c629;                     /* its length */
+extern char D_11ca;                     /* shown floor (decl position decides cmp order in 1db8) */
 extern char D_a6b3, D_a6b2;             /* order mode, selected member */
 extern int D_a6b0;                      /* chosen action */
 extern int D_a6d1;
@@ -170,7 +177,7 @@ extern int *D_c4fe;                     /* mouse event record */
 extern char D_d73b;
 extern char D_a6d3[];
 extern char D_d6fb[];
-extern char D_c623, D_11ca;             /* party floor, shown floor */
+extern char D_c623;                     /* party floor */
 extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
 extern int D_c2bd, D_c242, D_c244, D_c28f, D_c4db, D_c621;   /* cursor colours */
 extern int D_e1c2, D_e1be, D_e1b8, D_e1ba, D_e1bc;
@@ -427,16 +434,18 @@ void far sub_s014_19cd_0006(void)
 }
 
 /* enter order mode for D_a6b2 */
+struct a696bf { unsigned lo:5, b5:1, b6:1, mid:5, b12:1, hi:3; };
+
 void far sub_s014_19cd_069c(void)
 {
     D_e1c6 = 8;
     D_e1c4 = 0x1a;
-    D_a6b3 = 1;
+    *(volatile char *)&D_a6b3 = 1;
     D_9064[D_a6b2] = 1;
     sub_root_0000_1588(D_a6b2);
     sub_root_0000_1716(0x100);
     D_d7fe = 1;
-    D_d6ea = D_a696[D_a6b2][1] >> 4 & 1;
+    D_d6ea = ((struct a696bf *)D_a696)[D_a6b2].b12;
     D_a6b0 = -1;
     D_a6d1 = -1;
     D_c7cc = 0;
@@ -899,6 +908,8 @@ place:
 }
 
 /* place the marching order in formation `dir` around (px, py); 1 if every spot is free */
+#pragma optimize("a", on)
+#pragma optimize("l", off)
 int far sub_s014_19cd_164a(int px, int py, int dir, int lo, int hi)
 {
     int k, row, m;
@@ -913,6 +924,8 @@ int far sub_s014_19cd_164a(int px, int py, int dir, int lo, int hi)
     }
     return 1;
 }
+#pragma optimize("a", off)
+#pragma optimize("l", on)
 
 /* 1 if combatant i's (trial) position is free and visible from the clicked point */
 int far sub_s014_19cd_1714(int i)
@@ -944,6 +957,7 @@ void far sub_s014_19cd_1764(int x, int y, int w, int h, int col, int mode, int w
 }
 
 /* keep the cursors on the moving combatants */
+#pragma optimize("g", off)
 void far sub_s014_19cd_17f6(void)
 {
     int k, f, col;
@@ -977,6 +991,7 @@ void far sub_s014_19cd_17f6(void)
             D_e1bc = 0;
     }
 }
+#pragma optimize("g", on)
 
 /* clip the member cursor to the view (0..0x103 x 0..0xc7) */
 void far sub_s014_19cd_1966(void)
@@ -1140,12 +1155,18 @@ void far sub_s014_19cd_1d5e(int k)
 }
 
 /* stairs under combatant i (flag 1) */
+struct bit0 { unsigned b0:1; };
+
 void near sub_s014_19cd_1db8(int i)
 {
-    int k;
+    int k, x1, y0, y1;
 
     for (k = 0; k < F_20a5_2fb6; k++) {
-        if (INSIDE(F_20a5_2fb8[k], D_9c55[i].x, D_9c55[i].y)) {
+        x1 = F_20a5_2fb8[k].w + F_20a5_2fb8[k].x;
+        y0 = F_20a5_2fb8[k].y;
+        y1 = y0 + F_20a5_2fb8[k].h;
+        if (D_9c55[i].x >= F_20a5_2fb8[k].x && D_9c55[i].x < x1
+         && D_9c55[i].y >= y0 && D_9c55[i].y < y1) {
             D_c77e[i] = k;
             D_a696[i][0] |= 1;
             break;
@@ -1158,9 +1179,7 @@ void near sub_s014_19cd_1db8(int i)
             D_c77e[i] = D_c8b2[i];
             return;
         }
-        D_96bd = D_a696[i][0] & 1;
-        if (D_96bd != 1)
-            D_96bd = 2;
+        D_96bd = ((struct bit0 *)D_a696[i])->b0 == 1 ? 1 : 2;
     }
 }
 
@@ -1278,6 +1297,8 @@ void near sub_s014_19cd_2232(int i)
 }
 
 /* trigger: pit / trapdoor - fires when the whole party stands in area k */
+#pragma optimize("a", on)
+#pragma optimize("e", off)
 void far sub_s014_19cd_2312(int i, int k, int n, int b)
 {
     int m;
@@ -1293,6 +1314,8 @@ void far sub_s014_19cd_2312(int i, int k, int n, int b)
     D_ca3d = b;
     sub_root_0000_24bc("Aaaahh!", 60);
 }
+#pragma optimize("a", off)
+#pragma optimize("e", on)
 
 /* trigger: remove furniture n (alarm) */
 void far sub_s014_19cd_23f6(int i, int k, unsigned char n, int b)
@@ -1460,12 +1483,13 @@ extern unsigned char D_c83e;
 extern char *D_1162;                    /* loot file name */
 extern char far *D_c103;                /* loot file image */
 extern struct loot *D_c291;   /* POINTER to the near copy of the list (set by s002: &D_a895), not an array */
+void far *_fmemcpy(void far *, const void far *, unsigned);
 extern int D_c7a4[20];
 extern char D_c96b[13];
 extern char D_9085[];
 extern char D_9429, D_943d, D_9893;
 extern int D_d6ee, D_d6f2, D_d6f9, D_d729, D_d70a, D_d73c, D_d726, D_d800;  /* level buffers */
-extern int D_07d8;
+extern char D_07d8;
 extern char D_9069, D_9c4c;
 extern int D_ca55, D_ca53, D_9c42, D_a68f, D_a691, D_a693;
 extern int D_9920, D_9934;
@@ -1519,12 +1543,18 @@ void far sub_s014_19cd_28a2(void)
         m->on = 2;
     D_9609 = 2;
     D_961d = 2;
-    D_9645 = D_c623 == D_11ca ? 1 : 2;
+    if (D_c623 != D_11ca)
+        D_9645 = 2;
+    else
+        D_9645 = 1;
     strcpy(D_06ab + 8, D_073e);
     D_9659 = 2;
     D_96a9 = 2;
     D_96bd = 2;
-    strcpy(D_06bb + 10, D_c102 == 0 ? D_073e : D_0744);
+    if (D_c102 == 0)
+        strcpy(D_06bb + 10, D_073e);
+    else
+        strcpy(D_06bb + 10, D_0744);
     strcpy(D_06cd + 10, D_073e);
     strcpy(D_06df + 9, D_073e);
     strcpy(D_06f1 + 13, D_073e);
@@ -1535,7 +1565,10 @@ void far sub_s014_19cd_28a2(void)
     D_970d = 2;
     D_9735 = 2;
     D_9749 = 2;
-    strcpy(D_0727 + 16, D_c102 == 0 ? D_073e : D_0744);
+    if (D_c102 == 0)
+        strcpy(D_0727 + 16, D_073e);
+    else
+        strcpy(D_0727 + 16, D_0744);
     D_975d = 2;
 }
 
@@ -1645,7 +1678,7 @@ void far sub_s014_19cd_29b8(void)
 /* open the loot pile next to combatant i */
 void far sub_s014_19cd_2d08(int i)
 {
-    int ofs[2];
+    int ofs;
     char cnt;
     int k;
 
@@ -1653,15 +1686,15 @@ void far sub_s014_19cd_2d08(int i)
         return;
     if (D_c81c[i] < 0) {
         cnt = -D_c81c[i];
-        ofs[0] = D_d846;
+        ofs = D_d846;
     } else {
-        ofs[0] = F_20a5_59c8[D_c81c[i]].ofs;
+        ofs = F_20a5_59c8[D_c81c[i]].ofs;
         cnt = F_20a5_59c8[D_c81c[i]].cnt;
     }
     if (cnt == 0)
         return;
     D_07d3++;
-    sub_s014_19cd_3258(&cnt, ofs, 1, 0);
+    sub_s014_19cd_3258(&cnt, &ofs, 1, 0);
     sub_s014_19cd_2e50(D_c654, &D_c67f, &F_2e38_0bb0, i);
     F_2e38_0bb0.a = 0;
     F_2e38_0bb0.b = 0;
@@ -1671,13 +1704,12 @@ void far sub_s014_19cd_2d08(int i)
             CURSOR_BUSY();
             _fmemcpy(D_c291, D_c654, D_c67f * 6);
             CURSOR_IDLE();
-            ofs[0] = sub_s014_19cd_3204(D_c291, D_c67f);
+            ofs = sub_s014_19cd_3204(D_c291, D_c67f);
         }
-        ofs[1] = 0;
         for (k = 0; k < (unsigned char)D_c80e; k++)
             if (F_20a5_59c8[k].ofs == -1) {
                 F_20a5_59c8[k].cnt = D_c67f;
-                F_20a5_59c8[k].ofs = ofs[0];
+                F_20a5_59c8[k].ofs = ofs;
             }
     }
     vec_1c2f(D_17b0);

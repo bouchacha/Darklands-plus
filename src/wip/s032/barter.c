@@ -8,6 +8,13 @@
  *   strength-reduced i*8+0x93: no effect on the slot order.
  *   1d18: the uninitialised `town` and `size` are one variable in the original (both [bp-2]);
  *   writing them as one makes size a register variable in 6.00A (worse), so left as is.
+ * qa4 2026-10-09 BEHAVIOUR FIX (QA bug 4, shops stocked far fewer items): the original reads
+ *   the uninitialised [bp-2] and STORES the clamped size back into it, so from the 2nd call of
+ *   the 078e loop on it holds the previous size (<= 9) and the city size - 1 is used.  The
+ *   draft read [bp-2] but kept the result in DI, so the slot stayed stale and size was always 1
+ *   (rarest stock table).  `volatile int size` keeps size in memory at [bp-2] like the original
+ *   (frame 8 instead of 6, q not in DI: still DIFF, but same behaviour).  Verified in-game with
+ *   tools/playtests/market_stock.txt.
  * m2 2026-10-09: 8/11, DATA MATCHES (stamped --wip).  CONST is 4 slots (7e66..7e6d); 7e6e is
  *   s033's first slot, not ours.  10be gets no slot once each flag test reads
  *   F_2e38_10be[D_907e]->flags itself (if/else-if chain, rarity += 3 twice; MSC CSEs the byte
@@ -797,7 +804,7 @@ int far sub_s032_1462_1b26(int k, int qual)
 /* sub_s032_1462_1d18 (shop_has_item): whether the shop offers items of type k today */
 int far sub_s032_1462_1d18(int k)
 {
-    int size;
+    volatile int size;          /* MUST stay in memory at [bp-2]: see status comment */
     int r;
     int q;
 

@@ -20,9 +20,11 @@
      0cfa  F_20a5_7c4d[i] = endurance * 64 / max endurance (255 = out)
      0e22  re-evaluate the target of i: keep it, help a friend being attacked, or pick the
            weakest reachable opponent (endurance fraction + path cost / 5)
-   status: 16/16 written, 6 match (0c2a now: AI tables are one far struct F_20a5_787e, CONST
+   status: 16/16 written, 8 match (06cc: #pragma optimize("a", on), m4; 09ae: pragma a + the status test written twice
+   (outer guard and inside the inner loop), m4; 047e: pragma a, n/k home stores left; 0c2a now: AI tables are one far struct F_20a5_787e, CONST
    7db2/7db4/7db6 like the original, re-stamped e8 2026-10-09). 0028 (far) and the near functions 06cc 0840 09ae 0ba8 0c2a 0cfa
-   0d36 0e22 as in the original. */
+   0d36 0e22 as in the original.  m4: 0418 rewritten with a 'free' flag (f = 1 / f = 0; break), only the
+   direction of cmp di,dx (i != j) is left; decl positions, renames, pragmas tried. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -177,14 +179,14 @@ void far sub_s014_1db7_0028(int i, int lo, int hi)
         for (j = lo; j < hi; j++) {
             if (D_9c55[j].status != 1)
                 continue;
-            if (i > 4) {
+            if (i >= 5) {
                 /* enemies do not crowd a target that already has 3 attackers */
                 n = 0;
                 for (k = 5; k < 13; k++)
                     if (D_9c55[k].target == j && D_9c55[k].status == 1
                      && ((D_9c55[k].f10 & 2) == 2 || D_9c55[k].f10 == 1))
                         n++;
-                if (n > 2)
+                if (n >= 3)
                     continue;
             }
             D_d73e = D_9c55[i];
@@ -276,23 +278,29 @@ void far sub_s014_1db7_026a(void)
 /* enemy i left animation slot `kind`: free the slot when nobody else uses it */
 void far sub_s014_1db7_0418(int i, int kind)
 {
-    int j;
+    int j, f;
 
-    if (i > 4) {
+    if (i >= 5) {
+        f = 1;
         for (j = 5; j < 13; j++)
-            if (i != j && D_9c55[j].status != 0 && D_9c55[j].kind == kind)
-                return;
-        if (kind == 5) {
-            D_d65f = -1;
-            vec_1dd3(5);
-        } else {
-            D_d67e = -1;
-            vec_1dd3(6);
+            if (i != j && D_9c55[j].status != 0 && D_9c55[j].kind == kind) {
+                f = 0;
+                break;
+            }
+        if (f == 1) {
+            if (kind == 5) {
+                D_d65f = -1;
+                vec_1dd3(kind);
+            } else {
+                D_d67e = -1;
+                vec_1dd3(6);
+            }
         }
     }
 }
 
 /* move enemy i to the other enemy animation slot if it is free; returns the new slot or 0 */
+#pragma optimize("a", on)
 int far sub_s014_1db7_047e(int i)
 {
     int n;
@@ -323,6 +331,7 @@ int far sub_s014_1db7_047e(int i)
     }
     return n;
 }
+#pragma optimize("a", off)
 
 /* enemy i changes its animation set (weapon change) */
 void far sub_s014_1db7_05c8(int i)
@@ -361,6 +370,7 @@ void far sub_s014_1db7_05c8(int i)
 }
 
 /* idle combatants attack an adjacent opponent that is not fighting */
+#pragma optimize("a", on)
 void near sub_s014_1db7_06cc(void)
 {
     int i, j, lo, hi;
@@ -399,6 +409,7 @@ void near sub_s014_1db7_06cc(void)
         }
     }
 }
+#pragma optimize("a", off)
 
 /* fight back against an adjacent attacker */
 void near sub_s014_1db7_0840(void)
@@ -435,6 +446,7 @@ void near sub_s014_1db7_0840(void)
 }
 
 /* melee reach table */
+#pragma optimize("a", on)
 void near sub_s014_1db7_09ae(void)
 {
     int i, j;
@@ -449,11 +461,12 @@ void near sub_s014_1db7_09ae(void)
     for (i = 0; i < 13; i++)
         if (D_9c55[i].status == 1)
             for (j = 0; j < 13; j++)
-                if (F_20a5_7900[i][j] != F_20a5_7900[j][i]) {
+                if (D_9c55[i].status == 1 && F_20a5_7900[i][j] != F_20a5_7900[j][i]) {
                     F_20a5_7900[j][i] = 1;
                     F_20a5_7900[i][j] = 1;
                 }
 }
+#pragma optimize("a", off)
 
 /* D_e0ac[k] = 1 for every combatant within i's weapon reach (scaled by step) */
 void far sub_s014_1db7_0a80(int i, int step)
@@ -537,6 +550,7 @@ void near sub_s014_1db7_0cfa(void)
 }
 
 /* scheduler: every 5 ticks one party member, every D_e09a ticks a pair of enemies */
+#pragma optimize("egl", off)
 void near sub_s014_1db7_0d36(void)
 {
     int list[4];
@@ -566,6 +580,7 @@ void near sub_s014_1db7_0d36(void)
             sub_s014_1db7_0e22(v, D_9c55[v].target);
     }
 }
+#pragma optimize("egl", on)
 
 /* re-think the target t of combatant i */
 void near sub_s014_1db7_0e22(int i, int t)

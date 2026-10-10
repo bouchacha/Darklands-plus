@@ -1,7 +1,12 @@
 /* place: s023 1ef8:0000 */
 /* orig: size=1acc CONST=7df4+000e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 2/16 (0d1a, 0d88), ALL 16 functions written (functional drafts). 03ca/0734: the original
+/* status: wip 3/16 (0d1a, 0d88, 153e: if/else with `ok = 1` and one `return ok`, m4).
+ * m4: REVEAL indexes the cell as c[(unsigned)u.w >> 8][u.w & 0xff] (orig: mul byte hi*0xa0, lo
+ * and 0ffh) and 0000's u is a 4-byte union (frame 4): 0000 is down to one jl-vs-jge/jmp jump size,
+ * 0b6e to the far-address CSE (see e8), 04ac to slot order (u -0e, t -0c, n*14 temp -0a),
+ * 13d0 to 6.00's word ops on the cell byte ('and ax,0F0h' - 6.00A narrows); the loot buffer is read
+ * as one far pointer (LOOTBUF over D_c654/D_c656) and the cell indexed without a pointer local, ALL 16 functions written (functional drafts). 03ca/0734: the original
  * repeats `leave; ret` after every case (6.00A jumps to one epilogue). DATA MATCHES (e8, stamped --wip):
  * the module owns 7 CONST slots 7df4..7e00 (7e02.. are s024's): 2e38:0bb6, the floor struct
  * F_20a5_0000, F_20a5_000 (cell-list reads), 76e7, 76a8, F_2e38_03e, 47ee. Every floor access goes
@@ -159,6 +164,7 @@ extern int D_e0a3, D_e0a5, D_e0a7, D_e0a9;
 extern int D_07d4, D_c2bb, D_c19b;
 extern int D_c67f, D_940b;
 extern unsigned D_c654, D_c656;
+#define LOOTBUF (*(char far * *)&D_c654)
 extern char *D_c291;
 extern char D_17b0;
 extern char D_c80f[], D_c831[], D_119a[], D_11a6[], D_a6b4[], D_c8b2[];
@@ -220,7 +226,7 @@ void far sub_s023_1ef8_17d2(int, char *);
     if (u.w != -1) { \
         j = 0; \
         do { \
-            F_20a5_0000.c[u.b.hi][u.b.lo].b3 &= 0x7f; \
+            F_20a5_0000.c[(unsigned)u.w >> 8][u.w & 0xff].b3 &= 0x7f; \
             j += 2; \
             u.w = *(int far *)((char far *)&F_20a5_000 + F_20a5_0000.list[n] + j); \
         } while (u.w != -1); \
@@ -230,7 +236,7 @@ union cw { int w; struct { unsigned char lo, hi; } b; };
 
 void far sub_s023_1ef8_0000(int who, int h, int n)
 {
-    union cw u;
+    union { int w; long l; } u;
     int j;
 
     D_d4e4 = 1;
@@ -716,11 +722,9 @@ void far sub_s023_1ef8_13d0(int who)
 {
     char n;
     int h;
-    struct chest far *c;
 
     D_07d3++;
-    c = &F_20a5_0000.ch[D_c784[who]];
-    if ((F_20a5_0000.c[c->x][c->y].b0 & 0xf0) == 0x50)
+    if ((F_20a5_0000.c[F_20a5_0000.ch[D_c784[who]].x][F_20a5_0000.ch[D_c784[who]].y].b0 & 0xf0) == 0x50)
         *(long far *)&F_20a5_0000.c[F_20a5_0000.ch[D_c784[who]].x][F_20a5_0000.ch[D_c784[who]].y] += 0x10;
     h = D_c7a4[F_20a5_0000.ch[D_c784[who]].idx];
     n = F_20a5_0000.ch[D_c784[who]].n;
@@ -733,7 +737,7 @@ void far sub_s023_1ef8_13d0(int who)
     F_20a5_0000.ch[D_c784[who]].n = D_c67f;
     if (D_c67f != 0) {
         sub_root_05f8_0117(3, 10, D_940b);
-        _fmemcpy((char far *)D_c291, (char far *)(((long)D_c656 << 16) | D_c654), D_c67f * 6);
+        _fmemcpy((char far *)D_c291, LOOTBUF, D_c67f * 6);
         sub_root_05f8_0117(3, 3, D_940b);
         D_c7a4[F_20a5_0000.ch[D_c784[who]].idx] = sub_s014_19cd_3204(D_c291, D_c67f);
     }
@@ -752,14 +756,15 @@ int far sub_s023_1ef8_153e(int who)
     r = sub_root_0000_0c8c(20);
     if (F_20a5_0000.ch[D_c784[who]].lock < s + r) {
         sub_root_0000_24bc(D_0582, 150);
+        ok = 1;
         D_d68d[who] |= 0x20;
         F_20a5_0000.ch[D_c784[who]].lock = 0;
-        return 1;
-    }
-    sub_root_0000_24bc(D_0644, 60);
-    D_d68d[who] |= 0x40;
-    vec_1dc9(D_9c55[who].x, D_9c55[who].y, who, F_20a5_0000.ch[D_c784[who]].trap & 0x0f,
+    } else {
+        sub_root_0000_24bc(D_0644, 60);
+        D_d68d[who] |= 0x40;
+        vec_1dc9(D_9c55[who].x, D_9c55[who].y, who, F_20a5_0000.ch[D_c784[who]].trap & 0x0f,
              (F_20a5_0000.ch[D_c784[who]].trap >> 4) * 10, who, D_11ca);
+    }
     return ok;
 }
 

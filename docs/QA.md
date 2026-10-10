@@ -93,3 +93,32 @@ hunt.py (travel until an encounter card), battle_start.sh (start + Quickstart + 
 cdis.py (full disassembly of draft vs original per function), constcheck.py, farcheck.py, ptrcheck.py.
 Recommendation (tools/, not changed here): stamp.py --wip / fmatch data placement should refuse a CONST
 placement that overlaps another stamped file or that differs from the slots the original code loads.
+
+# QA round 3 (2026-10-09, build/qa4/func.EXE = full functional build incl. root/root_0000.c, vs original)
+Sessions/shots: build/qa4/sess (O = original, X = func, Y = b0e76.EXE, Z = b19cd.EXE).
+4. FIXED (shop stock, s032 barter.c sub_s032_1462_1d18): `volatile int size` keeps size in memory at
+   [bp-2] like the original (read the stale slot, store the clamped size back), so from the 2nd call on
+   the city size - 1 is used again. fmatch still 8/11 (1d18 now 248/244: frame 8, q not in DI); module
+   1e0c -> 1e0e bytes (fits); re-stamped --wip, constcheck ok. Verified with market_stock.txt on the
+   Freiberg save (build/qa3/shots/morning): herbalist Pure Gold/Aqua Regia/Zinken/Choleric Base and goods
+   merchant Torch/Rope/Lantern/Flute, prices/qualities/weights identical to the original.
+Root game shell (root_0000.c), all identical to the original: main menu + "The Story Continues" load;
+F10 Game menu (open, keyboard Down/Right/Return navigation, Difficulty submenu ticks, choosing Expert);
+Alt-D cycle message "Difficulty is now set to Basic"; Alt-C "Show saintly changes OFF"; Pause from the
+menu ("Game Paused / Press a key to resume", resumes on a key); Alt-Q "Quit to DOS? y/n": n returns, y
+exits to the DOS prompt (DK.TMP removed, temp files identical to the original's).
+Not a bug: the difficulty/toggle message boxes stay ~3 s (catch them with a shot <1 s after the key);
+Alt-D presses that got through unseen cycle the difficulty, so check the tick in the submenu.
+Not a bug: the copy-protection book (s041) also shows after losing a battle (party stripped, "Well, now
+what?"); any stray key answers it wrongly and the game quits to DOS (happened to X once).
+Combat with func.EXE: wolves (won, both nights), spiders (won), bandit-soldiers ambush (lost), witch +
+wolves at the sod hut (lost): every battle starts with party in view, paused, normal sidebar, runs to
+the end card; no crash. LOOT AFTER A WON FIGHT AGAINST HUMANS: STILL UNTESTED - the unattended
+Quickstart party lost both human fights (it needs a tester issuing orders, or a stronger party/save).
+Quit-to-DOS bisect (drafts as of ~22:10; s014_0e76.c/19cd.c were edited again at 22:51/22:55 by others):
+  b0e76.EXE (only s014_0e76.c): boars, schrats, spiders (all lost): 3 battles to the end, no quit. b19cd.EXE (only s014_19cd.c): schrats (won, no loot - animals/schrats drop none),
+  no quit. bloot.EXE (both) built but not run. The qa2 quit (loot.EXE) did not reproduce in either
+  single-draft build; next: run bloot.EXE through several night/bandit fights.
+New scripts (tools/playtests/): keyretry.py (press a key in one session until the screen changes - keys
+reach the game only every 1-6 tries), autobattle.py (let a battle run, press space when paused, stop
+at a card/loot screen or the DOS prompt).

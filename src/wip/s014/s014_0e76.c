@@ -24,8 +24,13 @@
      3d2c  load a sprite file into a slot (catalogue, header, frame tables)
      4442  activation records: hidden encounters start when seen / approached
      45ae  endurance recovery outside battle
-   status: 39 of 39 functions written, 5 match (2a04, 38b6, 3c86, 4694, 4780).  45ae: only the frame
-   differs (orig 8 bytes, `st` in its own slot; 6.00A overlaps it with `max`).  1158 is inline asm in the
+   status: 39 of 39 functions written, 13 match (2a04, 38b6, 3c86, 4694, 4780, 45ae, 27ac, 27cc, 2170, 0694, 3cc4, 465e, 0620).  0620:
+   #pragma optimize("eglc", off), locals in struct {t, k} (the ICE form is avoided through t).  465e: register
+   parameter under #pragma optimize("egl", off).  3cc4: indexed copy
+   loop D_d9e6[i][k] = D_d9e6[i][k + 1] + #pragma optimize("a", on).  0694 (m4): vec_1b2b takes a
+   long size, D_07d8 is a char, flags via D_d68d[i][0] (strength-reduced), and the one '(f & 1) == 1'
+   test is an unsigned bit-field compare (6.00A turns the plain form into 'dec al').  45ae: `st` in
+   `union { char st; int d; } s` gets its own slot (m4).  1158 is inline asm in the
    original.  DATA MATCHES (e8, 2026-10-09; stamped --wip): _DATA 1776..18c1 is defined here (facing
    tables before 0620, 17e2..18c1 as one packed struct because 6.00A word-aligns each definition);
    the 9 CONST slots need the floor image as ONE far struct (struct floor F_20a5_000, slot 7d36) plus
@@ -134,7 +139,7 @@ extern unsigned char D_e09c, D_e09b, D_e09a;
 extern char D_907b;                     /* leader */
 extern char D_d6f1;
 extern char D_c102;                     /* movement mode */
-extern int D_07d8;
+extern char D_07d8;
 extern int D_d9e4;
 extern int D_c62a;
 extern unsigned D_da4f, D_da49, D_da47, D_da45, D_da4d, D_da4b, D_da51, D_da53;
@@ -203,7 +208,7 @@ void far vec_1c25(void);                /* s018 1f43_104c */
 void far vec_1c9d(int);                 /* s018 1f43_0fc2: enemy joins the fight */
 void far vec_1c93(void);                /* s025 0cfc: reinforcements */
 void far vec_1c89(void);                /* s015 0000 */
-void far vec_1b2b(char *, void far *, unsigned, int);   /* s027 0d06: write a file */
+void far vec_1b2b(char *, void far *, long);   /* s027 0d06: write a file */
 void far vec_1ccf(int);                 /* s019 0a7c: end of modifier 0 */
 void far vec_1cc5(int);                 /* s019 0b00: end of modifier 1 */
 void far vec_1cbb(int);                 /* s019 0bf8: end of modifier 2 */
@@ -431,35 +436,38 @@ char D_17b0 = 0;
 char D_17b1 = 0;
 char D_17b2[12] = {2, 1, 0, 2, 3, 4, 6, 5, 4, 6, 7, 0};
 
+#pragma optimize("eglc", off)
 void far sub_s014_0e76_0620(void)
 {
-    int k;
+    struct { int t, k; } s;
 
     if ((D_9080 & 0x80) == 0x80)
-        for (k = 0; k < D_d6cc; k++)
-            if (F_20a5_47ee.a[k].f0 < 0) {
-                F_20a5_47ee.a[D_d6cc] = F_20a5_47ee.a[k];
+        for (s.k = 0; s.k < D_d6cc; s.k++)
+            if (F_20a5_47ee.a[s.k].f0 < 0) {
+                F_20a5_47ee.a[D_d6cc] = F_20a5_47ee.a[s.k];
                 D_d6cc++;
-                /* `a[k].f0 = -a[k].f0` here crashes MSC 6.00A (C1001 grammar.c 140) */
-                F_20a5_47ee.a[k].f0 = -F_20a5_47ee.a[D_d6cc - 1].f0;
+                s.t = F_20a5_47ee.a[s.k].f0;
+                F_20a5_47ee.a[s.k].f0 = -s.t;
                 return;
             }
 }
+#pragma optimize("eglc", on)
 
 /* after the battle: save the changed floor and activations, end temporary modifiers,
    skill improvement for the weapons/skills used (D_d68d flags) */
+struct bit0 { unsigned b0:1; };
+
 void far sub_s014_0e76_0694(void)
 {
     int i;
-    unsigned char *fl;
 
     if (D_d4e4 == 1) {
         sprintf(D_a27a, "level%d.flr", D_11ca);
-        vec_1b2b(D_a27a, (void far *)F_20a5_0000, 0x33fc, 0);
+        vec_1b2b(D_a27a, (void far *)F_20a5_0000, 0x33fcL);
         sprintf(D_a27a, "level%d.atv", D_11ca);
         D_a895 = D_d6cc;
         _fmemcpy(D_a896, &F_20a5_47ee, D_d6cc * 30);
-        vec_1b2b(D_a27a, &D_a895, D_d6cc * 30 + 1, 0);
+        vec_1b2b(D_a27a, &D_a895, (unsigned long)D_d6cc * 30 + 1);
     }
     for (i = 0; i < 5; i++) {
         if (D_a532[i].t0 != -536)
@@ -479,40 +487,39 @@ void far sub_s014_0e76_0694(void)
     if (D_a893 == 6)
         return;
     for (i = 0; i < 5; i++) {
-        fl = D_d68d[i];
         if (D_9c55[i].status != 1 && D_9c55[i].status != 2)
             continue;
-        if ((*fl & 8) == 8) {
+        if ((D_d68d[i][0] & 8) == 8) {
             vec_1ca7(i, F_20a5_75ac.v[D_9c55[i].f51], 1);
             sub_root_0000_1716(i);
-            *fl &= 0xf6;
-        } else if ((*fl & 1) == 1) {
+            D_d68d[i][0] &= 0xf6;
+        } else if (((struct bit0 *)D_d68d[i])->b0 == 1) {
             vec_1ca7(i, F_20a5_75ac.v[D_9c55[i].f51], 0);
             sub_root_0000_1716(i);
-            *fl &= 0xfe;
+            D_d68d[i][0] &= 0xfe;
         }
-        if ((*fl & 0x10) == 0x10) {
+        if ((D_d68d[i][0] & 0x10) == 0x10) {
             vec_1ca7(i, F_20a5_75ac.v[D_9c55[i].weapon], 1);
             sub_root_0000_1716(i);
-            *fl &= 0xed;
-        } else if ((*fl & 2) == 2) {
+            D_d68d[i][0] &= 0xed;
+        } else if ((D_d68d[i][0] & 2) == 2) {
             vec_1ca7(i, F_20a5_75ac.v[D_9c55[i].weapon], 0);
             sub_root_0000_1716(i);
-            *fl &= 0xfd;
+            D_d68d[i][0] &= 0xfd;
         }
-        if ((*fl & 4) == 4) {
+        if ((D_d68d[i][0] & 4) == 4) {
             vec_1ca7(i, 4, 1);
             sub_root_0000_1716(i);
-            *fl &= 0xfb;
+            D_d68d[i][0] &= 0xfb;
         }
-        if ((*fl & 0x20) == 0x20) {
+        if ((D_d68d[i][0] & 0x20) == 0x20) {
             vec_1ca7(i, 0xe, 1);
             sub_root_0000_1716(i);
-            *fl &= 0x9f;
-        } else if ((*fl & 0x40) == 0x40) {
+            D_d68d[i][0] &= 0x9f;
+        } else if ((D_d68d[i][0] & 0x40) == 0x40) {
             vec_1ca7(i, 0xe, 0);
             sub_root_0000_1716(i);
-            *fl &= 0xbf;
+            D_d68d[i][0] &= 0xbf;
         }
     }
 }
@@ -777,7 +784,7 @@ extern char D_17b1;
 extern char D_07d3;
 extern unsigned char D_11de[8];         /* rotating colour pattern */
 extern char D_a6c4[];                   /* [13] special state (2 = stairs, 10 = ...) */
-extern char D_c77e[];
+extern unsigned char D_c77e[];
 extern char D_ca9a[];                   /* [13] push direction */
 extern char D_caa7[];                   /* [13] pusher */
 extern char D_17a6[];                   /* push direction -> facing */
@@ -1151,6 +1158,7 @@ wait:
 
 /* melee animation step of i; on the impact frame resolve the hit (knockback for heavy
    hits between two sets that allow it) */
+#pragma optimize("a", on)
 void near sub_s014_0e76_199c(int i, int set, int *again)
 {
     int t;
@@ -1205,13 +1213,14 @@ void near sub_s014_0e76_199c(int i, int set, int *again)
         if (D_c21a == 0 || i != 5)
             D_ca64[i] = 0;
         else
-            D_ca64[5] = 7;
+            D_ca64[i] = 7;
         sub_root_0000_1716(i);
         sub_root_0000_1716(t);
         if (t < i)
             again[t] = 1;
     }
 }
+#pragma optimize("", on)
 
 extern char D_e05f[], D_e052[], D_e06c[];  /* [13] animation sub-state flags */
 extern char D_c98a[][10];               /* [13] animation sequence */
@@ -1219,7 +1228,8 @@ extern char D_a3e7[][30];               /* sequences per animation set */
 extern unsigned char D_c8a7[], D_c84a[];
 extern struct wtab far F_20a5_7822;     /* weapon -> ammo */
 extern char D_9f1f;
-extern char D_c64c[], D_c784[], D_c7cd[], D_c8b2[];
+extern unsigned char D_c64c[], D_c7cd[];
+extern char D_c784[], D_c8b2[];
 extern char D_ca99;
 extern char D_c83f[], D_c803[];         /* per animation set: corpse drawn / drops items */
 extern char D_c1f3[];                   /* [13] killing it ends the battle */
@@ -1351,6 +1361,7 @@ void near sub_s014_0e76_1ba0(int i, int set)
 }
 
 /* spell / potion: 1 start, 11 chant (random 90..130 ticks), 12 cast */
+#pragma optimize("g", off)
 void near sub_s014_0e76_1f00(int i, int set)
 {
     int n, k;
@@ -1424,6 +1435,7 @@ void near sub_s014_0e76_1f00(int i, int set)
         }
     }
 }
+#pragma optimize("g", on)
 
 /* location actions ordered from the menu (D_a6c4[i]) */
 void near sub_s014_0e76_2170(int i)
@@ -1591,7 +1603,7 @@ void near sub_s014_0e76_2324(int i, int set)
 /* cancel i's location action */
 void far sub_s014_0e76_27ac(int i)
 {
-    D_a6c4[i] = 0;
+    *(volatile char *)&D_a6c4[i] = 0;
     D_9c55[i].f10 = 0;
     D_ca57[i] = 0;
 }
@@ -1605,7 +1617,7 @@ void far sub_s014_0e76_27cc(int i)
         if (D_9c55[k].target == i) {
             D_9c55[k].target = -1;
             D_9c55[k].f10 = 0;
-            D_ca57[k] = 0;
+            *(volatile char *)&D_ca57[k] = 0;
             D_a6d3[k] = 0;
         }
 }
@@ -1735,6 +1747,8 @@ void far sub_s014_0e76_3cc4(int);
 /* engagement tick: every ready combatant (D_ca64 == 7) with an attack order starts an
    attack on its target (missiles need a line of fire, melee needs reach); movers approach;
    temporary modifiers expire */
+#pragma optimize("a", on)
+#pragma optimize("l", off)
 void far sub_s014_0e76_2a4a(void)
 {
     int i, n, r, t;
@@ -1817,6 +1831,8 @@ mods:
         }
     }
 }
+#pragma optimize("a", off)
+#pragma optimize("l", on)
 
 /* approach the target: re-path every 30..90 ticks */
 void far sub_s014_0e76_2cca(int i)
@@ -1955,6 +1971,8 @@ void far sub_s014_0e76_2fa2(int i)
 }
 
 /* facing (0..7) of i towards its target, or its destination for a spell at a spot */
+#pragma optimize("a", on)
+#pragma optimize("g", off)
 int far sub_s014_0e76_306a(int i)
 {
     struct cbt *c;
@@ -1998,6 +2016,8 @@ int far sub_s014_0e76_306a(int i)
         D_e096 = 3;
     return D_17e2[quad][D_e096];
 }
+#pragma optimize("a", off)
+#pragma optimize("g", on)
 
 extern int D_6eec, D_6eee;              /* mouse x, y */
 extern char D_d7fe;                     /* 1 = mouse drag (rubber band) active */
@@ -2339,20 +2359,17 @@ void far sub_s014_0e76_3c86(int i, int v)
 }
 
 /* take the next queued order into the action word */
+#pragma optimize("a", on)
 void far sub_s014_0e76_3cc4(int i)
 {
     int k;
 
-    int *p;
-
     D_9c55[i].f10 = D_d9e6[i][0];
-    p = D_d9e6[i];
-    for (k = 2; k != 0; k--) {
-        *p = p[1];
-        p++;
-    }
+    for (k = 0; k < 2; k++)
+        D_d9e6[i][k] = D_d9e6[i][k + 1];
     D_d9e6[i][2] = 0;
 }
+#pragma optimize("", on)
 
 /* clear the order queue */
 void far sub_s014_0e76_3d0c(int i)
@@ -2632,11 +2649,11 @@ skip:
 void far sub_s014_0e76_45ae(void)
 {
     int max, e, i;
-    char st;
+    union { char st; int d; } s;
 
     for (i = 0; i < 5; i++) {
-        st = D_9c55[i].status;
-        if ((st == 1 || st == 2) && D_da55[i] < D_07d4) {
+        s.st = D_9c55[i].status;
+        if ((s.st == 1 || s.st == 2) && D_da55[i] < D_07d4) {
             max = D_9c55[i].maxend;
             e = D_9c55[i].endur;
             if ((max >> 2) + (max >> 1) <= e)
@@ -2659,11 +2676,13 @@ void far sub_s014_0e76_45ae(void)
 #pragma optimize("", on)
 
 /* play sound n if the sound options allow it */
-void far sub_s014_0e76_465e(int n)
+#pragma optimize("egl", off)
+void far sub_s014_0e76_465e(register int n)
 {
     if ((D_01be == 1 && n >= 10) || n == 0x12 || (D_01bf == 1 && n >= 7 && n <= 9))
         sub_root_047c_078a(n);
 }
+#pragma optimize("egl", on)
 
 void far sub_s014_0e76_4694(void)
 {
@@ -2671,6 +2690,7 @@ void far sub_s014_0e76_4694(void)
 }
 
 /* is combatant i inside the effect area e {x, y, size << 4} and in sight of its centre */
+#pragma optimize("e", off)
 int far sub_s014_0e76_469e(int *e, int i)
 {
     unsigned s;
@@ -2697,6 +2717,7 @@ int far sub_s014_0e76_469e(int *e, int i)
     }
     return 0;
 }
+#pragma optimize("e", on)
 
 /* restore the normal mouse cursor */
 void far sub_s014_0e76_4780(void)

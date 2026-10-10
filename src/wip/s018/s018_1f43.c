@@ -1,11 +1,15 @@
 /* place: s018 1f43:0006 */
 /* orig: size=1088 CONST=7dde+0006 _DATA=216e+0006 */
+/* data: CONST=7dde */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* status: wip 2/6 (0fc2, 104c match); ALL functions written.
  * 0256: only 2 spots left: the ranged branch reloads `mov bx,e` in the original, and the
  *   spell pick loop computes D_d37c[j + e*10] as bx=j; cx=e*10; add bx,cx (6.00A: [bx+si]).
  *   Locals use hash-ordered names (slot order = name hash buckets, see PORTING_NOTES).
- * 0f02: frame one slot smaller than the original; 0c8a/0006: home-store/slot differences.
+ * 0f02 (m4): scalars in one struct {p2, d, best, y, x} give the original frame/slots; only the
+ *   home store of the first loop pointer (mov [bp-2],9C69h; mov si,[bp-2]) is missing.
+ *   0c8a: #pragma optimize("a", on) (m4): only the home stores of k's initial values
+ *   (mov [bp-2],0 / mov si,[bp-2] and mov [bp-2],cx) are missing.  0006: slot differences.
  * Enemy AI helpers (overlay s018, child of s014):
  * 0006 which party members are seen by an enemy (fills seen[5], returns count),
  * 0256 enemy turn AI (once per tick: drop lost targets, sort enemies by distance to the
@@ -487,6 +491,7 @@ stop:
     }
 }
 
+#pragma optimize("a", on)
 void far sub_s018_1f43_0c8a(int who, struct tgt *list)
 {
     int k, found, tries, t;
@@ -560,24 +565,26 @@ void far sub_s018_1f43_0c8a(int who, struct tgt *list)
     if (found == 0)
         D_9c55[who].f4a = -1;
 }
+#pragma optimize("a", off)
 
 void far sub_s018_1f43_0f02(int n, int *flags)
 {
-    int i, d, x, y, best;
+    int i;
+    struct { int p2, d, best, y, x; } s;
 
-    best = 0x7d00;
+    s.best = 0x7d00;
     if (D_9c55[n].status == 1 && D_9c55[n].f4a == -1) {
-        x = D_9c55[n].x;
-        y = D_9c55[n].y;
+        s.x = D_9c55[n].x;
+        s.y = D_9c55[n].y;
         for (i = 0; i < 5; i++)
             if (D_9c55[i].status == 1 && flags[i] == 1) {
-                d = F_20a5_0000.dist[n][i] = sub_root_047c_1120((D_9c55[i].x - x) / 2, D_9c55[i].y - y, 0);
-                if (d < best)
-                    best = d;
+                s.d = F_20a5_0000.dist[n][i] = sub_root_047c_1120((D_9c55[i].x - s.x) / 2, D_9c55[i].y - s.y, 0);
+                if (s.d < s.best)
+                    s.best = s.d;
             } else
                 F_20a5_0000.dist[n][i] = 0x7d00;
     }
-    D_e1f9[n].dist = best;
+    D_e1f9[n].dist = s.best;
     D_e1f9[n].who = n;
 }
 

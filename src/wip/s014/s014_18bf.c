@@ -15,7 +15,10 @@
      0c02/0c48  missile weapons: has ammo / use one ammo
      0cfe/0db4/0fa4  inventory: has item / consume one of item / consume slot k
    Interpretations of fields marked "?" are guesses from the arithmetic.
-   status: 13/13 written, 1 matches (098e). */
+   status: 13/13 written, 3 match (098e, 0002: int 6000 / t, clamp t then store; 0c02: if/else
+   into r + one return r, char in a union; m4).
+   m4: 0cfe/0db4 are called WITHOUT prototype (orig pushes int/cbw words, like s019);
+   0c48 = two whole calls + struct {id; w} locals, left: mov bx,ax / mov [bp-4],bx store order. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -86,8 +89,8 @@ int far sub_s014_18bf_0592(int, int, unsigned char, struct cbt *, struct cbt *);
 int far sub_s014_18bf_0778(int, int, int, int);
 int far sub_s014_18bf_08ca(int, int, int, int);
 void far sub_s014_18bf_0a40(int, int, int);
-int far sub_s014_18bf_0cfe(int, unsigned char, unsigned char);
-int far sub_s014_18bf_0db4(int, unsigned char, unsigned char);
+int far sub_s014_18bf_0cfe();
+int far sub_s014_18bf_0db4();
 
 extern struct cbt D_9c55[];
 extern struct item far F_2e38_003e[][64];   /* party inventories */
@@ -155,10 +158,12 @@ void far sub_s014_18bf_0002(int i)
                 t += 30;
             else if (e * 3 / 2 < load)
                 t += 100;
-            D_d493[i] = 6000L / t;
+            D_d493[i] = 6000 / t;
         } else {
             t = -(D_9c55[i].f5f >> 1) - ((D_9c55[i].f59 >> 1) - 150);
-            D_9c55[i].f1d = t < 0 ? 0 : t;
+            if (t < 0)
+                t = 0;
+            D_9c55[i].f1d = t;
             D_d493[i] = 100;
         }
     }
@@ -422,8 +427,7 @@ int far sub_s014_18bf_08ca(int d, int t, int pen, int arm)
         d = 40;
     if (d < 0)
         d = 0;
-    roll = sub_root_0000_0c8c(6);
-    roll += sub_root_0000_0c8c(6);
+    roll = sub_root_0000_0c8c(6) + sub_root_0000_0c8c(6);
     if (d <= 7)
         dmg = roll / D_1b90[d] + D_1b88[d];
     else if (d < 8 || d > 20)
@@ -554,34 +558,33 @@ void far sub_s014_18bf_0a40(int i, int w, int alt)
 /* 1 if i can fire its readied weapon (no ammo needed, or has ammo of quality 25) */
 int far sub_s014_18bf_0c02(int i)
 {
-    char am;
+    union { char am; int d; } u;
+    int r;
 
-    am = F_20a5_7822.v[D_9c55[i].weapon];
-    if (am == 0)
-        return 1;
-    return sub_s014_18bf_0cfe(i, am, 0x19);
+    u.am = F_20a5_7822.v[D_9c55[i].weapon];
+    if (u.am == 0)
+        r = 1;
+    else
+        r = sub_s014_18bf_0cfe(i, u.am, 0x19);
+    return r;
 }
 
 /* use one ammo / thrown weapon of i; when it runs out switch back to the default weapon */
 int far sub_s014_18bf_0c48(int i)
 {
-    int id;
-    int q;
+    struct { int id; char w; char pad; } s;
     int r;
 
     D_d493[i] = 0xff;
-    id = D_9c55[i].weapon;
-    if (F_20a5_7822.v[id] == 0)
-        q = D_9c55[i].f5a;
-    else {
-        q = 0x19;
-        id = F_20a5_7822.v[id];
-    }
-    r = sub_s014_18bf_0db4(i, id, q);
+    s.id = D_9c55[i].weapon;
+    if ((s.w = F_20a5_7822.v[s.id]) == 0)
+        r = sub_s014_18bf_0db4(i, s.id, D_9c55[i].f5a);
+    else
+        r = sub_s014_18bf_0db4(i, s.w, 0x19);
     if (r == -1) {
         if (F_20a5_7822.v[D_9c55[i].weapon] == 0)
             D_9c55[i].weapon = -1;
-        if (i > 4)
+        if (i >= 5)
             sub_s014_1db7_05c8(i);
         D_ca64[i] = 0xd;
         D_a3d8[i] = 2;
@@ -594,6 +597,7 @@ int far sub_s014_18bf_0c48(int i)
 }
 
 /* 1 if combatant i carries item (id, q) */
+#pragma optimize("e", off)
 int far sub_s014_18bf_0cfe(int i, unsigned char id, unsigned char q)
 {
     int k;
@@ -612,6 +616,7 @@ int far sub_s014_18bf_0cfe(int i, unsigned char id, unsigned char q)
     }
     return 0;
 }
+#pragma optimize("e", on)
 
 /* consume one of item (id, q); returns the remaining count or -1 when gone / not found */
 int far sub_s014_18bf_0db4(int i, unsigned char id, unsigned char q)

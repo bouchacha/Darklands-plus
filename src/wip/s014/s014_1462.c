@@ -16,7 +16,9 @@
    Map cell (long, column-major, 40 cells per column, cell = 32 x 16 pixels):
      bits 0-3 right wall, 4-7 furniture id, 8-11 left wall, 16-19 top wall, 24-27 bottom wall,
      28-29 furniture orientation, 31 impassable. Wall type 1..11 blocks.
-   status: 5/5 written, 0 match. 01f0 050c 0740 083e are MSC near functions. */
+   status: 5/5 written, 0 match. 01f0 050c 0740 083e are MSC near functions.
+   m4: 000a shift temps (cx/cy) - left: k copied to BX/SI, OR order of the result; 0740 box locals in
+   struct {h, w, r, x, t, y} - left: w loaded before abs(x - D_84f4); 083e under pragma e off. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -94,10 +96,11 @@ int far sub_s014_1462_000a(struct cbt *c)
     D_8536 = x - D_84f2 + 1;
     D_8528 = y + D_8534 - 1;
     D_8538 = y - D_8534 + 1;
-    D_852c = (x >> 5) << 5;
-    D_8522 = (y >> 4) << 4;
     {
-        int i = (x >> 5) * 40 + (y >> 4);
+        int cx = x >> 5, cy = y >> 4, i;
+        D_852c = cx << 5;
+        D_8522 = cy << 4;
+        i = cx * 40 + cy;
         D_84f8[0][0] = F_20a5_0000.c[i - 41];
         D_84f8[0][1] = F_20a5_0000.c[i - 1];
         D_84f8[0][2] = F_20a5_0000.c[i + 39];
@@ -210,20 +213,21 @@ void near sub_s014_1462_050c(void)
 void near sub_s014_1462_0740(int self)
 {
     int i;
-    int x, y, w, h, r, b, t;
+    int b;
+    struct { int h, w, r, x, t, y; } s;
 
     for (i = 0; i < 13; i++) {
         if (self != i && D_9c55[i].status == 1 && D_a6b4[self] == D_a6b4[i]
          && (D_d697 == 0 || D_d6cd == i || (D_d6cd != i && D_a6d3[i] == 0))) {
-            x = D_9c55[i].x;
-            y = D_9c55[i].y;
-            if ((w = D_c80f[i]) + D_84f2 > abs(x - D_84f4)
-             && (h = D_c831[i]) + D_8534 > abs(y - D_84f6)) {
-                r = w + x;
-                b = h + y;
-                t = y - h;
-                if ((x - w != D_8524 || (D_8528 != t && D_8538 != b))
-                 && (D_8536 != r || (D_8528 != t && b != D_8538)))
+            s.x = D_9c55[i].x;
+            s.y = D_9c55[i].y;
+            if (abs(s.x - D_84f4) < (s.w = D_c80f[i]) + D_84f2
+             && abs(s.y - D_84f6) < (s.h = D_c831[i]) + D_8534) {
+                s.r = s.w + s.x;
+                b = s.h + s.y;
+                s.t = s.y - s.h;
+                if ((s.x - s.w != D_8524 || (D_8528 != s.t && D_8538 != b))
+                 && (D_8536 != s.r || (D_8528 != s.t && b != D_8538)))
                     D_e11c[i] = D_01e4[i];
             }
         }
@@ -231,6 +235,7 @@ void near sub_s014_1462_0740(int self)
 }
 
 /* furniture in the 3x3 cells overlapping the box */
+#pragma optimize("e", off)
 void near sub_s014_1462_083e(void)
 {
     int i;
@@ -257,3 +262,4 @@ void near sub_s014_1462_083e(void)
         }
     }
 }
+#pragma optimize("e", on)

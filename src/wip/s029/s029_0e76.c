@@ -1,8 +1,10 @@
 /* place: s029 0e76:0000 */
 /* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: hand port (e3). All 143 functions written; 135/143 match, _DATA and CONST slots
-   match the original, and every function now has its original length except 255a/2d5c/
+/* status: hand port (e3). All 143 functions written; 136/143 match (m5: 255a MATCHED - no r
+   local: `random_n(150) <= 14a4(13)` gives the original spill temp [bp-8] after `push 0dh`;
+   random_n prototype moved up for the call order, D_ffd4 added for 4378), _DATA and CONST slots
+   match the original, and every function now has its original length except 2d5c/
    2e74 (so 1dfe/1fb8 no longer depend on errors cancelling). Open: 013a (frame 2 vs
    4: the +0x35 CSE spill goes to [bp-2], the original has an unused slot above it),
    1260 (far-pointer loop form: length/frame/tail right, only the loop set-up differs:
@@ -12,7 +14,6 @@
    case 1 *and* strength-reduced the case 35 loop on the same i - 6.00A does one or the
    other (address-taken i is never strength-reduced), so case 35 now loops on a separate
    j and 1a8e is only length-tuned: frame 4 vs 2, case 35 field CSE, case 33 sum order),
-   255a (cap compares preload the current value),
    2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits `inc si`; 2e74 needs
    #pragma optimize("a", on) for the 3144 test), 4b08 (d kept in memory, slot order),
    4650 MATCHED (m1: the far clears are byte fill loops under pragma a). Several
@@ -30,6 +31,7 @@ extern struct F_2e38_0000_1_t far F_2e38_0000_1;
 struct loc { int type; int f2; int x; int y; int f8; int fa; int fc; int fe; int f10; int rep;
              unsigned char f14; char f15, f16, f17; int f18; int f1a; int f1c; int f1e; int f20; };
 extern struct loc far * far F_2e38_10be[];   /* locations (cities ...) */
+int far random_n(int);   /* m5: declared here so 255a calls random_n before 14a4 */
 extern char far * far F_2e38_183e[];
 extern char far * far F_2e38_15ba[];
 extern char far * far F_290e_1fa7[];
@@ -136,7 +138,6 @@ int far vec_186f();
 int kbhit(void);
 int getch(void);
 void exit_(int);
-int far random_n(int);
 int far vec_1f13();
 int far vec_1f8b();
 extern int D_a67e;
@@ -423,6 +424,7 @@ extern int D_ffd0;
 extern int D_ffd1;
 extern int D_ffd2;
 extern int D_ffd3;
+extern int D_ffd4;  /* m5: fifth knob, re-fixes 4378 after random_n moved */
 extern int D_ffe0;  /* unused: keeps the symbol-table state (1446/179c/184a) after 013a stopped using D_9cb3 */
 /* fatigue band of a member (-1: active member): with max = +0x49 + +0x4a (the two
    attributes behind endurance) and cur = +0x35 (accumulated fatigue): 0 while cur <= max/2,
@@ -1773,7 +1775,6 @@ void far sub_s029_0e76_255a(int hours)
     int d;
     union { int d; char t; } u;
     int e;
-    int r;
     char *p;
 
     if (D_9c69[D_907b][0] != 1)
@@ -1795,7 +1796,7 @@ void far sub_s029_0e76_255a(int hours)
             (*p)++;
         if (D_00e0 + hours >= 24) {
             p[6] += sub_s029_1367_0066(1, 5, p[0x16] / (sub_root_0000_0c70(5) + 20));
-            if ((r = random_n(150)) <= sub_s029_0e76_14a4(13))
+            if (random_n(150) <= sub_s029_0e76_14a4(13))
                 p[1]++;
             if (random_n(100) <= 10)
                 p[2]++;

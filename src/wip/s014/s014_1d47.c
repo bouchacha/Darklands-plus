@@ -5,7 +5,8 @@
    0000 advances every active missile record one combat tick along a Bresenham line
    (013e) towards its target; on arrival it either hits the target combatant or
    triggers the impact effect (vec_1dc9).
-   status: 2/2 written, 0 match. */
+   status: 2/2 written, 0 match. m4: sprite is unsigned char (jae); 0000 is left with the two
+   'cmp [si+18h],al' compares reversed (decl positions/types/source order tried). */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -26,7 +27,7 @@ struct msl {                    /* missile / effect record, 0x1a bytes, D_944d[1
     char done;                  /* +11 0 = flying, bit 7 = arrived/finished */
     char facing;                /* +12 */
     unsigned char shooter;      /* +13 low nibble = shooter index (15 = none) */
-    char sprite;                /* +14 bits 0..6: < 6 = physical missile, else spell effect */
+    unsigned char sprite;       /* +14 bits 0..6: < 6 = physical missile, else spell effect */
     unsigned char f15;          /* +15 effect parameter */
     unsigned char f16;          /* +16 effect parameter */
     unsigned char speed;        /* +17 squares per tick */

@@ -1,7 +1,9 @@
 /* place: s004 1262:0002 */
 /* orig: size=0d44 CONST=7d2a+0004 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): COMPLETE (21/21 written), 13/21 match. Twin of s027 1f48 (copied
+/* status (e6, 2026-10-09): COMPLETE (21/21 written), 17/21 match (m5: 0002/0770/09ae re-copied
+ * from the improved s027 0000/076c/09aa - struct {tbl, hash, found} + pragma a; 00a4/015c and
+ * 09ae follow). Twin of s027 1f48 (copied
  * from src/wip/s027, functions renamed; vec_1937 -> sub_s004_1336_0006, D_2674/D_2678 ->
  * D_13f8/D_13fc). Non-matching: 0002 00a4 015c 029a 0482 0602 0770 09ae (as in s027;
  * 0482/0602 also differ in compare direction - declaration order). */
@@ -79,26 +81,25 @@ int far sub_s004_1262_0a18(long size);
 
 /* find the block called name: reads its header into F_2e38_001e and its entry into
    F_2e38_0036; 1 when found */
+#pragma optimize("a", on)
 int far sub_s004_1262_0002(char *name)
 {
+    struct { struct ent far *tbl; int hash; int found; } s;
     struct hdr h;
-    int found;
-    int hash;
-    struct ent far *tbl;
     int i;
     int off;
 
     h = D_8fe;
-    *(volatile int *)&found = 0;
-    hash = sub_s004_1262_0264(name);
-    tbl = sub_s004_1262_00a4();
-    if (tbl != 0) {
-        for (off = 0, i = 0; off < 0x320; i++, off += 8) {
-            if (*(int far *)((char far *)tbl + off) == hash) {
-                if (!sub_s004_1262_0210((struct ent far *)((char far *)tbl + off)))
+    *(volatile int *)&s.found = 0;
+    s.hash = sub_s004_1262_0264(name);
+    s.tbl = sub_s004_1262_00a4();
+    if (s.tbl != 0) {
+        for (i = 0, off = 0; off < 0x320; i++, off += 8) {
+            if (*(int far *)((char far *)s.tbl + off) == s.hash) {
+                if (!sub_s004_1262_0210((struct ent far *)((char far *)s.tbl + off)))
                     return 0;
                 if (_fstrcmp(name, F_2e38_001e.name) == 0) {
-                    _fmemcpy(&F_2e38_0036, &tbl[i], 8);
+                    _fmemcpy(&F_2e38_0036, &s.tbl[i], 8);
                     return 1;
                 }
             }
@@ -106,6 +107,7 @@ int far sub_s004_1262_0002(char *name)
     }
     return 0;
 }
+#pragma optimize("a", off)
 
 /* load the directory; returns it (0 when there is none) */
 struct ent far *far sub_s004_1262_00a4(void)
@@ -350,36 +352,33 @@ int far sub_s004_1262_0602(long size)
 }
 
 /* free the block called name; 1 on success */
+#pragma optimize("a", on)
 int far sub_s004_1262_0770(char *name)
 {
+    struct { struct ent far *tbl; int hash; int found; } s;
     struct hdr h;
-    int found;
-    int hash;
-    struct ent far *tbl;
     int i;
     int off;
-    int k;
 
     h = D_8fe;
-    *(volatile int *)&found = 0;
-    hash = sub_s004_1262_0264(name);
-    tbl = sub_s004_1262_00a4();
-    if (!tbl)
+    *(volatile int *)&s.found = 0;
+    s.hash = sub_s004_1262_0264(name);
+    s.tbl = sub_s004_1262_00a4();
+    if (!s.tbl)
         return 0;
-    for (off = 0, i = 0; off < 0x320; i++, off += 8) {
-        if (*(int far *)((char far *)tbl + off) == hash) {
-            if (!sub_s004_1262_0210((struct ent far *)((char far *)tbl + off)))
+    for (i = 0, off = 0; off < 0x320; i++, off += 8) {
+        if (*(int far *)((char far *)s.tbl + off) == s.hash) {
+            if (!sub_s004_1262_0210((struct ent far *)((char far *)s.tbl + off)))
                 return 0;
             if (_fstrcmp(name, F_2e38_001e.name) == 0) {
-                k = i * 8;
-                *(int far *)((char far *)tbl + k) = 0;
+                s.tbl[i].hash = 0;
                 F_2e38_001e.type = 2;
-                sub_s004_1262_023a((struct ent far *)((char far *)tbl + k));
+                sub_s004_1262_023a(&s.tbl[i]);
                 sub_s004_1262_015c();
                 if (D_13fc) {
-                    D_8da = ((struct ent far *)((char far *)tbl + k))->type;
-                    if (D_8dc[D_8da] > ((struct ent far *)((char far *)tbl + k))->off)
-                        D_8dc[D_8da] = ((struct ent far *)((char far *)tbl + k))->off;
+                    D_8da = s.tbl[i].type;
+                    if (D_8dc[D_8da] > s.tbl[i].off)
+                        D_8dc[D_8da] = (&(*(struct ent far * volatile *)&s.tbl)[i])->off;
                 }
                 return 1;
             }
@@ -387,6 +386,7 @@ int far sub_s004_1262_0770(char *name)
     }
     return 0;
 }
+#pragma optimize("a", off)
 
 /* write len bytes from buf at offset off of store type */
 int far sub_s004_1262_087a(long len, void far *buf, int type, long off)
@@ -443,27 +443,31 @@ int far sub_s004_1262_09ae(char *name, long size)
 {
     register int r = 0;
 
-    if (sub_s004_1262_0002(name)) {
+    if (!sub_s004_1262_0002(name))
+        return r;
     switch (F_2e38_0036.type) {
     case 2:
         D_c099 = 2;
+        r = sub_s004_1262_0a18(size);
         break;
     case 3:
         D_c099 = 3;
+        r = sub_s004_1262_0a18(size);
         break;
     case 5:
         D_c099 = 5;
+        r = sub_s004_1262_0a18(size);
         break;
     case 6:
         D_c099 = 6;
+        r = sub_s004_1262_0a18(size);
         break;
     case 7:
         D_c099 = 7;
+        r = sub_s004_1262_0a18(size);
         break;
     default:
-        return r;
-    }
-    r = sub_s004_1262_0a18(size);
+        break;
     }
     return r;
 }

@@ -23,9 +23,13 @@
    0xff end) with waypoints F_20a5_72b4/7304/716a; 1166 then shortcuts between waypoints.
    1554/15d0 copy a path to the combatant's own path F_20a5_6238[i] (161a adds the facing
    in the high nibble and removes single-step facing jitter).
-   status: 18/18 written, 11 match (034a: `i >= 5`). e8 2026-10-09: CONST = 3 slots like the original
+   status: 18/18 written, 13 match (034a: `i >= 5`; 1094, 0ffe: m4, see below). e8 2026-10-09: CONST = 3 slots like the original
    (floor struct F_20a5_0000 for 1f52/1f54, 2e38:0c00, path result struct F_20a5_716a); door record
-   `closed` byte fixed to +7 (was +9: enemies tested the wrong byte). Re-stamped. */
+   `closed` byte fixed to +7 (was +9: enemies tested the wrong byte). Re-stamped.
+   m4: 098e uses xl/xh/yl/yh = x -/+ 1 locals (frame right); only 'mov bx,[e0ec]; add bx,k'
+   operand order of D_e0ec[k] is left (decl positions tried).  1094: rewritten with ex/ey/dx/dy and
+   one result r (orig shape) + #pragma optimize("a", on) (file needs "w": close with ("a", off)).
+   0ffe: *step kept in a local s, D_e116 = s stored last, D_84dc/D_84de assigned before the arrays. */
 
 #pragma optimize("w", on)
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
@@ -425,18 +429,22 @@ found:
 /* kill tracker k if its new waypoint w repeats a waypoint of any tracker (loop) */
 void near sub_s014_12f7_098e(int k, int w)
 {
-    int x, y, m, j, lim;
+    int x, y, xl, xh, yl, yh, m, j, lim;
 
     x = D_e102[k * 40 + w];
+    xl = x - 1;
+    xh = x + 1;
     y = D_e104[k * 40 + w];
+    yl = y - 1;
+    yh = y + 1;
     for (m = 0; m < 10; m++) {
         if (D_e0f0[m] == 0)
             continue;
         lim = m == k ? w - 1 : D_e108[m];
         for (j = D_e114[m]; j < lim; j++)
             if (D_e0ec[k] == D_e112[m * 40 + j]
-             && x - 1 <= D_e102[m * 40 + j] && D_e102[m * 40 + j] <= x + 1
-             && y - 1 <= D_e104[m * 40 + j] && D_e104[m * 40 + j] <= y + 1) {
+             && xl <= D_e102[m * 40 + j] && D_e102[m * 40 + j] <= xh
+             && yl <= D_e104[m * 40 + j] && D_e104[m * 40 + j] <= yh) {
                 D_e108[k] = 42;
                 return;
             }
@@ -576,42 +584,47 @@ found:
 /* tracker k reached the goal */
 int far sub_s014_12f7_0ffe(int k, int *step)
 {
-    int w;
+    int w, s;
 
-    D_e116 = *step;
+    s = *step;
     w = D_e108[k] + k * 40;
-    D_e106[w] = D_e116;
-    D_e0ea[k * 250 + D_e116] = -1;
-    D_e102[w] = D_84dc = D_e0f6[k];
-    D_e104[w] = D_84de = D_e0f8[k];
+    D_e106[w] = s;
+    D_e0ea[k * 250 + s] = -1;
+    D_84dc = D_e0f6[k];
+    D_84de = D_e0f8[k];
+    D_e102[w] = D_84dc;
+    D_e104[w] = D_84de;
     D_e108[k]++;
     D_84e6 = k;
+    D_e116 = s;
     *step = 260;                        /* ends the search loop */
     return 1;
 }
 
 /* 1 if tracker k is at (or has just passed) its goal */
+#pragma optimize("a", on)
 int far sub_s014_12f7_1094(int k)
 {
-    int gx, px, gy, py, dx, dy, adx, ady;
+    int dx, dy, ex, ey, adx, ady, r;
 
-    gx = D_e0fa[k];
-    px = D_e0f2[k];
-    gy = D_e0fc[k];
-    py = D_e0f4[k];
-    dx = gx - D_e0f6[k];
-    dy = gy - D_e0f8[k];
+    ex = D_e0fa[k] - D_e0f2[k];
+    ey = D_e0fc[k] - D_e0f4[k];
+    dx = D_e0fa[k] - D_e0f6[k];
+    dy = D_e0fc[k] - D_e0f8[k];
     adx = abs(dx);
     ady = abs(dy);
-    if (adx > 2 || ady > 2) {
-        if (sub_root_0410_0038(dx) == sub_root_0410_0038(gx - px)
-         && sub_root_0410_0038(dy) == sub_root_0410_0038(gy - py))
-            return 0;
-        if (adx >= D_c80f[k] || ady >= D_c831[k])
-            return 0;
-    }
-    return 1;
+    if (adx <= 2 && ady <= 2)
+        r = 1;
+    else if (sub_root_0410_0038(dx) == sub_root_0410_0038(ex)
+          && sub_root_0410_0038(dy) == sub_root_0410_0038(ey))
+        r = 0;
+    else if (adx < D_c80f[k] && ady < D_c831[k])
+        r = 1;
+    else
+        r = 0;
+    return r;
 }
+#pragma optimize("a", off)
 
 /* shorten the path F_20a5_71ba by trying direct routes to later waypoints */
 int far sub_s014_12f7_1166(struct cbt *rec)

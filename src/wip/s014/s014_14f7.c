@@ -28,7 +28,8 @@
    Sprite record +1c..+22 (e0..e3) hold the mouse hot spot box of a combatant sprite
    (x0, x1, y0, y1), or an effect kind >= 28000 (30000 member cursor, 31000 target cursor,
    31500 = 0x7b0c missiles/ground cursor, 32000 floor, 0x7d01.. walls).
-   status: 27/27 written, 7 match (1e70 1f14 1fd4 2052 343c 347c 359a). 3404 is hand-written asm in the
+   status: 27/27 written, 8 match (1e70 1f14 1fd4 2052 343c 347c 359a 07ec).
+   m4: 13ae's b13/b14 parameters are int (callers push words / cbw); 07ec zero arm first. 3404 is hand-written asm in the
    original (`loop`), C equivalent here. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
@@ -132,7 +133,7 @@ extern int D_c8d5[];                    /* furniture sprites */
 /* effect lists of s019 */
 struct efa { int x; int y; unsigned char f4; unsigned char kind; char f6; char level; unsigned t; };
 struct efb { int x; int y; unsigned char f4; char f5; char level; char f7; unsigned t; };
-struct efc { int x; int y; unsigned char f4; char f5; char level; char f7; };
+struct efc { int x; int y; unsigned char f4; unsigned char f5; char level; char f7; };
 extern struct efa D_a2eb[];
 extern struct efb D_a342[];
 extern struct efc D_a396[];
@@ -172,7 +173,7 @@ void far vec_1d8d(int);
 void far vec_1d97(int);
 void far vec_1d79(void);
 void far sub_s014_19cd_17f6(void);
-int far sub_s014_14f7_13ae(int, int, int, int, int, int, int, int, int, int, int, int, char, char,
+int far sub_s014_14f7_13ae(int, int, int, int, int, int, int, int, int, int, int, int, int, int,
                            int, int, int, int);
 void far sub_s014_14f7_24a4(void);
 void far sub_s014_14f7_296e(unsigned);
@@ -501,12 +502,12 @@ void far sub_s014_14f7_07ec(unsigned now)
         for (k = 0; k < D_a33d; k++) {
             n = D_a2eb[k].f4 & 7;
             kind = D_a2eb[k].kind;
-            if (now < D_a2eb[k].t) {
+            if (now >= D_a2eb[k].t) {
+                s1 = 0;
+                s2 = 0;
+            } else {
                 s1 = D_ca41[_random_n(2)];
                 s2 = D_ca71[_random_n(2)];
-            } else {
-                s2 = 0;
-                s1 = 0;
             }
             for (c = 0; c < n; c++) {
                 if (F_20a5_4db8[k][c] != -999)
@@ -628,9 +629,10 @@ void far sub_s014_14f7_0c92(void)
 }
 
 /* blit the effects, age the effect lists, copy the dirty boxes to the screen */
+#pragma optimize("a", on)
 void far sub_s014_14f7_0e9e(unsigned now)
 {
-    int k, j, n, spr;
+    int k, j, n, spr, kind;
     struct drawa _based(D_d6f5) *e;
     struct dirty _based(D_d6f5) *d;
 
@@ -639,15 +641,17 @@ void far sub_s014_14f7_0e9e(unsigned now)
         D_01a4->x = e->ox + 60;
         D_01a4->y = e->oy;
         n = (D_a2eb[k].f4 & 7) * (D_a2eb[k].f4 & 7);
-        if (now < D_a2eb[k].t) {
-            sub_s014_1ec9_0000(D_a2eb[k].kind);
-            spr = D_ca2c[_random_n(2)];
-        } else
+        kind = D_a2eb[k].kind;
+        if (now >= D_a2eb[k].t)
             spr = 0;
+        else {
+            sub_s014_1ec9_0000(kind);
+            spr = D_ca2c[_random_n(2)];
+        }
         if (D_e167[k].w != 0 && D_e167[k].h != 0) {
             D_01a4->w = D_e167[k].w - 1;
             D_01a4->h = D_e167[k].h - 1;
-            for (j = 0; n != 0; n--, j++)
+            for (j = 0; j < n; j++)
                 if (F_20a5_3bc0[k][j] != 0 && F_20a5_3bc0[k][j])
                     sub_s014_14f7_359a(D_01a4, F_20a5_3bc0[k][j] - D_e167[k].ox,
                                        F_20a5_3cc0[k][j] - D_e167[k].oy, spr);
@@ -687,6 +691,7 @@ void far sub_s014_14f7_0e9e(unsigned now)
         sub_root_047c_1293();
     }
 }
+#pragma optimize("a", off)
 
 /* queue the loot piles on the shown floor (list B), clipped to the dirty boxes of the
    screen tiles under them */
@@ -764,7 +769,7 @@ void far sub_s014_14f7_118e(void)
    who: combatant or -1; (x, y, h): map position and height; (sx, sy): screen position;
    (w, hh): size; kind >= 28000: team-coloured effect sprite. Returns 1 if queued. */
 int far sub_s014_14f7_13ae(int who, int x, int y, int h, int sx, int sy, int w, int hh,
-                           int kind, int spr, int dx0, int dy0, char b13, char b14,
+                           int kind, int spr, int dx0, int dy0, int b13, int b14,
                            int dw, int dh, int log, int toB)
 {
     struct spr far *r;
@@ -1391,6 +1396,8 @@ void far sub_s014_14f7_2f96(int n)
 }
 
 /* quicksort of list B (entries 0..n-1) by depth */
+#pragma optimize("a", on)
+#pragma optimize("g", off)
 void far sub_s014_14f7_304a(int n)
 {
     int hi[20], lo[20];
@@ -1445,6 +1452,8 @@ void far sub_s014_14f7_304a(int n)
         } while (l < r);
     } while (sp != 0);
 }
+#pragma optimize("a", off)
+#pragma optimize("g", on)
 
 /* screen position of every visible combatant and its dirty rectangle (old and new sprite
    box: D_8584/D_85ce/D_85e8/D_8602/D_861c/D_8636) */

@@ -64,6 +64,9 @@ def main():
             fns = r['functions']
             if re.search(r'/\*\s*end:', open(f, encoding='latin-1').read(3000)):
                 fns = fns[:-1]         # the last original 'function' runs into data
+            okn = set(re.findall(r'\w+', ' '.join(re.findall(r'/\*\s*empty-ok:([^*]*)\*/',
+                                                             open(f, encoding='latin-1').read()))))
+            fns = [fn for fn in fns if fn['name'] not in okn]
             stubs = [fn['name'] for fn in fns
                      if fn.get('orig_len') and fn['len'] * 4 < fn['orig_len'] and fn['orig_len'] > 24]
             if stubs:

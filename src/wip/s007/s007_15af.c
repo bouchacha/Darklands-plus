@@ -1,7 +1,9 @@
 /* place: s007 15af:0000 */
 /* orig: size=43b8 CONST=7d2e+0002 _DATA=1440+0017 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): COMPLETE, no DATA DIFFERS, stamped with stamp.py --wip. 4/34 match (30e6 3694 3b92 3d2e). Written from the asm + Ghidra (dec16 drafts were stubs).
+/* status (e6, 2026-10-09): COMPLETE, no DATA DIFFERS, stamped with stamp.py --wip. 5/34 match (025a 30e6 3694 3b92 3d2e; m5: 025a = #pragma optimize("a", on), a far
+ * `int far *o` room pointer, and if/else arms ordered as the original (`area > 0x32` -> 2/5 first,
+ * `20f6(1,2) != 0` -> 8/9 first)). Written from the asm + Ghidra (dec16 drafts were stubs).
  * Castle/keep battlefields: turns the generator work area (s005, segment D_db39) into level
  * buffers (F_20a5_0000, struct level below) and saves them as level%d.flr.
  */
@@ -177,13 +179,14 @@ void far sub_s007_15af_0188(int l)
 }
 
 /* tile descriptions of keeps */
+#pragma optimize("a", on)
 void far sub_s007_15af_025a(void)
 {
     char k[5] = "keep";
     char k1[6] = "keep1";
     int r;
     int area;
-    int _based(D_db39) *o;
+    int far *o;
 
     r = sub_s004_0e76_20f6(1, 2);
     o = D_db3b + 30 * 4;
@@ -206,17 +209,17 @@ void far sub_s007_15af_025a(void)
     else
         D_db33[0x3e] = 1;
     D_db33[0x3f] = 10;
-    if (area < 0x33)
-        D_db33[0x41] = 6;
-    else
+    if (area > 0x32)
         D_db33[0x41] = 2;
+    else
+        D_db33[0x41] = 6;
     D_db33[0x42] = 7;
-    if (sub_s004_0e76_20f6(1, 2) == 0) {
-        D_db33[0x45] = 3;
-        D_db33[0x46] = 4;
-    } else {
+    if (sub_s004_0e76_20f6(1, 2) != 0) {
         D_db33[0x45] = 8;
         D_db33[0x46] = 9;
+    } else {
+        D_db33[0x45] = 3;
+        D_db33[0x46] = 4;
     }
     _fstrcpy((char far *)(D_db33 + 0x4d), k);
     D_db33[0x58] = 0;
@@ -233,10 +236,10 @@ void far sub_s007_15af_025a(void)
         D_db33[0x71] = 1;
     D_db33[0x72] = 10;
     D_db33[0x73] = 2;
-    if (area < 0x33)
-        D_db33[0x74] = 6;
-    else
+    if (area > 0x32)
         D_db33[0x74] = 5;
+    else
+        D_db33[0x74] = 6;
     D_db33[0x75] = 3;
     D_db33[0x78] = 7;
     D_db33[0x79] = 8;
@@ -262,6 +265,7 @@ void far sub_s007_15af_025a(void)
     D_db33[0xb2] = 12;
     D_db33[0xb3] = 4;
 }
+#pragma optimize("", on)
 
 /* cell lists of the parts; clears the cells of all rooms */
 void far sub_s007_15af_051e(int l)
