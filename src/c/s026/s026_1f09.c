@@ -5,11 +5,13 @@
 /* Temporary swap files: write/read len bytes at offset off of file fd in chunks of at most
    0xffff bytes (DOS int 21h, functions 40h/3Fh, through an inline _asm block as in the
    original). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 long far lseek(int, long, int);
 
 /* write len bytes from buf to file fd at off; 1 on success */
-int far sub_s026_1f09_000c(long len, void far *buf, int fd, long off)
+int far swapfile_write(long len, void far *buf, int fd, long off)
 {
     unsigned nb;
     int rh;
@@ -43,7 +45,7 @@ fail:
 }
 
 /* read len bytes from file fd at off into buf; 1 on success */
-int far sub_s026_1f09_00a6(long len, void far *buf, int fd, long off)
+int far swapfile_read(long len, void far *buf, int fd, long off)
 {
     unsigned nb;
     int rh;

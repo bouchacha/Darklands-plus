@@ -30,6 +30,8 @@
            register allocation (who di -> si). struct {q,type} / {found,q,type}: worse. */
 
 /* party member record in DGROUP (0x80 bytes) */
+#include "darklands/card.h"
+#include "darklands/game.h"
 struct member {
     char present;               /* +00 */
     char pad01[0x0d];
@@ -82,336 +84,336 @@ struct itemdef {
     char quality;               /* +26 */
 };
 
-extern struct member D_9c69[];
-extern char D_907b;
-extern char D_99eb;
-extern int D_906b, D_906d, D_906f;
-extern struct fchar far F_2e38_0000[];
-extern struct itemdef far * far F_2e38_0890[];
+extern struct member party[];
+extern char leader;
+extern char best_skill;
+extern int party_money, party_money_gr, party_money_pf;
+extern struct fchar far data_file[];
+extern struct itemdef far * far item_defs[];
 
-int far sub_root_0000_0c70(int);
-int far sub_s029_0e76_01a0(int, int);
-int far sub_s029_0e76_05ee(int, int);
-int far sub_s029_1367_0066(int, int, int);
+int far rand_mod(int);
+int far member_skill(int, int);
+int far member_attr(int, int);
+int far clamp_range(int, int, int);
 
-int far sub_s031_18e7_01b4(int who, struct item it);
-void far sub_s031_18e7_0406(int who, int idx);
-int far sub_s031_18e7_0474(int who, int idx);
-int far sub_s031_18e7_07d4(int who, int idx);
-void far sub_s031_18e7_12e8(int who, int idx, int slot);
-int far sub_s031_18e7_140a(int who);
-int far sub_s031_18e7_1460(int who, int slot);
-int far sub_s031_18e7_14b6(int who, int slot);
+int far add_item_rec_impl(int who, struct item it);
+void far item_delete(int who, int idx);
+int far item_take_one(int who, int idx);
+int far item_remove_stack(int who, int idx);
+void far item_unequip(int who, int idx, int slot);
+int far equip_weight(int who);
+int far equipped_type(int who, int slot);
+int far equipped_item_impl(int who, int slot);
 
 /* give one of item idx of `from` to `to` */
-void far sub_s031_18e7_0000(int from, int to, int idx, int slot)
+void far give_one(int from, int to, int idx, int slot)
 {
     struct item it;
 
-    if (to != from && D_9c69[to].nitems < 0x40) {
+    if (to != from && party[to].nitems < 0x40) {
         if (slot == 6)
-            idx = sub_s031_18e7_1460(from, idx);
-        it = F_2e38_0000[from].items[idx];
+            idx = equipped_type(from, idx);
+        it = data_file[from].items[idx];
         it.cnt = 1;
-        sub_s031_18e7_01b4(to, it);
-        sub_s031_18e7_0474(from, idx);
+        add_item_rec_impl(to, it);
+        item_take_one(from, idx);
     }
 }
 
 /* give the whole stack idx of `from` to `to` */
-void far sub_s031_18e7_007c(int from, int to, int idx, int slot)
+void far give_stack(int from, int to, int idx, int slot)
 {
-    if (to != from && D_9c69[to].nitems < 0x40) {
+    if (to != from && party[to].nitems < 0x40) {
         if (slot == 6)
-            idx = sub_s031_18e7_1460(from, idx);
-        sub_s031_18e7_01b4(to, F_2e38_0000[from].items[idx]);
-        sub_s031_18e7_07d4(from, idx);
+            idx = equipped_type(from, idx);
+        add_item_rec_impl(to, data_file[from].items[idx]);
+        item_remove_stack(from, idx);
     }
 }
 
 /* add cnt items `code` of default quality */
-void far sub_s031_18e7_00e0(int who, int code, int cnt)
+void far add_items_impl(int who, int code, int cnt)
 {
     struct item it;
     int c;
 
     c = code;
     it.code = c;
-    it.type = F_2e38_0890[c]->type;
-    it.qual = F_2e38_0890[c]->quality;
-    it.weight = F_2e38_0890[c]->weight;
+    it.type = item_defs[c]->type;
+    it.qual = item_defs[c]->quality;
+    it.weight = item_defs[c]->weight;
     it.cnt = cnt;
-    sub_s031_18e7_01b4(who, it);
+    add_item_rec_impl(who, it);
 }
 
 /* add one item `code` of default quality */
-void far sub_s031_18e7_0128(int who, int code)
+void far add_item_impl(int who, int code)
 {
     struct item it;
     int c;
 
     c = code;
     it.code = c;
-    it.type = F_2e38_0890[c]->type;
-    it.qual = F_2e38_0890[c]->quality;
-    it.weight = F_2e38_0890[c]->weight;
+    it.type = item_defs[c]->type;
+    it.qual = item_defs[c]->quality;
+    it.weight = item_defs[c]->weight;
     it.cnt = 1;
-    sub_s031_18e7_01b4(who, it);
+    add_item_rec_impl(who, it);
 }
 
 /* add one item `code` of quality qual */
-void far sub_s031_18e7_016e(int who, int code, int qual)
+void far add_item_q(int who, int code, int qual)
 {
     struct item it;
     int c;
 
     c = code;
     it.code = c;
-    it.type = F_2e38_0890[c]->type;
+    it.type = item_defs[c]->type;
     it.qual = qual;
-    it.weight = F_2e38_0890[c]->weight;
+    it.weight = item_defs[c]->weight;
     it.cnt = 1;
-    sub_s031_18e7_01b4(who, it);
+    add_item_rec_impl(who, it);
 }
 
 /* add an item: stack it onto an equal entry or append it; returns the item count */
-int far sub_s031_18e7_01b4(int who, struct item it)
+int far add_item_rec_impl(int who, struct item it)
 {
     int i;
     char n;
 
     if (who == -1) {
-        who = D_907b;
-        for (i = 0; i < D_9c69[who].nitems; i++) {
-            if (F_2e38_0000[who].items[i].code == it.code && F_2e38_0000[who].items[i].type == it.type
-                    && F_2e38_0000[who].items[i].qual == it.qual
-                    && F_2e38_0000[who].items[i].cnt + it.cnt <= 0xff) {
-                F_2e38_0000[who].items[i].cnt += it.cnt;
-                return D_9c69[who].nitems;
+        who = leader;
+        for (i = 0; i < party[who].nitems; i++) {
+            if (data_file[who].items[i].code == it.code && data_file[who].items[i].type == it.type
+                    && data_file[who].items[i].qual == it.qual
+                    && data_file[who].items[i].cnt + it.cnt <= 0xff) {
+                data_file[who].items[i].cnt += it.cnt;
+                return party[who].nitems;
             }
         }
-        if ((n = D_9c69[who].nitems) >= 0x40)
+        if ((n = party[who].nitems) >= 0x40)
             return n;
-        F_2e38_0000[who].items[D_9c69[who].nitems] = it;
-        D_9c69[who].nitems++;
+        data_file[who].items[party[who].nitems] = it;
+        party[who].nitems++;
     } else if (who == -2) {
         for (who = 0; who < 5; who++) {
-            if (D_9c69[who].present) {
-                n = D_9c69[who].nitems;
-                for (i = 0; i < D_9c69[who].nitems; i++) {
-                    if (F_2e38_0000[who].items[i].code == it.code && F_2e38_0000[who].items[i].type == it.type
-                            && F_2e38_0000[who].items[i].qual == it.qual
-                            && F_2e38_0000[who].items[i].cnt + it.cnt <= 0xff) {
-                        F_2e38_0000[who].items[i].cnt += it.cnt;
+            if (party[who].present) {
+                n = party[who].nitems;
+                for (i = 0; i < party[who].nitems; i++) {
+                    if (data_file[who].items[i].code == it.code && data_file[who].items[i].type == it.type
+                            && data_file[who].items[i].qual == it.qual
+                            && data_file[who].items[i].cnt + it.cnt <= 0xff) {
+                        data_file[who].items[i].cnt += it.cnt;
                         break;
                     }
                 }
                 if (n < 0x40) {
-                    F_2e38_0000[who].items[n] = it;
-                    D_9c69[who].nitems++;
+                    data_file[who].items[n] = it;
+                    party[who].nitems++;
                 }
             }
         }
     } else {
-        n = D_9c69[who].nitems;
-        for (i = 0; i < D_9c69[who].nitems; i++) {
-            if (F_2e38_0000[who].items[i].code == it.code && F_2e38_0000[who].items[i].type == it.type
-                    && F_2e38_0000[who].items[i].qual == it.qual
-                    && F_2e38_0000[who].items[i].cnt + it.cnt <= 0xff) {
-                F_2e38_0000[who].items[i].cnt += it.cnt;
-                return D_9c69[who].nitems;
+        n = party[who].nitems;
+        for (i = 0; i < party[who].nitems; i++) {
+            if (data_file[who].items[i].code == it.code && data_file[who].items[i].type == it.type
+                    && data_file[who].items[i].qual == it.qual
+                    && data_file[who].items[i].cnt + it.cnt <= 0xff) {
+                data_file[who].items[i].cnt += it.cnt;
+                return party[who].nitems;
             }
         }
-        if (D_9c69[who].nitems < 0x40) {
-            F_2e38_0000[who].items[D_9c69[who].nitems] = it;
-            D_9c69[who].nitems++;
+        if (party[who].nitems < 0x40) {
+            data_file[who].items[party[who].nitems] = it;
+            party[who].nitems++;
         }
     }
-    return D_9c69[who].nitems;
+    return party[who].nitems;
 }
 
 /* delete entry idx (closes the gap) */
-void far sub_s031_18e7_0406(int who, int idx)
+void far item_delete(int who, int idx)
 {
     int i;
 
-    for (i = idx; i < D_9c69[who].nitems; i++)
-        F_2e38_0000[who].items[i] = F_2e38_0000[who].items[i + 1];
-    D_9c69[who].nitems--;
+    for (i = idx; i < party[who].nitems; i++)
+        data_file[who].items[i] = data_file[who].items[i + 1];
+    party[who].nitems--;
 }
 
 /* take one item off stack idx */
-int far sub_s031_18e7_0474(int who, int idx)
+int far item_take_one(int who, int idx)
 {
     if (who == -1)
-        who = D_907b;
-    if (--F_2e38_0000[who].items[idx].cnt)
-        return D_9c69[who].nitems;
-    sub_s031_18e7_12e8(who, idx, 9);
-    sub_s031_18e7_0406(who, idx);
-    return D_9c69[who].nitems;
+        who = leader;
+    if (--data_file[who].items[idx].cnt)
+        return party[who].nitems;
+    item_unequip(who, idx, 9);
+    item_delete(who, idx);
+    return party[who].nitems;
 }
 
 /* take one item `code` away; -1 if there is none */
-int far sub_s031_18e7_04d4(int who, int code)
+int far take_item_impl(int who, int code)
 {
     int i, j;
 
     if (who == -1) {
-        who = D_907b;
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code)
+        who = leader;
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code)
                 break;
-        if (i >= D_9c69[who].nitems)
+        if (i >= party[who].nitems)
             return -1;
-        if (--F_2e38_0000[who].items[i].cnt)
-            return D_9c69[who].nitems;
-        sub_s031_18e7_12e8(who, i, 9);
-        sub_s031_18e7_0406(who, i);
-        return D_9c69[who].nitems;
+        if (--data_file[who].items[i].cnt)
+            return party[who].nitems;
+        item_unequip(who, i, 9);
+        item_delete(who, i);
+        return party[who].nitems;
     } else if (who == -2) {
         for (j = 0; j < 5; j++) {
-            if (D_9c69[j].present) {
-                for (i = 0; i < D_9c69[j].nitems; i++)
-                    if (F_2e38_0000[j].items[i].code == code)
+            if (party[j].present) {
+                for (i = 0; i < party[j].nitems; i++)
+                    if (data_file[j].items[i].code == code)
                         break;
-                if (i < D_9c69[j].nitems) {
-                    if (--F_2e38_0000[j].items[i].cnt)
-                        return D_9c69[j].nitems;
-                    sub_s031_18e7_12e8(j, i, 9);
-                    sub_s031_18e7_0406(j, i);
-                    return D_9c69[j].nitems;
+                if (i < party[j].nitems) {
+                    if (--data_file[j].items[i].cnt)
+                        return party[j].nitems;
+                    item_unequip(j, i, 9);
+                    item_delete(j, i);
+                    return party[j].nitems;
                 }
             }
         }
         return -1;
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code)
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code)
                 break;
-        if (i >= D_9c69[who].nitems)
+        if (i >= party[who].nitems)
             return -1;
-        if (--F_2e38_0000[who].items[i].cnt)
-            return D_9c69[who].nitems;
-        sub_s031_18e7_12e8(who, i, 9);
-        sub_s031_18e7_0406(who, i);
-        return D_9c69[who].nitems;
+        if (--data_file[who].items[i].cnt)
+            return party[who].nitems;
+        item_unequip(who, i, 9);
+        item_delete(who, i);
+        return party[who].nitems;
     }
 }
 
 /* remove the first stack of item `code`; -1 if there is none */
-int far sub_s031_18e7_0668(int who, int code)
+int far remove_item_stack_impl(int who, int code)
 {
     int i, j;
     int r;
 
     if (who == -1) {
-        who = D_907b;
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code)
+        who = leader;
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code)
                 break;
-        if (i >= D_9c69[who].nitems)
+        if (i >= party[who].nitems)
             return -1;
-        sub_s031_18e7_12e8(who, i, 9);
-        sub_s031_18e7_0406(who, i);
-        return D_9c69[who].nitems;
+        item_unequip(who, i, 9);
+        item_delete(who, i);
+        return party[who].nitems;
     } else if (who == -2) {
         for (j = 0; j < 5; j++) {
-            if (D_9c69[j].present) {
-                for (i = 0; i < D_9c69[j].nitems; i++)
-                    if (F_2e38_0000[j].items[i].code == code)
+            if (party[j].present) {
+                for (i = 0; i < party[j].nitems; i++)
+                    if (data_file[j].items[i].code == code)
                         break;
-                if (i < D_9c69[j].nitems) {
-                    sub_s031_18e7_12e8(j, i, 9);
-                    sub_s031_18e7_0406(j, i);
-                    r = D_9c69[j].nitems;
+                if (i < party[j].nitems) {
+                    item_unequip(j, i, 9);
+                    item_delete(j, i);
+                    r = party[j].nitems;
                 }
             }
         }
         return r;
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code)
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code)
                 break;
-        if (i >= D_9c69[who].nitems)
+        if (i >= party[who].nitems)
             return -1;
-        sub_s031_18e7_12e8(who, i, 9);
-        sub_s031_18e7_0406(who, i);
-        return D_9c69[who].nitems;
+        item_unequip(who, i, 9);
+        item_delete(who, i);
+        return party[who].nitems;
     }
 }
 
 /* remove stack idx */
-int far sub_s031_18e7_07d4(int who, int idx)
+int far item_remove_stack(int who, int idx)
 {
     int n;
 
     if (who == -1) {
-        sub_s031_18e7_12e8(who = D_907b, idx, 9);
-        sub_s031_18e7_0406(who, idx);
-        return D_9c69[who].nitems;
+        item_unequip(who = leader, idx, 9);
+        item_delete(who, idx);
+        return party[who].nitems;
     } else if (who == -2) {
         for (who = 0; who < 5; who++) {
-            if (D_9c69[who].present) {
-                sub_s031_18e7_12e8(who, idx, 9);
-                sub_s031_18e7_0406(who, idx);
-                n += D_9c69[who].nitems;
+            if (party[who].present) {
+                item_unequip(who, idx, 9);
+                item_delete(who, idx);
+                n += party[who].nitems;
             }
         }
         return n;
     }
-    sub_s031_18e7_12e8(who, idx, 9);
-    sub_s031_18e7_0406(who, idx);
-    return D_9c69[who].nitems;
+    item_unequip(who, idx, 9);
+    item_delete(who, idx);
+    return party[who].nitems;
 }
 
 /* lose items: heavy stacks always, light ones by chance */
-void far sub_s031_18e7_0854(int who)
+void far lose_items_impl(int who)
 {
     int i, j;
     int h;
 
     if (who == -1) {
-        who = D_907b;
-        h = (sub_s029_0e76_05ee(who, 2) + sub_s029_0e76_01a0(who, 15)) / 2;
-        for (i = 0; i < D_9c69[who].nitems; ) {
-            if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt > 2)
-                sub_s031_18e7_07d4(who, i);
-            else if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt == 2 && sub_root_0000_0c70(100) < h / 2)
-                sub_s031_18e7_07d4(who, i);
-            else if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt < 2 && sub_root_0000_0c70(100) < h)
-                sub_s031_18e7_07d4(who, i);
+        who = leader;
+        h = (member_attr(who, 2) + member_skill(who, 15)) / 2;
+        for (i = 0; i < party[who].nitems; ) {
+            if (data_file[who].items[i].weight * data_file[who].items[i].cnt > 2)
+                item_remove_stack(who, i);
+            else if (data_file[who].items[i].weight * data_file[who].items[i].cnt == 2 && rand_mod(100) < h / 2)
+                item_remove_stack(who, i);
+            else if (data_file[who].items[i].weight * data_file[who].items[i].cnt < 2 && rand_mod(100) < h)
+                item_remove_stack(who, i);
             else
                 i++;
         }
     } else if (who == -2) {
-        D_906b = 0;
-        D_906d = 0;
-        D_906f = 0;
+        party_money = 0;
+        party_money_gr = 0;
+        party_money_pf = 0;
         for (j = 0; j < 5; j++) {
-            if (D_9c69[j].present) {
-                h = (sub_s029_0e76_05ee(j, 2) + sub_s029_0e76_01a0(j, 15)) / 2;
-                for (i = 0; i < D_9c69[j].nitems; ) {
-                    if (F_2e38_0000[j].items[i].weight * F_2e38_0000[j].items[i].cnt > 2)
-                        sub_s031_18e7_07d4(j, i);
-                    else if (F_2e38_0000[j].items[i].weight * F_2e38_0000[j].items[i].cnt == 2 && sub_root_0000_0c70(100) < h / 2)
-                        sub_s031_18e7_07d4(j, i);
-                    else if (F_2e38_0000[j].items[i].weight * F_2e38_0000[j].items[i].cnt < 2 && sub_root_0000_0c70(100) < h)
-                        sub_s031_18e7_07d4(j, i);
+            if (party[j].present) {
+                h = (member_attr(j, 2) + member_skill(j, 15)) / 2;
+                for (i = 0; i < party[j].nitems; ) {
+                    if (data_file[j].items[i].weight * data_file[j].items[i].cnt > 2)
+                        item_remove_stack(j, i);
+                    else if (data_file[j].items[i].weight * data_file[j].items[i].cnt == 2 && rand_mod(100) < h / 2)
+                        item_remove_stack(j, i);
+                    else if (data_file[j].items[i].weight * data_file[j].items[i].cnt < 2 && rand_mod(100) < h)
+                        item_remove_stack(j, i);
                     else
                         i++;
                 }
             }
         }
     } else {
-        h = (sub_s029_0e76_05ee(who, 2) + sub_s029_0e76_01a0(who, 15)) / 2;
-        for (i = 0; i < D_9c69[who].nitems; ) {
-            if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt > 2)
-                sub_s031_18e7_07d4(who, i);
-            else if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt == 2 && sub_root_0000_0c70(100) < h / 2)
-                sub_s031_18e7_07d4(who, i);
-            else if (F_2e38_0000[who].items[i].weight * F_2e38_0000[who].items[i].cnt < 2 && sub_root_0000_0c70(100) < h)
-                sub_s031_18e7_07d4(who, i);
+        h = (member_attr(who, 2) + member_skill(who, 15)) / 2;
+        for (i = 0; i < party[who].nitems; ) {
+            if (data_file[who].items[i].weight * data_file[who].items[i].cnt > 2)
+                item_remove_stack(who, i);
+            else if (data_file[who].items[i].weight * data_file[who].items[i].cnt == 2 && rand_mod(100) < h / 2)
+                item_remove_stack(who, i);
+            else if (data_file[who].items[i].weight * data_file[who].items[i].cnt < 2 && rand_mod(100) < h)
+                item_remove_stack(who, i);
             else
                 i++;
         }
@@ -419,25 +421,25 @@ void far sub_s031_18e7_0854(int who)
 }
 
 /* each stack survives with probability pct% */
-void far sub_s031_18e7_0ab8(int who, int pct)
+void far keep_items_pct_impl(int who, int pct)
 {
     int i, j;
 
     if (who == -1) {
-        who = D_907b;
-        for (i = D_9c69[who].nitems; i >= 0; i--)
-            if (sub_root_0000_0c70(100) > pct)
-                sub_s031_18e7_07d4(who, i);
+        who = leader;
+        for (i = party[who].nitems; i >= 0; i--)
+            if (rand_mod(100) > pct)
+                item_remove_stack(who, i);
     } else if (who == -2) {
         for (j = 0; j < 5; j++)
-            if (D_9c69[j].present)
-                for (i = D_9c69[j].nitems; i >= 0; i--)
-                    if (sub_root_0000_0c70(100) > pct)
-                        sub_s031_18e7_07d4(j, i);
+            if (party[j].present)
+                for (i = party[j].nitems; i >= 0; i--)
+                    if (rand_mod(100) > pct)
+                        item_remove_stack(j, i);
     } else {
-        for (i = D_9c69[who].nitems; i >= 0; i--)
-            if (sub_root_0000_0c70(100) > pct)
-                sub_s031_18e7_07d4(who, i);
+        for (i = party[who].nitems; i >= 0; i--)
+            if (rand_mod(100) > pct)
+                item_remove_stack(who, i);
     }
 }
 
@@ -446,33 +448,33 @@ int far sub_s031_18e7_0b7e(int who, int type)
 {
     int i, j;
 
-    for (i = 0; i < D_9c69[who].nitems; i++) {
-        if (F_2e38_0000[who].items[i].type == type) {
-            sub_s031_18e7_12e8(who, i, 9);
-            for (j = i; j < D_9c69[who].nitems; j++)
-                F_2e38_0000[who].items[j] = F_2e38_0000[who].items[j + 1];
-            D_9c69[who].nitems--;
+    for (i = 0; i < party[who].nitems; i++) {
+        if (data_file[who].items[i].type == type) {
+            item_unequip(who, i, 9);
+            for (j = i; j < party[who].nitems; j++)
+                data_file[who].items[j] = data_file[who].items[j + 1];
+            party[who].nitems--;
         }
     }
-    return D_9c69[who].nitems;
+    return party[who].nitems;
 }
 
 /* remove all items whose LST flags intersect mask */
-int far sub_s031_18e7_0c4a(int who, long mask)
+int far remove_items_flags_impl(int who, long mask)
 {
     int i, j, w;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (w = 0; w < 5; w++) {
-            if (D_9c69[w].present) {
-                for (i = 0; i < D_9c69[w].nitems; i++) {
-                    if (F_2e38_0890[F_2e38_0000[w].items[i].code]->flags & mask) {
-                        sub_s031_18e7_12e8(w, i, 9);
-                        for (j = i; j < D_9c69[w].nitems; j++)
-                            F_2e38_0000[w].items[j] = F_2e38_0000[w].items[j + 1];
-                        D_9c69[w].nitems--;
+            if (party[w].present) {
+                for (i = 0; i < party[w].nitems; i++) {
+                    if (item_defs[data_file[w].items[i].code]->flags & mask) {
+                        item_unequip(w, i, 9);
+                        for (j = i; j < party[w].nitems; j++)
+                            data_file[w].items[j] = data_file[w].items[j + 1];
+                        party[w].nitems--;
                         i--;
                     }
                 }
@@ -480,16 +482,16 @@ int far sub_s031_18e7_0c4a(int who, long mask)
         }
         return 0;
     }
-    for (i = 0; i < D_9c69[who].nitems; i++) {
-        if (F_2e38_0890[F_2e38_0000[who].items[i].code]->flags & mask) {
-            sub_s031_18e7_12e8(who, i, 9);
-            for (j = i; j < D_9c69[who].nitems; j++)
-                F_2e38_0000[who].items[j] = F_2e38_0000[who].items[j + 1];
-            D_9c69[who].nitems--;
+    for (i = 0; i < party[who].nitems; i++) {
+        if (item_defs[data_file[who].items[i].code]->flags & mask) {
+            item_unequip(who, i, 9);
+            for (j = i; j < party[who].nitems; j++)
+                data_file[who].items[j] = data_file[who].items[j + 1];
+            party[who].nitems--;
             i--;
         }
     }
-    return D_9c69[who].nitems;
+    return party[who].nitems;
 }
 
 /* take one item whose LST flags intersect mask */
@@ -498,29 +500,29 @@ int far sub_s031_18e7_0e14(int who, long mask)
     int i, j;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (j = 0; j < 5; j++) {
-            if (D_9c69[j].present) {
-                for (i = 0; i < D_9c69[j].nitems; i++) {
-                    if (F_2e38_0890[F_2e38_0000[j].items[i].code]->flags & mask) {
-                        if (--F_2e38_0000[j].items[i].cnt)
-                            return D_9c69[j].nitems;
-                        sub_s031_18e7_12e8(j, i, 9);
-                        sub_s031_18e7_0406(j, i);
-                        return D_9c69[j].nitems;
+            if (party[j].present) {
+                for (i = 0; i < party[j].nitems; i++) {
+                    if (item_defs[data_file[j].items[i].code]->flags & mask) {
+                        if (--data_file[j].items[i].cnt)
+                            return party[j].nitems;
+                        item_unequip(j, i, 9);
+                        item_delete(j, i);
+                        return party[j].nitems;
                     }
                 }
             }
         }
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++) {
-            if (F_2e38_0890[F_2e38_0000[who].items[i].code]->flags & mask) {
-                if (--F_2e38_0000[who].items[i].cnt)
-                    return D_9c69[who].nitems;
-                sub_s031_18e7_12e8(who, i, 9);
-                sub_s031_18e7_0406(who, i);
-                return D_9c69[who].nitems;
+        for (i = 0; i < party[who].nitems; i++) {
+            if (item_defs[data_file[who].items[i].code]->flags & mask) {
+                if (--data_file[who].items[i].cnt)
+                    return party[who].nitems;
+                item_unequip(who, i, 9);
+                item_delete(who, i);
+                return party[who].nitems;
             }
         }
     }
@@ -533,38 +535,38 @@ int far sub_s031_18e7_0fac(int who, long mask)
     int i, j;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (j = 0; j < 5; j++)
-            if (D_9c69[j].present)
-                for (i = 0; i < D_9c69[j].nitems; i++)
-                    if (F_2e38_0890[F_2e38_0000[j].items[i].code]->flags & mask)
-                        return F_2e38_0000[j].items[i].code;
+            if (party[j].present)
+                for (i = 0; i < party[j].nitems; i++)
+                    if (item_defs[data_file[j].items[i].code]->flags & mask)
+                        return data_file[j].items[i].code;
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0890[F_2e38_0000[who].items[i].code]->flags & mask)
-                return F_2e38_0000[who].items[i].code;
+        for (i = 0; i < party[who].nitems; i++)
+            if (item_defs[data_file[who].items[i].code]->flags & mask)
+                return data_file[who].items[i].code;
     }
     return 0;
 }
 
 /* move entry `from` to position `to` */
-void far sub_s031_18e7_10d2(int who, int from, int to)
+void far item_move(int who, int from, int to)
 {
     struct item it;
 
-    if (to != from && D_9c69[who].nitems > from && D_9c69[who].nitems > to) {
-        it = F_2e38_0000[who].items[from];
+    if (to != from && party[who].nitems > from && party[who].nitems > to) {
+        it = data_file[who].items[from];
         do {
             if (to < from) {
-                F_2e38_0000[who].items[from] = F_2e38_0000[who].items[from - 1];
+                data_file[who].items[from] = data_file[who].items[from - 1];
                 from--;
             } else {
-                F_2e38_0000[who].items[from] = F_2e38_0000[who].items[from + 1];
+                data_file[who].items[from] = data_file[who].items[from + 1];
                 from++;
             }
         } while (to != from);
-        F_2e38_0000[who].items[to] = it;
+        data_file[who].items[to] = it;
     }
 }
 
@@ -574,107 +576,107 @@ void far sub_s031_18e7_11b2(int who, int idx)
 {
     long flags;
 
-    flags = F_2e38_0890[F_2e38_0000[who].items[idx].code & 0xfff]->flags;
+    flags = item_defs[data_file[who].items[idx].code & 0xfff]->flags;
     if (flags & 0xf) {
-        D_9c69[who].weapon_type = F_2e38_0000[who].items[idx].type;
-        D_9c69[who].weapon_q = F_2e38_0000[who].items[idx].qual;
+        party[who].weapon_type = data_file[who].items[idx].type;
+        party[who].weapon_q = data_file[who].items[idx].qual;
     } else if (flags & 0x8000030L) {
-        D_9c69[who].missile_type = F_2e38_0000[who].items[idx].type;
-        D_9c69[who].missile_q = F_2e38_0000[who].items[idx].qual;
-    } else if (F_2e38_0000[who].items[idx].type >= 0x43 && F_2e38_0000[who].items[idx].type < 0x4c) {
-        D_9c69[who].vital_type = F_2e38_0000[who].items[idx].type;
-        D_9c69[who].vital_q = F_2e38_0000[who].items[idx].qual;
-    } else if (F_2e38_0000[who].items[idx].type >= 0x4c && F_2e38_0000[who].items[idx].type < 0x5f) {
-        D_9c69[who].limb_type = F_2e38_0000[who].items[idx].type;
-        D_9c69[who].limb_q = F_2e38_0000[who].items[idx].qual;
-    } else if (F_2e38_0000[who].items[idx].type >= 0x5f && F_2e38_0000[who].items[idx].type <= 0x61) {
-        D_9c69[who].shield_type = F_2e38_0000[who].items[idx].type;
-        D_9c69[who].shield_q = F_2e38_0000[who].items[idx].qual;
+        party[who].missile_type = data_file[who].items[idx].type;
+        party[who].missile_q = data_file[who].items[idx].qual;
+    } else if (data_file[who].items[idx].type >= 0x43 && data_file[who].items[idx].type < 0x4c) {
+        party[who].vital_type = data_file[who].items[idx].type;
+        party[who].vital_q = data_file[who].items[idx].qual;
+    } else if (data_file[who].items[idx].type >= 0x4c && data_file[who].items[idx].type < 0x5f) {
+        party[who].limb_type = data_file[who].items[idx].type;
+        party[who].limb_q = data_file[who].items[idx].qual;
+    } else if (data_file[who].items[idx].type >= 0x5f && data_file[who].items[idx].type <= 0x61) {
+        party[who].shield_type = data_file[who].items[idx].type;
+        party[who].shield_q = data_file[who].items[idx].qual;
     }
-    sub_s031_18e7_140a(who);
+    equip_weight(who);
 }
 #pragma optimize("", on)
 
 /* unequip entry idx if it is equipped */
-void far sub_s031_18e7_12e8(int who, int idx, int slot)
+void far item_unequip(int who, int idx, int slot)
 {
     int code, type, q;
 
     if (slot == 6)
-        idx = sub_s031_18e7_1460(who, idx);
-    code = F_2e38_0000[who].items[idx].code & 0xfff;
-    type = F_2e38_0000[who].items[idx].type;
-    q = F_2e38_0000[who].items[idx].qual;
-    if ((F_2e38_0890[code]->flags & 0xf) && D_9c69[who].weapon_type == type && D_9c69[who].weapon_q == q)
-        D_9c69[who].weapon_type = -1;
-    else if ((F_2e38_0890[code]->flags & 0x8000030L) && D_9c69[who].missile_type == type
-             && D_9c69[who].missile_q == q)
-        D_9c69[who].missile_type = -1;
-    else if (D_9c69[who].vital_type == type && D_9c69[who].vital_q == q)
-        D_9c69[who].vital_type = -1;
-    else if (D_9c69[who].limb_type == type && D_9c69[who].limb_q == q)
-        D_9c69[who].limb_type = -1;
-    else if (D_9c69[who].shield_type == type && D_9c69[who].shield_q == q)
-        D_9c69[who].shield_type = -1;
-    sub_s031_18e7_140a(who);
+        idx = equipped_type(who, idx);
+    code = data_file[who].items[idx].code & 0xfff;
+    type = data_file[who].items[idx].type;
+    q = data_file[who].items[idx].qual;
+    if ((item_defs[code]->flags & 0xf) && party[who].weapon_type == type && party[who].weapon_q == q)
+        party[who].weapon_type = -1;
+    else if ((item_defs[code]->flags & 0x8000030L) && party[who].missile_type == type
+             && party[who].missile_q == q)
+        party[who].missile_type = -1;
+    else if (party[who].vital_type == type && party[who].vital_q == q)
+        party[who].vital_type = -1;
+    else if (party[who].limb_type == type && party[who].limb_q == q)
+        party[who].limb_type = -1;
+    else if (party[who].shield_type == type && party[who].shield_q == q)
+        party[who].shield_type = -1;
+    equip_weight(who);
 }
 
 /* recompute the weight of the equipped items */
-int far sub_s031_18e7_140a(int who)
+int far equip_weight(int who)
 {
     int slot, code, w;
 
     w = 0;
     for (slot = 0; slot < 5; slot++) {
-        code = sub_s031_18e7_14b6(who, slot);
+        code = equipped_item_impl(who, slot);
         if (code != -1)
-            w += F_2e38_0890[code]->weight;
+            w += item_defs[code]->weight;
     }
-    return D_9c69[who].pad35[0] = sub_s029_1367_0066(0, 500, w);
+    return party[who].pad35[0] = clamp_range(0, 500, w);
 }
 
 /* item type equipped in slot */
-int far sub_s031_18e7_1460(int who, int slot)
+int far equipped_type(int who, int slot)
 {
     switch (slot) {
     case 0:
-        return D_9c69[who].weapon_type;
+        return party[who].weapon_type;
     case 1:
-        return D_9c69[who].vital_type;
+        return party[who].vital_type;
     case 2:
-        return D_9c69[who].limb_type;
+        return party[who].limb_type;
     case 3:
-        return D_9c69[who].shield_type;
+        return party[who].shield_type;
     case 4:
-        return D_9c69[who].missile_type;
+        return party[who].missile_type;
     }
 }
 
 /* item code equipped in slot, -1 if none */
-int far sub_s031_18e7_14b6(int who, int slot)
+int far equipped_item_impl(int who, int slot)
 {
     int type, q, i, found, t;
 
     switch (slot) {
     case 0:
-        t = D_9c69[who].weapon_type;
-        i = D_9c69[who].weapon_q;
+        t = party[who].weapon_type;
+        i = party[who].weapon_q;
         break;
     case 1:
-        t = D_9c69[who].vital_type;
-        i = D_9c69[who].vital_q;
+        t = party[who].vital_type;
+        i = party[who].vital_q;
         break;
     case 2:
-        t = D_9c69[who].limb_type;
-        i = D_9c69[who].limb_q;
+        t = party[who].limb_type;
+        i = party[who].limb_q;
         break;
     case 3:
-        t = D_9c69[who].shield_type;
-        i = D_9c69[who].shield_q;
+        t = party[who].shield_type;
+        i = party[who].shield_q;
         break;
     case 4:
-        t = D_9c69[who].missile_type;
-        i = D_9c69[who].missile_q;
+        t = party[who].missile_type;
+        i = party[who].missile_q;
         break;
     default:
         goto fail;
@@ -685,88 +687,88 @@ int far sub_s031_18e7_14b6(int who, int slot)
     q = i;
     i = 0;
     found = -1;
-    for (; i < D_9c69[who].nitems; i++) {
-        if (F_2e38_0000[who].items[i].type == type) {
+    for (; i < party[who].nitems; i++) {
+        if (data_file[who].items[i].type == type) {
             found = i;
-            D_99eb = i;
-            if (F_2e38_0000[who].items[i].qual == q)
-                return F_2e38_0000[who].items[i].code;
+            best_skill = i;
+            if (data_file[who].items[i].qual == q)
+                return data_file[who].items[i].code;
         }
     }
     if (found != -1)
-        return F_2e38_0000[who].items[found].code;
+        return data_file[who].items[found].code;
 fail:
     return -1;
 }
 
 /* quality of entry idx */
-int far sub_s031_18e7_15d6(int who, int idx)
+int far item_entry_quality(int who, int idx)
 {
-    return F_2e38_0000[who].items[idx].qual;
+    return data_file[who].items[idx].qual;
 }
 
 /* best quality of item `code` */
-int far sub_s031_18e7_15f8(int who, int code)
+int far item_quality_impl(int who, int code)
 {
     int i, j, best;
 
     best = 0;
     if (who == -1) {
-        who = D_907b;
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code && F_2e38_0000[who].items[i].qual > best)
-                best = F_2e38_0000[who].items[i].qual;
+        who = leader;
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code && data_file[who].items[i].qual > best)
+                best = data_file[who].items[i].qual;
     } else if (who == -2) {
         for (j = 0; j < 5; j++)
-            if (D_9c69[j].present && D_9c69[j].nitems > 0)
-                for (i = 0; i < D_9c69[j].nitems; i++)
-                    if (F_2e38_0000[j].items[i].code == code && F_2e38_0000[j].items[i].qual > best)
-                        best = F_2e38_0000[j].items[i].qual;
+            if (party[j].present && party[j].nitems > 0)
+                for (i = 0; i < party[j].nitems; i++)
+                    if (data_file[j].items[i].code == code && data_file[j].items[i].qual > best)
+                        best = data_file[j].items[i].qual;
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0000[who].items[i].code == code && F_2e38_0000[who].items[i].qual > best)
-                best = F_2e38_0000[who].items[i].qual;
+        for (i = 0; i < party[who].nitems; i++)
+            if (data_file[who].items[i].code == code && data_file[who].items[i].qual > best)
+                best = data_file[who].items[i].qual;
     }
     return best;
 }
 
 /* best quality of the items with LST flags == flags */
-int far sub_s031_18e7_171c(int who, long flags)
+int far item_quality_flags_impl(int who, long flags)
 {
     int i, j, best;
 
     best = 0;
     if (who == -1) {
-        who = D_907b;
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0890[0]->flags == flags && F_2e38_0000[who].items[i].qual > best)
-                best = F_2e38_0000[who].items[i].qual;
+        who = leader;
+        for (i = 0; i < party[who].nitems; i++)
+            if (item_defs[0]->flags == flags && data_file[who].items[i].qual > best)
+                best = data_file[who].items[i].qual;
     } else if (who == -2) {
         for (j = 0; j < 5; j++)
-            if (D_9c69[j].present && D_9c69[j].nitems > 0)
-                for (i = 0; i < D_9c69[j].nitems; i++)
-                    if (F_2e38_0890[0]->flags == flags && F_2e38_0000[j].items[i].qual > best)
-                        best = F_2e38_0000[j].items[i].qual;
+            if (party[j].present && party[j].nitems > 0)
+                for (i = 0; i < party[j].nitems; i++)
+                    if (item_defs[0]->flags == flags && data_file[j].items[i].qual > best)
+                        best = data_file[j].items[i].qual;
     } else {
-        for (i = 0; i < D_9c69[who].nitems; i++)
-            if (F_2e38_0890[0]->flags == flags && F_2e38_0000[who].items[i].qual > best)
-                best = F_2e38_0000[who].items[i].qual;
+        for (i = 0; i < party[who].nitems; i++)
+            if (item_defs[0]->flags == flags && data_file[who].items[i].qual > best)
+                best = data_file[who].items[i].qual;
     }
     return best;
 }
 
 /* a random item code whose LST flags == flags */
-int far sub_s031_18e7_1894(long flags)
+int far random_item_flags(long flags)
 {
     int i, n, k;
 
     n = 0;
     for (i = 0; i < 172; i++)
-        if (F_2e38_0890[i]->flags == flags)
+        if (item_defs[i]->flags == flags)
             n++;
-    k = sub_root_0000_0c70(n);
+    k = rand_mod(n);
     for (i = 0; i < 172; i++) {
-        if (F_2e38_0890[i]->flags == flags) {
+        if (item_defs[i]->flags == flags) {
             if (k == 0)
                 return i;
             k--;

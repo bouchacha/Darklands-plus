@@ -14,6 +14,8 @@
  * (0x80/0x40/0x20/0x10 walls, 2 = occupied, 1 = marked). D_dfd5[section] = slot,
  * D_dfcd[slot] = section, D_dfc5[slot] = number of exits the section file had.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -121,10 +123,10 @@ extern unsigned D_dfbd, D_dfc1;
 extern _segment D_db37, D_dfc3;
 extern struct level _based(D_db37) *D_e037;
 extern struct fmap _based(D_dfc3) *D_e033;
-extern _segment D_dadd;
-extern struct group _based(D_dadd) *D_db2d;
-extern struct mon _based(D_dadd) *D_db2b;
-extern int D_db05[];
+extern _segment enemy_seg;
+extern struct group _based(enemy_seg) *bf_groups;
+extern struct mon _based(enemy_seg) *bf_monsters;
+extern int group_count[];
 extern int D_dff7;
 extern char D_e035;
 extern unsigned char D_e036;
@@ -132,12 +134,12 @@ extern int D_dfc5[4], D_dfcd[4], D_dfd5[16];
 extern char D_e00d[21];
 extern char D_e022[16];
 extern int D_c100, D_c0fe;
-extern char D_9080;
+extern char combat_flags;
 extern int D_da34;
 extern char D_11dd;
 extern int D_13d0[];
 extern long D_dff9, D_dffd, D_e001, D_e005, D_e009;
-extern struct member D_9c69[];
+extern struct member party[];
 extern char D_77c8[];
 
 unsigned far alloc_buffer(unsigned long, char *);
@@ -146,12 +148,12 @@ int far sprintf();
 int far fprintf();
 void exit_(int);
 void *memset(void *, int, unsigned);
-int far sub_root_05d9_019a();
-int far sub_s004_0e76_06aa();
+int far file_read_all();
+int far monster_type_map();
 int far sub_s004_0e76_20dc();
-int far sub_s004_0e76_20f6();
-int far sub_s004_1091_000a();
-unsigned char far sub_s004_1091_17e0(unsigned char, int);
+int far roll_dice();
+int far map_turn();
+unsigned char far facing_turn(unsigned char, int);
 int far sub_s004_1262_0d0a();
 void far sub_s009_182c_0002();
 void far sub_s009_182c_03ca();
@@ -165,8 +167,8 @@ void far sub_s009_182c_1260();
 int far sub_s009_182c_1cb4();
 int far sub_s009_182c_20a4();
 int far sub_s009_182c_219e();
-int far vec_1c1b();
-int far sub_s009_1432_0000();
+int far party_lore_level();
+int far mine_build();
 void far sub_s009_1432_019e(void);
 int far sub_s009_1432_01e0();
 int far sub_s009_1432_0218();
@@ -200,11 +202,11 @@ char far sub_s009_1432_3f6c();
 char far sub_s009_1432_3f8a();
 
 #define SLOT(sec) (((sec) >= 0 && (sec) < 16) ? D_dfd5[sec] : -1)
-#define R(n) sub_s004_0e76_20f6(1, n)
+#define R(n) roll_dice(1, n)
 
 /* mine battle for location type t: allocate the four level slots and the flag maps, build the
  * mine; returns the number of levels */
-int far sub_s009_1432_0000(int t, int a, int b, int c, int d, int e, int f, int g, int h)
+int far mine_build(int t, int a, int b, int c, int d, int e, int f, int g, int h)
 {
     char *m1 = "Mn";
     char *m2 = "Tl";
@@ -309,28 +311,28 @@ int far sub_s009_1432_0218(int t)
     int g, r, n, s;
 
     sub_s009_1432_0d90(t, 0, 0, &g, 0);
-    r = vec_1c1b();
+    r = party_lore_level();
     for (g = 0; g < 5; g++)
-        D_9c69[g];
+        party[g];
     s = R((r + 1) / 2) + 1;
     switch (t) {
     case 0x66:
-        sub_s009_1432_23d6(t, g = sub_s004_0e76_06aa(0, 0x3b, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
+        sub_s009_1432_23d6(t, g = monster_type_map(0, 0x3b, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
             -1);
         break;
     case 0x67:
         n = R(4) + 2;
-        g = sub_s004_0e76_06aa(0, 0x12, max(min(r, 5), 1));
-        sub_s009_1432_23d6(t, g, 1, 0, sub_s004_0e76_06aa(0, 7, s), n, 0, 0, 0, 0, -1, -1);
+        g = monster_type_map(0, 0x12, max(min(r, 5), 1));
+        sub_s009_1432_23d6(t, g, 1, 0, monster_type_map(0, 7, s), n, 0, 0, 0, 0, -1, -1);
         break;
     case 0x68:
-        sub_s009_1432_23d6(t, g = sub_s004_0e76_06aa(0, 0x3a, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
+        sub_s009_1432_23d6(t, g = monster_type_map(0, 0x3a, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
             -1);
         break;
     case 0x69:
         n = s / 2;
         s -= n;
-        sub_s009_1432_23d6(t, g = sub_s004_0e76_06aa(0, 0x31, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
+        sub_s009_1432_23d6(t, g = monster_type_map(0, 0x31, 1), s, 0, -1, 0, 0, 0, 0, 0, -1,
             -1);
         sub_s009_1432_23d6(t, g, n, 0, -1, 0, 0, 0, 0, 1, -1, -1);
         break;
@@ -345,7 +347,7 @@ int far sub_s009_1432_0398(int t)
 {
     int a, b, c, k, r, i, j, x;
 
-    r = vec_1c1b();
+    r = party_lore_level();
     sub_s004_0e76_20dc();
     sub_s009_1432_0d90(t, 3, 0, &a, 1);
     sub_s009_1432_0d90(t, 4, k = 1, &b, 0);
@@ -402,7 +404,7 @@ int far sub_s009_1432_05e4(int t, int ft, int fq, int fn)
     int r, n, e, q, rem, g, i, off, x, c;
     int j, k;
 
-    r = vec_1c1b();
+    r = party_lore_level();
     switch (t) {
     case 0x7f:
         ft = 0x2a;
@@ -435,7 +437,7 @@ int far sub_s009_1432_05e4(int t, int ft, int fq, int fn)
     q = n / 5;
     rem = n % 5;
     sub_s009_1432_0d90(t, 0, 0, &g, 0);
-    g = sub_s004_0e76_06aa(0, ft, fq);
+    g = monster_type_map(0, ft, fq);
     j = k = 0;
     for (i = 0, off = 0; off < 50; i++, off += 10) {
         c = q;
@@ -477,7 +479,7 @@ int far sub_s009_1432_07e4(int t)
 {
     int a, b, c, d, e, k;
 
-    vec_1c1b();
+    party_lore_level();
     sub_s004_0e76_20dc();
     sub_s009_1432_0d90(t, 1, 0, &a, 1);
     sub_s009_1432_0d90(t, 2, 1, &b, 0);
@@ -517,8 +519,8 @@ int far sub_s009_1432_0990(int t)
 
     sub_s009_1432_0d90(t, 0, 0, &r, 0);
     if (t == 0x6d) {
-        x = D_db2d->pos / 32;
-        y = D_db2d->pos2 / 16;
+        x = bf_groups->pos / 32;
+        y = bf_groups->pos2 / 16;
         D_e037->cell[x][y] &= ~0xf0L;
         D_e037->cell[x][y] |= 0x70;
     }
@@ -554,7 +556,7 @@ int far sub_s009_1432_0af8(int t)
 {
     int a, b, c;
 
-    vec_1c1b();
+    party_lore_level();
     sub_s004_0e76_20dc();
     sub_s009_1432_0d90(t, 1, 0, &a, 1);
     sub_s009_1432_0d90(t, 2, 1, &c, 0);
@@ -742,7 +744,7 @@ found:;
         sprintf(namec, "iminegen.%03d", kn - 1);
         D_e00d[kn - 1] = 1;
     }
-    sub_root_05d9_019a(namec, (struct level far *)(D_e037 + slotn));
+    file_read_all(namec, (struct level far *)(D_e037 + slotn));
     lvi = (struct level far *)(D_e037 + slotn);
     if (specg)
         D_e036 |= 1 << slotn;
@@ -750,9 +752,9 @@ found:;
         *rot %= 8;
     else
         *rot = R(8) - 1;
-    sub_s004_1091_000a((struct level far *)(D_e037 + slotn), *rot, 1);
+    map_turn((struct level far *)(D_e037 + slotn), *rot, 1);
     for (kn = 0; lvi->n300c > kn; kn++)
-        lvi->grp[kn].x0c = sub_s004_1091_17e0(lvi->grp[kn].x0c, *rot);
+        lvi->grp[kn].x0c = facing_turn(lvi->grp[kn].x0c, *rot);
     D_e037[slotn].x3346 = kn - 1;
     D_e037[slotn].x3348 = *rot;
     lvi->x1f40 = lvno;
@@ -1132,7 +1134,7 @@ void far sub_s009_1432_1da4(int t, int sec)
                     case 1:
                         d->x0a = 5;
                         d->x0a = 0x25;
-                        m = sub_s004_0e76_20f6(2, 2) + sec / 4 - 3;
+                        m = roll_dice(2, 2) + sec / 4 - 3;
                         m = max(min(m, 2), 0);
                         d->x09 = m * 30 + 20;
                         break;
@@ -1221,10 +1223,10 @@ void far sub_s009_1432_2252(int t, int sec)
     for (i = 0; i < 6; i++) {
         sub_s009_182c_1260(t, sec, i, &a24, &a22, &a20, &a1e, &b0f, &a1c, &a1a, &a18, &a16,
             &b0e, &b0d);
-        if ((g1 = sub_s004_0e76_06aa(lvno, a24, a22)) >= 0)
-            D_db2b[lvno * 12 + g1].x0c = b0f;
-        if ((g2 = sub_s004_0e76_06aa(lvno, a1c, a1a)) >= 0)
-            D_db2b[lvno * 12 + g2].x0c = b0e;
+        if ((g1 = monster_type_map(lvno, a24, a22)) >= 0)
+            bf_monsters[lvno * 12 + g1].x0c = b0f;
+        if ((g2 = monster_type_map(lvno, a1c, a1a)) >= 0)
+            bf_monsters[lvno * 12 + g2].x0c = b0e;
         sub_s009_1432_23d6(t, g1, a20, a1e, g2, a18, a16, sec, b0d, i, -1, -1);
         if (i < 5)
             lv->r3382[i].b1 = lv->r3382[i].x4 = 0;
@@ -1257,7 +1259,7 @@ void far sub_s009_1432_23d6(int t, int t1, int n1, int x1, int t2, int n2, int x
     off = slot * 0x33fc;
     lv = (struct level far *)(D_e037 + slot);
     lvno = lv->x1f40;
-    g = D_db2d + lvno * 10 + D_db05[lvno];
+    g = bf_groups + lvno * 10 + group_count[lvno];
     if (t == 0x6c && pos >= 5) {
         for (k = 0; k < 55; k++)
             if (lv->obj[k].type == 0x65 && lv->obj[k].x0a == 6)
@@ -1322,7 +1324,7 @@ void far sub_s009_1432_23d6(int t, int t1, int n1, int x1, int t2, int n2, int x
         }
     }
     if (j > 0)
-        D_db05[lvno]++;
+        group_count[lvno]++;
 }
 
 /* special mines: turn the exit placeholders (type 5) into real objects (doors on section 13 of
@@ -1379,6 +1381,7 @@ void far sub_s009_1432_26cc(int t, int sec)
 }
 
 /* connect section a with section b (or c if b has no slot) through an exit on each side */
+#pragma optimize("a", on)
 void far sub_s009_1432_2964(int t, int a, int b, int c)
 {
     int sa, sb, bs, ea, eb, x, y, xx, yy;
@@ -1389,10 +1392,9 @@ void far sub_s009_1432_2964(int t, int a, int b, int c)
     struct exit far *pa;
     struct exit far *pb;
 
-    sa = -1;
+    sa = sb = -1;
     if (a >= 0 && a < 16)
         sa = D_dfd5[a];
-    sb = -1;
     if (b >= 0 && b < 16) {
         bs = b;
         sb = D_dfd5[b];
@@ -1444,6 +1446,7 @@ void far sub_s009_1432_2964(int t, int a, int b, int c)
             D_e033[lvb->x1f40].m[xx][yy] |= 2;
     D_e033[lvb->x1f40].m[x][y] |= 1;
 }
+#pragma optimize("a", off)
 
 /* open a passage from section sec through one of its wall-gap objects (type 8): carve the wall
  * cell, add it to the 0x248a/0x24c6 lists, make an exit to section b (or c, or a dead end with
@@ -1498,7 +1501,7 @@ void far sub_s009_1432_2c98(int t, int sec, int b, int c, int rot)
         m = min(n - 1, m);
         m += i;
         o = &lv->obj[m];
-        dir = sub_s004_1091_17e0((unsigned char)o->x0a, rot);
+        dir = facing_turn((unsigned char)o->x0a, rot);
         if (o->type == 8 && (dir == 0 || dir == 6))
             ok = 1;
         else
@@ -1636,10 +1639,10 @@ void far sub_s009_1432_2c98(int t, int sec, int b, int c, int rot)
 
         sub_s009_182c_1260(t, sec, 10, &a58, &a6e, &a50, &a1a, &b42, &a5e, &a76, &a56, &a22,
             &b4e, &b54);
-        if ((g1 = sub_s004_0e76_06aa(lvno, a58, a6e)) >= 0)
-            D_db2b[lvno * 12 + g1].x0c = b42;
-        if ((g2 = sub_s004_0e76_06aa(lvno, a5e, a76)) >= 0)
-            D_db2b[lvno * 12 + g2].x0c = b4e;
+        if ((g1 = monster_type_map(lvno, a58, a6e)) >= 0)
+            bf_monsters[lvno * 12 + g1].x0c = b42;
+        if ((g2 = monster_type_map(lvno, a5e, a76)) >= 0)
+            bf_monsters[lvno * 12 + g2].x0c = b4e;
         px = o->x0 + 16;
         py = o->x2 + 8;
         sub_s009_1432_23d6(t, g1, a50, a1a, g2, a56, a22, sec, b54, px, py,
@@ -1915,8 +1918,8 @@ void far sub_s009_1432_3e1c(int t, int sec)
     lv = (struct level far *)(D_e037 + s);
     lvno = lv->x1f40;
     sub_s009_1432_3bea(t, sec);
-    if ((D_9080 & 1) && (D_da34 & (1 << lvno)) && !(D_e036 & (1 << s))) {
-        D_db05[lvno] = 0;
+    if ((combat_flags & 1) && (D_da34 & (1 << lvno)) && !(D_e036 & (1 << s))) {
+        group_count[lvno] = 0;
         for (i = 0; i < lv->n300c; i++) {
             lv->grp[i].n = 0;
             lv->grp[i].x10 = 0;

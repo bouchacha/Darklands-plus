@@ -18,6 +18,8 @@
  * 0x1f52), objects at 0x2186 (count 0x2184; group markers type 0x65 with id at x0a), 0x2488,
  * exits at 0x2fb8 (count 0x2fb6), raised rectangles at 0x3328 (count 0x3326).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct obj {                            /* map object, 14 bytes */
@@ -67,23 +69,23 @@ static char D_1536[] = "Ct";            /* buffer name */
 extern unsigned D_e03b;
 extern _segment D_e03d;
 extern struct level _based(D_e03d) *D_e03f;
-extern _segment D_dadd;
+extern _segment enemy_seg;
 struct bfdesc { char b[0xc0]; };
-extern struct bfdesc _based(D_dadd) *D_db33;
-#define B(o) (((char _based(D_dadd) *)D_db33)[o])
+extern struct bfdesc _based(enemy_seg) *tile_desc;
+#define B(o) (((char _based(enemy_seg) *)tile_desc)[o])
 unsigned far alloc_buffer(unsigned long, char *);
 void far free_buffer(unsigned, char *);
 int far _fstrcpy();
 int far sprintf();
-int far sub_root_05ba_0004();
-int far sub_root_05ba_00c2();
-int far sub_root_05d9_019a();
-int far sub_s004_0e76_20f6();
-int far sub_s004_1091_000a();
-int far sub_s004_0e76_06aa();
+int far mem_alloc();
+int far mem_free();
+int far file_read_all();
+int far roll_dice();
+int far map_turn();
+int far monster_type_map();
 int far sub_s004_1262_0d0a();
-int far sub_s010_1432_0000();
-int far sub_s010_1432_0102();
+int far city_build();
+int far city_battle_type();
 void far sub_s010_1432_0292();
 void far sub_s010_1432_02cc();
 void far sub_s010_1432_058c();
@@ -99,10 +101,10 @@ int far sub_s010_1432_2526();
 void far sub_s010_1432_26f8();
 int far sub_s010_1432_2a2c();
 void far sub_s010_1432_2b42();
-void far sub_s010_1432_2de0();
+void far level_save();
 
 /* city battle: build the battlefield of type t = sub_0102(p_6) into the level buffers */
-int far sub_s010_1432_0000(int p_6, int *res, int p_a, int p_c, int p_e, int p_10, int p_12,
+int far city_build(int p_6, int *res, int p_a, int p_c, int p_e, int p_10, int p_12,
     int p_14, int p_16, int p_18, int p_1a)
 {
     int t;
@@ -111,7 +113,7 @@ int far sub_s010_1432_0000(int p_6, int *res, int p_a, int p_c, int p_e, int p_1
 
     D_e03d = (_segment)(D_e03b = alloc_buffer(0x67f8L, q.p = D_1536));
     D_e03f = 0;
-    t = sub_s010_1432_0102(p_6);
+    t = city_battle_type(p_6);
     sub_s010_1432_0292(t);
     switch (t) {
     case 7:
@@ -135,25 +137,25 @@ int far sub_s010_1432_0000(int p_6, int *res, int p_a, int p_c, int p_e, int p_1
 }
 
 /* battlefield type (1..9) for city location type p; several types pick one at random */
-int far sub_s010_1432_0102(int p)
+int far city_battle_type(int p)
 {
     switch (p) {
     default:
-        switch (sub_s004_0e76_20f6(1, 4)) {
+        switch (roll_dice(1, 4)) {
         case 1: return 1;
         case 2: return 2;
         case 3: return 3;
         case 4: return 4;
         }
     case 0x20:
-        switch (sub_s004_0e76_20f6(1, 2)) {
+        switch (roll_dice(1, 2)) {
         case 1: return 1;
         case 2: return 2;
         }
     case 0x13:
     case 0x14:
     case 0x1e:
-        switch (sub_s004_0e76_20f6(1, 3)) {
+        switch (roll_dice(1, 3)) {
         case 1: return 1;
         case 2: return 2;
         case 3: return 3;
@@ -161,21 +163,21 @@ int far sub_s010_1432_0102(int p)
     case 0x22:
     case 0x23:
     case 0x25:
-        switch (sub_s004_0e76_20f6(1, 3)) {
+        switch (roll_dice(1, 3)) {
         case 1: return 1;
         case 2: return 2;
         case 3: return 4;
         }
     case 0x11:
     case 0x12:
-        switch (sub_s004_0e76_20f6(1, 2)) {
+        switch (roll_dice(1, 2)) {
         case 1: return 3;
         case 2: return 4;
         }
     case 0x18:
     case 0x19:
     case 0x1a:
-        switch (sub_s004_0e76_20f6(1, 3)) {
+        switch (roll_dice(1, 3)) {
         case 1: return 2;
         case 2: return 3;
         case 3: return 4;
@@ -240,14 +242,14 @@ void far sub_s010_1432_02cc(int t)
     case 1:
     case 5:
     case 6:
-        switch (sub_s004_0e76_20f6(1, 2)) {
+        switch (roll_dice(1, 2)) {
         case 1: v = 0; break;
         case 2: v = 6; break;
         }
         break;
     case 2:
     case 3:
-        switch (sub_s004_0e76_20f6(1, 5)) {
+        switch (roll_dice(1, 5)) {
         case 1: v = 0; break;
         case 2: v = 2; break;
         case 3: v = 4; break;
@@ -256,7 +258,7 @@ void far sub_s010_1432_02cc(int t)
         }
         break;
     case 4:
-        switch (sub_s004_0e76_20f6(1, 3)) {
+        switch (roll_dice(1, 3)) {
         case 1: v = 2; break;
         case 2: v = 4; break;
         case 3: v = 8; break;
@@ -276,10 +278,10 @@ void far sub_s010_1432_02cc(int t)
     case 2:
     case 3:
     case 4:
-        v = sub_s004_0e76_20f6(1, 5) - 1;
+        v = roll_dice(1, 5) - 1;
         break;
     case 5:
-        v = sub_s004_0e76_20f6(1, 2) + 2;
+        v = roll_dice(1, 2) + 2;
         break;
     case 6:
         v = 5;
@@ -439,7 +441,7 @@ void far sub_s010_1432_079a(int t)
 }
 #pragma optimize("", on)
 
-extern unsigned char D_9080;
+extern unsigned char combat_flags;
 int far sub_s010_1432_114e(char, char, char);
 
 /* street battlefields (types 1..6): load prepared map icity.<t-1><nn> (random variant of the
@@ -469,18 +471,18 @@ int far sub_s010_1432_08aa(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     nvo[7] = 1;
     nvo[8] = 1;
     nvo[9] = 1;
-    vh = sub_s004_0e76_20f6(1, nvo[t]) - 1;
+    vh = roll_dice(1, nvo[t]) - 1;
     vh += (t - 1) * 100;
     sprintf(namef, "icity.%03d", vh);
-    sub_root_05d9_019a(namef, (struct level far *)D_e03f);
+    file_read_all(namef, (struct level far *)D_e03f);
     if (t == 6)
         rc = 0;
     else
-        rc = sub_s004_0e76_20f6(1, 8) - 1;
-    sub_s004_1091_000a((struct level far *)D_e03f, rc, 1);
+        rc = roll_dice(1, 8) - 1;
+    map_turn((struct level far *)D_e03f, rc, 1);
     D_e03f->x1f40 = 0;
     sub_s010_1432_11aa(t);
-    f7am = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    f7am = roll_dice(1, 2) == 1 ? 1 : 0;
     switch (p6) {
     default:
         if (f7am)
@@ -523,11 +525,11 @@ int far sub_s010_1432_08aa(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     }
     g1g = g2f = g3f = -1;
     if (ft1 >= 0 && fn1 > 0)
-        g1g = sub_s004_0e76_06aa(0, ft1, fq1);
+        g1g = monster_type_map(0, ft1, fq1);
     if (ft2 >= 0 && fn2 > 0)
-        g2f = sub_s004_0e76_06aa(0, ft2, fq2);
+        g2f = monster_type_map(0, ft2, fq2);
     if (ft3 >= 0 && fn3 > 0)
-        g3f = sub_s004_0e76_06aa(0, ft3, fq3);
+        g3f = monster_type_map(0, ft3, fq3);
     f1cj = 0;
     switch (p6) {
     case 0x11:
@@ -538,7 +540,7 @@ int far sub_s010_1432_08aa(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     case 0x56:
         f1cj = 1;
     }
-    f4g = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    f4g = roll_dice(1, 2) == 1 ? 1 : 0;
     ag = bg = cg = di = -1;
     switch (p6) {
     default:
@@ -689,11 +691,11 @@ int far sub_s010_1432_08aa(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     }
     switch (p6) {
     case 0x1a:
-        D_9080 |= 0x40;
+        combat_flags |= 0x40;
         break;
     }
     D_e03f->nobj = 0;
-    sub_s010_1432_2de0(0);
+    level_save(0);
     return 1;
 }
 #pragma optimize("", on)
@@ -749,10 +751,10 @@ void far sub_s010_1432_11aa(int t)
             if (v & 0x80000000L)
                 continue;
             if (D_e03f->hgt[r][c] & 0xf0) {
-                hi = sub_s004_0e76_20f6(1, 2);
+                hi = roll_dice(1, 2);
                 lo = 0;
-                if (sub_s004_0e76_20f6(1, 100) <= pct) {
-                    switch (sub_s004_0e76_20f6(1, 5)) {
+                if (roll_dice(1, 100) <= pct) {
+                    switch (roll_dice(1, 5)) {
                     case 1: lo = 1; break;
                     case 2: lo = 2; break;
                     case 3: lo = 3; break;
@@ -774,7 +776,7 @@ void far sub_s010_1432_11aa(int t)
                     case 4: x = 8; break;
                     case 5: x = 9; break;
                     default:
-                        switch (sub_s004_0e76_20f6(1, 3)) {
+                        switch (roll_dice(1, 3)) {
                         case 1: x = 1; break;
                         case 2: x = 2; break;
                         case 3: x = 3; break;
@@ -784,7 +786,7 @@ void far sub_s010_1432_11aa(int t)
                 } else if (x == 3)
                     x = 4;
                 else {
-                    switch (sub_s004_0e76_20f6(1, 5)) {
+                    switch (roll_dice(1, 5)) {
                     case 1: x = 1; break;
                     case 2: x = 2; break;
                     case 3: x = 3; break;
@@ -797,10 +799,10 @@ void far sub_s010_1432_11aa(int t)
             }
             if ((f = (int)((v & 0xf0) >> 4)) != 0) {
                 D_e03f->cell[r][c] &= ~0xf0L;
-                if ((v & 0x0f00000fL) == 0 && sub_s004_0e76_20f6(1, 3) > 1) {
+                if ((v & 0x0f00000fL) == 0 && roll_dice(1, 3) > 1) {
                     switch (f) {
                     case 11:
-                        switch (sub_s004_0e76_20f6(1, 6)) {
+                        switch (roll_dice(1, 6)) {
                         case 1: f = 1; break;
                         case 2: f = 2; break;
                         case 3: f = 3; break;
@@ -814,7 +816,7 @@ void far sub_s010_1432_11aa(int t)
                         break;
                     }
                     D_e03f->cell[r][c] |= (unsigned long)(f & 0xf) << 4;
-                    rr = sub_s004_0e76_20f6(1, 4) - 1;
+                    rr = roll_dice(1, 4) - 1;
                     D_e03f->cell[r][c] |= (unsigned long)(rr & 3) << 28;
                 }
             }
@@ -840,7 +842,7 @@ int far sub_s010_1432_1516(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
 
     for (i = 0; i < 2; i++) {
         sprintf(name, "icity.70%d", i);
-        sub_root_05d9_019a(name, (struct level far *)(D_e03f + i));
+        file_read_all(name, (struct level far *)(D_e03f + i));
         D_e03f[i].x1f40 = i;
     }
     sub_s010_1432_2030(t, 0, 1);
@@ -853,7 +855,7 @@ int far sub_s010_1432_1516(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
         break;
     case 0x2c:
     case 0x2d:
-        rv = id = sub_s004_0e76_20f6(1, 6) + 1;
+        rv = id = roll_dice(1, 6) + 1;
         lb = 1;
         break;
     default:
@@ -880,38 +882,38 @@ int far sub_s010_1432_1516(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     switch (p6) {
     default:
         if (ft1 >= 0 && fn1 > 0)
-            g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+            g1 = monster_type_map(0, ft1, fq1);
         if (ft2 >= 0 && fn2 > 0)
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+            g2 = monster_type_map(0, ft2, fq2);
         if (ft3 >= 0 && fn3 > 0)
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            g3 = monster_type_map(0, ft3, fq3);
         sub_s010_1432_2b42(p6, 0, 0, sub_s010_1432_2a2c(0, 3, &n), -1, 0, 0, 1, 1,
             g1, fn1, g2, fn2, g3, fn3);
         break;
     case 0x1f:
         if (ft1 >= 0 && fn1 > 0)
-            g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+            g1 = monster_type_map(0, ft1, fq1);
         if (ft2 >= 0 && fn2 > 0)
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+            g2 = monster_type_map(0, ft2, fq2);
         if (ft3 >= 0 && fn3 > 0)
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            g3 = monster_type_map(0, ft3, fq3);
         sub_s010_1432_2b42(p6, 0, 0, sub_s010_1432_2a2c(0, 2, &n), -1, 0, 0, 1, 1,
             g1, fn1, g2, fn2, g3, fn3);
         break;
     case 0x21:
         sub_s004_0e76_20dc();
         if (!(D_da34 & 1)) {
-            x = sub_s004_0e76_06aa(0, 0x18, 1);
-            y = sub_s004_0e76_06aa(0, ft1, fq1);
+            x = monster_type_map(0, 0x18, 1);
+            y = monster_type_map(0, ft1, fq1);
             a = sub_s010_1432_2a2c(0, 3, &n);
             b = sub_s010_1432_2a2c(0, 4, &n);
             sub_s010_1432_2b42(p6, 0, 0, a, -1, 0, 0, 1, 1, x, 1, y, fn1, -1, 0);
             sub_s010_1432_2b42(p6, 0, 0, b, -1, 0, 0, 0, 1, y, 2, -1, 0, -1, 0);
         }
         if (!(D_da34 & 2)) {
-            g1 = sub_s004_0e76_06aa(1, 0x1b, 1);
-            y = sub_s004_0e76_06aa(1, ft2, fq2);
-            x = sub_s004_0e76_06aa(1, ft3, fq3);
+            g1 = monster_type_map(1, 0x1b, 1);
+            y = monster_type_map(1, ft2, fq2);
+            x = monster_type_map(1, ft3, fq3);
             a = sub_s010_1432_2a2c(1, 5, &n);
             b = sub_s010_1432_2a2c(1, 6, &n);
             sub_s010_1432_2b42(p6, 1, 0, a, -1, 0, 0, 0, 1, g1, 1, y, 2, x, 2);
@@ -922,22 +924,22 @@ int far sub_s010_1432_1516(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     case 0x2d:
         sub_s004_0e76_20dc();
         if (!(D_da34 & 1)) {
-            g1 = sub_s004_0e76_06aa(0, ft2, fq2);
-            y = sub_s004_0e76_06aa(0, ft3, fq3);
+            g1 = monster_type_map(0, ft2, fq2);
+            y = monster_type_map(0, ft3, fq3);
             x = sub_s010_1432_2a2c(0, 2, &n);
             b = sub_s010_1432_2a2c(0, 5, &n);
             sub_s010_1432_2b42(p6, 0, 0, x, -1, 0, 0, 0, 1, g1, 1, y, 3, -1, 0);
             sub_s010_1432_2b42(p6, 0, 0, b, -1, 0, 0, 0, 1, g1, 1, y, 3, -1, 0);
         }
         if (!(D_da34 & 2)) {
-            g2 = sub_s004_0e76_06aa(1, ft1, fq1);
-            sub_s004_0e76_06aa(1, ft2, fq2);
+            g2 = monster_type_map(1, ft1, fq1);
+            monster_type_map(1, ft2, fq2);
             do
-                x = sub_s004_0e76_20f6(1, 6) + 1;
+                x = roll_dice(1, 6) + 1;
             while (x == rv);
             a = x;
             do
-                y = sub_s004_0e76_20f6(1, 6) + 1;
+                y = roll_dice(1, 6) + 1;
             while (y == rv || a == y);
             x = sub_s010_1432_2a2c(1, a, &n);
             y = sub_s010_1432_2a2c(1, y, &n);
@@ -948,7 +950,7 @@ int far sub_s010_1432_1516(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     }
     for (i = 0; i < 2; i++) {
         D_e03f[i].nobj = 0;
-        sub_s010_1432_2de0(i);
+        level_save(i);
     }
     return 2;
 }
@@ -965,9 +967,9 @@ struct group {                          /* enemy group, 0x1e bytes */
     char p0e[6];
     struct subgrp sub;                  /* 14 */
 };
-extern struct group _based(D_dadd) *D_db2d;
-extern int D_db05[];
-int far sub_s004_0e76_2160();
+extern struct group _based(enemy_seg) *bf_groups;
+extern int group_count[];
+int far dir_between();
 
 #pragma optimize("a", on)
 void far sub_s010_1432_1abc(struct level far *lv, int id)
@@ -985,7 +987,7 @@ void far sub_s010_1432_1abc(struct level far *lv, int id)
 #pragma optimize("", on)
 
 struct mon { char p0[0x8c]; char x8c; char p8d[0xd6 - 0x8d]; };
-extern struct mon _based(D_dadd) *D_db2b;
+extern struct mon _based(enemy_seg) *bf_monsters;
 
 /* castle/keep battle (type 9): one or two levels icity.80%d, returns the number of levels,
  * *res = level the party starts in */
@@ -1026,7 +1028,7 @@ int far sub_s010_1432_1b22(int p6, int t, int *res, int ft1, int fq1, int fn1, i
     }
     for (i = first; i <= last; i++) {
         sprintf(name, "icity.80%d", i);
-        sub_root_05d9_019a(name, (struct level far *)(D_e03f + i));
+        file_read_all(name, (struct level far *)(D_e03f + i));
         D_e03f[i].x1f40 = i - first;
     }
     sub_s010_1432_2030(t, first, last);
@@ -1042,31 +1044,31 @@ int far sub_s010_1432_1b22(int p6, int t, int *res, int ft1, int fq1, int fn1, i
     switch (p6) {
     default:
         if (ft1 >= 0 && fn1 > 0)
-            g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+            g1 = monster_type_map(0, ft1, fq1);
         if (ft2 >= 0 && fn2 > 0)
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+            g2 = monster_type_map(0, ft2, fq2);
         if (ft3 >= 0 && fn3 > 0)
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            g3 = monster_type_map(0, ft3, fq3);
         sub_s010_1432_2b42(p6, 0, 0, sub_s010_1432_2a2c(0, 6, &n), -1, 0, 0, 1, 1,
             g1, fn1, g2, fn2, g3, fn3);
         break;
     case 0x1c:
         if (ft1 >= 0 && fn1 > 0)
-            g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+            g1 = monster_type_map(0, ft1, fq1);
         if (ft2 >= 0 && fn2 > 0)
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+            g2 = monster_type_map(0, ft2, fq2);
         if (ft3 >= 0 && fn3 > 0)
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            g3 = monster_type_map(0, ft3, fq3);
         sub_s010_1432_2b42(p6, 1, 1, sub_s010_1432_2a2c(1, 2, &n), -1, 0, 0, 1, 4,
             g1, fn1, g2, fn2, g3, fn3);
         break;
     case 0x1d:
         if (ft1 >= 0 && fn1 > 0)
-            g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+            g1 = monster_type_map(0, ft1, fq1);
         if (ft2 >= 0 && fn2 > 0)
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+            g2 = monster_type_map(0, ft2, fq2);
         if (ft3 >= 0 && fn3 > 0)
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            g3 = monster_type_map(0, ft3, fq3);
         switch (n) {
         case 1: a = 2; b = 5; break;
         case 2: a = 4; b = 5; break;
@@ -1089,17 +1091,17 @@ int far sub_s010_1432_1b22(int p6, int t, int *res, int ft1, int fq1, int fn1, i
     case 0x2a:
         sub_s004_0e76_20dc();
         if (!(D_da34 & 1)) {
-            s = sub_s004_0e76_06aa(0, 0x18, 1);
-            g2 = sub_s004_0e76_06aa(0, ft2, fq2);
-            g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+            s = monster_type_map(0, 0x18, 1);
+            g2 = monster_type_map(0, ft2, fq2);
+            g3 = monster_type_map(0, ft3, fq3);
             sub_s010_1432_2b42(p6, 0, 0, sub_s010_1432_2a2c(0, 6, &n), -1, 0, 0, 1, 2,
                 s, 1, g2, fn2, g3, fn3);
         }
         if (!(D_da34 & 2)) {
-            s = sub_s004_0e76_06aa(1, 0x4b, 1);
-            D_db2b[12 + s].x8c = 1;
-            g2 = sub_s004_0e76_06aa(1, ft2, 5);
-            g3 = sub_s004_0e76_06aa(1, ft2, fq2);
+            s = monster_type_map(1, 0x4b, 1);
+            bf_monsters[12 + s].x8c = 1;
+            g2 = monster_type_map(1, ft2, 5);
+            g3 = monster_type_map(1, ft2, fq2);
             sub_s010_1432_2b42(p6, 1, 0, sub_s010_1432_2a2c(1, 3, &n), -1, 0, 0, 1, 1,
                 s, 1, g2, fn2, g3, fn3);
         }
@@ -1107,7 +1109,7 @@ int far sub_s010_1432_1b22(int p6, int t, int *res, int ft1, int fq1, int fn1, i
     }
     for (i = first; i <= last; i++) {
         D_e03f[i].nobj = 0;
-        sub_s010_1432_2de0(i);
+        level_save(i);
     }
     *res -= first;
     return last - first + 1;
@@ -1182,7 +1184,7 @@ void far sub_s010_1432_2030(int t, int k0, int k1)
                     }
                     if (f) {
                         lv->cell[r][c] |= (f & 0xf) << 4;
-                        lv->cell[r][c] |= (unsigned long)((long)(sub_s004_0e76_20f6(1, 4) - 1) & 3) << 28;
+                        lv->cell[r][c] |= (unsigned long)((long)(roll_dice(1, 4) - 1) & 3) << 28;
                     }
                 }
                 lo = lv->hgt[r][c] & 0xf;
@@ -1229,15 +1231,15 @@ void far sub_s010_1432_2030(int t, int k0, int k1)
                         n = 0;
                         switch (b) {
                         case 8:
-                            if (k == 0 && sub_s004_0e76_20f6(1, 100) < 5)
+                            if (k == 0 && roll_dice(1, 100) < 5)
                                 n = 1;
                             break;
                         case 16:
                             if (of == 2)
                                 n = 2;
-                            else if (k == 0 && sub_s004_0e76_20f6(1, 100) < 5)
+                            else if (k == 0 && roll_dice(1, 100) < 5)
                                 n = 1;
-                            else if (k == 1 && sub_s004_0e76_20f6(1, 100) < 5)
+                            else if (k == 1 && roll_dice(1, 100) < 5)
                                 n = 4;
                             break;
                         default:
@@ -1289,12 +1291,12 @@ int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     int f1;
     struct obj far *o;
 
-    sub_root_05d9_019a("icity.600", (struct level far *)D_e03f);
-    k = sub_s004_0e76_20f6(1, 8) - 1;
-    sub_s004_1091_000a((struct level far *)D_e03f, k, 1);
+    file_read_all("icity.600", (struct level far *)D_e03f);
+    k = roll_dice(1, 8) - 1;
+    map_turn((struct level far *)D_e03f, k, 1);
     D_e03f->x1f40 = 0;
     sub_s010_1432_26f8(t);
-    *(volatile char *)&a = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    *(volatile char *)&a = roll_dice(1, 2) == 1 ? 1 : 0;
     f1 = ft1;
     k = a ? 0x16 : 0x17;
     k = sub_s010_1432_2a2c(0, k, &n);
@@ -1305,24 +1307,24 @@ int far sub_s010_1432_2526(int p6, int t, int ft1, int fq1, int fn1, int ft2, in
     D_e03f->x1f51 = o->x0c;
     m3 = m2 = m1 = -1;
     if (f1 >= 0 && fn1 > 0)
-        m1 = sub_s004_0e76_06aa(0, f1, fq1);
+        m1 = monster_type_map(0, f1, fq1);
     if (ft2 >= 0 && fn2 > 0)
-        m2 = sub_s004_0e76_06aa(0, ft2, fq2);
+        m2 = monster_type_map(0, ft2, fq2);
     if (ft3 >= 0 && fn3 > 0)
-        m3 = sub_s004_0e76_06aa(0, ft3, fq3);
+        m3 = monster_type_map(0, ft3, fq3);
     b = 0;
     switch (p6) {
     case 0x15:
         b = 1;
         break;
     }
-    *(volatile char *)&c = sub_s004_0e76_20f6(1, 2) == 1 ? 1 : 0;
+    *(volatile char *)&c = roll_dice(1, 2) == 1 ? 1 : 0;
     k = sub_s010_1432_114e(a, c, b);
     k = sub_s010_1432_2a2c(0, k, &n);
     sub_s010_1432_2b42(p6, 0, 0, k,
         -1, 0, 0, 1, 1, m1, fn1, m2, fn2, m3, fn3);
     D_e03f->nobj = 0;
-    sub_s010_1432_2de0(0);
+    level_save(0);
     return 1;
 }
 #pragma optimize("", on)
@@ -1351,14 +1353,14 @@ void far sub_s010_1432_26f8(int t)
                 D_e03f->cell[r][c] &= ~0xf0L;
                 switch ((int)f) {
                 case 11:
-                    if (sub_s004_0e76_20f6(1, 100) > pa)
-                        f = sub_s004_0e76_20f6(1, 3);
+                    if (roll_dice(1, 100) > pa)
+                        f = roll_dice(1, 3);
                     else
                         f = 0;
                     break;
                 case 12:
-                    if (sub_s004_0e76_20f6(1, 100) > pb)
-                        f = sub_s004_0e76_20f6(1, 3) + 4;
+                    if (roll_dice(1, 100) > pb)
+                        f = roll_dice(1, 3) + 4;
                     else
                         f = 0;
                     break;
@@ -1371,15 +1373,15 @@ void far sub_s010_1432_26f8(int t)
                 }
                 if (f) {
                     D_e03f->cell[r][c] |= (f & 0xf) << 4;
-                    rr = sub_s004_0e76_20f6(1, 4) - 1;
+                    rr = roll_dice(1, 4) - 1;
                     D_e03f->cell[r][c] |= (unsigned long)(rr & 3) << 28;
                 }
             }
             if (D_e03f->hgt[r][c] & 0xf0) {
-                hi = sub_s004_0e76_20f6(1, 3);
+                hi = roll_dice(1, 3);
                 lo = 0;
-                if (f == 0 && sub_s004_0e76_20f6(1, 100) <= pc)
-                    lo = sub_s004_0e76_20f6(1, 5) + 9;
+                if (f == 0 && roll_dice(1, 100) <= pc)
+                    lo = roll_dice(1, 5) + 9;
                 D_e03f->hgt[r][c] = (lo & 0xf) | (hi << 4);
             }
             for (k = 0; k <= 24; k += 8)
@@ -1421,7 +1423,7 @@ int far sub_s010_1432_2a2c(int k, int id, int *n)
     }
     if (cnt == 0)
         return *n = 0;
-    *n = sub_s004_0e76_20f6(1, cnt);
+    *n = roll_dice(1, cnt);
     c = 0;
     for (i = 0; i < lv->nobj && *n > c; i++) {
         o = &lv->obj[i];
@@ -1450,7 +1452,7 @@ void far sub_s010_1432_2b42(int p6, int lvl, int lb, int idx, int idx2, char x10
     if (idx < 0 || idx >= 55)
         return;
     d = lvl - lb;
-    g = &D_db2d[d * 10 + D_db05[d]];
+    g = &bf_groups[d * 10 + group_count[d]];
     lv = D_e03f + lvl;
     g->pos = lv->obj[idx].x0 + 16;
     g->pos2 = lv->obj[idx].x2 + 8;
@@ -1458,7 +1460,7 @@ void far sub_s010_1432_2b42(int p6, int lvl, int lb, int idx, int idx2, char x10
     g->x04 = r << 4;
     g->x07 = 0;
     if (flag)
-        lv->x1f50 = sub_s004_0e76_2160(lv->x1f4c / 32, lv->x1f4e / 16, g->pos / 32, g->pos2 / 16);
+        lv->x1f50 = dir_between(lv->x1f4c / 32, lv->x1f4e / 16, g->pos / 32, g->pos2 / 16);
     j = 0;
     if (t1 >= 0 && t1 < 12 && n1 > 0) {
         g->type[0] = t1;
@@ -1476,7 +1478,7 @@ void far sub_s010_1432_2b42(int p6, int lvl, int lb, int idx, int idx2, char x10
             h->x1 = 16;
             h->x6 = x10;
             h->x7 = x12;
-            h->x8 = sub_s004_0e76_2160((h->x2 = lv->obj[idx2].x0 + 16) / 32,
+            h->x8 = dir_between((h->x2 = lv->obj[idx2].x0 + 16) / 32,
                 (h->x4 = lv->obj[idx2].x2 + 8) / 16, lv->x1f4c / 32, lv->x1f4e / 16);
         }
     }
@@ -1486,12 +1488,12 @@ void far sub_s010_1432_2b42(int p6, int lvl, int lb, int idx, int idx2, char x10
         j++;
     }
     if (j > 0)
-        D_db05[d]++;
+        group_count[d]++;
 }
 #pragma optimize("", on)
 
 /* save level buffer k as level%d.flr */
-void far sub_s010_1432_2de0(int k)
+void far level_save(int k)
 {
     char name[0x42];
 

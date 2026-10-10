@@ -10,39 +10,41 @@
  * starting at 0 or 3); 01a8 row colour (odd rows 9, even 15); 01c6 combatant record dump
  * (D_9c55, labels D_1f2c[26]); 0708 attributes/skills (D_9cb2, labels D_1f60[25]);
  * 0c0e skills and far table F_20a5_6234[k][D_d6fb[k]] (labels D_1f92[24]). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct gfx { char f00; char pad[0xb]; int f0c; };
 
 extern unsigned long D_1fc2;
 extern int D_0190;
-extern char D_9085[];
-extern struct gfx *D_0104;
-extern struct gfx *D_0154, *D_017c;
+extern char msg_buf[];
+extern struct gfx *side_win;
+extern struct gfx *card_window2, *card_window;
 extern int D_11c8;
 extern int D_17b0;
 extern char *D_1f2c[], *D_1f60[], *D_1f92[];
-extern char D_9c55[][0x80], D_9cb2[][0x80], D_9cc0[][0x80];
-extern char D_ca57[], D_d493[], D_ca64[], D_caa7[], D_d3fe[], D_a6d3[], D_d41b[], D_a6b4[];
+extern char combatants[][0x80], member_attrs[][0x80], D_9cc0[][0x80];
+extern char cbt_anim[], cbt_attack_rate[], cbt_action[], D_caa7[], D_d3fe[], cbt_moving[], D_d41b[], cbt_floor[];
 extern unsigned char D_d6fb[];
 extern unsigned char far F_20a5_6234[][0xfa];
 
 unsigned _dos_allocmem(unsigned, unsigned *);
-void far sub_root_047c_0952();
-void far sub_root_0265_0882();
-void far sub_root_0265_006e();
+void far gfx_fill_rect();
+void far ltoa_commas();
+void far draw_text();
 void far sub_root_0410_0302(int);
-void far sub_root_047c_12c3(void);
-void far sub_root_0000_1588(int);
-void far sub_root_0000_1716(int);
-void far sub_root_047c_1293(void);
+void far mouse_hide(void);
+void far party_panel_frames(int);
+void far party_panel_rows(int);
+void far mouse_show(void);
 void far sub_root_047c_059e(int);
-int far sub_root_047c_053e(int);
-int far sub_root_047c_0744(void);
-void far sub_root_0000_13a0(void);
-void far vec_1c2f(int);
-void far sub_s014_14f7_0008(void);
-void far sub_root_0265_09b2();
-void far sub_s015_1ef8_0000(void);
+int far gfx_page_segment(int);
+int far get_key(void);
+void far quit_to_dos(void);
+void far floor_view_draw_vec(int);
+void far combat_draw(void);
+void far itoa_commas();
+void far debug_mem_track(void);
 void far sub_s015_1ef8_0046(void);
 void far sub_s015_1ef8_00dc(void);
 void far sub_s015_1ef8_01a8(int);
@@ -50,7 +52,7 @@ void far sub_s015_1ef8_01c6(int);
 void far sub_s015_1ef8_0708(int);
 void far sub_s015_1ef8_0c0e(int);
 
-void far sub_s015_1ef8_0000(void)
+void far debug_mem_track(void)
 {
     unsigned seg;
     unsigned long sz;
@@ -63,16 +65,16 @@ void far sub_s015_1ef8_0000(void)
 
 void far sub_s015_1ef8_0046(void)
 {
-    sub_root_047c_0952(D_0190, 0, 0, 0x3c, 0x3c, 0);
-    sub_root_0265_0882(D_1fc2, D_9085);
-    sub_root_0265_006e(D_0190, 3, 3, D_9085);
-    sub_root_0265_0882(0x9b080L - D_1fc2, D_9085);
-    sub_root_0265_006e(D_0190, 3, 0xd, D_9085);
+    gfx_fill_rect(D_0190, 0, 0, 0x3c, 0x3c, 0);
+    ltoa_commas(D_1fc2, msg_buf);
+    draw_text(D_0190, 3, 3, msg_buf);
+    ltoa_commas(0x9b080L - D_1fc2, msg_buf);
+    draw_text(D_0190, 3, 0xd, msg_buf);
     sub_root_0410_0302(200);
-    sub_root_047c_12c3();
-    sub_root_0000_1588(0x100);
-    sub_root_0000_1716(0x100);
-    sub_root_047c_1293();
+    mouse_hide();
+    party_panel_frames(0x100);
+    party_panel_rows(0x100);
+    mouse_show();
 }
 
 void far sub_s015_1ef8_00dc(void)
@@ -81,10 +83,10 @@ void far sub_s015_1ef8_00dc(void)
 
     if (D_11c8 == 0) {
         sub_root_047c_059e(D_11c8);
-        if (sub_root_047c_053e(0)) {
+        if (gfx_page_segment(0)) {
             D_11c8 ^= 1;
-            D_0154->f00 ^= 1;
-            D_017c->f00 ^= 1;
+            card_window2->f00 ^= 1;
+            card_window->f00 ^= 1;
         }
     }
     run = 1;
@@ -93,7 +95,7 @@ void far sub_s015_1ef8_00dc(void)
             sub_s015_1ef8_01c6(0);
             run++;
         }
-        switch (sub_root_047c_0744()) {
+        switch (get_key()) {
         case 0x11b:
             run = 0;
             break;
@@ -116,113 +118,113 @@ void far sub_s015_1ef8_00dc(void)
             sub_s015_1ef8_0c0e(3);
             break;
         case 0x1000:
-            sub_root_0000_13a0();
+            quit_to_dos();
             break;
         }
     } while (run);
-    D_0104->f0c = 15;
-    vec_1c2f(D_17b0);
-    sub_s014_14f7_0008();
+    side_win->f0c = 15;
+    floor_view_draw_vec(D_17b0);
+    combat_draw();
 }
 
 void far sub_s015_1ef8_01a8(int row)
 {
-    D_0104->f0c = (row & 1) == 1 ? 9 : 15;
+    side_win->f0c = (row & 1) == 1 ? 9 : 15;
 }
 
 void far sub_s015_1ef8_01c6(int first)
 {
     int i, y, k, x, j;
 
-    sub_root_047c_0952(D_0104, 0, 0, 0x140, 0xc8, 0);
+    gfx_fill_rect(side_win, 0, 0, 0x140, 0xc8, 0);
     for (i = 0, y = 8; i < 26; i++) {
         sub_s015_1ef8_01a8(i + 1);
-        sub_root_0265_006e(D_0104, 0, y, D_1f2c[i]);
+        draw_text(side_win, 0, y, D_1f2c[i]);
         y += 7;
     }
     *(volatile int *)&j = 0;
     for (k = first, x = 0x3c; k < first + 10; k++) {
-        sub_root_0265_09b2(k, D_9085);
+        itoa_commas(k, msg_buf);
         sub_s015_1ef8_01a8(0);
-        sub_root_0265_006e(D_0104, x, 0, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][0], D_9085);
+        draw_text(side_win, x, 0, msg_buf);
+        itoa_commas(*(int *)&combatants[k][0], msg_buf);
         sub_s015_1ef8_01a8(7);
-        sub_root_0265_006e(D_0104, x, 7, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][2], D_9085);
+        draw_text(side_win, x, 7, msg_buf);
+        itoa_commas(*(int *)&combatants[k][2], msg_buf);
         sub_s015_1ef8_01a8(0x0e);
-        sub_root_0265_006e(D_0104, x, 0x0e, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][4], D_9085);
+        draw_text(side_win, x, 0x0e, msg_buf);
+        itoa_commas(*(int *)&combatants[k][4], msg_buf);
         sub_s015_1ef8_01a8(0x15);
-        sub_root_0265_006e(D_0104, x, 0x15, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][6], D_9085);
+        draw_text(side_win, x, 0x15, msg_buf);
+        itoa_commas(*(int *)&combatants[k][6], msg_buf);
         sub_s015_1ef8_01a8(0x1c);
-        sub_root_0265_006e(D_0104, x, 0x1c, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][8], D_9085);
+        draw_text(side_win, x, 0x1c, msg_buf);
+        itoa_commas(*(int *)&combatants[k][8], msg_buf);
         sub_s015_1ef8_01a8(0x23);
-        sub_root_0265_006e(D_0104, x, 0x23, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][0x0a], D_9085);
+        draw_text(side_win, x, 0x23, msg_buf);
+        itoa_commas(*(int *)&combatants[k][0x0a], msg_buf);
         sub_s015_1ef8_01a8(0x2a);
-        sub_root_0265_006e(D_0104, x, 0x2a, D_9085);
-        sub_root_0265_09b2(*(int *)&D_9c55[k][0x10], D_9085);
+        draw_text(side_win, x, 0x2a, msg_buf);
+        itoa_commas(*(int *)&combatants[k][0x10], msg_buf);
         sub_s015_1ef8_01a8(0x31);
-        sub_root_0265_006e(D_0104, x, 0x31, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x14], D_9085);
+        draw_text(side_win, x, 0x31, msg_buf);
+        itoa_commas(combatants[k][0x14], msg_buf);
         sub_s015_1ef8_01a8(0x38);
-        sub_root_0265_006e(D_0104, x, 0x38, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x18], D_9085);
+        draw_text(side_win, x, 0x38, msg_buf);
+        itoa_commas(combatants[k][0x18], msg_buf);
         sub_s015_1ef8_01a8(0x3f);
-        sub_root_0265_006e(D_0104, x, 0x3f, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x19], D_9085);
+        draw_text(side_win, x, 0x3f, msg_buf);
+        itoa_commas(combatants[k][0x19], msg_buf);
         sub_s015_1ef8_01a8(0x46);
-        sub_root_0265_006e(D_0104, x, 0x46, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x1a], D_9085);
+        draw_text(side_win, x, 0x46, msg_buf);
+        itoa_commas(combatants[k][0x1a], msg_buf);
         sub_s015_1ef8_01a8(0x4d);
-        sub_root_0265_006e(D_0104, x, 0x4d, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x1b], D_9085);
+        draw_text(side_win, x, 0x4d, msg_buf);
+        itoa_commas(combatants[k][0x1b], msg_buf);
         sub_s015_1ef8_01a8(0x54);
-        sub_root_0265_006e(D_0104, x, 0x54, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x4a], D_9085);
+        draw_text(side_win, x, 0x54, msg_buf);
+        itoa_commas(combatants[k][0x4a], msg_buf);
         sub_s015_1ef8_01a8(0x5b);
-        sub_root_0265_006e(D_0104, x, 0x5b, D_9085);
-        sub_root_0265_09b2((unsigned char)D_9c55[k][0x1f], D_9085);
+        draw_text(side_win, x, 0x5b, msg_buf);
+        itoa_commas((unsigned char)combatants[k][0x1f], msg_buf);
         sub_s015_1ef8_01a8(0x62);
-        sub_root_0265_006e(D_0104, x, 0x62, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x22], D_9085);
+        draw_text(side_win, x, 0x62, msg_buf);
+        itoa_commas(combatants[k][0x22], msg_buf);
         sub_s015_1ef8_01a8(0x69);
-        sub_root_0265_006e(D_0104, x, 0x69, D_9085);
-        sub_root_0265_09b2(D_ca57[k], D_9085);
+        draw_text(side_win, x, 0x69, msg_buf);
+        itoa_commas(cbt_anim[k], msg_buf);
         sub_s015_1ef8_01a8(0x70);
-        sub_root_0265_006e(D_0104, x, 0x70, D_9085);
-        sub_root_0265_09b2(D_d493[k], D_9085);
+        draw_text(side_win, x, 0x70, msg_buf);
+        itoa_commas(cbt_attack_rate[k], msg_buf);
         sub_s015_1ef8_01a8(0x77);
-        sub_root_0265_006e(D_0104, x, 0x77, D_9085);
-        sub_root_0265_09b2(D_ca64[k], D_9085);
+        draw_text(side_win, x, 0x77, msg_buf);
+        itoa_commas(cbt_action[k], msg_buf);
         sub_s015_1ef8_01a8(0x7e);
-        sub_root_0265_006e(D_0104, x, 0x7e, D_9085);
-        sub_root_0265_09b2(D_caa7[k], D_9085);
+        draw_text(side_win, x, 0x7e, msg_buf);
+        itoa_commas(D_caa7[k], msg_buf);
         sub_s015_1ef8_01a8(0x85);
-        sub_root_0265_006e(D_0104, x, 0x85, D_9085);
-        sub_root_0265_09b2(D_d3fe[k], D_9085);
+        draw_text(side_win, x, 0x85, msg_buf);
+        itoa_commas(D_d3fe[k], msg_buf);
         sub_s015_1ef8_01a8(0x8c);
-        sub_root_0265_006e(D_0104, x, 0x8c, D_9085);
-        sub_root_0265_09b2((unsigned char)D_a6d3[k], D_9085);
+        draw_text(side_win, x, 0x8c, msg_buf);
+        itoa_commas((unsigned char)cbt_moving[k], msg_buf);
         sub_s015_1ef8_01a8(0x93);
-        sub_root_0265_006e(D_0104, x, 0x93, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x57], D_9085);
+        draw_text(side_win, x, 0x93, msg_buf);
+        itoa_commas(combatants[k][0x57], msg_buf);
         sub_s015_1ef8_01a8(0x9a);
-        sub_root_0265_006e(D_0104, x, 0x9a, D_9085);
-        sub_root_0265_09b2(D_9c55[k][0x56], D_9085);
+        draw_text(side_win, x, 0x9a, msg_buf);
+        itoa_commas(combatants[k][0x56], msg_buf);
         sub_s015_1ef8_01a8(0x0a1);
-        sub_root_0265_006e(D_0104, x, 0x0a1, D_9085);
-        sub_root_0265_09b2(D_d41b[k], D_9085);
+        draw_text(side_win, x, 0x0a1, msg_buf);
+        itoa_commas(D_d41b[k], msg_buf);
         sub_s015_1ef8_01a8(0x0a8);
-        sub_root_0265_006e(D_0104, x, 0x0a8, D_9085);
-        sub_root_0265_09b2((unsigned char)D_9c55[k][0x20], D_9085);
+        draw_text(side_win, x, 0x0a8, msg_buf);
+        itoa_commas((unsigned char)combatants[k][0x20], msg_buf);
         sub_s015_1ef8_01a8(0x0af);
-        sub_root_0265_006e(D_0104, x, 0x0af, D_9085);
-        sub_root_0265_09b2((unsigned char)D_9c55[k][0x21], D_9085);
+        draw_text(side_win, x, 0x0af, msg_buf);
+        itoa_commas((unsigned char)combatants[k][0x21], msg_buf);
         sub_s015_1ef8_01a8(0x0b6);
-        sub_root_0265_006e(D_0104, x, 0x0b6, D_9085);
+        draw_text(side_win, x, 0x0b6, msg_buf);
         x += 0x19;
     }
 }
@@ -231,92 +233,92 @@ void far sub_s015_1ef8_0708(int first)
 {
     int i, y, k, x, j;
 
-    sub_root_047c_0952(D_0104, 0, 0, 0x140, 0xc8, 0);
+    gfx_fill_rect(side_win, 0, 0, 0x140, 0xc8, 0);
     for (i = 0, y = 8; i < 25; i++) {
         sub_s015_1ef8_01a8(i + 1);
-        sub_root_0265_006e(D_0104, 0, y, D_1f60[i]);
+        draw_text(side_win, 0, y, D_1f60[i]);
         y += 7;
     }
     *(volatile int *)&j = 0;
     for (k = first, x = 0x3c; k < first + 10; k++) {
-        sub_root_0265_09b2(k, D_9085);
+        itoa_commas(k, msg_buf);
         sub_s015_1ef8_01a8(0);
-        sub_root_0265_006e(D_0104, x, 0, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(7);
-        sub_root_0265_006e(D_0104, x, 7, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][7], D_9085);
+        draw_text(side_win, x, 7, msg_buf);
+        itoa_commas(member_attrs[k][7], msg_buf);
         sub_s015_1ef8_01a8(0x0e);
-        sub_root_0265_006e(D_0104, x, 0x0e, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][1], D_9085);
+        draw_text(side_win, x, 0x0e, msg_buf);
+        itoa_commas(member_attrs[k][1], msg_buf);
         sub_s015_1ef8_01a8(0x15);
-        sub_root_0265_006e(D_0104, x, 0x15, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][8], D_9085);
+        draw_text(side_win, x, 0x15, msg_buf);
+        itoa_commas(member_attrs[k][8], msg_buf);
         sub_s015_1ef8_01a8(0x1c);
-        sub_root_0265_006e(D_0104, x, 0x1c, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][2], D_9085);
+        draw_text(side_win, x, 0x1c, msg_buf);
+        itoa_commas(member_attrs[k][2], msg_buf);
         sub_s015_1ef8_01a8(0x23);
-        sub_root_0265_006e(D_0104, x, 0x23, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][3], D_9085);
+        draw_text(side_win, x, 0x23, msg_buf);
+        itoa_commas(member_attrs[k][3], msg_buf);
         sub_s015_1ef8_01a8(0x2a);
-        sub_root_0265_006e(D_0104, x, 0x2a, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][4], D_9085);
+        draw_text(side_win, x, 0x2a, msg_buf);
+        itoa_commas(member_attrs[k][4], msg_buf);
         sub_s015_1ef8_01a8(0x31);
-        sub_root_0265_006e(D_0104, x, 0x31, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][5], D_9085);
+        draw_text(side_win, x, 0x31, msg_buf);
+        itoa_commas(member_attrs[k][5], msg_buf);
         sub_s015_1ef8_01a8(0x38);
-        sub_root_0265_006e(D_0104, x, 0x38, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][6], D_9085);
+        draw_text(side_win, x, 0x38, msg_buf);
+        itoa_commas(member_attrs[k][6], msg_buf);
         sub_s015_1ef8_01a8(0x3f);
-        sub_root_0265_006e(D_0104, x, 0x3f, D_9085);
-        sub_root_0265_09b2(D_a6b4[k], D_9085);
+        draw_text(side_win, x, 0x3f, msg_buf);
+        itoa_commas(cbt_floor[k], msg_buf);
         sub_s015_1ef8_01a8(0x46);
-        sub_root_0265_006e(D_0104, x, 0x46, D_9085);
-        sub_root_0265_09b2(0, D_9085);
+        draw_text(side_win, x, 0x46, msg_buf);
+        itoa_commas(0, msg_buf);
         sub_s015_1ef8_01a8(0x4d);
-        sub_root_0265_006e(D_0104, x, 0x4d, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x4d, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x54);
-        sub_root_0265_006e(D_0104, x, 0x54, D_9085);
-        sub_root_0265_09b2((unsigned char)D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x54, msg_buf);
+        itoa_commas((unsigned char)member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x5b);
-        sub_root_0265_006e(D_0104, x, 0x5b, D_9085);
-        sub_root_0265_09b2((unsigned char)D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x5b, msg_buf);
+        itoa_commas((unsigned char)member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x62);
-        sub_root_0265_006e(D_0104, x, 0x62, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x62, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x69);
-        sub_root_0265_006e(D_0104, x, 0x69, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x69, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x70);
-        sub_root_0265_006e(D_0104, x, 0x70, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x70, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x77);
-        sub_root_0265_006e(D_0104, x, 0x77, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x77, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x7e);
-        sub_root_0265_006e(D_0104, x, 0x7e, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x7e, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x85);
-        sub_root_0265_006e(D_0104, x, 0x85, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x85, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x8c);
-        sub_root_0265_006e(D_0104, x, 0x8c, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x8c, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x93);
-        sub_root_0265_006e(D_0104, x, 0x93, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x93, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x9a);
-        sub_root_0265_006e(D_0104, x, 0x9a, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x9a, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x0a1);
-        sub_root_0265_006e(D_0104, x, 0x0a1, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x0a1, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x0a8);
-        sub_root_0265_006e(D_0104, x, 0x0a8, D_9085);
-        sub_root_0265_09b2(D_9cb2[k][0], D_9085);
+        draw_text(side_win, x, 0x0a8, msg_buf);
+        itoa_commas(member_attrs[k][0], msg_buf);
         sub_s015_1ef8_01a8(0x0af);
-        sub_root_0265_006e(D_0104, x, 0x0af, D_9085);
+        draw_text(side_win, x, 0x0af, msg_buf);
         x += 0x19;
     }
 }
@@ -325,88 +327,88 @@ void far sub_s015_1ef8_0c0e(int first)
 {
     int i, y, k, x;
 
-    sub_root_047c_0952(D_0104, 0, 0, 0x140, 0xc8, 0);
+    gfx_fill_rect(side_win, 0, 0, 0x140, 0xc8, 0);
     for (i = 0, y = 8; i < 24; i++) {
         sub_s015_1ef8_01a8(i + 1);
-        sub_root_0265_006e(D_0104, 0, y, D_1f92[i]);
+        draw_text(side_win, 0, y, D_1f92[i]);
         y += 7;
     }
     for (k = first, x = 0x3c; k < first + 10; k++) {
-        sub_root_0265_09b2(k, D_9085);
+        itoa_commas(k, msg_buf);
         sub_s015_1ef8_01a8(0);
-        sub_root_0265_006e(D_0104, x, 0, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0], D_9085);
+        draw_text(side_win, x, 0, msg_buf);
+        itoa_commas(D_9cc0[k][0], msg_buf);
         sub_s015_1ef8_01a8(7);
-        sub_root_0265_006e(D_0104, x, 7, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][1], D_9085);
+        draw_text(side_win, x, 7, msg_buf);
+        itoa_commas(D_9cc0[k][1], msg_buf);
         sub_s015_1ef8_01a8(0x0e);
-        sub_root_0265_006e(D_0104, x, 0x0e, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][2], D_9085);
+        draw_text(side_win, x, 0x0e, msg_buf);
+        itoa_commas(D_9cc0[k][2], msg_buf);
         sub_s015_1ef8_01a8(0x15);
-        sub_root_0265_006e(D_0104, x, 0x15, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][3], D_9085);
+        draw_text(side_win, x, 0x15, msg_buf);
+        itoa_commas(D_9cc0[k][3], msg_buf);
         sub_s015_1ef8_01a8(0x1c);
-        sub_root_0265_006e(D_0104, x, 0x1c, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][4], D_9085);
+        draw_text(side_win, x, 0x1c, msg_buf);
+        itoa_commas(D_9cc0[k][4], msg_buf);
         sub_s015_1ef8_01a8(0x23);
-        sub_root_0265_006e(D_0104, x, 0x23, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][5], D_9085);
+        draw_text(side_win, x, 0x23, msg_buf);
+        itoa_commas(D_9cc0[k][5], msg_buf);
         sub_s015_1ef8_01a8(0x2a);
-        sub_root_0265_006e(D_0104, x, 0x2a, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][6], D_9085);
+        draw_text(side_win, x, 0x2a, msg_buf);
+        itoa_commas(D_9cc0[k][6], msg_buf);
         sub_s015_1ef8_01a8(0x31);
-        sub_root_0265_006e(D_0104, x, 0x31, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x11], D_9085);
+        draw_text(side_win, x, 0x31, msg_buf);
+        itoa_commas(D_9cc0[k][0x11], msg_buf);
         sub_s015_1ef8_01a8(0x38);
-        sub_root_0265_006e(D_0104, x, 0x38, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x12], D_9085);
+        draw_text(side_win, x, 0x38, msg_buf);
+        itoa_commas(D_9cc0[k][0x12], msg_buf);
         sub_s015_1ef8_01a8(0x3f);
-        sub_root_0265_006e(D_0104, x, 0x3f, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x10], D_9085);
+        draw_text(side_win, x, 0x3f, msg_buf);
+        itoa_commas(D_9cc0[k][0x10], msg_buf);
         sub_s015_1ef8_01a8(0x46);
-        sub_root_0265_006e(D_0104, x, 0x46, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0d], D_9085);
+        draw_text(side_win, x, 0x46, msg_buf);
+        itoa_commas(D_9cc0[k][0x0d], msg_buf);
         sub_s015_1ef8_01a8(0x4d);
-        sub_root_0265_006e(D_0104, x, 0x4d, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0f], D_9085);
+        draw_text(side_win, x, 0x4d, msg_buf);
+        itoa_commas(D_9cc0[k][0x0f], msg_buf);
         sub_s015_1ef8_01a8(0x54);
-        sub_root_0265_006e(D_0104, x, 0x54, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0e], D_9085);
+        draw_text(side_win, x, 0x54, msg_buf);
+        itoa_commas(D_9cc0[k][0x0e], msg_buf);
         sub_s015_1ef8_01a8(0x5b);
-        sub_root_0265_006e(D_0104, x, 0x5b, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][7], D_9085);
+        draw_text(side_win, x, 0x5b, msg_buf);
+        itoa_commas(D_9cc0[k][7], msg_buf);
         sub_s015_1ef8_01a8(0x62);
-        sub_root_0265_006e(D_0104, x, 0x62, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][9], D_9085);
+        draw_text(side_win, x, 0x62, msg_buf);
+        itoa_commas(D_9cc0[k][9], msg_buf);
         sub_s015_1ef8_01a8(0x69);
-        sub_root_0265_006e(D_0104, x, 0x69, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0b], D_9085);
+        draw_text(side_win, x, 0x69, msg_buf);
+        itoa_commas(D_9cc0[k][0x0b], msg_buf);
         sub_s015_1ef8_01a8(0x70);
-        sub_root_0265_006e(D_0104, x, 0x70, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0a], D_9085);
+        draw_text(side_win, x, 0x70, msg_buf);
+        itoa_commas(D_9cc0[k][0x0a], msg_buf);
         sub_s015_1ef8_01a8(0x77);
-        sub_root_0265_006e(D_0104, x, 0x77, D_9085);
-        sub_root_0265_09b2(D_9cc0[k][0x0c], D_9085);
+        draw_text(side_win, x, 0x77, msg_buf);
+        itoa_commas(D_9cc0[k][0x0c], msg_buf);
         sub_s015_1ef8_01a8(0x7e);
-        sub_root_0265_006e(D_0104, x, 0x7e, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 0], D_9085);
+        draw_text(side_win, x, 0x7e, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 0], msg_buf);
         sub_s015_1ef8_01a8(0x85);
-        sub_root_0265_006e(D_0104, x, 0x85, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 1], D_9085);
+        draw_text(side_win, x, 0x85, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 1], msg_buf);
         sub_s015_1ef8_01a8(0x8c);
-        sub_root_0265_006e(D_0104, x, 0x8c, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 2], D_9085);
+        draw_text(side_win, x, 0x8c, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 2], msg_buf);
         sub_s015_1ef8_01a8(0x93);
-        sub_root_0265_006e(D_0104, x, 0x93, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 3], D_9085);
+        draw_text(side_win, x, 0x93, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 3], msg_buf);
         sub_s015_1ef8_01a8(0x9a);
-        sub_root_0265_006e(D_0104, x, 0x9a, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 4], D_9085);
+        draw_text(side_win, x, 0x9a, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 4], msg_buf);
         sub_s015_1ef8_01a8(0x0a1);
-        sub_root_0265_006e(D_0104, x, 0x0a1, D_9085);
-        sub_root_0265_09b2(F_20a5_6234[k][D_d6fb[k] + 5], D_9085);
+        draw_text(side_win, x, 0x0a1, msg_buf);
+        itoa_commas(F_20a5_6234[k][D_d6fb[k] + 5], msg_buf);
         sub_s015_1ef8_01a8(0x0a8);
-        sub_root_0265_006e(D_0104, x, 0x0a8, D_9085);
+        draw_text(side_win, x, 0x0a8, msg_buf);
         x += 0x19;
     }
 }

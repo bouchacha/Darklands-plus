@@ -15,6 +15,8 @@
  * 0x300e (8 x 0x2c), records at 0x316e/0x3236/0x3350/0x3382, monster set name at 0x33c8.
  * D_e047 (based on D_e045) = 4 level buffers; D_db35 (based on D_dae3) = 0x2e-byte item records.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -52,8 +54,8 @@ struct bfdesc {
     char pac[0xb0 - 0xac];
     char tb0;                           /* b0 */
 };
-extern _segment D_dadd;
-extern struct bfdesc _based(D_dadd) *D_db33;
+extern _segment enemy_seg;
+extern struct bfdesc _based(enemy_seg) *tile_desc;
 int far _fstrcpy();
 
 struct gent {                           /* 6 bytes */
@@ -142,8 +144,8 @@ struct level {                          /* battle map (0x33fc bytes) */
 struct item { char p0[0x25]; char x25; char p26[0x2e - 0x26]; };
 
 extern _segment D_dae3;
-extern struct item _based(D_dae3) *D_db35;
-extern struct level far F_20a5_0000;
+extern struct item _based(D_dae3) *bf_items;
+extern struct level far floor_img;
 extern _segment D_e045;
 extern struct level _based(D_e045) *D_e047;
 extern int D_e043;
@@ -152,7 +154,7 @@ extern char D_e051;
 extern int D_dff7;
 extern int D_c100;
 extern int D_da34;
-extern int D_db05[];
+extern int group_count[];
 struct group {                          /* enemy group, 0x1e bytes */
     int pos;                            /* 00 */
     int pos2;                           /* 02 */
@@ -164,20 +166,20 @@ struct group {                          /* enemy group, 0x1e bytes */
     char p0e[0x1e - 0x0e];
 };
 struct mon { char p0[0x0c]; char x0c; char p0d[0xd6 - 0x0d]; };
-extern struct group _based(D_dadd) *D_db2d;
-extern struct mon _based(D_dadd) *D_db2b;
-int far sub_s004_0e76_06aa();
+extern struct group _based(enemy_seg) *bf_groups;
+extern struct mon _based(enemy_seg) *bf_monsters;
+int far monster_type_map();
 static char D_15a2[4] = "Mn";            /* buffer name */
 static char D_15a6[] = "fortmons";
 unsigned far alloc_buffer(unsigned long, char *);
 void far free_buffer(int, char *);
 int far sprintf();
-int far sub_root_05ba_0004();
-int far sub_root_05d9_019a();
+int far mem_alloc();
+int far file_read_all();
 int far sub_s004_0e76_20dc();
-int far sub_s004_0e76_20f6();
+int far roll_dice();
 int far sub_s004_1262_0d0a();
-int far sub_s011_1432_0000();
+int far templar_build();
 void far sub_s011_1432_029e();
 void far sub_s011_1432_0484();
 void far sub_s011_1432_05c6();
@@ -196,7 +198,7 @@ int far sub_s011_1432_1fb2();
 void far sub_s011_1432_209e();
 
 /* Templar fortress: builds 16 rooms into 4 level buffers, saving them as level%d.flr. */
-int far sub_s011_1432_0000(int p_6, int *res, int p_a, int p_c, int p_e, int p_10,
+int far templar_build(int p_6, int *res, int p_a, int p_c, int p_e, int p_10,
     int p_12, int p_14, int p_16, int p_18)
 {
     int t;
@@ -262,7 +264,7 @@ int far sub_s011_1432_0000(int p_6, int *res, int p_a, int p_c, int p_e, int p_1
     return 0x10;
 }
 
-#define B(o) (((char _based(D_dadd) *)D_db33)[o])
+#define B(o) (((char _based(enemy_seg) *)tile_desc)[o])
 
 /* tile description for the fortress: 7 tile sets, all "fortmons" */
 #pragma optimize("a", on)
@@ -344,7 +346,7 @@ void far sub_s011_1432_0484(int n, int k)
     if (k < 0 || k >= 4)
         return;
     sprintf(name, "ifortmon.%03d", n);
-    sub_root_05d9_019a(name, (struct level far *)(D_e047 + k));
+    file_read_all(name, (struct level far *)(D_e047 + k));
     lv = D_e047 + k;
     lv->x1f40 = n;
     D_e049[k] = n;
@@ -411,7 +413,7 @@ void far sub_s011_1432_05c6(int n, char mode, struct level far *lv)
             lv->cell[r][c] &= ~0xf0L;
             if (t) {
                 lv->cell[r][c] |= (t & 0xf) << 4;
-                lv->cell[r][c] |= (unsigned long)(unsigned)((sub_s004_0e76_20f6(1, 4) - 1) & 3) << 28;
+                lv->cell[r][c] |= (unsigned long)(unsigned)((roll_dice(1, 4) - 1) & 3) << 28;
             }
             hi = lv->hgt[r][c] >> 4;
             switch (lv->hgt[r][c] & 0xf) {
@@ -423,8 +425,8 @@ void far sub_s011_1432_05c6(int n, char mode, struct level far *lv)
             }
             switch (hi) {
             case 4:
-                hi = sub_s004_0e76_20f6(1, 2) + 1;
-                if (mode && n < 4 && lo == 0 && sub_s004_0e76_20f6(1, 2) == 1)
+                hi = roll_dice(1, 2) + 1;
+                if (mode && n < 4 && lo == 0 && roll_dice(1, 2) == 1)
                     lo = 7;
                 break;
             default:
@@ -708,7 +710,7 @@ void far sub_s011_1432_096a(int k)
 
 int far sub_s011_1432_16d2(void)
 {
-    switch (sub_s004_0e76_20f6(1, 0x16)) {
+    switch (roll_dice(1, 0x16)) {
     case 1:
         return 0x96;
     case 2:
@@ -768,7 +770,7 @@ void far sub_s011_1432_1794(struct grp2 far *g, int type, char b, char c, char d
         e->b = b;
         e->c = c;
         e->d = d;
-        e->e = D_db35[type].x25;
+        e->e = bf_items[type].x25;
     }
 }
 #pragma optimize("", on)
@@ -854,12 +856,12 @@ void far sub_s011_1432_1a2a(struct level far *lv, int id, int mtype, int cnt, in
         cnt = cnt - 1 < 1 ? 1 : cnt - 1;
         cnt2 = cnt2 - 1 < 1 ? 1 : cnt2 - 1;
     }
-    t1 = sub_s004_0e76_06aa(lvl, mtype, cnt);
-    D_db2b[lvl * 12 + t1].x0c = x;
-    t2 = sub_s004_0e76_06aa(lvl, mtype2, cnt2);
+    t1 = monster_type_map(lvl, mtype, cnt);
+    bf_monsters[lvl * 12 + t1].x0c = x;
+    t2 = monster_type_map(lvl, mtype2, cnt2);
     if (t1 < 0 && t2 < 0)
         return;
-    g = &D_db2d[lvl * 10 + D_db05[lvl]];
+    g = &bf_groups[lvl * 10 + group_count[lvl]];
     j = 0;
     if (t1 >= 0 && n1 > 0) {
         g->type[0] = t1;
@@ -879,7 +881,7 @@ void far sub_s011_1432_1a2a(struct level far *lv, int id, int mtype, int cnt, in
         g->x07 = 0;
         if (neg)
             g->pos = -g->pos;
-        D_db05[lvl]++;
+        group_count[lvl]++;
     }
 }
 
@@ -1017,19 +1019,19 @@ int far sub_s011_1432_1fb2(int p_6, int p_8, int p_a, int count)
 
     sub_s004_0e76_20dc();
     sub_s011_1432_209e();
-    n = sub_s004_0e76_20f6(1, 2);
+    n = roll_dice(1, 2);
     sprintf(s.name, "imisctom.%03d", n);
-    s.lv = &F_20a5_0000;
-    sub_root_05d9_019a(s.name, s.lv);
-    F_20a5_0000.x1f40 = 0;
-    for (n = 0; n < 55 && F_20a5_0000.obj[n].type == 6; n++)
+    s.lv = &floor_img;
+    file_read_all(s.name, s.lv);
+    floor_img.x1f40 = 0;
+    for (n = 0; n < 55 && floor_img.obj[n].type == 6; n++)
         ;
-    F_20a5_0000.nobj = n;
-    F_20a5_0000.x1f42[0] = -2;
-    F_20a5_0000.x1f42[1] = -2;
-    F_20a5_0000.x1f42[2] = -2;
-    F_20a5_0000.x1f42[3] = -2;
-    F_20a5_0000.x1f42[4] = -2;
+    floor_img.nobj = n;
+    floor_img.x1f42[0] = -2;
+    floor_img.x1f42[1] = -2;
+    floor_img.x1f42[2] = -2;
+    floor_img.x1f42[3] = -2;
+    floor_img.x1f42[4] = -2;
     sub_s011_1432_05c6(0, 0, (*(struct level far * volatile *)&s.lv));
     for (n = 1; n <= count; n++)
         sub_s011_1432_1a2a((*(struct level far * volatile *)&s.lv), n, 0x2d, 2, 1, -1, 0, 0, 0, 0);
@@ -1043,18 +1045,18 @@ void far sub_s011_1432_209e(void)
     char keep[5] = "keep";
     char keep1[6] = "keep1";
 
-    D_db33->x00 = 0;
-    _fstrcpy((char far *)D_db33->set0, (char far *)keep);
-    D_db33->t0b = 2;
-    _fstrcpy((char far *)D_db33->set2, (char far *)keep1);
-    D_db33->t3e = 1;
-    _fstrcpy((char far *)D_db33->set3, (char far *)keep1);
-    D_db33->t71 = 1;
-    _fstrcpy((char far *)D_db33->set4, (char far *)keep);
-    D_db33->ta5[0] = 13;
-    D_db33->ta5[1] = 14;
-    D_db33->tab = 18;
-    D_db33->a3 = 12;
-    D_db33->tb0 = 16;
+    tile_desc->x00 = 0;
+    _fstrcpy((char far *)tile_desc->set0, (char far *)keep);
+    tile_desc->t0b = 2;
+    _fstrcpy((char far *)tile_desc->set2, (char far *)keep1);
+    tile_desc->t3e = 1;
+    _fstrcpy((char far *)tile_desc->set3, (char far *)keep1);
+    tile_desc->t71 = 1;
+    _fstrcpy((char far *)tile_desc->set4, (char far *)keep);
+    tile_desc->ta5[0] = 13;
+    tile_desc->ta5[1] = 14;
+    tile_desc->tab = 18;
+    tile_desc->a3 = 12;
+    tile_desc->tb0 = 16;
 }
 #pragma optimize("", on)

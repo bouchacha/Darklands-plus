@@ -25,6 +25,8 @@
      blocks out in source order whatever the source (gotos give identical code).
    - 05fe: only the long compares `size <= h.size` differ (6.00 loads h.size, 6.00A loads
      size, both source orders give the same code). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct hdr {                    /* block header, 0x18 bytes */
     int type;                   /* +00 1 = used, 2 = free */
@@ -37,7 +39,7 @@ struct ent {                    /* directory entry, 8 bytes */
     int type;                   /* +02 store */
     long off;                   /* +04 offset of the block header in the store */
 };
-struct store {                  /* per store type, 10 bytes (D_c09b[type], as in s028) */
+struct store {                  /* per store type, 10 bytes (swap_stores[type], as in s028) */
     int handle;
     long size;                  /* end of the store (end marker at size - 0x18) */
     long base;                  /* first block (after the directory, if held here) */
@@ -47,13 +49,13 @@ int far _fstrcmp(const char far *, const char far *);
 void far *far _fmemcpy(void far *, const void far *, unsigned);
 void far *far _fmemset(void far *, int, unsigned);
 char far *far _fstrcpy(char far *, const char far *);
-int far sub_s026_1ef8_0000(long, void far *, int, long);
-int far sub_s026_1ef8_008e(long, void far *, int, long);
-int far sub_s026_1f09_000c(long, void far *, int, long);
-int far sub_s026_1f09_00a6(long, void far *, int, long);
-int far sub_s026_1f1d_0000(long, void far *, int, long);
-int far sub_s026_1f1d_013e(long, void far *, int, long);
-void far vec_1937(void);
+int far xms_read(long, void far *, int, long);
+int far xms_write(long, void far *, int, long);
+int far swapfile_write(long, void far *, int, long);
+int far swapfile_read(long, void far *, int, long);
+int far ems_write(long, void far *, int, long);
+int far ems_read(long, void far *, int, long);
+void far swap_init_vec(void);
 
 extern struct hdr D_8fe;               /* an empty header */
 extern int D_8d4;                       /* store type of the directory */
@@ -64,18 +66,18 @@ extern int D_8d8;
 extern int D_8da;                       /* current store type */
 extern long D_8dc[];                    /* per store: offset of the free block */
 extern int D_c099;
-extern struct store D_c09b[];
+extern struct store swap_stores[];
 extern int (far *D_2674)(long);         /* allocate a block: returns the store type */
 extern int D_2678;
 extern struct hdr far F_2e38_001e;      /* header of the current block */
 extern struct ent far F_2e38_0036;      /* entry of the current block */
 
-int far sub_s027_1f48_0262(char *name);
+int far swap_hash(char *name);
 struct ent far *far sub_s027_1f48_00a2(void);
 struct ent far *far sub_s027_1f48_015a(void);
 int far sub_s027_1f48_020e(struct ent far *e);
 int far sub_s027_1f48_0238(struct ent far *e);
-int far sub_s027_1f48_0298(long size, char *name);
+int far swap_create(long size, char *name);
 long far sub_s027_1f48_05fe(long size);
 int far sub_s027_1f48_076c(char *name);
 int far sub_s027_1f48_0876(long len, void far *buf, int type, long off);
@@ -95,7 +97,7 @@ int far sub_s027_1f48_0000(char *name)
 
     h = D_8fe;
     *(volatile int *)&s.found = 0;
-    s.hash = sub_s027_1f48_0262(name);
+    s.hash = swap_hash(name);
     s.tbl = sub_s027_1f48_00a2();
     if (s.tbl != 0) {
         for (i = 0, off = 0; off < 0x320; i++, off += 8) {
@@ -123,23 +125,23 @@ struct ent far *far sub_s027_1f48_00a2(void)
         p = D_8ce;
         break;
     case 2:
-        sub_s026_1ef8_0000(0x320L, D_8ca, D_c09b[2].handle, (long)p);
+        xms_read(0x320L, D_8ca, swap_stores[2].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 3:
-        sub_s026_1f1d_013e(0x320L, D_8ca, D_c09b[3].handle, (long)p);
+        ems_read(0x320L, D_8ca, swap_stores[3].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 5:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[5].handle, (long)p);
+        swapfile_read(0x320L, D_8ca, swap_stores[5].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 6:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[6].handle, (long)p);
+        swapfile_read(0x320L, D_8ca, swap_stores[6].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 7:
-        sub_s026_1f09_00a6(0x320L, D_8ca, D_c09b[7].handle, (long)p);
+        swapfile_read(0x320L, D_8ca, swap_stores[7].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 8:
@@ -159,19 +161,19 @@ struct ent far *far sub_s027_1f48_015a(void)
         r = D_8ce;
         break;
     case 2:
-        sub_s026_1ef8_008e(0x320L, D_8ca, D_c09b[2].handle, (long)r);
+        xms_write(0x320L, D_8ca, swap_stores[2].handle, (long)r);
         break;
     case 3:
-        sub_s026_1f1d_0000(0x320L, D_8ca, D_c09b[3].handle, (long)r);
+        ems_write(0x320L, D_8ca, swap_stores[3].handle, (long)r);
         break;
     case 5:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[5].handle, (long)r);
+        swapfile_write(0x320L, D_8ca, swap_stores[5].handle, (long)r);
         break;
     case 6:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[6].handle, (long)r);
+        swapfile_write(0x320L, D_8ca, swap_stores[6].handle, (long)r);
         break;
     case 7:
-        sub_s026_1f09_000c(0x320L, D_8ca, D_c09b[7].handle, (long)r);
+        swapfile_write(0x320L, D_8ca, swap_stores[7].handle, (long)r);
         break;
     case 8:
         D_8ce = r = (struct ent far *)0L;
@@ -193,7 +195,7 @@ int far sub_s027_1f48_0238(struct ent far *e)
 }
 
 /* hash of a block name */
-int far sub_s027_1f48_0262(char *name)
+int far swap_hash(char *name)
 {
     int h = 1;
     int i = 0;
@@ -207,7 +209,7 @@ int far sub_s027_1f48_0262(char *name)
 }
 
 /* create (or resize) the block called name with size bytes; 1 on success */
-int far sub_s027_1f48_0298(long size, char *name)
+int far swap_create(long size, char *name)
 {
     long old;
     struct ent far *e;
@@ -225,7 +227,7 @@ int far sub_s027_1f48_0298(long size, char *name)
     k.type = (*D_2674)(size);
     if (!k.type)
         goto fail;
-    k.hash = sub_s027_1f48_0262(name);
+    k.hash = swap_hash(name);
     e = D_8ce - 1;
     do
         e++;
@@ -267,14 +269,14 @@ int far sub_s027_1f48_0480(long size)
 
     size += 0x18;
     if (D_8d6 & 1)
-        vec_1937();
+        swap_init_vec();
     D_c099 = D_8da > 7 ? 7 : D_8da;
     r = sub_s027_1f48_05fe(size);
     if (r != -1L) {
         F_2e38_0036.off = r;
         return D_c099;
     }
-    D_8dc[D_c099] = D_c09b[D_c099].size - 0x18;
+    D_8dc[D_c099] = swap_stores[D_c099].size - 0x18;
     type = 2;
     next = type;
     bit = 1;
@@ -282,7 +284,7 @@ int far sub_s027_1f48_0480(long size)
     do {
         if (*(volatile unsigned *)&D_8d6 & bit) {
             D_8da = type;
-            vec_1937();
+            swap_init_vec();
             type = D_8da;
         }
         if (type != next) {
@@ -297,14 +299,14 @@ int far sub_s027_1f48_0480(long size)
             D_c099 = type;
             if (start != type) {
                 D_8da = type;
-                D_8dc[type] = D_c09b[type].base;
+                D_8dc[type] = swap_stores[type].base;
                 r = sub_s027_1f48_05fe(size);
                 if (r != -1L) {
                     F_2e38_0036.off = r;
                     return D_8da;
                 }
                 type = D_8da;
-                D_8dc[type] = D_c09b[type].size - 0x18;
+                D_8dc[type] = swap_stores[type].size - 0x18;
             }
         }
         type++;
@@ -367,7 +369,7 @@ int far sub_s027_1f48_076c(char *name)
 
     h = D_8fe;
     *(volatile int *)&s.found = 0;
-    s.hash = sub_s027_1f48_0262(name);
+    s.hash = swap_hash(name);
     s.tbl = sub_s027_1f48_00a2();
     if (!s.tbl)
         return 0;
@@ -400,19 +402,19 @@ int far sub_s027_1f48_0876(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s026_1ef8_008e(len, buf, D_c09b[2].handle, off);
+        r = xms_write(len, buf, swap_stores[2].handle, off);
         break;
     case 3:
-        r = sub_s026_1f1d_0000(len, buf, D_c09b[3].handle, off);
+        r = ems_write(len, buf, swap_stores[3].handle, off);
         break;
     case 5:
-        r = sub_s026_1f09_000c(len, buf, D_c09b[5].handle, off);
+        r = swapfile_write(len, buf, swap_stores[5].handle, off);
         break;
     case 6:
-        r = sub_s026_1f09_000c(len, buf, D_c09b[6].handle, off);
+        r = swapfile_write(len, buf, swap_stores[6].handle, off);
         break;
     case 7:
-        r = sub_s026_1f09_000c(len, buf, D_c09b[7].handle, off);
+        r = swapfile_write(len, buf, swap_stores[7].handle, off);
         break;
     }
     return r;
@@ -425,19 +427,19 @@ int far sub_s027_1f48_0910(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s026_1ef8_0000(len, buf, D_c09b[2].handle, off);
+        r = xms_read(len, buf, swap_stores[2].handle, off);
         break;
     case 3:
-        r = sub_s026_1f1d_013e(len, buf, D_c09b[3].handle, off);
+        r = ems_read(len, buf, swap_stores[3].handle, off);
         break;
     case 5:
-        r = sub_s026_1f09_00a6(len, buf, D_c09b[5].handle, off);
+        r = swapfile_read(len, buf, swap_stores[5].handle, off);
         break;
     case 6:
-        r = sub_s026_1f09_00a6(len, buf, D_c09b[6].handle, off);
+        r = swapfile_read(len, buf, swap_stores[6].handle, off);
         break;
     case 7:
-        r = sub_s026_1f09_00a6(len, buf, D_c09b[7].handle, off);
+        r = swapfile_read(len, buf, swap_stores[7].handle, off);
         break;
     }
     return r;
@@ -488,13 +490,13 @@ int far sub_s027_1f48_0a14(long size)
     h = D_8fe;
     h = F_2e38_001e;
     sub_s027_1f48_076c(h.name);
-    if (sub_s027_1f48_0298(size, h.name))
+    if (swap_create(size, h.name))
         return 1;
 }
 
 /* save n bytes from buf under name; with D_8d6 & 0xff00 (no swap store) into a file
    called name instead (inline _asm, int 21h create/write/close) */
-int far sub_s027_1f48_0a78(long n, void far *buf, char *name)
+int far swap_save(long n, void far *buf, char *name)
 {
     int oki;
     unsigned cntl;
@@ -531,14 +533,14 @@ int far sub_s027_1f48_0a78(long n, void far *buf, char *name)
     done:
         return oki;
     }
-    if (!sub_s027_1f48_0298(n, name))
+    if (!swap_create(n, name))
         return oki;
     oki = sub_s027_1f48_0876(n, buf, F_2e38_0036.type, F_2e38_0036.off + 0x18);
     return oki;
 }
 
 /* load n bytes of the block (or file) name into buf */
-int far sub_s027_1f48_0b04(long n, void far *buf, char *name)
+int far swap_load_n(long n, void far *buf, char *name)
 {
     int okh;
     int fhc;
@@ -583,7 +585,7 @@ int far sub_s027_1f48_0b04(long n, void far *buf, char *name)
 }
 
 /* load the whole block (or file, at most 0xffff bytes) name into buf; its size or 0 */
-int far sub_s027_1f48_0ba8(void far *buf, char *name)
+int far swap_load(void far *buf, char *name)
 {
     int okh;
     int fhc;
@@ -628,7 +630,7 @@ int far sub_s027_1f48_0ba8(void far *buf, char *name)
 }
 
 /* load the whole block (or file) name into buf and free (delete) it; its size or 0 */
-int far sub_s027_1f48_0c4a(void far *buf, char *name)
+int far swap_load_free(void far *buf, char *name)
 {
     int okh;
     int fhc;
@@ -681,17 +683,17 @@ int far sub_s027_1f48_0c4a(void far *buf, char *name)
 }
 
 /* entry points with the arguments reordered */
-int far sub_s027_1f48_0d06(char *name, void far *buf, long n)
+int far swap_save2(char *name, void far *buf, long n)
 {
-    return sub_s027_1f48_0a78(n, buf, name);
+    return swap_save(n, buf, name);
 }
 
 int far sub_s027_1f48_0d1e(char *name, void far *buf)
 {
-    return sub_s027_1f48_0c4a(buf, name);
+    return swap_load_free(buf, name);
 }
 
-int far sub_s027_1f48_0d30(char *name, void far *buf)
+int far swap_load2(char *name, void far *buf)
 {
-    return sub_s027_1f48_0ba8(buf, name);
+    return swap_load(buf, name);
 }

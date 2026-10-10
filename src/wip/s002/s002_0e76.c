@@ -509,11 +509,10 @@ int far sub_s002_0e76_0000(int mode, int bfld, unsigned rseed, int ft1, int fq1,
 /* load the short portraits of the party members and lay them out on the battle screen */
 void far sub_s002_0e76_0806(void)
 {
+    struct { unsigned v; int y; } s;
     int i, j;
-    unsigned v;
-    int y;
 
-    *(volatile int *)&y = 0;
+    *(volatile int *)&s.y = 0;
     for (i = 0; i < 5; i++) {
         D_a2d7[i] = 0;
         if (D_9c69[i].x0) {
@@ -527,13 +526,13 @@ void far sub_s002_0e76_0806(void)
     D_a2d7[5] = sub_root_0617_045c("pics\\a00short.pic");
     sub_root_047c_04f8();
     for (i = 0; i < 5; i++) {
-        if ((v = D_a2d7[i]) != 0) {
+        if ((s.v = D_a2d7[i]) != 0) {
             for (j = i + 1; j < 6; j++)
                 if (D_a2d7[j]) {
-                    y = ((D_a2d7[j] - v) << 4) - 0x14;
+                    s.y = ((D_a2d7[j] - s.v) << 4) - 0x14;
                     break;
                 }
-            vec_1b0d(D_9c69[i].x2, y, v);
+            vec_1b0d(D_9c69[i].x2, s.y, s.v);
         }
     }
     free_buffer(D_a2d7[5], "LSGI");

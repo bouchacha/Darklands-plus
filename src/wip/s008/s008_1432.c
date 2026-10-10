@@ -19,6 +19,8 @@
  * based pointer D_df81. Globals: D_df83 terrain/season code (copied from D_d843), D_df85 terrain
  * class (index into the "---","gen","mtn",.. names), D_df87/D_df89/D_df8b digits of the map number.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -68,28 +70,28 @@ extern struct level _based(D_df7f) *D_df81;
 extern int D_c100;
 extern char D_dfba;
 extern int D_df85, D_df87, D_df89, D_df8b;
-extern int D_00e4;
-extern _segment D_dadd;
+extern int cur_month;
+extern _segment enemy_seg;
 struct bfdesc { char b[0xc0]; };
-extern struct bfdesc _based(D_dadd) *D_db33;
-extern int _based(D_dadd) *D_db29;
-extern struct level far F_20a5_0000;
-int far sub_s004_0e76_06aa();
-#define B(o) (((char _based(D_dadd) *)D_db33)[o])
+extern struct bfdesc _based(enemy_seg) *tile_desc;
+extern int _based(enemy_seg) *mon_template;
+extern struct level far floor_img;
+int far monster_type_map();
+#define B(o) (((char _based(enemy_seg) *)tile_desc)[o])
 unsigned far alloc_buffer(unsigned long, char *);
 void far free_buffer(unsigned, char *);
 int far _fstrcpy();
 int far sprintf();
-int far sub_root_05d9_019a();
-int far sub_s004_0e76_20f6();
+int far file_read_all();
+int far roll_dice();
 int far sub_s004_1262_0d0a();
-int far vec_1c1b();
+int far party_lore_level();
 int far sub_s008_1432_0000();
 void far sub_s008_1432_009c();
 void far sub_s008_1432_0172();
 void far sub_s008_1432_04ce();
 void far sub_s008_1432_0926();
-void far sub_s008_1432_1388();
+void far wild_build();
 int far sub_s008_1432_1694();
 void far sub_s008_1432_1790();
 void far sub_s008_1432_20b2(int, unsigned char, int, int, int, int, int, int, int, int, int);
@@ -97,7 +99,7 @@ int far sub_s008_1432_28a0();
 void far sub_s008_1432_294e();
 int far sub_s008_1432_2adc();
 char far sub_s008_1432_2d34();
-int far sub_s008_1432_2d62();
+int far empty_battlefield();
 void far sub_s008_1432_2e76();
 void far sub_s008_1432_3002();
 
@@ -114,7 +116,7 @@ int far sub_s008_1432_0000(int p6, int a, int b, int c, int d, int e, int f, int
     sub_s008_1432_0172(p6);
     sub_s008_1432_04ce(p6);
     sub_s008_1432_0926(p6);
-    sub_s008_1432_1388(p6, a, b, c, d, e, f, g, h, i);
+    wild_build(p6, a, b, c, d, e, f, g, h, i);
     D_df81->nobj = 0;
     sub_s004_1262_0d0a("level0.flr", (struct level far *)D_df81, 0x33fc, 0);
     free_buffer(D_df7d, m);
@@ -205,7 +207,7 @@ void far sub_s008_1432_0172(int p6)
     case 0x55:
         D_df85 = k;
         D_df85 = 4;
-        D_df8b = sub_s004_0e76_20f6(1, 2) + 2;
+        D_df8b = roll_dice(1, 2) + 2;
         k = D_df85;
         break;
     case 0x34:
@@ -231,7 +233,7 @@ void far sub_s008_1432_0172(int p6)
     case 0x79:
         D_df85 = k;
         D_df85 = 4;
-        D_df8b = sub_s004_0e76_20f6(1, 2) + 4;
+        D_df8b = roll_dice(1, 2) + 4;
         k = D_df85;
         break;
     case 0x46:
@@ -293,7 +295,7 @@ void far sub_s008_1432_0172(int p6)
         case 0x19:
             if (D_df89 == k) {
                 D_df85 = 4;
-                D_df8b = sub_s004_0e76_20f6(1, 2) + 2;
+                D_df8b = roll_dice(1, 2) + 2;
             }
             break;
         case 4:
@@ -311,11 +313,11 @@ void far sub_s008_1432_0172(int p6)
             break;
         case 0x0a:
         case 0x0b:
-            if (D_df89 == k && sub_s004_0e76_20f6(1, 10) > 5)
+            if (D_df89 == k && roll_dice(1, 10) > 5)
                 D_df89 = 1;
             break;
         case 0x0f:
-            if (sub_s004_0e76_20f6(1, 10) > 5)
+            if (roll_dice(1, 10) > 5)
                 D_df87 = 2;
             break;
         case 0x12:
@@ -328,7 +330,7 @@ void far sub_s008_1432_0172(int p6)
         case 0x14:
             if (D_df89 == k) {
                 D_df85 = 2;
-                if (sub_s004_0e76_20f6(1, 10) > 5)
+                if (roll_dice(1, 10) > 5)
                     D_df87 = 2;
             } else
                 D_df87 = 2;
@@ -352,9 +354,9 @@ void far sub_s008_1432_0172(int p6)
             D_df8b = 0;
     }
     if (D_df8b <= 0)
-        D_df8b = sub_s004_0e76_20f6(1, nv[D_df85]);
+        D_df8b = roll_dice(1, nv[D_df85]);
     sprintf(name, "iwild%s.%03d", nm[D_df85], (D_df87 * 10 + D_df89) * 10 + D_df8b);
-    sub_root_05d9_019a(name, (struct level far *)D_df81);
+    file_read_all(name, (struct level far *)D_df81);
 }
 
 /* tile description for the wilderness ("out", wall set by D_df83) and random variation of the
@@ -366,7 +368,7 @@ void far sub_s008_1432_04ce(int p6)
     int m, r, c, k;
     unsigned char h;
 
-    switch (D_00e4) {
+    switch (cur_month) {
     default:
         B(0) = 1;
         break;
@@ -419,7 +421,7 @@ void far sub_s008_1432_04ce(int p6)
     B(0x33) = 0x11;
     _fstrcpy((char far *)&B(0x34), (char far *)"out");
     B(0x3e) = 0;
-    if (sub_s004_0e76_20f6(1, 10) > 5)
+    if (roll_dice(1, 10) > 5)
         B(0x3f) = 1;
     else
         B(0x3f) = 2;
@@ -451,11 +453,11 @@ void far sub_s008_1432_04ce(int p6)
             case 9: u.b.lo = 7; break;
             default:
                 u.b.lo = 0;
-                if (sub_s004_0e76_20f6(1, 4) == 1) {
+                if (roll_dice(1, 4) == 1) {
                     if (m == 0)
-                        u.b.lo = sub_s004_0e76_20f6(1, 4) + 2;
+                        u.b.lo = roll_dice(1, 4) + 2;
                     else
-                        u.b.lo = sub_s004_0e76_20f6(1, 5) + 1;
+                        u.b.lo = roll_dice(1, 5) + 1;
                 }
                 break;
             }
@@ -469,7 +471,7 @@ void far sub_s008_1432_04ce(int p6)
                 u.b.lo = 0;
                 break;
             default:
-                u.b.hi = sub_s004_0e76_20f6(1, 3);
+                u.b.hi = roll_dice(1, 3);
                 break;
             }
             D_df81->hgt[r][c] = (u.b.hi << 4) | (u.b.lo & 0xf);
@@ -501,7 +503,7 @@ void far sub_s008_1432_04ce(int p6)
 
 /* tile set of the wilderness map: group "outgrpa/b/c", count the special tile types the prepared
  * map uses (markers 5..0x13, objects 0x66 standing for one), give each a slot in the tile table
- * of the description (D_db33 + 0xa4), shuffle the random decoration slots and then replace the
+ * of the description (tile_desc + 0xa4), shuffle the random decoration slots and then replace the
  * placeholder tile numbers of every cell by real tile slots (random thinning by terrain) */
 #define TAB(i) B(0xa4 + (i))
 #pragma optimize("a", on)
@@ -688,14 +690,14 @@ void far sub_s008_1432_0926(int p6)
     a50c[2] = 7;
     a50c[3] = 8;
     for (rh = 3; rh > 0; rh--) {
-        ch = sub_s004_0e76_20f6(1, rh + 1) - 1;
+        ch = roll_dice(1, rh + 1) - 1;
         if (ch != rh) {
             kd = a50c[rh];
             a50c[rh] = a50c[ch];
             a50c[ch] = kd;
         }
     }
-    if (sub_s004_0e76_20f6(1, 2) == 1) {
+    if (roll_dice(1, 2) == 1) {
         a36l[0] = 4;
         a36l[1] = 9;
     } else {
@@ -706,7 +708,7 @@ void far sub_s008_1432_0926(int p6)
     a1cm[1] = 1;
     a1cm[2] = 2;
     for (rh = a1cm[3] = 3; rh > 1; rh--) {
-        ch = sub_s004_0e76_20f6(1, rh);
+        ch = roll_dice(1, rh);
         if (ch != rh) {
             kd = a1cm[rh];
             a1cm[rh] = a1cm[ch];
@@ -722,7 +724,7 @@ void far sub_s008_1432_0926(int p6)
         case 2:
         case 3:
         case 0x19:
-            if (sub_s004_0e76_20f6(1, 2) == 1)
+            if (roll_dice(1, 2) == 1)
                 x62l = 0x1e;
             else
                 x62l = 0x14;
@@ -816,23 +818,23 @@ void far sub_s008_1432_0926(int p6)
             vm = (D_df81->cell[rh][ch] & 0xf0) >> 4;
             switch ((int)vm) {
             case 0x0c:
-                if (sub_s004_0e76_20f6(1, 100) <= x24e)
+                if (roll_dice(1, 100) <= x24e)
                     vm = 0;
-                else if (sub_s004_0e76_20f6(1, 100) <= x5al)
+                else if (roll_dice(1, 100) <= x5al)
                     vm = x32h;
                 break;
             case 0x0d:
-                if (sub_s004_0e76_20f6(1, 100) <= x2ch)
+                if (roll_dice(1, 100) <= x2ch)
                     vm = 0;
-                else if (sub_s004_0e76_20f6(1, 100) <= x5ei)
+                else if (roll_dice(1, 100) <= x5ei)
                     vm = x44h;
                 break;
             case 0x0b:
-                if (sub_s004_0e76_20f6(1, 100) <= x60m)
+                if (roll_dice(1, 100) <= x60m)
                     vm = 0;
                 break;
             case 0x0e:
-                if (sub_s004_0e76_20f6(1, 100) <= x70o)
+                if (roll_dice(1, 100) <= x70o)
                     vm = 0;
                 break;
             case 0x0f:
@@ -865,7 +867,7 @@ void far sub_s008_1432_0926(int p6)
                     }
                 break;
             }
-            rotk = (long)sub_s004_0e76_20f6(1, 4) - 1;
+            rotk = (long)roll_dice(1, 4) - 1;
             switch ((int)vm) {
             default:
                 vm = 0;
@@ -904,18 +906,18 @@ void far sub_s008_1432_0926(int p6)
                 break;
             case 11:
                 if (gsn == 3)
-                    vm = (long)sub_s004_0e76_20f6(1, y26aa) + x06b - 1;
+                    vm = (long)roll_dice(1, y26aa) + x06b - 1;
                 else
-                    vm = (long)sub_s004_0e76_20f6(1, y26aa + x38c) + x10h - 1;
+                    vm = (long)roll_dice(1, y26aa + x38c) + x10h - 1;
                 break;
             case 12:
-                vm = (long)sub_s004_0e76_20f6(1, x08 - 1) + x6an;
+                vm = (long)roll_dice(1, x08 - 1) + x6an;
                 break;
             case 13:
                 vm = x6an;
                 break;
             case 14:
-                vm = (long)sub_s004_0e76_20f6(1, x38c) + x10h - 1;
+                vm = (long)roll_dice(1, x38c) + x10h - 1;
                 break;
             case 16:
                 vm = x12g;
@@ -960,17 +962,17 @@ struct group {                          /* enemy group, 0x1e bytes (see s010) */
     char p0e[6];
     struct subgrp sub;                  /* 14 */
 };
-extern struct group _based(D_dadd) *D_db2d;
-extern int D_db05;
+extern struct group _based(enemy_seg) *bf_groups;
+extern int group_count;
 struct mon { char p0[0x0c]; char x0c; char p0d[0xd6 - 0x0d]; };
-extern struct mon _based(D_dadd) *D_db2b;
+extern struct mon _based(enemy_seg) *bf_monsters;
 extern int D_df99;
-extern char D_9080;
+extern char combat_flags;
 extern int D_df8d;
 extern int D_df8f[5];
 extern int D_df9b[5][3];
 extern int D_c0fe;
-int far sub_s004_0e76_2160();
+int far dir_between();
 
 /* place the party and the enemy groups: battlefield type by location (1694), adjust the enemy
  * parameters (1790), objects (20b2), party at the marker of id D_df8d, then up to five enemy
@@ -979,7 +981,7 @@ int far sub_s004_0e76_2160();
  * parameters (1790), objects (20b2), party at the marker of id D_df8d, then up to five enemy
  * groups (marker ids D_df8f[], monster counts D_df9b[][3]) */
 #pragma optimize("a", on)
-void far sub_s008_1432_1388(int p6, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
+void far wild_build(int p6, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
     int ft3, int fq3, int fn3)
 {
     char flag;
@@ -1007,11 +1009,11 @@ void far sub_s008_1432_1388(int p6, int ft1, int fq1, int fn1, int ft2, int fq2,
     py = D_df81->x1f4e / 16;
     g1 = g2 = g3 = -1;
     if (ft1 >= 0 && fn1 > 0)
-        g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+        g1 = monster_type_map(0, ft1, fq1);
     if (ft2 >= 0 && fn2 > 0)
-        g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+        g2 = monster_type_map(0, ft2, fq2);
     if (ft3 >= 0 && fn3 > 0)
-        g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+        g3 = monster_type_map(0, ft3, fq3);
     x = 0;
     for (i = 0; i < 5; i++) {
         p = D_df9b[i];
@@ -1042,15 +1044,15 @@ void far sub_s008_1432_1388(int p6, int ft1, int fq1, int fn1, int ft2, int fq2,
         }
         r = sub_s008_1432_2adc(p6, m, s1a, s18, g1, p[0], g2, p[1], g3, p[2]);
         if (r >= 0 && x == 0)
-            D_df81->x1f50 = sub_s004_0e76_2160(px, py, x = D_db2d[r].pos / 32,
-                D_db2d[r].pos2 / 16);
+            D_df81->x1f50 = dir_between(px, py, x = bf_groups[r].pos / 32,
+                bf_groups[r].pos2 / 16);
     }
     switch (p6) {
     case 0x31:
     case 0x35:
     case 0x47:
     case 0x78:
-        D_9080 |= 0x40;
+        combat_flags |= 0x40;
         break;
     }
     if (p6 == 0x55) {
@@ -1242,7 +1244,7 @@ L_178b_1067:
 }
 
 struct member { char status; char pad[0x7f]; };
-extern struct member D_9c69[];
+extern struct member party[];
 
 /* the enemies for location type p6: kinds *pt1..*pt3, quality *pq1..*pq3, numbers *pn1..*pn3
  * from a random strength r and the number of able party members */
@@ -1258,10 +1260,10 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
 
     t1n = t2o = t3o = -1;
     n1b = q1e = q2e = q3f = 1;
-    ri = vec_1c1b();
+    ri = party_lore_level();
     i = cntk = n2b = n3c = 0;
     for (; i < 5; i++)
-        if (D_9c69[i].status == 1)
+        if (party[i].status == 1)
             cntk++;
     switch (p6) {
     case 0x36:
@@ -1281,23 +1283,23 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
     case 0x3f:
         t1n = 9;
         q1e = max(min(ri / 8 + 1, 2), 1);
-        n1b = sub_s004_0e76_20f6(1, cntk) + sub_s004_0e76_20f6(1, 2) + 1;
+        n1b = roll_dice(1, cntk) + roll_dice(1, 2) + 1;
         n1b = max(min(n1b, 7), 2);
         break;
     case 0x40:
         t1n = 0x24;
         t2o = 0x22;
-        n2b = sub_s004_0e76_20f6(q2e = 1, 2) + cntk / 5 + 2;
+        n2b = roll_dice(q2e = 1, 2) + cntk / 5 + 2;
         n2b = max(min(n2b, 5), 3);
         break;
     case 0x6f:
         t1n = 0x27;
         t2o = 0x2d;
-        n2b = sub_s004_0e76_20f6(q2e = 1, n1b = 2) + 1;
+        n2b = roll_dice(q2e = 1, n1b = 2) + 1;
         break;
     case 0x70:
         t1n = 0x35;
-        n1b = sub_s004_0e76_20f6(1, 2) + cntk - 1;
+        n1b = roll_dice(1, 2) + cntk - 1;
         n1b = max(min(n1b, 6), 2);
         break;
     case 0x71:
@@ -1305,46 +1307,46 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
         n1b = 2;
         t2o = 0x29;
         q2e = max(min(ri / 6 + 1, 2), 1);
-        n2b = sub_s004_0e76_20f6(1, 3) + cntk - 1;
+        n2b = roll_dice(1, 3) + cntk - 1;
         n2b = max(min(n2b, 6), 2);
         break;
     case 0x42:
     case 0x43:
         t1n = 4;
-        q1e = sub_s004_0e76_20f6(1, 2) + ri / 6;
+        q1e = roll_dice(1, 2) + ri / 6;
         q1e = max(min(q1e, 3), 1);
         t2o = 0x0b;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = sub_s004_0e76_20f6(1, 3) + cntk / 5 + 2;
+        q2e = roll_dice(1, 2);
+        n2b = roll_dice(1, 3) + cntk / 5 + 2;
         break;
     case 0x33:
         t1n = 0x2f;
-        n1b = sub_s004_0e76_20f6(1, 3) + ri / 6 + 3;
+        n1b = roll_dice(1, 3) + ri / 6 + 3;
         n1b = max(min(n1b, 7), 4);
         break;
     case 0x39:
         t1n = 0x27;
         t2o = 0x29;
         q2e = max(min(ri / 3 + 1, 2), 1);
-        n2b = sub_s004_0e76_20f6(1, 2) + 5;
+        n2b = roll_dice(1, 2) + 5;
         break;
     case 0x45:
         t1n = 0x2a;
-        n1b = sub_s004_0e76_20f6(1, 3) + ri / 4 + 2;
+        n1b = roll_dice(1, 3) + ri / 4 + 2;
         n1b = max(min(n1b, 7), 3);
         break;
     case 0x46:
     case 0x47:
         t1n = 0x4d;
-        q1e = sub_s004_0e76_20f6(1, 2);
+        q1e = roll_dice(1, 2);
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2);
+        q2e = roll_dice(1, 2);
         n2b = 3;
         break;
     case 0x72:
         t1n = 0x2a;
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2);
+        q2e = roll_dice(1, 2);
         n2b = 3;
         break;
     case 0x48:
@@ -1353,38 +1355,38 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
         break;
     case 0x49:
         t1n = 0x29;
-        q1e = sub_s004_0e76_20f6(1, 2) + 1;
-        n1b = sub_s004_0e76_20f6(1, 3);
+        q1e = roll_dice(1, 2) + 1;
+        n1b = roll_dice(1, 3);
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = sub_s004_0e76_20f6(1, 2) + 2;
+        q2e = roll_dice(1, 2);
+        n2b = roll_dice(1, 2) + 2;
         break;
     case 0x4a:
         t1n = 0x29;
         q1e = 3;
         t2o = 0x0d;
-        n2b = sub_s004_0e76_20f6(q2e = 1, 4) + 3;
+        n2b = roll_dice(q2e = 1, 4) + 3;
         break;
     case 0x4b:
         t1n = 0x29;
-        q1e = sub_s004_0e76_20f6(1, 2) + 1;
-        n1b = sub_s004_0e76_20f6(1, 2);
+        q1e = roll_dice(1, 2) + 1;
+        n1b = roll_dice(1, 2);
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = sub_s004_0e76_20f6(1, 2) + 2;
+        q2e = roll_dice(1, 2);
+        n2b = roll_dice(1, 2) + 2;
         break;
     case 0x4c:
         t1n = 0x29;
-        n1b = sub_s004_0e76_20f6(1, 2) + 1;
+        n1b = roll_dice(1, 2) + 1;
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2) + 1;
-        n2b = sub_s004_0e76_20f6(1, q1e = 3) + 2;
+        q2e = roll_dice(1, 2) + 1;
+        n2b = roll_dice(1, q1e = 3) + 2;
         break;
     case 0x4d:
         t1n = 0x1c;
         q1e = 2;
         t2o = 0x29;
-        n2b = sub_s004_0e76_20f6(1, q2e = 3) + ri / 6 + 2;
+        n2b = roll_dice(1, q2e = 3) + ri / 6 + 2;
         n2b = max(min(n2b, 6), 3);
         break;
     case 0x73:
@@ -1401,68 +1403,68 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
     case 0x4f:
         t1n = 0x29;
         q1e = 3;
-        n1b = sub_s004_0e76_20f6(1, 2) + 1;
+        n1b = roll_dice(1, 2) + 1;
         t2o = 0x0d;
         if ((q3f = *pq3) > 0)
-            q2e = sub_s004_0e76_20f6(1, 2) + 1;
+            q2e = roll_dice(1, 2) + 1;
         else
             q2e = 3;
-        n2b = sub_s004_0e76_20f6(1, 2) + 3;
+        n2b = roll_dice(1, 2) + 3;
         break;
     case 0x50:
         t1n = 0x1c;
         q1e = 2;
         t2o = 0x29;
         if ((q3f = *pq3) > 0)
-            q2e = sub_s004_0e76_20f6(1, 2) + 1;
+            q2e = roll_dice(1, 2) + 1;
         else
             q2e = 3;
         n2b = 7;
         break;
     case 0x51:
         t1n = 0x29;
-        q1e = sub_s004_0e76_20f6(1, 2) + 1;
-        n1b = sub_s004_0e76_20f6(1, 2) + 1;
+        q1e = roll_dice(1, 2) + 1;
+        n1b = roll_dice(1, 2) + 1;
         t2o = 0x0d;
-        q2e = sub_s004_0e76_20f6(1, 2) + ri / 6;
+        q2e = roll_dice(1, 2) + ri / 6;
         q2e = max(min(q2e, 3), 2);
-        n2b = ri / 6 + sub_s004_0e76_20f6(1, 3) + 2;
+        n2b = ri / 6 + roll_dice(1, 3) + 2;
         n2b = max(min(n2b, 5), 3);
         break;
     case 0x63:
         t1n = 4;
-        q1e = sub_s004_0e76_20f6(1, 2) + ri / 6;
+        q1e = roll_dice(1, 2) + ri / 6;
         q1e = max(min(q1e, 3), 1);
         t2o = 0x0b;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = ri / 6 + sub_s004_0e76_20f6(1, 2) + 4;
+        q2e = roll_dice(1, 2);
+        n2b = ri / 6 + roll_dice(1, 2) + 4;
         n2b = max(min(n2b, 7), 5);
         break;
     case 0x61:
         t2o = 0x0b;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = sub_s004_0e76_20f6(1, 3) + ri / 6 + 2;
+        q2e = roll_dice(1, 2);
+        n2b = roll_dice(1, 3) + ri / 6 + 2;
         n2b = max(min(n2b, 6), 3);
         t1n = 4;
         q1e = max(min(ri / 6 + q2e + 1, 4), 2);
         break;
     case 0x62:
         t1n = 0x29;
-        q1e = sub_s004_0e76_20f6(1, 2) + ri / 6;
+        q1e = roll_dice(1, 2) + ri / 6;
         q1e = max(min(q1e, 3), 2);
-        n1b = sub_s004_0e76_20f6(1, 2) + 1;
+        n1b = roll_dice(1, 2) + 1;
         t2o = 0x0b;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = ri / 6 + sub_s004_0e76_20f6(1, 3) + 2;
+        q2e = roll_dice(1, 2);
+        n2b = ri / 6 + roll_dice(1, 3) + 2;
         n2b = max(min(n2b, 8 - n1b), 3);
         break;
     case 0x74:
         t1n = 0x4c;
-        q1e = sub_s004_0e76_20f6(1, 2) + ri / 6;
+        q1e = roll_dice(1, 2) + ri / 6;
         q1e = max(min(q1e, 3), 1);
         t2o = 0x0b;
-        q2e = sub_s004_0e76_20f6(1, 2);
-        n2b = ri / 6 + sub_s004_0e76_20f6(1, 3) + 2;
+        q2e = roll_dice(1, 2);
+        n2b = ri / 6 + roll_dice(1, 3) + 2;
         n2b = max(min(n2b, 7), 3);
         break;
     case 0x76:
@@ -1489,7 +1491,7 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
             t1n = 0x16;
             q1e = ri / 7 + 1;
             q2e = 2;
-            n2b = sub_s004_0e76_20f6(1, 3);
+            n2b = roll_dice(1, 3);
             q3f = 3;
             n3c = cntk;
         } else {
@@ -1532,11 +1534,11 @@ void far sub_s008_1432_1790(int p6, int *pt1, int *pq1, int *pn1, int *pt2, int 
 /* marker ids for the party (D_df8d), the enemy groups (D_df8f[]) and the sub-group (D_df99) and
  * how the enemies (counts D_df9b[][3]) are spread over the groups, by battlefield type t; flag
  * and D_c0fe (time of day?) choose between alternative layouts */
-#define R(n) sub_s004_0e76_20f6(1, n)
+#define R(n) roll_dice(1, n)
 /* marker ids for the party (D_df8d), the enemy groups (D_df8f[]) and the sub-group (D_df99) and
  * how the enemies (counts D_df9b[][3]) are spread over the groups, by battlefield type t; flag
  * and D_c0fe (time of day?) choose between alternative layouts */
-#define R(n) sub_s004_0e76_20f6(1, n)
+#define R(n) roll_dice(1, n)
 void far sub_s008_1432_20b2(int t, unsigned char flag, int ft1, int fq1, int fn1, int ft2,
     int fq2, int fn2, int ft3, int fq3, int fn3)
 {
@@ -1720,7 +1722,7 @@ void far sub_s008_1432_20b2(int t, unsigned char flag, int ft1, int fq1, int fn1
         D_df9b[R(2) - 1][0] = 1;
         D_df9b[0][1] -= 2;
         D_df9b[0][1] -= D_df9b[1][1] =
-            sub_s004_0e76_20f6(D_df9b[3][1] = D_df9b[2][1] = 1, D_df9b[0][1] - 1);
+            roll_dice(D_df9b[3][1] = D_df9b[2][1] = 1, D_df9b[0][1] - 1);
         if (R(10) > 5)
             D_df99 = 10;
         else
@@ -1827,7 +1829,7 @@ int far sub_s008_1432_28a0(int id)
     }
     if (cnt == 0)
         return 0;
-    n = sub_s004_0e76_20f6(1, cnt);
+    n = roll_dice(1, cnt);
     c = 0;
     for (i = 0; i < D_df81->nobj && n > c; i++) {
         o = &D_df81->obj[i];
@@ -1891,7 +1893,7 @@ void far sub_s008_1432_294e(int *a, int *b, int *c, int t, int u, int n, int p12
         break;
     case 0x51:
         *a = 2;
-        *c = sub_s004_0e76_20f6(1, *b = 3) + vec_1c1b() / 4 + 4;
+        *c = roll_dice(1, *b = 3) + party_lore_level() / 4 + 4;
         *c = max(min(*c, 9), 5);
         break;
     case 0x53:
@@ -1931,7 +1933,7 @@ int far sub_s008_1432_2adc(int p6, int idx, int x0a, char x0c, int t1, int n1, i
         return -1;
     if ((k = D_df99) >= 0)
         k = sub_s008_1432_28a0(k);
-    g = D_db2d + D_db05;
+    g = bf_groups + group_count;
     g->pos = D_df81->obj[idx].x0 + 16;
     g->pos2 = D_df81->obj[idx].x2 + 8;
     g->x06 = D_df81->obj[idx].x0c;
@@ -1943,14 +1945,14 @@ int far sub_s008_1432_2adc(int p6, int idx, int x0a, char x0c, int t1, int n1, i
         g->count[0] = n1;
         j = 1;
         if (sub_s008_1432_2d34(p6, t1))
-            D_db2b[t1].x0c = 1;
+            bf_monsters[t1].x0c = 1;
     }
     if (t2 >= 0 && t2 < 12 && (n2 > 0 || x0a >= 0)) {
         g->type[j] = t2;
         g->count[j] = n2;
         j++;
         if (sub_s008_1432_2d34(p6, t2))
-            D_db2b[t2].x0c = 1;
+            bf_monsters[t2].x0c = 1;
         if (x0a >= 0 && k >= 0) {
             g->x07 = 1;
             g->sub.t = t2;
@@ -1968,10 +1970,10 @@ int far sub_s008_1432_2adc(int p6, int idx, int x0a, char x0c, int t1, int n1, i
         g->count[j] = n3;
         j++;
         if (sub_s008_1432_2d34(p6, t3))
-            D_db2b[t3].x0c = 1;
+            bf_monsters[t3].x0c = 1;
     }
     if (j > 0)
-        return D_db05++;
+        return group_count++;
     return -1;
 }
 #pragma optimize("", on)
@@ -1983,7 +1985,7 @@ char far sub_s008_1432_2d34(int p6, int i)
 
     switch (p6) {
     case 0x75:
-        t = D_db29[i];
+        t = mon_template[i];
         if (t >= 0x1e && t <= 0x22)
             return 1;
     }
@@ -1993,69 +1995,69 @@ char far sub_s008_1432_2d34(int p6, int i)
 
 /* empty battlefield in the static map F_20a5 (all cells empty), saved as level%d.flr, enemies
  * placed by sub_3002 */
-int far sub_s008_1432_2d62(int p6, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
+int far empty_battlefield(int p6, int ft1, int fq1, int fn1, int ft2, int fq2, int fn2,
     int ft3, int fq3, int fn3)
 {
     char name[0x42];
     int g1, g2, g3;
     int r, c;
 
-    F_20a5_0000.n3326 = F_20a5_0000.x300c = F_20a5_0000.nexit = F_20a5_0000.x2488 =
-        F_20a5_0000.nobj = F_20a5_0000.n1f52 = F_20a5_0000.x1f40 = 0;
+    floor_img.n3326 = floor_img.x300c = floor_img.nexit = floor_img.x2488 =
+        floor_img.nobj = floor_img.n1f52 = floor_img.x1f40 = 0;
     for (r = 0; r < 40; r++)
         for (c = 0; c < 40; c++) {
-            F_20a5_0000.cell[r][c] = 0x80000000L;
-            F_20a5_0000.hgt[r][c] = 0;
+            floor_img.cell[r][c] = 0x80000000L;
+            floor_img.hgt[r][c] = 0;
         }
     sub_s008_1432_2e76();
-    sprintf(name, "level%d.flr", F_20a5_0000.x1f40);
-    sub_s004_1262_0d0a(name, (struct level far *)&F_20a5_0000, 0x33fc, 0);
+    sprintf(name, "level%d.flr", floor_img.x1f40);
+    sub_s004_1262_0d0a(name, (struct level far *)&floor_img, 0x33fc, 0);
     g1 = g2 = g3 = -1;
     if (ft1 >= 0 && fn1 > 0)
-        g1 = sub_s004_0e76_06aa(0, ft1, fq1);
+        g1 = monster_type_map(0, ft1, fq1);
     if (ft2 >= 0 && fn2 > 0)
-        g2 = sub_s004_0e76_06aa(0, ft2, fq2);
+        g2 = monster_type_map(0, ft2, fq2);
     if (ft3 >= 0 && fn3 > 0)
-        g3 = sub_s004_0e76_06aa(0, ft3, fq3);
+        g3 = monster_type_map(0, ft3, fq3);
     sub_s008_1432_3002(p6, g1, fn1, g2, fn2, g3, fn3);
     return 1;
 }
 
-extern int D_db25;
+extern int gate_side;
 
 /* empty battlefield: open 20x20 field in F_20a5 ("out" tiles), four raised border rectangles,
- * random party side D_db25 (0..3) and start position */
+ * random party side gate_side (0..3) and start position */
 #pragma optimize("a", on)
 void far sub_s008_1432_2e76(void)
 {
     int r, c, k;
 
     _fstrcpy((char far *)&B(1), (char far *)"out");
-    F_20a5_0000.x2488 = B(0x0b) = 0;
-    *(volatile int far *)&F_20a5_0000.x248a = 0;
+    floor_img.x2488 = B(0x0b) = 0;
+    *(volatile int far *)&floor_img.x248a = 0;
     k = 0;
     for (r = 1; r <= 20; r++)
         for (c = 1; c <= 20; c++) {
-            F_20a5_0000.list[k++] = (r << 8) + c;
-            F_20a5_0000.cell[r][c] = 0;
-            F_20a5_0000.hgt[r][c] |= 0x10;
+            floor_img.list[k++] = (r << 8) + c;
+            floor_img.cell[r][c] = 0;
+            floor_img.hgt[r][c] |= 0x10;
         }
-    F_20a5_0000.list[k] = -1;
-    F_20a5_0000.n3326 = 4;
-    F_20a5_0000.r3328[2][2] = F_20a5_0000.r3328[1][0] = F_20a5_0000.r3328[0][2] = 0x280;
-    F_20a5_0000.r3328[2][1] = 0x140;
-    F_20a5_0000.r3328[2][3] = F_20a5_0000.r3328[0][3] = F_20a5_0000.r3328[0][1] = 0x10;
-    F_20a5_0000.r3328[3][1] = F_20a5_0000.r3328[3][2] = F_20a5_0000.r3328[3][0] =
-        F_20a5_0000.r3328[2][0] = F_20a5_0000.r3328[1][1] = F_20a5_0000.r3328[1][2] =
-        F_20a5_0000.r3328[0][0] = 0x20;
-    F_20a5_0000.r3328[3][3] = F_20a5_0000.r3328[1][3] = 0x120;
-    F_20a5_0000.x1f51 = -1;
-    D_db25 = sub_s004_0e76_20f6(1, 4) - 1;
-    F_20a5_0000.x1f50 = ((char)D_db25 ^ 2) << 1;
+    floor_img.list[k] = -1;
+    floor_img.n3326 = 4;
+    floor_img.r3328[2][2] = floor_img.r3328[1][0] = floor_img.r3328[0][2] = 0x280;
+    floor_img.r3328[2][1] = 0x140;
+    floor_img.r3328[2][3] = floor_img.r3328[0][3] = floor_img.r3328[0][1] = 0x10;
+    floor_img.r3328[3][1] = floor_img.r3328[3][2] = floor_img.r3328[3][0] =
+        floor_img.r3328[2][0] = floor_img.r3328[1][1] = floor_img.r3328[1][2] =
+        floor_img.r3328[0][0] = 0x20;
+    floor_img.r3328[3][3] = floor_img.r3328[1][3] = 0x120;
+    floor_img.x1f51 = -1;
+    gate_side = roll_dice(1, 4) - 1;
+    floor_img.x1f50 = ((char)gate_side ^ 2) << 1;
     c = r = 0;
-    switch (D_db25) {
+    switch (gate_side) {
     default:
-        F_20a5_0000.x1f50 = 0;
+        floor_img.x1f50 = 0;
     case 0:
         c = -3;
         break;
@@ -2069,21 +2071,21 @@ void far sub_s008_1432_2e76(void)
         r = -3;
         break;
     }
-    F_20a5_0000.x1f4c = (r + 10) << 5;
-    F_20a5_0000.x1f4e = (c + 10) << 4;
+    floor_img.x1f4c = (r + 10) << 5;
+    floor_img.x1f4e = (c + 10) << 4;
 }
 #pragma optimize("", on)
 
 
-/* the enemy group of the empty battlefield: start position by party side D_db25, up to three
+/* the enemy group of the empty battlefield: start position by party side gate_side, up to three
  * monster kinds */
 void far sub_s008_1432_3002(int p6, int t1, int n1, int t2, int n2, int t3, int n3)
 {
     struct group far *g;
     int j;
 
-    g = D_db2d + D_db05;
-    switch (D_db25) {
+    g = bf_groups + group_count;
+    switch (gate_side) {
     case 0:
         g->pos = 0x140;
         g->pos2 = 0xd0;
@@ -2120,5 +2122,5 @@ void far sub_s008_1432_3002(int p6, int t1, int n1, int t2, int n2, int t3, int 
         j++;
     }
     if (j > 0)
-        D_db05++;
+        group_count++;
 }

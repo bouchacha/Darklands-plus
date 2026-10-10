@@ -14,6 +14,8 @@
    embedded control codes and hyperlink-like hotspots, number formatting.
    (The empty function at 0x2652 in front of this module belongs to segment 0000; it is
    called as 0000:2652.) */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct textwin {
     int f0;
@@ -44,37 +46,37 @@ extern int D_a65e[];
 extern char D_01bc;
 void *memcpy(void *, const void *, unsigned);
 
-int far sub_root_047c_053e(int);
-void far sub_root_047c_055a(struct textwin *, int, int, char *);
-void far sub_root_047c_05a5(struct textwin *, int, int, int);
-int far sub_root_047c_04e3(int, char);
+int far gfx_page_segment(int);
+void far gfx_text(struct textwin *, int, int, char *);
+void far gfx_draw_pic(struct textwin *, int, int, int);
+int far char_width(int, char);
 void far sub_root_044a_0043(char *, char far *);
 
-unsigned far sub_root_0265_084e(struct textwin *w, char *s);
-void far sub_root_0265_006e(struct textwin *w, int x, int y, char *s);
-void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int y, int spacing,
+unsigned far text_pixel_width(struct textwin *w, char *s);
+void far draw_text(struct textwin *w, int x, int y, char *s);
+void far draw_text_wrapped(struct textwin *w, char *text, int width, int x, int y, int spacing,
                            struct hotspots *hs, int init, int stop, int leading, int icon,
                            int color);
-long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int y,
+long far measure_text_wrapped(struct textwin *w, char *text, int width, int x, int y,
                               int spacing, struct hotspots *hs, int a, int leading, int icon,
                               int b);
 
 /* draw_text_far */
-void far sub_root_0265_0004(struct textwin *w0, int x, int y, char far *s)
+void far draw_text_far(struct textwin *w0, int x, int y, char far *s)
 {
     char buf[200];
     int hires;
     register struct textwin *w;
 
     w = w0;
-    if ((hires = sub_root_047c_053e(6)) != 0) {
+    if ((hires = gfx_page_segment(6)) != 0) {
         x <<= 1;
         w->x0 <<= 1;
         w->x1 <<= 1;
         w->x1++;
     }
     sub_root_044a_0043(buf, s);
-    sub_root_047c_055a(w, x, y, buf);
+    gfx_text(w, x, y, buf);
     if (hires) {
         w->x0 /= 2;
         w->x1 /= 2;
@@ -82,19 +84,19 @@ void far sub_root_0265_0004(struct textwin *w0, int x, int y, char far *s)
 }
 
 /* draw_text */
-void far sub_root_0265_006e(struct textwin *w0, int x, int y, char *s)
+void far draw_text(struct textwin *w0, int x, int y, char *s)
 {
     int hires;
     register struct textwin *w;
 
     w = w0;
-    if ((hires = sub_root_047c_053e(6)) != 0) {
+    if ((hires = gfx_page_segment(6)) != 0) {
         x <<= 1;
         w->x0 <<= 1;
         w->x1 <<= 1;
         w->x1++;
     }
-    sub_root_047c_055a(w, x, y, s);
+    gfx_text(w, x, y, s);
     if (hires) {
         w->x0 /= 2;
         w->x1 /= 2;
@@ -102,23 +104,23 @@ void far sub_root_0265_006e(struct textwin *w0, int x, int y, char *s)
 }
 
 /* draw_text_centered */
-void far sub_root_0265_00c4(struct textwin *w, int y, char *s)
+void far draw_text_centered(struct textwin *w, int y, char *s)
 {
-    sub_root_0265_006e(w, (320 - sub_root_0265_084e(w, s)) / 2, y, s);
+    draw_text(w, (320 - text_pixel_width(w, s)) / 2, y, s);
 }
 
 /* draw_text_wrapped_far */
-void far sub_root_0265_00f0(struct textwin *w, char far *text, int a, int b, int c, int d,
+void far draw_text_wrapped_far(struct textwin *w, char far *text, int a, int b, int c, int d,
                                int e, int f, int g, int h, int i, int j)
 {
     char buf[900];
 
     sub_root_044a_0043(buf, text);
-    sub_root_0265_0134(w, buf, a, b, c, d, (struct hotspots *)e, f, g, h, i, j);
+    draw_text_wrapped(w, buf, a, b, c, d, (struct hotspots *)e, f, g, h, i, j);
 }
 
 /* draw_text_wrapped */
-void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int y, int spacing,
+void far draw_text_wrapped(struct textwin *w, char *text, int width, int x, int y, int spacing,
                            struct hotspots *hs, int init, int stop, int leading, int icon,
                            int color)
 {
@@ -160,7 +162,7 @@ void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int
         hs->width = width;
     }
     if (icon == 1 && *curj > '@' && *curj < '[') {
-        sub_root_047c_05a5(w, x, y, D_a65e[*curj]);
+        gfx_draw_pic(w, x, y, D_a65e[*curj]);
         lxk = x + 21;
         newlinef = 1;
         y += 21 - spacing;
@@ -174,7 +176,7 @@ void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int
         while (width_usedo < lwk && *curj != 0 && *curj != '\n') {
             if (*curj != 0x14 && *curj != 0x15 && *curj != 0x10 && *curj != 0x16 && *curj != 6 &&
                 *curj != 0x1d && *curj != 0x0d && *curj != 1 && *curj != 0x13)
-                width_usedo += sub_root_047c_04e3(fonti, *curj);
+                width_usedo += char_width(fonti, *curj);
             else if (*curj == 0x14)
                 y += 2;
             else if (*curj == 1) {
@@ -233,7 +235,7 @@ void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int
             } else if (*curj == 0x1d) {
                 memcpy(bufb, linej, ng);
                 bufb[ng] = 0;
-                iconwl = sub_root_0265_084e(w, bufb);
+                iconwl = text_pixel_width(w, bufb);
                 newlinef = 0;
                 had_iconl = 1;
             }
@@ -296,13 +298,13 @@ void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int
             bufb[jc] = 0;
             switch (D_01bc) {
             case 0:
-                sub_root_047c_055a(w, lxk, y, bufb);
+                gfx_text(w, lxk, y, bufb);
                 break;
             case 1:
-                sub_root_047c_055a(w, (lwk - (twd = sub_root_0265_084e(w, bufb))) / 2 + lxk, y, bufb);
+                gfx_text(w, (lwk - (twd = text_pixel_width(w, bufb))) / 2 + lxk, y, bufb);
                 break;
             case 2:
-                sub_root_047c_055a(w, lwk - (twd = sub_root_0265_084e(w, bufb)) + lxk, y, bufb);
+                gfx_text(w, lwk - (twd = text_pixel_width(w, bufb)) + lxk, y, bufb);
                 break;
             }
             if (link_open == 1)
@@ -325,18 +327,18 @@ void far sub_root_0265_0134(struct textwin *w, char *text, int width, int x, int
 }
 
 /* measure_text_wrapped_far */
-void far sub_root_0265_0614(struct textwin *w, char far *text, int a, int b, int c, int d,
+void far measure_text_wrapped_far(struct textwin *w, char far *text, int a, int b, int c, int d,
                                   int e, int f, int g, int h, int i)
 {
     char buf[900];
 
     sub_root_044a_0043(buf, text);
-    sub_root_0265_0654(w, buf, a, b, c, d, (struct hotspots *)e, f, g, h, i);
+    measure_text_wrapped(w, buf, a, b, c, d, (struct hotspots *)e, f, g, h, i);
 }
 
 /* lay out wrapped text without drawing it: returns (y_end - 1) << 16 | last line width */
 /* measure_text_wrapped */
-long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int y,
+long far measure_text_wrapped(struct textwin *w, char *text, int width, int x, int y,
                               int spacing, struct hotspots *hs, int a, int b, int leading,
                               int icon)
 {
@@ -373,7 +375,7 @@ long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int
         while (width_used < lw && *cur != 0 && *cur != '\n') {
             if (*cur != 0x14 && *cur != 0x15 && *cur != 0x10 && *cur != 0x16 && *cur != 6 &&
                 *cur != 0x1d && *cur != 0x0d)
-                width_used += sub_root_047c_04e3(font, *cur);
+                width_used += char_width(font, *cur);
             else if (*cur == 0x14)
                 y += 2;
             else if (*cur == 0x15 || *cur == 0x10 || *cur == 0x16 || *cur == 6) {
@@ -387,7 +389,7 @@ long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int
             } else if (*cur == 0x1d) {
                 memcpy(buf, line, n);
                 buf[n] = 0;
-                iconw = sub_root_0265_084e(w, buf);
+                iconw = text_pixel_width(w, buf);
                 newline = 0;
                 had_icon = 1;
             }
@@ -426,7 +428,7 @@ long far sub_root_0265_0654(struct textwin *w, char *text, int width, int x, int
 
 /* width in pixels of a string in the window's font */
 /* text_width */
-unsigned far sub_root_0265_084e(struct textwin *w, char *s)
+unsigned far text_pixel_width(struct textwin *w, char *s)
 {
     int font;
     unsigned n;
@@ -434,13 +436,13 @@ unsigned far sub_root_0265_084e(struct textwin *w, char *s)
 
     font = w->font;
     for (n = 0, p = s; *p; )
-        n += sub_root_047c_04e3(font, *p++);
+        n += char_width(font, *p++);
     return n;
 }
 
 /* long to decimal text with a thousands comma ("12,345"); at most 6 digits */
 /* ltoa_commas */
-void far sub_root_0265_0882(long v, char *buf)
+void far ltoa_commas(long v, char *buf)
 {
     char d[6];
     char *p;
@@ -473,7 +475,7 @@ void far sub_root_0265_0882(long v, char *buf)
 
 /* int to decimal text with a thousands comma */
 /* itoa_commas */
-void far sub_root_0265_09b2(int v, char *buf)
+void far itoa_commas(int v, char *buf)
 {
     char d[6];
     char *p0;

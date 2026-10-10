@@ -19,8 +19,10 @@
    into r + one return r, char in a union; m4).
    m4: 0cfe/0db4 are called WITHOUT prototype (orig pushes int/cbw words, like s019);
    0c48 = two whole calls + struct {id; w} locals, left: mov bx,ax / mov [bp-4],bx store order. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -77,45 +79,45 @@ struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
 struct item { unsigned id; unsigned char f2; unsigned char f3; unsigned char cnt; char f5; };
 struct dmg { char endur; char str; };   /* queued damage */
 
-int far sub_root_0000_0c8c(int);        /* random 1..n */
+int far rand_1_n(int);        /* random 1..n */
 int far _random_n(int);
-void far sub_root_0000_1716(int);
+void far party_panel_rows(int);
 int far sub_s014_0e76_469e(void *, int);
-int far sub_s014_14f7_343c(int);
+int far cbt_anim_set(int);
 void far sub_s014_1db7_05c8(int);
-int far sub_s014_1ec9_0142(int, int);
-int far sub_s014_18bf_02a8(int, int, int *);
-int far sub_s014_18bf_0592(int, int, unsigned char, struct cbt *, struct cbt *);
-int far sub_s014_18bf_0778(int, int, int, int);
-int far sub_s014_18bf_08ca(int, int, int, int);
-void far sub_s014_18bf_0a40(int, int, int);
+int far cloud_blocks_line(int, int);
+int far to_hit_roll(int, int, int *);
+int far missile_to_hit(int, int, unsigned char, struct cbt *, struct cbt *);
+int far hit_damage(int, int, int, int);
+int far damage_queue(int, int, int, int);
+void far weapon_ready(int, int, int);
 int far sub_s014_18bf_0cfe();
-int far sub_s014_18bf_0db4();
+int far consume_item();
 
-extern struct cbt D_9c55[];
-extern struct item far F_2e38_003e[][64];   /* party inventories */
-extern struct item far F_2e38_0dbe[][16];   /* enemy inventories ([i - 5]) */
-extern unsigned char D_d493[];          /* [13] attack rate (255 = recompute) */
-extern char D_ca57[];                   /* [13] current action/animation */
-extern char D_c96b[];                   /* [13] sound sequence length */
-extern char D_c98a[][10];               /* [13] sound sequence */
+extern struct cbt combatants[];
+extern struct item far inventories[][64];   /* party inventories */
+extern struct item far enemy_items[][16];   /* enemy inventories ([i - 5]) */
+extern unsigned char cbt_attack_rate[];          /* [13] attack rate (255 = recompute) */
+extern char cbt_anim[];                   /* [13] current action/animation */
+extern char cbt_anim_len[];                   /* [13] sound sequence length */
+extern char cbt_anim_seq[][10];               /* [13] sound sequence */
 extern char D_c7d2[];                   /* per animation set: has a miss sequence */
 extern char D_c86b[];                   /* per kind slot: 1 = no parry sequence */
 extern unsigned char D_c8a7[];          /* per animation set: parry sequence length | 0x80 */
 extern unsigned char D_c84a[];          /* per animation set: hit sequence length | 0x80 */
 extern char D_a3e7[][30];               /* sound sequences per animation set */
-extern char D_c21a;                     /* demo / tutorial mode */
+extern char demo_mode;                     /* demo / tutorial mode */
 extern char D_c26e;                     /* attacks by the leader in demo mode */
 extern char D_9f1f;                     /* */
-extern char D_a33d;                     /* number of effect clouds */
-extern char D_a2eb[];                   /* effect clouds (10 bytes each) */
+extern char effect_cloud_count;                     /* number of effect clouds */
+extern char effect_clouds[];                   /* effect clouds (10 bytes each) */
 extern char D_7900[][13];               /* [t][a] a can attack t (adjacent) */
 extern unsigned char D_1b88[];          /* damage table: low damage add */
 extern unsigned char D_1b90[];          /* damage table: low damage divisor */
-extern struct dmg D_d70c[];             /* [13] queued damage */
-extern char D_d4c7[];                   /* [13] damage taken this round */
-extern char D_a6c1;                     /* no kills (practice / arena) */
-extern char *D_1174[];                  /* [7] animation file name per kind slot */
+extern struct dmg cbt_queued_damage[];             /* [13] queued damage */
+extern char cbt_damage_shown[];                   /* [13] damage taken this round */
+extern char real_combat;                     /* no kills (practice / arena) */
+extern char *anim_file[];                  /* [7] animation file name per kind slot */
 /* weapon tables (63 weapons) in far segment 20a5; every table is its own far variable */
 struct wtab { char v[63]; };
 extern struct wtab far F_20a5_75ac;     /* weapon -> skill category (2 = missile) */
@@ -129,48 +131,48 @@ extern struct wtab far F_20a5_77e3;     /* */
 extern struct { char v[4]; } far F_20a5_781e;      /* armour class -> value */
 extern struct { char v[63][2]; } far F_20a5_75eb;  /* animation file letters */
 extern struct wtab far F_20a5_7822;     /* weapon -> ammo item (0 = none) */
-extern char D_ca64[];                   /* [13] */
+extern char cbt_action[];                   /* [13] */
 extern char D_a3d8[];                   /* [13] */
-extern char D_c2bf[];                   /* [13] */
+extern char enemy_class[];                   /* [13] */
 
-/* attack rate of combatant i (recomputed when D_d493[i] == 255) */
-void far sub_s014_18bf_0002(int i)
+/* attack rate of combatant i (recomputed when cbt_attack_rate[i] == 255) */
+void far attack_rate(int i)
 {
     struct cbt *c;
     int t, e, load;
     unsigned st;
     char a;
 
-    if (D_d493[i] == 0xff) {
-        st = D_9c55[i].f10;
+    if (cbt_attack_rate[i] == 0xff) {
+        st = combatants[i].f10;
         if ((st & 2) == 2) {
-            a = D_9c55[i].f5f;
-            t = ((200 - D_9c55[i].f59 - a) >> 1) + (D_9c55[i].f52 + 15) * 2;
+            a = combatants[i].f5f;
+            t = ((200 - combatants[i].f59 - a) >> 1) + (combatants[i].f52 + 15) * 2;
             if ((st & 6) == 6)
                 t -= 30;
             else if ((st & 0x22) == 0x22)
                 t += 60;
             else if ((st & 0xa) == 0xa)
                 t += 120;
-            e = D_9c55[i].f65 + D_9c55[i].f64;
-            load = D_9c55[i].load;
+            e = combatants[i].f65 + combatants[i].f64;
+            load = combatants[i].load;
             if (e / 2 < load && load <= e)
                 t += 30;
             else if (e * 3 / 2 < load)
                 t += 100;
-            D_d493[i] = 6000 / t;
+            cbt_attack_rate[i] = 6000 / t;
         } else {
-            t = -(D_9c55[i].f5f >> 1) - ((D_9c55[i].f59 >> 1) - 150);
+            t = -(combatants[i].f5f >> 1) - ((combatants[i].f59 >> 1) - 150);
             if (t < 0)
                 t = 0;
-            D_9c55[i].f1d = t;
-            D_d493[i] = 100;
+            combatants[i].f1d = t;
+            cbt_attack_rate[i] = 100;
         }
     }
 }
 
 /* one attack of a on t; returns the to-hit result */
-int far sub_s014_18bf_0102(int a, int t)
+int far cbt_attack(int a, int t)
 {
     int r;
     int crit;
@@ -179,54 +181,54 @@ int far sub_s014_18bf_0102(int a, int t)
     int k, n;
     unsigned char m;
 
-    r = sub_s014_18bf_02a8(a, t, &crit);
-    kind = D_9c55[a].kind;
-    set = sub_s014_14f7_343c(a);
+    r = to_hit_roll(a, t, &crit);
+    kind = combatants[a].kind;
+    set = cbt_anim_set(a);
     if (r < 2) {
         if (r == 0) {
             if (D_c7d2[set] == 0)
                 r = 1;
         } else
-            D_ca57[a] = 6;
+            cbt_anim[a] = 6;
     } else {
-        if (sub_s014_18bf_0778(a, t, r, crit) < 2)
-            D_ca57[a] = 1;
+        if (hit_damage(a, t, r, crit) < 2)
+            cbt_anim[a] = 1;
         else
-            D_ca57[a] = 2;
+            cbt_anim[a] = 2;
     }
-    D_9c55[a].info = kind * 0x70 + 0xceae;
-    if (D_c21a != 0 && a == 5)
+    combatants[a].info = kind * 0x70 + 0xceae;
+    if (demo_mode != 0 && a == 5)
         D_c26e++;
     if (r == 0) {
         n = _random_n(4);
         for (k = 0; k < 5; k++)
-            D_c98a[a][k] = D_a3e7[set][(n + 2) * 5 + k];
-        D_c96b[a] = 5;
+            cbt_anim_seq[a][k] = D_a3e7[set][(n + 2) * 5 + k];
+        cbt_anim_len[a] = 5;
         return 0;
     }
     if (r == 1) {
-        if (D_c21a != 0)
+        if (demo_mode != 0)
             return 1;
         if (D_c86b[kind] != 1) {
             m = D_c8a7[set];
-            if ((D_c96b[a] = m & 0x7f) == 0)
+            if ((cbt_anim_len[a] = m & 0x7f) == 0)
                 return 1;
-            for (k = 0; k < D_c96b[a]; k++)
-                D_c98a[a][k] = D_a3e7[set][5 + k];
+            for (k = 0; k < cbt_anim_len[a]; k++)
+                cbt_anim_seq[a][k] = D_a3e7[set][5 + k];
             return 1;
         }
     }
-    if (D_c21a == 0) {
+    if (demo_mode == 0) {
         m = D_c84a[set];
-        if ((D_c96b[a] = m & 0x7f) != 0)
-            for (k = 0; k < D_c96b[a]; k++)
-                D_c98a[a][k] = D_a3e7[set][k];
+        if ((cbt_anim_len[a] = m & 0x7f) != 0)
+            for (k = 0; k < cbt_anim_len[a]; k++)
+                cbt_anim_seq[a][k] = D_a3e7[set][k];
     }
     return r;
 }
 
 /* to-hit roll of a against t; *crit = random hit location (0/1) */
-int far sub_s014_18bf_02a8(int a, int t, int *crit)
+int far to_hit_roll(int a, int t, int *crit)
 {
     int roll;
     int chance;
@@ -235,19 +237,19 @@ int far sub_s014_18bf_02a8(int a, int t, int *crit)
     unsigned char atk;
     int lo, hi, k, near_, engaged, eng, cloud, eff, sh, e, q, sk;
 
-    roll = sub_root_0000_0c8c(100);
-    if (D_c21a != 0 && a == 5 && D_9f1f == -1)
+    roll = rand_1_n(100);
+    if (demo_mode != 0 && a == 5 && D_9f1f == -1)
         return 0;
-    if (D_d493[a] < roll)
+    if (cbt_attack_rate[a] < roll)
         return 0;
-    ct = &D_9c55[t];
+    ct = &combatants[t];
     *crit = roll & 1;
-    ca = &D_9c55[a];
+    ca = &combatants[a];
     st = ca->f10;
     if ((st >> 8 & 1) == 1)
         return 2;                       /* helpless target: automatic hit */
     if ((st & 2) == 2) {
-        chance = sub_s014_18bf_0592(a, t, (unsigned char)st, ca, ct);
+        chance = missile_to_hit(a, t, (unsigned char)st, ca, ct);
     } else {
         atk = ca->atk;
         if (a < 5) {
@@ -260,7 +262,7 @@ int far sub_s014_18bf_02a8(int a, int t, int *crit)
         /* number of allies of a standing next to t */
         near_ = 0;
         for (k = lo; k <= hi; k++)
-            if (D_7900[t][k] != 0 && D_9c55[k].status == 1)
+            if (D_7900[t][k] != 0 && combatants[k].status == 1)
                 near_++;
         if (near_ == 0)
             eng = 10;
@@ -269,7 +271,7 @@ int far sub_s014_18bf_02a8(int a, int t, int *crit)
         /* number of combatants attacking a */
         engaged = 0;
         for (k = 0; k < 13; k++)
-            if (D_9c55[k].target == a && D_9c55[k].status == 1 && (D_9c55[k].f10 & 2) == 2)
+            if (combatants[k].target == a && combatants[k].status == 1 && (combatants[k].f10 & 2) == 2)
                 engaged++;
         if (engaged == 0)
             q = 10;
@@ -279,7 +281,7 @@ int far sub_s014_18bf_02a8(int a, int t, int *crit)
             if (engaged >= 0)
                 q = 1;
         }
-        cloud = sub_s014_1ec9_0142(a, t) == 1 ? 2 : 10;
+        cloud = cloud_blocks_line(a, t) == 1 ? 2 : 10;
         eff = cloud * (q * (eng * atk / 10) / 10) / 10;
         if (eff < 0)
             eff = 0;
@@ -319,7 +321,7 @@ int far sub_s014_18bf_02a8(int a, int t, int *crit)
 }
 
 /* missile to-hit chance of a (record ca) against t (record ct) */
-int far sub_s014_18bf_0592(int a, int t, unsigned char st, struct cbt *ca, struct cbt *ct)
+int far missile_to_hit(int a, int t, unsigned char st, struct cbt *ca, struct cbt *ct)
 {
     int sh;
     int m;
@@ -360,14 +362,14 @@ int far sub_s014_18bf_0592(int a, int t, unsigned char st, struct cbt *ca, struc
     }
     n1 = 0;
     for (k = 0; k < 13; k++)
-        if (D_9c55[k].target == t && D_9c55[k].status == 1 && (D_9c55[k].f10 & 2) == 2)
+        if (combatants[k].target == t && combatants[k].status == 1 && (combatants[k].f10 & 2) == 2)
             n1++;
     n2 = 0;
     for (k = 0; k < 13; k++)
-        if (D_9c55[k].target == a && D_9c55[k].status == 1 && (D_9c55[k].f10 & 2) == 2)
+        if (combatants[k].target == a && combatants[k].status == 1 && (combatants[k].f10 & 2) == 2)
             n2++;
     m += n1 * 10 - n2 * 10;
-    for (k = 0, p = D_a2eb; k < D_a33d; k++, p += 10)
+    for (k = 0, p = effect_clouds; k < effect_cloud_count; k++, p += 10)
         if (sub_s014_0e76_469e(p, a) == 1) {
             m -= 15;                    /* shooter inside an effect cloud */
             break;
@@ -379,7 +381,7 @@ int far sub_s014_18bf_0592(int a, int t, unsigned char st, struct cbt *ca, struc
 }
 
 /* damage of a hit by a on t at location loc; r = to-hit result (3 = good hit) */
-int far sub_s014_18bf_0778(int a, int t, int r, int loc)
+int far hit_damage(int a, int t, int r, int loc)
 {
     int arm;
     int bonus;
@@ -388,37 +390,37 @@ int far sub_s014_18bf_0778(int a, int t, int r, int loc)
     int pen;
     int k;
 
-    if ((D_9c55[a].f10 & 0x100) == 0x100)
+    if ((combatants[a].f10 & 0x100) == 0x100)
         return 0;
-    arm = D_9c55[t].f4d[loc] + (D_9c55[t].f55 & 0x7f);
-    bonus = (D_9c55[a].f48 >> 4) + D_9c55[a].f54;
-    mn = D_9c55[a].f57 & 0x7f;
-    mx = D_9c55[a].f56;
-    pen = (D_9c55[a].f48 + D_9c55[a].f53) & 0xf;
-    if ((D_9c55[a].f10 & 0xa) == 0xa)
-        pen += sub_root_0000_0c8c(4);
+    arm = combatants[t].f4d[loc] + (combatants[t].f55 & 0x7f);
+    bonus = (combatants[a].f48 >> 4) + combatants[a].f54;
+    mn = combatants[a].f57 & 0x7f;
+    mx = combatants[a].f56;
+    pen = (combatants[a].f48 + combatants[a].f53) & 0xf;
+    if ((combatants[a].f10 & 0xa) == 0xa)
+        pen += rand_1_n(4);
     if (r == 3)
-        pen -= sub_root_0000_0c8c(4);
+        pen -= rand_1_n(4);
     if (pen <= arm) {
         if (arm == pen)
             bonus /= 2;
         else
             bonus = abs(bonus) >> 3;    /* sign kept */
     }
-    k = D_9c55[a].f65;
+    k = combatants[a].f65;
     if (mn < k)
         bonus += (k - mn) / 5 + 1;
     else if (mx > k)
         bonus += (k - mx) / 5 - 1;
-    k = (D_9c55[a].f55 & 0x80) ? D_9c55[t].f24 / 2 : 0;
-    k += D_9c55[t].f4f[loc];
+    k = (combatants[a].f55 & 0x80) ? combatants[t].f24 / 2 : 0;
+    k += combatants[t].f4f[loc];
     if (k > 99)
         k = 99;
-    return sub_s014_18bf_08ca((D_9c55[a].f0d - k) / 10 + bonus, t, pen, arm);
+    return damage_queue((combatants[a].f0d - k) / 10 + bonus, t, pen, arm);
 }
 
 /* roll damage d (0..40) against t and queue it; pen/arm decide the strength part */
-int far sub_s014_18bf_08ca(int d, int t, int pen, int arm)
+int far damage_queue(int d, int t, int pen, int arm)
 {
     int roll;
     int dmg;
@@ -427,64 +429,64 @@ int far sub_s014_18bf_08ca(int d, int t, int pen, int arm)
         d = 40;
     if (d < 0)
         d = 0;
-    roll = sub_root_0000_0c8c(6) + sub_root_0000_0c8c(6);
+    roll = rand_1_n(6) + rand_1_n(6);
     if (d <= 7)
         dmg = roll / D_1b90[d] + D_1b88[d];
     else if (d < 8 || d > 20)
         dmg = d + roll - 10;
     else
         dmg = (roll >> 1) + d - 6;
-    D_d70c[t].endur += dmg;
+    cbt_queued_damage[t].endur += dmg;
     if (arm < pen)
-        roll = sub_root_0000_0c8c(6) + 3;
+        roll = rand_1_n(6) + 3;
     else if (arm == pen)
-        roll = sub_root_0000_0c8c(4) + 1;
+        roll = rand_1_n(4) + 1;
     else
         roll = _random_n(3);
-    D_d70c[t].str += roll * dmg / 10;
+    cbt_queued_damage[t].str += roll * dmg / 10;
     return dmg;
 }
 
 /* apply the queued damage of combatant i */
 #pragma optimize("a", on)
-void far sub_s014_18bf_098e(int i)
+void far damage_apply(int i)
 {
     char d;
 
-    if (D_9c55[i].status == 1) {
-        if (D_d70c[i].endur > 42)
-            D_d70c[i].endur = 42;
-        d = D_d70c[i].endur;
-        D_9c55[i].endur -= d;
-        D_d4c7[i] += d;
-        D_d70c[i].endur = 0;
-        if (D_9c55[i].endur <= 0) {
-            D_9c55[i].endur = 0;
-            D_9c55[i].status = 2;       /* unconscious */
+    if (combatants[i].status == 1) {
+        if (cbt_queued_damage[i].endur > 42)
+            cbt_queued_damage[i].endur = 42;
+        d = cbt_queued_damage[i].endur;
+        combatants[i].endur -= d;
+        cbt_damage_shown[i] += d;
+        cbt_queued_damage[i].endur = 0;
+        if (combatants[i].endur <= 0) {
+            combatants[i].endur = 0;
+            combatants[i].status = 2;       /* unconscious */
         }
-        D_9c55[i].str -= D_d70c[i].str;
-        D_d70c[i].str = 0;
-        if (D_9c55[i].str <= 0) {
-            D_9c55[i].str = 0;
-            D_9c55[i].status = 3;       /* dead */
+        combatants[i].str -= cbt_queued_damage[i].str;
+        cbt_queued_damage[i].str = 0;
+        if (combatants[i].str <= 0) {
+            combatants[i].str = 0;
+            combatants[i].status = 3;       /* dead */
         }
-        if (D_a6c1 == 0) {
-            if (D_9c55[i].endur == 0) {
-                D_9c55[i].endur = 1;
-                D_9c55[i].status = 1;
+        if (real_combat == 0) {
+            if (combatants[i].endur == 0) {
+                combatants[i].endur = 1;
+                combatants[i].status = 1;
             }
-            if (D_9c55[i].str == 0) {
-                D_9c55[i].str = 1;
-                D_9c55[i].status = 1;
+            if (combatants[i].str == 0) {
+                combatants[i].str = 1;
+                combatants[i].status = 1;
             }
         }
-        sub_root_0000_1716(0x100);
+        party_panel_rows(0x100);
     }
 }
 #pragma optimize("", on)
 
 /* ready weapon w (-1 with alt == 0: bare hands = 9); alt selects the alternate skill */
-void far sub_s014_18bf_0a40(int i, int w, int alt)
+void far weapon_ready(int i, int w, int alt)
 {
     int m2;
     int m1;
@@ -501,30 +503,30 @@ void far sub_s014_18bf_0a40(int i, int w, int alt)
     m1 = 0;
     if (w == -1 && alt == 0)
         w = 9;
-    D_d493[i] = 0xff;
-    D_9c55[i].f0d = alt == 0 ? D_9c55[i].f58 : D_9c55[i].f5a;
-    D_9c55[i].f52 = F_20a5_7669.v[w];
-    D_9c55[i].f53 = F_20a5_76a8.v[w];
-    D_9c55[i].f54 = F_20a5_76e7.v[w];
-    D_9c55[i].f23 = F_20a5_7726.v[w];
-    D_9c55[i].f56 = lo = F_20a5_7765.v[w];
-    D_9c55[i].f57 = hi = F_20a5_77a4.v[w];
-    D_9c55[i].f0c = F_20a5_77e3.v[w];
-    s = D_9c55[i].f4b;
+    cbt_attack_rate[i] = 0xff;
+    combatants[i].f0d = alt == 0 ? combatants[i].f58 : combatants[i].f5a;
+    combatants[i].f52 = F_20a5_7669.v[w];
+    combatants[i].f53 = F_20a5_76a8.v[w];
+    combatants[i].f54 = F_20a5_76e7.v[w];
+    combatants[i].f23 = F_20a5_7726.v[w];
+    combatants[i].f56 = lo = F_20a5_7765.v[w];
+    combatants[i].f57 = hi = F_20a5_77a4.v[w];
+    combatants[i].f0c = F_20a5_77e3.v[w];
+    s = combatants[i].f4b;
     if (s < 0)
         s = 0;
-    D_9c55[i].f4d[0] = F_20a5_781e.v[s];
-    s = D_9c55[i].f4c;
+    combatants[i].f4d[0] = F_20a5_781e.v[s];
+    s = combatants[i].f4c;
     if (s < 0)
         s = 0;
-    D_9c55[i].f4d[1] = F_20a5_781e.v[s];
-    D_9c55[i].f59 = s = D_9c55[i].skill[F_20a5_75ac.v[w]];
+    combatants[i].f4d[1] = F_20a5_781e.v[s];
+    combatants[i].f59 = s = combatants[i].skill[F_20a5_75ac.v[w]];
     sk = s;
-    D_9c55[i].f57 = hi | alt;
-    n = D_1174[D_9c55[i].kind];
+    combatants[i].f57 = hi | alt;
+    n = anim_file[combatants[i].kind];
     n[0] = F_20a5_75eb.v[w][0];
     n[1] = F_20a5_75eb.v[w][1];
-    d = lo - D_9c55[i].f65;
+    d = lo - combatants[i].f65;
     if (d > 0) {
         m1 = d * 3;                     /* too weak for the weapon */
         p1 = d;
@@ -534,7 +536,7 @@ void far sub_s014_18bf_0a40(int i, int w, int alt)
         m2 = d * 2;
         p2 = d * 2;
     }
-    d = D_9c55[i].f65 - F_20a5_77a4.v[w];
+    d = combatants[i].f65 - F_20a5_77a4.v[w];
     if (d < 1)
         d = 0;
     else
@@ -551,17 +553,17 @@ void far sub_s014_18bf_0a40(int i, int w, int alt)
         if (p2 > 0xff)
             p2 = 0xff;
     }
-    D_9c55[i].def = sk;
-    D_9c55[i].atk = p2;
+    combatants[i].def = sk;
+    combatants[i].atk = p2;
 }
 
 /* 1 if i can fire its readied weapon (no ammo needed, or has ammo of quality 25) */
-int far sub_s014_18bf_0c02(int i)
+int far can_fire(int i)
 {
     union { char am; int d; } u;
     int r;
 
-    u.am = F_20a5_7822.v[D_9c55[i].weapon];
+    u.am = F_20a5_7822.v[combatants[i].weapon];
     if (u.am == 0)
         r = 1;
     else
@@ -570,28 +572,28 @@ int far sub_s014_18bf_0c02(int i)
 }
 
 /* use one ammo / thrown weapon of i; when it runs out switch back to the default weapon */
-int far sub_s014_18bf_0c48(int i)
+int far use_ammo(int i)
 {
     struct { int id; char w; char pad; } s;
     int r;
 
-    D_d493[i] = 0xff;
-    s.id = D_9c55[i].weapon;
+    cbt_attack_rate[i] = 0xff;
+    s.id = combatants[i].weapon;
     if ((s.w = F_20a5_7822.v[s.id]) == 0)
-        r = sub_s014_18bf_0db4(i, s.id, D_9c55[i].f5a);
+        r = consume_item(i, s.id, combatants[i].f5a);
     else
-        r = sub_s014_18bf_0db4(i, s.w, 0x19);
+        r = consume_item(i, s.w, 0x19);
     if (r == -1) {
-        if (F_20a5_7822.v[D_9c55[i].weapon] == 0)
-            D_9c55[i].weapon = -1;
+        if (F_20a5_7822.v[combatants[i].weapon] == 0)
+            combatants[i].weapon = -1;
         if (i >= 5)
             sub_s014_1db7_05c8(i);
-        D_ca64[i] = 0xd;
+        cbt_action[i] = 0xd;
         D_a3d8[i] = 2;
-        sub_root_0000_1716(i);
-        D_c2bf[i] = 0;
-        D_9c55[i].target = -1;
-        sub_s014_18bf_0a40(i, D_9c55[i].f51, 0);
+        party_panel_rows(i);
+        enemy_class[i] = 0;
+        combatants[i].target = -1;
+        weapon_ready(i, combatants[i].f51, 0);
     }
     return r;
 }
@@ -604,13 +606,13 @@ int far sub_s014_18bf_0cfe(int i, unsigned char id, unsigned char q)
     struct item far *p;
 
     if (i < 5) {
-        if (D_9c55[i].nitems > 0)
-            for (k = 0, p = F_2e38_003e[i]; k < D_9c55[i].nitems; k++, p++)
+        if (combatants[i].nitems > 0)
+            for (k = 0, p = inventories[i]; k < combatants[i].nitems; k++, p++)
                 if (p->f2 == id && p->f3 == q)
                     return 1;
     } else {
-        if (D_9c55[i].nitems > 0)
-            for (k = 0, p = F_2e38_0dbe[i - 5]; k < D_9c55[i].nitems; k++, p++)
+        if (combatants[i].nitems > 0)
+            for (k = 0, p = enemy_items[i - 5]; k < combatants[i].nitems; k++, p++)
                 if (p->f2 == id && p->f3 == q)
                     return 1;
     }
@@ -619,7 +621,7 @@ int far sub_s014_18bf_0cfe(int i, unsigned char id, unsigned char q)
 #pragma optimize("e", on)
 
 /* consume one of item (id, q); returns the remaining count or -1 when gone / not found */
-int far sub_s014_18bf_0db4(int i, unsigned char id, unsigned char q)
+int far consume_item(int i, unsigned char id, unsigned char q)
 {
     char *pn;
     int found;
@@ -628,35 +630,35 @@ int far sub_s014_18bf_0db4(int i, unsigned char id, unsigned char q)
 
     found = 0;
     if (i < 5) {
-        pn = &D_9c55[i].nitems;
+        pn = &combatants[i].nitems;
         if (*pn > 0)
-            for (k = 0, p = F_2e38_003e[i]; k < *pn; k++, p++)
+            for (k = 0, p = inventories[i]; k < *pn; k++, p++)
                 if (p->f2 == id && p->f3 == q) {
                     found = 1;
                     break;
                 }
         if (!found)
             return -1;
-        if ((n = F_2e38_003e[i][k].cnt-- - 1) > 0)
+        if ((n = inventories[i][k].cnt-- - 1) > 0)
             return n;
         if (k < *pn - 1)
-            for (n = D_9c55[i].nitems - k - 1, p = &F_2e38_003e[i][k]; n != 0; n--, p++)
+            for (n = combatants[i].nitems - k - 1, p = &inventories[i][k]; n != 0; n--, p++)
                 p[0] = p[1];
     } else {
         k = 0;
-        pn = &D_9c55[i].nitems;
+        pn = &combatants[i].nitems;
         if (*pn > 0)
-            for (p = F_2e38_0dbe[i - 5]; k < *pn; k++, p++)
+            for (p = enemy_items[i - 5]; k < *pn; k++, p++)
                 if (p->f2 == id && p->f3 == q) {
                     found = 1;
                     break;
                 }
         if (!found)
             return -1;
-        if ((n = F_2e38_0dbe[i - 5][k].cnt-- - 1) > 0)
+        if ((n = enemy_items[i - 5][k].cnt-- - 1) > 0)
             return n;
         if (k < *pn - 1)
-            for (n = D_9c55[i].nitems - k - 1, p = &F_2e38_0dbe[i - 5][k]; n != 0; n--, p++)
+            for (n = combatants[i].nitems - k - 1, p = &enemy_items[i - 5][k]; n != 0; n--, p++)
                 p[0] = p[1];
     }
     (*pn)--;
@@ -664,7 +666,7 @@ int far sub_s014_18bf_0db4(int i, unsigned char id, unsigned char q)
 }
 
 /* consume one of inventory slot k of i; -1 when the slot is used up */
-int far sub_s014_18bf_0fa4(int i, int k)
+int far consume_slot(int i, int k)
 {
     int n;
     char *pn;
@@ -672,19 +674,19 @@ int far sub_s014_18bf_0fa4(int i, int k)
     struct item far *p;
 
     if (i < 5) {
-        if ((n = F_2e38_003e[i][k].cnt-- - 1) < 1) {
-            pn = &D_9c55[i].nitems;
+        if ((n = inventories[i][k].cnt-- - 1) < 1) {
+            pn = &combatants[i].nitems;
             if (k < *pn - 1)
-                for (p = &F_2e38_003e[i][k], c = D_9c55[i].nitems - k - 1; c != 0; c--, p++)
+                for (p = &inventories[i][k], c = combatants[i].nitems - k - 1; c != 0; c--, p++)
                     p[0] = p[1];
             (*pn)--;
             return -1;
         }
     } else {
-        if ((n = F_2e38_0dbe[i - 5][k].cnt-- - 1) < 1) {
-            pn = &D_9c55[i].nitems;
+        if ((n = enemy_items[i - 5][k].cnt-- - 1) < 1) {
+            pn = &combatants[i].nitems;
             if (k < *pn - 1)
-                for (p = &F_2e38_0dbe[i - 5][k], c = D_9c55[i].nitems - k - 1; c != 0; c--, p++)
+                for (p = &enemy_items[i - 5][k], c = combatants[i].nitems - k - 1; c != 0; c--, p++)
                     p[0] = p[1];
             (*pn)--;
             return -1;

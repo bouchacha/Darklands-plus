@@ -2,6 +2,7 @@
 /* orig: size=16b0 CONST=7d48+0006 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* data: CONST=7d48 */
+/* gamenames: off - including darklands/game.h changes 0ab4/0ffe/14f4 (MSC symbol-table order): keep the raw names */
 /* s014 12f7: PATHFINDER.
    A "bug" algorithm with up to 10 parallel trackers (all state in a far work area addressed
    by _based(D_d6f7) pointers):

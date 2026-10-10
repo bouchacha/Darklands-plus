@@ -4,9 +4,11 @@
 /* s019: combat spell/effect areas (three effect lists, per-combatant temporary modifiers).
    status: all 17 functions written; FILE MATCH. 0300 058a 0aac 0b44 0c28 are MSC near functions
    (not hand-written asm). Notes: build/agent/e7/NOTES.md */
-int far sub_root_0000_0c8c(int);     /* position matters: operand order in 0300 case 5 */
+#include "darklands/card.h"
+#include "darklands/game.h"
+int far rand_1_n(int);     /* position matters: operand order in 0300 case 5 */
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -40,37 +42,37 @@ struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char nitems;                /* +7e */
     char pad7f[1];
 };
-struct efa { int x; int y; unsigned char f4; unsigned char kind; char f6; char f7; int t; };  /* D_a2eb[8] */
-struct efb { int x; int y; char f4; char f5; char f6; char f7; int t; };                    /* D_a342[8] */
-struct efc { int x; int y; char f4; char f5; char f6; char f7; };                           /* D_a396[8] */
+struct efa { int x; int y; unsigned char f4; unsigned char kind; char f6; char f7; int t; };  /* effect_clouds[8] */
+struct efb { int x; int y; char f4; char f5; char f6; char f7; int t; };                    /* effect_areas[8] */
+struct efc { int x; int y; char f4; char f5; char f6; char f7; };                           /* effect_markers[8] */
 struct mod { char f0; char f1; char f2[7]; char f9; int fa; int fc; int fe; int f10; };     /* D_a532[13] */
 struct item { unsigned id; unsigned char f2; unsigned char f3; unsigned char f4; char f5; };
 struct fx { int f0; int f2; int f4; };
 struct q16 { int w0; char f2; char name[4]; char f7; char f8; char f9; char pada[12]; };
 
-extern struct cbt D_9c55[];
-extern struct efa D_a2eb[];
-extern struct efb D_a342[];
-extern struct efc D_a396[];
+extern struct cbt combatants[];
+extern struct efa effect_clouds[];
+extern struct efb effect_areas[];
+extern struct efc effect_markers[];
 extern struct mod D_a532[];
 extern struct q16 D_9a47[];
-extern char D_a33d;
+extern char effect_cloud_count;
 extern char D_a395;
 extern char D_a531;
 extern char D_d842;
-extern char D_11ca;
-extern int D_07d4;
+extern char floor_shown;
+extern int combat_clock;
 extern int D_d4c3;
 extern int D_d4c5;
-extern char D_a6b4[];
+extern char cbt_floor[];
 extern int D_c927[];
 extern int D_da89[];
-extern char D_ca64[];
+extern char cbt_action[];
 extern int D_c897[];
 extern int D_c8ba[];
 extern int D_c8f7[];
 extern int D_c915[];
-extern char *D_1174[];
+extern char *anim_file[];
 extern int D_114a;
 extern int D_114e[];
 extern char D_97dd;
@@ -83,22 +85,22 @@ extern char D_2226[];
 extern char D_222a[];
 extern char D_222e[];
 extern struct fx far F_20a5_35ee[];
-extern struct item far F_2e38_003e[][64];
-extern struct item far F_2e38_0dbe[][16];
+extern struct item far inventories[][64];
+extern struct item far enemy_items[][16];
 
 int abs(int);
 int far stricmp();
 int far sprintf();
 int far sub_root_0410_001a(int, int, int);
-char far sub_root_0410_005a();
-void far sub_root_0410_0068();
-int far sub_root_047c_1120();
+char far dir_add();
+void far word_fill();
+int far distance3();
 void far sub_s014_0e76_465e();
 int far sub_s014_0e76_469e();
-void far sub_s014_18bf_08ca();
-void far sub_s014_18bf_098e();
-void far sub_s014_18bf_0a40();
-int far sub_s014_18bf_0db4();
+void far damage_queue();
+void far damage_apply();
+void far weapon_ready();
+int far consume_item();
 
 void far sub_s019_1ef8_01e2(int n);
 void near sub_s019_1ef8_0300(int n, int dur, int target, int side);
@@ -115,7 +117,7 @@ void near sub_s019_1ef8_0c28(int i, int idx);
 
 /* add an effect area at (x, y) */
 #pragma optimize("a", on)
-void far sub_s019_1ef8_0000(int x, int y, int p3, int type, int dur, int target, int side)
+void far effect_spell(int x, int y, int p3, int type, int dur, int target, int side)
 {
     int i;
 
@@ -124,53 +126,53 @@ void far sub_s019_1ef8_0000(int x, int y, int p3, int type, int dur, int target,
     if (type == 9) {
         if (D_a395 >= 8)
             return;
-        D_a342[D_a395].x = x;
-        D_a342[D_a395].y = y;
-        D_a342[D_a395].f4 = 0x49;
-        D_a342[D_a395].f6 = D_11ca;
+        effect_areas[D_a395].x = x;
+        effect_areas[D_a395].y = y;
+        effect_areas[D_a395].f4 = 0x49;
+        effect_areas[D_a395].f6 = floor_shown;
         switch (dur / 10) {
-        case 2: D_a342[D_a395].f5 = 4; break;
-        case 3: D_a342[D_a395].f5 = 5; break;
-        case 4: D_a342[D_a395].f5 = 6; break;
+        case 2: effect_areas[D_a395].f5 = 4; break;
+        case 3: effect_areas[D_a395].f5 = 5; break;
+        case 4: effect_areas[D_a395].f5 = 6; break;
         }
-        D_a342[D_a395].t = D_221d[dur / 10] * 60 + D_07d4;
+        effect_areas[D_a395].t = D_221d[dur / 10] * 60 + combat_clock;
         D_a395++;
         sub_s014_0e76_465e(0xc);
     } else if (type >= 6 && type <= 8) {
         if (D_a531 >= 8)
             return;
-        D_a396[D_a531].x = x;
-        D_a396[D_a531].y = y;
-        D_a396[D_a531].f4 = 0x40;
-        D_a396[D_a531].f6 = D_11ca;
-        D_a396[D_a531].f5 = type - 6;
+        effect_markers[D_a531].x = x;
+        effect_markers[D_a531].y = y;
+        effect_markers[D_a531].f4 = 0x40;
+        effect_markers[D_a531].f6 = floor_shown;
+        effect_markers[D_a531].f5 = type - 6;
         sub_s019_1ef8_058a(++D_a531 - 1, type, p3, dur, target, side);
         sub_s014_0e76_465e(0xd);
     } else {
-        if (D_a33d < 8) {
-            D_a2eb[D_a33d].x = x;
-            D_a2eb[D_a33d].y = y;
-            D_a2eb[D_a33d].kind = type;
-            D_a2eb[D_a33d].f4 = D_21dc[type];
-            D_a2eb[D_a33d].f7 = D_11ca;
-            D_a2eb[D_a33d].t = D_2202[type * 3 + dur / 10] * 60 + D_07d4;
-            sub_s019_1ef8_0300(++D_a33d - 1, dur, target, side);
+        if (effect_cloud_count < 8) {
+            effect_clouds[effect_cloud_count].x = x;
+            effect_clouds[effect_cloud_count].y = y;
+            effect_clouds[effect_cloud_count].kind = type;
+            effect_clouds[effect_cloud_count].f4 = D_21dc[type];
+            effect_clouds[effect_cloud_count].f7 = floor_shown;
+            effect_clouds[effect_cloud_count].t = D_2202[type * 3 + dur / 10] * 60 + combat_clock;
+            sub_s019_1ef8_0300(++effect_cloud_count - 1, dur, target, side);
             sub_s014_0e76_465e(0xc);
             return;
         } else {
-            for (i = 0; i < D_a33d; i++)
-                if (D_a2eb[i].kind != 2)
+            for (i = 0; i < effect_cloud_count; i++)
+                if (effect_clouds[i].kind != 2)
                     goto found;
             return;
 found:
             sub_s019_1ef8_01e2(i);
-            D_a2eb[D_a33d].x = x;
-            D_a2eb[D_a33d].y = y;
-            D_a2eb[D_a33d].kind = type;
-            D_a2eb[D_a33d].f4 = D_21dc[type];
+            effect_clouds[effect_cloud_count].x = x;
+            effect_clouds[effect_cloud_count].y = y;
+            effect_clouds[effect_cloud_count].kind = type;
+            effect_clouds[effect_cloud_count].f4 = D_21dc[type];
         }
-        D_a2eb[D_a33d].t = D_2202[type * 3 + dur / 10] * 60 + D_07d4;
-        sub_s019_1ef8_0300(++D_a33d - 1, dur, target, side);
+        effect_clouds[effect_cloud_count].t = D_2202[type * 3 + dur / 10] * 60 + combat_clock;
+        sub_s019_1ef8_0300(++effect_cloud_count - 1, dur, target, side);
         sub_s014_0e76_465e(0xc);
     }
 }
@@ -181,15 +183,15 @@ void far sub_s019_1ef8_01e2(int n)
 {
     int i;
 
-    if (D_a33d != 0) {
-        for (i = n; i < D_a33d - 1; i++) {
-            D_a2eb[i] = D_a2eb[i + 1];
+    if (effect_cloud_count != 0) {
+        for (i = n; i < effect_cloud_count - 1; i++) {
+            effect_clouds[i] = effect_clouds[i + 1];
             D_c8f7[i] = D_c8f7[i + 1];
             D_c915[i] = D_c915[i + 1];
             D_c897[i] = D_c897[i + 1];
             D_c8ba[i] = D_c8ba[i + 1];
         }
-        D_a33d--;
+        effect_cloud_count--;
     }
 }
 
@@ -200,7 +202,7 @@ void far sub_s019_1ef8_0260(int n)
 
     if (D_a395 != 0) {
         for (i = n; i < D_a395 - 1; i++)
-            D_a342[i] = D_a342[i + 1];
+            effect_areas[i] = effect_areas[i + 1];
         D_a395--;
     }
 }
@@ -212,7 +214,7 @@ void far sub_s019_1ef8_02b4(int n)
 
     if (D_a531 != 0) {
         for (i = n; i < D_a531 - 1; i++)
-            D_a396[i] = D_a396[i + 1];
+            effect_markers[i] = effect_markers[i + 1];
         D_a531--;
     }
 }
@@ -226,14 +228,14 @@ void near sub_s019_1ef8_0300(int n, int dur, int target, int side)
     int t;
     int i;
 
-    kind = D_a2eb[n].kind;
+    kind = effect_clouds[n].kind;
     for (i = 0; i < 13; i++) {
-        if (D_9c55[i].status == 1 && D_a6b4[i] == side
-            && sub_s014_0e76_469e(&D_a2eb[n], i) == 1
+        if (combatants[i].status == 1 && cbt_floor[i] == side
+            && sub_s014_0e76_469e(&effect_clouds[n], i) == 1
             && !(D_c927[i] & (1 << kind))) {
             lvl = dur / 10 - 2;
             t = dur / 10 + kind * 3 - 2;
-            D_da89[i] = D_21e6[t] * 60 + D_07d4;
+            D_da89[i] = D_21e6[t] * 60 + combat_clock;
             F_20a5_35ee[i].f2 = D_d4c3;
             F_20a5_35ee[i].f4 = D_d4c5;
             F_20a5_35ee[i].f0 = -(D_21dc[kind] >> 4);
@@ -264,31 +266,31 @@ void near sub_s019_1ef8_0300(int n, int dur, int target, int side)
                 break;
             case 3:
                 sub_s019_1ef8_0b00(i);
-                sub_s019_1ef8_0b44(i, (D_9c55[i].f4d[1] + D_9c55[i].f4d[0]) * 5, t);
+                sub_s019_1ef8_0b44(i, (combatants[i].f4d[1] + combatants[i].f4d[0]) * 5, t);
                 break;
             case 4:
-                t = sub_root_0000_0c8c(8) + (lvl + 2) * 2;
-                if (D_9c55[i].f4b[0] != -1) {
-                    sub_s019_1ef8_0968(i, D_9c55[i].f4b[0], D_9c55[i].f4f[0], t);
-                    D_9c55[i].f4f[0] -= t;
+                t = rand_1_n(8) + (lvl + 2) * 2;
+                if (combatants[i].f4b[0] != -1) {
+                    sub_s019_1ef8_0968(i, combatants[i].f4b[0], combatants[i].f4f[0], t);
+                    combatants[i].f4f[0] -= t;
                 }
-                if (D_9c55[i].f4b[1] != -1) {
-                    sub_s019_1ef8_0968(i, D_9c55[i].f4b[1], D_9c55[i].f4f[1], t);
-                    D_9c55[i].f4f[1] -= t;
+                if (combatants[i].f4b[1] != -1) {
+                    sub_s019_1ef8_0968(i, combatants[i].f4b[1], combatants[i].f4f[1], t);
+                    combatants[i].f4f[1] -= t;
                 }
-                if (D_9c55[i].f4f[0] <= 0 || D_9c55[i].f4b[0] == -1) {
-                    if (D_9c55[i].f4b[0] != -1)
-                        t = -D_9c55[i].f4f[0];
-                    sub_s014_18bf_08ca(t, i, 1, 0);
-                    sub_s014_18bf_098e(i);
+                if (combatants[i].f4f[0] <= 0 || combatants[i].f4b[0] == -1) {
+                    if (combatants[i].f4b[0] != -1)
+                        t = -combatants[i].f4f[0];
+                    damage_queue(t, i, 1, 0);
+                    damage_apply(i);
                 }
                 sub_s019_1ef8_0914(i);
                 break;
             case 5:
-                t = (lvl + 2) * 2 + sub_root_0000_0c8c(8);
-                sub_s014_18bf_08ca(((lvl + 2) * 10 - D_9c55[i].f64) / 10 + t, i,
-                                   D_9c55[i].f4d[0] + 1, D_9c55[i].f4d[0]);
-                sub_s014_18bf_098e(i);
+                t = (lvl + 2) * 2 + rand_1_n(8);
+                damage_queue(((lvl + 2) * 10 - combatants[i].f64) / 10 + t, i,
+                                   combatants[i].f4d[0] + 1, combatants[i].f4d[0]);
+                damage_apply(i);
                 break;
             }
         }
@@ -318,15 +320,15 @@ void near sub_s019_1ef8_058a(int n, int type, int p3, int dur, int target, int s
     int ady;
 
     for (i = 0; i < 13; i++) {
-        if (D_9c55[i].status == 1 && D_a6b4[i] == side && !(D_c927[i] & (1 << type))) {
+        if (combatants[i].status == 1 && cbt_floor[i] == side && !(D_c927[i] & (1 << type))) {
             lvl = idx = dur / 10 - 2;
             if (idx > 2)
                 idx = 2;
             idx += type * 3;
             if (type == 6) {
                 if ((p3 < 5 && i >= 5) || (p3 >= 5 && i < 5)) {
-                    dx = D_a396[n].x - D_9c55[i].x;
-                    dy = D_a396[n].y - D_9c55[i].y;
+                    dx = effect_markers[n].x - combatants[i].x;
+                    dy = effect_markers[n].y - combatants[i].y;
                     adx = abs(dx);
                     ady = abs(dy);
                     r = adx ? ady * 4 / adx : 0x14;
@@ -345,65 +347,65 @@ void near sub_s019_1ef8_058a(int n, int type, int p3, int dur, int target, int s
                     else
                         q = 3;
                     c = D_222e[q * 3 + s];
-                    d = sub_root_0410_005a(c = sub_root_0410_005a(c, 1),
-                                           f = sub_root_0410_005a(D_9c55[i].f1a, 1));
+                    d = dir_add(c = dir_add(c, 1),
+                                           f = dir_add(combatants[i].f1a, 1));
                     if (d > 4)
                         d |= 0xf8;
                     d = abs(d);
                     if (d <= 2 || target == i) {
                         sub_s019_1ef8_0c28(i, idx);
-                        D_da89[i] = D_21e6[idx] * 60 + D_07d4;
+                        D_da89[i] = D_21e6[idx] * 60 + combat_clock;
                         F_20a5_35ee[i].f2 = D_d4c3;
                         F_20a5_35ee[i].f4 = D_d4c5;
                         F_20a5_35ee[i].f0 = -2;
                     }
                 }
-            } else if (sub_s014_0e76_469e(&D_a396[n], i) == 1) {
-                r = sub_root_047c_1120((D_a396[n].x - D_9c55[i].x) / 2, D_a396[n].x - D_9c55[i].x, 0);
-                D_da89[i] = D_21e6[idx] * 60 + D_07d4;
+            } else if (sub_s014_0e76_469e(&effect_markers[n], i) == 1) {
+                r = distance3((effect_markers[n].x - combatants[i].x) / 2, effect_markers[n].x - combatants[i].x, 0);
+                D_da89[i] = D_21e6[idx] * 60 + combat_clock;
                 F_20a5_35ee[i].f2 = D_d4c3;
                 F_20a5_35ee[i].f4 = D_d4c5;
                 F_20a5_35ee[i].f0 = -4;
                 switch (type) {
                 case 7:
-                    dmg = sub_root_0000_0c8c(8) + (lvl + 2) * 2;
+                    dmg = rand_1_n(8) + (lvl + 2) * 2;
                     if (target == i)
                         th = D_2222[lvl];
                     else if (r <= 0x10)
                         th = D_2226[lvl];
                     else
                         th = D_222a[lvl];
-                    sk = D_9c55[i].f4d[0];
+                    sk = combatants[i].f4d[0];
                     if (sk < th)
                         r = dmg;
                     else if (sk == th)
                         r = dmg / 3;
                     else
                         r = dmg / 8;
-                    sub_s014_18bf_08ca(((lvl + 2) * 10 - D_9c55[i].f4f[0]) / 10 + r, i, th, sk);
-                    sub_s014_18bf_098e(i);
+                    damage_queue(((lvl + 2) * 10 - combatants[i].f4f[0]) / 10 + r, i, th, sk);
+                    damage_apply(i);
                     if (dmg >> 2 > 0) {
                         dmg >>= 2;
-                        sub_s019_1ef8_0968(i, D_9c55[i].f4b[0], D_9c55[i].f4f[0], dmg);
-                        sub_s019_1ef8_0968(i, D_9c55[i].f4b[1], D_9c55[i].f4f[1], dmg);
-                        D_9c55[i].f4f[0] -= dmg;
-                        D_9c55[i].f4f[1] -= dmg;
+                        sub_s019_1ef8_0968(i, combatants[i].f4b[0], combatants[i].f4f[0], dmg);
+                        sub_s019_1ef8_0968(i, combatants[i].f4b[1], combatants[i].f4f[1], dmg);
+                        combatants[i].f4f[0] -= dmg;
+                        combatants[i].f4f[1] -= dmg;
                         sub_s019_1ef8_0914(i);
                     }
                     break;
                 case 8:
-                    dmg = sub_root_0000_0c8c(6) + (lvl + 2) * 2;
+                    dmg = rand_1_n(6) + (lvl + 2) * 2;
                     if (r > 0x10)
                         dmg >>= 2;
-                    sub_s014_18bf_08ca((D_9c55[i].f4f[0] + D_9c55[i].f24) / -10 + dmg, i,
-                                       D_9c55[i].f4d[0] + 1, D_9c55[i].f4d[0]);
-                    sub_s014_18bf_098e(i);
+                    damage_queue((combatants[i].f4f[0] + combatants[i].f24) / -10 + dmg, i,
+                                       combatants[i].f4d[0] + 1, combatants[i].f4d[0]);
+                    damage_apply(i);
                     if (dmg >> 2 > 0) {
                         dmg >>= 2;
-                        sub_s019_1ef8_0968(i, D_9c55[i].f4b[0], D_9c55[i].f4f[0], dmg);
-                        sub_s019_1ef8_0968(i, D_9c55[i].f4b[1], D_9c55[i].f4f[1], dmg);
-                        D_9c55[i].f4f[0] -= dmg;
-                        D_9c55[i].f4f[1] -= dmg;
+                        sub_s019_1ef8_0968(i, combatants[i].f4b[0], combatants[i].f4f[0], dmg);
+                        sub_s019_1ef8_0968(i, combatants[i].f4b[1], combatants[i].f4f[1], dmg);
+                        combatants[i].f4f[0] -= dmg;
+                        combatants[i].f4f[1] -= dmg;
                         sub_s019_1ef8_0914(i);
                     }
                     break;
@@ -420,12 +422,12 @@ void far sub_s019_1ef8_0914(int i)
     int k;
 
     for (k = 0; k <= 1; k++) {
-        if (D_9c55[i].f4f[k] <= 0) {
-            while (sub_s014_18bf_0db4(i, D_9c55[i].f4b[k], D_9c55[i].f4f[k]) != -1)
+        if (combatants[i].f4f[k] <= 0) {
+            while (consume_item(i, combatants[i].f4b[k], combatants[i].f4f[k]) != -1)
                 ;
-            D_9c55[i].f4b[k] = -1;
-            D_9c55[i].f4d[k] = 0;
-            D_9c55[i].f4f[k] = 0x19;
+            combatants[i].f4b[k] = -1;
+            combatants[i].f4d[k] = 0;
+            combatants[i].f4f[k] = 0x19;
         }
     }
 }
@@ -439,45 +441,45 @@ void far sub_s019_1ef8_0968(int i, int code, unsigned char sub, int amt)
 
     found = 0;
     if (i < 5) {
-        for (k = 0; k < D_9c55[i].nitems; k++) {
-            if (F_2e38_003e[i][k].f2 == code && F_2e38_003e[i][k].f3 == sub) {
+        for (k = 0; k < combatants[i].nitems; k++) {
+            if (inventories[i][k].f2 == code && inventories[i][k].f3 == sub) {
                 pos = k;
                 found = 1;
                 break;
             }
         }
         if (found == 1)
-            F_2e38_003e[i][pos].f3 -= amt;
+            inventories[i][pos].f3 -= amt;
     } else {
-        for (k = 0; k < D_9c55[i].nitems; k++) {
-            if (F_2e38_0dbe[i - 5][k].f2 == code && F_2e38_0dbe[i - 5][k].f3 == sub) {
+        for (k = 0; k < combatants[i].nitems; k++) {
+            if (enemy_items[i - 5][k].f2 == code && enemy_items[i - 5][k].f3 == sub) {
                 pos = k;
                 found = 1;
                 break;
             }
         }
         if (found == 1)
-            F_2e38_0dbe[i - 5][pos].f3 -= amt;
+            enemy_items[i - 5][pos].f3 -= amt;
     }
 }
 
 /* restore the attribute modifiers held in D_a532[i] */
 void far sub_s019_1ef8_0a7c(int i)
 {
-    D_9c55[i].f5f += D_a532[i].f0;
+    combatants[i].f5f += D_a532[i].f0;
     D_a532[i].f0 = 0;
-    D_9c55[i].f60 += D_a532[i].f1;
+    combatants[i].f60 += D_a532[i].f1;
     D_a532[i].f1 = 0;
     D_a532[i].fc = -536;
 }
 
 void near sub_s019_1ef8_0aac(int i, int pct, int idx)
 {
-    D_a532[i].f0 = D_9c55[i].f5f * pct / 100;
-    D_9c55[i].f5f -= D_a532[i].f0;
-    D_a532[i].f1 = D_9c55[i].f60 * pct / 100;
-    D_9c55[i].f60 -= D_a532[i].f1;
-    D_a532[i].fc = D_21e6[idx] * 60 + D_07d4;
+    D_a532[i].f0 = combatants[i].f5f * pct / 100;
+    combatants[i].f5f -= D_a532[i].f0;
+    D_a532[i].f1 = combatants[i].f60 * pct / 100;
+    combatants[i].f60 -= D_a532[i].f1;
+    D_a532[i].fc = D_21e6[idx] * 60 + combat_clock;
 }
 
 void far sub_s019_1ef8_0b00(int i)
@@ -485,7 +487,7 @@ void far sub_s019_1ef8_0b00(int i)
     int k;
 
     for (k = 0; k < 7; k++) {
-        D_9c55[i].f6b[k] += D_a532[i].f2[k];
+        combatants[i].f6b[k] += D_a532[i].f2[k];
         D_a532[i].f2[k] = 0;
     }
     sub_s019_1ef8_0b9e(i);
@@ -497,19 +499,19 @@ void near sub_s019_1ef8_0b44(int i, int pct, int idx)
     int k;
 
     for (k = 0; k < 7; k++) {
-        D_a532[i].f2[k] = D_9c55[i].f6b[k] * pct / 100;
-        D_9c55[i].f6b[k] -= D_a532[i].f2[k];
+        D_a532[i].f2[k] = combatants[i].f6b[k] * pct / 100;
+        combatants[i].f6b[k] -= D_a532[i].f2[k];
     }
     sub_s019_1ef8_0b9e(i);
-    D_a532[i].fe = D_21e6[idx] * 60 + D_07d4;
+    D_a532[i].fe = D_21e6[idx] * 60 + combat_clock;
 }
 
 void far sub_s019_1ef8_0b9e(int i)
 {
-    if ((D_9c55[i].f57 & 0x80) == 0x80 && stricmp(D_1174[D_9c55[i].kind], "PT"))
-        sub_s014_18bf_0a40(i, D_9c55[i].f22, 0x80);
+    if ((combatants[i].f57 & 0x80) == 0x80 && stricmp(anim_file[combatants[i].kind], "PT"))
+        weapon_ready(i, combatants[i].f22, 0x80);
     else
-        sub_s014_18bf_0a40(i, D_9c55[i].f51, 0);
+        weapon_ready(i, combatants[i].f51, 0);
 }
 
 void far sub_s019_1ef8_0bf8(int i)
@@ -517,18 +519,18 @@ void far sub_s019_1ef8_0bf8(int i)
     D_a532[i].f9 = 0;
     D_a532[i].f10 = -536;
     if ((D_a532[i].fa & 2) == 2)
-        D_9c55[i].f10 = D_a532[i].fa;
+        combatants[i].f10 = D_a532[i].fa;
 }
 
 #pragma optimize("a", on)
 void near sub_s019_1ef8_0c28(int i, int idx)
 {
     D_a532[i].f9 = 1;
-    D_a532[i].f10 = D_21e6[idx] * 60 + D_07d4;
-    if (((D_a532[i].fa = D_9c55[i].f10) & 2) == 2)
-        D_9c55[i].f10 = 0x22;
-    if (D_9c55[i].f10 == 0x80 || D_9c55[i].f10 == 0x100)
-        D_ca64[i] = 0xd;
+    D_a532[i].f10 = D_21e6[idx] * 60 + combat_clock;
+    if (((D_a532[i].fa = combatants[i].f10) & 2) == 2)
+        combatants[i].f10 = 0x22;
+    if (combatants[i].f10 == 0x80 || combatants[i].f10 == 0x100)
+        cbt_action[i] = 0xd;
 }
 #pragma optimize("", on)
 
@@ -542,20 +544,20 @@ void far sub_s019_1ef8_0c80(int i)
     int a;
 
     cnt = 0;
-    if ((D_9c55[i].f10 & 2) == 2) {
+    if ((combatants[i].f10 & 2) == 2) {
         D_97dd = 2;
         return;
     }
-    sub_root_0410_0068(list, -1, 0x5a);
-    for (k = 0; k < D_9c55[i].nitems; k++) {
-        if (F_2e38_003e[i][k].id >= 0x5f && F_2e38_003e[i][k].id <= 0x68
-            && F_2e38_003e[i][k].f3 >= 0x14 && F_2e38_003e[i][k].f3 < 0x32
-            && F_2e38_003e[i][k].id != 0x61) {
-            a = F_2e38_003e[i][k].id - 0x5f;
-            n = a * 3 + F_2e38_003e[i][k].f3 / 10 - 2;
+    word_fill(list, -1, 0x5a);
+    for (k = 0; k < combatants[i].nitems; k++) {
+        if (inventories[i][k].id >= 0x5f && inventories[i][k].id <= 0x68
+            && inventories[i][k].f3 >= 0x14 && inventories[i][k].f3 < 0x32
+            && inventories[i][k].id != 0x61) {
+            a = inventories[i][k].id - 0x5f;
+            n = a * 3 + inventories[i][k].f3 / 10 - 2;
             list[n].id = a;
-            list[n].q = F_2e38_003e[i][k].f3;
-            list[n].c = F_2e38_003e[i][k].f4;
+            list[n].q = inventories[i][k].f3;
+            list[n].c = inventories[i][k].f4;
             cnt++;
         }
     }
@@ -582,5 +584,5 @@ void far sub_s019_1ef8_0c80(int i)
 void far sub_s019_1ef8_0dfe(int i, int a, int b)
 {
     if (i < 5)
-        sub_s014_18bf_0db4(i, a + 0x84, b);
+        consume_item(i, a + 0x84, b);
 }

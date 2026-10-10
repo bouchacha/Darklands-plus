@@ -11,6 +11,8 @@
  * missile/effect kind in the far table F_20a5_3954[] (6-byte records, count D_c783, max 10). */
 
 /* combatant record, 0x80 bytes, 13 of them at D_9c55 (party 0..4) */
+#include "darklands/card.h"
+#include "darklands/game.h"
 struct cmb {
     char pad0[4];
     int x;          /* +04 */
@@ -49,49 +51,49 @@ struct fx {
 
 struct cnt6 { int id; char a; char b; char cnt; char pad; };
 
-extern struct cmb D_9c55[];
-extern struct fx D_944d[];
-extern char D_c180;
-extern int D_e0a3, D_e0a5, D_e0a7, D_e0a9;
-extern char D_11ca;
+extern struct cmb combatants[];
+extern struct fx missile_recs[];
+extern char missile_count;
+extern int los_y0, los_x0, los_y1, los_x1;
+extern char floor_shown;
 extern char *D_1166[];
-extern char D_ca57[];
+extern char cbt_anim[];
 extern int D_d68d[];
 extern unsigned char D_c783;
 extern struct cnt6 far F_20a5_3954[];
 
 int stricmp(const char *, const char *);
 void far sub_s014_0e76_465e(int);
-int far sub_s014_1d69_000c(int, int, int);
-void far sub_s018_1ef8_0000(int, int, int, int, int);
-void far sub_s018_1ef8_027e(int);
+int far line_blocked(int, int, int);
+void far missile_launch(int, int, int, int, int);
+void far missile_remove(int);
 void far sub_s018_1ef8_02be(int, int, int);
 void far sub_s018_1ef8_03ae(int, char);
 
 #pragma optimize("a", on)
-void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
+void far missile_launch(int who, int tgt, int type, int d, int e)
 {
     struct fx *p;
     int n, speed, spr;
     int k;
 
-    if (D_c180 == 0x11)
-        sub_s018_1ef8_027e(0);
-    n = D_c180;
-    p = &D_944d[n];
+    if (missile_count == 0x11)
+        missile_remove(0);
+    n = missile_count;
+    p = &missile_recs[n];
     if (tgt != -1) {
-        p->x1 = D_9c55[tgt].x;
-        p->y1 = D_9c55[tgt].y;
+        p->x1 = combatants[tgt].x;
+        p->y1 = combatants[tgt].y;
     } else if (who >= 0) {
-        p->x1 = D_9c55[who].f08;
-        p->y1 = D_9c55[who].f0a;
+        p->x1 = combatants[who].f08;
+        p->y1 = combatants[who].f0a;
     } else {
-        p->x1 = D_e0a9;
-        p->y1 = D_e0a7;
+        p->x1 = los_x1;
+        p->y1 = los_y1;
     }
-    p->f18 = D_11ca;
+    p->f18 = floor_shown;
     if (type == 0) {
-        switch (who == -1 || who == -2 ? e : D_9c55[who].weapon) {
+        switch (who == -1 || who == -2 ? e : combatants[who].weapon) {
         case 0x17:
             spr = 5;
             speed = 15;
@@ -122,7 +124,7 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
             break;
         }
     } else {
-        k = D_9c55[who].kind;
+        k = combatants[who].kind;
         if (D_1166[k][0] == 'E' || D_1166[k][0] == 'e' || stricmp(D_1166[k], "m02") == 0) {
             spr = 6;
             speed = 20;
@@ -142,16 +144,16 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
     p->sprite = spr;
     p->speed = speed;
     if (who >= 0) {
-        p->x0 = D_9c55[who].x;
-        p->y0 = D_9c55[who].y;
-        p->facing = D_9c55[who].facing;
+        p->x0 = combatants[who].x;
+        p->y0 = combatants[who].y;
+        p->facing = combatants[who].facing;
         p->who = who;
         p->tgt = tgt;
         if (type >= 6) {
             p->moving = 0;
             p->f15 = d;
             p->f16 = e;
-        } else if (D_ca57[who] != 1 && D_ca57[who] != 2) {
+        } else if (cbt_anim[who] != 1 && cbt_anim[who] != 2) {
             p->moving = 1;
             sub_s018_1ef8_02be(n, who, tgt);
         } else {
@@ -160,8 +162,8 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
             p->moving = 0;
         }
     } else {
-        p->x0 = D_e0a5;
-        p->y0 = D_e0a3;
+        p->x0 = los_x0;
+        p->y0 = los_y0;
         p->facing = d;
         p->who = -1;
         p->tgt = tgt;
@@ -170,18 +172,18 @@ void far sub_s018_1ef8_0000(int who, int tgt, int type, int d, int e)
         else
             p->moving = 1;
     }
-    D_c180++;
+    missile_count++;
 }
 #pragma optimize("", on)
 
-void far sub_s018_1ef8_027e(int idx)
+void far missile_remove(int idx)
 {
     int i;
 
-    if (D_c180) {
+    if (missile_count) {
         for (i = idx; i < 16; i++)
-            D_944d[i] = D_944d[i + 1];
-        D_c180--;
+            missile_recs[i] = missile_recs[i + 1];
+        missile_count--;
     }
 }
 
@@ -189,21 +191,21 @@ void far sub_s018_1ef8_02be(int n, int who, int tgt)
 {
     int x0, x, y, dx, dy, save, shift, lim, i;
 
-    D_e0a5 = D_944d[n].x0;
-    D_e0a3 = D_944d[n].y0;
-    x = D_944d[n].x1;
-    x0 = D_e0a5;
-    y = D_944d[n].y1;
+    los_x0 = missile_recs[n].x0;
+    los_y0 = missile_recs[n].y0;
+    x = missile_recs[n].x1;
+    x0 = los_x0;
+    y = missile_recs[n].y1;
     dx = x - x0;
-    dy = y - D_e0a3;
-    save = D_9c55[who].f59;
-    D_9c55[who].f59 = 0x6e;
+    dy = y - los_y0;
+    save = combatants[who].f59;
+    combatants[who].f59 = 0x6e;
     lim = 6;
     i = shift = 0;
     do {
-        D_e0a9 = x;
-        D_e0a7 = y;
-        if (sub_s014_1d69_000c(who, tgt, 0x80) == 0) {
+        los_x1 = x;
+        los_y1 = y;
+        if (line_blocked(who, tgt, 0x80) == 0) {
             dx >>= shift;
             x += dx;
             dy >>= shift;
@@ -222,9 +224,9 @@ void far sub_s018_1ef8_02be(int n, int who, int tgt)
             y -= dy;
         }
     } while (++i <= lim);
-    D_9c55[who].f59 = save;
-    D_944d[n].x1 = x;
-    D_944d[n].y1 = y;
+    combatants[who].f59 = save;
+    missile_recs[n].x1 = x;
+    missile_recs[n].y1 = y;
 }
 
 void far sub_s018_1ef8_03ae(int kind, char sub)

@@ -5,6 +5,8 @@
    chosen for the 6.00A name-hash slot order. */
 /* XMS block moves through the XMS driver entry point (D_c0f9, function 0Bh).
    Both functions contain an inline _asm block in the original. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct xmove {                  /* XMS move structure */
     long len;
@@ -14,9 +16,9 @@ struct xmove {                  /* XMS move structure */
     long dof;                   /* destination offset / far pointer */
 };
 
-extern int D_08c2;              /* XMS present */
-extern int D_08c8;              /* last XMS error */
-extern void (far *D_c0f9)(void);/* XMS driver entry */
+extern int xms_version;              /* XMS present */
+extern int xms_error;              /* last XMS error */
+extern void (far *xms_entry)(void);/* XMS driver entry */
 
 /* copy len bytes from XMS block handle at off to buf; 1 on success */
 int far sub_s004_1212_0002(long len, void far *buf, int handle, long off)
@@ -27,10 +29,10 @@ int far sub_s004_1212_0002(long len, void far *buf, int handle, long off)
     struct xmove md;
     struct xmove far *pmg;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ra = 1;
     pmg = &md;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     if (len & 1)
         len++;
@@ -52,7 +54,7 @@ int far sub_s004_1212_0002(long len, void far *buf, int handle, long off)
         jmp done
     fail:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ra = 0;
 done:
@@ -67,10 +69,10 @@ int far sub_s004_1212_0090(long len, void far *buf, int handle, long off)
     struct xmove md;
     struct xmove far *pmg;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ra = 1;
     pmg = &md;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     if (len & 1)
         len++;
@@ -92,7 +94,7 @@ int far sub_s004_1212_0090(long len, void far *buf, int handle, long off)
         jmp done
     fail:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ra = 0;
 done:

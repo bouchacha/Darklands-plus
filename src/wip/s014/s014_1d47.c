@@ -7,8 +7,10 @@
    triggers the impact effect (vec_1dc9).
    status: 2/2 written, 0 match. m4: sprite is unsigned char (jae); 0000 is left with the two
    'cmp [si+18h],al' compares reversed (decl positions/types/source order tried). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -17,7 +19,7 @@ struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad15[0x6b];
 };
 
-struct msl {                    /* missile / effect record, 0x1a bytes, D_944d[16], count D_c180 */
+struct msl {                    /* missile / effect record, 0x1a bytes, missile_recs[16], count missile_count */
     char pad0[8];
     int x;                      /* +08 current position */
     int y;                      /* +0a */
@@ -35,57 +37,57 @@ struct msl {                    /* missile / effect record, 0x1a bytes, D_944d[1
     char pad19;
 };
 
-void far sub_s014_18bf_098e(int);
-void far sub_root_0000_1716(int);
-void far sub_s014_0e76_27ac(int);
-void far vec_1dc9(int, int, int, int, int, int, int);
+void far damage_apply(int);
+void far party_panel_rows(int);
+void far cbt_cancel_action(int);
+void far effect_spell_vec(int, int, int, int, int, int, int);
 void far sub_s014_1d47_013e(int *, int *, int *, int *, int);
 
-extern struct cbt D_9c55[];
-extern struct msl D_944d[];
-extern char D_c180;             /* number of missile records */
-extern char D_a6b4[];           /* [13] floor level of each combatant */
-extern char D_d4f2[];           /* [13] "was hit" flag */
-extern char D_ca57[];           /* [13] busy/animation flag */
-extern char D_ca64[];           /* [13] */
+extern struct cbt combatants[];
+extern struct msl missile_recs[];
+extern char missile_count;             /* number of missile records */
+extern char cbt_floor[];           /* [13] floor level of each combatant */
+extern char cbt_was_hit[];           /* [13] "was hit" flag */
+extern char cbt_anim[];           /* [13] busy/animation flag */
+extern char cbt_action[];           /* [13] */
 
 /* advance all missiles by one tick */
-void far sub_s014_1d47_0000(void)
+void far missiles_advance(void)
 {
     int sh;
     int i;
     int t;
     struct msl *m;
 
-    for (i = 0; i < D_c180; i++) {
-        m = &D_944d[i];
-        sh = D_944d[i].shooter & 0xf;
-        t = D_944d[i].target;
-        if (t != -1 && m->done == 0 && m->level == D_a6b4[t]) {
+    for (i = 0; i < missile_count; i++) {
+        m = &missile_recs[i];
+        sh = missile_recs[i].shooter & 0xf;
+        t = missile_recs[i].target;
+        if (t != -1 && m->done == 0 && m->level == cbt_floor[t]) {
             /* homing: follow the target combatant */
-            m->tx = D_9c55[t].x;
-            m->ty = D_9c55[t].y;
+            m->tx = combatants[t].x;
+            m->ty = combatants[t].y;
         }
         sub_s014_1d47_013e(&m->x, &m->y, &m->tx, &m->ty, m->speed);
         if (m->x == m->tx && m->y == m->ty) {
             if ((m->sprite & 0x7f) < 6) {
                 /* physical missile reached its target combatant */
-                if (m->done == 0 && m->level == D_a6b4[t]) {
-                    D_d4f2[t] = 1;
-                    sub_s014_18bf_098e(t);
-                    if (D_9c55[t].status == 2 || D_9c55[t].status == 3) {
-                        D_ca57[sh] = 0;
-                        D_ca57[t] = 0;
+                if (m->done == 0 && m->level == cbt_floor[t]) {
+                    cbt_was_hit[t] = 1;
+                    damage_apply(t);
+                    if (combatants[t].status == 2 || combatants[t].status == 3) {
+                        cbt_anim[sh] = 0;
+                        cbt_anim[t] = 0;
                         if (sh != 15)
-                            sub_root_0000_1716(sh);
-                        sub_root_0000_1716(t);
-                        D_ca64[sh] = 0;
-                        sub_s014_0e76_27ac(sh);
+                            party_panel_rows(sh);
+                        party_panel_rows(t);
+                        cbt_action[sh] = 0;
+                        cbt_cancel_action(sh);
                     }
                 }
             } else {
                 /* spell / area effect lands */
-                vec_1dc9(m->tx, m->ty, sh, m->f15, m->f16, m->target, m->level);
+                effect_spell_vec(m->tx, m->ty, sh, m->f15, m->f16, m->target, m->level);
             }
             m->done |= 0x80;
         }

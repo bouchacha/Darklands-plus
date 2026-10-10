@@ -11,8 +11,10 @@
    a == -1) every other active combatant on the current floor, its box shrunk by the
    shooter's "height" (h/90).
    status: 3/3 written, 1 matches (04b2). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -38,30 +40,30 @@ int far sub_s014_1d69_04b2(int, int);
 extern struct cell far F_20a5_0[];      /* current floor map (level%d.flr) */
 extern int D_e1d5, D_e1d7, D_e1d9, D_e1db;
 extern struct flr far F_20a5_00;        /* same, via a far struct (own CONST slot) */
-extern struct cbt D_9c55[];
-extern char D_a6b4[];                   /* [13] floor of each combatant */
-extern char D_11ca;                     /* floor currently shown */
+extern struct cbt combatants[];
+extern char cbt_floor[];                   /* [13] floor of each combatant */
+extern char floor_shown;                     /* floor currently shown */
 extern char D_c1cf;                     /* first furniture id that blocks sight */
 extern char D_d7be[][4];                /* furniture box x offset per orientation */
 extern char D_d802[][4];                /* furniture box y offset per orientation */
 extern char D_c12f[];                   /* furniture width */
 extern char D_c11d[];                   /* furniture height */
-extern char D_c80f[];                   /* [13] combatant half width */
-extern char D_c831[];                   /* [13] combatant half height */
-extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
+extern char cbt_half_w[];                   /* [13] combatant half width */
+extern char cbt_half_h[];                   /* [13] combatant half height */
+extern int los_x0, los_y0, los_x1, los_y1;
 
 /* 1 if the segment is blocked by a wall, furniture or (a != -1) a combatant other than a and b.
    a == -2: return 50 + index of the blocking combatant. */
-int far sub_s014_1d69_000c(int a, int b, int mode)
+int far line_blocked(int a, int b, int mode)
 {
     int y1, y0, x1, x0, dy, dx, xmin, ymin, col, row, xp, yp, f, h, i, k;
     struct cbt *c;
 
-    y1 = D_e0a7 / 16;
-    y0 = D_e0a3 / 16;
+    y1 = los_y1 / 16;
+    y0 = los_y0 / 16;
     dy = abs(y0 - y1);
-    x1 = D_e0a9 / 32;
-    x0 = D_e0a5 / 32;
+    x1 = los_x1 / 32;
+    x0 = los_x0 / 32;
     xmin = x1 > x0 ? x0 : x1;
     ymin = y1 > y0 ? y0 : y1;
     dx = abs(x0 - x1);
@@ -118,18 +120,18 @@ int far sub_s014_1d69_000c(int a, int b, int mode)
     if (a == -1)
         return 0;
     if (mode == 0x100)
-        h = D_9c55[a].f6f;
+        h = combatants[a].f6f;
     else if (a == -2)
         h = 0;
     else
-        h = D_9c55[a].f59;
+        h = combatants[a].f59;
     if (h >= 90)
         return 0;
     for (i = 0; i < 13; i++) {
-        c = &D_9c55[i];
-        if (c->status == 1 && D_a6b4[i] == D_11ca && a != i && b != i) {
-            x0 = D_c80f[i] + D_c80f[i] * h / -90;
-            y0 = D_c831[i] + D_c831[i] * h / -90;
+        c = &combatants[i];
+        if (c->status == 1 && cbt_floor[i] == floor_shown && a != i && b != i) {
+            x0 = cbt_half_w[i] + cbt_half_w[i] * h / -90;
+            y0 = cbt_half_h[i] + cbt_half_h[i] * h / -90;
             D_e1d5 = c->x - x0;
             D_e1d9 = c->y - y0;
             D_e1d7 = x0 + c->x;
@@ -150,8 +152,8 @@ int far sub_s014_1d69_0354(void)
     int c0, c1;
     struct { int x, y; } p;
 
-    c0 = sub_s014_1d69_04b2(D_e0a5, D_e0a3);
-    c1 = sub_s014_1d69_04b2(D_e0a9, D_e0a7);
+    c0 = sub_s014_1d69_04b2(los_x0, los_y0);
+    c1 = sub_s014_1d69_04b2(los_x1, los_y1);
     if (c0 & c1)
         return 0;
     if (c0 == 0 || c1 == 0)
@@ -161,18 +163,18 @@ int far sub_s014_1d69_0354(void)
     if ((c1 | c0) == 3)
         return 1;
     if (c0 & 4) {
-        p.x = (long)(D_e0a9 - D_e0a5) * (D_e1db - D_e0a7) / (D_e0a7 - D_e0a3) + D_e0a9;
+        p.x = (long)(los_x1 - los_x0) * (D_e1db - los_y1) / (los_y1 - los_y0) + los_x1;
         p.y = D_e1db;
     } else if (c0 & 8) {
-        p.x = (long)(D_e1d9 - D_e0a7) * (D_e0a9 - D_e0a5) / (D_e0a7 - D_e0a3) + D_e0a9;
+        p.x = (long)(D_e1d9 - los_y1) * (los_x1 - los_x0) / (los_y1 - los_y0) + los_x1;
         p.y = D_e1d9;
     }
     if (sub_s014_1d69_04b2(p.x, p.y)) {
         if (c0 & 2) {
-            p.y = (long)(D_e1d7 - D_e0a9) * (D_e0a7 - D_e0a3) / (D_e0a9 - D_e0a5) + D_e0a7;
+            p.y = (long)(D_e1d7 - los_x1) * (los_y1 - los_y0) / (los_x1 - los_x0) + los_y1;
             p.x = D_e1d7;
         } else if (c0 & 1) {
-            p.y = (long)(D_e0a7 - D_e0a3) * (D_e1d5 - D_e0a9) / (D_e0a9 - D_e0a5) + D_e0a7;
+            p.y = (long)(los_y1 - los_y0) * (D_e1d5 - los_x1) / (los_x1 - los_x0) + los_y1;
             p.x = D_e1d5;
         }
     }

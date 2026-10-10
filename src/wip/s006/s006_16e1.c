@@ -10,27 +10,29 @@
  * 4 wall segments (drawn with 1a57 000c kind 8) connected by 1abf 000a; 0a28 picks the place
  * of a segment on one side of the keep (b1/b2 = usable cells next to the neighbouring rooms).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct gexit { int x0, x2, x4, x6, x8, x0a; };      /* 12 bytes */
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;                  /* rooms {x0, x1, y0, y1}, 30 per level */
-extern int _based(D_db39) *D_db65;                  /* slots as int[5][16][5] */
-extern int _based(D_db39) *D_db8f;
-extern int _based(D_db39) *D_db91;
-extern struct gexit _based(D_db39) *D_db95;
-extern int D_db3d, D_db3f, D_db41, D_db43;
-extern int D_db45[5];
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;                  /* rooms {x0, x1, y0, y1}, 30 per level */
+extern int _based(gen_work) *gen_strips;                  /* slots as int[5][16][5] */
+extern int _based(gen_work) *gen_cell_type;
+extern int _based(gen_work) *D_db91;
+extern struct gexit _based(gen_work) *gen_exits;
+extern int keep_x0, D_db3f, D_db41, D_db43;
+extern int gen_rooms[5];
 extern int D_db67[5];
-extern int D_db71[5];
+extern int gen_exit_count[5];
 extern int D_db7f;
-extern int D_db81;
+extern int gen_level;
 
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 int far sub_s005_146d_0858(int, int, int);
 int far sub_s006_1637_04d0(int, int);
-void far sub_s006_1a57_000c(int, int, int, int, int, int);
+void far gen_add_room(int, int, int, int, int, int);
 void far sub_s006_1abf_000a(int, int, int, int);
 int far sub_s006_1abf_076e(int, int, int, int, int);
 void far sub_s006_16e1_0a28(int, int *, int *, int *);
@@ -51,31 +53,31 @@ void far sub_s006_16e1_000a(void)
     tries = 0;
     freen = 0;
     done = 0;
-    if (D_db81 != D_db7f || D_db45[D_db81] <= 0)
+    if (gen_level != D_db7f || gen_rooms[gen_level] <= 0)
         return;
     for (i = 0; i <= 3; i++)
         adj[i] = 0;
     for (i = 4; i <= 7; i++)
         adj[i] = -1;
-    s = D_db65 + D_db81 * 80;
-    D_db67[D_db81] = 4;
+    s = gen_strips + gen_level * 80;
+    D_db67[gen_level] = 4;
     s[17] = s[7] = s[2] = D_db41;
     s[11] = s[1] = s[6] = D_db3f;
     s[18] = s[8] = s[13] = D_db43;
-    s[10] = s[0] = s[15] = D_db3d;
+    s[10] = s[0] = s[15] = keep_x0;
     s[3] = D_db3b[0x7a];
     s[5] = D_db3b[0x79];
     s[12] = D_db3b[0x7b];
     s[16] = D_db3b[0x78];
     z = 0;
-    for (i = 0; i < D_db45[D_db81]; i++) {
-        if (!sub_s005_146d_0858(D_db81, i, 30))
+    for (i = 0; i < gen_rooms[gen_level]; i++) {
+        if (!sub_s005_146d_0858(gen_level, i, 30))
             freen++;
-        if (D_db91[D_db81 * 30 + i] != 3)
+        if (D_db91[gen_level * 30 + i] != 3)
             continue;
-        side = sub_s006_1637_04d0(D_db81, i);
+        side = sub_s006_1637_04d0(gen_level, i);
         adj[side] = i;
-        r = D_db3b + (i + D_db81 * 30) * 4;
+        r = D_db3b + (i + gen_level * 30) * 4;
         switch (side) {
         case 4:
             s[0] = r[1] + 1;
@@ -120,11 +122,11 @@ void far sub_s006_16e1_000a(void)
         }
     }
     while (done < 4) {
-        if (freen <= 0 && sub_s004_0e76_20f6(1, D_db45[D_db81] + 1) != 1)
+        if (freen <= 0 && roll_dice(1, gen_rooms[gen_level] + 1) != 1)
             return;
         if (tries >= 6)
             return;
-        n = sub_s004_0e76_20f6(1, 4 - done);
+        n = roll_dice(1, 4 - done);
         k = 0;
         for (i = 0, side = 8; i <= 3 && n > k; i++)
             if (adj[i] == 0)
@@ -137,9 +139,9 @@ void far sub_s006_16e1_000a(void)
                 switch (side) {
                 case 0:
                     k = s[0];
-                    if (k <= D_db3d) {
+                    if (k <= keep_x0) {
                         i = s[16] - s[15] + 1;
-                        k = sub_s004_0e76_20f6(1, i - 1) + s[15];
+                        k = roll_dice(1, i - 1) + s[15];
                     }
                     if (adj[4] < 0) {
                         s[15] = k;
@@ -151,7 +153,7 @@ void far sub_s006_16e1_000a(void)
                     n = s[1];
                     if (n >= D_db3f) {
                         i = s[6] - s[5] + 1;
-                        n = sub_s004_0e76_20f6(1, i - 1) + s[5];
+                        n = roll_dice(1, i - 1) + s[5];
                     }
                     if (adj[5] < 0) {
                         s[5] = n;
@@ -161,11 +163,11 @@ void far sub_s006_16e1_000a(void)
                             s[11] = min(n, s[11]);
                     }
                     if (pb == pa) {
-                        sub_s006_1a57_000c(8, k, n, pa, pa + 1, 0);
+                        gen_add_room(8, k, n, pa, pa + 1, 0);
                     } else {
                         i = (n + k) / 2;
-                        sub_s006_1a57_000c(8, k, min(i + 1, n - 1), pa, pa + 1, 0);
-                        sub_s006_1a57_000c(8, max(i - 1, k + 1), n, pb, pb + 1, 0);
+                        gen_add_room(8, k, min(i + 1, n - 1), pa, pa + 1, 0);
+                        gen_add_room(8, max(i - 1, k + 1), n, pb, pb + 1, 0);
                     }
                     x = adj[4];
                     y = adj[5];
@@ -174,7 +176,7 @@ void far sub_s006_16e1_000a(void)
                     k = s[7];
                     if (k <= D_db41) {
                         i = s[3] - s[2] + 1;
-                        k = sub_s004_0e76_20f6(1, i - 1) + s[2];
+                        k = roll_dice(1, i - 1) + s[2];
                     }
                     if (adj[5] < 0) {
                         s[2] = k;
@@ -186,7 +188,7 @@ void far sub_s006_16e1_000a(void)
                     n = s[8];
                     if (n > D_db43) {
                         i = s[13] - s[12] + 1;
-                        n = sub_s004_0e76_20f6(1, i - 1) + s[12];
+                        n = roll_dice(1, i - 1) + s[12];
                     }
                     if (adj[6] < 0) {
                         s[12] = n;
@@ -196,20 +198,20 @@ void far sub_s006_16e1_000a(void)
                             s[18] = min(n, s[18]);
                     }
                     if (pb == pa) {
-                        sub_s006_1a57_000c(8, pa - 1, pa, k, n, 1);
+                        gen_add_room(8, pa - 1, pa, k, n, 1);
                     } else {
                         i = (n + k) / 2;
-                        sub_s006_1a57_000c(8, pa - 1, pa, k, min(i + 1, n - 1), 1);
-                        sub_s006_1a57_000c(8, pb - 1, pb, max(i - 1, k + 1), n, 1);
+                        gen_add_room(8, pa - 1, pa, k, min(i + 1, n - 1), 1);
+                        gen_add_room(8, pb - 1, pb, max(i - 1, k + 1), n, 1);
                     }
                     x = adj[5];
                     y = adj[6];
                     break;
                 case 2:
                     k = s[10];
-                    if (k <= D_db3d) {
+                    if (k <= keep_x0) {
                         i = s[16] - s[15] + 1;
-                        k = sub_s004_0e76_20f6(1, i - 1) + s[15];
+                        k = roll_dice(1, i - 1) + s[15];
                     }
                     if (adj[7] < 0) {
                         s[15] = k;
@@ -221,7 +223,7 @@ void far sub_s006_16e1_000a(void)
                     n = s[11];
                     if (n > D_db3f) {
                         i = s[6] - s[5] + 1;
-                        n = sub_s004_0e76_20f6(1, i - 1) + s[5];
+                        n = roll_dice(1, i - 1) + s[5];
                     }
                     if (adj[6] < 0) {
                         s[5] = n;
@@ -231,11 +233,11 @@ void far sub_s006_16e1_000a(void)
                             s[1] = min(n, s[1]);
                     }
                     if (pb == pa) {
-                        sub_s006_1a57_000c(8, k, n, pa - 1, pa, 2);
+                        gen_add_room(8, k, n, pa - 1, pa, 2);
                     } else {
                         i = (n + k) / 2;
-                        sub_s006_1a57_000c(8, k, min(i + 1, n - 1), pa - 1, pa, 2);
-                        sub_s006_1a57_000c(8, max(i - 1, k + 1), n, pb - 1, pb, 2);
+                        gen_add_room(8, k, min(i + 1, n - 1), pa - 1, pa, 2);
+                        gen_add_room(8, max(i - 1, k + 1), n, pb - 1, pb, 2);
                     }
                     x = adj[7];
                     y = adj[6];
@@ -244,7 +246,7 @@ void far sub_s006_16e1_000a(void)
                     k = s[17];
                     if (k <= D_db41) {
                         i = s[3] - s[2] + 1;
-                        k = sub_s004_0e76_20f6(1, i - 1) + s[2];
+                        k = roll_dice(1, i - 1) + s[2];
                     }
                     if (adj[4] < 0) {
                         s[2] = k;
@@ -256,7 +258,7 @@ void far sub_s006_16e1_000a(void)
                     n = s[18];
                     if (n > D_db43) {
                         i = s[13] - s[12] + 1;
-                        n = sub_s004_0e76_20f6(1, i - 1) + s[12];
+                        n = roll_dice(1, i - 1) + s[12];
                     }
                     if (adj[7] < 0) {
                         s[12] = n;
@@ -266,11 +268,11 @@ void far sub_s006_16e1_000a(void)
                             s[8] = min(n, s[8]);
                     }
                     if (pb == pa) {
-                        sub_s006_1a57_000c(8, pa, pa + 1, k, n, 3);
+                        gen_add_room(8, pa, pa + 1, k, n, 3);
                     } else {
                         i = (n + k) / 2;
-                        sub_s006_1a57_000c(8, pa, pa + 1, k, min(i + 1, n - 1), 3);
-                        sub_s006_1a57_000c(8, pb, pb + 1, max(i - 1, k + 1), n, 3);
+                        gen_add_room(8, pa, pa + 1, k, min(i + 1, n - 1), 3);
+                        gen_add_room(8, pb, pb + 1, max(i - 1, k + 1), n, 3);
                     }
                     x = adj[4];
                     y = adj[7];
@@ -278,16 +280,16 @@ void far sub_s006_16e1_000a(void)
                 }
                 adj[side] = 1;
                 if (pb == pa) {
-                    sub_s006_1abf_000a(D_db45[D_db81] - 1, 8, x, y);
+                    sub_s006_1abf_000a(gen_rooms[gen_level] - 1, 8, x, y);
                 } else {
-                    sub_s006_1abf_000a(D_db45[D_db81] - 2, 8, x, -1);
-                    sub_s006_1abf_000a(D_db45[D_db81] - 1, 8, -1, y);
+                    sub_s006_1abf_000a(gen_rooms[gen_level] - 2, 8, x, -1);
+                    sub_s006_1abf_000a(gen_rooms[gen_level] - 1, 8, -1, y);
                 }
                 done++;
                 tries++;
                 freen = 0;
-                for (i = 0; i < D_db45[D_db81]; i++)
-                    if (!sub_s005_146d_0858(D_db81, i, 30))
+                for (i = 0; i < gen_rooms[gen_level]; i++)
+                    if (!sub_s005_146d_0858(gen_level, i, 30))
                         freen++;
                 continue;
             }
@@ -326,8 +328,8 @@ void far sub_s006_16e1_0a28(int side, int *adj, int *pa, int *pb)
     int best;
     int dk;
 
-    so = D_db65 + D_db81 * 80;
-    me = D_db8f + D_db81 * 1600;
+    so = gen_strips + gen_level * 80;
+    me = gen_cell_type + gen_level * 1600;
     for (i = 0; i < 40; i++) {
         b2[i] = 0;
         b1b[i] = 0;
@@ -372,7 +374,7 @@ void far sub_s006_16e1_0a28(int side, int *adj, int *pa, int *pb)
             b1b[i] |= 7;
     } else {
         rma = adj[firste];
-        rn = D_db3b + (rma + D_db81 * 30) * 4;
+        rn = D_db3b + (rma + gen_level * 30) * 4;
         for (i = rn[lof] - 1; i <= rn[hih] + 1; i++) {
             b1b[i] |= 1;
             if (sub_s006_1abf_076e(rma, ddl, i, 1, 0))
@@ -387,13 +389,13 @@ void far sub_s006_16e1_0a28(int side, int *adj, int *pa, int *pb)
             b2[i] |= 7;
     } else {
         rma = adj[secondg];
-        rn = D_db3b + (rma + D_db81 * 30) * 4;
+        rn = D_db3b + (rma + gen_level * 30) * 4;
         i = 0;
         ok = 1;
         do {
-            if (i >= D_db71[D_db81])
+            if (i >= gen_exit_count[gen_level])
                 break;
-            ea = D_db95 + D_db81 * 4 + i;
+            ea = gen_exits + gen_level * 4 + i;
             if (ea->x4 == rma &&
                 ((dk == 3 && ea->x0a == 3 && ea->x0 == rn[0]) ||
                  (dk == 0 && ea->x0a == 0 && rn[2] == ea->x2)))
@@ -421,7 +423,7 @@ pb:
     pk = so[side * 5 + lof] + i - 8;
     goto pj;
 pr:
-    pk = sub_s004_0e76_20f6(1, best) + so[side * 5 + lof] - 1;
+    pk = roll_dice(1, best) + so[side * 5 + lof] - 1;
 pj:
     if ((b1b[pk] & 4) && (b2[pk] & 4))
         ok = 1;

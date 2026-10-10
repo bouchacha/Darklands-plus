@@ -1,0 +1,23 @@
+# mods.txt: INTERACTIVE recipes (lockstep_sync.py) that prove the example mods in mods/ against the original.
+# ALWAYS export LOCKSTEP_DIR first: `lockstep.py stop NAME` without it reads build/qa/sess/NAME.json, which
+# may be a stale file from another tester, and kills whatever processes now have those PIDs.
+#   export LOCKSTEP_DIR=/home/claude/darklands-re/build/mods_play/sess; L="python3 -I tools/playtests/lockstep_sync.py"
+#   (DBASE=150 $L start O orig & DBASE=170 $L start X build/mods_<name>/DARKLAND.EXE & wait)
+#   $L do "QUICKSTART; click; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 4; shot menu" O X
+# swift_travel (s030): `$L do "at 150 62; click; wait 8; at 290 112; click; wait 30; shot t1" O X`, then for each
+#   session `keyretry.py NAME F6 info --park 30,185`: the date/time box is ~2/3 of the walk earlier in X
+#   (2026-10-10, Bromberg: orig Aug 27 Matins 2, mod Aug 25 Compline 23); the sun/moon icon differs too.
+# cheap_inn (s036): `$L do "at 150 44; click; wait 4; click; wait 3; at 150 98; click; wait 5; shot residence" O X`:
+#   "at 2gr" vs "at 1gr" plus the "(half-price inn mod)" label; `at 140 174; click; wait 8` spends the day.
+# strong_party (s001): `$L do "at 20 20; click; wait 4; shot sheet" O X`: 60/60 attributes, 75 skills.
+# heavy_blows (s014) and strong_party battles: `$L do "at 150 62; click; wait 8" O X; hunt.py O X` until a
+#   fighting card ("ignore the warning and press onward", y=73-84), then click twice and `autobattle.py --max 60 O X`.
+#   Battlefields differed between the sessions from the first frame in 2 of 2 battles, so the fights are not
+#   the same seed. Compare the outcome (won/lost) and the loot screen, not frame by frame.
+# Hunting next to a city: "decide to travel elsewhere" leaves the party next to the city, and a step towards
+#   it shows the gate card again. Pick hunt.py --pts AWAY from the city, on the same landmass (water stops the party).
+# Loot screen (s040): select an item by clicking its line in "The loot contains..." (e.g. at 130 87), then
+#   "Get an item" (at 120 29): the item count drops and the item appears under "<member> currently has...";
+#   "Leave" at 100 53; the character sheet's Equipment (at 227 156) then lists it. Escape (keyretry) leaves the sheet.
+# Functional build + mod: python3 -I tools/playtests/mkfuncmod.py mods/<name> build/<work> build/<work>/DARKLAND.EXE
+#   (build.py --functional --overlay lets the src/wip drafts override the mod's files).

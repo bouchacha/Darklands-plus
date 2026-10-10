@@ -30,9 +30,11 @@
    The XMS wrappers (0cb2, 0d5a..0f78), EMS wrappers (0aee, 0bc0..0c80) and DOS helpers
    (0626 int 25h, 06fa/079c/08e8/0942 int 21h) contain inline _asm blocks, written here
    like the original. */
-struct store { int handle; long size; long base; };    /* D_c09b[type] */
+#include "darklands/card.h"
+#include "darklands/game.h"
+struct store { int handle; long size; long base; };    /* swap_stores[type] */
 struct hdr { int type; int hash; char name[16]; long size; };
-extern struct store D_c09b[];
+extern struct store swap_stores[];
 
 struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag; };
 struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; };
@@ -40,18 +42,18 @@ union REGS { struct WORDREGS x; struct BYTEREGS h; };
 struct SREGS { unsigned es, cs, ss, ds; };
 
 struct res { int a; int b; };
-extern int D_08be;                      /* EMS version (BCD) */
-extern int D_08c0;                      /* last EMS error */
-extern int D_08c2;                      /* XMS version, 0 = no XMS */
+extern int ems_version;                      /* EMS version (BCD) */
+extern int ems_error;                      /* last EMS error */
+extern int xms_version;                      /* XMS version, 0 = no XMS */
 extern int D_08c4;
 extern int D_08c6;
-extern int D_08c8;                      /* last XMS error */
+extern int xms_error;                      /* last XMS error */
 extern char far *D_08ca;                /* directory buffer */
 extern char far *D_08ce;                /* directory in conventional memory (UMB) */
 extern unsigned D_08d0;                 /* its segment */
 extern int D_08d2;
-extern int D_08d4;
-extern int D_08d6;
+extern int swap_dir_store;
+extern int swap_allowed;
 extern int D_08d8;
 extern int D_08da;
 extern int D_08e4;
@@ -71,7 +73,7 @@ extern char far *D_c095;                /* EMS page frame */
 extern int D_c0af;
 extern int D_c0b9;
 extern char D_c0eb[14];                 /* name of the temporary file */
-extern void (far *D_c0f9)(void);        /* XMS driver entry */
+extern void (far *xms_entry)(void);        /* XMS driver entry */
 extern int D_e23c;
 int far _bios_timeofday(int, long *);
 void far *far _fmemset(void far *, int, unsigned);
@@ -137,37 +139,37 @@ int far sub_s004_1336_0006(void)
 {
     unsigned t;
 
-    t = D_08d6;
+    t = swap_allowed;
     if (t & 0xff00)
         goto fail;
     D_08d2 = 1;
     if ((t & 1) && sub_s004_1336_00f6()) {
         D_08da = 2;
-        *(long *)&D_08e4 = D_c09b[2].base;
-    } else if ((D_08d6 & 2) && sub_s004_1336_0252()) {
+        *(long *)&D_08e4 = swap_stores[2].base;
+    } else if ((swap_allowed & 2) && sub_s004_1336_0252()) {
         D_08da = 3;
-        *(long *)&D_08e8 = D_c09b[3].base;
+        *(long *)&D_08e8 = swap_stores[3].base;
     } else {
-        if (D_08d6 & 8) {
+        if (swap_allowed & 8) {
             sub_s004_1262_015c();
             if (sub_s004_1336_0392()) {
                 D_08da = 5;
-                *(long *)&D_08f0 = D_c09b[5].base;
+                *(long *)&D_08f0 = swap_stores[5].base;
                 sub_s004_1262_00a4();
                 return 1;
             }
             sub_s004_1262_00a4();
         }
-        if ((D_08d6 & 0x10) && sub_s004_1336_03f8()) {
+        if ((swap_allowed & 0x10) && sub_s004_1336_03f8()) {
             D_08da = 6;
-            *(long *)&D_08f4 = D_c09b[6].base;
-        } else if ((D_08d6 & 0x20) && sub_s004_1336_046a()) {
+            *(long *)&D_08f4 = swap_stores[6].base;
+        } else if ((swap_allowed & 0x20) && sub_s004_1336_046a()) {
             D_08da = 7;
-            *(long *)&D_08f8 = D_c09b[7].base;
+            *(long *)&D_08f8 = swap_stores[7].base;
         } else {
 fail:
             if (!D_08d8) {
-                D_08d6 = 0xff00;
+                swap_allowed = 0xff00;
                 return 0;
             }
         }
@@ -187,26 +189,26 @@ int far sub_s004_1336_00f6(void)
     struct store far *fst;
     register unsigned seg;
 
-    fst = &D_c09b[2];
+    fst = &swap_stores[2];
     if (!sub_s004_1336_0cb4())
         return 0;
     fr = sub_s004_1336_0d96();
     if (!fr.b)
         return 0;
     if ((fst->handle = sub_s004_1336_0e7a(fr.b)) == 0) {
-        D_08d6 ^= 1;
+        swap_allowed ^= 1;
         return 0;
     }
-    D_08d6 ^= 1;
+    swap_allowed ^= 1;
     D_08d8 |= 1;
     fst->size = (long)fr.b << 10;
     if ((seg = sub_s004_1336_0f36(0x32)) != 0) {
-        D_08d4 = 1;
+        swap_dir_store = 1;
         D_08ce = (char far *)((long)seg << 16);
         _fmemset((char far *)((long)seg << 16), 0, 0x320);
         fst->base = 0;
     } else {
-        D_08d4 = 2;
+        swap_dir_store = 2;
         _fmemset(D_08ca, 0, 0x320);
         sub_s004_1212_0090(0x320L, D_08ca, fst->handle, 0L);
         fst->base = 0x320;
@@ -233,20 +235,20 @@ int far sub_s004_1336_0252(void)
     struct res fr;
     struct store far *fst;
 
-    fst = &D_c09b[3];
+    fst = &swap_stores[3];
     if (!sub_s004_1336_0ae6())
         return 0;
     fr = sub_s004_1336_0bc2();
     if ((fst->handle = sub_s004_1336_0c3e(fr.b)) == -1) {
-        D_08d6 ^= 2;
+        swap_allowed ^= 2;
         return 0;
     }
-    D_08d6 ^= 2;
+    swap_allowed ^= 2;
     D_08d8 |= 2;
     fst->size = (long)fr.b << 14;
     D_c095 = sub_s004_1336_0bec();
-    if (D_08d4 == 0) {
-        D_08d4 = 3;
+    if (swap_dir_store == 0) {
+        swap_dir_store = 3;
         _fmemset(D_08ca, 0, 0x320);
         sub_s004_1237_0002(0x320L, D_08ca, fst->handle, 0L);
         fst->base = 0x320;
@@ -274,14 +276,14 @@ int far sub_s004_1336_0392(void)
     if ((drv = sub_s004_1336_0620()) == 0)
         return 0;
     kb = sub_s004_1336_093a(drv);
-    if ((D_c09b[5].handle = sub_s004_1336_06f2(drv, kb)) == 0) {
-        D_08d6 ^= 8;
+    if ((swap_stores[5].handle = sub_s004_1336_06f2(drv, kb)) == 0) {
+        swap_allowed ^= 8;
         return 0;
     }
-    D_08d6 ^= 8;
+    swap_allowed ^= 8;
     D_08d8 |= 8;
-    D_c09b[5].size = (long)kb << 10;
-    return sub_s004_1336_04c4(&D_c09b[5]);
+    swap_stores[5].size = (long)kb << 10;
+    return sub_s004_1336_04c4(&swap_stores[5]);
 }
 #pragma optimize("", on)
 
@@ -295,14 +297,14 @@ int far sub_s004_1336_03f8(void)
         return 0;
     kb = sub_s004_1336_093a(drv);
     kb = D_08fc < kb ? D_08fc : kb;
-    if ((D_c09b[6].handle = sub_s004_1336_0794(drv, kb)) == 0) {
-        D_08d6 ^= 0x10;
+    if ((swap_stores[6].handle = sub_s004_1336_0794(drv, kb)) == 0) {
+        swap_allowed ^= 0x10;
         return 0;
     }
-    D_08d6 ^= 0x10;
+    swap_allowed ^= 0x10;
     D_08d8 |= 0x10;
-    D_c09b[6].size = (long)kb << 10;
-    return sub_s004_1336_04c4(&D_c09b[6]);
+    swap_stores[6].size = (long)kb << 10;
+    return sub_s004_1336_04c4(&swap_stores[6]);
 }
 
 /* heap.fng in the current directory (type 7), D_8fc KB */
@@ -313,14 +315,14 @@ int far sub_s004_1336_046a(void)
 
     if ((r = sub_s004_1336_08e0()) == -1)
         return 0;
-    if ((D_c09b[7].handle = sub_root_06a1_13ae("heap.fng", 0x8102)) == 0) {
-        D_08d6 ^= 0x20;
+    if ((swap_stores[7].handle = sub_root_06a1_13ae("heap.fng", 0x8102)) == 0) {
+        swap_allowed ^= 0x20;
         return 0;
     }
-    D_08d6 ^= 0x20;
+    swap_allowed ^= 0x20;
     D_08d8 |= 0x20;
-    D_c09b[7].size = (long)D_08fc << 10;
-    return sub_s004_1336_04c4(&D_c09b[7]);
+    swap_stores[7].size = (long)D_08fc << 10;
+    return sub_s004_1336_04c4(&swap_stores[7]);
 }
 #pragma optimize("", on)
 
@@ -332,9 +334,9 @@ int far sub_s004_1336_04c4(struct store *st)
     struct hdr h;
     register int t;
 
-    t = st - D_c09b;
-    if (D_08d4 == 0) {
-        D_08d4 = t;
+    t = st - swap_stores;
+    if (swap_dir_store == 0) {
+        swap_dir_store = t;
         _fmemset(D_08ca, 0, 0x320);
         sub_s004_1223_000e(0x320L, D_08ca, st->handle, 0L);
         st->base = 0x320;
@@ -355,22 +357,22 @@ int far sub_s004_1336_05a8(void)
     if ((char)D_08d8 & 1) {
         sub_s004_1336_0ebe(D_c0af);
     }
-    if (D_08d4 == 1) {
+    if (swap_dir_store == 1) {
         sub_s004_1336_0f7a(D_08d0);
     }
     if ((char)D_08d8 & 2) {
         sub_s004_1336_0c82(D_c0b9);
     }
     if ((char)D_08d8 & 8) {
-        sub_s004_1336_09ac(&D_c09b[5]);
+        sub_s004_1336_09ac(&swap_stores[5]);
     }
     if ((char)D_08d8 & 0x10) {
-        sub_s004_1336_09f2(&D_c09b[6]);
+        sub_s004_1336_09f2(&swap_stores[6]);
     }
     if ((char)D_08d8 & 0x20) {
-        sub_s004_1336_09ac(&D_c09b[7]);
+        sub_s004_1336_09ac(&swap_stores[7]);
     }
-    D_08d6 = 0x3b;
+    swap_allowed = 0x3b;
     D_08d8 = 0;
     return D_08d2 = 0;
 }
@@ -614,9 +616,9 @@ int far sub_s004_1336_0ae6(void)
     r = 0;
     goto done;
 ok:
-    _asm mov D_08be, ax
+    _asm mov ems_version, ax
     r = 1;
-    if ((D_08be & 0xf0) < 0x40)
+    if ((ems_version & 0xf0) < 0x40)
         return 0;
 done:
     return r;
@@ -666,7 +668,7 @@ struct res far sub_s004_1336_0bc2(void)
         mov r.b, bx
         jmp done
     err:
-        mov byte ptr D_08c0, ah
+        mov byte ptr ems_error, ah
     }
 done:
     return r;
@@ -678,7 +680,7 @@ char far *far sub_s004_1336_0bec(void)
     char far *p;
 
     p = 0;
-    if (D_08be < 0x40)
+    if (ems_version < 0x40)
         return 0;
     _asm {
         mov ah, 41h
@@ -689,7 +691,7 @@ char far *far sub_s004_1336_0bec(void)
         jmp done
     err:
         xor al, al
-        mov D_08c0, ax
+        mov ems_error, ax
     done:
     }
     return p;
@@ -713,7 +715,7 @@ int far sub_s004_1336_0c3e(int pages)
     int h;
 
     h = 1;
-    if (D_08be < 0x40)
+    if (ems_version < 0x40)
         return 0;
     if (pages == 0)
         return -1;
@@ -728,7 +730,7 @@ int far sub_s004_1336_0c3e(int pages)
         jmp done
     err:
         xor al, al
-        mov D_08c0, ax
+        mov ems_error, ax
     }
     h = -1;
 done:
@@ -741,7 +743,7 @@ int far sub_s004_1336_0c82(int handle)
     int r;
 
     r = 1;
-    if (D_08be < 0x40)
+    if (ems_version < 0x40)
         return 0;
     _asm {
         mov ah, 45h
@@ -752,7 +754,7 @@ int far sub_s004_1336_0c82(int handle)
         jmp done
     err:
         xor al, al
-        mov D_08c0, ax
+        mov ems_error, ax
     }
     r = 0;
 done:
@@ -766,22 +768,22 @@ int far sub_s004_1336_0cb4(void)
     void (far *xmsh)(void);
 
     ro = 0;
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     if (sub_s004_1336_0d5c()) {
-        xmsh = D_c0f9;
+        xmsh = xms_entry;
         ro = 1;
         _asm {
             mov ah, 0
             call xmsh
             cmp ax, 0
             je err
-            mov D_08c2, ax
+            mov xms_version, ax
             mov D_08c4, bx
             mov D_08c6, dx
             jmp done
         err:
             xor bh, bh
-            mov D_08c8, bx
+            mov xms_error, bx
         }
         ro = 0;
     done:
@@ -807,7 +809,7 @@ int far sub_s004_1336_0d0c(unsigned v, char *buf)
     return 0;
 }
 
-/* XMS driver installed (int 2Fh 4300h); stores its entry point in D_c0f9 */
+/* XMS driver installed (int 2Fh 4300h); stores its entry point in xms_entry */
 int far sub_s004_1336_0d5c(void)
 {
     int ro;
@@ -829,7 +831,7 @@ ok:
         mov word ptr ek, bx
         mov word ptr ek+2, es
     }
-    D_c0f9 = ek;
+    xms_entry = ek;
     return ro;
 }
 
@@ -840,8 +842,8 @@ struct res far sub_s004_1336_0d96(void)
     void (far *xmsh)(void);
 
     ro.b = ro.a = 0;
-    xmsh = D_c0f9;
-    if (!D_08c2)
+    xmsh = xms_entry;
+    if (!xms_version)
         return ro;
     _asm {
         mov ah, 8
@@ -853,7 +855,7 @@ struct res far sub_s004_1336_0d96(void)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
 done:
     return ro;
@@ -865,8 +867,8 @@ long far sub_s004_1336_0dd8(void)
     long ro;
     void (far *xmsh)(void);
 
-    xmsh = D_c0f9;
-    if (!D_08c2)
+    xmsh = xms_entry;
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 8
@@ -877,7 +879,7 @@ long far sub_s004_1336_0dd8(void)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:
@@ -890,8 +892,8 @@ long far sub_s004_1336_0e1c(void)
     long ro;
     void (far *xmsh)(void);
 
-    xmsh = D_c0f9;
-    if (!D_08c2)
+    xmsh = xms_entry;
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 8
@@ -902,7 +904,7 @@ long far sub_s004_1336_0e1c(void)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:
@@ -928,9 +930,9 @@ int far sub_s004_1336_0e7a(int kb)
     void (far *xmsh)(void);
     int ro;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ro = 1;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 9
@@ -942,7 +944,7 @@ int far sub_s004_1336_0e7a(int kb)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:
@@ -955,9 +957,9 @@ int far sub_s004_1336_0ebe(int handle)
     void (far *xmsh)(void);
     int ro;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ro = 1;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 0Ah
@@ -968,7 +970,7 @@ int far sub_s004_1336_0ebe(int handle)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:
@@ -981,9 +983,9 @@ int far sub_s004_1336_0f00(void)
     void (far *xmsh)(void);
     int ro;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ro = 1;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 10h
@@ -1002,9 +1004,9 @@ unsigned far sub_s004_1336_0f36(int n)
     void (far *xmsh)(void);
     unsigned ro;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ro = 1;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 10h
@@ -1016,7 +1018,7 @@ unsigned far sub_s004_1336_0f36(int n)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:
@@ -1029,9 +1031,9 @@ int far sub_s004_1336_0f7a(int sg)
     void (far *xmsh)(void);
     int ro;
 
-    xmsh = D_c0f9;
+    xmsh = xms_entry;
     ro = 1;
-    if (!D_08c2)
+    if (!xms_version)
         return 0;
     _asm {
         mov ah, 11h
@@ -1043,7 +1045,7 @@ int far sub_s004_1336_0f7a(int sg)
         jmp done
     err:
         xor bh, bh
-        mov D_08c8, bx
+        mov xms_error, bx
     }
     ro = 0;
 done:

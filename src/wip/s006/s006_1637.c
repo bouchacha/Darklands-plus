@@ -4,23 +4,25 @@
 /* status (e6, 2026-10-09): COMPLETE, no DATA DIFFERS, stamped with stamp.py --wip. all 3 functions written from Ghidra (dec16 drafts were stubs).
  * Corner towers of the keep (rooms of kind 3 at the corners, 4..7 = corner code from 04d0).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct gexit { int x0, x2, x4, x6, x8, x0a; };
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;
-extern int _based(D_db39) *D_db65;                  /* slots as int[5][16][5] */
-extern int _based(D_db39) *D_db91;
-extern struct gexit _based(D_db39) *D_db95;
-extern int D_db45[5];
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;
+extern int _based(gen_work) *gen_strips;                  /* slots as int[5][16][5] */
+extern int _based(gen_work) *D_db91;
+extern struct gexit _based(gen_work) *gen_exits;
+extern int gen_rooms[5];
 extern int D_db4f[5];
-extern int D_db71[5];
-extern int D_db81;
+extern int gen_exit_count[5];
+extern int gen_level;
 
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 int far sub_s005_146d_0b9c(int, int, int);
-void far sub_s006_1a57_000c(int, int, int, int, int, int);
+void far gen_add_room(int, int, int, int, int, int);
 void far sub_s006_1abf_000a(int, int, int, int);
 void far sub_s006_1637_0366(int);
 int far sub_s006_1637_04d0(int, int);
@@ -33,48 +35,48 @@ void far sub_s006_1637_0006(int t)
 {
     int i, r, n, a, b, c, d, m, k, x0, x1, y0, y1;
     unsigned used, bit;
-    struct gexit _based(D_db39) *e;
-    int _based(D_db39) *o;
+    struct gexit _based(gen_work) *e;
+    int _based(gen_work) *o;
 
-    if (D_db81 < 1) {
-        for (i = 0; i < D_db71[D_db81 + 1]; i++) {
-            e = D_db95 + (D_db81 + 1) * 4 + i;
+    if (gen_level < 1) {
+        for (i = 0; i < gen_exit_count[gen_level + 1]; i++) {
+            e = gen_exits + (gen_level + 1) * 4 + i;
             if (e->x8 == 2) {
                 r = e->x4;
-                if (D_db91[(D_db81 + 1) * 30 + r] == 3) {
-                    o = D_db3b + ((D_db81 + 1) * 30 + r) * 4;
-                    sub_s006_1a57_000c(3, o[0], o[1], o[2], o[3], sub_s005_146d_0b9c(1, 0, r));
-                    sub_s006_1637_0366(D_db45[D_db81] - 1);
-                    sub_s006_1abf_000a(D_db45[D_db81] - 1, 3, 0, 0);
+                if (D_db91[(gen_level + 1) * 30 + r] == 3) {
+                    o = D_db3b + ((gen_level + 1) * 30 + r) * 4;
+                    gen_add_room(3, o[0], o[1], o[2], o[3], sub_s005_146d_0b9c(1, 0, r));
+                    sub_s006_1637_0366(gen_rooms[gen_level] - 1);
+                    sub_s006_1abf_000a(gen_rooms[gen_level] - 1, 3, 0, 0);
                 }
             }
         }
-    } else if (D_db81 == 1) {
-        n = sub_s004_0e76_20f6(1, 5) - 1;
+    } else if (gen_level == 1) {
+        n = roll_dice(1, 5) - 1;
         if (t == 0x27 && n < 2)
             n = 2;
         o = D_db3b + 30 * 4;
         used = 0;
         for (; n > 0; n--) {
             do
-                bit = 1 << (sub_s004_0e76_20f6(1, 4) - 1);
+                bit = 1 << (roll_dice(1, 4) - 1);
             while (used & bit);
             used |= bit;
-            a = sub_s004_0e76_20f6(1, 2);
-            b = sub_s004_0e76_20f6(1, 2) + 2;
-            if (sub_s004_0e76_20f6(1, 2) < 2) {
+            a = roll_dice(1, 2);
+            b = roll_dice(1, 2) + 2;
+            if (roll_dice(1, 2) < 2) {
                 c = 0;
                 d = 0;
             } else {
-                if (sub_s004_0e76_20f6(1, 2) < 2) {
-                    d = sub_s004_0e76_20f6(1, 2);
+                if (roll_dice(1, 2) < 2) {
+                    d = roll_dice(1, 2);
                     m = 3;
                 } else {
-                    d = sub_s004_0e76_20f6(1, 3);
+                    d = roll_dice(1, 3);
                     m = 2;
                 }
                 d--;
-                c = sub_s004_0e76_20f6(1, m) - 1;
+                c = roll_dice(1, m) - 1;
             }
             if (bit == 1) {
                 k = 4;
@@ -102,16 +104,16 @@ void far sub_s006_1637_0006(int t)
                 x0 = o[0] - 2 - (a + 2) + d + 1;
             }
             if (bit == 1 || bit == 2 || bit == 4 || bit == 8)
-                sub_s006_1a57_000c(3, x0, x1, y0, y1, k);
-            sub_s006_1637_0366(D_db45[D_db81] - 1);
-            sub_s006_1abf_000a(D_db45[1] - 1, 3, 0, 0);
+                gen_add_room(3, x0, x1, y0, y1, k);
+            sub_s006_1637_0366(gen_rooms[gen_level] - 1);
+            sub_s006_1abf_000a(gen_rooms[1] - 1, 3, 0, 0);
         }
     } else {
-        for (i = 1; i <= D_db4f[D_db81 - 1]; i++) {
+        for (i = 1; i <= D_db4f[gen_level - 1]; i++) {
             o = D_db3b + (30 + i) * 4;
-            sub_s006_1a57_000c(3, o[0], o[1], o[2], o[3], sub_s005_146d_0b9c(1, 0, i));
-            sub_s006_1637_0366(D_db45[D_db81] - 1);
-            sub_s006_1abf_000a(D_db45[D_db81] - 1, 3, 0, 0);
+            gen_add_room(3, o[0], o[1], o[2], o[3], sub_s005_146d_0b9c(1, 0, i));
+            sub_s006_1637_0366(gen_rooms[gen_level] - 1);
+            sub_s006_1abf_000a(gen_rooms[gen_level] - 1, 3, 0, 0);
         }
     }
 }
@@ -119,12 +121,12 @@ void far sub_s006_1637_0006(int t)
 /* shrink the free strips around the keep by tower r */
 void far sub_s006_1637_0366(int r)
 {
-    int _based(D_db39) *o;
-    int _based(D_db39) *s;
+    int _based(gen_work) *o;
+    int _based(gen_work) *s;
 
-    o = D_db3b + (D_db81 * 30 + r) * 4;
-    s = D_db65 + D_db81 * 80;
-    switch (sub_s006_1637_04d0(D_db81, r)) {
+    o = D_db3b + (gen_level * 30 + r) * 4;
+    s = gen_strips + gen_level * 80;
+    switch (sub_s006_1637_04d0(gen_level, r)) {
     case 4:
         s[0] = MAX(o[1] + 1, s[0]);
         s[2] = MIN(o[2] - 1, s[2]);
@@ -156,7 +158,7 @@ void far sub_s006_1637_0366(int r)
 int far sub_s006_1637_04d0(int l, int r)
 {
     int far *o;
-    int _based(D_db39) *k;
+    int _based(gen_work) *k;
 
     o = (int far *)(D_db3b + (l * 30 + r) * 4);
     k = D_db3b + 30 * 4;

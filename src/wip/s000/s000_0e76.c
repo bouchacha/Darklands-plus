@@ -18,6 +18,8 @@
    0114: the `name` variable was a cross-jumped strcat in both arms of the config.drk if.
    _DATA after main's strings: 21 bytes of initialised data at 0bf1 (D_bfb used by 083e),
    then 0114's "rb", "config.drk", "nsound.dlc", ... - literals in source order. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag; };
 struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; };
 union REGS { struct WORDREGS x; struct BYTEREGS h; };
@@ -25,18 +27,18 @@ union REGS { struct WORDREGS x; struct BYTEREGS h; };
 extern int D_0942;
 extern char D_907a;
 extern char D_907d;
-extern int D_a895[];
+extern int msg_file[];
 int far printf(const char *, ...);
 void far exit_(int);
 int far int86(int, union REGS *, union REGS *);
 int far sub_root_044a_00a9(int, int, char *);
-int far sub_root_044a_00f4(char *);
+int far dos_print(char *);
 int far sub_root_044a_0100(void);
 int far sub_root_047c_07ce(char *, char *);
 int far sub_root_047c_08c8(int);
 int far sub_root_05f8_0064(void);
-int far sub_root_0617_011e(char *, void far *);
-void far sub_s000_0fb2_0008(void);
+int far file_load_far(char *, void far *);
+void far video_detect(void);
 
 typedef struct _iobuf FILE;
 FILE *far fopen(const char *, const char *);
@@ -53,45 +55,45 @@ void far sub_root_044a_000a(char *);
 void far sub_root_044a_002c(char far *, char *);
 void far sub_root_044a_019c(void);
 void far sub_root_044a_01f4(void);
-void far sub_root_0000_1354(void);
-void far sub_root_0000_1438(int);
-int far sub_root_0265_084e(void *, char *);
+void far game_shutdown(void);
+void far show_difficulty(int);
+int far text_pixel_width(void *, char *);
 void far sub_root_03a1_000a(int);
 void far sub_root_047c_0066(void);
 int far sub_root_047c_04c7(int);
-int far sub_root_047c_04d5(int, int, int, int, int);
+int far gfx_save_rect(int, int, int, int, int);
 void far sub_root_047c_04f8(void);
-int far sub_root_047c_051b(int);
+int far font_height(int);
 void far sub_root_047c_0545(void);
 void far sub_root_047c_0576(int, int);
-void far sub_root_047c_05a5(void *, int, int, int);
+void far gfx_draw_pic(void *, int, int, int);
 void far sub_root_047c_05ca(int);
 void far sub_root_047c_0767(void);
 void far sub_root_047c_0783(int, int, int, int, int, int, int);
-void far sub_root_047c_078a(int);
+void far sound_play(int);
 void far sub_root_047c_0791(void);
 void far sub_root_047c_11f6(void);
-void far sub_root_047c_124f(int, int, int);
+void far mouse_set_cursor(int, int, int);
 int far sub_root_05f8_00a9(int *);
 void far sub_root_05f8_00ca(int *, int *);
 int far sub_root_05f8_00f3(int, int *);
-void far sub_root_05f8_0117(int, int, int);
-int far sub_root_0617_016a(char *, void far *, int);
-void far vec_1937(void);
-void far vec_18bf(int, int, int, int, int, int, int, int, int, int, int, int);
-void far vec_17e3(void), vec_183d(void), vec_1847(void), vec_1851(void), vec_185b(void);
+void far ems_map_page(int, int, int);
+int far file_save(char *, void far *, int);
+void far swap_init_vec(void);
+void far battle_run_vec(int, int, int, int, int, int, int, int, int, int, int, int);
+void far vec_17e3(void), choose_party_order_vec(void), save_game_vec(void), load_game_vec(void), party_info_screen_vec(void);
 void far vec_1941(void), vec_194b(void), vec_1955(void), vec_195f(void), vec_1969(void);
 void far vec_1973(void), vec_197d(void), vec_1987(void), vec_1991(void), vec_199b(void);
 void far vec_19a5(void), vec_19af(void), vec_19b9(void), vec_19c3(void), vec_19cd(void);
-void far vec_19d7(void), vec_19e1(void), vec_19eb(void), vec_19f5(void), vec_19ff(void);
+void far vec_19d7(void), vec_19e1(void), do_surrender_vec(void), vec_19f5(void), vec_19ff(void);
 void far vec_1a09(void), vec_1a13(void), vec_1a1d(void), vec_1a27(void), vec_1a31(void);
-void far vec_1a3b(void), vec_1a45(void), vec_1a4f(void), vec_1a59(void), vec_1a63(void);
+void far vec_1a3b(void), vec_1a45(void), enemy_info_vec(void), order_mode_leave_vec(void), vec_1a63(void);
 void far vec_1a6d(void), vec_1a77(void), vec_1a81(void), vec_1a8b(void), vec_1a95(void);
 void far vec_1a9f(void), vec_1aa9(void), vec_1ab3(void), vec_1abd(void), vec_1ac7(void);
 void far vec_1ad1(void);
-void far sub_root_0000_1080(void), sub_root_0000_1154(void), sub_root_0000_11f2(void);
-void far sub_root_0000_129a(void), sub_root_0000_13a0(void), sub_root_0000_1408(void);
-void far sub_root_0000_1418(void), sub_root_0000_1428(void);
+void far sub_root_0000_1080(void), toggle_saint_msgs(void), toggle_music(void);
+void far toggle_sound(void), quit_to_dos(void), set_difficulty_basic(void);
+void far set_difficulty_standard(void), set_difficulty_expert(void);
 
 /* menus (header D_9419[5], items 0x14 bytes, sub-menu items 0x16 bytes) */
 struct mi2 { char *text; char on; char x3[4]; char x7; char x8[10]; void (far *fn)(void); };
@@ -107,32 +109,32 @@ extern struct mi2 D_99ec[4];
 extern struct mi2 D_9a47[20];
 extern int D_9c15[4];
 extern char D_9c22[4];
-extern struct font *D_0118;
-extern struct font *D_017c;
+extern struct font *screen_ptr;
+extern struct font *card_window;
 extern char *D_11f2;
 extern char D_c107[];
 extern char D_060c[], D_067c[], D_0690[], D_06a4[], D_06aa[], D_06ba[], D_06cc[], D_06de[];
 extern char D_06f0[], D_05b2[], D_0706[], D_0718[], D_0726[], D_07aa[], D_07bc[];
 extern char D_06b3[], D_06c5[], D_06d7[], D_06e8[], D_06fe[], D_0737[], D_073e[], D_0744[];
 extern char *D_01a6;
-extern int D_08ca, D_08cc, D_08d6;
-extern char D_9069, D_906a, D_9071, D_9c4c, D_11dd;
-extern char D_9c69[][0x80];
+extern int D_08ca, D_08cc, swap_allowed;
+extern char D_9069, game_difficulty, D_9071, D_9c4c, D_11dd;
+extern char party[][0x80];
 extern int D_9417;
-extern int D_940b;
-extern int D_9c42;
+extern int ems_frame_handle;
+extern int cursor_default;
 extern int D_a2e5, D_a2e9, D_a33b, D_a33e, D_a392, D_a3d6, D_a3e5;
 extern int D_a626, D_a628, D_a660, D_a662, D_a664, D_a666;
-extern char D_a6c1;
+extern char real_combat;
 extern int D_a6c2;
 extern int D_a86e, D_a870, D_a872, D_a874;
 extern char D_a876[];
 extern int D_7760;
-extern char D_9085[];
+extern char msg_buf[];
 extern char D_c0fd;
 extern int D_c0fe, D_c100;
-extern char D_c102;
-extern int D_c103, D_c105;
+extern char move_mode;
+extern int load_buf, D_c105;
 extern int far F_20a5_415e[];
 extern int far F_20a5_4a32[];
 extern int far F_20a5_46d6[];
@@ -140,11 +142,11 @@ extern int far F_20a5_45be[];
 extern int far F_20a5_491a[];
 extern int far F_20a5_4046[];
 extern int far F_20a5_4b4a[];
-void far sub_s000_0e76_0114(int, char **, char **);
+void far startup_config(int, char **, char **);
 void far sub_s000_0e76_052a(void);
 void far sub_s000_0e76_083c(void);
 void far sub_s000_0e76_083e(void);
-void far sub_s000_0e76_0f04(void);
+void far battle_menus_enable(void);
 void far sub_s000_0e76_1010(void);
 void far sub_s000_0e76_1150(void);
 
@@ -170,7 +172,7 @@ char *D_0ba0[] = {
 };
 
 /* print "<program>: msg" when D_942 is set */
-void far sub_s000_0e76_0000(char *msg)
+void far startup_error(char *msg)
 {
     if (D_0942)
         printf("%s: %s\n", msg, D_0ba0[D_0942 - 0x80]);
@@ -178,21 +180,21 @@ void far sub_s000_0e76_0000(char *msg)
 
 void far main(int argc, char **argv, char **envp)
 {
-    sub_s000_0fb2_0008();
+    video_detect();
     sub_root_047c_08c8(sub_root_047c_07ce("misc.exe", 0));
     D_907a = 0;
-    sub_root_0617_011e("banner.dat", (void far *)D_a895);
+    file_load_far("banner.dat", (void far *)msg_file);
     if (!(D_907d = !sub_root_05f8_0064())) {
         printf("Unable to find EMS memory\n");
         exit_(0);
     }
-    sub_s000_0e76_0114(argc, argv, envp);
+    startup_config(argc, argv, envp);
     sub_root_044a_0100();
     sub_s000_0e76_052a();
 }
 
 /* set the cursor position (int 10h function 2) */
-void far sub_s000_0e76_0092(char row, char col)
+void far bios_set_cursor(char row, char col)
 {
     union REGS r;
 
@@ -210,21 +212,21 @@ int D_0bf6 = -1;
 int D_0bf8 = 0;
 char D_0bfa[9] = { -1, 0, 0, -1, 0, 0, -1, 0, 0 };
 
-/* print the banner (D_a895: offsets of its lines) */
-void far sub_s000_0e76_00b8(void)
+/* print the banner (msg_file: offsets of its lines) */
+void far print_banner(void)
 {
     register int i;
 
-    sub_s000_0e76_0092(12, 0);
+    bios_set_cursor(12, 0);
     for (i = 12; i; i--)
-        sub_root_044a_00f4((char *)D_a895 + D_a895[0]);
-    sub_root_044a_00a9(12, 0, (char *)D_a895 + D_a895[11]);
-    sub_root_044a_00a9(13, 0, (char *)D_a895 + D_a895[12]);
-    sub_root_044a_00a9(14, 0, (char *)D_a895 + D_a895[13]);
+        dos_print((char *)msg_file + msg_file[0]);
+    sub_root_044a_00a9(12, 0, (char *)msg_file + msg_file[11]);
+    sub_root_044a_00a9(13, 0, (char *)msg_file + msg_file[12]);
+    sub_root_044a_00a9(14, 0, (char *)msg_file + msg_file[13]);
 }
 
 /* title screen, config.drk (sound driver) and command line options */
-void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
+void far startup_config(int argc, char **argv, char **envp)
 {
     unsigned char i;
     char bad;
@@ -236,16 +238,16 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
     r.x.ax = 3;
     int86(0x10, &r, &r);
     sub_root_044a_00a9(0, 0, "\xff\x7f");
-    sub_root_044a_00a9(1, 0, (char *)D_a895 + D_a895[1]);
-    sub_root_044a_00a9(2, 0, (char *)D_a895 + D_a895[2]);
-    sub_root_044a_00a9(3, 0, (char *)D_a895 + D_a895[3]);
-    sub_root_044a_00a9(4, 0, (char *)D_a895 + D_a895[4]);
-    sub_root_044a_00a9(5, 0, (char *)D_a895 + D_a895[5]);
-    sub_root_044a_00a9(6, 0, (char *)D_a895 + D_a895[6]);
-    sub_root_044a_00a9(7, 0, (char *)D_a895 + D_a895[7]);
-    sub_root_044a_00a9(8, 0, (char *)D_a895 + D_a895[8]);
-    sub_root_044a_00a9(9, 0, (char *)D_a895 + D_a895[9]);
-    sub_root_044a_00a9(10, 0, (char *)D_a895 + D_a895[10]);
+    sub_root_044a_00a9(1, 0, (char *)msg_file + msg_file[1]);
+    sub_root_044a_00a9(2, 0, (char *)msg_file + msg_file[2]);
+    sub_root_044a_00a9(3, 0, (char *)msg_file + msg_file[3]);
+    sub_root_044a_00a9(4, 0, (char *)msg_file + msg_file[4]);
+    sub_root_044a_00a9(5, 0, (char *)msg_file + msg_file[5]);
+    sub_root_044a_00a9(6, 0, (char *)msg_file + msg_file[6]);
+    sub_root_044a_00a9(7, 0, (char *)msg_file + msg_file[7]);
+    sub_root_044a_00a9(8, 0, (char *)msg_file + msg_file[8]);
+    sub_root_044a_00a9(9, 0, (char *)msg_file + msg_file[9]);
+    sub_root_044a_00a9(10, 0, (char *)msg_file + msg_file[10]);
     if ((f = fopen("config.drk", "rb")) == 0)
         strcat(D_a876, "nsound.dlc");
     else {
@@ -272,7 +274,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
     }
     for (i = 0; i < argc; i++)
         sub_root_044a_000a(argv[i]);
-    sub_s000_0e76_0092(0x16, 0);
+    bios_set_cursor(0x16, 0);
     bad = 0;
     for (i = 1; i < argc; i++) {
         if (*argv[i] == '-' || *argv[i] == '/')
@@ -281,7 +283,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
             strcpy(buf, "Unknown argument: ");
             strcat(buf, argv[i]);
             strcat(buf, "\r\n$");
-            sub_root_044a_00f4(buf);
+            dos_print(buf);
             bad = 1;
         }
     }
@@ -300,7 +302,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
                 strcpy(buf, "Sound driver not found: ");
                 strcat(buf, argv[i]);
                 strcat(buf, "\r\n$");
-                sub_root_044a_00f4(buf);
+                dos_print(buf);
                 bad = 1;
             } else {
                 sub_root_044a_002c((char far *)D_a876, nm);
@@ -317,7 +319,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
             strcpy(buf, "Unknown argument: ");
             strcat(buf, --argv[i]);
             strcat(buf, "\r\n$");
-            sub_root_044a_00f4(buf);
+            dos_print(buf);
             bad = 1;
             break;
         }
@@ -340,35 +342,35 @@ void far sub_s000_0e76_052a(void)
     sub_root_047c_0767();
     sub_root_047c_05ca(0);
     sub_root_047c_04c7(0);
-    if (D_907d == 1 && !sub_root_05f8_00f3(11, &D_940b)) {
-        sub_root_05f8_0117(0, 0, D_940b);
-        sub_root_05f8_0117(1, 1, D_940b);
-        sub_root_05f8_0117(2, 2, D_940b);
-        sub_root_05f8_0117(3, 3, D_940b);
+    if (D_907d == 1 && !sub_root_05f8_00f3(11, &ems_frame_handle)) {
+        ems_map_page(0, 0, ems_frame_handle);
+        ems_map_page(1, 1, ems_frame_handle);
+        ems_map_page(2, 2, ems_frame_handle);
+        ems_map_page(3, 3, ems_frame_handle);
         sub_root_05f8_00a9(&seg);
         sub_root_047c_0576(1, seg);
         D_c105 = seg;
     } else
         sub_root_047c_0576(1, D_c105 = sub_root_047c_04c7(1));
-    D_c103 = 0;
-    *(char far **)&D_08ca = (char far *)D_9085;
-    D_08d6 = 0x2b;
-    vec_1937();
+    load_buf = 0;
+    *(char far **)&D_08ca = (char far *)msg_buf;
+    swap_allowed = 0x2b;
+    swap_init_vec();
     sub_s000_0e76_1010();
     sub_root_047c_0545();
-    sub_root_047c_05a5(D_0118, 3, 1, D_a626);
-    D_a6c2 = sub_root_047c_04d5(1, 6, 0x1f, 10, sub_root_047c_051b(D_0118->x10));
+    gfx_draw_pic(screen_ptr, 3, 1, D_a626);
+    D_a6c2 = gfx_save_rect(1, 6, 0x1f, 10, font_height(screen_ptr->x10));
     sub_root_047c_04f8();
-    sub_root_047c_124f(0, 0, D_9c42);
+    mouse_set_cursor(0, 0, cursor_default);
     sub_root_047c_08c8(D_9417 = sub_root_047c_07ce(D_a876, 0));
     sub_root_047c_0783(0, 0, 0, D_a870, D_a86e, D_a872, D_a874);
     sub_root_047c_0066();
-    D_906a = 1;
+    game_difficulty = 1;
     *(volatile char *)&D_9071 = 0;
-    D_c102 = D_a6c1 = 0;
+    move_mode = real_combat = 0;
     sub_s000_0e76_083e();
     sub_root_044a_019c();
-    sub_root_047c_078a(7);
+    sound_play(7);
     for (i = 0, k = 0, v = -7; v < 0xd9; k++, v += 16) {
         o = i;
         c = -((k & 1) * 16 + 24);
@@ -389,17 +391,17 @@ void far sub_s000_0e76_052a(void)
     if (D_907a == 1) {
         D_11dd = 1;
         if (D_0bf6 != -1)
-            vec_18bf(0, D_0bf6, D_0bf8, D_0bfa[0], D_0bfa[1], D_0bfa[2], D_0bfa[3], D_0bfa[4],
+            battle_run_vec(0, D_0bf6, D_0bf8, D_0bfa[0], D_0bfa[1], D_0bfa[2], D_0bfa[3], D_0bfa[4],
                      D_0bfa[5], D_0bfa[6], D_0bfa[7], D_0bfa[8]);
         else
-            vec_18bf(0, 10, 0, 3, 2, 5, 0, 1, 1, -1, 0, 0);
+            battle_run_vec(0, 10, 0, 3, 2, 5, 0, 1, 1, -1, 0, 0);
     } else {
-        D_9c69[0][0] = D_9c69[1][0] = D_9c69[2][0] = D_9c69[3][0] = D_9c69[4][0] = D_11dd = 0;
+        party[0][0] = party[1][0] = party[2][0] = party[3][0] = party[4][0] = D_11dd = 0;
         for (;;)
             sub_root_03a1_000a(4);
     }
     sub_root_044a_01f4();
-    sub_root_0000_1354();
+    game_shutdown();
     sub_root_047c_0791();
     exit_(0);
 }
@@ -449,14 +451,14 @@ void far sub_s000_0e76_083e(void)
     D_991e[8].text = "";
     for (ik = 0; ik <= 8; ik++)
         D_991e[ik].on = 1;
-    D_991e[0].fn = vec_1847;
-    D_991e[1].fn = vec_1851;
+    D_991e[0].fn = save_game_vec;
+    D_991e[1].fn = load_game_vec;
     D_991e[2].fn = vec_17e3;
-    D_991e[3].fn = sub_root_0000_1154;
-    D_991e[4].fn = sub_root_0000_11f2;
-    D_991e[5].fn = sub_root_0000_129a;
+    D_991e[3].fn = toggle_saint_msgs;
+    D_991e[4].fn = toggle_music;
+    D_991e[5].fn = toggle_sound;
     D_991e[6].fn = sub_root_0000_1080;
-    D_991e[7].fn = sub_root_0000_13a0;
+    D_991e[7].fn = quit_to_dos;
     D_99ec[0].text = "\x02" "Basic";
     D_99ec[1].text = "\x02Standard";
     D_99ec[2].text = "\x02" "Expert";
@@ -465,10 +467,10 @@ void far sub_s000_0e76_083e(void)
         D_99ec[ik].on = 1;
         D_99ec[ik].x7 = 0;
     }
-    D_99ec[0].fn = sub_root_0000_1408;
-    D_99ec[1].fn = sub_root_0000_1418;
-    D_99ec[2].fn = sub_root_0000_1428;
-    sub_root_0000_1438(0);
+    D_99ec[0].fn = set_difficulty_basic;
+    D_99ec[1].fn = set_difficulty_standard;
+    D_99ec[2].fn = set_difficulty_expert;
+    show_difficulty(0);
     D_9607[0].text = "\x02Resume";
     strcpy(D_9607[0].key, "\x13");
     D_9607[1].text = strcat(strcpy(D_c107, "\x02?"), D_11f2);
@@ -507,8 +509,8 @@ void far sub_s000_0e76_083e(void)
     strcpy(D_9607[17].key, "\x03");
     D_9607[18].text = "";
     D_9607[0].fn = vec_1941;
-    D_9607[1].fn = vec_1a59;
-    D_9607[2].fn = vec_1a4f;
+    D_9607[1].fn = order_mode_leave_vec;
+    D_9607[2].fn = enemy_info_vec;
     D_9607[3].fn = vec_1a45;
     D_9607[4].fn = vec_1a3b;
     D_9607[5].fn = vec_1a31;
@@ -520,7 +522,7 @@ void far sub_s000_0e76_083e(void)
     D_9607[11].fn = vec_19ff;
     D_9607[12].fn = vec_19f5;
     D_9607[13].fn = vec_19f5;
-    D_9607[14].fn = vec_19eb;
+    D_9607[14].fn = do_surrender_vec;
     D_9607[15].fn = vec_19e1;
     D_9607[16].fn = vec_19d7;
     D_9607[17].fn = vec_19cd;
@@ -576,32 +578,32 @@ void far sub_s000_0e76_083e(void)
     D_987d[2].text = "";
     D_987d[0].on = 1;
     D_987d[1].on = 1;
-    D_987d[0].fn = vec_185b;
-    D_987d[1].fn = vec_183d;
-    sub_s000_0e76_0f04();
-    saved = D_017c->x10;
-    D_017c->x10 = 1;
+    D_987d[0].fn = party_info_screen_vec;
+    D_987d[1].fn = choose_party_order_vec;
+    battle_menus_enable();
+    saved = card_window->x10;
+    card_window->x10 = 1;
     xh = 15;
     for (ik = 0; ik <= 3; ik++) {
         D_9c15[ik] = xh;
-        xh += sub_root_0265_084e(D_017c, D_9419[ik].title) + 8;
+        xh += text_pixel_width(card_window, D_9419[ik].title) + 8;
         jk = bo = aa = 0;
         while (strlen(D_9419[ik].items[jk].text)) {
             int kk;
-            if ((kk = sub_root_0265_084e(D_017c, D_9419[ik].items[jk].text)) > aa)
+            if ((kk = text_pixel_width(card_window, D_9419[ik].items[jk].text)) > aa)
                 aa = kk;
-            if ((kk = sub_root_0265_084e(D_017c, D_9419[ik].items[jk].key)) > bo)
+            if ((kk = text_pixel_width(card_window, D_9419[ik].items[jk].key)) > bo)
                 bo = kk;
             jk++;
         }
         D_9c22[ik] = bo + aa + 9;
     }
-    D_017c->x10 = saved;
+    card_window->x10 = saved;
 }
 #pragma optimize("", on)
 
 /* Orders/Attack menu entries enabled at the start of a battle */
-void far sub_s000_0e76_0f04(void)
+void far battle_menus_enable(void)
 {
     int i;
 
@@ -617,7 +619,7 @@ void far sub_s000_0e76_0f04(void)
     D_9607[4].on = 2;
     D_9607[8].on = 2;
     D_9607[9].on = 2;
-    if (D_c102 == 0)
+    if (move_mode == 0)
         strcpy(D_06c5, D_073e);
     else
         strcpy(D_06c5, D_0744);
@@ -631,7 +633,7 @@ void far sub_s000_0e76_0f04(void)
     D_9607[13].on = 2;
     D_9607[15].on = 2;
     D_9607[16].on = 2;
-    if (D_c102 == 0)
+    if (move_mode == 0)
         strcpy(D_0737, D_073e);
     else
         strcpy(D_0737, D_0744);
@@ -640,7 +642,7 @@ void far sub_s000_0e76_0f04(void)
 
 /* load commonsp.img into EMS and set up the common sprite pointers.
    6.00 keeps the address of the first word (the image size) in SI:DI and reads it again
-   for the final copy; 6.00A reloads D_c103 (not solved). */
+   for the final copy; 6.00A reloads load_buf (not solved). */
 #pragma optimize("a", on)
 #pragma optimize("eglc", off)
 void far sub_s000_0e76_1010(void)
@@ -650,11 +652,11 @@ void far sub_s000_0e76_1010(void)
     char far *dste;
     int uak, ubl;
 
-    sub_root_0617_011e("commonsp.img", pb = *(unsigned far **)&D_c103);
-    sege = D_9c42 = alloc_buffer((unsigned long)*pb++, "CnnmSp");
+    file_load_far("commonsp.img", pb = *(unsigned far **)&load_buf);
+    sege = cursor_default = alloc_buffer((unsigned long)*pb++, "CnnmSp");
     ((unsigned *)&dste)[1] = sege;
     ((unsigned *)&dste)[0] = 0;
-    D_9c42 += *pb++;
+    cursor_default += *pb++;
     D_a3d6 = *pb++ + sege;
     D_a3e5 = *pb++ + sege;
     D_a2e9 = *pb++ + sege;
@@ -668,7 +670,7 @@ void far sub_s000_0e76_1010(void)
     D_a626 = *pb++ + sege;
     D_a628 = *pb++ + sege;
     D_a2e5 = *pb++ + sege;
-    _fmemcpy(dste, pb, **(unsigned far **)&D_c103);
+    _fmemcpy(dste, pb, **(unsigned far **)&load_buf);
 }
 #pragma optimize("", on)
 
@@ -698,12 +700,12 @@ void far sub_s000_0e76_1150(void)
     pfpc = &fpf;
     availf = 0;
     nm = 0;
-    msgm = (char *)D_a895;
+    msgm = (char *)msg_file;
     fpf = (char far *)(char *)nm;
-    sub_root_0617_016a(D_01a6, fpf, 0x42);
+    file_save(D_01a6, fpf, 0x42);
     sub_root_05f8_00ca(&pagesa, &fpagesl);
     if (pagesa < 11) {
-        printf(msgm + D_a895[19]);
+        printf(msgm + msg_file[19]);
         exit_(0);
     }
     *((unsigned *)&mh + 1) = D_7760 - 1;
@@ -740,15 +742,15 @@ void far sub_s000_0e76_1150(void)
         needl += 0x1c60;
         break;
     }
-    sub_s000_0e76_0092(14, 0);
+    bios_set_cursor(14, 0);
     if (haveb - needl < 0 || D_0bf4 == 1) {
-        printf(msgm + D_a895[15], needl, needl / 1024);
-        printf(msgm + D_a895[16], haveb, haveb / 1024);
-        printf(msgm + D_a895[17], needl - haveb, (needl - haveb) / 1024);
+        printf(msgm + msg_file[15], needl, needl / 1024);
+        printf(msgm + msg_file[16], haveb, haveb / 1024);
+        printf(msgm + msg_file[17], needl - haveb, (needl - haveb) / 1024);
     }
     if (haveb - needl < 0) {
         if (D_0bf4 == 1)
-            printf(msgm + D_a895[18]);
+            printf(msgm + msg_file[18]);
         else
             exit_(0);
     }

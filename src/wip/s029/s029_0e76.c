@@ -22,25 +22,27 @@
    dperm.py on 4378/4c04 when they flip). See build/agent/e3/NOTES.md. */
 /* Strategic core (s029 0e76): party member accessors (member records D_9c69[5][0x80],
    index -1 = the active member D_907b), ... */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct F_2e38_0000_t { char _p0000[0x890]; char far * f_0890[1]; };
-extern struct F_2e38_0000_t far F_2e38_0000;
+extern struct F_2e38_0000_t far data_file;
 struct F_2e38_0000_1_t { char _p0000[0x82c]; char f_082c[1]; };
 extern struct F_2e38_0000_1_t far F_2e38_0000_1;
 struct loc { int type; int f2; int x; int y; int f8; int fa; int fc; int fe; int f10; int rep;
              unsigned char f14; char f15, f16, f17; int f18; int f1a; int f1c; int f1e; int f20; };
-extern struct loc far * far F_2e38_10be[];   /* locations (cities ...) */
+extern struct loc far * far locations[];   /* locations (cities ...) */
 int far random_n(int);   /* m5: declared here so 255a calls random_n before 14a4 */
-extern char far * far F_2e38_183e[];
+extern char far * far saint_names[];
 extern char far * far F_2e38_15ba[];
 extern char far * far F_290e_1fa7[];
 extern char far * far F_290e_1fe7[];
 extern char far * far F_290e_2107[];
-extern int (far * far F_290e_2937[])();    /* saint functions */
-extern void (far * far F_290e_290f[])(int);  /* event expiry handlers */
+extern int (far * far saint_fns[])();    /* saint functions */
+extern void (far * far event_expiry_fns[])(int);  /* event expiry handlers */
 extern char far * far F_290e_207f[];
-struct event {                  /* timed events, F_2e38_1b2c[300] */
+struct event {                  /* timed events, events[300] */
     int type0;                  /* +00 */
     int f2, f4, f6, f8;
     int hour0, day0, month0, year0;     /* +0a start */
@@ -49,27 +51,27 @@ struct event {                  /* timed events, F_2e38_1b2c[300] */
     int kind;                   /* +22 */
     int f24, f26, f28, f2a, f2c, f2e;
 };
-extern struct event far * far F_2e38_1b2c[];
-extern int D_00e0;
-extern int D_00e2;
-extern int D_00e4;
-extern int D_e3d0;
-extern int D_e3d2;
-extern int D_9c4a;
-extern int D_2776[];
+extern struct event far * far events[];
+extern int cur_hour;
+extern int cur_day;
+extern int cur_month;
+extern int party_x;
+extern int party_y;
+extern int party_seed;
+extern int days_per_month[];
 extern int D_00f0;
-extern char D_01bd;
+extern char opt_saint_msgs;
 extern int D_26bc;
 extern char D_270f[];
 extern char D_2238[];
 extern unsigned char D_9c1d;
-extern char D_907b;
+extern char leader;
 extern char D_907c;
-extern int D_907e;
-extern int D_9082;
+extern int cur_loc;
+extern int party_fame;
 extern int D_9078;
-extern unsigned char far F_2e38_082c[][0x14];
-extern char D_9c69[][0x80];
+extern unsigned char far saints_known[][0x14];
+extern char party[][0x80];
 extern char D_9c7a[][0x80];
 extern char D_9c93[][0x80];
 extern unsigned D_9c67[][0x40];
@@ -77,41 +79,41 @@ extern char D_9cc0[][0x80];
 extern char D_9cb4[][0x80];
 extern char D_9cd3[][0x80];      /* number of carried items */
 struct item { int code; char f2; unsigned char quality; unsigned char qty; char f5; };
-extern struct item far F_2e38_003e[][64];   /* inventories, 64 items per member */
+extern struct item far inventories[][64];   /* inventories, 64 items per member */
 extern char far F_2e38_075f[][0x16];
 extern struct item far F_2e38_0d5e[][16];  /* 16-item lists */
-extern char far F_2e38_1a96[][0x1e];       /* text slots for message substitution */
+extern char far var_named[][0x1e];       /* text slots for message substitution */
 extern char D_9cb9[][0x80];
 extern char D_9ca0[][0x80];
 extern char D_9ca6[][0x80];
 extern char D_9c9e[][0x80];
-extern char D_9cb2[][0x80];
+extern char member_attrs[][0x80];
 extern char D_9cb3[][0x80];
 extern char D_9cb8[][0x80];
 extern int D_d843;
-extern int D_e3ce;
-extern char D_e3d4[];
-extern char D_e3e3[];
-extern unsigned char D_99e6;
+extern int last_event;
+extern char card_name[];
+extern char pic_buf[];
+extern unsigned char best_value;
 extern char D_9a44;
-extern unsigned char D_99eb;
-extern char D_991d;
+extern unsigned char best_skill;
+extern char best_member;
 int far _fstrcpy();
 char *strcpy(char *, const char *);
-int far sub_root_0000_0c70();
+int far rand_mod();
 int abs(int);
 int far sub_root_0000_2646();
 int far sub_root_0410_001a();
-int far sub_root_05ba_0004();
-int far sub_root_05ba_00c2();
+int far mem_alloc();
+int far mem_free();
 int far sub_root_06a1_2c9e();
-int far sub_s029_1367_000a();
-int far sub_s029_1367_0744();
-int far sub_s029_1367_0846();
-int far sub_s029_1367_08ae();
-int far sub_s029_1367_09cc();
-int far sub_s029_1367_0b1c();
-int far vec_18bf();
+int far clamp99();
+int far hour_band();
+int far bell_name();
+int far date_set();
+int far yday_now();
+int far days_until();
+int far battle_run_vec();
 typedef struct _iobuf FILE;
 FILE *fdopen(int, char *);
 FILE *fopen(const char *, const char *);
@@ -120,287 +122,287 @@ int fclose(FILE *);
 int fgetc(FILE *);
 unsigned fread(void *, unsigned, unsigned, FILE *);
 unsigned _dos_read(int, void far *, unsigned, unsigned *);
-extern char far *D_9785;
-extern char D_978b[];
-extern char far * far F_290e_2137[];   /* skill names */
-extern char D_9085[];
+extern char far *city_rec;
+extern char city_desc[];
+extern char far * far skill_names[];   /* skill names */
+extern char msg_buf[];
 char *itoa(int, char *, int);
 char *strcat(char *, const char *);
 int far vec_1e91();
 extern char D_907a;
 extern char D_907d;
-extern int D_940b;
+extern int ems_frame_handle;
 extern int D_0bf2;
-extern int D_a893;
+extern int battle_result;
 int far vec_18f1();
-int far vec_1919();
+int far cards_startup_vec();
 int far vec_186f();
 int kbhit(void);
 int getch(void);
 void exit_(int);
 int far vec_1f13();
-int far vec_1f8b();
-extern int D_a67e;
+int far add_item_q_vec();
+extern int party_size;
 extern int D_a67c;
-extern char D_a668[5][4];
-extern int D_a2d7[];
-extern char D_9c55[][0x80];
+extern char member_shield[5][4];
+extern int shield_pics[];
+extern char combatants[][0x80];
 unsigned _dos_write(int, void far *, unsigned, unsigned *);
-int far sub_root_0617_045c();
+int far pic_load();
 int far sub_root_047c_0545();
 int far sub_root_047c_04f8();
 void far *_fmemset(void far *, int, unsigned);
-int far vec_1f77();
+int far nearest_loc_type();
 int far vec_1f81();
-int far vec_1f63();
-int far vec_1f6d();
+int far practice_skill();
+int far add_item_rec();
 int far vec_1f09();
 int far vec_1f27();
 int far vec_1f1d();
 void srand(unsigned);
 long time(long *);
-int far sub_root_047c_12c3();
+int far mouse_hide();
 int far sub_root_030b_0004();
 int far sub_root_044a_01f4();
 int far sub_root_047c_0791();
-int far sub_root_0000_1354();
+int far game_shutdown();
 int far sub_root_05f8_0139();
 
 struct date;
-void far sub_s029_1367_09ea(struct date far *, int);
+void far date_add_hours(struct date far *, int);
 unsigned far alloc_buffer(unsigned long, char *);
 #define MK_FP(s, o) ((void far *)(((unsigned long)(s) << 16) | (unsigned)(o)))
 
 void far free_buffer(unsigned, char *);
-void far sub_root_0000_24bc(char *, int);
-extern int D_00e6;
+void far show_message(char *, int);
+extern int cur_year;
 #define FP_SEG(fp) (*((unsigned far *)&(fp) + 1))
 
-int far vec_1ecd();
-int far vec_1ec3();
-int far vec_18b5();
-int far vec_1eb9();
-int far sub_root_0000_1716();
+int far char_in_slot_vec();
+int far party_remove_vec();
+int far party_delete_vec();
+int far lose_items();
+int far party_panel_rows();
 
-int far vec_18c9();
-int far vec_1e9b();
+int far cards_shutdown_vec();
+int far equipped_item();
 int far vec_1ea5();
 int far vec_1eaf();
-int far vec_1ed7();
+int far item_cache_screen_vec();
 int far vec_1ee1();
 int far vec_1eeb();
-int far vec_1ef5();
-int far vec_1eff();
-int far vec_1f31();
-int far vec_1f3b();
-int far vec_1f45();
-int far vec_1f4f();
-int far vec_1f59();
-int far vec_1f77();
+int far alchemy_screen_vec();
+int far barter_screen_vec();
+int far give_reward();
+int far side2_percent();
+int far side1_percent();
+int far loc_side_set();
+int far loc_side_get();
+int far nearest_loc_type();
 int far vec_1f81();
-char *far sub_s029_0e76_0000(int who, char *buf);
-char *far sub_s029_0e76_003e(int who, char *buf);
-int far sub_s029_0e76_007c(void);
-unsigned far sub_s029_0e76_00a2(int who);
-int far sub_s029_0e76_00c6(int who);
-void far sub_s029_0e76_00e4(int who, int v);
+char *far member_name(int who, char *buf);
+char *far member_short_name(int who, char *buf);
+int far party_count_able(void);
+unsigned far member_age(int who);
+int far member_fatigue(int who);
+void far set_member_fatigue(int who, int v);
 void far sub_s029_0e76_010e(int who, char d);
 int far sub_s029_0e76_013a(int who);
-int far sub_s029_0e76_01a0(int who, int k);
-int far sub_s029_0e76_01c0(int who);
-int far sub_s029_0e76_021e(void);
-int far sub_s029_0e76_026a(void);
-void far sub_s029_0e76_02b8(int who, int k, int v);
-void far sub_s029_0e76_02ea(int who, int k, int d);
-int far sub_s029_0e76_05ee(int who, int k);
-int far sub_s029_0e76_060e(void);
-int far sub_s029_0e76_0656(void);
-int far sub_s029_0e76_0690(void);
-int far sub_s029_0e76_06de(int who);
-int far sub_s029_0e76_072e(void);
-void far sub_s029_0e76_0792(int who, int v);
-int far sub_s029_0e76_088e(void);
-void far sub_s029_0e76_08f2(int who, int k, int pct);
-void far sub_s029_0e76_0988(int who, int k, int v);
-void far sub_s029_0e76_0a72(int who, int k, int d);
-int far sub_s029_0e76_0b64(int who, int k);
-void far sub_s029_0e76_0b84(int who, int k, int v);
-void far sub_s029_0e76_0bb6(int who, int k, int d);
+int far member_skill(int who, int k);
+int far member_best_skill(int who);
+int far party_best_skill_lo(void);
+int far party_best_skill_hi(void);
+void far set_skill(int who, int k, int v);
+void far add_skill(int who, int k, int d);
+int far member_attr(int who, int k);
+int far party_avg_eff_attr2(void);
+int far party_min_eff_attr2(void);
+int far party_max_eff_attr2(void);
+int far member_eff_attr2(int who);
+int far party_max_eff_attr2_bonus(void);
+void far equip_bonuses(int who, int v);
+int far party_min_eff_attr2_bonus(void);
+void far heal_attr_pct(int who, int k, int pct);
+void far set_attr(int who, int k, int v);
+void far add_attr(int who, int k, int d);
+int far member_attr_max(int who, int k);
+void far set_attr_max(int who, int k, int v);
+void far add_attr_max(int who, int k, int d);
 int far sub_s029_0e76_0c38(int who, int k);
 int far sub_s029_0e76_0c58(int who);
-int far sub_s029_0e76_0c76(int who, int code);
-int far sub_s029_0e76_0dd8(int who, long mask);
-int far sub_s029_0e76_0f54(int who, long mask);
-int far sub_s029_0e76_1128(int code);
-int far sub_s029_0e76_118e(int who, int code);
-int far sub_s029_0e76_11fa(int who, int k);
-int far sub_s029_0e76_1260(int who, unsigned bit);
-void far sub_s029_0e76_1302(int who, unsigned bit);
-int far sub_s029_0e76_1326(int what);
-void far sub_s029_0e76_1382(int what, int v);
-int far sub_s029_0e76_1396(int k);
-int far sub_s029_0e76_13de(int a, int b);
-int far sub_s029_0e76_1446(int a, int b);
-int far sub_s029_0e76_14a4(int k);
+int far count_items(int who, int code);
+int far count_items_flags(int who, long mask);
+int far best_item_quality(int who, long mask);
+int far party_item_total(int code);
+int far has_item(int who, int code);
+int far knows_item_type(int who, int k);
+int far member_bit(int who, unsigned bit);
+void far set_member_bit(int who, unsigned bit);
+int far party_get(int what);
+void far party_set(int what, int v);
+int far party_min_skill(int k);
+int far party_min_skill2(int a, int b);
+int far party_min_skill_sum(int a, int b);
+int far party_max_skill(int k);
 int far sub_s029_0e76_14ec(int k);
-int far sub_s029_0e76_153a(int a, int b);
-int far sub_s029_0e76_15a2(int a, int b);
-int far sub_s029_0e76_1600(int k);
-int far sub_s029_0e76_164a(int k);
+int far party_max_skill2(int a, int b);
+int far party_max_skill_sum(int a, int b);
+int far party_avg_skill(int k);
+int far party_min_attr(int k);
 int far sub_s029_0e76_1696(int a, int b);
-int far sub_s029_0e76_16fe(int k);
+int far party_max_attr(int k);
 int far sub_s029_0e76_174a(int k);
-int far sub_s029_0e76_179c(int a, int b);
-int far sub_s029_0e76_1800(int k);
+int far party_max_attr_sum(int a, int b);
+int far party_avg_attr(int k);
 int far sub_s029_0e76_184a(int a, int b);
-int far sub_s029_0e76_18a8(int v, int lo, int hi);
-int far sub_s029_0e76_18f2(int who);
-int far sub_s029_0e76_1972(void);
-int far sub_s029_0e76_199c(int i);
+int far improve_roll(int v, int lo, int hi);
+int far member_fatigue_state(int who);
+int far party_all_ok(void);
+int far loc_reputation(int i);
 void far sub_s029_0e76_19b4(int i, int v);
-int far sub_s029_0e76_19d0(int i, int a, int b);
-int far sub_s029_0e76_1a7e();
-int far sub_s029_0e76_1a8e(int loc, unsigned what);
-void far sub_s029_0e76_1dfe(int loc, unsigned what, int v);
-void far sub_s029_0e76_1fb8(unsigned kind, int idx, int slot);
-int far sub_s029_0e76_20c6(int who, int s);
-void far sub_s029_0e76_2116(int who, int s);
+int far loc_reputation_adj(int i, int a, int b);
+int far cur_loc_query();
+int far loc_query(int loc, unsigned what);
+void far loc_set(int loc, unsigned what, int v);
+void far name_to_slot(unsigned kind, int idx, int slot);
+int far saint_chance_lo(int who, int s);
+void far saint_chance_hi(int who, int s);
 int far sub_s029_0e76_2164(int who, int s, int v);
-int far sub_s029_0e76_2180(int a, int b);
+int far invoke_saint(int a, int b);
 void far sub_s029_0e76_21aa(int i, char far *s, int x, int y);
 void far sub_s029_0e76_2204(int a, int b);
 void far sub_s029_0e76_222a();
 void far sub_s029_0e76_2246();
 void far sub_s029_0e76_225c();
-int far sub_s029_0e76_2278(int side, int seed, int a, int b, int c, int d, int e, int f,
+int far run_battle(int side, int seed, int a, int b, int c, int d, int e, int f,
                            int g, int h, int k);
-int far sub_s029_0e76_23e2(void);
-int far sub_s029_0e76_2434(void);
+int far party_report_away(void);
+int far party_drop_away(void);
 int far sub_s029_0e76_2474(void);
-int far sub_s029_0e76_251a(void);
-void far sub_s029_0e76_255a(int hours);
+int far party_rejoin_away(void);
+void far hours_pass(int hours);
 void far sub_s029_0e76_281c(int months);
-int far sub_s029_0e76_2930(int k, int hours);
-int far sub_s029_0e76_2a32(int a, int b, int hours);
-void far sub_s029_0e76_2b36(int k, int hours);
+int far event_here(int k, int hours);
+int far event_here_type(int a, int b, int hours);
+void far event_here_extend(int k, int hours);
 int far sub_s029_0e76_2bce(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7,
                            int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15,
                            int a16);
-int far sub_s029_0e76_2c4e(int a, int b, int c, int d, int e, int f, int g, int hours, int x, int y);
-int far sub_s029_0e76_2d5c(int a, int b, int c, int k, int e, int f, int g, int hours, int x,
+int far event_new(int a, int b, int c, int d, int e, int f, int g, int hours, int x, int y);
+int far event_renew(int a, int b, int c, int k, int e, int f, int g, int hours, int x,
                            int y);
-int far sub_s029_0e76_2e74(int a, int b, int k, int e, int v, int y, int op);
+int far event_update(int a, int b, int k, int e, int v, int y, int op);
 void far sub_s029_0e76_3034(int a, int b, int c, int kind, int type0, int f, int g,
                             int h0, int d0, int m0, int y0, int h1, int d1, int m1, int y1,
                             int flags, int x, int y, int z, int w, int i);
-void far sub_s029_0e76_30fe(int i);
-int far sub_s029_0e76_3144(void);
-int far sub_s029_0e76_3180(int i);
-int far sub_s029_0e76_31e6(int i);
-int far sub_s029_0e76_324c(int k, int i);
-int far sub_s029_0e76_32aa(int k);
-int far sub_s029_0e76_32ce(int k);
-int far sub_s029_0e76_32fe(int v);
-int far sub_s029_0e76_3350(int v);
-int far sub_s029_0e76_33a2(int v, int a);
-int far sub_s029_0e76_3404(int v, int a, int b);
-int far sub_s029_0e76_3470(int v, int a);
-int far sub_s029_0e76_34d2(int v, int a, int b);
-int far sub_s029_0e76_353e(int v, int a, int b);
-int far sub_s029_0e76_35aa(int v, int a);
-int far sub_s029_0e76_360c(int v, int a, int b);
-int far sub_s029_0e76_3676(int v);
-int far sub_s029_0e76_36d4(int v, int a);
-int far sub_s029_0e76_3742(int v, int a, int b);
-int far sub_s029_0e76_37b8(int k);
+void far event_free(int i);
+int far event_slot_free(void);
+int far event_has_started(int i);
+int far event_has_ended(int i);
+int far event_next(int k, int i);
+int far event_exists(int k);
+int far event_started(int k);
+int far ev8_exists(int v);
+int far ev24_exists(int v);
+int far ev24_at(int v, int a);
+int far ev24_at_owner(int v, int a, int b);
+int far ev8_at(int v, int a);
+int far ev8_at_owner(int v, int a, int b);
+int far ev8_owner_value(int v, int a, int b);
+int far loc_fact_any(int v, int a);
+int far loc_fact(int v, int a, int b);
+int far ev8_value(int v);
+int far loc_fact_value_any(int v, int a);
+int far loc_fact_value(int v, int a, int b);
+int far event_count(int k);
 int far sub_s029_0e76_37e2(int k, int a);
 int far sub_s029_0e76_382e(int v);
-int far sub_s029_0e76_3878(int k, int a);
-int far sub_s029_0e76_38d2(int k, int a);
-int far sub_s029_0e76_392c(int k, int a, int b);
+int far event_at(int k, int a);
+int far event_type(int k, int a);
+int far event_type_at(int k, int a, int b);
 int far sub_s029_0e76_3996(int k, int a);
-int far sub_s029_0e76_39f0(int k);
-int far sub_s029_0e76_3a20(int k, int a);
-int far sub_s029_0e76_3a86(int k, int a);
-int far sub_s029_0e76_3aec(int k, int a, int b);
-int far sub_s029_0e76_3b62();
-int far sub_s029_0e76_3c28(int k, int t, int a, int b, int c);
-int far sub_s029_0e76_3cde();
-int far sub_s029_0e76_3d92(int v, int w);
-void far sub_s029_0e76_3e06(int v, int w);
+int far event_value(int k);
+int far event_value_at(int k, int a);
+int far event_value_type(int k, int a);
+int far event_value_type_at(int k, int a, int b);
+int far event_find();
+int far event_find_loc(int k, int t, int a, int b, int c);
+int far event_remove();
+int far loc_facts_clear(int v, int w);
+void far ev8_resolve(int v, int w);
 void far sub_s029_0e76_3f30(void);
 void far sub_s029_0e76_3fb0();
 void far sub_s029_0e76_3fb2(int i);
 void far sub_s029_0e76_4180(int i);
 void far sub_s029_0e76_4378(int j);
 void far sub_s029_0e76_4436();
-void far sub_s029_0e76_4442(int i);
+void far event_expire_msg(int i);
 void far sub_s029_0e76_448a(int i);
 void far sub_s029_0e76_450a();
 void far sub_s029_0e76_4534(int i);
 void far sub_s029_0e76_4626(void);
-int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, int hours,
+int far add_member(int unused, char *name, char *shortname, char *pic, int hours,
                            int y);
 void far sub_s029_0e76_4aa4();
-void far sub_s029_0e76_4b08();
-void far sub_s029_0e76_4c04(int who, int k, int d, int h);
+void far lower_skill_temp();
+void far raise_attr_temp(int who, int k, int d, int h);
 void far sub_s029_0e76_4d24(int who, int a, int b, int c);
 int far sub_s029_0e76_4db6(int who, int a);
-int far sub_s029_0e76_4e0c(int who, int a);
-void far sub_s029_0e76_4e68(int city);
+int far event_48_max(int who, int a);
+void far load_city(int city);
 
 /* copy member name (+0x11) to buf */
-char *far sub_s029_0e76_0000(int who, char *buf)
+char *far member_name(int who, char *buf)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return strcpy(buf, D_9c7a[who]);
 }
 
 /* copy member short name (+0x2a) to buf */
-char *far sub_s029_0e76_003e(int who, char *buf)
+char *far member_short_name(int who, char *buf)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return strcpy(buf, D_9c93[who]);
 }
 
 /* number of party members that are present (status 1) and ... ([3] == 1) */
-int far sub_s029_0e76_007c(void)
+int far party_count_able(void)
 {
     int i;
     int n;
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9c69[i][3] == 1)
+        if (party[i][0] == 1 && party[i][3] == 1)
             n++;
     return n;
 }
 
 /* member age in years (age kept in days at +0x7e of the previous record, i.e. [-2]) */
-unsigned far sub_s029_0e76_00a2(int who)
+unsigned far member_age(int who)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9c67[who][0] / 365;
 }
 
 /* member value +0x35 */
-int far sub_s029_0e76_00c6(int who)
+int far member_fatigue(int who)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9c9e[who][0];
 }
 
 /* set member value +0x35 (negative -> 0) */
-void far sub_s029_0e76_00e4(int who, int v)
+void far set_member_fatigue(int who, int v)
 {
     int t;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (v >= 0)
         t = v;
     else
@@ -413,7 +415,7 @@ void far sub_s029_0e76_00e4(int who, int v)
 void far sub_s029_0e76_010e(int who, char d)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if ((D_9c9e[who][0] += d) < 0)
         D_9c9e[who][0] = 0;
 }
@@ -428,99 +430,99 @@ extern int D_ffd4;  /* m5: fifth knob, re-fixes 4378 after random_n moved */
 extern int D_ffe0;  /* unused: keeps the symbol-table state (1446/179c/184a) after 013a stopped using D_9cb3 */
 /* fatigue band of a member (-1: active member): with max = +0x49 + +0x4a (the two
    attributes behind endurance) and cur = +0x35 (accumulated fatigue): 0 while cur <= max/2,
-   1 up to max, 2 up to 1.5 * max, else 3.  Written without a cur local and with D_9c69 as
+   1 up to max, 2 up to 1.5 * max, else 3.  Written without a cur local and with party as
    the base (6.00 then keeps who in SI, indexes through BX and spills cur as a CSE). */
 int far sub_s029_0e76_013a(int who)
 {
     unsigned max;
     if (who == -1)
-        who = D_907b;
-    max = D_9c69[who][0x4a] + D_9c69[who][0x49];
-    if (max / 2 >= D_9c69[who][0x35]) return 0;
-    if (D_9c69[who][0x35] <= max) return 1;
-    if (D_9c69[who][0x35] <= max * 3 / 2) return 2;
+        who = leader;
+    max = party[who][0x4a] + party[who][0x49];
+    if (max / 2 >= party[who][0x35]) return 0;
+    if (party[who][0x35] <= max) return 1;
+    if (party[who][0x35] <= max * 3 / 2) return 2;
     return 3;
 }
 
 /* member byte +0x57 + k */
-int far sub_s029_0e76_01a0(int who, int k)
+int far member_skill(int who, int k)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9cc0[who][k];
 }
 
-/* highest of the seven skills +0x57..+0x5d of a member into D_99e6 (original bug: D_99eb is set
+/* highest of the seven skills +0x57..+0x5d of a member into best_value (original bug: best_skill is set
    to every index because the braces are missing, so it ends as 6) */
-int far sub_s029_0e76_01c0(int who)
+int far member_best_skill(int who)
 {
     char t;
     int i;
     char c;
 
     if (who == -1)
-        who = D_907b;
-    *(volatile unsigned char *)&D_99e6 = 0;
+        who = leader;
+    *(volatile unsigned char *)&best_value = 0;
     for (i = 0; i < 7; i++) {
-        if ((c = *(volatile char *)&t = D_9cc0[who][i]) > D_99e6)
-            D_99e6 = c;
-        D_99eb = i;
+        if ((c = *(volatile char *)&t = D_9cc0[who][i]) > best_value)
+            best_value = c;
+        best_skill = i;
     }
-    if (D_99eb == -1) {
-        D_99eb = 0;
+    if (best_skill == -1) {
+        best_skill = 0;
         return 0;
     }
-    return D_99e6;
+    return best_value;
 }
 
-/* best of skills 0-3 over all present members: D_99e6 value, D_99eb skill, D_991d member */
-int far sub_s029_0e76_021e(void)
+/* best of skills 0-3 over all present members: best_value value, best_skill skill, best_member member */
+int far party_best_skill_lo(void)
 {
     int i;
     int j;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0)
+        if (party[i][0] != 0)
             for (j = 0; j < 4; j++)
-                if (D_9cc0[i][j] > D_99e6) {
-                    D_99e6 = D_9cc0[i][j];
-                    D_99eb = j;
-                    D_991d = i;
+                if (D_9cc0[i][j] > best_value) {
+                    best_value = D_9cc0[i][j];
+                    best_skill = j;
+                    best_member = i;
                 }
-    return D_99e6;
+    return best_value;
 }
 
 /* best of skills 4-6 over all present members */
-int far sub_s029_0e76_026a(void)
+int far party_best_skill_hi(void)
 {
     int i;
     int j;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0)
+        if (party[i][0] != 0)
             for (j = 4; j < 7; j++)
-                if (D_9cc0[i][j] > D_99e6) {
-                    D_99e6 = D_9cc0[i][j];
-                    D_99eb = j;
-                    D_991d = i;
+                if (D_9cc0[i][j] > best_value) {
+                    best_value = D_9cc0[i][j];
+                    best_skill = j;
+                    best_member = i;
                 }
-    return D_99e6;
+    return best_value;
 }
 
 /* set member skill byte k (clamped to 0..99) */
-void far sub_s029_0e76_02b8(int who, int k, int v)
+void far set_skill(int who, int k, int v)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     v = sub_root_0410_001a(v, 0, 99);
     D_9cc0[who][k] = v;
 }
 
 /* add d to skill k of member who (-2 = every present member), clamped to 0..99; when
    D_26bc is set, report "<skill> changed from X to Y" (colour 15 up, 12 down) */
-void far sub_s029_0e76_02ea(int who, int k, int d)
+void far add_skill(int who, int k, int d)
 {
     char buf[50];
     char num[8];
@@ -529,46 +531,46 @@ void far sub_s029_0e76_02ea(int who, int k, int d)
     if (d == 0)
         return;
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (i = 0; i < 5; i++) {
-            if (D_9c69[i][0]) {
-                _fstrcpy((char far *)buf, F_290e_2137[k]);
+            if (party[i][0]) {
+                _fstrcpy((char far *)buf, skill_names[k]);
                 strcat(buf, " changed from ");
                 strcat(buf, itoa(D_9cc0[i][k], num, 10));
-                D_9cc0[i][k] = sub_s029_1367_0066(0, 99, D_9cc0[i][k] + d);
+                D_9cc0[i][k] = clamp_range(0, 99, D_9cc0[i][k] + d);
                 if (D_26bc) {
                     strcat(buf, " to ");
                     strcat(buf, itoa(D_9cc0[i][k], num, 10));
-                    strcpy(D_9085, buf);
+                    strcpy(msg_buf, buf);
                     if (d > 0) vec_1e91(i, 15); else vec_1e91(i, 12);
                 }
             }
         }
-    } else if (D_9c69[who][0]) {
-        _fstrcpy((char far *)buf, F_290e_2137[k]);
+    } else if (party[who][0]) {
+        _fstrcpy((char far *)buf, skill_names[k]);
         strcat(buf, " changed from ");
         strcat(buf, itoa(D_9cc0[who][k], num, 10));
-        D_9cc0[who][k] = sub_s029_1367_0066(0, 99, D_9cc0[who][k] + d);
+        D_9cc0[who][k] = clamp_range(0, 99, D_9cc0[who][k] + d);
         if (D_26bc) {
             strcat(buf, " to ");
             strcat(buf, itoa(D_9cc0[who][k], num, 10));
-            strcpy(D_9085, buf);
+            strcpy(msg_buf, buf);
             if (d > 0) vec_1e91(who, 15); else vec_1e91(who, 12);
         }
     }
 }
 
 /* member attribute k (+0x49 + k) */
-int far sub_s029_0e76_05ee(int who, int k)
+int far member_attr(int who, int k)
 {
     if (who == -1)
-        who = D_907b;
-    return D_9cb2[who][k];
+        who = leader;
+    return member_attrs[who][k];
 }
 
-/* average effective attribute (sub_06de) of the present members -> D_99e6 */
-int far sub_s029_0e76_060e(void)
+/* average effective attribute (sub_06de) of the present members -> best_value */
+int far party_avg_eff_attr2(void)
 {
     int i;
     int sum;
@@ -577,55 +579,55 @@ int far sub_s029_0e76_060e(void)
     sum = 0;
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            sum += sub_s029_0e76_06de(i);
+        if (party[i][0] == 1) {
+            sum += member_eff_attr2(i);
             n++;
         }
     if (n == 0)
         n = 1;
-    D_99e6 = sum / n;
-    return D_99e6;
+    best_value = sum / n;
+    return best_value;
 }
 
-/* lowest effective attribute among present members -> D_99e6, D_991d */
-int far sub_s029_0e76_0656(void)
+/* lowest effective attribute among present members -> best_value, best_member */
+int far party_min_eff_attr2(void)
 {
     int i;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
+        if (party[i][0] == 1) {
             unsigned char v;
 
-            v = sub_s029_0e76_06de(i);
-            if (D_99e6 > v) {
-                D_99e6 = v;
-                D_991d = i;
+            v = member_eff_attr2(i);
+            if (best_value > v) {
+                best_value = v;
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
-/* highest effective attribute among present members -> D_99e6, D_991d */
-int far sub_s029_0e76_0690(void)
+/* highest effective attribute among present members -> best_value, best_member */
+int far party_max_eff_attr2(void)
 {
     int i;
     int v;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            v = sub_s029_0e76_06de(i);
-            if (D_99e6 < v) {
-                D_99e6 = v;
-                D_991d = i;
+        if (party[i][0] == 1) {
+            v = member_eff_attr2(i);
+            if (best_value < v) {
+                best_value = v;
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* attribute +0x4b scaled by the fatigue band (sub_013a): full, 2/3, 1/3, 1 */
-int far sub_s029_0e76_06de(int who)
+int far member_eff_attr2(int who)
 {
     int a;
 
@@ -643,164 +645,164 @@ int far sub_s029_0e76_06de(int who)
 }
 
 /* highest effective attribute + bonus (sub_0f54(i, 0x2000L)) among present members */
-int far sub_s029_0e76_072e(void)
+int far party_max_eff_attr2_bonus(void)
 {
     int i;
     int v;
     int b;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            v = sub_s029_0e76_06de(i);
-            if ((b = sub_s029_0e76_0f54(i, 0x2000L)) + v > D_99e6) {
-                D_99e6 = v + b;
-                D_991d = i;
+        if (party[i][0] == 1) {
+            v = member_eff_attr2(i);
+            if ((b = best_item_quality(i, 0x2000L)) + v > best_value) {
+                best_value = v + b;
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* apply the 0x18-point bonuses of the equipped items: slot 0 (flags bits 0-3 -> attributes
    0, 1, 3, 2) and slot 4 (bits 4, 5, 11 -> attributes 4, 5, 6) */
-void far sub_s029_0e76_0792(int who, int v)
+void far equip_bonuses(int who, int v)
 {
     long fl;
     int s;
     int t;
 
-    if ((s = vec_1e9b(who, 0)) != -1) {
-        fl = *(long far *)(F_2e38_0000.f_0890[s] + 0x20);
+    if ((s = equipped_item(who, 0)) != -1) {
+        fl = *(long far *)(data_file.f_0890[s] + 0x20);
         if (fl & 1)
-            sub_s029_0e76_4b08(who, 0, v, 0x18);
+            lower_skill_temp(who, 0, v, 0x18);
         if (fl & 2)
-            sub_s029_0e76_4b08(who, 1, v, 0x18);
+            lower_skill_temp(who, 1, v, 0x18);
         if (fl & 4)
-            sub_s029_0e76_4b08(who, 3, v, 0x18);
+            lower_skill_temp(who, 3, v, 0x18);
         if (fl & 8)
-            sub_s029_0e76_4b08(who, 2, v, 0x18);
+            lower_skill_temp(who, 2, v, 0x18);
     }
-    if ((t = vec_1e9b(who, 4)) != -1) {
-        fl = *(long far *)(F_2e38_0000.f_0890[t] + 0x20);
+    if ((t = equipped_item(who, 4)) != -1) {
+        fl = *(long far *)(data_file.f_0890[t] + 0x20);
         if (fl & 0x10)
-            sub_s029_0e76_4b08(who, 4, v, 0x18);
+            lower_skill_temp(who, 4, v, 0x18);
         if (fl & 0x20)
-            sub_s029_0e76_4b08(who, 5, v, 0x18);
+            lower_skill_temp(who, 5, v, 0x18);
         if (fl & 0x8000000L)
-            sub_s029_0e76_4b08(who, 6, v, 0x18);
+            lower_skill_temp(who, 6, v, 0x18);
     }
 }
 
 /* lowest effective attribute + bonus (sub_0f54(i, 0x2000L)) among status-1 members */
-int far sub_s029_0e76_088e(void)
+int far party_min_eff_attr2_bonus(void)
 {
     int i;
     int v;
     int b;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            v = sub_s029_0e76_06de(i);
-            if ((b = sub_s029_0e76_0f54(i, 0x2000L)) + v < D_99e6) {
-                D_99e6 = v + b;
-                D_991d = i;
+        if (party[i][0] == 1) {
+            v = member_eff_attr2(i);
+            if ((b = best_item_quality(i, 0x2000L)) + v < best_value) {
+                best_value = v + b;
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
-void far sub_s029_0e76_08f2(int who, int k, int pct)
+void far heal_attr_pct(int who, int k, int pct)
 {
     int i;
     char *p;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
-        for (i = 0, p = D_9cb2[0] + k; i < 5; i++, p += 0x80)
-            if (D_9c69[i][0] != 0)
-                *p = sub_s029_1367_0066(1, 99, *p + (p[7] - *p) * pct / 100);
+        for (i = 0, p = member_attrs[0] + k; i < 5; i++, p += 0x80)
+            if (party[i][0] != 0)
+                *p = clamp_range(1, 99, *p + (p[7] - *p) * pct / 100);
         return;
     }
-    D_9cb2[who][k] = sub_s029_1367_0066(1, 99, D_9cb2[who][k] + (D_9cb9[who][k] - D_9cb2[who][k]) * pct / 100);
+    member_attrs[who][k] = clamp_range(1, 99, member_attrs[who][k] + (D_9cb9[who][k] - member_attrs[who][k]) * pct / 100);
 }
 
 /* set attribute k of member who (-2 = all present members) to v, clamped to 0..99 and to
    the attribute maximum (+0x50) plus the item bonus (4e0c) */
-void far sub_s029_0e76_0988(int who, int k, int v)
+void far set_attr(int who, int k, int v)
 {
     int i;
     char *p;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
-        for (i = 0, p = D_9cb2[0] + k; i < 5; p += 0x80, i++)
-            if (D_9c69[i][0]) {
+        for (i = 0, p = member_attrs[0] + k; i < 5; p += 0x80, i++)
+            if (party[i][0]) {
                 *p = sub_root_0410_001a(*p = v, 0, 99);
-                if (sub_s029_0e76_4e0c(i, k) + p[7] < *p)
-                    *p = sub_s029_0e76_4e0c(i, k) + p[7];
+                if (event_48_max(i, k) + p[7] < *p)
+                    *p = event_48_max(i, k) + p[7];
             }
     } else {
-        D_9cb2[who][k] = sub_root_0410_001a(D_9cb2[who][k] = v, 0, 99);
-        if (sub_s029_0e76_4e0c(who, k) + D_9cb9[who][k] < D_9cb2[who][k])
-            D_9cb2[who][k] = sub_s029_0e76_4e0c(who, k) + D_9cb9[who][k];
+        member_attrs[who][k] = sub_root_0410_001a(member_attrs[who][k] = v, 0, 99);
+        if (event_48_max(who, k) + D_9cb9[who][k] < member_attrs[who][k])
+            member_attrs[who][k] = event_48_max(who, k) + D_9cb9[who][k];
     }
 }
 
 /* add d to attribute k of member who (-2 = all present members), clamped to 1..99 and to
    the attribute maximum plus the item bonus */
-void far sub_s029_0e76_0a72(int who, int k, int d)
+void far add_attr(int who, int k, int d)
 {
     int i;
     char *p;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
-        for (i = 0, p = D_9cb2[0] + k; i < 5; p += 0x80, i++)
-            if (D_9c69[i][0]) {
+        for (i = 0, p = member_attrs[0] + k; i < 5; p += 0x80, i++)
+            if (party[i][0]) {
                 *p = sub_root_0410_001a(*p + d, 1, 99);
-                if (sub_s029_0e76_4e0c(i, k) + p[7] < *p)
-                    *p = sub_s029_0e76_4e0c(i, k) + p[7];
+                if (event_48_max(i, k) + p[7] < *p)
+                    *p = event_48_max(i, k) + p[7];
             }
-    } else if (D_9c69[who][0]) {
-        D_9cb2[who][k] = sub_root_0410_001a(D_9cb2[who][k] + d, 1, 99);
-        if (sub_s029_0e76_4e0c(who, k) + D_9cb9[who][k] < D_9cb2[who][k])
-            D_9cb2[who][k] = sub_s029_0e76_4e0c(who, k) + D_9cb9[who][k];
+    } else if (party[who][0]) {
+        member_attrs[who][k] = sub_root_0410_001a(member_attrs[who][k] + d, 1, 99);
+        if (event_48_max(who, k) + D_9cb9[who][k] < member_attrs[who][k])
+            member_attrs[who][k] = event_48_max(who, k) + D_9cb9[who][k];
     }
 }
 
 /* member skill k (+0x50 + k) */
-int far sub_s029_0e76_0b64(int who, int k)
+int far member_attr_max(int who, int k)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9cb9[who][k];
 }
 
 /* set member skill k; the clamp to 0..99 is computed but its result is not used (bug) */
-void far sub_s029_0e76_0b84(int who, int k, int v)
+void far set_attr_max(int who, int k, int v)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     sub_root_0410_001a(v, 0, 99);
     D_9cb9[who][k] = v;
 }
 
 /* add d to skill k of a member (-2: every present member), result kept in 1..99 */
-void far sub_s029_0e76_0bb6(int who, int k, int d)
+void far add_attr_max(int who, int k, int d)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (who = 0; who < 5; who++)
-            if (D_9c69[who][0] != 0)
+            if (party[who][0] != 0)
                 D_9cb9[who][k] = sub_root_0410_001a(D_9cb9[who][k] + d, 1, 99);
         return;
     }
-    if (D_9c69[who][0] != 0)
+    if (party[who][0] != 0)
         D_9cb9[who][k] = sub_root_0410_001a(D_9cb9[who][k] + d, 1, 99);
 }
 
@@ -808,7 +810,7 @@ void far sub_s029_0e76_0bb6(int who, int k, int d)
 int far sub_s029_0e76_0c38(int who, int k)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9ca0[who][k];
 }
 
@@ -816,15 +818,15 @@ int far sub_s029_0e76_0c38(int who, int k)
 int far sub_s029_0e76_0c58(int who)
 {
     if (who == -1)
-        who = D_907b;
+        who = leader;
     return D_9ca6[who][0];
 }
 
 /* number of items of type code (low 12 bits) carried by member who (-2 = all present
    members, -1 = the active member); who >= 5 counts the 16-slot store/stash lists at
    2e38:0d5e - original bug: there the quantity is read from the party inventories
-   (F_2e38_003e[who - 5]) instead of from the list itself */
-int far sub_s029_0e76_0c76(int who, int code)
+   (inventories[who - 5]) instead of from the list itself */
+int far count_items(int who, int code)
 {
     int i;
     int j;
@@ -833,30 +835,30 @@ int far sub_s029_0e76_0c76(int who, int code)
     n = 0;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0 && D_9c69[i][0x6a] > 0)
-                for (j = 0; j < D_9c69[i][0x6a]; j++)
-                    if ((F_2e38_003e[i][j].code & 0xfff) == code)
-                        n += F_2e38_003e[i][j].qty;
+            if (party[i][0] != 0 && party[i][0x6a] > 0)
+                for (j = 0; j < party[i][0x6a]; j++)
+                    if ((inventories[i][j].code & 0xfff) == code)
+                        n += inventories[i][j].qty;
     } else if (who == -1) {
-        for (j = 0; j < D_9cd3[D_907b][0]; j++)
-            if ((F_2e38_003e[D_907b][j].code & 0xfff) == code)
-                n += F_2e38_003e[D_907b][j].qty;
+        for (j = 0; j < D_9cd3[leader][0]; j++)
+            if ((inventories[leader][j].code & 0xfff) == code)
+                n += inventories[leader][j].qty;
     } else if (who < 5) {
         for (j = 0; j < D_9cd3[who][0]; j++)
-            if ((F_2e38_003e[who][j].code & 0xfff) == code)
-                n += F_2e38_003e[who][j].qty;
+            if ((inventories[who][j].code & 0xfff) == code)
+                n += inventories[who][j].qty;
     } else {
         who -= 5;
         for (j = 0; j < 16; j++)
             if ((F_2e38_0d5e[who][j].code & 0xfff) == code)
-                n += F_2e38_003e[who][j].qty;
+                n += inventories[who][j].qty;
     }
     return n;
 }
 
 /* number of carried items whose item-type flags (+0x20) intersect mask; who -2: all present
    members, -1: the active member, 5 and up: 0 */
-int far sub_s029_0e76_0dd8(int who, long mask)
+int far count_items_flags(int who, long mask)
 {
     int i;
     int j;
@@ -865,25 +867,25 @@ int far sub_s029_0e76_0dd8(int who, long mask)
     n = 0;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0 && D_9c69[i][0x6a] > 0)
-                for (j = 0; j < D_9c69[i][0x6a]; j++)
-                    if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[i][j].code & 0xfff] + 0x20) & mask)
-                        n += F_2e38_003e[i][j].qty;
+            if (party[i][0] != 0 && party[i][0x6a] > 0)
+                for (j = 0; j < party[i][0x6a]; j++)
+                    if (*(long far *)(data_file.f_0890[inventories[i][j].code & 0xfff] + 0x20) & mask)
+                        n += inventories[i][j].qty;
     } else if (who == -1) {
-        for (j = 0; j < D_9cd3[D_907b][0]; j++)
-            if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[D_907b][j].code & 0xfff] + 0x20) & mask)
-                n += F_2e38_003e[D_907b][j].qty;
+        for (j = 0; j < D_9cd3[leader][0]; j++)
+            if (*(long far *)(data_file.f_0890[inventories[leader][j].code & 0xfff] + 0x20) & mask)
+                n += inventories[leader][j].qty;
     } else if (who < 5) {
         for (j = 0; j < D_9cd3[who][0]; j++)
-            if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[who][j].code & 0xfff] + 0x20) & mask)
-                n += F_2e38_003e[who][j].qty;
+            if (*(long far *)(data_file.f_0890[inventories[who][j].code & 0xfff] + 0x20) & mask)
+                n += inventories[who][j].qty;
     }
     return n;
 }
 
 /* best quality (+3) among the carried items whose item-type flags intersect mask; who >= 5
    scans the first 16 items of member who - 5 */
-int far sub_s029_0e76_0f54(int who, long mask)
+int far best_item_quality(int who, long mask)
 {
     int i;
     int j;
@@ -892,33 +894,33 @@ int far sub_s029_0e76_0f54(int who, long mask)
     n = 0;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0 && D_9c69[i][0x6a] > 0)
-                for (j = 0; j < D_9c69[i][0x6a]; j++)
-                    if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[i][j].code & 0xfff] + 0x20) & mask)
-                        if (F_2e38_003e[i][j].quality > n)
-                        n = F_2e38_003e[i][j].quality;
+            if (party[i][0] != 0 && party[i][0x6a] > 0)
+                for (j = 0; j < party[i][0x6a]; j++)
+                    if (*(long far *)(data_file.f_0890[inventories[i][j].code & 0xfff] + 0x20) & mask)
+                        if (inventories[i][j].quality > n)
+                        n = inventories[i][j].quality;
     } else if (who == -1) {
-        for (j = 0; j < D_9cd3[D_907b][0]; j++)
-            if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[D_907b][j].code & 0xfff] + 0x20) & mask)
-                if (F_2e38_003e[D_907b][j].quality > n)
-                        n = F_2e38_003e[D_907b][j].quality;
+        for (j = 0; j < D_9cd3[leader][0]; j++)
+            if (*(long far *)(data_file.f_0890[inventories[leader][j].code & 0xfff] + 0x20) & mask)
+                if (inventories[leader][j].quality > n)
+                        n = inventories[leader][j].quality;
     } else if (who < 5) {
         for (j = 0; j < D_9cd3[who][0]; j++)
-            if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[who][j].code & 0xfff] + 0x20) & mask)
-                if (F_2e38_003e[who][j].quality > n)
-                        n = F_2e38_003e[who][j].quality;
+            if (*(long far *)(data_file.f_0890[inventories[who][j].code & 0xfff] + 0x20) & mask)
+                if (inventories[who][j].quality > n)
+                        n = inventories[who][j].quality;
     } else {
         who -= 5;
         for (j = 0; j < 16; j++)
-            if (*(long far *)(F_2e38_0000.f_0890[F_2e38_003e[who][j].code & 0xfff] + 0x20) & mask)
-                if (F_2e38_003e[who][j].quality > n)
-                    n = F_2e38_003e[who][j].quality;
+            if (*(long far *)(data_file.f_0890[inventories[who][j].code & 0xfff] + 0x20) & mask)
+                if (inventories[who][j].quality > n)
+                    n = inventories[who][j].quality;
     }
     return n;
 }
 
 /* total quantity of item `code` carried by the present members */
-int far sub_s029_0e76_1128(int code)
+int far party_item_total(int code)
 {
     int i;
     int j;
@@ -926,22 +928,22 @@ int far sub_s029_0e76_1128(int code)
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0 && D_9c69[i][0x6a] > 0)
-            for (j = 0; j < D_9c69[i][0x6a]; j++)
-                if (F_2e38_003e[i][j].code == code)
-                    n += F_2e38_003e[i][j].qty;
+        if (party[i][0] != 0 && party[i][0x6a] > 0)
+            for (j = 0; j < party[i][0x6a]; j++)
+                if (inventories[i][j].code == code)
+                    n += inventories[i][j].qty;
     return n;
 }
 
 /* does member who carry item `code` (1), or have it in the 0x75f table (2), else 0 */
-int far sub_s029_0e76_118e(int who, int code)
+int far has_item(int who, int code)
 {
     int j;
 
     j = 0;
     if (D_9cd3[who][0] > 0)
         do {
-            if ((F_2e38_003e[who][j].code & 0xfff) == code)
+            if ((inventories[who][j].code & 0xfff) == code)
                 return 1;
         } while (++j < D_9cd3[who][0]);
     if (F_2e38_075f[who][code])
@@ -951,15 +953,15 @@ int far sub_s029_0e76_118e(int who, int code)
 
 /* does member who (-2: any present member) know item type k (byte table 2e38:075f, 0x16
    bytes per member)?  1 or 0 */
-int far sub_s029_0e76_11fa(int who, int k)
+int far knows_item_type(int who, int k)
 {
     int i;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0 && F_2e38_075f[i][k])
+            if (party[i][0] != 0 && F_2e38_075f[i][k])
                 return 1;
     } else if (F_2e38_075f[who][k])
         return 1;
@@ -967,7 +969,7 @@ int far sub_s029_0e76_11fa(int who, int k)
 }
 
 /* test event/knowledge bit of a member (-2: any present member) */
-int far sub_s029_0e76_1260(int who, unsigned bit)
+int far member_bit(int who, unsigned bit)
 {
     int mask;
     int i;
@@ -975,37 +977,37 @@ int far sub_s029_0e76_1260(int who, unsigned bit)
 
     mask = 0x80 >> (bit & 7);
     if (who == -2) {
-        p = &F_2e38_082c[0][bit >> 3];
+        p = &saints_known[0][bit >> 3];
         for (i = 0; i < 5; i++, p += 0x14)
-            if (D_9c69[i][0] != 0 && (*p & mask))
+            if (party[i][0] != 0 && (*p & mask))
                 return 1;
         return 0;
     }
     if (who == -1)
-        return (F_2e38_082c[D_907b][bit >> 3] & mask) != 0;
+        return (saints_known[leader][bit >> 3] & mask) != 0;
     if (who < 5)
-        return (F_2e38_082c[who][bit >> 3] & mask) != 0;
+        return (saints_known[who][bit >> 3] & mask) != 0;
 }
 
 /* set bit `bit` of a member */
-void far sub_s029_0e76_1302(int who, unsigned bit)
+void far set_member_bit(int who, unsigned bit)
 {
-    F_2e38_082c[who][bit >> 3] |= 0x80 >> (bit & 7);
+    saints_known[who][bit >> 3] |= 0x80 >> (bit & 7);
 }
 
-int far sub_s029_0e76_1326(int what)
+int far party_get(int what)
 {
     int i;
 
     switch (what) {
     case 4:
-        return D_9082;
+        return party_fame;
     case 5:
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0) {
-                if (D_9c69[i][0] != 1)
+            if (party[i][0] != 0) {
+                if (party[i][0] != 1)
                     return 0;
-                if (sub_s029_0e76_0dd8(i, 0x2000L) == 0)
+                if (count_items_flags(i, 0x2000L) == 0)
                     return 0;
             }
         return 1;
@@ -1015,76 +1017,76 @@ int far sub_s029_0e76_1326(int what)
     return 0;
 }
 
-/* setter for the query above (only 4 -> D_9082) */
-void far sub_s029_0e76_1382(int what, int v)
+/* setter for the query above (only 4 -> party_fame) */
+void far party_set(int what, int v)
 {
     switch (what) {
     case 4:
-        D_9082 = v;
+        party_fame = v;
         break;
     }
 }
 
-/* lowest skill k among status-1 members -> D_99e6, D_991d */
-int far sub_s029_0e76_1396(int k)
+/* lowest skill k among status-1 members -> best_value, best_member */
+int far party_min_skill(int k)
 {
     int i;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_99e6 > D_9cc0[i][k]) {
-            D_99e6 = D_9cc0[i][k];
-            D_991d = i;
+        if (party[i][0] == 1 && best_value > D_9cc0[i][k]) {
+            best_value = D_9cc0[i][k];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
-/* lowest of skills a and b over status-1 members -> D_99e6, D_991d */
-int far sub_s029_0e76_13de(int a, int b)
+/* lowest of skills a and b over status-1 members -> best_value, best_member */
+int far party_min_skill2(int a, int b)
 {
     int i;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            if (D_99e6 > D_9cc0[i][a]) {
-                D_99e6 = D_9cc0[i][a];
-                D_991d = i;
+        if (party[i][0] == 1) {
+            if (best_value > D_9cc0[i][a]) {
+                best_value = D_9cc0[i][a];
+                best_member = i;
             }
-            if (D_99e6 > D_9cc0[i][b]) {
-                D_99e6 = D_9cc0[i][b];
-                D_991d = i;
+            if (best_value > D_9cc0[i][b]) {
+                best_value = D_9cc0[i][b];
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* lowest sum of skills a + b over status-1 members */
-int far sub_s029_0e76_1446(int a, int b)
+int far party_min_skill_sum(int a, int b)
 {
     int i;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9cc0[i][b] + D_9cc0[i][a] < D_99e6) {
-            D_99e6 = D_9cc0[i][b] + D_9cc0[i][a];
-            D_991d = i;
+        if (party[i][0] == 1 && D_9cc0[i][b] + D_9cc0[i][a] < best_value) {
+            best_value = D_9cc0[i][b] + D_9cc0[i][a];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* highest skill k over status-1 members */
-int far sub_s029_0e76_14a4(int k)
+int far party_max_skill(int k)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_99e6 < D_9cc0[i][k]) {
-            D_99e6 = D_9cc0[i][k];
-            D_991d = i;
+        if (party[i][0] == 1 && best_value < D_9cc0[i][k]) {
+            best_value = D_9cc0[i][k];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* highest skill k over status-1 members with flag +3 == 1 */
@@ -1092,51 +1094,51 @@ int far sub_s029_0e76_14ec(int k)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9c69[i][3] == 1 && D_99e6 < D_9cc0[i][k]) {
-            D_99e6 = D_9cc0[i][k];
-            D_991d = i;
+        if (party[i][0] == 1 && party[i][3] == 1 && best_value < D_9cc0[i][k]) {
+            best_value = D_9cc0[i][k];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* highest of skills a and b over status-1 members */
-int far sub_s029_0e76_153a(int a, int b)
+int far party_max_skill2(int a, int b)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
-            if (D_99e6 < D_9cc0[i][a]) {
-                D_99e6 = D_9cc0[i][a];
-                D_991d = i;
+        if (party[i][0] == 1) {
+            if (best_value < D_9cc0[i][a]) {
+                best_value = D_9cc0[i][a];
+                best_member = i;
             }
-            if (D_99e6 < D_9cc0[i][b]) {
-                D_99e6 = D_9cc0[i][b];
-                D_991d = i;
+            if (best_value < D_9cc0[i][b]) {
+                best_value = D_9cc0[i][b];
+                best_member = i;
             }
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* highest sum of skills a + b over status-1 members */
-int far sub_s029_0e76_15a2(int a, int b)
+int far party_max_skill_sum(int a, int b)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9cc0[i][a] + D_9cc0[i][b] > D_99e6) {
-            D_99e6 = D_9cc0[i][a] + D_9cc0[i][b];
-            D_991d = i;
+        if (party[i][0] == 1 && D_9cc0[i][a] + D_9cc0[i][b] > best_value) {
+            best_value = D_9cc0[i][a] + D_9cc0[i][b];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
-/* average skill k over the members with status 1 (D_99e6) */
-int far sub_s029_0e76_1600(int k)
+/* average skill k over the members with status 1 (best_value) */
+int far party_avg_skill(int k)
 {
     int i;
     int sum;
@@ -1144,25 +1146,25 @@ int far sub_s029_0e76_1600(int k)
 
     sum = n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1) {
+        if (party[i][0] == 1) {
             sum += D_9cc0[i][k];
             n++;
         }
     n = n ? n : 1;
-    return D_99e6 = sum / n;
+    return best_value = sum / n;
 }
 
-/* lowest attribute k over status-1 members -> D_9c1d (D_9a44, D_991d: member) */
-int far sub_s029_0e76_164a(int k)
+/* lowest attribute k over status-1 members -> D_9c1d (D_9a44, best_member: member) */
+int far party_min_attr(int k)
 {
     int i;
 
     D_9c1d = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9cb2[i][k] < D_9c1d) {
-            D_9c1d = D_9cb2[i][k];
+        if (party[i][0] == 1 && member_attrs[i][k] < D_9c1d) {
+            D_9c1d = member_attrs[i][k];
             D_9a44 = i;
-            D_991d = i;
+            best_member = i;
         }
     return D_9c1d;
 }
@@ -1172,27 +1174,27 @@ int far sub_s029_0e76_1696(int a, int b)
 {
     int i;
 
-    D_99e6 = 199;
+    best_value = 199;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9cb2[i][a] + D_9cb2[i][b] < D_99e6) {
-            D_99e6 = D_9cb2[i][a] * 2;
+        if (party[i][0] == 1 && member_attrs[i][a] + member_attrs[i][b] < best_value) {
+            best_value = member_attrs[i][a] * 2;
             D_9a44 = i;
-            D_991d = i;
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* highest attribute k over status-1 members -> D_9c1d */
-int far sub_s029_0e76_16fe(int k)
+int far party_max_attr(int k)
 {
     int i;
 
     D_9c1d = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 1 && D_9cb2[i][k] > D_9c1d) {
-            D_9c1d = D_9cb2[i][k];
+        if (party[i][0] == 1 && member_attrs[i][k] > D_9c1d) {
+            D_9c1d = member_attrs[i][k];
             D_9a44 = i;
-            D_991d = i;
+            best_member = i;
         }
     return D_9c1d;
 }
@@ -1204,30 +1206,30 @@ int far sub_s029_0e76_174a(int k)
 
     D_9c1d = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0 && D_9c69[i][3] == 1 && D_9cb2[i][k] > D_9c1d) {
-            D_9c1d = D_9cb2[i][k];
+        if (party[i][0] != 0 && party[i][3] == 1 && member_attrs[i][k] > D_9c1d) {
+            D_9c1d = member_attrs[i][k];
             D_9a44 = i;
-            D_991d = i;
+            best_member = i;
         }
     return D_9c1d;
 }
 
 /* highest sum of attributes a + b over present members; stores 2*a (bug) */
-int far sub_s029_0e76_179c(int a, int b)
+int far party_max_attr_sum(int a, int b)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0 && D_9cb2[i][a] + D_9cb2[i][b] > D_99e6) {
-            D_99e6 = D_9cb2[i][a] * 2;
-            D_991d = i;
+        if (party[i][0] != 0 && member_attrs[i][a] + member_attrs[i][b] > best_value) {
+            best_value = member_attrs[i][a] * 2;
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
 /* average attribute k over the present members (D_9c1d) */
-int far sub_s029_0e76_1800(int k)
+int far party_avg_attr(int k)
 {
     int i;
     int sum;
@@ -1235,8 +1237,8 @@ int far sub_s029_0e76_1800(int k)
 
     sum = n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0) {
-            sum += D_9cb2[i][k];
+        if (party[i][0] != 0) {
+            sum += member_attrs[i][k];
             n++;
         }
     n = n ? n : 1;
@@ -1249,86 +1251,86 @@ int far sub_s029_0e76_184a(int a, int b)
 {
     int i;
 
-    D_99e6 = 0;
+    best_value = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0 && D_9cb2[i][a] + D_9cc0[i][b] > D_99e6) {
-            D_99e6 = D_9cc0[i][b] + D_9cb2[i][a];
-            D_991d = i;
+        if (party[i][0] != 0 && member_attrs[i][a] + D_9cc0[i][b] > best_value) {
+            best_value = D_9cc0[i][b] + member_attrs[i][a];
+            best_member = i;
         }
-    return D_99e6;
+    return best_value;
 }
 
-int far sub_s029_0e76_18a8(int v, int lo, int hi)
+int far improve_roll(int v, int lo, int hi)
 {
-    sub_s029_1367_000a(v);
-    if (abs(100 - v) >= sub_root_0000_0c70(100))
-        return sub_root_0000_0c70(hi - lo) + lo;
+    clamp99(v);
+    if (abs(100 - v) >= rand_mod(100))
+        return rand_mod(hi - lo) + lo;
     return lo;
 }
 
 /* fatigue state of a member: 0 fresh .. 0x13, -1 exhausted ((+0x49 + +0x4a) * 5/4 vs +0x35) */
-int far sub_s029_0e76_18f2(int who)
+int far member_fatigue_state(int who)
 {
     int m;
 
-    m = (D_9c69[who][0x49] + D_9c69[who][0x4a]) * 5 / 4;
-    if (m >= D_9c69[who][0x35])
+    m = (party[who][0x49] + party[who][0x4a]) * 5 / 4;
+    if (m >= party[who][0x35])
         return 0;
-    if (D_9c69[who][0x35] <= m && D_9c69[who][0x35] >= m >> 1)
+    if (party[who][0x35] <= m && party[who][0x35] >= m >> 1)
         return 9;
-    if (D_9c69[who][0x35] <= m * 3 / 2 && D_9c69[who][0x35] >= m)
+    if (party[who][0x35] <= m * 3 / 2 && party[who][0x35] >= m)
         return 0x13;
     return -1;
 }
 
 /* 0 if any member has status 2 or 3, else 1 */
-int far sub_s029_0e76_1972(void)
+int far party_all_ok(void)
 {
     int i;
 
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 3 || D_9c69[i][0] == 2)
+        if (party[i][0] == 3 || party[i][0] == 2)
             return 0;
     return 1;
 }
 
 /* location value +0x12 (reputation?) */
-int far sub_s029_0e76_199c(int i)
+int far loc_reputation(int i)
 {
-    return F_2e38_10be[i]->rep;
+    return locations[i]->rep;
 }
 
 void far sub_s029_0e76_19b4(int i, int v)
 {
-    F_2e38_10be[i]->rep = v;
+    locations[i]->rep = v;
 }
 
-int far sub_s029_0e76_19d0(int i, int a, int b)
+int far loc_reputation_adj(int i, int a, int b)
 {
     int r;
     int aa;
     int ab;
 
-    r = F_2e38_10be[i]->rep;
-    if (100 - abs(F_2e38_10be[i]->rep) >= sub_root_0000_0c70(100)) {
+    r = locations[i]->rep;
+    if (100 - abs(locations[i]->rep) >= rand_mod(100)) {
         aa = abs(a);
         ab = abs(b);
         if (b > 0)
-            r += sub_root_0000_0c70(ab - aa) + a;
+            r += rand_mod(ab - aa) + a;
         else
-            r -= aa + sub_root_0000_0c70(ab - aa);
+            r -= aa + rand_mod(ab - aa);
         r = sub_root_0410_001a(r, -99, 99);
-        F_2e38_10be[i]->rep = r;
+        locations[i]->rep = r;
     }
     return r;
 }
 
-int far sub_s029_0e76_1a7e(int p_6)
+int far cur_loc_query(int p_6)
 {
-    sub_s029_0e76_1a8e(D_907e, p_6);
+    loc_query(cur_loc, p_6);
 }
 
-int far sub_s029_0e76_1a8e(int loc, unsigned what)
+int far loc_query(int loc, unsigned what)
 {
     int r;
     int d;
@@ -1338,9 +1340,9 @@ int far sub_s029_0e76_1a8e(int loc, unsigned what)
 
     switch (what) {
     case 0:
-        return F_2e38_10be[loc]->rep;
+        return locations[loc]->rep;
     case 1:
-        r = F_2e38_10be[loc]->rep;
+        r = locations[loc]->rep;
         if (r <= -75) *(volatile int *)&i = 5;
         else if (r <= -40) *(volatile int *)&i = 4;
         else if (r <= -10) *(volatile int *)&i = 3;
@@ -1349,100 +1351,100 @@ int far sub_s029_0e76_1a8e(int loc, unsigned what)
         else *(volatile int *)&i = 0;
         break;
     case 2:
-        t = D_907e;
+        t = cur_loc;
         if (t == -1)
             return 1;
         if (t >= 0x5c)
             return 2;
-        return *(int far *)(D_9785 + 0x40);
+        return *(int far *)(city_rec + 0x40);
     case 3:
-        return D_9785[0x63];
+        return city_rec[0x63];
     case 4:
-        return D_9785[0x62];
+        return city_rec[0x62];
     case 5:
-        return D_9785[0x64];
+        return city_rec[0x64];
     case 6:
-        return D_9785[0x67];
+        return city_rec[0x67];
     case 7:
-        return D_9785[0x65];
+        return city_rec[0x65];
     case 8:
-        return D_9785[0x68];
+        return city_rec[0x68];
     case 9:
-        return D_9785[0x6a];
+        return city_rec[0x6a];
     case 10:
-        return D_9785[0x69];
+        return city_rec[0x69];
     case 11:
-        return D_9785[0x66];
+        return city_rec[0x66];
     case 12:
-        return F_2e38_10be[loc]->f15;
+        return locations[loc]->f15;
     case 13:
-        return F_2e38_10be[loc]->f16;
+        return locations[loc]->f16;
     case 14:
-        return F_2e38_10be[loc]->f17;
+        return locations[loc]->f17;
     case 15:
-        return *(int far *)(D_9785 + 0x5e) & 4;
+        return *(int far *)(city_rec + 0x5e) & 4;
     case 16:
-        return *(int far *)(D_9785 + 0x5e) & 1;
+        return *(int far *)(city_rec + 0x5e) & 1;
     case 17:
-        return *(int far *)(D_9785 + 0x5e) & 8;
+        return *(int far *)(city_rec + 0x5e) & 8;
     case 18:
-        return *(int far *)(D_9785 + 0x5e) & 0x800;
+        return *(int far *)(city_rec + 0x5e) & 0x800;
     case 20:
-        return *(int far *)(D_9785 + 0x5e) & 0x40;
+        return *(int far *)(city_rec + 0x5e) & 0x40;
     case 23:
-        return *(int far *)(D_9785 + 0x5e) & 0x400;
+        return *(int far *)(city_rec + 0x5e) & 0x400;
     case 24:
-        return *(int far *)(D_9785 + 0x5e) & 2;
+        return *(int far *)(city_rec + 0x5e) & 2;
     case 26:
-        return *(int far *)(D_9785 + 0x5e) & 0x20;
+        return *(int far *)(city_rec + 0x5e) & 0x20;
     case 27:
-        return *(int far *)(D_9785 + 0x5e) & 0x100;
+        return *(int far *)(city_rec + 0x5e) & 0x100;
     case 28:
-        return *(int far *)(D_9785 + 0x5e) & 0x80;
+        return *(int far *)(city_rec + 0x5e) & 0x80;
     case 29:
-        return *(int far *)(D_9785 + 0x5e) & 0x10;
+        return *(int far *)(city_rec + 0x5e) & 0x10;
     case 31:
-        return *(int far *)(D_9785 + 0x5e) & 0x200;
+        return *(int far *)(city_rec + 0x5e) & 0x200;
     case 32:
-        return (char)F_2e38_10be[loc]->f14;
+        return (char)locations[loc]->f14;
     case 33:
-        t = D_907e;
+        t = cur_loc;
         if (t == -1)
-            return D_9c4a + D_e3d2 + D_e3d0;
+            return party_seed + party_y + party_x;
         if (t >= 0x5c)
-            return D_907e + D_9c4a;
-        return *(int far *)(D_9785 + 0x56) + D_9c4a;
+            return cur_loc + party_seed;
+        return *(int far *)(city_rec + 0x56) + party_seed;
     case 34:
-        return *(int far *)(D_9785 + 0x46);
+        return *(int far *)(city_rec + 0x46);
     case 35:
         /* within 14 days of the location's day of year +0x6c.  Original: one counter i
            (`d = i = 0` kept in [bp-2], same slot as case 1's store); see status */
         d = 0;
-        for (j = 0; j < D_00e4; j++)
-            d += D_2776[j];
-        if (*(int far *)(D_9785 + 0x6c) > d)
-            r = *(int far *)(D_9785 + 0x6c) - d;
+        for (j = 0; j < cur_month; j++)
+            d += days_per_month[j];
+        if (*(int far *)(city_rec + 0x6c) > d)
+            r = *(int far *)(city_rec + 0x6c) - d;
         else
-            r = d - *(int far *)(D_9785 + 0x6c);
+            r = d - *(int far *)(city_rec + 0x6c);
         if (r <= 14)
             return 1;
         return 0;
     case 37:
-        return F_2e38_10be[loc]->f1c;
+        return locations[loc]->f1c;
     case 38:
-        return F_2e38_10be[loc]->f1a;
+        return locations[loc]->f1a;
     case 39:
-        if (F_2e38_10be[D_907e]->f18 != -1)
+        if (locations[cur_loc]->f18 != -1)
             return 1;
         return 0;
     case 40:
-        if (F_2e38_10be[D_907e]->f14 & 0x80)
-            return *(int far *)(D_9785 + 0x5a);
-        return *(int far *)(D_9785 + 0x58);
+        if (locations[cur_loc]->f14 & 0x80)
+            return *(int far *)(city_rec + 0x5a);
+        return *(int far *)(city_rec + 0x58);
     case 41:
-        if (F_2e38_10be[D_907e]->f14 & 0x80)
-            return *(int far *)(D_9785 + 0x58);
-        return *(int far *)(D_9785 + 0x5a);
+        if (locations[cur_loc]->f14 & 0x80)
+            return *(int far *)(city_rec + 0x58);
+        return *(int far *)(city_rec + 0x5a);
     }
 }
 
@@ -1451,55 +1453,55 @@ int far sub_s029_0e76_1a8e(int loc, unsigned what)
    37 records v in the three-slot list +0x1c/+0x1e/+0x20 (only while +0x20 is free) -
    original bug: instead of shifting the old entries along, every occupied slot is
    overwritten with v */
-void far sub_s029_0e76_1dfe(int loc, unsigned what, int v)
+void far loc_set(int loc, unsigned what, int v)
 {
     switch (what) {
     case 0:
-        F_2e38_10be[loc]->rep = v;
+        locations[loc]->rep = v;
         break;
     case 2:
-        *(int far *)(D_9785 + 0x40) = v;
+        *(int far *)(city_rec + 0x40) = v;
         break;
     case 3:
-        D_9785[0x63] = v;
+        city_rec[0x63] = v;
         break;
     case 4:
-        D_9785[0x62] = v;
+        city_rec[0x62] = v;
         break;
     case 5:
-        D_9785[0x64] = v;
+        city_rec[0x64] = v;
         break;
     case 6:
-        D_9785[0x66] = v;
+        city_rec[0x66] = v;
         break;
     case 7:
-        D_9785[0x65] = v;
+        city_rec[0x65] = v;
         break;
     case 8:
-        D_9785[0x68] = v;
+        city_rec[0x68] = v;
         break;
     case 11:
-        D_9785[0x67] = v;
+        city_rec[0x67] = v;
         return;
     case 12:
-        F_2e38_10be[loc]->f15 = v;
+        locations[loc]->f15 = v;
         return;
     case 13:
-        F_2e38_10be[loc]->f16 = v;
+        locations[loc]->f16 = v;
         return;
     case 14:
-        F_2e38_10be[loc]->f17 = v;
+        locations[loc]->f17 = v;
         return;
     case 32:
-        F_2e38_10be[loc]->f14 |= v;
+        locations[loc]->f14 |= v;
         return;
     case 37:
-        if (F_2e38_10be[loc]->f20 == 0) {
-            if (F_2e38_10be[loc]->f1e)
-                F_2e38_10be[loc]->f20 = v;
-            if (F_2e38_10be[loc]->f1c)
-                F_2e38_10be[loc]->f1e = v;
-            F_2e38_10be[loc]->f1c = v;
+        if (locations[loc]->f20 == 0) {
+            if (locations[loc]->f1e)
+                locations[loc]->f20 = v;
+            if (locations[loc]->f1c)
+                locations[loc]->f1e = v;
+            locations[loc]->f1c = v;
         }
         break;
     }
@@ -1508,74 +1510,74 @@ void far sub_s029_0e76_1dfe(int loc, unsigned what, int v)
 /* copy a name into text slot `slot` (2e38:1a96, 30 bytes each): kind 0 item name, 1 and 2
    two other name tables, 3/4 time-of-day word for hour-ish value idx (1367_0744 band,
    1367_0846 text), 5 the next band (wrapping after 7), 6-8 three 290e name tables */
-void far sub_s029_0e76_1fb8(unsigned kind, int idx, int slot)
+void far name_to_slot(unsigned kind, int idx, int slot)
 {
     int t;
 
     switch (kind) {
     case 0:
-        _fstrcpy(F_2e38_1a96[slot], F_2e38_0000.f_0890[idx]);
+        _fstrcpy(var_named[slot], data_file.f_0890[idx]);
         break;
     case 1:
-        _fstrcpy(F_2e38_1a96[slot], F_2e38_183e[idx]);
+        _fstrcpy(var_named[slot], saint_names[idx]);
         break;
     case 2:
-        _fstrcpy(F_2e38_1a96[slot], F_2e38_15ba[idx]);
+        _fstrcpy(var_named[slot], F_2e38_15ba[idx]);
         break;
     case 3:
     case 4:
-        sub_s029_1367_0846(sub_s029_1367_0744(idx), F_2e38_1a96[slot]);
+        bell_name(hour_band(idx), var_named[slot]);
         return;
     case 5:
-        t = sub_s029_1367_0744(idx) + 1;
+        t = hour_band(idx) + 1;
         if (t > 7)
             t = 0;
-        sub_s029_1367_0846(t, F_2e38_1a96[slot]);
+        bell_name(t, var_named[slot]);
         return;
     case 6:
-        _fstrcpy(F_2e38_1a96[slot], F_290e_1fa7[idx]);
+        _fstrcpy(var_named[slot], F_290e_1fa7[idx]);
         break;
     case 7:
-        _fstrcpy(F_2e38_1a96[slot], F_290e_1fe7[idx]);
+        _fstrcpy(var_named[slot], F_290e_1fe7[idx]);
         break;
     case 8:
-        _fstrcpy(F_2e38_1a96[slot], F_290e_2107[idx]);
+        _fstrcpy(var_named[slot], F_290e_2107[idx]);
         break;
     }
 }
 
 /* invoke saint s for a member if his divine favour (+0x4f) covers the cost (mode 2) */
-int far sub_s029_0e76_20c6(int who, int s)
+int far saint_chance_lo(int who, int s)
 {
     int cost;
 
-    cost = F_290e_2937[s](who, 0, 2);
+    cost = saint_fns[s](who, 0, 2);
     if (D_9cb8[who][0] < cost)
         return 0;
-    return F_290e_2937[s](who, cost, 7);
+    return saint_fns[s](who, cost, 7);
 }
 
-void far sub_s029_0e76_2116(int who, int s)
+void far saint_chance_hi(int who, int s)
 {
     int cost;
 
-    cost = F_290e_2937[s](who, 0, 3);
+    cost = saint_fns[s](who, 0, 3);
     if (D_9cb8[who][0] < cost)
         cost = D_9cb8[who][0];
-    F_290e_2937[s](who, cost, 7);
+    saint_fns[s](who, cost, 7);
 }
 
 int far sub_s029_0e76_2164(int who, int s, int v)
 {
-    return F_290e_2937[s](who, v, 7);
+    return saint_fns[s](who, v, 7);
 }
 
-int far sub_s029_0e76_2180(int a, int b)
+int far invoke_saint(int a, int b)
 {
     int r;
 
     r = vec_1eaf(a, b, 1);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
+    vec_1ea5(card_name, (char far *)pic_buf);
     return r;
 }
 
@@ -1588,72 +1590,72 @@ void far sub_s029_0e76_21aa(int i, char far *s, int x, int y)
         p = s;
     else
         p = F_290e_207f[i];
-    vec_1eff(i, p, x, y);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
+    barter_screen_vec(i, p, x, y);
+    vec_1ea5(card_name, (char far *)pic_buf);
 }
 
 void far sub_s029_0e76_2204(int a, int b)
 {
-    vec_1ef5(a, b);
+    alchemy_screen_vec(a, b);
     if (!D_907c)
-        vec_1ea5(D_e3d4, (char far *)D_e3e3);
+        vec_1ea5(card_name, (char far *)pic_buf);
 }
 
 void far sub_s029_0e76_222a(int p_6)
 {
     vec_1eeb(p_6);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
+    vec_1ea5(card_name, (char far *)pic_buf);
 }
 
 void far sub_s029_0e76_2246(void)
 {
     vec_1ee1();
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
+    vec_1ea5(card_name, (char far *)pic_buf);
 }
 
 static int pad_26e6 = 0;    /* unreferenced word between the strings at 26e6 */
 void far sub_s029_0e76_225c(int p_6)
 {
-    vec_1ed7(p_6);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
+    item_cache_screen_vec(p_6);
+    vec_1ea5(card_name, (char far *)pic_buf);
 }
 
-/* run a battle: vec_18bf(0, side, encounter seed, ...) with side -1 = random of 2 and
-   seed -2 = this location (D_9c4a + D_907e), -1 = random of 1000 - original bug: the
-   location seed then gets D_9c4a added a second time.  Afterwards members with status 3
+/* run a battle: battle_run_vec(0, side, encounter seed, ...) with side -1 = random of 2 and
+   seed -2 = this location (party_seed + cur_loc), -1 = random of 1000 - original bug: the
+   location seed then gets party_seed added a second time.  Afterwards members with status 3
    are removed, everybody alive is set back to status 1, and if nobody is left the game
-   ends ("death" screen, exit).  Returns D_a893. */
-int far sub_s029_0e76_2278(int side, int seed, int a, int b, int c, int d, int e, int f,
+   ends ("death" screen, exit).  Returns battle_result. */
+int far run_battle(int side, int seed, int a, int b, int c, int d, int e, int f,
                            int g, int h, int k)
 {
     int i;
     int n;
 
-    vec_18c9();
+    cards_shutdown_vec();
     D_907a = 1;
     if (side == -1)
-        side = sub_root_0000_0c70(2);
+        side = rand_mod(2);
     if (seed == -2)
-        seed = D_9c4a + D_907e;
+        seed = party_seed + cur_loc;
     else if (seed == -1)
-        seed = sub_root_0000_0c70(1000);
-    vec_18bf(0, side, seed + D_9c4a, a, b, c, d, e, f, g, h, k);
+        seed = rand_mod(1000);
+    battle_run_vec(0, side, seed + party_seed, a, b, c, d, e, f, g, h, k);
     sub_root_0000_2646("after battle");
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 3) {
-            D_9c69[i][0] = 0;
-            vec_18b5(i);
+        if (party[i][0] == 3) {
+            party[i][0] = 0;
+            party_delete_vec(i);
         }
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0 && D_9c69[i][0] != 5)
-            D_9c69[i][0] = 1;
+        if (party[i][0] != 0 && party[i][0] != 5)
+            party[i][0] = 1;
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0)
+        if (party[i][0] != 0)
             n++;
     if (n == 0) {
         vec_18f1(0x12);
-        sub_root_047c_12c3();
+        mouse_hide();
         if (D_0bf2 == 0) {
             sub_root_030b_0004("death");
             if (kbhit())
@@ -1662,48 +1664,48 @@ int far sub_s029_0e76_2278(int side, int seed, int a, int b, int c, int d, int e
         sub_root_044a_01f4();
         sub_root_047c_0791();
         vec_186f();
-        sub_root_0000_1354();
+        game_shutdown();
         if (D_907d == 1)
-            sub_root_05f8_0139(D_940b);
+            sub_root_05f8_0139(ems_frame_handle);
         exit_(0);
     }
-    vec_1919();
-    sub_s029_1367_05c8(0);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
-    return D_a893;
+    cards_startup_vec();
+    advance_hours(0);
+    vec_1ea5(card_name, (char far *)pic_buf);
+    return battle_result;
 }
 
-/* members with status 5: message 0x4d with their name, then vec_1ec3; returns how many */
-int far sub_s029_0e76_23e2(void)
+/* members with status 5: message 0x4d with their name, then party_remove_vec; returns how many */
+int far party_report_away(void)
 {
     int i;
     int n;
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 5) {
-            sub_s029_0e76_2a32(0x4d, vec_1ecd(i), 0x2238);
-            vec_1ec3(i);
+        if (party[i][0] == 5) {
+            event_here_type(0x4d, char_in_slot_vec(i), 0x2238);
+            party_remove_vec(i);
             n++;
         }
-    sub_root_0000_1716(0x100);
+    party_panel_rows(0x100);
     return n;
 }
 
-/* members with status 5 are removed (status 0, vec_18b5) */
-int far sub_s029_0e76_2434(void)
+/* members with status 5 are removed (status 0, party_delete_vec) */
+int far party_drop_away(void)
 {
     int i;
     int n;
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 5) {
-            D_9c69[i][0] = 0;
-            vec_18b5(i);
+        if (party[i][0] == 5) {
+            party[i][0] = 0;
+            party_delete_vec(i);
             n++;
         }
-    sub_root_0000_1716(0x100);
+    party_panel_rows(0x100);
     return n;
 }
 
@@ -1714,50 +1716,50 @@ int far sub_s029_0e76_2474(void)
     int last;
 
     last = -1;
-    if (sub_root_0000_0c70(2)) {
+    if (rand_mod(2)) {
         n = 0;
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] == 5) {
+            if (party[i][0] == 5) {
                 if (n == 0) {
-                    D_9c69[i][0] = 0;
-                    vec_18b5(i);
+                    party[i][0] = 0;
+                    party_delete_vec(i);
                     last = i;
                 } else
-                    D_9c69[i][0] = 1;
+                    party[i][0] = 1;
                 n++;
             }
     } else {
         for (i = 4, n = 0; i >= 0; i--)
-            if (D_9c69[i][0] == 5) {
+            if (party[i][0] == 5) {
                 if (n == 0) {
-                    D_9c69[i][0] = 0;
-                    vec_18b5(i);
+                    party[i][0] = 0;
+                    party_delete_vec(i);
                     last = i;
                 } else
-                    D_9c69[i][0] = 1;
+                    party[i][0] = 1;
                 n++;
             }
     }
     if (n)
-        D_991d = last;
-    sub_root_0000_1716(0x100);
+        best_member = last;
+    party_panel_rows(0x100);
     return n;
 }
 
-/* members with status 5 return to status 1 (vec_1eb9) */
-int far sub_s029_0e76_251a(void)
+/* members with status 5 return to status 1 (lose_items) */
+int far party_rejoin_away(void)
 {
     int i;
     int n;
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 5) {
-            D_9c69[i][0] = 1;
-            vec_1eb9(i);
+        if (party[i][0] == 5) {
+            party[i][0] = 1;
+            lose_items(i);
             n++;
         }
-    sub_root_0000_1716(0x100);
+    party_panel_rows(0x100);
     return n;
 }
 
@@ -1768,7 +1770,7 @@ int far sub_s029_0e76_251a(void)
    (20 + rnd 5)), attribute 1 +1 when the party's best skill 13 beats rnd 150, attributes
    2, 3, 5 +1 with 11% each; attributes 6, 1, 3, 2, 5 are then capped at max + item bonus.
    If nobody is left: "death" screen and exit.  Empty member slots get event 0x43 cleared. */
-void far sub_s029_0e76_255a(int hours)
+void far hours_pass(int hours)
 {
     int i;
     int n;
@@ -1777,13 +1779,13 @@ void far sub_s029_0e76_255a(int hours)
     int e;
     char *p;
 
-    if (D_9c69[D_907b][0] != 1)
+    if (party[leader][0] != 1)
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] == 1) {
-                D_907b = i;
+            if (party[i][0] == 1) {
+                leader = i;
                 break;
             }
-    for (i = 0, p = D_9cb2[0]; p < D_9cb2[5]; i++, p += 0x80) {
+    for (i = 0, p = member_attrs[0]; p < member_attrs[5]; i++, p += 0x80) {
         if ((u.t = p[-0x49]) == 0)
             continue;
         if (u.t == 3) {
@@ -1794,9 +1796,9 @@ void far sub_s029_0e76_255a(int hours)
             *p = p[7] - 4;
         else if (d > 2)
             (*p)++;
-        if (D_00e0 + hours >= 24) {
-            p[6] += sub_s029_1367_0066(1, 5, p[0x16] / (sub_root_0000_0c70(5) + 20));
-            if (random_n(150) <= sub_s029_0e76_14a4(13))
+        if (cur_hour + hours >= 24) {
+            p[6] += clamp_range(1, 5, p[0x16] / (rand_mod(5) + 20));
+            if (random_n(150) <= party_max_skill(13))
                 p[1]++;
             if (random_n(100) <= 10)
                 p[2]++;
@@ -1805,26 +1807,26 @@ void far sub_s029_0e76_255a(int hours)
             if (random_n(100) <= 10)
                 p[5]++;
         }
-        if (p[6] > sub_s029_0e76_4e0c(i, 6) + p[13])
-            p[6] = sub_s029_0e76_4e0c(i, 6) + p[13];
-        if (p[1] > sub_s029_0e76_4e0c(i, 1) + p[8])
-            p[1] = sub_s029_0e76_4e0c(i, 1) + p[8];
-        if (p[3] > sub_s029_0e76_4e0c(i, 3) + p[10])
-            p[3] = sub_s029_0e76_4e0c(i, 3) + p[10];
-        if (p[2] > sub_s029_0e76_4e0c(i, 2) + p[9])
-            p[2] = sub_s029_0e76_4e0c(i, 2) + p[9];
-        if (p[5] > sub_s029_0e76_4e0c(i, 5) + p[12])
-            p[5] = sub_s029_0e76_4e0c(i, 5) + p[12];
+        if (p[6] > event_48_max(i, 6) + p[13])
+            p[6] = event_48_max(i, 6) + p[13];
+        if (p[1] > event_48_max(i, 1) + p[8])
+            p[1] = event_48_max(i, 1) + p[8];
+        if (p[3] > event_48_max(i, 3) + p[10])
+            p[3] = event_48_max(i, 3) + p[10];
+        if (p[2] > event_48_max(i, 2) + p[9])
+            p[2] = event_48_max(i, 2) + p[9];
+        if (p[5] > event_48_max(i, 5) + p[12])
+            p[5] = event_48_max(i, 5) + p[12];
     }
-    sub_root_0000_1716(0x100);
+    party_panel_rows(0x100);
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0)
+        if (party[i][0] != 0)
             n++;
     if (n == 0) {
-        sub_root_047c_12c3();
+        mouse_hide();
         vec_18f1(0x12);
-        vec_18c9();
+        cards_shutdown_vec();
         if (D_0bf2 == n) {
             sub_root_030b_0004("death");
             if (kbhit())
@@ -1833,19 +1835,19 @@ void far sub_s029_0e76_255a(int hours)
         sub_root_044a_01f4();
         sub_root_047c_0791();
         vec_186f();
-        sub_root_0000_1354();
+        game_shutdown();
         if (D_907d == 1)
-            sub_root_05f8_0139(D_940b);
+            sub_root_05f8_0139(ems_frame_handle);
         exit_(n);
     }
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 0 && (e = sub_s029_0e76_3b62(0x43, i, -1, -1, -1, -1)) != -1)
-            sub_s029_0e76_30fe(e);
+        if (party[i][0] == 0 && (e = event_find(0x43, i, -1, -1, -1, -1)) != -1)
+            event_free(e);
     srand((unsigned)time(0L));
 }
 
 /* monthly hook (months = months elapsed so far): every member whose birth month
-   ((D_9c4a + month) % 12 == member index) ages one year (+1 in the word before the record);
+   ((party_seed + month) % 12 == member index) ages one year (+1 in the word before the record);
    every third month the nearest location of type 0x1a to the current one turns into a type 2
    location (flags cleared, +0xc = 0x93, +0xe = 0x92, +8 = 4); then without an active event
    of type 4 a 1-in-4 chance of vec_1f09, without type 12 a 1-in-3 chance of vec_1f27, and
@@ -1858,29 +1860,29 @@ void far sub_s029_0e76_281c(int months)
 
     D_26bc = 1;
     for (i = 0; i < 5; i++)
-        if (*(char *)&D_9c67[i][1] != 0 && (unsigned)(D_9c4a + D_00e4) % 12 == i)
+        if (*(char *)&D_9c67[i][1] != 0 && (unsigned)(party_seed + cur_month) % 12 == i)
             D_9c67[i][0]++;
     if (months % 3 == 0) {
-        s = vec_1f13(F_2e38_10be[D_907e]->x, F_2e38_10be[D_907e]->y, 0x1a);
-        if (D_907e != s && s != -1) {
-            F_2e38_10be[s]->type = 2;
-            F_2e38_10be[s]->f14 = 0;
-            F_2e38_10be[s]->fc = 0x93;
-            F_2e38_10be[s]->fe = 0x92;
-            F_2e38_10be[s]->f8 = 4;
+        s = vec_1f13(locations[cur_loc]->x, locations[cur_loc]->y, 0x1a);
+        if (cur_loc != s && s != -1) {
+            locations[s]->type = 2;
+            locations[s]->f14 = 0;
+            locations[s]->fc = 0x93;
+            locations[s]->fe = 0x92;
+            locations[s]->f8 = 4;
         }
     }
-    if (!sub_s029_0e76_32fe(4) && !sub_root_0000_0c70(4))
+    if (!ev8_exists(4) && !rand_mod(4))
         vec_1f09();
-    if (!sub_s029_0e76_32fe(12) && !sub_root_0000_0c70(3))
+    if (!ev8_exists(12) && !rand_mod(3))
         vec_1f27();
-    if (!sub_s029_0e76_32fe(1))
+    if (!ev8_exists(1))
         vec_1f1d();
 }
 #pragma optimize("", on)
 
 #pragma optimize("e", off)
-int far sub_s029_0e76_2930(int k, int hours)
+int far event_here(int k, int hours)
 {
     volatile struct date { int hour, day, month, year; } forever;
     int i;
@@ -1889,25 +1891,25 @@ int far sub_s029_0e76_2930(int k, int hours)
     forever.day = 31;
     forever.month = 12;
     forever.year = 1499;
-    if ((i = sub_s029_0e76_3144()) == -1)
+    if ((i = event_slot_free()) == -1)
         return -1;
-    F_2e38_1b2c[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
+    events[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
     if (hours == 9999)
-        sub_s029_0e76_3034(-2, D_907e, 0, k, 0, 100, 0, D_00e0, D_00e2, D_00e4, D_00e6,
+        sub_s029_0e76_3034(-2, cur_loc, 0, k, 0, 100, 0, cur_hour, cur_day, cur_month, cur_year,
                            forever.hour, forever.day, forever.month, forever.year, 0, 0, 0, 0, 0, i);
     else {
-        sub_s029_0e76_3034(-2, D_907e, 0, k, 0, 100, 0, D_00e0, D_00e2, D_00e4, D_00e6,
-                           D_00e0, D_00e2, D_00e4, D_00e6, 0, 0, 0, 0, 0, i);
-        sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[i]->hour1, hours);
+        sub_s029_0e76_3034(-2, cur_loc, 0, k, 0, 100, 0, cur_hour, cur_day, cur_month, cur_year,
+                           cur_hour, cur_day, cur_month, cur_year, 0, 0, 0, 0, 0, i);
+        date_add_hours((struct date far *)&events[i]->hour1, hours);
     }
-    return D_e3ce = i;
+    return last_event = i;
 }
 #pragma optimize("", on)
 
 /* like 2930, with two parameters: create event (-2, here, 0, a, b, 100, ...) running from
    now for `hours` hours (9999 = until 31.12.1499); returns its index */
 #pragma optimize("e", off)
-int far sub_s029_0e76_2a32(int a, int b, int hours)
+int far event_here_type(int a, int b, int hours)
 {
     volatile struct date { int hour, day, month, year; } forever;
     int i;
@@ -1916,38 +1918,38 @@ int far sub_s029_0e76_2a32(int a, int b, int hours)
     forever.day = 31;
     forever.month = 12;
     forever.year = 1499;
-    if ((i = sub_s029_0e76_3144()) == -1)
+    if ((i = event_slot_free()) == -1)
         return -1;
-    F_2e38_1b2c[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
+    events[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
     if (hours == 9999)
-        sub_s029_0e76_3034(-2, D_907e, 0, a, b, 100, 0, D_00e0, D_00e2, D_00e4, D_00e6,
+        sub_s029_0e76_3034(-2, cur_loc, 0, a, b, 100, 0, cur_hour, cur_day, cur_month, cur_year,
                            forever.hour, forever.day, forever.month, forever.year, 0, 0, 0, 0, 0, i);
     else {
-        sub_s029_0e76_3034(-2, D_907e, 0, a, b, 100, 0, D_00e0, D_00e2, D_00e4, D_00e6,
-                           D_00e0, D_00e2, D_00e4, D_00e6, 0, 0, 0, 0, 0, i);
-        sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[i]->hour1, hours);
+        sub_s029_0e76_3034(-2, cur_loc, 0, a, b, 100, 0, cur_hour, cur_day, cur_month, cur_year,
+                           cur_hour, cur_day, cur_month, cur_year, 0, 0, 0, 0, 0, i);
+        date_add_hours((struct date far *)&events[i]->hour1, hours);
     }
-    return D_e3ce = i;
+    return last_event = i;
 }
 #pragma optimize("", on)
 
-void far sub_s029_0e76_2b36(int k, int hours)
+void far event_here_extend(int k, int hours)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             break;
-        if (F_2e38_1b2c[i]->type0 == 0 && F_2e38_1b2c[i]->f1c == D_907e &&
-            F_2e38_1b2c[i]->f1a == -2 && F_2e38_1b2c[i]->f28 == 0)
+        if (events[i]->type0 == 0 && events[i]->f1c == cur_loc &&
+            events[i]->f1a == -2 && events[i]->f28 == 0)
             break;
     } while (++i < 300);
     if (i < 300 && i != -1)
-        sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[i]->hour1, hours);
+        date_add_hours((struct date far *)&events[i]->hour1, hours);
     else
-        sub_s029_0e76_2930(k, hours);
-    D_e3ce = i;
+        event_here(k, hours);
+    last_event = i;
 }
 
 /* create an event from 17 values (sub_3034 fills it in); returns its index (-1: table full) */
@@ -1958,17 +1960,17 @@ int far sub_s029_0e76_2bce(int a0, int a1, int a2, int a3, int a4, int a5, int a
 {
     int i;
 
-    if ((i = sub_s029_0e76_3144()) == -1)
+    if ((i = event_slot_free()) == -1)
         return -1;
-    F_2e38_1b2c[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
+    events[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
     sub_s029_0e76_3034(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
                        0, 0, 0, i);
-    return D_e3ce = i;
+    return last_event = i;
 }
 #pragma optimize("", on)
 
 #pragma optimize("e", off)
-int far sub_s029_0e76_2c4e(int a, int b, int c, int d, int e, int f, int g, int hours, int x, int y)
+int far event_new(int a, int b, int c, int d, int e, int f, int g, int hours, int x, int y)
 {
     volatile struct date { int hour, day, month, year; } forever;
     int i;
@@ -1977,25 +1979,25 @@ int far sub_s029_0e76_2c4e(int a, int b, int c, int d, int e, int f, int g, int 
     forever.day = 31;
     forever.month = 12;
     forever.year = 1499;
-    if ((i = sub_s029_0e76_3144()) == -1)
+    if ((i = event_slot_free()) == -1)
         return -1;
-    F_2e38_1b2c[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
+    events[i] = MK_FP(alloc_buffer(0x30L, 0), 0);
     if (hours == 9999)
-        sub_s029_0e76_3034(a, b, c, d, e, f, g, D_00e0, D_00e2, D_00e4, D_00e6,
+        sub_s029_0e76_3034(a, b, c, d, e, f, g, cur_hour, cur_day, cur_month, cur_year,
                            forever.hour, forever.day, forever.month, forever.year, x, y, 0, 0, 0, i);
     else {
-        sub_s029_0e76_3034(a, b, c, d, e, f, g, D_00e0, D_00e2, D_00e4, D_00e6,
-                           D_00e0, D_00e2, D_00e4, D_00e6, x, y, 0, 0, 0, i);
-        sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[i]->hour1, hours);
+        sub_s029_0e76_3034(a, b, c, d, e, f, g, cur_hour, cur_day, cur_month, cur_year,
+                           cur_hour, cur_day, cur_month, cur_year, x, y, 0, 0, 0, i);
+        date_add_hours((struct date far *)&events[i]->hour1, hours);
     }
-    return D_e3ce = i;
+    return last_event = i;
 }
 #pragma optimize("", on)
 
 /* find the active event (kind k) with type0 e, owner f1c == b (b -1 = any), f1a == a and
    f28 == y and extend it by `hours`; if there is none, create it (a, b, c, k, e, f, g, from
    now, x, y) and let it run for `hours`.  Returns the event index (-1: table full) */
-int far sub_s029_0e76_2d5c(int a, int b, int c, int k, int e, int f, int g, int hours, int x,
+int far event_renew(int a, int b, int c, int k, int e, int f, int g, int hours, int x,
                            int y)
 {
     int i;
@@ -2003,62 +2005,62 @@ int far sub_s029_0e76_2d5c(int a, int b, int c, int k, int e, int f, int g, int 
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             break;
-        if (F_2e38_1b2c[i]->type0 == e && (F_2e38_1b2c[i]->f1c == b || b == -1) &&
-            F_2e38_1b2c[i]->f1a == a && F_2e38_1b2c[i]->f28 == y)
+        if (events[i]->type0 == e && (events[i]->f1c == b || b == -1) &&
+            events[i]->f1a == a && events[i]->f28 == y)
             break;
     } while (++i < 300);
     if (i >= 300 || (*(volatile int *)&n = i) == -1) {
-        if ((n = sub_s029_0e76_3144()) == -1)
+        if ((n = event_slot_free()) == -1)
             return -1;
-        F_2e38_1b2c[n] = MK_FP(alloc_buffer(0x30L, 0), 0);
-        sub_s029_0e76_3034(a, b, c, k, e, f, g, D_00e0, D_00e2, D_00e4, D_00e6,
-                           D_00e0, D_00e2, D_00e4, D_00e6, x, y, 0, 0, 0, n);
+        events[n] = MK_FP(alloc_buffer(0x30L, 0), 0);
+        sub_s029_0e76_3034(a, b, c, k, e, f, g, cur_hour, cur_day, cur_month, cur_year,
+                           cur_hour, cur_day, cur_month, cur_year, x, y, 0, 0, 0, n);
     }
-    sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[n]->hour1, hours);
-    return D_e3ce = n;
+    date_add_hours((struct date far *)&events[n]->hour1, hours);
+    return last_event = n;
 }
 
 /* find the active event (kind k) matching type0 e, f1c b, f1a a and f28 y (-1 = any) or
    create one (lasting 999 hours) and update its value +0x1e with v: op 0 set, 1 add,
    2 and, 3 or.  Returns the event index (-1: table full) */
-int far sub_s029_0e76_2e74(int a, int b, int k, int e, int v, int y, int op)
+int far event_update(int a, int b, int k, int e, int v, int y, int op)
 {
     int i;
     int n;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             break;
-        if ((e == -1 || F_2e38_1b2c[i]->type0 == e) && (b == -1 || F_2e38_1b2c[i]->f1c == b) &&
-            (a == -1 || F_2e38_1b2c[i]->f1a == a) && (y == -1 || F_2e38_1b2c[i]->f28 == y))
+        if ((e == -1 || events[i]->type0 == e) && (b == -1 || events[i]->f1c == b) &&
+            (a == -1 || events[i]->f1a == a) && (y == -1 || events[i]->f28 == y))
             break;
     } while (++i < 300);
     if (i >= 300 || (*(volatile int *)&n = i) == -1) {
-        if ((n = sub_s029_0e76_3144()) == -1)
+        if ((n = event_slot_free()) == -1)
             return -1;
-        F_2e38_1b2c[n] = MK_FP(alloc_buffer(0x30L, 0), 0);
-        sub_s029_0e76_3034(a, b, 0, k, e, v, 0, D_00e0, D_00e2, D_00e4, D_00e6,
-                           D_00e0, D_00e2, D_00e4, D_00e6, 0, y, 0, 0, 0, n);
-        sub_s029_1367_09ea((struct date far *)&F_2e38_1b2c[n]->hour1, 999);
+        events[n] = MK_FP(alloc_buffer(0x30L, 0), 0);
+        sub_s029_0e76_3034(a, b, 0, k, e, v, 0, cur_hour, cur_day, cur_month, cur_year,
+                           cur_hour, cur_day, cur_month, cur_year, 0, y, 0, 0, 0, n);
+        date_add_hours((struct date far *)&events[n]->hour1, 999);
     }
     switch (op) {
     case 0:
-        F_2e38_1b2c[n]->f1e = v;
+        events[n]->f1e = v;
         break;
     case 1:
-        F_2e38_1b2c[n]->f1e += v;
+        events[n]->f1e += v;
         break;
     case 2:
-        F_2e38_1b2c[n]->f1e &= v;
+        events[n]->f1e &= v;
         break;
     case 3:
-        F_2e38_1b2c[n]->f1e |= v;
+        events[n]->f1e |= v;
         break;
     }
-    return D_e3ce = n;
+    return last_event = n;
 }
 
 #pragma optimize("a", on)
@@ -2066,304 +2068,304 @@ void far sub_s029_0e76_3034(int a, int b, int c, int kind, int type0, int f, int
                             int h0, int d0, int m0, int y0, int h1, int d1, int m1, int y1,
                             int flags, int x, int y, int z, int w, int i)
 {
-    F_2e38_1b2c[i]->f20 = c;
-    F_2e38_1b2c[i]->f1a = a;
-    F_2e38_1b2c[i]->f1c = b;
-    F_2e38_1b2c[i]->f1e = f;
-    F_2e38_1b2c[i]->kind = kind;
-    F_2e38_1b2c[i]->f24 = flags;
-    F_2e38_1b2c[i]->type0 = type0;
-    F_2e38_1b2c[i]->f26 = g;
-    F_2e38_1b2c[i]->f28 = x;
-    F_2e38_1b2c[i]->f2a = y;
-    F_2e38_1b2c[i]->f2c = z;
-    F_2e38_1b2c[i]->f2e = w;
-    F_2e38_1b2c[i]->hour1 = h1;
-    F_2e38_1b2c[i]->day1 = d1;
-    F_2e38_1b2c[i]->month1 = m1;
-    F_2e38_1b2c[i]->year1 = y1;
-    F_2e38_1b2c[i]->hour0 = h0;
-    F_2e38_1b2c[i]->day0 = d0;
-    F_2e38_1b2c[i]->month0 = m0;
-    F_2e38_1b2c[i]->year0 = y0;
-    F_2e38_1b2c[i]->f2 = D_00e0;
-    F_2e38_1b2c[i]->f4 = D_00e2;
-    F_2e38_1b2c[i]->f6 = D_00e4;
-    F_2e38_1b2c[i]->f8 = D_00e6;
+    events[i]->f20 = c;
+    events[i]->f1a = a;
+    events[i]->f1c = b;
+    events[i]->f1e = f;
+    events[i]->kind = kind;
+    events[i]->f24 = flags;
+    events[i]->type0 = type0;
+    events[i]->f26 = g;
+    events[i]->f28 = x;
+    events[i]->f2a = y;
+    events[i]->f2c = z;
+    events[i]->f2e = w;
+    events[i]->hour1 = h1;
+    events[i]->day1 = d1;
+    events[i]->month1 = m1;
+    events[i]->year1 = y1;
+    events[i]->hour0 = h0;
+    events[i]->day0 = d0;
+    events[i]->month0 = m0;
+    events[i]->year0 = y0;
+    events[i]->f2 = cur_hour;
+    events[i]->f4 = cur_day;
+    events[i]->f6 = cur_month;
+    events[i]->f8 = cur_year;
 }
 #pragma optimize("", on)
 
 /* free event i */
-void far sub_s029_0e76_30fe(int i)
+void far event_free(int i)
 {
-    if (F_2e38_1b2c[i])
-        free_buffer(FP_SEG(F_2e38_1b2c[i]), "event");
-    F_2e38_1b2c[i] = 0;
+    if (events[i])
+        free_buffer(FP_SEG(events[i]), "event");
+    events[i] = 0;
 }
 
 /* first free event slot; fatal error when all 300 are used */
-int far sub_s029_0e76_3144(void)
+int far event_slot_free(void)
 {
     int i;
 
     for (i = 0; i < 300; i++)
-        if (F_2e38_1b2c[i] == 0)
+        if (events[i] == 0)
             return i;
-    sub_root_0000_24bc("EVENT Failure", 100);
+    show_message("EVENT Failure", 100);
     return -1;
 }
 
 /* has event i started (start date <= now)? */
-int far sub_s029_0e76_3180(int i)
+int far event_has_started(int i)
 {
-    if (F_2e38_1b2c[i] == 0)
+    if (events[i] == 0)
         return 0;
-    if (F_2e38_1b2c[i]->year0 > D_00e6)
+    if (events[i]->year0 > cur_year)
         return 0;
-    if (F_2e38_1b2c[i]->year0 < D_00e6)
+    if (events[i]->year0 < cur_year)
         return 1;
-    if (F_2e38_1b2c[i]->month0 > D_00e4)
+    if (events[i]->month0 > cur_month)
         return 0;
-    if (F_2e38_1b2c[i]->month0 < D_00e4)
+    if (events[i]->month0 < cur_month)
         return 1;
-    if (F_2e38_1b2c[i]->day0 > D_00e2)
+    if (events[i]->day0 > cur_day)
         return 0;
-    if (F_2e38_1b2c[i]->day0 < D_00e2)
+    if (events[i]->day0 < cur_day)
         return 1;
-    if (F_2e38_1b2c[i]->hour0 > D_00e0)
+    if (events[i]->hour0 > cur_hour)
         return 0;
     return 1;
 }
 
 /* has event i ended (end date <= now)? */
-int far sub_s029_0e76_31e6(int i)
+int far event_has_ended(int i)
 {
-    if (F_2e38_1b2c[i] == 0)
+    if (events[i] == 0)
         return 0;
-    if (F_2e38_1b2c[i]->year1 > D_00e6)
+    if (events[i]->year1 > cur_year)
         return 0;
-    if (F_2e38_1b2c[i]->year1 < D_00e6)
+    if (events[i]->year1 < cur_year)
         return 1;
-    if (F_2e38_1b2c[i]->month1 > D_00e4)
+    if (events[i]->month1 > cur_month)
         return 0;
-    if (F_2e38_1b2c[i]->month1 < D_00e4)
+    if (events[i]->month1 < cur_month)
         return 1;
-    if (F_2e38_1b2c[i]->day1 > D_00e2)
+    if (events[i]->day1 > cur_day)
         return 0;
-    if (F_2e38_1b2c[i]->day1 < D_00e2)
+    if (events[i]->day1 < cur_day)
         return 1;
-    if (F_2e38_1b2c[i]->hour1 > D_00e0)
+    if (events[i]->hour1 > cur_hour)
         return 0;
     return 1;
 }
 
 /* next event slot >= i of kind k (kind 0x1c also accepts kind 8); -1 if none */
-int far sub_s029_0e76_324c(int k, int i)
+int far event_next(int k, int i)
 {
     for (; i < 300; i++)
-        if (F_2e38_1b2c[i]->kind == k || k == 0x1c && F_2e38_1b2c[i]->kind == 8)
-            return D_e3ce = i;
+        if (events[i]->kind == k || k == 0x1c && events[i]->kind == 8)
+            return last_event = i;
     return -1;
 }
 
 /* no event of kind k exists (and D_00f0 is clear) */
 #pragma optimize("e", off)
-int far sub_s029_0e76_32aa(int k)
+int far event_exists(int k)
 {
     int i;
 
     if (D_00f0 != 0)
         return 0;
-    if ((i = sub_s029_0e76_324c(k, 0)) == -1)
+    if ((i = event_next(k, 0)) == -1)
         return 0;
     return 1;
 }
 #pragma optimize("", on)
 
 /* the first event of kind k has started */
-int far sub_s029_0e76_32ce(int k)
+int far event_started(int k)
 {
     int i;
 
-    i = sub_s029_0e76_324c(k, 0);
-    if (i != -1 && sub_s029_0e76_3180(i))
+    i = event_next(k, 0);
+    if (i != -1 && event_has_started(i))
         return 1;
     return 0;
 }
 
 /* a started event of kind 8 with +0x28 == v exists */
-int far sub_s029_0e76_32fe(int v)
+int far ev8_exists(int v)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(8, i)) == -1)
+        if ((i = event_next(8, i)) == -1)
             break;
-        if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f28 == v)
+        if (event_has_started(i) && events[i]->f28 == v)
             return 1;
     } while (++i < 300);
     return 0;
 }
 
 /* started event of kind 0x24 with +0x28 == v -> 1, else 0 */
-int far sub_s029_0e76_3350(int v)
+int far ev24_exists(int v)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x24, i)) == -1)
+        if ((i = event_next(0x24, i)) == -1)
             break;
-        if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f28 == v)
+        if (event_has_started(i) && events[i]->f28 == v)
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_33a2(int v, int a)
+int far ev24_at(int v, int a)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x24, i)) == -1)
+        if ((i = event_next(0x24, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->f1c == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_3404(int v, int a, int b)
+int far ev24_at_owner(int v, int a, int b)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x24, i)) == -1)
+        if ((i = event_next(0x24, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->f1c == b && events[i]->f1a == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_3470(int v, int a)
+int far ev8_at(int v, int a)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
+        if ((i = event_next(0x8, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->f1c == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_34d2(int v, int a, int b)
+int far ev8_at_owner(int v, int a, int b)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
+        if ((i = event_next(0x8, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1c == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->f1c == b && events[i]->f1a == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_353e(int v, int a, int b)
+int far ev8_owner_value(int v, int a, int b)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
+        if ((i = event_next(0x8, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->f1e == b && F_2e38_1b2c[i]->f1a == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->f1e == b && events[i]->f1a == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_35aa(int v, int a)
+int far loc_fact_any(int v, int a)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
+        if ((i = event_next(0x1c, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->type0 == a && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_360c(int v, int a, int b)
+int far loc_fact(int v, int a, int b)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
+        if ((i = event_next(0x1c, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b && sub_s029_0e76_3180(i))
+        if (events[i]->f28 == v && events[i]->type0 == a && events[i]->f1c == b && event_has_started(i))
             return 1;
     } while (++i < 300);
     return 0;
 }
 
 /* started event of kind 0x8 with +0x28 == v -> its +0x1e, else 0 */
-int far sub_s029_0e76_3676(int v)
+int far ev8_value(int v)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x8, i)) == -1)
+        if ((i = event_next(0x8, i)) == -1)
             break;
-        if (F_2e38_1b2c[i]->f28 == v && sub_s029_0e76_3180(i))
-            return F_2e38_1b2c[i]->f1e;
+        if (events[i]->f28 == v && event_has_started(i))
+            return events[i]->f1e;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_36d4(int v, int a)
+int far loc_fact_value_any(int v, int a)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
+        if ((i = event_next(0x1c, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && sub_s029_0e76_3180(i))
-            return F_2e38_1b2c[i]->f1e;
+        if (events[i]->f28 == v && events[i]->type0 == a && event_has_started(i))
+            return events[i]->f1e;
     } while (++i < 300);
     return 0;
 }
 
-int far sub_s029_0e76_3742(int v, int a, int b)
+int far loc_fact_value(int v, int a, int b)
 {
     int i;
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
+        if ((i = event_next(0x1c, i)) == -1)
             return 0;
-        if (F_2e38_1b2c[i]->f28 == v && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b && sub_s029_0e76_3180(i))
-            return F_2e38_1b2c[i]->f1e;
+        if (events[i]->f28 == v && events[i]->type0 == a && events[i]->f1c == b && event_has_started(i))
+            return events[i]->f1e;
     } while (++i < 300);
     return 0;
 }
 
 /* number of events of kind k */
-int far sub_s029_0e76_37b8(int k)
+int far event_count(int k)
 {
     int i;
     int n;
@@ -2371,7 +2373,7 @@ int far sub_s029_0e76_37b8(int k)
     i = 0;
     n = 0;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             break;
         n++;
     } while (++i < 300);
@@ -2387,9 +2389,9 @@ int far sub_s029_0e76_37e2(int k, int a)
     i = 0;
     n = 0;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             break;
-        if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f1c == a)
+        if (event_has_started(i) && events[i]->f1c == a)
             n++;
     } while (++i < 300);
     return n;
@@ -2404,57 +2406,57 @@ int far sub_s029_0e76_382e(int v)
     n = 0;
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(8, i)) == -1)
+        if ((i = event_next(8, i)) == -1)
             break;
-        if (F_2e38_1b2c[i]->f28 == v || v == -1)
+        if (events[i]->f28 == v || v == -1)
             n++;
     } while (++i < 300);
     return n;
 }
 
 /* started event of kind k with f1c == a -> 1 (0 while D_00f0 is set) */
-int far sub_s029_0e76_3878(int k, int a)
+int far event_at(int k, int a)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f1c == a)
+            if (event_has_started(i) && events[i]->f1c == a)
                 return 1;
         } while (++i < 300);
     return 0;
 }
 
 /* started event of kind k with type0 == a -> 1 (0 while D_00f0 is set) */
-int far sub_s029_0e76_38d2(int k, int a)
+int far event_type(int k, int a)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->type0 == a)
+            if (event_has_started(i) && events[i]->type0 == a)
                 return 1;
         } while (++i < 300);
     return 0;
 }
 
 /* started event of kind k with type0 == a, f1c == b -> 1 (0 while D_00f0 is set) */
-int far sub_s029_0e76_392c(int k, int a, int b)
+int far event_type_at(int k, int a, int b)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b)
+            if (event_has_started(i) && events[i]->type0 == a && events[i]->f1c == b)
                 return 1;
         } while (++i < 300);
     return 0;
@@ -2468,105 +2470,105 @@ int far sub_s029_0e76_3996(int k, int a)
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f1a == a)
+            if (event_has_started(i) && events[i]->f1a == a)
                 return 1;
         } while (++i < 300);
     return 0;
 }
 
 /* value (+0x1e) of the first active event of kind k, 0 if there is none */
-int far sub_s029_0e76_39f0(int k)
+int far event_value(int k)
 {
     int i;
 
-    if ((i = sub_s029_0e76_324c(k, 0)) == -1)
+    if ((i = event_next(k, 0)) == -1)
         return 0;
-    return F_2e38_1b2c[i]->f1e;
+    return events[i]->f1e;
 }
 
 /* started event of kind k with f1c == a -> its +0x1e (0 while D_00f0 is set) */
-int far sub_s029_0e76_3a20(int k, int a)
+int far event_value_at(int k, int a)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->f1c == a)
-                return F_2e38_1b2c[i]->f1e;
+            if (event_has_started(i) && events[i]->f1c == a)
+                return events[i]->f1e;
         } while (++i < 300);
     return 0;
 }
 
 /* started event of kind k with type0 == a -> its +0x1e (0 while D_00f0 is set) */
-int far sub_s029_0e76_3a86(int k, int a)
+int far event_value_type(int k, int a)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->type0 == a)
-                return F_2e38_1b2c[i]->f1e;
+            if (event_has_started(i) && events[i]->type0 == a)
+                return events[i]->f1e;
         } while (++i < 300);
     return 0;
 }
 
 /* started event of kind k with type0 == a and +0x1c == b -> its +0x1e, else 0 (0 while D_00f0) */
-int far sub_s029_0e76_3aec(int k, int a, int b)
+int far event_value_type_at(int k, int a, int b)
 {
     int i;
 
     i = 0;
     if (D_00f0 == 0)
         do {
-            if ((i = sub_s029_0e76_324c(k, i)) == -1)
+            if ((i = event_next(k, i)) == -1)
                 break;
-            if (sub_s029_0e76_3180(i) && F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1c == b)
-                return F_2e38_1b2c[i]->f1e;
+            if (event_has_started(i) && events[i]->type0 == a && events[i]->f1c == b)
+                return events[i]->f1e;
         } while (++i < 300);
     return 0;
 }
 
 /* first event of kind k matching type t, f1c a, f1a b, f28 c, f2a d (-1 = any); -1 if none */
-int far sub_s029_0e76_3b62(int k, int t, int a, int b, int c, int d)
+int far event_find(int k, int t, int a, int b, int c, int d)
 {
     int i;
 
     for (i = 0; i < 300; i++) {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             return -1;
-        if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1c == a) &&
-            (b == -1 || F_2e38_1b2c[i]->f1a == b) && (d == -1 || F_2e38_1b2c[i]->f2a == d) &&
-            (c == -1 || F_2e38_1b2c[i]->f28 == c))
+        if ((t == -1 || events[i]->type0 == t) && (a == -1 || events[i]->f1c == a) &&
+            (b == -1 || events[i]->f1a == b) && (d == -1 || events[i]->f2a == d) &&
+            (c == -1 || events[i]->f28 == c))
             return i;
     }
     return -1;
 }
 
-int far sub_s029_0e76_3c28(int k, int t, int a, int b, int c)
+int far event_find_loc(int k, int t, int a, int b, int c)
 {
     int i;
 
     for (i = 0; i < 300; i++) {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             return -1;
-        if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1a == a) &&
-            (c == -1 || F_2e38_1b2c[i]->f2a == c) && (b == -1 || F_2e38_1b2c[i]->f28 == b))
-            return F_2e38_1b2c[i]->f1c;
+        if ((t == -1 || events[i]->type0 == t) && (a == -1 || events[i]->f1a == a) &&
+            (c == -1 || events[i]->f2a == c) && (b == -1 || events[i]->f28 == b))
+            return events[i]->f1c;
     }
     return -1;
 }
 
 /* remove the events of kind k matching type t, f1c a, f1a b, f28 c (-1 = any); returns the
    count only when the scan runs out of events, garbage when it reaches slot 300 */
-int far sub_s029_0e76_3cde(int k, int t, int a, int b, int c)
+int far event_remove(int k, int t, int a, int b, int c)
 {
     int i;
     int n;
@@ -2574,17 +2576,17 @@ int far sub_s029_0e76_3cde(int k, int t, int a, int b, int c)
     i = 0;
     n = i;
     do {
-        if ((i = sub_s029_0e76_324c(k, i)) == -1)
+        if ((i = event_next(k, i)) == -1)
             return n;
-        if ((t == -1 || F_2e38_1b2c[i]->type0 == t) && (a == -1 || F_2e38_1b2c[i]->f1c == a) &&
-            (b == -1 || F_2e38_1b2c[i]->f1a == b) && (c == -1 || F_2e38_1b2c[i]->f28 == c)) {
-            sub_s029_0e76_30fe(i);
+        if ((t == -1 || events[i]->type0 == t) && (a == -1 || events[i]->f1c == a) &&
+            (b == -1 || events[i]->f1a == b) && (c == -1 || events[i]->f28 == c)) {
+            event_free(i);
             n++;
         }
     } while (++i < 300);
 }
 
-int far sub_s029_0e76_3d92(int v, int w)
+int far loc_facts_clear(int v, int w)
 {
     int i;
     int n;
@@ -2592,16 +2594,16 @@ int far sub_s029_0e76_3d92(int v, int w)
     i = 0;
     n = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x1c, i)) == -1)
+        if ((i = event_next(0x1c, i)) == -1)
             return n;
-        if ((v == -1 || F_2e38_1b2c[i]->f28 == v) && (w == -1 || F_2e38_1b2c[i]->f1c == w)) {
-            sub_s029_0e76_30fe(i);
+        if ((v == -1 || events[i]->f28 == v) && (w == -1 || events[i]->f1c == w)) {
+            event_free(i);
             n++;
         }
     } while (++i < 300);
 }
 
-void far sub_s029_0e76_3e06(int v, int w)
+void far ev8_resolve(int v, int w)
 {
     int i;
     int j;
@@ -2610,21 +2612,21 @@ void far sub_s029_0e76_3e06(int v, int w)
     i = 0;
     found = 0;
     do {
-        if ((i = sub_s029_0e76_324c(8, i)) == -1)
+        if ((i = event_next(8, i)) == -1)
             break;
-        if ((v == -1 || F_2e38_1b2c[i]->f28 == v) && (w == -1 || F_2e38_1b2c[i]->f1c == w)) {
+        if ((v == -1 || events[i]->f28 == v) && (w == -1 || events[i]->f1c == w)) {
             found = 1;
-            j = sub_s029_0e76_2c4e(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->f1e, F_2e38_1b2c[i]->f20,
-                                   0x24, F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->type0, 0, D_2238, 0,
-                                   F_2e38_1b2c[i]->f28);
-            F_2e38_10be[F_2e38_1b2c[i]->f1e]->rep += F_2e38_1b2c[i]->f2a;
-            vec_1f31(F_2e38_1b2c[i]->f2c);
-            F_2e38_1b2c[j]->f2e = F_2e38_1b2c[i]->f2e;
-            F_2e38_1b2c[j]->f2c = F_2e38_1b2c[i]->f1c;
+            j = event_new(events[i]->f1a, events[i]->f1e, events[i]->f20,
+                                   0x24, events[i]->f1a, events[i]->type0, 0, D_2238, 0,
+                                   events[i]->f28);
+            locations[events[i]->f1e]->rep += events[i]->f2a;
+            give_reward(events[i]->f2c);
+            events[j]->f2e = events[i]->f2e;
+            events[j]->f2c = events[i]->f1c;
         }
     } while (++i < 300);
     if (found)
-        sub_s029_0e76_3d92(v, w);
+        loc_facts_clear(v, w);
 }
 
 void far sub_s029_0e76_3f30(void)
@@ -2632,13 +2634,13 @@ void far sub_s029_0e76_3f30(void)
     int i;
 
     for (i = 0; i < 300; i++)
-        if (sub_s029_0e76_31e6(i)) {
-            if (F_2e38_1b2c[i]->f24 & 1)
-                F_290e_290f[F_2e38_1b2c[i]->f26](i);
-            if (F_2e38_1b2c[i]->kind == 8)
-                sub_s029_0e76_3d92(F_2e38_1b2c[i]->f28, F_2e38_1b2c[i]->f1c);
+        if (event_has_ended(i)) {
+            if (events[i]->f24 & 1)
+                event_expiry_fns[events[i]->f26](i);
+            if (events[i]->kind == 8)
+                loc_facts_clear(events[i]->f28, events[i]->f1c);
             else
-                sub_s029_0e76_30fe(i);
+                event_free(i);
         }
 }
 
@@ -2662,65 +2664,65 @@ void far sub_s029_0e76_3fb2(int i)
     int xj;
     int qb;
 
-    if (F_2e38_1b2c[i]->f1e <= sub_root_0000_0c70(100)) {
-        xj = sub_root_0000_0c70(4 - F_2e38_1b2c[i]->f2c) != 0;
-        if (sub_root_0000_0c70(2) != 0 && D_907e != -1)
-            sub_s029_0e76_2c4e(-2, D_907e, 0x32, 0x51, F_2e38_1b2c[i]->f2a, xj, 0,
+    if (events[i]->f1e <= rand_mod(100)) {
+        xj = rand_mod(4 - events[i]->f2c) != 0;
+        if (rand_mod(2) != 0 && cur_loc != -1)
+            event_new(-2, cur_loc, 0x32, 0x51, events[i]->f2a, xj, 0,
                                xj * 0x870 + 0x2d0, 0, 0);
-        sub_root_0000_24bc("Alchemy Failure", 100);
-        vec_1f63(F_2e38_1b2c[i]->f1a, 7, 0, 3, 0);
+        show_message("Alchemy Failure", 100);
+        practice_skill(events[i]->f1a, 7, 0, 3, 0);
     } else {
-        qb = F_2e38_1b2c[i]->type0 / 3;
-        rn = F_2e38_1b2c[i]->type0 % 3;
+        qb = events[i]->type0 / 3;
+        rn = events[i]->type0 % 3;
         itd.code = qb + 0x5f;
-        itd.f2 = F_2e38_0000.f_0890[qb + 0x5f][0x1e];
-        itd.quality = rn * 10 + F_2e38_0000.f_0890[qb + 0x5f][0x26];
-        itd.f5 = F_2e38_0000.f_0890[qb + 0x5f][0x25];
-        itd.qty = F_2e38_1b2c[i]->f20;
-        vec_1f6d(F_2e38_1b2c[i]->f1a, itd);
-        sub_root_0000_24bc("Alchemy Success", 100);
-        vec_1f63(F_2e38_1b2c[i]->f1a, 7, 1, 3, 0);
+        itd.f2 = data_file.f_0890[qb + 0x5f][0x1e];
+        itd.quality = rn * 10 + data_file.f_0890[qb + 0x5f][0x26];
+        itd.f5 = data_file.f_0890[qb + 0x5f][0x25];
+        itd.qty = events[i]->f20;
+        add_item_rec(events[i]->f1a, itd);
+        show_message("Alchemy Success", 100);
+        practice_skill(events[i]->f1a, 7, 1, 3, 0);
     }
 }
 #pragma optimize("", on)
 
 /* expiry of a type 0x1c event (i; f1c = city, f1a = owner): notes the old value of
    3742(2, 0x17, city), sets three 0x1c sub-events (4/5/3) to 2, a random value 0..99
-   for 0x23, with 1 in 2 chance swaps a random bit's vec_1f59/vec_1f4f value; every seventh
-   day (city +0x21 offset) picks the weaker of vec_1f3b/vec_1f45 (0x15/0x16) and may start
+   for 0x23, with 1 in 2 chance swaps a random bit's loc_side_get/loc_side_set value; every seventh
+   day (city +0x21 offset) picks the weaker of side2_percent/side1_percent (0x15/0x16) and may start
    a 0x1c event with that kind for 480 hours; always starts the 24-hour 0x1c/0xc event */
 void far sub_s029_0e76_4180(int i)
 {
     int old;
     int bit;
 
-    *(volatile int *)&old = sub_s029_0e76_3742(2, 0x17, F_2e38_1b2c[i]->f1c);
-    bit = 1 << sub_root_0000_0c70(16);
-    sub_s029_0e76_2e74(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->f1c, 0x1c, 5, 0, 2, 2);
-    sub_s029_0e76_2e74(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->f1c, 0x1c, 4, 0, 2, 2);
-    sub_s029_0e76_2e74(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->f1c, 0x1c, 3, 0, 2, 2);
-    sub_s029_0e76_2e74(-2, F_2e38_1b2c[i]->f1c, 0x1c, 0x23, sub_root_0000_0c70(100), 2, 0);
-    if (sub_root_0000_0c70(2) && old != bit)
-        vec_1f4f(bit, -vec_1f59(bit));
-    if ((sub_s029_0e76_1a8e(F_2e38_1b2c[i]->f1c, 0x21) + D_00e2) % 7 == 0) {
-        if (sub_s029_0e76_3742(2, 0, F_2e38_1b2c[i]->f1c) == -1) {
-            old = vec_1f3b();
+    *(volatile int *)&old = loc_fact_value(2, 0x17, events[i]->f1c);
+    bit = 1 << rand_mod(16);
+    event_update(events[i]->f1a, events[i]->f1c, 0x1c, 5, 0, 2, 2);
+    event_update(events[i]->f1a, events[i]->f1c, 0x1c, 4, 0, 2, 2);
+    event_update(events[i]->f1a, events[i]->f1c, 0x1c, 3, 0, 2, 2);
+    event_update(-2, events[i]->f1c, 0x1c, 0x23, rand_mod(100), 2, 0);
+    if (rand_mod(2) && old != bit)
+        loc_side_set(bit, -loc_side_get(bit));
+    if ((loc_query(events[i]->f1c, 0x21) + cur_day) % 7 == 0) {
+        if (loc_fact_value(2, 0, events[i]->f1c) == -1) {
+            old = side2_percent();
             bit = 0x15;
-        } else if (sub_s029_0e76_3742(2, 0, F_2e38_1b2c[i]->f1c) == 1) {
-            old = vec_1f45();
+        } else if (loc_fact_value(2, 0, events[i]->f1c) == 1) {
+            old = side1_percent();
             bit = 0x16;
-        } else if (vec_1f3b() > (bit = vec_1f45())) {
-            old = vec_1f3b();
+        } else if (side2_percent() > (bit = side1_percent())) {
+            old = side2_percent();
             bit = 0x15;
         } else {
             old = bit;
             bit = 0x16;
         }
-        if (!sub_s029_0e76_360c(2, 7, F_2e38_1b2c[i]->f1c) ||
-            (!sub_s029_0e76_360c(2, 6, F_2e38_1b2c[i]->f1c) && old > 0x96) || old > 0x10b)
-            sub_s029_0e76_2c4e(-2, F_2e38_1b2c[i]->f1c, 0, 0x1c, bit, 0x63, 0, 0x1e0, 0, 2);
+        if (!loc_fact(2, 7, events[i]->f1c) ||
+            (!loc_fact(2, 6, events[i]->f1c) && old > 0x96) || old > 0x10b)
+            event_new(-2, events[i]->f1c, 0, 0x1c, bit, 0x63, 0, 0x1e0, 0, 2);
     }
-    sub_s029_0e76_2c4e(-2, F_2e38_1b2c[i]->f1c, 0, 0x1c, 0xc, 0x63, 2, 0x18, 1, 2);
+    event_new(-2, events[i]->f1c, 0, 0x1c, 0xc, 0x63, 2, 0x18, 1, 2);
 }
 
 void far sub_s029_0e76_4378(int j)
@@ -2730,43 +2732,43 @@ void far sub_s029_0e76_4378(int j)
 
     i = 0;
     do {
-        if ((i = sub_s029_0e76_324c(8, i)) == -1)
+        if ((i = event_next(8, i)) == -1)
             break;
-        if (F_2e38_1b2c[i]->f1c == F_2e38_1b2c[j]->f1c) {
-            sub_s029_0e76_2c4e(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->f1e, F_2e38_1b2c[i]->f20, 0x24,
-                               F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->type0, 0, D_270f, 0,
-                               F_2e38_1b2c[i]->f28);
-            sub_s029_0e76_19d0(F_2e38_1b2c[i]->f1e, F_2e38_1b2c[i]->f2a, F_2e38_1b2c[i]->f2a);
-            F_2e38_1b2c[k]->f2e = F_2e38_1b2c[i]->f2e;
+        if (events[i]->f1c == events[j]->f1c) {
+            event_new(events[i]->f1a, events[i]->f1e, events[i]->f20, 0x24,
+                               events[i]->f1a, events[i]->type0, 0, D_270f, 0,
+                               events[i]->f28);
+            loc_reputation_adj(events[i]->f1e, events[i]->f2a, events[i]->f2a);
+            events[k]->f2e = events[i]->f2e;
         }
     } while (++i < 300);
 }
 
 void far sub_s029_0e76_4436(void)
 {
-    sub_s029_0e76_2930(0x3b, 0x18);
+    event_here(0x3b, 0x18);
 }
 
 /* event i expires: message 0x47 to the party if its member (type0) is present */
-void far sub_s029_0e76_4442(int i)
+void far event_expire_msg(int i)
 {
-    if (D_9c69[F_2e38_1b2c[i]->type0][0])
-        sub_s029_0e76_2c4e(-2, D_907e, 0, 0x47, F_2e38_1b2c[i]->type0, F_2e38_1b2c[i]->type0, 0, D_270f, 0, 0);
+    if (party[events[i]->type0][0])
+        event_new(-2, cur_loc, 0, 0x47, events[i]->type0, events[i]->type0, 0, D_270f, 0, 0);
 }
 
 /* undo an event's effect on member +0x1a (kinds 0x48 / 0x49: subtract +0x1e again) */
 void far sub_s029_0e76_448a(int i)
 {
     D_26bc = 1;
-    if (D_9c69[F_2e38_1b2c[i]->f1a][0]) {
-        if (D_01bd == 0)
+    if (party[events[i]->f1a][0]) {
+        if (opt_saint_msgs == 0)
             D_26bc = 0;
-        switch (F_2e38_1b2c[i]->kind) {
+        switch (events[i]->kind) {
         case 0x48:
-            sub_s029_0e76_0a72(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->type0, -F_2e38_1b2c[i]->f1e);
+            add_attr(events[i]->f1a, events[i]->type0, -events[i]->f1e);
             break;
         case 0x49:
-            sub_s029_0e76_02ea(F_2e38_1b2c[i]->f1a, F_2e38_1b2c[i]->type0, -F_2e38_1b2c[i]->f1e);
+            add_skill(events[i]->f1a, events[i]->type0, -events[i]->f1e);
             break;
         }
         D_26bc = 1;
@@ -2775,12 +2777,12 @@ void far sub_s029_0e76_448a(int i)
 
 void far sub_s029_0e76_450a(int p_6)
 {
-    F_2e38_10be[F_2e38_1b2c[p_6]->f2a]->fc = 0x13d;
+    locations[events[p_6]->f2a]->fc = 0x13d;
 }
 
 /* event i (+0x2a = location) ends: the location's +0xc becomes 0x13e, a 48-hour 0x1c/5
    event remembers the location, and a 0x1c/4 event lasts until day vec_1f81() (this year
-   or next); its +0x2a gets vec_1f77(rnd 300, rnd 900, 0x15) */
+   or next); its +0x2a gets nearest_loc_type(rnd 300, rnd 900, 0x15) */
 void far sub_s029_0e76_4534(int i)
 {
     struct date { int hour, day, month, year; } d;
@@ -2788,18 +2790,18 @@ void far sub_s029_0e76_4534(int i)
     int day;
     int y;
 
-    loc = F_2e38_1b2c[i]->f2a;
-    F_2e38_10be[loc]->fc = 0x13e;
-    F_2e38_1b2c[sub_s029_0e76_2c4e(-2, 0, 0x63, 0x1c, 5, 0, 7, 0x30, 1, 1)]->f2a = loc;
+    loc = events[i]->f2a;
+    locations[loc]->fc = 0x13e;
+    events[event_new(-2, 0, 0x63, 0x1c, 5, 0, 7, 0x30, 1, 1)]->f2a = loc;
     day = vec_1f81();
-    if (sub_s029_1367_09cc() < day)
-        y = D_00e6;
+    if (yday_now() < day)
+        y = cur_year;
     else
-        y = D_00e6 + 1;
-    sub_s029_1367_08ae(&d, y, 0, day, 0);
-    i = sub_s029_0e76_2c4e(-2, 0, 0x63, 0x1c, 4, day, 8,
-                           sub_s029_1367_0b1c((struct date far *)&d) * 24, 1, 1);
-    F_2e38_1b2c[i]->f2a = vec_1f77(sub_root_0000_0c70(300), sub_root_0000_0c70(900), 0x15);
+        y = cur_year + 1;
+    date_set(&d, y, 0, day, 0);
+    i = event_new(-2, 0, 0x63, 0x1c, 4, day, 8,
+                           days_until((struct date far *)&d) * 24, 1, 1);
+    events[i]->f2a = nearest_loc_type(rand_mod(300), rand_mod(900), 0x15);
 }
 
 void far sub_s029_0e76_4626(void)
@@ -2808,17 +2810,17 @@ void far sub_s029_0e76_4626(void)
 
     t = D_d843;
     if (t == 1 || t == 2)
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 6, 1, 0);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 6, 1, 0);
 }
 
 /* add a new party member in the first free slot (-1 if the party is full): status 1, names,
    the default attribute maxima 37/34/31/29/32/34/99 (current = maximum), default skills,
    age 25, random portrait letter 'A'..'O', cleared flag bits and formulas, three standard
-   items (vec_1f8b); appends the record to charactr.tmp (slot table of 5 file indices, the
+   items (add_item_q_vec); appends the record to charactr.tmp (slot table of 5 file indices, the
    5 portrait names, then 0x22a bytes per character), loads pics\shield?.pic and starts the
    0x43 event for the new member */
 #pragma optimize("a", on)
-int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, int hours,
+int far add_member(int unused, char *name, char *shortname, char *pic, int hours,
                            int y)
 {
     char buf[30];
@@ -2832,16 +2834,16 @@ int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, i
     FILE *f;
 
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] == 0)
+        if (party[i][0] == 0)
             break;
     if (i >= 5)
         return -1;
     slot = i;
-    D_9c69[slot][0] = 1;
+    party[slot][0] = 1;
     strcpy(D_9c7a[slot], name);
     strcpy(D_9c93[slot], shortname);
-    D_9c69[slot][6] = 0;
-    D_9c69[slot][5] = 0;
+    party[slot][6] = 0;
+    party[slot][5] = 0;
     D_9cb9[slot][0] = 37;
     D_9cb9[slot][1] = 34;
     D_9cb9[slot][2] = 31;
@@ -2868,66 +2870,66 @@ int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, i
     D_9cc0[slot][16] = 48;
     D_9cc0[slot][17] = 40;
     D_9cc0[slot][18] = 31;
-    D_9c69[slot][0x3b] = 25;
-    D_9c69[slot][0x3c] = 25;
-    D_9c69[slot][0x39] = 5;
-    D_9c69[slot][0x3a] = 4;
+    party[slot][0x3b] = 25;
+    party[slot][0x3c] = 25;
+    party[slot][0x39] = 5;
+    party[slot][0x3a] = 4;
     /* both clears are fill loops (pragma a turns them into rep stosw through the CONST
        slot); indexing with slot (not i) gives the original imul order */
-    for (j = 0; j < 0x14; j++) F_2e38_082c[slot][j] = 0;
+    for (j = 0; j < 0x14; j++) saints_known[slot][j] = 0;
     for (j = 0; j < 0x16; j++) F_2e38_075f[slot][0x5f + j] = 0;
     D_9c67[slot][0] = 25;
-    D_9c69[slot][3] = 0;
-    D_9c69[slot][1] = sub_root_0000_0c70(15) + 'A';
-    D_9c69[slot][7] = 0;
-    D_9c69[slot][8] = slot;
-    D_9c69[slot][4] = -1;
-    D_9c69[slot][0x36] = -1;
-    D_9c69[slot][0x35] = 10;
-    D_9c69[slot][0x48] = -1;
-    D_9c69[slot][0x47] = 25;
+    party[slot][3] = 0;
+    party[slot][1] = rand_mod(15) + 'A';
+    party[slot][7] = 0;
+    party[slot][8] = slot;
+    party[slot][4] = -1;
+    party[slot][0x36] = -1;
+    party[slot][0x35] = 10;
+    party[slot][0x48] = -1;
+    party[slot][0x47] = 25;
     for (j = 0; j < 7; j++)
-        D_9cb2[slot][j] = D_9cb9[slot][j];
-    D_9c69[slot][0x3d] = -1;
-    D_9c69[slot][0x0e] = -1;
-    D_9c69[slot][0x37] = -1;
-    D_9c69[slot][0x38] = -1;
-    D_9c69[slot][0x6a] = 0;
-    vec_1f8b(slot, 0x2c, 10);
-    vec_1f8b(slot, 0x33, 15);
-    vec_1f8b(slot, 3, 15);
+        member_attrs[slot][j] = D_9cb9[slot][j];
+    party[slot][0x3d] = -1;
+    party[slot][0x0e] = -1;
+    party[slot][0x37] = -1;
+    party[slot][0x38] = -1;
+    party[slot][0x6a] = 0;
+    add_item_q_vec(slot, 0x2c, 10);
+    add_item_q_vec(slot, 0x33, 15);
+    add_item_q_vec(slot, 3, 15);
     for (i = 0; i < 5; i++)
-        if (D_9c69[i][0] != 0)
-            D_a67e = i + 1;
+        if (party[i][0] != 0)
+            party_size = i + 1;
     sub_root_06a1_2c9e("charactr.tmp", 2, &h);
     f = fdopen(h, "r+b");
     _dos_read(h, &cnt, 2, &n);
     _dos_read(h, idx, 10, &n);
-    _dos_read(h, D_a668, 0x14, &n);
-    strcpy(D_a668[slot], pic);
+    _dos_read(h, member_shield, 0x14, &n);
+    strcpy(member_shield[slot], pic);
     idx[slot] = cnt++;
     fseek(f, 0L, 0);
     _dos_write(h, &cnt, 2, &n);
     _dos_write(h, idx, 10, &n);
-    _dos_write(h, D_a668, 0x14, &n);
+    _dos_write(h, member_shield, 0x14, &n);
     fseek(f, (long)(unsigned)(cnt * 0x22a - 0x20a), 0);
-    _dos_write(h, D_9c55[slot], 0x80, &n);
-    _dos_write(h, F_2e38_082c[slot], 0x14, &n);
+    _dos_write(h, combatants[slot], 0x80, &n);
+    _dos_write(h, saints_known[slot], 0x14, &n);
     _dos_write(h, &F_2e38_075f[slot][0x5f], 0x16, &n);
-    _dos_write(h, F_2e38_003e[slot], 0x180, &n);
+    _dos_write(h, inventories[slot], 0x180, &n);
     fclose(f);
     sub_root_047c_0545();
     strcpy(buf, "pics\\");
     strcat(buf, "shield");
-    buf[11] = D_9c69[slot][1];
+    buf[11] = party[slot][1];
     buf[12] = 0;
     strcat(buf, ".pic");
-    D_a2d7[slot] = sub_root_0617_045c(buf);
+    shield_pics[slot] = pic_load(buf);
     sub_root_047c_04f8();
-    sub_s029_0e76_2c4e(-2, D_907e, 0, 0x43, slot, y, 5, hours, 1, 0);
-    D_a67c = sub_s029_0e76_37b8(0x43);
-    vec_1ea5(D_e3d4, (char far *)D_e3e3);
-    sub_root_0000_1716(0x100);
+    event_new(-2, cur_loc, 0, 0x43, slot, y, 5, hours, 1, 0);
+    D_a67c = event_count(0x43);
+    vec_1ea5(card_name, (char far *)pic_buf);
+    party_panel_rows(0x100);
 }
 #pragma optimize("", on)
 
@@ -2942,13 +2944,13 @@ void far sub_s029_0e76_4aa4(int p_6)
     k = 0;
     v_si = 0;
     do {
-        v_si = sub_s029_0e76_324c(0x43, v_si);
+        v_si = event_next(0x43, v_si);
         if (v_si == -1) {
             break;
         }
-        if (F_2e38_1b2c[v_si]->f1e == p_6) {
-            sub_s029_0e76_2c4e(-2, D_907e, 0, 0x47, F_2e38_1b2c[v_si]->type0, F_2e38_1b2c[v_si]->type0, 0, D_270f, 0, 0);
-            sub_s029_0e76_30fe(v_si);
+        if (events[v_si]->f1e == p_6) {
+            event_new(-2, cur_loc, 0, 0x47, events[v_si]->type0, events[v_si]->type0, 0, D_270f, 0, 0);
+            event_free(v_si);
         }
         v_si++;
     } while (v_si < 0x12c);
@@ -2958,29 +2960,29 @@ void far sub_s029_0e76_4aa4(int p_6)
    d is capped at 99 - skill, applied through 02ea and recorded as a 0x49 event lasting
    6 + rnd 3 + h - 5 hours.  Original bug: the -2 loop queries and changes member -2 (who)
    instead of each present member, and the capped d carries over */
-void far sub_s029_0e76_4b08(int who, int k, int d, int h)
+void far lower_skill_temp(int who, int k, int d, int h)
 {
     int i;
     int t;
 
     D_26bc = 1;
     if (who == -1)
-        who = D_907b;
-    if (!D_01bd)
+        who = leader;
+    if (!opt_saint_msgs)
         D_26bc = 0;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0]) {
-                if ((t = 99 - sub_s029_0e76_01a0(who, k)) < d)
+            if (party[i][0]) {
+                if ((t = 99 - member_skill(who, k)) < d)
                     d = t;
-                sub_s029_0e76_02ea(who, k, d);
-                sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x49, k, d, 6, sub_root_0000_0c70(3) + h - 5, 1, 0);
+                add_skill(who, k, d);
+                event_new(who, cur_loc, 0x63, 0x49, k, d, 6, rand_mod(3) + h - 5, 1, 0);
             }
     } else {
-        if ((t = 99 - sub_s029_0e76_01a0(who, k)) >= d)
+        if ((t = 99 - member_skill(who, k)) >= d)
             t = d;
-        sub_s029_0e76_02ea(who, k, t);
-        sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x49, k, t, 6, sub_root_0000_0c70(3) + h - 5, 1, 0);
+        add_skill(who, k, t);
+        event_new(who, cur_loc, 0x63, 0x49, k, t, 6, rand_mod(3) + h - 5, 1, 0);
     }
     D_26bc = 1;
 }
@@ -2990,35 +2992,35 @@ void far sub_s029_0e76_4b08(int who, int k, int d, int h)
    within d; records a 0x48 event (6 + rnd 3 + h - 5 hours)
    so the change can expire.  Original bugs: in the -2 loop a member whose gap is smaller
    than d ends the whole function, and the reduced d carries over to the next member. */
-void far sub_s029_0e76_4c04(int who, int k, int d, int h)
+void far raise_attr_temp(int who, int k, int d, int h)
 {
     int i;
     int n;
     int g;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0) {
-                g = sub_s029_0e76_05ee(i, k) - sub_s029_0e76_0b64(i, k);
+            if (party[i][0] != 0) {
+                g = member_attr(i, k) - member_attr_max(i, k);
                 if (g > 0 && d < g)
                     return;
                 if (g > 0)
                     d -= g;
-                sub_s029_0e76_2c4e(i, D_907e, 0x63, 0x48, k, d, 6,
-                                   sub_root_0000_0c70(3) + h - 5, 1, 0);
-                sub_s029_0e76_0a72(i, k, d);
+                event_new(i, cur_loc, 0x63, 0x48, k, d, 6,
+                                   rand_mod(3) + h - 5, 1, 0);
+                add_attr(i, k, d);
             }
     } else {
         n = d;
-        g = sub_s029_0e76_05ee(who, k) - sub_s029_0e76_0b64(who, k);
+        g = member_attr(who, k) - member_attr_max(who, k);
         if (g > 0 && n < g)
             return;
         if (g > 0)
             n -= g;
-        sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x48, k, n, 6, sub_root_0000_0c70(3) + h - 5, 1, 0);
-        sub_s029_0e76_0a72(who, k, n);
+        event_new(who, cur_loc, 0x63, 0x48, k, n, 6, rand_mod(3) + h - 5, 1, 0);
+        add_attr(who, k, n);
     }
 }
 
@@ -3028,14 +3030,14 @@ void far sub_s029_0e76_4d24(int who, int a, int b, int c)
     int i;
 
     if (who == -1)
-        who = D_907b;
+        who = leader;
     if (who == -2) {
         for (i = 0; i < 5; i++)
-            if (D_9c69[i][0] != 0)
-                sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x4a, a, b, 6, sub_root_0000_0c70(3) + c - 5, 1, 0);
+            if (party[i][0] != 0)
+                event_new(who, cur_loc, 0x63, 0x4a, a, b, 6, rand_mod(3) + c - 5, 1, 0);
         return;
     }
-    sub_s029_0e76_2c4e(who, D_907e, 0x63, 0x4a, a, b, 6, sub_root_0000_0c70(3) + c - 5, 1, 0);
+    event_new(who, cur_loc, 0x63, 0x4a, a, b, 6, rand_mod(3) + c - 5, 1, 0);
 }
 
 int far sub_s029_0e76_4db6(int who, int a)
@@ -3046,15 +3048,15 @@ int far sub_s029_0e76_4db6(int who, int a)
     i = 0;
     n = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x49, i)) == -1)
+        if ((i = event_next(0x49, i)) == -1)
             return n;
-        if (F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1a == who)
-            n += F_2e38_1b2c[i]->f1e;
+        if (events[i]->type0 == a && events[i]->f1a == who)
+            n += events[i]->f1e;
     } while (++i < 300);
 }
 
 /* largest +0x1e over kind-0x48 events (member who, type0 a) */
-int far sub_s029_0e76_4e0c(int who, int a)
+int far event_48_max(int who, int a)
 {
     int i;
     int n;
@@ -3062,14 +3064,14 @@ int far sub_s029_0e76_4e0c(int who, int a)
     i = 0;
     n = 0;
     do {
-        if ((i = sub_s029_0e76_324c(0x48, i)) == -1)
+        if ((i = event_next(0x48, i)) == -1)
             return n;
-        if (F_2e38_1b2c[i]->type0 == a && F_2e38_1b2c[i]->f1a == who && F_2e38_1b2c[i]->f1e > n)
-            n = F_2e38_1b2c[i]->f1e;
+        if (events[i]->type0 == a && events[i]->f1a == who && events[i]->f1e > n)
+            n = events[i]->f1e;
     } while (++i < 300);
 }
 
-void far sub_s029_0e76_4e68(int city)
+void far load_city(int city)
 {
     int h;
     unsigned n;
@@ -3077,11 +3079,11 @@ void far sub_s029_0e76_4e68(int city)
 
     sub_root_06a1_2c9e("darkland.cty", 0, &h);
     fseek(f = fdopen(h, "r"), (long)city * 0x26e + 1, 0);
-    _dos_read(h, D_9785, 0x26e, &n);
+    _dos_read(h, city_rec, 0x26e, &n);
     fclose(f);
     f = fopen("darkland.dsc", "r");
     fgetc(f);
     fseek(f, (long)(city * 0x50 + 1), 0);
-    fread(D_978b, 0x50, 1, f);
+    fread(city_desc, 0x50, 1, f);
     fclose(f);
 }

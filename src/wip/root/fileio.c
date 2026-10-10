@@ -14,6 +14,8 @@
    the graphics driver's byte stream (refilled from a file or from memory).
    The region's first 5 bytes (0617:0009, push bp/mov bp,sp/pop bp/retf) sit at an odd
    address in front of this module and stay assembly. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct catentry {                   /* .CAT directory entry, 24 bytes */
     char name[12];
@@ -23,7 +25,7 @@ struct catentry {                   /* .CAT directory entry, 24 bytes */
 };
 
 extern int D_6ba8;                  /* handle of the open catalog, -1 = none */
-extern int D_8e36;                  /* sub_root_0617_0736(NULL): entries enumerated so far */
+extern int D_8e36;                  /* catalog_find(NULL): entries enumerated so far */
 extern unsigned D_8e26;             /* bytes to read from the file opened last (-1 = all) */
 extern int D_775a;                  /* errno */
 extern int D_8e30;                  /* stream source: file handle */
@@ -70,7 +72,7 @@ char far *far sub_root_047c_0514(int);
 #define FP_OFF(fp) (*((unsigned *)&(fp)))
 
 /* catalog_find */
-int far sub_root_0617_0736(char *name, struct catentry *ent);
+int far catalog_find(char *name, struct catentry *ent);
 /* file_seek */
 int far sub_root_0617_0868(int h, long pos);
 /* file_error */
@@ -86,12 +88,12 @@ unsigned far sub_root_0617_0654(void);
 
 /* open a file for reading, from the catalog when it holds it */
 /* file_open */
-int far sub_root_0617_000e(char *name, int mode)
+int far file_open(char *name, int mode)
 {
     int hh;
     struct catentry ent;
 
-    if (sub_root_0617_0736(name, &ent)) {
+    if (catalog_find(name, &ent)) {
         if (sub_root_0617_0868(D_6ba8, ent.offset))
             sub_root_0617_067e(name);
         D_8e26 = ent.length;
@@ -104,7 +106,7 @@ int far sub_root_0617_000e(char *name, int mode)
 }
 
 /* file_create */
-int far sub_root_0617_0080(char *name)
+int far file_create(char *name)
 {
     int h;
 
@@ -114,7 +116,7 @@ int far sub_root_0617_0080(char *name)
 }
 
 /* file_close */
-void far sub_root_0617_00ae(int h)
+void far file_close(int h)
 {
     if (h != D_6ba8)
         if (_dos_close(h))
@@ -122,51 +124,51 @@ void far sub_root_0617_00ae(int h)
 }
 
 /* file_load */
-unsigned far sub_root_0617_00d4(char *name, char *buf)
+unsigned far file_load(char *name, char *buf)
 {
     int h;
     unsigned nb;
 
-    h = sub_root_0617_000e(name, 0);
+    h = file_open(name, 0);
     if (_dos_read(h, (char far *)buf, D_8e26, &nb))
         sub_root_0617_067e(0);
-    sub_root_0617_00ae(h);
+    file_close(h);
     return nb;
 }
 
 /* file_load_far */
-unsigned far sub_root_0617_011e(char *name, char far *buf)
+unsigned far file_load_far(char *name, char far *buf)
 {
     int hqn;
     unsigned nqa;
 
-    hqn = sub_root_0617_000e(name, 0);
+    hqn = file_open(name, 0);
     if (_dos_read(hqn, buf, D_8e26, &nqa))
         sub_root_0617_067e(0);
-    sub_root_0617_00ae(hqn);
+    file_close(hqn);
     return nqa;
 }
 
 /* file_save */
-unsigned far sub_root_0617_016a(char *name, char far *buf, unsigned len)
+unsigned far file_save(char *name, char far *buf, unsigned len)
 {
     int h;
 
-    h = sub_root_0617_0080(name);
+    h = file_create(name);
     if (_dos_write(h, buf, len, &len))
         sub_root_0617_067e(0);
-    sub_root_0617_00ae(h);
+    file_close(h);
     return len;
 }
 
 /* unpack a picture file and draw it line by line */
 /* pic_draw */
-void far sub_root_0617_01b2(int x, int y, int z, char *name, int mode)
+void far pic_draw(int x, int y, int z, char *name, int mode)
 {
     int h;
     int i;
 
-    h = sub_root_0617_000e(name, 0);
+    h = file_open(name, 0);
     sub_root_0617_05f0(h);
     sub_root_047c_0de6(mode);
     if (x < 0)
@@ -175,56 +177,56 @@ void far sub_root_0617_01b2(int x, int y, int z, char *name, int mode)
         sub_root_047c_0f60(D_eebc);
         sub_root_047c_054c(D_eebc, x, y, z + i, D_8e38);
     }
-    sub_root_0617_00ae(h);
+    file_close(h);
 }
 
 /* pic_draw_1 */
-void far sub_root_0617_0230(int x, char *name)
+void far pic_draw_1(int x, char *name)
 {
-    sub_root_0617_01b2(x, 0, 0, name, 1);
+    pic_draw(x, 0, 0, name, 1);
 }
 
 /* pic_draw_m */
-void far sub_root_0617_024a(int x, char *name, int mode)
+void far pic_draw_pal(int x, char *name, int mode)
 {
-    sub_root_0617_01b2(x, 0, 0, name, mode);
+    pic_draw(x, 0, 0, name, mode);
 }
 
 /* pic_draw_0 */
-void far sub_root_0617_0264(int x, char *name)
+void far pic_draw_0(int x, char *name)
 {
-    sub_root_0617_01b2(x, 0, 0, name, 0);
+    pic_draw(x, 0, 0, name, 0);
 }
 
 /* pic_load_1 */
-void far sub_root_0617_027c(char *name)
+void far pic_load_1(char *name)
 {
-    sub_root_0617_01b2(-1, 0, 0, name, 1);
+    pic_draw(-1, 0, 0, name, 1);
 }
 
 /* pic_load_m */
-void far sub_root_0617_0298(char *name, int mode)
+void far pic_load_m(char *name, int mode)
 {
-    sub_root_0617_01b2(-1, 0, 0, name, mode);
+    pic_draw(-1, 0, 0, name, mode);
 }
 
 /* unpack a whole file to memory */
 /* file_unpack */
-int far sub_root_0617_02b2(char far *dst, char *name)
+int far file_unpack(char far *dst, char *name)
 {
     int h;
 
-    h = sub_root_0617_000e(name, 0);
+    h = file_open(name, 0);
     sub_root_0617_05f0(h);
     sub_root_047c_0efe();
     sub_root_047c_0f46(dst, D_8e3c);
-    sub_root_0617_00ae(h);
+    file_close(h);
     return D_8e3c;
 }
 
 /* load font number idx of a font file into font slot 'slot' */
 /* font_load */
-int far sub_root_0617_02f6(int slot, int idx, char *name)
+int far font_load(int slot, int idx, char *name)
 {
     int h;
     unsigned nread;
@@ -267,12 +269,12 @@ int far sub_root_0617_02f6(int slot, int idx, char *name)
 }
 
 /* pic_show */
-void far sub_root_0617_045c(char *name)
+void far pic_load(char *name)
 {
     int h;
     int i;
 
-    h = sub_root_0617_000e(name, 0);
+    h = file_open(name, 0);
     sub_root_0617_05f0(h);
     sub_root_047c_0de6(0);
     sub_root_047c_05bc(D_8e38, D_8e3a);
@@ -280,24 +282,24 @@ void far sub_root_0617_045c(char *name)
         sub_root_047c_0f60(D_eebc);
         sub_root_047c_05b5(D_eebc);
     }
-    sub_root_0617_00ae(h);
+    file_close(h);
     sub_root_047c_05ae();
 }
 
 /* pic_draw_1r */
-void far sub_root_0617_04d0(char *name, int x)
+void far pic_draw_1r(char *name, int x)
 {
-    sub_root_0617_0230(x, name);
+    pic_draw_1(x, name);
 }
 
 /* note: leaves the file open */
 /* pic_draw_open */
-void far sub_root_0617_04e2(char *name, int x)
+void far pic_draw_open(char *name, int x)
 {
     int h;
     int i;
 
-    h = sub_root_0617_000e(name, 0);
+    h = file_open(name, 0);
     sub_root_0617_05f0(h);
     sub_root_047c_0de6(0);
     for (i = 0; i < D_8e3a; i++) {
@@ -308,7 +310,7 @@ void far sub_root_0617_04e2(char *name, int x)
 
 /* unpack a picture held in memory at seg:0000 */
 /* pic_draw_mem */
-void far sub_root_0617_0546(unsigned seg, int x)
+void far pic_draw_mem(unsigned seg, int x)
 {
     int i;
 
@@ -324,7 +326,7 @@ void far sub_root_0617_0546(unsigned seg, int x)
 }
 
 /* mem_unpack */
-int far sub_root_0617_05b0(char far *src, char far *dst)
+int far mem_unpack(char far *src, char far *dst)
 {
     int unused;
 
@@ -356,7 +358,7 @@ unsigned far sub_root_0617_060e(void)
 }
 
 /* stream_restart_file */
-void far sub_root_0617_0644(int h)
+void far stream_restart_file(int h)
 {
     D_8e30 = h;
     sub_root_0617_0654();
@@ -391,7 +393,7 @@ void far sub_root_0617_06a6(int mode)
 }
 
 /* catalog_open */
-int far sub_root_0617_06d8(char *name)
+int far catalog_open(char *name)
 {
     int h;
 
@@ -403,7 +405,7 @@ int far sub_root_0617_06d8(char *name)
 }
 
 /* catalog_close */
-void far sub_root_0617_070e(void)
+void far catalog_close(void)
 {
     if (D_6ba8 != -1) {
         if (_dos_close(D_6ba8))
@@ -413,7 +415,7 @@ void far sub_root_0617_070e(void)
 }
 
 /* look name up in the catalog; with name == NULL return the next entry */
-int far sub_root_0617_0736(char *name, struct catentry *ent)
+int far catalog_find(char *name, struct catentry *ent)
 {
     unsigned nread;
     int count;

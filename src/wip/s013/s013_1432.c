@@ -17,6 +17,8 @@
  * and loads the .fil (tile description) and .atv (enemy groups) files; the group monster
  * types are then mapped through sub_s004_0e76_06aa.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -67,20 +69,20 @@ struct group {
     char p0e[0x1e - 0x0e];
 };
 
-extern struct level far *D_c103;
+extern struct level far *load_buf;
 unsigned D_160c = 0;
 int D_160e = 0;
-extern _segment D_dadd;
-extern char _based(D_dadd) *D_db33;
-extern struct group _based(D_dadd) *D_db2d;
-extern int D_db05;
+extern _segment enemy_seg;
+extern char _based(enemy_seg) *tile_desc;
+extern struct group _based(enemy_seg) *bf_groups;
+extern int group_count;
 struct mtype { char p00[0x0c]; char x0c; char p0d[0xd6 - 0x0d]; };
-extern struct mtype _based(D_dadd) *D_db2b;
-int far sub_s004_0e76_06aa();
+extern struct mtype _based(enemy_seg) *bf_monsters;
+int far monster_type_map();
 int far sub_s004_1262_0d0a();
-extern char D_9080;
-int far sub_root_0000_25f2();
-int far sub_root_05d9_019a();
+extern char combat_flags;
+int far datafile_select();
+int far file_read_all();
 int far sub_s013_1432_0000();
 int far sub_s013_1432_0098();
 int far sub_s013_1432_0338();
@@ -94,7 +96,7 @@ int far sub_s013_1432_0c1e();
 
 int far sub_s013_1432_0000(int p_6, int p_8, int p_a)
 {
-    sub_root_0000_25f2("lcastle");
+    datafile_select("lcastle");
     switch (p_6) {
     default:
         return 0;
@@ -126,7 +128,7 @@ int far sub_s013_1432_0000(int p_6, int p_8, int p_a)
     case 0x6e:
         sub_s013_1432_0c1e();
 L_008e:
-        D_9080 |= 1;
+        combat_flags |= 1;
         return 1;
     }
 }
@@ -147,7 +149,7 @@ int far sub_s013_1432_0098(void)
     int x;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x159;
     doors[1] = 0x15c;
@@ -166,7 +168,7 @@ int far sub_s013_1432_0098(void)
     pos[6][1] = pos[5][1] = pos[4][1] = pos[3][1] = pos[2][1] = pos[1][1] = pos[0][1] = 5;
     doors[7] = 0;
     x = 0;
-    sub_root_05d9_019a("lc_court", lv);
+    file_read_all("lc_court", lv);
     m = *(volatile unsigned *)&D_160c & 0xff;
     if (m) {
         *cnt = 0;
@@ -197,15 +199,15 @@ int far sub_s013_1432_0098(void)
         }
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_court.fil", (char far *)D_db33);
+    file_read_all("lc_court.fil", (char far *)tile_desc);
     if (m2)
-        D_db33[0x47] = 9;
-    sub_root_05d9_019a("lc_court.atv", (struct group far *)D_db2d);
+        tile_desc[0x47] = 9;
+    file_read_all("lc_court.atv", (struct group far *)bf_groups);
     i = 0;
-    D_db05 = *cnt;
+    group_count = *cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 2;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 2;
     }
     return 0;
 }
@@ -218,10 +220,10 @@ int far sub_s013_1432_0338(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x161;
-    sub_root_05d9_019a("lc_g1", lv);
+    file_read_all("lc_g1", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -233,12 +235,12 @@ int far sub_s013_1432_0338(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g1.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g1.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g1.fil", (char far *)tile_desc);
+    file_read_all("lc_g1.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 4;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 4;
     }
     return 0;
 }
@@ -253,10 +255,10 @@ int far sub_s013_1432_047a(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x15a;
-    sub_root_05d9_019a("lc_g2", lv);
+    file_read_all("lc_g2", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -268,12 +270,12 @@ int far sub_s013_1432_047a(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g2.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g2.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g2.fil", (char far *)tile_desc);
+    file_read_all("lc_g2.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 2;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 2;
     }
     return 0;
 }
@@ -288,10 +290,10 @@ int far sub_s013_1432_05bc(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x15d;
-    sub_root_05d9_019a("lc_g3", lv);
+    file_read_all("lc_g3", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -303,12 +305,12 @@ int far sub_s013_1432_05bc(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g3.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g3.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g3.fil", (char far *)tile_desc);
+    file_read_all("lc_g3.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 2);
-        D_db2d[i].count[0] = 1;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 2);
+        bf_groups[i].count[0] = 1;
     }
     return 0;
 }
@@ -323,10 +325,10 @@ int far sub_s013_1432_06fe(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x160;
-    sub_root_05d9_019a("lc_g4s", lv);
+    file_read_all("lc_g4s", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -338,13 +340,13 @@ int far sub_s013_1432_06fe(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g4s.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g4s.atv", (struct group far *)D_db2d);
+    file_read_all("lc_g4s.fil", (char far *)tile_desc);
+    file_read_all("lc_g4s.atv", (struct group far *)bf_groups);
     *cnt -= 2;
-    D_db05 = *cnt;
+    group_count = *cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 2);
-        D_db2d[i].count[0] = 3;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 2);
+        bf_groups[i].count[0] = 3;
     }
     return 0;
 }
@@ -359,10 +361,10 @@ int far sub_s013_1432_0848(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x160;
-    sub_root_05d9_019a("lc_g4ns", lv);
+    file_read_all("lc_g4ns", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -374,12 +376,12 @@ int far sub_s013_1432_0848(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g4ns.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g4ns.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g4ns.fil", (char far *)tile_desc);
+    file_read_all("lc_g4ns.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 1;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 1;
     }
     return 0;
 }
@@ -394,10 +396,10 @@ int far sub_s013_1432_098a(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x164;
-    sub_root_05d9_019a("lc_g5", lv);
+    file_read_all("lc_g5", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -409,14 +411,14 @@ int far sub_s013_1432_098a(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g5.fil", (char far *)D_db33);
-    D_db33[0x44] = 8;
-    D_db33[0x77] = 6;
-    sub_root_05d9_019a("lc_g5.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g5.fil", (char far *)tile_desc);
+    tile_desc[0x44] = 8;
+    tile_desc[0x77] = 6;
+    file_read_all("lc_g5.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 1;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 1;
     }
     return 0;
 }
@@ -431,10 +433,10 @@ int far sub_s013_1432_0adc(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
     doors[0] = 0x15f;
-    sub_root_05d9_019a("lc_g7a", lv);
+    file_read_all("lc_g7a", lv);
     lv->x1f42[0] = 0x158;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -446,12 +448,12 @@ int far sub_s013_1432_0adc(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g7a.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g7a.atv", (struct group far *)D_db2d);
-    D_db05 = *(volatile int far *)cnt;
+    file_read_all("lc_g7a.fil", (char far *)tile_desc);
+    file_read_all("lc_g7a.atv", (struct group far *)bf_groups);
+    group_count = *(volatile int far *)cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 1;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 1;
     }
     return 0;
 }
@@ -466,9 +468,9 @@ int far sub_s013_1432_0c1e(void)
     int k;
     int i;
 
-    lv = D_c103;
+    lv = load_buf;
     cnt = &lv->ngroups;
-    sub_root_05d9_019a("lc_g7b", lv);
+    file_read_all("lc_g7b", lv);
     doors[0] = lv->x1f42[0] = 0x167;
     lv->x1f42[1] = 0x16d;
     lv->x1f42[2] = 0x16d;
@@ -480,13 +482,13 @@ int far sub_s013_1432_0c1e(void)
             lv->obj[i].x6 = doors[k++];
     }
     sub_s004_1262_0d0a("level0.flr", lv, 0x33fc, 0);
-    sub_root_05d9_019a("lc_g7b.fil", (char far *)D_db33);
-    sub_root_05d9_019a("lc_g7b.atv", (struct group far *)D_db2d);
-    D_db05 = *cnt;
+    file_read_all("lc_g7b.fil", (char far *)tile_desc);
+    file_read_all("lc_g7b.atv", (struct group far *)bf_groups);
+    group_count = *cnt;
     for (i = 0; i < *cnt; i++) {
-        D_db2d[i].type[0] = sub_s004_0e76_06aa(0, D_db2d[i].type[0], 1);
-        D_db2d[i].count[0] = 1;
-        D_db2b[D_db2d[i].type[0]].x0c = 1;
+        bf_groups[i].type[0] = monster_type_map(0, bf_groups[i].type[0], 1);
+        bf_groups[i].count[0] = 1;
+        bf_monsters[bf_groups[i].type[0]].x0c = 1;
     }
     return 0;
 }

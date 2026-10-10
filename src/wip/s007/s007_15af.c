@@ -7,6 +7,8 @@
  * Castle/keep battlefields: turns the generator work area (s005, segment D_db39) into level
  * buffers (F_20a5_0000, struct level below) and saves them as level%d.flr.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -46,9 +48,9 @@ struct level {                          /* battle map (0x33fc bytes), see s010/s
     char n3326;                         /* 3326 */
     char p3327[0x33fc - 0x3327];
 };
-extern struct level far F_20a5_0000;
-#define F F_20a5_0000
-#define CB(x, y, k) (((unsigned char far *)&F_20a5_0000.cell[x][y])[k])
+extern struct level far floor_img;
+#define F floor_img
+#define CB(x, y, k) (((unsigned char far *)&floor_img.cell[x][y])[k])
 
 struct gexit { int x0, x2, x4, x6, x8, x0a; };      /* 12 bytes, 4 per level (s005) */
 struct xrec {                           /* 14 bytes at D_5158: level exits */
@@ -58,25 +60,25 @@ struct xrec {                           /* 14 bytes at D_5158: level exits */
     char x0c, x0d;
 };
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;                  /* rooms: {x0, x1, y0, y1}, 30 per level */
-extern unsigned char _based(D_db39) *D_db8d;
-extern int _based(D_db39) *D_db8f;
-extern int _based(D_db39) *D_db91;                  /* room kind [lvl * 30 + i] */
-extern int _based(D_db39) *D_db93;
-extern struct gexit _based(D_db39) *D_db95;
-extern _segment D_dadd;
-extern char _based(D_dadd) *D_db33;                 /* tile descriptions */
-extern int D_db25;                                  /* keep entrance side */
-extern int D_db3d, D_db3f, D_db41, D_db43;
-extern int D_db45[5];
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;                  /* rooms: {x0, x1, y0, y1}, 30 per level */
+extern unsigned char _based(gen_work) *gen_cell_walls;
+extern int _based(gen_work) *gen_cell_type;
+extern int _based(gen_work) *D_db91;                  /* room kind [lvl * 30 + i] */
+extern int _based(gen_work) *gen_cell_door;
+extern struct gexit _based(gen_work) *gen_exits;
+extern _segment enemy_seg;
+extern char _based(enemy_seg) *tile_desc;                 /* tile descriptions */
+extern int gate_side;                                  /* keep entrance side */
+extern int keep_x0, D_db3f, D_db41, D_db43;
+extern int gen_rooms[5];
 extern int D_db4f[5];
 extern int D_db59[5];
 extern int D_db7f;
 extern int D_db63;
-extern int D_db71[5];
-extern int D_db7b;
-extern int D_db7d;
+extern int gen_exit_count[5];
+extern int gen_level_hi;
+extern int gen_level_lo;
 extern int D_db9b[5];                               /* parts per level */
 extern int D_dbbb[5][30];                           /* part of each room */
 extern char D_5156;
@@ -87,8 +89,8 @@ extern int D_54c8, D_54ca, D_54cc, D_54ce;
 int far sprintf(char *, const char *, ...);
 char far *_fstrcpy(char far *, const char far *);
 void *memset(void *, int, unsigned);
-int far sub_s004_0e76_20f6(int, int);
-int far sub_s004_0e76_06aa(int, int, int);
+int far roll_dice(int, int);
+int far monster_type_map(int, int, int);
 int far sub_s004_1262_0d0a(char *, void far *, long);
 int far sub_s005_146d_000c(int, int, int);
 int far sub_s005_1551_00bc(int, int, int, int, int);
@@ -117,7 +119,7 @@ void far sub_s007_15af_345a(int, int, int *);
 void far sub_s007_15af_3f8a(int, int, int, int, long);
 
 /* build and save all levels of a castle/keep battlefield */
-void far sub_s007_15af_0000(int *pn, int t, int p3, int p4, int p5, int p6, int p7, int p8,
+void far castle_build(int *pn, int t, int p3, int p4, int p5, int p6, int p7, int p8,
                             int p9, int p10, int p11)
 {
     int l, i, j;
@@ -127,13 +129,13 @@ void far sub_s007_15af_0000(int *pn, int t, int p3, int p4, int p5, int p6, int 
     char buf[66];
 
     sv = 0;
-    for (l = D_db7d; l <= D_db7b; l++)
+    for (l = gen_level_lo; l <= gen_level_hi; l++)
         sub_s007_15af_0188(l);
     sub_s007_15af_025a();
     sub_s007_15af_1a5e(t, pn, &side);
     sub_s007_15af_1bfe(t, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11);
-    for (l = D_db7d; l <= D_db7b; l++) {
-        F.x1f40 = l - D_db7d;
+    for (l = gen_level_lo; l <= gen_level_hi; l++) {
+        F.x1f40 = l - gen_level_lo;
         F.n3326 = F.ngrp = F.nexit = F.ncomp = F.nobj = F.n1f52 = 0;
         F.x1f42[4] = F.x1f42[3] = F.x1f42[2] = F.x1f42[1] = F.x1f42[0] = -2;
         c = F.cell[0];
@@ -151,11 +153,12 @@ void far sub_s007_15af_0000(int *pn, int t, int p3, int p4, int p5, int p6, int 
         sub_s007_15af_18f8(l, pn, t, side, p3, p4, p5, p6, p7, p8, p9, p10, p11);
         sub_s007_15af_345a(t, l, &sv);
         sprintf(buf, "level%d.flr", F.x1f40);
-        sub_s004_1262_0d0a(buf, &F_20a5_0000, 0x33fcL);
+        sub_s004_1262_0d0a(buf, &floor_img, 0x33fcL);
     }
 }
 
 /* split the rooms of level l into connected parts */
+#pragma optimize("a", on)
 void far sub_s007_15af_0188(int l)
 {
     int i, j;
@@ -164,10 +167,11 @@ void far sub_s007_15af_0188(int l)
     D_db9b[l] = 0;
     for (i = 0; i < 30; i++)
         D_dbbb[l][i] = -1;
-    memset(seen, 0, sizeof seen);
-    for (i = 0; i < D_db45[l]; i++) {
+    for (i = 0; i < 30; i++)
+        seen[i] = 0;
+    for (i = 0; i < gen_rooms[l]; i++) {
         if (seen[i] == 0) {
-            for (j = 0; j < D_db45[l]; j++) {
+            for (j = 0; j < gen_rooms[l]; j++) {
                 if (seen[j] == 0 && sub_s005_146d_000c(l, i, j)) {
                     seen[j] = 1;
                     D_dbbb[l][j] = D_db9b[l];
@@ -177,6 +181,7 @@ void far sub_s007_15af_0188(int l)
         }
     }
 }
+#pragma optimize("a", off)
 
 /* tile descriptions of keeps */
 #pragma optimize("a", on)
@@ -188,82 +193,82 @@ void far sub_s007_15af_025a(void)
     int area;
     int far *o;
 
-    r = sub_s004_0e76_20f6(1, 2);
+    r = roll_dice(1, 2);
     o = D_db3b + 30 * 4;
     area = (o[3] - o[2] + 1) * (o[1] - o[0] + 1);
-    D_db33[0] = 0;
-    _fstrcpy((char far *)(D_db33 + 1), k);
+    tile_desc[0] = 0;
+    _fstrcpy((char far *)(tile_desc + 1), k);
     if (r == 1)
-        D_db33[0x0b] = 1;
+        tile_desc[0x0b] = 1;
     else
-        D_db33[0x0b] = 0;
-    _fstrcpy((char far *)(D_db33 + 0x1a), k);
-    D_db33[0x23] = 1;
-    D_db33[0x25] = 10;
-    D_db33[0x26] = 11;
-    D_db33[0x28] = 9;
-    D_db33[0x27] = 8;
-    _fstrcpy((char far *)(D_db33 + 0x34), k1);
+        tile_desc[0x0b] = 0;
+    _fstrcpy((char far *)(tile_desc + 0x1a), k);
+    tile_desc[0x23] = 1;
+    tile_desc[0x25] = 10;
+    tile_desc[0x26] = 11;
+    tile_desc[0x28] = 9;
+    tile_desc[0x27] = 8;
+    _fstrcpy((char far *)(tile_desc + 0x34), k1);
     if (r == 1)
-        D_db33[0x3e] = 0;
+        tile_desc[0x3e] = 0;
     else
-        D_db33[0x3e] = 1;
-    D_db33[0x3f] = 10;
+        tile_desc[0x3e] = 1;
+    tile_desc[0x3f] = 10;
     if (area > 0x32)
-        D_db33[0x41] = 2;
+        tile_desc[0x41] = 2;
     else
-        D_db33[0x41] = 6;
-    D_db33[0x42] = 7;
-    if (sub_s004_0e76_20f6(1, 2) != 0) {
-        D_db33[0x45] = 8;
-        D_db33[0x46] = 9;
+        tile_desc[0x41] = 6;
+    tile_desc[0x42] = 7;
+    if (roll_dice(1, 2) != 0) {
+        tile_desc[0x45] = 8;
+        tile_desc[0x46] = 9;
     } else {
-        D_db33[0x45] = 3;
-        D_db33[0x46] = 4;
+        tile_desc[0x45] = 3;
+        tile_desc[0x46] = 4;
     }
-    _fstrcpy((char far *)(D_db33 + 0x4d), k);
-    D_db33[0x58] = 0;
-    D_db33[0x56] = 2;
-    D_db33[0x59] = 8;
-    D_db33[0x5b] = 14;
-    D_db33[0x5a] = 10;
-    D_db33[0x5c] = 11;
-    D_db33[0x5d] = 12;
-    _fstrcpy((char far *)(D_db33 + 0x67), k1);
+    _fstrcpy((char far *)(tile_desc + 0x4d), k);
+    tile_desc[0x58] = 0;
+    tile_desc[0x56] = 2;
+    tile_desc[0x59] = 8;
+    tile_desc[0x5b] = 14;
+    tile_desc[0x5a] = 10;
+    tile_desc[0x5c] = 11;
+    tile_desc[0x5d] = 12;
+    _fstrcpy((char far *)(tile_desc + 0x67), k1);
     if (r == 1)
-        D_db33[0x71] = 0;
+        tile_desc[0x71] = 0;
     else
-        D_db33[0x71] = 1;
-    D_db33[0x72] = 10;
-    D_db33[0x73] = 2;
+        tile_desc[0x71] = 1;
+    tile_desc[0x72] = 10;
+    tile_desc[0x73] = 2;
     if (area > 0x32)
-        D_db33[0x74] = 5;
+        tile_desc[0x74] = 5;
     else
-        D_db33[0x74] = 6;
-    D_db33[0x75] = 3;
-    D_db33[0x78] = 7;
-    D_db33[0x79] = 8;
-    _fstrcpy((char far *)(D_db33 + 0x80), k);
-    D_db33[0x8b] = 0;
-    D_db33[0x89] = 2;
-    D_db33[0x8c] = 6;
-    _fstrcpy((char far *)(D_db33 + 0x9a), k);
-    D_db33[0xa5] = 13;
-    D_db33[0xa6] = 5;
-    D_db33[0xa7] = 8;
-    D_db33[0xa8] = 9;
-    D_db33[0xa9] = 0;
-    D_db33[0xaa] = 1;
-    D_db33[0xab] = 3;
-    D_db33[0xac] = 11;
-    D_db33[0xad] = 2;
-    D_db33[0xae] = 17;
-    D_db33[0xaf] = 7;
-    D_db33[0xb0] = 16;
-    D_db33[0xb1] = 6;
-    D_db33[0xa3] = 12;
-    D_db33[0xb2] = 12;
-    D_db33[0xb3] = 4;
+        tile_desc[0x74] = 6;
+    tile_desc[0x75] = 3;
+    tile_desc[0x78] = 7;
+    tile_desc[0x79] = 8;
+    _fstrcpy((char far *)(tile_desc + 0x80), k);
+    tile_desc[0x8b] = 0;
+    tile_desc[0x89] = 2;
+    tile_desc[0x8c] = 6;
+    _fstrcpy((char far *)(tile_desc + 0x9a), k);
+    tile_desc[0xa5] = 13;
+    tile_desc[0xa6] = 5;
+    tile_desc[0xa7] = 8;
+    tile_desc[0xa8] = 9;
+    tile_desc[0xa9] = 0;
+    tile_desc[0xaa] = 1;
+    tile_desc[0xab] = 3;
+    tile_desc[0xac] = 11;
+    tile_desc[0xad] = 2;
+    tile_desc[0xae] = 17;
+    tile_desc[0xaf] = 7;
+    tile_desc[0xb0] = 16;
+    tile_desc[0xb1] = 6;
+    tile_desc[0xa3] = 12;
+    tile_desc[0xb2] = 12;
+    tile_desc[0xb3] = 4;
 }
 #pragma optimize("", on)
 
@@ -271,7 +276,7 @@ void far sub_s007_15af_025a(void)
 void far sub_s007_15af_051e(int l)
 {
     int k, c, i, x, y;
-    int _based(D_db39) *r;
+    int _based(gen_work) *r;
 
     F.ncomp = D_db9b[l];
     k = 0;
@@ -279,7 +284,7 @@ void far sub_s007_15af_051e(int l)
         if (k + 1 >= 0x578)
             break;
         F.comp[c] = k * 2;
-        for (i = 0, r = D_db3b + l * 120; i < D_db45[l]; i++, r += 4) {
+        for (i = 0, r = D_db3b + l * 120; i < gen_rooms[l]; i++, r += 4) {
             if (k + 1 >= 0x578)
                 break;
             if (D_dbbb[l][i] == c) {
@@ -298,38 +303,38 @@ void far sub_s007_15af_051e(int l)
 void far sub_s007_15af_0698(int t, int l)
 {
     int i, x, y, r, idx, v;
-    struct gexit _based(D_db39) *e;
-    int _based(D_db39) *o;
+    struct gexit _based(gen_work) *e;
+    int _based(gen_work) *o;
     long a, b, c, d, w, f, g;
     unsigned long far *p;
 
-    for (i = 0; i < D_db71[l]; i++) {
-        e = D_db95 + l * 4 + i;
+    for (i = 0; i < gen_exit_count[l]; i++) {
+        e = gen_exits + l * 4 + i;
         x = e->x0;
         y = e->x2;
         if (e->x0a == 0) {
             r = sub_s005_1551_00bc(l, x - 1, x - 1, y, y);
             idx = (l * 40 + x) * 40 + y;
-            v = D_db8f[idx - 40];
+            v = gen_cell_type[idx - 40];
             if (v > 1 && v < 9 && sub_s005_146d_000c(l, r, e->x4))
-                D_db8d[idx] &= ~8;
+                gen_cell_walls[idx] &= ~8;
             r = sub_s005_1551_00bc(l, x + 1, x + 1, y, y);
-            v = D_db8f[idx + 40];
+            v = gen_cell_type[idx + 40];
             if (v > 1 && v < 9 && sub_s005_146d_000c(l, r, e->x4))
-                D_db8d[idx] &= ~2;
+                gen_cell_walls[idx] &= ~2;
         } else if (e->x0a == 3) {
             r = sub_s005_1551_00bc(l, x, x, y + 1, y + 1);
             idx = (l * 40 + x) * 40 + y;
-            v = D_db8f[idx + 1];
+            v = gen_cell_type[idx + 1];
             if (v > 1 && v < 9 && sub_s005_146d_000c(l, r, e->x4))
-                D_db8d[idx] &= ~4;
+                gen_cell_walls[idx] &= ~4;
             r = sub_s005_1551_00bc(l, x, x, y - 1, y - 1);
-            v = D_db8f[idx - 1];
+            v = gen_cell_type[idx - 1];
             if (v > 1 && v < 9 && sub_s005_146d_000c(l, r, e->x4))
-                D_db8d[idx] &= ~1;
+                gen_cell_walls[idx] &= ~1;
         }
     }
-    for (r = 0; r < D_db45[l]; r++) {
+    for (r = 0; r < gen_rooms[l]; r++) {
         o = D_db3b + (l * 30 + r) * 4;
         for (x = o[0]; x <= o[1]; x++) {
             for (y = o[2]; y <= o[3]; y++) {
@@ -354,16 +359,16 @@ void far sub_s007_15af_0698(int t, int l)
         }
         if (D_db91[l * 30 + r] == 7) {
             if (o[0] < o[1]) {
-                x = o[1] + sub_s004_0e76_20f6(1, o[1] - o[0] + 1) - 1;
+                x = o[1] + roll_dice(1, o[1] - o[0] + 1) - 1;
                 y = o[2];
-                if (D_db8d[(l * 40 + x) * 40 + y] & 1) {
+                if (gen_cell_walls[(l * 40 + x) * 40 + y] & 1) {
                     CB(x, y, 2) &= 0x0f;
                     CB(x, y, 2) |= 0x10;
                 }
             } else if (o[2] < o[3]) {
-                y = o[3] + sub_s004_0e76_20f6(1, o[3] - o[2] + 1) - 1;
+                y = o[3] + roll_dice(1, o[3] - o[2] + 1) - 1;
                 x = o[0];
-                if (D_db8d[(l * 40 + x) * 40 + y] & 8) {
+                if (gen_cell_walls[(l * 40 + x) * 40 + y] & 8) {
                     CB(x, y, 1) &= 0x0f;
                     CB(x, y, 1) |= 0x10;
                 }
@@ -374,6 +379,7 @@ void far sub_s007_15af_0698(int t, int l)
 
 /* wall pieces of cell (x, y) of room r: sides s0..s3 (1 = wall, 2 = outer wall,
  * 3 = ...), e = decoration on side 0, f = on side 3, g = object (3f8a) */
+#pragma optimize("a", on)
 void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long *s1,
                             long *s3, long *e, long *f, long *g)
 {
@@ -382,7 +388,7 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
     int far *o;
 
     t = D_db91[l * 30 + r];
-    w = D_db8d[(l * 40 + x) * 40 + y];
+    w = gen_cell_walls[(l * 40 + x) * 40 + y];
     o = (int far *)(D_db3b + (l * 30 + r) * 4);
     *e = *f = *g = *s0 = *s1 = *s2 = *s3 = 0;
     if (w & 1)
@@ -395,12 +401,12 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
         *s3 = 1;
     switch (t) {
     case 2:
-        if (*s0 && l > 1 && o[2] <= D_db41 + 1 && sub_s004_0e76_20f6(1, 6) == 1)
+        if (*s0 && l > 1 && o[2] <= D_db41 + 1 && roll_dice(1, 6) == 1)
             *e = 6;
-        else if (*s0 && l > 1 && sub_s004_0e76_20f6(1, 16) == 1)
+        else if (*s0 && l > 1 && roll_dice(1, 16) == 1)
             *e = 1;
-        else if (*s0 && sub_s004_0e76_20f6(1, 4) == 1) {
-            switch (sub_s004_0e76_20f6(1, 16)) {
+        else if (*s0 && roll_dice(1, 4) == 1) {
+            switch (roll_dice(1, 16)) {
             case 1: case 2: case 3: case 4:
                 *e = 1;
                 break;
@@ -418,8 +424,8 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
                 break;
             }
         }
-        if (*s3 && !*s0 && sub_s004_0e76_20f6(1, 4) == 1) {
-            switch (sub_s004_0e76_20f6(1, 16)) {
+        if (*s3 && !*s0 && roll_dice(1, 4) == 1) {
+            switch (roll_dice(1, 16)) {
             case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:
                 *f = 1;
                 break;
@@ -434,22 +440,22 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
         break;
     case 3:
     case 5:
-        if (l > 1 && *s0 && sub_s004_0e76_20f6(1, 4) == 1) {
-            if (o[2] <= D_db41 + 1 && sub_s004_0e76_20f6(1, 5) < 4)
+        if (l > 1 && *s0 && roll_dice(1, 4) == 1) {
+            if (o[2] <= D_db41 + 1 && roll_dice(1, 5) < 4)
                 *e = 6;
             else
                 *e = 1;
         }
-        if (*s3 && !*s0 && sub_s004_0e76_20f6(1, 4) == 1)
+        if (*s3 && !*s0 && roll_dice(1, 4) == 1)
             *f = 1;
         break;
     case 4:
-        if (l > 1 && *s0 && o[2] <= D_db41 + 1 && sub_s004_0e76_20f6(1, 4) == 1)
+        if (l > 1 && *s0 && o[2] <= D_db41 + 1 && roll_dice(1, 4) == 1)
             *e = 6;
         break;
     case 6:
-        if (*s0 && (D_db25 == 1 || D_db25 == 3) && (x + y) % 2 == 0) {
-            switch (sub_s004_0e76_20f6(1, 4)) {
+        if (*s0 && (gate_side == 1 || gate_side == 3) && (x + y) % 2 == 0) {
+            switch (roll_dice(1, 4)) {
             case 1:
                 *e = 1;
                 break;
@@ -464,14 +470,14 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
                 break;
             }
         }
-        if (*s3 && (D_db25 == 0 || D_db25 == 2) && (x + y) % 2 == 0)
+        if (*s3 && (gate_side == 0 || gate_side == 2) && (x + y) % 2 == 0)
             *f = 1;
         break;
     case 7:
-        if (l > 1 && *s0 && o[2] <= D_db41 + 1 && sub_s004_0e76_20f6(1, 8) == 1)
+        if (l > 1 && *s0 && o[2] <= D_db41 + 1 && roll_dice(1, 8) == 1)
             *e = 6;
-        else if (*s0 && sub_s004_0e76_20f6(1, 8) == 1) {
-            switch (sub_s004_0e76_20f6(1, 4)) {
+        else if (*s0 && roll_dice(1, 8) == 1) {
+            switch (roll_dice(1, 4)) {
             case 1:
                 *e = 1;
                 break;
@@ -486,7 +492,7 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
                 break;
             }
         }
-        if (*s3 && !*s0 && sub_s004_0e76_20f6(1, 8) == 1)
+        if (*s3 && !*s0 && roll_dice(1, 8) == 1)
             *f = 1;
         break;
     case 8:
@@ -520,12 +526,13 @@ void far sub_s007_15af_0b3e(int l, int r, int x, int y, long *s0, long *s2, long
         *g = 0;
     }
 }
+#pragma optimize("a", off)
 
 /* level 1: the gate of the keep (room D_db63) */
 void far sub_s007_15af_10a6(int l)
 {
     int x0, x1, y0, y1;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
 
     if (l == 1 && D_db63 >= 0 && D_db91[30 + D_db63] == 6) {
         D_54c6 = 1;
@@ -534,25 +541,25 @@ void far sub_s007_15af_10a6(int l)
         y1 = o[3];
         x0 = o[0];
         x1 = o[1];
-        if (D_db25 == 0) {
+        if (gate_side == 0) {
             CB(x0, y0, 2) &= 0xf0;
             CB(x0, y0, 2) |= 8;
             CB(x1, y0, 2) &= 0xf0;
             CB(x1, y0, 2) |= 9;
             y1 = y0;
-        } else if (D_db25 == 1) {
+        } else if (gate_side == 1) {
             CB(x1, y0, 0) &= 0xf0;
             CB(x1, y0, 0) |= 9;
             CB(x1, y1, 0) &= 0xf0;
             CB(x1, y1, 0) |= 8;
             x0 = x1;
-        } else if (D_db25 == 2) {
+        } else if (gate_side == 2) {
             CB(x0, y1, 3) &= 0xf0;
             CB(x0, y1, 3) |= 8;
             CB(x1, y1, 3) &= 0xf0;
             CB(x1, y1, 3) |= 9;
             y0 = y1;
-        } else if (D_db25 == 3) {
+        } else if (gate_side == 3) {
             CB(x0, y0, 1) &= 0xf0;
             CB(x0, y0, 1) |= 9;
             CB(x0, y1, 1) &= 0xf0;
@@ -573,7 +580,7 @@ void far sub_s007_15af_1234(int l)
     unsigned kind;
     unsigned char sz;
     int w, h;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
     struct r14 far *q;
 
     n = F.n1f52;
@@ -589,13 +596,13 @@ void far sub_s007_15af_1234(int l)
         kind = 4;
         sz = 0;
     }
-    for (x = D_db3d; x <= D_db3f; x++) {
+    for (x = keep_x0; x <= D_db3f; x++) {
         for (y = D_db41; y <= D_db43; y++) {
-            if (D_db93[(l * 40 + x) * 40 + y] == 3) {
+            if (gen_cell_door[(l * 40 + x) * 40 + y] == 3) {
                 b = sub_s005_1551_00bc(l, x, x, y, y);
                 a = sub_s005_1551_00bc(l, x, x, y - 1, y - 1);
-                va = a >= 0 && a < D_db45[l];
-                vb = b >= 0 && b < D_db45[l];
+                va = a >= 0 && a < gen_rooms[l];
+                vb = b >= 0 && b < gen_rooms[l];
                 if (D_dbbb[l][a] != D_dbbb[l][b] && va && vb) {
                     CB(x, y, 2) &= 0xf0;
                     *(unsigned far *)&CB(x, y, 2) |= kind;
@@ -625,11 +632,11 @@ void far sub_s007_15af_1234(int l)
                     q->x0c = va ? n : -1;
                     n += 2;
                 }
-            } else if (D_db93[(l * 40 + x) * 40 + y] == 6) {
+            } else if (gen_cell_door[(l * 40 + x) * 40 + y] == 6) {
                 b = sub_s005_1551_00bc(l, x, x, y, y);
                 a = sub_s005_1551_00bc(l, x - 1, x - 1, y, y);
-                va = a >= 0 && a < D_db45[l];
-                vb = b >= 0 && b < D_db45[l];
+                va = a >= 0 && a < gen_rooms[l];
+                vb = b >= 0 && b < gen_rooms[l];
                 if (D_dbbb[l][a] != D_dbbb[l][b] && va && vb) {
                     CB(x, y, 1) &= 0xf0;
                     *(unsigned far *)&CB(x, y, 0) |= kind << 8;
@@ -669,20 +676,20 @@ void far sub_s007_15af_1234(int l)
 void far sub_s007_15af_16ba(int l)
 {
     int i, n, x, y;
-    struct gexit _based(D_db39) *e;
+    struct gexit _based(gen_work) *e;
     struct xrec *q;
     unsigned char c;
 
     n = D_5156;
     q = &D_5158[n];
-    for (i = 0; i < D_db71[l]; i++, q++, n++) {
-        e = D_db95 + l * 4 + i;
+    for (i = 0; i < gen_exit_count[l]; i++, q++, n++) {
+        e = gen_exits + l * 4 + i;
         if (e->x8 == 1) {
             q->x6 = F.x1f40 + 1;
-            q->x7 = D_dbbb[l + 1][D_db95[(l + 1) * 4 + e->x6].x4];
+            q->x7 = D_dbbb[l + 1][gen_exits[(l + 1) * 4 + e->x6].x4];
         } else {
             q->x6 = F.x1f40 - 1;
-            q->x7 = D_dbbb[l - 1][D_db95[(l - 1) * 4 + e->x6].x4];
+            q->x7 = D_dbbb[l - 1][gen_exits[(l - 1) * 4 + e->x6].x4];
         }
         q->x0d = e->x6;
         x = e->x0;
@@ -758,15 +765,15 @@ void far sub_s007_15af_1a5e(int t, int *pn, int *lv)
 {
     int n, m;
 
-    n = D_db7b - D_db7d + 1;
+    n = gen_level_hi - gen_level_lo + 1;
     *lv = -1;
     switch (t) {
     case 0:
         *pn = 1;
         break;
     case 1: case 2: case 4: case 0x7a:
-        m = D_db7f - 1 > D_db7b ? D_db7b : D_db7f - 1;
-        *pn = *lv = sub_s004_0e76_20f6(1, m - 1) + 1;
+        m = D_db7f - 1 > gen_level_hi ? gen_level_hi : D_db7f - 1;
+        *pn = *lv = roll_dice(1, m - 1) + 1;
         break;
     case 3:
         *pn = *lv = 2;
@@ -774,17 +781,17 @@ void far sub_s007_15af_1a5e(int t, int *pn, int *lv)
     case 5:
         *pn = 1;
         do
-            *lv = sub_s004_0e76_20f6(1, D_db7b - D_db7d) + D_db7d - 1;
-        while (*lv == 1 && n > 1 && sub_s004_0e76_20f6(1, 4) > 1);
+            *lv = roll_dice(1, gen_level_hi - gen_level_lo) + gen_level_lo - 1;
+        while (*lv == 1 && n > 1 && roll_dice(1, 4) > 1);
         break;
     case 6: case 7:
         *pn = *lv = 1;
         break;
     case 8:
-        *pn = D_db7d >= 0 ? D_db7d : 0;
+        *pn = gen_level_lo >= 0 ? gen_level_lo : 0;
         break;
     case 0x27:
-        *pn = D_db7b;
+        *pn = gen_level_hi;
         *lv = 2;
         break;
     case 0x28:
@@ -792,25 +799,25 @@ void far sub_s007_15af_1a5e(int t, int *pn, int *lv)
         *lv = 2;
         break;
     case 0x7b:
-        *pn = sub_s004_0e76_20f6(1, D_db7b - 1) + 1;
-        m = D_db7f - 1 > D_db7b ? D_db7b : D_db7f - 1;
-        *lv = sub_s004_0e76_20f6(1, m - D_db7d + 1) + D_db7d - 1;
+        *pn = roll_dice(1, gen_level_hi - 1) + 1;
+        m = D_db7f - 1 > gen_level_hi ? gen_level_hi : D_db7f - 1;
+        *lv = roll_dice(1, m - gen_level_lo + 1) + gen_level_lo - 1;
         break;
     case 0x7c: case 0x7d:
-        m = D_db7f - 1 > D_db7b ? D_db7b : D_db7f - 1;
+        m = D_db7f - 1 > gen_level_hi ? gen_level_hi : D_db7f - 1;
         *pn = 1;
-        *lv = sub_s004_0e76_20f6(1, m - D_db7d + 1) + D_db7d - 1;
+        *lv = roll_dice(1, m - gen_level_lo + 1) + gen_level_lo - 1;
         break;
     case 0x7e:
         *pn = 1;
-        *lv = sub_s004_0e76_20f6(1, 2);
+        *lv = roll_dice(1, 2);
         break;
     }
 }
 
 struct member { char p[0x80]; };
-extern struct member D_9c69[5];
-int far vec_1c1b(void);
+extern struct member party[5];
+int far party_lore_level(void);
 
 /* enemy groups for the battlefield type: (type, sub, count) x 3 */
 void far sub_s007_15af_1bfe(int t, int *a, int *b, int *c, int *d, int *e, int *f, int *g,
@@ -824,8 +831,8 @@ void far sub_s007_15af_1bfe(int t, int *a, int *b, int *c, int *d, int *e, int *
     h_ = 1;
     d_ = 0;
     f_ = 0;
-    v = vec_1c1b();
-    for (m = D_9c69; m < &D_9c69[5]; m++)
+    v = party_lore_level();
+    for (m = party; m < &party[5]; m++)
         ;
     switch (t) {
     case 1: case 2: case 4: case 5: case 6: case 7: case 0x7a:
@@ -894,13 +901,13 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
     switch (t) {
     case 0: case 5: case 0x28: case 0x7d: case 0x7e:
         *room = D_db63;
-        *dir = D_db25;
+        *dir = gate_side;
         break;
     case 1: case 2: case 0x7a:
         *room = -1;
-        for (i = D_db4f[l] + 1; D_db91[l * 30 + i] != 5 && D_db59[l] >= i && D_db45[l] > i; i++)
+        for (i = D_db4f[l] + 1; D_db91[l * 30 + i] != 5 && D_db59[l] >= i && gen_rooms[l] > i; i++)
             ;
-        for (; D_db59[l] >= i && D_db45[l] > i; i++) {
+        for (; D_db59[l] >= i && gen_rooms[l] > i; i++) {
             if (D_db91[l * 30 + i] == 5) {
                 r = (int far *)(D_db3b + (l * 30 + i) * 4);
                 if (-(r[0] - r[1]) >= 2 || r[3] - r[2] >= 2) {
@@ -910,13 +917,13 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
             }
         }
         if (*room <= 0)
-            *room = sub_s004_0e76_20f6(1, D_db4f[l]);
+            *room = roll_dice(1, D_db4f[l]);
         break;
     case 3: case 7: case 8:
         *room = 0;
         break;
     case 4:
-        *room = sub_s004_0e76_20f6(1, D_db4f[l] + 1) - 1;
+        *room = roll_dice(1, D_db4f[l] + 1) - 1;
         break;
     case 6:
         best = -1;
@@ -931,14 +938,14 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
         if (best > 0)
             *room = best;
         else if (D_db91[l * 30] == 2)
-            *room = sub_s004_0e76_20f6(1, D_db4f[l]);
+            *room = roll_dice(1, D_db4f[l]);
         else
-            *room = sub_s004_0e76_20f6(1, D_db4f[l] + 1) - 1;
+            *room = roll_dice(1, D_db4f[l] + 1) - 1;
         break;
     case 0x27:
         best = -1;
         area = 0;
-        for (i = 0; D_db45[l] > i; i++) {
+        for (i = 0; gen_rooms[l] > i; i++) {
             r = (int far *)(D_db3b + (l * 30 + i) * 4);
             if ((r[3] - r[2] + 1) * (r[1] - r[0] + 1) >= area) {
                 area = (r[3] - r[2] + 1) * (r[1] - r[0] + 1);
@@ -952,13 +959,13 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
         break;
     case 0x7b:
         if (pn == D_db7f)
-            *room = sub_s004_0e76_20f6(1, D_db45[l]) - 1;
+            *room = roll_dice(1, gen_rooms[l]) - 1;
         else
-            *room = sub_s004_0e76_20f6(1, D_db59[l]);
+            *room = roll_dice(1, D_db59[l]);
         break;
     case 0x7c:
         do
-            *room = sub_s004_0e76_20f6(1, D_db59[l]);
+            *room = roll_dice(1, D_db59[l]);
         while (*room == D_db63);
         break;
     }
@@ -970,13 +977,13 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
             if (i >= 6)
                 k = i - 6;
             else
-                k = sub_s004_0e76_20f6(1, 4) - 1;
+                k = roll_dice(1, 4) - 1;
             *dir = k;
             ok = sub_s007_15af_3372(l, *room, k);
             i++;
         }
         if (!ok)
-            *dir = sub_s004_0e76_20f6(1, 4) - 1;
+            *dir = roll_dice(1, 4) - 1;
     }
     F.x1f51 = D_dbbb[l][*room];
     r = (int far *)(D_db3b + (l * 30 + *room) * 4);
@@ -1026,8 +1033,8 @@ void far sub_s007_15af_1d78(int l, int t, int pn, int *room, int *dir)
     F.x1f4e = r[2] * 16 + py;
     for (px = xa; px <= xb; px++)
         for (py = ya; py <= yb; py++)
-            if (D_db93[(l * 40 + px) * 40 + py] == 0)
-                D_db93[(l * 40 + px) * 40 + py] = 0x10;
+            if (gen_cell_door[(l * 40 + px) * 40 + py] == 0)
+                gen_cell_door[(l * 40 + px) * 40 + py] = 0x10;
 }
 
 /* pixel position of a group in room i: the centre, or next to the party's side */
@@ -1054,20 +1061,20 @@ void far sub_s007_15af_224e(int l, int pn, int t, int dir, int p5, int p6, int p
 
     if (pn != l)
         return;
-    lv = l - D_db7d;
+    lv = l - gen_level_lo;
     m3 = m2 = m1 = -1;
     if (sub_s007_15af_30e6(t, l, 1, -1))
-        m1 = sub_s004_0e76_06aa(lv, p5, p6);
+        m1 = monster_type_map(lv, p5, p6);
     if (sub_s007_15af_30e6(t, l, 2, -1))
-        m2 = sub_s004_0e76_06aa(lv, p8, p9);
+        m2 = monster_type_map(lv, p8, p9);
     if (sub_s007_15af_30e6(t, l, 3, -1))
-        m3 = sub_s004_0e76_06aa(lv, p11, p12);
+        m3 = monster_type_map(lv, p11, p12);
     if (m1 < 0 && m2 < 0 && m3 < 0)
         return;
-    for (i = 0; i < D_db45[1]; i++)
+    for (i = 0; i < gen_rooms[1]; i++)
         if (sub_s005_146d_000c(1, i, D_db63))
             break;
-    if (i >= D_db45[1])
+    if (i >= gen_rooms[1])
         i = D_db63;
     o = (int far *)(D_db3b + (30 + i) * 4);
     px = (o[1] + o[0] + 1) * 16;
@@ -1084,7 +1091,7 @@ void far sub_s007_15af_224e(int l, int pn, int t, int dir, int p5, int p6, int p
 }
 
 struct mrec { char p0[0x0c]; char x0c; char p0d[0xd6 - 0x0d]; };   /* 0xd6-byte monster */
-extern struct mrec _based(D_dadd) *D_db2b;
+extern struct mrec _based(enemy_seg) *bf_monsters;
 
 /* types 1..7, 0x7a: one group per room */
 void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, int p7, int p8,
@@ -1096,13 +1103,13 @@ void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, i
     int far *o;
 
     m3 = m2 = m1 = -1;
-    lv = l - D_db7d;
+    lv = l - gen_level_lo;
     if (sub_s007_15af_30e6(t, l, 1, side))
-        m1 = sub_s004_0e76_06aa(lv, p7, p8);
+        m1 = monster_type_map(lv, p7, p8);
     if (sub_s007_15af_30e6(t, l, 2, side))
-        m2 = sub_s004_0e76_06aa(lv, p10, p11);
+        m2 = monster_type_map(lv, p10, p11);
     if (sub_s007_15af_30e6(t, l, 3, side))
-        m3 = sub_s004_0e76_06aa(lv, p13, p14);
+        m3 = monster_type_map(lv, p13, p14);
     if (m1 < 0 && m2 < 0 && m3 < 0)
         return;
     boss = -1;
@@ -1113,7 +1120,7 @@ void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, i
             break;
         case 1: case 2: case 4: case 5:
             do
-                boss = sub_s004_0e76_20f6(1, D_db59[l] + 1) - 1;
+                boss = roll_dice(1, D_db59[l] + 1) - 1;
             while (pn == l && boss == room && D_db59[l] > 1);
             break;
         case 6: case 7:
@@ -1122,11 +1129,11 @@ void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, i
         }
     }
     if (m1 >= 0)
-        D_db2b[l * 12 + m1].x0c = 1;
+        bf_monsters[l * 12 + m1].x0c = 1;
     for (i = 0; i <= D_db59[l]; i++)
         has[i] = 0;
-    for (j = 0; j <= D_db71[l]; j++)
-        has[D_db95[l * 4 + j].x4] = 1;
+    for (j = 0; j <= gen_exit_count[l]; j++)
+        has[gen_exits[l * 4 + j].x4] = 1;
     for (i = 0; i <= D_db59[l]; i++) {
         g3 = g2 = g1 = -1;
         n3 = 0;
@@ -1143,38 +1150,38 @@ void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, i
         case 2:
             k = D_db91[l * 30 + i];
             if (k == 2) {
-                n2 = sub_s004_0e76_20f6(1, 3) - 1;
-                n3 = sub_s004_0e76_20f6(1, 2) - 1;
+                n2 = roll_dice(1, 3) - 1;
+                n3 = roll_dice(1, 2) - 1;
             } else if (k == 3) {
-                n2 = sub_s004_0e76_20f6(1, 3) - 2;
-                n3 = sub_s004_0e76_20f6(1, 2) - 1;
+                n2 = roll_dice(1, 3) - 2;
+                n3 = roll_dice(1, 2) - 1;
                 if (l == D_db7f && i == 0 && n3 < 1)
                     n3 = 1;
-            } else if ((l != 0 && l != D_db7f) || sub_s004_0e76_20f6(1, 3) < 2) {
-                n2 = sub_s004_0e76_20f6(1, 5) == 1;
-                if (sub_s004_0e76_20f6(1, 4) == 1)
-                    n2 = sub_s004_0e76_20f6(1, 2);
+            } else if ((l != 0 && l != D_db7f) || roll_dice(1, 3) < 2) {
+                n2 = roll_dice(1, 5) == 1;
+                if (roll_dice(1, 4) == 1)
+                    n2 = roll_dice(1, 2);
             }
             break;
         case 3: case 6: case 7:
             if (pn == l) {
                 if (i == room) {
-                    n2 = sub_s004_0e76_20f6(1, 3) + 1;
-                    n3 = sub_s004_0e76_20f6(1, 2);
+                    n2 = roll_dice(1, 3) + 1;
+                    n3 = roll_dice(1, 2);
                 }
                 if (boss == i)
-                    n3 += sub_s004_0e76_20f6(1, 2);
+                    n3 += roll_dice(1, 2);
                 if (D_db91[l * 30 + i] == 3)
-                    n3 = sub_s004_0e76_20f6(1, 2) - 1;
+                    n3 = roll_dice(1, 2) - 1;
             } else {
                 k = D_db91[l * 30 + i];
                 if (k == 2) {
                     g2 = m2;
-                    n2 = sub_s004_0e76_20f6(1, 3) + 1;
+                    n2 = roll_dice(1, 3) + 1;
                 } else if (k == 3) {
                     g3 = m3;
                     j = 1;
-                    n3 = sub_s004_0e76_20f6(j, 2);
+                    n3 = roll_dice(j, 2);
                 }
             }
             break;
@@ -1188,15 +1195,15 @@ void far sub_s007_15af_23d4(int l, int pn, int side, int t, int room, int dir, i
             }
             k = D_db91[l * 30 + i];
             if (k == 2) {
-                n2 = sub_s004_0e76_20f6(j, 3);
+                n2 = roll_dice(j, 3);
                 if (has[i])
                     n2++;
             } else if (k == 3) {
-                if (has[i] || boss == i || sub_s004_0e76_20f6(1, 2) == 1)
-                    n3 = sub_s004_0e76_20f6(j, 2);
+                if (has[i] || boss == i || roll_dice(1, 2) == 1)
+                    n3 = roll_dice(j, 2);
             } else if (has[i] || boss == i) {
-                n3 = sub_s004_0e76_20f6(j, 2);
-                n2 = sub_s004_0e76_20f6(j, 2) - j;
+                n3 = roll_dice(j, 2);
+                n2 = roll_dice(j, 2) - j;
             }
             break;
         }
@@ -1215,21 +1222,21 @@ void far sub_s007_15af_2964(int l, int pn, int t, int p5, int p6, int p7, int p8
                             int p10, int p11, int p12, int p13)
 {
     int lv, m1, m2;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
 
     if (D_db91[l * 30] == 2) {
-        lv = l - D_db7d;
+        lv = l - gen_level_lo;
         m1 = -1;
         if (sub_s007_15af_30e6(t, l, 1, -1))
-            m1 = sub_s004_0e76_06aa(lv, p5, p6);
+            m1 = monster_type_map(lv, p5, p6);
         if (sub_s007_15af_30e6(t, l, 2, -1))
-            m2 = sub_s004_0e76_06aa(lv, p8, p9);
+            m2 = monster_type_map(lv, p8, p9);
         else
             m2 = -1;
         if (m1 >= 0 || m2 >= 0) {
             o = D_db3b + l * 120;
             sub_s007_15af_316c(l, (o[1] + o[0] + 1) * 16, (o[2] + o[3] + 1) * 8, 0x10,
-                               D_dbbb[l][0], m1, 1, m2, sub_s004_0e76_20f6(1, p10) + 1, -1, 0);
+                               D_dbbb[l][0], m1, 1, m2, roll_dice(1, p10) + 1, -1, 0);
         }
     }
 }
@@ -1245,22 +1252,22 @@ void far sub_s007_15af_2a44(int l, int pn, int t, int room, int dir, int p6, int
     int far *o;
 
     m3 = m2 = m1 = -1;
-    lv = l - D_db7d;
+    lv = l - gen_level_lo;
     switch (l) {
     case 1:
-        m1 = sub_s004_0e76_06aa(lv, 0x18, 1);
-        m2 = sub_s004_0e76_06aa(lv, p9, p10);
-        m3 = sub_s004_0e76_06aa(lv, p12, p13);
+        m1 = monster_type_map(lv, 0x18, 1);
+        m2 = monster_type_map(lv, p9, p10);
+        m3 = monster_type_map(lv, p12, p13);
         break;
     case 2:
-        m1 = sub_s004_0e76_06aa(lv, 0x18, 1);
-        m2 = sub_s004_0e76_06aa(lv, p9, 5);
-        m3 = sub_s004_0e76_06aa(lv, p9, p10);
+        m1 = monster_type_map(lv, 0x18, 1);
+        m2 = monster_type_map(lv, p9, 5);
+        m3 = monster_type_map(lv, p9, p10);
         break;
     case 3:
         if (D_db7f > l) {
-            m2 = sub_s004_0e76_06aa(lv, p9, 5);
-            m3 = sub_s004_0e76_06aa(lv, p9, p10);
+            m2 = monster_type_map(lv, p9, 5);
+            m3 = monster_type_map(lv, p9, p10);
         }
         break;
     default:
@@ -1278,8 +1285,8 @@ void far sub_s007_15af_2a44(int l, int pn, int t, int room, int dir, int p6, int
     else
         want = 0;
     if (want) {
-        for (i = 0, q = ex; i < D_db71[l]; i++) {
-            if (D_db95[l * 4 + i].x8 == want) {
+        for (i = 0, q = ex; i < gen_exit_count[l]; i++) {
+            if (gen_exits[l * 4 + i].x8 == want) {
                 n++;
                 if (q < &ex[2])
                     *q++ = i;
@@ -1341,53 +1348,53 @@ void far sub_s007_15af_2cdc(int l, int pn, int side, int t, int room, int dir, i
 
     m2 = -1;
     m1 = -1;
-    lv = l - D_db7d;
+    lv = l - gen_level_lo;
     if (sub_s007_15af_30e6(t, l, 1, side))
-        m1 = sub_s004_0e76_06aa(lv, p7, p8);
+        m1 = monster_type_map(lv, p7, p8);
     if (sub_s007_15af_30e6(t, l, 2, side))
-        m2 = sub_s004_0e76_06aa(lv, p10, p11);
+        m2 = monster_type_map(lv, p10, p11);
     if (m1 < 0 && m2 < 0)
         return;
     gate = -2;
     if (l == 1) {
-        for (i = 0; i < D_db45[1] && !sub_s005_146d_000c(1, i, D_db63); i++)
+        for (i = 0; i < gen_rooms[1] && !sub_s005_146d_000c(1, i, D_db63); i++)
             ;
-        if (i < D_db45[1])
+        if (i < gen_rooms[1])
             gate = i;
     }
     boss = -1;
     if (side == l && t > 0x7a) {
         if (t == 0x7c || t == 0x7d)
-            boss = sub_s004_0e76_20f6(1, D_db59[l] + 1) - 1;
+            boss = roll_dice(1, D_db59[l] + 1) - 1;
         else if (t == 0x7e) {
-            if (l == 1 && sub_s004_0e76_20f6(1, 2) == 1)
+            if (l == 1 && roll_dice(1, 2) == 1)
                 boss = gate;
             else
-                boss = D_db95[l * 4].x4;
+                boss = gen_exits[l * 4].x4;
         }
     }
     if (m1 >= 0)
-        D_db2b[l * 12 + m1].x0c = 1;
+        bf_monsters[l * 12 + m1].x0c = 1;
     for (i = 0; i < 30; i++)
         per[i] = 0;
     if (t == 0x7e) {
         if (D_db7f == l)
             for (i = 0; i < p12; i++)
-                per[sub_s004_0e76_20f6(1, D_db4f[l]) - 1]++;
-        if (l < D_db7b - 1) {
+                per[roll_dice(1, D_db4f[l]) - 1]++;
+        if (l < gen_level_hi - 1) {
             cnt = 1;
-            for (i = 0; i < D_db71[l]; i++)
-                if (D_db95[l * 4 + i].x8 == 1 && D_db95[l * 4 + i].x4 != 0)
+            for (i = 0; i < gen_exit_count[l]; i++)
+                if (gen_exits[l * 4 + i].x8 == 1 && gen_exits[l * 4 + i].x4 != 0)
                     cnt++;
             k = (p12 + 2) / 3;
             per[0] += k;
             k = p12 - k;
-            for (i = 0; i < D_db71[l]; i++) {
-                if (D_db95[l * 4 + i].x8 == 1 && D_db95[l * 4 + i].x4 != 0) {
+            for (i = 0; i < gen_exit_count[l]; i++) {
+                if (gen_exits[l * 4 + i].x8 == 1 && gen_exits[l * 4 + i].x4 != 0) {
                     if (cnt == 2)
-                        per[D_db95[l * 4 + i].x4] += k;
+                        per[gen_exits[l * 4 + i].x4] += k;
                     else {
-                        per[D_db95[l * 4 + i].x4] += k / 2;
+                        per[gen_exits[l * 4 + i].x4] += k / 2;
                         k -= k / 2;
                     }
                 }
@@ -1399,7 +1406,7 @@ void far sub_s007_15af_2cdc(int l, int pn, int side, int t, int room, int dir, i
         per[0]++;
     else
         for (i = 0; i < p12; i++)
-            per[sub_s004_0e76_20f6(1, D_db59[l]) - 1]++;
+            per[roll_dice(1, D_db59[l]) - 1]++;
     for (i = 0; i <= D_db59[l]; i++) {
         if (per[i] > 0 || boss == i) {
             g2 = -1;
@@ -1421,7 +1428,7 @@ void far sub_s007_15af_2cdc(int l, int pn, int side, int t, int room, int dir, i
 /* may group k (1..3) of type t be placed on level l? */
 char far sub_s007_15af_30e6(int t, int l, int k, int side)
 {
-    if (l < D_db7d || l > D_db7b || k < 1 || k > 3)
+    if (l < gen_level_lo || l > gen_level_hi || k < 1 || k > 3)
         return 0;
     switch (t) {
     case 0:
@@ -1456,15 +1463,15 @@ char far sub_s007_15af_30e6(int t, int l, int k, int side)
     return 0;
 }
 
-struct group {                          /* enemy group, 0x1e bytes (D_db2d) */
+struct group {                          /* enemy group, 0x1e bytes (bf_groups) */
     int x0, x2, x4;                     /* pixel position, radius */
     char x6, x7;                        /* part */
     char type[3];                       /* 08 */
     char cnt[3];                        /* 0b */
     char p0e[0x1e - 0x0e];
 };
-extern struct group _based(D_dadd) *D_db2d;
-extern int D_db05[5];
+extern struct group _based(enemy_seg) *bf_groups;
+extern int group_count[5];
 extern unsigned D_da34;
 
 /* add an enemy group (up to 3 kinds m1..m3 with counts n1..n3) */
@@ -1473,7 +1480,7 @@ void far sub_s007_15af_316c(int l, int px, int py, int rad, int room, int m1, in
 {
     int lv, k, i;
     struct group far *g;
-    int _based(D_db39) *c;
+    int _based(gen_work) *c;
 
     if (m1 < 0 && m2 < 0 && m3 < 0)
         return;
@@ -1512,8 +1519,8 @@ void far sub_s007_15af_316c(int l, int px, int py, int rad, int room, int m1, in
         if (n3 > 0)
             n3 = (n3 + 1) / 2;
     }
-    lv = l - D_db7d;
-    g = (struct group far *)(D_db2d + lv * 10 + D_db05[lv]);
+    lv = l - gen_level_lo;
+    g = (struct group far *)(bf_groups + lv * 10 + group_count[lv]);
     k = 0;
     if (m1 >= 0 && n1 > 0) {
         g->type[0] = m1;
@@ -1536,8 +1543,8 @@ void far sub_s007_15af_316c(int l, int px, int py, int rad, int room, int m1, in
         g->x4 = rad;
         g->x6 = D_dbbb[l][room];
         g->x7 = 0;
-        D_db05[lv]++;
-        c = D_db93 + (l * 40 + px / 32) * 40 + py / 16;
+        group_count[lv]++;
+        c = gen_cell_door + (l * 40 + px / 32) * 40 + py / 16;
         if (*c == 0)
             *c = 14;
     }
@@ -1547,7 +1554,7 @@ void far sub_s007_15af_316c(int l, int px, int py, int rad, int room, int m1, in
 char far sub_s007_15af_3372(int l, int r, int dir)
 {
     int x, y, x1, dx, dy, v;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
 
     o = D_db3b + (l * 30 + r) * 4;
     x = o[0];
@@ -1566,7 +1573,7 @@ char far sub_s007_15af_3372(int l, int r, int dir)
     } else if (dir == 3)
         dy = 1;
     for (; x <= x1 && y <= o[3]; x += dx, y += dy) {
-        v = D_db8f[l * 1600 + x * 40 + y];
+        v = gen_cell_type[l * 1600 + x * 40 + y];
         if (v == 9 || v == 10)
             return 0;
     }
@@ -1590,19 +1597,19 @@ void far sub_s007_15af_345a(int t, int l, int *cnt)
 {
     int i, r, x, y, v, kind, placed;
     long w;
-    struct gexit _based(D_db39) *e;
+    struct gexit _based(gen_work) *e;
     int far *o;
     char force;
 
-    for (i = 0; i < D_db71[l]; i++) {
-        e = D_db95 + l * 4 + i;
+    for (i = 0; i < gen_exit_count[l]; i++) {
+        e = gen_exits + l * 4 + i;
         if (e->x0a == 0)
-            D_db93[(l * 40 + e->x0) * 40 + e->x2 + 2] = 11;
+            gen_cell_door[(l * 40 + e->x0) * 40 + e->x2 + 2] = 11;
         else if (e->x0a == 3)
-            D_db93[(l * 40 + e->x0) * 40 + e->x2 + 80] = 11;
+            gen_cell_door[(l * 40 + e->x0) * 40 + e->x2 + 80] = 11;
     }
-    v = sub_s004_0e76_20f6(1, 3);
-    for (r = 0; r < D_db45[l]; r++) {
+    v = roll_dice(1, 3);
+    for (r = 0; r < gen_rooms[l]; r++) {
         o = (int far *)(D_db3b + (l * 30 + r) * 4);
         kind = D_db91[l * 30 + r];
         if (kind == 2)
@@ -1636,7 +1643,7 @@ void far sub_s007_15af_3694(int t, int l, int far *o)
 {
     if (l > 0)
         sub_s007_15af_36e2(t, l, o);
-    if (D_db7d == l && t != 0)
+    if (gen_level_lo == l && t != 0)
         sub_s007_15af_39ba(t, l, o);
     if (l > 0)
         sub_s007_15af_3aac(t, l, o);
@@ -1648,18 +1655,18 @@ void far sub_s007_15af_36e2(int t, int l, int far *o)
     int x0, y0, h, w, k, x, y, n, x1, y1;
     long kind;
     long side;
-    int _based(D_db39) *c;
+    int _based(gen_work) *c;
 
     w = o[1] - o[0];
     h = o[3] - o[2];
     k = w - 2;
     x0 = k / 2 + o[0];
-    if (k % 2 == 1 && sub_s004_0e76_20f6(1, 2) == 1)
+    if (k % 2 == 1 && roll_dice(1, 2) == 1)
         x0++;
     y0 = o[2];
     k = h - 2;
     y0 = k / 2 + y0;
-    if (k % 2 == 1 && sub_s004_0e76_20f6(1, 2) == 1)
+    if (k % 2 == 1 && roll_dice(1, 2) == 1)
         y0++;
     for (x = x0; x <= x0 + 2; x++)
         for (y = y0; y <= y0 + 2; y++)
@@ -1667,16 +1674,16 @@ void far sub_s007_15af_36e2(int t, int l, int far *o)
                 return;
     kind = 8;
     n = 1;
-    if (t != 8 && sub_s004_0e76_20f6(1, 4) > 1) {
+    if (t != 8 && roll_dice(1, 4) > 1) {
         kind = 9;
-        if (sub_s004_0e76_20f6(1, 2) == 1) {
+        if (roll_dice(1, 2) == 1) {
             n = 2;
-            if ((h + 1) * (w + 1) > 0x32 && sub_s004_0e76_20f6(1, 2) == 1)
+            if ((h + 1) * (w + 1) > 0x32 && roll_dice(1, 2) == 1)
                 n = 3;
         }
     }
     x1 = x0 + 1;
-    if (n == 1 || (n == 2 && sub_s004_0e76_20f6(1, 2) == 1))
+    if (n == 1 || (n == 2 && roll_dice(1, 2) == 1))
         y0++;
     y1 = y0 + n;
     for (y = y0; y < y1; y++)
@@ -1685,7 +1692,7 @@ void far sub_s007_15af_36e2(int t, int l, int far *o)
     for (x = x0; x <= x0 + 2; x += 2) {
         for (y = y0; y < y1; y++) {
             if (sub_s007_15af_3bce(l, x, y)) {
-                if (sub_s004_0e76_20f6(1, 4) == 1)
+                if (roll_dice(1, 4) == 1)
                     side = 2;
                 else if ((o[2] + o[3]) / 2 < y)
                     side = 3;
@@ -1702,7 +1709,7 @@ void far sub_s007_15af_36e2(int t, int l, int far *o)
         sub_s007_15af_3f8a(l, 0, x1, y1, 3L);
     for (x = x0; x <= x0 + 2; x++)
         for (k = y; k <= y1; k++) {
-            c = D_db93 + (l * 40 + x) * 40 + k;
+            c = gen_cell_door + (l * 40 + x) * 40 + k;
             if (*c == 0)
                 *c = 13;
         }
@@ -1712,11 +1719,11 @@ void far sub_s007_15af_36e2(int t, int l, int far *o)
 void far sub_s007_15af_39ba(int t, int l, int far *o)
 {
     int i, x, y, a, b;
-    int _based(D_db39) *c;
+    int _based(gen_work) *c;
 
     for (i = 0; i < 50; i++) {
-        x = sub_s004_0e76_20f6(1, o[1] - o[0] + 1) + o[0] - 1;
-        y = sub_s004_0e76_20f6(1, o[3] - o[2] + 1) + o[2] - 1;
+        x = roll_dice(1, o[1] - o[0] + 1) + o[0] - 1;
+        y = roll_dice(1, o[3] - o[2] + 1) + o[2] - 1;
         if (sub_s007_15af_3bce(l, x, y))
             break;
     }
@@ -1724,7 +1731,7 @@ void far sub_s007_15af_39ba(int t, int l, int far *o)
         sub_s007_15af_3f8a(l, 0, x, y, 1L);
         for (a = x - 1; a <= x + 1; a++)
             for (b = y - 1; b <= y + 1; b++) {
-                c = D_db93 + (l * 40 + a) * 40 + b;
+                c = gen_cell_door + (l * 40 + a) * 40 + b;
                 if (*c == 0)
                     *c = 13;
             }
@@ -1732,29 +1739,36 @@ void far sub_s007_15af_39ba(int t, int l, int far *o)
 }
 
 /* a two-cell height feature (hgt 2/1) in the hall */
+/* m6: 3aac = eglc off + register x,y + struct slots {c,y0,x0,h,w,i} + hoisted w/h/x0/y0 + do-while;
+   left: 6.00 CSEs &F.hgt[x][y] (needs "c") while es for c is loaded first (only with "c" off). */
+#pragma optimize("eglc", off)
 void far sub_s007_15af_3aac(int t, int l, int far *o)
 {
-    int i, x, y;
-    int _based(D_db39) *c;
-
-    for (i = 0; i < 50; i++) {
-        x = sub_s004_0e76_20f6(1, o[1] - o[0] + 1) + o[0] - 1;
-        y = sub_s004_0e76_20f6(1, o[3] - o[2] + 1) + o[2] - 1;
+    register int x, y;
+    struct { int _based(gen_work) *c; int y0; int x0; int h; int w; int i; } s;
+    s.w = o[1] - o[0] + 1;
+    s.h = o[3] - o[2] + 1;
+    s.x0 = o[0];
+    s.y0 = o[2];
+    s.i = 0;
+    do {
+        x = roll_dice(1, s.w) + s.x0 - 1;
+        y = roll_dice(1, s.h) + s.y0 - 1;
         if (sub_s007_15af_3bce(l, x, y) && sub_s007_15af_3bce(l, x, y + 1))
             break;
-    }
-    if (i < 50) {
+    } while (++s.i < 50);
+    if (s.i < 50) {
         F.hgt[x][y] &= 0xf0;
         F.hgt[x][y] |= 2;
         F.hgt[x][y + 1] &= 0xf0;
         F.hgt[x][y + 1] |= 1;
-        c = D_db93 + (l * 40 + x) * 40 + y;
-        if (c[0] == 0)
-            c[0] = 15;
-        if (c[1] == 0)
-            c[1] = 15;
+        if (*(s.c = &gen_cell_door[(l * 40 + x) * 40 + y]) == 0)
+            *s.c = 15;
+        if (s.c[1] == 0)
+            s.c[1] = 15;
     }
 }
+#pragma optimize("eglc", on)
 
 /* chance of an object in a cell of a room of this kind */
 char far sub_s007_15af_3b92(int l, int kind)
@@ -1776,7 +1790,7 @@ char far sub_s007_15af_3b92(int l, int kind)
             break;
         }
     }
-    return sub_s004_0e76_20f6(1, n) == 1;
+    return roll_dice(1, n) == 1;
 }
 
 extern unsigned D_13d0[16];             /* allowed wall patterns */
@@ -1785,10 +1799,10 @@ extern unsigned D_13d0[16];             /* allowed wall patterns */
 char far sub_s007_15af_3bce(int l, int x, int y)
 {
     int a, b;
-    int _based(D_db39) *p;
+    int _based(gen_work) *p;
 
-    p = D_db8f + l * 1600;
-    if (p[x * 40 + y] > 1 && p[x * 40 + y] < 9 && D_db93[(l * 40 + x) * 40 + y] == 0) {
+    p = gen_cell_type + l * 1600;
+    if (p[x * 40 + y] > 1 && p[x * 40 + y] < 9 && gen_cell_door[(l * 40 + x) * 40 + y] == 0) {
         a = !sub_s007_15af_3da0(l, x, y + 1, 2);
         a |= !sub_s007_15af_3da0(l, x - 1, y + 1, 7) << 1;
         a |= !sub_s007_15af_3da0(l, x - 1, y, 3) << 2;
@@ -1809,7 +1823,7 @@ char far sub_s007_15af_3d2e(int l, int x, int y)
 
     for (i = x - 1; i <= x + 1; i++)
         for (j = y - 1; j <= y + 1; j++)
-            if (D_db93[(l * 40 + i) * 40 + j] != 0)
+            if (gen_cell_door[(l * 40 + i) * 40 + j] != 0)
                 return 0;
     return 1;
 }
@@ -1821,10 +1835,10 @@ char far sub_s007_15af_3da0(int l, int x, int y, int k)
     unsigned char b;
 
     i = (l * 40 + x) * 40 + y;
-    v = D_db8f[i];
+    v = gen_cell_type[i];
     if (v <= 1 || v >= 9)
         return 0;
-    b = D_db8d[i];
+    b = gen_cell_walls[i];
     switch (k) {
     case 0:
         b &= 4;
@@ -1864,7 +1878,7 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
     r = 0;
     if (l == 0) {
         if (kind == 2) {
-            switch (sub_s004_0e76_20f6(1, 3)) {
+            switch (roll_dice(1, 3)) {
             case 1:
                 r = 5;
                 break;
@@ -1879,7 +1893,7 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
     } else {
         switch (kind) {
         case 2:
-            switch (sub_s004_0e76_20f6(1, 3)) {
+            switch (roll_dice(1, 3)) {
             case 1:
                 r = 5;
                 break;
@@ -1892,7 +1906,7 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
             }
             break;
         case 3:
-            switch (sub_s004_0e76_20f6(1, 4)) {
+            switch (roll_dice(1, 4)) {
             case 1:
                 r = 5;
                 break;
@@ -1911,7 +1925,7 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
             }
             break;
         case 4:
-            switch (sub_s004_0e76_20f6(1, 6)) {
+            switch (roll_dice(1, 6)) {
             case 1:
                 r = 5;
                 break;
@@ -1933,7 +1947,7 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
             }
             break;
         case 5:
-            switch (sub_s004_0e76_20f6(1, 7)) {
+            switch (roll_dice(1, 7)) {
             case 1:
                 r = 5;
                 break;
@@ -1969,8 +1983,8 @@ long far sub_s007_15af_3e3e(int t, int l, int kind, char force)
 /* put object v on cell (x, y) of room r */
 void far sub_s007_15af_3f8a(int l, int r, int x, int y, long v)
 {
-    int _based(D_db39) *o;
-    int _based(D_db39) *p;
+    int _based(gen_work) *o;
+    int _based(gen_work) *p;
 
     if (v >= 3 && v <= 4) {
         o = D_db3b + (l * 30 + r) * 4;
@@ -1982,8 +1996,8 @@ void far sub_s007_15af_3f8a(int l, int r, int x, int y, long v)
     F.hgt[x][y] &= 0xf0;
     CB(x, y, 0) &= 0x0f;
     F.cell[x][y] |= (v & 15) << 4;
-    F.cell[x][y] |= (long)(unsigned char)(((sub_s004_0e76_20f6(1, 4) - 1) & 3) << 4) << 24;
-    p = D_db8f + (l * 40 + x) * 40 + y;
+    F.cell[x][y] |= (long)(unsigned char)(((roll_dice(1, 4) - 1) & 3) << 4) << 24;
+    p = gen_cell_type + (l * 40 + x) * 40 + y;
     if (*p > 1 && *p < 9)
         *p = 11;
 }
@@ -2001,7 +2015,7 @@ struct grp2 {                           /* treasure/guard group, 0x2c bytes at l
 };
 struct item { char p0[0x25]; char x25; char p26[0x2e - 0x26]; };
 extern _segment D_dae3;
-extern struct item _based(D_dae3) *D_db35;
+extern struct item _based(D_dae3) *bf_items;
 void far sub_s007_15af_42dc(int, struct grp2 far *, char, int);
 
 /* a chest with contents at (x, y) */
@@ -2010,8 +2024,8 @@ void far sub_s007_15af_4076(int t, int l, int x, int y, int *cnt)
     char far *ng;
     struct grp2 far *g;
     int i, j, n, r, w, h;
-    int _based(D_db39) *c;
-    int _based(D_db39) *o;
+    int _based(gen_work) *c;
+    int _based(gen_work) *o;
     int perm[17];
 
     ng = (char far *)&F + 0x300c;
@@ -2028,7 +2042,7 @@ void far sub_s007_15af_4076(int t, int l, int x, int y, int *cnt)
     g->x7 = y;
     for (i = x - 1; i <= x + 1; i++)
         for (j = y - 1; j <= y + 1; j++) {
-            c = D_db93 + (l * 40 + i) * 40 + j;
+            c = gen_cell_door + (l * 40 + i) * 40 + j;
             if (*c == 0)
                 *c = 12;
         }
@@ -2039,14 +2053,14 @@ void far sub_s007_15af_4076(int t, int l, int x, int y, int *cnt)
         w = h;
     g->x08 = (w + 5) << 1;
     g->x08 |= 0x80;
-    g->x0e = sub_s004_0e76_20f6(1, 3) - 1;
-    g->x10 = sub_s004_0e76_20f6(1, 6) - 1;
+    g->x0e = roll_dice(1, 3) - 1;
+    g->x10 = roll_dice(1, 6) - 1;
     for (i = 0; i < 16; i++)
         perm[i] = i;
     for (n = 16; n > 0; n--) {
         if (g->n >= 4)
             return;
-        r = sub_s004_0e76_20f6(1, n);
+        r = roll_dice(1, n);
         if (r != n) {
             i = perm[r];
             perm[r] = perm[n];
@@ -2074,30 +2088,32 @@ void far sub_s007_15af_4076(int t, int l, int x, int y, int *cnt)
 }
 
 /* add item type to the group with a 1/chance chance (always for the first) */
+#pragma optimize("a", on)
 void far sub_s007_15af_42dc(int chance, struct grp2 far *g, char x, int type)
 {
     struct gent far *e;
     int i;
 
-    if (g->n < 4 && (g->n == 0 || sub_s004_0e76_20f6(1, chance) == 1)) {
+    if (g->n < 4 && (g->n == 0 || roll_dice(1, chance) == 1)) {
         g->x08++;
         e = &g->ent[g->n++];
         e->type = type;
         e->x2 = x;
         e->x3 = 0x23;
         for (i = 0; i < 3; i++) {
-            if (sub_s004_0e76_20f6(1, 8) != 1)
+            if (roll_dice(1, 8) != 1)
                 break;
             e->x3 += 10;
             g->x08++;
         }
         e->n = 1;
         for (i = 0; i < 3; i++) {
-            if (sub_s004_0e76_20f6(1, chance) != 1)
+            if (roll_dice(1, chance) != 1)
                 break;
             e->n++;
             g->x08++;
         }
-        e->x5 = D_db35[e->type].x25;
+        e->x5 = bf_items[e->type].x25;
     }
 }
+#pragma optimize("a", off)

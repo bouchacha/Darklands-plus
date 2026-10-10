@@ -11,15 +11,17 @@
    Colour remap: palette entries 0xf3..0xff of combat sprites are "team colours". A remap
    table (256 bytes, identity outside 0xf3..0xff) maps the colours of the currently applied
    scheme to the new scheme, then every pixel of the sprite buffer is translated. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
     char pad8[0x78];
 };
 
-struct efa {                    /* effect cloud, D_a2eb[8], count D_a33d */
+struct efa {                    /* effect cloud, effect_clouds[8], count effect_cloud_count */
     int x;                      /* +00 centre */
     int y;                      /* +02 */
     unsigned char f4;           /* +04 high nibble = size class (0..5) */
@@ -29,12 +31,12 @@ struct efa {                    /* effect cloud, D_a2eb[8], count D_a33d */
     int t;                      /* +08 remaining time */
 };
 
-int far sub_s014_1d69_000c(int, int, int);
+int far line_blocked(int, int, int);
 int far sub_s014_1d69_0354(void);
 
-extern struct cbt D_9c55[];
-extern struct efa D_a2eb[];
-extern char D_a33d;
+extern struct cbt combatants[];
+extern struct efa effect_clouds[];
+extern char effect_cloud_count;
 
 extern unsigned char D_d438;            /* scheme currently applied to buffer 1 */
 extern unsigned char D_d4b0;            /* scheme currently applied to buffer 2 */
@@ -49,8 +51,8 @@ extern unsigned D_d5b5;                 /* pixel count of buffer 2 */
 extern unsigned D_ca2c;                 /* segment of buffer 1 */
 extern unsigned D_cea4;                 /* segment of buffer 2 */
 
-/* line-of-sight scratch: segment (D_e0a5,D_e0a3)-(D_e0a9,D_e0a7), box D_e1d5..D_e1db */
-extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
+/* line-of-sight scratch: segment (los_x0,los_y0)-(los_x1,los_y1), box D_e1d5..D_e1db */
+extern int los_x0, los_y0, los_x1, los_y1;
 extern int D_e1d5, D_e1d7, D_e1d9, D_e1db;
 extern char D_18b6[];                   /* half width of a cloud of size class n */
 extern char D_18bc[];                   /* half height */
@@ -118,7 +120,7 @@ void far sub_s014_1ec9_00da(int n, unsigned count, unsigned seg)
 
 /* 1 if the line from combatant a to combatant b passes through an effect cloud
    (smoke/fog etc.): first the cloud's bounding box, then every puff of it. */
-int far sub_s014_1ec9_0142(int a, int b)
+int far cloud_blocks_line(int a, int b)
 {
     struct cbt *c;
     int k;
@@ -127,53 +129,53 @@ int far sub_s014_1ec9_0142(int a, int b)
     int n;
     int px, py;
 
-    if (D_a33d == 0)
+    if (effect_cloud_count == 0)
         return 0;
-    c = &D_9c55[a];
-    D_e0a5 = c->x;
-    D_e0a3 = c->y;
-    D_e0a9 = D_9c55[b].x;
-    D_e0a7 = D_9c55[b].y;
-    for (i = 0; i <= D_a33d; i++) {
-        n = D_a2eb[i].f4 >> 4;
-        D_e1d5 = D_a2eb[i].x - D_18b6[n];
-        D_e1d9 = D_a2eb[i].y - D_18bc[n];
-        D_e1d7 = D_18b6[n] + D_a2eb[i].x;
-        D_e1db = D_18bc[n] + D_a2eb[i].y;
+    c = &combatants[a];
+    los_x0 = c->x;
+    los_y0 = c->y;
+    los_x1 = combatants[b].x;
+    los_y1 = combatants[b].y;
+    for (i = 0; i <= effect_cloud_count; i++) {
+        n = effect_clouds[i].f4 >> 4;
+        D_e1d5 = effect_clouds[i].x - D_18b6[n];
+        D_e1d9 = effect_clouds[i].y - D_18bc[n];
+        D_e1d7 = D_18b6[n] + effect_clouds[i].x;
+        D_e1db = D_18bc[n] + effect_clouds[i].y;
         if (sub_s014_1d69_0354() == 1) {
-            sx0 = D_e0a5;
-            sy0 = D_e0a3;
-            sx1 = D_e0a9;
-            sy1 = D_e0a7;
-            D_e0a5 = D_a2eb[i].x;
-            D_e0a3 = D_a2eb[i].y;
+            sx0 = los_x0;
+            sy0 = los_y0;
+            sx1 = los_x1;
+            sy1 = los_y1;
+            los_x0 = effect_clouds[i].x;
+            los_y0 = effect_clouds[i].y;
             for (k = 0; k < n * n; k++) {
-                D_e0a9 = D_21b2[n][k] + D_a2eb[i].x;
-                D_e0a7 = D_21bc[n][k] + D_a2eb[i].y;
-                if (sub_s014_1d69_000c(-1, -1, 0) == 0) {
+                los_x1 = D_21b2[n][k] + effect_clouds[i].x;
+                los_y1 = D_21bc[n][k] + effect_clouds[i].y;
+                if (line_blocked(-1, -1, 0) == 0) {
                     /* the puff is visible from the cloud centre: test its box */
-                    px = D_e0a5;
-                    py = D_e0a3;
-                    D_e1d5 = D_e0a9 - 8;
-                    D_e1d9 = D_e0a7 - 4;
-                    D_e1d7 = D_e0a9 + 8;
-                    D_e1db = D_e0a7 + 4;
-                    D_e0a5 = sx0;
-                    D_e0a3 = sy0;
-                    D_e0a9 = sx1;
-                    D_e0a7 = sy1;
+                    px = los_x0;
+                    py = los_y0;
+                    D_e1d5 = los_x1 - 8;
+                    D_e1d9 = los_y1 - 4;
+                    D_e1d7 = los_x1 + 8;
+                    D_e1db = los_y1 + 4;
+                    los_x0 = sx0;
+                    los_y0 = sy0;
+                    los_x1 = sx1;
+                    los_y1 = sy1;
                     if (sub_s014_1d69_0354() == 1)
                         return 1;
-                    D_e0a3 = py;
-                    D_e0a5 = px;
+                    los_y0 = py;
+                    los_x0 = px;
                 }
             }
         }
         /* (the original also restores here when the box test failed) */
-        D_e0a5 = sx0;
-        D_e0a3 = sy0;
-        D_e0a9 = sx1;
-        D_e0a7 = sy1;
+        los_x0 = sx0;
+        los_y0 = sy0;
+        los_x1 = sx1;
+        los_y1 = sy1;
     }
     return 0;
 }

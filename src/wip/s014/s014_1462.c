@@ -19,8 +19,10 @@
    status: 5/5 written, 0 match. 01f0 050c 0740 083e are MSC near functions.
    m4: 000a shift temps (cx/cy) - left: k copied to BX/SI, OR order of the result; 0740 box locals in
    struct {h, w, r, x, t, y} - left: w loaded before abs(x - D_84f4); 083e under pragma e off. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -32,18 +34,18 @@ struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
 };
 struct flr { long c[1]; };
 
-void far sub_root_0410_0068(int *, int, int);   /* word fill (ptr, value, nwords) */
+void far word_fill(int *, int, int);   /* word fill (ptr, value, nwords) */
 void near sub_s014_1462_01f0(void);
 void near sub_s014_1462_050c(void);
 void near sub_s014_1462_0740(int);
 void near sub_s014_1462_083e(void);
 
-extern struct flr far F_20a5_0000;      /* current floor map */
-extern struct cbt D_9c55[];
-extern char D_a6b4[];                   /* [13] floor of each combatant */
-extern char D_c80f[];                   /* [13] half width */
-extern char D_c831[];                   /* [13] half height */
-extern char D_a6d3[];                   /* [13] */
+extern struct flr far floor_img;      /* current floor map */
+extern struct cbt combatants[];
+extern char cbt_floor[];                   /* [13] floor of each combatant */
+extern char cbt_half_w[];                   /* [13] half width */
+extern char cbt_half_h[];                   /* [13] half height */
+extern char cbt_moving[];                   /* [13] */
 extern char D_d697;                     /* */
 extern char D_d6cd;                     /* */
 extern int D_01e4[];                    /* [13] 1 << k */
@@ -76,17 +78,17 @@ extern int D_84ee, D_853a, D_84f0, D_853c;  /* furniture box */
 extern long D_84f8[3][3];               /* neighbour cells [dy+1][dx+1] */
 
 #pragma optimize("a", on)
-int far sub_s014_1462_000a(struct cbt *c)
+int far cbt_collisions(struct cbt *c)
 {
     int k;
     int x, y;
 
-    sub_root_0410_0068(D_e11c, 0, 16);
+    word_fill(D_e11c, 0, 16);
     D_84f4 = x = c->x;
     D_84f6 = y = c->y;
     k = c->sprite;
-    D_84f2 = D_c80f[k];
-    D_8534 = D_c831[k];
+    D_84f2 = cbt_half_w[k];
+    D_8534 = cbt_half_h[k];
     D_8530 = D_84f2 + 4;
     D_8532 = D_84f2 + 4;
     D_84e8 = D_8534 + 8;
@@ -101,15 +103,15 @@ int far sub_s014_1462_000a(struct cbt *c)
         D_852c = cx << 5;
         D_8522 = cy << 4;
         i = cx * 40 + cy;
-        D_84f8[0][0] = F_20a5_0000.c[i - 41];
-        D_84f8[0][1] = F_20a5_0000.c[i - 1];
-        D_84f8[0][2] = F_20a5_0000.c[i + 39];
-        D_84f8[1][0] = F_20a5_0000.c[i - 40];
-        D_84f8[1][1] = F_20a5_0000.c[i];
-        D_84f8[1][2] = F_20a5_0000.c[i + 40];
-        D_84f8[2][0] = F_20a5_0000.c[i - 39];
-        D_84f8[2][1] = F_20a5_0000.c[i + 1];
-        D_84f8[2][2] = F_20a5_0000.c[i + 41];
+        D_84f8[0][0] = floor_img.c[i - 41];
+        D_84f8[0][1] = floor_img.c[i - 1];
+        D_84f8[0][2] = floor_img.c[i + 39];
+        D_84f8[1][0] = floor_img.c[i - 40];
+        D_84f8[1][1] = floor_img.c[i];
+        D_84f8[1][2] = floor_img.c[i + 40];
+        D_84f8[2][0] = floor_img.c[i - 39];
+        D_84f8[2][1] = floor_img.c[i + 1];
+        D_84f8[2][2] = floor_img.c[i + 41];
     }
     if (D_84f8[1][1] & 0x80000000L)
         return -1;
@@ -217,12 +219,12 @@ void near sub_s014_1462_0740(int self)
     struct { int h, w, r, x, t, y; } s;
 
     for (i = 0; i < 13; i++) {
-        if (self != i && D_9c55[i].status == 1 && D_a6b4[self] == D_a6b4[i]
-         && (D_d697 == 0 || D_d6cd == i || (D_d6cd != i && D_a6d3[i] == 0))) {
-            s.x = D_9c55[i].x;
-            s.y = D_9c55[i].y;
-            if (abs(s.x - D_84f4) < (s.w = D_c80f[i]) + D_84f2
-             && abs(s.y - D_84f6) < (s.h = D_c831[i]) + D_8534) {
+        if (self != i && combatants[i].status == 1 && cbt_floor[self] == cbt_floor[i]
+         && (D_d697 == 0 || D_d6cd == i || (D_d6cd != i && cbt_moving[i] == 0))) {
+            s.x = combatants[i].x;
+            s.y = combatants[i].y;
+            if (abs(s.x - D_84f4) < (s.w = cbt_half_w[i]) + D_84f2
+             && abs(s.y - D_84f6) < (s.h = cbt_half_h[i]) + D_8534) {
                 s.r = s.w + s.x;
                 b = s.h + s.y;
                 s.t = s.y - s.h;

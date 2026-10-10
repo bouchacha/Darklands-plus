@@ -25,6 +25,8 @@
      nchars x 0x22a-byte character records (0x80 bytes member record + far tables
      F_2e38_082c[0x14], F_2e38_07be[0x16], F_2e38_003e[0x180]);
      int nevents; nevents x 0x30-byte events; 0x5dce bytes at far D_a885; then cache.tmp. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 extern int D_8c50;              /* cursor row */
@@ -36,83 +38,83 @@ typedef struct { char _p[16]; } FILE;
 #define FP_SEG(fp) (*((unsigned far *)&(fp) + 1))
 #define FP_OFF(fp) (*((unsigned far *)&(fp)))
 
-extern char D_00e0[], D_00e2[], D_00e4[], D_00e6[];
-extern char D_01be, D_01bf;
+extern char cur_hour[], cur_day[], cur_month[], cur_year[];
+extern char opt_sound, opt_music;
 extern char D_07aa, D_07bc;
 extern char D_07d8;
-extern int D_0154;
-extern int D_017c;
+extern int card_window2;
+extern int card_window;
 extern unsigned D_2870;
-extern char D_27f4[];
-extern int D_2800;
+extern char screen_win[];
+extern int screen_win_colour;
 extern int D_8c4c;              /* number of saved games */
-extern int D_2804;
-extern int D_2812;
-extern int D_2816;
-extern volatile int D_6ef0, D_6eec, D_6eee;
+extern int screen_win_font;
+extern int back_win_colour;
+extern int back_win_font;
+extern volatile int mouse_buttons, mouse_x, mouse_y;
 extern int D_8c52;              /* first save shown */
 extern int D_9072[], D_9074[], D_9076[], D_9078[];
-extern unsigned D_9080;
+extern unsigned combat_flags;
 extern char D_9081;
-extern int D_9082[];
-extern char D_9085[];
-extern char D_906a;
-extern char D_906b[], D_906d[], D_906f[];
+extern int party_fame[];
+extern char msg_buf[];
+extern char game_difficulty;
+extern char party_money[], party_money_gr[], party_money_pf[];
 extern char D_907a;
-extern char D_907b[];
-extern int D_907e;
+extern char leader[];
+extern int cur_loc;
 extern int D_9417;
 extern char D_9429, D_9433;
-extern char far *D_9785;
-extern char D_978b[];
+extern char far *city_rec;
+extern char city_desc[];
 extern char D_987f;
 extern char D_9920, D_9934;
 extern char *D_996e, *D_9982;
-extern int D_9c42;
-extern char D_9c4a[];
-extern char D_9c55[];
-extern char D_9c69[][0x80];
-extern char D_a668[];
-extern unsigned D_a2d7[];
+extern int cursor_default;
+extern char party_seed[];
+extern char combatants[];
+extern char party[][0x80];
+extern char member_shield[];
+extern unsigned shield_pics[];
 extern char D_a67c[];
-extern char D_a67e[];
+extern char party_size[];
 extern char D_a680[];
-extern int D_a68f;
+extern int cursor_current;
 extern char D_a752[];
 extern char D_a772[];
 extern unsigned D_a776;
 extern int D_a86e, D_a870, D_a872, D_a874;
 extern char D_a876;
-extern unsigned char far *D_a885;
-extern char D_a88d[];
+extern unsigned char far *loc_buf;
+extern char prev_screen[];
 extern int D_a891;
-extern char D_a6b4[];
-extern char D_c102;
-extern char D_c624[];
-extern unsigned D_ca45[];
+extern char cbt_floor[];
+extern char move_mode;
+extern char marching_order[];
+extern unsigned anim_buffers[];
 extern char D_da34[];
 extern char D_db27[];
 extern unsigned D_d6ee, D_d6f2, D_d6f9, D_d70a, D_d726, D_d729, D_d73c, D_d800;
-extern char D_e3d0[], D_e3d2[];
+extern char party_x[], party_y[];
 extern unsigned D_e416;
-extern char D_e48c[];
+extern char cur_palette[];
 extern int D_e7a0;
 extern int D_e7a2;
-extern char D_e7d8[];
+extern char saved_card[];
 extern int D_e88a;
-extern char D_e896[], D_e898[];
+extern char saved_card2[], D_e898[];
 extern char D_e89a;
 extern struct { char _p[0x1dd3]; char far *s[3]; } far F_290e_0000;
 extern unsigned far F_20a5_4d62;
 extern char far F_20a5_763b[2];
 extern unsigned far F_2e38_1ffc;
-extern char far * far F_2e38_1b2c[0x12c];
-extern char far * far F_2e38_10be[];
-extern char far F_20a5_33fc[5][0x18];
+extern char far * far events[0x12c];
+extern char far * far locations[];
+extern char far member_palette[5][0x18];
 extern char far F_2e38_3b2e[][15];
-extern char far F_2e38_082c[][0x14];
-extern char far F_2e38_07be[][0x16];
-extern char far F_2e38_003e[][0x180];
+extern char far saints_known[][0x14];
+extern char far formulas_known[][0x16];
+extern char far inventories[][0x180];
 int far _dos_close();
 unsigned far _dos_findfirst(char *, unsigned, struct find_t *);
 int far _dos_findnext();
@@ -140,48 +142,48 @@ unsigned far alloc_buffer();
 void far free_buffer();
 int far copy_rect_saved();
 char *strcat();
-int far sub_root_0000_13a0();
-int far sub_root_0000_1384();
-int far sub_root_0000_1438();
-int far sub_root_0000_23e6();
-int far sub_root_0000_2522();
-int far sub_root_0000_262e();
+int far quit_to_dos();
+int far flush_keys();
+int far show_difficulty();
+int far text_box();
+int far ask_yes_no();
+int far datafile_forget();
 void far F_0000_2652(int);
-int far sub_root_0265_0004();
+int far draw_text_far();
 int far sub_root_047c_0066();
 int far sub_root_047c_00a9();
 int far sub_root_047c_040b();
-int far sub_root_047c_04dc();
+int far gfx_recolor_rect();
 int far sub_root_047c_04f8();
 int far sub_root_047c_0545();
-int far sub_root_047c_0553();
-int far sub_root_047c_055a();
+int far gfx_copy_rect();
+int far gfx_text();
 int far sub_root_047c_0568();
 int far sub_root_047c_056f();
-int far sub_root_047c_058b();
-int far sub_root_047c_05a5();
-int far sub_root_047c_073d();
-int far sub_root_047c_0744();
+int far set_palette();
+int far gfx_draw_pic();
+int far key_pressed();
+int far get_key();
 int far sub_root_047c_0783();
 int far sub_root_047c_0791();
 int far sub_root_047c_07ce();
 int far sub_root_047c_08c8();
 int far sub_root_047c_08f9();
-int far sub_root_047c_124f();
-int far sub_root_047c_1293();
-int far sub_root_047c_12c3();
+int far mouse_set_cursor();
+int far mouse_show();
+int far mouse_hide();
 int far sub_root_047c_1320();
-int far sub_root_05ba_00c2();
-int far sub_root_0617_024a();
-int far sub_root_0617_045c();
+int far mem_free();
+int far pic_draw_pal();
+int far pic_load();
 int far sub_root_06a1_2c9e();
-int far sub_s029_1367_0066();
-int far sub_s037_1462_4184();
-int far vec_18d3();
+int far clamp_range();
+int far load_saved_game();
+int far order_menu_reset_vec();
 int far vec_1905();
-int far vec_1919();
-int far vec_1b17();
-int far vec_1cb1();
+int far cards_startup_vec();
+int far battle_restore_vec();
+int far enemy_anim_free5_vec();
 int far sub_s037_1c7d_0002();
 int far sub_s037_1c7d_0218();
 int far sub_s037_1c7d_024e();
@@ -189,7 +191,7 @@ void far sub_s037_1c7d_02ce();
 int far sub_s037_1c7d_030a();
 void far sub_s037_1c7d_06e6();
 void far sub_s037_1c7d_095e();
-void far sub_s037_1c7d_09c6();
+void far load_game();
 void far sub_s037_1c7d_0d24();
 void far sub_s037_1c7d_19c6();
 int far sub_s037_1c7d_1a60();
@@ -203,29 +205,29 @@ int far sub_s037_1c7d_0002(void)
     int row;
     last = -1;
     sub_root_047c_0568();
-    D_e7a2 = D_2816;
-    D_e7a0 = D_2804;
+    D_e7a2 = back_win_font;
+    D_e7a0 = screen_win_font;
     sub_s037_1c7d_024e();
     sub_s037_1c7d_02ce();
     sub_root_047c_056f();
-    while (D_6ef0 & 1)
+    while (mouse_buttons & 1)
         ;
     for (;;) {
         key = 0;
-        if (!(D_6ef0 & 1) && D_6eec > 0x44 && D_6eec < 0xc6 && D_6eee > 0x2d && D_6eee < 0x5a) {
-            row = (D_6eee - 0x2d) / 15;
+        if (!(mouse_buttons & 1) && mouse_x > 0x44 && mouse_x < 0xc6 && mouse_y > 0x2d && mouse_y < 0x5a) {
+            row = (mouse_y - 0x2d) / 15;
             if (row != last) {
-                sub_root_047c_12c3();
+                mouse_hide();
                 if (last != -1)
-                    sub_root_047c_04dc(D_27f4, 0x45, last * 15 + 0x2f, 0x80, 8, 9, 8);
+                    gfx_recolor_rect(screen_win, 0x45, last * 15 + 0x2f, 0x80, 8, 9, 8);
                 last = row;
-                sub_root_047c_04dc(D_27f4, 0x45, row * 15 + 0x2f, 0x80, 8, 8, 9);
-                sub_root_047c_1293();
+                gfx_recolor_rect(screen_win, 0x45, row * 15 + 0x2f, 0x80, 8, 8, 9);
+                mouse_show();
             }
-        } else if ((D_6ef0 & 1) && D_6eec > 0x44 && D_6eec < 0xc6 && D_6eee > 0x2d && D_6eee < 0x5a) {
-            while (D_6ef0 & 1)
+        } else if ((mouse_buttons & 1) && mouse_x > 0x44 && mouse_x < 0xc6 && mouse_y > 0x2d && mouse_y < 0x5a) {
+            while (mouse_buttons & 1)
                 ;
-            switch (row = (D_6eee - 0x2d) / 15) {
+            switch (row = (mouse_y - 0x2d) / 15) {
             case 0:
                 key = 0x264c;
                 break;
@@ -237,20 +239,20 @@ int far sub_s037_1c7d_0002(void)
                     key = 0x11b;
                 break;
             }
-        } else if ((D_6ef0 & 1) && D_6eec > 0xc3 && D_6eec < 0x140 && D_6eee > 0x14 && D_6eee < 0xa5) {
-            while (D_6ef0 & 1)
+        } else if ((mouse_buttons & 1) && mouse_x > 0xc3 && mouse_x < 0x140 && mouse_y > 0x14 && mouse_y < 0xa5) {
+            while (mouse_buttons & 1)
                 ;
-            row = (D_6eee - 0x14) / 16;
+            row = (mouse_y - 0x14) / 16;
             if (D_8c54 > row) {
-                sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x12, 0x10);
+                mouse_hide();
+                gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x12, 0x10);
                 D_8c50 = row;
-                sub_root_047c_04dc(D_27f4, 0xc4, (row << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
-                sub_root_047c_1293();
+                gfx_recolor_rect(screen_win, 0xc4, (row << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
+                mouse_show();
             }
         }
-        if (sub_root_047c_073d())
-            key = sub_root_047c_0744();
+        if (key_pressed())
+            key = get_key();
         if (D_e89a == 1) {
             if (key == 0x11b || key == 0x1352 || key == 0x1372)
                 return sub_s037_1c7d_0218(0);
@@ -263,10 +265,10 @@ int far sub_s037_1c7d_0002(void)
 
 int far sub_s037_1c7d_0218(int p_6)
 {
-    sub_root_05ba_00c2(D_e88a, "b");
-    D_2816 = D_e7a2;
-    D_2804 = D_e7a0;
-    while (D_6ef0 & 1)
+    mem_free(D_e88a, "b");
+    back_win_font = D_e7a2;
+    screen_win_font = D_e7a0;
+    while (mouse_buttons & 1)
         ;
     sub_root_047c_1320(6, 0, 0, 0);
     return p_6;
@@ -279,14 +281,14 @@ int far sub_s037_1c7d_024e(void)
     sub_root_047c_040b(3);
     sub_root_047c_040b(4);
     D_07d8 = 0;
-    sub_root_0617_024a(1, "pics\\loadscrn.pic", D_e48c);
+    pic_draw_pal(1, "pics\\loadscrn.pic", cur_palette);
     sub_root_047c_0545();
-    D_e88a = sub_root_0617_045c("pics\\buttnCR2.pic");
+    D_e88a = pic_load("pics\\buttnCR2.pic");
     sub_root_047c_04f8();
-    sub_root_047c_058b(D_e48c);
-    D_2812 = 8;
-    D_2816 = 1;
-    D_2804 = 1;
+    set_palette(cur_palette);
+    back_win_colour = 8;
+    back_win_font = 1;
+    screen_win_font = 1;
     D_8c4c = sub_s037_1c7d_1a60();
     D_8c52 = 0;
     return D_8c50 = 0;
@@ -294,11 +296,11 @@ int far sub_s037_1c7d_024e(void)
 
 void far sub_s037_1c7d_02ce(void)
 {
-    sub_root_047c_12c3();
-    sub_root_047c_0553(0x2806, 0, 0, 0x140, 0xc8, D_27f4, 0, 0);
-    sub_s037_1c7d_095e(D_27f4);
-    sub_s037_1c7d_06e6(D_27f4);
-    sub_root_047c_1293();
+    mouse_hide();
+    gfx_copy_rect(0x2806, 0, 0, 0x140, 0xc8, screen_win, 0, 0);
+    sub_s037_1c7d_095e(screen_win);
+    sub_s037_1c7d_06e6(screen_win);
+    mouse_show();
 }
 
 /* button/key handler: 0x1000 quit, 0x2044/0x2064 delete, 0x264c/0x266c load,
@@ -313,22 +315,22 @@ int far sub_s037_1c7d_030a(int key)
     switch (key) {
     case 0x1000:
         sub_s037_1c7d_0218(0);
-        sub_root_0000_13a0();
+        quit_to_dos();
         break;
     case 0x264c:
     case 0x266c:
         if (D_8c54 > D_8c50) {
-            sub_root_047c_12c3();
-            sub_root_047c_05a5(D_27f4, 0x42, 0x2c, D_e88a);
-            D_2800 = 8;
-            sub_root_0265_0004(D_27f4, 0x52, 0x30, F_290e_0000.s[0]);
+            mouse_hide();
+            gfx_draw_pic(screen_win, 0x42, 0x2c, D_e88a);
+            screen_win_colour = 8;
+            draw_text_far(screen_win, 0x52, 0x30, F_290e_0000.s[0]);
             sub_s037_1c7d_0d24((char far *)F_2e38_3b2e[D_8c50]);
             sub_root_06a1_2c9e("charactr.tmp", 0, h);
             _dos_read(h[0], (int far *)&nn[0], 2, &nn[1]);
             _dos_read(h[0], (int far *)ids, 10, &nn[1]);
             _dos_close(h[0]);
-            for (s.p = &D_9c69[0][1], s.k = 0; s.k < 10; s.p += 0x80, s.k += 2) {
-                *(unsigned *)((char *)D_a2d7 + s.k) = 0;
+            for (s.p = &party[0][1], s.k = 0; s.k < 10; s.p += 0x80, s.k += 2) {
+                *(unsigned *)((char *)shield_pics + s.k) = 0;
                 if (*(int *)((char *)ids + *(volatile int *)&s.k) != -1) {
                     sub_root_047c_0545();
                     strcpy(name, "pics\\");
@@ -336,72 +338,72 @@ int far sub_s037_1c7d_030a(int key)
                     name[11] = *s.p;
                     name[12] = 0;
                     strcat(name, ".pic");
-                    *(unsigned *)((char *)D_a2d7 + s.k) = sub_root_0617_045c(name);
+                    *(unsigned *)((char *)shield_pics + s.k) = pic_load(name);
                     sub_root_047c_04f8();
                 }
             }
-            sub_root_047c_1293();
+            mouse_show();
             F_0000_2652(0x35);
             return 0x11b;
         }
         break;
     case 0x2044:
     case 0x2064:
-        sub_root_047c_12c3();
-        sub_root_047c_04dc(D_27f4, 0x45, 0x2f, 0x80, 0x2d, 9, 8);
-        sub_root_047c_05a5(D_27f4, 0x41, 0x3b, D_e88a);
-        D_2800 = 8;
-        sub_root_0265_0004(D_27f4, 0x52, 0x3f, F_290e_0000.s[1]);
-        if (sub_root_0000_2522("Delete this Game?")) {
-            sub_root_047c_12c3();
+        mouse_hide();
+        gfx_recolor_rect(screen_win, 0x45, 0x2f, 0x80, 0x2d, 9, 8);
+        gfx_draw_pic(screen_win, 0x41, 0x3b, D_e88a);
+        screen_win_colour = 8;
+        draw_text_far(screen_win, 0x52, 0x3f, F_290e_0000.s[1]);
+        if (ask_yes_no("Delete this Game?")) {
+            mouse_hide();
             sub_s037_1c7d_19c6((char far *)F_2e38_3b2e[D_8c50]);
-            sub_root_047c_1293();
-            sub_s037_1c7d_06e6(D_27f4);
+            mouse_show();
+            sub_s037_1c7d_06e6(screen_win);
         }
-        sub_root_047c_12c3();
-        sub_root_047c_0553(0x2806, 0x41, 0x3b, 0x82, 0xe, D_27f4, 0x41, 0x3b);
-        D_2800 = 8;
-        sub_root_0265_0004(D_27f4, 0x52, 0x3f, F_290e_0000.s[1]);
-        sub_root_047c_04dc(D_27f4, 0x45, 0x3e, 0x80, 8, 8, 9);
-        sub_root_047c_1293();
+        mouse_hide();
+        gfx_copy_rect(0x2806, 0x41, 0x3b, 0x82, 0xe, screen_win, 0x41, 0x3b);
+        screen_win_colour = 8;
+        draw_text_far(screen_win, 0x52, 0x3f, F_290e_0000.s[1]);
+        gfx_recolor_rect(screen_win, 0x45, 0x3e, 0x80, 8, 8, 9);
+        mouse_show();
         break;
     case 0x4700:
         D_8c50 = D_8c52 = 0;
-        sub_s037_1c7d_06e6(D_27f4);
+        sub_s037_1c7d_06e6(screen_win);
         break;
     case 0x4800:
     case 0x4b00:
         s.k = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
+        gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
         if (--D_8c50 < 0) {
             if (D_8c52) {
                 D_8c52--;
                 D_8c50 = 0;
-                sub_s037_1c7d_06e6(D_27f4);
+                sub_s037_1c7d_06e6(screen_win);
             } else
                 D_8c50 = 0;
         }
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
+        gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
         break;
     case 0x4d00:
     case 0x5000:
         s.k = 0x10;
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
+        gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, s.k, 0x12, s.k);
         if (++D_8c50 >= D_8c54) {
             if (D_8c4c - 9 < ++D_8c52) {
                 D_8c50--;
                 D_8c52--;
             } else {
                 D_8c50--;
-                sub_s037_1c7d_06e6(D_27f4);
+                sub_s037_1c7d_06e6(screen_win);
             }
         }
-        sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
+        gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
         break;
     case 0x4f00:
-        D_8c52 = sub_s029_1367_0066(0, 9999, D_8c4c - 9);
-        D_8c50 = sub_s029_1367_0066(0, D_8c4c, 8);
-        sub_s037_1c7d_06e6(D_27f4);
+        D_8c52 = clamp_range(0, 9999, D_8c4c - 9);
+        D_8c50 = clamp_range(0, D_8c4c, 8);
+        sub_s037_1c7d_06e6(screen_win);
         break;
     }
 }
@@ -418,8 +420,8 @@ void far sub_s037_1c7d_06e6(struct font *f)
     char path[0x1e];
     struct find_t ff;
     char line[0x52];
-    sub_root_047c_12c3();
-    sub_root_047c_0553(0x2806, 0xc3, 0x14, 0x7d, 0x91, D_27f4, 0xc3, 0x14);
+    mouse_hide();
+    gfx_copy_rect(0x2806, 0xc3, 0x14, 0x7d, 0x91, screen_win, 0xc3, 0x14);
     D_8c54 = skip = 0;
     if (_dos_findfirst("saves\\*.sav", 0, &ff))
         return;
@@ -444,54 +446,54 @@ void far sub_s037_1c7d_06e6(struct font *f)
             _dos_close(h);
             sprintf(line, "%s %d/%d/%d  %d", name, year, month + 1, day, hour);
             f->color = 0x11;
-            sub_root_047c_055a(f, 0xc6, (D_8c54 << 4) + 7, line);
-            sub_root_047c_055a(f, 0xc6, (D_8c54 << 4) + 0xf, desc);
+            gfx_text(f, 0xc6, (D_8c54 << 4) + 7, line);
+            gfx_text(f, 0xc6, (D_8c54 << 4) + 0xf, desc);
             f->color = 0x10;
-            sub_root_047c_055a(f, 0xc5, (D_8c54 << 4) + 6, line);
-            sub_root_047c_055a(f, 0xc5, (D_8c54 << 4) + 0xe, desc);
+            gfx_text(f, 0xc5, (D_8c54 << 4) + 6, line);
+            gfx_text(f, 0xc5, (D_8c54 << 4) + 0xe, desc);
         }
     } while (!_dos_findnext(&ff));
     if (D_8c4c <= D_8c50)
         D_8c50 = D_8c54 - 1;
-    sub_root_047c_04dc(D_27f4, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
-    sub_root_047c_1293();
+    gfx_recolor_rect(screen_win, 0xc4, (D_8c50 << 4) + 0x16, 0x7b, 0x10, 0x10, 0x12);
+    mouse_show();
 }
 
 void far sub_s037_1c7d_095e(struct font *f)
 {
     f->color = 8;
-    sub_root_0265_0004(f, 0x52, 0x2f, F_290e_0000.s[0]);
-    sub_root_0265_0004(f, 0x52, 0x3e, F_290e_0000.s[1]);
+    draw_text_far(f, 0x52, 0x2f, F_290e_0000.s[0]);
+    draw_text_far(f, 0x52, 0x3e, F_290e_0000.s[1]);
     if (D_e89a == 1)
-        sub_root_0265_0004(f, 0x52, 0x4d, F_290e_0000.s[2]);
+        draw_text_far(f, 0x52, 0x4d, F_290e_0000.s[2]);
 }
 
 /* load: confirm, tear down the running game (free buffers), then reload and longjmp
    back into the main loop */
-void far sub_s037_1c7d_09c6(void)
+void far load_game(void)
 {
     int i;
     unsigned far *q;
-    ((struct win *)D_017c)->f10 = 3;
-    if (!sub_root_0000_2522("Loading is irreversable. Proceed?"))
+    ((struct win *)card_window)->f10 = 3;
+    if (!ask_yes_no("Loading is irreversable. Proceed?"))
         return;
     vec_1905("load", "a");
     if (D_907a == 1) {
-        sub_root_047c_12c3();
-        sub_root_047c_124f(0, 0, D_9c42);
-        D_a68f = D_9c42;
-        sub_root_0000_262e();
+        mouse_hide();
+        mouse_set_cursor(0, 0, cursor_default);
+        cursor_current = cursor_default;
+        datafile_forget();
         for (i = 0; i < 5; i++) {
-            if (D_a2d7[i]) {
-                free_buffer(D_a2d7[i], "SGS");
-                D_a2d7[i] = 0;
+            if (shield_pics[i]) {
+                free_buffer(shield_pics[i], "SGS");
+                shield_pics[i] = 0;
             }
         }
-        *(long *)D_9085 = *(long *)"Seq";
+        *(long *)msg_buf = *(long *)"Seq";
         for (i = 0; i < 5; i++) {
-            if (D_ca45[i]) {
-                free_buffer(D_ca45[i], D_9085);
-                D_ca45[i] = 0;
+            if (anim_buffers[i]) {
+                free_buffer(anim_buffers[i], msg_buf);
+                anim_buffers[i] = 0;
             }
         }
         free_buffer(F_20a5_4d62, "MiscSp");
@@ -513,14 +515,14 @@ void far sub_s037_1c7d_09c6(void)
             free_buffer(D_d726, "WWL");
         if (D_d800)
             free_buffer(D_d800, "WFX");
-        vec_1cb1();
+        enemy_anim_free5_vec();
         F_20a5_763b[0] = 'D';
         F_20a5_763b[1] = 'G';
         for (i = 0; i < 5; i++) {
-            if (D_9c69[i][0] == 1 || D_9c69[i][0] == 2) {
-                *(int *)&D_9c69[i][-4] = 0;
-                D_9c69[i][0x36] = -1;
-                D_a6b4[i] = 0;
+            if (party[i][0] == 1 || party[i][0] == 2) {
+                *(int *)&party[i][-4] = 0;
+                party[i][0x36] = -1;
+                cbt_floor[i] = 0;
             }
         }
         D_907a = 0;
@@ -529,30 +531,30 @@ void far sub_s037_1c7d_09c6(void)
         D_9920 = 1;
         D_9934 = 1;
         D_987f = 1;
-        D_9080 &= 0xfe10;
-        sub_root_0000_1384();
+        combat_flags &= 0xfe10;
+        flush_keys();
         D_07aa = 2;
         D_07bc = 2;
-        D_c102 = 0;
-        vec_18d3();
+        move_mode = 0;
+        order_menu_reset_vec();
         if (D_a876 != 'n' && D_a876 != 'N') {
             sub_root_047c_0791();
             sub_root_047c_00a9();
             sub_root_047c_08f9(D_9417);
-            sprintf(D_9085, "%csound.dlc", D_a876);
-            sub_root_047c_08c8(D_9417 = sub_root_047c_07ce(D_9085, 0));
+            sprintf(msg_buf, "%csound.dlc", D_a876);
+            sub_root_047c_08c8(D_9417 = sub_root_047c_07ce(msg_buf, 0));
             sub_root_047c_0783(0, 0, 0, D_a870, D_a86e, D_a872, D_a874);
             sub_root_047c_0066();
         }
-        vec_1919(0);
+        cards_startup_vec(0);
     }
     if (D_a776)
         free_buffer(D_a776, "b");
     D_a776 = 0;
     for (i = 0; i < 5; i++) {
-        if (D_a2d7[i])
-            free_buffer(D_a2d7[i], "sg");
-        D_9c69[i][0] = 0;
+        if (shield_pics[i])
+            free_buffer(shield_pics[i], "sg");
+        party[i][0] = 0;
     }
     if (D_a891 == 3) {
         fcloseall();
@@ -569,9 +571,9 @@ void far sub_s037_1c7d_09c6(void)
         D_e416 = 0;
     }
     for (i = 0; i < 0x12c; i++) {
-        if (F_2e38_1b2c[i]) {
-            free_buffer(FP_SEG(F_2e38_1b2c[i]), "event");
-            F_2e38_1b2c[i] = 0;
+        if (events[i]) {
+            free_buffer(FP_SEG(events[i]), "event");
+            events[i] = 0;
         }
     }
     sub_s037_1c7d_0002();
@@ -620,37 +622,37 @@ void far sub_s037_1c7d_0d24(char far *file)
         fi = fdopen(hj, "rb");
         fread(namee, 1, 0x15, fi);
         fread(desch, 1, 0x4f, fi);
-        fread(D_9c4a, 2, 1, fi);
+        fread(party_seed, 2, 1, fi);
         fread(dummy2m, 2, 1, fi);
-        fread(D_00e6, 2, 1, fi);
-        fread(D_00e4, 2, 1, fi);
-        fread(D_00e2, 2, 1, fi);
-        fread(D_00e0, 2, 1, fi);
-        fread(D_906b, 2, 1, fi);
-        fread(D_906d, 2, 1, fi);
-        fread(D_906f, 2, 1, fi);
+        fread(cur_year, 2, 1, fi);
+        fread(cur_month, 2, 1, fi);
+        fread(cur_day, 2, 1, fi);
+        fread(cur_hour, 2, 1, fi);
+        fread(party_money, 2, 1, fi);
+        fread(party_money_gr, 2, 1, fi);
+        fread(party_money_pf, 2, 1, fi);
         fread(&dummy4o, 4, 1, fi);
-        fread(D_9082, 2, 1, fi);
-        fread(&D_907e, 2, 1, fi);
-        fread(D_e3d0, 2, 1, fi);
-        fread(D_e3d2, 2, 1, fi);
+        fread(party_fame, 2, 1, fi);
+        fread(&cur_loc, 2, 1, fi);
+        fread(party_x, 2, 1, fi);
+        fread(party_y, 2, 1, fi);
         fread(D_a772, 2, 1, fi);
         fread(D_e898, 2, 1, fi);
-        fread(D_e7d8, 2, 1, fi);
-        fread(D_e896, 2, 1, fi);
-        fread(D_a88d, 2, 1, fi);
+        fread(saved_card, 2, 1, fi);
+        fread(saved_card2, 2, 1, fi);
+        fread(prev_screen, 2, 1, fi);
         fread(D_9072, 2, 1, fi);
         fread(D_9074, 2, 1, fi);
         fread(D_9076, 2, 1, fi);
         fread(D_9078, 2, 1, fi);
         fread(D_a67c, 2, 1, fi);
-        fread(&D_906a, 1, 1, fi);
+        fread(&game_difficulty, 1, 1, fi);
         fread(D_db27, 2, 1, fi);
         fread(D_da34, 2, 1, fi);
-        fread(D_c624, 6, 1, fi);
-        fread(D_907b, 1, 1, fi);
-        fread(&D_01bf, 1, 1, fi);
-        fread(&D_01be, 1, 1, fi);
+        fread(marching_order, 6, 1, fi);
+        fread(leader, 1, 1, fi);
+        fread(&opt_music, 1, 1, fi);
+        fread(&opt_sound, 1, 1, fi);
         fread(&D_a891, 2, 1, fi);
         fread(&flage, 1, 1, fi);
         fread(&dummyc, 2, 1, fi);
@@ -689,38 +691,38 @@ void far sub_s037_1c7d_0d24(char far *file)
         fread(&dummyc, 2, 1, fi);
         fread(&dummyc, 2, 1, fi);
         fread(&dummyc, 2, 1, fi);
-        if (D_906a & 0x80) {
+        if (game_difficulty & 0x80) {
             D_9081 |= 1;
-            D_906a &= 0x7f;
+            game_difficulty &= 0x7f;
         } else
             D_9081 &= 0xfe;
-        sub_root_0000_1438(1);
-        sub_root_047c_12c3();
+        show_difficulty(1);
+        mouse_hide();
         if (D_907a == 1) {
             D_907a = 0;
-            sub_root_0000_23e6(D_017c, -1, 1, D_479e, D_0154, &rj);
+            text_box(card_window, -1, 1, D_479e, card_window2, &rj);
             D_907a = 1;
         } else
-            sub_root_0000_23e6(D_017c, -1, 1, D_479e, D_0154, &rj);
-        sub_root_047c_1293();
-        if (D_01bf == 1) {
+            text_box(card_window, -1, 1, D_479e, card_window2, &rj);
+        mouse_show();
+        if (opt_music == 1) {
             strcat(onoffg, "ON");
             *D_996e = 1;
         } else {
             strcat(onoffg, "OFF");
             *D_996e = 2;
         }
-        if (D_01be == 1) {
+        if (opt_sound == 1) {
             strcat(onoffg, "ON");
             *D_9982 = 1;
         } else {
             strcat(onoffg, "OFF");
             *D_9982 = 2;
         }
-        fread(D_a67e, 2, 1, fi);
+        fread(party_size, 2, 1, fi);
         fread(&ncharsd, 2, 1, fi);
         fread(idso, 10, 1, fi);
-        fread(D_a668, 0x14, 1, fi);
+        fread(member_shield, 0x14, 1, fi);
         fread(tabh, 0x78, 1, fi);
         posb = ftell(fi);
         for (id = 0; id < ncharsd; id++) {
@@ -730,39 +732,39 @@ void far sub_s037_1c7d_0d24(char far *file)
             if (je < 5) {
                 fseek(fi, posb, 0);
                 fseek(fi, (long)(unsigned)(idso[je] * 0x22a), 1);
-                fread(&D_9c55[je << 7], 0x80, 1, fi);
+                fread(&combatants[je << 7], 0x80, 1, fi);
                 fseek(fi, 0L, 1);
-                _dos_read(hj, (char far *)F_2e38_082c[je], 0x14, &nrh);
-                _dos_read(hj, (char far *)F_2e38_07be[je], 0x16, &nrh);
-                _dos_read(hj, (char far *)F_2e38_003e[je], 0x180, &nrh);
-                if (D_9c69[je][1] < 'A')
-                    D_9c69[je][1] = 'A';
+                _dos_read(hj, (char far *)saints_known[je], 0x14, &nrh);
+                _dos_read(hj, (char far *)formulas_known[je], 0x16, &nrh);
+                _dos_read(hj, (char far *)inventories[je], 0x180, &nrh);
+                if (party[je][1] < 'A')
+                    party[je][1] = 'A';
             } else {
                 fseek(fi, 0L, 1);
-                _dos_read(hj, (char far *)D_9085, 0x22a, &nrh);
+                _dos_read(hj, (char far *)msg_buf, 0x22a, &nrh);
             }
         }
         for (id = 0; id < 5; id++)
             for (je = 0; je < 0x18; je++)
-                F_20a5_33fc[id][je] = tabh[id][je];
+                member_palette[id][je] = tabh[id][je];
         fread(&n, 2, 1, fi);
         for (id = 0; id < n; id++) {
-            F_2e38_1b2c[id] = (char far *)((unsigned long)alloc_buffer(0x30L, 0) << 16);
+            events[id] = (char far *)((unsigned long)alloc_buffer(0x30L, 0) << 16);
             fseek(fi, 0L, 1);
-            _dos_read(hj, F_2e38_1b2c[id], 0x30, &nrh);
+            _dos_read(hj, events[id], 0x30, &nrh);
         }
         fseek(fi, 0L, 1);
-        _dos_read(hj, D_a885, 0x5dce, &nrh);
-        id = D_a885[0];
-        n = D_a885[1];
-        p = D_a885 + 1;
+        _dos_read(hj, loc_buf, 0x5dce, &nrh);
+        id = loc_buf[0];
+        n = loc_buf[1];
+        p = loc_buf + 1;
         p++;
         n = (n << 8) + id;
         for (id = 0; id < n; id++) {
-            F_2e38_10be[id] = p;
+            locations[id] = p;
             p += 0x3a;
         }
-        sub_s037_1462_4184(file);
+        load_saved_game(file);
         if (_dos_findfirst("cache.tmp", 0, &ffc)) {
             printf("cache");
             exit_(1);
@@ -779,8 +781,8 @@ void far sub_s037_1c7d_0d24(char far *file)
         } else {
             f2b = fopen("darkland.dsc", "r");
             fgetc(f2b);
-            fseek(f2b, (long)(D_907e * 0x50 + 1), 0);
-            fread(D_978b, 0x50, 1, f2b);
+            fseek(f2b, (long)(cur_loc * 0x50 + 1), 0);
+            fread(city_desc, 0x50, 1, f2b);
             fclose(f2b);
         }
         if (_dos_findfirst("darkland.cty", 0, &ffc)) {
@@ -789,21 +791,21 @@ void far sub_s037_1c7d_0d24(char far *file)
         } else {
             sub_root_06a1_2c9e("darkland.cty", 0, &hj);
             f2b = fdopen(hj, "r");
-            fseek(f2b, (long)D_907e * 0x26e + 1, 0);
-            _dos_read(hj, D_9785, 0x26e, &id);
+            fseek(f2b, (long)cur_loc * 0x26e + 1, 0);
+            _dos_read(hj, city_rec, 0x26e, &id);
             fclose(f2b);
         }
         fclose(fi);
     }
-    vec_1b17(D_a680);
-    sub_root_047c_12c3();
+    battle_restore_vec(D_a680);
+    mouse_hide();
     if (D_907a == 1) {
         D_907a = 0;
-        copy_rect_saved(D_0154, rj.x0, rj.y0, rj.x1, rj.y1, D_017c, rj.x0, rj.y0);
+        copy_rect_saved(card_window2, rj.x0, rj.y0, rj.x1, rj.y1, card_window, rj.x0, rj.y0);
         D_907a = 1;
     } else
-        copy_rect_saved(D_0154, rj.x0, rj.y0, rj.x1, rj.y1, D_017c, rj.x0, rj.y0);
-    sub_root_047c_1293();
+        copy_rect_saved(card_window2, rj.x0, rj.y0, rj.x1, rj.y1, card_window, rj.x0, rj.y0);
+    mouse_show();
 }
 
 /* delete a saved game (NAME.sav and NAME.bsv) unless it is the one loaded */

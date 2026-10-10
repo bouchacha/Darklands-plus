@@ -8,19 +8,21 @@
  * pairs of rooms that are not yet connected, 0580 (straight, rooms side by side) and 09b2
  * (L-shaped, rooms diagonal) find a free strip, 0ec4 checks it, 1112 opens the room walls.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;                  /* rooms {x0, x1, y0, y1}, 30 per level */
-extern int _based(D_db39) *D_db8f;
-extern int _based(D_db39) *D_db91;
-extern int _based(D_db39) *D_db93;
-extern int D_db3d[4];                               /* keep rectangle x0, x1, y0, y1 */
-extern int D_db45[5];
-extern int D_db81;
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;                  /* rooms {x0, x1, y0, y1}, 30 per level */
+extern int _based(gen_work) *gen_cell_type;
+extern int _based(gen_work) *D_db91;
+extern int _based(gen_work) *gen_cell_door;
+extern int keep_x0[4];                               /* keep rectangle x0, x1, y0, y1 */
+extern int gen_rooms[5];
+extern int gen_level;
 
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 int far sub_s005_146d_0256(int, int, int, int, int, int, int, int, int *, int *, int *, int);
 int far sub_s005_146d_017a(int, int, int);
 int far sub_s005_146d_0858(int, int, int);
@@ -31,7 +33,7 @@ int far sub_s005_146d_0b9c(int, int, int);
 int far sub_s005_146d_0d7a(int, int, int, int);
 int far sub_s005_1551_0006(int, int, int, int, int, int);
 int far sub_s005_1551_00bc(int, int, int, int, int);
-void far sub_s006_1a57_000c(int, int, int, int, int, int);
+void far gen_add_room(int, int, int, int, int, int);
 void far sub_s006_1abf_000a(int, int, int, int);
 int far sub_s006_1abf_076e(int, int, int, int, int);
 int far sub_s006_17df_0580(int, int, int, int *, int *, int *, int *, int);
@@ -55,42 +57,42 @@ void far sub_s006_17df_000a(int kind)
     for (i = 0; i < 30; i++)
         links[i] = 0L;
     again = pass = 1;
-    for (all = 0; again && pass <= 5 && D_db45[D_db81] < 29; pass++) {
+    for (all = 0; again && pass <= 5 && gen_rooms[gen_level] < 29; pass++) {
         again = 0;
         b = 0;
-        for (a = 0; a < D_db45[D_db81] && D_db45[D_db81] < 29; a++) {
+        for (a = 0; a < gen_rooms[gen_level] && gen_rooms[gen_level] < 29; a++) {
             k = pass * 20;
-            if (sub_s005_146d_0858(D_db81, a, 30) && sub_s005_146d_0858(D_db81, a, 0))
+            if (sub_s005_146d_0858(gen_level, a, 30) && sub_s005_146d_0858(gen_level, a, 0))
                 f = 0;
             else
                 f = 1;
-            if (kind == 8 && D_db81 == 0)
-                f = !sub_s005_146d_0858(D_db81, a, 0);
+            if (kind == 8 && gen_level == 0)
+                f = !sub_s005_146d_0858(gen_level, a, 0);
             if (!f)
                 mask |= 1L << a;
-            if (!f && sub_s004_0e76_20f6(1, k) > 1)
+            if (!f && roll_dice(1, k) > 1)
                 continue;
-            if (!f || sub_s004_0e76_20f6(1, 5) == 1)
+            if (!f || roll_dice(1, 5) == 1)
                 w = 1;
             else
                 w = 0;
             cnt = 0;
-            for (i = 0; i < D_db45[D_db81]; i++)
-                if (i != a && sub_s005_146d_09e0(D_db81, i, a) &&
-                    !sub_s005_146d_017a(D_db81, i, a) &&
-                    (w || !sub_s005_146d_0858(D_db81, i, a)))
+            for (i = 0; i < gen_rooms[gen_level]; i++)
+                if (i != a && sub_s005_146d_09e0(gen_level, i, a) &&
+                    !sub_s005_146d_017a(gen_level, i, a) &&
+                    (w || !sub_s005_146d_0858(gen_level, i, a)))
                     cnt++;
             for (tries = cnt * 2, done = 0; !done && cnt > 0 && tries > 0; tries--) {
-                pick = sub_s004_0e76_20f6(1, cnt);
-                for (k = i = 0; i < D_db45[D_db81] && k < pick; i++)
-                    if (i != a && sub_s005_146d_09e0(D_db81, i, a) &&
-                        !sub_s005_146d_017a(D_db81, i, a) &&
-                        (w || !sub_s005_146d_0858(D_db81, i, a)))
+                pick = roll_dice(1, cnt);
+                for (k = i = 0; i < gen_rooms[gen_level] && k < pick; i++)
+                    if (i != a && sub_s005_146d_09e0(gen_level, i, a) &&
+                        !sub_s005_146d_017a(gen_level, i, a) &&
+                        (w || !sub_s005_146d_0858(gen_level, i, a)))
                         k++;
                 b = i - 1;
                 if (k == pick && pick) {
-                    side = sub_s005_146d_0b9c(D_db81, a, b);
-                    typ = sub_s005_146d_0d7a(D_db81, a, b, side);
+                    side = sub_s005_146d_0b9c(gen_level, a, b);
+                    typ = sub_s005_146d_0d7a(gen_level, a, b, side);
                     if (typ <= 5 && typ >= 1) {
                         switch (side) {
                         case 0:
@@ -133,11 +135,11 @@ void far sub_s006_17df_000a(int kind)
                 continue;
             if (f)
                 again = 1;
-            sub_s006_1a57_000c(7, x0, x1, y0, y1, side);
-            sub_s006_1abf_000a(D_db45[D_db81] - 1, 7, a, b);
+            gen_add_room(7, x0, x1, y0, y1, side);
+            sub_s006_1abf_000a(gen_rooms[gen_level] - 1, 7, a, b);
         }
         if (!again && !all) {
-            for (a = 0, m = 1L; a < D_db45[D_db81] && !all; a++, m <<= 1)
+            for (a = 0, m = 1L; a < gen_rooms[gen_level] && !all; a++, m <<= 1)
                 if (!(mask & m))
                     all = 1;
             if (all) {
@@ -172,10 +174,10 @@ int far sub_s006_17df_0580(int a, int b, int dir, int *u0, int *u1, int *v0, int
         p = 3;
     } else
         return 0;
-    ra = D_db3b + (D_db81 * 30 + a) * 4;
-    rb = D_db3b + (D_db81 * 30 + b) * 4;
-    ka = D_db91[D_db81 * 30 + a];
-    kb = D_db91[D_db81 * 30 + b];
+    ra = D_db3b + (gen_level * 30 + a) * 4;
+    rb = D_db3b + (gen_level * 30 + b) * 4;
+    ka = D_db91[gen_level * 30 + a];
+    kb = D_db91[gen_level * 30 + b];
     *u0 = ra[q] + 1;
     *u1 = rb[dir] - 1;
     if (*u1 < *u0)
@@ -183,13 +185,13 @@ int far sub_s006_17df_0580(int a, int b, int dir, int *u0, int *u1, int *v0, int
     lb = rb[o];
     la = ra[o];
     lo = (lb > la ? lb : la) - 1;
-    if (lo < D_db3d[o])
-        lo = D_db3d[o];
+    if (lo < keep_x0[o])
+        lo = keep_x0[o];
     hb = rb[p];
     ha = ra[p];
     hi = (hb < ha ? hb : ha) + 1;
-    if (hi > D_db3d[p])
-        hi = D_db3d[p];
+    if (hi > keep_x0[p])
+        hi = keep_x0[p];
     n = hi - lo + 1;
     if (n < 2 && *u0 < *u1)
         return 0;
@@ -199,11 +201,11 @@ int far sub_s006_17df_0580(int a, int b, int dir, int *u0, int *u1, int *v0, int
     for (; t < n * 3 && !ok; t++) {
         *u0 = ra[q] + 1;
         *u1 = rb[dir] - 1;
-        if (n > 2 || once || *u1 != *u0 || sub_s004_0e76_20f6(1, 2) < 2) {
+        if (n > 2 || once || *u1 != *u0 || roll_dice(1, 2) < 2) {
             if (n * 2 - t <= 0)
                 v = lo - (n * 2 - t);
             else
-                v = sub_s004_0e76_20f6(1, n) + lo - 1;
+                v = roll_dice(1, n) + lo - 1;
             if (v > hi)
                 v = hi;
             if (v < lo)
@@ -284,11 +286,11 @@ int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7
         dv = 1;
     } else
         return 0;
-    alt = sub_s004_0e76_20f6(1, 2) == 1;
-    ra = D_db3b + (D_db81 * 30 + a) * 4;
-    rb = D_db3b + (D_db81 * 30 + b) * 4;
-    ka = D_db91[D_db81 * 30 + a];
-    kb = D_db91[D_db81 * 30 + b];
+    alt = roll_dice(1, 2) == 1;
+    ra = D_db3b + (gen_level * 30 + a) * 4;
+    rb = D_db3b + (gen_level * 30 + b) * 4;
+    ka = D_db91[gen_level * 30 + a];
+    kb = D_db91[gen_level * 30 + b];
     t = 0;
     ok = 0;
     do {
@@ -352,10 +354,10 @@ int far sub_s006_17df_0d16(int vert, int from, int to, int fixed)
     int far *c;
     int far *u;
 
-    i = D_db81;
+    i = gen_level;
     up = from < to;
-    c = D_db8f + i * 1600;
-    u = D_db93 + i * 1600;
+    c = gen_cell_type + i * 1600;
+    u = gen_cell_door + i * 1600;
     if (vert) {
         if (up) {
             for (i = from; i <= to; i++)
@@ -389,14 +391,14 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
     int h, w, n, k, c;
 
     bad = 0;
-    if (x0 <= x1 && y0 <= y1 && sub_s005_1551_00bc(D_db81, x0, x1, y0, y1) < 0) {
+    if (x0 <= x1 && y0 <= y1 && sub_s005_1551_00bc(gen_level, x0, x1, y0, y1) < 0) {
         if (!flag) {
             h = y1 - y0 + 1;
             w = x1 - x0 + 1;
             n = h < w ? w : h;
             if (n == w) {
                 for (k = 0; k < n; k++) {
-                    c = D_db8f[(D_db81 * 40 + x0 + k) * 40 + y0 - 1];
+                    c = gen_cell_type[(gen_level * 40 + x0 + k) * 40 + y0 - 1];
                     if (c == 0 || c == 1)
                         break;
                 }
@@ -406,7 +408,7 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
                     bad = 1;
                 }
                 for (k = 0; k < n; k++) {
-                    c = D_db8f[(D_db81 * 40 + x0 + k) * 40 + y1 + 1];
+                    c = gen_cell_type[(gen_level * 40 + x0 + k) * 40 + y1 + 1];
                     if (c == 0 || c == 1)
                         break;
                 }
@@ -418,7 +420,7 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
             }
             if (h == n) {
                 for (k = 0; k < n; k++) {
-                    c = D_db8f[(D_db81 * 40 + x0 - 1) * 40 + y0 + k];
+                    c = gen_cell_type[(gen_level * 40 + x0 - 1) * 40 + y0 + k];
                     if (c == 0 || c == 1)
                         break;
                 }
@@ -428,7 +430,7 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
                     bad++;
                 }
                 for (k = 0; k < n; k++) {
-                    c = D_db8f[(D_db81 * 40 + x1 + 1) * 40 + y0 + k];
+                    c = gen_cell_type[(gen_level * 40 + x1 + 1) * 40 + y0 + k];
                     if (c == 0 || c == 1)
                         break;
                 }
@@ -441,8 +443,8 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
             if (bad > 2)
                 return 0;
         }
-        if ((flag || (sub_s005_1551_0006(0, 0, D_db81, x0, x1, y1) < 0 &&
-                      sub_s005_1551_0006(3, 0, D_db81, y0, y1, x1) < 0)) &&
+        if ((flag || (sub_s005_1551_0006(0, 0, gen_level, x0, x1, y1) < 0 &&
+                      sub_s005_1551_0006(3, 0, gen_level, y0, y1, x1) < 0)) &&
             sub_s006_17df_1112(x0, x1, y0, y1, ra, flag) &&
             sub_s006_17df_1112(x0, x1, y0, y1, rb, flag))
             return 1;
@@ -456,9 +458,9 @@ int far sub_s006_17df_1112(int x0, int x1, int y0, int y1, int room, int flag)
     int dir, lo, hi, door;
     int k, ok;
 
-    k = D_db91[D_db81 * 30 + room];
-    if (sub_s005_146d_0256(x0, x1, y0, y1, D_db3b[(D_db81 * 30 + room) * 4], D_db3b[(D_db81 * 30 + room) * 4 + 1],
-            D_db3b[(D_db81 * 30 + room) * 4 + 2], D_db3b[(D_db81 * 30 + room) * 4 + 3], &dir, &lo, &hi, 0)) {
+    k = D_db91[gen_level * 30 + room];
+    if (sub_s005_146d_0256(x0, x1, y0, y1, D_db3b[(gen_level * 30 + room) * 4], D_db3b[(gen_level * 30 + room) * 4 + 1],
+            D_db3b[(gen_level * 30 + room) * 4 + 2], D_db3b[(gen_level * 30 + room) * 4 + 3], &dir, &lo, &hi, 0)) {
         if (!flag && k != 5 && k != 7)
             door = 1;
         else

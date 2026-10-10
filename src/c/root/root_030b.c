@@ -27,6 +27,8 @@
  *   D_a71e/D_a722  wrap point (new start / old end) after the reader wrapped.
  * Cel records: 'Z' rate pal... (palette + speed), 'B' 1 (compressed screen, root 09c0 1883
  * unpacks it to A000:0000).  07c2 writes a status line to the monochrome screen (B000). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 #include <assert.h>
 #include <dos.h>
@@ -36,7 +38,7 @@
 
 #define mseg D_a714
 #define cels D_83b6
-#define FAB_close sub_root_05d9_0059
+#define FAB_close fab_close
 
 extern unsigned D_a714;
 extern unsigned long D_a716;    /* head */
@@ -81,10 +83,10 @@ extern int D_5738;
 extern int D_573a;
 extern int D_573c;
 
-int far sub_root_05d9_002a(char *);
-int far sub_root_05d9_0059(void);
-int far sub_root_05d9_006a(void);
-unsigned far sub_root_05d9_0070(unsigned long);
+int far fab_open(char *);
+int far fab_close(void);
+int far fab_eof(void);
+unsigned far fab_read(unsigned long);
 char * far sub_root_06a1_2760(char *, int);
 void far vec_1879(void);
 void far *far vec_1883(void far *, void far *, long);
@@ -164,10 +166,10 @@ void far sub_root_030b_0150(char *name)
     strcat(buf, ".");
     *sub_root_06a1_2760(buf, '.') = 0;
     strcat(buf, ".PAN");
-    if (sub_root_05d9_002a(buf)) {
+    if (fab_open(buf)) {
         cels = 0;
         i = 0;
-        while (!sub_root_05d9_006a()) {
+        while (!fab_eof()) {
             if (kbhit())
                 return;
             if (!sub_root_030b_0318()) {
@@ -176,7 +178,7 @@ void far sub_root_030b_0150(char *name)
                     sub_root_030b_04fc();
                 while (!sub_root_030b_0318());
             }
-            n = sub_root_05d9_0070(D_a72e);
+            n = fab_read(D_a72e);
             if (cels == 0) {
                 cels = sub_root_030b_04ce(D_a72e + 2);
 #line 210

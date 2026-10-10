@@ -8,13 +8,15 @@
    (int 10h 1Ah..1Ch) and the current video state (int 10h 1Bh) and remembers the text mode
    (D_e2a), the character-generator function (D_e2c: 11h/14h/12h, 22h/23h/24h) and the rows
    (D_e2e); 00be restores that text mode at exit.  Both contain inline _asm (int 10h). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 extern int D_0e28;              /* video state known */
 extern int D_0e2a;              /* video mode */
 extern int D_0e2c;              /* int 10h AH=11h font function */
 extern int D_0e2e;              /* rows */
 
-void far sub_s000_0fb2_0008(void)
+void far video_detect(void)
 {
     int bxvc;
     char infof[64];
@@ -76,7 +78,7 @@ bad:
     }
 }
 
-void far sub_s000_0fb2_00be(void)
+void far video_restore(void)
 {
     int u1j;
     int fontk;

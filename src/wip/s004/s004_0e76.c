@@ -19,10 +19,12 @@
  * functions, cport.compat600 only rewrites the `push ds` form) and far memsets (6.00A limit).
  * Locals of 06aa/122c/1d90 are renamed to 6.00A's name-hash slot order (build/agent/e6/hord.py).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
-struct item {                           /* 6 bytes, D_db35 index + data */
+struct item {                           /* 6 bytes, bf_items index + data */
     int id;
     unsigned char b2, b3, b4;
     char b5;
@@ -94,25 +96,25 @@ struct itype { char p[0x25]; unsigned char x25; char p26[0x2e - 0x26]; };
 struct tdesc { char b[0xc4]; };
 struct find_t { char reserved[21]; char attrib; unsigned wr_time, wr_date; long size; char name[13]; };
 
-extern int D_907e;
-extern char D_9080;
+extern int cur_loc;
+extern char combat_flags;
 extern int D_ffe0;                      /* unused: symbol-table position (2160 compare direction) */
 extern int D_da34;
 extern int D_db27;
 extern unsigned D_dadb;
-extern _segment D_dadd;
+extern _segment enemy_seg;
 extern unsigned D_dae1;
 extern _segment D_dae3;
-extern int D_dae5[16];
-extern int D_db05[16];
-extern int _based(D_dadd) *D_db29;
-extern struct mon _based(D_dadd) *D_db2b;
-extern struct group _based(D_dadd) *D_db2d;
-extern struct mtpl _based(D_dadd) *D_db2f;
-extern struct etype _based(D_dadd) *D_db31;
-extern struct tdesc _based(D_dadd) *D_db33;
-extern struct itype _based(D_dae3) *D_db35;
-extern char far *D_c103;
+extern int mon_count[16];
+extern int group_count[16];
+extern int _based(enemy_seg) *mon_template;
+extern struct mon _based(enemy_seg) *bf_monsters;
+extern struct group _based(enemy_seg) *bf_groups;
+extern struct mtpl _based(enemy_seg) *mon_templates;
+extern struct etype _based(enemy_seg) *enemy_types;
+extern struct tdesc _based(enemy_seg) *tile_desc;
+extern struct itype _based(D_dae3) *bf_items;
+extern char far *load_buf;
 extern char far F_20a5_75ac[];
 
 #define CL(a) ((a) > 0x7f ? 0x7f : (a))
@@ -131,35 +133,35 @@ void far srand(unsigned);
 char far *far _fstrcpy(char far *, char far *);
 void far *far _fmemcpy(void far *, void far *, unsigned);
 void far *far _fmemset(void far *, int, unsigned);
-int far sub_root_0000_25f2(char *);
+int far datafile_select(char *);
 void *memset(void *, int, unsigned);
 int abs(int);
-void far sub_root_0617_011e(char *, char far *);
-void far sub_root_0617_016a(char *, char far *, int);
+void far file_load_far(char *, char far *);
+void far file_save(char *, char far *, int);
 int far sub_s004_1262_0d0a(char *, void far *, long);
 int far vec_1b49();
 int far vec_1b53();
-int far vec_1b5d();
+int far templar_build_vec();
 int far vec_1b67();
 int far vec_1b71();
-int far vec_1b7b();
-int far vec_1b85();
-int far vec_1b8f();
-int far vec_1b99();
-void far sub_s004_0e76_04cc(void);
-int far sub_s004_0e76_06aa(int, int, int);
-void far sub_s004_0e76_1060(void);
+int far city_build_vec();
+int far mine_build_vec();
+int far gen_battlefield_vec();
+int far empty_battlefield_vec();
+void far monsters_clear(void);
+int far monster_type_map(int, int, int);
+void far groups_clear(void);
 void far sub_s004_0e76_1134(void);
-void far sub_s004_0e76_122c(int, int);
-void far sub_s004_0e76_1d90(int);
+void far monsters_fixup(int, int);
+void far groups_fixup(int);
 void far sub_s004_0e76_20dc(void);
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 int far sub_s004_0e76_213c(int, int, int, int);
-int far sub_s004_0e76_2160(int, int, int, int);
+int far dir_between(int, int, int, int);
 
 /* build the battlefield of type t; returns the number of levels written */
 #pragma optimize("a", on)
-int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, int a4, int a5,
+int far battlefield_build(int t, int seed, int *res, int a1, int a2, int a3, int a4, int a5,
     int a6, int a7, int a8, int a9)
 {
     char *nm1 = "Sc";
@@ -171,42 +173,42 @@ int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, in
     char name[30];
     struct find_t ff;
 
-    D_dadd = (_segment)(D_dadb = alloc_buffer(0xf5c8L, nm1));
-    D_db29 = 0;
-    D_db2b = (struct mon _based(D_dadd) *)0x180;
-    D_db2d = (struct group _based(D_dadd) *)0xa200;
-    D_db2f = (struct mtpl _based(D_dadd) *)0xb4c0;
-    D_db31 = (struct etype _based(D_dadd) *)0xed54;
-    D_db33 = (struct tdesc _based(D_dadd) *)0xf504;
-    sub_root_0617_011e("darkland.enm", (char far *)D_db2f);
+    enemy_seg = (_segment)(D_dadb = alloc_buffer(0xf5c8L, nm1));
+    mon_template = 0;
+    bf_monsters = (struct mon _based(enemy_seg) *)0x180;
+    bf_groups = (struct group _based(enemy_seg) *)0xa200;
+    mon_templates = (struct mtpl _based(enemy_seg) *)0xb4c0;
+    enemy_types = (struct etype _based(enemy_seg) *)0xed54;
+    tile_desc = (struct tdesc _based(enemy_seg) *)0xf504;
+    file_load_far("darkland.enm", (char far *)mon_templates);
     sprintf(name, "darkland.lst");
     _dos_findfirst(name, 0, &ff);
     D_dae3 = (_segment)(D_dae1 = alloc_buffer(ff.size, nm2));
-    D_db35 = 0;
-    sub_root_0617_011e(name, (char far *)D_db35);
-    D_db35 = (struct itype _based(D_dae3) *)3;
-    sub_root_0000_25f2("imaps.cat");
-    srand(D_907e);
+    bf_items = 0;
+    file_load_far(name, (char far *)bf_items);
+    bf_items = (struct itype _based(D_dae3) *)3;
+    datafile_select("imaps.cat");
+    srand(cur_loc);
     r = rand();
     srand(seed);
-    sub_s004_0e76_04cc();
-    sub_s004_0e76_1060();
+    monsters_clear();
+    groups_clear();
     sub_s004_0e76_1134();
     switch (t) {
     default:
-        n = vec_1b99(t, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        n = empty_battlefield_vec(t, a1, a2, a3, a4, a5, a6, a7, a8, a9);
         *res = 0;
         break;
     case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8:
     case 0x27: case 0x28:
     case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e:
-        n = vec_1b8f(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        n = gen_battlefield_vec(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
         break;
     case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f: case 0x10:
     case 0x66: case 0x67: case 0x68: case 0x69: case 0x6c: case 0x6d:
     case 0x7f: case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86:
     case 0x87: case 0x88: case 0x89:
-        n = vec_1b85(t, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        n = mine_build_vec(t, a1, a2, a3, a4, a5, a6, a7, a8, a9);
         *res = 0;
         break;
     case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18:
@@ -214,7 +216,7 @@ int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, in
     case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26:
     case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d:
     case 0x56: case 0x6a: case 0x6b:
-        n = vec_1b7b(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        n = city_build_vec(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
         break;
     case 0x2e: case 0x2f: case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35:
     case 0x36: case 0x37: case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d:
@@ -232,7 +234,7 @@ int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, in
         *res = 0;
         break;
     case 0x5e:
-        n = vec_1b5d(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        n = templar_build_vec(t, res, a1, a2, a3, a4, a5, a6, a7, a8, a9);
         break;
     case 0x5f:
         n = vec_1b53(t, a1, a2, a3, a4, a5, a6, a7, a8, a9);
@@ -243,21 +245,21 @@ int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, in
         *res = 0;
         break;
     }
-    sub_s004_0e76_122c(n, r);
-    sub_s004_0e76_1d90(n);
+    monsters_fixup(n, r);
+    groups_fixup(n);
     sprintf(name, "terrain.fil");
-    sub_root_0617_016a(name, (char far *)D_db33, sizeof(struct tdesc));
+    file_save(name, (char far *)tile_desc, sizeof(struct tdesc));
     for (i = 0; i < n; i++) {
         sprintf(name, "level%d.trn", i);
-        cnt = D_dae5[i];
-        *D_c103 = cnt;
-        _fmemcpy(D_c103 + 1, D_db2b + i * 12, cnt * sizeof(struct mon));
-        sub_s004_1262_0d0a(name, D_c103, cnt * sizeof(struct mon) + 1);
+        cnt = mon_count[i];
+        *load_buf = cnt;
+        _fmemcpy(load_buf + 1, bf_monsters + i * 12, cnt * sizeof(struct mon));
+        sub_s004_1262_0d0a(name, load_buf, cnt * sizeof(struct mon) + 1);
         sprintf(name, "level%d.atv", i);
-        cnt = D_db05[i];
-        *D_c103 = cnt;
-        _fmemcpy(D_c103 + 1, D_db2d + i * 10, cnt * 30);
-        sub_s004_1262_0d0a(name, D_c103, (long)(30 * cnt + 1));
+        cnt = group_count[i];
+        *load_buf = cnt;
+        _fmemcpy(load_buf + 1, bf_groups + i * 10, cnt * 30);
+        sub_s004_1262_0d0a(name, load_buf, (long)(30 * cnt + 1));
     }
     free_buffer(D_dadb, nm1);
     free_buffer(D_dae1, nm2);
@@ -268,16 +270,16 @@ int far sub_s004_0e76_0000(int t, int seed, int *res, int a1, int a2, int a3, in
 #pragma optimize("", on)
 
 /* clear the monster slots and set up the default monster record */
-void far sub_s004_0e76_04cc(void)
+void far monsters_clear(void)
 {
     struct mon far *m;
     struct item far *it;
     int i, k, o, o2;
 
-    memset(D_dae5, 0, sizeof(D_dae5));
+    memset(mon_count, 0, sizeof(mon_count));
     for (i = 0; i < 16; i++)
-        _fmemset(D_db29 + i * 12, -1, 24);
-    m = D_db2b;
+        _fmemset(mon_template + i * 12, -1, 24);
+    m = bf_monsters;
     m->x0 = -1;
     m->x2 = -1;
     m->x4 = 0;
@@ -330,17 +332,17 @@ void far sub_s004_0e76_04cc(void)
     for (k = 1; k < 16; k++)
         m->x74[k] = m->x74[0];
     for (o = 1; o < 12; o++)
-        D_db2b[o] = D_db2b[0];
+        bf_monsters[o] = bf_monsters[0];
     o2 = 12;
     for (k = 15; k; k--)
         for (i = 12; i; i--)
-            D_db2b[o2++] = D_db2b[0];
+            bf_monsters[o2++] = bf_monsters[0];
 }
 
 /* add a monster of enemy type t (at most n variants) to level l; returns its slot */
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-int far sub_s004_0e76_06aa(int l, int t, int n)
+int far monster_type_map(int l, int t, int n)
 {
     int unm;
     struct etype far *el;
@@ -357,7 +359,7 @@ int far sub_s004_0e76_06aa(int l, int t, int n)
 
     if (t < 0 || t >= 0x52)
         return -1;
-    el = D_db31 + t;
+    el = enemy_types + t;
     if (!(el->x16 & 0x3f)) {
         goto ec;
     eb:
@@ -365,7 +367,7 @@ int far sub_s004_0e76_06aa(int l, int t, int n)
             goto ex;
         el--;
     ec:
-        if (el > (struct etype far *)D_db31)
+        if (el > (struct etype far *)enemy_types)
             goto eb;
     }
 ex:
@@ -376,22 +378,22 @@ kb:
         goto kx;
     kk--;
 kc:
-    if (D_db2f[kk].x0e < 0)
+    if (mon_templates[kk].x0e < 0)
         goto kb;
 kx:
-    n = max(min(D_db2f[kk].x0e, n), 1);
+    n = max(min(mon_templates[kk].x0e, n), 1);
     k0j = kk;
     kk += *(volatile int *)&n - 1;
-    for (ia = 0; ia < D_dae5[l]; ia++)
-        if (D_db29[l * 12 + ia] == kk)
+    for (ia = 0; ia < mon_count[l]; ia++)
+        if (mon_template[l * 12 + ia] == kk)
             return ia;
-    tpd = D_db2f + kk;
-    mg = D_db2b + (l * 12 + D_dae5[l]);
+    tpd = mon_templates + kk;
+    mg = bf_monsters + (l * 12 + mon_count[l]);
     mg->x2 = k0j << 8;
     mg->x0 = k0j << 8;
     mg->x4 = 1 << l;
     mg->x8 = tpd->x2e;
-    ia = sub_s004_0e76_20f6(1, tpd->x0f);
+    ia = roll_dice(1, tpd->x0f);
     if (t == 0x4d)
         ia = 3;
     jd = tpd->x11 + (ia - 1) * tpd->x10;
@@ -406,10 +408,10 @@ kx:
     for (; ia < 6 && tpd->xa0[ia] >= 0; ia++) {
         if (el->x16 & (1 << ia)) {
             mask2d |= 1 << ia;
-            for (jd = 0; jd < D_dae5[l]; jd++) {
-                vg = D_db29[l * 12 + jd];
-                if (vg >= k0j && vg <= D_db2f[k0j].x0e + k0j - 1
-                    && D_db2b[l * 12 + jd].x28 != tpd->xa0[ia])
+            for (jd = 0; jd < mon_count[l]; jd++) {
+                vg = mon_template[l * 12 + jd];
+                if (vg >= k0j && vg <= mon_templates[k0j].x0e + k0j - 1
+                    && bf_monsters[l * 12 + jd].x28 != tpd->xa0[ia])
                     mask1o |= 1 << ia;
             }
         }
@@ -420,7 +422,7 @@ kx:
         jd = 0;
     else
         do {
-            jd = sub_s004_0e76_20f6(1, ia) - 1;
+            jd = roll_dice(1, ia) - 1;
         } while (!((1 << jd) & (unsigned char)mask1o));
     mg->x28 = tpd->xa0[jd];
     if (el->x16 & 0x80) {
@@ -446,7 +448,7 @@ kx:
             itl->id = tpd->xa6[jd];
             itl->b3 = (ia = tpd->xb4) >= 0 ? ia : tpd->xac;
             itl->b4 = 1;
-            itl->b5 = D_db35[itl->id].x25;
+            itl->b5 = bf_items[itl->id].x25;
             mg->x2e += itl->b5;
             mg->xd4++;
         }
@@ -461,7 +463,7 @@ kx:
                 itl->id = tpd->x9b;
                 itl->b3 = (ia = tpd->xb6) >= 0 ? ia : tpd->x9c;
                 itl->b4 = 1;
-                itl->b5 = D_db35[itl->id].x25;
+                itl->b5 = bf_items[itl->id].x25;
                 mg->x2e += itl->b5;
                 mg->xd4++;
             }
@@ -473,7 +475,7 @@ kx:
         itl->b3 = 0x19;
         itl->id = tpd->x9e;
         itl->b4 = tpd->x9f;
-        itl->b5 = D_db35[itl->id].x25 * itl->b4;
+        itl->b5 = bf_items[itl->id].x25 * itl->b4;
         mg->x2e += itl->b5;
         mg->xd4++;
     }
@@ -490,7 +492,7 @@ kx:
         itl->b3 = (jd = tpd->xad[ia].b) >= 0 ? jd : tpd->x96;
         itl->b4 = 1;
         if (ia == 0 && itl->b2 <= 0x4b || ia == 1 && itl->b2 <= 0x54) {
-            itl->b5 = D_db35[itl->id].x25;
+            itl->b5 = bf_items[itl->id].x25;
             mg->x2e += itl->b5;
         }
         mg->xd4++;
@@ -504,7 +506,7 @@ kx:
             itl->id = tpd->x98;
             itl->b3 = (ia = tpd->xb2) >= 0 ? ia : tpd->x99;
             itl->b4 = 1;
-            itl->b5 = D_db35[itl->id].x25;
+            itl->b5 = bf_items[itl->id].x25;
             mg->x2e += itl->b5;
             mg->xd4++;
         }
@@ -523,7 +525,7 @@ kx:
     }
     mg->x5e = tpd->x30;
     for (ia = 0; ia < 10; ia++) {
-        if ((jd = sub_s004_0e76_20f6(1, tpd->x74[ia].a) + tpd->x74[ia].b) > 0) {
+        if ((jd = roll_dice(1, tpd->x74[ia].a) + tpd->x74[ia].b) > 0) {
             mg->x60[ia] = jd;
             mg->x6a[ia] = tpd->x74[ia].c;
         }
@@ -531,13 +533,13 @@ kx:
     for (ia = 0; mg->xd4 < 16; ia++) {
         if (ia >= 0x16)
             break;
-        if ((jd = sub_s004_0e76_20f6(1, tpd->x32[ia].a) + tpd->x32[ia].b) > 0) {
+        if ((jd = roll_dice(1, tpd->x32[ia].a) + tpd->x32[ia].b) > 0) {
             itl = &mg->x74[mg->xd4];
             itl->b2 = ia - 0x7c;
             itl->b4 = jd;
             itl->b3 = tpd->x32[ia].c;
             itl->id = ia + 0x5f;
-            itl->b5 = D_db35[itl->id].x25;
+            itl->b5 = bf_items[itl->id].x25;
             mg->x2e += (char)jd * itl->b5;
             mg->xd4++;
         }
@@ -548,22 +550,22 @@ kx:
         itl->b4 = 1;
         itl->b3 = 0x28;
         itl->id = 0x73;
-        itl->b5 = D_db35[itl->id].x25;
+        itl->b5 = bf_items[itl->id].x25;
         mg->x2e += itl->b5;
         mg->xd4++;
     }
-    D_db29[l * 12 + (jd = D_dae5[l]++)] = kk;
+    mon_template[l * 12 + (jd = mon_count[l]++)] = kk;
     return jd;
 }
 
 /* clear the groups and set up the default group record */
-void far sub_s004_0e76_1060(void)
+void far groups_clear(void)
 {
     struct group far *g;
     int i, k, o;
 
-    memset(D_db05, 0, sizeof(D_db05));
-    g = D_db2d;
+    memset(group_count, 0, sizeof(group_count));
+    g = bf_groups;
     g->x0 = 0;
     g->x6 = -1;
     g->x7 = 0;
@@ -584,11 +586,11 @@ void far sub_s004_0e76_1060(void)
     g->x14 = -1;
     g->x1c = -1;
     for (i = 1; i < 10; i++)
-        D_db2d[i] = D_db2d[0];
+        bf_groups[i] = bf_groups[0];
     o = 10;
     for (k = 15; k; k--)
         for (i = 10; i; i--)
-            D_db2d[o++] = D_db2d[0];
+            bf_groups[o++] = bf_groups[0];
 }
 
 /* default tile descriptions */
@@ -598,24 +600,24 @@ void far sub_s004_0e76_1134(void)
     int i;
 
     for (i = 0; i < 16; i++) {
-        D_db33->b[i + 0xa4] = D_db33->b[i + 0x8a] = D_db33->b[i + 0x70] = D_db33->b[i + 0x57] =
-            D_db33->b[i + 0x3d] = D_db33->b[i + 0x24] = D_db33->b[i + 0x0a] = -1;
+        tile_desc->b[i + 0xa4] = tile_desc->b[i + 0x8a] = tile_desc->b[i + 0x70] = tile_desc->b[i + 0x57] =
+            tile_desc->b[i + 0x3d] = tile_desc->b[i + 0x24] = tile_desc->b[i + 0x0a] = -1;
     }
-    *(char volatile _based(D_dadd) *)&D_db33->b[0] = 0;
-    D_db33->b[0x23] = 2;
-    D_db33->b[0xa3] = D_db33->b[0x89] = D_db33->b[0x56] = 8;
-    D_db33->b[0xb4] = 0;
-    _fstrcpy((char far *)&D_db33->b[1], "");
-    _fstrcpy((char far *)&D_db33->b[0x1a], "");
-    _fstrcpy((char far *)&D_db33->b[0x34], "");
-    _fstrcpy((char far *)&D_db33->b[0x4d], "");
-    _fstrcpy((char far *)&D_db33->b[0x67], "");
-    _fstrcpy((char far *)&D_db33->b[0x80], "");
-    _fstrcpy((char far *)&D_db33->b[0x9a], "");
+    *(char volatile _based(enemy_seg) *)&tile_desc->b[0] = 0;
+    tile_desc->b[0x23] = 2;
+    tile_desc->b[0xa3] = tile_desc->b[0x89] = tile_desc->b[0x56] = 8;
+    tile_desc->b[0xb4] = 0;
+    _fstrcpy((char far *)&tile_desc->b[1], "");
+    _fstrcpy((char far *)&tile_desc->b[0x1a], "");
+    _fstrcpy((char far *)&tile_desc->b[0x34], "");
+    _fstrcpy((char far *)&tile_desc->b[0x4d], "");
+    _fstrcpy((char far *)&tile_desc->b[0x67], "");
+    _fstrcpy((char far *)&tile_desc->b[0x80], "");
+    _fstrcpy((char far *)&tile_desc->b[0x9a], "");
 }
 
 /* per level: monster variants from the seed, merge duplicates, group bonuses */
-void far sub_s004_0e76_122c(int nlev, int seed)
+void far monsters_fixup(int nlev, int seed)
 {
     int xl;
     int a1ck;
@@ -659,27 +661,27 @@ void far sub_s004_0e76_122c(int nlev, int seed)
         }
         for (jo = 0; jo < 0x47; jo++)
             kindsn[jo] = totl[jo] = 0;
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            mi = &D_db2b[lvc * 12 + ih];
-            tpd = &D_db2f[D_db29[lvc * 12 + ih]];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            mi = &bf_monsters[lvc * 12 + ih];
+            tpd = &mon_templates[mon_template[lvc * 12 + ih]];
             rh = seed % tpd->x0f + 1;
             baseb = tpd->x11 + (rh - 1) * tpd->x10;
             for (jo = 0; jo < tpd->x10; jo++)
                 mi->x9[jo] = (char)jo + (char)baseb;
         }
-        for (kj = 0; kj < D_db05[lvc]; kj++) {
-            gk = &D_db2d[lvc * 10 + kj];
+        for (kj = 0; kj < group_count[lvc]; kj++) {
+            gk = &bf_groups[lvc * 10 + kj];
             for (jo = 0; jo < 3; jo++)
-                if ((ih = gk->type[jo]) >= 0 && ih < D_dae5[lvc])
+                if ((ih = gk->type[jo]) >= 0 && ih < mon_count[lvc])
                     numh[ih] += gk->cnt[jo] < 0 ? 0 : gk->cnt[jo];
         }
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            tc = D_db29[lvc * 12 + ih];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            tc = mon_template[lvc * 12 + ih];
             goto tt;
         td:
             tc--;
         tt:
-            if (tc > 0 && D_db2f[tc].x0e < 0)
+            if (tc > 0 && mon_templates[tc].x0e < 0)
                 goto td;
             for (xl = 0; xl < ih; xl++)
                 if (slotn[xl] == tc)
@@ -692,8 +694,8 @@ void far sub_s004_0e76_122c(int nlev, int seed)
             totl[tc] += numh[ih];
         }
         flagh = 0;
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            mi = &D_db2b[lvc * 12 + ih];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            mi = &bf_monsters[lvc * 12 + ih];
             rh = mi->x0d;
             if (rh == 1 || rh == 2) {
                 flagh = 1;
@@ -702,14 +704,14 @@ void far sub_s004_0e76_122c(int nlev, int seed)
                     default:
                         mi->x0d = 0;
                         mi->x6 = 0;
-                        mi->x27 = D_db2f[D_db29[lvc * 12 + ih]].x12;
+                        mi->x27 = mon_templates[mon_template[lvc * 12 + ih]].x12;
                         mi->x0 &= 0xff00;
                         mi->x0 |= (unsigned char)mi->x28;
                         break;
                     case 0x15: case 0x16: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d:
                     case 0x23: case 0x2d: case 0x33: case 0x35:
-                        for (kj = 0; kj < D_db05[lvc]; kj++) {
-                            gk = &D_db2d[lvc * 10 + kj];
+                        for (kj = 0; kj < group_count[lvc]; kj++) {
+                            gk = &bf_groups[lvc * 10 + kj];
                             for (jo = 0; jo < 3; jo++)
                                 if (gk->type[jo] == ih)
                                     gk->cnt[jo] = gk->cnt[jo] > 1 ? 1 : gk->cnt[jo];
@@ -720,12 +722,12 @@ void far sub_s004_0e76_122c(int nlev, int seed)
             }
         }
         ih = 0;
-        baseb = D_dae5[lvc];
+        baseb = mon_count[lvc];
         goto it;
     ii:
         ih++;
     it:
-        if (ih >= D_dae5[lvc])
+        if (ih >= mon_count[lvc])
             goto idone;
         tc = slotn[ih];
         xl = 0;
@@ -757,8 +759,8 @@ void far sub_s004_0e76_122c(int nlev, int seed)
             goto ii;
         if (slotn[xl] != tc)
             goto xi;
-        mi = &D_db2b[lvc * 12 + ih];
-        m2i = &D_db2b[lvc * 12 + xl];
+        mi = &bf_monsters[lvc * 12 + ih];
+        m2i = &bf_monsters[lvc * 12 + xl];
         if (baseb > 2 || flagh) {
             jo = 0;
             goto jt;
@@ -766,27 +768,27 @@ void far sub_s004_0e76_122c(int nlev, int seed)
         goto x9;
     idone:
         kj = mx1g = mx2e = mx3i = 0;
-        for (; kj < D_db05[lvc]; kj++) {
-            gk = &D_db2d[lvc * 10 + kj];
+        for (; kj < group_count[lvc]; kj++) {
+            gk = &bf_groups[lvc * 10 + kj];
             for (jo = 0; jo < 3; jo++) {
-                if ((ih = gk->type[jo]) < 0 || ih >= D_dae5[lvc])
+                if ((ih = gk->type[jo]) < 0 || ih >= mon_count[lvc])
                     continue;
-                tpd = &D_db2f[D_db29[lvc * 12 + ih]];
+                tpd = &mon_templates[mon_template[lvc * 12 + ih]];
                 if (tpd->xba[0] > 0 || tpd->xba[1] > 0 || tpd->xbc[0] > 0 || tpd->xbc[1] > 0
                     || tpd->xbe[0] > 0 || tpd->xbe[1] > 0) {
                     for (rh = 0; rh < gk->cnt[jo]; rh++) {
-                        baseb = sub_s004_0e76_20f6(1, tpd->xba[0]) + tpd->xba[1];
+                        baseb = roll_dice(1, tpd->xba[0]) + tpd->xba[1];
                         mx1g = baseb >= mx1g ? baseb : mx1g;
-                        baseb = sub_s004_0e76_20f6(1, tpd->xbc[0]) + tpd->xbc[1];
+                        baseb = roll_dice(1, tpd->xbc[0]) + tpd->xbc[1];
                         mx2e = baseb >= mx2e ? baseb : mx2e;
-                        baseb = sub_s004_0e76_20f6(1, tpd->xbe[0]) + tpd->xbe[1];
+                        baseb = roll_dice(1, tpd->xbe[0]) + tpd->xbe[1];
                         mx3i = baseb >= mx3i ? baseb : mx3i;
                     }
                 }
             }
         }
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            mi = &D_db2b[lvc * 12 + ih];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            mi = &bf_monsters[lvc * 12 + ih];
             mi->x36[1] = CL(mi->x36[1] + mx1g);
             mi->x36[0] = CL(mi->x36[0] + mx2e);
             mi->x44[0] = CL(mi->x44[0] + mx3i);
@@ -794,8 +796,8 @@ void far sub_s004_0e76_122c(int nlev, int seed)
             mi->x44[2] = CL(mi->x44[2] + mx3i);
             mi->x44[3] = CL(mi->x44[3] + mx3i);
         }
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            tc = D_db29[lvc * 12 + ih];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            tc = mon_template[lvc * 12 + ih];
             switch (tc) {
             case 0x15:
                 a184n = 3;
@@ -849,9 +851,9 @@ void far sub_s004_0e76_122c(int nlev, int seed)
             default:
                 continue;
             }
-            for (xl = 0; xl < D_dae5[lvc]; xl++) {
-                mi = &D_db2b[lvc * 12 + xl];
-                if (mi->x0d == 1 && sub_s004_0e76_20f6(1, 5) <= a184n) {
+            for (xl = 0; xl < mon_count[lvc]; xl++) {
+                mi = &bf_monsters[lvc * 12 + xl];
+                if (mi->x0d == 1 && roll_dice(1, 5) <= a184n) {
                     mi->x44[4] += a1ck;
                     mi->x44[5] += a1ck;
                     mi->x44[6] += a1ck;
@@ -859,7 +861,7 @@ void far sub_s004_0e76_122c(int nlev, int seed)
                 baseb = F_20a5_75ac[mi->x28];
                 switch (baseb) {
                 case 1: case 2: case 6:
-                    if (sub_s004_0e76_20f6(1, 5) <= a17a) {
+                    if (roll_dice(1, 5) <= a17a) {
                         if (baseb == 6)
                             mi->x2b += a190d;
                         else
@@ -867,14 +869,14 @@ void far sub_s004_0e76_122c(int nlev, int seed)
                     }
                     break;
                 case 0: case 3:
-                    if (sub_s004_0e76_20f6(1, 5) <= a178h)
+                    if (roll_dice(1, 5) <= a178h)
                         mi->x2d |= a18ca & 0x0f;
                 default:
-                    if (sub_s004_0e76_20f6(1, 5) <= a18e)
+                    if (roll_dice(1, 5) <= a18e)
                         mi->x2d |= ab8i << 4;
                     break;
                 }
-                if (sub_s004_0e76_20f6(1, 5) <= a28h) {
+                if (roll_dice(1, 5) <= a28h) {
                     mi->x33 = a180a;
                     mi->x31[0] += a17em;
                     mi->x31[1] += a17em;
@@ -883,13 +885,13 @@ void far sub_s004_0e76_122c(int nlev, int seed)
         }
     }
     for (lvc = 0; lvc < nlev; lvc++) {
-        for (ih = 0; ih < D_dae5[lvc]; ih++) {
-            mi = &D_db2b[lvc * 12 + ih];
+        for (ih = 0; ih < mon_count[lvc]; ih++) {
+            mi = &bf_monsters[lvc * 12 + ih];
             c0c = mi->x0;
             c2i = mi->x2;
             for (jo = 0; jo < nlev; jo++)
-                for (xl = 0; xl < D_dae5[jo]; xl++) {
-                    m2i = &D_db2b[jo * 12 + xl];
+                for (xl = 0; xl < mon_count[jo]; xl++) {
+                    m2i = &bf_monsters[jo * 12 + xl];
                     if (m2i->x0 == c0c && m2i->x2 == c2i)
                         mi->x4 |= 1 << jo;
                 }
@@ -898,7 +900,7 @@ void far sub_s004_0e76_122c(int nlev, int seed)
 }
 
 /* drop empty group entries and groups, fix the group leaders, roll the group values */
-void far sub_s004_0e76_1d90(int nlev)
+void far groups_fixup(int nlev)
 {
     int ig, xrg, xsg, lva;
     struct mon far *mg;
@@ -913,10 +915,10 @@ void far sub_s004_0e76_1d90(int nlev)
     for (lva = 0; lva < nlev; lva++) {
         for (kj = 0; kj < 10; kj++)
             cnta[kj] = 0;
-        for (kj = 0; kj < D_db05[lva]; kj++) {
-            g = &D_db2d[lva * 10 + kj];
+        for (kj = 0; kj < group_count[lva]; kj++) {
+            g = &bf_groups[lva * 10 + kj];
             for (ja = 0; ja < 3; ja++) {
-                if (g->type[ja] >= 0 && g->type[ja] < D_dae5[lva] && g->cnt[ja] > 0)
+                if (g->type[ja] >= 0 && g->type[ja] < mon_count[lva] && g->cnt[ja] > 0)
                     cnta[kj]++;
                 else {
                     g->type[ja] = -1;
@@ -924,29 +926,29 @@ void far sub_s004_0e76_1d90(int nlev)
                 }
             }
         }
-        for (kj = 0; kj < D_db05[lva]; ) {
+        for (kj = 0; kj < group_count[lva]; ) {
             if (cnta[kj] > 0) {
                 kj++;
                 continue;
             }
-            for (xsg = kj + 1; xsg < D_db05[lva]; xsg++)
-                D_db2d[lva * 10 + xsg - 1] = D_db2d[lva * 10 + xsg];
-            D_db05[lva]--;
+            for (xsg = kj + 1; xsg < group_count[lva]; xsg++)
+                bf_groups[lva * 10 + xsg - 1] = bf_groups[lva * 10 + xsg];
+            group_count[lva]--;
         }
-        for (kj = 0; kj < D_db05[lva]; kj++) {
-            g = &D_db2d[lva * 10 + kj];
+        for (kj = 0; kj < group_count[lva]; kj++) {
+            g = &bf_groups[lva * 10 + kj];
             if (!g->x7)
                 continue;
             ed = &g->x14;
-            if ((ig = *ed) < 0 || ig >= D_dae5[lva])
+            if ((ig = *ed) < 0 || ig >= mon_count[lva])
                 goto clr;
-            mg = &D_db2b[lva * 12 + ig];
+            mg = &bf_monsters[lva * 12 + ig];
             if (mg->x0d == 2)
                 goto clr;
             if (mg->x0d == 1) {
                 mg->x0d = 0;
                 mg->x6 = 0;
-                mg->x27 = D_db2f[D_db29[lva * 12 + *ed]].x12;
+                mg->x27 = mon_templates[mon_template[lva * 12 + *ed]].x12;
                 mg->x0 &= 0xff00;
                 mg->x0 |= (unsigned char)mg->x28;
             }
@@ -954,19 +956,19 @@ void far sub_s004_0e76_1d90(int nlev)
         clr:
             g->x7 = 0;
         }
-        for (kj = 0; kj < D_db05[lva]; kj++) {
-            g = &D_db2d[lva * 10 + kj];
+        for (kj = 0; kj < group_count[lva]; kj++) {
+            g = &bf_groups[lva * 10 + kj];
             g->x0e = 0;
             for (ja = g->x12 = g->x10 = 0; ja < 3; ja++) {
                 if (g->type[ja] < 0)
                     continue;
-                tpd = &D_db2f[D_db29[lva * 12 + g->type[ja]]];
+                tpd = &mon_templates[mon_template[lva * 12 + g->type[ja]]];
                 for (xrg = 0; xrg < g->cnt[ja]; xrg++) {
-                    if ((vf = sub_s004_0e76_20f6(1, tpd->xc0) + tpd->xc6) > 0)
+                    if ((vf = roll_dice(1, tpd->xc0) + tpd->xc6) > 0)
                         g->x0e += vf;
-                    if ((vf = sub_s004_0e76_20f6(1, tpd->xc2) + tpd->xc8) > 0)
+                    if ((vf = roll_dice(1, tpd->xc2) + tpd->xc8) > 0)
                         g->x10 += vf;
-                    if ((vf = sub_s004_0e76_20f6(1, tpd->xc4) + tpd->xca) > 0)
+                    if ((vf = roll_dice(1, tpd->xc4) + tpd->xca) > 0)
                         g->x12 += vf;
                 }
             }
@@ -976,15 +978,15 @@ void far sub_s004_0e76_1d90(int nlev)
 #pragma optimize("a", on)
 void far sub_s004_0e76_20dc(void)
 {
-    D_9080 |= 1;
-    if (D_db27 != D_907e) {
+    combat_flags |= 1;
+    if (D_db27 != cur_loc) {
         D_da34 = 0;
-        D_db27 = D_907e;
+        D_db27 = cur_loc;
     }
 }
 
 /* n dice of d sides */
-int far sub_s004_0e76_20f6(int n, int d)
+int far roll_dice(int n, int d)
 {
     int s, i;
 
@@ -1009,7 +1011,7 @@ int far sub_s004_0e76_213c(int x0, int y0, int x1, int y1)
 }
 
 /* direction 0/2/4/6 from (x0, y0) to (x1, y1) */
-int far sub_s004_0e76_2160(int x0, int y0, int x1, int y1)
+int far dir_between(int x0, int y0, int x1, int y1)
 {
     int dx, dy;
 

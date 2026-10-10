@@ -27,6 +27,8 @@
  *   at +1, +1a, +34, +67, +9a, tile indices behind them).
  * D_db2d (based on D_dadd): enemy groups, 0x1e bytes each, D_db05 of them.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -98,17 +100,17 @@ struct group {
     char p0e[0x1e - 0x0e];
 };
 
-extern struct bfmap far F_20a5_0000;
-extern _segment D_dadd;
-extern struct bfdesc _based(D_dadd) *D_db33;
-extern struct group _based(D_dadd) *D_db2d;
-extern int D_db05;
+extern struct bfmap far floor_img;
+extern _segment enemy_seg;
+extern struct bfdesc _based(enemy_seg) *tile_desc;
+extern struct group _based(enemy_seg) *bf_groups;
+extern int group_count;
 
 int far _fstrcpy();
-int far sub_s004_0e76_06aa();
-int far sub_s004_0e76_20f6();
+int far monster_type_map();
+int far roll_dice();
 int far sub_s004_1262_0d0a();
-int far vec_1c1b();
+int far party_lore_level();
 int far sub_s012_1432_0000();
 void far sub_s012_1432_0084();
 void far sub_s012_1432_010a();
@@ -130,7 +132,7 @@ dragon:
     sub_s012_1432_0084();
     sub_s012_1432_010a(k);
     sub_s012_1432_028a(k);
-    sub_s004_1262_0d0a("level0.flr", (char far *)&F_20a5_0000, sizeof(F_20a5_0000), 0);
+    sub_s004_1262_0d0a("level0.flr", (char far *)&floor_img, sizeof(floor_img), 0);
     sub_s012_1432_08a8(k, p_8, p_a, p_c, p_e, p_10, p_12, p_14, p_16, p_18);
     return 1;
 }
@@ -140,23 +142,23 @@ void far sub_s012_1432_0084(void)
     int i;
     int j;
 
-    F_20a5_0000.x1f40 = 0;
-    F_20a5_0000.x1f52 = 0;
-    F_20a5_0000.x2184 = 0;
-    F_20a5_0000.x2488 = 0;
-    F_20a5_0000.x2fb6 = 0;
-    F_20a5_0000.x300c = 0;
-    F_20a5_0000.x3326 = 0;
-    F_20a5_0000.x1f42[0] = -2;
-    F_20a5_0000.x1f42[1] = -2;
-    F_20a5_0000.x1f42[2] = -2;
-    F_20a5_0000.x1f42[3] = -2;
-    F_20a5_0000.x1f42[4] = -2;
-    _fstrcpy(F_20a5_0000.name, (char far *)"");
+    floor_img.x1f40 = 0;
+    floor_img.x1f52 = 0;
+    floor_img.x2184 = 0;
+    floor_img.x2488 = 0;
+    floor_img.x2fb6 = 0;
+    floor_img.x300c = 0;
+    floor_img.x3326 = 0;
+    floor_img.x1f42[0] = -2;
+    floor_img.x1f42[1] = -2;
+    floor_img.x1f42[2] = -2;
+    floor_img.x1f42[3] = -2;
+    floor_img.x1f42[4] = -2;
+    _fstrcpy(floor_img.name, (char far *)"");
     for (i = 0; i < 40; i++) {
         for (j = 0; j < 40; j++) {
-            F_20a5_0000.cell[i][j] = 0x80000000L;
-            F_20a5_0000.hgt[i][j] = 0;
+            floor_img.cell[i][j] = 0x80000000L;
+            floor_img.hgt[i][j] = 0;
         }
     }
 }
@@ -166,49 +168,49 @@ void far sub_s012_1432_010a(int kind)
 {
     char name[9] = "cavedrag";
 
-    D_db33->x00 = 5;
-    _fstrcpy((char far *)D_db33->set0, (char far *)name);
-    D_db33->t0b[0] = 0;
-    D_db33->t0b[1] = 1;
-    D_db33->t0b[2] = 2;
-    D_db33->t0b[3] = 3;
-    D_db33->t0b[4] = 4;
-    D_db33->t0b[5] = 5;
-    D_db33->t0b[6] = 6;
-    D_db33->t0b[7] = 7;
-    D_db33->t0b[8] = 8;
-    _fstrcpy((char far *)D_db33->set1, (char far *)name);
-    D_db33->x23 = 1;
-    D_db33->t25[0] = 8;
-    D_db33->t25[1] = 9;
-    D_db33->t25[2] = 10;
-    D_db33->t25[3] = 11;
-    _fstrcpy((char far *)D_db33->set2, (char far *)name);
-    D_db33->t3e[0] = 0;
-    D_db33->t3e[1] = 1;
-    _fstrcpy((char far *)D_db33->set3, (char far *)name);
-    D_db33->t71 = 0;
-    _fstrcpy((char far *)D_db33->set4, (char far *)name);
-    D_db33->ta5[0] = 0;
-    D_db33->ta5[1] = 1;
-    D_db33->ta5[2] = 2;
-    D_db33->ta5[3] = 3;
-    D_db33->ta5[4] = 4;
-    D_db33->a3 = 5;
-    D_db33->aa = 5;
+    tile_desc->x00 = 5;
+    _fstrcpy((char far *)tile_desc->set0, (char far *)name);
+    tile_desc->t0b[0] = 0;
+    tile_desc->t0b[1] = 1;
+    tile_desc->t0b[2] = 2;
+    tile_desc->t0b[3] = 3;
+    tile_desc->t0b[4] = 4;
+    tile_desc->t0b[5] = 5;
+    tile_desc->t0b[6] = 6;
+    tile_desc->t0b[7] = 7;
+    tile_desc->t0b[8] = 8;
+    _fstrcpy((char far *)tile_desc->set1, (char far *)name);
+    tile_desc->x23 = 1;
+    tile_desc->t25[0] = 8;
+    tile_desc->t25[1] = 9;
+    tile_desc->t25[2] = 10;
+    tile_desc->t25[3] = 11;
+    _fstrcpy((char far *)tile_desc->set2, (char far *)name);
+    tile_desc->t3e[0] = 0;
+    tile_desc->t3e[1] = 1;
+    _fstrcpy((char far *)tile_desc->set3, (char far *)name);
+    tile_desc->t71 = 0;
+    _fstrcpy((char far *)tile_desc->set4, (char far *)name);
+    tile_desc->ta5[0] = 0;
+    tile_desc->ta5[1] = 1;
+    tile_desc->ta5[2] = 2;
+    tile_desc->ta5[3] = 3;
+    tile_desc->ta5[4] = 4;
+    tile_desc->a3 = 5;
+    tile_desc->aa = 5;
     if (kind == 0x60) {
-        D_db33->tab[0] = 10;
-        D_db33->tab[1] = 12;
-        D_db33->tab[2] = 11;
-        D_db33->tab[3] = 13;
+        tile_desc->tab[0] = 10;
+        tile_desc->tab[1] = 12;
+        tile_desc->tab[2] = 11;
+        tile_desc->tab[3] = 13;
     } else {
-        D_db33->tab[0] = 30;
-        D_db33->tab[1] = 32;
-        D_db33->tab[2] = 31;
-        D_db33->tab[3] = 33;
+        tile_desc->tab[0] = 30;
+        tile_desc->tab[1] = 32;
+        tile_desc->tab[2] = 31;
+        tile_desc->tab[3] = 33;
     }
-    D_db33->tab[4] = 20;
-    D_db33->tab[5] = 22;
+    tile_desc->tab[4] = 20;
+    tile_desc->tab[5] = 22;
 }
 
 #define V(x) (*(volatile int *)&(x))
@@ -263,7 +265,7 @@ void far sub_s012_1432_028a(int kind)
         V(lo.first) = col;
         for (; col <= 8; col++) {
             lo.e = 0;
-            r = sub_s004_0e76_20f6(1, 100);
+            r = roll_dice(1, 100);
             if ((row + col) % 2 == 0) {
                 d = 3;
                 if (r <= 15)
@@ -292,28 +294,28 @@ void far sub_s012_1432_028a(int kind)
             sub_s012_1432_07e2(row, col, &lo.n, d, lo.e, r, r, V(cc), V(ca), V(c8), V(c6), V(c4), V(r), r, r);
         }
     }
-    F_20a5_0000.x248a = 0;
-    F_20a5_0000.list[lo.n] = -1;
-    F_20a5_0000.x1f4c = 0x170;
-    F_20a5_0000.x1f4e = 0x68;
-    F_20a5_0000.x1f50 = 6;
-    F_20a5_0000.x1f51 = -1;
-    F_20a5_0000.x3326 = 1;
-    F_20a5_0000.x3328 = 0x1a0;
-    F_20a5_0000.x332c = 0x20;
-    F_20a5_0000.x332a = 0x50;
-    F_20a5_0000.x332e = 0x10;
+    floor_img.x248a = 0;
+    floor_img.list[lo.n] = -1;
+    floor_img.x1f4c = 0x170;
+    floor_img.x1f4e = 0x68;
+    floor_img.x1f50 = 6;
+    floor_img.x1f51 = -1;
+    floor_img.x3326 = 1;
+    floor_img.x3328 = 0x1a0;
+    floor_img.x332c = 0x20;
+    floor_img.x332a = 0x50;
+    floor_img.x332e = 0x10;
 }
 
 #pragma optimize("", on)
 void far sub_s012_1432_07e2(int row, int col, int *n, unsigned char hi, unsigned char lo,
     unsigned a, int p_12, unsigned b, int p_16, unsigned c, int p_1a, unsigned d, int p_1e, unsigned e, int p_22)
 {
-    if (F_20a5_0000.cell[row][col] & 0x80000000L) {
-        F_20a5_0000.cell[row][col] = (((((unsigned long)((sub_s004_0e76_20f6(1, 4) - 1 & 3) << 4 | (c & 15)) << 16
+    if (floor_img.cell[row][col] & 0x80000000L) {
+        floor_img.cell[row][col] = (((((unsigned long)((roll_dice(1, 4) - 1 & 3) << 4 | (c & 15)) << 16
                 | (e & 15)) << 4 | (a & 15)) << 4) | ((unsigned long)(b & 15) << 16)) | (d & 15);
-        F_20a5_0000.hgt[row][col] = hi << 4 | lo;
-        F_20a5_0000.list[(*n)++] = (row << 8) + col;
+        floor_img.hgt[row][col] = hi << 4 | lo;
+        floor_img.list[(*n)++] = (row << 8) + col;
     }
 }
 
@@ -329,23 +331,23 @@ void far sub_s012_1432_08a8(int kind, int p_8, int p_a, int n1, int p_e, int p_1
     t2 = t3 = t1 = -1;
     switch (kind) {
     case 0x60:
-        t1 = sub_s004_0e76_06aa(0, 0x3f, 1);
+        t1 = monster_type_map(0, 0x3f, 1);
         n1 = 1;
         break;
     case 0x64:
-        t1 = sub_s004_0e76_06aa(0, 0x2f, 1);
-        n1 = sub_s004_0e76_20f6(1, 3) + vec_1c1b() / 3 + 3;
+        t1 = monster_type_map(0, 0x2f, 1);
+        n1 = roll_dice(1, 3) + party_lore_level() / 3 + 3;
         break;
     case 0x65:
-        t1 = sub_s004_0e76_06aa(0, 0x27, 1);
-        t2 = sub_s004_0e76_06aa(0, 0x29, 2);
-        if (vec_1c1b() < 5)
-            t3 = sub_s004_0e76_06aa(0, 0x29, 1);
+        t1 = monster_type_map(0, 0x27, 1);
+        t2 = monster_type_map(0, 0x29, 2);
+        if (party_lore_level() < 5)
+            t3 = monster_type_map(0, 0x29, 1);
         else
-            t3 = sub_s004_0e76_06aa(0, 0x29, 3);
-        n1 = sub_s004_0e76_20f6(1, 2) + 2;
-        n2 = sub_s004_0e76_20f6(1, 2) + 1;
-        n3 = sub_s004_0e76_20f6(1, 2);
+            t3 = monster_type_map(0, 0x29, 3);
+        n1 = roll_dice(1, 2) + 2;
+        n2 = roll_dice(1, 2) + 1;
+        n3 = roll_dice(1, 2);
         break;
     }
     if (kind == 0x60) {
@@ -358,7 +360,7 @@ void far sub_s012_1432_08a8(int kind, int p_8, int p_a, int n1, int p_e, int p_1
         d = c = 0x10;
         e = 8;
     }
-    g = D_db2d + D_db05;
+    g = bf_groups + group_count;
     g->pos = (b << 5) + d;
     g->pos2 = (a << 4) + e;
     g->x06 = -1;
@@ -381,5 +383,5 @@ void far sub_s012_1432_08a8(int kind, int p_8, int p_a, int n1, int p_e, int p_1
         k++;
     }
     if (k > 0)
-        D_db05++;
+        group_count++;
 }

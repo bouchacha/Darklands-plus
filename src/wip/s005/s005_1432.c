@@ -5,50 +5,52 @@
  * Battlefield generator driver: sets up the work segment (struct gwork, see below) and
  * builds the levels D_db7d..D_db7b one after another through the vec_ thunks (s006/s007).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 void *memset(void *, int, unsigned);
 void far *_fmemset(void far *, int, unsigned);
 
-/* Generator work area: one far segment D_db39 (= D_c105), addressed through based
+/* Generator work area: one far segment gen_work (= D_c105), addressed through based
  * pointers D_db3b.. that point at the fields below (offsets fixed by 005c).
- * Index 0 of every [5] array is the level (D_db81, 0..4). */
+ * Index 0 of every [5] array is the level (gen_level, 0..4). */
 struct gexit { int x0, x2, x4, x6, x8, x0a; };      /* 12 bytes */
 struct gslot { int a[4]; int b; };                  /* 10 bytes */
 struct gwork {
     int room[5][30][4];                 /* 0000 D_db3b: room rects {x0, x1, y0, y1} */
-    struct gslot slot[5][16];           /* 04b0 D_db65 */
+    struct gslot slot[5][16];           /* 04b0 gen_strips */
     int r7d0[5][30];                    /* 07d0 D_db89 */
     unsigned char conn[5][31][31];      /* 08fc D_db8b: room connectivity bits */
-    unsigned char m1bc1[5][40][40];     /* 1bc1 D_db8d: per-cell wall bits */
-    int m3b01[5][40][40];               /* 3b01 D_db8f: per-cell type (0/1 = solid) */
+    unsigned char m1bc1[5][40][40];     /* 1bc1 gen_cell_walls: per-cell wall bits */
+    int m3b01[5][40][40];               /* 3b01 gen_cell_type: per-cell type (0/1 = solid) */
     int r7981[5][30];                   /* 7981 D_db91 */
-    int m7aad[5][40][40];               /* 7aad D_db93 */
-    struct gexit ex[5][4];              /* b92d D_db95 */
+    int m7aad[5][40][40];               /* 7aad gen_cell_door */
+    struct gexit ex[5][4];              /* b92d gen_exits */
 };
 
-extern _segment D_db39;
+extern _segment gen_work;
 extern _segment D_c105;
-extern int D_db3b, D_db3d, D_db3f, D_db41, D_db43;
-extern int D_db45[5];                   /* rooms per level */
+extern int D_db3b, keep_x0, D_db3f, D_db41, D_db43;
+extern int gen_rooms[5];                   /* rooms per level */
 extern int D_db4f[5];
 extern int D_db59[5];
 extern int D_db63;
-extern int D_db65;
+extern int gen_strips;
 extern int D_db67[5];
-extern int D_db71[5];                   /* exits per level (D_db95) */
-extern int D_db7b;                      /* highest level built */
-extern int D_db7d;                      /* lowest level built */
+extern int gen_exit_count[5];                   /* exits per level (gen_exits) */
+extern int gen_level_hi;                      /* highest level built */
+extern int gen_level_lo;                      /* lowest level built */
 extern int D_db7f;
-extern int D_db81;                      /* current level */
+extern int gen_level;                      /* current level */
 extern int D_db83;                      /* number of levels - 1 */
 extern char D_db85, D_db86;
 extern char D_db87;
 extern char D_db88;
-extern int D_db89, D_db8b, D_db8d, D_db8f, D_db91, D_db93, D_db95, D_db97, D_db99;
+extern int D_db89, D_db8b, gen_cell_walls, gen_cell_type, D_db91, gen_cell_door, gen_exits, D_db97, D_db99;
 
 int far sub_s004_0e76_20dc(void);
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 void far sub_s005_146d_08be(int, int);
 void far vec_1bad(int);
 void far vec_1bb7(int);
@@ -60,44 +62,44 @@ void far vec_1be9(void);
 void far vec_1bf3(int);
 void far vec_1bfd(int);
 void far vec_1c07(void);
-void far vec_1c11(int *, int, int, int, int, int, int, int, int, int, int);
-void far sub_s005_1432_005c(void);
+void far castle_build_vec(int *, int, int, int, int, int, int, int, int, int, int);
+void far gen_clear(void);
 void far sub_s005_1432_022a(int);
 
 /* generate a battlefield; returns the number of levels */
-int far sub_s005_1432_0000(int a, int *p8, int pa, int pc, int pe, int p10, int p12,
+int far gen_battlefield(int a, int *p8, int pa, int pc, int pe, int p10, int p12,
                            int p14, int p16, int p18, int p1a)
 {
     int n;
 
-    sub_s005_1432_005c();
+    gen_clear();
     sub_s005_1432_022a(a);
     if (a)
         sub_s004_0e76_20dc();
-    n = D_db7b - D_db7d + 1;
-    vec_1c11(p8, a, pa, pc, pe, p10, p12, p14, p16, p18, p1a);
-    *p8 -= D_db7d;
+    n = gen_level_hi - gen_level_lo + 1;
+    castle_build_vec(p8, a, pa, pc, pe, p10, p12, p14, p16, p18, p1a);
+    *p8 -= gen_level_lo;
     return n;
 }
 
 /* clear the work area */
-void far sub_s005_1432_005c(void)
+void far gen_clear(void)
 {
     int i, j, k;
-    struct gwork _based(D_db39) *GW = 0;
+    struct gwork _based(gen_work) *GW = 0;
 
-    D_db39 = D_c105;
-    D_db65 = (int)GW->slot;
+    gen_work = D_c105;
+    gen_strips = (int)GW->slot;
     D_db89 = (int)GW->r7d0;
-    D_db8f = (int)GW->m3b01;
+    gen_cell_type = (int)GW->m3b01;
     D_db91 = (int)GW->r7981;
     D_db85 = D_db86 = 0;
     D_db97 = D_db99 = D_db3b = 0;
-    D_db95 = (int)GW->ex;
-    D_db8d = (int)GW->m1bc1;
-    D_db93 = (int)GW->m7aad;
+    gen_exits = (int)GW->ex;
+    gen_cell_walls = (int)GW->m1bc1;
+    gen_cell_door = (int)GW->m7aad;
     D_db8b = (int)GW->conn;
-    memset(D_db71, 0, sizeof D_db71);
+    memset(gen_exit_count, 0, sizeof gen_exit_count);
     for (i = 0; i < 5; i++) {
         for (j = 0; j < 31; j++)
             _fmemset((char far *)GW->conn[i][j], 0, 31);
@@ -107,7 +109,7 @@ void far sub_s005_1432_005c(void)
             GW->r7981[i][j] = 0;
             GW->r7d0[i][j] = 0;
         }
-        D_db45[i] = 0;
+        gen_rooms[i] = 0;
         D_db4f[i] = -1;
         D_db59[i] = -1;
         for (j = 0; j < 40; j++) {
@@ -126,7 +128,7 @@ void far sub_s005_1432_005c(void)
             GW->ex[i][j].x4 = GW->ex[i][j].x2 = GW->ex[i][j].x0 = -1;
         }
     }
-    D_db41 = D_db3d = 0x29;
+    D_db41 = keep_x0 = 0x29;
     D_db3f = D_db43 = 0;
 }
 
@@ -135,9 +137,9 @@ void far sub_s005_1432_022a(int a)
     int i;
     int t;
 
-    D_db7d = 6;
-    D_db7b = -1;
-    D_db7f = D_db83 = sub_s004_0e76_20f6(1, 2) + 2;
+    gen_level_lo = 6;
+    gen_level_hi = -1;
+    D_db7f = D_db83 = roll_dice(1, 2) + 2;
     D_db87 = D_db88 = 1;
     if (!a) {
         D_db83 = 1;
@@ -146,40 +148,40 @@ void far sub_s005_1432_022a(int a)
     }
     D_db63 = -1;
     for (i = 0; i <= D_db83; i++) {
-        D_db81 = i + 1;
-        if (D_db81 > D_db83)
-            D_db81 = 0;
-        if (D_db81 == D_db7f && !D_db87)
+        gen_level = i + 1;
+        if (gen_level > D_db83)
+            gen_level = 0;
+        if (gen_level == D_db7f && !D_db87)
             continue;
-        if (D_db81 == 0 && !D_db88)
+        if (gen_level == 0 && !D_db88)
             continue;
-        D_db7d = D_db81 > D_db7d ? D_db7d : D_db81;
-        D_db7b = D_db81 < D_db7b ? D_db7b : D_db81;
+        gen_level_lo = gen_level > gen_level_lo ? gen_level_lo : gen_level;
+        gen_level_hi = gen_level < gen_level_hi ? gen_level_hi : gen_level;
         sub_s005_146d_08be(0x1e, 0x1e);
-        if (D_db81 < D_db7f)
+        if (gen_level < D_db7f)
             vec_1c07();
         vec_1bfd(a);
-        D_db4f[D_db81] = D_db45[D_db81] - 1;
-        if (D_db81 == 1) {
+        D_db4f[gen_level] = gen_rooms[gen_level] - 1;
+        if (gen_level == 1) {
             vec_1bf3(a);
-            D_db63 = D_db45[D_db81] - 1;
+            D_db63 = gen_rooms[gen_level] - 1;
         } else
             vec_1be9();
-        if (D_db81 == D_db7f) {
-            D_db59[D_db81] = D_db45[D_db81] - 1;
+        if (gen_level == D_db7f) {
+            D_db59[gen_level] = gen_rooms[gen_level] - 1;
             vec_1bdf();
         } else {
             vec_1bd5();
-            if (D_db81 >= 1)
+            if (gen_level >= 1)
                 vec_1bcb();
-            if (D_db81 == 1)
+            if (gen_level == 1)
                 vec_1bc1();
-            t = D_db81;
-            D_db59[t] = D_db45[t] - 1;
+            t = gen_level;
+            D_db59[t] = gen_rooms[t] - 1;
             if (t >= 1 && t < D_db83)
                 vec_1bb7(a);
             vec_1bad(a);
-            if (D_db81 == 0)
+            if (gen_level == 0)
                 D_db88 = 0;
         }
     }

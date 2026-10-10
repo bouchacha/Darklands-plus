@@ -39,25 +39,27 @@
  * CONST slots: the original has an unused 2e38 slot first (7e9a); ours assigns 10be to it,
  *   so every `mov es,[7e9e]` shows as [7e9c]/[7e9a] until that is sorted out.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 char *_itoa(int, char *, int);
-extern int D_a67e;
-extern char D_907b;
+extern int party_size;
+extern char leader;
 extern char D_9c4c;
-extern int D_e7d8;
-int far sub_root_0000_13a0();
+extern int saved_card;
+int far quit_to_dos();
 int far sub_s029_0e76_2204();
-int far sub_root_0000_0c70();
-int far sub_s029_0e76_2930();
+int far rand_mod();
+int far event_here();
 struct gfx { char pad[0xc]; int color; };
 extern int D_3aba;                  /* selected party member */
-extern volatile char D_6ef0;        /* mouse buttons */
-extern int D_6eec, D_6eee;          /* mouse x, y */
+extern volatile char mouse_buttons;        /* mouse buttons */
+extern int mouse_x, mouse_y;          /* mouse x, y */
 extern char D_907c;
 extern int D_8a32;                  /* 1: teacher list shown */
 extern int D_89fa;
-extern int D_9c46;
+extern int party_icons_dirty;
 struct job {                        /* day labour table entry, 18 bytes (DGROUP 3ace) */
     unsigned char name;             /* 00: index into F_290e_219b */
     char pad01;
@@ -70,8 +72,8 @@ struct job {                        /* day labour table entry, 18 bytes (DGROUP 
     unsigned char pay;              /* 11 */
 };
 extern struct job D_3ace[];
-extern char D_9cb2[][128];          /* = D_9c69[i] + 0x49: attributes (1-based) */
-extern char D_9cc0[][128];          /* = D_9c69[i] + 0x57: skills */
+extern char member_attrs[][128];          /* = party[i] + 0x49: attributes (1-based) */
+extern char D_9cc0[][128];          /* = party[i] + 0x57: skills */
 extern char far * far F_290e_219b[];
 struct ingred { char count; char pad; int item; };
 struct formula {                    /* DARKLAND.ALC record, 0x68 bytes */
@@ -84,18 +86,18 @@ struct item { int id; char type; unsigned char qual; unsigned char cnt; char wei
 struct itemdef { char pad[0x1e]; char type; char pad1f[6]; char weight; };
 extern unsigned char far *D_9c2b;
 extern struct formula far * far F_2e38_35e4[];
-extern struct itemdef far * far F_2e38_0890[];
-int far vec_1f6d(int, struct item);
-int far vec_1f63();
-int far sub_s029_1367_0066();
-int far sub_s029_0e76_14a4();
-long far sub_s029_1367_00f2();
-int far sub_s029_0e76_1a7e();
-int far sub_s029_0e76_1dfe();
-int far sub_s029_1367_086a();
-int far sub_s029_1367_05c8();
-int far sub_s029_0e76_30fe();
-extern char far * far F_290e_2137[];
+extern struct itemdef far * far item_defs[];
+int far add_item_rec(int, struct item);
+int far practice_skill();
+int far clamp_range();
+int far party_max_skill();
+long far money_pfennigs();
+int far cur_loc_query();
+int far loc_set();
+int far hours_until();
+int far advance_hours();
+int far event_free();
+extern char far * far skill_names[];
 extern int D_8a38[];
 unsigned strlen();
 char *strcat();
@@ -103,20 +105,20 @@ char *strcpy();
 char far *_fstrcpy(char far *, const char far *);
 extern int D_3abe;                  /* days camped in the wild */
 struct money { int fl, gr, pf; };   /* florins, groschen, pfennigs */
-extern struct money D_906b;         /* party purse */
-int far sub_s029_1367_01ce();
-int far sub_s029_1367_0130();
-int far sub_s029_1367_0180();
+extern struct money party_money;         /* party purse */
+int far money_copy();
+int far money_add_fgp();
+int far money_sub_fgp();
 extern char *D_3ac0[];              /* activity description formats */
 extern char D_8a4e[][20];           /* per-member activity detail text */
 struct ent { int name; char pad[0x18]; int id; int loc; int f1e; int val; };
 extern struct ent far * far F_2e38_1b28[];
-extern char far F_2e38_07be[][0x16];
-extern char D_27f4[];
-extern int D_2800;
-extern int D_2804;
-extern int D_2812;
-extern int D_2816;
+extern char far formulas_known[][0x16];
+extern char screen_win[];
+extern int screen_win_colour;
+extern int screen_win_font;
+extern int back_win_colour;
+extern int back_win_font;
 extern int D_89fc;
 extern int D_8a18[];
 extern int D_8a34;
@@ -145,9 +147,9 @@ struct member {                     /* party member, 128 bytes (DGROUP 9c69) */
     char sk69;
     char pad6a[0x16];
 };
-extern struct member D_9c69[];
+extern struct member party[];
 struct loc { char pad[0x12]; int f12; char flags; };
-extern struct loc far * far F_2e38_10be[];
+extern struct loc far * far locations[];
 struct city {
     char pad[0x40];
     int size;                       /* 40 */
@@ -156,11 +158,11 @@ struct city {
     char pad58[6];
     long cats;                      /* 5e */
 };
-extern struct city far *D_9785;
-extern int D_907e;
+extern struct city far *city_rec;
+extern int cur_loc;
 extern int D_89fe[];
-int far sub_s029_0e76_3b62();
-extern char D_e48c[];
+int far event_find();
+extern char cur_palette[];
 extern int D_e7a0;
 extern int D_e7a2;
 struct find_t {
@@ -175,47 +177,47 @@ unsigned _dos_findfirst(const char *, unsigned, struct find_t *);
 int far exit_();
 int far printf();
 int far sprintf();
-int far sub_root_0000_0000();
-int far sub_root_0000_1588();
-int far sub_root_0000_1716();
-int far sub_root_0000_24bc();
-int far sub_root_0265_0134();
-int far sub_root_047c_04d5();
-int far sub_root_047c_04dc();
+int far menu_bar_run();
+int far party_panel_frames();
+int far party_panel_rows();
+int far show_message();
+int far draw_text_wrapped();
+int far gfx_save_rect();
+int far gfx_recolor_rect();
 int far sub_root_047c_04f8();
 int far sub_root_047c_0545();
-int far sub_root_047c_0553();
-int far sub_root_047c_055a();
+int far gfx_copy_rect();
+int far gfx_text();
 int far sub_root_047c_0568();
 int far sub_root_047c_056f();
-int far sub_root_047c_058b();
-int far sub_root_047c_05a5();
-int far sub_root_047c_073d();
-int far sub_root_047c_0744();
-int far sub_root_047c_0952();
-int far sub_root_047c_0d62();
+int far set_palette();
+int far gfx_draw_pic();
+int far key_pressed();
+int far get_key();
+int far gfx_fill_rect();
+int far gfx_line();
 int far sub_root_047c_11ab();
-int far sub_root_047c_1293();
-int far sub_root_047c_12c3();
+int far mouse_show();
+int far mouse_hide();
 struct mouse { int a; int b; int x; int y; };   /* b: buttons */
 struct mouse * far sub_root_047c_1320();
-unsigned far sub_root_05ba_0004();
-int far sub_root_05ba_00c2();
-int far sub_root_0617_011e();
-int far sub_root_0617_024a();
-int far sub_s029_0e76_2c4e();
-int far sub_s029_0e76_3180();
-int far sub_s029_0e76_324c();
-int far sub_s029_0e76_32ce();
+unsigned far mem_alloc();
+int far mem_free();
+int far file_load_far();
+int far pic_draw_pal();
+int far event_new();
+int far event_has_started();
+int far event_next();
+int far event_started();
 int far sub_s029_0e76_37e2();
-int far sub_s029_0e76_3878();
-int far sub_s029_0e76_39f0();
-int far sub_s029_0e76_3cde();
-int far sub_s029_1367_00a4();
-int far sub_s029_1367_02d4();
-int far sub_s029_1367_088a();
+int far event_at();
+int far event_value();
+int far event_remove();
+int far money_set();
+int far money_cmp();
+int far date_copy();
 int far vec_18f1();
-int far vec_1fdb();
+int far member_sheet_vec();
 int far vec_2099();
 void far sub_s036_1462_0000();
 void far sub_s036_1462_0082();
@@ -229,7 +231,7 @@ int far sub_s036_1462_08ec();
 void far sub_s036_1462_0f8c();
 void far sub_s036_1462_10d0();
 void far sub_s036_1462_1368();
-void far sub_s036_1462_147a();
+void far camp_spend_day();
 int far sub_s036_1462_1858();
 int far sub_s036_1462_190a();
 int far sub_s036_1462_191c();
@@ -244,13 +246,13 @@ void far sub_s036_1462_1ec2();
 void far sub_s036_1462_0000(int p_6)
 {
     sub_root_047c_1320(6, 0, 0, 0);
-    if (sub_root_047c_073d()) {
-        sub_root_047c_0744();
+    if (key_pressed()) {
+        get_key();
     }
     D_8a36 = p_6;
-    D_8a34 = sub_s029_0e76_32ce(0x60) ? 0 : sub_s029_0e76_32ce(0x61) ? sub_s029_0e76_39f0(0x61) : 0;
+    D_8a34 = event_started(0x60) ? 0 : event_started(0x61) ? event_value(0x61) : 0;
     sub_s036_1462_0082(1);
-    sub_s029_0e76_2c4e(-2, -1, 0, 0x61, 0, D_8a34, 0, sub_root_0000_0c70(0x30) + 0xc, 0, 0);
+    event_new(-2, -1, 0, 0x61, 0, D_8a34, 0, rand_mod(0x30) + 0xc, 0, 0);
 }
 
 /* sub_s036_1462_0082: camp / inn screen main loop (mode 1 = camping in the wild) */
@@ -271,150 +273,150 @@ void far sub_s036_1462_0082(int mode)
     prowh = selb = -1;
     D_9920 = 2;
     D_9934 = 2;
-    D_e7a2 = D_2816;
-    D_e7a0 = D_2804;
+    D_e7a2 = back_win_font;
+    D_e7a0 = screen_win_font;
     D_9c3d = vec_18f1(5);
     menum = 0;
     sub_root_047c_1320(6, menum, menum, menum);
     if (mode == 1)
         vec_18f1(0x15);
-    else if (sub_root_0000_0c70(2))
+    else if (rand_mod(2))
         vec_18f1(9);
     else
         vec_18f1(10);
     D_907c = 3;
     D_8a32 = 0;
     D_89fa = 0;
-    ne = sub_s029_0e76_37e2(0x28, D_907e);
-    for (i = 0, jm = 0; jm < ne && (i = sub_s029_0e76_324c(0x28, i)) != -1; i++, jm++) {
-        if (sub_s029_0e76_3180(i) && F_2e38_1b28[i + 1]->loc == D_907e)
+    ne = sub_s029_0e76_37e2(0x28, cur_loc);
+    for (i = 0, jm = 0; jm < ne && (i = event_next(0x28, i)) != -1; i++, jm++) {
+        if (event_has_started(i) && F_2e38_1b28[i + 1]->loc == cur_loc)
             D_8a38[jm] = F_2e38_1b28[i + 1]->name;
     }
     D_3abe = 0;
     for (i = 0; i < 5; i++) {
         D_8a18[i] = 0;
-        if (D_9c69[i].status)
-            D_89fe[i] = D_9c69[i].f64 / (char)15;
+        if (party[i].status)
+            D_89fe[i] = party[i].f64 / (char)15;
     }
     sub_root_047c_0568();
     sub_s036_1462_0862(mode);
     sub_s036_1462_0872(mode);
     sub_root_047c_056f();
-    while (D_6ef0 & 1)
+    while (mouse_buttons & 1)
         ;
     for (;;) {
         key = 0;
         msa = sub_root_047c_1320(6, key, key, key);
-        if (D_8a32 == 1 && msa->b == key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
-            i = (D_6eee - 0x30) / 9;
+        if (D_8a32 == 1 && msa->b == key && mouse_x > 0xf5 && mouse_x < 0x13e && mouse_y > 0x30 && mouse_y < 0x71) {
+            i = (mouse_y - 0x30) / 9;
             if (prowh != i) {
-                sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0xf6, prowh * 9 + 0x30, 0x48, 9, 9, 8);
+                mouse_hide();
+                gfx_recolor_rect(screen_win, 0xf6, prowh * 9 + 0x30, 0x48, 9, 9, 8);
                 prowh = i;
-                sub_root_047c_04dc(D_27f4, 0xf6, i * 9 + 0x30, 0x48, 9, 8, 9);
-                sub_root_047c_1293();
+                gfx_recolor_rect(screen_win, 0xf6, i * 9 + 0x30, 0x48, 9, 8, 9);
+                mouse_show();
             }
-        } else if (D_8a32 == 1 && msa->b != key && D_6eec > 0xf5 && D_6eec < 0x13e && D_6eee > 0x30 && D_6eee < 0x71) {
-            while (D_6ef0 & 1)
+        } else if (D_8a32 == 1 && msa->b != key && mouse_x > 0xf5 && mouse_x < 0x13e && mouse_y > 0x30 && mouse_y < 0x71) {
+            while (mouse_buttons & 1)
                 ;
-            i = (D_6eee - 0x30) / 9;
-            if (sub_s029_0e76_37e2(0x28, D_907e) > i) {
+            i = (mouse_y - 0x30) / 9;
+            if (sub_s029_0e76_37e2(0x28, cur_loc) > i) {
                 D_89fa = i;
                 key = 0x1454;
-                sub_root_047c_12c3();
+                mouse_hide();
                 D_8a32 = 0;
-                sub_root_047c_05a5(D_27f4, 0xf5, 0x2d, D_89fc);
-                sub_root_05ba_00c2(D_89fc, "b");
+                gfx_draw_pic(screen_win, 0xf5, 0x2d, D_89fc);
+                mem_free(D_89fc, "b");
                 D_89fc = 0;
-                sub_root_047c_1293();
+                mouse_show();
             }
-        } else if (msa->b == key && sub_s036_1462_06d2(D_6eec, D_6eee) == 1) {
-            i = sub_s036_1462_0734(1, D_6eec, D_6eee);
+        } else if (msa->b == key && sub_s036_1462_06d2(mouse_x, mouse_y) == 1) {
+            i = sub_s036_1462_0734(1, mouse_x, mouse_y);
             if (selb != i) {
-                sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
+                mouse_hide();
+                gfx_recolor_rect(screen_win, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
                 selb = i;
-                sub_root_047c_04dc(D_27f4, 0x47, i * 9 + 0xac, 0xed, 8, 0xe, 0xb);
-                sub_root_047c_1293();
+                gfx_recolor_rect(screen_win, 0x47, i * 9 + 0xac, 0xed, 8, 0xe, 0xb);
+                mouse_show();
                 menum = 1;
             }
-        } else if (msa->b == key && (areak = sub_s036_1462_06d2(D_6eec, D_6eee)) == 2) {
-            i = sub_s036_1462_0734(areak, D_6eec, D_6eee);
+        } else if (msa->b == key && (areak = sub_s036_1462_06d2(mouse_x, mouse_y)) == 2) {
+            i = sub_s036_1462_0734(areak, mouse_x, mouse_y);
             if (selb != i) {
-                sub_root_047c_12c3();
+                mouse_hide();
                 if (D_8a32 != key) {
                     D_8a32 = key;
-                    sub_root_047c_05a5(D_27f4, 0xf5, 0x2d, D_89fc);
-                    sub_root_05ba_00c2(D_89fc, "b");
+                    gfx_draw_pic(screen_win, 0xf5, 0x2d, D_89fc);
+                    mem_free(D_89fc, "b");
                     D_89fc = key;
                 }
-                sub_root_047c_04dc(D_27f4, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xb, mode == 1 ? 8 : 10);
+                gfx_recolor_rect(screen_win, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xb, mode == 1 ? 8 : 10);
                 selb = i;
                 if (mode == 1)
-                    sub_root_047c_04dc(D_27f4, 0xce, i * 9 + 0x2f, 0x65, 8, 8, 0xb);
+                    gfx_recolor_rect(screen_win, 0xce, i * 9 + 0x2f, 0x65, 8, 8, 0xb);
                 else
-                    sub_root_047c_04dc(D_27f4, 0xce, i * 9 + 0x2f, 0x65, 8, 10, 0xb);
-                if (i == 6 && sub_s029_0e76_3878(0x28, D_907e)) {
+                    gfx_recolor_rect(screen_win, 0xce, i * 9 + 0x2f, 0x65, 8, 10, 0xb);
+                if (i == 6 && event_at(0x28, cur_loc)) {
                     sub_s036_1462_1d24(text);
                     D_8a32 = 1;
                 }
-                sub_root_047c_1293();
+                mouse_show();
                 menum = 2;
             }
         } else if (msa->b != key && (areak = sub_s036_1462_06d2(msa->x, msa->y)) != 0) {
             i = sub_s036_1462_0734(areak, msa->x, msa->y);
             key = sub_s036_1462_076a(i, areak);
-            while (D_6ef0 & 1)
+            while (mouse_buttons & 1)
                 ;
         } else if (selb != -1) {
-            sub_root_047c_12c3();
+            mouse_hide();
             if (D_8a32 != key) {
                 D_8a32 = key;
-                sub_root_047c_05a5(D_27f4, 0xf5, 0x2d, D_89fc);
-                sub_root_05ba_00c2(D_89fc, "b");
+                gfx_draw_pic(screen_win, 0xf5, 0x2d, D_89fc);
+                mem_free(D_89fc, "b");
                 D_89fc = key;
             }
             if (menum == 1)
-                sub_root_047c_04dc(D_27f4, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
+                gfx_recolor_rect(screen_win, 0x47, selb * 9 + 0xac, 0xed, 8, 0xb, 0xe);
             else
-                sub_root_047c_04dc(D_27f4, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xe, 0xb);
-            sub_root_047c_1293();
+                gfx_recolor_rect(screen_win, 0xce, selb * 9 + 0x2f, 0x65, 8, 0xe, 0xb);
+            mouse_show();
             selb = -1;
         }
         if (msa->b != 0 && msa->x < 0x3c) {
-            while (D_6ef0 & 1)
+            while (mouse_buttons & 1)
                 ;
             i = msa->y / 40;
-            if (D_9c69[i].status == 0)
+            if (party[i].status == 0)
                 return;
-            i = vec_1fdb(i);
+            i = member_sheet_vec(i);
             sub_root_047c_0568();
-            sub_root_0000_1588(0x100);
-            sub_root_0000_1716(0x100);
-            while (D_6ef0 & 1)
+            party_panel_frames(0x100);
+            party_panel_rows(0x100);
+            while (mouse_buttons & 1)
                 ;
             sub_root_047c_1320(6, 0, 0, 0);
             sub_s036_1462_0872(mode);
             sub_root_047c_056f();
             key = 0;
         }
-        sub_root_0000_0000(0x9419, 0);
-        if (D_9c46) {
-            D_9c46 = 0;
+        menu_bar_run(0x9419, 0);
+        if (party_icons_dirty) {
+            party_icons_dirty = 0;
             if (mode == 1)
-                sub_root_0617_024a(1, "pics\\campwild.pic", D_e48c);
+                pic_draw_pal(1, "pics\\campwild.pic", cur_palette);
             else
-                sub_root_0617_024a(1, "pics\\campcity.pic", D_e48c);
+                pic_draw_pal(1, "pics\\campcity.pic", cur_palette);
             sub_root_047c_0568();
-            sub_root_047c_058b(D_e48c);
-            sub_root_0000_1588(0x100);
-            sub_root_0000_1716(0x100);
+            set_palette(cur_palette);
+            party_panel_frames(0x100);
+            party_panel_rows(0x100);
             sub_s036_1462_0872(mode);
             sub_root_047c_056f();
             key = 0;
         }
-        if (sub_root_047c_073d())
-            key = sub_root_047c_0744();
+        if (key_pressed())
+            key = get_key();
         if (key == 0x11b)
             break;
         if (key && sub_s036_1462_08ec(key, mode) == 0x11b)
@@ -478,7 +480,7 @@ int far sub_s036_1462_076a(int idx, int mode)
         case 6: return 0x1454;
         }
     } else if (m == 3) {
-        if (D_9c69[idx].status == 0)
+        if (party[idx].status == 0)
             return 0;
         switch (idx) {
         case 0: return 0x231;
@@ -494,18 +496,18 @@ int far sub_s036_1462_082c(void)
 {
     D_9920 = 1;
     D_9934 = 1;
-    sub_s029_0e76_3cde(0x1d, -1, -1, -1, -1);
-    D_2816 = D_e7a2;
-    D_2804 = D_e7a0;
+    event_remove(0x1d, -1, -1, -1, -1);
+    back_win_font = D_e7a2;
+    screen_win_font = D_e7a0;
     vec_18f1(D_9c3d);
     return 0;
 }
 
 int far sub_s036_1462_0862(void)
 {
-    D_2812 = 0xf;
-    D_2816 = 1;
-    return D_2804 = 1;
+    back_win_colour = 0xf;
+    back_win_font = 1;
+    return screen_win_font = 1;
 }
 
 void far sub_s036_1462_0872(int p_6)
@@ -513,17 +515,17 @@ void far sub_s036_1462_0872(int p_6)
     int v_si;
     v_si = p_6;
     if (v_si == 1) {
-        sub_root_0617_024a(1, "pics\\campwild.pic", D_e48c);
+        pic_draw_pal(1, "pics\\campwild.pic", cur_palette);
     } else {
-        sub_root_0617_024a(1, "pics\\campcity.pic", D_e48c);
+        pic_draw_pal(1, "pics\\campcity.pic", cur_palette);
     }
-    sub_root_047c_058b(D_e48c);
+    set_palette(cur_palette);
     sub_s036_1462_0f8c(v_si, 0x2806);
-    sub_root_047c_12c3();
-    sub_root_047c_0553(0x2806, 0x3c, 0, 0x104, 0xc8, D_27f4, 0x3c, 0);
-    sub_s036_1462_1368(v_si, D_27f4);
-    sub_s036_1462_10d0(v_si, D_27f4);
-    sub_root_047c_1293();
+    mouse_hide();
+    gfx_copy_rect(0x2806, 0x3c, 0, 0x104, 0xc8, screen_win, 0x3c, 0);
+    sub_s036_1462_1368(v_si, screen_win);
+    sub_s036_1462_10d0(v_si, screen_win);
+    mouse_show();
 }
 
 /* sub_s036_1462_08ec: camp screen key handler; 0x11b ends the stay */
@@ -538,12 +540,12 @@ int far sub_s036_1462_08ec(int key, int mode)
 
     switch (key) {
     case 0x3b00: case 0x3c00: case 0x3d00: case 0x3e00: case 0x3f00:
-        vec_1fdb((key >> 8) - 0x3b);
-        sub_root_0617_024a(1, "pics\\mapicons.pic", D_e48c);
+        member_sheet_vec((key >> 8) - 0x3b);
+        pic_draw_pal(1, "pics\\mapicons.pic", cur_palette);
         sub_root_047c_0568();
-        sub_root_0000_1588(0x100);
-        sub_root_0000_1716(0x100);
-        while (D_6ef0 & 1)
+        party_panel_frames(0x100);
+        party_panel_rows(0x100);
+        while (mouse_buttons & 1)
             ;
         sub_root_047c_1320(6, 0, 0, 0);
         sub_s036_1462_0872(mode);
@@ -568,12 +570,12 @@ int far sub_s036_1462_08ec(int key, int mode)
         }
         break;
     case 0x1454: case 0x1474:
-        if (sub_s029_0e76_3878(0x28, D_907e)) {
+        if (event_at(0x28, cur_loc)) {
             sub_s036_1462_1ec2(D_3aba);
             D_8a18[D_3aba] = 6;
-            if (D_89fa < 0 || sub_s029_0e76_37e2(0x28, D_907e) <= D_89fa)
+            if (D_89fa < 0 || sub_s029_0e76_37e2(0x28, cur_loc) <= D_89fa)
                 D_89fa = 0;
-            e = sub_s029_0e76_3b62(0x28, D_89fe[D_3aba] = D_8a38[D_89fa], D_907e, -1, -1, -1);
+            e = event_find(0x28, D_89fe[D_3aba] = D_8a38[D_89fa], cur_loc, -1, -1, -1);
             strcpy(D_8a4e[D_3aba], _itoa(F_2e38_1b28[e + 1]->f1e, buf, 10));
             strcat(D_8a4e[D_3aba], "pfs");
             sub_s036_1462_0872(mode);
@@ -582,65 +584,65 @@ int far sub_s036_1462_08ec(int key, int mode)
     case 0x231: case 0x332: case 0x433: case 0x534: case 0x635:
     case 0x4f31: case 0x5032: case 0x5133: case 0x4b34: case 0x4c35:
         D_3aba = (key & 0xf) - 1;
-        sub_s036_1462_1368(mode, D_27f4);
-        sub_s036_1462_0f8c(mode, D_27f4);
+        sub_s036_1462_1368(mode, screen_win);
+        sub_s036_1462_0f8c(mode, screen_win);
         break;
     case 0x1000:
         sub_s036_1462_082c(mode);
-        sub_root_0000_13a0();
+        quit_to_dos();
         break;
     case 0x1245: case 0x1265:
         if (mode == 0) {
             sub_s036_1462_1ec2(D_3aba);
             D_8a18[D_3aba] = 4;
             sub_s036_1462_197e(D_3aba, mode);
-            sub_s036_1462_1368(mode, D_27f4);
-            sub_s036_1462_10d0(mode, D_27f4);
+            sub_s036_1462_1368(mode, screen_win);
+            sub_s036_1462_10d0(mode, screen_win);
         }
         break;
     case 0x1352: case 0x1372:
-        if (D_9c69[D_3aba].cur[0] < D_9c69[D_3aba].max[0]) {
+        if (party[D_3aba].cur[0] < party[D_3aba].max[0]) {
             sub_s036_1462_1ec2(D_3aba);
             D_8a18[D_3aba] = 1;
-            D_89fe[D_3aba] = sub_s029_1367_0066(1, 0x63, sub_s029_0e76_14a4(0xd) / 15);
-            sub_s036_1462_1368(mode, D_27f4);
-            sub_s036_1462_10d0(mode, D_27f4);
+            D_89fe[D_3aba] = clamp_range(1, 0x63, party_max_skill(0xd) / 15);
+            sub_s036_1462_1368(mode, screen_win);
+            sub_s036_1462_10d0(mode, screen_win);
         }
         break;
     case 0x1950: case 0x1970:
-        if (D_9c69[D_3aba].cur[5] < D_9cb2[D_3aba][13]) {
+        if (party[D_3aba].cur[5] < member_attrs[D_3aba][13]) {
             sub_s036_1462_1ec2(D_3aba);
             D_8a18[D_3aba] = 2;
-            D_89fe[D_3aba] = (D_9c69[D_3aba].x60 + D_9c69[D_3aba].x5f) / 12 + 1;
-            sub_s036_1462_1368(mode, D_27f4);
-            sub_s036_1462_10d0(mode, D_27f4);
+            D_89fe[D_3aba] = (party[D_3aba].x60 + party[D_3aba].x5f) / 12 + 1;
+            sub_s036_1462_1368(mode, screen_win);
+            sub_s036_1462_10d0(mode, screen_win);
         }
         break;
     case 0x1f53: case 0x1f73:
-        if (mode == 2 && sub_s029_0e76_3878(0x3d, D_907e))
+        if (mode == 2 && event_at(0x3d, cur_loc))
             return 0x11b;
         if (mode == 3) {
-            if (sub_root_0000_0c70(100) >= sub_s029_1367_0066(0x19, 0x5f, sub_s029_0e76_14a4(0x10) + 0x19)) {
-                sub_s029_0e76_2930(0x52, 2);
+            if (rand_mod(100) >= clamp_range(0x19, 0x5f, party_max_skill(0x10) + 0x19)) {
+                event_here(0x52, 2);
                 return 0x11b;
             }
         }
-        if (mode == 1 && sub_root_0000_0c70(0x32) + sub_root_0000_0c70(0x32) <= D_8a34) {
+        if (mode == 1 && rand_mod(0x32) + rand_mod(0x32) <= D_8a34) {
             i = 4;
-            D_e7d8 = -1;
+            saved_card = -1;
             for (; i >= 0; i--) {
-                if (D_9c69[i].status && D_8a18[i] == 5)
-                    D_e7d8 = i;
+                if (party[i].status && D_8a18[i] == 5)
+                    saved_card = i;
             }
-            sub_s029_0e76_2930(0x5f, 2);
+            event_here(0x5f, 2);
             return 0x11b;
         }
-        sub_s036_1462_147a(mode);
-        if (mode != 1 && sub_s029_0e76_3878(0x51, D_907e))
+        camp_spend_day(mode);
+        if (mode != 1 && event_at(0x51, cur_loc))
             return 0x11b;
         D_3abe++;
         sub_s036_1462_0872(mode);
-        while (D_6ef0 & 1)
+        while (mouse_buttons & 1)
             ;
         if (D_9c4c)
             sub_root_047c_1320(6, 0, 0, 0);
@@ -649,40 +651,40 @@ int far sub_s036_1462_08ec(int key, int mode)
         if (mode == 1) {
             sub_s036_1462_1ec2(D_3aba);
             D_8a18[D_3aba] = 5;
-            sub_s036_1462_1368(mode, D_27f4);
-            sub_s036_1462_10d0(mode, D_27f4);
+            sub_s036_1462_1368(mode, screen_win);
+            sub_s036_1462_10d0(mode, screen_win);
         }
         break;
     case 0x244a: case 0x246a:
         sub_s036_1462_1ec2(D_3aba);
         D_8a18[D_3aba] = 0;
-        D_89fe[D_3aba] = D_9c69[D_3aba].f64 / (char)15;
-        sub_s036_1462_1368(mode, D_27f4);
-        sub_s036_1462_10d0(mode, D_27f4);
+        D_89fe[D_3aba] = party[D_3aba].f64 / (char)15;
+        sub_s036_1462_1368(mode, screen_win);
+        sub_s036_1462_10d0(mode, screen_win);
         break;
     case 0x264c: case 0x266c:
         return 0x11b;
     case 0x5e00: case 0x5f00: case 0x6000: case 0x6100: case 0x6200:
         m = (key >> 8) - 0x5e;
-        if (m < D_a67e && D_9c69[m].status == 1) {
-            D_907b = m;
-            sub_root_0000_1716(0x100);
+        if (m < party_size && party[m].status == 1) {
+            leader = m;
+            party_panel_rows(0x100);
         }
         break;
     case 0x4800: case 0x4b00: case 0x4d00:
-        while (D_9c69[--D_3aba < 0 ? (D_3aba = 5) : D_3aba].status == 0)
+        while (party[--D_3aba < 0 ? (D_3aba = 5) : D_3aba].status == 0)
             ;
-        sub_s036_1462_1368(mode, D_27f4);
-        sub_s036_1462_0f8c(mode, D_27f4);
+        sub_s036_1462_1368(mode, screen_win);
+        sub_s036_1462_0f8c(mode, screen_win);
         break;
     case 0x5000:
         do
             D_3aba++;
-        while (D_9c69[D_3aba % 5].status == 0);
+        while (party[D_3aba % 5].status == 0);
         if (D_3aba >= 5)
             D_3aba %= 5;
-        sub_s036_1462_1368(mode, D_27f4);
-        sub_s036_1462_0f8c(mode, D_27f4);
+        sub_s036_1462_1368(mode, screen_win);
+        sub_s036_1462_0f8c(mode, screen_win);
         break;
     }
 }
@@ -695,7 +697,7 @@ void far sub_s036_1462_0f8c(int mode, struct gfx *g)
     int dim;
     int hi;
 
-    sub_root_047c_12c3();
+    mouse_hide();
     if (mode == 1) {
         dim = 7;
         hi = 8;
@@ -704,21 +706,21 @@ void far sub_s036_1462_0f8c(int mode, struct gfx *g)
         hi = 10;
     }
     g->color = hi;
-    sub_root_047c_055a(g, 0xd0, 0x30, "\x8c J\xffust Relax");
-    g->color = D_9c69[D_3aba].cur[0] < D_9c69[D_3aba].max[0] ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x39, "\x8c R\xff" "egain Strength");
-    g->color = D_9c69[D_3aba].cur[5] < D_9cb2[D_3aba][13] ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x42, "\x8c P\xffray for divine favor");
+    gfx_text(g, 0xd0, 0x30, "\x8c J\xffust Relax");
+    g->color = party[D_3aba].cur[0] < party[D_3aba].max[0] ? hi : dim;
+    gfx_text(g, 0xd0, 0x39, "\x8c R\xff" "egain Strength");
+    g->color = party[D_3aba].cur[5] < member_attrs[D_3aba][13] ? hi : dim;
+    gfx_text(g, 0xd0, 0x42, "\x8c P\xffray for divine favor");
     g->color = sub_s036_1462_1e80(D_3aba) ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x4b, "\x8c A\xfflchemy work");
+    gfx_text(g, 0xd0, 0x4b, "\x8c A\xfflchemy work");
     g->color = mode == 0 ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x54, "\x8c E\xff" "arn a little money");
+    gfx_text(g, 0xd0, 0x54, "\x8c E\xff" "arn a little money");
     g->color = mode == 1 ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x5d, "\x8c G\xffuard the camp");
-    g->color = sub_s029_0e76_3878(0x28, D_907e) ? hi : dim;
-    sub_root_047c_055a(g, 0xd0, 0x66, "\x8c T\xffrain or study");
+    gfx_text(g, 0xd0, 0x5d, "\x8c G\xffuard the camp");
+    g->color = event_at(0x28, cur_loc) ? hi : dim;
+    gfx_text(g, 0xd0, 0x66, "\x8c T\xffrain or study");
     g->color = hi;
-    sub_root_047c_1293();
+    mouse_show();
     g->color = 8;
 }
 
@@ -730,45 +732,45 @@ void far sub_s036_1462_10d0(int mode, struct gfx *g)
     struct money price;
     int cost;
 
-    sub_root_047c_12c3();
+    mouse_hide();
     if (mode != 1) {
         g->color = 0xf;
         cost = sub_s036_1462_1858(mode);
-        sub_s029_1367_00a4(&price, 0, 0, cost);
+        money_set(&price, 0, 0, cost);
         if (cost > 0) {
-            if (sub_s029_1367_02d4(&D_906b, &price) == -1) {
-                cost = mode == 3 ? 1 : vec_2099(F_2e38_10be[D_907e]->f12, mode == 2 ? mode : D_9785->size);
+            if (money_cmp(&party_money, &price) == -1) {
+                cost = mode == 3 ? 1 : vec_2099(locations[cur_loc]->f12, mode == 2 ? mode : city_rec->size);
                 sprintf(buf, "You consider staying here today, at %dgr, %dpf.  But, you do not have enough money.   For the day you will:",
                         cost / 12, cost % 12);
             } else {
-                sub_s029_1367_01ce(&left, &D_906b);
-                sub_s029_1367_0180(&left, 0, 0, cost);
-                cost = mode == 3 ? 1 : vec_2099(F_2e38_10be[D_907e]->f12, mode == 2 ? mode : D_9785->size);
+                money_copy(&left, &party_money);
+                money_sub_fgp(&left, 0, 0, cost);
+                cost = mode == 3 ? 1 : vec_2099(locations[cur_loc]->f12, mode == 2 ? mode : city_rec->size);
                 sprintf(buf, "You consider staying here today, at %dgr, %dpf.  That will leave you with %dfl, %dgr, %dpf.   For the day you will:",
                         cost / 12, cost % 12, left.fl, left.gr, left.pf);
             }
         } else {
-            sub_s029_1367_01ce(&left, &D_906b);
-            sub_s029_1367_0130(&left, 0, 0, -cost);
-            cost = mode == 3 ? 1 : vec_2099(F_2e38_10be[D_907e]->f12, mode == 2 ? mode : D_9785->size);
+            money_copy(&left, &party_money);
+            money_add_fgp(&left, 0, 0, -cost);
+            cost = mode == 3 ? 1 : vec_2099(locations[cur_loc]->f12, mode == 2 ? mode : city_rec->size);
             sprintf(buf, "You consider staying here today, at %dgr, %dpf.  With work that will leave you with %dfl, %dgr, %dpf.   For the day you will:",
                     cost / 12, cost % 12, left.fl, left.gr, left.pf);
         }
-        sub_root_047c_0553(0x2806, 0x50, 0x12, 0xe6, 0x1c, D_27f4, 0x50, 0x12);
-        sub_root_0265_0134(g, buf, 0xdc, 0x50, 0x12, 8, 0, 0, 0, 1, 0, 0);
+        gfx_copy_rect(0x2806, 0x50, 0x12, 0xe6, 0x1c, screen_win, 0x50, 0x12);
+        draw_text_wrapped(g, buf, 0xdc, 0x50, 0x12, 8, 0, 0, 0, 1, 0, 0);
     } else {
         g->color = 0xf;
         sprintf(buf, "You live off the land, but the lord may be upset if you are caught. After %d days the risk is %d",
                 D_3abe, D_8a34 / 5);
-        sub_root_047c_0553(0x2806, 0x50, 0x12, 0xe6, 0x1c, D_27f4, 0x50, 0x12);
-        sub_root_0265_0134(g, buf, 0xdc, 0x50, 0x12, 8, 0, 0, 0, 1, 0, 0);
+        gfx_copy_rect(0x2806, 0x50, 0x12, 0xe6, 0x1c, screen_win, 0x50, 0x12);
+        draw_text_wrapped(g, buf, 0xdc, 0x50, 0x12, 8, 0, 0, 0, 1, 0, 0);
     }
     g->color = 0xf;
-    sub_root_047c_055a(g, 0x4b, 0xa4, "You decide to...");
+    gfx_text(g, 0x4b, 0xa4, "You decide to...");
     g->color = 0xe;
-    sub_root_047c_055a(g, 0x5f, 0xac, "\x8c S\xffpend a day, doing the above");
-    sub_root_047c_055a(g, 0x5f, 0xb5, "\x8c L\xff" "eave");
-    sub_root_047c_1293();
+    gfx_text(g, 0x5f, 0xac, "\x8c S\xffpend a day, doing the above");
+    gfx_text(g, 0x5f, 0xb5, "\x8c L\xff" "eave");
+    mouse_show();
 }
 
 /* sub_s036_1462_1368: list the party with each member's chosen activity */
@@ -777,27 +779,27 @@ void far sub_s036_1462_1368(int mode, struct gfx *g)
     char buf[80];
     int i;
 
-    sub_root_047c_12c3();
-    sub_root_047c_0553(0x2806, 0x46, 0x2d, 0x82, 0x5a, D_27f4, 0x46, 0x2d);
+    mouse_hide();
+    gfx_copy_rect(0x2806, 0x46, 0x2d, 0x82, 0x5a, screen_win, 0x46, 0x2d);
     g->color = 0xe;
     for (i = 0; i < 5; i++) {
-        if (D_9c69[i].status == 1) {
+        if (party[i].status == 1) {
             g->color = D_3aba == i ? 0xb : 0xe;
-            sprintf(buf, "%s...", D_9c69[i].name);
-            sub_root_047c_055a(g, 0x49, i * 0x12 + 0x30, buf);
+            sprintf(buf, "%s...", party[i].name);
+            gfx_text(g, 0x49, i * 0x12 + 0x30, buf);
             if (D_8a18[i] == 6)
                 sprintf(buf, D_3ac0[D_8a18[i]], D_8a4e[i]);
             else
                 sprintf(buf, D_3ac0[D_8a18[i]], D_89fe[i], D_8a4e[i]);
-            sub_root_0265_0134(g, buf, 0x50, 0x78, i * 0x12 + 0x30, 8, 0, 0, 0, 0, 0, 0);
+            draw_text_wrapped(g, buf, 0x50, 0x78, i * 0x12 + 0x30, 8, 0, 0, 0, 0, 0, 0);
         }
     }
-    sub_root_047c_1293();
+    mouse_show();
 }
 
-/* sub_s036_1462_147a: spend one day: pay for it, carry out every member's activity,
+/* camp_spend_day: spend one day: pay for it, carry out every member's activity,
    pay for lodging and let the time pass */
-void far sub_s036_1462_147a(int mode)
+void far camp_spend_day(int mode)
 {
     struct money price;
     int i;
@@ -809,85 +811,85 @@ void far sub_s036_1462_147a(int mode)
 
     cost = sub_s036_1462_1858(mode);
     if (cost > 0 && mode != 1) {
-        sub_s029_1367_00a4(&price, 0, 0, cost);
-        if (sub_s029_1367_02d4(&D_906b, &price) == -1) {
-            sub_root_0000_24bc("Not Enough Money", 0x50);
+        money_set(&price, 0, 0, cost);
+        if (money_cmp(&party_money, &price) == -1) {
+            show_message("Not Enough Money", 0x50);
             return;
         }
     }
     for (i = 0; i < 5; i++) {
-        if (D_9c69[i].status == 1) {
+        if (party[i].status == 1) {
             switch (D_8a18[i]) {
             case 1:                 /* regain strength */
-                D_9c69[i].cur[0] += sub_s029_1367_0066(1, 99, sub_s029_0e76_14a4(13) / 15);
-                if (D_9c69[i].cur[0] >= D_9c69[i].max[0])
+                party[i].cur[0] += clamp_range(1, 99, party_max_skill(13) / 15);
+                if (party[i].cur[0] >= party[i].max[0])
                     D_8a18[i] = 0;
                 /* fall through */
             case 0:                 /* just relax */
-                D_9c69[i].f49 = D_9c69[i].cur[6];
+                party[i].f49 = party[i].cur[6];
                 break;
             case 2:                 /* pray */
-                D_9c69[i].cur[5] += (D_9c69[i].x5f + D_9c69[i].x60) / 12 + 1;
-                if (D_9c69[i].cur[5] < D_9c69[i].max5)
+                party[i].cur[5] += (party[i].x5f + party[i].x60) / 12 + 1;
+                if (party[i].cur[5] < party[i].max5)
                     break;
                 /* fall through */
             case 3:                 /* alchemy */
                 D_8a18[i] = 0;
                 break;
             case 4:                 /* earn money */
-                sub_s029_1367_0130(&D_906b, 0, 0, D_89fe[i]);
+                money_add_fgp(&party_money, 0, 0, D_89fe[i]);
                 break;
             case 6:                 /* train */
-                e = sub_s029_0e76_3b62(0x28, D_89fe[i], D_907e, -1, -1, -1);
+                e = event_find(0x28, D_89fe[i], cur_loc, -1, -1, -1);
                 if (e != -1) {
-                    if (sub_s029_1367_00f2(&D_906b) >= F_2e38_1b28[e + 1]->f1e)
-                        sub_s029_1367_0180(&D_906b, 0, 0, F_2e38_1b28[e + 1]->f1e);
-                    vec_1f63(i, F_2e38_1b28[e + 1]->name, 1, F_2e38_1b28[e + 1]->val * 20 / 100, -1);
+                    if (money_pfennigs(&party_money) >= F_2e38_1b28[e + 1]->f1e)
+                        money_sub_fgp(&party_money, 0, 0, F_2e38_1b28[e + 1]->f1e);
+                    practice_skill(i, F_2e38_1b28[e + 1]->name, 1, F_2e38_1b28[e + 1]->val * 20 / 100, -1);
                 }
                 break;
             }
         }
     }
     if (mode == 0) {
-        cost = vec_2099(F_2e38_10be[D_907e]->f12, D_9785->size);
-        if (sub_s029_1367_00f2(&D_906b) >= cost)
-            sub_s029_1367_0180(&D_906b, 0, 0, cost);
+        cost = vec_2099(locations[cur_loc]->f12, city_rec->size);
+        if (money_pfennigs(&party_money) >= cost)
+            money_sub_fgp(&party_money, 0, 0, cost);
     }
     if (mode == 2) {
-        cost = vec_2099(F_2e38_10be[D_907e]->f12, mode);
-        if (sub_s029_1367_00f2(&D_906b) >= cost)
-            sub_s029_1367_0180(&D_906b, 0, 0, cost);
+        cost = vec_2099(locations[cur_loc]->f12, mode);
+        if (money_pfennigs(&party_money) >= cost)
+            money_sub_fgp(&party_money, 0, 0, cost);
     } else if (mode == 3) {
-        if (sub_s029_1367_00f2(&D_906b) >= 1)
-            sub_s029_1367_0180(&D_906b, 0, 0, 1);
-        cost = sub_s029_0e76_1a7e(0);
+        if (money_pfennigs(&party_money) >= 1)
+            money_sub_fgp(&party_money, 0, 0, 1);
+        cost = cur_loc_query(0);
         if (cost >= -10)
-            sub_s029_0e76_1dfe(D_907e, 0, cost - 1);
+            loc_set(cur_loc, 0, cost - 1);
     } else
         sub_s036_1462_1b80();
-    sub_s029_1367_05c8(sub_s029_1367_086a(5) < 9 ? sub_s029_1367_086a(5) + 24 : sub_s029_1367_086a(5));
+    advance_hours(hours_until(5) < 9 ? hours_until(5) + 24 : hours_until(5));
     for (i = 0; i < 5; i++)
         if (D_8a18[i] == 1)
-            D_89fe[i] = sub_s029_1367_0066(1, 99, sub_s029_0e76_14a4(13) / 15);
+            D_89fe[i] = clamp_range(1, 99, party_max_skill(13) / 15);
     j = 0;
     i = 0;
-    n = sub_s029_0e76_37e2(0x28, D_907e);
+    n = sub_s029_0e76_37e2(0x28, cur_loc);
     for (; j < n; i++, j++) {
-        i = sub_s029_0e76_324c(0x28, i);
+        i = event_next(0x28, i);
         if (i == -1)
             break;
-        if (sub_s029_0e76_3180(i) && F_2e38_1b28[i + 1]->loc == D_907e)
+        if (event_has_started(i) && F_2e38_1b28[i + 1]->loc == cur_loc)
             D_8a38[j] = F_2e38_1b28[i + 1]->name;
     }
-    if (!sub_s029_0e76_3878(0x28, D_907e))
+    if (!event_at(0x28, cur_loc))
         for (i = 0; i < 5; i++)
             if (D_8a18[i] == 6)
                 D_8a18[i] = 0;
     for (i = 0; i < 5; i++)
-        if (D_8a18[i] == 6 && sub_s029_0e76_3b62(0x28, D_89fe[i], D_907e, -1, -1, -1) == -1)
+        if (D_8a18[i] == 6 && event_find(0x28, D_89fe[i], cur_loc, -1, -1, -1) == -1)
             D_8a18[i] = 0;
-    sub_root_0000_1588(0x100);
-    sub_root_0000_1716(0x100);
+    party_panel_frames(0x100);
+    party_panel_rows(0x100);
 }
 
 #pragma optimize("g", off)
@@ -899,21 +901,21 @@ int far sub_s036_1462_1858(int mode)
 
     n = 5;
     if (mode == 0)
-        total = vec_2099(F_2e38_10be[D_907e]->f12, D_9785->size);
+        total = vec_2099(locations[cur_loc]->f12, city_rec->size);
     else if (mode == 2)
-        total = vec_2099(F_2e38_10be[D_907e]->f12, mode);
+        total = vec_2099(locations[cur_loc]->f12, mode);
     else if (mode == 3)
         total = 1;
     else
         total = 0;
     for (i = 0; i < n; i++) {
-        if (D_9c69[i].status == 1) {
+        if (party[i].status == 1) {
             switch (D_8a18[i]) {
             case 4:
                 total -= D_89fe[i];
                 break;
             case 6:
-                total += F_2e38_1b28[sub_s029_0e76_3b62(0x28, D_89fe[i], D_907e, -1, -1, -1) + 1]->f1e;
+                total += F_2e38_1b28[event_find(0x28, D_89fe[i], cur_loc, -1, -1, -1) + 1]->f1e;
                 break;
             }
         }
@@ -934,9 +936,9 @@ int far sub_s036_1462_191c(int id)
     unsigned i;
 
     i = 0;
-    sub_s029_1367_088a(buf, 0xe0);
+    date_copy(buf, 0xe0);
     while (i < 300) {
-        i = sub_s029_0e76_324c(0x1d, i);
+        i = event_next(0x1d, i);
         if (i == -1)
             break;
         i++;
@@ -957,16 +959,16 @@ void far sub_s036_1462_197e(int who)
 
     best = 0;
     for (i = 0; i < 31; i++) {
-        if ((D_3ace[i].cats == 0 || (D_9785->cats & D_3ace[i].cats)) &&
-            (D_3ace[i].cats2 == 0 || (!D_3ace[i].cats2 & D_9785->cats)) &&
-            (D_3ace[i].flags == 0 || (F_2e38_10be[D_907e]->flags & D_3ace[i].flags))) {
-            a = (D_9cb2[who][D_3ace[i].attr] - D_3ace[i].amin) / 3;
+        if ((D_3ace[i].cats == 0 || (city_rec->cats & D_3ace[i].cats)) &&
+            (D_3ace[i].cats2 == 0 || (!D_3ace[i].cats2 & city_rec->cats)) &&
+            (D_3ace[i].flags == 0 || (locations[cur_loc]->flags & D_3ace[i].flags))) {
+            a = (member_attrs[who][D_3ace[i].attr] - D_3ace[i].amin) / 3;
             b = sub_s036_1462_1b4c(D_9cc0[who][D_3ace[i].sk1] - D_3ace[i].min1);
             c = sub_s036_1462_1b4c(D_9cc0[who][D_3ace[i].sk2] - D_3ace[i].min2);
             pay = D_3ace[i].pay;
-            sz = D_9785->size < 9 ? 9 : D_9785->size;
-            t = F_2e38_10be[D_907e]->f12 / 20;
-            val = (D_9785->f56 % 4 + (t > 0 ? 0 : t) + b + c + a) * sz * pay / 70;
+            sz = city_rec->size < 9 ? 9 : city_rec->size;
+            t = locations[cur_loc]->f12 / 20;
+            val = (city_rec->f56 % 4 + (t > 0 ? 0 : t) + b + c + a) * sz * pay / 70;
         }
         if (best < val) {
             best = val;
@@ -1004,25 +1006,25 @@ int far sub_s036_1462_1b80(void)
     int i;
     union { int d; char t; } u;
 
-    if (sub_s029_0e76_32ce(0x60))
+    if (event_started(0x60))
         return D_8a34 = 0;
     total = D_8a36;
     for (i = 0; i < 5; i++) {
-        if (D_9c69[i].status == 1 && D_8a18[i] == 5) {
-            if (D_9c69[i].sk69 >= 0x46)
+        if (party[i].status == 1 && D_8a18[i] == 5) {
+            if (party[i].sk69 >= 0x46)
                 u.d = 3;
-            else if (D_9c69[i].sk69 >= 0x1e)
+            else if (party[i].sk69 >= 0x1e)
                 u.d = 2;
             else
                 u.d = 1;
             total -= u.d;
-            u.t = D_9c69[i].sk66;
+            u.t = party[i].sk66;
             if (u.t >= 0x46)
                 total -= 2;
             else if (u.t >= 0x1e)
                 total--;
-            if (D_9c69[i].sk57 >= 0x1e || D_9c69[i].sk5c >= 0x1e || D_9c69[i].sk59 >= 0x1e ||
-                D_9c69[i].sk5a >= 0x1e || D_9c69[i].sk5b >= 0x1e || D_9c69[i].sk5d >= 0x1e)
+            if (party[i].sk57 >= 0x1e || party[i].sk5c >= 0x1e || party[i].sk59 >= 0x1e ||
+                party[i].sk5a >= 0x1e || party[i].sk5b >= 0x1e || party[i].sk5d >= 0x1e)
                 total--;
         }
     }
@@ -1043,20 +1045,20 @@ void far sub_s036_1462_1c3c(char *text, int w)
 
     x = 0xf5;
     if (D_89fc)
-        sub_root_05ba_00c2(D_89fc, "b");
+        mem_free(D_89fc, "b");
     y = 0x2d;
-    sub_root_047c_12c3();
+    mouse_hide();
     sub_root_047c_0545();
-    D_89fc = sub_root_047c_04d5(0, x, y, w, 0x41);
+    D_89fc = gfx_save_rect(0, x, y, w, 0x41);
     sub_root_047c_04f8();
-    sub_root_047c_0952(D_27f4, x, y, w, 0x41, 0xff);
-    sub_root_047c_0d62(D_27f4, x, y, x2 = x + w - 1, y, 1);
-    sub_root_047c_0d62(D_27f4, x2, y, x2, y + 0x40, 1);
-    sub_root_047c_0d62(D_27f4, x2, y + 0x40, x, y + 0x40, 1);
-    sub_root_047c_0d62(D_27f4, x, y + 0x40, x, y, 1);
-    D_2800 = 8;
-    sub_root_0265_0134(D_27f4, text, w - 8, 0xfa, 0x30, 9, 0, 0, 0, 0, 0, 0);
-    sub_root_047c_1293();
+    gfx_fill_rect(screen_win, x, y, w, 0x41, 0xff);
+    gfx_line(screen_win, x, y, x2 = x + w - 1, y, 1);
+    gfx_line(screen_win, x2, y, x2, y + 0x40, 1);
+    gfx_line(screen_win, x2, y + 0x40, x, y + 0x40, 1);
+    gfx_line(screen_win, x, y + 0x40, x, y, 1);
+    screen_win_colour = 8;
+    draw_text_wrapped(screen_win, text, w - 8, 0xfa, 0x30, 9, 0, 0, 0, 0, 0, 0);
+    mouse_show();
 }
 
 /* sub_s036_1462_1d24: list the teachers in this town (one per line) into text and show it;
@@ -1071,13 +1073,13 @@ void far sub_s036_1462_1d24(char *text)
     *text = 0;
     j = 0;
     k = 0;
-    n = sub_s029_0e76_37e2(0x28, D_907e);
+    n = sub_s029_0e76_37e2(0x28, cur_loc);
     for (; j < n; k++, j++) {
-        k = sub_s029_0e76_324c(0x28, k);
+        k = event_next(0x28, k);
         if (k == -1)
             break;
-        if (sub_s029_0e76_3180(k) && F_2e38_1b28[k + 1]->loc == D_907e) {
-            _fstrcpy(buf, F_290e_2137[F_2e38_1b28[k + 1]->name]);
+        if (event_has_started(k) && F_2e38_1b28[k + 1]->loc == cur_loc) {
+            _fstrcpy(buf, skill_names[F_2e38_1b28[k + 1]->name]);
             D_8a38[j] = F_2e38_1b28[k + 1]->name;
             buf[strlen(buf) + 1] = 0;
             strcat(buf, "\n");
@@ -1095,7 +1097,7 @@ int far sub_s036_1462_1e80(int n)
     int i;
 
     for (i = 0; i < 0x16; i++)
-        if (F_2e38_07be[n][i])
+        if (formulas_known[n][i])
             return 1;
     return 0;
 }
@@ -1119,32 +1121,32 @@ void far sub_s036_1462_1ec2(int who)
         printf("No.alc");
         exit_(1);
     } else {
-        p = (unsigned char far *)((unsigned long)sub_root_05ba_0004(ff.size, "alc mem") << 16);
+        p = (unsigned char far *)((unsigned long)mem_alloc(ff.size, "alc mem") << 16);
         D_9c2b = p;
-        sub_root_0617_011e("darkland.alc", p);
+        file_load_far("darkland.alc", p);
         n = *p++;
         for (i = 0; i < n; i++) {
             F_2e38_35e4[i] = (struct formula far *)p;
             p += 0x68;
         }
     }
-    sub_root_05ba_00c2((unsigned)((unsigned long)D_9c2b >> 16), "alc");
+    mem_free((unsigned)((unsigned long)D_9c2b >> 16), "alc");
     for (; i < 300; i++) {
-        i = sub_s029_0e76_324c(0x1d, i);
+        i = event_next(0x1d, i);
         if (i == -1)
             break;
         if (F_2e38_1b28[i + 1]->id == who) {
             q = F_2e38_1b28[i + 1]->val;
             k = F_2e38_1b28[i + 1]->name;
-            sub_s029_0e76_30fe(i);
+            event_free(i);
             for (m = 0; m < q; m++) {
                 for (j = 0; j < 5; j++) {
                     it.id = F_2e38_35e4[k]->ingr[j].item;
-                    it.type = F_2e38_0890[F_2e38_35e4[k]->ingr[j].item]->type;
+                    it.type = item_defs[F_2e38_35e4[k]->ingr[j].item]->type;
                     it.qual = 25;
-                    it.weight = F_2e38_0890[F_2e38_35e4[k]->ingr[j].item]->weight;
+                    it.weight = item_defs[F_2e38_35e4[k]->ingr[j].item]->weight;
                     it.cnt = F_2e38_35e4[k]->ingr[j].count;
-                    vec_1f6d(who, it);
+                    add_item_rec(who, it);
                 }
             }
         }

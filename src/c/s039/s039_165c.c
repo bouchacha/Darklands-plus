@@ -30,6 +30,8 @@
  *   operand order (p_6 + p_10 + p_c) depends on MSC's symbol table: the 10 unused
  *   prototypes X_0..X_9 after the file's own prototypes reproduce it.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 struct member {                 /* party member, 0x80 bytes */
     char status;                /* +00: 0 = empty slot */
     char f01, f02;
@@ -45,34 +47,34 @@ struct member {                 /* party member, 0x80 bytes */
     char pad61[0x1f];
 };
 struct money { int fl; int gr; int pf; };
-extern struct money D_906b;     /* party money */
+extern struct money party_money;     /* party money */
 extern int D_4bb6, D_4bb8;
-extern int D_907e;              /* current location (-1: none) */
-extern int D_e3d0, D_e3d2;      /* party map position */
-extern unsigned char far F_2e38_082c[][0x14];  /* per member: 160 bits */
-extern struct member D_9c69[];
-int far sub_root_0000_0c70();
-int far sub_s029_0e76_007c();
-int far sub_s029_0e76_01a0();
-int far sub_s029_0e76_02b8();
-int far sub_s029_0e76_02ea();
-int far sub_s029_0e76_05ee();
-int far sub_s029_0e76_0792();
-int far sub_s029_0e76_08f2();
-int far sub_s029_0e76_0988();
-int far sub_s029_0e76_0a72();
-int far sub_s029_0e76_0b64();
-int far sub_s029_0e76_0dd8();
-int far sub_s029_0e76_19d0();
-int far sub_s029_0e76_2930();
-int far sub_s029_0e76_2c4e();
-int far sub_s029_0e76_4b08();
-int far sub_s029_0e76_4c04();
+extern int cur_loc;              /* current location (-1: none) */
+extern int party_x, party_y;      /* party map position */
+extern unsigned char far saints_known[][0x14];  /* per member: 160 bits */
+extern struct member party[];
+int far rand_mod();
+int far party_count_able();
+int far member_skill();
+int far set_skill();
+int far add_skill();
+int far member_attr();
+int far equip_bonuses();
+int far heal_attr_pct();
+int far set_attr();
+int far add_attr();
+int far member_attr_max();
+int far count_items_flags();
+int far loc_reputation_adj();
+int far event_here();
+int far event_new();
+int far lower_skill_temp();
+int far raise_attr_temp();
 
-int far sub_s029_1367_0180();
-int far vec_1fa9();
-int far vec_2067();
-long far sub_s029_1367_00f2();
+int far money_sub_fgp();
+int far nearest_city();
+int far add_item();
+long far money_pfennigs();
 int far sub_s039_165c_0000();
 int far sub_s039_165c_0034();
 int far sub_s039_165c_0190();
@@ -250,17 +252,17 @@ int far sub_s039_165c_0034(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x2b, x, 0xf, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x2b, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 0, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -280,13 +282,13 @@ int far sub_s039_165c_0190(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x18, x, 0x14, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x18, x, 0x14, 0);
     case 8:
-        if (D_9c69[who].f03 == 0)
-            sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
+        if (party[who].f03 == 0)
+            raise_attr_temp(who, 0, rand_mod(6) + 6, 0x18);
         else
-            sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(12) + 12, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+            raise_attr_temp(who, 0, rand_mod(12) + 12, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -307,14 +309,14 @@ int far sub_s039_165c_024c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        if (sub_s029_0e76_007c())
-            return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x13, x, 10, 0);
+        if (party_count_able())
+            return sub_s039_165c_0000(0x19, party[who].f60, 0x13, x, 10, 0);
         return 0;
     case 8:
-        if (sub_s029_0e76_007c()) {
-            what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-            sub_s029_0e76_19d0(what, 10, 0x14);
-            sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0x14) + 10, 0x18);
+        if (party_count_able()) {
+            what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+            loc_reputation_adj(what, 10, 0x14);
+            raise_attr_temp(who, 5, rand_mod(0x14) + 10, 0x18);
         }
         return 0;
     }
@@ -336,9 +338,9 @@ int far sub_s039_165c_030c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x17, x, 0xf, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x17, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(5) + 0x19, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(5) + 0x19, 0x18);
         return 0;
     }
     return t[what];
@@ -358,13 +360,13 @@ int far sub_s039_165c_038e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x27, x, 0x19, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x27, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(0xf) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 4, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 7, rand_mod(0xf) + 0x1e, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -384,11 +386,11 @@ int far sub_s039_165c_047e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x2c, x, 0xf, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x2c, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0x14) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -409,13 +411,13 @@ int far sub_s039_165c_0536(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x1c, x, 0xa, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x1c, x, 0xa, 0);
     case 8:
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-        sub_s029_0e76_19d0(what, 10, 0x14);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        if (D_906b.fl == 0 && D_906b.gr == 0)
-            D_906b.gr = sub_root_0000_0c70(7) + 3;
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+        loc_reputation_adj(what, 10, 0x14);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        if (party_money.fl == 0 && party_money.gr == 0)
+            party_money.gr = rand_mod(7) + 3;
         return 0;
     }
     return t[what];
@@ -436,10 +438,10 @@ int far sub_s039_165c_0604(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0xe, x, 5, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0xe, x, 5, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
+        raise_attr_temp(who, 0, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -459,13 +461,13 @@ int far sub_s039_165c_06a2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x25, x, 0x14, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x25, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -485,14 +487,14 @@ int far sub_s039_165c_0792(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x23, x, 0x14, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x23, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(6) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(6) + 5, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 1, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 0, rand_mod(6) + 4, 0x18);
+        raise_attr_temp(who, 1, rand_mod(6) + 5, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 1, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0x14) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -512,14 +514,14 @@ int far sub_s039_165c_0898(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x3b, x, 0xa, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x3b, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xf, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0x14, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -539,22 +541,22 @@ int far sub_s039_165c_09a2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x12, x, 0xf, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x12, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 4, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -574,10 +576,10 @@ int far sub_s039_165c_0b82(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x46, D_9c69[who].f60, 0x4e, x, 0x14, 0);
+        return sub_s039_165c_0000(0x46, party[who].f60, 0x4e, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(3) + 1 + 1, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(0x10) + 8, 0x18);
+        raise_attr_temp(who, 1, rand_mod(3) + 1 + 1, 0x18);
+        raise_attr_temp(who, 0, rand_mod(0x10) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -597,10 +599,10 @@ int far sub_s039_165c_0c20(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x20, x, 0x14, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x20, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0xf) + 0xf, 5);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0x14) + 0x14, 0xa);
+        lower_skill_temp(who, 0xe, rand_mod(0xf) + 0xf, 5);
+        lower_skill_temp(who, 6, rand_mod(0x14) + 0x14, 0xa);
         return 0;
     }
     return t[what];
@@ -620,10 +622,10 @@ int far sub_s039_165c_0cbe(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x15, x, 0xf, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x15, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(4) + 3, 0x18);
+        raise_attr_temp(who, 4, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 3, rand_mod(4) + 3, 0x18);
         return 0;
     }
     return t[what];
@@ -643,17 +645,17 @@ int far sub_s039_165c_0d5c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x19, x, 0xa, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x19, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(8) + 8, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -673,11 +675,11 @@ int far sub_s039_165c_0eb6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x2e, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x2e, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x3c) + 0x28, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 4, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x3c) + 0x28, 0x18);
         return 0;
     }
     return t[what];
@@ -697,11 +699,11 @@ int far sub_s039_165c_0f6e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x21, x, 0xa, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x21, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 1, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0xf) + 1, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 1, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0xf) + 1, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -721,11 +723,11 @@ int far sub_s039_165c_1024(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x29, x, 0x19, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x29, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 3, 0x18);
-        if (sub_s029_0e76_0dd8(who, 0x20000000L))
-            sub_s029_0e76_19d0(D_907e, 0x14, 0x3c);
+        raise_attr_temp(who, 5, rand_mod(8) + 3, 0x18);
+        if (count_items_flags(who, 0x20000000L))
+            loc_reputation_adj(cur_loc, 0x14, 0x3c);
         return 0;
     }
     return t[what];
@@ -745,19 +747,19 @@ int far sub_s039_165c_10ca(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x17, x, 0xf, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x17, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(3) + 3, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(3) + 3, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(3) + 3, 0x18);
+        raise_attr_temp(who, 1, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 4, rand_mod(3) + 3, 0x18);
+        lower_skill_temp(who, 0, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 1, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 2, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 4, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 5, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 6, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -780,13 +782,13 @@ int far sub_s039_165c_125a(int who, int x, register int what)
     t[6] = 3;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x28, x, 0xa, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x28, x, 0xa, 0);
     case 8:
-        loc = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-        sub_s029_0e76_19d0(loc, 10, 0x14);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        D_9c69[who].f41 = (D_9c69[who].f41 & 0xf) - 0x60;
+        loc = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+        loc_reputation_adj(loc, 10, 0x14);
+        lower_skill_temp(who, 2, rand_mod(15) + 15, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        party[who].f41 = (party[who].f41 & 0xf) - 0x60;
         return 0;
     }
     return t[what];
@@ -807,10 +809,10 @@ int far sub_s039_165c_133a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x36, x, 0x32, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x36, x, 0x32, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 1, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 1, 0x18);
         return 0;
     }
     return t[what];
@@ -830,12 +832,12 @@ int far sub_s039_165c_13d4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x1f, x, 0xf, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x1f, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0x32) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0x32) + 0x19, 0x18);
+        lower_skill_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -855,10 +857,10 @@ int far sub_s039_165c_14a8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x21, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x21, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x64);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x64);
         return 0;
     }
     return t[what];
@@ -878,12 +880,12 @@ int far sub_s039_165c_152a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x16, x, 0xa, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x16, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x19);
-        sub_s029_0e76_08f2(who, 1, 0x32);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x19);
+        heal_attr_pct(who, 1, 0x32);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -903,12 +905,12 @@ int far sub_s039_165c_15e2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x22, x, 0xf, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x22, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x3c) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x3c) + 0x1e, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -928,19 +930,19 @@ int far sub_s039_165c_16b6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x24, x, 0x14, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x24, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(8) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 3, -(sub_root_0000_0c70(5) - 0xfffb), 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xa);
+        raise_attr_temp(who, 0, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 1, rand_mod(8) + 6, 0x18);
+        raise_attr_temp(who, 5, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 3, -(rand_mod(5) - 0xfffb), 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xa);
         return 0;
     }
     return t[what];
 }
 
-/* saint: day 270, class 7, x 15 (t3 75), virtue 15, base 30; heal attr 0/1 10%, skill 13 +40..79, attr 3 +4..7, teaches a saint (F_2e38_082c[who][3] bit 1) */
+/* saint: day 270, class 7, x 15 (t3 75), virtue 15, base 30; heal attr 0/1 10%, skill 13 +40..79, attr 3 +4..7, teaches a saint (saints_known[who][3] bit 1) */
 int far sub_s039_165c_17a4(int who, int x, register int what)
 {
     int t[7];
@@ -954,13 +956,13 @@ int far sub_s039_165c_17a4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0xf, x, 0xf, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0xf, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 10);
-        sub_s029_0e76_08f2(who, 1, 10);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(0x28) + 0x28, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(4) + 4, 0x18);
-        F_2e38_082c[who][3] |= 2;
+        heal_attr_pct(who, 0, 10);
+        heal_attr_pct(who, 1, 10);
+        lower_skill_temp(who, 13, rand_mod(0x28) + 0x28, 0x18);
+        raise_attr_temp(who, 3, rand_mod(4) + 4, 0x18);
+        saints_known[who][3] |= 2;
         return 0;
     }
     return t[what];
@@ -981,12 +983,12 @@ int far sub_s039_165c_1868(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x1c, x, 0x19, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x1c, x, 0x19, 0);
     case 8:
         for (i = 0; i < 5; i++)
-            if (D_9c69[i].status) {
-                D_9c69[i].f3b += 10;
-                D_9c69[i].f3c += 10;
+            if (party[i].status) {
+                party[i].f3b += 10;
+                party[i].f3c += 10;
             }
         return 0;
     }
@@ -1007,16 +1009,16 @@ int far sub_s039_165c_18ea(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x36, x, 0x19, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x36, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(5) + 5, 0x18);
+        lower_skill_temp(who, 7, rand_mod(5) + 5, 0x18);
+        raise_attr_temp(who, 4, rand_mod(5) + 5, 0x18);
         return 0;
     }
     return t[what];
 }
 
-/* saint: day 270, class 7, x 25 (t3 80), virtue 30, base 40; teaches a saint (F_2e38_082c[who][3] bit 4), heal attr 0 100% and attr 1 30% */
+/* saint: day 270, class 7, x 25 (t3 80), virtue 30, base 40; teaches a saint (saints_known[who][3] bit 4), heal attr 0 100% and attr 1 30% */
 int far sub_s039_165c_1988(int who, int x, register int what)
 {
     int t[7];
@@ -1030,11 +1032,11 @@ int far sub_s039_165c_1988(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x1e, x, 0x19, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x1e, x, 0x19, 0);
     case 8:
-        F_2e38_082c[who][3] |= 0x10;
-        sub_s029_0e76_08f2(who, 0, 100);
-        sub_s029_0e76_08f2(who, 1, 0x1e);
+        saints_known[who][3] |= 0x10;
+        heal_attr_pct(who, 0, 100);
+        heal_attr_pct(who, 1, 0x1e);
         return 0;
     }
     return t[what];
@@ -1054,13 +1056,13 @@ int far sub_s039_165c_1a18(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x1e, x, 0xa, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x1e, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 1, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(8) + 8);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(6) + 6, 0x18);
+        raise_attr_temp(who, 4, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 1, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        equip_bonuses(who, rand_mod(8) + 8);
+        lower_skill_temp(who, 0x11, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -1080,11 +1082,11 @@ int far sub_s039_165c_1b02(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x26, x, 0x19, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x26, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0x1e) + 0xf, 0x18);
+        heal_attr_pct(who, 1, 0x64);
+        lower_skill_temp(who, 0xa, rand_mod(0x19) + 0x19, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0x1e) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -1104,11 +1106,11 @@ int far sub_s039_165c_1bac(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x39, x, 0x14, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x39, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(0xa) + 5, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0x28) + 0x14);
-        sub_s029_0e76_08f2(who, 0, 0x1e);
+        raise_attr_temp(who, 1, rand_mod(0xa) + 5, 0x18);
+        equip_bonuses(who, rand_mod(0x28) + 0x14);
+        heal_attr_pct(who, 0, 0x1e);
         return 0;
     }
     return t[what];
@@ -1128,11 +1130,11 @@ int far sub_s039_165c_1c54(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x1a, x, 0x14, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x1a, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x14);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -1152,13 +1154,13 @@ int far sub_s039_165c_1cf2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x35, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x35, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -1178,18 +1180,18 @@ int far sub_s039_165c_1de2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x1d, x, 0x14, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x1d, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
 }
 
-/* saint: day 304, class 8, x 20 (t3 99), virtue 52, base 50; attr 5 +10..19, attr 3 +6..11, skill 13 +10..19; item 3 (vec_2067) unless who carries an item of flag 1 */
+/* saint: day 304, class 8, x 20 (t3 99), virtue 52, base 50; attr 5 +10..19, attr 3 +6..11, skill 13 +10..19; item 3 (add_item) unless who carries an item of flag 1 */
 int far sub_s039_165c_1eb6(int who, int x, register int what)
 {
     int t[7];
@@ -1203,13 +1205,13 @@ int far sub_s039_165c_1eb6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x34, x, 0x14, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x34, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(10) + 10, 0x18);
-        if (!sub_s029_0e76_0dd8(who, 1L))
-            vec_2067(who, 3);
+        raise_attr_temp(who, 5, rand_mod(10) + 10, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 13, rand_mod(10) + 10, 0x18);
+        if (!count_items_flags(who, 1L))
+            add_item(who, 3);
         return 0;
     }
     return t[what];
@@ -1229,12 +1231,12 @@ int far sub_s039_165c_1f8c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x3b, x, 0xf, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x3b, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_2930(0x4f, 0xa8);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0x14) + 0x14, 0x18);
+        event_here(0x4f, 0xa8);
         return 0;
     }
     return t[what];
@@ -1254,14 +1256,14 @@ int far sub_s039_165c_2052(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x2d, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x2d, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(6) + 6);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 14, sub_root_0000_0c70(0x32) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 16, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(10) + 5, 0x18);
-        D_9c69[who].f41++;
+        equip_bonuses(who, rand_mod(6) + 6);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 14, rand_mod(0x32) + 0x19, 0x18);
+        lower_skill_temp(who, 16, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 7, rand_mod(10) + 5, 0x18);
+        party[who].f41++;
         return 0;
     }
     return t[what];
@@ -1281,12 +1283,12 @@ int far sub_s039_165c_2142(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x15, x, 0x14, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x15, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        raise_attr_temp(who, 2, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -1310,27 +1312,27 @@ int far sub_s039_165c_2208(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 5, x, 0x14, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 5, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 17, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(6) + 6, 0x18);
-        for (flag = i = 0, p = D_9c69; p < D_9c69 + 5; i++, p++)
+        raise_attr_temp(who, 0, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 17, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 1, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 2, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 3, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 4, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 5, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 6, rand_mod(6) + 6, 0x18);
+        for (flag = i = 0, p = party; p < party + 5; i++, p++)
             if (p->status) {
-                if (sub_s029_0e76_01a0(i, 9) < 0x14)
-                    sub_s029_0e76_02b8(i, 9, 0x14);
+                if (member_skill(i, 9) < 0x14)
+                    set_skill(i, 9, 0x14);
                 flag = 1;
             }
         if (flag)
-            sub_s029_1367_0180(&D_906b, 0, 0, (unsigned)sub_s029_1367_00f2(&D_906b) >> 2);
+            money_sub_fgp(&party_money, 0, 0, (unsigned)money_pfennigs(&party_money) >> 2);
         return 0;
     }
     return t[what];
@@ -1350,10 +1352,10 @@ int far sub_s039_165c_23fe(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x1d, x, 0xa, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x1d, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0x32) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(8) + 8, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0x32) + 0x19, 0x18);
+        lower_skill_temp(who, 7, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -1373,10 +1375,10 @@ int far sub_s039_165c_249a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x1f, x, 0x14, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x1f, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -1396,13 +1398,13 @@ int far sub_s039_165c_2538(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x28, x, 0xf, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x28, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        raise_attr_temp(who, 5, rand_mod(5) + 5, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0xa) + 0xa, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -1422,11 +1424,11 @@ int far sub_s039_165c_2628(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x20, x, 0xf, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x20, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        D_9c69[who].f41 = (D_9c69[who].f41 & 0xf) - 0x60;
+        raise_attr_temp(who, 2, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        party[who].f41 = (party[who].f41 & 0xf) - 0x60;
         return 0;
     }
     return t[what];
@@ -1446,13 +1448,13 @@ int far sub_s039_165c_26d6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x2a, x, 0x14, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x2a, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(0x10) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
+        raise_attr_temp(who, 1, rand_mod(0x10) + 8, 0x18);
+        raise_attr_temp(who, 5, rand_mod(4) + 4, 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
+        lower_skill_temp(who, 0x11, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -1472,13 +1474,13 @@ int far sub_s039_165c_27c2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x29, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x29, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0x1e) + 0x28, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0x1e) + 0x28, 0x18);
+        lower_skill_temp(who, 0, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 4, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -1498,11 +1500,11 @@ int far sub_s039_165c_28b0(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x25, x, 0x19, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x25, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0x50) + 0x28, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 8, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0x50) + 0x28, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -1522,11 +1524,11 @@ int far sub_s039_165c_296a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x11, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x11, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -1546,14 +1548,14 @@ int far sub_s039_165c_2a24(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x18, x, 0x28, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x18, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        lower_skill_temp(who, 0x10, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -1574,9 +1576,9 @@ int far sub_s039_165c_2b30(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x11, x, 0x19, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x11, x, 0x19, 0);
     case 8:
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
         switch (what) {
         case 0x43:
         case 0x51:
@@ -1584,11 +1586,11 @@ int far sub_s039_165c_2b30(int who, int x, register int what)
         case 0x53:
         case 0x54:
         case 0x56:
-            sub_s029_0e76_19d0(what, 15, 0x19);
+            loc_reputation_adj(what, 15, 0x19);
         }
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(6) + 6);
-        sub_s029_0e76_4b08(who, 17, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        equip_bonuses(who, rand_mod(6) + 6);
+        lower_skill_temp(who, 17, rand_mod(6) + 6, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -1609,10 +1611,10 @@ int far sub_s039_165c_2c2a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x38, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x38, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0x14) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0x14) + 0xa, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0x14) + 0xa, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0x14) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -1632,11 +1634,11 @@ int far sub_s039_165c_2cc8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x4b, D_9c69[who].f60, 0x49, x, 0x28, 0);
+        return sub_s039_165c_0000(0x4b, party[who].f60, 0x49, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_2930(0x4f, 0xa8);
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0x14);
+        event_here(0x4f, 0xa8);
         return 0;
     }
     return t[what];
@@ -1656,18 +1658,18 @@ int far sub_s039_165c_2d58(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x17, x, 0x28, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x17, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(5) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0x19) + 0x19, 0x18);
+        raise_attr_temp(who, 1, rand_mod(5) + 0xa, 0x18);
+        raise_attr_temp(who, 2, rand_mod(5) + 5, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0x19) + 0x19, 0x18);
         return 0;
     }
     return t[what];
@@ -1687,12 +1689,12 @@ int far sub_s039_165c_2ece(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x22, x, 0x28, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x22, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0x14);
+        lower_skill_temp(who, 0xd, rand_mod(0x14) + 0x14, 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
         return 0;
     }
     return t[what];
@@ -1712,14 +1714,14 @@ int far sub_s039_165c_2f82(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x1a, x, 0x23, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x1a, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2930(0x5d, 1);
+        lower_skill_temp(who, 0x11, rand_mod(5) + 5, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        event_here(0x5d, 1);
         return 0;
     }
     return t[what];
@@ -1739,15 +1741,15 @@ int far sub_s039_165c_307e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x2d, x, 0x23, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x2d, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x28);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_0792(who, -(sub_root_0000_0c70(0xa) - 0xfff1));
-        sub_s029_0e76_4c04(who, 2, -(sub_root_0000_0c70(4) - 0xfffc), 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0x28) + 0x32, 0x18);
+        heal_attr_pct(who, 0, 0x28);
+        heal_attr_pct(who, 1, 0xa);
+        equip_bonuses(who, -(rand_mod(0xa) - 0xfff1));
+        raise_attr_temp(who, 2, -(rand_mod(4) - 0xfffc), 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0x1e) + 0x1e, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(5) + 5, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0x28) + 0x32, 0x18);
         return 0;
     }
     return t[what];
@@ -1767,14 +1769,14 @@ int far sub_s039_165c_3186(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x40, x, 0xf, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x40, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_0a72(who, 1, -1);
-        sub_s029_0e76_02ea(who, 9, -1);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(0x14) + 0x28, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0xa) + 0xf, 0x18);
+        add_attr(who, 1, -1);
+        add_skill(who, 9, -1);
+        lower_skill_temp(who, 7, rand_mod(0x14) + 0x28, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 4, rand_mod(5) + 5, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0xa) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -1794,11 +1796,11 @@ int far sub_s039_165c_3274(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x27, x, 0xf, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x27, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x19) + 0x19, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        lower_skill_temp(who, 0xb, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0x19) + 0x19, 0x18);
         return 0;
     }
     return t[what];
@@ -1818,12 +1820,12 @@ int far sub_s039_165c_3320(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x37, x, 0x19, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x37, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_2930(0x4f, 0xa8);
+        heal_attr_pct(who, 0, 0x14);
+        lower_skill_temp(who, 0xa, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0xa) + 0xa, 0x18);
+        event_here(0x4f, 0xa8);
         return 0;
     }
     return t[what];
@@ -1844,9 +1846,9 @@ int far sub_s039_165c_33d6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x2c, x, 0x19, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x2c, x, 0x19, 0);
     case 8:
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
         switch (what) {
         case 4:
         case 5:
@@ -1855,15 +1857,15 @@ int far sub_s039_165c_33d6(int who, int x, register int what)
         case 10:
         case 11:
         case 12:
-            sub_s029_0e76_19d0(what, 0x14, 0x28);
+            loc_reputation_adj(what, 0x14, 0x28);
         }
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(15) + 15, 0x18);
+        lower_skill_temp(who, 0, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 1, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 2, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 3, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 4, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 5, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 6, rand_mod(15) + 15, 0x18);
         return 0;
     }
     return t[what];
@@ -1884,12 +1886,12 @@ int far sub_s039_165c_353e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x50, D_9c69[who].f60, 0x4a, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x50, party[who].f60, 0x4a, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 7, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -1910,17 +1912,17 @@ int far sub_s039_165c_3612(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x10, x, 0xf, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x10, x, 0xf, 0);
     case 8:
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
         switch (what) {
         case 0x25:
         case 0x48:
         case 0x49:
         case 0x4b:
-            sub_s029_0e76_19d0(what, 0x1e, 0x32);
+            loc_reputation_adj(what, 0x1e, 0x32);
         }
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(10) + 0x14, 0x18);
+        lower_skill_temp(who, 13, rand_mod(10) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -1941,16 +1943,16 @@ int far sub_s039_165c_36d6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x4b, D_9c69[who].f60, 0x3d, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x4b, party[who].f60, 0x3d, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0x10) + 8, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0x10) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -1970,10 +1972,10 @@ int far sub_s039_165c_3816(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x1e, x, 0x14, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x1e, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
         return 0;
     }
     return t[what];
@@ -1993,9 +1995,9 @@ int far sub_s039_165c_38b4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x2f, x, 0xf, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x2f, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -2015,9 +2017,9 @@ int far sub_s039_165c_3934(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0xd, x, 0x19, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0xd, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0x28) + 0x14, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0x28) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -2037,14 +2039,14 @@ int far sub_s039_165c_39b4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x22, x, 0x32, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x22, x, 0x32, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0x28) + 0x28, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0x28) + 0x28, 0x18);
         return 0;
     }
     return t[what];
@@ -2064,18 +2066,18 @@ int far sub_s039_165c_3abc(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x3f, x, 0x14, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x3f, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(5) + 5, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(5) + 5, 0x18);
         return 0;
     }
     return t[what];
@@ -2095,11 +2097,11 @@ int far sub_s039_165c_3c32(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x15, x, 0xa, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x15, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(5) + 5, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(5) + 5, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -2119,12 +2121,12 @@ int far sub_s039_165c_3cec(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x46, D_9c69[who].f60, 0x55, x, 0xa, 0);
+        return sub_s039_165c_0000(0x46, party[who].f60, 0x55, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x32);
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
+        heal_attr_pct(who, 0, 0x32);
+        heal_attr_pct(who, 1, 0x64);
+        lower_skill_temp(who, 0xd, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -2144,7 +2146,7 @@ int far sub_s039_165c_3da4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x42, x, 0x23, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x42, x, 0x23, 0);
     case 8:
         return 0;
     }
@@ -2165,16 +2167,16 @@ int far sub_s039_165c_3e0a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x24, x, 0xa, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x24, x, 0xa, 0);
     case 8:
-        if (D_9c69[who].f03 == 0) {
-            sub_s029_0e76_08f2(who, 0, 0x1e);
-            sub_s029_0e76_08f2(who, 1, 10);
+        if (party[who].f03 == 0) {
+            heal_attr_pct(who, 0, 0x1e);
+            heal_attr_pct(who, 1, 10);
         } else {
-            sub_s029_0e76_08f2(who, 0, 100);
-            sub_s029_0e76_08f2(who, 1, 0x14);
-            sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 5, 0x18);
-            sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
+            heal_attr_pct(who, 0, 100);
+            heal_attr_pct(who, 1, 0x14);
+            raise_attr_temp(who, 0, rand_mod(5) + 5, 0x18);
+            raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
         }
         return 0;
     }
@@ -2195,12 +2197,12 @@ int far sub_s039_165c_3eec(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x25, x, 0xa, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x25, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, -(sub_root_0000_0c70(6) - 0xfffa), 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x1e) + 0x1e, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0x1e) + 0x1e, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, -(rand_mod(6) - 0xfffa), 0x18);
         return 0;
     }
     return t[what];
@@ -2221,18 +2223,18 @@ int far sub_s039_165c_3fc2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x14, x, 0x28, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x14, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 8, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 11, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 12, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 15, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 14, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 18, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
-        sub_s029_0e76_4b08(who, 16, sub_root_0000_0c70(4) + sub_s029_0e76_01a0(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 7, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 8, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 10, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 11, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 12, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 13, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 15, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 14, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 18, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
+        lower_skill_temp(who, 16, rand_mod(4) + member_skill(who, 9) / 5 + 1, 0x18);
         return 0;
     }
     return t[what];
@@ -2254,16 +2256,16 @@ int far sub_s039_165c_41fa(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x16, x, 0xf, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x16, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 16, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        if (D_907e == 0x46)
-            sub_s029_0e76_19d0(u, 15, 0x19);
+        lower_skill_temp(who, 10, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 16, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 6, 0x18);
+        if (cur_loc == 0x46)
+            loc_reputation_adj(u, 15, 0x19);
         else {
-            what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+            what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
             switch (what) {
             case 0x44:
             case 0x45:
@@ -2271,7 +2273,7 @@ int far sub_s039_165c_41fa(int who, int x, register int what)
             case 0x47:
             case 0x49:
             case 0x4a:
-                sub_s029_0e76_19d0(what, 10, 0x14);
+                loc_reputation_adj(what, 10, 0x14);
             }
         }
         return 0;
@@ -2294,11 +2296,11 @@ int far sub_s039_165c_4320(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x1b, x, 0x23, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x1b, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0x1e) + 0x1e, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0x1e) + 0x1e, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -2318,25 +2320,25 @@ int far sub_s039_165c_43d8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(5, D_9c69[who].f60, 0xf, x, 0x14, 0);
+        return sub_s039_165c_0000(5, party[who].f60, 0xf, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 8, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(6) + 6, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 1, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 3, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 2, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 4, rand_mod(5) + 4, 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
+        lower_skill_temp(who, 7, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 8, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -2356,11 +2358,11 @@ int far sub_s039_165c_4608(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x4b, D_9c69[who].f60, 0x3d, x, 0x28, 0);
+        return sub_s039_165c_0000(0x4b, party[who].f60, 0x3d, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        lower_skill_temp(who, 0x12, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(6) + 6, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -2380,14 +2382,14 @@ int far sub_s039_165c_46c2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x1f, x, 0x14, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x1f, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x28);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0x28);
+        heal_attr_pct(who, 1, 0x14);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -2407,13 +2409,13 @@ int far sub_s039_165c_47b0(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x33, x, 0x19, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x33, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(3) + 3, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 2, rand_mod(3) + 3, 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
         return 0;
     }
     return t[what];
@@ -2433,12 +2435,12 @@ int far sub_s039_165c_489c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x14, x, 0x1e, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x14, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 0xc, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -2458,10 +2460,10 @@ int far sub_s039_165c_4962(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x50, x, 0x32, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x50, x, 0x32, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0x64);
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0x64);
         return 0;
     }
     return t[what];
@@ -2481,15 +2483,15 @@ int far sub_s039_165c_49e4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x31, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x31, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -2509,11 +2511,11 @@ int far sub_s039_165c_4b0a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x4d, x, 0x28, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x4d, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x64);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -2533,11 +2535,11 @@ int far sub_s039_165c_4ba8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x11, x, 0x14, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x11, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x32);
-        sub_s029_0e76_08f2(who, 1, 0x1e);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x14) + 0x14, 0x18);
+        heal_attr_pct(who, 0, 0x32);
+        heal_attr_pct(who, 1, 0x1e);
+        lower_skill_temp(who, 0xd, rand_mod(0x14) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -2557,12 +2559,12 @@ int far sub_s039_165c_4c46(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x3c, x, 0x23, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x3c, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 9, sub_root_0000_0c70(0xc) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 5, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 9, rand_mod(0xc) + 6, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 5, 0x18);
         return 0;
     }
     return t[what];
@@ -2582,30 +2584,30 @@ int far sub_s039_165c_4d1a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x2e, x, 0x19, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x2e, x, 0x19, 0);
     case 8:
-        if (D_9c69[who].f03 == 0) {
-            sub_s029_0e76_08f2(who, 0, 10);
-            sub_s029_0e76_08f2(who, 1, 10);
+        if (party[who].f03 == 0) {
+            heal_attr_pct(who, 0, 10);
+            heal_attr_pct(who, 1, 10);
         } else {
-            sub_s029_0e76_08f2(who, 0, 100);
-            sub_s029_0e76_08f2(who, 1, 0x32);
-            sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(4) + 3, 0x18);
-            sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 8, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 11, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 12, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 15, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 14, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 18, sub_root_0000_0c70(6) + 5, 0x18);
-            sub_s029_0e76_4b08(who, 16, sub_root_0000_0c70(6) + 5, 0x18);
+            heal_attr_pct(who, 0, 100);
+            heal_attr_pct(who, 1, 0x32);
+            raise_attr_temp(who, 0, rand_mod(4) + 3, 0x18);
+            raise_attr_temp(who, 5, rand_mod(4) + 3, 0x18);
+            raise_attr_temp(who, 1, rand_mod(4) + 3, 0x18);
+            raise_attr_temp(who, 3, rand_mod(4) + 3, 0x18);
+            raise_attr_temp(who, 2, rand_mod(4) + 3, 0x18);
+            raise_attr_temp(who, 4, rand_mod(4) + 3, 0x18);
+            lower_skill_temp(who, 7, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 8, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 10, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 11, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 12, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 13, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 15, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 14, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 18, rand_mod(6) + 5, 0x18);
+            lower_skill_temp(who, 16, rand_mod(6) + 5, 0x18);
         }
         return 0;
     }
@@ -2626,12 +2628,12 @@ int far sub_s039_165c_4f76(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x34, x, 0x19, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x34, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x28);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x28);
+        lower_skill_temp(who, 0xd, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -2651,10 +2653,10 @@ int far sub_s039_165c_502e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x23, x, 0x19, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x23, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(0xc) + 0xc, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 2, rand_mod(0xc) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -2674,14 +2676,14 @@ int far sub_s039_165c_50cc(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x45, x, 0x19, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x45, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0x1e);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(8) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0x14) + 0x14, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0x1e);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(8) + 0xc, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x19) + 0x19, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0x14) + 0x14, 0x18);
         return 0;
     }
     return t[what];
@@ -2701,13 +2703,13 @@ int far sub_s039_165c_51ba(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x19, D_9c69[who].f60, 0x1a, x, 0x14, 0);
+        return sub_s039_165c_0000(0x19, party[who].f60, 0x1a, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 11, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 12, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(8) + 8, 0x18);
-        D_4bb6 += sub_root_0000_0c70(0x14) + 0x14;
-        D_4bb8 += sub_root_0000_0c70(0x14) + 0x14;
+        lower_skill_temp(who, 11, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 12, rand_mod(0x19) + 0x19, 0x18);
+        raise_attr_temp(who, 4, rand_mod(8) + 8, 0x18);
+        D_4bb6 += rand_mod(0x14) + 0x14;
+        D_4bb8 += rand_mod(0x14) + 0x14;
         return 0;
     }
     return t[what];
@@ -2727,10 +2729,10 @@ int far sub_s039_165c_5296(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x46, D_9c69[who].f60, 0x51, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x46, party[who].f60, 0x51, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 7, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -2750,13 +2752,13 @@ int far sub_s039_165c_5334(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x48, x, 0x19, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x48, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_0792(who, 0x14);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 12, 0x18);
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-        sub_s029_0e76_19d0(what, 0x14, 0x28);
+        equip_bonuses(who, 0x14);
+        lower_skill_temp(who, 13, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 12, 0x18);
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+        loc_reputation_adj(what, 0x14, 0x28);
         return 0;
     }
     return t[what];
@@ -2776,11 +2778,11 @@ int far sub_s039_165c_540a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x46, D_9c69[who].f60, 0x47, x, 0x23, 0);
+        return sub_s039_165c_0000(0x46, party[who].f60, 0x47, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        lower_skill_temp(who, 0xd, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -2800,18 +2802,18 @@ int far sub_s039_165c_54c4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x42, x, 0xa, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x42, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xf, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x10, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -2834,13 +2836,13 @@ int far sub_s039_165c_563a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x31, x, 0x19, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x31, x, 0x19, 0);
     case 8:
-        loc = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-        sub_s029_0e76_19d0(loc, 10, 0x14);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 4, 0x18);
+        loc = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+        loc_reputation_adj(loc, 10, 0x14);
+        lower_skill_temp(who, 2, rand_mod(15) + 15, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 4, 0x18);
         return 0;
     }
     return t[what];
@@ -2861,14 +2863,14 @@ int far sub_s039_165c_5724(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x19, x, 0x14, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x19, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
         switch (what) {
         case 0x36:
         case 0x4c:
-            sub_s029_0e76_19d0(what, 15, 0x19);
+            loc_reputation_adj(what, 15, 0x19);
         }
         return 0;
     }
@@ -2889,18 +2891,18 @@ int far sub_s039_165c_57de(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x2f, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x2f, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(5) + 4, 0x18);
+        lower_skill_temp(who, 0, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(5) + 4, 0x18);
         return 0;
     }
     return t[what];
@@ -2920,16 +2922,16 @@ int far sub_s039_165c_5952(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x12, x, 0xf, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x12, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 4, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0xf) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 6, sub_root_0000_0c70(0xf) + 8, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        lower_skill_temp(who, 0, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 1, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 2, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 3, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 4, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 5, rand_mod(0xf) + 8, 0x18);
+        lower_skill_temp(who, 6, rand_mod(0xf) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -2949,15 +2951,15 @@ int far sub_s039_165c_5a84(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x38, x, 0x19, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x38, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0x1e);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
-        D_9c69[who].f41 = (D_9c69[who].f41 & 0xf) - 0x60;
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0x1e);
+        lower_skill_temp(who, 7, rand_mod(10) + 10, 0x18);
+        lower_skill_temp(who, 13, rand_mod(15) + 15, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        party[who].f41 = (party[who].f41 & 0xf) - 0x60;
         return 0;
     }
     return t[what];
@@ -2977,17 +2979,17 @@ int far sub_s039_165c_5b82(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x16, x, 0x19, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x16, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 1, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 3, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 11, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4b08(who, 12, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(10) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(8) + 12, 0x18);
-        D_9c69[who].f41 += 2;
+        lower_skill_temp(who, 0, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 1, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 3, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 10, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 11, rand_mod(15) + 15, 0x18);
+        lower_skill_temp(who, 12, rand_mod(15) + 15, 0x18);
+        raise_attr_temp(who, 5, rand_mod(10) + 15, 0x18);
+        raise_attr_temp(who, 1, rand_mod(8) + 12, 0x18);
+        party[who].f41 += 2;
         return 0;
     }
     return t[what];
@@ -3007,11 +3009,11 @@ int far sub_s039_165c_5cca(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x46, x, 0x14, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x46, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 100);
-        sub_s029_0e76_08f2(who, 1, 100);
-        sub_s029_0e76_4c04(who, 4, -(sub_s029_0e76_0b64(who, 4) / 2), 0x18);
+        heal_attr_pct(who, 0, 100);
+        heal_attr_pct(who, 1, 100);
+        raise_attr_temp(who, 4, -(member_attr_max(who, 4) / 2), 0x18);
         return 0;
     }
     return t[what];
@@ -3031,13 +3033,13 @@ int far sub_s039_165c_5d6c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x13, x, 0x1b, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x13, x, 0x1b, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xf) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xf) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0xc) + 0xc, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xf) + 0xc, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xf) + 0xc, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0xc) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -3057,9 +3059,9 @@ int far sub_s039_165c_5e5c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x10, x, 0x28, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x10, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
         return 0;
     }
     return t[what];
@@ -3079,15 +3081,15 @@ int far sub_s039_165c_5ede(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x3a, x, 0x19, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x3a, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4b08(who, 11, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4b08(who, 13, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4b08(who, 0, sub_root_0000_0c70(15) + 15, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(8) + 12, 0x18);
-        sub_s029_0e76_4c04(who, 3, -(sub_s029_0e76_0b64(who, 3) / 2), 0x18);
+        lower_skill_temp(who, 10, rand_mod(10) + 10, 0x18);
+        lower_skill_temp(who, 11, rand_mod(10) + 10, 0x18);
+        lower_skill_temp(who, 13, rand_mod(10) + 10, 0x18);
+        lower_skill_temp(who, 0, rand_mod(15) + 15, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 1, rand_mod(8) + 12, 0x18);
+        raise_attr_temp(who, 3, -(member_attr_max(who, 3) / 2), 0x18);
         return 0;
     }
     return t[what];
@@ -3107,15 +3109,15 @@ int far sub_s039_165c_6008(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x3e, x, 0x19, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x3e, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4b08(who, 15, sub_root_0000_0c70(40) + 40, 0x18);
-        sub_s029_0e76_4b08(who, 17, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
-        sub_s029_0e76_19d0(what, -1, -5);
+        lower_skill_temp(who, 7, rand_mod(10) + 10, 0x18);
+        lower_skill_temp(who, 15, rand_mod(40) + 40, 0x18);
+        lower_skill_temp(who, 17, rand_mod(10) + 10, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
+        loc_reputation_adj(what, -1, -5);
         return 0;
     }
     return t[what];
@@ -3136,12 +3138,12 @@ int far sub_s039_165c_6122(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x14, D_9c69[who].f60, 0x13, x, 0xa, 0);
+        return sub_s039_165c_0000(0x14, party[who].f60, 0x13, x, 0xa, 0);
     case 8:
         for (i = 0; i < 5; i++)
-            if (D_9c69[i].status) {
-                D_9c69[i].f41 = (D_9c69[i].f41 & 0xf) - 0x50;
-                D_9c69[i].f10 = 0x5a;
+            if (party[i].status) {
+                party[i].f41 = (party[i].f41 & 0xf) - 0x50;
+                party[i].f10 = 0x5a;
             }
         return 0;
     }
@@ -3162,13 +3164,13 @@ int far sub_s039_165c_61aa(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x46, D_9c69[who].f60, 0x4b, x, 0x28, 0);
+        return sub_s039_165c_0000(0x46, party[who].f60, 0x4b, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x5a) + 0x32, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x64);
+        lower_skill_temp(who, 0xd, rand_mod(0x5a) + 0x32, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3188,11 +3190,11 @@ int far sub_s039_165c_627e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x43, x, 0xa, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x43, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x3c) + 0x1e, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_2c4e(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
+        lower_skill_temp(who, 0xc, rand_mod(0x3c) + 0x1e, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0xf) + 0xf, 0x18);
+        event_new(-2, 0, 0x63, 0x4b, 0, 0, 9, 0x18, 1, 0);
         return 0;
     }
     return t[what];
@@ -3212,15 +3214,15 @@ int far sub_s039_165c_6338(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x1d, x, 0xa, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x1d, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(20) + 20, 0x18);
-        sub_s029_0e76_4b08(who, 12, sub_root_0000_0c70(30) + 30, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(8) + 12, 0x18);
-        if (sub_s029_0e76_05ee(who, 0) < 9)
-            sub_s029_0e76_0988(who, 0, 9);
-        if (sub_s029_0e76_05ee(who, 1) < 9)
-            sub_s029_0e76_0988(who, 1, 9);
+        lower_skill_temp(who, 7, rand_mod(20) + 20, 0x18);
+        lower_skill_temp(who, 12, rand_mod(30) + 30, 0x18);
+        raise_attr_temp(who, 4, rand_mod(8) + 12, 0x18);
+        if (member_attr(who, 0) < 9)
+            set_attr(who, 0, 9);
+        if (member_attr(who, 1) < 9)
+            set_attr(who, 1, 9);
         return 0;
     }
     return t[what];
@@ -3240,12 +3242,12 @@ int far sub_s039_165c_642c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x1b, x, 0x19, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x1b, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_4c04(who, 5, -(sub_root_0000_0c70(6) - 0xfffa), 0x18);
-        sub_s029_0e76_4b08(who, 7, sub_root_0000_0c70(0xc) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0x23) + 0x23, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        raise_attr_temp(who, 5, -(rand_mod(6) - 0xfffa), 0x18);
+        lower_skill_temp(who, 7, rand_mod(0xc) + 6, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0x23) + 0x23, 0x18);
         return 0;
     }
     return t[what];
@@ -3265,12 +3267,12 @@ int far sub_s039_165c_64f4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x13, x, 0x28, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x13, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(8) + 8, 0x18);
+        heal_attr_pct(who, 0, 0x14);
+        heal_attr_pct(who, 1, 0x14);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -3290,11 +3292,11 @@ int far sub_s039_165c_65ac(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x32, D_9c69[who].f60, 0x40, x, 0x19, 0);
+        return sub_s039_165c_0000(0x32, party[who].f60, 0x40, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x64);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -3314,13 +3316,13 @@ int far sub_s039_165c_664a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xa, D_9c69[who].f60, 0x1c, x, 0xf, 0);
+        return sub_s039_165c_0000(0xa, party[who].f60, 0x1c, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0xa);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 5, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 0xc, 0x18);
+        heal_attr_pct(who, 0, 0xa);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 5, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -3340,13 +3342,13 @@ int far sub_s039_165c_671e(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x2a, x, 0x28, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x2a, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x14);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 0xa, rand_mod(0x1e) + 0x1e, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3366,15 +3368,15 @@ int far sub_s039_165c_67f2(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x1b, x, 0x14, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x1b, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(10) + 15);
-        if (D_907e == 0x55)
-            sub_s029_0e76_19d0(D_907e, 15, 0x19);
-        sub_s029_0e76_4b08(who, 10, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 17, sub_root_0000_0c70(10) + 10, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(8) + 8, 0x18);
+        equip_bonuses(who, rand_mod(10) + 15);
+        if (cur_loc == 0x55)
+            loc_reputation_adj(cur_loc, 15, 0x19);
+        lower_skill_temp(who, 10, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 17, rand_mod(10) + 10, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 4, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -3394,12 +3396,12 @@ int far sub_s039_165c_68f4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x19, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x19, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0x14);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 0xa, rand_mod(0x19) + 0x19, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -3419,11 +3421,11 @@ int far sub_s039_165c_69ac(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x1e, D_9c69[who].f60, 0x32, x, 0x28, 0);
+        return sub_s039_165c_0000(0x1e, party[who].f60, 0x32, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x28);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x28);
+        heal_attr_pct(who, 1, 0x14);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3443,11 +3445,11 @@ int far sub_s039_165c_6a4a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x3e, x, 0xa, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x3e, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x28);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0x1e) + 0x1e, 0x18);
+        heal_attr_pct(who, 0, 0x28);
+        heal_attr_pct(who, 1, 0x14);
+        lower_skill_temp(who, 0xd, rand_mod(0x1e) + 0x1e, 0x18);
         return 0;
     }
     return t[what];
@@ -3467,12 +3469,12 @@ int far sub_s039_165c_6ae8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x26, x, 0x19, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x26, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
-        sub_s029_0e76_4b08(who, 2, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 4, 0x18);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
+        lower_skill_temp(who, 2, rand_mod(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 4, 0x18);
         return 0;
     }
     return t[what];
@@ -3492,13 +3494,13 @@ int far sub_s039_165c_6bb8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x44, x, 0xf, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x44, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xf) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xf) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(0xc) + 0xc, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0xf) + 0xc, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xf) + 0xc, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0xf) + 0xf, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 4, rand_mod(0xc) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -3518,14 +3520,14 @@ int far sub_s039_165c_6ca6(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x2d, D_9c69[who].f60, 0x30, x, 0xa, 0);
+        return sub_s039_165c_0000(0x2d, party[who].f60, 0x30, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0xa);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 0xf, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        heal_attr_pct(who, 0, 0xa);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 0xf, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -3545,13 +3547,13 @@ int far sub_s039_165c_6d92(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x41, x, 0x1e, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x41, x, 0x1e, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x64);
-        sub_s029_0e76_08f2(who, 1, 0x14);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(0xa) + 0xf);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
+        heal_attr_pct(who, 0, 0x64);
+        heal_attr_pct(who, 1, 0x14);
+        equip_bonuses(who, rand_mod(0xa) + 0xf);
+        lower_skill_temp(who, 0xa, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
         return 0;
     }
     return t[what];
@@ -3571,11 +3573,11 @@ int far sub_s039_165c_6e62(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x41, D_9c69[who].f60, 0x30, x, 0x28, 0);
+        return sub_s039_165c_0000(0x41, party[who].f60, 0x30, x, 0x28, 0);
     case 8:
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(0xc) + 0xc, 0x18);
-        sub_s029_0e76_2930(0x5d, 1);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 2, rand_mod(0xc) + 0xc, 0x18);
+        event_here(0x5d, 1);
         return 0;
     }
     return t[what];
@@ -3595,14 +3597,14 @@ int far sub_s039_165c_6f0c(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x3c, D_9c69[who].f60, 0x2c, x, 0x23, 0);
+        return sub_s039_165c_0000(0x3c, party[who].f60, 0x2c, x, 0x23, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 17, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_0792(who, sub_root_0000_0c70(8) + 8);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(6) + 6, 0x18);
-        what = D_907e == -1 ? vec_1fa9(D_e3d0, D_e3d2) : D_907e;
+        lower_skill_temp(who, 17, rand_mod(8) + 8, 0x18);
+        equip_bonuses(who, rand_mod(8) + 8);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 8, 0x18);
+        raise_attr_temp(who, 1, rand_mod(6) + 6, 0x18);
+        what = cur_loc == -1 ? nearest_city(party_x, party_y) : cur_loc;
         switch (what) {
         case 0x44:
         case 0x45:
@@ -3610,7 +3612,7 @@ int far sub_s039_165c_6f0c(int who, int x, register int what)
         case 0x47:
         case 0x49:
         case 0x4a:
-            sub_s029_0e76_19d0(what, 15, 0x19);
+            loc_reputation_adj(what, 15, 0x19);
         }
         return 0;
     }
@@ -3631,13 +3633,13 @@ int far sub_s039_165c_7038(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x19, x, 0xf, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x19, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_2930(0x4f, 0xa8);
+        heal_attr_pct(who, 0, 0x14);
+        lower_skill_temp(who, 0xe, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(6) + 6, 0x18);
+        event_here(0x4f, 0xa8);
         return 0;
     }
     return t[what];
@@ -3657,12 +3659,12 @@ int far sub_s039_165c_710a(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x23, x, 0x14, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x23, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4c04(who, 2, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_2930(0x4f, 0xa8);
+        lower_skill_temp(who, 0x12, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(0xa) + 0xa, 0x18);
+        raise_attr_temp(who, 2, rand_mod(8) + 8, 0x18);
+        event_here(0x4f, 0xa8);
         return 0;
     }
     return t[what];
@@ -3682,11 +3684,11 @@ int far sub_s039_165c_71ce(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x32, x, 0x19, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x32, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x19) + 0x19, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x19) + 0x19, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -3706,11 +3708,11 @@ int far sub_s039_165c_7288(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x37, D_9c69[who].f60, 0x2b, x, 0xf, 0);
+        return sub_s039_165c_0000(0x37, party[who].f60, 0x2b, x, 0xf, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xa) + 0xa, 0x18);
         return 0;
     }
     return t[what];
@@ -3730,13 +3732,13 @@ int far sub_s039_165c_7342(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x18, x, 0x14, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x18, x, 0x14, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0x11, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 4, sub_root_0000_0c70(6) + 6, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0x11, rand_mod(6) + 6, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0x14, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 4, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3756,12 +3758,12 @@ int far sub_s039_165c_7432(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x17, x, 0xa, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x17, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_08f2(who, 1, 5);
-        sub_s029_0e76_4b08(who, 0x10, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x14);
+        heal_attr_pct(who, 1, 5);
+        lower_skill_temp(who, 0x10, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3781,14 +3783,14 @@ int far sub_s039_165c_74ea(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x28, D_9c69[who].f60, 0x19, x, 0xc, 0);
+        return sub_s039_165c_0000(0x28, party[who].f60, 0x19, x, 0xc, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x14);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 9, sub_root_0000_0c70(0xf) + 0x14, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(3) + 3, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(4) + 4, 0x18);
+        heal_attr_pct(who, 0, 0x14);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 9, rand_mod(0xf) + 0x14, 0x18);
+        raise_attr_temp(who, 1, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 5, rand_mod(3) + 3, 0x18);
+        raise_attr_temp(who, 0, rand_mod(4) + 4, 0x18);
         return 0;
     }
     return t[what];
@@ -3808,14 +3810,14 @@ int far sub_s039_165c_75d8(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x23, D_9c69[who].f60, 0x13, x, 0x1b, 0);
+        return sub_s039_165c_0000(0x23, party[who].f60, 0x13, x, 0x1b, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(0x14) + 0x14, 0x18);
-        sub_s029_0e76_4b08(who, 0xb, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xc, sub_root_0000_0c70(0x28) + 0x28, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 5, 0x18);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 0xa, rand_mod(0x14) + 0x14, 0x18);
+        lower_skill_temp(who, 0xb, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xc, rand_mod(0x28) + 0x28, 0x18);
+        raise_attr_temp(who, 5, rand_mod(8) + 8, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 5, 0x18);
         return 0;
     }
     return t[what];
@@ -3835,17 +3837,17 @@ int far sub_s039_165c_76d4(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(1, D_9c69[who].f60, 0xa, x, 0xa, 0);
+        return sub_s039_165c_0000(1, party[who].f60, 0xa, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x1e);
-        sub_s029_0e76_08f2(who, 1, 0xa);
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0xc) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 3, sub_root_0000_0c70(6) + 6, 0x18);
-        sub_s029_0e76_4c04(who, 5, sub_root_0000_0c70(0xf) + 0xf, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(6) + 6, 0x18);
+        heal_attr_pct(who, 0, 0x1e);
+        heal_attr_pct(who, 1, 0xa);
+        lower_skill_temp(who, 0xa, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0xc) + 0xc, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 3, rand_mod(6) + 6, 0x18);
+        raise_attr_temp(who, 5, rand_mod(0xf) + 0xf, 0x18);
+        raise_attr_temp(who, 0, rand_mod(6) + 6, 0x18);
         return 0;
     }
     return t[what];
@@ -3865,12 +3867,12 @@ int far sub_s039_165c_7812(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0x17, D_9c69[who].f60, 0x1f, x, 0x19, 0);
+        return sub_s039_165c_0000(0x17, party[who].f60, 0x1f, x, 0x19, 0);
     case 8:
-        sub_s029_0e76_08f2(who, 0, 0x32);
-        sub_s029_0e76_08f2(who, 1, 0x64);
-        sub_s029_0e76_4b08(who, 8, sub_root_0000_0c70(8) + 8, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xc) + 0xc, 0x18);
+        heal_attr_pct(who, 0, 0x32);
+        heal_attr_pct(who, 1, 0x64);
+        lower_skill_temp(who, 8, rand_mod(8) + 8, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xc) + 0xc, 0x18);
         return 0;
     }
     return t[what];
@@ -3890,14 +3892,14 @@ int far sub_s039_165c_78ca(int who, int x, register int what)
     t[6] = 1;
     switch (what) {
     case 7:
-        return sub_s039_165c_0000(0xf, D_9c69[who].f60, 0x18, x, 0xa, 0);
+        return sub_s039_165c_0000(0xf, party[who].f60, 0x18, x, 0xa, 0);
     case 8:
-        sub_s029_0e76_4b08(who, 0xa, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4b08(who, 0xd, sub_root_0000_0c70(0xa) + 0xa, 0x18);
-        sub_s029_0e76_4b08(who, 0xe, sub_root_0000_0c70(0xc) + 0xc, 0x18);
-        sub_s029_0e76_4b08(who, 0x12, sub_root_0000_0c70(4) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 1, sub_root_0000_0c70(5) + 4, 0x18);
-        sub_s029_0e76_4c04(who, 0, sub_root_0000_0c70(5) + 4, 0x18);
+        lower_skill_temp(who, 0xa, rand_mod(4) + 4, 0x18);
+        lower_skill_temp(who, 0xd, rand_mod(0xa) + 0xa, 0x18);
+        lower_skill_temp(who, 0xe, rand_mod(0xc) + 0xc, 0x18);
+        lower_skill_temp(who, 0x12, rand_mod(4) + 4, 0x18);
+        raise_attr_temp(who, 1, rand_mod(5) + 4, 0x18);
+        raise_attr_temp(who, 0, rand_mod(5) + 4, 0x18);
         return 0;
     }
     return t[what];

@@ -30,23 +30,25 @@
    Screen state D_8c1e: 0 name/gender, 1 childhood list, 2 attribute EPs, 3 profession list,
    4 skill EPs. List D_8bd2[] (D_8c00 rows), cursor D_43ee (mouse) / D_8bfc (attr/skill row),
    EPs spent this step D_8c06[6] (attributes) / D_8c22[0x13] (skills). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
-/* screen / text window (D_27f4): text colour at +0c (D_2800) */
+/* screen / text window (screen_win): text colour at +0c (screen_win_colour) */
 struct scr { char _p0[0xc]; int colour; };
 extern char far * far F_290e_1df7[];   /* chargen texts: menu entries, list titles */
 extern char far * far F_290e_20ab[6];  /* childhood backgrounds */
 extern char far * far F_290e_1ee7[];   /* profession names */
 /* one inventory entry (6 bytes) */
 struct item { int id; char f2; char qual; char cnt; char f5; };
-/* item definition (F_2e38_0890[id]) */
+/* item definition (item_defs[id]) */
 struct itemdef { char name[0x1e]; char f1e; char _p1f[6]; char f25; char f26; };
-extern struct itemdef far * far F_2e38_0890[];
+extern struct itemdef far * far item_defs[];
 extern struct item far F_2e38_3984[0x40];  /* starting equipment of the new character */
 extern unsigned char far F_2e38_3b04[];
 extern unsigned char far F_2e38_3b1a[];
-extern char far * far F_2e38_1736[][3];   /* virtue names, 3 per entry */
-extern char far * far F_2e38_183e[];      /* saint names */
+extern char far * far virtue_names[][3];   /* virtue names, 3 per entry */
+extern char far * far saint_names[];      /* saint names */
 extern unsigned char D_00e8[];            /* 1 << n */
 /* profession table entry (0x3a bytes): childhood F_290e_2b65, adult F_290e_2cc1 */
 struct prof { int years; char attr[6]; char skill[0x13]; char maxsk[0x13]; char _p2e[0xc]; };
@@ -60,19 +62,19 @@ extern int D_8c12, D_442a, D_4428, D_8bfa, D_8c48;
 extern char D_4402[];
 struct F_2e38_0000_2_t { char f_0000[2]; char f_0002[2]; char f_0004[2]; char f_0006[2]; char f_0008[2]; char f_000a[1]; };
 extern struct F_2e38_0000_2_t far F_2e38_0000_2;
-extern char D_27f4[];
-extern int D_2800;
-extern int D_2804;
-extern int D_2812;
-extern int D_2816;
-extern volatile int D_6ef0, D_6eec, D_6eee;   /* mouse buttons, x, y */
+extern char screen_win[];
+extern int screen_win_colour;
+extern int screen_win_font;
+extern int back_win_colour;
+extern int back_win_font;
+extern volatile int mouse_buttons, mouse_x, mouse_y;   /* mouse buttons, x, y */
 extern int D_8c14[5];                   /* bubble animation pictures */
 extern int D_8c16;
 extern int D_8c18;
 extern int D_8c1a;
 extern int D_8c1c;
 extern int D_8c20;
-extern char D_e48c[];
+extern char cur_palette[];
 extern int D_e7a0;
 extern int D_e7a2;
 extern char D_e888;                     /* entries in F_2e38_3984 */
@@ -81,7 +83,7 @@ extern int D_8c1e;                      /* screen state */
 extern int D_43ee;                      /* highlighted list row */
 extern int D_43f8;
 extern char D_43f0[];
-extern char D_2806[];
+extern char back_win[];
 extern int D_8bfc;                      /* selected attribute/skill row */
 extern int D_8c00;                      /* rows in the list */
 extern char D_e82f[];                   /* name being edited */
@@ -94,7 +96,7 @@ extern char D_e862, D_e864, D_e865, D_e866;
 extern int D_8bd2[0x14];
 extern int D_8c22[0x13];
 extern int D_8c06[6];
-extern char far F_2e38_1a96[];
+extern char far var_named[];
 void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 void far *_fmemset(void far *, int, unsigned);
@@ -102,32 +104,32 @@ int far _fstrcpy();
 int far sprintf();
 int far strncpy();
 int far time();
-int far sub_root_0000_0c70();
-int far sub_root_0265_0004();
-int far sub_root_047c_04dc();
+int far rand_mod();
+int far draw_text_far();
+int far gfx_recolor_rect();
 int far sub_root_047c_04f8();
 int far sub_root_047c_0545();
-int far sub_root_047c_0553();
-int far sub_root_047c_055a();
+int far gfx_copy_rect();
+int far gfx_text();
 int far sub_root_047c_0568();
 int far sub_root_047c_056f();
-int far sub_root_047c_058b();
-int far sub_root_047c_05a5();
-int far sub_root_047c_073d();
-int far sub_root_047c_0744();
-int far sub_root_047c_1293();
-int far sub_root_047c_12c3();
+int far set_palette();
+int far gfx_draw_pic();
+int far key_pressed();
+int far get_key();
+int far mouse_show();
+int far mouse_hide();
 int far sub_root_047c_1320();
-int far sub_root_05ba_00c2();
-int far sub_root_0617_024a();
-int far sub_root_0617_045c();
+int far mem_free();
+int far pic_draw_pal();
+int far pic_load();
 int far sub_root_06a1_2824();
-int far sub_root_0000_13a0();
+int far quit_to_dos();
 int far sub_s037_1462_38aa();
-int far sub_s037_1462_43e6();
-int far sub_s029_1367_0066();
-int far sub_s029_1367_0db4();
-void far sub_s037_18c8_0004();
+int far text_input();
+int far clamp_range();
+int far random_name();
+void far create_character();
 int far sub_s037_18c8_047c();
 int far sub_s037_18c8_04b2();
 void far sub_s037_18c8_053e();
@@ -149,7 +151,7 @@ void far sub_s037_18c8_3a9e();
    attribute rows (state 2) / skill rows (state 4) of 8 pixels move D_8bfc; other click
    areas give key codes; every 0x5dd passes the bubble animation advances. */
 #pragma optimize("a", on)
-void far sub_s037_18c8_0004(void)
+void far create_character(void)
 {
     int t;
     int f;
@@ -159,12 +161,12 @@ void far sub_s037_18c8_0004(void)
     t = 0x5dd;
     f = 0;
     D_8c1e = 0;
-    D_e7a2 = D_2816;
-    D_e7a0 = D_2804;
+    D_e7a2 = back_win_font;
+    D_e7a0 = screen_win_font;
     sub_s037_18c8_20fa();
     sub_s037_18c8_04b2();
     sub_s037_18c8_053e();
-    while (D_6ef0 & 1)
+    while (mouse_buttons & 1)
         ;
     for (;;) {
         k = 0;
@@ -174,70 +176,70 @@ void far sub_s037_18c8_0004(void)
                 D_43f8 = (D_8bfa * -100 / D_8c48 + 100) / 2;
             else
                 D_43f8 = 0;
-            if (D_6eec > 0xc3 && D_6eec < 0xda && D_6eee > 0x5f)
-                sub_root_047c_12c3();
-            sub_root_047c_05a5(D_2806, 0xd0, 0x69, D_8c14[f++]);
-            sub_root_047c_04ef(D_43f0, 0, 0, D_8c20);
-            sub_root_047c_0553(D_2806, 0xd0, 0x69, 0xc, 0x32, D_27f4, 0xd0, 0x69);
+            if (mouse_x > 0xc3 && mouse_x < 0xda && mouse_y > 0x5f)
+                mouse_hide();
+            gfx_draw_pic(back_win, 0xd0, 0x69, D_8c14[f++]);
+            gfx_draw_sprite(D_43f0, 0, 0, D_8c20);
+            gfx_copy_rect(back_win, 0xd0, 0x69, 0xc, 0x32, screen_win, 0xd0, 0x69);
             if (f >= 5)
                 f = 0;
-            sub_root_047c_1293();
+            mouse_show();
         }
-        if (!(D_6ef0 & 1) && D_6eec > 0x40 && D_6eec < 0xae && D_6eee > 0x2d && D_6eee < 0xc7) {
-            row = (D_6eee - 0x2d) / 0xb;
+        if (!(mouse_buttons & 1) && mouse_x > 0x40 && mouse_x < 0xae && mouse_y > 0x2d && mouse_y < 0xc7) {
+            row = (mouse_y - 0x2d) / 0xb;
             if (D_43ee != row) {
-                sub_root_047c_12c3();
+                mouse_hide();
                 if (D_43ee != -1)
-                    sub_root_047c_04dc(D_27f4, 0x41, D_43ee * 0xb + 0x2f, 0x6c, 0xb, 9, 0);
+                    gfx_recolor_rect(screen_win, 0x41, D_43ee * 0xb + 0x2f, 0x6c, 0xb, 9, 0);
                 D_43ee = row;
-                sub_root_047c_04dc(D_27f4, 0x41, row * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
+                gfx_recolor_rect(screen_win, 0x41, row * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
                 if ((D_8c1e == 1 || D_8c1e == 3) && row < D_8c00)
-                    sub_s037_18c8_1738(D_27f4);
-                sub_root_047c_1293();
+                    sub_s037_18c8_1738(screen_win);
+                mouse_show();
             }
-        } else if ((D_6ef0 & 1) && D_6eec > 0x40 && D_6eec < 0xae && D_6eee > 0x2d && D_6eee < 0xc7) {
-            while (D_6ef0 & 1)
+        } else if ((mouse_buttons & 1) && mouse_x > 0x40 && mouse_x < 0xae && mouse_y > 0x2d && mouse_y < 0xc7) {
+            while (mouse_buttons & 1)
                 ;
-            k = (D_6eee - 0x2d) / 0xb + 1;
+            k = (mouse_y - 0x2d) / 0xb + 1;
             if (D_8c1e == 4 && k == 1 && D_e81c > 0x41)
                 k = 0;
-        } else if ((D_6ef0 & 1) && D_8c1e == 2 && D_6eec > 0xc4 && D_6eec < 0xec && D_6eee > 0x12 && D_6eee < 0x4d) {
-            while (D_6ef0 & 1)
+        } else if ((mouse_buttons & 1) && D_8c1e == 2 && mouse_x > 0xc4 && mouse_x < 0xec && mouse_y > 0x12 && mouse_y < 0x4d) {
+            while (mouse_buttons & 1)
                 ;
-            row = (D_6eee - 0x12) / 8;
+            row = (mouse_y - 0x12) / 8;
             if (row >= 6)
                 continue;
-            sub_root_047c_12c3();
+            mouse_hide();
             if (D_8bfc == row)
                 k = 0xd2b;
-            sub_root_047c_04dc(D_27f4, 0xc5, D_8bfc * 8 + 0x14, 0x26, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xc5, D_8bfc * 8 + 0x14, 0x26, 8, 10, 0xbf);
             D_8bfc = row;
-            sub_root_047c_04dc(D_27f4, 0xc5, row * 8 + 0x14, 0x26, 8, 0xbf, 10);
-            sub_root_047c_1293();
-        } else if ((D_6ef0 & 1) && D_8c1e == 4 && D_6eec > 0xf5 && D_6eec < 0x13b && D_6eee > 0x12 && D_6eee < 0xb9) {
-            while (D_6ef0 & 1)
+            gfx_recolor_rect(screen_win, 0xc5, row * 8 + 0x14, 0x26, 8, 0xbf, 10);
+            mouse_show();
+        } else if ((mouse_buttons & 1) && D_8c1e == 4 && mouse_x > 0xf5 && mouse_x < 0x13b && mouse_y > 0x12 && mouse_y < 0xb9) {
+            while (mouse_buttons & 1)
                 ;
-            row = (D_6eee - 0x12) / 8;
+            row = (mouse_y - 0x12) / 8;
             if (row == 0xe || row == 7)
                 continue;
-            sub_root_047c_12c3();
+            mouse_hide();
             if (D_8bfc == row)
                 k = 0xd2b;
-            sub_root_047c_04dc(D_27f4, 0xf6, D_8bfc * 8 + 0x14, 0x44, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xf6, D_8bfc * 8 + 0x14, 0x44, 8, 10, 0xbf);
             D_8bfc = row;
-            sub_root_047c_04dc(D_27f4, 0xf6, row * 8 + 0x14, 0x44, 8, 0xbf, 10);
-            sub_root_047c_1293();
-        } else if ((D_6ef0 & 1) && (D_8c1e == 4 || D_8c1e == 2) && D_6eec > 0xc3 && D_6eec < 0xeb && D_6eee > 0x5f && D_6eee < 0xa5) {
-            while (D_6ef0 & 1)
+            gfx_recolor_rect(screen_win, 0xf6, row * 8 + 0x14, 0x44, 8, 0xbf, 10);
+            mouse_show();
+        } else if ((mouse_buttons & 1) && (D_8c1e == 4 || D_8c1e == 2) && mouse_x > 0xc3 && mouse_x < 0xeb && mouse_y > 0x5f && mouse_y < 0xa5) {
+            while (mouse_buttons & 1)
                 ;
             k = 0xc2d;
-        } else if ((D_6ef0 & 1) && D_8c1e >= 3 && D_6eec > 0xae && D_6eec < 0xea && D_6eee > 0xa8 && D_6eee < 0xb4) {
+        } else if ((mouse_buttons & 1) && D_8c1e >= 3 && mouse_x > 0xae && mouse_x < 0xea && mouse_y > 0xa8 && mouse_y < 0xb4) {
             k = 0x5032;
-        } else if ((D_6ef0 & 1) && D_8c1e >= 3 && D_6eec > 0xae && D_6eec < 0xea && D_6eee > 0xb8 && D_6eee < 0xc4) {
+        } else if ((mouse_buttons & 1) && D_8c1e >= 3 && mouse_x > 0xae && mouse_x < 0xea && mouse_y > 0xb8 && mouse_y < 0xc4) {
             k = 0x5133;
         }
-        if (sub_root_047c_073d())
-            k = sub_root_047c_0744();
+        if (key_pressed())
+            k = get_key();
         if (k == 0x11b) {
             if (D_8c1e == 2)
                 D_8c1e = 1;
@@ -257,41 +259,41 @@ void far sub_s037_18c8_0004(void)
 
 int far sub_s037_18c8_047c(void)
 {
-    sub_root_05ba_00c2(D_e88c, 0x442c);
-    D_2816 = D_e7a2;
-    D_2804 = D_e7a0;
+    mem_free(D_e88c, 0x442c);
+    back_win_font = D_e7a2;
+    screen_win_font = D_e7a0;
     do {
-    } while (D_6ef0 & 1);
+    } while (mouse_buttons & 1);
     sub_root_047c_1320(6, 0, 0, 0);
     return 0;
 }
 
 int far sub_s037_18c8_04b2(void)
 {
-    sub_root_0617_024a(1, "pics\\chargen.pic", D_e48c);
+    pic_draw_pal(1, "pics\\chargen.pic", cur_palette);
     sub_root_047c_0545();
-    D_e88c = sub_root_0617_045c("pics\\buttona.pic");
-    D_8c14[0] = sub_root_0617_045c("pics\\bubble01.pic");
-    D_8c16 = sub_root_0617_045c("pics\\bubble02.pic");
-    D_8c18 = sub_root_0617_045c("pics\\bubble03.pic");
-    D_8c1a = sub_root_0617_045c("pics\\bubble04.pic");
-    D_8c1c = sub_root_0617_045c("pics\\bubble05.pic");
-    D_8c20 = sub_root_0617_045c("pics\\bublback.pic");
+    D_e88c = pic_load("pics\\buttona.pic");
+    D_8c14[0] = pic_load("pics\\bubble01.pic");
+    D_8c16 = pic_load("pics\\bubble02.pic");
+    D_8c18 = pic_load("pics\\bubble03.pic");
+    D_8c1a = pic_load("pics\\bubble04.pic");
+    D_8c1c = pic_load("pics\\bubble05.pic");
+    D_8c20 = pic_load("pics\\bublback.pic");
     sub_root_047c_04f8();
-    D_2812 = 0;
-    D_2816 = 1;
-    return D_2804 = 1;
+    back_win_colour = 0;
+    back_win_font = 1;
+    return screen_win_font = 1;
 }
 
 void far sub_s037_18c8_053e(void)
 {
     sub_root_047c_0568();
-    sub_root_047c_12c3();
-    sub_root_047c_0553(0x2806, 0, 0, 0x140, 0xc8, D_27f4, 0, 0);
-    sub_s037_18c8_10da(D_27f4);
-    sub_s037_18c8_1738(D_27f4);
-    sub_root_047c_058b(D_e48c);
-    sub_root_047c_1293();
+    mouse_hide();
+    gfx_copy_rect(0x2806, 0, 0, 0x140, 0xc8, screen_win, 0, 0);
+    sub_s037_18c8_10da(screen_win);
+    sub_s037_18c8_1738(screen_win);
+    set_palette(cur_palette);
+    mouse_show();
     sub_root_047c_056f();
 }
 
@@ -337,12 +339,12 @@ int far sub_s037_18c8_058e(register int key)
     case 0x4b00:
     case 0x4d00:
         if (D_8c1e == 2) {
-            sub_root_047c_04dc(D_27f4, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 10, 0xbf);
             if (--D_8bfc < 0 || D_8bfc >= 6)
                 D_8bfc = 5;
-            sub_root_047c_04dc(D_27f4, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 0xbf, 10);
+            gfx_recolor_rect(screen_win, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 0xbf, 10);
         } else if (D_8c1e == 4) {
-            sub_root_047c_04dc(D_27f4, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 10, 0xbf);
             D_8bfc--;
             if (D_8bfc == 7)
                 D_8bfc = 6;
@@ -350,18 +352,18 @@ int far sub_s037_18c8_058e(register int key)
                 D_8bfc = 0xd;
             if (D_8bfc < 0)
                 D_8bfc = 0x14;
-            sub_s037_18c8_1738(D_27f4);
-            sub_root_047c_04dc(D_27f4, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 0xbf, 10);
+            sub_s037_18c8_1738(screen_win);
+            gfx_recolor_rect(screen_win, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 0xbf, 10);
         }
         break;
     case 0x5000:
         if (D_8c1e == 2) {
-            sub_root_047c_04dc(D_27f4, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 10, 0xbf);
             if (++D_8bfc >= 6)
                 D_8bfc = 0;
-            sub_root_047c_04dc(D_27f4, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 0xbf, 10);
+            gfx_recolor_rect(screen_win, 0xc6, D_8bfc * 8 + 0x14, 0x25, 8, 0xbf, 10);
         } else if (D_8c1e == 4) {
-            sub_root_047c_04dc(D_27f4, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 10, 0xbf);
+            gfx_recolor_rect(screen_win, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 10, 0xbf);
             D_8bfc++;
             if (D_8bfc == 7)
                 D_8bfc = 8;
@@ -369,7 +371,7 @@ int far sub_s037_18c8_058e(register int key)
                 D_8bfc = 0xf;
             if (D_8bfc >= 0x15)
                 D_8bfc = 0;
-            sub_root_047c_04dc(D_27f4, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 0xbf, 10);
+            gfx_recolor_rect(screen_win, 0xf7, D_8bfc * 8 + 0x14, 0x43, 8, 0xbf, 10);
         }
         break;
     case 0xd2b:
@@ -395,14 +397,14 @@ int far sub_s037_18c8_058e(register int key)
             D_8c06[D_8bfc]++;
             D_e86e[D_8bfc]++;
             D_8bfa -= cba;
-            sub_s037_18c8_1738(D_27f4);
+            sub_s037_18c8_1738(screen_win);
         } else if (D_8c1e == 4 && D_8bfa - cba >= 0
                    && F_290e_2cc1[D_4428].maxsk[sub_s037_18c8_3890(D_8bfc)] > D_8c22[sub_s037_18c8_3890(D_8bfc)]
                    && D_e875[sub_s037_18c8_3890(D_8bfc)] < 0x59) {
             D_8c22[sub_s037_18c8_3890(D_8bfc)]++;
             D_e875[sub_s037_18c8_3890(D_8bfc)]++;
             D_8bfa -= cba;
-            sub_s037_18c8_1738(D_27f4);
+            sub_s037_18c8_1738(screen_win);
         }
         break;
     case 0xc2d:
@@ -417,7 +419,7 @@ int far sub_s037_18c8_058e(register int key)
                 D_8bfa++;
             D_8c06[D_8bfc]--;
             D_e86e[D_8bfc]--;
-            sub_s037_18c8_1738(D_27f4);
+            sub_s037_18c8_1738(screen_win);
         } else if (D_8c1e == 4 && D_8bfa < D_8c48 && D_8c22[sub_s037_18c8_3890(D_8bfc)]) {
             if (D_e875[sub_s037_18c8_3890(D_8bfc)] >= 0x50)
                 D_8bfa += 3;
@@ -427,7 +429,7 @@ int far sub_s037_18c8_058e(register int key)
                 D_8bfa++;
             D_8c22[sub_s037_18c8_3890(D_8bfc)]--;
             D_e875[sub_s037_18c8_3890(D_8bfc)]--;
-            sub_s037_18c8_1738(D_27f4);
+            sub_s037_18c8_1738(screen_win);
         }
         break;
     case 0x332:
@@ -490,23 +492,23 @@ int far sub_s037_18c8_058e(register int key)
             }
             if (D_8bfe) {
                 D_8bfe = 1;
-                sub_s029_1367_0db4(time(0), D_e821, 0);
-                _fstrcpy((char far *)D_e82f, F_2e38_1a96);
-                strncpy(D_e848, D_e82f, sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " ")));
-                ig = sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " "));
+                random_name(time(0), D_e821, 0);
+                _fstrcpy((char far *)D_e82f, var_named);
+                strncpy(D_e848, D_e82f, clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " ")));
+                ig = clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " "));
                 D_e848[ig] = 0;
-                sub_root_047c_12c3();
-                sub_root_047c_0553(D_2806, 0x40, 1, 0xb4, 0xc, D_27f4, 0x40, 1);
-                D_2800 = 0xbf;
-                sub_root_047c_055a(D_27f4, 0x47, 5, D_e848);
-                sub_root_047c_055a(D_27f4, 0x83, 5, D_e82f);
-                D_2800 = 0;
-                sub_root_047c_055a(D_27f4, 0x47, 4, D_e848);
-                sub_root_047c_055a(D_27f4, 0x83, 4, D_e82f);
-                sub_root_047c_1293();
+                mouse_hide();
+                gfx_copy_rect(back_win, 0x40, 1, 0xb4, 0xc, screen_win, 0x40, 1);
+                screen_win_colour = 0xbf;
+                gfx_text(screen_win, 0x47, 5, D_e848);
+                gfx_text(screen_win, 0x83, 5, D_e82f);
+                screen_win_colour = 0;
+                gfx_text(screen_win, 0x47, 4, D_e848);
+                gfx_text(screen_win, 0x83, 4, D_e82f);
+                mouse_show();
             }
-            sub_s037_18c8_10da(D_27f4);
-            sub_s037_18c8_1738(D_27f4);
+            sub_s037_18c8_10da(screen_win);
+            sub_s037_18c8_1738(screen_win);
         } else if (D_8c1e == 1 || D_8c1e == 3) {
             if (D_8bd2[key - 1] == -1)
                 break;
@@ -561,20 +563,20 @@ int far sub_s037_18c8_058e(register int key)
         if (D_8c1e == 0) {
             /* random nameba */
             D_8bfe = 1;
-            sub_s029_1367_0db4(time(0), D_e821, 0);
-            _fstrcpy((char far *)D_e82f, F_2e38_1a96);
-            strncpy(D_e848, D_e82f, sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " ")));
-            ig = sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " "));
+            random_name(time(0), D_e821, 0);
+            _fstrcpy((char far *)D_e82f, var_named);
+            strncpy(D_e848, D_e82f, clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " ")));
+            ig = clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " "));
             D_e848[ig] = 0;
-            sub_root_047c_12c3();
-            sub_root_047c_0553(D_2806, 0x40, 1, 0xb4, 0xc, D_27f4, 0x40, 1);
-            D_2800 = 0xbf;
-            sub_root_047c_055a(D_27f4, 0x47, 5, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 5, D_e82f);
-            D_2800 = 0;
-            sub_root_047c_055a(D_27f4, 0x47, 4, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 4, D_e82f);
-            sub_root_047c_1293();
+            mouse_hide();
+            gfx_copy_rect(back_win, 0x40, 1, 0xb4, 0xc, screen_win, 0x40, 1);
+            screen_win_colour = 0xbf;
+            gfx_text(screen_win, 0x47, 5, D_e848);
+            gfx_text(screen_win, 0x83, 5, D_e82f);
+            screen_win_colour = 0;
+            gfx_text(screen_win, 0x47, 4, D_e848);
+            gfx_text(screen_win, 0x83, 4, D_e82f);
+            mouse_show();
         } else if (D_8c1e == 1 || D_8c1e == 3) {
             if (D_8bd2[key - 1] == -1)
                 break;
@@ -599,17 +601,17 @@ int far sub_s037_18c8_058e(register int key)
             /* enter the nameba */
             D_8bfe = 0;
             bufe[0] = 0;
-            sub_s037_1462_43e6((char far *)bufe, (char far *)nameba, 0x17);
+            text_input((char far *)bufe, (char far *)nameba, 0x17);
             strcpy(D_e82f, bufe);
-            sub_root_047c_12c3();
-            sub_root_047c_0553(D_2806, 0x40, 1, 0xb4, 0xc, D_27f4, 0x40, 1);
-            D_2800 = 0xbf;
-            sub_root_047c_055a(D_27f4, 0x47, 5, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 5, D_e82f);
-            D_2800 = 0;
-            sub_root_047c_055a(D_27f4, 0x47, 4, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 4, D_e82f);
-            sub_root_047c_1293();
+            mouse_hide();
+            gfx_copy_rect(back_win, 0x40, 1, 0xb4, 0xc, screen_win, 0x40, 1);
+            screen_win_colour = 0xbf;
+            gfx_text(screen_win, 0x47, 5, D_e848);
+            gfx_text(screen_win, 0x83, 5, D_e82f);
+            screen_win_colour = 0;
+            gfx_text(screen_win, 0x47, 4, D_e848);
+            gfx_text(screen_win, 0x83, 4, D_e82f);
+            mouse_show();
         } else if (D_8c1e == 1 || D_8c1e == 3) {
             if (D_8bd2[key - 1] == -1)
                 break;
@@ -629,17 +631,17 @@ int far sub_s037_18c8_058e(register int key)
             /* enter the nickname */
             D_8bfe = 0;
             bufe[0] = 0;
-            sub_s037_1462_43e6((char far *)bufe, (char far *)nickoa, 9);
+            text_input((char far *)bufe, (char far *)nickoa, 9);
             strcpy(D_e848, bufe);
-            sub_root_047c_12c3();
-            sub_root_047c_0553(D_2806, 0x40, 1, 0xb4, 0xc, D_27f4, 0x40, 1);
-            D_2800 = 0xbf;
-            sub_root_047c_055a(D_27f4, 0x47, 5, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 5, D_e82f);
-            D_2800 = 0;
-            sub_root_047c_055a(D_27f4, 0x47, 4, D_e848);
-            sub_root_047c_055a(D_27f4, 0x83, 4, D_e82f);
-            sub_root_047c_1293();
+            mouse_hide();
+            gfx_copy_rect(back_win, 0x40, 1, 0xb4, 0xc, screen_win, 0x40, 1);
+            screen_win_colour = 0xbf;
+            gfx_text(screen_win, 0x47, 5, D_e848);
+            gfx_text(screen_win, 0x83, 5, D_e82f);
+            screen_win_colour = 0;
+            gfx_text(screen_win, 0x47, 4, D_e848);
+            gfx_text(screen_win, 0x83, 4, D_e82f);
+            mouse_show();
         } else if (D_8c1e == 1 || D_8c1e == 3) {
             if (D_8bd2[key - 1] == -1)
                 break;
@@ -689,7 +691,7 @@ int far sub_s037_18c8_058e(register int key)
         break;
     case 0x1000:
         sub_s037_18c8_047c();
-        sub_root_0000_13a0();
+        quit_to_dos();
         break;
     case 0x231:
     case 0x534:
@@ -709,114 +711,114 @@ void far sub_s037_18c8_10da(struct scr *p)
     int i;
     int t;
     int y;
-    sub_root_047c_12c3();
+    mouse_hide();
     p->colour = 0;
     if (D_8c1e == 0) {
         p->colour = 0xbf;
-        sub_root_047c_055a(p, 0x47, 5, D_e848);
-        sub_root_047c_055a(p, 0x83, 5, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x13, "Select character name");
-        sub_root_047c_055a(p, 0x47, 0x1b, "and gender, then start");
-        sub_root_047c_055a(p, 0x47, 0x23, "childhood.");
+        gfx_text(p, 0x47, 5, D_e848);
+        gfx_text(p, 0x83, 5, D_e82f);
+        gfx_text(p, 0x47, 0x13, "Select character name");
+        gfx_text(p, 0x47, 0x1b, "and gender, then start");
+        gfx_text(p, 0x47, 0x23, "childhood.");
         p->colour = 0;
-        sub_root_047c_055a(p, 0x47, 4, D_e848);
-        sub_root_047c_055a(p, 0x83, 4, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x12, "Select character name");
-        sub_root_047c_055a(p, 0x47, 0x1a, "and gender, then start");
-        sub_root_047c_055a(p, 0x47, 0x22, "childhood.");
+        gfx_text(p, 0x47, 4, D_e848);
+        gfx_text(p, 0x83, 4, D_e82f);
+        gfx_text(p, 0x47, 0x12, "Select character name");
+        gfx_text(p, 0x47, 0x1a, "and gender, then start");
+        gfx_text(p, 0x47, 0x22, "childhood.");
         p->colour = 0;
-        sub_root_047c_05a5(p, 0x40, 0x38, D_e88c);
+        gfx_draw_pic(p, 0x40, 0x38, D_e88c);
         if (D_e821 == 0)
-            sub_root_0265_0004(p, 0x44, 0x3a, F_290e_1df7[1]);
+            draw_text_far(p, 0x44, 0x3a, F_290e_1df7[1]);
         else
-            sub_root_0265_0004(p, 0x44, 0x3a, F_290e_1df7[2]);
-        sub_root_047c_05a5(p, 0x40, 0x2d, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x2f, F_290e_1df7[0]);
-        sub_root_047c_05a5(p, 0x40, 0x43, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x45, F_290e_1df7[3]);
-        sub_root_047c_05a5(p, 0x40, 0x4e, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x50, F_290e_1df7[4]);
-        sub_root_047c_05a5(p, 0x40, 0x59, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x5b, F_290e_1df7[5]);
-        sub_root_047c_05a5(p, 0x40, 0x64, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x66, F_290e_1df7[6]);
+            draw_text_far(p, 0x44, 0x3a, F_290e_1df7[2]);
+        gfx_draw_pic(p, 0x40, 0x2d, D_e88c);
+        draw_text_far(p, 0x44, 0x2f, F_290e_1df7[0]);
+        gfx_draw_pic(p, 0x40, 0x43, D_e88c);
+        draw_text_far(p, 0x44, 0x45, F_290e_1df7[3]);
+        gfx_draw_pic(p, 0x40, 0x4e, D_e88c);
+        draw_text_far(p, 0x44, 0x50, F_290e_1df7[4]);
+        gfx_draw_pic(p, 0x40, 0x59, D_e88c);
+        draw_text_far(p, 0x44, 0x5b, F_290e_1df7[5]);
+        gfx_draw_pic(p, 0x40, 0x64, D_e88c);
+        draw_text_far(p, 0x44, 0x66, F_290e_1df7[6]);
         D_8c00 = 6;
     } else if ((t = D_8c1e) == 1) {
         p->colour = 0xbf;
-        sub_root_047c_055a(p, 0x47, 5, D_e848);
-        sub_root_047c_055a(p, 0x83, 5, D_e82f);
-        sub_root_0265_0004(p, 0x47, 0x13, F_290e_1df7[7]);
+        gfx_text(p, 0x47, 5, D_e848);
+        gfx_text(p, 0x83, 5, D_e82f);
+        draw_text_far(p, 0x47, 0x13, F_290e_1df7[7]);
         p->colour = 0;
-        sub_root_047c_055a(p, 0x47, 4, D_e848);
-        sub_root_047c_055a(p, 0x83, 4, D_e82f);
-        sub_root_0265_0004(p, 0x47, 0x12, F_290e_1df7[7]);
+        gfx_text(p, 0x47, 4, D_e848);
+        gfx_text(p, 0x83, 4, D_e82f);
+        draw_text_far(p, 0x47, 0x12, F_290e_1df7[7]);
         p->colour = 0;
         for (i = 0, y = 0x2d; i < 6; i++, y += 0xb) {
-            sub_root_047c_05a5(p, 0x40, y, D_e88c);
+            gfx_draw_pic(p, 0x40, y, D_e88c);
             p->colour = 0;
-            sub_root_0265_0004(p, 0x44, y + 2, F_290e_20ab[i]);
+            draw_text_far(p, 0x44, y + 2, F_290e_20ab[i]);
         }
-        sub_root_047c_04dc(p, 0x44, D_8bfc * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
+        gfx_recolor_rect(p, 0x44, D_8bfc * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
         D_8c00 = 6;
     } else if (t == 2) {
         p->colour = 0xbf;
-        sub_root_047c_055a(p, 0x47, 5, D_e848);
-        sub_root_047c_055a(p, 0x83, 5, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x13, "Use EPs to improve attr");
-        sub_root_047c_055a(p, 0x47, 0x1b, "Select attribute and");
-        sub_root_047c_055a(p, 0x47, 0x23, "use + or - to change");
+        gfx_text(p, 0x47, 5, D_e848);
+        gfx_text(p, 0x83, 5, D_e82f);
+        gfx_text(p, 0x47, 0x13, "Use EPs to improve attr");
+        gfx_text(p, 0x47, 0x1b, "Select attribute and");
+        gfx_text(p, 0x47, 0x23, "use + or - to change");
         p->colour = 0;
-        sub_root_047c_055a(p, 0x47, 4, D_e848);
-        sub_root_047c_055a(p, 0x83, 4, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x12, "Use EPs to improve attr");
-        sub_root_047c_055a(p, 0x47, 0x1a, "Select attribute and");
-        sub_root_047c_055a(p, 0x47, 0x22, "use + or - to change");
-        sub_root_047c_05a5(p, 0x40, 0x2d, D_e88c);
+        gfx_text(p, 0x47, 4, D_e848);
+        gfx_text(p, 0x83, 4, D_e82f);
+        gfx_text(p, 0x47, 0x12, "Use EPs to improve attr");
+        gfx_text(p, 0x47, 0x1a, "Select attribute and");
+        gfx_text(p, 0x47, 0x22, "use + or - to change");
+        gfx_draw_pic(p, 0x40, 0x2d, D_e88c);
         p->colour = 0;
-        sub_root_0265_0004(p, 0x44, 0x2f, F_290e_1df7[8]);
+        draw_text_far(p, 0x44, 0x2f, F_290e_1df7[8]);
         D_8c00 = 1;
     } else if (t == 3) {
         p->colour = 0xbf;
-        sub_root_047c_055a(p, 0x47, 5, D_e848);
-        sub_root_047c_055a(p, 0x83, 5, D_e82f);
-        sub_root_0265_0004(p, 0x47, 0x13, F_290e_1df7[10]);
+        gfx_text(p, 0x47, 5, D_e848);
+        gfx_text(p, 0x83, 5, D_e82f);
+        draw_text_far(p, 0x47, 0x13, F_290e_1df7[10]);
         p->colour = 0;
-        sub_root_047c_055a(p, 0x47, 4, D_e848);
-        sub_root_047c_055a(p, 0x83, 4, D_e82f);
-        sub_root_0265_0004(p, 0x47, 0x12, F_290e_1df7[10]);
+        gfx_text(p, 0x47, 4, D_e848);
+        gfx_text(p, 0x83, 4, D_e82f);
+        draw_text_far(p, 0x47, 0x12, F_290e_1df7[10]);
         sub_s037_18c8_22be();
         p->colour = 0;
         for (i = 0, y = 0x2d; i < D_8c00; i++, y += 0xb) {
             if (i >= 14)
                 break;
-            sub_root_047c_05a5(p, 0x40, y, D_e88c);
+            gfx_draw_pic(p, 0x40, y, D_e88c);
             p->colour = 0;
-            sub_root_0265_0004(p, 0x44, y + 2, F_290e_1ee7[D_8bd2[i]]);
+            draw_text_far(p, 0x44, y + 2, F_290e_1ee7[D_8bd2[i]]);
         }
-        sub_root_047c_04dc(p, 0x44, D_8bfc * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
+        gfx_recolor_rect(p, 0x44, D_8bfc * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
     } else if (t == 4) {
         p->colour = 0xbf;
-        sub_root_047c_055a(p, 0x47, 5, D_e848);
-        sub_root_047c_055a(p, 0x83, 5, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x13, "Use EPs to improve skills");
-        sub_root_047c_055a(p, 0x47, 0x1b, "Select skill and use + or");
-        sub_root_047c_055a(p, 0x47, 0x23, "- to change");
+        gfx_text(p, 0x47, 5, D_e848);
+        gfx_text(p, 0x83, 5, D_e82f);
+        gfx_text(p, 0x47, 0x13, "Use EPs to improve skills");
+        gfx_text(p, 0x47, 0x1b, "Select skill and use + or");
+        gfx_text(p, 0x47, 0x23, "- to change");
         p->colour = 0;
-        sub_root_047c_055a(p, 0x47, 4, D_e848);
-        sub_root_047c_055a(p, 0x83, 4, D_e82f);
-        sub_root_047c_055a(p, 0x47, 0x12, "Use EPs to improve skills");
-        sub_root_047c_055a(p, 0x47, 0x1a, "Select skill and use + or");
-        sub_root_047c_055a(p, 0x47, 0x22, "- to change");
-        sub_root_047c_05a5(p, 0x40, 0x2d, D_e88c);
+        gfx_text(p, 0x47, 4, D_e848);
+        gfx_text(p, 0x83, 4, D_e82f);
+        gfx_text(p, 0x47, 0x12, "Use EPs to improve skills");
+        gfx_text(p, 0x47, 0x1a, "Select skill and use + or");
+        gfx_text(p, 0x47, 0x22, "- to change");
+        gfx_draw_pic(p, 0x40, 0x2d, D_e88c);
         p->colour = 0;
-        sub_root_0265_0004(p, 0x44, 0x2f, F_290e_1df7[11]);
-        sub_root_047c_05a5(p, 0x40, 0x38, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x3a, F_290e_1df7[12]);
-        sub_root_047c_05a5(p, 0x40, 0x43, D_e88c);
-        sub_root_0265_0004(p, 0x44, 0x45, F_290e_1df7[13]);
+        draw_text_far(p, 0x44, 0x2f, F_290e_1df7[11]);
+        gfx_draw_pic(p, 0x40, 0x38, D_e88c);
+        draw_text_far(p, 0x44, 0x3a, F_290e_1df7[12]);
+        gfx_draw_pic(p, 0x40, 0x43, D_e88c);
+        draw_text_far(p, 0x44, 0x45, F_290e_1df7[13]);
         D_8c00 = 3;
     }
-    sub_root_047c_1293();
+    mouse_show();
 }
 
 /* unused: their position in the symbol table fixes operand order in 1738 */
@@ -835,46 +837,46 @@ void far sub_s037_18c8_1738(struct scr *p)
     int vl;
     int agk;
     char bufg[40];
-    sub_root_047c_12c3();
+    mouse_hide();
     p->colour = 0xbf;
     if ((prn = (D_8c1e == 1 || D_8c1e == 3) ? D_8bd2[D_43ee] : D_8c1e == 2 ? D_8c02 : D_4428) == -1)
         prn = 0;
-    sub_root_047c_0553(D_2806, 0xc5, 0x57, 0x14, 9, D_27f4, 0xc5, 0x57);
-    sub_root_047c_055a(p, 0xd8, 0x57, "EP");
+    gfx_copy_rect(back_win, 0xc5, 0x57, 0x14, 9, screen_win, 0xc5, 0x57);
+    gfx_text(p, 0xd8, 0x57, "EP");
     if (D_8c1e == 1) {
         sprintf(bufg, "%02d", F_290e_2b65[prn].years);
-        sub_root_047c_055a(p, 0xc6, 0x57, bufg);
+        gfx_text(p, 0xc6, 0x57, bufg);
     } else if (D_8c1e == 3 && D_e81c >= 0x19) {
         sprintf(bufg, "%02d", F_290e_2cc1[prn].years);
-        sub_root_047c_055a(p, 0xc6, 0x57, bufg);
+        gfx_text(p, 0xc6, 0x57, bufg);
     } else if (D_8c1e == 3 && D_e81c >= 0x14) {
         sprintf(bufg, "%02d", F_290e_2cc1[prn].years + 5);
-        sub_root_047c_055a(p, 0xc6, 0x57, bufg);
+        gfx_text(p, 0xc6, 0x57, bufg);
     } else if (D_8c1e == 3) {
         sprintf(bufg, "%02d", F_290e_2cc1[prn].years + 0x14);
-        sub_root_047c_055a(p, 0xc6, 0x57, bufg);
+        gfx_text(p, 0xc6, 0x57, bufg);
     } else if (D_8c1e != 0) {
         sprintf(bufg, "%02d", D_8bfa);
-        sub_root_047c_055a(p, 0xc6, 0x57, bufg);
+        gfx_text(p, 0xc6, 0x57, bufg);
     }
-    sub_root_047c_0553(D_2806, 0x10a, 4, 0x23, 9, D_27f4, 0x10a, 4);
+    gfx_copy_rect(back_win, 0x10a, 4, 0x23, 9, screen_win, 0x10a, 4);
     sprintf(bufg, "%02d", D_e81c);
     p->colour = 0xbf;
-    sub_root_047c_055a(p, 0x11e, 5, "Age");
-    sub_root_047c_055a(p, 0x10c, 5, bufg);
+    gfx_text(p, 0x11e, 5, "Age");
+    gfx_text(p, 0x10c, 5, bufg);
     p->colour = 0;
-    sub_root_047c_055a(p, 0x11e, 4, "Age");
-    sub_root_047c_055a(p, 0x10c, 4, bufg);
+    gfx_text(p, 0x11e, 4, "Age");
+    gfx_text(p, 0x10c, 4, bufg);
     p->colour = 0xbf;
     /* attributes */
-    sub_root_047c_0553(D_2806, 0xc5, 0xf, 0x24, 0x3c, D_27f4, 0xc5, 0xf);
-    sub_root_047c_055a(p, 0xd8, 0x14, "End");
-    sub_root_047c_055a(p, 0xd8, 0x1c, "Str");
-    sub_root_047c_055a(p, 0xd8, 0x24, "Agl");
-    sub_root_047c_055a(p, 0xd8, 0x2c, "Per");
-    sub_root_047c_055a(p, 0xd8, 0x34, "Int");
-    sub_root_047c_055a(p, 0xd8, 0x3c, "Chr");
-    sub_root_047c_055a(p, 0xd8, 0x44, "DF ");
+    gfx_copy_rect(back_win, 0xc5, 0xf, 0x24, 0x3c, screen_win, 0xc5, 0xf);
+    gfx_text(p, 0xd8, 0x14, "End");
+    gfx_text(p, 0xd8, 0x1c, "Str");
+    gfx_text(p, 0xd8, 0x24, "Agl");
+    gfx_text(p, 0xd8, 0x2c, "Per");
+    gfx_text(p, 0xd8, 0x34, "Int");
+    gfx_text(p, 0xd8, 0x3c, "Chr");
+    gfx_text(p, 0xd8, 0x44, "DF ");
     for (ih = 0; ih < 6; ih++) {
         if ((agk = (int)(D_e81c - 0x19) / 5) < 0)
             agk = 0;
@@ -887,28 +889,28 @@ void far sub_s037_18c8_1738(struct scr *p)
         else
             vl = D_e86e[ih] + F_290e_3521[agk][ih];
         sprintf(bufg, "%02d", vl);
-        sub_root_047c_055a(p, 0xc9, ih * 8 + 0x14, bufg);
+        gfx_text(p, 0xc9, ih * 8 + 0x14, bufg);
     }
     sprintf(bufg, "%02d", D_e86e[6]);
-    sub_root_047c_055a(p, 0xc9, 0x44, bufg);
+    gfx_text(p, 0xc9, 0x44, bufg);
     if (D_8c1e == 2)
-        sub_root_047c_04dc(p, 0xc5, D_8bfc * 8 + 0x14, 0x26, 8, 0xbf, 10);
+        gfx_recolor_rect(p, 0xc5, D_8bfc * 8 + 0x14, 0x26, 8, 0xbf, 10);
     /* weapon skills */
-    sub_root_047c_0553(D_2806, 0x113, 0xf, 0x28, 0x3c, D_27f4, 0x113, 0xf);
-    sub_root_047c_055a(p, 0x122, 0x14, "wEdg");
-    sub_root_047c_055a(p, 0x122, 0x1c, "wImp");
-    sub_root_047c_055a(p, 0x122, 0x24, "wFll");
-    sub_root_047c_055a(p, 0x122, 0x2c, "wPol");
-    sub_root_047c_055a(p, 0x122, 0x34, "wThr");
-    sub_root_047c_055a(p, 0x122, 0x3c, "wBow");
-    sub_root_047c_055a(p, 0x122, 0x44, "wMsD");
-    sub_root_047c_0553(D_2806, 0xf5, 0xf, 0x18, 0x3f, D_27f4, 0xf5, 0xf);
+    gfx_copy_rect(back_win, 0x113, 0xf, 0x28, 0x3c, screen_win, 0x113, 0xf);
+    gfx_text(p, 0x122, 0x14, "wEdg");
+    gfx_text(p, 0x122, 0x1c, "wImp");
+    gfx_text(p, 0x122, 0x24, "wFll");
+    gfx_text(p, 0x122, 0x2c, "wPol");
+    gfx_text(p, 0x122, 0x34, "wThr");
+    gfx_text(p, 0x122, 0x3c, "wBow");
+    gfx_text(p, 0x122, 0x44, "wMsD");
+    gfx_copy_rect(back_win, 0xf5, 0xf, 0x18, 0x3f, screen_win, 0xf5, 0xf);
     for (ih = 0; ih < 7; ih++) {
         sprintf(bufg, "%02d", D_e875[ih]);
-        sub_root_047c_055a(p, 0x116, ih * 8 + 0x14, bufg);
+        gfx_text(p, 0x116, ih * 8 + 0x14, bufg);
         if (D_e81c >= 0x19 - (D_8c1e == 3 ? 5 : 0) && D_8c1e != 2) {
             sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[ih], F_290e_2cc1[prn].maxsk[ih] - D_8c22[ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x14, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x14, bufg);
         } else {
             if (D_e81c >= 15 && D_8c1e != 2)
                 sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[ih] + 2, F_290e_2cc1[prn].maxsk[ih] - D_8c22[ih]);
@@ -916,24 +918,24 @@ void far sub_s037_18c8_1738(struct scr *p)
                 sprintf(bufg, "0:00");
             else
                 sprintf(bufg, "%2d:00", F_290e_2b65[prn].skill[ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x14, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x14, bufg);
         }
     }
     /* knowledge skills */
-    sub_root_047c_0553(D_2806, 0x113, 0x4e, 0x28, 0x34, D_27f4, 0x113, 0x4e);
-    sub_root_047c_055a(p, 0x122, 0x54, "Alch");
-    sub_root_047c_055a(p, 0x122, 0x5c, "Relg");
-    sub_root_047c_055a(p, 0x122, 0x64, "Virt");
-    sub_root_047c_055a(p, 0x122, 0x6c, "SpkC");
-    sub_root_047c_055a(p, 0x122, 0x74, "SpkL");
-    sub_root_047c_055a(p, 0x122, 0x7c, "R&W");
-    sub_root_047c_0553(D_2806, 0xf5, 0x4e, 0x18, 0x34, D_27f4, 0xf5, 0x4e);
+    gfx_copy_rect(back_win, 0x113, 0x4e, 0x28, 0x34, screen_win, 0x113, 0x4e);
+    gfx_text(p, 0x122, 0x54, "Alch");
+    gfx_text(p, 0x122, 0x5c, "Relg");
+    gfx_text(p, 0x122, 0x64, "Virt");
+    gfx_text(p, 0x122, 0x6c, "SpkC");
+    gfx_text(p, 0x122, 0x74, "SpkL");
+    gfx_text(p, 0x122, 0x7c, "R&W");
+    gfx_copy_rect(back_win, 0xf5, 0x4e, 0x18, 0x34, screen_win, 0xf5, 0x4e);
     for (ih = 0; ih < 6; ih++) {
         sprintf(bufg, "%02d", D_e875[7 + ih]);
-        sub_root_047c_055a(p, 0x116, ih * 8 + 0x54, bufg);
+        gfx_text(p, 0x116, ih * 8 + 0x54, bufg);
         if (D_e81c >= 0x19 - (D_8c1e == 3 ? 5 : 0) && D_8c1e != 2) {
             sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[7 + ih], F_290e_2cc1[prn].maxsk[7 + ih] - D_8c22[7 + ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x54, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x54, bufg);
         } else {
             if (D_e81c >= 15 && D_8c1e != 2)
                 sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[7 + ih] + 2, F_290e_2cc1[prn].maxsk[7 + ih] - D_8c22[7 + ih]);
@@ -941,24 +943,24 @@ void far sub_s037_18c8_1738(struct scr *p)
                 sprintf(bufg, "0:00");
             else
                 sprintf(bufg, "%2d:00", F_290e_2b65[prn].skill[7 + ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x54, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x54, bufg);
         }
     }
     /* other skills */
-    sub_root_047c_0553(D_2806, 0x113, 0x86, 0x34, 0x36, D_27f4, 0x113, 0x86);
-    sub_root_047c_055a(p, 0x122, 0x8e, "Heal");
-    sub_root_047c_055a(p, 0x122, 0x96, "Artf");
-    sub_root_047c_055a(p, 0x122, 0x9e, "Stlh");
-    sub_root_047c_055a(p, 0x122, 0xa6, "StrW");
-    sub_root_047c_055a(p, 0x122, 0xae, "Ride");
-    sub_root_047c_055a(p, 0x122, 0xb6, "WdWs");
-    sub_root_047c_0553(D_2806, 0xf5, 0x86, 0x18, 0x34, D_27f4, 0xf5, 0x86);
+    gfx_copy_rect(back_win, 0x113, 0x86, 0x34, 0x36, screen_win, 0x113, 0x86);
+    gfx_text(p, 0x122, 0x8e, "Heal");
+    gfx_text(p, 0x122, 0x96, "Artf");
+    gfx_text(p, 0x122, 0x9e, "Stlh");
+    gfx_text(p, 0x122, 0xa6, "StrW");
+    gfx_text(p, 0x122, 0xae, "Ride");
+    gfx_text(p, 0x122, 0xb6, "WdWs");
+    gfx_copy_rect(back_win, 0xf5, 0x86, 0x18, 0x34, screen_win, 0xf5, 0x86);
     for (ih = 0; ih < 6; ih++) {
         sprintf(bufg, "%02d", D_e875[13 + ih]);
-        sub_root_047c_055a(p, 0x116, ih * 8 + 0x8e, bufg);
+        gfx_text(p, 0x116, ih * 8 + 0x8e, bufg);
         if (D_e81c >= 0x19 - (D_8c1e == 3 ? 5 : 0) && D_8c1e != 2) {
             sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[13 + ih], F_290e_2cc1[prn].maxsk[13 + ih] - D_8c22[13 + ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x8e, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x8e, bufg);
         } else {
             if (D_e81c >= 15 && D_8c1e != 2)
                 sprintf(bufg, "%2d:%02d", F_290e_2cc1[prn].skill[13 + ih] + 2, F_290e_2cc1[prn].maxsk[13 + ih] - D_8c22[13 + ih]);
@@ -966,15 +968,15 @@ void far sub_s037_18c8_1738(struct scr *p)
                 sprintf(bufg, "0:00");
             else
                 sprintf(bufg, "%2d:00", F_290e_2b65[prn].skill[13 + ih]);
-            sub_root_047c_055a(p, 0xf6, ih * 8 + 0x8e, bufg);
+            gfx_text(p, 0xf6, ih * 8 + 0x8e, bufg);
         }
     }
     if (D_8c1e == 4)
-        sub_root_047c_04dc(p, 0xf6, D_8bfc * 8 + 0x14, 0x44, 8, 0xbf, 10);
-    sub_root_047c_1293();
+        gfx_recolor_rect(p, 0xf6, D_8bfc * 8 + 0x14, 0x44, 8, 0xbf, 10);
+    mouse_show();
 }
 
-/* reset the character being built: name from F_2e38_1a96 (first word, max 9 chars),
+/* reset the character being built: name from var_named (first word, max 9 chars),
    age 0, attributes 12 (Agl 15), skills 0, no professions, no virtues/saints/items */
 #pragma optimize("a", on)
 void far sub_s037_18c8_20fa(void)
@@ -985,10 +987,10 @@ void far sub_s037_18c8_20fa(void)
     D_8c12 = -1;
     D_442a = -1;
     D_4428 = -1;
-    sub_s029_1367_0db4(time(0), 0, 0);
-    _fstrcpy((char far *)D_e82f, F_2e38_1a96);
-    strncpy(D_e848, D_e82f, sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " ")));
-    i = sub_s029_1367_0066(0, 9, sub_root_06a1_2824(D_e82f, " "));
+    random_name(time(0), 0, 0);
+    _fstrcpy((char far *)D_e82f, var_named);
+    strncpy(D_e848, D_e82f, clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " ")));
+    i = clamp_range(0, 9, sub_root_06a1_2824(D_e82f, " "));
     D_e848[i] = 0;
     D_8bfe = 1;
     D_e81c = 0;
@@ -1344,7 +1346,7 @@ void far sub_s037_18c8_356c(int p)
             D_e86e[i] += F_290e_2b65[p].attr[i];
         else if (D_e81c <= 0x28 || i >= 2)
             D_e86e[i] += F_290e_2cc1[p].attr[i];
-        D_e86e[i] = sub_s029_1367_0066(1, 0x63, D_e86e[i]);
+        D_e86e[i] = clamp_range(1, 0x63, D_e86e[i]);
     }
     for (i = 0; i < 0x13; i++) {
         if (D_e81c < 15)
@@ -1353,7 +1355,7 @@ void far sub_s037_18c8_356c(int p)
             D_e875[i] += F_290e_2cc1[p].skill[i] + 2;
         else
             D_e875[i] += F_290e_2cc1[p].skill[i];
-        D_e875[i] = sub_s029_1367_0066(0, 0x63, D_e875[i]);
+        D_e875[i] = clamp_range(0, 0x63, D_e875[i]);
     }
     if (D_e81c >= 15) {
         D_8c12 = D_442a;
@@ -1374,7 +1376,7 @@ void far sub_s037_18c8_356c(int p)
     D_e81c += D_e81c >= 15 ? 5 : 15;
     if (D_e81c >= 0x1e) {
         D_8bfa = w;
-        k = sub_s029_1367_0066(0, 8, (int)(D_e81c - 0x1e) / 5);
+        k = clamp_range(0, 8, (int)(D_e81c - 0x1e) / 5);
         D_e86e[0] += F_290e_3521[k][0];
         D_e86e[1] += F_290e_3521[k][1];
         D_e86e[2] += F_290e_3521[k][2];
@@ -1384,7 +1386,7 @@ void far sub_s037_18c8_356c(int p)
     } else
         D_8bfa = w;
     for (i = 0; i < 6; i++)
-        D_e86e[i] = sub_s029_1367_0066(1, 0x63, D_e86e[i]);
+        D_e86e[i] = clamp_range(1, 0x63, D_e86e[i]);
 }
 
 void far sub_s037_18c8_372a(int k)
@@ -1417,20 +1419,20 @@ void far sub_s037_18c8_372a(int k)
     case 0xa:
     case 0xb:
     case 0xe:
-        a = sub_root_0000_0c70(0x88);
+        a = rand_mod(0x88);
         F_2e38_3b1a[a / 8] |= 1 << a % 8;
         break;
     case 9:
     case 0xf:
-        b = sub_root_0000_0c70(0x88);
+        b = rand_mod(0x88);
         F_2e38_3b1a[b / 8] |= 1 << b % 8;
-        a = sub_root_0000_0c70(0x88);
+        a = rand_mod(0x88);
         F_2e38_3b1a[a / 8] |= 1 << a % 8;
         break;
     case 0xc:
     case 0x18:
     case 0x19:
-        F_2e38_3b04[sub_root_0000_0c70(0x16)]++;
+        F_2e38_3b04[rand_mod(0x16)]++;
         break;
     case 7:
         sub_s037_18c8_3a9e(0x2a);
@@ -1445,8 +1447,8 @@ void far sub_s037_18c8_372a(int k)
         sub_s037_18c8_3a9e(0x30);
         break;
     case 0x1a:
-        F_2e38_3b04[sub_root_0000_0c70(0x16)]++;
-        F_2e38_3b04[sub_root_0000_0c70(0x16)]++;
+        F_2e38_3b04[rand_mod(0x16)]++;
+        F_2e38_3b04[rand_mod(0x16)]++;
         break;
     case 6:
     case 0x10:
@@ -1488,57 +1490,57 @@ void far sub_s037_18c8_38a6(void)
 {
     int i;
     int n;
-    sub_root_047c_12c3();
+    mouse_hide();
     sub_root_047c_0545();
-    i = sub_root_0617_045c("pics\\armbrs13.pic");
+    i = pic_load("pics\\armbrs13.pic");
     sub_root_047c_04f8();
-    sub_root_047c_05a5(D_27f4, 0x29, 0x31, i);
+    gfx_draw_pic(screen_win, 0x29, 0x31, i);
     if (i)
-        sub_root_05ba_00c2(i, "x");
-    D_2800 = 8;
+        mem_free(i, "x");
+    screen_win_colour = 8;
     for (n = i = 0; i < 22; i++) {
         if (F_2e38_3b04[i] & 1)
-            sub_root_0265_0004(D_27f4, 0x32, (n++ + 8) << 3, F_2e38_1736[i][0]);
+            draw_text_far(screen_win, 0x32, (n++ + 8) << 3, virtue_names[i][0]);
         if (F_2e38_3b04[i] & 2)
-            sub_root_0265_0004(D_27f4, 0x32, (n++ + 8) << 3, F_2e38_1736[i][1]);
+            draw_text_far(screen_win, 0x32, (n++ + 8) << 3, virtue_names[i][1]);
         if (F_2e38_3b04[i] & 4)
-            sub_root_0265_0004(D_27f4, 0x32, (n++ + 8) << 3, F_2e38_1736[i][2]);
+            draw_text_far(screen_win, 0x32, (n++ + 8) << 3, virtue_names[i][2]);
     }
-    while (!sub_root_047c_073d() && !(D_6ef0 & 1))
+    while (!key_pressed() && !(mouse_buttons & 1))
         ;
-    if (sub_root_047c_073d())
-        sub_root_047c_0744();
+    if (key_pressed())
+        get_key();
     sub_s037_18c8_053e();
-    sub_root_047c_1293();
+    mouse_show();
 }
 
-/* list of the known saints (bit set F_2e38_3b1a, names F_2e38_183e) */
+/* list of the known saints (bit set F_2e38_3b1a, names saint_names) */
 void far sub_s037_18c8_39ca(void)
 {
     unsigned b;
     int i;
     int j;
     int n;
-    D_2800 = 8;
-    sub_root_047c_12c3();
+    screen_win_colour = 8;
+    mouse_hide();
     sub_root_047c_0545();
-    b = sub_root_0617_045c("pics\\armbrs13.pic");
+    b = pic_load("pics\\armbrs13.pic");
     sub_root_047c_04f8();
-    sub_root_047c_05a5(D_27f4, 0x29, 0x41, b);
+    gfx_draw_pic(screen_win, 0x29, 0x41, b);
     if (b)
-        sub_root_05ba_00c2(b, "x");
+        mem_free(b, "x");
     i = 0;
     n = 0;
     for (; i < 0x11; i++)
         for (j = 0; j < 8; j++)
             if (F_2e38_3b1a[i] & D_00e8[j % 8])
-                sub_root_0265_0004(D_27f4, 0x32, (n++ << 3) + 0x4e, F_2e38_183e[i * 8 + j]);
-    while (!sub_root_047c_073d() && !(D_6ef0 & 1))
+                draw_text_far(screen_win, 0x32, (n++ << 3) + 0x4e, saint_names[i * 8 + j]);
+    while (!key_pressed() && !(mouse_buttons & 1))
         ;
-    if (sub_root_047c_073d())
-        sub_root_047c_0744();
+    if (key_pressed())
+        get_key();
     sub_s037_18c8_053e();
-    sub_root_047c_1293();
+    mouse_show();
 }
 
 /* add one item of type id to the starting equipment list F_2e38_3984 (D_e888 entries,
@@ -1550,9 +1552,9 @@ void far sub_s037_18c8_3a9e(int id)
     int i;
     int k;
     it.id = k = id;
-    it.f2 = F_2e38_0890[k]->f1e;
-    it.qual = F_2e38_0890[k]->f26;
-    it.f5 = F_2e38_0890[k]->f25;
+    it.f2 = item_defs[k]->f1e;
+    it.qual = item_defs[k]->f26;
+    it.f5 = item_defs[k]->f25;
     it.cnt = 1;
     for (i = 0; i < D_e888; i++)
         if (F_2e38_3984[i].id == it.id && F_2e38_3984[i].f2 == it.f2

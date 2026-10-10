@@ -21,6 +21,8 @@
    store table now the s028 layout D_c09b[type] {handle, size, base}).  See
    build/agent/e9/NOTES.md for the remaining near misses (0000 076c 09aa 015a 00a2 0298
    0480 05fe). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct hdr {                    /* block header, 0x18 bytes */
     int type;                   /* +00 1 = used, 2 = free */
@@ -33,7 +35,7 @@ struct ent {                    /* directory entry, 8 bytes */
     int type;                   /* +02 store */
     long off;                   /* +04 offset of the block header in the store */
 };
-struct store {                  /* per store type, 10 bytes (D_c09b[type], as in s028) */
+struct store {                  /* per store type, 10 bytes (swap_stores[type], as in s028) */
     int handle;
     long size;                  /* end of the store (end marker at size - 0x18) */
     long base;                  /* first block (after the directory, if held here) */
@@ -60,7 +62,7 @@ extern int D_8d8;
 extern int D_8da;                       /* current store type */
 extern long D_8dc[];                    /* per store: offset of the free block */
 extern int D_c099;
-extern struct store D_c09b[];
+extern struct store swap_stores[];
 extern int (far *D_13f8)(long);         /* allocate a block: returns the store type */
 extern int D_13fc;
 extern struct hdr far F_2e38_001e;      /* header of the current block */
@@ -119,23 +121,23 @@ struct ent far *far sub_s004_1262_00a4(void)
         p = D_8ce;
         break;
     case 2:
-        sub_s004_1212_0002(0x320L, D_8ca, D_c09b[2].handle, (long)p);
+        sub_s004_1212_0002(0x320L, D_8ca, swap_stores[2].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 3:
-        sub_s004_1237_0140(0x320L, D_8ca, D_c09b[3].handle, (long)p);
+        sub_s004_1237_0140(0x320L, D_8ca, swap_stores[3].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 5:
-        sub_s004_1223_00a8(0x320L, D_8ca, D_c09b[5].handle, (long)p);
+        sub_s004_1223_00a8(0x320L, D_8ca, swap_stores[5].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 6:
-        sub_s004_1223_00a8(0x320L, D_8ca, D_c09b[6].handle, (long)p);
+        sub_s004_1223_00a8(0x320L, D_8ca, swap_stores[6].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 7:
-        sub_s004_1223_00a8(0x320L, D_8ca, D_c09b[7].handle, (long)p);
+        sub_s004_1223_00a8(0x320L, D_8ca, swap_stores[7].handle, (long)p);
         D_8ce = p = D_8ca;
         break;
     case 8:
@@ -155,19 +157,19 @@ struct ent far *far sub_s004_1262_015c(void)
         r = D_8ce;
         break;
     case 2:
-        sub_s004_1212_0090(0x320L, D_8ca, D_c09b[2].handle, (long)r);
+        sub_s004_1212_0090(0x320L, D_8ca, swap_stores[2].handle, (long)r);
         break;
     case 3:
-        sub_s004_1237_0002(0x320L, D_8ca, D_c09b[3].handle, (long)r);
+        sub_s004_1237_0002(0x320L, D_8ca, swap_stores[3].handle, (long)r);
         break;
     case 5:
-        sub_s004_1223_000e(0x320L, D_8ca, D_c09b[5].handle, (long)r);
+        sub_s004_1223_000e(0x320L, D_8ca, swap_stores[5].handle, (long)r);
         break;
     case 6:
-        sub_s004_1223_000e(0x320L, D_8ca, D_c09b[6].handle, (long)r);
+        sub_s004_1223_000e(0x320L, D_8ca, swap_stores[6].handle, (long)r);
         break;
     case 7:
-        sub_s004_1223_000e(0x320L, D_8ca, D_c09b[7].handle, (long)r);
+        sub_s004_1223_000e(0x320L, D_8ca, swap_stores[7].handle, (long)r);
         break;
     case 8:
         D_8ce = r = (struct ent far *)0L;
@@ -269,7 +271,7 @@ int far sub_s004_1262_0482(long size)
         F_2e38_0036.off = r;
         return D_c099;
     }
-    D_8dc[D_c099] = D_c09b[D_c099].size - 0x18;
+    D_8dc[D_c099] = swap_stores[D_c099].size - 0x18;
     si = 2;
     next = si;
     bit = 1;
@@ -292,14 +294,14 @@ int far sub_s004_1262_0482(long size)
             D_c099 = si;
             if (start != si) {
                 D_8da = si;
-                D_8dc[si] = D_c09b[si].base;
+                D_8dc[si] = swap_stores[si].base;
                 r = sub_s004_1262_0602(size);
                 if (r != -1L) {
                     F_2e38_0036.off = r;
                     return D_8da;
                 }
                 si = D_8da;
-                D_8dc[si] = D_c09b[si].size - 0x18;
+                D_8dc[si] = swap_stores[si].size - 0x18;
             }
         }
         si++;
@@ -395,19 +397,19 @@ int far sub_s004_1262_087a(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s004_1212_0090(len, buf, D_c09b[2].handle, off);
+        r = sub_s004_1212_0090(len, buf, swap_stores[2].handle, off);
         break;
     case 3:
-        r = sub_s004_1237_0002(len, buf, D_c09b[3].handle, off);
+        r = sub_s004_1237_0002(len, buf, swap_stores[3].handle, off);
         break;
     case 5:
-        r = sub_s004_1223_000e(len, buf, D_c09b[5].handle, off);
+        r = sub_s004_1223_000e(len, buf, swap_stores[5].handle, off);
         break;
     case 6:
-        r = sub_s004_1223_000e(len, buf, D_c09b[6].handle, off);
+        r = sub_s004_1223_000e(len, buf, swap_stores[6].handle, off);
         break;
     case 7:
-        r = sub_s004_1223_000e(len, buf, D_c09b[7].handle, off);
+        r = sub_s004_1223_000e(len, buf, swap_stores[7].handle, off);
         break;
     }
     return r;
@@ -420,19 +422,19 @@ int far sub_s004_1262_0914(long len, void far *buf, int type, long off)
 
     switch (type) {
     case 2:
-        r = sub_s004_1212_0002(len, buf, D_c09b[2].handle, off);
+        r = sub_s004_1212_0002(len, buf, swap_stores[2].handle, off);
         break;
     case 3:
-        r = sub_s004_1237_0140(len, buf, D_c09b[3].handle, off);
+        r = sub_s004_1237_0140(len, buf, swap_stores[3].handle, off);
         break;
     case 5:
-        r = sub_s004_1223_00a8(len, buf, D_c09b[5].handle, off);
+        r = sub_s004_1223_00a8(len, buf, swap_stores[5].handle, off);
         break;
     case 6:
-        r = sub_s004_1223_00a8(len, buf, D_c09b[6].handle, off);
+        r = sub_s004_1223_00a8(len, buf, swap_stores[6].handle, off);
         break;
     case 7:
-        r = sub_s004_1223_00a8(len, buf, D_c09b[7].handle, off);
+        r = sub_s004_1223_00a8(len, buf, swap_stores[7].handle, off);
         break;
     }
     return r;

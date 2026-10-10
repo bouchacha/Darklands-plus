@@ -4,12 +4,14 @@
 /* DOS memory buffers (root segment 05ba): allocate / free / resize a block of DOS memory,
    given as a byte count, and abort the game with a message when DOS refuses. The block's
    name is written into its memory control block (the 8-byte owner name at MCB+8). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-unsigned far sub_root_044a_014e(unsigned long paras);              /* DOS 48h: allocate */
-int far sub_root_044a_0164(unsigned seg);                          /* DOS 49h: free */
-unsigned far sub_root_044a_0181(unsigned seg, unsigned long paras); /* DOS 4Ah: resize */
-void far sub_root_044a_00f4(char *msg);                            /* DOS 09h: print '$' string */
-void far sub_root_0000_1354(void);
+unsigned far dos_alloc(unsigned long paras);              /* DOS 48h: allocate */
+int far dos_free(unsigned seg);                          /* DOS 49h: free */
+unsigned far dos_resize(unsigned seg, unsigned long paras); /* DOS 4Ah: resize */
+void far dos_print(char *msg);                            /* DOS 09h: print '$' string */
+void far game_shutdown(void);
 void far F_0000_2652(int);          /* empty function at 0000:2652 (see report) */
 
 int printf(const char *, ...);
@@ -33,9 +35,9 @@ unsigned far alloc_buffer(unsigned long size, char *name)
     if (size & 0xf)
         paras++;
     n = name;
-    seg = sub_root_044a_014e(paras);
+    seg = dos_alloc(paras);
     if (seg < 0x10) {
-        sub_root_0000_1354();
+        game_shutdown();
         printf("Wanted: %lu - Insufficient system memory  %s AllocBuffer", size, n);
         F_0000_2652(0x32);
         exit_(0);
@@ -53,12 +55,12 @@ void far free_buffer(unsigned seg, char *name)
 {
     char msg[30];
 
-    if (sub_root_044a_0164(seg)) {
-        sub_root_0000_1354();
+    if (dos_free(seg)) {
+        game_shutdown();
         strcpy(msg, name);
         strcat(msg, " - $");
-        sub_root_044a_00f4(msg);
-        sub_root_044a_00f4("Buffer dealloc error$");
+        dos_print(msg);
+        dos_print("Buffer dealloc error$");
         exit_(0);
     }
 }
@@ -72,13 +74,13 @@ unsigned far realloc_buffer(unsigned seg, unsigned long size, char *name)
     paras = size >> 4;
     if (size & 0xf)
         paras++;
-    r = sub_root_044a_0181(seg, paras);
+    r = dos_resize(seg, paras);
     if (r < 0x10) {
-        sub_root_0000_1354();
+        game_shutdown();
         strcpy(msg, name);
         strcat(msg, " - $");
-        sub_root_044a_00f4(msg);
-        sub_root_044a_00f4("Insufficient system memory - ReallocBuffer$");
+        dos_print(msg);
+        dos_print("Insufficient system memory - ReallocBuffer$");
         exit_(0);
     }
     return r;

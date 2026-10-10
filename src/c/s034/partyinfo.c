@@ -2,6 +2,8 @@
 /* orig: size=0c86 CONST=7e88+000c _DATA=362c+018e */
 /* flags: /AM /G2 /Gs /Ox /Zp1 /Oa */
 /* Party information screen: fame, date, wealth and the map of locations (overlay s034). */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct gfx { char pad[0xc]; int color; };
 struct loc {                        /* map location (far, segment 2e38) */
@@ -15,23 +17,23 @@ struct loc {                        /* map location (far, segment 2e38) */
     char name[1];
 };
 
-extern int D_907e;
+extern int cur_loc;
 extern int D_e7d6;
-extern int D_e3d0, D_e3d2;
-extern int D_2816, D_2804, D_2812, D_2800;
+extern int party_x, party_y;
+extern int back_win_font, screen_win_font, back_win_colour, screen_win_colour;
 extern int D_e7a2, D_e7a0;
-extern int D_9c42, D_9c46;
-extern volatile int D_6ef0, D_6eec, D_6eee;
-extern char D_e48c[];
-extern struct gfx D_2806, D_27f4;
-extern int D_9082;
-extern int D_00e0, D_00e2, D_00e4;
-extern int D_906b[];
+extern int cursor_default, party_icons_dirty;
+extern volatile int mouse_buttons, mouse_x, mouse_y;
+extern char cur_palette[];
+extern struct gfx back_win, screen_win;
+extern int party_fame;
+extern int cur_hour, cur_day, cur_month;
+extern int party_money[];
 extern int D_9072, D_9078;
-extern struct loc far * far F_2e38_10be[];
+extern struct loc far * far locations[];
 extern char far * far F_290e_2183[];
 extern char far * far F_290e_1f7b[];
-extern char far * far F_290e_20c3[];
+extern char far * far bell_names[];
 extern char far * far F_290e_1d43[];
 extern char far * far F_290e_20e3[];
 
@@ -42,31 +44,31 @@ char far *_fstrcpy(char far *, const char far *);
 char far *_fstrcat(char far *, const char far *);
 int abs(int);
 
-int far vec_1fa9(int, int);
+int far nearest_city(int, int);
 int far vec_1fbd(int, int, int, int);
-void far sub_root_047c_124f(int, int, int);
-int far sub_root_047c_073d(void);
-int far sub_root_047c_0744(void);
-void far sub_root_047c_0553(struct gfx *, int, int, int, int, struct gfx *, int, int);
-void far sub_root_047c_055a(struct gfx *, int, int, char *);
-int far sub_s029_0e76_1a8e(int, int);
+void far mouse_set_cursor(int, int, int);
+int far key_pressed(void);
+int far get_key(void);
+void far gfx_copy_rect(struct gfx *, int, int, int, int, struct gfx *, int, int);
+void far gfx_text(struct gfx *, int, int, char *);
+int far loc_query(int, int);
 void far sub_root_047c_1320(int, int, int, int);
-void far sub_root_0617_024a(int, char *, char *);
+void far pic_draw_pal(int, char *, char *);
 void far sub_root_047c_0568(void);
 void far sub_root_047c_056f(void);
-void far sub_root_047c_12c3(void);
-void far sub_root_047c_1293(void);
-void far sub_root_047c_058b(char *);
-void far sub_root_047c_1266(int, int);
-int far sub_s029_1367_0744(int);
-void far sub_root_0265_0004(struct gfx *, int, int, char far *);
-long far sub_s029_1367_00f2(int *);
+void far mouse_hide(void);
+void far mouse_show(void);
+void far set_palette(char *);
+void far mouse_move(int, int);
+int far hour_band(int);
+void far draw_text_far(struct gfx *, int, int, char far *);
+long far money_pfennigs(int *);
 void far sub_root_047c_0545(void);
-int far sub_root_0617_045c(char *);
+int far pic_load(char *);
 void far sub_root_047c_04f8(void);
-void far sub_root_047c_05a5(struct gfx *, int, int, int);
-void far sub_root_05ba_00c2(int, char *);
-int far sub_root_047c_04e3(int, char);
+void far gfx_draw_pic(struct gfx *, int, int, int);
+void far mem_free(int, char *);
+int far char_width(int, char);
 
 int far party_info_close(void);
 void far party_info_bg(void);
@@ -90,30 +92,30 @@ void far party_info(void)
     int x, y;
 
     last = -2;
-    if (D_907e != -1 && D_907e <= 0x5c)
-        D_e7d6 = D_907e;
+    if (cur_loc != -1 && cur_loc <= 0x5c)
+        D_e7d6 = cur_loc;
     else
-        D_e7d6 = vec_1fa9(D_e3d0, D_e3d2);
-    D_e7a2 = D_2816;
-    D_e7a0 = D_2804;
-    sub_root_047c_124f(0, 0, D_9c42);
+        D_e7d6 = nearest_city(party_x, party_y);
+    D_e7a2 = back_win_font;
+    D_e7a0 = screen_win_font;
+    mouse_set_cursor(0, 0, cursor_default);
     party_info_bg();
     party_info_draw();
-    while (D_6ef0 & 1)
+    while (mouse_buttons & 1)
         ;
     for (;;) {
         key = 0;
-        if (D_6eec > 0xc6 && D_6eec < 0x140 && D_6eee > 0x4a && D_6eee < 0xc3) {
-            x = D_6eec - 0xc6;
-            y = D_6eee - 0x4a;
+        if (mouse_x > 0xc6 && mouse_x < 0x140 && mouse_y > 0x4a && mouse_y < 0xc3) {
+            x = mouse_x - 0xc6;
+            y = mouse_y - 0x4a;
             loc = party_info_nearest(x - 3, y + 3);
             if (loc != last && loc != -1) {
                 last = loc;
-                sub_root_047c_0553(&D_2806, 0xc8, 0x12, 0x78, 0x34, &D_27f4, 0xc8, 0x12);
-                D_2800 = 14;
-                _fstrcpy(buf, F_2e38_10be[loc]->name);
-                sub_root_047c_055a(&D_27f4, 0x102 - text_width(buf) / 2, 0x22, buf);
-                switch (F_2e38_10be[loc]->size) {
+                gfx_copy_rect(&back_win, 0xc8, 0x12, 0x78, 0x34, &screen_win, 0xc8, 0x12);
+                screen_win_colour = 14;
+                _fstrcpy(buf, locations[loc]->name);
+                gfx_text(&screen_win, 0x102 - text_width(buf) / 2, 0x22, buf);
+                switch (locations[loc]->size) {
                 case 0: case 1: case 2: case 3: case 4:
                     strcpy(buf, "Small-Sized");
                     break;
@@ -124,21 +126,21 @@ void far party_info(void)
                     strcpy(buf, "Large-Sized");
                     break;
                 }
-                sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(buf) / 2), 0x2c, buf);
-                D_2800 = 14;
+                gfx_text(&screen_win, 0x102 - (w = text_width(buf) / 2), 0x2c, buf);
+                screen_win_colour = 14;
                 strcpy(buf, "Rep: ");
-                _fstrcat(buf, F_290e_2183[sub_s029_0e76_1a8e(loc, 1)]);
-                sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(buf) / 2), 0x36, buf);
-                sprintf(rep, "(%Fd)", F_2e38_10be[loc]->rep);
-                sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(rep) / 2), 0x40, rep);
+                _fstrcat(buf, F_290e_2183[loc_query(loc, 1)]);
+                gfx_text(&screen_win, 0x102 - (w = text_width(buf) / 2), 0x36, buf);
+                sprintf(rep, "(%Fd)", locations[loc]->rep);
+                gfx_text(&screen_win, 0x102 - (w = text_width(rep) / 2), 0x40, rep);
             } else if (loc == -1 && last != -1) {
-                sub_root_047c_0553(&D_2806, 0xc8, 0x12, 0x78, 0x34, &D_27f4, 0xc8, 0x12);
+                gfx_copy_rect(&back_win, 0xc8, 0x12, 0x78, 0x34, &screen_win, 0xc8, 0x12);
                 last = -1;
             }
         }
-        if (sub_root_047c_073d())
-            key = sub_root_047c_0744();
-        if ((key == 0 || key == 0xf09 || key == 0xf00) && !(D_6ef0 & 1)) {
+        if (key_pressed())
+            key = get_key();
+        if ((key == 0 || key == 0xf09 || key == 0xf00) && !(mouse_buttons & 1)) {
             if (key)
                 party_info_key(key);
             continue;
@@ -151,8 +153,8 @@ void far party_info(void)
 /* Leave the screen: request a redraw of whatever is underneath. */
 int far party_info_close(void)
 {
-    D_9c46 = 1;
-    while (D_6ef0 & 1)
+    party_icons_dirty = 1;
+    while (mouse_buttons & 1)
         ;
     sub_root_047c_1320(6, 0, 0, 0);
     return 0;
@@ -161,10 +163,10 @@ int far party_info_close(void)
 /* Load the screen background. */
 void far party_info_bg(void)
 {
-    sub_root_0617_024a(1, "pics\\ptystats.pic", D_e48c);
-    D_2812 = 14;
-    D_2816 = 1;
-    D_2804 = 1;
+    pic_draw_pal(1, "pics\\ptystats.pic", cur_palette);
+    back_win_colour = 14;
+    back_win_font = 1;
+    screen_win_font = 1;
 }
 
 /* Draw the static parts of the screen (titles in two colours for a shadow effect). */
@@ -175,42 +177,42 @@ void far party_info_draw(void)
     int level;
     unsigned w;
 
-    party_info_map(&D_2806);
-    party_info_wealth(&D_2806);
-    level = D_9082 / 50;
+    party_info_map(&back_win);
+    party_info_wealth(&back_win);
+    level = party_fame / 50;
     if (level >= 10)
         level = 10;
     _fstrcpy(fame, F_290e_1f7b[level]);
     w = text_width(fame);
-    D_2812 = 0xbf;
-    sub_root_047c_055a(&D_2806, 0x86, 6, "PARTY INFORMATION");
-    sub_root_047c_055a(&D_2806, 0xd7, 0x13, "MAP INFORMATION");
-    sub_root_047c_055a(&D_2806, 0x6b, 0x13, "PARTY FAME");
-    sub_root_047c_055a(&D_2806, 0x83 - w / 2, 0x1b, fame);
-    sub_root_047c_055a(&D_2806, 0x80, 0x23, _itoa(D_9082, num, 10));
-    sub_root_047c_055a(&D_2806, 0x54, 0x31, "TIME");
-    sub_root_047c_055a(&D_2806, 0x95, 0x31, "DATE");
-    sub_root_047c_055a(&D_2806, 0x4b, 0x60, "LOCATION");
-    sub_root_047c_055a(&D_2806, 0x4c, 0x8e, "WEALTH");
-    sub_root_047c_055a(&D_2806, 0x89, 0x8e, "NOTES");
-    sub_root_047c_055a(&D_2806, 0x89, 0x60, "LOCAL REP");
-    D_2812 = 5;
-    sub_root_047c_055a(&D_2806, 0x85, 5, "PARTY INFORMATION");
-    sub_root_047c_055a(&D_2806, 0xd6, 0x12, "MAP INFORMATION");
-    sub_root_047c_055a(&D_2806, 0x6a, 0x12, "PARTY FAME");
-    sub_root_047c_055a(&D_2806, 0x82 - w / 2, 0x1a, fame);
-    sub_root_047c_055a(&D_2806, 0x7f, 0x22, _itoa(D_9082, num, 10));
-    sub_root_047c_055a(&D_2806, 0x53, 0x30, "TIME");
-    sub_root_047c_055a(&D_2806, 0x94, 0x30, "DATE");
-    sub_root_047c_055a(&D_2806, 0x4a, 0x5f, "LOCATION");
-    sub_root_047c_055a(&D_2806, 0x4b, 0x8d, "WEALTH");
-    sub_root_047c_055a(&D_2806, 0x88, 0x8d, "NOTES");
-    sub_root_047c_055a(&D_2806, 0x88, 0x5f, "LOCAL REP");
+    back_win_colour = 0xbf;
+    gfx_text(&back_win, 0x86, 6, "PARTY INFORMATION");
+    gfx_text(&back_win, 0xd7, 0x13, "MAP INFORMATION");
+    gfx_text(&back_win, 0x6b, 0x13, "PARTY FAME");
+    gfx_text(&back_win, 0x83 - w / 2, 0x1b, fame);
+    gfx_text(&back_win, 0x80, 0x23, _itoa(party_fame, num, 10));
+    gfx_text(&back_win, 0x54, 0x31, "TIME");
+    gfx_text(&back_win, 0x95, 0x31, "DATE");
+    gfx_text(&back_win, 0x4b, 0x60, "LOCATION");
+    gfx_text(&back_win, 0x4c, 0x8e, "WEALTH");
+    gfx_text(&back_win, 0x89, 0x8e, "NOTES");
+    gfx_text(&back_win, 0x89, 0x60, "LOCAL REP");
+    back_win_colour = 5;
+    gfx_text(&back_win, 0x85, 5, "PARTY INFORMATION");
+    gfx_text(&back_win, 0xd6, 0x12, "MAP INFORMATION");
+    gfx_text(&back_win, 0x6a, 0x12, "PARTY FAME");
+    gfx_text(&back_win, 0x82 - w / 2, 0x1a, fame);
+    gfx_text(&back_win, 0x7f, 0x22, _itoa(party_fame, num, 10));
+    gfx_text(&back_win, 0x53, 0x30, "TIME");
+    gfx_text(&back_win, 0x94, 0x30, "DATE");
+    gfx_text(&back_win, 0x4a, 0x5f, "LOCATION");
+    gfx_text(&back_win, 0x4b, 0x8d, "WEALTH");
+    gfx_text(&back_win, 0x88, 0x8d, "NOTES");
+    gfx_text(&back_win, 0x88, 0x5f, "LOCAL REP");
     sub_root_047c_0568();
-    sub_root_047c_12c3();
-    sub_root_047c_058b(D_e48c);
-    sub_root_047c_0553(&D_2806, 0x3c, 0, 0x104, 0xc8, &D_27f4, 0x3c, 0);
-    sub_root_047c_1293();
+    mouse_hide();
+    set_palette(cur_palette);
+    gfx_copy_rect(&back_win, 0x3c, 0, 0x104, 0xc8, &screen_win, 0x3c, 0);
+    mouse_show();
     sub_root_047c_056f();
 }
 
@@ -225,15 +227,15 @@ void far party_info_key(int key)
         if ((D_e7d6 -= 2) < 0)
             D_e7d6 = 0x5b;
     case 0xf09:
-        sub_root_047c_12c3();
-        sub_root_047c_1266(116L * F_2e38_10be[D_e7d6]->x / 327 + 0xca,
-                           106L * F_2e38_10be[D_e7d6]->y / 931 + 0x47);
-        sub_root_047c_1293();
-        sub_root_047c_0553(&D_2806, 0xc8, 0x12, 0x7a, 0x32, &D_27f4, 0xc8, 0x12);
-        D_2800 = 14;
-        _fstrcpy(buf, F_2e38_10be[D_e7d6]->name);
-        sub_root_047c_055a(&D_27f4, 0x102 - text_width(buf) / 2, 0x22, buf);
-        switch (F_2e38_10be[D_e7d6]->size) {
+        mouse_hide();
+        mouse_move(116L * locations[D_e7d6]->x / 327 + 0xca,
+                           106L * locations[D_e7d6]->y / 931 + 0x47);
+        mouse_show();
+        gfx_copy_rect(&back_win, 0xc8, 0x12, 0x7a, 0x32, &screen_win, 0xc8, 0x12);
+        screen_win_colour = 14;
+        _fstrcpy(buf, locations[D_e7d6]->name);
+        gfx_text(&screen_win, 0x102 - text_width(buf) / 2, 0x22, buf);
+        switch (locations[D_e7d6]->size) {
         case 0: case 1: case 2: case 3: case 4:
             strcpy(buf, "Small-Sized");
             break;
@@ -244,13 +246,13 @@ void far party_info_key(int key)
             strcpy(buf, "Large-Sized");
             break;
         }
-        sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(buf) / 2), 0x2c, buf);
-        D_2800 = 14;
+        gfx_text(&screen_win, 0x102 - (w = text_width(buf) / 2), 0x2c, buf);
+        screen_win_colour = 14;
         strcpy(buf, "Rep: ");
-        _fstrcat(buf, F_290e_2183[sub_s029_0e76_1a8e(D_e7d6, 1)]);
-        sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(buf) / 2), 0x36, buf);
-        sprintf(buf, "(%Fd)", F_2e38_10be[D_e7d6]->rep);
-        sub_root_047c_055a(&D_27f4, 0x102 - (w = text_width(buf) / 2), 0x40, buf);
+        _fstrcat(buf, F_290e_2183[loc_query(D_e7d6, 1)]);
+        gfx_text(&screen_win, 0x102 - (w = text_width(buf) / 2), 0x36, buf);
+        sprintf(buf, "(%Fd)", locations[D_e7d6]->rep);
+        gfx_text(&screen_win, 0x102 - (w = text_width(buf) / 2), 0x40, buf);
         if (++D_e7d6 >= 0x5c)
             D_e7d6 = 0;
     }
@@ -265,47 +267,47 @@ void far party_info_wealth(struct gfx *g)
     int w;
     int near_;
 
-    sub_root_047c_12c3();
+    mouse_hide();
     g->color = 14;
-    _fstrcpy(name, F_290e_20c3[sub_s029_1367_0744(D_00e0)]);
+    _fstrcpy(name, bell_names[hour_band(cur_hour)]);
     w = text_width(name) / 2;
-    sub_root_0265_0004(g, 0x60 - w, 0x40, F_290e_20c3[sub_s029_1367_0744(D_00e0)]);
-    sub_root_047c_055a(g, 0x58, 0x48, _itoa(D_00e0, num, 10));
+    draw_text_far(g, 0x60 - w, 0x40, bell_names[hour_band(cur_hour)]);
+    gfx_text(g, 0x58, 0x48, _itoa(cur_hour, num, 10));
     g->color = 14;
-    _fstrcpy(name, F_290e_1d43[D_00e4]);
+    _fstrcpy(name, F_290e_1d43[cur_month]);
     w = text_width(name) / 2;
-    sub_root_0265_0004(g, 0xa0 - w, 0x40, F_290e_1d43[D_00e4]);
-    sub_root_047c_055a(g, 0x98, 0x48, _itoa(D_00e2, num, 10));
+    draw_text_far(g, 0xa0 - w, 0x40, F_290e_1d43[cur_month]);
+    gfx_text(g, 0x98, 0x48, _itoa(cur_day, num, 10));
     g->color = 14;
-    if (D_907e != -1 && D_907e < 0x5c) {
-        sub_root_0265_0004(g, 0x48, 0x6f, F_2e38_10be[D_907e]->name);
+    if (cur_loc != -1 && cur_loc < 0x5c) {
+        draw_text_far(g, 0x48, 0x6f, locations[cur_loc]->name);
     } else {
-        near_ = vec_1fa9(D_e3d0, D_e3d2);
-        sprintf(buf, "%Fs of ", F_290e_20e3[vec_1fbd(F_2e38_10be[near_]->x, F_2e38_10be[near_]->y, D_e3d0, D_e3d2)]);
-        sub_root_0265_0004(g, 0x46, 0x6f, (char far *)buf);
-        sub_root_0265_0004(g, 0x48, 0x78, F_2e38_10be[near_]->name);
+        near_ = nearest_city(party_x, party_y);
+        sprintf(buf, "%Fs of ", F_290e_20e3[vec_1fbd(locations[near_]->x, locations[near_]->y, party_x, party_y)]);
+        draw_text_far(g, 0x46, 0x6f, (char far *)buf);
+        draw_text_far(g, 0x48, 0x78, locations[near_]->name);
     }
     g->color = 14;
-    sprintf(buf, "%d Florins", D_906b[0]);
-    sub_root_047c_055a(g, 0x43, 0x9d, buf);
-    sprintf(buf, "%d Groschen", D_906b[1]);
-    sub_root_047c_055a(g, 0x43, 0xa5, buf);
-    sprintf(buf, "%d Pfenniges", D_906b[2]);
-    sub_root_047c_055a(g, 0x43, 0xad, buf);
-    sprintf(buf, "(%ld) Total", sub_s029_1367_00f2(D_906b));
-    sub_root_047c_055a(g, 0x43, 0xb5, buf);
+    sprintf(buf, "%d Florins", party_money[0]);
+    gfx_text(g, 0x43, 0x9d, buf);
+    sprintf(buf, "%d Groschen", party_money[1]);
+    gfx_text(g, 0x43, 0xa5, buf);
+    sprintf(buf, "%d Pfenniges", party_money[2]);
+    gfx_text(g, 0x43, 0xad, buf);
+    sprintf(buf, "(%ld) Total", money_pfennigs(party_money));
+    gfx_text(g, 0x43, 0xb5, buf);
     g->color = 14;
     sprintf(buf, "%d Florins", D_9072);
-    sub_root_047c_055a(g, 0x84, 0x9d, buf);
+    gfx_text(g, 0x84, 0x9d, buf);
     sprintf(buf, "%d PhStone", D_9078);
-    sub_root_047c_055a(g, 0x84, 0xad, buf);
+    gfx_text(g, 0x84, 0xad, buf);
     g->color = 14;
-    if (D_907e != -1 && D_907e < 0x5c) {
-        sub_root_0265_0004(g, 0x84, 0x6f, F_290e_2183[sub_s029_0e76_1a8e(D_907e, 1)]);
-        sprintf(buf, "(%Fd)", F_2e38_10be[D_907e]->rep);
-        sub_root_047c_055a(g, 0x8e, 0x77, buf);
+    if (cur_loc != -1 && cur_loc < 0x5c) {
+        draw_text_far(g, 0x84, 0x6f, F_290e_2183[loc_query(cur_loc, 1)]);
+        sprintf(buf, "(%Fd)", locations[cur_loc]->rep);
+        gfx_text(g, 0x8e, 0x77, buf);
     }
-    sub_root_047c_1293();
+    mouse_show();
 }
 
 /* Mark the party's position on the small map. */
@@ -314,18 +316,18 @@ void far party_info_map(struct gfx *g)
     int x, y;
     int pic;
 
-    if (D_907e == -1) {
-        x = 116L * D_e3d0 / 327;
-        y = 106L * D_e3d2 / 931;
+    if (cur_loc == -1) {
+        x = 116L * party_x / 327;
+        y = 106L * party_y / 931;
     } else {
-        x = 116L * F_2e38_10be[D_907e]->x / 327;
-        y = 106L * F_2e38_10be[D_907e]->y / 931;
+        x = 116L * locations[cur_loc]->x / 327;
+        y = 106L * locations[cur_loc]->y / 931;
     }
     sub_root_047c_0545();
-    pic = sub_root_0617_045c("pics\\maploctr.pic");
+    pic = pic_load("pics\\maploctr.pic");
     sub_root_047c_04f8();
-    sub_root_047c_05a5(g, x + 0xc8, y + 0x46, pic);
-    sub_root_05ba_00c2(pic, "b");
+    gfx_draw_pic(g, x + 0xc8, y + 0x46, pic);
+    mem_free(pic, "b");
 }
 
 /* Town nearest to a point on the small map, or -1 if none is close. */
@@ -338,10 +340,10 @@ int far party_info_nearest(int x, int y)
     x = (long)x * 327 / 118;
     y = (long)y * 931 / 106;
     for (i = 0; i < 414; i++) {
-        if (F_2e38_10be[i]->type != 0)
+        if (locations[i]->type != 0)
             break;
-        dx = abs(F_2e38_10be[i]->x - x);
-        dy = abs(F_2e38_10be[i]->y - y) / 3;
+        dx = abs(locations[i]->x - x);
+        dy = abs(locations[i]->y - y) / 3;
         if (dy <= dx)
             d = dy / 2 + dx;
         else
@@ -361,7 +363,7 @@ int far text_width(char *s)
     register char *p;
     register int w;
 
-    font = D_2804;
+    font = screen_win_font;
     w = 0;
     p = s;
     _asm {
@@ -371,7 +373,7 @@ int far text_width(char *s)
         lodsb
         push ax
         push font
-        call sub_root_047c_04e3
+        call char_width
         add sp, 4
         add di, ax
         cmp byte ptr [si], 0

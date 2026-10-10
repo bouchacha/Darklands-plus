@@ -12,6 +12,8 @@
  * 0cca (23), 1126 (85: 6.00 far CSE temps). Operand order of `0x140 - a - b` follows the declaration
  * order of the locals: re-sweep permutations (mkv) after changing declarations elsewhere.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -104,7 +106,7 @@ struct level {
     struct doorb db[5];                 /* 3382 */
 };
 
-void far sub_s004_1091_000a(struct level far *, int, char);
+void far map_turn(struct level far *, int, char);
 void far sub_s004_1091_00ca(struct level far *, int);
 long far sub_s004_1091_0604(long, int);
 void far sub_s004_1091_074e(struct level far *, int);
@@ -116,16 +118,16 @@ void far sub_s004_1091_0fb6(struct level far *, int);
 void far sub_s004_1091_1126(struct level far *, int);
 void far sub_s004_1091_1334(struct level far *, int);
 void far sub_s004_1091_145a(struct level far *, int);
-unsigned char far sub_s004_1091_17e0(unsigned char, int);
+unsigned char far facing_turn(unsigned char, int);
 
 /* turn / mirror the whole level */
 #pragma optimize("a", on)
-void far sub_s004_1091_000a(struct level far *lv, int r, char c)
+void far map_turn(struct level far *lv, int r, char c)
 {
     r %= 8;
     if (r < 0)
         r += (7 - r) & ~7;
-    lv->x1f50 = sub_s004_1091_17e0(lv->x1f50, r);
+    lv->x1f50 = facing_turn(lv->x1f50, r);
     sub_s004_1091_00ca(lv, r);
     sub_s004_1091_074e(lv, r);
     sub_s004_1091_0800(lv, r);
@@ -502,7 +504,7 @@ void far sub_s004_1091_0da4(struct level far *lv, int r, char f)
         if (f) {
             x = e->x8 / 4;
             y = e->x0a / 2;
-            e->x0c = sub_s004_1091_17e0(e->x0c, r % 4);
+            e->x0c = facing_turn(e->x0c, r % 4);
             switch (r) {
             case 1:
             case 5:
@@ -525,7 +527,7 @@ void far sub_s004_1091_0da4(struct level far *lv, int r, char f)
             e->x0 = (0x140 - (unsigned char)(e->x4 >> 2) - e->x0 / 4) << 2;
             if (f) {
                 e->x8 = (0x140 - e->x8 / 4) << 2;
-                e->x0c = sub_s004_1091_17e0(e->x0c, 4);
+                e->x0c = facing_turn(e->x0c, 4);
             }
         }
     }
@@ -624,7 +626,7 @@ void far sub_s004_1091_1126(struct level far *lv, int r)
             break;
         case 4:
             q = &lv->r316e[id];
-            q->x7 = sub_s004_1091_17e0(q->x7, r);
+            q->x7 = facing_turn(q->x7, r);
             x = q->x2 / 4;
             y = q->x4 / 2;
             switch (r) {
@@ -706,7 +708,7 @@ void far sub_s004_1091_145a(struct level far *lv, int r)
         a = &lv->da[k];
         h1 = a->x1 != 0;
         h2 = a->x3 != 0;
-        a->x5 = sub_s004_1091_17e0(a->x5, r);
+        a->x5 = facing_turn(a->x5, r);
         x = a->x6 / 4;
         y = a->x8 / 2;
         aa = a8 = 0;
@@ -769,7 +771,7 @@ void far sub_s004_1091_145a(struct level far *lv, int r)
         }
         b = &lv->db[k];
         h1 = b->x1 != 0;
-        b->x8 = sub_s004_1091_17e0(b->x8, r);
+        b->x8 = facing_turn(b->x8, r);
         x = b->x4 / 4;
         y = b->x6 / 2;
         if (h1) {
@@ -815,7 +817,7 @@ void far sub_s004_1091_145a(struct level far *lv, int r)
 #pragma optimize("", on)
 
 /* turn a facing (0..7) by r */
-unsigned char far sub_s004_1091_17e0(unsigned char f, int r)
+unsigned char far facing_turn(unsigned char f, int r)
 {
     f += (r & 3) << 1;
     f &= 7;

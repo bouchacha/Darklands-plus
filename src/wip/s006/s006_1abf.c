@@ -5,20 +5,22 @@
  * stubs). Doors and openings between rooms: D_db93 cell codes 3/5 (door on side 0/2) and
  * 4/6 (side 1/3), 11 = stairs; D_db8d wall bits are cleared for openings.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;
-extern unsigned char _based(D_db39) *D_db8d;
-extern int _based(D_db39) *D_db8f;
-extern int _based(D_db39) *D_db91;
-extern int _based(D_db39) *D_db93;
-extern int D_db45[5];
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;
+extern unsigned char _based(gen_work) *gen_cell_walls;
+extern int _based(gen_work) *gen_cell_type;
+extern int _based(gen_work) *D_db91;
+extern int _based(gen_work) *gen_cell_door;
+extern int gen_rooms[5];
 extern int D_db7f;
-extern int D_db81;
+extern int gen_level;
 
-int far sub_s004_0e76_20f6(int, int);
+int far roll_dice(int, int);
 int far sub_s005_146d_000c(int, int, int);
 void far sub_s005_146d_0066(int, int);
 int far sub_s005_146d_017a(int, int, int);
@@ -36,7 +38,7 @@ void far sub_s006_1abf_000a(int a, int kind, int b, int c)
     int dir, lo, hi;
 
     if (kind == 3) {
-        if (D_db81 >= D_db7f)
+        if (gen_level >= D_db7f)
             return;
         if (!sub_s005_146d_01d4(a, 0, &dir, &lo, &hi, 0))
             return;
@@ -44,19 +46,19 @@ void far sub_s006_1abf_000a(int a, int kind, int b, int c)
         return;
     }
     if (kind == 7) {
-        if (D_db91[D_db81 * 30 + b] == 4 && D_db91[D_db81 * 30 + c] == 4)
+        if (D_db91[gen_level * 30 + b] == 4 && D_db91[gen_level * 30 + c] == 4)
             ok = 0;
         else
             ok = 1;
-        if (!sub_s005_146d_017a(D_db81, a, b) && sub_s005_146d_01d4(a, b, &dir, &lo, &hi, 0))
+        if (!sub_s005_146d_017a(gen_level, a, b) && sub_s005_146d_01d4(a, b, &dir, &lo, &hi, 0))
             sub_s006_1abf_038e(a, b, dir, lo, hi, ok, 1);
-        if (!sub_s005_146d_017a(D_db81, a, c) && sub_s005_146d_01d4(a, c, &dir, &lo, &hi, 0))
+        if (!sub_s005_146d_017a(gen_level, a, c) && sub_s005_146d_01d4(a, c, &dir, &lo, &hi, 0))
             sub_s006_1abf_038e(a, c, dir, lo, hi, ok, 1);
-        for (i = 0; i < D_db45[D_db81]; i++) {
-            if (i != a && b != i && c != i && !sub_s005_146d_017a(D_db81, i, b) &&
-                !sub_s005_146d_017a(D_db81, i, c) && !sub_s005_146d_017a(D_db81, i, a) &&
-                !sub_s005_146d_000c(D_db81, i, b) && !sub_s005_146d_000c(D_db81, i, c) &&
-                !sub_s005_146d_000c(D_db81, i, a) &&
+        for (i = 0; i < gen_rooms[gen_level]; i++) {
+            if (i != a && b != i && c != i && !sub_s005_146d_017a(gen_level, i, b) &&
+                !sub_s005_146d_017a(gen_level, i, c) && !sub_s005_146d_017a(gen_level, i, a) &&
+                !sub_s005_146d_000c(gen_level, i, b) && !sub_s005_146d_000c(gen_level, i, c) &&
+                !sub_s005_146d_000c(gen_level, i, a) &&
                 sub_s005_146d_01d4(a, i, &dir, &lo, &hi, 0))
                 sub_s006_1abf_038e(a, i, dir, lo, hi, ok, 1);
         }
@@ -67,9 +69,9 @@ void far sub_s006_1abf_000a(int a, int kind, int b, int c)
     ok = b != -1;
     if (ok) {
         z = 0;
-        for (i = 0; i < D_db45[D_db81]; i++) {
-            if (i != a && b != i && sub_s005_146d_017a(D_db81, i, b) &&
-                sub_s005_146d_017a(D_db81, i, a) && sub_s005_146d_000c(D_db81, i, a))
+        for (i = 0; i < gen_rooms[gen_level]; i++) {
+            if (i != a && b != i && sub_s005_146d_017a(gen_level, i, b) &&
+                sub_s005_146d_017a(gen_level, i, a) && sub_s005_146d_000c(gen_level, i, a))
                 ok = 0;
             if (!ok)
                 break;
@@ -80,9 +82,9 @@ void far sub_s006_1abf_000a(int a, int kind, int b, int c)
     ok = c != -1;
     if (ok) {
         z = 0;
-        for (i = 0; i < D_db45[D_db81]; i++) {
-            if (i != a && c != i && sub_s005_146d_017a(D_db81, i, c) &&
-                sub_s005_146d_017a(D_db81, i, a) && sub_s005_146d_000c(D_db81, i, a))
+        for (i = 0; i < gen_rooms[gen_level]; i++) {
+            if (i != a && c != i && sub_s005_146d_017a(gen_level, i, c) &&
+                sub_s005_146d_017a(gen_level, i, a) && sub_s005_146d_000c(gen_level, i, a))
                 ok = 0;
             if (!ok)
                 break;
@@ -99,7 +101,7 @@ void far sub_s006_1abf_000a(int a, int kind, int b, int c)
 void far sub_s006_1abf_038e(int a, int b, int dir, int lo, int hi, int door, int force)
 {
     int n, tries, ok, p, i, k;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
 
     n = hi - lo + 1;
     if (n <= 0)
@@ -110,7 +112,7 @@ void far sub_s006_1abf_038e(int a, int b, int dir, int lo, int hi, int door, int
         if (tries >= n)
             break;
         tries++;
-        p = sub_s004_0e76_20f6(1, n) + lo - 1;
+        p = roll_dice(1, n) + lo - 1;
         ok = sub_s006_1abf_076e(a, dir, p, 1, 1);
     } while (!ok);
     if (!ok && door)
@@ -119,76 +121,76 @@ void far sub_s006_1abf_038e(int a, int b, int dir, int lo, int hi, int door, int
     if (!ok && !force)
         return;
     if (!ok && door)
-        p = sub_s004_0e76_20f6(1, n) + lo - 1;
-    o = D_db3b + (D_db81 * 30 + a) * 4;
+        p = roll_dice(1, n) + lo - 1;
+    o = D_db3b + (gen_level * 30 + a) * 4;
     if (dir == 0) {
-        i = (D_db81 * 40 + p) * 40 + o[2];
-        if (D_db8f[i] < 2 || D_db8f[i] > 8)
+        i = (gen_level * 40 + p) * 40 + o[2];
+        if (gen_cell_type[i] < 2 || gen_cell_type[i] > 8)
             return;
-        k = D_db8f[i - 1];
+        k = gen_cell_type[i - 1];
         if (k < 2 || k > 8)
             return;
-        D_db8d[i] &= ~1;
-        D_db8d[i - 1] &= ~4;
+        gen_cell_walls[i] &= ~1;
+        gen_cell_walls[i - 1] &= ~4;
         if (door && ok) {
-            D_db93[i] = 3;
-            D_db93[i - 1] = 5;
+            gen_cell_door[i] = 3;
+            gen_cell_door[i - 1] = 5;
         }
     } else if (dir == 1) {
-        i = (D_db81 * 40 + o[1]) * 40 + p;
-        if (D_db8f[i] < 2 || D_db8f[i] > 8)
+        i = (gen_level * 40 + o[1]) * 40 + p;
+        if (gen_cell_type[i] < 2 || gen_cell_type[i] > 8)
             return;
-        if (D_db8f[i + 40] < 2 || D_db8f[i + 40] > 8)
+        if (gen_cell_type[i + 40] < 2 || gen_cell_type[i + 40] > 8)
             return;
-        D_db8d[i] &= ~2;
-        D_db8d[i + 40] &= ~8;
+        gen_cell_walls[i] &= ~2;
+        gen_cell_walls[i + 40] &= ~8;
         if (door && ok) {
-            D_db93[i] = 4;
-            D_db93[i + 40] = 6;
+            gen_cell_door[i] = 4;
+            gen_cell_door[i + 40] = 6;
         }
     } else if (dir == 2) {
-        i = (D_db81 * 40 + p) * 40 + o[3];
-        if (D_db8f[i] < 2 || D_db8f[i] > 8)
+        i = (gen_level * 40 + p) * 40 + o[3];
+        if (gen_cell_type[i] < 2 || gen_cell_type[i] > 8)
             return;
-        if (D_db8f[i + 1] < 2 || D_db8f[i + 1] > 8)
+        if (gen_cell_type[i + 1] < 2 || gen_cell_type[i + 1] > 8)
             return;
-        D_db8d[i] &= ~4;
-        D_db8d[i + 1] &= ~1;
+        gen_cell_walls[i] &= ~4;
+        gen_cell_walls[i + 1] &= ~1;
         if (door && ok) {
-            D_db93[i] = 5;
-            D_db93[i + 1] = 3;
+            gen_cell_door[i] = 5;
+            gen_cell_door[i + 1] = 3;
         }
     } else if (dir == 3) {
-        i = (D_db81 * 40 + o[0]) * 40 + p;
-        if (D_db8f[i] < 2 || D_db8f[i] > 8)
+        i = (gen_level * 40 + o[0]) * 40 + p;
+        if (gen_cell_type[i] < 2 || gen_cell_type[i] > 8)
             return;
-        k = D_db8f[i - 40];
+        k = gen_cell_type[i - 40];
         if (k < 2 || k > 8)
             return;
-        D_db8d[i] &= ~8;
-        D_db8d[i - 40] &= ~2;
+        gen_cell_walls[i] &= ~8;
+        gen_cell_walls[i - 40] &= ~2;
         if (door && ok) {
-            D_db93[i] = 6;
-            D_db93[i - 40] = 4;
+            gen_cell_door[i] = 6;
+            gen_cell_door[i - 40] = 4;
         }
     }
-    if (!sub_s005_146d_017a(D_db81, a, b))
+    if (!sub_s005_146d_017a(gen_level, a, b))
         sub_s005_146d_07f4(a, b);
-    if ((!door || !ok) && !sub_s005_146d_000c(D_db81, a, b))
+    if ((!door || !ok) && !sub_s005_146d_000c(gen_level, a, b))
         sub_s005_146d_0066(a, b);
 }
 
-#define FLOOR(x, y) (D_db8f[(D_db81 * 40 + (x)) * 40 + (y)] >= 2 && \
-                     D_db8f[(D_db81 * 40 + (x)) * 40 + (y)] <= 8)
+#define FLOOR(x, y) (gen_cell_type[(gen_level * 40 + (x)) * 40 + (y)] >= 2 && \
+                     gen_cell_type[(gen_level * 40 + (x)) * 40 + (y)] <= 8)
 #define FREE(x, y) (sub_s006_1abf_0b78(x, y, 0, 1) || sub_s006_1abf_0b78(x, y, 11, 1))
 
 /* can a door/opening go on side dir of room r at position p? */
 int far sub_s006_1abf_076e(int r, int dir, int p, int chk, int both)
 {
     int c, x, y, x2, y2, ok;
-    int _based(D_db39) *o;
+    int _based(gen_work) *o;
 
-    o = D_db3b + (D_db81 * 30 + r) * 4;
+    o = D_db3b + (gen_level * 30 + r) * 4;
     switch (dir) {
     case 0:
         c = o[2];
@@ -259,10 +261,10 @@ int far sub_s006_1abf_076e(int r, int dir, int p, int chk, int both)
     return 0;
 }
 
-/* (D_db93 cell == v) == eq */
+/* (gen_cell_door cell == v) == eq */
 int far sub_s006_1abf_0b78(int x, int y, int v, int eq)
 {
-    if ((D_db93[(D_db81 * 40 + x) * 40 + y] == v) == eq)
+    if ((gen_cell_door[(gen_level * 40 + x) * 40 + y] == v) == eq)
         return 1;
     return 0;
 }

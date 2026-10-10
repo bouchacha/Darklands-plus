@@ -31,8 +31,10 @@
    status: 27/27 written, 8 match (1e70 1f14 1fd4 2052 343c 347c 359a 07ec).
    m4: 13ae's b13/b14 parameters are int (callers push words / cbw); 07ec zero arm first. 3404 is hand-written asm in the
    original (`loop`), C equivalent here. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     int scrx;                   /* +00 screen x of the sprite */
     int scry;                   /* +02 screen y */
     int x;                      /* +04 */
@@ -97,7 +99,7 @@ extern struct dirty _based(D_d6f5) *D_e172;  /* dirty boxes of this frame */
 extern int D_e174;
 extern int D_e176;
 extern struct rlog far F_20a5_7354[];   /* replay log */
-extern struct rect *D_0154;             /* view window */
+extern struct rect *card_window2;             /* view window */
 /* per screen tile (0x8c = 14 x 10) */
 extern char far F_20a5_36c8[];          /* map row of the tile */
 extern char far F_20a5_363c[];          /* map column */
@@ -134,10 +136,10 @@ extern int D_c8d5[];                    /* furniture sprites */
 struct efa { int x; int y; unsigned char f4; unsigned char kind; char f6; char level; unsigned t; };
 struct efb { int x; int y; unsigned char f4; char f5; char level; char f7; unsigned t; };
 struct efc { int x; int y; unsigned char f4; unsigned char f5; char level; char f7; };
-extern struct efa D_a2eb[];
-extern struct efb D_a342[];
-extern struct efc D_a396[];
-extern char D_a33d, D_a395, D_a531;
+extern struct efa effect_clouds[];
+extern struct efb effect_areas[];
+extern struct efc effect_markers[];
+extern char effect_cloud_count, D_a395, D_a531;
 extern int far F_20a5_3bc0[8][16], far F_20a5_3cc0[8][16];   /* cloud puffs on screen */
 extern int far F_20a5_3754[8][16], far F_20a5_3854[8][16];   /* area puffs */
 extern int far F_20a5_59a8[8], far F_20a5_59b8[8];           /* markers on screen */
@@ -149,29 +151,29 @@ extern int far F_20a5_4c62[8][8], far F_20a5_4ce2[8][8];     /* cloud east edge 
 extern unsigned far F_20a5_706a[8][8], far F_20a5_70ea[8][8]; /* south edge on the map */
 extern unsigned far F_20a5_6f6a[8][8], far F_20a5_6fea[8][8]; /* east edge on the map */
 struct mcell { unsigned lo; unsigned hi; };
-extern struct mcell far F_20a5_0000[];  /* map cells */
+extern struct mcell far floor_img[];  /* map cells */
 extern char *D_21b2[], *D_21bc[];       /* puff offsets by cloud size */
-extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
-int far sub_s014_1d69_000c();          /* called with 2 and 3 arguments */
+extern int los_x0, los_y0, los_x1, los_y1;
+int far line_blocked();          /* called with 2 and 3 arguments */
 extern int D_ca41[2], D_ca71[2], D_ca2c[2];  /* cloud sprites */
 extern int D_cea4[];                    /* marker sprites */
-extern struct rect *D_017c;             /* screen */
+extern struct rect *card_window;             /* screen */
 extern int D_c21d, D_c240;              /* visibility margins */
 extern unsigned D_853e;                 /* combatants drawn this frame (bits) */
 extern int far F_20a5_35ee[13][3];      /* hit flash: counter / sprites */
 extern int D_d4c1;
-extern char D_d4f2[], D_d4e5[];
+extern char cbt_was_hit[], D_d4e5[];
 extern unsigned D_da89[];
-extern char D_c98a[][10];               /* animation sequence per combatant */
+extern char cbt_anim_seq[][10];               /* animation sequence per combatant */
 extern int far F_20a5_4d62[], far F_20a5_3dc0[];  /* status icons party / enemies */
-extern char D_a695;
+extern char ai_paused;
 void far sub_s014_1ec9_0070(int);
-void far sub_root_047c_12c3(void);
-void far sub_root_047c_1293(void);
+void far mouse_hide(void);
+void far mouse_show(void);
 void far vec_1d83(int);
 void far vec_1d8d(int);
 void far vec_1d97(int);
-void far vec_1d79(void);
+void far missile_remove_vec(void);
 void far sub_s014_19cd_17f6(void);
 int far sub_s014_14f7_13ae(int, int, int, int, int, int, int, int, int, int, int, int, int, int,
                            int, int, int, int);
@@ -188,30 +190,30 @@ void far sub_s014_14f7_118e(void);
 void far sub_s014_14f7_1a6a(int, int, int);
 void far sub_s014_14f7_20d6(void);
 void far sub_s014_14f7_2f96(int);
-void far sub_s014_14f7_31e6(void);
+void far cbt_screen_pos(void);
 void far sub_s014_14f7_3404(void);
 void far sub_s014_14f7_3682(int);
 void far sub_s014_14f7_3a46(int);
-void far sub_root_0410_007e(int far *, int, int);
+void far word_fill_far(int far *, int, int);
 extern int D_1a66;                      /* animation phase 0..2 */
 extern char D_e0ab;                     /* full redraw request */
-extern unsigned D_07d4;                 /* combat clock */
+extern unsigned combat_clock;                 /* combat clock */
 extern char D_e15b, D_e15c, D_e15d;     /* changed map pieces this frame */
 extern unsigned char D_e178[][2], D_e196[][2], D_e13d[][2];   /* (tile, piece) */
-extern char D_d845;
+extern char cursor_target;
 extern int D_e1b4, D_e1b6, D_e1b8, D_e1ba, D_e1bc, D_e1be, D_e1c0, D_e1c2;  /* cursor */
 extern int D_e09f, D_e09d, D_e1c6, D_e1c4;                    /* member cursor */
 extern int D_c242, D_c2bd, D_c21b;
-extern char D_a6b2;
+extern char selected_member;
 struct msl { int sx; int sy; char pad4[4]; int x; int y; char pad0c[5]; char done; char facing;
-             char pad13; char sprite; char pad15[5]; };      /* 0x1a bytes, D_944d */
-extern struct msl D_944d[];
+             char pad13; char sprite; char pad15[5]; };      /* 0x1a bytes, missile_recs */
+extern struct msl missile_recs[];
 extern int D_d40b[], D_d1be[], D_d4b1[], D_d4d4[], D_d4a0[], D_d428[];  /* missile sprites */
 extern int D_d5b7, D_d4ff, D_d501;
 extern int D_d8f1[], D_d8d7[], D_d8bd[], D_d8a3[], D_d889[], D_d86f[];  /* hot spots */
 extern unsigned char D_d862[], D_d855[];
-extern char D_d848[];
-extern char D_e0a1;
+extern char hotspot_cbt[];
+extern char hotspot_count;
 extern char D_1aea[];                   /* tile neighbourhood sizes by cloud size */
 extern char *D_1b32[], *D_1b7e[];
 extern char D_1aed;
@@ -225,20 +227,20 @@ extern char D_1b08[], D_1b54[];
         if (D_e16e[t] < (d)->w + (d)->x - 1) D_e16e[t] = (d)->w + (d)->x - 1; \
         if (D_e170[t] < (d)->y + (d)->h - 1) D_e170[t] = (d)->y + (d)->h - 1; }
 int far _random_n(int);
-extern char D_c21a;
+extern char demo_mode;
 extern char D_c907;
 extern char D_c763[];                   /* size class of an animation set */
 extern char D_1a5d[];
 extern char D_1a72[23], D_1a8a[23], D_1aa2[10], D_1aac[10], D_1ab6[8], D_1abe[8], D_1ac6[3], D_1aca[3];
 #define SPR(k) ((struct spr *)F_20a5_34b4[k])
 
-extern struct cbt D_9c55[];
+extern struct cbt combatants[];
 extern int D_c26c, D_c293;              /* view scroll */
-extern char D_c180;                     /* missiles */
-extern int D_940b;
+extern char missile_count;                     /* missiles */
+extern int ems_frame_handle;
 extern struct rect *D_01a4;
-extern char D_a6b4[];                   /* [13] floor */
-extern char D_11ca;                     /* floor shown */
+extern char cbt_floor[];                   /* [13] floor */
+extern char floor_shown;                     /* floor shown */
 extern char D_da36[], D_d3fe[];
 extern int D_8650[13];                  /* screen x of the combatant's foot point */
 extern int D_8584[13], D_85ce[13], D_85e8[13], D_8602[13], D_861c[13], D_8636[13]; /* dirty */
@@ -251,31 +253,31 @@ extern char D_d5d3[];                   /* sprite height by set */
 extern char D_c8ca[];
 char far sub_s014_0e76_306a(int);
 struct pile { int ofs; char cnt; char level; int x; int y; int vis; char dx; char dy; };
-extern struct pile far F_20a5_59c8[];   /* loot piles */
-extern char D_c80e;
+extern struct pile far loot_piles[];   /* loot piles */
+extern char loot_pile_count;
 extern int far F_20a5_5890[0x8c];       /* map cell code (col << 8 | row) of each screen tile */
 extern char D_1a6a[4], D_1a6e[4];       /* corners of a pile */
 extern int D_c869;                      /* loot pile sprite */
-int far sub_root_0410_02e6(int far *, int, int);  /* index of a word, or n */
+int far index_of_word(int far *, int, int);  /* index of a word, or n */
 
-void far sub_root_05f8_0117(int, int, int);
-void far sub_root_047c_04ef(struct rect *, int, int, int);
-void far sub_root_047c_0553(int, int, int, int, int, struct rect *, int, int);
-void far sub_root_047c_0952(struct rect *, int, int, int, int, int);
+void far ems_map_page(int, int, int);
+void far gfx_draw_sprite(struct rect *, int, int, int);
+void far gfx_copy_rect(int, int, int, int, int, struct rect *, int, int);
+void far gfx_fill_rect(struct rect *, int, int, int, int, int);
 void far sub_s014_1ec9_0000(int);
 int far sub_s014_14f7_359a(struct rect *, int, int, int);
 void far sub_s014_14f7_1e70(int far *);
 void far sub_s014_14f7_1f14(int, int, int, int, int, int, int, int);
 void far sub_s014_14f7_1fd4(int, int, int, int);
 void far sub_s014_14f7_2052(int, int, int, int);
-int far sub_s014_14f7_343c(int);
+int far cbt_anim_set(int);
 int far sub_s014_14f7_34d6(struct rect *, int, int, int, int, int);
 
-#define HIDE() sub_root_05f8_0117(0, 0, D_940b)
-#define SHOW() sub_root_05f8_0117(0, 9, D_940b)
+#define HIDE() ems_map_page(0, 0, ems_frame_handle)
+#define SHOW() ems_map_page(0, 9, ems_frame_handle)
 
 /* draw one combat frame */
-void far sub_s014_14f7_0008(void)
+void far combat_draw(void)
 {
     int k, n, sy, dx, w, h, spr;
     unsigned now;
@@ -286,32 +288,32 @@ void far sub_s014_14f7_0008(void)
     D_1a66 = (D_1a66 + 1) % 3;
     if (D_e0ab != 0) {
         /* full redraw */
-        sub_root_047c_0553((int)D_017c, 0, 0, 0x104, 0xc8, D_0154, 0, 0);
+        gfx_copy_rect((int)card_window, 0, 0, 0x104, 0xc8, card_window2, 0, 0);
         D_e0ab = 0;
         for (k = 0; k < D_a395; k++)
-            D_a342[k].f4 |= 8;
+            effect_areas[k].f4 |= 8;
     }
-    sub_root_05f8_0117(0, 9, D_940b);
-    for (k = 0; k < D_a33d; k++) {
-        if (D_a2eb[k].f4 >> 4 != (D_a2eb[k].f4 & 0xf))
+    ems_map_page(0, 9, ems_frame_handle);
+    for (k = 0; k < effect_cloud_count; k++) {
+        if (effect_clouds[k].f4 >> 4 != (effect_clouds[k].f4 & 0xf))
             D_c897[k] = -9999;          /* still growing: no erase box */
         sub_s014_14f7_3682(k);
     }
     for (k = 0; k < D_a395; k++)
-        if ((D_a342[k].f4 & 0xf) >= 8)
+        if ((effect_areas[k].f4 & 0xf) >= 8)
             sub_s014_14f7_3a46(k);
     if (D_e160 == 1)
         D_e176 = 0;
     D_e169 = D_e166 = D_e161 = 0;
     D_e162 = 1;
     D_853e = 0;
-    sub_s014_14f7_31e6();
+    cbt_screen_pos();
     sub_s014_14f7_3404();
     D_e160 = 0;
-    sub_root_0410_007e((int far *)D_e16a, 9999, 0x8c);
-    sub_root_0410_007e((int far *)D_e16c, 9999, 0x8c);
-    sub_root_0410_007e((int far *)D_e16e, -9999, 0x8c);
-    sub_root_0410_007e((int far *)D_e170, -9999, 0x8c);
+    word_fill_far((int far *)D_e16a, 9999, 0x8c);
+    word_fill_far((int far *)D_e16c, 9999, 0x8c);
+    word_fill_far((int far *)D_e16e, -9999, 0x8c);
+    word_fill_far((int far *)D_e170, -9999, 0x8c);
     D_e174 = 0;
     /* sprites of the last frame that must be erased (replay log) */
     for (k = 0; k < D_e176; k++) {
@@ -327,11 +329,11 @@ void far sub_s014_14f7_0008(void)
         sub_s014_14f7_1a6a(D_e178[k][0], D_e178[k][1], 0);
     for (k = 0; k < D_e15c; k++)
         sub_s014_14f7_1a6a(D_e196[k][0], D_e196[k][1], 1);
-    now = D_a695 == 0 ? D_07d4 : 0;
+    now = ai_paused == 0 ? combat_clock : 0;
     sub_s014_14f7_07ec(now);
     sub_s014_14f7_098e(now);
     sub_s014_14f7_118e();
-    if (D_d845 == -2 || D_d845 == -3) {
+    if (cursor_target == -2 || cursor_target == -3) {
         /* ground cursor */
         sy = D_e1b6 - D_c293;
         D_e1c2 = D_e1b4 - D_c26c - sy + 0x88 - D_e1b8 / 2;
@@ -340,8 +342,8 @@ void far sub_s014_14f7_0008(void)
                            0, 0, 0, 0, 0, 0, 1, 0);
     }
     /* missiles */
-    for (k = D_c180 - 1; k >= 0; k--) {
-        m = &D_944d[k];
+    for (k = missile_count - 1; k >= 0; k--) {
+        m = &missile_recs[k];
         if (m->done < 0 && (m->done & 7) == 0) {
             /* impact frame */
             switch (m->sprite) {
@@ -402,14 +404,14 @@ void far sub_s014_14f7_0008(void)
         sub_s014_14f7_13ae(-1, m->x, m->y, 0, m->sx, m->sy, w, h, 0x7b0c, spr,
                            0, 0, 0, 0, 0, 0, 1, 0);
         if (m->done < 0)
-            vec_1d79(k);                /* finished: remove the missile */
+            missile_remove_vec(k);                /* finished: remove the missile */
     }
     sub_s014_14f7_20d6();
     /* cursor around the selected member */
-    if (D_a6b2 >= 0 && (D_853e & 1 << D_a6b2) != 0) {
+    if (selected_member >= 0 && (D_853e & 1 << selected_member) != 0) {
         for (k = 1; k < D_e162; k++) {
             s = (struct spr *)F_20a5_34b4[k];
-            if (s->e0 < 28000 && s->who == D_a6b2)
+            if (s->e0 < 28000 && s->who == selected_member)
                 break;
         }
         if (D_e162 < 157) {
@@ -428,10 +430,10 @@ void far sub_s014_14f7_0008(void)
         }
     }
     /* cursor around the target */
-    if ((D_c242 == D_e1bc || D_c2bd == D_e1bc) && (D_853e & 1 << D_d845) != 0) {
+    if ((D_c242 == D_e1bc || D_c2bd == D_e1bc) && (D_853e & 1 << cursor_target) != 0) {
         for (k = 1; k < D_e162; k++) {
             s = (struct spr *)F_20a5_34b4[k];
-            if (s->e0 < 28000 && s->who == D_d845)
+            if (s->e0 < 28000 && s->who == cursor_target)
                 break;
         }
         if (D_e162 < 157) {
@@ -451,12 +453,12 @@ void far sub_s014_14f7_0008(void)
     }
     sub_s014_14f7_2f96(D_e162);
     /* mouse hot spots of the combatants, front to back */
-    D_e0a1 = 0;
+    hotspot_count = 0;
     for (k = 1; k < D_e162; k++) {
         s = (struct spr *)F_20a5_34b4[k];
         if (s->e0 >= 28000)
             continue;
-        n = D_e0a1;
+        n = hotspot_count;
         D_d8f1[n] = s->e0;
         D_d8d7[n] = s->e1;
         D_d8bd[n] = s->e2;
@@ -465,8 +467,8 @@ void far sub_s014_14f7_0008(void)
         D_d86f[n] = s->sy2;
         D_d862[n] = s->w;
         D_d855[n] = s->h;
-        D_d848[n] = s->who;
-        D_e0a1++;
+        hotspot_cbt[n] = s->who;
+        hotspot_count++;
     }
     sub_s014_19cd_17f6();
     for (k = 1; k < D_e162; k++) {
@@ -489,7 +491,7 @@ void far sub_s014_14f7_0008(void)
     }
     sub_s014_14f7_0c92();
     sub_s014_14f7_0e9e(now);
-    sub_root_05f8_0117(0, 0, D_940b);
+    ems_map_page(0, 0, ems_frame_handle);
 }
 
 /* queue the effect clouds (edge sprites of every puff column/row) and the other effect lists */
@@ -497,12 +499,12 @@ void far sub_s014_14f7_07ec(unsigned now)
 {
     int k, c, n, kind, s1, s2;
 
-    if (D_a33d > 0) {
+    if (effect_cloud_count > 0) {
         sub_s014_14f7_24a4();
-        for (k = 0; k < D_a33d; k++) {
-            n = D_a2eb[k].f4 & 7;
-            kind = D_a2eb[k].kind;
-            if (now >= D_a2eb[k].t) {
+        for (k = 0; k < effect_cloud_count; k++) {
+            n = effect_clouds[k].f4 & 7;
+            kind = effect_clouds[k].kind;
+            if (now >= effect_clouds[k].t) {
                 s1 = 0;
                 s2 = 0;
             } else {
@@ -529,7 +531,7 @@ void far sub_s014_14f7_07ec(unsigned now)
         sub_s014_14f7_2d32();
 }
 
-/* queue every visible combatant: body (frame D_c98a[i][f1b] of its animation), hit flashes
+/* queue every visible combatant: body (frame cbt_anim_seq[i][f1b] of its animation), hit flashes
    (F_20a5_35ee[i]: negative = countdown, positive = flash sprites until D_da89[i]) and the
    status icon D_d4e5[i] */
 void far sub_s014_14f7_098e(unsigned now)
@@ -540,17 +542,17 @@ void far sub_s014_14f7_098e(unsigned now)
     int far *fx;
 
     for (i = 0; i < 13; i++) {
-        st = D_9c55[i].status;
-        if ((st != 1 && st != 3 && st != 2) || D_a6b4[i] != D_11ca)
+        st = combatants[i].status;
+        if ((st != 1 && st != 3 && st != 2) || cbt_floor[i] != floor_shown)
             continue;
-        set = sub_s014_14f7_343c(i);
-        w = D_d55d[set][D_9c55[i].f1a];
+        set = cbt_anim_set(i);
+        w = D_d55d[set][combatants[i].f1a];
         h = D_d5d3[set];
-        if (sub_s014_14f7_347c(D_9c55[i].scrx - D_c21d, D_9c55[i].scry - D_c21d,
-                               w + D_c240, h + D_c240, D_0154) == 0)
+        if (sub_s014_14f7_347c(combatants[i].scrx - D_c21d, combatants[i].scry - D_c21d,
+                               w + D_c240, h + D_c240, card_window2) == 0)
             continue;
-        spr = D_9c55[i].info[D_c98a[i][D_9c55[i].f1b] * 8 + D_9c55[i].f1a];
-        if (sub_s014_14f7_13ae(i, D_9c55[i].x, D_9c55[i].y, 0, D_9c55[i].scrx, D_9c55[i].scry,
+        spr = combatants[i].info[cbt_anim_seq[i][combatants[i].f1b] * 8 + combatants[i].f1a];
+        if (sub_s014_14f7_13ae(i, combatants[i].x, combatants[i].y, 0, combatants[i].scrx, combatants[i].scry,
                                w, h, 5, spr, D_85e8[i], D_8602[i], D_861c[i], D_8636[i],
                                D_85ce[i], D_8584[i], 0, st == 2 || st == 3) == 1)
             D_853e |= 1 << i;
@@ -558,7 +560,7 @@ void far sub_s014_14f7_098e(unsigned now)
         if (fx[0] < 0 && fx[0] > -10) {
             if (++fx[0] == 0) {
                 fx[0] = D_d4c1;
-                D_d4f2[i] = 1;
+                cbt_was_hit[i] = 1;
             }
         } else if (fx[0] != 0 && now < D_da89[i] && D_e162 < 157) {
             /* hit flash on top of the body */
@@ -566,8 +568,8 @@ void far sub_s014_14f7_098e(unsigned now)
             p = (struct spr *)F_20a5_34b4[D_e162 - 1];
             *n = *p;
             n->spr = F_20a5_35ee[i][_random_n(3)];
-            n->sx = D_d505[set][D_9c55[i].f1a] + D_9c55[i].scrx - 5;
-            n->sy = D_d5d3[set] / 3 + D_9c55[i].scry - 5;
+            n->sx = D_d505[set][combatants[i].f1a] + combatants[i].scrx - 5;
+            n->sy = D_d5d3[set] / 3 + combatants[i].scry - 5;
             n->e0 = p->e0;
             n->e1 = p->e1 + 1;
             n->e2 = p->e2 + 1;
@@ -578,9 +580,9 @@ void far sub_s014_14f7_098e(unsigned now)
         if (fx[0] != 0 && D_da89[i] <= now)
             fx[0] = 0;
         if (D_d4e5[i] != 0)
-            sub_s014_14f7_13ae(i, D_9c55[i].x, D_9c55[i].y, 0,
-                               D_d505[set][D_9c55[i].f1a] + D_9c55[i].scrx - 7,
-                               D_d5d3[set] + D_9c55[i].scry - 0x27, 0x10, 6, 0x762a,
+            sub_s014_14f7_13ae(i, combatants[i].x, combatants[i].y, 0,
+                               D_d505[set][combatants[i].f1a] + combatants[i].scrx - 7,
+                               D_d5d3[set] + combatants[i].scry - 0x27, 0x10, 6, 0x762a,
                                i < 5 ? F_20a5_4d62[D_d4e5[i]] : F_20a5_3dc0[D_d4e5[i]],
                                0, 0, 0, 0, 0, 0, 1, 0);
     }
@@ -640,9 +642,9 @@ void far sub_s014_14f7_0e9e(unsigned now)
         e = D_e167 + k;
         D_01a4->x = e->ox + 60;
         D_01a4->y = e->oy;
-        n = (D_a2eb[k].f4 & 7) * (D_a2eb[k].f4 & 7);
-        kind = D_a2eb[k].kind;
-        if (now >= D_a2eb[k].t)
+        n = (effect_clouds[k].f4 & 7) * (effect_clouds[k].f4 & 7);
+        kind = effect_clouds[k].kind;
+        if (now >= effect_clouds[k].t)
             spr = 0;
         else {
             sub_s014_1ec9_0000(kind);
@@ -662,33 +664,33 @@ void far sub_s014_14f7_0e9e(unsigned now)
     D_01a4->h = 199;
     D_01a4->y = 0;
     for (k = 0; k < D_a531; k++) {
-        sub_s014_1ec9_0070(D_a396[k].f5);
-        sub_s014_14f7_359a(D_01a4, F_20a5_59a8[k], F_20a5_59b8[k], D_cea4[D_a396[k].f4 & 7]);
+        sub_s014_1ec9_0070(effect_markers[k].f5);
+        sub_s014_14f7_359a(D_01a4, F_20a5_59a8[k], F_20a5_59b8[k], D_cea4[effect_markers[k].f4 & 7]);
     }
-    if (D_a695 == 0) {
+    if (ai_paused == 0) {
         for (k = D_a531 - 1; k >= 0; k--)
-            if (++D_a396[k].f4 > 0x44)
+            if (++effect_markers[k].f4 > 0x44)
                 vec_1d97(k);            /* s019 02b4: marker expires */
         for (k = D_a395 - 1; k >= 0; k--)
-            if (D_a342[k].t <= now)
+            if (effect_areas[k].t <= now)
                 vec_1d8d(k);            /* s019 0260: area expires */
         for (k = 0; k < D_a395; k++)
-            if ((D_a342[k].f4 & 0xf) < D_a342[k].f4 >> 4) {
-                D_a342[k].f4++;
-                D_a342[k].f4 |= 8;      /* grows: lay out again */
+            if ((effect_areas[k].f4 & 0xf) < effect_areas[k].f4 >> 4) {
+                effect_areas[k].f4++;
+                effect_areas[k].f4 |= 8;      /* grows: lay out again */
             }
-        for (k = D_a33d - 1; k >= 0; k--)
-            if (D_a2eb[k].t <= now)
+        for (k = effect_cloud_count - 1; k >= 0; k--)
+            if (effect_clouds[k].t <= now)
                 vec_1d83(k);            /* s019 01e2: cloud expires */
-        for (k = 0; k < D_a33d; k++)
-            if ((D_a2eb[k].f4 & 0xf) < D_a2eb[k].f4 >> 4)
-                D_a2eb[k].f4++;
+        for (k = 0; k < effect_cloud_count; k++)
+            if ((effect_clouds[k].f4 & 0xf) < effect_clouds[k].f4 >> 4)
+                effect_clouds[k].f4++;
     }
     for (k = 0; k < D_e174; k++) {
-        sub_root_047c_12c3();
+        mouse_hide();
         d = D_e172 + k;
-        sub_s014_14f7_35ce((int)D_0154, d->x, d->y, d->w, d->h, D_017c, d->x, d->y);
-        sub_root_047c_1293();
+        sub_s014_14f7_35ce((int)card_window2, d->x, d->y, d->w, d->h, card_window, d->x, d->y);
+        mouse_show();
     }
 }
 #pragma optimize("a", off)
@@ -702,9 +704,9 @@ void far sub_s014_14f7_118e(void)
     struct pile far *p;
     struct drawb _based(D_d6f5) *b;
 
-    for (k = 0; k < (unsigned char)D_c80e; k++) {
-        p = &F_20a5_59c8[k];
-        if (p->level != D_11ca)
+    for (k = 0; k < (unsigned char)loot_pile_count; k++) {
+        p = &loot_piles[k];
+        if (p->level != floor_shown)
             continue;
         r[1] = -p->dx - ((p->y - D_c293) - p->x) - D_c26c + 0x88;
         r[2] = (p->y - D_c293) - p->dy + 0x69;
@@ -721,7 +723,7 @@ void far sub_s014_14f7_118e(void)
         maxx = 0;
         found = 0;
         for (c = 0; c < 4; c++) {
-            t = sub_root_0410_02e6(F_20a5_5890,
+            t = index_of_word(F_20a5_5890,
                 ((D_1a6e[c] + p->y) >> 4) + ((D_1a6a[c] + p->x) & 0xffe0) * 8, 0x8c);
             if (t != 0x8c) {
                 found = 1;
@@ -776,7 +778,7 @@ int far sub_s014_14f7_13ae(int who, int x, int y, int h, int sx, int sy, int w, 
     int tx, ty, tile, row, n, t, c;
     struct dirty _based(D_d6f5) *d;
 
-    if (toB == 0 || D_c21a == 'Z') {
+    if (toB == 0 || demo_mode == 'Z') {
         if (D_e162 > 156)
             return 0;
         r = SPR(D_e162);
@@ -816,7 +818,7 @@ int far sub_s014_14f7_13ae(int who, int x, int y, int h, int sx, int sy, int w, 
     d->w = r->w;
     d->y = r->cy;
     d->x = r->cx;
-    sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
+    sub_s014_14f7_34d6(card_window2, d->x, d->y, d->w, d->h, 0);
     if (log == 1) {
         struct rlog far *l = &F_20a5_7354[D_e176++];
         l->x = x;
@@ -838,7 +840,7 @@ int far sub_s014_14f7_13ae(int who, int x, int y, int h, int sx, int sy, int w, 
         r->e0 = kind;
         goto done;
     }
-    c = D_c763[sub_s014_14f7_343c(who)];
+    c = D_c763[cbt_anim_set(who)];
     if (c == 0) {
         r->e0 = D_8650[who] - 4;
         r->e1 = D_8650[who] + 3;
@@ -884,19 +886,19 @@ done:
         if (t >= 0 && t < 0x8c && t / 10 - D_1a8a[n] == row)
             GROW1(t);
     }
-    if (who != -1 && (D_c763[sub_s014_14f7_343c(who)] & 1) != 0)
+    if (who != -1 && (D_c763[cbt_anim_set(who)] & 1) != 0)
         for (n = 0; n < 10; n++) {
             t = D_1aa2[n] + tile;
             if (t >= 0 && t < 0x8c && t / 10 - D_1aac[n] == row)
                 GROW1(t);
         }
-    if (who != -1 && (D_c763[sub_s014_14f7_343c(who)] & 4) != 0)
+    if (who != -1 && (D_c763[cbt_anim_set(who)] & 4) != 0)
         for (n = 0; n < 8; n++) {
             t = D_1ab6[n] + tile;
             if (t >= 0 && t < 0x8c && t / 10 - D_1abe[n] == row)
                 GROW1(t);
         }
-    if (who != -1 && (sub_s014_14f7_343c(who), D_c907 == 1))
+    if (who != -1 && (cbt_anim_set(who), D_c907 == 1))
         for (n = 0; n < 3; n++) {
             t = D_1ac6[n] + tile;
             if (t >= 0 && t < 0x8c && t / 10 - D_1aca[n] == row)
@@ -964,7 +966,7 @@ void far sub_s014_14f7_1a6a(int tile, int n, int layer)
         d->w = r->w;
         d->y = r->cy;
         d->x = r->cx;
-        sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
+        sub_s014_14f7_34d6(card_window2, d->x, d->y, d->w, d->h, 0);
         for (k = 0; k < 14; k++) {
             t = D_1ace[k] + tile;
             if (t >= 0 && t < 0x8c && D_1adc[k] + tile / 10 == t / 10) {
@@ -1146,7 +1148,7 @@ void far sub_s014_14f7_20d6(void)
 
 #pragma optimize("", on)
 
-/* effect clouds (s019 list 1, D_a2eb): bounding box of the puffs (F_20a5_3bc0/3cc0),
+/* effect clouds (s019 list 1, effect_clouds): bounding box of the puffs (F_20a5_3bc0/3cc0),
    erase box against last frame (D_c897/D_c8ba/D_c8f7/D_c915), list-C entry, dirty tiles */
 void far sub_s014_14f7_24a4(void)
 {
@@ -1156,13 +1158,13 @@ void far sub_s014_14f7_24a4(void)
     struct drawa _based(D_d6f5) *e;
     struct dirty _based(D_d6f5) *d;
 
-    for (k = 0; k < D_a33d; k++) {
-        if (D_a2eb[k].level != D_11ca) {
+    for (k = 0; k < effect_cloud_count; k++) {
+        if (effect_clouds[k].level != floor_shown) {
             D_c897[k] = -9999;
             D_c8ba[k] = -9999;
             continue;
         }
-        n = D_a2eb[k].f4 & 7;
+        n = effect_clouds[k].f4 & 7;
         px = F_20a5_3bc0[k];
         py = F_20a5_3cc0[k];
         miny = 9999;
@@ -1246,8 +1248,8 @@ void far sub_s014_14f7_24a4(void)
         d->w = e->w;
         d->y = e->oy;
         d->x = e->ox;
-        sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
-        tile = TILE(D_a2eb[k].x, D_a2eb[k].y);
+        sub_s014_14f7_34d6(card_window2, d->x, d->y, d->w, d->h, 0);
+        tile = TILE(effect_clouds[k].x, effect_clouds[k].y);
         if (d->x == 0 && (tile + 0x4b) % 10 == 9)
             tile++;
         tile += 0x4b;
@@ -1261,7 +1263,7 @@ void far sub_s014_14f7_24a4(void)
     }
 }
 
-/* effect areas (s019 list 2, D_a342): puffs as list-B sprites, dirty tiles */
+/* effect areas (s019 list 2, effect_areas): puffs as list-B sprites, dirty tiles */
 void far sub_s014_14f7_296e(unsigned now)
 {
     int k, n, j, minx, miny, maxx, maxy, tile, t;
@@ -1272,10 +1274,10 @@ void far sub_s014_14f7_296e(unsigned now)
     struct dirty _based(D_d6f5) *d;
 
     for (k = 0; k < D_a395; k++) {
-        if (D_a342[k].level != D_11ca)
+        if (effect_areas[k].level != floor_shown)
             continue;
-        tt = D_a342[k].t;
-        n = D_a342[k].f4 & 7;
+        tt = effect_areas[k].t;
+        n = effect_areas[k].f4 & 7;
         px = F_20a5_3754[k];
         py = F_20a5_3854[k];
         miny = 9999;
@@ -1306,7 +1308,7 @@ void far sub_s014_14f7_296e(unsigned now)
         d->w = b->w;
         d->y = b->oy;
         d->x = b->ox;
-        sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
+        sub_s014_14f7_34d6(card_window2, d->x, d->y, d->w, d->h, 0);
         for (j = 0; j < n * n; j++) {
             b = D_e164 + D_e166++;
             b->x = b->ox = px[j];
@@ -1316,7 +1318,7 @@ void far sub_s014_14f7_296e(unsigned now)
             b->spr = D_ca83[(tt <= now) * 2 + _random_n(2)];
             sub_s014_14f7_1e70((int far *)b);
         }
-        tile = TILE(D_a342[k].x, D_a342[k].y);
+        tile = TILE(effect_areas[k].x, effect_areas[k].y);
         if (d->x == 0 && (tile + 0x4b) % 10 == 9)
             tile++;
         tile += 0x4b;
@@ -1330,7 +1332,7 @@ void far sub_s014_14f7_296e(unsigned now)
     }
 }
 
-/* effect markers (s019 list 3, D_a396): screen position (F_20a5_59a8/59b8), dirty tiles */
+/* effect markers (s019 list 3, effect_markers): screen position (F_20a5_59a8/59b8), dirty tiles */
 void far sub_s014_14f7_2d32(void)
 {
     int r[7];
@@ -1338,10 +1340,10 @@ void far sub_s014_14f7_2d32(void)
     struct dirty _based(D_d6f5) *d;
 
     for (k = 0; k < D_a531; k++) {
-        if (D_a396[k].level != D_11ca)
+        if (effect_markers[k].level != floor_shown)
             continue;
-        r[2] = D_a396[k].y - D_c293;
-        r[1] = -D_c26c - (r[2] - D_a396[k].x) + 0x5f;
+        r[2] = effect_markers[k].y - D_c293;
+        r[1] = -D_c26c - (r[2] - effect_markers[k].x) + 0x5f;
         F_20a5_59a8[k] = r[1];
         r[2] += 0x44;
         F_20a5_59b8[k] = r[2];
@@ -1353,8 +1355,8 @@ void far sub_s014_14f7_2d32(void)
         d->w = r[3];
         d->y = r[2];
         d->x = r[1];
-        sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
-        tile = TILE(D_a396[k].x, D_a396[k].y);
+        sub_s014_14f7_34d6(card_window2, d->x, d->y, d->w, d->h, 0);
+        tile = TILE(effect_markers[k].x, effect_markers[k].y);
         if (r[1] == 0 && (tile + 0x4b) % 10 == 9)
             tile++;
         tile += 0x4b;
@@ -1457,34 +1459,34 @@ void far sub_s014_14f7_304a(int n)
 
 /* screen position of every visible combatant and its dirty rectangle (old and new sprite
    box: D_8584/D_85ce/D_85e8/D_8602/D_861c/D_8636) */
-void far sub_s014_14f7_31e6(void)
+void far cbt_screen_pos(void)
 {
     int i, sx, sy, set, d, dy, a, b, lim, w, hi, lo;
     char st, f;
 
     for (i = 0; i < 13; i++) {
-        st = D_9c55[i].status;
-        if (st == 0 || D_a6b4[i] != D_11ca)
+        st = combatants[i].status;
+        if (st == 0 || cbt_floor[i] != floor_shown)
             continue;
-        if ((D_9c55[i].f10 & 0x1be) != 0
-         && (D_9c55[i].target != -1 || (D_9c55[i].target == -1 && D_9c55[i].f10 == 0x100))
+        if ((combatants[i].f10 & 0x1be) != 0
+         && (combatants[i].target != -1 || (combatants[i].target == -1 && combatants[i].f10 == 0x100))
          && st != 2 && st != 3) {
             /* turn towards the target */
             f = sub_s014_0e76_306a(i);
-            D_9c55[i].f1a = f;
-            D_9c55[i].f19 = f;
+            combatants[i].f1a = f;
+            combatants[i].f19 = f;
             if (D_da36[i] == 1) {
                 D_d3fe[i] = f;
                 D_da36[i] = 0;
             }
         }
-        sx = D_9c55[i].x - D_c26c;
-        sy = D_9c55[i].y - D_c293;
-        set = sub_s014_14f7_343c(i);
+        sx = combatants[i].x - D_c26c;
+        sy = combatants[i].y - D_c293;
+        set = cbt_anim_set(i);
         sx = sx - sy + 0x88;
         D_8650[i] = sx;
-        D_9c55[i].scrx = sx - D_d505[set][D_9c55[i].f1a];
-        D_9c55[i].scry = D_c8ca[set] - D_d5d3[set] + sy + 0x69;
+        combatants[i].scrx = sx - D_d505[set][combatants[i].f1a];
+        combatants[i].scry = D_c8ca[set] - D_d5d3[set] + sy + 0x69;
         D_8584[i] = 0;
         D_85ce[i] = 0;
         D_8636[i] = 0;
@@ -1492,8 +1494,8 @@ void far sub_s014_14f7_31e6(void)
         D_8602[i] = 0;
         D_85e8[i] = 0;
         if (D_e160 == 0) {
-            dy = D_9c55[i].y - D_d664[i];
-            d = -D_d645[i] - (dy - D_9c55[i].x);
+            dy = combatants[i].y - D_d664[i];
+            d = -D_d645[i] - (dy - combatants[i].x);
             if (d < 1) {
                 D_85ce[i] = -d;
                 D_861c[i] = -d;
@@ -1508,7 +1510,7 @@ void far sub_s014_14f7_31e6(void)
                 D_8602[i] = -dy;
                 D_8584[i] = dy;
             }
-            f = D_9c55[i].f1a;
+            f = combatants[i].f1a;
             if (D_d611[i] != f) {
                 /* facing changed: the sprite box changed too */
                 a = 300 - D_d505[set][f];
@@ -1530,11 +1532,11 @@ void far sub_s014_14f7_31e6(void)
                 D_8584[i] -= d;
             }
         }
-        D_d645[i] = D_9c55[i].x;
-        D_d664[i] = D_9c55[i].y;
-        D_d611[i] = D_9c55[i].f1a;
-        D_d6b2[i] = D_d505[set][D_9c55[i].f1a];
-        D_d6d0[i] = D_d55d[set][D_9c55[i].f1a];
+        D_d645[i] = combatants[i].x;
+        D_d664[i] = combatants[i].y;
+        D_d611[i] = combatants[i].f1a;
+        D_d6b2[i] = D_d505[set][combatants[i].f1a];
+        D_d6d0[i] = D_d55d[set][combatants[i].f1a];
         D_d698[i] = sx;
     }
 }
@@ -1546,8 +1548,8 @@ void far sub_s014_14f7_3404(void)
     int *p;
     int dy;
 
-    if (D_c180 > 0)
-        for (n = D_c180, p = (int *)0x9457; n != 0; n--, p += 13) {
+    if (missile_count > 0)
+        for (n = missile_count, p = (int *)0x9457; n != 0; n--, p += 13) {
             dy = *p - D_c293;
             p[-5] = -(dy - p[-1]) - D_c26c + 0x85;
             p[-4] = dy + 0x55;
@@ -1555,12 +1557,12 @@ void far sub_s014_14f7_3404(void)
 }
 
 /* animation set of combatant i */
-int far sub_s014_14f7_343c(int i)
+int far cbt_anim_set(int i)
 {
     int k;
 
-    k = D_9c55[i].kind;
-    switch (D_9c55[i].pose) {
+    k = combatants[i].kind;
+    switch (combatants[i].pose) {
     case 2:
     case 3:
         if (k >= 5)
@@ -1620,7 +1622,7 @@ int far sub_s014_14f7_34d6(struct rect *r, int x, int y, int w, int h, int spr)
     if (r->h < h + y && (h = r->h - y + 1) <= 0)
         return 0;
     HIDE();
-    sub_root_047c_0952(r, x, y, w, h, spr);
+    gfx_fill_rect(r, x, y, w, h, spr);
     SHOW();
     return 1;
 }
@@ -1629,7 +1631,7 @@ int far sub_s014_14f7_34d6(struct rect *r, int x, int y, int w, int h, int spr)
 int far sub_s014_14f7_359a(struct rect *r, int x, int y, int spr)
 {
     HIDE();
-    sub_root_047c_04ef(r, x, y, spr);
+    gfx_draw_sprite(r, x, y, spr);
     SHOW();
 }
 
@@ -1655,7 +1657,7 @@ int far sub_s014_14f7_35ce(int spr, int x, int y, int w, int h, struct rect *r, 
     if (r->h < h + y && (h = r->h - y + 1) <= 0)
         return 0;
     HIDE();
-    sub_root_047c_0553(spr, x, y, w, h, r, sx, sy);
+    gfx_copy_rect(spr, x, y, w, h, r, sx, sy);
     SHOW();
     return 1;
 }
@@ -1680,16 +1682,16 @@ void far sub_s014_14f7_3682(int k)
     sy0 = F_20a5_4e38[k];
     ex0 = F_20a5_4c62[k];
     ey0 = F_20a5_4ce2[k];
-    n = D_a2eb[k].f4 & 7;
-    D_a2eb[k].f4 &= 0xf7;
-    cx = D_e0a5 = D_a2eb[k].x;
-    cy = D_e0a3 = D_a2eb[k].y;
+    n = effect_clouds[k].f4 & 7;
+    effect_clouds[k].f4 &= 0xf7;
+    cx = los_x0 = effect_clouds[k].x;
+    cy = los_y0 = effect_clouds[k].y;
     for (j = 0; j < n * n; j++) {
         px[j] = _random_n(3) + D_21b2[n][j] + cx;
         py[j] = _random_n(3) + D_21bc[n][j] + cy;
         mx = px[j] >> 5;
         my = py[j] >> 4;
-        v = F_20a5_0000[mx * 40 + my];
+        v = floor_img[mx * 40 + my];
         fx = px[j] & 0x1f;
         fy = py[j] & 0xf;
         if ((v.hi & 0x8000) == 0x8000) {
@@ -1706,12 +1708,12 @@ void far sub_s014_14f7_3682(int k)
                     py[j] = py[j] & 0xfffa | 10;
             } else if (fy < 4)
                 py[j] = py[j] & 0xfff4 | 4;
-            if (fx > 0x16 && (F_20a5_0000[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
+            if (fx > 0x16 && (floor_img[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
                 py[j] = py[j] & 0xfffa | 10;
         }
-        D_e0a9 = px[j];
-        D_e0a7 = py[j];
-        if (sub_s014_1d69_000c(-1, -1) == 1) {
+        los_x1 = px[j];
+        los_y1 = py[j];
+        if (line_blocked(-1, -1) == 1) {
             py[j] = 0;
             px[j] = 0;
         }
@@ -1786,16 +1788,16 @@ void far sub_s014_14f7_3a46(int k)
 
     qx = F_20a5_3754[k];
     qy = F_20a5_3854[k];
-    n = D_a342[k].f4 & 7;
-    D_a342[k].f4 &= 0xf7;
-    cx = D_e0a5 = D_a342[k].x;
-    cy = D_e0a3 = D_a342[k].y;
+    n = effect_areas[k].f4 & 7;
+    effect_areas[k].f4 &= 0xf7;
+    cx = los_x0 = effect_areas[k].x;
+    cy = los_y0 = effect_areas[k].y;
     for (j = 0; j < n * n; j++) {
         py[j] = D_21bc[n][j] + cy + 1;
         px[j] = D_21b2[n][j] + cx + 1;
         mx = px[j] >> 5;
         my = py[j] >> 4;
-        v = F_20a5_0000[mx * 40 + my];
+        v = floor_img[mx * 40 + my];
         fx = px[j] & 0x1f;
         fy = py[j] & 0xf;
         if ((v.hi & 0x8000) == 0x8000) {
@@ -1812,12 +1814,12 @@ void far sub_s014_14f7_3a46(int k)
                     py[j] = py[j] & 0xfffa | 10;
             } else if (fy < 4)
                 py[j] = py[j] & 0xfff4 | 4;
-            if (fx > 0x16 && (F_20a5_0000[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
+            if (fx > 0x16 && (floor_img[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
                 py[j] = py[j] & 0xfffa | 10;
         }
-        D_e0a9 = px[j];
-        D_e0a7 = py[j];
-        if (sub_s014_1d69_000c(-1, -1) == 1) {
+        los_x1 = px[j];
+        los_y1 = py[j];
+        if (line_blocked(-1, -1) == 1) {
             py[j] = 0;
             px[j] = 0;
         }

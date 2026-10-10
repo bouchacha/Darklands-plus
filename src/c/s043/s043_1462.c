@@ -16,6 +16,8 @@
  * DGROUP order = quality names (4e54), 0000's literals (4e88), the globals (4ec4..4fdb),
  * then 0100's literals (4fdc..).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 
@@ -45,32 +47,32 @@ union REGS { struct WORDREGS x; struct BYTEREGS h; };
 
 extern unsigned D_7760;
 extern union REGS D_e792;
-extern char D_e3e3[];
-extern int D_00e0, D_00e2, D_00e4, D_00e6;
-extern char D_01bf;
-extern int D_907e;                       /* current city */
-extern unsigned char far *D_a889;        /* darkland.lst buffer */
-extern unsigned char far *D_a885;        /* location file buffer */
-extern char far *D_9785;                 /* city record (0x26e bytes) */
-extern char D_978b[];                    /* city description (0x50 bytes) */
-extern char D_a668[][4];
+extern char pic_buf[];
+extern int cur_hour, cur_day, cur_month, cur_year;
+extern char opt_music;
+extern int cur_loc;                       /* current city */
+extern unsigned char far *lst_buf;        /* darkland.lst buffer */
+extern unsigned char far *loc_buf;        /* location file buffer */
+extern char far *city_rec;                 /* city record (0x26e bytes) */
+extern char city_desc[];                    /* city description (0x50 bytes) */
+extern char member_shield[][4];
 extern char *D_1166[];
 extern int D_a776;
 extern unsigned D_a6e0[];                /* 26 cap pictures */
 extern int D_a61e, D_a620, D_a622, D_a624, D_a62a, D_a62e, D_a630, D_a632, D_a65e;
-extern int D_a67e;                       /* party size */
-extern unsigned D_a2d7[];                /* shield pictures per party member */
+extern int party_size;                       /* party size */
+extern unsigned shield_pics[];                /* shield pictures per party member */
 extern char D_9c6a[];                    /* party records (128 bytes, +1) */
 extern long D_a74a;
 extern char huge *D_a74e;
 
-extern char far * far F_2e38_0890[];     /* item definitions (46 bytes each) */
-extern char far * far F_2e38_183e[];
+extern char far * far item_defs[];     /* item definitions (46 bytes each) */
+extern char far * far saint_names[];
 extern char far * far F_2e38_3bc4[];
-extern char far * far F_2e38_1736[];
+extern char far * far virtue_names[];
 extern char far * far F_2e38_36ec[];
-extern char far * far F_2e38_10be[];     /* locations (0x3a bytes each), 0x19e of them */
-extern char far * far F_2e38_1b2c[];     /* event records (0x30 bytes each), 300 slots */
+extern char far * far locations[];     /* locations (0x3a bytes each), 0x19e of them */
+extern char far * far events[];     /* event records (0x30 bytes each), 300 slots */
 
 int printf(const char *, ...);
 int fprintf(FILE *, const char *, ...);
@@ -93,35 +95,35 @@ long time(long *);
 
 unsigned far alloc_buffer(unsigned long size, char *name);
 void far free_buffer(unsigned seg, char *name);
-int far sub_root_0617_011e(char *, unsigned char far *);
+int far file_load_far(char *, unsigned char far *);
 unsigned far sub_root_06a1_2c9e(char *, unsigned, int *);   /* _dos_open */
 char huge * far sub_root_06a1_2114(long, int);              /* halloc */
-void far sub_root_047c_078a(int);
+void far sound_play(int);
 void far sub_root_047c_0545(void);
 void far sub_root_047c_04f8(void);
-int far sub_root_047c_04d5(int, int, int, int, int);
+int far gfx_save_rect(int, int, int, int, int);
 void far sub_root_047c_0584(int);
-int far sub_root_0617_045c(char *);
-void far sub_root_0617_0230(int, char *);
-void far sub_root_0000_1588(int);
-void far sub_root_0000_1716(int);
-int far vec_1c1b();
-void far vec_18d3(void);
+int far pic_load(char *);
+void far pic_draw_1(int, char *);
+void far party_panel_frames(int);
+void far party_panel_rows(int);
+int far party_lore_level();
+void far order_menu_reset_vec(void);
 
-void far sub_s043_1462_0100(char *);
+void far world_load(char *);
 
-char D_4ec4[] = "screwed up.";
-char D_4ed0[] = "You'll sleep until dawn.";
-char D_4eea[] = "You'll wait for night.";
-char D_4f02[] = "No risk.";
-char D_4f0c[] = "Select a person and a potion.";
-char D_4f2a[] = "Select a person and a saint.";
-char D_4f48[] = "Success is assured.";
-char D_4f5c[] = "XXX Saint % success msg XXX.";
-char D_4f7a[] = "Of course the potion will work!";
-char D_4f9a[] = "You can always encounter the unknown";
-char D_4fc0[] = "Enter Combat";
-char *D_4fce[] = {"very poor", "poor", "fair", "good", "very good", "excellent", "superb"};
+char str_screwed_up[] = "screwed up.";
+char str_sleep_dawn[] = "You'll sleep until dawn.";
+char str_wait_night[] = "You'll wait for night.";
+char str_no_risk[] = "No risk.";
+char str_select_potion[] = "Select a person and a potion.";
+char str_select_saint[] = "Select a person and a saint.";
+char str_success_assured[] = "Success is assured.";
+char str_saint_xxx[] = "XXX Saint % success msg XXX.";
+char str_potion_works[] = "Of course the potion will work!";
+char str_unknown[] = "You can always encounter the unknown";
+char str_enter_combat[] = "Enter Combat";
+char *quality_words[] = {"very poor", "poor", "fair", "good", "very good", "excellent", "superb"};
 
 /* debug: append a memory report line to MEM.LOG */
 #pragma optimize("a", on)
@@ -147,19 +149,19 @@ void far sub_s043_1462_0000(char *who, char *mode)
     int86(0x21, &D_e792, &D_e792);
     paras = D_e792.x.bx;
     for (nev = 0, i = 0; i < 300; i++)
-        if (F_2e38_1b2c[i])
+        if (events[i])
             nev++;
     f = fopen("MEM.LOG", mode);
     if (f == 0)
         exit_(1);
-    fprintf(f, "%8ld %9s %9s fls:%2d evnts:%3d pwr:%d  %d:%d:%d:%d\n", (long)paras * 16, who, D_e3e3, cnt, nev,
-            vec_1c1b(), D_00e4, D_00e2, D_00e6, D_00e0);
+    fprintf(f, "%8ld %9s %9s fls:%2d evnts:%3d pwr:%d  %d:%d:%d:%d\n", (long)paras * 16, who, pic_buf, cnt, nev,
+            party_lore_level(), cur_month, cur_day, cur_year, cur_hour);
     fclose(f);
 }
 #pragma optimize("", on)
 
 /* load the world data for the current city; locfile = the location file */
-void far sub_s043_1462_0100(char *locfile)
+void far world_load(char *locfile)
 {
     char *msg;
     struct find_t ft;
@@ -176,17 +178,17 @@ void far sub_s043_1462_0100(char *locfile)
         exit_(1);
     } else {
         p = (unsigned char far *)((unsigned long)alloc_buffer(ft.size, "Item memory") << 16);
-        D_a889 = p;
-        i = sub_root_0617_011e("darkland.lst", p);
+        lst_buf = p;
+        i = file_load_far("darkland.lst", p);
         n = *p++;
         na = *p++;
         nb = *p++;
         for (i = 0; i < n; i++) {
-            F_2e38_0890[i] = p;
+            item_defs[i] = p;
             p += 0x2e;
         }
         for (i = 0; i < na; i++) {
-            F_2e38_183e[i] = p;
+            saint_names[i] = p;
             while (*p++)
                 ;
         }
@@ -196,7 +198,7 @@ void far sub_s043_1462_0100(char *locfile)
                 ;
         }
         for (i = 0; i < nb; i++) {
-            F_2e38_1736[i] = p;
+            virtue_names[i] = p;
             while (*p++)
                 ;
         }
@@ -210,11 +212,11 @@ void far sub_s043_1462_0100(char *locfile)
         printf(msg, "city");
         exit_(1);
     } else {
-        D_9785 = (char far *)((unsigned long)alloc_buffer(0x26eL, "city memory") << 16);
+        city_rec = (char far *)((unsigned long)alloc_buffer(0x26eL, "city memory") << 16);
         sub_root_06a1_2c9e("darkland.cty", 0, &fd);
         f = fdopen(fd, "r");
-        fseek(f, (long)D_907e * 0x26e + 1, 0);
-        _dos_read(fd, D_9785, 0x26e, &i);
+        fseek(f, (long)cur_loc * 0x26e + 1, 0);
+        _dos_read(fd, city_rec, 0x26e, &i);
         fclose(f);
     }
     if (_dos_findfirst(locfile, 0, &ft) != 0) {
@@ -222,13 +224,13 @@ void far sub_s043_1462_0100(char *locfile)
         exit_(1);
     } else {
         p = (unsigned char far *)((unsigned long)alloc_buffer(ft.size, "loc memory") << 16);
-        D_a885 = p;
-        i = sub_root_0617_011e(locfile, p);
+        loc_buf = p;
+        i = file_load_far(locfile, p);
         nr = *p++;
         n = *p++;
         n = (n << 8) + nr;
         for (i = 0; i < n; i++) {
-            F_2e38_10be[i] = p;
+            locations[i] = p;
             p += 0x3a;
         }
     }
@@ -238,8 +240,8 @@ void far sub_s043_1462_0100(char *locfile)
     } else {
         f = fopen("darkland.dsc", "r");
         fgetc(f);
-        fseek(f, (long)(D_907e * 0x50 + 1), 0);
-        fread(D_978b, 0x50, 1, f);
+        fseek(f, (long)(cur_loc * 0x50 + 1), 0);
+        fread(city_desc, 0x50, 1, f);
         fclose(f);
     }
     if (_dos_findfirst("events.tmp", 0, &ft) == 0) {
@@ -248,15 +250,15 @@ void far sub_s043_1462_0100(char *locfile)
         fread(&nev, 2, 1, f);
         fseek(f, 2L, 0);
         for (i = 0; i < nev; i++) {
-            F_2e38_1b2c[i] = (char far *)((unsigned long)alloc_buffer(0x30L, 0) << 16);
-            _dos_read(fd, F_2e38_1b2c[i], 0x30, &nr);
+            events[i] = (char far *)((unsigned long)alloc_buffer(0x30L, 0) << 16);
+            _dos_read(fd, events[i], 0x30, &nr);
         }
         fclose(f);
     }
 }
 
 /* shut-down: write charactr.tmp names back, save locs.tmp and events.tmp, free everything */
-void far sub_s043_1462_054e(void)
+void far cards_shutdown(void)
 {
     int fd, fd2;
     unsigned nr, nw;
@@ -268,46 +270,46 @@ void far sub_s043_1462_054e(void)
     sub_root_06a1_2c9e("charactr.tmp", 0, &fd);
     _dos_read(fd, (void far *)&hdr, 2, &nr);
     _dos_read(fd, (void far *)ids, 10, &nr);
-    _dos_read(fd, (void far *)D_a668, 0x14, &nr);
+    _dos_read(fd, (void far *)member_shield, 0x14, &nr);
     _dos_close(fd);
     for (i = 0; i < 5; i++)
         if (ids[i] != -1)
-            strcpy(D_1166[i], D_a668[i]);
+            strcpy(D_1166[i], member_shield[i]);
     _dos_creat("locs.tmp", 0, &fd2);
     cnt = 0x19e;
     _dos_write(fd2, (void far *)&cnt, 2, &nw);
     for (i = 0; i < 0x19e; i++)
-        _dos_write(fd2, F_2e38_10be[i], 0x3a, &nw);
+        _dos_write(fd2, locations[i], 0x3a, &nw);
     _dos_close(fd2);
     _dos_creat("events.tmp", 0, &fd2);
     nev = 0;
     for (i = 0; i < 300; i++)
-        if (F_2e38_1b2c[i])
+        if (events[i])
             nev++;
     _dos_write(fd2, (void far *)&nev, 2, &nw);
     for (i = 0; i < 300; i++) {
-        if (F_2e38_1b2c[i]) {
-            _dos_write(fd2, F_2e38_1b2c[i], 0x30, &nw);
-            free_buffer(FP_SEG(F_2e38_1b2c[i]), "event");
-            F_2e38_1b2c[i] = 0;
+        if (events[i]) {
+            _dos_write(fd2, events[i], 0x30, &nw);
+            free_buffer(FP_SEG(events[i]), "event");
+            events[i] = 0;
         }
     }
     _dos_close(fd2);
-    sub_root_047c_078a(1);
+    sound_play(1);
     if (D_a776)
         free_buffer(D_a776, "b");
     D_a776 = 0;
     free_buffer(D_a6e0[0], "Caps");
-    free_buffer(FP_SEG(D_a889), "S&S");
-    free_buffer(FP_SEG(D_9785), "City");
-    free_buffer(FP_SEG(D_a885), "Maploc");
-    for (i = 0; i < D_a67e; i++)
-        if (D_a2d7[i])
-            free_buffer(D_a2d7[i], "sg");
+    free_buffer(FP_SEG(lst_buf), "S&S");
+    free_buffer(FP_SEG(city_rec), "City");
+    free_buffer(FP_SEG(loc_buf), "Maploc");
+    for (i = 0; i < party_size; i++)
+        if (shield_pics[i])
+            free_buffer(shield_pics[i], "sg");
 }
 
 /* start-up: read charactr.tmp, load the party shields and the common pictures, load the world */
-void far sub_s043_1462_078e(void)
+void far cards_startup(void)
 {
     int fd;
     unsigned nr;
@@ -321,7 +323,7 @@ void far sub_s043_1462_078e(void)
     sub_root_06a1_2c9e("charactr.tmp", 0, &fd);
     _dos_read(fd, (void far *)&hdr, 2, &nr);
     _dos_read(fd, (void far *)ids, 10, &nr);
-    _dos_read(fd, (void far *)D_a668, 0x14, &nr);
+    _dos_read(fd, (void far *)member_shield, 0x14, &nr);
     _dos_close(fd);
     for (i = 0; i < 5; i++) {
         if (ids[i] != -1) {
@@ -331,41 +333,41 @@ void far sub_s043_1462_078e(void)
             name[11] = D_9c6a[i * 0x80];
             name[12] = 0;
             strcat(name, ".pic");
-            D_a2d7[i] = sub_root_0617_045c(name);
+            shield_pics[i] = pic_load(name);
             sub_root_047c_04f8();
         }
     }
-    sub_root_0617_0230(1, "pics\\Illmcaps.pic");
+    pic_draw_1(1, "pics\\Illmcaps.pic");
     sub_root_047c_0545();
     for (j = 0; j < 26; j++)
-        D_a6e0[j] = sub_root_047c_04d5(1, j % 15 * 21, j / 15 * 21, 20, 20);
-    D_a61e = sub_root_0617_045c("pics\\rpbdrtop.pic");
-    D_a620 = sub_root_0617_045c("pics\\rpbdrbtm.pic");
-    D_a622 = sub_root_0617_045c("pics\\rpbdrlft.pic");
-    D_a624 = sub_root_0617_045c("pics\\rpbdrrgt.pic");
-    D_a62a = sub_root_0617_045c("pics\\timer01.pic");
-    D_a62e = sub_root_0617_045c("pics\\timer03.pic");
-    D_a630 = sub_root_0617_045c("pics\\timer04.pic");
-    D_a632 = sub_root_0617_045c("pics\\timer05.pic");
-    D_a65e = sub_root_0617_045c("pics\\textback.pic");
+        D_a6e0[j] = gfx_save_rect(1, j % 15 * 21, j / 15 * 21, 20, 20);
+    D_a61e = pic_load("pics\\rpbdrtop.pic");
+    D_a620 = pic_load("pics\\rpbdrbtm.pic");
+    D_a622 = pic_load("pics\\rpbdrlft.pic");
+    D_a624 = pic_load("pics\\rpbdrrgt.pic");
+    D_a62a = pic_load("pics\\timer01.pic");
+    D_a62e = pic_load("pics\\timer03.pic");
+    D_a630 = pic_load("pics\\timer04.pic");
+    D_a632 = pic_load("pics\\timer05.pic");
+    D_a65e = pic_load("pics\\textback.pic");
     sub_root_047c_04f8();
     sub_root_047c_0584(0x1c0);
-    vec_18d3();
-    sub_s043_1462_0100("locs.tmp");
-    sub_root_0000_1588(0x100);
-    sub_root_0000_1716(0x100);
+    order_menu_reset_vec();
+    world_load("locs.tmp");
+    party_panel_frames(0x100);
+    party_panel_rows(0x100);
 }
 
 void far sub_s043_1462_09ae(int x)
 {
-    if (D_01bf)
-        sub_root_047c_078a(x);
+    if (opt_music)
+        sound_play(x);
     else
-        sub_root_047c_078a(1);
+        sound_play(1);
 }
 
 /* load a whole file (sound) into a huge buffer D_a74e, size D_a74a */
-void far sub_s043_1462_09c8(char *name)
+void far sound_file_load(char *name)
 {
     struct find_t ft;
     char huge *p;

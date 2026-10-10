@@ -29,6 +29,8 @@
  *   F_28f5_0000 is an array of 6-byte batch records {formula, count, x4}; D_e716[id] is the
  *   ingredient count table (alcform's D_e7a6 = D_e716 + 0x48 ints).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct ingred { char count; char pad; int item; };
@@ -42,18 +44,18 @@ extern struct formula far *far F_2e38_35e4[];
 extern int D_e716[];                /* ingredient counts by item id (D_e7a6 - 0x48) */
 struct batch { int formula; int count; int x4; };   /* far 28f5:0000, 6 bytes */
 extern struct batch far F_28f5_0000[];
-extern char far * far F_2e38_1736[];
+extern char far * far virtue_names[];
 struct gfx { char pad[0xc]; int color; };
 struct item { unsigned id; char x2[2]; unsigned char qty; char x5; };
 struct invent { struct item it[64]; };          /* 0x180 bytes per character */
-extern struct invent far F_2e38_003e[];
+extern struct invent far inventories[];
 struct member { char present; char pad01[0x29]; char name[0x23]; char x4d; char pad4e[0x10]; char x5e; char pad5f[0xb]; char nitems; char pad6b[0x15]; };
-extern struct member D_9c69[];
-extern int D_a67e;
-int far vec_208f();
-int far vec_1f6d();
+extern struct member party[];
+extern int party_size;
+int far remove_item_stack();
+int far add_item_rec();
 struct obj { int formula; char pad02[0x18]; int x1a; char pad1c[4]; int x20; char pad22[8]; int x2a; int x2c; };
-extern int D_e3ce, D_907e;
+extern int last_event, cur_loc;
 extern int D_9078;
 struct find_t {
     char reserved[21];
@@ -65,42 +67,42 @@ struct find_t {
 };
 extern unsigned char far *D_9c2b;
 extern char D_907c;
-extern volatile char D_6ef0;        /* mouse buttons */
-extern int D_6eec, D_6eee;          /* mouse x, y */
-extern int D_9c46;
+extern volatile char mouse_buttons;        /* mouse buttons */
+extern int mouse_x, mouse_y;          /* mouse x, y */
+extern int party_icons_dirty;
 extern int D_3244, D_3246, D_3248, D_324e, D_3250;
-int far sub_s029_1367_0066();
-void far sub_root_0000_0000(int, int);
-void far sub_root_0000_1588(int);
-void far sub_root_0000_1716(int);
+int far clamp_range();
+void far menu_bar_run(int, int);
+void far party_panel_frames(int);
+void far party_panel_rows(int);
 void far sub_root_047c_0568(void);
 void far sub_root_047c_056f(void);
-int far sub_root_047c_073d(void);
-int far sub_root_047c_0744(void);
+int far key_pressed(void);
+int far get_key(void);
 int far sub_root_047c_1320();
 extern char far *far F_290e_1dc3[];         /* menu strings of the batch screen */
 char *strcpy(char *, const char *);
-extern unsigned char far F_2e38_07be[][22];  /* known formulas: bits 0-2 = formulas 3k..3k+2 */
-extern char D_e48c[];
-void far sub_root_047c_058b(char *);
+extern unsigned char far formulas_known[][22];  /* known formulas: bits 0-2 = formulas 3k..3k+2 */
+extern char cur_palette[];
+void far set_palette(char *);
 extern char far *far F_2e38_36ec[];
 int far sub_root_047c_0545();
-int far sub_root_0617_045c();
+int far pic_load();
 int far sub_root_047c_04f8();
 extern struct obj far *far F_2e38_1b28[];
 struct itemdef { char pad[0x1e]; char x1e; char pad1f[6]; char x25; };
-extern struct itemdef far *far F_2e38_0890[];
-int far sub_s029_0e76_30fe();
-extern struct gfx D_2806;
-extern char D_27f4[];
-extern int D_2800;
-extern int D_2804;
-extern int D_2816;
+extern struct itemdef far *far item_defs[];
+int far event_free();
+extern struct gfx back_win;
+extern char screen_win[];
+extern int screen_win_colour;
+extern int screen_win_font;
+extern int back_win_font;
 extern int D_886c;
 extern int D_8872;
 extern int D_8876;
 extern int D_9c2d;
-extern int D_9c42;
+extern int cursor_default;
 extern int D_e7a0;
 extern int D_e7a2;
 extern int D_e7d4;
@@ -109,26 +111,26 @@ int far exit_();
 int far printf();
 int far sprintf();
 void *memset(void *, int, unsigned);
-int far sub_root_0000_13a0();
-int far sub_root_0265_0004();
-int far sub_root_0265_0134();
-int far sub_root_047c_04dc();
+int far quit_to_dos();
+int far draw_text_far();
+int far draw_text_wrapped();
+int far gfx_recolor_rect();
 int far sub_root_047c_04f8();
 int far sub_root_047c_0545();
-int far sub_root_047c_0553();
-int far sub_root_047c_055a();
-int far sub_root_047c_05a5();
-int far sub_root_047c_124f();
-int far sub_root_047c_1293();
-int far sub_root_047c_12c3();
-int far sub_root_05ba_0004();
-int far sub_root_05ba_00c2();
-int far sub_root_0617_011e();
-int far sub_root_0617_024a();
-int far sub_root_0617_045c();
-int far sub_s029_0e76_2d5c();
-int far sub_s029_0e76_324c();
-void far sub_s033_1462_0000();
+int far gfx_copy_rect();
+int far gfx_text();
+int far gfx_draw_pic();
+int far mouse_set_cursor();
+int far mouse_show();
+int far mouse_hide();
+int far mem_alloc();
+int far mem_free();
+int far file_load_far();
+int far pic_draw_pal();
+int far pic_load();
+int far event_renew();
+int far event_next();
+void far alchemy_screen();
 int far sub_s033_1462_0628();
 void far sub_s033_1462_0658();
 void far sub_s033_1462_0796();
@@ -153,15 +155,15 @@ int D_324c = 0;
 int D_324e = 0;                     /* 0: batch list, 1: formula page */
 int D_3250 = -1;                    /* highlighted menu row */
 
-/* sub_s033_1462_0000: alchemy screen main loop for party member `who` */
-void far sub_s033_1462_0000(int who, int p8)
+/* alchemy_screen: alchemy screen main loop for party member `who` */
+void far alchemy_screen(int who, int p8)
 {
     struct find_t ff;
     unsigned char far *p;
     int i, n, key, k;
 
-    D_e7a2 = D_2816;
-    D_e7a0 = D_2804;
+    D_e7a2 = back_win_font;
+    D_e7a0 = screen_win_font;
     D_907c = 4;
     D_886c = who;
     D_e7d4 = 0;
@@ -170,9 +172,9 @@ void far sub_s033_1462_0000(int who, int p8)
         printf("No .alc file\n");
         exit_(1);
     } else {
-        p = (unsigned char far *)((unsigned long)sub_root_05ba_0004(ff.size, "alc mem") << 16);
+        p = (unsigned char far *)((unsigned long)mem_alloc(ff.size, "alc mem") << 16);
         D_9c2b = p;
-        sub_root_0617_011e("darkland.alc", p);
+        file_load_far("darkland.alc", p);
         n = *p++;
         for (i = 0; i < n; i++) {
             F_2e38_35e4[i] = (struct formula far *)p;
@@ -183,24 +185,24 @@ void far sub_s033_1462_0000(int who, int p8)
     sub_s033_1462_0658(who);
     sub_s033_1462_0796(who);
     sub_root_047c_056f();
-    while (D_6ef0 & 1)
+    while (mouse_buttons & 1)
         ;
     for (;;) {
         key = 0;
         if (D_324e == 0) {
-            if (!(D_6ef0 & 1) && D_6eec > 0x46 && D_6eec < 0xaa && D_6eee > 0x24 && D_6eee < 0x36) {
-                k = (D_6eee - 0x24) / 8;
+            if (!(mouse_buttons & 1) && mouse_x > 0x46 && mouse_x < 0xaa && mouse_y > 0x24 && mouse_y < 0x36) {
+                k = (mouse_y - 0x24) / 8;
                 if (D_3250 != k) {
-                    sub_root_047c_12c3();
-                    sub_root_047c_04dc(D_27f4, 0x46, D_3250 * 8 + 0x24, 0x6e, 8, 0xb, 8);
+                    mouse_hide();
+                    gfx_recolor_rect(screen_win, 0x46, D_3250 * 8 + 0x24, 0x6e, 8, 0xb, 8);
                     D_3250 = k;
-                    sub_root_047c_04dc(D_27f4, 0x46, k * 8 + 0x24, 0x6e, 8, 8, 0xb);
-                    sub_root_047c_1293();
+                    gfx_recolor_rect(screen_win, 0x46, k * 8 + 0x24, 0x6e, 8, 8, 0xb);
+                    mouse_show();
                 }
-            } else if ((D_6ef0 & 1) && D_6eec > 0x46 && D_6eec < 0xaa && D_6eee > 0x24 && D_6eee < 0x36) {
-                while (D_6ef0 & 1)
+            } else if ((mouse_buttons & 1) && mouse_x > 0x46 && mouse_x < 0xaa && mouse_y > 0x24 && mouse_y < 0x36) {
+                while (mouse_buttons & 1)
                     ;
-                switch (k = (D_6eee - 0x24) / 8) {
+                switch (k = (mouse_y - 0x24) / 8) {
                 case 0:
                     key = 0x1655;
                     break;
@@ -208,26 +210,26 @@ void far sub_s033_1462_0000(int who, int p8)
                     key = 0x11b;
                     break;
                 }
-            } else if (!(D_6ef0 & 1) && D_3250 != -1) {
-                sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0x46, D_3250 * 8 + 0x24, 0xb4, 8, 0xb, 8);
+            } else if (!(mouse_buttons & 1) && D_3250 != -1) {
+                mouse_hide();
+                gfx_recolor_rect(screen_win, 0x46, D_3250 * 8 + 0x24, 0xb4, 8, 0xb, 8);
                 D_3250 = -1;
-                sub_root_047c_1293();
+                mouse_show();
             }
         } else if (D_324e == 1) {
-            if (!(D_6ef0 & 1) && D_6eec > 0x46 && D_6eec < 0xb4 && D_6eee > 0x24 && D_6eee < 0x46) {
-                k = (D_6eee - 0x24) / 8;
+            if (!(mouse_buttons & 1) && mouse_x > 0x46 && mouse_x < 0xb4 && mouse_y > 0x24 && mouse_y < 0x46) {
+                k = (mouse_y - 0x24) / 8;
                 if (D_3250 != k) {
-                    sub_root_047c_12c3();
-                    sub_root_047c_04dc(D_27f4, 0x46, D_3250 * 8 + 0x24, 0x6e, 8, 0xb, 8);
+                    mouse_hide();
+                    gfx_recolor_rect(screen_win, 0x46, D_3250 * 8 + 0x24, 0x6e, 8, 0xb, 8);
                     D_3250 = k;
-                    sub_root_047c_04dc(D_27f4, 0x46, k * 8 + 0x24, 0x6e, 8, 8, 0xb);
-                    sub_root_047c_1293();
+                    gfx_recolor_rect(screen_win, 0x46, k * 8 + 0x24, 0x6e, 8, 8, 0xb);
+                    mouse_show();
                 }
-            } else if ((D_6ef0 & 1) && D_6eec > 0x46 && D_6eec < 0xb4 && D_6eee > 0x24 && D_6eee < 0x46) {
-                while (D_6ef0 & 1)
+            } else if ((mouse_buttons & 1) && mouse_x > 0x46 && mouse_x < 0xb4 && mouse_y > 0x24 && mouse_y < 0x46) {
+                while (mouse_buttons & 1)
                     ;
-                switch (k = (D_6eee - 0x24) / 8) {
+                switch (k = (mouse_y - 0x24) / 8) {
                 case 0:
                     key = 0x324d;
                     break;
@@ -243,45 +245,45 @@ void far sub_s033_1462_0000(int who, int p8)
                 }
             }
         }
-        if (D_324e == 0 && (D_6ef0 & 1) && D_6eec > 0xc0 && D_6eec < 0x11a && D_6eee > 0x2d && D_6eee < 0xb5) {
-            n = D_6eee;
-            while (D_6ef0 & 1)
+        if (D_324e == 0 && (mouse_buttons & 1) && mouse_x > 0xc0 && mouse_x < 0x11a && mouse_y > 0x2d && mouse_y < 0xb5) {
+            n = mouse_y;
+            while (mouse_buttons & 1)
                 ;
-            sub_root_047c_12c3();
+            mouse_hide();
             D_3246 = 0;
-            sub_root_047c_04dc(D_27f4, 0xc0, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
+            gfx_recolor_rect(screen_win, 0xc0, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
             k = D_e7d4 - D_3248;
-            if ((D_3248 = sub_s029_1367_0066(0, 0x11, (n - 0x2d) >> 3)) + k >= D_3244)
-                D_3248 = sub_s029_1367_0066(0, 0x11, D_e7d4 = D_3244 - 1);
+            if ((D_3248 = clamp_range(0, 0x11, (n - 0x2d) >> 3)) + k >= D_3244)
+                D_3248 = clamp_range(0, 0x11, D_e7d4 = D_3244 - 1);
             else
                 D_e7d4 = k + D_3248;
-            sub_s033_1462_1018(D_886c, D_e7d4, D_27f4);
-            sub_root_047c_04dc(D_27f4, 0xc0, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
-            D_2800 = 8;
-            sub_root_047c_1293();
+            sub_s033_1462_1018(D_886c, D_e7d4, screen_win);
+            gfx_recolor_rect(screen_win, 0xc0, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
+            screen_win_colour = 8;
+            mouse_show();
         }
-        if (D_324e == 0 && (D_6ef0 & 1) && D_6eee > 0x1d && D_6eee < 0x26 && D_6eec > 0xc0 && D_6eec < 0x11a) {
+        if (D_324e == 0 && (mouse_buttons & 1) && mouse_y > 0x1d && mouse_y < 0x26 && mouse_x > 0xc0 && mouse_x < 0x11a) {
             sub_root_047c_1320(6, 0, 0, 0);
-            while (D_6ef0 & 1)
+            while (mouse_buttons & 1)
                 ;
             key = 0x4800;
             D_3246 = 0;
         }
-        if (D_324e == 0 && (D_6ef0 & 1) && D_6eee > 0xb5 && D_6eee < 0xbe && D_6eec > 0xc0 && D_6eec < 0x11a) {
+        if (D_324e == 0 && (mouse_buttons & 1) && mouse_y > 0xb5 && mouse_y < 0xbe && mouse_x > 0xc0 && mouse_x < 0x11a) {
             sub_root_047c_1320(6, 0, 0, 0);
-            while (D_6ef0 & 1)
+            while (mouse_buttons & 1)
                 ;
             key = 0x5000;
             D_3246 = 0;
         }
-        sub_root_0000_0000(0x9419, 0);
-        if (D_9c46) {
-            D_9c46 = 0;
-            sub_root_0617_024a(1, "pics\\alcscrn1.pic", D_e48c);
+        menu_bar_run(0x9419, 0);
+        if (party_icons_dirty) {
+            party_icons_dirty = 0;
+            pic_draw_pal(1, "pics\\alcscrn1.pic", cur_palette);
             sub_root_047c_0568();
-            sub_root_047c_058b(D_e48c);
-            sub_root_0000_1588(0x100);
-            sub_root_0000_1716(0x100);
+            set_palette(cur_palette);
+            party_panel_frames(0x100);
+            party_panel_rows(0x100);
             if (D_324e == 0)
                 sub_s033_1462_0796(D_886c);
             else
@@ -289,8 +291,8 @@ void far sub_s033_1462_0000(int who, int p8)
             sub_root_047c_056f();
             key = 0;
         }
-        if (sub_root_047c_073d())
-            key = sub_root_047c_0744();
+        if (key_pressed())
+            key = get_key();
         if (key == 0x11b || key == 0x2044 || key == 0x2064) {
             if (D_324e == 0) {
                 sub_s033_1462_14e6();
@@ -328,10 +330,10 @@ void far sub_s033_1462_0000(int who, int p8)
 
 int far sub_s033_1462_0628(int p_6)
 {
-    D_2816 = D_e7a2;
-    D_2804 = D_e7a0;
-    sub_root_05ba_00c2(D_9c2d, "alc");
-    sub_root_047c_124f(0, 0, D_9c42);
+    back_win_font = D_e7a2;
+    screen_win_font = D_e7a0;
+    mem_free(D_9c2d, "alc");
+    mouse_set_cursor(0, 0, cursor_default);
     return p_6;
 }
 
@@ -340,22 +342,22 @@ void far sub_s033_1462_0658(int who)
 {
     int n, k, i, j;
 
-    sub_root_0617_024a(1, "pics\\alcscrn1.pic", D_e48c);
+    pic_draw_pal(1, "pics\\alcscrn1.pic", cur_palette);
     memset(&D_e716[0x48], 0, 0x2e);
     n = 0;
     for (k = 0; k < 22; k++) {
-        if (F_2e38_07be[who][k]) {
-            if (F_2e38_07be[who][k] & 1) {
+        if (formulas_known[who][k]) {
+            if (formulas_known[who][k] & 1) {
                 F_28f5_0000[n].formula = k * 3;
                 F_28f5_0000[n].count = 0;
                 n++;
             }
-            if (F_2e38_07be[who][k] & 2) {
+            if (formulas_known[who][k] & 2) {
                 F_28f5_0000[n].formula = k * 3 + 1;
                 F_28f5_0000[n].count = 0;
                 n++;
             }
-            if (F_2e38_07be[who][k] & 4) {
+            if (formulas_known[who][k] & 4) {
                 F_28f5_0000[n].formula = k * 3 + 2;
                 F_28f5_0000[n].count = 0;
                 n++;
@@ -366,12 +368,12 @@ void far sub_s033_1462_0658(int who)
     D_3248 = 0;
     sub_s033_1462_14e6();
     for (i = 0; i < 5; i++)
-        if (D_9c69[i].present)
-            for (k = 0; k < D_9c69[i].nitems; k++)
-                if (F_2e38_003e[i].it[k].id >= 0x48 && F_2e38_003e[i].it[k].id < 0x5f)
-                    D_e716[F_2e38_003e[i].it[k].id & 0xfff] += F_2e38_003e[i].it[k].qty;
-    D_2806.color = 8;
-    sub_root_047c_058b(D_e48c);
+        if (party[i].present)
+            for (k = 0; k < party[i].nitems; k++)
+                if (inventories[i].it[k].id >= 0x48 && inventories[i].it[k].id < 0x5f)
+                    D_e716[inventories[i].it[k].id & 0xfff] += inventories[i].it[k].qty;
+    back_win.color = 8;
+    set_palette(cur_palette);
 }
 
 /* sub_s033_1462_0796: draw the batch screen: menu, batch list and the selected formula */
@@ -381,36 +383,36 @@ void far sub_s033_1462_0796(int a)
     int h, i, row, cnt, save;
 
     D_324e = 0;
-    sub_root_047c_12c3();
-    sub_root_047c_0553(&D_2806, 0x3c, 0, 0x104, 200, D_27f4, 0x3c, 0);
-    D_2800 = D_3244 ? 8 : 7;
-    sub_root_047c_055a(D_27f4, 0x50, 0x24, "\x8c U\xff" "se this formula");
-    D_2800 = 8;
-    sub_root_047c_055a(D_27f4, 0x50, 0x2c, "\x8c D\xff" "o something else");
-    save = D_2804;
-    D_2804 = 1;
-    D_2800 = 4;
+    mouse_hide();
+    gfx_copy_rect(&back_win, 0x3c, 0, 0x104, 200, screen_win, 0x3c, 0);
+    screen_win_colour = D_3244 ? 8 : 7;
+    gfx_text(screen_win, 0x50, 0x24, "\x8c U\xff" "se this formula");
+    screen_win_colour = 8;
+    gfx_text(screen_win, 0x50, 0x2c, "\x8c D\xff" "o something else");
+    save = screen_win_font;
+    screen_win_font = 1;
+    screen_win_colour = 4;
     sub_root_047c_0545();
-    h = sub_root_0617_045c("pics\\alchem13.pic");
+    h = pic_load("pics\\alchem13.pic");
     sub_root_047c_04f8();
-    sub_root_047c_05a5(D_27f4, 0xc0, 0x1d, h);
+    gfx_draw_pic(screen_win, 0xc0, 0x1d, h);
     for (i = D_e7d4 - D_3248; i < D_3244; i++) {
         row = i - D_e7d4 + D_3248;
         if (row < 0x11) {
             if ((cnt = F_28f5_0000[i].count) != 0) {
                 sprintf(buf, "%2dx", cnt);
-                sub_root_047c_055a(D_27f4, 0xcf, row * 8 + 0x2d, buf);
+                gfx_text(screen_win, 0xcf, row * 8 + 0x2d, buf);
             }
-            sub_root_0265_0004(D_27f4, 0xde, row * 8 + 0x2d, F_2e38_36ec[F_28f5_0000[i].formula]);
+            draw_text_far(screen_win, 0xde, row * 8 + 0x2d, F_2e38_36ec[F_28f5_0000[i].formula]);
         }
     }
-    D_2804 = save;
-    sub_s033_1462_1018(a, D_e7d4, D_27f4);
-    sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
-    D_2800 = 8;
+    screen_win_font = save;
+    sub_s033_1462_1018(a, D_e7d4, screen_win);
+    gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
+    screen_win_colour = 8;
     if (h)
-        sub_root_05ba_00c2(h, "s");
-    sub_root_047c_1293();
+        mem_free(h, "s");
+    mouse_show();
 }
 
 /* sub_s033_1462_094a: draw the formula page of the batch screen for member `who` */
@@ -421,12 +423,12 @@ void far sub_s033_1462_094a(int who)
     int m, pct, i, y;
 
     D_324e = 1;
-    sub_root_047c_12c3();
-    sub_root_047c_0553(&D_2806, 0x3c, 0, 0x104, 200, D_27f4, 0x3c, 0);
+    mouse_hide();
+    gfx_copy_rect(&back_win, 0x3c, 0, 0x104, 200, screen_win, 0x3c, 0);
     D_8872 = sub_s033_1462_1334(F_28f5_0000[D_e7d4].formula);
-    D_2800 = 0xe;
+    screen_win_colour = 0xe;
     m = F_28f5_0000[D_e7d4].count > 2 ? 100 / (F_28f5_0000[D_e7d4].count >> 1) : 100;
-    i = D_9c69[D_886c].x4d + (D_9c69[D_886c].x5e - F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic) + D_9078 + m;
+    i = party[D_886c].x4d + (party[D_886c].x5e - F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic) + D_9078 + m;
     if (i < 0)
         pct = 0;
     else {
@@ -436,22 +438,22 @@ void far sub_s033_1462_094a(int who)
     }
     if (pct > 99)
         pct = 99;
-    sprintf(buf, "%s's Formula - making %d batches.", D_9c69[who].name, F_28f5_0000[D_e7d4].count);
-    sub_root_0265_0134(D_27f4, buf, 0xea, 0x49, 0xd, 8, 0, 0, 0, 1, 0, 0);
-    sprintf(buf, "%d + %dps + %dint + %dalch - %dmn = %d%% success.", m, D_9078, D_9c69[D_886c].x4d,
-            D_9c69[D_886c].x5e, F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic, pct);
-    sub_root_0265_0134(D_27f4, buf, 0xea, 0x49, 0x15, 8, 0, 0, 0, 1, 0, 0);
-    D_2800 = D_8872 ? 8 : 7;
-    sub_root_0265_0004(D_27f4, 0x50, 0x24, F_290e_1dc3[0]);
-    D_2800 = 8;
-    sub_root_0265_0004(D_27f4, 0x50, 0x2c, F_290e_1dc3[1]);
-    sub_root_0265_0004(D_27f4, 0x50, 0x34, F_290e_1dc3[2]);
-    D_2800 = F_28f5_0000[D_e7d4].count ? 8 : 7;
-    sub_root_0265_0004(D_27f4, 0x50, 0x3c, F_290e_1dc3[3]);
-    D_2800 = 8;
-    sub_s033_1462_1018(who, D_e7d4, D_27f4);
-    sub_s033_1462_10f8(D_e7d4, D_27f4);
-    D_2800 = 8;
+    sprintf(buf, "%s's Formula - making %d batches.", party[who].name, F_28f5_0000[D_e7d4].count);
+    draw_text_wrapped(screen_win, buf, 0xea, 0x49, 0xd, 8, 0, 0, 0, 1, 0, 0);
+    sprintf(buf, "%d + %dps + %dint + %dalch - %dmn = %d%% success.", m, D_9078, party[D_886c].x4d,
+            party[D_886c].x5e, F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic, pct);
+    draw_text_wrapped(screen_win, buf, 0xea, 0x49, 0x15, 8, 0, 0, 0, 1, 0, 0);
+    screen_win_colour = D_8872 ? 8 : 7;
+    draw_text_far(screen_win, 0x50, 0x24, F_290e_1dc3[0]);
+    screen_win_colour = 8;
+    draw_text_far(screen_win, 0x50, 0x2c, F_290e_1dc3[1]);
+    draw_text_far(screen_win, 0x50, 0x34, F_290e_1dc3[2]);
+    screen_win_colour = F_28f5_0000[D_e7d4].count ? 8 : 7;
+    draw_text_far(screen_win, 0x50, 0x3c, F_290e_1dc3[3]);
+    screen_win_colour = 8;
+    sub_s033_1462_1018(who, D_e7d4, screen_win);
+    sub_s033_1462_10f8(D_e7d4, screen_win);
+    screen_win_colour = 8;
     switch (F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->x52) {
     case 0:
         strcpy(risk, "Low");
@@ -464,19 +466,19 @@ void far sub_s033_1462_094a(int who)
         break;
     }
     sprintf(buf, "%s risk - magic #%d", risk, F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic);
-    sub_root_0265_0134(D_27f4, buf, 0x55, 0xc6, 0x3f, 8, 0, 0, 0, 1, 0, 0);
-    sub_root_047c_055a(D_27f4, 0xc6, 0x56, "Ingredients:");
+    draw_text_wrapped(screen_win, buf, 0x55, 0xc6, 0x3f, 8, 0, 0, 0, 1, 0, 0);
+    gfx_text(screen_win, 0xc6, 0x56, "Ingredients:");
     for (i = 0, y = 0x5e; i < 5; i++, y += 8) {
         if (F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].count) {
             sprintf(buf, "%d %Fs (%d)", F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].count,
-                    F_2e38_0890[F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].item],
+                    item_defs[F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].item],
                     D_e716[F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].item]);
-            D_2800 = D_e716[F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].item] >=
+            screen_win_colour = D_e716[F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].item] >=
                      F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].count ? 8 : 7;
-            sub_root_047c_055a(D_27f4, 0xc8, y, buf);
+            gfx_text(screen_win, 0xc8, y, buf);
         }
     }
-    sub_root_047c_1293();
+    mouse_show();
 }
 
 /* sub_s033_1462_0d54: keys of the batch screen: U = use the formula, Up/Down = select a batch */
@@ -485,7 +487,7 @@ void far sub_s033_1462_0d54(int key)
     switch (key) {
     case 0x1000:
         sub_s033_1462_0628(-1);
-        sub_root_0000_13a0();
+        quit_to_dos();
         return;
     case 0x1655: case 0x1675:
         if (D_3244 == 0)
@@ -501,16 +503,16 @@ void far sub_s033_1462_0d54(int key)
     case 0x4800:
         if (D_e7d4 == 0)
             return;
-        sub_root_047c_12c3();
+        mouse_hide();
         D_e7d4--;
         if (D_3248 <= 0) {
-            sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
-            sub_s033_1462_1116(D_907e, D_27f4);
-            sub_s033_1462_1018(D_886c, D_e7d4, D_27f4);
+            gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
+            sub_s033_1462_1116(cur_loc, screen_win);
+            sub_s033_1462_1018(D_886c, D_e7d4, screen_win);
         } else if (D_3248 > 0) {
-            sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
-            sub_root_047c_04dc(D_27f4, 0xc1, --D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
-            sub_s033_1462_1018(D_886c, D_e7d4, D_27f4);
+            gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
+            gfx_recolor_rect(screen_win, 0xc1, --D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
+            sub_s033_1462_1018(D_886c, D_e7d4, screen_win);
         }
         if (D_e7d4 < 0)
             D_e7d4 = 0;
@@ -520,24 +522,24 @@ void far sub_s033_1462_0d54(int key)
     case 0x5000:
         if (D_3244 - 1 <= D_e7d4)
             return;
-        sub_root_047c_12c3();
-        sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
+        mouse_hide();
+        gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 0xc, 4);
         D_e7d4++;
         D_3248++;
         if (D_3248 >= 0x11) {
             D_3248--;
-            sub_s033_1462_1116(D_907e, D_27f4);
+            sub_s033_1462_1116(cur_loc, screen_win);
         } else {
-            sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x25, 0x5a, 8, 0xc, 4);
-            sub_root_047c_04dc(D_27f4, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
+            gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x25, 0x5a, 8, 0xc, 4);
+            gfx_recolor_rect(screen_win, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
         }
-        sub_s033_1462_1018(D_886c, D_e7d4, D_27f4);
+        sub_s033_1462_1018(D_886c, D_e7d4, screen_win);
         break;
     default:
         return;
     }
-    D_2800 = 8;
-    sub_root_047c_1293();
+    screen_win_colour = 8;
+    mouse_show();
 }
 
 /* sub_s033_1462_0f6e: keys of the batch box: F = one batch fewer, M = one more */
@@ -545,7 +547,7 @@ void far sub_s033_1462_0f6e(int key)
 {
     switch (key) {
     case 0x1000:
-        sub_root_0000_13a0();
+        quit_to_dos();
         return;
     case 0x2146: case 0x2166:
         if (!F_28f5_0000[D_e7d4].count)
@@ -564,8 +566,8 @@ void far sub_s033_1462_0f6e(int key)
         D_3250 = -1;
         return;
     case 0x4800: case 0x5000:
-        sub_root_047c_12c3();
-        sub_root_047c_1293();
+        mouse_hide();
+        mouse_show();
         return;
     }
 }
@@ -577,17 +579,17 @@ void far sub_s033_1462_1018(int a, int f, struct gfx *g)
 
     if (D_3244 == 0)
         return;
-    sub_root_047c_0553(&D_2806, 0x55, 0x50, 0x6e, 0x54, D_27f4, 0x55, 0x50);
+    gfx_copy_rect(&back_win, 0x55, 0x50, 0x6e, 0x54, screen_win, 0x55, 0x50);
     g->color = 8;
-    sprintf(buf, "%Fs", F_2e38_1736[F_28f5_0000[D_e7d4].formula]);
-    sub_root_0265_0134(g, buf, 0x69, 0x58, 0x53, 8, 0, 0, 0, 1, 0, 0);
+    sprintf(buf, "%Fs", virtue_names[F_28f5_0000[D_e7d4].formula]);
+    draw_text_wrapped(g, buf, 0x69, 0x58, 0x53, 8, 0, 0, 0, 1, 0, 0);
     sprintf(buf, "%Fs", F_2e38_35e4[F_28f5_0000[f].formula]);
-    sub_root_0265_0134(g, buf, 0x69, 0x58, 0x6b, 8, 0, 0, 0, 1, 0, 0);
+    draw_text_wrapped(g, buf, 0x69, 0x58, 0x6b, 8, 0, 0, 0, 1, 0, 0);
 }
 
 void far sub_s033_1462_10f8(int a, struct gfx *g)
 {
-    sub_root_047c_0553(0x2806, 0xc3, 0x3c, 0x5a, 0x4c, D_27f4, 0xc3, 0x3c);
+    gfx_copy_rect(0x2806, 0xc3, 0x3c, 0x5a, 0x4c, screen_win, 0xc3, 0x3c);
 }
 
 /* sub_s033_1462_1116: draw the batch list (counts and formula names) */
@@ -598,9 +600,9 @@ void far sub_s033_1462_1116(int a, struct gfx *g)
     int h, i, row, cnt;
 
     sub_root_047c_0545();
-    h = sub_root_0617_045c("pics\\alchem13.pic");
+    h = pic_load("pics\\alchem13.pic");
     sub_root_047c_04f8();
-    sub_root_047c_05a5(g, 0xc0, 0x1d, h);
+    gfx_draw_pic(g, 0xc0, 0x1d, h);
     g->color = 4;
     D_e7d4 = D_e7d4 < D_3244 ? D_e7d4 : D_3244;
     for (i = D_e7d4 - D_3248; i < D_3244; i++) {
@@ -608,14 +610,14 @@ void far sub_s033_1462_1116(int a, struct gfx *g)
         if (row < 0x11) {
             if ((cnt = F_28f5_0000[i].count) != 0) {
                 sprintf(buf, "%2dx", cnt);
-                sub_root_047c_055a(g, 0xcf, row * 8 + 0x2d, buf);
+                gfx_text(g, 0xcf, row * 8 + 0x2d, buf);
             }
-            sub_root_0265_0004(g, 0xde, row * 8 + 0x2d, F_2e38_36ec[F_28f5_0000[i].formula]);
+            draw_text_far(g, 0xde, row * 8 + 0x2d, F_2e38_36ec[F_28f5_0000[i].formula]);
         }
     }
-    sub_root_047c_04dc(g, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
+    gfx_recolor_rect(g, 0xc1, D_3248 * 8 + 0x2d, 0x5a, 8, 4, 0xc);
     if (h)
-        sub_root_05ba_00c2(h, "s");
+        mem_free(h, "s");
     g->color = 8;
 }
 #pragma optimize("", on)
@@ -670,15 +672,15 @@ void far sub_s033_1462_1390(int p)
 
     n = F_28f5_0000[D_e7d4].count;
     q = n > 2 ? 100 / (n >> 1) : 100;
-    i = D_9c69[D_886c].x4d + (D_9c69[D_886c].x5e - F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic) + q + D_9078;
+    i = party[D_886c].x4d + (party[D_886c].x5e - F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->mystic) + q + D_9078;
     q = i;
     if (i < 0 || n == 0)
         q = 0;
     if (q > 99)
         q = 99;
-    sub_s029_0e76_2d5c(D_886c, D_907e, n, 0x1d, F_28f5_0000[D_e7d4].formula, q, 1, 0, 1);
-    F_2e38_1b28[D_e3ce + 1]->x2a = p;
-    F_2e38_1b28[D_e3ce + 1]->x2c = F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->x52;
+    event_renew(D_886c, cur_loc, n, 0x1d, F_28f5_0000[D_e7d4].formula, q, 1, 0, 1);
+    F_2e38_1b28[last_event + 1]->x2a = p;
+    F_2e38_1b28[last_event + 1]->x2c = F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->x52;
     for (i = 0; i < 5; i++) {
         if (F_2e38_35e4[F_28f5_0000[D_e7d4].formula]->ingr[i].count == 0)
             break;
@@ -696,7 +698,7 @@ void far sub_s033_1462_14e6(void)
     struct item it;
 
     for (i = 0; i < 300; i++) {
-        if ((i = sub_s029_0e76_324c(0x1d, i)) == -1)
+        if ((i = event_next(0x1d, i)) == -1)
             break;
         if (F_2e38_1b28[i + 1]->x1a == D_886c) {
             for (b = 0; b < D_3244; b++) {
@@ -706,15 +708,15 @@ void far sub_s033_1462_14e6(void)
                         if (F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].count == 0)
                             break;
                         it.id = F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].item;
-                        it.x2[0] = F_2e38_0890[F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].item]->x1e;
+                        it.x2[0] = item_defs[F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].item]->x1e;
                         it.x2[1] = 0x19;
-                        it.x5 = F_2e38_0890[F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].item]->x25;
+                        it.x5 = item_defs[F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].item]->x25;
                         it.qty = F_2e38_35e4[F_28f5_0000[b].formula]->ingr[o].count * F_2e38_1b28[i + 1]->x20;
-                        vec_1f6d(D_886c, it);
+                        add_item_rec(D_886c, it);
                     }
                 }
             }
-            sub_s029_0e76_30fe(i);
+            event_free(i);
         }
     }
 }
@@ -725,17 +727,17 @@ void far sub_s033_1462_1630(int first, int id, int n)
 {
     int k, m, j;
 
-    for (k = 0; k < D_a67e; k++) {
+    for (k = 0; k < party_size; k++) {
         m = k == 0 ? first : k > first ? k : k - 1;
-        if (D_9c69[m].present)
-            for (j = 0; j < D_9c69[m].nitems; j++)
-                if ((F_2e38_003e[m].it[j].id & 0xfff) == id) {
-                    if (F_2e38_003e[m].it[j].qty > n) {
-                        F_2e38_003e[m].it[j].qty -= n;
+        if (party[m].present)
+            for (j = 0; j < party[m].nitems; j++)
+                if ((inventories[m].it[j].id & 0xfff) == id) {
+                    if (inventories[m].it[j].qty > n) {
+                        inventories[m].it[j].qty -= n;
                         return;
                     }
-                    n -= F_2e38_003e[m].it[j].qty;
-                    vec_208f(m, id);
+                    n -= inventories[m].it[j].qty;
+                    remove_item_stack(m, id);
                 }
     }
 }

@@ -30,6 +30,8 @@
    panel (1588 frames, 1716 rows, 18fa status letter, 1a9c bars). */
 
 /* screen/window descriptor (D_0154 = off-screen copy, D_017c = visible screen) */
+#include "darklands/card.h"
+#include "darklands/game.h"
 struct win {
     int f00;
     int w;          /* +0x02 */
@@ -69,12 +71,12 @@ struct menu {
     struct item *items;         /* +0x08 */
 };
 
-extern char far F_2e38_0000[];
+extern char far data_file[];
 extern int D_000c[];
 extern int D_000e[];
-extern struct win *D_0154;
-extern struct win *D_017c;
-extern char D_9cb2[][0x80];
+extern struct win *card_window2;
+extern struct win *card_window;
+extern char member_attrs[][0x80];
 extern char D_9cb3[][0x80];
 extern char D_9cb8[][0x80];
 extern char D_9cb9[][0x80];
@@ -87,29 +89,29 @@ extern char *D_01aa;
 extern char *D_01ac;
 extern char *D_01ae;
 extern char *D_01b0;
-extern char D_a6c1;
-extern char D_a6d3[];
-extern char D_9c69[][0x80];
+extern char real_combat;
+extern char cbt_moving[];
+extern char party[][0x80];
 extern char D_9c93[][0x80];
 extern int D_9c65[][0x40];
-extern char D_907b;
-extern int D_6eec;
-extern int D_a2d7[];
+extern char leader;
+extern int mouse_x;
+extern int shield_pics[];
 extern int D_a2e5;
 extern int D_a626;
 extern char D_a3d8[];
-extern int D_a696[];
-extern int D_a6b0;
-extern char D_a6b2;
-extern char D_a6b3;
-extern char D_a6b4[];
+extern int cbt_flags[];
+extern int order_action;
+extern char selected_member;
+extern char order_mode;
+extern char cbt_floor[];
 extern int D_a6c2;
-extern unsigned char D_a6c4[];
+extern unsigned char cbt_special[];
 extern int D_a6d1;
 extern struct win *D_0168;
 extern struct win *D_0190;
 extern int D_01e4[];
-extern char D_9064[];
+extern char cbt_selected[];
 extern int D_a2e9;
 extern int D_a33b;
 extern int D_a33e;
@@ -122,19 +124,19 @@ extern char *D_01b4;
 extern char *D_01b6;
 extern char *D_01b8;
 extern char *D_01ba;
-extern unsigned char D_01bd;
-extern unsigned char D_01be;
-extern unsigned char D_01bf;
+extern unsigned char opt_saint_msgs;
+extern unsigned char opt_sound;
+extern unsigned char opt_music;
 extern int D_0204;
 extern int D_0206;
 extern char D_07d3;
-extern char D_07f4;
-extern unsigned char D_6ef0;
-extern char D_906a;
+extern char exit_requested;
+extern unsigned char mouse_buttons;
+extern char game_difficulty;
 extern char D_907a;
 extern char D_907d;
 extern int D_9409;
-extern int D_940b;
+extern int ems_frame_handle;
 extern int D_940d;
 extern int D_940f;
 extern int D_9411;
@@ -165,13 +167,13 @@ extern char D_9c2f;
 extern char D_9c3c;
 extern int D_9c3f;
 extern char D_9c41;
-extern int D_9c42;
+extern int cursor_default;
 extern int D_9c15[];
 extern int D_9c1e;
 extern int D_9c20;
 extern unsigned char D_9c22[];
 extern char D_a394;
-extern int D_6eee;
+extern int mouse_y;
 extern int D_9c44;
 extern int D_9c48;
 extern int D_9c51;
@@ -185,10 +187,10 @@ extern int D_a660;
 extern int D_a662;
 extern int D_a664;
 extern int D_a666;
-extern int D_a68f;
+extern int cursor_current;
 extern int D_a691;
 extern int D_a693;
-extern char D_a695;
+extern char ai_paused;
 
 int far _fstrcpy(char far *, char far *);
 int far _fstricmp(char far *, char far *);
@@ -201,86 +203,86 @@ char *strcpy(char *, const char *);
 char *strcat(char *, const char *);
 unsigned strlen(const char *);
 void far copy_rect_saved(struct win *, int, int, int, int, struct win *, int, int);
-void far sub_root_0265_006e(struct win *, int, int, char *);
-void far sub_root_0265_0134(struct win *, char *, int, int, int, int, int, int, int, int, int, int);
-long far sub_root_0265_0654(struct win *, char *, int, int, int, int, int, int, int, int, int);
-void far sub_root_0265_09b2(int, char *);
-int far sub_root_0265_084e(struct win *, char *);
+void far draw_text(struct win *, int, int, char *);
+void far draw_text_wrapped(struct win *, char *, int, int, int, int, int, int, int, int, int, int);
+long far measure_text_wrapped(struct win *, char *, int, int, int, int, int, int, int, int, int);
+void far itoa_commas(int, char *);
+int far text_pixel_width(struct win *, char *);
 void far sub_root_0410_0302(int);
 void far sub_root_044a_0122(void);
 void far sub_root_044a_01f4(void);
 void far sub_root_047c_00a9(void);
-int far sub_root_047c_051b(int);
-void far sub_root_047c_04dc(struct win *, int, int, int, int, int, int);
-void far sub_root_047c_0553(struct win *, int, int, int, int, struct win *, int, int);
-void far sub_root_047c_05a5(struct win *, int, int, int);
-int far sub_root_047c_073d(void);
-int far sub_root_047c_0744(void);
-void far sub_root_047c_078a(int);
+int far font_height(int);
+void far gfx_recolor_rect(struct win *, int, int, int, int, int, int);
+void far gfx_copy_rect(struct win *, int, int, int, int, struct win *, int, int);
+void far gfx_draw_pic(struct win *, int, int, int);
+int far key_pressed(void);
+int far get_key(void);
+void far sound_play(int);
 void far sub_root_047c_0791(void);
-void far sub_root_047c_0952(struct win *, int, int, int, int);
-void far sub_root_047c_0d62(struct win *, int, int, int, int, int);
+void far gfx_fill_rect(struct win *, int, int, int, int);
+void far gfx_line(struct win *, int, int, int, int, int);
 void far sub_root_047c_123f(void);
-void far sub_root_047c_124f(int, int, int);
-void far sub_root_047c_1293(void);
-void far sub_root_047c_12c3(void);
+void far mouse_set_cursor(int, int, int);
+void far mouse_show(void);
+void far mouse_hide(void);
 void far sub_root_05f8_0139(int);
-void far sub_root_0617_011e(char *, char far *);
-void far sub_root_0617_06d8(char *);
-void far sub_root_0617_070e(void);
-void far vec_183d(void);
-void far vec_1847(void);
-void far vec_1851(void);
-void far vec_185b(void);
-void far vec_1865(void);
+void far file_load_far(char *, char far *);
+void far catalog_open(char *);
+void far catalog_close(void);
+void far choose_party_order_vec(void);
+void far save_game_vec(void);
+void far load_game_vec(void);
+void far party_info_screen_vec(void);
+void far video_restore_vec(void);
 void far vec_186f(void);
 
-void far sub_root_0000_0000(struct menu *m, int once);
-void far sub_root_0000_01d4(struct menu *m);
-void far sub_root_0000_06c2(struct menu *m);
-void far sub_root_0000_07d4(struct item *items, int x, int y);
-void far sub_root_0000_0984(struct subitem *subs, int x, int y);
-void far sub_root_0000_0bc2(void);
-void far sub_root_0000_0c2c(void);
-int far sub_root_0000_0c70(int n);
-int far sub_root_0000_0c8c(int n);
-void far sub_root_0000_0caa(void);
+void far menu_bar_run(struct menu *m, int once);
+void far menu_bar_track(struct menu *m);
+void far menu_bar_draw(struct menu *m);
+void far menu_dropdown_open(struct item *items, int x, int y);
+void far menu_submenu_open(struct subitem *subs, int x, int y);
+void far menu_dropdown_close(void);
+void far menu_submenu_close(void);
+int far rand_mod(int n);
+int far rand_1_n(int n);
+void far hot_keys(void);
 void far sub_root_0000_0dd2(void);
 void far sub_root_0000_1080(void);
-void far sub_root_0000_1154(void);
-void far sub_root_0000_11f2(void);
-void far sub_root_0000_129a(void);
-void far sub_root_0000_1338(void);
-void far sub_root_0000_1354(void);
-void far sub_root_0000_1384(void);
-void far sub_root_0000_13a0(void);
-void far sub_root_0000_1408(void);
-void far sub_root_0000_1418(void);
-void far sub_root_0000_1428(void);
-void far sub_root_0000_1438(int show);
-int far sub_root_0000_14f6(struct win *src, int x, int y, int w, int h, struct win *dst,
+void far toggle_saint_msgs(void);
+void far toggle_music(void);
+void far toggle_sound(void);
+void far exit_if_requested(void);
+void far game_shutdown(void);
+void far flush_keys(void);
+void far quit_to_dos(void);
+void far set_difficulty_basic(void);
+void far set_difficulty_standard(void);
+void far set_difficulty_expert(void);
+void far show_difficulty(int show);
+int far copy_rect_clipped(struct win *src, int x, int y, int w, int h, struct win *dst,
                            int dx, int dy);
-void far sub_root_0000_1588(int which);
-void far sub_root_0000_1716(int which);
-void far sub_root_0000_18fa(int i, struct win *w);
-void far sub_root_0000_1a9c(int i);
-void far sub_root_0000_2286(struct win *w, int x, int y, int cw, int ch, int bg);
-void far sub_root_0000_23e6(struct win *w, int y, int save, char *text, struct win *dst,
+void far party_panel_frames(int which);
+void far party_panel_rows(int which);
+void far member_status_letter(int i, struct win *w);
+void far member_bars(int i);
+void far draw_frame_box(struct win *w, int x, int y, int cw, int ch, int bg);
+void far text_box(struct win *w, int y, int save, char *text, struct win *dst,
                             struct rect *r);
-void far sub_root_0000_24bc(char *text, int ticks);
-int far sub_root_0000_2522(char *question);
+void far show_message(char *text, int ticks);
+int far ask_yes_no(char *question);
 void far sub_root_0000_25f0(void);
-void far sub_root_0000_25f2(char *name);
-void far sub_root_0000_262e(void);
+void far datafile_select(char *name);
+void far datafile_forget(void);
 void far sub_root_0000_2646(void);
 void far sub_root_0000_2648(void);
 void far sub_root_0265_0002(int);
 
-/* menu bar loop: runs until neither the mouse button (D_6ef0 bit 1) nor menu mode (D_9c26)
+/* menu bar loop: runs until neither the mouse button (mouse_buttons bit 1) nor menu mode (D_9c26)
    is active; once != 0 only restores the screen colours.  While active it draws (06c2) and
    tracks (01d4) the bar; on release it closes the open dropdown (0bc2) and calls the chosen
    item's far handler (+0x0e) or sub-item handler (+0x12). */
-void far sub_root_0000_0000(struct menu *m, int once)
+void far menu_bar_run(struct menu *m, int once)
 {
     int first;
     int c0c;
@@ -295,33 +297,33 @@ void far sub_root_0000_0000(struct menu *m, int once)
     struct subitem *si;
 
     first = 0;
-    c0c = D_017c->f0c;
-    c10 = D_017c->f10;
-    loop = D_017c->f10 = 1;
+    c0c = card_window->f0c;
+    c10 = card_window->f10;
+    loop = card_window->f10 = 1;
     if (once == 0) {
-        if (sub_root_047c_073d())
-            sub_root_0000_0caa();
+        if (key_pressed())
+            hot_keys();
         if (D_07d3 == 0) {
             D_07d3 = 1;
             first = 1;
         }
         do {
-            if (D_9c26 == 1 && (sub_root_047c_073d() || (D_6ef0 & 2)))
+            if (D_9c26 == 1 && (key_pressed() || (mouse_buttons & 2)))
                 sub_root_0000_0dd2();
-            if ((D_6ef0 & 2) || D_9c26 == 1)
+            if ((mouse_buttons & 2) || D_9c26 == 1)
                 active = 1;
             else
                 active = loop = 0;
             if (active == 1) {
                 D_a2e3 = active;
-                if (D_9c42 != D_a68f && D_907a == 1 && D_9c4c == 1) {
-                    sub_root_047c_12c3();
-                    sub_root_047c_124f(0, 0, D_a695 == 0 ? D_a693 : D_a691);
-                    D_a68f = D_9c42;
-                    sub_root_047c_1293();
+                if (cursor_default != cursor_current && D_907a == 1 && D_9c4c == 1) {
+                    mouse_hide();
+                    mouse_set_cursor(0, 0, ai_paused == 0 ? D_a693 : D_a691);
+                    cursor_current = cursor_default;
+                    mouse_show();
                 }
-                sub_root_0000_06c2(m);
-                sub_root_0000_01d4(m);
+                menu_bar_draw(m);
+                menu_bar_track(m);
             } else {
                 D_a2e3 = active;
                 if (active == 0 && D_9409 == 1) {
@@ -330,13 +332,13 @@ void far sub_root_0000_0000(struct menu *m, int once)
                     item = D_0204;
                     sub = D_0206;
                     sel = D_a340;
-                    sub_root_0000_0bc2();
+                    menu_dropdown_close();
                     if (D_944b == 1) {
                         D_944b = 0;
                         it = &m[bar].items[item];
                         if (it->enabled == 1 && D_9413 > item) {
-                            D_017c->f0c = c0c;
-                            D_017c->f10 = c10;
+                            card_window->f0c = c0c;
+                            card_window->f10 = c10;
                             (*it->fn)();
                         }
                     }
@@ -344,8 +346,8 @@ void far sub_root_0000_0000(struct menu *m, int once)
                         D_9783 = 0;
                         si = &m[bar].items[sel].sub[sub];
                         if (si->enabled == 1 && D_9415 > sub) {
-                            D_017c->f0c = c0c;
-                            D_017c->f10 = c10;
+                            card_window->f0c = c0c;
+                            card_window->f10 = c10;
                             (*si->fn)();
                         }
                     }
@@ -353,19 +355,19 @@ void far sub_root_0000_0000(struct menu *m, int once)
             }
         } while (loop);
     }
-    D_017c->f0c = c0c;
-    D_017c->f10 = c10;
+    card_window->f0c = c0c;
+    card_window->f10 = c10;
     if (--first == 0)
         D_07d3 = 0;
 }
 
-/* menu tracking for one frame.  Position: the mouse (D_6eec - 0x3c, D_6eee) or, in keyboard
+/* menu tracking for one frame.  Position: the mouse (mouse_x - 0x3c, mouse_y) or, in keyboard
    menu mode, a position derived from the bar/item/sub-item cursor (D_a394 counts down the
    steps of opening a menu from the keyboard).  On the bar (y < 12) it highlights the entry
    under the cursor and opens its dropdown (07d4); inside the open dropdown it highlights
    the item row (D_0204, D_944b) and opens its sub-menu (0984); inside the sub-menu it
    highlights the sub-item row (D_0206, D_9783); elsewhere it removes the highlights */
-void far sub_root_0000_01d4(struct menu *menus)
+void far menu_bar_track(struct menu *menus)
 {
     int j;
     int y;
@@ -380,8 +382,8 @@ void far sub_root_0000_01d4(struct menu *menus)
     struct item *it;
 
     if (D_9c26 == 0) {
-        mx = D_6eec;
-        my = D_6eee;
+        mx = mouse_x;
+        my = mouse_y;
     } else {
         if (D_a394 == 3) {
             D_a394--;
@@ -406,15 +408,15 @@ void far sub_root_0000_01d4(struct menu *menus)
             if (x < m->x0 || m->x1 < x)
                 continue;
             if (D_a2e7 != j) {
-                sub_root_047c_12c3();
+                mouse_hide();
                 if (D_a2e7 >= 0 && D_a2e7 < D_9411)
-                    sub_root_047c_04dc(D_017c, D_9c1e, 0, D_9c20 - D_9c1e + 1, 0xc, 9, 0);
+                    gfx_recolor_rect(card_window, D_9c1e, 0, D_9c20 - D_9c1e + 1, 0xc, 9, 0);
                 if (D_940f == 1) {
-                    sub_root_0000_0c2c();
+                    menu_submenu_close();
                     D_a340 = -0x63;
                 }
                 if (D_940d == 1) {
-                    copy_rect_saved(D_0154, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, D_017c,
+                    copy_rect_saved(card_window2, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, card_window,
                                     D_9789, 0xc);
                     D_940d = 0;
                     D_0204 = -1;
@@ -422,14 +424,14 @@ void far sub_root_0000_01d4(struct menu *menus)
                 D_a2e7 = j;
                 D_9c1e = m->x0;
                 D_9c20 = m->x1;
-                sub_root_047c_04dc(D_017c, D_9c1e, 0, D_9c20 - D_9c1e + 1, 0xc, 0, 9);
+                gfx_recolor_rect(card_window, D_9c1e, 0, D_9c20 - D_9c1e + 1, 0xc, 0, 9);
                 if (menus[D_a2e7].has_items == 1)
-                    sub_root_0000_07d4(menus[D_a2e7].items, menus[D_a2e7].x0, y);
-                sub_root_047c_1293();
+                    menu_dropdown_open(menus[D_a2e7].items, menus[D_a2e7].x0, y);
+                mouse_show();
             } else if (D_0204 >= 0 && D_9413 > D_0204) {
-                sub_root_047c_12c3();
-                sub_root_047c_04dc(D_017c, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
-                sub_root_047c_1293();
+                mouse_hide();
+                gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
+                mouse_show();
                 D_0204 = -1;
             }
         }
@@ -439,25 +441,25 @@ void far sub_root_0000_01d4(struct menu *menus)
     if (D_940d == 1 && (x = mx - 0x3c) >= D_9789 && x <= D_987b && my >= 0xc && D_99e9 >= my) {
         D_944b = 1;
         if ((row = (my - 0xc) / 8) != D_0204) {
-            sub_root_047c_12c3();
+            mouse_hide();
             if (D_0204 >= 0 && D_0204 < D_9413)
-                sub_root_047c_04dc(D_017c, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
+                gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
             if (D_940f == 1) {
-                sub_root_0000_0c2c();
+                menu_submenu_close();
                 D_a340 = -0x63;
             }
             if ((D_0204 = row) >= 0 && D_0204 < D_9413)
-                sub_root_047c_04dc(D_017c, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 0, 9);
+                gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 0, 9);
             it = &menus[D_a2e7].items[D_0204];
             if (it->sub != 0 && D_940f == 0 && it->enabled == 1) {
-                sub_root_0000_0984(it->sub, D_987b + 1, (D_0204 << 3) + 0xc);
+                menu_submenu_open(it->sub, D_987b + 1, (D_0204 << 3) + 0xc);
                 D_a340 = D_0204;
             }
-            sub_root_047c_1293();
+            mouse_show();
             return;
         }
         if (D_0206 != -0x63) {
-            sub_root_047c_04dc(D_017c, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9, 0);
+            gfx_recolor_rect(card_window, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9, 0);
             D_0206 = -0x63;
         }
         return;
@@ -466,29 +468,29 @@ void far sub_root_0000_01d4(struct menu *menus)
         D_9c44 >= my) {
         D_9783 = 1;
         if ((row = (my - 0xc) / 8) - D_a340 != D_0206) {
-            sub_root_047c_12c3();
+            mouse_hide();
             if (D_0206 >= 0 && D_0206 < D_9415)
-                sub_root_047c_04dc(D_017c, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9,
+                gfx_recolor_rect(card_window, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9,
                                    0);
             if ((D_0206 = row - D_a340) >= 0 && D_0206 < D_9415)
-                sub_root_047c_04dc(D_017c, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 0,
+                gfx_recolor_rect(card_window, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 0,
                                    9);
-            sub_root_047c_1293();
+            mouse_show();
         }
         return;
     }
     if (D_944b == 1) {
-        sub_root_047c_12c3();
-        sub_root_047c_04dc(D_017c, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
-        sub_root_047c_1293();
+        mouse_hide();
+        gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 9, 0);
+        mouse_show();
         D_944b = 0;
         D_0204 = -1;
         return;
     }
     if (D_9783 == 1) {
-        sub_root_047c_12c3();
-        sub_root_047c_04dc(D_017c, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9, 0);
-        sub_root_047c_1293();
+        mouse_hide();
+        gfx_recolor_rect(card_window, D_9c29, (D_0206 << 3) + D_9c27 + 1, D_9c3f, 8, 9, 0);
+        mouse_show();
         D_9783 = 0;
         D_0206 = -0x63;
     }
@@ -497,31 +499,31 @@ void far sub_root_0000_01d4(struct menu *menus)
 /* draw the menu bar: save the bar area to the off-screen page, clear it and print the
    titles left to right (grey when the entry has no items), recording each title's x range */
 #pragma optimize("a", on)
-void far sub_root_0000_06c2(struct menu *m)
+void far menu_bar_draw(struct menu *m)
 {
     int x;
     int w;
 
     if (D_9409 == 0) {
         x = 3;
-        sub_root_047c_12c3();
-        sub_root_047c_0553(D_017c, 0, 0, 0x104, 0xc, D_0154, 0, 0);
-        copy_rect_saved(D_017c, 0, 0, 0x104, 0xc, D_0154, 0, 0);
-        sub_root_0000_2286(D_017c, 0, 0, 0x104, 0xc, 0x80);
+        mouse_hide();
+        gfx_copy_rect(card_window, 0, 0, 0x104, 0xc, card_window2, 0, 0);
+        copy_rect_saved(card_window, 0, 0, 0x104, 0xc, card_window2, 0, 0);
+        draw_frame_box(card_window, 0, 0, 0x104, 0xc, 0x80);
         D_9411 = 0;
         for (; strlen(m->name) != 0; m++) {
-            w = sub_root_0265_084e(D_017c, m->name);
+            w = text_pixel_width(card_window, m->name);
             m->x0 = x;
             if (m->has_items == 1)
-                D_017c->f0c = 0;
+                card_window->f0c = 0;
             else
-                D_017c->f0c = 7;
-            sub_root_0265_006e(D_017c, x + 4, 3, m->name);
+                card_window->f0c = 7;
+            draw_text(card_window, x + 4, 3, m->name);
             x += w + 8;
             m->x1 = x - 1;
             D_9411++;
         }
-        sub_root_047c_1293();
+        mouse_show();
         D_940d = 0;
         D_940f = 0;
         D_9409 = 1;
@@ -533,7 +535,7 @@ void far sub_root_0000_06c2(struct menu *m)
 /* open the dropdown for items at x: size it to the widest name and shortcut column, save
    the area under it, draw the frame and the items (grey when disabled) and highlight the
    item under y */
-void far sub_root_0000_07d4(struct item *items, int x, int y)
+void far menu_dropdown_open(struct item *items, int x, int y)
 {
     int j;
     int wname;
@@ -547,9 +549,9 @@ void far sub_root_0000_07d4(struct item *items, int x, int y)
     wkey = 0;
     j = 0;
     for (it = items; strlen(it->name) != 0; it++) {
-        if ((w = sub_root_0265_084e(D_017c, it->name)) > wname)
+        if ((w = text_pixel_width(card_window, it->name)) > wname)
             wname = w;
-        if ((w = sub_root_0265_084e(D_017c, it->key)) > wkey)
+        if ((w = text_pixel_width(card_window, it->key)) > wkey)
             wkey = w;
         D_9413++;
     }
@@ -558,24 +560,24 @@ void far sub_root_0000_07d4(struct item *items, int x, int y)
     D_9a45 = D_9789 + wname + 6;
     D_99e7 = D_987b - D_9789 + 1;
     D_99e9 = (D_9413 << 3) + 0xe;
-    copy_rect_saved(D_017c, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, D_0154, D_9789, 0xc);
-    sub_root_0000_2286(D_017c, D_9789, 0xb, D_99e7, (D_9413 << 3) + 4, 0x80);
+    copy_rect_saved(card_window, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, card_window2, D_9789, 0xc);
+    draw_frame_box(card_window, D_9789, 0xb, D_99e7, (D_9413 << 3) + 4, 0x80);
     for (j = 0, it = items, yy = 0xe; j < D_9413; j++, it++, yy += 8) {
         if (it->enabled == 1)
-            D_017c->f0c = 0;
+            card_window->f0c = 0;
         else
-            D_017c->f0c = 7;
-        sub_root_0265_006e(D_017c, x + 3, yy, it->name);
-        sub_root_0265_006e(D_017c, D_9a45, yy, it->key);
+            card_window->f0c = 7;
+        draw_text(card_window, x + 3, yy, it->name);
+        draw_text(card_window, D_9a45, yy, it->key);
     }
     if ((D_0204 = (y - 0xe) / 8) >= 0 && D_0204 < D_9413)
-        sub_root_047c_04dc(D_017c, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 0, 9);
+        gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 0, 9);
     D_940d = 1;
 }
 
 /* open the sub-menu for subs at (x, y): like 07d4 with a third, centred column for item
    counts of 2 and more */
-void far sub_root_0000_0984(struct subitem *subs, int x, int y)
+void far menu_submenu_open(struct subitem *subs, int x, int y)
 {
     char num[16];
     int wkey;
@@ -594,13 +596,13 @@ void far sub_root_0000_0984(struct subitem *subs, int x, int y)
     j = 0;
     for (s = subs; strlen(s->name) != 0; s++) {
         if (s->count >= 2) {
-            sub_root_0265_09b2(s->count, num);
-            if ((w = sub_root_0265_084e(D_017c, num)) > wnum)
+            itoa_commas(s->count, num);
+            if ((w = text_pixel_width(card_window, num)) > wnum)
                 wnum = w;
         }
-        if ((w = sub_root_0265_084e(D_017c, s->name)) > wname)
+        if ((w = text_pixel_width(card_window, s->name)) > wname)
             wname = w;
-        if ((w = sub_root_0265_084e(D_017c, s->key)) > wkey)
+        if ((w = text_pixel_width(card_window, s->key)) > wkey)
             wkey = w;
         D_9415++;
     }
@@ -612,43 +614,43 @@ void far sub_root_0000_0984(struct subitem *subs, int x, int y)
     D_9c3f = D_9c3a - D_9c29 + 1;
     D_9c27 = y - 1;
     D_9c44 = D_9c27 + (D_9415 << 3) - 1;
-    copy_rect_saved(D_017c, D_9c29, D_9c27, D_9c3f, (D_9415 << 3) + 4, D_0154, D_9c29 + 1,
+    copy_rect_saved(card_window, D_9c29, D_9c27, D_9c3f, (D_9415 << 3) + 4, card_window2, D_9c29 + 1,
                     D_9c27 + 1);
-    sub_root_0000_2286(D_017c, D_9c29, D_9c27, D_9c3f, (D_9415 << 3) + 4, 0x80);
+    draw_frame_box(card_window, D_9c29, D_9c27, D_9c3f, (D_9415 << 3) + 4, 0x80);
     for (j = 0, s = subs, yy = 0; j < D_9415; j++, s++, yy += 8) {
-        D_017c->f0c = s->enabled == 1 ? 0 : 7;
+        card_window->f0c = s->enabled == 1 ? 0 : 7;
         if (s->count > 1) {
-            sub_root_0265_09b2(s->count, num);
-            w = sub_root_0265_084e(D_017c, num);
-            sub_root_0265_006e(D_017c, (D_9c51 - w) / 2 + D_9c29 + 3, D_9c27 + yy + 3, num);
+            itoa_commas(s->count, num);
+            w = text_pixel_width(card_window, num);
+            draw_text(card_window, (D_9c51 - w) / 2 + D_9c29 + 3, D_9c27 + yy + 3, num);
         }
-        sub_root_0265_006e(D_017c, D_9c53, D_9c27 + yy + 3, s->name);
-        sub_root_0265_006e(D_017c, D_9c48, D_9c27 + yy + 3, s->key);
+        draw_text(card_window, D_9c53, D_9c27 + yy + 3, s->name);
+        draw_text(card_window, D_9c48, D_9c27 + yy + 3, s->key);
     }
     D_0206 = -0x63;
     D_940f = 1;
 }
 
 /* close the open dropdown: restore the item highlight and the menu bar from the off-screen
-   copy D_0154 */
-void far sub_root_0000_0bc2(void)
+   copy card_window2 */
+void far menu_dropdown_close(void)
 {
-    sub_root_047c_12c3();
-    sub_root_0000_0c2c();
+    mouse_hide();
+    menu_submenu_close();
     if (D_940d == 1) {
-        copy_rect_saved(D_0154, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, D_017c, D_9789, 0xc);
+        copy_rect_saved(card_window2, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, card_window, D_9789, 0xc);
         D_0204 = -1;
     }
-    copy_rect_saved(D_0154, 0, 0, 0x104, 0xc, D_017c, 0, 0);
+    copy_rect_saved(card_window2, 0, 0, 0x104, 0xc, card_window, 0, 0);
     D_a2e7 = -1;
-    sub_root_047c_1293();
+    mouse_show();
 }
 
 /* close the open sub-menu */
-void far sub_root_0000_0c2c(void)
+void far menu_submenu_close(void)
 {
     if (D_940f == 1) {
-        copy_rect_saved(D_0154, D_9c29 + 1, D_9c27 + 1, D_9c3f, (D_9415 << 3) + 4, D_017c,
+        copy_rect_saved(card_window2, D_9c29 + 1, D_9c27 + 1, D_9c3f, (D_9415 << 3) + 4, card_window,
                         D_9c29, D_9c27);
         D_0206 = -0x63;
         D_940f = 0;
@@ -656,7 +658,7 @@ void far sub_root_0000_0c2c(void)
 }
 
 /* random number 0 .. n-1 (n at least 2) */
-int far sub_root_0000_0c70(int n)
+int far rand_mod(int n)
 {
     int v_si;
     v_si = n;
@@ -667,7 +669,7 @@ int far sub_root_0000_0c70(int n)
 }
 
 /* random number 1 .. n (n at least 2) */
-int far sub_root_0000_0c8c(int n)
+int far rand_1_n(int n)
 {
     int v_si;
     v_si = n;
@@ -678,76 +680,76 @@ int far sub_root_0000_0c8c(int n)
 }
 
 /* hot keys (BIOS scan codes): Alt-Q quit, Alt-O/Alt-F/Alt-L/Alt-J/Alt-? optional handlers
-   (vec_183d..185b, enabled by D_9893/D_9920/D_9934/D_987f), Alt-P pause, Alt-D cycle
+   (choose_party_order_vec..185b, enabled by D_9893/D_9920/D_9934/D_987f), Alt-P pause, Alt-D cycle
    difficulty, Alt-F sound effects, Alt-C saintly changes, Alt-M music, F10 menu mode */
-void far sub_root_0000_0caa(void)
+void far hot_keys(void)
 {
-    switch (sub_root_047c_073d()) {
+    switch (key_pressed()) {
     case 0x1000:
-        sub_root_047c_0744();
-        sub_root_0000_13a0();
+        get_key();
+        quit_to_dos();
         return;
     case 0x1800:
-        sub_root_047c_0744();
+        get_key();
         if (D_9893 != 1) {
             return;
         }
-        vec_183d();
+        choose_party_order_vec();
         return;
     case 0x1900:
-        sub_root_047c_0744();
+        get_key();
         sub_root_0000_1080();
         return;
     case 0x1f00:
-        sub_root_047c_0744();
+        get_key();
         if (D_9920 != 1) {
             return;
         }
-        vec_1847();
+        save_game_vec();
         return;
     case 0x2000:
-        sub_root_047c_0744();
-        if (!D_906a) {
-            sub_root_0000_1418();
+        get_key();
+        if (!game_difficulty) {
+            set_difficulty_standard();
             return;
         }
-        if (D_906a == 1) {
-            sub_root_0000_1428();
+        if (game_difficulty == 1) {
+            set_difficulty_expert();
             return;
         }
-        if (D_906a != 2) {
+        if (game_difficulty != 2) {
             return;
         }
-        sub_root_0000_1408();
+        set_difficulty_basic();
         return;
     case 0x2100:
-        sub_root_047c_0744();
-        sub_root_0000_129a();
+        get_key();
+        toggle_sound();
         return;
     case 0x2600:
-        sub_root_047c_0744();
+        get_key();
         if (D_9934 != 1) {
             return;
         }
-        vec_1851();
+        load_game_vec();
         return;
     case 0x2e00:
-        sub_root_047c_0744();
-        sub_root_0000_1154();
+        get_key();
+        toggle_saint_msgs();
         return;
     case 0x3200:
-        sub_root_047c_0744();
-        sub_root_0000_11f2();
+        get_key();
+        toggle_music();
         return;
     case 0x4000:
-        sub_root_047c_0744();
+        get_key();
         if (D_987f != 1) {
             return;
         }
-        vec_185b();
+        party_info_screen_vec();
         return;
     case 0x4400:
-        sub_root_047c_0744();
+        get_key();
         D_9c26 = 1;
         D_9c2f = 0;
         D_9c3c = -1;
@@ -769,15 +771,15 @@ void far sub_root_0000_0dd2(void)
     int j;
     struct subitem *subs;
 
-    if (D_6ef0 & 2) {
-        if (sub_root_047c_073d())
-            sub_root_047c_0744();
+    if (mouse_buttons & 2) {
+        if (key_pressed())
+            get_key();
         D_9c26 = 0;
         D_944b = 0;
         D_9783 = 0;
         return;
     }
-    switch (sub_root_047c_0744()) {
+    switch (get_key()) {
     case 0x011b:
     case 0x4400:
         D_9c26 = 0;
@@ -785,7 +787,7 @@ void far sub_root_0000_0dd2(void)
         D_9783 = 0;
         break;
     case 0x1000:
-        sub_root_0000_13a0();
+        quit_to_dos();
         break;
     case 0x1c0d:
         D_9c26 = 0;
@@ -869,85 +871,85 @@ void far sub_root_0000_1080(void)
         D_07d3 = 1;
         first = 1;
     }
-    D_017c->f0c = 1;
-    D_017c->f0e = 0xff;
-    sub_root_047c_078a(2);
-    sub_root_047c_12c3();
-    sub_root_0000_23e6(D_017c, 0x32, 1, "Game Paused", D_0154, &r1);
-    sub_root_0000_23e6(D_017c, -1, 1, "Press a key to resume", D_0154, &r2);
-    sub_root_047c_1293();
+    card_window->f0c = 1;
+    card_window->f0e = 0xff;
+    sound_play(2);
+    mouse_hide();
+    text_box(card_window, 0x32, 1, "Game Paused", card_window2, &r1);
+    text_box(card_window, -1, 1, "Press a key to resume", card_window2, &r2);
+    mouse_show();
     getch();
-    sub_root_047c_12c3();
-    copy_rect_saved(D_0154, r1.x, r1.y, r1.w, r1.h, D_017c, r1.x, r1.y);
-    copy_rect_saved(D_0154, r2.x, r2.y, r2.w, r2.h, D_017c, r2.x, r2.y);
-    sub_root_047c_1293();
-    sub_root_047c_078a(3);
+    mouse_hide();
+    copy_rect_saved(card_window2, r1.x, r1.y, r1.w, r1.h, card_window, r1.x, r1.y);
+    copy_rect_saved(card_window2, r2.x, r2.y, r2.w, r2.h, card_window, r2.x, r2.y);
+    mouse_show();
+    sound_play(3);
     if (--first == 0)
         D_07d3 = 0;
 }
 #pragma optimize("", on)
 
-/* toggle "Show saintly changes" (D_01bd), tick its menu entry, report "... ON/OFF" */
-void far sub_root_0000_1154(void)
+/* toggle "Show saintly changes" (opt_saint_msgs), tick its menu entry, report "... ON/OFF" */
+void far toggle_saint_msgs(void)
 {
     char buf[80];
 
     strcpy(buf, D_01ba);
-    if ((D_01bd ^= 1) == 1) {
+    if ((opt_saint_msgs ^= 1) == 1) {
         strcat(buf, "ON");
         *D_995a = 1;
     } else {
         strcat(buf, "OFF");
         *D_995a = 2;
     }
-    sub_root_0000_24bc(buf, 0x3c);
+    show_message(buf, 0x3c);
 }
 
-/* toggle music (D_01bf; off also stops it through 047c_078a(1)) */
-void far sub_root_0000_11f2(void)
+/* toggle music (opt_music; off also stops it through 047c_078a(1)) */
+void far toggle_music(void)
 {
     char buf[80];
 
     strcpy(buf, D_01b8);
-    if ((D_01bf ^= 1) == 1) {
+    if ((opt_music ^= 1) == 1) {
         strcat(buf, "ON");
         *D_996e = 1;
     } else {
         strcat(buf, "OFF");
         *D_996e = 2;
-        sub_root_047c_078a(1);
+        sound_play(1);
     }
-    sub_root_0000_24bc(buf, 0x3c);
+    show_message(buf, 0x3c);
 }
 
-/* toggle sound effects (D_01be) */
-void far sub_root_0000_129a(void)
+/* toggle sound effects (opt_sound) */
+void far toggle_sound(void)
 {
     char buf[80];
 
     strcpy(buf, D_01b6);
-    if ((D_01be ^= 1) == 1) {
+    if ((opt_sound ^= 1) == 1) {
         strcat(buf, "ON");
         *D_9982 = 1;
     } else {
         strcat(buf, "OFF");
         *D_9982 = 2;
     }
-    sub_root_0000_24bc(buf, 0x3c);
+    show_message(buf, 0x3c);
 }
 
-/* exit to DOS when D_07f4 is set */
-void far sub_root_0000_1338(void)
+/* exit to DOS when exit_requested is set */
+void far exit_if_requested(void)
 {
-    if (D_07f4) {
-        sub_root_0000_1354();
+    if (exit_requested) {
+        game_shutdown();
         sub_root_044a_0122();
         exit_(0);
     }
 }
 
 /* shut down the sound/timer and return to text mode 3 */
-void far sub_root_0000_1354(void)
+void far game_shutdown(void)
 {
     union { struct { char al; char ah; } h; int x[7]; } r;
 
@@ -962,65 +964,66 @@ void far sub_root_0000_1354(void)
 }
 
 /* flush the key buffer */
-void far sub_root_0000_1384(void)
+void far flush_keys(void)
 {
-    if (sub_root_047c_073d()) {
+    if (key_pressed()) {
         do {
-            sub_root_047c_0744();
-        } while (sub_root_047c_073d());
+            get_key();
+        } while (key_pressed());
     }
 }
 
 /* "Quit to DOS? y/n": on yes shut everything down, delete the temporary save "dk.tmp"
    and exit */
-void far sub_root_0000_13a0(void)
+void far quit_to_dos(void)
 {
     char *z[2];
 
-    if (sub_root_0000_2522(D_01b2) == 1) {
+    if (ask_yes_no(D_01b2) == 1) {
         sub_root_044a_01f4();
         sub_root_047c_0791();
         vec_186f();
-        sub_root_0000_1354();
+        game_shutdown();
         if (D_907d == 1) {
-            sub_root_05f8_0139(D_940b);
+            sub_root_05f8_0139(ems_frame_handle);
         }
-        vec_1865();
+        video_restore_vec();
         *(char * volatile *)&z[0] = 0;
-        sub_root_0617_011e(D_01a6, (char far *)z[0]);
+        file_load_far(D_01a6, (char far *)z[0]);
         remove(D_01a6);
         exit_(0);
     }
 }
 
 /* difficulty setters (Alt-D cycles 1 -> 2 -> 0 -> 1) */
-void far sub_root_0000_1408(void)
+void far set_difficulty_basic(void)
 {
-    D_906a = 0;
-    sub_root_0000_1438(1);
+    game_difficulty = 0;
+    show_difficulty(1);
 }
 
-void far sub_root_0000_1418(void)
+void far set_difficulty_standard(void)
 {
-    D_906a = 1;
-    sub_root_0000_1438(1);
+    game_difficulty = 1;
+    show_difficulty(1);
 }
 
-void far sub_root_0000_1428(void)
+void far set_difficulty_expert(void)
 {
-    D_906a = 2;
-    sub_root_0000_1438(1);
+    game_difficulty = 2;
+    show_difficulty(1);
 }
 
 /* (6.00 keeps the 2 in AL for the second and third store - known 6.00A limit)
    tick the difficulty menu entry (D_99ec Basic, D_9a02 Standard, D_9a18 Expert) and, when
    show == 1, report "Difficulty is now set to ..." */
-void far sub_root_0000_1438(int show)
+#pragma optimize("a", on)
+void far show_difficulty(int show)
 {
     char buf[80];
 
     strcpy(buf, D_01b4);
-    switch (D_906a & 0x7f) {
+    switch (game_difficulty & 0x7f) {
     case 0:
         *D_99ec = 1;
         *D_9a02 = 2;
@@ -1041,8 +1044,14 @@ void far sub_root_0000_1438(int show)
         break;
     }
     if (show == 1)
-        sub_root_0000_24bc(buf, 0x3c);
+        show_message(buf, 0x3c);
 }
+
+/* m6: 14f4 is a separate empty function (a lone retf after 1438); 1438 needs pragma "a" (keeps 2 in AL). */
+void far sub_root_0000_14f4(void)
+{
+}
+#pragma optimize("a", off)
 
 /* unused extern: symbol-table knob for the operand order in 14f6 */
 extern int D_ffe0;
@@ -1050,7 +1059,7 @@ extern int D_ffe0;
 /* clip the rectangle (x, y, w, h) of src against dst (dst->x1 +6, dst->y1 +8; negative
    source coordinates move the target origin to 0) and copy it (047c_0553); 0 when nothing
    is left */
-int far sub_root_0000_14f6(struct win *src, int x, int y, int w, int h, struct win *dst,
+int far copy_rect_clipped(struct win *src, int x, int y, int w, int h, struct win *dst,
                            int dx, int dy)
 {
     if (x < 0) {
@@ -1077,14 +1086,14 @@ int far sub_root_0000_14f6(struct win *src, int x, int y, int w, int h, struct w
         if (h <= 0)
             return 0;
     }
-    sub_root_047c_0553(src, x, y, w, h, dst, dx, dy);
+    gfx_copy_rect(src, x, y, w, h, dst, dx, dy);
     return 1;
 }
 
 /* redraw the five party-member slot frames (rows of 0x28 pixels on the pages D_0168 and
-   D_0190) whose bits are set in D_01e4[which] (0x100: all five); D_9064[i] picks the
+   D_0190) whose bits are set in D_01e4[which] (0x100: all five); cbt_selected[i] picks the
    normal (0) or highlighted (1) frame pieces */
-void far sub_root_0000_1588(int which)
+void far party_panel_frames(int which)
 {
     unsigned bits;
     int y;
@@ -1097,29 +1106,29 @@ void far sub_root_0000_1588(int which)
     i = 0;
     y = 0;
     do {
-        sub_root_047c_12c3();
+        mouse_hide();
         if ((bits & 1) == 1) {
-            if (D_9064[i] == 0) {
-                sub_root_047c_05a5(D_0168, 0, y, D_a2e9);
-                sub_root_047c_05a5(D_0168, 0x39, y, D_a2e9);
-                sub_root_047c_05a5(D_0168, 3, y, D_a3d6);
-                sub_root_047c_05a5(D_0168, 3, y + 0x27, D_a3e5);
-                sub_root_047c_05a5(D_0190, 0, y, D_a2e9);
-                sub_root_047c_05a5(D_0190, 0x39, y, D_a2e9);
-                sub_root_047c_05a5(D_0190, 3, y, D_a3d6);
-                sub_root_047c_05a5(D_0190, 3, y + 0x27, D_a3e5);
-            } else if (D_9064[i] == 1) {
-                sub_root_047c_05a5(D_0168, 0, y, D_a33b);
-                sub_root_047c_05a5(D_0168, 0x39, y, D_a33b);
-                sub_root_047c_05a5(D_0168, 3, y, D_a33e);
-                sub_root_047c_05a5(D_0168, 3, y + 0x27, D_a392);
-                sub_root_047c_05a5(D_0190, 0, y, D_a33b);
-                sub_root_047c_05a5(D_0190, 0x39, y, D_a33b);
-                sub_root_047c_05a5(D_0190, 3, y, D_a33e);
-                sub_root_047c_05a5(D_0190, 3, y + 0x27, D_a392);
+            if (cbt_selected[i] == 0) {
+                gfx_draw_pic(D_0168, 0, y, D_a2e9);
+                gfx_draw_pic(D_0168, 0x39, y, D_a2e9);
+                gfx_draw_pic(D_0168, 3, y, D_a3d6);
+                gfx_draw_pic(D_0168, 3, y + 0x27, D_a3e5);
+                gfx_draw_pic(D_0190, 0, y, D_a2e9);
+                gfx_draw_pic(D_0190, 0x39, y, D_a2e9);
+                gfx_draw_pic(D_0190, 3, y, D_a3d6);
+                gfx_draw_pic(D_0190, 3, y + 0x27, D_a3e5);
+            } else if (cbt_selected[i] == 1) {
+                gfx_draw_pic(D_0168, 0, y, D_a33b);
+                gfx_draw_pic(D_0168, 0x39, y, D_a33b);
+                gfx_draw_pic(D_0168, 3, y, D_a33e);
+                gfx_draw_pic(D_0168, 3, y + 0x27, D_a392);
+                gfx_draw_pic(D_0190, 0, y, D_a33b);
+                gfx_draw_pic(D_0190, 0x39, y, D_a33b);
+                gfx_draw_pic(D_0190, 3, y, D_a33e);
+                gfx_draw_pic(D_0190, 3, y + 0x27, D_a392);
             }
         }
-        sub_root_047c_1293();
+        mouse_show();
         bits >>= 1;
         i++;
     } while ((y += 0x28) < 200);
@@ -1127,10 +1136,10 @@ void far sub_root_0000_1588(int which)
 
 /* redraw the party panel rows selected by D_01e4[which] (0x100: all five): portrait frame,
    name (grey when the member is out of action or someone else is acting, yellow for the
-   current leader D_907b), the status letter (1a9c/18fa) and a cross over a dead member's
+   current leader leader), the status letter (1a9c/18fa) and a cross over a dead member's
    portrait; then copy the row to the screen page D_0190 */
 #pragma optimize("a", on)
-void far sub_root_0000_1716(int which)
+void far party_panel_rows(int which)
 {
     struct { char c; char pad; char name[40]; int save; int *pic; int i; char *m; int y; int bits; } s;
     int k;
@@ -1140,26 +1149,26 @@ void far sub_root_0000_1716(int which)
     else
         s.bits = D_01e4[which];
     s.save = D_0168->f0c;
-    for (s.i = 0, s.y = 1, s.m = D_9c69[0], s.pic = D_a2d7; s.pic < D_a2d7 + 5;
+    for (s.i = 0, s.y = 1, s.m = party[0], s.pic = shield_pics; s.pic < shield_pics + 5;
          s.bits >>= 1, s.y += 0x28, s.m += 0x80, s.i++, s.pic++) {
         if ((s.bits & 1) == 1) {
-            sub_root_047c_05a5(D_0168, 3, s.y, D_a626);
+            gfx_draw_pic(D_0168, 3, s.y, D_a626);
             if ((s.c = s.m[0]) != 0) {
                 if (s.c == 3)
-                    sub_root_047c_05a5(D_0168, 6, s.y + 8, D_a2e5);
+                    gfx_draw_pic(D_0168, 6, s.y + 8, D_a2e5);
                 else
-                    sub_root_047c_05a5(D_0168, 6, s.y + 8, *s.pic);
+                    gfx_draw_pic(D_0168, 6, s.y + 8, *s.pic);
                 strcpy(s.name, s.m + 0x2a);
-                if (D_a6b3 == 1 && D_a6b2 != s.i || D_a6b4[s.i] == (char)0x9d ||
+                if (order_mode == 1 && selected_member != s.i || cbt_floor[s.i] == (char)0x9d ||
                     (s.c = s.m[0]) == 3 || s.c == 5)
                     D_0168->f0c = 7;
-                else if (D_907b == s.i)
+                else if (leader == s.i)
                     D_0168->f0c = 0x0e;
                 else
                     D_0168->f0c = 0x0f;
-                sub_root_0265_006e(D_0168, 4, s.y + 1, s.name);
-                sub_root_0000_1a9c(s.i);
-                sub_root_0000_18fa(s.i, D_0168);
+                draw_text(D_0168, 4, s.y + 1, s.name);
+                member_bars(s.i);
+                member_status_letter(s.i, D_0168);
             }
             if (s.m[0] == 3) {
                 D_0168->w = 3;
@@ -1167,16 +1176,16 @@ void far sub_root_0000_1716(int which)
                 D_0168->x1 = 0x35;
                 D_0168->y1 = 0x26;
                 for (k = 5; k < 0x69; k += 10)
-                    sub_root_047c_0d62(D_0168, k, 0, 0, k, 7);
+                    gfx_line(D_0168, k, 0, 0, k, 7);
                 D_0168->w = 0;
                 D_0168->f04 = 0;
                 D_0168->x1 = 0x13f;
                 D_0168->y1 = 0xc7;
             }
-            if (D_6eec < 0x2d)
-                sub_root_047c_12c3();
-            sub_root_0000_14f6(D_0168, 3, s.y, 0x36, 0x26, D_0190, 3, s.y);
-            sub_root_047c_1293();
+            if (mouse_x < 0x2d)
+                mouse_hide();
+            copy_rect_clipped(D_0168, 3, s.y, 0x36, 0x26, D_0190, 3, s.y);
+            mouse_show();
         }
     }
     D_0168->f0c = s.save;
@@ -1186,15 +1195,15 @@ void far sub_root_0000_1716(int which)
 /* status letter of member i in its panel row: '-' idle, 'W'/'F' (walk/fight), 'B', 'V', 'A',
    'P', 'R', 'M', 'T' for action modes, 'U', 'P', 'D', 'O', 'X' for combat orders (mode
    0x400), 'b'/'e' for the special states in D_a3d8 */
-void far sub_root_0000_18fa(int i, struct win *w)
+void far member_status_letter(int i, struct win *w)
 {
     char s[2];
     int st;
     int t;
 
-    if (D_907a == 1 && D_9c69[i][0] != 5) {
+    if (D_907a == 1 && party[i][0] != 5) {
         if (D_a3d8[i] == 0) {
-            if (D_a695 == 1 && D_a6b3 == 1 && D_a6b2 == i && (t = D_a6b0) != -1)
+            if (ai_paused == 1 && order_mode == 1 && selected_member == i && (t = order_action) != -1)
                 st = t;
             else
                 st = D_9c65[i][0];
@@ -1204,7 +1213,7 @@ void far sub_root_0000_18fa(int i, struct win *w)
                     s[0] = '-';
                     break;
                 case 1:
-                    s[0] = (D_a696[i] & 0x1000) ? 'F' : 'W';
+                    s[0] = (cbt_flags[i] & 0x1000) ? 'F' : 'W';
                     break;
                 case 6:
                     s[0] = 'B';
@@ -1227,10 +1236,10 @@ void far sub_root_0000_18fa(int i, struct win *w)
                     break;
                 }
             } else {
-                if (D_a695 == 1 && D_a6b3 == 1 && D_a6b2 == i && (t = D_a6d1) != -1)
+                if (ai_paused == 1 && order_mode == 1 && selected_member == i && (t = D_a6d1) != -1)
                     st = t;
                 else
-                    st = D_a6c4[i];
+                    st = cbt_special[i];
                 switch (st) {
                 case 1:
                 case 2:
@@ -1263,18 +1272,18 @@ void far sub_root_0000_18fa(int i, struct win *w)
             }
         }
         s[1] = 0;
-        sub_root_047c_05a5(w, 6, i * 0x28 + 0x1f, D_a6c2);
-        sub_root_0265_006e(w, 6, i * 0x28 + 0x1f, s);
+        gfx_draw_pic(w, 6, i * 0x28 + 0x1f, D_a6c2);
+        draw_text(w, 6, i * 0x28 + 0x1f, s);
     }
 }
 
 /* status column of party row i: for an unconscious member (state 5) "???? ???? ????";
-   otherwise either a status icon text (D_01a8..D_01b0 by the flag bits of D_a696[i]) or
+   otherwise either a status icon text (D_01a8..D_01b0 by the flag bits of cbt_flags[i]) or
    three vertical bars for endurance, strength and divine favour (current * 16 / maximum,
    "+" above a bar when the current value exceeds the maximum) with the current values
    printed beside them; while the member carries someone (D_9c65 mode bits 0x1be, slot
    +0x36) the carried member's bars are drawn as well */
-void far sub_root_0000_1a9c(int i)
+void far member_bars(int i)
 {
     long ext;
     int top;
@@ -1289,66 +1298,66 @@ void far sub_root_0000_1a9c(int i)
     int len;
 
     bars = 0;
-    if (D_9c69[i][0] == 5) {
+    if (party[i][0] == 5) {
         strcpy(buf, "???? ???? ????");
-        ext = sub_root_0265_0654(D_0168, buf, 0x1c, 0x16, i * 0x28 + 9,
-                                 sub_root_047c_051b(D_0168->f10), 0, 0, 0, 0, 0);
+        ext = measure_text_wrapped(D_0168, buf, 0x1c, 0x16, i * 0x28 + 9,
+                                 font_height(D_0168->f10), 0, 0, 0, 0, 0);
         if ((dy = (i * 0x28 + 0x25 - (int)(ext >> 16)) / 2) < -1)
             dy = -1;
         D_01bc = 1;
         D_0168->f0c = 7;
-        sub_root_0265_0134(D_0168, buf, 0x1c, 0x16, i * 0x28 + dy + 9,
-                           sub_root_047c_051b(D_0168->f10), 0, 0, 0, 0, 0, 0);
+        draw_text_wrapped(D_0168, buf, 0x1c, 0x16, i * 0x28 + dy + 9,
+                           font_height(D_0168->f10), 0, 0, 0, 0, 0, 0);
         D_01bc = 0;
         return;
     }
     top = i * 0x28 + 0xc;
     bot = i * 0x28 + 0x1b;
-    c = D_9cb2[i][0];
+    c = member_attrs[i][0];
     q = (c << 4) / D_9cb9[i][0];
     if ((len = 16 - q) == 16 && c != 0)
         len = 15;
-    if ((D_a696[i] & 8) == 8 && D_a6c1 == 0) {
-        if ((D_a696[i] & 2) == 2)
+    if ((cbt_flags[i] & 8) == 8 && real_combat == 0) {
+        if ((cbt_flags[i] & 2) == 2)
             msg = D_01a8;
-        else if ((D_a696[i] & 1) == 1)
+        else if ((cbt_flags[i] & 1) == 1)
             msg = D_01aa;
-        else if ((D_a696[i] & 4) == 4)
+        else if ((cbt_flags[i] & 4) == 4)
             msg = D_01ac;
-        else if ((D_a696[i] & 0x20) == 0x20)
+        else if ((cbt_flags[i] & 0x20) == 0x20)
             msg = D_01ae;
-        else if ((D_a696[i] & 0x40) == 0x40)
+        else if ((cbt_flags[i] & 0x40) == 0x40)
             msg = D_01b0;
         else
             goto plain;
-        ext = sub_root_0265_0654(D_0168, msg, 0x24, 0x13, i * 0x28 + 9,
-                                 sub_root_047c_051b(D_0168->f10), 0, 0, 0, 0, 0);
+        ext = measure_text_wrapped(D_0168, msg, 0x24, 0x13, i * 0x28 + 9,
+                                 font_height(D_0168->f10), 0, 0, 0, 0, 0);
         if ((dy = (i * 0x28 + 0x1f - (int)(ext >> 16)) / 2) < -1)
             dy = -1;
         D_01bc = 1;
-        sub_root_0265_0134(D_0168, msg, 0x24, 0x13, i * 0x28 + dy + 9,
-                           sub_root_047c_051b(D_0168->f10), 0, 0, 0, 0, 0, 0);
+        draw_text_wrapped(D_0168, msg, 0x24, 0x13, i * 0x28 + dy + 9,
+                           font_height(D_0168->f10), 0, 0, 0, 0, 0, 0);
         D_01bc = 0;
     } else {
 plain:
         bars = 1;
         if (len < 0)
             len = 0;
-        if (D_9cb2[i][0] > D_9cb9[i][0])
-            sub_root_0265_006e(D_0168, 0x14, top - 4, "+");
+        if (member_attrs[i][0] > D_9cb9[i][0])
+            draw_text(D_0168, 0x14, top - 4, "+");
         if (len != 0) {
-            sub_root_047c_0d62(D_0168, 0x15, top, 0x15, top + len - 1, 0x0f);
-            sub_root_047c_0d62(D_0168, 0x16, top, 0x16, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x15, top, 0x15, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x16, top, 0x16, top + len - 1, 0x0f);
         }
         if (len != 16) {
-            sub_root_047c_0d62(D_0168, 0x15, top + len, 0x15, bot, 9);
-            sub_root_047c_0d62(D_0168, 0x16, top + len, 0x16, bot, 9);
+            gfx_line(D_0168, 0x15, top + len, 0x15, bot, 9);
+            gfx_line(D_0168, 0x16, top + len, 0x16, bot, 9);
         }
     }
-    sub_root_0265_09b2(D_9cb2[i][0], buf);
+    itoa_commas(member_attrs[i][0], buf);
     strcat(buf, " ");
     D_0168->x1 = 0x38;
-    sub_root_0265_006e(D_0168, 0x12, i * 0x28 + 0x1f, buf);
+    draw_text(D_0168, 0x12, i * 0x28 + 0x1f, buf);
 
     c = D_9cb3[i][0];
     q = (c << 4) / D_9cba[i][0];
@@ -1358,19 +1367,19 @@ plain:
         if (len < 0)
             len = 0;
         if (D_9cb3[i][0] > D_9cba[i][0])
-            sub_root_0265_006e(D_0168, 0x22, top - 4, "+");
+            draw_text(D_0168, 0x22, top - 4, "+");
         if (len != 0) {
-            sub_root_047c_0d62(D_0168, 0x23, top, 0x23, top + len - 1, 0x0f);
-            sub_root_047c_0d62(D_0168, 0x24, top, 0x24, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x23, top, 0x23, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x24, top, 0x24, top + len - 1, 0x0f);
         }
         if (len != 16) {
-            sub_root_047c_0d62(D_0168, 0x23, top + len, 0x23, bot, 2);
-            sub_root_047c_0d62(D_0168, 0x24, top + len, 0x24, bot, 2);
+            gfx_line(D_0168, 0x23, top + len, 0x23, bot, 2);
+            gfx_line(D_0168, 0x24, top + len, 0x24, bot, 2);
         }
     }
-    sub_root_0265_09b2(D_9cb3[i][0], buf);
+    itoa_commas(D_9cb3[i][0], buf);
     strcat(buf, " ");
-    sub_root_0265_006e(D_0168, 0x20, i * 0x28 + 0x1f, buf);
+    draw_text(D_0168, 0x20, i * 0x28 + 0x1f, buf);
 
     c = D_9cb8[i][0];
     q = (c << 4) / D_9cbf[i][0];
@@ -1380,34 +1389,34 @@ plain:
         if (len < 0)
             len = 0;
         if (D_9cbf[i][0] < D_9cb8[i][0])
-            sub_root_0265_006e(D_0168, 0x2f, top - 4, "+");
+            draw_text(D_0168, 0x2f, top - 4, "+");
         if (len != 0) {
-            sub_root_047c_0d62(D_0168, 0x30, top, 0x30, top + len - 1, 0x0f);
-            sub_root_047c_0d62(D_0168, 0x31, top, 0x31, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x30, top, 0x30, top + len - 1, 0x0f);
+            gfx_line(D_0168, 0x31, top, 0x31, top + len - 1, 0x0f);
         }
         if (len != 16) {
-            sub_root_047c_0d62(D_0168, 0x30, top + len, 0x30, bot, 0x0e);
-            sub_root_047c_0d62(D_0168, 0x31, top + len, 0x31, bot, 0x0e);
+            gfx_line(D_0168, 0x30, top + len, 0x30, bot, 0x0e);
+            gfx_line(D_0168, 0x31, top + len, 0x31, bot, 0x0e);
         }
     }
-    sub_root_0265_09b2(D_9cb8[i][0], buf);
+    itoa_commas(D_9cb8[i][0], buf);
     strcat(buf, " ");
-    sub_root_0265_006e(D_0168, 0x2d, i * 0x28 + 0x1f, buf);
+    draw_text(D_0168, 0x2d, i * 0x28 + 0x1f, buf);
 
-    if ((D_9c65[i][0] & 0x1be) && D_a6d3[i] == 0 && (j = D_9c9f[i][0]) != -1) {
-        c = D_9cb2[j][0];
+    if ((D_9c65[i][0] & 0x1be) && cbt_moving[i] == 0 && (j = D_9c9f[i][0]) != -1) {
+        c = member_attrs[j][0];
         q = (c << 4) / D_9cb9[j][0];
         if ((len = 16 - q) == 16 && c != 0)
             len = 15;
         if (len < 0)
             len = 0;
         if (bars == 1) {
-            if (D_9cb2[j][0] > D_9cb9[j][0])
-                sub_root_0265_006e(D_0168, 0x18, top - 4, "+");
+            if (member_attrs[j][0] > D_9cb9[j][0])
+                draw_text(D_0168, 0x18, top - 4, "+");
             if (len != 0)
-                sub_root_047c_0d62(D_0168, 0x19, top, 0x19, top + len - 1, 0x0f);
+                gfx_line(D_0168, 0x19, top, 0x19, top + len - 1, 0x0f);
             if (len != 16)
-                sub_root_047c_0d62(D_0168, 0x19, top + len, 0x19, bot, 9);
+                gfx_line(D_0168, 0x19, top + len, 0x19, bot, 9);
         }
         c = D_9cb3[j][0];
         q = (c << 4) / D_9cba[j][0];
@@ -1417,11 +1426,11 @@ plain:
             len = 0;
         if (bars == 1) {
             if (D_9cb3[j][0] > D_9cba[j][0])
-                sub_root_0265_006e(D_0168, 0x26, top - 4, "+");
+                draw_text(D_0168, 0x26, top - 4, "+");
             if (len != 0)
-                sub_root_047c_0d62(D_0168, 0x27, top, 0x27, top + len - 1, 0x0f);
+                gfx_line(D_0168, 0x27, top, 0x27, top + len - 1, 0x0f);
             if (len != 16)
-                sub_root_047c_0d62(D_0168, 0x27, top + len, 0x27, bot, 2);
+                gfx_line(D_0168, 0x27, top + len, 0x27, bot, 2);
         }
         c = D_9cb8[j][0];
         q = (c << 4) / D_9cbf[j][0];
@@ -1431,11 +1440,11 @@ plain:
             len = 0;
         if (bars == 1) {
             if (D_9cbf[j][0] < D_9cb8[j][0])
-                sub_root_0265_006e(D_0168, 0x33, top - 4, "+");
+                draw_text(D_0168, 0x33, top - 4, "+");
             if (len != 0)
-                sub_root_047c_0d62(D_0168, 0x34, top, 0x34, top + len - 1, 0x0f);
+                gfx_line(D_0168, 0x34, top, 0x34, top + len - 1, 0x0f);
             if (len != 16)
-                sub_root_047c_0d62(D_0168, 0x34, top + len, 0x34, bot, 0x0e);
+                gfx_line(D_0168, 0x34, top + len, 0x34, bot, 0x0e);
         }
     }
     D_0168->x1 = 0x13f;
@@ -1443,36 +1452,36 @@ plain:
 
 /* framed box at x,y with a cw x ch interior: dark (0x86) outer and light (0x82) inner
    bevel lines, corner pieces D_a660..D_a666 */
-void far sub_root_0000_2286(struct win *w, int x, int y, int cw, int ch, int bg)
+void far draw_frame_box(struct win *w, int x, int y, int cw, int ch, int bg)
 {
     int x1;
     int y1;
     int x2;
     int y2;
 
-    sub_root_047c_0952(w, x, y, cw, ch, bg);
+    gfx_fill_rect(w, x, y, cw, ch, bg);
     x1 = x + cw - 1;
     y1 = y + ch - 1;
-    sub_root_047c_0d62(w, x, y, x1, y, 0x86);
-    sub_root_047c_0d62(w, x1, y, x1, y1, 0x86);
-    sub_root_047c_0d62(w, x1, y1, x, y1, 0x86);
-    sub_root_047c_0d62(w, x, y1, x, y, 0x86);
+    gfx_line(w, x, y, x1, y, 0x86);
+    gfx_line(w, x1, y, x1, y1, 0x86);
+    gfx_line(w, x1, y1, x, y1, 0x86);
+    gfx_line(w, x, y1, x, y, 0x86);
     x2 = x1 - 1;
     y2 = y1 - 1;
-    sub_root_047c_0d62(w, x + 1, y + 1, x2, y + 1, 0x82);
-    sub_root_047c_0d62(w, x2, y + 1, x2, y2, 0x82);
-    sub_root_047c_0d62(w, x2, y2, x + 1, y2, 0x82);
-    sub_root_047c_0d62(w, x + 1, y2, x + 1, y + 1, 0x82);
-    sub_root_047c_05a5(w, x, y, D_a660);
-    sub_root_047c_05a5(w, x, y1 - 3, D_a662);
-    sub_root_047c_05a5(w, x1 - 3, y, D_a664);
-    sub_root_047c_05a5(w, x1 - 3, y1 - 3, D_a666);
+    gfx_line(w, x + 1, y + 1, x2, y + 1, 0x82);
+    gfx_line(w, x2, y + 1, x2, y2, 0x82);
+    gfx_line(w, x2, y2, x + 1, y2, 0x82);
+    gfx_line(w, x + 1, y2, x + 1, y + 1, 0x82);
+    gfx_draw_pic(w, x, y, D_a660);
+    gfx_draw_pic(w, x, y1 - 3, D_a662);
+    gfx_draw_pic(w, x1 - 3, y, D_a664);
+    gfx_draw_pic(w, x1 - 3, y1 - 3, D_a666);
 }
 
 /* text box: centre text horizontally (320 wide) at text row y (-1: vertically centred),
    frame it (2286) and print it; with save != 0 first save the background into dst and
    return the saved rectangle in *r */
-void far sub_root_0000_23e6(struct win *w, int y, int save, char *text, struct win *dst,
+void far text_box(struct win *w, int y, int save, char *text, struct win *dst,
                             struct rect *r)
 {
     struct { int tx; int bx; int bh; int bw; int by; int ty; } s;
@@ -1481,10 +1490,10 @@ void far sub_root_0000_23e6(struct win *w, int y, int save, char *text, struct w
     if (y != -1)
         s.ty = y;
     else
-        s.ty = -(sub_root_047c_051b(w->f10) / 2 - 100);
-    tw = sub_root_0265_084e(w, text);
+        s.ty = -(font_height(w->f10) / 2 - 100);
+    tw = text_pixel_width(w, text);
     s.bw = tw + 10;
-    s.bh = sub_root_047c_051b(w->f10) + 7;
+    s.bh = font_height(w->f10) + 7;
     s.tx = (0x140 - tw - w->w) / 2;
     s.bx = s.tx - 5;
     s.by = s.ty - 4;
@@ -1495,41 +1504,41 @@ void far sub_root_0000_23e6(struct win *w, int y, int save, char *text, struct w
         r->x = s.bx;
         copy_rect_saved(w, s.bx, s.by, s.bw, s.bh, dst, s.bx, s.by);
     }
-    sub_root_0000_2286(w, s.bx, s.by, s.bw, s.bh, w->f0e);
-    sub_root_0265_006e(w, s.tx, s.ty, text);
+    draw_frame_box(w, s.bx, s.by, s.bw, s.bh, w->f0e);
+    draw_text(w, s.tx, s.ty, text);
 }
 
 /* message box for `ticks` timer ticks (0410_0302), then restore the screen */
 #pragma optimize("a", on)
-void far sub_root_0000_24bc(char *text, int ticks)
+void far show_message(char *text, int ticks)
 {
     struct rect r;
 
-    D_017c->f0c = 1;
-    D_017c->f0e = 0xff;
-    sub_root_047c_12c3();
-    sub_root_0000_23e6(D_017c, -1, 1, text, D_0154, &r);
+    card_window->f0c = 1;
+    card_window->f0e = 0xff;
+    mouse_hide();
+    text_box(card_window, -1, 1, text, card_window2, &r);
     sub_root_0410_0302(ticks);
-    copy_rect_saved(D_0154, r.x, r.y, r.w, r.h, D_017c, r.x, r.y);
-    sub_root_047c_1293();
+    copy_rect_saved(card_window2, r.x, r.y, r.w, r.h, card_window, r.x, r.y);
+    mouse_show();
 }
 #pragma optimize("", on)
 
 /* "<question> y/n" box: waits for Y or N (either case), returns 1 for yes */
 #pragma optimize("a", on)
-int far sub_root_0000_2522(char *question)
+int far ask_yes_no(char *question)
 {
     char buf[120];
     struct rect r;
     char c;
     int yes;
 
-    D_017c->f0c = 1;
-    D_017c->f0e = 0xff;
+    card_window->f0c = 1;
+    card_window->f0e = 0xff;
     strcpy(buf, question);
     strcat(buf, " y/n");
-    sub_root_047c_12c3();
-    sub_root_0000_23e6(D_017c, -1, 1, buf, D_0154, &r);
+    mouse_hide();
+    text_box(card_window, -1, 1, buf, card_window2, &r);
     for (;;) {
         c = getch();
         if (c >= 0x60)
@@ -1543,8 +1552,8 @@ int far sub_root_0000_2522(char *question)
             break;
         }
     }
-    copy_rect_saved(D_0154, r.x, r.y, r.w, r.h, D_017c, r.x, r.y);
-    sub_root_047c_1293();
+    copy_rect_saved(card_window2, r.x, r.y, r.w, r.h, card_window, r.x, r.y);
+    mouse_show();
     return yes;
 }
 #pragma optimize("", on)
@@ -1553,21 +1562,21 @@ void far sub_root_0000_25f0(void)
 {
 }
 
-/* select data file `name` (kept in F_2e38_0000) unless it is already the current one */
-void far sub_root_0000_25f2(char *name)
+/* select data file `name` (kept in data_file) unless it is already the current one */
+void far datafile_select(char *name)
 {
-    if (_fstricmp(name, F_2e38_0000)) {
-        sub_root_0617_070e();
-        sub_root_0617_06d8(name);
-        _fstrcpy(F_2e38_0000, name);
+    if (_fstricmp(name, data_file)) {
+        catalog_close();
+        catalog_open(name);
+        _fstrcpy(data_file, name);
     }
 }
 
-/* forget the current data file (F_2e38_0000 = "") */
-void far sub_root_0000_262e(void)
+/* forget the current data file (data_file = "") */
+void far datafile_forget(void)
 {
-    sub_root_0617_070e();
-    _fstrcpy(F_2e38_0000, "");
+    catalog_close();
+    _fstrcpy(data_file, "");
 }
 
 void far sub_root_0000_2646(void)

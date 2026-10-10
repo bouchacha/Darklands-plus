@@ -12,8 +12,10 @@
    following party loop runs on a char pointer to f4a initialised BEFORE the clear
    (`k = 0; p = &D_9c55[0].f4a; <clear>; for (; p < &D_9c55[5].f4a; k++, p += sizeof(struct cbt))`,
    f10 as `*(int *)(p - 0x3a)`), which reproduces 6.00's memory homes of k/p around the clear. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
-struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
+struct cbt {                    /* combatant record, 0x80 bytes, combatants[13] */
     char pad0[4];
     int x;                      /* +04 */
     int y;                      /* +06 */
@@ -30,7 +32,7 @@ struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad4b[0x35];
 };
 struct res { int a; int b; };
-struct pf {                     /* D_a696[13]: per-combatant flags */
+struct pf {                     /* cbt_flags[13]: per-combatant flags */
     unsigned lo : 5;
     unsigned b5 : 1;
     unsigned b6 : 1;
@@ -43,7 +45,7 @@ struct win { char pad0[0xc]; int f0c; char pade[2]; int f10; };
 struct r2c { char b[0x2c]; };
 struct r0e { char b[0xe]; };
 
-extern struct cbt D_9c55[];
+extern struct cbt combatants[];
 extern char D_064a[];
 extern char D_0880;
 extern char D_0881;
@@ -60,17 +62,17 @@ extern char D_9c2f;
 extern char D_9c3c;
 extern char D_9c41;
 extern char D_a394;
-extern char D_c623;
+extern char party_floor;
 extern char D_c8b2[];
 extern char D_ca30[];
 extern char D_d73b;
 extern char D_e079;
-int far sub_root_0000_13a0();
-int far vec_19eb();
-int far vec_1a4f();
-int far vec_1d65();
+int far quit_to_dos();
+int far do_surrender_vec();
+int far enemy_info_vec();
+int far combat_char_sheet_vec();
 #define KBFLAGS (*(char far *)0x00400017L)
-extern struct pf D_a696[];
+extern struct pf cbt_flags[];
 extern struct q16 D_9a47[];
 extern struct win *D_0168;
 extern int D_0190;
@@ -79,14 +81,14 @@ extern char D_0768[];
 extern char D_0788[];
 extern char D_07aa;
 extern char D_07bc;
-extern int D_07d4;
+extern int combat_clock;
 extern char D_07d3;
 extern char D_11b1;
-extern char D_11ca;
+extern char floor_shown;
 extern char D_17b0;
-extern char D_907b;
-extern char D_9085[];
-extern char D_9064[];
+extern char leader;
+extern char msg_buf[];
+extern char cbt_selected[];
 extern char D_9609;
 extern char D_966d;
 extern char D_9681;
@@ -99,20 +101,20 @@ extern char D_96f9;
 extern char D_970d;
 extern char D_9749;
 extern char D_982d;
-extern char D_a695;
-extern int D_a6b0;
-extern char D_a6b2;
-extern char D_a6b3;
-extern char D_a6b4[];
-extern char D_a6c1;
+extern char ai_paused;
+extern int order_action;
+extern char selected_member;
+extern char order_mode;
+extern char cbt_floor[];
+extern char real_combat;
 extern int D_a6c2;
 extern int D_a6d1;
-extern char D_a6d3[];
-extern char D_c102;
+extern char cbt_moving[];
+extern char move_mode;
 extern char D_c1ce;
 extern char D_c1f2;
-extern char D_c624[];
-extern char D_c629;
+extern char marching_order[];
+extern char marching_len;
 extern unsigned char D_c64c[];
 extern int D_c652;
 extern unsigned char D_c77e[];
@@ -121,9 +123,9 @@ extern char D_c7cc;
 extern char D_c7cd;
 extern char D_c866;
 extern char D_c886;
-extern char D_ca64[];
+extern char cbt_action[];
 extern char D_ca99;
-extern char D_d493[];
+extern char cbt_attack_rate[];
 extern char D_d505[][8];
 extern char D_d610;
 extern char D_d6ea;
@@ -131,8 +133,8 @@ extern char D_d6ed;
 extern char D_d6f1;
 extern char D_d6fb[];
 extern char D_d7fe;
-extern char D_d845;
-extern unsigned char D_d848[];
+extern char cursor_target;
+extern unsigned char hotspot_cbt[];
 extern unsigned char D_d855[];
 extern int D_d86f[];
 extern int D_d889[];
@@ -140,12 +142,12 @@ extern int D_d97c[];
 extern char D_e07b;
 extern int D_e09d;
 extern int D_e09f;
-extern char D_e0a1;
+extern char hotspot_count;
 extern int D_e1bc;
 extern char D_e1c8;
 extern char D_e1ca;
 extern char far F_286b_0231[];
-extern char far F_20a5_6238[][0xfa];
+extern char far cbt_paths[][0xfa];
 extern struct r2c far F_20a5_3016[];
 extern struct r0e far F_20a5_1f5b[];
 
@@ -153,46 +155,46 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 char far * far _fstrcpy(char far *, const char far *);
 int far random_n(int);
-int far sub_root_0000_0caa();
-int far sub_root_0000_1588();
-int far sub_root_0000_1716();
-int far sub_root_0000_24bc();
-int far sub_root_0265_006e();
-int far sub_root_047c_051b();
-int far sub_root_047c_0553();
-int far sub_root_047c_05a5();
-int far sub_root_047c_073d();
-int far sub_root_047c_0744();
-int far sub_s014_0e76_27ac();
-int far sub_s014_0e76_27cc();
-int far sub_s014_0e76_38b6();
-int far sub_s014_0e76_3d0c();
-int far sub_s014_0e76_4780();
-int far sub_s014_12f7_000a();
-int far sub_s014_12f7_1554();
-int far sub_s014_14f7_343c();
-int far sub_s014_18bf_0fa4();
-int far sub_s014_19cd_069c();
-int far sub_s014_19cd_0738();
-int far sub_s014_19cd_28a2();
-int far vec_1b3f();
-int far vec_1c2f();
-int far vec_1cd9();
-int far vec_1d01();
-int far vec_1d0b();
-int far vec_1d15();
-int far vec_1d1f(void far *);
+int far hot_keys();
+int far party_panel_frames();
+int far party_panel_rows();
+int far show_message();
+int far draw_text();
+int far font_height();
+int far gfx_copy_rect();
+int far gfx_draw_pic();
+int far key_pressed();
+int far get_key();
+int far cbt_cancel_action();
+int far cbt_forget_target();
+int far cbt_set_anim();
+int far order_queue_clear();
+int far cursor_normal();
+int far path_find();
+int far path_give();
+int far cbt_anim_set();
+int far consume_slot();
+int far order_mode_enter();
+int far order_mode_leave();
+int far order_menu_reset();
+int far level_switch_vec();
+int far floor_view_draw_vec();
+int far take_exit_vec();
+int far chest_open_vec();
+int far door_toggle_vec();
+int far chest_disarm_vec();
+int far lock_pick_vec(void far *);
 
-void far sub_s016_1ef8_0000();
-void far sub_s016_1ef8_09bc();
+void far combat_keys();
+void far member_activate();
 void far sub_s016_1ef8_0a2c();
 void far sub_s016_1ef8_0aba();
 void far sub_s016_1ef8_0b92();
 void far sub_s016_1ef8_0bd6();
 void far sub_s016_1ef8_0cdc();
-void far sub_s016_1ef8_0da6();
+void far marching_order_rebuild();
 void far sub_s016_1ef8_0e2e();
-void far sub_s016_1ef8_0e7e();
+void far single_file();
 void far sub_s016_1ef8_0f76();
 void far sub_s016_1ef8_101e();
 void far sub_s016_1ef8_1072();
@@ -246,16 +248,16 @@ void far sub_s016_1ef8_15be();
 /* combat keyboard handler (also takes joystick directions from D_0880/D_0881) */
 /* combat keyboard handler (also takes joystick directions from D_0880/D_0881) */
 /* combat keyboard handler (also takes joystick directions from D_0880/D_0881) */
-void far sub_s016_1ef8_0000(void)
+void far combat_keys(void)
 {
     int k;
     int i;
 
     k = 0;
-    if (sub_root_047c_073d()) {
-        sub_root_0000_0caa();
-        if (sub_root_047c_073d())
-            k = sub_root_047c_0744();
+    if (key_pressed()) {
+        hot_keys();
+        if (key_pressed())
+            k = get_key();
     } else if (D_0880 < 0 && D_0881 < 0)
         k = 0x4700;
     else if (D_0880 < 0 && D_0881 > 0)
@@ -273,14 +275,14 @@ void far sub_s016_1ef8_0000(void)
     else if (D_0881 > 0)
         k = 0x5000;
 
-    if (D_c623 == D_11ca)
+    if (party_floor == floor_shown)
         goto main;
     /* party split over two levels: only some commands */
     switch (k) {
     case 0x4800: case 0x4838: case 0x5000: case 0x5032: case 0x4b00: case 0x4b34:
     case 0x4d00: case 0x4d36: case 0x4700: case 0x4737: case 0x4f00: case 0x4f31:
     case 0x5100: case 0x5133: case 0x4900: case 0x4939:
-        sub_root_0000_24bc(D_064a, 0x96);
+        show_message(D_064a, 0x96);
         return;
     case 0x011b: case 0x0231: case 0x0332: case 0x0433: case 0x0534: case 0x0635:
     case 0x1c0d: case 0x3920: case 0x3b00: case 0x3c00: case 0x3d00: case 0x3e00:
@@ -292,9 +294,9 @@ main:
                     D_c866--;
                     D_c886--;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0;
                 }
                 break;
@@ -303,9 +305,9 @@ main:
                     D_c866++;
                     D_c886++;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x44;
                 }
                 break;
@@ -313,9 +315,9 @@ main:
                 if ((KBFLAGS & 2) || (KBFLAGS & 1)) {
                     D_c866--;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x66;
                 }
                 break;
@@ -323,9 +325,9 @@ main:
                 if ((KBFLAGS & 2) || (KBFLAGS & 1)) {
                     D_c866++;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x22;
                 }
                 break;
@@ -334,9 +336,9 @@ main:
                     D_c866 -= 2;
                     D_c886--;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x77;
                 }
                 break;
@@ -344,9 +346,9 @@ main:
                 if (KBFLAGS & 3) {
                     D_c886++;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x55;
                 }
                 break;
@@ -355,9 +357,9 @@ main:
                     D_c866 += 2;
                     D_c886++;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x33;
                 }
                 break;
@@ -365,9 +367,9 @@ main:
                 if (KBFLAGS & 3) {
                     D_c886--;
                     sub_s016_1ef8_0b92();
-                } else if (D_a6b4[D_17b0] == D_11ca && D_17b0 < 5 && D_c102 != 1) {
+                } else if (cbt_floor[D_17b0] == floor_shown && D_17b0 < 5 && move_mode != 1) {
                     D_e079 = 1;
-                    D_9c55[D_17b0].f10 = 1;
+                    combatants[D_17b0].f10 = 1;
                     D_ca30[D_17b0] = 0x11;
                 }
                 break;
@@ -379,16 +381,16 @@ main:
             case 0x4f31: D_c886++; sub_s016_1ef8_0b92(); break;
             case 0x5133: D_c866 += 2; D_c886++; sub_s016_1ef8_0b92(); break;
             case 0x4939: D_c886--; sub_s016_1ef8_0b92(); break;
-            case 0x3b00: vec_1d65(10); break;
-            case 0x3c00: vec_1d65(0x32); break;
-            case 0x3d00: vec_1d65(0x5a); break;
-            case 0x3e00: vec_1d65(0x82); break;
-            case 0x3f00: vec_1d65(0xaa); break;
-            case 0x5e00: sub_s016_1ef8_09bc(0); break;
-            case 0x5f00: sub_s016_1ef8_09bc(1); break;
-            case 0x6000: sub_s016_1ef8_09bc(2); break;
-            case 0x6100: sub_s016_1ef8_09bc(3); break;
-            case 0x6200: sub_s016_1ef8_09bc(4); break;
+            case 0x3b00: combat_char_sheet_vec(10); break;
+            case 0x3c00: combat_char_sheet_vec(0x32); break;
+            case 0x3d00: combat_char_sheet_vec(0x5a); break;
+            case 0x3e00: combat_char_sheet_vec(0x82); break;
+            case 0x3f00: combat_char_sheet_vec(0xaa); break;
+            case 0x5e00: member_activate(0); break;
+            case 0x5f00: member_activate(1); break;
+            case 0x6000: member_activate(2); break;
+            case 0x6100: member_activate(3); break;
+            case 0x6200: member_activate(4); break;
             case 0x0231: sub_s016_1ef8_0a2c(0); break;
             case 0x0332: sub_s016_1ef8_0a2c(1); break;
             case 0x0433: sub_s016_1ef8_0a2c(2); break;
@@ -396,12 +398,12 @@ main:
             case 0x0635: sub_s016_1ef8_0a2c(4); break;
             case 0x1e41:
             case 0x1e61:
-                if (D_97f1 == 1 && D_a6b2 != -1)
+                if (D_97f1 == 1 && selected_member != -1)
                     sub_s016_1ef8_130a();
                 break;
             case 0x3042:
             case 0x3062:
-                if (D_9819 == 1 && D_a6b2 != -1)
+                if (D_9819 == 1 && selected_member != -1)
                     sub_s016_1ef8_131e();
                 break;
             case 0x2044:
@@ -411,11 +413,11 @@ main:
             case 0x1245:
             case 0x1265:
                 if (D_9631 == 1)
-                    vec_1a4f();
+                    enemy_info_vec();
                 break;
             case 0x2146:
             case 0x2166:
-                if (D_a695 == 1 && D_9659 == 1 && D_a6b2 != -1)
+                if (ai_paused == 1 && D_9659 == 1 && selected_member != -1)
                     sub_s016_1ef8_133e();
                 break;
             case 0x2247:
@@ -447,7 +449,7 @@ main:
                 break;
             case 0x1f53:
             case 0x1f73:
-                vec_19eb();
+                do_surrender_vec();
                 break;
             case 0x1454:
             case 0x1474:
@@ -464,12 +466,12 @@ main:
                 break;
             case 0x2f56:
             case 0x2f76:
-                if (D_9805 == 1 && D_a6b2 != -1)
+                if (D_9805 == 1 && selected_member != -1)
                     sub_s016_1ef8_1314();
                 break;
             case 0x1157:
             case 0x1177:
-                if (D_a695 == 1 && D_9645 == 1 && D_a6b2 != -1)
+                if (ai_paused == 1 && D_9645 == 1 && selected_member != -1)
                     sub_s016_1ef8_1332();
                 break;
             case 0x2d58:
@@ -478,67 +480,67 @@ main:
                 break;
             case 0x1800:
                 for (i = 0; i < 13; i++) {
-                    D_9c55[i].f10 = 0;
-                    D_a6d3[i] = 0;
+                    combatants[i].f10 = 0;
+                    cbt_moving[i] = 0;
                 }
-                D_a6c1 = 0;
-                sub_s014_19cd_28a2();
+                real_combat = 0;
+                order_menu_reset();
                 break;
             case 0x1c0d:
-                if (D_d7fe == 1 && D_c102 == 1)
+                if (D_d7fe == 1 && move_mode == 1)
                     D_d73b = 1;
-                else if (D_c102 == 0)
-                    sub_s014_19cd_0738();
+                else if (move_mode == 0)
+                    order_mode_leave();
                 break;
             case 0x3920:
-                if (D_a695 == 0) {
-                    D_a695 = 1;
+                if (ai_paused == 0) {
+                    ai_paused = 1;
                     D_07d3++;
-                    sub_s014_0e76_4780();
+                    cursor_normal();
                     D_9609 = 1;
                 } else
                     sub_s016_1ef8_1436();
                 break;
             case 0x011b:
-                if (D_a695 == 1)
+                if (ai_paused == 1)
                     sub_s016_1ef8_13d4();
                 break;
             }
         break;
     case 0x1655:
     case 0x1675:
-        if (D_a695 == 1) {
+        if (ai_paused == 1) {
             if (D_96bd == 1) {
-                D_c77e[D_a6b2] = D_c8b2[D_a6b2];
+                D_c77e[selected_member] = D_c8b2[selected_member];
                 sub_s016_1ef8_1384();
             }
             return;
         }
-        if (D_c8b2[D_907b] != -1)
-            vec_1cd9(D_c8b2[D_907b], D_907b);
+        if (D_c8b2[leader] != -1)
+            take_exit_vec(D_c8b2[leader], leader);
         return;
     case 0x1000:
-        sub_root_0000_13a0();
+        quit_to_dos();
         return;
     }
 }
 
 /* make party member i the active one (no-op for absent / unconscious / fled members) */
-void far sub_s016_1ef8_09bc(int i)
+void far member_activate(int i)
 {
     union { char t; int d; } u;     /* status copy (kept in a word slot) */
 
-    if (i < 5 && (u.t = *(volatile char *)&u.t = D_9c55[i].status) != 0 && D_a6b4[i] != -99 && u.t != 3 && u.t != 5) {
+    if (i < 5 && (u.t = *(volatile char *)&u.t = combatants[i].status) != 0 && cbt_floor[i] != -99 && u.t != 3 && u.t != 5) {
         D_11b1 = 1;
         D_17b0 = i;
-        D_907b = i;
-        if (D_a6b4[i] != D_11ca) {
-            vec_1b3f(D_a6b4[i]);
-            D_11ca = D_a6b4[i];
+        leader = i;
+        if (cbt_floor[i] != floor_shown) {
+            level_switch_vec(cbt_floor[i]);
+            floor_shown = cbt_floor[i];
             D_e07b = 1;
         }
-        sub_root_0000_1716(0x100);
-        sub_s014_19cd_28a2();
+        party_panel_rows(0x100);
+        order_menu_reset();
     }
 }
 
@@ -547,18 +549,18 @@ void far sub_s016_1ef8_0a2c(int i)
 {
     union { char t; int d; } u;     /* status copy (kept in a word slot) */
 
-    if (i < 5 && (u.t = *(volatile char *)&u.t = D_9c55[i].status) != 0 && D_a6b4[i] != -99 && u.t != 3 && u.t != 5) {
-        if (D_a6b2 != -1)
-            sub_s014_19cd_0738();
+    if (i < 5 && (u.t = *(volatile char *)&u.t = combatants[i].status) != 0 && cbt_floor[i] != -99 && u.t != 3 && u.t != 5) {
+        if (selected_member != -1)
+            order_mode_leave();
         D_11b1 = 1;
         D_17b0 = i;
-        D_d6ea = D_a696[i].b12;
-        if (D_a6b4[i] != D_11ca) {
-            vec_1b3f(D_a6b4[i]);
-            D_11ca = D_a6b4[i];
-            vec_1c2f(i);
+        D_d6ea = cbt_flags[i].b12;
+        if (cbt_floor[i] != floor_shown) {
+            level_switch_vec(cbt_floor[i]);
+            floor_shown = cbt_floor[i];
+            floor_view_draw_vec(i);
         }
-        sub_s014_19cd_28a2();
+        order_menu_reset();
         D_d6f1 = 1;
         D_d6ed = i;
     }
@@ -570,23 +572,23 @@ void far sub_s016_1ef8_0aba(int i)
     union { char t; int d; } u;     /* status copy (kept in a word slot) */
     int k;
 
-    if (i < 5 && (u.t = *(volatile char *)&u.t = D_9c55[i].status) != 0 && D_a6b4[i] != -99 && u.t != 3 && u.t != 5) {
+    if (i < 5 && (u.t = *(volatile char *)&u.t = combatants[i].status) != 0 && cbt_floor[i] != -99 && u.t != 3 && u.t != 5) {
         D_11b1 = 1;
         D_17b0 = i;
-        if (D_a6b4[i] != D_11ca) {
-            vec_1b3f(D_a6b4[i]);
-            D_11ca = D_a6b4[i];
+        if (cbt_floor[i] != floor_shown) {
+            level_switch_vec(cbt_floor[i]);
+            floor_shown = cbt_floor[i];
             D_e07b = 1;
         }
-        D_a6b2 = i;
-        for (k = 0; k < D_e0a1; k++) {
-            if (D_d848[k] == i) {
-                D_e09f = D_d505[sub_s014_14f7_343c(D_a6b2)][D_9c55[D_a6b2].f1a] + D_d889[k] - 4;
+        selected_member = i;
+        for (k = 0; k < hotspot_count; k++) {
+            if (hotspot_cbt[k] == i) {
+                D_e09f = D_d505[cbt_anim_set(selected_member)][combatants[selected_member].f1a] + D_d889[k] - 4;
                 D_e09d = (D_d855[k] >> 1) + D_d86f[k] - 0xd;
                 break;
             }
         }
-        sub_s014_19cd_069c();
+        order_mode_enter();
     }
 }
 
@@ -607,7 +609,7 @@ void far sub_s016_1ef8_0b92(void)
         }
     }
     D_11b1 = 0;
-    vec_1c2f(-1);
+    floor_view_draw_vec(-1);
 }
 
 /* toggle "travel as a group" */
@@ -619,20 +621,20 @@ void far sub_s016_1ef8_0bd6(void)
     int i;
     char *p;
 
-    D_c102 = D_c102 != 1 ? 1 : 0;
-    if (D_c102 == 1) {
+    move_mode = move_mode != 1 ? 1 : 0;
+    if (move_mode == 1) {
         strcpy(msg, D_074a);
         D_07bc = 2;
         D_07aa = 1;
         D_d7fe = 1;
-        sub_s016_1ef8_0da6(1);
+        marching_order_rebuild(1);
         k = 0;
-        p = &D_9c55[0].f4a;
+        p = &combatants[0].f4a;
         for (i = 0; i < 5; i++)
-            D_a6d3[i] = 0;
-        for (; p < &D_9c55[5].f4a; k++, p += sizeof(struct cbt)) {
+            cbt_moving[i] = 0;
+        for (; p < &combatants[5].f4a; k++, p += sizeof(struct cbt)) {
             *p = -1;
-            sub_s014_0e76_3d0c(k);
+            order_queue_clear(k);
             *(int *)(p - 0x3a) = 0;
         }
     } else {
@@ -642,17 +644,17 @@ void far sub_s016_1ef8_0bd6(void)
         D_d7fe = 0;
         if (D_d610 == 0)
             D_9681 = 2;
-        p = &D_9c55[0].f4a;
+        p = &combatants[0].f4a;
         for (i = 0; i < 5; i++)
-            D_a6d3[i] = 0;
-        for (; p < &D_9c55[5].f4a; p += sizeof(struct cbt)) {
+            cbt_moving[i] = 0;
+        for (; p < &combatants[5].f4a; p += sizeof(struct cbt)) {
             *p = -1;
             *(int *)(p - 0x3a) = 0;
         }
     }
-    sub_root_0000_24bc(msg, 0x3c);
-    sub_s014_19cd_28a2();
-    if (D_a695 == 1)
+    show_message(msg, 0x3c);
+    order_menu_reset();
+    if (ai_paused == 1)
         D_9609 = 1;
 }
 #pragma optimize("", on)
@@ -666,58 +668,58 @@ void far sub_s016_1ef8_0cdc(void)
     char *p;
 
     D_d7fe = 0;
-    D_c102 = D_c102 != 2 ? 2 : 0;
-    if (D_c102 == 2) {
+    move_mode = move_mode != 2 ? 2 : 0;
+    if (move_mode == 2) {
         strcpy(msg, D_0788);
         D_07aa = 2;
         D_07bc = 1;
-        sub_s016_1ef8_0da6(1);
-        sub_s016_1ef8_0e7e();
+        marching_order_rebuild(1);
+        single_file();
     } else {
         strcpy(msg, D_0768);
         D_07aa = 2;
         D_07bc = 2;
         if (D_d610 == 0)
             D_9695 = 2;
-        p = &D_9c55[0].f4a;
+        p = &combatants[0].f4a;
         for (i = 0; i < 5; i++)
-            D_a6d3[i] = 0;
-        for (; p < &D_9c55[5].f4a; p += sizeof(struct cbt)) {
+            cbt_moving[i] = 0;
+        for (; p < &combatants[5].f4a; p += sizeof(struct cbt)) {
             *p = -1;
             *(int *)(p - 0x3a) = 0;
         }
     }
-    sub_root_0000_24bc(msg, 0x3c);
-    sub_s014_19cd_28a2();
-    if (D_a695 == 1)
+    show_message(msg, 0x3c);
+    order_menu_reset();
+    if (ai_paused == 1)
         D_9609 = 1;
 }
 #pragma optimize("", on)
 
-/* rebuild the marching order D_c624 unless it still lists exactly the active members */
-void far sub_s016_1ef8_0da6(int p)
+/* rebuild the marching order marching_order unless it still lists exactly the active members */
+void far marching_order_rebuild(int p)
 {
     int ok;
     int i;
     int j;
     int found;
 
-    if (D_c629 == 0) {
+    if (marching_len == 0) {
 rebuild:
         sub_s016_1ef8_0e2e(p);
         return;
     } else {
         ok = 1;
-        for (j = 0; j < D_c629; j++)
-            if (D_9c55[D_c624[j]].status != 1)
+        for (j = 0; j < marching_len; j++)
+            if (combatants[marching_order[j]].status != 1)
                 ok = 0;
         if (!ok)
             goto rebuild;
         for (i = 0; i < 5; i++) {
-            if (D_9c55[i].status == 1) {
+            if (combatants[i].status == 1) {
                 found = 0;
-                for (j = 0; j < D_c629; j++) {
-                    if (D_c624[j] == i) {
+                for (j = 0; j < marching_len; j++) {
+                    if (marching_order[j] == i) {
                         found = 1;
                         break;
                     }
@@ -737,45 +739,45 @@ void far sub_s016_1ef8_0e2e(int p)
 
     n = 0;
     for (i = 0; i < 5; i++)
-        if (D_9c55[i].status == 1)
-            D_c624[n++] = i;
-    D_c629 = n;
+        if (combatants[i].status == 1)
+            marching_order[n++] = i;
+    marching_len = n;
     if (p == 1) {
         _fstrcpy(msg, F_286b_0231);
-        sub_root_0000_24bc(msg, 0x3c);
+        show_message(msg, 0x3c);
     }
 }
 
 /* single file: every member follows the previous one in the marching order */
-void far sub_s016_1ef8_0e7e(void)
+void far single_file(void)
 {
     int k;
 
-    sub_s016_1ef8_09bc(D_c624[0]);
-    *(volatile char far *)F_20a5_6238[D_c624[0]] = -1;   /* clear the path */
-    D_d6fb[D_c624[0]] = 0;
-    D_9c55[D_c624[0]].f4a = -1;
-    sub_s014_0e76_3d0c(D_c624[0]);
-    D_9c55[D_c624[0]].f10 = 0;
-    for (k = 1; k < D_c629; k++) {
-        sub_s014_0e76_3d0c(D_c624[k]);
-        D_9c55[D_c624[k]].f10 = 0;
-        D_9c55[D_c624[k]].f4a = k - 1;
-        D_9c55[D_c624[k]].tx = D_9c55[D_c624[k - 1]].x;
-        D_9c55[D_c624[k]].ty = D_9c55[D_c624[k - 1]].y;
-        if (sub_s014_12f7_000a(D_c624[k]) == 1) {
-            sub_s014_12f7_1554(D_c624[k]);
-            D_d6fb[D_c624[k]] = 0;
-            D_d97c[D_c624[k]] = random_n(0x3c) + D_07d4 + 0x1e;
-            D_a6d3[D_c624[k]] = 1;
-            D_9c55[D_c624[k]].f10 = 1;
+    member_activate(marching_order[0]);
+    *(volatile char far *)cbt_paths[marching_order[0]] = -1;   /* clear the path */
+    D_d6fb[marching_order[0]] = 0;
+    combatants[marching_order[0]].f4a = -1;
+    order_queue_clear(marching_order[0]);
+    combatants[marching_order[0]].f10 = 0;
+    for (k = 1; k < marching_len; k++) {
+        order_queue_clear(marching_order[k]);
+        combatants[marching_order[k]].f10 = 0;
+        combatants[marching_order[k]].f4a = k - 1;
+        combatants[marching_order[k]].tx = combatants[marching_order[k - 1]].x;
+        combatants[marching_order[k]].ty = combatants[marching_order[k - 1]].y;
+        if (path_find(marching_order[k]) == 1) {
+            path_give(marching_order[k]);
+            D_d6fb[marching_order[k]] = 0;
+            D_d97c[marching_order[k]] = random_n(0x3c) + combat_clock + 0x1e;
+            cbt_moving[marching_order[k]] = 1;
+            combatants[marching_order[k]].f10 = 1;
         }
     }
 }
 
 void far sub_s016_1ef8_0f76(void)
 {
-    if (D_a695 == 1) {
+    if (ai_paused == 1) {
         if (D_96f9 == 1) {
             sub_s016_1ef8_13c0();
             return;
@@ -787,30 +789,30 @@ void far sub_s016_1ef8_0f76(void)
         return;
     }
     if (D_96f9 == 1) {
-        sub_root_0000_24bc(0x590, 0x96);
-        sub_s014_18bf_0fa4(D_a6b2, (unsigned char)D_c7cd);
+        show_message(0x590, 0x96);
+        consume_slot(selected_member, (unsigned char)D_c7cd);
         if (!D_ca99) {
             goto L_0ffd;
         }
-        vec_1d0b((unsigned char)D_c64c[D_907b], D_907b);
+        door_toggle_vec((unsigned char)D_c64c[leader], leader);
         goto L_1006;
     }
     if (D_970d != 1) {
         goto L_1014;
     }
-    if (vec_1d15(D_907b) != 1) {
+    if (chest_disarm_vec(leader) != 1) {
         goto L_1014;
     }
     goto L_0ffd;
     goto L_0ffd;
 L_0ffd:
-    vec_1d01(D_907b);
+    chest_open_vec(leader);
 L_1006:
-    vec_1c2f(-1);
+    floor_view_draw_vec(-1);
     goto L_1014;
     goto L_1014;
 L_1014:
-    sub_s014_0e76_27ac(D_907b);
+    cbt_cancel_action(leader);
 }
 
 void far sub_s016_1ef8_101e(void)
@@ -818,17 +820,17 @@ void far sub_s016_1ef8_101e(void)
     int i;
 
     if (D_966d == 1) {
-        if (D_c102 == 0) {
+        if (move_mode == 0) {
             sub_s016_1ef8_1364();
             return;
         }
         for (i = 0; i < 5; i++) {
-            if (D_9c55[i].status == 1) {
-                D_9c55[i].f10 = 0;
-                D_a6d3[i] = 0;
-                sub_root_0000_1716(i);
-                sub_s014_0e76_38b6(i, 5);
-                D_ca64[i] = 0;
+            if (combatants[i].status == 1) {
+                combatants[i].f10 = 0;
+                cbt_moving[i] = 0;
+                party_panel_rows(i);
+                cbt_set_anim(i, 5);
+                cbt_action[i] = 0;
             }
         }
     }
@@ -837,23 +839,23 @@ void far sub_s016_1ef8_101e(void)
 void far sub_s016_1ef8_1072(void)
 {
     if (D_96d1 == 1) {
-        if (D_a695 == 1) {
-            if (D_a6b2 == -1) {
+        if (ai_paused == 1) {
+            if (selected_member == -1) {
                 return;
             }
             sub_s016_1ef8_13a2();
             return;
         }
-        vec_1d01(D_907b);
-        vec_1c2f(-1);
-        sub_s014_0e76_27ac(D_907b);
+        chest_open_vec(leader);
+        floor_view_draw_vec(-1);
+        cbt_cancel_action(leader);
     }
 }
 
 void far sub_s016_1ef8_10b2(void)
 {
-    if (D_a695 == 1) {
-        if (D_982d == 1 && D_a6b2 != -1) {
+    if (ai_paused == 1) {
+        if (D_982d == 1 && selected_member != -1) {
             sub_s016_1ef8_1328();
             return;
         }
@@ -866,19 +868,19 @@ void far sub_s016_1ef8_10b2(void)
             return;
         }
     } else if (D_96e5 == 1) {
-        D_e1ca = D_907b;
+        D_e1ca = leader;
         if (D_ca99 == 0) {
-            if (vec_1d1f(&F_20a5_3016[D_c784[D_907b]]) != 1)
+            if (lock_pick_vec(&F_20a5_3016[D_c784[leader]]) != 1)
                 goto done;
-            vec_1d01(D_907b);
+            chest_open_vec(leader);
         } else {
-            if (vec_1d1f(&F_20a5_1f5b[D_c64c[D_907b]]) != 1)
+            if (lock_pick_vec(&F_20a5_1f5b[D_c64c[leader]]) != 1)
                 goto done;
-            vec_1d0b(D_c64c[D_907b], D_907b);
+            door_toggle_vec(D_c64c[leader], leader);
         }
-        vec_1c2f(-1);
+        floor_view_draw_vec(-1);
 done:
-        sub_s014_0e76_27ac(D_907b);
+        cbt_cancel_action(leader);
     }
 }
 
@@ -886,8 +888,8 @@ void far sub_s016_1ef8_1182(void)
 {
     int i;
 
-    if (D_a695 == 1) {
-        if (D_a6b2 != -1) {
+    if (ai_paused == 1) {
+        if (selected_member != -1) {
             if (D_96bd == 1) {
                 sub_s016_1ef8_1384();
                 return;
@@ -899,18 +901,18 @@ void far sub_s016_1ef8_1182(void)
         }
     } else {
         if (D_96bd == 1) {
-            if (D_c102 == 0) {
-                vec_1cd9(D_c77e[D_907b], D_907b);
+            if (move_mode == 0) {
+                take_exit_vec(D_c77e[leader], leader);
             } else {
                 for (i = 0; i < 5; i++)
-                    if (D_9c55[i].status == 1)
-                        vec_1cd9(D_c77e[D_907b], i);
+                    if (combatants[i].status == 1)
+                        take_exit_vec(D_c77e[leader], i);
             }
         } else if (D_96a9 == 1) {
-            vec_1d0b(D_c64c[D_907b], D_907b);
-            vec_1c2f(-1);
+            door_toggle_vec(D_c64c[leader], leader);
+            floor_view_draw_vec(-1);
         }
-        sub_s014_0e76_27ac(D_907b);
+        cbt_cancel_action(leader);
     }
 }
 
@@ -919,30 +921,30 @@ void far sub_s016_1ef8_1242(void)
     int i;
 
     if (D_9749 == 1) {
-        if (D_a695 == 1) {
-            if (D_a6b2 != -1) {
+        if (ai_paused == 1) {
+            if (selected_member != -1) {
                 sub_s016_1ef8_138e();
                 return;
             }
-        } else if (D_c102 == 0) {
-            D_a6b4[D_907b] = -99;
-            D_a696[D_907b].b5 = 0;
-            D_a696[D_907b].b6 = 1;
-            sub_s014_0e76_27ac(D_907b);
-            sub_root_0000_1716(D_907b);
-            sub_s014_0e76_27cc(D_907b);
-            vec_1c2f(-1);
-        } else if (D_a6c1 == 0) {
+        } else if (move_mode == 0) {
+            cbt_floor[leader] = -99;
+            cbt_flags[leader].b5 = 0;
+            cbt_flags[leader].b6 = 1;
+            cbt_cancel_action(leader);
+            party_panel_rows(leader);
+            cbt_forget_target(leader);
+            floor_view_draw_vec(-1);
+        } else if (real_combat == 0) {
             for (i = 0; i < 5; i++) {
-                if (D_9c55[i].status == 1) {
-                    D_a6b4[i] = -99;
-                    D_a696[i].b5 = 0;
-                    D_a696[i].b6 = 1;
-                    sub_s014_0e76_27cc(i);
-                    sub_s014_0e76_27ac(i);
+                if (combatants[i].status == 1) {
+                    cbt_floor[i] = -99;
+                    cbt_flags[i].b5 = 0;
+                    cbt_flags[i].b6 = 1;
+                    cbt_forget_target(i);
+                    cbt_cancel_action(i);
                 }
             }
-            sub_root_0000_1716(0x100);
+            party_panel_rows(0x100);
         }
     }
 }
@@ -969,16 +971,16 @@ void far sub_s016_1ef8_1328(void)
 
 void far sub_s016_1ef8_1332(void)
 {
-    D_a6b0 = 1;
+    order_action = 1;
     sub_s016_1ef8_15be();
 }
 
 void far sub_s016_1ef8_133e(void)
 {
-    D_a6b0 = 1;
-    D_a696[D_a6b2].b12 = 1;
+    order_action = 1;
+    cbt_flags[selected_member].b12 = 1;
     sub_s016_1ef8_15be();
-    D_a696[D_a6b2].b12 = 1;
+    cbt_flags[selected_member].b12 = 1;
 }
 
 void far sub_s016_1ef8_1364(void)
@@ -1038,28 +1040,28 @@ void far sub_s016_1ef8_13ca(void)
 
 void far sub_s016_1ef8_13d4(void)
 {
-    D_a6b0 = -1;
+    order_action = -1;
     D_c652 = 0;
-    D_a696[D_a6b2].b12 = D_d6ea;
-    *(volatile char *)&D_a6b3 = 0;
-    D_9064[D_a6b2] = D_c7cc = 0;
-    sub_root_0000_1588(D_a6b2);
-    sub_root_0000_1716(0x100);
+    cbt_flags[selected_member].b12 = D_d6ea;
+    *(volatile char *)&order_mode = 0;
+    cbt_selected[selected_member] = D_c7cc = 0;
+    party_panel_frames(selected_member);
+    party_panel_rows(0x100);
     D_e1bc = 0;
-    D_d845 = D_a6b2 = -1;
-    sub_s014_19cd_28a2();
+    cursor_target = selected_member = -1;
+    order_menu_reset();
 }
 
 void far sub_s016_1ef8_1436(void)
 {
-    if (D_a6b2 != -1) {
-        sub_s014_19cd_0738();
+    if (selected_member != -1) {
+        order_mode_leave();
     }
-    D_a695 = 0;
-    sub_s014_0e76_4780();
+    ai_paused = 0;
+    cursor_normal();
     D_07d3--;
     D_9609 = 2;
-    memset(D_d493, 0xff, 0xd);
+    memset(cbt_attack_rate, 0xff, 0xd);
 }
 
 void far sub_s016_1ef8_1466(void)
@@ -1164,8 +1166,8 @@ void far sub_s016_1ef8_1524(void)
 
 void far sub_s016_1ef8_152e(int k)
 {
-    D_a696[D_a6b2].b12 = 0;
-    D_a6b0 = 0x100;
+    cbt_flags[selected_member].b12 = 0;
+    order_action = 0x100;
     D_c1ce = D_9a47[k].f9;
     D_c1f2 = D_9a47[k].f8;
     D_e1c8 = D_c1ce == 4 ? 1 : 0;
@@ -1174,9 +1176,9 @@ void far sub_s016_1ef8_152e(int k)
 
 int far sub_s016_1ef8_156e(int p_6)
 {
-    D_a6b0 = p_6;
-    if (D_d845 < -1) {
-        D_d845 = -1;
+    order_action = p_6;
+    if (cursor_target < -1) {
+        cursor_target = -1;
         D_e1bc = 0;
     }
     sub_s016_1ef8_15be();
@@ -1184,14 +1186,14 @@ int far sub_s016_1ef8_156e(int p_6)
 
 void far sub_s016_1ef8_1590(int v)
 {
-    D_a6b0 = 0x400;
+    order_action = 0x400;
     D_a6d1 = v;
-    if (D_d845 < -1) {
-        D_d845 = -1;
+    if (cursor_target < -1) {
+        cursor_target = -1;
         D_e1bc = 0;
     }
     sub_s016_1ef8_15be();
-    D_e1ca = D_a6b2;
+    D_e1ca = selected_member;
 }
 
 /* show the letter of the current command next to the active member's portrait */
@@ -1201,65 +1203,65 @@ void far sub_s016_1ef8_15be(void)
     unsigned t;
     int s;
 
-    t = D_a6b0;
+    t = order_action;
     if (t != 0x400) {
         switch (t) {
         case 1:
-            D_9085[0] = D_a696[D_a6b2].b12 ? 'F' : 'W';
+            msg_buf[0] = cbt_flags[selected_member].b12 ? 'F' : 'W';
             break;
         case 6:
-            D_9085[0] = 'B';
+            msg_buf[0] = 'B';
             break;
         case 10:
-            D_9085[0] = 'V';
+            msg_buf[0] = 'V';
             break;
         case 0x12:
-            D_9085[0] = 'A';
+            msg_buf[0] = 'A';
             break;
-        case 0x22: D_9085[0] = 'P'; break;
+        case 0x22: msg_buf[0] = 'P'; break;
         case 0x40:
-            D_9085[0] = 'R';
+            msg_buf[0] = 'R';
             break;
         case 0x80:
-            D_9085[0] = 'M';
+            msg_buf[0] = 'M';
             break;
         case 0x100:
-            D_9085[0] = 'T';
+            msg_buf[0] = 'T';
             break;
         }
     } else {
         switch (D_a6d1) {
         case 1:
         case 2:
-            D_9085[0] = 'U';
+            msg_buf[0] = 'U';
             break;
         case 3:
         case 6:
-            D_9085[0] = 'P';
+            msg_buf[0] = 'P';
             break;
         case 4:
         case 7:
-            D_9085[0] = 'D';
+            msg_buf[0] = 'D';
             break;
         case 5:
-            D_9085[0] = 'O';
+            msg_buf[0] = 'O';
             break;
         case 8:
-            D_9085[0] = 'X';
+            msg_buf[0] = 'X';
             break;
         case 10:
-            D_9085[0] = 'H';
+            msg_buf[0] = 'H';
             break;
         }
     }
-    D_9085[1] = 0;
-    sub_root_047c_05a5(D_0168, 6, D_a6b2 * 40 + 0x1f, D_a6c2);
+    msg_buf[1] = 0;
+    gfx_draw_pic(D_0168, 6, selected_member * 40 + 0x1f, D_a6c2);
     s = D_0168->f0c;
     D_0168->f0c = 0xff;
-    sub_root_0265_006e(D_0168, 6, D_a6b2 * 40 + 0x1f, D_9085);
+    draw_text(D_0168, 6, selected_member * 40 + 0x1f, msg_buf);
     D_0168->f0c = s;
-    sub_root_047c_0553(D_0168, 6, D_a6b2 * 40 + 0x1f, 10, sub_root_047c_051b(D_0168->f10),
-                       D_0190, 6, D_a6b2 * 40 + 0x1f);
-    D_a696[D_a6b2].b12 = 0;
+    gfx_copy_rect(D_0168, 6, selected_member * 40 + 0x1f, 10, font_height(D_0168->f10),
+                       D_0190, 6, selected_member * 40 + 0x1f);
+    cbt_flags[selected_member].b12 = 0;
 }
 #pragma optimize("", on)

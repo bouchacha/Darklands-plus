@@ -8,6 +8,8 @@
    and the EMS swap store.  Every function contains an inline _asm block (int 67h) in the
    original.  A buffer inside the EMS page frame (segment D_c097) is addressed as expanded
    memory of the page-frame handle D_940b; the page map is saved around the move. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct emove {                  /* EMS move memory region */
     long len;
@@ -21,10 +23,10 @@ struct emove {                  /* EMS move memory region */
     unsigned dseg;
 };
 
-extern int D_08be;              /* EMS version (BCD) */
-extern int D_08c0;              /* last EMS error */
-extern unsigned D_c097;         /* EMS page frame segment */
-extern int D_940b;              /* EMS handle of the page frame */
+extern int ems_version;              /* EMS version (BCD) */
+extern int ems_error;              /* last EMS error */
+extern unsigned ems_frame;         /* EMS page frame segment */
+extern int ems_frame_handle;              /* EMS handle of the page frame */
 
 int far sub_s004_1237_027e(int h);
 int far sub_s004_1237_0298(int h);
@@ -45,15 +47,15 @@ int far sub_s004_1237_0002(long len, void far *buf, int handle, unsigned long of
 
     rb = 1;
     pmf = &md;
-    if (D_08be < 0x40)
+    if (ems_version < 0x40)
         return 0;
     if (len > 0x100000L)
         return 0;
     if (len & 1)
         len++;
-    if ((bsegd = ((unsigned *)&buf)[1]) == (fsegm = D_c097)) {
+    if ((bsegd = ((unsigned *)&buf)[1]) == (fsegm = ems_frame)) {
         md.len = len;
-        md.sh = D_940b;
+        md.sh = ems_frame_handle;
         md.soff = (unsigned)buf & 0x3fff;
         md.sseg = (unsigned)((unsigned long)buf >> 14) & 3;
         md.st = 1;
@@ -69,7 +71,7 @@ int far sub_s004_1237_0002(long len, void far *buf, int handle, unsigned long of
     md.dh = handle;
     md.dseg = (unsigned)(off >> 14);
     md.doff = (unsigned)off & 0x3fff;
-    sub_s004_1237_027e(D_940b);
+    sub_s004_1237_027e(ems_frame_handle);
     _asm {
         push si
         push ds
@@ -84,12 +86,12 @@ int far sub_s004_1237_0002(long len, void far *buf, int handle, unsigned long of
         jmp ok
     fail:
         xor al, al
-        mov D_08c0, ax
+        mov ems_error, ax
     }
-    sub_s004_1237_0298(D_940b);
+    sub_s004_1237_0298(ems_frame_handle);
     return 0;
 ok:
-    sub_s004_1237_0298(D_940b);
+    sub_s004_1237_0298(ems_frame_handle);
     return rb;
 }
 
@@ -105,15 +107,15 @@ int far sub_s004_1237_0140(long len, void far *buf, int handle, unsigned long of
 
     rb = 1;
     pmf = &md;
-    if (D_08be < 0x40)
+    if (ems_version < 0x40)
         return 0;
     if (len > 0x100000L)
         return 0;
     if (len & 1)
         len++;
-    if ((bsegd = ((unsigned *)&buf)[1]) == (fsegm = D_c097)) {
+    if ((bsegd = ((unsigned *)&buf)[1]) == (fsegm = ems_frame)) {
         md.len = len;
-        md.dh = D_940b;
+        md.dh = ems_frame_handle;
         md.doff = (unsigned)buf & 0x3fff;
         md.dseg = (unsigned)((unsigned long)buf >> 14) & 3;
         md.dt = 1;
@@ -129,7 +131,7 @@ int far sub_s004_1237_0140(long len, void far *buf, int handle, unsigned long of
     md.sh = handle;
     md.sseg = (unsigned)(off >> 14);
     md.soff = (unsigned)off & 0x3fff;
-    sub_s004_1237_027e(D_940b);
+    sub_s004_1237_027e(ems_frame_handle);
     _asm {
         push si
         push ds
@@ -144,12 +146,12 @@ int far sub_s004_1237_0140(long len, void far *buf, int handle, unsigned long of
         jmp ok
     fail:
         xor al, al
-        mov D_08c0, ax
+        mov ems_error, ax
     }
-    sub_s004_1237_0298(D_940b);
+    sub_s004_1237_0298(ems_frame_handle);
     return 0;
 ok:
-    sub_s004_1237_0298(D_940b);
+    sub_s004_1237_0298(ems_frame_handle);
     return rb;
 }
 

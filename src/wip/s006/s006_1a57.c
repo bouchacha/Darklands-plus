@@ -6,21 +6,23 @@
  * current level, 02a8 recomputes the wall bits of a cell, 042e cuts a room out of a free
  * strip (splitting it in two when needed).
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
 struct gslot { int a[4]; int b; };
 
-extern _segment D_db39;
-extern int _based(D_db39) *D_db3b;
-extern struct gslot _based(D_db39) *D_db65;
-extern int _based(D_db39) *D_db89;
-extern unsigned char _based(D_db39) *D_db8d;
-extern int _based(D_db39) *D_db8f;
-extern int _based(D_db39) *D_db91;
-extern int D_db3d, D_db3f, D_db41, D_db43;
-extern int D_db45[5];
+extern _segment gen_work;
+extern int _based(gen_work) *D_db3b;
+extern struct gslot _based(gen_work) *gen_strips;
+extern int _based(gen_work) *D_db89;
+extern unsigned char _based(gen_work) *gen_cell_walls;
+extern int _based(gen_work) *gen_cell_type;
+extern int _based(gen_work) *D_db91;
+extern int keep_x0, D_db3f, D_db41, D_db43;
+extern int gen_rooms[5];
 extern int D_db67[5];
-extern int D_db81;
+extern int gen_level;
 
 void far sub_s005_146d_0066(int, int);
 int far sub_s005_146d_01d4(int, int, int *, int *, int *, int);
@@ -30,25 +32,25 @@ int far sub_s005_146d_0a3a(int, int);
 void far sub_s005_146d_0ae8(int, int);
 void far sub_s006_1a57_02a8(int, int, int);
 
-void far sub_s006_1a57_000c(int kind, int x0, int x1, int y0, int y1, int dir)
+void far gen_add_room(int kind, int x0, int x1, int y0, int y1, int dir)
 {
     int n, i, x, y, w, h, j, k;
-    int _based(D_db39) *r;
-    int _based(D_db39) *t;
+    int _based(gen_work) *r;
+    int _based(gen_work) *t;
 
     if (x0 < 0 || x1 >= 40 || y0 < 0 || y1 >= 40 || x0 > x1 || y0 > y1 ||
-        D_db45[D_db81] + 1 >= 30)
+        gen_rooms[gen_level] + 1 >= 30)
         return;
-    n = D_db45[D_db81]++;
-    i = D_db81 * 30 + n;
+    n = gen_rooms[gen_level]++;
+    i = gen_level * 30 + n;
     r = D_db3b + i * 4;
     r[0] = x0;
     r[1] = x1;
     r[2] = y0;
     r[3] = y1;
     if (kind != 6) {
-        if (x0 < D_db3d)
-            D_db3d = x0;
+        if (x0 < keep_x0)
+            keep_x0 = x0;
         if (D_db3f < x1)
             D_db3f = x1;
         if (y0 < D_db41)
@@ -63,21 +65,21 @@ void far sub_s006_1a57_000c(int kind, int x0, int x1, int y0, int y1, int dir)
         if (((w < 3 && h < 3) || w == 1 || h == 1) && (kind != 4 || (dir != 0 && dir != 3)))
             D_db89[i] = 0;
     }
-    t = D_db8f + D_db81 * 1600;
+    t = gen_cell_type + gen_level * 1600;
     for (y = y0; y <= y1; y++)
         for (x = x0; x <= x1; x++)
             if (t[x * 40 + y] == 0)
                 t[x * 40 + y] = kind;
     D_db91[i] = kind;
     for (y = y0; y <= y1; y++) {
-        sub_s006_1a57_02a8(D_db81, x0, y);
+        sub_s006_1a57_02a8(gen_level, x0, y);
         if (x0 < x1)
-            sub_s006_1a57_02a8(D_db81, x1, y);
+            sub_s006_1a57_02a8(gen_level, x1, y);
     }
     for (x = x0 + 1; x < x1; x++) {
-        sub_s006_1a57_02a8(D_db81, x, y0);
+        sub_s006_1a57_02a8(gen_level, x, y0);
         if (y0 < y1)
-            sub_s006_1a57_02a8(D_db81, x, y1);
+            sub_s006_1a57_02a8(gen_level, x, y1);
     }
     sub_s005_146d_07f4(n, n);
     sub_s005_146d_0066(n, n);
@@ -106,7 +108,7 @@ void far sub_s006_1a57_02a8(int l, int x, int y)
         return;
     X = l * 40 + x;
     i = X * 40 + y;
-    v = D_db8f[i];
+    v = gen_cell_type[i];
     out = 0;
     for (s = 0; s < 4; s++) {
         switch (s) {
@@ -138,8 +140,8 @@ void far sub_s006_1a57_02a8(int l, int x, int y)
             continue;
         }
         j = (X + dx) * 40 + dy + y;
-        w = D_db8f[j];
-        p = (unsigned char far *)(D_db8d + j);
+        w = gen_cell_type[j];
+        p = (unsigned char far *)(gen_cell_walls + j);
         if (w < 2 || w > 8)
             out |= bit;
         else if (((w == 7) == (v == 7) || w == 5 || v == 5) &&
@@ -150,24 +152,24 @@ void far sub_s006_1a57_02a8(int l, int x, int y)
             *p |= nb;
         }
     }
-    D_db8d[i] = out;
+    gen_cell_walls[i] = out;
 }
 
 /* remove room r from free strip `slot` (-1: the strip that overlaps it) */
 void far sub_s006_1a57_042e(int slot, int r)
 {
     int n, lo, hi, a, b, k, v, found;
-    int _based(D_db39) *o;
-    struct gslot _based(D_db39) *s;
-    struct gslot _based(D_db39) *t;
+    int _based(gen_work) *o;
+    struct gslot _based(gen_work) *s;
+    struct gslot _based(gen_work) *t;
 
-    n = D_db67[D_db81];
-    if (slot < -1 || slot >= n || r < 0 || r >= D_db45[D_db81])
+    n = D_db67[gen_level];
+    if (slot < -1 || slot >= n || r < 0 || r >= gen_rooms[gen_level])
         return;
-    o = D_db3b + (D_db81 * 30 + r) * 4;
+    o = D_db3b + (gen_level * 30 + r) * 4;
     if (slot == -1) {
         found = 0;
-        for (slot = 0, s = D_db65 + D_db81 * 16; slot < D_db67[D_db81]; slot++, s++) {
+        for (slot = 0, s = gen_strips + gen_level * 16; slot < D_db67[gen_level]; slot++, s++) {
             if (o[1] < s->a[0] || s->a[1] < o[0] || o[3] < s->a[2] || s->a[3] < o[2])
                 found = 0;
             else
@@ -178,7 +180,7 @@ void far sub_s006_1a57_042e(int slot, int r)
         if (!found)
             return;
     }
-    s = D_db65 + D_db81 * 16 + slot;
+    s = gen_strips + gen_level * 16 + slot;
     if (s->b == 0 || s->b == 2) {
         lo = 0;
         hi = 1;
@@ -191,7 +193,7 @@ void far sub_s006_1a57_042e(int slot, int r)
         b = 1;
     }
     k = b;
-    if (s->a[b] < D_db3b[D_db81 * 120 + a]) {
+    if (s->a[b] < D_db3b[gen_level * 120 + a]) {
         k = a;
         v = o[a];
         if (v > s->a[a])
@@ -210,11 +212,11 @@ void far sub_s006_1a57_042e(int slot, int r)
         return;
     }
     if (o[hi] < s->a[hi]) {
-        t = D_db65 + D_db81 * 16 + n;
+        t = gen_strips + gen_level * 16 + n;
         *t = *s;
         t->a[lo] = o[hi] + 1;
         s->a[hi] = o[lo] - 1;
-        D_db67[D_db81]++;
+        D_db67[gen_level]++;
         return;
     }
     v = o[lo] - 1;

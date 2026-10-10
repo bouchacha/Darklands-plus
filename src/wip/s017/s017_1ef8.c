@@ -15,6 +15,8 @@
  * 12-byte records, count D_c80e) of the current level are drawn on their cell. D_e22f is
  * cleared when a sprite was missing (D_e230 = 1: "all sprites loaded" check), and the
  * D_e178/D_e13d/D_e196 lists (max 15) collect animated walls/furniture/doors. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct vrec { int wn, we, ws, wsd, wee, door, wsn, fl, ce; };   /* 18 bytes */
 struct obj { char lvl; int x, y, on; char dx, dy; char pad[3]; };   /* 12 bytes at 20a5:59cb (was pad[4]: 13-byte stride) */
@@ -22,7 +24,7 @@ struct cmb { char pad0[4]; int x, y; char pad8[0x78]; };
 
 /* floor image: cells + floor/ceiling art (20a5:1900) are ONE far name, so they share one CONST
  * segment slot like the original (two names gave 17 slots and shifted the module's CONST) */
-extern struct { long c[40][40]; unsigned char b[40][40]; } far F_20a5_0000;
+extern struct { long c[40][40]; unsigned char b[40][40]; } far floor_img;
 extern struct { struct vrec r[140]; } far F_20a5_4eb8;
 extern struct { int v[140]; } far F_20a5_5890;               /* cell code (x << 8 | y) per slot */
 extern struct { char v[140]; } far F_20a5_363c;              /* cell x per slot (-1 none) */
@@ -39,34 +41,34 @@ extern struct { int v[16][2]; } far F_20a5_6f2a;             /* furniture sprite
 extern struct { int v[16][2]; } far F_20a5_3474;             /* ceiling sprites */
 extern struct { struct obj o[64]; } far F_20a5_59cb;
 
-extern struct cmb D_9c55[];
-extern unsigned D_a696[];
-extern char D_e22f, D_e230, D_e15b, D_e15c, D_e15d, D_07d3, D_11ca, D_c866, D_c886;
+extern struct cmb combatants[];
+extern unsigned cbt_flags[];
+extern char D_e22f, D_e230, D_e15b, D_e15c, D_e15d, D_07d3, floor_shown, D_c866, D_c886;
 extern int D_e233, D_e235, D_c26c, D_c293, D_c869, D_11c8, D_e160, D_e0ab;
-extern unsigned char D_c80e, D_c12d, D_c12e, D_c17f;
+extern unsigned char loot_pile_count, D_c12d, D_c12e, D_c17f;
 extern char D_1fc6[], D_2052[];
 extern int D_c220[], D_c601[], D_c24c[], D_c4dd[], D_c29b[], D_c658[], D_c26f[], D_c62c[];
 extern int D_c1d0[], D_c8d5[];
 extern char D_c76e[], D_c789[], D_c821[], D_c855[], D_c13f[], D_c181[];
 extern char D_e178[][2], D_e13d[][2], D_e196[][2];
-extern unsigned char *D_0154, *D_0168, *D_017c, *D_0190, *D_01a4;
+extern unsigned char *card_window2, *D_0168, *card_window, *D_0190, *D_01a4;
 
-void far sub_root_047c_12c3(void);
-void far sub_root_047c_1293(void);
-void far sub_root_0000_1588(int);
-void far sub_root_0000_1716(int);
-void far sub_root_047c_0952(unsigned char *, int, int, int, int, int);
-void far sub_root_047c_04ef(unsigned char *, int, int, int);
+void far mouse_hide(void);
+void far mouse_show(void);
+void far party_panel_frames(int);
+void far party_panel_rows(int);
+void far gfx_fill_rect(unsigned char *, int, int, int, int, int);
+void far gfx_draw_sprite(unsigned char *, int, int, int);
 void far sub_root_047c_059e(int);
-int far sub_root_047c_053e(int);
-int far sub_root_0410_02e6(int far *, int, int);
-void far sub_root_0410_0068(int, int, int);
+int far gfx_page_segment(int);
+int far index_of_word(int far *, int, int);
+void far word_fill(int, int, int);
 void far sub_s014_14f7_3404(void);
 
 /* low nibble of a neighbour byte, 0 when the neighbour cell is hidden (negative) or empty */
 #define NB(l, sh) ((l) > 0 ? (unsigned char)((l) >> (sh)) & 0x0f : 0)
 
-void far sub_s017_1ef8_0000(int who)
+void far floor_view_draw(int who)
 {
     long c, n, s, w, e, sw, ne, nw;
     int i, row, col, k, x, y, spr, spr2, d, t;
@@ -75,17 +77,17 @@ void far sub_s017_1ef8_0000(int who)
 
     D_e22f = 1;
     D_07d3++;
-    sub_root_047c_12c3();
+    mouse_hide();
     for (i = 0; i < 5; i++)
-        D_a696[i] |= 8;
-    sub_root_0000_1588(0x100);
-    sub_root_0000_1716(0x100);
+        cbt_flags[i] |= 8;
+    party_panel_frames(0x100);
+    party_panel_rows(0x100);
     for (i = 0; i < 5; i++)
-        D_a696[i] &= ~8;
+        cbt_flags[i] &= ~8;
     D_e15c = D_e15b = D_e15d = 0;
     if (who >= 0) {
-        D_e233 = D_9c55[who].x >> 5;
-        D_e235 = D_9c55[who].y >> 4;
+        D_e233 = combatants[who].x >> 5;
+        D_e235 = combatants[who].y >> 4;
         D_c866 = D_e233;
         D_c886 = D_e235;
     } else {
@@ -94,21 +96,21 @@ void far sub_s017_1ef8_0000(int who)
     }
     D_c26c = D_e233 << 5;
     D_c293 = D_e235 << 4;
-    sub_root_047c_0952(D_0154, 0, 0, 0x104, 200, 0);
+    gfx_fill_rect(card_window2, 0, 0, 0x104, 200, 0);
     for (row = 0; row < 14; row++)
         for (col = 0; col < 10; col++) {
             k = row * 10 + col;
             x = D_1fc6[k] + D_e233;
             y = D_2052[k] + D_e235;
             F_20a5_5890.v[k] = x * 256 + y;
-            c = F_20a5_0000.c[x][y];
-            n = F_20a5_0000.c[x][y - 1];
-            s = F_20a5_0000.c[x][y + 1];
-            w = F_20a5_0000.c[x - 1][y];
-            e = F_20a5_0000.c[x + 1][y];
-            sw = F_20a5_0000.c[x - 1][y + 1];
-            ne = F_20a5_0000.c[x + 1][y - 1];
-            nw = F_20a5_0000.c[x - 1][y - 1];
+            c = floor_img.c[x][y];
+            n = floor_img.c[x][y - 1];
+            s = floor_img.c[x][y + 1];
+            w = floor_img.c[x - 1][y];
+            e = floor_img.c[x + 1][y];
+            sw = floor_img.c[x - 1][y + 1];
+            ne = floor_img.c[x + 1][y - 1];
+            nw = floor_img.c[x - 1][y - 1];
             F_20a5_4eb8.r[k].wn = -1;
             F_20a5_4eb8.r[k].wsn = 0;
             F_20a5_4eb8.r[k].wee = 0;
@@ -129,7 +131,7 @@ void far sub_s017_1ef8_0000(int who)
             b2 = (unsigned char)(c >> 16) & 0x0f;
             obj = (unsigned char)(c >> 20) & 0x0f;
             b3 = (unsigned char)(c >> 24);
-            fl = F_20a5_0000.b[x][y];
+            fl = floor_img.b[x][y];
             ce = fl >> 4;
             fl &= 0x0f;
             s1 = (b0 >> 4) & 0x0f;
@@ -169,7 +171,7 @@ void far sub_s017_1ef8_0000(int who)
             if (spr == 0)
                 F_20a5_4eb8.r[k].wn = 0;
             else {
-                sub_root_047c_04ef(D_0154, F_20a5_45be.v[k], F_20a5_46d6.v[k], spr);
+                gfx_draw_sprite(card_window2, F_20a5_45be.v[k], F_20a5_46d6.v[k], spr);
                 F_20a5_4eb8.r[k].wn = spr;
             }
             /* object standing on the north wall */
@@ -177,7 +179,7 @@ void far sub_s017_1ef8_0000(int who)
                 if (F_20a5_6eea.v[obj][0] == 0 && D_e230 == 1)
                     D_e22f = 0;
                 F_20a5_4eb8.r[k].we = obj;
-                sub_root_047c_04ef(D_0154, F_20a5_45be.v[k] + D_c76e[obj],
+                gfx_draw_sprite(card_window2, F_20a5_45be.v[k] + D_c76e[obj],
                                    D_c789[obj] + F_20a5_46d6.v[k], F_20a5_6eea.v[obj][0]);
                 if (obj < D_c12e && D_e15b < 15) {
                     D_e178[D_e15b][0] = k;
@@ -191,7 +193,7 @@ void far sub_s017_1ef8_0000(int who)
             else {
                 if (D_c1d0[ce] == 0 && D_e230 == 1)
                     D_e22f = 0;
-                sub_root_047c_04ef(D_0154, F_20a5_4b4a.v[k], F_20a5_415e.v[k], D_c1d0[ce]);
+                gfx_draw_sprite(card_window2, F_20a5_4b4a.v[k], F_20a5_415e.v[k], D_c1d0[ce]);
                 F_20a5_4eb8.r[k].fl = D_c1d0[ce];
             }
             if (fl == 0)
@@ -199,7 +201,7 @@ void far sub_s017_1ef8_0000(int who)
             else {
                 if (F_20a5_3474.v[fl][0] == 0 && D_e230 == 1)
                     D_e22f = 0;
-                sub_root_047c_04ef(D_0154, F_20a5_4b4a.v[k], F_20a5_415e.v[k], F_20a5_3474.v[fl][0]);
+                gfx_draw_sprite(card_window2, F_20a5_4b4a.v[k], F_20a5_415e.v[k], F_20a5_3474.v[fl][0]);
                 F_20a5_4eb8.r[k].ce = fl;
                 if (fl < D_c12d && D_e15d < 15) {
                     D_e13d[D_e15d][0] = k;
@@ -208,13 +210,13 @@ void far sub_s017_1ef8_0000(int who)
                 }
             }
             /* dropped objects on this cell */
-            for (i = 0; i < D_c80e; i++)
-                if (sub_root_0410_02e6(F_20a5_5890.v, (F_20a5_59cb.o[i].x & 0xffe0) * 8
+            for (i = 0; i < loot_pile_count; i++)
+                if (index_of_word(F_20a5_5890.v, (F_20a5_59cb.o[i].x & 0xffe0) * 8
                                        + (F_20a5_59cb.o[i].y >> 4), 0x8c) == k
-                        && F_20a5_59cb.o[i].lvl == D_11ca) {
+                        && F_20a5_59cb.o[i].lvl == floor_shown) {
                     t = F_20a5_59cb.o[i].y - D_c293;
                     if (F_20a5_59cb.o[i].on == 1)
-                        sub_root_047c_04ef(D_0154,
+                        gfx_draw_sprite(card_window2,
                                            F_20a5_59cb.o[i].x - D_c26c - t - F_20a5_59cb.o[i].dx + 0x88,
                                            t - F_20a5_59cb.o[i].dy + 0x69, D_c869);
                 }
@@ -244,14 +246,14 @@ void far sub_s017_1ef8_0000(int who)
             if (spr2 == 0)
                 F_20a5_4eb8.r[k].ws = 0;
             else {
-                sub_root_047c_04ef(D_0154, F_20a5_4b4a.v[k], F_20a5_46d6.v[k], spr2);
+                gfx_draw_sprite(card_window2, F_20a5_4b4a.v[k], F_20a5_46d6.v[k], spr2);
                 F_20a5_4eb8.r[k].ws = spr2;
             }
             if (furn) {
                 if (F_20a5_6f2a.v[furn][0] == 0 && D_e230 == 1)
                     D_e22f = 0;
                 F_20a5_4eb8.r[k].wsd = furn;
-                sub_root_047c_04ef(D_0154, F_20a5_4b4a.v[k] + D_c821[furn],
+                gfx_draw_sprite(card_window2, F_20a5_4b4a.v[k] + D_c821[furn],
                                    D_c855[furn] + F_20a5_46d6.v[k], F_20a5_6f2a.v[furn][0]);
                 if (furn < D_c17f && D_e15c < 15) {
                     D_e196[D_e15c][0] = k;
@@ -266,7 +268,7 @@ void far sub_s017_1ef8_0000(int who)
                 d = ((char)b3 >> 4) & 3;
                 F_20a5_4eb8.r[k].door = d * 16 + s1;
                 t = s1 * 4 + d;
-                sub_root_047c_04ef(D_0154, F_20a5_4b4a.v[k] + D_c13f[t],
+                gfx_draw_sprite(card_window2, F_20a5_4b4a.v[k] + D_c13f[t],
                                    D_c181[t] + F_20a5_415e.v[k], D_c8d5[s1]);
             }
             /* east and west walls */
@@ -275,7 +277,7 @@ void far sub_s017_1ef8_0000(int who)
             else {
                 if (D_c26f[b0 & 0x0f] == 0 && D_e230 == 1)
                     D_e22f = 0;
-                sub_root_047c_04ef(D_0154, F_20a5_4046.v[k], F_20a5_46d6.v[k], D_c26f[b0 & 0x0f]);
+                gfx_draw_sprite(card_window2, F_20a5_4046.v[k], F_20a5_46d6.v[k], D_c26f[b0 & 0x0f]);
                 F_20a5_4eb8.r[k].wee = D_c26f[b0 & 0x0f];
             }
             if ((c & 0xf000000L) == 0 && s2 == 0)
@@ -283,7 +285,7 @@ void far sub_s017_1ef8_0000(int who)
             else {
                 if (D_c24c[b3 & 0x0f] == 0 && D_e230 == 1)
                     D_e22f = 0;
-                sub_root_047c_04ef(D_0154, F_20a5_491a.v[k], F_20a5_4a32.v[k], D_c24c[b3 & 0x0f]);
+                gfx_draw_sprite(card_window2, F_20a5_491a.v[k], F_20a5_4a32.v[k], D_c24c[b3 & 0x0f]);
                 F_20a5_4eb8.r[k].wsn = D_c24c[b3 & 0x0f];
             }
         }
@@ -291,17 +293,17 @@ void far sub_s017_1ef8_0000(int who)
         D_e230 = 0;
     sub_s014_14f7_3404();
     sub_root_047c_059e(D_11c8);
-    if (sub_root_047c_053e(0)) {
+    if (gfx_page_segment(0)) {
         D_11c8 ^= 1;
-        *D_0154 ^= 1;
+        *card_window2 ^= 1;
         *D_01a4 ^= 1;
         *D_0168 ^= 1;
         *D_0190 ^= 1;
-        *D_017c ^= 1;
+        *card_window ^= 1;
     }
-    sub_root_047c_1293();
+    mouse_show();
     D_e160 = 1;
     D_e0ab = 1;
-    sub_root_0410_0068(0xc897, 0xd8f1, 8);
+    word_fill(0xc897, 0xd8f1, 8);
     D_07d3--;
 }

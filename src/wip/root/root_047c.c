@@ -29,12 +29,14 @@
  *   The four functions below are written as the C they look like, to show the difference:
  *   124f/1386 differ only in the epilogue (pop bp vs leave) and 1293/12c3 in the far calls
  *   (MSC: push cs/call near within one file) - i.e. they are assembly too. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 extern int D_6ef4;
 extern int D_6ef6;
 extern int D_6ef8;
-extern int D_6eec;
-extern int D_6eee;
+extern int mouse_x;
+extern int mouse_y;
 extern char D_6a81;
 extern void far *D_6efc;
 
@@ -50,30 +52,30 @@ void far sub_root_047c_040b(void) { }  /* asm */
 void far sub_root_047c_048a(void) { }  /* asm */
 void far sub_root_047c_04c7(void) { }  /* asm */
 void far sub_root_047c_04ce(void) { }  /* asm */
-void far sub_root_047c_04d5(void) { }  /* asm */
-void far sub_root_047c_04dc(void) { }  /* asm */
-void far sub_root_047c_04e3(void) { }  /* asm */
+void far gfx_save_rect(void) { }  /* asm */
+void far gfx_recolor_rect(void) { }  /* asm */
+void far char_width(void) { }  /* asm */
 void far sub_root_047c_04ea(void) { }  /* asm */
-void far sub_root_047c_04ef(void) { }  /* asm */
+void far gfx_draw_sprite(void) { }  /* asm */
 void far sub_root_047c_04f8(void) { }  /* asm */
 void far sub_root_047c_0504(void) { }  /* asm */
 void far sub_root_047c_0514(void) { }  /* asm */
-void far sub_root_047c_051b(void) { }  /* asm */
+void far font_height(void) { }  /* asm */
 void far sub_root_047c_052e(void) { }  /* asm */
-void far sub_root_047c_053e(void) { }  /* asm */
+void far gfx_page_segment(void) { }  /* asm */
 void far sub_root_047c_0545(void) { }  /* asm */
 void far sub_root_047c_054c(void) { }  /* asm */
-void far sub_root_047c_0553(void) { }  /* asm */
-void far sub_root_047c_055a(void) { }  /* asm */
+void far gfx_copy_rect(void) { }  /* asm */
+void far gfx_text(void) { }  /* asm */
 void far sub_root_047c_055f(void) { }  /* asm */
 void far sub_root_047c_0568(void) { }  /* asm */
 void far sub_root_047c_056f(void) { }  /* asm */
 void far sub_root_047c_0576(void) { }  /* asm */
 void far sub_root_047c_0584(void) { }  /* asm */
-void far sub_root_047c_058b(void) { }  /* asm */
+void far set_palette(void) { }  /* asm */
 void far sub_root_047c_0597(void) { }  /* asm */
 void far sub_root_047c_059e(void) { }  /* asm */
-void far sub_root_047c_05a5(void) { }  /* asm */
+void far gfx_draw_pic(void) { }  /* asm */
 void far sub_root_047c_05ae(void) { }  /* asm */
 void far sub_root_047c_05b5(void) { }  /* asm */
 void far sub_root_047c_05bc(void) { }  /* asm */
@@ -85,23 +87,23 @@ void far sub_root_047c_05e6(void) { }  /* asm */
 void far sub_root_047c_05ed(void) { }  /* asm */
 void far sub_root_047c_0617(void) { }  /* asm */
 void far sub_root_047c_061e(void) { }  /* asm */
-void far sub_root_047c_073d(void) { }  /* asm */
-void far sub_root_047c_0744(void) { }  /* asm */
+void far key_pressed(void) { }  /* asm */
+void far get_key(void) { }  /* asm */
 void far sub_root_047c_0767(void) { }  /* asm */
 void far sub_root_047c_0783(void) { }  /* asm */
-void far sub_root_047c_078a(void) { }  /* asm */
+void far sound_play(void) { }  /* asm */
 void far sub_root_047c_0791(void) { }  /* asm */
 void far sub_root_047c_07ce(void) { }  /* asm */
 void far sub_root_047c_0876(void) { }  /* asm */
 void far sub_root_047c_08c8(void) { }  /* asm */
 void far sub_root_047c_08f9(void) { }  /* asm */
 void far sub_root_047c_0912(void) { }  /* asm */
-void far sub_root_047c_0952(void) { }  /* asm */
+void far gfx_fill_rect(void) { }  /* asm */
 void far sub_root_047c_09e6(void) { }  /* asm */
 void far sub_root_047c_0b94(void) { }  /* asm */
 void far sub_root_047c_0d20(void) { }  /* asm */
 void far sub_root_047c_0d41(void) { }  /* asm */
-void far sub_root_047c_0d62(void) { }  /* asm */
+void far gfx_line(void) { }  /* asm */
 void far sub_root_047c_0da7(void) { }  /* asm */
 void far sub_root_047c_0de6(void) { }  /* asm */
 void far sub_root_047c_0efe(void) { }  /* asm */
@@ -111,32 +113,32 @@ void far sub_root_047c_0f7f(void) { }  /* asm */
 void far sub_root_047c_0fc8(void) { }  /* asm */
 void far sub_root_047c_0ffe(void) { }  /* asm */
 void far sub_root_047c_1070(void) { }  /* asm */
-void far sub_root_047c_1120(void) { }  /* asm */
+void far distance3(void) { }  /* asm */
 void far sub_root_047c_1174(void) { }  /* asm */
 void far sub_root_047c_118b(void) { }  /* asm */
 void far sub_root_047c_11ab(void) { }  /* asm */
 void far sub_root_047c_11f6(void) { }  /* asm */
 void far sub_root_047c_123f(void) { }  /* asm */
 /* mouse hot spot / pointer setup: three words */
-void far sub_root_047c_124f(int x, int y, int p)
+void far mouse_set_cursor(int x, int y, int p)
 {
     D_6ef6 = x;
     D_6ef8 = y;
     D_6ef4 = p;
 }
 
-void far sub_root_047c_1266(void) { }  /* asm */
+void far mouse_move(void) { }  /* asm */
 /* show the mouse pointer (driver thunk 0597) unless hidden already */
-void far sub_root_047c_1293(void)
+void far mouse_show(void)
 {
     if (D_6ef4 && !D_6a81) {
-        sub_root_047c_0597(D_6eec - D_6ef6, D_6eee - D_6ef8, D_6ef4);
+        sub_root_047c_0597(mouse_x - D_6ef6, mouse_y - D_6ef8, D_6ef4);
         D_6a81 = 1;
     }
 }
 
 /* hide the mouse pointer (driver thunk 052e) */
-void far sub_root_047c_12c3(void)
+void far mouse_hide(void)
 {
     if (D_6ef4 && D_6a81) {
         D_6a81 = 0;

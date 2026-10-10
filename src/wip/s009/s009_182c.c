@@ -21,12 +21,14 @@
  *     empty cases even with volatile params): likely a 6.00 vs 6.00A limit -> no FILE MATCH.
  *   20a4: 6.00A keeps the last `return 6` copy / moves the labelled block; 0fe6/219e: jump tables.
  */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 struct res { int a; int b; };
-extern _segment D_dadd;
+extern _segment enemy_seg;
 struct bfdesc { char b[0xc0]; };
-extern struct bfdesc _based(D_dadd) *D_db33;
-#define B(o) (((char _based(D_dadd) *)D_db33)[o])
+extern struct bfdesc _based(enemy_seg) *tile_desc;
+#define B(o) (((char _based(enemy_seg) *)tile_desc)[o])
 
 struct ent {                            /* group entry, 6 bytes */
     int type;                           /* 00 */
@@ -44,12 +46,12 @@ struct grp {                            /* level group record (0x2c bytes, see s
 };
 struct mdef { char p0[0x25]; char x25; char p26[0x2e - 0x26]; };   /* 0x2e bytes */
 extern _segment D_dae3;
-extern struct mdef _based(D_dae3) *D_db35;
+extern struct mdef _based(D_dae3) *bf_items;
 extern long D_dff9, D_dffd, D_e001, D_e005, D_e009;
 extern char D_e035;
 
 int far _fstrcpy();
-int far sub_s004_0e76_20f6();
+int far roll_dice();
 int far sub_s009_1432_205e();
 void far sub_s009_182c_0002();
 void far sub_s009_182c_03ca();
@@ -108,9 +110,9 @@ void far sub_s009_182c_0002(int t)
     switch (t) {
     default:
         B(0x41) = 5;
-        r[0] = sub_s004_0e76_20f6(1, 3);
+        r[0] = roll_dice(1, 3);
         do
-            r[1] = sub_s004_0e76_20f6(1, 3);
+            r[1] = roll_dice(1, 3);
         while (r[1] == r[0]);
         for (i = 0; i < 2; i++) {
             switch (r[i]) {
@@ -147,9 +149,9 @@ void far sub_s009_182c_0002(int t)
     switch (t) {
     default:
         B(0x74) = 8;
-        r[0] = sub_s004_0e76_20f6(1, 3);
+        r[0] = roll_dice(1, 3);
         do
-            r[1] = sub_s004_0e76_20f6(1, 3);
+            r[1] = roll_dice(1, 3);
         while (r[1] == r[0]);
         for (i = 0; i < 2; i++) {
             switch (r[i]) {
@@ -211,12 +213,12 @@ void far sub_s009_182c_0002(int t)
 void far sub_s009_182c_03ca(int p6, int lv, int *out)
 {
     D_dff9 = D_e001 = D_dffd = D_e005 = 9;
-    if (sub_s004_0e76_20f6(1, 2) == 1)
+    if (roll_dice(1, 2) == 1)
         D_e005 = 10;
     *out = 0;
     switch (p6) {
     case 0x0a:
-        D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
+        D_dff9 = D_e001 = roll_dice(1, 2) == 1 ? 1L : 2L;
         break;
     case 0x0b:
     case 0x82:
@@ -224,13 +226,13 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
         case 1:
         case 2:
         case 3:
-            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
+            D_dff9 = D_e001 = roll_dice(1, 2) == 1 ? 1L : 2L;
             break;
         case 11:
             *out = 6;
             break;
         case 13:
-            if (sub_s004_0e76_20f6(1, 2) == 1)
+            if (roll_dice(1, 2) == 1)
                 D_dff9 = D_e001 = D_dffd = D_e005 = 11;
             *out = 6;
             break;
@@ -245,7 +247,7 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
         switch (lv) {
         case 1:
         L0d1:
-            D_dff9 = D_e001 = sub_s004_0e76_20f6(1, 2) == 1 ? 1L : 2L;
+            D_dff9 = D_e001 = roll_dice(1, 2) == 1 ? 1L : 2L;
             break;
         case 2:
         case 6:
@@ -285,7 +287,7 @@ void far sub_s009_182c_03ca(int p6, int lv, int *out)
             *out = 6;
             break;
         default:
-            if (sub_s004_0e76_20f6(1, 2) == 1)
+            if (roll_dice(1, 2) == 1)
                 D_dff9 = D_e001 = D_dffd = D_e005 = 11;
             *out = 6;
             break;
@@ -473,7 +475,7 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     D_e009 = 1;
     switch (p6) {
     case 0x0a:
-        switch (sub_s004_0e76_20f6(1, 3)) {
+        switch (roll_dice(1, 3)) {
         case 2:
             D_e009 = 2;
             break;
@@ -489,7 +491,7 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
         case 1:
         case 2:
         case 3:
-            switch (sub_s004_0e76_20f6(1, 3)) {
+            switch (roll_dice(1, 3)) {
             case 2:
                 D_e009 = 2;
                 break;
@@ -514,7 +516,7 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     case 0x83:
         switch (lv) {
         case 1:
-            switch (sub_s004_0e76_20f6(1, 3)) {
+            switch (roll_dice(1, 3)) {
             case 2:
                 D_e009 = 2;
                 break;
@@ -545,7 +547,7 @@ void far sub_s009_182c_07d0(int p6, int lv, int *out)
     case 0x86:
         switch (lv) {
         case 1:
-            switch (sub_s004_0e76_20f6(1, 3)) {
+            switch (roll_dice(1, 3)) {
             case 2:
                 D_e009 = 2;
                 break;
@@ -638,7 +640,7 @@ void far sub_s009_182c_09b4(int p6, int lv, int *a, int *b, int *c)
 {
     int r;
 
-    r = sub_s004_0e76_20f6(1, 4);
+    r = roll_dice(1, 4);
     switch (p6) {
     case 0x0b:
     case 0x82:
@@ -930,14 +932,14 @@ char far sub_s009_182c_0db6(char far *lvp, struct grp far *g, int p6, int lv, in
             break;
         }
     }
-    if (!D_e035 && sub_s004_0e76_20f6(1, 10) > 5)
+    if (!D_e035 && roll_dice(1, 10) > 5)
         return 0;
-    g->x10 = sub_s004_0e76_20f6(1, 10);
+    g->x10 = roll_dice(1, 10);
     for (n = 0; n < 10; n++)
         idx[n] = n;
     n = 10;
     while (g->n < 4) {
-        k = sub_s004_0e76_20f6(1, n) - 1;
+        k = roll_dice(1, n) - 1;
         switch (idx[k]) {
         case 0: a = 0x48; b = 0x6d; break;
         case 1: a = 0x4f; b = 0x74; break;
@@ -961,7 +963,7 @@ char far sub_s009_182c_0db6(char far *lvp, struct grp far *g, int p6, int lv, in
 /* random special monster kind 0x96..0xab */
 int far sub_s009_182c_0fe6(void)
 {
-    switch (sub_s004_0e76_20f6(1, 22)) {
+    switch (roll_dice(1, 22)) {
     case 1: return 0x96;
     case 2: return 0x97;
     case 3: return 0x98;
@@ -1010,12 +1012,12 @@ void far sub_s009_182c_10a8(struct grp far *g, int p6, int lv, int type, int x)
         m = 8;
         s = 7;
     }
-    n = sub_s004_0e76_20f6(1, m) - s;
+    n = roll_dice(1, m) - s;
     if (n > 0)
-        sub_s009_182c_1146(g, type, x, 0x23, sub_s004_0e76_20f6(1, 3) + n - 1);
+        sub_s009_182c_1146(g, type, x, 0x23, roll_dice(1, 3) + n - 1);
 }
 
-/* append entry {type, x2, x3, n, D_db35[type].x25} to group g */
+/* append entry {type, x2, x3, n, bf_items[type].x25} to group g */
 #pragma optimize("a", on)
 void far sub_s009_182c_1146(struct grp far *g, int type, char x2, char x3, int n)
 {
@@ -1028,7 +1030,7 @@ void far sub_s009_182c_1146(struct grp far *g, int type, char x2, char x3, int n
     e->x2 = x2;
     e->x3 = x3;
     e->n = n;
-    e->x5 = D_db35[type].x25;
+    e->x5 = bf_items[type].x25;
 }
 #pragma optimize("", on)
 
@@ -1074,7 +1076,7 @@ void far sub_s009_182c_11b2(int p6, int lv)
     }
 }
 
-#define R sub_s004_0e76_20f6
+#define R roll_dice
 
 /* level layout parameters for location type p6, level lv, room kind k: *a kind, *f second kind,
  * *b, *c count, *d, *h, *e/*k flags (2.6 KB of nested switches, all arms written out) */
@@ -1433,7 +1435,7 @@ int far sub_s009_182c_1cb4(int p6, int lv)
     switch (p6) {
     case 0x0b:
     case 0x82:
-        r = sub_s004_0e76_20f6(1, 12);
+        r = roll_dice(1, 12);
         switch (lv) {
         case 3:
             switch (r) {
@@ -1487,7 +1489,7 @@ int far sub_s009_182c_1cb4(int p6, int lv)
         break;
     case 0x0d:
     case 0x83:
-        r = sub_s004_0e76_20f6(1, 18);
+        r = roll_dice(1, 18);
         switch (lv) {
         case 1:
             switch (r) {
@@ -1545,7 +1547,7 @@ int far sub_s009_182c_1cb4(int p6, int lv)
     case 0x84:
     case 0x85:
     case 0x86:
-        r = sub_s004_0e76_20f6(1, 7);
+        r = roll_dice(1, 7);
         switch (lv) {
         case 1:
             switch (r) {
@@ -1592,7 +1594,7 @@ int far sub_s009_182c_1cb4(int p6, int lv)
             }
             break;
         case 5:
-            switch (sub_s004_0e76_20f6(1, 8)) {
+            switch (roll_dice(1, 8)) {
             case 1: v = 0xdf; break;
             case 2: v = 0xe0; break;
             case 3: return v = 0x153;
@@ -1668,7 +1670,7 @@ int far sub_s009_182c_219e(int p6, int lv)
 {
     switch (p6) {
     case 0x0a:
-        switch (sub_s004_0e76_20f6(1, 13)) {
+        switch (roll_dice(1, 13)) {
         case 1: case 2: return 3;
         case 3: case 4: return 2;
         case 5: case 6: return 11;
@@ -1681,7 +1683,7 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x67:
     case 0x68:
     case 0x69:
-        switch (sub_s004_0e76_20f6(1, 9)) {
+        switch (roll_dice(1, 9)) {
         case 1: case 2: return 11;
         case 3: case 4: case 5: return 4;
         case 6: case 7: return 12;
@@ -1692,7 +1694,7 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x82:
         switch (lv) {
         default:
-            switch (sub_s004_0e76_20f6(1, 10)) {
+            switch (roll_dice(1, 10)) {
             case 1: return 2;
             case 2: return 3;
             case 3: case 4: return 11;
@@ -1704,13 +1706,13 @@ int far sub_s009_182c_219e(int p6, int lv)
         case 1:
         case 2:
         case 3:
-            switch (sub_s004_0e76_20f6(1, 2)) {
+            switch (roll_dice(1, 2)) {
             case 1: return 2;
             case 2: return 3;
             }
         case 8:
         case 10:
-            switch (sub_s004_0e76_20f6(1, 9)) {
+            switch (roll_dice(1, 9)) {
             case 1: case 2: return 11;
             case 3: case 4: case 5: return 4;
             case 6: case 7: return 12;
@@ -1718,7 +1720,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             case 9: return 14;
             }
         case 11:
-            switch (sub_s004_0e76_20f6(1, 9)) {
+            switch (roll_dice(1, 9)) {
             case 1: return 7;
             case 2: return 15;
             case 3: return 11;
@@ -1728,7 +1730,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             case 9: return 14;
             }
         case 13:
-            switch (sub_s004_0e76_20f6(1, 10)) {
+            switch (roll_dice(1, 10)) {
             case 1: return 8;
             case 2: return 7;
             case 3: return 15;
@@ -1739,7 +1741,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             case 10: return 14;
             }
         case 14:
-            switch (sub_s004_0e76_20f6(1, 9)) {
+            switch (roll_dice(1, 9)) {
             case 1: return 8;
             case 2: return 7;
             case 3: return 11;
@@ -1754,7 +1756,7 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x7f:
     case 0x80:
     case 0x81:
-        switch (sub_s004_0e76_20f6(1, 10)) {
+        switch (roll_dice(1, 10)) {
         case 1: return 15;
         case 2: case 3: return 11;
         case 4: case 5: case 6: return 4;
@@ -1766,12 +1768,12 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x83:
         switch (lv) {
         case 1:
-            switch (sub_s004_0e76_20f6(1, 2)) {
+            switch (roll_dice(1, 2)) {
             case 1: return 2;
             case 2: return 3;
             }
         case 2:
-            switch (sub_s004_0e76_20f6(1, 11)) {
+            switch (roll_dice(1, 11)) {
             case 1: case 2: return 2;
             case 3: case 4: return 3;
             case 5: return 11;
@@ -1782,7 +1784,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             }
         case 6:
         case 7:
-            switch (sub_s004_0e76_20f6(1, 12)) {
+            switch (roll_dice(1, 12)) {
             case 1: return 8;
             case 2: return 7;
             case 3: return 2;
@@ -1795,7 +1797,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             }
         case 10:
         case 11:
-            switch (sub_s004_0e76_20f6(1, 14)) {
+            switch (roll_dice(1, 14)) {
             case 1: return 7;
             case 2: return 15;
             case 3: return 2;
@@ -1809,12 +1811,12 @@ int far sub_s009_182c_219e(int p6, int lv)
         case 8:
             return 8;
         case 12:
-            switch (sub_s004_0e76_20f6(1, 2)) {
+            switch (roll_dice(1, 2)) {
             case 1: return 15;
             case 2: return 7;
             }
         default:
-            switch (sub_s004_0e76_20f6(1, 14)) {
+            switch (roll_dice(1, 14)) {
             case 1: return 8;
             case 2: return 7;
             case 3: return 15;
@@ -1831,7 +1833,7 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x6c:
         return 8;
     case 0x6d:
-        switch (sub_s004_0e76_20f6(1, 2)) {
+        switch (roll_dice(1, 2)) {
         case 1: return 15;
         case 2: return 7;
         }
@@ -1843,14 +1845,14 @@ int far sub_s009_182c_219e(int p6, int lv)
     case 0x86:
         switch (lv) {
         case 1:
-            switch (sub_s004_0e76_20f6(1, 2)) {
+            switch (roll_dice(1, 2)) {
             case 1: return 2;
             case 2: return 3;
             }
         case 2:
         case 3:
         case 4:
-            switch (sub_s004_0e76_20f6(1, 13)) {
+            switch (roll_dice(1, 13)) {
             case 1: case 2: return 2;
             case 3: case 4: return 3;
             case 5: case 6: return 11;
@@ -1861,7 +1863,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             }
         case 6:
         case 10:
-            switch (sub_s004_0e76_20f6(1, 8)) {
+            switch (roll_dice(1, 8)) {
             case 1: return 7;
             case 2: return 15;
             case 3: return 11;
@@ -1871,7 +1873,7 @@ int far sub_s009_182c_219e(int p6, int lv)
             case 8: return 14;
             }
         default:
-            switch (sub_s004_0e76_20f6(1, 10)) {
+            switch (roll_dice(1, 10)) {
             case 1: return 8;
             case 2: return 7;
             case 3: return 15;

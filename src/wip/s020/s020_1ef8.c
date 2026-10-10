@@ -7,6 +7,8 @@
  * 0000 reads level%d.trn (enemy type table, 0xd6-byte records) into D_a895 count +
  * D_a896[] (0x122-byte enemy type records), writes level%d.enm, sizes the animation buffer
  * from tacanim.db; 05e6 sets far buffer pointers; 06b6 clears combat state. */
+#include "darklands/card.h"
+#include "darklands/game.h"
 
 typedef struct { char *_ptr; int _cnt; char *_base; char _flag; char _file; } FILE;
 struct s3 { char b[3]; };
@@ -100,10 +102,10 @@ struct anrec { char name[10]; int size; };
 struct cm { char pad[10]; char a; char b; char rest[116]; };
 struct s12 { int x, y, z; char pad[12]; };
 
-extern unsigned char D_a895;
+extern unsigned char msg_file;
 extern struct etype D_a896[];
-extern unsigned char far *D_c103;
-extern int D_017c;
+extern unsigned char far *load_buf;
+extern int card_window;
 extern int D_c105;
 extern int D_c654;
 extern int D_c656;
@@ -122,10 +124,10 @@ extern int D_e172;
 extern int D_e238;
 extern int D_e23a;
 extern char D_07d3;
-extern int D_07d4, D_da53, D_da51, D_da4f, D_da47, D_c2bb, D_da4d, D_da49, D_da4b;
-extern int D_da6f[], D_da55[], D_da89[], D_d996[], D_d9b0[], D_daa3[], D_dabd[], D_d948[],
-    D_d962[], D_d97c[], D_d9ca[];
-extern struct cm D_9c69[];
+extern int combat_clock, D_da53, D_da51, D_da4f, D_da47, D_c2bb, D_da4d, D_da49, D_da4b;
+extern int D_da6f[], D_da55[], D_da89[], cbt_engage_time[], D_d9b0[], D_daa3[], D_dabd[], D_d948[],
+    cbt_giveup_timeout[], D_d97c[], D_d9ca[];
+extern struct cm party[];
 extern struct s12 D_a53e[];
 
 char far *_fstrcpy(char far *, const char far *);
@@ -139,20 +141,20 @@ char *strcpy(char *, const char *);
 char *strcat(char *, const char *);
 int getch(void);
 void exit_(int);
-int far vec_1b35();
-void far sub_root_0617_016a();
+int far swap_load2_vec();
+void far file_save();
 void far sub_root_06a1_2052();
 unsigned far sub_root_047c_04ce(void);
 void far sub_root_047c_056f(void);
-void far sub_root_0000_23e6();
+void far text_box();
 void far sub_root_044a_01f4(void);
 void far sub_root_047c_0791(void);
-void far sub_root_0000_1354(void);
-void far sub_s020_1ef8_0000(int);
-void far sub_s020_1ef8_05e6(void);
-void far sub_s020_1ef8_06b6(void);
+void far game_shutdown(void);
+void far level_enemies_load(int);
+void far level_load(void);
+void far combat_state_clear(void);
 
-void far sub_s020_1ef8_0000(int level)
+void far level_enemies_load(int level)
 {
     char msg[0x50];
     char key[0x1e];
@@ -167,10 +169,10 @@ void far sub_s020_1ef8_0000(int level)
     FILE *fp;
 
     sprintf(msg, "level%d.trn", level);
-    vec_1b35(msg, D_c103);
-    D_a895 = n = *D_c103;
+    swap_load2_vec(msg, load_buf);
+    msg_file = n = *load_buf;
     dst = D_a896;
-    src = (struct etsrc far *)(D_c103 + 1);
+    src = (struct etsrc far *)(load_buf + 1);
     cnt = 0;
     for (i = 0; i < n; i++) {
         cnt++;
@@ -217,7 +219,7 @@ void far sub_s020_1ef8_0000(int level)
         src++;
     }
     sprintf(fname, "level%d.enm", level);
-    sub_root_0617_016a(fname, (char far *)&D_a895, n * 0x122 + 1);
+    file_save(fname, (char far *)&msg_file, n * 0x122 + 1);
     fp = fopen("tacanim.db", "rb");
     for (i = 0; i < cnt; i++) {
         strcpy(key, list[i].name);
@@ -267,20 +269,20 @@ void far sub_s020_1ef8_0000(int level)
     if (avail < a) {
         sub_root_047c_056f();
         sprintf(msg, "Error!   Level %d Enemy buffer sizing", level);
-        sub_root_0000_23e6(D_017c, 0x1e, 0, msg);
+        text_box(card_window, 0x1e, 0, msg);
         sprintf(msg, "Mem req'd: %ld  available: %ld", a, avail);
-        sub_root_0000_23e6(D_017c, 0x3c, 0, msg);
+        text_box(card_window, 0x3c, 0, msg);
         sprintf(msg, "Press a key to return to DOS");
-        sub_root_0000_23e6(D_017c, 0x5a, 0, msg);
+        text_box(card_window, 0x5a, 0, msg);
         getch();
         sub_root_044a_01f4();
         sub_root_047c_0791();
-        sub_root_0000_1354();
+        game_shutdown();
         exit_(0);
     }
 }
 
-void far sub_s020_1ef8_05e6(void)
+void far level_load(void)
 {
     D_e238 = 0x26ec;
     D_e23a = 0x1766;
@@ -320,25 +322,25 @@ void far sub_s020_1ef8_05e6(void)
     D_e114 = 0x1752;
 }
 
-void far sub_s020_1ef8_06b6(void)
+void far combat_state_clear(void)
 {
     int i;
 
     D_07d3 = 0;
-    D_da4b = D_da49 = D_da4d = D_c2bb = D_da47 = D_da4f = D_da51 = D_da53 = D_07d4 = 0;
+    D_da4b = D_da49 = D_da4d = D_c2bb = D_da47 = D_da4f = D_da51 = D_da53 = combat_clock = 0;
     memset(D_da6f, 0, 26);
     memset(D_da55, 0, 26);
     memset(D_da89, 0, 26);
-    memset(D_d996, 0, 26);
+    memset(cbt_engage_time, 0, 26);
     memset(D_d9b0, 0, 26);
     memset(D_daa3, 0, 26);
     memset(D_dabd, 0, 26);
     memset(D_d948, 0, 26);
-    memset(D_d962, 0, 26);
+    memset(cbt_giveup_timeout, 0, 26);
     memset(D_d97c, 0, 26);
     memset(D_d9ca, 0, 26);
     for (i = 0; i < 13; i++) {
-        D_9c69[i].b = D_9c69[i].a = 8;
+        party[i].b = party[i].a = 8;
         D_a53e[i].z = D_a53e[i].y = D_a53e[i].x = -536;
     }
 }
