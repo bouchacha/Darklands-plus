@@ -294,7 +294,7 @@ void dos_int21(void)
         if (bios_kbd_avail()) { AL = (u8)bios_kbd_get(1); flags_explicit(0, 0, 1, 8); }
         else { AL = 0; flags_explicit(0, 0, 0, 8); }
         break;
-    case 0x01: case 0x07: case 0x08: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; poll(); plat_sleep_ms(5); }
+    case 0x01: case 0x07: case 0x08: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; dl_poll(); plat_sleep_ms(5); }
         AL = (u8)w; break; }
     case 0x0c: while (bios_kbd_get(1)) {} if (AL == 1 || AL == 6 || AL == 7 || AL == 8) { AH = AL; dos_int21(); } break;
     case 0x09: { u16 o = DX; char c; while ((c = (char)rb(DS, o++)) != '$') putchar(c); fflush(stdout); break; }

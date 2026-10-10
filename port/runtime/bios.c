@@ -1,5 +1,5 @@
 /* bios.c - interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT,
- * keyboard controller, PIC), plus the safe-point poll() that delivers timer and keyboard
+ * keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard
  * interrupts to the game's own handlers and refreshes the screen. */
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,13 +9,14 @@
 #include "hle.h"
 
 void dos_int21(void);
+int plat_menu_open(void);
 void opl_out(u16 port, u8 v); u8 opl_in(u16 port); void sound_init(void);
 void mpu_out(u16 port, u8 v); u8 mpu_in(u16 port);
 void ems_int67(void); void ems_init(void);
 int bios_trace;
 
 volatile int poll_flag = 1;
-int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the last poll() */
+int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the last dl_poll() */
 u8 vga_dac[768];
 int video_mode = 3;
 
@@ -428,7 +429,7 @@ static void service(int n)
     case 0x15: if (AH == 0x88) { AX = 0; SETCF(0); } else { AH = 0x86; SETCF(1); } break;
     case 0x16:
         switch (AH & 0xef) {
-        case 0x00: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; poll(); plat_sleep_ms(5); } AX = w; break; }
+        case 0x00: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; dl_poll(); plat_sleep_ms(5); } AX = w; break; }
         case 0x01: { u16 w = bios_kbd_get(0); SETZF(w == 0); if (w) AX = w; poll_flag = 1; break; }
         case 0x02: AL = shift_state; break;
         default: break;
@@ -479,7 +480,7 @@ static int in_irq;
 static u32 last_present;
 extern int poll_count_events;
 
-void poll(void)
+void dl_poll(void)
 {
     poll_flag = 0;
     if (in_irq) return;
@@ -495,6 +496,11 @@ void poll(void)
         last_present = now;
         plat_events();
         plat_present(M + 0xa0000, vga_dac);
+        if (plat_menu_open()) {               /* the game is paused while the menu is open */
+            while (plat_menu_open()) { plat_events(); plat_present(M + 0xa0000, vga_dac); plat_sleep_ms(15); }
+            last_ms = now = plat_ticks_ms();
+            tick_us_acc = 0;
+        }
     }
     if (!R.iflag) return;
     in_irq = 1;

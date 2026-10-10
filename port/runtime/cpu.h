@@ -132,9 +132,9 @@ void dispatch_near(u16 cs, u16 off);    /* call near to a computed address in se
 void dispatch_jmp_far(u16 seg, u16 off);/* jmp far: like call but the callee's return is ours */
 void dispatch_jmp_near(u16 cs, u16 off);
 void ovl_enter(int section);            /* RTLink: make sure an overlay section is loaded */
-void poll(void);                        /* safe point: timer interrupts, input, screen refresh */
+void dl_poll(void);                        /* safe point: timer interrupts, input, screen refresh */
 extern volatile int poll_flag;
-#define POLL() do { if (poll_flag) poll(); } while (0)
+#define POLL() do { if (poll_flag) dl_poll(); } while (0)
 void fatal(const char *fmt, ...);
 void interp_step(u16 cs, u16 ip);
 void interp_run(u16 seg, u16 off);     /* execute one (patched, non-branch) instruction */

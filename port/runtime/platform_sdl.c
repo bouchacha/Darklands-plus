@@ -17,6 +17,7 @@
 #include <SDL.h>
 #include "cpu.h"
 #include "hle.h"
+#include "../ui/ui.h"
 
 static SDL_Window *win;
 static SDL_Renderer *ren;
@@ -165,15 +166,56 @@ static void save_bmp(const char *path)
       fprintf(stderr, "saved %s (mode %02x, %d non-zero pixels, palette sum %d)\n", path, video_mode, nz, ps); }
 }
 
+/* where the 320x200 picture goes in the window (renderer output pixels) */
+static SDL_Rect dest;
+static char pending_wshot[300];     /* whole-window screenshot (interface included) at the next present */
+static int out_w = 960, out_h = 720, win_w = 960, win_h = 720;
+static void layout(void)
+{
+    SDL_GetRendererOutputSize(ren, &out_w, &out_h);
+    SDL_GetWindowSize(win, &win_w, &win_h);
+    int ph = ui_settings.aspect ? 240 : 200;      /* picture height in 320-wide units */
+    int w, h;
+    if (ui_settings.integer && out_w >= 320 && out_h >= ph) {
+        int k = out_w / 320; if (out_h / ph < k) k = out_h / ph;
+        w = 320 * k; h = ph * k;
+    } else {
+        w = out_w; h = w * ph / 320;
+        if (h > out_h) { h = out_h; w = h * 320 / ph; }
+    }
+    dest.x = (out_w - w) / 2; dest.y = (out_h - h) / 2; dest.w = w; dest.h = h;
+}
+
 void plat_present(const u8 *vga, const u8 *pal)
 {
     if (headless) return;
     to_rgb(vga, pal);
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
+    layout();
+    SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, tex, 0, 0);
+    SDL_RenderCopy(ren, tex, 0, &dest);
+    ui_draw(ren);
+    if (pending_wshot[0]) {
+        SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
+        if (sf) { SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
+                  SDL_SaveBMP(sf, pending_wshot); SDL_FreeSurface(sf); fprintf(stderr, "saved %s\n", pending_wshot); }
+        pending_wshot[0] = 0;
+    }
     SDL_RenderPresent(ren);
 }
+
+/* window coordinates -> game pixels */
+static void to_game(int wx, int wy, int *gx, int *gy)
+{
+    int ox = win_w ? wx * out_w / win_w : wx, oy = win_h ? wy * out_h / win_h : wy;
+    int x = dest.w ? (ox - dest.x) * 320 / dest.w : 0, y = dest.h ? (oy - dest.y) * 200 / dest.h : 0;
+    if (x < 0) x = 0; if (x > 319) x = 319; if (y < 0) y = 0; if (y > 199) y = 199;
+    *gx = x; *gy = y;
+}
+
+int plat_menu_open(void) { return !headless && ui_is_open(); }
 
 /* ---------------------------------------------------------------- events */
 static void run_script(void)
@@ -188,6 +230,7 @@ static void run_script(void)
             SDL_Scancode sc = SDL_GetScancodeFromName(s->arg);
             if (sc == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "script: unknown key %s\n", s->arg); continue; }
             if (getenv("DL_TRACE_INPUT")) fprintf(stderr, "script %u ms: %s %s (sc %d)\n", now, s->cmd, s->arg, (int)sc);
+            if (sc == SDL_SCANCODE_F12 && !headless) { ui_toggle(); continue; }
             if (strcmp(s->cmd, "up")) key(sc, 0);
             if (!strcmp(s->cmd, "up")) key(sc, 1);
             else if (!strcmp(s->cmd, "key")) {      /* release a little later, like a real key press */
@@ -207,6 +250,17 @@ static void run_script(void)
             for (int i = nsteps - 1; i > step_i && steps[i].t < steps[i - 1].t; i--) { Step t = steps[i]; steps[i] = steps[i - 1]; steps[i - 1] = t; }
         } else if (!strcmp(s->cmd, "release")) { mouse_b &= ~atoi(s->arg); send_mouse(); }
         else if (!strcmp(s->cmd, "shot")) save_bmp(s->arg);
+        else if (!strcmp(s->cmd, "utab")) ui_select_tab(atoi(s->arg));
+        else if (!strcmp(s->cmd, "uclick")) {            /* a click on the interface, window pixels */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            Uint32 wid = win ? SDL_GetWindowID(win) : 0;
+            if (win) SDL_WarpMouseInWindow(win, x, y);
+            ev.type = SDL_MOUSEMOTION; ev.motion.windowID = wid; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
+            memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEBUTTONDOWN; ev.button.windowID = wid; ev.button.button = SDL_BUTTON_LEFT; ev.button.state = SDL_PRESSED;
+            ev.button.x = x; ev.button.y = y; ev.button.clicks = 1; SDL_PushEvent(&ev);
+            ev.type = SDL_MOUSEBUTTONUP; ev.button.state = SDL_RELEASED; SDL_PushEvent(&ev);
+        }
+        else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
     }
 }
@@ -244,6 +298,10 @@ void plat_events(void)
     run_ctl();
     run_script();
     while (SDL_PollEvent(&e)) {
+        if (!headless && ui_event(&e)) {
+            SDL_ShowCursor(ui_is_open() ? SDL_ENABLE : SDL_DISABLE);
+            continue;
+        }
         switch (e.type) {
         case SDL_QUIT: plat_quit(0); break;
         case SDL_KEYDOWN:
@@ -257,7 +315,7 @@ void plat_events(void)
             break;
         case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;
         case SDL_MOUSEMOTION:
-            mouse_x = e.motion.x / 2; mouse_y = e.motion.y * 200 / 480;
+            to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
             int b = e.button.button == SDL_BUTTON_LEFT ? 1 : e.button.button == SDL_BUTTON_RIGHT ? 2 : 4;
@@ -280,15 +338,16 @@ void plat_init(int scale)
     t0 = SDL_GetPerformanceCounter(); freq = SDL_GetPerformanceFrequency();
     if (!scale) return;
     if (!headless) {
-        win = SDL_CreateWindow("Darklands", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 960, 720,
+        int wp = getenv("DL_SCRIPT") ? 0 : SDL_WINDOWPOS_CENTERED;   /* scripted tests: a known window position */
+        win = SDL_CreateWindow("Darklands", wp, wp, 960, 720,
                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
         if (!win) { fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); exit(1); }
         ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
         if (!ren) ren = SDL_CreateRenderer(win, -1, 0);
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-        SDL_RenderSetLogicalSize(ren, 640, 480);
         tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200);
         SDL_ShowCursor(SDL_DISABLE);
+        ui_init(win, ren);
     }
     SDL_AddTimer(1, tick_cb, 0);
     parse_script(getenv("DL_SCRIPT"));

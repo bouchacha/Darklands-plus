@@ -8,6 +8,8 @@
 #include "hle.h"
 #include "funcs.h"
 #include <SDL.h>
+#include "config.h"
+#include "../mods/mods.h"
 void dos_mem_init2(u16 env, u16 env_paras, u16 psp);
 
 
@@ -72,6 +74,7 @@ int main(int argc, char **argv)
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 
+    config_load(game_dir);
     M = calloc(1, MEM_SIZE);
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */
@@ -128,6 +131,8 @@ int main(int argc, char **argv)
         ww(psp_seg, 0x32, 20); ww(psp_seg, 0x34, 0x18); ww(psp_seg, 0x36, psp_seg);
     }
     dos_mem_init2(env, (u16)(psp_seg - 1 - env), psp_seg);
+
+    mods_init();
 
     /* ---- overlays */
     ovl_init(exe);
