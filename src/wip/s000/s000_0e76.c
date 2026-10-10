@@ -1,5 +1,5 @@
 /* place: s000 0e76:0000 */
-/* orig: size=13c8 _DATA=0946+04e1 */
+/* orig: size=13c8 CONST=7d12+0006 _DATA=0946+04e1 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Start-up module: EMS error messages, main(), command line / config.drk / sound driver
    set-up (0114), game start (052a), battle menus (083e, 0f04), commonsp.img (1010),
