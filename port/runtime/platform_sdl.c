@@ -18,6 +18,7 @@
 #include "cpu.h"
 #include "hle.h"
 #include "../ui/ui.h"
+#include "../mods/hdart.h"
 
 static SDL_Window *win;
 static SDL_Renderer *ren;
@@ -186,16 +187,90 @@ static void layout(void)
     dest.x = (out_w - w) / 2; dest.y = (out_h - h) / 2; dest.w = w; dest.h = h;
 }
 
+/* ---------------------------------------------------------------- replacement art */
+/* textures of the replacement pictures (mods/hdart.c decides what goes where), loaded when
+ * first shown and dropped again when unused while over the memory budget */
+typedef struct { SDL_Texture *t; int w, h, tried, gen; u32 used; } ArtTex;
+static ArtTex *arttex; static int nartt;
+static long long art_bytes;
+static u32 art_frame;
+unsigned char *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp);
+void stbi_image_free(void *retval_from_stbi_load);
+
+static SDL_Texture *art_texture(int pic, int *w, int *h)
+{
+    if (pic >= nartt) {
+        int n = pic + 64;
+        arttex = realloc(arttex, sizeof *arttex * n);
+        memset(arttex + nartt, 0, sizeof *arttex * (n - nartt));
+        nartt = n;
+    }
+    ArtTex *a = &arttex[pic];
+    if (a->gen != hdart_generation) {             /* the art folder was scanned again */
+        if (a->t) { SDL_DestroyTexture(a->t); art_bytes -= (long long)a->w * a->h * 4; }
+        a->t = 0; a->tried = 0; a->gen = hdart_generation;
+    }
+    a->used = art_frame;
+    if (!a->t && !a->tried) {
+        a->tried = 1;
+        const char *path = hdart_file(pic);
+        int n;
+        unsigned char *px = path ? stbi_load(path, &a->w, &a->h, &n, 4) : 0;
+        if (px) {
+            a->t = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, a->w, a->h);
+            if (a->t) {
+                SDL_UpdateTexture(a->t, 0, px, a->w * 4);
+                SDL_SetTextureBlendMode(a->t, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureScaleMode(a->t, SDL_ScaleModeLinear);
+                art_bytes += (long long)a->w * a->h * 4;
+            }
+            stbi_image_free(px);
+        } else if (path) fprintf(stderr, "art: cannot read %s\n", path);
+        /* over budget: drop what has not been shown for a while */
+        for (int i = 0; i < nartt && art_bytes > 768ll << 20; i++)
+            if (arttex[i].t && art_frame - arttex[i].used > 120) {
+                SDL_DestroyTexture(arttex[i].t); arttex[i].t = 0; arttex[i].tried = 0;
+                art_bytes -= (long long)arttex[i].w * arttex[i].h * 4;
+            }
+    }
+    *w = a->w; *h = a->h;
+    return a->t;
+}
+
+static void art_draw(void)
+{
+    art_frame++;
+    if (!hdart_ndraws) return;
+    float kx = dest.w / 320.0f, ky = dest.h / 200.0f;
+    for (int i = 0; i < hdart_ndraws; i++) {
+        HdDraw *d = &hdart_draws[i];
+        int tw, th, pw, ph;
+        SDL_Texture *t = art_texture(d->pic, &tw, &th);
+        if (!t) continue;
+        hdart_size(d->pic, &pw, &ph);
+        float fx = (float)tw / pw, fy = (float)th / ph;
+        SDL_Rect src = { (int)(d->sx * fx + 0.5f), (int)(d->sy * fy + 0.5f), (int)(d->w * fx + 0.5f), (int)(d->h * fy + 0.5f) };
+        SDL_FRect dst = { dest.x + d->x * kx, dest.y + d->y * ky, d->w * kx, d->h * ky };
+        SDL_SetTextureColorMod(t, d->mod[0], d->mod[1], d->mod[2]);
+        SDL_RenderCopyF(ren, t, &src, &dst);
+    }
+}
+
 void plat_present(const u8 *vga, const u8 *pal)
 {
     if (headless) return;
     to_rgb(vga, pal);
-    { void hdtext_prepare(u32 *, const u32 *); hdtext_prepare(frame, lut); }   /* crisp text: wipe the glyphs it redraws */
+    static u8 idx[320 * 200];
+    memcpy(idx, vga, sizeof idx);
+    { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
+    hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
     layout();
     SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
+    art_draw();
+    SDL_SetTextureBlendMode(tex, hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
     SDL_RenderCopy(ren, tex, 0, &dest);
     ui_draw(ren);
     if (pending_wshot[0]) {
@@ -224,6 +299,8 @@ static void to_game(int wx, int wy, int *gx, int *gy)
     if (x < 0) x = 0; if (x > 319) x = 319; if (y < 0) y = 0; if (y > 199) y = 199;
     *gx = x; *gy = y;
 }
+
+void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
 
 int plat_menu_open(void) { return !headless && ui_is_open(); }
 
@@ -275,6 +352,8 @@ static void run_script(void)
             ev.type = SDL_MOUSEBUTTONUP; ev.button.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
+        else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
+        else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
     }
 }

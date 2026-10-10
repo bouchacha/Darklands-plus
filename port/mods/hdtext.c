@@ -132,7 +132,7 @@ int hdtext_nruns;
 
 /* called with the frame about to be shown: wipe the glyphs that are still on screen from the
  * RGB picture and list the runs of text to draw again */
-void hdtext_prepare(u32 *rgb, const u32 *lut)
+void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
 {
     hdtext_nruns = 0;
     if (!hdtext_mode) return;
@@ -190,7 +190,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut)
                     int p = (r->y0 + yy) * 320 + gx + xx;
                     if (under_cursor && vga[p] != gc[g]) continue;           /* the cursor's own pixels stay */
                     claimed[p] = 1;
-                    if (glyph_bit(F, r->ch[g], xx, yy)) rgb[p] = lut[r->under[yy * r->w + r->gx[g] + xx]];
+                    if (glyph_bit(F, r->ch[g], xx, yy)) { u8 u = r->under[yy * r->w + r->gx[g] + xx]; rgb[p] = lut[u]; if (idx) idx[p] = u; }
                 }
         }
         int g = 0;

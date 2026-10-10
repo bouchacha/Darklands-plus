@@ -5,6 +5,7 @@
 #include <float.h>
 #include <string>
 #include "imgui.h"
+#include "../mods/hdart.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -117,9 +118,35 @@ extern "C" void hdtext_draw(void)
     }
 }
 
+/* "show picture names" (Display & sound): the picture under the mouse, outlined and named,
+ * so that artists know which file to replace */
+extern "C" void plat_mouse_game(int *x, int *y);
+static void draw_picture_name(void)
+{
+    if (!hdart_show_names) return;
+    int mx, my, x, y, w, h;
+    plat_mouse_game(&mx, &my);
+    int pic = hdart_pick(mx, my, &x, &y, &w, &h);
+    if (pic < 0) return;
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImVec2 a = g2w((float)x, (float)y), b = g2w((float)(x + w), (float)(y + h));
+    dl->AddRect(a, b, IM_COL32(0, 0, 0, 200), 0, 0, 5);
+    dl->AddRect(a, b, IM_COL32(255, 220, 80, 255), 0, 0, 2);
+    char t[96]; snprintf(t, sizeof t, "%s  %dx%d%s", hdart_name(pic), w, h, hdart_has_art(pic) ? "  (replaced)" : "");
+    ImVec2 ts = ImGui::CalcTextSize(t);
+    ImVec2 m = g2w((float)mx, (float)my);
+    ImVec2 p(m.x + 24, m.y + 24);
+    ImGuiIO &io = ImGui::GetIO();
+    if (p.x + ts.x + 12 > io.DisplaySize.x) p.x = io.DisplaySize.x - ts.x - 12;
+    if (p.y + ts.y + 8 > io.DisplaySize.y) p.y = m.y - ts.y - 16;
+    dl->AddRectFilled(ImVec2(p.x - 6, p.y - 3), ImVec2(p.x + ts.x + 6, p.y + ts.y + 3), IM_COL32(20, 16, 10, 230), 4);
+    dl->AddText(p, IM_COL32(255, 230, 160, 255), t);
+}
+
 extern "C" void travel_overlay(void);
 extern "C" void ui_overlay(void)
 {
     draw_chances();
     travel_overlay();
+    draw_picture_name();
 }

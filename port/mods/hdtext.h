@@ -8,7 +8,7 @@ extern "C" {
 typedef struct { char text[100]; int x, y, w, h, font; unsigned rgb; } HdRun;   /* game pixels */
 extern HdRun hdtext_runs[HD_MAXRUNS];
 extern int hdtext_nruns, hdtext_mode;
-void hdtext_prepare(unsigned *rgb, const unsigned *lut);
+void hdtext_prepare(unsigned *rgb, const unsigned *lut, unsigned char *idx);
 void hdtext_set(int mode);
 #ifdef __cplusplus
 }

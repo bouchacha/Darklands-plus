@@ -81,6 +81,8 @@ static void host_path(const char *dos, char *out, size_t outn)
     snprintf(out, outn, "%s", tmp);
 }
 
+void dos_host_path(const char *dos, char *out, size_t outn) { host_path(dos, out, outn); }
+
 static int new_handle(FILE *f)
 {
     for (int h = 5; h < 64; h++) if (!handles[h]) { handles[h] = f; return h; }

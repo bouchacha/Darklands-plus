@@ -20,6 +20,7 @@ extern "C" {
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
 #include "../mods/hdtext.h"
+#include "../mods/hdart.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -120,6 +121,11 @@ extern "C" int ui_event(const SDL_Event *e)
 }
 
 /* a wrapped, dimmed explanation */
+#ifdef _WIN32
+#define PATH_SEP "\\"
+#else
+#define PATH_SEP "/"
+#endif
 static void hint(const char *fmt, ...)
 {
     va_list ap; va_start(ap, fmt);
@@ -166,7 +172,8 @@ static void set_original(bool on)
         config_set("original.saved", b);
         config_set("original.sound", config_get("sound.device", "fm"));
         config_set_int("original.text", hdtext_mode);
-        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0);
+        config_set_int("original.art", hdart_on);
+        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0); hdart_set(0);
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
@@ -181,6 +188,7 @@ static void set_original(bool on)
         for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
         config_set("sound.device", config_get("original.sound", "fm"));
         hdtext_set(config_get_int("original.text", 1));
+        hdart_set(config_get_int("original.art", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -247,6 +255,27 @@ static void tab_display(void)
     if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); dirty_config = 1; }
     hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
          "the window's resolution; anything it cannot match exactly is left as the game drew it.");
+
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Pictures"); ImGui::PopFont();
+    bool ha = hdart_on;
+    if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); dirty_config = 1; }
+    {
+        extern char game_dir[1024];
+        int n = hdart_count();
+        if (n) hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", game_dir, PATH_SEP);
+        else hint("No replacement pictures yet (%s%sart).", game_dir, PATH_SEP);
+        static char msg[600];
+        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
+        ImGui::SameLine();
+        if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
+        if (msg[0]) hint("%s", msg);
+        bool sn = hdart_show_names;
+        if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); dirty_config = 1; }
+        hint("For artists: a file art%sNAME.png (any size; transparency where the picture has colour 0) replaces the "
+             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
+             "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
+             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
+    }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
     static const char *ids[] = { "fm", "adlib", "midi", "speaker", "off", "game" };
