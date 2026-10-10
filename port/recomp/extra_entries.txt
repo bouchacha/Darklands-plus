@@ -1,0 +1,3 @@
+# Code the static analysis cannot find (reached only through data). img seg:off (link-time)
+root 05f8:0012     # EMS driver entry: first call through the int 67h pointer runs the init
+root 06a1:00dd     # C run-time divide-by-zero handler (int 0 vector)

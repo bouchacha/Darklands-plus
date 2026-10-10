@@ -1,0 +1,3 @@
+# Driver code reached only through data. <driver> <offset hex>; '*sound' = all *SOUND.DLC
+*sound 053c     # timer interrupt handler installed by the sound drivers
+*sound 1c53

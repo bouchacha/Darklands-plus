@@ -1,0 +1,3 @@
+# Recompiled functions replaced by hand-written C (port/runtime/overrides.c)
+F_root_05f92     # EMS entry init: rewinds its caller's return address to re-execute the call
+F_root_04c4a     # driver thunk dispatcher (047c:048a): patches its own jmp/call operands
