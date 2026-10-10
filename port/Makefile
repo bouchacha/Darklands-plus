@@ -14,6 +14,7 @@ ifeq ($(TARGET),win64)
                 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 \
                 -lshell32 -lsetupapi -lversion -luuid -static-libgcc
   BIN    := $(OUT)/darklands.exe
+  LDEXTRA := -s
 else
   CC     ?= gcc
   OUT    := $(TOP)/build/port
@@ -29,15 +30,17 @@ endif
 CFLAGS   := $(EXTRA) $(OPT) -g0 -fwrapv -fno-strict-aliasing -w -Iruntime -I$(GEN) $(SDL_CFLAGS)
 RTFLAGS  := $(EXTRA) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-function -Wno-misleading-indentation \
             -Wno-unused-variable -Wno-unused-result -Wno-format-truncation -Wno-unused-but-set-variable -Iruntime -I$(GEN) $(SDL_CFLAGS)
-RT_SRC   := $(wildcard runtime/*.c)
+RT_SRC   := $(wildcard runtime/*.c) third_party/nuked-opl3/opl3.c
 GEN_SRC  := $(wildcard $(GEN)/*.c)
-OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_SRC)) $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC))
+OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)/opl3.o $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC))
 
 all: $(BIN)
 $(BIN): $(OBJS)
-	$(CC) -o $@ $^ $(SDL_LIBS)
+	$(CC) $(LDEXTRA) -o $@ $^ $(SDL_LIBS)
 $(OUT)/rt_%.o: runtime/%.c runtime/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
+$(OUT)/opl3.o: third_party/nuked-opl3/opl3.c | $(OUT)
+	$(CC) -O2 -c -o $@ $<
 $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(OUT):

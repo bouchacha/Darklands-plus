@@ -186,6 +186,7 @@ static void run_script(void)
         if (!strcmp(s->cmd, "key") || !strcmp(s->cmd, "down") || !strcmp(s->cmd, "up")) {
             SDL_Scancode sc = SDL_GetScancodeFromName(s->arg);
             if (sc == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "script: unknown key %s\n", s->arg); continue; }
+            if (getenv("DL_TRACE_INPUT")) fprintf(stderr, "script %u ms: %s %s (sc %d)\n", now, s->cmd, s->arg, (int)sc);
             if (strcmp(s->cmd, "up")) key(sc, 0);
             if (strcmp(s->cmd, "down")) key(sc, 1);
         } else if (!strcmp(s->cmd, "move")) { mouse_x = x; mouse_y = y; send_mouse(); }
@@ -264,4 +265,12 @@ void plat_quit(int code)
     fflush(stdout); fflush(stderr);
     SDL_Quit();
     exit(code);
+}
+
+void plat_error_box(const char *msg)
+{
+    char buf[700];
+    snprintf(buf, sizeof buf, "The game stopped because of an internal error:\n\n%s\n\n"
+             "Details are in darklands_port.log in the game folder.", msg);
+    if (!headless) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", buf, win);
 }

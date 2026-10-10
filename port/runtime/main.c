@@ -7,6 +7,7 @@
 #include "cpu.h"
 #include "hle.h"
 #include "funcs.h"
+#include <SDL.h>
 void dos_mem_init2(u16 env, u16 env_paras, u16 psp);
 
 
@@ -28,15 +29,16 @@ static int find_game_dir(int argc, char **argv)
         return 0;
     }
     /* next to the executable, then the current directory */
-    const char *cands[3] = { 0, ".", 0 };
+    const char *cands[4] = { 0, ".", 0, 0 };
+    char sub[1100] = "";
     char exedir[1024] = "";
-    if (argv[0]) {
-        snprintf(exedir, sizeof exedir, "%s", argv[0]);
-        char *s1 = strrchr(exedir, '/'), *s2 = strrchr(exedir, '\\');
-        char *s = s1 > s2 ? s1 : s2;
-        if (s) { *s = 0; cands[0] = exedir; }
+    {
+        char *b = SDL_GetBasePath();
+        if (b) { snprintf(exedir, sizeof exedir, "%s", b); SDL_free(b);
+                 size_t n = strlen(exedir); if (n && (exedir[n - 1] == '/' || exedir[n - 1] == '\\')) exedir[n - 1] = 0;
+                 cands[0] = exedir; snprintf(sub, sizeof sub, "%s/DARKLAND", exedir); cands[2] = sub; }
     }
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         if (!cands[i]) continue;
         snprintf(p, sizeof p, "%s/DARKLAND.EXE", cands[i]);
         if (file_exists(p)) { snprintf(game_dir, sizeof game_dir, "%s", cands[i]); return 1; }
@@ -55,11 +57,18 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--rtlink")) skip_rtlink = 0;
     }
     if (!find_game_dir(argc, argv)) {
-        fprintf(stderr, "Darklands: put this program in your Darklands folder (the one with DARKLAND.EXE),\n"
-                        "or pass that folder on the command line.\n");
-        plat_init(0);
-        plat_quit(1);
+        const char *msg = "Put darklands.exe into your Darklands folder (the one that contains DARKLAND.EXE),\n"
+                          "or start it with that folder as its argument.";
+        fprintf(stderr, "%s\n", msg);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
+        return 1;
     }
+#ifdef _WIN32
+    {   /* no console on Windows: keep a log next to the game */
+        char lp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", game_dir);
+        freopen(lp, "w", stderr);
+    }
+#endif
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 

@@ -6,13 +6,15 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
 #ifdef _WIN32
 #include <io.h>
 #include <direct.h>
-#include <windows.h>
+#define mkdir_(p) _mkdir(p)
 #else
-#include <dirent.h>
-#include <unistd.h>
+#include <strings.h>
+#define mkdir_(p) mkdir(p, 0777)
 #endif
 #include "cpu.h"
 #include "hle.h"
@@ -21,6 +23,7 @@
 char game_dir[1024];
 static char dos_cwd[128] = "";          /* relative to game_dir, '/'-separated, no leading slash */
 static FILE *handles[64];
+static u8 handle_cfg[64];       /* CONFIG.DRK: the sound card choice is replaced (see 3Fh) */
 static u16 dta_seg, dta_off;
 u16 psp_seg;
 int dos_trace;
@@ -40,21 +43,17 @@ static void get_str(u16 seg, u16 off, char *buf, int n)
 /* case-insensitive resolution of one path component inside dir */
 static int find_ci(const char *dir, const char *name, char *out, size_t outn)
 {
-#ifdef _WIN32
-    snprintf(out, outn, "%s/%s", dir, name);
-    return 1;
-#else
     DIR *d = opendir(dir);
-    if (!d) return 0;
-    struct dirent *e;
     int found = 0;
-    while ((e = readdir(d))) {
-        if (!strcasecmp(e->d_name, name)) { snprintf(out, outn, "%s/%s", dir, e->d_name); found = 1; break; }
+    if (d) {
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            if (!strcasecmp(e->d_name, name)) { snprintf(out, outn, "%s/%s", dir, e->d_name); found = 1; break; }
+        }
+        closedir(d);
     }
-    closedir(d);
     if (!found) snprintf(out, outn, "%s/%s", dir, name);
     return found;
-#endif
 }
 
 /* DOS path -> host path under game_dir */
@@ -68,13 +67,16 @@ static void host_path(const char *dos, char *out, size_t outn)
     else snprintf(rel, sizeof rel, "%s", p);
     for (char *q = rel; *q; q++) if (*q == '\\') *q = '/';
     snprintf(tmp, sizeof tmp, "%s", game_dir);
-    char *save, *tok = strtok_r(rel, "/", &save);
-    while (tok) {
-        char nxt[1024];
-        if (!strcmp(tok, ".")) { tok = strtok_r(0, "/", &save); continue; }
-        find_ci(tmp, tok, nxt, sizeof nxt);
-        snprintf(tmp, sizeof tmp, "%s", nxt);
-        tok = strtok_r(0, "/", &save);
+    for (char *tok = rel; *tok;) {
+        char *sl = strchr(tok, '/');
+        if (sl) *sl = 0;
+        if (*tok && strcmp(tok, ".")) {
+            char nxt[1024];
+            find_ci(tmp, tok, nxt, sizeof nxt);
+            snprintf(tmp, sizeof tmp, "%s", nxt);
+        }
+        if (!sl) break;
+        tok = sl + 1;
     }
     snprintf(out, outn, "%s", tmp);
 }
@@ -186,7 +188,6 @@ static int mem_resize(u16 seg, u16 paras, u16 *maxp)
 }
 
 /* ---------------------------------------------------------------- find first / next */
-#ifndef _WIN32
 static char find_pat[64], find_dir[1024];
 static long find_pos;
 static int wild_match(const char *pat, const char *name)
@@ -239,7 +240,6 @@ static int find_next(void)
     closedir(dd);
     return 0;
 }
-#endif
 
 /* ---------------------------------------------------------------- overlay load (4B03) */
 static int load_overlay(const char *dosname, u16 seg, u16 relfac)
@@ -249,12 +249,9 @@ static int load_overlay(const char *dosname, u16 seg, u16 relfac)
     {
         const char *b = dosname;
         for (const char *p = dosname; *p; p++) if (*p == '\\' || *p == '/' || *p == ':') b = p + 1;
-        if (strlen(b) == 10 && !strcasecmp(b + 1, "SOUND.DLC") && toupper((u8)b[0]) != 'N') {
-            const char *want = getenv("DL_SOUND");
-            if (!want || toupper((u8)want[0]) != toupper((u8)b[0])) {
-                fprintf(stderr, "sound driver %s replaced by NSOUND.DLC\n", b);
-                dosname = "NSOUND.DLC";
-            }
+        if (strlen(b) == 10 && !strcasecmp(b + 1, "SOUND.DLC")) {
+            /* the native build plays music through its emulated AdLib card */
+            if (getenv("DL_NOSOUND") && strcasecmp(b, "NSOUND.DLC")) { fprintf(stderr, "sound off: %s replaced by NSOUND.DLC\n", b); dosname = "NSOUND.DLC"; }
         }
     }
     host_path(dosname, hp, sizeof hp);
@@ -301,7 +298,7 @@ void dos_int21(void)
         AL = (u8)w; break; }
     case 0x0c: while (bios_kbd_get(1)) {} if (AL == 1 || AL == 6 || AL == 7 || AL == 8) { AH = AL; dos_int21(); } break;
     case 0x09: { u16 o = DX; char c; while ((c = (char)rb(DS, o++)) != '$') putchar(c); fflush(stdout); break; }
-    case 0x0b: poll_flag = 1; AL = bios_kbd_avail() ? 0xff : 0; break;
+    case 0x0b: { extern int idle_hits; idle_hits += 50; poll_flag = 1; AL = bios_kbd_avail() ? 0xff : 0; break; }
     case 0x0e: AL = 26; break;
     case 0x19: AL = 2; break;                                   /* C: */
     case 0x1a: dta_seg = DS; dta_off = DX; break;
@@ -331,6 +328,7 @@ void dos_int21(void)
         if (dos_trace) fprintf(stderr, "  open %s -> %s %s\n", name, hp, f ? "ok" : "FAIL");
         if (!f) { dos_error(2); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }
+        { const char *b = strrchr(name, '\\'); b = b ? b + 1 : name; handle_cfg[h] = !strcasecmp(b, "CONFIG.DRK"); }
         AX = (u16)h; SETCF(0); break; }
     case 0x3e:
         if (BX == 63 && ems_dev_open) { ems_dev_open = 0; SETCF(0); break; }
@@ -342,13 +340,14 @@ void dos_int21(void)
         if (BX == 0) { AX = 0; SETCF(0); break; }
         if (BX >= 64 || !handles[BX]) { dos_error(6); break; }
         u32 got = 0, a = LIN(DS, DX);
-        if (CX) { fflush(handles[BX]); got = (u32)fread(M + a, 1, CX, handles[BX]); }
+        long pos0 = ftell(handles[BX]);
+        if (CX) { fseek(handles[BX], 0, SEEK_CUR); got = (u32)fread(M + a, 1, CX, handles[BX]); }
         AX = (u16)got; SETCF(0); break; }
     case 0x40: {
         if (BX == 1 || BX == 2) { fwrite(M + LIN(DS, DX), 1, CX, stdout); AX = CX; SETCF(0); break; }
         if (BX >= 64 || !handles[BX]) { dos_error(6); break; }
         if (CX == 0) {               /* truncate at the current position */
-            long pos = ftell(handles[BX]); fflush(handles[BX]);
+            fseek(handles[BX], 0, SEEK_CUR); long pos = ftell(handles[BX]); fflush(handles[BX]);
 #ifdef _WIN32
             _chsize(_fileno(handles[BX]), pos);
 #else
@@ -393,7 +392,8 @@ void dos_int21(void)
         } else dos_error(1);
         break;
     case 0x4c: fflush(stdout); plat_quit(AL); break;
-#ifndef _WIN32
+    case 0x39: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (mkdir_(hp)) dos_error(5); else SETCF(0); break;
+    case 0x3a: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (rmdir(hp)) dos_error(5); else SETCF(0); break;
     case 0x4e: {
         get_str(DS, DX, name, sizeof name);
         char *bs = strrchr(name, '\\'), dirpart[256] = "";
@@ -405,7 +405,6 @@ void dos_int21(void)
         if (find_next()) { AX = 0; SETCF(0); } else dos_error(18);
         break; }
     case 0x4f: if (find_next()) { AX = 0; SETCF(0); } else dos_error(18); break;
-#endif
     case 0x56: { char n2[256], h2[1024]; get_str(DS, DX, name, sizeof name); get_str(ES, DI, n2, sizeof n2);
         host_path(name, hp, sizeof hp); host_path(n2, h2, sizeof h2);
         if (rename(hp, h2)) dos_error(5); else SETCF(0); break; }
