@@ -19,6 +19,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
+#include "../mods/hdtext.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -30,10 +31,11 @@ static int want_tab = -1;
 extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head;
-ImFont *ui_font_small;
+ImFont *ui_font_small, *ui_font_text;
 extern "C" void tab_inventory(void);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
+extern "C" void hdtext_draw(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
 extern "C" void journal_init(void);
@@ -90,6 +92,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 24.0f, &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
+    {   /* the game's text, redrawn crisp (mods/hdtext.c): baked large, drawn at any size */
+        ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
+        static const ImWchar ranges[] = { 0x20, 0xff, 0 };
+        ui_font_text = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 34.0f, &tc, ranges);
+    }
     gamedata_load(game_dir);
     journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -158,7 +165,8 @@ static void set_original(bool on)
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
         config_set("original.sound", config_get("sound.device", "fm"));
-        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast);
+        config_set_int("original.text", hdtext_mode);
+        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0);
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
@@ -172,6 +180,7 @@ static void set_original(bool on)
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, next(1));
         for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
         config_set("sound.device", config_get("original.sound", "fm"));
+        hdtext_set(config_get_int("original.text", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -231,6 +240,14 @@ static void tab_display(void)
     if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); dirty_config = 1; }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();
+    int hm = hdtext_mode;
+    if (ImGui::RadioButton("Crisp text on cards (redrawn with a modern book face)", hm == 1)) { hdtext_set(1); dirty_config = 1; }
+    if (ImGui::RadioButton("Crisp text everywhere (experimental: sheets, map, menus)", hm == 2)) { hdtext_set(2); dirty_config = 1; }
+    if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); dirty_config = 1; }
+    hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
+         "the window's resolution; anything it cannot match exactly is left as the game drew it.");
+
     ImGui::PushFont(font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
     static const char *ids[] = { "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {
@@ -308,6 +325,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    hdtext_draw();
     if (!open_menu) ui_overlay();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();

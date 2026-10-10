@@ -73,6 +73,7 @@ def main():
     ap.add_argument('--wine', action='store_true', help='run a Windows build under Wine')
     ap.add_argument('--x11', action='store_true', help='run in a virtual X display (xvfb-run) with the window '
                     'and the Darklands+ interface, so wshot/utab/ugive work')
+    ap.add_argument('--ini', default='', help='settings for darklands_port.ini, "key=value;key=value"')
     ap.add_argument('out_dir')
     ap.add_argument('script')
     a = ap.parse_args()
@@ -84,6 +85,12 @@ def main():
     work = tempfile.mkdtemp(prefix='nplay')
     gd = os.path.join(work, 'game')
     shutil.copytree(a.game, gd)
+    if a.ini:
+        with open(os.path.join(gd, 'darklands_port.ini'), 'w') as f:
+            for kv in a.ini.split(';'):
+                if '=' in kv:
+                    k, v = kv.split('=', 1)
+                    f.write('%s = %s\n' % (k.strip(), v.strip()))
     env = dict(os.environ, DL_SCRIPT=dl, SDL_AUDIODRIVER='dummy')
     if not a.x11:
         env['DL_HEADLESS'] = '1'

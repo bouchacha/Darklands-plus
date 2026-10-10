@@ -83,8 +83,10 @@ void mod_enable(int i, int on)
 void pathfix_init(void);
 void travel_init(void);
 void fixes_init(void);
+void hdtext_init(void);
 void mods_init(void)
 {
+    hdtext_init();
     fixes_init();
     assist_init();
     pathfix_init();

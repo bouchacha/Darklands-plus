@@ -139,9 +139,9 @@ static void key(SDL_Scancode sc, int release)
 static void send_mouse(void) { mouse_update(mouse_x * 2, mouse_y, mouse_b); }
 
 /* ---------------------------------------------------------------- screen */
+static u32 lut[256];
 static void to_rgb(const u8 *vga, const u8 *pal)
 {
-    u32 lut[256];
     for (int i = 0; i < 256; i++) {
         u32 r = pal[i * 3] & 63, g = pal[i * 3 + 1] & 63, b = pal[i * 3 + 2] & 63;
         lut[i] = 0xff000000u | (((r << 2) | (r >> 4)) << 16) | (((g << 2) | (g >> 4)) << 8) | ((b << 2) | (b >> 4));
@@ -190,6 +190,7 @@ void plat_present(const u8 *vga, const u8 *pal)
 {
     if (headless) return;
     to_rgb(vga, pal);
+    { void hdtext_prepare(u32 *, const u32 *); hdtext_prepare(frame, lut); }   /* crisp text: wipe the glyphs it redraws */
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
     layout();
     SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);

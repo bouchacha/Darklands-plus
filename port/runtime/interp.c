@@ -237,6 +237,7 @@ void interp_run(u16 seg, u16 off)
             case 4: { u8 i = fetch8(); u8 r = (u8)alu(aop, AL, i, 8); if (aop != 7) AL = r; } break;
             case 5: { u16 i = fetch16(); u16 r = (u16)alu(aop, AX, i, 16); if (aop != 7) AX = r; } break;
             }
+            if (one) break;          /* single step (self-modified instructions): one instruction only */
             continue;
         }
         switch (op) {

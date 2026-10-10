@@ -2,16 +2,19 @@
 // closed: the chances of success next to card options (mods/assist.c computes them).
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
+#include <string>
 #include "imgui.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/assist.h"
+#include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 
-extern ImFont *ui_font_small;
+extern ImFont *ui_font_small, *ui_font_text;
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
 static u8 px(int x, int y) { return (x < 0 || x >= 320 || y < 0 || y >= 200) ? 0 : M[0xa0000 + y * 320 + x]; }
@@ -75,6 +78,43 @@ static void draw_chances(void)
         if (sub[0]) dl->AddText(ImVec2(p0.x + padx + ms.x + 6, p0.y + 1), IM_COL32(200, 180, 150, 230), sub);
     }
     ImGui::PopFont();
+}
+
+/* crisp text: the runs hdtext.c verified, drawn with a real font into the picture's place */
+static std::string utf8(const char *s)
+{
+    std::string o;
+    for (; *s; s++) {
+        switch ((unsigned char)*s) {
+        case 0x1f: o += "\xc3\xa4"; break; case '[': o += "\xc3\x84"; break; case '\\': o += "\xc3\x96"; break;
+        case ']': o += "\xc3\x9c"; break; case '_': o += "\xc3\x9f"; break; case '{': o += "\xc3\xb6"; break;
+        case '|': o += "\xc3\xbc"; break; case '}': o += "\xc3\xa4"; break;
+        default: if ((unsigned char)*s >= 32 && (unsigned char)*s < 127) o += *s;
+        }
+    }
+    return o;
+}
+
+extern "C" void hdtext_draw(void)
+{
+    if (!hdtext_mode || !ui_font_text) return;
+    ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    for (int i = 0; i < hdtext_nruns; i++) {
+        const HdRun &r = hdtext_runs[i];
+        std::string t = utf8(r.text);
+        if (t.empty()) continue;
+        float x0, y0, x1, y1;
+        plat_game_to_win((float)r.x, (float)r.y, &x0, &y0);
+        plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
+        float bw = x1 - x0, bh = y1 - y0;
+        float size = bh * 1.18f;
+        ImVec2 ts = ui_font_text->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+        if (ts.x > bw * 1.04f) size *= bw * 1.04f / ts.x;
+        ts = ui_font_text->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+        ImU32 c = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
+        float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
+        dl->AddText(ui_font_text, size, ImVec2(x0, y), c, t.c_str());
+    }
 }
 
 extern "C" void travel_overlay(void);
