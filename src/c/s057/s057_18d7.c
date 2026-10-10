@@ -40,7 +40,7 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far add_attr();
 int far loc_query();
@@ -81,7 +81,7 @@ int far sub_s057_18d7_000e(void)
     opt_flag_1 = 1;
     opt_flag_2 = 1;
     opt_flag_3 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     if (!loc_hostile() && cur_rep > -0xa) {
         opt_flag_2 = 2;
     }

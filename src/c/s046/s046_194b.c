@@ -59,7 +59,7 @@ int far rand_mod();
 int far sub_root_047c_078a();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far party_avg_skill();
 int far loc_query();
 int far loc_fact_value();
@@ -128,7 +128,7 @@ int far sub_s046_194b_0002(void)
     if (!loc_query(cur_loc, 0x12)) {
         opt_flag_6 = 0;
     }
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     D_57d4 = vec_20e9(8, 1, 1);
     if (loc_fact_value(2, 0, cur_loc) == -1) {
         card_text(2, 1);

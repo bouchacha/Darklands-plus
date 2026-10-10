@@ -1,0 +1,29 @@
+[sdl]
+fullscreen=false
+output=surface
+[dosbox]
+memsize=16
+machine=svga_s3
+[render]
+frameskip=0
+aspect=false
+scaler=none
+[cpu]
+core=auto
+cputype=auto
+cycles=12000
+[mixer]
+nosound=true
+[sblaster]
+sbtype=none
+[speaker]
+pcspeaker=false
+[dos]
+ems=true
+xms=true
+[autoexec]
+mount c %s
+c:
+cd \DARKLAND
+DARKLAND.EXE
+exit

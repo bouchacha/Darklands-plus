@@ -52,7 +52,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_attr();
 int far party_get();
@@ -120,7 +120,7 @@ int far sub_s044_1ac6_0008(void)
     opt_flag_3 = 1;
     opt_flag_4 = 1;
     opt_flag_5 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     l_2 = loc_query(cur_loc, 2) / 3 + 1;
     l_2 = party_size * l_2 * 0x12 / 0xa;
     if (cur_rep < 0) {
@@ -353,7 +353,7 @@ int far sub_s044_1ac6_06e4(void)
     }
     if (v_si) {
         card_text(0xa, 0);
-        if (sub_s014_0e76_199c(cur_loc) > -0xa) {
+        if (sub_s029_0e76_199c(cur_loc) > -0xa) {
             loc_reputation_adj(cur_loc, 2, 6);
         } else {
             loc_reputation_adj(cur_loc, -2, -6);

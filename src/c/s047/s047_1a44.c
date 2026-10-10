@@ -67,7 +67,7 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far rand_mod();
 int far sub_root_0000_1716();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_attr();
 int far member_eff_attr2();
@@ -350,7 +350,7 @@ int far sub_s047_1a44_065a(int p_6)
         _fstrcpy((char far *)pic_buf2, pic_names.f_0aef);
         card_load_near(card_name, pic_buf2);
         card_text(4, 2);
-        if (sub_s014_0e76_199c(cur_loc) > 0) {
+        if (sub_s029_0e76_199c(cur_loc) > 0) {
             loc_reputation_adj(cur_loc, -2, -4);
         }
         advance_hours(loc_query(cur_loc, 2) / 3);
@@ -401,7 +401,7 @@ int far sub_s047_1a44_07ce(void)
     _fstrcpy((char far *)pic_buf2, pic_names.f_0b33);
     card_load_near(card_name, pic_buf2);
     card_text(7, 2);
-    if (sub_s014_0e76_199c(cur_loc) > -0xa) {
+    if (sub_s029_0e76_199c(cur_loc) > -0xa) {
         loc_reputation_adj(cur_loc, -1, -3);
     } else {
         loc_reputation_adj(cur_loc, -2, -4);

@@ -51,7 +51,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far party_min_eff_attr2();
 int far member_eff_attr2();
@@ -112,7 +112,7 @@ int far sub_s074_1995_0002(void)
     opt_flag_3 = 1;
     opt_flag_4 = 1;
     opt_flag_5 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s074_1995_0718();
     card_items[0] = 0x60;
     card_items_1 = 0x65;

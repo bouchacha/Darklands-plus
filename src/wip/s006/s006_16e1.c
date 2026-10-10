@@ -1,7 +1,10 @@
 /* place: s006 16e1:000a */
 /* orig: size=0fe0 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): both functions written from Ghidra + asm (dec16 drafts were stubs).
+/* status (e6, 2026-10-09): COMPLETE (2/2 written), 0/2 match; stamped. Both written from Ghidra + asm
+ * (dec16 drafts were stubs). 0a28: locals renamed to 6.00A hash slot order (frame/slots right),
+ * tail restructured (early `*pa = *pb = pk; return;`, cross-jumped stores); ~30 left: 6.00 keeps i
+ * in AX for the exit index, 6.00A threads the pick loop's `ok = 0` arm into the loop test.
  * Outer wall around the keep: 000a extends the 4 strips (D_db65 slots 0..3 of the level) along
  * the rooms built against the keep (room kind 3, side from s006 1637 04d0) and then adds up to
  * 4 wall segments (drawn with 1a57 000c kind 8) connected by 1abf 000a; 0a28 picks the place
@@ -299,130 +302,154 @@ void far sub_s006_16e1_000a(void)
  * on both ends (adj[first], adj[second]), -1 if there is no place */
 void far sub_s006_16e1_0a28(int side, int *adj, int *pa, int *pb)
 {
-    int d, x2, best, first, p, q, pp, ok, i, hi, step, col, x1, dd, second, lo, rm;
-    int b1[40], b2[40];
-    int far *s;
-    int far *m;
-    int far *r;
-    struct gexit far *e;
+    int far *rn;
+    int rma;
+    int lof;
+    int far *me;
+    int far *so;
+    int secondg;
+    int b2[40];
+    int ddl;
+    int b1b[40];
+    struct gexit far *ea;
+    int x1m;
+    int coli;
+    int stepl;
+    int i;
+    int hih;
+    int ok;
+    int pk;
+    int ppk;
+    int qk;
+    int firste;
+    int x2c;
+    int best;
+    int dk;
 
-    s = D_db65 + D_db81 * 80;
-    m = D_db8f + D_db81 * 1600;
+    so = D_db65 + D_db81 * 80;
+    me = D_db8f + D_db81 * 1600;
     for (i = 0; i < 40; i++) {
         b2[i] = 0;
-        b1[i] = 0;
+        b1b[i] = 0;
     }
     switch (side) {
     case 0:
-        first = 4;
-        second = 5;
-        step = 1;
+        firste = 4;
+        secondg = 5;
+        stepl = 1;
         break;
     case 1:
-        first = 5;
-        second = 6;
-        step = -1;
+        firste = 5;
+        secondg = 6;
+        stepl = -1;
         break;
     case 2:
-        first = 7;
-        second = 6;
-        step = -1;
+        firste = 7;
+        secondg = 6;
+        stepl = -1;
         break;
     case 3:
-        first = 4;
-        second = 7;
-        step = 1;
+        firste = 4;
+        secondg = 7;
+        stepl = 1;
         break;
     default:
         return;
     }
     if (side == 0 || side == 2) {
-        lo = 2;
-        col = 0;
-        x1 = d = hi = 3;
-        dd = x2 = 1;
+        lof = 2;
+        coli = 0;
+        x1m = dk = hih = 3;
+        ddl = x2c = 1;
     } else {
-        hi = 1;
-        x2 = 3;
-        x1 = d = lo = 0;
-        dd = col = 2;
+        hih = 1;
+        x2c = 3;
+        x1m = dk = lof = 0;
+        ddl = coli = 2;
     }
-    if (adj[first] < 0) {
-        for (i = s[side * 5 + lo]; i <= s[side * 5 + hi]; i++)
-            b1[i] |= 7;
+    if (adj[firste] < 0) {
+        for (i = so[side * 5 + lof]; i <= so[side * 5 + hih]; i++)
+            b1b[i] |= 7;
     } else {
-        rm = adj[first];
-        r = D_db3b + (rm + D_db81 * 30) * 4;
-        for (i = r[lo] - 1; i <= r[hi] + 1; i++) {
-            b1[i] |= 1;
-            if (sub_s006_1abf_076e(rm, dd, i, 1, 0))
-                b1[i] |= 2;
+        rma = adj[firste];
+        rn = D_db3b + (rma + D_db81 * 30) * 4;
+        for (i = rn[lof] - 1; i <= rn[hih] + 1; i++) {
+            b1b[i] |= 1;
+            if (sub_s006_1abf_076e(rma, ddl, i, 1, 0))
+                b1b[i] |= 2;
         }
-        for (i = r[lo]; i <= r[hi]; i++)
-            if ((b1[i] & 1) && (b1[i + step] & 1) && ((b1[i] & 2) || (b1[i + step] & 2)))
-                b1[i] |= 4;
+        for (i = rn[lof]; i <= rn[hih]; i++)
+            if ((b1b[i] & 1) && (b1b[i + stepl] & 1) && ((b1b[i] & 2) || (b1b[i + stepl] & 2)))
+                b1b[i] |= 4;
     }
-    if (adj[second] < 0) {
-        for (i = s[side * 5 + lo]; i <= s[side * 5 + hi]; i++)
+    if (adj[secondg] < 0) {
+        for (i = so[side * 5 + lof]; i <= so[side * 5 + hih]; i++)
             b2[i] |= 7;
     } else {
-        rm = adj[second];
-        r = D_db3b + (rm + D_db81 * 30) * 4;
+        rma = adj[secondg];
+        rn = D_db3b + (rma + D_db81 * 30) * 4;
         i = 0;
         ok = 1;
         do {
             if (i >= D_db71[D_db81])
                 break;
-            e = D_db95 + D_db81 * 4 + i;
-            if (e->x4 == rm &&
-                ((d == 3 && e->x0a == 3 && e->x0 == r[0]) ||
-                 (d == 0 && e->x0a == 0 && r[2] == e->x2)))
+            ea = D_db95 + D_db81 * 4 + i;
+            if (ea->x4 == rma &&
+                ((dk == 3 && ea->x0a == 3 && ea->x0 == rn[0]) ||
+                 (dk == 0 && ea->x0a == 0 && rn[2] == ea->x2)))
                 ok = 0;
             i++;
         } while (ok);
-        for (i = r[lo] - 1; i <= r[hi] + 1; i++) {
-            if (ok || (d == 3 && m[r[col] * 40 + i] != 10) ||
-                (d == 0 && m[r[col] + i * 40] != 10))
+        for (i = rn[lof] - 1; i <= rn[hih] + 1; i++) {
+            if (ok || (dk == 3 && me[rn[coli] * 40 + i] != 10) ||
+                (dk == 0 && me[rn[coli] + i * 40] != 10))
                 b2[i] |= 1;
-            if (sub_s006_1abf_076e(rm, d, i, 1, 0))
+            if (sub_s006_1abf_076e(rma, dk, i, 1, 0))
                 b2[i] |= 2;
         }
-        for (i = r[lo]; i <= r[hi]; i++)
-            if ((b2[i] & 1) && (b2[i + step] & 1) && ((b2[i] & 2) || (b2[i + step] & 2)))
+        for (i = rn[lof]; i <= rn[hih]; i++)
+            if ((b2[i] & 1) && (b2[i + stepl] & 1) && ((b2[i] & 2) || (b2[i + stepl] & 2)))
                 b2[i] |= 4;
     }
-    best = s[side * 5 + hi] - s[side * 5 + lo] + 1;
-    i = ok = 0;
-    for (p = lo; !ok && i < 25 && i - 8 < best; i++) {
-        if (i < 8)
-            p = sub_s004_0e76_20f6(1, best) + s[side * 5 + lo] - 1;
-        else
-            p = s[side * 5 + lo] + i - 8;
-        if ((b1[p] & 4) && (b2[p] & 4))
-            ok = 1;
-        else
-            ok = 0;
-    }
-    if (!ok) {
-        q = pp = -1;
+    best = so[side * 5 + hih] - so[side * 5 + lof] + 1;
+    ok = i = 0;
+    pk = lof;
+    goto pt;
+pb:
+    if (i < 8)
+        goto pr;
+    pk = so[side * 5 + lof] + i - 8;
+    goto pj;
+pr:
+    pk = sub_s004_0e76_20f6(1, best) + so[side * 5 + lof] - 1;
+pj:
+    if ((b1b[pk] & 4) && (b2[pk] & 4))
+        ok = 1;
+    else
         ok = 0;
-        best = 10;
-        for (i = 0; !ok && i < 40; i++)
-            if (b1[i] & 4)
-                for (p = i - 2; !ok && p <= i + 2; p++)
-                    if ((b2[p] & 4) && abs(i - p) < best) {
-                        pp = i;
-                        q = p;
-                        ok = 1;
-                        best = abs(i - p);
-                    }
-        if (best < 10) {
-            *pa = pp;
-            *pb = q;
-            return;
-        }
-        p = -1;
+    i++;
+pt:
+    if (!ok && i < 25 && i - 8 < best)
+        goto pb;
+    if (ok) {
+        *pa = *pb = pk;
+        return;
     }
-    *pb = p;
-    *pa = p;
+    ppk = qk = -1;
+    ok = i = 0;
+    best = 10;
+    for (; !ok && i < 40; i++)
+        if (b1b[i] & 4)
+            for (pk = i - 2; !ok && pk <= i + 2; pk++)
+                if ((b2[pk] & 4) && abs(i - pk) < best) {
+                    best = abs(i - pk);
+                    ppk = i;
+                    qk = pk;
+                    ok = 1;
+                }
+    if (best < 10) {
+        *pa = ppk;
+        *pb = qk;
+    } else
+        *pa = *pb = -1;
 }

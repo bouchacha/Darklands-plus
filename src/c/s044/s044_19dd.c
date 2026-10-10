@@ -58,7 +58,7 @@ int far _fstrcpy();
 void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far rand_mod();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_attr();
 int far party_avg_skill();
@@ -393,7 +393,7 @@ int far sub_s044_19dd_0790(void)
         if (menu_slot == 1) {
             card_text(0xb, 0);
         }
-        if (sub_s014_0e76_199c(cur_loc) > -0xa) {
+        if (sub_s029_0e76_199c(cur_loc) > -0xa) {
             loc_reputation_adj(cur_loc, 4, 0xc);
         } else {
             loc_reputation_adj(cur_loc, -3, -9);

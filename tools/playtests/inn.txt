@@ -1,0 +1,42 @@
+# inn.txt: tavern menu -> 'spend some time here in the inn' (option 1, y=44) -> inn menu (s036 / cards) -> relax 8h -> inn menu -> take up residence screen (s036).
+# Reliability: high; option 1 is always at y=44. Regression for the 0e76:199c mis-link (functional build showed courtroom/riot cards instead of the inn).
+# Run:  python3 -I tools/play.py /home/claude/dl_raw/extracted/DARKLAND <outdir> "$(grep -v "^#" tools/playtests/inn.txt | tr "\\n" ";")" [--exe <exe>]
+# One play.py step per line. Run the original and the build under test IN PARALLEL (start both within
+# the same second): the game seeds its RNG from the clock, so parallel runs get the same city/encounters.
+# QUICKSTART occasionally loses its click (title screen stays up, ~1 run in 5): just rerun.
+QUICKSTART
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 4
+shot menu
+at 150 44
+click
+wait 4
+shot inn_card
+click
+wait 3
+shot inn_menu
+at 150 78
+click
+wait 4
+shot relax
+click
+wait 4
+click
+wait 3
+shot inn_menu2
+at 150 98
+click
+wait 5
+shot residence
+at 140 174
+click
+wait 8
+shot day_spent

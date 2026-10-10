@@ -52,7 +52,7 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far cur_loc_query();
 int far advance_hours();
 int far card_load();
@@ -103,7 +103,7 @@ int far sub_s091_18f2_0008(void)
     opt_flag_7 = 1;
     opt_flag_8 = 1;
     opt_flag_9 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s091_18f2_0658();
     if (next_card == 0xbf) {
         do {

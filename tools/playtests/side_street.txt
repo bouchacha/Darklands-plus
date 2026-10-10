@@ -1,0 +1,25 @@
+# side_street.txt: tavern -> side street, selected with the keyboard (hover option 2, Down Down Return) -> side-street menu.
+# Reliability: high (keyboard menu selection is position independent).
+# Run:  python3 -I tools/play.py /home/claude/dl_raw/extracted/DARKLAND <outdir> "$(grep -v "^#" tools/playtests/side_street.txt | tr "\\n" ";")" [--exe <exe>]
+# One play.py step per line. Run the original and the build under test IN PARALLEL (start both within
+# the same second): the game seeds its RNG from the clock, so parallel runs get the same city/encounters.
+# QUICKSTART occasionally loses its click (title screen stays up, ~1 run in 5): just rerun.
+QUICKSTART
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 4
+at 150 62
+wait 1
+key Down Down Return
+wait 5
+shot side_card
+click
+wait 3
+shot side_menu

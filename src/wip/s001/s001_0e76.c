@@ -9,6 +9,18 @@
  * function 16 bytes LONGER than the original (0x9e2 > 0x9d2 + 14-byte tail) and forced a relayout of the
  * s001 overlay. Now `[1][1].f5 = [0][1].f5` (same value: the weight of item 43 stored just before): the
  * function is 2512 bytes, fits the original range, no relayout. Needs a re-play-test before it leaves EXCLUDE. */
+/* e9 (2026-10-09) re-verification: all 421 memory stores of the compiled function were compared
+ * in order with the original (build/agent/e9/stores.py: destination incl. segment slot, and the
+ * stored value with register contents tracked back to their immediate/memory source): identical
+ * destinations and values - item ids (5, 0x2b, 0x33, ...), quality bytes (3, 0x4a, 0x52, 0x50,
+ * 0x0f, ...), weights (itemdef[id]->weight via 2e38:0890, e.g. [1][1].f5 = weight of item 0x2b
+ * like the original's AL), counts at member +0x6a, record layout (6-byte records, stride 0x180
+ * per member at 2e38:003e) and the darkland.lst pointer table.  The full instruction diff is
+ * only register choice (CL vs AL, 3 hunks) and the 2-byte shorter code; fmatch: data_ok, CONST
+ * at 7d18 (5 segment slots in the original order).  No wrong store found: the "Hand Axe 00q"
+ * play-test result must come from outside this function (e.g. link-time resolution of the
+ * CONST segment slots / far data shift in the functional build, or another draft that
+ * overwrites or reads the inventory) - nothing changed here. */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Overlay s001: set up the default (quick-start) party: four members with names,
    attributes, skills and starting equipment, and load the item definitions from

@@ -53,7 +53,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far count_items();
 int far loc_reputation_adj();
 int far member_eff_attr2();
@@ -113,7 +113,7 @@ int far sub_s073_199e_0008(void)
     opt_flag_2 = 1;
     opt_flag_3 = 1;
     opt_flag_4 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     do_nothing();
     sub_s073_199e_0a94();
     card_items[0] = 0x65;

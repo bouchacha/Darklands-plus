@@ -42,7 +42,7 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far event_find();
 int far add_member();
 int far random_name();

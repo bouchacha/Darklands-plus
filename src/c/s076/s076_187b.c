@@ -41,7 +41,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far party_min_skill_sum();
 int far loc_reputation_adj();
 int far loc_query();
@@ -94,7 +94,7 @@ int far sub_s076_187b_0000(void)
         opt_flag_0 = 0;
     }
     random_name(*(int far *)(city_rec + 0x56) + 0x156, 0, 0);
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s076_187b_055e();
     if (next_card == 0x81) {
         do {

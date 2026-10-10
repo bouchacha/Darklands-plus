@@ -74,7 +74,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_attr();
 int far party_min_skill();
@@ -166,7 +166,7 @@ int far sub_s067_1954_0004(void)
             opt_flag_6 = 2;
         }
     }
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s067_1954_09bc();
     card_items = 0x5f;
     card_items_1 = 0x60;

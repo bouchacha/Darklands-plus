@@ -63,7 +63,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_eff_attr2();
 int far count_items();
@@ -167,7 +167,7 @@ int far sub_s047_1974_000c(void)
         }
     }
     var_chosen1 = D_5818;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     D_581c = v_di = loc_query(cur_loc, 2) / 3 + 1;
     D_581c = v_di * party_size * 14 / 10;
     if (cur_rep < 0) {

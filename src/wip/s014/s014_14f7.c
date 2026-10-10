@@ -28,7 +28,7 @@
    Sprite record +1c..+22 (e0..e3) hold the mouse hot spot box of a combatant sprite
    (x0, x1, y0, y1), or an effect kind >= 28000 (30000 member cursor, 31000 target cursor,
    31500 = 0x7b0c missiles/ground cursor, 32000 floor, 0x7d01.. walls).
-   status: 27/27 written, 6 match (1e70 343c 347c 359a + 2). 3404 is hand-written asm in the
+   status: 27/27 written, 7 match (1e70 1f14 1fd4 2052 343c 347c 359a). 3404 is hand-written asm in the
    original (`loop`), C equivalent here. */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
@@ -229,7 +229,7 @@ extern char D_c907;
 extern char D_c763[];                   /* size class of an animation set */
 extern char D_1a5d[];
 extern char D_1a72[23], D_1a8a[23], D_1aa2[10], D_1aac[10], D_1ab6[8], D_1abe[8], D_1ac6[3], D_1aca[3];
-#define SPR(k) ((struct spr far *)(struct spr *)F_20a5_34b4[k])
+#define SPR(k) ((struct spr *)F_20a5_34b4[k])
 
 extern struct cbt D_9c55[];
 extern int D_c26c, D_c293;              /* view scroll */
@@ -1005,28 +1005,27 @@ void far sub_s014_14f7_1e70(int far *r)
 }
 
 /* add sprite `id` to list C */
+#pragma optimize("a", on)
 void far sub_s014_14f7_1f14(int id, int flags, int k0e, int k10, int k12, int x, int y, int spr)
 {
-    struct spr far *s;
-
     if (D_e162 < 157) {
-        s = SPR(D_e162);
-        s->e0 = flags;
-        s->x = k0e;
-        s->k10 = k10;
-        s->k12 = k12;
-        s->sx = x;
-        s->sy = y;
-        SPR(D_e162)->w = D_e16e[id];
-        SPR(D_e162)->h = D_e170[id];
-        SPR(D_e162)->cx = D_e16a[id];
-        SPR(D_e162)->cy = D_e16c[id];
-        SPR(D_e162)->spr = spr;
+        ((struct spr *)F_20a5_34b4[D_e162])->e0 = flags;
+        ((struct spr *)F_20a5_34b4[D_e162])->x = k0e;
+        ((struct spr *)F_20a5_34b4[D_e162])->k10 = k10;
+        ((struct spr *)F_20a5_34b4[D_e162])->k12 = k12;
+        ((struct spr *)F_20a5_34b4[D_e162])->sx = x;
+        ((struct spr *)F_20a5_34b4[D_e162])->sy = y;
+        ((struct spr *)F_20a5_34b4[D_e162])->w = D_e16e[id];
+        ((struct spr *)F_20a5_34b4[D_e162])->h = D_e170[id];
+        ((struct spr *)F_20a5_34b4[D_e162])->cx = D_e16a[id];
+        ((struct spr *)F_20a5_34b4[D_e162])->cy = D_e16c[id];
+        ((struct spr *)F_20a5_34b4[D_e162])->spr = spr;
         D_e162++;
     }
 }
 
 /* add sprite `id` to list A */
+#pragma optimize("a", on)
 void far sub_s014_14f7_1fd4(int id, int x, int y, int spr)
 {
     struct drawa _based(D_d6f5) *a;
@@ -1044,7 +1043,6 @@ void far sub_s014_14f7_1fd4(int id, int x, int y, int spr)
     }
 }
 
-extern int D_3464[][2];                 /* wall sprites (20a5:3464 + 4*n) */
 
 /* add wall/furniture sprite `id` to list B */
 void far sub_s014_14f7_2052(int id, int x, int y, int n)
@@ -1059,7 +1057,7 @@ void far sub_s014_14f7_2052(int id, int x, int y, int n)
         b->h = D_e170[id];
         b->ox = D_e16a[id];
         b->oy = D_e16c[id];
-        b->spr = D_3464[n][0];
+        b->spr = F_20a5_3474[n * 2];
         D_e166++;
     }
 }

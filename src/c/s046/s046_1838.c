@@ -60,7 +60,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far party_max_attr();
 int far loc_query();
 int far ev8_at();
@@ -137,7 +137,7 @@ int far sub_s046_1838_0000(void)
     if (event_type_at(0x51, 0, cur_loc)) {
         opt_flag_5 = 2;
     }
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     D_57bc = vec_20e9(0xe, 1, 4);
     do_nothing();
     sub_s046_1838_06ea();

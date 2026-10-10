@@ -49,7 +49,7 @@ void *memset(void *, int, unsigned);
 char *strcpy(char *, const char *);
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far money_set();
 int far do_nothing();
 int far advance_hours();
@@ -107,7 +107,7 @@ int far sub_s045_188b_0000(void)
     opt_flag_7 = 1;
     opt_flag_8 = 1;
     opt_flag_9 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     do_nothing();
     sub_s045_188b_0446();
     money_set(var_money1, 0, 0, 1);

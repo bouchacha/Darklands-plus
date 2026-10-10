@@ -1,5 +1,6 @@
 /* place: s014 19cd:0006 */
-/* orig: size=379a CONST=7d86+002a _DATA=1bca+006c */
+/* orig: size=379a CONST=7da2+000e _DATA=1bca+006c */
+/* data: CONST=7da2 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* s014 19cd: COMBAT USER INTERFACE (mouse orders, location menus, loot piles).
    Screen -> map: the battle view is an oblique projection,
@@ -25,7 +26,7 @@
      28a2/29b8  build the order menu for the selected member
      2d08/2e50/3204/3258/33c0/34a0  loot piles (items of the fallen in a file, cache screen)
      36f0/3766  shield picture load / free
-   status: 34 of 34 functions written, 2 match (see NOTES). */
+   status: 34 of 34 functions written, 6 match (1714 1764 1d5e 209a 216a 3204; see e8 NOTES). */
 
 struct cbt {                    /* combatant record, 0x80 bytes, D_9c55[13] */
     char pad0[4];
@@ -72,25 +73,61 @@ struct pile { int ofs; char cnt; char level; int x; int y; int vis; char dx; cha
 struct loot { int id; char a; char b; char cnt; char pad; };               /* 6 bytes */
 
 /* far data in segment 20a5 (current floor and combat tables) */
+/* the floor image 20a5:0000 is ONE far variable in the original source (every access goes
+   through CONST slot 7daa, e.g. 23f6/24a8 reach 3350 and 2186 through it) */
+struct sd10 { char on; char pad[4]; char c; int a; int b; };  /* 3350 furniture removal, 10 bytes */
+struct wr10 { char on; char pad[3]; int a; int b; char c; char pad2; }; /* 3382 wall removal */
+struct tp12 { unsigned char col[4]; unsigned char row[4]; unsigned char f[4]; }; /* 3236 trap map patches */
+struct flr {
+    long cell[1600];                    /* 0000 map cells */
+    unsigned char h[1600];              /* 1900 height/flag bytes [40][40] */
+    char p1f40[0x1f52 - 0x1f40];
+    char ndoors;                        /* 1f52 */
+    char p1f53;
+    struct rect14 doors[40];            /* 1f54 */
+    char ntrig;                         /* 2184 */
+    char p2185;
+    struct trig trig[50];               /* 2186 */
+    char p2442[0x2fb6 - 0x2442];
+    char nstairs;                       /* 2fb6 */
+    char p2fb7;
+    struct rect14 stairs[6];            /* 2fb8 */
+    char nreg;                          /* 300c */
+    char p300d;
+    struct region reg[12];              /* 300e */
+    char p321e[0x3236 - 0x321e];
+    struct tp12 tp[20];                 /* 3236 */
+    char nzone;                         /* 3326 */
+    char p3327;
+    struct zone zone[4];                /* 3328 */
+    struct sd10 sd[5];                  /* 3350 */
+    struct wr10 wr[7];                  /* 3382 */
+    char p33c6[0x33d3 - 0x33c6];
+    char open[40];                      /* 33d3 door states */
+};
+extern struct flr far F_20a5_000;
+#define F_20a5_0000 (F_20a5_000.cell)
+#define F_20a5_1900 (F_20a5_000.h)
+#define F_20a5_1f52 (F_20a5_000.ndoors)
+#define F_20a5_1f54 (F_20a5_000.doors)
+#define F_20a5_2184 (F_20a5_000.ntrig)
+#define F_20a5_2186 (F_20a5_000.trig)
+#define F_20a5_2fb6 (F_20a5_000.nstairs)
+#define F_20a5_2fb8 (F_20a5_000.stairs)
+#define F_20a5_300c (F_20a5_000.nreg)
+#define F_20a5_300e (F_20a5_000.reg)
+#define F_20a5_3236 (F_20a5_000.tp)
+#define F_20a5_3326 (F_20a5_000.nzone)
+#define F_20a5_3328 (F_20a5_000.zone)
+#define F_20a5_3350 (F_20a5_000.sd)
+#define F_20a5_3382 (F_20a5_000.wr)
+#define F_20a5_33d3 (F_20a5_000.open)
 extern int far F_20a5_41f4;             /* view origin y */
 extern int far F_20a5_4be0;             /* view origin x */
-extern char far F_20a5_1f52;            /* doors */
-extern struct rect14 far F_20a5_1f54[];
-extern char far F_20a5_2184;            /* trigger areas */
-extern struct trig far F_20a5_2186[];
-extern char far F_20a5_2fb6;            /* stairs areas */
-extern struct rect14 far F_20a5_2fb8[];
-extern char far F_20a5_300c;            /* special regions */
-extern struct region far F_20a5_300e[];
-extern char far F_20a5_3326;            /* exit zones */
-extern struct zone far F_20a5_3328[];
-extern char far F_20a5_33d3[40];        /* door states */
 extern struct pile far F_20a5_59c8[];   /* loot piles (count D_c80e): offset in the loot file */
 extern struct loot far F_20a5_3954[];   /* items of the fallen (count D_c783) */
 extern char far F_20a5_6238[13][250];   /* paths */
 extern char far F_20a5_7900[13][13];    /* melee reach */
-extern long far F_20a5_0000[];          /* map cells */
-extern unsigned char far F_20a5_1900[]; /* map height/flag bytes [40][40] */
 extern struct { int a, b, c; } far F_2e38_0bb0;
 extern unsigned char far F_2e38_0003[][0x180]; /* party inventories (+0x3e..) */
 
@@ -732,11 +769,6 @@ restore:
 
 extern struct item6 { int id; unsigned char f2; unsigned char f3; unsigned char cnt; char f5; }
     far F_2e38_003e[][64];              /* party inventories */
-extern struct { char f; int a; int b; char pad[5]; } far F_20a5_3355[];  /* furniture removal */
-extern char far F_20a5_3350[];          /* [n*10] removal applies at once */
-extern struct { char pad[4]; int a; int b; char c; char pad2; } far F_20a5_3382[]; /* walls */
-extern struct { unsigned char col[4]; unsigned char row[4]; unsigned char f[4]; }
-    far F_20a5_3236[];                  /* trap map patches */
 extern char far F_20a5_47ee[][30];      /* activation records */
 extern unsigned char D_d6cc;            /* their count */
 extern char D_c6ef[], D_c678[], D_c64c[], D_c7cd[], D_c77e[], D_c8b2[], D_c784[], D_c7fe[];
@@ -748,7 +780,8 @@ extern char D_907b;                     /* leader */
 extern char D_96a9, D_96bd, D_96d1, D_96e5, D_96f9, D_970d, D_9735, D_9749; /* menu enables */
 extern int D_970b;                      /* menu text */
 extern char D_ca99;
-extern char D_d4e4, D_ca29, D_a893;
+extern char D_d4e4, D_ca29;
+extern int D_a893;                      /* battle result */
 extern int D_ca3d, D_da4d, D_d9e4;
 extern int D_c925, D_c978;
 extern char D_c989, D_ca1b;
@@ -899,13 +932,13 @@ void far sub_s014_19cd_1764(int x, int y, int w, int h, int col, int mode, int w
         D_e1c2 = x;
         D_e1be = y;
         D_e1b8 = w;
+        D_e1ba = h;
     } else {
         D_e1c2 = D_d505[sub_s014_14f7_343c(who)][D_9c55[who].f1a] + x - 5;
         D_e1be = D_d5d3[sub_s014_14f7_343c(who)] - D_d5de[sub_s014_14f7_343c(who)] + y - 5;
-        h = 10;
         D_e1b8 = 10;
+        D_e1ba = 10;
     }
-    D_e1ba = h;
     D_e1bc = col;
 }
 
@@ -960,7 +993,7 @@ void far sub_s014_19cd_1966(void)
         w = 0;
     D_e1c6 = w;
     D_e09f = x;
-    if (w + x - 1 > 0x103 && (D_e1c6 = 0x104 - x) < 0)
+    if (D_e1c6 + D_e09f - 1 > 0x103 && (D_e1c6 = 0x104 - D_e09f) < 0)
         D_e1c6 = 0;
     h = D_e1c4;
     if (D_e09d < 0) {
@@ -1017,21 +1050,29 @@ void far sub_s014_19cd_19ee(void)
         if (F_2e38_003e[i][n_].id == 99 && F_2e38_003e[i][n_].f3 < b_) { \
             D_c7cd[i] = n_; b_ = F_2e38_003e[i][n_].f3; } }
 
+#define FIND_PICK2(i) { int n_; int b_ = 100; D_c7cd[i] = -1; \
+    for (n_ = 0; n_ < D_9c55[i].nitems; n_++) \
+        if (F_2e38_003e[i][n_].id == 99 && F_2e38_003e[i][n_].f3 < b_) { \
+            D_c7cd[i] = n_; b_ = F_2e38_003e[i][n_].f3; } }
+
 /* door under combatant i (flag 2) and the leader's door menu entries */
 void near sub_s014_19cd_1ade(int i)
 {
     int k;
-    unsigned lo, hi, v;
-    long far *cell;
+    int v;
+    unsigned long c;
+    int f;
     char lock;
+    int x0, x1, y0, y1;
 
     for (k = 0; k < F_20a5_1f52; k++) {
-        if (F_20a5_1f54[k].x <= 0)
+        if ((x0 = F_20a5_1f54[k].x) <= 0)
             continue;
-        if (INSIDE(F_20a5_1f54[k], D_9c55[i].x, D_9c55[i].y)) {
-            cell = &F_20a5_0000[(F_20a5_1f54[k].f8 & 0x3f) * 40 + (F_20a5_1f54[k].f9 & 0x3f)];
-            lo = ((unsigned far *)cell)[0];
-            hi = ((unsigned far *)cell)[1];
+        x1 = F_20a5_1f54[k].w + x0;
+        y0 = F_20a5_1f54[k].y;
+        y1 = y0 + F_20a5_1f54[k].h;
+        if (D_9c55[i].x >= x0 && D_9c55[i].x < x1 && D_9c55[i].y >= y0 && D_9c55[i].y < y1) {
+            c = F_20a5_0000[(F_20a5_1f54[k].f8 & 0x3f) * 40 + (F_20a5_1f54[k].f9 & 0x3f)];
             if ((F_20a5_1f54[k].f8 & 0x80) == 0x80)
                 D_c6ef[i] = 0;
             else if ((F_20a5_1f54[k].f8 & 0x40) == 0x40)
@@ -1040,15 +1081,17 @@ void near sub_s014_19cd_1ade(int i)
                 D_c6ef[i] = 2;
             else if ((F_20a5_1f54[k].f9 & 0x40) == 0x40)
                 D_c6ef[i] = 3;
-            switch (D_c6ef[i]) {        /* wall of the door cell on that side */
-            case 0: v = hi & 0xff; break;
-            case 1: v = lo & 0xff; break;
-            case 2: v = hi >> 8; break;
-            case 3: v = lo >> 8; break;
+            switch ((unsigned char)D_c6ef[i]) {        /* wall of the door cell on that side */
+            case 0: v = (int)(c >> 16) & 0xf; break;
+            case 1: v = (int)c & 0xf; break;
+            case 2: v = (int)(c >> 24) & 0xf; break;
+            case 3: v = (int)(c >> 8) & 0xf; break;
             }
-            v &= 0xf;
             D_a696[i][0] |= 2;
-            D_c678[i] = (int)v < 8 ? 1 : 0;   /* door open */
+            if (v < 8)
+                D_c678[i] = 1;
+            else
+                D_c678[i] = 0;   /* door open */
             D_c64c[i] = k;
             break;
         }
@@ -1056,14 +1099,15 @@ void near sub_s014_19cd_1ade(int i)
     }
     if (D_907b != i || D_a695 != 0)
         return;
-    if ((D_a696[i][0] & 2) == 2) {
-        lock = F_20a5_1f54[D_c64c[i]].f7;
+    f = *(int *)D_a696[i];
+    if ((f & 2) == 2) {
+        lock = F_20a5_1f54[(unsigned char)D_c64c[i]].f7;
         if (lock != 0 && D_a6c1 == 0) {
             D_96a9 = 2;
             D_96f9 = 2;
             D_96e5 = 1;
             D_ca99 = 1;
-            FIND_PICK(i);
+            FIND_PICK2(i);
             if (D_c7cd[i] == -1)
                 return;
             D_96f9 = 1;
@@ -1074,7 +1118,7 @@ void near sub_s014_19cd_1ade(int i)
         D_96a9 = 1;
     } else {
         D_96a9 = 2;
-        if ((D_a696[i][0] & 4) != 0)
+        if ((f & 4) != 0)
             return;
     }
     D_96f9 = 2;
@@ -1082,15 +1126,14 @@ void near sub_s014_19cd_1ade(int i)
 }
 
 /* remove activation record k */
+struct atv30 { char b[30]; };
 void far sub_s014_19cd_1d5e(int k)
 {
-    int n;
-    char far *p;
+    int i;
 
     if (D_d6cc != 0) {
-        if (k < D_d6cc - 1)
-            for (p = F_20a5_47ee[k], n = D_d6cc - k - 1; n != 0; n--, p += 30)
-                _fmemcpy(p, p + 30, 30);
+        for (i = k; i < D_d6cc - 1; i++)
+            ((struct atv30 far *)F_20a5_47ee)[i] = ((struct atv30 far *)F_20a5_47ee)[i + 1];
         D_d6cc--;
     }
 }
@@ -1176,14 +1219,16 @@ void near sub_s014_19cd_1e92(int i)
 /* exit zone under combatant i (flag 0x20) */
 void near sub_s014_19cd_209a(int i)
 {
-    int k;
+    int k, x0, x1, y0, y1;
 
     for (k = 0; k < F_20a5_3326; k++) {
-        if (F_20a5_3328[k].x <= 0)
+        if ((x0 = F_20a5_3328[k].x) <= 0)
             continue;
-        if (D_a6b4[i] == D_11ca && F_20a5_3328[k].x <= D_9c55[i].x
-         && D_9c55[i].x < F_20a5_3328[k].w + F_20a5_3328[k].x
-         && F_20a5_3328[k].y <= D_9c55[i].y && D_9c55[i].y < F_20a5_3328[k].y + F_20a5_3328[k].h) {
+        x1 = F_20a5_3328[k].w + x0;
+        y0 = F_20a5_3328[k].y;
+        y1 = y0 + F_20a5_3328[k].h;
+        if (D_a6b4[i] == D_11ca && D_9c55[i].x >= x0 && D_9c55[i].x < x1
+         && D_9c55[i].y >= y0 && D_9c55[i].y < y1) {
             D_c7fe[i] = k;
             D_a696[i][0] |= 0x20;
             break;
@@ -1198,12 +1243,17 @@ void near sub_s014_19cd_209a(int i)
    (enemies only spring the two trap handlers vec_180b / vec_1801) */
 void near sub_s014_19cd_216a(int i)
 {
-    int k;
+    int k, x0, x1, y0, y1;
 
-    for (k = 0; k < F_20a5_2184; k++)
-        if (F_20a5_2186[k].x > 0 && INSIDE(F_20a5_2186[k], D_9c55[i].x, D_9c55[i].y)
-         && (i < 5 || F_20a5_2186[k].fn == vec_180b || F_20a5_2186[k].fn == vec_1801))
+    for (k = 0; k < F_20a5_2184; k++) {
+        x0 = F_20a5_2186[k].x;
+        x1 = x0 + F_20a5_2186[k].w;
+        y0 = F_20a5_2186[k].y;
+        y1 = y0 + F_20a5_2186[k].h;
+        if (x0 > 0 && D_9c55[i].x >= x0 && D_9c55[i].x < x1 && D_9c55[i].y >= y0 && D_9c55[i].y < y1
+         && (i < 5 || i >= 5 && (F_20a5_2186[k].fn == vec_180b || F_20a5_2186[k].fn == vec_1801)))
             (*F_20a5_2186[k].fn)(i, k, F_20a5_2186[k].a, F_20a5_2186[k].b);
+    }
 }
 
 /* loot pile next to combatant i */
@@ -1236,7 +1286,7 @@ void far sub_s014_19cd_2312(int i, int k, int n, int b)
             return;
     F_20a5_2186[k].x = -1;
     D_d4e4 = 1;
-    sub_s014_0e76_4188(F_20a5_3355[n].a, F_20a5_3355[n].b, F_20a5_3355[n].f);
+    sub_s014_0e76_4188(F_20a5_3350[n].a, F_20a5_3350[n].b, F_20a5_3350[n].c);
     D_ca29 = 1;
     D_a893 = 6;
     D_ca3d = b;
@@ -1246,9 +1296,11 @@ void far sub_s014_19cd_2312(int i, int k, int n, int b)
 /* trigger: remove furniture n (alarm) */
 void far sub_s014_19cd_23f6(int i, int k, unsigned char n, int b)
 {
+    /* orig keeps the far address of the record in di/[bp-2] (es from slot 7daa): 6.00 CSE of
+       a far address, 6.00A only keeps the offset */
     if (D_a6c1 != 1) {
         D_ca3d = b;
-        if (F_20a5_3350[n * 10] == 1)
+        if (F_20a5_3350[n].on == 1)
             vec_1c4d(n, k);
         D_a893 = 7;
         if (D_ca29 == 0) {
@@ -1256,7 +1308,7 @@ void far sub_s014_19cd_23f6(int i, int k, unsigned char n, int b)
             D_d9e4 = D_07d4 + 1000;
             D_ca29 = 1;
         }
-        sub_s014_0e76_4188(F_20a5_3355[n].a, F_20a5_3355[n].b, F_20a5_3355[n].f);
+        sub_s014_0e76_4188(F_20a5_3350[n].a, F_20a5_3350[n].b, F_20a5_3350[n].c);
         D_c925 = F_20a5_2186[k].x;
         D_c978 = F_20a5_2186[k].y;
         D_c989 = F_20a5_2186[k].w;
@@ -1269,7 +1321,7 @@ void far sub_s014_19cd_24a8(int i, int k, unsigned char n, int b)
 {
     if (D_a6c1 != 1) {
         D_ca3d = b;
-        if (F_20a5_3382[n].pad[0] == 1)
+        if (F_20a5_3382[n].on == 1)
             vec_1c57(n, k);
         D_a893 = 7;
         if (D_ca29 == 0) {

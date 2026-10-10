@@ -48,7 +48,7 @@ int far rand_mod();
 int far sub_root_047c_078a();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far party_min_skill();
 int far improve_roll();
 int far sub_s029_0e76_19b4();
@@ -106,7 +106,7 @@ int far sub_s072_1981_0004(void)
     opt_flag_2 = 1;
     opt_flag_3 = 1;
     opt_flag_4 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     if (event_at(0x1e, cur_loc)) {
         opt_flag_3 = 2;
     }

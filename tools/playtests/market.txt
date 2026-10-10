@@ -1,0 +1,36 @@
+# market.txt: tavern -> main street (option 3, y=80) -> street menu -> the market (3rd street option, y~87) -> market menu -> 'merchants selling everyday items' -> barter screen (s032).
+# Reliability: medium: option rows move with the city/inn name length, so some cities land on another location (still a valid comparison when o/x run in parallel).
+# Run:  python3 -I tools/play.py /home/claude/dl_raw/extracted/DARKLAND <outdir> "$(grep -v "^#" tools/playtests/market.txt | tr "\\n" ";")" [--exe <exe>]
+# One play.py step per line. Run the original and the build under test IN PARALLEL (start both within
+# the same second): the game seeds its RNG from the clock, so parallel runs get the same city/encounters.
+# QUICKSTART occasionally loses its click (title screen stays up, ~1 run in 5): just rerun.
+QUICKSTART
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 3
+click
+wait 4
+at 150 80
+click
+wait 4
+click
+wait 3
+shot street_menu
+at 150 87
+click
+wait 5
+click
+wait 3
+shot market_menu
+at 150 80
+click
+wait 5
+shot market_card
+click
+wait 3
+shot barter

@@ -1,7 +1,9 @@
 /* place: s006 17df:000a */
 /* orig: size=11ae */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): all 6 functions written from Ghidra + asm (dec16 drafts were
+/* status (e6, 2026-10-09): COMPLETE (6/6 written), 1/6 match (09b2); stamped. 0d16/1112: only the
+ * 6.00 `mov di,[var]` copy of a once-used value is missing (2 instructions).
+ * All 6 functions written from Ghidra + asm (dec16 drafts were
  * stubs; Ghidra timed out on 000a). Corridors between rooms (cells of kind 7): 000a picks
  * pairs of rooms that are not yet connected, 0580 (straight, rooms side by side) and 09b2
  * (L-shaped, rooms diagonal) find a free strip, 0ec4 checks it, 1112 opens the room walls.
@@ -258,6 +260,7 @@ int far sub_s006_17df_0580(int a, int b, int dir, int *u0, int *u1, int *v0, int
 }
 
 /* L-shaped corridor from room a (side h, 0/1) to room b (side v, 2/3) */
+#pragma optimize("a", on)
 int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7, int *p8,
                            int *p9, int flag)
 {
@@ -289,10 +292,10 @@ int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7
     t = 0;
     ok = 0;
     do {
-        if (t > 3 || (t > 1 && typ != 1))
+        if (t >= 4 || (t >= 2 && typ != 1))
             break;
         if (alt && t < 2) {
-            *p6 = *p7 = ra[h] + dh;
+            *p7 = *p6 = ra[h] + dh;
             if (ka == 5)
                 *p8 = ra[v];
             else
@@ -303,15 +306,15 @@ int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7
                 *p9 = rb[ov];
             else
                 *p9 = sub_s006_17df_0d16(alt, rb[ov], rb[v], rb[oh]);
-        } else if (alt && t > 1) {
-            *p6 = *p7 = ra[h];
+        } else if (alt && t >= 2) {
+            *p7 = *p6 = ra[h];
             *p8 = ra[v] + dv;
             if (kb == 5)
                 *p9 = rb[ov];
             else
                 *p9 = sub_s006_17df_0d16(alt, rb[ov], rb[v], rb[oh]);
         } else if (!alt && t < 2) {
-            *p8 = *p9 = ra[v] + dv;
+            *p9 = *p8 = ra[v] + dv;
             if (ka == 5)
                 *p6 = ra[h];
             else
@@ -322,8 +325,8 @@ int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7
                 *p7 = rb[oh];
             else
                 *p7 = sub_s006_17df_0d16(alt, rb[oh], rb[h], rb[ov]);
-        } else if (!alt && t > 1) {
-            *p8 = *p9 = ra[v];
+        } else if (!alt && t >= 2) {
+            *p9 = *p8 = ra[v];
             *p6 = ra[h] + dh;
             if (kb == 5)
                 *p7 = rb[oh];
@@ -340,6 +343,7 @@ int far sub_s006_17df_09b2(int a, int b, int typ, int h, int v, int *p6, int *p7
         return 0;
     return 1;
 }
+#pragma optimize("", on)
 
 /* walk from `from` towards `to` along row/column `fixed` to the first free floor cell */
 int far sub_s006_17df_0d16(int vert, int from, int to, int fixed)
@@ -348,27 +352,28 @@ int far sub_s006_17df_0d16(int vert, int from, int to, int fixed)
     int far *c;
     int far *u;
 
+    i = D_db81;
     up = from < to;
-    c = D_db8f + D_db81 * 1600;
-    u = D_db93 + D_db81 * 1600;
-    if (!vert) {
+    c = D_db8f + i * 1600;
+    u = D_db93 + i * 1600;
+    if (vert) {
         if (up) {
             for (i = from; i <= to; i++)
-                if (c[i * 40 + fixed] > 1 && c[i * 40 + fixed] < 9 && u[i * 40 + fixed] == 0)
+                if (c[fixed * 40 + i] > 1 && c[fixed * 40 + i] < 9 && u[fixed * 40 + i] == 0)
                     break;
         } else {
             for (i = from; i >= to; i--)
-                if (c[i * 40 + fixed] > 1 && c[i * 40 + fixed] < 9 && u[i * 40 + fixed] == 0)
+                if (c[fixed * 40 + i] > 1 && c[fixed * 40 + i] < 9 && u[fixed * 40 + i] == 0)
                     break;
         }
     } else {
         if (up) {
             for (i = from; i <= to; i++)
-                if (c[fixed * 40 + i] > 1 && c[fixed * 40 + i] < 9 && u[fixed * 40 + i] == 0)
+                if (c[i * 40 + fixed] > 1 && c[i * 40 + fixed] < 9 && u[i * 40 + fixed] == 0)
                     break;
         } else {
             for (i = from; i >= to; i--)
-                if (c[fixed * 40 + i] > 1 && c[fixed * 40 + i] < 9 && u[fixed * 40 + i] == 0)
+                if (c[i * 40 + fixed] > 1 && c[i * 40 + fixed] < 9 && u[i * 40 + fixed] == 0)
                     break;
         }
     }
@@ -448,22 +453,22 @@ int far sub_s006_17df_0ec4(int x0, int x1, int y0, int y1, int ra, int rb, int f
 /* open the wall of room `room` where the corridor x0..x1, y0..y1 touches it */
 int far sub_s006_17df_1112(int x0, int x1, int y0, int y1, int room, int flag)
 {
-    int dir, lo, hi, door, ok, kind;
-    int far *r;
+    int dir, lo, hi, door;
+    int k, ok;
 
-    kind = D_db91[D_db81 * 30 + room];
-    r = D_db3b + (D_db81 * 30 + room) * 4;
-    ok = sub_s005_146d_0256(x0, x1, y0, y1, r[0], r[1], r[2], r[3], &dir, &lo, &hi, 0);
-    if (ok) {
-        if (!flag && kind != 5 && kind != 7)
+    k = D_db91[D_db81 * 30 + room];
+    if (sub_s005_146d_0256(x0, x1, y0, y1, D_db3b[(D_db81 * 30 + room) * 4], D_db3b[(D_db81 * 30 + room) * 4 + 1],
+            D_db3b[(D_db81 * 30 + room) * 4 + 2], D_db3b[(D_db81 * 30 + room) * 4 + 3], &dir, &lo, &hi, 0)) {
+        if (!flag && k != 5 && k != 7)
             door = 1;
         else
             door = 0;
-        for (ok = 0; lo <= hi; lo++) {
-            ok = sub_s006_1abf_076e(room, dir ^ 2, lo, door, 0);
+        for (k = lo, ok = 0; k <= hi; ) {
+            ok = sub_s006_1abf_076e(room, dir ^ 2, k, door, 0);
+            k++;
             if (ok)
                 break;
         }
+        return ok;
     }
-    return ok;
 }

@@ -55,7 +55,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_skill();
 int far member_attr();
 int far cur_loc_query();
@@ -262,7 +262,7 @@ struct res far sub_s105_1954_0450(void)
     struct res r;
     int v_di;
     int v_si;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     if (cur_loc_query(0) > -0xa && member_skill(-1, 0xa) > 0x19 && member_attr(-1, 5) > 0x19) {
         v_si = 0x63;
     } else {

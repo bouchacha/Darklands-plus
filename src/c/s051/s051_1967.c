@@ -66,7 +66,7 @@ char *strcpy(char *, const char *);
 int far sub_root_0000_1716();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_attr();
 int far set_attr();
 int far add_attr();
@@ -143,7 +143,7 @@ int far sub_s051_1967_0000(void)
     if (cur_loc_query(0x27)) {
         opt_flag_5 = 1;
     }
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     v_si = loc_query(cur_loc, 2);
     money_set(var_money1, 0, 0, vec_2099(cur_rep, v_si));
     if (money_cmp(party_money, var_money1) == -1) {

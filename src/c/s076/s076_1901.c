@@ -44,7 +44,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far add_attr();
 int far loc_query();
 int far name_to_slot();
@@ -85,7 +85,7 @@ int far sub_s076_1901_000c(void)
     opt_flag_1 = 1;
     opt_flag_2 = 1;
     opt_flag_3 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s076_1901_055e();
     if (next_card == 0x83) {
         do {

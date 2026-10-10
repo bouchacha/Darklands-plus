@@ -55,7 +55,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far member_attr();
 int far count_items();
 int far count_items_flags();
@@ -149,7 +149,7 @@ int far sub_s058_1a1f_0006(void)
     if (!party_all_ok()) {
         opt_flag_3 = 2;
     }
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     v_si = loc_query(cur_loc, 2) / 3 + 1;
     v_si = party_size * v_si * 2;
     if (cur_rep < 0) {

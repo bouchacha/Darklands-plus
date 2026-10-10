@@ -1,14 +1,23 @@
 /* place: s000 0e76:0000 */
+/* orig: size=13c8 _DATA=0946+04e1 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Start-up module: EMS error messages, main(), command line / config.drk / sound driver
-   set-up (0114), game start (052a).
-   status (e9, 2026-10-09): INCOMPLETE.  Written: 0000, main (0022), 0092, 00b8, 083c;
-   all five match (main is compiled with `mov sp,bp` after each call by 6.00A as well).  Still stubs: 0114 (args,
-   config.drk, sound driver), 052a (graphics/EMS/heap start-up), 083e, 0f04, 1010, 1150.
+   set-up (0114), game start (052a), battle menus (083e, 0f04), commonsp.img (1010),
+   memory check (1150).
+   status (e9, 2026-10-09): COMPLETE, 8/11 match (0000, main, 0092, 00b8, 0114, 083c, 083e,
+   0f04).  Not matching (6.00 vs 6.00A):
+   - 052a: with pragma "a" 6.00A also makes the three `F[o + j] = v` fills `rep stosw` and the
+     function has the original length; left: the table loop's register/slot assignment
+     (orig i in SI, k/v/c in [bp-0a]/[bp-8]/[bp-4]).
+   - 1010: 6.00 keeps the address of the image's first word (its size) in SI:DI and reads it
+     again for the final _fmemcpy; 6.00A reloads D_c103 (only that, 17 diff lines).
+   - 1150: the dead far pointer fp = ds:0 is stored hi word first by 6.00 (`mov [bp-24h],ds;
+     mov [bp-26h],ax`), 6.00A stores the low word first (2 lines).
+   083e: `bo + aa + 9` vs `aa + bo + 9` flips with unrelated edits elsewhere in the file
+   (symbol-table order) - re-check after any change.
+   0114: the `name` variable was a cross-jumped strcat in both arms of the config.drk if.
    _DATA after main's strings: 21 bytes of initialised data at 0bf1 (D_bfb used by 083e),
-   then 0114's "rb", "config.drk", "nsound.dlc", int table {'a','p','r','i','n'} at 0c1f
-   (sound driver letters, D_a876 = table[config]), "sound.dlc", "Unknown argument: ",
-   "\r\n$", ... - the stubs must get their literals in this order. */
+   then 0114's "rb", "config.drk", "nsound.dlc", ... - literals in source order. */
 struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag; };
 struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; };
 union REGS { struct WORDREGS x; struct BYTEREGS h; };
@@ -105,7 +114,7 @@ extern char D_c107[];
 extern char D_060c[], D_067c[], D_0690[], D_06a4[], D_06aa[], D_06ba[], D_06cc[], D_06de[];
 extern char D_06f0[], D_05b2[], D_0706[], D_0718[], D_0726[], D_07aa[], D_07bc[];
 extern char D_06b3[], D_06c5[], D_06d7[], D_06e8[], D_06fe[], D_0737[], D_073e[], D_0744[];
-extern int D_01a6;
+extern char *D_01a6;
 extern int D_08ca, D_08cc, D_08d6;
 extern char D_9069, D_906a, D_9071, D_9c4c, D_11dd;
 extern char D_9c69[][0x80];
@@ -220,8 +229,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
     unsigned char i;
     char bad;
     FILE *f;
-    char *name;
-    char buf[64];
+    char buf[50];
     char nm[13];
     union REGS r;
 
@@ -239,7 +247,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
     sub_root_044a_00a9(9, 0, (char *)D_a895 + D_a895[9]);
     sub_root_044a_00a9(10, 0, (char *)D_a895 + D_a895[10]);
     if ((f = fopen("config.drk", "rb")) == 0)
-        name = "nsound.dlc";
+        strcat(D_a876, "nsound.dlc");
     else {
         fread(&D_a86e, 8, 1, f);
         fclose(f);
@@ -260,9 +268,8 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
             strcpy(D_a876, "n");
             break;
         }
-        name = "sound.dlc";
+        strcat(D_a876, "sound.dlc");
     }
-    strcat(D_a876, name);
     for (i = 0; i < argc; i++)
         sub_root_044a_000a(argv[i]);
     sub_s000_0e76_0092(0x16, 0);
@@ -321,6 +328,7 @@ void far sub_s000_0e76_0114(int argc, char **argv, char **envp)
 }
 
 /* game start: graphics, EMS work segment D_c105, swap stores, menus, tables, battle */
+#pragma optimize("a", on)
 void far sub_s000_0e76_052a(void)
 {
     int seg, k, v, i, j, o, c;
@@ -356,7 +364,7 @@ void far sub_s000_0e76_052a(void)
     sub_root_047c_0783(0, 0, 0, D_a870, D_a86e, D_a872, D_a874);
     sub_root_047c_0066();
     D_906a = 1;
-    D_9071 = 0;
+    *(volatile char *)&D_9071 = 0;
     D_c102 = D_a6c1 = 0;
     sub_s000_0e76_083e();
     sub_root_044a_019c();
@@ -395,19 +403,357 @@ void far sub_s000_0e76_052a(void)
     sub_root_047c_0791();
     exit_(0);
 }
+#pragma optimize("", on)
 
 void far sub_s000_0e76_083c(void)
 {
 }
 
-/* TODO */
-void far sub_s000_0e76_083e(void) { }
+/* battle menus: Game / Orders / Attack / Party.  Locals are named for 6.00A's name-hash
+   slot order (6.00 used declaration order). */
+#pragma optimize("a", on)
+void far sub_s000_0e76_083e(void)
+{
+    int xh, aa, bo, saved, ik, jk;
 
-/* TODO */
-void far sub_s000_0e76_0f04(void) { }
+    D_9419[0].title = "Game";
+    D_9419[1].title = "Orders";
+    D_9419[2].title = "Attack";
+    D_9419[3].title = "Party";
+    D_9419[4].title = "";
+    D_9419[1].x6 = 2;
+    D_9419[2].x6 = 2;
+    D_9419[0].x6 = 1;
+    D_9419[3].x6 = 1;
+    D_9419[1].items = D_9607;
+    D_9419[2].items = D_97db;
+    D_9419[3].items = D_987d;
+    D_9419[0].items = D_991e;
+    D_991e[0].text = "\x02Save Game";
+    strcpy(D_991e[0].key, "\x0fS");
+    D_991e[1].text = "\x02Load Saved Game";
+    strcpy(D_991e[1].key, "\x0fL");
+    D_991e[2].text = "\x02" "Difficulty";
+    strcpy(D_991e[2].key, "\x0f" "D");
+    D_991e[2].sub = D_99ec;
+    D_991e[3].text = "\x01Show Changes";
+    strcpy(D_991e[3].key, "\x0f" "C");
+    D_991e[4].text = "\x01Music";
+    strcpy(D_991e[4].key, "\x0fM");
+    D_991e[5].text = "\x01Sound FX";
+    strcpy(D_991e[5].key, "\x0f" "F");
+    D_991e[6].text = "\x02Pause";
+    strcpy(D_991e[6].key, "\x0fP");
+    D_991e[7].text = "\x02Quit to DOS";
+    strcpy(D_991e[7].key, "\x0fQ");
+    D_991e[8].text = "";
+    for (ik = 0; ik <= 8; ik++)
+        D_991e[ik].on = 1;
+    D_991e[0].fn = vec_1847;
+    D_991e[1].fn = vec_1851;
+    D_991e[2].fn = vec_17e3;
+    D_991e[3].fn = sub_root_0000_1154;
+    D_991e[4].fn = sub_root_0000_11f2;
+    D_991e[5].fn = sub_root_0000_129a;
+    D_991e[6].fn = sub_root_0000_1080;
+    D_991e[7].fn = sub_root_0000_13a0;
+    D_99ec[0].text = "\x02" "Basic";
+    D_99ec[1].text = "\x02Standard";
+    D_99ec[2].text = "\x02" "Expert";
+    D_99ec[3].text = "";
+    for (ik = 0; ik < 3; ik++) {
+        D_99ec[ik].on = 1;
+        D_99ec[ik].x7 = 0;
+    }
+    D_99ec[0].fn = sub_root_0000_1408;
+    D_99ec[1].fn = sub_root_0000_1418;
+    D_99ec[2].fn = sub_root_0000_1428;
+    sub_root_0000_1438(0);
+    D_9607[0].text = "\x02Resume";
+    strcpy(D_9607[0].key, "\x13");
+    D_9607[1].text = strcat(strcpy(D_c107, "\x02?"), D_11f2);
+    strcpy(D_9607[1].key, "\x12");
+    D_9607[2].text = "\x02" "Enemy Info";
+    strcpy(D_9607[2].key, " E");
+    D_9607[3].text = D_067c;
+    strcpy(D_9607[3].key, " W");
+    D_9607[4].text = D_0690;
+    strcpy(D_9607[4].key, " F");
+    D_9607[5].text = D_06a4;
+    strcpy(D_9607[5].key, " H");
+    D_9607[6].text = D_07aa;
+    strcpy(D_9607[6].key, " G");
+    D_9607[7].text = D_07bc;
+    strcpy(D_9607[7].key, " Q");
+    D_9607[8].text = D_06aa;
+    strcpy(D_9607[8].key, " U");
+    D_9607[9].text = D_06ba;
+    strcpy(D_9607[9].key, " U");
+    D_9607[10].text = D_06cc;
+    strcpy(D_9607[10].key, " O");
+    D_9607[11].text = D_06de;
+    strcpy(D_9607[11].key, " P");
+    D_9607[12].text = D_06f0;
+    strcpy(D_9607[12].key, " D");
+    D_9607[13].text = D_05b2;
+    strcpy(D_9607[13].key, " D");
+    D_9607[14].text = D_0706;
+    strcpy(D_9607[14].key, " S");
+    D_9607[15].text = D_0718;
+    strcpy(D_9607[15].key, " L");
+    D_9607[16].text = D_0726;
+    strcpy(D_9607[16].key, " X");
+    D_9607[17].text = "\x02" "Cancel Giving Order";
+    strcpy(D_9607[17].key, "\x03");
+    D_9607[18].text = "";
+    D_9607[0].fn = vec_1941;
+    D_9607[1].fn = vec_1a59;
+    D_9607[2].fn = vec_1a4f;
+    D_9607[3].fn = vec_1a45;
+    D_9607[4].fn = vec_1a3b;
+    D_9607[5].fn = vec_1a31;
+    D_9607[6].fn = vec_1a27;
+    D_9607[7].fn = vec_1a1d;
+    D_9607[8].fn = vec_1a13;
+    D_9607[9].fn = vec_1a13;
+    D_9607[10].fn = vec_1a09;
+    D_9607[11].fn = vec_19ff;
+    D_9607[12].fn = vec_19f5;
+    D_9607[13].fn = vec_19f5;
+    D_9607[14].fn = vec_19eb;
+    D_9607[15].fn = vec_19e1;
+    D_9607[16].fn = vec_19d7;
+    D_9607[17].fn = vec_19cd;
+    D_97db[0].text = "Throw";
+    strcpy(D_97db[0].key, "T>");
+    D_97db[0].sub = D_9a47;
+    D_97db[1].text = "Std Attack ";
+    strcpy(D_97db[1].key, "A");
+    D_97db[2].text = "Vulnerable";
+    strcpy(D_97db[2].key, "V");
+    D_97db[3].text = "Berserk";
+    strcpy(D_97db[3].key, "B");
+    D_97db[4].text = "Parry";
+    strcpy(D_97db[4].key, "P");
+    D_97db[5].text = "Use Missile";
+    strcpy(D_97db[5].key, "M");
+    D_97db[6].text = "";
+    for (ik = 0; ik <= 6; ik++)
+        D_97db[ik].on = 1;
+    for (ik = 0; ik < 20; ik++)
+        D_9a47[ik].on = 1;
+    D_97db[0].fn = vec_17e3;
+    D_97db[1].fn = vec_19c3;
+    D_97db[2].fn = vec_19b9;
+    D_97db[3].fn = vec_19af;
+    D_97db[4].fn = vec_19a5;
+    D_97db[5].fn = vec_199b;
+    D_9a47[0].fn = vec_1991;
+    D_9a47[1].fn = vec_1987;
+    D_9a47[2].fn = vec_197d;
+    D_9a47[3].fn = vec_1973;
+    D_9a47[4].fn = vec_1969;
+    D_9a47[5].fn = vec_195f;
+    D_9a47[6].fn = vec_1955;
+    D_9a47[7].fn = vec_194b;
+    D_9a47[8].fn = vec_1ad1;
+    D_9a47[9].fn = vec_1ac7;
+    D_9a47[10].fn = vec_1abd;
+    D_9a47[11].fn = vec_1ab3;
+    D_9a47[12].fn = vec_1aa9;
+    D_9a47[13].fn = vec_1a9f;
+    D_9a47[14].fn = vec_1a95;
+    D_9a47[15].fn = vec_1a8b;
+    D_9a47[16].fn = vec_1a81;
+    D_9a47[17].fn = vec_1a77;
+    D_9a47[18].fn = vec_1a6d;
+    D_9a47[19].fn = vec_1a63;
+    D_987d[0].text = "Party Info";
+    D_987d[0].key[0] = 10;
+    D_987d[0].key[1] = 0;
+    D_987d[1].text = "Change Marching Order";
+    strcpy(D_987d[1].key, "\x0fO");
+    D_987d[2].text = "";
+    D_987d[0].on = 1;
+    D_987d[1].on = 1;
+    D_987d[0].fn = vec_185b;
+    D_987d[1].fn = vec_183d;
+    sub_s000_0e76_0f04();
+    saved = D_017c->x10;
+    D_017c->x10 = 1;
+    xh = 15;
+    for (ik = 0; ik <= 3; ik++) {
+        D_9c15[ik] = xh;
+        xh += sub_root_0265_084e(D_017c, D_9419[ik].title) + 8;
+        jk = bo = aa = 0;
+        while (strlen(D_9419[ik].items[jk].text)) {
+            int kk;
+            if ((kk = sub_root_0265_084e(D_017c, D_9419[ik].items[jk].text)) > aa)
+                aa = kk;
+            if ((kk = sub_root_0265_084e(D_017c, D_9419[ik].items[jk].key)) > bo)
+                bo = kk;
+            jk++;
+        }
+        D_9c22[ik] = bo + aa + 9;
+    }
+    D_017c->x10 = saved;
+}
+#pragma optimize("", on)
 
-/* TODO */
-void far sub_s000_0e76_1010(void) { }
+/* Orders/Attack menu entries enabled at the start of a battle */
+void far sub_s000_0e76_0f04(void)
+{
+    int i;
 
-/* TODO */
-void far sub_s000_0e76_1150(void) { }
+    D_9419[2].x6 = 2;
+    for (i = 0; i <= 5; i++)
+        D_97db[i].on = 2;
+    D_9607[3].on = 1;
+    D_9607[5].on = 1;
+    strcpy(D_06b3, D_073e);
+    D_9607[0].on = 2;
+    D_9607[1].on = 2;
+    D_9607[2].on = 2;
+    D_9607[4].on = 2;
+    D_9607[8].on = 2;
+    D_9607[9].on = 2;
+    if (D_c102 == 0)
+        strcpy(D_06c5, D_073e);
+    else
+        strcpy(D_06c5, D_0744);
+    strcpy(D_06d7, D_073e);
+    strcpy(D_06e8, D_073e);
+    strcpy(D_06fe, D_073e);
+    D_9607[13].text = D_060c;
+    D_9607[10].on = 2;
+    D_9607[11].on = 2;
+    D_9607[12].on = 2;
+    D_9607[13].on = 2;
+    D_9607[15].on = 2;
+    D_9607[16].on = 2;
+    if (D_c102 == 0)
+        strcpy(D_0737, D_073e);
+    else
+        strcpy(D_0737, D_0744);
+    D_9607[17].on = 2;
+}
+
+/* load commonsp.img into EMS and set up the common sprite pointers.
+   6.00 keeps the address of the first word (the image size) in SI:DI and reads it again
+   for the final copy; 6.00A reloads D_c103 (not solved). */
+#pragma optimize("a", on)
+#pragma optimize("eglc", off)
+void far sub_s000_0e76_1010(void)
+{
+    unsigned far *pb;
+    unsigned sege;
+    char far *dste;
+    int uak, ubl;
+
+    sub_root_0617_011e("commonsp.img", pb = *(unsigned far **)&D_c103);
+    sege = D_9c42 = alloc_buffer((unsigned long)*pb++, "CnnmSp");
+    ((unsigned *)&dste)[1] = sege;
+    ((unsigned *)&dste)[0] = 0;
+    D_9c42 += *pb++;
+    D_a3d6 = *pb++ + sege;
+    D_a3e5 = *pb++ + sege;
+    D_a2e9 = *pb++ + sege;
+    D_a33b = *pb++ + sege;
+    D_a33e = *pb++ + sege;
+    D_a392 = *pb++ + sege;
+    D_a660 = *pb++ + sege;
+    D_a662 = *pb++ + sege;
+    D_a664 = *pb++ + sege;
+    D_a666 = *pb++ + sege;
+    D_a626 = *pb++ + sege;
+    D_a628 = *pb++ + sege;
+    D_a2e5 = *pb++ + sege;
+    _fmemcpy(dste, pb, **(unsigned far **)&D_c103);
+}
+#pragma optimize("", on)
+
+struct mcb { char type; unsigned owner; unsigned size; };
+
+/* memory check: DOS arena walk, free memory vs. what the game needs.
+   Locals named for 6.00A's name-hash slot order; uaa/ubc fill the original's unused slots.
+   Remaining diff: 6.00 stores the near->far converted fp as `mov [hi],ds; mov [lo],ax`,
+   6.00A low word first (pfpc = &fpf only keeps the dead store alive). */
+#pragma optimize("e", off)
+void far sub_s000_0e76_1150(void)
+{
+    unsigned sega;
+    int pagesa, fpagesl;
+    long availf;
+    char *msgm;
+    struct mcb far *mh;
+    long haveb;
+    int uaa[2];
+    long needl;
+    char far **pfpc;
+    int ubc;
+    int nm;
+    char far *fpf;
+    long t0i;
+
+    pfpc = &fpf;
+    availf = 0;
+    nm = 0;
+    msgm = (char *)D_a895;
+    fpf = (char far *)(char *)nm;
+    sub_root_0617_016a(D_01a6, fpf, 0x42);
+    sub_root_05f8_00ca(&pagesa, &fpagesl);
+    if (pagesa < 11) {
+        printf(msgm + D_a895[19]);
+        exit_(0);
+    }
+    *((unsigned *)&mh + 1) = D_7760 - 1;
+    *(unsigned *)&mh = 0;
+    needl = (unsigned long)mh->size << 4;
+    if (mh->type != 'Z')
+        while (nm < 300) {
+            if (mh->owner)
+                availf += (unsigned long)mh->size << 4;
+            *((unsigned *)&mh + 1) += mh->size + 1;
+            nm++;
+            if (mh->type == 'Z')
+                break;
+        }
+    if (mh->owner)
+        availf += (unsigned long)mh->size << 4;
+    _dos_allocmem(30000, &sega);
+    haveb = ((unsigned long)sega << 4) + availf;
+    needl += 0x4b6b0L;
+    switch (D_a876[0]) {
+    case 'A': case 'a':
+        needl += 0x2c90;
+        break;
+    case 'I': case 'i':
+        needl += 0x2fc0;
+        break;
+    case 'N': case 'n':
+        needl += 0x3b0;
+        break;
+    case 'P': case 'p':
+        needl += 0x290c;
+        break;
+    case 'R': case 'r':
+        needl += 0x1c60;
+        break;
+    }
+    sub_s000_0e76_0092(14, 0);
+    if (haveb - needl < 0 || D_0bf4 == 1) {
+        printf(msgm + D_a895[15], needl, needl / 1024);
+        printf(msgm + D_a895[16], haveb, haveb / 1024);
+        printf(msgm + D_a895[17], needl - haveb, (needl - haveb) / 1024);
+    }
+    if (haveb - needl < 0) {
+        if (D_0bf4 == 1)
+            printf(msgm + D_a895[18]);
+        else
+            exit_(0);
+    }
+    t0i = time(0);
+    while (time(0) - t0i <= 3)
+        ;
+}
+#pragma optimize("", on)

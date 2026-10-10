@@ -1,4 +1,5 @@
 /* place: s032 1462:0000 */
+/* orig: size=1e0c CONST=7e66+0008 _DATA=2f18+02ea */
 /* flags: /AM /G2 /Gs /Ox /Oa /Zp1 */
 /* e0 2026-10-09: functions renamed back to their original sub_ names (descriptive names in the comments); still 5/11.
  * Session 4: 078e down to one difference: i and y slots swapped ([bp-4]/[bp-6]); needed
@@ -7,8 +8,17 @@
  *   strength-reduced i*8+0x93: no effect on the slot order.
  *   1d18: the uninitialised `town` and `size` are one variable in the original (both [bp-2]);
  *   writing them as one makes size a register variable in 6.00A (worse), so left as is.
- *   CONST: the original reaches F_2e38_10be (192e/1b26) through DS=2e38 (no CONST slot) and
- *   has an unused 28f5 slot at 7e6e; ours gives 10be a slot. */
+ * m2 2026-10-09: 8/11, DATA MATCHES (stamped --wip).  CONST is 4 slots (7e66..7e6d); 7e6e is
+ *   s033's first slot, not ours.  10be gets no slot once each flag test reads
+ *   F_2e38_10be[D_907e]->flags itself (if/else-if chain, rarity += 3 twice; MSC CSEs the byte
+ *   into the [bp-16h] temp and loads DS=2e38 for the block).  192e MATCHED: + `if (rarity <= 5)
+ *   a / -100; else a / 100;` (cross-jumped pushes of the long divisor), `(int)price < 1`, decl
+ *   order rarity,size,price,value,q.  0f60 MATCHED: no `id` local in the sell case (repeat the
+ *   item expression: MSC's CSE temps give [bp-88h]/[bp-8ah]) + a named id in the purchase
+ *   case; D_86a0 extern before D_8832.  078e MATCHED: `int y[1]` (aggregate -> lower slot).
+ *   Left: 1b26 only k/D_907e-cache in di/si swapped (orig k=di); 1d18 orig keeps q in di and
+ *   size in [bp-2], 6.00A never enregisters q; 0000 (big function) 6.00A gives row bx and
+ *   mkey memory (orig row di, mkey si) - pragma l off, &shop, struct {hover; buf} help. */
 /* data: _DATA=2f18 */
 /* data: CONST=7e66 */
 /* Barter screen (overlay s032): buy and sell items at a shop. */
@@ -75,8 +85,8 @@ extern char far *D_869c;            /* shop name */
 extern long D_8868;                 /* item categories sold */
 extern int D_8834;                  /* shop quality */
 extern int D_8836;                  /* shop */
-extern int D_8832;                  /* shop list: cursor row */
 extern int D_86a0;                  /* shop list: first visible entry */
+extern int D_8832;                  /* shop list: cursor row */
 extern int D_885c;                  /* number of items for sale */
 extern int D_8850;
 extern int D_86a2[];                /* item types for sale */
@@ -137,14 +147,15 @@ int far sub_s032_1462_1d18(int k);
 extern char str_sell[], str_buy[], str_space[];
 
 /* sub_s032_1462_0000 (barter_screen): main loop of the barter screen for shop `shop` */
+#pragma optimize("l", off)
 void far sub_s032_1462_0000(int shop, char far *name, long cats)
 {
-    char buf[136];
-    int hover;
+    struct { int hover; char buf[136]; } l;
     int row;
     int mkey;
 
-    hover = -1;
+    &shop;
+    l.hover = -1;
     D_9920 = 2;
     D_9934 = 2;
     D_e7a2 = D_2816;
@@ -154,7 +165,7 @@ void far sub_s032_1462_0000(int shop, char far *name, long cats)
     D_907c = 5;
     D_884c = D_884e = D_907b;
     D_2800 = 8;
-    D_869c = name == 0 ? F_290e_207f[shop] : name;
+    D_869c = name ? name : F_290e_207f[shop];
     D_8868 = cats;
     if ((D_8836 = shop) < 0 || shop >= 9)
         D_8834 = 25;
@@ -180,11 +191,11 @@ void far sub_s032_1462_0000(int shop, char far *name, long cats)
         mkey = 0;
         if (!(D_6ef0 & 1) && D_6eec > 0x50 && D_6eec < 0xe6 && D_6eee > 0x1b && D_6eee < 0x43) {
             row = (D_6eee - 0x1b) / 8;
-            if (row != hover) {
+            if (row != l.hover) {
                 sub_root_047c_12c3();
-                sub_root_047c_04dc(D_27f4, 0x50, hover * 8 + 0x1b, 0x96, 8, 9, 8);
-                hover = row;
-                sub_root_047c_04dc(D_27f4, 0x50, hover * 8 + 0x1b, 0x96, 8, 8, 9);
+                sub_root_047c_04dc(D_27f4, 0x50, l.hover * 8 + 0x1b, 0x96, 8, 9, 8);
+                l.hover = row;
+                sub_root_047c_04dc(D_27f4, 0x50, l.hover * 8 + 0x1b, 0x96, 8, 8, 9);
                 sub_root_047c_1293();
             }
         } else if ((D_6ef0 & 1) && D_6eec > 0x50 && D_6eec < 0xe6 && D_6eee > 0x1b && D_6eee < 0x43) {
@@ -198,10 +209,10 @@ void far sub_s032_1462_0000(int shop, char far *name, long cats)
             case 3: mkey = 0x3042; break;
             case 4: mkey = 0x11b; break;
             }
-        } else if (!(D_6ef0 & 1) && hover != -1) {
+        } else if (!(D_6ef0 & 1) && l.hover != -1) {
             sub_root_047c_12c3();
-            sub_root_047c_04dc(D_27f4, 0x50, hover * 8 + 0x1b, 0x96, 9, 9, 8);
-            hover = -1;
+            sub_root_047c_04dc(D_27f4, 0x50, l.hover * 8 + 0x1b, 0x96, 9, 9, 8);
+            l.hover = -1;
             sub_root_047c_1293();
         }
         if ((D_6ef0 & 1) && D_6eec > 0x72 && D_6eec < 0x11c && D_6eee > 0x93 && D_6eee < 0xb3) {
@@ -326,6 +337,7 @@ void far sub_s032_1462_0000(int shop, char far *name, long cats)
     }
 }
 
+#pragma optimize("", on)
 char str_sell[] = "\x8c S\xff" "ell an item";
 char str_buy[] = "\x8c P\xff" "urchase an item";
 char str_space[] = " ";
@@ -348,7 +360,7 @@ void far sub_s032_1462_078e(int who, char far *name, long cats)
     char buf[120];
     char self[10];
     char he[10];
-    int y;
+    int y[1];
     int i;
     int k;
 
@@ -384,12 +396,12 @@ void far sub_s032_1462_078e(int who, char far *name, long cats)
     sub_root_047c_055a(D_27f4, 0x7a, 0x45, buf);
     sprintf(buf, "%s currently has...", D_9c69[who].name);
     sub_root_047c_055a(D_27f4, 0x81, 0x83, buf);
-    for (i = 0, y = 0x93; y < 0xb3 && i < D_9c69[who].nitems; i++, y += 8) {
+    for (i = 0, y[0] = 0x93; y[0] < 0xb3 && i < D_9c69[who].nitems; i++, y[0] += 8) {
         sprintf(buf, "%5upf  %Fs  (%3d) %2dq",
                 sub_s032_1462_1b26(F_2e38_0000[who].items[i].id & 0xfff, F_2e38_0000[who].items[i].qual),
                 F_2e38_0890[F_2e38_0000[who].items[i].id & 0xfff],
                 F_2e38_0000[who].items[i].cnt, F_2e38_0000[who].items[i].qual);
-        sub_root_047c_055a(D_27f4, 0x75, y, buf);
+        sub_root_047c_055a(D_27f4, 0x75, y[0], buf);
     }
     if (D_907e < 0x5c && D_907e != -1)
         srand(D_9785->seed + D_9c4a);
@@ -507,9 +519,10 @@ int far sub_s032_1462_0f60(int key)
         sub_s029_1367_00a4(&price, 0, 0, sub_s032_1462_192e(D_86a2[D_8832 + D_86a0]));
         if (sub_s029_1367_02d4(&D_906b, &price) == -1)
             break;
-        it.id = D_86a2[D_8832 + D_86a0];
-        it.f2 = F_2e38_0890[it.id]->type;
-        it.qual = sub_s032_1462_0efa(it.id);
+        id = D_86a2[D_8832 + D_86a0];
+        it.id = id;
+        it.f2 = F_2e38_0890[id]->type;
+        it.qual = sub_s032_1462_0efa(id);
         it.f5 = F_2e38_0890[D_86a2[D_8832 + D_86a0]]->weight;
         it.cnt = 1;
         sub_s029_1367_0180(&D_906b, 0, 0, sub_s032_1462_192e(D_86a2[D_8832 + D_86a0]));
@@ -528,11 +541,10 @@ int far sub_s032_1462_0f60(int key)
             break;
         if (D_8838[D_884e] == 0)
             break;
-        id = F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].id;
-        if (F_2e38_0890[id]->flags & 0x80)
+        if (F_2e38_0890[F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].id]->flags & 0x80)
             break;
         sub_s029_1367_0130(&D_906b, 0, 0,
-                           sub_s032_1462_1b26(id, F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].qual));
+                           sub_s032_1462_1b26(F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].id, F_2e38_0000[D_884e].items[D_885e[D_884e] + D_8852[D_884e]].qual));
         sub_root_047c_0553(D_2806, 0x49, 9, 0xee, 9, D_27f4, 0x49, 9);
         D_2800 = 8;
         sprintf(buf, "%s holds the purse of %dfl, %dgr, %dpf (%lupf).", D_9c69[D_907b].name,
@@ -711,32 +723,36 @@ void far sub_s032_1462_1870(int unused)
 /* sub_s032_1462_192e (buy_price): price in pfennigs the shop asks for an item of type k */
 int far sub_s032_1462_192e(int k)
 {
-    unsigned char flags;
-    long price;
     long rarity;
-    long q;
     long size;
+    long price;
     long value;
+    long q;
 
     value = F_2e38_0890[k]->value;
     q = sub_s032_1462_0efa(k);
     rarity = F_2e38_0890[k]->rarity;
     size = D_907e < 0x5c && D_907e != -1 ? D_9785->size : 2;
     if (D_907e != -1) {
-        flags = F_2e38_10be[D_907e]->flags;
-        if ((flags & 2) || (flags & 0x41))
+        if (F_2e38_10be[D_907e]->flags & 2)
             rarity += 3;
-        else if (flags & 8)
+        else if (F_2e38_10be[D_907e]->flags & 0x41)
+            rarity += 3;
+        else if (F_2e38_10be[D_907e]->flags & 8)
             q += sub_root_0000_0c70(10);
     }
-    price = q * value * 2 / 25;
-    if (D_907e != -1)
-        price += price * size * 2 / (rarity > 5 ? 100 : -100);
+    price = value * q * 2 / 25;
+    if (D_907e != -1) {
+        if (rarity <= 5)
+            price += size * price * 2 / -100;
+        else
+            price += size * price * 2 / 100;
+    }
     price += price * (25 - sub_s029_0e76_05ee(D_907b, 5)) / 100;
     if (D_907e != -1)
         price += price * (sub_s029_1367_0066(-999, 99, sub_s029_0e76_1a7e(0) * 50) / 100) / -100;
     price += price * (sub_s029_1367_0066(0, 500, sub_s029_0e76_1326(4) * 100) / 1000) / -100;
-    if (price < 1)
+    if ((int)price < 1)
         price = 1;
     return price;
 }
@@ -744,34 +760,36 @@ int far sub_s032_1462_192e(int k)
 /* sub_s032_1462_1b26 (sell_price): price in pfennigs the shop pays for an item of type k and quality qual */
 int far sub_s032_1462_1b26(int k, int qual)
 {
-    unsigned char flags;
-    long price;
     long rarity;
+    long price;
     long size;
     long value;
-    struct itemdef far *d;
 
-    d = F_2e38_0890[k];
-    if (d->flags & 0x80)
+    if (F_2e38_0890[k]->flags & 0x80)
         return 0;
-    value = d->value / 4;
-    rarity = d->rarity;
+    value = F_2e38_0890[k]->value / 4;
+    rarity = F_2e38_0890[k]->rarity;
     size = D_907e < 0x5c && D_907e != -1 ? D_9785->size : 2;
     if (D_907e != -1) {
-        flags = F_2e38_10be[D_907e]->flags;
-        if ((flags & 2) || (flags & 0x41))
+        if (F_2e38_10be[D_907e]->flags & 2)
             rarity += 3;
-        else if (flags & 8)
+        else if (F_2e38_10be[D_907e]->flags & 0x41)
+            rarity += 3;
+        else if (F_2e38_10be[D_907e]->flags & 8)
             qual += sub_root_0000_0c70(10);
     }
     price = qual * value * 2 / 25;
-    if (D_907e != -1)
-        price += size * price * 2 / (rarity > 5 ? 100 : -100);
+    if (D_907e != -1) {
+        if (rarity <= 5)
+            price += price * size * 2 / -100;
+        else
+            price += price * size * 2 / 100;
+    }
     price += price * (25 - sub_s029_0e76_05ee(D_907b, 5)) / -100;
     if (D_907e != -1)
         price += price * (sub_s029_1367_0066(-999, 75, sub_s029_0e76_1a7e(0) * 50) / 100) / 100;
     price += price * (sub_s029_1367_0066(0, 500, sub_s029_0e76_1326(4) * 100) / 1000) / 100;
-    if (price < 1)
+    if ((int)price < 1)
         price = 0;
     return price;
 }
@@ -780,14 +798,13 @@ int far sub_s032_1462_1b26(int k, int qual)
 int far sub_s032_1462_1d18(int k)
 {
     int size;
-    int town;
     int r;
     int q;
 
     if ((F_2e38_0890[k]->cats & D_8868) && !(F_2e38_0890[k]->flags & 0x80)) {
         if (F_2e38_0890[k]->type == 0x40 || F_2e38_0890[k]->type == 0x41 || F_2e38_0890[k]->type == 0x42)
             return 1;
-        size = town < 0x5c && town != -1 ? D_9785->size - 1 : 1;
+        size = size < 0x5c && size != -1 ? D_9785->size - 1 : 1;
         if (size > 9)
             size = 9;
         r = F_2e38_0890[k]->rarity;

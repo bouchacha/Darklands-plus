@@ -242,13 +242,28 @@ class Prog:
             # target in a parent overlay
             for n2, (im2, l2, f2) in self.syms.items():
                 pass
-            return self.name_at_any(lin, seg)
+            return self.name_at_any(lin, seg, img)
         if i.mnemonic == 'call' and i.bytes[0] == 0xe8:
             lin = (i.address + 3 + struct.unpack_from('<h', i.bytes, 1)[0])
             return self.addr2name.get((img, lin), 'sub_%s_%04x_%04x' % (img, frame, lin - frame * 16))
         return None
 
-    def name_at_any(self, lin, seg):
+    def _visible(self, img):
+        """Images whose code is addressable from img: itself, its overlay ancestors, root, data."""
+        if not hasattr(self, '_parents'):
+            from rtlink import RTLinkExe
+            e = RTLinkExe(EXE) if 'EXE' in globals() else RTLinkExe(
+                os.environ.get('DARKLAND_EXE', '/home/claude/dl_raw/extracted/DARKLAND/DARKLAND.EXE'))
+            self._parents = {'s%03d' % x.index: (None if x.parent == 0xffff else 's%03d' % x.parent)
+                             for x in e.sections}
+        out = {img, 'root', 's136'}
+        q = self._parents.get(img)
+        while q:
+            out.add(q)
+            q = self._parents.get(q)
+        return out
+
+    def name_at_any(self, lin, seg, img=None):
         if not hasattr(self, '_by_lin'):
             self._by_lin = collections.defaultdict(list)
             for n, (im, l, f) in self.syms.items():
@@ -256,7 +271,10 @@ class Prog:
                     self._by_lin[l].append((im, f, n))
         c = [x for x in self._by_lin.get(lin, []) if x[1] == seg]
         if c:
-            c.sort(key=lambda x: (not x[2].startswith('sub_'), x[2]))
+            # overlays that share a load address (siblings) have names at the same address:
+            # take one the caller can actually reach
+            vis = self._visible(img) if img else None
+            c.sort(key=lambda x: (vis is not None and x[0] not in vis, not x[2].startswith('sub_'), x[2]))
             return c[0][2]
         return None
 
@@ -3345,7 +3363,7 @@ def _fd_methods():
             nm = 'F_%04x_%04x' % (seg, off)
             self.farabs[(seg, off)] = True
             return nm
-        n = self.prog.addr2name.get((self.img, lin)) or self.prog.name_at_any(lin, seg)
+        n = self.prog.addr2name.get((self.img, lin)) or self.prog.name_at_any(lin, seg, self.img)
         if n is None:
             raise DecompileError('far constant %04x:%04x' % (seg, off))
         self.fnrefs.add(n)
@@ -3443,7 +3461,7 @@ def find_struct_temps(fd, fn, L):
 def note_fnstore(fd, base, v):
     seg, off = v.a
     off = off.a[0] if isinstance(off, E) else off
-    n = fd.prog.addr2name.get((fd.img, seg * 16 + off)) or fd.prog.name_at_any(seg * 16 + off, seg)
+    n = fd.prog.addr2name.get((fd.img, seg * 16 + off)) or fd.prog.name_at_any(seg * 16 + off, seg, fd.img)
     if n:
         # a store into an element of a table counts for the table (D_ea18 is D_ea14[1])
         fd.fnstores[base].add(n)

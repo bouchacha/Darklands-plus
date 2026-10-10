@@ -1,3 +1,2 @@
 # Drafts that are complete but known to misbehave in play-tests; build.py --functional skips them.
 s001/s001_0e76.c     # default party: wrong starting equipment (all "Hand Axe 00q") - see its status comment
-s000/s000_0e76.c     # incomplete (e9: 0114 052a 083e 0f04 1010 1150 are stubs)

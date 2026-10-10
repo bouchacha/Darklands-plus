@@ -1,7 +1,11 @@
 /* place: s006 18fa:0008 */
 /* orig: size=15d4 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e6, 2026-10-09): all 5 functions written from the asm + Ghidra (dec16 drafts were
+/* status (e6, 2026-10-09): COMPLETE (5/5 written), 0/5 match; stamped. 0008: locals renamed to the
+ * hash slot order (all slots right) and its j loop written with gotos in the original block order
+ * (6.00 put the room-search loop in front of the j increment); ~38 left (6.00A threads the `ok = 0`
+ * arm, frame +2 for a 6.00A temp).
+ * All 5 functions written from the asm + Ghidra (dec16 drafts were
  * stubs). Stairs: 0008 continues the stairs of the neighbouring level (D_db95 exits with
  * x8 = 1 up / 2 down), building a stair room (1a57 000c kind 4/5) where needed; 096e places
  * new stairs in rooms of kind D_db89 >= 3/7; 0fd4 records one stair exit (cell 9 up / 10 down,
@@ -50,239 +54,273 @@ int far sub_s006_18fa_146a(int, int, int);
 /* continue the stairs of the neighbouring level on this one */
 void far sub_s006_18fa_0008(void)
 {
-    int i, slot, len, gap, ol, up, j, kind, va, off, hit, ok, ty, x0, y0, k, vb, x1, dir, y1, w;
-    int far *r;
-    int far *sl;
-    struct gexit far *e;
-    struct gexit far *e2;
+    int slotn;
+    int ig;
+    int far *slb;
+    int far *ro;
+    int lenc;
+    int olh;
+    int gapk;
+    int upo;
+    int kindo;
+    int jk;
+    int vao;
+    int offl;
+    struct gexit far *eb;
+    int hitc;
+    struct gexit far *e2a;
+    int oko;
+    int x0b;
+    int tym;
+    int y0b;
+    int vbd;
+    int ka;
+    int x1d;
+    int y1d;
+    int diro;
+    int wh;
 
-    ok = 1;
+    oko = 1;
     if (D_db81 == 1)
         return;
     if (D_db81 > 1) {
-        ol = D_db81 - 1;
-        ty = 1;
-        up = 0;
+        olh = D_db81 - 1;
+        tym = 1;
+        upo = 0;
     } else {
-        ol = D_db81 + 1;
-        ty = 2;
-        up = 1;
+        olh = D_db81 + 1;
+        tym = 2;
+        upo = 1;
     }
-    for (j = 0; j < D_db71[ol]; j++) {
-        e = D_db95 + ol * 4 + j;
-        if (e->x8 != ty || (e->x0a != 0 && e->x0a != 3))
-            continue;
-        if (D_db4f[ol] >= e->x4) {
-            i = ok = 0;
-            while (!ok && i < D_db45[D_db81]) {
-                r = D_db3b + (i + D_db81 * 30) * 4;
-                if (r[0] <= e->x0 && r[1] >= e->x0 && r[2] <= e->x2 && r[3] >= e->x2)
-                    ok = 1;
-                else
-                    ok = 0;
-                if (!ok)
-                    i++;
-            }
-            if (!ok)
-                continue;
+    jk = 0;
+    goto jtest;
+srch:
+    if (ig >= D_db45[D_db81])
+        goto sdone;
+    ro = D_db3b + (ig + D_db81 * 30) * 4;
+    if (ro[0] <= eb->x0 && ro[1] >= eb->x0 && ro[2] <= eb->x2 && ro[3] >= eb->x2)
+        oko = 1;
+    else
+        oko = 0;
+    if (!oko)
+        ig++;
+stest:
+    if (!oko)
+        goto srch;
+sdone:
+    if (!oko)
+        goto jinc;
+    goto call;
+jinc:
+    jk++;
+jtest:
+    if (jk < D_db71[olh]) {
+        eb = D_db95 + olh * 4 + jk;
+        if (eb->x8 != tym || (eb->x0a != 0 && eb->x0a != 3))
+            goto jinc;
+        if (D_db4f[olh] >= eb->x4) {
+            oko = ig = 0;
+            goto stest;
         } else {
-            sub_s005_146d_0c02(ol, 0, e->x4, &dir, &gap);
-            r = D_db3b + ol * 120;
-            switch (dir) {
+            sub_s005_146d_0c02(olh, 0, eb->x4, &diro, &gapk);
+            ro = D_db3b + olh * 120;
+            switch (diro) {
             case 0:
-                gap = r[2] - e->x2;
-                if (gap >= 4 || (gap >= 3 && e->x0a == 3))
-                    vb = 1;
+                gapk = ro[2] - eb->x2;
+                if (gapk >= 4 || (gapk >= 3 && eb->x0a == 3))
+                    vbd = 1;
                 else
-                    vb = 0;
-                va = 1;
+                    vbd = 0;
+                vao = 1;
                 break;
             case 1:
-                gap = e->x0 - r[1];
-                vb = gap >= 2 ? 1 : 0;
-                va = !e->x0a;
+                gapk = eb->x0 - ro[1];
+                vbd = gapk >= 2 ? 1 : 0;
+                vao = !eb->x0a;
                 break;
             case 2:
-                gap = e->x2 - r[3];
-                vb = gap >= 2 ? 1 : 0;
-                va = e->x0a == 3 ? 1 : 0;
+                gapk = eb->x2 - ro[3];
+                vbd = gapk >= 2 ? 1 : 0;
+                vao = eb->x0a == 3 ? 1 : 0;
                 break;
             case 3:
-                gap = r[0] - e->x0;
-                if (gap >= 4 || (gap >= 3 && e->x0a == 0))
-                    vb = 1;
+                gapk = ro[0] - eb->x0;
+                if (gapk >= 4 || (gapk >= 3 && eb->x0a == 0))
+                    vbd = 1;
                 else
-                    vb = 0;
-                va = 1;
+                    vbd = 0;
+                vao = 1;
                 break;
             default:
-                gap = -10;
-                vb = va = 0;
+                gapk = -10;
+                vbd = vao = 0;
                 break;
             }
-            if (!va && !vb)
-                ok = 0;
-            else if (va && vb) {
+            if (!vao && !vbd)
+                oko = 0;
+            else if (vao && vbd) {
                 if (D_db81 < 1 || sub_s004_0e76_20f6(1, 2) > 1)
-                    va = 0;
+                    vao = 0;
                 else
-                    vb = 0;
+                    vbd = 0;
             }
-            x1 = y1 = -1;
-            y0 = x0 = 40;
-            len = w = off = kind = 0;
-            if (ok && va) {
-                len = sub_s004_0e76_20f6(off = 1, 2) + 1;
-                w = sub_s004_0e76_20f6(1, kind = 4);
-                w = w >= gap ? w : gap;
-            } else if (ok && vb) {
-                kind = 5;
-                len = sub_s004_0e76_20f6(1, 4) + 1;
-                w = sub_s004_0e76_20f6(1, off = 2) + 1;
-                w = w >= gap - 1 ? w : gap - 1;
+            x1d = y1d = -1;
+            y0b = x0b = 40;
+            lenc = wh = offl = kindo = 0;
+            if (oko && vao) {
+                lenc = sub_s004_0e76_20f6(offl = 1, 2) + 1;
+                wh = sub_s004_0e76_20f6(1, kindo = 4);
+                wh = wh >= gapk ? wh : gapk;
+            } else if (oko && vbd) {
+                kindo = 5;
+                lenc = sub_s004_0e76_20f6(1, 4) + 1;
+                wh = sub_s004_0e76_20f6(1, offl = 2) + 1;
+                wh = wh >= gapk - 1 ? wh : gapk - 1;
             }
-            if (ok)
-                switch (dir) {
+            if (oko)
+                switch (diro) {
                 case 0:
-                    y1 = r[2] - off;
-                    if (e->x0a == 0) {
-                        y0 = e->x2;
-                        x0 = e->x0 - sub_s004_0e76_20f6(1, len - 1) + 1;
-                        x0 = x0 >= r[0] ? x0 : r[0];
+                    y1d = ro[2] - offl;
+                    if (eb->x0a == 0) {
+                        y0b = eb->x2;
+                        x0b = eb->x0 - sub_s004_0e76_20f6(1, lenc - 1) + 1;
+                        x0b = x0b >= ro[0] ? x0b : ro[0];
                     } else {
-                        x0 = e->x0;
-                        y0 = y1 - w + 1;
+                        x0b = eb->x0;
+                        y0b = y1d - wh + 1;
                     }
-                    x1 = x0 + len - 1;
+                    x1d = x0b + lenc - 1;
                     break;
                 case 1:
-                    x0 = r[1] + off;
-                    if (e->x0a == 3) {
-                        x1 = x0 + (w >= 3 ? w : 3) - 1;
-                        y0 = e->x2 - sub_s004_0e76_20f6(1, len - 1) + 1;
-                        y0 = y0 >= r[2] ? y0 : r[2];
+                    x0b = ro[1] + offl;
+                    if (eb->x0a == 3) {
+                        x1d = x0b + (wh >= 3 ? wh : 3) - 1;
+                        y0b = eb->x2 - sub_s004_0e76_20f6(1, lenc - 1) + 1;
+                        y0b = y0b >= ro[2] ? y0b : ro[2];
                     } else {
-                        y0 = e->x2;
-                        x1 = x0 + w - 1;
-                        x1 = x1 >= e->x0 + 1 ? x1 : e->x0 + 1;
+                        y0b = eb->x2;
+                        x1d = x0b + wh - 1;
+                        x1d = x1d >= eb->x0 + 1 ? x1d : eb->x0 + 1;
                     }
-                    y1 = y0 + len - 1;
+                    y1d = y0b + lenc - 1;
                     break;
                 case 2:
-                    y0 = r[3] + off;
-                    if (e->x0a == 0) {
-                        y1 = y0 + (w >= 3 ? w : 3) - 1;
-                        x0 = e->x0 - sub_s004_0e76_20f6(1, len - 1) + 1;
-                        x0 = x0 >= r[0] ? x0 : r[0];
+                    y0b = ro[3] + offl;
+                    if (eb->x0a == 0) {
+                        y1d = y0b + (wh >= 3 ? wh : 3) - 1;
+                        x0b = eb->x0 - sub_s004_0e76_20f6(1, lenc - 1) + 1;
+                        x0b = x0b >= ro[0] ? x0b : ro[0];
                     } else {
-                        x0 = e->x0;
-                        y1 = e->x2 + 1 >= y0 + w - 1 ? e->x2 + 1 : y0 + w - 1;
+                        x0b = eb->x0;
+                        y1d = eb->x2 + 1 >= y0b + wh - 1 ? eb->x2 + 1 : y0b + wh - 1;
                     }
-                    x1 = x0 + len - 1;
+                    x1d = x0b + lenc - 1;
                     break;
                 case 3:
-                    x1 = r[0] - off;
-                    if (e->x0a == 3) {
-                        x0 = e->x0;
-                        y0 = e->x2 - sub_s004_0e76_20f6(1, len - 1) + 1;
-                        y0 = y0 >= r[2] ? y0 : r[2];
+                    x1d = ro[0] - offl;
+                    if (eb->x0a == 3) {
+                        x0b = eb->x0;
+                        y0b = eb->x2 - sub_s004_0e76_20f6(1, lenc - 1) + 1;
+                        y0b = y0b >= ro[2] ? y0b : ro[2];
                     } else {
-                        y0 = e->x2;
-                        x0 = x1 - w + 1;
+                        y0b = eb->x2;
+                        x0b = x1d - wh + 1;
                     }
-                    y1 = y0 + len - 1;
+                    y1d = y0b + lenc - 1;
                     break;
                 }
-            if (ok && (x1 < x0 || y1 < y0))
-                ok = 0;
-            if (ok)
-                for (k = j + 1, hit = 0; k < D_db71[ol]; k++) {
-                    e2 = D_db95 + ol * 4 + k;
-                    if (e2->x8 != ty || e2->x4 <= D_db4f[ol])
+            if (oko && (x1d < x0b || y1d < y0b))
+                oko = 0;
+            if (oko)
+                for (ka = jk + 1, hitc = 0; ka < D_db71[olh]; ka++) {
+                    e2a = D_db95 + olh * 4 + ka;
+                    if (e2a->x8 != tym || e2a->x4 <= D_db4f[olh])
                         continue;
-                    hit = 1;
-                    if (e2->x2 >= y0 && e2->x2 <= y1) {
-                        if (e2->x0 > e->x0)
-                            x1 = e2->x0 - 2 <= x1 ? e2->x0 - 2 : x1;
-                        else if (e2->x0 < e->x0)
-                            x0 = (e2->x0a == 3 ? e2->x0 + 4 : e2->x0 + 3) >= x0 ?
-                                 (e2->x0a == 3 ? e2->x0 + 4 : e2->x0 + 3) : x0;
+                    hitc = 1;
+                    if (e2a->x2 >= y0b && e2a->x2 <= y1d) {
+                        if (e2a->x0 > eb->x0)
+                            x1d = e2a->x0 - 2 <= x1d ? e2a->x0 - 2 : x1d;
+                        else if (e2a->x0 < eb->x0)
+                            x0b = (e2a->x0a == 3 ? e2a->x0 + 4 : e2a->x0 + 3) >= x0b ?
+                                 (e2a->x0a == 3 ? e2a->x0 + 4 : e2a->x0 + 3) : x0b;
                     }
-                    if (e2->x0 >= x0 && e2->x0 <= x1) {
-                        if (e2->x2 > e->x2)
-                            y1 = e2->x2 - 2 <= y1 ? e2->x2 - 2 : y1;
-                        else if (e2->x2 < e->x2)
-                            y0 = (e2->x0a == 0 ? e2->x2 + 4 : e2->x2 + 3) >= y0 ?
-                                 (e2->x0a == 0 ? e2->x2 + 4 : e2->x2 + 3) : y0;
+                    if (e2a->x0 >= x0b && e2a->x0 <= x1d) {
+                        if (e2a->x2 > eb->x2)
+                            y1d = e2a->x2 - 2 <= y1d ? e2a->x2 - 2 : y1d;
+                        else if (e2a->x2 < eb->x2)
+                            y0b = (e2a->x0a == 0 ? e2a->x2 + 4 : e2a->x2 + 3) >= y0b ?
+                                 (e2a->x0a == 0 ? e2a->x2 + 4 : e2a->x2 + 3) : y0b;
                     }
                 }
-            hit = 0;
-            if (ok)
-                for (slot = 0; !hit && slot < D_db67[D_db81];) {
-                    sl = D_db65 + (slot + D_db81 * 16) * 5;
-                    if (sl[0] <= e->x0 && sl[1] >= e->x0 && sl[2] <= e->x2 && sl[3] >= e->x2)
-                        hit = 1;
+            hitc = 0;
+            if (oko)
+                for (slotn = 0; !hitc && slotn < D_db67[D_db81];) {
+                    slb = D_db65 + (slotn + D_db81 * 16) * 5;
+                    if (slb[0] <= eb->x0 && slb[1] >= eb->x0 && slb[2] <= eb->x2 && slb[3] >= eb->x2)
+                        hitc = 1;
                     else
-                        hit = 0;
-                    if (!hit)
-                        slot++;
+                        hitc = 0;
+                    if (!hitc)
+                        slotn++;
                 }
-            if (ok && hit) {
-                switch (dir) {
+            if (oko && hitc) {
+                switch (diro) {
                 case 0:
                 case 2:
-                    x0 = sl[0] + 1 >= x0 ? sl[0] + 1 : x0;
-                    x1 = sl[1] - 1 <= x1 ? sl[1] - 1 : x1;
-                    y0 = sl[2] >= y0 ? sl[2] : y0;
-                    y1 = sl[3] <= y1 ? sl[3] : y1;
+                    x0b = slb[0] + 1 >= x0b ? slb[0] + 1 : x0b;
+                    x1d = slb[1] - 1 <= x1d ? slb[1] - 1 : x1d;
+                    y0b = slb[2] >= y0b ? slb[2] : y0b;
+                    y1d = slb[3] <= y1d ? slb[3] : y1d;
                     break;
                 case 1:
                 case 3:
-                    x0 = sl[0] >= x0 ? sl[0] : x0;
-                    x1 = sl[1] <= x1 ? sl[1] : x1;
-                    y0 = sl[2] + 1 >= y0 ? sl[2] + 1 : y0;
-                    y1 = sl[3] - 1 <= y1 ? sl[3] - 1 : y1;
+                    x0b = slb[0] >= x0b ? slb[0] : x0b;
+                    x1d = slb[1] <= x1d ? slb[1] : x1d;
+                    y0b = slb[2] + 1 >= y0b ? slb[2] + 1 : y0b;
+                    y1d = slb[3] - 1 <= y1d ? slb[3] - 1 : y1d;
                     break;
                 }
-            } else if (ok)
-                slot = -1;
-            if (ok && e->x0a == 3 && (!va || dir != 3))
-                x1 = x0 + 2 >= x1 ? x0 + 2 : x1;
-            else if (ok && e->x0a == 0 && (!va || dir != 0))
-                y1 = y0 + 2 >= y1 ? y0 + 2 : y1;
-            if (ok && (e->x0 < x0 || e->x0 > x1 || e->x2 < y0 || e->x2 > y1))
-                ok = 0;
-            if (ok && sub_s005_1551_00bc(D_db81, x0, x1, y0, y1) >= 0)
-                ok = 0;
-            if (ok) {
-                k = sub_s005_1551_0006(0, ty, ol, x0, x1, y1);
-                if (k < 0)
-                    k = sub_s005_1551_0006(3, ty, ol, y0, y1, x1);
-                if (k >= 0)
-                    ok = 0;
+            } else if (oko)
+                slotn = -1;
+            if (oko && eb->x0a == 3 && (!vao || diro != 3))
+                x1d = x0b + 2 >= x1d ? x0b + 2 : x1d;
+            else if (oko && eb->x0a == 0 && (!vao || diro != 0))
+                y1d = y0b + 2 >= y1d ? y0b + 2 : y1d;
+            if (oko && (eb->x0 < x0b || eb->x0 > x1d || eb->x2 < y0b || eb->x2 > y1d))
+                oko = 0;
+            if (oko && sub_s005_1551_00bc(D_db81, x0b, x1d, y0b, y1d) >= 0)
+                oko = 0;
+            if (oko) {
+                ka = sub_s005_1551_0006(0, tym, olh, x0b, x1d, y1d);
+                if (ka < 0)
+                    ka = sub_s005_1551_0006(3, tym, olh, y0b, y1d, x1d);
+                if (ka >= 0)
+                    oko = 0;
             }
-            if (!ok) {
-                for (k = 0; !ok && k < D_db71[ol]; k++) {
-                    e2 = D_db95 + ol * 4 + k;
-                    if (e2->x0 == e->x0 && e2->x2 == e->x2)
-                        ok = 1;
+            if (!oko) {
+                for (ka = 0; !oko && ka < D_db71[olh]; ka++) {
+                    e2a = D_db95 + olh * 4 + ka;
+                    if (e2a->x0 == eb->x0 && e2a->x2 == eb->x2)
+                        oko = 1;
                     else
-                        ok = 0;
+                        oko = 0;
                 }
-                if (ok) {
-                    i = e->x4;
-                    r = D_db3b + (i + ol * 30) * 4;
-                    x0 = r[0];
-                    x1 = r[1];
-                    y0 = r[2];
-                    y1 = r[3];
-                    kind = D_db91[i + ol * 30];
+                if (oko) {
+                    ig = eb->x4;
+                    ro = D_db3b + (ig + olh * 30) * 4;
+                    x0b = ro[0];
+                    x1d = ro[1];
+                    y0b = ro[2];
+                    y1d = ro[3];
+                    kindo = D_db91[ig + olh * 30];
                 }
             }
-            sub_s006_1a57_000c(kind, x0, x1, y0, y1, dir);
-            sub_s006_1a57_042e(slot, i = D_db45[D_db81] - 1);
+            sub_s006_1a57_000c(kindo, x0b, x1d, y0b, y1d, diro);
+            sub_s006_1a57_042e(slotn, ig = D_db45[D_db81] - 1);
         }
-        sub_s006_18fa_0fd4(e->x0, e->x2, up, i, e->x0a, j);
+    call:
+        sub_s006_18fa_0fd4(eb->x0, eb->x2, upo, ig, eb->x0a, jk);
+        goto jinc;
     }
 }
 

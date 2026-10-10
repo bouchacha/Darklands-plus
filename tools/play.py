@@ -140,7 +140,17 @@ exit
         alive = db.poll() is None
     finally:
         db.kill()
-        xvfb.kill()
+        xvfb.terminate()
+        try:
+            xvfb.wait(5)
+        except Exception:
+            xvfb.kill()
+        n = DISPLAY[1:]
+        for lf in ('/tmp/.X%s-lock' % n, '/tmp/.X11-unix/X%s' % n):   # don't leak displays
+            try:
+                os.unlink(lf)
+            except OSError:
+                pass
         log.close()
         if not keep:
             shutil.rmtree(work, ignore_errors=True)

@@ -1,0 +1,17 @@
+# battle.txt: overland encounter -> fight -> tactical battle (s002, s004-s013 battlefields, s014-s025 combat),
+# then the loot screen (s040). Encounters are random, so this is an INTERACTIVE recipe for
+# tools/playtests/lockstep.py, not a play.py script. Reliability: ~1 battle per 5-10 minutes of travel.
+#   L="python3 -I tools/playtests/lockstep.py"
+#   $L start O orig & $L start X build/qa/func_fix.EXE & wait          # same second -> same seed
+#   $L do "QUICKSTART; click; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 4; click; wait 6; at 300 25; click; wait 8; click; wait 4; shot a" O X
+#   (look at build/qa/sess/last.png = O | X side by side, 2x)
+#   repeat: $L do "at <x> <y>; click; wait 20; shot a" O X        # click a map point 40-80 px from the party, on land
+#   when a card appears: $L do "click; wait 3; shot a" O X          # shows the options; pick the fighting one:
+#     "ignore his warning and press onward" / "attack at once" / "draw weapons and fight" /
+#     "charge into the fray" / "stoutly refuse to pay" -> "draw weapons and fight"
+#   $L do "at 200 <option y>; click; wait 6; click; wait 10; shot a; key space; wait 10; shot b; wait 20; shot c" O X
+#   expected (original): party + enemies visible, battle paused at start, normal blue sidebar; after the
+#   fight the loot screen lists real item names.
+#   $L stop O X
+# Found with it (2026-10-09): garbled sidebar + view not on the party (all combat drafts, or
+# s002/s004-s013 + s015-s025 drafts); garbage loot names (s014 drafts). See build/qa/REPORT.md.

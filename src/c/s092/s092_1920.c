@@ -50,7 +50,7 @@ char *strcpy(char *, const char *);
 int far rand_mod();
 int far mouse_show();
 int far mouse_hide();
-int far sub_s014_0e76_199c();
+int far sub_s029_0e76_199c();
 int far party_get();
 int far party_avg_attr();
 int far loc_reputation_adj();
@@ -108,7 +108,7 @@ int far sub_s092_1920_0000(void)
     opt_flag_7 = 1;
     opt_flag_8 = 1;
     opt_flag_9 = 1;
-    cur_rep = sub_s014_0e76_199c(cur_loc);
+    cur_rep = sub_s029_0e76_199c(cur_loc);
     sub_s092_1920_0546();
     if (next_card == 0xc2) {
         do {
