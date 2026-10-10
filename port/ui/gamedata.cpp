@@ -98,6 +98,7 @@ void gamedata_load(const char *dir)
             d.shortname = std::string((const char *)r + 20, strnlen((const char *)r + 20, 10));
             d.type = w16(r + 30); d.flags = w16(r + 32); d.flags2 = w16(r + 34);
             d.weight = r[37]; d.quality = r[38]; d.value = w16(r + 44);
+            d.flags5 = r[36]; d.rarity = r[39];
             d.mineral = (d.flags2 & 0x1000) != 0;
             d.kind = classify(d);
             gamedata.items.push_back(d);
@@ -129,6 +130,7 @@ void gamedata_load(const char *dir)
             c.size = w16(r + 0x40); c.type = w16(r + 0x58); c.buildings = w16(r + 0x5e);
             for (int k = 0; k < 9; k++) c.shopq[k] = r[0x62 + k];
             c.x = w16(r + 0x42); c.y = w16(r + 0x44);
+            c.seed = w16(r + 0x56);
             gamedata.cities.push_back(c);
         }
     }

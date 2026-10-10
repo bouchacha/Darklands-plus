@@ -23,7 +23,8 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE;
 
 static bool open_menu;
 static int want_tab = -1;
-extern "C" void ui_select_tab(int t) { want_tab = t; }
+extern int ui_want_subtab;
+extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head;
 ImFont *ui_font_small;
 extern "C" void tab_inventory(void);
@@ -31,6 +32,8 @@ extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void tab_journal(void);
 extern "C" void journal_init(void);
+extern "C" void journal_set(int on);
+extern "C" int journal_enabled(void);
 static SDL_Window *g_win;
 static int dirty_config;
 UiSettings ui_settings = { 1, 0, 0 };
@@ -139,6 +142,11 @@ static void tab_helpers(void)
     if (ImGui::RadioButton("As the difficulty level allows (numbers, words or nothing)", c == 1)) c = 1;
     if (ImGui::RadioButton("Off", c == 0)) c = 0;
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
+
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Town journal"); ImGui::PopFont();
+    bool j = journal_enabled();
+    if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }
+    ImGui::TextDisabled("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
 }
 
 static void tab_display(void)
