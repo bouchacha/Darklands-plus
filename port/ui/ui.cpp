@@ -15,6 +15,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/mods.h"
 #include "../mods/assist.h"
+#include "../mods/travel.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -31,6 +32,7 @@ extern "C" void tab_inventory(void);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void tab_journal(void);
+extern "C" void tab_travel(void);
 extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
 extern "C" int journal_enabled(void);
@@ -150,6 +152,14 @@ static void tab_helpers(void)
     ImGui::TextDisabled("Moves are planned around walls and furniture with a full route search instead of the "
                         "original wall-following, which gives up on long or winding routes.");
 
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
+    bool ta = travel_enabled; int tf = travel_fast;
+    if (ImGui::Checkbox("Auto-travel along roads (Travel tab, or Ctrl+click on the map)", &ta)) { travel_set(ta, tf); dirty_config = 1; }
+    ImGui::TextUnformatted("Pace of auto-travel:"); ImGui::SameLine();
+    if (ImGui::RadioButton("as walking", tf == 0)) { travel_set(ta, 0); dirty_config = 1; } ImGui::SameLine();
+    if (ImGui::RadioButton("4x", tf == 1)) { travel_set(ta, 1); dirty_config = 1; } ImGui::SameLine();
+    if (ImGui::RadioButton("at once", tf == 2)) { travel_set(ta, 2); dirty_config = 1; }
+
     ImGui::PushFont(font_head); ImGui::SeparatorText("Town journal"); ImGui::PopFont();
     bool j = journal_enabled();
     if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }
@@ -252,8 +262,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[] = { "Inventory", "Alchemy", "Journal", "Helpers", "Mods", "Display & sound", "Item records", "About" };
-                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_journal, tab_helpers, tab_mods, tab_display, tab_party, tab_about };
+                const char *names[] = { "Inventory", "Alchemy", "Journal", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About" };
+                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_journal, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about };
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
                 }

@@ -260,6 +260,9 @@ static void run_script(void)
         } else if (!strcmp(s->cmd, "release")) { mouse_b &= ~atoi(s->arg); send_mouse(); }
         else if (!strcmp(s->cmd, "shot")) save_bmp(s->arg);
         else if (!strcmp(s->cmd, "utab")) ui_select_tab(atoi(s->arg));
+        else if (!strcmp(s->cmd, "travel")) { void travel_click(int, int); travel_click(x, y); }   /* as Ctrl+click at game x,y */
+        else if (!strcmp(s->cmd, "travelto")) { int travel_to_loc(int, const char *); travel_to_loc(atoi(s->arg), "test"); }
+        else if (!strcmp(s->cmd, "travelnear")) { int travel_nearest(int); travel_nearest(atoi(s->arg)); }   /* nearest location of a type */
         else if (!strcmp(s->cmd, "ugive")) { int a = 0, b = 0, c = 0; sscanf(s->arg, "%d,%d,%d", &a, &b, &c); void ui_give(int, int, int); ui_give(a, b, c); }
         else if (!strcmp(s->cmd, "uclick")) {            /* a click on the interface, window pixels */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
@@ -328,6 +331,11 @@ void plat_events(void)
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
+                int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
+                void travel_click(int, int); travel_click(gx, gy);       /* Ctrl+click on the map: travel there */
+                break;
+            }
             int b = e.button.button == SDL_BUTTON_LEFT ? 1 : e.button.button == SDL_BUTTON_RIGHT ? 2 : 4;
             if (e.type == SDL_MOUSEBUTTONDOWN) mouse_b |= b; else mouse_b &= ~b;
             send_mouse(); break; }

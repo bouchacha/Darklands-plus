@@ -77,7 +77,9 @@ static void draw_chances(void)
     ImGui::PopFont();
 }
 
+extern "C" void travel_overlay(void);
 extern "C" void ui_overlay(void)
 {
     draw_chances();
+    travel_overlay();
 }

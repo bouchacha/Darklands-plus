@@ -304,8 +304,8 @@ static void sweep(int i, int n)
         g_wb(0xe0a2, 0); g_wb(0xd697, 1); g_wb(0xd6cd, 0xff);
         int dest = collide(tx, ty);
         int e = 0; uint64_t t0 = plat_ticks_us();
-        int ln = -1;
-        if (dest == 0) { cell_bfs(tx, ty); int c0 = (x >> 5) * 40 + (y >> 4); if (celld[c0] >= 0) ln = search(x, y, tx, ty, &e); }
+        int ln = -1, unreach = 0;
+        if (dest == 0) { cell_bfs(tx, ty); int c0 = (x >> 5) * 40 + (y >> 4); if (celld[c0] >= 0) ln = search(x, y, tx, ty, &e); else unreach = 1; }
         tn += plat_ticks_us() - t0;
         g_wb(0xe0a2, s_e0a2); g_wb(0xd697, s_d697);
         if (dest != 0) continue;
@@ -319,6 +319,8 @@ static void sweep(int i, int n)
         eval_restore(snap); eval_free(snap);
         hook_install(14, 0x12f7, 0x000a, path_find_hook);
         nat += ln >= 0; orig += ro == 1; onlyn += ln >= 0 && ro != 1; onlyo += ln < 0 && ro == 1;
+        if (ln < 0 && ro == 1) fprintf(stderr, "pathfix sweep: native failed (%d,%d)->(%d,%d): %s, %d expanded, original %d steps\n",
+                                       x, y, tx, ty, unreach ? "cells unreachable" : "search gave up", e, lo);
         if (ln >= 0 && ro == 1) { both++; steps_n += ln; steps_o += lo; }
     }
     g_ww((u16)(c + 8), stx); g_ww((u16)(c + 0x0a), sty); g_wb((u16)(c + 0x4a), star);
