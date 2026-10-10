@@ -376,6 +376,7 @@ class Linker:
                 img, frame = segmap[sname]['image'], segmap[sname]['frame']
                 base = segmap[sname].get('offset', 0)    # e.g. a compiled C _TEXT placed mid-segment
                 m.__dict__.setdefault('segplace', {})[si] = (img, frame, base)
+            mine = set()
             for si, off, blob in m.data:
                 img, frame, base = m.segplace[si]
                 off += base
@@ -384,10 +385,13 @@ class Linker:
                 if lin < 0 or lin + len(blob) > len(I['mem']):
                     raise LinkError('%s: data outside image %s at %x' % (m.path, img, frame * 16 + off))
                 for k, bt in enumerate(blob):
-                    if I['written'][lin + k] and I['mem'][lin + k] != bt:
+                    # a module may rewrite its own bytes (MSC emits code with zero placeholders and
+                    # then the _based(_segname("_CODE")) data over them); other modules may not
+                    if I['written'][lin + k] and I['mem'][lin + k] != bt and (img, lin + k) not in mine:
                         raise LinkError('%s: overlapping data at %s:%x' % (m.path, img, frame * 16 + off + k))
                     I['mem'][lin + k] = bt
                     I['written'][lin + k] = 1
+                    mine.add((img, lin + k))
             for n, si, off in m.pubs:
                 if si == 0:
                     continue                                # absolute public (EQU) - not needed

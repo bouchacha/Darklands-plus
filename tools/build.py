@@ -174,7 +174,7 @@ def main():
                if x['orig_size'] is not None
                and os.path.relpath(x['path'], os.path.join(REPO, 'src', 'wip')) not in excl]
         print('functional: %d drafts from src/wip' % len(wip))
-        a.overlay = list(a.overlay) + [('__list__', wip)]
+        a.overlay = [('__list__', wip)] + list(a.overlay)     # explicit mod dirs win over drafts
     if a.overlay:
         if not a.mod:
             raise SystemExit('--overlay needs --mod')
@@ -210,11 +210,11 @@ def main():
             for dn, ln in c['datasegs'].items():
                 if dn not in c['orig_slots']:
                     raise SystemExit('%s: the original module had no %s data; put new strings and '
-                                     'variables in far data (e.g. static char far s[] = "...";)' % (c['path'], dn))
+                                     'variables in the code segment: static char _based(_segname("_CODE")) s[] = "..."; and pass (char far *)s' % (c['path'], dn))
                 soff, ssz = c['orig_slots'][dn]
                 if ln > ssz:
                     raise SystemExit('%s: %s data grew from %d to %d bytes, but DGROUP is full; move '
-                                     'new strings to far data (static char far s[] = "...";)' % (
+                                     'new strings to the code segment: static char _based(_segname("_CODE")) s[] = "..."; (use (char far *)s)' % (
                                          c['path'], dn, ssz, ln))
                 c['data'][dn] = soff
             for dn, (soff, ssz) in c['orig_slots'].items():

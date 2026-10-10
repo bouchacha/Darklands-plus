@@ -60,15 +60,15 @@ after: it must be identical (and the same after any later edit of game.h).
 ## Memory and build rules (what a mod may do)
 
 * **DGROUP is full.** A module's string literals and initialised data (`_DATA`, `CONST`) may
-  shrink but not grow. New text goes into far data: `static char far s_new[] = "...";`,
-  copied with `_fstrcpy` or passed as `char far *`. A module that had no `_DATA` cannot get
-  any.
+  shrink but not grow. New text goes into the code segment:
+  `static char _based(_segname("_CODE")) s_new[] = "...";`, used as `(char far *)s_new`
+  (copied with `_fstrcpy` or passed as `char far *`). This takes no DGROUP space. New
+  variables: a `static` in the code segment the same way (read/write through a far pointer).
 * **Root code cannot grow.** The resident root is not re-laid out: a root draft that is
   longer than the original is skipped by `--functional` (and a root mod must fit). Overlay
   code may grow: `--mod` re-lays out the overlay tree around the larger code.
 * **Only existing globals and functions.** Declare what you use at the top of the file
-  (`extern struct cbt combatants[];`, `int far rand_mod();`). New globals: far data in the
-  module.
+  (`extern struct cbt combatants[];`, `int far rand_mod();`). New globals: code-segment statics (see above).
 * **Overlays are siblings.** A function of another overlay is called through its vector
   (`*_vec`, or the card.h vector names); calling `sub_...` of a sibling overlay directly only
   works when that overlay is a parent of yours (s029 is the parent of s030..s043, s014 of

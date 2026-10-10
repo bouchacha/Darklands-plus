@@ -163,11 +163,11 @@ Matching the original code needs that. Your mod does not.)
 3. Rules for the edited code:
    - **Code may grow.** The overlays are re-laid out around the larger function.
    - **DGROUP is full.** The module's string literals (`_DATA`) may shrink but must not
-     grow. Put new text in far data: `static char far s_mine[] = "...";`. Copy it with
-     `_fstrcpy((char far *)msg_buf, s_mine);` and use `strcpy` only for the existing
-     literals. A module that had no `_DATA` at all cannot get any. (In this tree,
-     `tools/cport.py` still rejects the far segment that such a static creates (`X5_DATA`),
-     so check that the build accepts it.)
+     grow. Put new text in the code segment:
+     `static char _based(_segname("_CODE")) s_mine[] = "...";` and use it as a far pointer:
+     `_fstrcpy((char far *)msg_buf, (char far *)s_mine);`. This needs no DGROUP space at all
+     (a `static char far` array also works in some modules, but needs a CONST slot that a
+     module may not have to spare). Use `strcpy` only for the existing literals.
    - Call only functions and use only variables that already exist: anything in card.h,
      `sub_...` / `vec_...` labels, and `D_xxxx` globals. Declare each one at the top of
      the file, e.g. `int far practice_skill();`.
