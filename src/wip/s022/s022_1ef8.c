@@ -1,7 +1,9 @@
 /* place: s022 1ef8:0000 */
 /* orig: size=07da CONST=7df2+0002 _DATA=2358+008f */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 3/5, all functions written (03e4, 04e4, 07aa match).
+/* w1 (2026-10-10): 051c now differs only in slot order (pragma a + 5-byte copy loop gives the
+ * original `mov cx,2; rep movsw; movsb`): orig k -6, more -8, di home -0xa, cnt -0xc, counter -0xe.
+ * status: wip 3/5, all functions written (03e4, 04e4, 07aa match).
  * 20a5 data: `extern int far F_20a5_1f44[];` (a far ARRAY gives `mov ax,SEG; mov es,ax`).
  * 051c blocked: 5-byte struct copy is `mov cx,2; rep movsw; movsb` (6.00A: movsw; movsw; movsb).
  * 0000 blocked: loop-pointer home store scheduled before the 13-byte struct copy, copy uses
@@ -303,6 +305,7 @@ void far sub_s022_1ef8_04e4(int i)
     show_message(buf, 0x96);
 }
 
+#pragma optimize("a", on)
 void far choose_party_order(void)
 {
     char msg[0x50];
@@ -383,13 +386,14 @@ void far choose_party_order(void)
     for (i = 0; i < 5; i++)
         if (cbt_selected[i] == 1)
             sub_s022_1ef8_07aa(i, &more);
-    *(struct s5 *)cbt_selected = saved;
+    for (i = 0; i < 5; i++) cbt_selected[i] = saved.b[i];
     party_panel_frames(0x100);
     if (move_mode == 2)
         single_file_vec();
     card_window->f0c = s1;
     card_window->f0e = s2;
 }
+#pragma optimize("a", off)
 
 static void near sub_s022_1ef8_07aa(int i, int *more)
 {

@@ -20,6 +20,7 @@
      0cfa  F_20a5_7c4d[i] = endurance * 64 / max endurance (255 = out)
      0e22  re-evaluate the target of i: keep it, help a friend being attacked, or pick the
            weakest reachable opponent (endurance fraction + path cost / 5)
+   w1 (2026-10-10): 9 match; + 0418 (7 dummy externs D_ffd* before it).
    status: 16/16 written, 8 match (06cc: #pragma optimize("a", on), m4; 09ae: pragma a + the status test written twice
    (outer guard and inside the inner loop), m4; 047e: pragma a, n/k home stores left; 0c2a now: AI tables are one far struct F_20a5_787e, CONST
    7db2/7db4/7db6 like the original, re-stamped e8 2026-10-09). 0028 (far) and the near functions 06cc 0840 09ae 0ba8 0c2a 0cfa
@@ -278,6 +279,13 @@ void far sub_s014_1db7_026a(void)
 }
 
 /* enemy i left animation slot `kind`: free the slot when nobody else uses it */
+extern int D_ffd0;
+extern int D_ffd1;
+extern int D_ffd2;
+extern int D_ffd3;
+extern int D_ffd4;
+extern int D_ffd5;
+extern int D_ffd6;
 void far sub_s014_1db7_0418(int i, int kind)
 {
     int j, f;

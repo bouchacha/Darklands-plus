@@ -120,6 +120,15 @@ void far draw_text_wrapped_far(struct textwin *w, char far *text, int a, int b, 
 }
 
 /* draw_text_wrapped */
+/* w4: 8 unused externs: symbol-table position (operand / compare order below) */
+extern int D_ffa0;
+extern int D_ffa1;
+extern int D_ffa2;
+extern int D_ffa3;
+extern int D_ffa4;
+extern int D_ffa5;
+extern int D_ffa6;
+extern int D_ffa7;
 void far draw_text_wrapped(struct textwin *w, char *text, int width, int x, int y, int spacing,
                            struct hotspots *hs, int init, int stop, int leading, int icon,
                            int color)
@@ -338,6 +347,27 @@ void far measure_text_wrapped_far(struct textwin *w, char far *text, int a, int 
 
 /* lay out wrapped text without drawing it: returns (y_end - 1) << 16 | last line width */
 /* measure_text_wrapped */
+/* w4: 10 unused externs: symbol-table position (operand / compare order below) */
+extern int D_ffc0;
+extern int D_ffc1;
+extern int D_ffc2;
+extern int D_ffc3;
+extern int D_ffc4;
+extern int D_ffc5;
+extern int D_ffc6;
+extern int D_ffc7;
+extern int D_ffc8;
+extern int D_ffc9;
+/* w4: 9 unused externs: symbol-table position (operand / compare order below) */
+extern int D_ff90;
+extern int D_ff91;
+extern int D_ff92;
+extern int D_ff93;
+extern int D_ff94;
+extern int D_ff95;
+extern int D_ff96;
+extern int D_ff97;
+extern int D_ff98;
 long far measure_text_wrapped(struct textwin *w, char *text, int width, int x, int y,
                               int spacing, struct hotspots *hs, int a, int b, int leading,
                               int icon)

@@ -32,40 +32,38 @@ int far sub_s005_146d_0a3a(int, int);
 void far sub_s005_146d_0ae8(int, int);
 void far sub_s006_1a57_02a8(int, int, int);
 
-void far gen_add_room(int kind, int x0, int x1, int y0, int y1, int dir)
+void far sub_s006_1a57_000c(int kind, int x0, int x1, int y0, int y1, int dir)
 {
     int n, i, x, y, w, h, j, k;
-    int _based(gen_work) *r;
-    int _based(gen_work) *t;
+    int far *r;
+    int far *q;
+    int far *t;
 
-    if (x0 < 0 || x1 >= 40 || y0 < 0 || y1 >= 40 || x0 > x1 || y0 > y1 ||
+    if (x0 < 0 || x1 >= 40 || y0 < 0 || y1 >= 40 || x1 < x0 || y1 < y0 ||
         gen_rooms[gen_level] + 1 >= 30)
         return;
     n = gen_rooms[gen_level]++;
     i = gen_level * 30 + n;
-    r = D_db3b + i * 4;
+    r = (int far *)(D_db3b + i * 4);
     r[0] = x0;
     r[1] = x1;
     r[2] = y0;
     r[3] = y1;
     if (kind != 6) {
-        if (x0 < keep_x0)
-            keep_x0 = x0;
-        if (D_db3f < x1)
-            D_db3f = x1;
-        if (y0 < D_db41)
-            D_db41 = y0;
-        if (D_db43 < y1)
-            D_db43 = y1;
+        keep_x0 = keep_x0 > x0 ? x0 : keep_x0;
+        D_db3f = D_db3f < x1 ? x1 : D_db3f;
+        D_db41 = D_db41 > y0 ? y0 : D_db41;
+        D_db43 = D_db43 < y1 ? y1 : D_db43;
     }
     if (kind == 2 || kind == 3 || kind == 5 || kind == 4) {
-        D_db89[i] = 7;
+        q = (int far *)(D_db89 + i);
+        *q = 7;
         w = x1 - x0 + 1;
         h = y1 - y0 + 1;
         if (((w < 3 && h < 3) || w == 1 || h == 1) && (kind != 4 || (dir != 0 && dir != 3)))
-            D_db89[i] = 0;
+            *q = 0;
     }
-    t = gen_cell_type + gen_level * 1600;
+    t = (int far *)(gen_cell_type + gen_level * 1600);
     for (y = y0; y <= y1; y++)
         for (x = x0; x <= x1; x++)
             if (t[x * 40 + y] == 0)
@@ -100,68 +98,78 @@ void far gen_add_room(int kind, int x0, int x1, int y0, int y1, int dir)
  * a different kind (7 and 3 are separate, 5 and 6 connect to anything) */
 void far sub_s006_1a57_02a8(int l, int x, int y)
 {
-    int X, i, j, v, w, s, dx, dy;
-    unsigned char out, bit, nb;
-    unsigned char far *p;
+    int j, v, w;
+    struct {
+        int X, i;
+        char pad1;
+        unsigned char out;
+        int s;
+        char pad2[3];
+        unsigned char bit;
+        int dy, dx;
+        char pad3;
+        unsigned char nb;
+        unsigned char far *p;
+        char pad4[2];
+    } u;
 
-    if (x <= 0 || x >= 39 || y <= 0 || y >= 39)
+    if (x < 1 || x >= 39 || y < 1 || y >= 39)
         return;
-    X = l * 40 + x;
-    i = X * 40 + y;
-    v = gen_cell_type[i];
-    out = 0;
-    for (s = 0; s < 4; s++) {
-        switch (s) {
+    v = gen_cell_type[u.i = (u.X = l * 40 + x) * 40 + y];
+    u.out = 0;
+    for (u.s = 0; u.s <= 3; u.s++) {
+        switch (u.s) {
         case 0:
-            dx = 0;
-            dy = -1;
-            bit = 1;
-            nb = 4;
+            u.dx = 0;
+            u.dy = -1;
+            u.bit = 1;
+            u.nb = 4;
             break;
         case 1:
-            dx = 1;
-            bit = 2;
-            dy = 0;
-            nb = 8;
+            u.dx = 1;
+            u.bit = 2;
+            u.dy = 0;
+            u.nb = 8;
             break;
         case 2:
-            dx = 0;
-            bit = 4;
-            dy = 1;
-            nb = 1;
+            u.dx = 0;
+            u.bit = 4;
+            u.dy = 1;
+            u.nb = 1;
             break;
         case 3:
-            dx = -1;
-            bit = 8;
-            dy = 0;
-            nb = 2;
+            u.dx = -1;
+            u.bit = 8;
+            u.dy = 0;
+            u.nb = 2;
             break;
         default:
             continue;
         }
-        j = (X + dx) * 40 + dy + y;
+        j = (u.X + u.dx) * 40 + u.dy + y;
         w = gen_cell_type[j];
-        p = (unsigned char far *)(gen_cell_walls + j);
-        if (w < 2 || w > 8)
-            out |= bit;
-        else if (((w == 7) == (v == 7) || w == 5 || v == 5) &&
-                 ((w == 3) == (v == 3) || w == 6 || v == 6))
-            *p &= ~nb;
-        else {
-            out |= bit;
-            *p |= nb;
-        }
+        u.p = (unsigned char far *)(gen_cell_walls + j);
+        if (w > 1 && w < 9) {
+            if ((!((v == 7) ^ (w == 7)) || w == 5 || v == 5) &&
+                (!((v == 3) ^ (w == 3)) || w == 6 || v == 6))
+                *u.p &= ~u.nb;
+            else {
+                u.out |= u.bit;
+                *u.p |= u.nb;
+            }
+        } else
+            u.out |= u.bit;
     }
-    gen_cell_walls[i] = out;
+    gen_cell_walls[u.i] = u.out;
 }
 
 /* remove room r from free strip `slot` (-1: the strip that overlaps it) */
 void far sub_s006_1a57_042e(int slot, int r)
 {
     int n, lo, hi, a, b, k, v, found;
-    int _based(gen_work) *o;
-    struct gslot _based(gen_work) *s;
-    struct gslot _based(gen_work) *t;
+    int far *o;
+    struct gslot far *s;
+    struct gslot far *t;
 
     n = D_db67[gen_level];
     if (slot < -1 || slot >= n || r < 0 || r >= gen_rooms[gen_level])

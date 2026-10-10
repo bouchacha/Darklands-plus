@@ -28,6 +28,8 @@
    Sprite record +1c..+22 (e0..e3) hold the mouse hot spot box of a combatant sprite
    (x0, x1, y0, y1), or an effect kind >= 28000 (30000 member cursor, 31000 target cursor,
    31500 = 0x7b0c missiles/ground cursor, 32000 floor, 0x7d01.. walls).
+   w1 (2026-10-10): 11 match; + 34d6/35ce/0e9e via dummy externs (D_fc*, D_ffd*, D_fa*: compare
+   direction); 3404 do-while (6.00 hoists only D_c293 into bx).
    status: 27/27 written, 8 match (1e70 1f14 1fd4 2052 343c 347c 359a 07ec).
    m4: 13ae's b13/b14 parameters are int (callers push words / cbw); 07ec zero arm first. 3404 is hand-written asm in the
    original (`loop`), C equivalent here. */
@@ -632,6 +634,17 @@ void far sub_s014_14f7_0c92(void)
 
 /* blit the effects, age the effect lists, copy the dirty boxes to the screen */
 #pragma optimize("a", on)
+extern int D_fc0;
+extern int D_fc1;
+extern int D_fc2;
+extern int D_fc3;
+extern int D_fc4;
+extern int D_fc5;
+extern int D_fc6;
+extern int D_fc7;
+extern int D_fc8;
+extern int D_fc9;
+extern int D_fc10;
 void far sub_s014_14f7_0e9e(unsigned now)
 {
     int k, j, n, spr, kind;
@@ -1548,12 +1561,16 @@ void far sub_s014_14f7_3404(void)
     int *p;
     int dy;
 
-    if (missile_count > 0)
-        for (n = missile_count, p = (int *)0x9457; n != 0; n--, p += 13) {
+    if (missile_count > 0) {
+        p = (int *)0x9457;
+        n = missile_count;
+        do {
             dy = *p - D_c293;
             p[-5] = -(dy - p[-1]) - D_c26c + 0x85;
             p[-4] = dy + 0x55;
-        }
+            p += 13;
+        } while (--n);
+    }
 }
 
 /* animation set of combatant i */
@@ -1601,6 +1618,21 @@ int far sub_s014_14f7_347c(int x, int y, int w, int h, struct rect *r)
 }
 
 /* clip and blit (047c_0952) */
+extern int D_ffd0;
+extern int D_ffd1;
+extern int D_ffd2;
+extern int D_ffd3;
+extern int D_ffd4;
+extern int D_ffd5;
+extern int D_ffd6;
+extern int D_ffd7;
+extern int D_ffd8;
+extern int D_fa0;
+extern int D_fa1;
+extern int D_fa2;
+extern int D_fa3;
+extern int D_fa4;
+extern int D_fa5;
 int far sub_s014_14f7_34d6(struct rect *r, int x, int y, int w, int h, int spr)
 {
     if (w == 0 || h == 0)

@@ -73,6 +73,7 @@ struct menu {
 
 extern char far data_file[];
 extern int D_000c[];
+extern int D_0204;      /* w4: declared here (symbol table): 07d4 `D_0204 < D_9413` compare direction */
 extern int D_000e[];
 extern struct win *card_window2;
 extern struct win *card_window;
@@ -127,7 +128,6 @@ extern char *D_01ba;
 extern unsigned char opt_saint_msgs;
 extern unsigned char opt_sound;
 extern unsigned char opt_music;
-extern int D_0204;
 extern int D_0206;
 extern char D_07d3;
 extern char exit_requested;
@@ -501,26 +501,27 @@ void far menu_bar_track(struct menu *menus)
 #pragma optimize("a", on)
 void far menu_bar_draw(struct menu *m)
 {
-    int x;
-    int w;
+    /* w4: slots of the old compiler (x [bp-6], w [bp-4], two unused words); the dead
+       s.p1 store keeps the 0 in AX for D_9411 (6.00 form).  Left: push [si] vs push dx. */
+    struct { int p0; int x; int w; int p1; } s;
 
     if (D_9409 == 0) {
-        x = 3;
+        s.x = 3;
         mouse_hide();
         gfx_copy_rect(card_window, 0, 0, 0x104, 0xc, card_window2, 0, 0);
         copy_rect_saved(card_window, 0, 0, 0x104, 0xc, card_window2, 0, 0);
         draw_frame_box(card_window, 0, 0, 0x104, 0xc, 0x80);
-        D_9411 = 0;
+        D_9411 = s.p1 = 0;
         for (; strlen(m->name) != 0; m++) {
-            w = text_pixel_width(card_window, m->name);
-            m->x0 = x;
+            s.w = text_pixel_width(card_window, m->name);
+            m->x0 = s.x;
             if (m->has_items == 1)
                 card_window->f0c = 0;
             else
                 card_window->f0c = 7;
-            draw_text(card_window, x + 4, 3, m->name);
-            x += w + 8;
-            m->x1 = x - 1;
+            draw_text(card_window, s.x + 4, 3, m->name);
+            s.x += s.w + 8;
+            m->x1 = s.x - 1;
             D_9411++;
         }
         mouse_show();
@@ -535,34 +536,36 @@ void far menu_bar_draw(struct menu *m)
 /* open the dropdown for items at x: size it to the widest name and shortcut column, save
    the area under it, draw the frame and the items (grey when disabled) and highlight the
    item under y */
+#pragma optimize("a", on)
 void far menu_dropdown_open(struct item *items, int x, int y)
 {
-    int j;
-    int wname;
-    int wkey;
+    /* w4: slot order wkey [bp-6], wname [bp-4], j [bp-2] + pragma a (66 -> 31 diff lines).
+       Left: `it` in DX before the first loop, the second loop pointer on &it->enabled,
+       compare direction of D_0204 < D_9413. */
+    struct { int wkey; int wname; int j; } s;
     int w;
     struct item *it;
     int yy;
 
     D_9413 = 0;
-    wname = 0;
-    wkey = 0;
-    j = 0;
+    s.wname = 0;
+    s.wkey = 0;
+    s.j = 0;
     for (it = items; strlen(it->name) != 0; it++) {
-        if ((w = text_pixel_width(card_window, it->name)) > wname)
-            wname = w;
-        if ((w = text_pixel_width(card_window, it->key)) > wkey)
-            wkey = w;
+        if ((w = text_pixel_width(card_window, it->name)) > s.wname)
+            s.wname = w;
+        if ((w = text_pixel_width(card_window, it->key)) > s.wkey)
+            s.wkey = w;
         D_9413++;
     }
     D_9789 = x;
-    D_987b = x + wkey + wname + 9;
-    D_9a45 = D_9789 + wname + 6;
+    D_987b = x + s.wkey + s.wname + 9;
+    D_9a45 = D_9789 + s.wname + 6;
     D_99e7 = D_987b - D_9789 + 1;
     D_99e9 = (D_9413 << 3) + 0xe;
     copy_rect_saved(card_window, D_9789, 0xc, D_99e7, (D_9413 << 3) + 3, card_window2, D_9789, 0xc);
     draw_frame_box(card_window, D_9789, 0xb, D_99e7, (D_9413 << 3) + 4, 0x80);
-    for (j = 0, it = items, yy = 0xe; j < D_9413; j++, it++, yy += 8) {
+    for (s.j = 0, it = items, yy = 0xe; s.j < D_9413; s.j++, it++, yy += 8) {
         if (it->enabled == 1)
             card_window->f0c = 0;
         else
@@ -574,6 +577,7 @@ void far menu_dropdown_open(struct item *items, int x, int y)
         gfx_recolor_rect(card_window, D_9789, (D_0204 << 3) + 0xc, D_99e7, 8, 0, 9);
     D_940d = 1;
 }
+#pragma optimize("", on)
 
 /* open the sub-menu for subs at (x, y): like 07d4 with a third, centred column for item
    counts of 2 and more */

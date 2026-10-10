@@ -34,18 +34,18 @@ void far sub_s006_1a57_042e(int, int);
 /* the keep: room 0, and the 4 strips around it */
 void far sub_s006_15af_0000(void)
 {
-    int w, h, x0, x1, y0, y1, i;
-    struct gslot _based(gen_work) *s;
-    int _based(gen_work) *o;
+    int w, h, x0, x1, y0, y1, i, ta, tb, tc;
+    struct gslot far *s;
+    int far *o;
 
     if (gen_level == 1) {
-        w = roll_dice(1, 4) + 4;
-        h = w;
+        h = roll_dice(1, 4) + 4;
+        w = h;
         if (roll_dice(1, 2) > 1) {
-            if (roll_dice(1, 2) < 2)
-                h = w + roll_dice(1, 3) - 1;
+            if (roll_dice(1, 2) > 1)
+                w += roll_dice(1, 3) - 1;
             else
-                w = w + roll_dice(1, 3) - 1;
+                h += roll_dice(1, 3) - 1;
         }
         y0 = 20 - h / 2;
         x0 = 20 - w / 2;
@@ -64,17 +64,17 @@ void far sub_s006_15af_0000(void)
     o = D_db3b + gen_level * 120;
     s[0].a[3] = o[2] - 1;
     s[0].a[2] = D_db41 - 1;
-    s[2].a[2] = o[3] + 1;
+    s[2].a[2] = tc = o[3] + 1;
     s[2].a[3] = D_db43 + 1;
-    s[2].a[0] = s[0].a[0] = o[0] - 1;
-    s[2].a[1] = s[0].a[1] = o[1] + 1;
-    s[3].a[1] = o[0] - 1;
+    s[0].a[0] = s[2].a[0] = ta = o[0] - 1;
+    s[0].a[1] = s[2].a[1] = tb = o[1] + 1;
+    s[3].a[1] = ta;
     s[3].a[0] = keep_x0 - 1;
-    s[1].a[0] = o[1] + 1;
+    s[1].a[0] = tb;
     s[1].a[1] = D_db3f + 1;
-    s[3].a[2] = s[1].a[2] = o[2] - 1;
-    s[3].a[3] = s[1].a[3] = o[3] + 1;
-    for (i = 0; i < 4; i++)
+    s[1].a[2] = s[3].a[2] = o[2] - 1;
+    s[1].a[3] = s[3].a[3] = tc;
+    for (i = 0; i <= 3; i++)
         s[i].b = i;
 }
 
@@ -82,8 +82,8 @@ void far sub_s006_15af_0000(void)
 void far sub_s006_15af_01cc(int a)
 {
     int i, lo_i, hi_i, lo, hi, mid, k, v;
-    int _based(gen_work) *o;
-    struct gslot _based(gen_work) *s;
+    int far *o;
+    struct gslot far *s;
 
     if (gen_level != 1)
         return;
@@ -145,16 +145,16 @@ void far sub_s006_15af_01cc(int a)
 void far sub_s006_15af_0470(void)
 {
     int one, f, e, x, y;
-    int _based(gen_work) *o;
-    int (_based(gen_work) *w)[40];
-    int (_based(gen_work) *t)[40];
+    int far *o;
+    int (far *w)[40];
+    int (far *t)[40];
 
     one = gen_level == 1;
     f = 0;
     if (D_db91[30 + D_db4f[1] + 1] != 6)
         return;
     o = D_db3b + (30 + D_db4f[1] + 1) * 4;
-    w = (int (_based(gen_work) *)[40])(gen_cell_door + 1600);
+    w = (int (far *)[40])(gen_cell_door + 1600);
     if (gate_side == 0) {
         e = o[2];
         if (one) {
@@ -230,7 +230,7 @@ void far sub_s006_15af_0470(void)
     }
     if (!f)
         return;
-    t = (int (_based(gen_work) *)[40])(gen_cell_type + 1600);
+    t = (int (far *)[40])(gen_cell_type + 1600);
     for (x = o[0]; x <= o[1]; x++)
         for (y = o[2]; y <= o[3]; y++)
             t[x][y] = 6;

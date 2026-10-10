@@ -1,7 +1,10 @@
 /* place: s020 1ef8:0000 */
 /* orig: size=0774 _DATA=2242+008b */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: wip 1/3 (05e6), all functions written. 06b6: memsets now convert, but the original
+/* w1 (2026-10-10): 2/3. 06b6 MATCHES: int fill loops + pragma a (rep stosw) and explicit loop pointers p/q
+ * set after the store chain. 0000: 3-byte copy as char loop + pragma a (rep movsw ok); left: 6.00 turns
+ * cnt++ into cnt += n before the loop, far-pointer temps for the f60/f6a loops (frame +8).
+ * status: wip 1/3 (05e6), all functions written. 06b6 (old note): memsets now convert, but the original
  * loads the next loop's pointers (si=a53e, dx=9c73) before the memset chain; 6.00A's memset uses
  * DX itself so it never hoists them (6.00 vs 6.00A). 0000: 3-byte struct copy `mov cx,1; rep movsw` (6.00). Combat level loader (overlay s020, child of s014):
  * 0000 reads level%d.trn (enemy type table, 0xd6-byte records) into D_a895 count +
@@ -154,6 +157,7 @@ void far level_enemies_load(int);
 void far level_load(void);
 void far combat_state_clear(void);
 
+#pragma optimize("a", on)
 void far level_enemies_load(int level)
 {
     char msg[0x50];
@@ -211,7 +215,7 @@ void far level_enemies_load(int level)
         dst->fab = src->fd;
         dst->fa2 = src->f2;
         dst->fa0 = src->f0;
-        dst->fa7 = src->f9;
+        for (j = 0; j < 3; j++) ((char *)&dst->fa7)[j] = ((char far *)&src->f9)[j];
         for (j = 0; j < 7; j++)
             dst->f5d[j] = dst->f64[j] = src->f36[j];
         dst->f6b = src->f44;
@@ -281,6 +285,7 @@ void far level_enemies_load(int level)
         exit_(0);
     }
 }
+#pragma optimize("a", off)
 
 void far level_load(void)
 {
@@ -322,25 +327,29 @@ void far level_load(void)
     D_e114 = 0x1752;
 }
 
+#pragma optimize("a", on)
 void far combat_state_clear(void)
 {
     int i;
+    struct s12 *p; char *q;
 
     D_07d3 = 0;
     D_da4b = D_da49 = D_da4d = D_c2bb = D_da47 = D_da4f = D_da51 = D_da53 = combat_clock = 0;
-    memset(D_da6f, 0, 26);
-    memset(D_da55, 0, 26);
-    memset(D_da89, 0, 26);
-    memset(cbt_engage_time, 0, 26);
-    memset(D_d9b0, 0, 26);
-    memset(D_daa3, 0, 26);
-    memset(D_dabd, 0, 26);
-    memset(D_d948, 0, 26);
-    memset(cbt_giveup_timeout, 0, 26);
-    memset(D_d97c, 0, 26);
-    memset(D_d9ca, 0, 26);
-    for (i = 0; i < 13; i++) {
-        party[i].b = party[i].a = 8;
-        D_a53e[i].z = D_a53e[i].y = D_a53e[i].x = -536;
+    p = D_a53e; q = &party[0].a;
+    for (i = 0; i < 13; i++) D_da6f[i] = 0;
+    for (i = 0; i < 13; i++) D_da55[i] = 0;
+    for (i = 0; i < 13; i++) D_da89[i] = 0;
+    for (i = 0; i < 13; i++) cbt_engage_time[i] = 0;
+    for (i = 0; i < 13; i++) D_d9b0[i] = 0;
+    for (i = 0; i < 13; i++) D_daa3[i] = 0;
+    for (i = 0; i < 13; i++) D_dabd[i] = 0;
+    for (i = 0; i < 13; i++) D_d948[i] = 0;
+    for (i = 0; i < 13; i++) cbt_giveup_timeout[i] = 0;
+    for (i = 0; i < 13; i++) D_d97c[i] = 0;
+    for (i = 0; i < 13; i++) D_d9ca[i] = 0;
+    for (; q < &party[13].a; q += 128, p++) {
+        q[1] = q[0] = 8;
+        p->z = p->y = p->x = -536;
     }
 }
+#pragma optimize("a", off)

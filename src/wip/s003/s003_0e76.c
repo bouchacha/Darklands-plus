@@ -8,7 +8,8 @@
    PKWARE copyright/data block 10169..101e5 of s003_1016; for the same reason stamp.py --wip
    refuses the file ("stub" 19e8), and a stamp would cut that block out: NOT STAMPED, so
    --functional does not use it until srcfiles ends this file at 10169 (tool fix).
-   - 0000: 6.00 keeps D_d919 in CX and a copy of n in DI for `D_d90f += n` (not solved).
+   - 0000: 6.00 keeps D_d919 in CX and a copy of n in DI for `D_d90f += n`; w4: eglc off +
+     `register` n and a copy m gives the DI copy (13 -> 10 diff lines), the CX load is left.
    - 00dc: serialisation matches with `p += prev` written inside the next access
      (`*(p += 1) = D_x;`, `_fmemcpy((p += 0xcb2), ...)`) and pragma "c" off; the level
      loop differs (6.00 enregisters i / the entry pointer with DS = buffer segment, 6.00A
@@ -93,18 +94,22 @@ void far sub_s003_0e76_19ca(char *);
 void far sub_s003_0e76_19e8(char *, int);
 
 /* explode: read from the D_d90f memory block (D_d919 bytes left) */
+#pragma optimize("eglc", off)
 unsigned far pascal sub_s003_0e76_0000(char far *buf, unsigned far *size)
 {
-    unsigned n;
+    register unsigned n;
+    register unsigned m;
 
     n = *size;
     if (n > D_d919)
         n = D_d919;
     D_d919 -= n;
+    m = n;
     _fmemcpy(buf, D_d90f, n);
-    D_d90f += n;
+    D_d90f += m;
     return n;
 }
+#pragma optimize("", on)
 
 /* implode/explode: read from the file D_d90b */
 unsigned far pascal sub_s003_0e76_0040(char far *buf, unsigned far *size)

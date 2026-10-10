@@ -1,7 +1,9 @@
 /* place: s037 18c8:0004 */
 /* orig: size=3b4e CONST=7eae+0016 _DATA=442e+0370 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 10/15 match (0004 047c 04b2 053e 1738 20fa 38a6 3890 39ca 3a9e).
+/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 11/15 match (0004 047c 04b2 053e 10da 1738 20fa 38a6 3890 39ca 3a9e).
+   10da MATCHED (w2): the profession-list loop has no y variable (`i * 0xb + 0x2d` written out), so
+   6.00A strength-reduces it itself and the &D_8bd2[i] pointer gets the [bp-2] home.
    3a9e MATCHED (m1): `it.id = k = id;` with k indexing F_2e38_0890 (k in SI, stored to it.id).
    38a6 MATCHED (m1): `for (n = i = 0; ...)` (chain order decides SI/DI).
    058e (key handler): same length; left are 6.00 code-placement choices in the key
@@ -9,8 +11,7 @@
    (0eb6, 1032) and which copy of the cross-jumped 0x2247/0x3042 tail survives (1049..107c).
    0004 (main loop) MATCHES: #pragma optimize("a", on) (D_8c1e kept in BX) and no separate
    key copy - k itself is tested/passed after the mouse part (6.00A splits k: stack home,
-   loaded into DI for the tail). 10da (left panel): 6.00 temp slot [bp-2] for the strength-reduced
-   pointer init of the two list loops (`mov [bp-2],20abh; mov si,[bp-2]`). 20fa (reset) MATCHED (m1):
+   loaded into DI for the tail). 20fa (reset) MATCHED (m1):
    the clears are fill loops under #pragma optimize("a", on); pragma a also deletes the dead
    stores D_e824/D_e823 = 5 (kept: the later `= 0` stores are volatile) and turns the 7-byte
    copy loop into rep movs (kept a loop: the store is written twice). 22be (profession list,
@@ -788,12 +789,12 @@ void far sub_s037_18c8_10da(struct scr *p)
         draw_text_far(p, 0x47, 0x12, F_290e_1df7[10]);
         sub_s037_18c8_22be();
         p->colour = 0;
-        for (i = 0, y = 0x2d; i < D_8c00; i++, y += 0xb) {
+        for (i = 0; i < D_8c00; i++) {
             if (i >= 14)
                 break;
-            gfx_draw_pic(p, 0x40, y, D_e88c);
+            gfx_draw_pic(p, 0x40, i * 0xb + 0x2d, D_e88c);
             p->colour = 0;
-            draw_text_far(p, 0x44, y + 2, F_290e_1ee7[D_8bd2[i]]);
+            draw_text_far(p, 0x44, i * 0xb + 0x2f, F_290e_1ee7[D_8bd2[i]]);
         }
         gfx_recolor_rect(p, 0x44, D_8bfc * 0xb + 0x2f, 0x6c, 0xb, 0, 9);
     } else if (t == 4) {

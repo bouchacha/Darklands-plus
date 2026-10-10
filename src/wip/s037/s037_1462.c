@@ -1,8 +1,12 @@
 /* place: s037 1462:0000 */
 /* orig: size=4664 CONST=7ea6+0008 _DATA=403c+03b1 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 14/20 match (0348 0390 03d4 2922 2a68 38aa
-   3992 3a8a 3ae2 3b58 3cd6 3f30 4048 4562). 3b58 MATCHED (m1) by reordering its local
+/* status: ALL 20 FUNCTIONS WRITTEN; _DATA matches. 17/20 match (0348 0390 03d4 2760 2922 2a68 38aa
+   3992 3a8a 3ae2 3b58 3cd6 3f30 4048 4184 43e6 4562). 4184 MATCHED (w2) with #pragma optimize("a", on);
+   43e6 MATCHED (w2): pragma a + no `goto draw` (the redraw writes all three calls; 6.00 cross-jumps
+   the buf call into the first one).  2760 MATCHED (w2): no y variable (`i * 8 + 0x18` written out:
+   6.00's strength-reduced y gets the [bp-8] home) + locals declared n, ids, j, i, nr, h (compare
+   direction `cmp [i],ax`). 3b58 MATCHED (m1) by reordering its local
    declarations (n, i, nr, ids, h, c, fp): the `cmp dx,di` operand order follows them. Character creation main menu (pics\cretscrn.pic) -
    twin of s038 1462 (its 0000/01fe/024e/0292/02f8/23ec/25ca are 0000/0348/0390/03d4/0444/
    2760/2922 here; see that file for the charactr.tmp layout), plus save game (2a68/2ace),
@@ -15,11 +19,9 @@
        inline strcpy, cross-jump copy choice), imul operand order D_e7da * h.
      - 0000: same length now (key used directly in the tail instead of a copy, pragma "a");
        only the unused 2-byte slot above key is missing (key [bp-2] vs [bp-4]), as s038 0000.
-     - 2ace (save game, 3550/3548): `n > i` loop compares (`mov ax,i; cmp [n],ax`) come out
-       reversed; needs #pragma optimize("a") for D_017c kept in BX.
-     - 2760: slot/register layout of the list loop (6.00 temp [bp-2] = &ids).
-     - 4184: 6.00 turned the unused-index copy loop into a `dec si; jne` countdown.
-     - 43e6: 6.00 keeps i in SI and FP_OFF(buf) in DI; 6.00A spills i to [bp-2].
+     - 2ace (save game): w2 moved `int nd;` to the top of the declarations: right length now
+       (3548) and the `ixn < nd` compare direction fixed; left only the `nel > ixn` loop test
+       (`mov ax,[ixn]; cmp [nel],ax; jg`, ours reversed); moving nel/ixn breaks the slots.
    _DATA notes: "Saving Game" and the 0x30-byte zero block are initialised globals; MSC
    emits a global after the literals of the function FOLLOWING its definition, so they are
    defined before 0000 and before 2ace. */
@@ -1923,35 +1925,34 @@ int far sub_s037_1462_0444(register int key)
 /* list of the saved characters (charactr.tmp) with '+' for party members */
 void far sub_s037_1462_2760(struct font *f)
 {
-    int ids[5];
     int n;
+    int ids[5];
+    int j;
+    int i;
     int nr;
     int h;
-    int i;
-    int y;
-    int j;
     mouse_hide();
     sub_root_06a1_2c9e("charactr.tmp", 0, &h);
     _dos_read(h, (int far *)&n, 2, &nr);
     _dos_read(h, (int far *)ids, 10, &nr);
     _dos_read(h, (char far *)member_shield, 0x14, &nr);
     gfx_copy_rect(0x2806, 0xc5, 0x14, 0x73, 0x14, screen_win, 0xc5, 0x14);
-    for (i = 0, y = 0x18; i < n; i++, y += 8) {
+    for (i = 0; i < n; i++) {
         _dos_read(h, (char far *)&D_8b52, 0x80, &nr);
         _dos_read(h, (char far *)msg_buf, 0x1aa, &nr);
-        gfx_copy_rect(0x2806, 0xc5, y, 0x73, 0x10, screen_win, 0xc5, y);
+        gfx_copy_rect(0x2806, 0xc5, i * 8 + 0x18, 0x73, 0x10, screen_win, 0xc5, i * 8 + 0x18);
         for (j = 0; j < 5; j++) {
             if (i == ids[j]) {
                 f->color = 0x11;
-                gfx_text(f, 0xc7, y, "+");
+                gfx_text(f, 0xc7, i * 8 + 0x18, "+");
                 f->color = 0x10;
-                gfx_text(f, 0xc6, y - 1, "+");
+                gfx_text(f, 0xc6, i * 8 + 0x17, "+");
             }
         }
         f->color = 0x11;
-        gfx_text(f, 0xcd, y - 1, D_8b52.name);
+        gfx_text(f, 0xcd, i * 8 + 0x17, D_8b52.name);
         f->color = 0x10;
-        gfx_text(f, 0xcc, y - 2, D_8b52.name);
+        gfx_text(f, 0xcc, i * 8 + 0x16, D_8b52.name);
     }
     _dos_close(h);
     if ((D_e7dc = n) <= D_e7da)
@@ -2007,6 +2008,7 @@ char unused_42c8[0x30] = {0};
 #pragma optimize("a", on)
 void far sub_s037_1462_2ace(char *c)
 {
+    int nd;
     int hcrb;
     int zeroo;
     long zli;
@@ -2033,7 +2035,6 @@ void far sub_s037_1462_2ace(char *c)
     char pathh[0x1a];
     int hl;
     int kh;
-    int nd;
     char far *pa;
     unsigned nlocd;
 
@@ -2504,6 +2505,7 @@ void far sub_s037_1462_4048(int c)
 
 /* load saved game `name` (saves\name): characters to charactr.tmp, locations to locs.tmp,
    empty cache.tmp, no events.tmp */
+#pragma optimize("a", on)
 void far load_saved_game(char far *name)
 {
     char comment[0x78];
@@ -2555,8 +2557,10 @@ void far load_saved_game(char far *name)
     _dos_close(hc);
     remove("events.tmp");
 }
+#pragma optimize("a", off)
 
 /* text input box: edit buf (at most max characters) under the prompt; Esc clears it */
+#pragma optimize("a", on)
 void far text_input(char far *buf, char far *prompt, int max)
 {
     int save;
@@ -2573,7 +2577,6 @@ void far text_input(char far *buf, char far *prompt, int max)
     sub_root_047c_04f8();
     gfx_draw_pic(screen_win, 0x6e, 0x50, D_a65e);
     draw_text_far(screen_win, 0x7d, 0x5a, prompt);
-draw:
     draw_text_far(screen_win, 0x87, 0x64, buf);
     for (;;) {
         while (!key_pressed())
@@ -2598,7 +2601,7 @@ draw:
             }
             gfx_draw_pic(screen_win, 0x6e, 0x50, D_a65e);
             draw_text_far(screen_win, 0x7d, 0x5a, prompt);
-            goto draw;
+            draw_text_far(screen_win, 0x87, 0x64, buf);
         }
     }
     buf[i] = 0;
@@ -2608,6 +2611,7 @@ draw:
     mem_free(save, "B");
     screen_win_colour = 8;
 }
+#pragma optimize("a", off)
 
 /* list the shield codes from pics\F??stat.PIC, A??, C?? into D_e7e2[] (D_e7de entries) */
 void far sub_s037_1462_4562(void)

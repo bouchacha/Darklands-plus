@@ -26,7 +26,7 @@ void far sub_s006_1a57_042e(int, int);
 void far sub_s006_168e_0008(void)
 {
     int i, side, w, h, W, H, len, e, f, c, dx, a, b;
-    struct gslot _based(gen_work) *s;
+    struct gslot far *s;
 
     for (i = D_db67[gen_level] - 1; i >= 0; i--) {
         s = gen_strips + gen_level * 16 + i;
@@ -96,8 +96,8 @@ void far sub_s006_168e_02b2(void)
 {
     int i, side, n, base, len, a, d, p0, p1, k;
     int far *o;
-    struct gslot _based(gen_work) *s;
-    struct gslot _based(gen_work) *t;
+    struct gslot far *s;
+    struct gslot far *t;
 
     o = (int far *)(D_db3b + gen_level * 120);
     for (i = 0; i < D_db67[gen_level]; i++) {

@@ -24,6 +24,7 @@
    0xff end) with waypoints F_20a5_72b4/7304/716a; 1166 then shortcuts between waypoints.
    1554/15d0 copy a path to the combatant's own path F_20a5_6238[i] (161a adds the facing
    in the high nibble and removes single-step facing jitter).
+   w1 (2026-10-10): 14 match; + 098e (8 dummy externs D_ffd* fix the compare direction).
    status: 18/18 written, 13 match (034a: `i >= 5`; 1094, 0ffe: m4, see below). e8 2026-10-09: CONST = 3 slots like the original
    (floor struct F_20a5_0000 for 1f52/1f54, 2e38:0c00, path result struct F_20a5_716a); door record
    `closed` byte fixed to +7 (was +9: enemies tested the wrong byte). Re-stamped.
@@ -428,6 +429,14 @@ found:
 }
 
 /* kill tracker k if its new waypoint w repeats a waypoint of any tracker (loop) */
+extern int D_ffd0;
+extern int D_ffd1;
+extern int D_ffd2;
+extern int D_ffd3;
+extern int D_ffd4;
+extern int D_ffd5;
+extern int D_ffd6;
+extern int D_ffd7;
 void near sub_s014_12f7_098e(int k, int w)
 {
     int x, y, xl, xh, yl, yh, m, j, lim;

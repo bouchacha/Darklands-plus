@@ -7,11 +7,16 @@
  *   optimisation 6.00A honours `register` (0398: kb/drv declaration order = SI/DI; 0e5e: n in
  *   SI with the `add sp,2`) and keeps a stack slot for a local whose value stays in AX
  *   (0470: `int r; if ((r = 08e8()) == -1)` gives the original's `enter 2`).
- *   0626: int 25h RAM-disk probe: device-chain loop shape (orig `sub bx,bx; adc ax,bx`,
- *         separate 0x80/0x20 tests, loop exit placed after the loop) not reproduced.
- *   0b5a: orig keeps the device pointer offset in SI and its segment at [bp-4] with an unused
- *         word above (frame 6); 6.00A gives frame 4 (name dropped) or, with egl off / an
- *         `int name[1]`, the right frame but p in memory or p's segment at [bp-2].
+ *   0626: int 25h RAM-disk probe (with the moved D_0932: `sub bx,bx; adc ax,bx` as in the
+ *         original, left `add dx,cx` vs `add cx,dx`, 8 lines). w4: locals in one struct {n, i, p, hdr, lol} (original
+ *         slots), the device loop as for(;;) with `goto out` / `goto chk` (0x80 and 0x20 tested
+ *         separately, the 0x20 test out of line) and the drive loop as `i = n - 1; while`;
+ *         left: 6.00 zero-extends with `sub bx,bx; adc ax,bx`, 6.00A `adc ax,0` (75 -> 4
+ *         diff lines).  0942 then needs one dummy extern (lmul operand order).
+ *   0b5a MATCHED (w4, 34/36): `name = "EMMXXXX0";` assigned a second time (second literal)
+ *         and used in the call - its uses are constant-propagated but it keeps its slot
+ *         (frame 6); `extern struct SREGS D_0932;` declared early (symbol table) makes MSC
+ *         compute the offset before the segment.
  *   0d5a: 6.00A cross-jumps the two `return ro;` tails (pragmas, volatile, casts, asm `mov
  *         ax,ro` endings tried). */
 /* Overlay s028: set-up of the swap stores used by s027 (XMS, EMS, temporary files) and
@@ -30,6 +35,7 @@
 struct store { int handle; long size; long base; };    /* swap_stores[type] */
 struct hdr { int type; int hash; char name[16]; long size; };
 extern struct store swap_stores[];
+extern struct SREGS D_0932;     /* w4: declared here: symbol-table position (0b5a evaluates the offset first) */
 
 struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag; };
 struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; };
@@ -63,7 +69,6 @@ extern int D_08f8;
 extern int D_08fa;
 extern int D_08fc;                      /* size of a temporary file store in KB */
 extern union REGS D_0916, D_0924;
-extern struct SREGS D_0932;
 extern char far *D_c095;                /* EMS page frame */
 extern int D_c0af;
 extern int D_c0b9;
@@ -379,31 +384,32 @@ int far sub_s028_1f48_05ae(void)
    drive whose boot sector has no hidden sectors; 0 = none */
 int far sub_s028_1f48_0626(void)
 {
-    int n;
-    int i;
-    char far *p;
-    char hdr[16];
-    char far *lol;
+    struct { int n; int i; char far *p; char hdr[16]; char far *lol; } s;
 
-    n = 0;
+    s.n = 0;
     D_0916.h.ah = 0x52;
     intdosx(&D_0916, &D_0924, &D_0932);
-    lol = (char far *)((long)D_0932.es << 16);
-    p = (char far *)((long)lol + (unsigned)(D_0924.x.bx + 0x22));
+    s.lol = (char far *)((long)D_0932.es << 16);
+    s.p = (char far *)((long)s.lol + (unsigned)(D_0924.x.bx + 0x22));
     for (;;) {
-        if ((int)p == -1)
-            break;
-        for (i = 0; i < 8; i++)
-            hdr[i] = (p + 10)[i];
-        if (p[5] & 0x80)
-            ;
-        else if (!(p[5] & 0x20))
-            n += hdr[0];
-        p = *(char far * far *)p;
+        if ((int)s.p == -1)
+            goto out;
+        for (s.i = 0; s.i < 8; s.i++)
+            s.hdr[s.i] = (s.p + 10)[s.i];
+        if (!(s.p[5] & 0x80))
+            goto chk;
+nxt:
+        s.p = *(char far * far *)s.p;
     }
-    for (i = n - 1; i > 1; i--) {
+chk:
+    if (!(s.p[5] & 0x20))
+        s.n += s.hdr[0];
+    goto nxt;
+out:
+    s.i = s.n - 1;
+    while (s.i > 1) {
         _asm {
-            mov ax, i
+            mov ax, s.i
             mov cx, 1
             mov dx, 0
             push ds
@@ -417,16 +423,17 @@ int far sub_s028_1f48_0626(void)
             jne bad
             popf
             pop ds
-            mov ax, i
+            mov ax, s.i
             jmp found
         bad:
             popf
             pop ds
         }
+        s.i--;
     }
     return 0;
 found:
-    return i;
+    return s.i;
 }
 
 /* create the swap file "<drive>:<time>" of kb KB on drive (0 = A:); its handle or 0 */
@@ -536,6 +543,7 @@ int far sub_s028_1f48_08fc(void)
 }
 
 /* free space on drive (0 = A:) in KB */
+extern int D_ffe0;      /* w4: unused; symbol-table position for the lmul operand order below */
 unsigned far sub_s028_1f48_0942(int drive)
 {
     long spck;
@@ -642,8 +650,9 @@ int far sub_s028_1f48_0b5a(void)
     D_0916.h.ah = 0x52;
     intdosx(&D_0916, &D_0924, &D_0932);
     p = (char far *)(((long)D_0932.es << 16) | (unsigned)(D_0924.x.bx + 0x22));
+    name = "EMMXXXX0";
     while ((int)p != -1) {
-        if (sub_root_06a1_2f58("EMMXXXX0", p + 10, 8) == 0)
+        if (sub_root_06a1_2f58(name, p + 10, 8) == 0)
             return 1;
         p = *(char far * far *)p;
     }

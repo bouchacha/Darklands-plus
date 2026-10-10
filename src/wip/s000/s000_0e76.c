@@ -11,8 +11,9 @@
      (orig i in SI, k/v/c in [bp-0a]/[bp-8]/[bp-4]).
    - 1010: 6.00 keeps the address of the image's first word (its size) in SI:DI and reads it
      again for the final _fmemcpy; 6.00A reloads D_c103 (only that, 17 diff lines).
-   - 1150: the dead far pointer fp = ds:0 is stored hi word first by 6.00 (`mov [bp-24h],ds;
-     mov [bp-26h],ax`), 6.00A stores the low word first (2 lines).
+   - 1150 MATCHED (w4, 9/11): 6.00 stores the dead far pointer hi word first; written as
+     `fpf = (char far *)(char *)nm; *(unsigned *)&fpf = nm;` 6.00A drops the first offset
+     store and keeps the same order.
    083e: `bo + aa + 9` vs `aa + bo + 9` flips with unrelated edits elsewhere in the file
    (symbol-table order) - re-check after any change.
    0114: the `name` variable was a cross-jumped strcat in both arms of the config.drk if.
@@ -702,6 +703,7 @@ void far sub_s000_0e76_1150(void)
     nm = 0;
     msgm = (char *)msg_file;
     fpf = (char far *)(char *)nm;
+    *(unsigned *)&fpf = nm;     /* w4: re-store of the offset: 6.00A then drops the first offset store and keeps the 6.00 order (segment first) */
     file_save(D_01a6, fpf, 0x42);
     sub_root_05f8_00ca(&pagesa, &fpagesl);
     if (pagesa < 11) {

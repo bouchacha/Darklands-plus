@@ -188,7 +188,7 @@ void far sub_s006_1abf_038e(int a, int b, int dir, int lo, int hi, int door, int
 int far sub_s006_1abf_076e(int r, int dir, int p, int chk, int both)
 {
     int c, x, y, x2, y2, ok;
-    int _based(gen_work) *o;
+    int far *o;
 
     o = D_db3b + (gen_level * 30 + r) * 4;
     switch (dir) {

@@ -24,6 +24,8 @@
      3d2c  load a sprite file into a slot (catalogue, header, frame tables)
      4442  activation records: hidden encounters start when seen / approached
      45ae  endurance recovery outside battle
+   w1 (2026-10-10): 17 match; + 47ae (8 dummy externs D_ffd*), 1158 = original inline asm (_asm ror loop;
+   3 dummies D_fe* before 116e keep 38b6/47ae).
    status: 39 of 39 functions written, 13 match (2a04, 38b6, 3c86, 4694, 4780, 45ae, 27ac, 27cc, 2170, 0694, 3cc4, 465e, 0620).  0620:
    #pragma optimize("eglc", off), locals in struct {t, k} (the ICE form is avoided through t).  465e: register
    parameter under #pragma optimize("egl", off).  3cc4: indexed copy
@@ -896,14 +898,23 @@ void far combat_tick(void)
 /* rotate the colour pattern (original: hand-written `ror`) */
 void far sub_s014_0e76_1158(void)
 {
-    int k;
-
-    for (k = 0; k < 8; k++)
-        D_11de[k] = D_11de[k] >> 1 | D_11de[k] << 7;
+    /* rotate each byte of the colour pattern right by one (original inline asm) */
+    _asm {
+        mov si, 0
+        mov bx, offset D_11de
+        mov cx, 8
+    rot:
+        ror byte ptr [bx+si], 1
+        inc si
+        loop rot
+    }
 }
 
 /* action state machine of every combatant; a second pass handles those that were pushed
    by somebody processed later in the first pass */
+extern int D_fe0;
+extern int D_fe1;
+extern int D_fe2;
 void far combat_actions(void)
 {
     int again[13];
@@ -1809,6 +1820,14 @@ void far melee_exchanges(void)
                     party_panel_rows(i);
             }
             if (D_a3d8[i] == 0) {
+extern int D_ffd0;
+extern int D_ffd1;
+extern int D_ffd2;
+extern int D_ffd3;
+extern int D_ffd4;
+extern int D_ffd5;
+extern int D_ffd6;
+extern int D_ffd7;
                 if ((c->f10 & 2) == 2 && cbt_hostile_pair(i, t) == 0) {
                     cbt_action[i] = 0xd;    /* target out of reach */
                     c->target = -1;

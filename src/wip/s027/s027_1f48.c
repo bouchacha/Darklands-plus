@@ -11,7 +11,7 @@
    Functions 0a78, 0b04, 0ba8 and 0c4a contain inline _asm blocks (DOS int 21h calls) in
    the original, written the same way here: with D_8d6 & 0xff00 (no swap store could be set
    up, s028) blocks are plain files called name.
-   status (m3, 2026-10-09): 17/21 match (m3: 0000, 09aa, 015a/00a2 jump tables).
+   status (m3, 2026-10-09; w4: 18/21 with 05fe): 17/21 match (m3: 0000, 09aa, 015a/00a2 jump tables).
    - 0000/076c: found/hash/tbl in one struct `s` (aggregate, first member lowest) gives the
      original slots; `for (i = 0, off = 0; ..)` gives off in SI; pragma "a" gives `or dx,ax`
      on the returned table pointer.  076c left: the second tbl[i].off read (6.00 recomputes
@@ -23,8 +23,8 @@
    - 0480: rewritten from the asm (frame right); 6.00 puts the two `if` bodies of the loop
      (shift and store switch) and the first `return D_c099` out of line - 6.00A lays the
      blocks out in source order whatever the source (gotos give identical code).
-   - 05fe: only the long compares `size <= h.size` differ (6.00 loads h.size, 6.00A loads
-     size, both source orders give the same code). */
+   - 05fe MATCHED (w4, 18/21): the long compare direction follows the symbol-table position:
+     13 unused externs (D_ffe0..) in front of it. */
 #include "darklands/card.h"
 #include "darklands/game.h"
 
@@ -319,6 +319,20 @@ int far sub_s027_1f48_0480(long size)
 
 /* search the current store (D_c099) for a free block of at least size bytes, merging
    neighbouring free blocks; returns its offset or -1 */
+/* w4: 13 unused externs: symbol-table position for the long compares below (size vs h.size) */
+extern int D_ffe0;
+extern int D_ffe1;
+extern int D_ffe2;
+extern int D_ffe3;
+extern int D_ffe4;
+extern int D_ffe5;
+extern int D_ffe6;
+extern int D_ffe7;
+extern int D_ffe8;
+extern int D_ffe9;
+extern int D_ffe10;
+extern int D_ffe11;
+extern int D_ffe12;
 long far sub_s027_1f48_05fe(long size)
 {
     long off;

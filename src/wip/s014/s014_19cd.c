@@ -27,6 +27,7 @@
      28a2/29b8  build the order menu for the selected member
      2d08/2e50/3204/3258/33c0/34a0  loot piles (items of the fallen in a file, cache screen)
      36f0/3766  shield picture load / free
+   w1 (2026-10-10): 13 match; 36f0/3766: struct i5 copies written as int copy loops + pragma a (rep movsw).
    status: 34 of 34 functions written, 10 match (1714 1764 1d5e 209a 216a 3204 2d08 069c 1db8 28a2; see e8 NOTES).
    28a2 (m4): if/else instead of ternaries (both the D_9645 one and the strcpy sources).
    1db8 (m4): box locals x1/y0/y1 in a struct {k, y1, y0, x1}, '? 1 : 2' result, D_11ca declared
@@ -1965,13 +1966,15 @@ void far loot_after_fight(void)
 }
 
 /* load the shield pictures of the party ("pics\shielda.pic", letter = record +0x15) */
+#pragma optimize("a", on)
 void far shields_load(void)
 {
     char name[32];
+    int k;
     char *c;
     int *p;
 
-    *(struct i5 *)D_e1cb = *(struct i5 *)shield_pics;
+    for (k = 0; k < 5; k++) D_e1cb[k] = shield_pics[k];
     sub_root_047c_0545();
     for (c = &combatants[0].status, p = shield_pics; p < shield_pics + 5; c += 0x80, p++) {
         *p = 0;
@@ -1983,8 +1986,10 @@ void far shields_load(void)
     }
     sub_root_047c_04f8();
 }
+#pragma optimize("a", off)
 
 /* free the shield pictures */
+#pragma optimize("a", on)
 void far shields_free(void)
 {
     int k;
@@ -1994,5 +1999,6 @@ void far shields_free(void)
             _free_buffer(shield_pics[k], "RSM");
             break;
         }
-    *(struct i5 *)shield_pics = *(struct i5 *)D_e1cb;
+    for (k = 0; k < 5; k++) shield_pics[k] = D_e1cb[k];
 }
+#pragma optimize("a", off)
