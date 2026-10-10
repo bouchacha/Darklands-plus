@@ -1,5 +1,5 @@
-# Driver code reached only through data. <driver> <offset hex>; '*sound' = all *SOUND.DLC
-*sound 053c     # timer interrupt handler installed by the sound drivers
-*sound 1c53
-*sound 01c7
-*sound 01d1
+# Driver code reached only through data. <driver> <offset hex>; '*roland' = the Roland drivers (roland_c, roland_b)
+*roland 053c     # timer interrupt handler installed by the sound drivers
+*roland 1c53
+*roland 01c7
+*roland 01d1

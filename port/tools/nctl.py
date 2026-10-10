@@ -3,7 +3,9 @@
 nctl.py - interactive control of a headless native session (for automated play that needs to
 look at the screen between steps, e.g. hunting for a battle).
 
-  nctl.py start NAME [--exe EXE] [--game DIR]
+  nctl.py start NAME [--exe EXE] [--game DIR] [--x11]
+          --x11: a window on a private virtual X display, so the Darklands+ interface is drawn
+          (steps wshot NAME, utab N, ucmd CMD:ARG work)
   nctl.py do NAME "at 120 30; click; wait 2; shot a"    -> prints the PNG paths
   nctl.py stop NAME
 
@@ -22,7 +24,7 @@ def sdir(name):
     return os.path.join(BASE, name)
 
 
-def start(name, exe, game):
+def start(name, exe, game, x11=False):
     d = sdir(name)
     if os.path.exists(os.path.join(d, 'pid')):
         stop(name)
@@ -31,6 +33,14 @@ def start(name, exe, game):
     shutil.copytree(game, os.path.join(d, 'game'))
     open(os.path.join(d, 'ctl'), 'w').close()
     env = dict(os.environ, DL_HEADLESS='1', SDL_AUDIODRIVER='dummy', DL_CTL=os.path.join(d, 'ctl'))
+    if x11:
+        disp = 100 + (sum(map(ord, name)) % 400)
+        xv = subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', '1280x800x24', '-nolisten', 'tcp'],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        open(os.path.join(d, 'xpid'), 'w').write(str(xv.pid))
+        time.sleep(1.0)
+        del env['DL_HEADLESS']
+        env['DISPLAY'] = ':%d' % disp
     p = subprocess.Popen([exe, os.path.join(d, 'game')], env=env, stdout=open(os.path.join(d, 'out.txt'), 'w'),
                          stderr=subprocess.STDOUT, start_new_session=True)
     open(os.path.join(d, 'pid'), 'w').write(str(p.pid))
@@ -66,6 +76,28 @@ def do(name, script):
             send(d, 'move:%d,%d' % (x, y)); time.sleep(0.1)
         elif c in ('click', 'rclick'):
             send(d, '%s:%d,%d' % (c, x, y)); time.sleep(0.3)
+        elif c == 'wshot':
+            p = os.path.join(d, f[1] + '.bmp')
+            if os.path.exists(p):
+                os.remove(p)
+            send(d, 'wshot:%s' % p)
+            last = -1
+            for _ in range(100):
+                if os.path.exists(p) and os.path.getsize(p) == last and last > 0:
+                    break
+                last = os.path.getsize(p) if os.path.exists(p) else -1
+                time.sleep(0.1)
+            try:
+                from PIL import Image
+                png = p[:-4] + '.png'
+                Image.open(p).save(png)
+                shots.append(png)
+            except Exception as e:
+                shots.append(p + ' (%s)' % e)
+        elif c in ('utab', 'ugive'):
+            send(d, '%s:%s' % (c, ' '.join(f[1:]))); time.sleep(0.1)
+        elif c == 'ucmd':
+            send(d, ' '.join(f[1:])); time.sleep(0.1)
         elif c == 'shot':
             p = os.path.join(d, f[1] + '.bmp')
             if os.path.exists(p):
@@ -96,15 +128,17 @@ def do(name, script):
 
 def stop(name):
     d = sdir(name)
-    try:
-        pid = int(open(os.path.join(d, 'pid')).read())
-        os.kill(pid, signal.SIGKILL)
-    except Exception:
-        pass
-    try:
-        os.remove(os.path.join(d, 'pid'))
-    except Exception:
-        pass
+    for f in ('pid', 'xpid'):
+        try:
+            pid = int(open(os.path.join(d, f)).read())
+            os.kill(pid, signal.SIGKILL)
+        except Exception:
+            pass
+    for f in ('pid', 'xpid'):
+        try:
+            os.remove(os.path.join(d, f))
+        except Exception:
+            pass
     print('stopped', name)
 
 
@@ -116,8 +150,11 @@ if __name__ == '__main__':
         i = a.index('--exe'); exe = a[i + 1]; del a[i:i + 2]
     if '--game' in a:
         i = a.index('--game'); game = a[i + 1]; del a[i:i + 2]
+    x11 = '--x11' in a
+    if x11:
+        a.remove('--x11')
     if a[0] == 'start':
-        start(a[1], exe, game)
+        start(a[1], exe, game, x11)
     elif a[0] == 'do':
         do(a[1], a[2])
     elif a[0] == 'stop':

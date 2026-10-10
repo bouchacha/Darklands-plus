@@ -31,6 +31,14 @@ def mz(path):
     return body, rel
 
 
+def fnv1a(b):
+    """identifies a driver image whatever its file is called (GOG ships renamed copies)"""
+    h = 0x811c9dc5
+    for c in b:
+        h = ((h ^ c) * 0x01000193) & 0xffffffff
+    return h
+
+
 def decode(body, pc):
     try:
         return next(MD.disasm(body[pc:pc + 16], pc))
@@ -118,6 +126,7 @@ def analyze(img, body, entries):
 class DrvGen(Gen):
     def __init__(self, img, body, rel, entries):
         self.img = img
+        self.hash = fnv1a(body)
         insns, owner, calls, jts = analyze(img, body, entries)
         self.insns, self.owner, self.calls, self.jt = insns, owner, calls, jts
         self.vectors = {}
@@ -179,7 +188,7 @@ class DrvGen(Gen):
             img, ',\n'.join('    {0x%05x, -2, %s}' % t for t in table)))
         rs = sorted({lin + r[0] for (i, lin), r in self.insns.items() if r[1] in ('call', 'lcall')})
         body.append('static const unsigned rets_%s[] = {%s};' % (img, ', '.join('0x%x' % x for x in rs) or '0'))
-        body.append('const DriverImage DRV_%s = {"%s", tab_%s, %d, rets_%s, %d};' % (img, img, img, len(table), img, len(rs)))
+        body.append('const DriverImage DRV_%s = {"%s", tab_%s, %d, rets_%s, %d, 0x%08xu};' % (img, img, img, len(table), img, len(rs), self.hash))
         open(os.path.join(out_dir, 'd_%s.c' % img), 'w').write('\n'.join(body) + '\n')
         print(img, 'functions:', len(table), dict(self.problems))
 
@@ -188,9 +197,17 @@ def main():
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
     names = []
+    seen = set()
     for a in sys.argv[2:]:
         name, path = a.split('=', 1)
+        if not os.path.exists(path):
+            print('skipped (no file):', name, path)
+            continue
         body, rel = mz(path)
+        if fnv1a(body) in seen:
+            print('skipped (same image as another):', name, path)
+            continue
+        seen.add(fnv1a(body))
         # header: +2a paragraphs, +2c bytes, +2e first slot index, +30 slot count, +32 offsets
         first, cnt = struct.unpack_from('<2H', body, 0x2e)
         ents = set()
@@ -202,7 +219,7 @@ def main():
         if os.path.exists(xf):
             for line in open(xf):
                 f = line.split('#')[0].split()
-                if len(f) == 2 and f[0] in (name, '*sound') and (f[0] == name or name.endswith('sound')):
+                if len(f) == 2 and (f[0] == name or (f[0] == '*roland' and name.startswith('roland'))):
                     ents.add(int(f[1], 16))
         g = DrvGen(name, body, rel, sorted(ents))
         g.emit(out)

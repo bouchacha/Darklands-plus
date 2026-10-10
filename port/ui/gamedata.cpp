@@ -42,6 +42,24 @@ static std::vector<unsigned char> read_all(FILE *f)
 
 static int w16(const unsigned char *p) { return p[0] | (p[1] << 8); }
 
+const char *SHOP_NAMES[9] = { "Blacksmith", "Goods merchant", "Swordsmith", "Armourer", "Gunsmith", "Bowyer",
+                              "Artificer", "Jeweller", "Clothmaker" };
+
+std::string game_text(const char *s, size_t n)
+{
+    std::string o;
+    for (size_t i = 0; i < n && s[i]; i++) {
+        switch (s[i]) {
+        case '{': o += "\xc3\xb6"; break;     // o umlaut
+        case '|': o += "\xc3\xbc"; break;     // u umlaut
+        case '}': o += "\xc3\xa4"; break;     // a umlaut
+        case '~': o += "\xc3\x9f"; break;     // sharp s
+        default: if ((unsigned char)s[i] >= 32 && (unsigned char)s[i] < 127) o += s[i];
+        }
+    }
+    return o;
+}
+
 static ItemKind classify(const ItemDef &d)
 {
     int f = d.flags;
@@ -98,6 +116,20 @@ void gamedata_load(const char *dir)
                 if (c > 0) f.ingr.push_back({ c, it });
             }
             gamedata.formulas.push_back(f);
+        }
+    }
+    std::vector<unsigned char> cty = read_all(open_ci(dir, "DARKLAND.CTY"));
+    if (cty.size() > 1) {
+        int n = cty[0];
+        for (int i = 0; i < n && 1 + (i + 1) * 0x26e <= (int)cty.size(); i++) {
+            const unsigned char *r = &cty[1 + i * 0x26e];
+            City c;
+            c.shortname = game_text((const char *)r, 0x20);
+            c.name = game_text((const char *)r + 0x20, 0x20);
+            c.size = w16(r + 0x40); c.type = w16(r + 0x58); c.buildings = w16(r + 0x5e);
+            for (int k = 0; k < 9; k++) c.shopq[k] = r[0x62 + k];
+            c.x = w16(r + 0x42); c.y = w16(r + 0x44);
+            gamedata.cities.push_back(c);
         }
     }
     gamedata.loaded = !gamedata.items.empty();

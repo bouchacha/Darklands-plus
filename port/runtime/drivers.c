@@ -14,20 +14,23 @@ extern u16 *DRIVER_SEGS[];
 static int active[16];
 static u32 drv_size[16];
 
-void driver_register(const char *filename, u16 seg, u32 size)
+void driver_register(const char *filename, u16 seg, u32 size, unsigned hash)
 {
     const char *b = filename;
     for (const char *p = filename; *p; p++) if (*p == '\\' || *p == '/' || *p == ':') b = p + 1;
     char name[16]; int n = 0;
     for (; *b && *b != '.' && n < 15; b++) name[n++] = (char)tolower((u8)*b);
     name[n] = 0;
-    for (int i = 0; DRIVERS[i]; i++) {
-        if (!strcmp(DRIVERS[i]->name, name)) {
+    int pick = -1;
+    for (int i = 0; DRIVERS[i] && pick < 0; i++) if (DRIVERS[i]->hash == hash) pick = i;      /* by content */
+    for (int i = 0; DRIVERS[i] && pick < 0; i++) if (!strcmp(DRIVERS[i]->name, name)) pick = i;
+    for (int i = pick; i >= 0; i = -1) {
+        {
             *DRIVER_SEGS[i] = seg; active[i] = 1; drv_size[i] = size;
             for (int j = 0; DRIVERS[j]; j++)     /* overwritten images are gone */
                 if (j != i && active[j]) { u32 a0 = (u32)*DRIVER_SEGS[j] << 4, a1 = a0 + drv_size[j], b0 = (u32)seg << 4, b1 = b0 + size;
                     if (a0 < b1 && b0 < a1) active[j] = 0; }
-            fprintf(stderr, "driver %s loaded at %04x\n", name, seg);
+            fprintf(stderr, "driver %s (%s) loaded at %04x\n", DRIVERS[i]->name, filename, seg);
             return;
         }
     }

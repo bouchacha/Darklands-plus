@@ -6,6 +6,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "mods.h"
+#include "assist.h"
 
 /* ---- heavy blows: every hit on an enemy does double damage (s014 18bf:08ca rolls the
  * damage of one hit on combatant t and queues it in D_d70c[t]; enemies are 5..12) */
@@ -81,6 +82,7 @@ void mod_enable(int i, int on)
 
 void mods_init(void)
 {
+    assist_init();
     for (int i = 0; i < MOD_COUNT; i++) {
         char key[80]; snprintf(key, sizeof key, "mod.%s", MODS[i].id);
         if (config_get_int(key, 0)) { MODS[i].set(1); MODS[i].enabled = 1; }

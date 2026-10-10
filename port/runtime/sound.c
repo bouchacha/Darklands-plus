@@ -21,6 +21,7 @@ static void callback(void *u, Uint8 *stream, int len)
 {
     (void)u;
     OPL3_GenerateStream(&chip, (int16_t *)stream, (uint32_t)(len / 4));
+    { void sb_mix(int16_t *, int, int); sb_mix((int16_t *)stream, len / 4, 44100); }
     if (wav) { fwrite(stream, 1, (size_t)len, wav); wav_bytes += (uint32_t)len; }
 }
 static void wav_close(void)
@@ -32,6 +33,7 @@ static void wav_close(void)
 
 void sound_init(void)
 {
+    { void sb_init(void); sb_init(); }
     if (getenv("DL_NOSOUND")) return;
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) { fprintf(stderr, "no audio: %s\n", SDL_GetError()); return; }
     SDL_AudioSpec want = {0}, have;
@@ -39,6 +41,7 @@ void sound_init(void)
     dev = SDL_OpenAudioDevice(0, 0, &want, &have, 0);
     if (!dev) { fprintf(stderr, "no audio device: %s\n", SDL_GetError()); return; }
     OPL3_Reset(&chip, (uint32_t)have.freq);
+    { void sb_set_audio(SDL_AudioDeviceID); sb_set_audio(dev); }
     const char *w = getenv("DL_WAV");        /* debugging: record the music */
     if (w && (wav = fopen(w, "wb"))) { fseek(wav, 44, SEEK_SET); atexit(wav_close); }
     SDL_PauseAudioDevice(dev, 0);

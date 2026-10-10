@@ -62,6 +62,29 @@ static inline u32 g_itemdef(int id)
 enum { GM_OTHER, GM_CARD, GM_MAP, GM_SCREEN, GM_BATTLE };
 int game_mode(void);
 
+/* evaluate game code without side effects: snapshot, call, restore */
+void *eval_snapshot(void);
+void eval_restore(void *snap);
+void eval_free(void *snap);
+u32 game_call_ptr(u16 seg, u16 off, int nargs, const u16 *args, int fill);   /* DX:AX; no restore */
+u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args);   /* by link address; no restore */
+#define G_CUR_HOUR  0x00e0
+#define G_CUR_DAY   0x00e2       /* 0-based */
+#define G_CUR_MONTH 0x00e4       /* 0-11 */
+#define G_CUR_YEAR  0x00e6
+
+/* location records (DARKLAND.LOC, 0x19e of them; cities first, index = city index):
+ * far pointers at far data :10be. Record: +0 icon/type (0 city, 1 castle, 3 monastery, 6 mine,
+ * 8 village ...), +4 x, +6 y (map tile), +0x26 name[20] */
+#define G_NLOC 0x19e
+static inline u32 g_location(int i)
+{
+    u16 seg = g_rw(0x7e40); if (!seg) seg = G_FAR2E38;
+    if (i < 0 || i >= G_NLOC) return 0;
+    u16 o = rw(seg, (u16)(0x10be + i * 4)), s = rw(seg, (u16)(0x10be + i * 4 + 2));
+    return s ? ((u32)s << 16) | o : 0;
+}
+
 /* call a far game function (link address sect seg:off) with cdecl word args; returns AX */
 int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args);
 #ifdef __cplusplus

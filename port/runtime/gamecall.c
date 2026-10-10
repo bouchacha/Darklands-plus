@@ -3,11 +3,14 @@
  * The call runs on the game's stack below its current top; afterwards the machine state and
  * the overlay area are put back exactly as they were, so the paused game continues unaware. */
 #include <stdlib.h>
+#include <setjmp.h>
 #include <string.h>
+#include <stdio.h>
 #include "cpu.h"
 #include "hle.h"
 #include "dispatch.h"
 #include "game.h"
+#include "hooks.h"
 
 void ovl_area(u32 *lin_start, u32 *lin_end);
 extern int in_game_call;
@@ -60,4 +63,87 @@ int game_mode(void)
     if (ovl_loaded[43]) return GM_CARD;
     if (ovl_loaded[30]) return GM_MAP;
     return GM_SCREEN;
+}
+
+/* ---- side-effect-free evaluation: run game code, read the result, then put the whole
+ * machine back (memory, registers, resident overlays). Used to ask the card scripts for
+ * their chances of success without disturbing the game (random numbers included). */
+struct EvalSnap { u8 *mem; CPU r; int loaded[256]; int tail, unw; };
+
+void *eval_snapshot(void)
+{
+    struct EvalSnap *s = malloc(sizeof *s);
+    s->mem = malloc(MEM_SIZE);
+    memcpy(s->mem, M, MEM_SIZE);
+    s->r = R;
+    memcpy(s->loaded, ovl_loaded, sizeof s->loaded);
+    s->tail = tail_pending; s->unw = unw_active;
+    return s;
+}
+
+void eval_restore(void *p)
+{
+    struct EvalSnap *s = p;
+    memcpy(M, s->mem, MEM_SIZE);
+    R = s->r;
+    memcpy(ovl_loaded, s->loaded, sizeof s->loaded);
+    tail_pending = s->tail; unw_active = s->unw;
+}
+
+void eval_free(void *p)
+{
+    struct EvalSnap *s = p;
+    free(s->mem); free(s);
+}
+
+/* far call of the run-time address seg:off with cdecl word args; returns DX:AX. The caller
+ * restores the machine afterwards (eval_restore). The free stack the callee will use is
+ * filled with `fill` first: calling twice with different fills shows whether a result
+ * depends on uninitialised stack (some card handlers return garbage). */
+static jmp_buf *call_jb;
+static u32 call_deadline;
+u32 plat_ticks_ms(void);
+
+/* dl_poll() during an evaluation: game code that waits (for a key, say) would never return
+ * while the game is held, so after a quarter of a second the evaluation is abandoned */
+void call_watchdog(void)
+{
+    if (call_jb && plat_ticks_ms() > call_deadline) longjmp(*call_jb, 1);
+}
+
+static u32 harness(void (*f)(void), u16 seg, u16 off, int nargs, const u16 *args, int fill)
+{
+    jmp_buf jb, *prev = call_jb;
+    int hc = hook_current, hb = hook_bypass, depth = in_game_call;
+    if (setjmp(jb)) {
+        call_jb = prev; hook_current = hc; hook_bypass = hb; in_game_call = depth;
+        fprintf(stderr, "game_call_ptr %04x:%04x: no return after 250 ms, abandoned\n", seg, off);
+        return 0xffffffffu;
+    }
+    call_jb = &jb; call_deadline = plat_ticks_ms() + 250;
+    in_game_call++;
+    tail_pending = 0; unw_active = 0;
+    DS = ES = G_DGROUP;
+    SP = (u16)(SP - 64);
+    if (SP > 0x900) for (u16 o = (u16)(SP - 0x800); o < SP; o++) M[LIN(SS, o)] = (u8)fill;
+    for (int i = nargs - 1; i >= 0; i--) push16(args[i]);
+    push16(HLE_SEG); push16(0xfff0);
+    if (f) f(); else dispatch_far(seg, off);
+    u32 r = ((u32)DX << 16) | AX;
+    in_game_call--;
+    call_jb = prev;
+    return r;
+}
+
+u32 game_call_ptr(u16 seg, u16 off, int nargs, const u16 *args, int fill)
+{
+    return harness(0, seg, off, nargs, args, fill);
+}
+
+/* the same for a function given by its link address (section sect, which must be resident) */
+u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args)
+{
+    void (*f)(void) = func_in(sect, (u32)seg * 16 + off);
+    if (!f) return 0xffffffffu;
+    return harness(f, seg, off, nargs, args, 0);
 }

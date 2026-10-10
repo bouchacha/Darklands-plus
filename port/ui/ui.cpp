@@ -14,6 +14,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/mods.h"
+#include "../mods/assist.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -27,6 +28,9 @@ static ImFont *font_body, *font_head;
 ImFont *ui_font_small;
 extern "C" void tab_inventory(void);
 extern "C" void tab_alchemy(void);
+extern "C" void ui_overlay(void);
+extern "C" void tab_journal(void);
+extern "C" void journal_init(void);
 static SDL_Window *g_win;
 static int dirty_config;
 UiSettings ui_settings = { 1, 0, 0 };
@@ -79,6 +83,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
     gamedata_load(game_dir);
+    journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
     style();
@@ -124,6 +129,18 @@ static void tab_mods(void)
     }
 }
 
+static void tab_helpers(void)
+{
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Chances of success"); ImGui::PopFont();
+    ImGui::TextWrapped("Town and encounter cards show the chance of success next to each option that has one, "
+                       "and who would try it. (The original shows one at a time while you hold Shift.)");
+    int c = assist_chances;
+    if (ImGui::RadioButton("Always, as numbers", c == 2)) c = 2;
+    if (ImGui::RadioButton("As the difficulty level allows (numbers, words or nothing)", c == 1)) c = 1;
+    if (ImGui::RadioButton("Off", c == 0)) c = 0;
+    if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
+}
+
 static void tab_display(void)
 {
     bool a = ui_settings.aspect, s = ui_settings.smooth, n = ui_settings.integer;
@@ -132,6 +149,22 @@ static void tab_display(void)
     if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); dirty_config = 1; }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
+    static const char *ids[] = { "fm", "adlib", "midi", "speaker", "off", "game" };
+    static const char *labels[] = {
+        "Sound Blaster Pro (OPL-3 FM, emulated) - recommended",
+        "AdLib / Sound Blaster (OPL-2 FM, emulated)",
+        "Roland MIDI through your system's synthesizer",
+        "PC speaker",
+        "Off",
+        "As in the game's own setup (INSTALL)" };
+    const char *cur = config_get("sound.device", "fm");
+    for (int i = 0; i < 6; i++)
+        if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
+    ImGui::TextDisabled("Takes effect after the next battle, or when the game is started again.");
+    ImGui::TextWrapped("The GOG release plays battles through its Roland driver, which on a modern PC sounds like "
+                       "\"random notes rather than clashing swords\". The Sound Blaster setting uses the game's own FM "
+                       "drivers and digitized effects, as most players heard it in 1992.");
 }
 
 static void item_name(int id, char *out, int n)
@@ -193,6 +226,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    if (!open_menu) ui_overlay();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
@@ -203,9 +237,9 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[6] = { "Inventory", "Alchemy", "Mods", "Display", "Item records", "About" };
-                void (*fns[6])(void) = { tab_inventory, tab_alchemy, tab_mods, tab_display, tab_party, tab_about };
-                for (int t = 0; t < 6; t++) {
+                const char *names[] = { "Inventory", "Alchemy", "Journal", "Helpers", "Mods", "Display & sound", "Item records", "About" };
+                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_journal, tab_helpers, tab_mods, tab_display, tab_party, tab_about };
+                for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
                 }
                 want_tab = -1;

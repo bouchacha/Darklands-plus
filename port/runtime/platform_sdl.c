@@ -206,6 +206,15 @@ void plat_present(const u8 *vga, const u8 *pal)
     SDL_RenderPresent(ren);
 }
 
+/* game pixel (gx, gy) -> window coordinates, where the interface draws (valid after the
+ * first present) */
+void plat_game_to_win(float gx, float gy, float *wx, float *wy)
+{
+    float ox = dest.x + gx * dest.w / 320.0f, oy = dest.y + gy * dest.h / 200.0f;
+    *wx = out_w ? ox * win_w / out_w : ox;
+    *wy = out_h ? oy * win_h / out_h : oy;
+}
+
 /* window coordinates -> game pixels */
 static void to_game(int wx, int wy, int *gx, int *gy)
 {

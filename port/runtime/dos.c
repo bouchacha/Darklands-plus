@@ -242,17 +242,17 @@ static int find_next(void)
 }
 
 /* ---------------------------------------------------------------- overlay load (4B03) */
+const char *sound_pick(const char *base);
 static int load_overlay(const char *dosname, u16 seg, u16 relfac)
 {
     char hp[1024];
-    /* sound: until the native sound layer covers a device, use the silent driver */
+    /* sound drivers: the device chosen in the port's settings (sounddev.c) */
+    char subst[160];
     {
         const char *b = dosname;
         for (const char *p = dosname; *p; p++) if (*p == '\\' || *p == '/' || *p == ':') b = p + 1;
-        if (strlen(b) == 10 && !strcasecmp(b + 1, "SOUND.DLC")) {
-            /* the native build plays music through its emulated AdLib card */
-            if (getenv("DL_NOSOUND") && strcasecmp(b, "NSOUND.DLC")) { fprintf(stderr, "sound off: %s replaced by NSOUND.DLC\n", b); dosname = "NSOUND.DLC"; }
-        }
+        const char *pick = sound_pick(b);
+        if (pick) { snprintf(subst, sizeof subst, "%.*s%s", (int)(b - dosname), dosname, pick); dosname = subst; }
     }
     host_path(dosname, hp, sizeof hp);
     FILE *f = fopen(hp, "rb");
@@ -265,6 +265,8 @@ static int load_overlay(const char *dosname, u16 seg, u16 relfac)
     u32 nrel = (u32)(h[6] | (h[7] << 8)), roff = (u32)(h[24] | (h[25] << 8));
     fseek(f, hdr, SEEK_SET);
     fread(M + (u32)seg * 16u, 1, total - hdr, f);
+    unsigned hash = 0x811c9dc5u;                 /* FNV-1a of the image: which recompiled driver it is */
+    for (u32 k = 0; k < total - hdr; k++) hash = (hash ^ M[(u32)seg * 16u + k]) * 0x01000193u;
     for (u32 k = 0; k < nrel; k++) {
         u8 r[4];
         fseek(f, roff + 4 * k, SEEK_SET); fread(r, 1, 4, f);
@@ -273,7 +275,7 @@ static int load_overlay(const char *dosname, u16 seg, u16 relfac)
         M[a] = (u8)v; M[a + 1] = (u8)(v >> 8);
     }
     fclose(f);
-    driver_register(dosname, seg, total - hdr);
+    driver_register(dosname, seg, total - hdr, hash);
     return 1;
 }
 

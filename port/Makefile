@@ -35,7 +35,8 @@ RTFLAGS  := $(EXTRA) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-funct
 RT_SRC   := $(wildcard runtime/*.c) third_party/nuked-opl3/opl3.c
 GEN_SRC  := $(wildcard $(GEN)/*.c)
 IMGUI    := third_party/imgui
-UI_OBJS  := $(OUT)/ui.o $(OUT)/ui_gamedata.o $(OUT)/ui_inventory.o $(OUT)/fonts.o $(OUT)/mods_builtin.o \
+UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts.o \
+            $(patsubst mods/%.c,$(OUT)/mods_%.o,$(wildcard mods/*.c)) \
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
 CXXFLAGS := -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
@@ -44,9 +45,7 @@ OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)
 all: $(BIN)
 $(BIN): $(OBJS)
 	$(CXX) $(LDEXTRA) -o $@ $^ $(SDL_LIBS)
-$(OUT)/ui.o: ui/ui.cpp ui/ui.h runtime/*.h mods/mods.h | $(OUT)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-$(OUT)/ui_%.o: ui/%.cpp ui/*.h runtime/*.h | $(OUT)
+$(OUT)/ui_%.o: ui/%.cpp ui/*.h runtime/*.h mods/*.h | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 $(OUT)/imgui_%.o: $(IMGUI)/%.cpp | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -56,7 +55,7 @@ $(OUT)/fonts.c: third_party/fonts/*.ttf tools/bin2c.py | $(OUT)
 	python3 -I tools/bin2c.py $@ FONT_MEDIUM=third_party/fonts/EBGaramond-Medium.ttf FONT_SEMIBOLD=third_party/fonts/EBGaramond-SemiBold.ttf
 $(OUT)/fonts.o: $(OUT)/fonts.c
 	$(CC) -c -o $@ $<
-$(OUT)/mods_builtin.o: mods/builtin.c mods/mods.h runtime/*.h | $(OUT)
+$(OUT)/mods_%.o: mods/%.c mods/*.h runtime/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
 $(OUT)/rt_%.o: runtime/%.c runtime/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<

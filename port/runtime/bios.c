@@ -379,9 +379,11 @@ u8 hle_in8(u16 port)
         pit_latch_hi = 0; return (u8)(pit_latch >> 8);
     case 0x21: return 0;
     case 0x388: case 0x389: case 0x38a: case 0x38b: case 0x228: case 0x229: return opl_in(port);
+    case 0x220: case 0x221: case 0x222: case 0x223: return opl_in((u16)(port - 0x220 + 0x388));   /* Sound Blaster Pro FM */
     case 0x330: case 0x331: return mpu_in(port);
     case 0x201: return 0xff;    /* no joystick */
     default:
+        { int sb_in(u16, u8 *); u8 v; if (sb_in(port, &v)) return v; }
         if (bios_trace) { fprintf(stderr, "in %04x\n", port); static int once; if (port == 0x331 && !once++) ftrace_dump(); }
         return 0xff;
     }
@@ -409,7 +411,9 @@ void hle_out8(u16 port, u8 v)
     case 0x388: case 0x389: case 0x38a: case 0x38b: opl_out(port, v); break;
     case 0x330: case 0x331: mpu_out(port, v); break;
     case 0x228: case 0x229: opl_out((u16)(port - 0x228 + 0x388), v); break;
+    case 0x220: case 0x221: case 0x222: case 0x223: opl_out((u16)(port - 0x220 + 0x388), v); break;
     default:
+        { int sb_out(u16, u8); if (sb_out(port, v)) break; }
         if (bios_trace) fprintf(stderr, "out %04x\n", port);
         vga_misc_idx[0] = v;
         break;
@@ -484,7 +488,8 @@ int in_game_call;
 void dl_poll(void)
 {
     poll_flag = 0;
-    if (in_irq || in_game_call) return;
+    if (in_game_call) { void call_watchdog(void); call_watchdog(); return; }
+    if (in_irq) return;
     if (idle_hits > 300) plat_sleep_ms(1);     /* the game is busy-waiting: give the CPU back */
     idle_hits = 0;
     u32 now = plat_ticks_ms();
@@ -513,6 +518,7 @@ void dl_poll(void)
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
     }
     if (tick_us_acc > per * 8) tick_us_acc = per;   /* fell behind: drop ticks */
+    { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }   /* Sound Blaster transfer done */
     static u32 last_key_ms;
     while (kq_head != kq_tail && now - last_key_ms >= 10) {   /* one key event per 10 ms, as a keyboard would */
         port60 = kq[kq_head]; kq_head = (kq_head + 1) % 64;
