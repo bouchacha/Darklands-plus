@@ -51,7 +51,10 @@ def main():
                                        r.get('count_mismatch') and 'function count %s' % (r['count_mismatch'],)
                                        or 'data differs'))
                 continue
-            stubs = [fn['name'] for fn in r['functions']
+            fns = r['functions']
+            if re.search(r'/\*\s*end:', open(f, encoding='latin-1').read(3000)):
+                fns = fns[:-1]         # the last original 'function' runs into data
+            stubs = [fn['name'] for fn in fns
                      if fn.get('orig_len') and fn['len'] * 4 < fn['orig_len'] and fn['orig_len'] > 24]
             if stubs:
                 print('skip %s: unwritten (stub) functions %s' % (f, ', '.join(stubs)))
@@ -66,6 +69,9 @@ def main():
             origs = fmatch.orig_functions(ctx, img, fr, off)
             start = fr * 16 + off
             size = origs[-1][2] - start
+            me = re.search(r'/\*\s*end:\s*([0-9a-fA-F]{5})\s*\*/', text[:3000])
+            if me:                     # the source file ends before the next one starts (data follows)
+                size = int(me.group(1), 16) - start
             fm = cport.FLAGS.search(text[:3000])
             c = cport.compile_source({'path': f, 'image': img, 'frame': fr, 'offset': off,
                                       'flags': fm.group(1).split() if fm else list(cport.msc.DEFAULT)},

@@ -1,4 +1,6 @@
 /* place: s003 0e76:0000 */
+/* orig: size=1a09 _DATA=12c2+00c0 */
+/* end: 10169 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
 /* Battle state save/restore (saves\<name>.bsv).
    status (e9, 2026-10-09): ALL 8 FUNCTIONS WRITTEN, 5 match (0040, 006a, 00a0, 19ca, 19e8 -
