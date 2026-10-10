@@ -1,0 +1,12 @@
+# Functions that always run in the interpreter.
+# root 047c:0efe..1070 - compressed picture stream decoder: a coroutine on its own stack
+# (xchg sp,[8e3e]), which C functions cannot express.
+F_root_056be
+F_root_05706
+F_root_05720
+F_root_0573f
+F_root_05788
+F_root_057be
+F_root_05830
+# root 047c:048a - driver-thunk dispatcher: patches the operands of its own jmp/call far
+F_root_04c4a

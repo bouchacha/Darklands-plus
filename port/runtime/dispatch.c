@@ -78,6 +78,13 @@ static void tiny_interp(u16 seg, u16 off)
 static int in_program(u16 seg, u16 off) { return LIN(seg, off) >= ((u32)LOADSEG << 4); }
 
 /* is there native code (recompiled or emulated service) at seg:off? */
+extern const unsigned INTERP_ALWAYS_TABLE[]; extern const int INTERP_ALWAYS_COUNT;
+static int interp_always(u32 lin)
+{
+    for (int i = 0; i < INTERP_ALWAYS_COUNT; i++) if (INTERP_ALWAYS_TABLE[i] == lin) return 1;
+    return 0;
+}
+
 int native_target(u16 seg, u16 off)
 {
     if (seg == HLE_SEG || seg == EMS_SEG) return 1;
@@ -85,6 +92,7 @@ int native_target(u16 seg, u16 off)
     if (tiny_thunk(seg, off)) return 1;
     if (!in_program(seg, off)) return 0;
     u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
+    if (interp_always(lin)) return 0;        /* stays in the calling interpreter */
     return find_vector(lin) || find_func(lin);
 }
 
@@ -101,7 +109,7 @@ static void go(u16 seg, u16 off, int is_call)
     if (seg == HLE_SEG || seg == EMS_SEG) { tail_pending = 0; hle_stub(seg, off); return; }
     void (*df)(void) = driver_find(seg, off);
     if (df) { df(); return; }
-    if (!is_call && driver_retsite(seg, off)) { tail_pending = 0; return; }
+    if (!is_call && driver_retsite(seg, off)) { void ftrace_check_retsite(u16, u16); ftrace_check_retsite(seg, off); tail_pending = 0; return; }
     if (in_program(seg, off)) {
         u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
         const VecEntry *v = find_vector(lin);
@@ -109,6 +117,7 @@ static void go(u16 seg, u16 off, int is_call)
         void (*f)(void) = find_func(lin);
         if (f) { f(); return; }
         if (!is_call && is_retsite(lin)) {
+            { void ftrace_check_retsite(u16, u16); ftrace_check_retsite(seg, off); }
             tail_pending = 0;
             /* a jump to the instruction after a call: code that popped its own return
              * address and jumps back through it (MSC __setargv, ...). Returning from this
@@ -121,6 +130,14 @@ static void go(u16 seg, u16 off, int is_call)
 }
 
 void native_go(u16 seg, u16 off) { go(seg, off, 1); }
+
+/* is seg:off the instruction after a call in recompiled code (main program or driver)? */
+int any_retsite(u16 seg, u16 off)
+{
+    if (driver_retsite(seg, off)) return 1;
+    if (!in_program(seg, off)) return 0;
+    return is_retsite(LIN(seg, off) - ((u32)LOADSEG << 4));
+}
 void dispatch_far(u16 seg, u16 off) { go(seg, off, 1); }
 void dispatch_near(u16 cs, u16 off) { go(cs, off, 1); }
 void dispatch_jmp_far(u16 seg, u16 off) { go(seg, off, 0); }

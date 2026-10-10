@@ -42,6 +42,12 @@ if os.path.exists(_ov):
     OVERRIDES = {l.split('#')[0].strip() for l in open(_ov)} - {''}
 
 
+# functions always run by the interpreter (coroutines switching stacks, ...)
+INTERP_ALWAYS = set()
+_ia = os.path.join(HERE, 'interp_functions.txt')
+if os.path.exists(_ia):
+    INTERP_ALWAYS = {l.split('#')[0].strip() for l in open(_ia)} - {''}
+
 # callees that consume their caller's frame (pop the return address and leave through it):
 # a call to one of these ends the calling function
 NORETURN = {'F_root_04c4a'}
@@ -236,6 +242,14 @@ class Gen:
     def gen_function(self, img, ent):
         if self.fname(img, ent) in OVERRIDES:
             return '/* %s: implemented in port/runtime/overrides.c */\n' % self.fname(img, ent)
+        if self.fname(img, ent) in INTERP_ALWAYS:
+            fr = self.insns[(img, ent)][4]
+            txt = 'void %s(void) { interp_run((u16)(LOADSEG + 0x%x), 0x%04x); }  /* interp_functions.txt */\n' % (
+                self.fname(img, ent), fr, ent - fr * 16)
+            for t in sorted(self.extra.get((img, ent), ())):
+                fr2 = self.insns[(img, t)][4]
+                txt += 'void %s(void) { interp_run((u16)(LOADSEG + 0x%x), 0x%04x); }\n' % (self.fname(img, t), fr2, t - fr2 * 16)
+            return txt
         lins = self.funcs[(img, ent)]
         own = set(lins)
         out = []
@@ -599,9 +613,12 @@ class Gen:
             '/* generated */\n#ifndef FUNCS_H\n#define FUNCS_H\n' + '\n'.join(protos) + '\n#endif\n')
         table.sort()
         rows = ',\n'.join('    {0x%05x, %d, %s}' % t for t in table)
+        ia = sorted(e for (e, sec, fn) in table if fn in INTERP_ALWAYS)
         open(os.path.join(out_dir, 'dispatch_table.c'), 'w').write(
             '/* generated */\n#include "cpu.h"\n#include "funcs.h"\n#include "dispatch.h"\n'
-            'const FuncEntry FUNC_TABLE[] = {\n%s\n};\nconst int FUNC_COUNT = %d;\n' % (rows, len(table)))
+            'const FuncEntry FUNC_TABLE[] = {\n%s\n};\nconst int FUNC_COUNT = %d;\n' % (rows, len(table)) +
+            'const unsigned INTERP_ALWAYS_TABLE[] = {%s};\nconst int INTERP_ALWAYS_COUNT = %d;\n' % (
+                ', '.join('0x%x' % x for x in ia) or '0', len(ia)))
         # vectors: 09c0 offset -> (section, function)
         vrows = []
         for o, (timg, tlin, vseg) in sorted(self.vectors.items()):

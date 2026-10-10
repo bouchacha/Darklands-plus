@@ -8,6 +8,7 @@
 #define DL_CPU_H
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef uint8_t u8; typedef uint16_t u16; typedef uint32_t u32;
 typedef int8_t s8; typedef int16_t s16; typedef int32_t s32;
@@ -135,16 +136,20 @@ void poll(void);                        /* safe point: timer interrupts, input, 
 extern volatile int poll_flag;
 #define POLL() do { if (poll_flag) poll(); } while (0)
 void fatal(const char *fmt, ...);
-void interp_step(u16 cs, u16 ip);     /* execute one (patched, non-branch) instruction */
+void interp_step(u16 cs, u16 ip);
+void interp_run(u16 seg, u16 off);     /* execute one (patched, non-branch) instruction */
 extern u16 LOADSEG;                     /* paragraph where the program was loaded (PSP + 0x10) */
 /* debugging: shadow stack of recompiled function entries (build with -DFTRACE) */
+extern int tail_pending; extern u16 tail_sp;
 #ifdef FTRACE
 extern u32 ftrace_stack[4096]; extern int ftrace_depth;
 extern int watch_on; void watch_check(const char *where);
-extern u16 ftrace_bp[4096];
+extern u16 ftrace_bp[4096], ftrace_sp[4096], ftrace_ss[4096], ftrace_ret[4096]; void ftrace_sp_odd(int d);
 void ftrace_bp_changed(int d);
-static inline int ftrace_push(u32 id) { if (watch_on) watch_check("function entry"); if (ftrace_depth < 4096) { ftrace_stack[ftrace_depth] = id; ftrace_bp[ftrace_depth] = R.bp; } return ftrace_depth++; }
-static inline void ftrace_pop(int *d) { if (*d < 4096 && ftrace_bp[*d] != R.bp) ftrace_bp_changed(*d); ftrace_depth = *d; }
+extern u16 sp_low; void sp_low_hit(void);
+static inline int ftrace_push(u32 id) { if (watch_on) watch_check("function entry"); if (R.sp < sp_low && R.ss == 0x341a) sp_low_hit(); if (ftrace_depth < 4096) { ftrace_stack[ftrace_depth] = id; ftrace_bp[ftrace_depth] = R.bp; ftrace_sp[ftrace_depth] = R.sp; ftrace_ss[ftrace_depth] = R.ss; ftrace_ret[ftrace_depth] = rw(R.ss, R.sp); if (tail_pending) ftrace_ss[ftrace_depth] = 0xdead; } return ftrace_depth++; }
+extern u32 ret_ring[64]; extern u16 ret_ring_sp[64]; extern int ret_ring_i;
+static inline void ftrace_pop(int *d) { if (*d < 4096) { ret_ring[ret_ring_i & 63] = ftrace_stack[*d]; ret_ring_sp[ret_ring_i++ & 63] = R.sp; } if (*d < 4096 && ftrace_bp[*d] != R.bp) ftrace_bp_changed(*d); if (*d < 4096 && R.ss == ftrace_ss[*d] && (u16)(R.sp - ftrace_sp[*d]) > 4 && (u16)(R.sp - ftrace_sp[*d]) < 0x8000) ftrace_sp_odd(*d); ftrace_depth = *d; }
 #define FENTER(id) int ft_ __attribute__((cleanup(ftrace_pop))) = ftrace_push(id)
 /* differential debugging: functions whose link address is in [interp_lo, interp_hi) run in
  * the interpreter instead (DL_INTERP=lo-hi, hex) */

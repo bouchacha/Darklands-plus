@@ -1,3 +1,6 @@
 # Code the static analysis cannot find (reached only through data). img seg:off (link-time)
 root 05f8:0012     # EMS driver entry: first call through the int 67h pointer runs the init
 root 06a1:00dd     # C run-time divide-by-zero handler (int 0 vector)
+root 047c:01ea     # game timer interrupt handler (int 8)
+root 047c:1395     # mouse event handler (int 33h function 0Ch)
+root 044a:020e     # interrupt handler installed by 044a

@@ -308,6 +308,7 @@ void dos_int21(void)
     case 0x2c: { u32 ms = plat_ticks_ms(); time_t t = time(0); struct tm *tm = localtime(&t);
         CH = (u8)tm->tm_hour; CL = (u8)tm->tm_min; DH = (u8)tm->tm_sec; DL = (u8)((ms / 10) % 100); break; }
     case 0x2f: ES = dta_seg; BX = dta_off; break;
+    case 0x2b: case 0x2d: AL = 0; break;        /* set date / time: accepted, not applied */
     case 0x30: AX = 0x0005; BX = 0; CX = 0; break;              /* DOS 5.0 */
     case 0x33: if (AL == 0) DL = 0; break;
     case 0x35: BX = rw(0, (u16)(AL * 4)); ES = rw(0, (u16)(AL * 4 + 2)); break;

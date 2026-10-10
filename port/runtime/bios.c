@@ -22,7 +22,43 @@ int video_mode = 3;
 /* ---------------------------------------------------------------- helpers */
 #ifdef FTRACE
 u32 ftrace_stack[4096]; int ftrace_depth;
-u16 ftrace_bp[4096];
+u16 ftrace_bp[4096], ftrace_sp[4096], ftrace_ss[4096], ftrace_ret[4096];
+void ftrace_check_retsite(u16 seg, u16 off)
+{
+    static int on = -1; if (on < 0) on = getenv("DL_CHECK_RETSITE") != 0;
+    if (!on || ftrace_depth <= 0 || ftrace_depth > 4096) return;
+    int d = ftrace_depth - 1;
+    if (ftrace_ret[d] == off) return;
+    static u32 seen[256]; static int n;
+    u32 id = ftrace_stack[d];
+    for (int i = 0; i < n; i++) if (seen[i] == id) return;
+    if (n < 256) seen[n++] = id;
+    fprintf(stderr, "retsite jump from %x to %04x:%04x, but its return address was %04x (SP %04x, entry SP %04x)\n",
+            id, seg, off, ftrace_ret[d], SP, ftrace_sp[d]);
+    ftrace_dump();
+}
+void ftrace_sp_odd(int d)
+{
+    static u32 seen[256]; static int n;
+    static int on = -1; if (on < 0) on = getenv("DL_CHECK_SP") != 0;
+    if (!on) return;
+    u32 id = ftrace_stack[d];
+    for (int i = 0; i < n; i++) if (seen[i] == id) return;
+    if (n < 256) seen[n++] = id;
+    fprintf(stderr, "SP odd after function %x: entry %04x, now %04x\n", id, ftrace_sp[d], R.sp);
+    ftrace_dump();
+}
+u16 sp_low;
+u32 ret_ring[64]; u16 ret_ring_sp[64]; int ret_ring_i;
+void sp_low_hit(void)
+{
+    static int n; if (n++ > 2) return;
+    fprintf(stderr, "SP low: %04x:%04x\n", SS, SP);
+    ftrace_dump();
+    fprintf(stderr, "  last returns (function: SP after):");
+    for (int k = 0; k < 64; k++) { int j = (ret_ring_i + k) & 63; if (ret_ring[j]) fprintf(stderr, "%s%x:%04x", k % 6 ? "  " : "\n    ", ret_ring[j], ret_ring_sp[j]); }
+    fprintf(stderr, "\n");
+}
 void ftrace_bp_changed(int d)
 {
     static u32 seen[256]; static int n;
@@ -63,6 +99,7 @@ void watch_hit(u32 l, u16 v)
     ftrace_dump();
 }
 #else
+void ftrace_check_retsite(u16 seg, u16 off) { (void)seg; (void)off; }
 void ftrace_dump(void) {}
 void watch_check(const char *where) { (void)where; }
 #endif
@@ -101,8 +138,13 @@ static void call_handler(int n)
     R.iflag = 0; R.tf = 0;
     push16(HLE_SEG);
     push16((u16)(0xff00 | n));
-    u16 ss0 = SS, sp0 = (u16)(SP + 6);
+    u16 ss0 = SS, sp0 = (u16)(SP + 6), bp0 = BP, si0 = SI, di0 = DI, ds0 = DS, es0 = ES;
     dispatch_far(seg, off);
+    if (BP != bp0 || SI != si0 || DI != di0 || DS != ds0 || ES != es0) {
+        static int w2;
+        if (w2++ < 5) fprintf(stderr, "warning: int %02x handler changed registers: BP %04x->%04x SI %04x->%04x DI %04x->%04x DS %04x->%04x ES %04x->%04x\n",
+                              n, bp0, BP, si0, SI, di0, DI, ds0, DS, es0, ES);
+    }
     if (SS != ss0 || SP != sp0) {
         static int warned;
         if (!warned++) fprintf(stderr, "warning: int %02x handler %04x:%04x returned with SS:SP %04x:%04x, expected %04x:%04x\n",

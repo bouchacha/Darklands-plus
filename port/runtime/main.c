@@ -75,6 +75,7 @@ int main(int argc, char **argv)
     M = calloc(1, MEM_SIZE);
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */
+      { extern u16 sp_low; const char *sl = getenv("DL_SP_LOW"); if (sl) sp_low = (u16)strtoul(sl, 0, 16); }
       const char *ir = getenv("DL_INTERP");      /* lo-hi[@sect] link addresses, hex */
       if (ir) { extern u32 interp_lo, interp_hi; extern int interp_sect; interp_lo = (u32)strtoul(ir, 0, 16);
                 const char *d = strchr(ir, '-'); interp_hi = d ? (u32)strtoul(d + 1, 0, 16) : interp_lo + 1;

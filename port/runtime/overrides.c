@@ -29,35 +29,3 @@ void F_root_05f92(void)
     AH = rb(cs, (u16)(at + 1));
     dispatch_jmp_far(seg, off);
 }
-
-/* root 047c:048a - dispatcher of the graphics driver thunks "call 048a; dd target".
- * It pops the thunk's return address (= the address of the far target), patches it into
- * the operand of its own jmp/call far cs:[...] and transfers there. While the mouse pointer
- * is shown (byte [6a81]) the driver is called and the pointer is redrawn afterwards. */
-void F_root_04c4a(void)
-{
-    tail_pending = 0;
-    u16 cs = (u16)(LOADSEG + 0x047c);
-    if (rb(DS, 27265) == 0) {
-        u16 p = pop16();
-        ww(cs, 1179, p);
-        dispatch_jmp_far(rw(cs, (u16)(p + 2)), rw(cs, p));
-        return;
-    }
-    wb(DS, 27264, 1);
-    u16 p = pop16();
-    ww(cs, 1204, p);
-    ww(DS, 27266, pop16());
-    ww(DS, 27268, pop16());
-    push16(cs); push16(0x04b6);
-    dispatch_far(rw(cs, (u16)(p + 2)), rw(cs, p));
-    if (unw_active) return;
-    for (;;) {
-        wb(DS, 27264, (u8)f_dec(rb(DS, 27264), 8));
-        if (get_zf()) break;
-        push16(0x04bf); F_root_05b14();
-        if (unw_active) return;
-    }
-    /* jmp far [6a82]: back to the thunk's caller, whose return address was popped above */
-    dispatch_jmp_far(rw(DS, 27268), rw(DS, 27266));
-}

@@ -13,6 +13,7 @@
 #include "strops.h"
 
 int native_target(u16 seg, u16 off);      /* dispatch.c */
+int any_retsite(u16 seg, u16 off);
 void native_go(u16 seg, u16 off);         /* dispatch.c: call native code (return address already pushed) */
 
 static u16 ip, cs_;
@@ -168,6 +169,10 @@ static int call_to(u16 seg, u16 off, u16 entry_sp)
  * there (near or far by how much it popped). */
 static int jump_to(u16 seg, u16 off, u16 entry_ss, u16 entry_sp)
 {
+    /* a jump back to a native caller's return address after this code popped its own frame
+     * (e.g. the 047c:048a dispatcher's jmp far [6a82]): leave the interpreter, the native
+     * caller continues there */
+    if (SS == entry_ss && (u16)(SP - entry_sp) < 0x8000 && SP != entry_sp && any_retsite(seg, off)) return 1;
     if (!native_target(seg, off)) { cs_ = seg; ip = off; return 0; }
     u16 ss0 = SS, sp0 = SP;
     u16 w0 = rw(SS, SP), w1 = rw(SS, (u16)(SP + 2));
