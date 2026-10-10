@@ -14,6 +14,8 @@ extern CardChances card_chances;
 extern int assist_chances;            /* 0 off, 1 as the difficulty level allows, 2 always numbers */
 void assist_set_chances(int mode);
 void assist_init(void);
+extern int pathfix_party, pathfix_enemies;
+void pathfix_set(int party, int enemies);
 #ifdef __cplusplus
 }
 #endif

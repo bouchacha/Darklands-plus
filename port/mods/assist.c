@@ -36,6 +36,10 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
     if (!cm_depth) card_chances.active = 0;
 }
 
+/* handlers that wait for the player (they show text): never asked again */
+static u32 bad[64]; static int nbad;
+static int is_bad(u32 a) { for (int k = 0; k < nbad; k++) if (bad[k] == a) return 1; return 0; }
+
 static void evaluate(void)
 {
     int n = (s8)g_rb(0xe96e);
@@ -51,10 +55,13 @@ static void evaluate(void)
         if (opt < 0 || opt >= 20 || kind > 0) continue;
         if (g_rb((u16)(0xe99c + opt)) != 1) continue;               /* option disabled */
         u16 off = g_rw((u16)(0xea14 + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
-        if (!seg) continue;
+        u32 key = 0;
+        if (seg) { int ovl_section_at(u32); u32 lin = LIN(seg, off); key = ((u32)(ovl_section_at(lin - ((u32)LOADSEG << 4)) & 0xff) << 20) | lin; }
+        if (!seg || is_bad(key)) continue;
         g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));  /* menu_member/slot, as the engine sets them */
         u32 r = game_call_ptr(seg, off, 0, 0, 0x5a);
         eval_restore(snap);
+        if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }
         g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
         u32 r2 = game_call_ptr(seg, off, 0, 0, 0xa5);
         eval_restore(snap);

@@ -143,6 +143,13 @@ static void tab_helpers(void)
     if (ImGui::RadioButton("Off", c == 0)) c = 0;
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
 
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
+    bool pp = pathfix_party, pe = pathfix_enemies;
+    if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
+    if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
+    ImGui::TextDisabled("Moves are planned around walls and furniture with a full route search instead of the "
+                        "original wall-following, which gives up on long or winding routes.");
+
     ImGui::PushFont(font_head); ImGui::SeparatorText("Town journal"); ImGui::PopFont();
     bool j = journal_enabled();
     if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }

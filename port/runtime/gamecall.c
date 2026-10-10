@@ -102,6 +102,7 @@ void eval_free(void *p)
  * depends on uninitialised stack (some card handlers return garbage). */
 static jmp_buf *call_jb;
 static u32 call_deadline;
+int game_call_timed_out;          /* the last harness call was abandoned */
 u32 plat_ticks_ms(void);
 
 /* dl_poll() during an evaluation: game code that waits (for a key, say) would never return
@@ -117,10 +118,12 @@ static u32 harness(void (*f)(void), u16 seg, u16 off, int nargs, const u16 *args
     int hc = hook_current, hb = hook_bypass, depth = in_game_call;
     if (setjmp(jb)) {
         call_jb = prev; hook_current = hc; hook_bypass = hb; in_game_call = depth;
-        fprintf(stderr, "game_call_ptr %04x:%04x: no return after 250 ms, abandoned\n", seg, off);
+        game_call_timed_out = 1;
+        fprintf(stderr, "game_call_ptr %04x:%04x: no return after 100 ms, abandoned\n", seg, off);
         return 0xffffffffu;
     }
-    call_jb = &jb; call_deadline = plat_ticks_ms() + 250;
+    call_jb = &jb; call_deadline = plat_ticks_ms() + 100;
+    game_call_timed_out = 0;
     in_game_call++;
     tail_pending = 0; unw_active = 0;
     DS = ES = G_DGROUP;
@@ -146,4 +149,26 @@ u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args)
     void (*f)(void) = func_in(sect, (u32)seg * 16 + off);
     if (!f) return 0xffffffffu;
     return harness(f, seg, off, nargs, args, 0);
+}
+
+/* ---- fast calls for native code that runs inside the game (hooks): the recompiled
+ * function is called directly on the game's stack; only the registers are put back. For
+ * functions whose memory effects are wanted or harmless (collision tests ...). */
+void (*game_func(int sect, u16 seg, u16 off))(void) { return func_in(sect, (u32)seg * 16 + off); }
+
+u32 game_call_native(void (*f)(void), int nargs, const u16 *args)
+{
+    CPU save = R;
+    int tp = tail_pending, ua = unw_active;
+    tail_pending = 0; unw_active = 0;
+    in_game_call++;
+    DS = ES = G_DGROUP;
+    SP = (u16)(SP - 64);
+    for (int i = nargs - 1; i >= 0; i--) push16(args[i]);
+    push16(HLE_SEG); push16(0xfff0);
+    f();
+    u32 r = ((u32)DX << 16) | AX;
+    in_game_call--;
+    R = save; tail_pending = tp; unw_active = ua;
+    return r;
 }

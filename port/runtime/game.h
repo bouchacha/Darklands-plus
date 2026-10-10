@@ -68,6 +68,7 @@ void eval_restore(void *snap);
 void eval_free(void *snap);
 u32 game_call_ptr(u16 seg, u16 off, int nargs, const u16 *args, int fill);   /* DX:AX; no restore */
 u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args);   /* by link address; no restore */
+extern int game_call_timed_out;   /* the last of these calls waited (for a key ...) and was abandoned */
 #define G_CUR_HOUR  0x00e0
 #define G_CUR_DAY   0x00e2       /* 0-based */
 #define G_CUR_MONTH 0x00e4       /* 0-11 */
@@ -84,6 +85,10 @@ static inline u32 g_location(int i)
     u16 o = rw(seg, (u16)(0x10be + i * 4)), s = rw(seg, (u16)(0x10be + i * 4 + 2));
     return s ? ((u32)s << 16) | o : 0;
 }
+
+/* direct calls from hooks (registers restored, memory effects kept) */
+void (*game_func(int sect, u16 seg, u16 off))(void);           /* sect -1 = root */
+u32 game_call_native(void (*f)(void), int nargs, const u16 *args);
 
 /* call a far game function (link address sect seg:off) with cdecl word args; returns AX */
 int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args);
