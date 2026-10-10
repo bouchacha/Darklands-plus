@@ -4,7 +4,7 @@
 /* data: _DATA=14d0 */
 /* status (e10, 2026-10-09): mine battlefields, part 1 (the other source file of s009, see
  * s009_182c.c). ALL 32 FUNCTIONS WRITTEN from the asm (dec16 managed only 01e0 07e4 0af8 0cfa);
- * no DATA DIFFERS, stamped --wip. 11 match: 0000 01e0 0732 0a18 0af8 0cfa 12b2 18fc 3f54 3f6c
+ * no DATA DIFFERS, stamped --wip. 12 match: 0000 019e (m1: fill loops under pragma a) 01e0 0732 0a18 0af8 0cfa 12b2 18fc 3f54 3f6c
  * 3f8a. Close: 0398 and 1948 (stack slot order only), 0d90 (4 lines, compare operand order),
  * 2252 (AX known-zero reuse, 6.00), 0990 (6.00 keeps D_e037 offset/segment in AX/CX across the
  * store), 3a90 (frame 1 word larger; 6.00 keeps s in SI and uses `sub ax,ax; inc ax`), 07e4 (6.00
@@ -279,14 +279,18 @@ int far sub_s009_1432_0000(int t, int a, int b, int c, int d, int e, int f, int 
 }
 
 /* clear the section bookkeeping */
+#pragma optimize("a", on)
 void far sub_s009_1432_019e(void)
 {
-    memset(D_e00d, 0, 21);
-    memset(D_dfcd, -1, 8);
-    memset(D_dfc5, 0, 8);
-    memset(D_dfd5, -1, 32);
-    memset(D_e022, 0, 16);
+    int i;
+
+    for (i = 0; i < 21; i++) D_e00d[i] = 0;
+    for (i = 0; i < 4; i++) D_dfcd[i] = -1;
+    for (i = 0; i < 4; i++) D_dfc5[i] = 0;
+    for (i = 0; i < 16; i++) D_dfd5[i] = -1;
+    for (i = 0; i < 16; i++) D_e022[i] = 0;
 }
+#pragma optimize("", on)
 
 /* one-section mine */
 int far sub_s009_1432_01e0(int t)

@@ -1,9 +1,9 @@
 /* place: s000 0fb2:0008 */
 /* orig: size=00e8 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e9): both functions written; 00be matches.  0008: code identical except which
-   `return` gets an inline epilogue copy (orig: the D_e28 = 0 exit inline, the D_e2c = 0x24
-   exit as `jmp`; 6.00A the other way round; goto/else layouts tried). */
+/* status (m0): FILE MATCH.  0008: 6.00 gives at most five returns an inline epilogue in
+   source order; the 0x24 exit is a plain if/else falling to the end (`goto bad` from the
+   first branch into the shared default), not a `return`. */
 /* Start-up video set-up (EGA/VGA): 0008 asks the BIOS for the display combination
    (int 10h 1Ah..1Ch) and the current video state (int 10h 1Bh) and remembers the text mode
    (D_e2a), the character-generator function (D_e2c: 11h/14h/12h, 22h/23h/24h) and the rows
@@ -55,6 +55,7 @@ void far sub_s000_0fb2_0008(void)
             D_0e2c = 0x14;
             return;
         }
+        goto bad;
     } else {
         D_0e2e = infof[0x22];
         if (infof[0x23] == 8) {
@@ -67,11 +68,12 @@ void far sub_s000_0fb2_0008(void)
         }
         if (infof[0x23] == 0x10) {
             D_0e2c = 0x24;
-            return;
+        } else {
+bad:
+            D_0e2a = 3;
+            D_0e2c = 0x12;
         }
     }
-    D_0e2a = 3;
-    D_0e2c = 0x12;
 }
 
 void far sub_s000_0fb2_00be(void)

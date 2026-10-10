@@ -121,8 +121,9 @@ struct tdesc {                          /* what is drawn in a screen tile, 0x12 
     int decal;                          /* floor decal (list A) */
     unsigned obj;                       /* floor object (list B) */
 };
-extern struct tdesc far F_20a5_4eb8[0x8c];
-extern int far F_20a5_4046[], F_20a5_491a[], F_20a5_4a32[];
+/* the original walks the record with a word pointer (p++ per field) */
+extern unsigned far F_20a5_4eb8[0x8c][9];
+extern int far F_20a5_4046[], far F_20a5_491a[], far F_20a5_4a32[];
 extern unsigned char D_c12e, D_c17f, D_c12d;     /* first piece/object ids that are drawn */
 extern char D_c11d[];                   /* furniture height */
 extern char D_d7be[], D_d802[];         /* furniture box offsets [f*4 + o] */
@@ -136,20 +137,21 @@ extern struct efa D_a2eb[];
 extern struct efb D_a342[];
 extern struct efc D_a396[];
 extern char D_a33d, D_a395, D_a531;
-extern int far F_20a5_3bc0[8][16], F_20a5_3cc0[8][16];   /* cloud puffs on screen */
-extern int far F_20a5_3754[8][16], F_20a5_3854[8][16];   /* area puffs */
-extern int far F_20a5_59a8[8], F_20a5_59b8[8];           /* markers on screen */
+extern int far F_20a5_3bc0[8][16], far F_20a5_3cc0[8][16];   /* cloud puffs on screen */
+extern int far F_20a5_3754[8][16], far F_20a5_3854[8][16];   /* area puffs */
+extern int far F_20a5_59a8[8], far F_20a5_59b8[8];           /* markers on screen */
 extern int D_c897[], D_c8ba[], D_c8f7[], D_c915[];       /* last cloud boxes */
 extern int D_8540[], D_855a[], D_85be[], D_85ae[], D_859e[], D_8574[];
 extern int D_ca83[];                    /* area puff sprites [2][2] */
-extern int far F_20a5_4db8[8][8], F_20a5_4e38[8][8];     /* cloud south edge on screen */
-extern int far F_20a5_4c62[8][8], F_20a5_4ce2[8][8];     /* cloud east edge on screen */
-extern unsigned far F_20a5_706a[8][8], F_20a5_70ea[8][8]; /* south edge on the map */
-extern unsigned far F_20a5_6f6a[8][8], F_20a5_6fea[8][8]; /* east edge on the map */
-extern long far F_20a5_0000[];          /* map cells */
+extern int far F_20a5_4db8[8][8], far F_20a5_4e38[8][8];     /* cloud south edge on screen */
+extern int far F_20a5_4c62[8][8], far F_20a5_4ce2[8][8];     /* cloud east edge on screen */
+extern unsigned far F_20a5_706a[8][8], far F_20a5_70ea[8][8]; /* south edge on the map */
+extern unsigned far F_20a5_6f6a[8][8], far F_20a5_6fea[8][8]; /* east edge on the map */
+struct mcell { unsigned lo; unsigned hi; };
+extern struct mcell far F_20a5_0000[];  /* map cells */
 extern char *D_21b2[], *D_21bc[];       /* puff offsets by cloud size */
 extern int D_e0a5, D_e0a3, D_e0a9, D_e0a7;
-int far sub_s014_1d69_000c(int, int, int);
+int far sub_s014_1d69_000c();          /* called with 2 and 3 arguments */
 extern int D_ca41[2], D_ca71[2], D_ca2c[2];  /* cloud sprites */
 extern int D_cea4[];                    /* marker sprites */
 extern struct rect *D_017c;             /* screen */
@@ -160,7 +162,7 @@ extern int D_d4c1;
 extern char D_d4f2[], D_d4e5[];
 extern unsigned D_da89[];
 extern char D_c98a[][10];               /* animation sequence per combatant */
-extern int far F_20a5_4d62[], F_20a5_3dc0[];  /* status icons party / enemies */
+extern int far F_20a5_4d62[], far F_20a5_3dc0[];  /* status icons party / enemies */
 extern char D_a695;
 void far sub_s014_1ec9_0070(int);
 void far sub_root_047c_12c3(void);
@@ -646,7 +648,7 @@ void far sub_s014_14f7_0e9e(unsigned now)
             D_01a4->w = D_e167[k].w - 1;
             D_01a4->h = D_e167[k].h - 1;
             for (j = 0; n != 0; n--, j++)
-                if (F_20a5_3bc0[k][j] != 0)
+                if (F_20a5_3bc0[k][j] != 0 && F_20a5_3bc0[k][j])
                     sub_s014_14f7_359a(D_01a4, F_20a5_3bc0[k][j] - D_e167[k].ox,
                                        F_20a5_3cc0[k][j] - D_e167[k].oy, spr);
         }
@@ -1064,11 +1066,12 @@ void far sub_s014_14f7_2052(int id, int x, int y, int n)
 
 /* re-queue everything in the dirty screen tiles: floor, west/north walls and their pieces,
    furniture, decals and floor objects from the tile descriptions F_20a5_4eb8[tile] */
+#pragma optimize("a", on)
 void far sub_s014_14f7_20d6(void)
 {
     int t, row, col, f, hh, idx, y0, y1;
     unsigned v;
-    struct tdesc far *td;
+    unsigned far *p;
 
     for (t = 0; t < 0x8c; t++) {
         if (D_e16a[t] == 9999)
@@ -1083,31 +1086,36 @@ void far sub_s014_14f7_20d6(void)
             D_e170[t] = 199;
         D_e16e[t] += 1 - D_e16a[t];
         D_e170[t] += 1 - D_e16c[t];
-        td = &F_20a5_4eb8[t];
-        if (td->floor == -1)
+        p = F_20a5_4eb8[t];                     /* struct tdesc */
+        if (*p == 0xffff)                       /* floor: -1 outside the map */
             continue;
         row = F_20a5_36c8[t] * 16;
         col = F_20a5_363c[t] * 32;
-        if (td->floor != 0)
-            sub_s014_14f7_1f14(t, 32000, col, row, row, F_20a5_45be[t], F_20a5_46d6[t], td->floor);
-        if (td->wwall != 0 && D_c12e <= td->wwall) {
-            v = td->wwall;
+        if (*p != 0)
+            sub_s014_14f7_1f14(t, 32000, col, row, row, F_20a5_45be[t], F_20a5_46d6[t], *p);
+        p++;                                    /* west wall piece */
+        if (*p != 0 && D_c12e <= *p) {
+            v = *p;
             sub_s014_14f7_1f14(t, 0x7d01, col + 4, row, row, D_c76e[v] + F_20a5_45be[t],
                                D_c789[v] + F_20a5_46d6[t], F_20a5_6eea[v * 2]);
         }
-        if (td->nback != 0)
+        p++;                                    /* north wall back */
+        if (*p != 0)
             sub_s014_14f7_1f14(t, 0x7d03, col, row + 1, row + 8, F_20a5_4b4a[t], F_20a5_46d6[t],
-                               td->nback);
-        if (td->nwall != 0 && D_c17f <= td->nwall) {
-            v = td->nwall;
+                               *p);
+        p++;                                    /* north wall piece */
+        if (*p != 0 && D_c17f <= *p) {
+            v = *p;
             sub_s014_14f7_1f14(t, 0x7d04, col + 1, row + 8, row + 8, D_c821[v] + F_20a5_4b4a[t],
                                D_c855[v] + F_20a5_46d6[t], F_20a5_6f2a[v * 2]);
         }
-        if (td->ewall != 0)
+        p++;                                    /* east wall */
+        if (*p != 0)
             sub_s014_14f7_1f14(t, 0x7d05, col + 0x1f, row + 9, row + 0xf, F_20a5_4046[t],
-                               F_20a5_46d6[t], td->ewall);
-        if (td->furn != 0) {
-            v = td->furn;
+                               F_20a5_46d6[t], *p);
+        p++;                                    /* furniture: id | orientation << 4 */
+        if (*p != 0) {
+            v = *p;
             f = v & 0xf;
             hh = D_c11d[f] >> 1;
             idx = f * 4 + ((v & 0xf0) >> 4);
@@ -1120,21 +1128,28 @@ void far sub_s014_14f7_20d6(void)
             sub_s014_14f7_1f14(t, 0x7d0a, D_d7be[idx] + col, y0, y1, D_c13f[idx] + F_20a5_4b4a[t],
                                D_c181[idx] + F_20a5_415e[t], D_c8d5[f]);
         }
-        if (td->swall != 0)
+        p++;                                    /* south wall */
+        if (*p != 0)
             sub_s014_14f7_1f14(t, 0x7d14, col + 0x10, row + 0xf, row + 0xf, F_20a5_491a[t],
-                               F_20a5_4a32[t], td->swall);
-        if (td->decal != 0)
-            sub_s014_14f7_1fd4(t, F_20a5_4b4a[t], F_20a5_415e[t], td->decal);
-        if (td->obj != 0 && D_c12d <= td->obj)
-            sub_s014_14f7_2052(t, F_20a5_4b4a[t], F_20a5_415e[t], td->obj);
+                               F_20a5_4a32[t], *p);
+        p++;                                    /* floor decal (list A) */
+        if (*p != 0)
+            sub_s014_14f7_1fd4(t, F_20a5_4b4a[t], F_20a5_415e[t], *p);
+        p++;                                    /* floor object (list B) */
+        if (*p != 0 && D_c12d <= *p)
+            sub_s014_14f7_2052(t, F_20a5_4b4a[t], F_20a5_415e[t], *p);
     }
 }
+
+#pragma optimize("", on)
 
 /* effect clouds (s019 list 1, D_a2eb): bounding box of the puffs (F_20a5_3bc0/3cc0),
    erase box against last frame (D_c897/D_c8ba/D_c8f7/D_c915), list-C entry, dirty tiles */
 void far sub_s014_14f7_24a4(void)
 {
     int k, n, j, minx, miny, maxx, maxy, w, h, ox, oxe, oy, oye, nxe, nye, tile, t;
+    int far *px;
+    int far *py;
     struct drawa _based(D_d6f5) *e;
     struct dirty _based(D_d6f5) *d;
 
@@ -1145,20 +1160,22 @@ void far sub_s014_14f7_24a4(void)
             continue;
         }
         n = D_a2eb[k].f4 & 7;
+        px = F_20a5_3bc0[k];
+        py = F_20a5_3cc0[k];
         miny = 9999;
         minx = 9999;
         maxy = -9999;
         maxx = -9999;
         for (j = 0; j < n * n; j++)
-            if (F_20a5_3bc0[k][j] != 0 && F_20a5_3cc0[k][j] != 0) {
-                if (F_20a5_3bc0[k][j] < minx)
-                    minx = F_20a5_3bc0[k][j];
-                if (maxx < F_20a5_3bc0[k][j])
-                    maxx = F_20a5_3bc0[k][j];
-                if (F_20a5_3cc0[k][j] < miny)
-                    miny = F_20a5_3cc0[k][j];
-                if (maxy < F_20a5_3cc0[k][j])
-                    maxy = F_20a5_3cc0[k][j];
+            if (px[j] != 0 && py[j] != 0) {
+                if (px[j] < minx)
+                    minx = px[j];
+                if (maxx < px[j])
+                    maxx = px[j];
+                if (py[j] < miny)
+                    miny = py[j];
+                if (maxy < py[j])
+                    maxy = py[j];
             }
         if (minx == 9999) {
             D_c897[k] = -9999;
@@ -1246,6 +1263,8 @@ void far sub_s014_14f7_296e(unsigned now)
 {
     int k, n, j, minx, miny, maxx, maxy, tile, t;
     unsigned tt;
+    int far *px;
+    int far *py;
     struct drawb _based(D_d6f5) *b;
     struct dirty _based(D_d6f5) *d;
 
@@ -1254,20 +1273,22 @@ void far sub_s014_14f7_296e(unsigned now)
             continue;
         tt = D_a342[k].t;
         n = D_a342[k].f4 & 7;
+        px = F_20a5_3754[k];
+        py = F_20a5_3854[k];
         miny = 9999;
         minx = 9999;
         maxy = -9999;
         maxx = -9999;
         for (j = 0; j < n * n; j++)
-            if (F_20a5_3754[k][j] != 0 && F_20a5_3854[k][j] != 0) {
-                if (F_20a5_3754[k][j] < minx)
-                    minx = F_20a5_3754[k][j];
-                if (maxx < F_20a5_3754[k][j])
-                    maxx = F_20a5_3754[k][j];
-                if (F_20a5_3854[k][j] < miny)
-                    miny = F_20a5_3854[k][j];
-                if (maxy < F_20a5_3854[k][j])
-                    maxy = F_20a5_3854[k][j];
+            if (px[j] != 0 && py[j] != 0) {
+                if (px[j] < minx)
+                    minx = px[j];
+                if (maxx < px[j])
+                    maxx = px[j];
+                if (py[j] < miny)
+                    miny = py[j];
+                if (maxy < py[j])
+                    maxy = py[j];
             }
         if (minx == 9999)
             continue;
@@ -1285,8 +1306,8 @@ void far sub_s014_14f7_296e(unsigned now)
         sub_s014_14f7_34d6(D_0154, d->x, d->y, d->w, d->h, 0);
         for (j = 0; j < n * n; j++) {
             b = D_e164 + D_e166++;
-            b->x = b->ox = F_20a5_3754[k][j];
-            b->y = b->oy = F_20a5_3854[k][j];
+            b->x = b->ox = px[j];
+            b->y = b->oy = py[j];
             b->w = 0x17;
             b->h = 8;
             b->spr = D_ca83[(tt <= now) * 2 + _random_n(2)];
@@ -1636,11 +1657,22 @@ int far sub_s014_14f7_35ce(int spr, int x, int y, int w, int h, struct rect *r, 
    walls and out of sight-blocked spots, compute screen positions and the edge sprites */
 void far sub_s014_14f7_3682(int k)
 {
-    unsigned px[16], py[16];
-    int n, j, c, r, i, sx, sy, cx, cy;
-    unsigned lo, hi, fx, fy, ex, ey;
-    long far *cell;
+    int px[16], py[16];
+    int n, j, c, r, i, sx, sy, cx, cy, mx, my, fx, fy, ex, ey;
+    struct mcell v;
+    int far *qx;
+    int far *qy;
+    int far *sx0;
+    int far *sy0;
+    int far *ex0;
+    int far *ey0;
 
+    qx = F_20a5_3bc0[k];
+    qy = F_20a5_3cc0[k];
+    sx0 = F_20a5_4db8[k];
+    sy0 = F_20a5_4e38[k];
+    ex0 = F_20a5_4c62[k];
+    ey0 = F_20a5_4ce2[k];
     n = D_a2eb[k].f4 & 7;
     D_a2eb[k].f4 &= 0xf7;
     cx = D_e0a5 = D_a2eb[k].x;
@@ -1648,47 +1680,47 @@ void far sub_s014_14f7_3682(int k)
     for (j = 0; j < n * n; j++) {
         px[j] = _random_n(3) + D_21b2[n][j] + cx;
         py[j] = _random_n(3) + D_21bc[n][j] + cy;
-        cell = &F_20a5_0000[((int)px[j] >> 5) * 40 + ((int)py[j] >> 4)];
-        lo = ((unsigned far *)cell)[0];
-        hi = ((unsigned far *)cell)[1];
+        mx = px[j] >> 5;
+        my = py[j] >> 4;
+        v = F_20a5_0000[mx * 40 + my];
         fx = px[j] & 0x1f;
         fy = py[j] & 0xf;
-        if ((hi & 0x8000) == 0x8000) {
+        if ((v.hi & 0x8000) == 0x8000) {
             py[j] = 0;
             px[j] = 0;
         } else {
-            if ((lo & 0xf) == 0) {
-                if ((lo & 0xf00) != 0 && fx < 7)
+            if ((v.lo & 0xf) == 0) {
+                if ((v.lo & 0xf00) != 0 && fx < 7)
                     px[j] = px[j] & 0xffe7 | 7;
             } else if (fx > 0x17)
                 px[j] = px[j] & 0xfff7 | 0x17;
-            if ((hi & 0xf) == 0) {
-                if ((hi & 0xf00) != 0 && (int)fy > 10)
+            if ((v.hi & 0xf) == 0) {
+                if ((v.hi & 0xf00) != 0 && fy > 10)
                     py[j] = py[j] & 0xfffa | 10;
-            } else if ((int)fy < 4)
+            } else if (fy < 4)
                 py[j] = py[j] & 0xfff4 | 4;
-            if ((int)fx > 0x16 && (((unsigned far *)(cell + 40))[1] & 0xf00) != 0 && (int)fy > 10)
+            if (fx > 0x16 && (F_20a5_0000[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
                 py[j] = py[j] & 0xfffa | 10;
         }
         D_e0a9 = px[j];
         D_e0a7 = py[j];
-        if (sub_s014_1d69_000c(-1, -1, 0) == 1) {
+        if (sub_s014_1d69_000c(-1, -1) == 1) {
             py[j] = 0;
             px[j] = 0;
         }
         if (px[j] == 0 || py[j] == 0) {
-            F_20a5_3bc0[k][j] = 0;
-            F_20a5_3cc0[k][j] = 0;
+            qx[j] = 0;
+            qy[j] = 0;
         } else {
             sy = py[j] - D_c293;
             sx = px[j] - D_c26c - sy + 0x7c;
-            F_20a5_3bc0[k][j] = sx;
-            F_20a5_3cc0[k][j] = sy + 0x45;
+            qx[j] = sx;
+            qy[j] = sy + 0x45;
             if (sx > 0x103 || sy + 0x45 > 199) {
                 py[j] = 0;
                 px[j] = 0;
-                F_20a5_3cc0[k][j] = 0;
-                F_20a5_3bc0[k][j] = 0;
+                qy[j] = 0;
+                qx[j] = 0;
             }
         }
     }
@@ -1702,16 +1734,16 @@ void far sub_s014_14f7_3682(int k)
             }
         }
         if (ex == 0)
-            F_20a5_4db8[k][c] = -999;
+            sx0[c] = -999;
         else {
             F_20a5_706a[k][c] = ex;
             F_20a5_70ea[k][c] = ey + 4;
             sy = ey + 4 - D_c293;
             sx = ex - D_c26c - sy + 0x7d;
-            F_20a5_4db8[k][c] = sx;
-            F_20a5_4e38[k][c] = sy + 0x49;
+            sx0[c] = sx;
+            sy0[c] = sy + 0x49;
             if (sx > 0x103 || sy + 0x49 > 199)
-                F_20a5_4db8[k][c] = -999;
+                sx0[c] = -999;
         }
         /* eastern edge of row c */
         for (r = 0; r < n; r++) {
@@ -1722,16 +1754,16 @@ void far sub_s014_14f7_3682(int k)
             }
         }
         if (ex == 0)
-            F_20a5_4c62[k][c] = -999;
+            ex0[c] = -999;
         else {
             F_20a5_6fea[k][c] = ey;
             F_20a5_6f6a[k][c] = ex + 7;
             sy = ey - D_c293;
             sx = ex + 7 - D_c26c - sy + 0x84;
-            F_20a5_4c62[k][c] = sx;
-            F_20a5_4ce2[k][c] = sy + 0x45;
+            ex0[c] = sx;
+            ey0[c] = sy + 0x45;
             if (sx > 0x103 || sy + 0x45 > 199)
-                F_20a5_4c62[k][c] = -999;
+                ex0[c] = -999;
         }
     }
 }
@@ -1739,11 +1771,14 @@ void far sub_s014_14f7_3682(int k)
 /* lay out the puffs of effect area k (no jitter) */
 void far sub_s014_14f7_3a46(int k)
 {
-    unsigned px[16], py[16];
-    int n, j, sy, sx, cx, cy;
-    unsigned lo, hi, fx, fy;
-    long far *cell;
+    int px[16], py[16];
+    int n, j, sy, sx, cx, cy, mx, my, fx, fy;
+    struct mcell v;
+    int far *qx;
+    int far *qy;
 
+    qx = F_20a5_3754[k];
+    qy = F_20a5_3854[k];
     n = D_a342[k].f4 & 7;
     D_a342[k].f4 &= 0xf7;
     cx = D_e0a5 = D_a342[k].x;
@@ -1751,47 +1786,47 @@ void far sub_s014_14f7_3a46(int k)
     for (j = 0; j < n * n; j++) {
         py[j] = D_21bc[n][j] + cy + 1;
         px[j] = D_21b2[n][j] + cx + 1;
-        cell = &F_20a5_0000[((int)px[j] >> 5) * 40 + ((int)py[j] >> 4)];
-        lo = ((unsigned far *)cell)[0];
-        hi = ((unsigned far *)cell)[1];
+        mx = px[j] >> 5;
+        my = py[j] >> 4;
+        v = F_20a5_0000[mx * 40 + my];
         fx = px[j] & 0x1f;
         fy = py[j] & 0xf;
-        if ((hi & 0x8000) == 0x8000) {
+        if ((v.hi & 0x8000) == 0x8000) {
             py[j] = 0;
             px[j] = 0;
         } else {
-            if ((lo & 0xf) == 0) {
-                if ((lo & 0xf00) != 0 && fx < 7)
+            if ((v.lo & 0xf) == 0) {
+                if ((v.lo & 0xf00) != 0 && fx < 7)
                     px[j] = px[j] & 0xffe7 | 7;
             } else if (fx > 0x17)
                 px[j] = px[j] & 0xfff7 | 0x17;
-            if ((hi & 0xf) == 0) {
-                if ((hi & 0xf00) != 0 && (int)fy > 10)
+            if ((v.hi & 0xf) == 0) {
+                if ((v.hi & 0xf00) != 0 && fy > 10)
                     py[j] = py[j] & 0xfffa | 10;
-            } else if ((int)fy < 4)
+            } else if (fy < 4)
                 py[j] = py[j] & 0xfff4 | 4;
-            if (fx > 0x16 && (((unsigned far *)(cell + 40))[1] & 0xf00) != 0 && (int)fy > 10)
+            if (fx > 0x16 && (F_20a5_0000[mx * 40 + my + 40].hi & 0xf00) != 0 && fy > 10)
                 py[j] = py[j] & 0xfffa | 10;
         }
         D_e0a9 = px[j];
         D_e0a7 = py[j];
-        if (sub_s014_1d69_000c(-1, -1, 0) == 1) {
+        if (sub_s014_1d69_000c(-1, -1) == 1) {
             py[j] = 0;
             px[j] = 0;
         }
         if (px[j] == 0 || py[j] == 0) {
-            F_20a5_3754[k][j] = 0;
-            F_20a5_3854[k][j] = 0;
+            qx[j] = 0;
+            qy[j] = 0;
         } else {
             sy = py[j] - D_c293;
-            F_20a5_3854[k][j] = sy + 0x65;
+            qy[j] = sy + 0x65;
             sx = -D_c26c - (sy - px[j]) + 0x7c;
-            F_20a5_3754[k][j] = sx;
-            if (sx > 0x103 || F_20a5_3854[k][j] > 199) {
+            qx[j] = sx;
+            if (sx > 0x103 || qy[j] > 199) {
                 py[j] = 0;
                 px[j] = 0;
-                F_20a5_3854[k][j] = 0;
-                F_20a5_3754[k][j] = 0;
+                qy[j] = 0;
+                qx[j] = 0;
             }
         }
     }

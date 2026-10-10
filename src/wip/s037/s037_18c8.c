@@ -1,7 +1,7 @@
 /* place: s037 18c8:0004 */
 /* orig: size=3b4e CONST=7eae+0016 _DATA=442e+0370 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 9/15 match (0004 047c 04b2 053e 1738 38a6 3890 39ca 3a9e).
+/* status: ALL 15 FUNCTIONS WRITTEN; _DATA matches. 10/15 match (0004 047c 04b2 053e 1738 20fa 38a6 3890 39ca 3a9e).
    3a9e MATCHED (m1): `it.id = k = id;` with k indexing F_2e38_0890 (k in SI, stored to it.id).
    38a6 MATCHED (m1): `for (n = i = 0; ...)` (chain order decides SI/DI).
    058e (key handler): same length; left are 6.00 code-placement choices in the key
@@ -10,9 +10,10 @@
    0004 (main loop) MATCHES: #pragma optimize("a", on) (D_8c1e kept in BX) and no separate
    key copy - k itself is tested/passed after the mouse part (6.00A splits k: stack home,
    loaded into DI for the tail). 10da (left panel): 6.00 temp slot [bp-2] for the strength-reduced
-   pointer init of the two list loops (`mov [bp-2],20abh; mov si,[bp-2]`). 20fa (reset):
-   far memsets of F_2e38_3b1a/3b04 are `rep stosw` intrinsics in 6.00 (known 6.00A limit), and
-   memset(D_4402, 0, 0x25) (odd size) stays `rep stosb` with DX. 22be (profession list,
+   pointer init of the two list loops (`mov [bp-2],20abh; mov si,[bp-2]`). 20fa (reset) MATCHED (m1):
+   the clears are fill loops under #pragma optimize("a", on); pragma a also deletes the dead
+   stores D_e824/D_e823 = 5 (kept: the later `= 0` stores are volatile) and turns the 7-byte
+   copy loop into rep movs (kept a loop: the store is written twice). 22be (profession list,
    conditions extracted mechanically, see e4/NOTES): 22 bytes short - 6.00A threads
    `je L; jmp skip` into a short jump to a nearby `jmp skip`, and one cross-jumped tail (case
    31 into case 30) differs.
@@ -975,6 +976,7 @@ void far sub_s037_18c8_1738(struct scr *p)
 
 /* reset the character being built: name from F_2e38_1a96 (first word, max 9 chars),
    age 0, attributes 12 (Agl 15), skills 0, no professions, no virtues/saints/items */
+#pragma optimize("a", on)
 void far sub_s037_18c8_20fa(void)
 {
     int i;
@@ -1003,8 +1005,10 @@ void far sub_s037_18c8_20fa(void)
     D_e86e[4] = 0xc;
     D_e86e[5] = 0xb;
     D_e86e[6] = 0x63;
-    for (i = 0; i < 7; i++)
+    for (i = 0; i < 7; i++) {
         D_e867[i] = D_e86e[i];
+        D_e867[i] = D_e86e[i];  /* twice: keeps 6.00A from making it rep movs */
+    }
     *(volatile int *)&D_e818 = 0;
     D_e81f = 0x41;
     D_e853 = 0xa;
@@ -1035,8 +1039,8 @@ void far sub_s037_18c8_20fa(void)
     D_e875[17] = 0;
     D_e875[18] = 0;
     D_e820 = 0;
-    D_e824 = 0;
-    D_e823 = 0;
+    *(volatile char *)&D_e824 = 0;
+    *(volatile char *)&D_e823 = 0;
     D_e825 = 0;
     D_e826 = 0;
     D_e862 = 0;
@@ -1047,20 +1051,21 @@ void far sub_s037_18c8_20fa(void)
     D_e858 = 0;
     D_e865 = 0;
     D_e888 = 0;
-    _fmemset(F_2e38_3b1a, 0, 0x14);
-    _fmemset(F_2e38_3b04, 0, 0x16);
+    for (i = 0; i < 0x14; i++) F_2e38_3b1a[i] = 0;
+    for (i = 0; i < 0x16; i++) F_2e38_3b04[i] = 0;
     memset(D_8bd2, -1, 0x28);
     for (j = 0; j < 6; j++)
         D_8bd2[j] = j;
-    memset(D_4402, 0, 0x25);
-    memset(D_8c22, 0, 0x26);
-    memset(D_8c06, 0, 0xc);
+    for (i = 0; i < 0x25; i++) D_4402[i] = 0;
+    for (i = 0; i < 0x13; i++) D_8c22[i] = 0;
+    for (i = 0; i < 6; i++) D_8c06[i] = 0;
 }
 
 /* build the list D_8bd2[] (D_8c00 entries, max 15) of the professions the character may
    take next: per profession (0..0x24) requirements on age, attributes, skills, gender,
    the last two professions D_4428/D_442a, the childhood D_8c02 and professions taken
    before (D_4402[p] & 1). Conditions extracted mechanically from the original code. */
+#pragma optimize("", on)
 void far sub_s037_18c8_22be(void)
 {
     int i;

@@ -1,10 +1,9 @@
 /* place: s026 1f1d:0000 */
 /* orig: size=02b0 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status (e9): all 4 functions written; 027c 0296 match.  0000/013e differ only in the
-   operand order of the page-frame compare (orig 0000 `cmp ax,cx`, 013e `cmp cx,ax`): the same
-   source gives the opposite order in the two functions; forms, names, declaration positions
-   and FP_SEG spellings tried. */
+/* status (m0): FILE MATCH.  `md.sseg = ((unsigned *)&buf)[1]` (not bsegd) keeps the
+   segment in cx; the compare direction of both functions follows the symbol table: two
+   unused extern declarations before 0000 give the original `cmp ax,cx` / `cmp cx,ax`. */
 /* EMS block moves (EMS 4.0 function 57h, move memory region) between conventional memory
    and the EMS swap store.  Every function contains an inline _asm block (int 67h) in the
    original.  A buffer inside the EMS page frame (segment D_c097) is addressed as expanded
@@ -29,6 +28,10 @@ extern int D_940b;              /* EMS handle of the page frame */
 
 int far sub_s026_1f1d_027c(int h);
 int far sub_s026_1f1d_0296(int h);
+
+/* unused: two more symbols flip both page-frame compares to the original order */
+extern int D_ff00;
+extern int D_ff01;
 
 /* copy len bytes from buf to EMS block handle at off; 1 on success */
 int far sub_s026_1f1d_0000(long len, void far *buf, int handle, unsigned long off)
@@ -60,7 +63,7 @@ int far sub_s026_1f1d_0000(long len, void far *buf, int handle, unsigned long of
         md.st = 0;
         md.sh = 0;
         md.soff = (unsigned)buf;
-        md.sseg = bsegd;
+        md.sseg = ((unsigned *)&buf)[1];
         md.dt = 1;
     }
     md.dh = handle;
@@ -120,7 +123,7 @@ int far sub_s026_1f1d_013e(long len, void far *buf, int handle, unsigned long of
         md.dt = 0;
         md.dh = 0;
         md.doff = (unsigned)buf;
-        md.dseg = bsegd;
+        md.dseg = ((unsigned *)&buf)[1];
         md.st = 1;
     }
     md.sh = handle;

@@ -1,16 +1,16 @@
 /* place: s002 0e76:0000 */
 /* orig: size=1aa6 CONST=7d22+0004 _DATA=0eb0+0411 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
+/* compat600-off: sub_s002_0e76_1830 */
 /* data: _DATA=0eb0 */
 /* data: CONST=7d22 */
 /* status (e6, 2026-10-09): ALL 10 FUNCTIONS WRITTEN; _DATA and CONST line up (hints above).
- * Match: 1750, 17ea, 08fe (battlegr.img loader: pragma a + "el" off, locals renamed for 6.00A's name-hash
- * slot order). Close: 1830 (only the 16-byte memsets: original `mov dx,addr ... rep stosb`,
- * cport.compat600 turns ours into stosw), 0000 (k*i loop operand order, `sub ax,ax; push ax;
+ * Match: 1750, 17ea, 1830 (m1: compat600-off keeps its stosb memsets), 1a7a (m1: the second
+ * clear is a byte fill loop under pragma a), 08fe (battlegr.img loader: pragma a + "el" off, locals renamed for 6.00A's name-hash
+ * slot order). Close: 0000 (k*i loop operand order, `sub ax,ax; push ax;
  * push ax`), 0c8c (6.00 keeps &rec[t] in a stack temp across _fmemcpy), 0806 (two stack slots
  * swapped), 1762 (m1: it is strcpy(*p, r[i].name) - names copied INTO the table; left: the loop pointer init
- * goes to SI instead of DI), 168a (strength-reduced D_ca45 pointer). Known limit: 1a7a
- * (far memset intrinsic `rep stosw` into F_2e38_0bb6 - 6.00A calls _fmemset).
+ * goes to SI instead of DI), 168a (strength-reduced D_ca45 pointer).
  * Data: tables D_114a (name strings: party names, cfile.dat, terrain.fil, portrait codes),
  * D_1182, D_11b2, D_11c8.. are defined here and emitted after 0000's literals.
  * Battle entry 0000(mode, bfld, rseed, 3 x (type, quality, number)) -> D_ca3d.
@@ -992,9 +992,13 @@ void far sub_s002_0e76_1830(void)
 }
 #pragma optimize("", on)
 
+#pragma optimize("a", on)
 void far sub_s002_0e76_1a7a(void)
 {
+    int i;
+
     D_c83e = D_c80e = 0;
     _fmemset((char far *)F_20a5_59c8, 0, 0x870);
-    _fmemset((char far *)F_2e38_0bb6, 0, 0x40);
+    for (i = 0; i < 0x40; i++) F_2e38_0bb6[i] = 0;
 }
+#pragma optimize("", on)

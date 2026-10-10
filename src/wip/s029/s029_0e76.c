@@ -1,9 +1,9 @@
 /* place: s029 0e76:0000 */
 /* orig: size=4f1a CONST=7e18+001c _DATA=26be+00b8 */
 /* flags: /AM /G2 /Gs /Ox /Zp1 */
-/* status: hand port (e3). All 143 functions written; 134/143 match, _DATA and CONST slots
+/* status: hand port (e3). All 143 functions written; 135/143 match, _DATA and CONST slots
    match the original, and every function now has its original length except 255a/2d5c/
-   2e74/4650 (so 1dfe/1fb8 no longer depend on errors cancelling). Open: 013a (frame 2 vs
+   2e74 (so 1dfe/1fb8 no longer depend on errors cancelling). Open: 013a (frame 2 vs
    4: the +0x35 CSE spill goes to [bp-2], the original has an unused slot above it),
    1260 (far-pointer loop form: length/frame/tail right, only the loop set-up differs:
    6.00 `mov dx,9c69h; mov di,dx; mov cx,ax`, ours keeps both in stack slots),
@@ -15,7 +15,7 @@
    255a (cap compares preload the current value),
    2d5c 2e74 (`cmp si,-1` on a dead register: 6.00A emits `inc si`; 2e74 needs
    #pragma optimize("a", on) for the 3144 test), 4b08 (d kept in memory, slot order),
-   4650 (inline far memset: 6.00 only). Several
+   4650 MATCHED (m1: the far clears are byte fill loops under pragma a). Several
    matches depend on the symbol table (prototype text, local names, extern lines): re-check
    the whole file after every change (build/agent/e3/keep.py; NOPROTO=1 for splice.py;
    dperm.py on 4378/4c04 when they flip). See build/agent/e3/NOTES.md. */
@@ -2816,6 +2816,7 @@ void far sub_s029_0e76_4626(void)
    items (vec_1f8b); appends the record to charactr.tmp (slot table of 5 file indices, the
    5 portrait names, then 0x22a bytes per character), loads pics\shield?.pic and starts the
    0x43 event for the new member */
+#pragma optimize("a", on)
 int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, int hours,
                            int y)
 {
@@ -2870,10 +2871,10 @@ int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, i
     D_9c69[slot][0x3c] = 25;
     D_9c69[slot][0x39] = 5;
     D_9c69[slot][0x3a] = 4;
-    /* the original inlines both clears (rep stosw through the CONST slot): 6.00 had a far
-       memset intrinsic that 6.00A lacks */
-    _fmemset(F_2e38_082c[i], 0, 0x14);
-    _fmemset(&F_2e38_075f[slot][0x5f], 0, 0x16);
+    /* both clears are fill loops (pragma a turns them into rep stosw through the CONST
+       slot); indexing with slot (not i) gives the original imul order */
+    for (j = 0; j < 0x14; j++) F_2e38_082c[slot][j] = 0;
+    for (j = 0; j < 0x16; j++) F_2e38_075f[slot][0x5f + j] = 0;
     D_9c67[slot][0] = 25;
     D_9c69[slot][3] = 0;
     D_9c69[slot][1] = sub_root_0000_0c70(15) + 'A';
@@ -2927,6 +2928,7 @@ int far sub_s029_0e76_4650(int unused, char *name, char *shortname, char *pic, i
     vec_1ea5(D_e3d4, (char far *)D_e3e3);
     sub_root_0000_1716(0x100);
 }
+#pragma optimize("", on)
 
 /* close every 0x43 event whose field +0x1e is p_6: log it as a 0x47 event for the party
    (-2, lasting 9999) and remove it through 30fe.  No local copy of p_6 (a `v_di = p_6`
@@ -2989,8 +2991,8 @@ void far sub_s029_0e76_4b08(int who, int k, int d, int h)
    than d ends the whole function, and the reduced d carries over to the next member. */
 void far sub_s029_0e76_4c04(int who, int k, int d, int h)
 {
-    int n;
     int i;
+    int n;
     int g;
 
     if (who == -1)
