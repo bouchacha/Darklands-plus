@@ -568,7 +568,7 @@ void plat_events(void)
     while (SDL_PollEvent(&e)) {
         if (!headless && ui_event(&e)) continue;
         switch (e.type) {
-        case SDL_QUIT: plat_quit(0); break;
+        case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
                 static u32 last_save; u32 t = plat_ticks_ms();

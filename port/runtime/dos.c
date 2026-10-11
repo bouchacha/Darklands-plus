@@ -446,6 +446,7 @@ void dos_int21(void)
         } else dos_error(1);
         break;
     case 0x4c: fflush(stdout);
+        { int game_mode(void); fprintf(stderr, "program exit: int 21h 4Ch code %d (mode %d, card %.12s, DS:07f4 %d)\n", AL, game_mode(), (const char *)M + LIN((u16)(LOADSEG + 0x321a), 0xe3d4), rb((u16)(LOADSEG + 0x321a), 0x07f4)); }
         { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
         plat_quit(AL); break;
     case 0x39: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (mkdir_(hp)) dos_error(5); else SETCF(0); break;
