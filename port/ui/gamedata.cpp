@@ -72,6 +72,13 @@ static ItemKind classify(const ItemDef &d)
     if ((f & 0x300) == 0x300) return K_INSTRUMENT;
     if (f & 0x200) return K_TOOL;
     if (f & 0x100) return K_GEAR;
+    /* the item type numbers (LST +30) group the equipment; the flags leave crossbows, guns,
+       ammunition and the soft armours unmarked */
+    int t = d.type;
+    if (t >= 95 && t <= 97) return K_SHIELD;
+    if (t >= 67 && t <= 84) return K_ARMOR;
+    if ((t >= 23 && t <= 33) || (t >= 64 && t <= 66)) return K_MISSILE;
+    if (t >= 0 && t <= 22 && (f & 0x0f)) return K_WEAPON;
     if (f & 0x80) return K_SHIELD;
     if (f & 0x40) return K_ARMOR;
     if (f & 0x30) return K_MISSILE;

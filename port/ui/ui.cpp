@@ -40,9 +40,11 @@ static ImFont *font_body, *font_head;
 ImFont *ui_font_small, *ui_font_text;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
+extern int ui_spell_out;                   /* overlay.cpp: character sheet names in full */
 const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (17th-century print)",
     "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)" };
 extern "C" void tab_inventory(void);
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
@@ -122,6 +124,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_game_font = config_get_int("display.text_font", 0);
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
     ui_text_edge = config_get_int("display.text_edge", 2);
+    ui_spell_out = config_get_int("display.spell_out", 1);
     gamedata_load(game_dir);
     journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -232,7 +235,7 @@ static void set_original(bool on)
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, next(1));
         for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
         config_set("sound.device", config_get("original.sound", "fm"));
-        hdtext_set(config_get_int("original.text", 1));
+        hdtext_set(config_get_int("original.text", 2));
         hdart_set(config_get_int("original.art", 1));
         sfx_set(config_get_int("original.sfx", 1));
         saves_enable(config_get_int("original.saves", 1));
@@ -328,8 +331,8 @@ static void tab_display(void)
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();
     int hm = hdtext_mode;
-    if (ImGui::RadioButton("Crisp text on cards (redrawn with a modern book face)", hm == 1)) { hdtext_set(1); dirty_config = 1; }
-    if (ImGui::RadioButton("Crisp text everywhere (experimental: sheets, map, menus)", hm == 2)) { hdtext_set(2); dirty_config = 1; }
+    if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); dirty_config = 1; }
+    if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); dirty_config = 1; }
     if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); dirty_config = 1; }
     if (hm) {
         ImGui::SetNextItemWidth(380);
@@ -341,6 +344,8 @@ static void tab_display(void)
             }
             ImGui::EndCombo();
         }
+        { bool so = ui_spell_out != 0;
+          if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); dirty_config = 1; } }
         ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
         static const char *E[3] = { "plain", "shadow", "outline" };
         for (int i = 0; i < 3; i++) {
@@ -529,6 +534,17 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!keep) ui_toggle();
     }
     ui_draw_notice();
+    if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
+        ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
+        dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(40, 30, 20, 255));
+        int first = atoi(getenv("DL_ICON_SHEET")), cols = 10; float cw = io.DisplaySize.x / cols, chh = 64;
+        for (int i = first; i < (int)gamedata.items.size() && i < first + 110; i++) {
+            int k = i - first; ImVec2 p((k % cols) * cw, (k / cols) * chh);
+            ui_item_icon(dl, ImVec2(p.x + cw / 2, p.y + 24), 40, i);
+            std::string n = game_text(gamedata.items[i].name.c_str(), 64);
+            dl->AddText(ui_font_small, 13, ImVec2(p.x + 4, p.y + 46), IM_COL32(240, 230, 210, 255), n.c_str());
+        }
+    }
     ui_cursor();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);

@@ -23,7 +23,7 @@
 extern char game_dir[1024];
 extern u16 drvseg_mgraphic;
 
-int hdtext_mode = 1;                 /* 0 off, 1 card font, 2 all fonts */
+int hdtext_mode = 2;                 /* 0 off, 1 card font, 2 all fonts */
 
 /* ---------------------------------------------------------------- fonts */
 typedef struct { int first, last, bpr, height, cspace, lspace; const u8 *widths, *bitmap; } Fnt;
@@ -419,7 +419,7 @@ void hdtext_set(int mode) { hdtext_mode = mode; config_set_int("display.crisp_te
 void hdtext_init(void)
 {
     load_fonts();
-    hdtext_mode = config_get_int("display.crisp_text", 1);
+    hdtext_mode = config_get_int("display.crisp_text", 2);
     hook_install(-1, 0x047c, 0x055a, text_hook);
     hook_install(-1, 0x047c, 0x04dc, recolor_hook);
     hook_install(43, 0x17e5, 0x0008, fade_hook);
