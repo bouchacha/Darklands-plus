@@ -505,6 +505,17 @@ static void run_script(void)
             for (int i = 0; i < hdtext_nruns; i++) fprintf(stderr, "text %d %d %d %d %06x %s\n", hdtext_runs[i].x, hdtext_runs[i].y, hdtext_runs[i].w, hdtext_runs[i].h, hdtext_runs[i].rgb & 0xffffff, hdtext_runs[i].text);
             fprintf(stderr, "text end\n");
         }
+        else if (!strcmp(s->cmd, "ucard")) {               /* test: the card's name and its option lines (option id, text) */
+            int n = (s8)g_rb(0xe96e);
+            fprintf(stderr, "card %.12s n %d\n", (const char *)M + LIN(G_DGROUP, 0xe3d4), n);
+            for (int i = 0; i < n && i < 20; i++) {
+                int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i)), opt = (s8)g_rb((u16)(0xe9b0 + i));
+                char t[256] = "";
+                for (int k = 0; k < hdtext_nruns; k++)
+                    if (hdtext_runs[k].y >= y - 1 && hdtext_runs[k].y < y + h - 1 && hdtext_runs[k].x >= 60 && strlen(t) + strlen(hdtext_runs[k].text) < 250) { if (*t) strcat(t, " | "); strcat(t, hdtext_runs[k].text); }
+                fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
+            }
+        }
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);

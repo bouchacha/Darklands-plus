@@ -316,7 +316,11 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                         any = 1;
                         if (lut[v] != lut[u]) { seen++; sr += lut[v] >> 16 & 255; sg += lut[v] >> 8 & 255; sb += lut[v] & 255; sn++; }
                         if (xgood && v != (u8)(u0 ^ r->col[g])) { xgood = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: xor pixel %02x, expected %02x (bg %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, u0 ^ r->col[g], u); }
-                        if (good) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); } }
+                        /* an option line after its fade: the card code recoloured the xor pixels
+                           0x20..0x7f to the line's colour; xor pixels outside that range (over
+                           some picture colours) kept theirs, holes the original shows too */
+                        if (good && r->xr && v == (u8)(u0 ^ r->col[g]) && (v < 0x20 || v >= 0x80)) { }
+                        else if (good) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); } }
                     } else if (v != u) { good = xgood = 0; if (dbg && r->xr) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: background %02x was %02x\n", r->stamp, g, r->ch[g], xx, yy, v, u); break; }
                 }
             if (!good && !xgood) continue;
@@ -325,7 +329,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             /* (an xor glyph that looks like the picture right now still belongs to its line: the
                line is drawn in the colour of its visible glyphs, or not at all while none is) */
             if (xgood) { ok[g] = 1; gc[g] = -1; xs_r[g] = sr; xs_g[g] = sg; xs_b[g] = sb; xs_n[g] = sn; }   /* xor first: one colour for the line */
-            else if (good && seen) { ok[g] = 1; gc[g] = c; }
+            else if (good && seen && c >= 0) { ok[g] = 1; gc[g] = c; }
             else continue;
             alive++;
         }
