@@ -443,17 +443,10 @@ static void member_cards(void)
     ImGui::NewLine();
 }
 
-static void tooltip(const InvItem &it, const ItemDef *d)
+/* what an item is good for: weapon numbers and who could use it, what armour covers, a potion's
+ * effect (the inventory's tooltips, the shops' rows) */
+void ui_item_details(const ItemDef *d, int id)
 {
-    ImGui::BeginTooltip();
-    ImGui::Text("%s", d ? d->name.c_str() : "?");
-    ImGui::Separator();
-    if (d) ImGui::TextDisabled("%s", kind_name(d->kind));
-    ImGui::Text("Quality %d", it.qual);
-    if (it.count > 1) ImGui::Text("%d of them", it.count);
-    ImGui::Text("Weight %d", it.weight);
-    if (d && d->value) ImGui::Text("Worth about %d pfennigs", d->value);
-    if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
     if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) {
         /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow
            time, hands and penetration, damage, skill and strength wanted */
@@ -471,6 +464,23 @@ static void tooltip(const InvItem &it, const ItemDef *d)
         if (maxst < 99) ImGui::Text("Strength %d to %d: below, each point costs 1 attack and 3 defence and blows hit softer;\nabove %d, each point adds 2 defence and blows hit harder", minst, maxst, maxst);
         else ImGui::Text("Strength %d: below, each point costs 1 attack and 3 defence and blows hit softer", minst);
         ImGui::TextDisabled("Lower times are quicker.");
+        /* who in the party could use it, and what it would cost them */
+        ImGui::Separator();
+        int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
+        for (int m = 0; m < size; m++) {
+            u16 b = G_MEMBER(m);
+            char n[16]; g_str(G_DGROUP, (u16)(b + G_M_SHORTNAME), n, sizeof n);
+            int have = sk < 7 ? (s8)g_rb((u16)(b + G_M_SKILLS + sk)) : 0, str = (s8)g_rb((u16)(b + G_M_ATTR_CUR + 1));
+            int ss = minsk - have, ws = minst - str;
+            std::string v;
+            if (ss > 0) v += "lacks " + std::to_string(ss) + " skill";
+            if (ws > 0) v += std::string(v.empty() ? "" : ", ") + "too weak by " + std::to_string(ws);
+            if (v.empty()) v = str > maxst && maxst < 99 ? "suits (strong: hits harder)" : "suits";
+            int att = 2 * (ss > 0 ? ss : 0) + (ws > 0 ? ws : 0), def = 2 * (ss > 0 ? ss : 0) + 3 * (ws > 0 ? ws : 0);
+            ImVec4 c = att ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
+            if (att) ImGui::TextColored(c, "%s: skill %d, strength %d - %s (-%d attack, -%d defence)", game_text(n, sizeof n).c_str(), have, str, v.c_str(), att, def);
+            else ImGui::TextColored(c, "%s: skill %d, strength %d - %s", game_text(n, sizeof n).c_str(), have, str, v.c_str());
+        }
     }
     if (d && d->type >= 67 && d->type <= 84) {
         ImGui::Separator();
@@ -479,9 +489,23 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     }
     if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
     if (d && d->kind == K_POTION) {
-        int p = it.id - 95;
+        int p = id - 95;
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(320); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
     }
+}
+
+static void tooltip(const InvItem &it, const ItemDef *d)
+{
+    ImGui::BeginTooltip();
+    ImGui::Text("%s", d ? d->name.c_str() : "?");
+    ImGui::Separator();
+    if (d) ImGui::TextDisabled("%s", kind_name(d->kind));
+    ImGui::Text("Quality %d", it.qual);
+    if (it.count > 1) ImGui::Text("%d of them", it.count);
+    ImGui::Text("Weight %d", it.weight);
+    if (d && d->value) ImGui::Text("Worth about %d pfennigs", d->value);
+    if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
+    ui_item_details(d, it.id);
     ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");
     ImGui::EndTooltip();
 }

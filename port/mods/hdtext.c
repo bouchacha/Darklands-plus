@@ -270,6 +270,9 @@ static void cursor_rect(int *x, int *y, int *w, int *h)
     *x = (s16)rw(ds, 0x20a); *y = (s16)rw(ds, 0x20c); *w = (s16)rw(ds, 0x20e); *h = (s16)rw(ds, 0x210);
 }
 
+/* where the game's own mouse pointer is drawn (1), or 0 when it is hidden */
+int hdtext_game_cursor(int *x, int *y, int *w, int *h) { cursor_rect(x, y, w, h); return *w > 0; }
+
 HdRun hdtext_runs[HD_MAXRUNS];
 int hdtext_nruns;
 

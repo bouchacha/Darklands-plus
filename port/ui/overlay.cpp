@@ -5,6 +5,9 @@
 #include <math.h>
 #include <float.h>
 #include <string>
+#include <ctype.h>
+#include <strings.h>
+#include <algorithm>
 #include <vector>
 #include "imgui.h"
 #include "../mods/hdart.h"
@@ -12,6 +15,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/config.h"
 #include "../mods/assist.h"
 #include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
@@ -561,6 +565,53 @@ static void draw_learned(void)
 }
 
 extern "C" void travel_overlay(void);
+/* in a shop: what the item under the mouse is good for (its row in the merchant's or the
+ * party's list: "17pf Torch 21q 2lbs", "59pf Short Sword ( 1) 25q") */
+int ui_shop_info = 1;
+void ui_item_details(const ItemDef *d, int id);
+static void draw_shop_info(void)
+{
+    if (!ui_shop_info || game_mode() != GM_SCREEN || !hdtext_mode || !gamedata.loaded || config_get_int("original", 0)) return;
+    int mx, my; plat_mouse_game(&mx, &my);
+    { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { mx = cx; my = cy; } }   /* where the game shows its pointer (it moves it in lists) */
+    int row = -1;
+    for (int i = 0; i < hdtext_nruns && row < 0; i++) {
+        const HdRun &r = hdtext_runs[i];
+        if (my >= r.y - 1 && my < r.y + r.h + 2 && mx >= r.x - 2 && mx < r.x + r.w + 2) row = r.y;
+    }
+    if (row < 0) return;
+    std::vector<const HdRun *> on;                          /* the whole row, left to right */
+    for (int i = 0; i < hdtext_nruns; i++) if (hdtext_runs[i].y == row) on.push_back(&hdtext_runs[i]);
+    std::sort(on.begin(), on.end(), [](const HdRun *a, const HdRun *b) { return a->x < b->x; });
+    std::string t; for (const HdRun *r : on) { if (!t.empty()) t += ' '; t += r->text; }
+    std::vector<std::string> tok; { size_t i = 0; while (i < t.size()) { while (i < t.size() && t[i] == ' ') i++; size_t j = i; while (j < t.size() && t[j] != ' ') j++; if (j > i) tok.push_back(t.substr(i, j - i)); i = j; } }
+    auto price = [](const std::string &w) { size_t k = 0; while (k < w.size() && isdigit((unsigned char)w[k])) k++; return k > 0 && k + 2 == w.size() && (w.substr(k) == "pf" || w.substr(k) == "gr" || w.substr(k) == "fl"); };
+    auto stop = [](const std::string &w) { if (w[0] == '(') return true; size_t k = 0; while (k < w.size() && isdigit((unsigned char)w[k])) k++; return k > 0 && (k == w.size() || (k + 1 == w.size() && (w[k] == 'q' || w[k] == ')'))); };
+    size_t k = 0; while (k < tok.size() && !price(tok[k])) k++;
+    if (k == tok.size()) return;
+    std::string name;
+    for (k++; k < tok.size() && !stop(tok[k]); k++) { if (!name.empty()) name += ' '; name += tok[k]; }
+    if (name.empty()) return;
+    int id = -1;
+    for (size_t i = 0; i < gamedata.items.size(); i++) if (!strcasecmp(gamedata.items[i].name.c_str(), name.c_str())) { id = (int)i; break; }
+    if (id < 0) return;
+    const ItemDef *d = &gamedata.items[id];
+    bool useful = (d->type >= 0 && d->type <= 33) || (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97) || d->kind == K_POTION;
+    if (!useful) return;
+    ImVec2 p = g2w((float)mx, (float)my);
+    ImGuiIO &io = ImGui::GetIO();
+    bool right = p.x > io.DisplaySize.x * 0.55f, below = p.y > io.DisplaySize.y * 0.5f;     /* away from the mouse, towards the room */
+    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -24.0f : 24.0f), p.y + (below ? -24.0f : 24.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.96f);
+    if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
+                                             ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.72f, io.DisplaySize.y / 1000.0f)));
+        ImGui::TextUnformatted(game_text(d->name.c_str(), d->name.size()).c_str());
+        ui_item_details(d, id);
+    }
+    ImGui::End();
+}
+
 extern "C" void ui_overlay(void)
 {
     draw_chances();
@@ -569,4 +620,5 @@ extern "C" void ui_overlay(void)
     travel_overlay();
     draw_picture_name();
     { void ui_margins(void); ui_margins(); }
+    draw_shop_info();
 }

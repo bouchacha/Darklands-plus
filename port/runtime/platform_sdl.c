@@ -503,6 +503,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "utext")) {               /* the text on screen (crisp text runs), for scripts */
             
             for (int i = 0; i < hdtext_nruns; i++) fprintf(stderr, "text %d %d %d %d %06x %s\n", hdtext_runs[i].x, hdtext_runs[i].y, hdtext_runs[i].w, hdtext_runs[i].h, hdtext_runs[i].rgb & 0xffffff, hdtext_runs[i].text);
+            { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) fprintf(stderr, "cursor %d %d %d %d mouse %d %d\n", cx, cy, cw, ch, mouse_x, mouse_y); }
             fprintf(stderr, "text end\n");
         }
         else if (!strcmp(s->cmd, "ucard")) {               /* test: the card's name and its option lines (option id, text) */
