@@ -12,6 +12,7 @@ int ui_is_open(void);
 void ui_toggle(void);
 void ui_draw(SDL_Renderer *ren);
 void ui_select_tab(int t);
+#define UI_GAME_FONTS 6
 #ifdef __cplusplus
 }
 #endif

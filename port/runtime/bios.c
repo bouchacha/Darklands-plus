@@ -245,11 +245,14 @@ static void int33(void)
     case 0x01: ms_shown++; break;
     case 0x02: ms_shown--; break;
     case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; break;
-    case 0x04: ms_x = CX; ms_y = DX; break;
+    case 0x04: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: set %d,%d\n", (s16)CX, (s16)DX); }
+        ms_x = CX; ms_y = DX; break;
     case 0x05: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
     case 0x06: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
-    case 0x07: ms_minx = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxx = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
-    case 0x08: ms_miny = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxy = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
+    case 0x07: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: x range %d..%d\n", (s16)CX, (s16)DX); }
+        ms_minx = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxx = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
+    case 0x08: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: y range %d..%d\n", (s16)CX, (s16)DX); }
+        ms_miny = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxy = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
     case 0x0b: CX = (u16)ms_mickx; DX = (u16)ms_micky; ms_mickx = ms_micky = 0; break;
     case 0x0c: ms_hmask = CX; ms_hseg = ES; ms_hoff = DX; break;
     case 0x14: { u16 m = ms_hmask, s = ms_hseg, o = ms_hoff; ms_hmask = CX; ms_hseg = ES; ms_hoff = DX; CX = m; ES = s; DX = o; break; }
@@ -489,6 +492,8 @@ int in_game_call;
 void dl_poll(void)
 {
     poll_flag = 0;
+    { static int tr = -1; static u32 lt, np; if (tr < 0) tr = getenv("DL_TRACE_POLL") != 0;
+      if (tr) { np++; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { lt = t; fprintf(stderr, "poll %u: %u polls, game call %d, irq %d, if %d, menu %d, cs %04x\n", t, np, in_game_call, in_irq, R.iflag, plat_menu_open(), CS); np = 0; } } }
     if (in_game_call) { void call_watchdog(void); call_watchdog(); return; }
     if (in_irq) return;
     if (idle_hits > 300) plat_sleep_ms(1);     /* the game is busy-waiting: give the CPU back */
@@ -499,13 +504,21 @@ void dl_poll(void)
         if (d > 200) d = 200;
         tick_us_acc += d * 1000.0;
     }
-    if (now - last_present >= 14) {
+    /* a frame every 14 ms, but the game always gets at least as long to run as the last frame
+     * took to draw: where drawing is slow (software rendering, a driver forcing vsync) the
+     * frame rate drops instead of the game crawling (it stalled mid-picture before) */
+    static u32 present_end, present_cost;
+    if (now - last_present >= 14 && now - present_end >= present_cost) {
         last_present = now;
         plat_events();
         plat_present(M + 0xa0000, vga_dac);
+        present_end = plat_ticks_ms();
+        present_cost = present_end - now; if (present_cost > 100) present_cost = 100;
         if (plat_menu_open()) {               /* the game is paused while the menu is open */
+            void sound_pause(int); sound_pause(1);
             while (plat_menu_open()) { plat_events(); plat_present(M + 0xa0000, vga_dac); plat_sleep_ms(15); }
-            last_ms = now = plat_ticks_ms();
+            sound_pause(0);
+            last_ms = now = present_end = plat_ticks_ms();
             tick_us_acc = 0;
         }
     }

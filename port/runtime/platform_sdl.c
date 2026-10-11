@@ -19,6 +19,7 @@
 #include "hle.h"
 #include "../ui/ui.h"
 #include "../mods/hdart.h"
+#include "../mods/hdtext.h"
 #include "game.h"
 
 static SDL_Window *win;
@@ -138,7 +139,11 @@ static void key(SDL_Scancode sc, int release)
     kbd_push_scancode((u8)c, release);
 }
 
-static void send_mouse(void) { mouse_update(mouse_x * 2, mouse_y, mouse_b); }
+static void send_mouse(void)
+{
+    { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse %u: %d,%d buttons %d\n", plat_ticks_ms(), mouse_x, mouse_y, mouse_b); }
+    mouse_update(mouse_x * 2, mouse_y, mouse_b);
+}
 
 /* ---------------------------------------------------------------- screen */
 static u32 lut[256];
@@ -319,13 +324,17 @@ static int frame_textures(void)
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); }   /* game-side checks, headless too */
+    { static int slow = -1; if (slow < 0) slow = getenv("DL_SLOW_PRESENT") ? atoi(getenv("DL_SLOW_PRESENT")) : 0; if (slow) plat_sleep_ms(slow); }   /* test: a slow display */
     if (headless) return;
+    static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
+    uint64_t pt0 = ptime ? plat_ticks_us() : 0;
     to_rgb(vga, pal);
     static u8 idx[320 * 200];
     memcpy(idx, vga, sizeof idx);
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
     { void worldmap_watch_palette(void); worldmap_watch_palette(); }
+    uint64_t pt1 = ptime ? plat_ticks_us() : 0;
     int nt = frame_textures();
     layout();
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
@@ -337,7 +346,9 @@ void plat_present(const u8 *vga, const u8 *pal)
         SDL_FRect d = { dest.x + tile_dst[t].x * dest.w, dest.y + tile_dst[t].y * dest.h, tile_dst[t].w * dest.w, tile_dst[t].h * dest.h };
         SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
     }
+    uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
+    uint64_t pt3 = ptime ? plat_ticks_us() : 0;
     if (pending_wshot[0]) {
         SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
         if (sf) { SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
@@ -345,6 +356,9 @@ void plat_present(const u8 *vga, const u8 *pal)
         pending_wshot[0] = 0;
     }
     SDL_RenderPresent(ren);
+    if (ptime) { static uint64_t acc, mx, cnt, a1, a2, a3; uint64_t t4 = plat_ticks_us(), d = t4 - pt0; acc += d; if (d > mx) mx = d;
+                 a1 += pt1 - pt0; a2 += pt3 - pt2; a3 += t4 - pt3;
+                 if (++cnt % 100 == 0) { fprintf(stderr, "present: %.2f ms average (prepare %.2f, ui %.2f, present %.2f), %.2f ms worst\n", acc / 1000.0 / 100, a1 / 1e5, a2 / 1e5, a3 / 1e5, mx / 1000.0); acc = mx = a1 = a2 = a3 = 0; } }
 }
 
 /* game pixel (gx, gy) -> window coordinates, where the interface draws (valid after the
@@ -465,8 +479,22 @@ static void run_script(void)
             wb((u16)(LOADSEG + sg), (u16)of, (u8)v);
         }
         else if (!strcmp(s->cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
+        else if (!strcmp(s->cmd, "uopt")) {                /* test: click the line of crisp text containing arg */
+            
+            int found = 0;
+            for (int i = 0; i < hdtext_nruns && !found; i++)
+                if (strstr(hdtext_runs[i].text, s->arg)) {
+                    mouse_x = hdtext_runs[i].x + 6; mouse_y = hdtext_runs[i].y + 3; send_mouse();
+                    mouse_b |= 1; send_mouse();
+                    Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
+                    r->t = now + 80; snprintf(r->cmd, sizeof r->cmd, "release"); snprintf(r->arg, sizeof r->arg, "1");
+                    for (int k = nsteps - 1; k > step_i && steps[k].t < steps[k - 1].t; k--) { Step t = steps[k]; steps[k] = steps[k - 1]; steps[k - 1] = t; }
+                    found = 1;
+                }
+            fprintf(stderr, "uopt %s: %s\n", s->arg, found ? "clicked" : "not found");
+        }
         else if (!strcmp(s->cmd, "utext")) {               /* the text on screen (crisp text runs), for scripts */
-            extern int hdtext_nruns; typedef struct { char text[100]; int x, y, w, h, font; unsigned rgb; } Run; extern Run hdtext_runs[];
+            
             for (int i = 0; i < hdtext_nruns; i++) fprintf(stderr, "text %d %d %d %d %06x %s\n", hdtext_runs[i].x, hdtext_runs[i].y, hdtext_runs[i].w, hdtext_runs[i].h, hdtext_runs[i].rgb & 0xffffff, hdtext_runs[i].text);
             fprintf(stderr, "text end\n");
         }
@@ -508,10 +536,7 @@ void plat_events(void)
     run_ctl();
     run_script();
     while (SDL_PollEvent(&e)) {
-        if (!headless && ui_event(&e)) {
-            SDL_ShowCursor(ui_is_open() ? SDL_ENABLE : SDL_DISABLE);
-            continue;
-        }
+        if (!headless && ui_event(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: plat_quit(0); break;
         case SDL_KEYDOWN:

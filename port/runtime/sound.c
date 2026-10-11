@@ -3,6 +3,7 @@
  * 388h/389h exactly as on the real card; this file is the card. */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <SDL.h>
 #include "cpu.h"
 #include "hle.h"
@@ -17,13 +18,33 @@ static uint8_t t1_val, t2_val, t_ctrl, status;
 static uint64_t t1_start, t2_start;
 
 static FILE *wav; static uint32_t wav_bytes;
+/* pause (the game held while the menu or the world map is open): the chip, the sample
+ * channel and the effects stop where they are, after a short fade, and go on after it */
+static volatile int paused; static int fade;              /* fade: 0 none, 1 out, 2 in */
 static void callback(void *u, Uint8 *stream, int len)
 {
     (void)u;
-    OPL3_GenerateStream(&chip, (int16_t *)stream, (uint32_t)(len / 4));
-    { void sb_mix(int16_t *, int, int); sb_mix((int16_t *)stream, len / 4, 44100); }
-    { void sfx_mix(short *, int); sfx_mix((short *)stream, len / 4); }
+    int16_t *s16 = (int16_t *)stream; int n = len / 4;
+    if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
+    OPL3_GenerateStream(&chip, s16, (uint32_t)n);
+    { void sb_mix(int16_t *, int, int); sb_mix(s16, n, 44100); }
+    { void sfx_mix(short *, int); sfx_mix((short *)stream, n); }
+    if (fade) {
+        for (int i = 0; i < n; i++) {
+            int g = fade == 1 ? (n - i) * 256 / n : i * 256 / n;
+            s16[2 * i] = (int16_t)(s16[2 * i] * g / 256); s16[2 * i + 1] = (int16_t)(s16[2 * i + 1] * g / 256);
+        }
+        fade = 0;
+    }
     if (wav) { fwrite(stream, 1, (size_t)len, wav); wav_bytes += (uint32_t)len; }
+}
+void sound_pause(int on)
+{
+    if (!dev || on == paused) return;
+    SDL_LockAudioDevice(dev);
+    paused = on; fade = on ? 1 : 2;
+    SDL_UnlockAudioDevice(dev);
+    { void mpu_all_notes_off(void); if (on) mpu_all_notes_off(); }
 }
 static void wav_close(void)
 {

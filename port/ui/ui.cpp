@@ -25,8 +25,8 @@ extern "C" {
 #include "../mods/sfx.h"
 #include "ui.h"
 extern char game_dir[1024];
-extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
-extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE;
+extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[];
+extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE;
 }
 
 static bool open_menu, open_map;
@@ -38,6 +38,10 @@ extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head;
 ImFont *ui_font_small, *ui_font_text;
+ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
+int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
+const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (17th-century print)",
+    "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)" };
 extern "C" void tab_inventory(void);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
@@ -101,6 +105,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;     /* the cursor is ours (ui_cursor) */
     ImFontConfig fc; fc.FontDataOwnedByAtlas = false;
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 24.0f, &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
@@ -109,7 +114,14 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
         static const ImWchar ranges[] = { 0x20, 0xff, 0 };
         ui_font_text = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 34.0f, &tc, ranges);
+        const unsigned char *data[UI_GAME_FONTS] = { FONT_MEDIUM, FONT_ALEGREYA, FONT_FELL, FONT_ATKINSON, FONT_MEDIEVAL, FONT_FRAKTUR };
+        const unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE };
+        ui_font_game[0] = ui_font_text;
+        for (int i = 1; i < UI_GAME_FONTS; i++) ui_font_game[i] = io.Fonts->AddFontFromMemoryTTF((void *)data[i], (int)size[i], 34.0f, &tc, ranges);
     }
+    ui_game_font = config_get_int("display.text_font", 0);
+    if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
+    ui_text_edge = config_get_int("display.text_edge", 2);
     gamedata_load(game_dir);
     journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -319,6 +331,23 @@ static void tab_display(void)
     if (ImGui::RadioButton("Crisp text on cards (redrawn with a modern book face)", hm == 1)) { hdtext_set(1); dirty_config = 1; }
     if (ImGui::RadioButton("Crisp text everywhere (experimental: sheets, map, menus)", hm == 2)) { hdtext_set(2); dirty_config = 1; }
     if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); dirty_config = 1; }
+    if (hm) {
+        ImGui::SetNextItemWidth(380);
+        if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
+            for (int i = 0; i < UI_GAME_FONTS; i++) {
+                ImGui::PushFont(ui_font_game[i]);
+                if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); dirty_config = 1; }
+                ImGui::PopFont();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
+        static const char *E[3] = { "plain", "shadow", "outline" };
+        for (int i = 0; i < 3; i++) {
+            if (i) ImGui::SameLine();
+            if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); dirty_config = 1; }
+        }
+    }
     hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
          "the window's resolution; anything it cannot match exactly is left as the game drew it.");
 
@@ -445,6 +474,28 @@ static void tab_about(void)
                         "Music synthesis: your system's MIDI synthesizer.");
 }
 
+/* one cursor at a time: over the game picture the game draws its own, so the system cursor
+ * is hidden there; it shows with the menu or the world map open, and outside the picture */
+extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
+static void ui_cursor(void)
+{
+    int mx, my; SDL_GetMouseState(&mx, &my);
+    float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+    bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
+    bool show = open_menu || open_map || !over_game;
+    static int shown = -1;
+    if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
+    if (show) {
+        static SDL_Cursor *arrow; if (!arrow) arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+        ImGuiMouseCursor c = ImGui::GetMouseCursor();
+        static SDL_Cursor *cur[ImGuiMouseCursor_COUNT];
+        static const SDL_SystemCursor map[ImGuiMouseCursor_COUNT] = { SDL_SYSTEM_CURSOR_ARROW, SDL_SYSTEM_CURSOR_IBEAM, SDL_SYSTEM_CURSOR_SIZEALL,
+            SDL_SYSTEM_CURSOR_SIZENS, SDL_SYSTEM_CURSOR_SIZEWE, SDL_SYSTEM_CURSOR_SIZENESW, SDL_SYSTEM_CURSOR_SIZENWSE, SDL_SYSTEM_CURSOR_HAND, SDL_SYSTEM_CURSOR_NO };
+        if (c >= 0 && c < ImGuiMouseCursor_COUNT) { if (!cur[c]) cur[c] = SDL_CreateSystemCursor(map[c]); SDL_SetCursor(cur[c]); }
+        else SDL_SetCursor(arrow);
+    }
+}
+
 extern "C" void ui_draw(SDL_Renderer *ren)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -478,6 +529,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!keep) ui_toggle();
     }
     ui_draw_notice();
+    ui_cursor();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
 }

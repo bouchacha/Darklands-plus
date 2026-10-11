@@ -52,7 +52,10 @@ $(OUT)/imgui_%.o: $(IMGUI)/%.cpp | $(OUT)
 $(OUT)/imgui_impl_%.o: $(IMGUI)/backends/imgui_impl_%.cpp | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 $(OUT)/fonts.c: third_party/fonts/*.ttf tools/bin2c.py | $(OUT)
-	python3 -I tools/bin2c.py $@ FONT_MEDIUM=third_party/fonts/EBGaramond-Medium.ttf FONT_SEMIBOLD=third_party/fonts/EBGaramond-SemiBold.ttf
+	python3 -I tools/bin2c.py $@ FONT_MEDIUM=third_party/fonts/EBGaramond-Medium.ttf FONT_SEMIBOLD=third_party/fonts/EBGaramond-SemiBold.ttf \
+	    FONT_ALEGREYA=third_party/fonts/Alegreya-Medium.ttf FONT_FELL=third_party/fonts/IMFellEnglish-Regular.ttf \
+	    FONT_MEDIEVAL=third_party/fonts/MedievalSharp-Regular.ttf FONT_ATKINSON=third_party/fonts/AtkinsonHyperlegible-Regular.ttf \
+	    FONT_FRAKTUR=third_party/fonts/DLFraktur-Regular.ttf
 $(OUT)/fonts.o: $(OUT)/fonts.c
 	$(CC) -c -o $@ $<
 $(OUT)/mods_%.o: mods/%.c mods/*.h runtime/*.h | $(OUT)

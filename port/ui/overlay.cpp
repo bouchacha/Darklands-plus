@@ -18,6 +18,26 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 
 extern ImFont *ui_font_small, *ui_font_text;
+#define UI_GAME_FONTS 6
+extern ImFont *ui_font_game[UI_GAME_FONTS];
+extern int ui_game_font, ui_text_edge;
+
+/* text over any picture: an outline (or shadow) in the opposite brightness keeps it readable */
+static void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c, const char *t, int edge)
+{
+    if (edge) {
+        int r = (c >> IM_COL32_R_SHIFT) & 255, g = (c >> IM_COL32_G_SHIFT) & 255, b = (c >> IM_COL32_B_SHIFT) & 255, a = (c >> IM_COL32_A_SHIFT) & 255;
+        bool light = r * 299 + g * 587 + b * 114 > 115000;
+        ImU32 e = light ? IM_COL32(0, 0, 0, (int)(a * 0.80f)) : IM_COL32(255, 244, 225, (int)(a * 0.45f));
+        float th = size * 0.055f; if (th < 1.0f) th = 1.0f;
+        if (edge == 1) dl->AddText(f, size, ImVec2(p.x + th, p.y + th), e, t);
+        else {
+            static const float D[8][2] = { {1,0},{-1,0},{0,1},{0,-1},{0.7f,0.7f},{-0.7f,0.7f},{0.7f,-0.7f},{-0.7f,-0.7f} };
+            for (int i = 0; i < 8; i++) dl->AddText(f, size, ImVec2(p.x + D[i][0] * th, p.y + D[i][1] * th), e, t);
+        }
+    }
+    dl->AddText(f, size, p, c, t);
+}
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
 static u8 px(int x, int y) { return (x < 0 || x >= 320 || y < 0 || y >= 200) ? 0 : M[0xa0000 + y * 320 + x]; }
@@ -37,6 +57,23 @@ static int text_end(int x0, int y0, int w, int h, int tc, int *top, int *bot)
     return right;
 }
 
+/* where the crisp text of a run ends on screen (as hdtext_draw lays it out); window x */
+static std::string utf8(const char *s);
+static float run_end_win(const HdRun &r, float *cy, float *lh)
+{
+    ImFont *font = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
+    float x0, y0, x1, y1;
+    plat_game_to_win((float)r.x, (float)r.y, &x0, &y0);
+    plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
+    float bw = x1 - x0, bh = y1 - y0, size = bh * 1.18f;
+    std::string t = utf8(r.text);
+    ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+    if (ts.x > bw * 1.04f) { size *= bw * 1.04f / ts.x; ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str()); }
+    *cy = (y0 + y1) * 0.5f; *lh = bh;
+    return x0 + ts.x;
+}
+
+/* the chance of success of each option, right after its text, at the size of the text */
 static void draw_chances(void)
 {
     const CardChances &cc = card_chances;
@@ -50,12 +87,24 @@ static void draw_chances(void)
     int x0 = 60 + (s16)g_rw(0xe972), w = (s16)g_rw(0xe970), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    ImGui::PushFont(ui_font_small);
+    ImFont *f = ui_font_text;
     for (int i = 0; i < n; i++) {
         if (!cc.line[i].show) continue;
         int y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
-        int top = y0, bot = y0 + h - 1;
-        int tx = text_end(x0, y0, w, h, tc, &top, &bot);
+        float ex = -1, cy = 0, lh = 0;
+        int best = -1;
+        for (int k = 0; k < hdtext_nruns; k++) {             /* the option's last line of crisp text */
+            const HdRun &r = hdtext_runs[k];
+            if (r.y < y0 || r.y >= y0 + h || r.x < x0 - 4 || r.x > x0 + w) continue;
+            if (best < 0 || r.y > hdtext_runs[best].y || (r.y == hdtext_runs[best].y && r.x > hdtext_runs[best].x)) best = k;
+        }
+        if (best >= 0) ex = run_end_win(hdtext_runs[best], &cy, &lh);
+        else {                                                  /* the game's own lettering */
+            int top = y0, bot = y0 + h - 1;
+            int tx = text_end(x0, y0, w, h, tc, &top, &bot);
+            ImVec2 a = g2w((float)(tx < 0 ? x0 + w : tx + 1), (float)top), b = g2w((float)(x0 + w), (float)(bot + 1));
+            ex = a.x; cy = (a.y + b.y) * 0.5f; lh = b.y - a.y;
+        }
         int pct = cc.line[i].pct, who = cc.line[i].who;
         char main[40], sub[24] = "";
         if (mode == 0) snprintf(main, sizeof main, "%d%%", pct);
@@ -66,21 +115,22 @@ static void draw_chances(void)
             else g_str(G_DGROUP, p, main, sizeof main);
         }
         if (who >= 0 && who < 5 && members > 1) g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), sub, sizeof sub);
-        ImVec2 ms = ImGui::CalcTextSize(main), ss = sub[0] ? ImGui::CalcTextSize(sub) : ImVec2(0, 0);
-        float padx = 6, bw = ms.x + (sub[0] ? ss.x + 6 : 0) + 2 * padx, bh = ms.y + 2;
-        ImVec2 a = g2w((float)(tx < 0 ? x0 + w : tx + 4), (float)top), b = g2w((float)(x0 + w), (float)(bot + 1));
-        float cy = (a.y + b.y) / 2;
-        float bx = tx < 0 ? b.x - bw : a.x;
-        if (bx + bw > b.x) bx = b.x - bw;
+        float size = lh * 1.05f; if (size < 16) size = 16;
+        float subsize = size * 0.78f;
+        ImVec2 ms = f->CalcTextSizeA(size, FLT_MAX, 0, main), ss = sub[0] ? f->CalcTextSizeA(subsize, FLT_MAX, 0, sub) : ImVec2(0, 0);
+        float padx = size * 0.3f, gap = size * 0.35f;
+        float bw = ms.x + (sub[0] ? ss.x + padx : 0) + 2 * padx, bh = ms.y * 0.92f;
+        ImVec2 right = g2w((float)(x0 + w + 6), 0);
+        float bx = ex + gap;
+        if (bx + bw > right.x) bx = right.x - bw;
         ImVec2 p0(bx, cy - bh / 2), p1(bx + bw, cy + bh / 2);
-        ImU32 fg = mode == 1 ? IM_COL32(240, 220, 170, 255)
-                 : pct >= 70 ? IM_COL32(150, 225, 120, 255) : pct >= 40 ? IM_COL32(245, 205, 90, 255) : IM_COL32(245, 120, 95, 255);
-        dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 215), 5);
-        dl->AddRect(p0, p1, IM_COL32(150, 110, 60, 200), 5);
-        dl->AddText(ImVec2(p0.x + padx, p0.y + 1), fg, main);
-        if (sub[0]) dl->AddText(ImVec2(p0.x + padx + ms.x + 6, p0.y + 1), IM_COL32(200, 180, 150, 230), sub);
+        ImU32 fg = mode == 1 ? IM_COL32(245, 228, 185, 255)
+                 : pct >= 70 ? IM_COL32(150, 230, 120, 255) : pct >= 40 ? IM_COL32(250, 210, 95, 255) : IM_COL32(250, 125, 100, 255);
+        dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 225), bh * 0.3f);
+        dl->AddRect(p0, p1, IM_COL32(170, 125, 65, 230), bh * 0.3f, 0, 1.5f);
+        dl->AddText(f, size, ImVec2(p0.x + padx, cy - ms.y * 0.52f), fg, main);
+        if (sub[0]) dl->AddText(f, subsize, ImVec2(p0.x + padx + ms.x + padx, cy - ss.y * 0.5f), IM_COL32(215, 195, 160, 240), sub);
     }
-    ImGui::PopFont();
 }
 
 /* crisp text: the runs hdtext.c verified, drawn with a real font into the picture's place */
@@ -101,6 +151,7 @@ static std::string utf8(const char *s)
 extern "C" void hdtext_draw(void)
 {
     if (!hdtext_mode || !ui_font_text) return;
+    ImFont *font = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     for (int i = 0; i < hdtext_nruns; i++) {
         const HdRun &r = hdtext_runs[i];
@@ -111,12 +162,12 @@ extern "C" void hdtext_draw(void)
         plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
         float bw = x1 - x0, bh = y1 - y0;
         float size = bh * 1.18f;
-        ImVec2 ts = ui_font_text->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+        ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         if (ts.x > bw * 1.04f) size *= bw * 1.04f / ts.x;
-        ts = ui_font_text->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+        ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         ImU32 c = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
-        dl->AddText(ui_font_text, size, ImVec2(x0, y), c, t.c_str());
+        text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge);
     }
 }
 
@@ -179,15 +230,15 @@ static void draw_card_help(void)
 {
     card_help_top = 0;
     if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
-    int size = (s16)g_rw(G_PARTY_SIZE);
-    if (size < 1 || size > 5) return;
+    int npar = (s16)g_rw(G_PARTY_SIZE);
+    if (npar < 1 || npar > 5) return;
     std::vector<std::pair<std::string, std::string>> lines;
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
     for (int j = 0; j < 4; j++) {
         int s = (s16)g_rw((u16)(0xee4b + 2 * j));
         if (s < 0 || s >= (int)gamedata.saints.size()) continue;
         std::string who;
-        for (int m = 0; m < size; m++)
+        for (int m = 0; m < npar; m++)
             if (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) { if (!who.empty()) who += ", "; who += name_of(m); }
         lines.push_back({ gamedata.saints[s].name, who.empty() ? "nobody knows" : who });
     }
@@ -196,7 +247,7 @@ static void draw_card_help(void)
         int it = (s16)g_rw((u16)(0xee43 + 2 * j));
         if (it <= 0 || it >= (int)gamedata.items.size()) continue;
         std::string who;
-        for (int m = 0; m < size; m++) {
+        for (int m = 0; m < npar; m++) {
             int n = 0, k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
             for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == it) n += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
             if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
@@ -204,29 +255,46 @@ static void draw_card_help(void)
         lines.push_back({ game_text(gamedata.items[it].name.c_str(), 64), who.empty() ? "nobody has one" : who });
     }
     if (lines.empty()) return;
-    ImGui::PushFont(ui_font_small);
-    float lh = ImGui::GetTextLineHeight(), w = 0;
+    /* sized with the picture, like the card's own text; smaller while it would cover any of
+     * the card's lines */
+    ImFont *f = ui_font_text;
+    ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
+    float base = (br.y - tl.y) / 197.0f * 7.6f; if (base < 15) base = 15;
     const char *hs = "Saints that work here", *hi = "Items that work here";
-    for (auto &l : lines) { float a = ImGui::CalcTextSize(l.first.c_str()).x + 14 + ImGui::CalcTextSize(l.second.c_str()).x; if (a > w) w = a; }
-    if (nsaints && ImGui::CalcTextSize(hs).x > w) w = ImGui::CalcTextSize(hs).x;
-    float h = lh * ((float)lines.size() + (nsaints ? 1 : 0) + (nsaints < (int)lines.size() ? 1 : 0)) + 10;
-    ImVec2 br = g2w(317, 197);
-    ImVec2 p0(br.x - w - 16, br.y - h), p1 = br;
+    int nrows = (int)lines.size() + (nsaints ? 1 : 0) + (nsaints < (int)lines.size() ? 1 : 0);
+    float size = base, w = 0, h = 0, gapx = 0, padx = 0, pady = 0, lh = 0;
+    ImVec2 p0, p1;
+    for (int tries = 0; tries < 6; tries++, size *= 0.93f) {
+        lh = size * 1.12f; gapx = size * 0.8f; padx = size * 0.55f; pady = size * 0.3f;
+        w = f->CalcTextSizeA(size * 0.92f, FLT_MAX, 0, hs).x;
+        for (auto &l : lines) { float a = f->CalcTextSizeA(size, FLT_MAX, 0, l.first.c_str()).x + gapx + f->CalcTextSizeA(size, FLT_MAX, 0, l.second.c_str()).x; if (a > w) w = a; }
+        h = lh * nrows + 2 * pady;
+        p0 = ImVec2(br.x - w - 2 * padx, br.y - h); p1 = br;
+        bool hit = false;
+        for (int k = 0; k < hdtext_nruns && !hit; k++) {
+            ImVec2 a = g2w((float)hdtext_runs[k].x, (float)hdtext_runs[k].y), b = g2w((float)(hdtext_runs[k].x + hdtext_runs[k].w), (float)(hdtext_runs[k].y + hdtext_runs[k].h));
+            hit = a.x < p1.x && b.x > p0.x && a.y < p1.y && b.y > p0.y;
+        }
+        if (!hit) break;
+    }
     card_help_top = p0.y;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 205), 5);
-    dl->AddRect(p0, p1, IM_COL32(150, 110, 60, 200), 5);
-    float y = p0.y + 5, x = p0.x + 8;
+    float rr = size * 0.35f;
+    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 215), rr);
+    dl->AddRect(p0, p1, IM_COL32(170, 125, 65, 220), rr, 0, 1.5f);
+    float y = p0.y + pady, x = p0.x + padx;
+    float namew = 0;
+    for (auto &l : lines) { float a = f->CalcTextSizeA(size, FLT_MAX, 0, l.first.c_str()).x; if (a > namew) namew = a; }
     for (int i = 0; i < (int)lines.size(); i++) {
-        if (i == 0 && nsaints) { dl->AddText(ImVec2(x, y), IM_COL32(215, 185, 130, 255), hs); y += lh; }
-        if (i == nsaints) { dl->AddText(ImVec2(x, y), IM_COL32(215, 185, 130, 255), hi); y += lh; }
+        if (i == 0 && nsaints) { dl->AddText(f, size * 0.92f, ImVec2(x, y + size * 0.06f), IM_COL32(225, 190, 125, 255), hs); y += lh; }
+        if (i == nsaints) { dl->AddText(f, size * 0.92f, ImVec2(x, y + size * 0.06f), IM_COL32(225, 190, 125, 255), hi); y += lh; }
         bool none = lines[i].second == "nobody knows" || lines[i].second == "nobody has one";
-        dl->AddText(ImVec2(x, y), IM_COL32(245, 232, 200, 255), lines[i].first.c_str());
-        float nx = x + ImGui::CalcTextSize(lines[i].first.c_str()).x + 14;
-        dl->AddText(ImVec2(nx, y), none ? IM_COL32(170, 150, 125, 210) : IM_COL32(150, 225, 120, 255), lines[i].second.c_str());
+        dl->AddText(f, size, ImVec2(x + size * 0.4f, y), IM_COL32(248, 236, 205, 255), lines[i].first.c_str());
+        float nx = x + size * 0.4f + namew + gapx * 0.6f;
+        if (nx + f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x > p1.x - padx * 0.5f) nx = p1.x - padx * 0.5f - f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x;
+        dl->AddText(f, size, ImVec2(nx, y), none ? IM_COL32(175, 155, 130, 220) : IM_COL32(150, 230, 120, 255), lines[i].second.c_str());
         y += lh;
     }
-    ImGui::PopFont();
 }
 
 /* a saint learned: its description for a while (the Companion showed the clue book's text
@@ -258,20 +326,19 @@ static void draw_learned(void)
     const Saint &t = gamedata.saints[learned_saint];
     char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
     std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;
-    ImGuiIO &io = ImGui::GetIO();
-    float w = io.DisplaySize.x * 0.40f;
-    ImGui::PushFont(ui_font_small);
-    ImVec2 hs = ImGui::CalcTextSize(head.c_str()), ts = ImGui::CalcTextSize(t.text.c_str(), 0, false, w);
-    float bh = hs.y + ts.y + 22;
-    ImVec2 br = g2w(317, 197);
-    float bottom = card_help_top > 0 ? card_help_top - 6 : br.y;
-    ImVec2 p0(br.x - w - 16, bottom - bh), p1(br.x, bottom);
+    ImFont *f = ui_font_text;
+    ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
+    float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
+    float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
+    ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str()), ts = f->CalcTextSizeA(size, FLT_MAX, w, t.text.c_str());
+    float bh = hs.y + ts.y + pad * 2.4f;
+    float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
+    ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(225 * a)), 6);
-    dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), 6);
-    dl->AddText(ImVec2(p0.x + 8, p0.y + 6), IM_COL32(235, 200, 130, (int)(255 * a)), head.c_str());
-    dl->AddText(ui_font_small, ui_font_small->FontSize, ImVec2(p0.x + 8, p0.y + 12 + hs.y), IM_COL32(240, 230, 210, (int)(255 * a)), t.text.c_str(), 0, w);
-    ImGui::PopFont();
+    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
+    dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
+    dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(235, 200, 130, (int)(255 * a)), head.c_str());
+    dl->AddText(f, size, ImVec2(p0.x + pad, p0.y + pad * 1.4f + hs.y), IM_COL32(240, 230, 210, (int)(255 * a)), t.text.c_str(), 0, w);
 }
 
 extern "C" void travel_overlay(void);

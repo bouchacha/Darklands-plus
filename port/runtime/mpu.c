@@ -55,6 +55,13 @@ static void midi_sysex(const u8 *d, int n)
 #endif
 }
 
+/* the game held (menu, world map): no notes may hang on in the synthesizer */
+void mpu_all_notes_off(void)
+{
+    if (midi_ok <= 0) return;
+    for (int ch = 0; ch < 16; ch++) { midi_short((u8)(0xb0 | ch), 123, 0, 3); midi_short((u8)(0xb0 | ch), 64, 0, 3); }
+}
+
 static int data_len(u8 st)
 {
     switch (st & 0xf0) {
