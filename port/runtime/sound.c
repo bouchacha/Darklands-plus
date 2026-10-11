@@ -22,6 +22,7 @@ static void callback(void *u, Uint8 *stream, int len)
     (void)u;
     OPL3_GenerateStream(&chip, (int16_t *)stream, (uint32_t)(len / 4));
     { void sb_mix(int16_t *, int, int); sb_mix((int16_t *)stream, len / 4, 44100); }
+    { void sfx_mix(short *, int); sfx_mix((short *)stream, len / 4); }
     if (wav) { fwrite(stream, 1, (size_t)len, wav); wav_bytes += (uint32_t)len; }
 }
 static void wav_close(void)
@@ -47,6 +48,8 @@ void sound_init(void)
     SDL_PauseAudioDevice(dev, 0);
     ok = 1;
 }
+
+void sound_lock(int on) { if (!dev) return; if (on) SDL_LockAudioDevice(dev); else SDL_UnlockAudioDevice(dev); }
 
 static void update_timers(void)
 {

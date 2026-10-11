@@ -21,6 +21,7 @@ extern "C" {
 #include "../mods/fixes.h"
 #include "../mods/hdtext.h"
 #include "../mods/hdart.h"
+#include "../mods/sfx.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
@@ -173,7 +174,8 @@ static void set_original(bool on)
         config_set("original.sound", config_get("sound.device", "fm"));
         config_set_int("original.text", hdtext_mode);
         config_set_int("original.art", hdart_on);
-        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0); hdart_set(0);
+        config_set_int("original.sfx", sfx_mode);
+        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0); hdart_set(0); sfx_set(0);
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
@@ -189,6 +191,7 @@ static void set_original(bool on)
         config_set("sound.device", config_get("original.sound", "fm"));
         hdtext_set(config_get_int("original.text", 1));
         hdart_set(config_get_int("original.art", 1));
+        sfx_set(config_get_int("original.sfx", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -290,6 +293,34 @@ static void tab_display(void)
     for (int i = 0; i < 6; i++)
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
     hint("Takes effect after the next battle, or when the game is started again.");
+    {
+        ImGui::Spacing();
+        bool sp = sfx_mode, hs = sfx_added_hits, sy = sfx_synth;
+        extern char game_dir[1024];
+        if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); dirty_config = 1; }
+        int n = sfx_user_count();
+        if (n) hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", game_dir, PATH_SEP);
+        else hint("No sound pack yet (%s%ssounds).", game_dir, PATH_SEP);
+        if (sp) {
+            ImGui::Indent(30);
+            if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); dirty_config = 1; }
+            if (ImGui::Checkbox("Experimental: synthesized sounds where the pack has none", &sy)) { sfx_set_synth(sy); dirty_config = 1; }
+            int v = sfx_volume;
+            ImGui::SetNextItemWidth(260);
+            if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); dirty_config = 1; }
+            static char msg[400];
+            if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sounds found.", sfx_user_count()); }
+            ImGui::SameLine();
+            if (ImGui::Button("Write the synthesized sounds as .wav")) sfx_export(msg, sizeof msg);
+            if (msg[0]) hint("%s", msg);
+            ImGui::Unindent(30);
+        }
+        if (ImGui::TreeNode("File names for a sound pack")) {
+            for (int k = 0; k < SFX_COUNT; k++) hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
+            hint("Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random.");
+            ImGui::TreePop();
+        }
+    }
     ImGui::TextWrapped("The GOG release plays battles through its Roland driver, which on a modern PC sounds like "
                        "\"random notes rather than clashing swords\". The Sound Blaster setting uses the game's own FM "
                        "drivers and digitized effects, as most players heard it in 1992.");
