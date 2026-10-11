@@ -44,7 +44,10 @@
  *            nibbles wrap (a fourth Deadly Blade gives +1 damage, Greatpower's 14 spills into
  *            the damage nibble), and hit_damage's penetration (byte + weapon) & 15 wraps too:
  *            "after Greatpower my bows only do 3-5 damage". The byte is now the sum of the
- *            potions still running, each nibble capped at 15, and penetration stops at 15. */
+ *            potions still running, each nibble capped at 15, and penetration stops at 15.
+ *  offmap    One location of DARKLAND.LOC (record 373, a cave) lies at y 931, one row below the
+ *            931-row map: quests that send the party there cannot be finished ("quests send
+ *            you off the map"). It is moved onto the last row. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,6 +80,8 @@ Fix FIXES[] = {
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
     { "potions", "Weapon potions wear off and don't ruin weapons",
       "Deadly Blade, Strongedge and Greatpower never wore off, and their bonuses overflowed: after a few potions (or one Greatpower) weapons, bows above all, hit for almost nothing. They now last their day and add up properly.", 1 },
+    { "offmap", "No quest destinations off the edge of the map",
+      "One cave lies a row beyond the bottom of the map, so quests sent there could never be finished. It is moved onto the map.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -290,10 +295,24 @@ static void colours_frame(void)
     col_read(cur); memcpy(col_good, cur, sizeof cur);
 }
 static void potions_frame(void);
+static void offmap_frame(void)                 /* locations below or right of the map onto its edge */
+{
+    static u32 n;
+    if ((n++ & 63) || game_mode() == GM_OTHER) return;
+    for (int k = 0; k < G_NLOC; k++) {
+        u32 r = g_location(k);
+        if (!r) continue;
+        u16 s = (u16)(r >> 16), o = (u16)r;
+        int x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6));
+        if (y > 930 && y < 940) { ww(s, (u16)(o + 6), 930); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d y %d -> 930\n", k, y); }
+        if (x > 326 && x < 336) { ww(s, (u16)(o + 4), 326); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d x %d -> 326\n", k, x); }
+    }
+}
 void fixes_frame(void)
 {
     colours_frame();
     if (fix_on("potions")) potions_frame();
+    if (fix_on("offmap")) offmap_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -366,7 +385,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
-    { 14, 0x18bf, 0x0778, hitdamage_hook } };
+    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 } };
 
 void fix_enable(int i, int on)
 {

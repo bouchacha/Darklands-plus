@@ -259,13 +259,14 @@ static void art_draw(void)
 
 void plat_present(const u8 *vga, const u8 *pal)
 {
+    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); }   /* game-side checks, headless too */
     if (headless) return;
     to_rgb(vga, pal);
     static u8 idx[320 * 200];
     memcpy(idx, vga, sizeof idx);
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
-    { void worldmap_watch_palette(void); worldmap_watch_palette(); void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); }
+    { void worldmap_watch_palette(void); worldmap_watch_palette(); }
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
     layout();
     SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
