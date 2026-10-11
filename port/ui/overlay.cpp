@@ -762,6 +762,47 @@ static void draw_battle_info(void)
     ImGui::End();
 }
 
+/* character creation: what the step on screen asks for and what the numbers on the right mean,
+ * in the empty column at the left of the creation screen (s037 18c8, state D_8c1e) */
+int ui_creation_guide = 1;
+static void draw_creation_guide(void)
+{
+    if (!ui_creation_guide || config_get_int("original", 0) || !hdart_on_screen("CHARGEN")) return;
+    int st = (s16)g_rw(0x8c1e);
+    static const char *T[5] = {
+        "Making a character: name and sex first, then the family background, the attributes, and "
+        "one profession after another, five years each, until you begin adventuring. Older characters "
+        "know more, but age costs attributes.",
+        "The family decides the first attributes and skills. The right side shows what the background "
+        "under the pointer would give; EP (top right) are the points to spend next.",
+        "Spend the EP on attributes: pick one, then + or -. Endurance and strength are the hit points "
+        "(and together say how much one can carry); agility counts in battle; perception, intelligence "
+        "and charisma serve many skills.",
+        "Choose the profession for the next five years. The right side shows the one under the pointer: "
+        "the EP it gives (top), the attributes after it, and for each skill gain:room - what it adds at "
+        "once : how many EP that skill can still take. Some professions open only after others, or need "
+        "certain attributes.",
+        "Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the "
+        "colon. Then choose the next profession, or begin adventuring.",
+    };
+    if (st < 0 || st > 4) return;
+    ImVec2 a = g2w(3, 4), b = g2w(58, 196);
+    ImGui::SetNextWindowPos(a); ImGui::SetNextWindowSize(ImVec2(b.x - a.x, b.y - a.y));
+    ImGui::SetNextWindowBgAlpha(0.55f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(20, 16, 12, 255));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(236, 226, 205, 255));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
+    if (ImGui::Begin("##creation", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing |
+                                            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::PushFont(ui_font_text);
+        ImGui::SetWindowFontScale(fminf(0.75f, fmaxf(0.40f, (b.x - a.x) / 260.0f)));
+        ImGui::TextWrapped("%s", T[st]);
+        ImGui::PopFont();
+    }
+    ImGui::End();
+    ImGui::PopStyleVar(); ImGui::PopStyleColor(2);
+}
+
 extern "C" void ui_overlay(void)
 {
     draw_chances();
@@ -772,4 +813,5 @@ extern "C" void ui_overlay(void)
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_info();
+    draw_creation_guide();
 }

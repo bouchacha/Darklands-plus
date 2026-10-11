@@ -138,6 +138,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
     { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
+    { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
     { extern int ui_battle_info, ui_battle_numbers; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
@@ -340,6 +341,8 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
       if (ImGui::Checkbox("In shops: what the item under the mouse is good for, and who in the party could use it", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
+    { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
+      if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
     bool ck = assist_card_keys;
     if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); dirty_config = 1; }
     hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");

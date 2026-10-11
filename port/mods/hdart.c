@@ -746,6 +746,21 @@ static const Baked BAKED[] = {
 int has_baked(const char *name) { for (int k = 0; k < NBAKED; k++) if (!strcmp(BAKED[k].pic, name)) return 1; return 0; }
 static int light(u8 v) { return v >= 0xb0 && v <= 0xdf; }
 
+/* the picture `name` is on the screen (most of its pixels still there) */
+int hdart_on_screen(const char *name)
+{
+    const u8 *vga = M + 0xa0000;
+    for (int i = 0; i < nreg[0]; i++) {
+        Reg *r = &reg[0][i]; Pic *P = &pics[r->pic];
+        if (strcmp(P->name, name)) continue;
+        long n = 0, same = 0;
+        for (int y = r->y; y < r->y + r->h; y += 7)
+            for (int x = r->x; x < r->x + r->w; x += 5) { n++; same += vga[y * 320 + x] == P->px[(y - r->oy) * P->w + (x - r->ox)]; }
+        if (n && same * 2 > n) return 1;
+    }
+    return 0;
+}
+
 void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
 {
     if (!hdtext_mode) return;

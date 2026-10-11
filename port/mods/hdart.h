@@ -19,6 +19,7 @@ void hdart_rescan(void);
 int hdart_export(char *msg, int msgn);
 void hdart_set(int on);
 int hdart_pick(int x, int y, int *px, int *py, int *pw, int *ph);   /* picture under a screen pixel, -1 none */
+int hdart_on_screen(const char *name);   /* that picture is on the screen (tracked pictures only) */
 int hdart_has_art(int pic);
 extern int hdart_show_names;
 #ifdef __cplusplus
