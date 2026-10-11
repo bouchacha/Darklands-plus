@@ -26,6 +26,12 @@ def texts():
         if m: runs.append((int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), m.group(5), m.group(6)))
     return runs
 
+def mode():
+    n0 = os.path.getsize(out)
+    nctl.do(a.name, 'ucmd umode:; wait 0.4')
+    m = re.findall(r'mode (\d+)', open(out, encoding='latin1').read()[n0:])
+    return int(m[-1]) if m else -1
+
 def on_map():
     nctl.do(a.name, 'shot nf')
     im = Image.open(os.path.join(nctl.sdir(a.name), 'nf.png')).convert('RGB')
@@ -47,9 +53,13 @@ for i in range(a.max):
         return abs(r - g) < 12 and abs(g - b) < 12 and 0x40 < r < 0xc0
     opts = [t for t in r if t[5].startswith('...') and not grey(t[4])]
     if not r:
-        nctl.do(a.name, 'wait 2')
-        if not texts() and not on_map():
+        md = mode()
+        if md == 4:
             print('battle'); break
+        if md == 3:                                 # a screen (shop, sheet): leave it
+            nctl.do(a.name, 'key Escape; wait 2; key l; wait 3')
+        else:
+            nctl.do(a.name, 'click; wait 3')
         continue
     if not opts:
         nctl.do(a.name, 'click; wait 3'); continue

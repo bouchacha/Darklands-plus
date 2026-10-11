@@ -156,19 +156,22 @@ u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args)
  * functions whose memory effects are wanted or harmless (collision tests ...). */
 void (*game_func(int sect, u16 seg, u16 off))(void) { return func_in(sect, (u32)seg * 16 + off); }
 
-u32 game_call_native(void (*f)(void), int nargs, const u16 *args)
+/* live: the game keeps running normally inside (input, screen, sound), for long calls */
+static u32 call_direct(void (*f)(void), int nargs, const u16 *args, int live)
 {
     CPU save = R;
     int tp = tail_pending, ua = unw_active;
     tail_pending = 0; unw_active = 0;
-    in_game_call++;
+    if (!live) in_game_call++;
     DS = ES = G_DGROUP;
     SP = (u16)(SP - 64);
     for (int i = nargs - 1; i >= 0; i--) push16(args[i]);
     push16(HLE_SEG); push16(0xfff0);
     f();
     u32 r = ((u32)DX << 16) | AX;
-    in_game_call--;
+    if (!live) in_game_call--;
     R = save; tail_pending = tp; unw_active = ua;
     return r;
 }
+u32 game_call_native(void (*f)(void), int nargs, const u16 *args) { return call_direct(f, nargs, args, 0); }
+u32 game_call_live(void (*f)(void), int nargs, const u16 *args) { return call_direct(f, nargs, args, 1); }

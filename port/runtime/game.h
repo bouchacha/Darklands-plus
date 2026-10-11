@@ -89,6 +89,7 @@ static inline u32 g_location(int i)
 /* direct calls from hooks (registers restored, memory effects kept) */
 void (*game_func(int sect, u16 seg, u16 off))(void);           /* sect -1 = root */
 u32 game_call_native(void (*f)(void), int nargs, const u16 *args);
+u32 game_call_live(void (*f)(void), int nargs, const u16 *args);     /* the same, the game running normally inside */
 
 /* call a far game function (link address sect seg:off) with cdecl word args; returns AX */
 int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args);

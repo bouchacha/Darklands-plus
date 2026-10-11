@@ -355,6 +355,8 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
+        else if (!strcmp(s->cmd, "ufight")) { extern int ufight_pending; ufight_pending = atoi(s->arg) ? atoi(s->arg) : 10; }   /* test: a battle at the next card */
+        else if (!strcmp(s->cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
         else if (!strcmp(s->cmd, "utext")) {               /* the text on screen (crisp text runs), for scripts */
             extern int hdtext_nruns; typedef struct { char text[100]; int x, y, w, h, font; unsigned rgb; } Run; extern Run hdtext_runs[];
             for (int i = 0; i < hdtext_nruns; i++) fprintf(stderr, "text %d %d %d %d %06x %s\n", hdtext_runs[i].x, hdtext_runs[i].y, hdtext_runs[i].w, hdtext_runs[i].h, hdtext_runs[i].rgb & 0xffffff, hdtext_runs[i].text);
