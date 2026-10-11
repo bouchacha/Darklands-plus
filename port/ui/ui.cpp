@@ -62,6 +62,8 @@ extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
+extern "C" void ui_notice(const char *msg);
+extern "C" void ui_notice_for(const char *msg, unsigned ms);
 extern "C" void tab_editor(void);
 extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
@@ -141,6 +143,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
     journal_init();
+    if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
     style();

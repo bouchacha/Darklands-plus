@@ -296,6 +296,7 @@ static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 static int last_loc = -2;
 void saves_frame(void)
 {
+    { void saves_note_game(void); saves_note_game(); }
     if (load_stage == 1 && plat_ticks_ms() - load_t > 30000) load_stage = 0;    /* never a moment to load */
     if (!saves_on || game_mode() == GM_OTHER) { last_loc = -2; return; }
     int loc = (s16)g_rw(G_CUR_LOC);
@@ -350,8 +351,25 @@ void saves_enable(int on)
     }
 }
 
+/* the end of the party: the original leaves to DOS (after the death pictures); the port starts
+ * the game again at its title instead, unless the player chose Quit (quit_to_dos, root
+ * 0000:13a0) - so a saved game can be loaded at once */
+int saves_restart = 1;
+static int user_quit, game_seen;
+static void quit_hook(void) { user_quit = 1; hook_call_original(); user_quit = 0; }
+int saves_restart_on_exit(void)
+{
+    int headless = getenv("DL_HEADLESS") != 0;
+    if (user_quit || !saves_restart || headless || !game_seen) return 0;
+    fprintf(stderr, "the party's end: starting the game again\n");
+    return 1;
+}
+void saves_note_game(void) { if (game_mode() != GM_OTHER) game_seen = 1; }
+
 void saves_init(void)
 {
+    saves_restart = config_get_int("saves.restart_on_end", 1);
+    hook_install(-1, 0x0000, 0x13a0, quit_hook);
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);
     saves_auto_battle = config_get_int("saves.autosave_battle", 1);
     saves_keep_quick = config_get_int("saves.keep_quick", 3);

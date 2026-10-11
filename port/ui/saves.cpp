@@ -41,6 +41,7 @@ static std::string when(long long t)
     return s;
 }
 
+extern "C" int saves_restart;
 extern "C" void tab_saves(void)
 {
     if (nlist < 0 || plat_ticks_ms() - listed_at > 3000) refresh();
@@ -49,6 +50,8 @@ extern "C" void tab_saves(void)
 
     bool on = saves_on != 0;
     if (ImGui::Checkbox("Quick save, quick load and autosaves", &on)) saves_enable(on);
+    { bool rs = saves_restart != 0;
+      if (ImGui::Checkbox("When the party's journey ends, start again at the title (the original closes)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
     if (on) {
         ImGui::TextDisabled("Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quicksave.");
         ImGui::Indent(20);

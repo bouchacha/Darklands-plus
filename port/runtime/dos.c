@@ -445,7 +445,9 @@ void dos_int21(void)
             if (load_overlay(name, seg, rel)) { AX = 0; SETCF(0); } else dos_error(2);
         } else dos_error(1);
         break;
-    case 0x4c: fflush(stdout); plat_quit(AL); break;
+    case 0x4c: fflush(stdout);
+        { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
+        plat_quit(AL); break;
     case 0x39: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (mkdir_(hp)) dos_error(5); else SETCF(0); break;
     case 0x3a: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (rmdir(hp)) dos_error(5); else SETCF(0); break;
     case 0x4e: {

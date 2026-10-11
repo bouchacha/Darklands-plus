@@ -50,8 +50,10 @@ static int find_game_dir(int argc, char **argv)
 
 static u16 le16(const u8 *p) { return (u16)(p[0] | (p[1] << 8)); }
 
+int main_argc; char **main_argv;      /* for plat_restart */
 int main(int argc, char **argv)
 {
+    main_argc = argc; main_argv = argv;
     int skip_rtlink = 1;
     if (getenv("DL_TRACE_DOS")) dos_trace = 1;
     for (int i = 1; i < argc; i++) {

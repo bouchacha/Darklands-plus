@@ -529,6 +529,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
+        else if (!strcmp(s->cmd, "urestart")) { void plat_restart(void); if (!getenv("DL_RESTARTED")) plat_restart(); }   /* test: start again (once) */
     }
 }
 
@@ -660,6 +661,32 @@ void plat_init(int scale)
     }
     SDL_AddTimer(1, tick_cb, 0);
     parse_script(getenv("DL_SCRIPT"));
+}
+
+/* start the game again (a new process in this one's place): after the party's end the original
+ * leaves to DOS; here the title comes back, where a saved game can be loaded */
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+void plat_restart(void)
+{
+    extern int main_argc; extern char **main_argv;
+    fflush(stdout); fflush(stderr);
+    SDL_Quit();
+#ifdef _WIN32
+    SetEnvironmentVariableA("DL_RESTARTED", "1");
+    STARTUPINFOW si; PROCESS_INFORMATION pi; memset(&si, 0, sizeof si); si.cb = sizeof si;
+    if (CreateProcessW(NULL, GetCommandLineW(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) { CloseHandle(pi.hThread); CloseHandle(pi.hProcess); }
+    exit(0);
+#else
+    setenv("DL_RESTARTED", "1", 1);
+    (void)main_argc;
+    execv("/proc/self/exe", main_argv);
+    execvp(main_argv[0], main_argv);
+    exit(0);
+#endif
 }
 
 void plat_quit(int code)

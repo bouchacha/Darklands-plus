@@ -421,18 +421,25 @@ static void draw_picture_name(void)
 
 /* short notices ("Game saved"), bottom centre, for a few seconds */
 static char notice[160]; static u32 notice_t;
+static u32 notice_ms = 3000;
+extern "C" void ui_notice_for(const char *msg, unsigned ms)
+{
+    snprintf(notice, sizeof notice, "%s", msg);
+    notice_t = plat_ticks_ms(); notice_ms = ms < 1000 ? 1000 : ms;
+    fprintf(stderr, "notice: %s\n", msg);
+}
 extern "C" void ui_notice(const char *msg)
 {
     snprintf(notice, sizeof notice, "%s", msg);
-    notice_t = plat_ticks_ms();
+    notice_t = plat_ticks_ms(); notice_ms = 3000;
     fprintf(stderr, "notice: %s\n", msg);
 }
 extern "C" void ui_draw_notice(void)
 {
     if (!notice[0]) return;
     u32 age = plat_ticks_ms() - notice_t;
-    if (age > 3000) { notice[0] = 0; return; }
-    float a = age < 2400 ? 1.0f : (3000 - age) / 600.0f;
+    if (age > notice_ms) { notice[0] = 0; return; }
+    float a = age + 600 < notice_ms ? 1.0f : (notice_ms - age) / 600.0f;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::PushFont(ui_font_text);
     ImVec2 ts = ImGui::CalcTextSize(notice);
