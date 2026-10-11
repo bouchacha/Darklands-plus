@@ -118,6 +118,7 @@ void datamods_set(int i, int on)
     config_set_int(key, on);
     generation++;
     void hdart_rescan(void); hdart_rescan();
+    void rules_apply(void); rules_apply();
 }
 int datamods_generation(void) { return generation; }
 int datamods_active(void) { for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }

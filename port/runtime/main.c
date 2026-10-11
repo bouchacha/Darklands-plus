@@ -135,6 +135,7 @@ int main(int argc, char **argv)
     dos_mem_init2(env, (u16)(psp_seg - 1 - env), psp_seg);
 
     mods_init();
+    { void rules_apply(void); rules_apply(); }       /* mods' rules.ini (ui/rules.cpp) */
 
     /* ---- overlays */
     ovl_init(exe);

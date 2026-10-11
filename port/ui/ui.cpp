@@ -505,8 +505,12 @@ static void item_name(int id, char *out, int n)
     g_str((u16)(d >> 16), (u16)d, out, n);
 }
 
+void rules_tab(void);
 static void tab_party(void)
 {
+    if (!ImGui::BeginTabBar("records")) return;
+    if (ImGui::BeginTabItem("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
+    if (!ImGui::BeginTabItem("The party's items")) { ImGui::EndTabBar(); return; }
     ImGui::TextWrapped("The party's possessions, read live from the game.");
     if (ImGui::BeginTabBar("members")) {
         for (int m = 0; m < 5; m++) {
@@ -538,6 +542,8 @@ static void tab_party(void)
         }
         ImGui::EndTabBar();
     }
+    ImGui::EndTabItem();
+    ImGui::EndTabBar();
 }
 
 static void tab_about(void)
