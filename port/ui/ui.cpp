@@ -127,6 +127,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_text_edge = config_get_int("display.text_edge", 2);
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
+    { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
     journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -216,6 +217,7 @@ static void set_original(bool on)
         assist_set_card_help(0);
         config_set_int("original.card_keys", assist_card_keys);
         assist_set_card_keys(0);
+        { extern int ui_margins_on; config_set_int("original.margins", ui_margins_on); ui_margins_on = 0; config_set_int("display.margins", 0); }
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
@@ -246,6 +248,7 @@ static void set_original(bool on)
         battle_speed_set(config_get_int("original.battle_speed", 100));
         assist_set_card_help(config_get_int("original.card_help", 1));
         assist_set_card_keys(config_get_int("original.card_keys", 1));
+        { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -334,6 +337,8 @@ static void tab_display(void)
              "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree). "
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
+    { extern int ui_margins_on; bool mg = ui_margins_on != 0;
+      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
     { bool sc = sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;

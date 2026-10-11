@@ -36,9 +36,9 @@ static long abs_hours(int y, int mo, int d, int h)
 
 /* the running temporary effects: events of kind 0x48 (attribute), 0x49 (skill), 0x4a (weapon
    potion); +0 what, +0x1a member, +0x1e amount, +0x12 end (hour, day, month, year) */
-static void effects(int size)
+struct Eff { int m; std::string what; long left; };
+std::vector<Eff> effects_now(int size)
 {
-    struct Eff { int m; std::string what; long left; };
     std::vector<Eff> v;
     long now = abs_hours((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR));
     for (int i = 0; i < 300; i++) {
@@ -63,6 +63,12 @@ static void effects(int size)
         } else continue;
         v.push_back({ m, b, left });
     }
+    return v;
+}
+
+static void effects(int size)
+{
+    std::vector<Eff> v = effects_now(size);
     char head[64]; snprintf(head, sizeof head, "In effect now (%d)###effects", (int)v.size());
     if (!ImGui::CollapsingHeader(head, v.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) return;
     if (v.empty()) { ImGui::TextDisabled("No blessings or potions are working on the party."); return; }

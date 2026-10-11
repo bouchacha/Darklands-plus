@@ -471,4 +471,5 @@ extern "C" void ui_overlay(void)
     if (assist_card_help) { watch_saints(); draw_learned(); }
     travel_overlay();
     draw_picture_name();
+    { void ui_margins(void); ui_margins(); }
 }

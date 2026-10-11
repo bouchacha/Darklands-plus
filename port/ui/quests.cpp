@@ -175,6 +175,13 @@ void quest_marks(std::vector<std::pair<int, std::string>> &out)
         if (l.loc >= 0) out.push_back({ l.loc, l.text + (l.when.empty() ? "" : " (" + l.when + ")") });
 }
 
+/* the tasks and rewards waiting, for the margin panel: (text, when) */
+void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
+{
+    out.clear();
+    for (const Line &l : build_lines()) if (l.group <= 1 || l.group == 3) out.push_back({ l.text, l.when });
+}
+
 extern "C" void journal_quests(void)
 {
     if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }

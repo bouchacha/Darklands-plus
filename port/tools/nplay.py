@@ -101,7 +101,7 @@ def main():
         env.update(WINEDEBUG='-all')
         cmd = ['wine'] + cmd
     if a.x11:
-        cmd = ['xvfb-run', '-a', '-s', '-screen 0 1280x800x24'] + cmd
+        cmd = ['xvfb-run', '-a', '-s', '-screen 0 1920x1080x24'] + cmd
     r = subprocess.run(cmd, env=env, capture_output=True, timeout=total / 1000 + 120)
     err = r.stderr.decode('latin1') + (r.stdout.decode('latin1') if a.x11 else '')   # xvfb-run sends stderr to stdout
     if a.wine and os.path.exists(os.path.join(gd, 'darklands_port.log')):

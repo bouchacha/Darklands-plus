@@ -21,6 +21,7 @@
 #include "../mods/hdart.h"
 #include "../mods/hdtext.h"
 #include "game.h"
+#include "config.h"
 
 static SDL_Window *win;
 static SDL_Renderer *ren;
@@ -541,10 +542,18 @@ void plat_events(void)
         if (!headless && ui_event(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: plat_quit(0); break;
+        case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
+                static u32 last_save; u32 t = plat_ticks_ms();
+                config_set_int("display.window_w", e.window.data1); config_set_int("display.window_h", e.window.data2);
+                if (t - last_save > 1000) { config_save(); last_save = t; }
+            }
+            break;
         case SDL_KEYDOWN:
             if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
                 Uint32 fl = SDL_GetWindowFlags(win);
                 SDL_SetWindowFullscreen(win, (fl & SDL_WINDOW_FULLSCREEN_DESKTOP) ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                config_set_int("display.fullscreen", !(fl & SDL_WINDOW_FULLSCREEN_DESKTOP)); config_save();
                 break;
             }
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { save_bmp("screenshot.bmp"); break; }
@@ -598,8 +607,11 @@ void plat_init(int scale)
     if (!scale) return;
     if (!headless) {
         int wp = getenv("DL_SCRIPT") ? 0 : SDL_WINDOWPOS_CENTERED;   /* scripted tests: a known window position */
-        win = SDL_CreateWindow("Darklands", wp, wp, 960, 720,
-                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+        /* the window as it was left: size and full screen (display.window_w/h, display.fullscreen) */
+        int ww = config_get_int("display.window_w", 960), wh = config_get_int("display.window_h", 720);
+        if (ww < 320 || ww > 16384) ww = 960; if (wh < 200 || wh > 16384) wh = 720;
+        win = SDL_CreateWindow("Darklands", wp, wp, ww, wh,
+                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (config_get_int("display.fullscreen", 0) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
         if (!win) { fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); exit(1); }
         ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
         if (!ren) ren = SDL_CreateRenderer(win, -1, 0);
