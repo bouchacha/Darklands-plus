@@ -356,7 +356,7 @@ void saves_enable(int on)
  * 0000:13a0) - so a saved game can be loaded at once */
 int saves_restart = 1;
 static int user_quit, game_seen;
-static void quit_hook(void) { user_quit = 1; hook_call_original(); user_quit = 0; }
+static void quit_hook(void) { fprintf(stderr, "quit_to_dos asked\n"); user_quit = 1; hook_call_original(); user_quit = 0; }
 int saves_restart_on_exit(void)
 {
     int headless = getenv("DL_HEADLESS") != 0;
