@@ -30,7 +30,9 @@ extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE;
 }
 
-static bool open_menu, open_map, open_goto;
+static bool open_menu, open_map, open_goto, open_help;
+static void help_window(void);
+extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 extern "C" int citynav_window(void);
 extern "C" int citynav_available(void);
 extern "C" void citynav_tick(void);
@@ -156,8 +158,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.scaler = config_get_int("display.scaler", 0);
 }
 
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto; }
-extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help; }
+extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
 {
@@ -170,6 +172,12 @@ extern "C" int ui_event(const SDL_Event *e)
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
     if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
         && (game_mode() == GM_MAP || game_mode() == GM_CARD) && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
+    if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F1 && !e->key.repeat && !open_menu && !open_map && !open_goto) { open_help = !open_help; return 1; }
+    if (open_help) {
+        if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_F1)) { open_help = false; return 1; }
+        if (e->type == SDL_MOUSEBUTTONDOWN) { open_help = false; return 1; }
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
         && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
     if (open_goto) {
@@ -587,6 +595,55 @@ static void tab_about(void)
                         "Music synthesis: your system's MIDI synthesizer.");
 }
 
+/* F1: the keys and clicks of the moment (the game's own and Darklands+'s) */
+static void help_window(void)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 100));
+    float w = fminf(io.DisplaySize.x * 0.92f, 900);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, io.DisplaySize.y * 0.94f));
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::PushFont(font_body);
+    if (ImGui::Begin("Keys and clicks (F1)", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
+        ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
+        auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(230); ImGui::TextWrapped("%s", d); };
+        int gm = game_mode();
+        if (gm == GM_CARD) {
+            ImGui::SeparatorText("Now: a card");
+            row("Click an option", "or press its number, 1 to 9");
+            row("Shift over an option", "the game's own chance of success (the badges show them all)");
+            row("G", "go to a place in this city");
+            row("M", "world map");
+        } else if (gm == GM_MAP) {
+            ImGui::SeparatorText("Now: the travel map");
+            row("Click", "walk towards that spot");
+            row("Ctrl + click", "travel there along the roads (any key or click stops)");
+            row("M", "world map: find a place, double-click to travel there");
+        } else if (gm == GM_BATTLE) {
+            ImGui::SeparatorText("Now: a battle");
+            row("Space", "pause / go on - orders can be given while paused");
+            row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
+            row("Ctrl + click a member", "make that member the active one");
+            row("Point at anyone", "who it is and how badly hurt");
+        }
+        ImGui::SeparatorText("The game's own keys");
+        row("Right mouse button", "the menu bar (F10 with the keyboard)");
+        row("Alt+S / Alt+L", "save / load (with a comment, nine saves)");
+        row("Alt+O", "order of the party");
+        row("Alt+D", "difficulty    Alt+M music    Alt+F sound effects");
+        row("Alt+C", "messages about saints' changes on / off");
+        row("F6", "the party's information");
+        row("Alt+Q", "quit to the desktop");
+        ImGui::SeparatorText("Darklands+");
+        row("F12", "the Darklands+ menu (pauses the game)");
+        row("Ctrl+S / F9 or Ctrl+L", "quick save / quick load");
+        row("Alt+Enter", "full screen    Ctrl+F12 screenshot");
+        ImGui::TextDisabled("F1, Esc or a click closes this.");
+    }
+    ImGui::End();
+    ImGui::PopFont();
+}
+
 /* one cursor at a time: over the game picture the game draws its own, so the system cursor
  * is hidden there; it shows with the menu or the world map open, and outside the picture */
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
@@ -595,7 +652,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -644,6 +701,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!keep) ui_toggle();
     }
     if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
+    if (open_help) help_window();
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();

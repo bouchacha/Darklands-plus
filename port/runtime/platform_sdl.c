@@ -533,6 +533,7 @@ static void run_script(void)
         }
         else if (!strcmp(s->cmd, "uexport")) { char w[1300]; int datamods_export_cards(char *, size_t); int r = datamods_export_cards(w, sizeof w); fprintf(stderr, "export: %d to %s\n", r, w); }
         else if (!strcmp(s->cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(s->arg)); }   /* test: Go to place N in the city */
+        else if (!strcmp(s->cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(s->cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
