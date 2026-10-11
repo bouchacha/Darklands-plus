@@ -80,6 +80,20 @@ The numbers live in tables of the game's code (far segment 20a5, read by the bat
 when a weapon is readied). The port keeps the game's own numbers and puts them back when a mod is
 switched off.
 
+## Words of the menus (text.txt)
+
+Menus and screens the game writes from its program (shops, the inn, the sheets) are not in the
+card files. A mod's `text.txt` says such lines differently, one per line:
+
+```
+Purchase an item => Ware kaufen
+The Goods Merchant offers... => Der Krämer bietet an...
+```
+
+A hotkey letter and the rest of its word count as one line. "Collect the texts shown" (F12 >
+Mods) writes every line the game shows into `mods/_export/texts_seen.txt`, ready to translate.
+This works with crisp text on (it replaces the words where they are drawn).
+
 ## Items
 
 F12 > Item records > Items lists every item of DARKLAND.LST with its name, short name, weight,

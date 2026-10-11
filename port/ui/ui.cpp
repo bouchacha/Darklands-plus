@@ -237,6 +237,9 @@ static void tab_mods(void)
             else snprintf(msg, sizeof msg, "Could not read MSGFILES.");
         }
         ImGui::SameLine(); hint("every town and encounter text, editable, with its options");
+        { extern int ui_collect_texts; bool ct = ui_collect_texts != 0;
+          if (ImGui::Checkbox("Collect the texts shown (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
+        hint("A mod's text.txt says lines differently, one per line: Purchase an item => Kaufen (menus the game writes from its program; needs crisp text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         hint("Mods are applied in alphabetical order of their folders: where two change the same file, the later one wins. "
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "

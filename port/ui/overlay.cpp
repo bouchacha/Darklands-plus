@@ -1,6 +1,10 @@
 // overlay.cpp - things the port draws over the running game when the Darklands+ menu is
 // closed: the chances of success next to card options (mods/assist.c computes them).
 #include <stdio.h>
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#endif
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -17,6 +21,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
+#include "../mods/datamods.h"
 #include "../mods/assist.h"
 #include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
@@ -351,18 +356,81 @@ static void skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
     }
 }
 
+/* mods' text.txt: words on the screen said differently ("Purchase an item => Kaufen"), for
+ * translations and renamings of the menus the game writes from its program; and, for
+ * translators, a list of every line shown (F12 > Mods: "Collect the texts shown") */
+#include <unordered_map>
+#include <unordered_set>
+int ui_collect_texts;
+static std::unordered_map<std::string, std::string> textmap;
+static void load_textmap(void)
+{
+    static int gen = -1;
+    if (gen == datamods_generation()) return;
+    gen = datamods_generation(); textmap.clear();
+    for (int i = 0; i < datamods_n; i++) {
+        if (!datamods[i].on) continue;
+        std::string p = std::string(datamods[i].path) + "/text.txt";
+        FILE *f = fopen(p.c_str(), "rb");
+        if (!f) continue;
+        char line[600];
+        while (fgets(line, sizeof line, f)) {
+            std::string l = line;
+            while (!l.empty() && (l.back() == '\n' || l.back() == '\r')) l.pop_back();
+            if (l.empty() || l[0] == '#') continue;
+            size_t a = l.find(" => ");
+            if (a == std::string::npos) continue;
+            textmap[l.substr(0, a)] = l.substr(a + 4);
+        }
+        fclose(f);
+    }
+}
+static void collect_text(const std::string &t)
+{
+    static std::unordered_set<std::string> seen; static FILE *f;
+    if (t.size() < 2 || !seen.insert(t).second) return;
+    if (!f) {
+        char md[1100]; datamods_folder(md, sizeof md);
+        std::string d = std::string(md) + "/_export";
+#ifdef _WIN32
+        _mkdir(md); _mkdir(d.c_str());
+#else
+        mkdir(md, 0755); mkdir(d.c_str(), 0755);
+#endif
+        f = fopen((d + "/texts_seen.txt").c_str(), "ab");
+        if (!f) return;
+        fprintf(f, "# lines the game showed; copy the ones to change into your mod's text.txt and write the new words after =>\n");
+    }
+    fprintf(f, "%s => %s\n", t.c_str(), t.c_str()); fflush(f);
+}
+
 extern "C" void hdtext_draw(void)
 {
     if (!hdtext_mode || !ui_font_text) return;
+    load_textmap();
     ImFont *font = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     static std::vector<Spelled> sp;
     { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f); }
-    float prev_end = 0; int prev = -1;
+    float prev_end = 0; int prev = -1, skip = -1;
+    auto joins = [](const HdRun &q, const HdRun &r) { int gap = r.x - (q.x + q.w); return q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3; };
     for (int i = 0; i < hdtext_nruns; i++) {
-        const HdRun &r = hdtext_runs[i];
+        if (i == skip) continue;
+        HdRun r = hdtext_runs[i];
         std::string t = utf8(r.text);
         if (t.empty()) continue;
+        /* a hotkey letter and the rest of its word ("P" + "urchase an item") count as one line */
+        bool joined = i + 1 < hdtext_nruns && joins(r, hdtext_runs[i + 1]) && (prev < 0 || !joins(hdtext_runs[prev], r) || prev != i - 1);
+        std::string whole = joined ? t + utf8(hdtext_runs[i + 1].text) : t;
+        if (ui_collect_texts && (prev < 0 || prev != i - 1 || !joins(hdtext_runs[prev], r))) collect_text(whole);
+        bool mapped = false;
+        if (!textmap.empty()) {
+            auto it = textmap.find(whole);
+            if (it != textmap.end()) {
+                t = it->second; mapped = true;
+                if (joined) { const HdRun &n2 = hdtext_runs[i + 1]; r.w = n2.x + n2.w - r.x; r.rgb = n2.rgb; skip = i + 1; }
+            } else if (joined) { it = textmap.find(t); if (it != textmap.end()) { t = it->second; mapped = true; } }
+        }
         float x0, y0, x1, y1;
         plat_game_to_win((float)r.x, (float)r.y, &x0, &y0);
         plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
@@ -385,7 +453,7 @@ extern "C" void hdtext_draw(void)
         else if (r.font == 2 && t.size() >= 4 && ts.x < bw * 0.9f) {     /* the wide menu face: keep its width */
             float k = bw * 0.95f / ts.x; if (k > 1.15f) k = 1.15f; size *= k;
         }
-        if (!sp[i].text.empty()) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
+        if (!sp[i].text.empty() && !mapped) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         if (r.center) x0 += (bw - ts.x) * 0.5f;
         ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
