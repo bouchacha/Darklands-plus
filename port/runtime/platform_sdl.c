@@ -384,6 +384,7 @@ void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
 int plat_menu_open(void) { return !headless && ui_is_open(); }
 
 /* ---------------------------------------------------------------- events */
+static void click_at(int x, int y);
 static void run_script(void)
 {
     u32 now = plat_ticks_ms();
@@ -499,6 +500,7 @@ static void run_script(void)
             fprintf(stderr, "text end\n");
         }
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
+        else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
     }
 }
@@ -547,6 +549,11 @@ void plat_events(void)
             }
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { save_bmp("screenshot.bmp"); break; }
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
+            {   /* 1..9 on a card: that option (a click on its line) */
+                SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : 0;
+                int gx, gy, assist_card_key(int, int *, int *);
+                if (d && !e.key.repeat && !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && assist_card_key(d, &gx, &gy)) { click_at(gx, gy); break; }
+            }
             key(e.key.keysym.scancode, 0);
             break;
         case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;
@@ -565,6 +572,17 @@ void plat_events(void)
         default: break;
         }
     }
+}
+
+/* a left click at game pixel (x, y), released a little later so the game sees it */
+static void click_at(int x, int y)
+{
+    mouse_x = x; mouse_y = y; send_mouse();
+    mouse_b |= 1; send_mouse();
+    u32 now = plat_ticks_ms();
+    Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
+    r->t = now + 80; snprintf(r->cmd, sizeof r->cmd, "release"); snprintf(r->arg, sizeof r->arg, "1");
+    for (int k = nsteps - 1; k > step_i && steps[k].t < steps[k - 1].t; k--) { Step t = steps[k]; steps[k] = steps[k - 1]; steps[k - 1] = t; }
 }
 
 /* ---------------------------------------------------------------- init / quit */

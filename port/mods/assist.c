@@ -99,9 +99,10 @@ static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2):
 }
 
 int assist_card_help = 1;          /* show the saints and items that work on a card */
+int assist_card_keys = 1;          /* number keys pick a card's options */
 static void card_hooks(void)
 {
-    if (assist_chances || assist_card_help) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
+    if (assist_chances || assist_card_help || assist_card_keys) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
     else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); }
     if (!assist_chances) card_chances.active = 0;
 }
@@ -123,8 +124,28 @@ void assist_set_card_help(int on)
 /* the card's option menu is up (polled in the last 300 ms) */
 int assist_in_card_menu(void) { return cm_depth > 0 && plat_ticks_ms() - card_chances.polled < 300; }
 
+void assist_set_card_keys(int on)
+{
+    assist_card_keys = on;
+    config_set_int("assist.card_keys", on);
+    card_hooks();
+}
+
+/* number key 1..9 on a card: where to click for that option (game pixels); 0 if none */
+int assist_card_key(int digit, int *gx, int *gy)
+{
+    if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return 0;
+    int n = (s8)g_rb(0xe96e), i = digit - 1;
+    if (i < 0 || i >= n || n > 20) return 0;
+    int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+    if (h <= 0) return 0;
+    *gx = x0 + 10; *gy = y0 + (h > 8 ? 4 : h / 2);
+    return 1;
+}
+
 void assist_init(void)
 {
     assist_card_help = config_get_int("assist.card_help", 1);
+    assist_card_keys = config_get_int("assist.card_keys", 1);
     assist_set_chances(config_get_int("assist.chances", 2));
 }

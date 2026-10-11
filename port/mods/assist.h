@@ -17,6 +17,9 @@ void assist_init(void);
 extern int assist_card_help;           /* show the saints and items that work on a card */
 void assist_set_card_help(int on);
 int assist_in_card_menu(void);
+extern int assist_card_keys;           /* number keys pick a card's options */
+void assist_set_card_keys(int on);
+int assist_card_key(int digit, int *gx, int *gy);
 extern int pathfix_party, pathfix_enemies;
 void pathfix_set(int party, int enemies);
 extern int battle_speed;              /* percent, 100 = the original */

@@ -212,6 +212,8 @@ static void set_original(bool on)
         battle_speed_set(100);
         config_set_int("original.card_help", assist_card_help);
         assist_set_card_help(0);
+        config_set_int("original.card_keys", assist_card_keys);
+        assist_set_card_keys(0);
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
@@ -241,6 +243,7 @@ static void set_original(bool on)
         saves_enable(config_get_int("original.saves", 1));
         battle_speed_set(config_get_int("original.battle_speed", 100));
         assist_set_card_help(config_get_int("original.card_help", 1));
+        assist_set_card_keys(config_get_int("original.card_keys", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -263,6 +266,8 @@ static void tab_helpers(void)
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
+    bool ck = assist_card_keys;
+    if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); dirty_config = 1; }
     hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
