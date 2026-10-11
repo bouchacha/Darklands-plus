@@ -278,23 +278,42 @@ static void scale2x(const u32 *src, int w, int h, u32 *dst)
     }
 }
 
-static SDL_Texture *tex_big; static int tex_big_w;
-static SDL_Texture *frame_texture(void)
+/* the frame as textures, smoothed when asked. The smoothed picture goes up in tiles of
+ * 640x400 (each in a 1024x512 texture): Direct3D 9 under Wine shows nothing from wider
+ * textures, and tiles cost nothing elsewhere. Returns the number of tiles (1 unsmoothed). */
+static SDL_Texture *tiles[4];
+static SDL_Rect tile_src[4]; static SDL_FRect tile_dst[4];     /* dst: fractions of the picture */
+static int frame_textures(void)
 {
     int sc = ui_settings.scaler;
-    if (sc <= 0 || sc > 2) { SDL_UpdateTexture(tex, 0, frame, 320 * 4); return tex; }
-    static u32 b2[640 * 400], b4[1280 * 800];
-    scale2x(frame, 320, 200, b2);
-    int w = 640; const u32 *px = b2;
-    if (sc == 2) { scale2x(b2, 640, 400, b4); w = 1280; px = b4; }
-    if (!tex_big || tex_big_w != w) {
-        if (tex_big) SDL_DestroyTexture(tex_big);
-        tex_big = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, w * 200 / 320);
-        tex_big_w = w;
-        if (!tex_big) { SDL_UpdateTexture(tex, 0, frame, 320 * 4); return tex; }
+    if (sc <= 0 || sc > 2) {
+        SDL_UpdateTexture(tex, 0, frame, 320 * 4);
+        tiles[0] = tex; tile_src[0] = (SDL_Rect){ 0, 0, 320, 200 }; tile_dst[0] = (SDL_FRect){ 0, 0, 1, 1 };
+        return 1;
     }
-    SDL_UpdateTexture(tex_big, 0, px, w * 4);
-    return tex_big;
+    static SDL_Texture *own[4];
+    static u32 b2[640 * 400], b4[1280 * 800], last[320 * 200]; static int last_sc = -1;
+    int n0 = sc == 2 ? 2 : 1;
+    if (last_sc == sc && own[0] && !memcmp(last, frame, sizeof last)) {      /* unchanged: the tiles stand */
+        for (int t = 0; t < n0 * n0; t++) tiles[t] = own[t];
+        return n0 * n0;
+    }
+    memcpy(last, frame, sizeof last); last_sc = sc;
+    { static int tm = -1; if (tm < 0) tm = getenv("DL_SCALER_TIME") != 0; if (tm) { static uint64_t acc, cnt; uint64_t t0 = plat_ticks_us(); scale2x(frame, 320, 200, b2); if (sc == 2) scale2x(b2, 640, 400, b4); acc += plat_ticks_us() - t0; if (++cnt % 50 == 0) fprintf(stderr, "scaler: %.2f ms per frame\n", acc / 1000.0 / cnt); } }
+    scale2x(frame, 320, 200, b2);
+    int n = sc == 2 ? 2 : 1;                    /* tiles per side */
+    const u32 *px = b2; int w = 640;
+    if (sc == 2) { scale2x(b2, 640, 400, b4); px = b4; w = 1280; }
+    for (int t = 0; t < n * n; t++) {
+        if (!own[t]) own[t] = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 1024, 512);
+        if (!own[t]) { fprintf(stderr, "scaler: no texture: %s\n", SDL_GetError()); ui_settings.scaler = 0; return frame_textures(); }
+        int tx = t % n, ty = t / n;
+        SDL_Rect r = { 0, 0, 640, 400 };
+        SDL_UpdateTexture(own[t], &r, px + (ty * 400) * w + tx * 640, w * 4);
+        tiles[t] = own[t]; tile_src[t] = r;
+        tile_dst[t] = (SDL_FRect){ (float)tx / n, (float)ty / n, 1.0f / n, 1.0f / n };
+    }
+    return n * n;
 }
 
 void plat_present(const u8 *vga, const u8 *pal)
@@ -307,14 +326,17 @@ void plat_present(const u8 *vga, const u8 *pal)
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
     { void worldmap_watch_palette(void); worldmap_watch_palette(); }
-    SDL_Texture *ft = frame_texture();
+    int nt = frame_textures();
     layout();
-    SDL_SetTextureScaleMode(ft, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
     art_draw();
-    SDL_SetTextureBlendMode(ft, hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
-    SDL_RenderCopy(ren, ft, 0, &dest);
+    for (int t = 0; t < nt; t++) {
+        SDL_SetTextureScaleMode(tiles[t], ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+        SDL_SetTextureBlendMode(tiles[t], hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
+        SDL_FRect d = { dest.x + tile_dst[t].x * dest.w, dest.y + tile_dst[t].y * dest.h, tile_dst[t].w * dest.w, tile_dst[t].h * dest.h };
+        SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
+    }
     ui_draw(ren);
     if (pending_wshot[0]) {
         SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);

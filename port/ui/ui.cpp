@@ -309,7 +309,8 @@ static void tab_display(void)
             if (ImGui::RadioButton(SC[i], ui_settings.scaler == i)) { ui_settings.scaler = i; config_set_int("display.scaler", i); dirty_config = 1; }
         }
         hint("Rounds off the stair-steps of diagonal edges in the pictures and figures without blurring them "
-             "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree).");
+             "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree). "
+             "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
