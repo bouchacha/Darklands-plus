@@ -55,7 +55,7 @@ def convert(script, out_dir):
             t += 100
         elif c in ('artexport', 'artrescan', 'umap'):
             steps.append('%d:%s:' % (t, c))
-        elif c in ('utab', 'ugive', 'uclick', 'ucmd'):
+        elif c in ('utab', 'ugive', 'uclick', 'uhover', 'ucmd'):
             steps.append('%d:%s:%s' % (t, c, ' '.join(f[1:])) if c != 'ucmd' else '%d:%s' % (t, ' '.join(f[1:])))
             t += 100
         elif c == 'move':

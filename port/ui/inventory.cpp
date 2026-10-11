@@ -471,6 +471,12 @@ static void tooltip(const InvItem &it, const ItemDef *d)
         else ImGui::Text("Strength %d: below, each point costs 1 attack and 3 defence and blows hit softer", minst);
         ImGui::TextDisabled("Lower times are quicker.");
     }
+    if (d && d->type >= 67 && d->type <= 84) {
+        ImGui::Separator();
+        ImGui::Text(d->type <= 75 ? "Covers the vitals: body and arms" : "Covers the legs");
+        ImGui::TextDisabled("Higher quality turns more of a blow.");
+    }
+    if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
     if (d && d->kind == K_POTION) {
         int p = it.id - 95;
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(320); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
