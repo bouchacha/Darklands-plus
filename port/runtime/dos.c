@@ -83,6 +83,25 @@ static void host_path(const char *dos, char *out, size_t outn)
 
 void dos_host_path(const char *dos, char *out, size_t outn) { host_path(dos, out, outn); }
 
+/* the DOS name relative to the game folder */
+static void dos_rel(const char *dos, char *rel, size_t n)
+{
+    const char *p = dos;
+    if (p[0] && p[1] == ':') p += 2;
+    if (*p == '\\' || *p == '/') snprintf(rel, n, "%s", p + 1);
+    else if (dos_cwd[0]) snprintf(rel, n, "%s/%s", dos_cwd, p);
+    else snprintf(rel, n, "%s", p);
+}
+/* the host file to read for a DOS name: a mod's (mods/datamods.c) or the game's own */
+const char *datamods_redirect(const char *rel, const char *game_path);
+void dos_host_path_read(const char *dos, char *out, size_t outn)
+{
+    host_path(dos, out, outn);
+    char rel[600]; dos_rel(dos, rel, sizeof rel);
+    const char *m = datamods_redirect(rel, out);
+    if (m) snprintf(out, outn, "%s", m);
+}
+
 static int new_handle(FILE *f)
 {
     for (int h = 5; h < 64; h++) if (!handles[h]) { handles[h] = f; return h; }
@@ -352,7 +371,8 @@ void dos_int21(void)
     case 0x3d: {
         get_str(DS, DX, name, sizeof name);
         if (!strcasecmp(name, "EMMXXXX0")) { ems_dev_open = 1; AX = 63; SETCF(0); break; }
-        host_path(name, hp, sizeof hp);
+        if ((AL & 3) == 0) dos_host_path_read(name, hp, sizeof hp);    /* reading: a mod's file if one is on */
+        else host_path(name, hp, sizeof hp);
         const char *mode = (AL & 3) == 0 ? "rb" : "r+b";
         FILE *f = fopen(hp, mode);
         if (!f && (AL & 3)) f = fopen(hp, "rb");

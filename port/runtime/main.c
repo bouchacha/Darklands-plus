@@ -76,6 +76,7 @@ int main(int argc, char **argv)
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 
     config_load(game_dir);
+    { void datamods_init(void); datamods_init(); }     /* mod folders (mods/datamods.c), before any file is read */
     M = calloc(1, MEM_SIZE);
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */

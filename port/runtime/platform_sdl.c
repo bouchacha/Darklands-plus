@@ -516,6 +516,12 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "uparty")) {             /* test: End/Str of each member, battle pause flag */
+            fprintf(stderr, "party %u ms paused %d mode %d:", now, g_rb(0x07d3), game_mode());
+            for (int m = 0; m < 5; m++) fprintf(stderr, " %d/%d,%d/%d", (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + 1)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + 1)));
+            fprintf(stderr, "\n");
+        }
+        else if (!strcmp(s->cmd, "uexport")) { char w[1300]; int datamods_export_cards(char *, size_t); int r = datamods_export_cards(w, sizeof w); fprintf(stderr, "export: %d to %s\n", r, w); }
         else if (!strcmp(s->cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(s->arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(s->cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }

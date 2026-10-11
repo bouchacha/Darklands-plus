@@ -420,7 +420,7 @@ static void member_cards(void)
         if (!member_present(m)) continue;
         ImGui::PushID(m);
         bool sel = m == sel_member;
-        if (sel) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        if (sel) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.45f, 0.18f, 0.10f, 1));
         else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.72f, 0.60f, 0.42f, 1));
         int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
         u16 r0 = G_MEMBER(m);

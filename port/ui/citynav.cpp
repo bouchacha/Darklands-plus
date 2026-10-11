@@ -20,6 +20,7 @@
 #include "imgui.h"
 #include "gamedata.h"
 extern "C" {
+int datamods_generation(void);
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/config.h"
@@ -37,7 +38,7 @@ static bool cards_loaded;
 static void load_cards(void)
 {
     cards_loaded = true;
-    char path[1100]; dos_host_path("MSGFILES", path, sizeof path);
+    char path[1300]; dos_host_path_read("MSGFILES", path, sizeof path);
     FILE *f = fopen(path, "rb");
     if (!f) return;
     std::vector<unsigned char> d;
@@ -223,6 +224,7 @@ static void click_line(int i)
 extern "C" void citynav_tick(void)
 {
     if (goal < 0) return;
+    { static int gen = -1; int datamods_generation(void); if (gen != datamods_generation()) { gen = datamods_generation(); cards.clear(); cards_loaded = false; } }
     if (!cards_loaded) load_cards();
     u32 now = plat_ticks_ms();
     if (now - last_act < 350) return;                      /* let the game take the last click */

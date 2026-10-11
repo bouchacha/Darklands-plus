@@ -9,9 +9,11 @@
 #endif
 
 GameData gamedata;
+extern "C" const char *datamods_redirect(const char *rel, const char *game_path);
 
 static FILE *open_ci(const char *dir, const char *name)
 {
+    { const char *m = datamods_redirect(name, ""); if (m) { FILE *f = fopen(m, "rb"); if (f) return f; } }   /* a mod's file */
     DIR *d = opendir(dir);
     char path[1200];
     if (d) {

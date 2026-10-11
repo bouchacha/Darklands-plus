@@ -23,6 +23,7 @@ extern "C" {
 #include "../mods/hdtext.h"
 #include "../mods/hdart.h"
 #include "../mods/sfx.h"
+#include "../mods/datamods.h"
 #include "ui.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[];
@@ -90,9 +91,9 @@ static void style(void)
     c[ImGuiCol_CheckMark] = dark;
     c[ImGuiCol_SliderGrab] = ImVec4(0.55f, 0.24f, 0.13f, 1);
     c[ImGuiCol_SliderGrabActive] = dark;
-    c[ImGuiCol_Button] = ImVec4(0.55f, 0.24f, 0.13f, 1);
-    c[ImGuiCol_ButtonHovered] = ImVec4(0.66f, 0.30f, 0.16f, 1);
-    c[ImGuiCol_ButtonActive] = ImVec4(0.45f, 0.18f, 0.10f, 1);
+    c[ImGuiCol_Button] = ImVec4(0.78f, 0.66f, 0.47f, 1);           /* tan with ink letters: readable */
+    c[ImGuiCol_ButtonHovered] = ImVec4(0.88f, 0.77f, 0.57f, 1);
+    c[ImGuiCol_ButtonActive] = ImVec4(0.68f, 0.54f, 0.36f, 1);
     c[ImGuiCol_Tab] = ImVec4(0.74f, 0.63f, 0.45f, 1);
     c[ImGuiCol_TabHovered] = ImVec4(0.90f, 0.80f, 0.60f, 1);
     c[ImGuiCol_TabActive] = ImVec4(0.93f, 0.87f, 0.74f, 1);
@@ -198,6 +199,44 @@ static void hint(const char *fmt, ...)
 /* ------------------------------------------------------------------ tabs */
 static void tab_mods(void)
 {
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Mod folders"); ImGui::PopFont();
+    {
+        static char msg[1400];
+        char md[1100]; datamods_folder(md, sizeof md);
+        ImGui::TextWrapped("A mod is a folder in %s" PATH_SEP "mods with files laid out like the game folder: "
+                           "while it is ticked the game reads them instead of its own (the game's files are never changed).", game_dir);
+        if (!datamods_n) hint("No mods found yet.");
+        for (int i = 0; i < datamods_n; i++) {
+            ImGui::PushID(1000 + i);
+            bool on = datamods[i].on != 0;
+            if (ImGui::Checkbox(datamods[i].title, &on)) { datamods_set(i, on); dirty_config = 1; }
+            ImGui::Indent(34);
+            if (datamods[i].desc[0]) hint("%s", datamods[i].desc);
+            hint("folder: mods" PATH_SEP "%s", datamods[i].folder);
+            ImGui::Unindent(34);
+            ImGui::PopID();
+        }
+        if (ImGui::Button("Look for mods again")) { datamods_scan(); hdart_rescan(); msg[0] = 0; }
+        ImGui::SameLine();
+        static char newname[64] = "My mod";
+        ImGui::SetNextItemWidth(200); ImGui::InputText("##newmod", newname, sizeof newname);
+        ImGui::SameLine();
+        if (ImGui::Button("Make a new mod folder") && newname[0]) {
+            char w[1300]; int r = datamods_new(newname, w, sizeof w);
+            snprintf(msg, sizeof msg, r > 0 ? "Made %s (with a mod.txt that explains what goes where)." : r == 0 ? "%s is there already." : "Could not make %s.", w);
+        }
+        if (ImGui::Button("Export the card texts")) {
+            char w[1300]; int r = datamods_export_cards(w, sizeof w);
+            if (r >= 0) snprintf(msg, sizeof msg, "%d card files written to %s as text. Copy the ones you change into your mod's MSGFILES folder.", r, w);
+            else snprintf(msg, sizeof msg, "Could not read MSGFILES.");
+        }
+        ImGui::SameLine(); hint("every town and encounter text, editable, with its options");
+        if (msg[0]) ImGui::TextWrapped("%s", msg);
+        hint("Mods are applied in alphabetical order of their folders: where two change the same file, the later one wins. "
+             "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
+             "Card texts and pictures change at once; the item list, saints, cities and the like when the game starts.");
+    }
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Built-in changes"); ImGui::PopFont();
     ImGui::TextWrapped("Changes to the game, switched on and off here. They take effect at once "
                        "(\"new game\" mods when the next game starts).");
     ImGui::Spacing();

@@ -34,6 +34,7 @@
 #include "../runtime/config.h"
 #include "hdart.h"
 #include "hdtext.h"
+#include "datamods.h"
 extern u16 drvseg_mgraphic;
 
 extern char game_dir[1024];
@@ -105,6 +106,9 @@ void hdart_rescan(void)
 {
     for (int i = 0; i < narts; i++) free(arts[i].path);
     narts = 0;
+    static char md[DATAMODS_MAX][1200];
+    int nm = datamods_dirs("art", md, DATAMODS_MAX);      /* the mods' art first: the first file of a name wins */
+    for (int i = 0; i < nm; i++) scan_dir(md[i], 0);
     char p[1100]; snprintf(p, sizeof p, "%s/art", game_dir);
     scan_dir(p, 0);
     for (int i = 0; i < npics; i++) { free(pics[i].art); const char *a = art_for(pics[i].name); pics[i].art = a ? strdup(a) : 0; }
@@ -207,12 +211,13 @@ static u8 *pic_decode(const u8 *d, long n, int *pw, int *ph, u32 *pal, u8 *palma
 }
 
 void dos_host_path(const char *dos, char *out, size_t outn);
+void dos_host_path_read(const char *dos, char *out, size_t outn);
 
 /* the palette a PIC file brings along (for colour fades: the art is drawn as bright as the
  * picture's colours are now, relative to these) */
 static int file_palette(const char *dosname, u32 *pal, u8 *mask)
 {
-    char p[1200]; dos_host_path(dosname, p, sizeof p);
+    char p[1200]; dos_host_path_read(dosname, p, sizeof p);
     u8 *d; long n;
     if (!read_file(p, &d, &n)) return 0;
     int w = 0, h = 0;
@@ -225,7 +230,7 @@ static int file_palette(const char *dosname, u32 *pal, u8 *mask)
 /* a PIC file of the game, unpacked (for other modules) */
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask)
 {
-    char p[1200]; dos_host_path(dosname, p, sizeof p);
+    char p[1200]; dos_host_path_read(dosname, p, sizeof p);
     u8 *d; long n;
     if (!read_file(p, &d, &n)) return 0;
     u8 *img = pic_decode(d, n, w, h, pal, mask);

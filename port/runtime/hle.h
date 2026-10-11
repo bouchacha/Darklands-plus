@@ -24,6 +24,7 @@ void bios_kbd_inject(u16 w);            /* put a key (scan << 8 | ascii) into th
 typedef struct { char name[13]; char real[256]; long size; time_t mtime; } FindEnt;   /* name: DOS (upper case), real: on disk */
 int dos_list(const char *hostdir, const char *pat, FindEnt **out);
 void dos_host_path(const char *dos, char *out, size_t outn);
+void dos_host_path_read(const char *dos, char *out, size_t outn);   /* a mod's file if one replaces it */
 extern u16 psp_seg;
 void plat_sleep_ms(int ms);
 void plat_quit(int code);

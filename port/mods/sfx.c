@@ -30,6 +30,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "sfx.h"
+#include "datamods.h"
 
 #define FS 44100
 extern char game_dir[1024];
@@ -383,9 +384,9 @@ static int name_of(const char *file, char *key, int keyn)
     return 1;
 }
 
-static void load_user(void)
+/* one sounds folder; a sound already given by a folder that wins (a mod's) is left alone */
+static void load_user_dir(const char *dir, int level, int *from)
 {
-    char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", game_dir);
     DIR *d = opendir(dir);
     if (!d) return;
     struct dirent *e;
@@ -395,6 +396,8 @@ static void load_user(void)
         for (int k = 0; k < NS; k++) {
             if (strcmp(key, SFX_NAMES[k])) continue;
             Bank *B = &bank[k];
+            if (from[k] >= 0 && from[k] != level) break;
+            from[k] = level;
             if (!B->user) { for (int v = 0; v < B->nv; v++) free(B->v[v].s); B->nv = 0; B->user = 1; }
             if (B->nv >= MAXVAR) break;
             char p[1400]; snprintf(p, sizeof p, "%s/%s", dir, e->d_name);
@@ -405,6 +408,15 @@ static void load_user(void)
         }
     }
     closedir(d);
+}
+static void load_user(void)
+{
+    int from[NS]; for (int k = 0; k < NS; k++) from[k] = -1;
+    static char md[DATAMODS_MAX][1200];
+    int nm = datamods_dirs("sounds", md, DATAMODS_MAX);
+    for (int i = 0; i < nm; i++) load_user_dir(md[i], i, from);
+    char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", game_dir);
+    load_user_dir(dir, nm, from);
 }
 
 int sfx_user_count(void) { int n = 0; for (int k = 0; k < NS; k++) n += bank[k].user ? bank[k].nv : 0; return n; }
