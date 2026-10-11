@@ -80,6 +80,12 @@ The numbers live in tables of the game's code (far segment 20a5, read by the bat
 when a weapon is readied). The port keeps the game's own numbers and puts them back when a mod is
 switched off.
 
+## Items
+
+F12 > Item records > Items lists every item of DARKLAND.LST with its name, short name, weight,
+quality, rarity and value, all editable; "Save the list into this mod folder" writes the whole
+list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
+
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,

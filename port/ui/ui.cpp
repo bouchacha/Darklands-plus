@@ -525,6 +525,7 @@ static void tab_party(void)
 {
     if (!ImGui::BeginTabBar("records")) return;
     if (ImGui::BeginTabItem("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
+    if (ImGui::BeginTabItem("Items")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
     if (!ImGui::BeginTabItem("The party's items")) { ImGui::EndTabBar(); return; }
     ImGui::TextWrapped("The party's possessions, read live from the game.");
     if (ImGui::BeginTabBar("members")) {
