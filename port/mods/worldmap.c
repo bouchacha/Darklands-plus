@@ -150,7 +150,8 @@ int worldmap_build(void)
             }
             L[y * w + x] = 0xff000000u | (r / n) << 16 | (gg / n) << 8 | (b / n);
         }
-    free(c);
+    free(worldmap.idx); worldmap.idx = c;              /* kept for the full-scale view */
+    memcpy(worldmap.pal, pal, sizeof pal);
     worldmap.px[0] = L; worldmap.w[0] = w; worldmap.h[0] = h;
     for (int l = 1; l < WM_LEVELS; l++) {
         int pw = worldmap.w[l - 1], ph = worldmap.h[l - 1], nw = (pw + 1) / 2, nh = (ph + 1) / 2;

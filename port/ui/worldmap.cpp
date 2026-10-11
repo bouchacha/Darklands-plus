@@ -3,6 +3,7 @@
 // auto-travel and the places the quest log points to. Click a place for its details, double-
 // click (or Ctrl+click anywhere) to travel there. M on the travel map opens it; M or Esc closes.
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -27,6 +28,27 @@ extern ImFont *ui_font_small, *ui_font_text;
 static SDL_Renderer *wm_ren;
 static SDL_Texture *tex[WM_LEVELS];
 static int tex_gen = -1;
+/* full scale, for zooming in (each travel-screen pixel its own): made in tiles when first
+ * seen, nearest-pixel when magnified so the art stays sharp */
+#define FT 1024
+static SDL_Texture *ftex[64]; static int ftex_gen = -1;
+static SDL_Texture *full_tile(int i, int j)
+{
+    if (ftex_gen != worldmap.generation) { for (auto &t : ftex) { if (t) SDL_DestroyTexture(t); t = 0; } ftex_gen = worldmap.generation; }
+    int nx = (worldmap.full_w + FT - 1) / FT, k = j * nx + i;
+    if (k < 0 || k >= 64 || !worldmap.idx) return 0;
+    if (ftex[k]) return ftex[k];
+    int x0 = i * FT, y0 = j * FT, w = std::min(FT, worldmap.full_w - x0), h = std::min(FT, worldmap.full_h - y0);
+    if (w <= 0 || h <= 0) return 0;
+    std::vector<unsigned> px((size_t)w * h);
+    for (int y = 0; y < h; y++) {
+        const unsigned char *s = worldmap.idx + (size_t)(y0 + y) * worldmap.full_w + x0;
+        for (int x = 0; x < w; x++) px[(size_t)y * w + x] = worldmap.pal[s[x]];
+    }
+    ftex[k] = SDL_CreateTexture(wm_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+    if (ftex[k]) SDL_UpdateTexture(ftex[k], 0, px.data(), w * 4);
+    return ftex[k];
+}
 static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-screen pixel; centre
 static int selected = -1;
 static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true;
@@ -109,6 +131,7 @@ extern "C" int worldmap_open(void)
     upload();
     int px, py; party_tile(&px, &py);
     if (cx < 0 || px >= 0) tile_px(px, py, &cx, &cy);
+    if (getenv("DL_WM_ZOOM")) zoom = (float)atof(getenv("DL_WM_ZOOM"));   /* test */
     return 1;
 }
 
@@ -139,7 +162,7 @@ extern "C" void worldmap_draw(void)
     float ay = aspect();
     float fitz = fminf(sz.x / worldmap.full_w, sz.y / (worldmap.full_h * ay));
     if (zoom < fitz * 0.9f) zoom = fitz * 0.9f;
-    if (zoom > 4) zoom = 4;
+    if (zoom > 10) zoom = 10;
     ImVec2 mid(o.x + sz.x * 0.5f, o.y + sz.y * 0.5f);
     auto to_scr = [&](float x, float y) { return ImVec2(mid.x + (x - cx) * zoom, mid.y + (y - cy) * zoom * ay); };
     auto to_map = [&](ImVec2 p, float *x, float *y) { *x = cx + (p.x - mid.x) / zoom; *y = cy + (p.y - mid.y) / (zoom * ay); };
@@ -152,7 +175,7 @@ extern "C" void worldmap_draw(void)
         float mx, my; to_map(io.MousePos, &mx, &my);
         zoom *= powf(1.25f, io.MouseWheel);
         if (zoom < fitz * 0.9f) zoom = fitz * 0.9f;
-        if (zoom > 4) zoom = 4;
+        if (zoom > 10) zoom = 10;
         cx = mx - (io.MousePos.x - mid.x) / zoom; cy = my - (io.MousePos.y - mid.y) / (zoom * ay);
     }
     static bool dragged;
@@ -174,7 +197,19 @@ extern "C" void worldmap_draw(void)
     // the picture: the level whose texels are closest to the screen's pixels
     int l = 0;
     while (l < WM_LEVELS - 1 && zoom * (2 << l) < 0.75f) l++;
-    if (tex[l]) dl->AddImage((ImTextureID)tex[l], to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
+    if (zoom > 0.75f && worldmap.idx) {                 /* closer than the half-scale picture: full scale, tile by tile */
+        float vx0, vy0, vx1, vy1; to_map(o, &vx0, &vy0); to_map(ImVec2(o.x + sz.x, o.y + sz.y), &vx1, &vy1);
+        int nx = (worldmap.full_w + FT - 1) / FT, ny = (worldmap.full_h + FT - 1) / FT;
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++) {
+                float tx0 = (float)(i * FT), ty0 = (float)(j * FT), tx1 = (float)std::min((i + 1) * FT, worldmap.full_w), ty1 = (float)std::min((j + 1) * FT, worldmap.full_h);
+                if (tx1 < vx0 || tx0 > vx1 || ty1 < vy0 || ty0 > vy1) continue;
+                SDL_Texture *t = full_tile(i, j);
+                if (!t) continue;
+                SDL_SetTextureScaleMode(t, zoom >= 1.5f ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
+                dl->AddImage((ImTextureID)t, to_scr(tx0, ty0), to_scr(tx1, ty1));
+            }
+    } else if (tex[l]) dl->AddImage((ImTextureID)tex[l], to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
 
     std::vector<Place> P = places();
     static std::vector<std::pair<int, std::string>> marks;

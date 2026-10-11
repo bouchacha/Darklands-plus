@@ -10,6 +10,8 @@ typedef struct {
     int w[WM_LEVELS], h[WM_LEVELS];
     int full_w, full_h;               /* travel-screen pixels: tile (x, y) at x*16 (+8 odd rows), y*4, 16x12 */
     int tiles_w, tiles_h, month, stale, generation;
+    unsigned char *idx;               /* full scale: palette indices, full_w x full_h */
+    unsigned pal[256];                /* ARGB */
 } WorldMap;
 extern WorldMap worldmap;
 int worldmap_build(void);
