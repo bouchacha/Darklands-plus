@@ -330,6 +330,7 @@ void dos_int21(void)
         const char *mode = (AL & 3) == 0 ? "rb" : "r+b";
         FILE *f = fopen(hp, mode);
         if (!f && (AL & 3)) f = fopen(hp, "rb");
+        if (!f) { const char *hdart_virtual_file(const char *); const char *v = hdart_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* a new picture made from art */
         if (dos_trace) fprintf(stderr, "  open %s -> %s %s\n", name, hp, f ? "ok" : "FAIL");
         if (!f) { dos_error(2); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }

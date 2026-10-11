@@ -292,6 +292,138 @@ static int pic_register(const char *dosname, int w, int h, const u8 *px, int spr
     return npics++;
 }
 
+/* ---------------------------------------------------------------- new pictures
+ * A picture the game asks for that is not among its files (PICS\SHIELDP.PIC, a crest beyond
+ * the fifteen) is made from art\NAME.png: matched to the colours on screen, packed as a PIC
+ * (RLE: 0x90 n repeats, LZW: 9-11 bit codes, LSB first, a fresh table every 1792 codes) and
+ * kept in art\.generated. The art itself is then drawn at full resolution as usual. */
+unsigned char *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp);
+void stbi_image_free(void *p);
+
+typedef struct { u8 *b; long n, cap; u32 bits; int nb; } Buf;
+static void put8(Buf *o, int v) { if (o->n == o->cap) { o->cap = o->cap ? o->cap * 2 : 4096; o->b = realloc(o->b, (size_t)o->cap); } o->b[o->n++] = (u8)v; }
+static void put_code(Buf *o, int c, int width) { o->bits |= (u32)c << o->nb; o->nb += width; while (o->nb >= 8) { put8(o, (int)(o->bits & 255)); o->bits >>= 8; o->nb -= 8; } }
+
+static long pic_encode(const u8 *px, int w, int h, u8 **out)
+{
+    Buf r = {0}, o = {0};
+    long n = (long)w * h;
+    for (long i = 0; i < n;) {                      /* RLE */
+        long j = i; while (j < n && px[j] == px[i] && j - i < 255) j++;
+        long run = j - i;
+        if (run >= 4 && px[i] != 0x90) { put8(&r, px[i]); put8(&r, 0x90); put8(&r, (int)run); i = j; }
+        else { if (px[i] == 0x90) { put8(&r, 0x90); put8(&r, 0); } else put8(&r, px[i]); i++; }
+    }
+    static short dict[2048][256];                   /* (code, next byte) -> code */
+    int width = 9, cnt = 0, thr = 256;
+    #define EMIT(c) do { put_code(&o, (c), width); if (++cnt == thr) { cnt = 0; width++; thr <<= 1; if (width > 11) { width = 9; thr = 256; } } } while (0)
+    long i = 0;
+    while (i < r.n) {
+        for (int k = 0; k < 2048; k++) memset(dict[k], -1, sizeof dict[k]);
+        int nxt = 257, w = r.b[i++], full = 0;
+        while (i < r.n) {
+            int c = r.b[i];
+            if (dict[w][c] >= 0) { w = dict[w][c]; i++; continue; }
+            EMIT(w);
+            if (nxt >= 2048) { full = 1; break; }
+            dict[w][c] = (short)nxt++;
+            w = c; i++;
+        }
+        if (!full) EMIT(w);
+    }
+    #undef EMIT
+    if (o.nb) put8(&o, (int)(o.bits & 255));
+    Buf f = {0};                                    /* X0 chunk: w, h, max bits, data */
+    long len = 5 + o.n;
+    put8(&f, 0x58); put8(&f, 0x30); put8(&f, (int)(len & 255)); put8(&f, (int)(len >> 8));
+    put8(&f, w & 255); put8(&f, w >> 8); put8(&f, h & 255); put8(&f, h >> 8); put8(&f, 11);
+    for (long k = 0; k < o.n; k++) put8(&f, o.b[k]);
+    free(r.b); free(o.b);
+    *out = f.b;
+    return len > 65535 ? -1 : f.n;
+}
+
+const char *hdart_virtual_file(const char *dosname)
+{
+    const char *dot = strrchr(dosname, '.');
+    if (!dot || strcasecmp(dot, ".pic")) return 0;
+    char key[16]; base_name(dosname, key);
+    const char *art = art_for(key);
+    if (!art) return 0;
+    static char path[1300];
+    char dir[1200]; snprintf(dir, sizeof dir, "%s/art/.generated", game_dir); MKDIR(dir);
+    snprintf(path, sizeof path, "%s/%s.PIC", dir, key);
+    struct stat sa, sg;
+    if (!stat(path, &sg) && !stat(art, &sa) && sg.st_mtime >= sa.st_mtime) return path;   /* made already, art unchanged */
+    FILE *f;
+    int w, h, n;
+    u8 *rgba = stbi_load(art, &w, &h, &n, 4);
+    if (!rgba) return 0;
+    /* the size of the game's picture: crests are 11x19 like SHIELDA; otherwise a twentieth */
+    int tw = 11, th = 19;
+    if (strncmp(key, "SHIELD", 6)) { tw = w / 5 > 0 ? w / 5 : 1; th = h / 5 > 0 ? h / 5 : 1; if (tw > 320) tw = 320; if (th > 200) th = 200; }
+    u8 *px = malloc((size_t)tw * th);
+    u32 pal[256]; dac_lut(pal);
+    for (int y = 0; y < th; y++)
+        for (int x = 0; x < tw; x++) {
+            long r = 0, g = 0, b = 0, a = 0, c = 0;     /* average of the source area */
+            for (int sy = y * h / th; sy < (y + 1) * h / th; sy++)
+                for (int sx = x * w / tw; sx < (x + 1) * w / tw; sx++) {
+                    const u8 *p = rgba + ((long)sy * w + sx) * 4;
+                    r += p[0]; g += p[1]; b += p[2]; a += p[3]; c++;
+                }
+            if (!c || a / c < 128) { px[y * tw + x] = 0; continue; }
+            r /= c; g /= c; b /= c;
+            int best = 16; long bd = -1;
+            for (int k = 16; k < 256; k++) {
+                long dr = (long)(pal[k] >> 16 & 255) - r, dg = (long)(pal[k] >> 8 & 255) - g, db = (long)(pal[k] & 255) - b;
+                long d = dr * dr * 3 + dg * dg * 4 + db * db * 2;
+                if (bd < 0 || d < bd) { bd = d; best = k; }
+            }
+            px[y * tw + x] = (u8)best;
+        }
+    stbi_image_free(rgba);
+    u8 *pic; long len = pic_encode(px, tw, th, &pic);
+    free(px);
+    if (len < 0) { free(pic); return 0; }
+    f = fopen(path, "wb");
+    if (!f) { free(pic); return 0; }
+    fwrite(pic, 1, (size_t)len, f); fclose(f); free(pic);
+    if (logon) fprintf(stderr, "art: made %s from %s (%dx%d)\n", path, art, tw, th);
+    return path;
+}
+
+/* the crest chooser (character creation, s038): H steps the member's letter on and wraps
+ * after 'O' (party record +1); when there are more crests (art\SHIELDP.png ...), the step
+ * past 'O' goes to them instead */
+static u8 crest_last[5];
+static int crest_exists(int letter)
+{
+    char k[16]; snprintf(k, sizeof k, "SHIELD%c", letter);
+    if (art_for(k)) return 1;
+    char d[32], p[1200]; snprintf(d, sizeof d, "PICS\\SHIELD%c.PIC", letter); dos_host_path(d, p, sizeof p);
+    FILE *f = fopen(p, "rb"); if (f) { fclose(f); return 1; }
+    return 0;
+}
+static void crest_step(u16 name_off)
+{
+    char nm[64]; g_str(G_DGROUP, name_off, nm, sizeof nm);
+    char key[16]; base_name(nm, key);
+    if (strncmp(key, "SHIELD", 6) || !key[6] || key[7]) return;
+    for (int m = 0; m < 5; m++) {
+        u16 at = (u16)(G_MEMBER(m) + 1);
+        u8 cur = g_rb(at), last = crest_last[m];
+        if (cur == 'A' && last >= 'O' && last < 'Z' && crest_exists(last + 1) && (key[6] == 'A' || key[6] == 'a')) {
+            g_wb(at, (u8)(last + 1));
+            int p = (int)(strlen(nm) - 5);         /* "...shieldA.pic": the letter before ".pic" */
+            if (p > 0) g_wb((u16)(name_off + p), (u8)(last + 1));
+            cur = (u8)(last + 1);
+            if (logon) fprintf(stderr, "art: crest of member %d: %c\n", m, cur);
+        }
+        crest_last[m] = cur;
+    }
+}
+
 /* ---------------------------------------------------------------- regions */
 typedef struct { int pic; s16 x, y, w, h, ox, oy; u8 opaque; } Reg;
 #define NPAGES 8
@@ -442,6 +574,7 @@ static void h_row(void)                     /* 047c:054c (row, page, x, y, w) */
 
 static void h_pic_load(void)                /* pic_load(name) -> sprite handle */
 {
+    crest_step(ARG(0));
     cap_begin(ARG(0));
     hook_call_original();
     if (cap.on && cap.rows) {
@@ -765,4 +898,5 @@ void hdart_init(void)
     hook_install(-1, 0x047c, 0x04ef, h_draw_sprite);
     hook_install(14, 0x0e76, 0x3d2c, h_sprite_file);
     if (getenv("DL_THUNK_LOG")) thunk_probe();
+    if (getenv("DL_ART_MAKE")) { char d[64]; snprintf(d, sizeof d, "PICS\\%s.PIC", getenv("DL_ART_MAKE")); const char *r = hdart_virtual_file(d); fprintf(stderr, "art make: %s\n", r ? r : "(none)"); }
 }

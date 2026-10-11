@@ -305,6 +305,8 @@ static void tab_display(void)
              "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
              "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
              "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
+        hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the fifteen of the game "
+             "(Heraldry, when making a party). A character with one of them needs this version of the game to be loaded.", PATH_SEP);
     }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
