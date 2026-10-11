@@ -155,17 +155,18 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             ok[g] = 0;
             int gx = r->x0 + r->gx[g], gw = r->gw[g];
             if (mw && gx < mx + mw && gx + gw > mx && r->y0 < my + mh && r->y0 + r->h > my) { ok[g] = 4; continue; }   /* under the cursor: decided below */
-            int c = -1, good = 1, any = 0;
+            int c = -1, good = 1, any = 0, seen = 0;
             for (int yy = 0; yy < r->h && good; yy++)
                 for (int xx = 0; xx < gw; xx++) {
                     int p = (r->y0 + yy) * 320 + gx + xx;
                     if (claimed[p]) { good = 0; break; }
                     u8 v = vga[p], u = r->under[yy * r->w + r->gx[g] + xx];
-                    if (glyph_bit(F, r->ch[g], xx, yy)) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); break; } any = 1; }
+                    if (glyph_bit(F, r->ch[g], xx, yy)) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); break; } any = 1; seen += v != u; }
                     else if (v != u) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: background %02x was %02x\n", r->stamp, g, r->ch[g], xx, yy, v, u); break; }
                 }
             if (!good) continue;
             if (!any) { ok[g] = 2; continue; }                 /* a space: kept with its neighbours */
+            if (!seen) continue;                               /* the glyph cannot be told from what was under it: gone */
             ok[g] = 1; gc[g] = c; alive++;
         }
         if (!alive) { if (stamp - r->stamp > 4000) { r->used = 0; free(r->under); r->under = 0; } continue; }
