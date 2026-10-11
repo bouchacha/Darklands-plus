@@ -72,6 +72,8 @@ static int load_map(void)
     return 1;
 }
 
+const unsigned char *travel_map(int *w, int *h) { if (!load_map()) return 0; *w = mw; *h = mh; return terr; }
+
 int travel_terrain(int x, int y) { return terr && x >= 0 && y >= 0 && x < mw && y < mh ? terr[y * mw + x] : -1; }
 
 /* ---------------------------------------------------------------- routes */

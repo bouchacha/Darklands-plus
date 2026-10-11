@@ -220,6 +220,17 @@ static int file_palette(const char *dosname, u32 *pal, u8 *mask)
     return 0;
 }
 
+/* a PIC file of the game, unpacked (for other modules) */
+u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask)
+{
+    char p[1200]; dos_host_path(dosname, p, sizeof p);
+    u8 *d; long n;
+    if (!read_file(p, &d, &n)) return 0;
+    u8 *img = pic_decode(d, n, w, h, pal, mask);
+    free(d);
+    return img;
+}
+
 static void base_name(const char *path, char *out)
 {
     const char *b = path;

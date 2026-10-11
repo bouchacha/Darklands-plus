@@ -28,7 +28,10 @@ extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[];
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE;
 }
 
-static bool open_menu;
+static bool open_menu, open_map;
+extern "C" int worldmap_open(void);
+extern "C" void worldmap_draw(void);
+void worldmap_set_renderer(SDL_Renderer *r);
 static int want_tab = -1;
 extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
@@ -86,6 +89,7 @@ static void style(void)
 extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
 {
     g_win = win;
+    worldmap_set_renderer(ren);
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -109,12 +113,25 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.integer = config_get_int("display.integer_scale", 0);
 }
 
-extern "C" int ui_is_open(void) { return open_menu; }
-extern "C" void ui_toggle(void) { open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
+extern "C" int ui_is_open(void) { return open_menu || open_map; }
+extern "C" void ui_toggle(void) { open_map = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
+/* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
+extern "C" void ui_toggle_map(void)
+{
+    if (open_map) { open_map = false; return; }
+    if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; }
+}
 
 extern "C" int ui_event(const SDL_Event *e)
 {
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
+    if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
+        && game_mode() == GM_MAP && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
+    if (open_map) {
+        if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || (e->key.keysym.sym == SDLK_m && !ImGui::GetIO().WantTextInput))) { ui_toggle_map(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (!open_menu) return 0;
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { ui_toggle(); return 1; }
     ImGui_ImplSDL2_ProcessEvent(e);
@@ -385,8 +402,9 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-    hdtext_draw();
-    if (!open_menu) ui_overlay();
+    if (open_map) worldmap_draw();
+    else hdtext_draw();
+    if (!open_menu && !open_map) ui_overlay();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));

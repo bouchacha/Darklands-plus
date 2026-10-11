@@ -130,10 +130,10 @@ static std::string item_name(int id)
 
 struct Line { std::string text, when; int group; int loc = -1; };
 
-extern "C" void journal_quests(void)
+static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
+
+static std::vector<Line> build_lines(void)
 {
-    if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
-    static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
     std::vector<Line> v;
     for (const Ev &e : read_events()) {
         std::string who = person(e.kind == 0x24 ? e.value : e.type0);
@@ -163,6 +163,22 @@ extern "C" void journal_quests(void)
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && spoilers)
             v.push_back({ "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", 4 });
     }
+    return v;
+}
+
+/* places the quest log points to, for the world map */
+void quest_marks(std::vector<std::pair<int, std::string>> &out)
+{
+    out.clear();
+    if (game_mode() == GM_OTHER) return;
+    for (const Line &l : build_lines())
+        if (l.loc >= 0) out.push_back({ l.loc, l.text + (l.when.empty() ? "" : " (" + l.when + ")") });
+}
+
+extern "C" void journal_quests(void)
+{
+    if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
+    std::vector<Line> v = build_lines();
     static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Towns", "Secrets" };
     bool any = false;
     for (int g = 0; g < 5; g++) {

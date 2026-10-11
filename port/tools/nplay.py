@@ -53,7 +53,7 @@ def convert(script, out_dir):
             steps.append('%d:wshot:%s' % (t, p))
             shots.append(p)
             t += 100
-        elif c in ('artexport', 'artrescan'):
+        elif c in ('artexport', 'artrescan', 'umap'):
             steps.append('%d:%s:' % (t, c))
         elif c in ('utab', 'ugive', 'uclick', 'ucmd'):
             steps.append('%d:%s:%s' % (t, c, ' '.join(f[1:])) if c != 'ucmd' else '%d:%s' % (t, ' '.join(f[1:])))

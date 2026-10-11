@@ -264,6 +264,7 @@ void plat_present(const u8 *vga, const u8 *pal)
     memcpy(idx, vga, sizeof idx);
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
+    { void worldmap_watch_palette(void); worldmap_watch_palette(); }
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
     layout();
     SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
@@ -354,6 +355,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
+        else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
     }
 }

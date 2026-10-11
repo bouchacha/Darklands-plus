@@ -48,10 +48,18 @@ static std::string loc_name(int i, int *type)
     return game_text(b, sizeof b);
 }
 
+extern "C" void ui_toggle_map(void);
 extern "C" void tab_travel(void)
 {
     static char filter[48];
     static bool show[4] = { true, true, false, true };     /* cities, castles & monasteries, villages, mines */
+    {
+        if (game_mode() != GM_OTHER && game_mode() != GM_BATTLE) {
+            if (ImGui::Button("Open the world map")) ui_toggle_map();
+            ImGui::SameLine(); ImGui::TextDisabled("(M on the travel map)");
+            ImGui::Spacing();
+        }
+    }
     if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (Helpers tab)."); return; }
     if (travel.active) {
         ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Travelling to %s, about %s to go.", travel.name, when(travel.left > 0 ? travel.left : travel.minutes).c_str());
