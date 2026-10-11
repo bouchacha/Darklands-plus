@@ -35,7 +35,16 @@
  *            pick the alchemical symbol for a substance) is skipped.
  *  alchemy   Brewing takes the ingredients with s033 1462:1630, which skips the stack that
  *            slides up when one is used up and forgets what it could not take: most batches
- *            cost only part of their ingredients. The remainder is now taken too. */
+ *            cost only part of their ingredients. The remainder is now taken too.
+ *  potions   Deadly Blade (+3..5 damage), Strongedge (+3..5 penetration) and Greatpower
+ *            (14/22/30 added to the whole byte) change the member's bonus byte, party +0x34
+ *            (= combatant +0x48: high nibble damage, low nibble penetration), in use_potion
+ *            (s031 1462:43b2), and record a kind 0x4a event of about a day. Its expiry (s029
+ *            0e76:448a) only undoes kinds 0x48 and 0x49, so the bonus stays for good; the
+ *            nibbles wrap (a fourth Deadly Blade gives +1 damage, Greatpower's 14 spills into
+ *            the damage nibble), and hit_damage's penetration (byte + weapon) & 15 wraps too:
+ *            "after Greatpower my bows only do 3-5 damage". The byte is now the sum of the
+ *            potions still running, each nibble capped at 15, and penetration stops at 15. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +75,8 @@ Fix FIXES[] = {
       "Characters' colours and figures sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
+    { "potions", "Weapon potions wear off and don't ruin weapons",
+      "Deadly Blade, Strongedge and Greatpower never wore off, and their bonuses overflowed: after a few potions (or one Greatpower) weapons, bows above all, hit for almost nothing. They now last their day and add up properly.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -97,16 +108,28 @@ static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
     }
 }
 
-/* ---------------------------------------------------------------- fireward */
-static void fireward_hook(void)            /* hit_damage(a, t) */
+/* ---------------------------------------------------------------- fireward (+ potions) */
+static int fix_on(const char *id);
+static void hitdamage_hook(void)           /* hit_damage(a, t) */
 {
     int a = (s16)rw(SS, (u16)(SP + 4)), t = (s16)rw(SS, (u16)(SP + 6));
-    u16 ta = (u16)(0x9c55 + 0x80 * t + 0x55), aa = (u16)(0x9c55 + 0x80 * a + 0x55);
-    int fix_t = t >= 0 && t < 5, fix_a = a >= 0 && a < 5;
-    u8 st = fix_t ? g_rb(ta) : 0, sa = fix_a ? g_rb(aa) : 0;
+    u16 ta = (u16)(0x9c55 + 0x80 * t + 0x55), aa = (u16)(0x9c55 + 0x80 * a + 0x55), ba = (u16)(0x9c55 + 0x80 * a + 0x48);
+    int fire = fix_on("fireward");
+    int fix_t = fire && t >= 0 && t < 5, fix_a = fire && a >= 0 && a < 5;
+    u8 st = fix_t ? g_rb(ta) : 0, sa = fix_a ? g_rb(aa) : 0, sb = 0;
+    int fix_b = 0;
     if (fix_t) g_wb(ta, (u8)(st & 0x8f));
     if (fix_a && a != t) g_wb(aa, (u8)(sa & 0x7f));
+    if (fix_on("potions") && a >= 0 && a < 5) {   /* penetration = (bonus + weapon) & 15: stop at 15 */
+        sb = g_rb(ba);
+        int wp = g_rb((u16)(0x9c55 + 0x80 * a + 0x53)) & 15;
+        if ((sb & 15) + wp > 15) {
+            g_wb(ba, (u8)((sb & 0xf0) | (15 - wp))); fix_b = 1;
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: %d hits %d, penetration %d + %d held at 15\n", a, t, sb & 15, wp);
+        }
+    }
     hook_call_original();
+    if (fix_b) g_wb(ba, sb);
     if (fix_a && a != t) g_wb(aa, sa);
     if (fix_t) g_wb(ta, st);
 }
@@ -238,7 +261,7 @@ static void col_read(u8 cur[5][28])
         for (int i = 0; i < 4; i++) cur[m][24 + i] = g_rb((u16)(0xa668 + m * 4 + i));
     }
 }
-void fixes_frame(void)
+static void colours_frame(void)
 {
     if (!fix_on("colours")) { col_have = 0; return; }
     u8 cur[5][28]; col_read(cur);
@@ -266,6 +289,60 @@ void fixes_frame(void)
     }
     col_read(cur); memcpy(col_good, cur, sizeof cur);
 }
+static void potions_frame(void);
+void fixes_frame(void)
+{
+    colours_frame();
+    if (fix_on("potions")) potions_frame();
+}
+
+/* ---------------------------------------------------------------- potions
+ * The kind 0x4a events say which potions are still running: +0 0x69 for Deadly Blade, else the
+ * potion's inventory index (the original passes idx for Strongedge and Greatpower), +0x1a the
+ * member, +0x1e the amount (3..5 for the first two, 14/22/30 for Greatpower), +0x12 the end
+ * (hour, day, month, year). The bonus byte is rebuilt from them every frame: it is nothing else
+ * (only use_potion writes it), so saves spoilt by the old bug mend themselves. */
+static int ev_running(u16 s, u16 o)
+{
+    static const u16 f[4] = { 0x18, 0x16, 0x14, 0x12 }, now[4] = { G_CUR_YEAR, G_CUR_MONTH, G_CUR_DAY, G_CUR_HOUR };
+    for (int k = 0; k < 4; k++) {
+        int e = (s16)rw(s, (u16)(o + f[k])), n = (s16)g_rw(now[k]);
+        if (e != n) return e > n;
+    }
+    return 0;
+}
+
+void potion_bonus(int m, int *dmg, int *pen)
+{
+    *dmg = *pen = 0;
+    for (int i = 0; i < 300; i++) {
+        u32 e = ev_ptr(i);
+        if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + 0x22)) != 0x4a || (s16)rw(s, (u16)(o + 0x1a)) != m || !ev_running(s, o)) continue;
+        int type0 = (s16)rw(s, o), t = (s16)rw(s, (u16)(o + 0x1e));
+        if (t < 0 || t > 0x7f) continue;
+        if (type0 == 0x69) *dmg += t;                      /* Deadly Blade */
+        else if (t <= 5) *pen += t;                         /* Strongedge */
+        else { *dmg += t >> 4; *pen += t & 15; }            /* Greatpower, without the carry */
+    }
+    if (*dmg > 15) *dmg = 15;
+    if (*pen > 15) *pen = 15;
+}
+
+static void potions_frame(void)
+{
+    if (game_mode() == GM_OTHER) return;
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    if (size < 1 || size > 5) return;
+    for (int m = 0; m < size; m++) {
+        int d, p; potion_bonus(m, &d, &p);
+        u8 v = (u8)(d << 4 | p), was = g_rb((u16)(G_MEMBER(m) + 0x34));
+        if (v == was) continue;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: member %d bonus %02x -> %02x\n", m, was, v);
+        g_wb((u16)(G_MEMBER(m) + 0x34), v);
+    }
+}
 
 /* ---------------------------------------------------------------- innsave */
 static void innsave_hook(void)             /* the lodging screen, s036 1462:0082 */
@@ -286,9 +363,10 @@ static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000:
 
 /* ---------------------------------------------------------------- switching */
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
-    { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
+    { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
-    { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook } };
+    { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
+    { 14, 0x18bf, 0x0778, hitdamage_hook } };
 
 void fix_enable(int i, int on)
 {

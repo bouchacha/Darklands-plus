@@ -260,6 +260,13 @@ code must reproduce them; a mod may fix them):
     whole function, and the reduced d carries over to the next member.
   - `event_value` (39f0) reads event -1 when no event exists; 4db6 / `event_48_max` (4e0c)
     return garbage when the scan reaches slot 300.
+* **s031 1462** `use_potion` (43b2): Deadly Blade, Strongedge and Greatpower add to the member's
+  bonus byte (party +0x34 = combatant +0x48; high nibble damage, low nibble penetration) without
+  a cap, so the nibbles wrap (Greatpower adds 14/22/30 to the whole byte), and the kind 0x4a
+  event they record is never undone at expiry (448a handles only 0x48/0x49): the bonuses are
+  permanent. Strongedge and Greatpower record the inventory index instead of the item code.
+  `hit_damage` (s014 18bf:0778) then wraps `(bonus + weapon) & 15` as the penetration. The port
+  fixes all of it (`port/mods/fixes.c`, "potions").
 * **s039 1462** 1e90 (pay for a service): sets the money to cost - money (sic); an unknown size
   uses an uninitialised factor.
 * **s038 16cd** 0404: merges the party into the hall of fame table but never writes it back.

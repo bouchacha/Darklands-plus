@@ -19,6 +19,7 @@
 #include "hle.h"
 #include "../ui/ui.h"
 #include "../mods/hdart.h"
+#include "game.h"
 
 static SDL_Window *win;
 static SDL_Renderer *ren;
@@ -356,6 +357,43 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
         else if (!strcmp(s->cmd, "ufight")) { extern int ufight_pending, ufight_seed; ufight_seed = -1; sscanf(s->arg, "%d,%d", &ufight_pending, &ufight_seed); if (!ufight_pending) ufight_pending = 10; }   /* test: a battle (type, seed) at the next card */
+        else if (!strcmp(s->cmd, "upeek")) {               /* debug: words at link-time seg:off (+LOADSEG) */
+            unsigned sg = 0, of = 0, n = 8; sscanf(s->arg, "%x,%x,%u", &sg, &of, &n);
+            fprintf(stderr, "peek %04x:%04x:", sg, of);
+            for (unsigned k = 0; k < n; k++) fprintf(stderr, " %04x", rw((u16)(LOADSEG + sg), (u16)(of + 2 * k)));
+            fprintf(stderr, "\n");
+        }
+        else if (!strcmp(s->cmd, "upotion")) {             /* test: member m drinks potion code of quality q (use_potion, s031 1462:43b2) */
+            int m = 0, code = 0x69, q = 30; sscanf(s->arg, "%d,%x,%d", &m, &code, &q);
+            int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+            if (m >= 0 && m < 5 && n < 64) {
+                u16 o = G_ITEM(m, n);
+                ww(G_FAR2E38, o, (u16)code); wb(G_FAR2E38, (u16)(o + 2), 0); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), 1); wb(G_FAR2E38, (u16)(o + 5), 0);
+                g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(n + 1));
+                u16 a[2] = { (u16)m, (u16)n };
+                game_call_far(31, 0x1462, 0x43b2, 2, a);
+                g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)n);
+                fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
+            }
+        }
+        else if (!strcmp(s->cmd, "uhit")) {                /* test (in battle): hit_damage(a, t, r, loc), s014 18bf:0778 */
+            int a = 0, t = 5, r = 1, loc = 0; sscanf(s->arg, "%d,%d,%d,%d", &a, &t, &r, &loc);
+            u16 args[4] = { (u16)a, (u16)t, (u16)r, (u16)loc };
+            int v = game_call_far(14, 0x18bf, 0x0778, 4, args);
+            fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
+        }
+        else if (!strcmp(s->cmd, "ubonus")) {              /* test: the members' bonus bytes (party +0x34) */
+            fprintf(stderr, "bonus:");
+            for (int m = 0; m < 5; m++) fprintf(stderr, " %02x", g_rb((u16)(G_MEMBER(m) + 0x34)));
+            fprintf(stderr, "\n");
+        }
+        else if (!strcmp(s->cmd, "uclock")) {              /* test: the clock moves on h hours (no events run) */
+            static const int D[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+            int h = (s16)g_rw(G_CUR_HOUR) + atoi(s->arg), d = (s16)g_rw(G_CUR_DAY), mo = (s16)g_rw(G_CUR_MONTH), y = (s16)g_rw(G_CUR_YEAR);
+            while (h >= 24) { h -= 24; if (++d >= D[mo] + (mo == 1 && y % 4 == 0)) { d = 0; if (++mo >= 12) { mo = 0; y++; } } }
+            g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
+            fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
+        }
         else if (!strcmp(s->cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
         else if (!strcmp(s->cmd, "utext")) {               /* the text on screen (crisp text runs), for scripts */
             extern int hdtext_nruns; typedef struct { char text[100]; int x, y, w, h, font; unsigned rgb; } Run; extern Run hdtext_runs[];

@@ -9,6 +9,7 @@ extern Fix FIXES[];
 extern int FIX_COUNT;
 void fixes_init(void);
 void fix_enable(int i, int on);
+void potion_bonus(int m, int *dmg, int *pen);   /* weapon potions still running for member m */
 #ifdef __cplusplus
 }
 #endif

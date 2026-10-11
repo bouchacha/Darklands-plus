@@ -1,5 +1,5 @@
-// saints.cpp - the saints (F12 > Saints): every saint's description from DARKLAND.SNT, who in
-// the party knows them, and a finder by what they help with ("Strength", "fire", "heal",
+// saints.cpp - the saints (F12 > Saints): the blessings and potions in effect and how long they
+// last, every saint's description from DARKLAND.SNT, who in the party knows them, and a finder by what they help with ("Strength", "fire", "heal",
 // "travel on water" ...), like the saint finder of the Darklands Companion tool. Knowledge:
 // saints_known, far 2e38:082c, 0x14 bytes per member, a bit per saint in DARKLAND.LST order,
 // highest bit first.
@@ -18,6 +18,68 @@ extern "C" {
 static bool knows(int m, int s)
 {
     return (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) != 0;
+}
+
+static const char *ATTRS[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
+static const char *SKILLS[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
+    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
+    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
+
+/* hours since year 0 (the game's Julian calendar: day and month count from 0) */
+static long abs_hours(int y, int mo, int d, int h)
+{
+    static const int DAYS[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    long days = (long)y * 365 + y / 4;
+    for (int i = 0; i < mo && i < 12; i++) days += DAYS[i] + (i == 1 && y % 4 == 0);
+    return (days + d) * 24 + h;
+}
+
+/* the running temporary effects: events of kind 0x48 (attribute), 0x49 (skill), 0x4a (weapon
+   potion); +0 what, +0x1a member, +0x1e amount, +0x12 end (hour, day, month, year) */
+static void effects(int size)
+{
+    struct Eff { int m; std::string what; long left; };
+    std::vector<Eff> v;
+    long now = abs_hours((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR));
+    for (int i = 0; i < 300; i++) {
+        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), sg = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
+        if (!sg) continue;
+        int kind = (s16)rw(sg, (u16)(o + 0x22));
+        if (kind < 0x48 || kind > 0x4a) continue;
+        int m = (s16)rw(sg, (u16)(o + 0x1a)), k = (s16)rw(sg, o), t = (s16)rw(sg, (u16)(o + 0x1e));
+        if (m < 0 || m >= size || t <= 0) continue;
+        long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
+        if (left <= 0) continue;
+        char b[96];
+        if (kind == 0x48 && k >= 0 && k < 7) snprintf(b, sizeof b, "%+d %s", t, ATTRS[k]);
+        else if (kind == 0x49 && k >= 0 && k < 19) snprintf(b, sizeof b, "%+d %s", t, SKILLS[k]);
+        else if (kind == 0x4a) {
+            int item = k == 0x69 ? 0x69 : t <= 5 ? 0x6a : 0x6b;
+            std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
+            if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
+            else if (item == 0x6a) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t);
+            else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);
+            else snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15);
+        } else continue;
+        v.push_back({ m, b, left });
+    }
+    char head[64]; snprintf(head, sizeof head, "In effect now (%d)###effects", (int)v.size());
+    if (!ImGui::CollapsingHeader(head, v.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) return;
+    if (v.empty()) { ImGui::TextDisabled("No blessings or potions are working on the party."); return; }
+    std::sort(v.begin(), v.end(), [](const Eff &a, const Eff &b) { return a.m != b.m ? a.m < b.m : a.left < b.left; });
+    if (ImGui::BeginTable("eff", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
+        for (const Eff &e : v) {
+            char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(e.m) + G_M_SHORTNAME), n, sizeof n);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(game_text(n, sizeof n).c_str());
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(e.what.c_str());
+            ImGui::TableNextColumn();
+            if (e.left < 48) ImGui::TextDisabled("%ld hour%s left", e.left, e.left == 1 ? "" : "s");
+            else ImGui::TextDisabled("%ld days left", (e.left + 12) / 24);
+        }
+        ImGui::EndTable();
+    }
+    ImGui::Spacing();
 }
 
 static std::string lower(std::string s) { std::transform(s.begin(), s.end(), s.begin(), ::tolower); return s; }
@@ -47,6 +109,7 @@ extern "C" void tab_saints(void)
         ImGui::RadioButton("Known in the party", &known_only, 1); ImGui::SameLine();
         ImGui::RadioButton("Not yet known", &known_only, 2);
     }
+    if (in_game && size > 0) effects(size);
     ImGui::Separator();
     std::string f = lower(find);
     int shown = 0;
