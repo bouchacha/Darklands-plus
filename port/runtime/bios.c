@@ -584,7 +584,8 @@ void dl_poll(void)
         present_cost = present_end - now; if (present_cost > 100) present_cost = 100;
         if (plat_menu_open()) {               /* the game is paused while the menu is open */
             void sound_pause(int); sound_pause(1);
-            while (plat_menu_open()) { plat_events(); plat_present(M + 0xa0000, vga_dac); plat_sleep_ms(15); }
+            int plat_in_background(void);
+            while (plat_menu_open()) { plat_events(); plat_present(M + 0xa0000, vga_dac); plat_sleep_ms(plat_in_background() ? 100 : 15); }
             sound_pause(0);
             last_ms = now = present_end = plat_ticks_ms();
             tick_us_acc = 0;

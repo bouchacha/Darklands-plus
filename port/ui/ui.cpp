@@ -432,6 +432,8 @@ static void tab_display(void)
       if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
     { bool sc = sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
+    { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
+      if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();

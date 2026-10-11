@@ -383,7 +383,12 @@ static void to_game(int wx, int wy, int *gx, int *gy)
 
 void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
 
-int plat_menu_open(void) { return !headless && ui_is_open(); }
+/* the game stands still while the menu is open, and while the window is in the background
+ * (display.pause_unfocused, on by default: a battle does not go on behind another window) */
+static int bg_paused;           /* the window lost the focus and the game waits */
+static u32 bg_resumed;          /* when it came back: the click that brought it back is not the game's */
+int plat_menu_open(void) { return !headless && (ui_is_open() || bg_paused); }
+int plat_in_background(void) { return bg_paused; }
 
 /* ---------------------------------------------------------------- events */
 static void click_at(int x, int y);
@@ -579,6 +584,10 @@ void plat_events(void)
         switch (e.type) {
         case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && config_get_int("display.pause_unfocused", 1)) {
+                bg_paused = 1; fprintf(stderr, "window in the background: the game waits\n");
+            }
+            if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && bg_paused) { bg_paused = 0; bg_resumed = plat_ticks_ms(); mouse_b = 0; }
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
                 static u32 last_save; u32 t = plat_ticks_ms();
                 config_set_int("display.window_w", e.window.data1); config_set_int("display.window_h", e.window.data2);
@@ -607,6 +616,11 @@ void plat_events(void)
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
+            if (bg_resumed && plat_ticks_ms() - bg_resumed < 400) {       /* the click that brought the window back */
+                if (e.type == SDL_MOUSEBUTTONUP) bg_resumed = 0;
+                break;
+            }
+            bg_resumed = 0;
             if (e.type == SDL_MOUSEBUTTONDOWN) { void citynav_user_input(void); citynav_user_input(); }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
                 int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
