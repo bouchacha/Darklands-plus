@@ -49,6 +49,9 @@ static std::string loc_name(int i, int *type)
 }
 
 extern "C" void ui_toggle_map(void);
+extern "C" int citynav_available(void);
+extern "C" void ui_open_goto(void);
+extern "C" int config_get_int(const char *key, int def);
 extern "C" void tab_travel(void)
 {
     static char filter[48];
@@ -57,6 +60,11 @@ extern "C" void tab_travel(void)
         if (game_mode() != GM_OTHER && game_mode() != GM_BATTLE) {
             if (ImGui::Button("Open the world map")) ui_toggle_map();
             ImGui::SameLine(); ImGui::TextDisabled("(M on the travel map)");
+            ImGui::Spacing();
+        }
+        if (citynav_available() && config_get_int("assist.city_goto", 1)) {
+            if (ImGui::Button("Go to a place in this city...")) ui_open_goto();
+            ImGui::SameLine(); ImGui::TextDisabled("(G on the city's cards)");
             ImGui::Spacing();
         }
     }

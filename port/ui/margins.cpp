@@ -21,6 +21,7 @@ extern ImFont *ui_font_text;
 struct Eff { int m; std::string what; long left; };
 std::vector<Eff> effects_now(int size);
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out);
+extern "C" int citynav_available(void);
 
 int ui_margins_on = 1;
 
@@ -108,6 +109,7 @@ extern "C" void ui_margins(void)
         ImGui::Separator();
         heading("Where");
         ImGui::TextWrapped("%s", place_name().c_str());
+        if (citynav_available() && config_get_int("assist.city_goto", 1)) ImGui::TextDisabled("G: go to a place here");
         ImGui::Separator();
         heading("Purse");
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);

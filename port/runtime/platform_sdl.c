@@ -516,6 +516,8 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(s->arg)); }   /* test: Go to place N in the city */
+        else if (!strcmp(s->cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
@@ -566,6 +568,7 @@ void plat_events(void)
             }
             break;
         case SDL_KEYDOWN:
+            { void citynav_user_input(void); if (!e.key.repeat) citynav_user_input(); }
             if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
                 Uint32 fl = SDL_GetWindowFlags(win);
                 SDL_SetWindowFullscreen(win, (fl & SDL_WINDOW_FULLSCREEN_DESKTOP) ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -586,6 +589,7 @@ void plat_events(void)
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
+            if (e.type == SDL_MOUSEBUTTONDOWN) { void citynav_user_input(void); citynav_user_input(); }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
                 int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
                 void travel_click(int, int); travel_click(gx, gy);       /* Ctrl+click on the map: travel there */
@@ -598,6 +602,8 @@ void plat_events(void)
         }
     }
 }
+
+void plat_click_game(int gx, int gy) { click_at(gx, gy); }
 
 /* a left click at game pixel (x, y), released a little later so the game sees it */
 static void click_at(int x, int y)

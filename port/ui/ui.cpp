@@ -29,7 +29,14 @@ extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE;
 }
 
-static bool open_menu, open_map;
+static bool open_menu, open_map, open_goto;
+extern "C" int citynav_window(void);
+extern "C" int citynav_available(void);
+extern "C" void citynav_tick(void);
+extern "C" void citynav_go(int dest);
+/* "Go to" in cities (ui/citynav.cpp): G on a city card */
+static bool goto_allowed(void) { return config_get_int("assist.city_goto", 1) && !config_get_int("original", 0) && citynav_available(); }
+extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; open_menu = false; open_map = false; } }
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);
 void worldmap_set_renderer(SDL_Renderer *r);
@@ -139,8 +146,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.scaler = config_get_int("display.scaler", 0);
 }
 
-extern "C" int ui_is_open(void) { return open_menu || open_map; }
-extern "C" void ui_toggle(void) { open_map = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto; }
+extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
 {
@@ -153,6 +160,14 @@ extern "C" int ui_event(const SDL_Event *e)
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
     if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
         && game_mode() == GM_MAP && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
+    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
+        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
+    if (open_goto) {
+        if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_g)) { open_goto = false; return 1; }
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { open_goto = false; ui_toggle(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (open_map) {
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || (e->key.keysym.sym == SDLK_m && !ImGui::GetIO().WantTextInput))) { ui_toggle_map(); return 1; }
         ImGui_ImplSDL2_ProcessEvent(e);
@@ -294,6 +309,8 @@ static void tab_helpers(void)
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
     bool ta = travel_enabled; int tf = travel_fast;
     if (ImGui::Checkbox("Auto-travel along roads (Travel tab, or Ctrl+click on the map)", &ta)) { travel_set(ta, tf); dirty_config = 1; }
+    bool cg = config_get_int("assist.city_goto", 1);
+    if (ImGui::Checkbox("Go to in cities: G on a city's card lists its places; the party walks there through the menus", &cg)) { config_set_int("assist.city_goto", cg); dirty_config = 1; }
     ImGui::TextUnformatted("Pace of auto-travel:"); ImGui::SameLine();
     if (ImGui::RadioButton("as walking", tf == 0)) { travel_set(ta, 0); dirty_config = 1; } ImGui::SameLine();
     if (ImGui::RadioButton("4x", tf == 1)) { travel_set(ta, 1); dirty_config = 1; } ImGui::SameLine();
@@ -501,7 +518,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -520,6 +537,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    if (!open_menu && !open_map && !open_goto) citynav_tick();
+    if (open_goto && !goto_allowed()) open_goto = false;
     if (open_map) worldmap_draw();
     else hdtext_draw();
     if (!open_menu && !open_map) ui_overlay();
@@ -547,6 +566,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         ImGui::PopFont();
         if (!keep) ui_toggle();
     }
+    if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();

@@ -17,6 +17,7 @@ void assist_init(void);
 extern int assist_card_help;           /* show the saints and items that work on a card */
 void assist_set_card_help(int on);
 int assist_in_card_menu(void);
+void assist_watch_cards(void);      /* keep the card menu hooks (assist_in_card_menu) on */
 extern int assist_card_keys;           /* number keys pick a card's options */
 void assist_set_card_keys(int on);
 int assist_card_key(int digit, int *gx, int *gy);

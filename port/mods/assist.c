@@ -100,12 +100,15 @@ static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2):
 
 int assist_card_help = 1;          /* show the saints and items that work on a card */
 int assist_card_keys = 1;          /* number keys pick a card's options */
+static int assist_watching;        /* ui/citynav.cpp walks through card menus */
 static void card_hooks(void)
 {
-    if (assist_chances || assist_card_help || assist_card_keys) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
+    if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
     else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); }
     if (!assist_chances) card_chances.active = 0;
 }
+
+void assist_watch_cards(void) { if (!assist_watching) { assist_watching = 1; card_hooks(); } }
 
 void assist_set_chances(int mode)
 {
