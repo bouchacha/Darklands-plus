@@ -95,6 +95,7 @@ void mods_init(void)
     fixes_init();
     saves_init();
     assist_init();
+    autopause_init();
     pathfix_init();
     travel_init();
     for (int i = 0; i < MOD_COUNT; i++) {

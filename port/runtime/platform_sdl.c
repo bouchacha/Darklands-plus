@@ -324,7 +324,7 @@ static int frame_textures(void)
 
 void plat_present(const u8 *vga, const u8 *pal)
 {
-    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); }   /* game-side checks, headless too */
+    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); }   /* game-side checks, headless too */
     { static int slow = -1; if (slow < 0) slow = getenv("DL_SLOW_PRESENT") ? atoi(getenv("DL_SLOW_PRESENT")) : 0; if (slow) plat_sleep_ms(slow); }   /* test: a slow display */
     if (headless) return;
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
@@ -610,6 +610,14 @@ void plat_events(void)
 }
 
 void plat_click_game(int gx, int gy) { click_at(gx, gy); }
+/* a key press for the game (released a little later) */
+void plat_press_key(int scancode)
+{
+    key((SDL_Scancode)scancode, 0);
+    Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
+    r->t = plat_ticks_ms() + 60; snprintf(r->cmd, sizeof r->cmd, "up"); snprintf(r->arg, sizeof r->arg, "%s", SDL_GetScancodeName((SDL_Scancode)scancode));
+    for (int k = nsteps - 1; k > step_i && steps[k].t < steps[k - 1].t; k--) { Step t = steps[k]; steps[k] = steps[k - 1]; steps[k - 1] = t; }
+}
 
 /* a left click at game pixel (x, y), released a little later so the game sees it */
 static void click_at(int x, int y)

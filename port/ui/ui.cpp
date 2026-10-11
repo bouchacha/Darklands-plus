@@ -273,6 +273,8 @@ static void set_original(bool on)
         assist_set_card_help(0);
         config_set_int("original.card_keys", assist_card_keys);
         assist_set_card_keys(0);
+        config_set_int("original.pause_down", autopause_down); config_set_int("original.pause_hurt", autopause_hurt);
+        autopause_set(0, 0);
         { extern int ui_margins_on; config_set_int("original.margins", ui_margins_on); ui_margins_on = 0; config_set_int("display.margins", 0); }
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
@@ -304,6 +306,7 @@ static void set_original(bool on)
         battle_speed_set(config_get_int("original.battle_speed", 100));
         assist_set_card_help(config_get_int("original.card_help", 1));
         assist_set_card_keys(config_get_int("original.card_keys", 1));
+        autopause_set(config_get_int("original.pause_down", 1), config_get_int("original.pause_hurt", 0));
         { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
         config_set_int("original", 0);
     }
@@ -332,6 +335,9 @@ static void tab_helpers(void)
     hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
+    { bool d = autopause_down, h = autopause_hurt;
+      if (ImGui::Checkbox("Pause the battle when someone in the party falls", &d)) { autopause_set(d, h); dirty_config = 1; }
+      if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); dirty_config = 1; } }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
