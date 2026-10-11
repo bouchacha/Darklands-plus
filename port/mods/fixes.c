@@ -25,6 +25,8 @@
  *            (s080 1870:000c) the castle as the quest giver (saved_card2), so the reward event
  *            is not found; the card then reads and frees events[-1] (memory corruption) and the
  *            reward can be claimed again and again. The giver is now corrected on the way in.
+ *  colours   The "neon hair" bug: characters' colours (and figures) change after encounters.
+ *            They are now watched and put back (fixes_frame).
  *  copyprot  The manual check (s041 copy_protection, once when the party first leaves a town:
  *            pick the alchemical symbol for a substance) is skipped.
  *  alchemy   Brewing takes the ingredients with s033 1462:1630, which skips the stack that
@@ -54,6 +56,8 @@ Fix FIXES[] = {
       "The original took only part of them when an ingredient was spread over several stacks.", 1 },
     { "fullpack", "No more items lost to a full pack",
       "A character carries at most 64 kinds of things; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room.", 1 },
+    { "colours", "Characters keep their colours (the \"neon hair\" bug)",
+      "Characters' colours and figures sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
 };
@@ -212,6 +216,51 @@ static void alchemy_hook(void)             /* s033 1462:1630 (first, id, n): tak
     }
 }
 
+/* ---------------------------------------------------------------- colours
+ * member_palette (far 20a5:33fc, 24 bytes per party slot) and the figure codes (DS:a668, 4
+ * per slot) only change at character creation (s038), when a game is loaded (s037, or before
+ * the game proper) or when slots move (a member leaves). Anything else is the "neon hair"
+ * corruption: the slot gets its last good colours back. */
+#include "../runtime/dispatch.h"
+int ui_is_open(void);
+#define G_FAR20A5 ((u16)(LOADSEG + 0x20a5))
+static u8 col_good[5][28]; static int col_have;
+static void col_read(u8 cur[5][28])
+{
+    for (int m = 0; m < 5; m++) {
+        for (int i = 0; i < 24; i++) cur[m][i] = rb(G_FAR20A5, (u16)(0x33fc + m * 24 + i));
+        for (int i = 0; i < 4; i++) cur[m][24 + i] = g_rb((u16)(0xa668 + m * 4 + i));
+    }
+}
+void fixes_frame(void)
+{
+    if (!fix_on("colours")) { col_have = 0; return; }
+    u8 cur[5][28]; col_read(cur);
+    if (!col_have || game_mode() == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open()) { memcpy(col_good, cur, sizeof cur); col_have = 1; return; }
+    if (!memcmp(cur, col_good, sizeof cur)) return;
+    int size = (s16)g_rw(G_PARTY_SIZE), moved = 1;
+    for (int m = 0; m < size && m < 5; m++) {           /* slots that moved are fine */
+        int found = 0;
+        for (int k = 0; k < 5 && !found; k++) found = !memcmp(cur[m], col_good[k], 28);
+        if (!found) moved = 0;
+    }
+    if (moved) { memcpy(col_good, cur, sizeof cur); return; }
+    for (int m = 0; m < size && m < 5; m++) {
+        if (!memcmp(cur[m], col_good[m], 28)) continue;
+        if (col_good[m][24] < 'A' || col_good[m][24] > 'Z') continue;    /* the slot was empty: a new member */
+        fprintf(stderr, "fix colours: member %d's colours/figure changed outside creation and loading (mode %d): put back\n", m, game_mode());
+        if (getenv("DL_FIX_LOG")) {
+            fprintf(stderr, "  was:"); for (int i = 0; i < 28; i++) fprintf(stderr, " %02x", col_good[m][i]);
+            fprintf(stderr, "\n  now:"); for (int i = 0; i < 28; i++) fprintf(stderr, " %02x", cur[m][i]);
+            fprintf(stderr, "\n  loaded:"); for (int i = 0; i < 140; i++) if (ovl_loaded[i]) fprintf(stderr, " %d", i);
+            fprintf(stderr, "\n");
+        }
+        for (int i = 0; i < 24; i++) wb(G_FAR20A5, (u16)(0x33fc + m * 24 + i), col_good[m][i]);
+        for (int i = 0; i < 4; i++) g_wb((u16)(0xa668 + m * 4 + i), col_good[m][24 + i]);
+    }
+    col_read(cur); memcpy(col_good, cur, sizeof cur);
+}
+
 /* ---------------------------------------------------------------- copyprot */
 static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000: answered */
 {
@@ -223,7 +272,7 @@ static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000:
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
-    { 31, 0x18e7, 0x01b4, additem_hook }, { 41, 0x1462, 0x0000, copyprot_hook } };
+    { 31, 0x18e7, 0x01b4, additem_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook } };
 
 void fix_enable(int i, int on)
 {
@@ -233,6 +282,7 @@ void fix_enable(int i, int on)
     int shared = 0;                         /* another fix on the same function still on */
     for (int k = 0; k < FIX_COUNT; k++)
         if (k != i && FIXES[k].on && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
+    if (!HOOKS[i].fn) return;                /* checked every frame (fixes_frame), no hook */
     if (on) { if (!hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn)) fprintf(stderr, "fix %s: no hook point\n", FIXES[i].id); }
     else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off);
 }
