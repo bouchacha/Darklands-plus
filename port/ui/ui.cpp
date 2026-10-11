@@ -41,6 +41,7 @@ ImFont *ui_font_small, *ui_font_text;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
 extern int ui_spell_out;                   /* overlay.cpp: character sheet names in full */
+static int sys_cursor;                     /* display.system_cursor: the system pointer stays over the game */
 const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (17th-century print)",
     "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)" };
 extern "C" void tab_inventory(void);
@@ -125,6 +126,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
     ui_text_edge = config_get_int("display.text_edge", 2);
     ui_spell_out = config_get_int("display.spell_out", 1);
+    sys_cursor = config_get_int("display.system_cursor", 0);
     gamedata_load(game_dir);
     journal_init();
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -332,6 +334,8 @@ static void tab_display(void)
              "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree). "
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
+    { bool sc = sys_cursor != 0;
+      if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();
@@ -492,7 +496,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || !over_game;
+    bool show = open_menu || open_map || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
