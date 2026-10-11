@@ -315,6 +315,7 @@ extern "C" int citynav_window(void)
         ImGui::SetWindowFontScale(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
         ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
+        { int hour = (s16)g_rw(0x00e0); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
         const int cols = 4;
         float bw = (ImGui::GetContentRegionAvail().x - (cols - 1) * ImGui::GetStyle().ItemSpacing.x) / cols;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.78f, 0.66f, 0.47f, 1));
