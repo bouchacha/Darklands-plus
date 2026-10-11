@@ -28,13 +28,13 @@ static int cm_depth, cm_dirty;
 static u32 last_eval;
 static int last_leader = -1;
 
-int ufight_pending;                     /* test command ufight: a battle at the next card menu */
+int ufight_pending, ufight_seed = -1;   /* test command ufight: a battle at the next card menu */
 static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) */
 {
     if (ufight_pending) {               /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 */
         int bf = ufight_pending; ufight_pending = 0;
         void (*f)(void) = game_func(29, 0x0e76, 0x2278);
-        u16 args[11] = { (u16)bf, 0xffff, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
+        u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
         if (f) game_call_live(f, 11, args);
     }
     cm_depth++; cm_dirty = 1;

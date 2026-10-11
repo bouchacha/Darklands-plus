@@ -220,7 +220,7 @@ static void sweep(int i, int n);
 static void path_find_hook(void)
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
-    { static int done; const char *e = getenv("DL_PATH_SWEEP"); if (e && !done && i < 5) { done = 1; sweep(i, atoi(e)); } }
+    { static int done; const char *e = getenv("DL_PATH_SWEEP"); if (!e) e = getenv("DL_PATH_SWEEP_FAR"); if (e && !done && i < 5) { done = 1; sweep(i, atoi(e)); } }
     if (i < 0 || i >= 13 || !(i < 5 ? pathfix_party : pathfix_enemies) || !f_collide || !f_set) { hook_call_original(); return; }
     u16 c = CBT(i);
     int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
@@ -295,8 +295,21 @@ static void sweep(int i, int n)
     for (int d = 0; d < 10; d++) fprintf(stderr, " (%d,%d)", sdx[d], sdy[d]);
     fprintf(stderr, "\n");
     srand(1234);
+    /* DL_PATH_SWEEP_FAR: destinations are the floor cells reachable from the member, far ones
+     * first (a mine's long winding routes); stats by distance in cells */
+    static int dlx[1600], dly[1600], dld[1600]; int nd = 0, far = getenv("DL_PATH_SWEEP_FAR") != 0;
+    int bn[4] = {0}, bo[4] = {0}, bv[4] = {0};
+    if (far) {
+        cell_bfs(x, y);
+        for (int c = 0; c < 1600; c++) if (celld[c] > 0) { dlx[nd] = (c / 40) * 32 + 16; dly[nd] = (c % 40) * 16 + 8; dld[nd] = celld[c]; nd++; }
+        for (int a = 1; a < nd; a++) for (int b = a; b > 0 && dld[b - 1] < dld[b]; b--) {
+            int t = dlx[b]; dlx[b] = dlx[b - 1]; dlx[b - 1] = t; t = dly[b]; dly[b] = dly[b - 1]; dly[b - 1] = t; t = dld[b]; dld[b] = dld[b - 1]; dld[b - 1] = t; }
+        if (n > nd) n = nd;
+        fprintf(stderr, "pathfix sweep: %d floor cells reachable, farthest %d cells away\n", nd, nd ? dld[0] : 0);
+    }
     for (int k = 0; k < n; k++) {
-        int tx = x + rand() % 800 - 400, ty = y + rand() % 400 - 200;
+        int tx = far ? dlx[k * nd / n] : x + rand() % 800 - 400, ty = far ? dly[k * nd / n] : y + rand() % 400 - 200;
+        int bucket = far ? (dld[k * nd / n] <= 5 ? 0 : dld[k * nd / n] <= 10 ? 1 : dld[k * nd / n] <= 20 ? 2 : 3) : 0;
         if (tx < 16 || tx > MAPW - 16 || ty < 16 || ty > MAPH - 16) continue;
         g_ww((u16)(c + 8), (u16)tx); g_ww((u16)(c + 0x0a), (u16)ty); g_wb((u16)(c + 0x4a), 0xff);
         self_i = i; target_i = -1;
@@ -319,11 +332,16 @@ static void sweep(int i, int n)
         eval_restore(snap); eval_free(snap);
         hook_install(14, 0x12f7, 0x000a, path_find_hook);
         nat += ln >= 0; orig += ro == 1; onlyn += ln >= 0 && ro != 1; onlyo += ln < 0 && ro == 1;
+        bv[bucket]++; bn[bucket] += ln >= 0; bo[bucket] += ro == 1;
         if (ln < 0 && ro == 1) fprintf(stderr, "pathfix sweep: native failed (%d,%d)->(%d,%d): %s, %d expanded, original %d steps\n",
                                        x, y, tx, ty, unreach ? "cells unreachable" : "search gave up", e, lo);
         if (ln >= 0 && ro == 1) { both++; steps_n += ln; steps_o += lo; }
     }
     g_ww((u16)(c + 8), stx); g_ww((u16)(c + 0x0a), sty); g_wb((u16)(c + 0x4a), star);
+    if (far) {
+        static const char *BN[4] = { "1-5 cells", "6-10 cells", "11-20 cells", "over 20 cells" };
+        for (int b = 0; b < 4; b++) if (bv[b]) fprintf(stderr, "pathfix sweep: %s away: %d destinations, new planner %d, original %d\n", BN[b], bv[b], bn[b], bo[b]);
+    }
     fprintf(stderr, "pathfix sweep: %d reachable-looking destinations: native %d, original %d, only native %d, only original %d; "
             "time native %u us, original %u us; where both: %ld vs %ld steps\n", valid, nat, orig, onlyn, onlyo, (unsigned)tn, (unsigned)to,
             steps_n, steps_o);
