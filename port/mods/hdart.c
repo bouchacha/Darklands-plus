@@ -33,6 +33,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "hdart.h"
+#include "hdtext.h"
 
 extern char game_dir[1024];
 int hdart_on = 1;
@@ -565,6 +566,7 @@ static void h_pic_open(void) { cap_begin(ARG(0)); hook_call_original(); cap_to_p
 static void h_pic_mem(void) { cap_begin(0); hook_call_original(); cap_to_page(); }         /* pic_draw_mem(seg, page) */
 static void h_row(void)                     /* 047c:054c (row, page, x, y, w) */
 {
+    hdtext_cover((s16)ARG(1), (s16)ARG(2), (s16)ARG(3), (s16)ARG(4), 1);
     if (cap.on) {
         if (!cap.rows) { cap.page = (s16)ARG(1); cap.x = (s16)ARG(2); cap.y = (s16)ARG(3); }
         cap_row(ARG(0), (s16)ARG(4));
@@ -688,6 +690,7 @@ static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, 
     int ax = sox + sx, ay = soy + sy, bx = dox + dx, by = doy + dy;
     int cx = bx, cy = by, cw = w, ch = h;           /* the part that lands inside the destination */
     if (!clip(&cx, &cy, &cw, &ch, dox, doy, dx1, dy1) || !clip(&cx, &cy, &cw, &ch, 0, 0, 320, 200)) return;
+    hdtext_cover(dp, cx, cy, cw, ch);
     static Reg tmp[MAXREG];
     int n = reg_take(sp, ax + (cx - bx), ay + (cy - by), cw, ch, bx - ax, by - ay, tmp, MAXREG);
     drop_covered(dp, cx, cy, cw, ch);

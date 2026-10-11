@@ -82,6 +82,17 @@ static void drop_covered(int x0, int y0, int w, int h)
     }
 }
 
+/* a picture or a copied rectangle lands on the visible page: text it touches is gone (a
+ * new picture over old text could otherwise pass the checks where it is plain enough) */
+void hdtext_cover(int page, int x0, int y0, int w, int h)
+{
+    if (page != 0 || w <= 0 || h <= 0) return;
+    for (int i = 0; i < MAXREC; i++) {
+        Rec *r = &rec[i];
+        if (r->used && r->x0 < x0 + w && x0 < r->x0 + r->w && r->y0 < y0 + h && y0 < r->y0 + r->h) { r->used = 0; free(r->under); r->under = 0; }
+    }
+}
+
 static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
 {
     if (!hdtext_mode || !nfnt) { hook_call_original(); return; }
@@ -105,6 +116,19 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     }
     r.w = cx - sx;
     if (r.n == 0 || sx < 0 || sy < 0 || cx > 320 || sy + r.h > 200) { hook_call_original(); return; }
+    if (g_rb((u16)(w + 0x0d))) {            /* xor: drawing the same text again erases it (option lists) */
+        for (int i = 0; i < MAXREC; i++) {
+            Rec *o = &rec[i];
+            if (o->used && o->x0 == sx && o->y0 == sy && o->font == font && o->n == r.n && !memcmp(o->ch, r.ch, (size_t)r.n)) {
+                hook_call_original();
+                hdtext_cover(0, sx, sy, r.w, r.h);
+                if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: xor text at %d,%d erased\n", sx, sy);
+                return;
+            }
+        }
+    }
+    if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < r.n && k < 99; k++) t[k] = (char)r.ch[k]; t[k] = 0;
+        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x win %04x: %s\n", sx, sy, g_rb((u16)(w + 0x0d)), g_rb((u16)(w + 0x0c)), w, t); }
     r.under = malloc((size_t)r.w * r.h);
     for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, page0() + (sy + yy) * 320 + sx, (size_t)r.w);
     hook_call_original();
@@ -161,12 +185,13 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                     int p = (r->y0 + yy) * 320 + gx + xx;
                     if (claimed[p]) { good = 0; break; }
                     u8 v = vga[p], u = r->under[yy * r->w + r->gx[g] + xx];
-                    if (glyph_bit(F, r->ch[g], xx, yy)) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); break; } any = 1; seen += v != u; }
+                    if (glyph_bit(F, r->ch[g], xx, yy)) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); break; } any = 1; seen += lut[v] != lut[u]; }
                     else if (v != u) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: background %02x was %02x\n", r->stamp, g, r->ch[g], xx, yy, v, u); break; }
                 }
             if (!good) continue;
             if (!any) { ok[g] = 2; continue; }                 /* a space: kept with its neighbours */
-            if (!seen) continue;                               /* the glyph cannot be told from what was under it: gone */
+            if (!seen) continue;                               /* the glyph cannot be told from what was under it (gone, or
+                                                                  xor-drawn in colours that look the same: hidden options) */
             ok[g] = 1; gc[g] = c; alive++;
         }
         if (!alive) { if (stamp - r->stamp > 4000) { r->used = 0; free(r->under); r->under = 0; } continue; }
