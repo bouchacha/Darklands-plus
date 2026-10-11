@@ -257,13 +257,13 @@ static void tab_helpers(void)
     hint("Moves are planned around walls and furniture with a full route search instead of the "
                         "original wall-following, which gives up on long or winding routes.");
     {
-        ImGui::TextUnformatted("Battle speed:"); ImGui::SameLine();
+        ImGui::TextUnformatted("Speed of battles and dungeons:"); ImGui::SameLine();
         static const int SPD[4] = { 100, 150, 200, 300 }; static const char *SPN[4] = { "as the original", "1.5x", "2x", "3x" };
         for (int i = 0; i < 4; i++) {
             if (i) ImGui::SameLine();
             if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); dirty_config = 1; }
         }
-        hint("Walking, attacks and spells all go faster; pausing (Space) works as before.");
+        hint("Walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.");
     }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
