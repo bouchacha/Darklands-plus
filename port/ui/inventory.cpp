@@ -369,6 +369,7 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
 
 /* the icon of item id, for the other tabs */
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id) { draw_icon(dl, c, s, def_of(id), id); }
+void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { draw_equipment(dl, c, s, type, false); }
 
 /* ---------------------------------------------------------------- giving items */
 struct DragItem { int from, idx; };

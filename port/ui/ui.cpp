@@ -134,6 +134,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
     ui_text_edge = config_get_int("display.text_edge", 2);
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
+    { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
@@ -423,6 +424,8 @@ static void tab_display(void)
             if (i) ImGui::SameLine();
             if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); dirty_config = 1; }
         }
+        { extern int ui_skill_icons; bool si = ui_skill_icons != 0;
+          if (ImGui::Checkbox("Small pictures beside the skills of the character sheet", &si)) { ui_skill_icons = si; config_set_int("display.skill_icons", si); dirty_config = 1; } }
         { extern int ui_text_contrast; bool tc = ui_text_contrast != 0;
           if (ImGui::Checkbox("Darken (or lighten) faint text against its background", &tc)) { ui_text_contrast = tc; config_set_int("display.text_contrast", tc); dirty_config = 1; } }
     }
