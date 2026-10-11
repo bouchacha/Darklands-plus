@@ -174,8 +174,10 @@ extern "C" void ui_draw_notice(void)
  * the card script, -1 = none), with who in the party knows or carries them: what the
  * Darklands Companion showed during encounters. The game's own pop-up lists only the saints
  * someone knows. */
+static float card_help_top;              /* top of the card helper panel this frame (0: none) */
 static void draw_card_help(void)
 {
+    card_help_top = 0;
     if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
@@ -210,6 +212,7 @@ static void draw_card_help(void)
     float h = lh * ((float)lines.size() + (nsaints ? 1 : 0) + (nsaints < (int)lines.size() ? 1 : 0)) + 10;
     ImVec2 br = g2w(317, 197);
     ImVec2 p0(br.x - w - 16, br.y - h), p1 = br;
+    card_help_top = p0.y;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 205), 5);
     dl->AddRect(p0, p1, IM_COL32(150, 110, 60, 200), 5);
@@ -226,11 +229,57 @@ static void draw_card_help(void)
     ImGui::PopFont();
 }
 
+/* a saint learned: its description for a while (the Companion showed the clue book's text
+ * then). saints_known (far 2e38:082c, 20 bytes per member) is watched; a bit or two
+ * appearing while no game is being loaded or made is a saint learned. */
+#include "../runtime/dispatch.h"
+static u8 sk_prev[5][20]; static int sk_have, learned_saint = -1, learned_by = -1; static u32 learned_t;
+static void watch_saints(void)
+{
+    u8 cur[5][20];
+    for (int m = 0; m < 5; m++) for (int i = 0; i < 20; i++) cur[m][i] = rb(G_FAR2E38, (u16)(0x082c + m * 20 + i));
+    bool quiet = game_mode() != GM_OTHER && !ovl_loaded[37] && !ovl_loaded[38];
+    if (sk_have && quiet) {
+        int n = 0, ls = -1, lm = -1;
+        for (int m = 0; m < 5; m++) for (int i = 0; i < 20; i++) {
+            u8 add = (u8)(cur[m][i] & ~sk_prev[m][i]);
+            for (int b = 0; b < 8; b++) if (add & (0x80 >> b)) { n++; ls = i * 8 + b; lm = m; }
+        }
+        if (n >= 1 && n <= 2 && ls < (int)gamedata.saints.size()) { learned_saint = ls; learned_by = lm; learned_t = plat_ticks_ms(); }
+    }
+    memcpy(sk_prev, cur, sizeof cur); sk_have = 1;
+}
+static void draw_learned(void)
+{
+    if (learned_saint < 0) return;
+    u32 age = plat_ticks_ms() - learned_t;
+    if (age > 25000) { learned_saint = -1; return; }
+    float a = age < 24000 ? 1.0f : (25000 - age) / 1000.0f;
+    const Saint &t = gamedata.saints[learned_saint];
+    char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
+    std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;
+    ImGuiIO &io = ImGui::GetIO();
+    float w = io.DisplaySize.x * 0.40f;
+    ImGui::PushFont(ui_font_small);
+    ImVec2 hs = ImGui::CalcTextSize(head.c_str()), ts = ImGui::CalcTextSize(t.text.c_str(), 0, false, w);
+    float bh = hs.y + ts.y + 22;
+    ImVec2 br = g2w(317, 197);
+    float bottom = card_help_top > 0 ? card_help_top - 6 : br.y;
+    ImVec2 p0(br.x - w - 16, bottom - bh), p1(br.x, bottom);
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(225 * a)), 6);
+    dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), 6);
+    dl->AddText(ImVec2(p0.x + 8, p0.y + 6), IM_COL32(235, 200, 130, (int)(255 * a)), head.c_str());
+    dl->AddText(ui_font_small, ui_font_small->FontSize, ImVec2(p0.x + 8, p0.y + 12 + hs.y), IM_COL32(240, 230, 210, (int)(255 * a)), t.text.c_str(), 0, w);
+    ImGui::PopFont();
+}
+
 extern "C" void travel_overlay(void);
 extern "C" void ui_overlay(void)
 {
     draw_chances();
     draw_card_help();
+    if (assist_card_help) { watch_saints(); draw_learned(); }
     travel_overlay();
     draw_picture_name();
 }

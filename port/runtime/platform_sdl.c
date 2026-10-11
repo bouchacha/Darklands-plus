@@ -397,6 +397,10 @@ static void run_script(void)
             g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
             fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
         }
+        else if (!strcmp(s->cmd, "upoke")) {               /* debug: byte at link-time seg:off (+LOADSEG) */
+            unsigned sg = 0, of = 0, v = 0; sscanf(s->arg, "%x,%x,%x", &sg, &of, &v);
+            wb((u16)(LOADSEG + sg), (u16)of, (u8)v);
+        }
         else if (!strcmp(s->cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
         else if (!strcmp(s->cmd, "utext")) {               /* the text on screen (crisp text runs), for scripts */
             extern int hdtext_nruns; typedef struct { char text[100]; int x, y, w, h, font; unsigned rgb; } Run; extern Run hdtext_runs[];
