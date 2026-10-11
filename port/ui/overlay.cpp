@@ -2,6 +2,7 @@
 // closed: the chances of success next to card options (mods/assist.c computes them).
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <float.h>
 #include <string>
 #include <vector>
@@ -41,6 +42,34 @@ static void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c,
         }
     }
     dl->AddText(f, size, p, c, t);
+}
+
+/* text colours with too little contrast to the picture behind them (grey on parchment) move
+ * away from it in brightness, keeping their hue: to a WCAG-like ratio of 4.5, or 2.5 for text
+ * the game draws faint on purpose (greyed-out choices), which so stays fainter than the rest */
+int ui_text_contrast = 1;
+static double rel_lum(int r, int g, int b)
+{
+    auto ch = [](int v) { double c = v / 255.0; return c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
+}
+static ImU32 contrast_fix(ImU32 c, int bg)
+{
+    if (!ui_text_contrast || bg < 0) return c;
+    int r = (c >> IM_COL32_R_SHIFT) & 255, g = (c >> IM_COL32_G_SHIFT) & 255, b = (c >> IM_COL32_B_SHIFT) & 255;
+    int br = bg >> 16 & 255, bgc = bg >> 8 & 255, bb = bg & 255;
+    double lb = rel_lum(br, bgc, bb), lt = rel_lum(r, g, b);
+    auto ratio = [&](double l) { return l > lb ? (l + 0.05) / (lb + 0.05) : (lb + 0.05) / (l + 0.05); };
+    double r0 = ratio(lt), want = r0 < 2.0 ? 2.5 : 4.5;
+    if (r0 >= want) return c;
+    bool up = lt > lb || (lt == lb && lb < 0.18);           /* away from the background */
+    int tr = up ? 255 : 0;
+    for (int k = 1; k <= 20; k++) {
+        double t = k / 20.0;
+        int nr = (int)(r + (tr - r) * t), ng = (int)(g + (tr - g) * t), nb = (int)(b + (tr - b) * t);
+        if (ratio(rel_lum(nr, ng, nb)) >= want || k == 20) return IM_COL32(nr, ng, nb, (c >> IM_COL32_A_SHIFT) & 255);
+    }
+    return c;
 }
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
@@ -286,7 +315,7 @@ extern "C" void hdtext_draw(void)
         }
         if (!sp[i].text.empty()) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
-        ImU32 c = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
+        ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
         text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
         prev = i; prev_end = x0 + ts.x;

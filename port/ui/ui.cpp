@@ -132,6 +132,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_game_font = config_get_int("display.text_font", 0);
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
     ui_text_edge = config_get_int("display.text_edge", 2);
+    { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
@@ -383,6 +384,8 @@ static void tab_display(void)
             if (i) ImGui::SameLine();
             if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); dirty_config = 1; }
         }
+        { extern int ui_text_contrast; bool tc = ui_text_contrast != 0;
+          if (ImGui::Checkbox("Darken (or lighten) faint text against its background", &tc)) { ui_text_contrast = tc; config_set_int("display.text_contrast", tc); dirty_config = 1; } }
     }
     hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
          "the window's resolution; anything it cannot match exactly is left as the game drew it.");
