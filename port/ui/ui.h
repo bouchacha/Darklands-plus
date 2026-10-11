@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef struct { int aspect, smooth, integer; } UiSettings;
+typedef struct { int aspect, smooth, integer, scaler; } UiSettings;   /* scaler: 0 none, 1 2x, 2 4x (edge smoothing) */
 extern UiSettings ui_settings;
 void ui_init(SDL_Window *win, SDL_Renderer *ren);
 int ui_event(const SDL_Event *e);      /* 1: the event was for the interface */

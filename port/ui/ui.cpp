@@ -118,6 +118,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.aspect = config_get_int("display.aspect_4_3", 1);
     ui_settings.smooth = config_get_int("display.smooth", 0);
     ui_settings.integer = config_get_int("display.integer_scale", 0);
+    ui_settings.scaler = config_get_int("display.scaler", 0);
 }
 
 extern "C" int ui_is_open(void) { return open_menu || open_map; }
@@ -300,6 +301,16 @@ static void tab_display(void)
     if (ImGui::Checkbox("4:3 picture, as on a 1992 monitor", &a)) { ui_settings.aspect = a; config_set_int("display.aspect_4_3", a); dirty_config = 1; }
     if (ImGui::Checkbox("Smooth scaling", &s)) { ui_settings.smooth = s; config_set_int("display.smooth", s); dirty_config = 1; }
     if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); dirty_config = 1; }
+    {
+        ImGui::TextUnformatted("Pixel edges:"); ImGui::SameLine();
+        static const char *SC[3] = { "as drawn", "smoothed (Scale2x)", "smoothed more (Scale4x)" };
+        for (int i = 0; i < 3; i++) {
+            if (i) ImGui::SameLine();
+            if (ImGui::RadioButton(SC[i], ui_settings.scaler == i)) { ui_settings.scaler = i; config_set_int("display.scaler", i); dirty_config = 1; }
+        }
+        hint("Rounds off the stair-steps of diagonal edges in the pictures and figures without blurring them "
+             "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree).");
+    }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();

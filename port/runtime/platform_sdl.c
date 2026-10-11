@@ -257,6 +257,46 @@ static void art_draw(void)
     }
 }
 
+/* EPX / Scale2x: each pixel P becomes four; a corner takes the colour of the two neighbours
+ * beside it when they agree (and the other two do not), which rounds off diagonal steps */
+static void scale2x(const u32 *src, int w, int h, u32 *dst)
+{
+    for (int y = 0; y < h; y++) {
+        const u32 *up = src + (y > 0 ? y - 1 : y) * w, *row = src + y * w, *dn = src + (y < h - 1 ? y + 1 : y) * w;
+        u32 *o0 = dst + (2 * y) * 2 * w, *o1 = o0 + 2 * w;
+        for (int x = 0; x < w; x++) {
+            u32 P = row[x], A = up[x], D = dn[x], C = row[x > 0 ? x - 1 : x], B = row[x < w - 1 ? x + 1 : x];
+            u32 e0 = P, e1 = P, e2 = P, e3 = P;
+            if (A != D && C != B) {
+                if (C == A) e0 = A;
+                if (A == B) e1 = B;
+                if (D == C) e2 = C;
+                if (B == D) e3 = D;
+            }
+            o0[2 * x] = e0; o0[2 * x + 1] = e1; o1[2 * x] = e2; o1[2 * x + 1] = e3;
+        }
+    }
+}
+
+static SDL_Texture *tex_big; static int tex_big_w;
+static SDL_Texture *frame_texture(void)
+{
+    int sc = ui_settings.scaler;
+    if (sc <= 0 || sc > 2) { SDL_UpdateTexture(tex, 0, frame, 320 * 4); return tex; }
+    static u32 b2[640 * 400], b4[1280 * 800];
+    scale2x(frame, 320, 200, b2);
+    int w = 640; const u32 *px = b2;
+    if (sc == 2) { scale2x(b2, 640, 400, b4); w = 1280; px = b4; }
+    if (!tex_big || tex_big_w != w) {
+        if (tex_big) SDL_DestroyTexture(tex_big);
+        tex_big = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, w * 200 / 320);
+        tex_big_w = w;
+        if (!tex_big) { SDL_UpdateTexture(tex, 0, frame, 320 * 4); return tex; }
+    }
+    SDL_UpdateTexture(tex_big, 0, px, w * 4);
+    return tex_big;
+}
+
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); }   /* game-side checks, headless too */
@@ -267,14 +307,14 @@ void plat_present(const u8 *vga, const u8 *pal)
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
     { void worldmap_watch_palette(void); worldmap_watch_palette(); }
-    SDL_UpdateTexture(tex, 0, frame, 320 * 4);
+    SDL_Texture *ft = frame_texture();
     layout();
-    SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+    SDL_SetTextureScaleMode(ft, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
     art_draw();
-    SDL_SetTextureBlendMode(tex, hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
-    SDL_RenderCopy(ren, tex, 0, &dest);
+    SDL_SetTextureBlendMode(ft, hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
+    SDL_RenderCopy(ren, ft, 0, &dest);
     ui_draw(ren);
     if (pending_wshot[0]) {
         SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
