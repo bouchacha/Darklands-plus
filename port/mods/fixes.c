@@ -25,6 +25,10 @@
  *            (s080 1870:000c) the castle as the quest giver (saved_card2), so the reward event
  *            is not found; the card then reads and frees events[-1] (memory corruption) and the
  *            reward can be claimed again and again. The giver is now corrected on the way in.
+ *  innsave   The lodging screen (s036 1462:0082) disables the Save and Load menu items (DS:9920,
+ *            9934 = 2) and re-enables them on most exits but not all (a click on an empty
+ *            party slot returns at once): Save/Load stayed grey until a character sheet was
+ *            opened. They are enabled again on the way out.
  *  colours   The "neon hair" bug: characters' colours (and figures) change after encounters.
  *            They are now watched and put back (fixes_frame).
  *  copyprot  The manual check (s041 copy_protection, once when the party first leaves a town:
@@ -56,6 +60,8 @@ Fix FIXES[] = {
       "The original took only part of them when an ingredient was spread over several stacks.", 1 },
     { "fullpack", "No more items lost to a full pack",
       "A character carries at most 64 kinds of things; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room.", 1 },
+    { "innsave", "Saving and loading stay possible after the inn",
+      "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened.", 1 },
     { "colours", "Characters keep their colours (the \"neon hair\" bug)",
       "Characters' colours and figures sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
@@ -261,6 +267,16 @@ void fixes_frame(void)
     col_read(cur); memcpy(col_good, cur, sizeof cur);
 }
 
+/* ---------------------------------------------------------------- innsave */
+static void innsave_hook(void)             /* the lodging screen, s036 1462:0082 */
+{
+    hook_call_original();
+    if (g_rb(0x9920) == 2 || g_rb(0x9934) == 2) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix innsave: Save/Load enabled again\n");
+        g_wb(0x9920, 1); g_wb(0x9934, 1);
+    }
+}
+
 /* ---------------------------------------------------------------- copyprot */
 static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000: answered */
 {
@@ -272,7 +288,7 @@ static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000:
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
-    { 31, 0x18e7, 0x01b4, additem_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook } };
+    { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook } };
 
 void fix_enable(int i, int on)
 {
