@@ -10,6 +10,9 @@ extern "C" {
 
 #define G_DGROUP     ((u16)(LOADSEG + 0x321a))      /* the game's DS */
 #define G_FAR2E38    ((u16)(LOADSEG + 0x2e38))      /* far data: inventories, item tables */
+#ifndef G_FAR20A5
+#define G_FAR20A5    ((u16)(LOADSEG + 0x20a5))      /* far data: weapon tables, colours */
+#endif
 
 /* party member records: 5 x 128 bytes at DS:9c69 */
 #define G_PARTY        0x9c69

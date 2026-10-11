@@ -453,6 +453,24 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::Text("Weight %d", it.weight);
     if (d && d->value) ImGui::Text("Worth about %d pfennigs", d->value);
     if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
+    if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) {
+        /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow
+           time, hands and penetration, damage, skill and strength wanted */
+        int w = d->type;
+        static const char *SKILL[7] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices" };
+        int sk = rb(G_FAR20A5, (u16)(0x75ac + w)), speed = rb(G_FAR20A5, (u16)(0x7669 + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)),
+            dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
+            maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
+        ImGui::Separator();
+        ImGui::Text("%s, %s", sk < 7 ? SKILL[sk] : "?", (cp >> 4) >= 2 ? "two hands" : "one hand");
+        ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
+        if (speed) ImGui::Text("Time for a blow %d", speed);
+        if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
+        ImGui::Text("Skill wanted %d: each point short costs 2 attack and 2 defence", minsk);
+        if (maxst < 99) ImGui::Text("Strength %d to %d: below, each point costs 1 attack and 3 defence and blows hit softer;\nabove %d, each point adds 2 defence and blows hit harder", minst, maxst, maxst);
+        else ImGui::Text("Strength %d: below, each point costs 1 attack and 3 defence and blows hit softer", minst);
+        ImGui::TextDisabled("Lower times are quicker.");
+    }
     if (d && d->kind == K_POTION) {
         int p = it.id - 95;
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(320); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
