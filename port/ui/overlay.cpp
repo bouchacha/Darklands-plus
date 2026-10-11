@@ -16,6 +16,7 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/config.h"
+#include "../runtime/hle.h"
 #include "../mods/assist.h"
 #include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
@@ -620,6 +621,79 @@ static void draw_shop_info(void)
     ImGui::End();
 }
 
+/* in a battle: who the pointer is on (the battle's own hot spots, s014 19cd), their condition,
+ * attack, defence and weapon; enemies' names from the battle's level%d.enm */
+int ui_battle_info = 1, ui_battle_numbers = 0;
+struct EnmRec { std::string name; int endm, strm, def, atk; };
+/* the enemy types of a battle level (level%d.enm, 0x122-byte records after a count: a combatant
+ * record, then the name at +0x84); a combatant is told by its maxima, attack and defence */
+static std::string enemy_name(int floor, u16 b)
+{
+    static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+    if (floor < 0 || floor > 7) return "";
+    char dn[16]; snprintf(dn, sizeof dn, "level%d.enm", floor);
+    char p[1300]; dos_host_path(dn, p, sizeof p);
+    FILE *f = fopen(p, "rb");
+    if (!f) return "";
+    fseek(f, 0, SEEK_END); long n = ftell(f);
+    if (n != sizes[floor]) {
+        sizes[floor] = n; recs[floor].clear();
+        for (int k = 0; k < 16; k++) {
+            unsigned char r[0x9b];
+            if (fseek(f, 1 + (long)k * 0x122, SEEK_SET) || fread(r, 1, sizeof r, f) != sizeof r) break;
+            char nm[24]; memcpy(nm, r + 0x84, 0x17); nm[0x17] = 0;
+            recs[floor].push_back(EnmRec{ game_text(nm, sizeof nm), (s8)r[0x64], (s8)r[0x65], r[0x20], r[0x21] });
+        }
+    }
+    fclose(f);
+    int endm = (s8)g_rb((u16)(b + 0x64)), strm = (s8)g_rb((u16)(b + 0x65)), def = g_rb((u16)(b + 0x20)), atk = g_rb((u16)(b + 0x21));
+    for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm && e.def == def && e.atk == atk) return e.name;
+    for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
+    return "";
+}
+static void draw_battle_info(void)
+{
+    if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
+    int gx, gy; plat_mouse_game(&gx, &gy);
+    { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
+    int mx = gx - 60, my = gy, n = (s8)g_rb(0xe0a1), best = -1, by = -32768;
+    if (mx < 0 || n <= 0 || n > 40) return;
+    for (int k = n - 1; k >= 0; k--) {
+        int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
+        int m = g_rb((u16)(0xd848 + k));
+        if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
+        int cyy = (s16)g_rw((u16)(0x9c55 + m * 0x80 + 6));
+        if (cyy > by) { by = cyy; best = m; }
+    }
+    if (best < 0) return;
+    u16 b = (u16)(0x9c55 + best * 0x80);
+    int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), w = (s8)g_rb((u16)(b + 0x22));
+    std::string name;
+    if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
+    else name = enemy_name(g_rb((u16)(0xa6b4 + best)), b);
+    if (name.empty()) name = best < 5 ? "?" : "Enemy";
+    const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
+    if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
+    ImVec2 p = g2w((float)gx, (float)gy);
+    ImGuiIO &io = ImGui::GetIO();
+    bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
+    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -26.0f : 26.0f), p.y + (below ? -26.0f : 26.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.92f);
+    if (ImGui::Begin("##battleinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
+                                               ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.72f, io.DisplaySize.y / 1000.0f)));
+        ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
+        if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
+        if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
+        ImGui::Text("Attack %d, defence %d", atk, def);
+        if (w >= 0 && w <= 33) {
+            for (const ItemDef &d : gamedata.items) if (d.type == w && (d.kind == K_WEAPON || d.kind == K_MISSILE)) { ImGui::TextDisabled("%s", game_text(d.name.c_str(), d.name.size()).c_str()); break; }
+        }
+    }
+    ImGui::End();
+}
+
 extern "C" void ui_overlay(void)
 {
     draw_chances();
@@ -629,4 +703,5 @@ extern "C" void ui_overlay(void)
     draw_picture_name();
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
+    draw_battle_info();
 }

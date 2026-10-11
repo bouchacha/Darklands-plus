@@ -138,6 +138,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
     { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
+    { extern int ui_battle_info, ui_battle_numbers; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
@@ -344,6 +345,9 @@ static void tab_helpers(void)
     { bool d = autopause_down, h = autopause_hurt;
       if (ImGui::Checkbox("Pause the battle when someone in the party falls", &d)) { autopause_set(d, h); dirty_config = 1; }
       if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); dirty_config = 1; } }
+    { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
+      if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); dirty_config = 1; }
+      if (bi) { ImGui::SameLine(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); dirty_config = 1; } } }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
