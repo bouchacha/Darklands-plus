@@ -360,7 +360,7 @@ static void quit_hook(void) { fprintf(stderr, "quit_to_dos asked\n"); user_quit 
 int saves_restart_on_exit(void)
 {
     int headless = getenv("DL_HEADLESS") != 0;
-    if (user_quit || !saves_restart || headless || !game_seen) return 0;
+    if (user_quit || !saves_restart || headless || !game_seen || config_get_int("original", 0)) return 0;
     fprintf(stderr, "the party's end: starting the game again\n");
     return 1;
 }

@@ -130,7 +130,7 @@ static void apply_now(void)
     if (!gamedata.loaded) gamedata_load(game_dir);
     for (size_t t = 0; t < NT; t++) for (int w = 0; w < NW; w++) wb(G_FAR20A5, (u16)(TABLES[t] + w), orig[t][w]);
     rules_log.clear(); rules_changed = 0;
-    for (int i = 0; i < datamods_n; i++) {
+    for (int i = 0; i < datamods_n && datamods_enabled(); i++) {
         if (!datamods[i].on) continue;
         char p[1300];
         snprintf(p, sizeof p, "%s/rules.ini", datamods[i].path);

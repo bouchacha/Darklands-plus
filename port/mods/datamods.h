@@ -13,6 +13,7 @@ void datamods_init(void);
 void datamods_scan(void);
 void datamods_set(int i, int on);
 int datamods_active(void);
+int datamods_enabled(void);          /* not in "Play the original game" */
 int datamods_generation(void);
 void datamods_folder(char *out, size_t n);
 int datamods_dirs(const char *sub, char out[][1200], int max);

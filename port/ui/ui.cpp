@@ -63,6 +63,7 @@ extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
 extern "C" void ui_notice(const char *msg);
+extern "C" void rules_apply(void);
 extern "C" void ui_notice_for(const char *msg, unsigned ms);
 extern "C" void tab_editor(void);
 extern "C" void journal_init(void);
@@ -299,6 +300,7 @@ static void set_original(bool on)
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
         config_set_int("original", 1);
+        datamods_scan(); hdart_rescan(); rules_apply();
     } else {
         const char *p = config_get("original.saved", "");
         char *e;
@@ -318,6 +320,7 @@ static void set_original(bool on)
         autopause_set(config_get_int("original.pause_down", 1), config_get_int("original.pause_hurt", 0));
         { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
         config_set_int("original", 0);
+        datamods_scan(); hdart_rescan(); rules_apply();
     }
     dirty_config = 1;
 }

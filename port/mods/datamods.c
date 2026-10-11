@@ -121,12 +121,15 @@ void datamods_set(int i, int on)
     void rules_apply(void); rules_apply();
 }
 int datamods_generation(void) { return generation; }
-int datamods_active(void) { for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }
+/* "Play the original game" (F12 > Helpers) leaves the mods out too */
+int datamods_enabled(void) { return !config_get_int("original", 0); }
+int datamods_active(void) { if (!datamods_enabled()) return 0; for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }
 
 /* the art / sounds folders of the mods in use, the one that wins first (for hdart, sfx) */
 int datamods_dirs(const char *sub, char out[][1200], int max)
 {
     int n = 0;
+    if (!datamods_enabled()) return 0;
     for (int i = datamods_n - 1; i >= 0 && n < max; i--) {
         if (!datamods[i].on) continue;
         char p[1200];

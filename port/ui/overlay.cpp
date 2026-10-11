@@ -368,7 +368,7 @@ static void load_textmap(void)
     static int gen = -1;
     if (gen == datamods_generation()) return;
     gen = datamods_generation(); textmap.clear();
-    for (int i = 0; i < datamods_n; i++) {
+    for (int i = 0; i < datamods_n && datamods_enabled(); i++) {
         if (!datamods[i].on) continue;
         std::string p = std::string(datamods[i].path) + "/text.txt";
         FILE *f = fopen(p.c_str(), "rb");
