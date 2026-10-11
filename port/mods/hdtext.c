@@ -247,7 +247,7 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
         }
     }
     if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < r.n && k < 99; k++) t[k] = (char)r.ch[k]; t[k] = 0;
-        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x win %04x: %s\n", sx, sy, g_rb((u16)(w + 0x0d)), g_rb((u16)(w + 0x0c)), w, t); }
+        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x font %d page %d win %04x: %s\n", sx, sy, g_rb((u16)(w + 0x0d)), g_rb((u16)(w + 0x0c)), font, page, w, t); }
     r.under = malloc((size_t)r.w * r.h);
     for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, pm + (sy + yy) * 320 + sx, (size_t)r.w);
     r.bg = malloc((size_t)r.w * r.h); memcpy(r.bg, r.under, (size_t)r.w * r.h);
@@ -293,6 +293,8 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
         Rec *r = &rec[order[oi]];
         if (r->is_shadow) continue;               /* goes with the text it shadows */
         dbg = dbgn && oi < 4;
+        { static const char *flt = (const char *)-1; if (flt == (const char *)-1) flt = getenv("DL_HD_DEBUG");
+          if (flt) { char tx[MAXG + 1]; int k; for (k = 0; k < r->n; k++) tx[k] = (char)r->ch[k]; tx[k] = 0; dbg = strstr(tx, flt) != 0; } }
         const Fnt *F = &fnt[r->font - 1];
         int ok[MAXG], gc[MAXG], alive = 0;
         /* xor glyphs (gc = -1): their colour is the mean of the glyph pixels that look different

@@ -597,6 +597,10 @@ void dl_poll(void)
         delivered++;
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
     }
+    static u32 st_deliv, st_drop, st_t; static int st_on = -1;
+    if (st_on < 0) st_on = getenv("DL_TRACE_PIT") != 0;
+    if (st_on) { st_deliv += (u32)delivered; if (tick_us_acc > per * 8) st_drop += (u32)(tick_us_acc / per) - 1;
+                 if (now - st_t >= 1000) { fprintf(stderr, "pit %u: %.1f Hz, %u ticks delivered, %u dropped\n", now, 1e6 / per, st_deliv, st_drop); st_deliv = st_drop = 0; st_t = now; } }
     if (tick_us_acc > per * 8) tick_us_acc = per;   /* fell behind: drop ticks */
     { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }   /* Sound Blaster transfer done */
     static u32 last_key_ms;

@@ -259,6 +259,7 @@ extern "C" void hdtext_draw(void)
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     static std::vector<Spelled> sp;
     { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f); }
+    float prev_end = 0; int prev = -1;
     for (int i = 0; i < hdtext_nruns; i++) {
         const HdRun &r = hdtext_runs[i];
         std::string t = utf8(r.text);
@@ -266,6 +267,16 @@ extern "C" void hdtext_draw(void)
         float x0, y0, x1, y1;
         plat_game_to_win((float)r.x, (float)r.y, &x0, &y0);
         plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
+        /* a run that continues the one before in another colour (a menu's red hotkey letter,
+           then the rest of the word) starts where that one's letters end */
+        if (prev >= 0) {
+            const HdRun &q = hdtext_runs[prev];
+            int gap = r.x - (q.x + q.w);
+            if (q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3) {
+                float kx = (x1 - x0) / (r.w ? r.w : 1), nx = prev_end + gap * kx;
+                x1 += nx - x0; x0 = nx;
+            }
+        }
         float bw = x1 - x0, bh = y1 - y0;
         float size = bh * 1.18f;
         ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
@@ -278,6 +289,7 @@ extern "C" void hdtext_draw(void)
         ImU32 c = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
         text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
+        prev = i; prev_end = x0 + ts.x;
     }
 }
 
