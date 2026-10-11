@@ -421,7 +421,9 @@ extern "C" void tab_alchemy(void)
         shown++;
     }
     // formulas
-    ImGui::SeparatorText("Formulas the party knows");
+    static bool all_formulas = false;
+    ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
+    ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
     if (ImGui::BeginTable("forms", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
         ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthFixed, 300);
         ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthFixed, 110);
@@ -432,7 +434,7 @@ extern "C" void tab_alchemy(void)
         for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
             std::string who;
             for (int m = 0; m < MAXM; m++) if (member_present(m) && knows(m, f)) { if (!who.empty()) who += ", "; who += member_name(m, false); }
-            if (who.empty()) continue;
+            if (who.empty() && !all_formulas) continue;
             listed++;
             const Formula &F = gamedata.formulas[f];
             const ItemDef *pd = def_of(95 + f / 3);
@@ -444,7 +446,11 @@ extern "C" void tab_alchemy(void)
             ImGui::SameLine();
             { std::string vn = virtue_name(f); ImGui::TextWrapped("%s", vn.empty() ? (pd ? pd->name.c_str() : "?") : vn.c_str()); }
             if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(360); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::Text("Mystical number %d", F.mystic); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.c_str());
+            if (all_formulas && f < (int)gamedata.formula_names.size()) {
+                static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
+                ImGui::TextDisabled("%s - difficulty %d, %s", gamedata.formula_names[f].c_str(), F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+            }
+            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.empty() ? "-" : who.c_str());
             ImGui::TableNextColumn();
             int batches = 999;
             for (size_t k = 0; k < F.ingr.size(); k++) {

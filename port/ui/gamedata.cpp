@@ -124,6 +124,7 @@ void gamedata_load(const char *dir)
             Formula f;
             f.text = std::string((const char *)r, strnlen((const char *)r, 0x50));
             f.mystic = w16(r + 0x50);
+            f.risk = w16(r + 0x52);
             for (int k = 0; k < 5; k++) {
                 int c = r[0x54 + 4 * k], it = w16(r + 0x56 + 4 * k);
                 if (c > 0) f.ingr.push_back({ c, it });

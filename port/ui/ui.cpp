@@ -71,6 +71,8 @@ static void style(void)
     c[ImGuiCol_FrameBgHovered] = ImVec4(1.0f, 0.97f, 0.88f, 1);
     c[ImGuiCol_FrameBgActive] = ImVec4(0.95f, 0.88f, 0.72f, 1);
     c[ImGuiCol_CheckMark] = dark;
+    c[ImGuiCol_SliderGrab] = ImVec4(0.55f, 0.24f, 0.13f, 1);
+    c[ImGuiCol_SliderGrabActive] = dark;
     c[ImGuiCol_Button] = ImVec4(0.55f, 0.24f, 0.13f, 1);
     c[ImGuiCol_ButtonHovered] = ImVec4(0.66f, 0.30f, 0.16f, 1);
     c[ImGuiCol_ButtonActive] = ImVec4(0.45f, 0.18f, 0.10f, 1);

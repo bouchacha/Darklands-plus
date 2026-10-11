@@ -20,6 +20,7 @@ struct FormulaIngr { int count, item; };
 struct Formula {
     std::string text;             // effect description
     int mystic = 0;               // mystic number
+    int risk = 0;                 // 0 low, 1 medium, 2 high
     std::vector<FormulaIngr> ingr;
 };
 
