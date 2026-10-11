@@ -738,6 +738,9 @@ int hdart_ndraws;
 typedef struct { const char *pic; int x0, y0, x1, y1; const char *text; } Baked;
 static const Baked BAKED[] = {
     { "ARMBACK", 199, 152, 254, 159, "Equipment" }, { "ARMBACK", 199, 168, 254, 175, "Formulae" }, { "ARMBACK", 199, 184, 254, 191, "Saints" },
+    { "CHARGEN", 177, 171, 232, 178, "Formulae" }, { "CHARGEN", 177, 188, 232, 193, "Saints" },
+    { "STARTSCR", 120, 58, 200, 66, "Quickstart" }, { "STARTSCR", 88, 91, 226, 99, "Create a New World" },
+    { "STARTSCR", 84, 123, 234, 132, "The Story Continues" },
 };
 #define NBAKED ((int)(sizeof BAKED / sizeof BAKED[0]))
 int has_baked(const char *name) { for (int k = 0; k < NBAKED; k++) if (!strcmp(BAKED[k].pic, name)) return 1; return 0; }
@@ -754,25 +757,44 @@ void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
             if (strcmp(B->pic, P->name) || B->y0 < 1 || B->y1 + 1 >= P->h || B->x1 >= P->w) continue;
             int sx0 = B->x0 + r->ox, sy0 = B->y0 + r->oy, sx1 = B->x1 + r->ox, sy1 = B->y1 + r->oy;
             if (sx0 < r->x || sy0 < r->y || sx1 >= r->x + r->w || sy1 >= r->y + r->h || sx1 >= 320 || sy1 >= 200 || sx0 < 0 || sy0 < 0) continue;
-            long n = 0, same = 0;
-            for (int y = sy0; y <= sy1; y++) for (int x = sx0; x <= sx1; x++) { n++; same += idx[y * 320 + x] == P->px[(y - r->oy) * P->w + (x - r->ox)]; }
-            if (same * 10 < n * 9) continue;                      /* something covers the button */
+            int cx = 0, cy = 0, cw = 0, chh = 0; hdtext_game_cursor(&cx, &cy, &cw, &chh);
+#define UNDER_CURSOR(x, y) (cw && (x) >= cx && (x) < cx + cw && (y) >= cy && (y) < cy + chh)
+            long n = 0, same = 0;                                 /* the button's ground still there (its letters may light up) */
+            for (int y = sy0; y <= sy1; y++) for (int x = sx0; x <= sx1; x++) {
+                u8 v = P->px[(y - r->oy) * P->w + (x - r->ox)];
+                if (light(v) || UNDER_CURSOR(x, y)) continue;
+                n++; same += idx[y * 320 + x] == v;
+            }
+            if (!n || same * 10 < n * 9) continue;                /* something covers the button */
             int bx0 = 999, bx1 = -1, by0 = 999, by1 = -1; u32 cnt[256]; memset(cnt, 0, sizeof cnt);
             u32 br = 0, bg = 0, bb = 0, bn = 0;
             for (int y = B->y0; y <= B->y1; y++)
                 for (int x = B->x0; x <= B->x1; x++) {
                     u8 v = P->px[y * P->w + x];
                     int sp = (y + r->oy) * 320 + x + r->ox;
-                    u8 g = light(v) ? P->px[(y <= (B->y0 + B->y1) / 2 ? B->y0 - 1 : B->y1 + 1) * P->w + x] : v;
-                    if (light(g)) g = 0x88;
-                    if (light(v)) { cnt[v]++; if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; if (idx[sp] == v) rgb[sp] = lut[g]; }
-                    u32 c = lut[g]; br += c >> 16 & 255; bg += c >> 8 & 255; bb += c & 255; bn++;
+                    u32 c = lut[v];
+                    if (light(v)) {                                   /* the ground: the mean of the unlit pixels around */
+                        u32 sr = 0, sg = 0, sb = 0, sn = 0;
+                        for (int rr = 1; rr <= 4 && sn < 6; rr++)
+                            for (int dy = -rr; dy <= rr; dy++) for (int dx = -rr; dx <= rr; dx++) {
+                                int xx = x + dx, yy = y + dy;
+                                if ((dx > -rr && dx < rr && dy > -rr && dy < rr) || xx < 0 || yy < 0 || xx >= P->w || yy >= P->h) continue;
+                                u8 q = P->px[yy * P->w + xx];
+                                if (light(q)) continue;
+                                u32 qc = lut[q]; sr += qc >> 16 & 255; sg += qc >> 8 & 255; sb += qc & 255; sn++;
+                            }
+                        if (sn) c = 0xff000000u | (sr / sn) << 16 | (sg / sn) << 8 | (sb / sn);
+                        if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y;
+                        if (!UNDER_CURSOR(x + r->ox, y + r->oy)) { cnt[idx[sp]]++; rgb[sp] = c; }
+                    }
+                    br += c >> 16 & 255; bg += c >> 8 & 255; bb += c & 255; bn++;
                 }
+#undef UNDER_CURSOR
             if (bx1 < 0 || hdtext_nruns >= HD_MAXRUNS) continue;
             int best = 0; for (int v = 1; v < 256; v++) if (cnt[v] > cnt[best]) best = v;
             HdRun *u = &hdtext_runs[hdtext_nruns++];
             snprintf(u->text, sizeof u->text, "%s", B->text);
-            u->x = bx0 + r->ox; u->y = by0 + r->oy - 1; u->w = bx1 - bx0 + 1; u->h = by1 - by0 + 3; u->font = 1;
+            u->x = bx0 + r->ox; u->y = by0 + r->oy - 1; u->w = bx1 - bx0 + 1; u->h = by1 - by0 + 3; u->font = 2; u->center = 1;   /* 2: drawn as wide as the word was, in the middle of where it was */
             u->rgb = lut[best]; u->bgrgb = bn ? (br / bn) << 16 | (bg / bn) << 8 | (bb / bn) : 0;
         }
     }

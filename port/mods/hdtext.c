@@ -413,7 +413,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             u->text[n] = 0;
             u->x = r->x0 + r->gx[s];
             u->w = r->gx[g - 1] + r->gw[g - 1] - r->gx[s];
-            u->y = r->y0; u->h = r->h; u->font = r->font;
+            u->y = r->y0; u->h = r->h; u->font = r->font; u->center = 0;
             u->rgb = rgb;
             {   u32 br = 0, bgg = 0, bb = 0, bn = 0;
                 for (int yy = 0; yy < r->h; yy++)

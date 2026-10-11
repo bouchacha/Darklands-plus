@@ -386,6 +386,7 @@ extern "C" void hdtext_draw(void)
         }
         if (!sp[i].text.empty()) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
+        if (r.center) x0 += (bw - ts.x) * 0.5f;
         ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
         text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
