@@ -301,7 +301,9 @@ static void int33(void)
     case 0x02: ms_shown--; break;
     case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; break;
     case 0x04: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: set %d,%d\n", (s16)CX, (s16)DX); }
-        ms_x = CX; ms_y = DX; break;
+        ms_x = CX; ms_y = DX;
+        { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows */
+        break;
     case 0x05: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
     case 0x06: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
     case 0x07: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: x range %d..%d\n", (s16)CX, (s16)DX); }

@@ -622,6 +622,19 @@ void plat_events(void)
 }
 
 void plat_click_game(int gx, int gy) { click_at(gx, gy); }
+
+/* the game set its pointer (int 33h, 4: a card's option chosen with the arrow keys, the start of
+ * a battle, the saints' list): the system pointer is
+ * moved there too, so the two never part (it is hidden over the picture, but the next move of
+ * the mouse would make the game's pointer jump back to it) */
+void plat_mouse_warp(int gx, int gy)
+{
+    if (headless || !win) return;
+    mouse_x = gx; mouse_y = gy;
+    if (ui_is_open() || SDL_GetMouseFocus() != win || (SDL_GetWindowFlags(win) & SDL_WINDOW_INPUT_FOCUS) == 0) return;
+    float wx, wy; plat_game_to_win(gx + 0.5f, gy + 0.5f, &wx, &wy);
+    SDL_WarpMouseInWindow(win, (int)wx, (int)wy);
+}
 /* a key press for the game (released a little later) */
 void plat_press_key(int scancode)
 {
