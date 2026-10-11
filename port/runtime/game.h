@@ -70,7 +70,7 @@ u32 game_call_ptr(u16 seg, u16 off, int nargs, const u16 *args, int fill);   /* 
 u32 game_call_link(int sect, u16 seg, u16 off, int nargs, const u16 *args);   /* by link address; no restore */
 extern int game_call_timed_out;   /* the last of these calls waited (for a key ...) and was abandoned */
 #define G_CUR_HOUR  0x00e0
-#define G_CUR_DAY   0x00e2       /* 0-based */
+#define G_CUR_DAY   0x00e2       /* 1-based (1..days of the month, date_add_hours) */
 #define G_CUR_MONTH 0x00e4       /* 0-11 */
 #define G_CUR_YEAR  0x00e6
 

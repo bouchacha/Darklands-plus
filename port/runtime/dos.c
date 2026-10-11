@@ -213,34 +213,59 @@ static int wild_match(const char *pat, const char *name)
     }
     return 1;
 }
-static int find_next(void)
+/* the matches are listed at find-first, sorted: by name, saved games (*.SAV) newest first (the
+ * load screen shows them in this order, and the directory order of today's file systems means
+ * nothing) */
+static FindEnt *find_list; static int find_n;
+static int find_cmp_name(const void *a, const void *b) { return strcmp(((const FindEnt *)a)->name, ((const FindEnt *)b)->name); }
+static int find_cmp_new(const void *a, const void *b)
 {
-    DIR *dd = opendir(find_dir);
+    const FindEnt *x = a, *y = b;
+    if (x->mtime != y->mtime) return x->mtime > y->mtime ? -1 : 1;
+    return strcmp(x->name, y->name);
+}
+int dos_list(const char *dir, const char *pat, FindEnt **out)
+{
+    DIR *dd = opendir(dir);
+    *out = 0;
     if (!dd) return 0;
+    int n = 0, cap = 0;
+    FindEnt *l = 0;
     struct dirent *e;
-    long i = 0;
     while ((e = readdir(dd))) {
-        if (i++ < find_pos) continue;
-        find_pos = i;
-        if (e->d_name[0] == '.') continue;
-        if (!wild_match(find_pat, e->d_name)) continue;
+        if (e->d_name[0] == '.' || !wild_match(pat, e->d_name)) continue;
         char full[2048]; struct stat st;
-        snprintf(full, sizeof full, "%s/%s", find_dir, e->d_name);
+        snprintf(full, sizeof full, "%s/%s", dir, e->d_name);
         if (stat(full, &st) || !S_ISREG(st.st_mode)) continue;
-        /* DTA: +15h attr, +16h time, +18h date, +1Ah size, +1Eh name */
-        u32 a = LIN(dta_seg, dta_off);
-        M[a + 0x15] = 0x20;
-        M[a + 0x16] = 0; M[a + 0x17] = 0; M[a + 0x18] = 0x21; M[a + 0x19] = 0x12;
-        u32 sz = (u32)st.st_size;
-        for (int k = 0; k < 4; k++) M[a + 0x1a + k] = (u8)(sz >> (8 * k));
-        int n = 0;
-        for (const char *c = e->d_name; *c && n < 12; c++) M[a + 0x1e + n++] = (u8)toupper((u8)*c);
-        M[a + 0x1e + n] = 0;
-        closedir(dd);
-        return 1;
+        if (n == cap) { cap = cap ? cap * 2 : 32; l = realloc(l, sizeof *l * (size_t)cap); }
+        int k = 0;
+        for (const char *c = e->d_name; *c && k < 12; c++) l[n].name[k++] = (char)toupper((u8)*c);
+        l[n].name[k] = 0;
+        snprintf(l[n].real, sizeof l[n].real, "%s", e->d_name);
+        l[n].size = (long)st.st_size; l[n].mtime = st.st_mtime;
+        n++;
     }
     closedir(dd);
-    return 0;
+    const char *dot = strrchr(pat, '.');
+    qsort(l, (size_t)n, sizeof *l, dot && !strcasecmp(dot, ".SAV") ? find_cmp_new : find_cmp_name);
+    *out = l;
+    return n;
+}
+static int find_next(void)
+{
+    if (find_pos >= find_n) return 0;
+    FindEnt *f = &find_list[find_pos++];
+    /* DTA: +15h attr, +16h time, +18h date, +1Ah size, +1Eh name */
+    u32 a = LIN(dta_seg, dta_off);
+    struct tm *t = localtime(&f->mtime);
+    u16 tm = 0, dt = 0x1221;
+    if (t && t->tm_year >= 80) { tm = (u16)(t->tm_hour << 11 | t->tm_min << 5 | t->tm_sec / 2); dt = (u16)((t->tm_year - 80) << 9 | (t->tm_mon + 1) << 5 | t->tm_mday); }
+    M[a + 0x15] = 0x20;
+    M[a + 0x16] = (u8)tm; M[a + 0x17] = (u8)(tm >> 8); M[a + 0x18] = (u8)dt; M[a + 0x19] = (u8)(dt >> 8);
+    for (int k = 0; k < 4; k++) M[a + 0x1a + k] = (u8)((u32)f->size >> (8 * k));
+    memset(M + a + 0x1e, 0, 13);
+    memcpy(M + a + 0x1e, f->name, strlen(f->name));
+    return 1;
 }
 
 /* ---------------------------------------------------------------- overlay load (4B03) */
@@ -407,6 +432,8 @@ void dos_int21(void)
         if (bs) { *bs = 0; snprintf(dirpart, sizeof dirpart, "%s", name); pat = bs + 1; }
         if (dirpart[0]) host_path(dirpart, find_dir, sizeof find_dir); else host_path(".", find_dir, sizeof find_dir);
         snprintf(find_pat, sizeof find_pat, "%s", pat);
+        free(find_list);
+        find_n = dos_list(find_dir, find_pat, &find_list);
         find_pos = 0;
         if (find_next()) { AX = 0; SETCF(0); } else dos_error(18);
         break; }

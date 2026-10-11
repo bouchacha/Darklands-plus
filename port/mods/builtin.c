@@ -86,12 +86,14 @@ void fixes_init(void);
 void hdtext_init(void);
 void hdart_init(void);
 void sfx_init(void);
+void saves_init(void);
 void mods_init(void)
 {
     hdtext_init();
     hdart_init();
     sfx_init();
     fixes_init();
+    saves_init();
     assist_init();
     pathfix_init();
     travel_init();

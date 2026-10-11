@@ -19,6 +19,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
+#include "../mods/saves.h"
 #include "../mods/hdtext.h"
 #include "../mods/hdart.h"
 #include "../mods/sfx.h"
@@ -44,6 +45,8 @@ extern "C" void hdtext_draw(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
+extern "C" void tab_saves(void);
+extern "C" void ui_draw_notice(void);
 extern "C" void tab_editor(void);
 extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
@@ -196,6 +199,8 @@ static void set_original(bool on)
         config_set_int("original.text", hdtext_mode);
         config_set_int("original.art", hdart_on);
         config_set_int("original.sfx", sfx_mode);
+        config_set_int("original.saves", saves_on);
+        saves_enable(0);
         assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0); hdart_set(0); sfx_set(0);
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
@@ -213,6 +218,7 @@ static void set_original(bool on)
         hdtext_set(config_get_int("original.text", 1));
         hdart_set(config_get_int("original.art", 1));
         sfx_set(config_get_int("original.sfx", 1));
+        saves_enable(config_get_int("original.saves", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -403,7 +409,7 @@ static void tab_about(void)
                        "with the original game files from your copy.");
     ImGui::Spacing();
     ImGui::TextWrapped("F12 opens and closes this menu (Esc closes it). The game is paused while it is open.");
-    ImGui::TextWrapped("Alt+Enter: full screen.  Ctrl+F12: screenshot.");
+    ImGui::TextWrapped("Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M on the travel map: world map.");
     ImGui::Spacing();
     hint("Font: EB Garamond (SIL Open Font License). Interface: Dear ImGui (MIT). "
                         "Music synthesis: your system's MIDI synthesizer.");
@@ -427,8 +433,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[] = { "Inventory", "Alchemy", "Saints", "Journal", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About", "Editor" };
-                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_saints, tab_journal, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
+                const char *names[] = { "Inventory", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About", "Editor" };
+                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
@@ -441,6 +447,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         ImGui::PopFont();
         if (!keep) ui_toggle();
     }
+    ui_draw_notice();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
 }

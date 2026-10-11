@@ -18,6 +18,12 @@ void dos_mem_init(u16 first_seg, u16 paras);
 void ovl_preload(void);
 int bios_kbd_avail(void);
 u16 bios_kbd_get(int remove);
+void bios_kbd_inject(u16 w);            /* put a key (scan << 8 | ascii) into the BIOS buffer */
+/* files: a directory's matches of a DOS pattern, sorted (*.SAV newest first); free() the list */
+#include <time.h>
+typedef struct { char name[13]; char real[256]; long size; time_t mtime; } FindEnt;   /* name: DOS (upper case), real: on disk */
+int dos_list(const char *hostdir, const char *pat, FindEnt **out);
+void dos_host_path(const char *dos, char *out, size_t outn);
 extern u16 psp_seg;
 void plat_sleep_ms(int ms);
 void plat_quit(int code);

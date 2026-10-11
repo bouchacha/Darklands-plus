@@ -43,7 +43,7 @@ static const char *MONTHS[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul
 
 static std::string game_date(void)
 {
-    int d = (s16)g_rw(G_CUR_DAY) + 1, m = g_rw(G_CUR_MONTH), y = g_rw(G_CUR_YEAR);
+    int d = (s16)g_rw(G_CUR_DAY), m = g_rw(G_CUR_MONTH), y = g_rw(G_CUR_YEAR);
     char b[32]; snprintf(b, sizeof b, "%d %s %d", d, MONTHS[m % 12], y);
     return b;
 }

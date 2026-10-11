@@ -265,7 +265,7 @@ void plat_present(const u8 *vga, const u8 *pal)
     memcpy(idx, vga, sizeof idx);
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
-    { void worldmap_watch_palette(void); worldmap_watch_palette(); void fixes_frame(void); fixes_frame(); }
+    { void worldmap_watch_palette(void); worldmap_watch_palette(); void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); }
     SDL_UpdateTexture(tex, 0, frame, 320 * 4);
     layout();
     SDL_SetTextureScaleMode(tex, ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
@@ -382,6 +382,9 @@ static void run_script(void)
             int v = game_call_far(14, 0x18bf, 0x0778, 4, args);
             fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
         }
+        else if (!strcmp(s->cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
+        else if (!strcmp(s->cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }
+        else if (!strcmp(s->cmd, "uload")) { int saves_load(const char *); saves_load(s->arg); }
         else if (!strcmp(s->cmd, "ubonus")) {              /* test: the members' bonus bytes (party +0x34) */
             fprintf(stderr, "bonus:");
             for (int m = 0; m < 5; m++) fprintf(stderr, " %02x", g_rb((u16)(G_MEMBER(m) + 0x34)));
@@ -390,7 +393,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "uclock")) {              /* test: the clock moves on h hours (no events run) */
             static const int D[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
             int h = (s16)g_rw(G_CUR_HOUR) + atoi(s->arg), d = (s16)g_rw(G_CUR_DAY), mo = (s16)g_rw(G_CUR_MONTH), y = (s16)g_rw(G_CUR_YEAR);
-            while (h >= 24) { h -= 24; if (++d >= D[mo] + (mo == 1 && y % 4 == 0)) { d = 0; if (++mo >= 12) { mo = 0; y++; } } }
+            while (h >= 24) { h -= 24; if (++d > D[mo]) { d = 1; if (++mo >= 12) { mo = 0; y++; } } }
             g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
             fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
         }
@@ -451,6 +454,7 @@ void plat_events(void)
                 break;
             }
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { save_bmp("screenshot.bmp"); break; }
+            { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             key(e.key.keysym.scancode, 0);
             break;
         case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;

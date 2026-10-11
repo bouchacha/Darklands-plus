@@ -51,6 +51,9 @@ if os.path.exists(_ia):
 # callees that consume their caller's frame (pop the return address and leave through it):
 # a call to one of these ends the calling function
 NORETURN = {'F_root_04c4a'}
+# the C library's setjmp (root 06a1:93ee). longjmp (06a1:9411) returns from setjmp's long-gone
+# frame: the function that called setjmp resumes after the call when the unwinding reaches it
+SETJMP = 'F_root_093ee'
 
 
 class Unsupported(Exception):
@@ -266,9 +269,20 @@ class Gen:
                 code = 'fatal("unsupported %s at %s:%05x");' % (str(e).replace('"', "'"), img, lin)
             out.append('L_%05x: %s' % (lin, code))
             if mn not in ('ret', 'retf', 'iret', 'jmp', 'ljmp', 'hlt') and (lin + size) not in own \
-                    and not code.endswith('(); return;') and not code.endswith('return; }'):
+                    and not code.endswith('(); return;') \
+                    and not (code.endswith('return; }') and not code.startswith('if (')):
+                # (a conditional jump out of the function, 'if (c) { ...; return; }', still falls through)
                 # falls through into code owned by another function
                 out.append('/* fallthrough */ %s' % self.target_code(img, ent, own, lin + size, lin, call=True))
+        sj = []
+        for i, l in enumerate(out):
+            mm = re.search(r'push16\((\(u16\)\(LOADSEG\+0x[0-9a-f]+\))\); push16\((0x[0-9a-f]+)\); ' + SETJMP + r'\(\);', l)
+            if mm and i + 1 < len(out) and out[i + 1].startswith('L_'):
+                sj.append((mm.group(1), mm.group(2), out[i + 1].split(':')[0]))
+        if sj:
+            catch = ' '.join('if (unw_cs == %s && unw_ip == %s) { unw_active = 0; goto %s; }' % t for t in sj)
+            out = [l.replace('UNW_CHECK();', 'do { if (unw_active) { %s if (unw_sp == my_sp) unw_active = 0; return; } } while (0);' % catch)
+                   for l in out]
         body = '\n'.join('    ' + l for l in out)
         ex = sorted(self.extra.get((img, ent), ()))
         tag = '    FENTER(0x%x); const u16 my_sp = FRAME_SP();\n' % (((self.section_of[img] + 2) << 20) | ent)

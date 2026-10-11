@@ -143,6 +143,31 @@ static void draw_picture_name(void)
     dl->AddText(p, IM_COL32(255, 230, 160, 255), t);
 }
 
+/* short notices ("Game saved"), bottom centre, for a few seconds */
+static char notice[160]; static u32 notice_t;
+extern "C" void ui_notice(const char *msg)
+{
+    snprintf(notice, sizeof notice, "%s", msg);
+    notice_t = plat_ticks_ms();
+    fprintf(stderr, "notice: %s\n", msg);
+}
+extern "C" void ui_draw_notice(void)
+{
+    if (!notice[0]) return;
+    u32 age = plat_ticks_ms() - notice_t;
+    if (age > 3000) { notice[0] = 0; return; }
+    float a = age < 2400 ? 1.0f : (3000 - age) / 600.0f;
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::PushFont(ui_font_text);
+    ImVec2 ts = ImGui::CalcTextSize(notice);
+    ImVec2 p((io.DisplaySize.x - ts.x) * 0.5f, io.DisplaySize.y - ts.y - 28);
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    dl->AddRectFilled(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(28, 20, 12, (int)(225 * a)), 6);
+    dl->AddRect(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(190, 150, 90, (int)(255 * a)), 6, 0, 1.5f);
+    dl->AddText(p, IM_COL32(250, 232, 190, (int)(255 * a)), notice);
+    ImGui::PopFont();
+}
+
 extern "C" void travel_overlay(void);
 extern "C" void ui_overlay(void)
 {

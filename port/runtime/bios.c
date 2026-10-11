@@ -186,6 +186,7 @@ static void bios_kbd_put(u16 w)
     ww(0x40, tail, w);
     ww(0x40, 0x1c, n);
 }
+void bios_kbd_inject(u16 w) { bios_kbd_put(w); }
 int bios_kbd_avail(void) { return rw(0x40, 0x1a) != rw(0x40, 0x1c); }
 u16 bios_kbd_get(int remove)
 {

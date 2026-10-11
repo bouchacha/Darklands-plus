@@ -25,12 +25,12 @@ static const char *SKILLS[19] = { "Edged Weapons", "Impact Weapons", "Flails", "
     "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
-/* hours since year 0 (the game's Julian calendar: day and month count from 0) */
+/* hours since year 0 (the game's calendar: 365 days, no leap years; month from 0, day from 1) */
 static long abs_hours(int y, int mo, int d, int h)
 {
     static const int DAYS[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    long days = (long)y * 365 + y / 4;
-    for (int i = 0; i < mo && i < 12; i++) days += DAYS[i] + (i == 1 && y % 4 == 0);
+    long days = (long)y * 365;
+    for (int i = 0; i < mo && i < 12; i++) days += DAYS[i];
     return (days + d) * 24 + h;
 }
 
