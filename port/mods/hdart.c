@@ -295,7 +295,7 @@ static int pic_register(const char *dosname, int w, int h, const u8 *px, int spr
 /* ---------------------------------------------------------------- regions */
 typedef struct { int pic; s16 x, y, w, h, ox, oy; u8 opaque; } Reg;
 #define NPAGES 8
-#define MAXREG 160
+#define MAXREG 2048
 static Reg reg[NPAGES][MAXREG];
 static int nreg[NPAGES];
 
@@ -350,20 +350,45 @@ static int reg_take(int page, int x, int y, int w, int h, int dx, int dy, Reg *o
     return n;
 }
 
-/* sprites: handle -> regions in sprite coordinates */
+/* sprites: handle -> regions in sprite coordinates (save_rect, pic_load) */
 #define SPRREG 24
 typedef struct { u16 key; int n; Reg r[SPRREG]; } Spr;
-#define MAXSPR 512
-static Spr spr[MAXSPR]; static int nspr;
+#define MAXSPR 2048
+static Spr spr[MAXSPR]; static int nspr, spr_next;
+static short spr_index[65536];                  /* handle -> slot + 1 */
+static Spr *spr_find(u16 key) { int i = spr_index[key]; return i ? &spr[i - 1] : 0; }
 static Spr *spr_slot(u16 key)
 {
-    for (int i = 0; i < nspr; i++) if (spr[i].key == key) return &spr[i];
-    if (nspr < MAXSPR) { spr[nspr].key = key; spr[nspr].n = 0; return &spr[nspr++]; }
-    memmove(&spr[0], &spr[1], sizeof(Spr) * (MAXSPR - 1));
-    spr[MAXSPR - 1].key = key; spr[MAXSPR - 1].n = 0;
-    return &spr[MAXSPR - 1];
+    Spr *s = spr_find(key);
+    if (s) return s;
+    int i;
+    if (nspr < MAXSPR) i = nspr++;
+    else { i = spr_next; spr_next = (spr_next + 1) % MAXSPR; spr_index[spr[i].key] = 0; }
+    spr[i].key = key; spr[i].n = 0;
+    spr_index[key] = (short)(i + 1);
+    return &spr[i];
 }
-static Spr *spr_find(u16 key) { for (int i = 0; i < nspr; i++) if (spr[i].key == key) return &spr[i]; return 0; }
+
+/* battle sprites: frame segment -> IMC file and frame number (sprite_file_load, s014 0e76:3d2c,
+ * fills frames[k*8+m] with the segments the frames were copied to); a frame at seg:0 is
+ * u8 w, u8 h, then per row u8 count, u8 skip, u8 pixels[count] */
+typedef struct { u16 seg; char name[12]; short n; int pic; u32 hash; } Frame;
+#define MAXFRAME 8192
+static Frame frame[MAXFRAME]; static int nframe, frame_next;
+static short frame_index[65536];
+static Frame *frame_find(u16 seg) { int i = frame_index[seg]; return i ? &frame[i - 1] : 0; }
+static void frame_set(u16 seg, const char *name, int n)
+{
+    Frame *f = frame_find(seg);
+    if (!f) {
+        int i;
+        if (nframe < MAXFRAME) i = nframe++;
+        else { i = frame_next; frame_next = (frame_next + 1) % MAXFRAME; frame_index[frame[i].seg] = 0; }
+        f = &frame[i]; f->seg = seg; frame_index[seg] = (short)(i + 1);
+    }
+    snprintf(f->name, sizeof f->name, "%s", name);
+    f->n = (short)n; f->pic = -1; f->hash = 0;
+}
 
 /* ---------------------------------------------------------------- hooks */
 #define ARG(k) rw(SS, (u16)(SP + 4 + 2 * (k)))
@@ -437,22 +462,85 @@ static void h_save_rect(void)               /* save_rect(page, x, y, w, h) -> sp
     s->n = reg_take(page, x, y, w, h, -x, -y, s->r, SPRREG);
 }
 
-static void h_draw_pic(void)                /* gfx_draw_pic(win, x, y, handle) */
+static void h_draw_pic(void);
+static int tracked(int pic) { return pic >= 0 && (pics[pic].art || hdart_show_names); }
+
+static void h_sprite_file(void)             /* sprite_file_load(i, name, frames, slot, mem) */
 {
-    u16 win = ARG(0); int x = (s16)ARG(1), y = (s16)ARG(2); u16 key = ARG(3);
+    char name[16]; g_str(G_DGROUP, ARG(1), name, sizeof name);
+    u16 frames = ARG(2); int slot = (s16)ARG(3);
     hook_call_original();
-    Spr *s = spr_find(key);
+    int k = (s8)g_rb((u16)(0xc908 + slot));
+    char key[12]; int n = 0;
+    while (name[n] && n < 9) { key[n] = (char)toupper((unsigned char)name[n]); n++; }
+    key[n] = 0;
+    for (int i = 0; i < k * 8 && i < 1024; i++) frame_set(g_rw((u16)(frames + 2 * i)), key, i);
+    if (logon) fprintf(stderr, "art: sprite set %s: %d frames\n", key, k * 8);
+}
+
+/* the picture of a battle frame (decoded at seg:0; recoloured sets differ: one picture each) */
+static int frame_pic(Frame *f)
+{
+    u16 seg = f->seg;
+    int w = rb(seg, 0), h = rb(seg, 1);
+    if (!w || !h) return -1;
+    u32 hsh = 2166136261u; u16 o = 2;
+    static u8 px[256 * 256];
+    memset(px, 0, (size_t)w * h);
+    for (int y = 0; y < h; y++) {
+        int cnt = rb(seg, o), skip = rb(seg, (u16)(o + 1));
+        hsh = (hsh ^ (u32)(cnt << 8 | skip)) * 16777619u;
+        for (int i = 0; i < cnt; i++) {
+            u8 v = rb(seg, (u16)(o + 2 + i));
+            hsh = (hsh ^ v) * 16777619u;
+            if (skip + i < w) px[y * w + skip + i] = v;
+        }
+        o = (u16)(o + 2 + cnt);
+    }
+    if (f->pic >= 0 && f->hash == hsh) return f->pic;
+    char name[24]; snprintf(name, sizeof name, "%s_%d", f->name, f->n);
+    f->pic = pic_register(name, w, h, px, 1);
+    f->hash = hsh;
+    return f->pic;
+}
+
+static void place_sprite(u16 win, int x, int y, Spr *s)
+{
     int page = win_page(win);
     if (!s || !s->n || page < 0 || page >= NPAGES) return;
     int ox, oy, x1, y1; win_box(win, &ox, &oy, &x1, &y1);
     for (int i = 0; i < s->n; i++) {
         Reg r = s->r[i];
+        if (!tracked(r.pic)) continue;
         int rx = r.x + ox + x, ry = r.y + oy + y, rw = r.w, rh = r.h;
         if (!clip(&rx, &ry, &rw, &rh, ox, oy, x1, y1)) continue;
         r.x = (s16)rx; r.y = (s16)ry; r.w = (s16)rw; r.h = (s16)rh; r.ox = (s16)(r.ox + ox + x); r.oy = (s16)(r.oy + oy + y);
         r.opaque = 0;
         reg_add(page, r, 0);
     }
+}
+
+static void h_draw_sprite(void)             /* gfx_draw_sprite(win, x, y, handle): battle frames, map tiles */
+{
+    u16 win = ARG(0); int x = (s16)ARG(1), y = (s16)ARG(2); u16 key = ARG(3);
+    hook_call_original();
+    if (!narts && !hdart_show_names) return;
+    Frame *f = game_mode() == GM_BATTLE ? frame_find(key) : 0;
+    if (f) {
+        int pic = frame_pic(f);
+        if (!tracked(pic)) return;
+        Spr one; one.key = key; one.n = 1; one.r[0] = (Reg){ pic, 0, 0, (s16)pics[pic].w, (s16)pics[pic].h, 0, 0, 0 };
+        place_sprite(win, x, y, &one);
+        return;
+    }
+    place_sprite(win, x, y, spr_find(key));
+}
+
+static void h_draw_pic(void)                /* gfx_draw_pic(win, x, y, handle) */
+{
+    u16 win = ARG(0); int x = (s16)ARG(1), y = (s16)ARG(2); u16 key = ARG(3);
+    hook_call_original();
+    place_sprite(win, x, y, spr_find(key));
 }
 
 static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, dst, dx, dy) */
@@ -621,6 +709,43 @@ int hdart_seen(void) { return npics; }
 /* ---------------------------------------------------------------- switching */
 void hdart_set(int on) { hdart_on = on; config_set_int("display.hd_art", on); }
 
+/* DL_THUNK_LOG: count the calls of the graphics driver thunks (which ones a screen uses) */
+static const unsigned THUNKS[] = { 0x04c7, 0x04ce, 0x04dc, 0x04e3, 0x04ea, 0x04f8, 0x0504, 0x0514, 0x051b, 0x052e,
+    0x053e, 0x0545, 0x055f, 0x0568, 0x056f, 0x0576, 0x0584, 0x058b, 0x0597, 0x059e, 0x05ae, 0x05ca, 0x05d1, 0x05d8,
+    0x05df, 0x05e6, 0x05ed, 0x0744, 0x0767, 0x0783, 0x0791 };   /* not 0617/061e/073d (keyboard): polling */
+static int thunk_idx[64]; static long thunk_n[64]; static int nthunk;
+static void thunk_count(void)
+{
+    extern unsigned plat_ticks_ms(void);
+    static unsigned last;
+    for (int i = 0; i < nthunk; i++) if (thunk_idx[i] == hook_current) {
+        thunk_n[i]++;
+        if (THUNKS[i] == 0x04ef && thunk_n[i] % 500 == 1) fprintf(stderr, "thunk 04ef args %04x %d %d %04x %04x\n", ARG(0), (s16)ARG(1), (s16)ARG(2), ARG(3), ARG(4));
+        break;
+    }
+    unsigned now = plat_ticks_ms();
+    if (now - last > 10000) {
+        last = now;
+        fprintf(stderr, "thunks:");
+        for (int i = 0; i < nthunk; i++) if (thunk_n[i]) fprintf(stderr, " %04x:%ld", THUNKS[i], thunk_n[i]);
+        fprintf(stderr, "\n");
+    }
+    hook_call_original();
+}
+static void thunk_probe(void)
+{
+    extern const HookPoint HOOK_POINTS[]; extern const int HOOK_COUNT;
+    for (unsigned i = 0; i < sizeof THUNKS / sizeof THUNKS[0]; i++) {
+        unsigned lin = 0x47c0 + THUNKS[i];
+        for (int k = 0; k < HOOK_COUNT; k++) if (HOOK_POINTS[k].lin == lin && HOOK_POINTS[k].sect == -1) {
+            thunk_idx[nthunk] = HOOK_POINTS[k].idx;
+            hook_install(-1, 0x047c, THUNKS[i], thunk_count);
+            nthunk++;
+            break;
+        }
+    }
+}
+
 void hdart_init(void)
 {
     logon = getenv("DL_ART_LOG") != 0;
@@ -637,4 +762,7 @@ void hdart_init(void)
     hook_install(-1, 0x047c, 0x04d5, h_save_rect);
     hook_install(-1, 0x047c, 0x05a5, h_draw_pic);
     hook_install(-1, 0x047c, 0x0553, h_copy);
+    hook_install(-1, 0x047c, 0x04ef, h_draw_sprite);
+    hook_install(14, 0x0e76, 0x3d2c, h_sprite_file);
+    if (getenv("DL_THUNK_LOG")) thunk_probe();
 }

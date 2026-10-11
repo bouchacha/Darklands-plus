@@ -12,6 +12,8 @@
  *            18bf:0778) adds that byte (& 0x7f) to the armour, so bits 4-6 turn into up to
  *            +64 armour that never wears off: the "invulnerable after Polycarp + Firewall"
  *            bug. Fixed by hiding those bits from the armour sum.
+ *  fullpack  A member holds at most 64 item records; add_item_rec_impl silently drops what does
+ *            not fit (quest items included). It now goes to another member with room.
  *  nullitem  Items with a code past the item list (>= 200) show as "(null)" (a NULL name
  *            pointer) and can be neither used nor sold; empty stacks (count 0) appear from
  *            the inn's ingredient refund. add_item_rec_impl (s031 18e7:01b4) now refuses both.
@@ -23,6 +25,8 @@
  *            (s080 1870:000c) the castle as the quest giver (saved_card2), so the reward event
  *            is not found; the card then reads and frees events[-1] (memory corruption) and the
  *            reward can be claimed again and again. The giver is now corrected on the way in.
+ *  copyprot  The manual check (s041 copy_protection, once when the party first leaves a town:
+ *            pick the alchemical symbol for a substance) is skipped.
  *  alchemy   Brewing takes the ingredients with s033 1462:1630, which skips the stack that
  *            slides up when one is used up and forgets what it could not take: most batches
  *            cost only part of their ingredients. The remainder is now taken too. */
@@ -48,6 +52,10 @@ Fix FIXES[] = {
       "The original looked up the wrong quest giver: garbled names, memory corruption, rewards claimable again.", 1 },
     { "alchemy", "Brewing uses up all the ingredients",
       "The original took only part of them when an ingredient was spread over several stacks.", 1 },
+    { "fullpack", "No more items lost to a full pack",
+      "A character carries at most 64 kinds of things; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room.", 1 },
+    { "copyprot", "Skip the manual check",
+      "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -94,16 +102,44 @@ static void fireward_hook(void)            /* hit_damage(a, t) */
 }
 
 /* ---------------------------------------------------------------- nullitem */
-static void nullitem_hook(void)            /* add_item_rec_impl(who, struct item {code, type, qual, cnt, weight}) */
+static int fix_on(const char *id) { for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, id)) return FIXES[i].on; return 0; }
+
+static int stacks(int m, u16 code, u8 type, u8 qual, int cnt)
+{
+    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+    for (int j = 0; j < n && j < 64; j++) {
+        u16 o = G_ITEM(m, j);
+        if (rw(G_FAR2E38, o) == code && rb(G_FAR2E38, (u16)(o + 2)) == type && rb(G_FAR2E38, (u16)(o + 3)) == qual && rb(G_FAR2E38, (u16)(o + 4)) + cnt <= 0xff) return 1;
+    }
+    return 0;
+}
+
+static void additem_hook(void)             /* add_item_rec_impl(who, struct item {code, type, qual, cnt, weight}) */
 {
     int who = (s16)rw(SS, (u16)(SP + 4));
-    int code = rw(SS, (u16)(SP + 6)) & 0xfff, cnt = rb(SS, (u16)(SP + 10));
-    if (code >= 200 || cnt == 0) {
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nullitem: refused item %d x%d for %d\n", code, cnt, who);
+    u16 code = rw(SS, (u16)(SP + 6)); u8 type = rb(SS, (u16)(SP + 8)), qual = rb(SS, (u16)(SP + 9));
+    int cnt = rb(SS, (u16)(SP + 10));
+    if (fix_on("nullitem") && ((code & 0xfff) >= 200 || cnt == 0)) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nullitem: refused item %d x%d for %d\n", code & 0xfff, cnt, who);
         int m = who == -1 ? (s8)g_rb(G_LEADER) : who;
         AX = (m >= 0 && m < 5) ? g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)) : 0;
         hook_return_far(0);
         return;
+    }
+    if (fix_on("fullpack") && who != -2) {
+        int m = who == -1 ? (s8)g_rb(G_LEADER) : who, size = (s16)g_rw(G_PARTY_SIZE);
+        if (m >= 0 && m < 5 && g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)) >= 64 && !stacks(m, code, type, qual, cnt)) {
+            int best = -1;
+            for (int k = 0; k < size && k < 5; k++) {
+                if (k == m || g_rb(G_MEMBER(k)) == 0) continue;
+                if (stacks(k, code, type, qual, cnt)) { best = k; break; }
+                if (g_rb((u16)(G_MEMBER(k) + G_M_NITEMS)) < 64 && (best < 0 || g_rb((u16)(G_MEMBER(k) + G_M_NITEMS)) < g_rb((u16)(G_MEMBER(best) + G_M_NITEMS)))) best = k;
+            }
+            if (best >= 0) {
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix fullpack: item %d for %d goes to %d\n", code & 0xfff, m, best);
+                ww(SS, (u16)(SP + 4), (u16)best);
+            } else fprintf(stderr, "fullpack: no room anywhere for item %d\n", code & 0xfff);
+        }
     }
     hook_call_original();
 }
@@ -176,18 +212,29 @@ static void alchemy_hook(void)             /* s033 1462:1630 (first, id, n): tak
     }
 }
 
+/* ---------------------------------------------------------------- copyprot */
+static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000: answered */
+{
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix copyprot: skipped\n");
+    hook_return_far(0);
+}
+
 /* ---------------------------------------------------------------- switching */
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
-    { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, nullitem_hook },
-    { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook } };
+    { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, fireward_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
+    { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
+    { 31, 0x18e7, 0x01b4, additem_hook }, { 41, 0x1462, 0x0000, copyprot_hook } };
 
 void fix_enable(int i, int on)
 {
     FIXES[i].on = on;
     char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
     config_set_int(key, on);
-    if (on) hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn);
-    else hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off);
+    int shared = 0;                         /* another fix on the same function still on */
+    for (int k = 0; k < FIX_COUNT; k++)
+        if (k != i && FIXES[k].on && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
+    if (on) { if (!hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn)) fprintf(stderr, "fix %s: no hook point\n", FIXES[i].id); }
+    else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off);
 }
 
 void fixes_init(void)

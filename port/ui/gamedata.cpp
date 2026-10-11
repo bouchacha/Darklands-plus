@@ -50,11 +50,12 @@ std::string game_text(const char *s, size_t n)
     std::string o;
     for (size_t i = 0; i < n && s[i]; i++) {
         switch (s[i]) {
+        case 0x1f: o += "\xc3\xa4"; break;    // a umlaut (the game's own code for it)
         case '{': o += "\xc3\xb6"; break;     // o umlaut
         case '|': o += "\xc3\xbc"; break;     // u umlaut
         case '}': o += "\xc3\xa4"; break;     // a umlaut
         case '~': o += "\xc3\x9f"; break;     // sharp s
-        default: if ((unsigned char)s[i] >= 32 && (unsigned char)s[i] < 127) o += s[i];
+        default: if ((unsigned char)s[i] >= 32 && (unsigned char)s[i] < 127) o += s[i]; else if (s[i] == '\n' || s[i] == '\r') o += ' ';
         }
     }
     return o;
@@ -103,7 +104,18 @@ void gamedata_load(const char *dir)
             d.kind = classify(d);
             gamedata.items.push_back(d);
         }
+        /* then saint full names, short names, formula full names, short names */
+        size_t pos = 3 + (size_t)n * 46;
+        int ns = lst[1], nf = lst[2];
+        auto cstr = [&](void) { std::string r; while (pos < lst.size() && lst[pos]) r += (char)lst[pos++]; pos++; return r; };
+        for (int i = 0; i < ns && pos < lst.size(); i++) { Saint t; t.name = game_text(cstr().c_str(), 64); gamedata.saints.push_back(t); }
+        for (int i = 0; i < ns && pos < lst.size(); i++) gamedata.saints[i].shortname = game_text(cstr().c_str(), 64);
+        for (int i = 0; i < nf && pos < lst.size(); i++) gamedata.formula_names.push_back(game_text(cstr().c_str(), 64));
     }
+    std::vector<unsigned char> snt = read_all(open_ci(dir, "DARKLAND.SNT"));
+    if (snt.size() > 1)
+        for (int i = 0; i < snt[0] && i < (int)gamedata.saints.size() && 1 + (size_t)(i + 1) * 360 <= snt.size(); i++)
+            gamedata.saints[i].text = game_text((const char *)&snt[1 + (size_t)i * 360], 360);
     std::vector<unsigned char> alc = read_all(open_ci(dir, "DARKLAND.ALC"));
     if (alc.size() > 1) {
         int n = alc[0];

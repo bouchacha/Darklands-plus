@@ -34,8 +34,12 @@ struct City {
     int x = 0, y = 0;                // map position (entry)
 };
 
+struct Saint { std::string name, shortname, text; };
+
 struct GameData {
     std::vector<ItemDef> items;
+    std::vector<Saint> saints;       // LST order (bit order of saints_known)
+    std::vector<std::string> formula_names;
     std::vector<Formula> formulas;   // 3 per potion (potion item 95 + f/3)
     std::vector<City> cities;
     bool loaded = false;

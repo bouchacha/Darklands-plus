@@ -43,6 +43,8 @@ extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
+extern "C" void tab_saints(void);
+extern "C" void tab_editor(void);
 extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
 extern "C" int journal_enabled(void);
@@ -250,6 +252,12 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }
     hint("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
 
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Editor"); ImGui::PopFont();
+    bool ed = config_get_int("editor.show", 0);
+    if (ImGui::Checkbox("Show the character editor (Editor tab)", &ed)) { config_set_int("editor.show", ed); dirty_config = 1; }
+    hint("Change money, names, attributes, skills, saints, formulas, items, and a character's colours, shield and "
+         "figure, as the community's save-game editors do. For repairing characters hit by old bugs, or for cheating.");
+
     ImGui::PushFont(font_head); ImGui::SeparatorText("Fixes for bugs of the original"); ImGui::PopFont();
     for (int i = 0; i < FIX_COUNT; i++) {
         bool on = FIXES[i].on;
@@ -415,9 +423,10 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[] = { "Inventory", "Alchemy", "Journal", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About" };
-                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_journal, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about };
+                const char *names[] = { "Inventory", "Alchemy", "Saints", "Journal", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About", "Editor" };
+                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_saints, tab_journal, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
+                    if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
                 }
                 want_tab = -1;
