@@ -124,6 +124,10 @@ static void party_tile(int *x, int *y)
 }
 
 /* opening: draw the map again (seasons, castles burnt down) and look at the party */
+/* opened from a city or encounter (M on a card): the route waits for the travel map */
+extern "C" void ui_notice(const char *msg);
+static void route_note(void) { if (game_mode() != GM_MAP) ui_notice("Route planned: the party sets off once it is on the travel map."); }
+
 extern "C" int worldmap_open(void)
 {
     if (game_mode() == GM_OTHER || game_mode() == GM_BATTLE) return 0;
@@ -286,7 +290,7 @@ extern "C" void worldmap_draw(void)
     }
     if (ImGui::IsItemDeactivated()) dragged = false;
     if (hovered && hover >= 0 && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && on_map) {
-        for (const Place &p : P) if (p.loc == hover && travel_to_loc(p.loc, p.name.c_str())) { ui_toggle_map(); break; }
+        for (const Place &p : P) if (p.loc == hover && travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); break; }
     }
     if (hover >= 0) {
         for (const Place &p : P) if (p.loc == hover) {
@@ -335,7 +339,7 @@ extern "C" void worldmap_draw(void)
             if (on_map) {
                 int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
                 if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
-                if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) ui_toggle_map(); }
+                if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
             } else ImGui::TextDisabled("Auto-travel works from the travel map.");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             break;
