@@ -9,6 +9,7 @@
 // lines by their text in MSGFILES (the card file's text block D_ee53, option k = the k-th
 // option mark), so nothing depends on the crisp text or on the screen.
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
@@ -171,8 +172,12 @@ static std::string last_key; static int same_count;
 static u32 phase_t, last_act;
 static std::string phase_key;
 
+static int logon = -1;
+#define LOG(...) do { if (logon < 0) logon = getenv("DL_CITYNAV_LOG") != 0; if (logon) fprintf(stderr, "citynav: " __VA_ARGS__); } while (0)
+
 static void stop(const char *why)
 {
+    LOG("stop: %s\n", why ? why : "");
     if (goal >= 0 && why) { char m[160]; snprintf(m, sizeof m, "Go to %s: %s", DEST[goal].label, why); ui_notice(m); }
     goal = -1;
 }
@@ -202,11 +207,14 @@ static int choose_leave(const std::vector<std::string> &line)
     for (size_t i = 0; i < line.size(); i++)
         if ((line[i].find("leave") != std::string::npos || line[i].find("depart") != std::string::npos) && line[i].find("side") == std::string::npos
             && line[i].find("alley") == std::string::npos) return (int)i;
+    for (size_t i = 0; i < line.size(); i++)                 /* the only way out may be a side street (the slums) or a step back */
+        if (line[i].find("leave") != std::string::npos || line[i].find("fall back") != std::string::npos || line[i].find("reconsider") != std::string::npos) return (int)i;
     return -1;
 }
 
 static void click_line(int i)
 {
+    LOG("click line %d\n", i);
     int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
     plat_click_game(x0 + 10, y0 + (h > 8 ? 4 : h / 2));
     last_act = plat_ticks_ms(); steps_taken++;
@@ -231,6 +239,7 @@ extern "C" void citynav_tick(void)
             if (visited || conts >= 4) { stop(steps_taken ? "something happened on the way." : "leave this place first."); return; }
             conts++;
         }
+        LOG("%s: read on\n", kb);
         plat_click_game(304, 12); last_act = now;
         return;
     }
@@ -244,6 +253,7 @@ extern "C" void citynav_tick(void)
     if (g_rb(0xee41)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
     for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(0xe9b0 + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
+    if (logon) { LOG("%s hub %d visited %x:\n", kb, hub, visited); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (hub == H_NONE) {                                   /* a shop or other place of the city: out the way the player would leave */
         if (visited || leaves >= 3) { stop("something happened on the way."); return; }
         int pick = choose_leave(line);
