@@ -16,6 +16,8 @@ void assist_set_chances(int mode);
 void assist_init(void);
 extern int pathfix_party, pathfix_enemies;
 void pathfix_set(int party, int enemies);
+extern int battle_speed;              /* percent, 100 = the original */
+void battle_speed_set(int pct);
 #ifdef __cplusplus
 }
 #endif

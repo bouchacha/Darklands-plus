@@ -355,8 +355,36 @@ void pathfix_set(int party, int enemies)
     else hook_remove(14, 0x12f7, 0x000a);
 }
 
+/* ---------------------------------------------------------------- battle speed
+ * Battles run on combat_clock (DS:07d4), which the game's timer routine (root 047c:000a)
+ * counts up on every timer tick unless the battle is paused (DS:07d3); combat ticks,
+ * walking, animation frames and actions are all timed against it. At a higher speed the
+ * routine counts it up faster; the rest of the timer routine (sound, other clocks) runs as
+ * before. */
+int battle_speed = 100;                  /* percent */
+static int clock_acc;
+static void timer_hook(void)
+{
+    hook_call_original();
+    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", battle_speed, g_rb(0x07d3), game_mode(), g_rw(0x07d4)); }
+    if (battle_speed <= 100 || g_rb(0x07d3) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
+    clock_acc += battle_speed - 100;
+    while (clock_acc >= 100) { clock_acc -= 100; g_ww(0x07d4, (u16)(g_rw(0x07d4) + 1)); }
+}
+
+void battle_speed_set(int pct)
+{
+    if (pct < 100) pct = 100;
+    if (pct > 400) pct = 400;
+    battle_speed = pct;
+    config_set_int("battle.speed", pct);
+    if (pct > 100) hook_install(-1, 0x047c, 0x000a, timer_hook);
+    else hook_remove(-1, 0x047c, 0x000a);
+}
+
 void pathfix_init(void)
 {
+    battle_speed_set(config_get_int("battle.speed", 100));
     f_collide = game_func(14, 0x1462, 0x000a);
     f_set = game_func(14, 0x14f7, 0x343c);
     f_waypoints = game_func(14, 0x1db7, 0x0158);

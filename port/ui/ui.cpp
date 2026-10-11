@@ -192,6 +192,8 @@ static void set_original(bool on)
     if (on) {
         char b[512]; int n = 0;
         n += snprintf(b + n, sizeof b - n, "%d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
+        config_set_int("original.battle_speed", battle_speed);
+        battle_speed_set(100);
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
@@ -219,6 +221,7 @@ static void set_original(bool on)
         hdart_set(config_get_int("original.art", 1));
         sfx_set(config_get_int("original.sfx", 1));
         saves_enable(config_get_int("original.saves", 1));
+        battle_speed_set(config_get_int("original.battle_speed", 100));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -246,6 +249,15 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
     hint("Moves are planned around walls and furniture with a full route search instead of the "
                         "original wall-following, which gives up on long or winding routes.");
+    {
+        ImGui::TextUnformatted("Battle speed:"); ImGui::SameLine();
+        static const int SPD[4] = { 100, 150, 200, 300 }; static const char *SPN[4] = { "as the original", "1.5x", "2x", "3x" };
+        for (int i = 0; i < 4; i++) {
+            if (i) ImGui::SameLine();
+            if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); dirty_config = 1; }
+        }
+        hint("Walking, attacks and spells all go faster; pausing (Space) works as before.");
+    }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
     bool ta = travel_enabled; int tf = travel_fast;
