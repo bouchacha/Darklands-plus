@@ -334,6 +334,7 @@ void plat_present(const u8 *vga, const u8 *pal)
     memcpy(idx, vga, sizeof idx);
     { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
     hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
+    { void hdart_labels(u32 *, const u8 *, const u32 *); hdart_labels(frame, idx, lut); }   /* words painted into pictures */
     { void worldmap_watch_palette(void); worldmap_watch_palette(); }
     uint64_t pt1 = ptime ? plat_ticks_us() : 0;
     int nt = frame_textures();

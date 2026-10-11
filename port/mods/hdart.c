@@ -50,6 +50,7 @@ typedef struct {
     u32 hist[256];
     u32 ref[256]; double refb;      /* brightest palette seen with it (or its own) */
     char *art;                      /* replacement file, if any */
+    int baked;                      /* has words painted in (BAKED below) */
 } Pic;
 static Pic *pics; static int npics, cappics;
 
@@ -290,6 +291,7 @@ static int pic_register(const char *dosname, int w, int h, const u8 *px, int spr
     P->px = malloc((size_t)w * h); memcpy(P->px, px, (size_t)w * h);
     for (long i = 0; i < (long)w * h; i++) P->hist[px[i]]++;
     const char *a = art_for(key); P->art = a ? strdup(a) : 0;
+    { int has_baked(const char *); P->baked = has_baked(key); }
     u8 mask[256]; u32 fpal[256];
     dac_lut(P->ref);
     if (dosname && dosname[0] && file_palette(dosname, fpal, mask))
@@ -611,7 +613,7 @@ static void h_save_rect(void)               /* save_rect(page, x, y, w, h) -> sp
 }
 
 static void h_draw_pic(void);
-static int tracked(int pic) { return pic >= 0 && (pics[pic].art || hdart_show_names); }
+static int tracked(int pic) { return pic >= 0 && (pics[pic].art || hdart_show_names || pics[pic].baked); }
 
 static void h_sprite_file(void)             /* sprite_file_load(i, name, frames, slot, mem) */
 {
@@ -728,6 +730,53 @@ static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, 
 /* ---------------------------------------------------------------- the frame */
 HdDraw hdart_draws[HDART_MAXDRAWS];
 int hdart_ndraws;
+
+/* ---------------------------------------------------------------- words painted into pictures
+ * The character sheet's buttons (Equipment, Formulae, Saints) are part of its picture, in the
+ * old letters. With crisp text on, their letters are covered with the button's own grain (the
+ * picture's row above or below the word) and the word joins the crisp text. */
+typedef struct { const char *pic; int x0, y0, x1, y1; const char *text; } Baked;
+static const Baked BAKED[] = {
+    { "ARMBACK", 199, 152, 254, 159, "Equipment" }, { "ARMBACK", 199, 168, 254, 175, "Formulae" }, { "ARMBACK", 199, 184, 254, 191, "Saints" },
+};
+#define NBAKED ((int)(sizeof BAKED / sizeof BAKED[0]))
+int has_baked(const char *name) { for (int k = 0; k < NBAKED; k++) if (!strcmp(BAKED[k].pic, name)) return 1; return 0; }
+static int light(u8 v) { return v >= 0xb0 && v <= 0xdf; }
+
+void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
+{
+    if (!hdtext_mode) return;
+    for (int i = 0; i < nreg[0]; i++) {
+        Reg *r = &reg[0][i]; Pic *P = &pics[r->pic];
+        if (!P->baked) continue;
+        for (int k = 0; k < NBAKED; k++) {
+            const Baked *B = &BAKED[k];
+            if (strcmp(B->pic, P->name) || B->y0 < 1 || B->y1 + 1 >= P->h || B->x1 >= P->w) continue;
+            int sx0 = B->x0 + r->ox, sy0 = B->y0 + r->oy, sx1 = B->x1 + r->ox, sy1 = B->y1 + r->oy;
+            if (sx0 < r->x || sy0 < r->y || sx1 >= r->x + r->w || sy1 >= r->y + r->h || sx1 >= 320 || sy1 >= 200 || sx0 < 0 || sy0 < 0) continue;
+            long n = 0, same = 0;
+            for (int y = sy0; y <= sy1; y++) for (int x = sx0; x <= sx1; x++) { n++; same += idx[y * 320 + x] == P->px[(y - r->oy) * P->w + (x - r->ox)]; }
+            if (same * 10 < n * 9) continue;                      /* something covers the button */
+            int bx0 = 999, bx1 = -1, by0 = 999, by1 = -1; u32 cnt[256]; memset(cnt, 0, sizeof cnt);
+            u32 br = 0, bg = 0, bb = 0, bn = 0;
+            for (int y = B->y0; y <= B->y1; y++)
+                for (int x = B->x0; x <= B->x1; x++) {
+                    u8 v = P->px[y * P->w + x];
+                    int sp = (y + r->oy) * 320 + x + r->ox;
+                    u8 g = light(v) ? P->px[(y <= (B->y0 + B->y1) / 2 ? B->y0 - 1 : B->y1 + 1) * P->w + x] : v;
+                    if (light(g)) g = 0x88;
+                    if (light(v)) { cnt[v]++; if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; if (idx[sp] == v) rgb[sp] = lut[g]; }
+                    u32 c = lut[g]; br += c >> 16 & 255; bg += c >> 8 & 255; bb += c & 255; bn++;
+                }
+            if (bx1 < 0 || hdtext_nruns >= HD_MAXRUNS) continue;
+            int best = 0; for (int v = 1; v < 256; v++) if (cnt[v] > cnt[best]) best = v;
+            HdRun *u = &hdtext_runs[hdtext_nruns++];
+            snprintf(u->text, sizeof u->text, "%s", B->text);
+            u->x = bx0 + r->ox; u->y = by0 + r->oy - 1; u->w = bx1 - bx0 + 1; u->h = by1 - by0 + 3; u->font = 1;
+            u->rgb = lut[best]; u->bgrgb = bn ? (br / bn) << 16 | (bg / bn) << 8 | (bb / bn) : 0;
+        }
+    }
+}
 
 void hdart_prepare(u32 *rgb, const u8 *idx, const u32 *lut)
 {
