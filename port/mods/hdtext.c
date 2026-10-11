@@ -60,13 +60,15 @@ static int glyph_bit(const Fnt *F, int c, int x, int y)
 }
 
 /* ---------------------------------------------------------------- records */
-#define MAXREC 256
+#define MAXREC 512
 #define MAXG 96
 typedef struct {
-    int used, font, x0, y0, w, h;      /* box on screen */
+    int used, page, font, x0, y0, w, h;   /* box on its page (0 the screen) */
     u32 stamp;
     int n;                             /* glyphs */
     int xr;                            /* drawn xor (option lists): a glyph pixel is the picture's ^ colour */
+    int is_shadow;                     /* the same text drawn again a pixel off covers this one (engraved */
+    int sh; u32 sh_stamp;              /* lettering); sh: slot + 1 of this record's shadow */
     u8 ch[MAXG]; short gx[MAXG]; u8 gw[MAXG]; u8 col[MAXG];
     u8 *under;                         /* the picture under the box before the text */
     u8 *bg;                            /* what the box shows now where there is no text (recolours applied) */
@@ -75,12 +77,25 @@ static Rec rec[MAXREC];
 static u32 stamp;
 
 static u8 *page0(void) { return M + 0xa0000; }
+/* a page's pixels: page 0 is the screen; the others are 320x200 buffers whose segments the
+ * graphics driver keeps in a table (MGRAPHIC cs:19b0, a word per page) */
+static u8 *page_mem(int page)
+{
+    { static int done; if (!done && drvseg_mgraphic && getenv("DL_PAGE_INFO")) { done = 1; fprintf(stderr, "pages:");
+        for (int p = 0; p < 8; p++) fprintf(stderr, " %d=%04x", p, rw(drvseg_mgraphic, (u16)(0x19b0 + 2 * p))); fprintf(stderr, "\n"); } }
+    if (page == 0) return page0();
+    if (page < 0 || page > 15 || !drvseg_mgraphic) return 0;
+    u16 seg = rw(drvseg_mgraphic, (u16)(0x19b0 + 2 * page));
+    if (!seg || seg == 0xa000) return 0;
+    return M + ((u32)seg << 4);
+}
+static void rec_free(Rec *r) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; }
 
-static void drop_covered(int x0, int y0, int w, int h)
+static void drop_covered(int page, int x0, int y0, int w, int h)
 {
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
-        if (r->used && r->x0 >= x0 && r->y0 >= y0 && r->x0 + r->w <= x0 + w && r->y0 + r->h <= y0 + h) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; }
+        if (r->used && r->page == page && r->x0 >= x0 && r->y0 >= y0 && r->x0 + r->w <= x0 + w && r->y0 + r->h <= y0 + h) rec_free(r);
     }
 }
 
@@ -88,11 +103,70 @@ static void drop_covered(int x0, int y0, int w, int h)
  * new picture over old text could otherwise pass the checks where it is plain enough) */
 void hdtext_cover(int page, int x0, int y0, int w, int h)
 {
-    if (page != 0 || w <= 0 || h <= 0) return;
+    if (w <= 0 || h <= 0) return;
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
-        if (r->used && r->x0 < x0 + w && x0 < r->x0 + r->w && r->y0 < y0 + h && y0 < r->y0 + r->h) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; }
+        if (r->used && r->page == page && r->x0 < x0 + w && x0 < r->x0 + r->w && r->y0 < y0 + h && y0 < r->y0 + r->h) rec_free(r);
     }
+}
+
+static int rec_slot(void)
+{
+    int slot = 0; u32 oldest = 0xffffffffu;
+    for (int i = 0; i < MAXREC; i++) { if (!rec[i].used) return i; if (rec[i].stamp < oldest) { oldest = rec[i].stamp; slot = i; } }
+    rec_free(&rec[slot]);
+    return slot;
+}
+
+/* engraved lettering (menus, the party list, help boxes): the text is drawn twice, a pixel
+ * apart, dark then light. The later copy is the text; the earlier one its shadow, wiped with it */
+static void link_shadow(int slot, int need_flag)
+{
+    Rec *r = &rec[slot];
+    for (int i = 0; i < MAXREC; i++) {
+        Rec *o = &rec[i];
+        if (i == slot || !o->used || o->page != r->page || o->font != r->font || o->n != r->n || (need_flag && !o->is_shadow)) continue;
+        int dx = r->x0 - o->x0, dy = r->y0 - o->y0;
+        if ((!dx && !dy) || dx < -1 || dx > 1 || dy < -1 || dy > 1 || memcmp(o->ch, r->ch, (size_t)r->n)) continue;
+        if (!need_flag && o->stamp > r->stamp) continue;
+        o->is_shadow = 1; r->sh = i + 1; r->sh_stamp = o->stamp;
+        return;
+    }
+}
+static Rec *shadow_of(Rec *r)
+{
+    if (!r->sh) return 0;
+    Rec *o = &rec[r->sh - 1];
+    return o->used && o->stamp == r->sh_stamp ? o : 0;
+}
+
+/* a rectangle copied from one page to another (gfx_copy_rect; called by hdart.c after the
+ * copy): the text inside it goes along. The party panel, the formula book and other screens
+ * are drawn off screen and then copied up whole. */
+void hdtext_copy(int sp, int ax, int ay, int w, int h, int dp, int bx, int by)
+{
+    if (!hdtext_mode || sp == dp || w <= 0 || h <= 0) return;
+    int dx = bx - ax, dy = by - ay;
+    for (int i = 0; i < MAXREC; i++) {
+        Rec *r = &rec[i];
+        if (!r->used || r->page != sp || r->x0 < ax || r->y0 < ay || r->x0 >= ax + w || r->y0 + r->h > ay + h) continue;
+        /* the glyphs that lie wholly inside the rectangle (a trailing space often does not) */
+        int n = 0, nw = 0;
+        while (n < r->n && r->x0 + r->gx[n] + r->gw[n] <= ax + w) { nw = r->gx[n] + r->gw[n]; n++; }
+        if (!n) continue;
+        int nx = r->x0 + dx, ny = r->y0 + dy;
+        if (nx < 0 || ny < 0 || nx + nw > 320 || ny + r->h > 200) continue;
+        int slot = rec_slot();
+        if (slot == i || !r->used) continue;
+        Rec c = *r;
+        c.page = dp; c.x0 = nx; c.y0 = ny; c.n = n; c.w = nw; c.sh = 0;
+        c.under = malloc((size_t)nw * r->h); c.bg = malloc((size_t)nw * r->h);
+        for (int yy = 0; yy < r->h; yy++) { memcpy(c.under + yy * nw, r->under + yy * r->w, (size_t)nw); memcpy(c.bg + yy * nw, r->bg + yy * r->w, (size_t)nw); }
+        c.stamp = ++stamp;
+        rec[slot] = c;
+    }
+    for (int i = 0; i < MAXREC; i++)
+        if (rec[i].used && rec[i].page == dp && !rec[i].is_shadow && rec[i].x0 >= bx && rec[i].y0 >= by && rec[i].x0 < bx + w && rec[i].y0 < by + h) link_shadow(i, 1);
 }
 
 /* recolours of the screen keep the records' backgrounds in step: gfx_recolor_rect (root
@@ -102,7 +176,7 @@ static void recolor_box(int x0, int y0, int w, int h, int from, int to)
 {
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
-        if (!r->used || !r->bg) continue;
+        if (!r->used || !r->bg || r->page != 0) continue;
         for (int yy = 0; yy < r->h; yy++) {
             int y = r->y0 + yy; if (y < y0 || y >= y0 + h) continue;
             for (int xx = 0; xx < r->w; xx++) {
@@ -118,6 +192,8 @@ static void recolor_hook(void)
     u16 w = rw(SS, (u16)(SP + 4));
     int x = (s16)rw(SS, (u16)(SP + 6)), y = (s16)rw(SS, (u16)(SP + 8)), ww_ = (s16)rw(SS, (u16)(SP + 10)), h = (s16)rw(SS, (u16)(SP + 12));
     int from = rb(SS, (u16)(SP + 14)), to = rb(SS, (u16)(SP + 16));
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_TRACE_RECOLOR") != 0;
+      if (lg) { u32 plat_ticks_ms(void); fprintf(stderr, "recolor %u: page %d at %d,%d + %d,%d %dx%d %02x->%02x\n", plat_ticks_ms(), (s16)g_rw(w), (s16)g_rw((u16)(w + 2)), (s16)g_rw((u16)(w + 4)), x, y, ww_, h, from, to); } }
     hook_call_original();
     if (!hdtext_mode || (s16)g_rw(w) != 0) return;
     recolor_box((s16)g_rw((u16)(w + 2)) + x, (s16)g_rw((u16)(w + 4)) + y, ww_, h, from, to);
@@ -134,12 +210,18 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     if (!hdtext_mode || !nfnt) { hook_call_original(); return; }
     u16 w = rw(SS, (u16)(SP + 4)); int x = (s16)rw(SS, (u16)(SP + 6)), y = (s16)rw(SS, (u16)(SP + 8)); u16 sp = rw(SS, (u16)(SP + 10));
     int page = (s16)g_rw(w), font = (s16)g_rw((u16)(w + 0x10));
-    if (page != 0 || font < 1 || font > nfnt || (hdtext_mode == 1 && font != 3)) { hook_call_original(); return; }
+    u8 *pm = page_mem(page);
+    if (!pm || font < 1 || font > nfnt || (hdtext_mode == 1 && (font != 3 || page != 0))) {
+        { static int lg = -1; if (lg < 0) lg = getenv("DL_HD_LOG") != 0;
+          if (lg) { char t[64]; int k; for (k = 0; k < 63 && rb(SS, (u16)(sp + k)); k++) { u8 c = rb(SS, (u16)(sp + k)); t[k] = c >= 32 && c < 127 ? (char)c : '?'; } t[k] = 0;
+                    fprintf(stderr, "hd: skipped text page %d font %d at %d,%d: %s\n", page, font, x, y, t); } }
+        hook_call_original(); return;
+    }
     const Fnt *F = &fnt[font - 1];
     int sx = (s16)g_rw((u16)(w + 2)) + x, sy = (s16)g_rw((u16)(w + 4)) + y;
     int col = g_rb((u16)(w + 0x0c));
     Rec r; memset(&r, 0, sizeof r);
-    r.font = font; r.x0 = sx; r.y0 = sy; r.h = F->height;
+    r.page = page; r.font = font; r.x0 = sx; r.y0 = sy; r.h = F->height;
     int cx = sx;
     for (int k = 0; k < 200; k++) {
         u8 c = rb(SS, (u16)(sp + k));
@@ -156,9 +238,9 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     if (g_rb((u16)(w + 0x0d))) {            /* xor: drawing the same text again erases it (option lists) */
         for (int i = 0; i < MAXREC; i++) {
             Rec *o = &rec[i];
-            if (o->used && o->x0 == sx && o->y0 == sy && o->font == font && o->n == r.n && !memcmp(o->ch, r.ch, (size_t)r.n)) {
+            if (o->used && o->page == page && o->x0 == sx && o->y0 == sy && o->font == font && o->n == r.n && !memcmp(o->ch, r.ch, (size_t)r.n)) {
                 hook_call_original();
-                hdtext_cover(0, sx, sy, r.w, r.h);
+                hdtext_cover(page, sx, sy, r.w, r.h);
                 if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: xor text at %d,%d erased\n", sx, sy);
                 return;
             }
@@ -167,15 +249,14 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < r.n && k < 99; k++) t[k] = (char)r.ch[k]; t[k] = 0;
         fprintf(stderr, "hd: text at %d,%d mode %d colour %02x win %04x: %s\n", sx, sy, g_rb((u16)(w + 0x0d)), g_rb((u16)(w + 0x0c)), w, t); }
     r.under = malloc((size_t)r.w * r.h);
-    for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, page0() + (sy + yy) * 320 + sx, (size_t)r.w);
+    for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, pm + (sy + yy) * 320 + sx, (size_t)r.w);
     r.bg = malloc((size_t)r.w * r.h); memcpy(r.bg, r.under, (size_t)r.w * r.h);
     hook_call_original();
-    drop_covered(r.x0, r.y0, r.w, r.h);
-    int slot = 0; u32 oldest = 0xffffffffu;
-    for (int i = 0; i < MAXREC; i++) { if (!rec[i].used) { slot = i; break; } if (rec[i].stamp < oldest) { oldest = rec[i].stamp; slot = i; } }
-    free(rec[slot].under); free(rec[slot].bg);
+    drop_covered(page, r.x0, r.y0, r.w, r.h);
+    int slot = rec_slot();
     r.used = 1; r.stamp = ++stamp;
     rec[slot] = r;
+    link_shadow(slot, 0);
 }
 
 /* the game's software mouse cursor (MGRAPHIC data: +0x20a x, +0x20c y, +0x20e/0x210 size,
@@ -204,12 +285,13 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
     int mx, my, mw, mh; cursor_rect(&mx, &my, &mw, &mh);
     /* newest first */
     static int order[MAXREC]; int no = 0;
-    for (int i = 0; i < MAXREC; i++) if (rec[i].used) order[no++] = i;
+    for (int i = 0; i < MAXREC; i++) if (rec[i].used && rec[i].page == 0) order[no++] = i;
     for (int a = 1; a < no; a++) { int t = order[a], b = a; while (b > 0 && rec[order[b - 1]].stamp < rec[t].stamp) { order[b] = order[b - 1]; b--; } order[b] = t; }
     static int dbgn = -1; if (dbgn < 0) dbgn = getenv("DL_HD_LOG") ? 1 : 0;
     int dbg = 0;
     for (int oi = 0; oi < no; oi++) {
         Rec *r = &rec[order[oi]];
+        if (r->is_shadow) continue;               /* goes with the text it shadows */
         dbg = dbgn && oi < 4;
         const Fnt *F = &fnt[r->font - 1];
         int ok[MAXG], gc[MAXG], alive = 0;
@@ -264,6 +346,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             gc[g] = c; xs_n[g] = 0; ok[g] = glyph_w(F, r->ch[g]) && r->ch[g] != ' ' ? 5 : 6;
         }
         /* wipe the verified glyphs and group them into runs of one colour */
+        Rec *S = shadow_of(r);
         for (int g = 0; g < r->n; g++) {
             int under_cursor = ok[g] & 4;
             ok[g] &= 3;
@@ -274,8 +357,31 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                     int p = (r->y0 + yy) * 320 + gx + xx;
                     if (under_cursor && (gc[g] >= 0 ? vga[p] != gc[g] : vga[p] != (u8)(r->under[yy * r->w + r->gx[g] + xx] ^ r->col[g]))) continue;   /* the cursor's own pixels stay */
                     claimed[p] = 1;
-                    if (glyph_bit(F, r->ch[g], xx, yy)) { u8 u = r->bg[yy * r->w + r->gx[g] + xx]; rgb[p] = lut[u]; if (idx) idx[p] = u; }
+                    if (glyph_bit(F, r->ch[g], xx, yy)) {
+                        u8 u = r->bg[yy * r->w + r->gx[g] + xx];
+                        if (S) {                   /* the shadow's pixel under the text: the picture under both */
+                            int sx = r->x0 + r->gx[g] + xx - S->x0, sy = r->y0 + yy - S->y0;
+                            if (sx >= 0 && sy >= 0 && sx < S->w && sy < S->h) u = S->bg[sy * S->w + sx];
+                        }
+                        rgb[p] = lut[u]; if (idx) idx[p] = u;
+                    }
                 }
+        }
+        if (S) {                                   /* the shadow's own pixels, where they still show */
+            for (int k = 0; k < S->n; k++)
+                for (int yy = 0; yy < S->h; yy++)
+                    for (int xx = 0; xx < S->gw[k]; xx++) {
+                        if (!glyph_bit(F, S->ch[k], xx, yy)) continue;
+                        int x = S->x0 + S->gx[k] + xx, y = S->y0 + yy, p = y * 320 + x;
+                        if (vga[p] != S->col[k]) continue;
+                        int mx = x - r->x0, my = y - r->y0;
+                        int g = -1;
+                        for (int q = 0; q < r->n; q++) if (mx >= r->gx[q] && mx < r->gx[q] + r->gw[q]) { g = q; break; }
+                        if (g >= 0 && my >= 0 && my < r->h && ok[g] != 1) continue;   /* beside a glyph that stays */
+                        if (g >= 0 && my >= 0 && my < r->h && glyph_bit(F, r->ch[g], mx - r->gx[g], my)) continue;
+                        u8 u = S->bg[yy * S->w + S->gx[k] + xx];
+                        rgb[p] = lut[u]; if (idx) idx[p] = u; claimed[p] = 1;
+                    }
         }
         int g = 0;
         while (g < r->n) {
@@ -300,6 +406,10 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             u->w = r->gx[g - 1] + r->gw[g - 1] - r->gx[s];
             u->y = r->y0; u->h = r->h; u->font = r->font;
             u->rgb = rgb;
+            {   u32 br = 0, bgg = 0, bb = 0, bn = 0;
+                for (int yy = 0; yy < r->h; yy++)
+                    for (int xx = r->gx[s]; xx < r->gx[g - 1] + r->gw[g - 1]; xx++) { u32 v = lut[r->bg[yy * r->w + xx]]; br += v >> 16 & 255; bgg += v >> 8 & 255; bb += v & 255; bn++; }
+                u->bgrgb = bn ? (br / bn) << 16 | (bgg / bn) << 8 | (bb / bn) : 0; }
         }
     }
 }

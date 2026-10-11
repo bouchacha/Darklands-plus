@@ -97,7 +97,7 @@ void ems_int67(void)
 {
     int h = DX;
     if (ems_trace < 0) ems_trace = getenv("DL_TRACE_EMS") != 0;
-    if (ems_trace) fprintf(stderr, "int67 ax=%04x bx=%04x dx=%04x\n", AX, BX, DX);
+    if (ems_trace) { int dl_in_irq(void); u32 plat_ticks_ms(void); fprintf(stderr, "int67 %u ax=%04x bx=%04x dx=%04x%s map %d %d %d %d\n", plat_ticks_ms(), AX, BX, DX, dl_in_irq() ? " IRQ" : "", mapped[0], mapped[1], mapped[2], mapped[3]); }
     switch (AH) {
     case 0x40: AH = 0; break;
     case 0x41: AH = 0; BX = EMS_FRAME; break;

@@ -23,11 +23,15 @@ extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
 
 /* text over any picture: an outline (or shadow) in the opposite brightness keeps it readable */
-static void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c, const char *t, int edge)
+/* edge: 0 none, 1 shadow, 2 outline. The edge takes the tone away from the picture behind
+ * (bg, 0xRRGGBB; -1 unknown): light text on a darker picture gets a dark edge, dark text on
+ * parchment a faint light one */
+static void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c, const char *t, int edge, int bg = -1)
 {
     if (edge) {
         int r = (c >> IM_COL32_R_SHIFT) & 255, g = (c >> IM_COL32_G_SHIFT) & 255, b = (c >> IM_COL32_B_SHIFT) & 255, a = (c >> IM_COL32_A_SHIFT) & 255;
-        bool light = r * 299 + g * 587 + b * 114 > 115000;
+        int lum = r * 299 + g * 587 + b * 114;
+        bool light = bg < 0 ? lum > 115000 : lum >= ((bg >> 16 & 255) * 299 + (bg >> 8 & 255) * 587 + (bg & 255) * 114);
         ImU32 e = light ? IM_COL32(0, 0, 0, (int)(a * 0.80f)) : IM_COL32(255, 244, 225, (int)(a * 0.45f));
         float th = size * 0.055f; if (th < 1.0f) th = 1.0f;
         if (edge == 1) dl->AddText(f, size, ImVec2(p.x + th, p.y + th), e, t);
@@ -148,11 +152,113 @@ static std::string utf8(const char *s)
     return o;
 }
 
+/* abbreviations of the character sheet spelled out where they fit (the sheet's narrow
+ * columns made the game write "wPol" for Polearms): each has a full and a shorter form */
+int ui_spell_out = 1;
+struct Abbr { const char *ab, *full, *mid; };
+static const Abbr ABBR[] = {
+    { "wEdg", "Edged Weapons", "Edged Wpns" }, { "wImp", "Impact Weapons", "Impact Wpns" }, { "wFll", "Flail Weapons", "Flail Wpns" },
+    { "wPol", "Polearm Weapons", "Polearm Wpns" }, { "wThr", "Thrown Weapons", "Thrown Wpns" }, { "wBow", "Bow Weapons", "Bow Wpns" },
+    { "wMsD", "Missile Devices", "Missile Dev." }, { "Alch", "Alchemy", 0 }, { "Relg", "Religion", 0 }, { "Virt", "Virtue", 0 },
+    { "SpkC", "Speak Common", "Spk Common" }, { "SpkL", "Speak Latin", "Spk Latin" }, { "R&W", "Read & Write", 0 },
+    { "Heal", "Healing", 0 }, { "Artf", "Artifice", 0 }, { "Stlh", "Stealth", 0 }, { "StrW", "Streetwise", 0 },
+    { "Ride", "Riding", 0 }, { "WdWs", "Woodwise", 0 }, { "No Msl Wpn", "No Missile Weapon", "No Missile Wpn" },
+    { "No V:Armor", "No Vitals Armor", "No V:Armor" }, { "No L:Armor", "No Limb Armor", "No L:Armor" },
+    { "End", "Endurance", 0 }, { "Str", "Strength", 0 }, { "Agl", "Agility", 0 }, { "Per", "Perception", 0 },
+    { "Int", "Intelligence", "Intellect" }, { "Chr", "Charisma", 0 }, { "DF", "Divine Favor", "Div. Favor" },
+};
+/* the item names the sheet shortens (ShrSword, V:Brgdn), from DARKLAND.LST */
+static const char *item_full(const std::string &t)
+{
+    static std::vector<std::pair<std::string, std::string>> m; static bool built;
+    if (!built && gamedata.loaded) {
+        built = true;
+        for (auto &it : gamedata.items) if (!it.shortname.empty() && it.shortname != it.name) {
+            bool dup = false; for (auto &e : m) if (e.first == it.shortname) { dup = true; break; }
+            if (!dup) m.push_back({ it.shortname, it.name });
+        }
+    }
+    for (auto &e : m) if (e.first == t) return e.second.c_str();
+    return 0;
+}
+static void abbr_forms(const std::string &t, const char **full, const char **mid)
+{
+    *full = *mid = 0;
+    for (const Abbr &a : ABBR) if (t == a.ab) { *full = a.full; *mid = a.mid; return; }
+    *full = item_full(t);
+}
+/* the room right of a run, in game pixels: up to the next text on its line, or the edge of
+ * the sheet's column */
+static int run_room_end(int i)
+{
+    const HdRun &r = hdtext_runs[i];
+    int end = 318;
+    if (r.x >= 195 && r.x < 215 && r.y >= 80) end = 256;          /* character sheet: equipment column */
+    if (r.x >= 230 && r.x < 245 && r.y < 75) end = 257;           /* attributes */
+    if (r.x >= 280 && r.x < 290) end = 316;                       /* skills */
+    for (int k = 0; k < hdtext_nruns; k++) {
+        const HdRun &o = hdtext_runs[k];
+        if (k == i || o.x <= r.x || o.y + o.h <= r.y || o.y >= r.y + r.h) continue;
+        if (o.x - 3 < end) end = o.x - 3;
+    }
+    return end;
+}
+/* spelled-out names, decided per column (the runs that start at one x) so that a column keeps
+ * one left edge and one size: the longest form of each name that fits at 72% or more, all
+ * drawn at the smallest scale any of them needs */
+struct Spelled { std::string text; float x, scale; };
+static void spell_columns(std::vector<Spelled> &out, ImFont *font, float size)
+{
+    out.assign(hdtext_nruns, Spelled{ std::string(), 0, 1 });
+    if (!ui_spell_out) return;
+    std::vector<int> done(hdtext_nruns, 0);
+    for (int i = 0; i < hdtext_nruns; i++) {
+        if (done[i] || hdtext_runs[i].h != 6) continue;
+        std::vector<int> col;
+        for (int k = i; k < hdtext_nruns; k++)
+            if (!done[k] && hdtext_runs[k].h == 6 && hdtext_runs[k].x == hdtext_runs[i].x) { done[k] = 1; col.push_back(k); }
+        int any = 0;
+        for (int k : col) { const char *f, *m; abbr_forms(utf8(hdtext_runs[k].text), &f, &m); if (f) any = 1; }
+        if (!any) continue;
+        int start = hdtext_runs[i].x, end = 320, floor_ = 0;
+        for (int k : col) {
+            const HdRun &r = hdtext_runs[k];
+            for (int j = 0; j < hdtext_nruns; j++) {
+                const HdRun &o = hdtext_runs[j];
+                if (j == k || o.x + o.w > r.x || o.x + o.w + 14 < r.x || o.y + o.h <= r.y || o.y >= r.y + r.h) continue;
+                if (o.x + o.w + 3 > floor_) floor_ = o.x + o.w + 3;
+            }
+            int e = run_room_end(k); if (e < end) end = e;
+        }
+        if (floor_ && floor_ < start) start = floor_;
+        float sx, sy, ex, ey; plat_game_to_win((float)start, 0, &sx, &sy); plat_game_to_win((float)end, 0, &ex, &ey);
+        /* one form for the whole column: full names if they all fit at 85%, else the shorter
+           forms at 72%, else the game's abbreviations */
+        float room = ex - sx, scale = 1;
+        std::vector<std::string> pick(col.size());
+        for (int level = 0; level < 3; level++) {
+            float minfit = 1;
+            for (size_t c = 0; c < col.size(); c++) {
+                std::string t = utf8(hdtext_runs[col[c]].text);
+                const char *f, *m; abbr_forms(t, &f, &m);
+                pick[c] = level == 0 && f ? f : level == 1 && (m || f) ? (m ? m : f) : t;
+                float w = font->CalcTextSizeA(size, FLT_MAX, 0, pick[c].c_str()).x;
+                if (w > room && room / w < minfit) minfit = room / w;
+            }
+            scale = minfit;
+            if (level == 2 || minfit >= (level == 0 ? 0.85f : 0.72f)) break;
+        }
+        for (size_t c = 0; c < col.size(); c++) out[col[c]] = Spelled{ pick[c], sx, scale };
+    }
+}
+
 extern "C" void hdtext_draw(void)
 {
     if (!hdtext_mode || !ui_font_text) return;
     ImFont *font = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    static std::vector<Spelled> sp;
+    { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f); }
     for (int i = 0; i < hdtext_nruns; i++) {
         const HdRun &r = hdtext_runs[i];
         std::string t = utf8(r.text);
@@ -164,10 +270,14 @@ extern "C" void hdtext_draw(void)
         float size = bh * 1.18f;
         ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         if (ts.x > bw * 1.04f) size *= bw * 1.04f / ts.x;
+        else if (r.font == 2 && t.size() >= 4 && ts.x < bw * 0.9f) {     /* the wide menu face: keep its width */
+            float k = bw * 0.95f / ts.x; if (k > 1.15f) k = 1.15f; size *= k;
+        }
+        if (!sp[i].text.empty()) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         ImU32 c = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
-        text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge);
+        text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
     }
 }
 

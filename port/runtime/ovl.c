@@ -3,6 +3,7 @@
  * relocated segment values and "which sibling overlay is present" faithful. */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cpu.h"
 #include "dispatch.h"
 #include "hle.h"
@@ -40,9 +41,40 @@ void ovl_init(const char *exe_path)
     }
 }
 
+/* An interrupt handler may call into an overlay (the game's timer tick runs a card-section
+ * routine, s043, through the RTLink manager). RTLink reloads the interrupted code's section
+ * when the handler returns; here the overlay area is saved before the first load inside a
+ * handler and put back afterwards (with which sections are present), so the interrupted
+ * code finds its own section, data and all, as it left it. Without this, pictures decoded
+ * while a timer tick hit came out as garbage (white blocks on the travel map, grey blocks
+ * on cards). */
+static int irq_depth; static u8 *irq_area; static u32 irq_a0, irq_a1; static int irq_loaded[256], irq_saved;
+void ovl_area(u32 *lin_start, u32 *lin_end);
+void ovl_irq_begin(void) { if (irq_depth++ == 0) irq_saved = 0; }
+void ovl_irq_end(void)
+{
+    if (--irq_depth > 0 || !irq_saved) return;
+    memcpy(M + ((u32)LOADSEG << 4) + irq_a0, irq_area, irq_a1 - irq_a0);
+    memcpy(ovl_loaded, irq_loaded, sizeof irq_loaded);
+    irq_saved = 0;
+    static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
+    if (tr) fprintf(stderr, "ovl: overlay area put back after an interrupt handler\n");
+}
+static void irq_save(void)
+{
+    if (!irq_depth || irq_saved) return;
+    ovl_area(&irq_a0, &irq_a1);
+    if (irq_a1 <= irq_a0) return;
+    irq_area = realloc(irq_area, irq_a1 - irq_a0);
+    memcpy(irq_area, M + ((u32)LOADSEG << 4) + irq_a0, irq_a1 - irq_a0);
+    memcpy(irq_loaded, ovl_loaded, sizeof irq_loaded);
+    irq_saved = 1;
+}
+
 static void load(int i)
 {
     Sect *s = &sect[i];
+    irq_save();
     static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
     if (tr) fprintf(stderr, "ovl: load s%03d at %04x\n", i, s->load_seg);
     if (s->parent != 0xffff && s->parent < nsect && !ovl_loaded[s->parent]) load(s->parent);

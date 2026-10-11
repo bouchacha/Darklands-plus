@@ -132,15 +132,68 @@ static int ivt_hooked(int n)
 }
 
 /* run the game's handler for interrupt n as the CPU would */
+/* an interrupt arrives between two instructions of whatever runs: the dispatcher's pending
+ * tail jump and unwinding state belong to that code, not to the handler */
+typedef struct { int tail; u16 tsp; int unw; u16 usp, uip, ucs; int ufar; } IrqSave;
+void ovl_irq_begin(void); void ovl_irq_end(void);
+static void irq_enter(IrqSave *s)
+{
+    { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_IRQSTACK") != 0;
+      if (tr && SS == (u16)(LOADSEG + 0x321a) && SP > 0x8d00 && SP <= 0x9051) fprintf(stderr, "irq at SP %04x (LZW stack)\n", SP); }
+    ovl_irq_begin();
+    s->tail = tail_pending; s->tsp = tail_sp; s->unw = unw_active; s->usp = unw_sp; s->uip = unw_ip; s->ucs = unw_cs; s->ufar = unw_far;
+    tail_pending = 0; unw_active = 0;
+}
+static void irq_leave(IrqSave *s, int n)
+{
+    if (unw_active || tail_pending) { static int w; if (w++ < 10) fprintf(stderr, "warning: int %02x handler left %s%s pending\n", n, unw_active ? "an unwinding return" : "", tail_pending ? " a tail jump" : ""); }
+    tail_pending = s->tail; tail_sp = s->tsp; unw_active = s->unw; unw_sp = s->usp; unw_ip = s->uip; unw_cs = s->ucs; unw_far = s->ufar;
+    ovl_irq_end();
+}
+
+/* debug (DL_IRQ_DIFF): which DGROUP bytes an interrupt handler changes, while the PIC
+ * decoder's LZW stack is active (SS:SP inside DGROUP 8e00..9051) */
+static u8 irqd_before[65536], irqd_e000[65536]; static int irqd_on = -1, irqd_armed;
+static void irqd_begin(void)
+{
+    if (irqd_on < 0) irqd_on = getenv("DL_IRQ_DIFF") != 0;
+    irqd_armed = irqd_on && SS == (u16)(LOADSEG + 0x321a) && SP > 0x8e00 && SP <= 0x9051;
+    if (irqd_armed) { memcpy(irqd_before, M + ((u32)(LOADSEG + 0x321a) << 4), 65536); memcpy(irqd_e000, M + 0xe0000, 65536); }
+}
+static void irqd_end(int n)
+{
+    if (!irqd_armed) return;
+    { const u8 *e = M + 0xe0000; int f = -1, cnt = 0;
+      for (int i = 0; i < 65536; i++) if (e[i] != irqd_e000[i]) { if (f < 0) f = i; cnt++; }
+      if (cnt) fprintf(stderr, "irqdiff int %02x SP %04x: page 1 (E000) %d bytes changed from %04x\n", n, SP, cnt, f); }
+    const u8 *now = M + ((u32)(LOADSEG + 0x321a) << 4);
+    int first = -1;
+    for (int i = 0; i <= 65536; i++) {
+        int d = i < 65536 && now[i] != irqd_before[i];
+        if (d && first < 0) first = i;
+        if (!d && first >= 0) { if (!(first >= 0x83b8 && first < 0x83c0) && !(first >= 0x9000 && first < 0x9052 && i - 1 < SP)) fprintf(stderr, "irqdiff int %02x SP %04x: %04x..%04x changed\n", n, SP, first, i - 1); first = -1; }
+    }
+}
+
 static void call_handler(int n)
 {
+    irqd_begin();
+    IrqSave sv; irq_enter(&sv);
     u16 off = rw(0, (u16)(n * 4)), seg = rw(0, (u16)(n * 4 + 2));
     push16(get_flags());
     R.iflag = 0; R.tf = 0;
     push16(HLE_SEG);
     push16((u16)(0xff00 | n));
     u16 ss0 = SS, sp0 = (u16)(SP + 6), bp0 = BP, si0 = SI, di0 = DI, ds0 = DS, es0 = ES;
+    u16 ax0 = AX, bx0 = BX, cx0 = CX, dx0 = DX;
+    u16 fl0 = rw(SS, (u16)(SP + 4));          /* the flags pushed above */
     dispatch_far(seg, off);
+    { u16 fl1 = get_flags(); if ((fl1 ^ fl0) & 0x0cd5) { static int wf; if (wf++ < 10) fprintf(stderr, "warning: int %02x handler changed flags %04x -> %04x\n", n, fl0, fl1); } }
+    if (AX != ax0 || BX != bx0 || CX != cx0 || DX != dx0) {
+        static int w3;
+        if (w3++ < 10) fprintf(stderr, "warning: int %02x handler %04x:%04x changed registers: AX %04x->%04x BX %04x->%04x CX %04x->%04x DX %04x->%04x\n",
+                               n, seg, off, ax0, AX, bx0, BX, cx0, CX, dx0, DX);
+    }
     if (BP != bp0 || SI != si0 || DI != di0 || DS != ds0 || ES != es0) {
         static int w2;
         if (w2++ < 5) fprintf(stderr, "warning: int %02x handler changed registers: BP %04x->%04x SI %04x->%04x DI %04x->%04x DS %04x->%04x ES %04x->%04x\n",
@@ -151,6 +204,8 @@ static void call_handler(int n)
         if (!warned++) fprintf(stderr, "warning: int %02x handler %04x:%04x returned with SS:SP %04x:%04x, expected %04x:%04x\n",
                                n, seg, off, SS, SP, ss0, sp0);
     }
+    irq_leave(&sv, n);
+    irqd_end(n);
 }
 
 /* ---------------------------------------------------------------- keyboard */
@@ -269,11 +324,15 @@ static void mouse_deliver(void)
     ms_pending = 0;
     if (!ev || !ms_hseg) return;
     CPU save = R;
+    irqd_begin();
+    IrqSave sv; irq_enter(&sv);
     AX = (u16)ev; BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; SI = (u16)ms_mickx; DI = (u16)ms_micky;
     push16(HLE_SEG); push16(0xfe00);
     dispatch_far(ms_hseg, ms_hoff);
     u16 ds = R.ds; (void)ds;
+    irq_leave(&sv, 0x33);
     R = save;
+    irqd_end(0x33);
 }
 
 /* ---------------------------------------------------------------- PIT / timer */
@@ -480,11 +539,18 @@ void hle_stub(u16 seg, u16 off)
      * (CF etc.) are kept, as DOS/BIOS services return them with retf 2 */
     u16 fl = rw(SS, (u16)(SP + 4));
     SP = (u16)(SP + 6);
-    set_flags((u16)((get_flags() & 0x08d5) | (fl & 0x0700)));
+    /* a hardware interrupt the game's handler chained to (timer, keyboard, other IRQs, and
+     * the timer's int 1Ch): a real iret, all the interrupted code's flags come back. Keeping
+     * the "service result" flags here let a timer tick land between a compare and its jump
+     * and flip it; the interpreted picture decoder then mis-decoded now and then (white
+     * blocks on the travel map, grey blocks and garbage in card pictures). */
+    if (n == 8 || n == 9 || n == 0x1c || (n >= 0x0a && n <= 0x0f) || (n >= 0x70 && n <= 0x77)) set_flags(fl);
+    else set_flags((u16)((get_flags() & 0x08d5) | (fl & 0x0700)));
 }
 
 /* ---------------------------------------------------------------- poll */
 static int in_irq;
+int dl_in_irq(void) { return in_irq; }
 static u32 last_present;
 extern int poll_count_events;
 
@@ -541,6 +607,13 @@ void dl_poll(void)
           if (tr) fprintf(stderr, "kbd irq: %02x (int 9 %s)\n", port60, ivt_hooked(9) ? "game" : "bios"); }
         if (ivt_hooked(9)) call_handler(9); else bios_int9();
     }
+    { static int st = -1; if (st < 0) { const char *e = getenv("DL_STRESS"); st = !e ? 0 : !strcmp(e, "timer") ? 1 : !strcmp(e, "mouse") ? 2 : 0; }
+      if (st == 1 && ivt_hooked(8)) { static u32 lastv; u32 v = rw(0, 0x22) << 16 | rw(0, 0x20); if (v != lastv) { fprintf(stderr, "stress: int 8 -> %04x:%04x\n", v >> 16, v & 0xffff); lastv = v; }
+          { static u32 l1, l2; u16 cs = (u16)(LOADSEG + 0x47c); u32 a = (u32)rw(cs, 0x215) << 16 | rw(cs, 0x213), b = (u32)rw(cs, 0x221) << 16 | rw(cs, 0x21f);
+            if (a != l1 || b != l2) { fprintf(stderr, "stress: timer calls %04x:%04x and %04x:%04x (LOADSEG %04x)\n", a >> 16, a & 0xffff, b >> 16, b & 0xffff, LOADSEG); l1 = a; l2 = b;
+                static const u16 P[] = { 0x12, 0x2c, 0x51, 0x5d, 0x62, 0x7a0 };
+                for (int k = 0; k < 6; k++) fprintf(stderr, "  047c:%04x -> %04x:%04x\n", P[k], rw(cs, (u16)(P[k] + 2)), rw(cs, P[k])); } } call_handler(8); }   /* test: a timer interrupt at every poll */
+      if (st == 2) ms_pending |= 1; }                                 /* test: a mouse event at every poll */
     if (ms_pending) mouse_deliver();
     in_irq = 0;
 }

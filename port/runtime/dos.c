@@ -94,6 +94,7 @@ static int new_handle(FILE *f)
  * +0 'M' or 'Z', +1 owner PSP (0 = free), +3 size in paragraphs, +8 name. */
 #define MEM_TOP 0xA000
 static u16 first_mcb;
+static int trace_mem(void) { static int t = -1; if (t < 0) t = getenv("DL_TRACE_MEM") != 0; return t; }
 #define MCB_T(m) M[(u32)(m) * 16]
 #define MCB_OWNER(m) rw((m), 1)
 #define MCB_SIZE(m) rw((m), 3)
@@ -412,9 +413,11 @@ void dos_int21(void)
     case 0x47: { u32 a = LIN(DS, SI); int n = 0;
         for (const char *c = dos_cwd; *c && n < 63; c++) M[a + n++] = (u8)(*c == '/' ? '\\' : toupper((u8)*c));
         M[a + n] = 0; SETCF(0); break; }
-    case 0x48: { u16 s; if (mem_alloc(BX, &s)) { AX = s; SETCF(0); } else { BX = largest_free(); dos_error(8); } break; }
-    case 0x49: if (mem_free(ES)) SETCF(0); else dos_error(9); break;
-    case 0x4a: { u16 mx; if (mem_resize(ES, BX, &mx)) SETCF(0); else { BX = mx; dos_error(8); } break; }
+    case 0x48: { u16 s, want = BX; if (mem_alloc(BX, &s)) { AX = s; SETCF(0); } else { BX = largest_free(); dos_error(8); }
+        if (trace_mem()) fprintf(stderr, "mem: alloc %04x paras -> %04x%s\n", want, AX, get_cf() ? " FAILED" : ""); break; }
+    case 0x49: if (trace_mem()) fprintf(stderr, "mem: free %04x\n", ES); if (mem_free(ES)) SETCF(0); else dos_error(9); break;
+    case 0x4a: { u16 mx, want = BX; if (mem_resize(ES, BX, &mx)) SETCF(0); else { BX = mx; dos_error(8); }
+        if (trace_mem()) fprintf(stderr, "mem: resize %04x to %04x paras%s\n", ES, want, get_cf() ? " FAILED" : ""); break; }
     case 0x4b:
         if (AL == 3) {
             get_str(DS, DX, name, sizeof name);

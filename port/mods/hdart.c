@@ -34,6 +34,7 @@
 #include "../runtime/config.h"
 #include "hdart.h"
 #include "hdtext.h"
+extern u16 drvseg_mgraphic;
 
 extern char game_dir[1024];
 int hdart_on = 1;
@@ -558,6 +559,13 @@ static void cap_to_page(void)
         Reg r = { id, (s16)cap.x, (s16)cap.y, (s16)cap.w, (s16)cap.rows, (s16)cap.x, (s16)cap.y, 1 };
         reg_add(cap.page, r, 1);
         if (logon) fprintf(stderr, "art: %s on page %d at %d,%d\n", pics[id].name, cap.page, cap.x, cap.y);
+        if (getenv("DL_PIC_HASH")) {
+            u32 h1 = 2166136261u; for (long i = 0; i < (long)cap.w * cap.rows; i++) h1 = (h1 ^ cap.px[i]) * 16777619u;
+            u32 h2 = 2166136261u; u16 seg = cap.page == 0 ? 0xa000 : rw(drvseg_mgraphic, (u16)(0x19b0 + 2 * cap.page));
+            for (int y = 0; y < cap.rows && cap.y + y < 200; y++) for (int x = 0; x < cap.w && cap.x + x < 320; x++) h2 = (h2 ^ M[((u32)seg << 4) + (cap.y + y) * 320 + cap.x + x]) * 16777619u;
+            u32 plat_ticks_ms(void);
+            fprintf(stderr, "pichash %u %s %dx%d decoded %08x page %d %08x\n", plat_ticks_ms(), cap.name, cap.w, cap.rows, h1, cap.page, h2);
+        }
     }
     cap.on = 0;
 }
@@ -610,7 +618,7 @@ static void h_sprite_file(void)             /* sprite_file_load(i, name, frames,
     while (name[n] && n < 9) { key[n] = (char)toupper((unsigned char)name[n]); n++; }
     key[n] = 0;
     for (int i = 0; i < k * 8 && i < 1024; i++) frame_set(g_rw((u16)(frames + 2 * i)), key, i);
-    if (logon) fprintf(stderr, "art: sprite set %s: %d frames\n", key, k * 8);
+    if (logon || getenv("DL_SPRITE_WATCH")) fprintf(stderr, "art: sprite set %s: %d frames (slot %d)\n", key, k * 8, slot);
 }
 
 /* the picture of a battle frame (decoded at seg:0; recoloured sets differ: one picture each) */
@@ -655,9 +663,23 @@ static void place_sprite(u16 win, int x, int y, Spr *s)
     }
 }
 
+static void sprite_watch(u16 key)            /* debug (DL_SPRITE_WATCH): a sprite's data changing after first use */
+{
+    static int on = -1; if (on < 0) on = getenv("DL_SPRITE_WATCH") != 0;
+    if (!on) return;
+    static u16 keys[4096]; static u32 hs[4096]; static int n;
+    u32 h = 2166136261u; for (int i = 0; i < 256; i++) h = (h ^ rb(key, (u16)i)) * 16777619u;
+    for (int i = 0; i < n; i++) if (keys[i] == key) {
+        if (hs[i] != h) { u32 plat_ticks_ms(void); fprintf(stderr, "sprite %04x changed at %u ms (w %d h %d)\n", key, plat_ticks_ms(), rb(key, 0), rb(key, 1)); hs[i] = h; }
+        return;
+    }
+    if (n < 4096) { keys[n] = key; hs[n] = h; n++; }
+    { u32 plat_ticks_ms(void); fprintf(stderr, "sprite %04x first at %u ms: w %d h %d hash %08x\n", key, plat_ticks_ms(), rb(key, 0), rb(key, 1), h); }
+}
 static void h_draw_sprite(void)             /* gfx_draw_sprite(win, x, y, handle): battle frames, map tiles */
 {
     u16 win = ARG(0); int x = (s16)ARG(1), y = (s16)ARG(2); u16 key = ARG(3);
+    sprite_watch(key);
     hook_call_original();
     if (!narts && !hdart_show_names) return;
     Frame *f = game_mode() == GM_BATTLE ? frame_find(key) : 0;
@@ -691,6 +713,7 @@ static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, 
     int cx = bx, cy = by, cw = w, ch = h;           /* the part that lands inside the destination */
     if (!clip(&cx, &cy, &cw, &ch, dox, doy, dx1, dy1) || !clip(&cx, &cy, &cw, &ch, 0, 0, 320, 200)) return;
     hdtext_cover(dp, cx, cy, cw, ch);
+    hdtext_copy(sp, ax + (cx - bx), ay + (cy - by), cw, ch, dp, cx, cy);
     static Reg tmp[MAXREG];
     int n = reg_take(sp, ax + (cx - bx), ay + (cy - by), cw, ch, bx - ax, by - ay, tmp, MAXREG);
     drop_covered(dp, cx, cy, cw, ch);

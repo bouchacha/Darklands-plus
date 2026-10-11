@@ -58,9 +58,9 @@ $(OUT)/fonts.c: third_party/fonts/*.ttf tools/bin2c.py | $(OUT)
 	    FONT_FRAKTUR=third_party/fonts/DLFraktur-Regular.ttf
 $(OUT)/fonts.o: $(OUT)/fonts.c
 	$(CC) -c -o $@ $<
-$(OUT)/mods_%.o: mods/%.c mods/*.h runtime/*.h | $(OUT)
+$(OUT)/mods_%.o: mods/%.c mods/*.h runtime/*.h ui/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
-$(OUT)/rt_%.o: runtime/%.c runtime/*.h | $(OUT)
+$(OUT)/rt_%.o: runtime/%.c runtime/*.h mods/*.h ui/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
 $(OUT)/opl3.o: third_party/nuked-opl3/opl3.c | $(OUT)
 	$(CC) -O2 -c -o $@ $<
