@@ -4,8 +4,10 @@
 #include <string.h>
 #include <float.h>
 #include <string>
+#include <vector>
 #include "imgui.h"
 #include "../mods/hdart.h"
+#include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -168,10 +170,67 @@ extern "C" void ui_draw_notice(void)
     ImGui::PopFont();
 }
 
+/* the saints and items a card accepts (card_saints[4] DS:ee4b, card_items[4] DS:ee43, set by
+ * the card script, -1 = none), with who in the party knows or carries them: what the
+ * Darklands Companion showed during encounters. The game's own pop-up lists only the saints
+ * someone knows. */
+static void draw_card_help(void)
+{
+    if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    if (size < 1 || size > 5) return;
+    std::vector<std::pair<std::string, std::string>> lines;
+    auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
+    for (int j = 0; j < 4; j++) {
+        int s = (s16)g_rw((u16)(0xee4b + 2 * j));
+        if (s < 0 || s >= (int)gamedata.saints.size()) continue;
+        std::string who;
+        for (int m = 0; m < size; m++)
+            if (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) { if (!who.empty()) who += ", "; who += name_of(m); }
+        lines.push_back({ gamedata.saints[s].name, who.empty() ? "nobody knows" : who });
+    }
+    int nsaints = (int)lines.size();
+    for (int j = 0; j < 4; j++) {
+        int it = (s16)g_rw((u16)(0xee43 + 2 * j));
+        if (it <= 0 || it >= (int)gamedata.items.size()) continue;
+        std::string who;
+        for (int m = 0; m < size; m++) {
+            int n = 0, k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+            for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == it) n += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
+            if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
+        }
+        lines.push_back({ game_text(gamedata.items[it].name.c_str(), 64), who.empty() ? "nobody has one" : who });
+    }
+    if (lines.empty()) return;
+    ImGui::PushFont(ui_font_small);
+    float lh = ImGui::GetTextLineHeight(), w = 0;
+    const char *hs = "Saints that work here", *hi = "Items that work here";
+    for (auto &l : lines) { float a = ImGui::CalcTextSize(l.first.c_str()).x + 14 + ImGui::CalcTextSize(l.second.c_str()).x; if (a > w) w = a; }
+    if (nsaints && ImGui::CalcTextSize(hs).x > w) w = ImGui::CalcTextSize(hs).x;
+    float h = lh * ((float)lines.size() + (nsaints ? 1 : 0) + (nsaints < (int)lines.size() ? 1 : 0)) + 10;
+    ImVec2 br = g2w(317, 197);
+    ImVec2 p0(br.x - w - 16, br.y - h), p1 = br;
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 205), 5);
+    dl->AddRect(p0, p1, IM_COL32(150, 110, 60, 200), 5);
+    float y = p0.y + 5, x = p0.x + 8;
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (i == 0 && nsaints) { dl->AddText(ImVec2(x, y), IM_COL32(215, 185, 130, 255), hs); y += lh; }
+        if (i == nsaints) { dl->AddText(ImVec2(x, y), IM_COL32(215, 185, 130, 255), hi); y += lh; }
+        bool none = lines[i].second == "nobody knows" || lines[i].second == "nobody has one";
+        dl->AddText(ImVec2(x, y), IM_COL32(245, 232, 200, 255), lines[i].first.c_str());
+        float nx = x + ImGui::CalcTextSize(lines[i].first.c_str()).x + 14;
+        dl->AddText(ImVec2(nx, y), none ? IM_COL32(170, 150, 125, 210) : IM_COL32(150, 225, 120, 255), lines[i].second.c_str());
+        y += lh;
+    }
+    ImGui::PopFont();
+}
+
 extern "C" void travel_overlay(void);
 extern "C" void ui_overlay(void)
 {
     draw_chances();
+    draw_card_help();
     travel_overlay();
     draw_picture_name();
 }

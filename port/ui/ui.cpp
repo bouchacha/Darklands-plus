@@ -194,6 +194,8 @@ static void set_original(bool on)
         n += snprintf(b + n, sizeof b - n, "%d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
         config_set_int("original.battle_speed", battle_speed);
         battle_speed_set(100);
+        config_set_int("original.card_help", assist_card_help);
+        assist_set_card_help(0);
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
@@ -222,6 +224,7 @@ static void set_original(bool on)
         sfx_set(config_get_int("original.sfx", 1));
         saves_enable(config_get_int("original.saves", 1));
         battle_speed_set(config_get_int("original.battle_speed", 100));
+        assist_set_card_help(config_get_int("original.card_help", 1));
         config_set_int("original", 0);
     }
     dirty_config = 1;
@@ -242,6 +245,9 @@ static void tab_helpers(void)
     if (ImGui::RadioButton("As the difficulty level allows (numbers, words or nothing)", c == 1)) c = 1;
     if (ImGui::RadioButton("Off", c == 0)) c = 0;
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
+    bool ch = assist_card_help;
+    if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
+    hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
     bool pp = pathfix_party, pe = pathfix_enemies;

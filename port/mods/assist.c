@@ -98,15 +98,33 @@ static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2):
     hook_call_original();
 }
 
+int assist_card_help = 1;          /* show the saints and items that work on a card */
+static void card_hooks(void)
+{
+    if (assist_chances || assist_card_help) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
+    else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); }
+    if (!assist_chances) card_chances.active = 0;
+}
+
 void assist_set_chances(int mode)
 {
     assist_chances = mode;
     config_set_int("assist.chances", mode);
-    if (mode) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
-    else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); card_chances.active = 0; }
+    card_hooks();
 }
+
+void assist_set_card_help(int on)
+{
+    assist_card_help = on;
+    config_set_int("assist.card_help", on);
+    card_hooks();
+}
+
+/* the card's option menu is up (polled in the last 300 ms) */
+int assist_in_card_menu(void) { return cm_depth > 0 && plat_ticks_ms() - card_chances.polled < 300; }
 
 void assist_init(void)
 {
+    assist_card_help = config_get_int("assist.card_help", 1);
     assist_set_chances(config_get_int("assist.chances", 2));
 }

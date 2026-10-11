@@ -2,6 +2,8 @@
 // save-game editors of the community (Darklands Companion, EDITOR.EXE, CharacterEditor) change,
 // done on the running game: money, names, attributes, skills, saints, formulas, a character's
 // colours (the "garish colours" bug), shield and figure, items' quality and number.
+// Party: fame DS:9082, bank notes DS:9072, philosopher's stone quality DS:9078 (the save header's
+// 0x7a, 0x8c, 0x92), local reputation location +0x12.
 // Member record DS:9c55 + 0x80*m (the save's character record 0x00..0x7f: +0x12 age, +0x15
 // shield letter, +0x25 name, +0x3e nickname, +0x5d/+0x64 attributes, +0x6b skills, +0x7e items);
 // colours far 20a5:33fc [5][24] (8 RGB, 6 bits); figure DS:a668 [5][4] ("F60"); saints far
@@ -50,6 +52,19 @@ extern "C" void tab_editor(void)
         ImGui::SetNextItemWidth(110); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
         ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("groschen", &g)) g_ww(G_MONEY + 2, (u16)(g < 0 ? 0 : g));
         ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("pfennigs", &p)) g_ww(G_MONEY + 4, (u16)(p < 0 ? 0 : p));
+        int bn = (s16)g_rw(0x9072), fame = (s16)g_rw(0x9082), ps = (s16)g_rw(0x9078);
+        ImGui::SetNextItemWidth(110); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(0x9072, (u16)(bn < 0 ? 0 : bn));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("fame", &fame)) g_ww(0x9082, (u16)fame);
+        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(0x9078, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
+        int loc = (s16)g_rw(G_CUR_LOC);
+        u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
+        if (lr) {
+            u16 ls = (u16)(lr >> 16), lo = (u16)lr;
+            char ln[24]; g_str(ls, (u16)(lo + 0x26), ln, sizeof ln);
+            int rep = (s16)rw(ls, (u16)(lo + 0x12));
+            std::string lab = "reputation in " + game_text(ln, sizeof ln);
+            ImGui::SetNextItemWidth(110); if (ImGui::InputInt(lab.c_str(), &rep)) ww(ls, (u16)(lo + 0x12), (u16)rep);
+        }
     }
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
