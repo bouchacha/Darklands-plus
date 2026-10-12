@@ -109,11 +109,11 @@ def main():
     py = [sys.executable, '-I']
     progress(1, 'Reading DARKLAND.EXE')
     an = os.path.join(work, 'analysis')
-    run(py + [os.path.join(ROOT, 'tools', 'analyze.py'), exe, an], 'Reading DARKLAND.EXE', 1, 70, 170)
+    run(py + [os.path.join(ROOT, 'tools', 'analyze.py'), exe, an], 'Reading DARKLAND.EXE', 1, 50, 50)
     gen = os.path.join(work, 'gen')
     os.makedirs(gen, exist_ok=True)
     run(py + [os.path.join(ROOT, 'port', 'recomp', 'recomp16.py'), exe, os.path.join(an, 'analysis.pickle'), gen],
-        'Translating the game', 70, 90, 45)
+        'Translating the game', 50, 90, 45)
     drv = ['%s=%s' % (k, find_file(a.game, f)) for k, f in DRIVERS if find_file(a.game, f)]
     run(py + [os.path.join(ROOT, 'port', 'recomp', 'recomp_drv.py'), gen] + drv, 'Translating the drivers', 90, 93, 5)
     rt = os.path.join(ROOT, 'port', 'runtime')

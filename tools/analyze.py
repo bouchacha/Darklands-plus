@@ -547,11 +547,17 @@ class Analyzer:
                         self.add_entry(t, lin, 'far_ptr_data', seg)
 
     def covered(self, img):
-        cov = set()
-        for (i, lin), r in self.insns.items():
-            if i == img:
-                cov.update(range(lin, lin + r[0]))
-        return cov
+        return self.covered_all().get(img, set())
+
+    def covered_all(self):
+        """bytes covered by decoded instructions, per image (one pass over all of them; cached
+        until more instructions are decoded)"""
+        if getattr(self, '_cov_n', -1) != len(self.insns):
+            cov = collections.defaultdict(set)
+            for (i, lin), r in self.insns.items():
+                cov[i].update(range(lin, lin + r[0]))
+            self._cov, self._cov_n = cov, len(self.insns)
+        return self._cov
 
     def prologue_scan(self):
         """Find functions only reachable through pointers: 'push bp; mov bp,sp' or 'enter' in gaps."""

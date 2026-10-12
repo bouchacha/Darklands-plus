@@ -21,7 +21,7 @@ INSTALLING
 2. Back up your SAVES folder. Saves go into the game folder, as in the original.
 3. Double-click darklands.exe.
 
-THE FIRST START takes a few minutes. Darklands+ translates the game program from your
+THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates the game program from your
 DARKLAND.EXE and keeps the result as darklands_game.dll in the game folder. After that it
 starts at once. It does this again only after an update that changes the translation.
 

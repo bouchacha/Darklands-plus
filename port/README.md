@@ -46,7 +46,7 @@ python3 -I port/tools/prepare.py --game /path/to/DARKLAND --out /path/to/DARKLAN
 ```
 
 `prepare.py` is what the program runs when the module is missing or was made by another
-translator (a progress window; about four minutes): the analysis, the translation and TinyCC,
+translator (a progress window; a minute or two): the analysis, the translation and TinyCC,
 which compiles the result into `darklands_game.dll` (`libdarklands_game.so` on Linux, where
 `make -C port SPLIT=1` and `make -C port module` work the same way). The translator's id is the
 hash of the files in `port/tools/translator_files.txt`; both the program and the module carry it.
