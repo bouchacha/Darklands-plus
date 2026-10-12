@@ -110,8 +110,9 @@ static int is_kind(const SaveInfo *s, const char *prefix) { return !strncmp(s->c
 
 static void remove_ci(const char *name)
 {
-    char p[1200];
-    if (real_path(name, p, sizeof p)) remove(p);
+    int dos_delete(const char *dos);
+    char dn[64]; snprintf(dn, sizeof dn, "SAVES\\%s", name);
+    dos_delete(dn);                      /* any case; in the shadow folder too (runtime/dos.c) */
 }
 
 int saves_delete(const char *name)

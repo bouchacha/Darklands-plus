@@ -178,6 +178,22 @@ static void write_path(const char *dos, char *out, size_t n, int keep)
     white_set(rel, 0);
 }
 
+/* a file deleted as the game deletes it (in a shadowed folder: the shadow's copy removed, the
+ * game folder's remembered as deleted); 1 if there was one */
+int dos_delete(const char *dos)
+{
+    char hp[1100];
+    if (dos_shadow[0]) {
+        char rel[600], g[1100]; norm_rel(dos, rel, sizeof rel);
+        path_in(dos_shadow, dos, hp, sizeof hp); host_path(dos, g, sizeof g);
+        int had = remove(hp) == 0;
+        if (!is_whiteout(rel) && file_exists(g)) { white_set(rel, 1); had = 1; }
+        return had;
+    }
+    host_path(dos, hp, sizeof hp);
+    return remove(hp) == 0;
+}
+
 /* (for the port's own readers: saves, the Honor Roll, enemy names) the file as the game would read it */
 void dos_host_path(const char *dos, char *out, size_t outn) { read_path(dos, out, outn); }
 /* ... and where a write of it goes */
@@ -588,16 +604,8 @@ void dos_int21(void)
         AX = (u16)fwrite(M + LIN(DS, DX), 1, CX, handles[BX]); SETCF(0); break; }
     case 0x41: get_str(DS, DX, name, sizeof name);
         if (dos_no_writes) { fprintf(stderr, "dos: delete %s while asking the game on the side: not done\n", name); SETCF(0); break; }
-        if (dos_shadow[0]) {
-            char rel[600], g[1100]; norm_rel(name, rel, sizeof rel);
-            path_in(dos_shadow, name, hp, sizeof hp); host_path(name, g, sizeof g);
-            int had = remove(hp) == 0;
-            if (!is_whiteout(rel) && file_exists(g)) { white_set(rel, 1); had = 1; }
-            if (had) SETCF(0); else dos_error(2);
-            break;
-        }
-        host_path(name, hp, sizeof hp);
-        if (remove(hp)) dos_error(2); else SETCF(0); break;
+        if (dos_delete(name)) SETCF(0); else dos_error(2);
+        break;
     case 0x42: {
         if (BX >= 64 || !handles[BX]) { dos_error(6); break; }
         long off = (long)(s32)(((u32)CX << 16) | DX);
