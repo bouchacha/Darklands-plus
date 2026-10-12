@@ -45,6 +45,7 @@ def alive():
 
 t_end = time.time() + a.minutes * 60
 last_sig, same_since, steps = None, time.time(), 0
+recent = []
 modes = {}
 while time.time() < t_end:
     if not alive():
@@ -74,7 +75,8 @@ while time.time() < t_end:
         elif act == 'help': nctl.do(name, 'ucmd uhelp:; wait 1; ucmd uhelp:; wait 0.5')
         continue
     if mode == 2 and n > 0: mode = 1          # a card over the travel map (village, encounter)
-    if mode == 1 and n > 1 and time.time() - same_since > 90:   # going round in circles (a mine's card): another way out
+    recent.append(card); del recent[:-25]
+    if n > 1 and len(recent) == 25 and len(set(recent)) == 1 and rnd.random() < 0.5:   # going round in circles (a mine's card): another way out
         nctl.do(name, 'ucmd ucardkey:%d; wait 2; at %d %d; click; wait 6' % (rnd.randrange(n) + 1, rnd.randrange(80, 300), rnd.randrange(20, 190))); continue
     if mode in (0, 3) and ': 0/0,0/0 0/0,0/0' in party and rnd.random() < 0.7:   # no party: the title menu
         nctl.do(name, 'at 160 62; click; wait 6; click; wait 3; click; wait 3'); continue
@@ -88,7 +90,7 @@ while time.time() < t_end:
             nctl.do(name, 'at 304 12; click; wait 1')
     elif mode == 2:
         r = rnd.random()
-        if r < 0.5 and time.time() - same_since < 60: nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
+        if r < 0.5 and len(set(recent)) > 1: nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
         else: nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(80, 300), rnd.randrange(20, 190)))
     elif mode == 4:
         if time.time() - same_since > 120:
