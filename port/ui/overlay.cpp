@@ -195,6 +195,7 @@ static void draw_chances(void)
             else g_str(G_DGROUP, p, main, sizeof main);
         }
         if (who >= 0 && who < 5 && members > 1) g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), sub, sizeof sub);
+        else if (who == -2 && members > 1) snprintf(sub, sizeof sub, "all");      /* the whole party is tested */
         float size = lh * 1.05f; if (size < 16) size = 16;
         float subsize = size * 0.78f;
         ImVec2 ms = f->CalcTextSizeA(size, FLT_MAX, 0, main), ss = sub[0] ? f->CalcTextSizeA(subsize, FLT_MAX, 0, sub) : ImVec2(0, 0);
