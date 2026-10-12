@@ -48,14 +48,17 @@ KEYS
   A controller: left stick the pointer, A click, B right click, X Enter, Y Esc, d-pad arrows,
                 Start F12, Back M, LB Tab, RB Space, right trigger held Ctrl (F1 shows them)
 
-ROLAND MT-32 MUSIC
-Darklands was composed for the Roland MT-32 / LAPC-I, and Darklands+ has Munt's emulator of it
-built in. It needs the synthesizer's two ROM files (control and PCM, from an MT-32, CM-32L or
-LAPC-I), which belong to Roland and are not included. If you use Munt or DOSBox with an MT-32
-you have them already: Darklands+ finds them by their contents in Munt's ROM folder, in
+ROLAND MT-32 MUSIC (strongly recommended)
+Darklands was composed for the Roland MT-32 / LAPC-I: its music and battle sounds are made with
+instruments the game loads into that synthesizer (flutes, lutes, the clash of blades). The Sound
+Blaster version is a stand-in. Darklands+ has Munt's emulator of the MT-32 built in, but it
+needs the synthesizer's two ROM files (control and PCM, from an MT-32, CM-32L or LAPC-I), which
+belong to Roland and are not included. If you use Munt or DOSBox with an MT-32 you have them
+already: Darklands+ finds them by their contents (any file names) in Munt's ROM folder, in
 DOSBox Staging's mt32-roms folder, or in a "roms" folder next to darklands.exe or in the
-Darklands folder (F12 > Display > Sound can name another folder). When they are found the
-music and the battle sounds play on the MT-32; otherwise on the emulated Sound Blaster.
+Darklands folder. When none are found, Darklands+ says so when it starts and lets you choose
+their folder (or "Don't remind me again"); F12 > Display > Sound can name the folder too. With
+both a CM-32L and an MT-32 pair you can switch between them there while playing.
 
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of

@@ -63,7 +63,7 @@ the players' README.
 
 On the first start a short welcome names the keys that matter and offers the original game untouched.
 
-* **Text and display:** crisp text everywhere, sharp up to 4K (seven typefaces, IM Fell English by default, outlines, a contrast floor),
+* **Text and display:** crisp text everywhere, sharp up to 4K (seven typefaces, the gothic Grenze Gotisch by default, outlines, a contrast floor),
   words painted into pictures redrawn crisply, character sheet abbreviations spelled out with
   skill icons, smooth scaling options, wide-screen margins with date, place, purse, tasks and the
   party's condition (in battles the battle log and everyone's condition), window size and full screen remembered; on Windows DPI-aware, the menus
@@ -82,7 +82,8 @@ On the first start a short welcome names the keys that matter and offers the ori
   the party's weapons in battle; loot and shop shortcuts (take or share a pile, sell a stack, buy
   ten); "Tidy the pack"; a bestiary (F12 > Records > Enemies, editable); icons on the world map.
 * **Sound:** the Roland MT-32 / LAPC-I emulated (Munt's libmt32emu) when the player's ROM files are
-  found (`runtime/mt32.c`), else the Sound Blaster (Nuked OPL3); a music volume; battle sounds
+  found (`runtime/mt32.c`; a note at start when they are not, CM-32L or MT-32 switchable while
+  playing), else the Sound Blaster (Nuked OPL3); a music volume; battle sounds
   from a sound pack (one made from 0 A.D.'s recordings comes with the release).
 * **Game controllers:** the left stick moves the pointer, A / B click and right-click, and so on
   (`runtime/platform_sdl.c`, F1 lists them).

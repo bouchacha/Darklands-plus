@@ -497,11 +497,18 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(s->cmd, "uwheel")) {             /* test: the mouse wheel turned by n notches (up > 0) */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
-            ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg); SDL_PushEvent(&ev);
+            ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg);
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+            ev.wheel.preciseY = (float)ev.wheel.y;       /* what ImGui's SDL backend reads */
+#endif
+            SDL_PushEvent(&ev);
         }
         else if (!strcmp(s->cmd, "utype")) {               /* test: text typed into the interface (SDL text input) */
-            SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_TEXTINPUT; ev.text.windowID = win ? SDL_GetWindowID(win) : 0;
-            snprintf(ev.text.text, sizeof ev.text.text, "%s", s->arg); SDL_PushEvent(&ev);
+            for (const char *t = s->arg; *t; ) {          /* in pieces: an event holds 31 bytes */
+                SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_TEXTINPUT; ev.text.windowID = win ? SDL_GetWindowID(win) : 0;
+                size_t k = strlen(t); if (k > 24) k = 24;
+                memcpy(ev.text.text, t, k); ev.text.text[k] = 0; SDL_PushEvent(&ev); t += k;
+            }
         }
         else if (!strcmp(s->cmd, "upadbtn")) {             /* test: a controller button (name,1 down / 0 up) */
             char nm[32] = ""; int dn = 1; sscanf(s->arg, "%31[^,],%d", nm, &dn);

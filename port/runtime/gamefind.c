@@ -135,6 +135,29 @@ static int choose(char *out, int n)
 }
 #endif
 
+/* a folder chosen by the player (Windows' folder dialog); 0 if none or not available */
+int plat_choose_folder(const char *title, char *out, int n)
+{
+#ifdef _WIN32
+    CoInitialize(NULL);
+    BROWSEINFOA bi; memset(&bi, 0, sizeof bi);
+    char disp[MAX_PATH];
+    bi.pszDisplayName = disp;
+    bi.lpszTitle = title;
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+    PIDLIST_ABSOLUTE id = SHBrowseForFolderA(&bi);
+    if (!id) return 0;
+    char path[MAX_PATH] = "";
+    int ok = SHGetPathFromIDListA(id, path) && path[0];
+    CoTaskMemFree(id);
+    if (ok) snprintf(out, (size_t)n, "%s", path);
+    return ok;
+#else
+    (void)title; (void)out; (void)n;
+    return 0;
+#endif
+}
+
 /* 1 found (out: the folder with DARKLAND.EXE) */
 int find_game_more(const char *exedir, char *out, int n, int interactive)
 {

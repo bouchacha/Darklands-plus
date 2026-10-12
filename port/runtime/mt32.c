@@ -42,6 +42,7 @@ static int scanned;                     /* the ROM search done (its result: chos
 typedef struct { char path[1100]; const char *ctrl, *pcm; } RomFile;
 static RomFile files[MAXF]; static int nfiles;
 static char machine[40];                /* the machine whose ROMs were found */
+static char playing[40];                /* the machine the emulator was started as */
 
 /* ---------------------------------------------------------------- where to look */
 static int ndirs; static char dirs[24][1100];
@@ -124,9 +125,14 @@ static int machine_rank(const char *m)
 {
     static const char *pref[] = { "cm32l_1_02", "cm32l_1_00", "cm32ln_1_00", "mt32_1_07", "mt32_1_06", "mt32_1_05", "mt32_1_04",
                                   "mt32_bluer", "mt32_2_04", "mt32_2_07", "mt32_2_06", "mt32_2_03" };
-    for (size_t i = 0; i < sizeof pref / sizeof pref[0]; i++) if (!strcmp(pref[i], m)) return (int)i;
+    int mt_first = !strcmp(config_get("sound.mt32_model", "cm32l"), "mt32");    /* the player prefers the MT-32's sound */
+    for (size_t i = 0; i < sizeof pref / sizeof pref[0]; i++)
+        if (!strcmp(pref[i], m)) return (int)i + (mt_first && !strncmp(m, "cm32l", 5) ? 50 : 0);
     return 100;
 }
+static int families;                    /* 1: a CM-32L pair was found, 2: an MT-32 pair */
+static void scan(void);
+int mt32_families(void) { if (!scanned) scan(); return families; }
 
 /* which machine the files found make up; 1 if one does */
 static int choose(void)
@@ -139,6 +145,7 @@ static int choose(void)
         if (ni > 256) ni = 256;
         int c = 0, p = 0;
         for (int i = 0; i < nfiles; i++) { c |= in_list(files[i].ctrl, ids, ni); p |= in_list(files[i].pcm, ids, ni); }
+        if (c && p) families |= !strncmp(ms[k], "cm32l", 5) ? 1 : 2;
         if (c && p && machine_rank(ms[k]) < bestrank) { best = (int)k; bestrank = machine_rank(ms[k]); }
     }
     if (best < 0) return 0;
@@ -148,7 +155,7 @@ static int choose(void)
 
 static void scan(void)
 {
-    scanned = 1; nfiles = 0; machine[0] = 0; found_dir[0] = 0;
+    scanned = 1; nfiles = 0; machine[0] = 0; found_dir[0] = 0; families = 0;
     mt32_dirs();
     for (int i = 0; i < ndirs; i++) {
         int before = nfiles;
@@ -178,23 +185,34 @@ static void MT32EMU_C_CALL rh_lcd(void *d, const char *m)
 }
 static const mt32emu_report_handler_i_v0 RH = { rh_version, rh_debug, NULL, NULL, rh_lcd };
 
+static int out_rate;
+
+/* a synthesizer of the machine found, or 0 (why[] says why) */
+static mt32emu_context make_synth(int rate)
+{
+    mt32emu_report_handler_i rh; rh.v0 = &RH;
+    mt32emu_context c = mt32emu_create_context(rh, NULL);
+    for (int i = 0; i < nfiles; i++) mt32emu_add_machine_rom_file(c, machine, files[i].path);
+    mt32emu_rom_info ri; mt32emu_get_rom_info(c, &ri);
+    if (!ri.control_rom_id || !ri.pcm_rom_id) { snprintf(why, sizeof why, "the ROM files do not make a pair"); mt32emu_free_context(c); return 0; }
+    mt32emu_set_stereo_output_samplerate(c, rate);
+    mt32emu_set_samplerate_conversion_quality(c, MT32EMU_SRCQ_GOOD);
+    mt32emu_set_analog_output_mode(c, MT32EMU_AOM_ACCURATE);
+    if (mt32emu_open_synth(c) != MT32EMU_RC_OK) { snprintf(why, sizeof why, "the emulator did not start"); mt32emu_free_context(c); return 0; }
+    snprintf(found_desc, sizeof found_desc, "%s, %s", ri.control_rom_description ? ri.control_rom_description : ri.control_rom_id,
+             ri.pcm_rom_description ? ri.pcm_rom_description : ri.pcm_rom_id);
+    snprintf(playing, sizeof playing, "%s", machine);
+    fprintf(stderr, "mt32: %s (%s)\n", found_desc, found_dir);
+    return c;
+}
+
 int mt32_open(int rate)
 {
     if (state) return state > 0;
     state = -1;
     if (!mt32_available()) { snprintf(why, sizeof why, "no MT-32 or CM-32L ROM files found"); return 0; }
-    mt32emu_report_handler_i rh; rh.v0 = &RH;
-    ctx = mt32emu_create_context(rh, NULL);
-    for (int i = 0; i < nfiles; i++) mt32emu_add_machine_rom_file(ctx, machine, files[i].path);
-    mt32emu_rom_info ri; mt32emu_get_rom_info(ctx, &ri);
-    if (!ri.control_rom_id || !ri.pcm_rom_id) { snprintf(why, sizeof why, "the ROM files do not make a pair"); mt32emu_free_context(ctx); ctx = 0; return 0; }
-    mt32emu_set_stereo_output_samplerate(ctx, rate);
-    mt32emu_set_samplerate_conversion_quality(ctx, MT32EMU_SRCQ_GOOD);
-    mt32emu_set_analog_output_mode(ctx, MT32EMU_AOM_ACCURATE);
-    if (mt32emu_open_synth(ctx) != MT32EMU_RC_OK) { snprintf(why, sizeof why, "the emulator did not start"); mt32emu_free_context(ctx); ctx = 0; return 0; }
-    snprintf(found_desc, sizeof found_desc, "%s, %s", ri.control_rom_description ? ri.control_rom_description : ri.control_rom_id,
-             ri.pcm_rom_description ? ri.pcm_rom_description : ri.pcm_rom_id);
-    fprintf(stderr, "mt32: %s (%s)\n", found_desc, found_dir);
+    if (!(ctx = make_synth(rate))) return 0;
+    out_rate = rate;
     {   /* say so once, the first time it plays */
         void ui_notice(const char *msg);
         if (!config_get_int("sound.mt32_told", 0)) {
@@ -217,6 +235,49 @@ static uint64_t cb_us;                  /* when the last buffer was made */
 static uint32_t rendered, cb_frames;    /* output frames made so far (that buffer included), and its length */
 static uint32_t last_ts;
 
+/* What the game has set up in the synthesizer, so that another machine can take over in the
+ * middle of the game (F12 > Display > Sound): the SysEx (its patches, timbres and settings; a
+ * later one to the same address replaces an earlier one) and each channel's program, controllers
+ * and pitch bend. */
+typedef struct { unsigned char *b; int n; } Sx;
+static Sx *sxs; static int nsx, capsx;
+static short prog[16] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+static short ctl[16][128], bend[16];
+static unsigned char ctl_set[16][128];
+static void remember(const unsigned char *m, int n)
+{
+    int ch = m[0] & 15;
+    switch (m[0] & 0xf0) {
+    case 0xc0: if (n > 1) prog[ch] = m[1]; return;
+    case 0xb0: if (n > 2 && m[1] < 120) { ctl[ch][m[1]] = m[2]; ctl_set[ch][m[1]] = 1; } return;
+    case 0xe0: if (n > 2) bend[ch] = (short)(m[1] | m[2] << 8 | 0x8000); return;
+    }
+    if (m[0] != 0xf0 || n < 9 || n > 4096) return;
+    /* F0 41 dev model 12 a a a data.. sum F7: the same address and length replace */
+    for (int i = 0; i < nsx; i++)
+        if (sxs[i].n == n && !memcmp(sxs[i].b + 1, m + 1, 7)) {
+            unsigned char *b = sxs[i].b; memmove(&sxs[i], &sxs[i + 1], (size_t)(nsx - i - 1) * sizeof *sxs);
+            memcpy(b, m, (size_t)n); sxs[nsx - 1].b = b; sxs[nsx - 1].n = n;
+            return;
+        }
+    if (nsx >= 2048) return;
+    if (nsx == capsx) { capsx = capsx ? capsx * 2 : 64; sxs = realloc(sxs, (size_t)capsx * sizeof *sxs); }
+    sxs[nsx].b = malloc((size_t)n); memcpy(sxs[nsx].b, m, (size_t)n); sxs[nsx].n = n; nsx++;
+}
+static void replay(mt32emu_context c)
+{
+    for (int i = 0, tries = 0; i < nsx; i++)
+        if (mt32emu_play_sysex(c, sxs[i].b, (mt32emu_bit32u)sxs[i].n) != MT32EMU_RC_OK && ++tries < 200) {   /* the queue full: let it take them in */
+            static short junk[2 * 64]; mt32emu_render_bit16s(c, junk, 64); i--;
+        }
+    for (int ch = 0; ch < 16; ch++) {
+        if (prog[ch] >= 0) mt32emu_play_msg(c, (mt32emu_bit32u)(0xc0 | ch) | (mt32emu_bit32u)prog[ch] << 8);
+        for (int k = 0; k < 120; k++)
+            if (ctl_set[ch][k]) mt32emu_play_msg(c, (mt32emu_bit32u)(0xb0 | ch) | (mt32emu_bit32u)k << 8 | (mt32emu_bit32u)ctl[ch][k] << 16);
+        if (bend[ch] & 0x8000) mt32emu_play_msg(c, (mt32emu_bit32u)(0xe0 | ch) | (mt32emu_bit32u)(bend[ch] & 0x7f7f) << 8);
+    }
+}
+
 /* from the game's thread: a whole MIDI message or SysEx (mpu.c) */
 void mt32_msg(const unsigned char *m, int n)
 {
@@ -230,6 +291,7 @@ void mt32_msg(const unsigned char *m, int n)
     if (m[0] == 0xf0) mt32emu_play_sysex_at(ctx, m, (mt32emu_bit32u)n, ts);
     else mt32emu_play_msg_at(ctx, (mt32emu_bit32u)m[0] | (n > 1 ? (mt32emu_bit32u)m[1] << 8 : 0) | (n > 2 ? (mt32emu_bit32u)m[2] << 16 : 0), ts);
     sound_lock(0);
+    remember(m, n);
 }
 
 /* from the audio callback (sound.c): add the synthesizer's output to the stereo stream */
@@ -250,16 +312,48 @@ void mt32_mix(short *out, int frames)
     rendered += cb_frames;
 }
 
+static const char *machine_desc(const char *m)
+{
+    static char b[64];
+    if (!strncmp(m, "cm32ln", 6)) return "CM-32LN";
+    if (!strncmp(m, "cm32l", 5)) return "CM-32L / LAPC-I";
+    if (!strncmp(m, "mt32_", 5)) {
+        const char *v = m + 5;
+        if (!strcmp(v, "bluer")) return "MT-32 (Blue Ridge)";
+        snprintf(b, sizeof b, "MT-32, version %c.%s", v[0], v + 2);
+        return b;
+    }
+    return m;
+}
+
 /* for F12 > Display */
 const char *mt32_status(void)
 {
     static char s[1600];
-    if (state > 0) snprintf(s, sizeof s, "Playing on %s (from %s).", found_desc, found_dir);
-    else if (mt32_available()) snprintf(s, sizeof s, "ROM files found (%s, in %s).", machine, found_dir[0] ? found_dir : "several folders");
+    if (state > 0) snprintf(s, sizeof s, "Playing on a %s (%s; from %s).", machine_desc(playing), found_desc, found_dir);
+    else if (mt32_available()) snprintf(s, sizeof s, "Found the ROM files of a %s in %s.", machine_desc(machine), found_dir[0] ? found_dir : "several folders");
     else if (state < 0 && why[0] && !strstr(why, "no MT-32")) snprintf(s, sizeof s, "The MT-32 could not start: %s.", why);
     else snprintf(s, sizeof s, "No MT-32 or CM-32L ROM files found. Put the two files (control and PCM, any names) into %s/roms, "
                   "or name their folder here.", dlp_user_dir[0] ? dlp_user_dir : game_dir);
     return s;
+}
+/* 1 if the ROMs found now make another machine than the one playing */
+int mt32_switch_pending(void) { return state > 0 && mt32_available() && strcmp(playing, machine) != 0; }
+
+/* from the game's thread: that machine takes over, with what the game set up in the old one */
+int mt32_switch(void)
+{
+    if (!mt32_switch_pending()) return 0;
+    mt32emu_context c = make_synth(out_rate);
+    if (!c) return 0;
+    replay(c);
+    sound_lock(1);
+    mt32emu_context old = ctx;
+    ctx = c; rendered = 0; last_ts = 0;
+    sound_lock(0);
+    mt32emu_close_synth(old); mt32emu_free_context(old);
+    fprintf(stderr, "mt32: switched to %s, %d SysEx replayed\n", machine, nsx);
+    return 1;
 }
 int mt32_dir_count(void) { if (!ndirs) mt32_dirs(); return ndirs; }
 const char *mt32_dir(int i) { return i >= 0 && i < ndirs ? dirs[i] : ""; }

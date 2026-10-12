@@ -30,7 +30,8 @@ extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE;
 }
 
-static bool open_menu, open_map, open_goto, open_help, open_welcome;
+extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
+static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32;
 static void welcome_window(void);
 static void help_window(void);
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
@@ -66,7 +67,7 @@ static int sys_cursor;                     /* display.system_cursor: the system 
 const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (old print)",
     "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)",
     "Grenze Gotisch (gothic, still readable)" };
-#define UI_DEFAULT_FONT 2                  /* IM Fell English */
+#define UI_DEFAULT_FONT 6                  /* Grenze Gotisch */
 /* the text over and beside the picture (side panels, tooltips, map names, notices): the game
    text's typeface, or the menus' (display.overlay_font_follow) */
 ImFont *ui_font_overlay;
@@ -192,6 +193,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         }
     }
     open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
+    {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
+        const char *dev = config_get("sound.device", "auto");
+        open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
+                    && !config_get_int("original", 0) && (!strcmp(dev, "auto") || !strcmp(dev, "mt32")) && !mt32_available();
+    }
     ui_game_font = config_get_int("display.text_font", UI_DEFAULT_FONT);
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = UI_DEFAULT_FONT;
     overlay_font_update();
@@ -231,7 +237,7 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || levelmap_is_open() || halloffame_is_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open(); }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
@@ -245,6 +251,10 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
 {
+    if (open_mt32 && !open_welcome) {       /* the MT-32 recommendation, as the welcome */
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -544,7 +554,7 @@ static void tab_helpers(void)
     }
 }
 
-extern "C" { const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
+extern "C" { int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
 static void tab_display(void)
 {
     bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
@@ -675,7 +685,13 @@ static void tab_display(void)
         ImGui::SetNextItemWidth(UIS(420));
         if (ImGui::InputTextWithHint("##mt32roms", "the folder with the ROM files, if they are elsewhere", romdir, sizeof romdir)) { config_set("sound.mt32_roms", romdir); dirty_config = 1; }
         ImGui::SameLine();
-        if (ImGui::Button("Look again##mt32")) mt32_rescan();
+        if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
+        if (mt32_families() == 3) {                /* both: which one */
+            const char *cur = config_get("sound.mt32_model", "cm32l");
+            ImGui::TextUnformatted("Both found, play on the");
+            ImGui::SameLine(); if (ImGui::RadioButton("CM-32L / LAPC-I (the later model, with extra sound effects)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); dirty_config = 1; }
+            ImGui::SameLine(); if (ImGui::RadioButton("MT-32", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); dirty_config = 1; }
+        }
         if (ImGui::TreeNode("About the MT-32")) {
             ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own "
                                "instruments into the synthesizer and plays the music and the battle sounds with them. Munt's "
@@ -858,6 +874,72 @@ static void welcome_window(void)
     ImGui::PopFont();
 }
 
+/* Darklands was made for the Roland MT-32: say so, and help find the ROM files */
+extern "C" int plat_choose_folder(const char *title, char *out, int n);
+static void mt32_window(void)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    float w = fminf(io.DisplaySize.x * 0.92f, UIS(780));
+    ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::PushFont(font_body);
+    if (ImGui::Begin("Darklands sounds best on a Roland MT-32", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::TextWrapped("Darklands was composed for the Roland MT-32 (and its sibling the LAPC-I). The game loads its own "
+                           "instruments into it: the music is played as written, with flutes, strings and horns, and the battles "
+                           "sound like swords and shields.");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster plays simpler FM versions of the music, and "
+                           "a General MIDI synthesizer such as Windows' own plays the wrong instruments (the \"piano falling down "
+                           "the stairs\" in battles).");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Darklands+ has the MT-32 built in (Munt's emulator). It only needs the synthesizer's two ROM files, "
+                           "control and PCM, of an MT-32 or a CM-32L (CM-32L is best). They belong to Roland, so they cannot come "
+                           "with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: "
+                           "show Darklands+ the folder.");
+        ImGui::Spacing();
+        ImGui::Separator();
+        static char romdir[1024]; static bool init; static std::string msg;
+        if (!init) { snprintf(romdir, sizeof romdir, "%s", config_get("sound.mt32_roms", "")); init = true; }
+        bool have = mt32_available();
+        if (have) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.18f, 0.40f, 0.16f, 1)); ImGui::TextWrapped("%s", mt32_status()); ImGui::PopStyleColor(); }
+        else {
+#ifdef _WIN32
+            if (ImGui::Button("Choose the folder with the ROM files...")) {
+                char d[1024];
+                if (plat_choose_folder("The folder with the MT-32 or CM-32L ROM files (control and PCM):", d, sizeof d)) {
+                    snprintf(romdir, sizeof romdir, "%s", d); config_set("sound.mt32_roms", romdir); config_save(); mt32_rescan();
+                    msg = mt32_available() ? "" : "No MT-32 or CM-32L ROM files in that folder.";
+                }
+            }
+            ImGui::SameLine(); ImGui::TextDisabled("or type it:");
+#endif
+            ImGui::SetNextItemWidth(UIS(380));
+            if (ImGui::InputTextWithHint("##mt32dir", "C:\\path\\to\\the\\roms", romdir, sizeof romdir)) config_set("sound.mt32_roms", romdir);
+            ImGui::SameLine();
+            if (ImGui::Button("Look again")) { config_save(); mt32_rescan(); msg = mt32_available() ? "" : "Not found there yet."; }
+            if (!msg.empty()) hint("%s", msg.c_str());
+            hint("Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms and a \"roms\" folder next to it or the game.");
+        }
+        ImGui::Spacing();
+        bool done = false;
+        if (have && !mt32_is_open()) {
+            if (ImGui::Button("Start again with the MT-32")) { config_save(); plat_restart(); }
+            ImGui::SameLine();
+        }
+        if (ImGui::Button(have ? "Close" : "Not now")) done = true;
+        if (!have) {
+            ImGui::SameLine();
+            if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
+        }
+        ImGui::TextDisabled("F12 > Display > Sound has all of this too.");
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
+        if (done) { open_mt32 = false; config_save(); }
+    }
+    ImGui::End();
+    ImGui::PopFont();
+}
+
 static void help_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -945,7 +1027,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -1029,6 +1111,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
     if (open_help) help_window();
     if (open_welcome) welcome_window();
+    else if (open_mt32) mt32_window();
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
