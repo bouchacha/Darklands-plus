@@ -146,6 +146,7 @@ int main(int argc, char **argv)
     {   /* no console on Windows: keep a log next to the game */
         char lp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
         freopen(lp, "w", stderr);
+        setvbuf(stderr, NULL, _IONBF, 0);        /* every line at once: a crash loses nothing */
     }
 #endif
     { extern const char dlp_version[]; fprintf(stderr, "Darklands+ build %s, game folder %s\n", dlp_version, game_dir); }
