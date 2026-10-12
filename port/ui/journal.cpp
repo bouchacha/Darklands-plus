@@ -334,7 +334,10 @@ static void icon_name_cell(int id, const char *name)
     float h = fmaxf(UIS(26), ImGui::GetTextLineHeight());
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::Dummy(ImVec2(h + UIS(4), h));
-    ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(2) + h * 0.5f, p.y + h * 0.5f), h * 0.84f, id);
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    dl->PushClipRect(p, ImVec2(p.x + h + UIS(4), p.y + h), true);      /* (some pictures reach past their box: kept in the row) */
+    ui_item_icon(dl, ImVec2(p.x + UIS(2) + h * 0.5f, p.y + h * 0.5f), h * 0.76f, id);
+    dl->PopClipRect();
     ImGui::SameLine();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (h - ImGui::GetTextLineHeight()) * 0.5f);
     ImGui::TextUnformatted(name);

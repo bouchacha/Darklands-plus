@@ -434,8 +434,11 @@ static void tab_helpers(void)
     if (ImGui::RadioButton("As the difficulty level allows (numbers, words or nothing)", c == 1)) c = 1;
     if (ImGui::RadioButton("Off", c == 0)) c = 0;
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
+
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Cards, screens and lists"); ImGui::PopFont();
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
+    ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
       if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
     { bool la = config_get_int("assist.loot_all", 1) != 0;
@@ -449,7 +452,6 @@ static void tab_helpers(void)
     { bool mc = config_get_int("assist.menu_click", 1) != 0;
       if (ImGui::Checkbox("A right click opens the menu bar (the next click chooses; Esc closes it)", &mc)) { config_set_int("assist.menu_click", mc); dirty_config = 1; }
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("The game shows its menus only while the right button is held down, and takes the entry under the pointer when\nit is let go. That still works; this adds the click. F10 opens the menus from the keyboard (arrows, Enter, Esc)."); }
-    hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
     { bool d = autopause_down, h = autopause_hurt;

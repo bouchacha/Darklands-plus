@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -192,6 +193,22 @@ void ui_saint_text(const std::string &t)
     }
 }
 
+/* the effect part of a description as a line of its own: "He increases Charisma ..." ->
+ * "Increases Charisma ..." */
+static std::string saint_summary(const std::string &t)
+{
+    static std::map<const std::string *, std::string> cache;
+    auto it = cache.find(&t);
+    if (it != cache.end()) return it->second;
+    size_t a = saint_effect_at(t);
+    while (a < t.size() && t[a] == ' ') a++;
+    std::string e = t.substr(a);
+    for (const char *p : { "He ", "She ", "It ", "They " })
+        if (e.compare(0, strlen(p), p) == 0) { e = e.substr(strlen(p)); if (!e.empty()) e[0] = (char)toupper((unsigned char)e[0]); break; }
+    cache[&t] = e;
+    return e;
+}
+
 extern "C" void tab_saints(void)
 {
     if (gamedata.saints.empty()) { ImGui::TextWrapped("DARKLAND.LST could not be read."); return; }
@@ -238,7 +255,21 @@ extern "C" void tab_saints(void)
         shown++;
         ImGui::PushID(s);
         bool open = ImGui::CollapsingHeader(t.name.c_str(), f.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen);
-        if (nk) { ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.55f); ImGui::TextDisabled("known by %s", who.c_str()); }
+        if (!open && ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
+            ImGui::PushTextWrapPos(UIS(520)); ui_saint_text(t.text); ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+        float full = ImGui::GetContentRegionAvail().x;
+        if (!open) {                       /* what the saint does, in a line, to scan the list by */
+            float x0 = full * 0.30f, x1 = nk ? full * 0.70f : full - UIS(10);
+            std::string e = saint_summary(t.text), cut = e;
+            while (!cut.empty() && ImGui::CalcTextSize((cut + "...").c_str()).x > x1 - x0) {
+                size_t sp = cut.find_last_of(' '); cut = sp == std::string::npos ? std::string() : cut.substr(0, sp);
+            }
+            if (cut.size() < e.size()) cut += "...";
+            ImGui::SameLine(x0); ImGui::TextDisabled("%s", cut.c_str());
+        }
+        if (nk) { ImGui::SameLine(full * (open ? 0.55f : 0.72f)); ImGui::TextDisabled("known by %s", who.c_str()); }
         if (open) { ImGui::Indent(UIS(20)); ui_saint_text(t.text); ImGui::Unindent(UIS(20)); ImGui::Spacing(); }
         ImGui::PopID();
     }
