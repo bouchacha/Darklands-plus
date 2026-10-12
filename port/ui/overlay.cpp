@@ -621,11 +621,11 @@ extern "C" void hdtext_draw_cursor(void)
     if (config_get_int("display.live_pointer", 1) && !scripted) {
         int mx, my; SDL_GetMouseState(&mx, &my);
         float ax, ay, bx, by; plat_game_to_win(0, 0, &ax, &ay); plat_game_to_win(320, 200, &bx, &by);
+        pointer_drawn = 1;
         if (mx >= ax && mx < bx && my >= ay && my < by && bx > ax && by > ay) {   /* over the picture: at the mouse */
             int hx, hy; hdtext_pointer_hotspot(&hx, &hy);
             fx = (mx - ax) * 320.0f / (bx - ax) + hx; fy = (my - ay) * 200.0f / (by - ay) + hy;
-        }
-        pointer_drawn = 1;
+        } else if (SDL_GetMouseFocus()) return;               /* in the margins the system's pointer shows instead (one pointer at a time) */
     }
     ptr_lo = g2w(fx, fy); ptr_hi = g2w(fx + w, fy + h); ptr_frame = ImGui::GetFrameCount();
     ImDrawList *dl = ImGui::GetForegroundDrawList();
