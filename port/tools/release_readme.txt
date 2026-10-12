@@ -20,7 +20,8 @@ INSTALLING
 2. Back up your SAVES folder. Saves stay in the Darklands folder, as in the original.
 3. Double-click darklands.exe. Darklands+ finds a GOG or Steam installation by itself;
    otherwise it asks you for the Darklands folder once. The original game files are not
-   changed.
+   changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
+   signed): choose "More info", then "Run anyway".
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
