@@ -383,6 +383,7 @@ static void to_game(int wx, int wy, int *gx, int *gy)
 
 void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
 
+static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window sizes are saved divided by it */
 /* the game stands still while the menu is open, and while the window is in the background
  * (display.pause_unfocused, on by default: a battle does not go on behind another window) */
 static int bg_paused;           /* the window lost the focus and the game waits */
@@ -596,7 +597,7 @@ void plat_events(void)
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && bg_paused) { bg_paused = 0; bg_resumed = plat_ticks_ms(); mouse_b = 0; }
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
                 static u32 last_save; u32 t = plat_ticks_ms();
-                config_set_int("display.window_w", e.window.data1); config_set_int("display.window_h", e.window.data2);
+                config_set_int("display.window_w", (int)(e.window.data1 / dpi_k + 0.5f)); config_set_int("display.window_h", (int)(e.window.data2 / dpi_k + 0.5f));
                 if (t - last_save > 1000) { config_save(); last_save = t; }
             }
             break;
@@ -703,7 +704,11 @@ void plat_init(int scale)
     if (!headless) {
         int wp = getenv("DL_SCRIPT") ? 0 : SDL_WINDOWPOS_CENTERED;   /* scripted tests: a known window position */
         /* the window as it was left: size and full screen (display.window_w/h, display.fullscreen) */
-        int ww = config_get_int("display.window_w", 0), wh = config_get_int("display.window_h", 0);
+        /* the size is kept in 96-dpi units (as earlier versions, which Windows scaled, saved it) */
+#ifdef _WIN32
+        { float ddpi = 0; if (config_get_int("display.dpi_aware", 1) && SDL_GetDisplayDPI(0, &ddpi, 0, 0) == 0 && ddpi > 96) dpi_k = ddpi / 96.0f; }
+#endif
+        int ww = (int)(config_get_int("display.window_w", 0) * dpi_k + 0.5f), wh = (int)(config_get_int("display.window_h", 0) * dpi_k + 0.5f);
         if (ww <= 0 || wh <= 0) {   /* the first start: 4:3, four fifths of the screen's height */
             SDL_DisplayMode dm; ww = 960; wh = 720;
             if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && SDL_GetDesktopDisplayMode(0, &dm) == 0 && dm.h >= 600) {   /* (tests: 960 x 720) */ wh = dm.h * 4 / 5; ww = wh * 4 / 3; if (ww > dm.w * 9 / 10) { ww = dm.w * 9 / 10; wh = ww * 3 / 4; } }
