@@ -223,15 +223,16 @@ static void draw_chances(void)
         if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
         if (nm[0]) snprintf(t, sizeof t, "This option tests %s: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, tip_pct);
         else snprintf(t, sizeof t, "This option tests the whole party: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", tip_pct);
-        ImFont *tf = ui_font_small ? ui_font_small : f;
-        float ts = tf->FontSize;
-        ImVec2 sz = tf->CalcTextSizeA(ts, FLT_MAX, 0, t);
-        ImVec2 q0(tip_at.x - sz.x - 12, tip_at.y + 6), q1(tip_at.x, tip_at.y + sz.y + 14);
+        ImFont *tf = f;
+        float ts = ui_text_px() * 0.8f, pad = ts * 0.45f;           /* sized like the other tooltips */
+        float wrap = fminf(ImGui::GetIO().DisplaySize.x * 0.45f, ts * 26);
+        ImVec2 sz = tf->CalcTextSizeA(ts, FLT_MAX, wrap, t);
+        ImVec2 q0(tip_at.x - sz.x - 2 * pad, tip_at.y + pad), q1(tip_at.x, tip_at.y + sz.y + 3 * pad);
         if (q0.x < 4) { q1.x += 4 - q0.x; q0.x = 4; }
         ImDrawList *fl = ImGui::GetForegroundDrawList();
-        fl->AddRectFilled(q0, q1, IM_COL32(28, 18, 10, 240), 4);
-        fl->AddRect(q0, q1, IM_COL32(170, 125, 65, 230), 4);
-        fl->AddText(tf, ts, ImVec2(q0.x + 6, q0.y + 7), IM_COL32(240, 225, 195, 255), t);
+        fl->AddRectFilled(q0, q1, IM_COL32(28, 18, 10, 240), pad * 0.6f);
+        fl->AddRect(q0, q1, IM_COL32(170, 125, 65, 230), pad * 0.6f);
+        fl->AddText(tf, ts, ImVec2(q0.x + pad, q0.y + pad), IM_COL32(240, 225, 195, 255), t, 0, wrap);
     }
 }
 
@@ -1067,6 +1068,7 @@ static ImVec2 loot_btn[2][2]; static int loot_btn_frame = -10, click_taken;
 static void draw_loot_buttons(void)
 {
     if ((!loot_active && !barter_active) || !loot_enabled() || game_mode() != GM_SCREEN) return;
+    if (hdart_on_screen("ARMBACK")) return;                  /* a character sheet opened from the shop or the loot */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     ImVec2 a = g2w(0, 0), b = g2w(0, 7);
     float size = (b.y - a.y) * 1.05f;

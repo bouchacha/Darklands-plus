@@ -211,8 +211,14 @@ static void right_panel(int size)
         bool shops = false;
         for (int i = 0; i < 9; i++) {
             if (c.shopq[i] <= 0) continue;
-            if (!shops) { ImGui::TextDisabled("Shops, quality of their wares:"); shops = true; }
-            ImGui::TextUnformatted(SHOP_NAMES[i]); ImGui::SameLine(); ImGui::TextDisabled("%d", c.shopq[i]);
+            /* the shop's rating, and what its weapons and armour come out at: (25 + rating) / 2
+               (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
+            if (!shops) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::TextWrapped("Shops: rating (their wares' quality)");
+                ImGui::PopStyleColor(); shops = true;
+            }
+            ImGui::TextUnformatted(SHOP_NAMES[i]); ImGui::SameLine(); ImGui::TextDisabled("%d (%dq)", c.shopq[i], (25 + c.shopq[i]) / 2);
         }
         static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
         if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }

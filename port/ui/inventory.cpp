@@ -659,11 +659,13 @@ extern "C" void tab_alchemy(void)
     static bool all_formulas = false;
     ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
     ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
-    if (ImGui::BeginTable("forms", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
-        ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthFixed, UIS(300));
-        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthFixed, UIS(110));
-        ImGui::TableSetupColumn("Ingredients", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, UIS(70));
+    if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthStretch, 1.3f);
+        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(8));
+        ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(8));
+        ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch, 1.2f);
+        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Batches").x + UIS(8));
         ImGui::TableHeadersRow();
         int listed = 0;
         for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
@@ -679,29 +681,34 @@ extern "C" void tab_alchemy(void)
             ImGui::Dummy(ImVec2(UIS(28), UIS(28)));
             draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3);
             ImGui::SameLine();
-            { std::string vn = virtue_name(f); ImGui::TextWrapped("%s", vn.empty() ? (pd ? pd->name.c_str() : "?") : vn.c_str()); }
-            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::Text("Mystical number %d", F.mystic); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-            if (all_formulas && f < (int)gamedata.formula_names.size()) {
-                static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
+            ImGui::BeginGroup();
+            std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");
+            ImGui::TextWrapped("%s", vn.empty() ? pn.c_str() : vn.c_str());
+            if (!vn.empty() && vn != pn) {                       /* the potion it makes (three formulas each) */
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                ImGui::TextWrapped("%s - difficulty %d, %s", gamedata.formula_names[f].c_str(), F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);   /* (was cut off at the column's edge) */
+                ImGui::TextWrapped("%s", pn.c_str());
                 ImGui::PopStyleColor();
             }
+            ImGui::EndGroup();
+            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
             ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.empty() ? "-" : who.c_str());
+            ImGui::TableNextColumn(); ImGui::Text("%d", F.mystic);
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("The formula's mystical number: the higher, the harder to brew (it is set against the alchemist's skill).");
+            ImGui::TableNextColumn();
+            { static const char *RISK[3] = { "low", "medium", "high" }; int r = F.risk >= 0 && F.risk < 3 ? F.risk : 0;
+              ImGui::TextColored(r == 0 ? ImVec4(0.2f, 0.45f, 0.15f, 1) : r == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%s", RISK[r]);
+              if (ImGui::IsItemHovered()) ImGui::SetTooltip("How badly a failed brew can go wrong."); }
             ImGui::TableNextColumn();
             int batches = 999;
-            for (size_t k = 0; k < F.ingr.size(); k++) {
+            for (size_t k = 0; k < F.ingr.size(); k++) {           /* one ingredient a line */
                 int have = party_stock(F.ingr[k].item, nullptr);
                 const ItemDef *d = def_of(F.ingr[k].item);
-                char lab[48]; snprintf(lab, sizeof lab, "%d %s", F.ingr[k].count, d ? d->shortname.c_str() : "?");
-                float need = 24 + ImGui::CalcTextSize(lab).x + 10;
-                if (k) { ImGui::SameLine(); if (ImGui::GetContentRegionAvail().x < need) ImGui::NewLine(); }
                 ImVec2 q = ImGui::GetCursorScreenPos();
                 ImGui::Dummy(ImVec2(UIS(22), UIS(22)));
                 draw_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + UIS(11), q.y + UIS(11)), UIS(20), d, F.ingr[k].item);
-                ImGui::SameLine(0, UIS(2));
-                ImGui::TextColored(have >= F.ingr[k].count ? ImVec4(0.2f, 0.12f, 0.06f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%s", lab);
-                if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s: the party has %d", d ? d->name.c_str() : "?", have);
+                ImGui::SameLine(0, UIS(4));
+                ImGui::TextColored(have >= F.ingr[k].count ? ImVec4(0.2f, 0.12f, 0.06f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%d %s", F.ingr[k].count, d ? d->name.c_str() : "?");
+                ImGui::SameLine(); ImGui::TextDisabled("(%d)", have);
                 int b = F.ingr[k].count ? have / F.ingr[k].count : 999;
                 if (b < batches) batches = b;
             }

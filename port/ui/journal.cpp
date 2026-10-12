@@ -366,11 +366,11 @@ static void town_page(int loc)
         ImGui::TextWrapped("Size %d.%s%s", c.size, b.empty() ? "" : " Has: ", b.c_str());
         std::string sh;
         for (int k = 0; k < 9; k++) if (c.shopq[k] && k != 4 && k != 7) {     /* no card opens the gunsmith or jeweller */
-            char e[64]; snprintf(e, sizeof e, "%s%s %d", sh.empty() ? "" : ",  ", SHOP_NAMES[k], c.shopq[k]);
+            char e[80]; snprintf(e, sizeof e, "%s%s %d (wares %dq)", sh.empty() ? "" : ",  ", SHOP_NAMES[k], c.shopq[k], (25 + c.shopq[k]) / 2);
             sh += e;
         }
-        ImGui::TextWrapped("Shops (quality): %s", sh.c_str());
-        ImGui::TextDisabled("Goods are about (item quality + shop quality) / 2.");
+        ImGui::TextWrapped("Shops (rating): %s", sh.c_str());
+        ImGui::TextDisabled("A shop's wares come out at (the item's base quality + the shop's rating) / 2; most weapons and armour have a base of 25.");
     }
     if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {
