@@ -62,7 +62,7 @@ UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
 CXXFLAGS := $(EXTRA) $(SANFL) -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
 OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(UI_OBJS) $(GEN_OBJS) \
-            $(OUT)/version.o
+            $(OUT)/version.o $(if $(filter win64,$(TARGET)),$(OUT)/res.o)
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
 # the translator's id: a game module made by another one does not fit (split.h, tools/prepare.py)
@@ -92,6 +92,8 @@ $(OUT)/opl3.o: third_party/nuked-opl3/opl3.c | $(OUT)
 	$(CC) -O2 -c -o $@ $<
 $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 	$(CC) $(CFLAGS) -c -o $@ $<
+$(OUT)/res.o: res/darklands.rc res/darklands.ico | $(OUT)
+	x86_64-w64-mingw32-windres -DDLP_VERSION='\"$(VERSION)\"' -I res -i res/darklands.rc -o $@
 $(OUT):
 	mkdir -p $@
 $(OUT)/version.c: FORCE | $(OUT)
