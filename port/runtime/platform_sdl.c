@@ -693,6 +693,7 @@ static int menu_escape(void)
     return 1;
 }
 
+static SDL_Scancode swallow_key; static int swallow_button;   /* the key or click that stopped "go to" */
 void plat_events(void)
 {
     SDL_Event e;
@@ -716,7 +717,10 @@ void plat_events(void)
             }
             break;
         case SDL_KEYDOWN:
-            { void citynav_user_input(void); if (!e.key.repeat) citynav_user_input(); }
+            {   /* a key while "go to" walks only stops it (the game does not see it: it could pick an option) */
+                int citynav_busy(void); void citynav_user_input(void);
+                if (citynav_busy()) { if (!e.key.repeat) citynav_user_input(); swallow_key = e.key.keysym.scancode; break; }
+            }
             if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
                 Uint32 fl = SDL_GetWindowFlags(win);
                 SDL_SetWindowFullscreen(win, (fl & SDL_WINDOW_FULLSCREEN_DESKTOP) ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -733,7 +737,7 @@ void plat_events(void)
             }
             key(e.key.keysym.scancode, 0);
             break;
-        case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;
+        case SDL_KEYUP: if (swallow_key && e.key.keysym.scancode == swallow_key) { swallow_key = 0; break; } key(e.key.keysym.scancode, 1); break;
         case SDL_MOUSEWHEEL:
             if (menu_escape()) break;
             /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
@@ -754,7 +758,11 @@ void plat_events(void)
             }
             bg_resumed = 0;
             if (menu_click(&e)) break;
-            if (e.type == SDL_MOUSEBUTTONDOWN) { void citynav_user_input(void); citynav_user_input(); }
+            {   /* a click while "go to" walks only stops it (and its release goes nowhere) */
+                int citynav_busy(void); void citynav_user_input(void);
+                if (e.type == SDL_MOUSEBUTTONDOWN && citynav_busy()) { citynav_user_input(); swallow_button |= 1 << e.button.button; break; }
+                if (e.type == SDL_MOUSEBUTTONUP && (swallow_button & (1 << e.button.button))) { swallow_button &= ~(1 << e.button.button); break; }
+            }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
                 int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
                 void travel_click(int, int); travel_click(gx, gy);       /* Ctrl+click on the map: travel there */

@@ -208,9 +208,11 @@ static void recolor_hook(void)
     if (!hdtext_mode || (s16)g_rw(w) != 0) return;
     recolor_box((s16)g_rw((u16)(w + 2)) + x, (s16)g_rw((u16)(w + 4)) + y, ww_, h, from, to);
 }
-static void fade_hook(void)
+int hdtext_fast_fades;                     /* cards' fades at once: while "go to" walks (ui/citynav.cpp), or always (assist.fast_fades) */
+static void fade_hook(void)                 /* palette_fade(a, b, c, d, duration) */
 {
     int c = rb(SS, (u16)(SP + 4));
+    if (hdtext_fast_fades || (config_get_int("assist.fast_fades", 1) && !config_get_int("original", 0))) ww(SS, (u16)(SP + 12), 0);   /* one step */
     hook_call_original();
     if (hdtext_mode) recolor_box(0, 0, 320, 200, -1, c);
 }

@@ -13,7 +13,7 @@ void hdtext_set(int mode);
 void hdtext_cover(int page, int x, int y, int w, int h);   /* a blit on a page: text under it is gone */
 int hdtext_game_cursor(int *x, int *y, int *w, int *h);
 const unsigned *hdtext_cursor(int *x, int *y, int *w, int *h, int *stride);   /* the pointer's pixels (0xffRRGGBB, 0 clear) or 0 */
-extern int hdtext_live_pointer;         /* the interface draws the pointer at the mouse: the game's sprite is taken out of the picture */
+extern int hdtext_live_pointer, hdtext_fast_fades;         /* the interface draws the pointer at the mouse: the game's sprite is taken out of the picture */
 void hdtext_pointer_hotspot(int *hx, int *hy);
 void hdtext_copy(int sp, int sx, int sy, int w, int h, int dp, int dx, int dy);   /* a rectangle copied between pages */
 #ifdef __cplusplus

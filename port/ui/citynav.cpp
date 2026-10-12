@@ -186,6 +186,7 @@ static void stop(const char *why)
 
 extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); }
 extern "C" int citynav_busy(void) { return goal >= 0; }
+extern "C" { extern int hdtext_fast_fades; }
 
 static bool in_city(void)
 {
@@ -224,11 +225,12 @@ static void click_line(int i)
 
 extern "C" void citynav_tick(void)
 {
+    hdtext_fast_fades = goal >= 0;                         /* the cards' fades at once while walking */
     if (goal < 0) return;
     { static int gen = -1; int datamods_generation(void); if (gen != datamods_generation()) { gen = datamods_generation(); cards.clear(); cards_loaded = false; } }
     if (!cards_loaded) load_cards();
     u32 now = plat_ticks_ms();
-    if (now - last_act < 350) return;                      /* let the game take the last click */
+    if (now - last_act < 250) return;                      /* let the game take the last click */
     if (!in_city()) { stop(game_mode() == GM_CARD ? "left the city." : "interrupted."); return; }
     if (steps_taken > 20) { stop("too many steps; stopped."); return; }
     std::string card = card_now();
@@ -237,7 +239,7 @@ extern "C" void citynav_tick(void)
     if (phase_key != kb) { phase_key = kb; phase_t = now; }
     int hub = hub_of(card);
     if (!assist_in_card_menu()) {                        /* the card's text: read on (hubs, and the place the walk starts from) */
-        if (now - phase_t < 450) return;
+        if (now - phase_t < 300) return;
         if (hub == H_NONE) {
             if (visited || conts >= 8) { stop(steps_taken ? "something happened on the way." : "leave this place first."); return; }   /* (the Quickstart's inn card has six pages) */
             conts++;
@@ -246,7 +248,7 @@ extern "C" void citynav_tick(void)
         plat_click_game(304, 12); last_act = now;
         return;
     }
-    if (now - phase_t < 250) return;                       /* the option list fading in */
+    if (now - phase_t < 120) return;                       /* the option list fading in (at once while walking) */
     if (kb == last_key) { if (++same_count > 3) { stop("the way is blocked."); return; } } else { last_key = kb; same_count = 0; }
     auto it = cards.find(card);
     if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("unknown card."); return; }
