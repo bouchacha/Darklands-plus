@@ -38,7 +38,10 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         if (f) game_call_live(f, 11, args);
     }
     cm_depth++; cm_dirty = 1;
+    void chronicle_capture(void), chronicle_choice(int);
+    chronicle_capture();                 /* the text on show (ui/journal.cpp) */
     hook_call_original();
+    chronicle_choice((s16)AX);           /* and the option chosen */
     cm_depth--;
     if (!cm_depth) card_chances.active = 0;
 }

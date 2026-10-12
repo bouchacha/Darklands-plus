@@ -522,6 +522,11 @@ static void tab_helpers(void)
     bool j = journal_enabled();
     if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); dirty_config = 1; }
     hint("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
+    if (j) {
+        bool ch = config_get_int("journal.chronicle", 1) != 0;
+        if (ImGui::Checkbox("Keep a chronicle of every text the cards show", &ch)) { config_set_int("journal.chronicle", ch); dirty_config = 1; }
+        hint("Word for word, with the date, the place and the choice made: a clue read weeks ago can be found again (Journal > Chronicle).");
+    }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Editor"); ImGui::PopFont();
     bool ed = config_get_int("editor.show", 0);

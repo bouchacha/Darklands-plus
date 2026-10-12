@@ -25,6 +25,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
+#include "../mods/hdtext.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
@@ -233,8 +234,180 @@ static void record_town_stock(int loc)
 }
 
 /* ---------------------------------------------------------------- hooks */
+/* ---------------------------------------------------------------- the chronicle
+ * Every text the cards show, word for word, with the date, the place and the option chosen, so
+ * a clue read weeks ago can be read again. The card engine expands the text block on show into
+ * msg_buf (DS:9085, s043 text_expand: the narrative, then the option lines, each "\x15...\x1d"
+ * and its words; \x14 starts a paragraph); card_menu (s043 1142, hooked in mods/assist.c)
+ * returns the option number chosen, whose line on screen is found through the option layout
+ * D_e96e (line y e974[], height e988[], option opt e9b0[]). Kept per game in
+ * darklands_chronicle_<seed>.txt, one entry a line (date, place, text, choice; tabs between). */
+struct ChronEntry { std::string date, place, text, choice; };
+static std::vector<ChronEntry> chron;
+static int chron_seed = -1;
+static bool chron_pending;                 /* the last entry is not in the file yet (its choice may come) */
+
+static std::string chron_path(int seed)
+{
+    extern char dlp_data_dir[];
+    char b[1200]; snprintf(b, sizeof b, "%s/darklands_chronicle_%u.txt", dlp_data_dir, (unsigned)seed);
+    return b;
+}
+static std::string esc(const std::string &t) { std::string o; for (char c : t) { if (c == '\n') o += "\\n"; else if (c == '\t') o += ' '; else if (c == '\\') o += "\\\\"; else o += c; } return o; }
+static std::string unesc(const std::string &t)
+{
+    std::string o;
+    for (size_t i = 0; i < t.size(); i++) {
+        if (t[i] == '\\' && i + 1 < t.size()) { o += t[i + 1] == 'n' ? '\n' : t[i + 1]; i++; }
+        else o += t[i];
+    }
+    return o;
+}
+static void chron_flush(void)
+{
+    if (!chron_pending || chron.empty() || chron_seed < 0) return;
+    chron_pending = false;
+    FILE *f = fopen(chron_path(chron_seed).c_str(), "a");
+    if (!f) return;
+    const ChronEntry &e = chron.back();
+    fprintf(f, "%s\t%s\t%s\t%s\n", esc(e.date).c_str(), esc(e.place).c_str(), esc(e.text).c_str(), esc(e.choice).c_str());
+    fclose(f);
+}
+static void chron_load(int seed)
+{
+    chron_flush();
+    chron.clear(); chron_seed = seed; chron_pending = false;
+    FILE *f = fopen(chron_path(seed).c_str(), "r");
+    if (!f) return;
+    std::string line; int c;
+    while ((c = fgetc(f)) != EOF) {
+        if (c != '\n') { line += (char)c; continue; }
+        size_t a = line.find('\t'), b = a == std::string::npos ? a : line.find('\t', a + 1), d = b == std::string::npos ? b : line.find('\t', b + 1);
+        if (d != std::string::npos) chron.push_back({ unesc(line.substr(0, a)), unesc(line.substr(a + 1, b - a - 1)), unesc(line.substr(b + 1, d - b - 1)), unesc(line.substr(d + 1)) });
+        line.clear();
+    }
+    fclose(f);
+}
+static int chron_on(void) { return journal_on && config_get_int("journal.chronicle", 1) && !config_get_int("original", 0); }
+
+/* the narrative of the text block now in msg_buf (without the option lines), as UTF-8 */
+static std::string chron_text_now(void)
+{
+    std::string out, para; bool any = false;
+    char line[600]; int n = 0;
+    auto end_line = [&](void) {
+        line[n] = 0;
+        const char *p = line; bool opt = false;
+        while (*p == 0x14) { p++; if (!para.empty()) { out += (out.empty() ? "" : "\n\n") + para; para.clear(); } }
+        if (*p == 0x15) opt = true;
+        if (!opt) {
+            std::string clean;
+            for (const char *q = p; *q; q++) if ((unsigned char)*q >= 0x20) clean += *q; else if (*q == 0x1d) clean += ' ';
+            if (!clean.empty()) { para += (para.empty() ? "" : " ") + game_text(clean.c_str(), clean.size()); any = true; }
+        }
+        n = 0;
+    };
+    for (int i = 0; i < 4000; i++) {
+        char c = (char)g_rb((u16)(0x9085 + i));
+        if (!c) break;
+        if (c == '\n') { end_line(); continue; }
+        if (n < (int)sizeof line - 1) line[n++] = c;
+    }
+    if (n) end_line();
+    if (!para.empty()) out += (out.empty() ? "" : "\n\n") + para;
+    return any ? out : "";
+}
+
+/* text_expand has just put a block into msg_buf: it is what the card shows next (kept aside,
+ * as msg_buf is also where option help such as "Success is assured." is written) */
+static std::string chron_next;
+static void chronicle_expanded(void)
+{
+    if (!chron_on()) return;
+    chron_next = chron_text_now();
+}
+
+/* the block on show is read: into the chronicle (once) */
+extern "C" void chronicle_capture(void)
+{
+    if (!chron_on() || game_mode() == GM_OTHER || chron_next.empty()) return;
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed != chron_seed) chron_load(seed);
+    std::string t; t.swap(chron_next);
+    if (getenv("DL_CHRON_LOG")) fprintf(stderr, "chronicle: %d bytes: %.60s\n", (int)t.size(), t.c_str());
+    if (t.size() < 8 || (!chron.empty() && chron.back().text == t)) return;
+    chron_flush();
+    int loc = (s16)g_rw(G_CUR_LOC);
+    chron.push_back({ game_date(), loc >= 0 ? loc_name(loc) : "the countryside", t, "" });
+    chron_pending = true;
+    if (chron.size() > 20000) chron.erase(chron.begin(), chron.begin() + 1000);
+}
+
+/* card_menu returned option sel: the words of its line on screen */
+extern "C" void chronicle_choice(int sel)
+{
+    if (!chron_on() || chron.empty() || !chron_pending || !chron.back().choice.empty()) return;
+    int n = (s8)g_rb(0xe96e);
+    for (int i = 0; i < n && i < 20; i++) {
+        if ((s8)g_rb((u16)(0xe9b0 + i)) != sel) continue;
+        int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+        std::vector<const HdRun *> rs;
+        for (int k = 0; k < hdtext_nruns; k++)
+            if (hdtext_runs[k].x >= 60 && hdtext_runs[k].y >= y - 1 && hdtext_runs[k].y < y + h - 1) rs.push_back(&hdtext_runs[k]);
+        std::sort(rs.begin(), rs.end(), [](const HdRun *a, const HdRun *b) { return a->y != b->y ? a->y < b->y : a->x < b->x; });
+        std::string t;
+        for (const HdRun *r : rs) t += (t.empty() ? "" : " ") + game_text(r->text, sizeof r->text);
+        while (!t.empty() && (t[0] == '.' || t[0] == ' ')) t.erase(0, 1);
+        if (!t.empty()) chron.back().choice = t;
+        break;
+    }
+    chron_flush();
+}
+
+static char chron_find[60];
+static void chronicle_page(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Helpers)."); return; }
+    ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
+    ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
+    ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+    std::string f = chron_find; for (char &c : f) c = (char)tolower((unsigned char)c);
+    int shown = 0;
+    for (int i = (int)chron.size() - 1; i >= 0 && shown < (f.empty() ? 300 : 2000); i--) {
+        const ChronEntry &e = chron[(size_t)i];
+        if (!f.empty()) {
+            std::string a = e.text + " " + e.place + " " + e.choice;
+            for (char &c : a) c = (char)tolower((unsigned char)c);
+            if (a.find(f) == std::string::npos) continue;
+        }
+        shown++;
+        ImGui::PushID(i);
+        ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s, %s", e.date.c_str(), e.place.c_str());
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextUnformatted(e.text.c_str());
+        if (!e.choice.empty()) ImGui::TextColored(ImVec4(0.18f, 0.32f, 0.55f, 1), "> %s", e.choice.c_str());
+        ImGui::PopTextWrapPos();
+        ImGui::Separator();
+        ImGui::PopID();
+    }
+    if (!shown) ImGui::TextWrapped(chron.empty() ? "Every text the cards show is kept here, with the date, the place and the choice you made."
+                                                 : "Nothing found.");
+    ImGui::EndChild();
+}
+
+static void text_expand_hook(void)         /* s043 150b:06fe text_expand(idx, out): the block shown before is done */
+{
+    bool mine = (u16)rw(SS, (u16)(SP + 6)) == 0x9085;
+    if (mine) chronicle_capture();
+    hook_call_original();
+    if (mine) chronicle_expanded();
+}
+
 static void card_load_hook(void)
 {
+    chronicle_capture();                   /* the last text before the card changes (a result with no options) */
     if (!journal_on) { hook_call_original(); return; }
     ensure_game();
     int loc = (s16)g_rw(G_CUR_LOC);
@@ -303,6 +476,8 @@ extern "C" void journal_init(void)
 {
     journal_on = config_get_int("journal.enabled", 1);
     hook_install(43, 0x150b, 0x000a, card_load_hook);
+    hook_install(43, 0x150b, 0x06fe, text_expand_hook);
+    { void assist_watch_cards(void); assist_watch_cards(); }      /* the chronicle needs the card menu's hook (mods/assist.c) */
     hook_install(32, 0x1462, 0x078e, barter_list_hook);
 }
 
@@ -594,6 +769,7 @@ extern "C" void tab_journal(void)
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Chronicle", nullptr, want == 7 ? ImGuiTabItemFlags_SetSelected : 0)) { chronicle_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Stored", nullptr, want == 6 ? ImGuiTabItemFlags_SetSelected : 0)) { storage_page(); ImGui::EndTabItem(); }
