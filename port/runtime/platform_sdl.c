@@ -445,8 +445,9 @@ static void run_script(void)
             if (strcmp(s->cmd, "up")) key(sc, 0);
             if (!strcmp(s->cmd, "up")) key(sc, 1);
             else if (!strcmp(s->cmd, "key")) {      /* release a little later, like a real key press */
+                char a[sizeof s->arg]; memcpy(a, s->arg, sizeof a);       /* (r may be s when the list is full) */
                 Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
-                r->t = now + 60; snprintf(r->cmd, sizeof r->cmd, "up"); snprintf(r->arg, sizeof r->arg, "%s", s->arg);
+                r->t = now + 60; snprintf(r->cmd, sizeof r->cmd, "up"); snprintf(r->arg, sizeof r->arg, "%s", a);
                 for (int i = nsteps - 1; i > step_i && steps[i].t < steps[i - 1].t; i--) { Step t = steps[i]; steps[i] = steps[i - 1]; steps[i - 1] = t; }
             }
         } else if (!strcmp(s->cmd, "move")) { mouse_x = x; mouse_y = y; send_mouse(); }

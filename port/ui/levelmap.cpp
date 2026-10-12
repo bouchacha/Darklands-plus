@@ -241,7 +241,7 @@ extern "C" void levelmap_draw(void)
         dl->AddCircle(m, r, IM_COL32(10, 8, 6, 255), 0, 1.5f);
         if (i < 5) {
             char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(i) + G_M_SHORTNAME), nm, sizeof nm);
-            char ini[3] = { nm[0] ? nm[0] : '?', nm[0] ? nm[1] : 0, 0 };     /* two letters: Gretch and Gunther */
+            char ini[3] = { nm[0] ? nm[0] : '?', (char)(nm[0] ? nm[1] : 0), 0 };     /* two letters: Gretch and Gunther */
             float fs = r * 1.1f; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, ini);
             dl->AddText(f, fs, ImVec2(m.x - ts.x * 0.5f, m.y - ts.y * 0.5f), IM_COL32(255, 255, 255, 255), ini);
         }

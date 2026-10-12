@@ -116,7 +116,7 @@ extern "C" void tab_members(void)
         for (int m = 0; m < size; m++) { if (v[m] > hi) hi = v[m]; if (v[m] < lo) lo = v[m]; }
         for (int m = 0; m < size; m++) {
             ImGui::TableNextColumn();
-            char b[24];
+            char b[32];
             if (vmax && v[m] < vmax[m]) snprintf(b, sizeof b, "%d / %d", v[m], vmax[m]); else snprintf(b, sizeof b, "%d", v[m]);
             if (hi > lo && v[m] == hi) ImGui::TextColored(best_col, "%s  *", b);
             else if (vmax && v[m] * 2 < vmax[m]) ImGui::TextColored(low_col, "%s", b);
