@@ -958,9 +958,20 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 ImGui::TextDisabled("%s - difficulty %d, %s", pd ? pd->name.c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
                 ImGui::Separator();
                 ImGui::TextWrapped("%s", F.text.c_str());
-                std::string ing;
-                for (const FormulaIngr &g : F.ingr) { if (!ing.empty()) ing += ", "; ing += std::to_string(g.count) + " " + (g.item >= 0 && g.item < (int)gamedata.items.size() ? gamedata.items[g.item].name : std::string("?")); }
-                if (!ing.empty()) ImGui::TextDisabled("%s", ing.c_str());
+                /* each ingredient with what the party carries of it (red: not enough) */
+                int npar = (s16)g_rw(G_PARTY_SIZE), batches = 99;
+                for (const FormulaIngr &g : F.ingr) {
+                    int have = 0;
+                    for (int m = 0; m < npar && m < 5; m++) {
+                        int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+                        for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == g.item) have += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
+                    }
+                    if (g.count > 0 && have / g.count < batches) batches = have / g.count;
+                    std::string nm = g.item >= 0 && g.item < (int)gamedata.items.size() ? game_text(gamedata.items[g.item].name.c_str(), 64) : std::string("?");
+                    ImGui::TextColored(have >= g.count ? ImVec4(0.2f, 0.12f, 0.06f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%d %s", g.count, nm.c_str());
+                    ImGui::SameLine(); ImGui::TextDisabled("(carried: %d)", have);
+                }
+                if (!F.ingr.empty()) ImGui::TextDisabled(batches > 0 ? "Enough for %d batch%s." : "Not enough ingredients for a batch.", batches, batches == 1 ? "" : "es");
             }
         }
         ImGui::PopTextWrapPos();
