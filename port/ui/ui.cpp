@@ -889,9 +889,9 @@ static void mt32_window(void)
                            "instruments into it: the music is played as written, with flutes, strings and horns, and the battles "
                            "sound like swords and shields.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster plays simpler FM versions of the music, and "
-                           "a General MIDI synthesizer such as Windows' own plays the wrong instruments (the \"piano falling down "
-                           "the stairs\" in battles).");
+        ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster plays simpler FM versions of the music and "
+                           "only rough imitations of the battle sounds; a General MIDI synthesizer such as Windows' own plays the "
+                           "wrong instruments altogether.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ has the MT-32 built in (Munt's emulator). It only needs the synthesizer's two ROM files, "
                            "control and PCM, of an MT-32 or a CM-32L (CM-32L is best). They belong to Roland, so they cannot come "
