@@ -758,6 +758,7 @@ static void pad_tick(void)
     u32 now = plat_ticks_ms(); double dt = pad_last ? (now - pad_last) / 1000.0 : 0; pad_last = now;
     if (dt > 0.1) dt = 0.1;
     if (!pad_enabled() || !win) return;
+    if (!(SDL_GetWindowFlags(win) & SDL_WINDOW_INPUT_FOCUS) && !getenv("DL_CTL")) return;   /* another window has the focus */
     int any = 0; for (int i = 0; i < 4; i++) any |= pads[i] != 0;
     if (!any && pad_test_axis[0] == 0x7fffffff && pad_test_axis[1] == 0x7fffffff && pad_test_axis[2] == 0x7fffffff) return;
     double sx = pad_curve(pad_axis(0)), sy = pad_curve(pad_axis(1)), wy = pad_curve(pad_axis(2));
