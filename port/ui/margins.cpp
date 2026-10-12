@@ -171,7 +171,7 @@ extern "C" float ui_text_px(void)
 /* the right margin, out of battles: what is not on the party's cards at the left - the town
  * the party is in (its standing there, the buildings and shops), the blessings and potions
  * working and how long they last, and who carries too much */
-static int nearest_town(void)                       /* in the wilds: the nearest town, if one is near */
+int ui_nearest_town(void)                           /* in the wilds: the nearest town, if one is near (-1 none) */
 {
     int px, py; travel_party_tile(&px, &py);
     int best = -1; long bd = 1L << 30;
@@ -189,7 +189,7 @@ static void right_panel(int size)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
     bool any = false, near = false;
-    if (cur < 0 && game_mode() == GM_MAP) { cur = nearest_town(); near = true; }
+    if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; }
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());

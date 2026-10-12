@@ -338,7 +338,10 @@ extern "C" void chronicle_capture(void)
     if (t.size() < 8 || (!chron.empty() && chron.back().text == t)) return;
     chron_flush();
     int loc = (s16)g_rw(G_CUR_LOC);
-    chron.push_back({ game_date(), loc >= 0 ? loc_name(loc) : "the countryside", t, "" });
+    std::string place;
+    if (loc >= 0) place = loc_name(loc);
+    else { int ui_nearest_town(void); int k = ui_nearest_town(); place = k >= 0 ? "near " + loc_name(k) : "the countryside"; }
+    chron.push_back({ game_date(), place, t, "" });
     chron_pending = true;
     if (chron.size() > 20000) chron.erase(chron.begin(), chron.begin() + 1000);
 }
