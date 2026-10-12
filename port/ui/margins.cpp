@@ -171,7 +171,7 @@ extern "C" float ui_text_px(void)
 /* the right margin, out of battles: what is not on the party's cards at the left - the town
  * the party is in (its standing there, the buildings and shops), the blessings and potions
  * working and how long they last, and who carries too much */
-int ui_nearest_town(void)                           /* in the wilds: the nearest town, if one is near (-1 none) */
+extern "C" int ui_nearest_town(void)                /* in the wilds: the nearest town, if one is near (-1 none) */
 {
     int px, py; travel_party_tile(&px, &py);
     int best = -1; long bd = 1L << 30;
