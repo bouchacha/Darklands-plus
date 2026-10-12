@@ -71,3 +71,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: DarklandsPlus-*.zip
+          body_path: docs/release_notes.md        # the release's text (edit it on GitHub afterwards if you like)

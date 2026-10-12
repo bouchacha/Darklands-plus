@@ -35,7 +35,9 @@ Never commit anything from `build/`, game files, or a `darklands_game.dll`. `.gi
    git push origin v1.0
    ```
 
-   Then edit the release on GitHub (Releases) and write what changed.
+   The release's text is `docs/release_notes.md` (what Darklands+ is, what it needs, how to
+   install it, what it adds); update it before tagging, or edit the release on GitHub afterwards
+   to say what changed since the last one.
 
 ## If the workflow fails
 
