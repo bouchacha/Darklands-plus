@@ -31,6 +31,8 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 
 extern ImFont *ui_font_small, *ui_font_text;
+static ImDrawList *ovl_dl;               /* the overlay layer (ui_overlay): under tooltips and windows, over the picture */
+static ImDrawList *ovl_list(void) { return ovl_dl ? ovl_dl : ImGui::GetForegroundDrawList(); }
 #define UI_GAME_FONTS 6
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
@@ -167,7 +169,7 @@ static void draw_chances(void)
     if (mode >= 2) return;
     int x0 = 60 + (s16)g_rw(0xe972), w = (s16)g_rw(0xe970), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ovl_list();
     ImFont *f = ui_font_text;
     int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {
@@ -703,6 +705,9 @@ extern "C" void ui_draw_notice(void)
  * Darklands Companion showed during encounters. The game's own pop-up lists only the saints
  * someone knows. */
 static float card_help_top;              /* top of the card helper panel this frame (0: none) */
+extern int ui_shop_info;
+extern "C" void plat_mouse_game(int *x, int *y);
+static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static void draw_card_help(void)
 {
     card_help_top = 0;
@@ -710,6 +715,7 @@ static void draw_card_help(void)
     int npar = (s16)g_rw(G_PARTY_SIZE);
     if (npar < 1 || npar > 5) return;
     std::vector<std::pair<std::string, std::string>> lines;
+    std::vector<int> ids;                                   /* a saint, or 1000 + an item */
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
     auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };   /* the dead know no saints and carry nothing */
     for (int j = 0; j < 4; j++) {
@@ -719,6 +725,7 @@ static void draw_card_help(void)
         for (int m = 0; m < npar; m++)
             if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)))) { if (!who.empty()) who += ", "; who += name_of(m); }
         lines.push_back({ gamedata.saints[s].name, who.empty() ? "nobody knows" : who });
+        ids.push_back(s);
     }
     int nsaints = (int)lines.size();
     for (int j = 0; j < 4; j++) {
@@ -732,6 +739,7 @@ static void draw_card_help(void)
             if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
         }
         lines.push_back({ game_text(gamedata.items[it].name.c_str(), 64), who.empty() ? "nobody has one" : who });
+        ids.push_back(1000 + it);
     }
     if (lines.empty()) return;
     /* sized with the picture, like the card's own text; smaller while it would cover any of
@@ -757,13 +765,15 @@ static void draw_card_help(void)
         if (!hit) break;
     }
     card_help_top = p0.y;
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ovl_list();
     float rr = size * 0.35f;
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 215), rr);
     dl->AddRect(p0, p1, IM_COL32(170, 125, 65, 220), rr, 0, 1.5f);
     float y = p0.y + pady, x = p0.x + padx;
     float namew = 0;
     for (auto &l : lines) { float a = f->CalcTextSizeA(size, FLT_MAX, 0, l.first.c_str()).x; if (a > namew) namew = a; }
+    int tip = -1, hmx, hmy; plat_mouse_game(&hmx, &hmy);
+    ImVec2 hp = g2w((float)hmx, (float)hmy);
     for (int i = 0; i < (int)lines.size(); i++) {
         if (i == 0 && nsaints) { dl->AddText(f, size * 0.92f, ImVec2(x, y + size * 0.06f), IM_COL32(225, 190, 125, 255), hs); y += lh; }
         if (i == nsaints) { dl->AddText(f, size * 0.92f, ImVec2(x, y + size * 0.06f), IM_COL32(225, 190, 125, 255), hi); y += lh; }
@@ -772,7 +782,12 @@ static void draw_card_help(void)
         float nx = x + size * 0.4f + namew + gapx * 0.6f;
         if (nx + f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x > p1.x - padx * 0.5f) nx = p1.x - padx * 0.5f - f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x;
         dl->AddText(f, size, ImVec2(nx, y), none ? IM_COL32(175, 155, 130, 220) : IM_COL32(150, 230, 120, 255), lines[i].second.c_str());
+        if (hp.x >= p0.x && hp.x < p1.x && hp.y >= y && hp.y < y + lh) tip = i;
         y += lh;
+    }
+    if (tip >= 0 && ui_shop_info) {                          /* what the saint or the item under the pointer does, above the panel */
+        int id = ids[tip];
+        show_tip(ImVec2(p1.x, p0.y - size * 0.3f), ImVec2(1, 1), id >= 1000 ? id - 1000 : -1, id < 1000 ? id : -1, -1);
     }
 }
 
@@ -820,7 +835,7 @@ static void draw_learned(void)
     float bh = hs.y + ls.y + gap + es.y + pad * 2.4f;
     float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
     ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ovl_list();
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
     dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
     dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str());
@@ -836,6 +851,7 @@ extern "C" void travel_overlay(void);
  * formula book) - what it is good for, as a tooltip */
 int ui_shop_info = 1;
 void ui_item_details(const ItemDef *d, int id);
+static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static std::string squash(const std::string &t)            /* letters and digits only, lower case: "St.Martin" = "St. Martin" */
 {
     std::string o; for (unsigned char c : t) if (isalnum(c)) o += (char)tolower(c);
@@ -899,7 +915,14 @@ static void draw_shop_info(void)
     ImVec2 lo(p.x - 20, p.y - 20), hi(p.x + 20, p.y + 20);                      /* beside the pointer, not under it */
     if (ImGui::GetFrameCount() - ptr_frame <= 2) { lo = ptr_lo; hi = ptr_hi; }
     bool right = (lo.x + hi.x) / 2 > io.DisplaySize.x * 0.55f, below = (lo.y + hi.y) / 2 > io.DisplaySize.y * 0.5f;   /* towards the room */
-    ImGui::SetNextWindowPos(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    show_tip(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f), item, saint, formula);
+}
+
+/* the tooltip for an item, a saint or an alchemy formula, at pos (its corner given by pivot) */
+static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, pivot);
     ImGui::SetNextWindowBgAlpha(0.97f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
@@ -1065,6 +1088,13 @@ static void draw_creation_guide(void)
 
 extern "C" void ui_overlay(void)
 {
+    {   /* a layer for the panels and badges over the picture: under the tooltips (windows), above the crisp text */
+        ImGuiIO &io = ImGui::GetIO();
+        ImGui::SetNextWindowPos(ImVec2(0, 0)); ImGui::SetNextWindowSize(io.DisplaySize);
+        ImGui::Begin("##overlay_layer", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground |
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+        ovl_dl = ImGui::GetWindowDrawList();             /* (left open to the end, so that its clipping and font stay set) */
+    }
     draw_chances();
     draw_card_help();
     if (assist_card_help) { watch_saints(); draw_learned(); }
@@ -1075,4 +1105,6 @@ extern "C" void ui_overlay(void)
     draw_battle_info();
     { void battlelog_overlay(void); battlelog_overlay(); }
     draw_creation_guide();
+    ImGui::End();                                       /* the layer */
+    ovl_dl = nullptr;
 }
