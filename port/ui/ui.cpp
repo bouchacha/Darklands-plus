@@ -229,6 +229,7 @@ extern "C" void ui_toggle_map(void)
     if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; }
 }
 
+extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
 extern "C" int ui_event(const SDL_Event *e)
 {
     if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
@@ -271,7 +272,11 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
-    if (!open_menu) return 0;
+    if (!open_menu) {
+        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && overlay_click(e->button.x, e->button.y)) return 1;
+        if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
+        return 0;
+    }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { ui_toggle(); return 1; }
     ImGui_ImplSDL2_ProcessEvent(e);
     return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -432,7 +437,9 @@ static void tab_helpers(void)
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
-      if (ImGui::Checkbox("In shops: what the item under the mouse is good for, and who in the party could use it", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
+      if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
+    { bool la = config_get_int("assist.loot_all", 1) != 0;
+      if (ImGui::Checkbox("Loot: take the whole pile at once (A), or share it out among the party (S)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
       if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
     bool ck = assist_card_keys;

@@ -12,7 +12,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Journal:** a quest log, a town journal, a saints finder, alchemy formulas, and where to find goods and ingredients.
 - **Travel:** a zoomable world map (M) and auto-travel: Ctrl+click a place and the party goes there.
 - **Battles:** a battle log, info under the pointer, a pause when someone falls, adjustable battle speed, better pathfinding, and a map of the level (Tab).
-- **Party and inventory:** the whole party side by side with drag and drop, item tooltips with weapon numbers and who can use them, and a one-click leader change.
+- **Party and inventory:** the whole party side by side with drag and drop, item tooltips with weapon numbers and who can use them, and a one-click leader change. On the loot screen, A takes the whole pile and S shares it out among the party, instead of one G per arrow.
 - **Saves:** quick save (Ctrl+S) and quick load (F9), autosaves on arrival and before battles, and a save browser.
 - **Fixes for bugs of 483.07:**
   - blessings that cost attribute points for good

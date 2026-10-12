@@ -1048,6 +1048,42 @@ static void draw_battle_info(void)
 /* character creation: what the step on screen asks for and what the numbers on the right mean,
  * in the empty column at the left of the creation screen (s037 18c8, state D_8c1e) */
 int ui_creation_guide = 1;
+/* the loot screen: two buttons beside the game's menu, Take all (A) and Share out (S)
+ * (mods/loot.c); clicks come through ui_event (overlay_click) */
+extern "C" { extern int loot_active; int loot_enabled(void); void loot_press(int share); }
+static ImVec2 loot_btn[2][2]; static int loot_btn_frame = -10, click_taken;
+static void draw_loot_buttons(void)
+{
+    if (!loot_active || !loot_enabled() || game_mode() != GM_SCREEN) return;
+    ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
+    ImVec2 a = g2w(0, 0), b = g2w(0, 7);
+    float size = (b.y - a.y) * 1.05f;
+    static const char *T[2][2] = { { "A", "  Take all of it" }, { "S", "  Share it out among the party" } };
+    ImDrawList *dl = ovl_list();
+    ImVec2 mp = ImGui::GetIO().MousePos;
+    for (int i = 0; i < 2; i++) {
+        ImVec2 p0 = g2w(0xb6, (float)(0x1a + 8 * i)), p1 = g2w(0x12c, (float)(0x1a + 8 * i + 8));
+        p0.y += 1; p1.y -= 1;
+        bool hot = mp.x >= p0.x && mp.x < p1.x && mp.y >= p0.y && mp.y < p1.y;
+        dl->AddRectFilled(p0, p1, hot ? IM_COL32(120, 70, 30, 70) : IM_COL32(90, 60, 30, 34), size * 0.25f);
+        dl->AddRect(p0, p1, IM_COL32(110, 72, 36, hot ? 220 : 140), size * 0.25f, 0, 1.2f);
+        float ty = (p0.y + p1.y) * 0.5f - size * 0.55f, tx = p0.x + size * 0.45f;
+        dl->AddText(f, size, ImVec2(tx, ty), IM_COL32(200, 40, 30, 255), T[i][0]);
+        dl->AddText(f, size, ImVec2(tx + f->CalcTextSizeA(size, FLT_MAX, 0, T[i][0]).x, ty), IM_COL32(60, 40, 25, 255), T[i][1]);
+        loot_btn[i][0] = p0; loot_btn[i][1] = p1;
+    }
+    loot_btn_frame = ImGui::GetFrameCount();
+}
+/* a click outside the menus on something the overlay drew: 1 if taken */
+extern "C" int overlay_click(int x, int y)
+{
+    if (ImGui::GetFrameCount() - loot_btn_frame <= 2 && loot_active)
+        for (int i = 0; i < 2; i++)
+            if (x >= loot_btn[i][0].x && x < loot_btn[i][1].x && y >= loot_btn[i][0].y && y < loot_btn[i][1].y) { loot_press(i); click_taken = 1; return 1; }
+    return 0;
+}
+extern "C" int overlay_click_up(int x, int y) { (void)x; (void)y; int t = click_taken; click_taken = 0; return t; }   /* its release too */
+
 static void draw_creation_guide(void)
 {
     if (!ui_creation_guide || config_get_int("original", 0) || !hdart_on_screen("CHARGEN")) return;
@@ -1105,6 +1141,7 @@ extern "C" void ui_overlay(void)
     draw_battle_info();
     { void battlelog_overlay(void); battlelog_overlay(); }
     draw_creation_guide();
+    draw_loot_buttons();
     ImGui::End();                                       /* the layer */
     ovl_dl = nullptr;
 }
