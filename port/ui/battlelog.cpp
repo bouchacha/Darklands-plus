@@ -108,6 +108,23 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
     known_end[t] = e1; known_str[t] = s1;
 }
 
+/* who aims a missile weapon (bow, crossbow, handgun, sling, thrown) at combatant t, if anyone */
+static int shooter_at(int t)
+{
+    static int missile[64]; static bool built;
+    if (!built && gamedata.loaded) {
+        built = true;
+        for (const ItemDef &d : gamedata.items) if (d.kind == K_MISSILE && d.type >= 0 && d.type < 64) missile[d.type] = 1;
+    }
+    for (int j = 0; j < 13; j++) {
+        u16 b = CB(j);
+        if (j == t || g_rb((u16)(b + 0x14)) != 1 || (s8)g_rb((u16)(b + 0x4a)) != t) continue;
+        int w = (s8)g_rb((u16)(b + 0x22));
+        if (w >= 0 && w < 64 && missile[w]) return j;
+    }
+    return -1;
+}
+
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)
 {
@@ -125,7 +142,11 @@ extern "C" void battlelog_frame(void)
             int de = known_end[i] - e, ds = known_str[i] - s;
             if (de < 0) de = 0;
             if (ds < 0) ds = 0;
-            if (de || ds) add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")");
+            if (de || ds) {
+                int by = shooter_at(i);
+                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + "'s shot hits " + name_of(i) + " (" + cost(de, ds) + ")");
+                else add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")");
+            }
         }
         if (st != known_st[i]) {
             if (st == 3) add(i < 5 ? 3 : 4, name_of(i) + (i < 5 ? " is killed!" : " is killed"));
