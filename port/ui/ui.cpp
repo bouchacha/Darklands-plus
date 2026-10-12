@@ -26,8 +26,8 @@ extern "C" {
 #include "../mods/datamods.h"
 #include "ui.h"
 extern char game_dir[1024];
-extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[];
-extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE;
+extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[];
+extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE;
 }
 
 static bool open_menu, open_map, open_goto, open_help, open_welcome;
@@ -63,8 +63,18 @@ ImFont *ui_font_game_hi[UI_GAME_FONTS];    /* the same baked larger on big scree
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
 extern int ui_spell_out;                   /* overlay.cpp: character sheet names in full */
 static int sys_cursor;                     /* display.system_cursor: the system pointer stays over the game */
-const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (17th-century print)",
-    "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)" };
+const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (old print)",
+    "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)",
+    "Grenze Gotisch (gothic, still readable)" };
+#define UI_DEFAULT_FONT 2                  /* IM Fell English */
+/* the text over and beside the picture (side panels, tooltips, map names, notices): the game
+   text's typeface, or the menus' (display.overlay_font_follow) */
+ImFont *ui_font_overlay;
+static void overlay_font_update(void)
+{
+    extern ImFont *ui_font_text;
+    ui_font_overlay = config_get_int("display.overlay_font_follow", 1) && ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
+}
 extern "C" void tab_inventory(void);
 extern "C" void tab_members(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -171,8 +181,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
         static const ImWchar ranges[] = { 0x20, 0xff, 0 };
         ui_font_text = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 34.0f, &tc, ranges);
-        const unsigned char *data[UI_GAME_FONTS] = { FONT_MEDIUM, FONT_ALEGREYA, FONT_FELL, FONT_ATKINSON, FONT_MEDIEVAL, FONT_FRAKTUR };
-        const unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE };
+        const unsigned char *data[UI_GAME_FONTS] = { FONT_MEDIUM, FONT_ALEGREYA, FONT_FELL, FONT_ATKINSON, FONT_MEDIEVAL, FONT_FRAKTUR, FONT_GRENZE };
+        const unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE };
         ui_font_game[0] = ui_font_text;
         for (int i = 1; i < UI_GAME_FONTS; i++) ui_font_game[i] = io.Fonts->AddFontFromMemoryTTF((void *)data[i], (int)size[i], 34.0f, &tc, ranges);
         if (bake > 44) {      /* big screens: a second, larger set for the game's text in a big window */
@@ -182,8 +192,9 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         }
     }
     open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
-    ui_game_font = config_get_int("display.text_font", 0);
-    if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
+    ui_game_font = config_get_int("display.text_font", UI_DEFAULT_FONT);
+    if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = UI_DEFAULT_FONT;
+    overlay_font_update();
     ui_text_edge = config_get_int("display.text_edge", 2);
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
@@ -577,11 +588,13 @@ static void tab_display(void)
         if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
             for (int i = 0; i < UI_GAME_FONTS; i++) {
                 ImGui::PushFont(ui_font_game[i]);
-                if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); dirty_config = 1; }
+                if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); overlay_font_update(); dirty_config = 1; }
                 ImGui::PopFont();
             }
             ImGui::EndCombo();
         }
+        { bool of = config_get_int("display.overlay_font_follow", 1) != 0;
+          if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); overlay_font_update(); dirty_config = 1; } }
         { bool so = ui_spell_out != 0;
           if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); dirty_config = 1; } }
         ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();

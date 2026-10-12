@@ -31,6 +31,7 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 
 extern ImFont *ui_font_small, *ui_font_text;
+extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 static ImDrawList *ovl_dl;               /* the overlay layer (ui_overlay): under tooltips and windows, over the picture */
 static ImDrawList *ovl_list(void) { return ovl_dl ? ovl_dl : ImGui::GetForegroundDrawList(); }
 #define UI_GAME_FONTS 6
@@ -170,7 +171,7 @@ static void draw_chances(void)
     int x0 = 60 + (s16)g_rw(0xe972), w = (s16)g_rw(0xe970), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
     ImDrawList *dl = ovl_list();
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {
         if (!cc.line[i].show) continue;
@@ -691,7 +692,7 @@ extern "C" void ui_draw_notice(void)
     if (age > notice_ms) { notice[0] = 0; return; }
     float a = age + 600 < notice_ms ? 1.0f : (notice_ms - age) / 600.0f;
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::PushFont(ui_font_text);
+    ImGui::PushFont(ui_font_overlay);
     ImVec2 ts = ImGui::CalcTextSize(notice);
     ImVec2 p((io.DisplaySize.x - ts.x) * 0.5f, io.DisplaySize.y - ts.y - 28);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
@@ -745,7 +746,7 @@ static void draw_card_help(void)
     if (lines.empty()) return;
     /* sized with the picture, like the card's own text; smaller while it would cover any of
      * the card's lines */
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float base = (br.y - tl.y) / 197.0f * 7.6f; if (base < 15) base = 15;
     const char *hs = "Saints that work here", *hi = "Items that work here";
@@ -821,7 +822,7 @@ static void draw_learned(void)
     const Saint &t = gamedata.saints[learned_saint];
     char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
     std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
@@ -928,8 +929,8 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                              ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::PushFont(ui_font_text);
-        ImGui::SetWindowFontScale(ui_text_px() * 0.88f / ui_font_text->FontSize);
+        ImGui::PushFont(ui_font_overlay);
+        ImGui::SetWindowFontScale(ui_text_px() * 0.88f / ui_font_overlay->FontSize);
         ImGui::PushTextWrapPos(fmaxf(UIS(360), fminf(io.DisplaySize.x * 0.30f, ui_text_px() * 24)));
         if (item >= 0) {
             const ItemDef *d = &gamedata.items[item];
@@ -1045,7 +1046,8 @@ static void draw_battle_info(void)
     ImGui::SetNextWindowBgAlpha(0.92f);
     if (ImGui::Begin("##battleinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                                ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ImGui::GetFont()->FontSize);
+        ImGui::PushFont(ui_font_overlay);
+        ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
@@ -1053,6 +1055,7 @@ static void draw_battle_info(void)
         if (w >= 0 && w <= 33) {
             for (const ItemDef &d : gamedata.items) if (d.type == w && (d.kind == K_WEAPON || d.kind == K_MISSILE)) { ImGui::TextDisabled("%s", game_text(d.name.c_str(), d.name.size()).c_str()); break; }
         }
+        ImGui::PopFont();
     }
     ImGui::End();
 }
@@ -1129,7 +1132,7 @@ static void draw_creation_guide(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
     if (ImGui::Begin("##creation", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing |
                                             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::PushFont(ui_font_text);
+        ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(fminf(0.75f, fmaxf(0.40f, (b.x - a.x) / 260.0f)));
         ImGui::TextWrapped("%s", T[st]);
         ImGui::PopFont();

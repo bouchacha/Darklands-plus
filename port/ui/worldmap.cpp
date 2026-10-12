@@ -25,6 +25,7 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 void quest_marks(std::vector<std::pair<int, std::string>> &out);
 extern ImFont *ui_font_small, *ui_font_text;
+extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 
 static SDL_Renderer *wm_ren;
 static SDL_Texture *tex[WM_LEVELS];
@@ -234,7 +235,7 @@ extern "C" void worldmap_draw(void)
     // places
     int hover = -1; float hd = 1e9f;
     /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
-    ImFont *fs = ui_font_text;
+    ImFont *fs = ui_font_overlay;
     float ks = ui_text_px() / 22.0f;
     float fsize = ui_text_px() * 0.68f * fminf(fmaxf(powf(zoom / fitz, 0.3f), 0.9f), 1.6f);
     for (const Place &p : P) {
@@ -367,10 +368,10 @@ extern "C" void worldmap_draw(void)
  * odd rows half a tile to the right (the route in ui/travel.cpp is drawn the same way). */
 extern "C" void travelmap_labels(void)
 {
-    if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_text) return;
+    if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
     int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     float base = ui_text_px();
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);

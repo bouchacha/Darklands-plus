@@ -9,5 +9,8 @@ License 1.1 (the OFL*.txt files beside them):
   DLFraktur-Regular.ttf                            a latin subset of UnifrakturMaguntia, renamed
                                                    "DL Fraktur" because "UnifrakturMaguntia" is a
                                                    Reserved Font Name (OFL-unifrakturmaguntia.txt)
+  GrenzeGotisch-Medium.ttf                         Grenze Gotisch, the weight-500 instance of the
+                                                   variable font from google/fonts, made with
+                                                   fontTools' instancer (OFL-grenze-gotisch.txt)
 
 The subsets come from the Fontsource packages (npm @fontsource/*), converted from WOFF to TTF.

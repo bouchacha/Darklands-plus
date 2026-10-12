@@ -19,6 +19,7 @@ extern "C" {
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
+extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 struct Eff { int m; std::string what; long left; };
 std::vector<Eff> effects_now(int size);
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out);
@@ -73,8 +74,8 @@ static bool begin_panel(const char *id, float x, float w, float h, float size)
     ImGui::PushStyleColor(ImGuiCol_Separator, IM_COL32(120, 92, 56, 200));
     bool open = ImGui::Begin(id, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings |
                                           ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav);
-    ImGui::PushFont(ui_font_text);
-    ImGui::SetWindowFontScale(size / ui_font_text->FontSize);
+    ImGui::PushFont(ui_font_overlay);
+    ImGui::SetWindowFontScale(size / ui_font_overlay->FontSize);
     return open;
 }
 static void end_panel(void)
@@ -269,7 +270,7 @@ static void right_panel(int size)
 
 extern "C" void ui_margins(void)
 {
-    if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_text) return;
+    if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_overlay) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
     ImGuiIO &io = ImGui::GetIO();

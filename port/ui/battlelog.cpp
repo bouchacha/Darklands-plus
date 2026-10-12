@@ -26,6 +26,7 @@ u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
+extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 std::string ui_enemy_name(int floor, u16 b);
 
 int ui_battle_log = 1;                      /* 0 off, 1 on */
@@ -184,7 +185,7 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
 {
     if (!ui_battle_log || game_mode() != GM_BATTLE || config_get_int("original", 0)) return 0;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     float pad = fs * 0.7f, lh = fs * 1.25f, y = h - pad;
     dl->AddText(f, fs * 1.05f, ImVec2(x + pad, pad), IM_COL32(222, 178, 104, 255), "Battle");
     float top = pad + lh * 1.5f;
@@ -206,7 +207,7 @@ extern "C" void battlelog_overlay(void)
     if (!ui_battle_log || game_mode() != GM_BATTLE || lines.empty() || config_get_int("original", 0)) return;
     float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     { extern int ui_margins_on; float l, d; plat_game_to_win(0, 0, &l, &d); if (ui_margins_on && l >= 150) return; }   /* the left margin shows them */
-    ImFont *f = ui_font_text;
+    ImFont *f = ui_font_overlay;
     float fs = (y1 - y0) / 200.0f * 6.2f; if (fs < 14) fs = 14;
     u32 now = plat_ticks_ms();
     const u32 SHOW = 7000, FADE = 1500;
