@@ -372,6 +372,25 @@ static void chronicle_page(void)
     if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Helpers)."); return; }
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
     ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
+    ImGui::SameLine();
+    static std::string wrote;
+    if (ImGui::SmallButton("Write it out as a book")) {
+        extern char dlp_data_dir[];
+        char b[1200]; snprintf(b, sizeof b, "%s/darklands_chronicle_%u_book.txt", dlp_data_dir, (unsigned)chron_seed);
+        FILE *f = fopen(b, "w");
+        if (f) {
+            std::string last;
+            for (const ChronEntry &e : chron) {
+                std::string head = e.date + ", " + e.place;
+                if (head != last) { fprintf(f, "\n=== %s ===\n\n", head.c_str()); last = head; }
+                fprintf(f, "%s\n", e.text.c_str());
+                if (!e.choice.empty()) fprintf(f, "  > %s\n", e.choice.c_str());
+                fprintf(f, "\n");
+            }
+            fclose(f); wrote = b;
+        } else wrote = "Could not write the file.";
+    }
+    if (!wrote.empty()) ImGui::TextDisabled("%s", wrote.c_str());
     ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
     std::string f = chron_find; for (char &c : f) c = (char)tolower((unsigned char)c);
     int shown = 0;
