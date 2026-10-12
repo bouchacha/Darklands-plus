@@ -688,12 +688,13 @@ static void draw_card_help(void)
     if (npar < 1 || npar > 5) return;
     std::vector<std::pair<std::string, std::string>> lines;
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
+    auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };   /* the dead know no saints and carry nothing */
     for (int j = 0; j < 4; j++) {
         int s = (s16)g_rw((u16)(0xee4b + 2 * j));
         if (s < 0 || s >= (int)gamedata.saints.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++)
-            if (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) { if (!who.empty()) who += ", "; who += name_of(m); }
+            if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)))) { if (!who.empty()) who += ", "; who += name_of(m); }
         lines.push_back({ gamedata.saints[s].name, who.empty() ? "nobody knows" : who });
     }
     int nsaints = (int)lines.size();
@@ -702,6 +703,7 @@ static void draw_card_help(void)
         if (it <= 0 || it >= (int)gamedata.items.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++) {
+            if (!alive(m)) continue;
             int n = 0, k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
             for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == it) n += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
             if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
@@ -849,7 +851,9 @@ int ui_battle_info = 1, ui_battle_numbers = 0;
 struct EnmRec { std::string name; int endm, strm, def, atk; };
 /* the enemy types of a battle level (level%d.enm, 0x122-byte records after a count: a combatant
  * record, then the name at +0x84); a combatant is told by its maxima, attack and defence */
-static std::string enemy_name(int floor, u16 b)
+std::string ui_enemy_name(int floor, u16 b);
+static std::string enemy_name(int floor, u16 b) { return ui_enemy_name(floor, b); }
+std::string ui_enemy_name(int floor, u16 b)
 {
     static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
     if (floor < 0 || floor > 7) return "";
@@ -967,5 +971,6 @@ extern "C" void ui_overlay(void)
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_info();
+    { void battlelog_overlay(void); battlelog_overlay(); }
     draw_creation_guide();
 }

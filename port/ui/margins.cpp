@@ -22,6 +22,7 @@ struct Eff { int m; std::string what; long left; };
 std::vector<Eff> effects_now(int size);
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out);
 extern "C" int citynav_available(void);
+extern "C" int battlelog_margin(float x, float w, float h, float fs);
 
 int ui_margins_on = 1;
 
@@ -101,7 +102,7 @@ extern "C" void ui_margins(void)
     float h = io.DisplaySize.y;
     float fs = std::min(std::max(std::min(left, right) / 9.5f, 15.0f), 26.0f);
 
-    if (left >= 150 && begin_panel("##margin_l", 0, left, h, fs)) {
+    if (left >= 150 && !battlelog_margin(0, left, h, fs) && begin_panel("##margin_l", 0, left, h, fs)) {
         int hour = (s16)g_rw(G_CUR_HOUR), day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH), year = (s16)g_rw(G_CUR_YEAR);
         heading("Today");
         ImGui::TextWrapped("%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
@@ -132,7 +133,10 @@ extern "C" void ui_margins(void)
         std::vector<Eff> e = effects_now(size);
         for (int m = 0; m < size; m++) {
             u16 b = G_MEMBER(m);
+            int st = g_rb((u16)(b + G_M_STATUS));
+            if (!st) continue;
             heading(member_name(m).c_str());
+            if (st == 3) { ImGui::TextDisabled("dead"); if (m < size - 1) ImGui::Separator(); continue; }
             int end = g_rb((u16)(b + G_M_ATTR_CUR)), endm = g_rb((u16)(b + G_M_ATTR_MAX)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1)), strm = g_rb((u16)(b + G_M_ATTR_MAX + 1));
             ImGui::TextDisabled("End %d/%d  Str %d/%d", end, endm, str, strm);
             /* the game's own load classes (s029 0e76:013a): the capacity is the current

@@ -532,7 +532,11 @@ static void melee_hook(void)                 /* melee_step(i, set, *again), near
     }
     int oi = impact, oa = impact_anim, od = impact_done;
     impact = land ? i : -1; impact_anim = anim; impact_done = 0;
+    int tg = i >= 0 && i < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x4a)) : -1;
+    int e0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)) : 0, s0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e)) : 0;
     hook_call_original();
+    if (land && tg >= 0 && tg < 13) { void battlelog_blow(int, int, int, int, int, int, int); battlelog_blow(i, tg, anim, e0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e))); }
+    if (land && getenv("DL_BLOW_LOG") && tg >= 0 && tg < 13) { u32 plat_ticks_ms(void); fprintf(stderr, "blow %u: %d -> %d anim %d: end %d -> %d, str %d -> %d\n", plat_ticks_ms(), i, tg, anim, e0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e))); }
     if (land && (anim == 1 || anim == 2) && !impact_done && sfx_mode && sfx_added_hits && g_rb(0x01be) == 1)
         play(S_HIT, anim == 2 ? 1.0f : 0.7f);
     impact = oi; impact_anim = oa; impact_done = od;

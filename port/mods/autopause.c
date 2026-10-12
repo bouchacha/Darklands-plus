@@ -3,6 +3,7 @@
  * battles, which run on until the player pauses them. */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <SDL_scancode.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -32,6 +33,15 @@ static int member_state(int m)
 
 void autopause_frame(void)
 {
+    if (getenv("DL_BLOW_LOG") && game_mode() == GM_BATTLE) {      /* debugging: every change of endurance, strength, status */
+        static int pe[13], ps[13], pt[13];
+        for (int i = 0; i < 13; i++) {
+            u16 b = (u16)(0x9c55 + 0x80 * i);
+            int e = (s8)g_rb((u16)(b + 0x5d)), s = (s8)g_rb((u16)(b + 0x5e)), t = g_rb((u16)(b + 0x14));
+            if (e != pe[i] || s != ps[i] || t != pt[i]) fprintf(stderr, "frame %u: %d end %d -> %d str %d -> %d status %d -> %d\n", plat_ticks_ms(), i, pe[i], e, ps[i], s, pt[i], t);
+            pe[i] = e; ps[i] = s; pt[i] = t;
+        }
+    }
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 0 || size > 5) size = 0;
     if (game_mode() != GM_BATTLE) { in_battle = 0; return; }

@@ -450,6 +450,7 @@ static void ingredients_page(void)
     }
 }
 
+extern "C" void battlelog_tab(void);
 int ui_want_subtab = -1;
 extern "C" void journal_quests(void);               /* scripted tests: utab 2.1 */
 
@@ -480,6 +481,7 @@ extern "C" void tab_journal(void)
         }
         if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
+        if (ImGui::BeginTabItem("Battle log", nullptr, want == 5 ? ImGuiTabItemFlags_SetSelected : 0)) { battlelog_tab(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Honor Roll", nullptr, want == 4 ? ImGuiTabItemFlags_SetSelected : 0)) {
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
                                "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
