@@ -40,7 +40,8 @@ build/port/darklands /path/to/DARKLAND                        # run
   words painted into pictures redrawn crisply, character sheet abbreviations spelled out with
   skill icons, smooth scaling options, wide-screen margins with date, place, purse, tasks and the
   party's condition, window size and full screen remembered; on Windows DPI-aware, the menus
-  sized by the system's scale.
+  sized by the system's scale; the game rests while it only waits for input (an idle card
+  takes about a tenth of a core).
 * **Helpers:** chances of success on card options; the saints and items a card accepts; number
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
