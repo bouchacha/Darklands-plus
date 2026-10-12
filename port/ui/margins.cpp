@@ -1,7 +1,7 @@
 // margins.cpp - on a wide screen the 4:3 picture leaves dark margins; they can show what the
 // game otherwise keeps behind menus: the date and hour, where the party is, the purse, the
-// tasks the party has taken on (with their deadlines), and on the other side the blessings
-// and potions working on each member and how heavily each one is loaded.
+// tasks the party has taken on (with their deadlines), and on the other side the town the party
+// is in, the blessings and potions working on the party, and who carries too much.
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -155,6 +155,88 @@ static void battle_panel(float width, float fs)
     else if (down == shown) ImGui::TextDisabled("All down.");
 }
 
+/* the text size for what the interface writes over and beside the picture (side panels,
+ * tooltips, names on the map): grows with the picture, times display.text_size (%) */
+extern "C" float ui_text_px(void)
+{
+    float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+    float ph = y1 - y0; if (ph < 200) ph = ImGui::GetIO().DisplaySize.y;
+    float k = config_get_int("display.text_size", 100) / 100.0f; if (k < 0.5f) k = 0.5f; if (k > 2.5f) k = 2.5f;
+    float px = ph / 34.0f; if (px < 14) px = 14;
+    return px * k;
+}
+
+/* the right margin, out of battles: what is not on the party's cards at the left - the town
+ * the party is in (its standing there, the buildings and shops), the blessings and potions
+ * working and how long they last, and who carries too much */
+static int nearest_town(void)                       /* in the wilds: the nearest town, if one is near */
+{
+    int px, py; travel_party_tile(&px, &py);
+    int best = -1; long bd = 1L << 30;
+    for (int k = 0; k < (int)gamedata.cities.size() && k < G_NLOC; k++) {
+        u32 r = g_location(k);
+        if (!r) continue;
+        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
+        long dx = (x - px) * 4, dy = (y - py), d = dx * dx + dy * dy;      /* tiles are 16x4 apart */
+        if (d < bd) { bd = d; best = k; }
+    }
+    return bd <= 60 * 60 ? best : -1;
+}
+
+static void right_panel(int size)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    bool any = false, near = false;
+    if (cur < 0 && game_mode() == GM_MAP) { cur = nearest_town(); near = true; }
+    if (cur >= 0 && cur < (int)gamedata.cities.size()) {
+        const City &c = gamedata.cities[cur];
+        heading(((near ? "Near " : "") + c.name).c_str());
+        u32 lr = g_location(cur);
+        int fame = (s16)g_rw(0x9082);
+        if (lr) ImGui::TextWrapped("Reputation here %d, fame %d", (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)), fame);
+        static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
+            { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
+        std::string b;
+        for (auto &x : B) if (c.buildings & (1 << x.bit)) { b += b.empty() ? "" : ", "; b += x.name; }
+        if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::TextWrapped("%s", b.c_str()); }
+        bool shops = false;
+        for (int i = 0; i < 9; i++) {
+            if (c.shopq[i] <= 0) continue;
+            if (!shops) { ImGui::TextDisabled("Shops, quality of their wares:"); shops = true; }
+            ImGui::TextUnformatted(SHOP_NAMES[i]); ImGui::SameLine(); ImGui::TextDisabled("%d", c.shopq[i]);
+        }
+        static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
+        if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
+        for (auto &m : marks) if (m.first == cur) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s", m.second.c_str());
+        any = true;
+    }
+    std::vector<Eff> e = effects_now(size);
+    if (!e.empty()) {
+        if (any) ImGui::Separator();
+        heading("In force");
+        for (const Eff &x : e) {
+            if (x.left < 48) ImGui::TextWrapped("%s: %s (%ld h)", member_name(x.m).c_str(), x.what.c_str(), x.left);
+            else ImGui::TextWrapped("%s: %s (%ld d)", member_name(x.m).c_str(), x.what.c_str(), (x.left + 12) / 24);
+        }
+        any = true;
+    }
+    /* the game's own load classes (s029 0e76:013a): the capacity is the current endurance +
+       strength; light up to half of it, heavy above it, overloaded above one and a half times */
+    bool head = false;
+    for (int m = 0; m < size; m++) {
+        u16 b = G_MEMBER(m);
+        int st = g_rb((u16)(b + G_M_STATUS));
+        if (!st || st == 3) continue;
+        int end = g_rb((u16)(b + G_M_ATTR_CUR)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1));
+        int load = g_rb((u16)(b + G_M_LOAD)), cap = end + str;
+        if (load <= cap) continue;
+        if (!head) { if (any) ImGui::Separator(); heading("Burdens"); head = true; }
+        if (load * 2 > cap * 3) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "%s: overloaded, %d/%d", member_name(m).c_str(), load, cap);
+        else ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s: heavy, %d/%d", member_name(m).c_str(), load, cap);
+    }
+    if (!any && !head) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work; nobody carries too much."); ImGui::PopStyleColor(); }
+}
+
 extern "C" void ui_margins(void)
 {
     if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_text) return;
@@ -165,7 +247,9 @@ extern "C" void ui_margins(void)
     float left = x0, right = io.DisplaySize.x - x1;
     if (left < 150 && right < 150) return;
     float h = io.DisplaySize.y;
-    float fs = std::min(std::max(std::min(left, right) / 9.5f, 15.0f), 26.0f);
+    /* with the picture (the margins' width keeps lines from getting too short), and the setting */
+    float k = config_get_int("display.text_size", 100) / 100.0f;
+    float fs = std::max(std::min(std::min(left, right) / 9.5f * k, ui_text_px()), 14.0f);
 
     if (left >= 150 && !battlelog_margin(0, left, h, fs) && begin_panel("##margin_l", 0, left, h, fs)) {
         int hour = (s16)g_rw(G_CUR_HOUR), day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH), year = (s16)g_rw(G_CUR_YEAR);
@@ -199,28 +283,7 @@ extern "C" void ui_margins(void)
         end_panel();
     }
     else if (right >= 150 && begin_panel("##margin_r", x1, right, h, fs)) {
-        std::vector<Eff> e = effects_now(size);
-        for (int m = 0; m < size; m++) {
-            u16 b = G_MEMBER(m);
-            int st = g_rb((u16)(b + G_M_STATUS));
-            if (!st) continue;
-            heading(member_name(m).c_str());
-            if (st == 3) { ImGui::TextDisabled("dead"); if (m < size - 1) ImGui::Separator(); continue; }
-            int end = g_rb((u16)(b + G_M_ATTR_CUR)), endm = g_rb((u16)(b + G_M_ATTR_MAX)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1)), strm = g_rb((u16)(b + G_M_ATTR_MAX + 1));
-            ImGui::TextDisabled("End %d/%d  Str %d/%d", end, endm, str, strm);
-            /* the game's own load classes (s029 0e76:013a): the capacity is the current
-               endurance + strength; light up to half of it, heavy above it, overloaded above
-               one and a half times */
-            int load = g_rb((u16)(b + G_M_LOAD)), cap = end + str;
-            if (load * 2 > cap * 3) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "Load %d/%d: overloaded", load, cap);
-            else if (load > cap) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "Load %d/%d: heavy", load, cap);
-            for (const Eff &x : e) {
-                if (x.m != m) continue;
-                if (x.left < 48) ImGui::TextWrapped("%s (%ld h)", x.what.c_str(), x.left);
-                else ImGui::TextWrapped("%s (%ld d)", x.what.c_str(), (x.left + 12) / 24);
-            }
-            if (m < size - 1) ImGui::Separator();
-        }
+        right_panel(size);
         end_panel();
     }
 }

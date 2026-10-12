@@ -27,7 +27,7 @@ struct Formula {
 struct City {
     int seed = 0;                    // +0x56: shop stock seed (with the game's party_seed)                       // DARKLAND.CTY (0x26e bytes per city; location index = city index)
     std::string name, shortname;     // UTF-8
-    int size = 0, type = 0;          // type 0 free city, 1 ruled, 2 capital
+    int size = 0, type = 0;          // type 0..2 (free, ruled, capital in one community reading - unconfirmed: Hamburg and Luebeck are 2, Kassel and Dresden 0)
     int buildings = 0;               // bit 1 town hall, 2 fortress, 4 cathedral, 5 Zeughaus, 6 slums, 7 Kloster,
                                      // 8 university, 9 pawnshop, 10 Muenz, 11 docks
     int shopq[9] = {};               // Blacksmith, Goods Merchant, Swordsmith, Armorer, Gunsmith, Bowyer,
@@ -53,3 +53,6 @@ extern const char *SHOP_NAMES[9];
 extern GameData gamedata;
 void gamedata_load(const char *dir);
 const char *kind_name(ItemKind k);
+// where a saint's description turns from the legend to what the saint does (an offset into text)
+size_t saint_effect_at(const std::string &text);
+void ui_saint_text(const std::string &text);    // the legend, then the effect in another colour (ImGui, wrapped)

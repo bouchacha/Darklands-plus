@@ -17,6 +17,7 @@
 #include <SDL.h>
 #include "../mods/hdart.h"
 #include "gamedata.h"
+#include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -604,6 +605,7 @@ extern "C" void hdtext_draw(void)
 /* the game's pointer again, over the crisp text and the helpers' marks (as over the picture),
  * where the mouse is now (hdtext.c: the game's own sprite is taken out of the picture) */
 static int pointer_drawn;                                    /* this frame (hdtext_live_pointer for the next) */
+static ImVec2 ptr_lo, ptr_hi; static int ptr_frame = -10;      /* where the pointer was drawn (window pixels), for tooltips beside it */
 extern "C" void hdtext_draw_cursor(void)
 {
     pointer_drawn = 0;
@@ -623,6 +625,7 @@ extern "C" void hdtext_draw_cursor(void)
         }
         pointer_drawn = 1;
     }
+    ptr_lo = g2w(fx, fy); ptr_hi = g2w(fx + w, fy + h); ptr_frame = ImGui::GetFrameCount();
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     for (int r = 0; r < h; r++) {
         if (fy + r < 0 || fy + r >= 200) continue;
@@ -806,61 +809,139 @@ static void draw_learned(void)
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
-    ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str()), ts = f->CalcTextSizeA(size, FLT_MAX, w, t.text.c_str());
-    float bh = hs.y + ts.y + pad * 2.4f;
+    /* the legend, then what the saint does in gold */
+    size_t at = saint_effect_at(t.text), ea = at; while (ea < t.text.size() && t.text[ea] == ' ') ea++;
+    std::string lore = t.text.substr(0, at), eff = t.text.substr(ea);
+    while (!lore.empty() && lore.back() == ' ') lore.pop_back();
+    ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str());
+    ImVec2 ls = lore.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, lore.c_str());
+    ImVec2 es = eff.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, eff.c_str());
+    float gap = !lore.empty() && !eff.empty() ? size * 0.4f : 0;
+    float bh = hs.y + ls.y + gap + es.y + pad * 2.4f;
     float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
     ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
     dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
-    dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(235, 200, 130, (int)(255 * a)), head.c_str());
-    dl->AddText(f, size, ImVec2(p0.x + pad, p0.y + pad * 1.4f + hs.y), IM_COL32(240, 230, 210, (int)(255 * a)), t.text.c_str(), 0, w);
+    dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str());
+    float ty = p0.y + pad * 1.4f + hs.y;
+    if (!lore.empty()) dl->AddText(f, size, ImVec2(p0.x + pad, ty), IM_COL32(215, 202, 180, (int)(255 * a)), lore.c_str(), 0, w);
+    if (!eff.empty()) dl->AddText(f, size, ImVec2(p0.x + pad, ty + ls.y + gap), IM_COL32(255, 222, 140, (int)(255 * a)), eff.c_str(), 0, w);
 }
 
 extern "C" void travel_overlay(void);
-/* in a shop: what the item under the mouse is good for (its row in the merchant's or the
- * party's list: "17pf Torch 21q 2lbs", "59pf Short Sword ( 1) 25q") */
+/* what the pointer is on, in any list of the game's: an item (shops, the loot, the character
+ * sheet, the equipment and trading screens: "17pf Torch 21q 2lbs", "Club ( 4) 5-Qual",
+ * "V:Brigandine"), a saint (the saints lists, a card's prayer box) or an alchemy formula (the
+ * formula book) - what it is good for, as a tooltip */
 int ui_shop_info = 1;
 void ui_item_details(const ItemDef *d, int id);
+static std::string squash(const std::string &t)            /* letters and digits only, lower case: "St.Martin" = "St. Martin" */
+{
+    std::string o; for (unsigned char c : t) if (isalnum(c)) o += (char)tolower(c);
+    return o;
+}
 static void draw_shop_info(void)
 {
-    if (!ui_shop_info || game_mode() != GM_SCREEN || !hdtext_mode || !gamedata.loaded || config_get_int("original", 0)) return;
+    int gm = game_mode();
+    static int tip_log = getenv("DL_TIP_LOG") != 0;
+    static std::string last_log;
+    auto tlog = [&](const std::string &m) { if (tip_log && m != last_log) { last_log = m; fprintf(stderr, "tip: %s\n", m.c_str()); } };
+    if (!ui_shop_info || (gm != GM_SCREEN && gm != GM_CARD) || !hdtext_mode || !gamedata.loaded || config_get_int("original", 0)) { tlog("off, mode " + std::to_string(gm)); return; }
+    static std::vector<std::string> item_keys, short_keys, saint_keys, formula_keys;
+    if (item_keys.size() != gamedata.items.size()) {
+        item_keys.clear(); short_keys.clear();
+        for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.name)); short_keys.push_back(squash(d.shortname)); }
+        saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.name));
+        formula_keys.clear(); for (const std::string &f : gamedata.formula_names) formula_keys.push_back(squash(f));
+    }
     int mx, my; plat_mouse_game(&mx, &my);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { mx = cx; my = cy; } }   /* where the game shows its pointer (it moves it in lists) */
-    int row = -1;
-    for (int i = 0; i < hdtext_nruns && row < 0; i++) {
+    int hit = -1;
+    for (int i = 0; i < hdtext_nruns && hit < 0; i++) {
         const HdRun &r = hdtext_runs[i];
-        if (my >= r.y - 1 && my < r.y + r.h + 2 && mx >= r.x - 2 && mx < r.x + r.w + 2) row = r.y;
+        if (my >= r.y - 1 && my < r.y + r.h + 2 && mx >= r.x - 2 && mx < r.x + r.w + 2) hit = i;
     }
-    if (row < 0) return;
-    std::vector<const HdRun *> on;                          /* the whole row, left to right */
+    if (hit < 0) { tlog("nothing at " + std::to_string(mx) + "," + std::to_string(my)); return; }
+    /* the runs of that line next to each other (one column of the screen), left to right */
+    int row = hdtext_runs[hit].y;
+    std::vector<const HdRun *> on;
     for (int i = 0; i < hdtext_nruns; i++) if (hdtext_runs[i].y == row) on.push_back(&hdtext_runs[i]);
     std::sort(on.begin(), on.end(), [](const HdRun *a, const HdRun *b) { return a->x < b->x; });
-    std::string t; for (const HdRun *r : on) { if (!t.empty()) t += ' '; t += r->text; }
+    size_t at = 0; while (at < on.size() && on[at] != &hdtext_runs[hit]) at++;
+    size_t a = at, b = at;
+    while (a > 0 && on[a]->x - (on[a - 1]->x + on[a - 1]->w) <= 8) a--;
+    while (b + 1 < on.size() && on[b + 1]->x - (on[b]->x + on[b]->w) <= 8) b++;
+    std::string t; for (size_t k = a; k <= b; k++) { if (!t.empty()) t += ' '; t += on[k]->text; }
     std::vector<std::string> tok; { size_t i = 0; while (i < t.size()) { while (i < t.size() && t[i] == ' ') i++; size_t j = i; while (j < t.size() && t[j] != ' ') j++; if (j > i) tok.push_back(t.substr(i, j - i)); i = j; } }
     auto price = [](const std::string &w) { size_t k = 0; while (k < w.size() && isdigit((unsigned char)w[k])) k++; return k > 0 && k + 2 == w.size() && (w.substr(k) == "pf" || w.substr(k) == "gr" || w.substr(k) == "fl"); };
-    auto stop = [](const std::string &w) { if (w[0] == '(') return true; size_t k = 0; while (k < w.size() && isdigit((unsigned char)w[k])) k++; return k > 0 && (k == w.size() || (k + 1 == w.size() && (w[k] == 'q' || w[k] == ')'))); };
-    size_t k = 0; while (k < tok.size() && !price(tok[k])) k++;
-    if (k == tok.size()) return;
+    auto stop = [](const std::string &w) { if (w[0] == '(') return true; size_t k = 0; while (k < w.size() && isdigit((unsigned char)w[k])) k++;
+                                            return k > 0 && (k == w.size() || w[k] == 'q' || w[k] == ')' || w[k] == '-' || w.substr(k) == "lbs"); };
+    size_t k = 0;
+    while (k < tok.size() && price(tok[k])) k++;                     /* a shop's price first */
     std::string name;
-    for (k++; k < tok.size() && !stop(tok[k]); k++) { if (!name.empty()) name += ' '; name += tok[k]; }
-    if (name.empty()) return;
-    int id = -1;
-    for (size_t i = 0; i < gamedata.items.size(); i++) if (!strcasecmp(gamedata.items[i].name.c_str(), name.c_str())) { id = (int)i; break; }
-    if (id < 0) return;
-    const ItemDef *d = &gamedata.items[id];
-    bool useful = (d->type >= 0 && d->type <= 33) || (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97) || d->kind == K_POTION;
-    if (!useful) return;
+    for (; k < tok.size() && !stop(tok[k]); k++) { if (!name.empty()) name += ' '; name += tok[k]; }
+    std::string key = squash(name);
+    if (key.size() < 3) return;
+    int item = -1, saint = -1, formula = -1;
+    for (size_t i = 0; i < item_keys.size() && item < 0; i++) if (key == item_keys[i] || (short_keys[i].size() >= 4 && key == short_keys[i])) item = (int)i;
+    /* armour is "V:Brigandine", "L:Chainmail" (vital and limb) in the item list; a screen may leave the "V:" out */
+    for (size_t i = 0; i < item_keys.size() && item < 0; i++) {
+        const std::string &n = gamedata.items[i].name;
+        if (n.size() > 2 && n[1] == ':' && key == item_keys[i].substr(1)) item = (int)i;
+    }
+    if (item < 0) for (size_t i = 0; i < saint_keys.size() && saint < 0; i++) if (key == saint_keys[i]) saint = (int)i;
+    if (item < 0 && saint < 0) for (size_t i = 0; i < formula_keys.size() && formula < 0; i++) if (key == formula_keys[i]) formula = (int)i;
+    tlog("'" + t + "' -> '" + key + "' item " + std::to_string(item) + " saint " + std::to_string(saint) + " formula " + std::to_string(formula));
+    if (item < 0 && saint < 0 && formula < 0) return;
     ImVec2 p = g2w((float)mx, (float)my);
     ImGuiIO &io = ImGui::GetIO();
-    bool right = p.x > io.DisplaySize.x * 0.55f, below = p.y > io.DisplaySize.y * 0.5f;     /* away from the mouse, towards the room */
-    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -24.0f : 24.0f), p.y + (below ? -24.0f : 24.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
-    ImGui::SetNextWindowBgAlpha(0.96f);
+    ImVec2 lo(p.x - 20, p.y - 20), hi(p.x + 20, p.y + 20);                      /* beside the pointer, not under it */
+    if (ImGui::GetFrameCount() - ptr_frame <= 2) { lo = ptr_lo; hi = ptr_hi; }
+    bool right = (lo.x + hi.x) / 2 > io.DisplaySize.x * 0.55f, below = (lo.y + hi.y) / 2 > io.DisplaySize.y * 0.5f;   /* towards the room */
+    ImGui::SetNextWindowPos(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.97f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                              ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.72f, io.DisplaySize.y / 1000.0f)));
-        ImGui::TextUnformatted(game_text(d->name.c_str(), d->name.size()).c_str());
-        ui_item_details(d, id);
+        ImGui::PushFont(ui_font_text);
+        ImGui::SetWindowFontScale(ui_text_px() * 0.88f / ui_font_text->FontSize);
+        ImGui::PushTextWrapPos(fmaxf(UIS(360), fminf(io.DisplaySize.x * 0.30f, ui_text_px() * 24)));
+        if (item >= 0) {
+            const ItemDef *d = &gamedata.items[item];
+            std::string nm = game_text(d->name.c_str(), d->name.size());
+            if (nm.size() > 2 && nm[1] == ':') nm = nm.substr(2);                 /* "V:Brigandine" */
+            ImGui::TextUnformatted(nm.c_str());
+            ImGui::TextDisabled("%s%s", kind_name(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
+            ui_item_details(d, item);
+        } else if (saint >= 0) {
+            const Saint &st = gamedata.saints[saint];
+            ImGui::TextUnformatted(st.name.c_str());
+            std::string who; int npar = (s16)g_rw(G_PARTY_SIZE);
+            for (int m = 0; m < npar && m < 5; m++)
+                if (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (saint >> 3))) & (0x80 >> (saint & 7))) {
+                    char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);
+                    if (!who.empty()) who += ", "; who += game_text(n, sizeof n);
+                }
+            ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this saint" : ("Known to " + who).c_str());
+            ImGui::Separator();
+            ui_saint_text(st.text);
+        } else {
+            ImGui::TextUnformatted(gamedata.formula_names[formula].c_str());
+            if (formula < (int)gamedata.formulas.size()) {
+                const Formula &F = gamedata.formulas[formula];
+                const ItemDef *pd = 95 + formula / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + formula / 3] : nullptr;
+                static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
+                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? pd->name.c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                ImGui::Separator();
+                ImGui::TextWrapped("%s", F.text.c_str());
+                std::string ing;
+                for (const FormulaIngr &g : F.ingr) { if (!ing.empty()) ing += ", "; ing += std::to_string(g.count) + " " + (g.item >= 0 && g.item < (int)gamedata.items.size() ? gamedata.items[g.item].name : std::string("?")); }
+                if (!ing.empty()) ImGui::TextDisabled("%s", ing.c_str());
+            }
+        }
+        ImGui::PopTextWrapPos();
+        ImGui::PopFont();
     }
     ImGui::End();
 }
@@ -929,7 +1010,7 @@ static void draw_battle_info(void)
     ImGui::SetNextWindowBgAlpha(0.92f);
     if (ImGui::Begin("##battleinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                                ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.72f, io.DisplaySize.y / 1000.0f)));
+        ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ImGui::GetFont()->FontSize);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);

@@ -519,7 +519,18 @@ static void tab_display(void)
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
-      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
+      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks, the town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
+    {   /* grows with the picture; this scales it */
+        static const int P[] = { 70, 80, 90, 100, 115, 130, 150, 175, 200 };
+        int cur = config_get_int("display.text_size", 100), sel = 3;
+        for (int i = 0; i < 9; i++) if (P[i] == cur) sel = i;
+        char lab[16]; snprintf(lab, sizeof lab, "%d %%", P[sel]);
+        ImGui::SetNextItemWidth(UIS(160));
+        if (ImGui::BeginCombo("text size in the margins, tooltips and on the map", lab)) {
+            for (int i = 0; i < 9; i++) { char t[16]; snprintf(t, sizeof t, "%d %%", P[i]); if (ImGui::Selectable(t, i == sel)) { config_set_int("display.text_size", P[i]); dirty_config = 1; } }
+            ImGui::EndCombo();
+        }
+    }
     { bool sc = sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
     {   /* the menus' size (fonts are baked at start-up) */

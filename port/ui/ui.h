@@ -15,6 +15,7 @@ void ui_select_tab(int t);
 #define UI_GAME_FONTS 6
 extern float ui_scale;                  /* the menus' size: 1 at 96 dpi (display.ui_scale, or the system's scale on Windows) */
 #define UIS(x) ((x) * ui_scale)
+float ui_text_px(void);                 /* text size beside and over the picture (side panels, tooltips, map names) */
 #ifdef __cplusplus
 }
 #endif

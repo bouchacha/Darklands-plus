@@ -230,27 +230,31 @@ extern "C" void worldmap_draw(void)
 
     // places
     int hover = -1; float hd = 1e9f;
-    ImFont *fs = ui_font_small;
-    float fsize = fminf(fmaxf(13.0f * sqrtf(zoom / 0.5f), 11.0f), 22.0f);
+    /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
+    ImFont *fs = ui_font_text;
+    float ks = ui_text_px() / 22.0f;
+    float fsize = ui_text_px() * 0.68f * fminf(fmaxf(powf(zoom / fitz, 0.3f), 0.9f), 1.6f);
     for (const Place &p : P) {
         int g = kind_group(p.kind);
         if ((g == 1 && !show_villages) || (g == 2 && !show_castles) || (g == 3 && !show_holy) || (g == 4 && !show_other)) continue;
         float x, y; tile_px(p.x, p.y, &x, &y);
         ImVec2 s = to_scr(x, y);
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
-        float r = g == 0 ? 4.5f : 3.0f;
+        float r = (g == 0 ? 4.5f : 3.0f) * fmaxf(ks, 1.0f);
         if (g != 0 && zoom < 0.22f) continue;
         dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
         dl->AddCircleFilled(s, r, kind_colour(g));
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
-        if (hovered && d < 14 * 14 && d < hd) { hd = d; hover = p.loc; }
+        float hr = 14 * fmaxf(ks, 1.0f);
+        if (hovered && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
         int big = p.loc < (int)gamedata.cities.size() ? gamedata.cities[p.loc].size : 0;
         bool label = show_names && (g == 0 ? (zoom >= 0.3f || (zoom >= 0.14f && big >= 6)) : zoom >= 0.9f);
         if (label || p.loc == selected) {
             ImVec2 ts = fs->CalcTextSizeA(fsize, FLT_MAX, 0, p.name.c_str());
             ImVec2 tp(s.x - ts.x * 0.5f, s.y + r + 2);
+            float ow = fmaxf(1.0f, roundf(fsize / 18.0f));                       /* the dark outline, thicker with the letters */
             for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
-                if (dx || dy) dl->AddText(fs, fsize, ImVec2(tp.x + dx, tp.y + dy), IM_COL32(0, 0, 0, 220), p.name.c_str());
+                if (dx || dy) dl->AddText(fs, fsize, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 220), p.name.c_str());
             dl->AddText(fs, fsize, tp, g == 0 ? IM_COL32(255, 244, 214, 255) : IM_COL32(235, 225, 205, 255), p.name.c_str());
         }
     }
@@ -260,10 +264,11 @@ extern "C" void worldmap_draw(void)
             u32 r = g_location(m.first);
             if (!r) continue;
             float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
-            ImVec2 s = to_scr(x, y); s.y -= 14;
-            ImVec2 pts[3] = { ImVec2(s.x - 7, s.y - 8), ImVec2(s.x + 7, s.y - 8), ImVec2(s.x, s.y + 4) };
+            float k = fmaxf(ks, 1.0f);
+            ImVec2 s = to_scr(x, y); s.y -= 14 * k;
+            ImVec2 pts[3] = { ImVec2(s.x - 7 * k, s.y - 8 * k), ImVec2(s.x + 7 * k, s.y - 8 * k), ImVec2(s.x, s.y + 4 * k) };
             dl->AddTriangleFilled(pts[0], pts[1], pts[2], IM_COL32(0, 0, 0, 220));
-            ImVec2 q[3] = { ImVec2(s.x - 5, s.y - 7), ImVec2(s.x + 5, s.y - 7), ImVec2(s.x, s.y + 2) };
+            ImVec2 q[3] = { ImVec2(s.x - 5 * k, s.y - 7 * k), ImVec2(s.x + 5 * k, s.y - 7 * k), ImVec2(s.x, s.y + 2 * k) };
             dl->AddTriangleFilled(q[0], q[1], q[2], IM_COL32(255, 210, 60, 255));
         }
     // the party
@@ -272,10 +277,10 @@ extern "C" void worldmap_draw(void)
         if (px >= 0 && py >= 0) {
             float x, y; tile_px(px, py, &x, &y);
             ImVec2 s = to_scr(x, y);
-            float t = (float)ImGui::GetTime(), pr = 9 + 3 * sinf(t * 4);
-            dl->AddCircle(s, pr + 1, IM_COL32(0, 0, 0, 220), 0, 4);
-            dl->AddCircle(s, pr, IM_COL32(255, 255, 255, 255), 0, 2.5f);
-            dl->AddCircleFilled(s, 3.5f, IM_COL32(255, 60, 40, 255));
+            float k = fmaxf(ks, 1.0f), t = (float)ImGui::GetTime(), pr = (9 + 3 * sinf(t * 4)) * k;
+            dl->AddCircle(s, pr + k, IM_COL32(0, 0, 0, 220), 0, 4 * k);
+            dl->AddCircle(s, pr, IM_COL32(255, 255, 255, 255), 0, 2.5f * k);
+            dl->AddCircleFilled(s, 3.5f * k, IM_COL32(255, 60, 40, 255));
         }
     }
 
