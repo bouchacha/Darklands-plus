@@ -42,7 +42,9 @@ KEYS
   1-9           (card) pick an option
   Mouse wheel   (sheet, shops) move through a list
   Tab           (battles, dungeons) the level map
-  Right click   the menu bar
+  Right click   the menu bar (click an entry; a click elsewhere or any key closes it)
+  A, S          (loot) take the whole pile, share it out among the party
+  A, T          (shop) sell the whole stack, buy ten
 
 MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods

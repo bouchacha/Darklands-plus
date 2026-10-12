@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "imgui.h"
 #include "gamedata.h"
 #include "ui.h"
@@ -191,9 +192,17 @@ static void right_panel(int size)
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());
+        /* the location table is read while a card or the map is up; battles and their loot
+           reuse that memory, so meanwhile the last value read stands */
+        static std::map<int, int> rep_seen; static int rep_game = -1;
+        if (rep_game != (s16)g_rw(G_PARTY_SEED)) { rep_seen.clear(); rep_game = (s16)g_rw(G_PARTY_SEED); }
+        int gm = game_mode();
         u32 lr = g_location(cur);
+        if (lr && (gm == GM_CARD || gm == GM_MAP)) rep_seen[cur] = (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12));
         int fame = (s16)g_rw(0x9082);
-        if (lr) ImGui::TextWrapped("Reputation here %d, fame %d", (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)), fame);
+        auto rp = rep_seen.find(cur);
+        if (rp != rep_seen.end()) ImGui::TextWrapped("Reputation here %d, fame %d", rp->second, fame);
+        else ImGui::TextWrapped("Fame %d", fame);
         static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
             { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
         std::string b;

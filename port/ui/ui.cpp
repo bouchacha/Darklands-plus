@@ -230,6 +230,7 @@ extern "C" void ui_toggle_map(void)
 }
 
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
+extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int ui_event(const SDL_Event *e)
 {
     if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
@@ -833,6 +834,18 @@ static void help_window(void)
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
             { extern int ui_battle_log; if (ui_battle_log && !original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
+        } else if (loot_active) {
+            ImGui::SeparatorText("Now: the loot");
+            row("G / P", "get the chosen item from the pile / put one back (the cursor's list)");
+            row("D", "hand out to the next member");
+            if (loot_enabled()) { row("A", "take the whole pile for the member shown"); row("S", "share the pile out: each thing to whoever has some already, else the emptiest pack"); }
+            row("L or Esc", "leave (what is left stays behind)");
+        } else if (barter_active) {
+            ImGui::SeparatorText("Now: a shop");
+            row("P / S", "buy the merchant's chosen item / sell your chosen item (one at a time)");
+            if (loot_enabled()) { row("T", "buy ten of the merchant's chosen item (while the money lasts)"); row("A", "sell the whole stack of your chosen item"); }
+            row("B", "barter for the next member");
+            row("L or Esc", "leave");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
@@ -842,7 +855,7 @@ static void help_window(void)
             row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
         }
         ImGui::SeparatorText("The game's own keys");
-        if (config_get_int("assist.menu_click", 1) && !original_mode()) row("Right click", "the menu bar: click an entry (or hold the button and let go on it); Esc closes it; F10 with the keyboard");
+        if (config_get_int("assist.menu_click", 1) && !original_mode()) row("Right click", "the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard");
         else row("Right mouse button", "the menu bar, while it is held: let go on an entry (F10 with the keyboard)");
         row("Alt+S / Alt+L", "save / load (with a comment, nine saves)");
         row("Alt+O", "order of the party");
