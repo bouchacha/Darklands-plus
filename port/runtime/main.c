@@ -71,10 +71,9 @@ static unsigned file_crc32(const char *path)
     if (!t[1]) for (unsigned i = 0; i < 256; i++) { unsigned c = i; for (int k = 0; k < 8; k++) c = c & 1 ? 0xedb88320u ^ (c >> 1) : c >> 1; t[i] = c; }
     FILE *f = fopen(path, "rb");
     if (!f) return 0;
-    unsigned c = 0xffffffffu; int ch;
+    unsigned c = 0xffffffffu;
     unsigned char buf[65536]; size_t n;
     while ((n = fread(buf, 1, sizeof buf, f)) > 0) for (size_t i = 0; i < n; i++) c = t[(c ^ buf[i]) & 0xff] ^ (c >> 8);
-    (void)ch;
     fclose(f);
     return c ^ 0xffffffffu;
 }
