@@ -42,7 +42,13 @@ static int find_preparer(char *py, char *script, int n)
     snprintf(script, n, "%sdarklands_plus/src/port/tools/prepare.py", b);
     int ok = exists(script);
     if (!ok) { snprintf(script, n, "%s../../port/tools/prepare.py", b); ok = exists(script); }
-#ifndef _WIN32
+#ifdef _WIN32
+    if (ok && !exists(py)) {     /* no Python in the package: an installed one (with capstone: pip install capstone) */
+        char found[MAX_PATH];
+        if (SearchPathA(NULL, "python.exe", NULL, sizeof found, found, NULL) || SearchPathA(NULL, "py.exe", NULL, sizeof found, found, NULL))
+            snprintf(py, n, "%s", found);
+    }
+#else
     if (ok && exists("/usr/bin/python3")) snprintf(py, n, "/usr/bin/python3");
 #endif
     if (base) SDL_free(base);
