@@ -195,6 +195,13 @@ int mt32_open(int rate)
     snprintf(found_desc, sizeof found_desc, "%s, %s", ri.control_rom_description ? ri.control_rom_description : ri.control_rom_id,
              ri.pcm_rom_description ? ri.pcm_rom_description : ri.pcm_rom_id);
     fprintf(stderr, "mt32: %s (%s)\n", found_desc, found_dir);
+    {   /* say so once, the first time it plays */
+        void ui_notice(const char *msg);
+        if (!config_get_int("sound.mt32_told", 0)) {
+            ui_notice("Music: the Roland MT-32, with the ROM files found on this computer (F12 > Display > Sound)");
+            config_set_int("sound.mt32_told", 1);
+        }
+    }
     state = 1;
     return 1;
 }
