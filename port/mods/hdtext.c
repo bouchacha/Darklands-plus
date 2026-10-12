@@ -215,6 +215,29 @@ static void fade_hook(void)
     if (hdtext_mode) recolor_box(0, 0, 320, 200, -1, c);
 }
 
+/* text drawn again where the game drew text before (a menu line redrawn in another colour,
+ * or the same): the old glyphs are not the new line's background; what was behind them is.
+ * (Only at the same place: engraved lettering is the same text again a pixel off, and there
+ * the first glyphs are part of the look.) */
+static void inherit_bg(Rec *r)
+{
+    for (int i = 0; i < MAXREC; i++) {
+        const Rec *o = &rec[i];
+        if (!o->used || !o->bg || o->page != r->page || o->x0 != r->x0 || o->y0 != r->y0 || o->font != r->font) continue;
+        int ax = r->x0 > o->x0 ? r->x0 : o->x0, ay = r->y0 > o->y0 ? r->y0 : o->y0;
+        int bx = r->x0 + r->w < o->x0 + o->w ? r->x0 + r->w : o->x0 + o->w, by = r->y0 + r->h < o->y0 + o->h ? r->y0 + r->h : o->y0 + o->h;
+        if (ax >= bx || ay >= by) continue;
+        const Fnt *F = &fnt[o->font - 1];
+        for (int g = 0; g < o->n; g++) {
+            int gx0 = o->x0 + o->gx[g];
+            for (int x = gx0 > ax ? gx0 : ax; x < gx0 + o->gw[g] && x < bx; x++)
+                for (int y = ay; y < by; y++)
+                    if (glyph_bit(F, o->ch[g], x - gx0, y - o->y0))
+                        r->bg[(y - r->y0) * r->w + (x - r->x0)] = o->bg[(y - o->y0) * o->w + (x - o->x0)];
+        }
+    }
+}
+
 static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
 {
     if (!hdtext_mode || !nfnt) { hook_call_original(); return; }
@@ -261,6 +284,7 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     r.under = malloc((size_t)r.w * r.h);
     for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, pm + (sy + yy) * 320 + sx, (size_t)r.w);
     r.bg = malloc((size_t)r.w * r.h); memcpy(r.bg, r.under, (size_t)r.w * r.h);
+    inherit_bg(&r);
     hook_call_original();
     drop_covered(page, r.x0, r.y0, r.w, r.h);
     int slot = rec_slot();

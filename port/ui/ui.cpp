@@ -439,7 +439,7 @@ static void tab_helpers(void)
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
       if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
     { bool la = config_get_int("assist.loot_all", 1) != 0;
-      if (ImGui::Checkbox("Loot: take the whole pile at once (A), or share it out among the party (S)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
+      if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
       if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
     bool ck = assist_card_keys;

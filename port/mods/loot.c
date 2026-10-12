@@ -1,4 +1,5 @@
-/* loot.c - the loot screen (s040, after a battle or a find): the game hands out one item at
+/* loot.c - the loot screen and the shops, one at a time no more.
+ * The loot screen (s040, after a battle or a find): the game hands out one item at
  * a time, and a stack of 30 arrows is 30 presses of G. Two keys (and buttons, ui/overlay.cpp)
  * take the whole pile:
  *   A  everything to the person shown (as G on every item), and
@@ -122,10 +123,92 @@ static void screen_hook(void)              /* s040 1462:01c8 the loot screen's l
     loot_active--;
 }
 
-void loot_press(int share) { bios_kbd_inject(share ? 0x1f73 : 0x1e61); }   /* the buttons: as the keys */
+/* ---------------------------------------------------------------- shops
+ * The barter screen (s032) also sells and buys one at a time: A sells the whole stack under
+ * the cursor (as S on each), T buys ten of the merchant's item under the cursor (as P, while
+ * the purse lasts). s032 state (DGROUP): 884e the person bartering, 8842[5] 1 = the cursor in
+ * the merchant's list, 885e[5] + 8852[5] the cursor in the person's list, 8838[5] the
+ * person's number of items. Barter key handler: s032 1462:0f60. */
+#define B_WHO  0x884e
+#define B_SIDE 0x8842
+#define B_TOP  0x885e
+#define B_SEL  0x8852
+
+int barter_active;
+static u32 purse(void) { return ((u32)g_rw(G_MONEY) << 20) ^ ((u32)g_rw(G_MONEY + 2) << 10) ^ g_rw(G_MONEY + 4); }
+
+static void barter_many(int buy)
+{
+    void (*key_fn)(void) = game_func(32, 0x1462, 0x0f60);
+    if (!key_fn) return;
+    int m = (s16)g_rw(B_WHO);
+    if (m < 0 || m >= 5) return;
+    char msg[120];
+    int n = 0;
+    if (buy) {
+        if (!g_rw((u16)(B_SIDE + 2 * m))) { ui_notice("Point at one of the merchant's goods first (the upper list)."); return; }
+        for (int i = 0; i < 10; i++) {
+            u32 before = purse();
+            u16 a[1] = { 0x1970 };
+            game_call_live(key_fn, 1, a);
+            if (purse() == before) break;          /* no money left, or no room */
+            n++;
+        }
+        snprintf(msg, sizeof msg, n ? "Bought %d." : "Bought none: not enough money, or no room.", n);
+    } else {
+        if (g_rw((u16)(B_SIDE + 2 * m))) { ui_notice("Point at one of your own things first (the lower list)."); return; }
+        int idx = (s16)g_rw((u16)(B_TOP + 2 * m)) + (s16)g_rw((u16)(B_SEL + 2 * m));
+        if (idx < 0 || idx >= g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) return;
+        u16 o = G_ITEM(m, idx), id = rw(G_FAR2E38, o);
+        int q = rb(G_FAR2E38, (u16)(o + 3)), cnt = rb(G_FAR2E38, (u16)(o + 4));
+        for (int k = 0; k < cnt && k < 255; k++) {
+            int i2 = (s16)g_rw((u16)(B_TOP + 2 * m)) + (s16)g_rw((u16)(B_SEL + 2 * m));
+            if (i2 != idx || i2 >= g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) break;
+            u16 o2 = G_ITEM(m, i2);
+            if (rw(G_FAR2E38, o2) != id || rb(G_FAR2E38, (u16)(o2 + 3)) != q) break;    /* the stack is gone */
+            u32 before = purse();
+            u16 a[1] = { 0x1f73 };
+            game_call_live(key_fn, 1, a);
+            if (purse() == before) break;          /* the merchant will not take it */
+            n++;
+        }
+        snprintf(msg, sizeof msg, n ? "Sold %d." : "This merchant does not buy that.", n);
+    }
+    ui_notice(msg);
+    if (getenv("DL_LOOT_LOG")) fprintf(stderr, "shop: %s\n", msg);
+}
+
+static void barter_key_hook(void)          /* s032 1462:0f60 barter_key(key): the key back, 0x11b to leave */
+{
+    int key = rw(SS, (u16)(SP + 4)) & 0xff;
+    if (loot_enabled() && (key == 'a' || key == 'A' || key == 't' || key == 'T')) {
+        barter_many(key == 't' || key == 'T');
+        AX = 0;
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+
+static void barter_hook(void)              /* s032 1462:0000 barter_screen(shop, name, cats) */
+{
+    barter_active++;
+    hook_call_original();
+    barter_active--;
+}
+
+/* the buttons beside the game's menus (ui/overlay.cpp): as the keys */
+void loot_press(int i)
+{
+    static const u16 LOOT[2] = { 0x1e61, 0x1f73 }, SHOP[2] = { 0x1e61, 0x1474 };
+    if (i < 0 || i > 1) return;
+    bios_kbd_inject(loot_active ? LOOT[i] : SHOP[i]);
+}
 
 void loot_init(void)
 {
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
+    hook_install(32, 0x1462, 0x0f60, barter_key_hook);
+    hook_install(32, 0x1462, 0x0000, barter_hook);
 }

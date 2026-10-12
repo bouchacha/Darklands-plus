@@ -427,7 +427,7 @@ static void member_cards(void)
         int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
         u16 r0 = G_MEMBER(m);
         int load = g_rb((u16)(r0 + G_M_LOAD)), cap = (s8)g_rb((u16)(r0 + G_M_ATTR_CUR)) + (s8)g_rb((u16)(r0 + G_M_ATTR_CUR + 1));
-        char label[96]; snprintf(label, sizeof label, "%s\n%d items  load %d/%d", member_name(m, false).c_str(), n, load, cap);
+        char label[96]; snprintf(label, sizeof label, "%s\n%d/64 kinds  load %d/%d", member_name(m, false).c_str(), n, load, cap);   /* (at most 64 kinds of things each) */
         ImGui::PushStyleColor(ImGuiCol_Text, sel ? ImVec4(1, 0.95f, 0.85f, 1) : ImGui::GetStyle().Colors[ImGuiCol_Text]);
         if (ImGui::Button(label, ImVec2(w, UIS(58)))) sel_member = m;
         ImGui::PopStyleColor(2);

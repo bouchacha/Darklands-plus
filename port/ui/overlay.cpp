@@ -1048,17 +1048,20 @@ static void draw_battle_info(void)
 /* character creation: what the step on screen asks for and what the numbers on the right mean,
  * in the empty column at the left of the creation screen (s037 18c8, state D_8c1e) */
 int ui_creation_guide = 1;
-/* the loot screen: two buttons beside the game's menu, Take all (A) and Share out (S)
- * (mods/loot.c); clicks come through ui_event (overlay_click) */
-extern "C" { extern int loot_active; int loot_enabled(void); void loot_press(int share); }
+/* the loot screen and the shops: two buttons beside the game's menu (loot: Take all (A),
+ * Share out (S); shops: Sell the whole stack (A), Buy ten (T); mods/loot.c); clicks come
+ * through ui_event (overlay_click) */
+extern "C" { extern int loot_active, barter_active; int loot_enabled(void); void loot_press(int i); }
 static ImVec2 loot_btn[2][2]; static int loot_btn_frame = -10, click_taken;
 static void draw_loot_buttons(void)
 {
-    if (!loot_active || !loot_enabled() || game_mode() != GM_SCREEN) return;
+    if ((!loot_active && !barter_active) || !loot_enabled() || game_mode() != GM_SCREEN) return;
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     ImVec2 a = g2w(0, 0), b = g2w(0, 7);
     float size = (b.y - a.y) * 1.05f;
-    static const char *T[2][2] = { { "A", "  Take all of it" }, { "S", "  Share it out among the party" } };
+    static const char *L[2][2] = { { "A", "  Take all of it" }, { "S", "  Share it out among the party" } };
+    static const char *B[2][2] = { { "A", "  Sell the whole stack" }, { "T", "  Buy ten" } };
+    const char *(*T)[2] = loot_active ? L : B;
     ImDrawList *dl = ovl_list();
     ImVec2 mp = ImGui::GetIO().MousePos;
     for (int i = 0; i < 2; i++) {
@@ -1077,7 +1080,7 @@ static void draw_loot_buttons(void)
 /* a click outside the menus on something the overlay drew: 1 if taken */
 extern "C" int overlay_click(int x, int y)
 {
-    if (ImGui::GetFrameCount() - loot_btn_frame <= 2 && loot_active)
+    if (ImGui::GetFrameCount() - loot_btn_frame <= 2 && (loot_active || barter_active))
         for (int i = 0; i < 2; i++)
             if (x >= loot_btn[i][0].x && x < loot_btn[i][1].x && y >= loot_btn[i][0].y && y < loot_btn[i][1].y) { loot_press(i); click_taken = 1; return 1; }
     return 0;
