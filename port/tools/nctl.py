@@ -5,7 +5,7 @@ look at the screen between steps, e.g. hunting for a battle).
 
   nctl.py start NAME [--exe EXE] [--game DIR] [--x11]
           --x11: a window on a private virtual X display, so the Darklands+ interface is drawn
-          (steps wshot NAME, utab N, ucmd CMD:ARG work)
+          (steps wshot NAME, utab N, ucmd CMD:ARG work; NCTL_SCREEN=2560x1440 for a bigger screen)
   nctl.py do NAME "at 120 30; click; wait 2; shot a"    -> prints the PNG paths
   nctl.py stop NAME
 
@@ -35,7 +35,7 @@ def start(name, exe, game, x11=False):
     env = dict(os.environ, DL_HEADLESS='1', SDL_AUDIODRIVER='dummy', DL_CTL=os.path.join(d, 'ctl'))
     if x11:
         disp = 100 + (sum(map(ord, name)) % 400)
-        xv = subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', '1280x800x24', '-nolisten', 'tcp'],
+        xv = subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         open(os.path.join(d, 'xpid'), 'w').write(str(xv.pid))
         time.sleep(1.0)

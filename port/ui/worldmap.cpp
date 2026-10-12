@@ -297,13 +297,16 @@ extern "C" void worldmap_draw(void)
     if (hovered && hover >= 0 && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && on_map) {
         for (const Place &p : P) if (p.loc == hover && travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); break; }
     }
+    /* the panel and the tooltips: at least as big as the menus, bigger on a big screen */
+    float pk = fmaxf(1.0f, ui_text_px() * 0.8f / ImGui::GetFontSize());
     if (hover >= 0) {
         for (const Place &p : P) if (p.loc == hover) {
             ImGui::BeginTooltip();
+            ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_label(p.kind));
             if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
-            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
             ImGui::EndTooltip();
             break;
@@ -314,10 +317,11 @@ extern "C" void worldmap_draw(void)
     ImGui::SetNextWindowPos(ImVec2(o.x + 14, o.y + 14));
     ImGui::SetNextWindowBgAlpha(0.88f);
     ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
     ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
     static char find[48];
-    ImGui::SetNextItemWidth(UIS(260));
+    ImGui::SetNextItemWidth(UIS(260) * pk);
     ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof find);
     if (find[0]) {
         std::string f = find; std::transform(f.begin(), f.end(), f.begin(), ::tolower);
@@ -346,7 +350,7 @@ extern "C" void worldmap_draw(void)
                 if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
                 if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
             } else ImGui::TextDisabled("Auto-travel works from the travel map.");
-            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             break;
         }
     }
