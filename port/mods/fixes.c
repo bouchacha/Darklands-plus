@@ -45,6 +45,10 @@
  *            the damage nibble), and hit_damage's penetration (byte + weapon) & 15 wraps too:
  *            "after Greatpower my bows only do 3-5 damage". The byte is now the sum of the
  *            potions still running, each nibble capped at 15, and penetration stops at 15.
+ *  bestweapon member_best_skill (s029 0e76:01c0) sets best_skill for every skill it looks at
+ *            (missing braces), so it always ends as 6 (Missile Devices); the practice of a
+ *            card (s053 1838:074e: practice_skill(leader, best_skill ...)) then trained that.
+ *            best_skill is set to the first of the highest weapon skills afterwards.
  *  offmap    One location of DARKLAND.LOC (record 373, a cave) lies at y 931, one row below the
  *            931-row map: quests that send the party there cannot be finished ("quests send
  *            you off the map"). It is moved onto the last row. */
@@ -82,6 +86,8 @@ Fix FIXES[] = {
       "Deadly Blade, Strongedge and Greatpower never wore off, and their bonuses overflowed: after a few potions (or one Greatpower) weapons, bows above all, hit for almost nothing. They now last their day and add up properly.", 1 },
     { "offmap", "No quest destinations off the edge of the map",
       "One cave lies a row beyond the bottom of the map, so quests sent there could never be finished. It is moved onto the map.", 1 },
+    { "bestweapon", "Weapon practice trains the weapon actually used best",
+      "Where a card lets the leader practise with the weapon he or she is best at, the original always trained Missile Devices.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -380,12 +386,25 @@ static void copyprot_hook(void)            /* copy_protection(), s041 1462:0000:
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- bestweapon */
+static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:01c0 */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    if (who == -1) who = (s8)g_rb(G_LEADER);
+    if (who < 0 || who > 4) return;
+    int best = 0, bv = 0;                      /* the first of the highest weapon skills, as intended */
+    for (int i = 0; i < 7; i++) { int v = g_rb((u16)(G_MEMBER(who) + G_M_SKILLS + i)); if (v > bv) { bv = v; best = i; } }
+    if (getenv("DL_FIX_LOG") && g_rb(0x99eb) != best) fprintf(stderr, "fix bestweapon: member %d best skill %d (the game said %d)\n", who, best, g_rb(0x99eb));
+    g_wb(0x99eb, (u8)best);                    /* best_skill */
+}
+
 /* ---------------------------------------------------------------- switching */
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
-    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 } };
+    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook } };
 
 void fix_enable(int i, int on)
 {
