@@ -450,6 +450,7 @@ static void run_script(void)
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "uset")) { char k[64]; int v = 0; if (sscanf(s->arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
         else if (!strcmp(s->cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (s->arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(s->cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(s->cmd, "uwheel")) {             /* test: the mouse wheel turned by n notches (up > 0) */
