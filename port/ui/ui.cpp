@@ -695,9 +695,20 @@ static void tab_about(void)
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
     ImGui::PushFont(font_head); ImGui::SeparatorText("Files"); ImGui::PopFont();
     ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original");
-    ImGui::BulletText("settings: darklands_port.ini in the game folder");
-    ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
-    ImGui::BulletText("a log of the session: darklands_port.log (Windows), to send along with a report of a problem");
+    {   extern char dlp_data_dir[];
+        bool own = strcmp(dlp_data_dir, game_dir) != 0;    /* the game folder could not be written */
+        ImGui::BulletText("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
+        ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
+        ImGui::BulletText("a log of the session: darklands_port.log (Windows) in %s, to send along with a report of a problem", own ? dlp_data_dir : "the game folder");
+#ifdef DL_RTSPLIT
+        ImGui::BulletText("the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again)",
+#ifdef _WIN32
+                          "darklands_game.dll");
+#else
+                          "libdarklands_game.so");
+#endif
+#endif
+    }
     ImGui::PushFont(font_head); ImGui::SeparatorText("Made with"); ImGui::PopFont();
     hint("Dear ImGui (MIT licence); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); stb_image, stb_image_write, "
          "stb_vorbis (public domain); SDL2 (zlib licence); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
