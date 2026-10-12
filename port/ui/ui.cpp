@@ -700,6 +700,7 @@ static void tab_about(void)
         ImGui::BulletText("the game: %s", game_dir);
         ImGui::BulletText("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
         ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
+        ImGui::BulletText("screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s", own ? dlp_data_dir : "the game folder");
         ImGui::BulletText("a log of the session: darklands_port.log (Windows) in %s, to send along with a report of a problem", own ? dlp_data_dir : "the game folder");
 #ifdef DL_RTSPLIT
         ImGui::BulletText("the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again)",

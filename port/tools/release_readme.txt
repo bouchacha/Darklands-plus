@@ -33,7 +33,8 @@ KEYS
   F12           Darklands+ menu
   Ctrl+S        quick save            F9, Ctrl+L  quick load
   Alt+Enter     full screen           Ctrl+click  (travel map) travel there
-  Ctrl+F12      screenshot            G           (city card) go to a place
+  Ctrl+F12      screenshot (PNG in the screenshots folder of the Darklands folder)
+  G             (city card) go to a place
   1-9           (card) pick an option
   Mouse wheel   (sheet, shops) move through a list
   Tab           (battles, dungeons) the level map

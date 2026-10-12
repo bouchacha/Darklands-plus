@@ -177,6 +177,16 @@ static void save_bmp(const char *path)
 /* where the 320x200 picture goes in the window (renderer output pixels) */
 static SDL_Rect dest;
 static char pending_wshot[300];     /* whole-window screenshot (interface included) at the next present */
+static int pending_shot;             /* Ctrl+F12: the window as the player sees it, a PNG in screenshots/ */
+#ifdef _WIN32
+#include <direct.h>
+#define PATH_SEP_STR "\\"
+static void shot_mkdir(const char *d) { _mkdir(d); }
+#else
+#include <sys/stat.h>
+#define PATH_SEP_STR "/"
+static void shot_mkdir(const char *d) { mkdir(d, 0755); }
+#endif
 static int out_w = 960, out_h = 720, win_w = 960, win_h = 720;
 static void layout(void)
 {
@@ -351,6 +361,27 @@ void plat_present(const u8 *vga, const u8 *pal)
     uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
     uint64_t pt3 = ptime ? plat_ticks_us() : 0;
+    if (pending_shot) {
+        pending_shot = 0;
+        unsigned char *px = malloc((size_t)out_w * out_h * 4);
+        if (px && SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ABGR8888, px, out_w * 4) == 0) {   /* bytes R G B A */
+            extern char dlp_data_dir[];
+            char dir[1200], path[1300], name[64];
+            snprintf(dir, sizeof dir, "%s/screenshots", dlp_data_dir);
+            shot_mkdir(dir);
+            time_t t = time(0); struct tm *tm = localtime(&t);
+            strftime(name, sizeof name, "darklands-%Y-%m-%d-%H%M%S.png", tm);
+            snprintf(path, sizeof path, "%s/%s", dir, name);
+            for (int i = 0; i < out_w * out_h; i++) px[i * 4 + 3] = 255;
+            int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
+            char msg[200];
+            if (stbi_write_png(path, out_w, out_h, 4, px, out_w * 4)) snprintf(msg, sizeof msg, "Screenshot saved: screenshots%s%s", PATH_SEP_STR, name);
+            else snprintf(msg, sizeof msg, "The screenshot could not be saved (%s)", dir);
+            fprintf(stderr, "%s\n", msg);
+            void ui_notice(const char *); ui_notice(msg);
+        }
+        free(px);
+    }
     if (pending_wshot[0]) {
         SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
         if (sf) { SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
@@ -676,7 +707,7 @@ void plat_events(void)
                 config_set_int("display.fullscreen", !(fl & SDL_WINDOW_FULLSCREEN_DESKTOP)); config_save();
                 break;
             }
-            if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { save_bmp("screenshot.bmp"); break; }
+            if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { if (ren) pending_shot = 1; else save_bmp("screenshot.bmp"); break; }
             if (e.key.keysym.sym == SDLK_ESCAPE && !e.key.repeat && menu_escape()) break;
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             {   /* 1..9 on a card: that option (a click on its line) */
