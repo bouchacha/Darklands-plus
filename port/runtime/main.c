@@ -2,6 +2,7 @@
  * emulated address space (the recompiled code reads its data, code-segment tables and
  * overlay sections from there), set up DOS structures, and run the program. */
 #include <stdio.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
@@ -115,6 +116,19 @@ int main(int argc, char **argv)
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 
     config_load(game_dir);
+    {   /* SAVES\DEFAULT holds the ready-made world Quickstart begins with: without it Quickstart
+           makes a party with no figures, and the first battle stops the game ("pics\short.pic") */
+        char dp[1200]; struct stat st;
+        snprintf(dp, sizeof dp, "%s/SAVES/DEFAULT", game_dir);
+        if (stat(dp, &st) != 0) { snprintf(dp, sizeof dp, "%s/saves/default", game_dir); }
+        if (stat(dp, &st) != 0) {
+            const char *msg = "The file SAVES\\DEFAULT is missing from the game folder. Quickstart needs it (it holds the "
+                              "ready-made party and world); without it the first battle stops the game. Copy it back from "
+                              "your Darklands installation (GOG: the SAVES folder).";
+            fprintf(stderr, "warning: %s\n", msg);
+            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Darklands", msg, 0);
+        }
+    }
     { void datamods_init(void); datamods_init(); }     /* mod folders (mods/datamods.c), before any file is read */
     M = calloc(1, MEM_SIZE);
 #ifdef FTRACE
