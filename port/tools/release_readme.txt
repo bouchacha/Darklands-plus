@@ -80,7 +80,7 @@ yours removes or blocks darklands_game.dll, allow that file (it is made from you
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
 To remove Darklands+, delete the folder you unpacked it into, and darklands_game.dll,
-darklands_port.ini, darklands_port.log and darklands_journal_*.txt from the Darklands folder (or the folder
+darklands_port.ini, darklands_port.log, darklands_journal_*.txt and darklands_chronicle_*.txt from the Darklands folder (or the folder
 %LOCALAPPDATA%\Darklands+, where they go when the Darklands folder cannot be written).
 
 WHAT IS IN darklands_plus
