@@ -63,3 +63,17 @@ Windows build) and takes screenshots; `tools/nctl.py` keeps a session to drive s
 `tools/batch.sh` runs the standard play tests. Scripts can use test commands of the platform
 layer (`ucmd ucard:`, `ugoto:N`, `uparty:`, `ucbt:` ...; `runtime/platform_sdl.c`, `run_script`).
 Environment variables `DL_*` switch on traces (see the sources).
+
+## Third-party code
+
+| component | where | licence |
+|---|---|---|
+| Dear ImGui 1.91.5 | `third_party/imgui` | MIT (`LICENSE.txt`) |
+| Nuked OPL3 (FM sound) | `third_party/nuked-opl3` | LGPL 2.1 or later (`LICENSE`) |
+| stb_image, stb_image_write, stb_vorbis | `third_party/stb` | public domain or MIT (in each file) |
+| fonts: EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia ("DL Fraktur") | `third_party/fonts` | SIL Open Font License 1.1 (`fonts/README.txt`) |
+| SDL2 | linked (Linux: the system's; Windows: `build/sdl2-win64`, static) | zlib |
+
+Whoever distributes builds should ship these notices with them; Nuked OPL3's LGPL also asks
+that users can relink the program with their own version of it, which the published source
+allows.
