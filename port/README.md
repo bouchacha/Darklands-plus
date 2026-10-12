@@ -34,6 +34,29 @@ make -C port TARGET=win64 -j8                                 # Windows (mingw-w
 build/port/darklands /path/to/DARKLAND                        # run
 ```
 
+## Releases: the game's code made on the player's machine
+
+The program above contains code translated from `DARKLAND.EXE`, so it cannot be passed on. A
+release instead ships the program without that code and makes it on first start, from the
+player's own copy (`runtime/split.h`):
+
+```
+make -C port SPLIT=1 TARGET=win64 -j8      # the program alone (no game files needed): build/port_win64_split
+python3 -I port/tools/prepare.py --game /path/to/DARKLAND --out /path/to/DARKLAND/darklands_game.dll
+```
+
+`prepare.py` is what the program runs when the module is missing or was made by another
+translator (a progress window; about four minutes): the analysis, the translation and TinyCC,
+which compiles the result into `darklands_game.dll` (`libdarklands_game.so` on Linux, where
+`make -C port SPLIT=1` and `make -C port module` work the same way). The translator's id is the
+hash of the files in `port/tools/translator_files.txt`; both the program and the module carry it.
+
+`port/tools/package.py` makes the Windows zip (program, translator, TinyCC from
+`port/tools/build_tcc_win.sh`, the embeddable Python with capstone, licences; it refuses to pack
+anything made from the game), and `.github/workflows/release.yml` does all of it on GitHub for a
+tag `v...`. The zip's contents go into the Darklands folder; `port/tools/release_readme.txt` is
+the players' README.
+
 ## What it adds (all can be switched off; F12 > Helpers > "Play the original game" turns everything off)
 
 On the first start a short welcome names the keys that matter and offers the original game untouched.

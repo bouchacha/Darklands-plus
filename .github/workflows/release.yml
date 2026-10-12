@@ -1,0 +1,63 @@
+# The Windows release of Darklands+ (port/tools/package.py): only our own code and the tools that
+# make the game module on the player's machine from their DARKLAND.EXE. No game files are needed
+# or used here. Runs for a tag "v..." (and then attaches the zip to a GitHub release), or by hand
+# (Actions > Windows release > Run workflow; the zip is then under the run's artifacts).
+name: Windows release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: ubuntu-24.04
+    env:
+      SDL_VERSION: 2.30.9
+      PYTHON_VERSION: 3.12.7
+      CAPSTONE_VERSION: 5.0.7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # the build's name counts the commits
+
+      - name: Tools
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 python3-pip
+
+      - name: SDL2 for mingw-w64
+        run: |
+          curl -fsSL -o sdl.tgz "https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL2-devel-${SDL_VERSION}-mingw.tar.gz"
+          tar xzf sdl.tgz
+          mkdir -p build
+          mv "SDL2-${SDL_VERSION}/x86_64-w64-mingw32" build/sdl2-win64
+
+      - name: The program (without the game's code)
+        run: make -C port SPLIT=1 TARGET=win64 -j4
+
+      - name: TinyCC for Windows
+        run: sh port/tools/build_tcc_win.sh build/tcc-win64
+
+      - name: Python for Windows and capstone
+        run: |
+          curl -fsSL -o python-embed.zip "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-amd64.zip"
+          python3 -m pip download "capstone==${CAPSTONE_VERSION}" --only-binary=:all: --platform win_amd64 --python-version 3.12 --no-deps -d wheels
+
+      - name: Package
+        run: |
+          python3 port/tools/package.py --exe build/port_win64_split/darklands.exe --tcc build/tcc-win64 \
+              --python-zip python-embed.zip --capstone-wheel wheels/capstone-*.whl \
+              --version "${GITHUB_REF_NAME}" --out "DarklandsPlus-${GITHUB_REF_NAME}-win64.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DarklandsPlus-win64
+          path: DarklandsPlus-*.zip
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: DarklandsPlus-*.zip
