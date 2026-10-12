@@ -29,8 +29,15 @@ ifdef FTRACE
   BIN    := $(OUT)/$(notdir $(BIN))
   EXTRA  := -DFTRACE
 endif
+ifdef ASAN
+  # the port's own code (runtime, interface, mods) checked by AddressSanitizer; the generated game code as usual
+  OUT    := $(OUT)_asan
+  BIN    := $(OUT)/$(notdir $(BIN))
+  SANFL  := -fsanitize=address -fno-omit-frame-pointer -g
+  SDL_LIBS += -fsanitize=address
+endif
 CFLAGS   := $(EXTRA) $(OPT) -g0 -fwrapv -fno-strict-aliasing -w -Iruntime -I$(GEN) $(SDL_CFLAGS)
-RTFLAGS  := $(EXTRA) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-function -Wno-misleading-indentation \
+RTFLAGS  := $(EXTRA) $(SANFL) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-function -Wno-misleading-indentation \
             -Wno-unused-variable -Wno-unused-result -Wno-format-truncation -Wno-unused-but-set-variable -Iruntime -I$(GEN) $(SDL_CFLAGS)
 RT_SRC   := $(wildcard runtime/*.c) third_party/nuked-opl3/opl3.c
 GEN_SRC  := $(wildcard $(GEN)/*.c)
@@ -39,7 +46,7 @@ UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts
             $(patsubst mods/%.c,$(OUT)/mods_%.o,$(wildcard mods/*.c)) \
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
-CXXFLAGS := -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
+CXXFLAGS := $(SANFL) -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
 OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)/opl3.o $(UI_OBJS) $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC)) \
             $(OUT)/version.o
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log

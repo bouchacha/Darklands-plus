@@ -27,6 +27,22 @@ static u8 handle_cfg[64];       /* CONFIG.DRK: the sound card choice is replaced
 static u16 dta_seg, dta_off;
 u16 psp_seg;
 int dos_trace;
+/* while the port asks the game something on the side (the chances of the card options, mods/
+ * assist.c: the answers are thrown away with everything the game changed in memory), the disk
+ * must not change either: files are opened for reading only and writes, deletions and renames
+ * are let pass without effect (an option's handler wrote the character roster, charactr.tmp,
+ * three times a second until it held thousands of characters and empty figure codes) */
+int dos_no_writes;
+/* debugging (DL_WATCH_FILE=NAME): who writes that file */
+static void watch_file(const char *op, const char *name)
+{
+    static const char *w = (const char *)-1; if (w == (const char *)-1) w = getenv("DL_WATCH_FILE");
+    if (!w) return;
+    const char *b = strrchr(name, '\\'); b = b ? b + 1 : name;
+    if (strcasecmp(b, w)) return;
+    int game_mode(void);
+    fprintf(stderr, "file watch: %s %s (mode %d, card %.12s, side %d)\n", op, name, game_mode(), (const char *)M + LIN((u16)(LOADSEG + 0x321a), 0xe3d4), dos_no_writes);
+}
 static int ems_dev_open;
 
 #define SETCF(c) do { u16 f_ = get_flags(); set_flags((u16)((c) ? (f_ | 1) : (f_ & ~1))); } while (0)
@@ -364,7 +380,9 @@ void dos_int21(void)
     case 0x36: AX = 64; BX = 0x7fff; CX = 512; DX = 0xffff; break;  /* plenty of free space */
     case 0x3c: case 0x5b: {
         get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp);
-        FILE *f = fopen(hp, "w+b");
+        watch_file("create", name);
+        if (dos_no_writes) { fprintf(stderr, "dos: create %s while asking the game on the side: not done\n", name); }
+        FILE *f = dos_no_writes ? tmpfile() : fopen(hp, "w+b");
         if (!f) { dos_error(3); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }
         AX = (u16)h; SETCF(0); break; }
@@ -373,7 +391,9 @@ void dos_int21(void)
         if (!strcasecmp(name, "EMMXXXX0")) { ems_dev_open = 1; AX = 63; SETCF(0); break; }
         if ((AL & 3) == 0) dos_host_path_read(name, hp, sizeof hp);    /* reading: a mod's file if one is on */
         else host_path(name, hp, sizeof hp);
-        const char *mode = (AL & 3) == 0 ? "rb" : "r+b";
+        const char *mode = (AL & 3) == 0 || dos_no_writes ? "rb" : "r+b";
+        if (AL & 3) watch_file("open for writing", name);
+        if (dos_no_writes && (AL & 3)) fprintf(stderr, "dos: open %s for writing while asking the game on the side: read only\n", name);
         FILE *f = fopen(hp, mode);
         if (!f && (AL & 3)) f = fopen(hp, "rb");
         if (!f) { const char *hdart_virtual_file(const char *); const char *v = hdart_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* a new picture made from art */
@@ -398,6 +418,7 @@ void dos_int21(void)
     case 0x40: {
         if (BX == 1 || BX == 2) { fwrite(M + LIN(DS, DX), 1, CX, stdout); AX = CX; SETCF(0); break; }
         if (BX >= 64 || !handles[BX]) { dos_error(6); break; }
+        if (dos_no_writes) { AX = CX; SETCF(0); break; }       /* (see dos_no_writes) */
         if (CX == 0) {               /* truncate at the current position */
             fseek(handles[BX], 0, SEEK_CUR); long pos = ftell(handles[BX]); fflush(handles[BX]);
 #ifdef _WIN32
@@ -410,6 +431,7 @@ void dos_int21(void)
         fseek(handles[BX], 0, SEEK_CUR);
         AX = (u16)fwrite(M + LIN(DS, DX), 1, CX, handles[BX]); SETCF(0); break; }
     case 0x41: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp);
+        if (dos_no_writes) { fprintf(stderr, "dos: delete %s while asking the game on the side: not done\n", name); SETCF(0); break; }
         if (remove(hp)) dos_error(2); else SETCF(0); break;
     case 0x42: {
         if (BX >= 64 || !handles[BX]) { dos_error(6); break; }
@@ -470,6 +492,7 @@ void dos_int21(void)
         break; }
     case 0x4f: if (find_next()) { AX = 0; SETCF(0); } else dos_error(18); break;
     case 0x56: { char n2[256], h2[1024]; get_str(DS, DX, name, sizeof name); get_str(ES, DI, n2, sizeof n2);
+        if (dos_no_writes) { fprintf(stderr, "dos: rename %s while asking the game on the side: not done\n", name); SETCF(0); break; }
         host_path(name, hp, sizeof hp); host_path(n2, h2, sizeof h2);
         if (rename(hp, h2)) dos_error(5); else SETCF(0); break; }
     case 0x57: if (AL == 0) { CX = 0; DX = 0x1221; } SETCF(0); break;

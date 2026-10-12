@@ -47,11 +47,13 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
 static u32 bad[64]; static int nbad;
 static int is_bad(u32 a) { for (int k = 0; k < nbad; k++) if (bad[k] == a) return 1; return 0; }
 
+extern int dos_no_writes;
 static void evaluate(void)
 {
     int n = (s8)g_rb(0xe96e);
     if (n < 0 || n > 20) n = 0;
     void *snap = eval_snapshot();
+    dos_no_writes = 1;                   /* the answers are thrown away: so is any change to the disk */
     CardChances c;
     memset(&c, 0, sizeof c);
     c.n = n;
@@ -96,6 +98,7 @@ static void evaluate(void)
         if (pct >= 0) { c.line[i].show = 1; c.line[i].pct = pct > 100 ? 100 : pct; c.line[i].who = who; }
     }
     eval_free(snap);
+    dos_no_writes = 0;
     c.active = 1;
     c.seq = card_chances.seq + 1;
     card_chances = c;
