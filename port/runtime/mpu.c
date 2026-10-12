@@ -7,6 +7,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "hle.h"
+#include "config.h"
 #include "../mods/musicpack.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -32,16 +33,48 @@ static void midi_open(void)
     if (lg && !midi_log && (midi_log = fopen(lg, "wb"))) setvbuf(midi_log, NULL, _IONBF, 0);
     if (sound_use_mt32() && mt32_open(44100)) { midi_ok = 2; return; }
 #ifdef _WIN32
-    static int win = -1;
+    /* the output named in F12 > Display (sound.midi_out; a real MT-32 on a MIDI interface, a
+     * software synthesizer ...), else Windows' default */
+    static int win = -1; static char opened[64];
+    const char *want = config_get("sound.midi_out", "");
+    if (win > 0 && strcmp(opened, want)) { midiOutReset(hmo); midiOutClose(hmo); win = -1; }
     if (win < 0) {
-        win = midiOutOpen(&hmo, MIDI_MAPPER, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR;
+        UINT id = MIDI_MAPPER;
+        for (UINT i = 0; want[0] && i < midiOutGetNumDevs(); i++) {
+            MIDIOUTCAPSA c;
+            if (midiOutGetDevCapsA(i, &c, sizeof c) == MMSYSERR_NOERROR && !strcmp(c.szPname, want)) id = i;
+        }
+        win = midiOutOpen(&hmo, id, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR;
+        snprintf(opened, sizeof opened, "%s", want);
         if (!win) fprintf(stderr, "no MIDI output device\n");
+        else fprintf(stderr, "MIDI out: %s\n", id == MIDI_MAPPER ? "the system's default" : want);
     }
     midi_ok = win;
 #endif
 }
 /* a driver is being loaded (sounddev.c): where the MIDI goes is decided again at its first byte */
 void mpu_reconsider(void) { midi_ok = -1; }
+
+/* the system's MIDI outputs, for F12 > Display */
+int mpu_out_count(void)
+{
+#ifdef _WIN32
+    return (int)midiOutGetNumDevs();
+#else
+    return 0;
+#endif
+}
+const char *mpu_out_name(int i)
+{
+#ifdef _WIN32
+    static char n[64]; MIDIOUTCAPSA c;
+    if (midiOutGetDevCapsA((UINT)i, &c, sizeof c) != MMSYSERR_NOERROR) return "";
+    snprintf(n, sizeof n, "%s", c.szPname);
+    return n;
+#else
+    (void)i; return "";
+#endif
+}
 
 static void midi_short(u8 a, u8 b, u8 c, int n)
 {

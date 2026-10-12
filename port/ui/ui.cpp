@@ -555,7 +555,7 @@ static void tab_helpers(void)
     }
 }
 
-extern "C" { int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
+extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
 static void tab_display(void)
 {
     bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
@@ -673,6 +673,27 @@ static void tab_display(void)
     for (int i = 0; i < 8; i++)
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
     hint("Takes effect after the next battle, or when the game is started again.");
+    if (!strcmp(cur, "midi")) {                     /* which MIDI output */
+        ImGui::Indent(UIS(30));
+        int n = mpu_out_count();
+        const char *out = config_get("sound.midi_out", "");
+        if (!n) hint("No MIDI outputs on this system (Windows lists them here).");
+        else {
+            ImGui::SetNextItemWidth(UIS(420));
+            if (ImGui::BeginCombo("MIDI output", out[0] ? out : "Windows' default")) {
+                if (ImGui::Selectable("Windows' default", !out[0])) { config_set("sound.midi_out", ""); dirty_config = 1; }
+                for (int i = 0; i < n; i++) {
+                    const char *nm = mpu_out_name(i);
+                    if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); dirty_config = 1; }
+                }
+                ImGui::EndCombo();
+            }
+            hint("A real MT-32 on a MIDI interface, or a synthesizer installed as a MIDI device (Munt's mt32emu driver, "
+                 "a Sound Canvas ...). The game's Roland driver loads its instruments when it starts, so the choice takes "
+                 "effect after the next battle, or at the next start.");
+        }
+        ImGui::Unindent(UIS(30));
+    }
     {
         int v = sound_music_volume;
         ImGui::SetNextItemWidth(UIS(260));
