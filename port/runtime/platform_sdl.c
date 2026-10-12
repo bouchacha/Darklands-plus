@@ -444,6 +444,7 @@ static void run_script(void)
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(s->cmd, "uwheel")) {             /* test: the mouse wheel turned by n notches (up > 0) */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg); SDL_PushEvent(&ev);

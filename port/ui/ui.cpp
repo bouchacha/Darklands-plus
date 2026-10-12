@@ -160,7 +160,12 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.scaler = config_get_int("display.scaler", 0);
 }
 
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help; }
+extern "C" int levelmap_is_open(void);
+extern "C" int levelmap_available(void);
+extern "C" void levelmap_toggle(void);
+extern "C" void levelmap_frame(void);
+extern "C" void levelmap_draw(void);
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || levelmap_is_open(); }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
@@ -178,6 +183,15 @@ extern "C" int ui_event(const SDL_Event *e)
     if (open_help) {
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_F1)) { open_help = false; return 1; }
         if (e->type == SDL_MOUSEBUTTONDOWN) { open_help = false; return 1; }
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
+    /* Tab in a battle or dungeon: the level map (ui/levelmap.cpp) */
+    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_TAB && !e->key.repeat
+        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && (levelmap_is_open() || levelmap_available())) { levelmap_toggle(); return 1; }
+    if (levelmap_is_open()) {
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { levelmap_toggle(); return 1; }
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { levelmap_toggle(); ui_toggle(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
@@ -369,6 +383,9 @@ static void tab_helpers(void)
     { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
       if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); dirty_config = 1; }
       if (bi) { ImGui::SameLine(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); dirty_config = 1; } } }
+    { bool lm = config_get_int("assist.level_map", 1) != 0, la = config_get_int("assist.level_map_all", 0) != 0;
+      if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); dirty_config = 1; }
+      if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); dirty_config = 1; } } }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
@@ -642,6 +659,7 @@ static void help_window(void)
             row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
+            if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
@@ -676,7 +694,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || levelmap_is_open() || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -697,9 +715,11 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui::NewFrame();
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
+    levelmap_frame();
     if (open_map) worldmap_draw();
+    else if (levelmap_is_open()) levelmap_draw();
     else hdtext_draw();
-    if (!open_menu && !open_map) ui_overlay();
+    if (!open_menu && !open_map && !levelmap_is_open()) ui_overlay();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
