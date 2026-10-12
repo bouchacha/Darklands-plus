@@ -17,8 +17,8 @@
 #else
 #define DLEXPORT __attribute__((visibility("default")))
 #endif
-#ifndef GEN_EXE_HASH
-#define GEN_EXE_HASH 0
+#ifndef GEN_TRANSLATOR
+#define GEN_TRANSLATOR "?"
 #endif
 
 CPU *dl_R; u8 *dl_M; u16 *dl_LOADSEG;
@@ -60,7 +60,7 @@ DLEXPORT const DlGame *dl_game_init(const DlRuntime *r)
     dl_unw_active = r->unw_active_p; dl_unw_sp = r->unw_sp_p; dl_unw_ip = r->unw_ip_p; dl_unw_cs = r->unw_cs_p;
     dl_hook_bypass = r->hook_bypass_p; dl_poll_flag = r->poll_flag_p;
     g.version = DL_SPLIT_VERSION;
-    g.exe_hash = GEN_EXE_HASH;
+    g.translator = GEN_TRANSLATOR;
     g.func_table = FUNC_TABLE; g.func_count = &FUNC_COUNT;
     g.vec_table = VEC_TABLE; g.vec_count = &VEC_COUNT;
     g.ret_table = RET_TABLE; g.ret_count = &RET_COUNT;

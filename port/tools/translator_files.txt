@@ -1,0 +1,22 @@
+# The files that turn DARKLAND.EXE into the game module (runtime/split.h), as paths from the
+# top of the repository. A release ships them under darklands_plus/src/ with the same paths;
+# their combined hash ("translator id") tells the program whether a module made earlier still
+# fits (port/Makefile, port/tools/prepare.py).
+tools/analyze.py
+tools/rtlink.py
+port/recomp/recomp16.py
+port/recomp/recomp_drv.py
+port/recomp/overrides.txt
+port/recomp/interp_functions.txt
+port/recomp/extra_entries.txt
+port/recomp/extra_entries_drv.txt
+port/runtime/split.h
+port/runtime/cpu.h
+port/runtime/strops.h
+port/runtime/hooks.h
+port/runtime/dispatch.h
+port/runtime/hle.h
+port/runtime/cpu.c
+port/runtime/overrides.c
+port/runtime/gensplit.c
+port/tools/prepare.py

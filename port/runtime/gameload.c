@@ -3,6 +3,7 @@
  * libdarklands_game.so, in the game folder, or where DL_GAME_MODULE says. */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cpu.h"
 #include "hle.h"
 #include "hooks.h"
@@ -22,15 +23,20 @@ extern int hook_bypass;
 extern u16 LOADSEG;
 void interp_step(u16 cs, u16 ip);
 
-const char *gameload_name(void) { return MODULE_NAME; }
+extern const char dlp_translator[];
+void gameload_path(const char *dir, char *path, int n)
+{
+    const char *env = getenv("DL_GAME_MODULE");
+    if (env) snprintf(path, n, "%s", env);
+    else snprintf(path, n, "%s/%s", dir, MODULE_NAME);
+}
 
-/* 1 loaded; 0 no module there (the caller may make one); -1 a module that does not fit */
+/* 1 loaded; 0 no module there, or one made by another translator (the caller makes one);
+   -1 a module that cannot be used */
 int gameload(const char *dir, char *err, int errn)
 {
     char path[1200];
-    const char *env = getenv("DL_GAME_MODULE");
-    if (env) snprintf(path, sizeof path, "%s", env);
-    else snprintf(path, sizeof path, "%s/%s", dir, MODULE_NAME);
+    gameload_path(dir, path, sizeof path);
     typedef const DlGame *(*InitFn)(const DlRuntime *);
     InitFn init = 0;
 #ifdef _WIN32
@@ -59,8 +65,18 @@ int gameload(const char *dir, char *err, int errn)
     rt.hook_run = hook_run; rt.interp_run = interp_run; rt.interp_step = interp_step;
     rt.ovl_enter = ovl_enter; rt.ret_mismatch = ret_mismatch;
     dl_game = init(&rt);
-    if (!dl_game) { snprintf(err, errn, "%s: made for another version of Darklands+", path); return -1; }
-    fprintf(stderr, "game module %s\n", path);
+    if (!dl_game || strcmp(dl_game->translator, dlp_translator)) {
+        if (getenv("DL_GAME_MODULE") && dl_game) { fprintf(stderr, "game module %s: made by translator %s, not %s (used anyway)\n", path, dl_game->translator, dlp_translator); return 1; }
+        snprintf(err, errn, "%s: made by an earlier Darklands+ (translator %s, now %s)", path, dl_game ? dl_game->translator : "?", dlp_translator);
+        dl_game = 0;
+#ifdef _WIN32
+        FreeLibrary(h);
+#else
+        dlclose(h);
+#endif
+        return 0;
+    }
+    fprintf(stderr, "game module %s (translator %s)\n", path, dl_game->translator);
     return 1;
 }
 #endif

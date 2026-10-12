@@ -133,18 +133,6 @@ int main(int argc, char **argv)
     }
     { void datamods_init(void); datamods_init(); }     /* mod folders (mods/datamods.c), before any file is read */
     M = calloc(1, MEM_SIZE);
-#ifdef DL_RTSPLIT
-    {   /* the game's translated code, made on this machine from DARKLAND.EXE (split.h) */
-        int gameload(const char *dir, char *err, int errn);
-        char err[1400];
-        if (gameload(game_dir, err, sizeof err) <= 0) {
-            char msg[1600]; snprintf(msg, sizeof msg, "The game module could not be loaded:\n%s", err);
-            fprintf(stderr, "%s\n", msg);
-            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
-            return 1;
-        }
-    }
-#endif
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */
       { extern u16 sp_low; const char *sl = getenv("DL_SP_LOW"); if (sl) sp_low = (u16)strtoul(sl, 0, 16); }
@@ -155,6 +143,27 @@ int main(int argc, char **argv)
       if (w) { watch_lo = (u32)strtoul(w, 0, 16); const char *c = strchr(w, ':'); watch_len = c ? (u32)strtoul(c + 1, 0, 16) : 1; } }
 #endif
     plat_init(1);
+#ifdef DL_RTSPLIT
+    {   /* the game's translated code, made on this machine from DARKLAND.EXE (split.h): made
+           now if it is missing or an earlier Darklands+ made it */
+        int gameload(const char *dir, char *err, int errn);
+        void gameload_path(const char *dir, char *path, int n);
+        int prepare_run(const char *game_dir, const char *module_path, char *err, int errn);
+        char err[1400], mp[1200];
+        int r = gameload(game_dir, err, sizeof err);
+        if (r == 0) {
+            fprintf(stderr, "%s: making the game module\n", err);
+            gameload_path(game_dir, mp, sizeof mp);
+            if (prepare_run(game_dir, mp, err, sizeof err)) r = gameload(game_dir, err, sizeof err);
+        }
+        if (r <= 0) {
+            char msg[1600]; snprintf(msg, sizeof msg, "Darklands+ could not get the game ready:\n%s", err);
+            fprintf(stderr, "%s\n", msg);
+            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
+            return 1;
+        }
+    }
+#endif
     bios_init();
 
     /* ---- MZ load */
@@ -201,6 +210,7 @@ int main(int argc, char **argv)
     }
     dos_mem_init2(env, (u16)(psp_seg - 1 - env), psp_seg);
 
+    { void ui_late_init(void); ui_late_init(); }
     mods_init();
     { void rules_apply(void); rules_apply(); }       /* mods' rules.ini (ui/rules.cpp) */
 

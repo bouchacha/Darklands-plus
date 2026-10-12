@@ -65,6 +65,8 @@ OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(UI_OBJ
             $(OUT)/version.o
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
+# the translator's id: a game module made by another one does not fit (split.h, tools/prepare.py)
+TRANSLATOR_ID := $(shell python3 -I tools/prepare.py --id 2>/dev/null || echo unknown)
 
 all: $(BIN)
 $(BIN): $(OBJS)
@@ -93,7 +95,7 @@ $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 $(OUT):
 	mkdir -p $@
 $(OUT)/version.c: FORCE | $(OUT)
-	@echo 'const char dlp_version[] = "$(VERSION)";' > $@.tmp; cmp -s $@.tmp $@ || mv $@.tmp $@; rm -f $@.tmp
+	@echo 'const char dlp_version[] = "$(VERSION)"; const char dlp_translator[] = "$(TRANSLATOR_ID)";' > $@.tmp; cmp -s $@.tmp $@ || mv $@.tmp $@; rm -f $@.tmp
 $(OUT)/version.o: $(OUT)/version.c
 	$(CC) -c -o $@ $<
 .PHONY: FORCE
@@ -105,5 +107,5 @@ clean:
 TCC      ?= tcc
 MODULE   := $(if $(filter win64,$(TARGET)),darklands_game.dll,libdarklands_game.so)
 module: | $(OUT)
-	$(TCC) -shared -w -DDL_GENSPLIT -Iruntime -I$(GEN) -o $(OUT)/$(MODULE) $(GEN_SRC) runtime/cpu.c runtime/overrides.c runtime/gensplit.c
+	$(TCC) -shared -w -DDL_GENSPLIT -DGEN_TRANSLATOR=\"$(TRANSLATOR_ID)\" -Iruntime -I$(GEN) -o $(OUT)/$(MODULE) $(GEN_SRC) runtime/cpu.c runtime/overrides.c runtime/gensplit.c
 .PHONY: all module

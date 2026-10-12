@@ -194,7 +194,6 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     idle_rest = config_get_int("display.idle_rest", 1);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
-    journal_init();
     if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
     halloffame_set_renderer(ren);
     if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
@@ -206,6 +205,12 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_settings.smooth = config_get_int("display.smooth", 0);
     ui_settings.integer = config_get_int("display.integer_scale", 0);
     ui_settings.scaler = config_get_int("display.scaler", 0);
+}
+
+/* what needs the game's code in place (hooks): after the game module is loaded (split.h) */
+extern "C" void ui_late_init(void)
+{
+    if (g_win) journal_init();
 }
 
 extern "C" int levelmap_is_open(void);
@@ -902,4 +907,30 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ui_cursor();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
+}
+
+/* the first start of a release: the game module is being made (runtime/prepare_run.c) */
+extern "C" void ui_progress_draw(SDL_Renderer *ren, const char *step, int pct, const char *note)
+{
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 30, 0));
+    ImGui::Begin("Darklands+##prepare", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::TextWrapped("Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a few minutes.");
+    ImGui::Spacing();
+    ImGui::TextUnformatted(step && *step ? step : "Starting");
+    ImGui::ProgressBar(pct / 100.0f, ImVec2(-1, 0));
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped("%s", note && *note ? note : "Nothing from the game is included in the Darklands+ download; it is built here from your own copy.");
+    ImGui::PopStyleColor();
+    ImGui::End();
+    ImGui::Render();
+    SDL_SetRenderDrawColor(ren, 20, 16, 12, 255);
+    SDL_RenderClear(ren);
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
+    SDL_RenderPresent(ren);
 }

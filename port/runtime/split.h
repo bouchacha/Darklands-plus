@@ -58,7 +58,7 @@ typedef struct DlRuntime {
 /* what the module hands back */
 typedef struct DlGame {
     int version;
-    unsigned exe_hash;                     /* of the DARKLAND.EXE it was made from */
+    const char *translator;                /* id of the translator that made it (prepare.py --id) */
     const void *func_table; const int *func_count;
     const void *vec_table; const int *vec_count;
     const void *ret_table; const int *ret_count;

@@ -755,6 +755,7 @@ static void click_at(int x, int y)
 }
 
 /* ---------------------------------------------------------------- init / quit */
+SDL_Renderer *plat_renderer(void) { return ren; }
 void plat_init(int scale)
 {
     headless = getenv("DL_HEADLESS") != 0;
