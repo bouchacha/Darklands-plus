@@ -1,6 +1,7 @@
 /* builtin.c - the built-in mods. The same changes as the source mods in mods/ (built into a
  * DOS executable there), done here as run-time hooks on the recompiled game. */
 #include <stdio.h>
+#include <stdlib.h>
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
@@ -62,9 +63,45 @@ static void rich_start_hook(void)
 }
 static void rich_start(int on) { if (on) hook_install(44, 0x1838, 0x0000, rich_start_hook); else hook_remove(44, 0x1838, 0x0000); }
 
+/* ---- quick learning: skills improve about twice as often through use. Cards: practice_skill
+ * (s039 1462:0132, args who, k, mode, pct, lvl) gets twice the percentage; battles:
+ * skill_try_improve (s021 1ef8:0000, args m, sk, mode) gets a second try when the first fails */
+static void quick_learn_cards_hook(void)
+{
+    u16 a = (u16)(SP + 10), pct = rw(SS, a);
+    { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_LEARN") != 0;
+      if (tr) fprintf(stderr, "quick learning: practice skill %d of %d, %d%% -> %d%%\n", rw(SS, (u16)(SP + 6)), (s16)rw(SS, (u16)(SP + 4)), pct, pct * 2); }
+    ww(SS, a, (u16)(pct * 2));
+    hook_call_original();
+    ww(SS, a, pct);
+}
+static void quick_learn_battle_hook(void)
+{
+    u16 m = rw(SS, (u16)(SP + 4)), sk = rw(SS, (u16)(SP + 6));
+    if (m >= 5 || sk >= 19) { hook_call_original(); return; }
+    u16 at = (u16)(G_MEMBER(m) + G_M_SKILLS + sk);
+    u8 before = g_rb(at);
+    u16 sp0 = SP, ip = rw(SS, sp0), cs = rw(SS, (u16)(sp0 + 2));
+    hook_call_original();                           /* (its far ret pops the return address) */
+    { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_LEARN") != 0;
+      if (tr) fprintf(stderr, "quick learning: battle skill %d of %d: %s\n", sk, m, g_rb(at) == before ? "second try" : "rose"); }
+    if (g_rb(at) == before) {                       /* the second try: the same call again */
+        u16 sp1 = SP;
+        SP = sp0; ww(SS, sp0, ip); ww(SS, (u16)(sp0 + 2), cs);
+        hook_call_original();
+        SP = sp1;
+    }
+}
+static void quick_learning(int on)
+{
+    if (on) { hook_install(39, 0x1462, 0x0132, quick_learn_cards_hook); hook_install(21, 0x1ef8, 0x0000, quick_learn_battle_hook); }
+    else { hook_remove(39, 0x1462, 0x0132); hook_remove(21, 0x1ef8, 0x0000); }
+}
+
 Mod MODS[] = {
     { "swift_travel", "Swift travel", "Travel", "Overland travel takes a third of the time.", swift_travel, 0, 0 },
     { "cheap_inn", "Half-price inns", "Towns", "Lodging costs half as much.", cheap_inn, 0, 0 },
+    { "quick_learning", "Quick learning", "Skills", "Skills improve about twice as often through use, on cards and in battles (Streetwise, Latin and the rest no longer take an age).", quick_learning, 0, 0 },
     { "heavy_blows", "Heavy blows", "Combat", "Every hit on an enemy does double damage. Hits on the party are unchanged.", heavy_blows, 0, 0 },
     { "strong_party", "Strong Quickstart party", "New game", "The four Quickstart characters start with 60 in every attribute and 75 in every skill.", strong_party, 0, 1 },
     { "rich_start", "Rich start", "New game", "A party made with Create a New World starts with 5000 florins instead of 200.", rich_start, 0, 1 },
