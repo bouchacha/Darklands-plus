@@ -41,8 +41,14 @@ def start(name, exe, game, x11=False):
         time.sleep(1.0)
         del env['DL_HEADLESS']
         env['DISPLAY'] = ':%d' % disp
-    p = subprocess.Popen([exe, os.path.join(d, 'game')], env=env, stdout=open(os.path.join(d, 'out.txt'), 'w'),
-                         stderr=subprocess.STDOUT, start_new_session=True)
+    if exe.lower().endswith('.exe'):        # a Windows build under Wine: its output goes to darklands_port.log
+        env['WINEDEBUG'] = '-all'
+        os.symlink(os.path.join(d, 'game', 'darklands_port.log'), os.path.join(d, 'out.txt'))
+        p = subprocess.Popen(['wine', exe, os.path.join(d, 'game')], env=env, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+    else:
+        p = subprocess.Popen([exe, os.path.join(d, 'game')], env=env, stdout=open(os.path.join(d, 'out.txt'), 'w'),
+                             stderr=subprocess.STDOUT, start_new_session=True)
     open(os.path.join(d, 'pid'), 'w').write(str(p.pid))
     open(os.path.join(d, 'pos'), 'w').write('160 100')
     print('started', name, p.pid)

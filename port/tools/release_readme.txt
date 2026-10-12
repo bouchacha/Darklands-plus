@@ -39,7 +39,7 @@ KEYS
   Tab           (battles, dungeons) the level map
   Right click   the menu bar
 
-MAKING MODS
+MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)
   mods\My mod\MSGFILES\$MAINS01.TXT one card's text (the other cards stay)
@@ -55,8 +55,9 @@ darklands_game.dll. Some antivirus programs distrust files that a compiler has j
 yours removes or blocks darklands_game.dll, allow that file (it is made from your own
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
-To remove Darklands+, delete darklands.exe, darklands_game.dll, darklands_port.ini,
-darklands_port.log and the darklands_plus folder.
+To remove Darklands+, delete the folder you unpacked it into, and darklands_game.dll,
+darklands_port.ini and darklands_port.log from the Darklands folder (or the folder
+%LOCALAPPDATA%\Darklands+, where they go when the Darklands folder cannot be written).
 
 WHAT IS IN darklands_plus
   src\      the translator (Python), the part of Darklands+ that reads DARKLAND.EXE
