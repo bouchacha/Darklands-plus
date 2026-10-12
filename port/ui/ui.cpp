@@ -30,7 +30,8 @@ extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE;
 }
 
-static bool open_menu, open_map, open_goto, open_help;
+static bool open_menu, open_map, open_goto, open_help, open_welcome;
+static void welcome_window(void);
 static void help_window(void);
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 extern "C" int citynav_window(void);
@@ -178,6 +179,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
             fprintf(stderr, "ui: game text also baked at %.0f pixels (screen %dx%d)\n", bake, dm.w, dm.h);
         }
     }
+    open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
     ui_game_font = config_get_int("display.text_font", 0);
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
     ui_text_edge = config_get_int("display.text_edge", 2);
@@ -211,7 +213,7 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || levelmap_is_open() || halloffame_is_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || levelmap_is_open() || halloffame_is_open(); }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
@@ -222,6 +224,10 @@ extern "C" void ui_toggle_map(void)
 
 extern "C" int ui_event(const SDL_Event *e)
 {
+    if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
     if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
         && (game_mode() == GM_MAP || game_mode() == GM_CARD) && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
@@ -696,6 +702,44 @@ static void tab_about(void)
 }
 
 /* F1: the keys and clicks of the moment (the game's own and Darklands+'s) */
+/* the first start: what Darklands+ is, the keys that matter, and the choice to play the
+ * original game untouched (the purists' switch), once */
+static void welcome_window(void)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    float w = fminf(io.DisplaySize.x * 0.9f, UIS(760));
+    ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::PushFont(font_body);
+    if (ImGui::Begin("Welcome to Darklands+", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
+                           "Your saved games stay in the game folder as always.");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Darklands+ adds what players have long wished for: crisp text, chances of success on the cards, "
+                           "a party and inventory screen, a journal of quests and towns, a world map, a battle log, quick saves "
+                           "and fixes for old bugs. Each of them can be switched off.");
+        ImGui::Spacing();
+        ImGui::PushFont(font_head); ImGui::SeparatorText("Keys"); ImGui::PopFont();
+        ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
+        ImGui::BulletText("F1: the keys and clicks of the moment, the game's hidden ones too");
+        ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
+        ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        bool done = false;
+        if (ImGui::Button("Play with Darklands+")) done = true;
+        ImGui::SameLine();
+        if (ImGui::Button("Play the original game")) { set_original(true); done = true; }
+        ImGui::TextDisabled("Either can be changed at any time: F12 > Helpers > Play the original game.");
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
+        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
+    }
+    ImGui::End();
+    ImGui::PopFont();
+}
+
 static void help_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -761,7 +805,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -841,6 +885,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
     if (open_help) help_window();
+    if (open_welcome) welcome_window();
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
