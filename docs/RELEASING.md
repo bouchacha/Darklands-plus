@@ -9,7 +9,7 @@ game's code on the player's machine (see `port/README.md`, "Releases"). It is bu
    has its own).
 2. Add a licence of your choice as `LICENSE` at the top of this repository and commit it. The
    packager puts it into the zip with the third-party notices. The third-party parts keep their
-   own licences: Dear ImGui (MIT), Nuked OPL3 (LGPL 2.1+), stb (public domain / MIT), the fonts
+   own licences: Dear ImGui (MIT), Nuked OPL3 (LGPL 2.1+), libmt32emu (LGPL 2.1+), stb (public domain / MIT), the fonts
    (SIL OFL 1.1), SDL2 (zlib), TinyCC (LGPL 2.1), Python (PSF), capstone (BSD).
 3. Push:
 

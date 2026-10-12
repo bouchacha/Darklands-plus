@@ -1,6 +1,7 @@
-/* mpu.c - MPU-401 MIDI interface (ports 330h/331h). The game's music driver (the same
- * *SOUND.DLC for every card in this release) is a Roland MPU-401 driver; its MIDI stream goes
- * to the host's MIDI synthesizer (Windows: the system MIDI device, as DOSBox does). */
+/* mpu.c - MPU-401 MIDI interface (ports 330h/331h). The game's Roland driver (RSOUND.DLC /
+ * .DLB) talks to an MPU-401; its MIDI stream goes to the emulated MT-32 (mt32.c) when that is
+ * chosen and its ROMs are there, otherwise to the host's MIDI synthesizer (Windows: the system
+ * MIDI device, as DOSBox does). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,26 +17,37 @@ static u8 inq[16]; static int inq_n;
 static u8 msg[3]; static int msg_len, msg_need;
 static u8 running;
 static u8 sysex[512]; static int sysex_n, in_sysex;
-static int midi_ok = -1;
+static int midi_ok = -1;                /* -1 not opened yet, 0 nowhere, 1 the system's MIDI device, 2 the emulated MT-32 */
 static FILE *midi_log;
+int mt32_open(int rate);
+void mt32_msg(const unsigned char *m, int n);
+int sound_use_mt32(void);
 
 static void midi_open(void)
 {
     midi_ok = 0;
     if (getenv("DL_NOSOUND")) return;
     const char *lg = getenv("DL_MIDI_LOG");
-    if (lg) midi_log = fopen(lg, "wb");
+    if (lg && !midi_log && (midi_log = fopen(lg, "wb"))) setvbuf(midi_log, NULL, _IONBF, 0);
+    if (sound_use_mt32() && mt32_open(44100)) { midi_ok = 2; return; }
 #ifdef _WIN32
-    if (midiOutOpen(&hmo, MIDI_MAPPER, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR) midi_ok = 1;
-    else fprintf(stderr, "no MIDI output device\n");
+    static int win = -1;
+    if (win < 0) {
+        win = midiOutOpen(&hmo, MIDI_MAPPER, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR;
+        if (!win) fprintf(stderr, "no MIDI output device\n");
+    }
+    midi_ok = win;
 #endif
 }
+/* a driver is being loaded (sounddev.c): where the MIDI goes is decided again at its first byte */
+void mpu_reconsider(void) { midi_ok = -1; }
 
 static void midi_short(u8 a, u8 b, u8 c, int n)
 {
     if (midi_log) { u8 m[3] = {a, b, c}; fwrite(m, 1, (size_t)n, midi_log); }
+    if (midi_ok == 2) { u8 m[3] = {a, b, c}; mt32_msg(m, n); return; }
 #ifdef _WIN32
-    if (midi_ok > 0) midiOutShortMsg(hmo, (DWORD)a | ((DWORD)b << 8) | ((DWORD)c << 16));
+    if (midi_ok == 1) midiOutShortMsg(hmo, (DWORD)a | ((DWORD)b << 8) | ((DWORD)c << 16));
 #endif
     (void)n;
 }
@@ -43,8 +55,9 @@ static void midi_short(u8 a, u8 b, u8 c, int n)
 static void midi_sysex(const u8 *d, int n)
 {
     if (midi_log) fwrite(d, 1, (size_t)n, midi_log);
+    if (midi_ok == 2) { mt32_msg(d, n); return; }
 #ifdef _WIN32
-    if (midi_ok > 0) {
+    if (midi_ok == 1) {
         MIDIHDR h; memset(&h, 0, sizeof h);
         h.lpData = (LPSTR)d; h.dwBufferLength = (DWORD)n;
         if (midiOutPrepareHeader(hmo, &h, sizeof h) == MMSYSERR_NOERROR) {

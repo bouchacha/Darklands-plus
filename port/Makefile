@@ -62,7 +62,12 @@ UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
 CXXFLAGS := $(EXTRA) $(SANFL) -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
-OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(UI_OBJS) $(GEN_OBJS) \
+# Munt's MT-32 emulator (runtime/mt32.c)
+MT32     := third_party/mt32emu
+MT32_SRC := $(wildcard $(MT32)/*.cpp) $(wildcard $(MT32)/c_interface/*.cpp) $(MT32)/sha1/sha1.cpp \
+            $(MT32)/srchelper/InternalResampler.cpp $(wildcard $(MT32)/srchelper/srctools/src/*.cpp)
+MT32_OBJS := $(patsubst $(MT32)/%.cpp,$(OUT)/mt32emu/%.o,$(MT32_SRC))
+OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(MT32_OBJS) $(UI_OBJS) $(GEN_OBJS) \
             $(OUT)/version.o $(if $(filter win64,$(TARGET)),$(OUT)/res.o)
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
@@ -91,6 +96,9 @@ $(OUT)/rt_%.o: runtime/%.c runtime/*.h mods/*.h ui/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
 $(OUT)/opl3.o: third_party/nuked-opl3/opl3.c | $(OUT)
 	$(CC) -O2 -c -o $@ $<
+$(OUT)/mt32emu/%.o: $(MT32)/%.cpp | $(OUT)
+	@mkdir -p $(dir $@)
+	$(CXX) $(SANFL) -O2 -DMT32EMU_WITH_INTERNAL_RESAMPLER -DMT32EMU_WITH_STD_SNPRINTF -I$(MT32) -c -o $@ $<
 $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(OUT)/res.o: res/darklands.rc res/darklands.ico $(OUT)/version.c | $(OUT)

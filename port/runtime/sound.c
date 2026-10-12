@@ -27,6 +27,7 @@ static void callback(void *u, Uint8 *stream, int len)
     int16_t *s16 = (int16_t *)stream; int n = len / 4;
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
     OPL3_GenerateStream(&chip, s16, (uint32_t)n);
+    { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
     { void sb_mix(int16_t *, int, int); sb_mix(s16, n, 44100); }
     { void sfx_mix(short *, int); sfx_mix((short *)stream, n); }
     if (fade) {

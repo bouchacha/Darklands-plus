@@ -46,6 +46,15 @@ KEYS
   A, S          (loot) take the whole pile, share it out among the party
   A, T          (shop) sell the whole stack, buy ten
 
+ROLAND MT-32 MUSIC
+Darklands was composed for the Roland MT-32 / LAPC-I, and Darklands+ has Munt's emulator of it
+built in. It needs the synthesizer's two ROM files (control and PCM, from an MT-32, CM-32L or
+LAPC-I), which belong to Roland and are not included. If you use Munt or DOSBox with an MT-32
+you have them already: Darklands+ finds them by their contents in Munt's ROM folder, in
+DOSBox Staging's mt32-roms folder, or in a "roms" folder next to darklands.exe or in the
+Darklands folder (F12 > Display > Sound can name another folder). When they are found the
+music and the battle sounds play on the MT-32; otherwise on the emulated Sound Blaster.
+
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of
 swords, shields, blows, cries, the bow and the handgun in place of the synthesizer notes. Tick
@@ -76,4 +85,6 @@ WHAT IS IN darklands_plus
   src\      the translator (Python), the part of Darklands+ that reads DARKLAND.EXE
   python\   Python for Windows (embeddable package, PSF licence)
   tcc\      TinyCC, the C compiler that builds darklands_game.dll (LGPL 2.1)
+  (darklands.exe contains Munt's libmt32emu, LGPL 2.1; its source is in Darklands+'s source,
+  port/third_party/mt32emu)
   licenses\ the licences of everything in this download

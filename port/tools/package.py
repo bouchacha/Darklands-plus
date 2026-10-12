@@ -90,6 +90,7 @@ def main():
     # our third-party notices
     tp = os.path.join(PORT, 'third_party')
     shutil.copy(os.path.join(tp, 'imgui', 'LICENSE.txt'), os.path.join(lic, 'DearImGui-MIT.txt'))
+    shutil.copy(os.path.join(tp, 'mt32emu', 'COPYING.LESSER.txt'), os.path.join(lic, 'Munt-mt32emu-LGPL-2.1.txt'))
     for f in os.listdir(os.path.join(tp, 'nuked-opl3')):
         if f.upper().startswith('LICENSE'):
             shutil.copy(os.path.join(tp, 'nuked-opl3', f), os.path.join(lic, 'NukedOPL3-LGPL.txt'))

@@ -395,7 +395,7 @@ static void set_original(bool on)
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
-        config_set("original.sound", config_get("sound.device", "fm"));
+        config_set("original.sound", config_get("sound.device", "auto"));
         config_set_int("original.text", hdtext_mode);
         config_set_int("original.art", hdart_on);
         config_set_int("original.sfx", sfx_mode);
@@ -415,7 +415,7 @@ static void set_original(bool on)
         assist_set_chances(ch); journal_set(jo); pathfix_set(pp, pe); travel_set(ta, tf);
         for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, next(1));
         for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
-        config_set("sound.device", config_get("original.sound", "fm"));
+        config_set("sound.device", config_get("original.sound", "auto"));
         hdtext_set(config_get_int("original.text", 2));
         hdart_set(config_get_int("original.art", 1));
         sfx_set(config_get_int("original.sfx", 1));
@@ -535,6 +535,7 @@ static void tab_helpers(void)
     }
 }
 
+extern "C" { const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); }
 static void tab_display(void)
 {
     bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
@@ -638,18 +639,41 @@ static void tab_display(void)
     }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
-    static const char *ids[] = { "fm", "adlib", "midi", "speaker", "off", "game" };
+    static const char *ids[] = { "auto", "mt32", "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {
-        "Sound Blaster Pro (OPL-3 FM, emulated) - recommended",
+        "Automatic: the Roland MT-32 when its ROM files are found, otherwise the Sound Blaster - recommended",
+        "Roland MT-32 / LAPC-I, emulated (Munt; needs the MT-32 or CM-32L ROM files)",
+        "Sound Blaster Pro (OPL-3 FM, emulated)",
         "AdLib / Sound Blaster (OPL-2 FM, emulated)",
-        "Roland MIDI through your system's synthesizer",
+        "Roland MIDI to your system's MIDI device (a real MT-32, or Munt installed as a device)",
         "PC speaker",
         "Off",
         "As in the game's own setup (INSTALL)" };
-    const char *cur = config_get("sound.device", "fm");
-    for (int i = 0; i < 6; i++)
+    const char *cur = config_get("sound.device", "auto");
+    for (int i = 0; i < 8; i++)
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
     hint("Takes effect after the next battle, or when the game is started again.");
+    if (!strcmp(cur, "auto") || !strcmp(cur, "mt32")) {
+        ImGui::Indent(UIS(30));
+        hint("%s", mt32_status());
+        static char romdir[1024]; static bool init;
+        if (!init) { snprintf(romdir, sizeof romdir, "%s", config_get("sound.mt32_roms", "")); init = true; }
+        ImGui::SetNextItemWidth(UIS(420));
+        if (ImGui::InputTextWithHint("##mt32roms", "the folder with the ROM files, if they are elsewhere", romdir, sizeof romdir)) { config_set("sound.mt32_roms", romdir); dirty_config = 1; }
+        ImGui::SameLine();
+        if (ImGui::Button("Look again##mt32")) mt32_rescan();
+        if (ImGui::TreeNode("About the MT-32")) {
+            ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own "
+                               "instruments into the synthesizer and plays the music and the battle sounds with them. Munt's "
+                               "emulator of the MT-32, CM-32L and LAPC-I is built into Darklands+, but it needs the synthesizer's "
+                               "two ROM images (control and PCM), which belong to Roland and cannot come with Darklands+. If you "
+                               "use Munt or DOSBox with an MT-32, you already have them: Darklands+ finds them by their contents "
+                               "(any file names) in these folders, a CM-32L / LAPC-I pair first:");
+            for (int i = 0; i < mt32_dir_count(); i++) hint("%s", mt32_dir(i));
+            ImGui::TreePop();
+        }
+        ImGui::Unindent(UIS(30));
+    }
     {
         ImGui::Spacing();
         bool sp = sfx_mode, hs = sfx_added_hits, sy = sfx_synth;
@@ -658,7 +682,7 @@ static void tab_display(void)
         int n = sfx_user_count();
         extern char dlp_user_dir[];
         if (n) hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else hint("No sound pack yet (%s%ssounds).", dlp_user_dir, PATH_SEP);
+        else hint("No sound pack in use: put one into %s%ssounds, or tick a sound mod in F12 > Mods (\"Battle sounds\" comes with Darklands+).", dlp_user_dir, PATH_SEP);
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); dirty_config = 1; }
@@ -679,9 +703,10 @@ static void tab_display(void)
             ImGui::TreePop();
         }
     }
-    ImGui::TextWrapped("The GOG release plays battles through its Roland driver, which on a modern PC sounds like "
-                       "\"random notes rather than clashing swords\". The Sound Blaster setting uses the game's own FM "
-                       "drivers and digitized effects, as most players heard it in 1992.");
+    ImGui::TextWrapped("The GOG release plays everything through its Roland driver, which on a General MIDI synthesizer "
+                       "sounds like \"random notes rather than clashing swords\": it is meant for an MT-32. With the MT-32's "
+                       "ROM files Darklands+ plays it as composed; without them, the Sound Blaster setting uses the game's "
+                       "own FM drivers and digitized effects, as most players heard it in 1992.");
 }
 
 static void item_name(int id, char *out, int n)

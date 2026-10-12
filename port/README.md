@@ -18,7 +18,8 @@ time.
 * **DOS and BIOS** are emulated at the interrupt level (`runtime/dos.c`, `bios.c`, `ems.c`):
   files map to the game folder (without regard to case), the timer and keyboard interrupts are
   delivered to the game's own handlers, VGA mode 13h is shown through SDL2
-  (`runtime/platform_sdl.c`), the Sound Blaster FM chip is emulated with Nuked OPL3.
+  (`runtime/platform_sdl.c`), the Sound Blaster FM chip is emulated with Nuked OPL3 and the
+  Roland MT-32 / LAPC-I with Munt's libmt32emu (`runtime/mt32.c`, with the player's own ROMs).
 * **Hooks** (`runtime/hooks.c`): any game function can be replaced or wrapped
   (`hook_install(section, seg, off, fn)`, `hook_call_original()`); the additions of `mods/` and
   `ui/` are built on them.
@@ -108,10 +109,11 @@ Environment variables `DL_*` switch on traces (see the sources).
 |---|---|---|
 | Dear ImGui 1.91.5 | `third_party/imgui` | MIT (`LICENSE.txt`) |
 | Nuked OPL3 (FM sound) | `third_party/nuked-opl3` | LGPL 2.1 or later (`LICENSE`) |
+| libmt32emu 2.8.3 (Munt; Roland MT-32) | `third_party/mt32emu` | LGPL 2.1 or later (`COPYING.LESSER.txt`) |
 | stb_image, stb_image_write, stb_vorbis | `third_party/stb` | public domain or MIT (in each file) |
-| fonts: EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia ("DL Fraktur") | `third_party/fonts` | SIL Open Font License 1.1 (`fonts/README.txt`) |
+| fonts: EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia ("DL Fraktur"), Grenze Gotisch | `third_party/fonts` | SIL Open Font License 1.1 (`fonts/README.txt`) |
 | SDL2 | linked (Linux: the system's; Windows: `build/sdl2-win64`, static) | zlib |
 
-Whoever distributes builds should ship these notices with them; Nuked OPL3's LGPL also asks
+Whoever distributes builds should ship these notices with them; the LGPL of Nuked OPL3 and libmt32emu also asks
 that users can relink the program with their own version of it, which the published source
 allows.

@@ -6,11 +6,13 @@
  * drivers are recognised by their contents and the player's choice of device decides:
  *   fm      - OPL-3 FM (Sound Blaster Pro 2 / Pro Audio Spectrum 16), emulated (Nuked OPL3)
  *   adlib   - OPL-2 FM (AdLib / original Sound Blaster), emulated
+ *   auto    - the emulated MT-32 when its ROM files are found, otherwise fm (the default)
+ *   mt32    - the Roland driver on the emulated MT-32 (mt32.c; fm when there are no ROMs)
  *   midi    - the Roland driver, MIDI to the system's synthesizer (or an MT-32 emulator)
  *   speaker - PC speaker
  *   off     - silence
  *   game    - whatever the game's configuration asks for (no substitution)
- * Setting "sound.device" in darklands_port.ini; default fm. */
+ * Setting "sound.device" in darklands_port.ini; default auto. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,13 +80,23 @@ static void scan(void)
 int sound_device(void)
 {
     if (getenv("DL_NOSOUND")) return -1;
-    const char *c = config_get("sound.device", "fm");
+    const char *c = config_get("sound.device", "auto");
+    int mt32_available(void);
+    if (!strcmp(c, "auto") || !strcmp(c, "mt32")) return mt32_available() ? DEV_MIDI : DEV_FM;
     if (!strcmp(c, "fm")) return DEV_FM;
     if (!strcmp(c, "adlib")) return DEV_ADLIB;
     if (!strcmp(c, "midi")) return DEV_MIDI;
     if (!strcmp(c, "speaker")) return DEV_SPEAKER;
     if (!strcmp(c, "off")) return -1;
     return -2;                                   /* "game" */
+}
+
+/* the MIDI goes to the emulated MT-32 (mpu.c) */
+int sound_use_mt32(void)
+{
+    const char *c = config_get("sound.device", "auto");
+    int mt32_available(void);
+    return (!strcmp(c, "auto") || !strcmp(c, "mt32")) && mt32_available();
 }
 
 /* the driver file to load for the game's request base name (xSOUND.DLC / .DLB), or 0 to
@@ -94,6 +106,7 @@ const char *sound_pick(const char *base)
     if (strlen(base) != 10 || strncasecmp(base + 1, "SOUND.DL", 8)) return 0;
     int role = toupper((unsigned char)base[9]) == 'B';
     int dev = sound_device();
+    { void mpu_reconsider(void); mpu_reconsider(); }
     if (dev == -2) return 0;
     if (dev == -1) return role ? "NSOUND.DLB" : "NSOUND.DLC";      /* no battle driver: silence, as with the game's own "no sound" */
     if (!scanned) scan();
