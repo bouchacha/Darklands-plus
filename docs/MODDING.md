@@ -173,6 +173,8 @@ A folder `music` (in a mod, or in the folder with Darklands+'s own files) holds 
 that the game plays in place of its own music, piece by piece. Each file is named by the
 number the game asks its sound driver for, with anything after it: `10.ogg`, `11 market.ogg`,
 `08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
+Up to four files for one number are played in turn (`27 a.ogg`, `27 b.ogg` ...; the game's own
+piece 27 is one of four tunes in turn).
 The pieces are the same for every sound device. F12 > Display > Sound lists the numbers that
 are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
 the city square 14, the university 15, the fortress 17, the map 19 and 20, the dungeon 22, before

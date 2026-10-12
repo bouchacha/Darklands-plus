@@ -38,7 +38,9 @@ void sound_lock(int on);
 extern int sound_music_volume;
 
 int musicpack_on = 1;                            /* sound.music_pack */
-static char file[NSONG][1300];                   /* each piece's recording, or "" */
+#define MAXV 4                                   /* versions of one piece, played in turn (27: the driver has four) */
+static char file[NSONG][MAXV][1300];             /* each piece's recordings ("" none) */
+static int nvar[NSONG], turn[NSONG];
 static char from[NSONG][96];                     /* and the folder (mod) it came from */
 static int nfiles;
 static int logon, in_battle, last_song = -1, last_from_pack;
@@ -70,26 +72,34 @@ static int number_of(const char *name)
     if (isdigit((unsigned char)name[k])) return -1;
     return n >= 8 && n <= LAST_PIECE ? n : -1;
 }
+static int by_name(const void *a, const void *b) { return strcasecmp(*(char *const *)a, *(char *const *)b); }
 static void scan_dir(const char *dir, const char *label)
 {
     DIR *d = opendir(dir);
     if (!d) return;
+    char *names[512]; int nn = 0;
     struct dirent *e;
-    while ((e = readdir(d))) {
-        int n = number_of(e->d_name);
-        if (n < 0 || file[n][0]) continue;       /* a folder that wins already has it */
-        snprintf(file[n], sizeof file[n], "%s/%s", dir, e->d_name);
-        snprintf(from[n], sizeof from[n], "%s", label);
-        nfiles++;
-    }
+    while ((e = readdir(d)) && nn < 512)
+        if (number_of(e->d_name) >= 0) names[nn++] = strdup(e->d_name);
     closedir(d);
+    qsort(names, (size_t)nn, sizeof names[0], by_name);
+    int had[NSONG]; for (int k = 0; k < NSONG; k++) had[k] = nvar[k] > 0;   /* a folder that wins already has it */
+    for (int i = 0; i < nn; i++) {
+        int n = number_of(names[i]);
+        if (!had[n] && nvar[n] < MAXV) {
+            if (!nvar[n]) nfiles++;
+            snprintf(file[n][nvar[n]++], sizeof file[0][0], "%s/%s", dir, names[i]);
+            snprintf(from[n], sizeof from[n], "%s", label);
+        }
+        free(names[i]);
+    }
 }
 
 static void stop_all(float fade, int give_back);
 void musicpack_reload(void)
 {
     stop_all(0.05f, 1);
-    memset(file, 0, sizeof file); nfiles = 0;
+    memset(file, 0, sizeof file); memset(nvar, 0, sizeof nvar); nfiles = 0;
     if (config_get_int("original", 0)) return;
     static char md[DATAMODS_MAX][1200];
     int nm = datamods_dirs("music", md, DATAMODS_MAX);
@@ -143,7 +153,8 @@ const char *musicpack_desc(int n)
 }
 
 int musicpack_count(void) { return nfiles; }
-const char *musicpack_file(int n) { return n >= 0 && n < NSONG ? file[n] : ""; }
+const char *musicpack_file(int n) { return n >= 0 && n < NSONG ? file[n][0] : ""; }
+int musicpack_versions(int n) { return n >= 0 && n < NSONG ? nvar[n] : 0; }
 const char *musicpack_from(int n) { return n >= 0 && n < NSONG ? from[n] : ""; }
 
 /* ---------------------------------------------------------------- streams */
@@ -200,7 +211,7 @@ static int wav_open(Stream *s, const char *path)
 static int s_open(Stream *s, int song)
 {
     memset(s, 0, sizeof *s);
-    const char *p = file[song];
+    const char *p = file[song][turn[song]++ % (nvar[song] ? nvar[song] : 1)];
     const char *dot = strrchr(p, '.');
     if (dot && !strcasecmp(dot, ".ogg")) {
         int err = 0;
@@ -343,7 +354,7 @@ static void start(int song)
         st[1] = ns; st[1].on = 1;
     }
     sound_lock(0);
-    if (logon) fprintf(stderr, "music pack: %d from %s%s\n", song, file[song], ns.loop ? " (loops)" : "");
+    if (logon) fprintf(stderr, "music pack: %d (%d of %d)%s\n", song, (turn[song] - 1) % nvar[song] + 1, nvar[song], ns.loop ? " (loops)" : "");
 }
 
 /* sound_play(n) (sfx.c's hook, before the driver) */
@@ -351,7 +362,7 @@ void musicpack_cmd(int n)
 {
     if (logon) { u32 plat_ticks_ms(void); fprintf(stderr, "music %u: %d%s\n", plat_ticks_ms(), n, in_battle ? " (battle driver)" : ""); }
     if (in_battle) return;
-    if (n >= 8 && n <= LAST_PIECE && !is_overlay(n)) { last_song = n; last_from_pack = musicpack_on && file[n][0]; }
+    if (n >= 8 && n <= LAST_PIECE && !is_overlay(n)) { last_song = n; last_from_pack = musicpack_on && nvar[n] > 0; }
     else if (n == 0 || n == 1 || n == 6) last_song = -1;
     if (!musicpack_on || !nfiles) { if (owns || st[0].on || st[1].on || st[2].on) stop_all(0.3f, 1); return; }
     switch (n) {
@@ -362,7 +373,7 @@ void musicpack_cmd(int n)
         return;
     }
     if (n < 8 || n > LAST_PIECE) return;
-    if (!file[n][0]) {
+    if (!nvar[n]) {
         if (!is_overlay(n)) stop_all(0.3f, 1);   /* the synthesizer plays it */
         else if (!st[0].on) owns = 0;            /* a short sound after the pack's piece: heard from the synthesizer */
         return;

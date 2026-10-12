@@ -10,6 +10,7 @@ void musicpack_reload(void);
 void musicpack_set(int on);
 int musicpack_count(void);
 const char *musicpack_file(int n);
+int musicpack_versions(int n);
 const char *musicpack_from(int n);
 const char *musicpack_desc(int n);
 int musicpack_loops(int n);

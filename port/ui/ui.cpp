@@ -773,14 +773,15 @@ static void tab_display(void)
             hint("The last piece started: %d%s%s%s, from the %s.", now, d[0] ? " (" : "", d, d[0] ? ")" : "", fp ? "music pack" : "synthesizer");
         }
         if (ImGui::TreeNode("The pieces")) {
-            hint("A recording replaces a piece when its file name starts with the number. The pieces that loop in the game "
+            hint("A recording replaces a piece when its file name starts with the number (up to four for one number, "
+                 "played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). The pieces that loop in the game "
                  "loop in the pack (the whole file again), the others play once. While a piece of the pack is on, the "
                  "synthesizer is silent; a piece the pack lacks is played by the synthesizer.");
             for (int k = 8; k <= 47; k++) {
                 const char *f = musicpack_file(k), *d = musicpack_desc(k);
                 const char *b = f + strlen(f); while (b > f && b[-1] != '/' && b[-1] != '\\') b--;
                 hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
-                if (f[0]) { ImGui::SameLine(); ImGui::Text("  %s", b); }
+                if (f[0]) { ImGui::SameLine(); int nv = musicpack_versions(k); if (nv > 1) ImGui::Text("  %s and %d more, in turn", b, nv - 1); else ImGui::Text("  %s", b); }
             }
             hint("The pieces without a name are heard elsewhere in towns and on the road; the line above names each piece as it starts.");
             if (ImGui::SmallButton("Look again##music")) musicpack_reload();
