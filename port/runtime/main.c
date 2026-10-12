@@ -204,13 +204,20 @@ int main(int argc, char **argv)
         int prepare_run(const char *game_dir, const char *module_path, char *err, int errn);
         char err[1400], mp[1200];
         int r = gameload(dlp_data_dir, err, sizeof err);
-        if (r == 0) {
+        if (r == 0 || (r < 0 && !getenv("DL_GAME_MODULE"))) {     /* missing, older, or damaged: made (again) */
             fprintf(stderr, "%s: making the game module\n", err);
             gameload_path(dlp_data_dir, mp, sizeof mp);
             if (prepare_run(game_dir, mp, err, sizeof err)) r = gameload(dlp_data_dir, err, sizeof err);
         }
         if (r <= 0) {
-            char msg[1600]; snprintf(msg, sizeof msg, "Darklands+ could not get the game ready:\n%s", err);
+            char msg[1800]; snprintf(msg, sizeof msg, "Darklands+ could not get the game ready:\n%s%s", err,
+#ifdef _WIN32
+                                      "\n\nIf an antivirus program removed or blocked darklands_game.dll, allow that file "
+                                      "(Darklands+ makes it from your own DARKLAND.EXE) and start again."
+#else
+                                      ""
+#endif
+                                      );
             fprintf(stderr, "%s\n", msg);
             if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
             return 1;

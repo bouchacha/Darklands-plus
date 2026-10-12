@@ -139,7 +139,7 @@ int prepare_run(const char *game_dir, const char *module_path, char *err, int er
             fprintf(stderr, "preparation stopped by the player\n");
             exit(0);
         }
-        if (ren && SDL_GetTicks() - last_draw > 50) { ui_progress_draw(ren, step, pct, 0); last_draw = SDL_GetTicks(); }
+        if (ren && SDL_GetTicks() - last_draw > 100) {   /* ten a second: the preparation needs the processor more */ ui_progress_draw(ren, step, pct, 0); last_draw = SDL_GetTicks(); }
         SDL_Delay(15);
     }
 #ifdef _WIN32

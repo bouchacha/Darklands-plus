@@ -40,18 +40,27 @@ int gameload(const char *dir, char *err, int errn)
     typedef const DlGame *(*InitFn)(const DlRuntime *);
     InitFn init = 0;
 #ifdef _WIN32
+    if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES) { snprintf(err, errn, "%s: not made yet", path); return 0; }
     HMODULE h = LoadLibraryA(path);
-    if (!h) { snprintf(err, errn, "%s: cannot load (error %lu)", path, (unsigned long)GetLastError()); return GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES ? 0 : -1; }
+    if (!h) { snprintf(err, errn, "%s: cannot load (error %lu)", path, (unsigned long)GetLastError()); return -1; }
     init = (InitFn)(void (*)(void))GetProcAddress(h, "dl_game_init");
 #else
     FILE *t = fopen(path, "rb");
-    if (!t) { snprintf(err, errn, "%s: not there", path); return 0; }
+    if (!t) { snprintf(err, errn, "%s: not made yet", path); return 0; }
     fclose(t);
     void *h = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (!h) { snprintf(err, errn, "%s", dlerror()); return -1; }
     init = (InitFn)dlsym(h, "dl_game_init");
 #endif
-    if (!init) { snprintf(err, errn, "%s: not a Darklands+ game module", path); return -1; }
+    if (!init) {
+        snprintf(err, errn, "%s: not a Darklands+ game module", path);
+#ifdef _WIN32
+        FreeLibrary(h);                 /* so that it can be made again in its place */
+#else
+        dlclose(h);
+#endif
+        return -1;
+    }
     static DlRuntime rt;
     rt.version = DL_SPLIT_VERSION;
     rt.cpu_p = &R; rt.mem_p = M; rt.loadseg_p = &LOADSEG;
