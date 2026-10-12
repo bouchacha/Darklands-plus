@@ -8,3 +8,8 @@ __pycache__/
 *.CAT
 *.PIC
 *.err
+# game modules made from DARKLAND.EXE (port/runtime/split.h)
+darklands_game.dll
+libdarklands_game.so
+*.dll.new
+*.so.new
