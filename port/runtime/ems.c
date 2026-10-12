@@ -19,9 +19,58 @@ static int saved_maps[64][4];
 static int has_saved[64];
 int ems_trace = -1;
 
+/* ---- snapshots for side-effect-free evaluations (gamecall.c): the mapping and the handles
+ * are copied, and a logical page is backed up the first time it is written while a snapshot
+ * is held. Without this an evaluated card handler that maps EMS pages left the page frame
+ * (restored with the rest of memory) and the mapping (not restored) out of step: the next
+ * mapping wrote the frame into the wrong page, and overlays kept in EMS could be damaged. */
+typedef struct EmsSnap {
+    struct EmsSnap *outer;
+    int page_owner[EMS_PAGES]; Handle handles[64]; int mapped[4]; int saved_maps[64][4]; int has_saved[64];
+    u8 *bak[EMS_PAGES];
+} EmsSnap;
+static EmsSnap *snaps;                  /* innermost first */
+
+static void touch(int g)                /* page g of the store is about to change */
+{
+    if (g < 0 || g >= EMS_PAGES) return;
+    for (EmsSnap *e = snaps; e; e = e->outer)
+        if (!e->bak[g]) { e->bak[g] = malloc(PG); memcpy(e->bak[g], store + (size_t)g * PG, PG); }
+}
+
+void *ems_snapshot(void)
+{
+    EmsSnap *e = calloc(1, sizeof *e);
+    memcpy(e->page_owner, page_owner, sizeof page_owner); memcpy(e->handles, handles, sizeof handles);
+    memcpy(e->mapped, mapped, sizeof mapped); memcpy(e->saved_maps, saved_maps, sizeof saved_maps);
+    memcpy(e->has_saved, has_saved, sizeof has_saved);
+    e->outer = snaps; snaps = e;
+    return e;
+}
+
+void ems_restore(void *p)               /* the page frame itself is in M: the caller restores it */
+{
+    EmsSnap *e = p;
+    memcpy(page_owner, e->page_owner, sizeof page_owner); memcpy(handles, e->handles, sizeof handles);
+    memcpy(mapped, e->mapped, sizeof mapped); memcpy(saved_maps, e->saved_maps, sizeof saved_maps);
+    memcpy(has_saved, e->has_saved, sizeof has_saved);
+    for (int g = 0; g < EMS_PAGES; g++) if (e->bak[g]) memcpy(store + (size_t)g * PG, e->bak[g], PG);
+}
+
+void ems_snapshot_free(void *p)
+{
+    EmsSnap *e = p;
+    for (EmsSnap **q = &snaps; *q; q = &(*q)->outer) if (*q == e) { *q = e->outer; break; }
+    { int n = 0; for (int g = 0; g < EMS_PAGES; g++) n += e->bak[g] != 0;
+      static int lg = -1; if (lg < 0) lg = getenv("DL_EVAL_LOG") != 0;
+      if (lg && (n || memcmp(e->mapped, mapped, sizeof mapped))) fprintf(stderr, "eval: %d EMS pages written, mapping %s\n", n, memcmp(e->mapped, mapped, sizeof mapped) ? "changed" : "kept"); }
+    for (int g = 0; g < EMS_PAGES; g++) free(e->bak[g]);
+    free(e);
+}
+
 static void unmap(int phys)
 {
-    if (mapped[phys] >= 0) memcpy(store + (size_t)mapped[phys] * PG, M + EMS_FRAME * 16 + phys * PG, PG);
+    if (mapped[phys] >= 0) { touch(mapped[phys]); memcpy(store + (size_t)mapped[phys] * PG, M + EMS_FRAME * 16 + phys * PG, PG); }
     mapped[phys] = -1;
 }
 static void map_global(int phys, int g)
@@ -63,7 +112,7 @@ static int map_page(int h, int logical, int phys)
     return 0;
 }
 
-static void sync_out(void) { for (int p = 0; p < 4; p++) if (mapped[p] >= 0) memcpy(store + (size_t)mapped[p] * PG, M + EMS_FRAME * 16 + p * PG, PG); }
+static void sync_out(void) { for (int p = 0; p < 4; p++) if (mapped[p] >= 0) { touch(mapped[p]); memcpy(store + (size_t)mapped[p] * PG, M + EMS_FRAME * 16 + p * PG, PG); } }
 static void sync_in(void) { for (int p = 0; p < 4; p++) if (mapped[p] >= 0) memcpy(M + EMS_FRAME * 16 + p * PG, store + (size_t)mapped[p] * PG, PG); }
 
 /* address of byte i of a region descriptor (type, handle, offset, seg/page) */
@@ -73,6 +122,8 @@ static u8 *region_ptr(int type, int h, u16 off, u16 segpage, u32 i, int *err)
     if (h < 0 || h >= 64 || !handles[h].used) { *err = 0x83; return 0; }
     u32 lo = (u32)off + i, pg = segpage + lo / PG;
     if (pg >= (u32)handles[h].npages) { *err = 0x93; return 0; }
+    if (snaps && lo % PG == 0) touch(handles[h].pages[pg]);      /* may be written (move/exchange) */
+    if (snaps && i == 0) touch(handles[h].pages[pg]);
     return store + (size_t)handles[h].pages[pg] * PG + lo % PG;
 }
 

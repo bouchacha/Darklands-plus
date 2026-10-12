@@ -68,7 +68,10 @@ int game_mode(void)
 /* ---- side-effect-free evaluation: run game code, read the result, then put the whole
  * machine back (memory, registers, resident overlays). Used to ask the card scripts for
  * their chances of success without disturbing the game (random numbers included). */
-struct EvalSnap { u8 *mem; CPU r; int loaded[256]; int tail, unw; };
+struct EvalSnap { u8 *mem; CPU r; int loaded[256]; int tail, unw; void *ems, *dos, *bios; };
+void *bios_snapshot(void); void bios_restore(void *); void bios_snapshot_free(void *);
+void *ems_snapshot(void); void ems_restore(void *); void ems_snapshot_free(void *);
+void *dos_snapshot(void); void dos_restore(void *); void dos_snapshot_free(void *);
 
 void *eval_snapshot(void)
 {
@@ -78,6 +81,9 @@ void *eval_snapshot(void)
     s->r = R;
     memcpy(s->loaded, ovl_loaded, sizeof s->loaded);
     s->tail = tail_pending; s->unw = unw_active;
+    s->ems = ems_snapshot();             /* expanded memory (its mapping and its pages) and the open files too */
+    s->dos = dos_snapshot();
+    s->bios = bios_snapshot();           /* the mouse driver's clicks, the palette, the timer */
     return s;
 }
 
@@ -88,11 +94,15 @@ void eval_restore(void *p)
     R = s->r;
     memcpy(ovl_loaded, s->loaded, sizeof s->loaded);
     tail_pending = s->tail; unw_active = s->unw;
+    ems_restore(s->ems);
+    dos_restore(s->dos);
+    bios_restore(s->bios);
 }
 
 void eval_free(void *p)
 {
     struct EvalSnap *s = p;
+    ems_snapshot_free(s->ems); dos_snapshot_free(s->dos); bios_snapshot_free(s->bios);
     free(s->mem); free(s);
 }
 

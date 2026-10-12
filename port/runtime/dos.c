@@ -118,6 +118,49 @@ void dos_host_path_read(const char *dos, char *out, size_t outn)
     if (m) snprintf(out, outn, "%s", m);
 }
 
+/* ---- snapshots for side-effect-free evaluations (gamecall.c): the open files and their
+ * positions. A file the game had open stays open through the evaluation (a close is only
+ * pretended), files the evaluation opened are closed afterwards, and every position is put
+ * back: an abandoned evaluation left files open (64 at most) or moved, before. */
+typedef struct DosSnap { struct DosSnap *outer; FILE *h[64]; long pos[64]; u8 cfg[64]; int ems_dev; } DosSnap;
+static DosSnap *dsnaps;
+static int held_by_snapshot(FILE *f)
+{
+    for (DosSnap *d = dsnaps; d; d = d->outer) for (int i = 0; i < 64; i++) if (d->h[i] == f) return 1;
+    return 0;
+}
+
+void *dos_snapshot(void)
+{
+    DosSnap *d = calloc(1, sizeof *d);
+    for (int i = 0; i < 64; i++) if ((d->h[i] = handles[i])) d->pos[i] = ftell(handles[i]);
+    memcpy(d->cfg, handle_cfg, sizeof d->cfg); d->ems_dev = ems_dev_open;
+    d->outer = dsnaps; dsnaps = d;
+    return d;
+}
+
+void dos_restore(void *p)
+{
+    DosSnap *d = p;
+    static int lg = -1; if (lg < 0) lg = getenv("DL_EVAL_LOG") != 0;
+    for (int i = 0; i < 64; i++) {
+        if (lg && handles[i] != d->h[i]) fprintf(stderr, "eval: file handle %d %s\n", i, d->h[i] ? (handles[i] ? "replaced" : "closed") : "opened");
+        else if (lg && handles[i] && ftell(handles[i]) != d->pos[i]) fprintf(stderr, "eval: file handle %d moved\n", i);
+        if (handles[i] && handles[i] != d->h[i] && !held_by_snapshot(handles[i])) fclose(handles[i]);   /* opened by the evaluation */
+        handles[i] = d->h[i];
+        if (handles[i]) fseek(handles[i], d->pos[i], SEEK_SET);
+    }
+    /* a file the evaluation opened in a slot it then left could still be held elsewhere: no */
+    memcpy(handle_cfg, d->cfg, sizeof handle_cfg); ems_dev_open = d->ems_dev;
+}
+
+void dos_snapshot_free(void *p)
+{
+    DosSnap *d = p;
+    for (DosSnap **q = &dsnaps; *q; q = &(*q)->outer) if (*q == d) { *q = d->outer; break; }
+    free(d);
+}
+
 static int new_handle(FILE *f)
 {
     for (int h = 5; h < 64; h++) if (!handles[h]) { handles[h] = f; return h; }
@@ -404,7 +447,7 @@ void dos_int21(void)
         AX = (u16)h; SETCF(0); break; }
     case 0x3e:
         if (BX == 63 && ems_dev_open) { ems_dev_open = 0; SETCF(0); break; }
-        if (BX < 64 && handles[BX]) { fclose(handles[BX]); handles[BX] = 0; SETCF(0); }
+        if (BX < 64 && handles[BX]) { if (!held_by_snapshot(handles[BX])) fclose(handles[BX]); handles[BX] = 0; SETCF(0); }
         else if (BX < 5) SETCF(0);
         else dos_error(6);
         break;

@@ -16,6 +16,7 @@ void ems_int67(void); void ems_init(void);
 int bios_trace;
 
 volatile int poll_flag = 1;
+extern int in_game_call;  /* (below) an evaluation is running (gamecall.c) */
 int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the last dl_poll() */
 int spin_polls;         /* the game asked for a click (int 33h, 5 and 6), a key (int 16h, 1) or the time (int 21h, 2Ah / 2Ch) */
 static u32 screen_changed;  /* when the picture or the palette last changed */
@@ -309,7 +310,7 @@ static void int33(void)
     case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; break;
     case 0x04: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: set %d,%d\n", (s16)CX, (s16)DX); }
         ms_x = CX; ms_y = DX;
-        { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows */
+        if (!in_game_call) { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows (not for an evaluation) */
         break;
     case 0x05: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
     case 0x06: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
@@ -463,6 +464,10 @@ u8 hle_in8(u16 port)
 
 void hle_out8(u16 port, u8 v)
 {
+    /* an evaluation (gamecall.c) is thrown away with the memory it changed: the sound chips
+       must not change either (a note started there would hang, the driver's idea of the chip
+       and the chip would differ) */
+    if (in_game_call && ((port >= 0x220 && port <= 0x22f) || (port >= 0x388 && port <= 0x38b) || port == 0x330 || port == 0x331)) return;
     switch (port) {
     case 0x3c8: dac_w = v; dac_wc = 0; break;
     case 0x3c7: dac_r = v; dac_rc = 0; break;
@@ -558,6 +563,29 @@ void hle_stub(u16 seg, u16 off)
     if (n == 8 || n == 9 || n == 0x1c || (n >= 0x0a && n <= 0x0f) || (n >= 0x70 && n <= 0x77)) set_flags(fl);
     else set_flags((u16)((get_flags() & 0x08d5) | (fl & 0x0700)));
 }
+
+/* ---- snapshots for side-effect-free evaluations (gamecall.c): what the BIOS, the mouse
+ * driver and the VGA keep outside the game's memory. An evaluated handler that asked the mouse
+ * driver for clicks (int 33h 5/6) took the player's click away; one that set the palette left
+ * it changed. */
+typedef struct {
+    int ms_x, ms_y, ms_b, ms_shown, ms_minx, ms_maxx, ms_miny, ms_maxy, ms_mickx, ms_micky;
+    u16 ms_hmask, ms_hseg, ms_hoff; int ms_pending;
+    int ms_press[3], ms_release[3], ms_lpx[3], ms_lpy[3], ms_lrx[3], ms_lry[3];
+    u8 kq[64]; int kq_head, kq_tail; u8 port60; int kbd_e0; u8 shift_state;
+    u8 vga_dac[768]; int video_mode, dac_w, dac_r, dac_wc, dac_rc; u8 vga_misc_idx[4];
+    u16 pit_div; int pit_write_hi, pit_latch_hi; u16 pit_latch, pit_new;
+} BiosSnap;
+#define BS(f) do { memcpy(&b->f, &f, sizeof b->f); } while (0)
+#define BR(f) do { memcpy(&f, &b->f, sizeof b->f); } while (0)
+#define BIOS_FIELDS(X) X(ms_x); X(ms_y); X(ms_b); X(ms_shown); X(ms_minx); X(ms_maxx); X(ms_miny); X(ms_maxy); \
+    X(ms_mickx); X(ms_micky); X(ms_hmask); X(ms_hseg); X(ms_hoff); X(ms_pending); X(ms_press); X(ms_release); \
+    X(ms_lpx); X(ms_lpy); X(ms_lrx); X(ms_lry); X(kq); X(kq_head); X(kq_tail); X(port60); X(kbd_e0); X(shift_state); \
+    X(vga_dac); X(video_mode); X(dac_w); X(dac_r); X(dac_wc); X(dac_rc); X(vga_misc_idx); \
+    X(pit_div); X(pit_write_hi); X(pit_latch_hi); X(pit_latch); X(pit_new)
+void *bios_snapshot(void) { BiosSnap *b = malloc(sizeof *b); BIOS_FIELDS(BS); return b; }
+void bios_restore(void *p) { BiosSnap *b = p; BIOS_FIELDS(BR); }
+void bios_snapshot_free(void *p) { free(p); }
 
 /* ---------------------------------------------------------------- poll */
 static int in_irq;

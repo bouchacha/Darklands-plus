@@ -169,12 +169,18 @@ const char *assist_card_key_why(int digit)
 
 int assist_card_key(int digit, int *gx, int *gy)
 {
-    if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return 0;
+    /* D_ee42: the pointer is in the box of an option that picks a member, saint or item, and
+       the menu is that box's (its lines are not numbered) */
+    if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee42)) return 0;
     int n = (s8)g_rb(0xe96e), i = digit - 1;
     if (i < 0 || i >= n || n > 20) return 0;
     int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
     if (h <= 0) return 0;
     *gx = x0 + 10; *gy = y0 + (h > 8 ? 4 : h / 2);
+    if (g_rb(0xee41)) {     /* such a box is shown (the pointer rests on its option): fine unless it covers the line */
+        int bx = (s16)g_rw(0xee0d) + 0x3c, by = g_rb(0xee0f), bw = (s16)g_rw(0xee11), bh = g_rb(0xee10);
+        if (*gx >= bx && *gx <= bx + bw && *gy >= by && *gy <= by + bh) return 0;
+    }
     return 1;
 }
 
