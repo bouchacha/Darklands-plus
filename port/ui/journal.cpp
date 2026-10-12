@@ -497,6 +497,74 @@ static void ingredients_page(void)
     }
 }
 
+/* ---------------------------------------------------------------- stored goods
+ * What the party has left in storage (a monastery's store room, the caches of s035): the
+ * game keeps them in CACHE.TMP (saved with the game): byte 1 the number of caches, a 16-bit
+ * offset per cache at 2 x handle, there a count and {item u16, quality, number} each; a
+ * location record's +0x18 is its cache handle (from 1). The original lists a store only when
+ * the party stands in it. */
+extern "C" void dos_host_path(const char *dos, char *out, size_t outn);
+static void storage_page(void)
+{
+    int gm = game_mode();
+    if (gm == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
+    if (gm == GM_BATTLE) { ImGui::TextWrapped("After the battle."); return; }
+    std::vector<unsigned char> buf;
+    { char path[1200]; dos_host_path("CACHE.TMP", path, sizeof path);
+      FILE *f = fopen(path, "rb");
+      if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
+    int ncache = buf.size() > 1 ? buf[1] : 0;
+    ImGui::TextWrapped("What the party has left in store rooms (monasteries keep goods for travellers), and where. "
+                       "The game shows a store only while the party is there.");
+    ImGui::Spacing();
+    int px, py; travel_party_tile(&px, &py);
+    struct Store { int loc; double d; std::vector<SeenItem> items; };
+    std::vector<Store> stores;
+    for (int k = 0; k < G_NLOC; k++) {
+        u32 r = g_location(k);
+        if (!r) continue;
+        int h = (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18));
+        if (h < 1 || h > ncache || (size_t)(2 * h + 1) >= buf.size()) continue;
+        size_t o = buf[2 * h] | buf[2 * h + 1] << 8;
+        if (o >= buf.size()) continue;
+        int n = buf[o];
+        Store st; st.loc = k;
+        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
+        st.d = px >= 0 ? hypot((double)(x - px), (y - py) / 4.0) : 0;
+        for (int i = 0; i < n && o + 1 + 4 * i + 3 < buf.size(); i++) {
+            const unsigned char *e = &buf[o + 1 + 4 * i];
+            SeenItem it; it.id = (e[0] | e[1] << 8) & 0xfff; it.q = e[2]; it.price = e[3];   /* (price: the number) */
+            if (it.price) st.items.push_back(it);
+        }
+        if (!st.items.empty()) stores.push_back(st);
+    }
+    if (stores.empty()) { ImGui::TextDisabled("Nothing stored anywhere."); return; }
+    std::sort(stores.begin(), stores.end(), [](const Store &a, const Store &b) { return a.d < b.d; });
+    int cur = (s16)g_rw(G_CUR_LOC);
+    ImGui::BeginChild("stores", ImVec2(0, 0));
+    for (const Store &st : stores) {
+        ImGui::PushID(st.loc);
+        std::string head = loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        if (ImGui::CollapsingHeader(head.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::BeginTable("st", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
+                ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Quality").x + UIS(10));
+                ImGui::TableSetupColumn("Number", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Number").x + UIS(10));
+                ImGui::TableHeadersRow();
+                for (const SeenItem &it : st.items) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn(); icon_name_cell(it.id, item_name(it.id).c_str());
+                    ImGui::TableNextColumn(); ImGui::Text("%d", it.q);
+                    ImGui::TableNextColumn(); ImGui::Text("%d", it.price);
+                }
+                ImGui::EndTable();
+            }
+        }
+        ImGui::PopID();
+    }
+    ImGui::EndChild();
+}
+
 extern "C" void battlelog_tab(void);
 int ui_want_subtab = -1;
 extern "C" void journal_quests(void);               /* scripted tests: utab 2.1 */
@@ -528,6 +596,7 @@ extern "C" void tab_journal(void)
         }
         if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
+        if (ImGui::BeginTabItem("Stored", nullptr, want == 6 ? ImGuiTabItemFlags_SetSelected : 0)) { storage_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Battle log", nullptr, want == 5 ? ImGuiTabItemFlags_SetSelected : 0)) { battlelog_tab(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Honor Roll", nullptr, want == 4 ? ImGuiTabItemFlags_SetSelected : 0)) {
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
