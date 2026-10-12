@@ -28,6 +28,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Restored:** the Honor Roll of Glory, drawn by MicroProse but never reachable.
 - **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows, a strong Quickstart party, a rich start.
 - **Roland MT-32 music:** Darklands was composed for the MT-32 / LAPC-I, and Munt's emulator is now built in. Give it the synthesizer's two ROM files (if you use Munt or DOSBox with an MT-32 you have them; Darklands+ finds them in Munt's and DOSBox Staging's ROM folders by itself) and the music and battle sounds play as composed, with no MIDI setup. Without the ROMs nothing changes: the emulated Sound Blaster plays.
+- **Enemies (F12 > Records):** every foe with its attributes, weapon skills, armour and how hard it is (which weapons pierce it), shield, missile and melee weapons; editable and saved as a mod.
 - **Game controllers:** an Xbox, PlayStation or Switch pad, or a Steam Deck, plays the game: the left stick moves the pointer, A clicks, B opens the menu bar, X / Y are Enter / Esc, the d-pad the arrow keys, Start the Darklands+ menu, Back the world map (F1 lists them all). Off in F12 > Helpers.
 - **Music volume:** its own slider (F12 > Display), for the FM and the MT-32 alike.
 - **Battle sounds:** a mod with real recordings (swords clashing, shields, blows, cries, the bow, the handgun, a war horn for an ambush) in place of the synthesizer notes comes with the download; tick it in F12 > Mods. The recordings are from 0 A.D. (CC BY-SA 3.0).
