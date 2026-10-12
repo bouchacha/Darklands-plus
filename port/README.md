@@ -56,7 +56,8 @@ On the first start a short welcome names the keys that matter and offers the ori
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
 * **Fixes** for bugs of 483.07 (weapon potions, vanishing items, quests off the map, garish
-  colours, Save/Load greyed out, ...), see the Helpers tab.
+  colours, Save/Load greyed out, robbers corrupting the item count - a crash when that
+  character later dies in battle, ...), see the Helpers tab.
 * **Restored:** the Honor Roll of Glory (hall of fame), drawn and half-written by MicroProse but
   never reachable; parties enter it at their journey's end (`ui/halloffame.cpp`).
 * **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows,
