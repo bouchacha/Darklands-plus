@@ -63,7 +63,7 @@ the players' README.
 
 On the first start a short welcome names the keys that matter and offers the original game untouched.
 
-* **Text and display:** crisp text everywhere, sharp up to 4K (six typefaces, outlines, a contrast floor),
+* **Text and display:** crisp text everywhere, sharp up to 4K (seven typefaces, IM Fell English by default, outlines, a contrast floor),
   words painted into pictures redrawn crisply, character sheet abbreviations spelled out with
   skill icons, smooth scaling options, wide-screen margins with date, place, purse, tasks and the
   party's condition (in battles the battle log and everyone's condition), window size and full screen remembered; on Windows DPI-aware, the menus
@@ -77,7 +77,15 @@ On the first start a short welcome names the keys that matter and offers the ori
   the party side by side with a one-click leader change; F1 for the keys of the moment (the
   game's own hidden ones too); the mouse wheel in lists; the menu bar with a right click (the
   game shows it only while the button is held); the game waits while in the background;
-  a map of the level in battles and dungeons (Tab).
+  a map of the level in battles and dungeons (Tab); tooltips for every item, saint and formula on
+  the game's own screens (armour with its hardness against each weapon); a foe's armour against
+  the party's weapons in battle; loot and shop shortcuts (take or share a pile, sell a stack, buy
+  ten); "Tidy the pack"; a bestiary (F12 > Records > Enemies, editable); icons on the world map.
+* **Sound:** the Roland MT-32 / LAPC-I emulated (Munt's libmt32emu) when the player's ROM files are
+  found (`runtime/mt32.c`), else the Sound Blaster (Nuked OPL3); a music volume; battle sounds
+  from a sound pack (one made from 0 A.D.'s recordings comes with the release).
+* **Game controllers:** the left stick moves the pointer, A / B click and right-click, and so on
+  (`runtime/platform_sdl.c`, F1 lists them).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
 * **Screenshots:** Ctrl+F12 saves the window as it is seen (crisp text, margins) as a PNG in the
@@ -90,7 +98,8 @@ On the first start a short welcome names the keys that matter and offers the ori
 * **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows,
   a strong Quickstart party, a rich start.
 * **Modding:** mod folders (data files, single card files, card texts as text, menu texts,
-  weapon numbers, items, art, sounds), see `docs/MODDING.md`.
+  weapon numbers, items, foes, art, sounds), see `docs/MODDING.md`; tools to make whole art packs
+  (`tools/artpack.py`, `tools/aiart.py` with an image model) and sound packs (`tools/soundpack.py`).
 
 ## Testing
 
