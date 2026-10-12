@@ -407,6 +407,10 @@ static void run_script(void)
             if (sc == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "script: unknown key %s\n", s->arg); continue; }
             if (getenv("DL_TRACE_INPUT")) fprintf(stderr, "script %u ms: %s %s (sc %d)\n", now, s->cmd, s->arg, (int)sc);
             if (sc == SDL_SCANCODE_F12 && !headless) { ui_toggle(); continue; }
+            if (!strcmp(s->cmd, "key") && sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_9) {   /* as a player's key: a card's option */
+                int gx, gy, assist_card_key(int, int *, int *);
+                if (assist_card_key(sc - SDL_SCANCODE_1 + 1, &gx, &gy)) { click_at(gx, gy); continue; }
+            }
             if (strcmp(s->cmd, "up")) key(sc, 0);
             if (!strcmp(s->cmd, "up")) key(sc, 1);
             else if (!strcmp(s->cmd, "key")) {      /* release a little later, like a real key press */
