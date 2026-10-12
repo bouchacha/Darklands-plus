@@ -54,6 +54,8 @@ build/port/darklands /path/to/DARKLAND                        # run
   the party's end the title comes back instead of the program closing.
 * **Fixes** for bugs of 483.07 (weapon potions, vanishing items, quests off the map, garish
   colours, Save/Load greyed out, ...), see the Helpers tab.
+* **Restored:** the Honor Roll of Glory (hall of fame), drawn and half-written by MicroProse but
+  never reachable; parties enter it at their journey's end (`ui/halloffame.cpp`).
 * **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows,
   a strong Quickstart party, a rich start.
 * **Modding:** mod folders (data files, single card files, card texts as text, menu texts,
