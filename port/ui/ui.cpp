@@ -738,8 +738,14 @@ static void welcome_window(void)
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::PushFont(font_body);
     if (ImGui::Begin("Welcome to Darklands+", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
-                           "Your saved games stay in the game folder as always.");
+        extern char dos_shadow[];
+        if (dos_shadow[0])
+            ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
+                               "Windows does not let programs change the game folder where it is, so your saved games go to %s "
+                               "(the ones already in the game folder can be loaded as always).", dos_shadow);
+        else
+            ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
+                               "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ adds what players have long wished for: crisp text, chances of success on the cards, "
                            "a party and inventory screen, a journal of quests and towns, a world map, a battle log, quick saves "
