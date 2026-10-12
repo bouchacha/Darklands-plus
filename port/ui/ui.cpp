@@ -919,7 +919,7 @@ extern "C" void ui_progress_draw(SDL_Renderer *ren, const char *step, int pct, c
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 30, 0));
     ImGui::Begin("Darklands+##prepare", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
-    ImGui::TextWrapped("Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a few minutes.");
+    ImGui::TextWrapped("Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two.");
     ImGui::Spacing();
     ImGui::TextUnformatted(step && *step ? step : "Starting");
     ImGui::ProgressBar(pct / 100.0f, ImVec2(-1, 0));
