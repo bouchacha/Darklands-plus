@@ -67,7 +67,8 @@ static int resolve_ci(const char *base, const char *rel, char *out, size_t outn)
     snprintf(out, outn, "%s", tmp);
     return ok;
 }
-static void mods_dir(char *out, size_t n) { find_ci(game_dir, "mods", out, n); }
+extern char dlp_user_dir[];
+static void mods_dir(char *out, size_t n) { find_ci(dlp_user_dir[0] ? dlp_user_dir : game_dir, "mods", out, n); }
 void datamods_folder(char *out, size_t n) { mods_dir(out, n); }
 
 /* ---------------------------------------------------------------- the list */

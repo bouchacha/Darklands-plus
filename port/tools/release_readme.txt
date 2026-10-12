@@ -17,7 +17,11 @@ include anything from the game.
 INSTALLING
 1. Unpack this zip into a folder of its own, for example C:\Games\Darklands+. (You can also
    unpack it into your Darklands folder, the one that contains DARKLAND.EXE.)
-2. Back up your SAVES folder. Saves stay in the Darklands folder, as in the original.
+2. Back up your SAVES folder. Saves stay in the Darklands folder, as in the original. (If
+   Windows does not let programs change that folder - GOG Galaxy installs under Program
+   Files - the game's saves and other files go to the VirtualStore folder Windows keeps for
+   it, %LOCALAPPDATA%\VirtualStore\...; saves that GOG's DOSBox was redirected there show
+   up too. F12 > About shows the place.)
 3. Double-click darklands.exe. Darklands+ finds a GOG or Steam installation by itself;
    otherwise it asks you for the Darklands folder once. The original game files are not
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not

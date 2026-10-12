@@ -297,8 +297,9 @@ static void tab_mods(void)
     {
         static char msg[1400];
         char md[1100]; datamods_folder(md, sizeof md);
+        extern char dlp_user_dir[];
         ImGui::TextWrapped("A mod is a folder in %s" PATH_SEP "mods with files laid out like the game folder: "
-                           "while it is ticked the game reads them instead of its own (the game's files are never changed).", game_dir);
+                           "while it is ticked the game reads them instead of its own (the game's files are never changed).", dlp_user_dir);
         if (!datamods_n) hint("No mods found yet.");
         for (int i = 0; i < datamods_n; i++) {
             ImGui::PushID(1000 + i);
@@ -571,8 +572,9 @@ static void tab_display(void)
     {
         extern char game_dir[1024];
         int n = hdart_count();
-        if (n) hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", game_dir, PATH_SEP);
-        else hint("No replacement pictures yet (%s%sart).", game_dir, PATH_SEP);
+        extern char dlp_user_dir[];
+        if (n) hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        else hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
         static char msg[600];
         if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
         ImGui::SameLine();
@@ -607,8 +609,9 @@ static void tab_display(void)
         extern char game_dir[1024];
         if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); dirty_config = 1; }
         int n = sfx_user_count();
-        if (n) hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", game_dir, PATH_SEP);
-        else hint("No sound pack yet (%s%ssounds).", game_dir, PATH_SEP);
+        extern char dlp_user_dir[];
+        if (n) hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        else hint("No sound pack yet (%s%ssounds).", dlp_user_dir, PATH_SEP);
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); dirty_config = 1; }
@@ -694,12 +697,16 @@ static void tab_about(void)
     ImGui::TextWrapped("F1: the keys of the moment.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
     ImGui::PushFont(font_head); ImGui::SeparatorText("Files"); ImGui::PopFont();
-    ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original");
+    {   extern char dos_shadow[];
+        if (dos_shadow[0]) ImGui::BulletText("saved games, and every other file the game writes: %s (the game folder cannot be "
+                                             "written; the saved games in its SAVES folder can still be loaded)", dos_shadow);
+        else ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original"); }
     {   extern char dlp_data_dir[];
         bool own = strcmp(dlp_data_dir, game_dir) != 0;    /* the game folder could not be written */
         ImGui::BulletText("the game: %s", game_dir);
         ImGui::BulletText("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
-        ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
+        extern char dlp_user_dir[];
+        ImGui::BulletText("mods, replacement art and sounds: the mods, art and sounds folders in %s", own ? dlp_user_dir : "the game folder");
         ImGui::BulletText("screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s", own ? dlp_data_dir : "the game folder");
         ImGui::BulletText("a log of the session: darklands_port.log (Windows) in %s, to send along with a report of a problem", own ? dlp_data_dir : "the game folder");
 #ifdef DL_RTSPLIT

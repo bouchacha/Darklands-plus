@@ -40,6 +40,8 @@ extern u16 drvseg_mgraphic;
 #endif
 
 extern char game_dir[1024];
+extern char dlp_user_dir[];
+#define USER_DIR (dlp_user_dir[0] ? dlp_user_dir : game_dir)     /* the player's art folder lives here */
 int hdart_on = 1;
 int hdart_show_names;
 static int logon;
@@ -112,7 +114,7 @@ void hdart_rescan(void)
     static char md[DATAMODS_MAX][1200];
     int nm = datamods_dirs("art", md, DATAMODS_MAX);      /* the mods' art first: the first file of a name wins */
     for (int i = 0; i < nm; i++) scan_dir(md[i], 0);
-    char p[1100]; snprintf(p, sizeof p, "%s/art", game_dir);
+    char p[1100]; snprintf(p, sizeof p, "%s/art", USER_DIR);
     scan_dir(p, 0);
     for (int i = 0; i < npics; i++) { free(pics[i].art); const char *a = art_for(pics[i].name); pics[i].art = a ? strdup(a) : 0; }
     hdart_generation++;
@@ -362,7 +364,7 @@ const char *hdart_virtual_file(const char *dosname)
     const char *art = art_for(key);
     if (!art) return 0;
     static char path[1300];
-    char dir[1200]; snprintf(dir, sizeof dir, "%s/art/.generated", game_dir); MKDIR(dir);
+    char dir[1200]; snprintf(dir, sizeof dir, "%s/art", USER_DIR); MKDIR(dir); snprintf(dir, sizeof dir, "%s/art/.generated", USER_DIR); MKDIR(dir);
     snprintf(path, sizeof path, "%s/%s.PIC", dir, key);
     struct stat sa, sg;
     if (!stat(path, &sg) && !stat(art, &sa) && sg.st_mtime >= sa.st_mtime) return path;   /* made already, art unchanged */
@@ -914,8 +916,8 @@ static int find_pic(const char *key) { for (int i = 0; i < npics; i++) if (!strc
 int hdart_export(char *msg, int msgn)
 {
     char dir[1200], p[1400];
-    snprintf(dir, sizeof dir, "%s/art", game_dir); MKDIR(dir);
-    snprintf(dir, sizeof dir, "%s/art/original", game_dir); MKDIR(dir);
+    snprintf(dir, sizeof dir, "%s/art", USER_DIR); MKDIR(dir);
+    snprintf(dir, sizeof dir, "%s/art/original", USER_DIR); MKDIR(dir);
     u32 base[256]; dac_lut(base);
     int done = 0, failed = 0;
     char pd[1200]; dos_host_path("PICS", pd, sizeof pd);

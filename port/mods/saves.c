@@ -50,16 +50,16 @@ static u32 load_t, loaded_t;
 static int in_save;
 
 /* ---------------------------------------------------------------- files */
-static void saves_dir(char *out, size_t n) { dos_host_path("SAVES", out, n); }
 
-/* the file on disk (any case) of a save's DOS name, and its .bsv */
+/* the file on disk of a save's DOS name, as the game reads it (any case; the shadow folder's
+ * copy when the game folder cannot be written, runtime/dos.c) */
+int dos_list_dos(const char *dosdir, const char *pat, FindEnt **out);
 static int real_path(const char *name, char *p, size_t n)
 {
-    char dir[1100]; saves_dir(dir, sizeof dir);
-    FindEnt *l; int k = dos_list(dir, name, &l);
-    if (k) snprintf(p, n, "%s/%s", dir, l[0].real);
-    free(l);
-    return k > 0;
+    char dn[64]; snprintf(dn, sizeof dn, "SAVES\\%s", name);
+    dos_host_path(dn, p, n);
+    struct stat st;
+    return stat(p, &st) == 0;
 }
 
 int saves_read(const char *name, SaveInfo *si)
@@ -97,9 +97,7 @@ int saves_read(const char *name, SaveInfo *si)
 
 int saves_list(SaveInfo **out)
 {
-    char dir[1100];
-    saves_dir(dir, sizeof dir);
-    FindEnt *l; int n = dos_list(dir, "*.SAV", &l);
+    FindEnt *l; int n = dos_list_dos("SAVES", "*.SAV", &l);
     SaveInfo *v = calloc((size_t)(n ? n : 1), sizeof *v);
     int k = 0;
     for (int i = 0; i < n; i++) if (saves_read(l[i].name, &v[k])) k++;
@@ -235,8 +233,7 @@ static void askyesno_hook(void)            /* ask_yes_no(question) */
 static void loadlist_hook(void)            /* the load screen's list (s037 1c7d:06e6): from our save on */
 {
     if (load_stage == 3) {
-        char dir[1100]; saves_dir(dir, sizeof dir);
-        FindEnt *l; int n = dos_list(dir, "*.SAV", &l), at = -1;
+        FindEnt *l; int n = dos_list_dos("SAVES", "*.SAV", &l), at = -1;
         for (int i = 0; i < n; i++) if (!strcasecmp(l[i].name, load_name)) { at = i; break; }
         free(l);
         if (at >= 0) g_ww(0x8c52, (u16)at);

@@ -38,6 +38,8 @@ static std::string hf_msg;
 void halloffame_set_renderer(SDL_Renderer *r) { hf_ren = r; }
 
 static std::string fam_path(void) { char p[1300]; dos_host_path("DARKLAND.FAM", p, sizeof p); return p; }
+extern "C" void dos_host_path_write(const char *dos, char *out, size_t outn);
+static std::string fam_path_write(void) { char p[1300]; dos_host_path_write("DARKLAND.FAM", p, sizeof p); return p; }
 
 static void load_roll(void)
 {
@@ -68,7 +70,7 @@ static bool save_roll(void)
         r[4] = (unsigned char)e.seed; r[5] = (unsigned char)(e.seed >> 8);
         for (int k = 0; k < 4; k++) { size_t l = e.names[k].size(); if (l > 24) l = 24; memcpy(r + 6 + 25 * k, e.names[k].c_str(), l); }
     }
-    FILE *f = fopen(fam_path().c_str(), "wb");
+    FILE *f = fopen(fam_path_write().c_str(), "wb");
     if (!f) return false;
     fwrite(b, 1, sizeof b, f); fclose(f);
     return true;

@@ -34,6 +34,8 @@
 
 #define FS 44100
 extern char game_dir[1024];
+extern char dlp_user_dir[];
+#define USER_DIR (dlp_user_dir[0] ? dlp_user_dir : game_dir)     /* the player's sounds folder lives here */
 int sfx_mode = 1;               /* 0 the game's own sounds only, 1 a sound pack where it has a sound */
 int sfx_synth = 0;              /* built-in synthesized sounds for what the pack lacks (experimental) */
 int sfx_volume = 100;
@@ -415,7 +417,7 @@ static void load_user(void)
     static char md[DATAMODS_MAX][1200];
     int nm = datamods_dirs("sounds", md, DATAMODS_MAX);
     for (int i = 0; i < nm; i++) load_user_dir(md[i], i, from);
-    char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", game_dir);
+    char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", USER_DIR);
     load_user_dir(dir, nm, from);
 }
 
@@ -550,8 +552,8 @@ void sfx_set_synth(int on) { sfx_synth = on; config_set_int("sound.synth_effects
 /* write the built-in sounds as .wav (for listening, or as a start for one's own) */
 int sfx_export(char *msg, int n)
 {
-    char dir[1200]; snprintf(dir, sizeof dir, "%s/sounds", game_dir); MKDIR(dir);
-    snprintf(dir, sizeof dir, "%s/sounds/built-in", game_dir); MKDIR(dir);
+    char dir[1200]; snprintf(dir, sizeof dir, "%s/sounds", USER_DIR); MKDIR(dir);
+    snprintf(dir, sizeof dir, "%s/sounds/built-in", USER_DIR); MKDIR(dir);
     unsigned save = rs; rs = 0x2545f491u;
     int done = 0;
     for (int k = 0; k < NS; k++) {
