@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 #define HD_MAXRUNS 256
-typedef struct { char text[100]; int x, y, w, h, font, center; unsigned rgb, bgrgb; int clip0, clip1, cont; } HdRun;   /* game pixels; bgrgb: the mean colour behind; drawn in rows clip0..clip1 of h only; cont: goes on from the run before without a gap */
+typedef struct { char text[100]; int x, y, w, h, font, center; unsigned rgb, bgrgb; int clip0, clip1, cont, flatbg; } HdRun;   /* game pixels; bgrgb: the mean colour behind; drawn in rows clip0..clip1 of h only; cont: goes on from the run before without a gap; flatbg: on a plain box */
 extern HdRun hdtext_runs[HD_MAXRUNS];
 extern int hdtext_nruns, hdtext_mode;
 void hdtext_prepare(unsigned *rgb, const unsigned *lut, unsigned char *idx);

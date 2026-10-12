@@ -809,7 +809,7 @@ void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
             int best = 0; for (int v = 1; v < 256; v++) if (cnt[v] > cnt[best]) best = v;
             HdRun *u = &hdtext_runs[hdtext_nruns++];
             snprintf(u->text, sizeof u->text, "%s", B->text);
-            u->x = bx0 + r->ox; u->y = by0 + r->oy - 1; u->w = bx1 - bx0 + 1; u->h = by1 - by0 + 3; u->font = 2; u->center = 1; u->clip0 = 0; u->clip1 = u->h; u->cont = 0;   /* 2: drawn as wide as the word was, in the middle of where it was */
+            u->x = bx0 + r->ox; u->y = by0 + r->oy - 1; u->w = bx1 - bx0 + 1; u->h = by1 - by0 + 3; u->font = 2; u->center = 1; u->clip0 = 0; u->clip1 = u->h; u->cont = 0; u->flatbg = 0;   /* 2: drawn as wide as the word was, in the middle of where it was */
             u->rgb = lut[best]; u->bgrgb = bn ? (br / bn) << 16 | (bg / bn) << 8 | (bb / bn) : 0;
         }
     }

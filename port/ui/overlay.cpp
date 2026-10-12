@@ -82,6 +82,15 @@ static ImU32 contrast_fix(ImU32 c, int bg)
     return c;
 }
 
+/* text the game draws faint on purpose (greyed-out menu entries): little contrast to what is behind */
+static bool faint_text(ImU32 c, int bg)
+{
+    if (bg < 0) return false;
+    double lt = rel_lum((c >> IM_COL32_R_SHIFT) & 255, (c >> IM_COL32_G_SHIFT) & 255, (c >> IM_COL32_B_SHIFT) & 255), lb = rel_lum(bg >> 16 & 255, bg >> 8 & 255, bg & 255);
+    double r0 = lt > lb ? (lt + 0.05) / (lb + 0.05) : (lb + 0.05) / (lt + 0.05);
+    return r0 < 2.0;
+}
+
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
 static u8 px(int x, int y) { return (x < 0 || x >= 320 || y < 0 || y >= 200) ? 0 : M[0xa0000 + y * 320 + x]; }
 
@@ -572,7 +581,9 @@ extern "C" void hdtext_draw(void)
         if (!sp[i].text.empty() && !mapped) { t = sp[i].text; size = bh * 1.18f * fm.k * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         if (r.center) x0 += (bw - ts.x) * 0.5f;
-        ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
+        ImU32 c0 = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
+        bool faint = r.flatbg && faint_text(c0, (int)(r.bgrgb & 0xffffff));   /* greyed out in a menu: no outline, which would make it stand out */
+        ImU32 c = contrast_fix(c0, (int)(r.bgrgb & 0xffffff));
         float seq = size / fm.k;                                     /* the size EB Garamond would have: its baseline */
         float y = y0 + (bh - seq) * 0.5f - bh * 0.06f + face_ref_asc() * seq - fm.asc * size;
         bool clipped = (r.clip0 > 0 || r.clip1 < r.h) && r.clip1 > r.clip0;   /* covered in part: only where it shows */
@@ -581,7 +592,7 @@ extern "C" void hdtext_draw(void)
             plat_game_to_win(0, (float)(r.y + r.clip0), &dummy, &cy0); plat_game_to_win(0, (float)(r.y + r.clip1), &dummy, &cy1);
             dl->PushClipRect(ImVec2(0, cy0), ImVec2(ImGui::GetIO().DisplaySize.x, cy1), true);
         }
-        text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
+        text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), faint ? 0 : ui_text_edge, (int)(r.bgrgb & 0xffffff));
         if (clipped) dl->PopClipRect();
         if (ui_skill_icons) { int k = skill_of(r.text); if (k >= 0) skill_icon(dl, ImVec2(x0 - bh * 0.47f, y0 + bh * 0.5f), bh * 0.56f, k); }
         prev = i; prev_end = x0 + ts.x;

@@ -482,10 +482,12 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             u->clip0 = b0; u->clip1 = b1;
             u->cont = s == last_e + 1; last_e = e;     /* the same line going on in another colour or band */
             u->rgb = rgb;
-            {   u32 br = 0, bgg = 0, bb = 0, bn = 0;
+            {   u32 br = 0, bgg = 0, bb = 0, bn = 0, same = 0; u8 first = r->bg[r->gx[s]];
                 for (int yy = 0; yy < r->h; yy++)
-                    for (int xx = r->gx[s]; xx < r->gx[g - 1] + r->gw[g - 1]; xx++) { u32 v = lut[r->bg[yy * r->w + xx]]; br += v >> 16 & 255; bgg += v >> 8 & 255; bb += v & 255; bn++; }
-                u->bgrgb = bn ? (br / bn) << 16 | (bgg / bn) << 8 | (bb / bn) : 0; }
+                    for (int xx = r->gx[s]; xx < r->gx[g - 1] + r->gw[g - 1]; xx++) {
+                        u8 q = r->bg[yy * r->w + xx]; u32 v = lut[q]; br += v >> 16 & 255; bgg += v >> 8 & 255; bb += v & 255; bn++; same += q == first; }
+                u->bgrgb = bn ? (br / bn) << 16 | (bgg / bn) << 8 | (bb / bn) : 0;
+                u->flatbg = bn && same * 10 >= bn * 9; }     /* a plain box behind it, not a picture */
         }
     }
 }
