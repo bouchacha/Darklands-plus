@@ -23,6 +23,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
   - weapon potions that never wear off
   - quests off the edge of the map
   - robbers corrupting the item count (a crash later)
+  - items lost in overfull store rooms
   - and more, each with its own switch (F12 > Helpers)
 - **Restored:** the Honor Roll of Glory, drawn by MicroProse but never reachable.
 - **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows, a strong Quickstart party, a rich start.

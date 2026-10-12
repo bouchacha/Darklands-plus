@@ -101,6 +101,8 @@ Fix FIXES[] = {
       "Where a card lets the leader practise with the weapon he or she is best at, the original always trained Missile Devices.", 1 },
     { "itemcount", "Robbers take what is there (and no crash after)",
       "When robbers took the party's things, the game removed one item too many; a character left with nothing ended up with -1 items, and if he or she later died in battle the game overwrote its own memory and stopped. Fixed; saved games with the fault mend themselves.", 1 },
+    { "storeroom", "Nothing lost in store rooms",
+      "A store room holds 100 kinds of things and its count of one thing ran over past 127 (shown as minus numbers, then lost). Putting more in is now refused with a word why.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -455,11 +457,45 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
 }
 
 /* ---------------------------------------------------------------- switching */
+/* ---------------------------------------------------------------- storeroom
+ * The store rooms (s035): the open store is a table at far 2e38:37f4, 4 bytes an entry {item,
+ * quality, number (signed char)}, room for 100 (the next table starts at 3984); DS:89f6 the
+ * entries, DS:89f2 the member shown, DS:37c4[5] the list in use (0 the member's), DS:37ce[5]
+ * + DS:37e2[5] the member's cursor. cache_add stacks without a limit and appends without
+ * one: P (put) is refused when it would overflow either. */
+void ui_notice(const char *msg);
+static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
+{
+    int key = rw(SS, (u16)(SP + 4)) & 0xff, m = (s16)g_rw(0x89f2);
+    if ((key == 'p' || key == 'P') && m >= 0 && m < 5 && !g_rw((u16)(0x37c4 + 2 * m)) && g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) {
+        int idx = (s16)g_rw((u16)(0x37e2 + 2 * m)) + (s16)g_rw((u16)(0x37ce + 2 * m));
+        if (idx >= 0 && idx < 64) {
+            u16 o = G_ITEM(m, idx);
+            int id = rw(G_FAR2E38, o) & 0xfff, q = rb(G_FAR2E38, (u16)(o + 3));
+            unsigned n = g_rw(0x89f6); int found = -1;
+            for (unsigned i = 0; i < n && i < 100; i++) {
+                u16 e = (u16)(0x37f4 + 4 * i);
+                if ((rw(G_FAR2E38, e) & 0xfff) == id && rb(G_FAR2E38, (u16)(e + 2)) == q) { found = (int)i; break; }
+            }
+            const char *why = found >= 0 ? ((s8)rb(G_FAR2E38, (u16)(0x37f4 + 4 * found + 3)) >= 127 ? "The store room keeps at most 127 of one thing." : 0)
+                                         : (n >= 100 ? "The store room is full: it keeps 100 kinds of things." : 0);
+            if (why) {
+                ui_notice(why);
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix storeroom: %s\n", why);
+                hook_return_far(0);
+                return;
+            }
+        }
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
-    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook } };
+    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
+    { 35, 0x1462, 0x0a46, storeroom_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook } };
