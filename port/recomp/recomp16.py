@@ -176,7 +176,7 @@ class Gen:
         wr = {'mov', 'add', 'sub', 'and', 'or', 'xor', 'inc', 'dec', 'adc', 'sbb', 'not', 'neg', 'xchg', 'pop'}
         self.smc = set()
         for (img, lin), r in self.insns.items():
-            if r[1] not in wr:
+            if r[1] not in wr or 'cs:' not in r[2]:       # only writes through cs:[...] (op_str shows the override)
                 continue
             ins = next(MD.disasm(bytes(r[3]), r[5]))
             if not ins.operands:
