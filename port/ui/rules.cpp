@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -229,7 +230,7 @@ void rules_tab(void)
                        "below its strength range each point costs 1 attack and 3 defence and blows hit softer, above it blows hit harder.");
     ImGui::PopStyleColor();
     static char modname[64] = "My weapons"; static std::string msg;
-    ImGui::SetNextItemWidth(220); ImGui::InputText("##rulesmod", modname, sizeof modname); ImGui::SameLine();
+    ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##rulesmod", modname, sizeof modname); ImGui::SameLine();
     if (ImGui::Button("Write these numbers into a mod folder (rules.ini)") && modname[0]) {
         char w[1300]; int r = datamods_new(modname, w, sizeof w);
         std::string p = std::string(w) + "/rules.ini";

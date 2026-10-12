@@ -298,7 +298,7 @@ extern "C" void worldmap_draw(void)
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_label(p.kind));
             if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
-            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(380); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
             ImGui::EndTooltip();
             break;
@@ -312,7 +312,7 @@ extern "C" void worldmap_draw(void)
     ImGui::TextUnformatted("The Holy Roman Empire");
     ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
     static char find[48];
-    ImGui::SetNextItemWidth(260);
+    ImGui::SetNextItemWidth(UIS(260));
     ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof find);
     if (find[0]) {
         std::string f = find; std::transform(f.begin(), f.end(), f.begin(), ::tolower);

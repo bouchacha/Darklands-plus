@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -82,7 +83,7 @@ extern "C" void tab_travel(void)
     ImGui::TextWrapped("Pick a destination: the party travels by the quickest way, keeping to roads and bridges. "
                        "Encounters interrupt the journey; it carries on afterwards. Any key or click stops it. "
                        "Ctrl+click on the map travels to that spot.");
-    ImGui::SetNextItemWidth(260);
+    ImGui::SetNextItemWidth(UIS(260));
     ImGui::InputTextWithHint("##f", "name", filter, sizeof filter);
     ImGui::SameLine(); ImGui::Checkbox("Cities", &show[0]);
     ImGui::SameLine(); ImGui::Checkbox("Castles & monasteries", &show[1]);
@@ -105,9 +106,9 @@ extern "C" void tab_travel(void)
     if (ImGui::BeginTable("dest", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY, ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Destination", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 230);
-        ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthFixed, 130);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 70);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, UIS(230));
+        ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthFixed, UIS(130));
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, UIS(70));
         ImGui::TableHeadersRow();
         for (const Dest &d : v) {
             ImGui::PushID(d.loc);

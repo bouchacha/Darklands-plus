@@ -13,6 +13,8 @@ void ui_toggle(void);
 void ui_draw(SDL_Renderer *ren);
 void ui_select_tab(int t);
 #define UI_GAME_FONTS 6
+extern float ui_scale;                  /* the menus' size: 1 at 96 dpi (display.ui_scale, or the system's scale on Windows) */
+#define UIS(x) ((x) * ui_scale)
 #ifdef __cplusplus
 }
 #endif

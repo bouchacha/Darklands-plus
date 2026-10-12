@@ -48,6 +48,7 @@ extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head, *font_tab;
 ImFont *ui_font_small, *ui_font_text;
+float ui_scale = 1.0f;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
 ImFont *ui_font_game_hi[UI_GAME_FONTS];    /* the same baked larger on big screens (0 if not needed) */
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
@@ -124,11 +125,26 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;     /* the cursor is ours (ui_cursor) */
+    {   /* the menus' size: display.ui_scale in percent, else on Windows the system's scale
+           (125 %, 150 % ... of 96 dpi; the window is DPI-aware, see plat_init), else 100 % */
+        int pct = config_get_int("display.ui_scale", 0);
+        float k = 1.0f;
+        if (pct >= 75 && pct <= 300) k = pct / 100.0f;
+#ifdef _WIN32
+        else {
+            float ddpi = 0; int di = SDL_GetWindowDisplayIndex(win);
+            if (SDL_GetDisplayDPI(di < 0 ? 0 : di, &ddpi, 0, 0) == 0 && ddpi > 0) k = ddpi / 96.0f;
+            if (k < 1) k = 1; if (k > 3) k = 3;
+        }
+#endif
+        ui_scale = roundf(k * 4) / 4;
+        if (ui_scale != 1.0f) fprintf(stderr, "ui: menus at %.0f %%\n", ui_scale * 100);
+    }
     ImFontConfig fc; fc.FontDataOwnedByAtlas = false;
-    font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 24.0f, &fc);
-    font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
-    font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 20.0f, &fc);
-    ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
+    font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(24.0f), &fc);
+    font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(32.0f), &fc);
+    font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(20.0f), &fc);
+    ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(17.0f), &fc);
     {   /* the game's text, redrawn crisp (mods/hdtext.c): baked at the size it takes on this screen
            when the window fills it (a line of the game's text is 6 of its 200 rows; 34 pixels at
            most screens, up to 90 on a 4K screen, where text baked smaller turned soft) */
@@ -168,6 +184,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
     style();
+    if (ui_scale != 1.0f) ImGui::GetStyle().ScaleAllSizes(ui_scale);
     ui_settings.aspect = config_get_int("display.aspect_4_3", 1);
     ui_settings.smooth = config_get_int("display.smooth", 0);
     ui_settings.integer = config_get_int("display.integer_scale", 0);
@@ -256,16 +273,16 @@ static void tab_mods(void)
             ImGui::PushID(1000 + i);
             bool on = datamods[i].on != 0;
             if (ImGui::Checkbox(datamods[i].title, &on)) { datamods_set(i, on); dirty_config = 1; }
-            ImGui::Indent(34);
+            ImGui::Indent(UIS(34));
             if (datamods[i].desc[0]) hint("%s", datamods[i].desc);
             hint("folder: mods" PATH_SEP "%s", datamods[i].folder);
-            ImGui::Unindent(34);
+            ImGui::Unindent(UIS(34));
             ImGui::PopID();
         }
         if (ImGui::Button("Look for mods again")) { datamods_scan(); hdart_rescan(); msg[0] = 0; }
         ImGui::SameLine();
         static char newname[64] = "My mod";
-        ImGui::SetNextItemWidth(200); ImGui::InputText("##newmod", newname, sizeof newname);
+        ImGui::SetNextItemWidth(UIS(200)); ImGui::InputText("##newmod", newname, sizeof newname);
         ImGui::SameLine();
         if (ImGui::Button("Make a new mod folder") && newname[0]) {
             char w[1300]; int r = datamods_new(newname, w, sizeof w);
@@ -299,11 +316,11 @@ static void tab_mods(void)
         bool on = m.enabled;
         ImGui::PushID(i);
         if (ImGui::Checkbox(m.name, &on)) { mod_enable(i, on); dirty_config = 1; }
-        ImGui::Indent(34);
+        ImGui::Indent(UIS(34));
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
         ImGui::TextWrapped("%s%s", m.desc, m.needs_new_game ? "  (New game.)" : "");
         ImGui::PopStyleColor();
-        ImGui::Unindent(34);
+        ImGui::Unindent(UIS(34));
         ImGui::PopID();
     }
 }
@@ -441,7 +458,7 @@ static void tab_helpers(void)
         bool on = FIXES[i].on;
         ImGui::PushID(i);
         if (ImGui::Checkbox(FIXES[i].name, &on)) { fix_enable(i, on); dirty_config = 1; }
-        ImGui::Indent(34); hint("%s", FIXES[i].desc); ImGui::Unindent(34);
+        ImGui::Indent(UIS(34)); hint("%s", FIXES[i].desc); ImGui::Unindent(UIS(34));
         ImGui::PopID();
     }
 }
@@ -467,6 +484,14 @@ static void tab_display(void)
       if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
     { bool sc = sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
+    {   /* the menus' size (fonts are baked at start-up) */
+        static const int P[] = { 0, 100, 125, 150, 175, 200, 250 };
+        static const char *N[] = { "automatic (the system's scale)", "100 %", "125 %", "150 %", "175 %", "200 %", "250 %" };
+        int cur = config_get_int("display.ui_scale", 0), sel = 0;
+        for (int i = 0; i < 7; i++) if (P[i] == cur) sel = i;
+        ImGui::SetNextItemWidth(UIS(260));
+        if (ImGui::Combo("size of these menus (after a restart)", &sel, N, 7)) { config_set_int("display.ui_scale", P[sel]); dirty_config = 1; }
+    }
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
@@ -477,7 +502,7 @@ static void tab_display(void)
     if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); dirty_config = 1; }
     if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); dirty_config = 1; }
     if (hm) {
-        ImGui::SetNextItemWidth(380);
+        ImGui::SetNextItemWidth(UIS(380));
         if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
             for (int i = 0; i < UI_GAME_FONTS; i++) {
                 ImGui::PushFont(ui_font_game[i]);
@@ -547,18 +572,18 @@ static void tab_display(void)
         if (n) hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", game_dir, PATH_SEP);
         else hint("No sound pack yet (%s%ssounds).", game_dir, PATH_SEP);
         if (sp) {
-            ImGui::Indent(30);
+            ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); dirty_config = 1; }
             if (ImGui::Checkbox("Experimental: synthesized sounds where the pack has none", &sy)) { sfx_set_synth(sy); dirty_config = 1; }
             int v = sfx_volume;
-            ImGui::SetNextItemWidth(260);
+            ImGui::SetNextItemWidth(UIS(260));
             if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); dirty_config = 1; }
             static char msg[400];
             if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sounds found.", sfx_user_count()); }
             ImGui::SameLine();
             if (ImGui::Button("Write the synthesized sounds as .wav")) sfx_export(msg, sizeof msg);
             if (msg[0]) hint("%s", msg);
-            ImGui::Unindent(30);
+            ImGui::Unindent(UIS(30));
         }
         if (ImGui::TreeNode("File names for a sound pack")) {
             for (int k = 0; k < SFX_COUNT; k++) hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
@@ -595,7 +620,7 @@ static void tab_party(void)
                 int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
                 if (n > 64) n = 64;
                 if (ImGui::BeginTable("inv", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY,
-                                      ImVec2(0, 360))) {
+                                      ImVec2(0, UIS(360)))) {
                     ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableSetupColumn("id"); ImGui::TableSetupColumn("type"); ImGui::TableSetupColumn("quality");
                     ImGui::TableSetupColumn("count"); ImGui::TableSetupColumn("weight");
@@ -648,13 +673,13 @@ static void help_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 100));
-    float w = fminf(io.DisplaySize.x * 0.92f, 900);
+    float w = fminf(io.DisplaySize.x * 0.92f, UIS(900));
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, io.DisplaySize.y * 0.94f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::PushFont(font_body);
     if (ImGui::Begin("Keys and clicks (F1)", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
-        auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(230); ImGui::TextWrapped("%s", d); };
+        auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d); };
         int gm = game_mode();
         if (gm == GM_CARD) {
             ImGui::SeparatorText("Now: a card");
@@ -737,7 +762,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
-        float w = fminf(io.DisplaySize.x * 0.95f, 1100), h = fminf(io.DisplaySize.y * 0.92f, 820);
+        float w = fminf(io.DisplaySize.x * 0.95f, UIS(1100)), h = fminf(io.DisplaySize.y * 0.92f, UIS(820));
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::PushFont(font_body);
@@ -746,14 +771,14 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             /* the labels a little smaller than the text, so that all of them show in a 960 pixel
                window (the whole tab bar in that face: ImGui measures the tabs again when it lays
                them out) */
-            ImGui::PushFont(font_tab); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 5));
+            ImGui::PushFont(font_tab); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(6), UIS(5)));
             if (ImGui::BeginTabBar("tabs")) {
                 const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor" };
                 void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
                     if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) {
-                        ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
+                        ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(8), UIS(4)));
                         fns[t]();
                         ImGui::PopStyleVar(); ImGui::PopFont();
                         ImGui::EndTabItem();

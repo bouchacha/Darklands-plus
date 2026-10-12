@@ -7,6 +7,7 @@
 #include <time.h>
 #include <string>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -54,15 +55,15 @@ extern "C" void tab_saves(void)
       if (ImGui::Checkbox("When the party's journey ends, start again at the title (the original closes)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
     if (on) {
         ImGui::TextDisabled("Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quicksave.");
-        ImGui::Indent(20);
+        ImGui::Indent(UIS(20));
         bool a = saves_auto_arrive != 0, b = saves_auto_battle != 0;
         if (ImGui::Checkbox("Autosave on arriving at a city, castle, village ...", &a)) { saves_auto_arrive = a; config_set_int("saves.autosave_arrive", a); }
         if (ImGui::Checkbox("Autosave before every battle", &b)) { saves_auto_battle = b; config_set_int("saves.autosave_battle", b); }
-        ImGui::SetNextItemWidth(160);
+        ImGui::SetNextItemWidth(UIS(160));
         if (ImGui::SliderInt("autosaves kept", &saves_keep_auto, 1, 9)) config_set_int("saves.keep_auto", saves_keep_auto);
-        ImGui::SameLine(0, 30); ImGui::SetNextItemWidth(160);
+        ImGui::SameLine(0, UIS(30)); ImGui::SetNextItemWidth(UIS(160));
         if (ImGui::SliderInt("quicksaves kept", &saves_keep_quick, 1, 9)) config_set_int("saves.keep_quick", saves_keep_quick);
-        ImGui::Unindent(20);
+        ImGui::Unindent(UIS(20));
         if (in_game) {
             if (ImGui::Button("Save now")) { saves_quick_save(); ui_toggle(); }
             ImGui::SameLine();
@@ -81,7 +82,7 @@ extern "C" void tab_saves(void)
     ImGui::TableSetupColumn("Party", ImGuiTableColumnFlags_WidthStretch, 2.0f);
     ImGui::TableSetupColumn("Comment", ImGuiTableColumnFlags_WidthStretch, 1.6f);
     ImGui::TableSetupColumn("Saved", ImGuiTableColumnFlags_WidthStretch, 1.3f);
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 150);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, UIS(150));
     ImGui::TableHeadersRow();
     for (int i = 0; i < nlist; i++) {
         const SaveInfo &s = list[i];

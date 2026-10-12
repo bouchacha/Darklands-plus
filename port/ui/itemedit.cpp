@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/hle.h"
@@ -42,7 +43,7 @@ void itemedit_tab(void)
     if (lst.size() < 3) { ImGui::TextWrapped("%s", msg.c_str()); return; }
     ImGui::TextWrapped("Every item of the game. Change names, weight, quality, rarity and value here, then save the list "
                        "into a mod folder; it takes effect when the game is started again with that mod ticked.");
-    ImGui::SetNextItemWidth(220); ImGui::InputTextWithHint("##flt", "find an item", filter, sizeof filter);
+    ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##flt", "find an item", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < nitems(); i++) if (memcmp(rec(i), &orig[3 + (size_t)i * 46], 46)) changed++;
     ImGui::SameLine(); ImGui::TextDisabled("%d changed", changed);
     if (ImGui::BeginTable("items", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit,
@@ -69,23 +70,23 @@ void itemedit_tab(void)
             ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1);
             if (ImGui::InputText("##n", nb, sizeof nb)) { memset(r, 0, 20); memcpy(r, nb, strlen(nb)); }
             char sb[11]; memcpy(sb, r + 20, 10); sb[10] = 0;
-            ImGui::TableNextColumn(); ImGui::SetNextItemWidth(110);
+            ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(110));
             if (ImGui::InputText("##s", sb, sizeof sb)) { memset(r + 20, 0, 10); memcpy(r + 20, sb, strlen(sb)); }
             ImGui::TableNextColumn();
             const ItemDef *d = i < (int)gamedata.items.size() ? &gamedata.items[i] : nullptr;
             ImGui::TextDisabled("%s", d ? kind_name(d->kind) : "");
             int v;
-            v = r[37]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(70); if (ImGui::InputInt("##w", &v, 0)) r[37] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
-            v = r[38]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(70); if (ImGui::InputInt("##q", &v, 0)) r[38] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
-            v = r[39]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(70); if (ImGui::InputInt("##r", &v, 0)) r[39] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
-            v = r[44] | r[45] << 8; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(90);
+            v = r[37]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(70)); if (ImGui::InputInt("##w", &v, 0)) r[37] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
+            v = r[38]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(70)); if (ImGui::InputInt("##q", &v, 0)) r[38] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
+            v = r[39]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(70)); if (ImGui::InputInt("##r", &v, 0)) r[39] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
+            v = r[44] | r[45] << 8; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(90));
             if (ImGui::InputInt("##v", &v, 0)) { if (v < 0) v = 0; if (v > 65535) v = 65535; r[44] = (unsigned char)v; r[45] = (unsigned char)(v >> 8); }
             ImGui::PopID();
         }
         ImGui::EndTable();
     }
     static char modname[64] = "My items";
-    ImGui::SetNextItemWidth(220); ImGui::InputText("##itemmod", modname, sizeof modname); ImGui::SameLine();
+    ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##itemmod", modname, sizeof modname); ImGui::SameLine();
     if (ImGui::Button("Save the list into this mod folder") && modname[0]) {
         char w[1300]; int r = datamods_new(modname, w, sizeof w);
         std::string p = std::string(w) + "/DARKLAND.LST";

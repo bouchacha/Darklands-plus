@@ -16,6 +16,7 @@
 #include <float.h>
 #include <string>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -110,7 +111,7 @@ extern "C" void levelmap_draw(void)
             if (px < minx) minx = px; if (px > maxx) maxx = px; if (py < miny) miny = py; if (py > maxy) maxy = py;
         }
     }
-    float top = 54, bottom = 40;
+    float top = UIS(54), bottom = UIS(40);
     if (!any) { minx = 0; maxx = 40; miny = 0; maxy = 20; }
     float s = fminf((sz.x - 80) / (maxx - minx + 2), (sz.y - top - bottom) / (maxy - miny + 2));
     if (s > 60) s = 60;
@@ -184,7 +185,7 @@ extern "C" void levelmap_draw(void)
             char lab[24];
             if (to >= 0 && to < NFLOORS && to != fl) snprintf(lab, sizeof lab, "to floor %d", to + 1); else snprintf(lab, sizeof lab, "way out");
             ImVec2 m = P((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f);
-            ImVec2 ts = (ui_font_small ? ui_font_small : ImGui::GetFont())->CalcTextSizeA(17, FLT_MAX, 0, lab);
+            ImVec2 ts = (ui_font_small ? ui_font_small : ImGui::GetFont())->CalcTextSizeA(UIS(17), FLT_MAX, 0, lab);
             ImVec2 l0(m.x - ts.x * 0.5f - 3, m.y - s * 0.5f - ts.y - 2), l1(m.x + ts.x * 0.5f + 3, m.y - s * 0.5f);
             for (int tries = 0; tries < 6; tries++) {          /* up and down stairs share a spot: labels above each other */
                 bool clash = false;
@@ -195,7 +196,7 @@ extern "C" void levelmap_draw(void)
             }
             if (nlabels < 8) { labels[nlabels][0] = l0.x; labels[nlabels][1] = l0.y; labels[nlabels][2] = l1.x; labels[nlabels][3] = l1.y; nlabels++; }
             dl->AddRectFilled(l0, l1, IM_COL32(20, 16, 12, 200), 3);
-            dl->AddText(ui_font_small ? ui_font_small : ImGui::GetFont(), 17, ImVec2(l0.x + 3, l0.y + 1), IM_COL32(250, 236, 190, 255), lab);
+            dl->AddText(ui_font_small ? ui_font_small : ImGui::GetFont(), UIS(17), ImVec2(l0.x + 3, l0.y + 1), IM_COL32(250, 236, 190, 255), lab);
         }
     }
     /* the party, and the enemies the party can see now */
@@ -222,12 +223,12 @@ extern "C" void levelmap_draw(void)
     /* title and legend */
     char t[160];
     snprintf(t, sizeof t, all ? "The whole level  (floor %d)" : "The level, as far as the party has seen it  (floor %d)", fl + 1);
-    dl->AddText(f, 22, ImVec2(o.x + 16, o.y + 14), IM_COL32(230, 214, 180, 255), t);
-    float lx = o.x + 16, ly = o.y + sz.y - 30;
+    dl->AddText(f, UIS(22), ImVec2(o.x + 16, o.y + 14), IM_COL32(230, 214, 180, 255), t);
+    float lx = o.x + 16, ly = o.y + sz.y - UIS(30);
     auto legend = [&](ImU32 c, const char *txt, bool circle) {
-        if (circle) dl->AddCircleFilled(ImVec2(lx + 7, ly + 9), 7, c); else dl->AddRectFilled(ImVec2(lx, ly + 3), ImVec2(lx + 16, ly + 15), c);
-        dl->AddText(f, 18, ImVec2(lx + 22, ly), IM_COL32(220, 205, 170, 255), txt);
-        lx += 30 + f->CalcTextSizeA(18, FLT_MAX, 0, txt).x;
+        if (circle) dl->AddCircleFilled(ImVec2(lx + UIS(7), ly + UIS(9)), UIS(7), c); else dl->AddRectFilled(ImVec2(lx, ly + UIS(3)), ImVec2(lx + UIS(16), ly + UIS(15)), c);
+        dl->AddText(f, UIS(18), ImVec2(lx + UIS(22), ly), IM_COL32(220, 205, 170, 255), txt);
+        lx += UIS(30) + f->CalcTextSizeA(UIS(18), FLT_MAX, 0, txt).x;
     };
     legend(IM_COL32(70, 150, 230, 255), "party", true);
     legend(IM_COL32(210, 60, 50, 255), "enemies in sight", true);
@@ -236,6 +237,6 @@ extern "C" void levelmap_draw(void)
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
     if (all) legend(HIDDEN, "not yet open", false);
-    dl->AddText(f, 18, ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), "Tab or Esc closes this. The game waits meanwhile.");
+    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), "Tab or Esc closes this. The game waits meanwhile.");
     ImGui::End();
 }

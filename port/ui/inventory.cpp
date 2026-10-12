@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/game.h"
@@ -428,7 +429,7 @@ static void member_cards(void)
         int load = g_rb((u16)(r0 + G_M_LOAD)), cap = (s8)g_rb((u16)(r0 + G_M_ATTR_CUR)) + (s8)g_rb((u16)(r0 + G_M_ATTR_CUR + 1));
         char label[96]; snprintf(label, sizeof label, "%s\n%d items  load %d/%d", member_name(m, false).c_str(), n, load, cap);
         ImGui::PushStyleColor(ImGuiCol_Text, sel ? ImVec4(1, 0.95f, 0.85f, 1) : ImGui::GetStyle().Colors[ImGuiCol_Text]);
-        if (ImGui::Button(label, ImVec2(w, 58))) sel_member = m;
+        if (ImGui::Button(label, ImVec2(w, UIS(58)))) sel_member = m;
         ImGui::PopStyleColor(2);
         if (ImGui::BeginDragDropTarget()) {
             if (const ImGuiPayload *p = ImGui::AcceptDragDropPayload("DL_ITEM")) {
@@ -490,7 +491,7 @@ void ui_item_details(const ItemDef *d, int id)
     if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
-        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(320); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
+        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(UIS(320)); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
     }
 }
 
@@ -522,7 +523,7 @@ extern "C" void tab_inventory(void)
     if (ImGui::RadioButton("Everything", kind_filter < 0)) kind_filter = -1;
     for (int k = 0; k <= K_OTHER; k++) if (present[k]) { ImGui::SameLine(); if (ImGui::RadioButton(kind_name((ItemKind)k), kind_filter == k)) kind_filter = k; }
     ImGui::BeginChild("grid", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), ImGuiChildFlags_Border);
-    const float tile = 104, pad = 8;
+    const float tile = UIS(104), pad = UIS(8);
     int cols = (int)((ImGui::GetContentRegionAvail().x + pad) / (tile + pad)); if (cols < 1) cols = 1;
     int col_i = 0;
     ImDrawList *dl = ImGui::GetWindowDrawList();
@@ -538,7 +539,7 @@ extern "C" void tab_inventory(void)
         dl->AddRectFilled(p, ImVec2(p.x + tile, p.y + tile), bg, 6);
         if (it.equipped) dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(p.x + tile - 3, p.y + tile - 3), col(0.72f, 0.55f, 0.18f), 4, 0, 2.0f);
         dl->AddRect(p, ImVec2(p.x + tile, p.y + tile), hov ? col(0.55f, 0.24f, 0.13f) : col(0.55f, 0.42f, 0.25f), 6, 0, hov ? 2.5f : 1.0f);
-        draw_icon(dl, ImVec2(p.x + tile / 2, p.y + 40), 46, d, it.id);
+        draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id);
         const char *nm = d ? (ImGui::CalcTextSize(d->name.c_str()).x * 0.8f < tile - 6 ? d->name.c_str() : d->shortname.c_str()) : "?";
         ImGui::PushFont(ui_font_small);
         ImVec2 ts = ImGui::CalcTextSize(nm);
@@ -576,8 +577,8 @@ extern "C" void tab_inventory(void)
             DragItem di = { sel_member, it.idx };
             ImGui::SetDragDropPayload("DL_ITEM", &di, sizeof di);
             ImVec2 cp = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(52, 52));
-            draw_icon(ImGui::GetWindowDrawList(), ImVec2(cp.x + 26, cp.y + 26), 44, d, it.id);
+            ImGui::Dummy(ImVec2(UIS(52), UIS(52)));
+            draw_icon(ImGui::GetWindowDrawList(), ImVec2(cp.x + UIS(26), cp.y + UIS(26)), UIS(44), d, it.id);
             ImGui::Text("%s", d ? d->name.c_str() : "?");
             ImGui::EndDragDropSource();
         }
@@ -634,14 +635,14 @@ extern "C" void tab_alchemy(void)
         if (shown % 8) ImGui::SameLine();
         ImGui::PushID(id);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        ImGui::InvisibleButton("ing", ImVec2(88, 92));
-        dl->AddRectFilled(p, ImVec2(p.x + 88, p.y + 92), n ? col(0.96f, 0.92f, 0.82f) : col(0.88f, 0.83f, 0.72f, 0.6f), 6);
-        dl->AddRect(p, ImVec2(p.x + 88, p.y + 92), col(0.55f, 0.42f, 0.25f), 6);
-        draw_icon(dl, ImVec2(p.x + 44, p.y + 34), 40, d, id);
+        ImGui::InvisibleButton("ing", ImVec2(UIS(88), UIS(92)));
+        dl->AddRectFilled(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), n ? col(0.96f, 0.92f, 0.82f) : col(0.88f, 0.83f, 0.72f, 0.6f), 6);
+        dl->AddRect(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), col(0.55f, 0.42f, 0.25f), 6);
+        draw_icon(dl, ImVec2(p.x + UIS(44), p.y + UIS(34)), UIS(40), d, id);
         ImGui::PushFont(ui_font_small);
         const char *sn = d ? d->shortname.c_str() : "?";
         ImVec2 ts = ImGui::CalcTextSize(sn);
-        dl->AddText(ImVec2(p.x + (88 - ts.x) / 2, p.y + 92 - ts.y - 3), n ? col(0.2f, 0.12f, 0.06f) : col(0.5f, 0.42f, 0.32f), sn);
+        dl->AddText(ImVec2(p.x + (UIS(88) - ts.x) / 2, p.y + UIS(92) - ts.y - 3), n ? col(0.2f, 0.12f, 0.06f) : col(0.5f, 0.42f, 0.32f), sn);
         char c[12]; snprintf(c, sizeof c, "%d", n);
         dl->AddText(ImVec2(p.x + 5, p.y + 3), n ? col(0.55f, 0.24f, 0.13f) : col(0.6f, 0.5f, 0.4f), c);
         ImGui::PopFont();
@@ -659,10 +660,10 @@ extern "C" void tab_alchemy(void)
     ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
     ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
     if (ImGui::BeginTable("forms", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
-        ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthFixed, 300);
-        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthFixed, 110);
+        ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthFixed, UIS(300));
+        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthFixed, UIS(110));
         ImGui::TableSetupColumn("Ingredients", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, 70);
+        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, UIS(70));
         ImGui::TableHeadersRow();
         int listed = 0;
         for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
@@ -675,11 +676,11 @@ extern "C" void tab_alchemy(void)
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(28, 28));
-            draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + 14, p.y + 14), 26, pd, 95 + f / 3);
+            ImGui::Dummy(ImVec2(UIS(28), UIS(28)));
+            draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3);
             ImGui::SameLine();
             { std::string vn = virtue_name(f); ImGui::TextWrapped("%s", vn.empty() ? (pd ? pd->name.c_str() : "?") : vn.c_str()); }
-            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(360); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::Text("Mystical number %d", F.mystic); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::Text("Mystical number %d", F.mystic); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
             if (all_formulas && f < (int)gamedata.formula_names.size()) {
                 static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
                 ImGui::TextDisabled("%s - difficulty %d, %s", gamedata.formula_names[f].c_str(), F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
@@ -694,9 +695,9 @@ extern "C" void tab_alchemy(void)
                 float need = 24 + ImGui::CalcTextSize(lab).x + 10;
                 if (k) { ImGui::SameLine(); if (ImGui::GetContentRegionAvail().x < need) ImGui::NewLine(); }
                 ImVec2 q = ImGui::GetCursorScreenPos();
-                ImGui::Dummy(ImVec2(22, 22));
-                draw_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + 11, q.y + 11), 20, d, F.ingr[k].item);
-                ImGui::SameLine(0, 2);
+                ImGui::Dummy(ImVec2(UIS(22), UIS(22)));
+                draw_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + UIS(11), q.y + UIS(11)), UIS(20), d, F.ingr[k].item);
+                ImGui::SameLine(0, UIS(2));
                 ImGui::TextColored(have >= F.ingr[k].count ? ImVec4(0.2f, 0.12f, 0.06f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%s", lab);
                 if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s: the party has %d", d ? d->name.c_str() : "?", have);
                 int b = F.ingr[k].count ? have / F.ingr[k].count : 999;

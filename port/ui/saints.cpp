@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -99,7 +100,7 @@ extern "C" void tab_saints(void)
     static char find[64];
     static int known_only = 0;
     ImGui::TextWrapped("What each saint can do, and who in the party knows them. Find saints by what they help with.");
-    ImGui::SetNextItemWidth(300);
+    ImGui::SetNextItemWidth(UIS(300));
     ImGui::InputTextWithHint("##sfind", "Strength, fire, heal, travel, Virtue ...", find, sizeof find);
     static const char *QUICK[] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma",
                                    "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile", "Alchemy", "Religion",
@@ -137,7 +138,7 @@ extern "C" void tab_saints(void)
         ImGui::PushID(s);
         bool open = ImGui::CollapsingHeader(t.name.c_str(), f.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen);
         if (nk) { ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.55f); ImGui::TextDisabled("known by %s", who.c_str()); }
-        if (open) { ImGui::Indent(20); ImGui::TextWrapped("%s", t.text.c_str()); ImGui::Unindent(20); ImGui::Spacing(); }
+        if (open) { ImGui::Indent(UIS(20)); ImGui::TextWrapped("%s", t.text.c_str()); ImGui::Unindent(UIS(20)); ImGui::Spacing(); }
         ImGui::PopID();
     }
     if (!shown) ImGui::TextDisabled("No saint matches.");

@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -196,12 +197,12 @@ extern "C" void journal_quests(void)
             ImGui::PushID(&l);
             ImGui::Bullet(); ImGui::TextWrapped("%s", l.text.c_str());
             if (l.loc >= 0 && travel_enabled && game_mode() == GM_MAP) {
-                ImGui::Indent(30);
+                ImGui::Indent(UIS(30));
                 if (ImGui::SmallButton("Travel there") && travel_to_loc(l.loc, loc_name(l.loc).c_str())) ui_toggle();
-                ImGui::Unindent(30);
+                ImGui::Unindent(UIS(30));
             }
             ImGui::PopID();
-            if (!l.when.empty()) { ImGui::Indent(30); ImGui::TextDisabled("%s", l.when.c_str()); ImGui::Unindent(30); }
+            if (!l.when.empty()) { ImGui::Indent(UIS(30)); ImGui::TextDisabled("%s", l.when.c_str()); ImGui::Unindent(UIS(30)); }
             any = true;
         }
     }

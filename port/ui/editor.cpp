@@ -13,6 +13,7 @@
 #include <string.h>
 #include <string>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -32,14 +33,14 @@ static u16 rec(int m) { return (u16)(0x9c55 + 0x80 * m); }
 static void byte_slider(const char *label, u16 seg, u16 off, int lo, int hi)
 {
     int v = rb(seg, off);
-    ImGui::SetNextItemWidth(160);
+    ImGui::SetNextItemWidth(UIS(160));
     if (ImGui::SliderInt(label, &v, lo, hi)) wb(seg, off, (u8)v);
 }
 
 static void name_edit(const char *label, u16 off, int n)
 {
     char b[32]; g_str(G_DGROUP, off, b, n);
-    ImGui::SetNextItemWidth(220);
+    ImGui::SetNextItemWidth(UIS(220));
     if (ImGui::InputText(label, b, (size_t)n)) for (int i = 0; i < n; i++) g_wb((u16)(off + i), (u8)(i < (int)strlen(b) ? b[i] : 0));
 }
 
@@ -49,13 +50,13 @@ extern "C" void tab_editor(void)
     ImGui::TextColored(ImVec4(0.55f, 0.2f, 0.1f, 1), "Changes the running game at once. Save afterwards to keep them.");
     {
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4);
-        ImGui::SetNextItemWidth(110); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
-        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("groschen", &g)) g_ww(G_MONEY + 2, (u16)(g < 0 ? 0 : g));
-        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("pfennigs", &p)) g_ww(G_MONEY + 4, (u16)(p < 0 ? 0 : p));
+        ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("groschen", &g)) g_ww(G_MONEY + 2, (u16)(g < 0 ? 0 : g));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("pfennigs", &p)) g_ww(G_MONEY + 4, (u16)(p < 0 ? 0 : p));
         int bn = (s16)g_rw(0x9072), fame = (s16)g_rw(0x9082), ps = (s16)g_rw(0x9078);
-        ImGui::SetNextItemWidth(110); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(0x9072, (u16)(bn < 0 ? 0 : bn));
-        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("fame", &fame)) g_ww(0x9082, (u16)fame);
-        ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(0x9078, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
+        ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(0x9072, (u16)(bn < 0 ? 0 : bn));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("fame", &fame)) g_ww(0x9082, (u16)fame);
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(0x9078, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
         int loc = (s16)g_rw(G_CUR_LOC);
         u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
         if (lr) {
@@ -63,7 +64,7 @@ extern "C" void tab_editor(void)
             char ln[24]; g_str(ls, (u16)(lo + 0x26), ln, sizeof ln);
             int rep = (s16)rw(ls, (u16)(lo + 0x12));
             std::string lab = "reputation in " + game_text(ln, sizeof ln);
-            ImGui::SetNextItemWidth(110); if (ImGui::InputInt(lab.c_str(), &rep)) ww(ls, (u16)(lo + 0x12), (u16)rep);
+            ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt(lab.c_str(), &rep)) ww(ls, (u16)(lo + 0x12), (u16)rep);
         }
     }
     int size = (s16)g_rw(G_PARTY_SIZE);
@@ -79,13 +80,13 @@ extern "C" void tab_editor(void)
             name_edit("full name", (u16)(r + 0x25), 25);
             name_edit("nickname", (u16)(r + 0x3e), 11);
             int age = (s16)g_rw((u16)(r + 0x12));
-            ImGui::SetNextItemWidth(110); if (ImGui::InputInt("age", &age)) g_ww((u16)(r + 0x12), (u16)age);
+            ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("age", &age)) g_ww((u16)(r + 0x12), (u16)age);
             int sh = g_rb((u16)(r + 0x15)) - 'A';
-            ImGui::SetNextItemWidth(110);
+            ImGui::SetNextItemWidth(UIS(110));
             if (ImGui::SliderInt("shield (A..O)", &sh, 0, 14, "")) g_wb((u16)(r + 0x15), (u8)('A' + sh));
             ImGui::SameLine(); ImGui::Text("%c", 'A' + sh);
             char fig[4]; g_str(G_DGROUP, (u16)(0xa668 + 4 * m), fig, sizeof fig);
-            ImGui::SetNextItemWidth(110);
+            ImGui::SetNextItemWidth(UIS(110));
             if (ImGui::BeginCombo("figure", fig)) {
                 for (const char *f : FIGURES) if (ImGui::Selectable(f, !strcmp(f, fig))) for (int i = 0; i < 4; i++) g_wb((u16)(0xa668 + 4 * m + i), (u8)(i < 3 ? f[i] : 0));
                 ImGui::EndCombo();
@@ -131,7 +132,7 @@ extern "C" void tab_editor(void)
                 for (int q = 0; q < 3; q++) {
                     u8 bit = (u8)(1 << q);
                     bool k = (rb(G_FAR2E38, o) & bit) != 0;
-                    ImGui::SameLine(260 + 70.0f * q);
+                    ImGui::SameLine(UIS(260 + 70.0f * q));
                     char lb[16]; snprintf(lb, sizeof lb, "%d##%d", q + 1, q);
                     if (ImGui::Checkbox(lb, &k)) wb(G_FAR2E38, o, (u8)(k ? rb(G_FAR2E38, o) | bit : rb(G_FAR2E38, o) & ~bit));
                 }
@@ -146,8 +147,8 @@ extern "C" void tab_editor(void)
                 std::string nm = code < (int)gamedata.items.size() ? game_text(gamedata.items[code].name.c_str(), 64) : "#" + std::to_string(code);
                 ImGui::PushID(600 + i);
                 int q = rb(G_FAR2E38, (u16)(o + 3)), c = rb(G_FAR2E38, (u16)(o + 4));
-                ImGui::SetNextItemWidth(130); if (ImGui::SliderInt("##q", &q, 1, 99, "quality %d")) wb(G_FAR2E38, (u16)(o + 3), (u8)q);
-                ImGui::SameLine(); ImGui::SetNextItemWidth(110); if (ImGui::InputInt("##n", &c)) wb(G_FAR2E38, (u16)(o + 4), (u8)(c < 1 ? 1 : c > 99 ? 99 : c));
+                ImGui::SetNextItemWidth(UIS(130)); if (ImGui::SliderInt("##q", &q, 1, 99, "quality %d")) wb(G_FAR2E38, (u16)(o + 3), (u8)q);
+                ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("##n", &c)) wb(G_FAR2E38, (u16)(o + 4), (u8)(c < 1 ? 1 : c > 99 ? 99 : c));
                 ImGui::SameLine(); ImGui::TextUnformatted(nm.c_str());
                 ImGui::PopID();
             }

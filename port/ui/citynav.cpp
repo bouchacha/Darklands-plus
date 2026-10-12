@@ -18,6 +18,7 @@
 #include <vector>
 #include <map>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 int datamods_generation(void);
@@ -301,7 +302,7 @@ extern "C" int citynav_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 90));
-    float w = fminf(io.DisplaySize.x * 0.94f, 1000), maxh = io.DisplaySize.y * 0.94f;
+    float w = fminf(io.DisplaySize.x * 0.94f, UIS(1000)), maxh = io.DisplaySize.y * 0.94f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, maxh));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     bool keep = true;

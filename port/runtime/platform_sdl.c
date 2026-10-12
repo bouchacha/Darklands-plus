@@ -689,6 +689,11 @@ void plat_init(int scale)
 {
     headless = getenv("DL_HEADLESS") != 0;
     if (headless) SDL_setenv("SDL_VIDEODRIVER", "dummy", 1);
+#ifdef _WIN32
+    /* the window in the screen's own pixels, so Windows' 125 % / 150 % scaling does not stretch
+       (and blur) the picture and the crisp text; the menus grow by that scale instead (ui.cpp) */
+    if (config_get_int("display.dpi_aware", 1)) SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
+#endif
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
         exit(1);
@@ -698,7 +703,11 @@ void plat_init(int scale)
     if (!headless) {
         int wp = getenv("DL_SCRIPT") ? 0 : SDL_WINDOWPOS_CENTERED;   /* scripted tests: a known window position */
         /* the window as it was left: size and full screen (display.window_w/h, display.fullscreen) */
-        int ww = config_get_int("display.window_w", 960), wh = config_get_int("display.window_h", 720);
+        int ww = config_get_int("display.window_w", 0), wh = config_get_int("display.window_h", 0);
+        if (ww <= 0 || wh <= 0) {   /* the first start: 4:3, four fifths of the screen's height */
+            SDL_DisplayMode dm; ww = 960; wh = 720;
+            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && SDL_GetDesktopDisplayMode(0, &dm) == 0 && dm.h >= 600) {   /* (tests: 960 x 720) */ wh = dm.h * 4 / 5; ww = wh * 4 / 3; if (ww > dm.w * 9 / 10) { ww = dm.w * 9 / 10; wh = ww * 3 / 4; } }
+        }
         if (ww < 320 || ww > 16384) ww = 960; if (wh < 200 || wh > 16384) wh = 720;
         win = SDL_CreateWindow("Darklands", wp, wp, ww, wh,
                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (config_get_int("display.fullscreen", 0) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));

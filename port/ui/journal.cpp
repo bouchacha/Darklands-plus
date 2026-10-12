@@ -17,6 +17,7 @@
 #include <map>
 #include <algorithm>
 #include "imgui.h"
+#include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -329,8 +330,8 @@ static void item_row(const SeenItem &i, const char *where = nullptr)
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImVec2 p = ImGui::GetCursorScreenPos();
-    ImGui::Dummy(ImVec2(24, 24));
-    ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + 12, p.y + 12), 22, i.id);
+    ImGui::Dummy(ImVec2(UIS(24), UIS(24)));
+    ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(12), p.y + UIS(12)), UIS(22), i.id);
     ImGui::SameLine();
     ImGui::TextUnformatted(item_name(i.id).c_str());
     ImGui::TableNextColumn(); ImGui::Text("%d", i.q);
@@ -366,8 +367,8 @@ static void town_page(int loc)
         if (ImGui::CollapsingHeader(hd, ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, 80);
-                ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, 140);
+                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(80));
+                ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(140));
                 ImGui::TableHeadersRow();
                 for (const SeenItem &i : s.items) item_row(i);
                 ImGui::EndTable();
@@ -381,7 +382,7 @@ struct Hit { SeenItem it; int loc; std::string shop, date; };
 
 static void find_page(void)
 {
-    ImGui::SetNextItemWidth(320);
+    ImGui::SetNextItemWidth(UIS(320));
     ImGui::InputTextWithHint("##find", "item name, e.g. plate or brimstone", find_buf, sizeof find_buf);
     std::string q = find_buf;
     std::transform(q.begin(), q.end(), q.begin(), ::tolower);
@@ -399,8 +400,8 @@ static void find_page(void)
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_DefaultSort, 80);
-        ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, 140);
-        ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthFixed, 300);
+        ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(140));
+        ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthFixed, UIS(300));
         ImGui::TableHeadersRow();
         ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs();
         int col = 1; bool desc = true;
@@ -425,15 +426,15 @@ static void ingredients_page(void)
     ImGui::TextWrapped("Where each alchemical ingredient is sold, in the towns the party has visited (bought ingredients are always quality 25).");
     if (ImGui::BeginTable("ingr", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
-        ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, 230);
+        ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
         ImGui::TableSetupColumn("Sold at", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
         for (int id = 72; id <= 94; id++) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(26, 26));
-            ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + 13, p.y + 13), 24, id);
+            ImGui::Dummy(ImVec2(UIS(26), UIS(26)));
+            ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(13), p.y + UIS(13)), UIS(24), id);
             ImGui::SameLine(); ImGui::TextUnformatted(item_name(id).c_str());
             ImGui::TableNextColumn();
             std::string where;
@@ -464,7 +465,7 @@ extern "C" void tab_journal(void)
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Towns", nullptr, want == 0 ? ImGuiTabItemFlags_SetSelected : 0)) {
-            ImGui::BeginChild("list", ImVec2(250, 0), ImGuiChildFlags_Border);
+            ImGui::BeginChild("list", ImVec2(UIS(250), 0), ImGuiChildFlags_Border);
             town_list();
             ImGui::EndChild();
             ImGui::SameLine();
