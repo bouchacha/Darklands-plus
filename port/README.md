@@ -10,8 +10,9 @@ time.
 * **Static recompilation** (`recomp/recomp16.py`): every function the analysis found
   (`build/analysis/analysis.pickle`, see `docs/REBUILD.md`) becomes a C function working on an
   emulated 16-bit machine state (registers, flags, 1 MB of memory plus EMS). Overlays (RTLink)
-  are loaded into memory as the game asks for them; the generated code checks which overlay is
-  in place. The graphics, sound and misc drivers are recompiled too (`recomp/recomp_drv.py`).
+  are loaded into memory as the game asks for them, and what a call displaced is loaded again
+  when it returns, as RTLink's reload stack does (`runtime/ovl.c`); functions reached through
+  far pointers are looked up in the sections present. The graphics, sound and misc drivers are recompiled too (`recomp/recomp_drv.py`).
   Code that modifies itself (the PIC decoder) or was not found statically runs in a small
   interpreter (`runtime/interp.c`).
 * **DOS and BIOS** are emulated at the interrupt level (`runtime/dos.c`, `bios.c`, `ems.c`):
