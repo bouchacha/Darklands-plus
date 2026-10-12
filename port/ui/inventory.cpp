@@ -7,6 +7,8 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include <array>
+#include <algorithm>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -536,6 +538,31 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::EndTooltip();
 }
 
+/* tidy a pack: the item rows sorted by kind, then name, then the best first. The game finds what
+ * a member has in hand and wears by type and quality, not by row, so the order is free (as long
+ * as no screen of the game shows the rows: why_locked) */
+static int kind_rank(const ItemDef *d)
+{
+    static const int R[K_OTHER + 1] = { 0, 1, 2, 3, 6, 7, 8, 5, 4, 9, 10, 11, 12, 13 };
+    return d ? R[d->kind] : 13;
+}
+static void sort_pack(int m)
+{
+    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); if (n > 64) n = 64;
+    std::vector<std::array<u8, 6>> rows((size_t)n);
+    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) rows[(size_t)i][(size_t)k] = rb(G_FAR2E38, (u16)(G_ITEM(m, i) + k));
+    std::stable_sort(rows.begin(), rows.end(), [](const std::array<u8, 6> &a, const std::array<u8, 6> &b) {
+        int ia = (a[0] | a[1] << 8) & 0xfff, ib = (b[0] | b[1] << 8) & 0xfff;
+        const ItemDef *da = def_of(ia), *db = def_of(ib);
+        int ka = kind_rank(da), kb = kind_rank(db);
+        if (ka != kb) return ka < kb;
+        std::string na = da ? da->name : "", nb = db ? db->name : "";
+        if (na != nb) return na < nb;
+        return a[3] > b[3];
+    });
+    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) wb(G_FAR2E38, (u16)(G_ITEM(m, i) + k), rows[(size_t)i][(size_t)k]);
+}
+
 extern "C" void tab_inventory(void)
 {
     if (!gamedata.loaded) { ImGui::Text("The item list (DARKLAND.LST) could not be read."); return; }
@@ -547,6 +574,17 @@ extern "C" void tab_inventory(void)
     for (auto &it : items) { const ItemDef *d = def_of(it.id); present[d ? d->kind : K_OTHER] = true; }
     if (ImGui::RadioButton("Everything", kind_filter < 0)) kind_filter = -1;
     for (int k = 0; k <= K_OTHER; k++) if (present[k]) { ImGui::SameLine(); if (ImGui::RadioButton(kind_name((ItemKind)k), kind_filter == k)) kind_filter = k; }
+    int sort_now = -1;
+    {   /* tidy the pack(s), at the right of the row */
+        float w = ImGui::CalcTextSize("Tidy the pack").x + ImGui::CalcTextSize("Everyone's").x + UIS(40);
+        ImGui::SameLine(ImGui::GetContentRegionMax().x - w);
+        ImGui::BeginDisabled(why_locked() != nullptr);
+        if (ImGui::SmallButton("Tidy the pack")) sort_now = sel_member;
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort the items by kind (weapons, armour, shields, potions, ingredients ...), then name, the best first.");
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Everyone's")) sort_now = 99;
+        ImGui::EndDisabled();
+    }
     ImGui::BeginChild("grid", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), ImGuiChildFlags_Border);
     const float tile = UIS(104), pad = UIS(8);
     int cols = (int)((ImGui::GetContentRegionAvail().x + pad) / (tile + pad)); if (cols < 1) cols = 1;
@@ -612,6 +650,10 @@ extern "C" void tab_inventory(void)
     }
     if (items.empty()) ImGui::TextDisabled("Carries nothing.");
     ImGui::EndChild();
+    if (sort_now >= 0 && !why_locked()) {
+        for (int m = 0; m < MAXM; m++) if ((sort_now == 99 || m == sort_now) && member_present(m)) sort_pack(m);
+        last_msg = sort_now == 99 ? "Everyone's pack is in order." : member_name(sort_now, false) + "'s pack is in order.";
+    }
     static std::string shown; static double shown_t;
     if (last_msg != shown) { shown = last_msg; shown_t = ImGui::GetTime(); }
     else if (!last_msg.empty() && ImGui::GetTime() - shown_t > 8) last_msg.clear();
