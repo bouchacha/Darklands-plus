@@ -181,7 +181,10 @@ static void MT32EMU_C_CALL rh_debug(void *d, const char *fmt, va_list l) { (void
 static void MT32EMU_C_CALL rh_lcd(void *d, const char *m)
 {
     (void)d; static char last[64];
-    if (strncmp(last, m, sizeof last - 1)) { snprintf(last, sizeof last, "%s", m); fprintf(stderr, "mt32 display: %s\n", m); }
+    if (strncmp(last, m, sizeof last - 1)) {
+        snprintf(last, sizeof last, "%s", m); fprintf(stderr, "mt32 display: %s\n", m);
+        void ui_mt32_lcd(const char *text); ui_mt32_lcd(m);
+    }
 }
 static const mt32emu_report_handler_i_v0 RH = { rh_version, rh_debug, NULL, NULL, rh_lcd };
 
@@ -216,7 +219,10 @@ int mt32_open(int rate)
     {   /* say so once, the first time it plays */
         void ui_notice(const char *msg);
         if (!config_get_int("sound.mt32_told", 0)) {
-            ui_notice("Music: the Roland MT-32, with the ROM files found on this computer (F12 > Display > Sound)");
+            const char *m = "The music plays on the Roland MT-32, with the ROM files found on this computer (F12 > Display > Sound)";
+            void ui_mt32_caption(const char *text);
+            if (config_get_int("sound.mt32_lcd", 1)) ui_mt32_caption(m);   /* under its display, which shows the game's greeting */
+            else ui_notice(m);
             config_set_int("sound.mt32_told", 1);
         }
     }

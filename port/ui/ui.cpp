@@ -714,6 +714,8 @@ static void tab_display(void)
             ImGui::SameLine(); if (ImGui::RadioButton("CM-32L / LAPC-I (the later model, with extra sound effects)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); dirty_config = 1; }
             ImGui::SameLine(); if (ImGui::RadioButton("MT-32", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); dirty_config = 1; }
         }
+        {   bool lcd = config_get_int("sound.mt32_lcd", 1);
+            if (ImGui::Checkbox("Show the synthesizer's display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); dirty_config = 1; } }
         if (ImGui::TreeNode("About the MT-32")) {
             ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own "
                                "instruments into the synthesizer and plays the music and the battle sounds with them. Munt's "

@@ -729,6 +729,7 @@ static void draw_picture_name(void)
     dl->AddText(p, IM_COL32(255, 230, 160, 255), t);
 }
 
+static void draw_lcd(void);
 /* short notices ("Game saved"), bottom centre, for a few seconds */
 static char notice[160]; static u32 notice_t;
 static u32 notice_ms = 3000;
@@ -746,6 +747,7 @@ extern "C" void ui_notice(const char *msg)
 }
 extern "C" void ui_draw_notice(void)
 {
+    draw_lcd();
     if (!notice[0]) return;
     u32 age = plat_ticks_ms() - notice_t;
     if (age > notice_ms) { notice[0] = 0; return; }
@@ -759,6 +761,54 @@ extern "C" void ui_draw_notice(void)
     dl->AddRect(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(190, 150, 90, (int)(255 * a)), 6, 0, 1.5f);
     dl->AddText(p, IM_COL32(250, 232, 190, (int)(255 * a)), notice);
     ImGui::PopFont();
+}
+
+/* the MT-32's display (mt32.c): what the game writes there ("[ MPS Darklands ]") shown for a
+ * few seconds in the top right corner, amber on black as on the synthesizer */
+static char lcd_next[24]; static volatile int lcd_new;
+static char lcd[24]; static u32 lcd_t;
+static char lcd_caption[120];                       /* a line under it, the first time */
+extern "C" void ui_mt32_caption(const char *text) { snprintf(lcd_caption, sizeof lcd_caption, "%s", text); }
+extern "C" void ui_mt32_lcd(const char *text)       /* from the synthesizer's thread */
+{
+    if (lcd_new) return;
+    snprintf(lcd_next, sizeof lcd_next, "%-20.20s", text);
+    lcd_new = 1;
+}
+static void draw_lcd(void)
+{
+    if (lcd_new) { memcpy(lcd, lcd_next, sizeof lcd); lcd_new = 0; lcd_t = plat_ticks_ms(); }
+    if (!lcd[0] || !config_get_int("sound.mt32_lcd", 1)) return;
+    u32 age = plat_ticks_ms() - lcd_t;
+    const u32 SHOW = 6000;
+    if (age > SHOW) { lcd[0] = 0; lcd_caption[0] = 0; return; }
+    float a = age < 300 ? age / 300.0f : age + 800 > SHOW ? (SHOW - age) / 800.0f : 1.0f;
+    ImGuiIO &io = ImGui::GetIO();
+    ImFont *f = ImGui::GetIO().Fonts->Fonts[0];
+    float fs = fmaxf(14.0f, io.DisplaySize.y / 40.0f);
+    float cw = fs * 0.62f;                                   /* a fixed pitch, as the display's cells */
+    float w = cw * 20 + fs, h = fs * 1.7f;
+    ImVec2 p0(io.DisplaySize.x - w - fs * 0.8f, fs * 0.8f), p1(p0.x + w, p0.y + h);
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    dl->AddRectFilled(ImVec2(p0.x - 4, p0.y - 4), ImVec2(p1.x + 4, p1.y + 4), IM_COL32(52, 48, 44, (int)(235 * a)), 5);   /* the panel */
+    dl->AddRectFilled(p0, p1, IM_COL32(18, 8, 4, (int)(245 * a)), 3);
+    for (int i = 0; i < 20; i++) {
+        char ch[2] = { lcd[i], 0 };
+        float x = p0.x + fs * 0.5f + cw * i;
+        dl->AddRectFilled(ImVec2(x + 1, p0.y + fs * 0.25f), ImVec2(x + cw - 1, p1.y - fs * 0.25f), IM_COL32(60, 22, 8, (int)(120 * a)), 1);   /* the dim cells */
+        if (ch[0] != ' ') {
+            ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, ch);
+            dl->AddText(f, fs, ImVec2(x + (cw - ts.x) * 0.5f, p0.y + (h - ts.y) * 0.5f), IM_COL32(255, 150, 40, (int)(255 * a)), ch);
+        }
+    }
+    if (lcd_caption[0]) {
+        ImGui::PushFont(ui_font_text);
+        ImVec2 ts = ImGui::CalcTextSize(lcd_caption);
+        ImVec2 q(p1.x - ts.x, p1.y + fs * 0.6f);
+        dl->AddRectFilled(ImVec2(q.x - 8, q.y - 4), ImVec2(p1.x + 4, q.y + ts.y + 4), IM_COL32(28, 20, 12, (int)(225 * a)), 4);
+        dl->AddText(q, IM_COL32(250, 232, 190, (int)(255 * a)), lcd_caption);
+        ImGui::PopFont();
+    }
 }
 
 /* the saints and items a card accepts (card_saints[4] DS:ee4b, card_items[4] DS:ee43, set by
