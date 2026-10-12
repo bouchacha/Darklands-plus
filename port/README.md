@@ -78,6 +78,8 @@ On the first start a short welcome names the keys that matter and offers the ori
   a map of the level in battles and dungeons (Tab).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
+* **Screenshots:** Ctrl+F12 saves the window as it is seen (crisp text, margins) as a PNG in the
+  screenshots folder.
 * **Fixes** for bugs of 483.07 (weapon potions, vanishing items, quests off the map, garish
   colours, Save/Load greyed out, robbers corrupting the item count - a crash when that
   character later dies in battle, ...), see the Helpers tab.
