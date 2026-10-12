@@ -603,6 +603,7 @@ extern "C" void hdtext_draw(void)
 /* the game's pointer again, over the crisp text and the helpers' marks (as over the picture) */
 extern "C" void hdtext_draw_cursor(void)
 {
+    if (config_get_int("original", 0)) return;              /* nothing of ours covers it then */
     int x, y, w, h, st;
     const unsigned *px = hdtext_cursor(&x, &y, &w, &h, &st);
     if (!px) return;
