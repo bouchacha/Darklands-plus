@@ -17,6 +17,11 @@ int bios_trace;
 
 volatile int poll_flag = 1;
 int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the last dl_poll() */
+int spin_polls;         /* the game asked for a click (int 33h, 5 and 6), a key (int 16h, 1) or the time (int 21h, 2Ah / 2Ch) */
+static u32 screen_changed;  /* when the picture or the palette last changed */
+static int spin_limit(void) { static int v = -1; if (v < 0) { const char *e = getenv("DL_SPIN_LIMIT"); v = e ? atoi(e) : 150; } return v; }
+int idle_rest = 1;      /* display.idle_rest: rest while the game only waits (Display tab) */
+static int getenv_spin_off(void) { static int v = -1; if (v < 0) v = getenv("DL_NO_SPIN_REST") != 0; return v || !idle_rest; }
 u8 vga_dac[768];
 int video_mode = 3;
 
@@ -295,6 +300,8 @@ void mouse_update(int x, int y, int buttons)
 
 static void int33(void)
 {
+    { static int tr = -1; static u32 lt, n[16]; if (tr < 0) tr = getenv("DL_TRACE_MPOLL") != 0;
+      if (tr) { if (AX < 16) n[AX]++; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { fprintf(stderr, "int33/s:"); for (int i = 0; i < 16; i++) if (n[i]) fprintf(stderr, " fn%d %u", i, n[i]); fprintf(stderr, "\n"); memset(n, 0, sizeof n); lt = t; } } }
     switch (AX) {
     case 0x00: AX = 0xffff; BX = 2; ms_shown = 0; ms_hmask = 0; break;
     case 0x01: ms_shown++; break;
@@ -304,8 +311,8 @@ static void int33(void)
         ms_x = CX; ms_y = DX;
         { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows */
         break;
-    case 0x05: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
-    case 0x06: { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
+    case 0x05: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
+    case 0x06: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
     case 0x07: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: x range %d..%d\n", (s16)CX, (s16)DX); }
         ms_minx = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxx = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
     case 0x08: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: y range %d..%d\n", (s16)CX, (s16)DX); }
@@ -460,6 +467,8 @@ void hle_out8(u16 port, u8 v)
     case 0x3c8: dac_w = v; dac_wc = 0; break;
     case 0x3c7: dac_r = v; dac_rc = 0; break;
     case 0x3c9:
+        { static int tr = -1; static u32 lt, n; if (tr < 0) tr = getenv("DL_TRACE_DAC") != 0;
+          if (tr) { n++; u32 t = plat_ticks_ms(); if (t - lt >= 100) { fprintf(stderr, "dac %u: %u writes, sum %d\n", t, n, (int)vga_dac[0] + vga_dac[300] + vga_dac[600]); n = 0; lt = t; } } }
         vga_dac[(dac_w * 3 + dac_wc) % 768] = v & 63;
         if (++dac_wc == 3) { dac_wc = 0; dac_w = (dac_w + 1) & 255; }
         break;
@@ -499,7 +508,7 @@ static void service(int n)
     case 0x16:
         switch (AH & 0xef) {
         case 0x00: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; dl_poll(); plat_sleep_ms(5); } AX = w; break; }
-        case 0x01: { u16 w = bios_kbd_get(0); SETZF(w == 0); if (w) AX = w; poll_flag = 1; break; }
+        case 0x01: { u16 w = bios_kbd_get(0); SETZF(w == 0); if (w) AX = w; else spin_polls++; poll_flag = 1; break; }
         case 0x02: AL = shift_state; break;
         default: break;
         }
@@ -566,6 +575,18 @@ void dl_poll(void)
     if (in_irq) return;
     if (idle_hits > 300) plat_sleep_ms(1);     /* the game is busy-waiting: give the CPU back */
     idle_hits = 0;
+    /* the card menus, screens and the travel map wait for a click or a key by asking the mouse
+       driver for button releases and the keyboard for a key, up to a million times a second:
+       after 150 such questions, a millisecond's rest (a card sat at 75 % of a core). Not in
+       battles, whose loop does its work between the questions. */
+    { static int tr = -1; static u32 lt, rests, polls_seen; if (tr < 0) tr = getenv("DL_TRACE_SPIN") != 0;
+      if (tr) { polls_seen += (u32)spin_polls; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { int game_mode(void); fprintf(stderr, "spin: mode %d, %u polls/s, still for %u ms\n", game_mode(), polls_seen, t - screen_changed); polls_seen = 0; lt = t; } } }
+    if (spin_polls > spin_limit()) {
+        int ms = spin_polls / spin_limit(); if (ms > 8) ms = 8;     /* a millisecond per 150 questions */
+        spin_polls = 0;
+        int game_mode(void);
+        if (game_mode() != 4 /* GM_BATTLE */ && !getenv_spin_off()) plat_sleep_ms((u32)ms);
+    }
     u32 now = plat_ticks_ms();
     if (now != last_ms) {
         u32 d = now - last_ms; last_ms = now;
@@ -580,6 +601,14 @@ void dl_poll(void)
         last_present = now;
         plat_events();
         plat_present(M + 0xa0000, vga_dac);
+        {   /* when the picture or the palette last changed (for the rest above) */
+            static uint64_t last_hash;
+            uint64_t h = 1469598103934665603ull; const uint64_t *v = (const uint64_t *)(M + 0xa0000);
+            for (int i = 0; i < 8000; i++) h = (h ^ v[i]) * 1099511628211ull;
+            const uint64_t *pd = (const uint64_t *)vga_dac;
+            for (int i = 0; i < 96; i++) h = (h ^ pd[i]) * 1099511628211ull;
+            if (h != last_hash) { last_hash = h; screen_changed = now; }
+        }
         present_end = plat_ticks_ms();
         present_cost = present_end - now; if (present_cost > 100) present_cost = 100;
         if (plat_menu_open()) {               /* the game is paused while the menu is open */

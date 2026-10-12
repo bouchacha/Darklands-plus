@@ -47,6 +47,7 @@ static int want_tab = -1;
 extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head, *font_tab;
+extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
 ImFont *ui_font_small, *ui_font_text;
 float ui_scale = 1.0f;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
@@ -177,6 +178,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     { extern int ui_battle_info, ui_battle_numbers; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
+    idle_rest = config_get_int("display.idle_rest", 1);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
     journal_init();
@@ -492,6 +494,8 @@ static void tab_display(void)
         ImGui::SetNextItemWidth(UIS(260));
         if (ImGui::Combo("size of these menus (after a restart)", &sel, N, 7)) { config_set_int("display.ui_scale", P[sel]); dirty_config = 1; }
     }
+    { bool ir = idle_rest != 0;
+      if (ImGui::Checkbox("Let the computer rest while the game waits for a click or a key (less CPU, quieter fans)", &ir)) { idle_rest = ir; config_set_int("display.idle_rest", ir); dirty_config = 1; } }
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;

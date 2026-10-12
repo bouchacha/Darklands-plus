@@ -352,9 +352,9 @@ void dos_int21(void)
     case 0x19: AL = 2; break;                                   /* C: */
     case 0x1a: dta_seg = DS; dta_off = DX; break;
     case 0x25: ww(0, (u16)(AL * 4), DX); ww(0, (u16)(AL * 4 + 2), DS); break;
-    case 0x2a: { time_t t = time(0); struct tm *tm = localtime(&t);
+    case 0x2a: { extern int spin_polls; spin_polls++; time_t t = time(0); struct tm *tm = localtime(&t);
         CX = (u16)(tm->tm_year + 1900); DH = (u8)(tm->tm_mon + 1); DL = (u8)tm->tm_mday; AL = (u8)tm->tm_wday; break; }
-    case 0x2c: { u32 ms = plat_ticks_ms(); time_t t = time(0); struct tm *tm = localtime(&t);
+    case 0x2c: { extern int spin_polls; spin_polls++; u32 ms = plat_ticks_ms(); time_t t = time(0); struct tm *tm = localtime(&t);
         CH = (u8)tm->tm_hour; CL = (u8)tm->tm_min; DH = (u8)tm->tm_sec; DL = (u8)((ms / 10) % 100); break; }
     case 0x2f: ES = dta_seg; BX = dta_off; break;
     case 0x2b: case 0x2d: AL = 0; break;        /* set date / time: accepted, not applied */

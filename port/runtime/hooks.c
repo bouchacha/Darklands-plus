@@ -1,5 +1,6 @@
 /* hooks.c - see hooks.h */
 #include <stdio.h>
+#include <stdlib.h>
 #include "cpu.h"
 #include "hooks.h"
 #include "dispatch.h"
@@ -29,13 +30,23 @@ void hook_remove(int sect, unsigned seg, unsigned off)
     if (i >= 0) hook_table[i] = 0;
 }
 
-/* the function each hook index belongs to, for hook_call_original */
+/* the function each hook index belongs to, for hook_call_original (looked up once per index:
+ * the two searches through ten thousand entries on every call of a hooked function that the
+ * game calls in its idle loops, the card menu's above all, cost most of a CPU core) */
 static void (*func_of(int idx))(void)
 {
+    static void (**cache)(void); static unsigned char *known; static int n;
+    if (!cache) {
+        for (int i = 0; i < HOOK_COUNT; i++) if (HOOK_POINTS[i].idx >= n) n = HOOK_POINTS[i].idx + 1;
+        cache = calloc((size_t)n + 1, sizeof *cache); known = calloc((size_t)n + 1, 1);
+    }
+    if (idx >= 0 && idx < n && known[idx]) return cache[idx];
     unsigned lin = 0; int sect = -9;
+    void (*f)(void) = 0;
     for (int i = 0; i < HOOK_COUNT; i++) if (HOOK_POINTS[i].idx == idx) { lin = HOOK_POINTS[i].lin; sect = HOOK_POINTS[i].sect; break; }
-    for (int k = 0; k < FUNC_COUNT; k++) if (FUNC_TABLE[k].lin == lin && FUNC_TABLE[k].sect == sect) return FUNC_TABLE[k].f;
-    return 0;
+    for (int k = 0; k < FUNC_COUNT; k++) if (FUNC_TABLE[k].lin == lin && FUNC_TABLE[k].sect == sect) { f = FUNC_TABLE[k].f; break; }
+    if (idx >= 0 && idx < n) { cache[idx] = f; known[idx] = 1; }
+    return f;
 }
 
 void hook_run(int idx)
