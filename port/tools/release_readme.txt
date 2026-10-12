@@ -45,6 +45,8 @@ KEYS
   Right click   the menu bar (click an entry; a click elsewhere or any key closes it)
   A, S          (loot) take the whole pile, share it out among the party
   A, T          (shop) sell the whole stack, buy ten
+  A controller: left stick the pointer, A click, B right click, X Enter, Y Esc, d-pad arrows,
+                Start F12, Back M, LB Tab, RB Space, right trigger held Ctrl (F1 shows them)
 
 ROLAND MT-32 MUSIC
 Darklands was composed for the Roland MT-32 / LAPC-I, and Darklands+ has Munt's emulator of it

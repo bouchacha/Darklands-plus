@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <SDL.h>
 #include "cpu.h"
 #include "hle.h"
@@ -29,6 +30,7 @@ static SDL_Texture *tex;
 static u32 frame[320 * 200];
 static int headless;
 static int mouse_x = 160, mouse_y = 100, mouse_b;
+static int pad_test_axis[4];                   /* (game controllers, further down) */
 
 /* ---------------------------------------------------------------- time */
 static Uint64 t0, freq;
@@ -497,6 +499,15 @@ static void run_script(void)
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg); SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "upadbtn")) {             /* test: a controller button (name,1 down / 0 up) */
+            char nm[32] = ""; int dn = 1; sscanf(s->arg, "%31[^,],%d", nm, &dn);
+            SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = dn ? SDL_CONTROLLERBUTTONDOWN : SDL_CONTROLLERBUTTONUP;
+            ev.cbutton.button = (Uint8)SDL_GameControllerGetButtonFromString(nm); ev.cbutton.state = dn ? SDL_PRESSED : SDL_RELEASED; SDL_PushEvent(&ev);
+        }
+        else if (!strcmp(s->cmd, "upadaxis")) {            /* test: a stick held (0 left x, 1 left y, 2 right y, 3 left trigger; value, or 'off') */
+            int a = 0, v = 0; if (sscanf(s->arg, "%d,%d", &a, &v) == 2 && a >= 0 && a < 4) pad_test_axis[a] = v;
+            else if (a >= 0 && a < 4) pad_test_axis[a] = 0x7fffffff;
+        }
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
@@ -694,13 +705,138 @@ static int menu_escape(void)
 }
 
 static SDL_Scancode swallow_key; static int swallow_button;   /* the key or click that stopped "go to" */
+/* ---------------------------------------------------------------- game controllers
+ * A controller (Xbox / PlayStation / Switch pads, the Steam Deck in gamepad mode) plays the game
+ * as a mouse and a few keys, made into the same events, so the game, the menus and everything of
+ * Darklands+ answer as they do to the mouse and keyboard:
+ *   left stick   the pointer (left trigger held: slowly)   right stick  the wheel (lists)
+ *   A            click                                      B            right click (the menu bar)
+ *   X            Enter                                      Y            Esc
+ *   d-pad        arrow keys                                 LB / RB      Tab (level map) / Space (pause)
+ *   Start        F12 (Darklands+ menu)                      Back         M (world map)
+ *   right trigger held: Ctrl (Ctrl+click on the map travels there)   left stick pressed: F1 (keys)
+ * "input.gamepad" (F12 > Helpers) switches it off. */
+static SDL_GameController *pads[4];
+static int pad_test_axis[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };   /* test: axis values set by ucmd upadaxis */
+static double pad_fx, pad_fy, pad_wheel; static u32 pad_last; static int pad_ctrl;
+
+static int pad_enabled(void) { return !headless && config_get_int("input.gamepad", 1); }
+static void pad_key(SDL_Scancode sc, int up)
+{
+    SDL_Event ev; memset(&ev, 0, sizeof ev);
+    ev.type = up ? SDL_KEYUP : SDL_KEYDOWN; ev.key.windowID = win ? SDL_GetWindowID(win) : 0;
+    ev.key.state = up ? SDL_RELEASED : SDL_PRESSED;
+    ev.key.keysym.scancode = sc; ev.key.keysym.sym = SDL_GetKeyFromScancode(sc); ev.key.keysym.mod = (Uint16)SDL_GetModState();
+    SDL_PushEvent(&ev);
+}
+static void pad_button(int b, int up)
+{
+    int x, y; SDL_GetMouseState(&x, &y);
+    SDL_Event ev; memset(&ev, 0, sizeof ev);
+    ev.type = up ? SDL_MOUSEBUTTONUP : SDL_MOUSEBUTTONDOWN; ev.button.windowID = win ? SDL_GetWindowID(win) : 0;
+    ev.button.button = (Uint8)b; ev.button.state = up ? SDL_RELEASED : SDL_PRESSED; ev.button.clicks = 1; ev.button.x = x; ev.button.y = y;
+    SDL_PushEvent(&ev);
+}
+static int pad_axis(int a)
+{
+    if (pad_test_axis[a] != 0x7fffffff) return pad_test_axis[a];
+    static const SDL_GameControllerAxis ax[4] = { SDL_CONTROLLER_AXIS_LEFTX, SDL_CONTROLLER_AXIS_LEFTY, SDL_CONTROLLER_AXIS_RIGHTY, SDL_CONTROLLER_AXIS_TRIGGERLEFT };
+    int best = 0;
+    for (int i = 0; i < 4; i++) if (pads[i]) { int v = SDL_GameControllerGetAxis(pads[i], ax[a]); if (abs(v) > abs(best)) best = v; }
+    return best;
+}
+static double pad_curve(int v)                 /* -1..1 with a dead zone and a gentle start */
+{
+    double x = v / 32767.0, m = fabs(x);
+    if (m < 0.15) return 0;
+    m = (m - 0.15) / 0.85; m = m * m * 0.7 + m * 0.3;
+    return x < 0 ? -m : m;
+}
+/* every pass: the sticks move the pointer and turn the wheel */
+static void pad_tick(void)
+{
+    u32 now = plat_ticks_ms(); double dt = pad_last ? (now - pad_last) / 1000.0 : 0; pad_last = now;
+    if (dt > 0.1) dt = 0.1;
+    if (!pad_enabled() || !win) return;
+    int any = 0; for (int i = 0; i < 4; i++) any |= pads[i] != 0;
+    if (!any && pad_test_axis[0] == 0x7fffffff && pad_test_axis[1] == 0x7fffffff && pad_test_axis[2] == 0x7fffffff) return;
+    double sx = pad_curve(pad_axis(0)), sy = pad_curve(pad_axis(1)), wy = pad_curve(pad_axis(2));
+    int lt = pad_axis(3) > 12000;
+    int w, h; SDL_GetWindowSize(win, &w, &h);
+    double speed = h * 0.85 * (lt ? 0.3 : 1.0);   /* window heights per second at full tilt */
+    if (sx || sy) {
+        int x, y; SDL_GetMouseState(&x, &y);
+        pad_fx += sx * speed * dt; pad_fy += sy * speed * dt;
+        int dx = (int)pad_fx, dy = (int)pad_fy;
+        if (dx || dy) {
+            pad_fx -= dx; pad_fy -= dy;
+            x += dx; y += dy; if (x < 0) x = 0; if (y < 0) y = 0; if (x >= w) x = w - 1; if (y >= h) y = h - 1;
+            SDL_WarpMouseInWindow(win, x, y);
+            if (getenv("DL_CTL")) {                  /* tests (a virtual display may not report the warp) */
+                SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEMOTION; ev.motion.windowID = SDL_GetWindowID(win); ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
+            }
+        }
+    } else pad_fx = pad_fy = 0;
+    if (wy) {
+        pad_wheel += -wy * 8 * dt;                   /* up to 8 notches a second */
+        int n = (int)pad_wheel;
+        if (n) {
+            pad_wheel -= n;
+            SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = SDL_GetWindowID(win); ev.wheel.y = n; SDL_PushEvent(&ev);
+        }
+    } else pad_wheel = 0;
+}
+/* controller events become mouse and key events; 1 if the event was a controller's */
+static int pad_event(const SDL_Event *e)
+{
+    if (e->type == SDL_CONTROLLERDEVICEADDED) {
+        for (int i = 0; i < 4; i++) if (!pads[i]) { pads[i] = SDL_GameControllerOpen(e->cdevice.which);
+            if (pads[i]) fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i])); break; }
+        return 1;
+    }
+    if (e->type == SDL_CONTROLLERDEVICEREMOVED) {
+        for (int i = 0; i < 4; i++) if (pads[i] && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(pads[i])) == e->cdevice.which) { SDL_GameControllerClose(pads[i]); pads[i] = 0; }
+        return 1;
+    }
+    if (e->type == SDL_CONTROLLERAXISMOTION) {
+        if (e->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT && pad_enabled()) {
+            int on = e->caxis.value > 12000;
+            if (on != pad_ctrl) { pad_ctrl = on; SDL_SetModState(on ? (SDL_Keymod)(SDL_GetModState() | KMOD_LCTRL) : (SDL_Keymod)(SDL_GetModState() & ~KMOD_CTRL)); }
+        }
+        return 1;
+    }
+    if (e->type != SDL_CONTROLLERBUTTONDOWN && e->type != SDL_CONTROLLERBUTTONUP) return 0;
+    if (!pad_enabled()) return 1;
+    int up = e->type == SDL_CONTROLLERBUTTONUP;
+    switch (e->cbutton.button) {
+    case SDL_CONTROLLER_BUTTON_A: pad_button(SDL_BUTTON_LEFT, up); break;
+    case SDL_CONTROLLER_BUTTON_B: pad_button(SDL_BUTTON_RIGHT, up); break;
+    case SDL_CONTROLLER_BUTTON_X: pad_key(SDL_SCANCODE_RETURN, up); break;
+    case SDL_CONTROLLER_BUTTON_Y: pad_key(SDL_SCANCODE_ESCAPE, up); break;
+    case SDL_CONTROLLER_BUTTON_DPAD_UP: pad_key(SDL_SCANCODE_UP, up); break;
+    case SDL_CONTROLLER_BUTTON_DPAD_DOWN: pad_key(SDL_SCANCODE_DOWN, up); break;
+    case SDL_CONTROLLER_BUTTON_DPAD_LEFT: pad_key(SDL_SCANCODE_LEFT, up); break;
+    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: pad_key(SDL_SCANCODE_RIGHT, up); break;
+    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: pad_key(SDL_SCANCODE_TAB, up); break;
+    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: pad_key(SDL_SCANCODE_SPACE, up); break;
+    case SDL_CONTROLLER_BUTTON_START: pad_key(SDL_SCANCODE_F12, up); break;
+    case SDL_CONTROLLER_BUTTON_BACK: pad_key(SDL_SCANCODE_M, up); break;
+    case SDL_CONTROLLER_BUTTON_LEFTSTICK: pad_key(SDL_SCANCODE_F1, up); break;
+    default: break;
+    }
+    return 1;
+}
+int plat_controller_connected(void) { for (int i = 0; i < 4; i++) if (pads[i]) return 1; return 0; }
+
 void plat_events(void)
 {
     SDL_Event e;
     run_ctl();
     run_script();
     menu_click_poll();
+    pad_tick();
     while (SDL_PollEvent(&e)) {
+        if (pad_event(&e)) continue;
         if (!headless && ui_event(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
@@ -826,6 +962,7 @@ void plat_init(int scale)
         exit(1);
     }
     t0 = SDL_GetPerformanceCounter(); freq = SDL_GetPerformanceFrequency();
+    if (!headless && SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0) fprintf(stderr, "no game controllers: %s\n", SDL_GetError());
     if (!scale) return;
     if (!headless) {
         int wp = getenv("DL_SCRIPT") ? 0 : SDL_WINDOWPOS_CENTERED;   /* scripted tests: a known window position */

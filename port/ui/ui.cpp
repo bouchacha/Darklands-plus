@@ -242,6 +242,7 @@ extern "C" void ui_toggle_map(void)
 
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
 extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
+extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
 {
     if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
@@ -463,6 +464,9 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); dirty_config = 1; }
     { bool wl = config_get_int("assist.wheel_lists", 1) != 0;
       if (ImGui::Checkbox("The mouse wheel moves in the game's lists (equipment, shops ...)", &wl)) { config_set_int("assist.wheel_lists", wl); dirty_config = 1; } }
+    { bool gp = config_get_int("input.gamepad", 1) != 0;
+      if (ImGui::Checkbox("Game controller: the left stick moves the pointer, A clicks, B right-clicks (F1 lists the rest)", &gp)) { config_set_int("input.gamepad", gp); dirty_config = 1; }
+      hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now."); }
     { bool mc = config_get_int("assist.menu_click", 1) != 0;
       if (ImGui::Checkbox("A right click opens the menu bar (the next click chooses; Esc closes it)", &mc)) { config_set_int("assist.menu_click", mc); dirty_config = 1; }
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("The game shows its menus only while the right button is held down, and takes the entry under the pointer when\nit is let go. That still works; this adds the click. F10 opens the menus from the keyboard (arrows, Enter, Esc)."); }
@@ -912,6 +916,15 @@ static void help_window(void)
         row("F12", "the Darklands+ menu (pauses the game)");
         row("Ctrl+S / F9 or Ctrl+L", "quick save / quick load");
         row("Alt+Enter", "full screen    Ctrl+F12 screenshot");
+        { if (plat_controller_connected() && config_get_int("input.gamepad", 1)) {
+            ImGui::SeparatorText("The controller");
+            row("Left stick", "the pointer (left trigger held: slowly)    right stick: the wheel");
+            row("A / B", "click / right click (the menu bar)");
+            row("X / Y", "Enter / Esc");
+            row("D-pad", "arrow keys    LB: Tab (level map)    RB: Space (pause)");
+            row("Start / Back", "F12 (this menu) / M (world map)");
+            row("Right trigger", "held: Ctrl (on the travel map: Ctrl + click travels there)    left stick pressed: F1");
+          } }
         ImGui::TextDisabled("F1, Esc or a click closes this.");
     }
     ImGui::End();
