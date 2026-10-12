@@ -6,7 +6,7 @@ This repository contains **no game files** and no code generated from them. Ever
 
 ## Playing: Darklands+
 
-**Darklands+** runs Darklands natively on Windows, without DOSBox. It adds optional improvements: crisp text, a world map with auto-travel, chances of success on card options, a quest log, a battle log, fixes for the original's bugs and mod folders. Every addition can be switched off, and "Play the original game" turns them all off at once.
+**Darklands+** runs Darklands natively on Windows, without DOSBox. It adds optional improvements: crisp text, a world map with auto-travel, chances of success on card options, a quest log, a battle log, tooltips for items, saints and formulas, fixes for the original's bugs, the Roland MT-32 built in (with your own ROM files), game-controller support, a bestiary and mod folders (a sample battle-sound mod comes with it). Every addition can be switched off, and "Play the original game" turns them all off at once.
 
 * **Download** the Windows zip from this repository's Releases, unpack it anywhere and start `darklands.exe`. It finds a GOG or Steam installation of Darklands by itself, or asks for the folder once; an installation under Program Files (GOG Galaxy's) works as it is, with the saves in Windows' VirtualStore. You need your own copy of Darklands 483.07 (GOG or Steam).
 * **On the first start** Darklands+ spends a minute or two translating the game program from your `DARKLAND.EXE`. The download contains nothing from the game itself.
@@ -53,4 +53,4 @@ python3 -I formats/tests/test_roundtrip.py          # DARKLANDS_DIR=/path/to/DAR
 
 ## Credits
 
-The data-format work builds on vvendigo's Darklands tools and on documentation by Merle and Joel "Quadko" McIntyre. The overall method follows neuviemeporte's F-15 Strike Eagle II reconstruction and mzretools.
+The data-format work builds on vvendigo's Darklands tools and on documentation by Merle and Joel "Quadko" McIntyre. The overall method follows neuviemeporte's F-15 Strike Eagle II reconstruction and mzretools. Darklands+ uses Dear ImGui, SDL2, Nuked OPL3, Munt's libmt32emu, stb and the fonts listed in `port/README.md`; the sample battle sounds are made from 0 A.D.'s recordings (Wildfire Games, CC BY-SA 3.0).
