@@ -484,9 +484,34 @@ void ui_item_details(const ItemDef *d, int id)
         }
     }
     if (d && d->type >= 67 && d->type <= 84) {
+        /* the game's armour rule (s014 hit_damage / damage_queue): the armour's hardness (far
+           20a5:781e by type, 0 cloth .. 5 plate) against the blow's penetration (the weapon's,
+           less up to 3 on a good hit): a weapon that does not get through loses half (equal) or
+           seven eighths (less) of its damage bonus, and wounds strength far less; the quality
+           comes off the attacker's skill in every blow's damage (a tenth of it) */
+        int h = rb(G_FAR20A5, (u16)(0x781e + d->type));
         ImGui::Separator();
-        ImGui::Text(d->type <= 75 ? "Covers the vitals: body and arms" : "Covers the legs");
-        ImGui::TextDisabled("Higher quality turns more of a blow.");
+        ImGui::Text(d->type <= 75 ? "Covers the vitals (body and arms)" : "Covers the legs");
+        static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
+        ImGui::Text("Hardness %d of 5 (%s)", h, h >= 0 && h < 6 ? HN[h] : "?");
+        std::vector<std::string> grp[3];                          /* 0 turned, 1 halved, 2 gets through */
+        for (const ItemDef &w : gamedata.items) {
+            if (w.type < 0 || w.type > 33 || w.name.empty() || (w.kind != K_WEAPON && w.kind != K_MISSILE)) continue;
+            int pen = rb(G_FAR20A5, (u16)(0x76a8 + w.type)) & 15;
+            grp[pen < h ? 0 : pen == h ? 1 : 2].push_back(game_text(w.name.c_str(), w.name.size()));
+        }
+        static const char *GL[3] = { "Turns most of the blow (penetration below %d):", "Halves the blow (penetration %d):", "Pierced (penetration above %d):" };
+        ImVec4 GC[3] = { ImVec4(0.18f, 0.40f, 0.16f, 1), ImVec4(0.6f, 0.42f, 0.08f, 1), ImVec4(0.62f, 0.20f, 0.12f, 1) };
+        for (int g = 0; g < 3; g++) {
+            if (grp[g].empty()) continue;
+            std::string l;
+            for (size_t k = 0; k < grp[g].size() && k < 6; k++) l += (k ? ", " : "") + grp[g][k];
+            if (grp[g].size() > 6) l += " and " + std::to_string(grp[g].size() - 6) + " more";
+            ImGui::TextColored(GC[g], GL[g], h);
+            ImGui::Indent(UIS(12)); ImGui::TextWrapped("%s", l.c_str()); ImGui::Unindent(UIS(12));
+        }
+        ImGui::TextDisabled("A blow that pierces also wounds strength; a good hit gets through more easily.");
+        ImGui::TextDisabled("Quality: every 10 points take 1 off each blow's damage.");
     }
     if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
     if (d && d->kind == K_POTION) {
