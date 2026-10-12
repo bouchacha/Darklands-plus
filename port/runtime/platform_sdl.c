@@ -792,7 +792,12 @@ static int pad_event(const SDL_Event *e)
 {
     if (e->type == SDL_CONTROLLERDEVICEADDED) {
         for (int i = 0; i < 4; i++) if (!pads[i]) { pads[i] = SDL_GameControllerOpen(e->cdevice.which);
-            if (pads[i]) fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i])); break; }
+            if (pads[i]) {
+                fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
+                static int told; void ui_notice(const char *msg);
+                if (!told++ && pad_enabled()) ui_notice("Controller connected: the left stick moves the pointer, A clicks (F1 lists the buttons)");
+            }
+            break; }
         return 1;
     }
     if (e->type == SDL_CONTROLLERDEVICEREMOVED) {
