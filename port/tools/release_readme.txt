@@ -49,7 +49,9 @@ MAKING MODS
 IF SOMETHING GOES WRONG
 Darklands+ writes darklands_port.log into the game folder. Include that file when you report
 a problem. If the first start fails, the log says why. To redo the translation, delete
-darklands_game.dll.
+darklands_game.dll. Some antivirus programs distrust files that a compiler has just made: if
+yours removes or blocks darklands_game.dll, allow that file (it is made from your own
+DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
 To remove Darklands+, delete darklands.exe, darklands_game.dll, darklands_port.ini,
 darklands_port.log and the darklands_plus folder.
