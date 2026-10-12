@@ -405,6 +405,37 @@ static void text_expand_hook(void)         /* s043 150b:06fe text_expand(idx, ou
     if (mine) chronicle_expanded();
 }
 
+/* ---------------------------------------------------------------- the player's own notes (per game) */
+static std::string notes_text; static int notes_seed = -1; static bool notes_dirty; static double notes_edit_t;
+static std::string notes_path(int seed) { extern char dlp_data_dir[]; char b[1200]; snprintf(b, sizeof b, "%s/darklands_notes_%u.txt", dlp_data_dir, (unsigned)seed); return b; }
+static void notes_save(void)
+{
+    if (!notes_dirty || notes_seed < 0) return;
+    notes_dirty = false;
+    FILE *f = fopen(notes_path(notes_seed).c_str(), "w");
+    if (f) { fwrite(notes_text.data(), 1, notes_text.size(), f); fclose(f); }
+}
+static int notes_resize(ImGuiInputTextCallbackData *d)
+{
+    if (d->EventFlag == ImGuiInputTextFlags_CallbackResize) { std::string *s = (std::string *)d->UserData; s->resize((size_t)d->BufTextLen); d->Buf = (char *)s->c_str(); }
+    return 0;
+}
+static void notes_page(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first: the notes belong to a game."); return; }
+    if (seed != notes_seed) {
+        notes_save(); notes_seed = seed; notes_text.clear();
+        FILE *f = fopen(notes_path(seed).c_str(), "r");
+        if (f) { char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) notes_text.append(b, n); fclose(f); }
+    }
+    ImGui::TextDisabled("Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt.", (unsigned)seed);
+    if (ImGui::InputTextMultiline("##notes", (char *)notes_text.c_str(), notes_text.capacity() + 1, ImVec2(-1, -1),
+                                  ImGuiInputTextFlags_CallbackResize, notes_resize, &notes_text)) { notes_dirty = true; notes_edit_t = ImGui::GetTime(); }
+    if (notes_dirty && ImGui::GetTime() - notes_edit_t > 1.5) notes_save();     /* a moment after typing stops */
+    if (!ImGui::IsItemActive() && notes_dirty) notes_save();
+}
+
 static void card_load_hook(void)
 {
     chronicle_capture();                   /* the last text before the card changes (a result with no options) */
@@ -770,6 +801,7 @@ extern "C" void tab_journal(void)
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Chronicle", nullptr, want == 7 ? ImGuiTabItemFlags_SetSelected : 0)) { chronicle_page(); ImGui::EndTabItem(); }
+        if (ImGui::BeginTabItem("Notes", nullptr, want == 8 ? ImGuiTabItemFlags_SetSelected : 0)) { notes_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Stored", nullptr, want == 6 ? ImGuiTabItemFlags_SetSelected : 0)) { storage_page(); ImGui::EndTabItem(); }

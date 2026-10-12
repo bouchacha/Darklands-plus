@@ -499,6 +499,10 @@ static void run_script(void)
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg); SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "utype")) {               /* test: text typed into the interface (SDL text input) */
+            SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_TEXTINPUT; ev.text.windowID = win ? SDL_GetWindowID(win) : 0;
+            snprintf(ev.text.text, sizeof ev.text.text, "%s", s->arg); SDL_PushEvent(&ev);
+        }
         else if (!strcmp(s->cmd, "upadbtn")) {             /* test: a controller button (name,1 down / 0 up) */
             char nm[32] = ""; int dn = 1; sscanf(s->arg, "%31[^,],%d", nm, &dn);
             SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = dn ? SDL_CONTROLLERBUTTONDOWN : SDL_CONTROLLERBUTTONUP;
