@@ -392,6 +392,7 @@ int plat_in_background(void) { return bg_paused; }
 
 /* ---------------------------------------------------------------- events */
 static void click_at(int x, int y);
+void plat_press_key(int scancode);
 static void run_script(void)
 {
     u32 now = plat_ticks_ms();
@@ -442,6 +443,10 @@ static void run_script(void)
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
+        }
+        else if (!strcmp(s->cmd, "uwheel")) {             /* test: the mouse wheel turned by n notches (up > 0) */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            ev.type = SDL_MOUSEWHEEL; ev.wheel.windowID = win ? SDL_GetWindowID(win) : 0; ev.wheel.y = atoi(s->arg); SDL_PushEvent(&ev);
         }
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
@@ -612,6 +617,15 @@ void plat_events(void)
             key(e.key.keysym.scancode, 0);
             break;
         case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;
+        case SDL_MOUSEWHEEL:
+            /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
+               the shops' wares): Up / Down, the keys those lists answer; only on such screens, not
+               on cards, the map or in battles, where the arrow keys do other things */
+            if (e.wheel.y && game_mode() == GM_SCREEN && config_get_int("assist.wheel_lists", 1) && !config_get_int("original", 0)) {
+                int n = e.wheel.y > 0 ? e.wheel.y : -e.wheel.y; if (n > 3) n = 3;
+                for (int i = 0; i < n; i++) plat_press_key(e.wheel.y > 0 ? SDL_SCANCODE_UP : SDL_SCANCODE_DOWN);
+            }
+            break;
         case SDL_MOUSEMOTION:
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;

@@ -358,6 +358,8 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
     bool ck = assist_card_keys;
     if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); dirty_config = 1; }
+    { bool wl = config_get_int("assist.wheel_lists", 1) != 0;
+      if (ImGui::Checkbox("The mouse wheel moves in the game's lists (equipment, shops ...)", &wl)) { config_set_int("assist.wheel_lists", wl); dirty_config = 1; } }
     hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
@@ -632,7 +634,7 @@ static void help_window(void)
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
-            row("Up, Down, PgUp, PgDn", "move in a list");
+            row("Up, Down, PgUp, PgDn", "move in a list (the mouse wheel too)");
             row("1 ... 5", "in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them)");
             row("A", "in the equipment list: ready or wear the chosen item");
             row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
