@@ -102,7 +102,9 @@ while time.time() < t_end:
         if time.time() - same_since > 120:
             L('battle stuck for 2 min: striking the enemies'); nctl.do(name, '; '.join('ucmd uhit:0,%d,40,0' % t for t in range(5, 25)) + '; wait 4')
             if paused: nctl.do(name, 'key space; wait 4')
-        elif paused or time.time() - same_since > 20: nctl.do(name, 'key space; wait 6')
+        elif paused: nctl.do(name, 'key space; wait 6')
+        elif time.time() - same_since > 20:     # nothing happens (a castle or dungeon to explore): walk somewhere
+            nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
         else: nctl.do(name, 'wait 6')
     elif mode == 3:
         nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5',
