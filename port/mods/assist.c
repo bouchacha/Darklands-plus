@@ -74,6 +74,7 @@ static void evaluate(void)
         g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
         u32 r2 = game_call_ptr(seg, off, 0, 0, 0xa5);
         eval_restore(snap);
+        if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }   /* waits for the player: never again (each try costs 100 ms) */
         if (r2 != r) r = 0xffffffffu;                                  /* depends on stack garbage: no chance */
         int pct = (s16)(r & 0xffff), who = (s16)(r >> 16);
         if (pct >= 0 && r != 0xffffffffu) {
@@ -88,7 +89,8 @@ static void evaluate(void)
             }
             u32 r3 = game_call_ptr(seg, off, 0, 0, 0x5a);
             eval_restore(snap);
-            if (!game_call_timed_out && (s16)(r3 & 0xffff) == pct) {
+            if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }
+            if ((s16)(r3 & 0xffff) == pct) {
                 if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% whatever the party: no skill check\n", i, opt, pct);
                 continue;
             }
