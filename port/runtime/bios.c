@@ -577,15 +577,16 @@ void dl_poll(void)
     idle_hits = 0;
     /* the card menus, screens and the travel map wait for a click or a key by asking the mouse
        driver for button releases and the keyboard for a key, up to a million times a second:
-       after 150 such questions, a millisecond's rest (a card sat at 75 % of a core). Not in
-       battles, whose loop does its work between the questions. */
+       after 150 such questions, a millisecond's rest (a card sat at 75 % of a core, a battle at
+       a whole core). Battles too: their work is done once per clock tick (combat_tick, s014
+       0e76:0f58, counts the same ticks a second with and without the rest). */
     { static int tr = -1; static u32 lt, rests, polls_seen; if (tr < 0) tr = getenv("DL_TRACE_SPIN") != 0;
       if (tr) { polls_seen += (u32)spin_polls; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { int game_mode(void); fprintf(stderr, "spin: mode %d, %u polls/s, still for %u ms\n", game_mode(), polls_seen, t - screen_changed); polls_seen = 0; lt = t; } } }
     if (spin_polls > spin_limit()) {
         int ms = spin_polls / spin_limit(); if (ms > 8) ms = 8;     /* a millisecond per 150 questions */
         spin_polls = 0;
         int game_mode(void);
-        if (game_mode() != 4 /* GM_BATTLE */ && !getenv_spin_off()) plat_sleep_ms((u32)ms);
+        if (!getenv_spin_off()) plat_sleep_ms((u32)ms);
     }
     u32 now = plat_ticks_ms();
     if (now != last_ms) {
