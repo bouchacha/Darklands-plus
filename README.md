@@ -4,6 +4,14 @@ This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-D
 
 This repository contains **no game files** and no code generated from them. Everything under `build/` is regenerated from your own copy of `DARKLAND.EXE`.
 
+## Playing: Darklands+
+
+**Darklands+** runs Darklands natively on Windows, without DOSBox. It adds optional improvements: crisp text, a world map with auto-travel, chances of success on card options, a quest log, a battle log, fixes for the original's bugs and mod folders. Every addition can be switched off, and "Play the original game" turns them all off at once.
+
+* **Download** the Windows zip from this repository's Releases, unpack it into your Darklands folder (the one with `DARKLAND.EXE`), and start `darklands.exe`. You need your own copy of Darklands 483.07 (GOG).
+* **On the first start** Darklands+ spends a few minutes translating the game program from your `DARKLAND.EXE`. The download contains nothing from the game itself.
+* Players' notes: `port/tools/release_readme.txt`. Features and keys: `port/README.md`. Making mods: `docs/MODDING.md`.
+
 ## What works today
 
 * **Native Darklands ("Darklands+").** `port/` recompiles the game to C and runs it natively on Linux and Windows (no DOSBox), with a modern layer on top that can be switched off entirely: crisp text, a zoomable world map with auto-travel, helpers (chances of success, saints, "Go to" in cities, shop and battle info), quick saves and autosaves, fixes for original bugs, and mod folders for data, card texts, menu texts, weapon numbers, items, art and sounds. See `port/README.md` and `docs/MODDING.md`.
