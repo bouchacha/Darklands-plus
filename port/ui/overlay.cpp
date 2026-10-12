@@ -409,6 +409,11 @@ extern "C" void hdtext_draw(void)
     if (!hdtext_mode || !ui_font_text) return;
     load_textmap();
     ImFont *font = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
+    {   /* a big window: the larger set, which stays sharp (the 34-pixel one turned soft above ~44) */
+        extern ImFont *ui_font_game_hi[UI_GAME_FONTS];
+        float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d);
+        if ((d - b0) * 1.18f > 44 && ui_font_game_hi[ui_game_font]) font = ui_font_game_hi[ui_game_font];
+    }
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     static std::vector<Spelled> sp;
     { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f); }

@@ -49,6 +49,7 @@ extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want
 static ImFont *font_body, *font_head, *font_tab;
 ImFont *ui_font_small, *ui_font_text;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
+ImFont *ui_font_game_hi[UI_GAME_FONTS];    /* the same baked larger on big screens (0 if not needed) */
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
 extern int ui_spell_out;                   /* overlay.cpp: character sheet names in full */
 static int sys_cursor;                     /* display.system_cursor: the system pointer stays over the game */
@@ -128,7 +129,15 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
     font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 20.0f, &fc);
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
-    {   /* the game's text, redrawn crisp (mods/hdtext.c): baked large, drawn at any size */
+    {   /* the game's text, redrawn crisp (mods/hdtext.c): baked at the size it takes on this screen
+           when the window fills it (a line of the game's text is 6 of its 200 rows; 34 pixels at
+           most screens, up to 90 on a 4K screen, where text baked smaller turned soft) */
+        float bake = 34.0f;
+        SDL_DisplayMode dm;
+        if (SDL_GetDesktopDisplayMode(SDL_GetWindowDisplayIndex(win) < 0 ? 0 : SDL_GetWindowDisplayIndex(win), &dm) == 0 && dm.h > 0) {
+            float need = dm.h / 200.0f * 6 * 1.18f * 1.05f;
+            if (need > bake) bake = need > 90 ? 90 : need;
+        }
         ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
         static const ImWchar ranges[] = { 0x20, 0xff, 0 };
         ui_font_text = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 34.0f, &tc, ranges);
@@ -136,6 +145,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         const unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE };
         ui_font_game[0] = ui_font_text;
         for (int i = 1; i < UI_GAME_FONTS; i++) ui_font_game[i] = io.Fonts->AddFontFromMemoryTTF((void *)data[i], (int)size[i], 34.0f, &tc, ranges);
+        if (bake > 44) {      /* big screens: a second, larger set for the game's text in a big window */
+            ImFontConfig hc = tc; hc.OversampleH = 1; hc.OversampleV = 1;
+            for (int i = 0; i < UI_GAME_FONTS; i++) ui_font_game_hi[i] = io.Fonts->AddFontFromMemoryTTF((void *)data[i], (int)size[i], bake, &hc, ranges);
+            fprintf(stderr, "ui: game text also baked at %.0f pixels (screen %dx%d)\n", bake, dm.w, dm.h);
+        }
     }
     ui_game_font = config_get_int("display.text_font", 0);
     if (ui_game_font < 0 || ui_game_font >= UI_GAME_FONTS) ui_game_font = 0;
