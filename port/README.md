@@ -27,7 +27,7 @@ time.
 ## Building
 
 ```
-python3 -I tools/build.py /path/to/DARKLAND/DARKLAND.EXE      # the analysis (once)
+python3 -I tools/analyze.py /path/to/DARKLAND/DARKLAND.EXE build/analysis   # the analysis (once; needs capstone)
 GAME=/path/to/DARKLAND sh port/tools/gen.sh                   # generated C into build/port_gen
 make -C port -j8                                              # Linux: build/port/darklands
 make -C port TARGET=win64 -j8                                 # Windows (mingw-w64, SDL2 in build/sdl2-win64)
