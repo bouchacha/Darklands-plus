@@ -216,8 +216,8 @@ static void draw_chances(void)
     if (tip_line >= 0) {                                          /* what the badge is */
         char t[200], nm[24] = "";
         if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
-        snprintf(t, sizeof t, "This option tests the party: %s%s%d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.",
-                 nm[0] ? nm : "", nm[0] ? " has a " : "a ", tip_pct);
+        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, tip_pct);
+        else snprintf(t, sizeof t, "This option tests the whole party: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", tip_pct);
         ImFont *tf = ui_font_small ? ui_font_small : f;
         float ts = tf->FontSize;
         ImVec2 sz = tf->CalcTextSizeA(ts, FLT_MAX, 0, t);
