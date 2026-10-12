@@ -67,7 +67,7 @@ while time.time() < t_end:
         nctl.do(name, 'wshot stuck_%d' % steps); same_since = time.time()
         # a screen the rules above do not know (the party roster at an inn, say): clicks anywhere, Escape, Return
         nctl.do(name, '; '.join(rnd.choice(['at %d %d; click; wait 1.5' % (rnd.randrange(60, 320), rnd.randrange(10, 200)),
-                                            'key Escape; wait 1', 'key Return; wait 1']) for _ in range(12)))
+                                            'key Escape; wait 1', 'key Return; wait 1', 'key r; wait 1']) for _ in range(12)))
         continue
     steps += 1
     L('mode', mode, 'card', card, 'n', n, 'menu' if menu else '', 'map' if maplive else '', party[:120])
@@ -107,7 +107,7 @@ while time.time() < t_end:
             nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
         else: nctl.do(name, 'wait 6')
     elif mode == 3:
-        nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5',
+        nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
                                   'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
     else:
         nctl.do(name, rnd.choice(['key Return; wait 1.5', 'at 160 100; click; wait 1.5', 'key space; wait 1.5', 'key Escape; wait 1.5', 'at 160 62; click; wait 3']))
