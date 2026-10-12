@@ -683,7 +683,9 @@ extern "C" void tab_alchemy(void)
             if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::Text("Mystical number %d", F.mystic); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
             if (all_formulas && f < (int)gamedata.formula_names.size()) {
                 static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
-                ImGui::TextDisabled("%s - difficulty %d, %s", gamedata.formula_names[f].c_str(), F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::TextWrapped("%s - difficulty %d, %s", gamedata.formula_names[f].c_str(), F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);   /* (was cut off at the column's edge) */
+                ImGui::PopStyleColor();
             }
             ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.empty() ? "-" : who.c_str());
             ImGui::TableNextColumn();

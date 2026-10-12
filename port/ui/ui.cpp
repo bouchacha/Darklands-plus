@@ -97,7 +97,7 @@ static void style(void)
     s.WindowRounding = 6; s.FrameRounding = 4; s.GrabRounding = 4; s.TabRounding = 4;
     s.WindowPadding = ImVec2(18, 14); s.ItemSpacing = ImVec2(10, 8); s.FramePadding = ImVec2(8, 4);
     ImVec4 *c = s.Colors;
-    ImVec4 ink(0.20f, 0.12f, 0.06f, 1), parch(0.93f, 0.87f, 0.74f, 0.97f), dark(0.45f, 0.18f, 0.10f, 1);
+    ImVec4 ink(0.20f, 0.12f, 0.06f, 1), parch(0.93f, 0.87f, 0.74f, 1.0f), dark(0.45f, 0.18f, 0.10f, 1);   /* opaque: the game's text showed through faintly */
     c[ImGuiCol_Text] = ink;
     c[ImGuiCol_TextDisabled] = ImVec4(0.45f, 0.38f, 0.30f, 1);
     c[ImGuiCol_WindowBg] = parch;
@@ -203,7 +203,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_Init(ren);
     style();
     if (ui_scale != 1.0f) ImGui::GetStyle().ScaleAllSizes(ui_scale);
-    ui_settings.aspect = config_get_int("display.aspect_4_3", 1);
+    ui_settings.aspect = 1;            /* always 4:3: the game was drawn for a 1992 monitor's tall pixels (the square-pixel option distorted it) */
     ui_settings.smooth = config_get_int("display.smooth", 0);
     ui_settings.integer = config_get_int("display.integer_scale", 0);
     ui_settings.scaler = config_get_int("display.scaler", 0);
@@ -504,8 +504,7 @@ static void tab_helpers(void)
 
 static void tab_display(void)
 {
-    bool a = ui_settings.aspect, s = ui_settings.smooth, n = ui_settings.integer;
-    if (ImGui::Checkbox("4:3 picture, as on a 1992 monitor", &a)) { ui_settings.aspect = a; config_set_int("display.aspect_4_3", a); dirty_config = 1; }
+    bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
     if (ImGui::Checkbox("Smooth scaling", &s)) { ui_settings.smooth = s; config_set_int("display.smooth", s); dirty_config = 1; }
     if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); dirty_config = 1; }
     {

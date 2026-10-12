@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <math.h>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -24,6 +25,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
+extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
 }
@@ -326,15 +328,22 @@ static void town_list(void)
 static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "Zeughaus (armoury)", "slums",
                                      "Kloster", "university", "pawnshop", "Muenze (mint)", "docks" };
 
+/* an item's picture and name in a table cell: the picture inside the cell, the name centred on it */
+static void icon_name_cell(int id, const char *name)
+{
+    float h = fmaxf(UIS(26), ImGui::GetTextLineHeight());
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImGui::Dummy(ImVec2(h + UIS(4), h));
+    ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(2) + h * 0.5f, p.y + h * 0.5f), h * 0.84f, id);
+    ImGui::SameLine();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (h - ImGui::GetTextLineHeight()) * 0.5f);
+    ImGui::TextUnformatted(name);
+}
 static void item_row(const SeenItem &i, const char *where = nullptr)
 {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    ImVec2 p = ImGui::GetCursorScreenPos();
-    ImGui::Dummy(ImVec2(UIS(24), UIS(24)));
-    ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(12), p.y + UIS(12)), UIS(22), i.id);
-    ImGui::SameLine();
-    ImGui::TextUnformatted(item_name(i.id).c_str());
+    icon_name_cell(i.id, item_name(i.id).c_str());
     ImGui::TableNextColumn(); ImGui::Text("%d", i.q);
     ImGui::TableNextColumn(); ImGui::TextUnformatted(money(i.price).c_str());
     if (where) { ImGui::TableNextColumn(); ImGui::TextUnformatted(where); }
@@ -399,10 +408,11 @@ static void find_page(void)
     if (ImGui::BeginTable("hits", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_DefaultSort, 80);
-        ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(140));
-        ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthFixed, UIS(300));
+        ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+        ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_DefaultSort,
+                                ImGui::CalcTextSize("Quality").x + ImGui::GetFontSize() * 1.3f);
+        ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("88fl 88gr 88pf").x + UIS(8));
+        ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthStretch, 1.25f);
         ImGui::TableHeadersRow();
         ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs();
         int col = 1; bool desc = true;
@@ -422,30 +432,63 @@ static void find_page(void)
     }
 }
 
+/* where the party is: the town it is in, else its tile on the map */
+static bool party_where(int *x, int *y)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    u32 r = cur >= 0 ? g_location(cur) : 0;
+    if (r) { *x = (s16)rw((u16)(r >> 16), (u16)(r + 4)); *y = (s16)rw((u16)(r >> 16), (u16)(r + 6)); return true; }
+    if (game_mode() == GM_OTHER) return false;
+    travel_party_tile(x, y);
+    return *x > 0 && *y > 0;
+}
+static int loc_distance(int loc, int px, int py)          /* in map tiles (rows are half a tile apart) */
+{
+    u32 r = g_location(loc);
+    if (!r) return 1 << 20;
+    int dx = (s16)rw((u16)(r >> 16), (u16)(r + 4)) - px, dy = ((s16)rw((u16)(r >> 16), (u16)(r + 6)) - py) / 2;
+    return (int)sqrtf((float)(dx * dx + dy * dy));
+}
 static void ingredients_page(void)
 {
-    ImGui::TextWrapped("Where each alchemical ingredient is sold, in the towns the party has visited (bought ingredients are always quality 25).");
-    if (ImGui::BeginTable("ingr", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
+    int px = 0, py = 0; bool here = party_where(&px, &py);
+    ImGui::TextWrapped("Where each alchemical ingredient is sold, in the towns the party has visited (bought ingredients are always "
+                       "quality 25)%s.", here ? ": the nearest town first; point at a row for every town" : "");
+    if (ImGui::BeginTable("ingr", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-        ImGui::TableSetupColumn("Sold at", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn(here ? "Nearest town" : "Sold at", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+        ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch, 1.2f);
         ImGui::TableHeadersRow();
         for (int id = 72; id <= 94; id++) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(UIS(26), UIS(26)));
-            ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(13), p.y + UIS(13)), UIS(24), id);
-            ImGui::SameLine(); ImGui::TextUnformatted(item_name(id).c_str());
-            ImGui::TableNextColumn();
-            std::string where;
+            struct Seen { int loc, price, dist; };
+            std::vector<Seen> at;
             for (auto &kv : towns) {
                 int best = -1;
                 for (const Shop &s : kv.second.shops) for (const SeenItem &i : s.items) if (i.id == id && (best < 0 || i.price < best)) best = i.price;
-                if (best >= 0) { if (!where.empty()) where += ",  "; where += loc_name(kv.first) + " " + money(best); }
+                if (best >= 0) at.push_back({ kv.first, best, here ? loc_distance(kv.first, px, py) : 0 });
             }
-            if (where.empty()) ImGui::TextDisabled("not seen yet");
-            else ImGui::TextWrapped("%s", where.c_str());
+            std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            icon_name_cell(id, item_name(id).c_str());
+            ImGui::TableNextColumn();
+            if (at.empty()) { ImGui::TextDisabled("not seen yet"); ImGui::TableNextColumn(); continue; }
+            int cheapest = 0; for (size_t k = 1; k < at.size(); k++) if (at[k].price < at[cheapest].price) cheapest = (int)k;
+            ImGui::Text("%s  %s", loc_name(at[0].loc).c_str(), money(at[0].price).c_str());
+            if (here && at[0].dist == 0) { ImGui::SameLine(); ImGui::TextDisabled("(here)"); }
+            ImGui::TableNextColumn();
+            std::string more;
+            for (size_t k = 1; k < at.size() && k <= 3; k++) { if (!more.empty()) more += ",  "; more += loc_name(at[k].loc) + " " + money(at[k].price); }
+            if (at.size() > 4) { char b[32]; snprintf(b, sizeof b, "  and %d more", (int)at.size() - 4); more += b; }
+            if (cheapest > 3) more += "  (cheapest: " + loc_name(at[cheapest].loc) + " " + money(at[cheapest].price) + ")";
+            ImGui::TextWrapped("%s", more.empty() ? "-" : more.c_str());
+            if (ImGui::IsItemHovered() && at.size() > 1) {
+                ImGui::BeginTooltip();
+                for (const Seen &s : at) ImGui::Text("%s  %s", loc_name(s.loc).c_str(), money(s.price).c_str());
+                ImGui::EndTooltip();
+            }
         }
         ImGui::EndTable();
     }
