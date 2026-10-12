@@ -26,6 +26,7 @@ import numpy as np
 
 FS = 44100
 REPO = 'https://github.com/0ad/0ad'
+REV = '61a3b9507d974084e6badb88a0826bd89a6d5b8b'      # the commit the pack was made from (2026-10)
 AUD = 'binaries/data/mods/public/audio'
 
 # ------------------------------------------------------------------ files
@@ -50,11 +51,13 @@ def fetch(cache):
     repo = os.path.join(cache, '0ad')
     if not os.path.isdir(os.path.join(repo, '.git')):
         os.makedirs(cache, exist_ok=True)
-        subprocess.run(['git', 'clone', '-q', '--depth', '1', '--filter=blob:none', '--no-checkout', REPO, repo], check=True)
+        subprocess.run(['git', 'init', '-q', repo], check=True)
+        subprocess.run(['git', '-C', repo, 'remote', 'add', 'origin', REPO], check=True)
+    subprocess.run(['git', '-C', repo, 'fetch', '-q', '--depth', '1', '--filter=blob:none', 'origin', REV], check=True)
     subprocess.run(['git', '-C', repo, 'sparse-checkout', 'init', '--no-cone'], check=True, capture_output=True)
     with open(os.path.join(repo, '.git', 'info', 'sparse-checkout'), 'w') as fh:
         fh.write(''.join('/%s/%s\n' % (AUD, p) for p in need()))
-    subprocess.run(['git', '-C', repo, 'checkout', '-q', 'HEAD'], check=True)
+    subprocess.run(['git', '-C', repo, 'checkout', '-q', REV], check=True)
     return os.path.join(repo, AUD)
 
 # ------------------------------------------------------------------ sound helpers

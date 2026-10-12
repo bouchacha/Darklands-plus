@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0            # the build's name counts the commits
 
       - name: Tools
-        run: sudo apt-get update && sudo apt-get install -y mingw-w64 python3-pip
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 python3-pip python3-numpy ffmpeg
 
       - name: SDL2 for mingw-w64
         run: |
@@ -55,10 +55,13 @@ jobs:
           python3 -m pip download "capstone==${CAPSTONE_VERSION}" --only-binary=:all: --platform win_amd64 --python-version 3.12 --no-deps -d wheels
           echo "${CAPSTONE_SHA256}  wheels/capstone-${CAPSTONE_VERSION}-py3-none-win_amd64.whl" | sha256sum -c
 
+      - name: The sample battle sounds (0 A.D.'s recordings, CC BY-SA 3.0; a mod that is off until ticked)
+        run: python3 port/tools/soundpack.py "build/Battle sounds" --cache build/soundpack-cache
+
       - name: Package
         run: |
           python3 port/tools/package.py --exe build/port_win64_split/darklands.exe --tcc build/tcc-win64 \
-              --python-dir pbs/python --capstone-wheel wheels/capstone-*.whl \
+              --python-dir pbs/python --capstone-wheel wheels/capstone-*.whl --mod "build/Battle sounds" \
               --version "${GITHUB_REF_NAME}" --out "DarklandsPlus-${GITHUB_REF_NAME}-win64.zip"
 
       - uses: actions/upload-artifact@v4
