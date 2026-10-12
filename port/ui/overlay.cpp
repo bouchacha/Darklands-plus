@@ -419,6 +419,61 @@ void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
     }
 }
 
+/* the attributes on the character sheet and in character creation: a picture each */
+static int attr_of(const char *t)
+{
+    static const char *AT[7] = { "End", "Str", "Agl", "Per", "Int", "Chr", "DF" };       /* (the game's words, spelled out when drawn) */
+    for (int i = 0; i < 7; i++) if (!strcmp(t, AT[i])) return i;
+    return -1;
+}
+void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k)
+{
+    dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
+    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196);
+    switch (k) {
+    case 0: { /* endurance: a heart */
+        ImU32 red = C(200, 50, 45);
+        dl->AddCircleFilled(P(-3.6f, -2.5f), 4.6f * u, red); dl->AddCircleFilled(P(3.6f, -2.5f), 4.6f * u, red);
+        dl->AddTriangleFilled(P(-8.1f, -1.2f), P(8.1f, -1.2f), P(0, 9), red);
+        dl->AddCircleFilled(P(-4.5f, -4), 1.3f * u, C(250, 170, 160)); break; }
+    case 1: /* strength: an iron weight */
+        dl->AddCircle(P(0, -6), 3.2f * u, C(110, 110, 118), 0, 2.0f * u);
+        dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
+        dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
+        dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
+    case 2: /* agility: a wing */
+        for (int i = 0; i < 3; i++) {
+            float y = -6 + i * 4.5f, x = 9 - i * 3.0f;
+            dl->AddTriangleFilled(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), parch);
+            dl->AddTriangle(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), ink, 0.7f * u);
+        }
+        break;
+    case 3: /* perception: an open eye */
+        dl->AddBezierQuadratic(P(-10, 0), P(0, -9), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 9), P(10, 0), parch, 1.6f * u);
+        dl->AddCircleFilled(P(0, 0), 4.0f * u, C(80, 130, 200)); dl->AddCircleFilled(P(0, 0), 1.8f * u, C(15, 15, 20));
+        dl->AddCircleFilled(P(1.2f, -1.2f), 0.8f * u, C(255, 255, 255)); break;
+    case 4: /* intellect: a candle */
+        dl->AddRectFilled(P(-3, -2), P(3, 9), C(240, 232, 210)); dl->AddRect(P(-3, -2), P(3, 9), ink, 0, 0, 0.8f * u);
+        dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
+        dl->AddTriangleFilled(P(-2.4f, -4.5f), P(2.4f, -4.5f), P(0, -11), C(255, 200, 70));
+        dl->AddCircleFilled(P(0, -5.2f), 2.4f * u, C(255, 200, 70)); dl->AddCircleFilled(P(0, -5.5f), 1.1f * u, C(255, 250, 210)); break;
+    case 5: /* charisma: a crown */
+        dl->AddQuadFilled(P(-9, 6), P(9, 6), P(9, -5), P(-9, -5), gold);
+        dl->AddTriangleFilled(P(-9, -5), P(-4, -5), P(-6.5f, -10), gold); dl->AddTriangleFilled(P(-2.5f, -5), P(2.5f, -5), P(0, -11), gold);
+        dl->AddTriangleFilled(P(4, -5), P(9, -5), P(6.5f, -10), gold);
+        dl->AddRect(P(-9, -5), P(9, 6), ink, 0, 0, 0.8f * u);
+        dl->AddCircleFilled(P(0, 0.5f), 1.8f * u, C(190, 40, 40)); dl->AddCircleFilled(P(-5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); dl->AddCircleFilled(P(5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); break;
+    case 6: /* divine favor: a chalice */
+        dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
+        dl->AddQuadFilled(P(-7, -9), P(7, -9), P(5, -1), P(-5, -1), gold);
+        dl->AddRectFilled(P(-1, 2), P(1, 7), gold); dl->AddRectFilled(P(-5, 7), P(5, 9.5f), gold);
+        dl->AddLine(P(-7, -9), P(7, -9), ink, 0.9f * u); break;
+    }
+}
+
 /* a skill's picture in the flow of a window's text, then the text goes on beside it */
 void ui_skill_icon_inline(int k)
 {
@@ -544,7 +599,7 @@ extern "C" void hdtext_draw(void)
     static std::vector<Spelled> sp;
     const FaceMetrics fm = face_metrics(font);
     { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f * fm.k); }
-    float prev_end = 0; int prev = -1, skip = -1;
+    float prev_end = 0; int prev = -1, skip = -1, on_sheet = -1;
     auto joins = [](const HdRun &q, const HdRun &r) { int gap = r.x - (q.x + q.w); return q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3; };
     for (int i = 0; i < hdtext_nruns; i++) {
         if (i == skip) continue;
@@ -601,7 +656,12 @@ extern "C" void hdtext_draw(void)
         }
         text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), faint ? 0 : ui_text_edge, (int)(r.bgrgb & 0xffffff));
         if (clipped) dl->PopClipRect();
-        if (ui_skill_icons) { int k = skill_of(r.text); if (k >= 0) skill_icon(dl, ImVec2(x0 - bh * 0.47f, y0 + bh * 0.5f), bh * 0.56f, k); }
+        if (ui_skill_icons) {
+            int k = skill_of(r.text);
+            if (k >= 0) skill_icon(dl, ImVec2(x0 - bh * 0.47f, y0 + bh * 0.5f), bh * 0.56f, k);
+            else if ((k = attr_of(r.text)) >= 0 && (on_sheet < 0 ? (on_sheet = hdart_on_screen("ARMBACK") || hdart_on_screen("CHARGEN")) : on_sheet))
+                ui_attr_icon(dl, ImVec2(x0 - bh * 0.6f, y0 + bh * 0.5f), bh * 0.56f, k);
+        }
         prev = i; prev_end = x0 + ts.x;
     }
 }
