@@ -104,6 +104,14 @@ F12 > Records > Items lists every item of DARKLAND.LST with its name, short name
 quality, rarity and value, all editable; "Save the list into this mod folder" writes the whole
 list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
 
+## Foes
+
+F12 > Records > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with its
+attributes, weapon skills, armour, shield and weapons, and which weapons pierce its armour. The
+attributes, skills and armour quality can be changed there; "Save the foes into this mod folder"
+writes the whole file as the mod's `DARKLAND.ENM`. Foes of one kind share their numbers. The file's
+layout is in `formats/dlformats/enm.py`.
+
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
