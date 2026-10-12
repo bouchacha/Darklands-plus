@@ -35,7 +35,9 @@
 #include "hdart.h"
 #include "hdtext.h"
 #include "datamods.h"
+#ifndef DL_RTSPLIT
 extern u16 drvseg_mgraphic;
+#endif
 
 extern char game_dir[1024];
 int hdart_on = 1;
@@ -984,7 +986,6 @@ static void thunk_count(void)
 }
 static void thunk_probe(void)
 {
-    extern const HookPoint HOOK_POINTS[]; extern const int HOOK_COUNT;
     for (unsigned i = 0; i < sizeof THUNKS / sizeof THUNKS[0]; i++) {
         unsigned lin = 0x47c0 + THUNKS[i];
         for (int k = 0; k < HOOK_COUNT; k++) if (HOOK_POINTS[k].lin == lin && HOOK_POINTS[k].sect == -1) {

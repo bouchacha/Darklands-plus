@@ -29,6 +29,22 @@ ifdef FTRACE
   BIN    := $(OUT)/$(notdir $(BIN))
   EXTRA  := -DFTRACE
 endif
+# SPLIT=1: the program without the game's translated code, which it loads at run time from a
+# module made on the player's machine (runtime/split.h; "make module" builds one here with TinyCC)
+RT_C     := $(filter-out runtime/gensplit.c,$(wildcard runtime/*.c))
+GEN_SRC  := $(wildcard $(GEN)/*.c)
+ifdef SPLIT
+  OUT    := $(OUT)_split
+  BIN    := $(OUT)/$(notdir $(BIN))
+  EXTRA  += -DDL_RTSPLIT
+  RT_C   := $(filter-out runtime/overrides.c,$(RT_C))
+  GEN_OBJS :=
+  ifneq ($(TARGET),win64)
+    SDL_LIBS += -ldl
+  endif
+else
+  GEN_OBJS := $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC))
+endif
 ifdef ASAN
   # the port's own code (runtime, interface, mods) checked by AddressSanitizer; the generated game code as usual
   OUT    := $(OUT)_asan
@@ -39,15 +55,13 @@ endif
 CFLAGS   := $(EXTRA) $(OPT) -g0 -fwrapv -fno-strict-aliasing -w -Iruntime -I$(GEN) $(SDL_CFLAGS)
 RTFLAGS  := $(EXTRA) $(SANFL) -O2 -g -fwrapv -fno-strict-aliasing -Wall -Wno-unused-function -Wno-misleading-indentation \
             -Wno-unused-variable -Wno-unused-result -Wno-format-truncation -Wno-unused-but-set-variable -Iruntime -I$(GEN) $(SDL_CFLAGS)
-RT_SRC   := $(wildcard runtime/*.c) third_party/nuked-opl3/opl3.c
-GEN_SRC  := $(wildcard $(GEN)/*.c)
 IMGUI    := third_party/imgui
 UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts.o \
             $(patsubst mods/%.c,$(OUT)/mods_%.o,$(wildcard mods/*.c)) \
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
-CXXFLAGS := $(SANFL) -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
-OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)/opl3.o $(UI_OBJS) $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC)) \
+CXXFLAGS := $(EXTRA) $(SANFL) -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
+OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(UI_OBJS) $(GEN_OBJS) \
             $(OUT)/version.o
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
@@ -87,3 +101,9 @@ FORCE:
 clean:
 	rm -rf $(OUT)
 .PHONY: all clean
+# the game module (split.h) from the generated code, as the player's machine makes it
+TCC      ?= tcc
+MODULE   := $(if $(filter win64,$(TARGET)),darklands_game.dll,libdarklands_game.so)
+module: | $(OUT)
+	$(TCC) -shared -w -DDL_GENSPLIT -Iruntime -I$(GEN) -o $(OUT)/$(MODULE) $(GEN_SRC) runtime/cpu.c runtime/overrides.c runtime/gensplit.c
+.PHONY: all module

@@ -10,9 +10,11 @@
 #ifndef DL_HOOKS_H
 #define DL_HOOKS_H
 typedef struct { unsigned lin; int sect; int idx; } HookPoint;
+#ifndef DL_RTSPLIT                       /* else from the game module (split.h) */
 extern const HookPoint HOOK_POINTS[];
 extern const int HOOK_COUNT;
 extern void (*hook_table[])(void);
+#endif
 extern int hook_bypass, hook_current;
 /* in generated code: run the hook unless it is calling the original */
 #define HOOK(i) do { if (hook_table[i]) { if (hook_bypass == (i)) hook_bypass = -1; else { hook_run(i); return; } } } while (0)

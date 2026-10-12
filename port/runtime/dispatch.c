@@ -78,7 +78,9 @@ static void tiny_interp(u16 seg, u16 off)
 static int in_program(u16 seg, u16 off) { return LIN(seg, off) >= ((u32)LOADSEG << 4); }
 
 /* is there native code (recompiled or emulated service) at seg:off? */
+#ifndef DL_RTSPLIT
 extern const unsigned INTERP_ALWAYS_TABLE[]; extern const int INTERP_ALWAYS_COUNT;
+#endif
 static int interp_always(u32 lin)
 {
     for (int i = 0; i < INTERP_ALWAYS_COUNT; i++) if (INTERP_ALWAYS_TABLE[i] == lin) return 1;

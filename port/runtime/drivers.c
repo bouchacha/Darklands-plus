@@ -9,8 +9,10 @@
 #include "dispatch.h"
 #include "hle.h"
 
+#ifndef DL_RTSPLIT
 extern const DriverImage *DRIVERS[];
 extern u16 *DRIVER_SEGS[];
+#endif
 static int active[16];
 static u32 drv_size[16];
 

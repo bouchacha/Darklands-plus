@@ -21,7 +21,9 @@
 #include "hdtext.h"
 
 extern char game_dir[1024];
+#ifndef DL_RTSPLIT
 extern u16 drvseg_mgraphic;
+#endif
 
 int hdtext_mode = 2;                 /* 0 off, 1 card font, 2 all fonts */
 

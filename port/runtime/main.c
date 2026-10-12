@@ -7,7 +7,9 @@
 #include <string.h>
 #include "cpu.h"
 #include "hle.h"
+#ifndef DL_RTSPLIT
 #include "funcs.h"
+#endif
 #include <SDL.h>
 #include "config.h"
 #include "../mods/mods.h"
@@ -131,6 +133,18 @@ int main(int argc, char **argv)
     }
     { void datamods_init(void); datamods_init(); }     /* mod folders (mods/datamods.c), before any file is read */
     M = calloc(1, MEM_SIZE);
+#ifdef DL_RTSPLIT
+    {   /* the game's translated code, made on this machine from DARKLAND.EXE (split.h) */
+        int gameload(const char *dir, char *err, int errn);
+        char err[1400];
+        if (gameload(game_dir, err, sizeof err) <= 0) {
+            char msg[1600]; snprintf(msg, sizeof msg, "The game module could not be loaded:\n%s", err);
+            fprintf(stderr, "%s\n", msg);
+            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
+            return 1;
+        }
+    }
+#endif
 #ifdef FTRACE
     { extern u32 watch_lo, watch_len; const char *w = getenv("DL_WATCH");   /* linear-hex[:len] */
       { extern u16 sp_low; const char *sl = getenv("DL_SP_LOW"); if (sl) sp_low = (u16)strtoul(sl, 0, 16); }
@@ -205,9 +219,15 @@ int main(int argc, char **argv)
     if (skip_rtlink) {
         /* what the RTLink start-up leaves behind: the PSP saved in its segment */
         ww((u16)(LOADSEG + 0x09c0), 2534, psp_seg);
+#ifdef DL_RTSPLIT
+        dl_game->start_c();
+    } else {
+        dl_game->start_rtlink();
+#else
         F_root_06a2a();         /* C start-up (__astart) */
     } else {
         F_root_0a2fd();         /* RTLink start-up, which then runs __astart */
+#endif
     }
     if (unw_active) fprintf(stderr, "program left through an unmatched return (slot %04x -> %04x:%04x)\n", unw_sp, unw_cs, unw_ip);
     else fprintf(stderr, "program returned from its entry point\n");
