@@ -697,6 +697,7 @@ static void tab_about(void)
     ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original");
     {   extern char dlp_data_dir[];
         bool own = strcmp(dlp_data_dir, game_dir) != 0;    /* the game folder could not be written */
+        ImGui::BulletText("the game: %s", game_dir);
         ImGui::BulletText("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
         ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
         ImGui::BulletText("a log of the session: darklands_port.log (Windows) in %s, to send along with a report of a problem", own ? dlp_data_dir : "the game folder");
