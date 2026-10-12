@@ -45,6 +45,11 @@ from the SDL releases on GitHub), the program (`make -C port SPLIT=1 TARGET=win6
 (python.org and PyPI), and the zip (`port/tools/package.py`). The versions are set at the top of
 `.github/workflows/release.yml`.
 
+If python.org cannot be reached, `package.py --python-dir DIR` takes a whole Python for Windows
+instead of the embeddable zip, for example python-build-standalone's
+`cpython-3.12.*-x86_64-pc-windows-msvc-install_only.tar.gz` from its GitHub releases (the parts
+the translator does not need are left out; the zip grows from about 10 to 14 MB).
+
 ## What players need
 
 Their own Darklands 483.07 (GOG) and Windows 10 or 11, 64-bit. On Linux and Steam Deck the

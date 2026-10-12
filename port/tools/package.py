@@ -8,6 +8,7 @@ game module on the player's machine (runtime/split.h). Nothing made from the gam
 
   TCCDIR          port/tools/build_tcc_win.sh
   --python-zip    the "Windows embeddable package (64-bit)" from python.org
+  --python-dir    or a whole Python for Windows (trimmed)
   --capstone-wheel  pip download capstone --only-binary=:all: --platform win_amd64 --python-version 3.12
 
 Layout of the zip (its contents go into the Darklands folder, next to DARKLAND.EXE):
@@ -37,13 +38,15 @@ def main():
     ap.add_argument('--exe', required=True)
     ap.add_argument('--tcc', required=True)
     ap.add_argument('--python-zip')
+    ap.add_argument('--python-dir', help='instead of --python-zip: a whole Python for Windows (an install, or '
+                    'python-build-standalone\'s install_only build); what the translator does not need is left out')
     ap.add_argument('--capstone-wheel')
     ap.add_argument('--version', default='test')
     ap.add_argument('--out', required=True)
     ap.add_argument('--no-python', action='store_true', help='leave Python out (tests only)')
     a = ap.parse_args()
-    if not a.no_python and not (a.python_zip and a.capstone_wheel):
-        ap.error('--python-zip and --capstone-wheel are needed (or --no-python for a test)')
+    if not a.no_python and not ((a.python_zip or a.python_dir) and a.capstone_wheel):
+        ap.error('--python-zip (or --python-dir) and --capstone-wheel are needed (or --no-python for a test)')
     st = tempfile.mkdtemp(prefix='dlpkg')
     plus = os.path.join(st, 'darklands_plus')
     lic = os.path.join(plus, 'licenses')
@@ -60,14 +63,23 @@ def main():
     # Python and capstone
     if not a.no_python:
         py = os.path.join(plus, 'python')
-        zipfile.ZipFile(a.python_zip).extractall(py)
         sp = os.path.join(py, 'Lib', 'site-packages')
-        zipfile.ZipFile(a.capstone_wheel).extractall(sp)
-        pth = glob.glob(os.path.join(py, 'python*._pth'))
-        if not pth:
-            raise SystemExit('no python*._pth in the embeddable package')
-        with open(pth[0], 'a') as f:
-            f.write('\nLib\\site-packages\n')
+        if a.python_dir:
+            if not os.path.exists(os.path.join(a.python_dir, 'python.exe')):
+                raise SystemExit('no python.exe in ' + a.python_dir)
+            skip = shutil.ignore_patterns('*.pdb', '__pycache__', 'test', 'tests', 'idlelib', 'tkinter', 'turtledemo',
+                                          'ensurepip', 'pip', 'pip-*', 'tcl*', 'tk*', '_tkinter*', 'include', 'libs', 'Scripts')
+            shutil.copytree(a.python_dir, py, ignore=skip)
+            os.makedirs(sp, exist_ok=True)
+            zipfile.ZipFile(a.capstone_wheel).extractall(sp)
+        else:
+            zipfile.ZipFile(a.python_zip).extractall(py)
+            zipfile.ZipFile(a.capstone_wheel).extractall(sp)
+            pth = glob.glob(os.path.join(py, 'python*._pth'))
+            if not pth:
+                raise SystemExit('no python*._pth in the embeddable package')
+            with open(pth[0], 'a') as f:
+                f.write('\nLib\\site-packages\n')
         if os.path.exists(os.path.join(py, 'LICENSE.txt')):
             shutil.copy(os.path.join(py, 'LICENSE.txt'), os.path.join(lic, 'Python-PSF.txt'))
         for l in glob.glob(os.path.join(sp, 'capstone*', 'LICENSE*')) + glob.glob(os.path.join(sp, 'capstone*.dist-info', 'LICENSE*')):
