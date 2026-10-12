@@ -11,15 +11,16 @@ Everything new can be switched off. F12 > Helpers > "Play the original game" tur
 off at once.
 
 WHAT YOU NEED
-Your own copy of Darklands, version 483.07 (the GOG release). This download does not include
-anything from the game.
+Your own copy of Darklands, version 483.07 (as GOG and Steam sell it). This download does not
+include anything from the game.
 
 INSTALLING
-1. Unpack this zip into your Darklands folder, the one that contains DARKLAND.EXE (for GOG
-   usually C:\GOG Games\Darklands, or its DARKLAND subfolder). This adds darklands.exe and
-   the darklands_plus folder. The original game files are not changed.
-2. Back up your SAVES folder. Saves go into the game folder, as in the original.
-3. Double-click darklands.exe.
+1. Unpack this zip into a folder of its own, for example C:\Games\Darklands+. (You can also
+   unpack it into your Darklands folder, the one that contains DARKLAND.EXE.)
+2. Back up your SAVES folder. Saves stay in the Darklands folder, as in the original.
+3. Double-click darklands.exe. Darklands+ finds a GOG or Steam installation by itself;
+   otherwise it asks you for the Darklands folder once. The original game files are not
+   changed.
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
