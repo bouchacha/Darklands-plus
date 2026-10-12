@@ -105,10 +105,10 @@ static void bar(float frac, ImU32 col, float w, float hgt)
 }
 static void battle_panel(float width, float fs)
 {
-    static bool seen[13]; static int last_frame = -100;
-    int fr = ImGui::GetFrameCount();
-    if (fr - last_frame > 5) for (int i = 0; i < 13; i++) seen[i] = false;    /* a new battle (the panel was not drawn for a while) */
-    last_frame = fr;
+    static bool seen[13]; static u16 last_tick = 0xffff;
+    u16 tick = g_rw(0xe092);                        /* the battle's clock: back at 0 in a new battle */
+    if (tick < last_tick) for (int i = 0; i < 13; i++) seen[i] = false;
+    last_tick = tick;
     int n = (s8)g_rb(0xe0a1);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(0xd848 + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
