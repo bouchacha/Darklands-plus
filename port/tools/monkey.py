@@ -55,7 +55,8 @@ while time.time() < t_end:
         L('PROCESS ENDED, exit status %d signal %d' % ((v >> 8) & 255, v & 127)); print(name, 'ENDED', v); break
     s = ask(['umode:', 'ucard:', 'uparty:'])
     m = re.search(r'^mode (\d+)', s, re.M); mode = int(m.group(1)) if m else -1
-    c = re.search(r'^card (\S*) n (-?\d+)', s, re.M); card, n = (c.group(1), int(c.group(2))) if c else ('?', 0)
+    c = re.search(r'^card (\S*) n (-?\d+)(?: menu (\d) maplive (\d))?', s, re.M); card, n = (c.group(1), int(c.group(2))) if c else ('?', 0)
+    menu = c and c.group(3) == '1'; maplive = c and c.group(4) == '1'
     p = re.search(r'^party .*', s, re.M); party = p.group(0) if p else ''
     paused = ' paused 1 ' in party
     modes[mode] = modes.get(mode, 0) + 1
@@ -65,7 +66,7 @@ while time.time() < t_end:
         L('STUCK for 4 min:', sig); print(name, 'STUCK', sig)
         nctl.do(name, 'wshot stuck_%d' % steps); same_since = time.time()
     steps += 1
-    L('mode', mode, 'card', card, 'n', n, party[:120])
+    L('mode', mode, 'card', card, 'n', n, 'menu' if menu else '', 'map' if maplive else '', party[:120])
     if a.x11 and rnd.random() < 0.08:          # the interface: tabs of the F12 menu, the maps, help
         act = rnd.choice(['tabs', 'map', 'level', 'help'])
         L('ui', act)
@@ -74,9 +75,10 @@ while time.time() < t_end:
         elif act == 'level': nctl.do(name, 'ucmd ulevelmap:; wait 1.5; ucmd ulevelmap:; wait 0.5')
         elif act == 'help': nctl.do(name, 'ucmd uhelp:; wait 1; ucmd uhelp:; wait 0.5')
         continue
-    if mode == 2 and n > 0: mode = 1          # a card over the travel map (village, encounter)
-    recent.append(card); del recent[:-25]
-    if n > 1 and len(recent) == 25 and len(set(recent)) == 1 and rnd.random() < 0.5:   # going round in circles (a mine's card): another way out
+    if mode == 2 and (menu or (c and c.group(3) is None and n > 0)) and not maplive: mode = 1   # a card over the travel map (village, encounter)
+    if mode == 1 and not menu and c and c.group(3) is not None: n = 0      # the card's text, not its options: read on
+    if mode == 1: recent.append(card); del recent[:-25]
+    if mode == 1 and n > 1 and len(recent) == 25 and len(set(recent)) == 1 and rnd.random() < 0.5:   # going round in circles (a mine's card): another way out
         nctl.do(name, 'ucmd ucardkey:%d; wait 2; at %d %d; click; wait 6' % (rnd.randrange(n) + 1, rnd.randrange(80, 300), rnd.randrange(20, 190))); continue
     if mode in (0, 3) and ': 0/0,0/0 0/0,0/0' in party and rnd.random() < 0.7:   # no party: the title menu
         nctl.do(name, 'at 160 62; click; wait 6; click; wait 3; click; wait 3'); continue
@@ -90,7 +92,7 @@ while time.time() < t_end:
             nctl.do(name, 'at 304 12; click; wait 1')
     elif mode == 2:
         r = rnd.random()
-        if r < 0.5 and len(set(recent)) > 1: nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
+        if r < 0.5 and not (len(recent) == 25 and len(set(recent)) == 1): nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
         else: nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(80, 300), rnd.randrange(20, 190)))
     elif mode == 4:
         if time.time() - same_since > 120:

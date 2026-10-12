@@ -247,8 +247,13 @@ static int marker_target(int tx, int ty, int *mx, int *my)
     return 1;
 }
 
+u32 plat_ticks_ms(void);
+static u32 map_polled;                      /* when the overland loop last took a step (it does while the map is up) */
+int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polled < 300; }
+
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
+    map_polled = plat_ticks_ms();
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
         if (key != 0x4c35) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: stopped by key %04x\n", key); }   /* the player took over */

@@ -23,6 +23,7 @@ int travel_to_tile(int x, int y, int loc, const char *name);
 int travel_to_loc(int loc, const char *name);
 void travel_stop(void);
 void travel_party_tile(int *x, int *y);
+int travel_map_live(void);                   /* the overland loop is running (no card or screen over the map) */
 int travel_terrain(int x, int y);
 #ifdef __cplusplus
 }

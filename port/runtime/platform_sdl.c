@@ -565,8 +565,9 @@ static void run_script(void)
             fprintf(stderr, "text end\n");
         }
         else if (!strcmp(s->cmd, "ucard")) {               /* test: the card's name and its option lines (option id, text) */
-            int n = (s8)g_rb(0xe96e);
-            fprintf(stderr, "card %.12s n %d\n", (const char *)M + LIN(G_DGROUP, 0xe3d4), n);
+            int n = (s8)g_rb(0xe96e);   /* the last card's: it stays set after the card closes ("menu": its options are up) */
+            int assist_in_card_menu(void), travel_map_live(void);
+            fprintf(stderr, "card %.12s n %d menu %d maplive %d\n", (const char *)M + LIN(G_DGROUP, 0xe3d4), n, assist_in_card_menu(), travel_map_live());
             for (int i = 0; i < n && i < 20; i++) {
                 int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i)), opt = (s8)g_rb((u16)(0xe9b0 + i));
                 char t[256] = "";
