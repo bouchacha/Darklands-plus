@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include "../third_party/mt32emu/mt32emu.h"
@@ -200,13 +201,27 @@ int mt32_open(int rate)
 
 int mt32_is_open(void) { return state > 0; }
 
+/* Timing: the audio is made a buffer at a time, so a message would otherwise wait for the next
+ * buffer and the notes of one buffer's time would all start together. Each message is given the
+ * moment it was sent instead, one buffer later than now (the time since the last buffer began,
+ * added to where that buffer began in the output, plus a buffer): an even delay, no jitter. */
+uint64_t plat_ticks_us(void);
+static uint64_t cb_us;                  /* when the last buffer was made */
+static uint32_t rendered, cb_frames;    /* output frames made so far (that buffer included), and its length */
+static uint32_t last_ts;
+
 /* from the game's thread: a whole MIDI message or SysEx (mpu.c) */
 void mt32_msg(const unsigned char *m, int n)
 {
     if (state <= 0) return;
     sound_lock(1);
-    if (m[0] == 0xf0) mt32emu_play_sysex(ctx, m, (mt32emu_bit32u)n);
-    else mt32emu_play_msg(ctx, (mt32emu_bit32u)m[0] | (n > 1 ? (mt32emu_bit32u)m[1] << 8 : 0) | (n > 2 ? (mt32emu_bit32u)m[2] << 16 : 0));
+    uint64_t dt = plat_ticks_us() - cb_us;
+    if (dt > 2 * 1000000ull * cb_frames / 44100) dt = 2 * 1000000ull * cb_frames / 44100;   /* after a pause */
+    uint32_t ts = mt32emu_convert_output_to_synth_timestamp(ctx, rendered + (uint32_t)(dt * 44100 / 1000000));
+    if ((int32_t)(ts - last_ts) < 0) ts = last_ts;
+    last_ts = ts;
+    if (m[0] == 0xf0) mt32emu_play_sysex_at(ctx, m, (mt32emu_bit32u)n, ts);
+    else mt32emu_play_msg_at(ctx, (mt32emu_bit32u)m[0] | (n > 1 ? (mt32emu_bit32u)m[1] << 8 : 0) | (n > 2 ? (mt32emu_bit32u)m[2] << 16 : 0), ts);
     sound_lock(0);
 }
 
@@ -214,6 +229,7 @@ void mt32_msg(const unsigned char *m, int n)
 void mt32_mix(short *out, int frames)
 {
     if (state <= 0) return;
+    cb_us = plat_ticks_us(); cb_frames = (uint32_t)frames;
     static short buf[2 * 4096];
     while (frames > 0) {
         int n = frames > 4096 ? 4096 : frames;
@@ -224,6 +240,7 @@ void mt32_mix(short *out, int frames)
         }
         out += 2 * n; frames -= n;
     }
+    rendered += cb_frames;
 }
 
 /* for F12 > Display */
