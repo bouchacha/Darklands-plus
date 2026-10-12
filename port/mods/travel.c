@@ -331,9 +331,26 @@ void travel_set(int on, int fast)
     else { hook_remove(30, 0x1462, 0x0c44); hook_remove(30, 0x1767, 0x0046); travel.active = 0; }
 }
 
+/* how often the road brings an encounter (travel.encounters, % of the game's rate). Each step
+ * on the map the game rolls rand(1000) against (days without one + 1) x a weight for the
+ * terrain and the nearest place (s030 1462:2d44); the weight is what is scaled here: below
+ * 100 % a step's weight is 0 (no encounter) that often, above it the weight grows. */
+static void encounter_weight_hook(void)
+{
+    hook_call_original();
+    int pct = config_get_int("travel.encounters", 100);
+    if (config_get_int("original", 0) || pct == 100) return;
+    int w = (s16)AX;
+    if (pct < 100) { if (rand() % 100 >= pct) w = 0; }
+    else w = (w * pct + 50) / 100;
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_ENC_LOG") != 0; if (lg) fprintf(stderr, "encounter weight %d -> %d (%d %%)\n", (s16)AX, w, pct); }
+    AX = (u16)w;
+}
+
 void travel_init(void)
 {
     travel_set(config_get_int("travel.auto", 1), config_get_int("travel.fast", 1));
+    hook_install(30, 0x1462, 0x2d44, encounter_weight_hook);
 }
 
 /* Ctrl+click at game pixel (gx, gy) on the travel map */

@@ -483,6 +483,14 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Auto-travel along roads (Travel tab, or Ctrl+click on the map)", &ta)) { travel_set(ta, tf); dirty_config = 1; }
     bool cg = config_get_int("assist.city_goto", 1);
     if (ImGui::Checkbox("Go to in cities: G on a city's card lists its places; the party walks there through the menus", &cg)) { config_set_int("assist.city_goto", cg); dirty_config = 1; }
+    {   /* the game's rate of encounters on the road (mods/travel.c) */
+        static const int P[] = { 25, 50, 100, 200 };
+        static const char *N[] = { "rare (a quarter)", "fewer (half)", "as the game", "more (double)" };
+        int cur = config_get_int("travel.encounters", 100), sel = 2;
+        for (int i = 0; i < 4; i++) if (P[i] == cur) sel = i;
+        ImGui::SetNextItemWidth(UIS(200));
+        if (ImGui::Combo("encounters on the road", &sel, N, 4)) { config_set_int("travel.encounters", P[sel]); dirty_config = 1; }
+    }
     ImGui::TextUnformatted("Pace of auto-travel:"); ImGui::SameLine();
     if (ImGui::RadioButton("as walking", tf == 0)) { travel_set(ta, 0); dirty_config = 1; } ImGui::SameLine();
     if (ImGui::RadioButton("4x", tf == 1)) { travel_set(ta, 1); dirty_config = 1; } ImGui::SameLine();

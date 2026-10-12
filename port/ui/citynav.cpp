@@ -239,7 +239,7 @@ extern "C" void citynav_tick(void)
     if (!assist_in_card_menu()) {                        /* the card's text: read on (hubs, and the place the walk starts from) */
         if (now - phase_t < 450) return;
         if (hub == H_NONE) {
-            if (visited || conts >= 4) { stop(steps_taken ? "something happened on the way." : "leave this place first."); return; }
+            if (visited || conts >= 8) { stop(steps_taken ? "something happened on the way." : "leave this place first."); return; }   /* (the Quickstart's inn card has six pages) */
             conts++;
         }
         LOG("%s: read on\n", kb);
