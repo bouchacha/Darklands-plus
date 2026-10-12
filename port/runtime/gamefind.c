@@ -9,6 +9,7 @@
 #include <shlobj.h>
 #else
 #include <dirent.h>
+#include <sys/stat.h>
 #endif
 
 static int exists(const char *p) { FILE *f = fopen(p, "rb"); if (f) fclose(f); return f != 0; }
@@ -40,7 +41,13 @@ static int has_game(const char *dir, char *out, int n)
 
 static void remember(const char *exedir, const char *dir)
 {
-    char p[1400]; snprintf(p, sizeof p, "%s/darklands_plus/game_folder.txt", exedir);
+    char p[1400]; snprintf(p, sizeof p, "%s/darklands_plus", exedir);
+#ifdef _WIN32
+    CreateDirectoryA(p, NULL);
+#else
+    mkdir(p, 0755);
+#endif
+    snprintf(p, sizeof p, "%s/darklands_plus/game_folder.txt", exedir);
     FILE *f = fopen(p, "w");
     if (f) { fprintf(f, "%s\n", dir); fclose(f); }
 }
