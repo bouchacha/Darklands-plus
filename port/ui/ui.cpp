@@ -770,6 +770,7 @@ static void help_window(void)
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
+            { extern int ui_battle_log; if (ui_battle_log) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
