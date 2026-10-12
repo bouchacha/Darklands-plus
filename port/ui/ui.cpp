@@ -589,16 +589,27 @@ static void tab_party(void)
     ImGui::EndTabBar();
 }
 
+extern "C" const char dlp_version[];
 static void tab_about(void)
 {
-    ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, "
-                       "with the original game files from your copy.");
+    ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
+    ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
+    ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Helpers > Play the original game).");
     ImGui::Spacing();
-    ImGui::TextWrapped("F12 opens and closes this menu (Esc closes it). The game is paused while it is open.");
-    ImGui::TextWrapped("Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M on the travel map: world map.");
-    ImGui::Spacing();
-    hint("Font: EB Garamond (SIL Open Font License). Interface: Dear ImGui (MIT). "
-                        "Music synthesis: your system's MIDI synthesizer.");
+    ImGui::TextWrapped("F1: the keys of the moment.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
+                       "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Files"); ImGui::PopFont();
+    ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original");
+    ImGui::BulletText("settings: darklands_port.ini in the game folder");
+    ImGui::BulletText("mods: the mods folder of the game folder (Mods tab)");
+    ImGui::BulletText("a log of the session: darklands_port.log (Windows), to send along with a report of a problem");
+    ImGui::PushFont(font_head); ImGui::SeparatorText("Made with"); ImGui::PopFont();
+    hint("Dear ImGui (MIT licence); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); stb_image, stb_image_write, "
+         "stb_vorbis (public domain); SDL2 (zlib licence); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
+         "MedievalSharp and UnifrakturMaguntia (SIL Open Font License 1.1).");
+    hint("With thanks to the Darklands community: vvendigo's tools, Merle's and Joel \"Quadko\" McIntyre's documentation "
+         "of the file formats, and the Darklands Companion.");
 }
 
 /* F1: the keys and clicks of the moment (the game's own and Darklands+'s) */

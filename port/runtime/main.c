@@ -74,6 +74,7 @@ int main(int argc, char **argv)
         freopen(lp, "w", stderr);
     }
 #endif
+    { extern const char dlp_version[]; fprintf(stderr, "Darklands+ build %s, game folder %s\n", dlp_version, game_dir); }
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 

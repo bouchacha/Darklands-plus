@@ -40,7 +40,10 @@ UI_OBJS  := $(patsubst ui/%.cpp,$(OUT)/ui_%.o,$(wildcard ui/*.cpp)) $(OUT)/fonts
             $(patsubst $(IMGUI)/%.cpp,$(OUT)/imgui_%.o,$(wildcard $(IMGUI)/*.cpp)) \
             $(OUT)/imgui_impl_sdl2.o $(OUT)/imgui_impl_sdlrenderer2.o
 CXXFLAGS := -O2 -I$(IMGUI) -Iruntime -I$(GEN) $(SDL_CFLAGS)
-OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)/opl3.o $(UI_OBJS) $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC))
+OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(wildcard runtime/*.c)) $(OUT)/opl3.o $(UI_OBJS) $(patsubst $(GEN)/%.c,$(OUT)/gen_%.o,$(GEN_SRC)) \
+            $(OUT)/version.o
+# the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
+VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
 
 all: $(BIN)
 $(BIN): $(OBJS)
@@ -68,6 +71,12 @@ $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 	$(CC) $(CFLAGS) -c -o $@ $<
 $(OUT):
 	mkdir -p $@
+$(OUT)/version.c: FORCE | $(OUT)
+	@echo 'const char dlp_version[] = "$(VERSION)";' > $@.tmp; cmp -s $@.tmp $@ || mv $@.tmp $@; rm -f $@.tmp
+$(OUT)/version.o: $(OUT)/version.c
+	$(CC) -c -o $@ $<
+.PHONY: FORCE
+FORCE:
 clean:
 	rm -rf $(OUT)
 .PHONY: all clean
