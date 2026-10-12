@@ -93,11 +93,17 @@ static u8 *page_mem(int page)
 }
 static void rec_free(Rec *r) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; }
 
+/* new text over old: the old record goes only when it is the same line drawn again (same
+ * place, font and length). Other covered text is kept: the newer record claims the pixels
+ * first, so the old one simply fails its checks while covered, and comes back when the game
+ * puts the old picture back (the character sheet's skill box, opened wider over the narrow
+ * one and closed again by restoring a saved image: the rows the wide names had covered
+ * showed in the bitmap font) */
 static void drop_covered(int page, int x0, int y0, int w, int h)
 {
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
-        if (r->used && r->page == page && r->x0 >= x0 && r->y0 >= y0 && r->x0 + r->w <= x0 + w && r->y0 + r->h <= y0 + h) rec_free(r);
+        if (r->used && r->page == page && r->x0 == x0 && r->y0 == y0 && r->w == w && r->h == h) rec_free(r);
     }
 }
 
@@ -326,6 +332,36 @@ const unsigned *hdtext_cursor(int *x, int *y, int *w, int *h, int *stride)
     return cur_rgb;
 }
 
+/* The interface draws the pointer itself, where the mouse is now, rather than where the
+ * game last drew it: the game moves its pointer only when it gets round to it (a frame or
+ * two late, in whole game pixels - 3 or 4 screen pixels a step), which felt sluggish. Its
+ * sprite is taken out of the picture (hdtext_live_pointer, set by the interface while it
+ * draws the pointer); its offset from the mouse position (the hot spot) is learnt while
+ * the mouse stands still. */
+int hdtext_live_pointer;
+static int hot_x, hot_y; static u16 hot_seg; static int hot_w, hot_h;
+void plat_mouse_game(int *x, int *y);
+void hdtext_pointer_hotspot(int *hx, int *hy) { *hx = hot_x; *hy = hot_y; }
+static void pointer_out(u32 *rgb, const u32 *lut, u8 *idx)
+{
+    if (!cur_on) return;
+    {   static int lmx = -1, lmy = -1, still; int mx, my; plat_mouse_game(&mx, &my);
+        u16 seg = drvseg_mgraphic ? rw((u16)(drvseg_mgraphic + 0x140), 0x200) : 0;
+        if (seg != hot_seg || cur_w != hot_w || cur_h != hot_h) { hot_seg = seg; hot_w = cur_w; hot_h = cur_h; hot_x = hot_y = 0; still = 0; }
+        if (mx == lmx && my == lmy) still++; else still = 0;
+        lmx = mx; lmy = my;
+        if (still >= 3) { int hx = cur_x - mx, hy = cur_y - my; if (hx > -CUR_MAX && hx <= 0 && hy > -CUR_MAX && hy <= 0) { hot_x = hx; hot_y = hy; } }
+    }
+    if (!hdtext_live_pointer) return;
+    for (int r = 0; r < cur_h; r++)
+        for (int c = 0; c < cur_w; c++) {
+            int x = cur_x + c, y = cur_y + r;
+            if (!cur_px[r * CUR_MAX + c] || x < 0 || y < 0 || x >= 320 || y >= 200) continue;
+            int p = y * 320 + x;
+            rgb[p] = lut[clean[p]]; if (idx) idx[p] = clean[p];
+        }
+}
+
 /* one glyph of a record, rows y0..y1: still on the screen as drawn (good: its pixels in one
  * colour, a highlight may have recoloured it; xgood: drawn xor over the picture), the
  * picture around it unchanged? */
@@ -363,6 +399,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
 {
     hdtext_nruns = 0;
     cursor_read(lut);
+    pointer_out(rgb, lut, idx);
     if (!hdtext_mode) return;
     const u8 *vga = clean;                       /* the screen without the pointer */
     static u8 claimed[320 * 200];

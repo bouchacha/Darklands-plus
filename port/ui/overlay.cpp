@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <vector>
 #include "imgui.h"
+#include <SDL.h>
 #include "../mods/hdart.h"
 #include "gamedata.h"
 extern "C" {
@@ -600,25 +601,42 @@ extern "C" void hdtext_draw(void)
     }
 }
 
-/* the game's pointer again, over the crisp text and the helpers' marks (as over the picture) */
+/* the game's pointer again, over the crisp text and the helpers' marks (as over the picture),
+ * where the mouse is now (hdtext.c: the game's own sprite is taken out of the picture) */
+static int pointer_drawn;                                    /* this frame (hdtext_live_pointer for the next) */
 extern "C" void hdtext_draw_cursor(void)
 {
-    if (config_get_int("original", 0)) return;              /* nothing of ours covers it then */
+    pointer_drawn = 0;
+    if (config_get_int("original", 0)) return;              /* nothing of ours covers it then: the game draws its own */
     int x, y, w, h, st;
     const unsigned *px = hdtext_cursor(&x, &y, &w, &h, &st);
     if (!px) return;
+    float fx = (float)x, fy = (float)y;
+    static int scripted = -1;                                /* (scripted tests move the game's mouse, not the system's) */
+    if (scripted < 0) scripted = (getenv("DL_SCRIPT") || getenv("DL_CTL")) && !getenv("DL_LIVE_POINTER");
+    if (config_get_int("display.live_pointer", 1) && !scripted) {
+        int mx, my; SDL_GetMouseState(&mx, &my);
+        float ax, ay, bx, by; plat_game_to_win(0, 0, &ax, &ay); plat_game_to_win(320, 200, &bx, &by);
+        if (mx >= ax && mx < bx && my >= ay && my < by && bx > ax && by > ay) {   /* over the picture: at the mouse */
+            int hx, hy; hdtext_pointer_hotspot(&hx, &hy);
+            fx = (mx - ax) * 320.0f / (bx - ax) + hx; fy = (my - ay) * 200.0f / (by - ay) + hy;
+        }
+        pointer_drawn = 1;
+    }
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     for (int r = 0; r < h; r++) {
-        if (y + r < 0 || y + r >= 200) continue;
+        if (fy + r < 0 || fy + r >= 200) continue;
         for (int c = 0; c < w; c++) {
             unsigned v = px[r * st + c];
-            if (!v || x + c < 0 || x + c >= 320) continue;
-            int e = c; while (e + 1 < w && x + e + 1 < 320 && px[r * st + e + 1] == v) e++;
-            dl->AddRectFilled(g2w((float)(x + c), (float)(y + r)), g2w((float)(x + e + 1), (float)(y + r + 1)), IM_COL32(v >> 16 & 255, v >> 8 & 255, v & 255, 255));
+            if (!v || fx + c < 0 || fx + c >= 320) continue;
+            int e = c; while (e + 1 < w && fx + e + 1 < 320 && px[r * st + e + 1] == v) e++;
+            dl->AddRectFilled(g2w(fx + c, fy + r), g2w(fx + e + 1, fy + r + 1), IM_COL32(v >> 16 & 255, v >> 8 & 255, v & 255, 255));
             c = e;
         }
     }
 }
+extern "C" void hdtext_pointer_off(void) { pointer_drawn = 0; }          /* not drawn this frame (a menu over the picture) */
+extern "C" void hdtext_pointer_frame_end(void) { hdtext_live_pointer = pointer_drawn; }
 
 /* "show picture names" (Display): the picture under the mouse, outlined and named,
  * so that artists know which file to replace */

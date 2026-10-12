@@ -72,6 +72,8 @@ extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
 extern "C" void hdtext_draw_cursor(void);
+extern "C" void hdtext_pointer_off(void);
+extern "C" void hdtext_pointer_frame_end(void);
 void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
@@ -864,7 +866,10 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else if (levelmap_is_open()) levelmap_draw();
     else hdtext_draw();
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
-    if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open()) hdtext_draw_cursor();
+    {
+        if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open()) hdtext_draw_cursor();
+        else hdtext_pointer_off();
+        hdtext_pointer_frame_end(); }
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
