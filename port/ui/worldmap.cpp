@@ -21,6 +21,7 @@ extern "C" {
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
 int journal_visited(int loc);
+void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 void quest_marks(std::vector<std::pair<int, std::string>> &out);
 extern ImFont *ui_font_small, *ui_font_text;
@@ -356,4 +357,39 @@ extern "C" void worldmap_draw(void)
     }
     ImGui::End();
     ImGui::End();
+}
+
+/* names on the game's own travel map (map.names): the towns and places in view, under their
+ * icons (the original names a place only in the top bar, once the pointer is on it). The view:
+ * DS:286a its first column, DS:286c + DS:286e its first row; a tile is 16 x 4 game pixels,
+ * odd rows half a tile to the right (the route in ui/travel.cpp is drawn the same way). */
+extern "C" void travelmap_labels(void)
+{
+    if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_text) return;
+    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    ImFont *f = ui_font_text;
+    float base = ui_text_px();
+    for (int k = 0; k < G_NLOC; k++) {
+        u32 r = g_location(k);
+        if (!r) continue;
+        u16 s = (u16)(r >> 16), o = (u16)r;
+        int kind = (s16)rw(s, o), x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6)), menu = (s16)rw(s, (u16)(o + 0x0c));
+        if (k >= 92 && (menu == 0x62 || kind == 15)) continue;             /* not shown on the map */
+        float sx = (float)(16 * (x - vx) + ((y & 1) ? 7 : -1) + 65), sy = (float)(4 * (y - vr) - 6 + 21);
+        if (sx < 66 || sx > 314 || sy < 18 || sy > 190) continue;
+        std::string name;
+        if (k < (int)gamedata.cities.size()) name = gamedata.cities[k].name;
+        else { char b[24]; g_str(s, (u16)(o + 0x26), b, sizeof b); name = game_text(b, sizeof b); }
+        if (name.empty()) continue;
+        bool town = k < 92;
+        float size = base * (town ? 1.1f : 0.88f);
+        ImVec2 at; plat_game_to_win(sx, sy + 5, &at.x, &at.y);
+        ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0, name.c_str());
+        ImVec2 tp(at.x - ts.x * 0.5f, at.y);
+        float ow = fmaxf(1.0f, roundf(size / 16.0f));
+        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
+            if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
+        dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+    }
 }

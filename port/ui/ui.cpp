@@ -483,6 +483,8 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Auto-travel along roads (Travel tab, or Ctrl+click on the map)", &ta)) { travel_set(ta, tf); dirty_config = 1; }
     bool cg = config_get_int("assist.city_goto", 1);
     if (ImGui::Checkbox("Go to in cities: G on a city's card lists its places; the party walks there through the menus", &cg)) { config_set_int("assist.city_goto", cg); dirty_config = 1; }
+    { bool mn = config_get_int("map.names", 1) != 0;
+      if (ImGui::Checkbox("Names of the towns and places on the travel map", &mn)) { config_set_int("map.names", mn); dirty_config = 1; } }
     {   /* the game's rate of encounters on the road (mods/travel.c) */
         static const int P[] = { 25, 50, 100, 200 };
         static const char *N[] = { "rare (a quarter)", "fewer (half)", "as the game", "more (double)" };

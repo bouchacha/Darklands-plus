@@ -1125,6 +1125,7 @@ static void draw_creation_guide(void)
     ImGui::PopStyleVar(); ImGui::PopStyleColor(2);
 }
 
+extern "C" void travelmap_labels(void);
 extern "C" void ui_overlay(void)
 {
     {   /* a layer for the panels and badges over the picture: under the tooltips (windows), above the crisp text */
@@ -1138,6 +1139,7 @@ extern "C" void ui_overlay(void)
     draw_card_help();
     if (assist_card_help) { watch_saints(); draw_learned(); }
     travel_overlay();
+    travelmap_labels();
     draw_picture_name();
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
