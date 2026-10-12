@@ -8,6 +8,7 @@
  *                                      new names are added to it
  *   mods/My mod/MSGFILES/$MILCR00.TXT  a card file as text (F12 > Mods > "Export the card texts")
  *   mods/My mod/art/, sounds/          replacement art and sounds, as in the game folder
+ *   mods/My mod/music/                 recordings in place of the game's music (musicpack.c)
  *   mods/My mod/mod.txt                first line: the name shown; the rest: a description
  * Mods are applied in alphabetical order of their folders: where two change the same file, the
  * later one wins. Only reading is redirected: saves and settings stay in the game folder. */
@@ -137,7 +138,8 @@ void datamods_set(int i, int on)
     generation++;
     void hdart_rescan(void); hdart_rescan();
     void rules_apply(void); rules_apply();
-    void sfx_reload(void); sfx_reload();             /* a mod's sounds come and go at once */
+    void sfx_reload(void); sfx_reload();             /* a mod's sounds and music come and go at once */
+    void musicpack_reload(void); musicpack_reload();
 }
 int datamods_generation(void) { return generation; }
 /* "Play the original game" (F12 > Helpers) leaves the mods out too */
@@ -374,7 +376,8 @@ int datamods_new(const char *name, char *where, size_t wn)
                    "\n"
                    "Put files into this folder laid out like the game folder; while the mod is on, the game reads them\n"
                    "instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card\n"
-                   "files (.MSG, or .TXT as written by \"Export the card texts\"), art/ and sounds/ as in the game folder.\n", name);
+                   "files (.MSG, or .TXT as written by \"Export the card texts\"), art/ and sounds/ as in the game folder,\n"
+                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Display > Sound).\n", name);
         fclose(f);
     }
     datamods_scan();

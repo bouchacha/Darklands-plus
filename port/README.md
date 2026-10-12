@@ -83,7 +83,8 @@ On the first start a short welcome names the keys that matter and offers the ori
   ten); "Tidy the pack"; a bestiary (F12 > Records > Enemies, editable); icons on the world map.
 * **Sound:** the Roland MT-32 / LAPC-I emulated (Munt's libmt32emu) when the player's ROM files are
   found (`runtime/mt32.c`; a note at start when they are not, CM-32L or MT-32 switchable while
-  playing), else the Sound Blaster (Nuked OPL3); a music volume; battle sounds
+  playing), else the Sound Blaster (Nuked OPL3); a music volume; music packs (recordings in
+  place of the game's pieces, `mods/musicpack.c`); battle sounds
   from a sound pack (one made from 0 A.D.'s recordings comes with the release).
 * **Game controllers:** the left stick moves the pointer, A / B click and right-click, and so on
   (`runtime/platform_sdl.c`, F1 lists them).

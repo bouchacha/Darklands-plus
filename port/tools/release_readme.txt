@@ -73,6 +73,8 @@ MAKING MODS (in the Darklands folder)
   mods\My mod\text.txt              menu lines said differently (translations)
   mods\My mod\rules.ini             weapon numbers and other rules
   mods\My mod\art\, sounds\         replacement pictures and sounds
+  mods\My mod\music\                recordings in place of the game's music, named by the
+                                    piece's number (10.ogg, "11 market.ogg"; F12 > Display)
   F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 
 IF SOMETHING GOES WRONG

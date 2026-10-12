@@ -33,6 +33,7 @@ void driver_register(const char *filename, u16 seg, u32 size, unsigned hash)
                 if (j != i && active[j]) { u32 a0 = (u32)*DRIVER_SEGS[j] << 4, a1 = a0 + drv_size[j], b0 = (u32)seg << 4, b1 = b0 + size;
                     if (a0 < b1 && b0 < a1) active[j] = 0; }
             fprintf(stderr, "driver %s (%s) loaded at %04x\n", DRIVERS[i]->name, filename, seg);
+            { void musicpack_driver(const char *); musicpack_driver(filename); }
             return;
         }
     }
@@ -77,6 +78,18 @@ int driver_retsite(u16 seg, u16 off)
             if (d->rets[mid] < o) lo = mid + 1; else hi = mid - 1;
         }
         return 0;
+    }
+    return 0;
+}
+
+/* the segment of a loaded driver whose image has sig at offset 0x10 (its name and date), or 0 */
+u16 driver_seg_by_sig(const char *sig)
+{
+    size_t n = strlen(sig);
+    for (int i = 0; DRIVERS[i]; i++) {
+        if (!active[i]) continue;
+        u32 base = (u32)*DRIVER_SEGS[i] << 4;
+        if (!memcmp(M + base + 0x10, sig, n)) return *DRIVER_SEGS[i];
     }
     return 0;
 }

@@ -7,6 +7,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "hle.h"
+#include "../mods/musicpack.h"
 #ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
@@ -47,7 +48,8 @@ static void midi_short(u8 a, u8 b, u8 c, int n)
     if (midi_log) { u8 m[3] = {a, b, c}; fwrite(m, 1, (size_t)n, midi_log); }
     if (midi_ok == 2) { u8 m[3] = {a, b, c}; mt32_msg(m, n); return; }
 #ifdef _WIN32
-    if (midi_ok == 1) midiOutShortMsg(hmo, (DWORD)a | ((DWORD)b << 8) | ((DWORD)c << 16));
+    if (midi_ok == 1 && !((a & 0xf0) == 0x90 && c && musicpack_mutes()))     /* no notes while a music pack's piece plays */
+        midiOutShortMsg(hmo, (DWORD)a | ((DWORD)b << 8) | ((DWORD)c << 16));
 #endif
     (void)n;
 }

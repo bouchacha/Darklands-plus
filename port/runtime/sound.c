@@ -8,6 +8,7 @@
 #include "cpu.h"
 #include "hle.h"
 #include "../third_party/nuked-opl3/opl3.h"
+#include "../mods/musicpack.h"
 
 static opl3_chip chip;
 static SDL_AudioDeviceID dev;
@@ -29,11 +30,13 @@ static void callback(void *u, Uint8 *stream, int len)
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
     OPL3_GenerateStream(&chip, s16, (uint32_t)n);
     { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
-    if (sound_music_volume != 100)                           /* the music (FM or MT-32), before the effects go in */
+    if (musicpack_mutes()) memset(stream, 0, (size_t)len);   /* a music pack's piece plays instead */
+    else if (sound_music_volume != 100)                      /* the music (FM or MT-32), before the effects go in */
         for (int i = 0; i < 2 * n; i++) {
             int y = s16[i] * sound_music_volume / 100;
             s16[i] = (int16_t)(y > 32767 ? 32767 : y < -32768 ? -32768 : y);
         }
+    musicpack_mix((short *)stream, n);
     { void sb_mix(int16_t *, int, int); sb_mix(s16, n, 44100); }
     { void sfx_mix(short *, int); sfx_mix((short *)stream, n); }
     if (fade) {

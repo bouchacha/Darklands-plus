@@ -21,6 +21,7 @@ extern "C" {
 #include "../mods/fixes.h"
 #include "../mods/saves.h"
 #include "../mods/hdtext.h"
+#include "../mods/musicpack.h"
 #include "../mods/hdart.h"
 #include "../mods/sfx.h"
 #include "../mods/datamods.h"
@@ -417,7 +418,7 @@ static void set_original(bool on)
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
         config_set_int("original", 1);
-        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload();
+        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload(); musicpack_reload();
     } else {
         const char *p = config_get("original.saved", "");
         char *e;
@@ -437,7 +438,7 @@ static void set_original(bool on)
         autopause_set(config_get_int("original.pause_down", 1), config_get_int("original.pause_hurt", 0));
         { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
         config_set_int("original", 0);
-        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload();
+        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload(); musicpack_reload();
     }
     dirty_config = 1;
 }
@@ -730,6 +731,38 @@ static void tab_display(void)
         if (ImGui::TreeNode("File names for a sound pack")) {
             for (int k = 0; k < SFX_COUNT; k++) hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
             hint("Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random.");
+            ImGui::TreePop();
+        }
+    }
+    {   /* music packs (mods/musicpack.c) */
+        ImGui::Spacing();
+        bool mp = musicpack_on;
+        extern char dlp_user_dir[];
+        if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); dirty_config = 1; }
+        int n = musicpack_count();
+        if (n) {
+            const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
+            hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
+        }
+        else hint("No music pack: a mod's music folder, or %s%smusic, with a recording for each piece named by its number "
+                  "(10.ogg, \"11 market.ogg\", .ogg or .wav). Darklands+ comes with none.", dlp_user_dir, PATH_SEP);
+        int fp = 0, now = musicpack_now(&fp);
+        if (now >= 0) {
+            const char *d = musicpack_desc(now);
+            hint("The last piece started: %d%s%s%s, from the %s.", now, d[0] ? " (" : "", d, d[0] ? ")" : "", fp ? "music pack" : "synthesizer");
+        }
+        if (ImGui::TreeNode("The pieces")) {
+            hint("A recording replaces a piece when its file name starts with the number. The pieces that loop in the game "
+                 "loop in the pack (the whole file again), the others play once. While a piece of the pack is on, the "
+                 "synthesizer is silent; a piece the pack lacks is played by the synthesizer.");
+            for (int k = 8; k <= 47; k++) {
+                const char *f = musicpack_file(k), *d = musicpack_desc(k);
+                const char *b = f + strlen(f); while (b > f && b[-1] != '/' && b[-1] != '\\') b--;
+                hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
+                if (f[0]) { ImGui::SameLine(); ImGui::Text("  %s", b); }
+            }
+            hint("The pieces without a name are heard elsewhere in towns and on the road; the line above names each piece as it starts.");
+            if (ImGui::SmallButton("Look again##music")) musicpack_reload();
             ImGui::TreePop();
         }
     }

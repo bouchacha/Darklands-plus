@@ -129,6 +129,7 @@ void mods_init(void)
     hdtext_init();
     hdart_init();
     sfx_init();
+    { void musicpack_init(void); musicpack_init(); }
     fixes_init();
     saves_init();
     assist_init();

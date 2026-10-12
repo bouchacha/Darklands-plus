@@ -17,6 +17,7 @@ A mod is a folder in the game folder's `mods` folder:
     A00C.CAT/<entry>        one file inside a .CAT catalogue (also BC, LCASTLE)
     rules.ini               weapon numbers (below)
     art/  sounds/           replacement pictures (PNG) and sounds (WAV/OGG), as in the game folder
+    music/                  recordings that replace the game's pieces of music (below)
 ```
 
 Tick the mod in F12 > Mods. Several mods can be on at once; where two change the same file the
@@ -165,6 +166,28 @@ magic sparkle are synthesized. It fetches only the files it uses from 0 A.D.'s r
 (`--src` takes a 0 A.D. `audio` folder instead) and needs numpy and ffmpeg. The pack holds
 nothing of Darklands, so it can be shared with its `CREDITS.txt`. To make a pack of your own,
 change the recipes in `build()`, or drop your own files into a mod's `sounds` folder.
+
+## Music packs
+
+A folder `music` (in a mod, or in the folder with Darklands+'s own files) holds recordings
+that the game plays in place of its own music, piece by piece. Each file is named by the
+number the game asks its sound driver for, with anything after it: `10.ogg`, `11 market.ogg`,
+`08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
+The pieces are the same for every sound device. F12 > Display > Sound lists the numbers that
+are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, the city
+square 14, the university 15, the fortress 17, the dungeon 22, before a city 27 and 28, a
+village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names each piece as it starts, so a pack can be made by listening.
+
+A piece in the pack plays from its file while the synthesizer is silenced; a piece the pack
+lacks plays from the synthesizer as before, so a pack can be partial. A piece that loops in the
+game loops in the pack (the whole file again from its start), a piece that plays once plays
+once; stopping, pausing and the music switch (Alt-M) work as in the game. Battles have no
+music. Implementation: `port/mods/musicpack.c` (the numbers and how the drivers treat them are
+described at its top).
+
+Darklands+ comes with no music pack: recordings of the game's music, on an MT-32 or anything
+else, are MicroProse's compositions. A pack of your own music, or one you have the rights to, can
+be shared like any mod.
 
 ## Built-in changes
 

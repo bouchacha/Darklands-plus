@@ -31,6 +31,7 @@
 #include "../runtime/config.h"
 #include "sfx.h"
 #include "datamods.h"
+#include "musicpack.h"
 
 #define FS 44100
 extern char game_dir[1024];
@@ -505,6 +506,7 @@ static void battle_sound_hook(void)          /* battle_sound(n) */
 static void sound_play_hook(void)            /* sound_play(n): the driver */
 {
     int n = (s16)rw(SS, (u16)(SP + 4));
+    musicpack_cmd(n);                         /* the music (towns' driver) */
     if (sfx_mode && want == n && n >= 10 && n <= 18) {
         int k = -1; float g = 1;
         switch (n) {
