@@ -23,6 +23,10 @@ Tick the mod in F12 > Mods. Several mods can be on at once; where two change the
 folder that comes later in the alphabet wins (name them `10 base`, `20 tweaks` ... to set the
 order). Only reading is redirected: saves and settings stay in the game folder.
 
+When the game folder cannot be written (Windows: under Program Files, where GOG Galaxy installs
+games), the `mods`, `art` and `sounds` folders are in `%LOCALAPPDATA%\Darklands+` instead, and
+the game's saves go to Windows' VirtualStore copy of the game folder; F12 > About shows where.
+
 Card texts, pictures, sounds and weapon numbers change at once; files the game reads when it
 starts (the item list, saints, cities ...) need a restart.
 
