@@ -25,6 +25,7 @@ static std::string msg;
 static char filter[40];
 static int open_type = -1;
 
+static bool enm_or_lst_unchanged(void) { return enm == orig; }   /* edits not yet saved are kept */
 static void load(void)
 {
     loaded = true; enm.clear();
@@ -101,6 +102,7 @@ static void details(int ti)
 void bestiary_tab(void)
 {
     if (!gamedata.loaded) { ImGui::TextUnformatted("The item list (DARKLAND.LST) could not be read."); return; }
+    { static int gen = -1; if (gen != datamods_generation()) { gen = datamods_generation(); if (loaded && enm_or_lst_unchanged()) loaded = false; } }
     if (!loaded) load();
     if (enm.empty()) { ImGui::TextWrapped("%s", msg.c_str()); return; }
     ImGui::TextWrapped("Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "

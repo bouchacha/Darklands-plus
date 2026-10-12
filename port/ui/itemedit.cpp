@@ -21,6 +21,7 @@ static bool loaded;
 static std::string msg;
 static char filter[40];
 
+static bool enm_or_lst_unchanged(void) { return lst == orig; }   /* edits not yet saved are kept */
 static void load(void)
 {
     loaded = true; lst.clear();
@@ -39,6 +40,7 @@ static std::string field_str(const unsigned char *r, int off, int len) { std::st
 
 void itemedit_tab(void)
 {
+    { static int gen = -1; if (gen != datamods_generation()) { gen = datamods_generation(); if (loaded && enm_or_lst_unchanged()) loaded = false; } }
     if (!loaded) load();
     if (lst.size() < 3) { ImGui::TextWrapped("%s", msg.c_str()); return; }
     ImGui::TextWrapped("Every item of the game. Change names, weight, quality, rarity and value here, then save the list "
