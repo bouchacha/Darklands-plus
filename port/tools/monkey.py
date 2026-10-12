@@ -65,6 +65,10 @@ while time.time() < t_end:
     elif time.time() - same_since > 240 and mode != 4:
         L('STUCK for 4 min:', sig); print(name, 'STUCK', sig)
         nctl.do(name, 'wshot stuck_%d' % steps); same_since = time.time()
+        # a screen the rules above do not know (the party roster at an inn, say): clicks anywhere, Escape, Return
+        nctl.do(name, '; '.join(rnd.choice(['at %d %d; click; wait 1.5' % (rnd.randrange(60, 320), rnd.randrange(10, 200)),
+                                            'key Escape; wait 1', 'key Return; wait 1']) for _ in range(12)))
+        continue
     steps += 1
     L('mode', mode, 'card', card, 'n', n, 'menu' if menu else '', 'map' if maplive else '', party[:120])
     if a.x11 and rnd.random() < 0.08:          # the interface: tabs of the F12 menu, the maps, help
