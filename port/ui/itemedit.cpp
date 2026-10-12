@@ -1,4 +1,4 @@
-// itemedit.cpp - F12 > Item records > Items: the item list (DARKLAND.LST: 200 records of 46
+// itemedit.cpp - F12 > Records > Items: the item list (DARKLAND.LST: 200 records of 46
 // bytes, then the saints' and formulas' names) as an editable table. Changes are saved as a mod
 // folder's DARKLAND.LST, so the game's own file stays as it is; the game reads the list when it
 // starts.

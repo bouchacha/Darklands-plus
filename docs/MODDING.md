@@ -61,7 +61,7 @@ change their words. The text form converts back byte-for-byte (all 419 files wer
 
 ## Weapon numbers (rules.ini)
 
-F12 > Item records > Weapons lists the battle numbers of every weapon; "Write these numbers into a
+F12 > Records > Weapons lists the battle numbers of every weapon; "Write these numbers into a
 mod folder" makes a `rules.ini` with all of them to start from.
 
 ```ini
@@ -96,16 +96,16 @@ This works with crisp text on (it replaces the words where they are drawn).
 
 ## Items
 
-F12 > Item records > Items lists every item of DARKLAND.LST with its name, short name, weight,
+F12 > Records > Items lists every item of DARKLAND.LST with its name, short name, weight,
 quality, rarity and value, all editable; "Save the list into this mod folder" writes the whole
 list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
 
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
-drawn at window resolution; F12 > Display & sound can export all original pictures as templates
+drawn at window resolution; F12 > Display can export all original pictures as templates
 and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
-for variations) replaces a battle sound; the names are listed in F12 > Display & sound. Mods can
+for variations) replaces a battle sound; the names are listed in F12 > Display. Mods can
 carry both folders; a mod's files win over the game folder's.
 
 ## Built-in changes

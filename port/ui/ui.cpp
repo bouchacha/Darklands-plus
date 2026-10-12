@@ -46,7 +46,7 @@ void worldmap_set_renderer(SDL_Renderer *r);
 static int want_tab = -1;
 extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
-static ImFont *font_body, *font_head;
+static ImFont *font_body, *font_head, *font_tab;
 ImFont *ui_font_small, *ui_font_text;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
 int ui_game_font, ui_text_edge;            /* edge: 0 none, 1 shadow, 2 outline */
@@ -55,6 +55,7 @@ static int sys_cursor;                     /* display.system_cursor: the system 
 const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (17th-century print)",
     "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)" };
 extern "C" void tab_inventory(void);
+extern "C" void tab_members(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
@@ -125,6 +126,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ImFontConfig fc; fc.FontDataOwnedByAtlas = false;
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 24.0f, &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 32.0f, &fc);
+    font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 20.0f, &fc);
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, 17.0f, &fc);
     {   /* the game's text, redrawn crisp (mods/hdtext.c): baked large, drawn at any size */
         ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
@@ -627,6 +629,13 @@ static void help_window(void)
             row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
+        } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
+            ImGui::SeparatorText("Now: a character sheet");
+            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
+            row("Up, Down, PgUp, PgDn", "move in a list");
+            row("1 ... 5", "in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them)");
+            row("A", "in the equipment list: ready or wear the chosen item");
+            row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
         }
         ImGui::SeparatorText("The game's own keys");
         row("Right mouse button", "the menu bar (F10 with the keyboard)");
@@ -681,22 +690,32 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
-        float w = fminf(io.DisplaySize.x * 0.9f, 1100), h = fminf(io.DisplaySize.y * 0.9f, 820);
+        float w = fminf(io.DisplaySize.x * 0.95f, 1100), h = fminf(io.DisplaySize.y * 0.92f, 820);
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::PushFont(font_body);
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+            /* the labels a little smaller than the text, so that all of them show in a 960 pixel
+               window (the whole tab bar in that face: ImGui measures the tabs again when it lays
+               them out) */
+            ImGui::PushFont(font_tab); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 5));
             if (ImGui::BeginTabBar("tabs")) {
-                const char *names[] = { "Inventory", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display & sound", "Item records", "About", "Editor" };
-                void (*fns[])(void) = { tab_inventory, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
+                const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor" };
+                void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
-                    if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) { fns[t](); ImGui::EndTabItem(); }
+                    if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) {
+                        ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
+                        fns[t]();
+                        ImGui::PopStyleVar(); ImGui::PopFont();
+                        ImGui::EndTabItem();
+                    }
                 }
                 want_tab = -1;
                 ImGui::EndTabBar();
             }
+            ImGui::PopStyleVar(); ImGui::PopFont();
         }
         ImGui::End();
         ImGui::PopFont();

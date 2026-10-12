@@ -464,7 +464,7 @@ extern "C" void hdtext_draw(void)
     }
 }
 
-/* "show picture names" (Display & sound): the picture under the mouse, outlined and named,
+/* "show picture names" (Display): the picture under the mouse, outlined and named,
  * so that artists know which file to replace */
 extern "C" void plat_mouse_game(int *x, int *y);
 static void draw_picture_name(void)

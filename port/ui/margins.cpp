@@ -135,9 +135,12 @@ extern "C" void ui_margins(void)
             heading(member_name(m).c_str());
             int end = g_rb((u16)(b + G_M_ATTR_CUR)), endm = g_rb((u16)(b + G_M_ATTR_MAX)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1)), strm = g_rb((u16)(b + G_M_ATTR_MAX + 1));
             ImGui::TextDisabled("End %d/%d  Str %d/%d", end, endm, str, strm);
-            int load = g_rb((u16)(b + G_M_LOAD)), cap = endm + strm;
-            if (load > cap) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "Load %d/%d: overloaded", load, cap);
-            else if (load * 10 > cap * 9) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "Load %d/%d", load, cap);
+            /* the game's own load classes (s029 0e76:013a): the capacity is the current
+               endurance + strength; light up to half of it, heavy above it, overloaded above
+               one and a half times */
+            int load = g_rb((u16)(b + G_M_LOAD)), cap = end + str;
+            if (load * 2 > cap * 3) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "Load %d/%d: overloaded", load, cap);
+            else if (load > cap) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "Load %d/%d: heavy", load, cap);
             for (const Eff &x : e) {
                 if (x.m != m) continue;
                 if (x.left < 48) ImGui::TextWrapped("%s (%ld h)", x.what.c_str(), x.left);

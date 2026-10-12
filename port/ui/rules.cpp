@@ -1,7 +1,7 @@
 // rules.cpp - game rules as data. The weapon numbers live in tables of the game's code (far
 // segment 20a5, read by the battle module s014: skill used, time for a blow, hands and
 // penetration, damage, skill and strength wanted, reload time); here they are listed in the
-// menu (F12 > Item records > Weapons) and changed by a mod folder's rules.ini:
+// menu (F12 > Records > Weapons) and changed by a mod folder's rules.ini:
 //
 //   [weapon Short Sword]        (an item name of DARKLAND.LST, or [weapon 3] by number)
 //   damage = 9
@@ -57,6 +57,20 @@ static std::string weapon_name(int w)
     for (const ItemDef &d : gamedata.items)
         if (d.type == w && !d.name.empty() && w <= 33 && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return d.name;
     return "";
+}
+
+/* the weapons that use skill k (0 edged ... 6 missile devices) by the tables as they are now */
+std::string rules_weapons_of_skill(int k)
+{
+    std::string s;
+    for (int w = 0; w < NW; w++) {
+        if (get(w, FIELDS[0]) != k) continue;
+        std::string n = weapon_name(w);
+        if (n.empty() || (", " + s + ",").find(", " + n + ",") != std::string::npos) continue;
+        if (!s.empty()) s += ", ";
+        s += n;
+    }
+    return s;
 }
 static int weapon_by_name(const std::string &n)
 {
@@ -164,7 +178,7 @@ static bool write_rules(const char *path)
 {
     FILE *f = fopen(path, "wb");
     if (!f) return false;
-    fprintf(f, "# Weapon numbers (F12 > Item records > Weapons). Change what you like and delete the rest;\n"
+    fprintf(f, "# Weapon numbers (F12 > Records > Weapons). Change what you like and delete the rest;\n"
                "# the game's own numbers stay for anything not named here.\n"
                "# skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker).\n"
                "# strength = min-max: below min each point costs 1 attack and 3 defence; above max blows hit harder.\n\n");
@@ -182,7 +196,7 @@ static bool write_rules(const char *path)
     return true;
 }
 
-/* F12 > Item records > Weapons */
+/* F12 > Records > Weapons */
 void rules_tab(void)
 {
     ImGui::TextWrapped("The battle numbers of every weapon, as the game uses them now%s.", rules_changed ? " (changed by a mod)" : "");
