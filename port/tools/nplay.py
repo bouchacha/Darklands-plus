@@ -73,7 +73,7 @@ def convert(script, out_dir):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--exe', default=os.path.join(TOP, 'build', 'port', 'darklands'))
-    ap.add_argument('--game', default='/home/claude/dl_raw/extracted/DARKLAND')
+    ap.add_argument('--game', default=os.environ.get('DARKLANDS_DIR', '/home/claude/dl_raw/extracted/DARKLAND'), help='the Darklands folder (copied, not changed; default $DARKLANDS_DIR)')
     ap.add_argument('--keep', action='store_true')
     ap.add_argument('--wine', action='store_true', help='run a Windows build under Wine')
     ap.add_argument('--x11', action='store_true', help='run in a virtual X display (xvfb-run) with the window '

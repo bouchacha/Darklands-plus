@@ -151,7 +151,7 @@ def stop(name):
 if __name__ == '__main__':
     a = sys.argv[1:]
     exe = os.path.join(TOP, 'build', 'port', 'darklands')
-    game = '/home/claude/dl_raw/extracted/DARKLAND'
+    game = os.environ.get('DARKLANDS_DIR', '/home/claude/dl_raw/extracted/DARKLAND')
     if '--exe' in a:
         i = a.index('--exe'); exe = a[i + 1]; del a[i:i + 2]
     if '--game' in a:
