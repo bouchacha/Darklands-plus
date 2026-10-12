@@ -18,6 +18,7 @@ static uint8_t t1_val, t2_val, t_ctrl, status;
 static uint64_t t1_start, t2_start;
 
 static FILE *wav; static uint32_t wav_bytes;
+int sound_music_volume = 100;                                /* percent, F12 > Display (sound.music_volume) */
 /* pause (the game held while the menu or the world map is open): the chip, the sample
  * channel and the effects stop where they are, after a short fade, and go on after it */
 static volatile int paused; static int fade;              /* fade: 0 none, 1 out, 2 in */
@@ -28,6 +29,11 @@ static void callback(void *u, Uint8 *stream, int len)
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
     OPL3_GenerateStream(&chip, s16, (uint32_t)n);
     { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
+    if (sound_music_volume != 100)                           /* the music (FM or MT-32), before the effects go in */
+        for (int i = 0; i < 2 * n; i++) {
+            int y = s16[i] * sound_music_volume / 100;
+            s16[i] = (int16_t)(y > 32767 ? 32767 : y < -32768 ? -32768 : y);
+        }
     { void sb_mix(int16_t *, int, int); sb_mix(s16, n, 44100); }
     { void sfx_mix(short *, int); sfx_mix((short *)stream, n); }
     if (fade) {
@@ -56,6 +62,7 @@ static void wav_close(void)
 
 void sound_init(void)
 {
+    { int config_get_int(const char *, int); sound_music_volume = config_get_int("sound.music_volume", 100); }
     { void sb_init(void); sb_init(); }
     if (getenv("DL_NOSOUND")) return;
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) { fprintf(stderr, "no audio: %s\n", SDL_GetError()); return; }

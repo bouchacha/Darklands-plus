@@ -123,6 +123,28 @@ plain Python functions (picture in, picture out, or None to leave it), so an ima
 plugged in the same way. A pack made from the originals carries the game's pictures: keep it
 for yourself.
 
+### Repainting the pictures with an image model
+
+`port/tools/aiart.py ORIGINALS OUT --backend ...` is the pipeline for a full replacement: every
+card and screen picture (and, if asked, the armour, shields and weapons) goes through an image
+model as image-to-image, starting from the original scaled up, so the composition stays and
+the painting is new. It keeps what must not move (the parchment edge of the cards, the shapes of
+the items), draws the colours towards the original's, writes `art/NAME.jpg` / `.png` at four
+times the size, and makes `review.html` with each original beside its new picture.
+
+- **Backends:** `a1111` (a local Stable Diffusion WebUI such as AUTOMATIC1111 or Forge, started
+  with `--api`; any checkpoint), `openai` (OpenAI's image edits, `OPENAI_API_KEY`), `command`
+  (any program, e.g. a ComfyUI or diffusers script) and `test` (a filter, to try the pipeline).
+- **Prompts:** one style for the whole pack (`--style`), words for each kind of picture, and a
+  caption for each picture in `OUT/captions.txt`: `--write-captions` writes the file to fill in,
+  `--caption-with openai` has a vision model describe each picture first.
+- **Control:** `--strength` (0.3 stays close, 0.6 repaints freely), `--only NAME,...` and
+  `--redo` to make chosen pictures again, `--seed-offset` for another variant, `--limit` to do a
+  few at a time. The seeds come from the names, so a run can be repeated; `aiart.json` records
+  what was asked for each picture.
+
+As with `artpack.py`, a pack made from the game's pictures is for your own use.
+
 ### The sample battle sounds
 
 `port/tools/soundpack.py OUT` makes the "Battle sounds (0 A.D. recordings)" mod that comes with

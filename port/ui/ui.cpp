@@ -535,7 +535,7 @@ static void tab_helpers(void)
     }
 }
 
-extern "C" { const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); }
+extern "C" { const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
 static void tab_display(void)
 {
     bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
@@ -653,6 +653,11 @@ static void tab_display(void)
     for (int i = 0; i < 8; i++)
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); dirty_config = 1; }
     hint("Takes effect after the next battle, or when the game is started again.");
+    {
+        int v = sound_music_volume;
+        ImGui::SetNextItemWidth(UIS(260));
+        if (ImGui::SliderInt("Volume of the music", &v, 0, 150, "%d%%")) { sound_music_volume = v; config_set_int("sound.music_volume", v); dirty_config = 1; }
+    }
     if (!strcmp(cur, "auto") || !strcmp(cur, "mt32")) {
         ImGui::Indent(UIS(30));
         hint("%s", mt32_status());

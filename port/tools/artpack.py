@@ -15,8 +15,8 @@ A style is a function that turns one picture (RGBA, already scaled up) into its 
 (each kind of armour its own loud pattern, the picture's shading kept: harlequin
 diamonds, polka dots, rainbow stripes, striped tights, a ruff and pompom buttons) and
 shields become bullseyes. (The weapon pictures carry a piece of the sheet's pillar behind
-them, so they are left alone.) Other styles (an image model run on each picture,
-say) plug in the same way: see STYLES at the end.
+them, so they are left alone.) Other styles plug in the same way: see STYLES at the end.
+For repainting with an image model, see aiart.py.
 
 The pack is made from your own game files; do not hand it on with the game's pictures in it.
 """
