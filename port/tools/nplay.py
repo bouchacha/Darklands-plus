@@ -45,6 +45,9 @@ def convert(script, out_dir):
             x, y = int(f[1]), int(f[2])
             steps.append('%d:move:%d,%d' % (t, x, y))
             t += 100
+        elif c in ('rdown', 'rup', 'ldown', 'lup'):
+            steps.append('%d:%s:%d' % (t, 'press' if c.endswith('down') else 'release', 2 if c[0] == 'r' else 1))
+            t += 50
         elif c in ('click', 'rclick'):
             steps.append('%d:%s:%d,%d' % (t, c, x, y))
             t += 250

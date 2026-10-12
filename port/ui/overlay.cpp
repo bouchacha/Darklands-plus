@@ -445,7 +445,7 @@ extern "C" void hdtext_draw(void)
             const HdRun &q = hdtext_runs[prev];
             int gap = r.x - (q.x + q.w);
             if (q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3) {
-                float kx = (x1 - x0) / (r.w ? r.w : 1), nx = prev_end + gap * kx;
+                float kx = (x1 - x0) / (r.w ? r.w : 1), nx = prev_end + (r.cont ? 0 : gap) * kx;
                 x1 += nx - x0; x0 = nx;
             }
         }
@@ -463,9 +463,35 @@ extern "C" void hdtext_draw(void)
         if (r.center) x0 += (bw - ts.x) * 0.5f;
         ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
         float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
+        bool clipped = (r.clip0 > 0 || r.clip1 < r.h) && r.clip1 > r.clip0;   /* covered in part: only where it shows */
+        if (clipped) {
+            float cy0, cy1, dummy;
+            plat_game_to_win(0, (float)(r.y + r.clip0), &dummy, &cy0); plat_game_to_win(0, (float)(r.y + r.clip1), &dummy, &cy1);
+            dl->PushClipRect(ImVec2(0, cy0), ImVec2(ImGui::GetIO().DisplaySize.x, cy1), true);
+        }
         text_edged(dl, font, size, ImVec2(x0, y), c, t.c_str(), ui_text_edge, (int)(r.bgrgb & 0xffffff));
+        if (clipped) dl->PopClipRect();
         if (ui_skill_icons) { int k = skill_of(r.text); if (k >= 0) skill_icon(dl, ImVec2(x0 - bh * 0.47f, y0 + bh * 0.5f), bh * 0.56f, k); }
         prev = i; prev_end = x0 + ts.x;
+    }
+}
+
+/* the game's pointer again, over the crisp text and the helpers' marks (as over the picture) */
+extern "C" void hdtext_draw_cursor(void)
+{
+    int x, y, w, h, st;
+    const unsigned *px = hdtext_cursor(&x, &y, &w, &h, &st);
+    if (!px) return;
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    for (int r = 0; r < h; r++) {
+        if (y + r < 0 || y + r >= 200) continue;
+        for (int c = 0; c < w; c++) {
+            unsigned v = px[r * st + c];
+            if (!v || x + c < 0 || x + c >= 320) continue;
+            int e = c; while (e + 1 < w && x + e + 1 < 320 && px[r * st + e + 1] == v) e++;
+            dl->AddRectFilled(g2w((float)(x + c), (float)(y + r)), g2w((float)(x + e + 1), (float)(y + r + 1)), IM_COL32(v >> 16 & 255, v >> 8 & 255, v & 255, 255));
+            c = e;
+        }
     }
 }
 

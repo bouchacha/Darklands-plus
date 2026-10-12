@@ -425,6 +425,7 @@ static void run_script(void)
             /* keep the list sorted by time */
             for (int i = nsteps - 1; i > step_i && steps[i].t < steps[i - 1].t; i--) { Step t = steps[i]; steps[i] = steps[i - 1]; steps[i - 1] = t; }
         } else if (!strcmp(s->cmd, "release")) { mouse_b &= ~atoi(s->arg); send_mouse(); }
+        else if (!strcmp(s->cmd, "press")) { mouse_b |= atoi(s->arg); send_mouse(); }       /* test: a button held */
         else if (!strcmp(s->cmd, "shot")) save_bmp(s->arg);
         else if (!strcmp(s->cmd, "utab")) ui_select_tab(atoi(s->arg));
         else if (!strcmp(s->cmd, "travel")) { void travel_click(int, int); travel_click(x, y); }   /* as Ctrl+click at game x,y */
@@ -582,11 +583,63 @@ static void run_ctl(void)
     fclose(f);
 }
 
+/* the menu bar with a click: the game shows its menus only while the right button is held and
+ * takes the entry under the pointer when it is let go, so a right click only flashed them.
+ * A short right click (the bar up, DS:a2e3) now leaves them open, held for the game, and the
+ * next click chooses: the button is let go there (Esc: away from the menus) */
+static int menu_sticky;                    /* 1 open after a short click; 2 the choosing click's release to swallow */
+static u32 rdown_t, rup_wait;
+static void later(u32 ms, const char *cmd, const char *arg)
+{
+    Step *r = &steps[nsteps < 512 ? nsteps++ : 511];
+    r->t = plat_ticks_ms() + ms; snprintf(r->cmd, sizeof r->cmd, "%s", cmd); snprintf(r->arg, sizeof r->arg, "%s", arg);
+    for (int k = nsteps - 1; k > step_i && steps[k].t < steps[k - 1].t; k--) { Step t = steps[k]; steps[k] = steps[k - 1]; steps[k - 1] = t; }
+}
+static int menu_bar_up(void) { return game_mode() != GM_OTHER && (s16)g_rw(0xa2e3) == 1; }
+static int menu_click(const SDL_Event *e)
+{
+    int right = e->button.button == SDL_BUTTON_RIGHT;
+    if (menu_sticky == 2) { if (e->type == SDL_MOUSEBUTTONUP) menu_sticky = 0; return 1; }
+    if (menu_sticky == 1) {
+        if (e->type != SDL_MOUSEBUTTONDOWN) return 1;
+        if (!menu_bar_up()) { menu_sticky = 0; mouse_b &= ~2; send_mouse(); return 0; }
+        to_game(e->button.x, e->button.y, &mouse_x, &mouse_y);
+        mouse_b &= ~2; send_mouse();                 /* chosen where it was clicked */
+        menu_sticky = 2;
+        return 1;
+    }
+    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1)) return 0;
+    if (e->type == SDL_MOUSEBUTTONDOWN) { rdown_t = plat_ticks_ms(); rup_wait = 0; return 0; }
+    if (plat_ticks_ms() - rdown_t < 350) {          /* short: held a little longer, until the game has its bar up */
+        rup_wait = plat_ticks_ms();
+        return 1;
+    }
+    return 0;
+}
+/* each poll: a short right click becomes an open menu once the game shows its bar (or is let go) */
+static void menu_click_poll(void)
+{
+    if (!rup_wait) return;
+    if (menu_bar_up()) { rup_wait = 0; menu_sticky = 1; return; }
+    if (plat_ticks_ms() - rup_wait > 200) { rup_wait = 0; mouse_b &= ~2; send_mouse(); }
+}
+/* Esc with the menus open: let go away from them */
+static int menu_escape(void)
+{
+    if (menu_sticky != 1) return 0;
+    char a[32]; snprintf(a, sizeof a, "%d,%d", mouse_x, mouse_y);
+    mouse_y = 199; send_mouse();
+    later(60, "release", "2"); later(120, "move", a);
+    menu_sticky = 0;
+    return 1;
+}
+
 void plat_events(void)
 {
     SDL_Event e;
     run_ctl();
     run_script();
+    menu_click_poll();
     while (SDL_PollEvent(&e)) {
         if (!headless && ui_event(&e)) continue;
         switch (e.type) {
@@ -611,6 +664,7 @@ void plat_events(void)
                 break;
             }
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { save_bmp("screenshot.bmp"); break; }
+            if (e.key.keysym.sym == SDLK_ESCAPE && !e.key.repeat && menu_escape()) break;
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             {   /* 1..9 on a card: that option (a click on its line) */
                 SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : 0;
@@ -638,6 +692,7 @@ void plat_events(void)
                 break;
             }
             bg_resumed = 0;
+            if (menu_click(&e)) break;
             if (e.type == SDL_MOUSEBUTTONDOWN) { void citynav_user_input(void); citynav_user_input(); }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
                 int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);

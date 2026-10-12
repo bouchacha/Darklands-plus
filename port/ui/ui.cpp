@@ -70,6 +70,7 @@ void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
+extern "C" void hdtext_draw_cursor(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
@@ -421,6 +422,9 @@ static void tab_helpers(void)
     if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); dirty_config = 1; }
     { bool wl = config_get_int("assist.wheel_lists", 1) != 0;
       if (ImGui::Checkbox("The mouse wheel moves in the game's lists (equipment, shops ...)", &wl)) { config_set_int("assist.wheel_lists", wl); dirty_config = 1; } }
+    { bool mc = config_get_int("assist.menu_click", 1) != 0;
+      if (ImGui::Checkbox("A right click opens the menu bar (the next click chooses; Esc closes it)", &mc)) { config_set_int("assist.menu_click", mc); dirty_config = 1; }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("The game shows its menus only while the right button is held down, and takes the entry under the pointer when\nit is let go. That still works; this adds the click. F10 opens the menus from the keyboard (arrows, Enter, Esc)."); }
     hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet.");
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
@@ -778,6 +782,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else if (levelmap_is_open()) levelmap_draw();
     else hdtext_draw();
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
+    if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open()) hdtext_draw_cursor();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));

@@ -104,6 +104,7 @@ static void drop_covered(int page, int x0, int y0, int w, int h)
 void hdtext_cover(int page, int x0, int y0, int w, int h)
 {
     if (w <= 0 || h <= 0) return;
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_HD_BLIT") != 0; if (lg && h > 1) fprintf(stderr, "hd: cover page %d %d,%d %dx%d\n", page, x0, y0, w, h); }
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
         if (r->used && r->page == page && r->x0 < x0 + w && x0 < r->x0 + r->w && r->y0 < y0 + h && y0 < r->y0 + r->h) rec_free(r);
@@ -146,6 +147,7 @@ static Rec *shadow_of(Rec *r)
 void hdtext_copy(int sp, int ax, int ay, int w, int h, int dp, int bx, int by)
 {
     if (!hdtext_mode || sp == dp || w <= 0 || h <= 0) return;
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_HD_BLIT") != 0; if (lg) fprintf(stderr, "hd: copy page %d %d,%d %dx%d -> page %d %d,%d\n", sp, ax, ay, w, h, dp, bx, by); }
     int dx = bx - ax, dy = by - ay;
     for (int i = 0; i < MAXREC; i++) {
         Rec *r = &rec[i];
@@ -273,6 +275,83 @@ static void cursor_rect(int *x, int *y, int *w, int *h)
 /* where the game's own mouse pointer is drawn (1), or 0 when it is hidden */
 int hdtext_game_cursor(int *x, int *y, int *w, int *h) { cursor_rect(x, y, w, h); return *w > 0; }
 
+/* the pointer as the driver drew it on the screen (MGRAPHIC 0000:029a / 033c): its sprite
+ * (DS:0200 the sprite's segment: width, height, then each row a count, a start and that many
+ * pixels, 0 clear) at DS:0202, DS:0204, on page DS:0214; the picture it hides saved at
+ * DS:0216, rows of DS:020e at DS:020a, DS:020c, DS:0210 of them. The text checks look at the
+ * screen without it (so the letters under it are wiped and drawn again like the rest), and
+ * the interface draws it again over the crisp text (hdtext_cursor) */
+#define CUR_MAX 48
+static int cur_on, cur_x, cur_y, cur_w, cur_h;
+static u8 cur_px[CUR_MAX * CUR_MAX];
+static u32 cur_rgb[CUR_MAX * CUR_MAX];
+static u8 clean[320 * 200];
+static void cursor_read(const u32 *lut)
+{
+    cur_on = 0;
+    memcpy(clean, page0(), sizeof clean);
+    if (!drvseg_mgraphic) return;
+    u16 ds = (u16)(drvseg_mgraphic + 0x140);
+    if (!rw(ds, 0x212) || rw(ds, 0x214) != 0) return;
+    int bx = (s16)rw(ds, 0x20a), by = (s16)rw(ds, 0x20c), bw = (s16)rw(ds, 0x20e), bh = (s16)rw(ds, 0x210);
+    if (bx >= 0 && by >= 0 && bw > 0 && bh > 0 && bx + bw <= 320 && by + bh <= 200 && bw * bh <= 0x200)
+        for (int r = 0; r < bh; r++) for (int c = 0; c < bw; c++) clean[(by + r) * 320 + bx + c] = rb(ds, (u16)(0x216 + r * bw + c));
+    u16 seg = rw(ds, 0x200);
+    if (!seg) return;
+    int w = rb(seg, 0), h = rb(seg, 1);
+    if (!w || !h || w > CUR_MAX || h > CUR_MAX) return;
+    memset(cur_px, 0, sizeof cur_px);
+    u16 o = 2;
+    for (int r = 0; r < h; r++) {
+        int n = rb(seg, o), st = rb(seg, (u16)(o + 1)); o = (u16)(o + 2);
+        for (int i = 0; i < n; i++) { u8 c = rb(seg, (u16)(o + i)); if (c && st + i < CUR_MAX) cur_px[r * CUR_MAX + st + i] = c; }
+        o = (u16)(o + n);
+    }
+    cur_x = (s16)rw(ds, 0x202); cur_y = (s16)rw(ds, 0x204); cur_w = w; cur_h = h;
+    for (int i = 0; i < CUR_MAX * CUR_MAX; i++) cur_rgb[i] = cur_px[i] ? (lut[cur_px[i]] | 0xff000000u) : 0;
+    cur_on = 1;
+}
+static int on_cursor(int x, int y)
+{
+    x -= cur_x; y -= cur_y;
+    return cur_on && x >= 0 && y >= 0 && x < cur_w && y < cur_h && cur_px[y * CUR_MAX + x];
+}
+/* the pointer's pixels for the frame just prepared (0xffRRGGBB, 0 clear; CUR_MAX a row) */
+const unsigned *hdtext_cursor(int *x, int *y, int *w, int *h, int *stride)
+{
+    if (!cur_on) return 0;
+    *x = cur_x; *y = cur_y; *w = cur_w; *h = cur_h; *stride = CUR_MAX;
+    return cur_rgb;
+}
+
+/* one glyph of a record, rows y0..y1: still on the screen as drawn (good: its pixels in one
+ * colour, a highlight may have recoloured it; xgood: drawn xor over the picture), the
+ * picture around it unchanged? */
+typedef struct { int good, xgood, any, seen, c; u32 sr, sg, sb, sn; } Chk;
+static void glyph_check(const Rec *r, const Fnt *F, int g, int y0, int y1, const u8 *vga, const u8 *claimed, const u32 *lut, int dbg, Chk *q)
+{
+    int gx = r->x0 + r->gx[g], gw = r->gw[g];
+    int c = -1, good = 1, any = 0, seen = 0, xgood = r->xr;
+    u32 sr = 0, sg = 0, sb = 0, sn = 0;
+    for (int yy = y0; yy < y1 && (good || xgood); yy++)
+        for (int xx = 0; xx < gw; xx++) {
+            int p = (r->y0 + yy) * 320 + gx + xx;
+            if (claimed[p]) { good = xgood = 0; break; }
+            u8 v = vga[p], u = r->bg[yy * r->w + r->gx[g] + xx], u0 = r->under[yy * r->w + r->gx[g] + xx];
+            if (glyph_bit(F, r->ch[g], xx, yy)) {
+                any = 1;
+                if (lut[v] != lut[u]) { seen++; sr += lut[v] >> 16 & 255; sg += lut[v] >> 8 & 255; sb += lut[v] & 255; sn++; }
+                if (xgood && v != (u8)(u0 ^ r->col[g])) { xgood = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: xor pixel %02x, expected %02x (bg %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, u0 ^ r->col[g], u); }
+                /* an option line after its fade: the card code recoloured the xor pixels
+                   0x20..0x7f to the line's colour; xor pixels outside that range (over
+                   some picture colours) kept theirs, holes the original shows too */
+                if (good && r->xr && v == (u8)(u0 ^ r->col[g]) && (v < 0x20 || v >= 0x80)) { }
+                else if (good) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); } }
+            } else if (v != u) { good = xgood = 0; if (dbg && r->xr) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: background %02x was %02x\n", r->stamp, g, r->ch[g], xx, yy, v, u); break; }
+        }
+    q->good = good; q->xgood = xgood; q->any = any; q->seen = seen; q->c = c; q->sr = sr; q->sg = sg; q->sb = sb; q->sn = sn;
+}
+
 HdRun hdtext_runs[HD_MAXRUNS];
 int hdtext_nruns;
 
@@ -281,11 +360,11 @@ int hdtext_nruns;
 void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
 {
     hdtext_nruns = 0;
+    cursor_read(lut);
     if (!hdtext_mode) return;
-    const u8 *vga = page0();
+    const u8 *vga = clean;                       /* the screen without the pointer */
     static u8 claimed[320 * 200];
     memset(claimed, 0, sizeof claimed);
-    int mx, my, mw, mh; cursor_rect(&mx, &my, &mw, &mh);
     /* newest first */
     static int order[MAXREC]; int no = 0;
     for (int i = 0; i < MAXREC; i++) if (rec[i].used && rec[i].page == 0) order[no++] = i;
@@ -304,35 +383,33 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
          * from the picture, so a line shows whole and in its colour while the game fades the
          * list in and where the palette leaves some of its pixels invisible */
         u32 xs_r[MAXG], xs_g[MAXG], xs_b[MAXG], xs_n[MAXG];
+        int gb0[MAXG], gb1[MAXG];                  /* the rows of each glyph still to be seen */
         for (int g = 0; g < r->n; g++) {
-            ok[g] = 0; xs_n[g] = 0;
-            int gx = r->x0 + r->gx[g], gw = r->gw[g];
-            if (mw && gx < mx + mw && gx + gw > mx && r->y0 < my + mh && r->y0 + r->h > my) { ok[g] = 4; continue; }   /* under the cursor: decided below */
-            int c = -1, good = 1, any = 0, seen = 0, xgood = r->xr;
-            u32 sr = 0, sg = 0, sb = 0, sn = 0;
-            for (int yy = 0; yy < r->h && (good || xgood); yy++)
-                for (int xx = 0; xx < gw; xx++) {
-                    int p = (r->y0 + yy) * 320 + gx + xx;
-                    if (claimed[p]) { good = xgood = 0; break; }
-                    u8 v = vga[p], u = r->bg[yy * r->w + r->gx[g] + xx], u0 = r->under[yy * r->w + r->gx[g] + xx];
-                    if (glyph_bit(F, r->ch[g], xx, yy)) {
-                        any = 1;
-                        if (lut[v] != lut[u]) { seen++; sr += lut[v] >> 16 & 255; sg += lut[v] >> 8 & 255; sb += lut[v] & 255; sn++; }
-                        if (xgood && v != (u8)(u0 ^ r->col[g])) { xgood = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: xor pixel %02x, expected %02x (bg %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, u0 ^ r->col[g], u); }
-                        /* an option line after its fade: the card code recoloured the xor pixels
-                           0x20..0x7f to the line's colour; xor pixels outside that range (over
-                           some picture colours) kept theirs, holes the original shows too */
-                        if (good && r->xr && v == (u8)(u0 ^ r->col[g]) && (v < 0x20 || v >= 0x80)) { }
-                        else if (good) { if (c < 0) c = v; else if (v != c) { good = 0; if (dbg) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: glyph pixel %02x vs %02x (under %02x)\n", r->stamp, g, r->ch[g], xx, yy, v, c, u); } }
-                    } else if (v != u) { good = xgood = 0; if (dbg && r->xr) fprintf(stderr, "hd: rec %u glyph %d '%c' at %d,%d: background %02x was %02x\n", r->stamp, g, r->ch[g], xx, yy, v, u); break; }
+            ok[g] = 0; xs_n[g] = 0; gb0[g] = 0; gb1[g] = r->h;
+            Chk q; glyph_check(r, F, g, 0, r->h, vga, claimed, lut, dbg, &q);
+            if (!q.good && !q.xgood) {
+                /* covered in part from above or below (a menu's edge, a message box): the rows
+                   that still check out, if they are most of the glyph, and the text is drawn
+                   there only */
+                int rowok[64], h = r->h < 64 ? r->h : 64;
+                for (int yy = 0; yy < h; yy++) { Chk t; glyph_check(r, F, g, yy, yy + 1, vga, claimed, lut, 0, &t); rowok[yy] = t.good || t.xgood; }
+                int a = 0; while (a < h && rowok[a]) a++;
+                int b = h; while (b > 0 && rowok[b - 1]) b--;
+                int lo = 0, hi = 0;
+                if (a >= h - b) { lo = 0; hi = a; } else { lo = b; hi = h; }
+                if (dbg) { fprintf(stderr, "hd: rec %u glyph %d '%c' rows ", r->stamp, g, r->ch[g]); for (int yy = 0; yy < h; yy++) fputc(rowok[yy] ? '1' : '0', stderr); fprintf(stderr, " band %d-%d\n", lo, hi); }
+                if (hi - lo >= (h + 1) / 2 && hi - lo < h) {
+                    Chk t; glyph_check(r, F, g, lo, hi, vga, claimed, lut, 0, &t);
+                    if (t.good || t.xgood) { q = t; gb0[g] = lo; gb1[g] = hi; }
                 }
-            if (!good && !xgood) continue;
-            if (!any) { ok[g] = 2; continue; }                 /* a space: kept with its neighbours */
-            if (!seen && !xgood) continue;                     /* the glyph cannot be told from what was under it: gone */
+            }
+            if (!q.good && !q.xgood) continue;
+            if (!q.any) { ok[g] = 2; continue; }               /* a space: kept with its neighbours */
+            if (!q.seen && !q.xgood) continue;                 /* the glyph cannot be told from what was under it: gone */
             /* (an xor glyph that looks like the picture right now still belongs to its line: the
                line is drawn in the colour of its visible glyphs, or not at all while none is) */
-            if (xgood) { ok[g] = 1; gc[g] = -1; xs_r[g] = sr; xs_g[g] = sg; xs_b[g] = sb; xs_n[g] = sn; }   /* xor first: one colour for the line */
-            else if (good && seen && c >= 0) { ok[g] = 1; gc[g] = c; }
+            if (q.xgood) { ok[g] = 1; gc[g] = -1; xs_r[g] = q.sr; xs_g[g] = q.sg; xs_b[g] = q.sb; xs_n[g] = q.sn; }   /* xor first: one colour for the line */
+            else if (q.good && q.seen && q.c >= 0) { ok[g] = 1; gc[g] = q.c; }
             else continue;
             alive++;
         }
@@ -344,28 +421,16 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
               if (oi == no - 1) lastt = plat_ticks_ms();
           } }
         if (!alive) { if (stamp - r->stamp > 4000) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; } continue; }
-        /* glyphs under the mouse cursor: the line is still there, so they are too, in the
-         * colour of their neighbours (only the pixels not covered by the cursor are wiped) */
-        for (int g = 0; g < r->n; g++) {
-            if (ok[g] != 4) continue;
-            int c = -2;
-            for (int k = g - 1; k >= 0 && c == -2; k--) if (ok[k] == 1) c = gc[k];
-            for (int k = g + 1; k < r->n && c == -2; k++) if (ok[k] == 1) c = gc[k];
-            if (c == -2) { ok[g] = 0; continue; }
-            gc[g] = c; xs_n[g] = 0; ok[g] = glyph_w(F, r->ch[g]) && r->ch[g] != ' ' ? 5 : 6;
-        }
         /* wipe the verified glyphs and group them into runs of one colour */
         Rec *S = shadow_of(r);
         for (int g = 0; g < r->n; g++) {
-            int under_cursor = ok[g] & 4;
-            ok[g] &= 3;
             if (ok[g] != 1) continue;
             int gx = r->x0 + r->gx[g];
-            for (int yy = 0; yy < r->h; yy++)
+            for (int yy = gb0[g]; yy < gb1[g]; yy++)
                 for (int xx = 0; xx < r->gw[g]; xx++) {
                     int p = (r->y0 + yy) * 320 + gx + xx;
-                    if (under_cursor && (gc[g] >= 0 ? vga[p] != gc[g] : vga[p] != (u8)(r->under[yy * r->w + r->gx[g] + xx] ^ r->col[g]))) continue;   /* the cursor's own pixels stay */
                     claimed[p] = 1;
+                    if (on_cursor(gx + xx, r->y0 + yy)) continue;   /* the pointer's own pixels stay */
                     if (glyph_bit(F, r->ch[g], xx, yy)) {
                         u8 u = r->bg[yy * r->w + r->gx[g] + xx];
                         if (S) {                   /* the shadow's pixel under the text: the picture under both */
@@ -382,7 +447,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                     for (int xx = 0; xx < S->gw[k]; xx++) {
                         if (!glyph_bit(F, S->ch[k], xx, yy)) continue;
                         int x = S->x0 + S->gx[k] + xx, y = S->y0 + yy, p = y * 320 + x;
-                        if (vga[p] != S->col[k]) continue;
+                        if (vga[p] != S->col[k] || on_cursor(x, y)) continue;
                         int mx = x - r->x0, my = y - r->y0;
                         int g = -1;
                         for (int q = 0; q < r->n; q++) if (mx >= r->gx[q] && mx < r->gx[q] + r->gw[q]) { g = q; break; }
@@ -392,12 +457,12 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                         rgb[p] = lut[u]; if (idx) idx[p] = u; claimed[p] = 1;
                     }
         }
-        int g = 0;
+        int g = 0, last_e = -2;
         while (g < r->n) {
             if (ok[g] != 1) { g++; continue; }
-            int s = g, c = gc[g], e = g;
+            int s = g, c = gc[g], e = g, b0 = gb0[g], b1 = gb1[g];
             u32 tr = 0, tg = 0, tb = 0, tn = 0;
-            while (g < r->n && (ok[g] == 2 || (ok[g] == 1 && gc[g] == c))) {
+            while (g < r->n && (ok[g] == 2 || (ok[g] == 1 && gc[g] == c && gb0[g] == b0 && gb1[g] == b1))) {
                 if (ok[g] == 1) { e = g; tr += xs_r[g]; tg += xs_g[g]; tb += xs_b[g]; tn += xs_n[g]; }
                 g++;
             }
@@ -414,6 +479,8 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             u->x = r->x0 + r->gx[s];
             u->w = r->gx[g - 1] + r->gw[g - 1] - r->gx[s];
             u->y = r->y0; u->h = r->h; u->font = r->font; u->center = 0;
+            u->clip0 = b0; u->clip1 = b1;
+            u->cont = s == last_e + 1; last_e = e;     /* the same line going on in another colour or band */
             u->rgb = rgb;
             {   u32 br = 0, bgg = 0, bb = 0, bn = 0;
                 for (int yy = 0; yy < r->h; yy++)
