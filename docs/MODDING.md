@@ -133,8 +133,10 @@ the items), draws the colours towards the original's, writes `art/NAME.jpg` / `.
 times the size, and makes `review.html` with each original beside its new picture.
 
 - **Backends:** `a1111` (a local Stable Diffusion WebUI such as AUTOMATIC1111 or Forge, started
-  with `--api`; any checkpoint), `openai` (OpenAI's image edits, `OPENAI_API_KEY`), `command`
-  (any program, e.g. a ComfyUI or diffusers script) and `test` (a filter, to try the pipeline).
+  with `--api`; any checkpoint), `comfyui` (a ComfyUI server: a plain image-to-image graph with
+  `--checkpoint`, or your own graph in API format with `"{image}"`, `"{prompt}"`, `"{strength}"`
+  ... placeholders), `openai` (OpenAI's image edits, `OPENAI_API_KEY`), `command` (any program,
+  e.g. a diffusers script) and `test` (a filter, to try the pipeline).
 - **Prompts:** one style for the whole pack (`--style`), words for each kind of picture, and a
   caption for each picture in `OUT/captions.txt`: `--write-captions` writes the file to fill in,
   `--caption-with openai` has a vision model describe each picture first.

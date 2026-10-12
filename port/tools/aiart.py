@@ -2,6 +2,7 @@
 """aiart.py - repaint the game's pictures with an image model, as a replacement-art mod.
 
   aiart.py ORIGINALS OUT --backend a1111 [--url http://127.0.0.1:7860] [options]
+  aiart.py ORIGINALS OUT --backend comfyui --checkpoint sd_xl_base_1.0.safetensors
   aiart.py ORIGINALS OUT --backend openai            (OPENAI_API_KEY in the environment)
   aiart.py ORIGINALS OUT --backend command --cmd "python my_sd.py {in} {out} {prompt_file} {strength} {seed}"
   aiart.py ORIGINALS OUT --backend test              (no model: checks the pipeline)
@@ -32,6 +33,10 @@ Backends:
   a1111    Stable Diffusion WebUI (AUTOMATIC1111, Forge, SD.Next ...) started with --api:
            POST /sdapi/v1/img2img. --steps, --cfg, --sampler, --negative; the checkpoint is
            whatever the WebUI has loaded.
+  comfyui  a ComfyUI server (--comfy-url): a plain image-to-image graph with --checkpoint, or
+           your own graph saved in API format (--comfy-workflow) with "{image}", "{prompt}",
+           "{negative}", "{strength}", "{seed}" ... where the values go (Flux, SDXL refiners,
+           ControlNet, upscalers: whatever the graph does).
   openai   OpenAI's image edits (POST /v1/images/edits, --model gpt-image-1 by default); the
            picture is padded to the nearest size it accepts and cut back. Costs money per image.
   command  any program: {in} {out} {prompt} {prompt_file} {negative} {strength} {seed} {w} {h}
@@ -42,7 +47,7 @@ Nothing of the game is sent anywhere by the local backends; openai and --caption
 send the pictures to OpenAI. A pack made from the game's pictures is for your own use.
 """
 import os, sys, io, json, re, base64, hashlib, argparse, subprocess, shlex, tempfile, time, html
-import urllib.request, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
 from PIL import Image, ImageFilter
 
@@ -178,6 +183,55 @@ def be_command(init, prompt, neg, strength, seed, a):
         if r.returncode or not os.path.exists(pout): raise SystemExit('the command failed: ' + cmd)
         return Image.open(pout).convert('RGB')
 
+def comfy_workflow(a, image_name, prompt, neg, strength, seed):
+    """a plain image-to-image graph in ComfyUI's API format (or the user's own, with its
+    placeholders filled: {image} {prompt} {negative} {strength} {seed} {checkpoint} {steps} {cfg})"""
+    if a.comfy_workflow:
+        txt = open(a.comfy_workflow, encoding='utf-8').read()
+        for k, v in {'image': image_name, 'prompt': prompt, 'negative': neg, 'checkpoint': a.checkpoint}.items():
+            txt = txt.replace('"{%s}"' % k, json.dumps(v))
+        for k, v in {'strength': strength, 'seed': seed, 'steps': a.steps, 'cfg': a.cfg}.items():
+            txt = txt.replace('"{%s}"' % k, json.dumps(v))
+        return json.loads(txt)
+    return {
+        '1': {'class_type': 'CheckpointLoaderSimple', 'inputs': {'ckpt_name': a.checkpoint}},
+        '2': {'class_type': 'LoadImage', 'inputs': {'image': image_name}},
+        '3': {'class_type': 'VAEEncode', 'inputs': {'pixels': ['2', 0], 'vae': ['1', 2]}},
+        '4': {'class_type': 'CLIPTextEncode', 'inputs': {'text': prompt, 'clip': ['1', 1]}},
+        '5': {'class_type': 'CLIPTextEncode', 'inputs': {'text': neg, 'clip': ['1', 1]}},
+        '6': {'class_type': 'KSampler', 'inputs': {'model': ['1', 0], 'positive': ['4', 0], 'negative': ['5', 0], 'latent_image': ['3', 0],
+                                                   'seed': seed, 'steps': a.steps, 'cfg': a.cfg, 'sampler_name': a.comfy_sampler,
+                                                   'scheduler': 'karras', 'denoise': strength}},
+        '7': {'class_type': 'VAEDecode', 'inputs': {'samples': ['6', 0], 'vae': ['1', 2]}},
+        '8': {'class_type': 'SaveImage', 'inputs': {'images': ['7', 0], 'filename_prefix': 'darklands_aiart'}},
+    }
+
+def be_comfyui(init, prompt, neg, strength, seed, a):
+    if not a.checkpoint and not a.comfy_workflow: raise SystemExit('comfyui: --checkpoint NAME (a model file ComfyUI has) is needed')
+    base = a.comfy_url.rstrip('/')
+    w, h = (init.width + 7) // 8 * 8, (init.height + 7) // 8 * 8
+    buf = io.BytesIO(); init.resize((w, h), Image.LANCZOS).save(buf, 'PNG')
+    up = http_multipart(base + '/upload/image', {'overwrite': 'true'}, {'image': ('darklands_init.png', buf.getvalue(), 'image/png')}, {})
+    name = up.get('name', 'darklands_init.png') if isinstance(up, dict) else 'darklands_init.png'
+    if isinstance(up, dict) and up.get('subfolder'): name = up['subfolder'] + '/' + name
+    r = http_json(base + '/prompt', {'prompt': comfy_workflow(a, name, prompt, neg, strength, seed), 'client_id': 'darklands-aiart'})
+    pid = r.get('prompt_id')
+    if not pid: raise SystemExit('comfyui: no prompt id: %s' % str(r)[:300])
+    t0 = time.time()
+    while True:
+        with urllib.request.urlopen(base + '/history/' + pid, timeout=60) as f:
+            hist = json.loads(f.read().decode())
+        if pid in hist:
+            outs = hist[pid].get('outputs', {})
+            for node in outs.values():
+                for im in node.get('images', []):
+                    q = urllib.parse.urlencode({'filename': im['filename'], 'subfolder': im.get('subfolder', ''), 'type': im.get('type', 'output')})
+                    with urllib.request.urlopen(base + '/view?' + q, timeout=120) as f:
+                        return Image.open(io.BytesIO(f.read())).convert('RGB')
+            if hist[pid].get('status', {}).get('status_str') == 'error': raise SystemExit('comfyui: the graph failed: %s' % str(hist[pid]['status'])[:400])
+        if time.time() - t0 > 900: raise SystemExit('comfyui: no picture after 15 minutes')
+        time.sleep(1)
+
 def be_test(init, prompt, neg, strength, seed, a):
     """a stand-in for a model: smooth and posterise, and tint by the seed (shows that the pipeline works)"""
     im = init.filter(ImageFilter.ModeFilter(7)).filter(ImageFilter.SMOOTH_MORE)
@@ -186,7 +240,7 @@ def be_test(init, prompt, neg, strength, seed, a):
     rng = np.random.default_rng(seed); tint = rng.uniform(0.9, 1.1, 3)
     return Image.fromarray(np.clip(arr * tint, 0, 255).astype(np.uint8), 'RGB')
 
-BACKENDS = {'a1111': be_a1111, 'openai': be_openai, 'command': be_command, 'test': be_test}
+BACKENDS = {'a1111': be_a1111, 'comfyui': be_comfyui, 'openai': be_openai, 'command': be_command, 'test': be_test}
 
 # ------------------------------------------------------------------ fitting the result back
 def keep_mask(orig, kind, scale):
@@ -251,6 +305,10 @@ def main():
     ap.add_argument('originals'); ap.add_argument('out')
     ap.add_argument('--backend', choices=sorted(BACKENDS), default='test')
     ap.add_argument('--url', default='http://127.0.0.1:7860', help='a1111: the WebUI address')
+    ap.add_argument('--comfy-url', default='http://127.0.0.1:8188', help='comfyui: the server address')
+    ap.add_argument('--checkpoint', default='', help='comfyui: the model file (as ComfyUI lists it)')
+    ap.add_argument('--comfy-sampler', default='dpmpp_2m')
+    ap.add_argument('--comfy-workflow', default='', help='comfyui: your own graph (API format) with "{image}" "{prompt}" ... placeholders')
     ap.add_argument('--openai-url', default='https://api.openai.com/v1')
     ap.add_argument('--model', default='gpt-image-1', help='openai: the image model')
     ap.add_argument('--cmd', default='', help='command: the command line, with {in} {out} {prompt} ...')
