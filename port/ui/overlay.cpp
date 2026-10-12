@@ -34,7 +34,6 @@ extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 static ImDrawList *ovl_dl;               /* the overlay layer (ui_overlay): under tooltips and windows, over the picture */
 static ImDrawList *ovl_list(void) { return ovl_dl ? ovl_dl : ImGui::GetForegroundDrawList(); }
-#define UI_GAME_FONTS 6
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
 
@@ -1092,7 +1091,8 @@ static void draw_battle_info(void)
     if (best < 0) return;
     u16 b = (u16)(0x9c55 + best * 0x80);
     int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
-    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), w = (s8)g_rb((u16)(b + 0x22));
+    /* +0x22 the missile weapon's type (0xff none), +0x23 the melee weapon's */
+    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x23));
     std::string name;
     if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
     else name = enemy_name(g_rb((u16)(0xa6b4 + best)), b);
@@ -1112,8 +1112,43 @@ static void draw_battle_info(void)
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
         ImGui::Text("Attack %d, defence %d", atk, def);
-        if (w >= 0 && w <= 33) {
-            for (const ItemDef &d : gamedata.items) if (d.type == w && (d.kind == K_WEAPON || d.kind == K_MISSILE)) { ImGui::TextDisabled("%s", game_text(d.name.c_str(), d.name.size()).c_str()); break; }
+        auto wname = [](int t) -> std::string {
+            if (t < 0 || t > 33) return "";
+            for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());
+            return "";
+        };
+        {
+            std::string a = wname(w), m = wname(wm);
+            if (!a.empty() || !m.empty()) ImGui::TextDisabled("%s%s%s", a.c_str(), !a.empty() && !m.empty() ? ", " : "", m.c_str());
+        }
+        if (best >= 5 && st == 1) {
+            /* its body armour against the party's weapons (the game's rule, as in the armour
+               tooltips: penetration below the hardness turns most of the blow, equal halves it,
+               above pierces and wounds strength) */
+            int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
+            static const char *HN[6] = { "no armour", "soft armour", "stiff armour", "scale armour", "mail", "plate" };
+            if (h >= 0 && h < 6) {
+                ImGui::Text("%s (hardness %d)", HN[h], h);
+                int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
+                for (int m = 0; m < size; m++) {
+                    u16 mb = (u16)(0x9c55 + m * 0x80);
+                    if (g_rb((u16)(mb + 0x14)) != 1) continue;
+                    char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
+                    std::string line = game_text(nm, sizeof nm) + ":";
+                    int worst = 3;                                   /* the colour: the best of the member's weapons */
+                    for (int k = 0; k < 2; k++) {
+                        int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x23)));
+                        std::string wn = wname(mw);
+                        if (wn.empty()) continue;
+                        int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
+                        if (r < worst) worst = r;
+                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is turned");
+                    }
+                    if (worst == 3) continue;
+                    ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);
+                    ImGui::TextColored(c, "%s", line.c_str());
+                }
+            }
         }
         ImGui::PopFont();
     }
