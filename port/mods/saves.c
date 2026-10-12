@@ -365,6 +365,7 @@ int saves_restart_on_exit(void)
     return 1;
 }
 void saves_note_game(void) { if (game_mode() != GM_OTHER) game_seen = 1; }
+int saves_party_ended(void) { return !user_quit && game_seen; }     /* the program ends for the party's end, not a quit */
 
 void saves_init(void)
 {

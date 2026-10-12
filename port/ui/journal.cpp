@@ -453,6 +453,8 @@ static void ingredients_page(void)
 int ui_want_subtab = -1;
 extern "C" void journal_quests(void);               /* scripted tests: utab 2.1 */
 
+extern "C" void halloffame_open(void);
+extern "C" int halloffame_record(void);
 extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
@@ -478,6 +480,20 @@ extern "C" void tab_journal(void)
         }
         if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
         if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
+        if (ImGui::BeginTabItem("Honor Roll", nullptr, want == 4 ? ImGuiTabItemFlags_SetSelected : 0)) {
+            ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
+                               "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
+                               "A party enters it when its journey ends, or now with the button.");
+            ImGui::Spacing();
+            if (ImGui::Button("Show the Honor Roll of Glory")) halloffame_open();
+            ImGui::SameLine();
+            static std::string msg;
+            ImGui::BeginDisabled(game_mode() == GM_OTHER);
+            if (ImGui::Button("Enter the party now")) msg = halloffame_record() ? "The party is on the roll." : "Not famous enough yet for the four best (or the roll could not be written).";
+            ImGui::EndDisabled();
+            if (!msg.empty()) ImGui::TextDisabled("%s", msg.c_str());
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
 }

@@ -48,6 +48,13 @@ extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
 static ImFont *font_body, *font_head, *font_tab;
 extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
+extern "C" int halloffame_is_open(void);
+extern "C" void halloffame_open(void);
+extern "C" void halloffame_draw(void);
+extern "C" void halloffame_close(void);
+extern "C" int halloffame_record(void);
+void halloffame_set_renderer(SDL_Renderer *r);
+
 ImFont *ui_font_small, *ui_font_text;
 float ui_scale = 1.0f;
 ImFont *ui_font_game[UI_GAME_FONTS];       /* the crisp game text: EB Garamond, Alegreya, IM Fell, Atkinson, MedievalSharp, Fraktur */
@@ -183,6 +190,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     journal_init();
     if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
+    halloffame_set_renderer(ren);
+    if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
     style();
@@ -198,7 +207,7 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || levelmap_is_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || levelmap_is_open() || halloffame_is_open(); }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
@@ -216,6 +225,11 @@ extern "C" int ui_event(const SDL_Event *e)
     if (open_help) {
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_F1)) { open_help = false; return 1; }
         if (e->type == SDL_MOUSEBUTTONDOWN) { open_help = false; return 1; }
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
+    if (halloffame_is_open()) {             /* the Honor Roll of Glory takes every event until closed */
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { halloffame_close(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     /* Tab in a battle or dungeon: the level map (ui/levelmap.cpp) */
@@ -737,7 +751,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || levelmap_is_open() || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -760,9 +774,10 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();
     if (open_map) worldmap_draw();
+    else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
     else hdtext_draw();
-    if (!open_menu && !open_map && !levelmap_is_open()) ui_overlay();
+    if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
