@@ -22,6 +22,7 @@ extern "C" {
 }
 
 static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
+void ui_skill_icon_inline(int k);
 static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
     "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
@@ -110,7 +111,7 @@ extern "C" void tab_editor(void)
             }
         }
         if (ImGui::CollapsingHeader("Skills")) {
-            for (int k = 0; k < 19; k++) { ImGui::PushID(100 + k); byte_slider(SKILL[k], G_DGROUP, (u16)(r + 0x6b + k), 0, 99); ImGui::PopID(); }
+            for (int k = 0; k < 19; k++) { ImGui::PushID(100 + k); ui_skill_icon_inline(k); byte_slider(SKILL[k], G_DGROUP, (u16)(r + 0x6b + k), 0, 99); ImGui::PopID(); }
         }
         if (ImGui::CollapsingHeader("Saints known")) {
             for (int s = 0; s < (int)gamedata.saints.size(); s++) {
