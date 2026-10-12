@@ -57,7 +57,26 @@ static int find_game_dir(int argc, char **argv)
         snprintf(p, sizeof p, "%s/DARKLAND.EXE", cands[i]);
         if (file_exists(p)) { snprintf(game_dir, sizeof game_dir, "%s", cands[i]); return 1; }
     }
+    /* elsewhere: a folder chosen before, the GOG / Steam installation, a folder dialog (gamefind.c) */
+    int find_game_more(const char *exedir, char *out, int n, int interactive);
+    if (exedir[0] && find_game_more(exedir, game_dir, sizeof game_dir, !getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS"))) return 1;
     return 0;
+}
+
+/* the DARKLAND.EXE Darklands+ is made for: 483.07 as GOG and Steam sell it */
+#define GAME_EXE_CRC 0x35aa8edeu
+static unsigned file_crc32(const char *path)
+{
+    static unsigned t[256];
+    if (!t[1]) for (unsigned i = 0; i < 256; i++) { unsigned c = i; for (int k = 0; k < 8; k++) c = c & 1 ? 0xedb88320u ^ (c >> 1) : c >> 1; t[i] = c; }
+    FILE *f = fopen(path, "rb");
+    if (!f) return 0;
+    unsigned c = 0xffffffffu; int ch;
+    unsigned char buf[65536]; size_t n;
+    while ((n = fread(buf, 1, sizeof buf, f)) > 0) for (size_t i = 0; i < n; i++) c = t[(c ^ buf[i]) & 0xff] ^ (c >> 8);
+    (void)ch;
+    fclose(f);
+    return c ^ 0xffffffffu;
 }
 
 static u16 le16(const u8 *p) { return (u16)(p[0] | (p[1] << 8)); }
@@ -109,8 +128,8 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--rtlink")) skip_rtlink = 0;
     }
     if (!find_game_dir(argc, argv)) {
-        const char *msg = "Put darklands.exe into your Darklands folder (the one that contains DARKLAND.EXE),\n"
-                          "or start it with that folder as its argument.";
+        const char *msg = "Darklands+ could not find your Darklands folder (the one that contains DARKLAND.EXE).\n"
+                          "Put darklands.exe and the darklands_plus folder into it, or start darklands.exe with that folder as its argument.";
         fprintf(stderr, "%s\n", msg);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
         return 1;
@@ -141,6 +160,15 @@ int main(int argc, char **argv)
     crash_handler_install();
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
+    {   unsigned crc = file_crc32(exe);
+        if (crc != GAME_EXE_CRC) {
+            char msg[600];
+            snprintf(msg, sizeof msg, "This DARKLAND.EXE is not the one Darklands+ is made for (version 483.07, as GOG sells it; "
+                     "this one's checksum is %08x). The game may not start, or may stop with an error.", crc);
+            fprintf(stderr, "warning: %s\n", msg);
+            if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Darklands", msg, 0);
+        }
+    }
 
     config_load(dlp_data_dir);
     {   /* SAVES\DEFAULT holds the ready-made world Quickstart begins with: without it Quickstart
