@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "cpu.h"
+void ovl_changed(void);
 #include "hle.h"
 #include "dispatch.h"
 #include "game.h"
@@ -51,7 +52,7 @@ int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args)
     R = save;
     tail_pending = save_tail; unw_active = save_unw;
     memcpy(M + a0, snap, a1 - a0);
-    memcpy(ovl_loaded, loaded, sizeof loaded);
+    memcpy(ovl_loaded, loaded, sizeof loaded); ovl_changed();
     free(snap);
     return ax;
 }
@@ -92,7 +93,7 @@ void eval_restore(void *p)
     struct EvalSnap *s = p;
     memcpy(M, s->mem, MEM_SIZE);
     R = s->r;
-    memcpy(ovl_loaded, s->loaded, sizeof s->loaded);
+    memcpy(ovl_loaded, s->loaded, sizeof s->loaded); ovl_changed();
     tail_pending = s->tail; unw_active = s->unw;
     ems_restore(s->ems);
     dos_restore(s->dos);
@@ -177,7 +178,9 @@ static u32 call_direct(void (*f)(void), int nargs, const u16 *args, int live)
     SP = (u16)(SP - 64);
     for (int i = nargs - 1; i >= 0; i--) push16(args[i]);
     push16(HLE_SEG); push16(0xfff0);
+    OvlSet o; ovl_save(&o);
     f();
+    ovl_restore(&o);                    /* sections the call displaced come back, as after an RTLink call */
     u32 r = ((u32)DX << 16) | AX;
     if (!live) in_game_call--;
     R = save; tail_pending = tp; unw_active = ua;

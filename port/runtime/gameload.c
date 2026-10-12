@@ -73,6 +73,7 @@ int gameload(const char *dir, char *err, int errn)
     rt.hle_in8 = hle_in8; rt.hle_out8 = hle_out8; rt.hle_int = hle_int;
     rt.hook_run = hook_run; rt.interp_run = interp_run; rt.interp_step = interp_step;
     rt.ovl_enter = ovl_enter; rt.ret_mismatch = ret_mismatch;
+    rt.ovl_save = (void (*)(void *))ovl_save; rt.ovl_restore = (void (*)(const void *))ovl_restore;
     dl_game = init(&rt);
     if (!dl_game || strcmp(dl_game->translator, dlp_translator)) {
         if (getenv("DL_GAME_MODULE") && dl_game) { fprintf(stderr, "game module %s: made by translator %s, not %s (used anyway)\n", path, dl_game->translator, dlp_translator); return 1; }

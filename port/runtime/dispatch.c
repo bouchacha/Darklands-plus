@@ -19,10 +19,20 @@ static void (*find_func(u32 lin))(void)
     if (first < 0) return 0;
     /* overlay sections share addresses: take the function of a loaded section */
     void (*any)(void) = 0;
+    int n = 0;
     for (int k = first; k < FUNC_COUNT && FUNC_TABLE[k].lin == lin; k++) {
         int s = FUNC_TABLE[k].sect;
         if (s < 0 || ovl_loaded[s]) return FUNC_TABLE[k].f;
         if (!any) any = FUNC_TABLE[k].f;
+        n++;
+    }
+    if (n > 1) {            /* none of the sections with a function here is present: a guess (should not happen) */
+        static u32 seen[64]; static int nseen;
+        int k2 = 0; while (k2 < nseen && seen[k2] != lin) k2++;
+        if (k2 == nseen && nseen < 64) {
+            seen[nseen++] = lin;
+            fprintf(stderr, "dispatch: %05x is in %d overlay sections, none of them present (took s%03d)\n", lin, n, FUNC_TABLE[first].sect);
+        }
     }
     return any;
 }
@@ -115,7 +125,11 @@ static void go(u16 seg, u16 off, int is_call)
     if (in_program(seg, off)) {
         u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
         const VecEntry *v = find_vector(lin);
-        if (v) { ovl_enter(v->sect); v->f(); return; }
+        if (v) {
+            if (!is_call) { ovl_enter(v->sect); v->f(); return; }
+            OvlSet o; ovl_save(&o); ovl_enter(v->sect); v->f(); ovl_restore(&o);     /* as RTLink (ovl.c) */
+            return;
+        }
         void (*f)(void) = find_func(lin);
         if (f) { f(); return; }
         if (!is_call && is_retsite(lin)) {

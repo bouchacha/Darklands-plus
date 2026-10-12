@@ -14,7 +14,7 @@
 #ifndef DL_SPLIT_H
 #define DL_SPLIT_H
 
-#define DL_SPLIT_VERSION 1
+#define DL_SPLIT_VERSION 2
 
 #ifdef DL_GENSPLIT
 /* every "extern T x;" of these in the headers becomes "extern T (*dl_x);" */
@@ -53,6 +53,8 @@ typedef struct DlRuntime {
     void (*interp_step)(unsigned short, unsigned short);
     void (*ovl_enter)(int);
     void (*ret_mismatch)(unsigned short, int, unsigned short, unsigned short);
+    void (*ovl_save)(void *);
+    void (*ovl_restore)(const void *);
 } DlRuntime;
 
 /* what the module hands back */

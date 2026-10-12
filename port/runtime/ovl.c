@@ -12,6 +12,7 @@ typedef struct { u16 load_seg, file_para_lo, file_para_hi_flags, mem_paras, nrel
 static Sect sect[256];
 static int nsect;
 int ovl_loaded[256];
+static u32 ovl_gen;                         /* counts loads (ovl_restore: nothing to do when none happened) */
 static FILE *exef;
 static u32 sect_file_off[256];
 
@@ -56,6 +57,7 @@ void ovl_irq_end(void)
     if (--irq_depth > 0 || !irq_saved) return;
     memcpy(M + ((u32)LOADSEG << 4) + irq_a0, irq_area, irq_a1 - irq_a0);
     memcpy(ovl_loaded, irq_loaded, sizeof irq_loaded);
+    ovl_gen++;
     irq_saved = 0;
     static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
     if (tr) fprintf(stderr, "ovl: overlay area put back after an interrupt handler\n");
@@ -104,6 +106,7 @@ static void load(int i)
         if (a0 < b1 && b0 < a1) ovl_loaded[j] = 0;
     }
     ovl_loaded[i] = 1;
+    ovl_gen++;
     { void watch_check(const char *); watch_check("overlay load"); }
 }
 
@@ -111,6 +114,37 @@ void ovl_enter(int i)
 {
     if (i < 0 || i >= nsect || ovl_loaded[i]) return;
     load(i);
+}
+
+/* RTLink's reload stack. A call through the manager that loads a section displaces the
+ * sections sharing its memory - also ones further up the call chain than the caller: the card
+ * engine (s043) loading the picture code (s039) displaces the card script (s109) that called
+ * it. RTLink reloads what was displaced when the call returns; the translated code brackets
+ * every such call with ovl_save / ovl_restore. (Only the caller's own section came back
+ * before: a card script then found itself gone, and its option handlers, called through far
+ * pointers, ran the function of another card at the same address - travelling with merchants
+ * put the party in a grove in the town it was leaving.) */
+void ovl_changed(void) { ovl_gen++; }        /* ovl_loaded was put back wholesale (snapshots) */
+void ovl_save(OvlSet *o)
+{
+    static u32 bits[8], bits_gen = 0xffffffffu;
+    if (bits_gen != ovl_gen) {
+        memset(bits, 0, sizeof bits);
+        for (int i = 0; i < nsect; i++) if (ovl_loaded[i]) bits[i >> 5] |= 1u << (i & 31);
+        bits_gen = ovl_gen;
+    }
+    o->gen = ovl_gen;
+    memcpy(o->bits, bits, sizeof bits);
+}
+void ovl_restore(const OvlSet *o)
+{
+    if (o->gen == ovl_gen) return;
+    for (int i = 0; i < nsect; i++)
+        if (((o->bits[i >> 5] >> (i & 31)) & 1) && !ovl_loaded[i]) {
+            static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
+            if (tr) fprintf(stderr, "ovl: s%03d displaced by the call: reloaded\n", i);
+            load(i);
+        }
 }
 
 /* RTLink's own start-up preloads sections; the native start-up does it here */

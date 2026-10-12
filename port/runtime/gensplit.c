@@ -45,6 +45,8 @@ void hook_run(int idx) { rt->hook_run(idx); }
 void interp_run(u16 seg, u16 off) { rt->interp_run(seg, off); }
 void interp_step(u16 cs, u16 ip) { rt->interp_step(cs, ip); }
 void ovl_enter(int section) { rt->ovl_enter(section); }
+void ovl_save(OvlSet *o) { rt->ovl_save(o); }
+void ovl_restore(const OvlSet *o) { rt->ovl_restore(o); }
 void ret_mismatch(u16 my_sp, int kind, u16 n, u16 cs) { rt->ret_mismatch(my_sp, kind, n, cs); }
 
 extern const unsigned INTERP_ALWAYS_TABLE[]; extern const int INTERP_ALWAYS_COUNT;

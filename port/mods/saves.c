@@ -20,6 +20,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include "../runtime/cpu.h"
+void ovl_changed(void);
 #include "../runtime/hle.h"
 #include "../runtime/hooks.h"
 #include "../runtime/dispatch.h"
@@ -192,7 +193,7 @@ static int call_load_game(void)
     if (unw_active) { free(snap); return 1; }
     SP = sp; DS = ds; ES = es;
     memcpy(M + a0, snap, a1 - a0);
-    memcpy(ovl_loaded, loaded, sizeof loaded);
+    memcpy(ovl_loaded, loaded, sizeof loaded); ovl_changed();
     free(snap);
     return 0;
 }

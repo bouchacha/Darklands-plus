@@ -133,6 +133,9 @@ void dispatch_near(u16 cs, u16 off);    /* call near to a computed address in se
 void dispatch_jmp_far(u16 seg, u16 off);/* jmp far: like call but the callee's return is ours */
 void dispatch_jmp_near(u16 cs, u16 off);
 void ovl_enter(int section);            /* RTLink: make sure an overlay section is loaded */
+typedef struct { u32 gen, bits[8]; } OvlSet;
+void ovl_save(OvlSet *s);               /* RTLink's reload stack: the sections present before a call */
+void ovl_restore(const OvlSet *s);      /* ... are present again after it (those it displaced reloaded) */
 void dl_poll(void);                        /* safe point: timer interrupts, input, screen refresh */
 extern volatile int poll_flag;
 #define POLL() do { if (poll_flag) dl_poll(); } while (0)
