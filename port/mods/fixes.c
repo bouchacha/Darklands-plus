@@ -51,7 +51,18 @@
  *            best_skill is set to the first of the highest weapon skills afterwards.
  *  offmap    One location of DARKLAND.LOC (record 373, a cave) lies at y 931, one row below the
  *            931-row map: quests that send the party there cannot be finished ("quests send
- *            you off the map"). It is moved onto the last row. */
+ *            you off the map"). It is moved onto the last row.
+ *  itemcount When robbers take the party's things (lose_items, s031 18e7:0ab8: $Raubi02's
+ *            surrender and others), the loop over a member's items starts at the count, one
+ *            past the last item, and remove_item_rec (18e7:0406) lowers the count even for an
+ *            item that is not there: one item too many is taken, and a member who had nothing
+ *            left ends with -1 items (party +0x6a is a signed byte). When that member falls
+ *            in battle, his pile is made (s014 0e76:2324) with _fmemcpy(DS:a895, items,
+ *            count * 6): 65530 bytes over the whole data segment, stack included, and the
+ *            game dies ("left through an unmatched return"). remove_item_rec and the battle's
+ *            use_item_idx (s014 18bf:0fa4, the same flaw) now ignore an index past the
+ *            items; counts are also kept within 0..64 (16 for enemies), so saves that carry
+ *            -1 mend themselves. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,6 +99,8 @@ Fix FIXES[] = {
       "One cave lies a row beyond the bottom of the map, so quests sent there could never be finished. It is moved onto the map.", 1 },
     { "bestweapon", "Weapon practice trains the weapon actually used best",
       "Where a card lets the leader practise with the weapon he or she is best at, the original always trained Missile Devices.", 1 },
+    { "itemcount", "Robbers take what is there (and no crash after)",
+      "When robbers took the party's things, the game removed one item too many; a character left with nothing ended up with -1 items, and if he or she later died in battle the game overwrote its own memory and stopped. Fixed; saved games with the fault mend themselves.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -314,9 +327,51 @@ static void offmap_frame(void)                 /* locations below or right of th
         if (x > 326 && x < 336) { ww(s, (u16)(o + 4), 326); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d x %d -> 326\n", k, x); }
     }
 }
+/* ---------------------------------------------------------------- itemcount */
+static int clamp_items(int i)              /* combatant i's item count into 0..64 (enemies 0..16) */
+{
+    u16 a = (u16)(0x9c55 + 0x80 * i + 0x7e);  /* = party member i + 0x6a */
+    int n = (s8)g_rb(a), max = i < 5 ? 64 : 16;
+    if (n >= 0 && n <= max) return 0;
+    fprintf(stderr, "fix itemcount: %s %d had %d items: %d\n", i < 5 ? "member" : "combatant", i, n, n < 0 ? 0 : max);
+    g_wb(a, (u8)(n < 0 ? 0 : max));
+    return 1;
+}
+static void itemcount_frame(void)
+{
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    if (size < 1 || size > 5) return;
+    for (int m = 0; m < size; m++) clamp_items(m);
+}
+static void falls_hook(void)               /* s014 0e76:2324 (i, ...): a combatant falls; his items become a pile */
+{
+    int i = (s16)rw(SS, (u16)(SP + 2));      /* near call */
+    if (i >= 0 && i < 13) clamp_items(i);
+    hook_call_original();
+}
+static int idx_missing(int who, int idx)   /* who (0..12) has no item idx */
+{
+    if (who < 0 || who > 12) return 0;
+    int n = (s8)g_rb((u16)(0x9c55 + 0x80 * who + 0x7e));
+    if (idx >= 0 && idx < n) return 0;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix itemcount: %d has no item %d (%d items): nothing removed\n", who, idx, n);
+    return 1;
+}
+static void removeitem_hook(void)          /* remove_item_rec(who, idx), s031 18e7:0406 */
+{
+    if (idx_missing((s16)rw(SS, (u16)(SP + 4)), (s16)rw(SS, (u16)(SP + 6)))) { hook_return_far(0); return; }
+    hook_call_original();
+}
+static void useitem_hook(void)             /* use_item_idx(who, idx): one of a stack used up, s014 18bf:0fa4 */
+{
+    if (idx_missing((s16)rw(SS, (u16)(SP + 4)), (s16)rw(SS, (u16)(SP + 6)))) { AX = 0xffff; hook_return_far(0); return; }
+    hook_call_original();
+}
+
 void fixes_frame(void)
 {
     colours_frame();
+    if (fix_on("itemcount")) itemcount_frame();
     if (fix_on("potions")) potions_frame();
     if (fix_on("offmap")) offmap_frame();
 }
@@ -404,7 +459,10 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
-    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook } };
+    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook } };
+/* further hooks that belong to a fix */
+static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook } };
 
 void fix_enable(int i, int on)
 {
@@ -414,13 +472,28 @@ void fix_enable(int i, int on)
     int shared = 0;                         /* another fix on the same function still on */
     for (int k = 0; k < FIX_COUNT; k++)
         if (k != i && FIXES[k].on && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
+    for (unsigned k = 0; k < sizeof MORE / sizeof MORE[0]; k++)
+        if (!strcmp(MORE[k].fix, FIXES[i].id)) { if (on) hook_install(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); else hook_remove(MORE[k].sect, MORE[k].seg, MORE[k].off); }
     if (!HOOKS[i].fn) return;                /* checked every frame (fixes_frame), no hook */
     if (on) { if (!hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn)) fprintf(stderr, "fix %s: no hook point\n", FIXES[i].id); }
     else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off);
 }
 
+/* debugging (DL_CHECK_COPY): far copies (_fmemcpy, root 098c4) that would reach the stack */
+static void copy_check_hook(void)
+{
+    u16 doff = rw(SS, (u16)(SP + 4)), dseg = rw(SS, (u16)(SP + 6)), soff = rw(SS, (u16)(SP + 8)), sseg = rw(SS, (u16)(SP + 10)), n = rw(SS, (u16)(SP + 12));
+    if (dseg == SS && doff == 0xa895) fprintf(stderr, "pile copy: %u bytes (%u items) from %04x:%04x\n", n, n / 6, sseg, soff);
+    if (dseg == SS && n && (u32)doff + n > (u32)SP - 0x200) {
+        fprintf(stderr, "COPY INTO THE STACK: %04x:%04x <- %04x:%04x, %u bytes (SP %04x, return %04x:%04x)\n", dseg, doff, sseg, soff, n, SP, rw(SS, (u16)(SP + 2)), rw(SS, SP));
+        ftrace_dump();
+    }
+    hook_call_original();
+}
+
 void fixes_init(void)
 {
+    if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
     for (int i = 0; i < FIX_COUNT; i++) {
         char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
         fix_enable(i, config_get_int(key, FIXES[i].on));

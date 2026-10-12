@@ -157,7 +157,17 @@ void ret_mismatch(u16 my_sp, int kind, u16 n, u16 cs)
         /* return from an outer frame */
         unw_active = 1; unw_sp = slot; unw_ip = ip; unw_cs = seg; unw_far = kind != 0;
         static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_UNW") != 0;
-        if (tr) { fprintf(stderr, "unwind: ret from slot %04x (frame %04x) to %04x:%04x\n", slot, my_sp, seg, ip); ftrace_dump(); }
+        if (tr) {
+            fprintf(stderr, "unwind: ret from slot %04x (frame %04x) to %04x:%04x, BP %04x\n", slot, my_sp, seg, ip, BP); ftrace_dump();
+#ifdef FTRACE
+            if ((u16)(slot - my_sp) > 0x2000) {      /* far outside the frame: the stack pointer is lost */
+                extern u32 ret_ring[64]; extern u16 ret_ring_sp[64]; extern int ret_ring_i;
+                fprintf(stderr, "  SP LOST; last returns (function: SP after):");
+                for (int k = 0; k < 64; k++) { int j = (ret_ring_i + k) & 63; if (ret_ring[j]) fprintf(stderr, "%s%x:%04x", k % 6 ? "  " : "\n    ", ret_ring[j], ret_ring_sp[j]); }
+                fprintf(stderr, "\n");
+            }
+#endif
+        }
         return;
     }
     /* "push address; ret": a computed jump */
