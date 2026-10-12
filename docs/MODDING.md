@@ -112,6 +112,17 @@ and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, 
 for variations) replaces a battle sound; the names are listed in F12 > Display. Mods can
 carry both folders; a mod's files win over the game folder's.
 
+### Making a whole art pack
+
+`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Display > "Export
+the original pictures", which writes `art/original`) into a mod folder: `OUT/mod.txt` and
+`OUT/art/NAME.png` at four times the size. A *style* decides what becomes of each picture; the
+sample style `clown` dresses every piece of armour on the character sheet as a clown costume
+and turns shields into bullseyes, which makes it easy to see that the replacer works. Styles are
+plain Python functions (picture in, picture out, or None to leave it), so an image model can be
+plugged in the same way. A pack made from the originals carries the game's pictures: keep it
+for yourself.
+
 ## Built-in changes
 
 F12 > Mods also lists changes written in C (`port/mods/builtin.c`): faster travel, cheaper inns,
