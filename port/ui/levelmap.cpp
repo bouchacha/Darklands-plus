@@ -203,6 +203,31 @@ extern "C" void levelmap_draw(void)
     /* the party, and the enemies the party can see now */
     ImFont *f = ui_font_small ? ui_font_small : ImGui::GetFont();
     float r = fmaxf(5.0f, s * 0.32f);
+    auto shown = [&](int i, ImVec2 *at) {            /* combatant i on this map: active or down, on this floor, an enemy only in sight */
+        u16 b = (u16)(0x9c55 + 0x80 * i);
+        int st = g_rb((u16)(b + 0x14));
+        if (st != 1 && st != 2) return false;
+        if ((s8)g_rb((u16)(0xa6b4 + i)) != fl) return false;
+        float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
+        if (i >= 5 && !in_view_now((int)X, (int)Y)) return false;
+        *at = P(X, Y);
+        return true;
+    };
+    /* who is going for whom (combatant +0x4a): the party's in blue, the enemies' in red */
+    for (int i = 0; i < 13; i++) {
+        ImVec2 a, b;
+        int t = (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x4a));
+        if (t < 0 || t > 12 || t == i || !shown(i, &a) || !shown(t, &b)) continue;
+        if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) != 1) continue;
+        ImU32 lc = i < 5 ? IM_COL32(90, 170, 250, 220) : IM_COL32(230, 80, 60, 220);
+        float dx = b.x - a.x, dy = b.y - a.y, len = sqrtf(dx * dx + dy * dy);
+        if (len < r * 2.2f) continue;
+        dx /= len; dy /= len;
+        ImVec2 a2(a.x + dx * r, a.y + dy * r), b2(b.x - dx * r * 1.1f, b.y - dy * r * 1.1f);
+        dl->AddLine(a2, b2, lc, fmaxf(1.5f, s * 0.06f));
+        float h = fmaxf(5.0f, s * 0.2f);
+        dl->AddTriangleFilled(b2, ImVec2(b2.x - dx * h - dy * h * 0.5f, b2.y - dy * h + dx * h * 0.5f), ImVec2(b2.x - dx * h + dy * h * 0.5f, b2.y - dy * h - dx * h * 0.5f), lc);
+    }
     for (int i = 12; i >= 0; i--) {
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
@@ -232,12 +257,13 @@ extern "C" void levelmap_draw(void)
         lx += UIS(30) + f->CalcTextSizeA(UIS(18), FLT_MAX, 0, txt).x;
     };
     legend(IM_COL32(70, 150, 230, 255), "party", true);
-    legend(IM_COL32(210, 60, 50, 255), "enemies in sight", true);
+    legend(IM_COL32(210, 60, 50, 255), "enemies seen", true);
     legend(FLOOR_NOW, "in view now", false);
+    legend(IM_COL32(90, 170, 250, 220), "arrows: targets", false);
     legend(DOOR, "door", false);
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
     if (all) legend(HIDDEN, "not yet open", false);
-    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), "Tab or Esc closes this. The game waits meanwhile.");
+    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), "Tab or Esc closes this (the game waits).");
     ImGui::End();
 }
