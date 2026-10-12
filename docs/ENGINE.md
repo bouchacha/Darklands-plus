@@ -92,7 +92,7 @@ Build a mod:
 
 | data | name | layout |
 |---|---|---|
-| party members | `party` (D_9c69), `party_size`, `leader`, `party_seed` | 5 records of 0x80 bytes: +0 status (1 able), +0x2a name, +0x35 fatigue, +0x37.. armour/weapon types and qualities, +0x49 attributes (`member_attrs`, 0 End 1 Str 2 Agl 3 Per 4 Int 5 Chr 6 DF), +0x50 their maxima, +0x57 skills (0-6 weapons, 7 Alchemy, 8 Religion, 9 Virtue, 10 Latin, 11 Reading, 12 Healing, 13 Artifice, 14 Stealth, 15 Streetwise, 16 Riding, 17 Woodwise), +0x6a item count. `who` = 0..4, -1 leader, -2 everybody |
+| party members | `party` (D_9c69), `party_size`, `leader`, `party_seed` | 5 records of 0x80 bytes: +0 status (1 able), +0x2a name, +0x35 fatigue, +0x37.. armour/weapon types and qualities, +0x49 attributes (`member_attrs`, 0 End 1 Str 2 Agl 3 Per 4 Int 5 Chr 6 DF), +0x50 their maxima, +0x57 skills (0-6 weapons, 7 Alchemy, 8 Religion, 9 Virtue, 10 Speak Common, 11 Latin, 12 Reading, 13 Healing, 14 Artifice, 15 Stealth, 16 Streetwise, 17 Riding, 18 Woodwise), +0x6a item count. `who` = 0..4, -1 leader, -2 everybody |
 | inventories | `inventories` (F_2e38_003e), `item_defs` | per member 0x180 bytes of 6-byte records {code, type, quality, count, weight}; definitions from darkland.lst |
 | knowledge | `saints_known` (0x14 bytes per member, names `saint_names`), `formulas_known` (0x16 bytes, `virtue_names`) | bit sets |
 | money | `party_money` (`party_money_gr`, `party_money_pf`) | struct money {florins, groschen, pfennigs}; 1 fl = 20 gr, 1 gr = 12 pf |

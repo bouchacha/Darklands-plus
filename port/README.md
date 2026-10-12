@@ -44,11 +44,15 @@ build/port/darklands /path/to/DARKLAND                        # run
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
   battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
-  quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop.
+  quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop;
+  the party side by side with a one-click leader change; F1 for the keys of the moment (the
+  game's own hidden ones too); the mouse wheel in lists; the game waits while in the background.
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
 * **Fixes** for bugs of 483.07 (weapon potions, vanishing items, quests off the map, garish
   colours, Save/Load greyed out, ...), see the Helpers tab.
+* **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows,
+  a strong Quickstart party, a rich start.
 * **Modding:** mod folders (data files, single card files, card texts as text, menu texts,
   weapon numbers, items, art, sounds), see `docs/MODDING.md`.
 
