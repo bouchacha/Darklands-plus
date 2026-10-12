@@ -291,15 +291,25 @@ static void chron_load(int seed)
 static int chron_on(void) { return journal_on && config_get_int("journal.chronicle", 1) && !config_get_int("original", 0); }
 
 /* the narrative of the text block now in msg_buf (without the option lines), as UTF-8 */
+static std::vector<std::string> chron_opts_parsed;   /* the option lines of the last block read (when the crisp text has none) */
 static std::string chron_text_now(void)
 {
     std::string out, para; bool any = false;
+    chron_opts_parsed.clear();
     char line[600]; int n = 0;
     auto end_line = [&](void) {
         line[n] = 0;
         const char *p = line; bool opt = false;
         while (*p == 0x14) { p++; if (!para.empty()) { out += (out.empty() ? "" : "\n\n") + para; para.clear(); } }
-        if (*p == 0x15) opt = true;
+        if (*p == 0x15) {
+            opt = true;
+            std::string o;
+            for (const char *q = p + 1; *q; q++) if ((unsigned char)*q >= 0x20) o += *q; else if (*q == 0x1d) o += ' ';
+            size_t k = 0; while (k < o.size() && (o[k] == '.' || o[k] == ' ')) k++;
+            o.erase(0, k);
+            bool digits = !o.empty(); for (char c : o) if (c < '0' || c > '9') digits = false;
+            if (!o.empty() && !digits) chron_opts_parsed.push_back(game_text(o.c_str(), o.size()));
+        }
         if (!opt) {
             std::string clean;
             for (const char *q = p; *q; q++) if ((unsigned char)*q >= 0x20) clean += *q; else if (*q == 0x1d) clean += ' ';
@@ -321,10 +331,12 @@ static std::string chron_text_now(void)
 /* text_expand has just put a block into msg_buf: it is what the card shows next (kept aside,
  * as msg_buf is also where option help such as "Success is assured." is written) */
 static std::string chron_next;
+static std::vector<std::string> chron_next_opts, chron_cur_opts;
 static void chronicle_expanded(void)
 {
     if (!chron_on()) return;
     chron_next = chron_text_now();
+    chron_next_opts = chron_opts_parsed;
 }
 
 /* the block on show is read: into the chronicle (once) */
@@ -334,6 +346,7 @@ extern "C" void chronicle_capture(void)
     int seed = g_rw(G_PARTY_SEED);
     if (seed != chron_seed) chron_load(seed);
     std::string t; t.swap(chron_next);
+    chron_cur_opts.swap(chron_next_opts); chron_next_opts.clear();
     if (getenv("DL_CHRON_LOG")) fprintf(stderr, "chronicle: %d bytes: %.60s\n", (int)t.size(), t.c_str());
     if (t.size() < 8 || (!chron.empty() && chron.back().text == t)) return;
     chron_flush();
@@ -351,6 +364,7 @@ extern "C" void chronicle_choice(int sel)
 {
     if (!chron_on() || chron.empty() || !chron_pending || !chron.back().choice.empty()) return;
     int n = (s8)g_rb(0xe96e);
+    if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(0xe9b0 + i))); fprintf(stderr, "\n"); }
     for (int i = 0; i < n && i < 20; i++) {
         if ((s8)g_rb((u16)(0xe9b0 + i)) != sel) continue;
         int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
@@ -361,6 +375,7 @@ extern "C" void chronicle_choice(int sel)
         std::string t;
         for (const HdRun *r : rs) t += (t.empty() ? "" : " ") + game_text(r->text, sizeof r->text);
         while (!t.empty() && (t[0] == '.' || t[0] == ' ')) t.erase(0, 1);
+        if (t.empty() && sel >= 0 && sel < (int)chron_cur_opts.size()) t = chron_cur_opts[(size_t)sel];   /* no crisp text: the block's option lines, numbered in order */
         if (!t.empty()) chron.back().choice = t;
         break;
     }
