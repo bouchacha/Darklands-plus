@@ -31,8 +31,8 @@ std::string ui_enemy_name(int floor, u16 b);
 int ui_battle_log = 1;                      /* 0 off, 1 on */
 
 struct BLine { u32 t; std::string text; int kind; };   /* kind: 0 the party acts, 1 an enemy acts, 2 harm to the party, 3 a fall, 4 notes */
-static std::vector<BLine> lines;
-static int known_end[13], known_str[13], known_st[13];
+static std::vector<BLine> lines, prev_lines;
+static int known_end[13], known_str[13], known_st[13], last_st[13];   /* last_st: the last status that was not 0 (the game clears the fallen's records) */
 static bool in_battle;
 static int names_gen;
 static std::string names[13];
@@ -72,11 +72,14 @@ static void add(int kind, const std::string &t)
 
 static void start_battle(void)
 {
+    if (!lines.empty()) { prev_lines = lines; }       /* the battle before, for the journal */
     lines.clear();
     for (int i = 0; i < 13; i++) {
         names[i].clear();
         known_end[i] = (s8)g_rb((u16)(CB(i) + 0x5d)); known_str[i] = (s8)g_rb((u16)(CB(i) + 0x5e)); known_st[i] = g_rb((u16)(CB(i) + 0x14));
+        last_st[i] = known_st[i];
     }
+    for (int i = 0; i < 13; i++) if (known_st[i]) name_of(i);    /* names (and their numbers) fixed while all are standing */
     in_battle = true;
 }
 
@@ -129,7 +132,17 @@ static int shooter_at(int t)
 extern "C" void battlelog_frame(void)
 {
     if (game_mode() != GM_BATTLE) {
-        if (in_battle) { in_battle = false; if (!lines.empty()) add(4, "The battle is over."); }
+        if (in_battle) {
+            in_battle = false;
+            if (!lines.empty()) {                     /* how it ended, from the last look at everyone */
+                int up_party = 0, up_foes = 0, foes = 0;
+                for (int i = 0; i < 13; i++) {
+                    if (i < 5) { if (last_st[i] == 1) up_party++; }
+                    else if (last_st[i]) { foes++; if (last_st[i] == 1) up_foes++; }
+                }
+                add(4, !up_party ? "The battle is over: the party has fallen." : foes && !up_foes ? "The battle is over: the enemies are beaten." : "The battle is over.");
+            }
+        }
         return;
     }
     if (!in_battle) start_battle();               /* (the names are the margin's too, log or not) */
@@ -155,6 +168,7 @@ extern "C" void battlelog_frame(void)
             else if (st == 5) add(i < 5 ? 3 : 4, name_of(i) + " leaves the field");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
+        if (st) last_st[i] = st;
     }
 }
 
@@ -217,11 +231,17 @@ extern "C" void battlelog_overlay(void)
 /* F12 > Journal: the whole of the last battle */
 extern "C" void battlelog_tab(void)
 {
-    if (lines.empty()) { ImGui::TextWrapped("Nothing yet: the log of a battle shows here, blow by blow, while it lasts and after."); return; }
-    ImGui::TextDisabled("The last battle, blow by blow (%d lines).", (int)lines.size());
+    if (lines.empty() && prev_lines.empty()) { ImGui::TextWrapped("Nothing yet: the log of a battle shows here, blow by blow, while it lasts and after."); return; }
+    static int which = 0;
+    if (!prev_lines.empty()) {
+        ImGui::RadioButton("The last battle", &which, 0); ImGui::SameLine();
+        ImGui::RadioButton("The one before", &which, 1);
+    } else which = 0;
+    const std::vector<BLine> &v = which ? prev_lines : lines;
+    ImGui::TextDisabled("%d lines.", (int)v.size());
     ImGui::BeginChild("blog", ImVec2(0, 0));
     static const ImVec4 C[5] = { ImVec4(0.12f, 0.24f, 0.50f, 1), ImVec4(0.45f, 0.25f, 0.08f, 1), ImVec4(0.62f, 0.18f, 0.10f, 1), ImVec4(0.75f, 0.08f, 0.05f, 1), ImVec4(0.30f, 0.26f, 0.20f, 1) };
-    for (const BLine &l : lines) ImGui::TextColored(C[l.kind < 0 || l.kind > 4 ? 4 : l.kind], "%s", l.text.c_str());
+    for (const BLine &l : v) ImGui::TextColored(C[l.kind < 0 || l.kind > 4 ? 4 : l.kind], "%s", l.text.c_str());
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 4) ImGui::SetScrollHereY(1.0f);
     ImGui::EndChild();
 }
