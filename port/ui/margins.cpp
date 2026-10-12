@@ -90,6 +90,65 @@ static void heading(const char *t)
     ImGui::PopStyleColor();
 }
 
+/* in a battle: everybody's condition at a glance - the party with endurance and strength,
+ * the enemies the party has seen (in the battle's hot spots) with how hurt they are */
+std::string battlelog_name(int i);
+static void bar(float frac, ImU32 col, float w, float hgt)
+{
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    if (frac < 0) frac = 0;
+    if (frac > 1) frac = 1;
+    dl->AddRectFilled(p, ImVec2(p.x + w, p.y + hgt), IM_COL32(60, 46, 30, 255), hgt * 0.4f);
+    if (frac > 0) dl->AddRectFilled(p, ImVec2(p.x + w * frac, p.y + hgt), col, hgt * 0.4f);
+    ImGui::Dummy(ImVec2(w, hgt));
+}
+static void battle_panel(float width, float fs)
+{
+    static bool seen[13]; static int last_frame = -100;
+    int fr = ImGui::GetFrameCount();
+    if (fr - last_frame > 5) for (int i = 0; i < 13; i++) seen[i] = false;    /* a new battle (the panel was not drawn for a while) */
+    last_frame = fr;
+    int n = (s8)g_rb(0xe0a1);
+    for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(0xd848 + k)); if (m < 13) seen[m] = true; }
+    float bw = width - fs * 1.6f, bh = fs * 0.32f;
+    heading("The party");
+    for (int i = 0; i < 5; i++) {
+        u16 b = (u16)(0x9c55 + 0x80 * i);
+        int st = g_rb((u16)(b + 0x14));
+        if (!st) continue;
+        int end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+        const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : st == 5 ? "fled" : "";
+        if (*cond) ImGui::TextDisabled("%s - %s", member_name(i).c_str(), cond);
+        else {
+            ImGui::TextUnformatted(member_name(i).c_str());
+            ImGui::SameLine(); ImGui::TextDisabled("%d/%d  %d/%d", end, endm, str, strm);
+            bar(endm > 0 ? (float)end / endm : 0, IM_COL32(110, 130, 230, 255), bw, bh);
+            bar(strm > 0 ? (float)str / strm : 0, IM_COL32(90, 180, 90, 255), bw, bh);
+        }
+    }
+    ImGui::Separator();
+    heading("Enemies");
+    int shown = 0, down = 0;
+    for (int i = 5; i < 13; i++) {
+        u16 b = (u16)(0x9c55 + 0x80 * i);
+        int st = g_rb((u16)(b + 0x14)), endm = (s8)g_rb((u16)(b + 0x64));
+        if (!st || endm <= 0 || !seen[i]) continue;
+        int end = (s8)g_rb((u16)(b + 0x5d)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+        std::string nm = battlelog_name(i);
+        const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : st == 5 ? "fled" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
+        if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
+        if (st != 1) { ImGui::TextDisabled("%s - %s", nm.c_str(), cond); down++; }
+        else {
+            ImGui::TextUnformatted(nm.c_str()); ImGui::SameLine(); ImGui::TextDisabled("%s", cond);
+            bar((float)end / endm, IM_COL32(200, 90, 70, 255), bw, bh);
+        }
+        shown++;
+    }
+    if (!shown) ImGui::TextDisabled("None in sight yet.");
+    else if (down == shown) ImGui::TextDisabled("All down.");
+}
+
 extern "C" void ui_margins(void)
 {
     if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_text) return;
@@ -129,7 +188,11 @@ extern "C" void ui_margins(void)
         end_panel();
     }
 
-    if (right >= 150 && begin_panel("##margin_r", x1, right, h, fs)) {
+    if (right >= 150 && game_mode() == GM_BATTLE && !config_get_int("original", 0) && begin_panel("##margin_rb", x1, right, h, fs)) {
+        battle_panel(right, fs);
+        end_panel();
+    }
+    else if (right >= 150 && begin_panel("##margin_r", x1, right, h, fs)) {
         std::vector<Eff> e = effects_now(size);
         for (int m = 0; m < size; m++) {
             u16 b = G_MEMBER(m);

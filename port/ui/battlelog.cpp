@@ -60,6 +60,8 @@ static std::string name_of(int i)
     return n;
 }
 
+std::string battlelog_name(int i) { return name_of(i); }     /* "Villager 2": as the log calls them */
+
 static void add(int kind, const std::string &t)
 {
     lines.push_back({ plat_ticks_ms(), t, kind });
@@ -113,8 +115,8 @@ extern "C" void battlelog_frame(void)
         if (in_battle) { in_battle = false; if (!lines.empty()) add(4, "The battle is over."); }
         return;
     }
+    if (!in_battle) start_battle();               /* (the names are the margin's too, log or not) */
     if (!ui_battle_log) return;
-    if (!in_battle) start_battle();
     for (int i = 0; i < 13; i++) {
         u16 b = CB(i);
         int e = (s8)g_rb((u16)(b + 0x5d)), s = (s8)g_rb((u16)(b + 0x5e)), st = g_rb((u16)(b + 0x14));
