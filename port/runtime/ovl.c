@@ -73,13 +73,13 @@ static void irq_save(void)
     irq_saved = 1;
 }
 
-static void load(int i)
+static void load_sect(int i, int with_parent)
 {
     Sect *s = &sect[i];
     irq_save();
     static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
     if (tr) fprintf(stderr, "ovl: load s%03d at %04x\n", i, s->load_seg);
-    if (s->parent != 0xffff && s->parent < nsect && !ovl_loaded[s->parent]) load(s->parent);
+    if (with_parent && s->parent != 0xffff && s->parent < nsect && !ovl_loaded[s->parent]) load_sect(s->parent, 1);
     u32 rbytes = s->nrelocs * 4u;
     u32 pad = (16 - rbytes % 16) % 16;
     u8 *rel = malloc(rbytes + 1);
@@ -98,7 +98,10 @@ static void load(int i)
         M[a] = (u8)v; M[a + 1] = (u8)(v >> 8);
     }
     free(rel);
-    /* sections overlapping this one are gone */
+    /* sections overlapping this one are gone, and with them their descendants in the overlay
+       tree (whose memory may be untouched, but whose code calls its ancestors directly): as in
+       RTLink, a section is present only with its whole chain of parents, so that putting back
+       what a call displaced (ovl_restore) restores a state the tree allows */
     for (int j = 0; j < nsect; j++) {
         if (j == i || !ovl_loaded[j]) continue;
         u32 a0 = sect[j].load_seg, a1 = a0 + sect[j].mem_paras;
@@ -106,9 +109,17 @@ static void load(int i)
         if (a0 < b1 && b0 < a1) ovl_loaded[j] = 0;
     }
     ovl_loaded[i] = 1;
+    for (int changed = 1; changed; ) {
+        changed = 0;
+        for (int k = 0; k < nsect; k++) {
+            u16 pa = sect[k].parent;
+            if (ovl_loaded[k] && pa != 0xffff && pa < nsect && !ovl_loaded[pa]) { ovl_loaded[k] = 0; changed = 1; }
+        }
+    }
     ovl_gen++;
     { void watch_check(const char *); watch_check("overlay load"); }
 }
+static void load(int i) { load_sect(i, 1); }
 
 void ovl_enter(int i)
 {
@@ -143,7 +154,7 @@ void ovl_restore(const OvlSet *o)
         if (((o->bits[i >> 5] >> (i & 31)) & 1) && !ovl_loaded[i]) {
             static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OVL") != 0;
             if (tr) fprintf(stderr, "ovl: s%03d displaced by the call: reloaded\n", i);
-            load(i);
+            load_sect(i, 1);
         }
 }
 

@@ -125,9 +125,8 @@ static void go(u16 seg, u16 off, int is_call)
     if (in_program(seg, off)) {
         u32 lin = LIN(seg, off) - ((u32)LOADSEG << 4);
         const VecEntry *v = find_vector(lin);
-        if (v) {
-            if (!is_call) { ovl_enter(v->sect); v->f(); return; }
-            OvlSet o; ovl_save(&o); ovl_enter(v->sect); v->f(); ovl_restore(&o);     /* as RTLink (ovl.c) */
+        if (v) {    /* RTLink takes the return address on the stack (a jump's too): what the call displaces comes back (ovl.c) */
+            OvlSet o; ovl_save(&o); ovl_enter(v->sect); v->f(); ovl_restore(&o);
             return;
         }
         void (*f)(void) = find_func(lin);

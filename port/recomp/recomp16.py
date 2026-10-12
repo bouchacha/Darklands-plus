@@ -586,12 +586,14 @@ class Gen:
             timg, tlin, vseg = self.vectors[toff]
             sect = self.section_of[timg]
             if (timg, tlin) in self.entryset:
-                if jump:            # the callee returns to our caller, who restores
-                    return '%sovl_enter(%d); %s();%s' % (push, sect, self.fname(timg, tlin), tail)
-                # a call through RTLink: the sections it displaces (the caller's, and any
-                # further up the call chain) are present again when it returns (runtime/ovl.c)
-                return '%s{ OvlSet ov_; ovl_save(&ov_); ovl_enter(%d); %s(); ovl_restore(&ov_); } UNW_CHECK();' % (
-                    push, sect, self.fname(timg, tlin))
+                # a call (or a jump: RTLink takes the return address on the stack either way)
+                # through RTLink: the sections it displaces - the caller's, and any further up
+                # the call chain - are present again when it returns (runtime/ovl.c); the
+                # caller's own section is made sure of as well
+                me = self.section_of[img]
+                back = ' ovl_enter(%d);' % me if me >= 0 and not jump else ''
+                return '%s{ OvlSet ov_; ovl_save(&ov_); ovl_enter(%d); %s(); ovl_restore(&ov_);%s }%s' % (
+                    push, sect, self.fname(timg, tlin), back, tail or ' UNW_CHECK();')
             self.problems['vector to non-entry'] += 1
             return 'fatal("vector to non-entry %s:%05x");' % (timg, tlin)
         t = self.calls.get((img, lin))
