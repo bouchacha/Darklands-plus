@@ -137,22 +137,40 @@ int main(int argc, char **argv)
     }
     /* Darklands+'s own files (log, settings, the game module) go next to the game; where that
        folder cannot be written (Windows: under Program Files), into %LOCALAPPDATA%\Darklands+ */
+#ifdef _WIN32
+    {   /* one spelling of the folder (full, long names, backslashes): the shadow folder below
+           must not depend on how the game was started */
+        char full[1100], lng[1100];
+        if (GetFullPathNameA(game_dir, sizeof full, full, NULL)) {
+            if (!GetLongPathNameA(full, lng, sizeof lng)) snprintf(lng, sizeof lng, "%s", full);
+            for (char *q = lng; *q; q++) if (*q == '/') *q = '\\';
+            size_t l = strlen(lng); while (l > 3 && lng[l - 1] == '\\') lng[--l] = 0;
+            snprintf(game_dir, sizeof game_dir, "%s", lng);
+        }
+    }
+#endif
     int game_writable = dir_writable(game_dir);
     snprintf(dlp_data_dir, sizeof dlp_data_dir, "%s", game_dir);
     char shadow[1100] = "";                /* where the game's own writes go then (runtime/dos.c) */
 #ifdef _WIN32
-    if (!game_writable && getenv("LOCALAPPDATA")) {
-        snprintf(dlp_data_dir, sizeof dlp_data_dir, "%s\\Darklands+", getenv("LOCALAPPDATA"));
-        CreateDirectoryA(dlp_data_dir, NULL);
-        /* under Program Files: Windows' VirtualStore copy of the folder, where the game's
-           DOSBox (redirected by Windows) has kept its saved games; elsewhere our own */
+    {   /* under Program Files: Windows' VirtualStore copy of the folder, where Windows redirects
+           old programs' writes (DOSBox may have saved there) - used whenever it exists, so that
+           a start "as administrator" (the folder then writable) sees the same saves */
+        char vs[1100] = "";
         const char *pf[] = { getenv("ProgramFiles"), getenv("ProgramFiles(x86)"), getenv("ProgramW6432"), getenv("SystemRoot") };
-        for (int i = 0; i < 4 && !shadow[0]; i++) {
+        for (int i = 0; i < 4 && !vs[0] && getenv("LOCALAPPDATA"); i++) {
             size_t l = pf[i] ? strlen(pf[i]) : 0;
-            if (l && !_strnicmp(game_dir, pf[i], l) && (game_dir[l] == '\\' || game_dir[l] == '/') && game_dir[1] == ':')
-                snprintf(shadow, sizeof shadow, "%s\\VirtualStore%s", getenv("LOCALAPPDATA"), game_dir + 2);
+            if (l && !_strnicmp(game_dir, pf[i], l) && game_dir[l] == '\\' && game_dir[1] == ':')
+                snprintf(vs, sizeof vs, "%s\\VirtualStore%s", getenv("LOCALAPPDATA"), game_dir + 2);
         }
-        if (!shadow[0]) snprintf(shadow, sizeof shadow, "%s\\game", dlp_data_dir);
+        DWORD at = vs[0] ? GetFileAttributesA(vs) : INVALID_FILE_ATTRIBUTES;
+        if (at != INVALID_FILE_ATTRIBUTES && (at & FILE_ATTRIBUTE_DIRECTORY)) snprintf(shadow, sizeof shadow, "%s", vs);
+        if (!game_writable && getenv("LOCALAPPDATA")) {
+            snprintf(dlp_data_dir, sizeof dlp_data_dir, "%s\\Darklands+", getenv("LOCALAPPDATA"));
+            CreateDirectoryA(dlp_data_dir, NULL);
+            if (!shadow[0]) snprintf(shadow, sizeof shadow, "%s", vs[0] ? vs : "");
+            if (!shadow[0]) snprintf(shadow, sizeof shadow, "%s\\game", dlp_data_dir);
+        }
     }
 #else
     if (!game_writable) {
@@ -173,11 +191,11 @@ int main(int argc, char **argv)
 #endif
     { extern const char dlp_version[]; fprintf(stderr, "Darklands+ build %s, game folder %s\n", dlp_version, game_dir); }
     snprintf(dlp_user_dir, sizeof dlp_user_dir, "%s", game_writable ? game_dir : dlp_data_dir);
-    if (!game_writable) {                  /* nothing to ask of the player: the game writes into the shadow folder */
+    if (shadow[0]) {                       /* nothing to ask of the player: the game writes into the shadow folder */
         void dos_shadow_init(const char *dir);
-        if (shadow[0]) dos_shadow_init(shadow);
-        fprintf(stderr, "Darklands+'s own files (settings, log, the game module) are in %s\n", dlp_data_dir);
+        dos_shadow_init(shadow);
     }
+    if (!game_writable) fprintf(stderr, "Darklands+'s own files (settings, log, the game module) are in %s\n", dlp_data_dir);
     crash_handler_install();
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);

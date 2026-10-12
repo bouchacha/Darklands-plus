@@ -116,6 +116,7 @@ void hdart_rescan(void)
     for (int i = 0; i < nm; i++) scan_dir(md[i], 0);
     char p[1100]; snprintf(p, sizeof p, "%s/art", USER_DIR);
     scan_dir(p, 0);
+    if (strcmp(USER_DIR, game_dir)) { snprintf(p, sizeof p, "%s/art", game_dir); scan_dir(p, 0); }   /* art put into a game folder that cannot be written */
     for (int i = 0; i < npics; i++) { free(pics[i].art); const char *a = art_for(pics[i].name); pics[i].art = a ? strdup(a) : 0; }
     hdart_generation++;
     if (logon) fprintf(stderr, "art: %d replacement pictures in %s\n", narts, p);

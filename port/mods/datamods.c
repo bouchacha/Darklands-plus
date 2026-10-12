@@ -77,14 +77,22 @@ static int cmp_mod(const void *a, const void *b) { return strcasecmp(((const Dat
 void datamods_scan(void)
 {
     datamods_n = 0;
-    char md[1100]; mods_dir(md, sizeof md);
+    /* the player's mods folder, and the game folder's when that is another (a game folder that
+       cannot be written: mods put there by hand still count; a folder of the same name in the
+       player's wins) */
+    char roots[2][1100]; int nr = 0;
+    mods_dir(roots[nr++], sizeof roots[0]);
+    if (dlp_user_dir[0] && strcmp(dlp_user_dir, game_dir)) find_ci(game_dir, "mods", roots[nr++], sizeof roots[0]);
+    for (int ri = 0; ri < nr; ri++) {
+    const char *md = roots[ri];
     DIR *d = opendir(md);
-    if (!d) { generation++; return; }
+    if (!d) continue;
     struct dirent *e;
     while ((e = readdir(d)) && datamods_n < DATAMODS_MAX) {
         if (e->d_name[0] == '.' || e->d_name[0] == '_') continue;
         char p[1400]; snprintf(p, sizeof p, "%s/%s", md, e->d_name);
         if (!is_dir(p)) continue;
+        { int dup = 0; for (int k = 0; k < datamods_n; k++) if (!strcasecmp(datamods[k].folder, e->d_name)) dup = 1; if (dup) continue; }
         DataMod *m = &datamods[datamods_n++];
         memset(m, 0, sizeof *m);
         snprintf(m->folder, sizeof m->folder, "%s", e->d_name);
@@ -107,6 +115,7 @@ void datamods_scan(void)
         m->on = config_get_int(key, 0);
     }
     closedir(d);
+    }
     qsort(datamods, (size_t)datamods_n, sizeof datamods[0], cmp_mod);
     generation++;
 }

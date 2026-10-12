@@ -419,6 +419,7 @@ static void load_user(void)
     for (int i = 0; i < nm; i++) load_user_dir(md[i], i, from);
     char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", USER_DIR);
     load_user_dir(dir, nm, from);
+    if (strcmp(USER_DIR, game_dir)) { snprintf(dir, sizeof dir, "%s/sounds", game_dir); load_user_dir(dir, nm + 1, from); }   /* sounds put into a game folder that cannot be written */
 }
 
 int sfx_user_count(void) { int n = 0; for (int k = 0; k < NS; k++) n += bank[k].user ? bank[k].nv : 0; return n; }

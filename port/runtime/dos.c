@@ -7,6 +7,11 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#ifdef _WIN32
+#include <sys/utime.h>
+#else
+#include <utime.h>
+#endif
 #include <unistd.h>
 #ifdef _WIN32
 #include <io.h>
@@ -107,14 +112,29 @@ static void host_path(const char *dos, char *out, size_t outn) { path_in(game_di
 char dos_shadow[1024];
 static char **whiteout; static int nwhite;
 static int file_exists(const char *p) { struct stat st; return stat(p, &st) == 0; }
+/* the key of a DOS name for the deleted list: relative to the game folder, upper case, '/',
+ * without "." and empty parts (as path_in resolves it), ".." taken back */
 static void norm_rel(const char *dos, char *rel, size_t n)
 {
+    char t[600];
     const char *p = dos;
     if (p[0] && p[1] == ':') p += 2;
-    if (*p == '\\' || *p == '/') snprintf(rel, n, "%s", p + 1);
-    else if (dos_cwd[0]) snprintf(rel, n, "%s/%s", dos_cwd, p);
-    else snprintf(rel, n, "%s", p);
-    for (char *q = rel; *q; q++) *q = *q == '\\' ? '/' : (char)toupper((u8)*q);
+    if (*p == '\\' || *p == '/') snprintf(t, sizeof t, "%s", p + 1);
+    else if (dos_cwd[0]) snprintf(t, sizeof t, "%s/%s", dos_cwd, p);
+    else snprintf(t, sizeof t, "%s", p);
+    size_t o = 0; rel[0] = 0;
+    for (char *tok = t; ; ) {
+        char *e = tok; while (*e && *e != '/' && *e != '\\') e++;
+        char c = *e; *e = 0;
+        if (!strcmp(tok, "..")) { while (o && rel[o - 1] != '/') o--; if (o) o--; rel[o] = 0; }
+        else if (*tok && strcmp(tok, ".")) {
+            if (o && o + 1 < n) rel[o++] = '/';
+            for (const char *q = tok; *q && o + 1 < n; q++) rel[o++] = (char)toupper((u8)*q);
+            rel[o] = 0;
+        }
+        if (!c) break;
+        tok = e + 1;
+    }
 }
 static int is_whiteout(const char *rel) { for (int i = 0; i < nwhite; i++) if (!strcmp(whiteout[i], rel)) return 1; return 0; }
 static void white_save(void)
@@ -146,7 +166,7 @@ void dos_shadow_init(const char *dir)
         if (*line) { whiteout = realloc(whiteout, sizeof *whiteout * (size_t)(nwhite + 1)); whiteout[nwhite++] = strdup(line); }
     }
     if (f) fclose(f);
-    fprintf(stderr, "the game folder cannot be written: the game's files are written to %s\n", dos_shadow);
+    fprintf(stderr, "the game's own writes go to %s (the game folder is not changed)\n", dos_shadow);
 }
 /* the file to read: the shadow's copy, else the game folder's (a deleted one: a path that is not there) */
 static void read_path(const char *dos, char *out, size_t n)
@@ -159,24 +179,65 @@ static void read_path(const char *dos, char *out, size_t n)
     }
     host_path(dos, out, n);
 }
-/* the file to write: in the shadow (its folders made; copied from the game folder first when
- * it is changed rather than made anew) */
-static void write_path(const char *dos, char *out, size_t n, int keep)
+/* a whole copy, or none: through a temporary file, every write checked, the time kept (the
+ * saves are listed newest first) */
+static int copy_file(const char *src, const char *dst)
 {
-    if (!dos_shadow[0]) { host_path(dos, out, n); return; }
+    char tmp[1200]; snprintf(tmp, sizeof tmp, "%s.copy~", dst);
+    FILE *a = fopen(src, "rb"), *b = a ? fopen(tmp, "wb") : 0;
+    int ok = a && b;
+    if (ok) { char buf[16384]; size_t k; while ((k = fread(buf, 1, sizeof buf, a)) > 0) if (fwrite(buf, 1, k, b) != k) { ok = 0; break; }
+              if (ferror(a)) ok = 0; }
+    if (a) fclose(a);
+    if (b && fclose(b)) ok = 0;
+    if (ok) { remove(dst); ok = rename(tmp, dst) == 0; }
+    if (!ok) { remove(tmp); return 0; }
+    struct stat st;
+    if (!stat(src, &st)) { struct utimbuf ut; ut.actime = st.st_atime; ut.modtime = st.st_mtime; utime(dst, &ut); }
+    return 1;
+}
+/* the game's open files by host path (a file copied into the shadow while open for reading is
+ * read from the copy from then on, where the writes go) */
+static char *handle_path[64];
+typedef struct DosSnap DosSnap; static DosSnap *dsnaps;
+static void handle_note(int h, const char *path)        /* (not while an evaluation runs: its files are put back after it) */
+{
+    if (dsnaps || h < 0 || h >= 64) return;
+    char *c = path ? strdup(path) : 0;                   /* (path may be handle_path[h] itself) */
+    free(handle_path[h]); handle_path[h] = c;
+}
+static void handles_moved(const char *from, const char *to)
+{
+    if (dsnaps) return;                          /* (never during an evaluation: it does not copy) */
+    for (int i = 0; i < 64; i++)
+        if (handles[i] && handle_path[i] && !strcmp(handle_path[i], from)) {
+            FILE *nf = fopen(to, "rb");
+            if (!nf) continue;
+            fseek(nf, ftell(handles[i]), SEEK_SET);
+            fclose(handles[i]); handles[i] = nf; handle_note(i, to);
+        }
+}
+/* the file to write. In a shadowed game folder: in the shadow (its folders made), copied from
+ * the game folder first when it is opened to change rather than made anew (keep); a deleted
+ * one stays deleted (the open fails); a copy that cannot be made leaves the game folder's (the
+ * open then falls back to reading). 1 when out is in the shadow. */
+static int write_path(const char *dos, char *out, size_t n, int keep)
+{
+    if (!dos_shadow[0]) { host_path(dos, out, n); return 1; }
     char rel[600]; norm_rel(dos, rel, sizeof rel);
     path_in(dos_shadow, dos, out, n);
-    if (file_exists(out)) return;
+    if (file_exists(out)) return 1;
     mkdirs_for(out);
-    if (keep && !is_whiteout(rel)) {
-        char g[1100]; host_path(dos, g, sizeof g);
-        FILE *a = fopen(g, "rb"), *b = a ? fopen(out, "wb") : 0;
-        if (a && b) { char buf[16384]; size_t k; while ((k = fread(buf, 1, sizeof buf, a)) > 0) fwrite(buf, 1, k, b); }
-        if (a) fclose(a);
-        if (b) fclose(b);
-    }
-    white_set(rel, 0);
+    if (!keep || is_whiteout(rel)) return 1;
+    char g[1100]; host_path(dos, g, sizeof g);
+    if (!file_exists(g)) return 1;
+    if (copy_file(g, out)) { handles_moved(g, out); return 1; }
+    fprintf(stderr, "dos: could not copy %s into %s\n", g, out);
+    snprintf(out, n, "%s", g);
+    return 0;
 }
+/* a file made in the shadow: no longer deleted */
+static void shadow_made(const char *dos) { if (dos_shadow[0]) { char rel[600]; norm_rel(dos, rel, sizeof rel); white_set(rel, 0); } }
 
 /* a file deleted as the game deletes it (in a shadowed folder: the shadow's copy removed, the
  * game folder's remembered as deleted); 1 if there was one */
@@ -197,7 +258,7 @@ int dos_delete(const char *dos)
 /* (for the port's own readers: saves, the Honor Roll, enemy names) the file as the game would read it */
 void dos_host_path(const char *dos, char *out, size_t outn) { read_path(dos, out, outn); }
 /* ... and where a write of it goes */
-void dos_host_path_write(const char *dos, char *out, size_t outn) { write_path(dos, out, outn, 1); }
+void dos_host_path_write(const char *dos, char *out, size_t outn) { write_path(dos, out, outn, 1); shadow_made(dos); }
 
 /* the DOS name relative to the game folder */
 static void dos_rel(const char *dos, char *rel, size_t n)
@@ -222,8 +283,7 @@ void dos_host_path_read(const char *dos, char *out, size_t outn)
  * positions. A file the game had open stays open through the evaluation (a close is only
  * pretended), files the evaluation opened are closed afterwards, and every position is put
  * back: an abandoned evaluation left files open (64 at most) or moved, before. */
-typedef struct DosSnap { struct DosSnap *outer; FILE *h[64]; long pos[64]; u8 cfg[64]; int ems_dev; } DosSnap;
-static DosSnap *dsnaps;
+struct DosSnap { struct DosSnap *outer; FILE *h[64]; long pos[64]; u8 cfg[64]; int ems_dev; };
 static int held_by_snapshot(FILE *f)
 {
     for (DosSnap *d = dsnaps; d; d = d->outer) for (int i = 0; i < 64; i++) if (d->h[i] == f) return 1;
@@ -556,7 +616,9 @@ void dos_int21(void)
         else write_path(name, hp, sizeof hp, 0);
         FILE *f = dos_no_writes ? tmpfile() : fopen(hp, "w+b");
         if (!f) { dos_error(3); break; }
+        if (!dos_no_writes) shadow_made(name);
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }
+        handle_note(h, dos_no_writes ? 0 : hp);
         AX = (u16)h; SETCF(0); break; }
     case 0x3d: {
         get_str(DS, DX, name, sizeof name);
@@ -572,11 +634,12 @@ void dos_int21(void)
         if (dos_trace) fprintf(stderr, "  open %s -> %s %s\n", name, hp, f ? "ok" : "FAIL");
         if (!f) { dos_error(2); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }
+        handle_note(h, hp);
         { const char *b = strrchr(name, '\\'); b = b ? b + 1 : name; handle_cfg[h] = !strcasecmp(b, "CONFIG.DRK"); }
         AX = (u16)h; SETCF(0); break; }
     case 0x3e:
         if (BX == 63 && ems_dev_open) { ems_dev_open = 0; SETCF(0); break; }
-        if (BX < 64 && handles[BX]) { if (!held_by_snapshot(handles[BX])) fclose(handles[BX]); handles[BX] = 0; SETCF(0); }
+        if (BX < 64 && handles[BX]) { if (!held_by_snapshot(handles[BX])) fclose(handles[BX]); handles[BX] = 0; handle_note(BX, 0); SETCF(0); }
         else if (BX < 5) SETCF(0);
         else dos_error(6);
         break;
@@ -622,7 +685,7 @@ void dos_int21(void)
         else { SETCF(0); }
         break;
     case 0x45: if (BX < 64 && handles[BX]) {
-            FILE *f = fdopen(dup(fileno(handles[BX])), "r+b"); int h = new_handle(f); AX = (u16)h; SETCF(0);
+            FILE *f = fdopen(dup(fileno(handles[BX])), "r+b"); int h = new_handle(f); handle_note(h, handle_path[BX]); AX = (u16)h; SETCF(0);
         } else dos_error(6);
         break;
     case 0x47: { u32 a = LIN(DS, SI); int n = 0;
@@ -650,9 +713,13 @@ void dos_int21(void)
         { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
         plat_quit(AL); break;
     case 0x39: get_str(DS, DX, name, sizeof name);
+        if (dos_no_writes) { SETCF(0); break; }
         if (dos_shadow[0]) { path_in(dos_shadow, name, hp, sizeof hp); mkdirs_for(hp); if (mkdir_(hp) && !file_exists(hp)) dos_error(5); else SETCF(0); break; }
         host_path(name, hp, sizeof hp); if (mkdir_(hp)) dos_error(5); else SETCF(0); break;
-    case 0x3a: get_str(DS, DX, name, sizeof name); host_path(name, hp, sizeof hp); if (rmdir(hp)) dos_error(5); else SETCF(0); break;
+    case 0x3a: get_str(DS, DX, name, sizeof name);
+        if (dos_no_writes) { SETCF(0); break; }
+        if (dos_shadow[0]) path_in(dos_shadow, name, hp, sizeof hp); else host_path(name, hp, sizeof hp);
+        if (rmdir(hp)) dos_error(5); else SETCF(0); break;
     case 0x4e: {
         get_str(DS, DX, name, sizeof name);
         char *bs = strrchr(name, '\\'), dirpart[256] = "";
@@ -668,18 +735,17 @@ void dos_int21(void)
     case 0x56: { char n2[256], h2[1024]; get_str(DS, DX, name, sizeof name); get_str(ES, DI, n2, sizeof n2);
         if (dos_no_writes) { fprintf(stderr, "dos: rename %s while asking the game on the side: not done\n", name); SETCF(0); break; }
         if (dos_shadow[0]) {                         /* the file into the shadow under its new name; the old one deleted */
-            char rel[600]; norm_rel(name, rel, sizeof rel);
+            char rel[600], rel2[600]; norm_rel(name, rel, sizeof rel); norm_rel(n2, rel2, sizeof rel2);
             read_path(name, hp, sizeof hp);
             if (!file_exists(hp)) { dos_error(2); break; }
-            write_path(n2, h2, sizeof h2, 0);
-            remove(h2);
-            FILE *a = fopen(hp, "rb"), *b = a ? fopen(h2, "wb") : 0; int ok = a && b;
-            if (ok) { char buf[16384]; size_t k; while ((k = fread(buf, 1, sizeof buf, a)) > 0) fwrite(buf, 1, k, b); }
-            if (a) fclose(a);
-            if (b) fclose(b);
-            if (!ok) { dos_error(5); break; }
+            if (!strcmp(rel, rel2)) { SETCF(0); break; }          /* onto itself */
             char sp[1100], g[1100]; path_in(dos_shadow, name, sp, sizeof sp); host_path(name, g, sizeof g);
-            remove(sp);
+            write_path(n2, h2, sizeof h2, 0);
+            int ok;
+            if (file_exists(sp)) { remove(h2); ok = rename(sp, h2) == 0; }          /* in the shadow already: moved */
+            else ok = copy_file(hp, h2);                                           /* the game folder's: copied */
+            if (!ok) { dos_error(5); break; }
+            shadow_made(n2);
             if (file_exists(g)) white_set(rel, 1);
             SETCF(0); break;
         }
