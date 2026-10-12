@@ -22,6 +22,15 @@ extern int dos_trace, bios_trace;
 
 static int file_exists(const char *p) { FILE *f = fopen(p, "rb"); if (f) { fclose(f); return 1; } return 0; }
 
+char dlp_data_dir[1100];         /* Darklands+'s own files: the game folder, or %LOCALAPPDATA%\\Darklands+ */
+static int dir_writable(const char *d)
+{
+    char p[1200]; snprintf(p, sizeof p, "%s/.darklands_plus_write_test", d);
+    FILE *f = fopen(p, "wb");
+    if (!f) return 0;
+    fclose(f); remove(p);
+    return 1;
+}
 static int find_game_dir(int argc, char **argv)
 {
     char p[1100];
@@ -106,18 +115,34 @@ int main(int argc, char **argv)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", msg, 0);
         return 1;
     }
+    /* Darklands+'s own files (log, settings, the game module) go next to the game; where that
+       folder cannot be written (Windows: under Program Files), into %LOCALAPPDATA%\Darklands+ */
+    int game_writable = dir_writable(game_dir);
+    snprintf(dlp_data_dir, sizeof dlp_data_dir, "%s", game_dir);
 #ifdef _WIN32
+    if (!game_writable && getenv("LOCALAPPDATA")) {
+        snprintf(dlp_data_dir, sizeof dlp_data_dir, "%s\\Darklands+", getenv("LOCALAPPDATA"));
+        CreateDirectoryA(dlp_data_dir, NULL);
+    }
     {   /* no console on Windows: keep a log next to the game */
-        char lp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", game_dir);
+        char lp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
         freopen(lp, "w", stderr);
     }
 #endif
     { extern const char dlp_version[]; fprintf(stderr, "Darklands+ build %s, game folder %s\n", dlp_version, game_dir); }
+    if (!game_writable) {
+        char msg[1600];
+        snprintf(msg, sizeof msg, "Darklands+ cannot write to the Darklands folder:\n%s\n\nSaved games need it. Copy the Darklands "
+                 "folder to a place of your own (for example C:\\Games\\Darklands) and start darklands.exe there, or give your "
+                 "Windows user permission to change the folder.\n\nUntil then Darklands+ keeps its own files in\n%s", game_dir, dlp_data_dir);
+        fprintf(stderr, "warning: %s\n", msg);
+        if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_HEADLESS")) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Darklands", msg, 0);
+    }
     crash_handler_install();
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 
-    config_load(game_dir);
+    config_load(dlp_data_dir);
     {   /* SAVES\DEFAULT holds the ready-made world Quickstart begins with: without it Quickstart
            makes a party with no figures, and the first battle stops the game ("pics\short.pic") */
         char dp[1200]; struct stat st;
@@ -150,11 +175,11 @@ int main(int argc, char **argv)
         void gameload_path(const char *dir, char *path, int n);
         int prepare_run(const char *game_dir, const char *module_path, char *err, int errn);
         char err[1400], mp[1200];
-        int r = gameload(game_dir, err, sizeof err);
+        int r = gameload(dlp_data_dir, err, sizeof err);
         if (r == 0) {
             fprintf(stderr, "%s: making the game module\n", err);
-            gameload_path(game_dir, mp, sizeof mp);
-            if (prepare_run(game_dir, mp, err, sizeof err)) r = gameload(game_dir, err, sizeof err);
+            gameload_path(dlp_data_dir, mp, sizeof mp);
+            if (prepare_run(game_dir, mp, err, sizeof err)) r = gameload(dlp_data_dir, err, sizeof err);
         }
         if (r <= 0) {
             char msg[1600]; snprintf(msg, sizeof msg, "Darklands+ could not get the game ready:\n%s", err);
