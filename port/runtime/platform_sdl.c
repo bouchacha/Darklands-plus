@@ -468,14 +468,22 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "travelto")) { int travel_to_loc(int, const char *); travel_to_loc(atoi(s->arg), "test"); }
         else if (!strcmp(s->cmd, "travelnear")) { int travel_nearest(int); travel_nearest(atoi(s->arg)); }   /* nearest location of a type */
         else if (!strcmp(s->cmd, "ugive")) { int a = 0, b = 0, c = 0; sscanf(s->arg, "%d,%d,%d", &a, &b, &c); void ui_give(int, int, int); ui_give(a, b, c); }
-        else if (!strcmp(s->cmd, "uclick")) {            /* a click on the interface, window pixels */
+        else if (!strcmp(s->cmd, "uclick") || !strcmp(s->cmd, "urclick")) {   /* a click (urclick: right) as from the system, window pixels */
+            int btn = s->cmd[1] == 'r' ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             Uint32 wid = win ? SDL_GetWindowID(win) : 0;
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = wid; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
-            memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEBUTTONDOWN; ev.button.windowID = wid; ev.button.button = SDL_BUTTON_LEFT; ev.button.state = SDL_PRESSED;
+            memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEBUTTONDOWN; ev.button.windowID = wid; ev.button.button = (Uint8)btn; ev.button.state = SDL_PRESSED;
             ev.button.x = x; ev.button.y = y; ev.button.clicks = 1; SDL_PushEvent(&ev);
             ev.type = SDL_MOUSEBUTTONUP; ev.button.state = SDL_RELEASED; SDL_PushEvent(&ev);
+        }
+        else if (!strcmp(s->cmd, "ukey")) {               /* test: a key as from the system (SDL events), by SDL name */
+            SDL_Scancode sc = SDL_GetScancodeFromName(s->arg);
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            ev.type = SDL_KEYDOWN; ev.key.windowID = win ? SDL_GetWindowID(win) : 0; ev.key.state = SDL_PRESSED;
+            ev.key.keysym.scancode = sc; ev.key.keysym.sym = SDL_GetKeyFromScancode(sc); SDL_PushEvent(&ev);
+            ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
         else if (!strcmp(s->cmd, "uhover")) {            /* the pointer over the interface, window pixels */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
@@ -631,7 +639,8 @@ static void run_ctl(void)
 /* the menu bar with a click: the game shows its menus only while the right button is held and
  * takes the entry under the pointer when it is let go, so a right click only flashed them.
  * A short right click (the bar up, DS:a2e3) now leaves them open, held for the game, and the
- * next click chooses: the button is let go there (Esc: away from the menus) */
+ * next click chooses: the button is let go there (any key: away from the menus, as the game
+ * takes no keys while the button is held) */
 static int menu_sticky;                    /* 1 open after a short click; 2 the choosing click's release to swallow */
 static u32 rdown_t, rup_wait;
 static void later(u32 ms, const char *cmd, const char *arg)
@@ -665,7 +674,12 @@ static int menu_click(const SDL_Event *e)
 static void menu_click_poll(void)
 {
     if (!rup_wait) return;
-    if (menu_bar_up()) { rup_wait = 0; menu_sticky = 1; return; }
+    if (menu_bar_up()) {
+        rup_wait = 0; menu_sticky = 1;
+        static int told;                            /* the game takes no keys while its menus are open: say how they close */
+        if (told++ < 2 && !getenv("DL_CTL")) { void ui_notice(const char *); ui_notice("The menu stays open: click an entry, or anywhere else (or any key) to close it."); }
+        return;
+    }
     if (plat_ticks_ms() - rup_wait > 200) { rup_wait = 0; mouse_b &= ~2; send_mouse(); }
 }
 /* Esc with the menus open: let go away from them */
@@ -710,7 +724,7 @@ void plat_events(void)
                 break;
             }
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { if (ren) pending_shot = 1; else save_bmp("screenshot.bmp"); break; }
-            if (e.key.keysym.sym == SDLK_ESCAPE && !e.key.repeat && menu_escape()) break;
+            if (!e.key.repeat && menu_escape()) break;     /* any key closes menus a right click left open (the game would ignore it) */
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             {   /* 1..9 on a card: that option (a click on its line) */
                 SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : 0;
@@ -721,6 +735,7 @@ void plat_events(void)
             break;
         case SDL_KEYUP: key(e.key.keysym.scancode, 1); break;
         case SDL_MOUSEWHEEL:
+            if (menu_escape()) break;
             /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
                the shops' wares): Up / Down, the keys those lists answer; only on such screens, not
                on cards, the map or in battles, where the arrow keys do other things */
