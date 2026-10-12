@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """smoke.py - quick checks of a Darklands+ build against your own game files, before a release.
 
-  smoke.py [--exe build/port/darklands] [--game /path/to/DARKLAND] [--wine]
+  smoke.py --game /path/to/DARKLAND [--exe build/port/darklands] [--wine]
 
 Runs a few short headless sessions (port/tools/nplay.py) and reports each as OK or FAILED:
 the start and Quickstart, a battle, a quick save and load.
@@ -26,7 +26,7 @@ BAD = re.compile(r'FATAL|unmatched return|CRASH|program exit: int 21h 4Ch code [
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--exe', default=os.path.join(TOP, 'build', 'port', 'darklands'))
-    ap.add_argument('--game', default='/home/claude/dl_raw/extracted/DARKLAND')
+    ap.add_argument('--game', required=True, help='your Darklands folder (it is copied, not changed)')
     ap.add_argument('--wine', action='store_true')
     a = ap.parse_args()
     failed = 0
