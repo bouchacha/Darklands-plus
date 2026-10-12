@@ -36,10 +36,12 @@ build/port/darklands /path/to/DARKLAND                        # run
 
 ## What it adds (all can be switched off; F12 > Helpers > "Play the original game" turns everything off)
 
+On the first start a short welcome names the keys that matter and offers the original game untouched.
+
 * **Text and display:** crisp text everywhere, sharp up to 4K (six typefaces, outlines, a contrast floor),
   words painted into pictures redrawn crisply, character sheet abbreviations spelled out with
   skill icons, smooth scaling options, wide-screen margins with date, place, purse, tasks and the
-  party's condition, window size and full screen remembered; on Windows DPI-aware, the menus
+  party's condition (in battles the battle log and everyone's condition), window size and full screen remembered; on Windows DPI-aware, the menus
   sized by the system's scale; the game rests while it only waits for input (an idle card
   takes about a tenth of a core).
 * **Helpers:** chances of success on card options (only where the party's skills decide); the saints and items a card accepts; number
