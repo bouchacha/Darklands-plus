@@ -77,7 +77,8 @@ static std::string item_name(int id)
 /* ---------------------------------------------------------------- file */
 static std::string path_for(int seed)
 {
-    char b[1200]; snprintf(b, sizeof b, "%s/darklands_journal_%u.txt", game_dir, (unsigned)seed);
+    extern char dlp_data_dir[];         /* the game folder, or %LOCALAPPDATA%\Darklands+ when it is read-only */
+    char b[1200]; snprintf(b, sizeof b, "%s/darklands_journal_%u.txt", dlp_data_dir, (unsigned)seed);
     return b;
 }
 
