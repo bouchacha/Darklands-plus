@@ -17,8 +17,14 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       SDL_VERSION: 2.30.9
+      SDL_SHA256: b188d165dc4a0372042bff3d0c18e9bb90772581e92a7b8b47b521b47714f75c
+      # Python for Windows from python-build-standalone (the build the first start was tested
+      # with, under Wine); the checksums are the published ones
       PYTHON_VERSION: 3.12.7
+      PBS_RELEASE: "20241016"
+      PYTHON_SHA256: f05531bff16fa77b53be0776587b97b466070e768e6d5920894de988bdcd547a
       CAPSTONE_VERSION: 5.0.7
+      CAPSTONE_SHA256: 4ab8bcb7da8f221ff45926ca168ca33e76f7237d06fbf3c10780002faa2670e1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,6 +36,7 @@ jobs:
       - name: SDL2 for mingw-w64
         run: |
           curl -fsSL -o sdl.tgz "https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL2-devel-${SDL_VERSION}-mingw.tar.gz"
+          echo "${SDL_SHA256}  sdl.tgz" | sha256sum -c
           tar xzf sdl.tgz
           mkdir -p build
           mv "SDL2-${SDL_VERSION}/x86_64-w64-mingw32" build/sdl2-win64
@@ -42,13 +49,16 @@ jobs:
 
       - name: Python for Windows and capstone
         run: |
-          curl -fsSL -o python-embed.zip "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-amd64.zip"
+          curl -fsSL -o python.tgz "https://github.com/astral-sh/python-build-standalone/releases/download/${PBS_RELEASE}/cpython-${PYTHON_VERSION}+${PBS_RELEASE}-x86_64-pc-windows-msvc-install_only.tar.gz"
+          echo "${PYTHON_SHA256}  python.tgz" | sha256sum -c
+          mkdir pbs && tar xzf python.tgz -C pbs
           python3 -m pip download "capstone==${CAPSTONE_VERSION}" --only-binary=:all: --platform win_amd64 --python-version 3.12 --no-deps -d wheels
+          echo "${CAPSTONE_SHA256}  wheels/capstone-${CAPSTONE_VERSION}-py3-none-win_amd64.whl" | sha256sum -c
 
       - name: Package
         run: |
           python3 port/tools/package.py --exe build/port_win64_split/darklands.exe --tcc build/tcc-win64 \
-              --python-zip python-embed.zip --capstone-wheel wheels/capstone-*.whl \
+              --python-dir pbs/python --capstone-wheel wheels/capstone-*.whl \
               --version "${GITHUB_REF_NAME}" --out "DarklandsPlus-${GITHUB_REF_NAME}-win64.zip"
 
       - uses: actions/upload-artifact@v4
