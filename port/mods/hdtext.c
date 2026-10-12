@@ -324,6 +324,9 @@ static void cursor_read(const u32 *lut)
     memcpy(clean, page0(), sizeof clean);
     if (!drvseg_mgraphic) return;
     u16 ds = (u16)(drvseg_mgraphic + 0x140);
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_CUR_LOG") != 0;
+      if (lg) { static char last[200]; char b[200]; snprintf(b, sizeof b, "cursor: shown %d page %d save %d,%d %dx%d at %d,%d", rw(ds, 0x212), rw(ds, 0x214), (s16)rw(ds, 0x20a), (s16)rw(ds, 0x20c), (s16)rw(ds, 0x20e), (s16)rw(ds, 0x210), (s16)rw(ds, 0x202), (s16)rw(ds, 0x204));
+                if (strcmp(b, last)) { strcpy(last, b); fprintf(stderr, "%s\n", b); } } }
     if (!rw(ds, 0x212) || rw(ds, 0x214) != 0) return;
     int bx = (s16)rw(ds, 0x20a), by = (s16)rw(ds, 0x20c), bw = (s16)rw(ds, 0x20e), bh = (s16)rw(ds, 0x210);
     if (bx >= 0 && by >= 0 && bw > 0 && bh > 0 && bx + bw <= 320 && by + bh <= 200 && bw * bh <= 0x200)
@@ -343,8 +346,10 @@ static void cursor_read(const u32 *lut)
     for (int i = 0; i < CUR_MAX * CUR_MAX; i++) cur_rgb[i] = cur_px[i] ? (lut[cur_px[i]] | 0xff000000u) : 0;
     cur_on = 1;
 }
+int hdtext_live_pointer;
 static int on_cursor(int x, int y)
 {
+    if (hdtext_live_pointer) return 0;      /* its sprite is taken out of the picture (pointer_out): the letters under it are wiped like the rest */
     x -= cur_x; y -= cur_y;
     return cur_on && x >= 0 && y >= 0 && x < cur_w && y < cur_h && cur_px[y * CUR_MAX + x];
 }
@@ -362,7 +367,6 @@ const unsigned *hdtext_cursor(int *x, int *y, int *w, int *h, int *stride)
  * sprite is taken out of the picture (hdtext_live_pointer, set by the interface while it
  * draws the pointer); its offset from the mouse position (the hot spot) is learnt while
  * the mouse stands still. */
-int hdtext_live_pointer;
 static int hot_x, hot_y; static u16 hot_seg; static int hot_w, hot_h;
 void plat_mouse_game(int *x, int *y);
 void hdtext_pointer_hotspot(int *hx, int *hy) { *hx = hot_x; *hy = hot_y; }
