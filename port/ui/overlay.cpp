@@ -100,6 +100,33 @@ static int text_end(int x0, int y0, int w, int h, int tc, int *top, int *bot)
     return right;
 }
 
+/* the typefaces' letters differ in size at one font size (MedievalSharp's x-height is half as
+ * big again as EB Garamond's): each is drawn at the size that gives it EB Garamond's cap and
+ * x-height, to which the layout was fitted, and on the baseline EB Garamond would have */
+struct FaceMetrics { float k, asc; };
+static FaceMetrics face_raw(ImFont *f)
+{
+    FaceMetrics m = { 1, 0.77f };
+    if (!f || f->FontSize <= 0) return m;
+    const ImFontGlyph *H = f->FindGlyphNoFallback('H'), *x = f->FindGlyphNoFallback('x');
+    float cap = H ? (H->Y1 - H->Y0) / f->FontSize : 0.5f, xh = x ? (x->Y1 - x->Y0) / f->FontSize : 0.32f;
+    m.k = cap > 0 && xh > 0 ? cap * xh : 0.16f;            /* (the product; k below is relative to the reference) */
+    m.asc = f->Ascent / f->FontSize;
+    return m;
+}
+extern ImFont *ui_font_game[UI_GAME_FONTS];
+static FaceMetrics face_metrics(ImFont *f)
+{
+    static ImFont *last; static FaceMetrics lm;
+    if (f == last) return lm;
+    FaceMetrics ref = face_raw(ui_font_game[0]), m = face_raw(f);
+    m.k = ref.k > 0 && m.k > 0 ? sqrtf(ref.k / m.k) : 1;
+    if (m.k < 0.6f) m.k = 0.6f; if (m.k > 1.15f) m.k = 1.15f;
+    last = f; lm = m;
+    return m;
+}
+static float face_ref_asc(void) { static float a = -1; if (a < 0) a = face_raw(ui_font_game[0]).asc; return a; }
+
 /* where the crisp text of a run ends on screen (as hdtext_draw lays it out); window x */
 static std::string utf8(const char *s);
 static float run_end_win(const HdRun &r, float *cy, float *lh)
@@ -108,7 +135,7 @@ static float run_end_win(const HdRun &r, float *cy, float *lh)
     float x0, y0, x1, y1;
     plat_game_to_win((float)r.x, (float)r.y, &x0, &y0);
     plat_game_to_win((float)(r.x + r.w), (float)(r.y + r.h), &x1, &y1);
-    float bw = x1 - x0, bh = y1 - y0, size = bh * 1.18f;
+    float bw = x1 - x0, bh = y1 - y0, size = bh * 1.18f * face_metrics(font).k;
     std::string t = utf8(r.text);
     ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
     if (ts.x > bw * 1.04f) { size *= bw * 1.04f / ts.x; ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str()); }
@@ -131,6 +158,7 @@ static void draw_chances(void)
     int members = (s16)g_rw(G_PARTY_SIZE);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     ImFont *f = ui_font_text;
+    int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {
         if (!cc.line[i].show) continue;
         int y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
@@ -173,6 +201,23 @@ static void draw_chances(void)
         dl->AddRect(p0, p1, IM_COL32(170, 125, 65, 230), bh * 0.3f, 0, 1.5f);
         dl->AddText(f, size, ImVec2(p0.x + padx, cy - ms.y * 0.52f), fg, main);
         if (sub[0]) dl->AddText(f, subsize, ImVec2(p0.x + padx + ms.x + padx, cy - ss.y * 0.5f), IM_COL32(215, 195, 160, 240), sub);
+        ImVec2 mp = ImGui::GetIO().MousePos;
+        if (mp.x >= p0.x && mp.x < p1.x && mp.y >= p0.y && mp.y < p1.y) tip_line = i, tip_pct = pct, tip_who = who, tip_at = p1;
+    }
+    if (tip_line >= 0) {                                          /* what the badge is */
+        char t[200], nm[24] = "";
+        if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
+        snprintf(t, sizeof t, "This option tests the party: %s%s%d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.",
+                 nm[0] ? nm : "", nm[0] ? " has a " : "a ", tip_pct);
+        ImFont *tf = ui_font_small ? ui_font_small : f;
+        float ts = tf->FontSize;
+        ImVec2 sz = tf->CalcTextSizeA(ts, FLT_MAX, 0, t);
+        ImVec2 q0(tip_at.x - sz.x - 12, tip_at.y + 6), q1(tip_at.x, tip_at.y + sz.y + 14);
+        if (q0.x < 4) { q1.x += 4 - q0.x; q0.x = 4; }
+        ImDrawList *fl = ImGui::GetForegroundDrawList();
+        fl->AddRectFilled(q0, q1, IM_COL32(28, 18, 10, 240), 4);
+        fl->AddRect(q0, q1, IM_COL32(170, 125, 65, 230), 4);
+        fl->AddText(tf, ts, ImVec2(q0.x + 6, q0.y + 7), IM_COL32(240, 225, 195, 255), t);
     }
 }
 
@@ -301,7 +346,9 @@ static int skill_of(const char *t)
     for (int i = 0; i < 19; i++) if (!strcmp(t, SK[i])) return i;
     return -1;
 }
-static void skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
+void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
+static void skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { ui_skill_icon(dl, c, s, k); }
+void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
 {
     static const int WT[7] = { 3, 14, 17, 19, 23, 28, 31 };     /* a weapon of each class (LST type) */
     dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));  /* a dark disc: the picture reads on any background */
@@ -353,6 +400,69 @@ static void skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddRectFilled(P(-1.2f, 6), P(1.2f, 10), wood);
         dl->AddTriangleFilled(P(0, -11), P(-5, -3), P(5, -3), C(52, 120, 60)); dl->AddTriangleFilled(P(0, -6), P(-7, 3), P(7, 3), C(52, 120, 60));
         dl->AddTriangleFilled(P(0, -1), P(-8.5f, 7), P(8.5f, 7), C(52, 120, 60)); break;
+    }
+}
+
+/* a skill's picture in the flow of a window's text, then the text goes on beside it */
+void ui_skill_icon_inline(int k)
+{
+    float s = ImGui::GetFontSize();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImGui::Dummy(ImVec2(s * 1.05f, s));
+    ui_skill_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + s * 0.5f, p.y + s * 0.52f), s * 0.6f, k);
+    ImGui::SameLine(0, s * 0.2f);
+}
+
+/* the F12 menu's tabs: a small picture for each, drawn in the room left at the start of the label */
+void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
+{
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
+    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), red = C(170, 40, 30), steel = C(190, 194, 204), wood = C(150, 100, 52);
+    switch (tab) {
+    case 0:  /* inventory: a satchel */
+        dl->AddRectFilled(P(-8, -3), P(8, 9), wood, 2 * u); dl->AddRect(P(-8, -3), P(8, 9), ink, 2 * u, 0, 1.0f * u);
+        dl->AddRectFilled(P(-8, -3), P(8, 3), C(120, 78, 40), 2 * u); dl->AddRect(P(-8, -3), P(8, 3), ink, 2 * u, 0, 1.0f * u);
+        dl->PathArcTo(P(0, -3), 5.5f * u, 3.1416f, 6.2832f, 12); dl->PathStroke(ink, 0, 1.6f * u);
+        dl->AddRectFilled(P(-1.5f, 1), P(1.5f, 5), gold); break;
+    case 1:  /* party: three heads */
+        for (int i = -1; i <= 1; i++) {
+            float x = i * 6.0f, y = i == 0 ? -1.0f : 1.0f;
+            ImU32 col = i == 0 ? parch : C(205, 190, 160);
+            dl->AddCircleFilled(P(x, y - 4), 3.2f * u, col); dl->AddCircle(P(x, y - 4), 3.2f * u, ink, 0, 0.8f * u);
+            dl->PathArcTo(P(x, y + 6), 5.0f * u, 3.1416f, 6.2832f, 12); dl->PathFillConvex(col);
+        }
+        break;
+    case 2: ui_skill_icon(dl, c, s, 7); break;                 /* alchemy: the flask */
+    case 3: ui_skill_icon(dl, c, s, 9); break;                 /* saints: the halo */
+    case 4: ui_skill_icon(dl, c, s, 11); break;                /* journal: the book */
+    case 5:  /* saves: a sealed letter */
+        dl->AddRectFilled(P(-9, -6), P(9, 7), parch); dl->AddRect(P(-9, -6), P(9, 7), ink, 0, 0, 1.0f * u);
+        dl->AddLine(P(-9, -6), P(0, 1), ink, 0.9f * u); dl->AddLine(P(9, -6), P(0, 1), ink, 0.9f * u);
+        dl->AddCircleFilled(P(0, 2), 3.4f * u, red); break;
+    case 6:  /* travel: a compass rose */
+        dl->AddCircle(P(0, 0), 8.5f * u, gold, 0, 1.4f * u);
+        dl->AddTriangleFilled(P(0, -9), P(-2.4f, 0), P(2.4f, 0), red); dl->AddTriangleFilled(P(0, 9), P(-2.4f, 0), P(2.4f, 0), parch);
+        dl->AddTriangleFilled(P(-9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); dl->AddTriangleFilled(P(9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); break;
+    case 7:  /* helpers: a lit candle */
+        dl->AddRectFilled(P(-2.5f, -2), P(2.5f, 9), parch); dl->AddRect(P(-2.5f, -2), P(2.5f, 9), ink, 0, 0, 0.8f * u);
+        dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
+        dl->AddTriangleFilled(P(0, -11), P(-2.6f, -5), P(2.6f, -5), C(250, 190, 60)); dl->AddCircleFilled(P(0, -5.5f), 2.6f * u, C(250, 150, 40)); break;
+    case 8: ui_skill_icon(dl, c, s, 14); break;                /* mods: the cog */
+    case 9:  /* display: a framed picture */
+        dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
+        dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
+        dl->AddRect(P(-9, -7), P(9, 7), gold, 0, 0, 1.8f * u); break;
+    case 10: /* records: a crown */
+        dl->AddRectFilled(P(-8, 2), P(8, 7), gold);
+        dl->AddTriangleFilled(P(-8, 2), P(-8, -7), P(-3, 2), gold); dl->AddTriangleFilled(P(-4, 2), P(0, -8), P(4, 2), gold); dl->AddTriangleFilled(P(3, 2), P(8, -7), P(8, 2), gold);
+        dl->AddCircleFilled(P(0, 4.5f), 1.4f * u, red); dl->AddRect(P(-8, 2), P(8, 7), ink, 0, 0, 0.8f * u); break;
+    case 11: /* about: i in a circle */
+        dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
+        dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;
+    case 12: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
+    default: (void)steel; break;
     }
 }
 
@@ -416,7 +526,8 @@ extern "C" void hdtext_draw(void)
     }
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     static std::vector<Spelled> sp;
-    { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f); }
+    const FaceMetrics fm = face_metrics(font);
+    { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f * fm.k); }
     float prev_end = 0; int prev = -1, skip = -1;
     auto joins = [](const HdRun &q, const HdRun &r) { int gap = r.x - (q.x + q.w); return q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3; };
     for (int i = 0; i < hdtext_nruns; i++) {
@@ -450,7 +561,7 @@ extern "C" void hdtext_draw(void)
             }
         }
         float bw = x1 - x0, bh = y1 - y0;
-        float size = bh * 1.18f;
+        float size = bh * 1.18f * fm.k;
         ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         bool num = t.size() <= 5 && strspn(t.c_str(), "0123456789/") == t.size();
         float allow = bw * 1.04f + (num ? bh * 0.5f : 0);            /* "11" is 5 pixels wide in the game's font */
@@ -458,11 +569,12 @@ extern "C" void hdtext_draw(void)
         else if (r.font == 2 && t.size() >= 4 && ts.x < bw * 0.9f) {     /* the wide menu face: keep its width */
             float k = bw * 0.95f / ts.x; if (k > 1.15f) k = 1.15f; size *= k;
         }
-        if (!sp[i].text.empty() && !mapped) { t = sp[i].text; size = bh * 1.18f * sp[i].scale; x0 = sp[i].x; }
+        if (!sp[i].text.empty() && !mapped) { t = sp[i].text; size = bh * 1.18f * fm.k * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         if (r.center) x0 += (bw - ts.x) * 0.5f;
         ImU32 c = contrast_fix(IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255), (int)(r.bgrgb & 0xffffff));
-        float y = y0 + (bh - ts.y) * 0.5f - bh * 0.06f;
+        float seq = size / fm.k;                                     /* the size EB Garamond would have: its baseline */
+        float y = y0 + (bh - seq) * 0.5f - bh * 0.06f + face_ref_asc() * seq - fm.asc * size;
         bool clipped = (r.clip0 > 0 || r.clip1 < r.h) && r.clip1 > r.clip0;   /* covered in part: only where it shows */
         if (clipped) {
             float cy0, cy1, dummy;

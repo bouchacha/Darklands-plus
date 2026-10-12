@@ -46,7 +46,7 @@ void worldmap_set_renderer(SDL_Renderer *r);
 static int want_tab = -1;
 extern int ui_want_subtab;
 extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
-static ImFont *font_body, *font_head, *font_tab;
+static ImFont *font_body, *font_head, *font_tab, *font_tab_small;
 extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
 extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
@@ -71,6 +71,7 @@ extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
 extern "C" void hdtext_draw_cursor(void);
+void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
@@ -153,6 +154,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(24.0f), &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(32.0f), &fc);
     font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(20.0f), &fc);
+    font_tab_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(16.5f), &fc);   /* the tabs in a narrow window */
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(17.0f), &fc);
     {   /* the game's text, redrawn crisp (mods/hdtext.c): baked at the size it takes on this screen
            when the window fills it (a line of the game's text is 6 of its 200 rows; 34 pixels at
@@ -795,13 +797,29 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             /* the labels a little smaller than the text, so that all of them show in a 960 pixel
                window (the whole tab bar in that face: ImGui measures the tabs again when it lays
                them out) */
-            ImGui::PushFont(font_tab); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(6), UIS(5)));
-            if (ImGui::BeginTabBar("tabs")) {
-                const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor" };
-                void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
+            const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor" };
+            void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
+            ImFont *tf = font_tab;
+            {   /* every label whole, with its picture: the smaller face when the window is narrow */
+                float need = 0, avail = ImGui::GetContentRegionAvail().x;
                 for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
                     if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
-                    if (ImGui::BeginTabItem(names[t], nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0)) {
+                    need += font_tab->CalcTextSizeA(font_tab->FontSize, FLT_MAX, 0, names[t]).x + font_tab->FontSize * 1.25f + UIS(12) + ImGui::GetStyle().ItemInnerSpacing.x + 2;
+                }
+                if (need > avail && font_tab_small) tf = font_tab_small;
+            }
+            ImGui::PushFont(tf); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(6), UIS(5)));
+            if (ImGui::BeginTabBar("tabs")) {
+                for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
+                    if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || original_mode())) continue;
+                    /* room for its picture at the start of the label: spaces as wide as the picture */
+                    char lab[64]; int nsp = (int)ceilf(ImGui::GetFontSize() * 1.25f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x));
+                    if (nsp > 12) nsp = 12;
+                    snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", names[t], names[t]);
+                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0);
+                    {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
+                        ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, t); }
+                    if (open_t) {
                         ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(8), UIS(4)));
                         fns[t]();
                         ImGui::PopStyleVar(); ImGui::PopFont();

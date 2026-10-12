@@ -13,6 +13,7 @@ extern "C" {
 }
 
 std::string rules_weapons_of_skill(int k);
+void ui_skill_icon_inline(int k);
 
 static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
 static const char *ATTR_HELP[7] = {
@@ -70,7 +71,7 @@ extern "C" void tab_members(void)
                        "so the member best at what comes next can lead first. Hover over a row for what it is for.");
     ImGuiTableFlags fl = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
     if (!ImGui::BeginTable("members", size + 1, fl, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 9);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 10.5f);
     for (int m = 0; m < size; m++) ImGui::TableSetupColumn(nick(m).c_str(), ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupScrollFreeze(1, 2);
     ImGui::TableHeadersRow();
@@ -106,9 +107,10 @@ extern "C" void tab_members(void)
         for (int m = 0; m < size; m++) ImGui::TableNextColumn();
     };
     /* one row: v[m] shown, the highest (if they differ) marked; cur < max shown as cur/max */
-    auto row = [&](const char *label, const char *tip, const int *v, const int *vmax) {
+    auto row = [&](const char *label, const char *tip, const int *v, const int *vmax, int icon) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        if (icon >= 0) ui_skill_icon_inline(icon);
         ImGui::Selectable(label, false, ImGuiSelectableFlags_SpanAllColumns); help_tip(tip);      /* the whole row answers the pointer */
         int hi = -1000, lo = 1000;
         for (int m = 0; m < size; m++) { if (v[m] > hi) hi = v[m]; if (v[m] < lo) lo = v[m]; }
@@ -126,7 +128,7 @@ extern "C" void tab_members(void)
     for (int a = 0; a < 7; a++) {
         int v[5], vm[5];
         for (int m = 0; m < size; m++) { v[m] = g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)); vm[m] = g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a)); }
-        row(ATTR[a], ATTR_HELP[a], v, vm);
+        row(ATTR[a], ATTR_HELP[a], v, vm, -1);
     }
     {   /* load, as the character sheet shows it (s029 0e76:013a) */
         ImGui::TableNextRow();
@@ -156,7 +158,7 @@ extern "C" void tab_members(void)
             std::string w = rules_weapons_of_skill(k);
             tip = "Attack and defence with " + (w.empty() ? std::string("these weapons") : w) + ".";
         } else tip = SKILL_HELP[k];
-        row(SKILL[k], tip.c_str(), v, nullptr);
+        row(SKILL[k], tip.c_str(), v, nullptr, k);
     }
     ImGui::EndTable();
 }

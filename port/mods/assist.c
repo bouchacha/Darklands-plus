@@ -74,6 +74,23 @@ static void evaluate(void)
         eval_restore(snap);
         if (r2 != r) r = 0xffffffffu;                                  /* depends on stack garbage: no chance */
         int pct = (s16)(r & 0xffff), who = (s16)(r >> 16);
+        if (pct >= 0 && r != 0xffffffffu) {
+            /* asked again with the whole party at 1 in every attribute and skill: a chance that
+               does not move is no skill check (the handlers of plain options answer too: leaving
+               town "100 %", a roll of the dice "0 %" or "100 %" from one second to the next) */
+            g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
+            for (int m = 0; m < 5; m++) {
+                u16 b = G_MEMBER(m);
+                for (int a = 0; a < 7; a++) { g_wb((u16)(b + G_M_ATTR_CUR + a), 1); g_wb((u16)(b + G_M_ATTR_MAX + a), 1); }
+                for (int k = 0; k < 19; k++) g_wb((u16)(b + G_M_SKILLS + k), 1);
+            }
+            u32 r3 = game_call_ptr(seg, off, 0, 0, 0x5a);
+            eval_restore(snap);
+            if (!game_call_timed_out && (s16)(r3 & 0xffff) == pct) {
+                if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% whatever the party: no skill check\n", i, opt, pct);
+                continue;
+            }
+        }
         if (getenv("DL_ASSIST_LOG")) { int ovl_section_at(u32); fprintf(stderr, "assist: card %.12s line %d opt %d kind %d fn %04x:%04x (s%03d) -> %d%% member %d\n",
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }
         if (pct >= 0) { c.line[i].show = 1; c.line[i].pct = pct > 100 ? 100 : pct; c.line[i].who = who; }
