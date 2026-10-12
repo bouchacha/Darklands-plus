@@ -6,7 +6,8 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 ### What it adds
 
-- **Text and display:** crisp text at any window size up to 4K, in a choice of six typefaces. Wide-screen margins show the date, place, purse, tasks and the party's condition. Full screen with Alt+Enter. PNG screenshots with Ctrl+F12.
+- **Text and display:** crisp text at any window size up to 4K, in a choice of six typefaces. The pointer follows the mouse smoothly. Wide-screen margins show the date, place, purse and tasks on one side, and on the other the town you are in or near (reputation, buildings, shops and their quality), the blessings and potions at work and who carries too much. One setting sizes the margins, tooltips and map names. Full screen with Alt+Enter. PNG screenshots with Ctrl+F12.
+- **Tooltips everywhere:** point at an item, a saint or an alchemy formula on any of the game's screens (shops, loot, character sheet, equipment, saints lists, the formula book, a card's list of saints and items) to see what it does. Saint descriptions show the effect in its own colour.
 - **Cards:** chances of success next to the options (only where the party's skills decide). Number keys pick options. The saints and items a card accepts are shown. "Go to" in cities (G) walks the party to a shop, church or gate.
 - **Journal:** a quest log, a town journal, a saints finder, alchemy formulas, and where to find goods and ingredients.
 - **Travel:** a zoomable world map (M) and auto-travel: Ctrl+click a place and the party goes there.
