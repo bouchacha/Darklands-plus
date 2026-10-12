@@ -53,7 +53,7 @@ static SDL_Texture *full_tile(int i, int j)
 }
 static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-screen pixel; centre
 static int selected = -1;
-static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true;
+static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true, show_icons = true;
 
 void worldmap_set_renderer(SDL_Renderer *r) { wm_ren = r; }
 
@@ -65,9 +65,95 @@ const char *loc_kind_label(int k)        /* a location's type (its record's +0) 
 {
     switch (k) {
     case 0: return "town"; case 1: case 2: return "castle"; case 26: return "ruined castle"; case 3: return "monastery";
-    case 5: case 19: case 24: return "cave"; case 6: return "mine"; case 8: case 10: return "village";
-    case 9: return "ruined village"; case 13: return "tomb"; case 16: return "spring"; case 17: return "lake";
-    case 18: return "shrine"; case 20: case 4: return "pagan altar"; default: return "place";
+    case 5: case 19: return "cave"; case 24: return "alpine cave"; case 6: return "mine"; case 8: case 10: return "village";
+    case 9: return "ruined village"; case 13: return "tomb"; case 16: return "spring"; case 17: case 25: return "lake";
+    case 18: return "shrine"; case 20: return "pagan altar"; case 4: return "standing stone"; case 21: return "witches' meeting place";
+    case 22: case 23: return "castle"; default: return "place";
+    }
+}
+
+/* a small picture for each kind of place, drawn at c, about s pixels across: icons rather than
+ * dots on the world map (towns walled with a spire, villages a cottage, castles a keep,
+ * monasteries and shrines a cross, caves and mines a dark mouth, springs and lakes water,
+ * pagan places standing stones, ruins broken walls) */
+enum IconKind { IK_TOWN, IK_VILLAGE, IK_CASTLE, IK_MONASTERY, IK_SHRINE, IK_CAVE, IK_MINE, IK_WATER, IK_TOMB, IK_STONES, IK_RUIN, IK_OTHER, IK_N };
+static int icon_kind(int k)
+{
+    switch (k) {
+    case 0: return IK_TOWN; case 8: case 10: return IK_VILLAGE; case 1: case 2: case 22: case 23: return IK_CASTLE;
+    case 3: return IK_MONASTERY; case 18: return IK_SHRINE; case 5: case 19: case 24: return IK_CAVE; case 6: return IK_MINE;
+    case 16: case 17: case 25: return IK_WATER; case 13: return IK_TOMB; case 4: case 20: case 21: return IK_STONES;
+    case 9: case 26: return IK_RUIN; default: return IK_OTHER;
+    }
+}
+static const char *IK_LABEL[IK_N] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
+static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik)
+{
+    const ImU32 K = IM_COL32(20, 14, 8, 235);                          /* the dark outline */
+    float h = s * 0.5f, t = fmaxf(1.0f, s / 9.0f);
+    auto box = [&](float x0, float y0, float x1, float y1, ImU32 col) {
+        dl->AddRectFilled(ImVec2(c.x + x0 * h, c.y + y0 * h), ImVec2(c.x + x1 * h, c.y + y1 * h), col);
+        dl->AddRect(ImVec2(c.x + x0 * h, c.y + y0 * h), ImVec2(c.x + x1 * h, c.y + y1 * h), K, 0, 0, t);
+    };
+    auto tri = [&](float x0, float y0, float x1, float y1, float x2, float y2, ImU32 col) {
+        ImVec2 a(c.x + x0 * h, c.y + y0 * h), b(c.x + x1 * h, c.y + y1 * h), d(c.x + x2 * h, c.y + y2 * h);
+        dl->AddTriangleFilled(a, b, d, col); dl->AddTriangle(a, b, d, K, t);
+    };
+    switch (ik) {
+    case IK_TOWN: {                                                     /* a wall with a gate and a spire */
+        ImU32 w = IM_COL32(244, 230, 196, 255);
+        box(-1.0f, -0.2f, 1.0f, 0.9f, w);
+        for (int i = 0; i < 3; i++) box(-1.0f + i * 0.8f, -0.5f, -0.6f + i * 0.8f, -0.2f, w);
+        tri(-0.25f, -0.2f, 0.25f, -0.2f, 0.0f, -1.1f, IM_COL32(190, 70, 50, 255));
+        box(-0.22f, 0.35f, 0.22f, 0.9f, IM_COL32(60, 40, 25, 255));
+        break; }
+    case IK_VILLAGE:                                                    /* a cottage */
+        box(-0.7f, -0.1f, 0.7f, 0.8f, IM_COL32(222, 190, 130, 255));
+        tri(-0.95f, -0.05f, 0.95f, -0.05f, 0.0f, -0.85f, IM_COL32(150, 95, 50, 255));
+        break;
+    case IK_CASTLE:                                                     /* a keep */
+        box(-0.6f, -0.45f, 0.6f, 0.9f, IM_COL32(200, 196, 190, 255));
+        for (int i = 0; i < 3; i++) box(-0.6f + i * 0.45f, -0.85f, -0.3f + i * 0.45f, -0.45f, IM_COL32(200, 196, 190, 255));
+        box(-0.18f, 0.35f, 0.18f, 0.9f, IM_COL32(60, 40, 25, 255));
+        box(-0.6f, -0.45f, 0.6f, -0.25f, IM_COL32(200, 60, 45, 255));
+        break;
+    case IK_MONASTERY:                                                  /* a church with a cross */
+        box(-0.8f, -0.1f, 0.8f, 0.85f, IM_COL32(236, 226, 205, 255));
+        tri(-0.95f, -0.05f, 0.95f, -0.05f, 0.0f, -0.6f, IM_COL32(120, 140, 200, 255));
+        box(-0.09f, -1.1f, 0.09f, -0.55f, IM_COL32(250, 240, 200, 255));
+        box(-0.3f, -0.95f, 0.3f, -0.8f, IM_COL32(250, 240, 200, 255));
+        break;
+    case IK_SHRINE:                                                     /* a wayside cross */
+        box(-0.14f, -0.95f, 0.14f, 0.9f, IM_COL32(170, 200, 255, 255));
+        box(-0.6f, -0.55f, 0.6f, -0.3f, IM_COL32(170, 200, 255, 255));
+        break;
+    case IK_CAVE: case IK_MINE: {                                       /* a hill with a dark mouth (mines: a prop) */
+        tri(-1.05f, 0.85f, 1.05f, 0.85f, 0.0f, -0.85f, ik == IK_MINE ? IM_COL32(170, 140, 110, 255) : IM_COL32(150, 140, 125, 255));
+        dl->AddCircleFilled(ImVec2(c.x, c.y + 0.85f * h), 0.42f * h, IM_COL32(15, 10, 6, 255), 12);
+        if (ik == IK_MINE) { dl->AddLine(ImVec2(c.x - 0.45f * h, c.y + 0.45f * h), ImVec2(c.x + 0.45f * h, c.y + 0.45f * h), IM_COL32(220, 180, 90, 255), t * 1.4f); }
+        break; }
+    case IK_WATER:                                                      /* a drop of water */
+        dl->AddCircleFilled(ImVec2(c.x, c.y + 0.25f * h), 0.62f * h, IM_COL32(90, 160, 240, 255), 14);
+        tri(-0.55f, 0.0f, 0.55f, 0.0f, 0.0f, -0.95f, IM_COL32(90, 160, 240, 255));
+        dl->AddCircle(ImVec2(c.x, c.y + 0.25f * h), 0.62f * h, K, 14, t);
+        break;
+    case IK_TOMB:                                                       /* a gravestone */
+        dl->AddRectFilled(ImVec2(c.x - 0.5f * h, c.y - 0.75f * h), ImVec2(c.x + 0.5f * h, c.y + 0.85f * h), IM_COL32(190, 185, 175, 255), 0.45f * h, ImDrawFlags_RoundCornersTop);
+        dl->AddRect(ImVec2(c.x - 0.5f * h, c.y - 0.75f * h), ImVec2(c.x + 0.5f * h, c.y + 0.85f * h), K, 0.45f * h, ImDrawFlags_RoundCornersTop, t);
+        break;
+    case IK_STONES:                                                     /* standing stones */
+        box(-0.85f, -0.4f, -0.4f, 0.9f, IM_COL32(190, 150, 220, 255));
+        box(0.4f, -0.4f, 0.85f, 0.9f, IM_COL32(190, 150, 220, 255));
+        box(-0.95f, -0.75f, 0.95f, -0.4f, IM_COL32(190, 150, 220, 255));
+        break;
+    case IK_RUIN:                                                       /* broken walls */
+        box(-0.9f, 0.0f, -0.35f, 0.85f, IM_COL32(150, 140, 130, 255));
+        box(-0.35f, 0.4f, 0.3f, 0.85f, IM_COL32(150, 140, 130, 255));
+        box(0.3f, -0.45f, 0.9f, 0.85f, IM_COL32(150, 140, 130, 255));
+        break;
+    default:
+        dl->AddCircleFilled(c, 0.5f * h, IM_COL32(200, 160, 220, 255));
+        dl->AddCircle(c, 0.5f * h, K, 0, t);
     }
 }
 static int kind_group(int k)        // 0 town 1 village 2 castle 3 holy 4 other
@@ -246,8 +332,14 @@ extern "C" void worldmap_draw(void)
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
         float r = (g == 0 ? 4.5f : 3.0f) * fmaxf(ks, 1.0f);
         if (g != 0 && zoom < 0.22f) continue;
-        dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
-        dl->AddCircleFilled(s, r, kind_colour(g));
+        if (show_icons) {                                    /* an icon for its kind, bigger as one zooms in */
+            float is = r * 4.4f * fminf(fmaxf(powf(zoom / fitz, 0.25f), 1.0f), 1.6f);
+            draw_icon(dl, s, is, icon_kind(p.kind));
+            r = is * 0.5f;
+        } else {
+            dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
+            dl->AddCircleFilled(s, r, kind_colour(g));
+        }
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
         float hr = 14 * fmaxf(ks, 1.0f);
         if (hovered && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
@@ -343,7 +435,33 @@ extern "C" void worldmap_draw(void)
     if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
     ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
     ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other places", &show_other);
-    ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests);
+    ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Icons", &show_icons);
+    if (ImGui::TreeNodeEx("Legend", ImGuiTreeNodeFlags_DefaultOpen)) {   /* what the marks mean */
+        float is = ImGui::GetFontSize() * 1.1f, colw = ImGui::GetFontSize() * 8.5f;
+        ImDrawList *pl = ImGui::GetWindowDrawList();
+        for (int k = 0; k < IK_N; k++) {
+            if (k % 2) ImGui::SameLine(colw);
+            ImVec2 q = ImGui::GetCursorScreenPos();
+            ImGui::Dummy(ImVec2(is * 1.2f, is));
+            if (show_icons) draw_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.5f), is, k);
+            else {
+                static const int G[IK_N] = { 0, 1, 2, 3, 3, 4, 4, 3, 3, 4, 1, 4 };
+                pl->AddCircleFilled(ImVec2(q.x + is * 0.6f, q.y + is * 0.5f), is * 0.25f, kind_colour(G[k]));
+            }
+            ImGui::SameLine(); ImGui::TextUnformatted(IK_LABEL[k]);
+        }
+        {   ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks and the party */
+            ImGui::Dummy(ImVec2(is * 1.2f, is));
+            ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
+            pl->AddTriangleFilled(ImVec2(m.x - 5, m.y - 5), ImVec2(m.x + 5, m.y - 5), ImVec2(m.x, m.y + 4), IM_COL32(255, 210, 60, 255));
+            ImGui::SameLine(); ImGui::TextUnformatted("Quest");
+            ImGui::SameLine(colw);
+            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
+            pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
+            ImGui::SameLine(); ImGui::TextUnformatted("The party");
+        }
+        ImGui::TreePop();
+    }
     if (selected >= 0) {
         for (const Place &p : P) if (p.loc == selected) {
             ImGui::Separator();
