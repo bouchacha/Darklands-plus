@@ -480,6 +480,13 @@ static void run_script(void)
                 fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
             }
         }
+        else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 6 int args: ucall:31,18e7,0ab8,-2,80 */
+            int sect = 0, a[6] = { 0 }; unsigned sg = 0, of = 0;
+            int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5]);
+            u16 args[6]; for (int k = 0; k < 6; k++) args[k] = (u16)a[k];
+            int v = n >= 3 ? game_call_far(sect, (u16)sg, (u16)of, n - 3 > 0 ? n - 3 : 0, args) : -1;
+            fprintf(stderr, "call s%d %04x:%04x: %d\n", sect, sg, of, v);
+        }
         else if (!strcmp(s->cmd, "uhit")) {                /* test (in battle): hit_damage(a, t, r, loc), s014 18bf:0778 */
             int a = 0, t = 5, r = 1, loc = 0; sscanf(s->arg, "%d,%d,%d,%d", &a, &t, &r, &loc);
             u16 args[4] = { (u16)a, (u16)t, (u16)r, (u16)loc };
