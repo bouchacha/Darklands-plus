@@ -326,7 +326,7 @@ static void tab_mods(void)
             if (ImGui::Checkbox(datamods[i].title, &on)) { datamods_set(i, on); dirty_config = 1; }
             ImGui::Indent(UIS(34));
             if (datamods[i].desc[0]) hint("%s", datamods[i].desc);
-            hint("folder: mods" PATH_SEP "%s", datamods[i].folder);
+            { std::string fp = datamods[i].path; for (char &c : fp) if (c == '/' || c == '\\') c = PATH_SEP[0]; hint("folder: %s", fp.c_str()); }
             ImGui::Unindent(UIS(34));
             ImGui::PopID();
         }
@@ -406,7 +406,7 @@ static void set_original(bool on)
         for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
         config_set("sound.device", "game");
         config_set_int("original", 1);
-        datamods_scan(); hdart_rescan(); rules_apply();
+        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload();
     } else {
         const char *p = config_get("original.saved", "");
         char *e;
@@ -426,7 +426,7 @@ static void set_original(bool on)
         autopause_set(config_get_int("original.pause_down", 1), config_get_int("original.pause_hurt", 0));
         { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
         config_set_int("original", 0);
-        datamods_scan(); hdart_rescan(); rules_apply();
+        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload();
     }
     dirty_config = 1;
 }

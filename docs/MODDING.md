@@ -123,6 +123,17 @@ plain Python functions (picture in, picture out, or None to leave it), so an ima
 plugged in the same way. A pack made from the originals carries the game's pictures: keep it
 for yourself.
 
+### The sample battle sounds
+
+`port/tools/soundpack.py OUT` makes the "Battle sounds (0 A.D. recordings)" mod that comes with
+the release (off until ticked in F12 > Mods): 50 takes of the eleven battle sounds, cut from
+0 A.D.'s free recordings (Wildfire Games, CC BY-SA 3.0) to start on the blow, levelled, and in
+places layered (a hit on mail, the body falling after a death cry); the flask breaking and the
+magic sparkle are synthesized. It fetches only the files it uses from 0 A.D.'s repository
+(`--src` takes a 0 A.D. `audio` folder instead) and needs numpy and ffmpeg. The pack holds
+nothing of Darklands, so it can be shared with its `CREDITS.txt`. To make a pack of your own,
+change the recipes in `build()`, or drop your own files into a mod's `sounds` folder.
+
 ## Built-in changes
 
 F12 > Mods also lists changes written in C (`port/mods/builtin.c`): faster travel, cheaper inns,

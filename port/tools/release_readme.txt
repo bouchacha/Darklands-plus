@@ -46,6 +46,12 @@ KEYS
   A, S          (loot) take the whole pile, share it out among the party
   A, T          (shop) sell the whole stack, buy ten
 
+BATTLE SOUNDS
+The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of
+swords, shields, blows, cries, the bow and the handgun in place of the synthesizer notes. Tick
+it in F12 > Mods (F12 > Display sets the volume). The recordings are from 0 A.D. by Wildfire
+Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
+
 MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)

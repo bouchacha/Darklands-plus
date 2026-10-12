@@ -27,7 +27,8 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
   - and more, each with its own switch (F12 > Helpers)
 - **Restored:** the Honor Roll of Glory, drawn by MicroProse but never reachable.
 - **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows, a strong Quickstart party, a rich start.
-- **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds. F12 > Mods makes a new mod folder with instructions.
+- **Battle sounds:** a mod with real recordings (swords clashing, shields, blows, cries, the bow, the handgun, a war horn for an ambush) in place of the synthesizer notes comes with the download; tick it in F12 > Mods. The recordings are from 0 A.D. (CC BY-SA 3.0).
+- **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds; mods switch on and off at once, sounds included. F12 > Mods makes a new mod folder with instructions.
 
 ### If something goes wrong
 

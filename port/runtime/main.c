@@ -33,9 +33,13 @@ static int dir_writable(const char *d)
     fclose(f); remove(p);
     return 1;
 }
+char dlp_prog_dir[1100];         /* where darklands.exe is (the mods shipped with it: mods\ there) */
 static int find_game_dir(int argc, char **argv)
 {
     char p[1100];
+    { char *b = SDL_GetBasePath();
+      if (b) { snprintf(dlp_prog_dir, sizeof dlp_prog_dir, "%s", b); SDL_free(b);
+               size_t n = strlen(dlp_prog_dir); if (n && (dlp_prog_dir[n - 1] == '/' || dlp_prog_dir[n - 1] == '\\')) dlp_prog_dir[n - 1] = 0; } }
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') continue;
         snprintf(game_dir, sizeof game_dir, "%s", argv[i]);

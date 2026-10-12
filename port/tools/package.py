@@ -17,6 +17,8 @@ Layout of the zip (its contents go into the Darklands folder, next to DARKLAND.E
   darklands_plus/tcc/             TinyCC
   darklands_plus/python/          embedded Python with capstone
   darklands_plus/licenses/        the notices of everything in the package
+  mods/NAME/                      --mod DIR: a mod shipped with it, off until ticked in F12 > Mods
+                                  (the sample battle sounds: port/tools/soundpack.py)
   Darklands+ README.txt
 """
 import sys, os, shutil, zipfile, argparse, tempfile, glob, re
@@ -44,6 +46,7 @@ def main():
     ap.add_argument('--version', default='test')
     ap.add_argument('--out', required=True)
     ap.add_argument('--no-python', action='store_true', help='leave Python out (tests only)')
+    ap.add_argument('--mod', action='append', default=[], help='a mod folder to ship (its CREDITS.txt goes to the licences too)')
     a = ap.parse_args()
     if not a.no_python and not ((a.python_zip or a.python_dir) and a.capstone_wheel):
         ap.error('--python-zip (or --python-dir) and --capstone-wheel are needed (or --no-python for a test)')
@@ -97,6 +100,11 @@ def main():
     for f in ('LICENSE', 'LICENSE.txt', 'LICENSE.md', 'COPYING'):
         if os.path.exists(os.path.join(ROOT, f)):
             shutil.copy(os.path.join(ROOT, f), os.path.join(lic, 'Darklands+-' + f))
+    for m in a.mod:
+        name = os.path.basename(os.path.normpath(m))
+        shutil.copytree(m, os.path.join(st, 'mods', name))
+        if os.path.exists(os.path.join(m, 'CREDITS.txt')):
+            shutil.copy(os.path.join(m, 'CREDITS.txt'), os.path.join(lic, 'mod-%s-CREDITS.txt' % name.replace(' ', '_')))
     readme = open(os.path.join(HERE, 'release_readme.txt')).read().replace('@VERSION@', a.version)
     open(os.path.join(st, 'Darklands+ README.txt'), 'w', newline='\r\n').write(readme)
     # nothing made from the game may be in it

@@ -80,9 +80,17 @@ void datamods_scan(void)
     /* the player's mods folder, and the game folder's when that is another (a game folder that
        cannot be written: mods put there by hand still count; a folder of the same name in the
        player's wins) */
-    char roots[2][1100]; int nr = 0;
+    char roots[3][1100]; int nr = 0;
     mods_dir(roots[nr++], sizeof roots[0]);
     if (dlp_user_dir[0] && strcmp(dlp_user_dir, game_dir)) find_ci(game_dir, "mods", roots[nr++], sizeof roots[0]);
+    {   /* and the mods that come with Darklands+ (in its own folder when that is not the game's) */
+        extern char dlp_prog_dir[];
+        char pm[1100];
+        if (dlp_prog_dir[0] && find_ci(dlp_prog_dir, "mods", pm, sizeof pm)) {
+            int dup = 0; for (int k = 0; k < nr; k++) if (!strcmp(roots[k], pm)) dup = 1;
+            if (!dup) snprintf(roots[nr++], sizeof roots[0], "%s", pm);
+        }
+    }
     for (int ri = 0; ri < nr; ri++) {
     const char *md = roots[ri];
     DIR *d = opendir(md);
@@ -129,6 +137,7 @@ void datamods_set(int i, int on)
     generation++;
     void hdart_rescan(void); hdart_rescan();
     void rules_apply(void); rules_apply();
+    void sfx_reload(void); sfx_reload();             /* a mod's sounds come and go at once */
 }
 int datamods_generation(void) { return generation; }
 /* "Play the original game" (F12 > Helpers) leaves the mods out too */
