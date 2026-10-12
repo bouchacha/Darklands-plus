@@ -565,7 +565,7 @@ extern "C" void hdtext_draw(void)
             const HdRun &q = hdtext_runs[prev];
             int gap = r.x - (q.x + q.w);
             if (q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3) {
-                float kx = (x1 - x0) / (r.w ? r.w : 1), nx = prev_end + (r.cont ? 0 : gap) * kx;
+                float kx = (x1 - x0) / (r.w ? r.w : 1), nx = prev_end + (r.cont || gap <= 1 ? 0 : gap - 1) * kx;   /* the bitmap's letter gap is in the crisp face's advance */
                 x1 += nx - x0; x0 = nx;
             }
         }
