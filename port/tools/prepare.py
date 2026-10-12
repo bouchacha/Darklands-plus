@@ -50,7 +50,8 @@ def find_file(folder, name):
 def run(cmd, what, pct0, pct1, expect_s):
     """a step as a child process; the bar moves on with the time it usually takes"""
     t0 = time.time()
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)     # Windows: no console window for the steps
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=flags)
     import threading
     out = []
     th = threading.Thread(target=lambda: out.extend(p.stdout.read().decode('latin1', 'replace').splitlines()))
