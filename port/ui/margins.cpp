@@ -219,6 +219,21 @@ static void right_panel(int size)
         for (auto &m : marks) if (m.first == cur) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s", m.second.c_str());
         any = true;
     }
+    else if (cur >= (int)gamedata.cities.size() && cur < G_NLOC && game_mode() == GM_CARD) {   /* (battles reuse the location table) */
+        /* a castle, monastery, village ...: what it is, and the quests that point there */
+        u32 r = g_location(cur);
+        if (r) {
+            char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
+            const char *loc_kind_label(int k);
+            heading(game_text(b, sizeof b).c_str());
+            ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
+            static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
+            if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
+            for (auto &m : marks) if (m.first == cur) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s", m.second.c_str());
+            if ((s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18)) > 0) ImGui::TextWrapped("The party has goods stored here (F12 > Journal > Stored).");
+            any = true;
+        }
+    }
     std::vector<Eff> e = effects_now(size);
     if (!e.empty()) {
         if (any) ImGui::Separator();

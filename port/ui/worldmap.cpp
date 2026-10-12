@@ -58,7 +58,9 @@ void worldmap_set_renderer(SDL_Renderer *r) { wm_ren = r; }
 
 struct Place { int loc, kind, x, y; std::string name; };
 
-static const char *kind_label(int k)
+const char *loc_kind_label(int k);
+static const char *kind_label(int k) { return loc_kind_label(k); }
+const char *loc_kind_label(int k)        /* a location's type (its record's +0) in words */
 {
     switch (k) {
     case 0: return "town"; case 1: case 2: return "castle"; case 26: return "ruined castle"; case 3: return "monastery";
