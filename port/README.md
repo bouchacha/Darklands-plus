@@ -45,7 +45,7 @@ build/port/darklands /path/to/DARKLAND                        # run
 * **Helpers:** chances of success on card options (only where the party's skills decide); the saints and items a card accepts; number
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
-  battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
+  a battle log (every blow, wound and fall); battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
   quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop;
   the party side by side with a one-click leader change; F1 for the keys of the moment (the
   game's own hidden ones too); the mouse wheel in lists; the menu bar with a right click (the
