@@ -112,13 +112,18 @@ const char *musicpack_desc(int n)
     case 8: return "a church";
     case 9: case 10: return "the inn (one of the two at random)";
     case 11: return "the market";
+    case 13: return "praying to a saint";
     case 12: return "the guilds and craftsmen";
     case 14: return "the city square";
     case 15: return "the university";
     case 16: return "the shell game";
     case 17: return "the fortress";
+    case 18: return "the party's end";
+    case 19: return "the map (one of two at random)";
+    case 20: return "the map (one of two at random); making the party";
     case 22: return "the dungeon";
     case 23: return "a grove in town by day";
+    case 24: return "the dragon's lair";
     case 27: return "before a city by day (four tunes in turn)";
     case 28: return "before a city by night";
     case 29: return "a grove in town by night";

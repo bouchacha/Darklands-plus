@@ -174,9 +174,10 @@ that the game plays in place of its own music, piece by piece. Each file is name
 number the game asks its sound driver for, with anything after it: `10.ogg`, `11 market.ogg`,
 `08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
 The pieces are the same for every sound device. F12 > Display > Sound lists the numbers that
-are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, the city
-square 14, the university 15, the fortress 17, the dungeon 22, before a city 27 and 28, a
-village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names each piece as it starts, so a pack can be made by listening.
+are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
+the city square 14, the university 15, the fortress 17, the map 19 and 20, the dungeon 22, before
+a city 27 and 28, a village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names
+each piece as it starts, so a pack can be made by listening.
 
 A piece in the pack plays from its file while the synthesizer is silenced; a piece the pack
 lacks plays from the synthesizer as before, so a pack can be partial. A piece that loops in the
