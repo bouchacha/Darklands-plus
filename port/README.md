@@ -42,13 +42,14 @@ build/port/darklands /path/to/DARKLAND                        # run
   party's condition, window size and full screen remembered; on Windows DPI-aware, the menus
   sized by the system's scale; the game rests while it only waits for input (an idle card
   takes about a tenth of a core).
-* **Helpers:** chances of success on card options; the saints and items a card accepts; number
+* **Helpers:** chances of success on card options (only where the party's skills decide); the saints and items a card accepts; number
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
   battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
   quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop;
   the party side by side with a one-click leader change; F1 for the keys of the moment (the
-  game's own hidden ones too); the mouse wheel in lists; the game waits while in the background;
+  game's own hidden ones too); the mouse wheel in lists; the menu bar with a right click (the
+  game shows it only while the button is held); the game waits while in the background;
   a map of the level in battles and dungeons (Tab).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.

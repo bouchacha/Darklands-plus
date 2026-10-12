@@ -732,7 +732,8 @@ static void help_window(void)
             row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
         }
         ImGui::SeparatorText("The game's own keys");
-        row("Right mouse button", "the menu bar (F10 with the keyboard)");
+        if (config_get_int("assist.menu_click", 1) && !original_mode()) row("Right click", "the menu bar: click an entry (or hold the button and let go on it); Esc closes it; F10 with the keyboard");
+        else row("Right mouse button", "the menu bar, while it is held: let go on an entry (F10 with the keyboard)");
         row("Alt+S / Alt+L", "save / load (with a comment, nine saves)");
         row("Alt+O", "order of the party");
         row("Alt+D", "difficulty    Alt+M music    Alt+F sound effects");
