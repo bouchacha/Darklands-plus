@@ -129,6 +129,7 @@ extern "C" void tab_travel(void)
 extern "C" void travel_overlay(void)
 {
     if (!travel.active || game_mode() != GM_MAP) return;
+    if ((s8)g_rb(0xe96e) > 0) return;          /* a card is up over the map (a village, an encounter) */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
     ImVec2 lastp; bool have = false;
