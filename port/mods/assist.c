@@ -157,6 +157,16 @@ void assist_set_card_keys(int on)
 }
 
 /* number key 1..9 on a card: where to click for that option (game pixels); 0 if none */
+/* (tests) why a number key does nothing now */
+const char *assist_card_key_why(int digit)
+{
+    static char b[120];
+    snprintf(b, sizeof b, "keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d", assist_card_keys, cm_depth,
+             (unsigned)(plat_ticks_ms() - card_chances.polled), g_rb(0xee41), g_rb(0xee42), (s8)g_rb(0xe96e));
+    (void)digit;
+    return b;
+}
+
 int assist_card_key(int digit, int *gx, int *gy)
 {
     if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return 0;

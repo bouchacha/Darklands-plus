@@ -593,7 +593,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(s->cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
         else if (!strcmp(s->cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
-        else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else fprintf(stderr, "ucardkey %s: no option\n", s->arg); }
+        else if (!strcmp(s->cmd, "ucardkey")) { int gx, gy, assist_card_key(int, int *, int *); if (assist_card_key(atoi(s->arg), &gx, &gy)) click_at(gx, gy); else { const char *assist_card_key_why(int); fprintf(stderr, "ucardkey %s: no option (%s)\n", s->arg, assist_card_key_why(atoi(s->arg))); } }
         else if (!strcmp(s->cmd, "quit")) plat_quit(0);
         else if (!strcmp(s->cmd, "urestart")) { void plat_restart(void); if (!getenv("DL_RESTARTED")) plat_restart(); }   /* test: start again (once) */
     }
