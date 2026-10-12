@@ -133,10 +133,21 @@ struct Line { std::string text, when; int group; int loc = -1; };
 
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
 
+static long when_key(const int d[4]) { return (((long)d[3] * 12 + d[2]) * 31 + d[1]) * 24 + d[0]; }   /* (year, month, day, hour) in order */
+
 static std::vector<Line> build_lines(void)
 {
     std::vector<Line> v;
-    for (const Ev &e : read_events()) {
+    std::vector<Ev> evs = read_events();
+    /* a town's bans and warrants: the game keeps one event for each time it was imposed;
+       only the one that lasts longest still counts, and none that has run out */
+    int today[4] = { (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_YEAR) };
+    long now = when_key(today);
+    std::map<std::pair<int, int>, long> last;
+    for (const Ev &e : evs) if (e.kind == 0x11 || e.kind == 0x12) { long k = when_key(e.end); auto &l = last[{ e.kind, e.loc }]; if (k > l) l = k; }
+    std::map<std::pair<int, int>, int> shown;
+    for (const Ev &e : evs) {
+        if ((e.kind == 0x11 || e.kind == 0x12) && (when_key(e.end) < now || when_key(e.end) != last[{ e.kind, e.loc }] || shown[{ e.kind, e.loc }]++)) continue;
         std::string who = person(e.kind == 0x24 ? e.value : e.type0);
         std::string by = who.empty() ? giver(e.owner) : who + " (" + giver(e.owner) + ")";
         if (e.kind == 8 && e.tag == 3)
