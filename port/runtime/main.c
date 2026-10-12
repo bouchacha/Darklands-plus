@@ -50,6 +50,41 @@ static int find_game_dir(int argc, char **argv)
 
 static u16 le16(const u8 *p) { return (u16)(p[0] | (p[1] << 8)); }
 
+/* a crash of the program itself (not of the game it runs): where, in the log, so a report
+ * can say; on Linux with the native call stack, on Windows with the address in the program */
+#ifdef _WIN32
+#include <windows.h>
+static LONG WINAPI crash_filter(EXCEPTION_POINTERS *e)
+{
+    HMODULE base = GetModuleHandleA(0);
+    fprintf(stderr, "CRASH: exception %08lx at %p (program base %p, offset %llx); game code segment %04x\n",
+            e->ExceptionRecord->ExceptionCode, e->ExceptionRecord->ExceptionAddress, (void *)base,
+            (unsigned long long)((char *)e->ExceptionRecord->ExceptionAddress - (char *)base), R.cs);
+    fflush(stderr);
+    void plat_error_box(const char *msg);
+    plat_error_box("The program crashed.");
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+static void crash_handler_install(void) { SetUnhandledExceptionFilter(crash_filter); }
+#else
+#include <signal.h>
+#include <execinfo.h>
+#include <unistd.h>
+static void crash_signal(int sig)
+{
+    char b[160]; int n = snprintf(b, sizeof b, "CRASH: signal %d; game code segment %04x; native stack:\n", sig, R.cs);
+    if (write(2, b, (size_t)n) < 0) { }
+    void *fr[48]; int k = backtrace(fr, 48);
+    backtrace_symbols_fd(fr, k, 2);
+    signal(sig, SIG_DFL); raise(sig);
+}
+static void crash_handler_install(void)
+{
+    if (getenv("DL_NO_CRASH_HANDLER")) return;
+    signal(SIGSEGV, crash_signal); signal(SIGBUS, crash_signal); signal(SIGFPE, crash_signal); signal(SIGILL, crash_signal); signal(SIGABRT, crash_signal);
+}
+#endif
+
 int main_argc; char **main_argv;      /* for plat_restart */
 int main(int argc, char **argv)
 {
@@ -75,6 +110,7 @@ int main(int argc, char **argv)
     }
 #endif
     { extern const char dlp_version[]; fprintf(stderr, "Darklands+ build %s, game folder %s\n", dlp_version, game_dir); }
+    crash_handler_install();
     char exe[1100];
     snprintf(exe, sizeof exe, "%s/DARKLAND.EXE", game_dir);
 
