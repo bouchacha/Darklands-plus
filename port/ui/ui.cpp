@@ -512,7 +512,7 @@ static void tab_display(void)
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
-      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
+      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); dirty_config = 1; } }
     { bool sc = sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { sys_cursor = sc; config_set_int("display.system_cursor", sc); dirty_config = 1; } }
     {   /* the menus' size (fonts are baked at start-up) */
