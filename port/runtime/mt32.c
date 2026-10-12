@@ -165,7 +165,7 @@ int mt32_available(void)
     if (!scanned) scan();
     return machine[0] != 0;
 }
-void mt32_rescan(void) { scanned = 0; mt32_available(); }
+void mt32_rescan(void) { scanned = 0; mt32_available(); if (state < 0) { state = 0; why[0] = 0; } }   /* a failed start may be tried again */
 
 /* ---------------------------------------------------------------- the synthesizer */
 /* its reports: quiet, but for the message the game puts on the synthesizer's display */
