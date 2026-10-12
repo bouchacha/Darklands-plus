@@ -106,8 +106,9 @@ static void bar(float frac, ImU32 col, float w, float hgt)
 static void battle_panel(float width, float fs)
 {
     static bool seen[13]; static u16 last_tick = 0xffff;
+    static int last_st[13]; static std::string last_name[13];      /* the fallen: the game clears their records */
     u16 tick = g_rw(0xe092);                        /* the battle's clock: back at 0 in a new battle */
-    if (tick < last_tick) for (int i = 0; i < 13; i++) seen[i] = false;
+    if (tick < last_tick) for (int i = 0; i < 13; i++) { seen[i] = false; last_st[i] = 0; last_name[i].clear(); }
     last_tick = tick;
     int n = (s8)g_rb(0xe0a1);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(0xd848 + k)); if (m < 13) seen[m] = true; }
@@ -133,9 +134,14 @@ static void battle_panel(float width, float fs)
     for (int i = 5; i < 13; i++) {
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14)), endm = (s8)g_rb((u16)(b + 0x64));
-        if (!st || endm <= 0 || !seen[i]) continue;
+        if (!seen[i]) continue;
+        if (!st || endm <= 0) {
+            if (last_st[i] >= 2 && !last_name[i].empty()) { ImGui::TextDisabled("%s - %s", last_name[i].c_str(), last_st[i] == 3 ? "dead" : last_st[i] == 5 ? "fled" : "unconscious"); shown++; down++; }
+            continue;
+        }
         int end = (s8)g_rb((u16)(b + 0x5d)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
         std::string nm = battlelog_name(i);
+        last_st[i] = st; last_name[i] = nm;
         const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : st == 5 ? "fled" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
         if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
         if (st != 1) { ImGui::TextDisabled("%s - %s", nm.c_str(), cond); down++; }
