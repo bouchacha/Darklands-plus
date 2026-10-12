@@ -857,15 +857,16 @@ std::string ui_enemy_name(int floor, u16 b);
 static std::string enemy_name(int floor, u16 b) { return ui_enemy_name(floor, b); }
 std::string ui_enemy_name(int floor, u16 b)
 {
-    static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
+    static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 }; static long long stamps[8];
     if (floor < 0 || floor > 7) return "";
     char dn[16]; snprintf(dn, sizeof dn, "level%d.enm", floor);
     char p[1300]; dos_host_path(dn, p, sizeof p);
+    struct stat stt; long long mt = stat(p, &stt) == 0 ? (long long)stt.st_mtime : 0;
     FILE *f = fopen(p, "rb");
     if (!f) return "";
     fseek(f, 0, SEEK_END); long n = ftell(f);
-    if (n != sizes[floor]) {
-        sizes[floor] = n; recs[floor].clear();
+    if (n != sizes[floor] || mt != stamps[floor]) {          /* every battle writes the file anew, often at the same size */
+        sizes[floor] = n; stamps[floor] = mt; recs[floor].clear();
         for (int k = 0; k < 16; k++) {
             unsigned char r[0x9b];
             if (fseek(f, 1 + (long)k * 0x122, SEEK_SET) || fread(r, 1, sizeof r, f) != sizeof r) break;
