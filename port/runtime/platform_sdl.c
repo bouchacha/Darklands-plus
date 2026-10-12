@@ -652,6 +652,7 @@ void plat_events(void)
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && config_get_int("display.pause_unfocused", 1)) {
                 bg_paused = 1; fprintf(stderr, "window in the background: the game waits\n");
+                menu_escape();                      /* a menu left open by a click closes, choosing nothing */
             }
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && bg_paused) { bg_paused = 0; bg_resumed = plat_ticks_ms(); mouse_b = 0; }
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
