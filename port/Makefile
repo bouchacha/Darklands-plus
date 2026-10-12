@@ -13,7 +13,8 @@ ifeq ($(TARGET),win64)
   SDL_CFLAGS := -I$(SDLDIR)/include/SDL2 -Dmain=SDL_main
   SDL_LIBS   := -L$(SDLDIR)/lib -static -lmingw32 -lSDL2main -lSDL2 -mwindows \
                 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 \
-                -lshell32 -lsetupapi -lversion -luuid -static-libgcc -static-libstdc++
+                -lshell32 -lsetupapi -lversion -luuid -static-libgcc -static-libstdc++ \
+                -Wl,--stack,16777216   # the game's calls nest as native calls: 16 MB as on Linux (8), not 2
   BIN    := $(OUT)/darklands.exe
   LDEXTRA := -s
 else
