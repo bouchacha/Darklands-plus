@@ -57,6 +57,9 @@ extern "C" void halloffame_draw(void);
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
+void figures_set_renderer(SDL_Renderer *r);
+extern "C" int figpick_is_open(void);
+extern "C" void figpick_window(void);
 
 ImFont *ui_font_small, *ui_font_text;
 float ui_scale = 1.0f;
@@ -216,6 +219,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
     halloffame_set_renderer(ren);
+    figures_set_renderer(ren);
     if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
     ImGui_ImplSDLRenderer2_Init(ren);
@@ -238,7 +242,7 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open(); }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && dirty_config) { config_save(); dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
 extern "C" void ui_toggle_map(void)
@@ -257,6 +261,10 @@ extern "C" int ui_event(const SDL_Event *e)
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
+    if (figpick_is_open()) {                /* the figure picker (ui/figures.cpp) takes every event until it closes */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
@@ -471,7 +479,10 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
     { bool mf = config_get_int("party.more_figures", 1) != 0;
       if (ImGui::Checkbox("Character creation: Select Character Image also offers the enemies' human figures (sergeant, monk, knight, Templar ... 14 more)", &mf)) { config_set_int("party.more_figures", mf); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("Their own walking, fighting and dying animations, with colours of their own for the 1st/2nd/3rd color keys. A figure without an animation for the weapon in hand swings the nearest one it has. Saves keep the figure; the original game cannot show these figures."); ImGui::Unindent(UIS(34)); }
+      ImGui::Indent(UIS(34)); hint("Their own walking, fighting and dying animations, with colours of their own for the 1st/2nd/3rd color keys. A figure without an animation for the weapon in hand swings the nearest one it has. Saves keep the figure; the original game cannot show these figures."); ImGui::Unindent(UIS(34));
+      if (mf) { ImGui::Indent(UIS(34)); bool fp = config_get_int("party.figure_picker", 1) != 0;
+        if (ImGui::Checkbox("Select Character Image shows them all at once to pick from (else it steps to the next, as in the original)", &fp)) { config_set_int("party.figure_picker", fp); dirty_config = 1; }
+        ImGui::Unindent(UIS(34)); } }
     { bool ff = config_get_int("assist.fast_fades", 1) != 0;
       if (ImGui::Checkbox("Cards show their options at once (no slow fade-in)", &ff)) { config_set_int("assist.fast_fades", ff); dirty_config = 1; } }
     bool ck = assist_card_keys;
@@ -1087,7 +1098,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || !over_game || sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     if (show) {
@@ -1115,7 +1126,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else hdtext_draw();
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
-        if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open()) hdtext_draw_cursor();
+        if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
     if (open_menu) {
@@ -1169,6 +1180,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!keep) ui_toggle();
     }
     if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
+    figpick_window();
     if (open_help) help_window();
     if (open_welcome) welcome_window();
     else if (open_mt32) mt32_window();

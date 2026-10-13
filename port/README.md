@@ -90,7 +90,7 @@ On the first start a short welcome names the keys that matter and offers the ori
   (`runtime/platform_sdl.c`, F1 lists them).
 * **Figures:** Select Character Image also offers the 14 human enemy figures (`mods/looks.c`): their
   sprites from E00C.CAT with the enemy colours moved onto the member's 8, portraits and battle-bar
-  figures made from the sprites, colour keys with dyes, the nearest animation for a weapon the
+  figures made from the sprites, a picker showing all of them (`ui/figures.cpp`), colour keys with dyes, the nearest animation for a weapon the
   figure has none for. Off in "Play the original game" (a party with them keeps working).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.

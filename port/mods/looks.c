@@ -121,28 +121,44 @@ static u8 *slurp(const char *dos, long *n)
 }
 
 typedef struct { char name[13]; const u8 *data; long len; } CatEnt;
-static u8 *cat_buf; static long cat_len; static CatEnt *cat; static int ncat;
-static int cat_load(void)
+typedef struct { const char *file; u8 *buf; long len; CatEnt *e; int n, tried; } Cat;
+static Cat cats[5] = { { "E00C.CAT" }, { "A00C.CAT" }, { "C00C.CAT" }, { "F01C.CAT" }, { "F60C.CAT" } };
+static Cat *cat_open(int k)
 {
-    if (cat) return 1;
-    cat_buf = slurp("E00C.CAT", &cat_len);
-    if (!cat_buf || cat_len < 2) return 0;
-    int n = cat_buf[0] | cat_buf[1] << 8;
-    cat = calloc((size_t)n + 1, sizeof *cat);
-    for (int i = 0; i < n && 2 + (i + 1) * 24 <= cat_len; i++) {
-        const u8 *x = cat_buf + 2 + i * 24;
+    Cat *c = &cats[k];
+    if (c->tried) return c->n ? c : 0;
+    c->tried = 1;
+    c->buf = slurp(c->file, &c->len);
+    if (!c->buf || c->len < 2) return 0;
+    int n = c->buf[0] | c->buf[1] << 8;
+    c->e = calloc((size_t)n + 1, sizeof *c->e);
+    for (int i = 0; i < n && 2 + (i + 1) * 24 <= c->len; i++) {
+        const u8 *x = c->buf + 2 + i * 24;
         long len = x[16] | x[17] << 8 | (long)x[18] << 16 | (long)x[19] << 24, off = x[20] | x[21] << 8 | (long)x[22] << 16 | (long)x[23] << 24;
-        if (off < 0 || len < 0 || off + len > cat_len) continue;
-        CatEnt *e = &cat[ncat++];
+        if (off < 0 || len < 0 || off + len > c->len) continue;
+        CatEnt *e = &c->e[c->n++];
         memcpy(e->name, x, 12); e->name[12] = 0;
         for (char *q = e->name; *q; q++) *q = (char)toupper((unsigned char)*q);
-        e->data = cat_buf + off; e->len = len;
+        e->data = c->buf + off; e->len = len;
     }
-    return ncat > 0;
+    return c->n ? c : 0;
 }
+#define cat (cats[0].e)
+#define ncat (cats[0].n)
+static int cat_load(void) { return cat_open(0) != 0; }      /* the enemies' catalogue (listed) */
+/* a sprite file from the catalogue the game takes it from (s014 sprite_file_load: by its first letter) */
 static const CatEnt *cat_find(const char *name)
 {
-    for (int i = 0; i < ncat; i++) if (!strcasecmp(cat[i].name, name)) return &cat[i];
+    int k = -1;
+    switch (toupper((unsigned char)name[0])) {
+    case 'E': k = 0; break;
+    case 'A': k = 1; break;
+    case 'C': k = 2; break;
+    case 'F': k = name[1] == '6' ? 4 : 3; break;
+    }
+    Cat *c = k >= 0 ? cat_open(k) : 0;
+    if (!c) return 0;
+    for (int i = 0; i < c->n; i++) if (!strcasecmp(c->e[i].name, name)) return &c->e[i];
     return 0;
 }
 
@@ -567,6 +583,69 @@ static const char *dye_next(int m, int part, int show)
     return dy[d].name;
 }
 
+/* ------------------------------------------------------------------ the picker (ui/figures.cpp) */
+int figpick_open(int member, int count);                /* (ui) opens it: 1 */
+static int view_file(const char *file, const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h);
+static char pending[4]; static int pending_on;
+int looks_picker_on(void) { return looks_offered() && config_get_int("party.figure_picker", 1); }
+
+/* the figures Select Character Image offers, in its order: the game's list, then these */
+int looks_list(char out[][4], int max)
+{
+    int cnt = (s16)g_rw(D_FIGCOUNT), n = 0;
+    if (cnt < 0 || cnt > 10) cnt = 0;
+    for (int i = 0; i < cnt && n < max; i++, n++) { for (int k = 0; k < 3; k++) out[n][k] = (char)g_rb((u16)(D_FIGLIST + 4 * i + k)); out[n][3] = 0; }
+    list_init();
+    if (looks_offered()) for (int i = 0; i < nlooks && n < max; i++) if (look_find(looks[i].code)) snprintf(out[n++], 4, "%s", looks[i].code);
+    return n;
+}
+void looks_member_figure(int m, char *code) { for (int k = 0; k < 3; k++) code[k] = (char)g_rb((u16)(D_FIGURE + 4 * m + k)); code[3] = 0; }
+
+/* the picker's choice: Select Character Image again (S), which takes it */
+void looks_pick(const char *code)
+{
+    snprintf(pending, sizeof pending, "%s", code); pending_on = 1;
+    kbd_push_scancode(0x1f, 0); kbd_push_scancode(0x1f, 1);
+}
+
+static u8 rgb8(u8 v) { v &= 63; return (u8)(v << 2 | v >> 4); }
+/* member m in figure `code`, seen from the front: RGBA (w x h at most maxw x maxh); 0 if none */
+int looks_thumb(const char *code, int m, u8 *rgba, int maxw, int maxh, int *w, int *h)
+{
+    list_init(); common_load();
+    Look *L = look_find(code);
+    char file[16] = "";
+    if (L) snprintf(file, sizeof file, "%s", L->pic_file);
+    else {
+        char f[16]; snprintf(f, sizeof f, "%.3sWKSW.IMC", code);
+        if (cat_find(f)) snprintf(file, sizeof file, "%s", f);
+        else for (int k = 1; k < 5 && !file[0]; k++) { Cat *c = cat_open(k); for (int i = 0; c && i < c->n; i++) if (!strncasecmp(c->e[i].name, code, 3) && !strncasecmp(c->e[i].name + 3, "WK", 2)) { snprintf(file, sizeof file, "%s", c->e[i].name); break; } }
+    }
+    if (!file[0]) return 0;
+    static u8 px[256 * 256];
+    if (!view_file(file, L, 4, maxw, maxh, px, w, h)) return 0;
+    char cur[4]; looks_member_figure(m, cur);
+    int own = !strncasecmp(cur, code, 3);
+    u8 mp[24];                                          /* the member colours it would have */
+    if (own || (!L && !look_find(cur))) palette_get(m, mp);
+    else if (L) { memset(mp, 0, sizeof mp); for (int k = 0; k < L->nslot; k++) memcpy(mp + 3 * k, L->def[k], 3); }
+    else memcpy(mp, saved_have[m] ? saved_pal[m] : DEFAULT_PAL, 24);
+    for (int i = 0; i < *w * *h; i++) {
+        u8 p = px[i], *o = rgba + 4 * i;
+        const u8 *c;
+        u8 tmp[3];
+        if (!p) { o[0] = o[1] = o[2] = o[3] = 0; continue; }
+        if (L && p >= L->S && p < L->S + 16) {
+            int sl = L->slot[p - L->S];
+            c = sl >= 0 ? mp + 3 * sl : common[L->fix[p - L->S]];
+        } else if (p >= 0xeb && p <= 0xf2) c = mp + 3 * (p - 0xeb);
+        else if ((p >= 0x10 && p < 0x20) || (p >= 0x78 && p < 0xa4) || is_target[p]) c = common[p];
+        else { tmp[0] = vga_dac[3 * p]; tmp[1] = vga_dac[3 * p + 1]; tmp[2] = vga_dac[3 * p + 2]; c = tmp; }
+        o[0] = rgb8(c[0]); o[1] = rgb8(c[1]); o[2] = rgb8(c[2]); o[3] = 255;
+    }
+    return 1;
+}
+
 /* ------------------------------------------------------------------ the creation menus */
 void ui_notice(const char *msg);
 static void figure_notice(const char *msg) { if (!config_get_int("original", 0)) ui_notice(msg); }
@@ -602,7 +681,11 @@ static void key_hook(int ovl)
             if (looks_offered()) for (int i = 0; i < nlooks; i++) if (look_find(looks[i].code)) snprintf(all[n++], 4, "%s", looks[i].code);
             for (int i = 0; i < n; i++) if (!strncasecmp(all[i], before[m], 3)) at = i;
             if (at < 0 && look_find(before[m])) at = cnt - 1;              /* an extra one while they are not offered: back to the first */
+            if (!pending_on && looks_picker_on() && !config_get_int("original", 0)) {
+                if (figpick_open(m, n)) { AX = 0; hook_return_far(0); return; }       /* the picker sends S again with the choice */
+            }
             const char *next = all[at < 0 ? (cur + 1) % cnt : (at + 1) % n];
+            if (pending_on) { for (int i = 0; i < n; i++) if (!strncasecmp(all[i], pending, 3)) next = all[i]; pending_on = 0; }
             for (int k = 0; k < 4; k++) g_wb((u16)(D_FIGLIST + 4 + k), (u8)(k < 3 ? next[k] : 0));
             g_ww(D_FIGCUR, 0); if (cnt < 2) g_ww(D_FIGCOUNT, 2);
             patched = 1;
@@ -725,7 +808,7 @@ void looks_sprite_loaded(const char *name, u16 frames, int slot)
 static void shadow_off(u8 *px, int w, int h, const Look *L)
 {
     u8 dark[256]; memset(dark, 0, sizeof dark); dark[5] = 1;
-    for (int i = 0; i < 16; i++) { int mx = L->rgb[i][0] > L->rgb[i][1] ? L->rgb[i][0] : L->rgb[i][1]; if (L->rgb[i][2] > mx) mx = L->rgb[i][2]; if (mx <= 8) dark[L->S + i] = 1; }
+    for (int i = 0; L && i < 16; i++) { int mx = L->rgb[i][0] > L->rgb[i][1] ? L->rgb[i][0] : L->rgb[i][1]; if (L->rgb[i][2] > mx) mx = L->rgb[i][2]; if (mx <= 8) dark[L->S + i] = 1; }
     static int qx[65536], qy[65536]; int qn = 0;
     static u8 seen[256 * 256]; memset(seen, 0, (size_t)w * h);
     for (int y = h - 1; y >= 0 && y >= h - 3; y--) for (int x = 0; x < w; x++) if (dark[px[y * w + x]]) { qx[qn] = x; qy[qn] = y; qn++; seen[y * w + x] = 1; }
@@ -754,9 +837,11 @@ static u8 pic_colour(const Look *L, u8 p, int creation)
 }
 /* the figure's front (dir 4) or back (dir 0) view, shadow off, cropped to the figure: at most
    maxw wide around the body (a staff or a raised sword is cut) and maxh high from the feet */
-static int view(const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h)
+static int view_file(const char *file, const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h);
+static int view(const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h) { return view_file(L->pic_file, L, dir, maxw, maxh, out, w, h); }
+static int view_file(const char *file, const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h)
 {
-    Imc m; if (!imc_open(L->pic_file, &m)) return 0;
+    Imc m; if (!imc_open(file, &m)) return 0;
     static u8 px[256 * 256]; int fw, fh, ok = imc_frame(&m, dir * m.fc, px, &fw, &fh);
     imc_close(&m);
     if (!ok) return 0;
