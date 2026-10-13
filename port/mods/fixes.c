@@ -291,7 +291,9 @@ static void colours_frame(void)
 {
     if (!fix_on("colours")) { col_have = 0; return; }
     u8 cur[5][28]; col_read(cur);
-    if (!col_have || game_mode() == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open()) { memcpy(col_good, cur, sizeof cur); col_have = 1; return; }
+    extern unsigned dos_save_read_ms; u32 plat_ticks_ms(void);
+    int loading = dos_save_read_ms && plat_ticks_ms() - dos_save_read_ms < 4000;   /* a game was loaded (quick load, autosave, the save browser, Alt-L) */
+    if (!col_have || loading || game_mode() == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open()) { memcpy(col_good, cur, sizeof cur); col_have = 1; return; }
     if (!memcmp(cur, col_good, sizeof cur)) return;
     int size = (s16)g_rw(G_PARTY_SIZE), moved = 1;
     for (int m = 0; m < size && m < 5; m++) {           /* slots that moved are fine */

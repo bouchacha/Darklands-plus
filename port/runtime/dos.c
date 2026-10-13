@@ -255,6 +255,7 @@ int dos_delete(const char *dos)
     return remove(hp) == 0;
 }
 
+unsigned dos_save_read_ms;      /* when the game last opened a saved game for reading (a load, or its list) */
 /* (for the port's own readers: saves, the Honor Roll, enemy names) the file as the game would read it */
 void dos_host_path(const char *dos, char *out, size_t outn) { read_path(dos, out, outn); }
 /* ... and where a write of it goes */
@@ -633,6 +634,7 @@ void dos_int21(void)
         if (!f) { const char *hdart_virtual_file(const char *); const char *v = hdart_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* a new picture made from art */
         if (!f) { const char *looks_virtual_file(const char *); const char *v = looks_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* the portraits of the extra figures (mods/looks.c) */
         if (dos_trace) fprintf(stderr, "  open %s -> %s %s\n", name, hp, f ? "ok" : "FAIL");
+        if (f && !(AL & 3)) { size_t L = strlen(name); if (L > 4 && !strcasecmp(name + L - 4, ".SAV")) { extern unsigned dos_save_read_ms; dos_save_read_ms = plat_ticks_ms() | 1; } }   /* a game is loaded (mods/fixes.c) */
         if (!f) { dos_error(2); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }
         handle_note(h, hp);
