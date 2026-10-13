@@ -531,12 +531,18 @@ static void figure_changed(int m, const char *from, const char *to, int show)
     LOG("figures: member %d: %.3s -> %.3s\n", m, from, to);
 }
 
+void dos_host_path_write(const char *dos, char *out, size_t outn);
 void looks_set_figure(int m, const char *code)      /* (the editor) */
 {
     if (m < 0 || m >= 5) return;
     char old[4]; for (int i = 0; i < 4; i++) old[i] = (char)g_rb((u16)(D_FIGURE + 4 * m + i));
     old[3] = 0;
-    for (int i = 0; i < 4; i++) g_wb((u16)(D_FIGURE + 4 * m + i), (u8)(i < 3 ? code[i] : 0));
+    u8 fig[4] = { (u8)code[0], (u8)code[1], (u8)code[2], 0 };
+    for (int i = 0; i < 4; i++) g_wb((u16)(D_FIGURE + 4 * m + i), fig[i]);
+    /* and in charactr.tmp, where the battles take it from (s043 cards_shutdown reads it back) */
+    char p[1300]; dos_host_path_write("charactr.tmp", p, sizeof p);
+    FILE *f = fopen(p, "r+b");
+    if (f) { if (!fseek(f, 12 + 4 * m, SEEK_SET)) fwrite(fig, 1, 4, f); fclose(f); }
     figure_changed(m, old, code, 0);
 }
 
@@ -626,7 +632,9 @@ static void key_hook(int ovl)
         AX = ax;
         return;
     }
+    int slots_move = key == 0x1e41 || key == 0x1e61 || key == 0x2044 || key == 0x2064 || key == 0x254b || key == 0x256b;   /* A, D, K */
     hook_call_original();
+    if (slots_move) { memset(saved_have, 0, sizeof saved_have); memset(dye_at, 0, sizeof dye_at); }   /* (members may have moved up) */
     if (part >= 0) {
         u16 ax = AX;
         int m = slot_of((s16)g_rw(D_SELCHAR));
