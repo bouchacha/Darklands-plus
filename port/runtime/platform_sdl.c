@@ -557,6 +557,7 @@ static void run_script(void)
             fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
         }
         else if (!strcmp(s->cmd, "utextdump")) { extern int hdtext_dump; hdtext_dump = 1; }     /* test: as Ctrl+F12, the text verdicts of the next frame */
+        else if (!strcmp(s->cmd, "ulooks")) { int looks_count(void), looks_usable(int); int n = looks_count(), u = 0; for (int k = 0; k < n; k++) u += looks_usable(k); fprintf(stderr, "looks: %d of %d usable\n", u, n); }   /* test: analyse every figure (DL_LOOKS_DUMP) */
         else if (!strcmp(s->cmd, "uenc")) {                /* test: the next wilderness encounter is new encounter N (mods/encounters.c) */
             void encounters_force(int); int encounters_count(void); const char *encounters_title(int);
             if (!s->arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }

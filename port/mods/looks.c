@@ -323,7 +323,9 @@ static void dye(const u8 *in, const Dye *d, int neutral, u8 *out)
     float h, s, v; hsv(in, &h, &s, &v);
     switch (d->mode) {
     case 0: memcpy(out, in, 3); return;
-    case 1: s = neutral ? d->s * 0.8f : d->s * (0.55f + 0.45f * (s / 0.6f > 1 ? 1 : s / 0.6f)); h = d->h; if (v < 0.1f) v = 0.1f; break;
+    case 1: s = neutral ? d->s * 0.8f : d->s * (0.55f + 0.45f * (s / 0.6f > 1 ? 1 : s / 0.6f)); h = d->h;
+            v = 0.2f + 0.8f * v;                     /* (dark cloth would stay nearly black in any colour) */
+            break;
     case 2: s *= 0.3f; v *= 0.5f; break;
     default: s *= 0.25f; v = 0.42f + 0.58f * v; break;
     }
@@ -378,6 +380,26 @@ static void analyse(Look *L)
     }
     long total = 0;
     for (int i = 0; i < 16; i++) { L->cnt[i] = cnt[L->S + i]; total += L->cnt[i]; }
+    /* where each colour sits in the front view: hair is at the top (and is left as it is) */
+    float top[16]; long fcnt[16]; for (int i = 0; i < 16; i++) { top[i] = 0; fcnt[i] = 0; }
+    {
+        Imc m;
+        if (imc_open(L->pic_file, &m)) {
+            static u8 px[256 * 256]; int fw, fh;
+            if (imc_frame(&m, 4 * m.fc, px, &fw, &fh)) {
+                int y0 = fh, y1 = -1;
+                for (int y = 0; y < fh; y++) for (int x = 0; x < fw; x++) if (px[y * fw + x]) { if (y < y0) y0 = y; if (y > y1) y1 = y; }
+                long n[16] = { 0 }, up[16] = { 0 };
+                for (int y = y0; y <= y1; y++) for (int x = 0; x < fw; x++) {
+                    int c = px[y * fw + x] - L->S;
+                    if (c < 0 || c >= 16) continue;
+                    n[c]++; if ((y - y0) * 5 < (y1 - y0 + 1)) up[c]++;      /* the top fifth: the head */
+                }
+                for (int i = 0; i < 16; i++) { top[i] = n[i] ? (float)up[i] / n[i] : 0; fcnt[i] = n[i]; }
+            }
+            imc_close(&m);
+        }
+    }
     /* which colours are its own (member colours) and which the common ones do */
     int cand[16], nc = 0;
     for (int i = 0; i < 16; i++) {
@@ -404,7 +426,20 @@ static void analyse(Look *L)
         for (int x = 0; x < nc; x++) if (fam[x] == fb) fam[x] = fa;
     }
     int roots[16], nr = 0; long rc[16];
-    for (int k = 0; k < nc; k++) if (fam[k] == k) { rc[nr] = 0; for (int x = 0; x < nc; x++) if (fam[x] == k) rc[nr] += L->cnt[cand[x]]; roots[nr++] = k; }
+    for (int k = 0; k < nc; k++) if (fam[k] == k) {
+        /* a family that sits at the top of the figure in a hair colour (blond, brown, grey) is hair:
+           left as it is (no green hair) */
+        long n = 0, up = 0; float hs = 0, ss = 0;
+        for (int x = 0; x < nc; x++) if (fam[x] == k) { float h, sa, v; hsv(L->rgb[cand[x]], &h, &sa, &v); n += fcnt[cand[x]]; up += (long)(top[cand[x]] * fcnt[cand[x]]); hs += h * fcnt[cand[x]]; ss += sa * fcnt[cand[x]]; }
+        if (n && up * 10 > n * 7) {
+            float h = hs / n, sa = ss / n;
+            if ((h >= 0.02f && h <= 0.18f && sa >= 0.25f) || sa < 0.2f) {
+                if (logon) fprintf(stderr, "figures: %s: a family of %d colours is hair (%ld %% at the top)\n", L->code, (int)n, up * 100 / n);
+                continue;
+            }
+        }
+        rc[nr] = 0; for (int x = 0; x < nc; x++) if (fam[x] == k) rc[nr] += L->cnt[cand[x]]; roots[nr++] = k;
+    }
     for (int a = 0; a < nr; a++) for (int b = a + 1; b < nr; b++) if (rc[b] > rc[a]) { long t = rc[a]; rc[a] = rc[b]; rc[b] = t; int r = roots[a]; roots[a] = roots[b]; roots[b] = r; }
     if (nr > 3) nr = 3;                                                     /* the rest: common colours */
     int size[3] = { 0 }, quota[3] = { 0 }, n = 0;
@@ -443,12 +478,77 @@ static void analyse(Look *L)
         }
         if (L->partn[L->npart]) L->npart++;
     }
+    {   /* parts that hardly show (the bandit's own colours are a few pixels of its belt: its clothes
+           are drawn in the common colours): no colour keys for them */
+        long ftot = 0, fpart[3] = { 0 };
+        for (int i = 0; i < 16; i++) ftot += fcnt[i];
+        for (int i = 0; i < 16; i++) if (L->slot[i] >= 0)
+            for (int pp = 0; pp < L->npart; pp++) for (int q = 0; q < L->partn[pp]; q++) if (L->part[pp][q] == L->slot[i]) fpart[pp] += fcnt[i];
+        Imc m; long fall = 0;
+        if (imc_open(L->pic_file, &m)) {
+            static u8 px[256 * 256]; int fw, fh;
+            if (imc_frame(&m, 4 * m.fc, px, &fw, &fh)) for (int k = 0; k < fw * fh; k++) if (px[k]) fall++;
+            imc_close(&m);
+        }
+        int keep = 0;
+        for (int pp = 0; pp < L->npart; pp++) {
+            if (fall && fpart[pp] * 100 < fall * 4) { if (logon) fprintf(stderr, "figures: %s: part %d hardly shows (%ld of %ld pixels): no colour key\n", L->code, pp, fpart[pp], fall); continue; }
+            if (keep != pp) { memcpy(L->part[keep], L->part[pp], sizeof L->part[0]); L->partn[keep] = L->partn[pp]; L->neutral[keep] = L->neutral[pp]; }
+            keep++;
+        }
+        L->npart = keep;
+        (void)ftot;
+    }
     L->state = 1;
+    {   /* debug: DL_LOOKS_DUMP=dir writes each figure's front view: its own colours, and the parts tinted */
+        const char *dd = getenv("DL_LOOKS_DUMP");
+        Imc m;
+        if (dd && imc_open(L->pic_file, &m)) {
+            static u8 px[256 * 256]; int fw, fh;
+            if (imc_frame(&m, 4 * m.fc, px, &fw, &fh) && fw > 0 && fh > 0) {
+                int K = 4, NP = 5, W = (fw * K + K) * NP, H = fh * K;
+                u8 *img = calloc((size_t)W * H * 3, 1);
+                static const u8 TINT[3][3] = { { 255, 60, 60 }, { 60, 220, 60 }, { 70, 110, 255 } };
+                for (int y = 0; y < fh; y++) for (int x = 0; x < fw; x++) {
+                    int c = px[y * fw + x]; if (!c) continue;
+                    u8 rgb[3], t[3];
+                    if (c >= L->S && c < L->S + 16) memcpy(rgb, L->rgb[c - L->S], 3); else memcpy(rgb, common[c], 3);
+                    for (int k = 0; k < 3; k++) rgb[k] = (u8)(rgb[k] << 2 | rgb[k] >> 4);
+                    int part = -1;
+                    if (c >= L->S && c < L->S + 16 && L->slot[c - L->S] >= 0)
+                        for (int pp = 0; pp < L->npart; pp++) for (int q = 0; q < L->partn[pp]; q++) if (L->part[pp][q] == L->slot[c - L->S]) part = pp;
+                    int lum = (rgb[0] * 3 + rgb[1] * 4 + rgb[2] * 2) / 9;
+                    for (int k = 0; k < 3; k++) t[k] = part >= 0 ? (u8)(TINT[part][k] * (64 + lum) / 320) : (u8)(lum / 2);
+                    u8 dyed[3][3];                       /* part 0 red, part 1 blue, part 2 green (or part 0 in each) */
+                    for (int v = 0; v < 3; v++) {
+                        static const int DY[3] = { 1, 2, 3 };
+                        int pp = L->npart > 1 ? v % L->npart : 0;
+                        u8 o6[3];
+                        if (c >= L->S && c < L->S + 16) memcpy(o6, L->rgb[c - L->S], 3); else memcpy(o6, common[c], 3);
+                        u8 d6[3];
+                        if (part == pp) dye(o6, &DYE_C[DY[v]], L->neutral[pp], d6); else memcpy(d6, o6, 3);
+                        for (int k = 0; k < 3; k++) dyed[v][k] = (u8)(d6[k] << 2 | d6[k] >> 4);
+                    }
+                    for (int dy = 0; dy < K; dy++) for (int dx = 0; dx < K; dx++) {
+                        size_t row = (size_t)(y * K + dy) * W;
+                        memcpy(img + (row + x * K + dx) * 3, rgb, 3);
+                        memcpy(img + (row + (fw * K + K) + x * K + dx) * 3, t, 3);
+                        for (int v = 0; v < 3; v++) memcpy(img + (row + (fw * K + K) * (2 + v) + x * K + dx) * 3, dyed[v], 3);
+                    }
+                }
+                char path[1200]; snprintf(path, sizeof path, "%s/%s.png", dd, L->code);
+                int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
+                stbi_write_png(path, W, H, 3, img, W * 3);
+                free(img);
+            }
+            imc_close(&m);
+        }
+    }
     if (logon) {
         fprintf(stderr, "figures: %s (%s): colours %d..%d, %d own shades in %d parts, weapons", L->code, L->title, L->S, L->S + 15, L->nslot, L->npart);
         for (int i = 0; i < L->nweap; i++) fprintf(stderr, " %s", L->weap[i]);
         fprintf(stderr, ", pictures from %s\n  ", L->pic_file);
-        for (int i = 0; i < 16; i++) if (L->cnt[i]) fprintf(stderr, " %d:%s%d", i, L->slot[i] >= 0 ? "slot" : "fix", L->slot[i] >= 0 ? L->slot[i] : L->fix[i]);
+        for (int i = 0; i < 16; i++) if (L->cnt[i]) fprintf(stderr, " %d:%s%d(%ld/%ld)", i, L->slot[i] >= 0 ? "slot" : "fix", L->slot[i] >= 0 ? L->slot[i] : L->fix[i], fcnt[i], L->cnt[i]);
         fprintf(stderr, "\n");
     }
 }
@@ -724,6 +824,10 @@ static void key_hook(int ovl)
         if (m >= 0) {
             const char *d = dye_next(m, part, 1);
             if (d) { char msg[80]; snprintf(msg, sizeof msg, "%s color: %s", part == 0 ? "1st" : part == 1 ? "2nd" : "3rd", d); figure_notice(msg); }
+            else {
+                char code[4]; looks_member_figure(m, code);
+                if (look_find(code)) figure_notice(part ? "This figure has no more colours of its own." : "This figure's colours are its own: they cannot be changed.");
+            }
         }
         AX = ax;
     }
