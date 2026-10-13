@@ -241,6 +241,15 @@ static void dset(u16 off, const char *s, int max)
     for (; s[i] && i < max - 1; i++) g_wb((u16)(off + i), (u8)s[i]);
     g_wb((u16)(off + i), 0);
 }
+/* a picture name as the game writes them: lower case (card_load gives pictures whose name
+ * starts with 'x', the dark ones, white text) */
+static void dset_pic(u16 off, const char *s)
+{
+    char b[16]; int i = 0;
+    for (; s[i] && i < 12; i++) b[i] = (char)tolower((unsigned char)s[i]);
+    b[i] = 0;
+    dset(off, b, 13);
+}
 static void dcopy(u16 dst, u16 src) { int i = 0; u8 c; do { c = g_rb((u16)(src + i)); g_wb((u16)(dst + i), c); i++; } while (c && i < 200); }
 static long money_get(u16 m) { return (s16)g_rw(m) * 240L + (s16)g_rw((u16)(m + 2)) * 12L + (s16)g_rw((u16)(m + 4)); }
 static void money_put(u16 m, long pf)
@@ -600,7 +609,7 @@ static int exec_stmt(P *p)
     if (!strcasecmp(w, "picture")) {
         char pic[48]; snprintf(pic, sizeof pic, "%s", p->id); nx(p);
         if (strlen(pic) > 8) perr(p, "picture names have at most 8 letters");
-        if (!dry && !p->err) { dset(V_PIC_BUF2, pic, 13); g_card_load_near(); }
+        if (!dry && !p->err) { dset_pic(V_PIC_BUF2, pic); g_card_load_near(); }
         return 0;
     }
     if (!strcasecmp(w, "music")) { if (!dry) g_music(); return 0; }
@@ -1036,7 +1045,7 @@ static int opt_flag(Enc *e, Sec *s, int k)
 
 static void show_sec(Enc *e, Sec *s, int first)
 {
-    if (s->pic[0]) { dset(V_PIC_BUF2, s->pic, 13); g_card_load_near(); }
+    if (s->pic[0]) { dset_pic(V_PIC_BUF2, s->pic); g_card_load_near(); }
     else if (!first) { dcopy(V_PIC_BUF2, V_PIC_BUF); g_card_load_near(); }
     (void)e;
 }
@@ -1059,6 +1068,7 @@ static void menu_round(Enc *e, Sec *s)
         g_ww((u16)(V_OPT_FN + 4 * k), (u16)fp); g_ww((u16)(V_OPT_FN + 4 * k + 2), (u16)(fp >> 16));
     }
     if (aborting) return;
+    if (enc_log_on()) { char f[NOPT + 1]; for (int k = 0; k < NOPT; k++) f[k] = (char)('0' + g_rb((u16)(V_OPT_ON + k))); f[NOPT] = 0; LOG("menu [%s] block %d, options %s\n", s->name, s->block, f); }
     g_ww(V_EE70, 0); g_ww(V_EE72, 7);
     g_ww(V_OPT_BLOCK, (u16)s->block);
     g_mouse_show();
@@ -1118,14 +1128,14 @@ static int run_encounter(int card)
     g_ww(V_NEXT_CARD, (u16)card);
     g_ww(V_CHOSEN1, (u16)leader());
     dset(V_CARD_NAME, e->card, 13);
-    dset(V_PIC_BUF, e->pic, 13);
+    dset_pic(V_PIC_BUF, e->pic);
     if (e->music) g_music();
     int first = 1, entered = 1;
     while (!aborting && (s16)g_rw(V_NEXT_CARD) == card) {
         Sec *s = &e->sec[rt.sec];
         if (entered) {
             entered = 0;
-            if (first) { if (s->pic[0]) dset(V_PIC_BUF, s->pic, 13); g_card_load(); }
+            if (first) { if (s->pic[0]) dset_pic(V_PIC_BUF, s->pic); g_card_load(); }
             else if (s->block >= 0 || s->pic[0]) show_sec(e, s, 0);
             first = 0;
             if (s->chosen.s) g_ww(V_CHOSEN1, (u16)resolve_who((int)eval_src(e, &s->chosen, 0, 0)));
