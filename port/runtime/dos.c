@@ -631,6 +631,7 @@ void dos_int21(void)
         FILE *f = fopen(hp, mode);
         if (!f && (AL & 3)) f = fopen(hp, "rb");
         if (!f) { const char *hdart_virtual_file(const char *); const char *v = hdart_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* a new picture made from art */
+        if (!f) { const char *looks_virtual_file(const char *); const char *v = looks_virtual_file(name); if (v) f = fopen(v, "rb"); }   /* the portraits of the extra figures (mods/looks.c) */
         if (dos_trace) fprintf(stderr, "  open %s -> %s %s\n", name, hp, f ? "ok" : "FAIL");
         if (!f) { dos_error(2); break; }
         int h = new_handle(f); if (h < 0) { fclose(f); dos_error(4); break; }

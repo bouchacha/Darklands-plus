@@ -22,6 +22,7 @@ int hdart_pick(int x, int y, int *px, int *py, int *pw, int *ph);   /* picture u
 int hdart_on_screen(const char *name);   /* that picture is on the screen (tracked pictures only) */
 int hdart_has_art(int pic);
 extern int hdart_show_names;
+long hdart_pic_encode(const unsigned char *px, int w, int h, unsigned char **out);   /* a PIC file of the pixels (malloc'd) */
 #ifdef __cplusplus
 }
 #endif

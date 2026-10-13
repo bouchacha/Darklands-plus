@@ -469,6 +469,9 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
       if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); dirty_config = 1; } }
+    { bool mf = config_get_int("party.more_figures", 1) != 0;
+      if (ImGui::Checkbox("Character creation: Select Character Image also offers the enemies' human figures (sergeant, monk, knight, Templar ... 14 more)", &mf)) { config_set_int("party.more_figures", mf); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Their own walking, fighting and dying animations, with colours of their own for the 1st/2nd/3rd color keys. A figure without an animation for the weapon in hand swings the nearest one it has. Saves keep the figure; the original game cannot show these figures."); ImGui::Unindent(UIS(34)); }
     { bool ff = config_get_int("assist.fast_fades", 1) != 0;
       if (ImGui::Checkbox("Cards show their options at once (no slow fade-in)", &ff)) { config_set_int("assist.fast_fades", ff); dirty_config = 1; } }
     bool ck = assist_card_keys;

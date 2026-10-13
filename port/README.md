@@ -88,6 +88,10 @@ On the first start a short welcome names the keys that matter and offers the ori
   from a sound pack (one made from 0 A.D.'s recordings comes with the release).
 * **Game controllers:** the left stick moves the pointer, A / B click and right-click, and so on
   (`runtime/platform_sdl.c`, F1 lists them).
+* **Figures:** Select Character Image also offers the 14 human enemy figures (`mods/looks.c`): their
+  sprites from E00C.CAT with the enemy colours moved onto the member's 8, portraits and battle-bar
+  figures made from the sprites, colour keys with dyes, the nearest animation for a weapon the
+  figure has none for. Off in "Play the original game" (a party with them keeps working).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
 * **Screenshots:** Ctrl+F12 saves the window as it is seen (crisp text, margins) as a PNG in the

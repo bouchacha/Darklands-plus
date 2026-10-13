@@ -130,6 +130,7 @@ void mods_init(void)
     hdart_init();
     sfx_init();
     { void musicpack_init(void); musicpack_init(); }
+    { void looks_init(void); looks_init(); }
     fixes_init();
     saves_init();
     assist_init();

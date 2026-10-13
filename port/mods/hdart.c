@@ -35,6 +35,7 @@
 #include "hdart.h"
 #include "hdtext.h"
 #include "datamods.h"
+#include "looks.h"
 #ifndef DL_RTSPLIT
 extern u16 drvseg_mgraphic;
 #endif
@@ -318,7 +319,7 @@ typedef struct { u8 *b; long n, cap; u32 bits; int nb; } Buf;
 static void put8(Buf *o, int v) { if (o->n == o->cap) { o->cap = o->cap ? o->cap * 2 : 4096; o->b = realloc(o->b, (size_t)o->cap); } o->b[o->n++] = (u8)v; }
 static void put_code(Buf *o, int c, int width) { o->bits |= (u32)c << o->nb; o->nb += width; while (o->nb >= 8) { put8(o, (int)(o->bits & 255)); o->bits >>= 8; o->nb -= 8; } }
 
-static long pic_encode(const u8 *px, int w, int h, u8 **out)
+long hdart_pic_encode(const u8 *px, int w, int h, u8 **out)    /* a PIC file (X0 chunk) of 8-bit pixels; its length, -1 too big */
 {
     Buf r = {0}, o = {0};
     long n = (long)w * h;
@@ -397,7 +398,7 @@ const char *hdart_virtual_file(const char *dosname)
             px[y * tw + x] = (u8)best;
         }
     stbi_image_free(rgba);
-    u8 *pic; long len = pic_encode(px, tw, th, &pic);
+    u8 *pic; long len = hdart_pic_encode(px, tw, th, &pic);
     free(px);
     if (len < 0) { free(pic); return 0; }
     f = fopen(path, "wb");
@@ -625,6 +626,7 @@ static void h_sprite_file(void)             /* sprite_file_load(i, name, frames,
     char name[16]; g_str(G_DGROUP, ARG(1), name, sizeof name);
     u16 frames = ARG(2); int slot = (s16)ARG(3);
     hook_call_original();
+    looks_sprite_loaded(name, frames, slot);            /* the party's enemy figures: their colours (looks.c) */
     int k = (s8)g_rb((u16)(0xc908 + slot));
     char key[12]; int n = 0;
     while (name[n] && n < 9) { key[n] = (char)toupper((unsigned char)name[n]); n++; }

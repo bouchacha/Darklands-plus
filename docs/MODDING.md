@@ -113,6 +113,17 @@ attributes, skills and armour quality can be changed there; "Save the foes into 
 writes the whole file as the mod's `DARKLAND.ENM`. Foes of one kind share their numbers. The file's
 layout is in `formats/dlformats/enm.py`.
 
+## Party figures
+
+Select Character Image offers the game's own figures (any `PICS\F??STAT.PIC`, `A??STAT.PIC`,
+`C??STAT.PIC`, as in the original) and then the human enemies' figures (`mods/looks.c`). A mod can
+add one: a new group `Exx` in `E00C.CAT` (`ExxWK<weapon>.IMC`, `ExxCB<weapon>.IMC` for the same
+weapons, `ExxDY.IMC`), a `TACANIM.DB` record with its buffer sizes and an enemy type in
+`DARKLAND.ENM` whose image group is `Exx` (its name names the figure; its first `ENEMYPAL.DAT`
+palette gives the colours). The portrait (`ExxSMALL.PIC`) and the little battle figure
+(`ExxSHORT.PIC`) are made from the sprites unless the mod has its own in `PICS` (use colours
+0xEB-0xF2 for the member's own colours, as the game's pictures do).
+
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,

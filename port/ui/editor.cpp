@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "../mods/looks.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -26,7 +27,7 @@ void ui_skill_icon_inline(int k);
 static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
     "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
-static const char *FIGURES[] = { "A00", "C00", "E00", "F01", "F60" };
+static const char *FIGURES[] = { "F01", "F60", "C00", "A00" };      /* the game's own; then the enemies' (mods/looks.c) */
 
 static u16 rec(int m) { return (u16)(0x9c55 + 0x80 * m); }
 #define G_FAR20A5 ((u16)(LOADSEG + 0x20a5))
@@ -88,10 +89,17 @@ extern "C" void tab_editor(void)
             ImGui::SameLine(); ImGui::Text("%c", 'A' + sh);
             char fig[4]; g_str(G_DGROUP, (u16)(0xa668 + 4 * m), fig, sizeof fig);
             ImGui::SetNextItemWidth(UIS(110));
-            if (ImGui::BeginCombo("figure", fig)) {
-                for (const char *f : FIGURES) if (ImGui::Selectable(f, !strcmp(f, fig))) for (int i = 0; i < 4; i++) g_wb((u16)(0xa668 + 4 * m + i), (u8)(i < 3 ? f[i] : 0));
+            std::string cur = std::string(fig) + "  " + looks_title_of(fig);
+            if (ImGui::BeginCombo("figure", cur.c_str())) {
+                auto item = [&](const char *f) {
+                    std::string lab = std::string(f) + "  " + looks_title_of(f);
+                    if (ImGui::Selectable(lab.c_str(), !strncmp(f, fig, 3))) looks_set_figure(m, f);
+                };
+                for (const char *f : FIGURES) item(f);
+                for (int i = 0; i < looks_count(); i++) if (looks_usable(i)) item(looks_code(i));
                 ImGui::EndCombo();
             }
+            if (looks_is_extra(fig)) { ImGui::SameLine(); ImGui::TextDisabled("(an enemy's figure: its colours below are its own shades)"); }
             ImGui::TextDisabled("Colours of the figure and its portrait (battles and the party panel):");
             for (int c = 0; c < 8; c++) {
                 u16 o = (u16)(0x33fc + m * 24 + c * 3);

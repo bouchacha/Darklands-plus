@@ -1,0 +1,21 @@
+/* looks.h - more figures for the party (looks.c): the human enemies' figures */
+#ifndef DL_LOOKS_H
+#define DL_LOOKS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+void looks_init(void);
+int looks_offered(void);                    /* Select Character Image offers them (setting, not in the original game) */
+int looks_count(void);                      /* the extra figures */
+const char *looks_code(int i);              /* "E05" */
+const char *looks_title(int i);             /* "Grey-haired fighter" */
+int looks_usable(int i);                    /* its sprites and colours are there */
+int looks_is_extra(const char *code);
+const char *looks_title_of(const char *code);   /* any figure's name ("" unknown) */
+void looks_set_figure(int m, const char *code); /* party slot m's figure, with that figure's colours */
+const char *looks_virtual_file(const char *dosname);    /* a picture made for them, or 0 */
+void looks_sprite_loaded(const char *name, unsigned short frames, int slot);
+#ifdef __cplusplus
+}
+#endif
+#endif
