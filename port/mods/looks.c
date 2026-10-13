@@ -744,8 +744,9 @@ static u8 pic_colour(const Look *L, u8 p, int creation)
     if (creation && ((p >= 0x10 && p < 0x20) || (p >= 0x78 && p < 0x80) || (p >= 0xa0 && p < 0xa4))) return nearest_common(common[p]);
     return p;
 }
-/* the figure's front (k=4) or back (k=0) view, shadow off, cropped; 0 if none */
-static int view(const Look *L, int dir, u8 *out, int *w, int *h)
+/* the figure's front (dir 4) or back (dir 0) view, shadow off, cropped to the figure: at most
+   maxw wide around the body (a staff or a raised sword is cut) and maxh high from the feet */
+static int view(const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h)
 {
     Imc m; if (!imc_open(L->pic_file, &m)) return 0;
     static u8 px[256 * 256]; int fw, fh, ok = imc_frame(&m, dir * m.fc, px, &fw, &fh);
@@ -753,24 +754,36 @@ static int view(const Look *L, int dir, u8 *out, int *w, int *h)
     if (!ok) return 0;
     shadow_off(px, fw, fh, L);
     int x0, y0, x1, y1; if (!bbox(px, fw, fh, &x0, &y0, &x1, &y1)) return 0;
+    if (x1 - x0 + 1 > maxw) {                       /* the body: the widest maxw columns' worth of pixels */
+        int col[256] = { 0 }, best = x0, bs = -1;
+        for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) if (px[y * fw + x]) col[x]++;
+        for (int a = x0; a + maxw - 1 <= x1; a++) { int sum = 0; for (int x = a; x < a + maxw; x++) sum += col[x]; if (sum > bs) { bs = sum; best = a; } }
+        x0 = best; x1 = best + maxw - 1;
+        for (int y = 0; y < fh; y++) for (int x = 0; x < fw; x++) if (x < x0 || x > x1) px[y * fw + x] = 0;
+        if (!bbox(px, fw, fh, &x0, &y0, &x1, &y1)) return 0;
+    }
+    if (y1 - y0 + 1 > maxh) y0 = y1 - maxh + 1;
     *w = x1 - x0 + 1; *h = y1 - y0 + 1;
     for (int y = 0; y < *h; y++) memcpy(out + y * *w, px + (y0 + y) * fw + x0, (size_t)*w);
     return 1;
 }
+/* the portrait of the creation menus: front and back. The menus clear 36 x 36 pixels from one
+   column left and one row below where they draw it (s037 0444 / s038 02f8), so everything stays
+   inside 34 x 35 from its second row (the game's own are 35..41 wide with the figures inside) */
 static long make_small(const Look *L, u8 **file)
 {
-    enum { W = 39, H = 34 };
+    enum { W = 34, H = 34 };
     u8 out[W * H]; memset(out, 0, sizeof out);
     static u8 v[2][256 * 256]; int vw[2], vh[2];
-    if (!view(L, 4, v[0], &vw[0], &vh[0]) || !view(L, 0, v[1], &vw[1], &vh[1])) return -1;
-    int x = (W - (vw[0] + 3 + vw[1])) / 2; if (x < 0) x = 0;
+    if (!view(L, 4, 15, 30, v[0], &vw[0], &vh[0]) || !view(L, 0, 15, 30, v[1], &vw[1], &vh[1])) return -1;
+    int x = (W - (vw[0] + 2 + vw[1])) / 2; if (x < 0) x = 0;
     for (int f = 0; f < 2; f++) {
-        int y0 = 31 - vh[f]; if (y0 < 0) y0 = 0;
+        int y0 = 31 - vh[f]; if (y0 < 1) y0 = 1;
         for (int y = 0; y < vh[f]; y++) for (int xx = 0; xx < vw[f]; xx++) {
             u8 p = v[f][y * vw[f] + xx];
             if (p && x + xx < W && y0 + y < H) out[(y0 + y) * W + x + xx] = pic_colour(L, p, 1);
         }
-        x += vw[f] + 3;
+        x += vw[f] + 2;
     }
     return hdart_pic_encode(out, W, H, file);
 }
@@ -779,7 +792,7 @@ static long make_short(const Look *L, u8 **file)
     enum { W = 11, H = 19 };
     u8 out[W * H]; memset(out, 0, sizeof out);
     static u8 v[256 * 256]; int fw, fh;
-    if (!view(L, 4, v, &fw, &fh)) return -1;
+    if (!view(L, 4, 15, 40, v, &fw, &fh)) return -1;
     float sc = (float)W / fw < (float)H / fh ? (float)W / fw : (float)H / fh;
     int tw = (int)(fw * sc + 0.5f), th = (int)(fh * sc + 0.5f); if (tw < 1) tw = 1; if (th < 1) th = 1;
     int ox = (W - tw) / 2, oy = H - th;
