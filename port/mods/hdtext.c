@@ -550,7 +550,10 @@ int hdtext_dump;                             /* Ctrl+F12: the next frame's verdi
 
 /* called with the frame about to be shown: wipe the glyphs that are still on screen from the
  * RGB picture and list the runs of text to draw again */
-void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
+static void prepare_runs(u32 *rgb, const u32 *lut, u8 *idx);
+static void merge_runs(void);
+void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx) { prepare_runs(rgb, lut, idx); merge_runs(); }
+static void prepare_runs(u32 *rgb, const u32 *lut, u8 *idx)
 {
     hdtext_nruns = 0;
     cursor_read(lut);
@@ -689,6 +692,38 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
                 u->flatbg = bn && same * 10 >= bn * 9; }     /* a plain box behind it, not a picture */
         }
     }
+}
+
+/* pieces of one line drawn separately side by side (the party panel's endurance, whose digits
+ * the game draws one at a time when it changes: "3" "7" became "3 7" in the narrower crisp
+ * type): one run, so the line is set as a whole */
+static void merge_runs(void)
+{
+    for (int again = 1; again; ) {
+        again = 0;
+        for (int i = 0; i < hdtext_nruns; i++) {
+            HdRun *a = &hdtext_runs[i];
+            if (!a->text[0] || a->center) continue;
+            const Fnt *F = a->font >= 1 && a->font <= nfnt ? &fnt[a->font - 1] : 0;
+            int gap = F ? F->cspace : 1;
+            for (int j = 0; j < hdtext_nruns; j++) {
+                HdRun *b = &hdtext_runs[j];
+                if (j == i || !b->text[0] || b->center || b->y != a->y || b->h != a->h || b->font != a->font || b->rgb != a->rgb
+                    || b->clip0 != a->clip0 || b->clip1 != a->clip1) continue;
+                int d = b->x - (a->x + a->w);
+                if (d < 0 || d > gap + 1) continue;
+                size_t la = strlen(a->text), lb = strlen(b->text);
+                if (la + lb + 1 > sizeof a->text) continue;
+                memcpy(a->text + la, b->text, lb + 1);
+                a->w = b->x + b->w - a->x;
+                b->text[0] = 0;
+                again = 1;
+            }
+        }
+    }
+    int n = 0;
+    for (int i = 0; i < hdtext_nruns; i++) if (hdtext_runs[i].text[0]) hdtext_runs[n++] = hdtext_runs[i];
+    hdtext_nruns = n;
 }
 
 void hdtext_set(int mode) { hdtext_mode = mode; config_set_int("display.crisp_text", mode); }
