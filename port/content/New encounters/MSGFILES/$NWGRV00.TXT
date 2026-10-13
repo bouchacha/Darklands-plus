@@ -1,0 +1,28 @@
+# $NWGRV00: the grave robbers (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A lantern bobs among the gravestones of a lonely churchyard, and spades bite into fresh earth. Grave robbers! They dig up the newly buried for their rings and shrouds, or for the black magicians who pay well for a fresh corpse.
+\14You...
+\14\06...\1dfall upon them.
+\15...\1droar at them like the wrath of God.
+\16...\1dcall on a saint to guard the dead.
+\15...\1dwait until they have gone, and see what they left.
+\15...\1dleave the dead to their fate and go on.
+=== card 1: 10 10 0 240 0 ===
+"Defilers of the dead!" roars $ChosenOneName, in a voice that would wake them. The robbers drop their spades and lantern and flee howling over the churchyard wall. You fill in the open grave and say a prayer over it.
+=== card 2: 10 10 0 240 0 ===
+"Defilers of the dead!" roars $ChosenOneName. The robbers start, then see how few you are. "Only travellers," snarls their leader. "Kill them, and we'll have their purses too."
+=== card 3: 10 10 0 240 0 ===
+As the prayer rises, a pale light kindles among the graves. The robbers scream and flee, leaving their spades standing in the earth. You fill in the grave, and the light fades.
+=== card 4: 10 10 0 240 0 ===
+Your prayer goes unanswered. The spades go on biting into the earth.
+=== card 5: 10 10 0 240 0 ===
+Toward dawn the robbers leave with their sacks. In the open grave they missed a ring and a few coins sewn into the shroud: $Money1.
+\14You fill in the grave quickly and do not look at one another.
+=== card 6: 10 10 0 240 0 ===
+You give the churchyard a wide berth. The sound of digging follows you a long way into the night.
+=== card 7: 10 10 0 240 0 ===
+The robbers who can still run are gone over the wall. You fill in the open grave and set the gravestone straight. The priest of the parish will hear who guarded his dead.
+=== card 8: 10 10 0 240 0 ===
+You flee the churchyard with the robbers' curses behind you, and gather again at dawn.
+=== card 9: 10 10 0 240 0 ===
+You wake at dawn among the graves, robbed by the robbers. They have taken their second harvest of the night.

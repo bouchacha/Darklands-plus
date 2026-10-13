@@ -1,0 +1,28 @@
+# The boar hunt: peasants with spears and dogs after a boar that has ravaged their fields.
+name     The boar hunt
+card     $NwBoa00
+picture  X2PIG
+terrain  woods forest farmland
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # join the hunt
+  chance combat
+  ok     text 1; goto hunt
+option 1                                   # tend the gored man
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 2; hours 1; practice who, Healing, 1, 10, 0; attr party, DF, 2; reputation 1, 2; exit
+  fail   chosen who; text 3; hours 1; practice who, Healing, 0, 10, 0; exit
+option 2                                   # wish them good hunting
+  chance none
+  ok     text 4; exit
+
+[hunt]
+do       battle Wilds, Boar, 1, random(2) + 1 + lore / 5
+         if result == Won then { text 5; hours 2; attr party, End, 3; additem leader, 0x92; reputation 1, 2; exit }
+         if result == Fled then { rejoin; text 6; hours 1; exit }
+         text 7; injure party, 1, 1, 10; hours 2; exit

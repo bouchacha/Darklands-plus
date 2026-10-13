@@ -1,0 +1,35 @@
+# The deserters' camp: soldiers who left some lord's war for the woods.
+name     The deserters' camp
+card     $NwDes00
+picture  XALTENT
+terrain  forest woods pinewood hills plains
+when     night
+weight   1
+
+[start]
+do       money1 clamp(24, 360, money / 6)
+block    0
+option 0                                   # pay their "toll"
+  need   money >= money1
+  chance none
+  ok     pay money1; text 1; until 5; exit
+option 1                                   # talk soldier to soldier
+  who    bestattr(Cha)
+  chance clamp(1, 95, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + min(20, fame / 10))
+  ok     chosen who; text 2; practice who, SpeakCommon, 1, 10, 0; until 5; exit
+  fail   chosen who; text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2                                   # slip back into the darkness
+  who    party
+  chance clamp(1, 99, avgskill(Stealth) + avgagility * 2 / 3)
+  ok     text 4; practice party, Stealth, 1, 10, 0; hours 2; exit
+  fail   text 5; practice party, Stealth, 0, 10, 0; goto fight
+option 3                                   # fight
+  chance combat
+  ok     goto fight
+
+[fight]
+do       battle Clearing, Mercenary, random(2) + lore / 4 + 1, clamp(size, 7, random(4) + lore / 3 + 1), Captain, lore % 3 + 1, 1
+         if result == Won then { money1 random(120) + 36; gain money1; text 6; hours 1; reputation 1, 2; fame 1; exit }
+         if result == Fled then { rejoin; text 7; until 5; exit }
+         if result == Surrendered then { loseitems party; text 9; until 5; exit }
+         hours 1; loseitems party; text 8; until 5; exit

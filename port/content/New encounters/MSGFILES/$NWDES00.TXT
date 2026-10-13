@@ -1,0 +1,27 @@
+# $NWDES00: the deserters' camp (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a clearing you come upon a tent and a dying fire. A dozen hard-faced men in mismatched armour are sharing out a looted cask: soldiers who have walked away from some lord's war and taken to the woods.
+\14Their captain looks you over. "Travellers. Our road toll is cheaper than any lord's: $Money1, and you can sleep by our fire."
+\14You...
+\14\15...\1dpay the deserters.
+\15...\1dtalk to them soldier to soldier.
+\15...\1dslip back into the darkness.
+\06...\1dfight them.
+=== card 1: 10 10 0 240 0 ===
+The captain weighs your coins and grins. "Sleep well, friends. Nobody here will cut your throats. Tonight." Nobody does.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName squats by the fire and talks of sieges and bad pay, of sergeants and lords who never paid their men a pfennig. Before long the deserters are laughing and swearing at their old captains, and nobody speaks of tolls again.
+=== card 3: 10 10 0 240 0 ===
+"You talk like a soldier," says the captain, "but you pay like a merchant. $Money1, or we take it."
+=== card 4: 10 10 0 240 0 ===
+You back away from the firelight and leave the deserters to their cask. Nobody follows.
+=== card 5: 10 10 0 240 0 ===
+A sentry you had not seen shouts the alarm. The deserters grab their weapons.
+=== card 6: 10 10 0 240 0 ===
+The surviving deserters flee into the night. Among their packs you find what is left of their plunder: $Money1. The villages hereabouts will sleep easier.
+=== card 7: 10 10 0 240 0 ===
+You flee into the dark woods, and it is dawn before you find one another again.
+=== card 8: 10 10 0 240 0 ===
+You wake at dawn by the cold ashes of the fire, stripped of your belongings. The deserters are long gone.
+=== card 9: 10 10 0 240 0 ===
+You throw down your weapons. The deserters strip you of everything worth taking. "Now that," says the captain, "is a toll."

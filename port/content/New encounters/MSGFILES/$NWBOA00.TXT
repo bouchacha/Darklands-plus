@@ -1,0 +1,22 @@
+# $NWBOA00: the boar hunt (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Peasants with boar-spears and baying dogs burst out of the trees. "Help us, masters!" cries their reeve. "The beasts have torn up our fields all summer, and now they've killed a dog and gored poor Jakob. Two of us can barely hold a spear!"
+\14Behind him, a young man lies groaning in the grass, his thigh torn open.
+\14You...
+\14\06...\1djoin the hunt.
+\15...\1dtend the gored man.
+\15...\1dwish them good hunting and go on.
+=== card 1: 10 10 0 240 0 ===
+The dogs find the scent at once. In a thicket of brambles the boars turn at bay, huge and bristling, and charge!
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName cleans the ugly wound, stitches it with thread from $his pack and binds it tight. Jakob will limp for a while, but he will keep the leg. The peasants cannot thank you enough.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName does what $he can, but the wound is deep and foul. The peasants carry Jakob home on a litter of spears, and you fear he will not live to see the harvest.
+=== card 4: 10 10 0 240 0 ===
+"Good hunting!" you call. The peasants look after you sourly as you go.
+=== card 5: 10 10 0 240 0 ===
+The last boar lies still. The peasants cheer, butcher the beasts on the spot and roast the best of the meat for you. The reeve presents you with a great curved tusk as a keepsake. "They'll tell of this hunt in the village for years!"
+=== card 6: 10 10 0 240 0 ===
+You scatter before the furious beasts. By the time you gather again, the peasants and their dogs are gone.
+=== card 7: 10 10 0 240 0 ===
+The boars smash through you like a battering ram. When the peasants finally drive them off, you are all bruised and gashed, and the reeve is shaking his head.

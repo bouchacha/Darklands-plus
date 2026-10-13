@@ -1,0 +1,34 @@
+# $NWFEU00: the feud (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Ahead, the tower of a small manor is burning. Riders are galloping among the cottages below it, flinging torches into the thatch while the peasants flee into the fields. A knight's banner flies over them.
+\14A fleeing peasant gasps that the lord of the next valley has declared a feud on their own lord. As always, it is the peasants who pay.
+\14You...
+\14\06...\1ddrive the raiders off.
+\15...\1dhelp the villagers save what they can.
+\16...\1dcall on a saint to save the village.
+\15...\1dspeak with the knight who leads them.
+\15...\1djoin in the plunder.
+\15...\1dgo around the village.
+=== card 1: 10 10 0 240 0 ===
+Keeping to the smoke and the hedges, you lead children and old folk out of the burning cottages and drive the cattle into the woods, under the raiders' noses.
+\14When the riders have gone, the villagers bless you through their tears.
+=== card 2: 10 10 0 240 0 ===
+"Who goes there?" shouts a rider. "More of the enemy's men! Cut them down!"
+=== card 3: 10 10 0 240 0 ===
+As $ChosenOneName prays, the sky darkens and a hard, cold rain sweeps over the village. The fires hiss and die. The riders cross themselves, mutter of ill omens, and ride away.
+=== card 4: 10 10 0 240 0 ===
+The prayer goes unanswered. The tower and the village burn on.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName reminds the knight that a feud is fought against a lord, not against God. Grudgingly, he calls his men off the church and the mill, and lets the peasants drive their cattle away.
+\14"A feud is a feud," he says, "but I am no heathen."
+=== card 6: 10 10 0 240 0 ===
+"Meddle in my feud and you are part of it!" The knight lowers his visor and signals to his men.
+=== card 7: 10 10 0 240 0 ===
+You join the riders in rummaging through the cottages before the flames reach them. Your share comes to $Money1, and the curses of the peasants watching from the fields.
+=== card 8: 10 10 0 240 0 ===
+The raiders' leader falls, and his men gallop off with their plunder. The villagers creep back from the fields to beat out the fires.
+\14They have nothing to give you, but word of what you did will spread.
+=== card 9: 10 10 0 240 0 ===
+You fall back from the riders and lose them in the smoke. Later, from a distance, you watch the tower's roof fall in.
+=== card 10: 10 10 0 240 0 ===
+The riders take everything you have, as they took the manor's. "A lesson," says the knight, "in minding your own business."
