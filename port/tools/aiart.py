@@ -3,6 +3,7 @@
 
   aiart.py ORIGINALS OUT --backend a1111 [--url http://127.0.0.1:7860] [options]
   aiart.py ORIGINALS OUT --backend comfyui --checkpoint sd_xl_base_1.0.safetensors
+  aiart.py ORIGINALS OUT --backend invokeai [--invoke-url http://127.0.0.1:9090] [--checkpoint juggernaut]
   aiart.py ORIGINALS OUT --backend openai            (OPENAI_API_KEY in the environment)
   aiart.py ORIGINALS OUT --backend command --cmd "python my_sd.py {in} {out} {prompt_file} {strength} {seed}"
   aiart.py ORIGINALS OUT --backend test              (no model: checks the pipeline)
@@ -33,6 +34,9 @@ Backends:
   a1111    Stable Diffusion WebUI (AUTOMATIC1111, Forge, SD.Next ...) started with --api:
            POST /sdapi/v1/img2img. --steps, --cfg, --sampler, --negative; the checkpoint is
            whatever the WebUI has loaded.
+  invokeai InvokeAI 5 or later (--invoke-url, http://127.0.0.1:9090 by default): the same
+           image-to-image graph as its canvas, with an SDXL model (or SD 1.5 / 2; --checkpoint picks
+           one by name). --steps, --cfg, --invoke-scheduler, --negative.
   comfyui  a ComfyUI server (--comfy-url): a plain image-to-image graph with --checkpoint, or
            your own graph saved in API format (--comfy-workflow) with "{image}", "{prompt}",
            "{negative}", "{strength}", "{seed}" ... where the values go (Flux, SDXL refiners,
@@ -232,6 +236,110 @@ def be_comfyui(init, prompt, neg, strength, seed, a):
         if time.time() - t0 > 900: raise SystemExit('comfyui: no picture after 15 minutes')
         time.sleep(1)
 
+# ------------------------------------------------------------------ InvokeAI (5.x and later): its REST API
+_invoke_model = None
+def http_get_json(url, timeout=120):
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        raise SystemExit('%s: HTTP %d %s' % (url, e.code, e.read()[:400].decode('utf-8', 'replace')))
+    except urllib.error.URLError as e:
+        raise SystemExit('%s: %s (is InvokeAI running?)' % (url, e.reason))
+
+def invoke_model(a):
+    """the main model to use: --checkpoint (part of its name), else the first SDXL one, else SD 1.5/2"""
+    global _invoke_model
+    if _invoke_model: return _invoke_model
+    base = a.invoke_url.rstrip('/')
+    ms = http_get_json(base + '/api/v2/models/?model_type=main').get('models', [])
+    usable = [m for m in ms if m.get('base') in ('sdxl', 'sd-1', 'sd-2') and m.get('variant', 'normal') != 'inpaint'
+              and 'refiner' not in m.get('name', '').lower()]
+    if a.checkpoint:
+        pick = [m for m in usable if a.checkpoint.lower() in m.get('name', '').lower()]
+        if not pick: raise SystemExit('invokeai: no SD1/SD2/SDXL model named like "%s"; it has: %s' % (a.checkpoint, ', '.join(m['name'] for m in ms)))
+    else:
+        pick = sorted(usable, key=lambda m: m.get('base') != 'sdxl')
+        if not pick: raise SystemExit('invokeai: no SD1/SD2/SDXL main model installed (FLUX and SD3 are not supported here); it has: %s' % ', '.join(m['name'] for m in ms))
+    m = pick[0]
+    _invoke_model = {k: m[k] for k in ('key', 'hash', 'name', 'base', 'type') if k in m}
+    print('invokeai: model %s (%s)' % (m['name'], m['base']))
+    return _invoke_model
+
+def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a):
+    """the image-to-image graph InvokeAI's own canvas builds (buildSD1Graph / buildSDXLGraph + addImageToImage)"""
+    xl = model['base'] == 'sdxl'
+    n = {}
+    def node(i, t, **kw): n[i] = dict(id=i, type=t, **kw)
+    node('model', 'sdxl_model_loader' if xl else 'main_model_loader', model=model)
+    if xl:
+        sz = dict(original_width=w, original_height=h, target_width=w, target_height=h)
+        node('pos', 'sdxl_compel_prompt', prompt=prompt, style=prompt, **sz)
+        node('neg', 'sdxl_compel_prompt', prompt=neg, style=neg, **sz)
+    else:
+        node('skip', 'clip_skip', skipped_layers=0)
+        node('pos', 'compel', prompt=prompt)
+        node('neg', 'compel', prompt=neg)
+    node('pos_c', 'collect'); node('neg_c', 'collect')
+    node('noise', 'noise', seed=seed, width=w, height=h, use_cpu=True)
+    node('i2l', 'i2l', image={'image_name': image_name}, fp32=xl)
+    node('denoise', 'denoise_latents', cfg_scale=a.cfg, cfg_rescale_multiplier=0, scheduler=a.invoke_scheduler, steps=a.steps,
+         denoising_start=max(0.0, min(1.0, 1 - strength)), denoising_end=1)
+    node('l2i', 'l2i', fp32=xl, is_intermediate=False)
+    e = []
+    def edge(f, ff, t, tf): e.append({'source': {'node_id': f, 'field': ff}, 'destination': {'node_id': t, 'field': tf}})
+    edge('model', 'unet', 'denoise', 'unet')
+    if xl:
+        for c in ('pos', 'neg'): edge('model', 'clip', c, 'clip'); edge('model', 'clip2', c, 'clip2')
+    else:
+        edge('model', 'clip', 'skip', 'clip'); edge('skip', 'clip', 'pos', 'clip'); edge('skip', 'clip', 'neg', 'clip')
+    edge('pos', 'conditioning', 'pos_c', 'item'); edge('neg', 'conditioning', 'neg_c', 'item')
+    edge('pos_c', 'collection', 'denoise', 'positive_conditioning'); edge('neg_c', 'collection', 'denoise', 'negative_conditioning')
+    edge('noise', 'noise', 'denoise', 'noise')
+    edge('model', 'vae', 'i2l', 'vae'); edge('i2l', 'latents', 'denoise', 'latents')
+    edge('denoise', 'latents', 'l2i', 'latents'); edge('model', 'vae', 'l2i', 'vae')
+    return {'id': 'darklands_aiart_%d' % seed, 'nodes': n, 'edges': e}
+
+def be_invokeai(init, prompt, neg, strength, seed, a):
+    base = a.invoke_url.rstrip('/')
+    model = invoke_model(a)
+    # the model's own size: about 1024 on the long side for SDXL, 768 for SD 1.5 / 2 (multiples of 8)
+    long_side = 1024 if model['base'] == 'sdxl' else 768
+    sc = long_side / max(init.width, init.height)
+    w, h = max(8, int(init.width * sc) // 8 * 8), max(8, int(init.height * sc) // 8 * 8)
+    buf = io.BytesIO(); init.resize((w, h), Image.LANCZOS).save(buf, 'PNG')
+    up = http_multipart(base + '/api/v1/images/upload?image_category=user&is_intermediate=true',
+                        {}, {'file': ('darklands_init.png', buf.getvalue(), 'image/png')}, {})
+    name = up['image_name']
+    batch = {'graph': invoke_graph(model, name, prompt, neg, strength, seed, w, h, a), 'runs': 1, 'origin': 'darklands-aiart'}
+    r = http_json(base + '/api/v1/queue/default/enqueue_batch', {'batch': batch, 'prepend': False})
+    bid = r['batch']['batch_id']
+    t0 = time.time()
+    while True:                                           # until the batch has run
+        st = http_get_json(base + '/api/v1/queue/default/b/%s/status' % bid)
+        if st.get('failed') or st.get('canceled'): break
+        if st.get('completed', 0) >= 1: break
+        if time.time() - t0 > 900: raise SystemExit('invokeai: no picture after 15 minutes')
+        time.sleep(1)
+    ids = r.get('item_ids')                               # (newer versions say which queue item it is)
+    if not ids:
+        lst = http_get_json(base + '/api/v1/queue/default/list?limit=100')
+        ids = [it['item_id'] for it in lst.get('items', []) if it.get('batch_id') == bid]
+    if not ids: raise SystemExit('invokeai: the queue item of the batch was not found')
+    item = http_get_json(base + '/api/v1/queue/default/i/%d' % ids[0])
+    if item.get('status') != 'completed':
+        raise SystemExit('invokeai: the graph %s: %s' % (item.get('status'), (item.get('error_message') or item.get('error') or '')[:600]))
+    sess = item['session']
+    prepared = (sess.get('source_prepared_mapping') or {}).get('l2i') or []
+    res = sess.get('results') or {}
+    out = None
+    for pid in prepared or list(res):
+        o = res.get(pid) or {}
+        if isinstance(o.get('image'), dict) and o['image'].get('image_name'): out = o['image']['image_name']; break
+    if not out: raise SystemExit('invokeai: no picture in the results: %s' % str(res)[:300])
+    with urllib.request.urlopen(base + '/api/v1/images/i/%s/full' % urllib.parse.quote(out), timeout=120) as f:
+        return Image.open(io.BytesIO(f.read())).convert('RGB')
+
 def be_test(init, prompt, neg, strength, seed, a):
     """a stand-in for a model: smooth and posterise, and tint by the seed (shows that the pipeline works)"""
     im = init.filter(ImageFilter.ModeFilter(7)).filter(ImageFilter.SMOOTH_MORE)
@@ -240,7 +348,7 @@ def be_test(init, prompt, neg, strength, seed, a):
     rng = np.random.default_rng(seed); tint = rng.uniform(0.9, 1.1, 3)
     return Image.fromarray(np.clip(arr * tint, 0, 255).astype(np.uint8), 'RGB')
 
-BACKENDS = {'a1111': be_a1111, 'comfyui': be_comfyui, 'openai': be_openai, 'command': be_command, 'test': be_test}
+BACKENDS = {'a1111': be_a1111, 'comfyui': be_comfyui, 'invokeai': be_invokeai, 'openai': be_openai, 'command': be_command, 'test': be_test}
 
 # ------------------------------------------------------------------ fitting the result back
 def keep_mask(orig, kind, scale):
@@ -306,7 +414,9 @@ def main():
     ap.add_argument('--backend', choices=sorted(BACKENDS), default='test')
     ap.add_argument('--url', default='http://127.0.0.1:7860', help='a1111: the WebUI address')
     ap.add_argument('--comfy-url', default='http://127.0.0.1:8188', help='comfyui: the server address')
-    ap.add_argument('--checkpoint', default='', help='comfyui: the model file (as ComfyUI lists it)')
+    ap.add_argument('--checkpoint', default='', help='comfyui: the model file (as ComfyUI lists it); invokeai: part of the model\'s name')
+    ap.add_argument('--invoke-url', default='http://127.0.0.1:9090', help='invokeai: the server address')
+    ap.add_argument('--invoke-scheduler', default='dpmpp_2m_k', help='invokeai: the scheduler (euler, dpmpp_2m, dpmpp_2m_k ...)')
     ap.add_argument('--comfy-sampler', default='dpmpp_2m')
     ap.add_argument('--comfy-workflow', default='', help='comfyui: your own graph (API format) with "{image}" "{prompt}" ... placeholders')
     ap.add_argument('--openai-url', default='https://api.openai.com/v1')
