@@ -240,21 +240,117 @@ static void fade_hook(void)                 /* palette_fade(a, b, c, d, duration
  * the first glyphs are part of the look.) */
 static void inherit_bg(Rec *r)
 {
-    for (int i = 0; i < MAXREC; i++) {
-        const Rec *o = &rec[i];
-        if (!o->used || !o->bg || o->page != r->page || o->x0 != r->x0 || o->y0 != r->y0 || o->font != r->font) continue;
+    /* oldest first: a later record's background is the cleaner one where both have letters */
+    static int ord[MAXREC]; int no = 0;
+    for (int i = 0; i < MAXREC; i++) if (rec[i].used && rec[i].bg && rec[i].page == r->page) ord[no++] = i;
+    {   /* none of the same line on this page: the same line on another (the off-screen page the
+           game copies rows up from: the recruitment list after Add to the Party), its background */
+        int have = 0, best = -1;
+        for (int k = 0; k < no; k++) { const Rec *o = &rec[ord[k]]; if (o->x0 == r->x0 && o->y0 == r->y0 && o->font == r->font) have = 1; }
+        if (!have)
+            for (int i = 0; i < MAXREC; i++) {
+                const Rec *o = &rec[i];
+                if (!o->used || !o->bg || o->page == r->page || o->x0 != r->x0 || o->y0 != r->y0 || o->font != r->font || o->w != r->w || o->n != r->n || memcmp(o->ch, r->ch, (size_t)r->n)) continue;
+                if (best < 0 || o->stamp > rec[best].stamp) best = i;
+            }
+        if (best >= 0) memcpy(r->bg, rec[best].bg, (size_t)r->w * r->h);
+    }
+    for (int a = 1; a < no; a++) { int t = ord[a], b = a; while (b > 0 && rec[ord[b - 1]].stamp > rec[t].stamp) { ord[b] = ord[b - 1]; b--; } ord[b] = t; }
+    for (int k = 0; k < no; k++) {
+        const Rec *o = &rec[ord[k]];
         int ax = r->x0 > o->x0 ? r->x0 : o->x0, ay = r->y0 > o->y0 ? r->y0 : o->y0;
         int bx = r->x0 + r->w < o->x0 + o->w ? r->x0 + r->w : o->x0 + o->w, by = r->y0 + r->h < o->y0 + o->h ? r->y0 + r->h : o->y0 + o->h;
         if (ax >= bx || ay >= by) continue;
+        /* the same line drawn again: its background as it is; other text the new one is drawn
+           over without the picture cleared first (the recruitment list redrawn after Add to the
+           Party, over its engraved shadow a pixel off): where its letters still show */
+        int same = o->x0 == r->x0 && o->y0 == r->y0 && o->font == r->font;
+        if (!same) continue;            /* (engraved lettering: the same text a pixel off is part of the look) */
         const Fnt *F = &fnt[o->font - 1];
         for (int g = 0; g < o->n; g++) {
             int gx0 = o->x0 + o->gx[g];
             for (int x = gx0 > ax ? gx0 : ax; x < gx0 + o->gw[g] && x < bx; x++)
                 for (int y = ay; y < by; y++)
-                    if (glyph_bit(F, o->ch[g], x - gx0, y - o->y0))
-                        r->bg[(y - r->y0) * r->w + (x - r->x0)] = o->bg[(y - o->y0) * o->w + (x - o->x0)];
+                    if (glyph_bit(F, o->ch[g], x - gx0, y - o->y0)) {
+                        u8 *d = &r->bg[(y - r->y0) * r->w + (x - r->x0)];
+                        u8 ob = o->bg[(y - o->y0) * o->w + (x - o->x0)];
+                        u8 letter = o->xr ? (u8)(o->under[(y - o->y0) * o->w + (x - o->x0)] ^ o->col[g]) : o->col[g];
+                        if (same || *d == letter) *d = ob;
+                    }
         }
     }
+}
+
+/* the glyphs of string sp in font F from sx (colour codes 0x80.. as the game's): the record's
+ * ch/gx/gw/col; its width */
+static int layout(const Fnt *F, u16 sp, int sx, int col, int defcol, Rec *r)
+{
+    int cx = sx; r->n = 0;
+    for (int k = 0; k < 200; k++) {
+        u8 c = rb(SS, (u16)(sp + k));
+        if (!c) break;
+        if (c >= 0x80) { col = c == 0xff ? defcol : (c & 0x7f); continue; }
+        int gw = glyph_w(F, c);
+        if (!gw) continue;
+        if (r->n < MAXG) { r->ch[r->n] = c; r->gx[r->n] = (short)(cx - sx); r->gw[r->n] = (u8)gw; r->col[r->n] = (u8)col; r->n++; }
+        cx += gw + F->cspace;
+    }
+    return cx - sx;
+}
+/* the text the game just drew is what font F gives: every pixel of the box (bw x bh, before:
+ * under) changed exactly where F's glyphs are (to the glyph's colour, or xor) and nowhere else */
+static int drawn_in(const Fnt *F, const Rec *r, const u8 *pm, const u8 *under, int sx, int sy, int bw, int bh, int xr)
+{
+    static u8 want[320 * 200]; static u8 is[320 * 200];
+    memset(is, 0, (size_t)bw * bh);
+    for (int g = 0; g < r->n; g++)
+        for (int yy = 0; yy < F->height && yy < bh; yy++)
+            for (int xx = 0; xx < r->gw[g]; xx++) {
+                int x = r->gx[g] + xx;
+                if (x >= bw || !glyph_bit(F, r->ch[g], xx, yy)) continue;
+                is[yy * bw + x] = 1; want[yy * bw + x] = xr ? (u8)(under[yy * bw + x] ^ r->col[g]) : r->col[g];
+            }
+    for (int yy = 0; yy < bh; yy++)
+        for (int x = 0; x < bw; x++) {
+            u8 now = pm[(sy + yy) * 320 + sx + x], was = under[yy * bw + x];
+            if (is[yy * bw + x]) { if (now != want[yy * bw + x]) return 0; }
+            else if (now != was) return 0;
+        }
+    return 1;           /* (the same text drawn again over itself changes nothing and still fits) */
+}
+
+/* the same letters were under the new ones already (the line drawn before in another colour,
+ * brought back by a copy from a page where nothing tells what was behind them: the recruitment
+ * list after Add to the Party, whose old highlight came back blue from the off-screen page):
+ * under the glyphs, the box's own background from the nearest pixel beside them, so a wipe
+ * does not bring the old letters back around the crisp ones */
+static void clean_old_letters(Rec *r, const Fnt *F)
+{
+    static u8 isg[320 * 16];
+    if (r->w * r->h > (int)sizeof isg) return;
+    memset(isg, 0, (size_t)r->w * r->h);
+    int cnt[256] = { 0 }, ng = 0;
+    for (int g = 0; g < r->n; g++)
+        for (int yy = 0; yy < r->h; yy++)
+            for (int xx = 0; xx < r->gw[g]; xx++)
+                if (glyph_bit(F, r->ch[g], xx, yy)) { int p = yy * r->w + r->gx[g] + xx; if (!isg[p]) { isg[p] = 1; cnt[r->under[p]]++; ng++; } }
+    if (ng < 4) return;
+    int c = 0; for (int k = 1; k < 256; k++) if (cnt[k] > cnt[c]) c = k;
+    int other = 0, nother = 0;
+    for (int p = 0; p < r->w * r->h; p++) if (!isg[p]) { nother++; if (r->under[p] == c) other++; }
+    if (cnt[c] * 10 < ng * 7 || other * 10 > nother) return;           /* not letters of this shape */
+    for (int yy = 0; yy < r->h; yy++)
+        for (int xx = 0; xx < r->w; xx++) {
+            int p = yy * r->w + xx;
+            if (!isg[p] || r->bg[p] != c) continue;
+            int v = -1;
+            for (int d = 1; d < r->w && v < 0; d++) {
+                if (xx - d >= 0 && !isg[p - d] && r->under[p - d] != c) v = r->bg[p - d];
+                else if (xx + d < r->w && !isg[p + d] && r->under[p + d] != c) v = r->bg[p + d];
+            }
+            if (v >= 0) r->bg[p] = (u8)v;
+        }
+    if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: text at %d,%d over the same letters (colour %02x): their background guessed\n", r->x0, r->y0, c);
 }
 
 static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
@@ -269,42 +365,53 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
                     fprintf(stderr, "hd: skipped text page %d font %d at %d,%d: %s\n", page, font, x, y, t); } }
         hook_call_original(); return;
     }
-    const Fnt *F = &fnt[font - 1];
     int sx = (s16)g_rw((u16)(w + 2)) + x, sy = (s16)g_rw((u16)(w + 4)) + y;
-    int col = g_rb((u16)(w + 0x0c));
-    Rec r; memset(&r, 0, sizeof r);
-    r.page = page; r.font = font; r.x0 = sx; r.y0 = sy; r.h = F->height;
-    int cx = sx;
-    for (int k = 0; k < 200; k++) {
-        u8 c = rb(SS, (u16)(sp + k));
-        if (!c) break;
-        if (c >= 0x80) { col = c == 0xff ? g_rb((u16)(w + 0x0c)) : (c & 0x7f); continue; }
-        int gw = glyph_w(F, c);
-        if (!gw) continue;
-        if (r.n < MAXG) { r.ch[r.n] = c; r.gx[r.n] = (short)(cx - sx); r.gw[r.n] = (u8)gw; r.col[r.n] = (u8)col; r.n++; }
-        cx += gw + F->cspace;
-    }
-    r.w = cx - sx;
-    if (r.n == 0 || sx < 0 || sy < 0 || cx > 320 || sy + r.h > 200) { hook_call_original(); return; }
-    r.xr = g_rb((u16)(w + 0x0d)) == 3;
-    if (g_rb((u16)(w + 0x0d))) {            /* xor: drawing the same text again erases it (option lists) */
+    int defcol = g_rb((u16)(w + 0x0c));
+    int mode = g_rb((u16)(w + 0x0d));
+    /* the box every font would need: the game draws with the font its driver has selected, which
+       is not always the window's (the recruitment list after Add to the Party: the panels' font) */
+    static Rec lay[4]; int lw[4], bw = 0, bh = 0;
+    memset(lay, 0, sizeof lay);
+    for (int f = 0; f < nfnt; f++) { lw[f] = layout(&fnt[f], sp, sx, defcol, defcol, &lay[f]); if (lw[f] > bw) bw = lw[f]; if (fnt[f].height > bh) bh = fnt[f].height; }
+    if (lay[font - 1].n == 0 || sx < 0 || sy < 0) { hook_call_original(); return; }
+    if (sx + bw > 320) bw = 320 - sx;
+    if (sy + bh > 200) bh = 200 - sy;
+    if (bw <= 0 || bh <= 0) { hook_call_original(); return; }
+    int xr = mode == 3;
+    if (mode) {                                /* xor: drawing the same text again erases it (option lists) */
+        const Fnt *F = &fnt[font - 1]; int fw = lw[font - 1];
         for (int i = 0; i < MAXREC; i++) {
             Rec *o = &rec[i];
-            if (o->used && o->page == page && o->x0 == sx && o->y0 == sy && o->font == font && o->n == r.n && !memcmp(o->ch, r.ch, (size_t)r.n)) {
+            if (o->used && o->page == page && o->x0 == sx && o->y0 == sy && o->font == font && o->n == lay[font - 1].n && !memcmp(o->ch, lay[font - 1].ch, (size_t)o->n)) {
                 hook_call_original();
-                hdtext_cover(page, sx, sy, r.w, r.h);
+                hdtext_cover(page, sx, sy, fw, F->height);
                 if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: xor text at %d,%d erased\n", sx, sy);
                 return;
             }
         }
     }
-    if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < r.n && k < 99; k++) t[k] = (char)r.ch[k]; t[k] = 0;
-        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x font %d page %d win %04x: %s\n", sx, sy, g_rb((u16)(w + 0x0d)), g_rb((u16)(w + 0x0c)), font, page, w, t); }
+    u8 *big = malloc((size_t)bw * bh);
+    for (int yy = 0; yy < bh; yy++) memcpy(big + yy * bw, pm + (sy + yy) * 320 + sx, (size_t)bw);
+    hook_call_original();
+    /* which font it was: the window's, else whichever the pixels show; none (clipped, drawn over
+       something moving): no record, the game's own letters stay */
+    int used = -1;
+    if (drawn_in(&fnt[font - 1], &lay[font - 1], pm, big, sx, sy, bw, bh, xr)) used = font - 1;
+    else for (int f = 0; f < nfnt && used < 0; f++) if (f != font - 1 && sx + lw[f] <= 320 && drawn_in(&fnt[f], &lay[f], pm, big, sx, sy, bw, bh, xr)) used = f;
+    if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < lay[font - 1].n && k < 99; k++) t[k] = (char)lay[font - 1].ch[k]; t[k] = 0;
+        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x font %d (drawn in %d) page %d win %04x: %s\n", sx, sy, mode, defcol, font, used + 1, page, w, t); }
+    if (used < 0) { drop_covered(page, sx, sy, lw[font - 1], fnt[font - 1].height); free(big); return; }
+    const Fnt *F = &fnt[used];
+    Rec r = lay[used];
+    r.page = page; r.font = used + 1; r.x0 = sx; r.y0 = sy; r.h = F->height; r.w = lw[used];
+    r.xr = xr;
+    if (sx + r.w > 320 || sy + r.h > 200) { free(big); return; }
     r.under = malloc((size_t)r.w * r.h);
-    for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, pm + (sy + yy) * 320 + sx, (size_t)r.w);
+    for (int yy = 0; yy < r.h; yy++) memcpy(r.under + yy * r.w, big + yy * bw, (size_t)r.w);
+    free(big);
     r.bg = malloc((size_t)r.w * r.h); memcpy(r.bg, r.under, (size_t)r.w * r.h);
     inherit_bg(&r);
-    hook_call_original();
+    if (!xr) clean_old_letters(&r, F);
     drop_covered(page, r.x0, r.y0, r.w, r.h);
     int slot = rec_slot();
     r.used = 1; r.stamp = ++stamp;

@@ -556,6 +556,7 @@ static void run_script(void)
             int v = game_call_far(14, 0x18bf, 0x0778, 4, args);
             fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
         }
+        else if (!strcmp(s->cmd, "utextdump")) { extern int hdtext_dump; hdtext_dump = 1; }     /* test: as Ctrl+F12, the text verdicts of the next frame */
         else if (!strcmp(s->cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
         else if (!strcmp(s->cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }
         else if (!strcmp(s->cmd, "uload")) { int saves_load(const char *); saves_load(s->arg); }
