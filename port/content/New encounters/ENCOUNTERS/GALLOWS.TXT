@@ -1,0 +1,30 @@
+# The gallows oak: a hanged thief, and the mandrake that grows beneath him.
+name     The gallows oak
+card     $NwGal00
+picture  XTREE
+terrain  farmland plains woods forest
+weight   2
+
+[start]
+block    0
+chosen   bestskill(Alchemy)
+option 0                                   # dig for the mandrake
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 + night * 15 - 5)
+  ok     text 1; additem who, 0x54; if roll(40) then additem who, 0x54
+         practice who, Alchemy, 1, 10, 0; hours 1; exit
+  fail   text 2; injure who, 1, 1, 10; practice who, Alchemy, 0, 10, 0; hours 1; exit
+option 1                                   # cut him down and bury him
+  chance assured
+  ok     hours 2; if roll(25) goto bailiff
+         text 3; practice party, Virtue, 1, 10, 0; attr party, DF, skill(who, Religion) / 5 + 2; exit
+option 2                                   # search the corpse
+  chance none
+  ok     money1 random(30) + 6; gain money1; text 5; attr party, DF, -3; exit
+option 3                                   # go on
+  chance none
+  ok     text 6; exit
+
+[bailiff]
+do       text 4; reputation -1, -3; practice party, Virtue, 1, 10, 0
+         attr party, DF, skill(who, Religion) / 5 + 2; exit

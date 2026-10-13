@@ -138,6 +138,7 @@ void mods_init(void)
     autopause_init();
     pathfix_init();
     travel_init();
+    { void encounters_init(void); encounters_init(); }
     for (int i = 0; i < MOD_COUNT; i++) {
         char key[80]; snprintf(key, sizeof key, "mod.%s", MODS[i].id);
         if (config_get_int(key, 0)) { MODS[i].set(1); MODS[i].enabled = 1; }

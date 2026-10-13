@@ -15,6 +15,7 @@ typedef struct {
 } TravelState;
 extern TravelState travel;
 extern int travel_enabled, travel_fast;
+extern int travel_step_result;          /* the last step on the map: 1000 a random encounter, 2000 a place's own, <92 a city ... */
 void travel_init(void);
 void travel_set(int on, int fast);
 int travel_minutes(int x, int y);             /* from the party, -1 unreachable / not on the map */

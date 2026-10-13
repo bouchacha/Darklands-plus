@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "dispatch.h"
 #include "hle.h"
+#include "native.h"
 
 void interp_run(u16 seg, u16 off);
 int driver_retsite(u16 seg, u16 off);
@@ -99,7 +100,7 @@ static int interp_always(u32 lin)
 
 int native_target(u16 seg, u16 off)
 {
-    if (seg == HLE_SEG || seg == EMS_SEG) return 1;
+    if (seg == HLE_SEG || seg == EMS_SEG || seg == NATIVE_SEG) return 1;
     if (driver_find(seg, off)) return 1;
     if (tiny_thunk(seg, off)) return 1;
     if (!in_program(seg, off)) return 0;
@@ -119,6 +120,7 @@ static void go(u16 seg, u16 off, int is_call)
         if (ss == seg) ftrace_dump();
     }
     if (seg == HLE_SEG || seg == EMS_SEG) { tail_pending = 0; hle_stub(seg, off); return; }
+    if (seg == NATIVE_SEG) { native_call(off); return; }
     void (*df)(void) = driver_find(seg, off);
     if (df) { df(); return; }
     if (!is_call && driver_retsite(seg, off)) { void ftrace_check_retsite(u16, u16); ftrace_check_retsite(seg, off); tail_pending = 0; return; }

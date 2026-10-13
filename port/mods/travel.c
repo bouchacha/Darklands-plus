@@ -24,6 +24,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "travel.h"
+#include "encounters.h"
 
 extern char game_dir[1024];
 
@@ -31,6 +32,7 @@ static unsigned char *terr;
 static int mw, mh;
 TravelState travel;
 int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 instant */
+int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
 
 /* minutes per one-pixel step by terrain (s030 1462:2ac8) */
 static int minutes(int t)
@@ -312,6 +314,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     }
     hook_call_original();
     int r = (s16)AX;
+    travel_step_result = r;
     if (travel.active && r >= 0 && getenv("DL_TRAVEL_LOG")) { int px, py; travel_party_tile(&px, &py); fprintf(stderr, "travel: step result %d at (%d,%d), route %d/%d\n", r, px, py, travel.i, travel.n); }
     if (travel.active && r >= 0) {
         if (r == 9999) travel.replan = 1;                     /* water in the way: plan again */
@@ -332,8 +335,9 @@ void travel_set(int on, int fast)
 {
     travel_enabled = on; travel_fast = fast;
     config_set_int("travel.auto", on); config_set_int("travel.fast", fast);
-    if (on) { hook_install(30, 0x1462, 0x0c44, step_hook); hook_install(30, 0x1767, 0x0046, delay_hook); }
-    else { hook_remove(30, 0x1462, 0x0c44); hook_remove(30, 0x1767, 0x0046); travel.active = 0; }
+    hook_install(30, 0x1462, 0x0c44, step_hook);     /* always: it also tells what a step led to (travel_step_result) */
+    if (on) hook_install(30, 0x1767, 0x0046, delay_hook);
+    else { hook_remove(30, 0x1767, 0x0046); travel.active = 0; }
 }
 
 /* how often the road brings an encounter (travel.encounters, % of the game's rate). Each step
@@ -343,6 +347,7 @@ void travel_set(int on, int fast)
 static void encounter_weight_hook(void)
 {
     hook_call_original();
+    if (encounters_force_pending()) { AX = 1000; return; }      /* test: a new encounter at the next step */
     int pct = config_get_int("travel.encounters", 100);
     if (config_get_int("original", 0) || pct == 100) return;
     int w = (s16)AX;

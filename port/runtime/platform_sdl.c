@@ -557,6 +557,11 @@ static void run_script(void)
             fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
         }
         else if (!strcmp(s->cmd, "utextdump")) { extern int hdtext_dump; hdtext_dump = 1; }     /* test: as Ctrl+F12, the text verdicts of the next frame */
+        else if (!strcmp(s->cmd, "uenc")) {                /* test: the next wilderness encounter is new encounter N (mods/encounters.c) */
+            void encounters_force(int); int encounters_count(void); const char *encounters_title(int);
+            if (!s->arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
+            else encounters_force(atoi(s->arg));
+        }
         else if (!strcmp(s->cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
         else if (!strcmp(s->cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }
         else if (!strcmp(s->cmd, "uload")) { int saves_load(const char *); saves_load(s->arg); }

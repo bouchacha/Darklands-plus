@@ -1,0 +1,24 @@
+# $NWGAL00: the gallows oak (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Beside the way stands an ancient oak, one great limb worn smooth by the rope. A thief still hangs from it, black and shrunken, turning slowly in the wind. The crows have long since taken his eyes.
+\14$ChosenOneName stops. "They say the mondragora grows beneath a gallows, where the hanged man's seed falls. The little gallows-man. Its root is worth good silver to any alchemist, if one lives to pull it."
+\14\15...\1ddig for the mondragora root.
+\15...\1dcut the poor wretch down and give him a Christian burial.
+\15...\1dsearch the corpse for anything of value.
+\15...\1dleave the dead to the crows and travel on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName stops $his ears with wax and digs carefully around the twisted, man-shaped root, then binds it to a stick and draws it out with one long pull. If it screams, no one hears it.
+\14Wrapped in a cloth, the mondragora root goes into $his pack.
+=== card 2: 10 10 0 240 0 ===
+The root tears free with a thin, piercing shriek that seems to come from everywhere at once. $ChosenOneName reels back, blood trickling from $his ears, and the root crumbles into black dust in $his hands.
+=== card 3: 10 10 0 240 0 ===
+You cut the rope and lay the thief to rest beneath the oak, with a cross of two branches above him and the prayers for the dead. Whatever his sins, his soul is in God's hands now.
+\14You feel strangely at peace as you go on your way.
+=== card 4: 10 10 0 240 0 ===
+You are still shovelling earth onto the grave when riders appear: the bailiff of the local lord and his men. "That one was hanged by sentence of the court," he snarls, "to hang till he rots, as a warning to others!"
+\14After a great deal of shouting, he lets you go with a curse. Word of this will reach the nearest town, but you know you have done a good deed.
+=== card 5: 10 10 0 240 0 ===
+Holding your breath against the stench, you go through the dead man's clothes. A few coins are sewn into the hem of his shirt: $Money1.
+\14As you walk away, it seems to you that the hanged man is turning to watch you go.
+=== card 6: 10 10 0 240 0 ===
+You leave the oak and its grim fruit behind you. Soon the creaking of the rope is lost in the sound of the wind.
