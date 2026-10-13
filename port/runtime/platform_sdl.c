@@ -192,6 +192,7 @@ static void shot_mkdir(const char *d) { mkdir(d, 0755); }
 static int out_w = 960, out_h = 720, win_w = 960, win_h = 720;
 static void layout(void)
 {
+    if (!ren || !win) return;
     SDL_GetRendererOutputSize(ren, &out_w, &out_h);
     SDL_GetWindowSize(win, &win_w, &win_h);
     int ph = ui_settings.aspect ? 240 : 200;      /* picture height in 320-wide units */
@@ -863,6 +864,16 @@ void plat_events(void)
                 menu_escape();                      /* a menu left open by a click closes, choosing nothing */
             }
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && bg_paused) { bg_paused = 0; bg_resumed = plat_ticks_ms(); mouse_b = 0; }
+            if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESTORED
+                || e.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
+                layout();                           /* the mouse is placed with the new sizes at once, not from the next frame */
+                fprintf(stderr, "window: %s, window %dx%d, drawing surface %dx%d, picture %d,%d %dx%d\n",
+                        e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED ? "size" : e.window.event == SDL_WINDOWEVENT_MAXIMIZED ? "maximized" :
+                        e.window.event == SDL_WINDOWEVENT_RESTORED ? "restored" : "display", win_w, win_h, out_w, out_h, dest.x, dest.y, dest.w, dest.h);
+                if (e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESTORED) {
+                    config_set_int("display.maximized", e.window.event == SDL_WINDOWEVENT_MAXIMIZED); config_save();
+                }
+            }
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_MAXIMIZED))) {
                 static u32 last_save; u32 t = plat_ticks_ms();
                 config_set_int("display.window_w", (int)(e.window.data1 / dpi_k + 0.5f)); config_set_int("display.window_h", (int)(e.window.data2 / dpi_k + 0.5f));
@@ -880,7 +891,12 @@ void plat_events(void)
                 config_set_int("display.fullscreen", !(fl & SDL_WINDOW_FULLSCREEN_DESKTOP)); config_save();
                 break;
             }
-            if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) { if (ren) pending_shot = 1; else save_bmp("screenshot.bmp"); break; }
+            if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) {
+                extern int hdtext_dump; hdtext_dump = 1;   /* and what the crisp text made of the screen, into the log (for reports) */
+                fprintf(stderr, "screenshot: window %dx%d, drawing surface %dx%d, picture %d,%d %dx%d\n", win_w, win_h, out_w, out_h, dest.x, dest.y, dest.w, dest.h);
+                if (ren) pending_shot = 1; else save_bmp("screenshot.bmp");
+                break;
+            }
             if (!e.key.repeat && menu_escape()) break;     /* any key closes menus a right click left open (the game would ignore it) */
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             {   /* 1..9 on a card: that option (a click on its line) */
@@ -994,11 +1010,32 @@ void plat_init(int scale)
             if (!getenv("DL_SCRIPT") && !getenv("DL_CTL") && SDL_GetDesktopDisplayMode(0, &dm) == 0 && dm.h >= 600) {   /* (tests: 960 x 720) */ wh = dm.h * 4 / 5; ww = wh * 4 / 3; if (ww > dm.w * 9 / 10) { ww = dm.w * 9 / 10; wh = ww * 3 / 4; } }
         }
         if (ww < 320 || ww > 16384) ww = 960; if (wh < 200 || wh > 16384) wh = 720;
+        /* maximized unless the player made the window smaller (display.maximized; the side margins
+           show from the start); tests keep a known size */
+        int maxi = config_get_int("display.maximized", 1) && !getenv("DL_SCRIPT") && !getenv("DL_CTL");
         win = SDL_CreateWindow("Darklands", wp, wp, ww, wh,
-                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (config_get_int("display.fullscreen", 0) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | (maxi ? SDL_WINDOW_MAXIMIZED : 0) |
+                               (config_get_int("display.fullscreen", 0) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
         if (!win) { fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError()); exit(1); }
-        ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+#ifdef _WIN32
+        /* Direct3D 11: SDL's default on Windows is Direct3D 9, whose drawing surface could stay at
+           the old size when the window was maximized (the picture then shown stretched while the
+           mouse was measured in window pixels: the pointer at half its place). display.renderer
+           names another (direct3d, opengl ...) */
+        {   const char *want = config_get("display.renderer", "direct3d11");
+            for (int i = 0; want[0] && i < SDL_GetNumRenderDrivers(); i++) {
+                SDL_RendererInfo ri; if (SDL_GetRenderDriverInfo(i, &ri) == 0 && !strcmp(ri.name, want)) {
+                    ren = SDL_CreateRenderer(win, i, SDL_RENDERER_ACCELERATED);
+                    if (!ren) fprintf(stderr, "renderer %s did not start (%s): SDL's choice instead\n", want, SDL_GetError());
+                    break;
+                }
+            }
+        }
+#endif
+        if (!ren) ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
         if (!ren) ren = SDL_CreateRenderer(win, -1, 0);
+        {   SDL_RendererInfo ri; int a, b, c, d; SDL_GetRendererInfo(ren, &ri); SDL_GetWindowSize(win, &a, &b); SDL_GetRendererOutputSize(ren, &c, &d);
+            fprintf(stderr, "renderer %s, window %dx%d, drawing surface %dx%d\n", ri.name, a, b, c, d); }
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
         tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200);
         SDL_ShowCursor(SDL_DISABLE);

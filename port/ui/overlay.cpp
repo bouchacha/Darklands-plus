@@ -1278,7 +1278,12 @@ static void draw_creation_guide(void)
     if (ImGui::Begin("##creation", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing |
                                             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
         ImGui::PushFont(ui_font_overlay);
-        ImGui::SetWindowFontScale(fminf(0.75f, fmaxf(0.40f, (b.x - a.x) / 260.0f)));
+        /* about the size of the game's own text (6.5 of its 200 rows a line), smaller only if the
+           text would not fit the panel */
+        float k = (b.y - a.y) / 192.0f, wrap = b.x - a.x - 16, avail = b.y - a.y - 16;
+        float fs = fmaxf(12.0f, k * 6.5f);
+        while (fs > 12.0f && ui_font_overlay->CalcTextSizeA(fs, FLT_MAX, wrap, T[st]).y * 1.1f > avail) fs *= 0.92f;
+        ImGui::SetWindowFontScale(fs / ui_font_overlay->FontSize);
         ImGui::TextWrapped("%s", T[st]);
         ImGui::PopFont();
     }

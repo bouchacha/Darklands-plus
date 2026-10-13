@@ -777,7 +777,10 @@ void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
             if (strcmp(B->pic, P->name) || B->y0 < 1 || B->y1 + 1 >= P->h || B->x1 >= P->w) continue;
             int sx0 = B->x0 + r->ox, sy0 = B->y0 + r->oy, sx1 = B->x1 + r->ox, sy1 = B->y1 + r->oy;
             if (sx0 < r->x || sy0 < r->y || sx1 >= r->x + r->w || sy1 >= r->y + r->h || sx1 >= 320 || sy1 >= 200 || sx0 < 0 || sy0 < 0) continue;
-            int cx = 0, cy = 0, cw = 0, chh = 0; hdtext_game_cursor(&cx, &cy, &cw, &chh);
+            /* the game's pointer sprite stays where it is drawn, unless the interface draws the
+               pointer (then the sprite is out of the picture and the letters under it are covered too) */
+            extern int hdtext_live_pointer;
+            int cx = 0, cy = 0, cw = 0, chh = 0; if (!hdtext_live_pointer) hdtext_game_cursor(&cx, &cy, &cw, &chh);
 #define UNDER_CURSOR(x, y) (cw && (x) >= cx && (x) < cx + cw && (y) >= cy && (y) < cy + chh)
             long n = 0, same = 0;                                 /* the button's ground still there (its letters may light up) */
             for (int y = sy0; y <= sy1; y++) for (int x = sx0; x <= sx1; x++) {

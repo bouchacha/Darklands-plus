@@ -205,8 +205,25 @@ static void recolor_hook(void)
     { static int lg = -1; if (lg < 0) lg = getenv("DL_TRACE_RECOLOR") != 0;
       if (lg) { u32 plat_ticks_ms(void); fprintf(stderr, "recolor %u: page %d at %d,%d + %d,%d %dx%d %02x->%02x\n", plat_ticks_ms(), (s16)g_rw(w), (s16)g_rw((u16)(w + 2)), (s16)g_rw((u16)(w + 4)), x, y, ww_, h, from, to); } }
     hook_call_original();
-    if (!hdtext_mode || (s16)g_rw(w) != 0) return;
-    recolor_box((s16)g_rw((u16)(w + 2)) + x, (s16)g_rw((u16)(w + 4)) + y, ww_, h, from, to);
+    if ((s16)g_rw(w) != 0) return;
+    int x0 = (s16)g_rw((u16)(w + 2)) + x, y0 = (s16)g_rw((u16)(w + 4)) + y;
+    /* the picture the game's pointer hides (MGRAPHIC DS:0216, a box at DS:020a / 020c of DS:020e x
+       DS:0210) is recoloured too: a highlight drawn while the pointer stood on the text left that
+       copy in the old colours, and the pointer the interface draws shows the picture without the
+       sprite, so the old letters appeared there (an orange "Qu", a dark "g ( 4)" in a blue line) */
+    if (drvseg_mgraphic) {
+        u16 ds = (u16)(drvseg_mgraphic + 0x140);
+        int bx = (s16)rw(ds, 0x20a), by = (s16)rw(ds, 0x20c), bw = (s16)rw(ds, 0x20e), bh = (s16)rw(ds, 0x210);
+        if (rw(ds, 0x212) && rw(ds, 0x214) == 0 && bw > 0 && bh > 0 && bw * bh <= 0x200)
+            for (int r = 0; r < bh; r++) for (int c = 0; c < bw; c++) {
+                int px = bx + c, py = by + r;
+                if (px < x0 || px >= x0 + ww_ || py < y0 || py >= y0 + h) continue;
+                u16 o = (u16)(0x216 + r * bw + c);
+                if (rb(ds, o) == from) wb(ds, o, (u8)to);
+            }
+    }
+    if (!hdtext_mode) return;
+    recolor_box(x0, y0, ww_, h, from, to);
 }
 int hdtext_fast_fades;                     /* cards' fades at once: while "go to" walks (ui/citynav.cpp), or always (assist.fast_fades) */
 static void fade_hook(void)                 /* palette_fade(a, b, c, d, duration) */
@@ -422,6 +439,7 @@ static void glyph_check(const Rec *r, const Fnt *F, int g, int y0, int y1, const
 
 HdRun hdtext_runs[HD_MAXRUNS];
 int hdtext_nruns;
+int hdtext_dump;                             /* Ctrl+F12: the next frame's verdicts into the log */
 
 /* called with the frame about to be shown: wipe the glyphs that are still on screen from the
  * RGB picture and list the runs of text to draw again */
@@ -439,11 +457,16 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
     for (int i = 0; i < MAXREC; i++) if (rec[i].used && rec[i].page == 0) order[no++] = i;
     for (int a = 1; a < no; a++) { int t = order[a], b = a; while (b > 0 && rec[order[b - 1]].stamp < rec[t].stamp) { order[b] = order[b - 1]; b--; } order[b] = t; }
     static int dbgn = -1; if (dbgn < 0) dbgn = getenv("DL_HD_LOG") ? 1 : 0;
-    int dbg = 0;
+    int dbg = 0, dump = hdtext_dump; hdtext_dump = 0;
+    if (dump) {
+        int cx, cy, cw, ch; cursor_rect(&cx, &cy, &cw, &ch);
+        fprintf(stderr, "text dump: %d records on the screen, crisp text %d, the game's pointer %s at %d,%d %dx%d (sprite at %d,%d), drawn by the interface %d\n",
+                no, hdtext_mode, cw ? "shown" : "hidden", cx, cy, cw, ch, cur_x, cur_y, hdtext_live_pointer);
+    }
     for (int oi = 0; oi < no; oi++) {
         Rec *r = &rec[order[oi]];
         if (r->is_shadow) continue;               /* goes with the text it shadows */
-        dbg = dbgn && oi < 4;
+        dbg = (dbgn && oi < 4) || dump;
         { static const char *flt = (const char *)-1; if (flt == (const char *)-1) flt = getenv("DL_HD_DEBUG");
           if (flt) { char tx[MAXG + 1]; int k; for (k = 0; k < r->n; k++) tx[k] = (char)r->ch[k]; tx[k] = 0; dbg = strstr(tx, flt) != 0; } }
         const Fnt *F = &fnt[r->font - 1];
@@ -483,7 +506,7 @@ void hdtext_prepare(u32 *rgb, const u32 *lut, u8 *idx)
             alive++;
         }
         { static int lg = -1; static u32 lastt; u32 plat_ticks_ms(void); if (lg < 0) lg = getenv("DL_HD_LOG2") != 0;
-          if (lg && plat_ticks_ms() - lastt > 300) {
+          if (dump || (lg && plat_ticks_ms() - lastt > 300)) {
               char st[MAXG + 1]; int k; for (k = 0; k < r->n; k++) st[k] = ok[k] == 1 ? (gc[k] < 0 ? 'x' : 'o') : ok[k] == 2 ? '_' : ok[k] >= 4 ? 'c' : '.'; st[k] = 0;
               char tx[MAXG + 1]; for (k = 0; k < r->n; k++) tx[k] = (char)r->ch[k]; tx[k] = 0;
               fprintf(stderr, "hd2 %u: rec %u at %d,%d xr %d: %s\n          %s\n", plat_ticks_ms(), r->stamp, r->x0, r->y0, r->xr, tx, st);

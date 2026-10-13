@@ -249,10 +249,15 @@ static int marker_target(int tx, int ty, int *mx, int *my)
 
 u32 plat_ticks_ms(void);
 static u32 map_polled;                      /* when the overland loop last took a step (it does while the map is up) */
-int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polled < 300; }
+/* the overland loop asks for a key at least every 250 ms or so while the party walks (more
+ * on a slow or busy machine: the names on the map blinked with a 300 ms limit); cards and
+ * other screens end the map mode anyway (game_mode), the limit only covers the map's own
+ * message boxes */
+int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polled < 1200; }
 
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_MAP_POLL_LOG") != 0; u32 t = plat_ticks_ms(); if (lg && t - map_polled > 200) fprintf(stderr, "map poll gap %u ms\n", t - map_polled); }
     map_polled = plat_ticks_ms();
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
