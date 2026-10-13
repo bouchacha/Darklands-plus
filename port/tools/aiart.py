@@ -266,7 +266,21 @@ def invoke_model(a):
     print('invokeai: model %s (%s)' % (m['name'], m['base']))
     return _invoke_model
 
-def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a):
+_invoke_cn = {}
+def invoke_controlnet(a, base):
+    """the ControlNet model for --invoke-control (canny, softedge ...) of the main model's base"""
+    key = (a.invoke_control, base)
+    if key in _invoke_cn: return _invoke_cn[key]
+    ms = http_get_json(a.invoke_url.rstrip('/') + '/api/v2/models/?model_type=controlnet').get('models', [])
+    words = {'canny': 'canny', 'softedge': 'soft', 'lineart': 'lineart', 'depth': 'depth', 'scribble': 'scribble', 'tile': 'tile'}[a.invoke_control]
+    pick = [m for m in ms if m.get('base') == base and words in m.get('name', '').lower()]
+    if not pick: raise SystemExit('invokeai: no %s ControlNet for %s; it has: %s' % (a.invoke_control, base, ', '.join('%s (%s)' % (m['name'], m['base']) for m in ms)))
+    m = pick[0]
+    _invoke_cn[key] = {k: m[k] for k in ('key', 'hash', 'name', 'base', 'type') if k in m}
+    print('invokeai: control %s' % m['name'])
+    return _invoke_cn[key]
+
+def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a, control_name=None):
     """the image-to-image graph InvokeAI's own canvas builds (buildSD1Graph / buildSDXLGraph + addImageToImage)"""
     xl = model['base'] == 'sdxl'
     n = {}
@@ -298,6 +312,22 @@ def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a):
     edge('noise', 'noise', 'denoise', 'noise')
     edge('model', 'vae', 'i2l', 'vae'); edge('i2l', 'latents', 'denoise', 'latents')
     edge('denoise', 'latents', 'l2i', 'latents'); edge('model', 'vae', 'l2i', 'vae')
+    if a.invoke_control != 'none':          # the original's outlines hold the composition while the style changes
+        cn = invoke_controlnet(a, model['base'])
+        src = {'image_name': control_name or image_name}
+        pre = {'canny': ('canny_edge_detection', dict(low_threshold=a.canny_low, high_threshold=a.canny_high)),
+               'softedge': ('hed_edge_detection', dict(scribble=False)),
+               'scribble': ('pidi_edge_detection', dict(scribble=True, quantize_edges=False)),
+               'lineart': ('lineart_edge_detection', dict(coarse=False)),
+               'depth': ('depth_anything_depth_estimation', dict(model_size='small_v2')),
+               'tile': None}[a.invoke_control]
+        node('cn', 'controlnet', control_model=cn, control_weight=a.control_weight, begin_step_percent=0,
+             end_step_percent=a.control_end, control_mode='balanced', resize_mode='just_resize',
+             **({} if pre else {'image': src}))
+        if pre:
+            node('edges', pre[0], image=src, **pre[1])
+            edge('edges', 'image', 'cn', 'image')
+        edge('cn', 'control', 'denoise', 'control')
     return {'id': 'darklands_aiart_%d' % seed, 'nodes': n, 'edges': e}
 
 def be_invokeai(init, prompt, neg, strength, seed, a):
@@ -311,7 +341,16 @@ def be_invokeai(init, prompt, neg, strength, seed, a):
     up = http_multipart(base + '/api/v1/images/upload?image_category=user&is_intermediate=true',
                         {}, {'file': ('darklands_init.png', buf.getvalue(), 'image/png')}, {})
     name = up['image_name']
-    batch = {'graph': invoke_graph(model, name, prompt, neg, strength, seed, w, h, a), 'runs': 1, 'origin': 'darklands-aiart'}
+    cname = None
+    if a.invoke_control not in ('none', 'tile'):
+        # the outlines are found on a de-dithered copy: the game's pictures are dithered, and every
+        # dot of the dither would otherwise become an edge for the model to keep
+        k = max(3, (w // 320) * 2 + 1)
+        ctl = init.resize((w, h), Image.LANCZOS).filter(ImageFilter.MedianFilter(k)).filter(ImageFilter.MedianFilter(k))
+        b2 = io.BytesIO(); ctl.save(b2, 'PNG')
+        cname = http_multipart(base + '/api/v1/images/upload?image_category=control&is_intermediate=true',
+                               {}, {'file': ('darklands_control.png', b2.getvalue(), 'image/png')}, {})['image_name']
+    batch = {'graph': invoke_graph(model, name, prompt, neg, strength, seed, w, h, a, cname), 'runs': 1, 'origin': 'darklands-aiart'}
     r = http_json(base + '/api/v1/queue/default/enqueue_batch', {'batch': batch, 'prepend': False})
     bid = r['batch']['batch_id']
     t0 = time.time()
@@ -417,6 +456,10 @@ def main():
     ap.add_argument('--checkpoint', default='', help='comfyui: the model file (as ComfyUI lists it); invokeai: part of the model\'s name')
     ap.add_argument('--invoke-url', default='http://127.0.0.1:9090', help='invokeai: the server address')
     ap.add_argument('--invoke-scheduler', default='dpmpp_2m_k', help='invokeai: the scheduler (euler, dpmpp_2m, dpmpp_2m_k ...)')
+    ap.add_argument('--invoke-control', default='none', choices=['none', 'canny', 'softedge', 'lineart', 'depth', 'scribble', 'tile'],
+                    help='invokeai: a ControlNet on the original (keeps the composition at high strength; canny runs its own edge detection)')
+    ap.add_argument('--control-weight', type=float, default=0.6); ap.add_argument('--control-end', type=float, default=0.7)
+    ap.add_argument('--canny-low', type=int, default=60); ap.add_argument('--canny-high', type=int, default=140)
     ap.add_argument('--comfy-sampler', default='dpmpp_2m')
     ap.add_argument('--comfy-workflow', default='', help='comfyui: your own graph (API format) with "{image}" "{prompt}" ... placeholders')
     ap.add_argument('--openai-url', default='https://api.openai.com/v1')
