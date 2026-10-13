@@ -19,9 +19,10 @@ How a picture is made:
      but drawn with a piece of the sheet's pillar behind it, so left alone unless --kinds says)
      or interface (frames, buttons, letters, icons: left alone unless --kinds says)
   2. the prompt: the style (--style, a description of the whole pack's look), the kind's own
-     words, and the picture's caption from captions.txt if there is one ("XCAVE: a hunchbacked
-     man in a cave ..."; --write-captions writes a file to fill in, --caption-with openai asks a
-     vision model to fill it)
+     words, and the picture's caption: aiart_captions.txt (next to this script) describes every
+     scene picture of the game, and the pack's captions.txt can say it differently ("XCAVE: a
+     hunchbacked man in a cave ..."; --write-captions writes a file to fill in, --caption-with
+     openai asks a vision model to fill it). A picture whose caption is empty is left alone.
   3. the original, scaled up (--scale, 4 by default) and softened, goes to the model as the
      starting image (image-to-image): --strength says how far it may move from it (0.3 keeps the
      composition and colours, 0.6 repaints freely). The seed comes from the name, so a run
@@ -80,7 +81,10 @@ def kind_of(name, im):
     return 'interface'
 
 # ------------------------------------------------------------------ captions
-def read_captions(path):
+DEFAULT_CAPTIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'aiart_captions.txt')
+
+def read_captions(path, skip=None):
+    """NAME: caption lines; an empty caption (NAME:) goes into skip: a picture to leave alone"""
     caps = {}
     if path and os.path.exists(path):
         for line in open(path, encoding='utf-8'):
@@ -88,6 +92,7 @@ def read_captions(path):
             if not line or line.startswith('#') or ':' not in line: continue
             k, v = line.split(':', 1)
             if v.strip(): caps[k.strip().upper()] = v.strip()
+            elif skip is not None: skip.add(k.strip().upper())
     return caps
 
 def write_captions(path, names, kinds, old):
@@ -491,10 +496,12 @@ def main():
     origs = {n: Image.open(files[n]).convert('RGBA') for n in names}
     kinds = {n: kind_of(n, origs[n]) for n in names}
     capfile = a.captions or os.path.join(a.out, 'captions.txt')
-    caps = read_captions(capfile)
+    skip = set()
+    caps = read_captions(DEFAULT_CAPTIONS, skip)            # the descriptions that come with aiart.py ...
+    caps.update(read_captions(capfile, skip))               # ... and the pack's own (they win)
     want = set(k.strip() for k in a.kinds.split(','))
     only = set(x.strip().upper() for x in a.only.split(',') if x.strip())
-    todo = [n for n in names if kinds[n] in want and (not only or n in only)]
+    todo = [n for n in names if kinds[n] in want and (n in only if only else n not in skip)]
 
     if a.caption_with:
         for n in todo:

@@ -1,5 +1,5 @@
-# Kobolds in the mine: the miners' deep galleries are haunted.
-name     Kobolds in the mine
+# Kobolds at the mine: something comes up out of the deep galleries at night.
+name     Kobolds at the mine
 card     $NwKob00
 picture  XMINER4
 terrain  hills mountains pinewood
@@ -7,10 +7,10 @@ when     day
 weight   2
 
 [start]
-do       money1 120 + lore * 24
+do       money1 96 + lore * 12
 block    0
-saints   0x0d, 0x60, 0x68, 0x1a          # Barbara, Michael, Patrick, Columba
-option 0                                   # go down into the mine
+saints   0x0d, 0x60, 0x80, -1            # Barbara, Michael, Vitus
+option 0                                   # keep watch at the mine mouth
   chance combat
   ok     goto deep
 option 1 saint                             # bless the mine
@@ -22,7 +22,7 @@ option 2                                   # leave the miners to their troubles
 
 [deep]
 picture  XKBOLD2
-do       text 1; battle Clearing, Kobold, lore / 4 + 1, random(4) + 3
+do       text 1; until 22; battle Clearing, Kobold, lore / 4 + 1, random(4) + 3
          if result == Won then { gain money1; text 5; hours 3; fame 1; exit }
-         if result == Fled then { rejoin; text 6; hours 2; exit }
-         loseitems party; text 7; hours 4; exit
+         if result == Fled then { rejoin; text 6; until 5; exit }
+         loseitems party; text 7; until 5; exit

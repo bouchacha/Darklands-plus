@@ -1,13 +1,13 @@
 # $NWWAG00: the overturned wagon (New encounters)
 === card 0: 10 10 0 240 0 ===
-A merchant's wagon lies overturned across the way, its load of bales and barrels scattered. A dead horse lies in the traces, and nearby a man in a leather jerkin lies face down with two arrows in his back.
-\14Nothing moves. The birds have fallen silent.
+A merchant's wagon lies overturned across the way, its load of bales and barrels scattered. A dead horse lies in the traces, and nearby a man-at-arms in a battered harness lies face down in his blood.
+\14Nothing moves. The birds have fallen silent. You...
 \14\15...\1dsearch the wagon at once.
 \15...\1dstudy the ground before going closer.
 \15...\1dsay a prayer for the dead and go on.
 \15...\1dleave this place quickly.
 === card 1: 10 10 0 240 0 ===
-(This text is not used.)
+As you leave, you cannot help glancing back at the dead guard. Robbing the dead sits ill with you.
 === card 2: 10 10 0 240 0 ===
 You study the trampled ground, but you can make nothing of the tracks.
 === card 3: 10 10 0 240 0 ===
@@ -15,13 +15,13 @@ You say the prayers for the dead over the carter and go on your way, leaving the
 === card 4: 10 10 0 240 0 ===
 You hurry past the wagon with your hands on your weapons. No one follows.
 === card 5: 10 10 0 240 0 ===
-The tracks are a day old at least. Whoever robbed the wagon took the horses and what they could carry and rode away north.
+The tracks are a day old at least. Whoever robbed the wagon took the other horses and what they could carry and rode away north.
 === card 6: 10 10 0 240 0 ===
-The robbers took the best of the goods, but they missed a strongbox hidden beneath the driver's bench: $Money1.
+The robbers took the best of the goods, but they missed a little purse hidden beneath the driver's bench: $Money1.
 === card 7: 10 10 0 240 0 ===
 Among the scattered bales you also find a stoppered flask, carefully wrapped in straw: $ItemName.
 === card 8: 10 10 0 240 0 ===
-The tracks are fresh, and they lead into the bushes on both sides of the road. The robbers are still here, watching, waiting for the next fools to stop at their wagon.
+The tracks are fresh, and they lead into the bushes on both sides of the road. The robbers are still here, watching, waiting for the next fools to stop at their wagon. You decide to...
 \14\15...\1dslip quietly away.
 \06...\1dattack them before they attack you.
 \10...\1dflush them out with a potion.
@@ -41,3 +41,5 @@ The surviving robbers flee into the woods. Now you can search the wagon in peace
 You flee in all directions. Only at dusk do you find one another again.
 === card 16: 10 10 0 240 0 ===
 You wake by the wagon, bruised and robbed of nearly everything. The robbers have taken their second harvest of the day.
+=== card 17: 10 10 0 240 0 ===
+You throw down your weapons. The robbers strip you of everything worth taking and leave you sitting in the road beside their bait. "Thank you kindly," their sergeant grins. "Do come again."

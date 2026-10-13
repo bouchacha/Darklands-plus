@@ -1,14 +1,14 @@
 # $NWPRC00: the procession of the dead (New encounters)
 === card 0: 10 10 0 240 0 ===
 Near midnight a silent procession comes out of the mist: hooded figures carrying no light, their feet making no sound on the ground.
-\14Old women say that on certain nights the dead walk the roads, and that whoever sees his own face among them will not live out the year.
+\14Old women say that on certain nights the dead walk the roads, and that whoever sees his own face among them will not live out the year. You...
 \14\15...\1dhide your faces and pray until they have passed.
 \15...\1dwatch them pass.
 \15...\1dspeak to them in the name of God.
 \16...\1dcall upon a saint for protection.
 === card 1: 10 10 0 240 0 ===
 You kneel with your faces to the ground and pray. A cold wind passes over you, smelling of earth and old candles, and then it is gone.
-\14When you look up, the road is empty.
+\14When you look up, the road is empty. "Well," says $ChosenOneName at last, "at least they were not looking for company."
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName watches the hooded figures pass, one after another. Their faces are pale and calm, the faces of strangers. They seem to be pilgrims still, bound for some shrine no living man can find.
 \14The last of them fades into the mist.

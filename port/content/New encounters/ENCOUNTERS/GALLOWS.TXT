@@ -8,6 +8,7 @@ weight   1
 [start]
 block    0
 chosen   bestskill(Alchemy)
+saints   0x23                              # St. Dismas, the Good Thief
 option 0                                   # dig for the mandrake
   who    bestskill(Alchemy)
   chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 + night * 15 - 5)
@@ -16,15 +17,17 @@ option 0                                   # dig for the mandrake
   fail   text 2; injure who, 1, 1, 10; practice who, Alchemy, 0, 10, 0; hours 1; exit
 option 1                                   # cut him down and bury him
   chance assured
-  ok     hours 2; if roll(25) goto bailiff
-         text 3; practice party, Virtue, 1, 10, 0; attr party, DF, skill(who, Religion) / 5 + 2; exit
-option 2                                   # search the corpse
+  ok     hours 4; if roll(25) goto bailiff
+         text 3; practice party, Virtue, 1, 10, 0; attr party, DF, skill(who, Religion) / 8 + 1; exit
+option 2 saint                             # pray to St. Dismas for his soul
+  ok     text 7; attr party, DF, 2; exit
+  fail   text 8
+option 3                                   # search the corpse
   chance none
   ok     money1 random(30) + 6; gain money1; text 5; attr party, DF, -3; exit
-option 3                                   # go on
+option 4                                   # go on
   chance none
   ok     text 6; exit
 
 [bailiff]
-do       text 4; reputation -1, -3; practice party, Virtue, 1, 10, 0
-         attr party, DF, skill(who, Religion) / 5 + 2; exit
+do       text 4; reputation -2, -5; attr party, DF, skill(who, Religion) / 8 + 1; exit

@@ -2,14 +2,15 @@
 === card 0: 10 10 0 240 0 ===
 Voices ring through the trees: villagers with cudgels and torches are searching the woods. A woman runs to you, wild-eyed.
 \14"My little Grete! She went for berries yesterday and never came home. They say there are wolves, or worse, the wild women of the forest..."
+\14You...
 \14\15...\1dhelp them search.
 \16...\1dpray to a saint for the child.
 \15...\1dwish them luck and go on your way.
 === card 1: 10 10 0 240 0 ===
-Deep in the forest you find little Grete asleep in the hollow of a great beech, her basket of berries beside her, cold and hungry but unharmed.
+Deep in the forest you find little Grete asleep in the hollow of a great beech, her basket of berries beside her, cold and hungry but unharmed. "I wasn't lost," she says crossly. "I knew where I was. It was the path that was lost."
 \14The villagers weep and laugh and press bread and cheese on you, and the priest blesses you in front of the whole village. You leave with warm hearts.
 === card 2: 10 10 0 240 0 ===
-You search until the light begins to fail, but find only a torn shawl caught on a bramble.
+You search for hours, but find only a torn shawl caught on a bramble.
 === card 3: 10 10 0 240 0 ===
 At last you leave the villagers to their search. You pray that the child will be found.
 === card 4: 10 10 0 240 0 ===
@@ -21,8 +22,9 @@ You pray, but no sign is given.
 === card 7: 10 10 0 240 0 ===
 As dusk falls you hear a child crying, and with it a low growling. Gaunt grey shapes circle a hollow tree: wolves, and the girl inside!
 === card 8: 10 10 0 240 0 ===
-The last of the wolves slinks away, whining. From inside the hollow tree a small, tear-stained face peers out at you.
+The last of the wolves slinks away, whining. From inside the hollow tree a small, tear-stained face peers out at you, and then Grete flings herself into the arms of the nearest of you and will not let go.
+\14You carry her back to the village by torchlight. Her mother weeps and laughs, the villagers press bread and cheese on you, and the priest blesses you in front of the whole village.
 === card 9: 10 10 0 240 0 ===
-You run from the pack. Behind you the howling rises, and then, horribly, stops.
+You run from the pack. Behind you the howling rises, and then, horribly, stops. Not all of you came away.
 === card 10: 10 10 0 240 0 ===
 The villagers find you at dawn, torn and bleeding, drawn by the wolves' howling. Of the child there is no trace.

@@ -16,11 +16,11 @@ option 0                                   # search the wagon at once
 option 1                                   # study the ground first
   who    spotter
   chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2)
-  ok     practice party, Woodwise, 1, 10, 0; if trap goto warned else goto safe
-  fail   practice party, Woodwise, 0, 10, 0; text 2; if trap goto ambush else goto loot
+  ok     hours 1; practice party, Woodwise, 1, 10, 0; if trap goto warned else goto safe
+  fail   hours 1; practice party, Woodwise, 0, 10, 0; text 2; if trap goto ambush else goto loot
 option 2                                   # pray for the dead and go on
   chance none
-  ok     text 3; attr party, DF, 2; exit
+  ok     text 3; hours 1; attr party, DF, 1; exit
 option 3                                   # leave the place quickly
   chance none
   ok     text 4; exit
@@ -28,9 +28,9 @@ option 3                                   # leave the place quickly
 [safe]
 do       text 5; goto loot
 [loot]
-do       money1 random(180) + 60; gain money1; text 6
-         if roll(40) then { additem leader, 0x5f + random(22), 40; text 7 }
-         hours 1; exit
+do       money1 random(60) + 12; gain money1; text 6
+         if roll(20) then { additem leader, 0x5f + random(22), 40; text 7 }
+         text 1; attr party, DF, -2; hours 1; exit
 
 [warned]
 block    8
@@ -55,4 +55,5 @@ do       text 13; goto fight
 do       battle field, Bandit, random(2) + lore / 4 + 1, clamp(size, 7, random(5) + lore / 3 + 1), BrigandSergeant, lore % 3 + 1, 1
          if result == Won then { text 14; reputation 0, 5; goto loot }
          if result == Fled then { rejoin; until 18; text 15; exit }
+         if result == Surrendered then { hours 4; loseitems party; text 17; exit }
          hours 1; loseitems party; text 16; exit

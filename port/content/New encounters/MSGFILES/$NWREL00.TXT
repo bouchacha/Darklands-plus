@@ -2,6 +2,7 @@
 === card 0: 10 10 0 240 0 ===
 A wiry man in a wide hat falls in beside you, leaning on a pilgrim's staff. "Good sirs! You look like folk who know the worth of holy things."
 \14From his satchel he draws a small box bound in silver. "A finger-bone of the blessed Saint Ursula, brought from Cologne! It guards against every peril of the road. For you, only $Money1."
+\14You...
 \14\15...\1dbuy the holy relic.
 \15...\1dexamine it closely first.
 \15...\1dsend him on his way.

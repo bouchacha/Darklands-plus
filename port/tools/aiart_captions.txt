@@ -1,0 +1,356 @@
+# aiart.py: what each of the game's scene pictures shows (the style is added by the prompt).
+# One line a picture, NAME: content. An empty one leaves the picture as it is (screens, backgrounds).
+# Written from looking at the pictures; describes them in words only (nothing of the game is in it).
+ALCCART9: an alchemist's workbench with glass flasks, a hanging brass lamp, a small chest and a pink curtain, in a stone chamber
+ALCEM2: an old bearded alchemist in a green robe reading a book at a long table with flasks, in a vaulted laboratory
+ALCSCRN0:
+ALCSCRN1:
+APROCH1: the silhouette of a walled medieval town with church towers and battlements against a golden dawn sky
+APROCH2: the silhouette of a walled medieval town with church towers and battlements against a blue evening sky
+ARIVE: a wide river or lake with green wooded shores and a small walled town on an island, under a cloudy sky
+ATAX11: a bearded man-at-arms in armour with a raised sword leading armed men charging out of a smoky doorway
+BADAL34: an evil hooded alchemist holding a glowing glass orb, with an armoured guard holding a battle axe behind him
+BADDALC: an old bearded alchemist in a blue robe and red cap seated on a carved chair, holding up a small flask
+BADDALC2: an old bearded alchemist in a blue robe and red cap seated on a carved chair, holding up a small flask
+BADDALC3: an old bearded alchemist in a blue robe and red cap holding up a flask, with a tent and bare winter trees behind him
+BAKED2: a burnt-out stone tower in flames and black smoke, a skull on the ground, a red dragon flying in a pink sky
+BANKER: the stern face of a bald old banker in a dark fur-trimmed robe with a white collar
+BANKER2: the stern face of a bald old banker in a dark fur-trimmed robe with a white collar
+BEAR: a faint grey outline of a great bear in the dark mouth of a cave
+BKGDALCM:
+BKSMITH: a wrought-iron blacksmith's sign with a hammer and anvil hanging from a bracket on a pale wall
+BOOM: a great burst of orange fire and smoke from an explosion
+BOTTLES: a few glass flasks and bottles of green and red glass beside a small wooden box on a table
+BRITTER: the face of a grim robber knight with a black eye patch, a scar, long grey hair and a forked beard
+CAMPCITY:
+CAMPWILD:
+CASTLE1: a great grey stone castle with many towers and walls on a hill above a river, in mist
+CHARGEN:
+CLOTH007: a cloth merchant in a dark blue robe and cap holding up a length of green cloth before draped fabrics
+CLOTH308: a cloth merchant in a dark blue robe and cap holding up a length of green cloth before draped fabrics
+CRETSCR3:
+CRETSCRN:
+DEADRO2: a dead knight in plate armour lying on his side on the ground in a pool of blood
+DEADROB: a dead knight in plate armour lying on his side on the ground in a pool of blood
+DHEAD: the head of a green-skinned horned demon with glowing red eyes and wild black hair
+DOCKDAY: a wooden quay running out to a harbour town with tall houses, a tavern sign hanging above, a boat moored below, in daylight
+DOOR21: a heavy iron-bound door with grim carved faces set in a stone wall
+DOOR22: a heavy iron-bound door with carved faces standing open, an armoured guard with a spear in the doorway
+EXPLSHN: a blinding flash of yellow and orange light filling the whole sky
+FIT13: a well-fed man in a blue doublet seated at a table with a goblet and a dagger, two men watching from the shadows of a vaulted room
+FOUNTAIN: an ornate stone fountain with carved figures and falling water on a stepped base in a town square
+GARG1: stone gargoyles with spread wings on the battlements of a grey castle wall
+GATEX: a fortified stone town gate with a bridge over a moat and church spires and half-timbered houses beyond
+GOODAL5: a kindly alchemist in a blue hooded cloak holding a glowing flask, a tent and trees behind
+GRAVSZ: an old churchyard with leaning gravestones and a stone cross under a bare tree, misty purple sky
+GUARD1: a town guard in a steel helmet and armour with a halberd, other guards behind him before a city wall
+HI-NOON: a walled town with a castle tower and a large church under a bright cloudy sky, mountains beyond
+KABOOM2: a cloud of black smoke and sparks bursting against a brick wall
+KNGHTBAD: a lone swordsman in a fighting stance holding a long sword, on a bare ground
+KNGHTCLO: a knight in full plate armour with his visor open, raising a long sword before his face in salute
+KNGT: a knight in plate armour with a plumed helmet and drawn sword, other armoured knights standing behind him
+KNOX: a brass lion's-head door knocker on an old wooden door
+KTEMPLR: a Templar knight in plate armour with a red cross on his white surcoat, raising a sword before his face, lilac sky
+KTEMPLR2: a Templar knight in plate armour with a red cross on his white surcoat, raising a sword before his face, orange sky
+LOADSCRN:
+MAIN-ST: the main street of a medieval German town with half-timbered houses, a gate tower with a clock and a stone fountain
+MEDICI: the face of a shrewd bald merchant patrician in a rich blue and green brocade robe
+MELEE: armoured soldiers with swords, shields and halberds clashing in a fierce melee
+MONKBELL: a hooded monk pulling a long bell rope
+MS008: a young man with a guilty look holding a bowl, drawn in sepia pencil
+MS015: a blacksmith working at an anvil with a hammer, drawn in sepia pencil
+MS016: the face of a weary peasant in a woollen cap, drawn in sepia pencil
+MS017: the face of a weary peasant in a woollen cap, drawn in sepia pencil
+MS018: a figure climbing a long rope, another waiting below, drawn in sepia pencil
+MS019: an armoured warrior with a raised sword seen from behind, drawn in sepia pencil
+MS020: an armoured warrior with a raised sword seen from behind, small in the distance, drawn in sepia pencil
+MS034: a pale green ghostly face looking out of a cracked mossy stone wall
+MS035: a pale green goblin face with pointed ears and a moustache looking out of a cracked stone wall
+MS038: tall gothic church windows of blue stained glass in a stone wall
+MS039: tall gothic church windows of blue stained glass, a pale wisp of light drifting across them
+MS040: tall gothic church windows of blue stained glass in a stone wall
+MS041: tall gothic church windows of blue stained glass with beams of light falling through them
+MS042: hooded monks kneeling before tall gothic stained glass windows, one with a tall staff, pale light drifting
+MS120: a preacher standing on steps before a great crowd in a town square with gabled houses and a church, drawn in red ink
+NONITE: an old white-bearded knight among dark bare trees with a great sword standing upright beside him
+PARCHED:
+PARCHED2:
+PARCHED3:
+PATH: a procession of pale hooded figures walking out of a misty white forest
+POST-UP: a man in a brown hat reading notices, rewards and wanted bills nailed to a wooden wall
+ROBBER: a scowling robber chief with an eye patch and grey beard leaning on a table, holding a glass, before a dark banner
+ROBDEAD: a dead knight in plate armour lying on the ground in blood, his sword beside him
+ROBHEAD: the face of a grim one-eyed robber with a grey beard emerging from a pale green mist
+ROBMEN2: two armoured robbers attacking, one swinging a sword, the other with a mace and a round shield
+STAIRS: a narrow stone stair beside a wooden door with an iron latch, inside an old tower
+STARTSCR:
+VILLAGE: a peaceful village of thatched half-timbered cottages among green trees and meadows, hills beyond
+VILLAGE3: a village burning at dusk, black smoke rising from its roofs under an orange sky, bare trees
+VILLAGE4: a red dragon flying low over a burning village at dusk, black smoke rising under an orange sky
+VIRGIN: a young woman in a white dress bound to a tall wooden post on a hilltop, her hair and dress blowing in the wind
+WALL: an armoured man with a sword climbing down a crumbling stone wall
+X2PIG: two huge wild boars with tusks charging out of tall grass
+XALTAR: hooded cultists in purple robes raising their arms before a stone altar in a dark brick vault
+XALTAR2: hooded cultists in brown robes raising their arms before a stone altar in a dark brick vault
+XALTENT: a dark tent in a forest clearing at night, a pennant on its pole, moonlight through the trees
+XAPROCH: the silhouette of a walled town with towers and spires under a starry night sky, dark pine trees
+XARCH: an old stone bridge arch over a stream, framed by ivy and leaves, a lilac evening sky
+XARMOR: an armourer's shop sign with a painted helmet hanging over a narrow town street
+XBAKED3: a burnt-out stone tower in flames and black smoke, a skull on the ground, a red dragon flying in a pink sky
+XBANDITS: two burly brutish bandits looming over the viewer seen from below, a large sword with its crossguard in the foreground, one raising a fist, the other holding a stone
+XBAPTISM: hooded figures standing in a misty forest watching two kneeling people at a woodland pool, in sepia tones
+XBEAR: a huge brown bear in the dark mouth of a rocky cave, glaring at the viewer, grey stone all around
+XBIGRED: the huge red scaly head of a dragon close up, a golden slit eye and long white fangs
+XBOOK: a closed red book with gold bands lying on a dark patterned stone floor
+XBOWYER: a bowyer's shop sign with a painted bow and target over a narrow street of half-timbered houses, a cart in the distance
+XBRIDGE: a green horned demon with a whip standing on an old stone bridge over a stream, bare trees in the mist behind
+XBRNBOOK: a red book with gold bands lying on charred wood, wisps of smoke curling around it
+XBSMOKE: an old stone bridge over a stream with black smoke rising behind it, bare trees in the mist
+XBUDLGHT: a forest of tall straight trees with golden sunlight streaming through onto a bright clearing
+XCASTLE2: a dark castle with many towers on a high rocky crag against a yellow sky
+XCAVE: a hunched cave-dwelling creature with long arms grinning in the timbered tunnel of a mine
+XCAVE2: an empty timbered tunnel of a mine disappearing into darkness
+XCAVE3: a long timber-framed mine gallery receding into darkness
+XCAVE4: a hunched creature with long arms and other shapes behind it in a long timber-framed mine gallery
+XCAVE5: a hunched cave-dwelling creature with long arms grinning in the timbered tunnel of a mine
+XCAVE6: a hunched creature with a spear and others behind it in a timber-framed mine gallery
+XCELL: a ragged prisoner huddled on the floor of a dark cell behind an iron grating
+XCHASE: two armed men running down a dark narrow street of tall half-timbered houses at night
+XCHEST: a large open wooden chest bound with iron, empty
+XCHESTFL: a large open wooden chest full of armour, a helmet, a sword and sacks
+XCHURCH: the domed bell tower of a church rising above steep red-tiled roofs of a German town, smoke from a chimney, a cloudy evening sky
+XCOAST: a dark headland silhouetted against a red sunset over a calm sea
+XCOAST2: a dark headland silhouetted against a starry night sky over a calm sea
+XCOOK: a hooded witch in a purple robe stirring a great iron cauldron, pale green steam rising, ghostly figures in the vapour, dark green background
+XCREEP: a knight in armour with a torch and a sword creeping along a dark vaulted corridor, a shadowy figure behind him
+XCREEP2: a knight in armour with a torch and a sword and a man in red creeping along a dark vaulted corridor, a shadowy figure behind them
+XDAMONK: hooded monks standing between the pillars of a cloister arcade, a pale spirit drifting among them
+XDCHRCH2: the silhouette of a great gothic cathedral with twin spires against a purple and red dusk sky
+XDCHURCH: the silhouette of a great gothic cathedral with twin spires against a golden sunset sky
+XDEDKGHT: a skeletal undead knight in dark armour with a skull-faced helmet holding a sword before a stone wall
+XDEDMONK: dead monks lying on the floor of a dark red chamber lit by candles
+XDEER: a stag leaping over a fallen log in an autumn forest of red and orange leaves
+XDESK: a writing desk with an open ledger, an inkwell and a quill
+XDMNPRNC: a huge dark shadowy demon with glowing eyes and a clawed hand wreathed in lightning, against an orange sky
+XDNITE: an old white-bearded knight among dark bare trees at night, a great sword standing upright beside him
+XDOCK: a harbour at night, a ship moored by a stone quay, a lantern-lit tavern sign hanging from a wall
+XDOGWOOD: black wolves with glowing eyes among twisted dark trees at dusk
+XDOORWAY: a stone doorway with an open wooden door and a stair leading down into darkness
+XDRAG: a great red dragon with spread wings coiled on a hoard of gold in a dark cave
+XDRAGKN: an old white-bearded knight in armour seated among dark trees, a great sword standing upright beside him
+XDRWAY2: a stone doorway with a wooden door swinging open on a stair leading down into darkness
+XDRWAY3: a stone doorway with a wooden door hanging half off its hinges, a stair leading down into darkness
+XDUNGEON: a skeleton and a rat in a stone niche beneath a wooden beam in a dungeon
+XDWARM: an armoured dwarf with a spear and a shield in a stone passage
+XELUDE: an armoured man running out through a stone archway, a church spire beyond
+XFIRE: a ring of hooded figures standing around a great bonfire in a dark pine forest at night
+XFIRE2: a castle tower in flames, black smoke billowing across a red night sky
+XFIT11: a well-fed man in a blue doublet seated at a table with a goblet and a dagger, two men beside him, gothic windows behind
+XFORTMON: a ruined grey fortress-monastery with towers on a hill, broken graves and crosses in the foreground, at dusk
+XGARG2: stone gargoyles with spread wings on the battlements of a castle wall at night under dark clouds
+XGHOST: pale ghostly figures swirling around a church tower under a full moon at night
+XGRDOOR: two knights in plate armour with tall shields guarding a great wooden double door
+XGROVE1: a green forest path running under an arch of tall trees toward a misty light
+XGROVE27: a forest clearing at night ringed by dark trees, a full moon in a starry sky
+XGRV1: a lonely gravestone with a cross under a bare twisted tree in a misty field
+XGRV2: an old churchyard with leaning gravestones and a stone cross under a bare tree, misty purple sky
+XGRV3: a winged horned demon rising from among the gravestones of a misty churchyard
+XGRV4: a skeleton in rusty armour lying in an open grave among weeds and orange flowers
+XHALL: a long empty stone hall with dark wooden beams overhead and a doorway at the far end, in green gloom
+XHALLHRN: a long stone hall with antlered stags' heads mounted along the wall, in green gloom
+XHALLTRP: a long stone hall with dark beams and an open trapdoor in the floor, in green gloom
+XHIDDEN: rough men with cudgels hiding among dense dark bushes and trees, an orange evening sky above
+XHIDDEN2: rough men with cudgels hiding among dense dark bushes and trees, an orange evening sky above
+XHOUND: a monstrous red hellhound with bared fangs leaping out of a pine forest under an orange sky
+XHUNT: a dark forest under a deep blue night sky, a full moon with the face of a skull above the treetops
+XINKWELL: an inkwell with a quill and a stack of written papers on a desk
+XJBROWN: an old stone bridge over a stream among bare trees in a grey mist
+XJOUSTSK: a knight in armour on a white caparisoned horse holding a lance with a pennant
+XKBOLD2: a pack of squat tusked kobolds with picks creeping through a dark green mine gallery
+XKEEP: a tall square stone keep looming in grey fog behind bare trees
+XKNTBAD: a lone swordsman in a fighting stance holding a long sword
+XKNTDEMO: a dark knight with a demonic red face under his helmet holding up a sword, a red cross on his chest
+XKNTEVIL: a dark knight in spiked armour holding up a sword before a brick wall, a red cross on his chest
+XKTDEMON: a demonic knight in spiked armour holding up a sword, flames below him
+XKTEMPDK: a grim bearded Templar knight in dark armour holding up a sword, a red cross on his chest
+XKTWOOD: a knight with a plumed helmet and drawn sword before other armoured knights in a green wood
+XLANDHO: a riverbank with ferns and a great tree, a town on the far shore across the water
+XMINER4: a miner with a lantern and a pick in a dark timbered mine gallery, in red-brown tones
+XMINER5: a miner with a lantern and a pick in a dark timbered mine gallery, in red-brown tones
+XMOB: an angry mob of townsfolk shouting and shaking their fists, crowding toward the viewer, in olive tones
+XMOBGLAD: a crowd of townsfolk shouting and raising their arms, crowding toward the viewer, in brown tones
+XMQHOLE: a man looking up in fear from the bottom of a deep stone pit as rocks fall around him
+XMQHOLE2: the bottom of a deep stone pit with rubble and fallen rocks
+XMS001: a stone dungeon wall with an iron-barred door lit from behind, a tall iron candelabrum with lit candles beside it
+XMS002: the dark shape of a winged demon looming behind a tall iron candelabrum with lit candles, in deep blue darkness
+XMS003: a tall iron candelabrum with lit candles in deep blue darkness
+XMS004: a grey stone gargoyle with spread wings crouching on a pedestal, in deep blue darkness
+XMS005: a grey stone gargoyle with spread wings behind a tall iron candelabrum with lit candles, in deep blue darkness
+XMS006: a hooded swordsman and a man in a steel helmet with a long sword before a stone archway, in red tones
+XMS007: two grey winged dragons with red eyes rearing face to face before a black curtain
+XMS009: two horned winged demons crouching side by side in a misty grey forest
+XMS010: two horned winged demons crouching side by side in a purple misty forest
+XMS011: a row of horned winged demons crouching in a purple mist, their reflections fading below
+XMS012: two horned winged demons crouching side by side in a purple misty forest
+XMS013: a man in a wide-brimmed hat raising two fingers in blessing, drawn in sepia pencil
+XMS014: a man in a wide-brimmed hat raising two fingers in blessing, drawn in sepia pencil
+XMS021: demonic knights riding black horses out of the flames of hell, lances raised, a red and black sky
+XMS022: demonic knights on black horses charging through flames, in red and black
+XMS023: a demonic knight on a black horse charging through flames, in red and black
+XMS024: a horned demonic knight on a snarling hellish horse with red eyes, flames behind
+XMS025: a golden-armoured demon with a winged helmet and glowing eyes holding a spear before a barred stone archway, flames at his feet
+XMS026: a young man with a guilty look holding a bowl, drawn in sepia pencil
+XMS027: a red stone wall with an arched iron portcullis, closed
+XMS028: a dark pine forest under a purple night sky with a striped moon, a castle on a far hill
+XMS029: a red stone wall with an open arched gateway into darkness, the portcullis raised
+XMS030: a grey stone wall with an open arched gateway, a lit doorway far inside
+XMS031: a red stone wall with an open arched gateway, a dim armoured figure standing in the darkness inside
+XMS032: a red stone wall with a small barred arched window
+XMS033: a red stone wall with a barred arched opening
+XMS036: two guards with halberds silhouetted in a bright pointed stone archway under a raised portcullis
+XMS037: two guards with halberds silhouetted in a golden-lit pointed stone archway under a raised portcullis
+XMS043: the dark gabled roofs and lit windows of a town at dusk in a purple mist, church spires beyond
+XMS044: a grey stone wall with a small barred wooden door at its foot
+XMS045: a grey stone wall with a small dark barred door at its foot
+XMS046: a stormy sky of swirling blue clouds and red fire over a green sea
+XMS047: two guards in armour with halberds standing at a tall red iron-barred gate, mist around them
+XMS048: two guards in armour with halberds standing at a tall purple iron-barred gate, mist around them
+XMS049: a grim bald man in a pale robe standing in the dark doorway of a barred stone cell
+XMS050: a plain grey stone wall
+XMS051: a plain grey stone wall
+XMS052: a blazing red comet streaking across a black starry sky, dark wings beneath it
+XMS053: the shattered wreckage of a wooden ship scattered on a pale shore, drawn in ink
+XMS054: a great arched iron-bound double door with brass lion knockers set in a stone wall
+XMS055: pillars of fire burning on the black water of a dark underground lake
+XMS056: a dark misty forest of bare grey trees with a winding path
+XMS057: a dark misty forest of bare grey trees with a winding path
+XMS058:
+XMS059:
+XMS060: rays of light streaming across a red brick wall with a row of pointed black arched windows
+XMS061: a storm of coloured streaks and lightning over a dark sea
+XMS062: a great double arched gate of iron bars in a grey stone wall, warm light beyond
+XMS063: a grey-blue stone dungeon wall dripping with damp
+XMS064: a brown stone dungeon wall dripping with damp, a small barred lantern on the floor
+XMS065: an old grey-bearded man with wild hair before a stone arcade with pointed arches, rays of light behind him
+XMS066: a town wall at dusk with halberds and pikes standing along the battlements and dark gabled houses beyond
+XMS067: an old grey-bearded man with wild hair before a stone arcade with pointed arches, rays of light behind him
+XMS068: an old grey-bearded man with wild hair speaking, before a stone arcade with pointed arches
+XMS069: an old grey-bearded man with wild hair before a stone arcade with pointed arches, rays of light behind him
+XMS070: Death as a skeleton riding a gaunt horse and holding up a pair of golden scales before a barred window
+XMS071: a pale gaunt figure in a dark cloak holding up golden scales in a stone vault
+XMS072: a hooded monk standing beside a barred window in a red stone wall
+XMS073: a curving purple stone tunnel with broken rock on the floor and a glass orb holding something green
+XMS074: a curving purple stone tunnel with broken rock on the floor
+XMS076: a dark red cavern of hell with glowing embers below
+XMS077: a dark red cavern of hell with glowing embers and a pillar of sparks
+XMS078: a dark red cavern of hell with a rain of falling sparks and a pillar of glowing embers
+XMS079: a shapeless many-armed horror of brown smoke with a burst of light at its heart, in a red darkness
+XMS080: a great iron portcullis glowing red-hot in a stone archway, two carved stone figures beside it
+XMS081: a white castle with many towers on a high hill above a winding road, a full moon in a purple sky
+XMS082: a bloody shattered body on a grey stone floor in a hall lit by candelabra, lightning crackling around
+XMS083: a dark hooded figure with a glowing lamp beside a stone archway filled with red and yellow fire
+XMS084: a green many-headed hydra coiling toward the viewer across a stone floor, flames and smoke behind
+XMS085: a green many-headed hydra on a stone floor in a hall of flames and smoke
+XMS086: a green many-headed hydra small in the distance on a stone floor in a hall of flames and smoke
+XMS087: a fading ghostly green hydra on a stone floor in a hall of flames and smoke
+XMS088: a green many-headed hydra breathing red fire across a stone floor, flames and smoke behind
+XMS089: a green many-headed hydra coiling toward the viewer across a stone floor, flames and smoke behind
+XMS090: a green many-headed hydra coiling toward the viewer across a stone floor, flames and smoke behind
+XMS092: a red book bound with straps lying on the floor of a curving purple stone tunnel
+XMS093: a dark cavern of hell hung with twisted shapes in deep red shadow
+XMS094: a dark cavern of hell with chains hanging down and glowing embers
+XMS095: a vast hall of hell with a glowing grid of fire on the floor and swirling smoke
+XMS096: a cavern of hell with a lake of fire and jagged dark rocks
+XMS097: a great column of fire rising from a burning floor in a red hellish cavern
+XMS098: a sea of flames rolling across a hellish cavern
+XMS099: a hellish cavern with walls of fire and burning pools
+XMS100: a sea of flames rolling across a hellish cavern
+XMS101: a dark cavern of hell with pale stalagmites and glowing embers
+XMS102: a dark cavern of hell with pale stalagmites over a burning floor
+XMS103: a dark doorway in a grey stone wall overgrown with dark creepers
+XMS104: demonic knights and a blazing golden fiery spirit in a red hellish cavern hung with chains
+XMS105: the pale bald head of a demon lord leering over a swarm of giant locusts with glowing wings
+XMS106: a swarm of giant locusts with glowing wings in a dark red sky
+XMS107: the common room of a tavern with arched windows, tables and chairs, guests eating and a man at the door
+XMS108: the common room of a tavern with arched windows, tables and chairs and a few guests
+XMS109: the common room of a tavern with a stair, tables and guests, a woman coming down the stairs
+XMS110: a dim tavern at night with guards with halberds standing by the tables, a guest drinking alone
+XMS111: a dim tavern at night with rough men gambling and drinking at the tables
+XMS112: a dim tavern at night with armed guards beside a table where a man sits with a candle
+XMS113: a dim tavern at night with a few drinkers sitting at the tables by candlelight
+XMS114: a great arched double door standing open in a stone wall, a beam of light falling into the dark passage beyond
+XMS115: a great arched double door standing open in a stone wall, mist drifting in the dark passage beyond
+XMS116: a huge pale ghostly mask-like face floating over a dark pine forest under a purple night sky
+XMS117: a half-timbered wall with closed wooden shutters and a dark door bound with iron
+XMS118: a gaunt old man in a purple cloak holding up golden scales before a barred window
+XMS119: a skeletal gaunt figure in a purple cloak raising its arms before a barred window
+XMS122: a closed arched wooden door in a dark stone wall
+XMS123: an arched wooden door standing ajar in a dark stone wall
+XMS124: an open arched doorway into darkness in a dark stone wall
+XMS125: a preacher standing on steps before a great crowd in a town square with gabled houses and a church, drawn in red ink
+XMS126: a single lit candle on a wooden table in a dark room with red wooden walls
+XMS127: two covered wooden wagons with yellow canvas roofs, one hitched behind the other, on a pale road
+XMS128: a green scaly serpent-like monster rearing up in a dark cavern, blood at its feet
+XMS129: a huge spider with long legs and many glowing eyes looming over the viewer in a dark red cave
+XMTLAKE: a lake below snowy mountains with a small walled town on its shore, under a grey cloudy sky
+XMTRANGE: a range of snow-capped mountains rising beyond a green plain, under a grey cloudy sky
+XNCHRCH: a dark church with a tall spire silhouetted against a full moon at night, bats in the sky
+XNMAIN: the main street of a medieval German town at night, half-timbered houses with lit windows, a gate tower and a fountain
+XNMONK: hooded monks with candles walking in procession through a dark cloister arcade at night
+XNOST:
+XNW: a watchman in a helmet with a lantern and a knight in armour with a sword in a dark town street at night
+XNW3: a dead knight lying among smoke and scattered coins on a cobbled street, a lantern burning beside him
+XNW77: a thief in dark clothes running away across a cobbled square at night, a dropped lantern and a sword on the ground
+XNYTMARE: a nightmare of faces: a hooded woman, a screaming bearded man, a horned demon, in orange and purple
+XOLDMAN: an old white-bearded man with a staff in a dark robe in green hills, small standing stones behind him
+XPAIN: two knights in plate armour with tall shields guarding a great wooden double door
+XPORTCUL: an armoured guard with a spear beside a great iron portcullis in a stone archway
+XPRESTES: a dark-haired sorceress in a purple gown seated on a high carved throne, a crystal ball on a table beside her
+XPRISNR: an old bearded prisoner chained by the ankle, slumped on a wooden bench in a stone cell
+XPRTYLDY: a lady in a pale gown and a tall pointed hennin standing in green hills, small figures behind her
+XPURSE: a leather purse spilling gold coins on the ground in a dim brown room
+XRC: a grim stone castle on a rock in a stormy sea, waves breaking below, a dark blue sky
+XREDRG: a great red dragon with spread wings coiled on a hoard of gold in a dark cave
+XRIVER: a three-masted sailing ship on a calm river at sunset, dark hills behind, a red sky
+XRUN: a man running toward the viewer through a long timber-framed mine gallery
+XRUN2: a man running away down a long timber-framed mine gallery
+XSEASTM2: a sailing ship tossed by great waves in a storm at sea at night, in blue
+XSEASTRM: a brown wooden sailing ship tossed by great waves in a storm at sea at night
+XSERVGIL: a pale young woman with long fair hair in a dark shawl, standing in a pink mist
+XSEWER2: a vaulted brick sewer tunnel with dark water and a green light at the far end
+XSEWER3: a vaulted brick sewer tunnel with dark water blocked by an iron grating, a green light beyond
+XSHRAT1: a shaggy schrat, a wild wood spirit with a long green beard and moss-covered body, among tall trees
+XSID: a figure in a doorway between a dark stone wall and a street of tall half-timbered houses
+XSIDE: a narrow side street between leaning half-timbered houses, a few people in the distance
+XSTMTIDE: a great dark storm wave rolling across the sea at night
+XSUMBOOK: a summoning circle with a pentagram on a stone floor in green hills at dusk, a book lying in it, standing stones behind
+XSUMM: a summoning circle with a pentagram on a stone floor in green hills at dusk, standing stones behind
+XSUMMALT: a hooded figure in a brown robe standing in a summoning circle in green hills at dusk, standing stones behind
+XSUMMBRM: a hooded figure standing before a ring of standing stones in green hills, small winged demons flying above
+XSUMMNNG: a horned red demon rising in smoke above a hooded summoner in a circle of candles, all in red
+XSUMMON: a hooded figure raising its arms in a summoning circle of candles in green hills at dusk
+XSUMONED: a burning pentagram circle on the ground with black smoke billowing up in green hills
+XTEMPAT1: a blond bearded Templar knight in armour with a red cross holding up a sword in a stone doorway, others behind him
+XTEMPGRD: a dark armoured guard in a helmet standing in a stone doorway
+XTEMPSTK: a Templar knight with a red cross holding up a sword, hooded figures burning at stakes in a dark forest behind him
+XTHANKS: a merchant handing goods over the counter of an open shop front in a narrow town street, people walking by
+XTIPSEY: a merry woman in a pink dress and white headscarf laughing and offering a green bottle, in green hills
+XTMPLORD: a demonic horned knight in armour with a red cross on his blue surcoat lunging with a sword in a brick hall
+XTOWER: an armoured man climbing a rope down the outside of a stone tower at night, a crescent moon
+XTOWN: a town square seen from above with a gothic church with twin spires, half-timbered houses and a fountain, a rider crossing
+XTOWN2: a town square seen from above with a gothic church with twin spires, half-timbered houses and a fountain, a rider crossing
+XTREE: an ancient oak with a vast spreading crown of branches in an orange dusk
+XTROLL2: a hulking brutish creature with a club in a timber-framed mine gallery
+XTRSCHST: an open chest spilling gold coins and a sword hilt in a dim brown room
+XUGLYMAN: a sly man with a wide hat, long grey hair and a pilgrim's staff in green hills, a cottage and travellers behind
+XVC1: a ruined stone castle with a half-timbered tower on a rocky river bank under a grey cloudy sky
+XVILAGE4: a red dragon flying low over a burning village at dusk, black smoke rising under an orange sky
+XVILLA: a huge red demonic face with glowing eyes looming in a blood-red sky over a village
+XVILLA3: a village burning at dusk, black smoke rising from its roofs under an orange sky, bare trees
+XWATCH2: a watchman in a white tunic with a lantern and a sword on a misty grey road
+XWATRFAL: a waterfall plunging over a dark cliff in white spray and mist
+XWFSNTRY: a great grey wolf with glowing eyes standing on a green hill at dusk, standing stones behind
+XWHUNT: the Wild Hunter, a giant horned muscular figure with a spear and a blue cloak, in a burning autumn forest
+XWITBRGN: a frightened young woman with long fair hair in a grey shawl crouching at the edge of a dark forest at dusk
+XWOLF: a black wolf with bared fangs and a red tongue leaping toward the viewer in an autumn forest
+XWOLF3: a pack of grey wolves with glowing eyes crouching in dark undergrowth at dusk

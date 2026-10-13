@@ -15,14 +15,16 @@ option 0                                   # pay the toll
   chance none
   ok     pay money1; text 1; exit
 option 1                                   # talk your way across
+  who    bestattr(Cha)
   chance clamp(1, 95, fame / 2 + skill(who, SpeakCommon) + attr(who, Cha) / 3)
-  ok     text 2; practice who, SpeakCommon, 1, 10, 0; exit
-  fail   text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
+  ok     chosen who; text 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
 option 2                                   # ford the river downstream
   who    party
   chance clamp(10, 85, avgagility + avgskill(Woodwise) / 2)
   ok     text 4; hours 3; practice party, Woodwise, 1, 10, 0; exit
-  fail   text 5; hours 4; keepitems party, clamp(50, 95, avgagility + 30); practice party, Woodwise, 0, 10, 0; exit
+  fail   chosen slowest; text 5; hours 4; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 50)
+         practice party, Woodwise, 0, 10, 0; exit
 option 3 saint
   ok     text 6; exit
   fail   text 7
@@ -40,6 +42,6 @@ do       battle Clearing, Mercenary, random(2) + lore / 4 + 1, random(4) + 3, Ra
          if result == Surrendered then { loseitems party; hours 2; text 13; exit }
          hours 1; loseitems party; text 12; exit
 [won]
-do       money1 random(240) + 120; gain money1; text 10; hours 1; fame 2; reputation 1, 5; exit
+do       money1 random(120) + 60; gain money1; text 10; hours 1; fame 2; reputation 1, 5; exit
 [fled]
 do       rejoin; until 18; text 11; exit

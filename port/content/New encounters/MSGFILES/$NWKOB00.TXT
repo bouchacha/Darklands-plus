@@ -1,23 +1,25 @@
-# $NWKOB00: kobolds in the mine (New encounters)
+# $NWKOB00: kobolds at the mine (New encounters)
 === card 0: 10 10 0 240 0 ===
 Smoke rises from a cluster of huts at the mouth of a mine. The miners crowd around you, grim and frightened.
-\14"Something haunts the deep galleries," the foreman says, crossing himself. "Lamps go out, tools vanish, and two men who went down did not come back. Kobolds! Drive them out and we'll pay you $Money1."
-\14\15...\1dtake lamps and go down into the mine.
+\14"Something comes up out of the deep galleries at night," the foreman says, crossing himself. "Lamps stolen, tools gone, and two men who went down to see did not come back. The old ones say it is the little folk of the mountain. Rid us of them, and we'll pay you $Money1."
+\14You...
+\14\15...\1dkeep watch at the mine mouth tonight.
 \16...\1dbless the mine in the name of a saint.
 \15...\1dleave the miners to their troubles.
 === card 1: 10 10 0 240 0 ===
-You are lighting your lamps at the mouth of the mine when the tapping deep below stops all at once. A chorus of thin giggles rises out of the dark, and then they come swarming up the ladders: small grey shapes with lamp-bright eyes and wicked little picks!
+Near midnight the tapping deep in the mountain stops all at once. A chorus of thin, quavering meeps rises out of the shaft, and then they come swarming up the ladders: squat, sinewy shapes with gross tusks and wicked little picks. Kobolds, the sinister goblins of the mines!
+\14Whatever drives them up out of the deep, they are hungry and desperate.
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName prays at the mine mouth while the miners kneel. As the prayer ends, a cold wind sighs up from the shaft, and then all is still.
-\14The miners are not sure the kobolds are gone, but they pay you half the promised sum, $Money1, and promise more masses for the saint.
+\14The miners are not sure the creatures are gone for good, but they pay you half the promised sum, $Money1, and promise masses for the saint.
 === card 3: 10 10 0 240 0 ===
 You pray, but from deep in the earth the tapping goes on, mocking and steady. The miners look at you doubtfully.
 === card 4: 10 10 0 240 0 ===
 The miners watch you go in sullen silence. Behind you, the foreman spits into the dust.
 === card 5: 10 10 0 240 0 ===
 The last of the little horrors flee shrieking back into the mine and down into cracks too narrow for any man. Silence returns to the galleries.
-\14The miners cheer, and the foreman counts out $Money1 into your hands. Tales of the kobold-slayers will be told in the alehouses for years.
+\14At dawn the foreman counts out $Money1 into your hands. "Kobolds," he mutters. "In my grandfather's day they were no trouble to anyone. Something down there has stirred them up."
 === card 6: 10 10 0 240 0 ===
-You flee down the valley with the creatures' laughter echoing behind you. When you creep back, the kobolds have vanished into the mine, and the miners will not meet your eyes.
+You flee down the valley with the creatures' meeping laughter behind you. When you creep back at dawn, they have vanished into the mine, and the miners will not meet your eyes.
 === card 7: 10 10 0 240 0 ===
-You wake among the spoil heaps, your heads ringing, your packs and purses gone. The kobolds have dragged everything down into the mine, and of your belongings there is no trace.
+The kobolds swarm over you and strip you of everything they can carry. When you come to among the spoil heaps at dawn, your packs and purses are gone, dragged down into the mine where no one will ever find them.

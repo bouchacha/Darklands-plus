@@ -2,14 +2,19 @@
 === card 0: 10 10 0 240 0 ===
 Thick smoke drifts between the trees from a great mound of earth and turf: a charcoal kiln. Its keepers, three men black with soot, eye you warily, then wave you over.
 \14"Sit, warm yourselves. There's pottage enough. We see few honest folk out here."
+\14You...
 \14\15...\1dshare their pottage and rest by their fire.
 \15...\1dhelp them tend the kiln.
 \15...\1dthank them and move on.
 === card 1: 10 10 0 240 0 ===
-The pottage is thin but hot, and the burners' talk is of the forest: of the wolves this winter, the lord's foresters, and the strange lights in the old oak wood. You sleep soundly by the warm kiln and wake refreshed.
+The pottage is thin but hot, and the burners' talk is of the forest: of the wolves this winter, the strange lights in the old oak wood, and the lord's foresters. "Worse than any wolf," says one, "and they don't stop at a sheep."
+\14You sleep soundly by the warm kiln and wake refreshed.
 === card 2: 10 10 0 240 0 ===
-The burners show $ChosenOneName how to smother the flames with fresh turf where the smoke breaks through. It is hot, filthy work, but by noon the kiln is sealed, and the burners pay you what little they can: $Money1.
+The burners show $ChosenOneName how to smother the flames with fresh turf wherever the smoke breaks through. It is hot, filthy work, but by the time the kiln is sealed again the burners have taken to $him, and they pay you what little they can: $Money1.
 === card 3: 10 10 0 240 0 ===
 As $ChosenOneName climbs the mound, the crust gives way and $his leg plunges into the glowing heart of the kiln. The burners drag $him out, beat out the flames and bind the burns with grease and leaves.
 === card 4: 10 10 0 240 0 ===
 The burners nod and turn back to their kiln. Soon the smoke is lost among the trees behind you.
+=== card 5: 10 10 0 240 0 ===
+The pottage is thin but hot, and the burners' talk is of the forest: of the wolves this winter, the strange lights in the old oak wood, and the lord's foresters. "Worse than any wolf," says one, "and they don't stop at a sheep."
+\14After a few hours by the warm kiln you take to the road again, rested.

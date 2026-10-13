@@ -7,7 +7,7 @@ when     day
 weight   1
 
 [start]
-do       money1 clamp(60, 720, money / 4)
+do       money1 clamp(24, 240, money / 10)
 block    0
 chosen   bestskill(Religion)
 option 0                                   # buy the relic
@@ -17,7 +17,7 @@ option 0                                   # buy the relic
 option 1                                   # examine it closely
   who    bestskill(Religion)
   chance clamp(5, 95, skill(who, Religion) + attr(who, Int) / 3)
-  ok     chosen who; text 2; practice who, Religion, 1, 10, 0; attr party, DF, 2; exit
+  ok     chosen who; text 2; practice who, Religion, 1, 10, 0; attr party, DF, 1; exit
   fail   chosen who; text 3; practice who, Religion, 0, 10, 0; money1 money1 / 2; disable 1
 option 2                                   # send him on his way
   chance none
