@@ -1173,7 +1173,7 @@ static void draw_battle_info(void)
         }
         if (best >= 5 && st == 1) {
             /* its body armour against the party's weapons (the game's rule, as in the armour
-               tooltips: penetration below the hardness turns most of the blow, equal halves it,
+               tooltips: penetration below the hardness deflects most of the blow, equal halves it,
                above pierces and wounds strength) */
             int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
             static const char *HN[6] = { "no armour", "soft armour", "stiff armour", "scale armour", "mail", "plate" };
@@ -1192,7 +1192,7 @@ static void draw_battle_info(void)
                         if (wn.empty()) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
                         if (r < worst) worst = r;
-                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is turned");
+                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is deflected");
                     }
                     if (worst == 3) continue;
                     ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);
