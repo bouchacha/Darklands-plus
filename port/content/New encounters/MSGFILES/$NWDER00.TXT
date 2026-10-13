@@ -1,0 +1,36 @@
+# $NWDER00: the lord's deer (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A great stag steps out onto the path ahead of you and stands, head high, scenting the wind. Venison! Your mouths water at the thought.
+\14But these are surely some lord's woods, and his game is his alone. Poachers lose a hand, or hang.
+\14\15...\1dshoot the stag.
+\15...\1dlet it go.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName's shot takes the stag cleanly. You butcher it quickly in the bushes, roast what you can eat and leave the rest for the foxes. It is the best meal you have had in weeks.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName's shot goes wide. With a snort the stag bounds away into the forest and is gone.
+=== card 3: 10 10 0 240 0 ===
+The stag looks at you a moment longer, then turns and walks unhurriedly away into the trees.
+=== card 4: 10 10 0 240 0 ===
+"Poachers!" Men in green spring from the undergrowth, bows drawn: the lord's huntsmen.
+\14"The penalty is a hand," says their master, "but my lord prefers silver. $Money1, or you come with us."
+\14\15...\1dpay the fine.
+\15...\1dclaim to be the lord's own guests.
+\15...\1drun for it.
+\06...\1dfight the huntsmen.
+=== card 5: 10 10 0 240 0 ===
+The master of the hunt weighs the coins in his hand, then nods. "Keep to the road from now on."
+=== card 6: 10 10 0 240 0 ===
+"Does your master not know us?" $ChosenOneName says indignantly. "We are his guests, and he bade us take whatever game we liked!"
+\14The huntsmen exchange uneasy glances. Not one of them wants to explain to his lord why they arrested his guests. They let you go.
+=== card 7: 10 10 0 240 0 ===
+"Guests, is it? Then you'll not mind coming to the castle so he can welcome you." The huntsmen close in.
+=== card 8: 10 10 0 240 0 ===
+You crash away through the thickets. Arrows hiss past you, but the huntsmen cannot follow you through the tangled forest.
+=== card 9: 10 10 0 240 0 ===
+You run, but the huntsmen know these woods far better than you do. They cut you off in a ravine.
+=== card 10: 10 10 0 240 0 ===
+The huntsmen are dead or fled. Their lord will hear of this, and so will every bailiff and burgher in these parts.
+=== card 11: 10 10 0 240 0 ===
+You scatter into the forest. Only at dusk do you find each other again.
+=== card 12: 10 10 0 240 0 ===
+The huntsmen beat you senseless. When you wake, your purse is lighter by $Money1: the lord's fine, collected in full.

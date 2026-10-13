@@ -1,0 +1,28 @@
+# $NWLST00: the lost child (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Voices ring through the trees: villagers with cudgels and torches are searching the woods. A woman runs to you, wild-eyed.
+\14"My little Grete! She went for berries yesterday and never came home. They say there are wolves, or worse, the wild women of the forest..."
+\14\15...\1dhelp them search.
+\16...\1dpray to a saint for the child.
+\15...\1dwish them luck and go on your way.
+=== card 1: 10 10 0 240 0 ===
+Deep in the forest you find little Grete asleep in the hollow of a great beech, her basket of berries beside her, cold and hungry but unharmed.
+\14The villagers weep and laugh and press bread and cheese on you, and the priest blesses you in front of the whole village. You leave with warm hearts.
+=== card 2: 10 10 0 240 0 ===
+You search until the light begins to fail, but find only a torn shawl caught on a bramble.
+=== card 3: 10 10 0 240 0 ===
+At last you leave the villagers to their search. You pray that the child will be found.
+=== card 4: 10 10 0 240 0 ===
+As the prayer ends, a strange certainty comes over you. Without a word you leave the path and walk straight into the forest, as if someone were leading you by the hand.
+=== card 5: 10 10 0 240 0 ===
+You pray, but no sign is given.
+=== card 6: 10 10 0 240 0 ===
+"God keep her," you say, and leave the villagers to their search. Their calls fade behind you among the trees.
+=== card 7: 10 10 0 240 0 ===
+As dusk falls you hear a child crying, and with it a low growling. Gaunt grey shapes circle a hollow tree: wolves, and the girl inside!
+=== card 8: 10 10 0 240 0 ===
+The last of the wolves slinks away, whining. From inside the hollow tree a small, tear-stained face peers out at you.
+=== card 9: 10 10 0 240 0 ===
+You run from the pack. Behind you the howling rises, and then, horribly, stops.
+=== card 10: 10 10 0 240 0 ===
+The villagers find you at dawn, torn and bleeding, drawn by the wolves' howling. Of the child there is no trace.

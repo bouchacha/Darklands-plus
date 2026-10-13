@@ -729,6 +729,36 @@ static void draw_picture_name(void)
     dl->AddText(p, IM_COL32(255, 230, 160, 255), t);
 }
 
+/* the seal of a new encounter (mods/encounters.c): a little red wax seal in the corner of the card,
+ * so the player can tell it from the game's own; its tooltip names it */
+extern "C" int encounters_card_active(void);
+extern "C" const char *encounters_title(int i);
+static void draw_new_encounter_seal(void)
+{
+    int a = encounters_card_active();
+    if (!a || game_mode() != GM_CARD || !config_get_int("encounters.seal", 1)) return;
+    ImDrawList *dl = ovl_list();
+    ImVec2 c = g2w(307.0f, 14.0f), e = g2w(313.0f, 14.0f);
+    float r = e.x - c.x; if (r < 7) r = 7;
+    const int N = 14;                                    /* the blob of wax: a wobbly rim */
+    ImVec2 pts[N];
+    for (int i = 0; i < N; i++) {
+        float t = (float)i / N * 6.2831853f, rr = r * (1.0f + 0.09f * sinf(t * 3.0f + 0.7f) + 0.05f * sinf(t * 5.0f));
+        pts[i] = ImVec2(c.x + cosf(t) * rr, c.y + sinf(t) * rr);
+    }
+    dl->AddConvexPolyFilled(pts, N, IM_COL32(118, 22, 18, 235));
+    dl->AddPolyline(pts, N, IM_COL32(60, 8, 6, 220), ImDrawFlags_Closed, r * 0.12f);
+    dl->AddCircle(c, r * 0.68f, IM_COL32(178, 62, 48, 230), 20, r * 0.11f);
+    float k = r * 0.36f, w = r * 0.13f;                  /* a cross pattee in the middle */
+    dl->AddRectFilled(ImVec2(c.x - w, c.y - k), ImVec2(c.x + w, c.y + k), IM_COL32(196, 84, 64, 240));
+    dl->AddRectFilled(ImVec2(c.x - k, c.y - w), ImVec2(c.x + k, c.y + w), IM_COL32(196, 84, 64, 240));
+    ImVec2 mp = ImGui::GetIO().MousePos;
+    if ((mp.x - c.x) * (mp.x - c.x) + (mp.y - c.y) * (mp.y - c.y) < r * r * 1.4f) {
+        char t[200]; snprintf(t, sizeof t, "A new encounter: %s\n(from a mod, not the original game)", encounters_title(a - 1));
+        ImGui::SetTooltip("%s", t);
+    }
+}
+
 static void draw_lcd(void);
 /* short notices ("Game saved"), bottom centre, for a few seconds */
 static char notice[160]; static u32 notice_t;
@@ -1307,6 +1337,7 @@ extern "C" void ui_overlay(void)
     travel_overlay();
     travelmap_labels();
     draw_picture_name();
+    draw_new_encounter_seal();
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_info();

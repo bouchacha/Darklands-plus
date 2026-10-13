@@ -1,0 +1,38 @@
+# $NWRBR00: the robber knight's bridge (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the road crosses the river stands a squat stone tower, and a chain is stretched across the bridge. Armed men lounge there under a banner you do not know.
+\14"Toll!" calls their sergeant. "By right of Herr Kuno, lord of this crossing: $Money1, or turn back." Kuno is a robber knight, with no more right to a toll than any highwayman.
+\14\15...\1dpay the toll.
+\15...\1dtalk your way across.
+\15...\1dfollow the river and look for a ford.
+\16...\1dpray to a saint for safe passage.
+\06...\1dattack the toll-takers.
+\15...\1dturn back and seek another crossing.
+=== card 1: 10 10 0 240 0 ===
+The sergeant counts your coins twice, bites one, and waves to the men at the winch. The chain drops and you cross, feeling robbed.
+=== card 2: 10 10 0 240 0 ===
+"We are expected at the court of the Emperor's own bailiff," $ChosenOneName says loftily, "who will be most interested to hear how his messengers were stopped on the road."
+\14The sergeant hesitates, mutters something about Herr Kuno's temper, and lowers the chain.
+=== card 3: 10 10 0 240 0 ===
+The sergeant only laughs. "And I'm the Bishop of Bamberg! Pay or turn back."
+=== card 4: 10 10 0 240 0 ===
+A few miles downstream you find a ford, the water no deeper than your waists. You cross without trouble and rejoin the road beyond the tower.
+=== card 5: 10 10 0 240 0 ===
+The ford is deeper than it looked, and the current fierce. You struggle across, half swimming, but packs are torn away and swept downstream.
+=== card 6: 10 10 0 240 0 ===
+As you approach, a quarrel breaks out among the toll-takers over a game of dice. While they shout and shove, you slip across the bridge unnoticed.
+=== card 7: 10 10 0 240 0 ===
+Your prayer goes unanswered. The toll-takers watch you suspiciously.
+=== card 8: 10 10 0 240 0 ===
+You draw your weapons. The sergeant bellows for his men, and from the tower comes Herr Kuno himself, buckling on his sword.
+=== card 9: 10 10 0 240 0 ===
+You turn away from the bridge and follow the river for many miles until you find a crossing that belongs to no robber.
+=== card 10: 10 10 0 240 0 ===
+Kuno and his men lie dead or fled. In the tower you find his strongbox, heavy with tolls stolen from honest travellers: $Money1.
+\14Merchants in these parts will bless your names, and the tale of the robber knight's fall will spread.
+=== card 11: 10 10 0 240 0 ===
+You flee the bridge, Kuno's men hard behind you. Only at dusk, deep in the woods, do you find each other again.
+=== card 12: 10 10 0 240 0 ===
+You wake by the roadside, stripped of nearly everything you had. Kuno's men have taken their toll after all, and more.
+=== card 13: 10 10 0 240 0 ===
+Kuno's men disarm you and take everything of value. "The toll," the sergeant grins, "has gone up." They throw you out on the far side of the bridge.

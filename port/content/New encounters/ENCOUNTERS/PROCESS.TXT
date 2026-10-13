@@ -1,0 +1,28 @@
+# The procession of the dead: on certain nights the dead walk the roads.
+name     The procession of the dead
+card     $NwPrc00
+picture  PATH
+terrain  wild
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Religion)
+saints   0x60, 0x39, 0x55, 0x64          # Michael, Gertrude of Nivelles, Lazarus, Odilia
+option 0                                   # hide your faces and pray
+  chance none
+  ok     text 1; hours 1; attr party, DF, 1; exit
+option 1                                   # watch them pass
+  who    spotter
+  chance clamp(10, 90, skill(who, Religion) + attr(who, DF) / 3 + 20)
+  ok     chosen who; text 2; practice who, Religion, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 3; attr who, DF, -8; attr who, End, -3; hours 1; exit
+option 2                                   # speak to them
+  who    bestskill(Latin)
+  chance clamp(5, 75, skill(who, Latin) + skill(who, Religion) / 2 - 15)
+  ok     chosen who; text 4; attr party, DF, skill(who, Religion) / 4 + 4; practice who, Latin, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 5; attr who, End, -5; attr party, DF, -2; hours 1; exit
+option 3 saint
+  ok     text 6; attr party, DF, 4; exit
+  fail   text 7

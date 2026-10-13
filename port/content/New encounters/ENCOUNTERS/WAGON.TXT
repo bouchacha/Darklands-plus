@@ -1,0 +1,58 @@
+# The overturned wagon: plunder for the taking, or bait for a trap.
+name     The overturned wagon
+card     $NwWag00
+picture  DEADROB
+terrain  road plains farmland woods forest
+when     day
+weight   1
+vars     trap, field
+
+[start]
+do       set trap = roll(55); set field = Surrounded
+block    0
+option 0                                   # search the wagon at once
+  chance unknown
+  ok     if trap goto ambush else goto loot
+option 1                                   # study the ground first
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2)
+  ok     practice party, Woodwise, 1, 10, 0; if trap goto warned else goto safe
+  fail   practice party, Woodwise, 0, 10, 0; text 2; if trap goto ambush else goto loot
+option 2                                   # pray for the dead and go on
+  chance none
+  ok     text 3; attr party, DF, 2; exit
+option 3                                   # leave the place quickly
+  chance none
+  ok     text 4; exit
+
+[safe]
+do       text 5; goto loot
+[loot]
+do       money1 random(180) + 60; gain money1; text 6
+         if roll(40) then { additem leader, 0x5f + random(22), 40; text 7 }
+         hours 1; exit
+
+[warned]
+block    8
+items    0x65, 0x66                      # Sunburst, Thunderbolt
+option 0                                   # slip away
+  who    party
+  chance clamp(1, 99, avgagility + avgskill(Stealth) / 2)
+  ok     text 9; practice party, Stealth, 1, 10, 0; exit
+  fail   practice party, Stealth, 0, 10, 0; text 10; goto fight
+option 1                                   # attack them first
+  chance combat
+  ok     set field = Wilds; goto fight
+option 2 potion                            # flush them out with a potion
+  potion 0x65, clamp(0, 99, attr(who, Per) * 2 - 1)
+  potion 0x66, clamp(0, 99, attr(who, Per) * 2 + 7)
+  ok     text 11; goto loot
+  fail   text 12; goto fight
+
+[ambush]
+do       text 13; goto fight
+[fight]
+do       battle field, Bandit, random(2) + lore / 4 + 1, clamp(size, 7, random(5) + lore / 3 + 1), BrigandSergeant, lore % 3 + 1, 1
+         if result == Won then { text 14; reputation 0, 5; goto loot }
+         if result == Fled then { rejoin; until 18; text 15; exit }
+         hours 1; loseitems party; text 16; exit

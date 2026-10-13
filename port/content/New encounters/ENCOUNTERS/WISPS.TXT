@@ -1,0 +1,24 @@
+# Lights in the marsh: will-o'-the-wisps leading travellers astray.
+name     Lights in the marsh
+card     $NwWsp00
+picture  XGROVE27
+terrain  marsh woods
+when     night
+weight   2
+
+[start]
+block    0
+chosen   spotter
+saints   0x60, 0x39, 0x68, 0x64          # Michael, Gertrude of Nivelles, Patrick, Odilia
+option 0                                   # follow the lights
+  who    spotter
+  chance clamp(5, 75, spotvalue / 2 + avgskill(Woodwise) / 2)
+  ok     money1 random(240) + 60; gain money1; text 1; hours 3; practice party, Woodwise, 1, 10, 0; exit
+  fail   chosen slowest; text 2; hours 3; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 50)
+         attr slowest, End, -3; practice party, Woodwise, 0, 10, 0; exit
+option 1 saint                             # pray for the poor souls
+  ok     text 3; attr party, DF, 3; practice party, Virtue, 1, 10, 0; until 5; exit
+  fail   text 4
+option 2                                   # make camp and ignore them
+  chance none
+  ok     text 5; until 5; exit

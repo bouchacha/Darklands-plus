@@ -1,0 +1,20 @@
+# $NWHRB00: the herb-wife (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At the edge of the woods an old woman hails you, a basket of herbs on her arm and a stoppered flask in her hand.
+\14"Wounds and aches, my lords? Old Gertrud has a salve for every hurt and a draught against the fever. For all of you, only $Money1."
+\14\15...\1dbuy her salves and draughts.
+\15...\1dtrade what you know of herbs for what she knows.
+\15...\1daccuse her of witchcraft.
+\15...\1dthank her and go on.
+=== card 1: 10 10 0 240 0 ===
+Gertrud cleans and binds your hurts, rubs her pungent salves into aching limbs and makes each of you drink something bitter from her flask.
+\14When you take to the road again you feel much stronger.
+=== card 2: 10 10 0 240 0 ===
+The old woman's eyes light up when $ChosenOneName names the herbs in her basket. For hours the two of them talk of roots and leaves, of when to cut them and how to dry them, and what each is good for.
+=== card 3: 10 10 0 240 0 ===
+Gertrud listens politely while $ChosenOneName talks, then pats $his arm. "Bless you, child. You'll learn, in time." She tells you nothing you did not already know.
+=== card 4: 10 10 0 240 0 ===
+The old woman's face goes white. "Witch? I've birthed half the babes of this valley!" she cries, and hurries off into the trees.
+\14You have driven away a good Christian woman with a vile accusation. Your consciences trouble you.
+=== card 5: 10 10 0 240 0 ===
+"Go with God, then," says the old woman, "and mind the nettles." She shuffles off into the trees.

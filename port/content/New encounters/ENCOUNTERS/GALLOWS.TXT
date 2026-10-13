@@ -3,7 +3,7 @@ name     The gallows oak
 card     $NwGal00
 picture  XTREE
 terrain  farmland plains woods forest
-weight   2
+weight   1
 
 [start]
 block    0

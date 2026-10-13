@@ -1,0 +1,27 @@
+# The herb-wife: an old woman of the woods sells salves and knows her herbs.
+name     The herb-wife
+card     $NwHrb00
+picture  XTIPSEY
+terrain  woods forest farmland plains
+when     day
+weight   1
+
+[start]
+do       money1 size * 18
+block    0
+option 0                                   # buy her salves
+  need   money >= money1
+  chance none
+  ok     pay money1; text 1; hours 2
+         attr party, End, 4 + random(4); attr party, Str, 1 + random(2); exit
+option 1                                   # trade herb-lore with her
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + skill(who, Alchemy) / 2 + attr(who, Int) / 4)
+  ok     text 2; hours 3; practice who, Healing, 1, 15, 1; practice who, Alchemy, 1, 10, 0; exit
+  fail   text 3; hours 3; practice who, Healing, 0, 10, 0; exit
+option 2                                   # accuse her of witchcraft
+  chance none
+  ok     text 4; attr party, DF, -5; exit
+option 3                                   # go on
+  chance none
+  ok     text 5; exit

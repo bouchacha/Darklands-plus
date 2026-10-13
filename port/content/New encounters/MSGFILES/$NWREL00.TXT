@@ -1,0 +1,17 @@
+# $NWREL00: the relic seller (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A wiry man in a wide hat falls in beside you, leaning on a pilgrim's staff. "Good sirs! You look like folk who know the worth of holy things."
+\14From his satchel he draws a small box bound in silver. "A finger-bone of the blessed Saint Ursula, brought from Cologne! It guards against every peril of the road. For you, only $Money1."
+\14\15...\1dbuy the holy relic.
+\15...\1dexamine it closely first.
+\15...\1dsend him on his way.
+=== card 1: 10 10 0 240 0 ===
+The man presses the box into your hands, pockets your money and is gone with remarkable speed for a pilgrim.
+\14That evening you open the box. The finger-bone of Saint Ursula is the knuckle of a pig.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName turns the bone over in $his fingers and laughs. "Saint Ursula was a remarkable woman, but I doubt she had trotters." 
+\14The man snatches his relic back and hurries off, muttering. You feel you have done some unknown pilgrims a service.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName turns the bone over, frowning, and cannot tell. The man sighs. "Ah, I see you are no fools. For you, half price: $Money1. It is robbery!"
+=== card 4: 10 10 0 240 0 ===
+"Then may the Saint forgive you," says the man, and goes off down the road to look for better Christians.

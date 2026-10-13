@@ -1,0 +1,23 @@
+# $NWKOB00: kobolds in the mine (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Smoke rises from a cluster of huts at the mouth of a mine. The miners crowd around you, grim and frightened.
+\14"Something haunts the deep galleries," the foreman says, crossing himself. "Lamps go out, tools vanish, and two men who went down did not come back. Kobolds! Drive them out and we'll pay you $Money1."
+\14\15...\1dtake lamps and go down into the mine.
+\16...\1dbless the mine in the name of a saint.
+\15...\1dleave the miners to their troubles.
+=== card 1: 10 10 0 240 0 ===
+You are lighting your lamps at the mouth of the mine when the tapping deep below stops all at once. A chorus of thin giggles rises out of the dark, and then they come swarming up the ladders: small grey shapes with lamp-bright eyes and wicked little picks!
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName prays at the mine mouth while the miners kneel. As the prayer ends, a cold wind sighs up from the shaft, and then all is still.
+\14The miners are not sure the kobolds are gone, but they pay you half the promised sum, $Money1, and promise more masses for the saint.
+=== card 3: 10 10 0 240 0 ===
+You pray, but from deep in the earth the tapping goes on, mocking and steady. The miners look at you doubtfully.
+=== card 4: 10 10 0 240 0 ===
+The miners watch you go in sullen silence. Behind you, the foreman spits into the dust.
+=== card 5: 10 10 0 240 0 ===
+The last of the little horrors flee shrieking back into the mine and down into cracks too narrow for any man. Silence returns to the galleries.
+\14The miners cheer, and the foreman counts out $Money1 into your hands. Tales of the kobold-slayers will be told in the alehouses for years.
+=== card 6: 10 10 0 240 0 ===
+You flee down the valley with the creatures' laughter echoing behind you. When you creep back, the kobolds have vanished into the mine, and the miners will not meet your eyes.
+=== card 7: 10 10 0 240 0 ===
+You wake among the spoil heaps, your heads ringing, your packs and purses gone. The kobolds have dragged everything down into the mine, and of your belongings there is no trace.

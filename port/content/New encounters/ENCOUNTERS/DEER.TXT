@@ -1,0 +1,51 @@
+# The lord's deer: a stag in the lord's forest, and his huntsmen.
+name     The lord's deer
+card     $NwDer00
+picture  XDEER
+terrain  forest woods pinewood
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill2(Bows, Missile)
+option 0                                   # shoot the stag
+  who    bestskill2(Bows, Missile)
+  need   maxskill2(Bows, Missile) >= 10
+  chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 10)
+  ok     text 1; practice who, Bows, 1, 10, 0; hours 2
+         attr party, End, 3 + random(3); if roll(35) goto keepers
+         exit
+  fail   text 2; practice who, Bows, 0, 10, 0; if roll(25) goto keepers
+         exit
+option 1                                   # let it go
+  chance none
+  ok     text 3; exit
+
+[keepers]
+do       money1 240
+picture  XHIDDEN
+block    4
+option 0                                   # pay the fine
+  need   money >= money1
+  chance none
+  ok     pay money1; text 5; exit
+option 1                                   # claim to be the lord's guests
+  who    leader
+  chance clamp(1, 90, (skill(who, SpeakCommon) + attr(who, Cha)) / 2 + fame / 4 - 10)
+  ok     text 6; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   text 7; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2                                   # run for it
+  who    party
+  chance clamp(10, 85, avgagility + avgskill(Woodwise) / 2)
+  ok     text 8; hours 2; practice party, Woodwise, 1, 10, 0; exit
+  fail   text 9; goto fight
+option 3                                   # fight the huntsmen
+  chance combat
+  ok     goto fight
+
+[fight]
+do       battle Wilds, Huntsman, lore / 4 + 1, random(3) + 3
+         if result == Won then { text 10; hours 1; reputation -2, -5; exit }
+         if result == Fled then { rejoin; until 18; text 11; exit }
+         money1 min(money, 480); pay money1; text 12; hours 2; exit

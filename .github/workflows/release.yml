@@ -61,7 +61,7 @@ jobs:
       - name: Package
         run: |
           python3 port/tools/package.py --exe build/port_win64_split/darklands.exe --tcc build/tcc-win64 \
-              --python-dir pbs/python --capstone-wheel wheels/capstone-*.whl --mod "build/Battle sounds" \
+              --python-dir pbs/python --capstone-wheel wheels/capstone-*.whl --mod "build/Battle sounds" --mod "port/content/New encounters" \
               --version "${GITHUB_REF_NAME}" --out "DarklandsPlus-${GITHUB_REF_NAME}-win64.zip"
 
       - uses: actions/upload-artifact@v4

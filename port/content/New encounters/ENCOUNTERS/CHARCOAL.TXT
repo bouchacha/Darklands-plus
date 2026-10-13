@@ -1,0 +1,21 @@
+# The charcoal burners: smoke in the forest, and a warm fire.
+name     The charcoal burners
+card     $NwChr00
+picture  XBSMOKE
+terrain  forest woods pinewood
+weight   1
+
+[start]
+block    0
+chosen   bestattr(Str)
+option 0                                   # share their pottage and rest
+  chance none
+  ok     text 1; until 5; attr party, End, 3 + random(4); exit
+option 1                                   # help them tend the kiln
+  who    bestattr(Str)
+  chance clamp(10, 90, attr(who, Str) + attr(who, End) / 2 - 10)
+  ok     chosen who; money1 size * 12; gain money1; text 2; hours 3; attr who, End, -2; exit
+  fail   chosen who; text 3; hours 2; injure who, 1, 1, 5; exit
+option 2                                   # thank them and move on
+  chance none
+  ok     text 4; exit

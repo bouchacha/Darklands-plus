@@ -330,6 +330,8 @@ static void hint(const char *fmt, ...)
 }
 
 /* ------------------------------------------------------------------ tabs */
+extern "C" int encounters_count(void);
+extern "C" int encounters_errors(void);
 static void tab_mods(void)
 {
     ImGui::PushFont(font_head); ImGui::SeparatorText("Mod folders"); ImGui::PopFont();
@@ -349,6 +351,22 @@ static void tab_mods(void)
             { std::string fp = datamods[i].path; for (char &c : fp) if (c == '/' || c == '\\') c = PATH_SEP[0]; hint("folder: %s", fp.c_str()); }
             ImGui::Unindent(UIS(34));
             ImGui::PopID();
+        }
+        {   /* mods with ENCOUNTERS folders (mods/encounters.c) */
+            int ne = encounters_count(), nerr = encounters_errors();
+            if (ne || nerr) {
+                ImGui::Spacing();
+                ImGui::TextWrapped("New encounters in use: %d%s", ne, nerr ? "" : ".");
+                if (nerr) { ImGui::SameLine(); ImGui::TextColored(ImVec4(1, 0.6f, 0.4f, 1), "(%d file%s with errors left out: see darklands_port.log)", nerr, nerr == 1 ? "" : "s"); }
+                ImGui::Indent(UIS(34));
+                int share = config_get_int("encounters.share", 100);
+                ImGui::SetNextItemWidth(UIS(220));
+                if (ImGui::SliderInt("How often they come up##encshare", &share, 0, 300, "%d %%")) { config_set_int("encounters.share", share); dirty_config = 1; }
+                hint("100 %%: each counts as one more entry (or as many as its weight) of the game's own table of encounters for the terrain.");
+                bool seal = config_get_int("encounters.seal", 1) != 0;
+                if (ImGui::Checkbox("Mark them with a seal in the corner of the card", &seal)) { config_set_int("encounters.seal", seal); dirty_config = 1; }
+                ImGui::Unindent(UIS(34));
+            }
         }
         if (ImGui::Button("Look for mods again")) { datamods_scan(); hdart_rescan(); msg[0] = 0; }
         ImGui::SameLine();

@@ -113,6 +113,131 @@ attributes, skills and armour quality can be changed there; "Save the foes into 
 writes the whole file as the mod's `DARKLAND.ENM`. Foes of one kind share their numbers. The file's
 layout is in `formats/dlformats/enm.py`.
 
+## New encounters
+
+A mod can add wilderness encounters of its own: cards like the game's, with a picture, text and
+options that test the party's skills, run by Darklands+ from a plain text script
+(`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (twelve of
+them; tick it in F12 > Mods). Its folder is the best place to start reading:
+`mods/New encounters/ENCOUNTERS/*.TXT` and `MSGFILES/$NW*.TXT`.
+
+While a mod with an `ENCOUNTERS` folder is ticked, some of the random encounters on the travel
+map are new ones. Each new encounter counts as `weight` more entries of the game's own table of
+encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one
+of the game's own; F12 > Mods sets an overall percentage, and none comes twice within a few days.
+A small red seal in the corner of the card marks a new encounter (its tooltip names it). Not in
+"Play the original game".
+
+An encounter is two files: its text, `MSGFILES/<CARD>.TXT` in the card text format above (block 0
+is usually the first menu), and its script, `ENCOUNTERS/<NAME>.TXT`:
+
+```
+# The gallows oak: a hanged thief, and the mandrake that grows beneath him.
+name     The gallows oak             # shown in the seal's tooltip
+card     $NwGal00                    # the MSGFILES text (at most 8 letters)
+picture  XTREE                       # PICS\XTREE.PIC (pictures starting with X get white text)
+terrain  farmland plains woods forest
+when     any                         # day, night or any
+weight   2                           # how many table entries it counts as
+only     month >= 4 and month <= 10  # (optional) a condition for it to come up at all
+vars     tries, found                # (optional) numbers the script keeps while it runs
+
+[start]                              # the first section is where the card starts
+block    0                           # this section is a menu: the options of text block 0
+chosen   bestskill(Alchemy)          # $ChosenOneName (and $he/$his/...) on entering
+option 0                             # the first option line of the block
+  who    bestskill(Alchemy)          # who is tested (shown next to the chance)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 + night * 15 - 5)
+  ok     text 1; additem who, 0x54; practice who, Alchemy, 1, 10, 0
+         hours 1; exit               # indented lines go on with the same actions
+  fail   text 2; injure who, 1, 1, 10; hours 1; exit
+option 1
+  chance assured                     # no roll: "Success is assured." (also none, unknown, combat)
+  ok     hours 2; if roll(25) goto bailiff
+         text 3; attr party, DF, skill(who, Religion) / 5 + 2; exit
+
+[bailiff]                            # a section without a block: actions only
+do       text 4; reputation -1, -3; exit
+```
+
+**Sections.** `[name]` starts one. `block N` makes it a menu (text block N with its options);
+`picture` changes the picture on entering it; `do` lists actions run on entering (before the
+menu); `chosen` sets `$ChosenOneName`; `saints a, b, c, d` and `items a, b, c, d` are the saints
+and potions its saint and potion options offer (numbers from DARKLAND.LST; up to four). A section
+without a block runs its `do` and then returns to the last menu (or the map) unless it went
+somewhere else.
+
+**Options** are numbered by their order in the text block (each `\15`, `\16`, `\10`, `\06` line is
+the next number). `option N saint` is a line that opens the saints (`\16`), `option N potion` one
+that opens the potions (`\10`). Keys:
+
+| key | |
+|---|---|
+| `only EXPR` | the line is hidden unless EXPR |
+| `need EXPR` | the line is greyed unless EXPR |
+| `who EXPR` | who is tested: a member, `party` (everyone) or `leader` (the default) |
+| `chance EXPR` | the chance in percent; the game rolls `random(100) <= chance`, as its own cards do. `none`, `assured`, `unknown`, `combat`: no roll, the game's own wording |
+| `potion CODE, EXPR` | (potion options) the chance with that potion; `who` is the one throwing it, `q` its quality; it is used up |
+| `ok ACTIONS` | on success (or when there is no roll) |
+| `fail ACTIONS` | on failure |
+
+A saint option runs the game's own prayer (the Divine Favor is spent, the saint's chance shown);
+`ok` if it is answered, `fail` if not, nothing if the prayer is called off. After an option the
+menu comes back unless its actions went elsewhere.
+
+**Actions**, separated by `;`:
+
+| action | |
+|---|---|
+| `text N` | show text block N (and wait for a key) |
+| `goto SECTION`, `exit` | go to another section; back to the map |
+| `tocity` | end at the nearest city's gate |
+| `if EXPR goto A else goto B` | |
+| `if EXPR then ACTION else ACTION` | an action, or several in `{ ... }` |
+| `set NAME = EXPR` | a number declared with `vars` |
+| `hours N`, `days N`, `until HOUR` | let time pass |
+| `practice WHO, SKILL, MODE, PCT, LEVEL` | the game's chance to improve a skill by use (as its cards: success `1, 10, 0`, failure `0, 10, 0`) |
+| `skill WHO, K, D`, `attr WHO, K, D`, `attrmax WHO, K, D`, `setattr WHO, K, V` | change skills and attributes. With `party`, D is worked out for each member (`who` is that member) |
+| `injure WHO, A, B, MULT` | the game's wounds (its boars: `1, 1, 10`) |
+| `pay PF`, `gain PF`, `money1 PF` | money in pfennigs (240 to the florin); `money1` sets `$Money1` |
+| `number1 N`, `number2 N` | `$Number1`, `$Number2` |
+| `additem WHO, CODE[, QUALITY]`, `takeitem WHO, CODE` | items (`$ItemName` names the last added) |
+| `loseitems WHO`, `keepitems WHO, PCT`, `removeitems WHO, MASK` | the game's losses: robbed (with `party` also the purse), each stack kept with PCT % |
+| `fame K` | the game's reward of fame (1 to 5: 3, 10, 25, 64, 200) |
+| `reputation A, B` | the nearest city's reputation (the game's random change: `1, 3` up, `-1, -3` down) |
+| `battle FIELD, ENEMY, QUALITY, COUNT[, ENEMY, QUALITY, COUNT ...]` | a battle; `result` is then `Won`, `Fled`, `Beaten` or `Surrendered` |
+| `rejoin`, `dropaway` | after fleeing: members left behind come back, or are lost |
+| `kill WHO` | a member is lost for good (as the game's harshest cards do; never the last one) |
+| `chosen WHO`, `chosen2 WHO`, `saintname S`, `itemname CODE` | `$ChosenOneName`, `$ChosenTwoName`, `$NamedOneName`, `$ItemName` |
+| `enable N`, `disable N`, `hide N` | an option of the menu, for the rest of the encounter |
+| `music` | the game's ambush music |
+
+**Values.** Numbers (`0x54` too), `+ - * / %`, comparisons, `and or not`, and:
+
+| | |
+|---|---|
+| members | `leader`, `party`, `who`, `chosen`, `bestskill(K)`, `worstskill(K)`, `bestattr(K)`, `worstattr(K)`, `bestskill2(K1, K2)`, `bestskillsum(K1, K2)`, `bestattrsum(A1, A2)`, `bestattrskill(A, K)`, `spotter` (best Perception + Woodwise), `slowest` (the slowest with their load) |
+| one member | `skill(W, K)`, `attr(W, K)`, `attrmax(W, K)`, `able(W)`, `has(W, CODE)`, `count(W, CODE)`, `quality(W, CODE)` (`has(party, CODE)`: anyone) |
+| the party | `maxskill(K)`, `minskill(K)`, `avgskill(K)`, `maxattr(K)`, `minattr(K)`, `avgattr(K)`, `maxskill2(K1, K2)`, `maxskillsum(K1, K2)`, `maxattrsum`, `maxattrskill`, `spotvalue`, `avgagility`, `minagility` (agility with the load), `slowspeed`, `lore` (1-10, the game's measure of the party's strength), `fame`, `money` (pfennigs), `size` (members present), `members`, `women`, `mounted` |
+| the world | `daylight`, `night`, `hour`, `day`, `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
+| rolls | `random(N)` (0..N-1), `roll(C)` (a check of C %), `clamp(LO, HI, V)`, `min`, `max`, `abs` |
+| after | `result` (a battle), `q`, `item`, `saint` |
+| names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) |
+
+Terrains: `marsh woods farmland plains forest pinewood hills mountains road`, `wild` (all but
+farmland and road), `any`, or the map's terrain numbers.
+
+To keep a new encounter in step with the game's own, take its numbers from them: the chances of
+the game's cards are clamped (usually 1..99) sums such as `(4 * Cha + SpeakCommon) / 5` for
+talking, `avgskill(Woodwise) + avgagility * 2 / 3` for sneaking, `minskill(Riding) * 2` for
+outriding; their battles are `random(5) + 3` men of quality `lore / 4 + 1` with a leader of
+quality `lore % 3 + 1`; their rewards are a little fame, reputation and Divine Favor rather than
+money.
+
+Errors are reported with the file and line in `darklands_port.log` (and the encounter is left
+out); `DL_ENC_LOG=1` logs every roll. For testing, the `uenc:N` step of `DL_CTL` / `DL_SCRIPT`
+makes the next wilderness encounter number N.
+
 ## Party figures
 
 Select Character Image offers the game's own figures (any `PICS\F??STAT.PIC`, `A??STAT.PIC`,

@@ -1,0 +1,45 @@
+# The robber knight's bridge: an unlawful toll, and the men who collect it.
+name     The robber knight's bridge
+card     $NwRbr00
+picture  XVC1
+terrain  road plains forest hills woods farmland
+when     day
+weight   1
+
+[start]
+do       money1 clamp(12, 360, money / 8 + size * 6)
+block    0
+saints   0x16, 0x63, 0x5d, 0x51          # Christopher, Nicholas, Martin of Tours, Julian the Hospitaller
+option 0                                   # pay the toll
+  need   money >= money1
+  chance none
+  ok     pay money1; text 1; exit
+option 1                                   # talk your way across
+  chance clamp(1, 95, fame / 2 + skill(who, SpeakCommon) + attr(who, Cha) / 3)
+  ok     text 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2                                   # ford the river downstream
+  who    party
+  chance clamp(10, 85, avgagility + avgskill(Woodwise) / 2)
+  ok     text 4; hours 3; practice party, Woodwise, 1, 10, 0; exit
+  fail   text 5; hours 4; keepitems party, clamp(50, 95, avgagility + 30); practice party, Woodwise, 0, 10, 0; exit
+option 3 saint
+  ok     text 6; exit
+  fail   text 7
+option 4                                   # attack the toll-takers
+  chance combat
+  ok     text 8; goto fight
+option 5                                   # turn back and find another crossing
+  chance none
+  ok     text 9; hours 6 + random(7); exit
+
+[fight]
+do       battle Clearing, Mercenary, random(2) + lore / 4 + 1, random(4) + 3, Raubritter, lore % 3 + 1, 1
+         if result == Won goto won
+         if result == Fled goto fled
+         if result == Surrendered then { loseitems party; hours 2; text 13; exit }
+         hours 1; loseitems party; text 12; exit
+[won]
+do       money1 random(240) + 120; gain money1; text 10; hours 1; fame 2; reputation 1, 5; exit
+[fled]
+do       rejoin; until 18; text 11; exit

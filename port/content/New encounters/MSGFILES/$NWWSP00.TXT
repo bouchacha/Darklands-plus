@@ -1,0 +1,20 @@
+# $NWWSP00: lights in the marsh (New encounters)
+=== card 0: 10 10 0 240 0 ===
+As darkness falls, pale lights appear among the reeds, bobbing and drifting, now near, now far.
+\14"Will-o'-the-wisps," whispers $ChosenOneName. "Some say they are the souls of the unbaptized; some say they are demons that lead men into the bog to drown."
+\14\15...\1dfollow the lights.
+\16...\1dpray for the poor souls.
+\15...\1dmake camp and pay them no heed.
+=== card 1: 10 10 0 240 0 ===
+Picking your way from tussock to tussock, you follow the lights deep into the marsh, until they hang above a black pool and go out one by one.
+\14In the pool lies a drowned man, a merchant by his clothes, his purse still at his belt: $Money1. You say a prayer for him and find your way back by first light.
+=== card 2: 10 10 0 240 0 ===
+The lights dance ahead, always a little farther. Suddenly the ground gives way and $ChosenOneName plunges into the bog up to $his chest.
+\14It takes hours to haul $him out, and the cold black mud keeps much of what $he was carrying.
+=== card 3: 10 10 0 240 0 ===
+As the prayer for the dead rises in the night air, the lights grow still. Then, one by one, they fade like candles snuffed by a gentle hand.
+\14You sleep peacefully until dawn.
+=== card 4: 10 10 0 240 0 ===
+You pray, but the lights dance on, mocking and restless.
+=== card 5: 10 10 0 240 0 ===
+You make camp, set a watch and keep your eyes from the marsh. By dawn the lights are gone.

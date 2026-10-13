@@ -1,0 +1,28 @@
+# $NWFLG00: the flagellants (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A strange procession comes toward you along the road: men and women stripped to the waist, lashing their own backs bloody with knotted scourges as they chant. At their head walks a gaunt preacher with a crucifix.
+\14"Repent!" he cries. "The wrath of God is upon the land! Join us, sinners, and scourge your sins away!"
+\14\15...\1djoin them in their penance for a day.
+\15...\1dgive them $Money1 in alms.
+\15...\1ddispute with their preacher.
+\15...\1dstand aside and let them pass.
+=== card 1: 10 10 0 240 0 ===
+You strip and take up the scourge. All day you walk with the penitents, singing and bleeding, until your backs are raw and your legs tremble.
+\14At dusk the preacher blesses each of you. Weak and sore as you are, your souls feel cleansed.
+=== card 2: 10 10 0 240 0 ===
+The preacher takes your coins without a word and passes them to a woman who carries the procession's purse. The penitents chant a psalm for your souls as they go by.
+=== card 3: 10 10 0 240 0 ===
+"The Holy Father himself has forbidden these processions," declares $ChosenOneName, "and no man may make his own penance in place of the sacraments!" $He quotes the Fathers of the Church, chapter and verse.
+\14The preacher has no answer. One by one his followers lower their scourges and drift away toward their homes, and in the end he trudges off alone. Word of this will surely reach the clergy of $NearestCity.
+=== card 4: 10 10 0 240 0 ===
+The preacher hears $ChosenOneName out, then turns to his flock. "Hear the voice of the Devil!" he shrieks. "He comes in the garb of learning to lead you from the path of penance!"
+\14With a howl, the penitents turn on you with scourges, staves and stones.
+=== card 5: 10 10 0 240 0 ===
+You step off the road and wait. The procession passes slowly, the scourges rising and falling, the chant fading into the distance.
+=== card 6: 10 10 0 240 0 ===
+The last of the penitents flee across the fields. You stand among the fallen, the blood of their scourged backs on your blades.
+\14They attacked you, but they were only poor, misguided souls seeking God. Your consciences are heavy.
+=== card 7: 10 10 0 240 0 ===
+You run from the howling mob, and only at dusk, far from the road, do you gather again.
+=== card 8: 10 10 0 240 0 ===
+When you come to, the procession is long gone. Bruised and battered, you stagger to your feet, glad to be alive. The penitents took nothing; they wanted only to drive the Devil from their path.

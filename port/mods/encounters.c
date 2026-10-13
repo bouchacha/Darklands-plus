@@ -198,7 +198,12 @@ static int g_has_item(int w, int code) { return G(29, 0x0e76, 0x118e, 2, w, code
 static int g_count_items(int w, int code) { return G(29, 0x0e76, 0x0c76, 2, w, code); }
 static int g_saint_lo(int w, int s) { return G(29, 0x0e76, 0x20c6, 2, w, s); }
 static int g_saint_hi(int w, int s) { return G(29, 0x0e76, 0x2116, 2, w, s); }
-static int g_invoke_saint(int w, int s) { return G(29, 0x0e76, 0x2180, 2, w, s); }
+static int g_invoke_saint(int w, int s)
+{
+    int fake = config_get_int("test.enc_saint", -99);       /* tests: the prayer's outcome without the prayer screen */
+    if (fake != -99) { fprintf(stderr, "encounters: saint %d by %d: faked %d\n", s, w, fake); return fake; }
+    return G(29, 0x0e76, 0x2180, 2, w, s);
+}
 static void g_drop_away(void) { G(29, 0x0e76, 0x2434, 0); }
 static void g_rejoin_away(void) { G(29, 0x0e76, 0x251a, 0); }
 static void g_rep_adj(int loc, int a, int b) { G(29, 0x0e76, 0x19d0, 3, loc, a, b); }
@@ -206,7 +211,13 @@ static void g_name_saint(int s) { G(29, 0x0e76, 0x1fb8, 3, 1, s, 0); }
 static void g_load_city(int c) { G(29, 0x0e76, 0x4e68, 1, c); }
 static int g_event_started(int k) { return G(29, 0x0e76, 0x32ce, 1, k); }
 static int g_count_able(void) { return G(29, 0x0e76, 0x007c, 0); }
-static int g_battle(const int *a) { return gcall(29, 0x0e76, 0x2278, 11, a); }
+static int g_battle(const int *a)
+{
+    int fake = config_get_int("test.enc_battle", -99);      /* tests: the battle's result without fighting it */
+    if (fake != -99) { fprintf(stderr, "encounters: battle %#x: %d x %#x (q %d), %d x %#x (q %d): faked result %d\n", a[0], a[4], a[2], a[3], a[7], a[5], a[6], fake); return fake; }
+    LOG("battle %#x: %d x %#x (q %d), %d x %#x (q %d), %d x %#x (q %d)\n", a[0], a[4], a[2], a[3], a[7], a[5], a[6], a[10], a[8], a[9]);
+    return gcall(29, 0x0e76, 0x2278, 11, a);
+}
 /* rules through overlay vectors (root 09c0) */
 static void g_practice(int w, int k, int m, int p, int l) { G(VEC, 0, 0x1f63, 5, w, k, m, p, l); }
 static int g_lore(void) { return G(VEC, 0, 0x1c1b, 0); }
@@ -305,7 +316,7 @@ static const struct { const char *n; int v; } CONSTS[] = {
     { "Dwarf", 0x2c }, { "Skeleton", 0x2d }, { "Gnome", 0x2e }, { "Kobold", 0x30 }, { "KoboldKing", 0x19 }, { "Undead", 0x32 },
     { "WildHunter", 0x3c }, { "Zealot", 0x49 }, { "BanditSergeant", 0x4e },
     /* battlefields */
-    { "Wilds", 0x2f }, { "Surrounded", 0x30 }, { "Clearing", 0x2e }, { "Cave", 0x68 },
+    { "Wilds", 0x2f }, { "Surrounded", 0x30 }, { "Clearing", 0x2e }, { "Cave", 0x68 },   /* (a cave holds one enemy only) */
     /* battle results */
     { "Won", 0 }, { "Fled", 2 }, { "Beaten", 3 }, { "Surrendered", 4 },
     { "true", 1 }, { "false", 0 },
@@ -322,8 +333,20 @@ static int resolve_who(int w) { return w == -1 ? leader() : w; }
 static long party_query(P *p, u16 fn, int k, int member)
 {
     if (p->dry) return 0;
+    g_wb(V_BEST_MEMBER, (u8)leader());           /* (left as it was when no one has any of it) */
     int v = g_party_q(fn, k);
-    return member ? (s8)g_rb(V_BEST_MEMBER) : v;
+    int m = (s8)g_rb(V_BEST_MEMBER);
+    if (member_status(m) != 1) m = leader();
+    return member ? m : v;
+}
+static long party_query2(P *p, u16 fn, int a, int b, int member)
+{
+    if (p->dry) return 0;
+    g_wb(V_BEST_MEMBER, (u8)leader());
+    int v = G(29, 0x0e76, fn, 2, a, b);
+    int m = (s8)g_rb(V_BEST_MEMBER);
+    if (member_status(m) != 1) m = leader();
+    return member ? m : v;
 }
 
 static int value_of(P *p, const char *n, long *v)
@@ -365,9 +388,9 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "avgagility")) { *v = G(29, 0x0e76, 0x060e, 0); return 1; }
     if (!strcasecmp(n, "minagility")) { *v = G(29, 0x0e76, 0x0656, 0); return 1; }
     if (!strcasecmp(n, "slowspeed")) { *v = G(29, 0x0e76, 0x088e, 0); return 1; }
-    if (!strcasecmp(n, "slowest")) { G(29, 0x0e76, 0x088e, 0); *v = (s8)g_rb(V_BEST_MEMBER); return 1; }
+    if (!strcasecmp(n, "slowest")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x088e, 0); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "spotvalue")) { *v = G(29, 0x0e76, 0x184a, 2, 3, 0x12); return 1; }
-    if (!strcasecmp(n, "spotter")) { G(29, 0x0e76, 0x184a, 2, 3, 0x12); *v = (s8)g_rb(V_BEST_MEMBER); return 1; }
+    if (!strcasecmp(n, "spotter")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x184a, 2, 3, 0x12); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "terrain")) { *v = (s16)g_rw(V_TERRAIN); return 1; }
     if (!strcasecmp(n, "difficulty")) { *v = g_rb(G_DIFFICULTY) & 3; return 1; }
     return 0;
@@ -387,6 +410,11 @@ static long call_fn(P *p, const char *f, const long *a, int n)
         { "bestskill", 0x14a4, 1 }, { "worstskill", 0x1396, 1 }, { "bestattr", 0x16fe, 1 }, { "worstattr", 0x164a, 1 } };
     for (int i = 0; i < (int)(sizeof PQ / sizeof PQ[0]); i++)
         if (!strcasecmp(f, PQ[i].n)) { if (!nargs_ok(p, f, n, 1, 1)) return 0; return party_query(p, PQ[i].fn, (int)a[0], PQ[i].member); }
+    static const struct { const char *n; u16 fn; int member; } PQ2[] = {
+        { "maxskill2", 0x153a, 0 }, { "bestskill2", 0x153a, 1 }, { "maxskillsum", 0x15a2, 0 }, { "bestskillsum", 0x15a2, 1 },
+        { "maxattrsum", 0x179c, 0 }, { "bestattrsum", 0x179c, 1 }, { "maxattrskill", 0x184a, 0 }, { "bestattrskill", 0x184a, 1 } };
+    for (int i = 0; i < (int)(sizeof PQ2 / sizeof PQ2[0]); i++)
+        if (!strcasecmp(f, PQ2[i].n)) { if (!nargs_ok(p, f, n, 2, 2)) return 0; return party_query2(p, PQ2[i].fn, (int)a[0], (int)a[1], PQ2[i].member); }
     if (!strcasecmp(f, "skill") || !strcasecmp(f, "attr") || !strcasecmp(f, "attrmax")) {
         if (!nargs_ok(p, f, n, 2, 2) || p->dry) return 0;
         int w = resolve_who((int)a[0]);
@@ -672,7 +700,7 @@ static int run_src(Enc *e, const Src *src, int dry)
     if (!src->s) return 0;
     P p; p_init(&p, e, src, dry);
     int r = exec_list(&p);
-    if (!p.err && p.tt != TEND) perr(&p, "unexpected \"%s\"", p.id);
+    if (!p.err && !r && p.tt != TEND) perr(&p, "unexpected \"%s\"", p.id);     /* (after a goto or exit the rest is not run) */
     return p.err ? (dry ? -1 : 1) : r;
 }
 

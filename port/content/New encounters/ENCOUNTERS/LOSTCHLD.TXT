@@ -1,0 +1,33 @@
+# The lost child: villagers search the woods for a little girl.
+name     The lost child
+card     $NwLst00
+picture  XBUDLGHT
+terrain  woods forest farmland
+when     day
+weight   1
+
+[start]
+block    0
+saints   0x0a, 0x63, 0x45, 0x5d          # Anthony of Padua, Nicholas, Hubert, Martin of Tours
+option 0                                   # help them search
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2 - 10)
+  ok     chosen who; practice party, Woodwise, 1, 10, 0; hours 3; goto found
+  fail   practice party, Woodwise, 0, 10, 0; hours 5; text 2; if roll(50) goto wolves
+         text 3; exit
+option 1 saint                             # pray for her
+  ok     text 4; hours 2; goto found
+  fail   text 5
+option 2                                   # wish them luck and go on
+  chance none
+  ok     text 6; exit
+
+[found]
+do       text 1; attr party, DF, 4; practice party, Virtue, 1, 10, 0; reputation 1, 2; exit
+
+[wolves]
+picture  XWOLF3
+do       text 7; battle Wilds, Wolf, lore / 4 + 1, random(5) + 3
+         if result == Won then { text 8; hours 1; fame 1; goto found }
+         if result == Fled then { rejoin; text 9; until 18; exit }
+         text 10; attr party, End, -4; until 18; exit

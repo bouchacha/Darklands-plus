@@ -66,6 +66,12 @@ swords, shields, blows, cries, the bow and the handgun in place of the synthesiz
 it in F12 > Mods (F12 > Display sets the volume). The recordings are from 0 A.D. by Wildfire
 Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
 
+NEW ENCOUNTERS
+The mods folder also holds "New encounters": twelve new wilderness encounters (the gallows
+oak, a herb-wife, flagellants, a robber knight's toll bridge, kobolds in a mine and more),
+balanced against the game's own and coming up among them. Tick it in F12 > Mods; a small red
+seal marks a new encounter's card. F12 > Mods sets how often they come up.
+
 MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)
@@ -75,6 +81,7 @@ MAKING MODS (in the Darklands folder)
   mods\My mod\art\, sounds\         replacement pictures and sounds
   mods\My mod\music\                recordings in place of the game's music, named by the
                                     piece's number (10.ogg, "11 market.ogg"; F12 > Display)
+  mods\My mod\ENCOUNTERS\           new encounters as scripts (see mods\New encounters)
   F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 
 IF SOMETHING GOES WRONG

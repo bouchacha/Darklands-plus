@@ -1,0 +1,27 @@
+# $NWPRC00: the procession of the dead (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Near midnight a silent procession comes out of the mist: hooded figures carrying no light, their feet making no sound on the ground.
+\14Old women say that on certain nights the dead walk the roads, and that whoever sees his own face among them will not live out the year.
+\14\15...\1dhide your faces and pray until they have passed.
+\15...\1dwatch them pass.
+\15...\1dspeak to them in the name of God.
+\16...\1dcall upon a saint for protection.
+=== card 1: 10 10 0 240 0 ===
+You kneel with your faces to the ground and pray. A cold wind passes over you, smelling of earth and old candles, and then it is gone.
+\14When you look up, the road is empty.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName watches the hooded figures pass, one after another. Their faces are pale and calm, the faces of strangers. They seem to be pilgrims still, bound for some shrine no living man can find.
+\14The last of them fades into the mist.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName watches the hooded figures pass, and the last of them turns $his head. It is $ChosenOneName's own face beneath the hood.
+\14$He stands frozen long after the procession has gone, and nothing you say can comfort $him.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName calls out in Latin, in the name of the Father, the Son and the Holy Ghost. The procession halts. One figure turns, and a voice like dry leaves asks for masses to be said for the souls of the parish, that they may find rest.
+\14You promise, and the dead bow and fade away. A great peace settles over you.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName calls out, but the words stick in $his throat. The procession turns its blank, hooded faces toward you, and a terrible cold seizes $him.
+\14When the dead have gone, $he is shaking and pale, and cannot speak of what $he saw.
+=== card 6: 10 10 0 240 0 ===
+As the prayer rises, the procession passes by on the far side of the road, as though you were not there. You feel the saint's protection around you like a warm cloak.
+=== card 7: 10 10 0 240 0 ===
+Your prayer brings no comfort. The procession passes, close enough to touch.
