@@ -223,7 +223,7 @@ menu comes back unless its actions went elsewhere.
 | the world | `daylight`, `night`, `hour`, `day` (1-31), `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
 | rolls | `random(N)` (0..N-1), `roll(C)` (a check of C %), `clamp(LO, HI, V)`, `min`, `max`, `abs` |
 | after | `result` (a battle), `q`, `item`, `saint` |
-| names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) |
+| names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) or another of the game's wilderness battlefields (0x2e-0x55, 0x61-0x63, 0x6f-0x79) |
 
 Terrains: `marsh woods farmland plains forest pinewood hills mountains road`, `wild` (all but
 farmland and road), `any`, or the map's terrain numbers.

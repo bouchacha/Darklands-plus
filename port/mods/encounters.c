@@ -678,6 +678,10 @@ static int exec_stmt(P *p)
         n = args(p, a, 4, 10, w);
         if (!p->err && (n - 1) % 3) perr(p, "battle: a battlefield, then enemy, quality, count for each group");
         if (dry || p->err) return 0;
+        long bf = a[0];                         /* the wilderness battlefields (the game's vec_1b71) and the cave; the rest need a town, castle or mine */
+        if (!((bf >= 0x2e && bf <= 0x55) || (bf >= 0x61 && bf <= 0x63) || (bf >= 0x6f && bf <= 0x79) || bf == 0x68)) {
+            perr(p, "battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79)"); return 1;
+        }
         int b[11] = { (int)a[0], -1, -1, 0, 0, -1, 0, 0, -1, 0, 0 };
         int ng = 0, total = 0;                  /* a battle holds 8 foes (13 combatants, 5 of them the party) */
         for (int g = 0; g < 3 && 1 + 3 * g < n; g++) {
