@@ -406,9 +406,34 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy)
     *wy = out_h ? oy * win_h / out_h : oy;
 }
 
+/* The drawing surface made to match the window again. A Windows renderer can keep its surface at
+ * an old size when the window changed while it was in the background (switching windows during
+ * the opening while the window was being maximized): the picture is then shown stretched and the
+ * mouse lands at half its place. The renderer resizes its surface when it sees a "size changed"
+ * window event, so one is sent with the window's present size (nothing changes if it was right). */
+static int mouse_far_x, mouse_far_y;        /* the furthest mouse position seen (for reports) */
+static void resync_surface(const char *why)
+{
+    int pw, ph, ow, oh; SDL_GetWindowSizeInPixels(win, &pw, &ph); SDL_GetRendererOutputSize(ren, &ow, &oh);
+    int ww, wh; SDL_GetWindowSize(win, &ww, &wh);
+    if (pw > 0 && ph > 0 && !(SDL_GetWindowFlags(win) & SDL_WINDOW_MINIMIZED)) {
+        SDL_Event ev; memset(&ev, 0, sizeof ev);
+        ev.type = SDL_WINDOWEVENT; ev.window.event = SDL_WINDOWEVENT_SIZE_CHANGED; ev.window.windowID = SDL_GetWindowID(win);
+        ev.window.data1 = ww; ev.window.data2 = wh; ev.window.timestamp = SDL_GetTicks();
+        SDL_PushEvent(&ev);     /* the renderer's event watch sees it now; the game loop sees it next */
+    }
+    layout();
+    if (ow != pw || oh != ph || ww != win_w || wh != win_h)
+        fprintf(stderr, "window: %s, the drawing surface was %dx%d for a window of %dx%d pixels: renewed\n", why, ow, oh, pw, ph);
+}
+
 /* window coordinates -> game pixels */
 static void to_game(int wx, int wy, int *gx, int *gy)
 {
+    if (ren && win) {   /* the sizes as they are now (a size can change between frames) */
+        int a, b, c, d; SDL_GetWindowSize(win, &a, &b); SDL_GetRendererOutputSize(ren, &c, &d);
+        if (a != win_w || b != win_h || c != out_w || d != out_h) layout();
+    }
     int ox = win_w ? wx * out_w / win_w : wx, oy = win_h ? wy * out_h / win_h : wy;
     int x = dest.w ? (ox - dest.x) * 320 / dest.w : 0, y = dest.h ? (oy - dest.y) * 200 / dest.h : 0;
     if (x < 0) x = 0; if (x > 319) x = 319; if (y < 0) y = 0; if (y > 199) y = 199;
@@ -872,6 +897,10 @@ void plat_events(void)
                 menu_escape();                      /* a menu left open by a click closes, choosing nothing */
             }
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && bg_paused) { bg_paused = 0; bg_resumed = plat_ticks_ms(); mouse_b = 0; }
+            if ((e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED || e.window.event == SDL_WINDOWEVENT_SHOWN || e.window.event == SDL_WINDOWEVENT_RESTORED
+                 || e.window.event == SDL_WINDOWEVENT_MAXIMIZED) && ren && win)
+                resync_surface(e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED ? "focus" : e.window.event == SDL_WINDOWEVENT_SHOWN ? "shown" :
+                               e.window.event == SDL_WINDOWEVENT_RESTORED ? "restored" : "maximized");
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED || e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESTORED
                 || e.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
                 layout();                           /* the mouse is placed with the new sizes at once, not from the next frame */
@@ -902,6 +931,10 @@ void plat_events(void)
             if (e.key.keysym.sym == SDLK_F12 && (e.key.keysym.mod & KMOD_CTRL)) {
                 extern int hdtext_dump; hdtext_dump = 1;   /* and what the crisp text made of the screen, into the log (for reports) */
                 fprintf(stderr, "screenshot: window %dx%d, drawing surface %dx%d, picture %d,%d %dx%d\n", win_w, win_h, out_w, out_h, dest.x, dest.y, dest.w, dest.h);
+                {   int pw = 0, ph = 0, mx, my; float dd = 0; if (win) SDL_GetWindowSizeInPixels(win, &pw, &ph); SDL_GetMouseState(&mx, &my);
+                    if (win) SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(win), &dd, 0, 0);
+                    fprintf(stderr, "screenshot: window in pixels %dx%d, display dpi %.0f, mouse at %d,%d (furthest seen %d,%d) -> game %d,%d, flags %#x\n",
+                            pw, ph, dd, mx, my, mouse_far_x, mouse_far_y, mouse_x, mouse_y, win ? (unsigned)SDL_GetWindowFlags(win) : 0u); }
                 if (ren) pending_shot = 1; else save_bmp("screenshot.bmp");
                 break;
             }
@@ -926,6 +959,7 @@ void plat_events(void)
             }
             break;
         case SDL_MOUSEMOTION:
+            if (e.motion.x > mouse_far_x) mouse_far_x = e.motion.x; if (e.motion.y > mouse_far_y) mouse_far_y = e.motion.y;
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {

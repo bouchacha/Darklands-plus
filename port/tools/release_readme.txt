@@ -27,6 +27,9 @@ INSTALLING
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
+The MicroProse logo and the opening animations play at the first start only (F12 > Display
+plays them every time; Space or Esc moves on a picture). The title menu shows the version.
+
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
 game folder. After that it starts at once. It does this again only after an update that
@@ -37,7 +40,10 @@ KEYS
   F12           Darklands+ menu
   Ctrl+S        quick save            F9, Ctrl+L  quick load
   Alt+Enter     full screen           Ctrl+click  (travel map) travel there
-  Ctrl+F12      screenshot (PNG in the screenshots folder of the Darklands folder)
+  Ctrl+F12      screenshot (PNG in the screenshots folder of the Darklands folder; it also
+                writes the window's sizes into darklands_port.log, useful in a report)
+  Click a foe   (battles) the selected member attacks it, even before an attack is chosen
+  Click a column heading  (Darklands+ tables) sort by it
   G             (city card) go to a place
   1-9           (card) pick an option
   Mouse wheel   (sheet, shops) move through a list
