@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <dirent.h>
+#include <time.h>
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
@@ -64,6 +65,8 @@ void ui_notice(const char *);
 #define V_MENU_MEMBER 0xee6c
 #define V_MENU_SLOT   0xee6a
 #define V_MENU_POPUP  0xee6e
+#define V_MSG_BLOCKS  0xe8a5        /* char: the text blocks of the card loaded (msg_blocks) */
+#define V_IN_POPUP    0xee42        /* char: the pointer or the highlight is in the saints/items box */
 #define V_CHOSEN1     0xee8c
 #define V_MONEY1      0xee9c
 #define V_NUMBER1     0xed4c
@@ -119,7 +122,9 @@ typedef struct {
     int ok;
     long last_day;
     int nblocks;                        /* the card text's blocks (0: not found, e.g. one of the game's own cards) */
+    long card_bytes;                    /* its size as the game loads it (.MSG) */
     unsigned char nopts[64], optcode[64][NOPT];   /* each block's option lines and their codes (0x15 0x16 0x10 0x06) */
+    int maxopts;                        /* the most option lines in one block */
 } Enc;
 
 static Enc encs[ENC_MAX];
@@ -270,7 +275,7 @@ static void script_error_at(const char *file)     /* a script error while it run
     exit_to_map();
 }
 #define script_error(e) script_error_at((e)->file)
-static long game_day(void) { return (long)(s16)g_rw(V_YEAR) * 365 + (s16)g_rw(V_MONTH) * 31 + (s16)g_rw(V_DAY); }
+static long game_day(void) { return (long)(s16)g_rw(V_YEAR) * 372 + (s16)g_rw(V_MONTH) * 31 + (s16)g_rw(V_DAY); }   /* increasing (not exact) */
 
 /* ================================================================ the language */
 typedef struct {
@@ -278,6 +283,7 @@ typedef struct {
     Enc *e;
     int dry;                             /* parse and check only: no effects */
     int err;
+    int depth;                           /* nesting of ( ), - and { }: bounded (the native stack) */
     int tt; long num; char id[48];       /* the current token */
 } P;
 enum { TEND, TNUM, TID, TOP };
@@ -398,7 +404,7 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "night")) { *v = g_daylight() == 0; return 1; }
     if (!strcasecmp(n, "hour")) { *v = (s16)g_rw(V_HOUR); return 1; }
     if (!strcasecmp(n, "month")) { *v = (s16)g_rw(V_MONTH) + 1; return 1; }          /* 1 January .. 12 */
-    if (!strcasecmp(n, "day")) { *v = (s16)g_rw(V_DAY) + 1; return 1; }
+    if (!strcasecmp(n, "day")) { *v = (s16)g_rw(V_DAY); return 1; }                    /* 1 .. (the game counts from 1) */
     if (!strcasecmp(n, "year")) { *v = (s16)g_rw(V_YEAR); return 1; }
     if (!strcasecmp(n, "money")) { *v = money_get(G_MONEY); return 1; }               /* the purse in pfennigs */
     if (!strcasecmp(n, "size")) { *v = g_present(); return 1; }                       /* members present */
@@ -449,6 +455,7 @@ static long call_fn(P *p, const char *f, const long *a, int n)
     if (!strcasecmp(f, "has") || !strcasecmp(f, "count") || !strcasecmp(f, "quality")) {
         if (!nargs_ok(p, f, n, 2, 2) || p->dry) return 0;
         int w = (int)a[0], code = (int)a[1];
+        if (code < 0 || code > 199 || !((w >= -1 && w < 5) || (w == -2 && f[0] != 'q'))) { perr(p, "%s: who, then an item (0 to 199)", f); return 0; }
         if (f[0] == 'q') return g_item_quality(resolve_who(w), code);
         if (f[0] == 'c') return g_count_items(w == -1 ? leader() : w, code);
         if (w == -2) { for (int m = 0; m < 5; m++) if (member_status(m) == 1 && g_has_item(m, code) == 1) return 1; return 0; }
@@ -481,7 +488,14 @@ static long primary(P *p)
     perr(p, "a value expected");
     return 0;
 }
+static long unary_(P *p);
 static long unary(P *p)
+{
+    if (p->depth >= 64) { perr(p, "nested too deeply"); return 0; }
+    p->depth++; long v = unary_(p); p->depth--;
+    return v;
+}
+static long unary_(P *p)
 {
     if (accept_op(p, "-")) return -unary(p);                 /* (within +-VMAX: no overflow) */
     if (accept_op(p, "!") || (is_word(p, "not") && (nx(p), 1))) return !unary(p);
@@ -560,10 +574,13 @@ static int exec_stmt(P *p);
 static int branch(P *p, int run)
 {
     int dry = p->dry, r = 0;
+    if (p->depth >= 64) { perr(p, "nested too deeply"); return 1; }
+    p->depth++;
     if (!run) p->dry = 1;
-    if (accept_op(p, "{")) { r = exec_list(p); expect_op(p, "}"); }
+    if (accept_op(p, "{")) { r = exec_list(p); if (!r || p->dry) expect_op(p, "}"); }   /* (after a goto or exit the rest is not read) */
     else r = exec_stmt(p);
     p->dry = dry;
+    p->depth--;
     return run ? r : 0;
 }
 
@@ -592,7 +609,7 @@ static int arg_range(P *p, const char *w, const long *a, int n)
     else if (!strcasecmp(w, "itemname")) { if (a[0] < 0 || a[0] > 199) bad = "an item (0 to 199)"; }
     else if (!strcasecmp(w, "saintname")) { if (a[0] < 0 || a[0] > 135) bad = "a saint (0 to 135)"; }
     else if (!strcasecmp(w, "fame")) { if (a[0] < 1 || a[0] > 5) bad = "1 to 5"; }
-    else if (!strcasecmp(w, "text")) { if (a[0] < 0 || a[0] > 99) bad = "a text block"; }
+    else if (!strcasecmp(w, "text")) { if (a[0] < 0 || a[0] >= (s8)g_rb(V_MSG_BLOCKS)) bad = "a text block of the card"; }
     else if (!strcasecmp(w, "hours") || !strcasecmp(w, "days")) { if (a[0] > 9999) bad = "at most 9999"; }
     else if (!strcasecmp(w, "until")) { if (a[0] < 0 || a[0] > 23) bad = "an hour (0 to 23)"; }
     if (!bad) return 1;
@@ -709,7 +726,11 @@ static int exec_stmt(P *p)
     if (k < 0) { perr(p, "unknown action %s", w); return 1; }
     n = args(p, a, K[k].lo, K[k].hi, w);
     if (!p->err && !arg_range(p, w, a, n)) return 1;
-    if (!p->err && !strcasecmp(w, "text") && p->e && p->e->nblocks && (a[0] < 0 || a[0] >= p->e->nblocks)) { perr(p, "text %ld: %s has blocks 0 to %d", a[0], p->e->card, p->e->nblocks - 1); return 1; }
+    if (!p->err && !strcasecmp(w, "text") && p->e && (a[0] < 0 || (p->e->nblocks ? a[0] >= p->e->nblocks : a[0] > 24))) {
+        if (p->e->nblocks) perr(p, "text %ld: %s has blocks 0 to %d", a[0], p->e->card, p->e->nblocks - 1);
+        else perr(p, "text %ld: a card holds blocks 0 to 24", a[0]);
+        return 1;
+    }
     if (dry || p->err) return 0;
     if (!strcasecmp(w, "text")) g_card_text((int)a[0]);
     else if (!strcasecmp(w, "hours")) g_hours((int)a[0]);
@@ -876,7 +897,7 @@ static int load_file(Enc *e, const char *path, const char *id)
             else if (!strcasecmp(w, "picture")) { if (strlen(v) > 8 || !*v) ferr(e, ln, "picture: at most 8 letters"); snprintf(e->pic, sizeof e->pic, "%s", v); }
             else if (!strcasecmp(w, "terrain")) { int bad = 0; e->terrain = terrain_bits(v, &bad); if (bad) ferr(e, ln, "terrain: marsh woods farmland plains forest pinewood hills mountains road wild any, or numbers"); }
             else if (!strcasecmp(w, "when")) { e->when = !strcasecmp(v, "day") ? 1 : !strcasecmp(v, "night") ? 2 : 0; if (e->when == 0 && strcasecmp(v, "any")) ferr(e, ln, "when: day, night or any"); }
-            else if (!strcasecmp(w, "weight")) e->weight = atoi(v);
+            else if (!strcasecmp(w, "weight")) { e->weight = atoi(v); if (e->weight < 0 || e->weight > 100) { ferr(e, ln, "weight: 0 to 100"); e->weight = 1; } }
             else if (!strcasecmp(w, "only")) src_set(&e->only, v, ln);
             else if (!strcasecmp(w, "music")) e->music = !strcasecmp(v, "yes") || !strcasecmp(v, "ambush");
             else if (!strcasecmp(w, "vars")) {
@@ -958,11 +979,19 @@ static void card_shape(Enc *e)
     }
     if (!f) return;
     char line[2000];
-    int b = -1;
+    int b = -1, nl = 0;
+    long bytes = 1;
+    e->maxopts = 0;
     while (fgets(line, sizeof line, f)) {
         if (line[0] == '#') continue;
-        if (!strncmp(line, "=== card", 8)) { b++; if (b < 64) e->nopts[b] = 0; continue; }
-        if (b < 0 || b >= 64) continue;
+        if (!strncmp(line, "=== card", 8)) { b++; nl = 0; bytes += 5; if (b < 64) e->nopts[b] = 0; continue; }
+        if (b < 0) continue;
+        {   /* its bytes in the game's form (card_text_to_msg in datamods.c): \\ and \xx are one */
+            size_t L = strlen(line); while (L && (line[L - 1] == '\n' || line[L - 1] == '\r')) L--;
+            for (size_t i = 0; i < L; i++) { if (line[i] == '\\' && i + 1 < L && line[i + 1] == '\\') i++; else if (line[i] == '\\' && i + 2 < L && isxdigit((unsigned char)line[i + 1]) && isxdigit((unsigned char)line[i + 2])) i += 2; bytes++; }
+            bytes++;                                /* the line's end (the last one's: the block's 0) */
+        }
+        if (b >= 64) continue;
         /* the first character code of the line, past any \14 */
         const char *t = line; int c = -1;
         for (;;) {
@@ -973,10 +1002,15 @@ static void card_shape(Enc *e)
             } else c = (unsigned char)t[0];
             break;
         }
-        if ((c == 0x15 || c == 0x16 || c == 0x10 || c == 0x06) && e->nopts[b] < NOPT) e->optcode[b][e->nopts[b]++] = (unsigned char)c;
+        if (c == 0x15 || c == 0x16 || c == 0x10 || c == 0x06) {
+            if (e->nopts[b] < NOPT) e->optcode[b][e->nopts[b]] = (unsigned char)c;
+            if (++nl > e->maxopts) e->maxopts = nl;
+            if (e->nopts[b] < 255) e->nopts[b]++;
+        }
     }
     fclose(f);
     e->nblocks = b + 1;
+    e->card_bytes = bytes;
 }
 
 /* everything in the file parsed and checked once, without running it */
@@ -984,6 +1018,9 @@ static void check(Enc *e)
 {
     int bad = 0;
     card_shape(e);
+    if (e->nblocks > 25) { ferr(e, 1, "%s has %d text blocks: the game holds 25", e->card, e->nblocks); bad = 1; }
+    if (e->card_bytes >= 6000) { ferr(e, 1, "%s is too long: %ld bytes as the game loads it, under 6000 fit", e->card, e->card_bytes); bad = 1; }
+    if (e->maxopts > NOPT) { ferr(e, 1, "%s has a block with %d option lines: at most %d", e->card, e->maxopts, NOPT); bad = 1; }
     if (e->only.s) { int er; eval_src(e, &e->only, 1, &er); bad |= er; }
     for (int i = 0; i < e->nsec; i++) {
         Sec *s = &e->sec[i];
@@ -997,7 +1034,7 @@ static void check(Enc *e)
             any = 1;
             if (s->block < 0) { ferr(e, s->line, "[%s] has options but no block", s->name); bad = 1; }
             else if (e->nblocks && s->block < 64) {
-                int nl = s->block < e->nblocks ? e->nopts[s->block] : 0;
+                int nl = s->block < e->nblocks ? (e->nopts[s->block] > NOPT ? NOPT : e->nopts[s->block]) : 0;
                 if (k >= nl) { ferr(e, s->line, "[%s] option %d: block %d of %s has %d option line%s", s->name, k, s->block, e->card, nl, nl == 1 ? "" : "s"); bad = 1; }
                 else {
                     int c = e->optcode[s->block][k];
@@ -1019,7 +1056,8 @@ static void check(Enc *e)
             if (s->saints[j] < -1 || s->saints[j] > 135) { ferr(e, s->line, "[%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1", s->name); bad = 1; break; }
             if (s->items[j] < -1 || s->items[j] > 199) { ferr(e, s->line, "[%s] items: numbers 0 to 199 (DARKLAND.LST), or -1", s->name); bad = 1; break; }
         }
-        if (s->block >= 0 && e->nblocks && s->block >= e->nblocks) { ferr(e, s->line, "[%s] block %d: %s has blocks 0 to %d", s->name, s->block, e->card, e->nblocks - 1); bad = 1; }
+        if (s->block > 24) { ferr(e, s->line, "[%s] block %d: the game holds 25 blocks (0 to 24)", s->name, s->block); bad = 1; }
+        else if (s->block >= 0 && e->nblocks && s->block >= e->nblocks) { ferr(e, s->line, "[%s] block %d: %s has blocks 0 to %d", s->name, s->block, e->card, e->nblocks - 1); bad = 1; }
     }
     if (bad) e->ok = 0;
 }
@@ -1031,7 +1069,9 @@ static void reload(void)
 {
     int gen = datamods_generation();
     if (gen == loaded_gen) return;
+    if (rt.active) return;                       /* mods ticked while a new encounter is on the screen: afterwards */
     loaded_gen = gen;
+    force_next = -1;
     for (int i = 0; i < nenc; i++) free_enc(&encs[i]);
     nenc = 0; nerr = 0;
     char dirs[16][1200];
@@ -1082,8 +1122,9 @@ static int chance_mode(const Opt *o)
 }
 static int opt_who(Enc *e, const Opt *o)
 {
-    if (o->who.s) return (int)eval_src(e, &o->who, 0, 0);
-    return chance_mode(o) == CH_NUM ? leader() : -2;
+    if (!o->who.s) return chance_mode(o) == CH_NUM ? leader() : -2;
+    int w = resolve_who((int)eval_src(e, &o->who, 0, 0));
+    return (w >= 0 && w < 5) || w == -2 ? w : leader();
 }
 static int pot_index(const Opt *o, int code) { for (int j = 0; j < o->npot; j++) if (o->pot_code[j] == code) return j; return -1; }
 static Opt *potion_opt(Sec *s) { for (int k = 0; k < NOPT; k++) if (s->opt[k].defined && s->opt[k].kind == 1) return &s->opt[k]; return 0; }
@@ -1172,16 +1213,22 @@ static void menu_round(Enc *e, Sec *s)
         u32 fp = native_far_ptr(opt_handler, k);
         g_ww((u16)(V_OPT_FN + 4 * k), (u16)fp); g_ww((u16)(V_OPT_FN + 4 * k + 2), (u16)(fp >> 16));
     }
+    for (int k = NOPT; k < 20; k++) {           /* the engine's tables have 20 entries (the interface asks them all) */
+        g_wb((u16)(V_OPT_ON + k), 0);
+        u32 fp = native_far_ptr(opt_handler, k);
+        g_ww((u16)(V_OPT_FN + 4 * k), (u16)fp); g_ww((u16)(V_OPT_FN + 4 * k + 2), (u16)(fp >> 16));
+    }
     if (aborting) return;
     if (enc_log_on()) { char f[NOPT + 1]; for (int k = 0; k < NOPT; k++) f[k] = (char)('0' + g_rb((u16)(V_OPT_ON + k))); f[NOPT] = 0; LOG("menu [%s] block %d, options %s\n", s->name, s->block, f); }
     g_ww(V_EE70, 0); g_ww(V_EE72, 7);
+    if (s->block >= (s8)g_rb(V_MSG_BLOCKS)) { fprintf(stderr, "encounters: %s: [%s] block %d: the card has %d\n", e->file, s->name, s->block, (s8)g_rb(V_MSG_BLOCKS)); script_error(e); return; }
     g_ww(V_OPT_BLOCK, (u16)s->block);
     g_mouse_show();
     g_card_options(s->block);
     int k = g_card_menu();
     g_mouse_hide();
     if (aborting) return;
-    int popup = (s16)g_rw(V_MENU_POPUP), m = (s16)g_rw(V_MENU_MEMBER), sl = (s16)g_rw(V_MENU_SLOT);
+    int popup = (s16)g_rw(V_MENU_POPUP) || g_rb(V_IN_POPUP), m = (s16)g_rw(V_MENU_MEMBER), sl = (s16)g_rw(V_MENU_SLOT);   /* (a pick with Enter sets only the second) */
     if (k < 0 || k >= NOPT || !s->opt[k].defined) { LOG("menu: option %d has no actions\n", k); return; }
     Opt *o = &s->opt[k];
     int ok = 1;
@@ -1247,7 +1294,11 @@ static int run_encounter(int card)
             if (first) { if (s->pic[0]) dset_pic(V_PIC_BUF, s->pic); g_card_load(); }
             else if (s->block >= 0 || s->pic[0]) show_sec(e, s, 0);
             first = 0;
-            if (s->chosen.s) g_ww(V_CHOSEN1, (u16)resolve_who((int)eval_src(e, &s->chosen, 0, 0)));
+            if (s->chosen.s) {
+                int w = resolve_who((int)eval_src(e, &s->chosen, 0, 0));
+                if (w < 0 || w > 4) { fprintf(stderr, "encounters: %s: [%s] chosen: one member expected\n", e->file, s->name); script_error(e); break; }
+                g_ww(V_CHOSEN1, (u16)w);
+            }
             rt.jumped = 0;
             int r = run_src(e, &s->enter, 0);
             if (aborting || (s16)g_rw(V_NEXT_CARD) != card) break;
@@ -1256,7 +1307,8 @@ static int run_encounter(int card)
             if (r) { exit_to_map(); break; }
             if (s->block < 0) {                  /* actions only: back to the last menu, or the map */
                 if (rt.last_menu < 0) { exit_to_map(); break; }
-                rt.sec = rt.last_menu; entered = 1;
+                rt.sec = rt.last_menu;           /* its menu again, without its 'do' and 'chosen' */
+                show_sec(e, &e->sec[rt.sec], 0);
                 continue;
             }
             rt.last_menu = rt.sec;
@@ -1317,11 +1369,20 @@ int encounters_offered(void)
     return 0;
 }
 
+/* the choice among the encounters: its own generator (rand() is 15 bits on Windows and never seeded) */
+static unsigned long long rng_s;
+static unsigned long long rng(void)
+{
+    if (!rng_s) rng_s = (unsigned long long)time(0) * 0x9e3779b97f4a7c15ull ^ (unsigned long long)(size_t)&rng_s ^ 0x2545f4914f6cdd1dull;
+    rng_s ^= rng_s << 13; rng_s ^= rng_s >> 7; rng_s ^= rng_s << 17;
+    return rng_s;
+}
+
 static int eligible(Enc *e, int t, long today)
 {
     if (!e->ok || e->weight <= 0) return 0;
     if (t < 0 || t > 31 || !(e->terrain >> t & 1)) return 0;
-    if (today - e->last_day < 4) return 0;           /* not the same one again within a few days */
+    { long d = today - e->last_day; if (d >= 0 && d < 4) return 0; }   /* not the same one again within a few days (a save loaded from before: no matter) */
     if (e->when) { int d = g_daylight() != 0; if ((e->when == 1) != d) return 0; }
     if (e->only.s) { memset(&rt, 0, sizeof rt); rt.who = leader(); if (!eval_src(e, &e->only, 0, 0)) return 0; }
     return 1;
@@ -1347,11 +1408,12 @@ static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(
         if (share <= 0) return;
         int T = table_size(t);
         if (!T) return;
-        long w[ENC_MAX], W = 0;
-        for (int i = 0; i < nenc; i++) { w[i] = eligible(&encs[i], t, today) ? (long)encs[i].weight * share : 0; W += w[i]; }
+        if (share > 1000) share = 1000;
+        long long w[ENC_MAX], W = 0;
+        for (int i = 0; i < nenc; i++) { w[i] = eligible(&encs[i], t, today) ? (long long)encs[i].weight * share : 0; W += w[i]; }
         if (aborting || !W) return;
-        long roll = rand() % (T * 100L + W);
-        LOG("terrain %d: table %d, new weight %ld/100, roll %ld\n", t, T, W, roll);
+        long long roll = (long long)(rng() % (unsigned long long)(T * 100LL + W));
+        LOG("terrain %d: table %d, new weight %lld/100, roll %lld\n", t, T, W, roll);
         if (roll >= W) return;
         for (int i = 0; i < nenc; i++) { if (roll < w[i]) { pick = i; break; } roll -= w[i]; }
     }

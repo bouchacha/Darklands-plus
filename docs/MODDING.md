@@ -138,7 +138,7 @@ card     $NwGal00                    # the MSGFILES text (at most 8 letters)
 picture  XTREE                       # PICS\XTREE.PIC (pictures starting with X get white text)
 terrain  farmland plains woods forest
 when     any                         # day, night or any
-weight   2                           # how many table entries it counts as
+weight   2                           # how many table entries it counts as (0 to 100)
 only     month >= 4 and month <= 10  # (optional) a condition for it to come up at all
 vars     tries, found                # (optional) numbers the script keeps while it runs
 
@@ -165,7 +165,8 @@ do       text 4; reputation -1, -3; exit
 menu); `chosen` sets `$ChosenOneName`; `saints a, b, c, d` and `items a, b, c, d` are the saints
 and potions its saint and potion options offer (numbers from DARKLAND.LST; up to four). A section
 without a block runs its `do` and then returns to the last menu (or the map) unless it went
-somewhere else.
+somewhere else; going back to a menu that way does not run that menu's `do` and `chosen` again
+(a `goto` to it does).
 
 **Options** are numbered by their order in the text block (each `\15`, `\16`, `\10`, `\06` line is
 the next number). `option N saint` is a line that opens the saints (`\16`), `option N potion` one
@@ -219,7 +220,7 @@ menu comes back unless its actions went elsewhere.
 | members | `leader`, `party`, `who`, `chosen`, `bestskill(K)`, `worstskill(K)`, `bestattr(K)`, `worstattr(K)`, `bestskill2(K1, K2)`, `bestskillsum(K1, K2)`, `bestattrsum(A1, A2)`, `bestattrskill(A, K)`, `spotter` (best Perception + Woodwise), `slowest` (the slowest with their load) |
 | one member | `skill(W, K)`, `attr(W, K)`, `attrmax(W, K)`, `able(W)`, `has(W, CODE)`, `count(W, CODE)`, `quality(W, CODE)` (`has(party, CODE)`: anyone) |
 | the party | `maxskill(K)`, `minskill(K)`, `avgskill(K)`, `maxattr(K)`, `minattr(K)`, `avgattr(K)`, `maxskill2(K1, K2)`, `maxskillsum(K1, K2)`, `maxattrsum`, `maxattrskill`, `spotvalue`, `avgagility`, `minagility` (agility with the load), `slowspeed`, `lore` (1-10, the game's measure of the party's strength), `fame`, `money` (pfennigs), `size` (members present), `members`, `women`, `mounted` |
-| the world | `daylight`, `night`, `hour`, `day`, `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
+| the world | `daylight`, `night`, `hour`, `day` (1-31), `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
 | rolls | `random(N)` (0..N-1), `roll(C)` (a check of C %), `clamp(LO, HI, V)`, `min`, `max`, `abs` |
 | after | `result` (a battle), `q`, `item`, `saint` |
 | names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) |
@@ -237,12 +238,13 @@ money.
 Errors are reported with the file and line in `darklands_port.log` (and the encounter is left
 out); `DL_ENC_LOG=1` logs every roll. The script is checked against its card text when that is a
 mod's `MSGFILES/<CARD>.TXT`: each `block` and `text` must exist, each option must have its line
-in the block, and a `\16` line must be a `saint` option and a `\10` line a `potion` one. What
-can only be known while it runs is checked then: an item, saint, skill or member out of range,
-or sections that lead only to one another, end the encounter with a notice instead of upsetting
-the game. A battle holds at most 8 foes (a `Cave` one); groups beyond that are cut down, and
-qualities are kept within 0 to 9. For testing, the `uenc:N` step of `DL_CTL` / `DL_SCRIPT` makes
-the next wilderness encounter number N.
+in the block, and a `\16` line must be a `saint` option and a `\10` line a `potion` one. The
+game holds at most 25 text blocks of under 6000 bytes in all, with up to 10 option lines in a
+block. What can only be known while it runs is checked then: an item, saint, skill or member
+out of range, or sections that lead only to one another, end the encounter with a notice
+instead of upsetting the game. A battle holds at most 8 foes (a `Cave` one); groups beyond that
+are cut down, and qualities are kept within 0 to 9. For testing, the `uenc:N` step of `DL_CTL` /
+`DL_SCRIPT` makes the next wilderness encounter number N.
 
 ## Party figures
 

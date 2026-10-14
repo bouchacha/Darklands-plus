@@ -482,6 +482,7 @@ def main():
     ap.add_argument('--caption-model', default='gpt-4o-mini')
     ap.add_argument('--kinds', default='scene,item', help='which kinds to repaint: scene, item, weapon, interface')
     ap.add_argument('--only', default='', help='these pictures only (comma separated)')
+    ap.add_argument('--caption-weight', type=float, default=1.0, help='weight of the caption against the style (InvokeAI: (caption)1.3; ComfyUI/A1111: (caption:1.3)), for loose repaints that must keep what the picture shows')
     ap.add_argument('--limit', type=int, default=0, help='at most this many new pictures this run')
     ap.add_argument('--redo', action='store_true', help='make pictures again that are already done')
     ap.add_argument('--seed-offset', type=int, default=0)
@@ -521,7 +522,10 @@ def main():
         if a.limit and made >= a.limit: break
         o, k = origs[n], kinds[n]
         strength = a.item_strength if k in ('item', 'weapon') else a.strength
-        prompt = ', '.join(x for x in (caps.get(n, ''), KIND_WORDS[k], a.style) if x)
+        cap = caps.get(n, '')
+        if cap and a.caption_weight != 1 and a.backend in ('invokeai', 'comfyui', 'a1111'):
+            cap = '(%s)%g' % (cap, a.caption_weight) if a.backend == 'invokeai' else '(%s:%g)' % (cap, a.caption_weight)
+        prompt = ', '.join(x for x in (cap, KIND_WORDS[k], a.style) if x)
         seed = seed_of(n, a.seed_offset)
         init = init_image(o, a.scale)
         t0 = time.time()
