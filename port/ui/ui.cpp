@@ -34,6 +34,7 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
 static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32;
 static void welcome_window(void);
+extern "C" int orders_click_attack;
 static void help_window(void);
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 extern "C" int citynav_window(void);
@@ -519,6 +520,8 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Pause the battle when someone in the party falls", &d)) { autopause_set(d, h); dirty_config = 1; }
       if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); dirty_config = 1; } }
     { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
+    { bool ca = orders_click_attack;
+      if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); dirty_config = 1; } }
       if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); dirty_config = 1; }
       { extern int ui_battle_log; bool bl = ui_battle_log != 0;
         if (ImGui::Checkbox("Battle log: every blow, parry, wound and fall, in the left margin on a wide screen, else over the field (F12 > Journal keeps it)", &bl)) { ui_battle_log = bl; config_set_int("battle.log", bl); dirty_config = 1; } }
