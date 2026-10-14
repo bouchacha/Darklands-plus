@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -202,15 +203,30 @@ void rules_tab(void)
 {
     ImGui::TextWrapped("The battle numbers of every weapon, as the game uses them now%s.", rules_changed ? " (changed by a mod)" : "");
     static const char *SK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile dev." };
-    if (ImGui::BeginTable("weapons", 9, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit,
+    if (ImGui::BeginTable("weapons", 9, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - 110))) {
         const char *H[9] = { "Weapon", "Skill", "Hands", "Damage", "Penetr.", "Time", "Reload", "Skill wanted", "Strength" };
         for (int i = 0; i < 9; i++) ImGui::TableSetupColumn(H[i], i == 0 ? ImGuiTableColumnFlags_WidthStretch : 0);
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
-        for (int w = 0; w <= 33; w++) {
+        std::vector<int> rows;
+        for (int w = 0; w <= 33; w++) if (!weapon_name(w).empty()) rows.push_back(w);
+        static TableSort ts;
+        auto key = [&](int w, int c) -> SortKey {
+            switch (c) {
+            case 0: return weapon_name(w);
+            case 1: { int sk = get(w, FIELDS[0]); return sk < 7 ? SK[sk] : "?"; }
+            case 2: return get(w, FIELDS[2]) >= 2 ? 2 : 1;
+            case 3: return get(w, FIELDS[4]);
+            case 4: return get(w, FIELDS[3]);
+            case 5: return get(w, FIELDS[1]);
+            case 6: return get(w, FIELDS[8]);
+            case 7: return get(w, FIELDS[5]);
+            default: return get(w, FIELDS[6]) * 100 + get(w, FIELDS[7]);
+            }
+        };
+        for (int w : table_order(ts, rows, key)) {
             std::string n = weapon_name(w);
-            if (n.empty()) continue;
             ImGui::TableNextRow();
             ImGui::TableNextColumn(); ImGui::TextUnformatted(n.c_str());
             int sk = get(w, FIELDS[0]);

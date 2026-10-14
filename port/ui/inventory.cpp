@@ -10,6 +10,7 @@
 #include <array>
 #include <algorithm>
 #include "imgui.h"
+#include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -726,19 +727,35 @@ extern "C" void tab_alchemy(void)
     static bool all_formulas = false;
     ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
     ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
-    if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
+    if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
         ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthStretch, 1.3f);
         ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthStretch, 0.6f);
         ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(8));
         ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(8));
-        ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch, 1.2f);
+        ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 1.2f);
         ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Batches").x + UIS(8));
         ImGui::TableHeadersRow();
         int listed = 0;
-        for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
-            std::string who;
-            for (int m = 0; m < MAXM; m++) if (member_present(m) && knows(m, f)) { if (!who.empty()) who += ", "; who += member_name(m, false); }
-            if (who.empty() && !all_formulas) continue;
+        auto who_of = [&](int f) { std::string who; for (int m = 0; m < MAXM; m++) if (member_present(m) && knows(m, f)) { if (!who.empty()) who += ", "; who += member_name(m, false); } return who; };
+        auto batches_of = [&](int f) { const Formula &F = gamedata.formulas[f]; int b = 999;
+            for (size_t k = 0; k < F.ingr.size(); k++) { int have = party_stock(F.ingr[k].item, nullptr), x = F.ingr[k].count ? have / F.ingr[k].count : 999; if (x < b) b = x; }
+            return b == 999 ? 0 : b; };
+        std::vector<int> rows;
+        for (int f = 0; f < (int)gamedata.formulas.size(); f++) if (all_formulas || !who_of(f).empty()) rows.push_back(f);
+        static TableSort ts;
+        auto key = [&](int f, int c) -> SortKey {
+            const Formula &F = gamedata.formulas[f];
+            switch (c) {
+            case 0: { std::string vn = virtue_name(f); const ItemDef *pd = def_of(95 + f / 3); return vn.empty() ? (pd ? game_text(pd->name.c_str(), 64) : std::string("?")) : vn; }
+            case 1: return who_of(f);
+            case 2: return F.mystic;
+            case 3: return F.risk;
+            case 5: return batches_of(f);
+            default: return f;
+            }
+        };
+        for (int f : table_order(ts, rows, key)) {
+            std::string who = who_of(f);
             listed++;
             const Formula &F = gamedata.formulas[f];
             const ItemDef *pd = def_of(95 + f / 3);

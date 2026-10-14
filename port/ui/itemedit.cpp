@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -48,15 +49,15 @@ void itemedit_tab(void)
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##flt", "find an item", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < nitems(); i++) if (memcmp(rec(i), &orig[3 + (size_t)i * 46], 46)) changed++;
     ImGui::SameLine(); ImGui::TextDisabled("%d changed", changed);
-    if (ImGui::BeginTable("items", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit,
+    if (ImGui::BeginTable("items", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - 80))) {
         const char *H[8] = { "#", "Name", "Short name", "Kind", "Weight", "Quality", "Rarity", "Value (pf)" };
         for (int c = 0; c < 8; c++) ImGui::TableSetupColumn(H[c], c == 1 ? ImGuiTableColumnFlags_WidthStretch : 0);
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
+        std::vector<int> rows;
         for (int i = 0; i < nitems(); i++) {
-            unsigned char *r = rec(i);
-            std::string name = field_str(r, 0, 20);
+            std::string name = field_str(rec(i), 0, 20);
             if (name.empty()) continue;
             if (filter[0]) {
                 std::string a = name, b = filter;
@@ -64,6 +65,25 @@ void itemedit_tab(void)
                 for (char &c : b) c = (char)tolower((unsigned char)c);
                 if (a.find(b) == std::string::npos) continue;
             }
+            rows.push_back(i);
+        }
+        static TableSort ts;
+        auto key = [&](int i, int c) -> SortKey {
+            unsigned char *r = rec(i);
+            const ItemDef *d = i < (int)gamedata.items.size() ? &gamedata.items[i] : nullptr;
+            switch (c) {
+            case 1: return field_str(r, 0, 20);
+            case 2: return field_str(r, 20, 10);
+            case 3: return d ? kind_name(d->kind) : "";
+            case 4: return (int)r[37];
+            case 5: return (int)r[38];
+            case 6: return (int)r[39];
+            case 7: return r[44] | r[45] << 8;
+            default: return i;
+            }
+        };
+        for (int i : table_order(ts, rows, key)) {
+            unsigned char *r = rec(i);
             ImGui::PushID(i);
             ImGui::TableNextRow();
             bool mod = memcmp(r, &orig[3 + (size_t)i * 46], 46) != 0;

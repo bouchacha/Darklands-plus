@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -111,7 +112,7 @@ void bestiary_tab(void)
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##eflt", "find a foe", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < NT; i++) if (memcmp(type_rec(i), &orig[(size_t)i * TSZ], TSZ)) changed++;
     ImGui::SameLine(); ImGui::TextDisabled("%d kind%s changed", changed, changed == 1 ? "" : "s");
-    if (ImGui::BeginTable("foes", 16, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit,
+    if (ImGui::BeginTable("foes", 16, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - (open_type >= 0 ? UIS(270) : UIS(80))))) {
         ImGui::TableSetupColumn("Foe", ImGuiTableColumnFlags_WidthStretch);
         for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(ATTR[a]);
@@ -119,6 +120,7 @@ void bestiary_tab(void)
         ImGui::TableSetupColumn("Armour");
         ImGui::TableSetupScrollFreeze(1, 1);
         ImGui::TableHeadersRow();
+        std::vector<int> rows;
         for (int e = 0; e < NE; e++) {
             unsigned char *r = foe_rec(e);
             int ti = r[0] | r[1] << 8;
@@ -131,6 +133,20 @@ void bestiary_tab(void)
                 for (char &c : b) c = (char)tolower((unsigned char)c);
                 if (a.find(b) == std::string::npos) continue;
             }
+            rows.push_back(e);
+        }
+        static TableSort ts;
+        auto key = [&](int e, int c) -> SortKey {
+            unsigned char *r = foe_rec(e), *t = type_rec(r[0] | r[1] << 8);
+            if (c == 0) return game_text((const char *)r + 2, strnlen((const char *)r + 2, 12));
+            if (c <= 7) return (int)t[0x14 + c - 1];
+            if (c <= 14) return (int)t[0x1b + c - 8];
+            return (int)t[0x96];
+        };
+        for (int e : table_order(ts, rows, key)) {
+            unsigned char *r = foe_rec(e);
+            int ti = r[0] | r[1] << 8;
+            std::string name = game_text((const char *)r + 2, strnlen((const char *)r + 2, 12));
             unsigned char *t = type_rec(ti);
             bool mod = memcmp(t, &orig[(size_t)ti * TSZ], TSZ) != 0;
             ImGui::PushID(e);

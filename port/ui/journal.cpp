@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <math.h>
 #include "imgui.h"
+#include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -621,12 +622,15 @@ static void town_page(int loc)
         ImGui::PushID((int)k);
         char hd[160]; snprintf(hd, sizeof hd, "%s  (%d wares, noted %s)", s.name.c_str(), (int)s.items.size(), s.date.c_str());
         if (ImGui::CollapsingHeader(hd, ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
+            if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(80));
                 ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(140));
                 ImGui::TableHeadersRow();
-                for (const SeenItem &i : s.items) item_row(i);
+                std::vector<int> rows; for (int r = 0; r < (int)s.items.size(); r++) rows.push_back(r);
+                static std::map<std::string, TableSort> sorts;
+                auto key = [&](int r, int c) -> SortKey { const SeenItem &i = s.items[r]; return c == 0 ? SortKey(item_name(i.id)) : c == 1 ? SortKey(i.q) : SortKey(i.price); };
+                for (int r : table_order(sorts[loc_name(loc) + "/" + s.name], rows, key)) item_row(s.items[r]);
                 ImGui::EndTable();
             }
         }

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include "imgui.h"
+#include "tablesort.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 #include "gamedata.h"
@@ -857,13 +858,21 @@ static void tab_party(void)
             if (ImGui::BeginTabItem(name)) {
                 int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
                 if (n > 64) n = 64;
-                if (ImGui::BeginTable("inv", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY,
+                if (ImGui::BeginTable("inv", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                                       ImVec2(0, UIS(360)))) {
                     ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableSetupColumn("id"); ImGui::TableSetupColumn("type"); ImGui::TableSetupColumn("quality");
                     ImGui::TableSetupColumn("count"); ImGui::TableSetupColumn("weight");
                     ImGui::TableHeadersRow();
-                    for (int i = 0; i < n; i++) {
+                    std::vector<int> rows; for (int i = 0; i < n; i++) rows.push_back(i);
+                    static TableSort ts[5];
+                    auto key = [&](int i, int c) -> SortKey {
+                        u16 r = G_ITEM(m, i); int id = rw(G_FAR2E38, r);
+                        if (c == 0) { char nm[48]; item_name(id, nm, sizeof nm); return nm; }
+                        if (c == 1) return id;
+                        return (int)rb(G_FAR2E38, (u16)(r + c));
+                    };
+                    for (int i : table_order(ts[m], rows, key)) {
                         u16 r = G_ITEM(m, i);
                         int id = rw(G_FAR2E38, r);
                         char nm[48]; item_name(id, nm, sizeof nm);
