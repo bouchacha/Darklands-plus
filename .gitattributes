@@ -1,0 +1,5 @@
+# scripts and makefiles must keep LF line endings when checked out on Windows
+*.sh text eol=lf
+*.py text eol=lf
+Makefile text eol=lf
+*.yml text eol=lf

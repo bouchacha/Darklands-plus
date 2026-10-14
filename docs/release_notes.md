@@ -41,4 +41,4 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 ### If something goes wrong
 
-Darklands+ writes `darklands_port.log` in the game folder; please attach it to a report. Some antivirus programs distrust files a compiler has just made. If yours blocks `darklands_game.dll`, allow it; it is made from your own `DARKLAND.EXE` by the TinyCC in `darklands_plus\tcc`. On Linux and Steam Deck the Windows zip runs under Wine or Proton.
+Darklands+ writes `darklands_port.log` in the game folder; it says why a start failed. There is no official support: the project has been handed over to the community (fork it and carry on). Some antivirus programs distrust files a compiler has just made. If yours blocks `darklands_game.dll`, allow it; it is made from your own `DARKLAND.EXE` by the TinyCC in `darklands_plus\tcc`. On Linux and Steam Deck the Windows zip runs under Wine or Proton.

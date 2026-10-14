@@ -93,8 +93,9 @@ MAKING MODS (in the Darklands folder)
   F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 
 IF SOMETHING GOES WRONG
-Darklands+ writes darklands_port.log into the game folder. Include that file when you report
-a problem. If the first start fails, the log says why. To redo the translation, delete
+Darklands+ writes darklands_port.log into the game folder. If the first start fails, the log says
+why. (There is no official support: the project has been handed to the community, so look for
+the active fork, or fix it yourself: the source is on GitHub.) To redo the translation, delete
 darklands_game.dll. Some antivirus programs distrust files that a compiler has just made: if
 yours removes or blocks darklands_game.dll, allow that file (it is made from your own
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).

@@ -2,6 +2,13 @@
 
 This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-DOS), version 483.07 (the GOG release). The aim is a matching decompilation as a verifiable baseline, then moddable reimplementations of each game module.
 
+> **Status: finished and handed over.** The author is not a programmer and will not maintain this
+> project or answer bug reports (the issue tracker is switched off). It is free for anyone to
+> take over: fork it, fix it, improve it, and publish your own releases. The code was written
+> entirely by an AI (Anthropic's Claude), working from the author's direction and play-testing;
+> `CONTRIBUTING.md` and `docs/` are written so that you, or an AI assistant of your own, can
+> carry on. See `LICENSE` for what is and is not covered.
+
 This repository contains **no game files** and no code generated from them. Everything under `build/` is regenerated from your own copy of `DARKLAND.EXE`.
 
 ## Playing: Darklands+
