@@ -37,7 +37,11 @@ Backends:
            whatever the WebUI has loaded.
   invokeai InvokeAI 5 or later (--invoke-url, http://127.0.0.1:9090 by default): the same
            image-to-image graph as its canvas, with an SDXL model (or SD 1.5 / 2; --checkpoint picks
-           one by name). --steps, --cfg, --invoke-scheduler, --negative.
+           one by name). --steps, --cfg, --invoke-scheduler, --negative. --invoke-control keeps
+           the original's outlines (canny, softedge ...; --control-weight / --control-end say how
+           much); --ip-ref STYLE.jpg draws every picture in the hand of one example picture
+           (IP-Adapter, --ip-weight, --ip-method style), so a whole pack looks like one artist's;
+           --caption-weight keeps each picture's subject when the repaint is loose.
   comfyui  a ComfyUI server (--comfy-url): a plain image-to-image graph with --checkpoint, or
            your own graph saved in API format (--comfy-workflow) with "{image}", "{prompt}",
            "{negative}", "{strength}", "{seed}" ... where the values go (Flux, SDXL refiners,
@@ -285,7 +289,20 @@ def invoke_controlnet(a, base):
     print('invokeai: control %s' % m['name'])
     return _invoke_cn[key]
 
-def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a, control_name=None):
+_invoke_ip = {}
+def invoke_ip_adapter(a, base):
+    """the IP-Adapter model of the main model's base (for --ip-ref)"""
+    if base in _invoke_ip: return _invoke_ip[base]
+    ms = http_get_json(a.invoke_url.rstrip('/') + '/api/v2/models/?model_type=ip_adapter').get('models', [])
+    pick = [m for m in ms if m.get('base') == base]
+    pick.sort(key=lambda m: ('face' in m.get('name', '').lower(), 'plus' in m.get('name', '').lower()))
+    if not pick: raise SystemExit('invokeai: no IP-Adapter for %s; it has: %s' % (base, ', '.join('%s (%s)' % (m['name'], m['base']) for m in ms)))
+    m = pick[0]
+    _invoke_ip[base] = {k: m[k] for k in ('key', 'hash', 'name', 'base', 'type') if k in m}
+    print('invokeai: style reference through %s' % m['name'])
+    return _invoke_ip[base]
+
+def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a, control_name=None, ip_name=None):
     """the image-to-image graph InvokeAI's own canvas builds (buildSD1Graph / buildSDXLGraph + addImageToImage)"""
     xl = model['base'] == 'sdxl'
     n = {}
@@ -333,9 +350,26 @@ def invoke_graph(model, image_name, prompt, neg, strength, seed, w, h, a, contro
             node('edges', pre[0], image=src, **pre[1])
             edge('edges', 'image', 'cn', 'image')
         edge('cn', 'control', 'denoise', 'control')
+    if ip_name:                             # a style reference: every picture drawn in the same hand
+        node('ip', 'ip_adapter', image={'image_name': ip_name}, ip_adapter_model=invoke_ip_adapter(a, model['base']),
+             clip_vision_model=_invoke_clip[0], weight=a.ip_weight, method=a.ip_method,
+             begin_step_percent=0, end_step_percent=a.ip_end)
+        edge('ip', 'ip_adapter', 'denoise', 'ip_adapter')
     return {'id': 'darklands_aiart_%d' % seed, 'nodes': n, 'edges': e}
 
+_invoke_ip_ref = None
+_invoke_clip = ['ViT-H']                  # the image encoder the IP-Adapter was trained with (ViT-G is tried when H is refused)
 def be_invokeai(init, prompt, neg, strength, seed, a):
+    try:
+        return be_invokeai1(init, prompt, neg, strength, seed, a)
+    except SystemExit as e:
+        if a.ip_ref and 'CLIP Vision' in str(e) and _invoke_clip[0] == 'ViT-H':
+            _invoke_clip[0] = 'ViT-G'
+            print('invokeai: the IP-Adapter wants ViT-G')
+            return be_invokeai1(init, prompt, neg, strength, seed, a)
+        raise
+
+def be_invokeai1(init, prompt, neg, strength, seed, a):
     base = a.invoke_url.rstrip('/')
     model = invoke_model(a)
     # the model's own size: about 1024 on the long side for SDXL, 768 for SD 1.5 / 2 (multiples of 8)
@@ -355,7 +389,15 @@ def be_invokeai(init, prompt, neg, strength, seed, a):
         b2 = io.BytesIO(); ctl.save(b2, 'PNG')
         cname = http_multipart(base + '/api/v1/images/upload?image_category=control&is_intermediate=true',
                                {}, {'file': ('darklands_control.png', b2.getvalue(), 'image/png')}, {})['image_name']
-    batch = {'graph': invoke_graph(model, name, prompt, neg, strength, seed, w, h, a, cname), 'runs': 1, 'origin': 'darklands-aiart'}
+    ipname = None
+    if a.ip_ref:
+        global _invoke_ip_ref
+        if not _invoke_ip_ref:
+            rb = io.BytesIO(); Image.open(a.ip_ref).convert('RGB').save(rb, 'PNG')
+            _invoke_ip_ref = http_multipart(base + '/api/v1/images/upload?image_category=user&is_intermediate=true',
+                                            {}, {'file': ('darklands_style.png', rb.getvalue(), 'image/png')}, {})['image_name']
+        ipname = _invoke_ip_ref
+    batch = {'graph': invoke_graph(model, name, prompt, neg, strength, seed, w, h, a, cname, ipname), 'runs': 1, 'origin': 'darklands-aiart'}
     r = http_json(base + '/api/v1/queue/default/enqueue_batch', {'batch': batch, 'prepend': False})
     bid = r['batch']['batch_id']
     t0 = time.time()
@@ -482,6 +524,9 @@ def main():
     ap.add_argument('--caption-model', default='gpt-4o-mini')
     ap.add_argument('--kinds', default='scene,item', help='which kinds to repaint: scene, item, weapon, interface')
     ap.add_argument('--only', default='', help='these pictures only (comma separated)')
+    ap.add_argument('--ip-ref', default='', help='(InvokeAI) a picture whose style every new picture takes (IP-Adapter): one hand for the whole pack')
+    ap.add_argument('--ip-weight', type=float, default=0.6); ap.add_argument('--ip-end', type=float, default=1.0)
+    ap.add_argument('--ip-method', default='style', choices=['full', 'style', 'composition', 'style_strong', 'style_precise'])
     ap.add_argument('--caption-weight', type=float, default=1.0, help='weight of the caption against the style (InvokeAI: (caption)1.3; ComfyUI/A1111: (caption:1.3)), for loose repaints that must keep what the picture shows')
     ap.add_argument('--limit', type=int, default=0, help='at most this many new pictures this run')
     ap.add_argument('--redo', action='store_true', help='make pictures again that are already done')
