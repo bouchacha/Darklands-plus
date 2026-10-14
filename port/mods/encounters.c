@@ -118,6 +118,8 @@ typedef struct {
     char vars[24][24]; int nvars;
     int ok;
     long last_day;
+    int nblocks;                        /* the card text's blocks (0: not found, e.g. one of the game's own cards) */
+    unsigned char nopts[64], optcode[64][NOPT];   /* each block's option lines and their codes (0x15 0x16 0x10 0x06) */
 } Enc;
 
 static Enc encs[ENC_MAX];
@@ -261,6 +263,13 @@ static void money_put(u16 m, long pf)
 static int member_status(int m) { return m >= 0 && m < 5 ? g_rb(G_MEMBER(m)) : 0; }
 static int leader(void) { return (s8)g_rb(G_LEADER); }
 static void exit_to_map(void) { g_ww(G_CUR_LOC, 0xffff); g_ww(V_NEXT_CARD, 0x0c); }
+static void script_error_at(const char *file)     /* a script error while it runs: the encounter ends, the player is never stuck in it */
+{
+    fprintf(stderr, "encounters: %s: an error while running: back to the map\n", file);
+    ui_notice("A new encounter stopped: its script has an error (see darklands_port.log).");
+    exit_to_map();
+}
+#define script_error(e) script_error_at((e)->file)
 static long game_day(void) { return (long)(s16)g_rw(V_YEAR) * 365 + (s16)g_rw(V_MONTH) * 31 + (s16)g_rw(V_DAY); }
 
 /* ================================================================ the language */
@@ -289,6 +298,7 @@ static void nx(P *p)
     if (!c) { p->tt = TEND; p->id[0] = 0; return; }
     if (isdigit((unsigned char)c)) {
         char *end; p->num = strtol(s + p->p, &end, 0); p->p = (int)(end - s); p->tt = TNUM;
+        if (p->num > 1000000000L || p->num < 0) p->num = 1000000000L;      /* (VMAX) */
         snprintf(p->id, sizeof p->id, "%ld", p->num);
         return;
     }
@@ -430,7 +440,7 @@ static long call_fn(P *p, const char *f, const long *a, int n)
         if (w < 0 || w > 4) return 0;
         return f[0] == 's' ? g_skill(w, (int)a[1]) : f[4] ? g_attr_max(w, (int)a[1]) : g_attr(w, (int)a[1]);
     }
-    if (!strcasecmp(f, "random")) { if (!nargs_ok(p, f, n, 1, 1) || p->dry) return 0; return g_rand((int)a[0]); }
+    if (!strcasecmp(f, "random")) { if (!nargs_ok(p, f, n, 1, 1) || p->dry || a[0] <= 0) return 0; return g_rand((int)(a[0] > 32767 ? 32767 : a[0])); }
     if (!strcasecmp(f, "roll")) { if (!nargs_ok(p, f, n, 1, 1) || p->dry) return 0; return g_rand(100) <= a[0]; }   /* a check as the game rolls it */
     if (!strcasecmp(f, "clamp")) { if (!nargs_ok(p, f, n, 3, 3)) return 0; return a[2] < a[0] ? a[0] : a[2] > a[1] ? a[1] : a[2]; }
     if (!strcasecmp(f, "min")) { if (!nargs_ok(p, f, n, 2, 2)) return 0; return a[0] < a[1] ? a[0] : a[1]; }
@@ -473,15 +483,18 @@ static long primary(P *p)
 }
 static long unary(P *p)
 {
-    if (accept_op(p, "-")) return -unary(p);
+    if (accept_op(p, "-")) return -unary(p);                 /* (within +-VMAX: no overflow) */
     if (accept_op(p, "!") || (is_word(p, "not") && (nx(p), 1))) return !unary(p);
     return primary(p);
 }
+/* values stay within +-1e9 (no overflow, whatever a script computes; long is 32 bits on Windows) */
+#define VMAX 1000000000L
+static long vclamp(long long x) { return x > VMAX ? VMAX : x < -VMAX ? -VMAX : (long)x; }
 static long term(P *p)
 {
     long v = unary(p);
     for (;;) {
-        if (accept_op(p, "*")) v *= unary(p);
+        if (accept_op(p, "*")) v = vclamp((long long)v * unary(p));
         else if (accept_op(p, "/")) { long d = unary(p); v = d ? v / d : 0; }
         else if (accept_op(p, "%")) { long d = unary(p); v = d ? v % d : 0; }
         else return v;
@@ -491,8 +504,8 @@ static long sum(P *p)
 {
     long v = term(p);
     for (;;) {
-        if (accept_op(p, "+")) v += term(p);
-        else if (accept_op(p, "-")) v -= term(p);
+        if (accept_op(p, "+")) v = vclamp((long long)v + term(p));
+        else if (accept_op(p, "-")) v = vclamp((long long)v - term(p));
         else return v;
     }
 }
@@ -564,6 +577,29 @@ static int jump(P *p, const char *n)
 }
 
 
+/* values the game takes as indices: out of range they would read or write past its tables.
+ * In the check (dry) only plain numbers are known; the rest is tested when it runs. */
+static int who_ok(long w, int party_ok) { return (w >= 0 && w < 5) || w == -1 || (party_ok && w == -2); }
+static int arg_range(P *p, const char *w, const long *a, int n)
+{
+    if (p->dry) return 1;
+    const char *bad = 0;
+    if (!strcasecmp(w, "practice")) { if (!who_ok(a[0], 1)) bad = "who"; else if (a[1] < 0 || a[1] > 18) bad = "a skill (0 to 18)"; }
+    else if (!strcasecmp(w, "injure") || !strcasecmp(w, "loseitems") || !strcasecmp(w, "keepitems") || !strcasecmp(w, "removeitems")) { if (!who_ok(a[0], 1)) bad = "who"; }
+    else if (!strcasecmp(w, "additem")) { if (!who_ok(a[0], 0)) bad = "who (one member)"; else if (a[1] < 0 || a[1] > 199) bad = "an item (0 to 199)"; else if (n > 2 && (a[2] < 1 || a[2] > 99)) bad = "a quality (1 to 99)"; }
+    else if (!strcasecmp(w, "takeitem")) { if (!who_ok(a[0], 0)) bad = "who (one member)"; else if (a[1] < 0 || a[1] > 199) bad = "an item (0 to 199)"; }
+    else if (!strcasecmp(w, "kill") || !strcasecmp(w, "chosen") || !strcasecmp(w, "chosen2")) { if (!who_ok(a[0], 0)) bad = "who (one member)"; }
+    else if (!strcasecmp(w, "itemname")) { if (a[0] < 0 || a[0] > 199) bad = "an item (0 to 199)"; }
+    else if (!strcasecmp(w, "saintname")) { if (a[0] < 0 || a[0] > 135) bad = "a saint (0 to 135)"; }
+    else if (!strcasecmp(w, "fame")) { if (a[0] < 1 || a[0] > 5) bad = "1 to 5"; }
+    else if (!strcasecmp(w, "text")) { if (a[0] < 0 || a[0] > 99) bad = "a text block"; }
+    else if (!strcasecmp(w, "hours") || !strcasecmp(w, "days")) { if (a[0] > 9999) bad = "at most 9999"; }
+    else if (!strcasecmp(w, "until")) { if (a[0] < 0 || a[0] > 23) bad = "an hour (0 to 23)"; }
+    if (!bad) return 1;
+    perr(p, "%s: %s expected", w, bad);
+    return 0;
+}
+
 static int exec_stmt(P *p)
 {
     if (p->tt != TID) { perr(p, "an action expected"); return 1; }
@@ -626,7 +662,19 @@ static int exec_stmt(P *p)
         if (!p->err && (n - 1) % 3) perr(p, "battle: a battlefield, then enemy, quality, count for each group");
         if (dry || p->err) return 0;
         int b[11] = { (int)a[0], -1, -1, 0, 0, -1, 0, 0, -1, 0, 0 };
-        for (int g = 0; g < 3 && 1 + 3 * g < n; g++) { b[2 + 3 * g] = (int)a[1 + 3 * g]; b[3 + 3 * g] = (int)a[2 + 3 * g]; b[4 + 3 * g] = (int)(a[3 + 3 * g] < 1 ? 1 : a[3 + 3 * g]); }
+        int ng = 0, total = 0;                  /* a battle holds 8 foes (13 combatants, 5 of them the party) */
+        for (int g = 0; g < 3 && 1 + 3 * g < n; g++) {
+            long t = a[1 + 3 * g], q = a[2 + 3 * g], c = a[3 + 3 * g];
+            if (t < 0 || t > 81) { fprintf(stderr, "encounters: %s: battle: no enemy %ld (0 to 81), group left out\n", p->e->file, t); continue; }
+            if (c < 1) c = 1;
+            if (c > (a[0] == 0x68 ? 1 : 8) - total) c = (a[0] == 0x68 ? 1 : 8) - total;     /* (a cave holds one foe) */
+            if (c < 1) continue;
+            b[2 + 3 * ng] = (int)t;
+            b[3 + 3 * ng] = (int)(q < 0 ? 0 : q > 9 ? 9 : q);       /* the game's own cards: 0 to 6 */
+            b[4 + 3 * ng] = (int)c;
+            ng++; total += (int)c;
+        }
+        if (!ng) { rt.result = 0; LOG("battle: no foes\n"); return 0; }
         rt.result = g_battle(b);
         if (rt.result == 1) rt.result = 2;
         LOG("battle %d: result %d\n", (int)a[0], rt.result);
@@ -636,6 +684,7 @@ static int exec_stmt(P *p)
         /* skill WHO, K, AMOUNT: with WHO party the amount is worked out for each member (who = that member) */
         long who = eval(p); expect_op(p, ","); long k = eval(p); expect_op(p, ",");
         if (p->err) return 1;
+        if (!dry && (!who_ok(who, 1) || k < 0 || k > (w[0] == 's' && w[1] == 'k' ? 18 : 6))) { perr(p, "%s: who, then a %s", w, w[0] == 's' && w[1] == 'k' ? "skill (0 to 18)" : "attribute (0 to 6)"); return 1; }
         void (*f)(int, int, int) = w[0] == 's' && w[1] == 'k' ? g_add_skill : w[0] == 's' ? g_set_attr : w[4] ? g_add_attr_max : g_add_attr;
         P at = *p;
         int saved = rt.who;
@@ -659,6 +708,8 @@ static int exec_stmt(P *p)
     for (int i = 0; i < (int)(sizeof K / sizeof K[0]); i++) if (!strcasecmp(w, K[i].w)) { k = i; break; }
     if (k < 0) { perr(p, "unknown action %s", w); return 1; }
     n = args(p, a, K[k].lo, K[k].hi, w);
+    if (!p->err && !arg_range(p, w, a, n)) return 1;
+    if (!p->err && !strcasecmp(w, "text") && p->e && p->e->nblocks && (a[0] < 0 || a[0] >= p->e->nblocks)) { perr(p, "text %ld: %s has blocks 0 to %d", a[0], p->e->card, p->e->nblocks - 1); return 1; }
     if (dry || p->err) return 0;
     if (!strcasecmp(w, "text")) g_card_text((int)a[0]);
     else if (!strcasecmp(w, "hours")) g_hours((int)a[0]);
@@ -710,7 +761,7 @@ static int run_src(Enc *e, const Src *src, int dry)
     P p; p_init(&p, e, src, dry);
     int r = exec_list(&p);
     if (!p.err && !r && p.tt != TEND) perr(&p, "unexpected \"%s\"", p.id);     /* (after a goto or exit the rest is not run) */
-    return p.err ? (dry ? -1 : 1) : r;
+    return p.err ? (dry ? -1 : 2) : r;          /* 2: an error while running */
 }
 
 /* ================================================================ loading the files */
@@ -889,10 +940,50 @@ static int load_file(Enc *e, const char *path, const char *id)
     return 1;
 }
 
+/* the shape of the encounter's card text (MSGFILES/<card>.TXT of a mod): its blocks and, in each,
+ * the option lines in order with their codes, so the script can be checked against them */
+static void card_shape(Enc *e)
+{
+    e->nblocks = 0;
+    char dirs[16][1200];
+    int nd = datamods_dirs("MSGFILES", dirs, 16);
+    char want[32]; snprintf(want, sizeof want, "%s.TXT", e->card);
+    FILE *f = 0;
+    for (int d = 0; d < nd && !f; d++) {
+        DIR *dp = opendir(dirs[d]);
+        if (!dp) continue;
+        struct dirent *de;
+        while ((de = readdir(dp))) if (!strcasecmp(de->d_name, want)) { char p[2400]; snprintf(p, sizeof p, "%s/%s", dirs[d], de->d_name); f = fopen(p, "rb"); break; }
+        closedir(dp);
+    }
+    if (!f) return;
+    char line[2000];
+    int b = -1;
+    while (fgets(line, sizeof line, f)) {
+        if (line[0] == '#') continue;
+        if (!strncmp(line, "=== card", 8)) { b++; if (b < 64) e->nopts[b] = 0; continue; }
+        if (b < 0 || b >= 64) continue;
+        /* the first character code of the line, past any \14 */
+        const char *t = line; int c = -1;
+        for (;;) {
+            if (t[0] == '\\' && isxdigit((unsigned char)t[1]) && isxdigit((unsigned char)t[2])) {
+                char h[3] = { t[1], t[2], 0 }; int v = (int)strtol(h, 0, 16);
+                if (v == 0x14) { t += 3; continue; }
+                c = v;
+            } else c = (unsigned char)t[0];
+            break;
+        }
+        if ((c == 0x15 || c == 0x16 || c == 0x10 || c == 0x06) && e->nopts[b] < NOPT) e->optcode[b][e->nopts[b]++] = (unsigned char)c;
+    }
+    fclose(f);
+    e->nblocks = b + 1;
+}
+
 /* everything in the file parsed and checked once, without running it */
 static void check(Enc *e)
 {
     int bad = 0;
+    card_shape(e);
     if (e->only.s) { int er; eval_src(e, &e->only, 1, &er); bad |= er; }
     for (int i = 0; i < e->nsec; i++) {
         Sec *s = &e->sec[i];
@@ -905,6 +996,15 @@ static void check(Enc *e)
             if (!o->defined) continue;
             any = 1;
             if (s->block < 0) { ferr(e, s->line, "[%s] has options but no block", s->name); bad = 1; }
+            else if (e->nblocks && s->block < 64) {
+                int nl = s->block < e->nblocks ? e->nopts[s->block] : 0;
+                if (k >= nl) { ferr(e, s->line, "[%s] option %d: block %d of %s has %d option line%s", s->name, k, s->block, e->card, nl, nl == 1 ? "" : "s"); bad = 1; }
+                else {
+                    int c = e->optcode[s->block][k];
+                    if ((c == 0x16) != (o->kind == 2)) { ferr(e, s->line, "[%s] option %d: %s", s->name, k, c == 0x16 ? "its line (\\16) opens the saints: write option N saint" : "a saint option needs a \\16 line"); bad = 1; }
+                    if ((c == 0x10) != (o->kind == 1)) { ferr(e, s->line, "[%s] option %d: %s", s->name, k, c == 0x10 ? "its line (\\10) opens the potions: write option N potion" : "a potion option needs a \\10 line"); bad = 1; }
+                }
+            }
             Src *ex[] = { &o->only, &o->need, &o->who };
             for (int j = 0; j < 3; j++) if (ex[j]->s) { eval_src(e, ex[j], 1, &er); bad |= er; }
             if (o->chance.s && strcasecmp(o->chance.s, "none") && strcasecmp(o->chance.s, "assured") && strcasecmp(o->chance.s, "unknown") && strcasecmp(o->chance.s, "combat"))
@@ -915,6 +1015,11 @@ static void check(Enc *e)
             if (o->kind == 1 && s->items[0] < 0) { ferr(e, s->line, "[%s] option %d is a potion option, but there are no items", s->name, k); bad = 1; }
         }
         if (s->block >= 0 && !any) { ferr(e, s->line, "[%s] has a block but no options", s->name); bad = 1; }
+        for (int j = 0; j < 4; j++) {
+            if (s->saints[j] < -1 || s->saints[j] > 135) { ferr(e, s->line, "[%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1", s->name); bad = 1; break; }
+            if (s->items[j] < -1 || s->items[j] > 199) { ferr(e, s->line, "[%s] items: numbers 0 to 199 (DARKLAND.LST), or -1", s->name); bad = 1; break; }
+        }
+        if (s->block >= 0 && e->nblocks && s->block >= e->nblocks) { ferr(e, s->line, "[%s] block %d: %s has blocks 0 to %d", s->name, s->block, e->card, e->nblocks - 1); bad = 1; }
     }
     if (bad) e->ok = 0;
 }
@@ -1109,7 +1214,7 @@ static void menu_round(Enc *e, Sec *s)
         }
     }
     if (aborting) return;
-    run_src(e, ok ? &o->ok : &o->fail, 0);
+    if (run_src(e, ok ? &o->ok : &o->fail, 0) == 2 && !aborting && !rt.jumped && (s16)g_rw(V_NEXT_CARD) == rt.card) script_error(e);
 }
 
 static int run_encounter(int card)
@@ -1130,8 +1235,12 @@ static int run_encounter(int card)
     dset(V_CARD_NAME, e->card, 13);
     dset_pic(V_PIC_BUF, e->pic);
     if (e->music) g_music();
-    int first = 1, entered = 1;
+    int first = 1, entered = 1, hops = 0;
     while (!aborting && (s16)g_rw(V_NEXT_CARD) == card) {
+        if (entered && ++hops > 200) {          /* sections that only lead to one another, never to a menu */
+            fprintf(stderr, "encounters: %s: the sections go round in a circle without a menu\n", e->file);
+            script_error(e); break;
+        }
         Sec *s = &e->sec[rt.sec];
         if (entered) {
             entered = 0;
@@ -1143,7 +1252,8 @@ static int run_encounter(int card)
             int r = run_src(e, &s->enter, 0);
             if (aborting || (s16)g_rw(V_NEXT_CARD) != card) break;
             if (rt.jumped) { entered = 1; continue; }
-            if (r) { exit_to_map(); break; }     /* an error in the actions: leave */
+            if (r == 2) { script_error(e); break; }   /* an error in the actions: leave */
+            if (r) { exit_to_map(); break; }
             if (s->block < 0) {                  /* actions only: back to the last menu, or the map */
                 if (rt.last_menu < 0) { exit_to_map(); break; }
                 rt.sec = rt.last_menu; entered = 1;
@@ -1152,6 +1262,7 @@ static int run_encounter(int card)
             rt.last_menu = rt.sec;
         }
         rt.jumped = 0;
+        hops = 0;
         menu_round(e, s);
         if (rt.jumped) entered = 1;
     }

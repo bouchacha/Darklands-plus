@@ -58,6 +58,9 @@ All tests copy the game folder; it is never changed.
 * `sh port/tools/batch.sh OUTDIR`: the standard play tests with screenshots.
 * `python3 -I port/tools/monkey.py NAME MINUTES --game DIR [--x11]`: random play as a soak test;
   it reports crashes and sessions that stop changing. Run a sanitizer build with it now and then.
+* New encounters: `port/tools/enccheck.c` checks scripts without the game (build line at its
+  top); `python3 -I port/tools/encfuzz.py build/enccheck` feeds it mutated scripts under the
+  sanitizers. Run it after changing the script language in `port/mods/encounters.c`.
 * `python3 -I port/tools/nctl.py start NAME --x11 --game DIR` and `nctl.py do NAME "steps"`:
   drive a session by hand from a script and take screenshots (`wshot`); the test commands
   (`ucmd ucard:`, `uload:`, `uhover:x,y`, `uclick:x,y`, `utab N`, `upadbtn:a,1`, `utype:text` ...)

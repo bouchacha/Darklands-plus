@@ -235,8 +235,14 @@ quality `lore % 3 + 1`; their rewards are a little fame, reputation and Divine F
 money.
 
 Errors are reported with the file and line in `darklands_port.log` (and the encounter is left
-out); `DL_ENC_LOG=1` logs every roll. For testing, the `uenc:N` step of `DL_CTL` / `DL_SCRIPT`
-makes the next wilderness encounter number N.
+out); `DL_ENC_LOG=1` logs every roll. The script is checked against its card text when that is a
+mod's `MSGFILES/<CARD>.TXT`: each `block` and `text` must exist, each option must have its line
+in the block, and a `\16` line must be a `saint` option and a `\10` line a `potion` one. What
+can only be known while it runs is checked then: an item, saint, skill or member out of range,
+or sections that lead only to one another, end the encounter with a notice instead of upsetting
+the game. A battle holds at most 8 foes (a `Cave` one); groups beyond that are cut down, and
+qualities are kept within 0 to 9. For testing, the `uenc:N` step of `DL_CTL` / `DL_SCRIPT` makes
+the next wilderness encounter number N.
 
 ## Party figures
 
