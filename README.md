@@ -1,4 +1,9 @@
 # darklands-re
+<img width="1600" height="900" alt="1-crisp-text-and-margins" src="https://github.com/user-attachments/assets/842534c2-8831-489c-8843-9b025701a917" />
+<img width="1600" height="900" alt="2-battle-info" src="https://github.com/user-attachments/assets/29adfed0-5535-4249-b671-159a411c7a99" />
+<img width="1600" height="900" alt="3-world-map" src="https://github.com/user-attachments/assets/bdcc3994-86b4-4a1d-9584-b0dc52eb7aa1" />
+<img width="1600" height="900" alt="4-city-go-to" src="https://github.com/user-attachments/assets/61546603-f5ef-4392-b5f1-b56cba92e808" />
+<img width="1600" height="900" alt="5-party-inventory" src="https://github.com/user-attachments/assets/3d0df965-c82a-466e-821e-d9b04f3b2365" />
 
 This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-DOS), version 483.07 (the GOG release). The aim is a matching decompilation as a verifiable baseline, then moddable reimplementations of each game module.
 
