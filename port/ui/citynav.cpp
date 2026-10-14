@@ -294,8 +294,9 @@ extern "C" void citynav_go(int dest)
  * - Soldier's Road: byte +0x14 of the location record is 1 or 2 (rarely so);
  * - the physician and Astrologists' Lane: in small cities only some games have them
  *   (from the city's seed, the game's seed and, for the physician, the year);
- * - the hospital and Jewelers' Avenue are never offered (their options stay switched off). */
-static bool never(int d) { return d == D_HOSPITAL || d == D_JEWEL; }
+ * - the hospital and Jewelers' Avenue are never offered (their options stay switched off),
+ *   nor the herbalists and barber-surgeons ($CivCr01 and $Barbe00 are unused cards). */
+static bool never(int d) { return d == D_HOSPITAL || d == D_JEWEL || d == D_HERBAL; }   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
 static bool present(int d)
 {
     if (never(d)) return false;
