@@ -288,14 +288,34 @@ extern "C" void citynav_go(int dest)
 }
 
 /* ---------------------------------------------------------------- the list */
+/* Whether the city's cards offer a place, as the card scripts decide (s045..s050):
+ * - a building bit of DARKLAND.CTY or a shop quality;
+ * - the Fugger, Medici and Hanse offices: bytes +0x15..+0x17 of the location record;
+ * - Soldier's Road: byte +0x14 of the location record is 1 or 2 (rarely so);
+ * - the physician and Astrologists' Lane: in small cities only some games have them
+ *   (from the city's seed, the game's seed and, for the physician, the year);
+ * - the hospital and Jewelers' Avenue are never offered (their options stay switched off). */
+static bool never(int d) { return d == D_HOSPITAL || d == D_JEWEL; }
 static bool present(int d)
 {
+    if (never(d)) return false;
     int cur = (s16)g_rw(G_CUR_LOC);
     if (cur < 0 || cur >= (int)gamedata.cities.size()) return true;
     const City &c = gamedata.cities[cur];
     if (DEST[d].building >= 0 && !(c.buildings >> DEST[d].building & 1)) return false;
     if (DEST[d].shop >= 0 && !c.shopq[DEST[d].shop]) return false;
     if (DEST[d].shop == -2 && !c.shopq[4] && !c.shopq[5]) return false;
+    u32 lr = g_location(cur);
+    if (lr) {
+        u16 ls = (u16)(lr >> 16), lo = (u16)lr;
+        if (d == D_SOLDIERS) { int v = (s8)rb(ls, (u16)(lo + 0x14)); if (v != 1 && v != 2) return false; }
+        if (d == D_FUGGER && !rb(ls, (u16)(lo + 0x15))) return false;
+        if (d == D_MEDICI && !rb(ls, (u16)(lo + 0x16))) return false;
+        if (d == D_HANSE && !rb(ls, (u16)(lo + 0x17))) return false;
+    }
+    s16 q = (s16)(c.seed + (s16)g_rw(G_PARTY_SEED));             /* loc_query 0x21 (16-bit arithmetic, as the game) */
+    if (d == D_PHYSICIAN && c.size <= 3 && !((s16)(q + (s16)g_rw(G_CUR_YEAR)) % 3)) return false;
+    if (d == D_ALCHEMIST && ((c.size <= 3 && !(q % 2)) || (c.size == 4 && !(q % 3)))) return false;
     return true;
 }
 
@@ -328,7 +348,7 @@ extern "C" int citynav_window(void)
             ImGui::SeparatorText(GROUPS[g]);
             int col = 0;
             for (int d = 0; d < D_N; d++) {
-                if (DEST[d].group != g) continue;
+                if (DEST[d].group != g || never(d)) continue;
                 if (col % cols) ImGui::SameLine();
                 bool here = present(d);
                 if (!here) ImGui::BeginDisabled();
