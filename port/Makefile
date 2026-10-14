@@ -70,6 +70,7 @@ MT32_OBJS := $(patsubst $(MT32)/%.cpp,$(OUT)/mt32emu/%.o,$(MT32_SRC))
 OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(MT32_OBJS) $(UI_OBJS) $(GEN_OBJS) \
             $(OUT)/version.o $(if $(filter win64,$(TARGET)),$(OUT)/res.o)
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
+RELEASE  ?=
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
 # the translator's id: a game module made by another one does not fit (split.h, tools/prepare.py)
 TRANSLATOR_ID := $(shell python3 -I tools/prepare.py --id 2>/dev/null || echo unknown)
@@ -106,7 +107,7 @@ $(OUT)/res.o: res/darklands.rc res/darklands.ico $(OUT)/version.c | $(OUT)
 $(OUT):
 	mkdir -p $@
 $(OUT)/version.c: FORCE | $(OUT)
-	@echo 'const char dlp_version[] = "$(VERSION)"; const char dlp_translator[] = "$(TRANSLATOR_ID)";' > $@.tmp; cmp -s $@.tmp $@ || mv $@.tmp $@; rm -f $@.tmp
+	@echo 'const char dlp_version[] = "$(VERSION)"; const char dlp_release[] = "$(RELEASE)"; const char dlp_translator[] = "$(TRANSLATOR_ID)";' > $@.tmp; cmp -s $@.tmp $@ || mv $@.tmp $@; rm -f $@.tmp
 $(OUT)/version.o: $(OUT)/version.c
 	$(CC) -c -o $@ $<
 .PHONY: FORCE

@@ -42,7 +42,7 @@ jobs:
           mv "SDL2-${SDL_VERSION}/x86_64-w64-mingw32" build/sdl2-win64
 
       - name: The program (without the game's code)
-        run: make -C port SPLIT=1 TARGET=win64 -j4
+        run: make -C port SPLIT=1 TARGET=win64 RELEASE="${GITHUB_REF_NAME}" -j4
 
       - name: TinyCC for Windows
         run: sh port/tools/build_tcc_win.sh build/tcc-win64

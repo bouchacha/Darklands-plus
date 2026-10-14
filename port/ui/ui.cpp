@@ -631,6 +631,8 @@ static void tab_display(void)
       if (ImGui::Checkbox("Let the computer rest while the game waits for a click or a key (less CPU, quieter fans)", &ir)) { idle_rest = ir; config_set_int("display.idle_rest", ir); dirty_config = 1; } }
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); dirty_config = 1; } }
+    { bool po = config_get_int("display.play_opening", 0);
+      if (ImGui::Checkbox("Play the opening (logo and animations) at every start; otherwise only the first time", &po)) { config_set_int("display.play_opening", po); dirty_config = 1; } }
     bool fs = (SDL_GetWindowFlags(g_win) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(g_win, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();

@@ -759,6 +759,20 @@ static void draw_new_encounter_seal(void)
     }
 }
 
+/* the version at the bottom right, while no game is running (the opening, the title menu) */
+extern "C" const char dlp_version[], dlp_release[];
+static void draw_version(void)
+{
+    int m = game_mode();
+    if (!(m == GM_OTHER || (m == GM_SCREEN && (s16)g_rw(G_PARTY_SIZE) == 0))) return;   /* (the title menu is a screen, before a party) */
+    char t[96]; snprintf(t, sizeof t, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
+    ImDrawList *dl = ovl_list();
+    ImVec2 br = g2w(318.0f, 198.0f), sz = ImGui::CalcTextSize(t);
+    ImVec2 p(br.x - sz.x, br.y - sz.y);
+    dl->AddText(ImVec2(p.x + 1, p.y + 1), IM_COL32(0, 0, 0, 200), t);
+    dl->AddText(p, IM_COL32(226, 210, 170, 230), t);
+}
+
 static void draw_lcd(void);
 /* short notices ("Game saved"), bottom centre, for a few seconds */
 static char notice[160]; static u32 notice_t;
@@ -1338,6 +1352,7 @@ extern "C" void ui_overlay(void)
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();
+    draw_version();
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_info();
