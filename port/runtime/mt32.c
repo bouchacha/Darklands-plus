@@ -14,8 +14,9 @@
  * do not come with Darklands+. They are looked for, by their contents (any file names), in
  * mt32_dirs(): the folder set in F12 > Display, "roms" folders of Darklands+ and of the game,
  * Munt's own ROM folder (its registry setting, or %USERPROFILE%\roms) and DOSBox Staging's
- * mt32-roms folder. A CM-32L / LAPC-I pair is preferred (the LAPC-I is what the game names; it
- * also has the extra sound effects), then the MT-32's. */
+ * mt32-roms folder. An MT-32 pair is preferred by default: on a CM-32L / LAPC-I the battle sounds'
+ * notes reach its extra sound-effect samples and come out as chimes instead of blows and grunts;
+ * F12 > Display can prefer the CM-32L. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,13 +120,13 @@ static int in_list(const char *id, const char **ids, size_t n)
     return 0;
 }
 
-/* the machines in order of preference: CM-32L / LAPC-I first, then the MT-32s (the older first),
- * then whatever else the library knows */
+/* the machines in order of preference: the MT-32s (the older first), or the CM-32L / LAPC-I first
+ * when the player chose it, then whatever else the library knows */
 static int machine_rank(const char *m)
 {
     static const char *pref[] = { "cm32l_1_02", "cm32l_1_00", "cm32ln_1_00", "mt32_1_07", "mt32_1_06", "mt32_1_05", "mt32_1_04",
                                   "mt32_bluer", "mt32_2_04", "mt32_2_07", "mt32_2_06", "mt32_2_03" };
-    int mt_first = !strcmp(config_get("sound.mt32_model", "cm32l"), "mt32");    /* the player prefers the MT-32's sound */
+    int mt_first = !strcmp(config_get("sound.mt32_model", "mt32"), "mt32");     /* the MT-32 first (the default), or the CM-32L */
     for (size_t i = 0; i < sizeof pref / sizeof pref[0]; i++)
         if (!strcmp(pref[i], m)) return (int)i + (mt_first && !strncmp(m, "cm32l", 5) ? 50 : 0);
     return 100;
