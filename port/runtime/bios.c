@@ -281,10 +281,18 @@ static int ms_minx = 0, ms_maxx = 639, ms_miny = 0, ms_maxy = 199;
 static int ms_mickx, ms_micky;
 static u16 ms_hmask, ms_hseg, ms_hoff;
 static int ms_pending;          /* event mask for the user handler */
+/* The game learns its coordinate scale from where the pointer is right after a reset: the
+ * high byte of x (DARKLAND.EXE 0598:0046, the x a driver reports, 320 in mode 13h, gives a
+ * shift of 1). A real driver centres the pointer on reset; without that, a pointer in the left
+ * part of the window at that moment (after switching windows during the opening) gave a
+ * shift of 0: the game's pointer moved twice as fast and left the picture halfway across.
+ * So a reset centres it, and the real position follows once the game has read the centre. */
+static int ms_hostx = 320, ms_hosty = 100, ms_resync;
 static int ms_press[3], ms_release[3], ms_lpx[3], ms_lpy[3], ms_lrx[3], ms_lry[3];
 
 void mouse_update(int x, int y, int buttons)
 {
+    ms_hostx = x; ms_hosty = y;
     if (x < ms_minx) x = ms_minx; if (x > ms_maxx) x = ms_maxx;
     if (y < ms_miny) y = ms_miny; if (y > ms_maxy) y = ms_maxy;
     if (x != ms_x || y != ms_y) {
@@ -304,10 +312,11 @@ static void int33(void)
     { static int tr = -1; static u32 lt, n[16]; if (tr < 0) tr = getenv("DL_TRACE_MPOLL") != 0;
       if (tr) { if (AX < 16) n[AX]++; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { fprintf(stderr, "int33/s:"); for (int i = 0; i < 16; i++) if (n[i]) fprintf(stderr, " fn%d %u", i, n[i]); fprintf(stderr, "\n"); memset(n, 0, sizeof n); lt = t; } } }
     switch (AX) {
-    case 0x00: AX = 0xffff; BX = 2; ms_shown = 0; ms_hmask = 0; break;
+    case 0x00: AX = 0xffff; BX = 2; ms_shown = 0; ms_hmask = 0;
+        ms_minx = 0; ms_maxx = 639; ms_miny = 0; ms_maxy = 199; ms_x = 320; ms_y = 100; ms_mickx = ms_micky = 0; ms_resync = 1; break;
     case 0x01: ms_shown++; break;
     case 0x02: ms_shown--; break;
-    case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; break;
+    case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; if (ms_resync == 1) ms_resync = 2; break;
     case 0x04: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: set %d,%d\n", (s16)CX, (s16)DX); }
         ms_x = CX; ms_y = DX;
         if (!in_game_call) { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows (not for an evaluation) */
@@ -679,6 +688,7 @@ void dl_poll(void)
                 static const u16 P[] = { 0x12, 0x2c, 0x51, 0x5d, 0x62, 0x7a0 };
                 for (int k = 0; k < 6; k++) fprintf(stderr, "  047c:%04x -> %04x:%04x\n", P[k], rw(cs, (u16)(P[k] + 2)), rw(cs, P[k])); } } call_handler(8); }   /* test: a timer interrupt at every poll */
       if (st == 2) ms_pending |= 1; }                                 /* test: a mouse event at every poll */
+    if (ms_resync == 2) { ms_resync = 0; int b = ms_b; mouse_update(ms_hostx, ms_hosty, b); }   /* back to where the mouse is */
     if (ms_pending) mouse_deliver();
     in_irq = 0;
 }
