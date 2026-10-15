@@ -4,6 +4,8 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**New in 1.0.1:** travel on the overland map no longer stops for a moment every second (the emulated DOS clock went back briefly once a second, and the game's pause between steps waited for it to catch up; battles and other timed pauses were affected the same way).
+
 ### What it adds
 
 - **Text and display:** crisp text at any window size up to 4K, in a choice of seven typefaces (a readable gothic one, Grenze Gotisch, by default). The pointer follows the mouse smoothly. Wide-screen margins show the date, place, purse and tasks on one side, and on the other the town you are in or near (reputation, buildings, shops and their quality), the blessings and potions at work and who carries too much. One setting sizes the margins, tooltips and map names. The window opens maximized (it remembers if you make it smaller). Full screen with Alt+Enter. PNG screenshots with Ctrl+F12 (it also writes the window sizes into the log, for reports). The MicroProse logo and opening animations play the first time only (F12 > Display plays them at every start). The title menu shows the Darklands+ version.
