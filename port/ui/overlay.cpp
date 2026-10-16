@@ -1083,7 +1083,15 @@ static void draw_shop_info(void)
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, pivot);
+    /* kept inside the window: placed by last frame's size (a long saint's text near the bottom of
+       a card's list ran off the screen) */
+    static ImVec2 last_size(0, 0);
+    ImVec2 tl(pos.x - pivot.x * last_size.x, pos.y - pivot.y * last_size.y);
+    if (tl.x + last_size.x > io.DisplaySize.x) tl.x = io.DisplaySize.x - last_size.x;
+    if (tl.y + last_size.y > io.DisplaySize.y) tl.y = io.DisplaySize.y - last_size.y;
+    if (tl.x < 0) tl.x = 0;
+    if (tl.y < 0) tl.y = 0;
+    ImGui::SetNextWindowPos(tl, ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowBgAlpha(0.97f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
@@ -1138,6 +1146,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
         ImGui::PopTextWrapPos();
         ImGui::PopFont();
     }
+    last_size = ImGui::GetWindowSize();
     ImGui::End();
 }
 
