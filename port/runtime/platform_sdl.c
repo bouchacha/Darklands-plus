@@ -642,6 +642,11 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
+            int m = 0, id = 0, q = 25, n = 1; sscanf(s->arg, "%d,%d,%d,%d", &m, &id, &q, &n);
+            int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); u32 d = g_itemdef(id);
+            if (d && k < 53) { u16 o = G_ITEM(m, k); ww(G_FAR2E38, o, (u16)id); wb(G_FAR2E38, (u16)(o + 2), rb((u16)(d >> 16), (u16)((u16)d + 0x1e))); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), (u8)n); wb(G_FAR2E38, (u16)(o + 5), rb((u16)(d >> 16), (u16)((u16)d + 0x25))); g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(k + 1)); fprintf(stderr, "item %d x%d to member %d (record %d)\n", id, n, m, k); }
+        }
         else if (!strcmp(s->cmd, "urand")) { unsigned v = (unsigned)atol(s->arg); g_ww(0x7b20, (u16)v); g_ww(0x7b22, (u16)(v >> 16)); fprintf(stderr, "rand seed %u\n", v); }   /* test: the C library's rand() state */
         else if (!strcmp(s->cmd, "ucv")) { void cardview_dump(void); cardview_dump(); }      /* test: the native card screen */
         else if (!strcmp(s->cmd, "uhot")) { int n = (s8)g_rb(0xe0a1); fprintf(stderr, "hots %d, order mode %d member %d action %d\n", n, g_rb(0xa6b3), (s8)g_rb(0xa6b2), (s16)g_rw(0xa6b0)); for (int k = 0; k < n && k < 40; k++) fprintf(stderr, "hot %d cbt %d x %d..%d y %d..%d\n", k, g_rb((u16)(0xd848 + k)), (s16)g_rw((u16)(0xd8f1 + 2 * k)), (s16)g_rw((u16)(0xd8d7 + 2 * k)), (s16)g_rw((u16)(0xd8bd + 2 * k)), (s16)g_rw((u16)(0xd8a3 + 2 * k))); }

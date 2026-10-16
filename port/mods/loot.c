@@ -137,7 +137,7 @@ int loot_return_thrown = 1;
 static int thrown_kind(u16 id)
 {
     u32 d = g_itemdef(id & 0xfff);
-    return d && (rb((u16)(d >> 16), (u16)((u16)d + 0x1f)) & 0x10);     /* flags byte 0: 0x10 thrown */
+    return d && (rb((u16)(d >> 16), (u16)((u16)d + 0x20)) & 0x10);     /* shop categories (+0x20) bit 0x10: thrown weapons */
 }
 static int carried(int m, u16 id, int q)
 {
@@ -164,6 +164,7 @@ static void thrown_note(void)
             if (k == th_n[m]) { if (k >= TH_MAX) continue; th[m][k].id = id; th[m][k].q = (u8)q; th[m][k].n = 0; th_n[m]++; }
             th[m][k].n += rb(G_FAR2E38, (u16)(o + 4));
             th_valid = 1;
+            if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: member %d carries %d of thrown weapon %d (q %d)\n", m, th[m][k].n, id, q);
         }
     }
 }
