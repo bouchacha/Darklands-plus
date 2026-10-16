@@ -24,8 +24,8 @@ HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + ';
 
 # (name, steps, patterns that must appear in the log after the steps)
 STEPS = [
-    ('start and Quickstart', 'QUICKSTART; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
-     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'wait 2; ucmd ucard:'),
+    ('start and Quickstart', 'QUICKSTART; at 160 62; click; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
+     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'key Return; wait 3; ucmd ucard:'),   # (a first click in a new window may be lost)
     ('Go to the merchants (native cards)', 'ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),

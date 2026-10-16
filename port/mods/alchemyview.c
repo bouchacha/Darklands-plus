@@ -110,7 +110,6 @@ static void choose(int r)
     ns_call(GF_alchemy_list_key, 1, 0x1655);                 /* U: its page, one batch if the ingredients are there */
 }
 
-static int prev_screen;
 static void screen_hook(void)                /* alchemy_screen(who, hours), s033 1462:0000 */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), hours = (s16)rw(SS, (u16)(SP + 6));
@@ -138,8 +137,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
     build();
     alchemy_model.open = 1;
     fprintf(stderr, "alchemy: open (member %d, %d formulae)\n", who, alchemy_model.nrows);
-    prev_screen = ns_screen;
-    ns_screen = NS_ALCHEMY;
+    ns_enter(NS_ALCHEMY);
     ns_clear();
     ns_input_begin();
     int leave = 0, started = 0;
@@ -181,7 +179,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
         if (ns_unwinding) break;
     }
     alchemy_model.open = 0;
-    ns_screen = prev_screen;
+    ns_leave();
     fprintf(stderr, "alchemy: closed\n");
     if (ns_unwinding) return;
     if (!started) { page_back(); ns_call(GF_alchemy_resume, 0); }

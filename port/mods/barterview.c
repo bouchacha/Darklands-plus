@@ -174,7 +174,7 @@ void barterview_run(void)
     build();
     barter_model.open = 1;
     fprintf(stderr, "shop: open (shop %d, %d wares)\n", shop, barter_model.nwares);
-    ns_screen = NS_BARTER;
+    ns_enter(NS_BARTER);
     ns_clear();
     ns_input_begin();
     int leave = 0;
@@ -219,7 +219,7 @@ void barterview_run(void)
     }
     barter_model.open = 0;
     fprintf(stderr, "shop: closed\n");
-    ns_screen = NS_NONE;
+    ns_leave();
     if (ns_unwinding) return;
     AX = (u16)ns_call(GF_barter_close, 2, -1, shop);       /* fonts and leader back */
     hook_return_far(0);

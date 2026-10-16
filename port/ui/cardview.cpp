@@ -22,6 +22,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/cardview.h"
+#include "../mods/nscreen.h"
 #include "../mods/assist.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -78,7 +79,7 @@ extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
     if (!c.phase || cardview_dialog) return;
-    if (c.nested == 1 || (c.nested == 2 && (g_rw(GV_menu_bar_active) || plat_ticks_ms() - c.nested_since > 60))) return;   /* a member's sheet ..., the menu bar or what it opened */
+    if (ns_screen != NS_CARD || ns_hidden()) return;           /* a member's sheet ..., the menu bar or what it opened (mods/nscreen.h) */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     if (!f) return;
     ImVec2 top = g2w(0, 0), bot = g2w(0, 200);

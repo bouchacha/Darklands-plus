@@ -150,7 +150,7 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
     build();
     loot_model.open = 1;
     fprintf(stderr, "loot screen: open (%d in the pile)\n", loot_model.npile);
-    ns_screen = NS_LOOT;
+    ns_enter(NS_LOOT);
     ns_clear();
     ns_input_begin();
     int leave = 0;
@@ -183,7 +183,7 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
         if (ns_unwinding) break;
     }
     loot_model.open = 0;
-    ns_screen = NS_NONE;
+    ns_leave();
     fprintf(stderr, "loot screen: closed (%d left)\n", pile_n());
     if (ns_unwinding) return;
     ns_call(GF_loot_close, 1, -1);

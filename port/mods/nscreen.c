@@ -114,7 +114,23 @@ static void safe_point_hook(void)           /* menu_bar_run(menus, once): a game
 void ns_defer_frame_end(int game_held) { if (dn && game_held) run_deferred(); }
 void nscreen_init(void) { hook_install(GF_menu_bar_run, safe_point_hook); }
 
-int ns_showing(void) { return ns_screen != NS_NONE && !ns_hidden(); }
+/* ---------------------------------------------------------------- the stack of screens */
+static struct { int screen, nested; unsigned since; } stk[8];
+static int depth;
+void ns_enter(int screen)
+{
+    if (depth < 8) { stk[depth].screen = ns_screen; stk[depth].nested = ns_nested; stk[depth].since = ns_nested_since; }
+    depth++;
+    ns_screen = screen; ns_nested = 0;
+}
+void ns_leave(void)
+{
+    if (depth <= 0) return;
+    depth--;
+    if (depth < 8) { ns_screen = stk[depth].screen; ns_nested = stk[depth].nested; ns_nested_since = stk[depth].since; }
+}
+
+int ns_showing(void) { return ns_screen != NS_NONE && ns_screen != NS_CARD && !ns_hidden(); }
 
 int ns_round(void)
 {

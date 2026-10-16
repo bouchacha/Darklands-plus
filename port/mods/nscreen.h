@@ -48,9 +48,13 @@ extern unsigned ns_nested_since;
 int ns_round(void);
 int ns_hidden(void);                  /* the view should not draw now (the menu bar open, a sheet ...) */
 
-/* the native screen on show (0 none) and a counter that changes whenever its model does */
+/* the native screen on show (NS_NONE none). Screens open inside one another (a sheet from a shop's
+ * portrait, a shop from a card): ns_enter / ns_leave keep a stack, ns_screen and ns_nested are
+ * the top's; a view draws only while its screen is the top. */
 extern int ns_screen;
-enum { NS_NONE, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY };
+enum { NS_NONE, NS_CARD, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY };
+void ns_enter(int screen);
+void ns_leave(void);
 
 int ns_showing(void);                 /* a native screen is up and drawn (the overlay's hints over the game's screens stay away) */
 /* the interface (F12's tabs ...) asks for something done in the game: done at the next safe point,

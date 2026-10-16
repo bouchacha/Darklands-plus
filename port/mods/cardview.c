@@ -257,10 +257,10 @@ static int left_released(int *mx, int *my)
 /* the loop the original runs while a card waits (menu bar, portraits, the party changed) */
 static int common_step(void)
 {
-    cardview.nested = 2;                                       /* (hidden while the bar is open or its choice runs) */
-    cardview.nested_since = plat_ticks_ms();
+    ns_nested = 2;                                       /* (hidden while the bar is open or its choice runs) */
+    ns_nested_since = plat_ticks_ms();
     ns_call(GF_menu_bar_run, 2, A_MENUS, 0);                   /* menu_bar_run */
-    cardview.nested = 0;
+    ns_nested = 0;
     if (ns_unwinding) return 0;
     if (g_rw(A_ICONS_DIRTY)) {
         g_ww(A_ICONS_DIRTY, 0);
@@ -268,17 +268,17 @@ static int common_step(void)
         mouse_hide(); frame(); copy_picture(); mouse_show();
     }
     {   int assist_test_screens(void);                         /* (test commands: a screen opened from the menu) */
-        cardview.nested = 1;
+        ns_nested = 1;
         int t = assist_test_screens();
-        cardview.nested = 0;
+        ns_nested = 0;
         if (t) { ns_call(43, 0x150b, 0x13f2, 0); return 1; }
     }
     if (g_rb(A_MOUSE_BTN) & 1) {                               /* a portrait: that member's sheet */
         int mx, my; plat_mouse_game(&mx, &my);
         if (mx < 0x3c) {
-            cardview.nested = 1;
+            ns_nested = 1;
             int r = ns_call(43, 0x150b, 0x13a0, 0);
-            cardview.nested = 0;
+            ns_nested = 0;
             if (r) { btn_prev = 0; click_record(); return 1; }
         }
     }
@@ -295,9 +295,9 @@ static void idle(void)
 
 static void global_key(int key)
 {
-    cardview.nested = key >= 0x3b00 && key <= 0x4000 && !(key & 0xff);   /* F1..F6 open a screen */
+    ns_nested = key >= 0x3b00 && key <= 0x4000 && !(key & 0xff);   /* F1..F6 open a screen */
     ns_call(GF_card_global_keys, 1, key);
-    cardview.nested = 0;
+    ns_nested = 0;
 }
 
 /* card_text (block, how): the picture, the text natively, wait for a click or Enter */
@@ -316,6 +316,7 @@ static void text_hook(void)
     parse(block);
     cardview.how = how;
     cardview.phase = 1;
+    ns_enter(NS_CARD);
     click_record(); flush_keys();
     btn_prev = g_rb(A_MOUSE_BTN) & 1;
     int key = 0;
@@ -333,6 +334,7 @@ static void text_hook(void)
         if (ns_unwinding) break;
     }
     cardview.phase = 0;
+    ns_leave();
     if (ns_unwinding) return;
     if (key == 0x1000) ns_call(GF_quit_to_dos, 0);            /* quit_to_dos */
     click_record();
@@ -443,6 +445,7 @@ int cardview_menu(void)
     g_wb(A_HILITE, 0xff);
     if (c->npieces == 0) parse((s16)g_rw(A_E959));     /* (a menu without card_options before it) */
     c->phase = 2;
+    ns_enter(NS_CARD);
     btn_prev = g_rb(A_MOUSE_BTN) & 1;
     int sel = -1;
     for (;;) {
@@ -487,6 +490,7 @@ int cardview_menu(void)
         if (ns_unwinding) break;
     }
     c->phase = 0;
+    ns_leave();
     c->popup_piece = -1;
     if (ns_unwinding) return -1;
     g_ww(A_8DDE, 1);

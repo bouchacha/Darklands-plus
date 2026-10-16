@@ -161,7 +161,6 @@ static void act(const NsAction *a, int *who)
     note(t);
 }
 
-static int prev_screen;
 static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124 */
 {
     int who = (s16)rw(SS, (u16)(SP + 4));
@@ -175,13 +174,11 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100);
     ns_call(GF_sheet_open, 1, who);                      /* (fonts, the original's picture, unseen) */
     if (ns_unwinding) return;
-    prev_screen = ns_screen;
-    int prev_nested = ns_nested;
     memset(sheet_model.note, 0, sizeof sheet_model.note);
     build(who);
     sheet_model.open = 1;
     fprintf(stderr, "sheet: open (member %d, %d things)\n", who, sheet_model.nitems);
-    ns_screen = NS_SHEET;
+    ns_enter(NS_SHEET);
     ns_clear();
     ns_input_begin();
     int leave = 0;
@@ -219,8 +216,7 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     }
     sheet_model.open = 0;
     fprintf(stderr, "sheet: closed\n");
-    ns_screen = prev_screen;
-    ns_nested = prev_nested;
+    ns_leave();
     if (ns_unwinding) return;
     AX = (u16)ns_call(GF_sheet_leave, 1, -1);
     hook_return_far(0);
