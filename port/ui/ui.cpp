@@ -239,7 +239,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
 /* what needs the game's code in place (hooks): after the game module is loaded (split.h) */
 extern "C" void ui_late_init(void)
 {
-    if (g_win) journal_init();
+    if (g_win) { journal_init(); void battlelog_init(void); battlelog_init(); }
 }
 
 extern "C" int levelmap_is_open(void);

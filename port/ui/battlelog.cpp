@@ -22,6 +22,7 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/config.h"
+#include "../runtime/hooks.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -129,6 +130,31 @@ static int shooter_at(int t)
     return -1;
 }
 
+/* missiles: whether one hits is decided when it is loosed (missile_launch, s018 1ef8:0000):
+ * a missile that will strike flies to its target (record +0x11 = 0), one that misses flies
+ * on until something stops it (+0x11 = 1). The hit itself shows when the target's endurance
+ * drops (battlelog_frame); one whose armour held shows when it should have landed. */
+static int shot_by[13] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+static u32 shot_t[13];
+static std::string shot_word(int who)
+{
+    int w = (s8)g_rb((u16)(CB(who) + 0x22));
+    return w >= 0x17 && w <= 0x1a ? "'s throw" : "'s shot";      /* throwing axe, javelin, dart, throwing knife */
+}
+static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who, tgt, type, d, e) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), tgt = (s16)rw(SS, (u16)(SP + 6)), type = (s16)rw(SS, (u16)(SP + 8));
+    hook_call_original();
+    if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
+    int n = (s8)g_rb(0xc180) - 1;
+    if (n < 0 || n >= 17) return;
+    u16 r = (u16)(0x944d + 0x1a * n);
+    if (!in_battle) start_battle();
+    if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, name_of(who) + shot_word(who) + " misses " + name_of(tgt));
+    else { shot_by[tgt] = who; shot_t[tgt] = plat_ticks_ms(); }
+}
+extern "C" void battlelog_init(void) { hook_install(18, 0x1ef8, 0x0000, launch_hook); }
+
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)
 {
@@ -157,8 +183,9 @@ extern "C" void battlelog_frame(void)
             if (de < 0) de = 0;
             if (ds < 0) ds = 0;
             if (de || ds) {
-                int by = shooter_at(i);
-                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + "'s shot hits " + name_of(i) + " (" + cost(de, ds) + ")");
+                int by = shot_by[i] >= 0 ? shot_by[i] : shooter_at(i);
+                shot_by[i] = -1;
+                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + name_of(i) + " (" + cost(de, ds) + ")");
                 else add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")");
             }
         }
@@ -167,6 +194,10 @@ extern "C" void battlelog_frame(void)
             else if (st == 2) add(i < 5 ? 3 : 4, name_of(i) + " falls unconscious" + (i < 5 ? "!" : ""));
             else if (st == 1 && known_st[i] == 2) add(4, name_of(i) + " comes to");
             else if (st == 5) add(i < 5 ? 3 : 4, name_of(i) + " leaves the field");
+        }
+        if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
+            int by = shot_by[i]; shot_by[i] = -1;
+            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, name_of(by) + shot_word(by) + " hits " + name_of(i) + ", the armour holds");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
         if (st) last_st[i] = st;
