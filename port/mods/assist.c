@@ -37,8 +37,9 @@ int uscreen_pending, uscreen_a, uscreen_b; /* test command ualchemy: the alchemy
 int assist_test_screens(void)
 {
     if (!uscreen_pending) return 0;
+    int kind = uscreen_pending;
     uscreen_pending = 0;
-    void (*f)(void) = game_func(29, 0x0e76, 0x2204);
+    void (*f)(void) = kind == 2 ? game_func(34, 0x1462, 0x0102) : game_func(29, 0x0e76, 0x2204);   /* 2: saint_pray (who, saint) */
     u16 args[2] = { (u16)uscreen_a, (u16)uscreen_b };
     if (f) game_call_live(f, 2, args);
     return 1;

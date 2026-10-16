@@ -643,6 +643,7 @@ static void run_script(void)
             }
         }
         else if (!strcmp(s->cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
+        else if (!strcmp(s->cmd, "usaint")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 0; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 2; }   /* test: the prayer screen (member, saint) from the card menu up */
         else if (!strcmp(s->cmd, "unspush")) { int t = 0, x = 0, y = 0, z = 0; sscanf(s->arg, "%d,%d,%d,%d", &t, &x, &y, &z); void ns_push(int, int, int, int); ns_push(t, x, y, z); }   /* test: an action for the native screen up (mods/barterview.h BV_*, sheetview.h SV_*) */
         else if (!strcmp(s->cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
             int m = 0, id = 0, q = 25, n = 1; sscanf(s->arg, "%d,%d,%d,%d", &m, &id, &q, &n);
