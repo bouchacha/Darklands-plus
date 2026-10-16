@@ -60,6 +60,8 @@ extern "C" void halloffame_draw(void);
 extern "C" void cardview_draw(void);
 extern "C" void barterview_draw(void);
 extern "C" void sheetview_draw(void);
+extern "C" void lootview_draw(void);
+extern "C" { int lootview_showing(void); int lootview_is_on(void); void lootview_set(int on); }
 extern "C" { int sheetview_showing(void); int sheetview_is_on(void); void sheetview_set(int on); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
 extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; }
@@ -504,6 +506,9 @@ static void tab_helpers(void)
     { bool sv = sheetview_is_on() != 0;
       if (ImGui::Checkbox("Character sheets drawn by Darklands+: the whole pack in one list with Ready, Give, Drop and Drink on each, skills, formulae and saints in tabs", &sv)) { sheetview_set(sv); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("Equipping, giving, dropping and drinking are the game's own. In battle the game's own sheet stays. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
+    { bool lv = lootview_is_on() != 0;
+      if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen."); ImGui::Unindent(UIS(34)); }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
@@ -1095,6 +1100,12 @@ static void help_window(void)
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
             { extern int ui_battle_log; if (ui_battle_log && !original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
+        } else if (loot_active && lootview_showing()) {
+            ImGui::SeparatorText("Now: the loot");
+            row("Take / Put back", "on the row under the pointer: the whole stack (1: just one)");
+            row("Take all / Share out", "everything to the member shown / to whoever has some already, else the emptiest pack (A / S)");
+            row("Names above the right list, D", "another member");
+            row("L, Esc or Leave", "leave (what is left stays behind)");
         } else if (loot_active) {
             ImGui::SeparatorText("Now: the loot");
             row("G / P", "get the chosen item from the pile / put one back (the cursor's list)");
@@ -1188,7 +1199,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); }
+    else { hdtext_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

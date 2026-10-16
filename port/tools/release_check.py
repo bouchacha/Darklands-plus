@@ -7,7 +7,7 @@ break, in a window (native screens are drawn only there), on your own game files
 
 It starts the game, Quickstart, reads the opening cards, walks to the merchants with Go to
 (through the native cards), sells and buys on the native shop screen, opens a member's native
-sheet from it and back, leaves, and fights a test battle. Each step is OK or FAILED by the
+sheet from it and back, leaves, fights a test battle and shares out its loot. Each step is OK or FAILED by the
 log; screenshots go to --out. Needs Xvfb (port/tools/nctl.py --x11). The game folder is
 copied, not changed.
 """
@@ -29,6 +29,8 @@ STEPS = [
     ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
     ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; key space; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
+    ('win it (test hits) and the loot (native)', 'ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; ucmd uhit:1,5,40,0; ucmd uhit:1,6,40,0; ucmd uhit:1,7,40,0; ucmd uhit:1,8,40,0; ucmd uhit:1,9,40,0; ucmd uhit:1,10,40,0; ucmd uhit:1,11,40,0; ucmd uhit:1,12,40,0; wait 1; key space; wait 25; wshot 7_loot', [r'loot screen: open']),
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),
 ]
 
 

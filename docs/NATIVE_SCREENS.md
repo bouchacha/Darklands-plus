@@ -95,13 +95,13 @@ The card screen came first and has its own loop. The screens after it are built 
 | screen | hook | actions through the game's routines | switch |
 |---|---|---|---|
 | shop (`mods/barterview.c`, `ui/barterview.cpp`) | barter_screen s032 1462:0000 | setup and stock 078e, buy / sell = the key handler 0f60 (P / S) with its cursor set to the row, another member 0b30, leaving 076c; prices 192e / 1b26 asked side-effect free | `display.native_shops` |
+| loot (`mods/lootview.c`, `ui/lootview.cpp`) | loot_loop s040 1462:01c8 | setup as the original (cash into the purse, loot_first_draw), take / put back = the key handler 0c22 (G / P) with its cursors set, Take all / Share out = mods/loot.c's A / S through the same handler, another member loot_redraw, leaving loot_close | `display.native_loot` |
 | character sheet (`mods/sheetview.c`, `ui/sheetview.cpp`) | member_sheet s031 1462:0124 (not in battle) | setup 09b8, ready 18e7:11b2, put away 12e8, give 0000 / 007c, drop 0474 / 07d4, drink 1462:43b2, leaving 08f6 | `display.native_sheet` |
 
 ## Next screens
 
 The same pattern fits any screen whose logic is separate from its drawing:
 
-* **Loot (s040)**: the same two lists as the shop.
 * **The character sheet in battle** (its own rules for a member on the ground).
 * **Character creation (s036 / s037)**.
 * **The travel map's menus** and **the city menus**, which are cards already.

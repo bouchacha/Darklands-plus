@@ -55,6 +55,19 @@ int gm_knows_saint(int m, int s)              /* 0x14 bytes each, highest bit fi
     return m >= 0 && m < 5 && s >= 0 && s < 160 && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)));
 }
 
+int gm_room_for(int m, int id, int qual)
+{
+    int n = gm_item_count(m);
+    if (n < 64) return 1;
+    u32 d = g_itemdef(id & 0xfff);
+    int type = d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1;
+    for (int j = 0; j < n; j++) {
+        u16 o = G_ITEM(m, j);
+        if (rw(G_FAR2E38, o) == (u16)id && rb(G_FAR2E38, (u16)(o + 2)) == type && rb(G_FAR2E38, (u16)(o + 3)) == qual && rb(G_FAR2E38, (u16)(o + 4)) < 0xff) return 1;
+    }
+    return 0;
+}
+
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
 void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
 int gm_itemdef_weight(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x25)) : 0; }

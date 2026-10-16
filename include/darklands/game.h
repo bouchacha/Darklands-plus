@@ -594,8 +594,25 @@
 #define load_game_vec            vec_1851             /* overlay call vector of load_game */
 #define create_character         sub_s037_18c8_0004   /* () */
 #define create_character_vec     vec_20cb             /* overlay call vector of create_character */
-#define loot_distribute          sub_s040_1462_0000   /* (): loot screen entry */
+#define loot_distribute          sub_s040_1462_0000   /* (items far, unsigned char *count, int far *cash): loot screen entry */
 #define loot_distribute_vec      vec_1dab             /* overlay call vector of loot_distribute */
+#define loot_loop                sub_s040_1462_01c8   /* (items far, count near, cash far): the loot screen's loop */
+#define loot_close               sub_s040_1462_06c8   /* (r): fonts and the leader back; returns r */
+#define loot_first_draw          sub_s040_1462_06e2   /* (who): the whole screen */
+#define loot_redraw              sub_s040_1462_0952   /* (who): the screen for another member */
+#define loot_key                 sub_s040_1462_0c22   /* (key): G get, P put, D next member ... at the cursors */
+#define loot_who                 D_8dc4               /* the member receiving */
+#define loot_leader              D_8dba               /* the leader when the screen opened */
+#define loot_n                   D_8dbc               /* entries in the pile */
+#define loot_pile                D_8db6               /* struct invitem far *: the pile (6 bytes: item, type, quality, count, weight) */
+#define loot_count_ptr           D_8dc8               /* unsigned char far *: the caller's count of the pile */
+#define loot_cash                D_8dcc               /* int far *: the cash found (fl, gr, pf) */
+#define loot_n_items             D_4c06               /* int[5]: each member's records, as the screen counted them */
+#define loot_side                D_4c10               /* int[5]: 1 the cursor is in the pile, 0 in the member's things */
+#define loot_inv_top             D_4c1a               /* int[5] */
+#define loot_pile_top            D_4c24               /* int[5] */
+#define loot_inv_sel             D_4c2e               /* int[5] */
+#define loot_pile_sel            D_4c38               /* int[5] */
 #define copyprot_run             sub_s041_1462_0000   /* (): copy-protection screen (the symbol copy_protection) */
 #define copyprot_run_vec         vec_1fd1             /* overlay call vector of copyprot_run */
 #define member_shield            D_a668               /* shield code per party slot ("F01", ...) */

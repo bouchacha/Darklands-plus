@@ -1,0 +1,144 @@
+/* lootview.cpp - draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md).
+ *
+ * The pile and the member's things side by side; Take (the whole stack, or 1) on a pile row,
+ * Put back (the stack, or 1) on the member's; the members as tabs; Take all and Share out;
+ * a fixed strip describes the row under the pointer. Drawn from loot_model alone. */
+#include "imgui.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include "../runtime/cpu.h"
+#include "../runtime/game.h"
+#include "../mods/lootview.h"
+#include "nsdraw.h"
+
+extern "C" u32 plat_ticks_ms(void);
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
+
+namespace {
+struct LootView {
+    int scroll[2] = {};
+    int last_who = -1;
+    int hover_list = -1, hover_row = -1; unsigned hover_seq = 0;
+} V;
+}
+
+extern "C" int lootview_showing(void) { return ns_screen == NS_LOOT && loot_model.open && !ns_hidden(); }
+
+extern "C" void lootview_draw(void)
+{
+    const LootModel &l = loot_model;
+    if (!lootview_showing()) return;
+    NsDraw P;
+    if (!P.begin()) return;
+    ImFont *f = P.f, *fo = P.fo;
+    const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM, red = NsDraw::RED;
+    P.page();
+
+    /* the header */
+    P.text(f, 8.5f, 65, 3, ink, "The loot");
+    {
+        std::string c;
+        if (l.cash_fl) c += std::to_string(l.cash_fl) + "fl ";
+        if (l.cash_gr) c += std::to_string(l.cash_gr) + "gr ";
+        if (l.cash_pf) c += std::to_string(l.cash_pf) + "pf ";
+        P.text(fo, 5.4f, 65, 12.5f, soft, c.empty() ? "No money found." : "Found " + c + "in cash (into the purse).");
+    }
+    float bx = 284;
+    if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), 6.0f)) ns_push(LV_LEAVE, 0, 0, 0);
+    if (l.assist && l.npile) {
+        if (P.button(bx - 36, 4, bx - 3, 15, "Share out", IM_COL32(40, 92, 34, 235), 5.0f)) ns_push(LV_SHARE, 0, 0, 0);
+        if (P.button(bx - 70, 4, bx - 39, 15, "Take all", IM_COL32(40, 92, 34, 235), 5.0f)) ns_push(LV_TAKEALL, 0, 0, 0);
+    }
+
+    /* the member tabs */
+    const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9; const int NROWS = 13;
+    const float LY1 = LY0 + NROWS * ROWH;
+    P.text(f, 7, LX0 + 1, 21, ink, "The pile");
+    {
+        int n = 0; for (int m = 0; m < 5; m++) if (l.present[m]) n++;
+        float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
+        for (int m = 0; m < 5; m++) {
+            if (!l.present[m]) continue;
+            bool sel = m == l.who, h = P.over(x, 19, x + tw - 1, 29);
+            ImU32 bg = sel ? IM_COL32(112, 40, 22, 240) : !l.able[m] ? IM_COL32(210, 200, 180, 255) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255);
+            P.rect(x, 19, x + tw - 1, 29, bg, 2);
+            P.text(f, 6.0f, x + 2.5f, 20.5f, sel ? NsDraw::LIGHT : l.able[m] ? ink : dim, ns_gtext(l.names[m]), -1, x + tw - 2);
+            if (l.able[m] && P.hit(x, 19, x + tw - 1, 29)) ns_push(LV_WHO, m, 0, 0);
+            x += tw;
+        }
+    }
+    if (l.who != V.last_who) { V.scroll[1] = 0; V.last_who = l.who; }
+
+    int new_hl = -1, new_hr = -1;
+    for (int L = 0; L < 2; L++) {
+        float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
+        int n = L ? l.nitems : l.npile;
+        P.rect(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
+        P.frame(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
+        bool over = P.over(x0, LY0, x1, LY1) || (!L && !P.over(RX0, LY0, RX1, LY1));
+        if (over && ns_in.wheel != 0) { V.scroll[L] -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
+        int maxs = n - NROWS; if (maxs < 0) maxs = 0;
+        if (V.scroll[L] > maxs) V.scroll[L] = maxs;
+        if (V.scroll[L] < 0) V.scroll[L] = 0;
+        if (!n) P.text(fo, 5.5f, x0 + 4, LY0 + 3, dim, L ? "Carries nothing." : "Nothing left in the pile.");
+        for (int r = 0; r < NROWS && V.scroll[L] + r < n; r++) {
+            int i = V.scroll[L] + r;
+            float y = LY0 + r * ROWH;
+            int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, count = L ? l.item[i].count : l.pile[i].count;
+            int eq = L ? l.item[i].equipped : 0;
+            bool h = P.over(x0, y, x1, y + ROWH);
+            if (h) { new_hl = L; new_hr = i; }
+            if (h) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
+            else if (r & 1) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
+            if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, red);
+            ui_item_icon(P.dl, NsDraw::w(x0 + 6.5f, y + ROWH * 0.5f), 7.0f * P.k, id);
+            std::string nm = ns_item_name(id);
+            if (count > 1) nm += " (" + std::to_string(count) + ")";
+            char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
+            float tagw = eq ? P.width(fo, 4.6f, "in use") + 3 : 0;
+            float name_end = h ? x1 - 38 : x1 - 3 - P.width(fo, 5.0f, qs) - 3;
+            P.text(f, 5.8f, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
+            if (eq) {
+                float nx = fminf(x0 + 12 + P.width(f, 5.8f, nm) + 2, name_end - tagw);
+                P.rect(nx, y + 2, nx + tagw - 1, y + ROWH - 1.5f, IM_COL32(140, 30, 18, 230), 1);
+                P.text(fo, 4.6f, nx + 1.2f, y + 2.6f, NsDraw::LIGHT, "in use");
+            }
+            if (!h) { P.text(fo, 5.0f, 0, y + 2.2f, soft, qs, x1 - 3); continue; }
+            /* the actions: the whole stack, or one */
+            bool can = L || l.room;
+            float b1 = x1 - 2;
+            if (count > 1) {
+                if (P.button(b1 - 9, y + 1, b1, y + ROWH - 1, "1", IM_COL32(120, 84, 40, 235), 4.8f)) ns_push(L ? LV_PUT : LV_TAKE, i, 1, 0);
+                b1 -= 10.5f;
+            }
+            if (can) { if (P.button(b1 - 24, y + 1, b1, y + ROWH - 1, L ? "Put back" : "Take", L ? IM_COL32(120, 44, 24, 235) : IM_COL32(40, 92, 34, 235), 4.8f)) ns_push(L ? LV_PUT : LV_TAKE, i, 255, 0); }
+            else P.text(fo, 4.6f, 0, y + 2.4f, red, "no room", b1);
+        }
+        if (n > NROWS) {
+            float th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * V.scroll[L] / (float)(n - NROWS);
+            P.rect(x1 - 1.6f, ty, x1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
+        }
+    }
+    if (new_hl >= 0) { V.hover_list = new_hl; V.hover_row = new_hr; V.hover_seq = l.seq; }
+    else if (V.hover_seq != l.seq) V.hover_list = -1;
+
+    /* the strip */
+    float SY0 = LY1 + 3, SY1 = 196;
+    P.rect(63, SY0, 317, SY1, IM_COL32(230, 214, 178, 255), 1.5f);
+    if (V.hover_list >= 0 && (V.hover_list ? V.hover_row < l.nitems : V.hover_row < l.npile)) {
+        int L = V.hover_list, i = V.hover_row;
+        int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, wt = L ? l.item[i].weight : l.pile[i].weight, cnt = L ? l.item[i].count : l.pile[i].count;
+        const ItemDef *d = ns_itemdef(id);
+        ui_item_icon(P.dl, NsDraw::w(70, SY0 + 8), 12.0f * P.k, id);
+        P.text(f, 7.0f, 79, SY0 + 1.5f, ink, ns_item_name(id));
+        std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
+        if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";
+        if (L && l.item[i].equipped) l1 += "; in use";
+        P.text(fo, 5.3f, 79, SY0 + 10, soft, l1);
+        std::string l2 = ns_item_line(id);
+        if (!l2.empty()) P.text(fo, 5.3f, 79, SY0 + 17, soft, l2);
+    } else P.text(fo, 5.3f, 68, SY0 + 3, dim, "Point at a thing to see it here. Click a name above the right list (or D) for another member.");
+    if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, 5.5f, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
+}

@@ -20,6 +20,7 @@
 #include "../runtime/hle.h"
 #include "../runtime/config.h"
 #include "barterview.h"
+#include "lootview.h"
 
 #define L_CUR   0x8dc4
 #define L_N     0x8dbc
@@ -309,6 +310,7 @@ void loot_press(int i)
 
 void loot_init(void)
 {
+    lootview_init();                         /* (first: the hooks below run around it) */
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
     hook_install(40, 0x1462, 0x06e2, first_draw_hook);

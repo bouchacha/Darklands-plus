@@ -135,6 +135,18 @@
 #define GV_party_money_gr               0x906d    /* groschen of party_money */
 #define GV_party_money_pf               0x906f    /* pfennigs of party_money */
 #define GV_member_attrs                 0x9cb2    /* = party[i] + 0x49: attributes */
+#define GV_loot_who                     0x8dc4    /* the member receiving */
+#define GV_loot_leader                  0x8dba    /* the leader when the screen opened */
+#define GV_loot_n                       0x8dbc    /* entries in the pile */
+#define GV_loot_pile                    0x8db6    /* struct invitem far *: the pile (6 bytes: item, type, quality, count, weight) */
+#define GV_loot_count_ptr               0x8dc8    /* unsigned char far *: the caller's count of the pile */
+#define GV_loot_cash                    0x8dcc    /* int far *: the cash found (fl, gr, pf) */
+#define GV_loot_n_items                 0x4c06    /* int[5]: each member's records, as the screen counted them */
+#define GV_loot_side                    0x4c10    /* int[5]: 1 the cursor is in the pile, 0 in the member's things */
+#define GV_loot_inv_top                 0x4c1a    /* int[5] */
+#define GV_loot_pile_top                0x4c24    /* int[5] */
+#define GV_loot_inv_sel                 0x4c2e    /* int[5] */
+#define GV_loot_pile_sel                0x4c38    /* int[5] */
 #define GV_member_shield                0xa668    /* shield code per party slot ("F01", ...) */
 #define GV_shield_pics                  0xa2d7    /* shield picture handles per member */
 #define GV_lst_buf                      0xa889    /* darkland.lst buffer */
@@ -598,7 +610,12 @@
 #define GF_text_input                   37, 0x1462, 0x43e6    /* (buf, max, prompt) */
 #define GF_load_game                    37, 0x1c7d, 0x09c6    /* (): confirm, tear down, reload, longjmp to the main loop */
 #define GF_create_character             37, 0x18c8, 0x0004    /* () */
-#define GF_loot_distribute              40, 0x1462, 0x0000    /* (): loot screen entry */
+#define GF_loot_distribute              40, 0x1462, 0x0000    /* (items far, unsigned char *count, int far *cash): loot screen entry */
+#define GF_loot_loop                    40, 0x1462, 0x01c8    /* (items far, count near, cash far): the loot screen's loop */
+#define GF_loot_close                   40, 0x1462, 0x06c8    /* (r): fonts and the leader back; returns r */
+#define GF_loot_first_draw              40, 0x1462, 0x06e2    /* (who): the whole screen */
+#define GF_loot_redraw                  40, 0x1462, 0x0952    /* (who): the screen for another member */
+#define GF_loot_key                     40, 0x1462, 0x0c22    /* (key): G get, P put, D next member ... at the cursors */
 #define GF_copyprot_run                 41, 0x1462, 0x0000    /* (): copy-protection screen (the symbol copy_protection) */
 #define GF_world_load                   43, 0x1462, 0x0100    /* (locfile): world data for the current city */
 #define GF_cards_shutdown               43, 0x1462, 0x054e    /* (): charactr.tmp names, locs.tmp, events.tmp, free */
