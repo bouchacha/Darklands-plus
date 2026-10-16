@@ -89,6 +89,16 @@ struct NsDraw {
         text(fo, gs, x0 + (x1 - x0 - tw) * 0.5f, y0 + (y1 - y0) * 0.5f - gs * 0.62f, LIGHT, label);
         return hit(x0, y0, x1, y1);
     }
+    /* an item's picture (ui/inventory.cpp), centred at (x, y), `size` rows across; kept inside
+       its square (a pike or a halberd is drawn long) */
+    void icon(float x, float y, float size, int id)
+    {
+        void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
+        ImVec2 c = w(x, y); float s = size * k, h = s * 0.62f;
+        dl->PushClipRect(ImVec2(c.x - h, c.y - h), ImVec2(c.x + h, c.y + h), true);
+        ui_item_icon(dl, c, s, id);
+        dl->PopClipRect();
+    }
     /* the page under a native screen (over the picture beside the party panel) */
     void page()
     {

@@ -107,8 +107,11 @@ while time.time() < t_end:
             nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
         else: nctl.do(name, 'wait 6')
     elif mode == 3:
-        nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
-                                  'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
+        if rnd.random() < 0.35:                 # a native screen's actions (buy, sell, take, give, ready, brew ...)
+            nctl.do(name, 'ucmd unspush:%d,%d,%d,%d; wait 1.5' % (rnd.randrange(1, 9), rnd.randrange(0, 12), rnd.choice([0, 1, 2, 3, 10, 255]), rnd.choice([0, 1, 255])))
+        else:
+            nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
+                                      'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
     else:
         nctl.do(name, rnd.choice(['key Return; wait 1.5', 'at 160 100; click; wait 1.5', 'key space; wait 1.5', 'key Escape; wait 1.5', 'at 160 62; click; wait 3']))
 L('done', steps, 'steps, modes', modes)

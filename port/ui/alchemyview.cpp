@@ -50,7 +50,7 @@ extern "C" void alchemyview_draw(void)
         if (sel) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(214, 186, 140, 255));
         else if (h) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
         else if (r & 1) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
-        ui_item_icon(P.dl, NsDraw::w(LX0 + 6.5f, y + ROWH * 0.5f), 7.0f * P.k, 95 + w.formula / 3);
+        P.icon(LX0 + 6.5f, y + ROWH * 0.5f, 7.0f, 95 + w.formula / 3);
         std::string nm = w.formula < (int)gamedata.formula_names.size() ? gamedata.formula_names[w.formula] : "?";
         float end = LX1 - 3;
         if (w.count) { std::string c = std::to_string(w.count) + "x"; P.text(fo, NsDraw::FS_BODY, 0, y + 2, ink, c, end); end -= P.width(fo, NsDraw::FS_BODY, c) + 2; }
@@ -79,7 +79,7 @@ extern "C" void alchemyview_draw(void)
         P.text(f, NsDraw::FS_NAME, RX0, y, ink, "Ingredients for a batch"); y += 8;
         for (int k = 0; k < a.ningr; k++) {
             const AvIngr &g = a.ingr[k];
-            ui_item_icon(P.dl, NsDraw::w(RX0 + 4, y + 3.5f), 6.5f * P.k, g.item);
+            P.icon(RX0 + 4, y + 3.5f, 6.5f, g.item);
             P.text(fo, NsDraw::FS_BODY, RX0 + 9, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
             P.text(fo, NsDraw::FS_SMALL, 0, y + 1.2f, g.have >= g.need ? green : red, (g.have ? "at hand " + std::to_string(g.have) : std::string("none at hand")), RX1);
             y += 7.5f;

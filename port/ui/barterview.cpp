@@ -133,8 +133,7 @@ extern "C" void barterview_draw(void)
             if (h) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
             if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, red);
-            ImVec2 ic = g2w(x0 + 6.5f, y + ROWH * 0.5f);
-            ui_item_icon(dl, ic, 7.0f * k, id);
+            P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id);
             std::string nm = item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
@@ -189,7 +188,7 @@ extern "C" void barterview_draw(void)
             int id = L ? b.item[i].id : b.ware[i].id, qual = L ? b.item[i].qual : b.ware[i].qual;
             int price = L ? b.item[i].price : b.ware[i].price, wt = L ? b.item[i].weight : b.ware[i].weight;
             const ItemDef *d = def(id);
-            ui_item_icon(dl, g2w(70, SY0 + 8), 12.0f * k, id);
+            P.icon(70, SY0 + 8, 12.0f, id);
             T(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, item_name(id));
             std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
             if (L && b.item[i].count > 1) l1 += " each, " + std::to_string(b.item[i].count) + " of them";

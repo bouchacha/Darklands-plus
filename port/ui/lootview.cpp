@@ -93,7 +93,7 @@ extern "C" void lootview_draw(void)
             if (h) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
             if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, red);
-            ui_item_icon(P.dl, NsDraw::w(x0 + 6.5f, y + ROWH * 0.5f), 7.0f * P.k, id);
+            P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
@@ -131,7 +131,7 @@ extern "C" void lootview_draw(void)
         int L = V.hover_list, i = V.hover_row;
         int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, wt = L ? l.item[i].weight : l.pile[i].weight, cnt = L ? l.item[i].count : l.pile[i].count;
         const ItemDef *d = ns_itemdef(id);
-        ui_item_icon(P.dl, NsDraw::w(70, SY0 + 8), 12.0f * P.k, id);
+        P.icon(70, SY0 + 8, 12.0f, id);
         P.text(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, ns_item_name(id));
         std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
         if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";

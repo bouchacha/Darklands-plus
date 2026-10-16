@@ -129,7 +129,7 @@ extern "C" void sheetview_draw(void)
         }
         if (V.tab == TAB_FORMULAE) {
             if (h) { new_what = 3; new_which = i; }
-            ui_item_icon(P.dl, NsDraw::w(RX0 + 5.5f, y + ROWH * 0.5f), 6.5f * P.k, 95 + i / 3);
+            P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.5f, 95 + i / 3);
             P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.3f, ink, gamedata.formula_names[i], -1, RX1 - 2);
             continue;
         }
@@ -141,7 +141,7 @@ extern "C" void sheetview_draw(void)
         const SvItem &it = s.item[i];
         if (h) { new_what = 1; new_which = i; }
         if (it.equipped) P.rect(RX0 + 0.5f, y + 1, RX0 + 1.8f, y + ROWH - 1, red);
-        ui_item_icon(P.dl, NsDraw::w(RX0 + 5.5f, y + ROWH * 0.5f), 6.5f * P.k, it.id);
+        P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.5f, it.id);
         std::string nm = ns_item_name(it.id);
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         if (V.give_row == i) {                         /* to whom? */
