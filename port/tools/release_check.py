@@ -39,6 +39,7 @@ def main():
     ap.add_argument('--exe', default=os.path.join(TOP, 'build', 'port', 'darklands'))
     ap.add_argument('--game', required=True)
     ap.add_argument('--out', default=os.path.join(TOP, 'build', 'release_check'))
+    ap.add_argument('--patience', type=float, default=60, help='seconds to wait for what a step should log (an ASAN build is slow)')
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     subprocess.run(NCTL + ['stop', NAME], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -50,12 +51,15 @@ def main():
     try:
         for name, steps, want in STEPS:
             r = subprocess.run(NCTL + ['do', NAME, steps], capture_output=True, text=True, timeout=900)
-            time.sleep(0.5)
-            text = open(log, encoding='latin1', errors='replace').read().replace('\r', '')
-            new = text[seen:]
+            deadline = time.time() + a.patience          # (slow builds: wait for what is expected)
+            while True:
+                time.sleep(0.5)
+                text = open(log, encoding='latin1', errors='replace').read().replace('\r', '')
+                lines = text[seen:].splitlines()
+                miss = [w for w in want if not any(re.search(w, l) for l in lines)]
+                if not miss or time.time() > deadline:
+                    break
             seen = len(text)
-            lines = new.splitlines()
-            miss = [w for w in want if not any(re.search(w, l) for l in lines)]
             bad = [l for l in lines if BAD.search(l)]
             ended = 'SESSION ENDED' in r.stdout
             ok = not miss and not bad and not ended

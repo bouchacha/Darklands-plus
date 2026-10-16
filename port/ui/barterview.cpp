@@ -74,22 +74,22 @@ extern "C" void barterview_draw(void)
     P.page();
 
     /* the header: shop, quality, purse, Leave */
-    T(f, 8.5f, 65, 3, ink, gt(b.shopname), -1, 205);
+    T(f, NsDraw::FS_TITLE, 65, 3, ink, gt(b.shopname), -1, 205);
     char q[48]; snprintf(q, sizeof q, "Wares of quality %d", b.quality);
-    T(fo, 5.5f, 65, 12.5f, ink_soft, q);
+    T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, q);
     {
         std::string purse = money(b.total_pf), who = b.payer >= 0 && b.payer < 5 ? gt(b.names[b.payer]) : "";
-        T(fo, 5.5f, 0, 3.5f, ink_soft, "Purse (" + who + ")", 280);
-        T(f, 7.0f, 0, 9.5f, ink, purse, 280);
+        T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse (" + who + ")", 280);
+        T(f, NsDraw::FS_HEAD, 0, 9.5f, ink, purse, 280);
         bool h = in(mx, my, 284, 4, 315, 15);
         R(284, 4, 315, 15, h ? IM_COL32(140, 44, 24, 255) : IM_COL32(112, 40, 22, 235), 2);
-        T(f, 6.5f, 290, 5.5f, IM_COL32(250, 236, 200, 255), "Leave");
+        T(f, NsDraw::FS_HEAD, 290, 5.5f, IM_COL32(250, 236, 200, 255), "Leave");
         if (hit(284, 4, 315, 15)) ns_push(BV_LEAVE, 0, 0, 0);
     }
 
     /* the member tabs (right column); right-click: holds the purse */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9;
-    T(f, 7, LX0 + 1, 21, ink, "For sale");
+    T(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "For sale");
     {
         int n = 0; for (int m = 0; m < 5; m++) if (b.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
@@ -98,7 +98,7 @@ extern "C" void barterview_draw(void)
             bool sel = m == b.who, h = in(mx, my, x, 19, x + tw - 1, 29);
             R(x, 19, x + tw - 1, 29, sel ? IM_COL32(112, 40, 22, 240) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255), 2);
             std::string nm = gt(b.names[m]);
-            T(f, 6.0f, x + 2.5f + (m == b.payer ? 4 : 0), 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
+            T(f, NsDraw::FS_NAME, x + 2.5f + (m == b.payer ? 4 : 0), 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
             if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.6f * k, IM_COL32(214, 172, 60, 255));
             if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
             if (P.rclick && in(mx, my, x, 19, x + tw - 1, 29)) ns_push(BV_PAYER, m, 0, 0);
@@ -121,7 +121,7 @@ extern "C" void barterview_draw(void)
         int maxs = n - NROWS; if (maxs < 0) maxs = 0;
         if (V.scroll[L] > maxs) V.scroll[L] = maxs;
         if (V.scroll[L] < 0) V.scroll[L] = 0;
-        if (!n) T(fo, 5.5f, x0 + 4, LY0 + 3, ink_dim, L ? "Nothing to sell." : "Nothing for sale today.");
+        if (!n) T(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, ink_dim, L ? "Nothing to sell." : "Nothing for sale today.");
         for (int r = 0; r < NROWS && V.scroll[L] + r < n; r++) {
             int i = V.scroll[L] + r;
             float y = LY0 + r * ROWH;
@@ -139,18 +139,18 @@ extern "C" void barterview_draw(void)
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
-            float pw = W(fo, 5.2f, ps);
-            float name_end = x1 - 2 - pw - 5 - W(fo, 5.0f, qs) - 3;
-            float tagw = eq ? W(fo, 4.6f, "in use") + 3 : 0;
-            T(f, 5.8f, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
+            float pw = W(fo, NsDraw::FS_BODY, ps);
+            float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
+            float tagw = eq ? W(fo, NsDraw::FS_SMALL, "in use") + 3 : 0;
+            T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (eq) {
-                float nx = fminf(x0 + 12 + W(f, 5.8f, nm) + 2, name_end - tagw);
+                float nx = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
                 R(nx, y + 2, nx + tagw - 1, y + ROWH - 1.5f, IM_COL32(140, 30, 18, 230), 1);
-                T(fo, 4.6f, nx + 1.2f, y + 2.6f, IM_COL32(250, 236, 200, 255), "in use");
+                T(fo, NsDraw::FS_SMALL, nx + 1.2f, y + 2.6f, IM_COL32(250, 236, 200, 255), "in use");
             }
-            T(fo, 5.0f, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
+            T(fo, NsDraw::FS_BODY, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
             bool cant = !L && price > b.total_pf;
-            T(fo, 5.2f, 0, y + 2.0f, price <= 0 ? ink_dim : cant ? red : ink, ps, x1 - 2);
+            T(fo, NsDraw::FS_BODY, 0, y + 2.0f, price <= 0 ? ink_dim : cant ? red : ink, ps, x1 - 2);
             /* the action on the row under the pointer */
             if (h) {
                 const char *lab = L ? "Sell" : "Buy";
@@ -160,12 +160,12 @@ extern "C" void barterview_draw(void)
                     R(ax0 - 1, y + 0.8f, bx1, y + ROWH - 0.8f, IM_COL32(226, 204, 160, 255));
                     bool hb = in(mx, my, bx0, y, bx1, y + ROWH);
                     R(bx0, y + 1, bx1, y + ROWH - 1, hb ? (L ? IM_COL32(150, 56, 30, 255) : IM_COL32(52, 112, 44, 255)) : (L ? IM_COL32(120, 44, 24, 235) : IM_COL32(40, 92, 34, 235)), 1.5f);
-                    T(fo, 5.0f, bx0 + (bw - W(fo, 5.0f, lab)) * 0.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), lab);
+                    T(fo, NsDraw::FS_BODY, bx0 + (bw - W(fo, NsDraw::FS_BODY, lab)) * 0.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), lab);
                     if (hit(bx0, y, bx1, y + ROWH)) ns_push(L ? BV_SELL : BV_BUY, i, L ? (shift ? 255 : 1) : (shift ? 10 : 1), 0);
                     if (two) {
                         bool ha = in(mx, my, ax0, y, bx0 - 1, y + ROWH);
                         R(ax0, y + 1, bx0 - 1, y + ROWH - 1, ha ? IM_COL32(150, 56, 30, 255) : IM_COL32(120, 44, 24, 200), 1.5f);
-                        T(fo, 5.0f, ax0 + 1.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), "All");
+                        T(fo, NsDraw::FS_BODY, ax0 + 1.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), "All");
                         if (hit(ax0, y, bx0 - 1, y + ROWH)) ns_push(BV_SELL, i, 255, 0);
                     }
                 }
@@ -190,18 +190,18 @@ extern "C" void barterview_draw(void)
             int price = L ? b.item[i].price : b.ware[i].price, wt = L ? b.item[i].weight : b.ware[i].weight;
             const ItemDef *d = def(id);
             ui_item_icon(dl, g2w(70, SY0 + 8), 12.0f * k, id);
-            T(f, 7.0f, 79, SY0 + 1.5f, ink, item_name(id));
+            T(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, item_name(id));
             std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
             if (L && b.item[i].count > 1) l1 += " each, " + std::to_string(b.item[i].count) + " of them";
-            T(fo, 5.3f, 79, SY0 + 10, ink_soft, l1);
+            T(fo, NsDraw::FS_BODY, 79, SY0 + 10, ink_soft, l1);
             std::string l2 = ns_item_line(id);
-            if (!l2.empty()) T(fo, 5.3f, 79, SY0 + 17, ink_soft, l2);
+            if (!l2.empty()) T(fo, NsDraw::FS_BODY, 79, SY0 + 17, ink_soft, l2);
             std::string pr = L ? (price > 0 ? "The merchant pays " + money(price) : "The merchant will not buy this")
                                : "Costs " + money(price) + (price > b.total_pf ? " - more than the purse holds" : "");
             if (L && b.item[i].equipped) pr += "; in use";
-            T(fo, 5.6f, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
+            T(fo, NsDraw::FS_BODY, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
         }
-    } else T(fo, 5.3f, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
-    if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, 5.5f, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note));
-    else T(fo, 4.8f, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  right-click a name: that member pays");
+    } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
+    if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note));
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  right-click a name: that member pays");
 }

@@ -28,6 +28,12 @@ struct NsDraw {
 
     /* the colours of the page */
     static constexpr ImU32 INK = IM_COL32(44, 26, 10, 255), INK_SOFT = IM_COL32(92, 60, 30, 230), INK_DIM = IM_COL32(44, 26, 10, 120);
+    /* the type sizes, in game rows, the same on every native screen */
+    static constexpr float FS_TITLE = 8.5f;   /* the screen's name (the game's typeface) */
+    static constexpr float FS_HEAD = 6.8f;    /* headings, the strip's item name */
+    static constexpr float FS_NAME = 5.8f;    /* the rows of the lists (the game's typeface) */
+    static constexpr float FS_BODY = 5.3f;    /* numbers, descriptions (the plain typeface) */
+    static constexpr float FS_SMALL = 4.7f;   /* buttons, tags, hints */
     static constexpr ImU32 RED = IM_COL32(140, 30, 18, 255), GREEN = IM_COL32(40, 96, 34, 255), LIGHT = IM_COL32(250, 238, 212, 255);
 
     bool begin()
@@ -73,7 +79,7 @@ struct NsDraw {
     bool hit(float x0, float y0, float x1, float y1) const { return click && cx >= x0 && cx < x1 && cy >= y0 && cy < y1; }
 
     /* a button; true when clicked */
-    bool button(float x0, float y0, float x1, float y1, const std::string &label, ImU32 base, float gs = 5.0f)
+    bool button(float x0, float y0, float x1, float y1, const std::string &label, ImU32 base, float gs = FS_SMALL)
     {
         bool h = over(x0, y0, x1, y1);
         ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
