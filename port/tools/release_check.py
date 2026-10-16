@@ -52,6 +52,12 @@ def main():
     env = dict(os.environ, DL_CARDVIEW_LOG='1', DL_LOOT_LOG='1')
     subprocess.run(NCTL + ['start', NAME, '--x11', '--exe', a.exe, '--game', a.game], stdout=subprocess.DEVNULL, check=True, env=env)
     log = os.path.join(os.environ.get('NCTL_DIR', '/tmp/nctl'), NAME, 'out.txt')
+    t0 = time.time()                                # (a first start makes the game module first: minutes)
+    while time.time() - t0 < 900:
+        if os.path.exists(log) and 'driver mgraphic' in open(log, encoding='latin1', errors='replace').read():
+            break
+        time.sleep(2)
+    time.sleep(3)
     failed = 0
     seen = 0
     try:
