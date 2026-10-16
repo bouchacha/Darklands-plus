@@ -134,6 +134,7 @@ void mods_init(void)
     fixes_init();
     saves_init();
     assist_init();
+    { void cardview_init(void); cardview_init(); }
     { void loot_init(void); loot_init(); }
     autopause_init();
     pathfix_init();

@@ -25,6 +25,7 @@ extern "C" {
 #include "../runtime/hle.h"
 #include "../mods/datamods.h"
 #include "../mods/assist.h"
+#include "../mods/cardview.h"
 #include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
@@ -138,6 +139,7 @@ static FaceMetrics face_metrics(ImFont *f)
     last = f; lm = m;
     return m;
 }
+float ui_face_k(ImFont *f) { return face_metrics(f).k; }
 static float face_ref_asc(void) { static float a = -1; if (a < 0) a = face_raw(ui_font_game[0]).asc; return a; }
 
 /* where the crisp text of a run ends on screen (as hdtext_draw lays it out); window x */
@@ -159,6 +161,7 @@ static float run_end_win(const HdRun &r, float *cy, float *lh)
 /* the chance of success of each option, right after its text, at the size of the text */
 static void draw_chances(void)
 {
+    if (cardview_showing()) return;                             /* the native card screen shows them itself */
     const CardChances &cc = card_chances;
     if (!assist_chances || !cc.active || plat_ticks_ms() - cc.polled > 300) return;
     if (g_rb(0xee41) || g_rb(0xee42)) return;                   /* a skill-check box is up */
@@ -866,6 +869,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
 static void draw_card_help(void)
 {
     card_help_top = 0;
+    if (cardview_showing()) return;
     if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
     int npar = (s16)g_rw(G_PARTY_SIZE);
     if (npar < 1 || npar > 5) return;
@@ -1362,3 +1366,6 @@ extern "C" void ui_overlay(void)
     ImGui::End();                                       /* the layer */
     ovl_dl = nullptr;
 }
+
+/* the tooltip of a saint or an item, for ui/cardview.cpp */
+void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint) { show_tip(pos, pivot, item, saint, -1); }

@@ -447,6 +447,7 @@ static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window
  * (display.pause_unfocused, on by default: a battle does not go on behind another window) */
 static int bg_paused;           /* the window lost the focus and the game waits */
 static u32 bg_resumed;          /* when it came back: the click that brought it back is not the game's */
+int plat_headless(void) { return headless; }
 int plat_menu_open(void) { return !headless && (ui_is_open() || bg_paused); }
 int plat_in_background(void) { return bg_paused; }
 
@@ -641,6 +642,8 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "urand")) { unsigned v = (unsigned)atol(s->arg); g_ww(0x7b20, (u16)v); g_ww(0x7b22, (u16)(v >> 16)); fprintf(stderr, "rand seed %u\n", v); }   /* test: the C library's rand() state */
+        else if (!strcmp(s->cmd, "ucv")) { void cardview_dump(void); cardview_dump(); }      /* test: the native card screen */
         else if (!strcmp(s->cmd, "uhot")) { int n = (s8)g_rb(0xe0a1); fprintf(stderr, "hots %d, order mode %d member %d action %d\n", n, g_rb(0xa6b3), (s8)g_rb(0xa6b2), (s16)g_rw(0xa6b0)); for (int k = 0; k < n && k < 40; k++) fprintf(stderr, "hot %d cbt %d x %d..%d y %d..%d\n", k, g_rb((u16)(0xd848 + k)), (s16)g_rw((u16)(0xd8f1 + 2 * k)), (s16)g_rw((u16)(0xd8d7 + 2 * k)), (s16)g_rw((u16)(0xd8bd + 2 * k)), (s16)g_rw((u16)(0xd8a3 + 2 * k))); }
         else if (!strcmp(s->cmd, "utgt")) { u8 t = g_rb(0xd845); if (t != 255) fprintf(stderr, "tgt %d at %d,%d\n", (s8)t, mouse_x, mouse_y); }
         else if (!strcmp(s->cmd, "ucbt")) {               /* test: the battle's combatants and what the pointer is on */

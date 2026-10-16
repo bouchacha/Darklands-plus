@@ -173,6 +173,9 @@ static int jump_to(u16 seg, u16 off, u16 entry_ss, u16 entry_sp)
      * (e.g. the 047c:048a dispatcher's jmp far [6a82]): leave the interpreter, the native
      * caller continues there */
     if (SS == entry_ss && (u16)(SP - entry_sp) < 0x8000 && SP != entry_sp && any_retsite(seg, off)) return 1;
+    /* ... or to the return address native code pushed when it called the game (HLE_SEG:fff0,
+       gamecall.c and the mods' calls), reached through a driver thunk's jump */
+    if (seg == HLE_SEG && off == 0xfff0 && SS == entry_ss && (u16)(SP - entry_sp) < 0x8000 && SP != entry_sp) return 1;
     if (!native_target(seg, off)) { cs_ = seg; ip = off; return 0; }
     u16 ss0 = SS, sp0 = SP;
     u16 w0 = rw(SS, SP), w1 = rw(SS, (u16)(SP + 2));

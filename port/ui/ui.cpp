@@ -18,6 +18,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/mods.h"
 #include "../mods/assist.h"
+#include "../mods/cardview.h"
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
 #include "../mods/saves.h"
@@ -56,6 +57,7 @@ extern "C" int idle_rest;                  /* runtime/bios.c: rest while the gam
 extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
 extern "C" void halloffame_draw(void);
+extern "C" void cardview_draw(void);
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
@@ -488,6 +490,9 @@ static void tab_helpers(void)
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Cards, screens and lists"); ImGui::PopFont();
+    { bool nc = cardview_on != 0;
+      if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
@@ -1155,7 +1160,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else hdtext_draw();
+    else { hdtext_draw(); cardview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

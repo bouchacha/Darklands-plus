@@ -16,6 +16,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "assist.h"
+#include "cardview.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,6 +41,17 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
     cm_depth++; cm_dirty = 1;
     void chronicle_capture(void), chronicle_choice(int);
     chronicle_capture();                 /* the text on show (ui/journal.cpp) */
+    if (cardview_active()) {             /* the card screen drawn by Darklands+ (mods/cardview.c) */
+        int sel = cardview_menu();
+        int cardview_unwinding(void);
+        if (cardview_unwinding()) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }
+        chronicle_choice(sel);
+        cm_depth--;
+        if (!cm_depth) card_chances.active = 0;
+        AX = (u16)sel;
+        hook_return_far(0);
+        return;
+    }
     hook_call_original();
     chronicle_choice((s16)AX);           /* and the option chosen */
     cm_depth--;
@@ -109,7 +121,8 @@ static void evaluate(void)
     card_chances = c;
 }
 
-static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2): every menu poll */
+/* every poll of a card menu: the chances asked again when something may have changed */
+void assist_menu_poll(void)
 {
     if (assist_chances && cm_depth && !g_rb(0xee42)) {
         u32 now = plat_ticks_ms();
@@ -120,6 +133,10 @@ static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2):
         }
     }
     card_chances.polled = plat_ticks_ms();
+}
+static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2): every menu poll */
+{
+    assist_menu_poll();
     hook_call_original();
 }
 
