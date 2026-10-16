@@ -256,7 +256,7 @@ static void alchemy_hook(void)             /* s033 1462:1630 (first, id, n): tak
     int left = n - (before - stock(id));
     void (*f)(void) = game_func(33, 0x1462, 0x1630);
     if (left > 0 && f) {
-        hook_remove(33, 0x1462, 0x1630);
+        hook_remove(33, 0x1462, 0x1630, alchemy_hook);
         for (int tries = 0; left > 0 && tries < 64; tries++) {
             int s0 = stock(id);
             if (!s0) break;
@@ -507,14 +507,14 @@ void fix_enable(int i, int on)
     FIXES[i].on = on;
     char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
     config_set_int(key, on);
-    int shared = 0;                         /* another fix on the same function still on */
+    int shared = 0;                         /* another fix with the same hook still on (hooks of different fixes on one function chain) */
     for (int k = 0; k < FIX_COUNT; k++)
-        if (k != i && FIXES[k].on && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
+        if (k != i && FIXES[k].on && HOOKS[k].fn == HOOKS[i].fn && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
     for (unsigned k = 0; k < sizeof MORE / sizeof MORE[0]; k++)
-        if (!strcmp(MORE[k].fix, FIXES[i].id)) { if (on) hook_install(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); else hook_remove(MORE[k].sect, MORE[k].seg, MORE[k].off); }
+        if (!strcmp(MORE[k].fix, FIXES[i].id)) { if (on) hook_install(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); else hook_remove(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); }
     if (!HOOKS[i].fn) return;                /* checked every frame (fixes_frame), no hook */
     if (on) { if (!hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn)) fprintf(stderr, "fix %s: no hook point\n", FIXES[i].id); }
-    else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off);
+    else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn);
 }
 
 /* debugging (DL_CHECK_COPY): far copies (_fmemcpy, root 098c4) that would reach the stack */

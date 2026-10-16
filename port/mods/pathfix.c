@@ -324,7 +324,7 @@ static void sweep(int i, int n)
         if (dest != 0) continue;
         valid++;
         void *snap = eval_snapshot();
-        hook_remove(14, 0x12f7, 0x000a);
+        hook_remove(14, 0x12f7, 0x000a, path_find_hook);
         u16 a = (u16)i; t0 = plat_ticks_us();
         int ro = (s16)(game_call_link(14, 0x12f7, 0x000a, 1, &a) & 0xffff);
         to += plat_ticks_us() - t0;
@@ -352,7 +352,7 @@ void pathfix_set(int party, int enemies)
     pathfix_party = party; pathfix_enemies = enemies;
     config_set_int("fix.pathfinding", party); config_set_int("fix.pathfinding_enemies", enemies);
     if (party || enemies) hook_install(14, 0x12f7, 0x000a, path_find_hook);
-    else hook_remove(14, 0x12f7, 0x000a);
+    else hook_remove(14, 0x12f7, 0x000a, path_find_hook);
 }
 
 /* ---------------------------------------------------------------- battle speed
@@ -379,7 +379,7 @@ void battle_speed_set(int pct)
     battle_speed = pct;
     config_set_int("battle.speed", pct);
     if (pct > 100) hook_install(-1, 0x047c, 0x000a, timer_hook);
-    else hook_remove(-1, 0x047c, 0x000a);
+    else hook_remove(-1, 0x047c, 0x000a, timer_hook);
 }
 
 void pathfix_init(void)

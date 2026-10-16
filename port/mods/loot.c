@@ -169,10 +169,10 @@ static void thrown_note(void)
         }
     }
 }
-/* run_battle (s029 0e76:2278) begins and ends: called from mods/saves.c's hook on it */
-void loot_battle_begin(void) { if (!battle_depth++) thrown_note(); }
-void loot_battle_end(void)
+static void battle_hook(void)              /* run_battle (s029 0e76:2278): the thrown weapons each member carries */
 {
+    if (!battle_depth++) thrown_note();
+    hook_call_original();
     battle_depth--;
     if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: battle over (%s)\n", th_valid ? "thrown weapons noted" : "none noted");
 }
@@ -311,6 +311,7 @@ void loot_init(void)
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
     hook_install(40, 0x1462, 0x06e2, first_draw_hook);
+    hook_install(29, 0x0e76, 0x2278, battle_hook);
     loot_return_thrown = config_get_int("assist.return_thrown", 1);
     hook_install(32, 0x1462, 0x0f60, barter_key_hook);
     hook_install(32, 0x1462, 0x0000, barter_hook);

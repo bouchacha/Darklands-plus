@@ -146,7 +146,7 @@ static int assist_watching;        /* ui/citynav.cpp walks through card menus */
 static void card_hooks(void)
 {
     if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
-    else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); }
+    else { hook_remove(43, 0x150b, 0x1142, card_menu_hook); hook_remove(43, 0x150b, 0x1744, card_mouse_hook); }
     if (!assist_chances) card_chances.active = 0;
 }
 

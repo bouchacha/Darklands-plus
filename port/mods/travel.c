@@ -337,7 +337,7 @@ void travel_set(int on, int fast)
     config_set_int("travel.auto", on); config_set_int("travel.fast", fast);
     hook_install(30, 0x1462, 0x0c44, step_hook);     /* always: it also tells what a step led to (travel_step_result) */
     if (on) hook_install(30, 0x1767, 0x0046, delay_hook);
-    else { hook_remove(30, 0x1767, 0x0046); travel.active = 0; }
+    else { hook_remove(30, 0x1767, 0x0046, delay_hook); travel.active = 0; }
 }
 
 /* how often the road brings an encounter (travel.encounters, % of the game's rate). Each step

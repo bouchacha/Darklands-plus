@@ -531,7 +531,7 @@ static void dialog_hook(void) { cardview_dialog++; hook_call_original(); cardvie
 
 static void hooks(void)
 {
-    /* (ask_yes_no is hooked by mods/saves.c, which counts cardview_dialog itself) */
+    hook_install(ROOT, 0x0000, 0x2522, dialog_hook);          /* ask_yes_no */
     hook_install(ROOT, 0x0000, 0x24bc, dialog_hook);          /* show_message */
     hook_install(29, 0x1367, 0x0c30, dialog_hook);            /* message_box */
     if (cardview_on) {
@@ -540,9 +540,9 @@ static void hooks(void)
         hook_install(43, 0x150b, 0x13f2, redraw_hook);
         void assist_watch_cards(void); assist_watch_cards();    /* card_menu's hook (mods/assist.c) calls cardview_menu */
     } else {
-        hook_remove(43, 0x150b, 0x03b0);
-        hook_remove(43, 0x150b, 0x049a);
-        hook_remove(43, 0x150b, 0x13f2);
+        hook_remove(43, 0x150b, 0x03b0, text_hook);
+        hook_remove(43, 0x150b, 0x049a, options_hook);
+        hook_remove(43, 0x150b, 0x13f2, redraw_hook);
     }
 }
 

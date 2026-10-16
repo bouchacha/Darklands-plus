@@ -126,9 +126,9 @@ void call_watchdog(void)
 static u32 harness(void (*f)(void), u16 seg, u16 off, int nargs, const u16 *args, int fill)
 {
     jmp_buf jb, *prev = call_jb;
-    int hc = hook_current, hb = hook_bypass, depth = in_game_call;
+    int hc = hook_current, hb = hook_bypass, hd = hook_depth, depth = in_game_call;
     if (setjmp(jb)) {
-        call_jb = prev; hook_current = hc; hook_bypass = hb; in_game_call = depth;
+        call_jb = prev; hook_current = hc; hook_bypass = hb; hook_depth = hd; in_game_call = depth;
         game_call_timed_out = 1;
         fprintf(stderr, "game_call_ptr %04x:%04x: no return after 100 ms, abandoned\n", seg, off);
         return 0xffffffffu;
