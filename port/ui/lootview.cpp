@@ -98,7 +98,7 @@ extern "C" void lootview_draw(void)
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
             float tagw = eq ? P.width(fo, NsDraw::FS_SMALL, "in use") + 3 : 0;
-            float name_end = h ? x1 - 38 : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
+            float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (eq) {
                 float nx = fminf(x0 + 12 + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
@@ -109,12 +109,12 @@ extern "C" void lootview_draw(void)
             /* the actions: the whole stack, or one */
             bool can = L || l.room;
             float b1 = x1 - 2;
-            if (count > 1) {
-                if (P.button(b1 - 9, y + 1, b1, y + ROWH - 1, "1", IM_COL32(120, 84, 40, 235), NsDraw::FS_SMALL)) ns_push(L ? LV_PUT : LV_TAKE, i, 1, 0);
-                b1 -= 10.5f;
-            }
-            if (can) { if (P.button(b1 - 24, y + 1, b1, y + ROWH - 1, L ? "Put back" : "Take", L ? IM_COL32(120, 44, 24, 235) : IM_COL32(40, 92, 34, 235), 4.8f)) ns_push(L ? LV_PUT : LV_TAKE, i, 255, 0); }
-            else P.text(fo, NsDraw::FS_SMALL, 0, y + 2.4f, red, "no room", b1);
+            ImU32 bc = L ? IM_COL32(120, 44, 24, 235) : IM_COL32(40, 92, 34, 235);
+            if (!can) P.text(fo, NsDraw::FS_SMALL, 0, y + 2.4f, red, "no room", b1);
+            else if (count > 1) {                                   /* (the stack, or one of it: said so) */
+                if (P.button(b1 - 17, y + 1, b1, y + ROWH - 1, L ? "Put all" : "Take all", bc, 4.6f)) ns_push(L ? LV_PUT : LV_TAKE, i, 255, 0);
+                if (P.button(b1 - 32, y + 1, b1 - 18, y + ROWH - 1, L ? "Put 1" : "Take 1", IM_COL32(120, 84, 40, 235), 4.6f)) ns_push(L ? LV_PUT : LV_TAKE, i, 1, 0);
+            } else if (P.button(b1 - 20, y + 1, b1, y + ROWH - 1, L ? "Put back" : "Take", bc, 4.6f)) ns_push(L ? LV_PUT : LV_TAKE, i, 255, 0);
         }
         if (n > NROWS) {
             float th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * V.scroll[L] / (float)(n - NROWS);

@@ -551,6 +551,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
         else if (!strcmp(s->cmd, "ufight")) { extern int ufight_pending, ufight_seed; ufight_seed = -1; sscanf(s->arg, "%d,%d", &ufight_pending, &ufight_seed); if (!ufight_pending) ufight_pending = 10; }   /* test: a battle (type, seed) at the next card */
+        else if (!strcmp(s->cmd, "uthrowsim")) { extern int loot_sim_m, loot_sim_n; sscanf(s->arg, "%d,%d", &loot_sim_m, &loot_sim_n); }   /* test: a throw, at the next loot screen */
         else if (!strcmp(s->cmd, "upeek")) {               /* debug: words at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, n = 8; sscanf(s->arg, "%x,%x,%u", &sg, &of, &n);
             fprintf(stderr, "peek %04x:%04x:", sg, of);

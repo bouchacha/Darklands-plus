@@ -160,6 +160,7 @@ extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_ho
 extern "C" void battlelog_frame(void)
 {
     if (game_mode() != GM_BATTLE) {
+        if (in_battle && g_rb(GV_in_battle) == 1) return;    /* a member's sheet open in the battle: not over */
         if (in_battle) {
             in_battle = false;
             if (!lines.empty()) {                     /* how it ended, from the last look at everyone */

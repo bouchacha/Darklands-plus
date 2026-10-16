@@ -83,15 +83,31 @@ static int *dist, *prev;
 static unsigned char *site;           /* tiles of locations (stepping on one enters it) */
 static int field_x = -1, field_y = -1, field_seq;
 
+static short *enter;                  /* the location stepping on a tile enters, -1 none */
+
+/* the game's rule (s030 1462:1300): on a site's terrain (26, 28 and up) the party enters the
+ * first location, by index, within 1 tile (4 on terrain 29; one more to the east and south)
+ * whose menu is not 0x62. Painted from the last location to the first so the first wins. */
 static void mark_sites(void)
 {
-    if (!site) site = calloc((size_t)mw * mh, 1);
-    memset(site, 0, (size_t)mw * mh);
-    for (int i = 0; i < G_NLOC; i++) {
+    size_t n = (size_t)mw * mh;
+    if (!site) site = calloc(n, 1);
+    if (!enter) enter = malloc(n * sizeof *enter);
+    memset(site, 0, n);
+    for (size_t k = 0; k < n; k++) enter[k] = -1;
+    for (int i = G_NLOC - 1; i >= 0; i--) {
         u32 r = g_location(i);
         if (!r) continue;
-        int x = (s16)rw((u16)(r >> 16), (u16)(r + 4)), y = (s16)rw((u16)(r >> 16), (u16)(r + 6));
-        if (x >= 0 && y >= 0 && x < mw && y < mh) site[y * mw + x] = 1;
+        int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
+        if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) site[ly * mw + lx] = 1;
+        if (rw((u16)(r >> 16), (u16)(r + 0x0c)) == 0x62) continue;
+        for (int y = ly - 5; y <= ly + 4; y++)
+            for (int x = lx - 5; x <= lx + 4; x++) {
+                if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
+                int t = terr[y * mw + x], rr = t == 29 ? 4 : 1;
+                if (t < 26 || t == 27) continue;
+                if (x - rr <= lx && lx <= x + rr + 1 && y - rr <= ly && ly <= y + rr + 1) enter[y * mw + x] = (short)i;
+            }
     }
 }
 
@@ -205,23 +221,24 @@ int travel_to_tile(int x, int y, int loc, const char *name)
 
 void travel_stop(void) { travel.active = 0; }
 
-/* a location is entered by stepping on any of its tiles (a city covers several): the goal is
- * the nearest reachable tile of it, or its own tile */
+/* a location is entered by stepping on a tile of a site near it (a city covers several): the
+ * goal is the nearest reachable tile that enters this location, or its own tile. (The nearest
+ * site tile was taken before: one 3 or 4 tiles from a city's centre entered nothing, and the
+ * party stood still beside Kassel.) */
 int travel_minutes_loc(int loc, int *gx, int *gy)
 {
     u32 r = g_location(loc);
-    if (!r || travel_minutes(0, 0) == -2) return -1;     /* also refreshes the field */
+    if (!r || travel_minutes(0, 0) == -2 || !enter) return -1;   /* also refreshes the field */
     int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
     int best = -1;
-    for (int y = ly - 4; y <= ly + 5; y++)
-        for (int x = lx - 4; x <= lx + 5; x++) {
+    for (int y = ly - 5; y <= ly + 4; y++)
+        for (int x = lx - 5; x <= lx + 4; x++) {
             if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
-            int t = terr[y * mw + x];
-            if (!(x == lx && y == ly) && t != 29 && t != 28) continue;
-            if (t == 29 && (abs(x - lx) > 4 || abs(y - ly) > 4)) continue;
+            if (enter[y * mw + x] != loc) continue;
             int d = travel_minutes(x, y);
             if (d >= 0 && (best < 0 || d < best)) { best = d; if (gx) *gx = x; if (gy) *gy = y; }
         }
+    if (best < 0 && (best = travel_minutes(lx, ly)) >= 0) { if (gx) *gx = lx; if (gy) *gy = ly; }   /* (none: its own tile) */
     return best;
 }
 

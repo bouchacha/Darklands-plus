@@ -61,10 +61,12 @@ static int stacks(int m, u16 code, int qual)
 }
 /* can member m take one more of this item: a free record, or one it stacks onto */
 static int room_for(int m, u16 code, int qual) { return g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)) < 64 || stacks(m, code, qual); }
+/* a member who can take things: alive, awake, and not left on another floor of the battlefield
+ * (cbt_floor is a char array, -99 there; the original loot screen reads it as ints) */
 static int able(int m)
 {
     int st = g_rb(G_MEMBER(m));
-    return st != 0 && st != 3 && (s16)g_rw((u16)(L_FLOOR + 2 * m)) != -99;
+    return st != 0 && st != 3 && (s8)g_rb((u16)(L_FLOOR + m)) != -99;
 }
 
 static void take_all(int share)
@@ -167,7 +169,7 @@ static void thrown_note(void)
             if (k == th_n[m]) { if (k >= TH_MAX) continue; th[m][k].id = id; th[m][k].q = (u8)q; th[m][k].n = 0; th_n[m]++; }
             th[m][k].n += rb(G_FAR2E38, (u16)(o + 4));
             th_valid = 1;
-            if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: member %d carries %d of thrown weapon %d (q %d)\n", m, th[m][k].n, id, q);
+            fprintf(stderr, "loot: member %d carries %d of thrown weapon %d (q %d)\n", m, th[m][k].n, id, q);
         }
     }
 }
@@ -180,17 +182,20 @@ static void battle_hook(void)              /* run_battle (s029 0e76:2278): the t
 }
 static void give_back_thrown(void)
 {
-    if (!th_valid || !loot_return_thrown || !loot_enabled()) return;
+    if (!th_valid) return;
+    if (!loot_return_thrown || !loot_enabled()) { fprintf(stderr, "loot: thrown weapons not given back (%s)\n", !loot_return_thrown ? "turned off" : "the loot helpers are off"); return; }
     th_valid = 0;
     void (*key_fn)(void) = game_func(40, 0x1462, 0x0c22), (*redraw)(void) = game_func(40, 0x1462, 0x0952);
     if (!key_fn) return;
     int size = (s16)g_rw(G_PARTY_SIZE), cur = (s16)g_rw(L_CUR), given = 0;
     char msg[200] = ""; int ml = 0;
     for (int m = 0; m < size && m < 5; m++) {
-        if (!able(m)) continue;
+        if (!able(m)) { if (th_n[m]) fprintf(stderr, "loot: member %d cannot take things back (status %d, floor %d)\n", m, g_rb(G_MEMBER(m)), (s8)g_rb((u16)(L_FLOOR + m))); continue; }
         int got = 0;
         for (int k = 0; k < th_n[m]; k++) {
-            int want = th[m][k].n - carried(m, th[m][k].id, th[m][k].q), guard = 0;
+            int want = th[m][k].n - carried(m, th[m][k].id, th[m][k].q), guard = 0, inpile = 0;
+            for (int i = 0; i < (s16)g_rw(L_N) && i < 200; i++) if ((rw(pile_seg(), pile_off(i)) & 0xfff) == th[m][k].id) inpile += rb(pile_seg(), (u16)(pile_off(i) + 4));
+            fprintf(stderr, "loot: member %d had %d of thrown weapon %d, misses %d, %d in the pile\n", m, th[m][k].n, th[m][k].id, want, inpile);
             while (want > 0 && guard++ < 255) {
                 int j = -1, n = (s16)g_rw(L_N);
                 for (int pass = 0; pass < 2 && j < 0; pass++)          /* the same quality first, then any */
@@ -217,11 +222,35 @@ static void give_back_thrown(void)
     for (int m = 0; m < size && m < 5; m++) { g_ww((u16)(L_SIDE + 2 * m), 1); g_ww((u16)(L_PTOP + 2 * m), 0); g_ww((u16)(L_PSEL + 2 * m), 0); }
     if (redraw) { u16 a[1] = { (u16)cur }; game_call_live(redraw, 1, a); }
     ui_notice(msg);
-    if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: %s\n", msg);
+    fprintf(stderr, "loot: %s\n", msg);
+}
+/* test (uthrowsim:m,n): as if member m had thrown n of the first thrown weapon noted for them
+ * and it lay in the pile: n fewer carried, the pile's first entry made n of them */
+int loot_sim_m = -1, loot_sim_n;
+static void sim_throw(void)
+{
+    int m = loot_sim_m, n = loot_sim_n;
+    loot_sim_m = -1;
+    if (m < 0 || m > 4 || n < 1 || !th_valid || th_n[m] < 1 || (s16)g_rw(L_N) < 1) { fprintf(stderr, "loot: nothing to simulate a throw with\n"); return; }
+    int cnt = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+    for (int j = 0; j < cnt && j < 64; j++) {
+        u16 o = G_ITEM(m, j);
+        if ((rw(G_FAR2E38, o) & 0xfff) != th[m][0].id || rb(G_FAR2E38, (u16)(o + 3)) != th[m][0].q) continue;
+        int c = rb(G_FAR2E38, (u16)(o + 4));
+        if (c <= n) n = c - 1;
+        if (n < 1) break;
+        for (int b = 0; b < 6; b++) wb(pile_seg(), (u16)(pile_off(0) + b), rb(G_FAR2E38, (u16)(o + b)));
+        wb(pile_seg(), (u16)(pile_off(0) + 4), (u8)n);
+        wb(G_FAR2E38, (u16)(o + 4), (u8)(c - n));
+        fprintf(stderr, "loot: simulated: member %d threw %d of %d (now carries %d), the pile's first entry is them\n", m, n, th[m][0].id, c - n);
+        return;
+    }
+    fprintf(stderr, "loot: nothing to simulate a throw with\n");
 }
 static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen drawn the first time */
 {
     hook_call_original();
+    if (loot_sim_m >= 0) sim_throw();
     if (!unw_active) give_back_thrown();
 }
 

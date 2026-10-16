@@ -33,7 +33,7 @@ static u16 pile_off(int i) { return (u16)(g_rw(GV_loot_pile) + 6 * i); }
 static int pile_n(void) { int n = (s16)g_rw(GV_loot_n); return n < 0 ? 0 : n > 200 ? 200 : n; }
 static int pile_units(void) { int t = 0; for (int i = 0; i < pile_n(); i++) t += rb(pile_seg(), (u16)(pile_off(i) + 4)); return t; }
 static int who_now(void) { return (s16)g_rw(GV_loot_who); }
-static int able(int m) { int st = gm_member_status(m); return m < gm_party_size() && st != 0 && st != 3 && (s16)g_rw((u16)(GV_cbt_floor + 2 * m)) != -99; }
+static int able(int m) { int st = gm_member_status(m); return m < gm_party_size() && st != 0 && st != 3 && (s8)g_rb((u16)(GV_cbt_floor + m)) != -99; }
 
 static void build(void)
 {
