@@ -29,6 +29,7 @@ extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
 extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
+extern "C" int cardview_dialog;
 extern "C" u32 plat_ticks_ms(void);
 float ui_face_k(ImFont *f);                                   /* overlay.cpp */
 void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
@@ -72,7 +73,7 @@ static std::string gtext(const char *s) { return game_text(s, strlen(s)); }
 extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
-    if (!c.phase) return;
+    if (!c.phase || cardview_dialog) return;
     if (c.nested == 1 || (c.nested == 2 && g_rw(0xa2e3))) return;   /* a member's sheet ..., or the menu bar open over the card */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     if (!f) return;

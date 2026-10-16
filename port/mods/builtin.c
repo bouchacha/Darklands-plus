@@ -142,6 +142,7 @@ void mods_init(void)
     { void encounters_init(void); encounters_init(); }
     { void opening_init(void); opening_init(); }
     { void orders_init(void); orders_init(); }
+    { void battlescroll_init(void); battlescroll_init(); }
     for (int i = 0; i < MOD_COUNT; i++) {
         char key[80]; snprintf(key, sizeof key, "mod.%s", MODS[i].id);
         if (config_get_int(key, 0)) { MODS[i].set(1); MODS[i].enabled = 1; }

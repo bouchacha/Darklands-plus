@@ -523,8 +523,16 @@ void cardview_dump(void)
     for (int i = 0; i < c->nentries; i++) fprintf(stderr, "cv entry %d member %d slot %d on %d rows %.1f..%.1f: %s\n", i, c->entry[i].member, c->entry[i].slot, c->entry[i].on, c->entry_y0[i], c->entry_y1[i], c->entry[i].text);
 }
 
+/* the game's own questions and messages ("Quit to DOS? y/n", hot keys' messages, a card
+ * script's message box) are drawn into the picture: the native card steps aside meanwhile */
+int cardview_dialog;
+static void dialog_hook(void) { cardview_dialog++; hook_call_original(); cardview_dialog--; }
+
 static void hooks(void)
 {
+    hook_install(ROOT, 0x0000, 0x2522, dialog_hook);          /* ask_yes_no */
+    hook_install(ROOT, 0x0000, 0x24bc, dialog_hook);          /* show_message */
+    hook_install(29, 0x1367, 0x0c30, dialog_hook);            /* message_box */
     if (cardview_on) {
         hook_install(43, 0x150b, 0x03b0, text_hook);
         hook_install(43, 0x150b, 0x049a, options_hook);

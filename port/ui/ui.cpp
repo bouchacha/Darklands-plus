@@ -58,6 +58,7 @@ extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
 extern "C" void halloffame_draw(void);
 extern "C" void cardview_draw(void);
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
@@ -527,7 +528,10 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); dirty_config = 1; } }
     { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
     { bool ca = orders_click_attack;
-      if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); dirty_config = 1; } }
+      if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); dirty_config = 1; }
+      { bool sp = battlescroll_on != 0, sr = battlescroll_rest != 0;
+        if (ImGui::Checkbox("Battle map: scroll at a steady pace (Shift at the edge no longer flies to the end of the field)", &sp)) { battlescroll_set(sp, sr); dirty_config = 1; }
+        if (sp) { ImGui::SameLine(); if (ImGui::Checkbox("the pointer resting on the edge scrolls, no Shift needed", &sr)) { battlescroll_set(sp, sr); dirty_config = 1; } } } }
       if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); dirty_config = 1; }
       { extern int ui_battle_log; bool bl = ui_battle_log != 0;
         if (ImGui::Checkbox("Battle log: every blow, parry, wound and fall, in the left margin on a wide screen, else over the field (F12 > Journal keeps it)", &bl)) { ui_battle_log = bl; config_set_int("battle.log", bl); dirty_config = 1; } }
