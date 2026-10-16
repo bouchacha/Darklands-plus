@@ -6,6 +6,7 @@
 #include <string.h>
 #include <string>
 #include "imgui.h"
+#include "../mods/nscreen.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -48,6 +49,13 @@ static const char *SKILL_HELP[19] = {
 
 const char *ui_attr_help(int a) { return a >= 0 && a < 7 ? ATTR_HELP[a] : ""; }       /* (the native sheet too) */
 const char *ui_skill_help(int k) { return k >= 0 && k < 19 && SKILL_HELP[k] ? SKILL_HELP[k] : ""; }
+
+static void set_leader_now(int m, int, int, int)
+{
+    g_wb(G_LEADER, (u8)m);
+    u16 a[1] = { 0x100 };
+    game_call_far(GF_party_panel_rows, 1, a);                   /* party_panel_rows(0x100): names, the leader's in yellow */
+}
 
 static std::string nick(int m)
 {
@@ -94,9 +102,7 @@ extern "C" void tab_members(void)
         else {
             ImGui::BeginDisabled(!can_lead);
             if (ImGui::SmallButton("Make leader")) {
-                g_wb(G_LEADER, (u8)m);
-                u16 a[1] = { 0x100 };
-                game_call_far(GF_party_panel_rows, 1, a);            /* party_panel_rows(0x100): names, the leader's in yellow */
+                ns_defer(set_leader_now, m, 0, 0, 0);                  /* (at the next safe point: mods/nscreen.h) */
             }
             ImGui::EndDisabled();
             if (!can_lead && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("On a card or the travel map");

@@ -27,9 +27,11 @@ leave the game playable, and every new module keeps a switch back to the origina
   a card's outcome); it does not reimplement a rule until the module that owns the rule is taken
   over as a whole, with an on/off comparison (`docs/NATIVE_SCREENS.md`, "Checking it").
 * **Views draw, loops act.** Drawing never calls the game; a view pushes an action, the screen's
-  loop does it at a safe point (between the game's rounds). Older UI (F12 > Party's drag and
-  drop, the journal's price lists) still calls the game from the frame; they move behind models
-  as they are touched.
+  loop does it at a safe point (between the game's rounds). Outside a native screen, the interface
+  asks with `ns_defer()`: done at the start of the next round of any game screen (menu_bar_run),
+  or at the end of the frame while F12's window holds the game (F12 > Party's giving, readying
+  and leader change work so). The journal's price lists still ask the game from the frame, under
+  an evaluation snapshot; they move behind a model when next touched.
 * **Each module owns its hooks.** If two features need the same game function, each hooks it;
   the chain runs both. (Before the chain, one hook per function forced unrelated features
   into one file.)

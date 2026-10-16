@@ -25,7 +25,7 @@ HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + ';
 # (name, steps, patterns that must appear in the log after the steps)
 STEPS = [
     ('start and Quickstart', 'QUICKSTART; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
-     [r'cardview: card \$']),
+     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'wait 2; ucmd ucard:'),
     ('Go to the merchants (native cards)', 'ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),
@@ -55,7 +55,9 @@ def main():
     failed = 0
     seen = 0
     try:
-        for name, steps, want in STEPS:
+        for step in STEPS:
+            name, steps, want = step[:3]
+            probe = step[3] if len(step) > 3 else None     # sent again while waiting (a slow build)
             r = subprocess.run(NCTL + ['do', NAME, steps], capture_output=True, text=True, timeout=900)
             deadline = time.time() + a.patience          # (slow builds: wait for what is expected)
             while True:
@@ -65,6 +67,8 @@ def main():
                 miss = [w for w in want if not any(re.search(w, l) for l in lines)]
                 if not miss or time.time() > deadline:
                     break
+                if probe:
+                    subprocess.run(NCTL + ['do', NAME, probe], capture_output=True, text=True, timeout=120)
             seen = len(text)
             bad = [l for l in lines if BAD.search(l)]
             ended = 'SESSION ENDED' in r.stdout

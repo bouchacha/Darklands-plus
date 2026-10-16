@@ -53,6 +53,15 @@ extern int ns_screen;
 enum { NS_NONE, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY };
 
 int ns_showing(void);                 /* a native screen is up and drawn (the overlay's hints over the game's screens stay away) */
+/* the interface (F12's tabs ...) asks for something done in the game: done at the next safe point,
+ * the start of a round of a game screen's loop (menu_bar_run), or, while the game is held (F12's
+ * window open), at the end of the interface's frame. The request calls the game through
+ * game_call_far (runtime/game.h: no frame is drawn inside it), not ns_call. */
+typedef void (*NsDeferFn)(int a, int b, int c, int d);
+void ns_defer(NsDeferFn fn, int a, int b, int c, int d);
+void nscreen_init(void);
+void ns_defer_frame_end(int game_held);   /* (ui/ui.cpp, after drawing) */
+
 int ns_active(void);                  /* native screens in use: a window, not "Play the original game" */
 
 #ifdef __cplusplus

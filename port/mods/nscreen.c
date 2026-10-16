@@ -28,7 +28,8 @@ static u16 last_dx;
 int ns_call_dx(void) { return (s16)last_dx; }
 int ns_call(int sect, u16 seg, u16 off, int n, ...)
 {
-    if (ns_unwinding) return 0;
+    if (unw_active) { ns_unwinding = 1; return 0; }          /* (the game unwinds: nothing more) */
+    ns_unwinding = 0;
     void (*f)(void) = game_func(sect, seg, off);
     if (!f) { fprintf(stderr, "nscreen: no game function s%d %04x:%04x\n", sect, seg, off); return 0; }
     int a[12]; va_list ap; va_start(ap, n);
@@ -87,6 +88,31 @@ int ns_hidden(void)
 {
     return ns_nested == 1 || (ns_nested == 2 && (g_rw(GV_menu_bar_active) || plat_ticks_ms() - ns_nested_since > 60));
 }
+
+/* ---------------------------------------------------------------- deferred requests */
+#define ND 16
+static struct { NsDeferFn fn; int a, b, c, d; } dq[ND]; static int dn;
+void ns_defer(NsDeferFn fn, int a, int b, int c, int d)
+{
+    if (dn >= ND) return;
+    dq[dn].fn = fn; dq[dn].a = a; dq[dn].b = b; dq[dn].c = c; dq[dn].d = d; dn++;
+}
+static void run_deferred(void)
+{
+    int n = dn; dn = 0;
+    for (int i = 0; i < n && !unw_active; i++) dq[i].fn(dq[i].a, dq[i].b, dq[i].c, dq[i].d);
+}
+static void safe_point_hook(void)           /* menu_bar_run(menus, once): a game screen's round begins */
+{
+    if (dn && (s16)rw(SS, (u16)(SP + 6)) == 0) {
+        run_deferred();
+        if (unw_active) return;
+    }
+    hook_call_original();
+}
+/* the end of an interface frame while the game is held (F12's window open: no rounds run) */
+void ns_defer_frame_end(int game_held) { if (dn && game_held) run_deferred(); }
+void nscreen_init(void) { hook_install(GF_menu_bar_run, safe_point_hook); }
 
 int ns_showing(void) { return ns_screen != NS_NONE && !ns_hidden(); }
 

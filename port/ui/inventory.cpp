@@ -10,6 +10,7 @@
 #include <array>
 #include <algorithm>
 #include "imgui.h"
+#include "../mods/nscreen.h"
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -399,23 +400,33 @@ static bool equippable(const ItemDef *d, int type)
 }
 
 extern "C" void ui_give(int from, int to, int idx);
+/* done by the game's own routines (s031: give_one, give_stack, item_ready, item_unequip) at the
+ * next safe point (mods/nscreen.h ns_defer), not in the middle of drawing */
+static void give_now(int from, int to, int idx, int one)
+{
+    u16 args[4] = { (u16)from, (u16)to, (u16)idx, 0 };
+    if (one) game_call_far(GF_give_one, 4, args); else game_call_far(GF_give_stack, 4, args);
+    last_msg = std::string(one ? "Gave one to " : "Gave to ") + member_name(to, false) + ".";
+    fprintf(stderr, "ui: %s\n", last_msg.c_str());
+}
 static void give(int from, int to, int idx, bool one = false)
 {
     if (const char *w = why_locked()) { last_msg = w; return; }
     int before = g_rb((u16)(G_MEMBER(to) + G_M_NITEMS));
     if (before >= 64) { last_msg = member_name(to, false) + " cannot carry any more items."; return; }
-    u16 args[4] = { (u16)from, (u16)to, (u16)idx, 0 };
-    /* the game's own routines (s031): give_one 18e7:0000, give_stack 18e7:007c */
-    if (game_call_far(31, 0x18e7, one ? 0x0000 : 0x007c, 4, args) < 0) { last_msg = "Could not give the item."; return; }
-    last_msg = std::string(one ? "Gave one to " : "Gave to ") + member_name(to, false) + ".";
+    ns_defer(give_now, from, to, idx, one);
 }
 
+static void equip_now(int m, int idx, int on, int)
+{
+    u16 a[3] = { (u16)m, (u16)idx, 0 };
+    if (on) game_call_far(GF_item_ready, 2, a); else game_call_far(GF_item_unequip, 3, a);
+    last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
+}
 static void equip(int m, int idx, bool on)
 {
     if (const char *w = why_locked()) { last_msg = w; return; }
-    if (on) { u16 a[2] = { (u16)m, (u16)idx }; game_call_far(GF_item_ready, 2, a); }       /* equip */
-    else { u16 a[3] = { (u16)m, (u16)idx, 0 }; game_call_far(GF_item_unequip, 3, a); }      /* item_unequip */
-    last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
+    ns_defer(equip_now, m, idx, on, 0);
 }
 
 /* ---------------------------------------------------------------- the inventory tab */
@@ -807,4 +818,4 @@ extern "C" void tab_alchemy(void)
     ImGui::EndChild();
 }
 
-extern "C" void ui_give(int from, int to, int idx) { give(from, to < 0 ? -to - 1 : to, idx, to < 0); fprintf(stderr, "ui: %s\n", last_msg.c_str()); }
+extern "C" void ui_give(int from, int to, int idx) { give(from, to < 0 ? -to - 1 : to, idx, to < 0); }

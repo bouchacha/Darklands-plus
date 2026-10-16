@@ -61,6 +61,7 @@ extern "C" void cardview_draw(void);
 extern "C" void barterview_draw(void);
 extern "C" void sheetview_draw(void);
 extern "C" void lootview_draw(void);
+extern "C" void ns_defer_frame_end(int game_held);
 extern "C" void alchemyview_draw(void);
 extern "C" { int alchemyview_showing(void); int alchemyview_is_on(void); void alchemyview_set(int on); }
 extern "C" { int lootview_showing(void); int lootview_is_on(void); void lootview_set(int on); }
@@ -1210,6 +1211,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
+    ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
         ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
