@@ -1016,8 +1016,10 @@ static std::string squash(const std::string &t)            /* letters and digits
     std::string o; for (unsigned char c : t) if (isalnum(c)) o += (char)tolower(c);
     return o;
 }
+extern "C" int barterview_showing(void);
 static void draw_shop_info(void)
 {
+    if (barterview_showing()) return;   /* the native shop has its own strip */
     int gm = game_mode();
     static int tip_log = getenv("DL_TIP_LOG") != 0;
     static std::string last_log;
@@ -1263,6 +1265,7 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); void
 static ImVec2 loot_btn[2][2]; static int loot_btn_frame = -10, click_taken;
 static void draw_loot_buttons(void)
 {
+    if (barterview_showing()) return;
     if ((!loot_active && !barter_active) || !loot_enabled() || game_mode() != GM_SCREEN) return;
     if (hdart_on_screen("ARMBACK")) return;                  /* a character sheet opened from the shop or the loot */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;

@@ -18,6 +18,7 @@
 #include "../runtime/hooks.h"
 #include "../runtime/hle.h"
 #include "../runtime/config.h"
+#include "barterview.h"
 
 #define L_CUR   0x8dc4
 #define L_N     0x8dbc
@@ -292,7 +293,8 @@ static void barter_key_hook(void)          /* s032 1462:0f60 barter_key(key): th
 static void barter_hook(void)              /* s032 1462:0000 barter_screen(shop, name, cats) */
 {
     barter_active++;
-    hook_call_original();
+    if (barterview_on()) barterview_run();      /* the native shop screen (mods/barterview.c) */
+    else hook_call_original();
     barter_active--;
 }
 
@@ -312,4 +314,5 @@ void loot_init(void)
     loot_return_thrown = config_get_int("assist.return_thrown", 1);
     hook_install(32, 0x1462, 0x0f60, barter_key_hook);
     hook_install(32, 0x1462, 0x0000, barter_hook);
+    barterview_init();
 }

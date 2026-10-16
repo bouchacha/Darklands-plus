@@ -58,6 +58,8 @@ extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
 extern "C" void halloffame_draw(void);
 extern "C" void cardview_draw(void);
+extern "C" void barterview_draw(void);
+extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
 extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
@@ -494,6 +496,9 @@ static void tab_helpers(void)
     { bool nc = cardview_on != 0;
       if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
+    { bool ns = barterview_is_on() != 0;
+      if (ImGui::Checkbox("Shops drawn by Darklands+: all the wares and all your things in two lists, Buy and Sell on each, what is in use marked", &ns)) { barterview_set(ns); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
@@ -1091,6 +1096,12 @@ static void help_window(void)
             row("D", "hand out to the next member");
             if (loot_enabled()) { row("A", "take the whole pile for the member shown"); row("S", "share the pile out: each thing to whoever has some already, else the emptiest pack"); }
             row("L or Esc", "leave (what is left stays behind)");
+        } else if (barter_active && barterview_showing()) {
+            ImGui::SeparatorText("Now: a shop");
+            row("Buy / Sell", "on the row under the pointer; with Shift: ten / the whole stack");
+            row("Names above your list", "whose things are listed (B: the next member); right-click: that member holds the purse");
+            row("Wheel, Up, Down", "scroll the list under the pointer");
+            row("L, Esc or Leave", "leave");
         } else if (barter_active) {
             ImGui::SeparatorText("Now: a shop");
             row("P / S", "buy the merchant's chosen item / sell your chosen item (one at a time)");
@@ -1166,7 +1177,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); cardview_draw(); }
+    else { hdtext_draw(); cardview_draw(); barterview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

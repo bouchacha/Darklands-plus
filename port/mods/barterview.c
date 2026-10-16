@@ -31,6 +31,7 @@ static int bv_on = 1;
 u32 plat_ticks_ms(void);
 
 int barterview_on(void) { return bv_on && ns_active(); }
+int barterview_is_on(void) { return bv_on; }
 void barterview_set(int on) { bv_on = on; config_set_int("display.native_shops", on); }
 
 #define B_WHO    0x884e
@@ -112,7 +113,7 @@ static void buy(int i, int times)
     }
     char nm[32]; gm_itemdef_name((s16)g_rw((u16)(B_WARES + 2 * i)), nm, sizeof nm);
     char t[120];
-    if (!done) snprintf(t, sizeof t, "Not bought: not enough money, or no room for another kind of thing.");
+    if (!done) snprintf(t, sizeof t, i < barter_model.nwares && barter_model.ware[i].price > purse() ? "Not bought: the purse holds too little." : "Not bought: %s has no room for another kind of thing.", barter_model.names[m]);
     else snprintf(t, sizeof t, "Bought %d %s.", done, nm);
     note(t);
 }
@@ -210,6 +211,8 @@ void barterview_run(void)
             int k = (u16)ns_call(-1, 0x047c, 0x0744, 0);
             if (k == 0x11b || k == 0x264c || k == 0x266c) leave = 1;
             else if (k == 0x3042 || k == 0x3062) { int m = (s16)g_rw(B_WHO); for (int t = 1; t <= 5; t++) if (gm_member_present((m + t) % 5)) { set_who((m + t) % 5); break; } build(); }
+            else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;   /* (the mouse wheel comes as Up / Down) */
+            else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
             else if (k == 0x1000) { ns_call(-1, 0x0000, 0x13a0, 0); }
             else if (k >= 0x5e00 && k <= 0x6200 && !(k & 0xff)) { set_payer((k >> 8) - 0x5e); build(); }
         }

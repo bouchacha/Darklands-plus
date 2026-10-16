@@ -36,6 +36,7 @@ enum { BV_BUY = 1, BV_SELL, BV_WHO, BV_PAYER, BV_LEAVE };
 
 int barterview_on(void);
 void barterview_set(int on);
+void barterview_init(void);
 void barterview_run(void);            /* from the barter screen's hook (mods/loot.c) */
 
 #ifdef __cplusplus
