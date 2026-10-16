@@ -267,6 +267,12 @@ static int common_step(void)
         panel_redraw();
         mouse_hide(); frame(); copy_picture(); mouse_show();
     }
+    {   int assist_test_screens(void);                         /* (test commands: a screen opened from the menu) */
+        cardview.nested = 1;
+        int t = assist_test_screens();
+        cardview.nested = 0;
+        if (t) { ns_call(43, 0x150b, 0x13f2, 0); return 1; }
+    }
     if (g_rb(A_MOUSE_BTN) & 1) {                               /* a portrait: that member's sheet */
         int mx, my; plat_mouse_game(&mx, &my);
         if (mx < 0x3c) {

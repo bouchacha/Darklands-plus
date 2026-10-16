@@ -31,6 +31,18 @@ static u32 last_eval;
 static int last_leader = -1;
 
 int ufight_pending, ufight_seed = -1;   /* test command ufight: a battle at the next card menu */
+int uscreen_pending, uscreen_a, uscreen_b; /* test command ualchemy: the alchemy screen from the card menu up */
+/* (from the native card menu's loop, mods/cardview.c: a test screen opened as a card would open it,
+ * s029 0e76:2204 (who, hours), and the card's picture drawn again after it) */
+int assist_test_screens(void)
+{
+    if (!uscreen_pending) return 0;
+    uscreen_pending = 0;
+    void (*f)(void) = game_func(29, 0x0e76, 0x2204);
+    u16 args[2] = { (u16)uscreen_a, (u16)uscreen_b };
+    if (f) game_call_live(f, 2, args);
+    return 1;
+}
 static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) */
 {
     if (ufight_pending) {               /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 */

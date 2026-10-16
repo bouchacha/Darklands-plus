@@ -571,6 +571,26 @@
 #define alchemy_screen_vec       vec_1ef5             /* overlay call vector of alchemy_screen */
 #define alc_view                 sub_s033_15d1_000a   /* (): formula viewer */
 #define alc_view_vec             vec_2017             /* overlay call vector of alc_view */
+#define alchemy_close            sub_s033_1462_0628   /* (r): fonts, the formula file freed, the cursor; returns r */
+#define alchemy_setup            sub_s033_1462_0658   /* (who): the formulas who knows into alchemy_rows, the party's ingredients counted */
+#define alchemy_draw_list        sub_s033_1462_0796   /* (who): the batch list screen */
+#define alchemy_draw_page        sub_s033_1462_094a   /* (who): the page of the chosen formula */
+#define alchemy_list_key         sub_s033_1462_0d54   /* (key): U use the formula (the page, one batch), Up / Down */
+#define alchemy_page_key         sub_s033_1462_0f6e   /* (key): M one batch more, F one fewer */
+#define alchemy_reserve          sub_s033_1462_125c   /* (f): take formula f's ingredients from alchemy_have; 0 if short */
+#define alchemy_unreserve        sub_s033_1462_12ec   /* (f): give them back */
+#define alchemy_has_all          sub_s033_1462_1334   /* (f): the party has formula f's ingredients */
+#define alchemy_brew             sub_s033_1462_1390   /* (hours): start the chosen batches (an event; the ingredients used) */
+#define alchemy_resume           sub_s033_1462_14e6   /* (): a batch of this member under way: its ingredients back, its count into the rows */
+#define alchemy_who              D_886c               /* the alchemist */
+#define alchemy_row              D_e7d4               /* the chosen row of alchemy_rows */
+#define alchemy_top              D_3248               /* the chosen row's place on screen */
+#define alchemy_nrows            D_3244               /* the formulas the alchemist knows */
+#define alchemy_page             D_324e               /* 0 the list, 1 the page of a formula */
+#define alchemy_can_more         D_8872               /* one batch more can be made */
+#define alchemy_have             D_e716               /* int[]: the party's ingredients (by item id), less what is reserved */
+#define alchemy_file             D_9c2b               /* char far *: DARKLAND.ALC in memory */
+#define philosophers_stone       D_9078               /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
 #define party_info_screen        sub_s034_1550_0006   /* (): party information screen (the symbol party_info) */
 #define party_info_screen_vec    vec_185b             /* overlay call vector of party_info_screen */
 #define item_cache_screen        sub_s035_1462_0000   /* (arg): item cache screen (the symbol cache_screen) */

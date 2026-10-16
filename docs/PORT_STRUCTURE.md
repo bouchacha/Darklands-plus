@@ -45,6 +45,7 @@ leave the game playable, and every new module keeps a switch back to the origina
 2. Shops (s032) and character sheets (s031) - native in 1.2 (the paper doll stays the game's own).
 3. Loot (s040): the same two-list design as the shop - native in 1.2.
 4. The character sheet in battle - native in 1.2; then the battle's own screens.
-5. The travel map and its menus (s030).
-6. Battles (s014 and the rest), the largest: model first (combatants, map), then drawing,
+5. Alchemy (s033) - native in 1.2.
+6. The travel map and its menus (s030).
+7. Battles (s014 and the rest), the largest: model first (combatants, map), then drawing,
    then input, each step comparable with the original.

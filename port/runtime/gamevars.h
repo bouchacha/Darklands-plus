@@ -135,6 +135,15 @@
 #define GV_party_money_gr               0x906d    /* groschen of party_money */
 #define GV_party_money_pf               0x906f    /* pfennigs of party_money */
 #define GV_member_attrs                 0x9cb2    /* = party[i] + 0x49: attributes */
+#define GV_alchemy_who                  0x886c    /* the alchemist */
+#define GV_alchemy_row                  0xe7d4    /* the chosen row of alchemy_rows */
+#define GV_alchemy_top                  0x3248    /* the chosen row's place on screen */
+#define GV_alchemy_nrows                0x3244    /* the formulas the alchemist knows */
+#define GV_alchemy_page                 0x324e    /* 0 the list, 1 the page of a formula */
+#define GV_alchemy_can_more             0x8872    /* one batch more can be made */
+#define GV_alchemy_have                 0xe716    /* int[]: the party's ingredients (by item id), less what is reserved */
+#define GV_alchemy_file                 0x9c2b    /* char far *: DARKLAND.ALC in memory */
+#define GV_philosophers_stone           0x9078    /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
 #define GV_loot_who                     0x8dc4    /* the member receiving */
 #define GV_loot_leader                  0x8dba    /* the leader when the screen opened */
 #define GV_loot_n                       0x8dbc    /* entries in the pile */
@@ -598,6 +607,17 @@
 #define GF_shop_has_item                32, 0x1462, 0x1d18    /* (k) */
 #define GF_alchemy_screen               33, 0x1462, 0x0000    /* (who): alchemy screen */
 #define GF_alc_view                     33, 0x15d1, 0x000a    /* (): formula viewer */
+#define GF_alchemy_close                33, 0x1462, 0x0628    /* (r): fonts, the formula file freed, the cursor; returns r */
+#define GF_alchemy_setup                33, 0x1462, 0x0658    /* (who): the formulas who knows into alchemy_rows, the party's ingredients counted */
+#define GF_alchemy_draw_list            33, 0x1462, 0x0796    /* (who): the batch list screen */
+#define GF_alchemy_draw_page            33, 0x1462, 0x094a    /* (who): the page of the chosen formula */
+#define GF_alchemy_list_key             33, 0x1462, 0x0d54    /* (key): U use the formula (the page, one batch), Up / Down */
+#define GF_alchemy_page_key             33, 0x1462, 0x0f6e    /* (key): M one batch more, F one fewer */
+#define GF_alchemy_reserve              33, 0x1462, 0x125c    /* (f): take formula f's ingredients from alchemy_have; 0 if short */
+#define GF_alchemy_unreserve            33, 0x1462, 0x12ec    /* (f): give them back */
+#define GF_alchemy_has_all              33, 0x1462, 0x1334    /* (f): the party has formula f's ingredients */
+#define GF_alchemy_brew                 33, 0x1462, 0x1390    /* (hours): start the chosen batches (an event; the ingredients used) */
+#define GF_alchemy_resume               33, 0x1462, 0x14e6    /* (): a batch of this member under way: its ingredients back, its count into the rows */
 #define GF_party_info_screen            34, 0x1550, 0x0006    /* (): party information screen (the symbol party_info) */
 #define GF_item_cache_screen            35, 0x1462, 0x0000    /* (arg): item cache screen (the symbol cache_screen) */
 #define GF_camp_spend_day               36, 0x1462, 0x147a    /* (): spend one day */
