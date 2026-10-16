@@ -505,7 +505,7 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34)); hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
     { bool sv = sheetview_is_on() != 0;
       if (ImGui::Checkbox("Character sheets drawn by Darklands+: the whole pack in one list with Ready, Give, Drop and Drink on each, skills, formulae and saints in tabs", &sv)) { sheetview_set(sv); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("Equipping, giving, dropping and drinking are the game's own. In battle the game's own sheet stays. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
+      ImGui::Indent(UIS(34)); hint("Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
     { bool lv = lootview_is_on() != 0;
       if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen."); ImGui::Unindent(UIS(34)); }

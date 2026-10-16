@@ -160,7 +160,13 @@ extern "C" void sheetview_draw(void)
         }
         char qs[16]; snprintf(qs, sizeof qs, "q%d", it.qual);
         float name_end = (h || busy) ? RX1 - 53 : RX1 - 3 - P.width(fo, NsDraw::FS_SMALL, qs) - 2;
-        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.3f, it.equipped ? IM_COL32(112, 30, 16, 255) : ink, nm, -1, name_end);
+        float tagw = it.equipped && !(h || busy) ? P.width(fo, NsDraw::FS_SMALL, "in use") + 3 : 0;
+        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.3f, it.equipped ? IM_COL32(112, 30, 16, 255) : ink, nm, -1, name_end - tagw);
+        if (tagw > 0) {                                /* (as on the shop and the loot) */
+            float nx = fminf(RX0 + 11 + P.width(f, NsDraw::FS_NAME, nm) + 1.5f, name_end - tagw);
+            P.rect(nx, y + 1.8f, nx + tagw - 1, y + ROWH - 1.4f, IM_COL32(140, 30, 18, 230), 1);
+            P.text(fo, NsDraw::FS_SMALL, nx + 1.2f, y + 2.2f, NsDraw::LIGHT, "in use");
+        }
         if (!(h || busy)) { P.text(fo, NsDraw::FS_SMALL, 0, y + 2.1f, soft, qs, RX1 - 3); continue; }
         /* the actions */
         float x = RX1 - 52;

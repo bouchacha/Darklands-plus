@@ -373,6 +373,7 @@
 #define combat_char_sheet        sub_s022_1ef8_0000   /* () */
 #define combat_char_sheet_vec    vec_1d65             /* overlay call vector of combat_char_sheet */
 #define do_surrender             sub_s022_1ef8_03e4   /* () */
+#define member_away_msg          sub_s022_1ef8_04e4   /* (who): "... is on another level" (the sheet in battle, for a member out of reach) */
 #define do_surrender_vec         vec_19eb             /* overlay call vector of do_surrender */
 #define choose_party_order       sub_s022_1ef8_051c   /* () */
 #define choose_party_order_vec   vec_183d             /* overlay call vector of choose_party_order */

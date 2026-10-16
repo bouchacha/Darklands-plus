@@ -36,14 +36,15 @@ leave the game playable, and every new module keeps a switch back to the origina
 * **Every module has a switch,** and "Play the original game" turns all of them off.
 * **Check before a release:** `port/tools/release_check.py --game DIR` (and with the ASAN
   build) runs Quickstart, native cards, Go to, the native shop (sell, buy), a sheet opened
-  from the shop, and a battle, and fails on any memory error, hook clash or crash.
+  from the shop, a battle with a sheet opened in it, and the loot, and fails on any memory
+  error, hook clash or crash.
 
 ## The order of the modules
 
 1. Cards (s043) - native since 1.1.
 2. Shops (s032) and character sheets (s031) - native in 1.2 (the paper doll stays the game's own).
 3. Loot (s040): the same two-list design as the shop - native in 1.2.
-4. The character sheet in battle, then the battle's own screens.
+4. The character sheet in battle - native in 1.2; then the battle's own screens.
 5. The travel map and its menus (s030).
 6. Battles (s014 and the rest), the largest: model first (combatants, map), then drawing,
    then input, each step comparable with the original.

@@ -516,6 +516,7 @@
 #define GF_enemy_info                   21, 0x1ef8, 0x02ce    /* (): enemy information display (einfo.cat) */
 #define GF_combat_char_sheet            22, 0x1ef8, 0x0000    /* () */
 #define GF_do_surrender                 22, 0x1ef8, 0x03e4    /* () */
+#define GF_member_away_msg              22, 0x1ef8, 0x04e4    /* (who): "... is on another level" (the sheet in battle, for a member out of reach) */
 #define GF_choose_party_order           22, 0x1ef8, 0x051c    /* () */
 #define GF_door_toggle                  23, 0x1ef8, 0x00b8    /* (n, who): open/close a door */
 #define GF_door_set                     23, 0x1ef8, 0x04ac    /* (n, state) */

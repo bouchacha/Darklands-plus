@@ -8,8 +8,8 @@
  *   give one   18e7:0000 (from, to, idx, 9)       give all  18e7:007c give_stack
  *   drop one   18e7:0474 item_take_one (who, idx) drop all  18e7:07d4 item_remove_stack
  *   drink      1462:43b2 (who, idx), then item_take_one (as the original's P)
- * In a battle the original screen stays (it has rules of its own there: a member on the
- * ground, ...). */
+ * In a battle the same, but a member on another level of the battlefield cannot be shown (the
+ * original's message instead, as it does). */
 #include <stdio.h>
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -115,6 +115,7 @@ static void act(const NsAction *a, int *who)
     Snap s0 = snap(w, idx);
     switch (a->type) {
     case SV_WHO:
+        if (g_rb(GV_in_battle) == 1 && (u8)g_rb((u16)(GV_cbt_floor + a->a)) == 0x9d) { ns_call(GF_member_away_msg, 1, a->a); return; }
         if (gm_member_present(a->a) && gm_member_status(a->a) == 1) {
             *who = a->a; g_wb(GV_sheet_who, (u8)a->a);
             sheet_model.note[0] = 0;
@@ -164,7 +165,7 @@ static int prev_screen;
 static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124 */
 {
     int who = (s16)rw(SS, (u16)(SP + 4));
-    if (!sv_on || !ns_active() || g_rb(GV_in_battle) == 1 || who < 0 || who > 4) { hook_call_original(); return; }
+    if (!sv_on || !ns_active() || who < 0 || who > 4) { hook_call_original(); return; }
     int st = gm_member_status(who);
     if (st == 0 || st == 5) { AX = 0xffff; hook_return_far(0); return; }
     /* the original's setup */
