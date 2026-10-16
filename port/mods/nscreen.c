@@ -87,6 +87,8 @@ int ns_hidden(void)
     return ns_nested == 1 || (ns_nested == 2 && (g_rw(0xa2e3) || plat_ticks_ms() - ns_nested_since > 60));
 }
 
+int ns_showing(void) { return ns_screen != NS_NONE && !ns_hidden(); }
+
 int ns_round(void)
 {
     ns_nested = 2; ns_nested_since = plat_ticks_ms();

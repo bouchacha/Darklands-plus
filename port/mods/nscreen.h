@@ -52,6 +52,7 @@ int ns_hidden(void);                  /* the view should not draw now (the menu 
 extern int ns_screen;
 enum { NS_NONE, NS_BARTER, NS_INVENTORY, NS_SHEET };
 
+int ns_showing(void);                 /* a native screen is up and drawn (the overlay's hints over the game's screens stay away) */
 int ns_active(void);                  /* native screens in use: a window, not "Play the original game" */
 
 #ifdef __cplusplus

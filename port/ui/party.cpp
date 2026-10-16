@@ -45,6 +45,9 @@ static const char *SKILL_HELP[19] = {
     "Life in the wild: finding the way, hunting, reading tracks.",
 };
 
+const char *ui_attr_help(int a) { return a >= 0 && a < 7 ? ATTR_HELP[a] : ""; }       /* (the native sheet too) */
+const char *ui_skill_help(int k) { return k >= 0 && k < 19 && SKILL_HELP[k] ? SKILL_HELP[k] : ""; }
+
 static std::string nick(int m)
 {
     char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);

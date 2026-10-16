@@ -59,6 +59,8 @@ extern "C" void halloffame_open(void);
 extern "C" void halloffame_draw(void);
 extern "C" void cardview_draw(void);
 extern "C" void barterview_draw(void);
+extern "C" void sheetview_draw(void);
+extern "C" { int sheetview_showing(void); int sheetview_is_on(void); void sheetview_set(int on); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
 extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; }
 extern "C" void halloffame_close(void);
@@ -499,6 +501,9 @@ static void tab_helpers(void)
     { bool ns = barterview_is_on() != 0;
       if (ImGui::Checkbox("Shops drawn by Darklands+: all the wares and all your things in two lists, Buy and Sell on each, what is in use marked", &ns)) { barterview_set(ns); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
+    { bool sv = sheetview_is_on() != 0;
+      if (ImGui::Checkbox("Character sheets drawn by Darklands+: the whole pack in one list with Ready, Give, Drop and Drink on each, skills, formulae and saints in tabs", &sv)) { sheetview_set(sv); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Equipping, giving, dropping and drinking are the game's own. In battle the game's own sheet stays. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
@@ -1108,6 +1113,12 @@ static void help_window(void)
             if (loot_enabled()) { row("T", "buy ten of the merchant's chosen item (while the money lasts)"); row("A", "sell the whole stack of your chosen item"); }
             row("B", "barter for the next member");
             row("L or Esc", "leave");
+        } else if (sheetview_showing()) {
+            ImGui::SeparatorText("Now: a character sheet");
+            row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
+            row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
+            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
+            row("Wheel, Up, Down", "scroll the list");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
@@ -1177,7 +1188,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); cardview_draw(); barterview_draw(); }
+    else { hdtext_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

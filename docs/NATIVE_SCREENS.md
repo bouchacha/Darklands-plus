@@ -74,13 +74,35 @@ treats that as a return to native code.
   a battle started from a card, Go to across several cards, the new encounters, and Windows
   (Wine).
 
+## The frame the screens share (shops, character sheets)
+
+The card screen came first and has its own loop. The screens after it are built on one frame,
+`port/mods/nscreen.h` (C) and `port/ui/nsdraw.h` (drawing):
+
+* **model**: a struct the screen's loop fills from the game's data (`barter_model`,
+  `sheet_model`), through `port/mods/gamemodel.h`: the one place that knows where the party,
+  the members, their things and what they have in use are kept. The view never reads the
+  game's memory for what it shows, and never calls game code while drawing.
+* **view**: `ui/<screen>.cpp` draws from the model alone, in game coordinates (`NsDraw`), and
+  turns clicks on the game's own pointer into **actions** (`ns_push`).
+* **loop**: a hook on the original screen function runs the original's setup and leaving, and
+  in between `ns_round()` (the menu bar, exit, a frame) and the actions, each done by the
+  routine the original's key handler calls. `ns_call()` calls the game and notices when it
+  unwinds (`ns_unwinding`): then the hook returns at once.
+* a native screen may open another (the shop's portraits open the native sheet): `ns_screen`
+  and `ns_nested` are saved and restored around it.
+
+| screen | hook | actions through the game's routines | switch |
+|---|---|---|---|
+| shop (`mods/barterview.c`, `ui/barterview.cpp`) | barter_screen s032 1462:0000 | setup and stock 078e, buy / sell = the key handler 0f60 (P / S) with its cursor set to the row, another member 0b30, leaving 076c; prices 192e / 1b26 asked side-effect free | `display.native_shops` |
+| character sheet (`mods/sheetview.c`, `ui/sheetview.cpp`) | member_sheet s031 1462:0124 (not in battle) | setup 09b8, ready 18e7:11b2, put away 12e8, give 0000 / 007c, drop 0474 / 07d4, drink 1462:43b2, leaving 08f6 | `display.native_sheet` |
+
 ## Next screens
 
 The same pattern fits any screen whose logic is separate from its drawing:
 
-* **Shops (barter, s032)** and **loot (s040)**: lists of items with prices; the native
-  inventory (F12) already shows the data.
-* **The character sheet (member_sheet)** and **equipment (s031)**.
+* **Loot (s040)**: the same two lists as the shop.
+* **The character sheet in battle** (its own rules for a member on the ground).
 * **Character creation (s036 / s037)**.
 * **The travel map's menus** and **the city menus**, which are cards already.
 

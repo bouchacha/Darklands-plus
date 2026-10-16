@@ -18,22 +18,16 @@
 #include "../runtime/game.h"
 #include "../mods/nscreen.h"
 #include "../mods/barterview.h"
-#include "ui.h"
-#include "gamedata.h"
+#include "nsdraw.h"
 
-extern ImFont *ui_font_text, *ui_font_overlay;
-extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
-extern int ui_game_font;
-extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 extern "C" u32 plat_ticks_ms(void);
-float ui_face_k(ImFont *f);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 
 namespace {
-ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
-std::string gt(const char *s) { return game_text(s, strlen(s)); }
-const ItemDef *def(int id) { return id >= 0 && id < (int)gamedata.items.size() ? &gamedata.items[id] : nullptr; }
-std::string item_name(int id) { const ItemDef *d = def(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
+ImVec2 g2w(float x, float y) { return NsDraw::w(x, y); }
+std::string gt(const char *s) { return ns_gtext(s); }
+const ItemDef *def(int id) { return ns_itemdef(id); }
+std::string item_name(int id) { return ns_item_name(id); }
 std::string money(long pf)
 {
     if (pf <= 0) return "0pf";
@@ -60,39 +54,24 @@ extern "C" void barterview_draw(void)
 {
     const BarterModel &b = barter_model;
     if (!barterview_showing()) return;
-    ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
-    ImFont *fo = ui_font_overlay ? ui_font_overlay : f;
-    if (!f) return;
-    ImVec2 o = g2w(0, 0), e = g2w(320, 200);
-    float k = (e.y - o.y) / 200.0f, kx = (e.x - o.x) / 320.0f;   /* (game pixels are taller than wide) */
-    if (k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) f = ui_font_game_hi[ui_game_font];
-    float fk = ui_face_k(f), fok = ui_face_k(fo);
-    ImDrawList *dl = ImGui::GetBackgroundDrawList();
-    ImGuiIO &io = ImGui::GetIO();
-    const ImU32 ink = IM_COL32(44, 26, 10, 255), ink_soft = IM_COL32(92, 60, 30, 230), ink_dim = IM_COL32(44, 26, 10, 120);
-    const ImU32 red = IM_COL32(140, 30, 18, 255), green = IM_COL32(40, 96, 34, 255);
-    auto R = [&](float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRectFilled(g2w(x0, y0), g2w(x1, y1), c, rnd * k); };
-    auto Rl = [&](float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRect(g2w(x0, y0), g2w(x1, y1), c, rnd * k, 0, fmaxf(1.0f, 0.4f * k)); };
-    auto T = [&](ImFont *ff, float gs, float x, float y, ImU32 c, const std::string &s, float right_to = -1, float clip_to = -1) {
-        float sz = gs * k * (ff == f ? fk : fok);
-        ImVec2 p = g2w(x, y);
-        if (right_to >= 0) p.x = g2w(right_to, 0).x - ff->CalcTextSizeA(sz, FLT_MAX, 0, s.c_str()).x;
-        if (clip_to >= 0) { ImVec4 cr(p.x, p.y - sz, g2w(clip_to, 0).x, p.y + 2 * sz); dl->AddText(ff, sz, p, c, s.c_str(), nullptr, 0, &cr); }
-        else dl->AddText(ff, sz, p, c, s.c_str());
-    };
-    auto W = [&](ImFont *ff, float gs, const std::string &s) { float sz = gs * k * (ff == f ? fk : fok); return ff->CalcTextSizeA(sz, FLT_MAX, 0, s.c_str()).x / kx; };
-
-    int mx = ns_in.x, my = ns_in.y;
-    int cx = -1, cy = -1; bool click = ns_take_click(&cx, &cy);
-    bool shift = io.KeyShift;
+    NsDraw P;
+    if (!P.begin()) return;
+    ImFont *f = P.f, *fo = P.fo;
+    const float k = P.k;
+    ImDrawList *dl = P.dl;
+    const ImU32 ink = NsDraw::INK, ink_soft = NsDraw::INK_SOFT, ink_dim = NsDraw::INK_DIM, red = NsDraw::RED, green = NsDraw::GREEN;
+    auto R = [&](float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { P.rect(x0, y0, x1, y1, c, rnd); };
+    auto Rl = [&](float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { P.frame(x0, y0, x1, y1, c, rnd); };
+    auto T = [&](ImFont *ff, float gs, float x, float y, ImU32 c, const std::string &s, float right_to = -1, float clip_to = -1) { P.text(ff, gs, x, y, c, s, right_to, clip_to); };
+    auto W = [&](ImFont *ff, float gs, const std::string &s) { return P.width(ff, gs, s); };
+    int mx = P.mx, my = P.my, cx = P.cx, cy = P.cy;
+    bool click = P.click, shift = P.shift;
     auto in = [&](int x, int y, float x0, float y0, float x1, float y1) { return x >= x0 && x < x1 && y >= y0 && y < y1; };
-    auto hit = [&](float x0, float y0, float x1, float y1) { return click && in(cx, cy, x0, y0, x1, y1); };
+    auto hit = [&](float x0, float y0, float x1, float y1) { return P.hit(x0, y0, x1, y1); };
+    (void)click;
 
     /* the page */
-    R(60, 0, 320, 200, IM_COL32(236, 222, 188, 255));
-    R(60, 0, 320, 200, IM_COL32(120, 80, 36, 40));
-    R(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
-    Rl(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
+    P.page();
 
     /* the header: shop, quality, purse, Leave */
     T(f, 8.5f, 65, 3, ink, gt(b.shopname), -1, 205);
@@ -122,7 +101,7 @@ extern "C" void barterview_draw(void)
             T(f, 6.0f, x + 2.5f + (m == b.payer ? 4 : 0), 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
             if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.6f * k, IM_COL32(214, 172, 60, 255));
             if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
-            if (ns_in.rclick && in(mx, my, x, 19, x + tw - 1, 29)) { ns_in.rclick = 0; ns_push(BV_PAYER, m, 0, 0); }
+            if (P.rclick && in(mx, my, x, 19, x + tw - 1, 29)) ns_push(BV_PAYER, m, 0, 0);
             x += tw;
         }
     }
@@ -215,16 +194,7 @@ extern "C" void barterview_draw(void)
             std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
             if (L && b.item[i].count > 1) l1 += " each, " + std::to_string(b.item[i].count) + " of them";
             T(fo, 5.3f, 79, SY0 + 10, ink_soft, l1);
-            std::string l2;
-            if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
-                int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
-                static const char *SK[7] = { "edged", "impact", "flail", "polearm", "thrown", "bow", "missile device" };
-                l2 = std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
-            } else if (d && d->type >= 67 && d->type <= 84) {
-                static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
-                int h = rb(G_FAR20A5, (u16)(0x781e + d->type));
-                l2 = std::string(d->type <= 75 ? "Covers body and arms" : "Covers the legs") + ", hardness " + std::to_string(h) + " (" + (h >= 0 && h < 6 ? HN[h] : "?") + ")";
-            }
+            std::string l2 = ns_item_line(id);
             if (!l2.empty()) T(fo, 5.3f, 79, SY0 + 17, ink_soft, l2);
             std::string pr = L ? (price > 0 ? "The merchant pays " + money(price) : "The merchant will not buy this")
                                : "Costs " + money(price) + (price > b.total_pf ? " - more than the purse holds" : "");
@@ -234,5 +204,4 @@ extern "C" void barterview_draw(void)
     } else T(fo, 5.3f, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, 5.5f, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note));
     else T(fo, 4.8f, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  right-click a name: that member pays");
-    ns_in.rclick = 0;
 }

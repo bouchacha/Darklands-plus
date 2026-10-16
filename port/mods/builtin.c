@@ -135,6 +135,7 @@ void mods_init(void)
     saves_init();
     assist_init();
     { void cardview_init(void); cardview_init(); }
+    { void sheetview_init(void); sheetview_init(); }
     { void loot_init(void); loot_init(); }
     autopause_init();
     pathfix_init();
