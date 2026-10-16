@@ -58,7 +58,7 @@ extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
 extern "C" void halloffame_draw(void);
 extern "C" void cardview_draw(void);
-extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); }
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
@@ -499,6 +499,8 @@ static void tab_helpers(void)
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
       if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
+    { bool rt = config_get_int("assist.return_thrown", 1) != 0;
+      if (ImGui::Checkbox("After a battle, javelins, throwing axes, knives and darts go back to whoever threw them", &rt)) { config_set_int("assist.return_thrown", rt); loot_return_thrown = rt; dirty_config = 1; } }
     { bool la = config_get_int("assist.loot_all", 1) != 0;
       if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;

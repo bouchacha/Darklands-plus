@@ -228,7 +228,10 @@ static void askyesno_hook(void)            /* ask_yes_no(question) */
         hook_return_far(0);
         return;
     }
+    extern int cardview_dialog;
+    cardview_dialog++;                      /* (the native card steps aside: mods/cardview.c) */
     hook_call_original();
+    cardview_dialog--;
 }
 
 static void loadlist_hook(void)            /* the load screen's list (s037 1c7d:06e6): from our save on */
@@ -289,7 +292,10 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 {
     if (saves_on && saves_auto_battle && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) do_save("Autosave: battle");
+    void loot_battle_begin(void), loot_battle_end(void);
+    loot_battle_begin();                    /* (mods/loot.c: the thrown weapons each member carries) */
     hook_call_original();
+    loot_battle_end();
 }
 
 static int last_loc = -2;
@@ -348,6 +354,10 @@ void saves_enable(int on)
         if (on) { if (!hook_install(HK[i].sect, HK[i].seg, HK[i].off, HK[i].fn)) fprintf(stderr, "saves: no hook point %d %04x:%04x\n", HK[i].sect, HK[i].seg, HK[i].off); }
         else hook_remove(HK[i].sect, HK[i].seg, HK[i].off);
     }
+    /* these two do other work too (the native card steps aside for a question; thrown weapons
+       are noted at a battle's start): always in place, their saving parts check saves_on */
+    hook_install(-1, 0x0000, 0x2522, askyesno_hook);
+    hook_install(29, 0x0e76, 0x2278, battle_hook);
 }
 
 /* the end of the party: the original leaves to DOS (after the death pictures); the port starts

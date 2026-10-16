@@ -275,7 +275,8 @@ static int left_released(int *mx, int *my)
 /* the loop the original runs while a card waits (menu bar, portraits, the party changed) */
 static int common_step(void)
 {
-    cardview.nested = 2;                                       /* (hidden only while the bar is open) */
+    cardview.nested = 2;                                       /* (hidden while the bar is open or its choice runs) */
+    cardview.nested_since = plat_ticks_ms();
     gc(ROOT, 0x0000, 0x0000, 2, A_MENUS, 0);                   /* menu_bar_run */
     cardview.nested = 0;
     if (unwinding) return 0;
@@ -530,7 +531,7 @@ static void dialog_hook(void) { cardview_dialog++; hook_call_original(); cardvie
 
 static void hooks(void)
 {
-    hook_install(ROOT, 0x0000, 0x2522, dialog_hook);          /* ask_yes_no */
+    /* (ask_yes_no is hooked by mods/saves.c, which counts cardview_dialog itself) */
     hook_install(ROOT, 0x0000, 0x24bc, dialog_hook);          /* show_message */
     hook_install(29, 0x1367, 0x0c30, dialog_hook);            /* message_box */
     if (cardview_on) {

@@ -36,12 +36,15 @@ void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
 
+namespace {                       /* (file-local: ui/quests.cpp has a struct Line of its own, and two
+                                     classes of one name in two files break each other's vectors) */
 struct Line { std::string t; float x, y; };
 struct Laid {
     std::vector<Line> lines;
     float y0, y1;            /* the row (options), window pixels */
     float text_end_x, last_y;
 };
+}
 
 /* words of t, wrapped to width w (the first `indent_lines` lines narrower by `indent`) */
 static void wrap(ImFont *f, float size, const std::string &t, float w, float indent, int indent_lines,
@@ -74,7 +77,7 @@ extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
     if (!c.phase || cardview_dialog) return;
-    if (c.nested == 1 || (c.nested == 2 && g_rw(0xa2e3))) return;   /* a member's sheet ..., or the menu bar open over the card */
+    if (c.nested == 1 || (c.nested == 2 && (g_rw(0xa2e3) || plat_ticks_ms() - c.nested_since > 60))) return;   /* a member's sheet ..., the menu bar or what it opened */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     if (!f) return;
     ImVec2 top = g2w(0, 0), bot = g2w(0, 200);

@@ -20,6 +20,8 @@ int hook_install(int sect, unsigned seg, unsigned off, void (*fn)(void))
 {
     int i = find(sect, seg, off);
     if (i < 0) { fprintf(stderr, "hook: no function at s%d %04x:%04x\n", sect, seg, off); return 0; }
+    if (hook_table[i] && hook_table[i] != fn)        /* one hook per function: the second would silently replace the first */
+        fprintf(stderr, "hook: s%d %04x:%04x is hooked twice (the later hook replaces the earlier)\n", sect, seg, off);
     hook_table[i] = fn;
     return 1;
 }

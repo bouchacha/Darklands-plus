@@ -34,6 +34,7 @@ typedef struct {
 typedef struct {
     int phase;                /* 0 not shown, 1 a text (waits to go on), 2 the option menu */
     int nested;               /* 1 a game screen runs inside (a member's sheet ...): hide; 2 the menu bar may open */
+    unsigned nested_since;    /* when the menu bar's call began (a long one is a screen of its own: Load, Save ...) */
     int block, how, dark;     /* text block; card_text's how; light text on a dark picture */
     int x, y, w;              /* the block's box, game pixels (x from the left of the screen) */
     int dropcap;              /* the first letter, drawn large (0 none) */

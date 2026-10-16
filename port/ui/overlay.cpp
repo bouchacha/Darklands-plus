@@ -1368,4 +1368,9 @@ extern "C" void ui_overlay(void)
 }
 
 /* the tooltip of a saint or an item, for ui/cardview.cpp */
-void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint) { show_tip(pos, pivot, item, saint, -1); }
+void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint)
+{
+    if (item >= (int)gamedata.items.size()) item = -1;
+    if (saint >= (int)gamedata.saints.size()) saint = -1;
+    if (item >= 0 || saint >= 0) show_tip(pos, pivot, item, saint, -1);
+}

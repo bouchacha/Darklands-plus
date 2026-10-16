@@ -20,7 +20,7 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
-struct Eff { int m; std::string what; long left; };
+namespace { struct Eff { int m; std::string what; long left; }; }   /* (file-local: ui/saints.cpp has one too) */
 std::vector<Eff> effects_now(int size);
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out);
 extern "C" int citynav_available(void);

@@ -123,6 +123,104 @@ static void screen_hook(void)              /* s040 1462:01c8 the loot screen's l
     loot_active--;
 }
 
+/* ---------------------------------------------------------------- thrown weapons back
+ * Javelins, throwing axes, throwing knives and darts (LST flag 0x10) that the party threw lie
+ * in the loot pile after the battle, to be handed back one by one. What each member carried
+ * of them is noted when a battle starts (run_battle, s029 0e76:2278); when the loot screen
+ * after it opens, each gets back, through the game's own G, as many as they are missing (of
+ * the same quality first). */
+#define TH_MAX 12
+static struct { u16 id; u8 q; int n; } th[5][TH_MAX];
+static int th_n[5], th_valid, battle_depth;
+int loot_return_thrown = 1;
+
+static int thrown_kind(u16 id)
+{
+    u32 d = g_itemdef(id & 0xfff);
+    return d && (rb((u16)(d >> 16), (u16)((u16)d + 0x1f)) & 0x10);     /* flags byte 0: 0x10 thrown */
+}
+static int carried(int m, u16 id, int q)
+{
+    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), t = 0;
+    for (int j = 0; j < n && j < 64; j++) {
+        u16 o = G_ITEM(m, j);
+        if ((rw(G_FAR2E38, o) & 0xfff) == id && (q < 0 || rb(G_FAR2E38, (u16)(o + 3)) == q)) t += rb(G_FAR2E38, (u16)(o + 4));
+    }
+    return t;
+}
+static void thrown_note(void)
+{
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    th_valid = 0;
+    for (int m = 0; m < 5; m++) {
+        th_n[m] = 0;
+        if (m >= size) continue;
+        int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+        for (int j = 0; j < n && j < 64; j++) {
+            u16 o = G_ITEM(m, j), id = rw(G_FAR2E38, o) & 0xfff;
+            if (!thrown_kind(id)) continue;
+            int q = rb(G_FAR2E38, (u16)(o + 3)), k;
+            for (k = 0; k < th_n[m]; k++) if (th[m][k].id == id && th[m][k].q == q) break;
+            if (k == th_n[m]) { if (k >= TH_MAX) continue; th[m][k].id = id; th[m][k].q = (u8)q; th[m][k].n = 0; th_n[m]++; }
+            th[m][k].n += rb(G_FAR2E38, (u16)(o + 4));
+            th_valid = 1;
+        }
+    }
+}
+/* run_battle (s029 0e76:2278) begins and ends: called from mods/saves.c's hook on it */
+void loot_battle_begin(void) { if (!battle_depth++) thrown_note(); }
+void loot_battle_end(void)
+{
+    battle_depth--;
+    if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: battle over (%s)\n", th_valid ? "thrown weapons noted" : "none noted");
+}
+static void give_back_thrown(void)
+{
+    if (!th_valid || !loot_return_thrown || !loot_enabled()) return;
+    th_valid = 0;
+    void (*key_fn)(void) = game_func(40, 0x1462, 0x0c22), (*redraw)(void) = game_func(40, 0x1462, 0x0952);
+    if (!key_fn) return;
+    int size = (s16)g_rw(G_PARTY_SIZE), cur = (s16)g_rw(L_CUR), given = 0;
+    char msg[200] = ""; int ml = 0;
+    for (int m = 0; m < size && m < 5; m++) {
+        if (!able(m)) continue;
+        int got = 0;
+        for (int k = 0; k < th_n[m]; k++) {
+            int want = th[m][k].n - carried(m, th[m][k].id, th[m][k].q), guard = 0;
+            while (want > 0 && guard++ < 255) {
+                int j = -1, n = (s16)g_rw(L_N);
+                for (int pass = 0; pass < 2 && j < 0; pass++)          /* the same quality first, then any */
+                    for (int i = 0; i < n && i < 200; i++) {
+                        u16 o = pile_off(i);
+                        if ((rw(pile_seg(), o) & 0xfff) == th[m][k].id && (pass || rb(pile_seg(), (u16)(o + 3)) == th[m][k].q)) { j = i; break; }
+                    }
+                if (j < 0 || !room_for(m, rw(pile_seg(), pile_off(j)), rb(pile_seg(), (u16)(pile_off(j) + 3)))) break;
+                g_ww(L_CUR, (u16)m); g_ww((u16)(L_SIDE + 2 * m), 1); g_ww((u16)(L_PTOP + 2 * m), (u16)j); g_ww((u16)(L_PSEL + 2 * m), 0);
+                int before = pile_units();
+                u16 a[1] = { 0x2247 };
+                game_call_live(key_fn, 1, a);
+                if (pile_units() >= before) break;
+                want--; got++; given++;
+            }
+        }
+        if (got && ml < (int)sizeof msg - 40) {
+            char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
+            ml += snprintf(msg + ml, sizeof msg - ml, "%s%s %d", ml ? ", " : "Thrown weapons given back: ", nm, got);
+        }
+    }
+    if (!given) return;
+    g_ww(L_CUR, (u16)cur);
+    for (int m = 0; m < size && m < 5; m++) { g_ww((u16)(L_SIDE + 2 * m), 1); g_ww((u16)(L_PTOP + 2 * m), 0); g_ww((u16)(L_PSEL + 2 * m), 0); }
+    if (redraw) { u16 a[1] = { (u16)cur }; game_call_live(redraw, 1, a); }
+    ui_notice(msg);
+    if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: %s\n", msg);
+}
+static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen drawn the first time */
+{
+    hook_call_original();
+    if (!unw_active) give_back_thrown();
+}
+
 /* ---------------------------------------------------------------- shops
  * The barter screen (s032) also sells and buys one at a time: A sells the whole stack under
  * the cursor (as S on each), T buys ten of the merchant's item under the cursor (as P, while
@@ -209,6 +307,8 @@ void loot_init(void)
 {
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
+    hook_install(40, 0x1462, 0x06e2, first_draw_hook);
+    loot_return_thrown = config_get_int("assist.return_thrown", 1);
     hook_install(32, 0x1462, 0x0f60, barter_key_hook);
     hook_install(32, 0x1462, 0x0000, barter_hook);
 }
