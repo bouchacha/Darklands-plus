@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/hooks.h"
 #include "../runtime/hle.h"
 #include "../runtime/config.h"
@@ -239,7 +240,7 @@ static u32 purse(void) { return ((u32)g_rw(G_MONEY) << 20) ^ ((u32)g_rw(G_MONEY 
 
 static void barter_many(int buy)
 {
-    void (*key_fn)(void) = game_func(32, 0x1462, 0x0f60);
+    void (*key_fn)(void) = game_func(GF_barter_key);
     if (!key_fn) return;
     int m = (s16)g_rw(B_WHO);
     if (m < 0 || m >= 5) return;
@@ -311,9 +312,9 @@ void loot_init(void)
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
     hook_install(40, 0x1462, 0x06e2, first_draw_hook);
-    hook_install(29, 0x0e76, 0x2278, battle_hook);
+    hook_install(GF_run_battle, battle_hook);
     loot_return_thrown = config_get_int("assist.return_thrown", 1);
-    hook_install(32, 0x1462, 0x0f60, barter_key_hook);
-    hook_install(32, 0x1462, 0x0000, barter_hook);
+    hook_install(GF_barter_key, barter_key_hook);
+    hook_install(GF_barter_screen, barter_hook);
     barterview_init();
 }

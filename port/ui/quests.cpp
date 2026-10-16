@@ -17,6 +17,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../mods/travel.h"
 void ui_toggle(void);
 }
@@ -103,7 +104,7 @@ static std::string person(int seed)
     void *snap = eval_snapshot();
     u16 args[3] = { (u16)seed, 0, 0 };
     std::string n;
-    game_call_link(29, 0x1367, 0x0db4, 3, args);
+    game_call_link(GF_random_name, 3, args);
     if (!game_call_timed_out) {
         char b[32]; g_str(G_FAR2E38, 0x1a96, b, sizeof b);
         n = game_text(b, sizeof b);

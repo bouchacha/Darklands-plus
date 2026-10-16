@@ -24,6 +24,7 @@ extern "C" {
 int datamods_generation(void);
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "../mods/assist.h"
@@ -234,7 +235,7 @@ extern "C" void citynav_tick(void)
     if (!in_city()) { stop(game_mode() == GM_CARD ? "left the city." : "interrupted."); return; }
     if (steps_taken > 20) { stop("too many steps; stopped."); return; }
     std::string card = card_now();
-    int blk = (s16)g_rw(0xee53);
+    int blk = (s16)g_rw(GV_options_block);
     char kb[48]; snprintf(kb, sizeof kb, "%s/%d/%d", card.c_str(), blk, assist_in_card_menu());
     if (phase_key != kb) { phase_key = kb; phase_t = now; }
     int hub = hub_of(card);
@@ -339,7 +340,7 @@ extern "C" int citynav_window(void)
         ImGui::SetWindowFontScale(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
         ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
-        { int hour = (s16)g_rw(0x00e0); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
+        { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
         const int cols = 4;
         float bw = (ImGui::GetContentRegionAvail().x - (cols - 1) * ImGui::GetStyle().ItemSpacing.x) / cols;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.78f, 0.66f, 0.47f, 1));

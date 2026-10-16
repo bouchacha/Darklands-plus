@@ -6,6 +6,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "nscreen.h"
@@ -49,7 +50,7 @@ int ns_call(int sect, u16 seg, u16 off, int n, ...)
 }
 
 /* ---------------------------------------------------------------- input */
-#define A_MOUSE_BTN 0x6ef0
+#define A_MOUSE_BTN GV_mouse_buttons
 static int btn_prev, rbtn_prev;
 void ns_input_begin(void)
 {
@@ -84,7 +85,7 @@ void ns_clear(void) { qh = qt = 0; }
 /* ---------------------------------------------------------------- waiting */
 int ns_hidden(void)
 {
-    return ns_nested == 1 || (ns_nested == 2 && (g_rw(0xa2e3) || plat_ticks_ms() - ns_nested_since > 60));
+    return ns_nested == 1 || (ns_nested == 2 && (g_rw(GV_menu_bar_active) || plat_ticks_ms() - ns_nested_since > 60));
 }
 
 int ns_showing(void) { return ns_screen != NS_NONE && !ns_hidden(); }
@@ -92,10 +93,10 @@ int ns_showing(void) { return ns_screen != NS_NONE && !ns_hidden(); }
 int ns_round(void)
 {
     ns_nested = 2; ns_nested_since = plat_ticks_ms();
-    ns_call(-1, 0x0000, 0x0000, 2, 0x9419, 0);                 /* menu_bar_run */
+    ns_call(GF_menu_bar_run, 2, 0x9419, 0);                 /* menu_bar_run */
     ns_nested = 0;
     if (ns_unwinding) return 0;
-    ns_call(-1, 0x0000, 0x1338, 0);                            /* exit_if_requested */
+    ns_call(GF_exit_if_requested, 0);                            /* exit_if_requested */
     if (ns_unwinding) return 0;
     dl_poll();
     plat_sleep_ms(3);

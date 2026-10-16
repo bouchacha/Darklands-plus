@@ -642,6 +642,7 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "unspush")) { int t = 0, x = 0, y = 0, z = 0; sscanf(s->arg, "%d,%d,%d,%d", &t, &x, &y, &z); void ns_push(int, int, int, int); ns_push(t, x, y, z); }   /* test: an action for the native screen up (mods/barterview.h BV_*, sheetview.h SV_*) */
         else if (!strcmp(s->cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
             int m = 0, id = 0, q = 25, n = 1; sscanf(s->arg, "%d,%d,%d,%d", &m, &id, &q, &n);
             int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); u32 d = g_itemdef(id);

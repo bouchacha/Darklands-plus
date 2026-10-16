@@ -21,6 +21,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 }
 extern ImFont *ui_font_small;
@@ -35,7 +36,7 @@ static inline s32 cell(int x, int y)
     u16 o = (u16)((x * 40 + y) * 4);
     return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16);
 }
-static int floor_now(void) { return (s8)g_rb(0x11ca); }
+static int floor_now(void) { return (s8)g_rb(GV_floor_shown); }
 
 extern "C" int levelmap_is_open(void) { return open_lm; }
 extern "C" int levelmap_available(void) { return game_mode() == GM_BATTLE && config_get_int("assist.level_map", 1) && !config_get_int("original", 0); }
@@ -207,7 +208,7 @@ extern "C" void levelmap_draw(void)
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
         if (st != 1 && st != 2) return false;
-        if ((s8)g_rb((u16)(0xa6b4 + i)) != fl) return false;
+        if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) return false;
         float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) return false;
         *at = P(X, Y);
@@ -216,9 +217,9 @@ extern "C" void levelmap_draw(void)
     /* who is going for whom (combatant +0x4a): the party's in blue, the enemies' in red */
     for (int i = 0; i < 13; i++) {
         ImVec2 a, b;
-        int t = (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x4a));
+        int t = (s8)g_rb((u16)(GV_combatants + 0x80 * i + 0x4a));
         if (t < 0 || t > 12 || t == i || !shown(i, &a) || !shown(t, &b)) continue;
-        if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) != 1) continue;
+        if (g_rb((u16)(GV_combatants + 0x80 * i + 0x14)) != 1) continue;
         ImU32 lc = i < 5 ? IM_COL32(90, 170, 250, 220) : IM_COL32(230, 80, 60, 220);
         float dx = b.x - a.x, dy = b.y - a.y, len = sqrtf(dx * dx + dy * dy);
         if (len < r * 2.2f) continue;
@@ -232,7 +233,7 @@ extern "C" void levelmap_draw(void)
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
         if (st != 1 && st != 2) continue;
-        if ((s8)g_rb((u16)(0xa6b4 + i)) != fl) continue;
+        if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
         float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) continue;
         ImVec2 m = P(X, Y);

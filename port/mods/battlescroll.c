@@ -12,6 +12,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 
 u32 plat_ticks_ms(void);
@@ -57,7 +58,7 @@ void battlescroll_set(int on, int rest)
 {
     battlescroll_on = on; battlescroll_rest = rest;
     config_set_int("battle.scroll_paced", on); config_set_int("battle.scroll_rest", rest);
-    hook_install(14, 0x0e76, 0x3166, input_hook);
+    hook_install(GF_combat_input, input_hook);
 }
 
 void battlescroll_init(void)

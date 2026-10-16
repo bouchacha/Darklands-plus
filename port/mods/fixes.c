@@ -69,6 +69,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "fixes.h"
 
@@ -148,7 +149,7 @@ static void hitdamage_hook(void)           /* hit_damage(a, t) */
     if (fix_a && a != t) g_wb(aa, (u8)(sa & 0x7f));
     if (fix_on("potions") && a >= 0 && a < 5) {   /* penetration = (bonus + weapon) & 15: stop at 15 */
         sb = g_rb(ba);
-        int wp = g_rb((u16)(0x9c55 + 0x80 * a + 0x53)) & 15;
+        int wp = g_rb((u16)(GV_combatants + 0x80 * a + 0x53)) & 15;
         if ((sb & 15) + wp > 15) {
             g_wb(ba, (u8)((sb & 0xf0) | (15 - wp))); fix_b = 1;
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: %d hits %d, penetration %d + %d held at 15\n", a, t, sb & 15, wp);
@@ -206,9 +207,9 @@ static void additem_hook(void)             /* add_item_rec_impl(who, struct item
 /* ---------------------------------------------------------------- castle */
 static void castle_hook(void)              /* combat_over */
 {
-    if ((g_rb(0x9080) & 1) && g_rb(0x9084) != 1)
+    if ((g_rb(GV_combat_flags) & 1) && g_rb(0x9084) != 1)
         for (int i = 5; i < 13; i++)
-            if (g_rb((u16)(0xc1f3 + i)) == 1 && (g_rb((u16)(0xa696 + 2 * i)) & 0x80)) {
+            if (g_rb((u16)(0xc1f3 + i)) == 1 && (g_rb((u16)(GV_cbt_flags + 2 * i)) & 0x80)) {
                 if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix castle: boss %d is dead\n", i);
                 g_wb(0x9084, 1);
                 break;
@@ -219,7 +220,7 @@ static void castle_hook(void)              /* combat_over */
 /* ---------------------------------------------------------------- bounty */
 static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
 {
-    int giver = (s16)g_rw(0xe896), loc = (s16)g_rw(G_CUR_LOC), match = 0, only = -1, n = 0;
+    int giver = (s16)g_rw(GV_saved_card2), loc = (s16)g_rw(G_CUR_LOC), match = 0, only = -1, n = 0;
     for (int i = 0; i < 300; i++) {
         u32 e = ev_ptr(i);
         if (!e) continue;
@@ -231,7 +232,7 @@ static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
     }
     if (!match && n >= 1) {
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bounty: giver %d -> %d\n", giver, only);
-        g_ww(0xe896, (u16)only);
+        g_ww(GV_saved_card2, (u16)only);
     }
     hook_call_original();
 }
@@ -284,7 +285,7 @@ static void col_read(u8 cur[5][28])
 {
     for (int m = 0; m < 5; m++) {
         for (int i = 0; i < 24; i++) cur[m][i] = rb(G_FAR20A5, (u16)(0x33fc + m * 24 + i));
-        for (int i = 0; i < 4; i++) cur[m][24 + i] = g_rb((u16)(0xa668 + m * 4 + i));
+        for (int i = 0; i < 4; i++) cur[m][24 + i] = g_rb((u16)(GV_member_shield + m * 4 + i));
     }
 }
 static void colours_frame(void)
@@ -313,7 +314,7 @@ static void colours_frame(void)
             fprintf(stderr, "\n");
         }
         for (int i = 0; i < 24; i++) wb(G_FAR20A5, (u16)(0x33fc + m * 24 + i), col_good[m][i]);
-        for (int i = 0; i < 4; i++) g_wb((u16)(0xa668 + m * 4 + i), col_good[m][24 + i]);
+        for (int i = 0; i < 4; i++) g_wb((u16)(GV_member_shield + m * 4 + i), col_good[m][24 + i]);
     }
     col_read(cur); memcpy(col_good, cur, sizeof cur);
 }
@@ -356,7 +357,7 @@ static void falls_hook(void)               /* s014 0e76:2324 (i, ...): a combata
 static int idx_missing(int who, int idx)   /* who (0..12) has no item idx */
 {
     if (who < 0 || who > 12) return 0;
-    int n = (s8)g_rb((u16)(0x9c55 + 0x80 * who + 0x7e));
+    int n = (s8)g_rb((u16)(GV_combatants + 0x80 * who + 0x7e));
     if (idx >= 0 && idx < n) return 0;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix itemcount: %d has no item %d (%d items): nothing removed\n", who, idx, n);
     return 1;
@@ -432,9 +433,9 @@ static void potions_frame(void)
 static void innsave_hook(void)             /* the lodging screen, s036 1462:0082 */
 {
     hook_call_original();
-    if (g_rb(0x9920) == 2 || g_rb(0x9934) == 2) {
+    if (g_rb(GV_font_flag_a) == 2 || g_rb(GV_font_flag_b) == 2) {
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix innsave: Save/Load enabled again\n");
-        g_wb(0x9920, 1); g_wb(0x9934, 1);
+        g_wb(GV_font_flag_a, 1); g_wb(GV_font_flag_b, 1);
     }
 }
 
@@ -454,8 +455,8 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
     if (who < 0 || who > 4) return;
     int best = 0, bv = 0;                      /* the first of the highest weapon skills, as intended */
     for (int i = 0; i < 7; i++) { int v = g_rb((u16)(G_MEMBER(who) + G_M_SKILLS + i)); if (v > bv) { bv = v; best = i; } }
-    if (getenv("DL_FIX_LOG") && g_rb(0x99eb) != best) fprintf(stderr, "fix bestweapon: member %d best skill %d (the game said %d)\n", who, best, g_rb(0x99eb));
-    g_wb(0x99eb, (u8)best);                    /* best_skill */
+    if (getenv("DL_FIX_LOG") && g_rb(GV_best_skill) != best) fprintf(stderr, "fix bestweapon: member %d best skill %d (the game said %d)\n", who, best, g_rb(GV_best_skill));
+    g_wb(GV_best_skill, (u8)best);                    /* best_skill */
 }
 
 /* ---------------------------------------------------------------- switching */

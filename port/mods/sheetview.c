@@ -15,6 +15,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "gamemodel.h"
@@ -27,9 +28,8 @@ u32 plat_ticks_ms(void);
 int sheetview_is_on(void) { return sv_on; }
 void sheetview_set(int on) { sv_on = on; config_set_int("display.native_sheet", on); }
 
-#define D_IN_BATTLE 0x907a
 
-static void note(const char *t) { snprintf(sheet_model.note, sizeof sheet_model.note, "%s", t); sheet_model.note_t = plat_ticks_ms(); }
+static void note(const char *t) { snprintf(sheet_model.note, sizeof sheet_model.note, "%s", t); sheet_model.note_t = plat_ticks_ms(); fprintf(stderr, "sheet: %s\n", t); }
 
 static int drinkable(int id)
 {
@@ -64,8 +64,8 @@ static void build(int who)
         it->equipped = gm_item_equipped(who, i);
         it->drinkable = drinkable(g.id);
     }
-    for (int k = 0; k < 22; k++) s->formulas[k] = rb(G_FAR2E38, (u16)(0x07be + who * 22 + k));
-    for (int k = 0; k < 20; k++) s->saints[k] = rb(G_FAR2E38, (u16)(0x082c + who * 0x14 + k));
+    for (int k = 0; k < 66; k++) s->formula[k] = (unsigned char)gm_knows_formula(who, k);
+    for (int k = 0; k < 160; k++) s->saint[k] = (unsigned char)gm_knows_saint(who, k);
     s->seq++;
 }
 
@@ -77,21 +77,21 @@ static void item_name(int id, char *out, int n) { gm_itemdef_name(id, out, n); }
  * value (0x12 bytes); box 0 the name bar (Leader / Not Leader), 2 the load */
 static void box_redraw(int box, int who)
 {
-    u16 w[9]; for (int i = 0; i < 9; i++) w[i] = g_rw((u16)(0x27f4 + 2 * i));
-    ns_call(31, 0x1462, 0x39a0, 11, box, who, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
+    u16 w[9]; for (int i = 0; i < 9; i++) w[i] = g_rw((u16)(GV_screen_win + 2 * i));
+    ns_call(GF_sheet_box_draw, 11, box, who, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
 }
 static void doll_redraw(int who)
 {
-    ns_call(31, 0x1462, 0x0b22, 1, who);
-    ns_call(-1, 0x047c, 0x0553, 8, 0x2806, 60, 13, 138, 170, 0x27f4, 60, 13);   /* gfx_copy_rect(back_win ... screen_win) */
+    ns_call(GF_sheet_doll, 1, who);
+    ns_call(GF_gfx_copy_rect, 8, GV_back_win, 60, 13, 138, 170, GV_screen_win, 60, 13);
     box_redraw(2, who);
 }
 /* another member: the whole original sheet drawn for them (their doll, frame, load) */
 static void member_redraw(int who)
 {
-    ns_call(-1, 0x0000, 0x1588, 1, 0x100); ns_call(-1, 0x0000, 0x1716, 1, 0x100);
-    ns_call(31, 0x1462, 0x2518, 2, who, 11);
-    ns_call(31, 0x1462, 0x0a82, 1, who);
+    ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100);
+    ns_call(GF_sheet_portrait_frame, 2, who, 11);
+    ns_call(GF_sheet_member, 1, who);
 }
 
 /* the state an action may change, to tell whether it did anything */
@@ -116,21 +116,21 @@ static void act(const NsAction *a, int *who)
     switch (a->type) {
     case SV_WHO:
         if (gm_member_present(a->a) && gm_member_status(a->a) == 1) {
-            *who = a->a; g_wb(0x867d, (u8)a->a);
+            *who = a->a; g_wb(GV_sheet_who, (u8)a->a);
             sheet_model.note[0] = 0;
             member_redraw(*who);
         }
         return;
     case SV_LEADER:
-        if (gm_member_present(a->a) && gm_member_status(a->a) == 1) { g_wb(G_LEADER, (u8)a->a); ns_call(-1, 0x0000, 0x1716, 1, 0x100); box_redraw(0, w); }
+        if (gm_member_present(a->a) && gm_member_status(a->a) == 1) { g_wb(G_LEADER, (u8)a->a); ns_call(GF_party_panel_rows, 1, 0x100); box_redraw(0, w); }
         return;
     case SV_READY:
-        ns_call(31, 0x18e7, 0x11b2, 2, w, idx);
+        ns_call(GF_item_ready, 2, w, idx);
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, "%s takes up the %s.", sheet_model.names[w], nm);
         else snprintf(t, sizeof t, "The %s cannot be readied.", nm);
         break;
     case SV_PUTAWAY:
-        ns_call(31, 0x18e7, 0x12e8, 3, w, idx, 9);
+        ns_call(GF_item_unequip, 3, w, idx, 9);
         snprintf(t, sizeof t, "%s puts the %s away.", sheet_model.names[w], nm);
         break;
     case SV_GIVE: {
@@ -138,19 +138,19 @@ static void act(const NsAction *a, int *who)
         if (to == w || !gm_member_present(to) || gm_member_status(to) == 5) return;
         int before = gm_item_count(to);
         if (before >= 64 && !all) { snprintf(t, sizeof t, "%s cannot carry another kind of thing.", sheet_model.names[to]); break; }
-        ns_call(31, 0x18e7, all ? 0x007c : 0x0000, 4, w, to, idx, 9);
+        if (all) ns_call(GF_give_stack, 4, w, to, idx, 9); else ns_call(GF_give_one, 4, w, to, idx, 9);
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, all ? "%s gives the %s to %s." : "%s gives a %s to %s.", sheet_model.names[w], nm, sheet_model.names[to]);
         else snprintf(t, sizeof t, "%s cannot take the %s.", sheet_model.names[to], nm);
         break; }
     case SV_DROP:
-        ns_call(31, 0x18e7, a->b == 255 ? 0x07d4 : 0x0474, 2, w, idx);
+        if (a->b == 255) ns_call(GF_item_remove_stack, 2, w, idx); else ns_call(GF_item_take_one, 2, w, idx);
         snprintf(t, sizeof t, a->b == 255 ? "Left behind: the %s (all of them)." : "Left behind: a %s.", nm);
         break;
     case SV_DRINK:
         if (!drinkable(g.id)) return;
-        ns_call(31, 0x1462, 0x43b2, 2, w, idx);
+        ns_call(GF_use_potion, 2, w, idx);
         if (ns_unwinding) return;
-        ns_call(31, 0x18e7, 0x0474, 2, w, idx);
+        ns_call(GF_item_take_one, 2, w, idx);
         snprintf(t, sizeof t, "%s drinks the %s.", sheet_model.names[w], nm);
         break;
     default: return;
@@ -164,21 +164,22 @@ static int prev_screen;
 static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124 */
 {
     int who = (s16)rw(SS, (u16)(SP + 4));
-    if (!sv_on || !ns_active() || g_rb(D_IN_BATTLE) == 1 || who < 0 || who > 4) { hook_call_original(); return; }
+    if (!sv_on || !ns_active() || g_rb(GV_in_battle) == 1 || who < 0 || who > 4) { hook_call_original(); return; }
     int st = gm_member_status(who);
     if (st == 0 || st == 5) { AX = 0xffff; hook_return_far(0); return; }
     /* the original's setup */
-    g_wb(0x9920, 2); g_wb(0x9934, 2); g_wb(0x907c, 2);
-    g_ww(0x2800, 0xbf);
-    g_wb(0x867c, 0); g_wb(0x867d, (u8)who);
-    ns_call(-1, 0x0000, 0x1588, 1, 0x100); ns_call(-1, 0x0000, 0x1716, 1, 0x100);
-    ns_call(31, 0x1462, 0x09b8, 1, who);                      /* (fonts, the original's picture, unseen) */
+    g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2); g_wb(GV_screen_kind, 2);
+    g_ww(GV_screen_win_colour, 0xbf);
+    g_wb(GV_sheet_box, 0); g_wb(GV_sheet_who, (u8)who);
+    ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100);
+    ns_call(GF_sheet_open, 1, who);                      /* (fonts, the original's picture, unseen) */
     if (ns_unwinding) return;
     prev_screen = ns_screen;
     int prev_nested = ns_nested;
     memset(sheet_model.note, 0, sizeof sheet_model.note);
     build(who);
     sheet_model.open = 1;
+    fprintf(stderr, "sheet: open (member %d, %d things)\n", who, sheet_model.nitems);
     ns_screen = NS_SHEET;
     ns_clear();
     ns_input_begin();
@@ -192,19 +193,19 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
             if (m == who) leave = 1;
             else if (m >= 0 && m < 5) { NsAction a = { SV_WHO, m, 0, 0 }; act(&a, &who); build(who); }
         }
-        if (g_rw(0x9c46)) {                                   /* party_icons_dirty */
-            g_ww(0x9c46, 0);
+        if (g_rw(GV_party_icons_dirty)) {                                   /* party_icons_dirty */
+            g_ww(GV_party_icons_dirty, 0);
             member_redraw(who);
             build(who);
         }
-        if (ns_call(-1, 0x047c, 0x073d, 0)) {
-            int k = (u16)ns_call(-1, 0x047c, 0x0744, 0);
+        if (ns_call(GF_key_pressed, 0)) {
+            int k = (u16)ns_call(GF_get_key, 0);
             if (k == 0x11b || k == 0x1c0d) leave = 1;
             else if (k >= 0x3b00 && k <= 0x3f00 && !(k & 0xff)) { int m = (k >> 8) - 0x3b; if (m == who) leave = 1; else { NsAction a = { SV_WHO, m, 0, 0 }; act(&a, &who); build(who); } }
             else if (k >= 0x5e00 && k <= 0x6200 && !(k & 0xff)) { NsAction a = { SV_LEADER, (k >> 8) - 0x5e, 0, 0 }; act(&a, &who); build(who); }
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;
             else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
-            else if (k == 0x1000) { ns_call(31, 0x1462, 0x08f6, 1, -1); ns_call(-1, 0x0000, 0x13a0, 0); }
+            else if (k == 0x1000) { ns_call(GF_sheet_leave, 1, -1); ns_call(GF_quit_to_dos, 0); }
         }
         if (ns_unwinding) break;
         NsAction a;
@@ -216,15 +217,16 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
         if (ns_unwinding) break;
     }
     sheet_model.open = 0;
+    fprintf(stderr, "sheet: closed\n");
     ns_screen = prev_screen;
     ns_nested = prev_nested;
     if (ns_unwinding) return;
-    AX = (u16)ns_call(31, 0x1462, 0x08f6, 1, -1);
+    AX = (u16)ns_call(GF_sheet_leave, 1, -1);
     hook_return_far(0);
 }
 
 void sheetview_init(void)
 {
     sv_on = config_get_int("display.native_sheet", 1);
-    hook_install(31, 0x1462, 0x0124, sheet_hook);
+    hook_install(GF_member_sheet, sheet_hook);
 }

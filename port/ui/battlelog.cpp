@@ -21,6 +21,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hooks.h"
 u32 plat_ticks_ms(void);
@@ -47,13 +48,13 @@ static std::string name_of(int i)
     if (!names[i].empty()) return names[i];
     std::string n;
     if (i < 5) { char b[16]; g_str(G_DGROUP, (u16)(G_MEMBER(i) + G_M_SHORTNAME), b, sizeof b); n = game_text(b, sizeof b); }
-    else n = ui_enemy_name(g_rb((u16)(0xa6b4 + i)), CB(i));
+    else n = ui_enemy_name(g_rb((u16)(GV_cbt_floor + i)), CB(i));
     if (n.empty()) n = i < 5 ? "?" : "Enemy";
     if (i >= 5) {                                   /* "Bandit 2" when there are several */
         int same = 0, nth = 0;
         for (int k = 5; k < 13; k++) {
             if (!g_rb((u16)(CB(k) + 0x14)) || (s8)g_rb((u16)(CB(k) + 0x64)) <= 0) continue;
-            std::string o = k == i ? n : ui_enemy_name(g_rb((u16)(0xa6b4 + k)), CB(k));
+            std::string o = k == i ? n : ui_enemy_name(g_rb((u16)(GV_cbt_floor + k)), CB(k));
             if (o == n) { same++; if (k <= i) nth++; }
         }
         if (same > 1) n += " " + std::to_string(nth);
@@ -102,7 +103,7 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
     int kind = i < 5 ? 0 : 1;
     if (anim == 1 || anim == 2) {
         int de = e0 - e1, ds = s0 - s1;
-        bool back = g_rb((u16)(0xca57 + t)) == 3;       /* a heavy blow pushes the target back a step */
+        bool back = g_rb((u16)(GV_cbt_anim + t)) == 3;       /* a heavy blow pushes the target back a step */
         if (de <= 0 && ds <= 0) add(kind, a + " hits " + d + ", the armour holds" + (back ? "; knocked back" : ""));
         else add(t < 5 ? 2 : kind, a + (ds > 0 ? " wounds " : " hits ") + d + " (" + cost(de, ds) + ")" + (back ? ", knocked back" : ""));
     }
@@ -146,14 +147,14 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
     int who = (s16)rw(SS, (u16)(SP + 4)), tgt = (s16)rw(SS, (u16)(SP + 6)), type = (s16)rw(SS, (u16)(SP + 8));
     hook_call_original();
     if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
-    int n = (s8)g_rb(0xc180) - 1;
+    int n = (s8)g_rb(GV_missile_count) - 1;
     if (n < 0 || n >= 17) return;
     u16 r = (u16)(0x944d + 0x1a * n);
     if (!in_battle) start_battle();
     if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, name_of(who) + shot_word(who) + " misses " + name_of(tgt));
     else { shot_by[tgt] = who; shot_t[tgt] = plat_ticks_ms(); }
 }
-extern "C" void battlelog_init(void) { hook_install(18, 0x1ef8, 0x0000, launch_hook); }
+extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); }
 
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)

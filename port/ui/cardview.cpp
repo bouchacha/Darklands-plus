@@ -19,6 +19,7 @@
 #include <vector>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/cardview.h"
 #include "../mods/assist.h"
@@ -77,7 +78,7 @@ extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
     if (!c.phase || cardview_dialog) return;
-    if (c.nested == 1 || (c.nested == 2 && (g_rw(0xa2e3) || plat_ticks_ms() - c.nested_since > 60))) return;   /* a member's sheet ..., the menu bar or what it opened */
+    if (c.nested == 1 || (c.nested == 2 && (g_rw(GV_menu_bar_active) || plat_ticks_ms() - c.nested_since > 60))) return;   /* a member's sheet ..., the menu bar or what it opened */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     if (!f) return;
     ImVec2 top = g2w(0, 0), bot = g2w(0, 200);
@@ -242,7 +243,7 @@ extern "C" void cardview_draw(void)
             if (cmode == 0) snprintf(main, sizeof main, "%d%%", pct);
             else {
                 int q = pct / 20; if (q > 6) q = 6;
-                u16 pp = g_rw((u16)(0x4fce + 2 * q));
+                u16 pp = g_rw((u16)(GV_quality_words + 2 * q));
                 if (pct <= 0) snprintf(main, sizeof main, "hopeless");
                 else g_str(G_DGROUP, pp, main, sizeof main);
             }

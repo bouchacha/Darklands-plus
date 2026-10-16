@@ -125,6 +125,8 @@
 
 /* ---- root 047c: graphics driver interface (MGRAPHIC thunks), mouse, keyboard, timer (assembly) --- */
 #define gfx_copy_rect            sub_root_047c_0553   /* (src, sx, sy, w, h, dst, dx, dy): copy a rectangle between pages */
+#define screen_hold              sub_root_047c_0568   /* (): before a whole screen is drawn (the graphics driver hides it meanwhile) */
+#define screen_release           sub_root_047c_056f   /* (): after: the screen shown */
 #define gfx_text                 sub_root_047c_055a   /* (win, x, y, char *s): draw a string */
 #define gfx_draw_pic             sub_root_047c_05a5   /* (win, x, y, seg): draw a picture held in memory (pic_load handle) */
 #define gfx_recolor_rect         sub_root_047c_04dc   /* (win, x, y, w, h, from, to): replace colour from by to (highlights) */
@@ -155,6 +157,35 @@
 #define cursor_default           D_9c42               /* mouse cursor shapes: default */
 #define cursor_current           D_a68f               /* the cursor set last */
 #define party_icons_dirty        D_9c46               /* party changed: reload the icons */
+#define menu_bar_active          D_a2e3               /* a menu of the menu bar is open */
+#define font_flag_a              D_9920               /* 2 while a screen with lists is up (barter, sheet), else 1 */
+#define font_flag_b              D_9934               /* (set with font_flag_a) */
+#define screen_kind              D_907c               /* the screen up: 2 a sheet, 5 a shop ... */
+#define saved_back_font          D_e7a2               /* back_win_font kept by the shop and the sheet */
+#define saved_screen_font        D_e7a0               /* screen_win_font kept by the shop and the sheet */
+#define in_battle                D_907a               /* 1 during a battle */
+#define shop_names_seg           D_7e66               /* segment of F_290e_207f, the shops' names (char far *[9]) */
+
+/* ---- s032: the shop (barter_screen) ------------------------------------------------------ */
+#define barter_who               D_884e               /* the member bartering (whose things are listed) */
+#define barter_leader            D_884c               /* the leader when the shop opened */
+#define barter_name              D_869c               /* char far *: the shop's name */
+#define barter_cats              D_8868               /* long: the item categories it sells */
+#define barter_shop              D_8836               /* the shop (city_rec quality index; -1, -2 others) */
+#define barter_quality           D_8834               /* the quality of its wares */
+#define barter_wares             D_86a2               /* int[]: the item ids for sale today */
+#define barter_nwares            D_885c               /* their number */
+#define barter_ware_top          D_86a0               /* the first ware shown */
+#define barter_ware_cur          D_8832               /* the ware cursor (row on screen) */
+#define barter_side              D_8842               /* int[5]: 1 the cursor is in the wares, 0 in the member's things */
+#define barter_item_top          D_8852               /* int[5]: the member's first thing shown */
+#define barter_item_cur          D_885e               /* int[5]: the cursor in the member's things */
+#define barter_item_count        D_8838               /* int[5]: the member's things, counted */
+
+/* ---- s031: the character sheet (member_sheet) -------------------------------------------- */
+#define sheet_box                D_867c               /* char: the box chosen (9: equipment) */
+#define sheet_who                D_867d               /* char: the member shown */
+#define sheet_list_open          D_867e               /* char: the chosen box's list is open */
 
 /* ---- s000: start-up (main, config.drk, drivers) ------------------------------------------ */
 #define startup_error            sub_s000_0e76_0000   /* (msg): print "<program>: msg" */
@@ -499,10 +530,17 @@
 /* ---- s031..s041: strategic screens ------------------------------------------------------- */
 #define member_sheet             sub_s031_1462_0124   /* ? (who): inventory / character screen of a member (F1..F5) */
 #define member_sheet_vec         vec_1fdb             /* overlay call vector of member_sheet */
+#define sheet_leave              sub_s031_1462_08f6   /* (r): fonts, cursor, buffers back; returns r */
+#define sheet_open               sub_s031_1462_09b8   /* (who): fonts kept, the whole sheet drawn */
+#define sheet_member             sub_s031_1462_0a82   /* (who): the sheet drawn for another member */
+#define sheet_doll               sub_s031_1462_0b22   /* (who): the paper doll drawn into back_win */
+#define sheet_portrait_frame     sub_s031_1462_2518   /* (who, colour): the frame of a portrait */
+#define sheet_box_draw           sub_s031_1462_39a0   /* (box, who, struct gfx win): one box's text (0 name bar, 2 load ...) */
+#define use_potion               sub_s031_1462_43b2   /* (who, idx): drink */
 #define inventory_leave          sub_s031_1462_0000   /* (): save locs.tmp / events.tmp, free the world data */
 #define inventory_leave_vec      vec_1dfb             /* overlay call vector of inventory_leave */
-#define give_one                 sub_s031_18e7_0000   /* (from, idx, to) */
-#define give_stack               sub_s031_18e7_007c   /* (from, idx, to) */
+#define give_one                 sub_s031_18e7_0000   /* (from, to, idx, box): one of the stack (box 9: the equipment list) */
+#define give_stack               sub_s031_18e7_007c   /* (from, to, idx, box): the whole stack */
 #define add_item_q               sub_s031_18e7_016e   /* (who, code, qual): one item of quality qual */
 #define add_item_q_vec           vec_1f8b             /* overlay call vector of add_item_q */
 #define item_delete              sub_s031_18e7_0406   /* (who, idx) */
@@ -510,14 +548,20 @@
 #define item_take_one_vec        vec_2003             /* overlay call vector of item_take_one */
 #define item_remove_stack        sub_s031_18e7_07d4   /* (who, idx) */
 #define item_move                sub_s031_18e7_10d2   /* (who, from, to) */
-#define item_unequip             sub_s031_18e7_12e8   /* (who, idx) */
+#define item_unequip             sub_s031_18e7_12e8   /* (who, idx, box): put away (box 9) */
+#define item_ready               sub_s031_18e7_11b2   /* (who, idx): take up / wear (the sheet's A) */
 #define equip_weight             sub_s031_18e7_140a   /* (who): recompute the weight of the equipped items */
 #define equip_weight_vec         vec_2049             /* overlay call vector of equip_weight */
 #define equipped_type            sub_s031_18e7_1460   /* (who, slot) */
 #define item_entry_quality       sub_s031_18e7_15d6   /* (who, idx) */
 #define random_item_flags        sub_s031_18e7_1894   /* (flags) */
 #define random_item_flags_vec    vec_207b             /* overlay call vector of random_item_flags */
-#define barter_screen            sub_s032_1462_0000   /* (): barter screen */
+#define barter_screen            sub_s032_1462_0000   /* (shop, char far *name, long cats): barter screen */
+#define barter_close             sub_s032_1462_076c   /* (ret, shop): fonts and the leader back */
+#define barter_draw              sub_s032_1462_078e   /* (who, name far, cats long): today's stock (seeded), the whole screen */
+#define barter_redraw            sub_s032_1462_0b30   /* (who, name far, cats long): the screen for another member */
+#define ware_quality             sub_s032_1462_0efa   /* (k): the quality of ware k here */
+#define barter_key               sub_s032_1462_0f60   /* (key): P buy, S sell, B next member ... at the cursors */
 #define barter_screen_vec        vec_1eff             /* overlay call vector of barter_screen */
 #define buy_price                sub_s032_1462_192e   /* (k): pfennigs the shop asks */
 #define sell_price               sub_s032_1462_1b26   /* (k, qual): pfennigs the shop pays */

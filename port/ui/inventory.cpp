@@ -15,6 +15,7 @@
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 }
 
 extern ImFont *ui_font_small;
@@ -412,8 +413,8 @@ static void give(int from, int to, int idx, bool one = false)
 static void equip(int m, int idx, bool on)
 {
     if (const char *w = why_locked()) { last_msg = w; return; }
-    if (on) { u16 a[2] = { (u16)m, (u16)idx }; game_call_far(31, 0x18e7, 0x11b2, 2, a); }       /* equip */
-    else { u16 a[3] = { (u16)m, (u16)idx, 0 }; game_call_far(31, 0x18e7, 0x12e8, 3, a); }      /* item_unequip */
+    if (on) { u16 a[2] = { (u16)m, (u16)idx }; game_call_far(GF_item_ready, 2, a); }       /* equip */
+    else { u16 a[3] = { (u16)m, (u16)idx, 0 }; game_call_far(GF_item_unequip, 3, a); }      /* item_unequip */
     last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
 }
 

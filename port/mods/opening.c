@@ -10,6 +10,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 
 #define D_QUICK 0x0bf2          /* int: 'Q' on the command line */
@@ -32,5 +33,5 @@ static void loading_hook(void)                  /* root 0617:06d8: the first cal
 void opening_init(void)
 {
     hook_install(-1, 0x03a1, 0x000a, mainloop_hook);
-    hook_install(-1, 0x0617, 0x06d8, loading_hook);
+    hook_install(GF_catalog_open, loading_hook);
 }

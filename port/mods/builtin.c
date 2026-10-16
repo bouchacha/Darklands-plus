@@ -5,6 +5,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "mods.h"
 #include "assist.h"
@@ -22,7 +23,7 @@ static void heavy_blows_hook(void)
         if (after > before) g_ww(slot, (u16)(after + (after - before)));
     }
 }
-static void heavy_blows(int on) { if (on) hook_install(14, 0x18bf, 0x08ca, heavy_blows_hook); else hook_remove(14, 0x18bf, 0x08ca, heavy_blows_hook); }
+static void heavy_blows(int on) { if (on) hook_install(GF_damage_queue, heavy_blows_hook); else hook_remove(GF_damage_queue, heavy_blows_hook); }
 
 /* ---- swift travel: overland steps cost a third of the time (s030 1462:2ac8 returns the
  * minutes of one step on a terrain) */
@@ -53,7 +54,7 @@ static void strong_party_hook(void)
         for (int k = 0; k < 19; k++) g_wb((u16)(r + G_M_SKILLS + k), 75);
     }
 }
-static void strong_party(int on) { if (on) hook_install(1, 0x0e76, 0x0000, strong_party_hook); else hook_remove(1, 0x0e76, 0x0000, strong_party_hook); }
+static void strong_party(int on) { if (on) hook_install(GF_party_default, strong_party_hook); else hook_remove(GF_party_default, strong_party_hook); }
 
 /* ---- rich start: 5000 florins after the opening card script (s044 1838:0000) */
 static void rich_start_hook(void)
@@ -94,8 +95,8 @@ static void quick_learn_battle_hook(void)
 }
 static void quick_learning(int on)
 {
-    if (on) { hook_install(39, 0x1462, 0x0132, quick_learn_cards_hook); hook_install(21, 0x1ef8, 0x0000, quick_learn_battle_hook); }
-    else { hook_remove(39, 0x1462, 0x0132, quick_learn_cards_hook); hook_remove(21, 0x1ef8, 0x0000, quick_learn_battle_hook); }
+    if (on) { hook_install(GF_practice_skill_impl, quick_learn_cards_hook); hook_install(GF_skill_try_improve, quick_learn_battle_hook); }
+    else { hook_remove(GF_practice_skill_impl, quick_learn_cards_hook); hook_remove(GF_skill_try_improve, quick_learn_battle_hook); }
 }
 
 Mod MODS[] = {

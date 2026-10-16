@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""release_check.py - a scripted session through the parts of Darklands+ that a release must not
+break, in a window (native screens are drawn only there), on your own game files.
+
+  release_check.py --game /path/to/DARKLAND [--exe build/port/darklands] [--out DIR]
+  (an ASAN build, make ASAN=1, also reports memory errors: --exe build/port_asan/darklands)
+
+It starts the game, Quickstart, reads the opening cards, walks to the merchants with Go to
+(through the native cards), sells and buys on the native shop screen, opens a member's native
+sheet from it and back, leaves, and fights a test battle. Each step is OK or FAILED by the
+log; screenshots go to --out. Needs Xvfb (port/tools/nctl.py --x11). The game folder is
+copied, not changed.
+"""
+import sys, os, subprocess, argparse, re, time, shutil
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
+NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
+NAME = 'relcheck'
+BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many)|nscreen: no game function')
+
+# (name, steps, patterns that must appear in the log after the steps)
+STEPS = [
+    ('start and Quickstart', 'QUICKSTART; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
+     [r'cardview: card \$']),
+    ('Go to the merchants (native cards)', 'ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),
+    ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
+    ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),
+    ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
+    ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
+    ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; key space; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
+]
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--exe', default=os.path.join(TOP, 'build', 'port', 'darklands'))
+    ap.add_argument('--game', required=True)
+    ap.add_argument('--out', default=os.path.join(TOP, 'build', 'release_check'))
+    a = ap.parse_args()
+    os.makedirs(a.out, exist_ok=True)
+    subprocess.run(NCTL + ['stop', NAME], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    env = dict(os.environ, DL_CARDVIEW_LOG='1', DL_LOOT_LOG='1')
+    subprocess.run(NCTL + ['start', NAME, '--x11', '--exe', a.exe, '--game', a.game], stdout=subprocess.DEVNULL, check=True, env=env)
+    log = os.path.join(os.environ.get('NCTL_DIR', '/tmp/nctl'), NAME, 'out.txt')
+    failed = 0
+    seen = 0
+    try:
+        for name, steps, want in STEPS:
+            r = subprocess.run(NCTL + ['do', NAME, steps], capture_output=True, text=True, timeout=900)
+            time.sleep(0.5)
+            text = open(log, encoding='latin1', errors='replace').read().replace('\r', '')
+            new = text[seen:]
+            seen = len(text)
+            lines = new.splitlines()
+            miss = [w for w in want if not any(re.search(w, l) for l in lines)]
+            bad = [l for l in lines if BAD.search(l)]
+            ended = 'SESSION ENDED' in r.stdout
+            ok = not miss and not bad and not ended
+            failed += not ok
+            print('%-40s %s' % (name, 'OK' if ok else 'FAILED'))
+            for w in miss: print('    missing in the log: %s' % w)
+            for l in bad[:5]: print('    ' + l)
+            if ended: print('    the session ended')
+            for line in r.stdout.splitlines():
+                if line.endswith('.png') and os.path.exists(line):
+                    shutil.copy(line, a.out)
+            if ended:
+                break
+    finally:
+        subprocess.run(NCTL + ['stop', NAME], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    shutil.copy(log, os.path.join(a.out, 'log.txt'))
+    print('%s; screenshots and the log in %s' % ('all passed' if not failed else '%d FAILED' % failed, a.out))
+    return 1 if failed else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

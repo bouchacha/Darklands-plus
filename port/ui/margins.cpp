@@ -14,6 +14,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/travel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
@@ -112,8 +113,8 @@ static void battle_panel(float width, float fs)
     u16 tick = g_rw(0xe092);                        /* the battle's clock: back at 0 in a new battle */
     if (tick < last_tick) for (int i = 0; i < 13; i++) { seen[i] = false; last_st[i] = 0; last_name[i].clear(); }
     last_tick = tick;
-    int n = (s8)g_rb(0xe0a1);
-    for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(0xd848 + k)); if (m < 13) seen[m] = true; }
+    int n = (s8)g_rb(GV_hotspot_count);
+    for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
     heading("The party");
     for (int i = 0; i < 5; i++) {
@@ -200,7 +201,7 @@ static void right_panel(int size)
         int gm = game_mode();
         u32 lr = g_location(cur);
         if (lr && (gm == GM_CARD || gm == GM_MAP)) rep_seen[cur] = (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12));
-        int fame = (s16)g_rw(0x9082);
+        int fame = (s16)g_rw(GV_party_fame);
         auto rp = rep_seen.find(cur);
         if (rp != rep_seen.end()) ImGui::TextWrapped("Reputation here %d, fame %d", rp->second, fame);
         else ImGui::TextWrapped("Fame %d", fame);

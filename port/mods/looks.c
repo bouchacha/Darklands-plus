@@ -51,6 +51,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "hdart.h"
@@ -1040,7 +1041,7 @@ void looks_init(void)
     logon = getenv("DL_LOOKS_LOG") != 0;                /* (the list itself: on first use, when the game's files are set up) */
     hook_install(37, 0x1462, 0x0444, key37_hook);
     hook_install(38, 0x1462, 0x02f8, key38_hook);
-    hook_install(14, 0x0e76, 0x38b6, set_anim_hook);
+    hook_install(GF_cbt_set_anim, set_anim_hook);
     if (getenv("DL_LOOKS_DUMP"))
         for (int i = 0; i < nlooks; i++) {
             if (!look_find(looks[i].code)) continue;

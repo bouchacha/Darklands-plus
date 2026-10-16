@@ -25,6 +25,11 @@ int gm_item_count(int m);                         /* records (kinds of things) *
 int gm_item(int m, int i, GmItem *out);           /* 0 if none */
 int gm_item_equipped(int m, int i);               /* in hand, worn or ready (the member's equipment slots) */
 
+/* what a member knows (far data 2e38): formulae (DARKLAND.ALC order, 3 per potion), saints
+ * (DARKLAND.LST order) */
+int gm_knows_formula(int m, int f);
+int gm_knows_saint(int m, int s);
+
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
 int gm_itemdef_weight(int id);

@@ -10,6 +10,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 }
 
 std::string rules_weapons_of_skill(int k);
@@ -95,7 +96,7 @@ extern "C" void tab_members(void)
             if (ImGui::SmallButton("Make leader")) {
                 g_wb(G_LEADER, (u8)m);
                 u16 a[1] = { 0x100 };
-                game_call_far(-1, 0x0000, 0x1716, 1, a);            /* party_panel_rows(0x100): names, the leader's in yellow */
+                game_call_far(GF_party_panel_rows, 1, a);            /* party_panel_rows(0x100): names, the leader's in yellow */
             }
             ImGui::EndDisabled();
             if (!can_lead && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("On a card or the travel map");

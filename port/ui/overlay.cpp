@@ -21,6 +21,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "../mods/datamods.h"
@@ -197,7 +198,7 @@ static void draw_chances(void)
         if (mode == 0) snprintf(main, sizeof main, "%d%%", pct);
         else {
             int q = pct / 20; if (q > 6) q = 6;
-            u16 p = g_rw((u16)(0x4fce + 2 * q));
+            u16 p = g_rw((u16)(GV_quality_words + 2 * q));
             if (pct <= 0) snprintf(main, sizeof main, "hopeless");
             else g_str(G_DGROUP, p, main, sizeof main);
         }
@@ -878,7 +879,7 @@ static void draw_card_help(void)
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
     auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };   /* the dead know no saints and carry nothing */
     for (int j = 0; j < 4; j++) {
-        int s = (s16)g_rw((u16)(0xee4b + 2 * j));
+        int s = (s16)g_rw((u16)(GV_card_saints + 2 * j));
         if (s < 0 || s >= (int)gamedata.saints.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++)
@@ -888,7 +889,7 @@ static void draw_card_help(void)
     }
     int nsaints = (int)lines.size();
     for (int j = 0; j < 4; j++) {
-        int it = (s16)g_rw((u16)(0xee43 + 2 * j));
+        int it = (s16)g_rw((u16)(GV_card_items + 2 * j));
         if (it <= 0 || it >= (int)gamedata.items.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++) {
@@ -1188,13 +1189,13 @@ static void draw_battle_info(void)
     if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
-    int mx = gx - 60, my = gy, n = (s8)g_rb(0xe0a1), best = -1, by = -32768;
+    int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
     if (mx < 0 || n <= 0 || n > 40) return;
     for (int k = n - 1; k >= 0; k--) {
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
-        int m = g_rb((u16)(0xd848 + k));
+        int m = g_rb((u16)(GV_hotspot_cbt + k));
         if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
-        int cyy = (s16)g_rw((u16)(0x9c55 + m * 0x80 + 6));
+        int cyy = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
         if (cyy > by) { by = cyy; best = m; }
     }
     if (best < 0) return;
@@ -1204,7 +1205,7 @@ static void draw_battle_info(void)
     int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x23));
     std::string name;
     if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
-    else name = enemy_name(g_rb((u16)(0xa6b4 + best)), b);
+    else name = enemy_name(g_rb((u16)(GV_cbt_floor + best)), b);
     if (name.empty()) name = best < 5 ? "?" : "Enemy";
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
     if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";

@@ -14,6 +14,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
 #include "cardview.h"
@@ -34,7 +35,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
 {
     if (ufight_pending) {               /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 */
         int bf = ufight_pending; ufight_pending = 0;
-        void (*f)(void) = game_func(29, 0x0e76, 0x2278);
+        void (*f)(void) = game_func(GF_run_battle);
         u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
         if (f) game_call_live(f, 11, args);
     }
@@ -75,18 +76,18 @@ static void evaluate(void)
     for (int i = 0; i < n; i++) {
         int opt = (s8)g_rb((u16)(0xe9b0 + i)), kind = (s16)g_rw((u16)(0xe9c4 + 2 * i));
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d/%d y %d opt %d kind %d on %d\n", i, n,
-                                             g_rb((u16)(0xe974 + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1);
+                                             g_rb((u16)(0xe974 + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(GV_opt_on + opt)) : -1);
         if (opt < 0 || opt >= 20 || kind > 0) continue;
-        if (g_rb((u16)(0xe99c + opt)) != 1) continue;               /* option disabled */
-        u16 off = g_rw((u16)(0xea14 + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
+        if (g_rb((u16)(GV_opt_on + opt)) != 1) continue;               /* option disabled */
+        u16 off = g_rw((u16)(GV_opt_fn + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
         u32 key = 0;
         if (seg) { int ovl_section_at(u32); u32 lin = LIN(seg, off); key = ((u32)(ovl_section_at(lin - ((u32)LOADSEG << 4)) & 0xff) << 20) | lin; }
         if (!seg || is_bad(key)) continue;
-        g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));  /* menu_member/slot, as the engine sets them */
+        g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));  /* menu_member/slot, as the engine sets them */
         u32 r = game_call_ptr(seg, off, 0, 0, 0x5a);
         eval_restore(snap);
         if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }
-        g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
+        g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
         u32 r2 = game_call_ptr(seg, off, 0, 0, 0xa5);
         eval_restore(snap);
         if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }   /* waits for the player: never again (each try costs 100 ms) */
@@ -96,7 +97,7 @@ static void evaluate(void)
             /* asked again with the whole party at 1 in every attribute and skill: a chance that
                does not move is no skill check (the handlers of plain options answer too: leaving
                town "100 %", a roll of the dice "0 %" or "100 %" from one second to the next) */
-            g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
+            g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
             for (int m = 0; m < 5; m++) {
                 u16 b = G_MEMBER(m);
                 for (int a = 0; a < 7; a++) { g_wb((u16)(b + G_M_ATTR_CUR + a), 1); g_wb((u16)(b + G_M_ATTR_MAX + a), 1); }
@@ -145,8 +146,8 @@ int assist_card_keys = 1;          /* number keys pick a card's options */
 static int assist_watching;        /* ui/citynav.cpp walks through card menus */
 static void card_hooks(void)
 {
-    if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
-    else { hook_remove(43, 0x150b, 0x1142, card_menu_hook); hook_remove(43, 0x150b, 0x1744, card_mouse_hook); }
+    if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
+    else { hook_remove(GF_card_menu, card_menu_hook); hook_remove(GF_card_mouse, card_mouse_hook); }
     if (!assist_chances) card_chances.active = 0;
 }
 

@@ -25,6 +25,7 @@ void ovl_changed(void);
 #include "../runtime/hooks.h"
 #include "../runtime/dispatch.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "saves.h"
 
@@ -156,7 +157,7 @@ static int do_save(const char *comment)
     if (g_rb(D_SAVE_OK) != 1) return 0;
     char before[16]; g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
     answer = comment; in_save = 1;
-    int r = game_call_far(37, 0x1462, 0x2a68, 0, 0);
+    int r = game_call_far(GF_save_game, 0, 0);
     answer = 0; in_save = 0;
     if (r < 0) { ui_notice("Could not save."); return 0; }
     char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
@@ -175,7 +176,7 @@ static int do_save(const char *comment)
 void ovl_area(u32 *lin_start, u32 *lin_end);
 static int call_load_game(void)
 {
-    void (*f)(void) = game_func(37, 0x1c7d, 0x09c6);
+    void (*f)(void) = game_func(GF_load_game);
     if (!f) return 0;
     u32 a0, a1;
     ovl_area(&a0, &a1);
@@ -247,11 +248,11 @@ static void loadlist_hook(void)            /* the load screen's list (s037 1c7d:
 static void loadscreen_hook(void)
 {
     if (load_stage != 3) { hook_call_original(); return; }
-    void (*hide)(void) = game_func(-1, 0x047c, 0x0568), (*show)(void) = game_func(-1, 0x047c, 0x056f);
+    void (*hide)(void) = game_func(GF_screen_hold), (*show)(void) = game_func(GF_screen_release);
     void (*open)(void) = game_func(37, 0x1c7d, 0x024e), (*draw)(void) = game_func(37, 0x1c7d, 0x02ce);
     void (*key)(void) = game_func(37, 0x1c7d, 0x030a), (*close)(void) = game_func(37, 0x1c7d, 0x0218);
     if (!hide || !show || !open || !draw || !key || !close) { load_stage = 0; hook_call_original(); return; }
-    g_ww(0xe7a2, g_rw(0x2816)); g_ww(0xe7a0, g_rw(0x2804));          /* the fonts, put back by 0218 */
+    g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));          /* the fonts, put back by 0218 */
     game_call_live(hide, 0, 0);
     game_call_live(open, 0, 0);
     game_call_live(draw, 0, 0);
@@ -369,7 +370,7 @@ int saves_party_ended(void) { return !user_quit && game_seen; }     /* the progr
 void saves_init(void)
 {
     saves_restart = config_get_int("saves.restart_on_end", 1);
-    hook_install(-1, 0x0000, 0x13a0, quit_hook);
+    hook_install(GF_quit_to_dos, quit_hook);
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);
     saves_auto_battle = config_get_int("saves.autosave_battle", 1);
     saves_keep_quick = config_get_int("saves.keep_quick", 3);

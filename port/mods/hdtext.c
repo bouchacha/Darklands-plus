@@ -17,6 +17,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "hdtext.h"
 
@@ -732,7 +733,7 @@ void hdtext_init(void)
 {
     load_fonts();
     hdtext_mode = config_get_int("display.crisp_text", 2);
-    hook_install(-1, 0x047c, 0x055a, text_hook);
-    hook_install(-1, 0x047c, 0x04dc, recolor_hook);
-    hook_install(43, 0x17e5, 0x0008, fade_hook);
+    hook_install(GF_gfx_text, text_hook);
+    hook_install(GF_gfx_recolor_rect, recolor_hook);
+    hook_install(GF_palette_fade, fade_hook);
 }

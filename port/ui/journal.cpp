@@ -24,6 +24,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
 #include "../mods/hdtext.h"
@@ -224,8 +225,8 @@ static void record_town_stock(int loc)
         Shop sh;
         sh.shop = k.shop; sh.shopq = shopq; sh.cats = k.cats; sh.name = k.name; sh.date = d;
         sh.items = predict_stock(loc, seed, shopq, k.cats);
-        g_ww(0x8834, (u16)shopq); g_ww(0x8836, (u16)k.shop);
-        for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(32, 0x1462, 0x192e, 1, &id) & 0xffff); }
+        g_ww(GV_barter_quality, (u16)shopq); g_ww(GV_barter_shop, (u16)k.shop);
+        for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff); }
         bool have = false;
         for (Shop &o : t.shops) if (o.shop == sh.shop && o.cats == sh.cats) { have = true; if (!o.seen) o = sh; }
         if (!have) t.shops.push_back(sh);
@@ -319,7 +320,7 @@ static std::string chron_text_now(void)
         n = 0;
     };
     for (int i = 0; i < 4000; i++) {
-        char c = (char)g_rb((u16)(0x9085 + i));
+        char c = (char)g_rb((u16)(GV_msg_buf + i));
         if (!c) break;
         if (c == '\n') { end_line(); continue; }
         if (n < (int)sizeof line - 1) line[n++] = c;
@@ -500,22 +501,22 @@ static void barter_list_hook(void)
     if (!journal_on) return;
     ensure_game();
     int loc = (s16)g_rw(G_CUR_LOC);
-    int n = (s16)g_rw(0x885c);
+    int n = (s16)g_rw(GV_barter_nwares);
     if (n < 0 || n > 200) return;
     Shop sh;
     sh.seen = true;
-    sh.shop = (s16)g_rw(0x8836); sh.shopq = (s16)g_rw(0x8834);
-    sh.cats = g_rw(0x8868) | ((u32)g_rw(0x886a) << 16);
-    char nm[48]; g_str(g_rw(0x869e), g_rw(0x869c), nm, sizeof nm);
+    sh.shop = (s16)g_rw(GV_barter_shop); sh.shopq = (s16)g_rw(GV_barter_quality);
+    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(0x886a) << 16);
+    char nm[48]; g_str(g_rw(0x869e), g_rw(GV_barter_name), nm, sizeof nm);
     sh.name = game_text(nm, sizeof nm);
     sh.date = game_date();
     void *snap = eval_snapshot();
     for (int i = 0; i < n; i++) {
-        u16 id = g_rw((u16)(0x86a2 + 2 * i));
+        u16 id = g_rw((u16)(GV_barter_wares + 2 * i));
         SeenItem it; it.id = id;
-        it.q = (s16)(game_call_link(32, 0x1462, 0x0efa, 1, &id) & 0xffff);
+        it.q = (s16)(game_call_link(GF_ware_quality, 1, &id) & 0xffff);
         eval_restore(snap);
-        it.price = (u16)(game_call_link(32, 0x1462, 0x192e, 1, &id) & 0xffff);
+        it.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff);
         eval_restore(snap);
         sh.items.push_back(it);
     }
@@ -544,10 +545,10 @@ extern "C" int journal_enabled(void) { return journal_on; }
 extern "C" void journal_init(void)
 {
     journal_on = config_get_int("journal.enabled", 1);
-    hook_install(43, 0x150b, 0x000a, card_load_hook);
-    hook_install(43, 0x150b, 0x06fe, text_expand_hook);
+    hook_install(GF_card_load, card_load_hook);
+    hook_install(GF_text_expand, text_expand_hook);
     { void assist_watch_cards(void); assist_watch_cards(); }      /* the chronicle needs the card menu's hook (mods/assist.c) */
-    hook_install(32, 0x1462, 0x078e, barter_list_hook);
+    hook_install(GF_barter_draw, barter_list_hook);
 }
 
 /* ---------------------------------------------------------------- the Journal tab */

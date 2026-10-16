@@ -26,9 +26,11 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "cardview.h"
+#include "nscreen.h"
 
 CardView cardview;
 int cardview_on = 1;
@@ -79,37 +81,17 @@ void dl_poll(void);
 
 /* ---------------------------------------------------------------- calling the game */
 #define ROOT (-1)
-static int unwinding;                       /* the game unwinds (a game loaded, quit): stop */
-static int gc(int sect, u16 seg, u16 off, int n, ...)
-{
-    if (unwinding) return 0;
-    void (*f)(void) = game_func(sect, seg, off);
-    if (!f) { fprintf(stderr, "cardview: no game function s%d %04x:%04x\n", sect, seg, off); return 0; }
-    int a[12]; va_list ap; va_start(ap, n);
-    for (int i = 0; i < n && i < 12; i++) a[i] = va_arg(ap, int);
-    va_end(ap);
-    u16 sp0 = SP, ds = DS, es = ES;
-    DS = ES = G_DGROUP;
-    tail_pending = 0;
-    for (int i = n - 1; i >= 0; i--) push16((u16)a[i]);
-    push16(HLE_SEG); push16(0xfff0);
-    OvlSet o; ovl_save(&o);
-    if (sect >= 0) ovl_enter(sect);
-    f();
-    ovl_restore(&o);
-    if (unw_active) { unwinding = 1; return 0; }
-    SP = sp0; DS = ds; ES = es;
-    return (s16)AX;
-}
-static void flush_keys(void) { gc(ROOT, 0x0000, 0x1384, 0); }
-static int key_pressed(void) { return gc(ROOT, 0x047c, 0x073d, 0); }
-static int get_key(void) { return (u16)gc(ROOT, 0x047c, 0x0744, 0); }
-static void mouse_hide(void) { gc(ROOT, 0x047c, 0x12c3, 0); }
-static void mouse_show(void) { gc(ROOT, 0x047c, 0x1293, 0); }
-static int click_record(void) { return gc(ROOT, 0x047c, 0x1320, 4, 6, 0, 0, 0); }     /* (the clicks so far: taken) */
-static void panel_redraw(void) { gc(ROOT, 0x0000, 0x1588, 1, 0x100); gc(ROOT, 0x0000, 0x1716, 1, 0x100); }
-static void frame(void) { gc(43, 0x150b, 0x28e6, 1, g_rw(A_CARD_WIN)); }
-static void copy_picture(void) { gc(ROOT, 0x047c, 0x0553, 8, g_rw(A_SCREEN), 0x43, 6, 0xf5, 0xbc, g_rw(A_CARD_WIN), 7, 6); }
+/* the game is called through ns_call (mods/nscreen.h); ns_unwinding: the game unwinds (a game
+ * loaded, quit), stop */
+static void flush_keys(void) { ns_call(GF_flush_keys, 0); }
+static int key_pressed(void) { return ns_call(GF_key_pressed, 0); }
+static int get_key(void) { return (u16)ns_call(GF_get_key, 0); }
+static void mouse_hide(void) { ns_call(GF_mouse_hide, 0); }
+static void mouse_show(void) { ns_call(GF_mouse_show, 0); }
+static int click_record(void) { return ns_call(ROOT, 0x047c, 0x1320, 4, 6, 0, 0, 0); }     /* (the clicks so far: taken) */
+static void panel_redraw(void) { ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100); }
+static void frame(void) { ns_call(43, 0x150b, 0x28e6, 1, g_rw(A_CARD_WIN)); }
+static void copy_picture(void) { ns_call(GF_gfx_copy_rect, 8, g_rw(A_SCREEN), 0x43, 6, 0xf5, 0xbc, g_rw(A_CARD_WIN), 7, 6); }
 
 /* ---------------------------------------------------------------- on or off */
 int cardview_active(void)
@@ -235,16 +217,16 @@ static void show_picture(int how)
 {
     mouse_hide();
     if (how && how != 2) {                                     /* a clean page */
-        gc(ROOT, 0x047c, 0x0952, 6, g_rw(A_CARD_WIN), 7, 6, 0xf5, 0xbc, 0xff);
+        ns_call(GF_gfx_fill_rect, 6, g_rw(A_CARD_WIN), 7, 6, 0xf5, 0xbc, 0xff);
         frame();
     } else if (g_rw(A_EE55)) {
         g_ww(A_EE55, 0);
-        gc(ROOT, 0x047c, 0x0568, 0);
-        gc(ROOT, 0x047c, 0x058b, 1, A_PALETTE);
+        ns_call(GF_screen_hold, 0);
+        ns_call(GF_set_palette, 1, A_PALETTE);
         frame(); copy_picture();
-        gc(ROOT, 0x047c, 0x056f, 0);
+        ns_call(GF_screen_release, 0);
     } else {
-        gc(ROOT, 0x047c, 0x058b, 1, A_PALETTE);
+        ns_call(GF_set_palette, 1, A_PALETTE);
         frame(); copy_picture();
     }
     mouse_show();
@@ -277,9 +259,9 @@ static int common_step(void)
 {
     cardview.nested = 2;                                       /* (hidden while the bar is open or its choice runs) */
     cardview.nested_since = plat_ticks_ms();
-    gc(ROOT, 0x0000, 0x0000, 2, A_MENUS, 0);                   /* menu_bar_run */
+    ns_call(GF_menu_bar_run, 2, A_MENUS, 0);                   /* menu_bar_run */
     cardview.nested = 0;
-    if (unwinding) return 0;
+    if (ns_unwinding) return 0;
     if (g_rw(A_ICONS_DIRTY)) {
         g_ww(A_ICONS_DIRTY, 0);
         panel_redraw();
@@ -289,7 +271,7 @@ static int common_step(void)
         int mx, my; plat_mouse_game(&mx, &my);
         if (mx < 0x3c) {
             cardview.nested = 1;
-            int r = gc(43, 0x150b, 0x13a0, 0);
+            int r = ns_call(43, 0x150b, 0x13a0, 0);
             cardview.nested = 0;
             if (r) { btn_prev = 0; click_record(); return 1; }
         }
@@ -300,7 +282,7 @@ static int common_step(void)
 static void idle(void)
 {
     void assist_menu_poll(void); if (cardview.phase == 2) assist_menu_poll();
-    gc(ROOT, 0x0000, 0x1338, 0);                               /* exit_if_requested */
+    ns_call(GF_exit_if_requested, 0);                               /* exit_if_requested */
     dl_poll();
     plat_sleep_ms(3);
 }
@@ -308,7 +290,7 @@ static void idle(void)
 static void global_key(int key)
 {
     cardview.nested = key >= 0x3b00 && key <= 0x4000 && !(key & 0xff);   /* F1..F6 open a screen */
-    gc(43, 0x150b, 0x2936, 1, key);
+    ns_call(GF_card_global_keys, 1, key);
     cardview.nested = 0;
 }
 
@@ -317,14 +299,14 @@ static void text_hook(void)
 {
     if (!cardview_active()) { hook_call_original(); return; }
     int block = (s16)rw(SS, (u16)(SP + 4)), how = (s16)rw(SS, (u16)(SP + 6));
-    unwinding = 0;
+    ns_unwinding = 0;
     g_ww(A_COMBAT_CLK, 0);
     flush_keys();
     g_ww(A_E959, (u16)block);
     g_ww(A_E898, 0);
     show_picture(how);
-    gc(43, 0x150b, 0x06fe, 2, block, A_MSG_BUF);               /* text_expand */
-    if (unwinding) return;
+    ns_call(GF_text_expand, 2, block, A_MSG_BUF);               /* text_expand */
+    if (ns_unwinding) return;
     parse(block);
     cardview.how = how;
     cardview.phase = 1;
@@ -340,16 +322,16 @@ static void text_hook(void)
             if (k == 0x1c0d || k == 0x3920 || k == 0x1000) { key = k; break; }
             global_key(k);
         }
-        if (unwinding) break;
+        if (ns_unwinding) break;
         idle();
-        if (unwinding) break;
+        if (ns_unwinding) break;
     }
     cardview.phase = 0;
-    if (unwinding) return;
-    if (key == 0x1000) gc(ROOT, 0x0000, 0x13a0, 0);            /* quit_to_dos */
+    if (ns_unwinding) return;
+    if (key == 0x1000) ns_call(GF_quit_to_dos, 0);            /* quit_to_dos */
     click_record();
     flush_keys();
-    if (unwinding) return;
+    if (ns_unwinding) return;
     hook_return_far(0);
 }
 
@@ -358,14 +340,14 @@ static void options_hook(void)
 {
     if (!cardview_active()) { hook_call_original(); return; }
     int block = (s16)rw(SS, (u16)(SP + 4));
-    unwinding = 0;
+    ns_unwinding = 0;
     flush_keys();
     g_ww(A_COMBAT_CLK, 0);
     g_ww(A_E959, (u16)block);
     g_ww(A_E898, 0);
     show_picture(2);
-    gc(43, 0x150b, 0x06fe, 2, block, A_MSG_BUF);
-    if (unwinding) return;
+    ns_call(GF_text_expand, 2, block, A_MSG_BUF);
+    if (ns_unwinding) return;
     parse(block);
     cardview.how = 2;
     layout_out();
@@ -382,8 +364,8 @@ static void build_popup(int j)
     /* as card_mouse: the pop-up's layout is the items' or the saints' (it carries their
        handlers, D_eb0a[slot], which the script calls for a choice from the pop-up) */
     { u16 src = p->type == 1 ? A_POP_ITEMS : A_POP_SAINTS; for (int i = 0; i < 0xf6; i++) g_wb((u16)(A_POPUP_LAY + i), g_rb((u16)(src + i))); }
-    gc(43, 0x150b, 0x2252, 3, g_rw(A_CARD_WIN), 0, p->type);
-    if (unwinding) return;
+    ns_call(43, 0x150b, 0x2252, 3, g_rw(A_CARD_WIN), 0, p->type);
+    if (ns_unwinding) return;
     char name[24] = "";
     int k = -1;                                                /* the \x15 line: member k/4, slot k%4 */
     for (int i = 0; i < 1600; i++) {
@@ -446,7 +428,7 @@ static int entry_at(int mx, int my)
 int cardview_menu(void)
 {
     CardView *c = &cardview;
-    unwinding = 0;
+    ns_unwinding = 0;
     g_ww(A_COMBAT_CLK, 0);
     if (g_rb(A_9C4C)) click_record();
     flush_keys();
@@ -460,7 +442,7 @@ int cardview_menu(void)
     for (;;) {
         if (!common_step()) break;
         layout_out();
-        if (c->want_popup >= 0) { int j = c->want_popup; c->want_popup = -1; if (c->popup_piece == j) { c->popup_piece = -1; c->nentries = 0; } else build_popup(j); if (unwinding) break; }
+        if (c->want_popup >= 0) { int j = c->want_popup; c->want_popup = -1; if (c->popup_piece == j) { c->popup_piece = -1; c->nentries = 0; } else build_popup(j); if (ns_unwinding) break; }
         int mx, my;
         plat_mouse_game(&mx, &my);
         { static int lx = -1, ly = -1; if (mx != lx || my != ly) { if (lx >= 0) c->key_line = -1; lx = mx; ly = my; } }   /* the mouse moved: it leads again */
@@ -482,7 +464,7 @@ int cardview_menu(void)
         }
         if (key_pressed()) {
             int k = get_key();
-            if (k == 0x1000) gc(ROOT, 0x0000, 0x13a0, 0);      /* quit_to_dos (asks) */
+            if (k == 0x1000) ns_call(GF_quit_to_dos, 0);      /* quit_to_dos (asks) */
             else if (k == 0x4800 || k == 0x5000) {             /* Up / Down through the choosable options */
                 int n = c->nlines;
                 if (n > 0) c->key_line = c->key_line < 0 ? (k == 0x4800 ? n - 1 : 0) : (c->key_line + (k == 0x4800 ? n - 1 : 1)) % n;
@@ -494,22 +476,22 @@ int cardview_menu(void)
                 if (sel >= 0) break;
             } else global_key(k);
         }
-        if (unwinding) break;
+        if (ns_unwinding) break;
         idle();
-        if (unwinding) break;
+        if (ns_unwinding) break;
     }
     c->phase = 0;
     c->popup_piece = -1;
-    if (unwinding) return -1;
+    if (ns_unwinding) return -1;
     g_ww(A_8DDE, 1);
     for (int j = 0; j < c->npieces; j++) if (c->piece[j].opt == sel && c->piece[j].line >= 0) g_wb(A_HILITE, (u8)c->piece[j].line);
     click_record();
-    gc(ROOT, 0x047c, 0x059e, 1, 0);
+    ns_call(ROOT, 0x047c, 0x059e, 1, 0);
     if (getenv("DL_CARDVIEW_LOG")) fprintf(stderr, "cardview: chose option %d (pop-up %d member %d slot %d)\n", sel, g_rw(A_MENU_POPUP), g_rw(A_MENU_MEMBER), g_rw(A_MENU_SLOT));
     return sel;
 }
 
-int cardview_unwinding(void) { return unwinding; }
+int cardview_unwinding(void) { return ns_unwinding; }
 
 /* (tests) what is on show: the pieces, their rows (game pixels) and the pop-up */
 void cardview_dump(void)
@@ -531,17 +513,17 @@ static void dialog_hook(void) { cardview_dialog++; hook_call_original(); cardvie
 
 static void hooks(void)
 {
-    hook_install(ROOT, 0x0000, 0x2522, dialog_hook);          /* ask_yes_no */
-    hook_install(ROOT, 0x0000, 0x24bc, dialog_hook);          /* show_message */
-    hook_install(29, 0x1367, 0x0c30, dialog_hook);            /* message_box */
+    hook_install(GF_ask_yes_no, dialog_hook);          /* ask_yes_no */
+    hook_install(GF_show_message, dialog_hook);          /* show_message */
+    hook_install(GF_message_box, dialog_hook);            /* message_box */
     if (cardview_on) {
-        hook_install(43, 0x150b, 0x03b0, text_hook);
-        hook_install(43, 0x150b, 0x049a, options_hook);
+        hook_install(GF_card_text, text_hook);
+        hook_install(GF_card_options, options_hook);
         hook_install(43, 0x150b, 0x13f2, redraw_hook);
         void assist_watch_cards(void); assist_watch_cards();    /* card_menu's hook (mods/assist.c) calls cardview_menu */
     } else {
-        hook_remove(43, 0x150b, 0x03b0, text_hook);
-        hook_remove(43, 0x150b, 0x049a, options_hook);
+        hook_remove(GF_card_text, text_hook);
+        hook_remove(GF_card_options, options_hook);
         hook_remove(43, 0x150b, 0x13f2, redraw_hook);
     }
 }

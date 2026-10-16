@@ -28,6 +28,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "sfx.h"
 #include "datamods.h"
@@ -531,18 +532,18 @@ static void melee_hook(void)                 /* melee_step(i, set, *again), near
     int i = (s16)rw(SS, (u16)(SP + 2));
     int land = 0, anim = 0;
     if (i >= 0 && i < 13) {
-        int f1b = (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x1b)), len = (s8)g_rb((u16)(0xc96b + i));
-        anim = g_rb((u16)(0xca57 + i));
+        int f1b = (s8)g_rb((u16)(GV_combatants + 0x80 * i + 0x1b)), len = (s8)g_rb((u16)(GV_cbt_anim_len + i));
+        anim = g_rb((u16)(GV_cbt_anim + i));
         land = f1b + 1 == len - 1;
     }
     int oi = impact, oa = impact_anim, od = impact_done;
     impact = land ? i : -1; impact_anim = anim; impact_done = 0;
-    int tg = i >= 0 && i < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x4a)) : -1;
-    int e0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)) : 0, s0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e)) : 0;
+    int tg = i >= 0 && i < 13 ? (s8)g_rb((u16)(GV_combatants + 0x80 * i + 0x4a)) : -1;
+    int e0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)) : 0, s0 = tg >= 0 && tg < 13 ? (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e)) : 0;
     hook_call_original();
-    if (land && tg >= 0 && tg < 13) { void battlelog_blow(int, int, int, int, int, int, int); battlelog_blow(i, tg, anim, e0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e))); }
-    if (land && getenv("DL_BLOW_LOG") && tg >= 0 && tg < 13) { u32 plat_ticks_ms(void); fprintf(stderr, "blow %u: %d -> %d anim %d: end %d -> %d, str %d -> %d\n", plat_ticks_ms(), i, tg, anim, e0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(0x9c55 + 0x80 * tg + 0x5e))); }
-    if (land && (anim == 1 || anim == 2) && !impact_done && sfx_mode && sfx_added_hits && g_rb(0x01be) == 1)
+    if (land && tg >= 0 && tg < 13) { void battlelog_blow(int, int, int, int, int, int, int); battlelog_blow(i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
+    if (land && getenv("DL_BLOW_LOG") && tg >= 0 && tg < 13) { u32 plat_ticks_ms(void); fprintf(stderr, "blow %u: %d -> %d anim %d: end %d -> %d, str %d -> %d\n", plat_ticks_ms(), i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
+    if (land && (anim == 1 || anim == 2) && !impact_done && sfx_mode && sfx_added_hits && g_rb(GV_opt_sound) == 1)
         play(S_HIT, anim == 2 ? 1.0f : 0.7f);
     impact = oi; impact_anim = oa; impact_done = od;
 }
@@ -588,7 +589,7 @@ void sfx_init(void)
     sfx_synth = config_get_int("sound.synth_effects", 0);
     sfx_reload();
     hook_install(14, 0x0e76, 0x465e, battle_sound_hook);
-    hook_install(-1, 0x047c, 0x078a, sound_play_hook);
+    hook_install(GF_sound_play, sound_play_hook);
     if (!hook_install(14, 0x0e76, 0x199c, melee_hook)) fprintf(stderr, "sfx: no hook point for melee_step\n");
     if (getenv("DL_SFX_EXPORT")) { char m[300]; sfx_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
 }

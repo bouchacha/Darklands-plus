@@ -24,6 +24,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
 
@@ -227,7 +228,7 @@ static void path_find_hook(void)
     int tx = (s16)g_rw((u16)(c + 8)), ty = (s16)g_rw((u16)(c + 0x0a));
     int target = (s8)g_rb((u16)(c + 0x4a));
     if (target >= 13) target = -1;
-    if (target >= 0 && g_rb((u16)(0xa6b4 + target)) != g_rb((u16)(0xa6b4 + i))) { hook_call_original(); return; }
+    if (target >= 0 && g_rb((u16)(GV_cbt_floor + target)) != g_rb((u16)(GV_cbt_floor + i))) { hook_call_original(); return; }
 
     load_steps(i);
 
@@ -275,7 +276,7 @@ static void path_find_hook(void)
     g_ww(0xe0bc, (u16)x); g_ww(0xe0be, (u16)y);
     if (f_waypoints) { u16 a = (u16)i; game_call_native(f_waypoints, 1, &a); }   /* 1db7:0158: who stands near the route */
     g_wb(0xe0a2, 0);
-    if (f_cursor) { u16 a[3] = { 0, 0, g_rw(0x940b) }; game_call_native(f_cursor, 3, a); }   /* normal cursor, as path_find leaves it */
+    if (f_cursor) { u16 a[3] = { 0, 0, g_rw(GV_ems_frame_handle) }; game_call_native(f_cursor, 3, a); }   /* normal cursor, as path_find leaves it */
     g_ww(0x18c2, 0);
     AX = 1;
     hook_return_far(0);
@@ -324,13 +325,13 @@ static void sweep(int i, int n)
         if (dest != 0) continue;
         valid++;
         void *snap = eval_snapshot();
-        hook_remove(14, 0x12f7, 0x000a, path_find_hook);
+        hook_remove(GF_path_find, path_find_hook);
         u16 a = (u16)i; t0 = plat_ticks_us();
-        int ro = (s16)(game_call_link(14, 0x12f7, 0x000a, 1, &a) & 0xffff);
+        int ro = (s16)(game_call_link(GF_path_find, 1, &a) & 0xffff);
         to += plat_ticks_us() - t0;
         int lo = (s16)g_rw(0xe118);
         eval_restore(snap); eval_free(snap);
-        hook_install(14, 0x12f7, 0x000a, path_find_hook);
+        hook_install(GF_path_find, path_find_hook);
         nat += ln >= 0; orig += ro == 1; onlyn += ln >= 0 && ro != 1; onlyo += ln < 0 && ro == 1;
         bv[bucket]++; bn[bucket] += ln >= 0; bo[bucket] += ro == 1;
         if (ln < 0 && ro == 1) fprintf(stderr, "pathfix sweep: native failed (%d,%d)->(%d,%d): %s, %d expanded, original %d steps\n",
@@ -351,8 +352,8 @@ void pathfix_set(int party, int enemies)
 {
     pathfix_party = party; pathfix_enemies = enemies;
     config_set_int("fix.pathfinding", party); config_set_int("fix.pathfinding_enemies", enemies);
-    if (party || enemies) hook_install(14, 0x12f7, 0x000a, path_find_hook);
-    else hook_remove(14, 0x12f7, 0x000a, path_find_hook);
+    if (party || enemies) hook_install(GF_path_find, path_find_hook);
+    else hook_remove(GF_path_find, path_find_hook);
 }
 
 /* ---------------------------------------------------------------- battle speed
@@ -366,10 +367,10 @@ static int clock_acc;
 static void timer_hook(void)
 {
     hook_call_original();
-    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", battle_speed, g_rb(0x07d3), game_mode(), g_rw(0x07d4)); }
+    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", battle_speed, g_rb(0x07d3), game_mode(), g_rw(GV_combat_clock)); }
     if (battle_speed <= 100 || g_rb(0x07d3) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
     clock_acc += battle_speed - 100;
-    while (clock_acc >= 100) { clock_acc -= 100; g_ww(0x07d4, (u16)(g_rw(0x07d4) + 1)); }
+    while (clock_acc >= 100) { clock_acc -= 100; g_ww(GV_combat_clock, (u16)(g_rw(GV_combat_clock) + 1)); }
 }
 
 void battle_speed_set(int pct)
@@ -385,10 +386,10 @@ void battle_speed_set(int pct)
 void pathfix_init(void)
 {
     battle_speed_set(config_get_int("battle.speed", 100));
-    f_collide = game_func(14, 0x1462, 0x000a);
-    f_set = game_func(14, 0x14f7, 0x343c);
+    f_collide = game_func(GF_cbt_collisions);
+    f_set = game_func(GF_cbt_anim_set);
     f_waypoints = game_func(14, 0x1db7, 0x0158);
-    f_cursor = game_func(-1, 0x05f8, 0x0117);
+    f_cursor = game_func(GF_ems_map_page);
     if (!f_collide || !f_set) fprintf(stderr, "pathfix: game functions not found\n");
     pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 0));
 }

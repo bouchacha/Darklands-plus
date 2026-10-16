@@ -32,6 +32,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/native.h"
 #include "../runtime/hle.h"
@@ -172,52 +173,52 @@ static int G(int sect, u16 seg, u16 off, int n, ...)
     return gcall(sect, seg, off, n, a);
 }
 /* root */
-static int g_rand(int n) { return G(ROOT, 0x0000, 0x0c70, 1, n); }
-static void g_mouse_show(void) { G(ROOT, 0x047c, 0x1293, 0); }
-static void g_mouse_hide(void) { G(ROOT, 0x047c, 0x12c3, 0); }
-static void g_panel_rows(void) { G(ROOT, 0x0000, 0x1716, 1, 0x100); }
+static int g_rand(int n) { return G(GF_rand_mod, 1, n); }
+static void g_mouse_show(void) { G(GF_mouse_show, 0); }
+static void g_mouse_hide(void) { G(GF_mouse_hide, 0); }
+static void g_panel_rows(void) { G(GF_party_panel_rows, 1, 0x100); }
 /* card engine, s043 */
-static void g_card_load(void) { G(43, 0x150b, 0x000a, 3, V_CARD_NAME, V_PIC_BUF, G_DGROUP); }
-static void g_card_load_near(void) { G(43, 0x150b, 0x0110, 2, V_CARD_NAME, V_PIC_BUF2); }
-static void g_card_text(int b) { G(43, 0x150b, 0x03b0, 2, b, 0); }
-static void g_card_options(int b) { G(43, 0x150b, 0x049a, 1, b); }
-static int g_card_menu(void) { return G(43, 0x150b, 0x1142, 2, g_rw(V_CARD_WIN), g_rw(V_CARD_WIN2)); }
-static int g_saints_usable(void) { return G(43, 0x150b, 0x168c, 0); }
-static int g_items_usable(void) { return G(43, 0x150b, 0x16e8, 0); }
+static void g_card_load(void) { G(GF_card_load, 3, V_CARD_NAME, V_PIC_BUF, G_DGROUP); }
+static void g_card_load_near(void) { G(GF_card_load_near, 2, V_CARD_NAME, V_PIC_BUF2); }
+static void g_card_text(int b) { G(GF_card_text, 2, b, 0); }
+static void g_card_options(int b) { G(GF_card_options, 1, b); }
+static int g_card_menu(void) { return G(GF_card_menu, 2, g_rw(V_CARD_WIN), g_rw(V_CARD_WIN2)); }
+static int g_saints_usable(void) { return G(GF_saints_usable, 0); }
+static int g_items_usable(void) { return G(GF_items_usable, 0); }
 static void g_music(void) { G(43, 0x1462, 0x09ae, 1, 0x20); }
 /* time and numbers, s029 1367 */
-static void g_hours(int h) { if (h > 0) G(29, 0x1367, 0x05c8, 1, h); }
-static void g_days(int d) { if (d > 0) G(29, 0x1367, 0x0680, 1, d); }
-static int g_hours_until(int h) { return G(29, 0x1367, 0x086a, 1, h); }
-static int g_daylight(void) { return G(29, 0x1367, 0x072a, 0); }
-static void g_chance_text(int lo, int hi) { G(29, 0x1367, 0x0c52, 3, V_MSG_BUF, lo, hi); }
+static void g_hours(int h) { if (h > 0) G(GF_advance_hours, 1, h); }
+static void g_days(int d) { if (d > 0) G(GF_advance_days, 1, d); }
+static int g_hours_until(int h) { return G(GF_hours_until, 1, h); }
+static int g_daylight(void) { return G(GF_is_daylight, 0); }
+static void g_chance_text(int lo, int hi) { G(GF_chance_text, 3, V_MSG_BUF, lo, hi); }
 /* rules, s029 0e76 */
-static int g_skill(int w, int k) { return G(29, 0x0e76, 0x01a0, 2, w, k); }
-static int g_attr(int w, int k) { return G(29, 0x0e76, 0x05ee, 2, w, k); }
-static int g_attr_max(int w, int k) { return G(29, 0x0e76, 0x0b64, 2, w, k); }
-static void g_add_skill(int w, int k, int d) { G(29, 0x0e76, 0x02ea, 3, w, k, d); }
-static void g_add_attr(int w, int k, int d) { G(29, 0x0e76, 0x0a72, 3, w, k, d); }
-static void g_add_attr_max(int w, int k, int d) { G(29, 0x0e76, 0x0bb6, 3, w, k, d); }
-static void g_set_attr(int w, int k, int v) { G(29, 0x0e76, 0x0988, 3, w, k, v); }
+static int g_skill(int w, int k) { return G(GF_member_skill, 2, w, k); }
+static int g_attr(int w, int k) { return G(GF_member_attr, 2, w, k); }
+static int g_attr_max(int w, int k) { return G(GF_member_attr_max, 2, w, k); }
+static void g_add_skill(int w, int k, int d) { G(GF_add_skill, 3, w, k, d); }
+static void g_add_attr(int w, int k, int d) { G(GF_add_attr, 3, w, k, d); }
+static void g_add_attr_max(int w, int k, int d) { G(GF_add_attr_max, 3, w, k, d); }
+static void g_set_attr(int w, int k, int v) { G(GF_set_attr, 3, w, k, v); }
 static int g_party_q(u16 off, int k) { return G(29, 0x0e76, off, 1, k); }
-static int g_party_get(int what) { return G(29, 0x0e76, 0x1326, 1, what); }
-static int g_has_item(int w, int code) { return G(29, 0x0e76, 0x118e, 2, w, code); }
-static int g_count_items(int w, int code) { return G(29, 0x0e76, 0x0c76, 2, w, code); }
-static int g_saint_lo(int w, int s) { return G(29, 0x0e76, 0x20c6, 2, w, s); }
-static int g_saint_hi(int w, int s) { return G(29, 0x0e76, 0x2116, 2, w, s); }
+static int g_party_get(int what) { return G(GF_party_get, 1, what); }
+static int g_has_item(int w, int code) { return G(GF_has_item, 2, w, code); }
+static int g_count_items(int w, int code) { return G(GF_count_items, 2, w, code); }
+static int g_saint_lo(int w, int s) { return G(GF_saint_chance_lo, 2, w, s); }
+static int g_saint_hi(int w, int s) { return G(GF_saint_chance_hi, 2, w, s); }
 static int g_invoke_saint(int w, int s)
 {
     int fake = config_get_int("test.enc_saint", -99);       /* tests: the prayer's outcome without the prayer screen */
     if (fake != -99) { fprintf(stderr, "encounters: saint %d by %d: faked %d\n", s, w, fake); return fake; }
-    return G(29, 0x0e76, 0x2180, 2, w, s);
+    return G(GF_invoke_saint, 2, w, s);
 }
-static void g_drop_away(void) { G(29, 0x0e76, 0x2434, 0); }
-static void g_rejoin_away(void) { G(29, 0x0e76, 0x251a, 0); }
-static void g_rep_adj(int loc, int a, int b) { G(29, 0x0e76, 0x19d0, 3, loc, a, b); }
-static void g_name_saint(int s) { G(29, 0x0e76, 0x1fb8, 3, 1, s, 0); }
-static void g_load_city(int c) { G(29, 0x0e76, 0x4e68, 1, c); }
-static int g_event_started(int k) { return G(29, 0x0e76, 0x32ce, 1, k); }
-static int g_count_able(void) { return G(29, 0x0e76, 0x007c, 0); }
+static void g_drop_away(void) { G(GF_party_drop_away, 0); }
+static void g_rejoin_away(void) { G(GF_party_rejoin_away, 0); }
+static void g_rep_adj(int loc, int a, int b) { G(GF_loc_reputation_adj, 3, loc, a, b); }
+static void g_name_saint(int s) { G(GF_name_to_slot, 3, 1, s, 0); }
+static void g_load_city(int c) { G(GF_load_city, 1, c); }
+static int g_event_started(int k) { return G(GF_event_started, 1, k); }
+static int g_count_able(void) { return G(GF_party_count_able, 0); }
 static int g_battle(const int *a)
 {
     int fake = config_get_int("test.enc_battle", -99);      /* tests: the battle's result without fighting it */
@@ -410,10 +411,10 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "size")) { *v = g_present(); return 1; }                       /* members present */
     if (!strcasecmp(n, "members")) { *v = (s16)g_rw(G_PARTY_SIZE); return 1; }
     if (!strcasecmp(n, "women")) { *v = g_count_able(); return 1; }
-    if (!strcasecmp(n, "avgagility")) { *v = G(29, 0x0e76, 0x060e, 0); return 1; }
-    if (!strcasecmp(n, "minagility")) { *v = G(29, 0x0e76, 0x0656, 0); return 1; }
-    if (!strcasecmp(n, "slowspeed")) { *v = G(29, 0x0e76, 0x088e, 0); return 1; }
-    if (!strcasecmp(n, "slowest")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x088e, 0); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
+    if (!strcasecmp(n, "avgagility")) { *v = G(GF_party_avg_eff_attr2, 0); return 1; }
+    if (!strcasecmp(n, "minagility")) { *v = G(GF_party_min_eff_attr2, 0); return 1; }
+    if (!strcasecmp(n, "slowspeed")) { *v = G(GF_party_min_eff_attr2_bonus, 0); return 1; }
+    if (!strcasecmp(n, "slowest")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(GF_party_min_eff_attr2_bonus, 0); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "spotvalue")) { *v = G(29, 0x0e76, 0x184a, 2, 3, 0x12); return 1; }
     if (!strcasecmp(n, "spotter")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x184a, 2, 3, 0x12); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "terrain")) { *v = (s16)g_rw(V_TERRAIN); return 1; }
@@ -1442,6 +1443,6 @@ int encounters_force_pending(void) { return force_next >= 0; }
 
 void encounters_init(void)
 {
-    hook_install(30, 0x1462, 0x02c0, overland_hook);
+    hook_install(GF_overland_loop, overland_hook);
     install_cards();                             /* also for a save made during a new encounter */
 }

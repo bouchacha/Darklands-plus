@@ -21,6 +21,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "gamemodel.h"
@@ -34,52 +35,38 @@ int barterview_on(void) { return bv_on && ns_active(); }
 int barterview_is_on(void) { return bv_on; }
 void barterview_set(int on) { bv_on = on; config_set_int("display.native_shops", on); }
 
-#define B_WHO    0x884e
-#define B_LEAD0  0x884c
-#define B_NAME   0x869c
-#define B_CATS   0x8868
-#define B_SHOP   0x8836
-#define B_QUAL   0x8834
-#define B_WARES  0x86a2
-#define B_NWARES 0x885c
-#define B_WTOP   0x86a0
-#define B_WCUR   0x8832
-#define B_SIDE   0x8842
-#define B_ITOP   0x8852
-#define B_ICUR   0x885e
-#define B_ICNT   0x8838
 
-static int g_side(int m) { return (s16)g_rw((u16)(B_SIDE + 2 * m)); }
+static int g_side(int m) { return (s16)g_rw((u16)(GV_barter_side + 2 * m)); }
 static void s_int(u16 a, int v) { g_ww(a, (u16)v); }
 
-static void note(const char *t) { snprintf(barter_model.note, sizeof barter_model.note, "%s", t); barter_model.note_t = plat_ticks_ms(); }
+static void note(const char *t) { snprintf(barter_model.note, sizeof barter_model.note, "%s", t); barter_model.note_t = plat_ticks_ms(); fprintf(stderr, "shop: %s\n", t); }
 
 /* the model, from the game's variables; prices asked side-effect free (buy_price may draw a
  * random number in some places, as the original asks it at every redraw) */
 static void build(void)
 {
     BarterModel *b = &barter_model;
-    b->shop = (s16)g_rw(B_SHOP);
-    b->quality = (s16)g_rw(B_QUAL);
-    { u16 o = g_rw(B_NAME), s = g_rw(B_NAME + 2); if (s) g_str(s, o, b->shopname, sizeof b->shopname); else b->shopname[0] = 0; }
-    b->who = (s16)g_rw(B_WHO);
+    b->shop = (s16)g_rw(GV_barter_shop);
+    b->quality = (s16)g_rw(GV_barter_quality);
+    { u16 o = g_rw(GV_barter_name), s = g_rw(GV_barter_name + 2); if (s) g_str(s, o, b->shopname, sizeof b->shopname); else b->shopname[0] = 0; }
+    b->who = (s16)g_rw(GV_barter_who);
     b->payer = gm_leader();
     b->npar = gm_party_size();
     for (int m = 0; m < 5; m++) { b->present[m] = gm_member_present(m); gm_member_name(m, b->names[m], sizeof b->names[m]); }
     gm_money(&b->fl, &b->gr, &b->pf);
     b->total_pf = (long)b->fl * 240 + (long)b->gr * 12 + b->pf;
-    int n = (s16)g_rw(B_NWARES); if (n < 0) n = 0; if (n > 200) n = 200;
+    int n = (s16)g_rw(GV_barter_nwares); if (n < 0) n = 0; if (n > 200) n = 200;
     b->nwares = n;
     int m = b->who, ni = gm_item_count(m);
     b->nitems = ni;
     void *snap = eval_snapshot();
     for (int i = 0; i < n; i++) {
         BvWare *w = &b->ware[i];
-        w->id = (s16)g_rw((u16)(B_WARES + 2 * i));
+        w->id = (s16)g_rw((u16)(GV_barter_wares + 2 * i));
         u16 a[2] = { (u16)w->id, 0 };
-        w->price = (u16)game_call_link(32, 0x1462, 0x192e, 1, a);
+        w->price = (u16)game_call_link(GF_buy_price, 1, a);
         eval_restore(snap);
-        w->qual = (s16)game_call_link(32, 0x1462, 0x0efa, 1, a);
+        w->qual = (s16)game_call_link(GF_ware_quality, 1, a);
         eval_restore(snap);
         w->weight = gm_itemdef_weight(w->id);
     }
@@ -89,7 +76,7 @@ static void build(void)
         it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
         it->equipped = gm_item_equipped(m, i);
         if (gm_itemdef_no_trade(g.id)) it->price = 0;
-        else { u16 a[2] = { (u16)g.id, (u16)g.qual }; it->price = (u16)game_call_link(32, 0x1462, 0x1b26, 2, a); eval_restore(snap); }
+        else { u16 a[2] = { (u16)g.id, (u16)g.qual }; it->price = (u16)game_call_link(GF_sell_price, 2, a); eval_restore(snap); }
     }
     eval_free(snap);
     b->seq++;
@@ -97,21 +84,21 @@ static void build(void)
 
 static long purse(void) { int f, g, p; gm_money(&f, &g, &p); return (long)f * 240 + g * 12 + p; }
 
-static int key(int k) { return ns_call(32, 0x1462, 0x0f60, 1, k); }
+static int key(int k) { return ns_call(GF_barter_key, 1, k); }
 
 static void buy(int i, int times)
 {
-    int m = (s16)g_rw(B_WHO), done = 0;
+    int m = (s16)g_rw(GV_barter_who), done = 0;
     for (int t = 0; t < times; t++) {
-        if (i < 0 || i >= (s16)g_rw(B_NWARES)) break;
-        s_int((u16)(B_SIDE + 2 * m), 1); s_int(B_WTOP, i); s_int(B_WCUR, 0);
+        if (i < 0 || i >= (s16)g_rw(GV_barter_nwares)) break;
+        s_int((u16)(GV_barter_side + 2 * m), 1); s_int(GV_barter_ware_top, i); s_int(GV_barter_ware_cur, 0);
         long before = purse(); int nb = gm_item_count(m);
         key(0x1950);
         if (ns_unwinding) return;
         if (purse() == before && gm_item_count(m) == nb) break;
         done++;
     }
-    char nm[32]; gm_itemdef_name((s16)g_rw((u16)(B_WARES + 2 * i)), nm, sizeof nm);
+    char nm[32]; gm_itemdef_name((s16)g_rw((u16)(GV_barter_wares + 2 * i)), nm, sizeof nm);
     char t[120];
     if (!done) snprintf(t, sizeof t, i < barter_model.nwares && barter_model.ware[i].price > purse() ? "Not bought: the purse holds too little." : "Not bought: %s has no room for another kind of thing.", barter_model.names[m]);
     else snprintf(t, sizeof t, "Bought %d %s.", done, nm);
@@ -120,14 +107,14 @@ static void buy(int i, int times)
 
 static void sell(int idx, int all)
 {
-    int m = (s16)g_rw(B_WHO), done = 0;
+    int m = (s16)g_rw(GV_barter_who), done = 0;
     GmItem first; if (!gm_item(m, idx, &first)) return;
     if (gm_itemdef_no_trade(first.id)) { note("The merchants of the Empire will not buy that."); return; }
     for (int t = 0; t < (all ? 255 : 1); t++) {
         GmItem g;
         if (!gm_item(m, idx, &g) || g.id != first.id || g.qual != first.qual) break;   /* the stack is gone */
-        s_int((u16)(B_SIDE + 2 * m), 0); s_int((u16)(B_ITOP + 2 * m), idx); s_int((u16)(B_ICUR + 2 * m), 0);
-        s_int((u16)(B_ICNT + 2 * m), gm_item_count(m));
+        s_int((u16)(GV_barter_side + 2 * m), 0); s_int((u16)(GV_barter_item_top + 2 * m), idx); s_int((u16)(GV_barter_item_cur + 2 * m), 0);
+        s_int((u16)(GV_barter_item_count + 2 * m), gm_item_count(m));
         long before = purse();
         key(0x1f53);
         if (ns_unwinding) return;
@@ -144,15 +131,15 @@ static void sell(int idx, int all)
 static void set_who(int m)
 {
     if (!gm_member_present(m)) return;
-    s_int(B_WHO, m);
-    ns_call(32, 0x1462, 0x0b30, 5, m, g_rw(B_NAME), g_rw(B_NAME + 2), g_rw(B_CATS), g_rw(B_CATS + 2));   /* (the original's redraw, unseen) */
+    s_int(GV_barter_who, m);
+    ns_call(GF_barter_redraw, 5, m, g_rw(GV_barter_name), g_rw(GV_barter_name + 2), g_rw(GV_barter_cats), g_rw(GV_barter_cats + 2));   /* (the original's redraw, unseen) */
 }
 
 static void set_payer(int m)
 {
     if (!gm_member_present(m) || gm_member_status(m) != 1) return;
     g_wb(G_LEADER, (u8)m);
-    ns_call(-1, 0x0000, 0x1716, 1, 0x100);                    /* party_panel_rows */
+    ns_call(GF_party_panel_rows, 1, 0x100);                    /* party_panel_rows */
 }
 
 /* barter_screen(shop, char far *name, long cats), natively: called from mods/loot.c's hook */
@@ -163,29 +150,30 @@ void barterview_run(void)
     u16 cats_lo = rw(SS, (u16)(SP + 10)), cats_hi = rw(SS, (u16)(SP + 12));
     ns_unwinding = 0;
     /* the original's setup (barter_screen's first lines) */
-    g_wb(0x9920, 2); g_wb(0x9934, 2);
-    g_ww(0xe7a2, g_rw(0x2816)); g_ww(0xe7a0, g_rw(0x2804));   /* back/screen window fonts kept */
-    g_ww(0x2816, 1); g_ww(0x2804, 1);
-    g_wb(0x907c, 5);
+    g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);
+    g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));   /* back/screen window fonts kept */
+    g_ww(GV_back_win_font, 1); g_ww(GV_screen_win_font, 1);
+    g_wb(GV_screen_kind, 5);
     int lead = gm_leader();
-    s_int(B_LEAD0, lead); s_int(B_WHO, lead);
-    g_ww(0x2800, 8);                                          /* screen_win_colour */
-    if (!name_s) { u16 ts = g_rw(0x7e66); name_o = rw(ts, (u16)(0x207f + 4 * shop)); name_s = rw(ts, (u16)(0x207f + 4 * shop + 2)); }   /* F_290e_207f[shop] */
-    g_ww(B_NAME, name_o); g_ww(B_NAME + 2, name_s);
-    g_ww(B_CATS, cats_lo); g_ww(B_CATS + 2, cats_hi);
-    s_int(B_SHOP, shop);
-    if (shop < 0 || shop >= 9) s_int(B_QUAL, 25);
-    else { u16 co = g_rw(0x9785), cs = g_rw(0x9787);                /* city_rec */ s_int(B_QUAL, cs ? (s8)rb(cs, (u16)(co + 0x62 + shop)) : 25); }
-    if (shop == -2) s_int(B_QUAL, 10);
-    for (int r = 0; r < 5; r++) { s_int((u16)(B_SIDE + 2 * r), 1); s_int((u16)(B_ICNT + 2 * r), 0); s_int((u16)(B_ITOP + 2 * r), 0); s_int((u16)(B_ICUR + 2 * r), 0); }
-    s_int(B_NWARES, 0); s_int(B_WTOP, 0); s_int(B_WCUR, 0);
-    ns_call(-1, 0x047c, 0x0568, 0);
-    ns_call(32, 0x1462, 0x078e, 5, lead, name_o, name_s, cats_lo, cats_hi);   /* today's stock (and the original's picture, unseen) */
-    ns_call(-1, 0x047c, 0x056f, 0);
+    s_int(GV_barter_leader, lead); s_int(GV_barter_who, lead);
+    g_ww(GV_screen_win_colour, 8);                                          /* screen_win_colour */
+    if (!name_s) { u16 ts = g_rw(GV_shop_names_seg); name_o = rw(ts, (u16)(0x207f + 4 * shop)); name_s = rw(ts, (u16)(0x207f + 4 * shop + 2)); }   /* F_290e_207f[shop] */
+    g_ww(GV_barter_name, name_o); g_ww(GV_barter_name + 2, name_s);
+    g_ww(GV_barter_cats, cats_lo); g_ww(GV_barter_cats + 2, cats_hi);
+    s_int(GV_barter_shop, shop);
+    if (shop < 0 || shop >= 9) s_int(GV_barter_quality, 25);
+    else { u16 co = g_rw(GV_city_rec), cs = g_rw(0x9787);                /* city_rec */ s_int(GV_barter_quality, cs ? (s8)rb(cs, (u16)(co + 0x62 + shop)) : 25); }
+    if (shop == -2) s_int(GV_barter_quality, 10);
+    for (int r = 0; r < 5; r++) { s_int((u16)(GV_barter_side + 2 * r), 1); s_int((u16)(GV_barter_item_count + 2 * r), 0); s_int((u16)(GV_barter_item_top + 2 * r), 0); s_int((u16)(GV_barter_item_cur + 2 * r), 0); }
+    s_int(GV_barter_nwares, 0); s_int(GV_barter_ware_top, 0); s_int(GV_barter_ware_cur, 0);
+    ns_call(GF_screen_hold, 0);
+    ns_call(GF_barter_draw, 5, lead, name_o, name_s, cats_lo, cats_hi);   /* today's stock (and the original's picture, unseen) */
+    ns_call(GF_screen_release, 0);
     if (ns_unwinding) return;
     memset(barter_model.note, 0, sizeof barter_model.note);
     build();
     barter_model.open = 1;
+    fprintf(stderr, "shop: open (shop %d, %d wares)\n", shop, barter_model.nwares);
     ns_screen = NS_BARTER;
     ns_clear();
     ns_input_begin();
@@ -196,24 +184,24 @@ void barterview_run(void)
         if (ns_in.click && ns_in.cx < 0x3c) {                 /* a portrait: the member's sheet, as the original */
             ns_take_click(&cx, &cy);
             ns_nested = 1;
-            ns_call(31, 0x1462, 0x0124, 1, cy / 40);
+            ns_call(GF_member_sheet, 1, cy / 40);
             ns_nested = 0;
             if (ns_unwinding) break;
-            g_ww(0x9c46, 1);
+            g_ww(GV_party_icons_dirty, 1);
             ns_input_begin();
         }
-        if (g_rw(0x9c46)) {                                   /* party_icons_dirty */                                   /* the party changed (a member's sheet ...) */
-            g_ww(0x9c46, 0);
-            ns_call(-1, 0x0000, 0x1588, 1, 0x100); ns_call(-1, 0x0000, 0x1716, 1, 0x100);
+        if (g_rw(GV_party_icons_dirty)) {                                   /* party_icons_dirty */                                   /* the party changed (a member's sheet ...) */
+            g_ww(GV_party_icons_dirty, 0);
+            ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100);
             build();
         }
-        if (ns_call(-1, 0x047c, 0x073d, 0)) {                 /* keys: Esc / L leave, B the next member, Alt-Q */
-            int k = (u16)ns_call(-1, 0x047c, 0x0744, 0);
+        if (ns_call(GF_key_pressed, 0)) {                 /* keys: Esc / L leave, B the next member, Alt-Q */
+            int k = (u16)ns_call(GF_get_key, 0);
             if (k == 0x11b || k == 0x264c || k == 0x266c) leave = 1;
-            else if (k == 0x3042 || k == 0x3062) { int m = (s16)g_rw(B_WHO); for (int t = 1; t <= 5; t++) if (gm_member_present((m + t) % 5)) { set_who((m + t) % 5); break; } build(); }
+            else if (k == 0x3042 || k == 0x3062) { int m = (s16)g_rw(GV_barter_who); for (int t = 1; t <= 5; t++) if (gm_member_present((m + t) % 5)) { set_who((m + t) % 5); break; } build(); }
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;   /* (the mouse wheel comes as Up / Down) */
             else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
-            else if (k == 0x1000) { ns_call(-1, 0x0000, 0x13a0, 0); }
+            else if (k == 0x1000) { ns_call(GF_quit_to_dos, 0); }
             else if (k >= 0x5e00 && k <= 0x6200 && !(k & 0xff)) { set_payer((k >> 8) - 0x5e); build(); }
         }
         NsAction a;
@@ -230,9 +218,10 @@ void barterview_run(void)
         if (ns_unwinding) break;
     }
     barter_model.open = 0;
+    fprintf(stderr, "shop: closed\n");
     ns_screen = NS_NONE;
     if (ns_unwinding) return;
-    AX = (u16)ns_call(32, 0x1462, 0x076c, 2, -1, shop);       /* fonts and leader back */
+    AX = (u16)ns_call(GF_barter_close, 2, -1, shop);       /* fonts and leader back */
     hook_return_far(0);
 }
 

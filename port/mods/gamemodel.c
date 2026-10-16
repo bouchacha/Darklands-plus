@@ -46,6 +46,15 @@ int gm_item_equipped(int m, int i)
     return 0;
 }
 
+int gm_knows_formula(int m, int f)            /* a byte per potion, a bit per formula of it */
+{
+    return m >= 0 && m < 5 && f >= 0 && f < 66 && ((rb(G_FAR2E38, (u16)(0x07be + m * 22 + f / 3)) >> (f % 3)) & 1);
+}
+int gm_knows_saint(int m, int s)              /* 0x14 bytes each, highest bit first */
+{
+    return m >= 0 && m < 5 && s >= 0 && s < 160 && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)));
+}
+
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
 void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
 int gm_itemdef_weight(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x25)) : 0; }

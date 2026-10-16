@@ -22,8 +22,8 @@ typedef struct {
     int load, capacity;
     int nitems;
     SvItem item[64];
-    unsigned char formulas[22];   /* known formulae, bit f % 3 of byte f / 3 (DARKLAND.ALC order) */
-    unsigned char saints[20];     /* known saints, bit 0x80 >> (s & 7) of byte s >> 3 */
+    unsigned char formula[66];    /* known formulae (DARKLAND.ALC order) */
+    unsigned char saint[160];     /* known saints (DARKLAND.LST order) */
     unsigned seq;
     char note[160];
     unsigned note_t;

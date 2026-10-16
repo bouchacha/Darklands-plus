@@ -36,8 +36,8 @@ struct SheetView {
     int what = 0, which = -1; unsigned seq = 0;
     int give_row = -1, drop_row = -1; unsigned act_seq = 0;      /* a row asking "to whom?" / "sure?" */
 } V;
-bool knows_formula(const SheetModel &s, int f) { return f >= 0 && f / 3 < 22 && ((s.formulas[f / 3] >> (f % 3)) & 1); }
-bool knows_saint(const SheetModel &s, int t) { return t >= 0 && t < 160 && (s.saints[t >> 3] & (0x80 >> (t & 7))); }
+bool knows_formula(const SheetModel &s, int f) { return f >= 0 && f < 66 && s.formula[f]; }
+bool knows_saint(const SheetModel &s, int t) { return t >= 0 && t < 160 && s.saint[t]; }
 }
 
 extern "C" int sheetview_showing(void) { return ns_screen == NS_SHEET && sheet_model.open && !ns_hidden(); }

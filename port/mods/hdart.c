@@ -31,6 +31,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "hdart.h"
 #include "hdtext.h"
@@ -1011,18 +1012,18 @@ void hdart_init(void)
     hdart_on = config_get_int("display.hd_art", 1);
     hdart_show_names = config_get_int("display.art_names", 0);
     hdart_rescan();
-    hook_install(-1, 0x0617, 0x01b2, h_pic_draw);
-    hook_install(-1, 0x0617, 0x04e2, h_pic_open);
-    hook_install(-1, 0x0617, 0x0546, h_pic_mem);
-    hook_install(-1, 0x0617, 0x045c, h_pic_load);
+    hook_install(GF_pic_draw, h_pic_draw);
+    hook_install(GF_pic_draw_open, h_pic_open);
+    hook_install(GF_pic_draw_mem, h_pic_mem);
+    hook_install(GF_pic_load, h_pic_load);
     hook_install(-1, 0x047c, 0x054c, h_row);
     hook_install(-1, 0x047c, 0x05bc, h_sprite_begin);
     hook_install(-1, 0x047c, 0x05b5, h_sprite_row);
-    hook_install(-1, 0x047c, 0x04d5, h_save_rect);
-    hook_install(-1, 0x047c, 0x05a5, h_draw_pic);
-    hook_install(-1, 0x047c, 0x0553, h_copy);
-    hook_install(-1, 0x047c, 0x04ef, h_draw_sprite);
-    hook_install(14, 0x0e76, 0x3d2c, h_sprite_file);
+    hook_install(GF_gfx_save_rect, h_save_rect);
+    hook_install(GF_gfx_draw_pic, h_draw_pic);
+    hook_install(GF_gfx_copy_rect, h_copy);
+    hook_install(GF_gfx_draw_sprite, h_draw_sprite);
+    hook_install(GF_sprite_file_load, h_sprite_file);
     if (getenv("DL_THUNK_LOG")) thunk_probe();
     if (getenv("DL_ART_MAKE")) { char d[64]; snprintf(d, sizeof d, "PICS\\%s.PIC", getenv("DL_ART_MAKE")); const char *r = hdart_virtual_file(d); fprintf(stderr, "art make: %s\n", r ? r : "(none)"); }
 }
