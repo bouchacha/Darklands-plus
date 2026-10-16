@@ -42,32 +42,32 @@ void plat_mouse_game(int *x, int *y);
 void dl_poll(void);
 
 /* the card engine's variables (DGROUP) */
-#define A_CARD_WIN    0x017c
-#define A_SCREEN      0x0118
-#define A_COMBAT_CLK  0x07d4
-#define A_MOUSE_BTN   0x6ef0
+#define A_CARD_WIN    GV_card_window
+#define A_SCREEN      GV_screen_ptr
+#define A_COMBAT_CLK  GV_combat_clock
+#define A_MOUSE_BTN   GV_mouse_buttons
 #define A_MENUS       0x9419
-#define A_ICONS_DIRTY 0x9c46
+#define A_ICONS_DIRTY GV_party_icons_dirty
 #define A_9C4C        0x9c4c
 #define A_CONDS       0x9c30          /* char[]: conditional text parts shown (01..13) */
-#define A_MSG_BUF     0x9085
+#define A_MSG_BUF     GV_msg_buf
 #define A_8DDE        0x8dde          /* a choice was clicked */
 #define A_8DDC        0x8ddc
-#define A_MENUBAR_ON  0xa2e3          /* the menu bar is open */
-#define A_PALETTE     0xe48c
+#define A_MENUBAR_ON  GV_menu_bar_active          /* the menu bar is open */
+#define A_PALETTE     GV_cur_palette
 #define A_E898        0xe898          /* 0 text, 1 option list, 2 option list faded (for 13f2) */
 #define A_PICNAME     0xee5b
 #define A_TEXTCOL     0xee59          /* 0 dark text, 15 light text (a picture whose name starts with x) */
 #define A_E959        0xe959          /* text block shown */
 #define A_EE55        0xee55          /* the picture's palette is not set yet */
 #define A_LAYOUT      0xe96e          /* struct layout: n, highlight, w, x, y[20], h[20], en[20], opt[20], kind[20] */
-#define A_HILITE      0xe96f
-#define A_OPT_ON      0xe99c
+#define A_HILITE      GV_menu_highlight
+#define A_OPT_ON      GV_opt_on
 #define A_EE41        0xee41
 #define A_EE42        0xee42
-#define A_MENU_MEMBER 0xee6c
-#define A_MENU_SLOT   0xee6a
-#define A_MENU_POPUP  0xee6e
+#define A_MENU_MEMBER GV_menu_member
+#define A_MENU_SLOT   GV_menu_slot
+#define A_MENU_POPUP  GV_menu_popup
 #define A_ED6C        0xed6c
 #define A_BLK_X       0xe8d9          /* int[25] */
 #define A_BLK_Y       0xe90b          /* u8[26] */
@@ -76,8 +76,8 @@ void dl_poll(void);
 #define A_POPUP_LAY   0xea64          /* struct layout of the pop-up; its +0xa6 = D_eb0a: the handlers per slot */
 #define A_POP_ITEMS   0xeb5a          /* the items' and the saints' pop-up layouts (+0xa6: item_fn / saint_fn) */
 #define A_POP_SAINTS  0xec50
-#define A_CARD_ITEMS  0xee43
-#define A_CARD_SAINTS 0xee4b
+#define A_CARD_ITEMS  GV_card_items
+#define A_CARD_SAINTS GV_card_saints
 
 /* ---------------------------------------------------------------- calling the game */
 #define ROOT (-1)

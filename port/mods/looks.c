@@ -67,11 +67,11 @@ void dos_host_path_read(const char *dos, char *out, size_t outn);
 #define D_FIGCUR    0xe7e0
 #define D_SELCHAR   0xe7da      /* the character under the cursor (creation menus) */
 #define D_CHARIDS   0x8d06      /* s038: character index per list row */
-#define D_FIGURE    0xa668      /* char [5][4]: each party slot's figure */
+#define D_FIGURE    GV_member_shield      /* char [5][4]: each party slot's figure */
 #define D_PORTRAIT  0xe753      /* the portrait's colours = palette entries 0xeb..0xf2 (8 RGB) */
 #define D_GROUPS    0x1166      /* near char *[7]: sprite group per combatant kind */
-#define D_WEAPONS   0x1174      /* near char *[7]: weapon suffix per kind */
-#define D_CBT       0x9c55      /* combatants [13] x 0x80; +0x16 kind */
+#define D_WEAPONS   GV_anim_file      /* near char *[7]: weapon suffix per kind */
+#define D_CBT       GV_combatants      /* combatants [13] x 0x80; +0x16 kind */
 #define D_FRAMES    0xc908      /* s8 [slot]: frames per direction of the loaded sprite file */
 #define F_PALETTE   0x33fc      /* far 20a5: member palettes [5][24] */
 #define G_FAR20A5   ((u16)(LOADSEG + 0x20a5))

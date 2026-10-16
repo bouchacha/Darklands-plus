@@ -22,13 +22,13 @@
 #include "barterview.h"
 #include "lootview.h"
 
-#define L_CUR   0x8dc4
-#define L_N     0x8dbc
-#define L_PILE  0x8db6
-#define L_SIDE  0x4c10
-#define L_PTOP  0x4c24
-#define L_PSEL  0x4c38
-#define L_FLOOR 0xa6b4
+#define L_CUR   GV_loot_who
+#define L_N     GV_loot_n
+#define L_PILE  GV_loot_pile
+#define L_SIDE  GV_loot_side
+#define L_PTOP  GV_loot_pile_top
+#define L_PSEL  GV_loot_pile_sel
+#define L_FLOOR GV_cbt_floor
 
 int loot_active;                         /* the loot screen's loop is running */
 void ui_notice(const char *msg);
@@ -231,10 +231,10 @@ static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen dr
  * the purse lasts). s032 state (DGROUP): 884e the person bartering, 8842[5] 1 = the cursor in
  * the merchant's list, 885e[5] + 8852[5] the cursor in the person's list, 8838[5] the
  * person's number of items. Barter key handler: s032 1462:0f60. */
-#define B_WHO  0x884e
-#define B_SIDE 0x8842
-#define B_TOP  0x885e
-#define B_SEL  0x8852
+#define B_WHO  GV_barter_who
+#define B_SIDE GV_barter_side
+#define B_TOP  GV_barter_item_cur
+#define B_SEL  GV_barter_item_top
 
 int barter_active;
 static u32 purse(void) { return ((u32)g_rw(G_MONEY) << 20) ^ ((u32)g_rw(G_MONEY + 2) << 10) ^ g_rw(G_MONEY + 4); }

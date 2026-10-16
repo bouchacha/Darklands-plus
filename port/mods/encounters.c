@@ -48,49 +48,49 @@ void ui_notice(const char *);
 #define NOPT       10
 
 /* engine variables (DGROUP, include/darklands/card.h) */
-#define V_NEXT_CARD   0xe48a
-#define V_CARD_NAME   0xe3d4
-#define V_PIC_BUF     0xe3e3
-#define V_PIC_BUF2    0xe95f
-#define V_CARD_WIN    0x017c
-#define V_CARD_WIN2   0x0154
-#define V_OPT_BLOCK   0xee53
-#define V_MSG_BUF     0x9085
-#define V_OPT_ON      0xe99c
-#define V_OPT_FN      0xea14
-#define V_OPT_FLAG    0xee76
-#define V_CARD_ITEMS  0xee43
-#define V_CARD_SAINTS 0xee4b
-#define V_ITEM_FN     0xec00
-#define V_SAINT_FN    0xecf6
-#define V_MENU_MEMBER 0xee6c
-#define V_MENU_SLOT   0xee6a
-#define V_MENU_POPUP  0xee6e
-#define V_MSG_BLOCKS  0xe8a5        /* char: the text blocks of the card loaded (msg_blocks) */
+#define V_NEXT_CARD   GV_next_card
+#define V_CARD_NAME   GV_card_name
+#define V_PIC_BUF     GV_pic_buf
+#define V_PIC_BUF2    GV_pic_buf2
+#define V_CARD_WIN    GV_card_window
+#define V_CARD_WIN2   GV_card_window2
+#define V_OPT_BLOCK   GV_options_block
+#define V_MSG_BUF     GV_msg_buf
+#define V_OPT_ON      GV_opt_on
+#define V_OPT_FN      GV_opt_fn
+#define V_OPT_FLAG    GV_opt_flag_0
+#define V_CARD_ITEMS  GV_card_items
+#define V_CARD_SAINTS GV_card_saints
+#define V_ITEM_FN     GV_item_fn
+#define V_SAINT_FN    GV_saint_fn
+#define V_MENU_MEMBER GV_menu_member
+#define V_MENU_SLOT   GV_menu_slot
+#define V_MENU_POPUP  GV_menu_popup
+#define V_MSG_BLOCKS  GV_msg_blocks        /* char: the text blocks of the card loaded (msg_blocks) */
 #define V_IN_POPUP    0xee42        /* char: the pointer or the highlight is in the saints/items box */
-#define V_CHOSEN1     0xee8c
-#define V_MONEY1      0xee9c
-#define V_NUMBER1     0xed4c
-#define V_NUMBER2     0xed50
-#define V_ITEM        0xed5c
+#define V_CHOSEN1     GV_var_chosen1
+#define V_MONEY1      GV_var_money1
+#define V_NUMBER1     GV_var_number1
+#define V_NUMBER2     GV_var_number2
+#define V_ITEM        GV_var_item
 #define V_EE70        0xee70
 #define V_EE72        0xee72
-#define V_BEST_MEMBER 0x991d
+#define V_BEST_MEMBER GV_best_member
 #define V_CUR_CARD    0xa772
-#define V_PARTY_X     0xe3d0
-#define V_PARTY_Y     0xe3d2
+#define V_PARTY_X     GV_party_x
+#define V_PARTY_Y     GV_party_y
 #define V_TERRAIN     0xd843
-#define V_HOUR        0x00e0
-#define V_DAY         0x00e2
-#define V_MONTH       0x00e4
-#define V_YEAR        0x00e6
-#define S_NO_RISK     0x4f02
-#define S_SEL_POTION  0x4f0c
-#define S_SEL_SAINT   0x4f2a
-#define S_ASSURED     0x4f48
-#define S_POTION_OK   0x4f7a
-#define S_UNKNOWN     0x4f9a
-#define S_COMBAT      0x4fc0
+#define V_HOUR        GV_cur_hour
+#define V_DAY         GV_cur_day
+#define V_MONTH       GV_cur_month
+#define V_YEAR        GV_cur_year
+#define S_NO_RISK     GV_str_no_risk
+#define S_SEL_POTION  GV_str_select_potion
+#define S_SEL_SAINT   GV_str_select_saint
+#define S_ASSURED     GV_str_success_assured
+#define S_POTION_OK   GV_str_potion_works
+#define S_UNKNOWN     GV_str_unknown
+#define S_COMBAT      GV_str_enter_combat
 
 static int enc_log_on(void) { static int v = -1; if (v < 0) v = getenv("DL_ENC_LOG") != 0; return v; }
 #define LOG(...) do { if (enc_log_on()) fprintf(stderr, "encounters: " __VA_ARGS__); } while (0)

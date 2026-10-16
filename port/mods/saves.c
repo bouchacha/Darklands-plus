@@ -37,9 +37,9 @@ int saves_keep_quick = 3, saves_keep_auto = 3;
 void ui_notice(const char *msg);
 u32 plat_ticks_ms(void);
 
-#define D_SAVE_OK  0x9920        /* Save menu item: 1 enabled */
-#define D_LOAD_OK  0x9934        /* Load menu item: 1 enabled */
-#define D_IN_BATTLE 0x907a       /* 1 during a battle */
+#define D_SAVE_OK  GV_font_flag_a        /* Save menu item: 1 enabled */
+#define D_LOAD_OK  GV_font_flag_b        /* Load menu item: 1 enabled */
+#define D_IN_BATTLE GV_in_battle       /* 1 during a battle */
 #define D_SAVENAME 0xa680        /* "dksaveN.sav": the save last written or loaded */
 
 static const char *answer;       /* text_input's answer while we save */
