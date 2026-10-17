@@ -615,6 +615,9 @@ static void tab_helpers(void)
           if (ImGui::Checkbox("or, if none, the nearest town whose shops will have it", &wu)) { config_set_int("assist.where_sold_unvisited", wu); dirty_config = 1; } }
         ImGui::Unindent(UIS(34));
       } }
+    { bool bl = assist_best_leader != 0;
+      if (ImGui::Checkbox("The member best at it speaks for the party: a card's test of the leader is made by whoever does best, and the best charisma bargains in shops", &bl)) { assist_set_best_leader(bl); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("No more changing the leader for each talk, lore or haggle; the chance shown on the card is that member's and their name is beside it. The leader you chose is back after the card."); ImGui::Unindent(UIS(34)); }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
@@ -1308,6 +1311,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+    if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();

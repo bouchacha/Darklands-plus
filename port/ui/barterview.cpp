@@ -24,6 +24,7 @@
 #include <vector>
 extern "C" {
 #include "../mods/gamemodel.h"
+#include "../mods/assist.h"
 #include "money.h"
 }
 
@@ -82,7 +83,9 @@ extern "C" void barterview_draw(void)
     T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, q);
     {
         std::string purse = money(b.total_pf), who = b.payer >= 0 && b.payer < 5 ? gt(b.names[b.payer]) : "";
-        T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse (" + who + ")", 280);
+        int barg = assist_bargainer();                         /* (the best charisma bargains: mods/assist.c) */
+        if (assist_best_leader && barg >= 0 && barg < 5) T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse  -  " + gt(b.names[barg]) + " bargains", 280);
+        else T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse (" + who + ")", 280);
         T(f, NsDraw::FS_HEAD, 0, 9.5f, ink, purse, 280);
         bool h = in(mx, my, 284, 4, 315, 15);
         R(284, 4, 315, 15, h ? IM_COL32(140, 44, 24, 255) : IM_COL32(112, 40, 22, 235), 2);
@@ -119,6 +122,10 @@ extern "C" void barterview_draw(void)
             /* the purse: a gold coin on the tab of who holds it; a click on another tab's (faint) coin hands it over */
             bool coin_h = in(mx, my, x, 19, x + 7, 29);
             T(f, NsDraw::FS_NAME, x + 7.0f, 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
+            if (assist_best_leader) {                          /* the best charisma bargains, whoever holds the purse: no coins to hand over */
+                if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
+                x += tw; continue;
+            }
             if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.8f * k, IM_COL32(214, 172, 60, 255));
             else dl->AddCircle(g2w(x + 3.5f, 24), 1.8f * k, coin_h ? IM_COL32(214, 172, 60, 255) : sel ? IM_COL32(250, 236, 200, 110) : IM_COL32(120, 90, 40, 110), 0, fmaxf(1.0f, 0.4f * k));
             if (coin_h && m != b.payer) ImGui::SetTooltip("%s pays from now on", nm.c_str());
@@ -351,5 +358,6 @@ extern "C" void barterview_draw(void)
         sbx0 -= 3;
     } else sbx0 = 316;
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note), -1, sbx0);
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays", -1, sbx0);
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, assist_best_leader ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name: their things"
+                                              : "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays", -1, sbx0);
 }

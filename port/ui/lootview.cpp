@@ -13,6 +13,7 @@
 #include "../mods/lootview.h"
 #include "nsdraw.h"
 #include "../mods/gamemodel.h"
+#include "../mods/assist.h"
 #include "../runtime/config.h"
 #include "money.h"
 
@@ -37,7 +38,7 @@ static long sale_worth(int id, int qual)
     const ItemDef *d = ns_itemdef(id);
     if (!d || gm_itemdef_no_trade(id)) return 0;
     long price = (long)qual * (d->value / 4) * 2 / 25;
-    int cha = 25, mx = 25; gm_member_attr(gm_leader(), 5, &cha, &mx);
+    int cha = 25, mx = 25; gm_member_attr(assist_bargainer(), 5, &cha, &mx);    /* (who bargains: mods/assist.c) */
     price += price * (25 - cha) / -100;
     return price < 1 ? 0 : price;
 }

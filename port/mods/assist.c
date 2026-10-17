@@ -28,6 +28,61 @@ CardChances card_chances;
 int assist_chances = 2;            /* 0 off, 1 as the difficulty level allows, 2 always numbers */
 
 static int cm_depth, cm_dirty;
+
+/* ---- the best member speaks for the party (assist.best_leader, on by default). Many cards test
+ * the leader alone (member_skill(-1, ...), member_attr(-1, ...): the charisma and Speak Common of
+ * every talk, a perception, a lore ...), and shops price by the leader's charisma, so the
+ * original had the player change the leader for each. Here each option's chance is asked of
+ * every able member as leader (the evaluation below); the option chosen is played with the
+ * member who does best as leader, and the player's own leader is back at the next card or on
+ * the map. Prices are asked with the best charisma as leader (buy_price, sell_price). */
+int assist_best_leader = 1;
+static int saved_leader = -1;           /* the player's leader, while another speaks */
+static int leader_able(int m)
+{
+    if (m < 0 || m >= 5 || m >= (s16)g_rw(G_PARTY_SIZE)) return 0;
+    return g_rb((u16)(G_MEMBER(m) + G_M_STATUS)) == 1;
+}
+int assist_best_at_attr(int k)
+{
+    int cur = (s8)g_rb(G_LEADER), best = leader_able(cur) ? cur : -1, bv = best >= 0 ? (s8)g_rb((u16)(G_MEMBER(cur) + G_M_ATTR_CUR + k)) : -1000;
+    for (int m = 0; m < 5; m++) {
+        if (!leader_able(m)) continue;
+        int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
+        if (v > bv) { bv = v; best = m; }
+    }
+    return best >= 0 ? best : cur;
+}
+int assist_bargainer(void) { return assist_best_leader && !config_get_int("original", 0) ? assist_best_at_attr(5) : (s8)g_rb(G_LEADER); }
+void assist_leader_restore(void)
+{
+    if (saved_leader < 0) return;
+    if (leader_able(saved_leader)) g_wb(G_LEADER, (u8)saved_leader);
+    if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: leader %d again\n", saved_leader);
+    saved_leader = -1;
+}
+static void leader_for_choice(int sel)
+{
+    if (!assist_best_leader || !card_chances.active || config_get_int("original", 0)) return;
+    for (int i = 0; i < card_chances.n && i < 20; i++)
+        if (card_chances.line[i].opt == sel && card_chances.line[i].lead >= 0) {
+            int m = card_chances.line[i].lead;
+            if (!leader_able(m)) return;
+            if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
+            g_wb(G_LEADER, (u8)m);
+            if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party (leader %d)\n", sel, m, saved_leader);
+            return;
+        }
+}
+static void price_hook(void)            /* buy_price (k) / sell_price (k, qual), s032: by the best charisma */
+{
+    if (!assist_best_leader || config_get_int("original", 0)) { hook_call_original(); return; }
+    int cur = (s8)g_rb(G_LEADER), m = assist_best_at_attr(5);
+    if (m == cur) { hook_call_original(); return; }
+    g_wb(G_LEADER, (u8)m);
+    hook_call_original();
+    if (!unw_active) g_wb(G_LEADER, (u8)cur);
+}
 static u32 last_eval;
 static int last_leader = -1;
 
@@ -63,6 +118,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
         if (f) game_call_live(f, 11, args);
     }
+    assist_leader_restore();            /* (a new card: the player's leader again; asked anew below) */
     cm_depth++; cm_dirty = 1;
     void chronicle_capture(void), chronicle_choice(int);
     chronicle_capture();                 /* the text on show (ui/journal.cpp) */
@@ -71,6 +127,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         int cardview_unwinding(void);
         if (cardview_unwinding()) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }
         chronicle_choice(sel);
+        leader_for_choice(sel);
         cm_depth--;
         if (!cm_depth) card_chances.active = 0;
         AX = (u16)sel;
@@ -79,6 +136,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
     }
     hook_call_original();
     chronicle_choice((s16)AX);           /* and the option chosen */
+    leader_for_choice((s16)AX);
     cm_depth--;
     if (!cm_depth) card_chances.active = 0;
 }
@@ -97,6 +155,7 @@ static void evaluate(void)
     CardChances c;
     memset(&c, 0, sizeof c);
     c.n = n;
+    for (int i = 0; i < 20; i++) { c.line[i].opt = -1; c.line[i].lead = -1; }
     for (int i = 0; i < n; i++) {
         int opt = (s8)g_rb((u16)(GV_card_layout_opt + i)), kind = (s16)g_rw((u16)(GV_card_layout_kind + 2 * i));
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d/%d y %d opt %d kind %d on %d\n", i, n,
@@ -135,8 +194,26 @@ static void evaluate(void)
                 continue;
             }
         }
+        int lead = -1;
+        if (assist_best_leader && pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0)) {   /* each able member as leader */
+            int cur = (s8)g_rb(G_LEADER), bestp = pct, dep = 0;
+            for (int m = 0; m < 5; m++) {
+                if (m == cur || !leader_able(m)) continue;
+                g_wb(G_LEADER, (u8)m);
+                g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
+                u32 rm = game_call_ptr(seg, off, 0, 0, 0x5a);
+                eval_restore(snap);
+                if (game_call_timed_out) break;
+                int pm = (s16)(rm & 0xffff);
+                if (pm != pct) dep = 1;                                 /* (the leader's own check) */
+                if (pm > bestp) { bestp = pm; lead = m; }
+            }
+            if (dep) who = lead >= 0 ? lead : cur;                     /* the chance is that member's: their name beside it, not "all" */
+            if (lead >= 0) { if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% with %d as leader (%d%% with %d)\n", i, opt, bestp, lead, pct, cur); pct = bestp; }
+        }
         if (getenv("DL_ASSIST_LOG")) { int ovl_section_at(u32); fprintf(stderr, "assist: card %.12s line %d opt %d kind %d fn %04x:%04x (s%03d) -> %d%% member %d\n",
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }
+        c.line[i].opt = opt; c.line[i].lead = lead;
         if (pct >= 0) { c.line[i].show = 1; c.line[i].pct = pct > 100 ? 100 : pct; c.line[i].who = who; }
     }
     eval_free(snap);
@@ -149,7 +226,7 @@ static void evaluate(void)
 /* every poll of a card menu: the chances asked again when something may have changed */
 void assist_menu_poll(void)
 {
-    if (assist_chances && cm_depth && !g_rb(GV_card_box_pointer)) {
+    if ((assist_chances || assist_best_leader) && cm_depth && !g_rb(GV_card_box_pointer)) {
         u32 now = plat_ticks_ms();
         int lead = (s8)g_rb(G_LEADER);
         if (cm_dirty || lead != last_leader || now - last_eval > 1000) {
@@ -170,9 +247,11 @@ int assist_card_keys = 1;          /* number keys pick a card's options */
 static int assist_watching;        /* ui/citynav.cpp walks through card menus */
 static void card_hooks(void)
 {
-    if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
+    if (assist_chances || assist_card_help || assist_card_keys || assist_watching || assist_best_leader) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
     else { hook_remove(GF_card_menu, card_menu_hook); hook_remove(GF_card_mouse, card_mouse_hook); }
-    if (!assist_chances) card_chances.active = 0;
+    if (assist_best_leader) { hook_install(GF_buy_price, price_hook); hook_install(GF_sell_price, price_hook); }
+    else { hook_remove(GF_buy_price, price_hook); hook_remove(GF_sell_price, price_hook); assist_leader_restore(); }
+    if (!assist_chances && !assist_best_leader) card_chances.active = 0;
 }
 
 void assist_watch_cards(void) { if (!assist_watching) { assist_watching = 1; card_hooks(); } }
@@ -181,6 +260,13 @@ void assist_set_chances(int mode)
 {
     assist_chances = mode;
     config_set_int("assist.chances", mode);
+    card_hooks();
+}
+
+void assist_set_best_leader(int on)
+{
+    assist_best_leader = on;
+    config_set_int("assist.best_leader", on);
     card_hooks();
 }
 
@@ -233,5 +319,6 @@ void assist_init(void)
 {
     assist_card_help = config_get_int("assist.card_help", 1);
     assist_card_keys = config_get_int("assist.card_keys", 1);
+    assist_best_leader = config_get_int("assist.best_leader", 1);
     assist_set_chances(config_get_int("assist.chances", 2));
 }
