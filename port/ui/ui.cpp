@@ -563,6 +563,8 @@ static void tab_helpers(void)
     { bool wf = config_get_int("party.new_member_looks", 1) != 0;
       ImGui::Indent(UIS(34));
       if (ImGui::Checkbox("Each member added gets a look of their own", &wf)) { config_set_int("party.new_member_looks", wf); dirty_config = 1; }
+      { bool kl = config_get_int("party.keep_looks", 1) != 0;
+        if (ImGui::Checkbox("Characters keep their figure and colours when they join again (at an inn)", &kl)) { config_set_int("party.keep_looks", kl); dirty_config = 1; } }
       hint("The game gives everyone added the same figure (the tall man) in the same colours, so they are hard to tell apart in a battle. This gives a woman the woman figure and each member the next colours (Figure and Colours change them as before)."); ImGui::Unindent(UIS(34)); }
     { bool ni = infoview_is_on() != 0;
       if (ImGui::Checkbox("Party Info drawn by Darklands+: fame and its title, the time, where, the wealth, and the reputation in every city", &ni)) { infoview_set(ni); dirty_config = 1; }
