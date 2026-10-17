@@ -38,6 +38,8 @@ std::string money_with_total(long pf)
     return s;
 }
 
+extern "C" void money_cstr(long pf, char *out, size_t n) { snprintf(out, n, "%s", money_str(pf).c_str()); }
+
 std::string money_total(long pf)
 {
     char b[64]; snprintf(b, sizeof b, "%ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs)", pf, pf == 1 ? "" : "s");

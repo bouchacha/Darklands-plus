@@ -26,6 +26,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "barterview.h"
+#include "keep.h"
 
 BarterModel barter_model;
 static int bv_on = 1;
@@ -39,6 +40,7 @@ void barterview_set(int on) { bv_on = on; config_set_int("display.native_shops",
 static int g_side(int m) { return (s16)g_rw((u16)(GV_barter_side + 2 * m)); }
 static void s_int(u16 a, int v) { g_ww(a, (u16)v); }
 
+void money_cstr(long pf, char *out, size_t n);       /* ui/money.cpp */
 static void note(const char *t) { snprintf(barter_model.note, sizeof barter_model.note, "%s", t); barter_model.note_t = plat_ticks_ms(); fprintf(stderr, "shop: %s\n", t); }
 
 /* the model, from the game's variables; prices asked side-effect free (buy_price may draw a
@@ -58,7 +60,8 @@ static void build(void)
     int n = (s16)g_rw(GV_barter_nwares); if (n < 0) n = 0; if (n > 200) n = 200;
     b->nwares = n;
     int m = b->who, ni = gm_item_count(m);
-    b->nitems = ni;
+    int sheetview_shared(void);
+    b->shared = sheetview_shared();
     void *snap = eval_snapshot();
     for (int i = 0; i < n; i++) {
         BvWare *w = &b->ware[i];
@@ -70,13 +73,44 @@ static void build(void)
         eval_restore(snap);
         w->weight = gm_itemdef_weight(w->id);
     }
-    for (int i = 0; i < ni; i++) {
-        BvItem *it = &b->item[i];
+    b->nitems = 0;
+    for (int i = 0; i < ni; i++) {                       /* the member's things (shared: only those in use) */
         GmItem g; gm_item(m, i, &g);
-        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-        it->equipped = gm_item_equipped(m, i);
-        if (gm_itemdef_no_trade(g.id)) it->price = 0;
-        else { u16 a[2] = { (u16)g.id, (u16)g.qual }; it->price = (u16)game_call_link(GF_sell_price, 2, a); eval_restore(snap); }
+        int eq = gm_item_equipped(m, i);
+        if (b->shared && !eq) continue;
+        BvItem *it = &b->item[b->nitems++];
+        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared ? 1 : g.count; it->weight = g.weight;
+        it->equipped = eq; it->holder = m; it->kept = keep_is(g.id, g.qual);
+    }
+    if (b->shared) {                                      /* then the party's pack: every member's spares by kind and quality */
+        int first = b->nitems;
+        for (int h = 0; h < 5; h++) {
+            if (!gm_member_present(h) || gm_member_status(h) == 5) continue;
+            for (int i = 0; i < gm_item_count(h); i++) {
+                GmItem g; if (!gm_item(h, i, &g)) continue;
+                int spare = gm_item_spare(h, i);
+                if (spare <= 0) continue;
+                int k = first;
+                while (k < b->nitems && !(b->item[k].id == g.id && b->item[k].qual == g.qual)) k++;
+                if (k == b->nitems) {
+                    if (b->nitems >= 200) continue;
+                    BvItem *it = &b->item[b->nitems++];
+                    it->idx = -1; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 0; it->weight = g.weight;
+                    it->equipped = 0; it->holder = -1; it->kept = keep_is(g.id, g.qual);
+                }
+                b->item[k].count += spare;
+            }
+        }
+        for (int a = first + 1; a < b->nitems; a++) {
+            BvItem t = b->item[a]; int c = a - 1;
+            while (c >= first && (b->item[c].id > t.id || (b->item[c].id == t.id && b->item[c].qual < t.qual))) { b->item[c + 1] = b->item[c]; c--; }
+            b->item[c + 1] = t;
+        }
+    }
+    for (int k = 0; k < b->nitems; k++) {
+        BvItem *it = &b->item[k];
+        if (gm_itemdef_no_trade(it->id)) it->price = 0;
+        else { u16 a[2] = { (u16)it->id, (u16)it->qual }; it->price = (u16)game_call_link(GF_sell_price, 2, a); eval_restore(snap); }
     }
     eval_free(snap);
     b->seq++;
@@ -111,6 +145,7 @@ static void sell(int idx, int all)
     int m = (s16)g_rw(GV_barter_who), done = 0;
     GmItem first; if (!gm_item(m, idx, &first)) return;
     if (gm_itemdef_no_trade(first.id)) { note("The merchants of the Empire will not buy that."); return; }
+    if (keep_is(first.id, first.qual)) { note("Kept: not sold (unmark it on the character sheet first)."); return; }
     for (int t = 0; t < (all ? 255 : 1); t++) {
         GmItem g;
         if (!gm_item(m, idx, &g) || g.id != first.id || g.qual != first.qual) break;   /* the stack is gone */
@@ -123,6 +158,31 @@ static void sell(int idx, int all)
         done++;
     }
     char nm[32]; gm_itemdef_name(first.id, nm, sizeof nm);
+    char t[120];
+    if (!done) snprintf(t, sizeof t, "Not sold: this merchant pays nothing for it.");
+    else snprintf(t, sizeof t, "Sold %d %s.", done, nm);
+    note(t);
+}
+
+/* the pack's (id, q): sold from whoever carries a spare, one at a time, as that member's own sale */
+static void psell(int id, int q, int all)
+{
+    if (gm_itemdef_no_trade(id)) { note("The merchants of the Empire will not buy that."); return; }
+    if (keep_is(id, q)) { note("Kept: not sold (unmark it on the character sheet first)."); return; }
+    int who = (s16)g_rw(GV_barter_who), done = 0, h, i;
+    for (int t = 0; t < (all ? 999 : 1); t++) {
+        if (!gm_pack_find(who, id, q, &h, &i)) break;
+        s_int(GV_barter_who, h);
+        s_int((u16)(GV_barter_side + 2 * h), 0); s_int((u16)(GV_barter_item_top + 2 * h), i); s_int((u16)(GV_barter_item_cur + 2 * h), 0);
+        s_int((u16)(GV_barter_item_count + 2 * h), gm_item_count(h));
+        long before = purse();
+        key(0x1f53);
+        s_int(GV_barter_who, who);
+        if (ns_unwinding) return;
+        if (purse() == before) break;
+        done++;
+    }
+    char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[120];
     if (!done) snprintf(t, sizeof t, "Not sold: this merchant pays nothing for it.");
     else snprintf(t, sizeof t, "Sold %d %s.", done, nm);
@@ -210,16 +270,21 @@ void barterview_run(void)
             switch (a.type) {
             case BV_BUY: buy(a.a, a.b > 0 ? a.b : 1); break;
             case BV_SELL: sell(a.a, a.b == 255); break;
+            case BV_PSELL: psell(a.a, a.b, a.c == 255); break;
             case BV_WHO: set_who(a.a); break;
             case BV_PAYER: set_payer(a.a); break;
             case BV_LEAVE: leave = 1; break;
-            case BV_BATCH_START: batch_purse = purse(); batch_items = gm_item_count((s16)g_rw(GV_barter_who)); batch = 1; break;
+            case BV_BATCH_START: batch_purse = purse(); batch_items = 0; for (int h = 0; h < 5; h++) if (gm_member_present(h)) batch_items += gm_item_count(h); batch = 1; break;
             case BV_BATCH_END: {
                 batch = 0;
                 long got = purse() - batch_purse;
                 char t[120];
                 if (got <= 0) snprintf(t, sizeof t, "Nothing sold: this merchant pays nothing for those things.");
-                else snprintf(t, sizeof t, "Sold the spare gear (%d kinds of things) for %ldfl %ldgr %ldpf.", batch_items - gm_item_count((s16)g_rw(GV_barter_who)), got / 240, got % 240 / 12, got % 12);
+                else {
+                    int now = 0; for (int h = 0; h < 5; h++) if (gm_member_present(h)) now += gm_item_count(h);
+                    char mo[64]; money_cstr(got, mo, sizeof mo);
+                    snprintf(t, sizeof t, "Sold the spare gear (%d kinds of things) for %s.", batch_items - now, mo);
+                }
                 note(t);
                 break;
             }

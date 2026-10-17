@@ -596,7 +596,11 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34)); hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
     { bool sv = sheetview_is_on() != 0;
       if (ImGui::Checkbox("Character sheets drawn by Darklands+: the paper doll, the things with Ready, Unequip, Drink and Drop, the skills on one page, the party's saints and formulae", &sv)) { sheetview_set(sv); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
+      ImGui::Indent(UIS(34)); hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet.");
+      if (sv) { bool sp = config_get_int("inventory.shared", 1) != 0;
+        if (ImGui::Checkbox("One pack for the whole party: a member keeps only what they use; Ready or Drink takes from the party's pack, shops sell from it", &sp)) { config_set_int("inventory.shared", sp); dirty_config = 1; }
+        hint("Who carries a spare thing no longer matters (the pack weighs nothing; only what is in use counts for the load). Before a battle each archer, crossbowman and gunner is handed their arrows, quarrels or balls. Keep marks a thing never to be sold or dropped."); }
+      ImGui::Unindent(UIS(34)); }
     { bool lv = lootview_is_on() != 0;
       if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen.");

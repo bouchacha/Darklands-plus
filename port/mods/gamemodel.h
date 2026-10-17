@@ -46,6 +46,10 @@ int gm_item_count(int m);                         /* records (kinds of things) *
 int gm_item(int m, int i, GmItem *out);           /* 0 if none */
 int gm_item_equipped(int m, int i);               /* in hand, worn or ready (the member's equipment slots) */
 int gm_room_for(int m, int id, int qual);         /* one more fits: a free record (64 at most) or one it stacks onto */
+/* the shared pack (inventory.shared): a member's spares of record i (its count, less the one in use);
+   who carries a spare (id, qual) - `prefer` first, else whoever has the most - 0 if nobody */
+int gm_item_spare(int m, int i);
+int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out);
 
 /* what a member knows (far data 2e38): formulae (DARKLAND.ALC order, 3 per potion), saints
  * (DARKLAND.LST order) */

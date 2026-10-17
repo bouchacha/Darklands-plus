@@ -47,6 +47,30 @@ int gm_item_equipped(int m, int i)
     return 0;
 }
 
+int gm_item_spare(int m, int i)
+{
+    GmItem g;
+    if (!gm_item(m, i, &g)) return 0;
+    return g.count - (gm_item_equipped(m, i) ? 1 : 0);
+}
+int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out)
+{
+    int bm = -1, bi = -1, bs = 0;
+    for (int m = 0; m < 5; m++) {
+        if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+        for (int i = 0; i < gm_item_count(m); i++) {
+            GmItem g; if (!gm_item(m, i, &g) || g.id != id || g.qual != qual) continue;
+            int spare = gm_item_spare(m, i);
+            if (spare <= 0) continue;
+            if (m == prefer) { *m_out = m; *i_out = i; return 1; }
+            if (spare > bs) { bs = spare; bm = m; bi = i; }
+        }
+    }
+    if (bm < 0) return 0;
+    *m_out = bm; *i_out = bi;
+    return 1;
+}
+
 int gm_knows_formula(int m, int f)            /* a byte per potion, a bit per formula of it */
 {
     return m >= 0 && m < 5 && f >= 0 && f < 66 && ((rb(G_FAR2E38, (u16)(0x07be + m * 22 + f / 3)) >> (f % 3)) & 1);

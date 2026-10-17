@@ -24,6 +24,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "sheetview.h"
+#include "keep.h"
 
 SheetModel sheet_model;
 int sheetview_dragging;
@@ -31,6 +32,7 @@ static int sv_on = 1;
 u32 plat_ticks_ms(void);
 
 int sheetview_is_on(void) { return sv_on; }
+int sheetview_shared(void) { return config_get_int("inventory.shared", 1) && !config_get_int("original", 0); }
 void sheetview_set(int on) { sv_on = on; config_set_int("display.native_sheet", on); }
 
 
@@ -95,13 +97,49 @@ static void build(int who)
     s->load_band = gm_member_load_band(who);
     GmEquip e; gm_member_equip(who, &e);
     s->weapon = e.weapon; s->vital = e.vital; s->limb = e.limb; s->shield = e.shield; s->missile = e.missile;
-    s->nitems = gm_item_count(who);
-    for (int i = 0; i < s->nitems; i++) {
-        GmItem g; gm_item(who, i, &g);
-        SvItem *it = &s->item[i];
-        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-        it->equipped = gm_item_equipped(who, i);
-        it->drinkable = drinkable(g.id);
+    s->shared = sheetview_shared();
+    s->nitems = 0;
+    if (!s->shared) {
+        s->nitems = gm_item_count(who);
+        for (int i = 0; i < s->nitems && i < 64; i++) {
+            GmItem g; gm_item(who, i, &g);
+            SvItem *it = &s->item[i];
+            it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+            it->equipped = gm_item_equipped(who, i);
+            it->drinkable = drinkable(g.id);
+            it->holder = who; it->kept = keep_is(g.id, g.qual);
+        }
+    } else {
+        /* the member's things in use, then the party's pack: every member's spares by kind and quality */
+        for (int i = 0; i < gm_item_count(who); i++) {
+            GmItem g; if (!gm_item(who, i, &g) || !gm_item_equipped(who, i)) continue;
+            SvItem *it = &s->item[s->nitems++];
+            it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 1; it->weight = g.weight;
+            it->equipped = 1; it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual);
+        }
+        int first = s->nitems;
+        for (int m = 0; m < 5; m++) {
+            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+            for (int i = 0; i < gm_item_count(m); i++) {
+                GmItem g; if (!gm_item(m, i, &g)) continue;
+                int spare = g.count - (gm_item_equipped(m, i) ? 1 : 0);
+                if (spare <= 0) continue;
+                int k = first;
+                while (k < s->nitems && !(s->item[k].id == g.id && s->item[k].qual == g.qual)) k++;
+                if (k == s->nitems) {
+                    if (s->nitems >= 200) continue;
+                    SvItem *it = &s->item[s->nitems++];
+                    it->idx = -1; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 0; it->weight = g.weight;
+                    it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = -1; it->kept = keep_is(g.id, g.qual);
+                }
+                s->item[k].count += spare;
+            }
+        }
+        for (int a = first + 1; a < s->nitems; a++) {           /* (by kind in the game's list order, then the better first) */
+            SvItem t = s->item[a]; int b = a - 1;
+            while (b >= first && (s->item[b].id > t.id || (s->item[b].id == t.id && s->item[b].qual < t.qual))) { s->item[b + 1] = s->item[b]; b--; }
+            s->item[b + 1] = t;
+        }
     }
     memcpy(s->saint_class, saint_cls, sizeof s->saint_class);
     s->nsaints = saint_cls_n;
@@ -128,10 +166,88 @@ static Snap snap(int who, int idx)
 }
 static int changed(Snap a, Snap b) { return a.n != b.n || a.cnt != b.cnt || a.eq != b.eq || a.load != b.load; }
 
+static int pack_holder(int prefer, int id, int q, int *m_out, int *i_out) { return gm_pack_find(prefer, id, q, m_out, i_out); }
+static int record_of(int m, int id, int q, int unequipped_first)
+{
+    int any = -1;
+    for (int i = 0; i < gm_item_count(m); i++) {
+        GmItem g; if (!gm_item(m, i, &g) || g.id != id || g.qual != q) continue;
+        if (!unequipped_first || !gm_item_equipped(m, i) || g.count > 1) return i;
+        any = i;
+    }
+    return any;
+}
+/* one of the pack's (id, q) in member w's hands: their record of it, -1 if it could not be handed over */
+static int pack_fetch(int w, int id, int q, const char *nm, char *t, size_t tn)
+{
+    int h, i;
+    if (!pack_holder(w, id, q, &h, &i)) { snprintf(t, tn, "No %s is left in the pack.", nm); return -1; }
+    if (h != w) {
+        if (gm_item_count(w) >= 64 && record_of(w, id, q, 0) < 0) { snprintf(t, tn, "%s cannot carry another kind of thing.", sheet_model.names[w]); return -1; }
+        ns_call(GF_give_one, 4, h, w, i, 9);
+        if (ns_unwinding) return -1;
+    }
+    int r = record_of(w, id, q, 1);
+    if (r < 0) snprintf(t, tn, "The %s could not be handed to %s.", nm, sheet_model.names[w]);
+    return r;
+}
+
 static void act(const NsAction *a, int *who)
 {
     int w = *who, idx = a->a;
     GmItem g; char nm[32] = "", t[160];
+    if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP) {
+        int id = a->a, q = a->b;
+        item_name(id, nm, sizeof nm);
+        switch (a->type) {
+        case SV_KEEP:
+            keep_set(id, q, a->c);
+            snprintf(t, sizeof t, a->c ? "The %s is kept: not sold or dropped until you unmark it." : "The %s may be sold and dropped again.", nm);
+            break;
+        case SV_PREADY: {
+            int r = pack_fetch(w, id, q, nm, t, sizeof t);
+            if (ns_unwinding) return;
+            if (r < 0) break;
+            Snap s0 = snap(w, r);
+            ns_call(GF_item_ready, 2, w, r);
+            if (ns_unwinding) return;
+            if (changed(s0, snap(w, r))) snprintf(t, sizeof t, "%s takes up the %s.", sheet_model.names[w], nm);
+            else snprintf(t, sizeof t, "The %s cannot be readied.", nm);
+            break; }
+        case SV_PDRINK: {
+            if (!drinkable(id)) return;
+            int r = pack_fetch(w, id, q, nm, t, sizeof t);
+            if (ns_unwinding) return;
+            if (r < 0) break;
+            ns_call(GF_use_potion, 2, w, r);
+            if (ns_unwinding) return;
+            ns_call(GF_item_take_one, 2, w, r);
+            snprintf(t, sizeof t, "%s drinks the %s.", sheet_model.names[w], nm);
+            break; }
+        case SV_PDROP: {
+            if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is kept (unmark it first).", nm); break; }
+            int want = a->c == 255 ? 9999 : 1, done = 0, h, i;
+            while (done < want && pack_holder(-1, id, q, &h, &i)) {
+                GmItem g2; gm_item(h, i, &g2);
+                int spare = g2.count - (gm_item_equipped(h, i) ? 1 : 0);
+                if (!gm_item_equipped(h, i) && want - done >= g2.count) { ns_call(GF_item_remove_stack, 2, h, i); done += g2.count; }
+                else { ns_call(GF_item_take_one, 2, h, i); done++; }
+                if (ns_unwinding) return;
+                (void)spare;
+            }
+            SheetModel *s = &sheet_model;
+            if (done) {
+                if (s->ndrops == 16) { memmove(&s->drops[0], &s->drops[1], 15 * sizeof s->drops[0]); s->ndrops--; }
+                SvDrop *d = &s->drops[s->ndrops++];
+                d->id = id; d->qual = q; d->count = done; snprintf(d->name, sizeof d->name, "%s", nm);
+            }
+            snprintf(t, sizeof t, done > 1 ? "Left behind: the %s (%d). Undo takes them back." : "Left behind: a %s. Undo takes it back.", nm, done);
+            break; }
+        }
+        if (ns_unwinding) return;
+        note(t);
+        return;
+    }
     if (a->type != SV_WHO && a->type != SV_LEADER && a->type != SV_CLOSE && a->type != SV_UNDO) {
         if (!gm_item(w, idx, &g)) return;
         item_name(g.id, nm, sizeof nm);
@@ -188,6 +304,7 @@ static void act(const NsAction *a, int *who)
         break; }
     case SV_DROP: {
         SheetModel *s = &sheet_model;
+        if (keep_is(g.id, g.qual)) { snprintf(t, sizeof t, "The %s is kept (unmark it first).", nm); break; }
         int n = a->b == 255 ? g.count : 1;
         if (a->b == 255) ns_call(GF_item_remove_stack, 2, w, idx); else ns_call(GF_item_take_one, 2, w, idx);
         if (ns_unwinding) return;

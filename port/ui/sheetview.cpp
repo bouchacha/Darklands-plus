@@ -17,6 +17,7 @@
  *   pointer with its effect, mystic number and risk, its ingredients against what the party
  *   carries, and each alchemist's chance with one batch. */
 #include "imgui.h"
+#include "../runtime/config.h"
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -160,6 +161,32 @@ static void header(NsDraw &P, const SheetModel &s)
     P.rect(62, 20.3f, 318, 20.7f, IM_COL32(120, 80, 36, 110));
 }
 
+/* what the load does, for this member now (the game's rules: member_eff_attr2 and the band, s029
+   0e76:013a, for the tests on cards; to_hit_roll and attack_rate, s014 18bf, in melee) */
+static std::string load_effects(const SheetModel &s)
+{
+    int L = s.load, cap = s.attr[0] + s.attr[1], capm = s.attr_max[0] + s.attr_max[1], agl = s.attr[2], m = 5 * capm / 4;
+    auto part = [](int l, int c, int a, bool one) -> std::pair<int, const char *> {
+        if (l <= c / 2) return { a, "in full" };
+        if (l <= c) return { 2 * a / 3, "two thirds" };
+        if (l <= 3 * c / 2) return { a / 3, "a third" };
+        return { one ? 1 : 0, one ? "as 1" : "not at all" };
+    };
+    auto card = part(L, cap, agl, true), def = part(L, m, agl, false);
+    const char *swing = (L > capm / 2 && L <= capm) ? "a little slower (the attack rate falls)" : L > 3 * capm / 2 ? "much slower (the attack rate falls a lot)" : "at the usual pace";
+    char b[900];
+    snprintf(b, sizeof b,
+             "Load %d: the weight of what %s has in use (weapons, armour, shield). Spare things in the pack weigh nothing.\n"
+             "Against Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, then overloaded.\n\n"
+             "Now:\n"
+             "- Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d).\n"
+             "- Fending off blows in melee: Agility counts %s (%d).\n"
+             "- Swinging in melee: %s.\n\n"
+             "Travel, walking in a battle, missiles and Endurance are not affected by the load.",
+             L, ns_gtext(s.names[s.who]).c_str(), cap, cap / 2, cap, 3 * cap / 2, agl, card.second, card.first, def.second, def.first, swing);
+    return b;
+}
+
 static void doll(NsDraw &P, const SheetModel &s)
 {
     const GamePic *g = gamepic_layers(doll_layers(s), "PICS\\ARMBACK.PIC");
@@ -176,6 +203,12 @@ static void doll(NsDraw &P, const SheetModel &s)
     P.rect(100, 194.6f, 100 + 60 * f, 196.4f, c, 0.6f);
     P.rect(100 + 60 / 3.0f, 194.2f, 100 + 60 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
     P.rect(100 + 120 / 3.0f, 194.2f, 100 + 120 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
+    if (P.over(62, 191.5f, 198, 198) && config_get_int("assist.shop_info", 1)) {   /* what the load does */
+        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(ImGui::GetFontSize() * 26, FLT_MAX));
+        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 25);
+        ImGui::TextUnformatted(load_effects(s).c_str());
+        ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+    }
 }
 
 /* the strip at the bottom right: what the pointer is on */
@@ -194,6 +227,8 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         l1 += ", weight " + std::to_string(it.weight);
         if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
         if (it.equipped) l1 += "; in use";
+        else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
+        if (it.kept) l1 += "; kept (not sold or dropped)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
         std::string l2 = ns_item_line(it.id);
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
@@ -215,7 +250,9 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
     } else if (V.what == 5 && V.which >= 0 && V.which < 7) {
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ATTR[V.which]) + 0.5f;
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which));
-    } else if (V.tab == TAB_THINGS)
+    } else if (V.tab == TAB_THINGS && s.shared)
+        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. The pack is the whole party's: Ready or Drink hands the thing to this member first. Keep marks a thing never to be sold or dropped. The load (bottom left) counts only what is in use.");
+    else if (V.tab == TAB_THINGS)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. Drag a thing onto someone at the left to give it to them (Shift: just one of a stack). Another member at the left shows their sheet; Esc or Close goes back.");
     else P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an attribute or a skill to see what it does.");
     if (s.note[0] && plat_ticks_ms() - s.note_t < 6000) {
@@ -250,7 +287,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         V.drag_row = -1;
         if (ns_in.px >= RX0 && ns_in.px < RX1 - 40 && ns_in.py >= LY0 && ns_in.py < LY1) {
             int r = (int)((ns_in.py - LY0) / ROWH) + sc;
-            if (r >= 0 && r < n && rows[r] >= 0) V.drag_row = rows[r];
+            if (r >= 0 && r < n && rows[r] >= 0 && s.item[rows[r]].holder >= 0) V.drag_row = rows[r];   /* (the shared pack's rows are nobody's to give) */
         }
     }
     if (V.drag_row >= 0 && ns_in.down && !V.dragging && (abs(ns_in.x - ns_in.px) + abs(ns_in.y - ns_in.py)) > 4) { V.dragging = true; sheetview_dragging = 1; }
@@ -264,8 +301,9 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, i == -1 ? "In use" : "Carried");
-            P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, i == -1 ? "In use" : "Carried") + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
+            const char *hd = i == -1 ? "In use" : s.shared ? "The party's pack" : "Carried";
+            P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
+            P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
         }
         const SvItem &it = s.item[i];
@@ -276,7 +314,12 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         std::string nm = ns_item_name(it.id);
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         const ItemDef *d = ns_itemdef(it.id);
-        float name_end = (h || busy) ? RX1 - 40 : RX1 - 2;
+        float name_end = (h || busy) ? RX1 - 59 : RX1 - 2;
+        if (it.kept) {                                     /* kept from selling and dropping: a small seal at the right */
+            float kx = (h || busy) ? RX1 - 61 : RX1 - 4;
+            P.dl->AddCircleFilled(NsDraw::w(kx, y + ROWH * 0.5f), 1.5f * P.k, IM_COL32(150, 40, 24, 230));
+            name_end -= 4;
+        }
         P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end);
         if (shows_quality(d, it.qual)) {
             char qs[16]; snprintf(qs, sizeof qs, "q%d", it.qual);
@@ -286,13 +329,22 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (!(h || busy)) continue;
         /* the actions */
         bool gear = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);
-        float x = RX1 - 39;
-        if (it.drinkable) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) ns_push(SV_DRINK, i, 0, 0); }
+        bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
+        float x = RX1 - 58;
+        if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, i, 0, 0); } }
         else if (it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, i, 0, 0); }
-        else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_READY, i, 0, 0); }
+        else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, i, 0, 0); } }
         x += 19;
-        if (busy) {
-            if (P.button(x, y + 1, x + 18, y + ROWH - 1, P.shift || it.count == 1 ? "Sure?" : "One?", IM_COL32(150, 30, 18, 255), 4.4f)) { ns_push(SV_DROP, i, P.shift ? 255 : 1, 0); V.drop_row = -1; }
+        if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
+        if (P.over(x, y + 1, x + 18, y + ROWH - 1)) ImGui::SetTooltip("%s", it.kept ? "Kept from selling and dropping (Sell spare gear passes it by). A click: no longer kept."
+                                                                               : "Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again.");
+        x += 19;
+        if (it.kept) P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(170, 150, 130, 200), 4.4f);   /* (greyed: kept) */
+        else if (busy) {
+            if (P.button(x, y + 1, x + 18, y + ROWH - 1, P.shift || it.count == 1 ? "Sure?" : "One?", IM_COL32(150, 30, 18, 255), 4.4f)) {
+                if (pack) ns_push(SV_PDROP, it.id, it.qual, P.shift ? 255 : 1); else ns_push(SV_DROP, i, P.shift ? 255 : 1, 0);
+                V.drop_row = -1;
+            }
         } else if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(120, 44, 24, 235), 4.4f)) { V.drop_row = i; V.act_seq = s.seq; }
     }
     if (n > NROWS) {

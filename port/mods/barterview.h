@@ -7,7 +7,9 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, weight, price; } BvWare;
-typedef struct { int idx, id, type, qual, count, weight, price, equipped; } BvItem;
+typedef struct { int idx, id, type, qual, count, weight, price, equipped, holder, kept; } BvItem;
+/* (holder: the member carrying it; -1 the party's pack (inventory.shared): every member's spares of
+   that kind and quality, idx -1, sold from whoever carries them) */
 
 typedef struct {
     int open;                 /* the shop is on screen */
@@ -22,8 +24,9 @@ typedef struct {
     long total_pf;
     int nwares;
     BvWare ware[200];
+    int shared;               /* the party's pack instead of the member's things */
     int nitems;
-    BvItem item[64];
+    BvItem item[200];
     unsigned seq;             /* changes with the model */
     char note[160];           /* the last action's outcome */
     unsigned note_t;
@@ -31,7 +34,8 @@ typedef struct {
 
 extern BarterModel barter_model;
 
-enum { BV_BUY = 1, BV_SELL, BV_WHO, BV_PAYER, BV_LEAVE, BV_BATCH_START, BV_BATCH_END };
+enum { BV_BUY = 1, BV_SELL, BV_WHO, BV_PAYER, BV_LEAVE, BV_BATCH_START, BV_BATCH_END, BV_PSELL };
+/* BV_PSELL item id, quality, 255 = all the pack's spares: sold from whoever carries them */
 /* BV_BUY ware n   BV_SELL item n (n = 255: the whole stack)   BV_WHO member   BV_PAYER member   BV_LEAVE
    BV_BATCH_START / BV_BATCH_END: round several sales, one word on them all at the end */
 
