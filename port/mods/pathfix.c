@@ -363,22 +363,14 @@ void pathfix_set(int party, int enemies)
  * routine counts it up faster; the rest of the timer routine (sound, other clocks) runs as
  * before. */
 int battle_speed = 100;                  /* percent */
-int battle_fast;                         /* fast forward (Z in a battle, battle.fast_key): BATTLE_FAST_PCT while on */
 static int clock_acc;
 static void timer_hook(void)
 {
     hook_call_original();
-    int sp = battle_fast ? BATTLE_FAST_PCT : battle_speed;
-    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", sp, g_rb(GV_pause_depth), game_mode(), g_rw(GV_combat_clock)); }
-    if (game_mode() != GM_BATTLE) battle_fast = 0;              /* (a battle's fast forward ends with it) */
-    if (sp <= 100 || g_rb(GV_pause_depth) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
-    clock_acc += sp - 100;
+    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", battle_speed, g_rb(GV_pause_depth), game_mode(), g_rw(GV_combat_clock)); }
+    if (battle_speed <= 100 || g_rb(GV_pause_depth) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
+    clock_acc += battle_speed - 100;
     while (clock_acc >= 100) { clock_acc -= 100; g_ww(GV_combat_clock, (u16)(g_rw(GV_combat_clock) + 1)); }
-}
-static void timer_hook_set(void)
-{
-    if (battle_speed > 100 || battle_fast) hook_install(-1, 0x047c, 0x000a, timer_hook);
-    else hook_remove(-1, 0x047c, 0x000a, timer_hook);
 }
 
 void battle_speed_set(int pct)
@@ -387,13 +379,8 @@ void battle_speed_set(int pct)
     if (pct > 400) pct = 400;
     battle_speed = pct;
     config_set_int("battle.speed", pct);
-    timer_hook_set();
-}
-void battle_fast_set(int on)
-{
-    battle_fast = on && game_mode() == GM_BATTLE;
-    fprintf(stderr, "battle: fast forward %s\n", battle_fast ? "on" : "off");
-    timer_hook_set();
+    if (pct > 100) hook_install(-1, 0x047c, 0x000a, timer_hook);
+    else hook_remove(-1, 0x047c, 0x000a, timer_hook);
 }
 
 void pathfix_init(void)

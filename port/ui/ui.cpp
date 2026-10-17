@@ -345,10 +345,6 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
-    /* Z in a battle: fast forward (mods/pathfix.c) */
-    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_z && !e->key.repeat
-        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && game_mode() == GM_BATTLE && !ns_showing()
-        && config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) { battle_fast_set(!battle_fast); return 1; }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
         && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
     if (open_goto) {
@@ -684,11 +680,10 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); dirty_config = 1; }
       if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); dirty_config = 1; } }
       if (lm) { bool lw = config_get_int("assist.level_map_walk", 1) != 0; ImGui::SameLine(); if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); dirty_config = 1; } } }
-    { bool sp = config_get_int("battle.shoot_past_allies", 1) != 0, ps = config_get_int("battle.potions_spare_party", 0) != 0;
+    { bool sp = config_get_int("battle.shoot_past_allies", 0) != 0;
       if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); dirty_config = 1; }
       hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
-      if (ImGui::Checkbox("Potions the party throws spare the party (clouds, Thunderbolt, Arabian Fire)", &ps)) { config_set_int("battle.potions_spare_party", ps); dirty_config = 1; }
-      hint("In the game a cloud or blast acts on everyone inside it, the party's own too. Stone-tar still slows whoever walks in it."); }
+    }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
@@ -702,8 +697,6 @@ static void tab_helpers(void)
             if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); dirty_config = 1; }
         }
         hint("Walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.");
-        bool fk = config_get_int("battle.fast_key", 1) != 0;
-        if (ImGui::Checkbox("Z in a battle: fast forward (six times the pace), Z again back to this speed", &fk)) { config_set_int("battle.fast_key", fk); if (!fk) battle_fast_set(0); dirty_config = 1; }
     }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
@@ -1242,7 +1235,6 @@ static void help_window(void)
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
-            if (!original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
             { extern int ui_battle_log; if (ui_battle_log && !original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");

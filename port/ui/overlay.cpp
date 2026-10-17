@@ -1420,20 +1420,6 @@ static void draw_creation_guide(void)
 }
 
 extern "C" void travelmap_labels(void);
-/* fast forward in a battle (Z, mods/pathfix.c): a badge at the field's top right */
-static void draw_battle_fast(void)
-{
-    if (!battle_fast || game_mode() != GM_BATTLE || ns_showing()) return;
-    ImDrawList *dl = ovl_list();
-    const char *t = "\xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z)";
-    ImFont *f = ImGui::GetFont(); float fs = ImGui::GetFontSize();
-    ImVec2 ts = f->CalcTextSizeA(fs, 1e9f, 0, t), r = g2w(318, 2);
-    if (!f->FindGlyphNoFallback(0x25b6)) { t = ">> fast forward  (Z)"; ts = f->CalcTextSizeA(fs, 1e9f, 0, t); }
-    ImVec2 a(r.x - ts.x - fs * 0.8f, r.y), b(r.x, r.y + ts.y + fs * 0.35f);
-    dl->AddRectFilled(a, b, IM_COL32(40, 24, 12, 210), fs * 0.25f);
-    dl->AddText(f, fs, ImVec2(a.x + fs * 0.4f, a.y + fs * 0.17f), IM_COL32(250, 230, 180, 255), t);
-}
-
 extern "C" void ui_overlay(void)
 {
     {   /* a layer for the panels and badges over the picture: under the tooltips (windows), above the crisp text */
@@ -1455,7 +1441,6 @@ extern "C" void ui_overlay(void)
     draw_shop_info();
     draw_battle_bars();
     draw_battle_info();
-    draw_battle_fast();
     { void battlelog_overlay(void); battlelog_overlay(); }
     if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */
     draw_loot_buttons();
