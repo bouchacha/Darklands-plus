@@ -18,6 +18,11 @@ static const CardHint FIXED[] = {
     { "$SELEC01", 2, "Needs the bribe in your purse; not for two days after a guard recognised you, nor for a day after guards spotted you sneaking at the wall." },
     { "$REVOL14", 4, "Needs a rope, and not after you have waited a day and come back to the walls." },
     { "$CITYW02", 0, "Needs a rope." },
+    { "$CITYW04", 2, "" },                      /* (the climb: never greyed) */
+    { "$CITYW04", 3, "" },
+    { "$CITYW04", 4, "Not for about three weeks after a sewer grate here defeated you." },
+    { "$CITYW04", 5, "" },
+    { "$CITYW04", 8, "Not for two days after a guard refused your bribe here, nor if you cannot pay it." },
 };
 extern "C" int fix_is_on(const char *id);
 
@@ -26,7 +31,7 @@ extern "C" const char *card_hint(const char *card, int opt)
     if (!card || !*card) return nullptr;
     if (fix_is_on("cardopts"))
         for (const CardHint &h : FIXED)
-            if (h.opt == opt && !strcasecmp(h.card, card)) return h.why;
+            if (h.opt == opt && !strcasecmp(h.card, card)) return *h.why ? h.why : nullptr;
     for (const CardHint &h : HINTS)
         if (h.opt == opt && !strcasecmp(h.card, card)) return h.why;
     return nullptr;

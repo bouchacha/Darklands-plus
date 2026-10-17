@@ -136,7 +136,7 @@ Fix FIXES[] = {
     { "teachers", "Training at the inn finds the town's teachers",
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
     { "cardopts", "Card options greyed by mistake",
-      "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; and climbing a wall after the guards counted only the last member's rope.", 1 },
+      "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step).", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -649,10 +649,12 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
 /* ---------------------------------------------------------------- cardopts */
 int fix_is_on(const char *id) { for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, id)) return FIXES[i].on && !config_get_int("original", 0); return 0; }
 static int gcall(int sect, u16 seg, u16 off, int n, u16 a0, u16 a1) { u16 a[2] = { a0, a1 }; return (s16)game_call_far(sect, seg, off, n, a); }
+static void w04_options(void);
 void fixes_card_opts(void)                  /* before a card's option list is shown: its opt_on[] put right */
 {
     if (!fix_is_on("cardopts")) return;
     char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+    if (!strcasecmp(nm, "$CityW04") && (s16)rw(SS, (u16)(SP + 4)) == 0) { w04_options(); return; }     /* (its option list, block 0) */
     int c = !strcasecmp(nm, "$Selec01") ? 1 : !strcasecmp(nm, "$Revol14") ? 2 : !strcasecmp(nm, "$CityW02") ? 3 : 0;
     if (!c) return;
     int rope = gcall(GF_count_items, 2, (u16)-2, 0x3b) > 0;
@@ -669,6 +671,40 @@ void fixes_card_opts(void)                  /* before a card's option list is sh
     }
     if (getenv("DL_FIX_LOG")) { int ch = 0; for (int i = 0; i < 8; i++) ch |= o[i] != g_rb((u16)(GV_opt_on + i)); if (ch) fprintf(stderr, "fix cardopts: %s options put right\n", nm); }
 }
+/* $CityW04 (the wall by an old sally port, s073 1a7e): its script knows seven options (0 rope, 1
+   climb, 2 sewer grate, 3 alchemy, 4 saint, 5 bribe, 6 sneak back) but its text has ten lines, with
+   three "abandon the horses" variants the script never handles; the game numbers the lines in
+   order, so from the second line on each line runs the next one's option (and lines 7-9 run
+   nothing). Put right: the horse variants hidden, each line given its own option (shown, chance,
+   choice), and the choice handed back to the script as its own number. */
+static const int W04_LINE[10] = { 0, -1, 1, -1, 2, -1, 3, 4, 5, 6 };   /* line -> the script's option */
+static u16 w04_fn[7][2]; static int w04_active;
+static void w04_menu_hook(void)             /* card_menu (win, win2): the line chosen -> the script's option */
+{
+    hook_call_original();
+    if (!w04_active) return;
+    w04_active = 0;
+    for (int i = 0; i < 7; i++) { g_ww((u16)(GV_opt_fn + 4 * i), w04_fn[i][0]); g_ww((u16)(GV_opt_fn + 4 * i + 2), w04_fn[i][1]); }
+    int line = (s16)AX;
+    if (line >= 0 && line < 10 && W04_LINE[line] >= 0) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardopts: $CityW04 line %d is option %d\n", line, W04_LINE[line]);
+        AX = (u16)W04_LINE[line];
+    }
+}
+static void w04_options(void)
+{
+    static int hooked;
+    if (!hooked) { hook_install(GF_card_menu, w04_menu_hook); hooked = 1; }      /* (installed last: it runs first, round the card view's) */
+    u8 on[7]; for (int i = 0; i < 7; i++) on[i] = g_rb((u16)(GV_opt_on + i));
+    for (int i = 0; i < 7; i++) { w04_fn[i][0] = g_rw((u16)(GV_opt_fn + 4 * i)); w04_fn[i][1] = g_rw((u16)(GV_opt_fn + 4 * i + 2)); }
+    for (int l = 0; l < 10; l++) {
+        int o = W04_LINE[l];
+        g_wb((u16)(GV_opt_on + l), o < 0 ? 0 : on[o]);
+        if (o >= 0) { g_ww((u16)(GV_opt_fn + 4 * l), w04_fn[o][0]); g_ww((u16)(GV_opt_fn + 4 * l + 2), w04_fn[o][1]); }
+    }
+    w04_active = 1;
+}
+
 static void cardopts_hook(void)             /* card_options (block) */
 {
     fixes_card_opts();
