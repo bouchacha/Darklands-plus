@@ -332,7 +332,7 @@ extern "C" void barterview_draw(void)
             const ItemDef *d = def(id);
             P.icon(70, SY0 + 8, 12.0f, id, qual);
             T(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, item_name(id));
-            std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
+            std::string l1 = std::string(d ? kind_name(d->kind) : "") + ns_quality_words(id, qual) + ", weight " + std::to_string(wt);
             if (L && b.item[i].count > 1) l1 += " each, " + std::to_string(b.item[i].count) + " of them";
             T(fo, NsDraw::FS_BODY, 79, SY0 + 10, ink_soft, l1);
             std::string l2 = ns_item_line(id);

@@ -152,7 +152,7 @@ extern "C" void lootview_draw(void)
         const ItemDef *d = ns_itemdef(id);
         P.icon(70, SY0 + 8, 12.0f, id, qual);
         P.text(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, ns_item_name(id));
-        std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
+        std::string l1 = std::string(d ? kind_name(d->kind) : "") + ns_quality_words(id, qual) + ", weight " + std::to_string(wt);
         if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";
         if (L && l.item[i].equipped) l1 += "; in use";
         if (L && l.item[i].kept) l1 += "; kept";

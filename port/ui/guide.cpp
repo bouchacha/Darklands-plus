@@ -11,7 +11,7 @@ void ui_guide_tab(void)
 {
     if (!config_get_int("guide.seen", 0)) { config_set_int("guide.seen", 1); config_save(); }     /* (the margin's hint is not needed any more) */
     ImGui::TextWrapped("Darklands has no tutorial: this is the short of it. Nothing here tells the story; it is the game's own rules, as Darklands+ "
-                       "reads them from the program. F1 at any moment lists the keys and clicks of that moment.");
+                       "reads them from the program. F1 at any moment lists the keys and clicks of that moment; a right click opens the menus, Darklands+'s own at the right end.");
     ImGui::Spacing();
     auto topic = [](const char *title, std::initializer_list<const char *> lines, bool open = false) {
         if (ImGui::CollapsingHeader(title, open ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
@@ -42,7 +42,7 @@ void ui_guide_tab(void)
         "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armourer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
         "Shops sell by quality: the higher a shop's rating, the better its wares (the right margin lists every shop of the town with its rating). Darklands+ compares a weapon or armour with what the member has now.",
         "Streets at night are dangerous, and gates may be closed: an inn is the safe place to wait for morning.",
-        "Merchants, officials and others give tasks; the left margin and F12 > Journal > Quests keep them with their places and time limits.",
+        "Merchants, officials and others give tasks; the left margin and F12 > Journal > Quests keep them with their places and time limits, each with a picture of its kind (the world map's legend lists them). A town that bars the party, or whose watch wants it, has a sign beside its name on the maps.",
     });
     topic("Healing and rest", {
         "At an inn, a member who relaxes or regains strength has full endurance again the next morning. Regain Strength adds the party's best Healing skill / 15 (at least 1) a day.",
@@ -54,6 +54,7 @@ void ui_guide_tab(void)
         "The ingredients are bought from pharmacists, herbalists and alchemists; the whole party's carried ingredients count. In such a shop, the Formulae button buys what a batch more needs.",
         "The chance of a batch: 100 + Intelligence + Alchemy - the formula's mystic number, lower when more batches are made at once. Mixing takes a day: Alchemy work at an inn or in camp.",
         "F12 > Alchemy lists every formula the party knows with its ingredients and chance.",
+        "A potion is as good as the formula that brewed it: each potion has three formulae, of grade 1, 2 and 3, and the dots on its flask (one, two or three) tell which. The description under a list says it too (\"grade 2 of 3\").",
     });
     topic("Saints", {
         "Saints are learned (at monasteries, universities and cathedrals, among others) and called upon with divine favor, in a card's options or from the menu. Each helps with something of their own.",

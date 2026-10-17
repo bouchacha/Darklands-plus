@@ -229,7 +229,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         const ItemDef *d = ns_itemdef(it.id);
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ns_item_name(it.id)) + 0.5f;
         std::string l1 = std::string(d ? kind_name(d->kind) : "");
-        if (shows_quality(d, it.qual)) l1 += ", quality " + std::to_string(it.qual);
+        if (shows_quality(d, it.qual)) l1 += ns_quality_words(it.id, it.qual);
         l1 += ", weight " + std::to_string(it.weight);
         if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
         if (it.equipped == 2) l1 += "; this member's mount";
