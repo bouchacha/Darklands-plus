@@ -1073,6 +1073,7 @@ static void welcome_window(void)
         ImGui::PushFont(font_head); ImGui::SeparatorText("Keys"); ImGui::PopFont();
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
         ImGui::BulletText("F1: the keys and clicks of the moment, the game's hidden ones too");
+        ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
         ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
         ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
         ImGui::Spacing();
