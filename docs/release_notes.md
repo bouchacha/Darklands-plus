@@ -50,6 +50,15 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **New encounters:** sixteen new wilderness encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): a mandrake under the gallows oak, a herb-wife, flagellants, a robber knight's bridge toll, the lord's deer and his huntsmen, kobolds at a mine, will-o'-the-wisps in the marsh, a procession of the dead, an overturned wagon that may be bait, a lost child, a relic seller, charcoal burners, grave robbers, a peasants' boar hunt, a camp of deserters and a knight's feud. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters, and they come up among them about as often as one of the game's own. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
 - **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds; mods switch on and off at once, sounds included. F12 > Mods makes a new mod folder with instructions.
 
+### Limits kept from the original
+
+These are part of the game's memory and of every saved game, so Darklands+ works within them rather than changing them (a change would break existing saves):
+
+- 64 kinds of thing per member, each kind a stack of up to 255 (with one pack for the party, that is 64 kinds for each member, and new things go to whoever has room);
+- 100 kinds of thing in a town's store room (more is refused, with a word why);
+- 20 kinds of throwing potion in a member's battle orders;
+- five members in the party.
+
 ### If something goes wrong
 
 Darklands+ writes `darklands_port.log` in the game folder; it says why a start failed. There is no official support: the project has been handed over to the community (fork it and carry on). Some antivirus programs distrust files a compiler has just made. If yours blocks `darklands_game.dll`, allow it; it is made from your own `DARKLAND.EXE` by the TinyCC in `darklands_plus\tcc`. On Linux and Steam Deck the Windows zip runs under Wine or Proton.
