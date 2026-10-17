@@ -30,6 +30,7 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs);
 
 int ui_margins_on = 1;
 
+extern "C" int levelmap_available(void);
 static const char *MONTHS[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
                                   "September", "October", "November", "December" };
 
@@ -218,7 +219,12 @@ static void battle_panel(float width, float fs)
         }
         shown++;
     }
-    if (!shown) ImGui::TextDisabled("None in sight yet.");
+    if (!shown) {
+        ImGui::TextDisabled("None in sight yet.");
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("To explore: click a door, a passage or stairs to walk the party there%s.", levelmap_available() ? "; Tab shows the level as far as seen" : "");
+        ImGui::PopStyleColor();
+    }
     else if (down == shown) {
         ImGui::TextDisabled("All down.");
         /* a fight in a street or a dungeon: the party stays there afterwards (combat_flags 1) and the
