@@ -154,7 +154,25 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
     if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, name_of(who) + shot_word(who) + " misses " + name_of(tgt));
     else { shot_by[tgt] = who; shot_t[tgt] = plat_ticks_ms(); }
 }
-extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); }
+/* a message in a member's box at the left (s021 1ef8:01e2 (row, colour): "Edged changed from 30 to
+ * 33" at the end of a battle, row = the member, -2 the whole panel), and the game waits for a key
+ * or a click. Where the party panel is drawn anew it covered them: the panel shows it in the
+ * member's box instead (partypanel_note), the log keeps it, and the game goes on at once. */
+extern "C" int partypanel_shown(void);
+extern "C" void partypanel_note(int row, const char *text, int good);
+static void sidemsg_hook(void)
+{
+    int row = (s16)rw(SS, (u16)(SP + 4)), colour = (s16)rw(SS, (u16)(SP + 6));
+    if (!partypanel_shown() || config_get_int("original", 0)) { hook_call_original(); return; }
+    char b[96]; g_str(G_DGROUP, GV_msg_buf, b, sizeof b);
+    std::string t = game_text(b, strlen(b));
+    partypanel_note(row, t.c_str(), colour != 12);
+    if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, name_of(row) + ": " + t);
+    else add(4, t);
+    fprintf(stderr, "side message (row %d): %s\n", row, t.c_str());
+    hook_return_far(0);
+}
+extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); }
 
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)

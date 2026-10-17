@@ -1393,17 +1393,17 @@ static int eligible(Enc *e, int t, long today)
     return 1;
 }
 
-static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(): the next card */
+/* the card after this step on the map: a new encounter instead of the game's own, or r. (Its
+ * conditions call the game (the daylight, an 'only' line ...), which changes AX: the card the
+ * loop returns is put back explicitly. It was not, and a step that brought no new encounter
+ * returned whatever the last of those calls left: card 0, the developers' test card (the game
+ * stopped on its missing picture), or card 1, a town gate's guards in the open country.) */
+static int choose(int r, int t)
 {
-    travel_step_result = -1;
-    hook_call_original();
-    if (unw_active) return;
-    int r = (s16)AX, t = (s16)g_rw(V_TERRAIN);
-    if (getenv("DL_OVERLAND_LOG")) fprintf(stderr, "overland: next %d (step %d)\n", r, travel_step_result);
     int region = 0;
     for (int i = 0; i < (int)(sizeof REGION_CARDS / sizeof REGION_CARDS[0]); i++) if (REGION_CARDS[i] == r) region = 1;
-    if (travel_step_result != 1000 || !region) return;
-    if (!encounters_offered()) return;
+    if (travel_step_result != 1000 || !region) return r;
+    if (!encounters_offered()) return r;
     install_cards();
     aborting = 0;
     long today = game_day();
@@ -1411,21 +1411,34 @@ static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(
     if (force_next >= 0 && force_next < nenc && encs[force_next].ok) { pick = force_next; force_next = -1; }
     else {
         int share = config_get_int("encounters.share", 100);
-        if (share <= 0) return;
+        if (share <= 0) return r;
         int T = table_size(t);
-        if (!T) return;
+        if (!T) return r;
         if (share > 1000) share = 1000;
         long long w[ENC_MAX], W = 0;
         for (int i = 0; i < nenc; i++) { w[i] = eligible(&encs[i], t, today) ? (long long)encs[i].weight * share : 0; W += w[i]; }
-        if (aborting || !W) return;
+        if (aborting || !W) return r;
         long long roll = (long long)(rng() % (unsigned long long)(T * 100LL + W));
         LOG("terrain %d: table %d, new weight %lld/100, roll %lld\n", t, T, W, roll);
-        if (roll >= W) return;
+        if (roll >= W) return r;
         for (int i = 0; i < nenc; i++) { if (roll < w[i]) { pick = i; break; } roll -= w[i]; }
     }
-    if (pick < 0) return;
+    if (pick < 0) return r;
     LOG("%s instead of card %#x\n", encs[pick].id, r);
-    AX = (u16)(ENC_BASE + encs[pick].slot);
+    return ENC_BASE + encs[pick].slot;
+}
+
+static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(): the next card */
+{
+    travel_step_result = -1;
+    hook_call_original();
+    if (unw_active) return;
+    int r = (s16)AX, t = (s16)g_rw(V_TERRAIN);
+    u16 dx = DX;
+    if (getenv("DL_OVERLAND_LOG")) fprintf(stderr, "overland: next %d (step %d)\n", r, travel_step_result);
+    int c = choose(r, t);
+    if (unw_active || aborting) return;
+    AX = (u16)c; DX = dx;
 }
 
 /* ================================================================ interface */

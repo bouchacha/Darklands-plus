@@ -42,6 +42,36 @@ extern "C" void partypanel_set_picture(int v) { pp_pic = v; config_set_int("disp
 extern "C" void partypanel_init(void) { pp_on = config_get_int("display.native_panel", 1); pp_pic = config_get_int("display.panel_picture", 0); }
 extern "C" int partypanel_shown(void) { return shown_now; }
 
+/* messages the game writes into a member's box (a skill grown at a battle's end): shown on the box
+ * for a while (battlelog.cpp takes them from the game) */
+struct PNote { std::string text; u32 t; bool good; };
+static std::vector<PNote> pnotes[6];                 /* [5]: the whole panel */
+extern "C" u32 plat_ticks_ms(void);
+extern "C" void partypanel_note(int row, const char *text, int good)
+{
+    int k = row >= 0 && row < 5 ? row : 5;
+    std::vector<PNote> &v = pnotes[k];
+    v.push_back({ text, plat_ticks_ms(), good != 0 });
+    if (v.size() > 3) v.erase(v.begin());
+}
+static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
+{
+    std::vector<PNote> &v = pnotes[k];
+    u32 now = plat_ticks_ms();
+    while (!v.empty() && now - v.front().t > 9000) v.erase(v.begin());
+    if (v.empty()) return;
+    float y = y1;
+    for (int i = (int)v.size() - 1; i >= 0; i--) {
+        const PNote &n = v[i];
+        float a = now - n.t > 8000 ? (9000 - (now - n.t)) / 1000.0f : 1.0f;
+        float h = P.fo->CalcTextSizeA(P.size(P.fo, 4.3f), FLT_MAX, (x1 - x0 - 4) * P.kx, n.text.c_str()).y / P.k + 2.4f;
+        if (y - h < y0) break;
+        y -= h;
+        P.rect(x0, y, x1, y + h - 0.4f, IM_COL32(24, 16, 8, (int)(225 * a)), 1.2f);
+        P.para(P.fo, 4.3f, x0 + 2, y + 1.0f, x1 - x0 - 4, n.good ? IM_COL32(250, 214, 110, (int)(255 * a)) : IM_COL32(240, 120, 100, (int)(255 * a)), n.text);
+    }
+}
+
 /* the game's panel is on the screen: the rope frames left and right of its boxes (three
  * browns, or cyan round the member a screen is about) */
 static bool frame_colour(u8 v)
@@ -252,5 +282,7 @@ extern "C" void partypanel_draw(void)
             if (cur > mx && mx > 0) P.text(P.fo, NsDraw::FS_SMALL, bx0 + P.width(P.fo, NsDraw::FS_SMALL, LBL[r]) + 0.8f, ry - 0.6f, GOLD, "+");
         }
         if (st == 5 || gm_member_elsewhere(m)) P.text(P.fo, NsDraw::FS_SMALL, 3.2f, y0 + 31.5f, GREY, st == 5 ? "away" : "elsewhere");
+        draw_notes(P, m, 1.6f, y0 + 9.0f, 58.4f, y0 + 38.4f);              /* (a skill grown ... over the box's lower part) */
     }
+    draw_notes(P, 5, 1.6f, 60.0f, 58.4f, 140.0f);
 }

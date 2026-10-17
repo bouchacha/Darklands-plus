@@ -85,6 +85,19 @@ def do(name, script):
         c = f[0]
         if c == 'wait':
             time.sleep(float(f[1]))
+        elif c == 'waitlog':                    # waitlog SECONDS REGEX: until the log shows a new line matching
+            import re
+            lim, rx = float(f[1]), re.compile(' '.join(f[2:]))
+            log = os.path.join(d, 'out.txt')
+            n0 = len(open(log, 'rb').read().split(b'\n'))
+            t_end = time.time() + lim
+            while time.time() < t_end:
+                lines = open(log, 'rb').read().split(b'\n')[n0 - 1:]
+                if any(rx.search(l.decode('latin-1')) for l in lines):
+                    break
+                time.sleep(0.2)
+            else:
+                print('waitlog: timed out on', rx.pattern)
         elif c == 'key':
             for k in f[1:]:
                 send(d, 'key:%s' % KEYMAP.get(k, k)); time.sleep(0.15)

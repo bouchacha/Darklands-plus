@@ -124,5 +124,8 @@ static inline bool ns_shows_quality(int id, int q)
 }
 /* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
 std::string ns_item_line(int id);
+/* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
+   lockpicks, instruments; goods nothing asks for), "" for others */
+std::string ns_item_use(int id);
 
 #endif

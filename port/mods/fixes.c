@@ -65,6 +65,14 @@
  *            -1 mend themselves.  *  testcard  Card 0 is the developers' test card ($Initi00), whose picture (pics\xhouse3.pic) the game
  *            does not have: a card that goes back to where it came from (prev_screen) went there
  *            when that was 0, and the game stopped. It now goes to the map or the town.
+ *  teachers  The lodging screen (s036 1462:0082) lists the town's teachers (kind 0x28 events) into
+ *            DS:8a38 with loops that walk every kind 0x28 event (event_next) but stop after as
+ *            many as this town has (s029 0e76:37e2) and number them all: when another town's
+ *            teachers come first in the table (two towns with teachers within their week), the
+ *            list is empty and DS:8a38 stale, Train (T) finds no teacher (event_find = -1) and
+ *            reads events[-1]: a cost of -4096 pfennigs ("Train or Study (-4096pfs)"), which
+ *            pays the party for training, and practice of some other skill. While that screen
+ *            runs, event_next(0x28, i) now returns only this town's teachers that have begun.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,6 +117,8 @@ Fix FIXES[] = {
       "A store room holds 100 kinds of things and its count of one thing ran over past 127 (shown as minus numbers, then lost). Putting more in is now refused with a word why.", 1 },
     { "testcard", "No stop on the developers' test card",
       "Card 0 is the developers' test card ($Initi00, \"Try it...you will like it!\"); a card that returns to the card it came from can go there when it came from none, and the game stops on its missing picture (pics\\xhouse3.pic). It now goes on to the map, or the town the party is in.", 1 },
+    { "teachers", "Training at the inn finds the town's teachers",
+      "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs: the party was paid for training, and a different skill was trained. The inn now lists this town's teachers and charges their fee.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -516,15 +526,49 @@ static void testcard_hook(void)            /* card 0 (), s044 1838:0000 */
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- teachers */
+static int lodging_open;
+static void teachers_lodging_hook(void)    /* the lodging screen, s036 1462:0082 */
+{
+    lodging_open = 1;
+    hook_call_original();
+    lodging_open = 0;
+}
+static int ev_started(u32 e)
+{
+    u16 s = (u16)(e >> 16), o = (u16)e;
+    int d[4][2] = { { (s16)rw(s, (u16)(o + 0x10)), (s16)g_rw(GV_cur_year) }, { (s16)rw(s, (u16)(o + 0x0e)), (s16)g_rw(GV_cur_month) },
+                    { (s16)rw(s, (u16)(o + 0x0c)), (s16)g_rw(GV_cur_day) }, { (s16)rw(s, (u16)(o + 0x0a)), (s16)g_rw(GV_cur_hour) } };
+    for (int k = 0; k < 3; k++) { if (d[k][0] > d[k][1]) return 0; if (d[k][0] < d[k][1]) return 1; }
+    return d[3][0] <= d[3][1];
+}
+static void teachers_next_hook(void)       /* event_next(k, i), s029 0e76:324c */
+{
+    int k = (s16)rw(SS, (u16)(SP + 4)), i = (s16)rw(SS, (u16)(SP + 6));
+    if (!lodging_open || k != 0x28 || i < 0) { hook_call_original(); return; }
+    int loc = (s16)g_rw(GV_cur_loc), r = -1;
+    for (; i < 300 && r < 0; i++) {
+        u32 e = ev_ptr(i);
+        if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + 0x22)) == 0x28 && (s16)rw(s, (u16)(o + 0x1c)) == loc && ev_started(e)) r = i;
+    }
+    if (r >= 0) g_ww(GV_last_event, (u16)r);
+    AX = (u16)r;
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
-    { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook } };
+    { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
+    { 36, 0x1462, 0x0082, teachers_lodging_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
-    { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook } };
+    { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
+    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook } };
 
 void fix_enable(int i, int on)
 {

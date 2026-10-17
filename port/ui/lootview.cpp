@@ -139,6 +139,8 @@ extern "C" void lootview_draw(void)
         P.text(fo, NsDraw::FS_BODY, 79, SY0 + 10, soft, l1);
         std::string l2 = ns_item_line(id);
         if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
+        std::string use = ns_item_use(id);
+        if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, soft, use);
     } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, "Point at a thing to see it here. Click a name above the right list (or D) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }
