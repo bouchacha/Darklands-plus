@@ -257,7 +257,8 @@ extern "C" void cardview_draw(void)
             float r = ns * 0.62f;
             dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
             dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
-        } else if (menu && greyed_hint(p)) {                         /* greyed, and why is known: a "?" where the number would be */
+        } else if (menu && (greyed_hint(p) || (assist_card_help && p.is_opt && p.state == 2 && (p.type == 1 || p.type == 2)))) {
+            /* greyed, and why is known (the card's own reason, or the saints or items nobody has): a "?" where the number would be */
             float ns = size * 0.72f;
             ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, "?");
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
