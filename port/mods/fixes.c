@@ -137,6 +137,8 @@ Fix FIXES[] = {
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
     { "cardopts", "Card options greyed by mistake",
       "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step).", 1 },
+    { "patronsaint", "Asking a cathedral about its patron saint teaches the saint",
+      "The answer was meant to teach the leader the saint, but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -711,13 +713,26 @@ static void cardopts_hook(void)             /* card_options (block) */
     hook_call_original();
 }
 
+/* $Cathe00's "ask about the patron saint" (s056 19c4:0952) calls set_member_bit (s029 0e76:1302,
+   (who, bit): saints_known[who] |= ...) with who -1, which other routines take for the leader but
+   this one does not */
+static void patron_hook(void)
+{
+    if ((s16)rw(SS, (u16)(SP + 4)) == -1) {
+        ww(SS, (u16)(SP + 4), (u16)g_rb(G_LEADER));
+        fprintf(stderr, "fix patronsaint: saint %u taught to the leader\n", rw(SS, (u16)(SP + 6)));
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
-    { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook } };
+    { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
+    { GF_set_member_bit, patron_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
