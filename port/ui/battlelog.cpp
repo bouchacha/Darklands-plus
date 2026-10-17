@@ -172,7 +172,7 @@ static void sidemsg_hook(void)
     fprintf(stderr, "side message (row %d): %s\n", row, t.c_str());
     hook_return_far(0);
 }
-extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); }
+extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
 
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)

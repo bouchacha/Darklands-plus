@@ -47,6 +47,8 @@ STEPS = [
     ('the menus (right click, Game)', 'at 200 100; rclick; wait 1; at 70 5; click; wait 1; wshot 13_menu; key Escape; wait 1', [r'.']),
     ('party info (Party menu, native)', 'ucmd umenu:3,0; wait 3; wshot 14_info; key Escape; wait 2', [r'party info: open', r'party info: closed']),
     ('marching order (Party menu, native)', 'ucmd umenu:3,1; wait 3; wshot 15_march; ucmd unspush:2,0; wait 1; ucmd unspush:3; wait 2', [r'marching order: open', r'marching order: closed \(set\)']),
+    ('a room at the inn (native lodging)', 'ucmd urand:7; ucmd ugoto:23; wait 18; key 3; wait 5; wshot 16_inn', [r'lodging: open']),
+    ('a day there, then leave', 'ucmd unspush:4; wait 6; wshot 17_day; ucmd unspush:6; wait 4', [r'lodging: closed \(1 days\)']),
 ]
 
 

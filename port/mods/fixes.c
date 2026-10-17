@@ -537,6 +537,7 @@ static void testcard_hook(void)            /* card 0 (), s044 1838:0000 */
 
 /* ---------------------------------------------------------------- teachers */
 static int lodging_open;
+void fixes_lodging(int open) { lodging_open = open; }      /* (the native lodging screen, which runs instead of the original) */
 static void teachers_lodging_hook(void)    /* the lodging screen, s036 1462:0082 */
 {
     lodging_open = 1;

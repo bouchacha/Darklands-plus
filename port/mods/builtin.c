@@ -149,6 +149,7 @@ void mods_init(void)
     { void rosterview_init(void); rosterview_init(); }
     { void infoview_init(void); infoview_init(); }
     { void marchview_init(void); marchview_init(); }
+    { void lodgeview_init(void); lodgeview_init(); }
     { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();
