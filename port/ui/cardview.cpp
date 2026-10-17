@@ -44,7 +44,18 @@ static const char *greyed_hint(const CvPiece &p)                  /* why this gr
 float ui_face_k(ImFont *f);                                   /* overlay.cpp */
 void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
 void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula);
-extern "C" int gm_knows_formula(int m, int f);
+extern "C" {
+#include "../mods/gamemodel.h"
+}
+void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
+void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
+/* the quality of member m's best thing id (-1 none): a potion's picture shows its grade by it */
+static int best_quality(int m, int id)
+{
+    int q = -1; GmItem it;
+    for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &it) && it.id == id && it.qual > q) q = it.qual;
+    return q;
+}
 
 /* a card that sells formulae ($Alche01: "the following formulas can be purchased"): its four
  * card_items are the potions, $Text1..4 the formulae's names, $Money1..4 their prices; the formula
@@ -333,15 +344,18 @@ extern "C" void cardview_draw(void)
                 ImU32 ec = !en.on || en.code == 0x83 ? ink_dim : en.code == 0x87 ? (dark ? IM_COL32(250, 210, 110, 255) : IM_COL32(150, 90, 0, 255)) : ink;
                 std::string et = gtext(en.text);
                 int ef = c.popup_kind == 2 ? -1 : cv_formula_of_slot(en.slot);
+                float isz = c.popup_kind == 2 ? 0 : size * 1.05f;     /* (an item's picture before it: a potion's with its grade) */
                 if (ef >= 0) {                                       /* (a formula on sale: its own name, and whether this member knows it) */
                     bool knows = gm_knows_formula(en.member, ef) != 0;
                     et = gamedata.formula_names[ef] + "  (" + cv_formula_price(en.slot) + ")";
                     if (knows) ec = ink_dim;
-                    float tx = ex + namew + 0.9f * size;
+                    ui_item_icon_tier(dl, ImVec2(ex + namew + 0.9f * size + isz * 0.5f, ey + 0.46f * h), isz, 95 + ef / 3, ef % 3 + 1);
+                    float tx = ex + namew + 0.9f * size + isz * 1.15f;
                     dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
                     if (knows) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, "knows it already");
                 } else {
                     float tx = ex + namew + 0.9f * size;
+                    if (isz > 0 && en.id >= 0) { ui_item_icon_q(dl, ImVec2(tx + isz * 0.5f, ey + 0.46f * h), isz, en.id, best_quality(en.member, en.id)); tx += isz * 1.15f; }
                     dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
                     /* why a line is there that cannot be chosen, or can without the thing (the game's colour codes) */
                     const char *why = en.code == 0x84 ? "knows its formula, carries none" :
