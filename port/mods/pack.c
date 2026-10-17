@@ -66,7 +66,36 @@ static void battle_hook(void)             /* run_battle (s029 0e76:2278) */
     hook_call_original();
 }
 
+/* a member who leaves the party at an inn (party_remove, s037 1462:3b58, from the inn's party
+   screen, s038 1462:0000) would take their share of the pack along: the spares go to those who
+   stay first. (Not when a new game's party is chosen: what each brings is their own.) */
+static int at_inn;
+static void inn_hook(void) { at_inn++; hook_call_original(); if (at_inn > 0) at_inn--; }
+static void leave_hook(void)              /* party_remove (p) */
+{
+    int p = (s16)rw(SS, (u16)(SP + 4));
+    if (at_inn && sheetview_shared() && p >= 0 && p < 5 && gm_member_present(p)) {
+        int moved = 0;
+        for (int i = gm_item_count(p) - 1; i >= 0 && !ns_unwinding; i--) {
+            GmItem g; if (!gm_item(p, i, &g)) continue;
+            int eq = gm_item_equipped(p, i), spare = g.count - (eq ? 1 : 0);
+            if (spare <= 0) continue;
+            int to = -1;                                    /* whoever stays and has room: a stack of the same, or a free record */
+            for (int m = 0; m < 5 && to < 0; m++) if (m != p && gm_member_present(m) && gm_member_status(m) != 5 && gm_room_for(m, g.id, g.qual)) to = m;
+            if (to < 0) break;
+            if (!eq) ns_call(GF_give_stack, 4, p, to, i, 9);
+            else for (int k = 0; k < spare && !ns_unwinding; k++) ns_call(GF_give_one, 4, p, to, i, 9);
+            moved += spare;
+        }
+        if (ns_unwinding) return;
+        if (moved) fprintf(stderr, "pack: member %d leaves; %d spare things stay in the pack\n", p, moved);
+    }
+    hook_call_original();
+}
+
 void pack_init(void)
 {
     hook_install(GF_run_battle, battle_hook);
+    hook_install(GF_party_remove, leave_hook);
+    hook_install(38, 0x1462, 0x0000, inn_hook);
 }
