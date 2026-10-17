@@ -17,11 +17,13 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "lootview.h"
+#include "keep.h"
 
 LootModel loot_model;
 static int lv_on = 1;
 u32 plat_ticks_ms(void);
 int loot_enabled(void);
+int sheetview_shared(void);
 
 int lootview_is_on(void) { return lv_on; }
 void lootview_set(int on) { lv_on = on; config_set_int("display.native_loot", on); }
@@ -49,24 +51,65 @@ static void build(void)
         l->pile[i].count = rb(pile_seg(), (u16)(o + 4));
         l->pile[i].weight = gm_itemdef_weight(l->pile[i].id);
     }
-    int m = l->who;
-    l->nitems = gm_item_count(m);
-    for (int i = 0; i < l->nitems; i++) {
-        GmItem g; gm_item(m, i, &g);
-        LvItem *it = &l->item[i];
-        it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-        it->equipped = gm_item_equipped(m, i);
+    l->shared = sheetview_shared();
+    if (l->shared) {                                          /* the party's pack: the spares of all, by kind and quality */
+        l->nitems = 0; l->room = 0;
+        for (int m = 0; m < 5; m++) {
+            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+            if (able(m) && gm_item_count(m) < 64) l->room = 1;
+            for (int i = 0; i < gm_item_count(m); i++) {
+                GmItem g; int spare = gm_item_spare(m, i);
+                if (spare <= 0 || !gm_item(m, i, &g)) continue;
+                int k = 0;
+                while (k < l->nitems && !(l->item[k].id == g.id && l->item[k].qual == g.qual)) k++;
+                if (k < l->nitems) { l->item[k].count += spare; continue; }
+                if (l->nitems >= 200) continue;
+                LvItem *it = &l->item[l->nitems++];
+                it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual);
+            }
+        }
+        for (int a = 1; a < l->nitems; a++)                   /* by kind, the better first */
+            for (int b = a; b > 0; b--) {
+                LvItem *x = &l->item[b - 1], *y = &l->item[b];
+                if (x->id < y->id || (x->id == y->id && x->qual >= y->qual)) break;
+                LvItem t = *x; *x = *y; *y = t;
+            }
+    } else {
+        int m = l->who;
+        l->nitems = gm_item_count(m);
+        for (int i = 0; i < l->nitems; i++) {
+            GmItem g; gm_item(m, i, &g);
+            LvItem *it = &l->item[i];
+            it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+            it->equipped = gm_item_equipped(m, i); it->kept = 0;
+        }
+        l->room = l->nitems < 64;
     }
-    l->room = l->nitems < 64;
     l->assist = loot_enabled();
     l->seq++;
 }
 
 static int key(int k) { return ns_call(GF_loot_key, 1, k); }
 
+/* whom a thing from the pile goes to in the shared pack: whoever carries some already (it stacks),
+   else whoever has the most free places (the member shown, on a tie); as Share out (mods/loot.c) */
+static int pack_target(int id, int q)
+{
+    int best = -1, bm = -1, cur = who_now();
+    for (int k = 0; k < 5; k++) {
+        if (!gm_member_present(k) || !able(k) || !gm_room_for(k, id, q)) continue;
+        int stacks = 0;
+        for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == (id & 0xfff) && g.qual == q && g.count < 255) stacks = 1; }
+        int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == cur);
+        if (score > best) { best = score; bm = k; }
+    }
+    return bm;
+}
+
 static void take(int i, int all)
 {
-    int m = who_now(), done = 0;
+    int m = who_now(), done = 0, shown = m, shared = sheetview_shared();
     if (i < 0 || i >= pile_n()) return;
     u16 o = pile_off(i);
     int id = rw(pile_seg(), o) & 0xfff, q = rb(pile_seg(), (u16)(o + 3));
@@ -75,7 +118,8 @@ static void take(int i, int all)
         if (i >= pile_n()) break;
         o = pile_off(i);
         if ((rw(pile_seg(), o) & 0xfff) != id || rb(pile_seg(), (u16)(o + 3)) != q) break;   /* (that entry is gone) */
-        if (!gm_room_for(m, rw(pile_seg(), o), q)) break;
+        if (shared) { m = pack_target(rw(pile_seg(), o), q); if (m < 0) break; g_ww(GV_loot_who, (u16)m); }
+        else if (!gm_room_for(m, rw(pile_seg(), o), q)) break;
         g_ww((u16)(GV_loot_side + 2 * m), 1); g_ww((u16)(GV_loot_pile_top + 2 * m), (u16)i); g_ww((u16)(GV_loot_pile_sel + 2 * m), 0);
         int before = pile_units();
         key(0x2247);
@@ -83,9 +127,39 @@ static void take(int i, int all)
         if (pile_units() >= before) break;
         done++;
     }
+    if (shared) g_ww(GV_loot_who, (u16)shown);
     char t[160];
-    if (done) snprintf(t, sizeof t, "%s takes %d %s.", loot_model.names[m], done, nm);
+    if (shared) {
+        if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
+        else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
+    }
+    else if (done) snprintf(t, sizeof t, "%s takes %d %s.", loot_model.names[m], done, nm);
     else snprintf(t, sizeof t, "%s has no room for another kind of thing (64 at most).", loot_model.names[m]);
+    note(t);
+}
+
+/* the shared pack: put back one (or all the party's spare ones) of pack row r, from whoever has one spare */
+static void pack_put(int r, int all)
+{
+    if (r < 0 || r >= loot_model.nitems) return;
+    int id = loot_model.item[r].id, q = loot_model.item[r].qual, shown = who_now(), done = 0;
+    char nm[32], t[160]; gm_itemdef_name(id, nm, sizeof nm);
+    if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is kept (the character sheet's Keep): it stays in the pack.", nm); note(t); return; }
+    for (int k = 0; k < (all ? 255 * 5 : 1); k++) {
+        int m, rec;
+        if (!gm_pack_find(shown, id, q, &m, &rec)) break;
+        g_ww(GV_loot_who, (u16)m);
+        g_ww((u16)(GV_loot_side + 2 * m), 0); g_ww((u16)(GV_loot_inv_top + 2 * m), (u16)rec); g_ww((u16)(GV_loot_inv_sel + 2 * m), 0);
+        g_ww((u16)(GV_loot_n_items + 2 * m), (u16)gm_item_count(m));
+        int before = pile_units();
+        key(0x1950);
+        if (ns_unwinding) return;
+        if (pile_units() <= before) break;
+        done++;
+    }
+    g_ww(GV_loot_who, (u16)shown);
+    if (done) snprintf(t, sizeof t, "%d %s back into the pile.", done, nm);
+    else snprintf(t, sizeof t, "The %s stays in the pack.", nm);
     note(t);
 }
 
@@ -172,10 +246,10 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
             case LV_TAKE: take(a.a, a.b == 255); break;
-            case LV_PUT: put(a.a, a.b == 255); break;
+            case LV_PUT: if (loot_model.shared) pack_put(a.a, a.b == 255); else put(a.a, a.b == 255); break;
             case LV_WHO: set_who(a.a); break;
             case LV_TAKEALL: key(0x1e61); if (!ns_unwinding) note(pile_n() ? "Took what fits." : "Took everything."); break;
-            case LV_SHARE: key(0x1f73); if (!ns_unwinding) note(pile_n() ? "Shared out what fits." : "Shared out everything."); break;
+            case LV_SHARE: key(0x1f73); if (!ns_unwinding) note(loot_model.shared ? (pile_n() ? "Took what fits into the pack." : "Took everything into the pack.") : pile_n() ? "Shared out what fits." : "Shared out everything."); break;
             case LV_LEAVE: leave = 1; break;
             }
             if (!ns_unwinding) build();

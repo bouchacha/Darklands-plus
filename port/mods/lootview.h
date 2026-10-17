@@ -8,7 +8,11 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, count, weight; } LvPile;
-typedef struct { int idx, id, qual, count, weight, equipped; } LvItem;
+typedef struct { int idx, id, qual, count, weight, equipped, kept; } LvItem;
+/* (the shared pack, inventory.shared: the right list is the party's pack, every spare thing of
+   every member by kind and quality (idx -1, count the party's spares); Take puts a thing with
+   whoever carries some already, else with whoever has the most free places, and Put back takes
+   it from whoever has a spare one) */
 
 typedef struct {
     int open;
@@ -18,9 +22,10 @@ typedef struct {
     int cash_fl, cash_gr, cash_pf;   /* the cash found (already in the purse) */
     int npile;
     LvPile pile[200];
+    int shared;                      /* the right list is the party's pack */
     int nitems;
-    LvItem item[64];
-    int room;                        /* the member shown can take another kind of thing */
+    LvItem item[200];
+    int room;                        /* the member shown (the party, shared) can take another kind of thing */
     int assist;                      /* Take all / Share out offered (F12 > Helpers) */
     unsigned seq;
     char note[160];
