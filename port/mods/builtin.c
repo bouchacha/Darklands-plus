@@ -145,6 +145,7 @@ void mods_init(void)
     { void loot_init(void); loot_init(); }
     { void cacheview_init(void); cacheview_init(); }
     { void prayview_init(void); prayview_init(); }
+    { void createview_init(void); createview_init(); }
     { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();

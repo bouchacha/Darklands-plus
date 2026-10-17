@@ -48,7 +48,11 @@ def start(name, exe, game, x11=False):
         xv =subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         open(os.path.join(d, 'xpid'), 'w').write(str(xv.pid))
-        time.sleep(1.0)
+        for _ in range(50):                     # (until the server listens: a slow start made the game fail to open its window)
+            if os.path.exists('/tmp/.X11-unix/X%d' % disp):
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
         del env['DL_HEADLESS']
         env['DISPLAY'] = ':%d' % disp
     if exe.lower().endswith('.exe'):        # a Windows build under Wine: its output goes to darklands_port.log

@@ -16,6 +16,7 @@
 #include "imgui.h"
 #include <SDL.h>
 #include "../mods/hdart.h"
+#include "../mods/nscreen.h"
 #include "gamedata.h"
 #include "ui.h"
 extern "C" {
@@ -1369,12 +1370,12 @@ extern "C" void ui_overlay(void)
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();
-    draw_version();
+    if (ns_screen != NS_CREATE) draw_version();       /* (not over a character being made) */
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_info();
     { void battlelog_overlay(void); battlelog_overlay(); }
-    draw_creation_guide();
+    if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */
     draw_loot_buttons();
     ImGui::End();                                       /* the layer */
     ovl_dl = nullptr;

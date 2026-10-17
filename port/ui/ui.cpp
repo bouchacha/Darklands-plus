@@ -65,6 +65,8 @@ extern "C" void menuview_draw(void);
 extern "C" void savesview_draw(void);
 extern "C" void cacheview_draw(void);
 extern "C" void prayview_draw(void);
+extern "C" void createview_draw(void);
+extern "C" { int createview_is_on(void); void createview_set(int on); }
 extern "C" { int prayview_is_on(void); void prayview_set(int on); }
 extern "C" { int cacheview_is_on(void); void cacheview_set(int on); }
 extern "C" { int savesview_is_on(void); void savesview_set(int on); }
@@ -535,6 +537,9 @@ static void tab_helpers(void)
     { bool nc2 = cacheview_is_on() != 0;
       if (ImGui::Checkbox("Store rooms drawn by Darklands+: everything stored and everything the member carries in two lists", &nc2)) { cacheview_set(nc2); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("Take and Put on each row (one or the whole stack), Put away for everything not in use. The storing is the game's own. Off: the game's screen, four things at a time."); ImGui::Unindent(UIS(34)); }
+    { bool ncr = createview_is_on() != 0;
+      if (ImGui::Checkbox("Making a character drawn by Darklands+: each step on one page, with what a childhood or profession would bring", &ncr)) { createview_set(ncr); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The attributes after it (and the aging past thirty), each skill's gain and room, the virtues and saints learned. The rules are the game's own. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
     { bool np = prayview_is_on() != 0;
       if (ImGui::Checkbox("Calling on a saint drawn by Darklands+: the statue, what the saint does, the favor to spend and the chance", &np)) { prayview_set(np); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The chance and the favor are the saint's own rules. Off: the game's prayer screen."); ImGui::Unindent(UIS(34)); }
@@ -1249,7 +1254,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); savesview_draw(); menuview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); savesview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

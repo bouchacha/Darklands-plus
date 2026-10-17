@@ -103,6 +103,7 @@ The card screen came first and has its own loop. The screens after it are built 
 | Save and Load (`mods/savesview.c`, `ui/savesview.cpp`) | save_game s037 1462:2a68, load_game s037 1c7d:09c6 (hooks in `mods/saves.c`; a quick- or autosave and a load under way pass) | Save: the comment typed on the page is handed to save_game's own prompt (text_input answered); Load: the save chosen is read by load_game led through its question and its list (the way the F12 Saves tab loads) | `display.native_saves` |
 | store room (`mods/cacheview.c`, `ui/cacheview.cpp`) | item_cache_screen s035 1462:0000 | setup as the original (the fonts, screen kind 5, cache_first_draw reads the store), take / put = the key handler 0a46 (G / P) with its cursors set to the row, Put away = P on every thing not in use, another member cache_redraw, leaving cache_close (the store written back) | `display.native_cache` |
 | calling on a saint (`mods/prayview.c`, `ui/prayview.cpp`) | saint_screen s034 1462:022c | setup as the original (pray_target, pray_choose from the handler's flags (6), pray_df from its default (2), capped by the member's favor); more / less favor as its keys M / L (more only while the chance is under 99); the chance = the saint's handler (what 7) through its far pointer (290e:2937); Pray sets pray_target (a member, or -1 as its P) and returns saint_finish; saint_pray rolls as before | `display.native_pray` |
+| making a character (`mods/createview.c`, `ui/createview.cpp`) | create_character s037 18c8:0004 | setup as the original (create_reset, create_load_pics, create_draw), every step = its key handler create_key 18c8:058e (list rows are keys 1..15; + / - with create_row set as its clicks set it); the name typed into create_name / create_nick as its text prompts do; the preview reads the profession tables (far 290e:2cc1 adult, 2b65 childhood, 3521 aging, 1ee7 names) as its right panel (18c8:1738) does; leaving create_close | `display.native_create` |
 
 Pictures: `ui/gamepics.cpp` makes textures of the game's PIC files (unpacked by
 `mods/hdart.c`), colour 0 see-through, with the palette the game sets for that screen; the
@@ -113,7 +114,7 @@ weapon, the shield, the missile weapon) put together in that order.
 
 The same pattern fits any screen whose logic is separate from its drawing:
 
-* **Character creation (s036 / s037)**.
+* **The party roster (s037 / s038 1462:0000)**: the characters, the party, the heraldry, figures and colours.
 * **The travel map's menus** and **the city menus**, which are cards already.
 
 For each: find the functions that draw and the ones that wait for input, keep everything

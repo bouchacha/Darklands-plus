@@ -162,6 +162,25 @@
 #define GV_cache_top                    0x37d8    /* int[5]: the store's list, first shown */
 #define GV_cache_inv_sel                0x37e2    /* int[5]: the member's list, the cursor's row */
 #define GV_cache_sel                    0x37ec    /* int[5]: the store's list, the cursor's row */
+#define GV_create_state                 0x8c1e    /* int: 0 name and gender, 1 childhood, 2 attribute EPs, 3 profession, 4 skill EPs */
+#define GV_create_row                   0x8bfc    /* int: the attribute / skill row chosen (skills: rows 7 and 14 are gaps) */
+#define GV_create_hover                 0x43ee    /* int: the list row under the pointer */
+#define GV_create_nlist                 0x8c00    /* int: rows in the list */
+#define GV_create_list                  0x8bd2    /* int[0x14]: the professions offered (-1 none) */
+#define GV_create_ep                    0x8bfa    /* int: experience points left this step */
+#define GV_create_ep_step               0x8c48    /* int: the step's EPs */
+#define GV_create_age                   0xe81c    /* unsigned: age */
+#define GV_create_female                0xe821    /* char: 1 a woman */
+#define GV_create_attr                  0xe86e    /* char[7]: End Str Agl Per Int Chr, DF */
+#define GV_create_skill                 0xe875    /* char[0x13]: the skills */
+#define GV_create_attr_spent            0x8c06    /* int[6]: EPs put into each attribute this step */
+#define GV_create_skill_spent           0x8c22    /* int[0x13]: EPs put into each skill this step */
+#define GV_create_name                  0xe82f    /* char[]: the full name (22 letters) */
+#define GV_create_nick                  0xe848    /* char[]: the short name (9 letters) */
+#define GV_create_random_name           0x8bfe    /* int: the name was drawn (a new gender draws another) */
+#define GV_create_prof                  0x4428    /* int: the last profession */
+#define GV_create_child                 0x8c02    /* int: the childhood */
+#define GV_create_taken                 0x4402    /* char[0x25]: bit 0 a profession taken */
 #define GV_loot_who                     0x8dc4    /* the member receiving */
 #define GV_loot_leader                  0x8dba    /* the leader when the screen opened */
 #define GV_loot_n                       0x8dbc    /* entries in the pile */
@@ -679,6 +698,11 @@
 #define GF_text_input                   37, 0x1462, 0x43e6    /* (buf, max, prompt) */
 #define GF_load_game                    37, 0x1c7d, 0x09c6    /* (): confirm, tear down, reload, longjmp to the main loop */
 #define GF_create_character             37, 0x18c8, 0x0004    /* () */
+#define GF_create_close                 37, 0x18c8, 0x047c    /* (): pictures freed, the fonts back */
+#define GF_create_load_pics             37, 0x18c8, 0x04b2    /* (): chargen.pic, the buttons and the bubbles */
+#define GF_create_draw                  37, 0x18c8, 0x053e    /* (): the whole screen */
+#define GF_create_key                   37, 0x18c8, 0x058e    /* (key): the key / click handler (1..15 a list row); 0x11b: the character is done or given up */
+#define GF_create_reset                 37, 0x18c8, 0x20fa    /* (): a new character (a name drawn, the attributes of the gender) */
 #define GF_loot_distribute              40, 0x1462, 0x0000    /* (items far, unsigned char *count, int far *cash): loot screen entry */
 #define GF_loot_loop                    40, 0x1462, 0x01c8    /* (items far, count near, cash far): the loot screen's loop */
 #define GF_loot_close                   40, 0x1462, 0x06c8    /* (r): fonts and the leader back; returns r */

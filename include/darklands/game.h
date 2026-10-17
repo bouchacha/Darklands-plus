@@ -647,6 +647,30 @@
 #define load_game_vec            vec_1851             /* overlay call vector of load_game */
 #define create_character         sub_s037_18c8_0004   /* () */
 #define create_character_vec     vec_20cb             /* overlay call vector of create_character */
+#define create_close             sub_s037_18c8_047c   /* (): pictures freed, the fonts back */
+#define create_load_pics         sub_s037_18c8_04b2   /* (): chargen.pic, the buttons and the bubbles */
+#define create_draw              sub_s037_18c8_053e   /* (): the whole screen */
+#define create_key               sub_s037_18c8_058e   /* (key): the key / click handler (1..15 a list row); 0x11b: the character is done or given up */
+#define create_reset             sub_s037_18c8_20fa   /* (): a new character (a name drawn, the attributes of the gender) */
+#define create_state             D_8c1e               /* int: 0 name and gender, 1 childhood, 2 attribute EPs, 3 profession, 4 skill EPs */
+#define create_row               D_8bfc               /* int: the attribute / skill row chosen (skills: rows 7 and 14 are gaps) */
+#define create_hover             D_43ee               /* int: the list row under the pointer */
+#define create_nlist             D_8c00               /* int: rows in the list */
+#define create_list              D_8bd2               /* int[0x14]: the professions offered (-1 none) */
+#define create_ep                D_8bfa               /* int: experience points left this step */
+#define create_ep_step           D_8c48               /* int: the step's EPs */
+#define create_age               D_e81c               /* unsigned: age */
+#define create_female            D_e821               /* char: 1 a woman */
+#define create_attr              D_e86e               /* char[7]: End Str Agl Per Int Chr, DF */
+#define create_skill             D_e875               /* char[0x13]: the skills */
+#define create_attr_spent        D_8c06               /* int[6]: EPs put into each attribute this step */
+#define create_skill_spent       D_8c22               /* int[0x13]: EPs put into each skill this step */
+#define create_name              D_e82f               /* char[]: the full name (22 letters) */
+#define create_nick              D_e848               /* char[]: the short name (9 letters) */
+#define create_random_name       D_8bfe               /* int: the name was drawn (a new gender draws another) */
+#define create_prof              D_4428               /* int: the last profession */
+#define create_child             D_8c02               /* int: the childhood */
+#define create_taken             D_4402               /* char[0x25]: bit 0 a profession taken */
 #define loot_distribute          sub_s040_1462_0000   /* (items far, unsigned char *count, int far *cash): loot screen entry */
 #define loot_distribute_vec      vec_1dab             /* overlay call vector of loot_distribute */
 #define loot_loop                sub_s040_1462_01c8   /* (items far, count near, cash far): the loot screen's loop */
