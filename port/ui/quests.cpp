@@ -106,6 +106,21 @@ static std::string nearest_town(int loc)
     return best < 0 ? loc_name(loc) : loc_name(best);
 }
 
+/* a place for a title: its name, or for a site the map names only by its kind ("Lake", "Cave"
+   ... DARKLAND.LOC), "the lake near Freiberg" */
+static std::string site(int loc)
+{
+    std::string n = loc_name(loc);
+    static const char *KIND[] = { "Cave", "Tomb", "Lair", "Spring", "Lake", "Shrine", "Pagan Altar" };
+    for (const char *k : KIND)
+        if (n == k) {
+            std::string l = n;
+            for (char &c : l) c = (char)tolower((unsigned char)c);
+            return "the " + l + " near " + nearest_town(loc);
+        }
+    return n;
+}
+
 /* the game's own name for a person (random_name, s029 1367:0db4, seeded by the party seed);
  * asked side-effect free and kept */
 static std::map<int, std::string> names;
@@ -182,7 +197,7 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x24 && e.tag == 3)
             add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit);
         else if (e.kind == 8 && e.tag == 10)
-            add(item_name(e.item) + " from " + place, "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
+            add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit);
         else if (e.kind == 0x24 && e.tag == 10)
             add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit);
