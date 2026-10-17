@@ -105,6 +105,24 @@ static void entry_best(int skill, int attr)
 }
 static void raubi02_hook(void) { entry_best(0x12, -1); if (ns_unwinding) return; hook_call_original(); }
 static void revol02_hook(void) { entry_best(-1, 5); if (ns_unwinding) return; hook_call_original(); }
+/* and two options roll the leader inside their action, with no chance shown beside them:
+   $Villa07's prayer at a village shrine (s078 191c:020c: divine favour for all of Speak Latin / 40 +
+   Religion / 60 + 1) and $Drago03's (s082 1845:0454: Virtue, then the leader is hurt) */
+static void villa07_hook(void)
+{
+    if (assist_best_leader && !config_get_int("original", 0)) {
+        int cur = (s8)g_rb(G_LEADER), best = cur, bv = -1;
+        for (int m = 0; m < 5; m++) {
+            if (!leader_able(m)) continue;
+            int v = (s16)ns_call(GF_member_skill, 2, m, 0xb) / 40 + (s16)ns_call(GF_member_skill, 2, m, 8) / 60;
+            if (ns_unwinding) return;
+            if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
+        }
+        if (best != cur && leader_able(best)) { if (saved_leader < 0) saved_leader = cur; g_wb(G_LEADER, (u8)best); }
+    }
+    hook_call_original();
+}
+static void drago03_hook(void) { entry_best(9, -1); if (ns_unwinding) return; hook_call_original(); }
 
 static u32 last_eval;
 static int last_leader = -1;
@@ -273,9 +291,11 @@ static void card_hooks(void)
     if (assist_chances || assist_card_help || assist_card_keys || assist_watching || assist_best_leader) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
     else { hook_remove(GF_card_menu, card_menu_hook); hook_remove(GF_card_mouse, card_mouse_hook); }
     if (assist_best_leader) { hook_install(GF_buy_price, price_hook); hook_install(GF_sell_price, price_hook);
-                              hook_install(80, 0x18a5, 0x000c, raubi02_hook); hook_install(73, 0x1838, 0x0000, revol02_hook); }
+                              hook_install(80, 0x18a5, 0x000c, raubi02_hook); hook_install(73, 0x1838, 0x0000, revol02_hook);
+                              hook_install(78, 0x191c, 0x020c, villa07_hook); hook_install(82, 0x1845, 0x0454, drago03_hook); }
     else { hook_remove(GF_buy_price, price_hook); hook_remove(GF_sell_price, price_hook); assist_leader_restore();
-           hook_remove(80, 0x18a5, 0x000c, raubi02_hook); hook_remove(73, 0x1838, 0x0000, revol02_hook); }
+           hook_remove(80, 0x18a5, 0x000c, raubi02_hook); hook_remove(73, 0x1838, 0x0000, revol02_hook);
+           hook_remove(78, 0x191c, 0x020c, villa07_hook); hook_remove(82, 0x1845, 0x0454, drago03_hook); }
     if (!assist_chances && !assist_best_leader) card_chances.active = 0;
 }
 

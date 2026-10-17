@@ -94,8 +94,8 @@ extern "C" void tab_members(void)
     ImGui::TableNextColumn(); ImGui::TextUnformatted("Leader");
     help_tip("With \"the best member makes each check\" (F12 > Helpers) a card's tests and the shops' prices no longer depend on the leader, "
              "but the leader still matters: whatever befalls \"the leader\" on a card lands on them (the traps in mines, a church's favour, "
-             "an item handed over), some cards roll the leader's skill as they open or in a hidden test, and in a battle the leader is the member "
-             "who acts first (opens doors and chests while the battle runs). "
+             "skill practice, an item handed over), and in a battle or a dungeon, while it runs unpaused, doors, chests, locks and traps "
+             "are the leader's to deal with and the party's group moves follow the leader. "
              "The game's own way to change it: Ctrl+F1 ... Ctrl+F5 on a character sheet.");
     for (int m = 0; m < size; m++) {
         ImGui::TableNextColumn(); ImGui::PushID(m);

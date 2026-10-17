@@ -153,7 +153,7 @@ static void header(NsDraw &P, const SheetModel &s)
         ImGui::SetTooltip(config_get_int("assist.best_leader", 1) && !config_get_int("original", 0)
             ? "A card's tests are made by whoever is best at them and shops price by the best bargainer, whoever leads.\n"
               "The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour, a thing handed over),\n"
-              "makes the few tests a card rolls as it opens, and acts first in a battle."
+              "and in a battle or a dungeon, unpaused, deals with doors, chests, locks and traps, and leads the group's moves."
             : "The leader speaks and acts for the party on the cards and bargains in the shops.");
     static const char *TABS[4] = { "Things", "Skills", "Saints", "Formulae" };
     float tw = 25.5f, x = 318 - 4 * tw;
