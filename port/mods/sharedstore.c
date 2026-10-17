@@ -13,8 +13,14 @@
  *   - when it closes (cache_close, 1462:04bc: written back, or the place marked as having none
  *     when it is empty), every place that pointed at the old cache follows this one's new
  *     number, so an emptied store is empty everywhere.
- * The game's own G and P, the screen and the saving are unchanged. Turning the switch off keeps
- * what is already shared (the places point at one cache) but merges nothing more. */
+ * The game's own G and P, the screen and the saving are unchanged, but P is refused when the
+ * store would hold more than 100 kinds or 127 of one thing (fixes.c storeroom, applied here too
+ * when that fix is off: pooled in one store, the game's limits matter; its cache_save reads a
+ * cache's count as signed, so from 128 kinds it would corrupt CACHE.TMP). A store already
+ * holding more than 100 kinds (from before) is never merged nor written back by this. The towns
+ * are pointed at the shared store once the location table is loaded (world_load, s043
+ * 1462:0100) and when the first store is made. Turning the switch off keeps what is already
+ * shared (the places point at one cache) but merges nothing more. */
 #include <stdio.h>
 #include <stdlib.h>
 #include "../runtime/cpu.h"
@@ -23,6 +29,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "../runtime/hle.h"
 
 #define F_STORE 0x37f4                       /* cache_items, far 2e38: { int id; char quality; char count; } */
 #define STORE_MAX 100                        /* (the next table starts at 3984) */
@@ -30,15 +37,16 @@
 
 void ui_notice(const char *msg);
 static int busy;
+static void point_towns(void);
 
 static int on(void) { return config_get_int("store.shared", 1) && !config_get_int("original", 0); }
 static int loc_cache(int k) { u32 r = g_location(k); return r ? (s16)rw((u16)(r >> 16), (u16)((u16)r + LOC_CACHE)) : -1; }
 static void loc_set_cache(int k, int h) { u32 r = g_location(k); if (r) ww((u16)(r >> 16), (u16)((u16)r + LOC_CACHE), (u16)h); }
 
 typedef struct { u16 id; u8 q, n; } Ent;
-static int store_read(Ent *e)
+static int store_read(Ent *e)                 /* the open store; -1 when it holds more than the table (never written back) */
 {
-    int n = g_rw(GV_cache_n); if (n < 0 || n > STORE_MAX) n = n < 0 ? 0 : STORE_MAX;
+    int n = (s16)g_rw(GV_cache_n); if (n < 0 || n > STORE_MAX) return -1;
     for (int i = 0; i < n; i++) {
         u16 o = (u16)(F_STORE + 4 * i);
         e[i].id = rw(G_FAR2E38, o); e[i].q = rb(G_FAR2E38, (u16)(o + 2)); e[i].n = rb(G_FAR2E38, (u16)(o + 3));
@@ -70,12 +78,24 @@ static int add_into(Ent *t, int *n, const Ent *a, int na)
     return 1;
 }
 
+/* the number of caches CACHE.TMP has (its byte 1), -1 unreadable */
+static int caches_in_file(void)
+{
+    char path[1200]; dos_host_path("CACHE.TMP", path, sizeof path);
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+    unsigned char b[2]; int n = fread(b, 1, 2, f) == 2 ? b[1] : -1;
+    fclose(f);
+    return n;
+}
+
 /* merge every place's cache into one; returns the one this place should open (-1 none) */
 static int merge(int cur)
 {
     static int refs[256];
+    int nfile = caches_in_file();
     for (int h = 0; h < 256; h++) refs[h] = 0;
-    for (int k = 0; k < G_NLOC; k++) { int h = loc_cache(k); if (h >= 1 && h < 256) refs[h]++; }
+    for (int k = 0; k < G_NLOC; k++) { int h = loc_cache(k); if (h >= 1 && h < 256 && h <= nfile) refs[h]++; }
     int mine = loc_cache(cur), H = -1;
     for (int h = 1; h < 256; h++)
         if (refs[h] && (H < 0 || refs[h] > refs[H] || (refs[h] == refs[H] && h == mine))) H = h;
@@ -88,6 +108,7 @@ static int merge(int cur)
         int na = store_read(a);
         ns_call(GF_cache_load, 1, H); if (ns_unwinding) return mine;
         int nt = store_read(t);
+        if (na < 0 || nt < 0) { if (h == mine) stuck = 1; fprintf(stderr, "store: cache %d or %d holds more than %d kinds: not merged\n", h, H, STORE_MAX); continue; }
         if (!add_into(t, &nt, a, na)) { if (h == mine) stuck = 1; fprintf(stderr, "store: cache %d (%d kinds) does not fit into the shared %d\n", h, na, H); continue; }
         store_write(t, nt);
         ns_call(GF_cache_save, 1, H); if (ns_unwinding) return mine;
@@ -107,9 +128,10 @@ static void load_hook(void)                   /* cache_load(handle), s035 1462:1
     int cur = (s16)g_rw(G_CUR_LOC);
     if (busy || !on() || cur < 0 || cur >= G_NLOC) { hook_call_original(); return; }
     busy = 1;
+    ns_unwinding = 0;                         /* (only merge's own calls may set it now) */
     int h = merge(cur);
     busy = 0;
-    if (ns_unwinding) { hook_call_original(); return; }
+    if (ns_unwinding) return;                 /* (the game unwinds: nothing more) */
     ww(SS, (u16)(SP + 4), (u16)h);
     hook_call_original();
 }
@@ -119,8 +141,9 @@ static void close_hook(void)                  /* cache_close(r), s035 1462:04bc 
     int cur = (s16)g_rw(G_CUR_LOC);
     int before = cur >= 0 && cur < G_NLOC ? loc_cache(cur) : -1;
     hook_call_original();
-    if (busy || cur < 0 || cur >= G_NLOC || before < 1) return;
+    if (busy || cur < 0 || cur >= G_NLOC) return;
     int after = loc_cache(cur);
+    if (before < 1) { if (after >= 1) point_towns(); return; }     /* (the first store: every town's) */
     if (after == before) return;
     u16 ax = AX;
     if (after < 1 && on()) {
@@ -151,16 +174,35 @@ static int shared_handle(void)
 }
 
 /* every town's inn points at the shared store, so that "recover items stored here" is there at
-   each (called while the location table is the game's: on the map and the cards) */
+   each: when the location table has been loaded (world_load: a new game, a load, back from a
+   battle) and when the first store is made */
 #define NCITY 92                              /* (the towns are the first 92 locations, DARKLAND.CTY) */
-void sharedstore_tick(void)
+static void point_towns(void)
 {
     if (!on()) return;
-    int gm = game_mode();
-    if (gm != GM_CARD && gm != GM_MAP) return;
     int H = shared_handle();
-    if (H < 1) return;
-    for (int k = 0; k < NCITY && k < G_NLOC; k++) if (loc_cache(k) < 1) loc_set_cache(k, H);
+    if (H < 1 || H > caches_in_file()) return;
+    int n = 0;
+    for (int k = 0; k < NCITY && k < G_NLOC; k++) if (loc_cache(k) < 1) { loc_set_cache(k, H); n++; }
+    if (n) fprintf(stderr, "store: %d town%s now with the shared store (cache %d)\n", n, n == 1 ? "" : "s", H);
+}
+static void world_hook(void)                  /* world_load(locfile), s043 1462:0100 */
+{
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    point_towns();
+    AX = ax; DX = dx;
+}
+
+/* P refused where it would overflow the pooled store, when fixes.c's storeroom fix is off */
+const char *storeroom_put_refusal(int key);
+int storeroom_fix_on(void);
+void ui_notice(const char *msg);
+static void key_hook(void)                    /* cache_key(key), s035 1462:0a46 */
+{
+    const char *why = on() && !storeroom_fix_on() ? storeroom_put_refusal(rw(SS, (u16)(SP + 4)) & 0xff) : 0;
+    if (why) { ui_notice(why); hook_return_far(0); return; }
+    hook_call_original();
 }
 
 int sharedstore_on(void) { return on(); }
@@ -177,4 +219,6 @@ void sharedstore_init(void)
 {
     hook_install(GF_cache_load, load_hook);
     hook_install(GF_cache_close, close_hook);
+    hook_install(GF_world_load, world_hook);
+    hook_install(35, 0x1462, 0x0a46, key_hook);
 }

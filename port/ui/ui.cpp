@@ -138,7 +138,6 @@ extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
-extern "C" void sharedstore_tick(void);
 extern "C" void ui_notice(const char *msg);
 extern "C" void rules_apply(void);
 extern "C" void ui_notice_for(const char *msg, unsigned ms);
@@ -1376,7 +1375,6 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
-    { static int sf = -1000; if (ImGui::GetFrameCount() - sf > 30) { sharedstore_tick(); sf = ImGui::GetFrameCount(); } }   /* (every inn: the one store) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();

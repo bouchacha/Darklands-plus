@@ -512,9 +512,10 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
  * + DS:37e2[5] the member's cursor. cache_add stacks without a limit and appends without
  * one: P (put) is refused when it would overflow either. */
 void ui_notice(const char *msg);
-static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
+/* why a P (put) with key `key` would overflow the open store, or 0 (also mods/sharedstore.c) */
+const char *storeroom_put_refusal(int key)
 {
-    int key = rw(SS, (u16)(SP + 4)) & 0xff, m = (s16)g_rw(0x89f2);
+    int m = (s16)g_rw(0x89f2);
     if ((key == 'p' || key == 'P') && m >= 0 && m < 5 && !g_rw((u16)(0x37c4 + 2 * m)) && g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) {
         int idx = (s16)g_rw((u16)(0x37e2 + 2 * m)) + (s16)g_rw((u16)(0x37ce + 2 * m));
         if (idx >= 0 && idx < 64) {
@@ -525,15 +526,21 @@ static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
                 u16 e = (u16)(0x37f4 + 4 * i);
                 if ((rw(G_FAR2E38, e) & 0xfff) == id && rb(G_FAR2E38, (u16)(e + 2)) == q) { found = (int)i; break; }
             }
-            const char *why = found >= 0 ? ((s8)rb(G_FAR2E38, (u16)(0x37f4 + 4 * found + 3)) >= 127 ? "The store room keeps at most 127 of one thing." : 0)
-                                         : (n >= 100 ? "The store room is full: it keeps 100 kinds of things." : 0);
-            if (why) {
-                ui_notice(why);
-                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix storeroom: %s\n", why);
-                hook_return_far(0);
-                return;
-            }
+            return found >= 0 ? ((s8)rb(G_FAR2E38, (u16)(0x37f4 + 4 * found + 3)) >= 127 ? "The store room keeps at most 127 of one thing." : 0)
+                              : (n >= 100 ? "The store room is full: it keeps 100 kinds of things." : 0);
         }
+    }
+    return 0;
+}
+int storeroom_fix_on(void) { return fix_on("storeroom"); }
+static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
+{
+    const char *why = storeroom_put_refusal(rw(SS, (u16)(SP + 4)) & 0xff);
+    if (why) {
+        ui_notice(why);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix storeroom: %s\n", why);
+        hook_return_far(0);
+        return;
     }
     hook_call_original();
 }
