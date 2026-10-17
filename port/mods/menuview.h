@@ -18,12 +18,13 @@ typedef struct {
     char name[24];
     int enabled;
     int first, n;             /* its items: MenuModel.items[first .. first + n) */
+    int native;               /* Darklands+'s own menu (at the bar's right end), not the game's */
 } MvMenu;
 
 typedef struct {
     int open;
     int nmenus;
-    MvMenu menu[6];
+    MvMenu menu[7];
     int nitems;
     MvItem items[96];
     int sub_first[96], sub_n[96];   /* by item: its sub-items in items[] (n 0: none) */

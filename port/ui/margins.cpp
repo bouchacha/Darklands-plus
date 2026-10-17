@@ -482,7 +482,8 @@ extern "C" void ui_margins(void)
         tasks_section(tables);
         ImGui::Separator();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("The game's menus (save, load, difficulty, party): a right click or F10.");
+        ImGui::TextWrapped(menuview_is_on() && !config_get_int("original", 0) ? "The menus (save, load, difficulty, party, and Darklands+'s own): a right click or F10."
+                                                                            : "The game's menus (save, load, difficulty, party): a right click or F10.");
         if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide tells how it works.");
         ImGui::PopStyleColor();
         end_panel();

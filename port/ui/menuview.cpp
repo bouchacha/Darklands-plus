@@ -97,13 +97,15 @@ extern "C" void menuview_draw(void)
     P.rect(60, 0, 320, BAR_Y1, BAR);
     P.dl->AddLine(NsDraw::w(60, BAR_Y1), NsDraw::w(320, BAR_Y1), EDGE, fmaxf(1.0f, 0.4f * P.k));
     float tx[8], tw[8], x = 64;
+    float right = 319.0f;                                     /* (Darklands+'s own menu at the right end) */
     for (int j = 0; j < M.nmenus; j++) {
         tw[j] = P.width(P.f, NsDraw::FS_NAME, ns_gtext(M.menu[j].name)) + 8.0f;
+        if (M.menu[j].native) { tx[j] = right - tw[j]; right = tx[j] - 1.0f; continue; }
         tx[j] = x; x += tw[j] + 1.0f;
     }
     {   const char *h = M.keyboard ? "Arrows, Enter; Esc closes" : "Click to choose; Esc or a click elsewhere closes";
         float hw = P.width(P.fo, NsDraw::FS_SMALL, h);
-        if (x + hw + 4 < 318) P.text(P.fo, NsDraw::FS_SMALL, 0, 3.0f, GREY, h, 316.5f); }
+        if (x + hw + 4 < right) P.text(P.fo, NsDraw::FS_SMALL, 0, 3.0f, GREY, h, right - 2.5f); }
     int over_title = -1;
     for (int j = 0; j < M.nmenus; j++) if (P.over(tx[j], 0, tx[j] + tw[j], BAR_Y1)) over_title = j;
     if (moved && over_title >= 0 && M.menu[over_title].enabled && (M.cur >= 0 || M.held)) { M.cur = over_title; M.row = -1; M.subrow = -1; }

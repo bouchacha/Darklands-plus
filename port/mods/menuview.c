@@ -39,6 +39,24 @@ unsigned mouse_press_count(int b);
 MenuModel menu_model;
 NsInput mv_in;                      /* the pointer's clicks while the menu is open (the views under it get none) */
 static int mv_on = 1;
+
+/* Darklands+'s own menu: its entries' actions (in place of a game handler: segment NATIVE_SEG) */
+#define NATIVE_SEG 0xffff
+enum { NA_WINDOW = 1, NA_QUESTS, NA_MAP, NA_HELPERS, NA_GUIDE, NA_HELP };
+void ui_open_tab(int t);
+void ui_toggle_map(void);
+void ui_toggle_help(void);
+static void native_action(int a)
+{
+    switch (a) {
+    case NA_WINDOW: ui_open_tab(-1); break;
+    case NA_QUESTS: ui_open_tab(4 + 100 * (3 + 1)); break;      /* (Journal, its Quests page) */
+    case NA_MAP: ui_toggle_map(); break;
+    case NA_HELPERS: ui_open_tab(7); break;
+    case NA_GUIDE: ui_open_tab(12); break;
+    case NA_HELP: ui_toggle_help(); break;
+    }
+}
 typedef struct { u16 seg, off; } MvFn;
 static int call_handler(u16 seg, u16 off);
 static MvFn fn[96];
@@ -142,6 +160,27 @@ static void build_into(u16 mp, MenuModel *M, MvFn *fn)
             if (M->sub_n[ix]) M->items[ix].nsub = ix;
         }
     }
+    for (int j = 0; j < M->nmenus; j++) M->menu[j].native = 0;
+    /* Darklands+'s own menu, at the right end: its window and pages (handled here, not the game's) */
+    static const struct { const char *name, *key; int act; } DP[] = {
+        { "Darklands+ window", "F12", NA_WINDOW }, { "Quests", "", NA_QUESTS }, { "World map", "M", NA_MAP },
+        { "Helpers (settings)", "", NA_HELPERS }, { "Guide", "", NA_GUIDE }, { "Keys and clicks here", "F1", NA_HELP },
+    };
+    int nd = (int)(sizeof DP / sizeof DP[0]);
+    if (M->nmenus < 7 && M->nitems + nd <= 96) {
+        MvMenu *m = &M->menu[M->nmenus++];
+        snprintf(m->name, sizeof m->name, "Darklands+");
+        m->enabled = 1; m->native = 1; m->first = M->nitems; m->n = 0;
+        for (int k = 0; k < nd; k++) {
+            int ix = M->nitems++;
+            MvItem *it = &M->items[ix];
+            snprintf(it->name, sizeof it->name, "%s", DP[k].name); snprintf(it->key, sizeof it->key, "%s", DP[k].key);
+            it->enabled = 1; it->tick = 0; it->count = 0; it->nsub = -1;
+            fn[ix].seg = NATIVE_SEG; fn[ix].off = (u16)DP[k].act;
+            M->sub_first[ix] = 0; M->sub_n[ix] = 0;
+            m->n++;
+        }
+    }
 }
 static void build(u16 mp) { build_into(mp, &menu_model, fn); }
 
@@ -221,6 +260,7 @@ static int key(int k)
 static int call_handler(u16 seg, u16 off)              /* as the original calls it; 0: the game unwinds */
 {
     if (!seg && !off) return 1;
+    if (seg == NATIVE_SEG) { native_action(off); return 1; }
     ns_nested = 1;                                      /* (a native screen under the menu hides while it runs) */
     u16 sp0 = SP, ds = DS, es = ES;
     DS = ES = G_DGROUP;
