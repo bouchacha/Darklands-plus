@@ -4,6 +4,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "gamemodel.h"
+#include "../runtime/config.h"
 
 int gm_party_size(void) { int n = (s16)g_rw(G_PARTY_SIZE); return n < 0 ? 0 : n > 5 ? 5 : n; }
 int gm_leader(void) { return (s8)g_rb(G_LEADER); }
@@ -63,6 +64,11 @@ int gm_item_in_use(int m, int i) { return gm_item_equipped(m, i) || gm_item_ridi
 /* potions stay with whoever carries them, shared pack or not (in a battle one throws only one's own):
    told by their numbers, 95-116, which the game counts on itself (a formula f makes 95 + f / 3) */
 int gm_is_potion(int id) { id &= 0xfff; return id >= 95 && id <= 116; }
+/* with ammunition that never runs out (mods/ammo.c) arrows, quarrels and balls are not shown: Darklands+
+   sees to it that each shooter carries the one the game wants to see (mods/pack.c) */
+int gm_is_ammo(int id) { id &= 0xfff; return id >= 33 && id <= 35; }
+extern int ammo_infinite;
+int gm_ammo_hidden(void) { return ammo_infinite && !config_get_int("original", 0); }
 int gm_item_spare(int m, int i)
 {
     GmItem g;

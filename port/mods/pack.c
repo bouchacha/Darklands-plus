@@ -196,10 +196,31 @@ static void use_ammo_hook(void)
     hook_call_original();
 }
 
+/* arrows, quarrels and balls that never run out are not shown (gm_ammo_hidden), but a bow, crossbow
+   or gun shoots only while its bearer carries one: each shooter is given one of the party's, or a
+   new one if the party has none */
+static void ensure_ammo(void)
+{
+    for (int m = 0; m < 5 && !ns_unwinding; m++) {
+        if (!gm_member_present(m) || gm_member_status(m) != 1) continue;
+        int t = ammo_of(m);
+        if (t < 0x40 || t > 0x42 || carried(m, t, NULL)) continue;
+        int from = -1, rec = -1;
+        for (int h = 0; h < 5 && from < 0; h++) {
+            if (h == m || !gm_member_present(h) || gm_member_status(h) == 5) continue;
+            int r = -1; if (carried(h, t, &r) > (ammo_of(h) == t ? 1 : 0)) { from = h; rec = r; }
+        }
+        if (from >= 0) ns_call(GF_give_one, 4, from, m, rec, 9);
+        else ns_call(GF_add_item_q, 3, m, 33 + (t - 0x40), 25);
+        if (!ns_unwinding) fprintf(stderr, "pack: member %d carries the ammunition %#x the game wants to see\n", m, t);
+    }
+}
+
 static int in_battle;                     /* run_battle running */
 static void battle_hook(void)             /* run_battle (s029 0e76:2278) */
 {
-    if (sheetview_shared() && gm_party_size() > 1) {
+    if (gm_ammo_hidden()) { ensure_ammo(); if (ns_unwinding) return; }
+    else if (sheetview_shared() && gm_party_size() > 1) {
         hand_out_ammo(); if (ns_unwinding) return;
     }
     in_battle++;

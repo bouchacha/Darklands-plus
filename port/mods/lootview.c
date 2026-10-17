@@ -43,13 +43,16 @@ static void build(void)
     l->who = who_now();
     l->npar = gm_party_size();
     for (int m = 0; m < 5; m++) { l->present[m] = gm_member_present(m); l->able[m] = able(m); gm_member_name(m, l->names[m], sizeof l->names[m]); }
-    l->npile = pile_n();
-    for (int i = 0; i < l->npile; i++) {
+    l->npile = 0;
+    for (int i = 0; i < pile_n(); i++) {
         u16 o = pile_off(i);
-        l->pile[i].id = rw(pile_seg(), o) & 0xfff;
-        l->pile[i].qual = rb(pile_seg(), (u16)(o + 3));
-        l->pile[i].count = rb(pile_seg(), (u16)(o + 4));
-        l->pile[i].weight = gm_itemdef_weight(l->pile[i].id);
+        int id = rw(pile_seg(), o) & 0xfff;
+        if (gm_ammo_hidden() && gm_is_ammo(id)) continue;
+        LvPile *p = &l->pile[l->npile++];
+        p->id = id; p->src = i;
+        p->qual = rb(pile_seg(), (u16)(o + 3));
+        p->count = rb(pile_seg(), (u16)(o + 4));
+        p->weight = gm_itemdef_weight(id);
     }
     l->shared = sheetview_shared();
     if (l->shared) {                                          /* the member's potions, then the party's pack: the spares of all, by kind and quality */
@@ -66,7 +69,7 @@ static void build(void)
             if (able(m) && gm_item_count(m) < 64) l->room = 1;
             for (int i = 0; i < gm_item_count(m); i++) {
                 GmItem g; int spare = gm_item_spare(m, i);
-                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id)) continue;
+                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
                 int k = first;
                 while (k < l->nitems && !(l->item[k].id == g.id && l->item[k].qual == g.qual)) k++;
                 if (k < l->nitems) { l->item[k].count += spare; continue; }
@@ -84,14 +87,15 @@ static void build(void)
             }
     } else {
         int m = l->who;
-        l->nitems = gm_item_count(m);
-        for (int i = 0; i < l->nitems; i++) {
+        l->nitems = 0;
+        for (int i = 0; i < gm_item_count(m); i++) {
             GmItem g; gm_item(m, i, &g);
-            LvItem *it = &l->item[i];
+            if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
+            LvItem *it = &l->item[l->nitems++];
             it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
             it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0;
         }
-        l->room = l->nitems < 64;
+        l->room = gm_item_count(m) < 64;
     }
     l->assist = loot_enabled();
     l->seq++;
@@ -252,10 +256,11 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
         NsAction a;
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
-            case LV_TAKE: take(a.a, a.b == 255); break;
+            case LV_TAKE: if (a.a >= 0 && a.a < loot_model.npile) take(loot_model.pile[a.a].src, a.b == 255); break;
             case LV_PUT:                                      /* (shared: a row of the member's potions is theirs to put back) */
-                if (loot_model.shared && a.a >= 0 && a.a < loot_model.nitems && loot_model.item[a.a].idx < 0) pack_put(a.a, a.b == 255);
-                else put(loot_model.shared && a.a >= 0 && a.a < loot_model.nitems ? loot_model.item[a.a].idx : a.a, a.b == 255);
+                if (a.a < 0 || a.a >= loot_model.nitems) break;
+                if (loot_model.item[a.a].idx < 0) pack_put(a.a, a.b == 255);
+                else put(loot_model.item[a.a].idx, a.b == 255);
                 break;
             case LV_WHO: set_who(a.a); break;
             case LV_TAKEALL: key(0x1e61); if (!ns_unwinding) note(pile_n() ? "Took what fits." : "Took everything."); break;

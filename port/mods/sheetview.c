@@ -100,10 +100,10 @@ static void build(int who)
     s->shared = sheetview_shared();
     s->nitems = 0;
     if (!s->shared) {
-        s->nitems = gm_item_count(who);
-        for (int i = 0; i < s->nitems && i < 64; i++) {
+        for (int i = 0; i < gm_item_count(who) && i < 64; i++) {
             GmItem g; gm_item(who, i, &g);
-            SvItem *it = &s->item[i];
+            if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;   /* (arrows and the like never run out: not shown) */
+            SvItem *it = &s->item[s->nitems++];
             it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
             it->equipped = gm_item_equipped(who, i);
             it->drinkable = drinkable(g.id);
@@ -129,7 +129,7 @@ static void build(int who)
         for (int m = 0; m < 5; m++) {
             if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
             for (int i = 0; i < gm_item_count(m); i++) {
-                GmItem g; if (!gm_item(m, i, &g) || gm_is_potion(g.id)) continue;
+                GmItem g; if (!gm_item(m, i, &g) || gm_is_potion(g.id) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
                 int spare = gm_item_spare(m, i);
                 if (spare <= 0) continue;
                 int k = first;

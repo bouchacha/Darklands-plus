@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct { int id, qual, count, weight; } CvEntry;
+typedef struct { int id, qual, count, weight, src; } CvEntry;   /* (src: the store's entry; arrows and the like left out when hidden) */
 typedef struct { int idx, id, qual, count, weight, equipped, kept, potion; } CvItem;
 /* (the shared pack, inventory.shared: the right list is the party's pack, every spare thing of
    every member by kind and quality (idx -1, count the party's spares); Take puts a thing with

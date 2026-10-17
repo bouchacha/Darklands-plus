@@ -44,10 +44,12 @@ static void build(void)
     c->who = who_now();
     c->npar = gm_party_size();
     for (int m = 0; m < 5; m++) { c->present[m] = gm_member_present(m); c->able[m] = able(m); gm_member_name(m, c->names[m], sizeof c->names[m]); }
-    c->nstore = store_n();
-    for (int i = 0; i < c->nstore; i++) {
-        c->store[i].id = store_id(i); c->store[i].qual = store_q(i); c->store[i].count = store_c(i);
-        c->store[i].weight = gm_itemdef_weight(c->store[i].id);
+    c->nstore = 0;
+    for (int i = 0; i < store_n(); i++) {
+        if (gm_ammo_hidden() && gm_is_ammo(store_id(i))) continue;
+        CvEntry *e = &c->store[c->nstore++];
+        e->id = store_id(i); e->qual = store_q(i); e->count = store_c(i); e->src = i;
+        e->weight = gm_itemdef_weight(e->id);
     }
     c->shared = sheetview_shared();
     if (c->shared) {                                          /* the member's potions, then the party's pack: the spares of all, by kind and quality */
@@ -64,7 +66,7 @@ static void build(void)
             if (able(m) && gm_item_count(m) < 64) c->room = 1;
             for (int i = 0; i < gm_item_count(m); i++) {
                 GmItem g; int spare = gm_item_spare(m, i);
-                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id)) continue;
+                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
                 int k = first;
                 while (k < c->nitems && !(c->item[k].id == g.id && c->item[k].qual == g.qual)) k++;
                 if (k < c->nitems) { c->item[k].count += spare; continue; }
@@ -82,14 +84,15 @@ static void build(void)
             }
     } else {
         int m = c->who;
-        c->nitems = gm_item_count(m);
-        for (int i = 0; i < c->nitems && i < 64; i++) {
+        c->nitems = 0;
+        for (int i = 0; i < gm_item_count(m) && i < 64; i++) {
             GmItem g; gm_item(m, i, &g);
-            CvItem *it = &c->item[i];
+            if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
+            CvItem *it = &c->item[c->nitems++];
             it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
             it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0;
         }
-        c->room = c->nitems < 64;
+        c->room = gm_item_count(m) < 64;
     }
     c->seq++;
 }
@@ -271,12 +274,12 @@ static void screen_hook(void)                 /* item_cache_screen(arg), s035 14
         NsAction a;
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
-            case CV_TAKE: take(a.a, a.b == 255); break;
+            case CV_TAKE: if (a.a >= 0 && a.a < cache_model.nstore) take(cache_model.store[a.a].src, a.b == 255); break;
             case CV_PUT: if (cache_model.shared) { if (a.a >= 0 && a.a < cache_model.nitems) {
                              const CvItem *it = &cache_model.item[a.a];
                              if (it->idx >= 0) put(it->idx, a.b == 255, 0);          /* (the member's own potion) */
                              else pack_put(it->id, it->qual, a.b == 255, 0); } }
-                         else put(a.a, a.b == 255, 0); break;
+                         else if (a.a >= 0 && a.a < cache_model.nitems) put(cache_model.item[a.a].idx, a.b == 255, 0); break;
             case CV_WHO: set_who(a.a); break;
             case CV_PUTAWAY: put_away(); break;
             case CV_LEAVE: leave = 1; break;

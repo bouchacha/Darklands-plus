@@ -26,7 +26,7 @@ void ui_guide_tab(void)
         "Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Watch the green bar: below half, keep that member out of the fight.",
         "Divine Favor (DF) is spent calling on saints and comes back with prayer (and slowly by itself).",
         "Each member's attributes and skills are on the character sheet (a click on the portrait, or F1 ... F5); the bars on the party panel show End, Str and DF all the time.",
-        "The pack is the whole party's: a member keeps only what they use and the horse or mule they ride, and whatever the game asks one member for (a potion in a battle or on a card, lock picks, arrows, a mount) is handed to them as it is needed. Only what is in use weighs.",
+        "The pack is the whole party's: a member keeps only what they use, the horse or mule they ride and their own potions; whatever else the game asks one member for (lock picks, a mount) is handed to them as it is needed. Only what is in use weighs.",
         "A card's tests are made by the member best at each (the chance and the name are beside the option). The leader still takes what befalls \"the leader\" on a card, and acts first in a battle.",
     }, true);
     topic("Money and reputation", {

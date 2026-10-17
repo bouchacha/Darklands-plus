@@ -58,14 +58,16 @@ static void build(void)
     gm_money(&b->fl, &b->gr, &b->pf);
     b->total_pf = (long)b->fl * 240 + (long)b->gr * 12 + b->pf;
     int n = (s16)g_rw(GV_barter_nwares); if (n < 0) n = 0; if (n > 200) n = 200;
-    b->nwares = n;
+    b->nwares = 0;
     int m = b->who, ni = gm_item_count(m);
     int sheetview_shared(void);
     b->shared = sheetview_shared();
     void *snap = eval_snapshot();
     for (int i = 0; i < n; i++) {
-        BvWare *w = &b->ware[i];
-        w->id = (s16)g_rw((u16)(GV_barter_wares + 2 * i));
+        int wid = (s16)g_rw((u16)(GV_barter_wares + 2 * i));
+        if (gm_ammo_hidden() && gm_is_ammo(wid)) continue;
+        BvWare *w = &b->ware[b->nwares++];
+        w->id = wid; w->src = i;
         u16 a[2] = { (u16)w->id, 0 };
         w->price = (u16)game_call_link(GF_buy_price, 1, a);
         eval_restore(snap);
@@ -79,6 +81,7 @@ static void build(void)
         GmItem g; gm_item(m, i, &g);
         int eq = b->shared ? (gm_item_equipped(m, i) ? 1 : gm_item_riding(m, i) ? 2 : 0) : gm_item_equipped(m, i);
         if (b->shared && (pass == 0 ? !eq : (eq || !gm_is_potion(g.id)))) continue;
+        if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
         BvItem *it = &b->item[b->nitems++];
         it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared && eq ? 1 : g.count; it->weight = g.weight;
         it->equipped = eq; it->holder = m; it->kept = keep_is(g.id, g.qual);
@@ -88,7 +91,7 @@ static void build(void)
         for (int h = 0; h < 5; h++) {
             if (!gm_member_present(h) || gm_member_status(h) == 5) continue;
             for (int i = 0; i < gm_item_count(h); i++) {
-                GmItem g; if (!gm_item(h, i, &g) || gm_is_potion(g.id)) continue;   /* (potions: each member's own) */
+                GmItem g; if (!gm_item(h, i, &g) || gm_is_potion(g.id) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;   /* (potions: each member's own) */
                 int spare = gm_item_spare(h, i);
                 if (spare <= 0) continue;
                 int k = first;
@@ -128,8 +131,9 @@ static void buy(int i, int times)
     int sheetview_shared(void);
     for (int t = 0; t < times; t++) {
         if (i < 0 || i >= (s16)g_rw(GV_barter_nwares)) break;
-        if (sheetview_shared() && i < barter_model.nwares) {      /* the pack: whoever has room for it, the member of the tab first */
-            int id = (s16)g_rw((u16)(GV_barter_wares + 2 * i)), q = barter_model.ware[i].qual;
+        int mi = -1; for (int k = 0; k < barter_model.nwares; k++) if (barter_model.ware[k].src == i) mi = k;   /* (the shop's ware i in the model) */
+        if (sheetview_shared() && mi >= 0) {      /* the pack: whoever has room for it, the member of the tab first */
+            int id = (s16)g_rw((u16)(GV_barter_wares + 2 * i)), q = barter_model.ware[mi].qual;
             if (!gm_room_for(m, id, q)) for (int h = 0; h < 5; h++) if (gm_member_present(h) && gm_member_status(h) != 5 && gm_room_for(h, id, q)) { m = h; break; }
             s_int(GV_barter_who, m);
         }
@@ -143,7 +147,8 @@ static void buy(int i, int times)
     }
     char nm[32]; gm_itemdef_name((s16)g_rw((u16)(GV_barter_wares + 2 * i)), nm, sizeof nm);
     char t[120];
-    if (!done) snprintf(t, sizeof t, i < barter_model.nwares && barter_model.ware[i].price > purse() ? "Not bought: the purse holds too little." : "Not bought: %s has no room for another kind of thing.", barter_model.names[m]);
+    int mw = -1; for (int k = 0; k < barter_model.nwares; k++) if (barter_model.ware[k].src == i) mw = k;
+    if (!done) snprintf(t, sizeof t, mw >= 0 && barter_model.ware[mw].price > purse() ? "Not bought: the purse holds too little." : "Not bought: %s has no room for another kind of thing.", barter_model.names[m]);
     else snprintf(t, sizeof t, "Bought %d %s.", done, nm);
     note(t);
 }
@@ -276,7 +281,7 @@ void barterview_run(void)
         NsAction a;
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
-            case BV_BUY: buy(a.a, a.b > 0 ? a.b : 1); break;
+            case BV_BUY: if (a.a >= 0 && a.a < barter_model.nwares) buy(barter_model.ware[a.a].src, a.b > 0 ? a.b : 1); break;
             case BV_SELL: sell(a.a, a.b == 255); break;
             case BV_PSELL: psell(a.a, a.b, a.c == 255); break;
             case BV_WHO: set_who(a.a); break;

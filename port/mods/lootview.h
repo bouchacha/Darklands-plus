@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef struct { int id, qual, count, weight; } LvPile;
+typedef struct { int id, qual, count, weight, src; } LvPile;   /* (src: the entry in the game's pile; arrows and the like are left out when hidden) */
 typedef struct { int idx, id, qual, count, weight, equipped, kept, potion; } LvItem;
 /* (the shared pack, inventory.shared: the right list is the member shown's own potions (idx their
    record, potion 1) and then the party's pack, every spare thing of every member but potions by
