@@ -197,6 +197,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     int leave = 0;
     while (!leave) {
         if (!ns_round()) break;
+        ns_call(-1, 0x047c, 0x1320, 4, 6, 0, 0, 0);            /* (the clicks so far taken, as the original's loop does) */
         int cx, cy;
         if (ns_in.click && ns_in.cx < 0x3c) {                 /* a portrait: the member's sheet, as the original */
             ns_take_click(&cx, &cy);
