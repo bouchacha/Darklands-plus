@@ -1326,6 +1326,27 @@ static void ui_cursor(void)
     }
 }
 
+/* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at */
+static bool icon_grid;
+extern "C" void ui_icon_grid_toggle(void) { icon_grid = !icon_grid; }
+static void draw_icon_grid(void)
+{
+    if (!icon_grid) return;
+    void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImVec2 ds = ImGui::GetIO().DisplaySize;
+    dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(244, 234, 210, 255));
+    float cell = fminf(ds.x / 12.5f, ds.y / 8.5f), s = cell * 0.62f;
+    for (int k = 0; k < 22; k++) for (int t = 1; t <= 3; t++) {
+        int col = (k % 4) * 3 + (t - 1), row = k / 4;
+        ui_item_icon_tier(dl, ImVec2(cell * 0.6f + col * cell, cell * 0.6f + row * cell), s, 95 + k, t);
+    }
+    for (int k = 0; k < 23; k++) {
+        int col = k % 12, row = 6 + k / 12;
+        ui_item_icon_tier(dl, ImVec2(cell * 0.6f + col * cell, cell * 0.6f + row * cell), s, 72 + k, 0);
+    }
+}
+
 extern "C" void ui_draw(SDL_Renderer *ren)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
@@ -1413,6 +1434,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         }
     }
     ui_cursor();
+    draw_icon_grid();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
 }

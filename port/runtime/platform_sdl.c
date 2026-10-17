@@ -580,6 +580,7 @@ static void run_script(void)
                 fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
             }
         }
+        else if (!strcmp(s->cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
         else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);

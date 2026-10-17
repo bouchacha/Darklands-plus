@@ -91,12 +91,13 @@ struct NsDraw {
     }
     /* an item's picture (ui/inventory.cpp), centred at (x, y), `size` rows across; kept inside
        its square (a pike or a halberd is drawn long) */
-    void icon(float x, float y, float size, int id)
+    void icon(float x, float y, float size, int id, int qual = -1, int tier = 0)   /* (qual: a potion shows its grade; tier: a formula's, 1-3) */
     {
-        void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
+        void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
+        void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
         ImVec2 c = w(x, y); float s = size * k, h = s * 0.62f;
-        dl->PushClipRect(ImVec2(c.x - h, c.y - h), ImVec2(c.x + h, c.y + h), true);
-        ui_item_icon(dl, c, s, id);
+        dl->PushClipRect(ImVec2(c.x - h, c.y - h * 1.15f), ImVec2(c.x + h, c.y + h), true);
+        if (tier > 0) ui_item_icon_tier(dl, c, s, id, tier); else ui_item_icon_q(dl, c, s, id, qual);
         dl->PopClipRect();
     }
     /* the page under a native screen (over the picture beside the party panel) */

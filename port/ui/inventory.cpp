@@ -284,8 +284,14 @@ static bool draw_equipment(ImDrawList *dl, ImVec2 c, float s, int t, bool relic)
     return true;
 }
 
+bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier);   /* ui/alchemyicons.cpp */
+bool ui_draw_ingredient(ImDrawList *dl, ImVec2 c, float s, int id);
+int ui_potion_tier(int q, int base);
+static int icon_tier;                       /* a potion's grade (1-3) for the next draw_icon, 0 unknown */
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int id)
 {
+    if (id >= 95 && id <= 116 && (!d || d->kind == K_POTION) && ui_draw_potion(dl, c, s, id, icon_tier)) return;
+    if (id >= 72 && id <= 94 && (!d || d->kind == K_INGREDIENT) && ui_draw_ingredient(dl, c, s, id)) return;
     if (d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || (d->kind == K_RELIC && d->type <= 33)
               || (d->type >= 98 && d->type <= 107) || (d->type >= 154 && d->type <= 156))
           && draw_equipment(dl, c, s, d->type, d->kind == K_RELIC)) return;
@@ -376,6 +382,15 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
 
 /* the icon of item id, for the other tabs */
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id) { draw_icon(dl, c, s, def_of(id), id); }
+/* the same with the thing's quality (a potion shows its grade), or a formula's grade (1-3) */
+void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q)
+{
+    const ItemDef *d = def_of(id);
+    icon_tier = d && q >= 0 ? ui_potion_tier(q, d->quality) : 0;
+    draw_icon(dl, c, s, d, id);
+    icon_tier = 0;
+}
+void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier) { icon_tier = tier; draw_icon(dl, c, s, def_of(id), id); icon_tier = 0; }
 void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { draw_equipment(dl, c, s, type, false); }
 
 /* ---------------------------------------------------------------- giving items */
@@ -616,7 +631,7 @@ extern "C" void tab_inventory(void)
         dl->AddRectFilled(p, ImVec2(p.x + tile, p.y + tile), bg, 6);
         if (it.equipped) dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(p.x + tile - 3, p.y + tile - 3), col(0.72f, 0.55f, 0.18f), 4, 0, 2.0f);
         dl->AddRect(p, ImVec2(p.x + tile, p.y + tile), hov ? col(0.55f, 0.24f, 0.13f) : col(0.55f, 0.42f, 0.25f), 6, 0, hov ? 2.5f : 1.0f);
-        draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id);
+        icon_tier = d ? ui_potion_tier(it.qual, d->quality) : 0; draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id); icon_tier = 0;
         const char *nm = d ? (ImGui::CalcTextSize(d->name.c_str()).x * 0.8f < tile - 6 ? d->name.c_str() : d->shortname.c_str()) : "?";
         ImGui::PushFont(ui_font_small);
         ImVec2 ts = ImGui::CalcTextSize(nm);
@@ -776,7 +791,7 @@ extern "C" void tab_alchemy(void)
             ImGui::TableNextColumn();
             ImVec2 p = ImGui::GetCursorScreenPos();
             ImGui::Dummy(ImVec2(UIS(28), UIS(28)));
-            draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3);
+            icon_tier = f % 3 + 1; draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3); icon_tier = 0;
             ImGui::SameLine();
             ImGui::BeginGroup();
             std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");

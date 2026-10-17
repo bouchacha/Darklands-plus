@@ -53,7 +53,7 @@ extern "C" void alchemyview_draw(void)
         if (sel) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(214, 186, 140, 255));
         else if (h) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
         else if (r & 1) P.rect(LX0 + 0.5f, y, LX1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
-        P.icon(LX0 + 6.5f, y + ROWH * 0.5f, 7.0f, 95 + w.formula / 3);
+        P.icon(LX0 + 6.5f, y + ROWH * 0.5f, 7.0f, 95 + w.formula / 3, -1, w.formula % 3 + 1);
         std::string nm = w.formula < (int)gamedata.formula_names.size() ? gamedata.formula_names[w.formula] : "?";
         float end = LX1 - 3;
         if (w.count) { std::string c = std::to_string(w.count) + "x"; P.text(fo, NsDraw::FS_BODY, 0, y + 2, ink, c, end); end -= P.width(fo, NsDraw::FS_BODY, c) + 2; }

@@ -318,7 +318,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         bool h = !V.dragging && P.over(RX0, y, RX1, y + ROWH), busy = i == V.drop_row;
         if (h) { new_what = 1; new_which = i; }
         if (h || busy || (V.dragging && i == V.drag_row)) P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
-        P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.3f, it.id);
+        P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.3f, it.id, it.qual);
         std::string nm = ns_item_name(it.id);
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         const ItemDef *d = ns_itemdef(it.id);
@@ -378,7 +378,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         float lw = P.width(P.fo, NsDraw::FS_SMALL, l);
         if (gx + 12 + lw > 318) gx = 318 - 12 - lw;
         P.rect(gx, gy - 4, gx + 12 + lw + 2, gy + 4.5f, ok ? IM_COL32(222, 244, 214, 240) : IM_COL32(250, 242, 222, 235), 1.5f);
-        P.icon(gx + 5, gy + 0.3f, 7, it.id);
+        P.icon(gx + 5, gy + 0.3f, 7, it.id, it.qual);
         P.text(P.fo, NsDraw::FS_SMALL, gx + 11, gy - 2.6f, NsDraw::INK, l);
     }
 }
@@ -546,7 +546,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
         if (h) hover = k;
         if (h || k == V.pin_formula) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, IM_COL32(226, 204, 160, 255));
         if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = V.pin_formula == k ? -1 : k;
-        P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3);
+        P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3, -1, k % 3 + 1);
         P.text(f, 5.4f, LX0 + 9, ry + 0.9f, ink, gamedata.formula_names[k], -1, cx0 - 1);
         for (size_t a = 0; a < al.size(); a++) {
             if (!s.formula[al[a]][k]) continue;
@@ -565,7 +565,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
     if (k < 0 || k >= (int)gamedata.formulas.size()) return;
     const Formula &fm = gamedata.formulas[k];
     float y = 24;
-    P.icon(DX0 + 6, y + 4, 8, 95 + k / 3);
+    P.icon(DX0 + 6, y + 4, 8, 95 + k / 3, -1, k % 3 + 1);
     y += P.para(f, NsDraw::FS_HEAD, DX0 + 12, y, DW - 9, ink, gamedata.formula_names[k]) + 1.5f;
     static const char *RISK[3] = { "low risk", "some risk", "high risk" };
     char mr[64]; snprintf(mr, sizeof mr, "Mystic number %d, %s.", fm.mystic, fm.risk >= 0 && fm.risk < 3 ? RISK[fm.risk] : "risk unknown");
