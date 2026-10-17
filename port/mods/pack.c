@@ -206,6 +206,19 @@ static void count_items_hook(void)        /* count_items (who, code) */
     hook_call_original();
     if (ours) AX = (u16)party_has(code);
 }
+static void item_quality_hook(void)       /* item_quality_impl (who, code), s031 18e7:15f8: the best quality who carries */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), code = (s16)rw(SS, (u16)(SP + 6));
+    int ours = sheetview_shared() && who >= -1 && who < 5 && card_potion(code);
+    hook_call_original();
+    if (!ours) return;
+    int best = (s16)AX;                                  /* (the chance shown and used: the party's best copy, which the chosen member is handed) */
+    for (int h = 0; h < 5; h++) {
+        if (!giver_ok(h)) continue;
+        for (int i = 0; i < gm_item_count(h); i++) { GmItem g; if (gm_item(h, i, &g) && g.id == code && g.qual > best) best = g.qual; }
+    }
+    AX = (u16)best;
+}
 static void card_menu_hook(void)          /* card_menu (win, win2) */
 {
     hook_call_original();
@@ -376,5 +389,6 @@ void pack_init(void)
     hook_install(29, 0x0e76, 0x118e, has_item_hook);
     hook_install(GF_count_items, count_items_hook);
     hook_install(GF_card_menu, card_menu_hook);
+    hook_install(GF_item_quality_impl, item_quality_hook);
     hook_install(GF_use_ammo, use_ammo_hook);
 }
