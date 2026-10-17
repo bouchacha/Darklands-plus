@@ -689,6 +689,10 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); dirty_config = 1; }
       hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
     }
+    { bool rs = config_get_int("battle.reposition_shooters", 1) != 0;
+      if (ImGui::Checkbox("A shooter without a clear line steps aside to find one, instead of waiting", &rs)) { config_set_int("battle.reposition_shooters", rs); dirty_config = 1; }
+      hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. A member told to hold stays put; any other order you give takes over.");
+    }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }

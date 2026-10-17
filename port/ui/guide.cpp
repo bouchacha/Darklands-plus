@@ -63,7 +63,7 @@ void ui_guide_tab(void)
         "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk).",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
-        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Helpers).",
+        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Helpers). A shooter needs a clear line to the target; Darklands+ has a blocked one step aside to find it (F12 > Helpers).",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
     });
     topic("Travel", {
