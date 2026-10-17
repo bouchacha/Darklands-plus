@@ -661,7 +661,17 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
             int m = 0, id = 0, q = 25, n = 1; sscanf(s->arg, "%d,%d,%d,%d", &m, &id, &q, &n);
             int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); u32 d = g_itemdef(id);
-            if (d && k < 53) { u16 o = G_ITEM(m, k); ww(G_FAR2E38, o, (u16)id); wb(G_FAR2E38, (u16)(o + 2), rb((u16)(d >> 16), (u16)((u16)d + 0x1e))); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), (u8)n); wb(G_FAR2E38, (u16)(o + 5), rb((u16)(d >> 16), (u16)((u16)d + 0x25))); g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(k + 1)); fprintf(stderr, "item %d x%d to member %d (record %d)\n", id, n, m, k); }
+            int same = -1;                                  /* (a stack of the same: added to it, as add_item_rec does) */
+            for (int j = 0; j < k && j < 64; j++) if (rw(G_FAR2E38, G_ITEM(m, j)) == (u16)id && rb(G_FAR2E38, (u16)(G_ITEM(m, j) + 3)) == (u8)q) same = j;
+            if (d && same >= 0) { u16 o = G_ITEM(m, same); wb(G_FAR2E38, (u16)(o + 4), (u8)(rb(G_FAR2E38, (u16)(o + 4)) + n)); fprintf(stderr, "item %d x%d to member %d (onto record %d)\n", id, n, m, same); }
+            else if (d && k < 53) { u16 o = G_ITEM(m, k); ww(G_FAR2E38, o, (u16)id); wb(G_FAR2E38, (u16)(o + 2), rb((u16)(d >> 16), (u16)((u16)d + 0x1e))); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), (u8)n); wb(G_FAR2E38, (u16)(o + 5), rb((u16)(d >> 16), (u16)((u16)d + 0x25))); g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(k + 1)); fprintf(stderr, "item %d x%d to member %d (record %d)\n", id, n, m, k); }
+        }
+        else if (!strcmp(s->cmd, "uinv")) {                /* test: member m's item records (code, type, quality, count) */
+            int m = atoi(s->arg), n = (s8)g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+            fprintf(stderr, "inv %d (%d):", m, n);
+            for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(m, k); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
+            u16 cb = (u16)(0x9c55 + m * 0x80);
+            fprintf(stderr, " | armour %d q%d, %d q%d\n", (s8)g_rb((u16)(cb + 0x4b)), (s8)g_rb((u16)(cb + 0x4f)), (s8)g_rb((u16)(cb + 0x4c)), (s8)g_rb((u16)(cb + 0x50)));
         }
         else if (!strcmp(s->cmd, "urand")) { unsigned v = (unsigned)atol(s->arg); g_ww(0x7b20, (u16)v); g_ww(0x7b22, (u16)(v >> 16)); fprintf(stderr, "rand seed %u\n", v); }   /* test: the C library's rand() state */
         else if (!strcmp(s->cmd, "ucv")) { void cardview_dump(void); cardview_dump(); }      /* test: the native card screen */

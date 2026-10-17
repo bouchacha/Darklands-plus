@@ -74,6 +74,12 @@
  *            total that adds 4096; the day itself (camp_spend_day) finds no teacher either, so
  *            nothing is learnt and the member is set back to relaxing. While that screen runs,
  *            event_next(0x28, i) now returns only this town's teachers that have begun.
+ *  armourwear Identical things share one record (add_item_rec merges code + type + quality),
+ *            so a worn armour and its spares are one stack. In battle, wear (acid, fire:
+ *            s019 1ef8:0968) lowers the quality of that whole record, and when it is used up
+ *            (1ef8:0914) consume_item is called until the record is gone: the spares carried
+ *            lose quality with the worn one and are destroyed with it. Now one is taken off
+ *            the stack and worn down alone, and only that one is thrown away.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,6 +124,8 @@ Fix FIXES[] = {
       "A store room holds 100 kinds of things and its count of one thing ran over past 127 (shown as minus numbers, then lost). Putting more in is now refused with a word why.", 1 },
     { "testcard", "No stop on the developers' test card",
       "Card 0 is the developers' test card ($Initi00, \"Try it...you will like it!\"); a card that returns to the card it came from can go there when it came from none, and the game stops on its missing picture (pics\\xhouse3.pic). It now goes on to the map, or the town the party is in.", 1 },
+    { "armourwear", "Only the armour worn wears out",
+      "Identical pieces of armour are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers.", 1 },
     { "teachers", "Training at the inn finds the town's teachers",
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
 };
@@ -559,17 +567,76 @@ static void teachers_next_hook(void)       /* event_next(k, i), s029 0e76:324c *
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- armourwear */
+#define CB_NITEMS(i) ((u16)(GV_combatants + (i) * 0x80 + 0x7e))
+static int inv_find(int i, int type, int q)
+{
+    int n = (s8)g_rb(CB_NITEMS(i));
+    for (int k = 0; k < n && k < 64; k++)
+        if (rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 2)) == type && rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 3)) == q) return k;
+    return -1;
+}
+static void armourwear_hook(void)          /* s019 1ef8:0968 (i, type, quality, amount): wear an armour down */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4)), type = rw(SS, (u16)(SP + 6)) & 0xff, q = rw(SS, (u16)(SP + 8)) & 0xff, amt = (s16)rw(SS, (u16)(SP + 10));
+    if (i < 0 || i >= 5) { hook_call_original(); return; }
+    int k = inv_find(i, type, q), n = (s8)g_rb(CB_NITEMS(i));
+    if (k < 0) { hook_call_original(); return; }
+    u16 o = G_ITEM(i, k);
+    int cnt = rb(G_FAR2E38, (u16)(o + 4));
+    if (cnt <= 1) { hook_call_original(); return; }
+    u8 nq = (u8)(q - amt);
+    u16 id = rw(G_FAR2E38, o);
+    int to = -1;
+    for (int j = 0; j < n && j < 64; j++) {
+        u16 p = G_ITEM(i, j);
+        if (j != k && rw(G_FAR2E38, p) == id && rb(G_FAR2E38, (u16)(p + 2)) == type && rb(G_FAR2E38, (u16)(p + 3)) == nq && rb(G_FAR2E38, (u16)(p + 4)) < 255) { to = j; break; }
+    }
+    if (to >= 0) wb(G_FAR2E38, (u16)(G_ITEM(i, to) + 4), (u8)(rb(G_FAR2E38, (u16)(G_ITEM(i, to) + 4)) + 1));
+    else if (n < 64) {
+        u16 p = G_ITEM(i, n);
+        for (int b = 0; b < 6; b++) wb(G_FAR2E38, (u16)(p + b), rb(G_FAR2E38, (u16)(o + b)));
+        wb(G_FAR2E38, (u16)(p + 3), nq); wb(G_FAR2E38, (u16)(p + 4), 1);
+        g_wb(CB_NITEMS(i), (u8)(n + 1));
+    } else { hook_call_original(); return; }                 /* (a full pack: as the original) */
+    wb(G_FAR2E38, (u16)(o + 4), (u8)(cnt - 1));
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourwear: member %d, one of %d (type %d, q%d) worn to q%d alone\n", i, cnt, type, q, (s8)nq);
+    hook_return_far(0);
+}
+static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away worn-out armour */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i < 0 || i >= 5) { hook_call_original(); return; }
+    u16 cb = (u16)(GV_combatants + i * 0x80);
+    for (int s = 0; s < 2; s++) {
+        if ((s8)g_rb((u16)(cb + 0x4f + s)) > 0) continue;
+        int k = inv_find(i, g_rb((u16)(cb + 0x4b + s)), g_rb((u16)(cb + 0x4f + s)));
+        if (k >= 0) {                                       /* one of it (consume_item, s014 18bf:0db4) */
+            u16 o = G_ITEM(i, k);
+            int cnt = rb(G_FAR2E38, (u16)(o + 4)), n = (s8)g_rb(CB_NITEMS(i));
+            if (cnt > 1) wb(G_FAR2E38, (u16)(o + 4), (u8)(cnt - 1));
+            else {
+                for (int j = k; j < n - 1; j++) for (int b = 0; b < 6; b++) wb(G_FAR2E38, (u16)(G_ITEM(i, j) + b), rb(G_FAR2E38, (u16)(G_ITEM(i, j + 1) + b)));
+                g_wb(CB_NITEMS(i), (u8)(n - 1));
+            }
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourwear: member %d's worn-out armour thrown away (%d left of it)\n", i, cnt - 1);
+        }
+        g_wb((u16)(cb + 0x4b + s), 0xff); g_wb((u16)(cb + 0x4d + s), 0); g_wb((u16)(cb + 0x4f + s), 0x19);
+    }
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
-    { 36, 0x1462, 0x0082, teachers_lodging_hook } };
+    { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
-    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook } };
+    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook } };
 
 void fix_enable(int i, int on)
 {
