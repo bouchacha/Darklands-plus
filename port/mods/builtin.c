@@ -143,6 +143,7 @@ void mods_init(void)
     { void sheetview_init(void); sheetview_init(); }
     { void alchemyview_init(void); alchemyview_init(); }
     { void loot_init(void); loot_init(); }
+    { void cacheview_init(void); cacheview_init(); }
     { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();

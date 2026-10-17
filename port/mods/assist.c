@@ -14,6 +14,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/hle.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
@@ -39,6 +40,15 @@ int assist_test_screens(void)
     if (!uscreen_pending) return 0;
     int kind = uscreen_pending;
     uscreen_pending = 0;
+    if (kind == 3) {                    /* the store room (its overlay vector, as the town's card calls it) */
+        void native_go(u16 seg, u16 off);
+        u16 sp = SP, ds = DS, es = ES;
+        DS = ES = G_DGROUP;
+        push16(0); push16(HLE_SEG); push16(0xfff0);
+        native_go((u16)(LOADSEG + 0x9c0), 0x1ed7);
+        if (!unw_active) { SP = sp; DS = ds; ES = es; }
+        return 1;
+    }
     void (*f)(void) = kind == 2 ? game_func(34, 0x1462, 0x0102) : game_func(29, 0x0e76, 0x2204);   /* 2: saint_pray (who, saint) */
     u16 args[2] = { (u16)uscreen_a, (u16)uscreen_b };
     if (f) game_call_live(f, 2, args);

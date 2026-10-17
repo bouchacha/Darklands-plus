@@ -598,6 +598,26 @@
 #define party_info_screen_vec    vec_185b             /* overlay call vector of party_info_screen */
 #define item_cache_screen        sub_s035_1462_0000   /* (arg): item cache screen (the symbol cache_screen) */
 #define item_cache_screen_vec    vec_1ed7             /* overlay call vector of item_cache_screen */
+#define cache_close              sub_s035_1462_04bc   /* (r): the store written back (or none marked), the leader back; returns r */
+#define cache_first_draw         sub_s035_1462_0510   /* (who, arg): the whole screen; the store read (cache_load) */
+#define cache_redraw             sub_s035_1462_0782   /* (who, arg): the screen for another member */
+#define cache_key                sub_s035_1462_0a46   /* (key): G get one, P put one, C another member, arrows ... at the cursors */
+#define cache_add                sub_s035_1462_10d2   /* (id, who, quality): one more in the store */
+#define cache_take               sub_s035_1462_114a   /* (i): one fewer of entry i */
+#define cache_load               sub_s035_1462_1350   /* (handle): store number handle of cache.tmp into cache_items */
+#define cache_save               sub_s035_1462_1468   /* (handle): cache_items back into cache.tmp (-1 a new store) */
+#define cache_items              F_2e38_37f4          /* struct { int id; char quality; char count; } []: the store shown */
+#define cache_n                  D_89f6               /* unsigned: entries in cache_items */
+#define cache_n_shown            D_89f0               /* int: the same, as the screen last listed */
+#define cache_who                D_89f2               /* int: the member whose things are shown */
+#define cache_leader             D_89ee               /* int: the leader when the screen opened */
+#define cache_arg                D_89f8               /* int: the screen's argument */
+#define cache_n_items            D_37ba               /* int[5]: the member's count of things */
+#define cache_side               D_37c4               /* int[5]: 1 the cursor is in the store, 0 in the member's things */
+#define cache_inv_top            D_37ce               /* int[5]: the member's list, first shown */
+#define cache_top                D_37d8               /* int[5]: the store's list, first shown */
+#define cache_inv_sel            D_37e2               /* int[5]: the member's list, the cursor's row */
+#define cache_sel                D_37ec               /* int[5]: the store's list, the cursor's row */
 #define camp_spend_day           sub_s036_1462_147a   /* (): spend one day */
 #define save_game                sub_s037_1462_2a68   /* (): "Save game" */
 #define save_game_vec            vec_1847             /* overlay call vector of save_game */

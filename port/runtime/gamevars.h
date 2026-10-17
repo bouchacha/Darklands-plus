@@ -146,6 +146,17 @@
 #define GV_alchemy_have                 0xe716    /* int[]: the party's ingredients (by item id), less what is reserved */
 #define GV_alchemy_file                 0x9c2b    /* char far *: DARKLAND.ALC in memory */
 #define GV_philosophers_stone           0x9078    /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define GV_cache_n                      0x89f6    /* unsigned: entries in cache_items */
+#define GV_cache_n_shown                0x89f0    /* int: the same, as the screen last listed */
+#define GV_cache_who                    0x89f2    /* int: the member whose things are shown */
+#define GV_cache_leader                 0x89ee    /* int: the leader when the screen opened */
+#define GV_cache_arg                    0x89f8    /* int: the screen's argument */
+#define GV_cache_n_items                0x37ba    /* int[5]: the member's count of things */
+#define GV_cache_side                   0x37c4    /* int[5]: 1 the cursor is in the store, 0 in the member's things */
+#define GV_cache_inv_top                0x37ce    /* int[5]: the member's list, first shown */
+#define GV_cache_top                    0x37d8    /* int[5]: the store's list, first shown */
+#define GV_cache_inv_sel                0x37e2    /* int[5]: the member's list, the cursor's row */
+#define GV_cache_sel                    0x37ec    /* int[5]: the store's list, the cursor's row */
 #define GV_loot_who                     0x8dc4    /* the member receiving */
 #define GV_loot_leader                  0x8dba    /* the leader when the screen opened */
 #define GV_loot_n                       0x8dbc    /* entries in the pile */
@@ -158,7 +169,7 @@
 #define GV_loot_pile_top                0x4c24    /* int[5] */
 #define GV_loot_inv_sel                 0x4c2e    /* int[5] */
 #define GV_loot_pile_sel                0x4c38    /* int[5] */
-#define GV_member_shield                0xa668    /* shield code per party slot ("F01", ...) */
+#define GV_member_shield                0xa668    /* figure code per party slot ("F01", ...: PICS\<code>SHORT.PIC, the sprites); the herald is party byte +1 */
 #define GV_shield_pics                  0xa2d7    /* shield picture handles per member */
 #define GV_lst_buf                      0xa889    /* darkland.lst buffer */
 #define GV_loc_buf                      0xa885    /* location file buffer */
@@ -640,6 +651,14 @@
 #define GF_alchemy_resume               33, 0x1462, 0x14e6    /* (): a batch of this member under way: its ingredients back, its count into the rows */
 #define GF_party_info_screen            34, 0x1550, 0x0006    /* (): party information screen (the symbol party_info) */
 #define GF_item_cache_screen            35, 0x1462, 0x0000    /* (arg): item cache screen (the symbol cache_screen) */
+#define GF_cache_close                  35, 0x1462, 0x04bc    /* (r): the store written back (or none marked), the leader back; returns r */
+#define GF_cache_first_draw             35, 0x1462, 0x0510    /* (who, arg): the whole screen; the store read (cache_load) */
+#define GF_cache_redraw                 35, 0x1462, 0x0782    /* (who, arg): the screen for another member */
+#define GF_cache_key                    35, 0x1462, 0x0a46    /* (key): G get one, P put one, C another member, arrows ... at the cursors */
+#define GF_cache_add                    35, 0x1462, 0x10d2    /* (id, who, quality): one more in the store */
+#define GF_cache_take                   35, 0x1462, 0x114a    /* (i): one fewer of entry i */
+#define GF_cache_load                   35, 0x1462, 0x1350    /* (handle): store number handle of cache.tmp into cache_items */
+#define GF_cache_save                   35, 0x1462, 0x1468    /* (handle): cache_items back into cache.tmp (-1 a new store) */
 #define GF_camp_spend_day               36, 0x1462, 0x147a    /* (): spend one day */
 #define GF_save_game                    37, 0x1462, 0x2a68    /* (): "Save game" */
 #define GF_char_in_slot                 37, 0x1462, 0x3a8a    /* (p): character index in party slot p */
