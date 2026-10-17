@@ -547,14 +547,16 @@ extern "C" void worldmap_draw(void)
  * odd rows half a tile to the right (the route in ui/travel.cpp is drawn the same way). */
 extern "C" void travelmap_labels(void)
 {
-    if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
+    bool names = config_get_int("map.names", 1) != 0, signs = config_get_int("map.quest_marks", 1) != 0;   /* (names; the quests' and towns' signs) */
+    if ((!names && !signs) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
     if (ns_showing()) return;                                   /* (a native box over the map: a map message) */
     int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float base = ui_text_px();
     static std::vector<TownMark> tmarks; static int tf = -1000;
-    if (ImGui::GetFrameCount() - tf > 30) { town_marks(tmarks); tf = ImGui::GetFrameCount(); }
+    static std::vector<std::pair<int, std::string>> qmarks; static std::vector<int> qcats;
+    if (ImGui::GetFrameCount() - tf > 30) { town_marks(tmarks); quest_marks_cat(qmarks, qcats); tf = ImGui::GetFrameCount(); }
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
@@ -572,12 +574,26 @@ extern "C" void travelmap_labels(void)
         ImVec2 at; plat_game_to_win(sx, sy + 5, &at.x, &at.y);
         ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0, name.c_str());
         ImVec2 tp(at.x - ts.x * 0.5f, at.y);
-        float ow = fmaxf(1.0f, roundf(size / 16.0f));
-        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
-            if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
-        dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+        if (names) {
+            float ow = fmaxf(1.0f, roundf(size / 16.0f));
+            for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
+                if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
+            dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+        } else { tp.x = at.x - size * 0.6f; ts.x = 0; }             /* (the signs where the name would begin) */
+        if (!signs) continue;
         int n = 0;                                            /* the town bars the party, or its watch wants it */
         for (const TownMark &t : tmarks)
             if (t.loc == k) { float is = size * 1.15f; ui_draw_quest_icon(dl, ImVec2(tp.x + ts.x + is * (0.65f + 1.05f * n), tp.y + ts.y * 0.5f), is, t.cat); n++; }
+        {                                                     /* a quest that leads here: its picture above the place */
+            int nq = 0, iq = 0;
+            for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) nq++;
+            for (size_t i = 0; i < qmarks.size(); i++)
+                if (qmarks[i].first == k) {
+                    float is = base * 1.3f;
+                    ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
+                    ui_draw_quest_icon(dl, ImVec2(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f), is, i < qcats.size() ? qcats[i] : 0);
+                    iq++;
+                }
+        }
     }
 }
