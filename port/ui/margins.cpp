@@ -335,7 +335,7 @@ static void right_panel(int size)
         }
         place_quests(cur);
         static std::vector<TownMark> tm; static int tmf = -1000;
-        if (ImGui::GetFrameCount() - tmf > 30) { town_marks(tm); tmf = ImGui::GetFrameCount(); }
+        if (ImGui::GetFrameCount() - tmf > 30 && (gm == GM_CARD || gm == GM_MAP)) { town_marks(tm); tmf = ImGui::GetFrameCount(); }
         for (const TownMark &t : tm) if (t.loc == cur) {         /* the town bars the party, or its watch wants it */
             float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
             ImVec2 p0 = ImGui::GetCursorScreenPos();
@@ -392,7 +392,8 @@ static void right_panel(int size)
 static void place_quests(int cur)
 {
     static std::vector<std::pair<int, std::string>> marks; static std::vector<int> cats; static int mf = -1000;
-    if (ImGui::GetFrameCount() - mf > 30) { quest_marks_cat(marks, cats); mf = ImGui::GetFrameCount(); }
+    int gm = game_mode();                                   /* (read while a card or the map is up: battles and their loot reuse the tables) */
+    if (ImGui::GetFrameCount() - mf > 30 && (gm == GM_CARD || gm == GM_MAP)) { quest_marks_cat(marks, cats); mf = ImGui::GetFrameCount(); }
     for (size_t i = 0; i < marks.size(); i++) {
         if (marks[i].first != cur) continue;
         float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;

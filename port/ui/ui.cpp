@@ -300,6 +300,8 @@ extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help
 extern "C" void ui_toggle_map(void)
 {
     if (open_map) { open_map = false; return; }
+    int gm = game_mode();                                   /* (battles and their loot reuse the places' memory) */
+    if (gm != GM_CARD && gm != GM_MAP) { ui_notice("The world map opens on the travel map or a card, not in a battle."); return; }
     if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; }
 }
 
