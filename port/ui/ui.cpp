@@ -595,7 +595,10 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34)); hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
     { bool lv = lootview_is_on() != 0;
       if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen."); ImGui::Unindent(UIS(34)); }
+      ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen.");
+      if (lv) { bool lw = config_get_int("assist.loot_worth", 1) != 0;
+        if (ImGui::Checkbox("Under the lists: about what a shop pays for the thing under the pointer", &lw)) { config_set_int("assist.loot_worth", lw); dirty_config = 1; } }
+      ImGui::Unindent(UIS(34)); }
     { bool av = alchemyview_is_on() != 0;
       if (ImGui::Checkbox("Alchemy drawn by Darklands+: every known formula in one list, its ingredients at hand, batches with - and +, the chance of success", &av)) { alchemyview_set(av); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The chance and the mixing are the game's own. Off: the game's own alchemy screen."); ImGui::Unindent(UIS(34));

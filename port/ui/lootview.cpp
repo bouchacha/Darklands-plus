@@ -12,6 +12,8 @@
 #include "../runtime/game.h"
 #include "../mods/lootview.h"
 #include "nsdraw.h"
+#include "../mods/gamemodel.h"
+#include "../runtime/config.h"
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -25,6 +27,28 @@ struct LootView {
 }
 
 extern "C" int lootview_showing(void) { return ns_screen == NS_LOOT && loot_model.open && !ns_hidden(); }
+
+/* about what a shop pays for one: the game's sell_price (s032 1b26) without the town, whose size
+   takes 2% a step off a common thing and adds as much to a rare one (the reputation and fame
+   terms come to nothing in its integer arithmetic, but for a bad reputation's 1%) */
+static long sale_worth(int id, int qual)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d || gm_itemdef_no_trade(id)) return 0;
+    long price = (long)qual * (d->value / 4) * 2 / 25;
+    int cha = 25, mx = 25; gm_member_attr(gm_leader(), 5, &cha, &mx);
+    price += price * (25 - cha) / -100;
+    return price < 1 ? 0 : price;
+}
+static std::string pf_money(long pf)
+{
+    long fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
+    std::string s;
+    if (fl) s += std::to_string(fl) + "fl";
+    if (gr) s += (s.empty() ? "" : " ") + std::to_string(gr) + "gr";
+    if (p) s += (s.empty() ? "" : " ") + std::to_string(p) + "pf";
+    return s;
+}
 
 extern "C" void lootview_draw(void)
 {
@@ -136,6 +160,10 @@ extern "C" void lootview_draw(void)
         std::string l1 = std::string(d ? kind_name(d->kind) : "") + ", quality " + std::to_string(qual) + ", weight " + std::to_string(wt);
         if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";
         if (L && l.item[i].equipped) l1 += "; in use";
+        if (config_get_int("assist.loot_worth", 1)) {
+            long w = sale_worth(id, qual);
+            if (w > 0) l1 += "; a shop pays about " + pf_money(w) + (cnt > 1 ? " each" : "");
+        }
         P.text(fo, NsDraw::FS_BODY, 79, SY0 + 10, soft, l1);
         std::string l2 = ns_item_line(id);
         if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
