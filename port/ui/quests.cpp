@@ -11,13 +11,16 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "quests.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
+#include "../runtime/config.h"
 #include "../mods/travel.h"
 void ui_toggle(void);
 }
@@ -130,7 +133,7 @@ static std::string item_name(int id)
     return "an item";
 }
 
-struct Line { std::string text, when; int group; int loc = -1; };
+struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; };
 
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
 
@@ -151,30 +154,38 @@ static std::vector<Line> build_lines(void)
         if ((e.kind == 0x11 || e.kind == 0x12) && (when_key(e.end) < now || when_key(e.end) != last[{ e.kind, e.loc }] || shown[{ e.kind, e.loc }]++)) continue;
         std::string who = person(e.kind == 0x24 ? e.value : e.type0);
         std::string by = who.empty() ? giver(e.owner) : who + " (" + giver(e.owner) + ")";
+        std::string place = loc_name(e.loc);
+        auto add = [&](std::string title, std::string text, std::string when, int group, int loc, bool timed) {
+            Line l; l.title = title; l.text = text; l.when = when; l.group = group; l.loc = loc;
+            l.end = timed ? when_key(e.end) : -1; l.ed = e.end[1]; l.em = e.end[2]; l.ey = e.end[3]; l.order = e.i;
+            char id[64]; snprintf(id, sizeof id, "%d.%d.%d.%d.%d.%d", e.kind, e.tag, e.loc, e.item, e.value, e.type0); l.id = id;
+            v.push_back(l);
+        };
+        bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
-            v.push_back({ "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
-                          + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc });
+            add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
+                + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit);
         else if (e.kind == 0x24 && e.tag == 3)
-            v.push_back({ "The robber knight is dead: collect the bounty from " + by + " in " + loc_name(e.loc) + ".", "by " + date(e.end), 1, e.loc });
+            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit);
         else if (e.kind == 8 && e.tag == 10)
-            v.push_back({ "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
-                          date(e.end) == "no time limit" ? "" : "by " + date(e.end), 0, e.loc });
+            add(item_name(e.item) + " from " + place, "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
+                limit ? "by " + date(e.end) : "", 0, e.loc, limit);
         else if (e.kind == 0x24 && e.tag == 10)
-            v.push_back({ "Bring the " + item_name(e.item) + " to " + by + " in " + loc_name(e.loc) + ".", "by " + date(e.end), 1, e.loc });
+            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit);
         else if (e.kind == 8 && e.tag == 4)
-            v.push_back({ "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1 });
+            add("Dragon @ " + place, "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false);
         else if (e.kind == 8 && e.tag == 12)
-            v.push_back({ "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc });
+            add("Mine @ " + place, "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc, false);
         else if (e.kind == 8 && e.tag == 7)
-            v.push_back({ "The Wild Hunt pursues the party.", "", 2 });
+            add("The Wild Hunt", "The Wild Hunt pursues the party.", "", 2, -1, false);
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            v.push_back({ "Not welcome in " + loc_name(e.loc) + ".", "until " + date(e.end), 3 });
+            add("Unwelcome @ " + place, "Not welcome in " + place + ".", "until " + date(e.end), 3, -1, true);
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            v.push_back({ "Wanted by the watch in " + loc_name(e.loc) + ".", "until " + date(e.end), 3 });
+            add("Wanted @ " + place, "Wanted by the watch in " + place + ".", "until " + date(e.end), 3, -1, true);
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && spoilers)
-            v.push_back({ "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), 4, e.aux });
+            add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), 4, e.aux, true);
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && spoilers)
-            v.push_back({ "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", 4 });
+            add("Sabbat now", "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", 4, -1, false);
     }
     return v;
 }
@@ -188,7 +199,90 @@ void quest_marks(std::vector<std::pair<int, std::string>> &out)
         if (l.loc >= 0) out.push_back({ l.loc, l.text + (l.when.empty() ? "" : " (" + l.when + ")") });
 }
 
-/* the tasks and rewards waiting, for the margin panel: (text, when) */
+const char *QSORT_NAME[QSORT_N] = { "deadline", "nearest", "taken" };
+
+static int day_number(int day, int month, int year)          /* days since a fixed day (the real month lengths) */
+{
+    static const int CUM[12] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+    month = (month % 12 + 12) % 12;
+    return year * 365 + year / 4 - year / 100 + year / 400 + CUM[month] + day;
+}
+
+/* the party's place on the map: the town or site it is at, else its tile */
+static bool party_xy(double *x, double *y)
+{
+    int cur = (s16)g_rw(G_CUR_LOC), px, py;
+    if (cur >= 0 && loc_xy(cur, &px, &py)) { *x = px; *y = py; return true; }
+    if (game_mode() != GM_MAP && game_mode() != GM_CARD) return false;
+    travel_party_tile(&px, &py);
+    if (px <= 0 && py <= 0) return false;
+    *x = px; *y = py;
+    return true;
+}
+
+void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
+{
+    out.clear();
+    int today[4] = { (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_YEAR) };
+    int dnow = day_number(today[1], today[2], today[3]);
+    double px = 0, py = 0; bool here = party_xy(&px, &py);
+    for (const Line &l : build_lines()) {
+        if (!all && !(l.group <= 1 || l.group == 3)) continue;
+        QuestRow r;
+        r.id = l.id; r.title = l.title; r.text = l.text; r.when = l.when; r.group = l.group; r.loc = l.loc; r.order = l.order;
+        r.days_left = -1;
+        if (l.end >= 0) {
+            int d = day_number(l.ed, l.em, l.ey) - dnow;
+            r.days_left = d < 0 ? 0 : d;
+        }
+        r.dist = -1;
+        int x, y;
+        if (here && l.loc >= 0 && loc_xy(l.loc, &x, &y)) {
+            double dx = x - px, dy = (y - py) / 2.0;          /* rows are half as tall as columns are wide */
+            r.dist = hypot(dx, dy);
+            if (r.dist >= 1.5) {
+                static const char *DIR[8] = { "east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east" };
+                r.dir = DIR[(int)floor((atan2(-dy, dx) * 180 / M_PI + 22.5 + 360) / 45) % 8];
+            }
+        }
+        out.push_back(r);
+    }
+    quest_sort(out, sort);
+}
+
+void quest_sort(std::vector<QuestRow> &out, int sort)
+{
+    std::stable_sort(out.begin(), out.end(), [sort](const QuestRow &a, const QuestRow &b) {
+        if (sort == QSORT_NEAREST) {
+            double da = a.dist < 0 ? 1e9 : a.dist, db = b.dist < 0 ? 1e9 : b.dist;
+            if (da != db) return da < db;
+        } else if (sort == QSORT_DEADLINE) {
+            int da = a.days_left < 0 ? 1 << 30 : a.days_left, db = b.days_left < 0 ? 1 << 30 : b.days_left;
+            if (da != db) return da < db;
+        }
+        return a.order < b.order;
+    });
+}
+
+std::string quest_days(const QuestRow &r)
+{
+    if (r.days_left < 0) return "";
+    if (r.days_left == 0) return "last day";
+    return std::to_string(r.days_left) + (r.days_left == 1 ? " day" : " days");
+}
+
+std::string quest_distance(const QuestRow &r)
+{
+    if (r.dist < 0) return "";
+    if (r.dist < 1.5) return "here";
+    double days = r.dist / 10.0;                              /* (on foot, about ten map columns a day) */
+    char b[64];
+    if (days < 0.6) snprintf(b, sizeof b, "%s, less than a day away", r.dir.c_str());
+    else snprintf(b, sizeof b, "%s, about %d day%s away", r.dir.c_str(), (int)(days + 0.5), (int)(days + 0.5) == 1 ? "" : "s");
+    return b;
+}
+
+/* the tasks and rewards waiting (text, when): kept for anything that wants the plain list */
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
 {
     out.clear();
@@ -198,23 +292,42 @@ void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
 extern "C" void journal_quests(void)
 {
     if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
-    std::vector<Line> v = build_lines();
+    static int sort = -1;
+    if (sort < 0) sort = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N;
+    std::vector<QuestRow> v;
+    quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true);
+    sort = config_get_int("quests.sort", sort) % QSORT_N;
     static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Towns", "Secrets" };
+    ImGui::TextDisabled("In order of:"); ImGui::SameLine();
+    for (int k = 0; k < QSORT_N; k++) {
+        if (k) ImGui::SameLine();
+        if (ImGui::RadioButton(QSORT_NAME[k], sort == k)) { sort = k; config_set_int("quests.sort", k); config_save(); }
+    }
+    ImGui::SameLine(); ImGui::TextDisabled("  (a click on a quest opens it)");
     bool any = false;
     for (int g = 0; g < 5; g++) {
         bool head = false;
-        for (const Line &l : v) {
+        for (const QuestRow &l : v) {
             if (l.group != g) continue;
             if (!head) { ImGui::SeparatorText(HEAD[g]); head = true; }
-            ImGui::PushID(&l);
-            ImGui::Bullet(); ImGui::TextWrapped("%s", l.text.c_str());
-            if (l.loc >= 0 && travel_enabled && game_mode() == GM_MAP) {
-                ImGui::Indent(UIS(30));
-                if (ImGui::SmallButton("Travel there") && travel_to_loc(l.loc, loc_name(l.loc).c_str())) ui_toggle();
-                ImGui::Unindent(UIS(30));
+            ImGui::PushID(l.id.c_str());
+            std::string days = g == 3 ? "" : quest_days(l), d = quest_distance(l);
+            std::string label = l.title;
+            bool open = ImGui::TreeNodeEx("##q", ImGuiTreeNodeFlags_SpanAvailWidth, "%s", label.c_str());
+            if (!days.empty() || !d.empty()) {
+                ImGui::SameLine();
+                std::string right = days + (days.empty() || d.empty() ? "" : "  -  ") + d;
+                ImGui::TextDisabled("   %s", right.c_str());
+            }
+            if (open) {
+                ImGui::TextWrapped("%s", l.text.c_str());
+                if (!l.when.empty()) ImGui::TextDisabled("%s", l.when.c_str());
+                if (l.loc >= 0 && travel_enabled && game_mode() == GM_MAP) {
+                    if (ImGui::SmallButton("Travel there") && travel_to_loc(l.loc, loc_name(l.loc).c_str())) ui_toggle();
+                }
+                ImGui::TreePop();
             }
             ImGui::PopID();
-            if (!l.when.empty()) { ImGui::Indent(UIS(30)); ImGui::TextDisabled("%s", l.when.c_str()); ImGui::Unindent(UIS(30)); }
             any = true;
         }
     }

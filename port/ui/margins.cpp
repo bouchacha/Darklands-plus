@@ -24,7 +24,9 @@ extern ImFont *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 struct Eff { int m; std::string what; long left; };   /* (the same as ui/saints.cpp's, which makes them) */
 std::vector<Eff> effects_now(int size);
-void quest_brief(std::vector<std::pair<std::string, std::string>> &out);
+#include "quests.h"
+#include <functional>
+#include <set>
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
 
@@ -115,8 +117,20 @@ extern "C" int partypanel_shown(void);
    margins_click (ui_event) */
 struct OrderBtn { ImVec2 a, b; int m, i, s; };
 static std::vector<OrderBtn> order_btns; static int order_btns_frame = -100;
+/* other things in the margins that take a click (a quest opened or closed, the order of the
+   tasks): their places as last drawn */
+struct MClick { ImVec2 a, b; std::function<void()> f; };
+static std::vector<MClick> mclicks; static int mclicks_frame = -100;
+static void mclick(ImVec2 a, ImVec2 b, std::function<void()> f)
+{
+    if (mclicks_frame != ImGui::GetFrameCount()) { mclicks.clear(); mclicks_frame = ImGui::GetFrameCount(); }
+    mclicks.push_back({ a, b, f });
+}
 extern "C" int margins_click(int x, int y)
 {
+    if (ImGui::GetFrameCount() - mclicks_frame <= 2)
+        for (const MClick &c : mclicks)
+            if (x >= c.a.x && x < c.b.x && y >= c.a.y && y < c.b.y) { c.f(); return 1; }
     if (ImGui::GetFrameCount() - order_btns_frame > 2) return 0;
     for (const OrderBtn &o : order_btns)
         if (x >= o.a.x && x < o.b.x && y >= o.a.y && y < o.b.y) { menuview_request(o.m, o.i, o.s); return 1; }
@@ -347,6 +361,72 @@ static void right_panel(int size)
     if (!any && !head) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work; nobody carries too much."); ImGui::PopStyleColor(); }
 }
 
+/* the party's tasks: a short title each (a click opens it: the whole task, the deadline, how
+   far), the days left; in order of the deadline, of the distance or as taken (a click on the
+   order changes it) */
+static void tasks_section(bool tables)
+{
+    static std::vector<QuestRow> q; static int qf = -1000; static bool q_read = false;
+    static std::set<std::string> open;
+    static int sort = -1;
+    { int cs = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N; if (cs != sort) { sort = cs; quest_sort(q, sort); } }   /* (the journal may change it) */
+    if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); qf = ImGui::GetFrameCount(); q_read = tables; }
+    ImVec2 mp = ImGui::GetIO().MousePos;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    float w = ImGui::GetContentRegionAvail().x, lh = ImGui::GetTextLineHeight();
+    auto over = [&](ImVec2 a, ImVec2 b) { return mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y; };
+    {   /* the heading, and the order at its right */
+        ImVec2 h0 = ImGui::GetCursorScreenPos();
+        heading("Tasks");
+        if (q.size() > 1) {
+            std::string t = std::string("by ") + QSORT_NAME[sort];
+            float tw = ImGui::CalcTextSize(t.c_str()).x;
+            ImVec2 a(h0.x + w - tw - lh * 0.2f, h0.y), b(h0.x + w, h0.y + lh * 1.2f);
+            bool h = over(a, b);
+            dl->AddText(ImVec2(a.x, a.y + lh * 0.1f), h ? IM_COL32(232, 200, 130, 255) : IM_COL32(170, 150, 120, 255), t.c_str());
+            dl->AddLine(ImVec2(a.x, a.y + lh * 1.05f), ImVec2(a.x + tw, a.y + lh * 1.05f), h ? IM_COL32(232, 200, 130, 200) : IM_COL32(170, 150, 120, 110));
+            mclick(a, b, [&]() { sort = (sort + 1) % QSORT_N; config_set_int("quests.sort", sort); config_save(); quest_sort(q, sort); });
+        }
+    }
+    if (q.empty()) { ImGui::TextDisabled("None taken on."); return; }
+    for (size_t i = 0; i < q.size() && i < 10; i++) {
+        const QuestRow &r = q[i];
+        bool is_open = open.count(r.id) != 0;
+        ImVec2 p0 = ImGui::GetCursorScreenPos();
+        std::string days = r.group == 3 ? "" : quest_days(r);
+        float dw = days.empty() ? 0 : ImGui::CalcTextSize(days.c_str()).x + lh * 0.4f;
+        float ind = lh * 0.9f;
+        /* the arrow, the title (wrapped short of the days), the days */
+        ImU32 tc = r.group == 1 ? IM_COL32(150, 210, 120, 255) : r.group == 3 ? IM_COL32(230, 140, 110, 255) : IM_COL32(232, 218, 186, 255);
+        if (r.days_left >= 0 && r.days_left <= 7 && r.group != 3) tc = IM_COL32(240, 170, 90, 255);
+        ImGui::SetCursorScreenPos(ImVec2(p0.x + ind, p0.y));
+        ImGui::PushTextWrapPos(p0.x + w - dw - ImGui::GetWindowPos().x);
+        ImGui::PushStyleColor(ImGuiCol_Text, tc);
+        ImGui::TextWrapped("%s", r.title.c_str());
+        ImGui::PopStyleColor();
+        ImGui::PopTextWrapPos();
+        float ty1 = ImGui::GetCursorScreenPos().y;
+        float ax = p0.x + lh * 0.3f, ay = p0.y + lh * 0.5f, s = lh * 0.22f;
+        ImU32 ac = IM_COL32(200, 170, 120, 255);
+        if (is_open) dl->AddTriangleFilled(ImVec2(ax - s, ay - s * 0.6f), ImVec2(ax + s, ay - s * 0.6f), ImVec2(ax, ay + s * 0.8f), ac);
+        else dl->AddTriangleFilled(ImVec2(ax - s * 0.6f, ay - s), ImVec2(ax - s * 0.6f, ay + s), ImVec2(ax + s * 0.8f, ay), ac);
+        if (!days.empty()) dl->AddText(ImVec2(p0.x + w - dw + lh * 0.4f, p0.y), r.days_left <= 7 ? IM_COL32(240, 170, 90, 255) : IM_COL32(170, 150, 120, 255), days.c_str());
+        if (is_open) {
+            ImGui::Indent(ind);
+            ImGui::TextWrapped("%s", r.text.c_str());
+            if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str());
+            std::string d = quest_distance(r);
+            if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextDisabled("%s", d.c_str()); }
+            ImGui::Unindent(ind);
+        }
+        ImVec2 a(p0.x - lh * 0.15f, p0.y - lh * 0.1f), b(p0.x + w + lh * 0.15f, (is_open ? ImGui::GetCursorScreenPos().y : ty1) - lh * 0.05f);
+        if (over(a, ImVec2(b.x, ty1))) dl->AddRectFilled(a, ImVec2(b.x, ty1), IM_COL32(232, 200, 130, 28), lh * 0.2f);
+        std::string id = r.id;
+        mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
+    }
+    if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
+}
+
 extern "C" void ui_margins(void)
 {
     if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_overlay) return;
@@ -382,15 +462,7 @@ extern "C" void ui_margins(void)
         ImGui::TextWrapped("%d florins, %d groschen, %d pfennigs", f, g, p);
         if (bn > 0) ImGui::TextDisabled("%d florins in bank notes", bn);
         ImGui::Separator();
-        static std::vector<std::pair<std::string, std::string>> q; static int qf = -1000; static bool q_read = false;
-        if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_brief(q); qf = ImGui::GetFrameCount(); q_read = tables; }
-        heading("Tasks");
-        if (q.empty()) ImGui::TextDisabled("None taken on.");
-        for (size_t i = 0; i < q.size() && i < 6; i++) {
-            ImGui::TextWrapped("%s", q[i].first.c_str());
-            if (!q[i].second.empty()) ImGui::TextDisabled("%s", q[i].second.c_str());
-        }
-        if (q.size() > 6) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 6);
+        tasks_section(tables);
         ImGui::Separator();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextWrapped("The game's menus (save, load, difficulty, party): a right click or F10.");
