@@ -39,10 +39,10 @@ typedef struct {
 
 extern LodgeModel lodge_model;
 
-enum { LV_SELECT = 1, LV_ACT, LV_TEACH, LV_DAY, LV_REST, LV_LEAVE, LV_SHEET };
+enum { LV_SELECT = 1, LV_ACT, LV_TEACH, LV_DAY, LV_REST, LV_LEAVE, LV_SHEET, LV_DAYS };
 /* LV_SELECT m; LV_ACT a (0 relax, 1 strength, 2 pray, 3 alchemy, 4 earn, 5 guard); LV_TEACH t
    (the t-th teacher); LV_DAY one day; LV_REST days until nobody regains strength or prays;
-   LV_SHEET m the member's sheet */
+   LV_SHEET m the member's sheet; LV_DAYS n: n days (stops when something happens or a day cannot be paid) */
 
 void lodgeview_init(void);
 int lodgeview_is_on(void);

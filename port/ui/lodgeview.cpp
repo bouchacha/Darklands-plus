@@ -151,12 +151,15 @@ extern "C" void lodgeview_draw(void)
     if (m.mode == 1) snprintf(b, sizeof b, "Purse: %s.", money(m.purse).c_str());
     else if (m.cost > m.purse) snprintf(b, sizeof b, "Purse: %s. A day costs %s in all: not enough money.", money(m.purse).c_str(), money(m.cost).c_str());
     else snprintf(b, sizeof b, "Purse: %s. A day: %s %s in all, leaving %s.", money(m.purse).c_str(), m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), money(after).c_str());
-    P.para(fo, NsDraw::FS_BODY, 64, 172, 150, m.mode != 1 && m.cost > m.purse ? NsDraw::RED : ink, b);
-    float bx = 218;
-    if (P.button(bx, 174, bx + 30, 184, "Spend a day", GREEN)) ns_push(LV_DAY, 0, 0, 0);
-    if (P.button(bx + 32, 174, bx + 66, 184, "Until rested", m.resting ? BROWN : GREY) && m.resting) ns_push(LV_REST, 0, 0, 0);
-    if (P.over(bx + 32, 174, bx + 66, 184))
+    P.para(fo, NsDraw::FS_BODY, 64, 172, 133, m.mode != 1 && m.cost > m.purse ? NsDraw::RED : ink, b);
+    float bx = 199;
+    if (P.button(bx, 174, bx + 22, 184, "A day", GREEN)) ns_push(LV_DAY, 0, 0, 0);
+    if (P.button(bx + 24, 174, bx + 48, 184, "A week", GREEN)) ns_push(LV_DAYS, 7, 0, 0);
+    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", m.resting ? BROWN : GREY) && m.resting) ns_push(LV_REST, 0, 0, 0);
+    if (P.over(bx + 50, 174, bx + 84, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, m.resting ? "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens)." : "Nobody is regaining strength or praying.");
+    else if (P.over(bx + 24, 174, bx + 48, 184))
+        P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
     else P.text(fo, 3.9f, 190, 188, dim, "Keys as before: J R P A E G T, S a day, L leave, 1-5 a member");
-    if (P.button(bx + 68, 174, bx + 98, 184, "Leave", RED)) ns_push(LV_LEAVE, 0, 0, 0);
+    if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED)) ns_push(LV_LEAVE, 0, 0, 0);
 }

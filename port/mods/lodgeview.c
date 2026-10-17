@@ -35,7 +35,7 @@ static int lv_on = 1;
 static int lv_mode;
 #define VECSEG ((u16)(LOADSEG + 0x9c0))
 #define LV_SEL     0x3aba
-#define LV_DAYS    0x3abe
+#define LV_NDAYS   0x3abe
 #define LV_FORMATS 0x3ac0
 #define LV_TEACHER 0x89fa
 #define LV_VAL     0x89fe
@@ -48,6 +48,14 @@ static int lv_mode;
 int lodgeview_is_on(void) { return lv_on; }
 void lodgeview_set(int on) { lv_on = on; config_set_int("display.native_lodge", on); }
 
+/* while several days are spent at once, the hourglass of each day (drawn under this page, unseen)
+   is skipped: it only shows the time passing (advance_hours has moved the clock already) */
+static int many_days;
+static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s043 150b:2a04 */
+{
+    if (many_days) { hook_return_far(0); return; }
+    hook_call_original();
+}
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 static u32 ev_ptr(int i) { u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
 
@@ -103,7 +111,7 @@ static void build(void)
     LodgeModel *m = &lodge_model;
     m->mode = lv_mode;
     m->sel = (s16)g_rw(LV_SEL);
-    m->days = (s16)g_rw(LV_DAYS);
+    m->days = (s16)g_rw(LV_NDAYS);
     m->risk = (s16)g_rw(LV_RISK) / 5;
     teachers(m);
     m->resting = 0;
@@ -178,7 +186,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     g_ww(LV_LISTED, 0); g_ww(LV_TEACHER, 0);
     teachers(m);
     for (int t = 0; t < m->nteach; t++) g_ww((u16)(LV_TLIST + 2 * t), (u16)m->t[t].skill);
-    g_ww(LV_DAYS, 0);
+    g_ww(LV_NDAYS, 0);
     for (int i = 0; i < 5; i++) {
         g_ww((u16)(LV_ACTS + 2 * i), 0);
         if (g_rb(G_MEMBER(i))) g_ww((u16)(LV_VAL + 2 * i), (u16)((s8)g_rb((u16)(G_MEMBER(i) + 0x64)) / 15));
@@ -245,17 +253,19 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                 }
                 break;
             case LV_DAY: leave = key(0x1f53, 0); break;
-            case LV_REST:
-                for (int d = 0; d < 14 && !leave && !ns_unwinding; d++) {
+            case LV_REST: case LV_DAYS:
+                many_days = 1;
+                for (int d = 0; d < (a.type == LV_DAYS ? a.a : 14) && !leave && !ns_unwinding; d++) {
                     build();
-                    if (!m->resting) break;
-                    int before = (s16)g_rw(LV_DAYS);
+                    if (a.type == LV_REST && !m->resting) break;
+                    int before = (s16)g_rw(LV_NDAYS);
                     leave = key(0x1f53, 0);
-                    if (leave || ns_unwinding || (s16)g_rw(LV_DAYS) == before) break;   /* (something happened; or the day could not be paid) */
+                    if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */
                     build();
                     dl_poll();
-                    plat_sleep_ms(120);
+                    plat_sleep_ms(250);                                 /* (a moment to see each day) */
                 }
+                many_days = 0;
                 break;
             case LV_SHEET: if (a.a >= 0 && a.a < 5) leave = key(0x3b00 + (a.a << 8), 1); break;
             case LV_LEAVE: leave = 1; break;
@@ -269,7 +279,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     fixes_lodging(0);
     if (ns_unwinding) { fprintf(stderr, "lodging: closed (unwound)\n"); return; }
     call(0x082c, 1, mode, 0);                                   /* the original's leaving */
-    fprintf(stderr, "lodging: closed (%d days)\n", (s16)g_rw(LV_DAYS));
+    fprintf(stderr, "lodging: closed (%d days)\n", (s16)g_rw(LV_NDAYS));
     hook_return_far(0);
 }
 
@@ -277,4 +287,5 @@ void lodgeview_init(void)
 {
     lv_on = config_get_int("display.native_lodge", 1);
     hook_install(36, 0x1462, 0x0082, lodge_hook);
+    hook_install(GF_pass_hours_hourglass, hourglass_hook);
 }
