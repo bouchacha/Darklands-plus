@@ -85,6 +85,8 @@ while time.time() < t_end:
     if mode == 1 and n > 1 and len(recent) == 25 and len(set(recent)) == 1 and rnd.random() < 0.5:   # going round in circles (a mine's card): another way out
         nctl.do(name, 'ucmd ucardkey:%d; wait 2; at %d %d; click; wait 6' % (rnd.randrange(n) + 1, rnd.randrange(80, 300), rnd.randrange(20, 190))); continue
     if mode in (0, 3) and ': 0/0,0/0 0/0,0/0' in party and rnd.random() < 0.7:   # no party: the title menu
+        if a.load:                               # (the party fell: the save again, to go on soaking where it matters)
+            L('no party: loading', a.load); nctl.do(name, 'key Escape; wait 1; QUICKSTART; click; wait 3; ucmd uload:%s; wait 8; click; wait 3' % a.load.rsplit(':', 1)[1]); continue
         nctl.do(name, 'at 160 62; click; wait 6; click; wait 3; click; wait 3'); continue
     if mode == 1:
         if n > 0 and rnd.random() < 0.85:
