@@ -95,7 +95,9 @@ static void words(void)                       /* the original's menu (1462:2922)
 }
 
 static void note(const char *t) { snprintf(roster_model.note, sizeof roster_model.note, "%s", t); roster_model.note_t = plat_ticks_ms(); }
-static int key(int k) { return ns_call(GF_roster_key, 1, k); }
+/* the game's key handler of the screen up: the new game's (s037 0444) or the inn's (s038 02f8, the same
+   keys but for K delete and B begin; R leaves) */
+static int key(int k) { return roster_model.inn ? ns_call(38, 0x1462, 0x02f8, 1, k) : ns_call(GF_roster_key, 1, k); }
 
 static void choose(int i)                     /* as its arrow keys do (the portrait, its colours) */
 {
@@ -118,11 +120,91 @@ static void redraw(int slot)                  /* the screen again after a sheet 
     ns_call(GF_screen_release, 0);
 }
 
+/* the page until it is left: 1 begun (the new game) or left with Return (the inn), 0 back / Esc,
+   -1 unwound */
+static void inn_redraw(void);
+static int run(void)
+{
+    RosterModel *r = &roster_model;
+    words();
+    build();
+    r->note[0] = 0;
+    r->open = 1;
+    fprintf(stderr, "roster: open%s (%d characters, %d in the party)\n", r->inn ? " at the inn" : "", r->n, r->party_n);
+    ns_enter(NS_ROSTER);
+    ns_clear();
+    ns_input_begin();
+    int result = -1;
+    while (result < 0) {
+        dl_poll();
+        plat_sleep_ms(3);
+        ns_input_poll();
+        ns_call(GF_exit_if_requested, 0);
+        if (ns_unwinding) break;
+        while (ns_call(GF_key_pressed, 0)) {
+            int k = (u16)ns_call(GF_get_key, 0);
+            if (k == 0x011b || (!r->inn && (k == 0x1352 || k == 0x1372))) ns_push(RV_BACK, 0, 0, 0);
+            else if (k == 0x1000) { ns_call(GF_quit_to_dos, 0); }
+            else if (k == 0x4800 || k == 0x4b00) ns_push(RV_SELECT, r->sel > 0 ? r->sel - 1 : r->n - 1, 0, 0);
+            else if (k == 0x5000 || k == 0x4d00) ns_push(RV_SELECT, r->sel + 1 < r->n ? r->sel + 1 : 0, 0, 0);
+            else ns_push(RV_KEY, k, 0, 0);
+        }
+        if (ns_unwinding) break;
+        NsAction a;
+        while (result < 0 && !ns_unwinding && ns_pop(&a)) {
+            int before = r->party_n, nbefore = r->n;
+            switch (a.type) {
+            case RV_SELECT: choose(a.a); break;
+            case RV_KEY: {
+                int lo = a.a & 0xdf;                              /* the letter, either case */
+                if (r->inn && (lo == 'B' || lo == 'K' || lo == 'D')) {   /* (the inn's screen has no begin or delete; A drops too) */
+                    if (lo != 'D') break;
+                    if (r->sel < 0 || r->sel >= r->n || r->ch[r->sel].slot < 0) break;
+                    a.a = 0x1e41; lo = 'A';
+                }
+                if (lo == 'B' && !r->party_n) { note("Add someone to the party first."); break; }
+                if (lo == 'A' && r->sel >= 0 && r->ch[r->sel].slot < 0 && r->party_n >= 4) { note("The party is full: four travel together. Drop someone first."); break; }
+                if (key(a.a) == 0x11b) result = 1;
+                break;
+            }
+            case RV_SHEET:
+                if (a.a >= 0 && a.a < 5 && g_rb(G_MEMBER(a.a))) {
+                    ns_call_ptr(VECSEG, 0x1fdb, 1, a.a);
+                    if (!ns_unwinding) { if (r->inn) inn_redraw(); else redraw(a.a); }
+                }
+                break;
+            case RV_BACK: result = 0; break;
+            }
+            if (ns_unwinding) break;
+            build();
+            if (a.type == RV_KEY && (a.a & 0xdf) == 'C' && r->n > nbefore) { choose(r->n - 1); build(); note("The new character is kept: add them to the party."); }
+            if (a.type == RV_KEY && (a.a & 0xdf) == 'A' && r->party_n > before) {
+                note("");
+                /* a look of their own (the game gives everyone added the first figure, the tall man, in the same
+                   colours): a woman the game's woman figure (Select Image with it), and the next of the first and
+                   second colour keys' colours (the game's own keys: each goes on from the last it gave). At the
+                   inn mods/memberlooks.c does it (or gives back the look a member had before). */
+                const RosterChar *c = r->sel >= 0 && r->sel < r->n ? &r->ch[r->sel] : 0;
+                if (!r->inn && c && c->slot >= 0 && config_get_int("party.new_member_looks", 1)) {
+                    if (c->female && !strncmp(r->figure[c->slot], "F01", 3)) { looks_pick_next("F60"); key(0x1f53); }
+                    if (!ns_unwinding && r->party_n > 1) { key(0x0231); if (!ns_unwinding) key(0x0332); }   /* (hair, and the main colour) */
+                    if (!ns_unwinding) build();
+                }
+            }
+        }
+        if (ns_unwinding) break;
+    }
+    r->open = 0;
+    ns_leave();
+    fprintf(stderr, "roster: closed (%s)\n", ns_unwinding ? "unwound" : result == 1 ? (r->inn ? "done" : "begin") : "back");
+    return ns_unwinding ? -1 : result;
+}
+
 static void screen_hook(void)                 /* roster_screen (), s037 1462:0000 */
 {
     if (!rv_on || !ns_active()) { hook_call_original(); return; }
-    RosterModel *r = &roster_model;
     ns_unwinding = 0;
+    roster_model.inn = 0;
     /* the original's setup */
     ns_call_ptr(VECSEG, 0x18f1, 1, 0x14);
     g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
@@ -139,73 +221,42 @@ static void screen_hook(void)                 /* roster_screen (), s037 1462:000
     ns_call(GF_roster_draw, 0);
     ns_call(GF_screen_release, 0);
     if (ns_unwinding) return;
-    words();
-    build();
-    r->note[0] = 0;
-    r->open = 1;
-    fprintf(stderr, "roster: open (%d characters, %d in the party)\n", r->n, r->party_n);
-    ns_enter(NS_ROSTER);
-    ns_clear();
-    ns_input_begin();
-    int result = -1;
-    while (result < 0) {
-        dl_poll();
-        plat_sleep_ms(3);
-        ns_input_poll();
-        ns_call(GF_exit_if_requested, 0);
-        if (ns_unwinding) break;
-        while (ns_call(GF_key_pressed, 0)) {
-            int k = (u16)ns_call(GF_get_key, 0);
-            if (k == 0x011b || k == 0x1352 || k == 0x1372) ns_push(RV_BACK, 0, 0, 0);
-            else if (k == 0x1000) { ns_call(GF_quit_to_dos, 0); }
-            else if (k == 0x4800 || k == 0x4b00) ns_push(RV_SELECT, r->sel > 0 ? r->sel - 1 : r->n - 1, 0, 0);
-            else if (k == 0x5000 || k == 0x4d00) ns_push(RV_SELECT, r->sel + 1 < r->n ? r->sel + 1 : 0, 0, 0);
-            else ns_push(RV_KEY, k, 0, 0);
-        }
-        if (ns_unwinding) break;
-        NsAction a;
-        while (result < 0 && !ns_unwinding && ns_pop(&a)) {
-            int before = r->party_n, nbefore = r->n;
-            switch (a.type) {
-            case RV_SELECT: choose(a.a); break;
-            case RV_KEY: {
-                int lo = a.a & 0xdf;                              /* the letter, either case */
-                if (lo == 'B' && !r->party_n) { note("Add someone to the party first."); break; }
-                if (lo == 'A' && r->sel >= 0 && r->ch[r->sel].slot < 0 && r->party_n >= 4) { note("The party is full: four travel together. Drop someone first."); break; }
-                if (key(a.a) == 0x11b) result = 1;
-                break;
-            }
-            case RV_SHEET:
-                if (a.a >= 0 && a.a < 5 && g_rb(G_MEMBER(a.a))) {
-                    ns_call_ptr(VECSEG, 0x1fdb, 1, a.a);
-                    if (!ns_unwinding) redraw(a.a);
-                }
-                break;
-            case RV_BACK: result = 0; break;
-            }
-            if (ns_unwinding) break;
-            build();
-            if (a.type == RV_KEY && (a.a & 0xdf) == 'C' && r->n > nbefore) { choose(r->n - 1); build(); note("The new character is kept: add them to the party."); }
-            if (a.type == RV_KEY && (a.a & 0xdf) == 'A' && r->party_n > before) {
-                note("");
-                /* a look of their own (the game gives everyone added the first figure, the tall man, in the same
-                   colours): a woman the game's woman figure (Select Image with it), and the next of the first and
-                   second colour keys' colours (the game's own keys: each goes on from the last it gave) */
-                const RosterChar *c = r->sel >= 0 && r->sel < r->n ? &r->ch[r->sel] : 0;
-                if (c && c->slot >= 0 && config_get_int("party.new_member_looks", 1)) {
-                    if (c->female && !strncmp(r->figure[c->slot], "F01", 3)) { looks_pick_next("F60"); key(0x1f53); }
-                    if (!ns_unwinding && r->party_n > 1) { key(0x0231); if (!ns_unwinding) key(0x0332); }   /* (hair, and the main colour) */
-                    if (!ns_unwinding) build();
-                }
-            }
-        }
-        if (ns_unwinding) break;
-    }
-    r->open = 0;
-    ns_leave();
-    fprintf(stderr, "roster: closed (%s)\n", result == 1 ? "begin" : ns_unwinding ? "unwound" : "back");
-    if (ns_unwinding) return;
+    int result = run();
+    if (result < 0) return;
     ns_call(GF_roster_leave, 1, result);
+    AX = (u16)result;
+    hook_return_far(0);
+}
+
+/* the inn's: who travels on (s038 1462:0000, reached from the inn's "find somebody to join your
+   party"): the characters kept in charactr.tmp, the party's members among them; A adds or drops,
+   C makes a new one, H / S / 1-3 the looks, R leaves */
+static void inn_redraw(void)                  /* its screen again (as 0000 does when the party icons change) */
+{
+    ns_call(GF_screen_hold, 0);
+    ns_call(38, 0x1462, 0x024e, 0);
+    ns_call(38, 0x1462, 0x0292, 0);
+    ns_call(GF_screen_release, 0);
+}
+static void inn_screen_hook(void)
+{
+    if (!rv_on || !ns_active()) { hook_call_original(); return; }
+    ns_unwinding = 0;
+    roster_model.inn = 1;
+    /* the original's setup (0000 up to its loop) */
+    ns_call(GF_screen_hold, 0);
+    g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);         /* (bytes) */
+    g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
+    g_ww(GV_roster_portrait, 0);
+    ns_call_ptr(VECSEG, 0x20c1, 0);
+    ns_call(38, 0x1462, 0x024e, 0);
+    ns_call(38, 0x1462, 0x0292, 0);
+    ns_call(GF_screen_release, 0);
+    if (ns_unwinding) return;
+    int result = run();
+    roster_model.inn = 0;
+    if (result < 0) return;
+    ns_call(38, 0x1462, 0x01fe, 1, result);                   /* (its leaving: fonts back, the buttons freed) */
     AX = (u16)result;
     hook_return_far(0);
 }
@@ -214,4 +265,5 @@ void rosterview_init(void)
 {
     rv_on = config_get_int("display.native_roster", 1);
     hook_install(GF_roster_screen, screen_hook);
+    hook_install(38, 0x1462, 0x0000, inn_screen_hook);
 }

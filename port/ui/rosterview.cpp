@@ -65,9 +65,11 @@ extern "C" void rosterview_draw(void)
     P.rect(0, 0, 320, 200, IM_COL32(236, 222, 188, 255));
     P.rect(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
     P.frame(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
-    P.text(f, NsDraw::FS_TITLE, 6, 3, ink, "Your party");
-    P.text(fo, NsDraw::FS_SMALL, 6, 12.5f, soft, "Up to four travel together. Choose who goes, make new characters, then begin.");
-    { std::string t = word(r, 10, "Return"); float w = P.width(fo, NsDraw::FS_SMALL, t) + 8;
+    P.text(f, NsDraw::FS_TITLE, 6, 3, ink, r.inn ? "Who travels on" : "Your party");
+    P.text(fo, NsDraw::FS_SMALL, 6, 12.5f, soft, r.inn ? "Up to four travel together. Those who stay behind are kept here and can join again; new characters can join too."
+                                                       : "Up to four travel together. Choose who goes, make new characters, then begin.");
+    if (r.inn) { if (P.button(286, 3.5f, 316, 12, "Done", GREEN)) ns_push(RV_KEY, 0x1352, 0, 0); }     /* (the inn's R) */
+    else { std::string t = word(r, 10, "Return"); float w = P.width(fo, NsDraw::FS_SMALL, t) + 8;
       if (P.button(316 - w, 3.5f, 316, 12, t, RED)) ns_push(RV_BACK, 0, 0, 0); }
 
     /* the four places */
@@ -183,11 +185,11 @@ extern "C" void rosterview_draw(void)
         /* what can be done */
         float bx = x, by = DY1 - 22, bh = 9;
         if (slot >= 0) {
-            if (P.button(bx, by, bx + 40, by + bh, word(r, 7, "Drop"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
+            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Stays here") : word(r, 7, "Drop"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
             if (P.button(bx + 42, by, bx + 72, by + bh, "Sheet", BROWN)) ns_push(RV_SHEET, slot, 0, 0);
         } else if (P.button(bx, by, bx + 72, by + bh, word(r, 1, "Add to the party"), r.party_n >= 4 ? GREY : GREEN)) ns_push(RV_KEY, K_ADD, 0, 0);
         bool asking = del_ask == r.sel && plat_ticks_ms() - del_t < 4000;
-        if (P.button(DX1 - 3 - (asking ? 62 : 36), by, DX1 - 3, by + bh, asking ? "Click again to delete" : word(r, 8, "Delete"), RED)) {
+        if (!r.inn && P.button(DX1 - 3 - (asking ? 62 : 36), by, DX1 - 3, by + bh, asking ? "Click again to delete" : word(r, 8, "Delete"), RED)) {
             if (asking) { ns_push(RV_KEY, K_KILL, 0, 0); del_ask = -1; }
             else { del_ask = r.sel; del_t = plat_ticks_ms(); }
         }
@@ -213,7 +215,7 @@ extern "C" void rosterview_draw(void)
 
     /* along the bottom */
     if (P.button(4, 187, 70, 196.5f, word(r, 0, "New character"), BROWN, 4.4f)) ns_push(RV_KEY, K_NEW, 0, 0);
-    if (P.button(230, 187, 316, 196.5f, word(r, 9, "Begin the adventure"), r.party_n ? GREEN : GREY, NsDraw::FS_BODY)) ns_push(RV_KEY, K_BEGIN, 0, 0);
+    if (!r.inn && P.button(230, 187, 316, 196.5f, word(r, 9, "Begin the adventure"), r.party_n ? GREEN : GREY, NsDraw::FS_BODY)) ns_push(RV_KEY, K_BEGIN, 0, 0);
     if (r.note[0] && plat_ticks_ms() - r.note_t < 6000) P.text(fo, NsDraw::FS_SMALL, 74, 189.5f, NsDraw::RED, r.note, -1, 228);
     else {
         snprintf(b, sizeof b, "%d of 4 in the party", r.party_n);

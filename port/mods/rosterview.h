@@ -18,6 +18,7 @@ typedef struct {
 #define RV_MAX 40
 typedef struct {
     int open;
+    int inn;                         /* the inn's screen (s038): no begin or delete, R leaves */
     int n; RosterChar ch[RV_MAX];    /* the characters kept (charactr.tmp) */
     int sel;                         /* the one chosen (-1 none) */
     int slot_char[5];                /* the character in each party slot, -1 none */
