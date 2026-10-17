@@ -1241,6 +1241,8 @@ static void help_window(void)
             row("Click", "walk towards that spot");
             row("Ctrl + click", "travel there along the roads (any key or click stops)");
             row("M", "world map: find a place, double-click to travel there");
+            row("Point at a quest's picture", "the task that leads there (a portcullis or a pillory beside a town: it bars the party, or its watch wants it)");
+            row("A task in the left margin", "click to open it, then Travel there");
         } else if (gm == GM_BATTLE) {
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
