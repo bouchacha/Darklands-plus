@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <strings.h>
 #include <float.h>
 #include <string>
 #include <vector>
@@ -88,6 +89,17 @@ static int icon_kind(int k)
     case 16: case 17: case 25: return IK_WATER; case 13: return IK_TOMB; case 4: case 20: case 21: return IK_STONES;
     case 9: case 26: return IK_RUIN; default: return IK_OTHER;
     }
+}
+/* the line under a place's name: its kind, or for a site the map names only by its kind
+   ("Lake", "Cave" ...), which town it is near */
+static std::string kind_line(const std::vector<Place> &P, const Place &p)
+{
+    const char *k = kind_label(p.kind);
+    if (strcasecmp(p.name.c_str(), k)) return k;
+    const Place *best = nullptr; double bd = 1e18;
+    for (const Place &t : P)
+        if (t.kind == 0) { double d = hypot((double)(t.x - p.x), (t.y - p.y) / 2.0); if (d < bd) { bd = d; best = &t; } }
+    return best ? std::string(k) + " near " + best->name : std::string(k);
 }
 static const char *IK_LABEL[IK_N] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik)
@@ -403,7 +415,7 @@ extern "C" void worldmap_draw(void)
             ImGui::BeginTooltip();
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
-            ImGui::TextDisabled("%s", kind_label(p.kind));
+            ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
@@ -428,7 +440,7 @@ extern "C" void worldmap_draw(void)
         for (const Place &p : P) {
             std::string n = p.name; std::transform(n.begin(), n.end(), n.begin(), ::tolower);
             if (n.find(f) == std::string::npos) continue;
-            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_label(p.kind), p.loc);
+            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_line(P, p).c_str(), p.loc);
             if (ImGui::Selectable(lb)) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
             if (++shown >= 8) break;
         }
@@ -488,7 +500,7 @@ extern "C" void worldmap_draw(void)
         for (const Place &p : P) if (p.loc == selected) {
             ImGui::Separator();
             ImGui::TextUnformatted(p.name.c_str());
-            ImGui::TextDisabled("%s", kind_label(p.kind));
+            ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (on_map) {
                 int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
                 if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
