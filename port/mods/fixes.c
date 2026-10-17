@@ -70,9 +70,10 @@
  *            many as this town has (s029 0e76:37e2) and number them all: when another town's
  *            teachers come first in the table (two towns with teachers within their week), the
  *            list is empty and DS:8a38 stale, Train (T) finds no teacher (event_find = -1) and
- *            reads events[-1]: a cost of -4096 pfennigs ("Train or Study (-4096pfs)"), which
- *            pays the party for training, and practice of some other skill. While that screen
- *            runs, event_next(0x28, i) now returns only this town's teachers that have begun.
+ *            reads events[-1]: a cost of -4096 pfennigs ("Train or Study (-4096pfs)") and a
+ *            total that adds 4096; the day itself (camp_spend_day) finds no teacher either, so
+ *            nothing is learnt and the member is set back to relaxing. While that screen runs,
+ *            event_next(0x28, i) now returns only this town's teachers that have begun.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,7 +119,7 @@ Fix FIXES[] = {
     { "testcard", "No stop on the developers' test card",
       "Card 0 is the developers' test card ($Initi00, \"Try it...you will like it!\"); a card that returns to the card it came from can go there when it came from none, and the game stops on its missing picture (pics\\xhouse3.pic). It now goes on to the map, or the town the party is in.", 1 },
     { "teachers", "Training at the inn finds the town's teachers",
-      "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs: the party was paid for training, and a different skill was trained. The inn now lists this town's teachers and charges their fee.", 1 },
+      "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
