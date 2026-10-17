@@ -243,25 +243,36 @@ extern "C" void barterview_draw(void)
             float bx = RX1 - 2;
             for (int k2 = 1; k2 >= 0; k2--) {
                 int nb = k2 ? 5 : 1, target = fr.batches + nb;
-                long cost = 0; bool ok = true; std::string list;
+                long cost = 0; bool ok = true; std::string list, notsold;
                 std::vector<std::pair<int, int>> buys;
                 for (const FormulaIngr &g : F.ingr) {
                     int need = g.count * target - carried(g.item);
                     if (need <= 0) continue;
                     int w = ware_of(g.item);
-                    if (w < 0) { ok = false; continue; }
+                    if (w < 0) { ok = false; notsold += (notsold.empty() ? "" : ", ") + std::to_string(need) + " " + item_name(g.item); continue; }
                     buys.push_back({ w, need }); cost += (long)need * b.ware[w].price;
                     list += (list.empty() ? "" : ", ") + std::to_string(need) + " " + item_name(g.item);
                 }
                 std::string lab = "+" + std::to_string(nb);
                 float bw = W(fo, NsDraw::FS_SMALL, lab) + 5;
-                bool en = ok && !buys.empty();
+                bool en = !buys.empty();                       /* (what is sold here, even when something must be found elsewhere) */
                 if (P.button(bx - bw, y + 1.2f, bx, y + 8.2f, lab, en ? (cost > b.total_pf ? IM_COL32(140, 60, 40, 200) : IM_COL32(40, 92, 34, 235)) : IM_COL32(150, 136, 112, 140)) && en)
                     for (auto &bb : buys) ns_push(BV_BUY, bb.first, bb.second, 0);
                 if (in(mx, my, bx - bw, y + 1.2f, bx, y + 8.2f))
-                    V.fnote = !ok ? "This shop does not sell everything it needs." : buys.empty() ? "Already enough for that." :
-                              "Buys " + list + " for " + money(cost) + (cost > b.total_pf ? " (more than the purse holds)" : "") + "; to " + to + ".";
+                    V.fnote = buys.empty() ? (!ok ? "Not sold here: " + notsold + "; the rest the party has." : "The party has enough for that already.") :
+                              "Buys " + list + " for " + money(cost) + (cost > b.total_pf ? " (more than the purse holds)" : "") + "; to " + to + "." +
+                              (!ok ? " Not sold here (to find elsewhere): " + notsold + "." : "");
                 bx -= bw + 1.5f;
+            }
+            if (V.fnote.empty() && in(mx, my, RX0, y, RX1, y + FH)) {     /* the row: what a batch takes, and where it is */
+                std::string d = "A batch takes ";
+                for (size_t gi = 0; gi < F.ingr.size(); gi++) {
+                    const FormulaIngr &g = F.ingr[gi];
+                    int w = ware_of(g.item);
+                    d += (gi ? (gi + 1 == F.ingr.size() ? " and " : ", ") : "") + std::to_string(g.count) + " " + item_name(g.item) +
+                         " (the party has " + std::to_string(carried(g.item)) + (w >= 0 ? "; " + money(b.ware[w].price) + " here)" : "; not sold here)");
+                }
+                V.fnote = d + ". +1 and +5 buy what one or five batches more need.";
             }
             T(f, NsDraw::FS_NAME * 0.9f, RX0 + 3, y + 1.2f, ink, gamedata.formula_names[fr.f], -1, bx - 1);
             std::string l2 = fr.batches ? "Enough for " + std::to_string(fr.batches) + (fr.batches == 1 ? " batch" : " batches") : "Not enough for a batch";
