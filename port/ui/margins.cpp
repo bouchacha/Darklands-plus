@@ -236,7 +236,7 @@ static void battle_panel(float width, float fs)
     if (!shown) {
         ImGui::TextDisabled("None in sight yet.");
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("To explore: with Travel As Group (G), a click on a door, a passage or stairs walks the party there%s.",
+        ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), a click on a door, a passage or stairs walks the party there%s.",
                            !levelmap_available() ? "" : config_get_int("assist.level_map_walk", 1) ? "; Tab shows the level as far as seen, and a click on it walks the party there" : "; Tab shows the level as far as seen");
         ImGui::PopStyleColor();
     }
