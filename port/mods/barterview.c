@@ -123,12 +123,19 @@ static int key(int k) { return ns_call(GF_barter_key, 1, k); }
 
 static void buy(int i, int times)
 {
-    int m = (s16)g_rw(GV_barter_who), done = 0;
+    int who = (s16)g_rw(GV_barter_who), m = who, done = 0;
+    int sheetview_shared(void);
     for (int t = 0; t < times; t++) {
         if (i < 0 || i >= (s16)g_rw(GV_barter_nwares)) break;
+        if (sheetview_shared() && i < barter_model.nwares) {      /* the pack: whoever has room for it, the member of the tab first */
+            int id = (s16)g_rw((u16)(GV_barter_wares + 2 * i)), q = barter_model.ware[i].qual;
+            if (!gm_room_for(m, id, q)) for (int h = 0; h < 5; h++) if (gm_member_present(h) && gm_member_status(h) != 5 && gm_room_for(h, id, q)) { m = h; break; }
+            s_int(GV_barter_who, m);
+        }
         s_int((u16)(GV_barter_side + 2 * m), 1); s_int(GV_barter_ware_top, i); s_int(GV_barter_ware_cur, 0);
         long before = purse(); int nb = gm_item_count(m);
         key(0x1950);
+        s_int(GV_barter_who, who);
         if (ns_unwinding) return;
         if (purse() == before && gm_item_count(m) == nb) break;
         done++;
