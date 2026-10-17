@@ -27,6 +27,8 @@ extern "C" {
 #include "../mods/hdart.h"
 #include "../mods/sfx.h"
 #include "../mods/datamods.h"
+#include "../mods/lootview.h"
+#include "../mods/sheetview.h"
 #include "ui.h"
 #include "money.h"
 extern char game_dir[1024];
@@ -1245,8 +1247,9 @@ static void help_window(void)
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");
             row("Take / Put back", "on the row under the pointer: the whole stack (1: just one)");
-            row("Take all / Share out", "everything to the member shown / to whoever has some already, else the emptiest pack (A / S)");
-            row("Names above the right list, D", "another member");
+            if (loot_model.shared) row("Take all", "everything into the party's pack");
+            else { row("Take all / Share out", "everything to the member shown / to whoever has some already, else the emptiest pack (A / S)");
+                   row("Names above the right list, D", "another member"); }
             row("L, Esc or Leave", "leave (what is left stays behind)");
         } else if (loot_active) {
             ImGui::SeparatorText("Now: the loot");
@@ -1268,7 +1271,8 @@ static void help_window(void)
             row("L or Esc", "leave");
         } else if (sheetview_showing()) {
             ImGui::SeparatorText("Now: a character sheet");
-            row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
+            if (sheet_model.shared) row("Ready / Unequip / Drink / Keep / Drop", "on the row under the pointer in Things: the pack is the whole party's (Drop with Shift: all of them); drag a thing in use onto a portrait to give it");
+            else row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
             row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
             row("Wheel, Up, Down", "scroll the list");
