@@ -591,7 +591,12 @@ extern "C" void travelmap_labels(void)
                 if (qmarks[i].first == k) {
                     float is = base * 1.3f;
                     ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
-                    ui_draw_quest_icon(dl, ImVec2(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f), is, i < qcats.size() ? qcats[i] : 0);
+                    ImVec2 c(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f);
+                    ui_draw_quest_icon(dl, c, is, i < qcats.size() ? qcats[i] : 0);
+                    ImVec2 m = ImGui::GetIO().MousePos;             /* (the pointer on it: the task) */
+                    if (fabsf(m.x - c.x) < is * 0.5f && fabsf(m.y - c.y) < is * 0.5f && !ImGui::GetIO().WantCaptureMouse) {
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(qmarks[i].second.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
                     iq++;
                 }
         }
