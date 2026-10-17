@@ -6,8 +6,10 @@
 #include <string.h>
 #include <initializer_list>
 
+#include "../runtime/config.h"
 void ui_guide_tab(void)
 {
+    if (!config_get_int("guide.seen", 0)) config_set_int("guide.seen", 1);     /* (the margin's hint is not needed any more) */
     ImGui::TextWrapped("Darklands has no tutorial: this is the short of it. Nothing here tells the story; it is the game's own rules, as Darklands+ "
                        "reads them from the program. F1 at any moment lists the keys and clicks of that moment.");
     ImGui::Spacing();
