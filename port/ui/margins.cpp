@@ -117,6 +117,7 @@ extern "C" int partypanel_shown(void);
    (only what the game allows now; chosen at the battle's next round, as from the menu). The
    margins take no input from ImGui: the buttons are drawn here and their clicks come through
    margins_click (ui_event) */
+static void place_quests(int cur);
 struct OrderBtn { ImVec2 a, b; int m, i, s; };
 static std::vector<OrderBtn> order_btns; static int order_btns_frame = -100;
 /* other things in the margins that take a click (a quest opened or closed, the order of the
@@ -332,9 +333,7 @@ static void right_panel(int size)
             }
             ImGui::TextUnformatted(SHOP_NAMES[i]); ImGui::SameLine(); ImGui::TextDisabled("%d (%dq)", c.shopq[i], (25 + c.shopq[i]) / 2);
         }
-        static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
-        if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
-        for (auto &m : marks) if (m.first == cur) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopStyleColor(); }
+        place_quests(cur);
         static std::vector<TownMark> tm; static int tmf = -1000;
         if (ImGui::GetFrameCount() - tmf > 30) { town_marks(tm); tmf = ImGui::GetFrameCount(); }
         for (const TownMark &t : tm) if (t.loc == cur) {         /* the town bars the party, or its watch wants it */
@@ -357,9 +356,7 @@ static void right_panel(int size)
             const char *loc_kind_label(int k);
             heading(game_text(b, sizeof b).c_str());
             ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
-            static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
-            if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
-            for (auto &m : marks) if (m.first == cur) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopStyleColor(); }
+            place_quests(cur);
             if ((s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18)) > 0) ImGui::TextWrapped("The party has goods stored here (F12 > Journal > Stored).");
             any = true;
         }
@@ -389,6 +386,22 @@ static void right_panel(int size)
         else ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s: heavy, %d/%d", member_name(m).c_str(), load, cap);
     }
     if (!any && !head) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work; nobody carries too much."); ImGui::PopStyleColor(); }
+}
+
+/* the quests that lead to place `cur`, each with its picture (the place's section of the margin) */
+static void place_quests(int cur)
+{
+    static std::vector<std::pair<int, std::string>> marks; static std::vector<int> cats; static int mf = -1000;
+    if (ImGui::GetFrameCount() - mf > 30) { quest_marks_cat(marks, cats); mf = ImGui::GetFrameCount(); }
+    for (size_t i = 0; i < marks.size(); i++) {
+        if (marks[i].first != cur) continue;
+        float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
+        ImVec2 p0 = ImGui::GetCursorScreenPos();
+        ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, i < cats.size() ? cats[i] : 0);
+        ImGui::Indent(is + lh * 0.3f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", marks[i].second.c_str()); ImGui::PopStyleColor();
+        ImGui::Unindent(is + lh * 0.3f);
+    }
 }
 
 /* the party's tasks: a short title each (a click opens it: the whole task, the deadline, how
