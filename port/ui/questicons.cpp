@@ -1,10 +1,10 @@
 // questicons.cpp - a picture for each kind of quest (ui/quests.h QuestCat), drawn with ImGui's shapes
 // on a small parchment roundel, in the manner of a woodcut or a guild's sign: a great helm before
-// crossed swords for a robber knight, a purse for a bounty, the miners' hammer and pick (Schlägel und
+// crossed swords for a robber knight, a purse for a reward waiting, the miners' hammer and pick (Schlägel und
 // Eisen) for a mine's trouble, a horn for the Wild Hunt, a lowered portcullis for a town that bars
-// the party, the pillory where the watch wants it ... The merchants' fetching errands are told apart
-// by what is fetched: a holy book, an old crown, a sprig of henbane, or papers to be got from someone
-// in a town.
+// the party, the pillory where the watch wants it ... A merchant's errand to fetch a thing from a
+// cave, tomb or lake is a chest; papers to be got from someone in a town, a sealed letter and a
+// dagger.
 #include "imgui.h"
 #include <math.h>
 #include "pen.h"
@@ -14,8 +14,8 @@ using pen::C;
 using pen::Pen;
 
 const char *QUEST_CAT_NAME[QC_N] = {
-    "Quest", "Robber knight", "Bounty", "Holy relic", "Lost treasure", "Herb", "Papers", "Delivery",
-    "Mine", "Dragon", "Wild Hunt", "Unwelcome", "Wanted", "Sabbat"
+    "Quest", "Robber knight", "Reward waiting", "A thing to fetch", "Papers to get in a town", "Mine",
+    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat"
 };
 
 namespace {
@@ -64,7 +64,7 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.rect(-5.0f, -1.6f, -1.6f, 0.2f, INK); p.rect(1.6f, -1.6f, 5.0f, 0.2f, INK);   // the eye slits
         for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) p.disc(2.4f + i * 1.7f, 3.4f + j * 1.8f, 0.55f, INK);
         break; }
-    case QC_BOUNTY: {                                                       /* a purse and its florins */
+    case QC_REWARD: {                                                       /* a purse and its florins */
         p.ellipse(-1.0f, 3.5f, 8.6f + o, 7.6f + o, INK); p.ellipse(-1.0f, 3.5f, 8.6f, 7.6f, LEATHER);
         p.ellipse(-3.5f, 1.5f, 3.0f, 2.2f, C(0.70f, 0.47f, 0.25f));          // a sheen
         p.poly({ -6.5f, -8.5f, 4.5f, -8.5f, 2.2f, -3.5f, -4.2f, -3.5f }, INK);
@@ -72,37 +72,19 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.line(-4.6f, -3.6f, 2.6f, -3.6f, GOLD, 1.3f); p.line(2.0f, -3.4f, 5.2f, -0.6f, GOLD, 0.9f);
         coin(p, 6.6f, 9.0f, 3.2f, o); coin(p, 9.6f, 5.2f, 2.6f, o);
         break; }
-    case QC_RELIC: {                                                        /* a holy book with a cross */
-        p.rect(-7.5f - o, -9.5f - o, 8.6f + o, 9.5f + o, INK, 1.2f);
-        p.rect(6.4f, -8.7f, 8.6f, 8.7f, C(0.97f, 0.93f, 0.82f));             // the leaves' edge
-        p.rect(-7.5f, -9.5f, 6.6f, 9.5f, C(0.55f, 0.13f, 0.12f), 1.0f);      // the binding
-        p.rect(-7.5f, -9.5f, -5.6f, 9.5f, C(0.40f, 0.08f, 0.08f));           // the spine
-        p.rect(-0.3f, -6.5f, 1.7f, 6.5f, GOLD); p.rect(-3.8f, -3.4f, 5.2f, -1.6f, GOLD);
-        for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) p.disc(-4.2f + i * 9.0f, -7.4f + j * 14.8f, 0.9f, GOLD);
-        p.rect(5.6f, -1.2f, 9.4f, 1.2f, GOLD);                               // the clasp
+    case QC_RETRIEVE: {                                                     /* an iron-bound chest */
+        ImU32 oak = C(0.58f, 0.38f, 0.18f), dark = C(0.42f, 0.26f, 0.12f);
+        p.rect(-11.0f - o, -7.5f - o, 11.0f + o, 9.5f + o, INK, 3.0f);
+        p.rect(-11.0f, -7.5f, 11.0f, -0.5f, C(0.66f, 0.44f, 0.22f), 3.0f);  // the lid
+        p.rect(-11.0f, -1.0f, 11.0f, 9.5f, oak, 0.6f);                      // the body
+        p.line(-11.0f, -0.8f, 11.0f, -0.8f, INK, 0.9f);
+        for (int k = 0; k < 2; k++) p.line(-10.0f, 3.0f + k * 3.2f, 10.0f, 3.0f + k * 3.2f, dark, 0.5f);   // the boards
+        p.line(-10.0f, -4.4f, 10.0f, -4.4f, dark, 0.5f);
+        for (int sd = -1; sd <= 1; sd += 2) p.rect(sd * 7.2f - 1.3f, -7.3f, sd * 7.2f + 1.3f, 9.4f, IRON);   // the iron bands
+        p.rect(-2.2f, -3.2f, 2.2f, 2.4f, GOLD, 0.5f);                        // the lock
+        p.disc(0, -1.2f, 0.8f, INK); p.tri(-0.6f, -1.0f, 0.6f, -1.0f, 0, 1.2f, INK);
         break; }
-    case QC_TREASURE: {                                                     /* an old crown */
-        p.poly({ -10.6f, 7.4f, -11.2f, -7.0f, -5.6f, -1.2f, 0.0f, -10.0f, 5.6f, -1.2f, 11.2f, -7.0f, 10.6f, 7.4f }, INK);
-        p.poly({ -9.6f, 6.6f, -10.0f, -4.6f, -5.4f, 0.2f, 0.0f, -7.8f, 5.4f, 0.2f, 10.0f, -4.6f, 9.6f, 6.6f }, GOLD);
-        p.rect(-9.6f, 2.0f, 9.6f, 6.6f, C(0.86f, 0.62f, 0.15f));             // the band
-        p.line(-9.6f, 2.0f, 9.6f, 2.0f, INK, 0.7f);
-        for (int k = -1; k <= 1; k++) { float x = k * 10.0f, y = k ? -6.2f : -9.2f; p.disc(x, y, 1.6f + o * 0.7f, INK); p.disc(x, y, 1.6f, C(0.98f, 0.96f, 0.90f)); }
-        p.disc(0, 4.3f, 1.6f, RED); p.disc(-5.6f, 4.3f, 1.2f, C(0.20f, 0.35f, 0.75f)); p.disc(5.6f, 4.3f, 1.2f, C(0.20f, 0.35f, 0.75f));
-        break; }
-    case QC_HERB: {                                                         /* a sprig of henbane, as in a herbal */
-        ImU32 g = C(0.32f, 0.52f, 0.22f);
-        p.bez(0.5f, 12.5f, 1.8f, 3.0f, -0.4f, -5.0f, INK, 2.4f); p.bez(0.5f, 12.5f, 1.8f, 3.0f, -0.4f, -5.0f, g, 1.3f);
-        struct { float x, y, rx, ry, rot; } L[3] = { { -4.6f, 6.0f, 4.8f, 1.9f, -0.5f }, { 5.0f, 2.0f, 4.8f, 1.9f, 0.5f }, { -3.8f, -0.6f, 3.6f, 1.5f, -0.6f } };
-        for (auto &l : L) p.ellipse(l.x, l.y, l.rx + o, l.ry + o, INK, l.rot);
-        for (auto &l : L) p.ellipse(l.x, l.y, l.rx, l.ry, g, l.rot);
-        float fx = -0.4f, fy = -7.4f;
-        for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f; p.disc(fx + cosf(a) * 2.8f, fy + sinf(a) * 2.8f, 2.6f + o, INK); }
-        for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f; p.disc(fx + cosf(a) * 2.8f, fy + sinf(a) * 2.8f, 2.6f, C(0.96f, 0.90f, 0.58f)); }
-        for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f; p.line(fx, fy, fx + cosf(a) * 4.2f, fy + sinf(a) * 4.2f, C(0.50f, 0.20f, 0.42f), 0.5f); }
-        p.disc(fx, fy, 1.7f, C(0.36f, 0.10f, 0.32f));
-        p.disc(4.4f, -3.6f, 1.3f + o, INK); p.disc(4.4f, -3.6f, 1.3f, C(0.70f, 0.78f, 0.40f));   // a bud
-        break; }
-    case QC_DOCUMENT: {                                                     /* a sealed letter, and a dagger */
+    case QC_PAPERS: {                                                       /* a sealed letter, and a dagger */
         p.rect(-11.0f - o, -6.5f - o, 5.5f + o, 7.5f + o, INK);
         p.rect(-11.0f, -6.5f, 5.5f, 7.5f, C(0.98f, 0.95f, 0.86f));
         p.line(-11.0f, -6.5f, -2.75f, 1.6f, C(0.55f, 0.45f, 0.30f), 0.6f); p.line(5.5f, -6.5f, -2.75f, 1.6f, C(0.55f, 0.45f, 0.30f), 0.6f);
@@ -111,14 +93,6 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         bar(p, 7.8f, 3.0f, 0, 1, 0, 5.4f, 0.9f, 0.9f, C(0.22f, 0.16f, 0.12f), o);   // the grip
         bar(p, 7.8f, 3.0f, 1, 0, 3.4f, 3.4f, 0.75f, 0.75f, GOLD, o);         // the cross-guard
         p.disc(7.8f, 9.4f, 1.3f + o, INK); p.disc(7.8f, 9.4f, 1.3f, GOLD);
-        break; }
-    case QC_DELIVER: {                                                      /* a messenger's satchel */
-        p.arc(0, -1.5f, 8.2f, 3.1416f, 6.2832f, INK, 2.8f); p.arc(0, -1.5f, 8.2f, 3.1416f, 6.2832f, C(0.40f, 0.24f, 0.12f), 1.6f);
-        p.rect(-9.5f - o, -2.0f - o, 9.5f + o, 10.0f + o, INK, 1.8f);
-        p.rect(-9.5f, -2.0f, 9.5f, 10.0f, LEATHER, 1.5f);
-        p.poly({ -9.5f - o, -2.4f - o, 9.5f + o, -2.4f - o, 9.5f + o, 3.4f, 0, 7.0f + o, -9.5f - o, 3.4f }, INK);
-        p.poly({ -9.5f, -2.4f, 9.5f, -2.4f, 9.5f, 3.0f, 0, 6.2f, -9.5f, 3.0f }, C(0.68f, 0.44f, 0.22f));
-        p.rect(-1.5f, 4.2f, 1.5f, 8.2f, GOLD, 0.4f); p.rect(-0.6f, 5.1f, 0.6f, 7.3f, LEATHER);
         break; }
     case QC_MINE: {                                                         /* Schlägel und Eisen */
         bar(p, 9.5f, 9.5f, -1, -1, 0, 22.0f, 0.95f, 0.95f, WOOD, o);        // the iron's helve

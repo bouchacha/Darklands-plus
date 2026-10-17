@@ -162,20 +162,18 @@ static std::string item_name(int id)
     return "an item";
 }
 
-struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; };
+struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; int town = -1; };
 
-/* a merchant's fetching errand (kind 8, tag 10; s039 1462:1b0c picks the thing and the kind of
-   place): holy books and a hermit's habit from springs, lakes, caves and shrines; old things from
-   tombs, caves and pagan altars; henbane for a pharmacist; papers to be got from someone in a town */
+/* a merchant's fetching errand (kind 8, tag 10; s039 1462:1712 picks the thing and the kind of
+   place): a holy book, a crown, henbane ... from a cave, tomb, lake, spring, shrine or pagan altar;
+   or papers (Treason Plan, Sworn Statement, Debt Note, Love Letters) to be got from someone in a town */
 static int fetch_cat(const Ev &e)
 {
     switch (e.item & 0xfff) {
-    case 0x81: case 0x82: case 0x83: return QC_RELIC;              /* Prayerbook, Illuminated Gospel, Hermit's Habit */
-    case 0x84: case 0x85: case 0x87: case 0x88: return QC_TREASURE; /* History Scroll, Ancient Crown, Silver Mace, Tarnhelm */
-    case 0x86: return QC_HERB;                                     /* Hyoscyamus */
-    case 0x78: case 0x7f: case 0x89: case 0x8a: return QC_DOCUMENT; /* Love Letters, Treason Plan, Sworn Statement, Debt Note */
+    case 0x78: case 0x7f: case 0x89: case 0x8a: return QC_PAPERS;
+    case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87: case 0x88: return QC_RETRIEVE;
     }
-    return e.loc >= 0 && e.loc < (int)gamedata.cities.size() ? QC_DOCUMENT : QC_TREASURE;
+    return e.loc >= 0 && e.loc < (int)gamedata.cities.size() ? QC_PAPERS : QC_RETRIEVE;
 }
 
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
@@ -209,12 +207,12 @@ static std::vector<Line> build_lines(void)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
                 + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3)
-            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_BOUNTY);
+            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
         else if (e.kind == 8 && e.tag == 10)
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e));
         else if (e.kind == 0x24 && e.tag == 10)
-            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_DELIVER);
+            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
         else if (e.kind == 8 && e.tag == 4)
             add("Dragon near " + nearest_town(e.loc), "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
         else if (e.kind == 8 && e.tag == 12)
@@ -222,9 +220,9 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 8 && e.tag == 7)
             add("The Wild Hunt", "The Wild Hunt pursues the party.", "", 2, -1, false, QC_HUNT);
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            add("Unwelcome @ " + place, "Not welcome in " + place + ".", "until " + date(e.end), 3, -1, true, QC_UNWELCOME);
+            { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            add("Wanted @ " + place, "Wanted by the watch in " + place + ".", "until " + date(e.end), 3, -1, true, QC_WANTED);
+            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing one's way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && spoilers)
             add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), 4, e.aux, true, QC_SABBAT);
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && spoilers)
@@ -242,6 +240,15 @@ void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<
         if (l.loc >= 0) { out.push_back({ l.loc, l.text + (l.when.empty() ? "" : " (" + l.when + ")") }); cats.push_back(l.cat); }
 }
 void quest_marks(std::vector<std::pair<int, std::string>> &out) { std::vector<int> c; quest_marks_cat(out, c); }
+
+/* the towns that bar the party or whose watch wants it, for the maps and the margin */
+void town_marks(std::vector<TownMark> &out)
+{
+    out.clear();
+    if (game_mode() == GM_OTHER) return;
+    for (const Line &l : build_lines())
+        if (l.town >= 0) out.push_back({ l.town, l.cat, l.when });
+}
 
 const char *QSORT_NAME[QSORT_N] = { "deadline", "nearest", "taken" };
 
@@ -271,7 +278,7 @@ void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
     int dnow = day_number(today[1], today[2], today[3]);
     double px = 0, py = 0; bool here = party_xy(&px, &py);
     for (const Line &l : build_lines()) {
-        if (!all && !(l.group <= 1 || l.group == 3)) continue;
+        if (!all && l.group > 1) continue;
         QuestRow r;
         r.id = l.id; r.title = l.title; r.text = l.text; r.when = l.when; r.group = l.group; r.loc = l.loc; r.order = l.order; r.cat = l.cat;
         r.days_left = -1;
@@ -330,7 +337,7 @@ std::string quest_distance(const QuestRow &r)
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
 {
     out.clear();
-    for (const Line &l : build_lines()) if (l.group <= 1 || l.group == 3) out.push_back({ l.text, l.when });
+    for (const Line &l : build_lines()) if (l.group <= 1) out.push_back({ l.text, l.when });
 }
 
 extern "C" void journal_quests(void)

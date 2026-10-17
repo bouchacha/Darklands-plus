@@ -320,6 +320,18 @@ static void right_panel(int size)
         static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
         if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
         for (auto &m : marks) if (m.first == cur) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopStyleColor(); }
+        static std::vector<TownMark> tm; static int tmf = -1000;
+        if (ImGui::GetFrameCount() - tmf > 30) { town_marks(tm); tmf = ImGui::GetFrameCount(); }
+        for (const TownMark &t : tm) if (t.loc == cur) {         /* the town bars the party, or its watch wants it */
+            float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
+            ImVec2 p0 = ImGui::GetCursorScreenPos();
+            ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
+            ImGui::Indent(is + lh * 0.3f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.55f, 0.43f, 1));
+            ImGui::TextWrapped("%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here (the town turns the party away)" : "Wanted by the watch here", t.until.c_str());
+            ImGui::PopStyleColor();
+            ImGui::Unindent(is + lh * 0.3f);
+        }
         any = true;
     }
     else if (cur >= (int)gamedata.cities.size() && cur < G_NLOC && game_mode() == GM_CARD) {   /* (battles reuse the location table) */

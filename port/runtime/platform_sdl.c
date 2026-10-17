@@ -587,10 +587,10 @@ static void run_script(void)
             ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
             SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
-        else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 8 int args: ucall:31,18e7,0ab8,-2,80 */
-            int sect = 0, a[8] = { 0 }; unsigned sg = 0, of = 0;
-            int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7]);
-            u16 args[8]; for (int k = 0; k < 8; k++) args[k] = (u16)a[k];
+        else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 10 int args: ucall:31,18e7,0ab8,-2,80 */
+            int sect = 0, a[10] = { 0 }; unsigned sg = 0, of = 0;
+            int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9]);
+            u16 args[10]; for (int k = 0; k < 10; k++) args[k] = (u16)a[k];
             int v = n >= 3 ? game_call_far(sect, (u16)sg, (u16)of, n - 3 > 0 ? n - 3 : 0, args) : -1;
             fprintf(stderr, "call s%d %04x:%04x: %d\n", sect, sg, of, v);
         }

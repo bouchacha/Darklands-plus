@@ -324,7 +324,8 @@ extern "C" void worldmap_draw(void)
     static std::vector<std::pair<int, std::string>> marks;
     static std::vector<int> mark_cats;
     static int marks_frame = -1000;
-    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks_cat(marks, mark_cats); marks_frame = ImGui::GetFrameCount(); }
+    static std::vector<TownMark> tmarks;
+    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks_cat(marks, mark_cats); town_marks(tmarks); marks_frame = ImGui::GetFrameCount(); }
 
     // auto-travel route
     if (travel.active && travel.n > 1) {
@@ -355,6 +356,10 @@ extern "C" void worldmap_draw(void)
         } else {
             dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
             dl->AddCircleFilled(s, r, kind_colour(g));
+        }
+        {   int n = 0;                                       /* a town that bars the party, or whose watch wants it: its sign beside it */
+            for (const TownMark &t : tmarks)
+                if (t.loc == p.loc) { float ts = fmaxf(r * 1.5f, 16.0f * fmaxf(ks, 1.0f)); ui_draw_quest_icon(dl, ImVec2(s.x + r + ts * (0.45f + 1.0f * n), s.y - r * 0.6f), ts, t.cat); n++; }
         }
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
         float hr = 14 * fmaxf(ks, 1.0f);
@@ -527,6 +532,7 @@ extern "C" void worldmap_draw(void)
                 if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
             } else ImGui::TextDisabled("Auto-travel works from the travel map.");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str()); ImGui::PopTextWrapPos(); }
             break;
         }
     }
@@ -546,6 +552,8 @@ extern "C" void travelmap_labels(void)
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float base = ui_text_px();
+    static std::vector<TownMark> tmarks; static int tf = -1000;
+    if (ImGui::GetFrameCount() - tf > 30) { town_marks(tmarks); tf = ImGui::GetFrameCount(); }
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
@@ -567,5 +575,8 @@ extern "C" void travelmap_labels(void)
         for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
             if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
         dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+        int n = 0;                                            /* the town bars the party, or its watch wants it */
+        for (const TownMark &t : tmarks)
+            if (t.loc == k) { float is = size * 1.15f; ui_draw_quest_icon(dl, ImVec2(tp.x + ts.x + is * (0.65f + 1.05f * n), tp.y + ts.y * 0.5f), is, t.cat); n++; }
     }
 }
