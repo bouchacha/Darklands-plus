@@ -10,7 +10,8 @@
 extern "C" {
 #endif
 
-typedef struct { int idx, id, type, qual, count, weight, equipped, drinkable, holder, kept; } SvItem;
+typedef struct { int idx, id, type, qual, count, weight, equipped, drinkable, holder, kept, potion; } SvItem;
+/* (potion: the shared pack's sheet lists the member's own potions apart, between what is in use and the pack) */
 /* (the shared pack, inventory.shared: the rows are the member's things in use (holder = the
    member, idx their record) and then the party's pack, every spare thing of every member by kind
    and quality (holder -1, idx -1, count the party's spares; who carries them is Darklands+'s

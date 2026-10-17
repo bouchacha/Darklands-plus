@@ -258,7 +258,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ATTR[V.which]) + 0.5f;
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which));
     } else if (V.tab == TAB_THINGS && s.shared)
-        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. The pack is the whole party's: Ready or Drink hands the thing to this member first. Keep marks a thing never to be sold or dropped. The load (bottom left) counts only what is in use.");
+        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. The pack is the whole party's: Ready hands the thing to this member first. Potions are each member's own (drag one onto someone at the left to give it). Keep marks a thing never to be sold or dropped. Only what is in use weighs.");
     else if (V.tab == TAB_THINGS)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. Drag a thing onto someone at the left to give it to them (Shift: just one of a stack). Another member at the left shows their sheet; Esc or Close goes back.");
     else P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an attribute or a skill to see what it does.");
@@ -275,11 +275,12 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     const float RX0 = 200, RX1 = 318, LY0 = 21.5f, ROWH = 8.0f; const int NROWS = 16;
     const float LY1 = LY0 + NROWS * ROWH;
     /* the rows: a heading, then those in use; a heading, then the rest */
-    std::vector<int> rows;                                 /* item index; -1 / -2 the headings */
-    int nin = 0;
-    for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) nin++;
+    std::vector<int> rows;                                 /* item index; -1 / -3 / -2 the headings */
+    int nin = 0, npot = 0;
+    for (int i = 0; i < s.nitems; i++) { if (s.item[i].equipped) nin++; else if (s.item[i].potion) npot++; }
     if (nin) { rows.push_back(-1); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); }
-    if (s.nitems > nin) { rows.push_back(-2); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped) rows.push_back(i); }
+    if (npot) { rows.push_back(-3); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); }
+    if (s.nitems > nin + npot) { rows.push_back(-2); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); }
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -301,14 +302,14 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     if (!ns_in.down && !P.click && V.dragging) { V.dragging = false; sheetview_dragging = 0; V.drag_row = -1; }
     if (V.dragging && P.click) {                         /* let go: on a member at the left, a give */
         int to = partypanel_member_at(P.cx, P.cy);
-        if (to >= 0 && to != s.who && V.drag_row < s.nitems) ns_push(SV_GIVE, V.drag_row, to, P.shift ? 1 : 255);
+        if (to >= 0 && to != s.who && V.drag_row < s.nitems) ns_push(SV_GIVE, s.item[V.drag_row].idx, to, P.shift ? 1 : 255);   /* (the member's record, not the row) */
         P.click = false; V.dragging = false; sheetview_dragging = 0; V.drag_row = -1;
     }
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            const char *hd = i == -1 ? "In use" : s.shared ? "The party's pack" : "Carried";
+            const char *hd = i == -1 ? "In use" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
@@ -338,10 +339,10 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         bool gear = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);
         bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
         float x = RX1 - 58;
-        if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, i, 0, 0); } }
-        else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, i, 0, 0); }
+        if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, it.idx, 0, 0); } }
+        else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, it.idx, 0, 0); }
         else if (it.equipped == 2) P.text(fo, NsDraw::FS_SMALL, x + 2, y + 2.4f, soft, "rides it");   /* (the shared pack: their own mount) */
-        else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, i, 0, 0); } }
+        else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, it.idx, 0, 0); } }
         x += 19;
         if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
         if (P.over(x, y + 1, x + 18, y + ROWH - 1)) ImGui::SetTooltip("%s", it.kept ? "Kept from selling and dropping (Sell spare gear passes it by). A click: no longer kept."
@@ -350,7 +351,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (it.kept) P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(170, 150, 130, 200), 4.4f);   /* (greyed: kept) */
         else if (busy) {
             if (P.button(x, y + 1, x + 18, y + ROWH - 1, P.shift || it.count == 1 ? "Sure?" : "One?", IM_COL32(150, 30, 18, 255), 4.4f)) {
-                if (pack) ns_push(SV_PDROP, it.id, it.qual, P.shift ? 255 : 1); else ns_push(SV_DROP, i, P.shift ? 255 : 1, 0);
+                if (pack) ns_push(SV_PDROP, it.id, it.qual, P.shift ? 255 : 1); else ns_push(SV_DROP, it.idx, P.shift ? 255 : 1, 0);
                 V.drop_row = -1;
             }
         } else if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(120, 44, 24, 235), 4.4f)) { V.drop_row = i; V.act_seq = s.seq; }

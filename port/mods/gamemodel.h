@@ -47,6 +47,7 @@ int gm_item(int m, int i, GmItem *out);           /* 0 if none */
 int gm_item_equipped(int m, int i);               /* in hand, worn or ready (the member's equipment slots) */
 int gm_item_riding(int m, int i);                 /* the shared pack: the member's own mount (their best horse or mule) */
 int gm_item_in_use(int m, int i);                 /* equipped, or (shared pack) the mount they ride */
+int gm_is_potion(int id);                         /* a potion (items 95-116): each member's own, never the shared pack's */
 int gm_room_for(int m, int id, int qual);         /* one more fits: a free record (64 at most) or one it stacks onto */
 /* the shared pack (inventory.shared): a member's spares of record i (its count, less the one in use);
    who carries a spare (id, qual) - `prefer` first, else whoever has the most - 0 if nobody */

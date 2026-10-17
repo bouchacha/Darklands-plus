@@ -74,12 +74,13 @@ static void build(void)
         w->weight = gm_itemdef_weight(w->id);
     }
     b->nitems = 0;
-    for (int i = 0; i < ni; i++) {                       /* the member's things (shared: only those in use) */
+    for (int pass = 0; pass < (b->shared ? 2 : 1); pass++)   /* the member's things (shared: those in use, then their own potions) */
+    for (int i = 0; i < ni; i++) {
         GmItem g; gm_item(m, i, &g);
         int eq = b->shared ? (gm_item_equipped(m, i) ? 1 : gm_item_riding(m, i) ? 2 : 0) : gm_item_equipped(m, i);
-        if (b->shared && !eq) continue;
+        if (b->shared && (pass == 0 ? !eq : (eq || !gm_is_potion(g.id)))) continue;
         BvItem *it = &b->item[b->nitems++];
-        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared ? 1 : g.count; it->weight = g.weight;
+        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared && eq ? 1 : g.count; it->weight = g.weight;
         it->equipped = eq; it->holder = m; it->kept = keep_is(g.id, g.qual);
     }
     if (b->shared) {                                      /* then the party's pack: every member's spares by kind and quality */
@@ -87,7 +88,7 @@ static void build(void)
         for (int h = 0; h < 5; h++) {
             if (!gm_member_present(h) || gm_member_status(h) == 5) continue;
             for (int i = 0; i < gm_item_count(h); i++) {
-                GmItem g; if (!gm_item(h, i, &g)) continue;
+                GmItem g; if (!gm_item(h, i, &g) || gm_is_potion(g.id)) continue;   /* (potions: each member's own) */
                 int spare = gm_item_spare(h, i);
                 if (spare <= 0) continue;
                 int k = first;

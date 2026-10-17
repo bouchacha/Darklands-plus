@@ -107,21 +107,29 @@ static void build(int who)
             it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
             it->equipped = gm_item_equipped(who, i);
             it->drinkable = drinkable(g.id);
-            it->holder = who; it->kept = keep_is(g.id, g.qual);
+            it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 0;
         }
     } else {
-        /* the member's things in use, then the party's pack: every member's spares by kind and quality */
+        /* the member's things in use, then their own potions, then the party's pack: every member's spares
+           (but potions) by kind and quality */
         for (int i = 0; i < gm_item_count(who); i++) {
             GmItem g; if (!gm_item(who, i, &g) || !gm_item_in_use(who, i)) continue;
             SvItem *it = &s->item[s->nitems++];
             it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 1; it->weight = g.weight;
-            it->equipped = gm_item_equipped(who, i) ? 1 : 2;    /* (2: the mount they ride) */ it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual);
+            it->equipped = gm_item_equipped(who, i) ? 1 : 2;    /* (2: the mount they ride) */
+            it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 0;
+        }
+        for (int i = 0; i < gm_item_count(who) && s->nitems < 200; i++) {
+            GmItem g; if (!gm_item(who, i, &g) || gm_item_in_use(who, i) || !gm_is_potion(g.id)) continue;
+            SvItem *it = &s->item[s->nitems++];
+            it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+            it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 1;
         }
         int first = s->nitems;
         for (int m = 0; m < 5; m++) {
             if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
             for (int i = 0; i < gm_item_count(m); i++) {
-                GmItem g; if (!gm_item(m, i, &g)) continue;
+                GmItem g; if (!gm_item(m, i, &g) || gm_is_potion(g.id)) continue;
                 int spare = gm_item_spare(m, i);
                 if (spare <= 0) continue;
                 int k = first;
@@ -130,7 +138,7 @@ static void build(int who)
                     if (s->nitems >= 200) continue;
                     SvItem *it = &s->item[s->nitems++];
                     it->idx = -1; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 0; it->weight = g.weight;
-                    it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = -1; it->kept = keep_is(g.id, g.qual);
+                    it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = -1; it->kept = keep_is(g.id, g.qual); it->potion = 0;
                 }
                 s->item[k].count += spare;
             }

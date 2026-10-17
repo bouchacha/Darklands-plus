@@ -60,6 +60,9 @@ int gm_item_riding(int m, int i)
     return best == i;
 }
 int gm_item_in_use(int m, int i) { return gm_item_equipped(m, i) || gm_item_riding(m, i); }
+/* potions stay with whoever carries them, shared pack or not (in a battle one throws only one's own):
+   told by their numbers, 95-116, which the game counts on itself (a formula f makes 95 + f / 3) */
+int gm_is_potion(int id) { id &= 0xfff; return id >= 95 && id <= 116; }
 int gm_item_spare(int m, int i)
 {
     GmItem g;

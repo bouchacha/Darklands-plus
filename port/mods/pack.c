@@ -75,10 +75,6 @@ static void hand_out_ammo(void)
 #define D_THROW_KIND  0xca0c
 #define D_THROW_Q     0xc97a
 #define D_CBT_ACTION  0xca64
-#define D_CARD_ITEMS  0xee43              /* int[4]: the potions a card accepts (-1 none) */
-#define D_MENU_MEMBER 0xee6c              /* the member chosen in a card's pop-up */
-#define D_MENU_POPUP  0xee6e              /* 1: the card's choice came from its pop-up */
-#define D_MENU_SLOT   0xee6a              /* which of its four */
 #define D_ACTOR       0xe1ca              /* byte: who picks a lock */
 #define ID_LOCKPICK   0x40
 #define ID_EATERWATER 0x63
@@ -137,42 +133,13 @@ static int fetch(int a, int id, int q)
     return bh >= 0 && give_safe(bh, a, bi);
 }
 
-/* the potions, at hand in a battle: a member throws only what they carry (the orders' list,
-   vec_1da1 s019 0c80, made when their orders open, order_menu_build s014 19cd:29b8: the
-   throwing potions, codes 0x5f-0x68 but Black Cloud, of quality 20-49, 20 rows at most). So as a
-   member's orders open they are first handed one of every such potion the party carries that they
-   lack. Outside a battle (a dungeon, a castle) the same orders offer a lock to the member with
-   lock picks or Eater-Water of their own: those are handed over too. */
-static int throwable(int id, int q) { return id >= 0x5f && id <= 0x68 && id != 0x61 && q >= 20 && q <= 49; }
-static int throw_rows(int a)
-{
-    int n = 0;
-    for (int i = 0; i < gm_item_count(a); i++) { GmItem g; if (gm_item(a, i, &g) && throwable(g.id, g.qual)) n++; }
-    return n;
-}
-static void potions_to(int a)
-{
-    if (a < 0 || a >= 5 || !gm_member_present(a) || gm_member_status(a) != 1) return;
-    int given = 0;
-    for (int h = 0; h < 5 && !ns_unwinding; h++) {
-        if (h == a || !giver_ok(h)) continue;
-        for (int i = 0; i < gm_item_count(h) && !ns_unwinding; i++) {
-            GmItem g; if (!gm_item(h, i, &g) || !throwable(g.id, g.qual) || carried_id(a, g.id, g.qual)) continue;
-            if (throw_rows(a) >= 20) return;
-            if (fetch(a, g.id, g.qual)) { given++; i = -1; }    /* (the records may have moved: look again) */
-        }
-    }
-    if (given && !ns_unwinding) fprintf(stderr, "pack: member %d is handed %d kinds of potion for their orders\n", a, given);
-}
+/* lock picks: outside a battle (a dungeon, a castle) a member's orders offer a lock only to a member
+   with lock picks of their own (potions, Eater-Water too, stay each member's own) */
 static void orders_hook(void)             /* order_menu_build (), s014 19cd:29b8: the selected member's orders */
 {
-    if (sheetview_shared() && gm_party_size() > 1) {
+    if (sheetview_shared() && gm_party_size() > 1 && g_rb(GV_real_combat) != 1) {
         int a = (s8)g_rb(GV_selected_member);
-        if (g_rb(GV_real_combat) == 1) potions_to(a);
-        else if (a >= 0 && a < 5 && gm_member_status(a) == 1) {
-            if (!carried_id(a, ID_LOCKPICK, -1)) fetch(a, ID_LOCKPICK, -1);
-            if (!ns_unwinding && !carried_id(a, ID_EATERWATER, -1)) fetch(a, ID_EATERWATER, -1);
-        }
+        if (a >= 0 && a < 5 && gm_member_status(a) == 1 && !carried_id(a, ID_LOCKPICK, -1)) fetch(a, ID_LOCKPICK, -1);
         if (ns_unwinding) return;
     }
     hook_call_original();
@@ -187,69 +154,6 @@ static void lockpick_hook(void)
         if (ns_unwinding) return;
     }
     hook_call_original();
-}
-
-/* a card's potions (card_items, DS 0xee43): its pop-up offers each to the members who carry one
-   (has_item, s029 0e76:118e, called from s043 150b:2252, return 0x243a; the count beside it
-   count_items 0e76:0c76, return 0x25d3), and the chosen member then uses their own best one
-   (item_quality, take_item). With one pack every able member is offered the party's, and the
-   chosen one is handed the party's best copy as the card's menu returns. */
-static int card_potion(int code)
-{
-    for (int k = 0; k < 4; k++) if ((s16)g_rw((u16)(D_CARD_ITEMS + 2 * k)) == code) return 1;
-    return 0;
-}
-static int party_has(int id) { int n = 0; for (int h = 0; h < 5; h++) if (giver_ok(h)) n += carried_id(h, id, -1); return n; }
-static void has_item_hook(void)           /* has_item (who, code) */
-{
-    int who = (s16)rw(SS, (u16)(SP + 4)), code = (s16)rw(SS, (u16)(SP + 6));
-    int ours = sheetview_shared() && rw(SS, SP) == 0x243a && who >= 0 && who < 5 && gm_member_status(who) == 1 && card_potion(code) && party_has(code)
-               && gm_item_count(who) < 64;                 /* (a copy can be handed to them) */
-    hook_call_original();
-    if (ours && AX == 0) AX = 1;
-}
-static void count_items_hook(void)        /* count_items (who, code) */
-{
-    int who = (s16)rw(SS, (u16)(SP + 4)), code = (s16)rw(SS, (u16)(SP + 6));
-    int ours = sheetview_shared() && rw(SS, SP) == 0x25d3 && who >= 0 && who < 5 && card_potion(code);
-    hook_call_original();
-    if (ours) AX = (u16)party_has(code);
-}
-static void item_quality_hook(void)       /* item_quality_impl (who, code), s031 18e7:15f8: the best quality who carries */
-{
-    int who = (s16)rw(SS, (u16)(SP + 4)), code = (s16)rw(SS, (u16)(SP + 6));
-    int ours = sheetview_shared() && who >= -1 && who < 5 && card_potion(code);
-    hook_call_original();
-    if (!ours) return;
-    int best = (s16)AX;                                  /* (the chance shown and used: the party's best copy, which the chosen member is handed) */
-    for (int h = 0; h < 5; h++) {
-        if (!giver_ok(h)) continue;
-        for (int i = 0; i < gm_item_count(h); i++) { GmItem g; if (gm_item(h, i, &g) && g.id == code && g.qual > best) best = g.qual; }
-    }
-    AX = (u16)best;
-}
-static void card_menu_hook(void)          /* card_menu (win, win2) */
-{
-    hook_call_original();
-    if (ns_unwinding || !sheetview_shared() || g_rw(D_MENU_POPUP) != 1) return;
-    u16 ax = AX;
-    int m = (s16)g_rw(D_MENU_MEMBER), slot = (s16)g_rw(D_MENU_SLOT);
-    if (m < 0 || m >= 5 || gm_member_status(m) != 1 || slot < 0 || slot > 3) return;
-    /* (the items' pop-up, not the saints': the pop-up's handlers, DS 0xeb0a, are the items' ones, 0xec00) */
-    for (int b = 0; b < 80; b++) if (g_rb((u16)(0xeb0a + b)) != g_rb((u16)(0xec00 + b))) return;
-    for (int k = slot; k == slot && !ns_unwinding; k++) {
-        int code = (s16)g_rw((u16)(D_CARD_ITEMS + 2 * k));
-        if (code < 0) continue;
-        int mine = -1, best = -1;                          /* the member's best quality of it, and the party's */
-        for (int h = 0; h < 5; h++) {
-            if (!giver_ok(h)) continue;
-            for (int i = 0; i < gm_item_count(h); i++) { GmItem g; if (gm_item(h, i, &g) && g.id == code) { if (h == m && g.qual > mine) mine = g.qual; if (g.qual > best) best = g.qual; } }
-        }
-        if (best > mine) {
-            if (fetch(m, code, best) || (mine < 0 && fetch(m, code, -1))) fprintf(stderr, "pack: member %d is handed potion %#x for the card\n", m, code);
-        }
-    }
-    AX = ax;
 }
 
 /* ammunition and thrown weapons that run out (with "never run out" off): a shot uses one of the
@@ -399,9 +303,5 @@ void pack_init(void)
     hook_install(GF_roster_screen, roster_hook);
     hook_install(GF_order_menu_build, orders_hook);
     hook_install(GF_lock_pick, lockpick_hook);
-    hook_install(29, 0x0e76, 0x118e, has_item_hook);
-    hook_install(GF_count_items, count_items_hook);
-    hook_install(GF_card_menu, card_menu_hook);
-    hook_install(GF_item_quality_impl, item_quality_hook);
     hook_install(GF_use_ammo, use_ammo_hook);
 }
