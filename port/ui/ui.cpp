@@ -74,6 +74,8 @@ extern "C" void lodgeview_draw(void);
 extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
+extern "C" void mapmsg_draw(void);
+extern "C" { int mapmsg_is_on(void); void mapmsg_set(int on); }
 extern "C" { int infoview_is_on(void); void infoview_set(int on); }
 extern "C" { int rosterview_is_on(void); void rosterview_set(int on); }
 extern "C" { int createview_is_on(void); void createview_set(int on); }
@@ -572,6 +574,8 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Inns and camps drawn by Darklands+: each member's day, its cost, the teachers and their fees, and \"Until rested\"", &nlo)) { lodgeview_set(nlo); dirty_config = 1; } }
     { bool nei = enemyview_is_on() != 0;
       if (ImGui::Checkbox("Enemy Info (E in a battle) drawn by Darklands+: every kind of foe, its armour and weapons, and what your weapons do to it", &nei)) { enemyview_set(nei); dirty_config = 1; } }
+    { bool nmm = mapmsg_is_on() != 0;
+      if (ImGui::Checkbox("The travel map's messages (a robber knight's land ...) in the cards' style", &nmm)) { mapmsg_set(nmm); dirty_config = 1; } }
     { bool np = prayview_is_on() != 0;
       if (ImGui::Checkbox("Calling on a saint drawn by Darklands+: the statue, what the saint does, the favor to spend and the chance", &np)) { prayview_set(np); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The chance and the favor are the saint's own rules. Off: the game's prayer screen."); ImGui::Unindent(UIS(34)); }
@@ -1287,7 +1291,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); savesview_draw(); menuview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); mapmsg_draw(); savesview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

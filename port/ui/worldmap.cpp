@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <SDL.h>
 #include "imgui.h"
+extern "C" int ns_showing(void);
 #include "gamedata.h"
 #include "ui.h"
 extern "C" {
@@ -488,6 +489,7 @@ extern "C" void worldmap_draw(void)
 extern "C" void travelmap_labels(void)
 {
     if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
+    if (ns_showing()) return;                                   /* (a native box over the map: a map message) */
     int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;

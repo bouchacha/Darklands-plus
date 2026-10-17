@@ -151,6 +151,7 @@ void mods_init(void)
     { void marchview_init(void); marchview_init(); }
     { void lodgeview_init(void); lodgeview_init(); }
     { void enemyview_init(void); enemyview_init(); }
+    { void mapmsg_init(void); mapmsg_init(); }
     { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();

@@ -126,10 +126,12 @@ extern "C" void tab_travel(void)
     }
 }
 
+extern "C" int ns_showing(void);
 /* the route over the map while travelling */
 extern "C" void travel_overlay(void)
 {
     if (!travel.active || game_mode() != GM_MAP) return;
+    if (ns_showing()) return;
     if (!travel_map_live()) return;            /* a card is up over the map (a village, an encounter); the option
                                                   count of the last card stays set after it closes */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
