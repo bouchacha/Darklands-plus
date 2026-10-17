@@ -300,6 +300,7 @@ extern "C" void ui_toggle_map(void)
 }
 
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
+extern "C" int ns_showing(void);
 extern "C" int margins_click(int x, int y);           /* ui/margins.cpp: the battle's order buttons */
 static int margin_click_taken, outside_down;
 extern "C" int plat_win_outside(int wx, int wy);
@@ -342,6 +343,10 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    /* Z in a battle: fast forward (mods/pathfix.c) */
+    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_z && !e->key.repeat
+        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && game_mode() == GM_BATTLE && !ns_showing()
+        && config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) { battle_fast_set(!battle_fast); return 1; }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
         && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
     if (open_goto) {
@@ -599,7 +604,7 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34)); hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet.");
       if (sv) { bool sp = config_get_int("inventory.shared", 1) != 0;
         if (ImGui::Checkbox("One pack for the whole party: a member keeps only what they use; Ready or Drink takes from the party's pack, shops sell from it", &sp)) { config_set_int("inventory.shared", sp); dirty_config = 1; }
-        hint("Who carries a spare thing no longer matters (the pack weighs nothing; only what is in use counts for the load). Before a battle each archer, crossbowman and gunner is handed their arrows, quarrels or balls, and the potions are shared out so that anyone can drink or throw one from the orders. Keep marks a thing never to be sold or dropped."); }
+        hint("Who carries a spare thing no longer matters (the pack weighs nothing; only what is in use counts for the load). Wherever the game asks one member for a thing, it is handed to them first: a potion as their orders open in a battle (any member can throw any of the party's), a potion a card asks for, lock picks and Eater-Water at a lock, arrows, quarrels and balls before a battle, a horse or mule to whoever has none (each rides their best). Keep marks a thing never to be sold or dropped."); }
       ImGui::Unindent(UIS(34)); }
     { bool lv = lootview_is_on() != 0;
       if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
@@ -695,6 +700,8 @@ static void tab_helpers(void)
             if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); dirty_config = 1; }
         }
         hint("Walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.");
+        bool fk = config_get_int("battle.fast_key", 1) != 0;
+        if (ImGui::Checkbox("Z in a battle: fast forward (six times the pace), Z again back to this speed", &fk)) { config_set_int("battle.fast_key", fk); if (!fk) battle_fast_set(0); dirty_config = 1; }
     }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
@@ -1233,6 +1240,7 @@ static void help_window(void)
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
+            if (!original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
             { extern int ui_battle_log; if (ui_battle_log && !original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");

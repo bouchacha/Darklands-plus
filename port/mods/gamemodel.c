@@ -47,11 +47,24 @@ int gm_item_equipped(int m, int i)
     return 0;
 }
 
+/* the shared pack (inventory.shared): each member rides their best mount, a horse or mule (item
+   type 108, told by the record itself: in a battle the item definitions are not in memory). It is
+   theirs and in use, like what they hold or wear, not one of the party's spares. */
+int sheetview_shared(void);
+int gm_item_riding(int m, int i)
+{
+    GmItem g;
+    if (!sheetview_shared() || !gm_item(m, i, &g) || g.type != 108) return 0;
+    int best = -1, bq = -1;
+    for (int j = 0; j < gm_item_count(m); j++) { GmItem x; if (gm_item(m, j, &x) && x.type == 108 && x.qual > bq) { bq = x.qual; best = j; } }
+    return best == i;
+}
+int gm_item_in_use(int m, int i) { return gm_item_equipped(m, i) || gm_item_riding(m, i); }
 int gm_item_spare(int m, int i)
 {
     GmItem g;
     if (!gm_item(m, i, &g)) return 0;
-    return g.count - (gm_item_equipped(m, i) ? 1 : 0);
+    return g.count - (gm_item_in_use(m, i) ? 1 : 0);
 }
 int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out)
 {

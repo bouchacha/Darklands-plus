@@ -76,7 +76,7 @@ static void build(void)
     b->nitems = 0;
     for (int i = 0; i < ni; i++) {                       /* the member's things (shared: only those in use) */
         GmItem g; gm_item(m, i, &g);
-        int eq = gm_item_equipped(m, i);
+        int eq = b->shared ? (gm_item_equipped(m, i) ? 1 : gm_item_riding(m, i) ? 2 : 0) : gm_item_equipped(m, i);
         if (b->shared && !eq) continue;
         BvItem *it = &b->item[b->nitems++];
         it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared ? 1 : g.count; it->weight = g.weight;

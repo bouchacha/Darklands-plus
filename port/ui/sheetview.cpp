@@ -226,7 +226,8 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (shows_quality(d, it.qual)) l1 += ", quality " + std::to_string(it.qual);
         l1 += ", weight " + std::to_string(it.weight);
         if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
-        if (it.equipped) l1 += "; in use";
+        if (it.equipped == 2) l1 += "; this member's mount";
+        else if (it.equipped) l1 += "; in use";
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
         if (it.kept) l1 += "; kept (not sold or dropped)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
@@ -332,7 +333,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
         float x = RX1 - 58;
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, i, 0, 0); } }
-        else if (it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, i, 0, 0); }
+        else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, i, 0, 0); }
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, i, 0, 0); } }
         x += 19;
         if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);

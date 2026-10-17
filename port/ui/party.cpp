@@ -92,7 +92,10 @@ extern "C" void tab_members(void)
     /* the leader row */
     ImGui::TableNextRow();
     ImGui::TableNextColumn(); ImGui::TextUnformatted("Leader");
-    help_tip("The leader speaks and acts for the party on many cards, and leads on the travel map. "
+    help_tip("With \"the best member makes each check\" (F12 > Helpers) a card's tests and the shops' prices no longer depend on the leader, "
+             "but the leader still matters: whatever befalls \"the leader\" on a card lands on them (the traps in mines, a church's favour, "
+             "an item handed over), some cards roll the leader's skill as they open or in a hidden test, and in a battle the leader is the member "
+             "who acts first (opens doors and chests while the battle runs). "
              "The game's own way to change it: Ctrl+F1 ... Ctrl+F5 on a character sheet.");
     for (int m = 0; m < size; m++) {
         ImGui::TableNextColumn(); ImGui::PushID(m);
