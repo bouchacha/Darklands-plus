@@ -250,7 +250,8 @@ static void screen_hook(void)                 /* item_cache_screen(arg), s035 14
     memset(cache_model.note, 0, sizeof cache_model.note);
     {   int cur = (s16)g_rw(G_CUR_LOC); u32 r = cur >= 0 ? g_location(cur) : 0;
         cache_model.place[0] = 0;
-        if (r) g_str((u16)(r >> 16), (u16)((u16)r + 0x26), cache_model.place, sizeof cache_model.place); }
+        if (r) g_str((u16)(r >> 16), (u16)((u16)r + 0x26), cache_model.place, sizeof cache_model.place);
+        int sharedstore_places(int loc); cache_model.every_inn = cur >= 0 && sharedstore_places(cur) > 1; }
     build();
     cache_model.open = 1;
     fprintf(stderr, "store room: open (%d kinds stored)\n", cache_model.nstore);

@@ -784,11 +784,11 @@ static void ingredients_page(void)
 }
 
 /* ---------------------------------------------------------------- stored goods
- * What the party has left in storage (a monastery's store room, the caches of s035): the
- * game keeps them in CACHE.TMP (saved with the game): byte 1 the number of caches, a 16-bit
- * offset per cache at 2 x handle, there a count and {item u16, quality, number} each; a
- * location record's +0x18 is its cache handle (from 1). The original lists a store only when
- * the party stands in it. */
+ * What the party has left with innkeepers (the store rooms of s035): the game keeps them in
+ * CACHE.TMP (saved with the game): byte 1 the number of caches, a 16-bit offset per cache at
+ * 2 x handle, there a count and {item u16, quality, number} each; a location record's +0x18 is
+ * its cache handle (from 1). The original lists a store only when the party stands in it. With
+ * one store room for every inn (mods/sharedstore.c) the towns point at the same cache: listed once. */
 extern "C" void dos_host_path(const char *dos, char *out, size_t outn);
 static void storage_page(void)
 {
@@ -800,37 +800,44 @@ static void storage_page(void)
       FILE *f = fopen(path, "rb");
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
-    ImGui::TextWrapped("What the party has left in store rooms (monasteries keep goods for travellers), and where. "
+    ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
                        "The game shows a store only while the party is there.");
     ImGui::Spacing();
     int px, py; travel_party_tile(&px, &py);
-    struct Store { int loc; double d; std::vector<SeenItem> items; };
+    struct Store { int loc, places; double d; std::vector<SeenItem> items; };
     std::vector<Store> stores;
+    std::map<int, int> at;                                     /* handle -> its entry in stores */
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
         int h = (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18));
         if (h < 1 || h > ncache || (size_t)(2 * h + 1) >= buf.size()) continue;
+        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
+        double d = px >= 0 ? hypot((double)(x - px), (y - py) / 4.0) : 0;
+        auto it0 = at.find(h);
+        if (it0 != at.end()) { Store &st = stores[it0->second]; st.places++; if (d < st.d) { st.d = d; st.loc = k; } continue; }
         size_t o = buf[2 * h] | buf[2 * h + 1] << 8;
         if (o >= buf.size()) continue;
         int n = buf[o];
-        Store st; st.loc = k;
-        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
-        st.d = px >= 0 ? hypot((double)(x - px), (y - py) / 4.0) : 0;
+        Store st; st.loc = k; st.places = 1; st.d = d;
         for (int i = 0; i < n && o + 1 + 4 * i + 3 < buf.size(); i++) {
             const unsigned char *e = &buf[o + 1 + 4 * i];
             SeenItem it; it.id = (e[0] | e[1] << 8) & 0xfff; it.q = e[2]; it.price = e[3];   /* (price: the number) */
             if (it.price) st.items.push_back(it);
         }
-        if (!st.items.empty()) stores.push_back(st);
+        at[h] = (int)stores.size();
+        stores.push_back(st);
     }
+    stores.erase(std::remove_if(stores.begin(), stores.end(), [](const Store &s) { return s.items.empty(); }), stores.end());
     if (stores.empty()) { ImGui::TextDisabled("Nothing stored anywhere."); return; }
-    std::sort(stores.begin(), stores.end(), [](const Store &a, const Store &b) { return a.d < b.d; });
+    std::sort(stores.begin(), stores.end(), [](const Store &a, const Store &b) { return a.places != b.places ? a.places > b.places : a.d < b.d; });
     int cur = (s16)g_rw(G_CUR_LOC);
     ImGui::BeginChild("stores", ImVec2(0, 0));
     for (const Store &st : stores) {
         ImGui::PushID(st.loc);
-        std::string head = loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        std::string kinds = std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        std::string head = st.places > 1 ? "Every inn's store room  -  " + kinds
+                                         : loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + kinds;
         if (ImGui::CollapsingHeader(head.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::BeginTable("st", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);

@@ -21,6 +21,7 @@ typedef struct {
     int present[5], able[5];
     char names[5][24];
     char place[24];
+    int every_inn;                   /* the place's store is every inn's (mods/sharedstore.c) */
     int nstore;
     CvEntry store[256];
     int shared;                      /* the right list is the party's pack */

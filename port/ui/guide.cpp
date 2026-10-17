@@ -38,6 +38,7 @@ void ui_guide_tab(void)
     topic("Towns", {
         "G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...) to walk to directly.",
         "The inn: a room for the night, or take up residence for days: rest, regain strength, pray, brew, earn a little or study with a teacher (the page shows each member's day and what it costs). \"Until rested\" spends the days for you.",
+        "The innkeeper keeps things for the party (store items, recover items stored here): Darklands+ makes it one store room for every inn, so what is left in one town is there in all (F12 > Helpers; F12 > Journal > Stored lists it).",
         "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armourer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
         "Shops sell by quality: the higher a shop's rating, the better its wares (the right margin lists every shop of the town with its rating). Darklands+ compares a weapon or armour with what the member has now.",
         "Streets at night are dangerous, and gates may be closed: an inn is the safe place to wait for morning.",

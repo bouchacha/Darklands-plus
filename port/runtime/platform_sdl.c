@@ -662,6 +662,12 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
         else if (!strcmp(s->cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
         else if (!strcmp(s->cmd, "umenu")) { int m = 0, i = 0, j = -1; sscanf(s->arg, "%d,%d,%d", &m, &i, &j); void menuview_request(int, int, int); menuview_request(m, i, j); }   /* test: menu m's entry i (sub-entry j) chosen, as a click on it does */
+        else if (!strcmp(s->cmd, "ulocw")) {               /* test: word at +off of location k's record (ulocw:k,off,v; v -999 only reads) */
+            int k = 0, of = 0, v = -999; sscanf(s->arg, "%d,%x,%d", &k, &of, &v);
+            u32 r = g_location(k);
+            if (r) { fprintf(stderr, "loc %d +%x: %d", k, of, (s16)rw((u16)(r >> 16), (u16)((u16)r + of)));
+                     if (v != -999) { ww((u16)(r >> 16), (u16)((u16)r + of), (u16)v); fprintf(stderr, " -> %d", v); } fprintf(stderr, "\n"); }
+        }
         else if (!strcmp(s->cmd, "ucache")) { extern int uscreen_pending; uscreen_pending = 3; }   /* test: the store room from the card menu up */
         else if (!strcmp(s->cmd, "usaint")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 0; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 2; }   /* test: the prayer screen (member, saint) from the card menu up */
         else if (!strcmp(s->cmd, "unspush")) { int t = 0, x = 0, y = 0, z = 0; sscanf(s->arg, "%d,%d,%d,%d", &t, &x, &y, &z); void ns_push(int, int, int, int); ns_push(t, x, y, z); }   /* test: an action for the native screen up (mods/barterview.h BV_*, sheetview.h SV_*) */

@@ -138,6 +138,7 @@ extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
+extern "C" void sharedstore_tick(void);
 extern "C" void ui_notice(const char *msg);
 extern "C" void rules_apply(void);
 extern "C" void ui_notice_for(const char *msg, unsigned ms);
@@ -562,6 +563,9 @@ static void tab_helpers(void)
     { bool nc2 = cacheview_is_on() != 0;
       if (ImGui::Checkbox("Store rooms drawn by Darklands+: everything stored and everything the member carries in two lists", &nc2)) { cacheview_set(nc2); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("Take and Put on each row (one or the whole stack), Put away for everything not in use. The storing is the game's own. Off: the game's screen, four things at a time."); ImGui::Unindent(UIS(34)); }
+    { bool ss = config_get_int("store.shared", 1) != 0;
+      if (ImGui::Checkbox("One store room for every inn: what is left with one innkeeper is there at every other", &ss)) { config_set_int("store.shared", ss); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Like a chest that follows the party. The stores already left in several towns join it the first time a store room is opened (as long as it has room: 100 kinds of things). Off: nothing more is joined; what is already shared stays so."); ImGui::Unindent(UIS(34)); }
     { bool ncr = createview_is_on() != 0;
       if (ImGui::Checkbox("Making a character drawn by Darklands+: each step on one page, with what a childhood or profession would bring", &ncr)) { createview_set(ncr); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The attributes after it (and the aging past thirty), each skill's gain and room, the virtues and saints learned. The rules are the game's own. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
@@ -1368,6 +1372,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
+    { static int sf = -1000; if (ImGui::GetFrameCount() - sf > 30) { sharedstore_tick(); sf = ImGui::GetFrameCount(); } }   /* (every inn: the one store) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();

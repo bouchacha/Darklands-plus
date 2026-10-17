@@ -38,7 +38,8 @@ extern "C" void cacheview_draw(void)
 
     /* the header */
     P.text(f, NsDraw::FS_TITLE, 65, 3, ink, "The store room");
-    if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's things kept in " + ns_gtext(l.place) + ", for when it comes back.");
+    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's things kept at the inns: the same at every one (F12 > Helpers).");
+    else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's things kept in " + ns_gtext(l.place) + ", for when it comes back.");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL)) ns_push(CV_LEAVE, 0, 0, 0);
     if (l.nitems && P.button(bx - 46, 4, bx - 3, 15, "Put away", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL)) ns_push(CV_PUTAWAY, 0, 0, 0);
