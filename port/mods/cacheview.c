@@ -50,25 +50,32 @@ static void build(void)
         c->store[i].weight = gm_itemdef_weight(c->store[i].id);
     }
     c->shared = sheetview_shared();
-    if (c->shared) {                                          /* the party's pack: the spares of all, by kind and quality */
+    if (c->shared) {                                          /* the member's potions, then the party's pack: the spares of all, by kind and quality */
         c->nitems = 0; c->room = 0;
+        for (int i = 0; i < gm_item_count(c->who) && c->nitems < 200; i++) {
+            GmItem g; if (!gm_item(c->who, i, &g) || !gm_is_potion(g.id)) continue;
+            CvItem *it = &c->item[c->nitems++];
+            it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+            it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1;
+        }
+        int first = c->nitems;
         for (int m = 0; m < 5; m++) {
             if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
             if (able(m) && gm_item_count(m) < 64) c->room = 1;
             for (int i = 0; i < gm_item_count(m); i++) {
                 GmItem g; int spare = gm_item_spare(m, i);
-                if (spare <= 0 || !gm_item(m, i, &g)) continue;
-                int k = 0;
+                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id)) continue;
+                int k = first;
                 while (k < c->nitems && !(c->item[k].id == g.id && c->item[k].qual == g.qual)) k++;
                 if (k < c->nitems) { c->item[k].count += spare; continue; }
                 if (c->nitems >= 200) continue;
                 CvItem *it = &c->item[c->nitems++];
                 it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
-                it->equipped = 0; it->kept = keep_is(g.id, g.qual);
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0;
             }
         }
-        for (int a = 1; a < c->nitems; a++)                   /* by kind, the better first */
-            for (int b = a; b > 0; b--) {
+        for (int a = first + 1; a < c->nitems; a++)           /* by kind, the better first */
+            for (int b = a; b > first; b--) {
                 CvItem *x = &c->item[b - 1], *y = &c->item[b];
                 if (x->id < y->id || (x->id == y->id && x->qual >= y->qual)) break;
                 CvItem t = *x; *x = *y; *y = t;
@@ -80,7 +87,7 @@ static void build(void)
             GmItem g; gm_item(m, i, &g);
             CvItem *it = &c->item[i];
             it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = gm_item_equipped(m, i); it->kept = 0;
+            it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0;
         }
         c->room = c->nitems < 64;
     }
@@ -111,7 +118,7 @@ static int take(int i, int all)
     int id = store_id(i), q = store_q(i);
     for (int t = 0; t < (all ? 255 : 1); t++) {
         if (i >= store_n() || store_id(i) != id || store_q(i) != q) break;   /* (that entry is gone) */
-        if (shared) { m = pack_target(id, q); if (m < 0) break; g_ww(GV_cache_who, (u16)m); }
+        if (shared && !gm_is_potion(id)) { m = pack_target(id, q); if (m < 0) break; g_ww(GV_cache_who, (u16)m); }
         else if (!gm_room_for(m, id, q)) break;
         g_ww((u16)(GV_cache_side + 2 * m), 1); g_ww((u16)(GV_cache_top + 2 * m), (u16)i); g_ww((u16)(GV_cache_sel + 2 * m), 0);
         g_ww(GV_cache_n_shown, (u16)store_n());
@@ -124,7 +131,7 @@ static int take(int i, int all)
     if (shared) g_ww(GV_cache_who, (u16)shown);
     char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[160];
-    if (shared) {
+    if (shared && !gm_is_potion(id)) {
         if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
         else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
     }
@@ -191,12 +198,12 @@ static void put_away(void)                   /* everything the member does not h
         int kinds = 0, units = 0, kept = 0;
         for (int r = 0; r < cache_model.nitems && !ns_unwinding; r++) {
             CvItem it = cache_model.item[r];
-            if (it.kept) { kept++; continue; }
+            if (it.kept || it.idx >= 0) { kept += it.kept; continue; }   /* (not what is kept, nor the member's potions) */
             int d = pack_put(it.id, it.qual, 1, 1);
             if (d) { kinds++; units += d; }
         }
         char t[160];
-        if (units) snprintf(t, sizeof t, "Stored %d things (%d kinds); what is in use%s stays.", units, kinds, kept ? " and what is kept" : "");
+        if (units) snprintf(t, sizeof t, "Stored %d things (%d kinds); what is in use, the potions%s stay.", units, kinds, kept ? " and what is kept" : "");
         else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept things." : "Nothing to store: the pack is empty.");
         note(t);
         return;
@@ -265,7 +272,10 @@ static void screen_hook(void)                 /* item_cache_screen(arg), s035 14
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
             case CV_TAKE: take(a.a, a.b == 255); break;
-            case CV_PUT: if (cache_model.shared) { if (a.a >= 0 && a.a < cache_model.nitems) pack_put(cache_model.item[a.a].id, cache_model.item[a.a].qual, a.b == 255, 0); }
+            case CV_PUT: if (cache_model.shared) { if (a.a >= 0 && a.a < cache_model.nitems) {
+                             const CvItem *it = &cache_model.item[a.a];
+                             if (it->idx >= 0) put(it->idx, a.b == 255, 0);          /* (the member's own potion) */
+                             else pack_put(it->id, it->qual, a.b == 255, 0); } }
                          else put(a.a, a.b == 255, 0); break;
             case CV_WHO: set_who(a.a); break;
             case CV_PUTAWAY: put_away(); break;

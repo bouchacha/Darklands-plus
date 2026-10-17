@@ -43,7 +43,7 @@ extern "C" void cacheview_draw(void)
     if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL)) ns_push(CV_LEAVE, 0, 0, 0);
     if (l.nitems && P.button(bx - 46, 4, bx - 3, 15, "Put away", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL)) ns_push(CV_PUTAWAY, 0, 0, 0);
     if (l.nitems && P.over(bx - 46, 4, bx - 3, 15)) {
-        if (l.shared) ImGui::SetTooltip("Everything in the party's pack goes into the store, but what is kept (the character sheet's Keep).");
+        if (l.shared) ImGui::SetTooltip("Everything in the party's pack goes into the store, but what is kept (the character sheet's Keep) and the potions.");
         else ImGui::SetTooltip("Everything %s carries that is not in use goes into the store.", ns_gtext(l.names[l.who]).c_str());
     }
 
@@ -51,8 +51,7 @@ extern "C" void cacheview_draw(void)
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9; const int NROWS = 13;
     const float LY1 = LY0 + NROWS * ROWH;
     P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "In store");
-    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21, ink, "The party's pack");
-    else {
+    {                                                       /* (shared: the tab is whose potions are shown, and whom a potion taken goes to) */
         int n = 0; for (int m = 0; m < 5; m++) if (l.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
         for (int m = 0; m < 5; m++) {
@@ -78,12 +77,12 @@ extern "C" void cacheview_draw(void)
         int maxs = n - NROWS; if (maxs < 0) maxs = 0;
         if (V.scroll[L] > maxs) V.scroll[L] = maxs;
         if (V.scroll[L] < 0) V.scroll[L] = 0;
-        if (!n) P.text(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, dim, L ? (l.shared ? "Nothing spare in the pack." : "Carries nothing.") : "Nothing stored here.");
+        if (!n) P.text(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, dim, L ? (l.shared ? "No potions, nothing spare in the pack." : "Carries nothing.") : "Nothing stored here.");
         for (int r = 0; r < NROWS && V.scroll[L] + r < n; r++) {
             int i = V.scroll[L] + r;
             float y = LY0 + r * ROWH;
             int id = L ? l.item[i].id : l.store[i].id, qual = L ? l.item[i].qual : l.store[i].qual, count = L ? l.item[i].count : l.store[i].count;
-            int eq = L ? l.item[i].equipped : 0, kept = L ? l.item[i].kept : 0;
+            int eq = L ? l.item[i].equipped : 0, kept = L ? l.item[i].kept : 0, own = L && l.shared && l.item[i].potion;
             bool h = P.over(x0, y, x1, y + ROWH);
             if (h) { new_hl = L; new_hr = i; }
             if (h) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
@@ -93,7 +92,8 @@ extern "C" void cacheview_draw(void)
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
-            const char *tag = eq ? "in use" : kept ? "kept" : NULL;
+            std::string owner = own ? ns_gtext(l.names[l.who]) + "'s" : std::string();
+            const char *tag = eq ? "in use" : own ? owner.c_str() : kept ? "kept" : NULL;
             float tagw = tag ? P.width(fo, NsDraw::FS_SMALL, tag) + 3 : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
@@ -139,7 +139,7 @@ extern "C" void cacheview_draw(void)
         if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
         std::string use = ns_item_use(id);
         if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, soft, use);
-    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here. What is taken goes into the party's pack."
+    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here. A potion taken goes to the member above (each member's own); the rest into the party's pack."
                                                          : "Point at a thing to see it here. Click a name above the right list (or C) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }
