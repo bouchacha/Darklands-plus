@@ -81,7 +81,8 @@ extern "C" void barterview_draw(void)
     P.page();
 
     /* the header: shop, quality, purse, Leave */
-    T(f, NsDraw::FS_TITLE, 65, 3, ink, gt(b.shopname), -1, 205);
+    { std::string sn = gt(b.shopname); if (!sn.empty() && sn[0] >= 'a' && sn[0] <= 'z') sn[0] = (char)(sn[0] - 32);     /* ("herbalist": some cards name the shop in lower case) */
+      T(f, NsDraw::FS_TITLE, 65, 3, ink, sn, -1, 205); }
     char q[48]; snprintf(q, sizeof q, "Wares of quality %d", b.quality);
     T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, q);
     {

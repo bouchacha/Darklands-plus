@@ -700,6 +700,29 @@ static int loc_distance(int loc, int px, int py)          /* in map tiles (rows 
     int dx = (s16)rw((u16)(r >> 16), (u16)(r + 4)) - px, dy = ((s16)rw((u16)(r >> 16), (u16)(r + 6)) - py) / 2;
     return (int)sqrtf((float)(dx * dx + dy * dy));
 }
+/* where the party can buy a thing, from the shops seen: "sold here", "Köln, 1gr 7pf" (the nearest
+   town that sells it), "" when no shop seen sells it */
+std::string journal_where_sold(int id)
+{
+    ensure_game();
+    int px = 0, py = 0; bool here = party_where(&px, &py);
+    int cur = (s16)g_rw(G_CUR_LOC);
+    int best = -1, bd = 1 << 30, bp = 0;
+    for (auto &kv : towns) {
+        int price = -1; std::string shop;
+        for (const Shop &s : kv.second.shops) for (const SeenItem &i : s.items) if (i.id == id && (price < 0 || i.price < price)) { price = i.price; shop = s.name; }
+        if (price < 0) continue;
+        if (kv.first == cur) {
+            for (char &c : shop) c = (char)tolower((unsigned char)c);
+            return shop.empty() ? "sold here" : "sold here (" + shop + ")";
+        }
+        int d = here ? loc_distance(kv.first, px, py) : 0;
+        if (d < bd) { bd = d; best = kv.first; bp = price; }
+    }
+    if (best < 0) return "";
+    return loc_name(best) + ", " + money(bp);
+}
+
 static void ingredients_page(void)
 {
     int px = 0, py = 0; bool here = party_where(&px, &py);

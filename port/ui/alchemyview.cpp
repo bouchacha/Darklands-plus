@@ -11,6 +11,8 @@
 #include "../runtime/game.h"
 #include "../mods/alchemyview.h"
 #include "nsdraw.h"
+#include <map>
+std::string journal_where_sold(int id);              /* ui/journal.cpp */
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -81,7 +83,18 @@ extern "C" void alchemyview_draw(void)
             const AvIngr &g = a.ingr[k];
             P.icon(RX0 + 4, y + 3.5f, 6.5f, g.item);
             P.text(fo, NsDraw::FS_BODY, RX0 + 9, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
-            P.text(fo, NsDraw::FS_SMALL, 0, y + 1.2f, g.have >= g.need ? green : red, (g.have ? "at hand " + std::to_string(g.have) : std::string("none at hand")), RX1);
+            std::string hv = g.have ? "at hand " + std::to_string(g.have) : std::string("none at hand");
+            if (g.have < g.need) {                              /* where to get more (the shops the party has seen) */
+                static std::map<int, std::string> where; static unsigned wseq = 0;
+                if (wseq != a.seq) { where.clear(); wseq = a.seq; }
+                auto it = where.find(g.item);
+                if (it == where.end()) it = where.emplace(g.item, journal_where_sold(g.item)).first;
+                if (!it->second.empty()) {
+                    float hw = P.width(fo, NsDraw::FS_SMALL, hv);
+                    P.text(fo, NsDraw::FS_SMALL, 0, y + 1.2f, soft, it->second + "  -  ", RX1 - hw);
+                }
+            }
+            P.text(fo, NsDraw::FS_SMALL, 0, y + 1.2f, g.have >= g.need ? green : red, hv, RX1);
             y += 7.5f;
         }
         y += 2;
