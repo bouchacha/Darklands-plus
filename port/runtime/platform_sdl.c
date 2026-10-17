@@ -580,6 +580,12 @@ static void run_script(void)
                 fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
             }
         }
+        else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);
+            ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
+            SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
+        }
         else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 8 int args: ucall:31,18e7,0ab8,-2,80 */
             int sect = 0, a[8] = { 0 }; unsigned sg = 0, of = 0;
             int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7]);
