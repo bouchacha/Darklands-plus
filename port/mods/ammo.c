@@ -7,8 +7,10 @@
  * every member's quiver filled meant picking the spent ones out of the loot after each fight and
  * buying more. Here a party member's shot takes nothing from the pack (one arrow, quarrel or
  * ball is still needed to shoot at all), and leaves nothing behind for the loot; enemies shoot
- * and lose theirs as before. Javelins, throwing axes and darts are not ammunition: they go back
- * to their throwers after the battle (mods/loot.c). */
+ * and lose theirs as before. Javelins, throwing axes, throwing knives and darts likewise
+ * (assist.infinite_thrown, on by default: use_ammo takes a thrown weapon itself, consume_item
+ * (i, its type, its quality)); with that off they go back to their throwers after the battle
+ * (mods/loot.c). */
 #include <stdio.h>
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
@@ -16,11 +18,17 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 
-int ammo_infinite = 1;
+int ammo_infinite = 1, thrown_infinite = 1;
 static int shooter = -1;                     /* who loosed the last missile */
 
-static int is_ammo(int type) { return type == 0x40 || type == 0x41 || type == 0x42; }   /* arrow, quarrel, ball */
-static int on(void) { return ammo_infinite && !config_get_int("original", 0); }
+static int is_shot(int type) { return type == 0x40 || type == 0x41 || type == 0x42; }   /* arrow, quarrel, ball */
+static int is_thrown(int type) { return type == 0x17 || type == 0x18 || type == 0x19 || type == 0x1a; }   /* throwing axe, javelin, dart, throwing knife (LST flag 0x10) */
+static int is_ammo(int type)
+{
+    if (config_get_int("original", 0)) return 0;
+    return (ammo_infinite && is_shot(type)) || (thrown_infinite && is_thrown(type));
+}
+static int on(void) { return (ammo_infinite || thrown_infinite) && !config_get_int("original", 0); }
 
 static void launch_hook(void)                /* missile_launch (i, target, ...) */
 {
@@ -53,10 +61,12 @@ static void consume_hook(void)               /* consume_item (i, item type, qual
 }
 
 void ammo_set(int v) { ammo_infinite = v; config_set_int("assist.infinite_ammo", v); }
+void thrown_set(int v) { thrown_infinite = v; config_set_int("assist.infinite_thrown", v); }
 
 void ammo_init(void)
 {
     ammo_infinite = config_get_int("assist.infinite_ammo", 1);
+    thrown_infinite = config_get_int("assist.infinite_thrown", 1);
     hook_install(GF_missile_launch, launch_hook);
     hook_install(GF_missile_spent, spent_hook);
     hook_install(GF_consume_item, consume_hook);

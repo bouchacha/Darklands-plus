@@ -92,7 +92,7 @@ void gamepics_set_renderer(SDL_Renderer *r);
 extern "C" { int lootview_showing(void); int lootview_is_on(void); void lootview_set(int on); }
 extern "C" { int sheetview_showing(void); int sheetview_is_on(void); void sheetview_set(int on); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
-extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; extern int ammo_infinite; void ammo_set(int v); }
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; extern int ammo_infinite; void ammo_set(int v); extern int thrown_infinite; void thrown_set(int v); }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
@@ -628,6 +628,8 @@ static void tab_helpers(void)
     { bool ia = ammo_infinite != 0;
       if (ImGui::Checkbox("Arrows, quarrels and balls never run out (one in the pack is enough to shoot)", &ia)) { ammo_set(ia); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The party's shots take nothing from the pack and leave nothing to pick up after the battle. Enemies still shoot and lose theirs. Off: each shot uses one, and the game leaves 7 in 10 arrows and quarrels to be found in the loot."); ImGui::Unindent(UIS(34)); }
+    { bool it = thrown_infinite != 0;
+      if (ImGui::Checkbox("Javelins, throwing axes, throwing knives and darts never run out either (one in the pack is enough to throw)", &it)) { thrown_set(it); dirty_config = 1; } }
     { bool la = config_get_int("assist.loot_all", 1) != 0;
       if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
