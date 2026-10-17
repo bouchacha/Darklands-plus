@@ -719,8 +719,30 @@ std::string journal_where_sold(int id)
         int d = here ? loc_distance(kv.first, px, py) : 0;
         if (d < bd) { bd = d; best = kv.first; bp = price; }
     }
-    if (best < 0) return "";
-    return loc_name(best) + ", " + money(bp);
+    if (best >= 0) return loc_name(best) + ", " + money(bp);
+    if (!config_get_int("assist.where_sold_unvisited", 1)) return "";
+    /* no shop seen sells it: the nearest town whose shops will have it (the wares are fixed for
+       the whole game by the town's and the party's seeds: predict_stock), "expected" */
+    if (id < 0 || id >= (int)gamedata.items.size()) return "";
+    static int pseed = -1; static std::map<int, std::vector<int>> sold_at;      /* item -> towns */
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed != pseed) {
+        pseed = seed; sold_at.clear();
+        for (int c = 0; c < (int)gamedata.cities.size(); c++)
+            for (const ShopKind &k : SHOPS) {
+                int shopq = k.shop < 0 ? 25 : gamedata.cities[c].shopq[k.shop];
+                if (k.shop >= 0 && !shopq) continue;
+                for (const SeenItem &i : predict_stock(c, seed, shopq, k.cats)) sold_at[i.id].push_back(c);
+            }
+    }
+    auto it = sold_at.find(id);
+    if (it == sold_at.end()) return "";
+    bd = 1 << 30; best = -1;
+    for (int c : it->second) {
+        if (c == cur) return "sold here (expected)";
+        int d = here ? loc_distance(c, px, py) : 0; if (d < bd) { bd = d; best = c; }
+    }
+    return best < 0 ? "" : loc_name(best) + " (expected)";
 }
 
 static void ingredients_page(void)

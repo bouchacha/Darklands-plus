@@ -598,7 +598,16 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen."); ImGui::Unindent(UIS(34)); }
     { bool av = alchemyview_is_on() != 0;
       if (ImGui::Checkbox("Alchemy drawn by Darklands+: every known formula in one list, its ingredients at hand, batches with - and +, the chance of success", &av)) { alchemyview_set(av); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("The chance and the mixing are the game's own. Off: the game's own alchemy screen."); ImGui::Unindent(UIS(34)); }
+      ImGui::Indent(UIS(34)); hint("The chance and the mixing are the game's own. Off: the game's own alchemy screen."); ImGui::Unindent(UIS(34));
+      if (av) {
+        ImGui::Indent(UIS(34));
+        bool ws = config_get_int("assist.where_sold", 1) != 0;
+        if (ImGui::Checkbox("Beside an ingredient that runs short: the nearest town seen selling it", &ws)) { config_set_int("assist.where_sold", ws); dirty_config = 1; }
+        if (ws) { bool wu = config_get_int("assist.where_sold_unvisited", 1) != 0;
+          ImGui::SameLine();
+          if (ImGui::Checkbox("or, if none, the nearest town whose shops will have it", &wu)) { config_set_int("assist.where_sold_unvisited", wu); dirty_config = 1; } }
+        ImGui::Unindent(UIS(34));
+      } }
     bool ch = assist_card_help;
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); dirty_config = 1; }
     ImGui::Indent(UIS(34)); hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
