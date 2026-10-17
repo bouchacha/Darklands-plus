@@ -650,7 +650,8 @@ static void tab_helpers(void)
       if (bi) { ImGui::SameLine(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); dirty_config = 1; } } }
     { bool lm = config_get_int("assist.level_map", 1) != 0, la = config_get_int("assist.level_map_all", 0) != 0;
       if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); dirty_config = 1; }
-      if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); dirty_config = 1; } } }
+      if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); dirty_config = 1; } }
+      if (lm) { bool lw = config_get_int("assist.level_map_walk", 1) != 0; ImGui::SameLine(); if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); dirty_config = 1; } } }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
