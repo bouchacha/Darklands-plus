@@ -391,10 +391,50 @@ static void encounter_weight_hook(void)
     AX = (u16)w;
 }
 
+/* how often the streets of a town bring trouble at night (travel.street_encounters, % of the
+ * game's rate). Two rolls make it:
+ *   the night watch ($Night00): the night main street ($MainS02, card 8) and side streets
+ *     ($SideS01, card 10) ask vec_20e9 (s039 1462:0000) on entry for the chance D (%) of
+ *     meeting it at each move (4..9 and 1..6, more where the town is on its guard); the option's
+ *     chance shown and the roll both use it;
+ *   the cutthroat thieves ($CityT00): leaving the night side streets the party slips past them
+ *     when T > rand(100), T = (the party's average Stealth + Streetwise) / 2, through clamp_range
+ *     (s029 1367:0066) called at s046 194b:02d6 - with skills about 20, thieves 8 times in 10.
+ * Both are scaled here: D by pct, and the chance of the thieves (100 - T) by pct. */
+static int street_pct(void) { return config_get_int("original", 0) ? 100 : config_get_int("travel.street_encounters", 100); }
+static int scale_chance(int c, int pct)               /* c% times pct%, rounded at random (the chances are small) */
+{
+    int x = c * pct;
+    return x / 100 + (rand() % 100 < x % 100 ? 1 : 0);
+}
+static void watch_chance_hook(void)                   /* vec_20e9 (v, ?, lo): a town's chance of trouble */
+{
+    int card = (s16)g_rw(0xa772), pct = street_pct();
+    hook_call_original();
+    if (pct == 100 || (card != 8 && card != 10)) return;
+    int d = (s16)AX, nd = scale_chance(d, pct);
+    if (nd > 99) nd = 99;
+    if (getenv("DL_ENC_LOG")) fprintf(stderr, "street: the watch %d%% -> %d%% (card %d)\n", d, nd, card);
+    AX = (u16)nd;
+}
+static void clamp_hook(void)                          /* clamp_range (lo, hi, v), s029 1367:0066 */
+{
+    u16 ret = rw(SS, SP);
+    int card = (s16)g_rw(0xa772), pct = street_pct();
+    hook_call_original();
+    if (pct == 100 || ret != 0x02db || card != 10) return;   /* (only the thieves' roll leaving the night side streets) */
+    int t = (s16)AX, miss = 100 - t, nm = scale_chance(miss, pct);
+    if (nm > 100) nm = 100;
+    if (getenv("DL_ENC_LOG")) fprintf(stderr, "street: thieves %d%% -> %d%%\n", miss, nm);
+    AX = (u16)(100 - nm);
+}
+
 void travel_init(void)
 {
     travel_set(config_get_int("travel.auto", 1), config_get_int("travel.fast", 1));
     hook_install(30, 0x1462, 0x2d44, encounter_weight_hook);
+    hook_install(39, 0x1462, 0x0000, watch_chance_hook);
+    hook_install(29, 0x1367, 0x0066, clamp_hook);
 }
 
 /* Ctrl+click at game pixel (gx, gy) on the travel map */

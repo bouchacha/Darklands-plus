@@ -706,6 +706,11 @@ static void tab_helpers(void)
         for (int i = 0; i < 4; i++) if (P[i] == cur) sel = i;
         ImGui::SetNextItemWidth(UIS(200));
         if (ImGui::Combo("encounters on the road", &sel, N, 4)) { config_set_int("travel.encounters", P[sel]); dirty_config = 1; }
+        int cs = config_get_int("travel.street_encounters", 100), ss = 2;
+        for (int i = 0; i < 4; i++) if (P[i] == cs) ss = i;
+        ImGui::SetNextItemWidth(UIS(200));
+        if (ImGui::Combo("thieves and the watch in town streets at night", &ss, N, 4)) { config_set_int("travel.street_encounters", P[ss]); dirty_config = 1; }
+        hint("At night the side streets bring cutthroats about 8 times in 10 for a party with little Stealth and Streetwise, and the main street the watch now and then; \"rare\" makes both a quarter as likely.");
     }
     ImGui::TextUnformatted("Pace of auto-travel:"); ImGui::SameLine();
     if (ImGui::RadioButton("as walking", tf == 0)) { travel_set(ta, 0); dirty_config = 1; } ImGui::SameLine();
