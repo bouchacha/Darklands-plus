@@ -3,6 +3,18 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <utility>
+
+struct ImDrawList; struct ImVec2;
+
+/* what a quest asks for, for its picture (ui/questicons.cpp): the game's kinds of task, the
+   merchants' fetching errands by what is to be fetched and where, and the towns' troubles */
+enum QuestCat {
+    QC_NONE, QC_ROBBER, QC_BOUNTY, QC_RELIC, QC_TREASURE, QC_HERB, QC_DOCUMENT, QC_DELIVER,
+    QC_MINE, QC_DRAGON, QC_HUNT, QC_UNWELCOME, QC_WANTED, QC_SABBAT, QC_N
+};
+extern const char *QUEST_CAT_NAME[QC_N];
+void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat);   // a roundel about s pixels across, centred on c
 
 struct QuestRow {
     std::string id;          // stays the same while the quest lasts (its open / closed state)
@@ -15,6 +27,7 @@ struct QuestRow {
     double dist;             // from the party, map units (-1 unknown)
     std::string dir;         // "north-east" (from the party), "" here or unknown
     int order;               // as the game keeps them (the oldest first, roughly)
+    int cat;                 // QuestCat
 };
 
 enum { QSORT_DEADLINE, QSORT_NEAREST, QSORT_TAKEN, QSORT_N };
@@ -22,5 +35,6 @@ extern const char *QSORT_NAME[QSORT_N];
 
 void quest_rows(std::vector<QuestRow> &out, int sort, bool all = false);   // tasks, rewards and town troubles (all: rumours and secrets too), sorted
 void quest_sort(std::vector<QuestRow> &rows, int sort);
+void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<int> &cats);   // (place, its task) with each one's QuestCat
 std::string quest_days(const QuestRow &r);                 // "37 days", "last day", "" (no deadline)
 std::string quest_distance(const QuestRow &r);             // "here", "north-east, about 2 days away"

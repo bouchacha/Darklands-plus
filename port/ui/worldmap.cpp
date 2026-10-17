@@ -322,8 +322,9 @@ extern "C" void worldmap_draw(void)
 
     std::vector<Place> P = places();
     static std::vector<std::pair<int, std::string>> marks;
+    static std::vector<int> mark_cats;
     static int marks_frame = -1000;
-    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks(marks); marks_frame = ImGui::GetFrameCount(); }
+    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks_cat(marks, mark_cats); marks_frame = ImGui::GetFrameCount(); }
 
     // auto-travel route
     if (travel.active && travel.n > 1) {
@@ -370,17 +371,19 @@ extern "C" void worldmap_draw(void)
         }
     }
     // quest marks
-    if (show_quests)
-        for (auto &m : marks) {
+    if (show_quests)                                         /* the quest's picture on a pin above the place (several: side by side) */
+        for (size_t i = 0; i < marks.size(); i++) {
+            auto &m = marks[i];
             u32 r = g_location(m.first);
             if (!r) continue;
+            int nth = 0, n = 0;
+            for (size_t j = 0; j < marks.size(); j++) if (marks[j].first == m.first) { if (j < i) nth++; n++; }
             float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
-            float k = fmaxf(ks, 1.0f);
-            ImVec2 s = to_scr(x, y); s.y -= 14 * k;
-            ImVec2 pts[3] = { ImVec2(s.x - 7 * k, s.y - 8 * k), ImVec2(s.x + 7 * k, s.y - 8 * k), ImVec2(s.x, s.y + 4 * k) };
-            dl->AddTriangleFilled(pts[0], pts[1], pts[2], IM_COL32(0, 0, 0, 220));
-            ImVec2 q[3] = { ImVec2(s.x - 5 * k, s.y - 7 * k), ImVec2(s.x + 5 * k, s.y - 7 * k), ImVec2(s.x, s.y + 2 * k) };
-            dl->AddTriangleFilled(q[0], q[1], q[2], IM_COL32(255, 210, 60, 255));
+            float k = fmaxf(ks, 1.0f), is = 22 * k;
+            ImVec2 s = to_scr(x, y); s.y -= 10 * k;
+            ImVec2 c(s.x + (nth - (n - 1) * 0.5f) * is * 1.05f, s.y - is * 0.55f);
+            dl->AddTriangleFilled(ImVec2(c.x - 4 * k, c.y + is * 0.3f), ImVec2(c.x + 4 * k, c.y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
+            ui_draw_quest_icon(dl, c, is, i < mark_cats.size() ? mark_cats[i] : 0);
         }
     // the party
     {
@@ -462,8 +465,12 @@ extern "C" void worldmap_draw(void)
             for (const QuestRow &r : qr) {
                 if (!in_part(r)) continue;
                 std::string d = quest_days(r);
-                char lb[160]; snprintf(lb, sizeof lb, "%s%s%s##q%s", r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
-                if (ImGui::Selectable(lb, selected == r.loc)) {
+                float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
+                std::string pad((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
+                char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
+                bool sel = ImGui::Selectable(lb, selected == r.loc);
+                { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
+                if (sel) {
                     for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
                     selected = r.loc;
                 }
@@ -490,12 +497,22 @@ extern "C" void worldmap_draw(void)
         {   ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks and the party */
             ImGui::Dummy(ImVec2(is * 1.2f, is));
             ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
-            pl->AddTriangleFilled(ImVec2(m.x - 5, m.y - 5), ImVec2(m.x + 5, m.y - 5), ImVec2(m.x, m.y + 4), IM_COL32(255, 210, 60, 255));
-            ImGui::SameLine(); ImGui::TextUnformatted("Quest");
+            ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
+            ImGui::SameLine(); ImGui::TextUnformatted("A quest (its kind)");
             ImGui::SameLine(colw);
             q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
             pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
             ImGui::SameLine(); ImGui::TextUnformatted("The party");
+        }
+        if (ImGui::TreeNode("The quests' pictures")) {
+            for (int k = 1; k < QC_N; k++) {
+                if ((k - 1) % 2) ImGui::SameLine(colw);
+                ImVec2 q = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(is * 1.3f, is * 1.1f));
+                ui_draw_quest_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.55f), is * 1.1f, k);
+                ImGui::SameLine(); ImGui::TextUnformatted(QUEST_CAT_NAME[k]);
+            }
+            ImGui::TreePop();
         }
         ImGui::TreePop();
     }

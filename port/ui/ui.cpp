@@ -11,6 +11,7 @@
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 #include "gamedata.h"
+#include "quests.h"
 
 extern "C" {
 #include "../runtime/cpu.h"
@@ -1326,9 +1327,10 @@ static void ui_cursor(void)
     }
 }
 
-/* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at */
-static bool icon_grid;
-extern "C" void ui_icon_grid_toggle(void) { icon_grid = !icon_grid; }
+/* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at;
+   again: the quests' pictures, large and at the sizes of the lists, on light and on dark */
+static int icon_grid;
+extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 3; }
 static void draw_icon_grid(void)
 {
     if (!icon_grid) return;
@@ -1337,6 +1339,19 @@ static void draw_icon_grid(void)
     ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(244, 234, 210, 255));
     float cell = fminf(ds.x / 12.5f, ds.y / 8.5f), s = cell * 0.62f;
+    if (icon_grid == 2) {
+        dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
+        for (int k = 1; k < QC_N; k++) {
+            float x = cell * 0.6f + (k - 1) * cell * 0.92f;
+            ui_draw_quest_icon(dl, ImVec2(x, cell * 0.7f), cell * 0.85f, k);
+            ui_draw_quest_icon(dl, ImVec2(x, cell * 1.7f), 32, k);
+            ui_draw_quest_icon(dl, ImVec2(x, cell * 2.3f), 20, k);
+            ui_draw_quest_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 0.7f), cell * 0.85f, k);
+            ui_draw_quest_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 1.7f), 32, k);
+            ui_draw_quest_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 2.3f), 20, k);
+        }
+        return;
+    }
     for (int k = 0; k < 22; k++) for (int t = 1; t <= 3; t++) {
         int col = (k % 4) * 3 + (t - 1), row = k / 4;
         ui_item_icon_tier(dl, ImVec2(cell * 0.6f + col * cell, cell * 0.6f + row * cell), s, 95 + k, t);

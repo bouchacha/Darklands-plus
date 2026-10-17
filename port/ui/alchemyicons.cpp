@@ -14,22 +14,11 @@
 #include "imgui.h"
 #include <math.h>
 
-namespace {
-ImU32 C(float r, float g, float b, float a = 1) { return ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a)); }
+#include "pen.h"
 
-struct Pen {
-    ImDrawList *dl; ImVec2 c; float u;
-    ImVec2 P(float x, float y) const { return ImVec2(c.x + x * u, c.y + y * u); }
-    void line(float x0, float y0, float x1, float y1, ImU32 k, float w) const { dl->AddLine(P(x0, y0), P(x1, y1), k, w * u); }
-    void disc(float x, float y, float r, ImU32 k) const { dl->AddCircleFilled(P(x, y), r * u, k, 0); }
-    void ring(float x, float y, float r, ImU32 k, float w) const { dl->AddCircle(P(x, y), r * u, k, 0, w * u); }
-    void arc(float x, float y, float r, float a0, float a1, ImU32 k, float w) const { dl->PathArcTo(P(x, y), r * u, a0, a1, 18); dl->PathStroke(k, 0, w * u); }
-    void tri(float x0, float y0, float x1, float y1, float x2, float y2, ImU32 k) const { dl->AddTriangleFilled(P(x0, y0), P(x1, y1), P(x2, y2), k); }
-    void tri_line(float x0, float y0, float x1, float y1, float x2, float y2, ImU32 k, float w) const { dl->AddTriangle(P(x0, y0), P(x1, y1), P(x2, y2), k, w * u); }
-    void quad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, ImU32 k) const { dl->AddQuadFilled(P(x0, y0), P(x1, y1), P(x2, y2), P(x3, y3), k); }
-    void bez(float x0, float y0, float x1, float y1, float x2, float y2, ImU32 k, float w) const { dl->AddBezierQuadratic(P(x0, y0), P(x1, y1), P(x2, y2), k, w * u); }
-    void rect(float x0, float y0, float x1, float y1, ImU32 k, float r = 0) const { dl->AddRectFilled(P(x0, y0), P(x1, y1), k, r * u); }
-};
+namespace {
+using pen::C;
+using pen::Pen;
 
 const ImU32 INK = 0, GLASS_LINE = 1;     // (placeholders: the colours are made where used)
 

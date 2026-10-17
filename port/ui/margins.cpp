@@ -398,7 +398,7 @@ static void tasks_section(bool tables)
         ImVec2 p0 = ImGui::GetCursorScreenPos();
         std::string days = r.group == 3 ? "" : quest_days(r);
         float dw = days.empty() ? 0 : ImGui::CalcTextSize(days.c_str()).x + lh * 0.4f;
-        float ind = lh * 0.9f;
+        float isz = lh * 1.2f, ind = lh * 0.85f + isz + lh * 0.3f;     /* the arrow, the quest's picture, the title */
         /* the arrow, the title (wrapped short of the days), the days */
         ImU32 tc = r.group == 1 ? IM_COL32(150, 210, 120, 255) : r.group == 3 ? IM_COL32(230, 140, 110, 255) : IM_COL32(232, 218, 186, 255);
         if (r.days_left >= 0 && r.days_left <= 7 && r.group != 3) tc = IM_COL32(240, 170, 90, 255);
@@ -413,6 +413,7 @@ static void tasks_section(bool tables)
         ImU32 ac = IM_COL32(200, 170, 120, 255);
         if (is_open) dl->AddTriangleFilled(ImVec2(ax - s, ay - s * 0.6f), ImVec2(ax + s, ay - s * 0.6f), ImVec2(ax, ay + s * 0.8f), ac);
         else dl->AddTriangleFilled(ImVec2(ax - s * 0.6f, ay - s), ImVec2(ax - s * 0.6f, ay + s), ImVec2(ax + s * 0.8f, ay), ac);
+        ui_draw_quest_icon(dl, ImVec2(p0.x + lh * 0.85f + isz * 0.5f, p0.y + lh * 0.52f), isz, r.cat);
         if (!days.empty()) dl->AddText(ImVec2(p0.x + w - dw + lh * 0.4f, p0.y), r.days_left <= 7 ? IM_COL32(240, 170, 90, 255) : IM_COL32(170, 150, 120, 255), days.c_str());
         if (is_open) {
             ImGui::Indent(ind);
