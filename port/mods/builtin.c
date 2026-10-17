@@ -127,6 +127,9 @@ void sfx_init(void);
 void saves_init(void);
 void mods_init(void)
 {
+    /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the
+       native screens' safe point): when on, it does the menu itself and does not call the original */
+    { void menuview_init(void); menuview_init(); }
     hdtext_init();
     hdart_init();
     sfx_init();

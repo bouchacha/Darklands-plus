@@ -61,6 +61,8 @@ extern "C" void cardview_draw(void);
 extern "C" void barterview_draw(void);
 extern "C" void sheetview_draw(void);
 extern "C" void lootview_draw(void);
+extern "C" void menuview_draw(void);
+extern "C" { int menuview_is_on(void); void menuview_set(int on); }
 extern "C" void ns_defer_frame_end(int game_held);
 extern "C" void alchemyview_draw(void);
 extern "C" { int alchemyview_showing(void); int alchemyview_is_on(void); void alchemyview_set(int on); }
@@ -506,12 +508,15 @@ static void tab_helpers(void)
     { bool pp = partypanel_is_on() != 0;
       if (ImGui::Checkbox("The party panel drawn by Darklands+: each member's Endurance, Strength and Divine Favor as labelled bars with their numbers", &pp)) { partypanel_set(pp); dirty_config = 1; }
       ImGui::Indent(UIS(34));
-      hint("Clicks on it still go to the game (a member's sheet; orders in a battle). A portrait of your own: put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. The battle figure (in the colours chosen for the member) is shown once a battle has shown it.");
+      hint("Clicks on it still go to the game (a member's sheet; orders in a battle). A portrait of your own: put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. The battle figure is the little one the game shows beside a battle, in the colours chosen for the member.");
       int pic = partypanel_picture();
       static const char *PICS[] = { "Your portrait, else the battle figure, else the herald", "The battle figure, else the herald", "The herald", "No picture" };
       ImGui::SetNextItemWidth(UIS(360));
       if (ImGui::Combo("Picture##ppic", &pic, PICS, 4)) { partypanel_set_picture(pic); dirty_config = 1; }
       ImGui::Unindent(UIS(34)); }
+    { bool nm = menuview_is_on() != 0;
+      if (ImGui::Checkbox("The game's menus (Game, Orders, Attack, Party ...) drawn by Darklands+: a right click or F10 opens them, a click chooses", &nm)) { menuview_set(nm); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("They stay open until you choose or click elsewhere, instead of only while the right button is held (letting go of it over an entry still chooses that entry). The entries and what they do are the game's own. Off: the game's own menu bar."); ImGui::Unindent(UIS(34)); }
     { bool nc = cardview_on != 0;
       if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
@@ -1220,7 +1225,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

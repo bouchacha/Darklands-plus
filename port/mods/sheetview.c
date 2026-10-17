@@ -247,7 +247,7 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
             build(who);
         }
         if (ns_call(GF_key_pressed, 0)) {
-            int k = (u16)ns_call(GF_get_key, 0);
+            int k = ns_get_key();
             if (k == 0x11b || k == 0x1c0d) leave = 1;
             else if (k >= 0x3b00 && k <= 0x3f00 && !(k & 0xff)) { int m = (k >> 8) - 0x3b; if (m == who) leave = 1; else { NsAction a = { SV_WHO, m, 0, 0 }; act(&a, &who); build(who); } }
             else if (k >= 0x5e00 && k <= 0x6200 && !(k & 0xff)) { NsAction a = { SV_LEADER, (k >> 8) - 0x5e, 0, 0 }; act(&a, &who); build(who); }

@@ -36,6 +36,7 @@ extern NsInput ns_in;
 void ns_input_begin(void);           /* entering a screen: the button now held does not count */
 void ns_input_poll(void);            /* once a round of the loop */
 int ns_take_click(int *x, int *y);   /* the view: a click, if there is one (only once) */
+int ns_get_key(void);                /* the loop: the next key (F10 opens the menus: 0) */
 
 /* actions the view asks for, done by the loop */
 typedef struct { int type, a, b, c; } NsAction;

@@ -196,7 +196,7 @@ void barterview_run(void)
             build();
         }
         if (ns_call(GF_key_pressed, 0)) {                 /* keys: Esc / L leave, B the next member, Alt-Q */
-            int k = (u16)ns_call(GF_get_key, 0);
+            int k = ns_get_key();
             if (k == 0x11b || k == 0x264c || k == 0x266c) leave = 1;
             else if (k == 0x3042 || k == 0x3062) { int m = (s16)g_rw(GV_barter_who); for (int t = 1; t <= 5; t++) if (gm_member_present((m + t) % 5)) { set_who((m + t) % 5); break; } build(); }
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;   /* (the mouse wheel comes as Up / Down) */

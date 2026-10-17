@@ -102,19 +102,23 @@ int gm_member_load_band(int m)
     if ((unsigned)cur <= max * 3 / 2) return 2;
     return 3;
 }
-char gm_member_figure(int m)
+char gm_member_herald_letter(int m)
 {
     if (m < 0 || m >= 5) return 0;
     int c = g_rb((u16)(G_MEMBER(m) + 1));
     if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
     return c >= 'a' && c <= 'z' ? (char)c : 0;
 }
-void gm_member_herald(int m, char *out, int n)
+void gm_member_figure_code(int m, char *out, int n)
 {
     out[0] = 0;
     if (m < 0 || m >= 5 || n < 4) return;
     for (int i = 0; i < 3; i++) { int c = g_rb((u16)(GV_member_shield + 4 * m + i)); if (c < 33 || c > 126) { out[0] = 0; return; } out[i] = (char)c; }
     out[3] = 0;
+}
+void gm_member_palette(int m, unsigned char out[24])
+{
+    for (int i = 0; i < 24; i++) out[i] = (m < 0 || m >= 5) ? 0 : (unsigned char)(rb(G_FAR20A5, (u16)(0x33fc + 24 * m + i)) & 63);   /* member_palette, far 20a5:33fc */
 }
 void gm_member_equip(int m, GmEquip *e)
 {

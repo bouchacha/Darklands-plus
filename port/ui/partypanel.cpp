@@ -4,7 +4,7 @@
 // one out of action), a picture, and Endurance, Strength and Divine Favor as labelled bars with
 // their numbers; in a battle the order being carried out. The picture is the member's own
 // portrait if there is one (portraits\<name>.png or .jpg in the Darklands+ folder), else the
-// figure the game shows in battles (once a battle has shown it), or the herald
+// figure the game shows beside a battle, in the member's colours, or the herald
 // (display.panel_picture: 0 portrait, figure or herald; 1 figure or herald; 2 herald; 3 none). The game still takes the clicks there (a member's sheet, orders
 // in a battle); native screens frame the member they are about (partypanel_focus) and find a
 // member under the pointer (partypanel_member_at, for dragging things onto them).
@@ -16,10 +16,6 @@
 #include <vector>
 #include <sys/stat.h>
 #include <ctype.h>
-#ifdef _WIN32
-#include <direct.h>
-#define mkdir(p) _mkdir(p)
-#endif
 #include <SDL.h>
 #include "nsdraw.h"
 #include "gamepics.h"
@@ -30,7 +26,6 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/gamemodel.h"
 #include "../third_party/stb/stb_image.h"
-#include "../third_party/stb/stb_image_write.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
 extern char dlp_user_dir[], game_dir[];
 }
@@ -94,105 +89,53 @@ static const Portrait *portrait(const std::string &name)
     return p.tex ? &p : nullptr;
 }
 
-/* a member's figure as the game shows it in battles (PICS\<code>STAT.PIC, its clothes in the
- * colours chosen for the member, which the game sets only there): taken from the game's own
- * panel in a battle, where the PIC's shape lies at (6, 40 m + 9), and kept for the other screens */
-struct Figure { SDL_Texture *tex = nullptr; int w = 0, h = 0; std::string code; bool looked = false; };
-static std::map<std::string, Figure> figures;          /* by full name */
-/* kept between sessions in the Darklands+ folder: cache/figures/<full name>-<code>.png */
-static std::string figure_file(const std::string &who, const char *code)
+/* a member's figure as the game shows it beside a battle (PICS\<code>SHORT.PIC): its colours
+ * 0xeb..0xf2 are the member's own (the colour keys, member_palette), the rest the battle's common
+ * colours (in the PIC's own palette, else in another figure's, else the screen's) */
+struct Figure { SDL_Texture *tex = nullptr; int w = 0, h = 0; std::string key; };
+static std::map<int, Figure> figures;                   /* by party slot */
+static const Figure *figure(int m)
 {
-    std::string n;
-    for (char c : who) n += (isalnum((unsigned char)c) || c == ' ' || c == '-') ? c : '_';
-    return user_folder() + "/cache/figures/" + n + "-" + code + ".png";
-}
-static void figure_load(const std::string &who, int m)
-{
-    Figure &f = figures[who];
-    if (f.tex || f.looked || !pp_ren) return;
-    f.looked = true;
-    char code[8]; gm_member_herald(m, code, sizeof code);
-    if (!code[0]) return;
-    int w, h, n; unsigned char *px = stbi_load(figure_file(who, code).c_str(), &w, &h, &n, 4);
-    if (!px) return;
-    int dark = 0, all = 0;   /* (one taken black by an earlier version is left for a new one) */
-    for (int i = 0; i < w * h; i++) {
-        const unsigned char *c = px + 4 * i;
-        if (!c[3]) continue;
-        all++; if (c[0] + c[1] + c[2] < 90) dark++;
-    }
-    if (!all || dark * 10 > all * 9) { stbi_image_free(px); return; }
-    f.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, w, h);
-    if (f.tex) { SDL_UpdateTexture(f.tex, 0, px, w * 4); SDL_SetTextureBlendMode(f.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.tex, SDL_ScaleModeNearest); f.w = w; f.h = h; f.code = code; }
-    stbi_image_free(px);
-}
-static void figure_save(const std::string &who, const char *code, const std::vector<u32> &argb, int w, int h)
-{
-    std::string dir = user_folder() + "/cache";
-#ifdef _WIN32
-    mkdir(dir.c_str()); mkdir((dir + "/figures").c_str());
-#else
-    mkdir(dir.c_str(), 0755); mkdir((dir + "/figures").c_str(), 0755);
-#endif
-    std::vector<unsigned char> rgba((size_t)w * h * 4);
-    for (size_t i = 0; i < (size_t)w * h; i++) { u32 c = argb[i]; rgba[4 * i] = (u8)(c >> 16); rgba[4 * i + 1] = (u8)(c >> 8); rgba[4 * i + 2] = (u8)c; rgba[4 * i + 3] = (u8)(c >> 24); }
-    stbi_write_png(figure_file(who, code).c_str(), w, h, 4, rgba.data(), w * 4);
-}
-static void take_figure(int m, const std::string &who)
-{
-    char code[8]; gm_member_herald(m, code, sizeof code);
-    if (!code[0] || !pp_ren) return;
-    Figure &f = figures[who];
-    if (f.tex && f.code == code) return;
-    static u32 pal[256]; static u8 mask[256];
-    int w = 0, h = 0;
-    {   /* not while the game's panel still shows the herald there (the start of a battle) */
-        char fig = gm_member_figure(m), fn[32];
-        snprintf(fn, sizeof fn, "PICS\\SHIELD%c.PIC", fig ? fig : 'a');
-        u8 *her = hdart_decode_pic(fn, &w, &h, pal, mask);
-        if (her) {
-            int same = 0, all = 0;
-            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
-                if (!her[y * w + x] || 6 + x >= 60) continue;
-                all++; if (rb(0xa000, (u16)((40 * m + 9 + y) * 320 + 6 + x)) == her[y * w + x]) same++;
-            }
-            free(her);
-            if (all && same * 10 >= all * 6) return;
-        }
-    }
-    u8 *img = hdart_decode_pic((std::string("PICS\\") + code + "SHORT.PIC").c_str(), &w, &h, pal, mask);
-    if (!img) return;
-    std::vector<u32> rgba((size_t)w * h, 0);
-    for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++) {
-            if (!img[y * w + x]) continue;
-            int vx = 6 + x, vy = 40 * m + 9 + y;
-            if (vx >= 60 || vy >= 200) continue;
-            const u8 *c = vga_dac + rb(0xa000, (u16)(vy * 320 + vx)) * 3;
-            u32 r = c[0] & 63, g = c[1] & 63, b = c[2] & 63;
-            rgba[(size_t)y * w + x] = 0xff000000u | ((r << 2 | r >> 4) << 16) | ((g << 2 | g >> 4) << 8) | (b << 2 | b >> 4);
-        }
-    free(img);
-    /* only a figure that has stayed the same for a while and is not dark (a battle's palette is
-       still being set: the figures came out black under Wine) */
-    int dark = 0, all = 0; u32 hash = 2166136261u;
-    for (u32 c : rgba) {
-        hash = (hash ^ c) * 16777619u;
-        if (!c) continue;
-        all++; if (((c >> 16) & 255) + ((c >> 8) & 255) + (c & 255) < 90) dark++;
-    }
-    struct Pend { u32 hash, t; };
-    static std::map<std::string, Pend> pend;
-    u32 now = SDL_GetTicks();
-    Pend &pd = pend[who];
-    if (pd.hash != hash) { pd.hash = hash; pd.t = now; return; }
-    if (now - pd.t < 700 || !all || dark * 10 > all * 9) return;
+    char code[8]; gm_member_figure_code(m, code, sizeof code);
+    if (!code[0] || !pp_ren) return nullptr;
+    unsigned char mp[24]; gm_member_palette(m, mp);
+    std::string key = std::string(code) + std::string((const char *)mp, 24);
+    Figure &f = figures[m];
+    if (f.key == key) return f.tex ? &f : nullptr;
     if (f.tex) SDL_DestroyTexture(f.tex);
-    f = Figure(); f.code = code; f.w = w; f.h = h;
+    f = Figure(); f.key = key;
+    static u32 pal[256], common[256]; static u8 mask[256], cmask[256]; static bool have_common;
+    if (!have_common) {                                 /* the common colours: from the game's own figures */
+        have_common = true;
+        for (const char *c : { "F01", "F60", "A00" }) {
+            int w, h; u32 p2[256]; u8 m2[256];
+            memset(m2, 0, sizeof m2);
+            u8 *im = hdart_decode_pic((std::string("PICS\\") + c + "SHORT.PIC").c_str(), &w, &h, p2, m2);
+            free(im);
+            for (int i = 0; i < 256; i++) if (m2[i] && !cmask[i]) { common[i] = p2[i]; cmask[i] = 1; }
+        }
+    }
+    int w = 0, h = 0;
+    memset(mask, 0, sizeof mask);
+    u8 *img = hdart_decode_pic((std::string("PICS\\") + code + "SHORT.PIC").c_str(), &w, &h, pal, mask);
+    if (!img) return nullptr;
+    auto c8 = [](int v) { v &= 63; return (u32)(v << 2 | v >> 4); };
+    std::vector<u32> argb((size_t)w * h, 0);
+    for (int i = 0; i < w * h; i++) {
+        int p = img[i];
+        if (!p) continue;
+        u32 c;
+        if (p >= 0xeb && p <= 0xf2) { const unsigned char *q = mp + 3 * (p - 0xeb); c = c8(q[0]) << 16 | c8(q[1]) << 8 | c8(q[2]); }
+        else if (mask[p]) c = pal[p] & 0xffffff;
+        else if (cmask[p]) c = common[p] & 0xffffff;
+        else { const u8 *q = vga_dac + p * 3; c = c8(q[0]) << 16 | c8(q[1]) << 8 | c8(q[2]); }
+        argb[i] = 0xff000000u | c;
+    }
+    free(img);
+    f.w = w; f.h = h;
     f.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
-    if (f.tex) { SDL_UpdateTexture(f.tex, 0, rgba.data(), w * 4); SDL_SetTextureBlendMode(f.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.tex, SDL_ScaleModeNearest); }
-    f.looked = true;
-    figure_save(who, code, rgba, w, h);
+    if (f.tex) { SDL_UpdateTexture(f.tex, 0, argb.data(), w * 4); SDL_SetTextureBlendMode(f.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.tex, SDL_ScaleModeNearest); }
+    return f.tex ? &f : nullptr;
 }
 
 static const char *order_word(char c)
@@ -269,14 +212,11 @@ extern "C" void partypanel_draw(void)
                 drawn = true;
             }
         }
-        char full[40]; gm_member_fullname(m, full, sizeof full);
-        if (battle && st == 1 && !gm_member_elsewhere(m)) take_figure(m, full);
-        else figure_load(full, m);
         if (!drawn && pp_pic != 3) {
             SDL_Texture *t = nullptr; int tw = 0, th = 0;
-            auto fi = figures.find(full);
-            if (pp_pic != 2 && fi != figures.end() && fi->second.tex) { t = fi->second.tex; tw = fi->second.w; th = fi->second.h; }
-            char fig = gm_member_figure(m);                          /* the herald: PICS\SHIELD<letter>.PIC */
+            const Figure *fi = pp_pic != 2 ? figure(m) : nullptr;
+            if (fi) { t = fi->tex; tw = fi->w; th = fi->h; }
+            char fig = gm_member_herald_letter(m);                          /* the herald: PICS\SHIELD<letter>.PIC */
             if (!t && fig) { char fn[32]; snprintf(fn, sizeof fn, "PICS\\SHIELD%c.PIC", fig); const GamePic *g = gamepic(fn); if (g) { t = g->tex; tw = g->w; th = g->h; } }
             if (t) {
                 float s = fminf((px1 - px0 - 1.5f) / tw, (py1 - py0 - 1.5f) / th);

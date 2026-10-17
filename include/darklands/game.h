@@ -639,7 +639,7 @@
 #define loot_pile_sel            D_4c38               /* int[5] */
 #define copyprot_run             sub_s041_1462_0000   /* (): copy-protection screen (the symbol copy_protection) */
 #define copyprot_run_vec         vec_1fd1             /* overlay call vector of copyprot_run */
-#define member_shield            D_a668               /* shield code per party slot ("F01", ...) */
+#define member_shield            D_a668               /* figure code per party slot ("F01", ...: PICS\<code>SHORT.PIC, the sprites); the herald is party byte +1 */
 #define shield_pics              D_a2d7               /* shield picture handles per member */
 #define lst_buf                  D_a889               /* darkland.lst buffer */
 #define loc_buf                  D_a885               /* location file buffer */

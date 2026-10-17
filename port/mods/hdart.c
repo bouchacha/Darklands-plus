@@ -240,7 +240,10 @@ u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask)
 {
     char p[1200]; dos_host_path_read(dosname, p, sizeof p);
     u8 *d; long n;
-    if (!read_file(p, &d, &n)) return 0;
+    if (!read_file(p, &d, &n)) {                /* the extra figures' pictures are made by mods/looks.c */
+        const char *looks_virtual_file(const char *); const char *v = looks_virtual_file(dosname);
+        if (!v || !read_file(v, &d, &n)) return 0;
+    }
     u8 *img = pic_decode(d, n, w, h, pal, mask);
     free(d);
     return img;

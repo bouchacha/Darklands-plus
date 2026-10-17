@@ -25,10 +25,12 @@ int gm_member_skill(int m, int k);
 int gm_member_age(int m);
 int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */
 int gm_member_load_band(int m);                   /* 0 light, 1 normal, 2 heavy, 3 overloaded */
-/* pictures: the figure (PICS\SHIELD<letter>.PIC, a battle look chosen at the start) and the
- * herald (PICS\<code>STAT.PIC); "" if none */
-char gm_member_figure(int m);
-void gm_member_herald(int m, char *out, int n);
+/* pictures: the herald's letter (PICS\SHIELD<letter>.PIC; 0 none), the figure's code ("F01" ...:
+ * PICS\<code>SHORT.PIC and the battle sprites; "" none) and the figure's own 8 colours (the
+ * colour keys; 24 bytes, 6-bit RGB: what PICS\<code>SHORT.PIC's colours 0xeb..0xf2 stand for) */
+char gm_member_herald_letter(int m);
+void gm_member_figure_code(int m, char *out, int n);
+void gm_member_palette(int m, unsigned char out[24]);
 /* the equipment as the doll shows it: item types, -1 none */
 typedef struct { int weapon, vital, limb, shield, missile; } GmEquip;
 void gm_member_equip(int m, GmEquip *e);

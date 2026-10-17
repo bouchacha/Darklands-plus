@@ -149,7 +149,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
             build();
         }
         if (ns_call(GF_key_pressed, 0)) {
-            int k = (u16)ns_call(GF_get_key, 0);
+            int k = ns_get_key();
             if (k == 0x11b || k == 0x2044 || k == 0x2064) leave = 1;
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;
             else if (k == 0x1000) { ns_call(GF_alchemy_close, 1, -1); ns_call(GF_quit_to_dos, 0); }

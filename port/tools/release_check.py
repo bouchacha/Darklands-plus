@@ -33,7 +33,8 @@ STEPS = [
     ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; key space; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
-    ('win it (test hits) and the loot (native)', HITS + '; key space; wait 25; wshot 7_loot', [r'loot screen: open']),
+    ('win it (test hits) and the loot (native)', HITS + '; key space; wait 25; wshot 7_loot', [r'loot screen: open'],
+     '; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; wait 2'),   # (a foe that came late: hit it too)
     ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),

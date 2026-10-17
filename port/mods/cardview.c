@@ -295,6 +295,10 @@ static void idle(void)
 
 static void global_key(int key)
 {
+    if (key == 0x4400) {                                      /* F10: the menus (hot_keys' way; the card took the key first) */
+        g_wb(0x9c26, 1); g_wb(0x9c2f, 0); g_wb(0x9c3c, 0xff); g_wb(0x9c41, 0xff);
+        return;
+    }
     ns_nested = key >= 0x3b00 && key <= 0x4000 && !(key & 0xff);   /* F1..F6 open a screen */
     ns_call(GF_card_global_keys, 1, key);
     ns_nested = 0;

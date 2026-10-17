@@ -106,6 +106,7 @@ static void bar(float frac, ImU32 col, float w, float hgt)
     if (frac > 0) dl->AddRectFilled(p, ImVec2(p.x + w * frac, p.y + hgt), col, hgt * 0.4f);
     ImGui::Dummy(ImVec2(w, hgt));
 }
+extern "C" int partypanel_shown(void);
 static void battle_panel(float width, float fs)
 {
     static bool seen[13]; static u16 last_tick = 0xffff;
@@ -116,8 +117,8 @@ static void battle_panel(float width, float fs)
     int n = (s8)g_rb(GV_hotspot_count);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
-    heading("The party");
-    for (int i = 0; i < 5; i++) {
+    if (!partypanel_shown()) heading("The party");      /* (the party panel drawn anew has them already) */
+    for (int i = 0; i < 5 && !partypanel_shown(); i++) {
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
         if (!st) continue;
@@ -131,7 +132,7 @@ static void battle_panel(float width, float fs)
             bar(strm > 0 ? (float)str / strm : 0, IM_COL32(90, 180, 90, 255), bw, bh);
         }
     }
-    ImGui::Separator();
+    if (!partypanel_shown()) ImGui::Separator();
     heading("Enemies");
     int shown = 0, down = 0;
     for (int i = 5; i < 13; i++) {
@@ -307,6 +308,10 @@ extern "C" void ui_margins(void)
             if (!q[i].second.empty()) ImGui::TextDisabled("%s", q[i].second.c_str());
         }
         if (q.size() > 6) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 6);
+        ImGui::Separator();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("The game's menus (save, load, difficulty, party): a right click or F10.");
+        ImGui::PopStyleColor();
         end_panel();
     }
 

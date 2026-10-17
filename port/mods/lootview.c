@@ -159,7 +159,7 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
         int cx, cy;
         if (ns_in.click && ns_in.cx < 0x3c) { ns_take_click(&cx, &cy); set_who(cy / 40); build(); }
         if (ns_call(GF_key_pressed, 0)) {
-            int k = (u16)ns_call(GF_get_key, 0);
+            int k = ns_get_key();
             if (k == 0x11b || k == 0x264c || k == 0x266c) leave = 1;
             else if (k == 0x2044 || k == 0x2064) { int m = who_now(); for (int t = 1; t <= 5; t++) if (able((m + t) % 5)) { set_who((m + t) % 5); break; } build(); }
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;

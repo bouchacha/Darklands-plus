@@ -78,6 +78,15 @@ int ns_take_click(int *x, int *y)
     return 1;
 }
 
+/* a key for a native screen's loop; F10 opens the menus (as hot_keys does: the loop took the key
+   before menu_bar_run saw it) and is not passed on (0) */
+int ns_get_key(void)
+{
+    int k = (u16)ns_call(GF_get_key, 0);
+    if (k == 0x4400) { g_wb(0x9c26, 1); g_wb(0x9c2f, 0); g_wb(0x9c3c, 0xff); g_wb(0x9c41, 0xff); return 0; }
+    return k;
+}
+
 /* ---------------------------------------------------------------- actions */
 #define NQ 32
 static NsAction q[NQ]; static int qh, qt;
