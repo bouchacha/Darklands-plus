@@ -677,6 +677,11 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); dirty_config = 1; }
       if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); dirty_config = 1; } }
       if (lm) { bool lw = config_get_int("assist.level_map_walk", 1) != 0; ImGui::SameLine(); if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); dirty_config = 1; } } }
+    { bool sp = config_get_int("battle.shoot_past_allies", 1) != 0, ps = config_get_int("battle.potions_spare_party", 0) != 0;
+      if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); dirty_config = 1; }
+      hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
+      if (ImGui::Checkbox("Potions the party throws spare the party (clouds, Thunderbolt, Arabian Fire)", &ps)) { config_set_int("battle.potions_spare_party", ps); dirty_config = 1; }
+      hint("In the game a cloud or blast acts on everyone inside it, the party's own too. Stone-tar still slows whoever walks in it."); }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); dirty_config = 1; }
     if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); dirty_config = 1; }
