@@ -146,6 +146,7 @@
 #define GV_alchemy_have                 0xe716    /* int[]: the party's ingredients (by item id), less what is reserved */
 #define GV_alchemy_file                 0x9c2b    /* char far *: DARKLAND.ALC in memory */
 #define GV_philosophers_stone           0x9078    /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define GV_party_notes                  0x9072    /* florins in notes (party info "NOTES") */
 #define GV_pray_box                     0x887a    /* unsigned: the names box's saved picture (0 none) */
 #define GV_pray_df                      0x887c    /* int: the divine favor to be spent */
 #define GV_pray_box_shown               0x887e    /* int: the names box is up */

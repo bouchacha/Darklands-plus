@@ -147,6 +147,8 @@ void mods_init(void)
     { void prayview_init(void); prayview_init(); }
     { void createview_init(void); createview_init(); }
     { void rosterview_init(void); rosterview_init(); }
+    { void infoview_init(void); infoview_init(); }
+    { void marchview_init(void); marchview_init(); }
     { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();

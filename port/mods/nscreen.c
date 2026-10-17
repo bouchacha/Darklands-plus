@@ -37,6 +37,8 @@ u16 ns_stack_str(const char *s)
     return SP;
 }
 void ns_stack_free(u16 sp) { SP = sp; }
+static void input_resync(void);
+u32 plat_ticks_ms(void);
 int ns_call(int sect, u16 seg, u16 off, int n, ...)
 {
     if (unw_active) { ns_unwinding = 1; return 0; }          /* (the game unwinds: nothing more) */
@@ -53,7 +55,9 @@ int ns_call(int sect, u16 seg, u16 off, int n, ...)
     push16(HLE_SEG); push16(0xfff0);
     OvlSet o; ovl_save(&o);
     if (sect >= 0) ovl_enter(sect);
+    u32 t0 = plat_ticks_ms();
     f();
+    if (plat_ticks_ms() - t0 > 150) input_resync();        /* (a game screen ran: its clicks were its own) */
     ovl_restore(&o);
     if (unw_active) { ns_unwinding = 1; return 0; }
     SP = sp0; DS = ds; ES = es;
@@ -76,7 +80,9 @@ int ns_call_ptr(u16 seg, u16 off, int n, ...)
     tail_pending = 0;
     for (int i = n - 1; i >= 0; i--) push16((u16)a[i]);
     push16(HLE_SEG); push16(0xfff0);
+    u32 t0 = plat_ticks_ms();
     native_go(seg, off);
+    if (plat_ticks_ms() - t0 > 150) input_resync();
     if (unw_active) { ns_unwinding = 1; return 0; }
     SP = sp0; DS = ds; ES = es;
     last_dx = DX;
@@ -86,21 +92,36 @@ int ns_call_ptr(u16 seg, u16 off, int n, ...)
 /* ---------------------------------------------------------------- input */
 #define A_MOUSE_BTN GV_mouse_buttons
 static int btn_prev, rbtn_prev;
+static unsigned press_seen, rpress_seen;
+unsigned mouse_press_count(int b);
 void ns_input_begin(void)
 {
     int b = g_rb(A_MOUSE_BTN);
     btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
+    press_seen = mouse_press_count(0); rpress_seen = mouse_press_count(1);
     ns_in.click = ns_in.rclick = ns_in.pressed = 0; ns_in.down = b & 1;
 }
 void ns_input_poll(void)
 {
     plat_mouse_game(&ns_in.x, &ns_in.y);
     int b = g_rb(A_MOUSE_BTN);
-    if (btn_prev && !(b & 1)) { ns_in.click = 1; ns_in.cx = ns_in.x; ns_in.cy = ns_in.y; }
-    if (!btn_prev && (b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
+    /* a press and its release both between two rounds (a quick click, a slow round) still count */
+    unsigned pc = mouse_press_count(0), rpc = mouse_press_count(1);
+    int fresh = pc != press_seen, rfresh = rpc != rpress_seen;
+    press_seen = pc; rpress_seen = rpc;
+    if ((btn_prev || fresh) && !(b & 1)) { ns_in.click = 1; ns_in.cx = ns_in.x; ns_in.cy = ns_in.y; }
+    if ((!btn_prev || fresh) && (b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
+    if (fresh && !btn_prev && !(b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
     ns_in.down = b & 1;
-    if (rbtn_prev && !(b & 2)) ns_in.rclick = 1;
+    if ((rbtn_prev || rfresh) && !(b & 2)) ns_in.rclick = 1;
     btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
+}
+/* after a game screen ran inside: the presses it took are not this screen's clicks */
+static void input_resync(void)
+{
+    int b = g_rb(A_MOUSE_BTN);
+    btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
+    press_seen = mouse_press_count(0); rpress_seen = mouse_press_count(1);
 }
 int ns_take_click(int *x, int *y)
 {

@@ -67,6 +67,10 @@ extern "C" void cacheview_draw(void);
 extern "C" void prayview_draw(void);
 extern "C" void createview_draw(void);
 extern "C" void rosterview_draw(void);
+extern "C" void infoview_draw(void);
+extern "C" void marchview_draw(void);
+extern "C" { int marchview_is_on(void); void marchview_set(int on); }
+extern "C" { int infoview_is_on(void); void infoview_set(int on); }
 extern "C" { int rosterview_is_on(void); void rosterview_set(int on); }
 extern "C" { int createview_is_on(void); void createview_set(int on); }
 extern "C" { int prayview_is_on(void); void prayview_set(int on); }
@@ -549,6 +553,12 @@ static void tab_helpers(void)
       ImGui::Indent(UIS(34));
       if (ImGui::Checkbox("A woman added to the party gets the woman figure", &wf)) { config_set_int("party.woman_figure", wf); dirty_config = 1; }
       hint("The game gives everyone added the first figure, the tall man; this picks the woman for a woman (Figure changes it as before)."); ImGui::Unindent(UIS(34)); }
+    { bool ni = infoview_is_on() != 0;
+      if (ImGui::Checkbox("Party Info drawn by Darklands+: fame and its title, the time, where, the wealth, and the reputation in every city", &ni)) { infoview_set(ni); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The original names one town at a time under the pointer on its little map; this lists all of them, by reputation or by name. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
+    { bool nmo = marchview_is_on() != 0;
+      if (ImGui::Checkbox("Change Marching Order as a list drawn by Darklands+: move members up and down, then Done", &nmo)) { marchview_set(nmo); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Instead of clicking each member in turn. The order is the game's own (single file follows it). Off: the game's way."); ImGui::Unindent(UIS(34)); }
     { bool np = prayview_is_on() != 0;
       if (ImGui::Checkbox("Calling on a saint drawn by Darklands+: the statue, what the saint does, the favor to spend and the chance", &np)) { prayview_set(np); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The chance and the favor are the saint's own rules. Off: the game's prayer screen."); ImGui::Unindent(UIS(34)); }
@@ -1263,7 +1273,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); savesview_draw(); menuview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); marchview_draw(); savesview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

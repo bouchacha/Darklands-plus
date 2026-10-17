@@ -594,6 +594,7 @@
 #define alchemy_have             D_e716               /* int[]: the party's ingredients (by item id), less what is reserved */
 #define alchemy_file             D_9c2b               /* char far *: DARKLAND.ALC in memory */
 #define philosophers_stone       D_9078               /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define party_notes              D_9072               /* florins in notes (party info "NOTES") */
 #define saint_pray_party         sub_s034_1462_0000   /* (who, saint): pray for the whole party; 1 heard, 0 not, -1 backed out */
 #define saint_pray               sub_s034_1462_0102   /* (who, saint): pray (the prayer screen, then the roll) */
 #define saint_screen             sub_s034_1462_022c   /* (who, saint, party): the prayer screen; the chance of success, -1 backed out */
