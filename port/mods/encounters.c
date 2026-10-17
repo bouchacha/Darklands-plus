@@ -67,7 +67,7 @@ void ui_notice(const char *);
 #define V_MENU_SLOT   GV_menu_slot
 #define V_MENU_POPUP  GV_menu_popup
 #define V_MSG_BLOCKS  GV_msg_blocks        /* char: the text blocks of the card loaded (msg_blocks) */
-#define V_IN_POPUP    0xee42        /* char: the pointer or the highlight is in the saints/items box */
+#define V_IN_POPUP    GV_card_box_pointer        /* char: the pointer or the highlight is in the saints/items box */
 #define V_CHOSEN1     GV_var_chosen1
 #define V_MONEY1      GV_var_money1
 #define V_NUMBER1     GV_var_number1

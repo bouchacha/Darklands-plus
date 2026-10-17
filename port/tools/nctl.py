@@ -35,7 +35,16 @@ def start(name, exe, game, x11=False):
     env = dict(os.environ, DL_HEADLESS='1', SDL_AUDIODRIVER='dummy', DL_CTL=os.path.join(d, 'ctl'))
     if x11:
         disp = 100 + (sum(map(ord, name)) % 400)
-        xv = subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
+        lock = '/tmp/.X%d-lock' % disp          # left behind by a server that was killed: Xvfb would not start
+        try:
+            os.kill(int(open(lock).read().strip()), 0)
+        except (OSError, ValueError):
+            for f in (lock, '/tmp/.X11-unix/X%d' % disp):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        xv =subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         open(os.path.join(d, 'xpid'), 'w').write(str(xv.pid))
         time.sleep(1.0)

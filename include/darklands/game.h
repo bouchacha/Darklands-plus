@@ -737,3 +737,23 @@
 #define party_present_count_impl sub_s039_1462_1de6   /* the function behind party_present_count (card.h) */
 #define conflict_outcome_impl    sub_s039_1462_0ebe   /* the function behind conflict_outcome (card.h) */
 #define side2_strength_impl      sub_s039_1462_0bf6   /* the function behind side2_strength (card.h) */
+/* overland map (s030) */
+#define map_marker_x             D_2866               /* int: the party marker's x on the map view (pixels) */
+#define map_marker_y             D_2868               /* int: its y */
+#define map_view_col             D_286a               /* int: the map view's left column (tiles) */
+#define map_view_row             D_286c               /* int: the party's row in the view buffer */
+#define map_buf_row              D_286e               /* int: the view buffer's top row on the map */
+/* the card menu's layout (s043 struct layout, 0xf6 bytes) */
+#define card_layout              D_e96e               /* char: lines (the struct's first field) */
+#define card_layout_w            D_e970               /* int: width */
+#define card_layout_x            D_e972               /* int: x */
+#define card_layout_y            D_e974               /* unsigned char[20]: each line's y */
+#define card_layout_h            D_e988               /* unsigned char[20]: each line's height */
+#define card_layout_opt          D_e9b0               /* char[20]: the option number of each line */
+#define card_layout_kind         D_e9c4               /* int[20]: 1/2 an option with a member/saint/item box (2252) */
+#define card_box_shown           D_ee41               /* char: such a box is shown */
+#define card_box_pointer         D_ee42               /* char: the pointer is in that box (its own option list) */
+/* battles */
+#define path_formation           D_e0a2               /* char: pathfinding for a formation (its collision rules) */
+#define path_target_only         D_d697               /* char: ignore combatants other than the target */
+#define pause_depth              D_07d3               /* char: pauses in force (orders being given ...) */

@@ -165,20 +165,20 @@ static void draw_chances(void)
     if (cardview_showing()) return;                             /* the native card screen shows them itself */
     const CardChances &cc = card_chances;
     if (!assist_chances || !cc.active || plat_ticks_ms() - cc.polled > 300) return;
-    if (g_rb(0xee41) || g_rb(0xee42)) return;                   /* a skill-check box is up */
-    int n = (s8)g_rb(0xe96e);
+    if (g_rb(GV_card_box_shown) || g_rb(GV_card_box_pointer)) return;                   /* a skill-check box is up */
+    int n = (s8)g_rb(GV_card_layout);
     if (n != cc.n) return;
     int diff = g_rb(G_DIFFICULTY) & 0x7f;
     int mode = assist_chances == 2 ? 0 : diff;                  /* 0 numbers, 1 words, 2 hidden */
     if (mode >= 2) return;
-    int x0 = 60 + (s16)g_rw(0xe972), w = (s16)g_rw(0xe970), tc = (s16)g_rw(0xee59);
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), w = (s16)g_rw(GV_card_layout_w), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
     ImDrawList *dl = ovl_list();
     ImFont *f = ui_font_overlay;
     int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {
         if (!cc.line[i].show) continue;
-        int y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+        int y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
         float ex = -1, cy = 0, lh = 0;
         int best = -1;
         for (int k = 0; k < hdtext_nruns; k++) {             /* the option's last line of crisp text */
@@ -871,7 +871,7 @@ static void draw_card_help(void)
 {
     card_help_top = 0;
     if (cardview_showing()) return;
-    if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
+    if (!assist_card_help || !assist_in_card_menu() || g_rb(GV_card_box_shown) || g_rb(GV_card_box_pointer)) return;
     int npar = (s16)g_rw(G_PARTY_SIZE);
     if (npar < 1 || npar > 5) return;
     std::vector<std::pair<std::string, std::string>> lines;

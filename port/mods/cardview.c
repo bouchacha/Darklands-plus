@@ -60,11 +60,11 @@ void dl_poll(void);
 #define A_TEXTCOL     0xee59          /* 0 dark text, 15 light text (a picture whose name starts with x) */
 #define A_E959        0xe959          /* text block shown */
 #define A_EE55        0xee55          /* the picture's palette is not set yet */
-#define A_LAYOUT      0xe96e          /* struct layout: n, highlight, w, x, y[20], h[20], en[20], opt[20], kind[20] */
+#define A_LAYOUT      GV_card_layout          /* struct layout: n, highlight, w, x, y[20], h[20], en[20], opt[20], kind[20] */
 #define A_HILITE      GV_menu_highlight
 #define A_OPT_ON      GV_opt_on
-#define A_EE41        0xee41
-#define A_EE42        0xee42
+#define A_EE41        GV_card_box_shown
+#define A_EE42        GV_card_box_pointer
 #define A_MENU_MEMBER GV_menu_member
 #define A_MENU_SLOT   GV_menu_slot
 #define A_MENU_POPUP  GV_menu_popup

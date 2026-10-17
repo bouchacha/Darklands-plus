@@ -365,11 +365,11 @@ extern "C" void chronicle_capture(void)
 extern "C" void chronicle_choice(int sel)
 {
     if (!chron_on() || chron.empty() || !chron_pending || !chron.back().choice.empty()) return;
-    int n = (s8)g_rb(0xe96e);
-    if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(0xe9b0 + i))); fprintf(stderr, "\n"); }
+    int n = (s8)g_rb(GV_card_layout);
+    if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(GV_card_layout_opt + i))); fprintf(stderr, "\n"); }
     for (int i = 0; i < n && i < 20; i++) {
-        if ((s8)g_rb((u16)(0xe9b0 + i)) != sel) continue;
-        int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+        if ((s8)g_rb((u16)(GV_card_layout_opt + i)) != sel) continue;
+        int y = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
         std::vector<const HdRun *> rs;
         for (int k = 0; k < hdtext_nruns; k++)
             if (hdtext_runs[k].x >= 60 && hdtext_runs[k].y >= y - 1 && hdtext_runs[k].y < y + h - 1) rs.push_back(&hdtext_runs[k]);

@@ -219,7 +219,7 @@ static int choose_leave(const std::vector<std::string> &line)
 static void click_line(int i)
 {
     LOG("click line %d\n", i);
-    int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
     plat_click_game(x0 + 10, y0 + (h > 8 ? 4 : h / 2));
     last_act = plat_ticks_ms(); steps_taken++;
 }
@@ -254,11 +254,11 @@ extern "C" void citynav_tick(void)
     auto it = cards.find(card);
     if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("unknown card."); return; }
     std::vector<std::string> opts = block_options(it->second[blk]);
-    int n = (s8)g_rb(0xe96e);
+    int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;
-    if (g_rb(0xee41)) return;                              /* a skill-check box is up */
+    if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
-    for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(0xe9b0 + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
+    for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
     if (logon) { LOG("%s hub %d visited %x:\n", kb, hub, visited); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (hub == H_NONE) {                                   /* a shop or other place of the city: out the way the player would leave */
         if (visited || leaves >= 3) { stop("something happened on the way."); return; }

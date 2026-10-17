@@ -178,6 +178,23 @@
 #define GV_swap_allowed                 0x08d6    /* low byte: stores allowed, 0xff00 = initialisation failed */
 #define GV_swap_dir_store               0x08d4    /* store holding the directory */
 #define GV_swap_stores                  0xc09b    /* store table [type] {handle, size, base} */
+#define GV_map_marker_x                 0x2866    /* int: the party marker's x on the map view (pixels) */
+#define GV_map_marker_y                 0x2868    /* int: its y */
+#define GV_map_view_col                 0x286a    /* int: the map view's left column (tiles) */
+#define GV_map_view_row                 0x286c    /* int: the party's row in the view buffer */
+#define GV_map_buf_row                  0x286e    /* int: the view buffer's top row on the map */
+#define GV_card_layout                  0xe96e    /* char: lines (the struct's first field) */
+#define GV_card_layout_w                0xe970    /* int: width */
+#define GV_card_layout_x                0xe972    /* int: x */
+#define GV_card_layout_y                0xe974    /* unsigned char[20]: each line's y */
+#define GV_card_layout_h                0xe988    /* unsigned char[20]: each line's height */
+#define GV_card_layout_opt              0xe9b0    /* char[20]: the option number of each line */
+#define GV_card_layout_kind             0xe9c4    /* int[20]: 1/2 an option with a member/saint/item box (2252) */
+#define GV_card_box_shown               0xee41    /* char: such a box is shown */
+#define GV_card_box_pointer             0xee42    /* char: the pointer is in that box (its own option list) */
+#define GV_path_formation               0xe0a2    /* char: pathfinding for a formation (its collision rules) */
+#define GV_path_target_only             0xd697    /* char: ignore combatants other than the target */
+#define GV_pause_depth                  0x07d3    /* char: pauses in force (orders being given ...) */
 /* card.h */
 #define GV_next_card                    0xe48a    /* card the engine runs next (the script sets it) */
 #define GV_card_name                    0xe3d4    /* name buffer of the current card ("$CESde00") */

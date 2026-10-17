@@ -17,6 +17,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
@@ -487,7 +488,7 @@ extern "C" void worldmap_draw(void)
 extern "C" void travelmap_labels(void)
 {
     if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float base = ui_text_px();

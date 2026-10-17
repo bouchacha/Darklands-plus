@@ -22,6 +22,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "travel.h"
 #include "encounters.h"
@@ -171,10 +172,10 @@ static void field(int x0, int y0)
 
 void travel_party_tile(int *x, int *y)
 {
-    int rowk = ((s16)g_rw(0x2868) + 11) / 4;
-    int py = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
-    int cold = (((py & 1) ? (s16)g_rw(0x2866) + 16 : (s16)g_rw(0x2866) + 24)) / 16;
-    *x = (s16)g_rw(0x286a) + cold - 1; *y = py;
+    int rowk = ((s16)g_rw(GV_map_marker_y) + 11) / 4;
+    int py = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
+    int cold = (((py & 1) ? (s16)g_rw(GV_map_marker_x) + 16 : (s16)g_rw(GV_map_marker_x) + 24)) / 16;
+    *x = (s16)g_rw(GV_map_view_col) + cold - 1; *y = py;
 }
 
 static int map_ready(void) { return game_mode() == GM_MAP && load_map(); }
@@ -253,14 +254,14 @@ int travel_to_loc(int loc, const char *name)
 static void tile_of(int mx, int my, int *tx, int *ty)
 {
     int rowk = (my + 11) / 4;
-    int py = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
+    int py = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
     *ty = py;
-    *tx = (s16)g_rw(0x286a) + ((py & 1) ? mx + 16 : mx + 24) / 16 - 1;
+    *tx = (s16)g_rw(GV_map_view_col) + ((py & 1) ? mx + 16 : mx + 24) / 16 - 1;
 }
 
 static int marker_target(int tx, int ty, int *mx, int *my)
 {
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     *my = 4 * (ty - vr) - 6;
     *mx = 16 * (tx - vx) + ((ty & 1) ? 7 : -1);
     return 1;
@@ -294,7 +295,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             }
             if (travel.active) {
                 int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
-                int x = (s16)g_rw(0x2866), y = (s16)g_rw(0x2868);
+                int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
                 /* the marker's tile is a rectangular approximation of the hex grid: a straight
                  * line between two tiles' centres can graze a third tile (a town would then be
                  * entered). Of the eight keys take the one that gets closest to the next tile's
@@ -386,8 +387,8 @@ void travel_click(int gx, int gy)
     if (!travel_enabled || !map_ready() || gx < 62) return;
     int mx = gx - 0x41, my = gy - 0x15;                       /* marker coordinates, as the game takes a click */
     int rowk = (my + 11) / 4;
-    int ty = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
-    int tx = (s16)g_rw(0x286a) + ((ty & 1) ? mx + 16 : mx + 24) / 16 - 1;
+    int ty = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
+    int tx = (s16)g_rw(GV_map_view_col) + ((ty & 1) ? mx + 16 : mx + 24) / 16 - 1;
     /* a location there? then travel to it */
     for (int i = 0; i < G_NLOC; i++) {
         u32 r = g_location(i);

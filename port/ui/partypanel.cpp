@@ -115,6 +115,13 @@ static void figure_load(const std::string &who, int m)
     if (!code[0]) return;
     int w, h, n; unsigned char *px = stbi_load(figure_file(who, code).c_str(), &w, &h, &n, 4);
     if (!px) return;
+    int dark = 0, all = 0;   /* (one taken black by an earlier version is left for a new one) */
+    for (int i = 0; i < w * h; i++) {
+        const unsigned char *c = px + 4 * i;
+        if (!c[3]) continue;
+        all++; if (c[0] + c[1] + c[2] < 90) dark++;
+    }
+    if (!all || dark * 10 > all * 9) { stbi_image_free(px); return; }
     f.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, w, h);
     if (f.tex) { SDL_UpdateTexture(f.tex, 0, px, w * 4); SDL_SetTextureBlendMode(f.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.tex, SDL_ScaleModeNearest); f.w = w; f.h = h; f.code = code; }
     stbi_image_free(px);
@@ -166,6 +173,20 @@ static void take_figure(int m, const std::string &who)
             rgba[(size_t)y * w + x] = 0xff000000u | ((r << 2 | r >> 4) << 16) | ((g << 2 | g >> 4) << 8) | (b << 2 | b >> 4);
         }
     free(img);
+    /* only a figure that has stayed the same for a while and is not dark (a battle's palette is
+       still being set: the figures came out black under Wine) */
+    int dark = 0, all = 0; u32 hash = 2166136261u;
+    for (u32 c : rgba) {
+        hash = (hash ^ c) * 16777619u;
+        if (!c) continue;
+        all++; if (((c >> 16) & 255) + ((c >> 8) & 255) + (c & 255) < 90) dark++;
+    }
+    struct Pend { u32 hash, t; };
+    static std::map<std::string, Pend> pend;
+    u32 now = SDL_GetTicks();
+    Pend &pd = pend[who];
+    if (pd.hash != hash) { pd.hash = hash; pd.t = now; return; }
+    if (now - pd.t < 700 || !all || dark * 10 > all * 9) return;
     if (f.tex) SDL_DestroyTexture(f.tex);
     f = Figure(); f.code = code; f.w = w; f.h = h;
     f.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);

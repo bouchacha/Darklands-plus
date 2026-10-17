@@ -12,6 +12,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../mods/travel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 void ui_toggle(void);
@@ -132,7 +133,7 @@ extern "C" void travel_overlay(void)
     if (!travel_map_live()) return;            /* a card is up over the map (a village, an encounter); the option
                                                   count of the last card stays set after it closes */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImVec2 lastp; bool have = false;
     for (int k = travel.i - 1; k < travel.n; k++) {
         if (k < 0) continue;

@@ -79,7 +79,7 @@ static int is_bad(u32 a) { for (int k = 0; k < nbad; k++) if (bad[k] == a) retur
 extern int dos_no_writes;
 static void evaluate(void)
 {
-    int n = (s8)g_rb(0xe96e);
+    int n = (s8)g_rb(GV_card_layout);
     if (n < 0 || n > 20) n = 0;
     void *snap = eval_snapshot();
     dos_no_writes = 1;                   /* the answers are thrown away: so is any change to the disk */
@@ -87,9 +87,9 @@ static void evaluate(void)
     memset(&c, 0, sizeof c);
     c.n = n;
     for (int i = 0; i < n; i++) {
-        int opt = (s8)g_rb((u16)(0xe9b0 + i)), kind = (s16)g_rw((u16)(0xe9c4 + 2 * i));
+        int opt = (s8)g_rb((u16)(GV_card_layout_opt + i)), kind = (s16)g_rw((u16)(GV_card_layout_kind + 2 * i));
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d/%d y %d opt %d kind %d on %d\n", i, n,
-                                             g_rb((u16)(0xe974 + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(GV_opt_on + opt)) : -1);
+                                             g_rb((u16)(GV_card_layout_y + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(GV_opt_on + opt)) : -1);
         if (opt < 0 || opt >= 20 || kind > 0) continue;
         if (g_rb((u16)(GV_opt_on + opt)) != 1) continue;               /* option disabled */
         u16 off = g_rw((u16)(GV_opt_fn + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
@@ -138,7 +138,7 @@ static void evaluate(void)
 /* every poll of a card menu: the chances asked again when something may have changed */
 void assist_menu_poll(void)
 {
-    if (assist_chances && cm_depth && !g_rb(0xee42)) {
+    if (assist_chances && cm_depth && !g_rb(GV_card_box_pointer)) {
         u32 now = plat_ticks_ms();
         int lead = (s8)g_rb(G_LEADER);
         if (cm_dirty || lead != last_leader || now - last_eval > 1000) {
@@ -196,7 +196,7 @@ const char *assist_card_key_why(int digit)
 {
     static char b[120];
     snprintf(b, sizeof b, "keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d", assist_card_keys, cm_depth,
-             (unsigned)(plat_ticks_ms() - card_chances.polled), g_rb(0xee41), g_rb(0xee42), (s8)g_rb(0xe96e));
+             (unsigned)(plat_ticks_ms() - card_chances.polled), g_rb(GV_card_box_shown), g_rb(GV_card_box_pointer), (s8)g_rb(GV_card_layout));
     (void)digit;
     return b;
 }
@@ -205,13 +205,13 @@ int assist_card_key(int digit, int *gx, int *gy)
 {
     /* D_ee42: the pointer is in the box of an option that picks a member, saint or item, and
        the menu is that box's (its lines are not numbered) */
-    if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee42)) return 0;
-    int n = (s8)g_rb(0xe96e), i = digit - 1;
+    if (!assist_card_keys || !assist_in_card_menu() || g_rb(GV_card_box_pointer)) return 0;
+    int n = (s8)g_rb(GV_card_layout), i = digit - 1;
     if (i < 0 || i >= n || n > 20) return 0;
-    int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
     if (h <= 0) return 0;
     *gx = x0 + 10; *gy = y0 + (h > 8 ? 4 : h / 2);
-    if (g_rb(0xee41)) {     /* such a box is shown (the pointer rests on its option): fine unless it covers the line */
+    if (g_rb(GV_card_box_shown)) {     /* such a box is shown (the pointer rests on its option): fine unless it covers the line */
         int bx = (s16)g_rw(0xee0d) + 0x3c, by = g_rb(0xee0f), bw = (s16)g_rw(0xee11), bh = g_rb(0xee10);
         if (*gx >= bx && *gx <= bx + bw && *gy >= by && *gy <= by + bh) return 0;
     }
