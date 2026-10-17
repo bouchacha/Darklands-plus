@@ -80,10 +80,17 @@
  *            (1ef8:0914) consume_item is called until the record is gone: the spares carried
  *            lose quality with the worn one and are destroyed with it. Now one is taken off
  *            the stack and worn down alone, and only that one is thrown away.
+ *  cardopts  Options some cards grey by mistake: $Selec01 (out over the city wall) tests the
+ *            purse against the sewer-without-horses option instead of the bribe, so the bribe
+ *            could be chosen without the money; $Revol14 (the crowd at the fortress) greys the
+ *            climb with a rope when the party has a rope; $CityW02 (over the wall after the
+ *            guards) counts only the last member's rope. Their opt_on[] put right before the
+ *            option list is shown (card_options, and from the card view's own drawing of it).
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
@@ -128,6 +135,8 @@ Fix FIXES[] = {
       "Identical pieces of armour are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers.", 1 },
     { "teachers", "Training at the inn finds the town's teachers",
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
+    { "cardopts", "Card options greyed by mistake",
+      "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; and climbing a wall after the guards counted only the last member's rope.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -637,13 +646,42 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- cardopts */
+int fix_is_on(const char *id) { for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, id)) return FIXES[i].on && !config_get_int("original", 0); return 0; }
+static int gcall(int sect, u16 seg, u16 off, int n, u16 a0, u16 a1) { u16 a[2] = { a0, a1 }; return (s16)game_call_far(sect, seg, off, n, a); }
+void fixes_card_opts(void)                  /* before a card's option list is shown: its opt_on[] put right */
+{
+    if (!fix_is_on("cardopts")) return;
+    char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+    int c = !strcasecmp(nm, "$Selec01") ? 1 : !strcasecmp(nm, "$Revol14") ? 2 : !strcasecmp(nm, "$CityW02") ? 3 : 0;
+    if (!c) return;
+    int rope = gcall(GF_count_items, 2, (u16)-2, 0x3b) > 0;
+    u8 o[8]; for (int i = 0; i < 8; i++) o[i] = g_rb((u16)(GV_opt_on + i));
+    if (c == 1) {                           /* 1 abandon the horses and crawl out (greyed after a failed sewer, event 0x10), 2 the bribe */
+        int loc = (s16)g_rw(G_CUR_LOC);
+        int poor = gcall(GF_money_cmp, 2, G_MONEY, GV_var_money1) == -1;
+        if (o[1] == 2 && !gcall(GF_event_at, 2, 0x10, (u16)loc)) g_wb((u16)(GV_opt_on + 1), 1);
+        if (o[2] == 1 && poor) g_wb((u16)(GV_opt_on + 2), 2);
+    } else if (c == 2) {                    /* 4 the climb with a rope (also greyed after waiting a day: prev_screen 0xbc) */
+        if (o[4]) g_wb((u16)(GV_opt_on + 4), (rope && g_rw(GV_prev_screen) != 0xbc) ? 1 : 2);
+    } else if (c == 3) {                    /* 0 the climber carries a rope for everyone */
+        if (o[0]) g_wb((u16)(GV_opt_on + 0), rope ? 1 : 2);
+    }
+    if (getenv("DL_FIX_LOG")) { int ch = 0; for (int i = 0; i < 8; i++) ch |= o[i] != g_rb((u16)(GV_opt_on + i)); if (ch) fprintf(stderr, "fix cardopts: %s options put right\n", nm); }
+}
+static void cardopts_hook(void)             /* card_options (block) */
+{
+    fixes_card_opts();
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
-    { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook } };
+    { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },

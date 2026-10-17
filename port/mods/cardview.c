@@ -30,6 +30,7 @@
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "cardview.h"
+#include "fixes.h"
 #include "nscreen.h"
 
 CardView cardview;
@@ -354,6 +355,7 @@ static void options_hook(void)
     if (!cardview_active()) { hook_call_original(); return; }
     int block = (s16)rw(SS, (u16)(SP + 4));
     ns_unwinding = 0;
+    fixes_card_opts();                                 /* (mods/fixes.c: options some cards grey by mistake) */
     flush_keys();
     g_ww(A_COMBAT_CLK, 0);
     g_ww(A_E959, (u16)block);

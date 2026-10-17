@@ -12,9 +12,21 @@ static const CardHint HINTS[] = {
 #include "cardhints_data.h"           /* (a .h: the build remakes the ui files when one changes) */
 };
 
+/* the same options with the fix "cardopts" on (mods/fixes.c): as the cards were meant to be */
+static const CardHint FIXED[] = {
+    { "$SELEC01", 1, "Not for about three weeks after a sewer grate in this town defeated you." },
+    { "$SELEC01", 2, "Needs the bribe in your purse; not for two days after a guard recognised you, nor for a day after guards spotted you sneaking at the wall." },
+    { "$REVOL14", 4, "Needs a rope, and not after you have waited a day and come back to the walls." },
+    { "$CITYW02", 0, "Needs a rope." },
+};
+extern "C" int fix_is_on(const char *id);
+
 extern "C" const char *card_hint(const char *card, int opt)
 {
     if (!card || !*card) return nullptr;
+    if (fix_is_on("cardopts"))
+        for (const CardHint &h : FIXED)
+            if (h.opt == opt && !strcasecmp(h.card, card)) return h.why;
     for (const CardHint &h : HINTS)
         if (h.opt == opt && !strcasecmp(h.card, card)) return h.why;
     return nullptr;
