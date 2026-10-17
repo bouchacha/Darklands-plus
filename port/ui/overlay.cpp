@@ -1223,6 +1223,7 @@ static void draw_battle_bars(void)
     ImDrawList *dl = ovl_list();
     bool done[13] = {};
     float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
+    dl->PushClipRect(g2w(60, 0), g2w(320, 200), true);        /* (the field only: not over the margins or the panel) */
     for (int i = 0; i < n; i++) {
         int m = g_rb((u16)(GV_hotspot_cbt + i));
         if (m >= 13 || done[m]) continue;
@@ -1247,6 +1248,7 @@ static void draw_battle_bars(void)
             if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
         }
     }
+    dl->PopClipRect();
 }
 
 static void draw_battle_info(void)
