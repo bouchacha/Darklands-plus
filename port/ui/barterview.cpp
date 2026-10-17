@@ -171,7 +171,7 @@ extern "C" void barterview_draw(void)
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
-            const char *tag = eq ? "in use" : kept ? "kept" : nullptr;
+            const char *tag = eq == 2 ? "rides it" : eq ? "in use" : kept ? "kept" : nullptr;
             float tagw = tag ? W(fo, NsDraw::FS_SMALL, tag) + 3 : 0;
             T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
@@ -345,7 +345,8 @@ extern "C" void barterview_draw(void)
             }
             std::string pr = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
                                : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
-            if (L && b.item[i].equipped) pr += "; in use";
+            if (L && b.item[i].equipped == 2) pr += "; the mount this member rides";
+            else if (L && b.item[i].equipped) pr += "; in use";
             T(fo, NsDraw::FS_BODY, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
