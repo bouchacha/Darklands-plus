@@ -867,6 +867,7 @@ static void draw_lcd(void)
 static float card_help_top;              /* top of the card helper panel this frame (0: none) */
 extern int ui_shop_info;
 extern "C" void plat_mouse_game(int *x, int *y);
+extern "C" int gm_knows_formula(int m, int f);
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static void draw_card_help(void)
 {
@@ -1126,7 +1127,28 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 const Formula &F = gamedata.formulas[formula];
                 const ItemDef *pd = 95 + formula / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + formula / 3] : nullptr;
                 static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
-                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? pd->name.c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                /* its place among the potion's three formulae (by difficulty) */
+                int base = formula / 3 * 3, rank = 0, n3 = 0;
+                for (int k = base; k < base + 3 && k < (int)gamedata.formulas.size(); k++) {
+                    if (k < (int)gamedata.formula_names.size() && gamedata.formula_names[k].empty()) continue;
+                    n3++;
+                    if (gamedata.formulas[k].mystic < F.mystic || (gamedata.formulas[k].mystic == F.mystic && k < formula)) rank++;
+                }
+                if (n3 == 3) {
+                    static const char *ORD[3] = { "The easiest", "The middle", "The hardest" };
+                    std::string others;
+                    for (int k = base; k < base + 3; k++) if (k != formula && k < (int)gamedata.formula_names.size()) others += (others.empty() ? "" : " and ") + gamedata.formula_names[k];
+                    ImGui::TextDisabled("%s of the three formulae for %s (the others: %s).", ORD[rank], pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "it", others.c_str());
+                }
+                {
+                    std::string who; int np = (s16)g_rw(G_PARTY_SIZE);
+                    for (int m = 0; m < np && m < 5; m++) if (gm_knows_formula(m, formula)) {
+                        char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);
+                        if (!who.empty()) who += ", "; who += game_text(n, strlen(n));
+                    }
+                    ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this formula." : ("Known to " + who + ".").c_str());
+                }
                 ImGui::Separator();
                 ImGui::TextWrapped("%s", F.text.c_str());
                 /* each ingredient with what the party carries of it (red: not enough) */
@@ -1382,6 +1404,10 @@ extern "C" void ui_overlay(void)
 }
 
 /* the tooltip of a saint or an item, for ui/cardview.cpp */
+void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula)
+{
+    if (formula >= 0 && formula < (int)gamedata.formula_names.size()) show_tip(pos, pivot, -1, -1, formula);
+}
 void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint)
 {
     if (item >= (int)gamedata.items.size()) item = -1;

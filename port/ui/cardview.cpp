@@ -35,6 +35,33 @@ extern "C" int cardview_dialog;
 extern "C" u32 plat_ticks_ms(void);
 float ui_face_k(ImFont *f);                                   /* overlay.cpp */
 void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
+void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula);
+extern "C" int gm_knows_formula(int m, int f);
+
+/* a card that sells formulae ($Alche01: "the following formulas can be purchased"): its four
+ * card_items are the potions, $Text1..4 the formulae's names, $Money1..4 their prices; the formula
+ * of slot s (gamedata order, potion 95 + f / 3), or -1 */
+static int cv_formula_of_slot(int s)
+{
+    if (s < 0 || s > 3) return -1;
+    char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+    if (strncasecmp(nm, "$Alche01", 8)) return -1;
+    char t[48]; g_str(G_DGROUP, (u16)(GV_var_text1 + 40 * s), t, sizeof t);
+    std::string want = game_text(t, strlen(t));
+    int pot = (s16)g_rw((u16)(GV_card_items + 2 * s));
+    for (int f = 0; f < (int)gamedata.formula_names.size(); f++)
+        if (gamedata.formula_names[f] == want && 95 + f / 3 == pot) return f;
+    return -1;
+}
+static std::string cv_formula_price(int s)
+{
+    int fl = (s16)g_rw((u16)(GV_var_money1 + 6 * s)), gr = (s16)g_rw((u16)(GV_var_money1 + 6 * s + 2)), pf = (s16)g_rw((u16)(GV_var_money1 + 6 * s + 4));
+    std::string r;
+    if (fl) r += std::to_string(fl) + (fl == 1 ? " florin" : " florins");
+    if (gr) r += (r.empty() ? "" : ", ") + std::to_string(gr) + " groschen";
+    if (pf || r.empty()) r += (r.empty() ? "" : ", ") + std::to_string(pf) + " pfennigs";
+    return r;
+}
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
 
@@ -199,7 +226,7 @@ extern "C" void cardview_draw(void)
         dl->AddText(f, cs, at, IM_COL32(250, 236, 200, 255), t);
     }
 
-    int tip_item = -1, tip_saint = -1; ImVec2 tip_at;
+    int tip_item = -1, tip_saint = -1, tip_formula = -1; ImVec2 tip_at;
     for (int j = 0; j < c.npieces; j++) {
         const CvPiece &p = c.piece[j];
         Laid &la = laid[j];
@@ -282,9 +309,18 @@ extern "C" void cardview_draw(void)
                 if (en.who[0]) dl->AddText(fs, size * 0.82f, ImVec2(ex, ey + 0.08f * h), ink_soft, gtext(en.who).c_str());
                 ImU32 ec = !en.on || en.code == 0x83 ? ink_dim : en.code == 0x87 ? (dark ? IM_COL32(250, 210, 110, 255) : IM_COL32(150, 90, 0, 255)) : ink;
                 std::string et = gtext(en.text);
+                int ef = c.popup_kind == 2 ? -1 : cv_formula_of_slot(en.slot);
+                if (ef >= 0) {                                       /* (a formula on sale: its own name, and whether this member knows it) */
+                    bool knows = gm_knows_formula(en.member, ef) != 0;
+                    et = gamedata.formula_names[ef] + "  (" + cv_formula_price(en.slot) + ")";
+                    if (knows) ec = ink_dim;
+                    float tx = ex + namew + 0.9f * size;
+                    dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
+                    if (knows) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, "knows it already");
+                } else
                 dl->AddText(f, size * 0.95f, ImVec2(ex + namew + 0.9f * size, ey), ec, et.c_str());
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
-                if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else tip_item = en.id; }
+                if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
                 ey += h;
             }
         }
@@ -296,7 +332,8 @@ extern "C" void cardview_draw(void)
         ImU32 ac = dark ? IM_COL32(246, 220, 160, (int)(255 * a)) : IM_COL32(110, 50, 15, (int)(255 * a));
         dl->AddTriangleFilled(ImVec2(ax - r, ay - r * 0.55f), ImVec2(ax + r, ay - r * 0.55f), ImVec2(ax, ay + r * 0.75f), ac);
     }
-    if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
+    if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
+    else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
     else if (menu && assist_card_help && c.hover >= 0 && c.hover < c.npieces && c.popup_piece != c.hover
              && (c.piece[c.hover].type == 1 || c.piece[c.hover].type == 2)) {
         /* which saints or items this option takes, and who in the party knows or carries them
@@ -306,6 +343,7 @@ extern "C" void cardview_draw(void)
         auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, strlen(n)); };
         auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };
         std::vector<std::pair<std::string, std::string>> rows;
+        bool formulas = false;
         for (int j = 0; j < 4; j++) {
             int id = (s16)g_rw((u16)((p.type == 2 ? 0xee4b : 0xee43) + 2 * j));
             std::string what, who;
@@ -314,6 +352,14 @@ extern "C" void cardview_draw(void)
                 what = gamedata.saints[id].name;
                 for (int m = 0; m < npar && m < 5; m++)
                     if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (id >> 3))) & (0x80 >> (id & 7)))) { if (!who.empty()) who += ", "; who += name_of(m); }
+            } else if (cv_formula_of_slot(j) >= 0) {             /* a formula on sale: who knows it already */
+                int fo = cv_formula_of_slot(j);
+                what = gamedata.formula_names[fo] + " (" + cv_formula_price(j) + ")";
+                for (int m = 0; m < npar && m < 5; m++)
+                    if (alive(m) && gm_knows_formula(m, fo)) { if (!who.empty()) who += ", "; who += name_of(m); }
+                rows.push_back({ what, who.empty() ? "nobody knows it yet" : "known to " + who });
+                formulas = true;
+                continue;
             } else {
                 if (id <= 0 || id >= (int)gamedata.items.size()) continue;
                 what = game_text(gamedata.items[id].name.c_str(), gamedata.items[id].name.size());
@@ -329,9 +375,10 @@ extern "C" void cardview_draw(void)
         if (!rows.empty()) {
             ImGui::SetNextWindowPos(ImVec2(bx1 + 4.5f * k, laid[c.hover].y0 - shift));     /* beside the option (the pointer may be the game's only) */
             ImGui::BeginTooltip();
-            ImGui::TextDisabled("%s", p.type == 2 ? "Saints who help here" : "Items that help here");
+            ImGui::TextDisabled("%s", p.type == 2 ? "Saints who help here" : formulas ? "Formulae for sale" : "Items that help here");
             for (auto &r : rows) { ImGui::TextUnformatted(r.first.c_str()); ImGui::SameLine(); ImGui::TextDisabled("  %s", r.second.c_str()); }
-            if (p.state == 1) ImGui::TextDisabled("(click to choose who)");
+            if (formulas) ImGui::TextDisabled("(click to choose who learns one; each formula's details there)");
+            else if (p.state == 1) ImGui::TextDisabled("(click to choose who)");
             ImGui::EndTooltip();
         }
     }
