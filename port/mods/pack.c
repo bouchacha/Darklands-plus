@@ -78,6 +78,7 @@ static void hand_out_ammo(void)
 #define D_CARD_ITEMS  0xee43              /* int[4]: the potions a card accepts (-1 none) */
 #define D_MENU_MEMBER 0xee6c              /* the member chosen in a card's pop-up */
 #define D_MENU_POPUP  0xee6e              /* 1: the card's choice came from its pop-up */
+#define D_MENU_SLOT   0xee6a              /* which of its four */
 #define D_ACTOR       0xe1ca              /* byte: who picks a lock */
 #define ID_LOCKPICK   0x40
 #define ID_EATERWATER 0x63
@@ -101,16 +102,23 @@ static int room_by_records(int m, int id, int q)
     for (int j = 0; j < gm_item_count(m); j++) { GmItem x; if (gm_item(m, j, &x) && x.id == id && x.qual == q && x.count < 255) return 1; }
     return 0;
 }
+/* (when the giver's stack empties, give_one goes through item_unequip -> equip_weight, which in a battle
+   reads the item definitions that are not in memory and writes a wrong load into the giver's +0x35 (the
+   fighter's load, its pace of blows): a thing not in use never changes the load, so both loads are kept.
+   The Eater-Water record and a pending throw are the battle engine's (a dungeon too); elsewhere they
+   are left over from the last battle) */
+static int engine_on(void) { return game_mode() == GM_BATTLE; }
 static int give_safe(int from, int to, int rec)
 {
     GmItem g; if (!gm_item(from, rec, &g) || !room_by_records(to, g.id, g.qual)) return 0;
-    int empties = g.count == 1;
-    u8 eat = from < 5 ? g_rb((u16)(D_EATER_SLOT + from)) : 0xff;
-    if (empties && (gm_item_in_use(from, rec) || (eat != 0xff && eat == rec) || throw_pending(from, g.id, g.qual))) return 0;
-    u8 bs = g_rb(D_BEST_SKILL);
+    int empties = g.count == 1, eng = engine_on();
+    u8 eat = from < 5 && eng ? g_rb((u16)(D_EATER_SLOT + from)) : 0xff;
+    if (eat != 0xff) { GmItem e; if (!gm_item(from, eat, &e) || e.id != ID_EATERWATER) eat = 0xff; }
+    if (empties && (gm_item_in_use(from, rec) || (eat != 0xff && eat == rec) || (eng && throw_pending(from, g.id, g.qual)))) return 0;
+    u8 bs = g_rb(D_BEST_SKILL), lf = g_rb((u16)(G_MEMBER(from) + 0x35)), lt = g_rb((u16)(G_MEMBER(to) + 0x35));
     ns_call(GF_give_one, 4, from, to, rec, 9);
     if (ns_unwinding) return 0;
-    g_wb(D_BEST_SKILL, bs);
+    g_wb(D_BEST_SKILL, bs); g_wb((u16)(G_MEMBER(from) + 0x35), lf); g_wb((u16)(G_MEMBER(to) + 0x35), lt);
     if (empties && eat != 0xff && eat > rec) g_wb((u16)(D_EATER_SLOT + from), (u8)(eat - 1));
     return 1;
 }
@@ -122,7 +130,7 @@ static int fetch(int a, int id, int q)
         if (h == a || !giver_ok(h)) continue;
         for (int i = 0; i < gm_item_count(h); i++) {
             GmItem g; if (!gm_item(h, i, &g) || g.id != id || (q >= 0 && g.qual != q) || gm_item_spare(h, i) <= 0) continue;
-            if (g.count == 1 && throw_pending(h, id, g.qual)) continue;
+            if (g.count == 1 && engine_on() && throw_pending(h, id, g.qual)) continue;
             if (g.qual > bq || (g.qual == bq && g.count > bn)) { bh = h; bi = i; bq = g.qual; bn = g.count; }
         }
     }
@@ -195,7 +203,8 @@ static int party_has(int id) { int n = 0; for (int h = 0; h < 5; h++) if (giver_
 static void has_item_hook(void)           /* has_item (who, code) */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), code = (s16)rw(SS, (u16)(SP + 6));
-    int ours = sheetview_shared() && rw(SS, SP) == 0x243a && who >= 0 && who < 5 && gm_member_status(who) == 1 && card_potion(code) && party_has(code);
+    int ours = sheetview_shared() && rw(SS, SP) == 0x243a && who >= 0 && who < 5 && gm_member_status(who) == 1 && card_potion(code) && party_has(code)
+               && gm_item_count(who) < 64;                 /* (a copy can be handed to them) */
     hook_call_original();
     if (ours && AX == 0) AX = 1;
 }
@@ -224,9 +233,11 @@ static void card_menu_hook(void)          /* card_menu (win, win2) */
     hook_call_original();
     if (ns_unwinding || !sheetview_shared() || g_rw(D_MENU_POPUP) != 1) return;
     u16 ax = AX;
-    int m = (s16)g_rw(D_MENU_MEMBER);
-    if (m < 0 || m >= 5 || gm_member_status(m) != 1) return;
-    for (int k = 0; k < 4 && !ns_unwinding; k++) {
+    int m = (s16)g_rw(D_MENU_MEMBER), slot = (s16)g_rw(D_MENU_SLOT);
+    if (m < 0 || m >= 5 || gm_member_status(m) != 1 || slot < 0 || slot > 3) return;
+    /* (the items' pop-up, not the saints': the pop-up's handlers, DS 0xeb0a, are the items' ones, 0xec00) */
+    for (int b = 0; b < 80; b++) if (g_rb((u16)(0xeb0a + b)) != g_rb((u16)(0xec00 + b))) return;
+    for (int k = slot; k == slot && !ns_unwinding; k++) {
         int code = (s16)g_rw((u16)(D_CARD_ITEMS + 2 * k));
         if (code < 0) continue;
         int mine = -1, best = -1;                          /* the member's best quality of it, and the party's */
@@ -234,7 +245,9 @@ static void card_menu_hook(void)          /* card_menu (win, win2) */
             if (!giver_ok(h)) continue;
             for (int i = 0; i < gm_item_count(h); i++) { GmItem g; if (gm_item(h, i, &g) && g.id == code) { if (h == m && g.qual > mine) mine = g.qual; if (g.qual > best) best = g.qual; } }
         }
-        if (best > mine && fetch(m, code, best)) fprintf(stderr, "pack: member %d is handed potion %#x (quality %d) for the card\n", m, code, best);
+        if (best > mine) {
+            if (fetch(m, code, best) || (mine < 0 && fetch(m, code, -1))) fprintf(stderr, "pack: member %d is handed potion %#x for the card\n", m, code);
+        }
     }
     AX = ax;
 }

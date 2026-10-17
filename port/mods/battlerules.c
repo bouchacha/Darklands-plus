@@ -45,10 +45,14 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
     if (getenv("DL_BATTLE_LOG") && AX) fprintf(stderr, "battlerules: %d's line to %d blocked (mode %#x)\n", a, b, mode);
 }
 
+/* (effect_spell is also how a trapped floor or chest goes off, s023 1ef8:0d88 / 153e, with the member who set it
+   off as the "thrower": only a thrown potion landing, in missiles_advance (s014 1d47:0000), counts) */
+static int landing;
+static void missiles_hook(void) { landing++; hook_call_original(); if (landing > 0) landing--; }
 static void spell_hook(void)                  /* effect_spell (x, y, thrower, kind, quality, target, floor) */
 {
     int thrower = (s16)rw(SS, (u16)(SP + 8)), kind = (s16)rw(SS, (u16)(SP + 10));
-    if (thrower < 0 || thrower >= 5 || kind < 0 || kind > 8 || kind == 6 || !on_spare()) { hook_call_original(); return; }
+    if (!landing || thrower < 0 || thrower >= 5 || kind < 0 || kind > 8 || kind == 6 || !on_spare()) { hook_call_original(); return; }
     u16 im[5];
     for (int k = 0; k < 5; k++) { im[k] = g_rw((u16)(D_IMMUNE + 2 * k)); g_ww((u16)(D_IMMUNE + 2 * k), (u16)(im[k] | (1u << kind))); }
     hook_call_original();
@@ -60,4 +64,5 @@ void battlerules_init(void)
 {
     hook_install(GF_line_blocked, blocked_hook);
     hook_install(GF_effect_spell, spell_hook);
+    hook_install(14, 0x1d47, 0x0000, missiles_hook);
 }
