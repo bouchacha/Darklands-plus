@@ -290,7 +290,7 @@ static void right_panel(int size)
         if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::TextWrapped("%s", b.c_str()); }
         bool shops = false;
         for (int i = 0; i < 9; i++) {
-            if (c.shopq[i] <= 0) continue;
+            if (c.shopq[i] <= 0 || i == 4 || i == 7) continue;     /* (no card opens the gunsmith or the jeweller: the bowyer sells the guns) */
             /* the shop's rating, and what its weapons and armour come out at: (25 + rating) / 2
                (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
             if (!shops) {
@@ -367,8 +367,14 @@ extern "C" void ui_margins(void)
         ImGui::TextWrapped("%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
         ImGui::TextDisabled("%d:00, %s", hour, hour < 5 || hour >= 21 ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
         ImGui::Separator();
+        /* the place and the tasks come from the location and event tables, which battles and their
+           loot reuse: read while a card or the map is up, meanwhile the last reading stands */
+        const int gm = game_mode();
+        const bool tables = gm == GM_CARD || gm == GM_MAP;
+        static std::string where; static bool where_read = false;
+        if (tables || !where_read) { where = place_name(); where_read = tables; }
         heading("Where");
-        ImGui::TextWrapped("%s", place_name().c_str());
+        ImGui::TextWrapped("%s", where.c_str());
         if (citynav_available() && config_get_int("assist.city_goto", 1)) ImGui::TextDisabled("G: go to a place here");
         ImGui::Separator();
         heading("Purse");
@@ -376,8 +382,8 @@ extern "C" void ui_margins(void)
         ImGui::TextWrapped("%d florins, %d groschen, %d pfennigs", f, g, p);
         if (bn > 0) ImGui::TextDisabled("%d florins in bank notes", bn);
         ImGui::Separator();
-        static std::vector<std::pair<std::string, std::string>> q; static int qf = -1000;
-        if (ImGui::GetFrameCount() - qf > 30) { quest_brief(q); qf = ImGui::GetFrameCount(); }
+        static std::vector<std::pair<std::string, std::string>> q; static int qf = -1000; static bool q_read = false;
+        if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_brief(q); qf = ImGui::GetFrameCount(); q_read = tables; }
         heading("Tasks");
         if (q.empty()) ImGui::TextDisabled("None taken on.");
         for (size_t i = 0; i < q.size() && i < 6; i++) {

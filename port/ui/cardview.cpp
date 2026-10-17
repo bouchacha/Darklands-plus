@@ -143,12 +143,16 @@ extern "C" void cardview_draw(void)
     std::vector<std::string> ws;
     std::vector<std::string> utf(c.npieces);
     for (int j = 0; j < c.npieces; j++) utf[j] = gtext(c.piece[j].text);
+    /* a narrow column beside a picture: the first letter in the line (an initial two lines high
+       would leave a word or two a line beside it) */
+    const int dropcap = c.dropcap && c.w < 110 ? 0 : c.dropcap;
+    if (c.dropcap && !dropcap && c.npieces > 0) { char t[2] = { (char)c.dropcap, 0 }; utf[0] = t + utf[0]; }
     for (int tries = 0; tries < 10; tries++) {
         size = 7.1f * k * fk * scale;
         L = 9.0f * k * scale;
         gap = 3.0f * k * scale;
         pad = 1.2f * size;                                       /* an option's number */
-        cap = c.dropcap ? 2 * L - 1.0f * k : 0;
+        cap = dropcap ? 2 * L - 1.0f * k : 0;
         float y = Y0;
         for (int j = 0; j < c.npieces; j++) {
             const CvPiece &p = c.piece[j];
@@ -203,7 +207,7 @@ extern "C" void cardview_draw(void)
     auto wy2g = [&](float wy) { return (wy - top.y) / k; };
 
     /* the illuminated initial */
-    if (c.dropcap) {
+    if (dropcap) {
         ImVec2 p0(X0, Y0 - shift - 0.05f * L), p1(X0 + cap, Y0 - shift - 0.05f * L + cap);
         dl->AddRectFilled(p0, p1, IM_COL32(112, 24, 16, 255), 1.5f * k);
         float s = cap * 0.16f;                                  /* a diaper of small diamonds */
@@ -251,8 +255,15 @@ extern "C" void cardview_draw(void)
             ImVec2 cpos(X1 - 0.9f * size, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
             float r = size * 0.36f, th = fmaxf(1.2f, 0.32f * k);
             ImU32 bc = dark ? IM_COL32(230, 120, 100, 230) : IM_COL32(140, 30, 20, 230);
-            dl->AddLine(ImVec2(cpos.x - r, cpos.y + r), ImVec2(cpos.x + r, cpos.y - r), bc, th);
-            dl->AddLine(ImVec2(cpos.x + r, cpos.y + r), ImVec2(cpos.x - r, cpos.y - r), bc, th);
+            for (int s = -1; s <= 1; s += 2) {                   /* (each a sword: blade, crossguard, pommel - two bare lines read as an X, "not possible") */
+                ImVec2 tip(cpos.x - s * r, cpos.y - r), hilt(cpos.x + s * r, cpos.y + r);
+                ImVec2 g(tip.x + 0.68f * (hilt.x - tip.x), tip.y + 0.68f * (hilt.y - tip.y));
+                float px = 0.7071f, py = -0.7071f * s, cg = r * 0.42f;       /* across the blade */
+                dl->AddLine(tip, g, bc, th);
+                dl->AddLine(ImVec2(g.x - px * cg, g.y - py * cg), ImVec2(g.x + px * cg, g.y + py * cg), bc, th * 1.15f);
+                dl->AddLine(g, hilt, bc, th * 1.5f);
+                dl->AddCircleFilled(hilt, th * 1.1f, bc, 8);
+            }
         }
         for (const Line &l : la.lines) dl->AddText(f, size, ImVec2(l.x, l.y - shift), col, l.t.c_str());
         if (p.is_opt && (p.type == 1 || p.type == 2) && p.state == 1) {               /* opens a list: a small arrow */

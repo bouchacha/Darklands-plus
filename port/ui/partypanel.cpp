@@ -64,11 +64,12 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
     for (int i = (int)v.size() - 1; i >= 0; i--) {
         const PNote &n = v[i];
         float a = now - n.t > 8000 ? (9000 - (now - n.t)) / 1000.0f : 1.0f;
-        float h = P.fo->CalcTextSizeA(P.size(P.fo, 4.3f), FLT_MAX, (x1 - x0 - 4) * P.kx, n.text.c_str()).y / P.k + 2.4f;
+        float th = P.fo->CalcTextSizeA(P.size(P.fo, 4.3f), FLT_MAX, (x1 - x0 - 4) * P.kx, n.text.c_str()).y / P.k + 2.4f;
+        float h = k < 5 ? fmaxf(th, (y1 - y0) / 3.0f) : th;    /* (on a member: at least a bar's row - half a row covered looked broken) */
         if (y - h < y0) break;
         y -= h;
         P.rect(x0, y, x1, y + h - 0.4f, IM_COL32(24, 16, 8, (int)(225 * a)), 1.2f);
-        P.para(P.fo, 4.3f, x0 + 2, y + 1.0f, x1 - x0 - 4, n.good ? IM_COL32(250, 214, 110, (int)(255 * a)) : IM_COL32(240, 120, 100, (int)(255 * a)), n.text);
+        P.para(P.fo, 4.3f, x0 + 2, y + 1.0f + (h - th) * 0.5f, x1 - x0 - 4, n.good ? IM_COL32(250, 214, 110, (int)(255 * a)) : IM_COL32(240, 120, 100, (int)(255 * a)), n.text);
     }
 }
 
