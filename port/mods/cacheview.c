@@ -15,6 +15,8 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "cacheview.h"
+#include "keep.h"
+int sheetview_shared(void);
 
 CacheModel cache_model;
 static int cv_on = 1;
@@ -47,28 +49,70 @@ static void build(void)
         c->store[i].id = store_id(i); c->store[i].qual = store_q(i); c->store[i].count = store_c(i);
         c->store[i].weight = gm_itemdef_weight(c->store[i].id);
     }
-    int m = c->who;
-    c->nitems = gm_item_count(m);
-    for (int i = 0; i < c->nitems && i < 64; i++) {
-        GmItem g; gm_item(m, i, &g);
-        CvItem *it = &c->item[i];
-        it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-        it->equipped = gm_item_equipped(m, i);
+    c->shared = sheetview_shared();
+    if (c->shared) {                                          /* the party's pack: the spares of all, by kind and quality */
+        c->nitems = 0; c->room = 0;
+        for (int m = 0; m < 5; m++) {
+            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+            if (able(m) && gm_item_count(m) < 64) c->room = 1;
+            for (int i = 0; i < gm_item_count(m); i++) {
+                GmItem g; int spare = gm_item_spare(m, i);
+                if (spare <= 0 || !gm_item(m, i, &g)) continue;
+                int k = 0;
+                while (k < c->nitems && !(c->item[k].id == g.id && c->item[k].qual == g.qual)) k++;
+                if (k < c->nitems) { c->item[k].count += spare; continue; }
+                if (c->nitems >= 200) continue;
+                CvItem *it = &c->item[c->nitems++];
+                it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual);
+            }
+        }
+        for (int a = 1; a < c->nitems; a++)                   /* by kind, the better first */
+            for (int b = a; b > 0; b--) {
+                CvItem *x = &c->item[b - 1], *y = &c->item[b];
+                if (x->id < y->id || (x->id == y->id && x->qual >= y->qual)) break;
+                CvItem t = *x; *x = *y; *y = t;
+            }
+    } else {
+        int m = c->who;
+        c->nitems = gm_item_count(m);
+        for (int i = 0; i < c->nitems && i < 64; i++) {
+            GmItem g; gm_item(m, i, &g);
+            CvItem *it = &c->item[i];
+            it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+            it->equipped = gm_item_equipped(m, i); it->kept = 0;
+        }
+        c->room = c->nitems < 64;
     }
-    c->room = c->nitems < 64;
     c->seq++;
 }
 
 static int key(int k) { return ns_call(GF_cache_key, 1, k); }
 
+/* whom a thing from the store goes to in the shared pack: whoever carries some already (it
+   stacks), else whoever has the most free places (the member shown, on a tie) */
+static int pack_target(int id, int q)
+{
+    int best = -1, bm = -1, cur = who_now();
+    for (int k = 0; k < 5; k++) {
+        if (!able(k) || !gm_room_for(k, id, q)) continue;
+        int stacks = 0;
+        for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == id && g.qual == q && g.count < 255) stacks = 1; }
+        int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == cur);
+        if (score > best) { best = score; bm = k; }
+    }
+    return bm;
+}
+
 static int take(int i, int all)
 {
-    int m = who_now(), done = 0;
+    int m = who_now(), done = 0, shown = m, shared = sheetview_shared();
     if (i < 0 || i >= store_n()) return 0;
     int id = store_id(i), q = store_q(i);
     for (int t = 0; t < (all ? 255 : 1); t++) {
         if (i >= store_n() || store_id(i) != id || store_q(i) != q) break;   /* (that entry is gone) */
-        if (!gm_room_for(m, id, q)) break;
+        if (shared) { m = pack_target(id, q); if (m < 0) break; g_ww(GV_cache_who, (u16)m); }
+        else if (!gm_room_for(m, id, q)) break;
         g_ww((u16)(GV_cache_side + 2 * m), 1); g_ww((u16)(GV_cache_top + 2 * m), (u16)i); g_ww((u16)(GV_cache_sel + 2 * m), 0);
         g_ww(GV_cache_n_shown, (u16)store_n());
         int before = store_units();
@@ -77,9 +121,14 @@ static int take(int i, int all)
         if (store_units() >= before) break;
         done++;
     }
+    if (shared) g_ww(GV_cache_who, (u16)shown);
     char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[160];
-    if (done) snprintf(t, sizeof t, "%s takes %d %s.", cache_model.names[m], done, nm);
+    if (shared) {
+        if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
+        else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
+    }
+    else if (done) snprintf(t, sizeof t, "%s takes %d %s.", cache_model.names[m], done, nm);
     else snprintf(t, sizeof t, "%s has no room for another kind of thing (64 at most).", cache_model.names[m]);
     note(t);
     return done;
@@ -110,8 +159,48 @@ static int put(int idx, int all, int quiet)
     return done;
 }
 
+/* the shared pack: store one (or all the party's spare ones) of a kind, from whoever has one spare */
+static int pack_put(int id, int q, int all, int quiet)
+{
+    int shown = who_now(), done = 0;
+    for (int k = 0; k < (all ? 255 * 5 : 1); k++) {
+        int m, rec;
+        if (!gm_pack_find(shown, id, q, &m, &rec)) break;
+        g_ww(GV_cache_who, (u16)m);
+        g_ww((u16)(GV_cache_side + 2 * m), 0); g_ww((u16)(GV_cache_inv_top + 2 * m), (u16)rec); g_ww((u16)(GV_cache_inv_sel + 2 * m), 0);
+        g_ww((u16)(GV_cache_n_items + 2 * m), (u16)gm_item_count(m));
+        int before = store_units();
+        key(0x1950);
+        if (ns_unwinding) return done;
+        if (store_units() <= before) break;
+        done++;
+    }
+    g_ww(GV_cache_who, (u16)shown);
+    if (!quiet) {
+        char nm[32], t[160]; gm_itemdef_name(id, nm, sizeof nm);
+        if (done) snprintf(t, sizeof t, "%d %s stored.", done, nm);
+        else snprintf(t, sizeof t, "The store is full: the %s stays in the pack.", nm);
+        note(t);
+    }
+    return done;
+}
+
 static void put_away(void)                   /* everything the member does not have in use */
 {
+    if (sheetview_shared()) {                /* (the shared pack: all the party's spares but the kept ones) */
+        int kinds = 0, units = 0, kept = 0;
+        for (int r = 0; r < cache_model.nitems && !ns_unwinding; r++) {
+            CvItem it = cache_model.item[r];
+            if (it.kept) { kept++; continue; }
+            int d = pack_put(it.id, it.qual, 1, 1);
+            if (d) { kinds++; units += d; }
+        }
+        char t[160];
+        if (units) snprintf(t, sizeof t, "Stored %d things (%d kinds); what is in use%s stays.", units, kinds, kept ? " and what is kept" : "");
+        else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept things." : "Nothing to store: the pack is empty.");
+        note(t);
+        return;
+    }
     int m = who_now(), kinds = 0, units = 0;
     for (int i = gm_item_count(m) - 1; i >= 0 && !ns_unwinding; i--) {
         if (gm_item_equipped(m, i)) continue;
@@ -176,7 +265,8 @@ static void screen_hook(void)                 /* item_cache_screen(arg), s035 14
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
             case CV_TAKE: take(a.a, a.b == 255); break;
-            case CV_PUT: put(a.a, a.b == 255, 0); break;
+            case CV_PUT: if (cache_model.shared) { if (a.a >= 0 && a.a < cache_model.nitems) pack_put(cache_model.item[a.a].id, cache_model.item[a.a].qual, a.b == 255, 0); }
+                         else put(a.a, a.b == 255, 0); break;
             case CV_WHO: set_who(a.a); break;
             case CV_PUTAWAY: put_away(); break;
             case CV_LEAVE: leave = 1; break;

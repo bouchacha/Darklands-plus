@@ -9,7 +9,11 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, count, weight; } CvEntry;
-typedef struct { int idx, id, qual, count, weight, equipped; } CvItem;
+typedef struct { int idx, id, qual, count, weight, equipped, kept; } CvItem;
+/* (the shared pack, inventory.shared: the right list is the party's pack, every spare thing of
+   every member by kind and quality (idx -1, count the party's spares); Take puts a thing with
+   whoever carries some already, else with whoever has the most free places; Put stores it from
+   whoever has a spare one; Put away stores all the party's spares but the kept ones) */
 
 typedef struct {
     int open;
@@ -19,8 +23,9 @@ typedef struct {
     char place[24];
     int nstore;
     CvEntry store[256];
+    int shared;                      /* the right list is the party's pack */
     int nitems;
-    CvItem item[64];
+    CvItem item[200];
     int room;                        /* the member shown can take another kind of thing */
     unsigned seq;
     char note[160];
