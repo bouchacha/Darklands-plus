@@ -26,6 +26,8 @@ void ui_guide_tab(void)
         "Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Watch the green bar: below half, keep that member out of the fight.",
         "Divine Favor (DF) is spent calling on saints and comes back with prayer (and slowly by itself).",
         "Each member's attributes and skills are on the character sheet (a click on the portrait, or F1 ... F5); the bars on the party panel show End, Str and DF all the time.",
+        "The pack is the whole party's: a member keeps only what they use and the horse or mule they ride, and whatever the game asks one member for (a potion in a battle or on a card, lock picks, arrows, a mount) is handed to them as it is needed. Only what is in use weighs.",
+        "A card's tests are made by the member best at each (the chance and the name are beside the option). The leader still takes what befalls \"the leader\" on a card, and acts first in a battle.",
     }, true);
     topic("Money and reputation", {
         "1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you.",
@@ -57,7 +59,7 @@ void ui_guide_tab(void)
         "Darklands+ shows the chance on the prayer page and in a card's options. F12 > Saints lists who knows which saint and what each does.",
     });
     topic("Battle", {
-        "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk).",
+        "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk). Z fast-forwards (and Z again slows down).",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
         "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Helpers).",
