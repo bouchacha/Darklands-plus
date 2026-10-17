@@ -296,7 +296,7 @@ static void right_panel(int size)
         }
         static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
         if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
-        for (auto &m : marks) if (m.first == cur) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s", m.second.c_str());
+        for (auto &m : marks) if (m.first == cur) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopStyleColor(); }
         any = true;
     }
     else if (cur >= (int)gamedata.cities.size() && cur < G_NLOC && game_mode() == GM_CARD) {   /* (battles reuse the location table) */
@@ -309,7 +309,7 @@ static void right_panel(int size)
             ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
             static std::vector<std::pair<int, std::string>> marks; static int mf = -1000;
             if (ImGui::GetFrameCount() - mf > 30) { void quest_marks(std::vector<std::pair<int, std::string>> &); quest_marks(marks); mf = ImGui::GetFrameCount(); }
-            for (auto &m : marks) if (m.first == cur) ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s", m.second.c_str());
+            for (auto &m : marks) if (m.first == cur) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.78f, 0.40f, 1)); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopStyleColor(); }
             if ((s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18)) > 0) ImGui::TextWrapped("The party has goods stored here (F12 > Journal > Stored).");
             any = true;
         }
