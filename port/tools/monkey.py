@@ -74,7 +74,7 @@ while time.time() < t_end:
     if a.x11 and rnd.random() < 0.08:          # the interface: tabs of the F12 menu, the maps, help
         act = rnd.choice(['tabs', 'map', 'level', 'help'])
         L('ui', act)
-        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(12) for _ in range(4)) + '; key F12; wait 0.5')
+        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(14) for _ in range(4)) + '; key F12; wait 0.5')
         elif act == 'map': nctl.do(name, 'ucmd umap:; wait 1.5; ucmd umap:; wait 0.5')
         elif act == 'level': nctl.do(name, 'ucmd ulevelmap:; wait 1.5; ucmd ulevelmap:; wait 0.5')
         elif act == 'help': nctl.do(name, 'ucmd uhelp:; wait 1; ucmd uhelp:; wait 0.5')
@@ -102,6 +102,7 @@ while time.time() < t_end:
         if time.time() - same_since > 120:
             L('battle stuck for 2 min: striking the enemies'); nctl.do(name, '; '.join('ucmd uhit:0,%d,40,0' % t for t in range(5, 25)) + '; wait 4')
             if paused: nctl.do(name, 'key space; wait 4')
+        elif rnd.random() < 0.06: nctl.do(name, 'key e; wait 2; click; wait 1.5')      # Enemy Info
         elif paused: nctl.do(name, 'key space; wait 6')
         elif time.time() - same_since > 20:     # nothing happens (a castle or dungeon to explore): walk somewhere
             nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))

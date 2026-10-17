@@ -142,7 +142,7 @@ extern "C" void lodgeview_draw(void)
             snprintf(b, sizeof b, "A teacher of %s: %d pf a day, paid each day of lessons. %s's %s is now %d.", sk, T.fee,
                      ns_gtext(p.name).c_str(), sk, T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0);
             about = b;
-        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now (teachers come with a card: someone met in the town).";
+        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking for tutoring or instruction at the monastery, the university, a guild, the armourer, swordsmith, blacksmith, bowyer, artificer or the town council; they then teach here for a while.";
         if (!about.empty()) P.para(fo, NsDraw::FS_SMALL, RX0 + 4, fmaxf(ay + 2, BY - 22), RX1 - RX0 - 8, soft, about);
     }
 
