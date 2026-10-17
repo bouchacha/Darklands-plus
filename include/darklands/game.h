@@ -285,6 +285,7 @@
 #define cbt_forget_target        sub_s014_0e76_27cc   /* (i): enemies forget i as target */
 #define push_direction           sub_s014_0e76_2a04   /* (): attacker's facing, randomly turned by one */
 #define melee_exchanges          sub_s014_0e76_2a4a   /* (): melee rolls of a tick */
+#define cbt_ready                sub_s014_0e76_2fa2   /* (i): arrived or stopped: action 7 "ready"; one with an attack order engages at once */
 #define combat_input             sub_s014_0e76_3166   /* (): player input of one tick */
 #define cursor_keys              sub_s014_0e76_35fc   /* (): cursor keys move the mouse pointer */
 #define cbt_set_anim             sub_s014_0e76_38b6   /* (i, anim): set the animation, loading the sprite set */
@@ -443,6 +444,8 @@
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
 #define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */
+#define cbt_mods                 D_a532               /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define cursor_target            D_d845               /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
 #define hotspot_cbt              D_d848               /* hot spot -> combatant */
 #define hotspot_count            D_e0a1

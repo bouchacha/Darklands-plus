@@ -50,8 +50,8 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
 
 /* ---------------------------------------------------------------- stepping aside to shoot */
 #define CBT(i) ((u16)(GV_combatants + (i) * 0x80))
-#define HELD(i) ((u16)(0xa532 + (i) * 0x12 + 9))          /* D_a532[i].held */
-#define PATH_STEP(i) ((u16)(0xd6fb + (i)))                 /* D_d6fb: the walk's step */
+#define HELD(i) ((u16)(GV_cbt_mods + (i) * 0x12 + 9))      /* cbt_mods[i].held */
+#define PATH_STEP(i) ((u16)(GV_cbt_path_step + (i)))
 
 static int on_reposition(void) { return config_get_int("battle.reposition_shooters", 1) && !config_get_int("original", 0); }
 static signed char walk_for[5] = { -1, -1, -1, -1, -1 };  /* the target a member walks aside to shoot */
@@ -130,7 +130,7 @@ static void exchanges_hook(void)              /* melee_exchanges (), s014 0e76:2
     }
 }
 
-static void arrive_hook(void)                 /* s014 0e76:2fa2 (i): arrived or stopped, "ready" */
+static void arrive_hook(void)                 /* cbt_ready (i), s014 0e76:2fa2: arrived or stopped, "ready" */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
     int was = i >= 0 && i < 5 ? walk_for[i] : -1;
@@ -151,5 +151,5 @@ void battlerules_init(void)
 {
     hook_install(GF_line_blocked, blocked_hook);
     hook_install(GF_melee_exchanges, exchanges_hook);
-    hook_install(14, 0x0e76, 0x2fa2, arrive_hook);
+    hook_install(GF_cbt_ready, arrive_hook);
 }

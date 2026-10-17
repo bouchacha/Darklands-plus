@@ -104,6 +104,8 @@
 #define GV_order_action                 0xa6b0    /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define GV_order_special                0xa6d1    /* the action at a place being ordered (with order_action 0x400) */
 #define GV_cbt_state                    0xa3d8    /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define GV_cbt_path_step                0xd6fb    /* char[13]: the step a walk has reached in its path */
+#define GV_cbt_mods                     0xa532    /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define GV_cursor_target                0xd845    /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
 #define GV_hotspot_cbt                  0xd848    /* hot spot -> combatant */
 #define GV_hotspot_count                0xe0a1
@@ -516,6 +518,7 @@
 #define GF_cbt_forget_target            14, 0x0e76, 0x27cc    /* (i): enemies forget i as target */
 #define GF_push_direction               14, 0x0e76, 0x2a04    /* (): attacker's facing, randomly turned by one */
 #define GF_melee_exchanges              14, 0x0e76, 0x2a4a    /* (): melee rolls of a tick */
+#define GF_cbt_ready                    14, 0x0e76, 0x2fa2    /* (i): arrived or stopped: action 7 "ready"; one with an attack order engages at once */
 #define GF_combat_input                 14, 0x0e76, 0x3166    /* (): player input of one tick */
 #define GF_cursor_keys                  14, 0x0e76, 0x35fc    /* (): cursor keys move the mouse pointer */
 #define GF_cbt_set_anim                 14, 0x0e76, 0x38b6    /* (i, anim): set the animation, loading the sprite set */

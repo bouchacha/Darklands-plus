@@ -220,5 +220,5 @@ void sharedstore_init(void)
     hook_install(GF_cache_load, load_hook);
     hook_install(GF_cache_close, close_hook);
     hook_install(GF_world_load, world_hook);
-    hook_install(35, 0x1462, 0x0a46, key_hook);
+    hook_install(GF_cache_key, key_hook);
 }
