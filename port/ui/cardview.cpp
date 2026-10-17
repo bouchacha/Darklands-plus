@@ -253,7 +253,7 @@ extern "C" void cardview_draw(void)
         }
         if (p.is_opt && p.type == -1 && p.state == 1) {          /* a fight: two crossed blades */
             ImVec2 cpos(X1 - 0.9f * size, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
-            float r = size * 0.36f, th = fmaxf(1.2f, 0.32f * k);
+            float r = size * 0.42f, th = fmaxf(1.2f, 0.34f * k);
             ImU32 bc = dark ? IM_COL32(230, 120, 100, 230) : IM_COL32(140, 30, 20, 230);
             for (int s = -1; s <= 1; s += 2) {                   /* (each a sword: blade, crossguard, pommel - two bare lines read as an X, "not possible") */
                 ImVec2 tip(cpos.x - s * r, cpos.y - r), hilt(cpos.x + s * r, cpos.y + r);
@@ -328,8 +328,14 @@ extern "C" void cardview_draw(void)
                     float tx = ex + namew + 0.9f * size;
                     dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
                     if (knows) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, "knows it already");
-                } else
-                dl->AddText(f, size * 0.95f, ImVec2(ex + namew + 0.9f * size, ey), ec, et.c_str());
+                } else {
+                    float tx = ex + namew + 0.9f * size;
+                    dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
+                    /* why a line is there that cannot be chosen, or can without the thing (the game's colour codes) */
+                    const char *why = en.code == 0x84 ? "knows its formula, carries none" :
+                                      en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest level the leader need not know the saint" : "at the easiest level the leader needs none") : nullptr;
+                    if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
+                }
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
                 if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
                 ey += h;
