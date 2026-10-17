@@ -99,9 +99,11 @@ while time.time() < t_end:
         if r < 0.5 and not (len(recent) == 25 and len(set(recent)) == 1): nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
         else: nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(80, 300), rnd.randrange(20, 190)))
     elif mode == 4:
-        if time.time() - same_since > 120:
+        if time.time() - same_since > 120 and rnd.random() < 0.5:     # (a castle or dungeon to explore: walking as well)
             L('battle stuck for 2 min: striking the enemies'); nctl.do(name, '; '.join('ucmd uhit:0,%d,40,0' % t for t in range(5, 25)) + '; wait 4')
             if paused: nctl.do(name, 'key space; wait 4')
+        elif time.time() - same_since > 120:
+            L('battle stuck for 2 min: walking'); nctl.do(name, ('key space; wait 1; ' if paused else '') + 'at %d %d; click; wait 8' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
         elif rnd.random() < 0.06: nctl.do(name, 'key e; wait 2; click; wait 1.5')      # Enemy Info
         elif paused: nctl.do(name, 'key space; wait 6')
         elif time.time() - same_since > 20:     # nothing happens (a castle or dungeon to explore): walk somewhere
