@@ -31,8 +31,9 @@ typedef struct {
 
 extern BarterModel barter_model;
 
-enum { BV_BUY = 1, BV_SELL, BV_WHO, BV_PAYER, BV_LEAVE };
-/* BV_BUY ware n   BV_SELL item n (n = 255: the whole stack)   BV_WHO member   BV_PAYER member   BV_LEAVE */
+enum { BV_BUY = 1, BV_SELL, BV_WHO, BV_PAYER, BV_LEAVE, BV_BATCH_START, BV_BATCH_END };
+/* BV_BUY ware n   BV_SELL item n (n = 255: the whole stack)   BV_WHO member   BV_PAYER member   BV_LEAVE
+   BV_BATCH_START / BV_BATCH_END: round several sales, one word on them all at the end */
 
 int barterview_on(void);
 void barterview_set(int on);

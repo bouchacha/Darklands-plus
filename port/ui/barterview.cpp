@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <vector>
+#include <algorithm>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/nscreen.h"
@@ -46,7 +48,8 @@ struct View {
     int scroll[2];          /* first row shown: wares, member's things */
     bool formulae;          /* the right column lists the party's formulae (a shop with ingredients) */
     int fscroll;
-    std::string fnote;      /* what the formula button under the pointer buys */
+    std::string fnote;      /* what the formula button under the pointer buys (or the spare gear) */
+    std::string fhead;      /* its heading, "" for the formula's */
     int last_who = -1;
     int hover_list = -1, hover_row = -1;       /* the row described in the strip */
     unsigned hover_seq;
@@ -112,7 +115,7 @@ extern "C" void barterview_draw(void)
         float bx1 = LX1, bx0 = bx1 - W(fo, NsDraw::FS_SMALL, lab) - 6;
         if (P.button(bx0, 20.5f, bx1, 28.5f, lab, IM_COL32(120, 84, 40, 235))) { V.formulae = !V.formulae; V.fscroll = 0; }
     }
-    V.fnote.clear();
+    V.fnote.clear(); V.fhead.clear();
     {
         int n = 0; for (int m = 0; m < 5; m++) if (b.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
@@ -290,9 +293,32 @@ extern "C" void barterview_draw(void)
 
     /* the strip: the row under the pointer (or the last one), what the last action did */
     float SY0 = LY1 + 3, SY1 = 196;
+    /* sell the spare gear: the weapons, armour and shields the member carries but does not use (not
+       arrows, quarrels, balls or things to throw), that this shop pays for; asked twice */
+    static unsigned ask_t; static int ask_who = -1;
+    std::vector<int> spare; long spare_pf = 0; int spare_n = 0;
+    for (int i = 0; i < b.nitems; i++) {
+        const BvItem &it = b.item[i];
+        const ItemDef *d = def(it.id);
+        if (!d || it.equipped || it.price <= 0) continue;
+        if (!(d->kind == K_WEAPON || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_MISSILE)) continue;
+        if ((d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42)) continue;
+        spare.push_back(it.idx); spare_pf += (long)it.price * it.count; spare_n += it.count;
+    }
+    bool asking = ask_who == b.who && plat_ticks_ms() - ask_t < 5000;
+    std::string slab = asking ? "Click again to sell them" : "Sell spare gear";
+    float sbx1 = 314, sbx0 = sbx1 - W(fo, NsDraw::FS_SMALL, slab) - 6;
+    bool show_spare = !spare.empty() && !V.formulae;
+    bool spare_h = show_spare && (asking || in(mx, my, sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f));
+    if (spare_h && V.fnote.empty()) {
+        char t[200];
+        snprintf(t, sizeof t, "%d thing%s not in use (weapons, armour, shields; not ammunition or things to throw), for about %s in all.%s",
+                 spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
+        V.fnote = t; V.fhead = "Spare gear";
+    }
     R(63, SY0, 317, SY1, IM_COL32(230, 214, 178, 255), 1.5f);
     if (!V.fnote.empty()) {
-        T(f, NsDraw::FS_HEAD, 68, SY0 + 1.5f, ink, "For the formula");
+        T(f, NsDraw::FS_HEAD, 68, SY0 + 1.5f, ink, V.fhead.empty() ? "For the formula" : V.fhead);
         P.para(fo, NsDraw::FS_BODY, 68, SY0 + 10, 245, ink_soft, V.fnote);
     } else if (V.hover_list >= 0) {
         int L = V.hover_list, i = V.hover_row;
@@ -320,6 +346,18 @@ extern "C" void barterview_draw(void)
             T(fo, NsDraw::FS_BODY, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
-    if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note));
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays");
+    if (show_spare) {
+        if (P.button(sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f, slab, asking ? IM_COL32(140, 60, 40, 235) : IM_COL32(120, 84, 40, 235))) {
+            if (asking) {
+                std::sort(spare.begin(), spare.end());
+                ns_push(BV_BATCH_START, 0, 0, 0);
+                for (int k = (int)spare.size() - 1; k >= 0; k--) ns_push(BV_SELL, spare[k], 255, 0);   /* (the last first: the others keep their places) */
+                ns_push(BV_BATCH_END, 0, 0, 0);
+                ask_who = -1;
+            } else { ask_who = b.who; ask_t = plat_ticks_ms(); }
+        }
+        sbx0 -= 3;
+    } else sbx0 = 316;
+    if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note), -1, sbx0);
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays", -1, sbx0);
 }

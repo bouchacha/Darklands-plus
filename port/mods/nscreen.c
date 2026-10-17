@@ -160,7 +160,7 @@ int ns_hot_key(int k)
 }
 
 /* ---------------------------------------------------------------- actions */
-#define NQ 32
+#define NQ 160          /* (the shop's "Sell spare gear" pushes a sale for each of up to 64 kinds of things) */
 static NsAction q[NQ]; static int qh, qt;
 void ns_push(int type, int a, int b, int c) { int n = (qt + 1) % NQ; if (n == qh) return; q[qt].type = type; q[qt].a = a; q[qt].b = b; q[qt].c = c; qt = n; }
 int ns_pop(NsAction *out) { if (qh == qt) return 0; *out = q[qh]; qh = (qh + 1) % NQ; return 1; }

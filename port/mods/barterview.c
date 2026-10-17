@@ -83,6 +83,7 @@ static void build(void)
 }
 
 static long purse(void) { int f, g, p; gm_money(&f, &g, &p); return (long)f * 240 + g * 12 + p; }
+static long batch_purse; static int batch_items, batch;
 
 static int key(int k) { return ns_call(GF_barter_key, 1, k); }
 
@@ -212,6 +213,16 @@ void barterview_run(void)
             case BV_WHO: set_who(a.a); break;
             case BV_PAYER: set_payer(a.a); break;
             case BV_LEAVE: leave = 1; break;
+            case BV_BATCH_START: batch_purse = purse(); batch_items = gm_item_count((s16)g_rw(GV_barter_who)); batch = 1; break;
+            case BV_BATCH_END: {
+                batch = 0;
+                long got = purse() - batch_purse;
+                char t[120];
+                if (got <= 0) snprintf(t, sizeof t, "Nothing sold: this merchant pays nothing for those things.");
+                else snprintf(t, sizeof t, "Sold the spare gear (%d kinds of things) for %ldfl %ldgr %ldpf.", batch_items - gm_item_count((s16)g_rw(GV_barter_who)), got / 240, got % 240 / 12, got % 12);
+                note(t);
+                break;
+            }
             }
             if (!ns_unwinding) build();
         }
