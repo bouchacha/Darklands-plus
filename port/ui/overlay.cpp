@@ -1212,6 +1212,43 @@ std::string ui_enemy_name(int floor, u16 b)
     for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
     return "";
 }
+/* a thin bar over each fighter on the field: the endurance left (the party's blue, the enemies'
+   red), and a second, the strength, once it is down by half (battle.bars) */
+int ui_battle_bars = 1;
+static void draw_battle_bars(void)
+{
+    if (!ui_battle_bars || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    int n = (s8)g_rb(GV_hotspot_count);
+    if (n <= 0 || n > 40) return;
+    ImDrawList *dl = ovl_list();
+    bool done[13] = {};
+    float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
+    for (int i = 0; i < n; i++) {
+        int m = g_rb((u16)(GV_hotspot_cbt + i));
+        if (m >= 13 || done[m]) continue;
+        done[m] = true;
+        u16 b = (u16)(GV_combatants + m * 0x80);
+        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+        if (st != 1 || endm <= 0) continue;
+        int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
+        if (x1 <= x0 || x1 - x0 > 60) continue;
+        float cx = (x0 + x1) * 0.5f + 60, w = 10.0f, gy = (float)y0 - 5.5f;       /* (the hot spot starts at the head: the bar clear above it) */
+        if (gy < 1) gy = 1;
+        ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
+        float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x;
+        float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
+        ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
+        dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
+        if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
+        if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
+            float fs = str < 0 ? 0 : (float)str / strm;
+            ImVec2 a2(a.x, a.y + h + 1);
+            dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
+            if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
+        }
+    }
+}
+
 static void draw_battle_info(void)
 {
     if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
@@ -1400,6 +1437,7 @@ extern "C" void ui_overlay(void)
     if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER) draw_version();       /* (not over a character being made, the party chosen) */
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
+    draw_battle_bars();
     draw_battle_info();
     { void battlelog_overlay(void); battlelog_overlay(); }
     if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */

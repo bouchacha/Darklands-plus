@@ -92,6 +92,20 @@ static std::string where(int loc)
     return n + ", " + (bd < 3 ? "near " : std::string(DIR[k]) + " of ") + loc_name(best);
 }
 
+/* the town nearest a place (its own name for a town) */
+static std::string nearest_town(int loc)
+{
+    if (loc >= 0 && loc < (int)gamedata.cities.size()) return loc_name(loc);
+    int x, y; if (!loc_xy(loc, &x, &y)) return loc_name(loc);
+    int best = -1; double bd = 1e9;
+    for (int c = 0; c < (int)gamedata.cities.size(); c++) {
+        int cx, cy; if (!loc_xy(c, &cx, &cy)) continue;
+        double d = hypot((double)(x - cx), (double)(y - cy) / 2.0);
+        if (d < bd) { bd = d; best = c; }
+    }
+    return best < 0 ? loc_name(loc) : loc_name(best);
+}
+
 /* the game's own name for a person (random_name, s029 1367:0db4, seeded by the party seed);
  * asked side-effect free and kept */
 static std::map<int, std::string> names;
@@ -173,7 +187,7 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x24 && e.tag == 10)
             add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit);
         else if (e.kind == 8 && e.tag == 4)
-            add("Dragon @ " + place, "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false);
+            add("Dragon near " + nearest_town(e.loc), "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false);
         else if (e.kind == 8 && e.tag == 12)
             add("Mine @ " + place, "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc, false);
         else if (e.kind == 8 && e.tag == 7)

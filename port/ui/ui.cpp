@@ -249,7 +249,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
     { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
     { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
-    { extern int ui_battle_info, ui_battle_numbers; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); }
+    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
     { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
     ui_spell_out = config_get_int("display.spell_out", 1);
     sys_cursor = config_get_int("display.system_cursor", 0);
@@ -643,6 +643,8 @@ static void tab_helpers(void)
         if (ImGui::Checkbox("Battle map: scroll at a steady pace (Shift at the edge no longer flies to the end of the field)", &sp)) { battlescroll_set(sp, sr); dirty_config = 1; }
         if (sp) { ImGui::SameLine(); if (ImGui::Checkbox("the pointer resting on the edge scrolls, no Shift needed", &sr)) { battlescroll_set(sp, sr); dirty_config = 1; } } } }
       if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); dirty_config = 1; }
+      { extern int ui_battle_bars; bool bb = ui_battle_bars != 0;
+        if (ImGui::Checkbox("A bar over each fighter: the endurance left (and the strength once it is down by half)", &bb)) { ui_battle_bars = bb; config_set_int("battle.bars", bb); dirty_config = 1; } }
       { extern int ui_battle_log; bool bl = ui_battle_log != 0;
         if (ImGui::Checkbox("Battle log: every blow, parry, wound and fall, in the left margin on a wide screen, else over the field (F12 > Journal keeps it)", &bl)) { ui_battle_log = bl; config_set_int("battle.log", bl); dirty_config = 1; } }
       if (bi) { ImGui::SameLine(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); dirty_config = 1; } } }
