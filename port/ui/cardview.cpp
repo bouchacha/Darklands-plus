@@ -36,7 +36,7 @@ extern "C" u32 plat_ticks_ms(void);
 extern "C" const char *card_hint(const char *card, int opt);     /* ui/cardhints.cpp */
 static const char *greyed_hint(const CvPiece &p)                  /* why this greyed option cannot be chosen, if known */
 {
-    if (!assist_card_help || !p.is_opt || p.state != 2 || p.type == 1 || p.type == 2) return nullptr;
+    if (!assist_card_help || !p.is_opt || p.state != 2) return nullptr;
     char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
     return card_hint(nm, p.opt);
 }
@@ -365,7 +365,7 @@ extern "C" void cardview_draw(void)
     }
     if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
-    else if (menu && c.hover >= 0 && c.hover < c.npieces && greyed_hint(c.piece[c.hover])) {
+    else if (menu && c.hover >= 0 && c.hover < c.npieces && c.piece[c.hover].type != 1 && c.piece[c.hover].type != 2 && greyed_hint(c.piece[c.hover])) {
         ImGui::SetNextWindowPos(ImVec2(bx1 + 4.5f * k, laid[c.hover].y0 - shift));     /* beside the option (the pointer may be the game's only) */
         ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(ImGui::GetFontSize() * 22, FLT_MAX));
         ImGui::BeginTooltip();
@@ -418,6 +418,13 @@ extern "C" void cardview_draw(void)
             ImGui::BeginTooltip();
             ImGui::TextDisabled("%s", p.type == 2 ? "Saints who help here" : formulas ? "Formulae for sale" : "Items that help here");
             for (auto &r : rows) { ImGui::TextUnformatted(r.first.c_str()); ImGui::SameLine(); ImGui::TextDisabled("  %s", r.second.c_str()); }
+            if (const char *why = greyed_hint(p)) {                 /* greyed for a reason of the card's own */
+                ImGui::Separator();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 21);
+                ImGui::TextDisabled("Not possible now");
+                ImGui::TextUnformatted(why);
+                ImGui::PopTextWrapPos();
+            }
             if (formulas) ImGui::TextDisabled("(click to choose who learns one; each formula's details there)");
             else if (p.state == 1) ImGui::TextDisabled("(click to choose who)");
             ImGui::EndTooltip();
