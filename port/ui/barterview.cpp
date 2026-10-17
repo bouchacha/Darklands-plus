@@ -19,6 +19,10 @@
 #include "../mods/nscreen.h"
 #include "../mods/barterview.h"
 #include "nsdraw.h"
+#include <vector>
+extern "C" {
+#include "../mods/gamemodel.h"
+}
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -40,6 +44,9 @@ std::string money(long pf)
 }
 struct View {
     int scroll[2];          /* first row shown: wares, member's things */
+    bool formulae;          /* the right column lists the party's formulae (a shop with ingredients) */
+    int fscroll;
+    std::string fnote;      /* what the formula button under the pointer buys */
     int last_who = -1;
     int hover_list = -1, hover_row = -1;       /* the row described in the strip */
     unsigned hover_seq;
@@ -90,6 +97,21 @@ extern "C" void barterview_draw(void)
     /* the member tabs (right column); the coin (or a right click): holds the purse */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9;
     T(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "For sale");
+    /* a shop with ingredients and a party that knows formulae: the formulae, to buy for batches */
+    bool can_formulae = false;
+    for (int i = 0; i < b.nwares && !can_formulae; i++) { const ItemDef *d = def(b.ware[i].id); if (d && d->kind == K_INGREDIENT) can_formulae = true; }
+    if (can_formulae) {
+        bool kn = false;
+        for (int m = 0; m < 5 && !kn; m++) if (b.present[m]) for (int fm = 0; fm < 66 && !kn; fm++) if (gm_knows_formula(m, fm)) kn = true;
+        can_formulae = kn;
+    }
+    if (!can_formulae) V.formulae = false;
+    else {
+        const char *lab = V.formulae ? "Your things" : "Formulae";
+        float bx1 = LX1, bx0 = bx1 - W(fo, NsDraw::FS_SMALL, lab) - 6;
+        if (P.button(bx0, 20.5f, bx1, 28.5f, lab, IM_COL32(120, 84, 40, 235))) { V.formulae = !V.formulae; V.fscroll = 0; }
+    }
+    V.fnote.clear();
     {
         int n = 0; for (int m = 0; m < 5; m++) if (b.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
@@ -117,6 +139,7 @@ extern "C" void barterview_draw(void)
     float LY1 = LY0 + NROWS * ROWH;
     int new_hl = -1, new_hr = -1;
     for (int L = 0; L < 2; L++) {
+        if (L == 1 && V.formulae) continue;
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
         int n = L ? b.nitems : b.nwares;
         R(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
@@ -180,13 +203,86 @@ extern "C" void barterview_draw(void)
             R(x1 - 1.6f, ty, x1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
         }
     }
+    if (V.formulae) {
+        /* the formulae the party knows whose ingredients this shop sells: what is carried, what a
+           batch more needs, and +1 / +5: buy what that many batches more need (for the member of the
+           tab; the game's own purchases, one by one) */
+        R(RX0, LY0 - 1, RX1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
+        Rl(RX0, LY0 - 1, RX1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
+        auto carried = [&](int id) {
+            int n = 0; GmItem g;
+            for (int m = 0; m < 5; m++) if (b.present[m]) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id == id) n += g.count;
+            return n;
+        };
+        auto ware_of = [&](int id) { for (int i = 0; i < b.nwares; i++) if (b.ware[i].id == id) return i; return -1; };
+        struct FRow { int f; std::string who; int batches; };
+        std::vector<FRow> rows;
+        for (int fm = 0; fm < 66 && fm < (int)gamedata.formulas.size() && fm < (int)gamedata.formula_names.size(); fm++) {
+            std::string who;
+            for (int m = 0; m < 5; m++) if (b.present[m] && gm_knows_formula(m, fm)) { if (!who.empty()) who += ", "; who += gt(b.names[m]); }
+            if (who.empty()) continue;
+            const Formula &F = gamedata.formulas[fm];
+            bool here = false; int bt = 99;
+            for (const FormulaIngr &g : F.ingr) { if (ware_of(g.item) >= 0) here = true; if (g.count > 0) { int c = carried(g.item) / g.count; if (c < bt) bt = c; } }
+            if (!here || F.ingr.empty()) continue;
+            rows.push_back({ fm, who, bt == 99 ? 0 : bt });
+        }
+        const float FH = ROWH * 2;
+        int vis = (int)((LY1 - LY0) / FH), maxs = (int)rows.size() - vis; if (maxs < 0) maxs = 0;
+        if (in(mx, my, RX0, LY0, RX1, LY1) && ns_in.wheel != 0) { V.fscroll -= (int)ns_in.wheel; ns_in.wheel = 0; }
+        if (V.fscroll > maxs) V.fscroll = maxs;
+        if (V.fscroll < 0) V.fscroll = 0;
+        if (rows.empty()) P.para(fo, NsDraw::FS_BODY, RX0 + 3, LY0 + 2, RX1 - RX0 - 6, ink_dim, "None of the party's formulae uses what this shop sells.");
+        std::string to = b.who >= 0 && b.who < 5 ? gt(b.names[b.who]) : "";
+        for (int r = 0; r < vis && V.fscroll + r < (int)rows.size(); r++) {
+            const FRow &fr = rows[V.fscroll + r];
+            const Formula &F = gamedata.formulas[fr.f];
+            float y = LY0 + r * FH;
+            if (r & 1) R(RX0 + 0.5f, y, RX1 - 0.5f, y + FH, IM_COL32(240, 230, 204, 255));
+            /* +1 / +5 batches */
+            float bx = RX1 - 2;
+            for (int k2 = 1; k2 >= 0; k2--) {
+                int nb = k2 ? 5 : 1, target = fr.batches + nb;
+                long cost = 0; bool ok = true; std::string list;
+                std::vector<std::pair<int, int>> buys;
+                for (const FormulaIngr &g : F.ingr) {
+                    int need = g.count * target - carried(g.item);
+                    if (need <= 0) continue;
+                    int w = ware_of(g.item);
+                    if (w < 0) { ok = false; continue; }
+                    buys.push_back({ w, need }); cost += (long)need * b.ware[w].price;
+                    list += (list.empty() ? "" : ", ") + std::to_string(need) + " " + item_name(g.item);
+                }
+                std::string lab = "+" + std::to_string(nb);
+                float bw = W(fo, NsDraw::FS_SMALL, lab) + 5;
+                bool en = ok && !buys.empty();
+                if (P.button(bx - bw, y + 1.2f, bx, y + 8.2f, lab, en ? (cost > b.total_pf ? IM_COL32(140, 60, 40, 200) : IM_COL32(40, 92, 34, 235)) : IM_COL32(150, 136, 112, 140)) && en)
+                    for (auto &bb : buys) ns_push(BV_BUY, bb.first, bb.second, 0);
+                if (in(mx, my, bx - bw, y + 1.2f, bx, y + 8.2f))
+                    V.fnote = !ok ? "This shop does not sell everything it needs." : buys.empty() ? "Already enough for that." :
+                              "Buys " + list + " for " + money(cost) + (cost > b.total_pf ? " (more than the purse holds)" : "") + "; to " + to + ".";
+                bx -= bw + 1.5f;
+            }
+            T(f, NsDraw::FS_NAME * 0.9f, RX0 + 3, y + 1.2f, ink, gamedata.formula_names[fr.f], -1, bx - 1);
+            std::string l2 = fr.batches ? "Enough for " + std::to_string(fr.batches) + (fr.batches == 1 ? " batch" : " batches") : "Not enough for a batch";
+            l2 += " - " + fr.who;
+            T(fo, NsDraw::FS_SMALL, RX0 + 3, y + 10.2f, fr.batches ? ink_soft : red, l2, -1, RX1 - 2);
+        }
+        if ((int)rows.size() > vis) {
+            float th = (LY1 - LY0) * vis / rows.size(), ty = LY0 + (LY1 - LY0 - th) * V.fscroll / (float)(rows.size() - vis);
+            R(RX1 - 1.6f, ty, RX1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
+        }
+    }
     if (new_hl >= 0) { V.hover_list = new_hl; V.hover_row = new_hr; V.hover_seq = b.seq; }
     else if (V.hover_seq != b.seq) V.hover_list = -1;
 
     /* the strip: the row under the pointer (or the last one), what the last action did */
     float SY0 = LY1 + 3, SY1 = 196;
     R(63, SY0, 317, SY1, IM_COL32(230, 214, 178, 255), 1.5f);
-    if (V.hover_list >= 0) {
+    if (!V.fnote.empty()) {
+        T(f, NsDraw::FS_HEAD, 68, SY0 + 1.5f, ink, "For the formula");
+        P.para(fo, NsDraw::FS_BODY, 68, SY0 + 10, 245, ink_soft, V.fnote);
+    } else if (V.hover_list >= 0) {
         int L = V.hover_list, i = V.hover_row;
         bool ok = L ? i < b.nitems : i < b.nwares;
         if (ok) {

@@ -317,7 +317,16 @@ static void colours_frame(void)
     if (!fix_on("colours")) { col_have = 0; return; }
     u8 cur[5][28]; col_read(cur);
     extern unsigned dos_save_read_ms; u32 plat_ticks_ms(void);
-    int loading = dos_save_read_ms && plat_ticks_ms() - dos_save_read_ms < 4000;   /* a game was loaded (quick load, autosave, the save browser, Alt-L) */
+    /* a game was loaded (quick load, autosave, the save browser, Alt-L, Quickstart): its colours
+       come in over the next moments; counted in frames as well as time (a first start of the MT-32
+       or a slow disk held the frames for longer than the time: the stale colours went back) */
+    static unsigned last_read; static int grace;
+    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; grace = 300; }
+    static int prev_mode = -1;                                   /* (the game proper just began: Quickstart, a new game) */
+    if (prev_mode == GM_OTHER && game_mode() != GM_OTHER && grace < 300) grace = 300;
+    prev_mode = game_mode();
+    if (grace > 0) grace--;
+    int loading = grace > 0 || (dos_save_read_ms && plat_ticks_ms() - dos_save_read_ms < 4000);
     if (!col_have || loading || game_mode() == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open()) { memcpy(col_good, cur, sizeof cur); col_have = 1; return; }
     if (!memcmp(cur, col_good, sizeof cur)) return;
     int size = (s16)g_rw(G_PARTY_SIZE), moved = 1;
@@ -330,6 +339,7 @@ static void colours_frame(void)
     for (int m = 0; m < size && m < 5; m++) {
         if (!memcmp(cur[m], col_good[m], 28)) continue;
         if (col_good[m][24] < 'A' || col_good[m][24] > 'Z') continue;    /* the slot was empty: a new member */
+        { int z = 1; for (int i = 0; i < 24; i++) if (col_good[m][i]) z = 0; if (z) continue; }   /* (no colours kept yet: nothing to put back) */
         fprintf(stderr, "fix colours: member %d's colours/figure changed outside creation and loading (mode %d): put back\n", m, game_mode());
         if (getenv("DL_FIX_LOG")) {
             fprintf(stderr, "  was:"); for (int i = 0; i < 28; i++) fprintf(stderr, " %02x", col_good[m][i]);
