@@ -448,6 +448,17 @@ static void tasks_section(bool tables)
             if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str());
             std::string d = quest_distance(r);
             if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextDisabled("%s", d.c_str()); }
+            if (r.loc >= 0 && r.dist >= 1.5 && travel_enabled && game_mode() == GM_MAP) {     /* (on the travel map: go there) */
+                const char *t = "Travel there";
+                ImVec2 tp = ImGui::GetCursorScreenPos(), tsz = ImGui::CalcTextSize(t);
+                bool h = over(tp, ImVec2(tp.x + tsz.x, tp.y + tsz.y));
+                ImU32 tc = h ? IM_COL32(250, 220, 150, 255) : IM_COL32(220, 186, 120, 255);
+                dl->AddText(tp, tc, t);
+                dl->AddLine(ImVec2(tp.x, tp.y + tsz.y), ImVec2(tp.x + tsz.x, tp.y + tsz.y), tc);
+                ImGui::Dummy(tsz);
+                int loc = r.loc; std::string name = r.title;
+                mclick(tp, ImVec2(tp.x + tsz.x, tp.y + tsz.y), [loc, name]() { travel_to_loc(loc, name.c_str()); });
+            }
             ImGui::Unindent(ind);
         }
         ImVec2 a(p0.x - lh * 0.15f, p0.y - lh * 0.1f), b(p0.x + w + lh * 0.15f, (is_open ? ImGui::GetCursorScreenPos().y : ty1) - lh * 0.05f);
