@@ -146,6 +146,11 @@
 #define GV_alchemy_have                 0xe716    /* int[]: the party's ingredients (by item id), less what is reserved */
 #define GV_alchemy_file                 0x9c2b    /* char far *: DARKLAND.ALC in memory */
 #define GV_philosophers_stone           0x9078    /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define GV_pray_box                     0x887a    /* unsigned: the names box's saved picture (0 none) */
+#define GV_pray_df                      0x887c    /* int: the divine favor to be spent */
+#define GV_pray_box_shown               0x887e    /* int: the names box is up */
+#define GV_pray_target                  0x89ea    /* int: the member prayed for (-1 the one praying / the party) */
+#define GV_pray_choose                  0x89ec    /* int: the saint helps one member: who is chosen */
 #define GV_cache_n                      0x89f6    /* unsigned: entries in cache_items */
 #define GV_cache_n_shown                0x89f0    /* int: the same, as the screen last listed */
 #define GV_cache_who                    0x89f2    /* int: the member whose things are shown */
@@ -649,6 +654,10 @@
 #define GF_alchemy_has_all              33, 0x1462, 0x1334    /* (f): the party has formula f's ingredients */
 #define GF_alchemy_brew                 33, 0x1462, 0x1390    /* (hours): start the chosen batches (an event; the ingredients used) */
 #define GF_alchemy_resume               33, 0x1462, 0x14e6    /* (): a batch of this member under way: its ingredients back, its count into the rows */
+#define GF_saint_pray_party             34, 0x1462, 0x0000    /* (who, saint): pray for the whole party; 1 heard, 0 not, -1 backed out */
+#define GF_saint_pray                   34, 0x1462, 0x0102    /* (who, saint): pray (the prayer screen, then the roll) */
+#define GF_saint_screen                 34, 0x1462, 0x022c    /* (who, saint, party): the prayer screen; the chance of success, -1 backed out */
+#define GF_saint_finish                 34, 0x1462, 0x06e2    /* (who, saint): the fonts back; the chance (the saint's handler, 7) */
 #define GF_party_info_screen            34, 0x1550, 0x0006    /* (): party information screen (the symbol party_info) */
 #define GF_item_cache_screen            35, 0x1462, 0x0000    /* (arg): item cache screen (the symbol cache_screen) */
 #define GF_cache_close                  35, 0x1462, 0x04bc    /* (r): the store written back (or none marked), the leader back; returns r */

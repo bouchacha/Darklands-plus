@@ -594,6 +594,15 @@
 #define alchemy_have             D_e716               /* int[]: the party's ingredients (by item id), less what is reserved */
 #define alchemy_file             D_9c2b               /* char far *: DARKLAND.ALC in memory */
 #define philosophers_stone       D_9078               /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define saint_pray_party         sub_s034_1462_0000   /* (who, saint): pray for the whole party; 1 heard, 0 not, -1 backed out */
+#define saint_pray               sub_s034_1462_0102   /* (who, saint): pray (the prayer screen, then the roll) */
+#define saint_screen             sub_s034_1462_022c   /* (who, saint, party): the prayer screen; the chance of success, -1 backed out */
+#define saint_finish             sub_s034_1462_06e2   /* (who, saint): the fonts back; the chance (the saint's handler, 7) */
+#define pray_box                 D_887a               /* unsigned: the names box's saved picture (0 none) */
+#define pray_df                  D_887c               /* int: the divine favor to be spent */
+#define pray_box_shown           D_887e               /* int: the names box is up */
+#define pray_target              D_89ea               /* int: the member prayed for (-1 the one praying / the party) */
+#define pray_choose              D_89ec               /* int: the saint helps one member: who is chosen */
 #define party_info_screen        sub_s034_1550_0006   /* (): party information screen (the symbol party_info) */
 #define party_info_screen_vec    vec_185b             /* overlay call vector of party_info_screen */
 #define item_cache_screen        sub_s035_1462_0000   /* (arg): item cache screen (the symbol cache_screen) */

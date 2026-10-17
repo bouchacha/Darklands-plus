@@ -50,6 +50,28 @@ int ns_call(int sect, u16 seg, u16 off, int n, ...)
     return (s16)AX;
 }
 
+/* a far pointer the game keeps (a handler: an overlay's vector or a root function) */
+void native_go(u16 seg, u16 off);
+int ns_call_ptr(u16 seg, u16 off, int n, ...)
+{
+    if (unw_active) { ns_unwinding = 1; return 0; }
+    ns_unwinding = 0;
+    if (!seg && !off) return 0;
+    int a[12]; va_list ap; va_start(ap, n);
+    for (int i = 0; i < n && i < 12; i++) a[i] = va_arg(ap, int);
+    va_end(ap);
+    u16 sp0 = SP, ds = DS, es = ES;
+    DS = ES = G_DGROUP;
+    tail_pending = 0;
+    for (int i = n - 1; i >= 0; i--) push16((u16)a[i]);
+    push16(HLE_SEG); push16(0xfff0);
+    native_go(seg, off);
+    if (unw_active) { ns_unwinding = 1; return 0; }
+    SP = sp0; DS = ds; ES = es;
+    last_dx = DX;
+    return (s16)AX;
+}
+
 /* ---------------------------------------------------------------- input */
 #define A_MOUSE_BTN GV_mouse_buttons
 static int btn_prev, rbtn_prev;

@@ -555,3 +555,7 @@ extern "C" void sheetview_draw(void)
     } else if (V.tab == TAB_SAINTS) saints(P, s);
     else formulae(P, s);
 }
+
+/* for the prayer screen (ui/prayview.cpp): the saint's statue, its legend and effect */
+const GamePic *ns_saint_statue(int cls) { return statue(cls); }
+void ns_saint_parts(const std::string &t, std::string &lore, std::string &eff) { saint_parts(t, lore, eff); }
