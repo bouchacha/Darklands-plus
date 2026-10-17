@@ -126,6 +126,7 @@ extern "C" void hdtext_draw_cursor(void);
 extern "C" void hdtext_pointer_off(void);
 extern "C" void hdtext_pointer_frame_end(void);
 void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);
+void ui_guide_tab(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
@@ -1304,8 +1305,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             /* the labels a little smaller than the text, so that all of them show in a 960 pixel
                window (the whole tab bar in that face: ImGui measures the tabs again when it lays
                them out) */
-            const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor" };
-            void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor };
+            const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor", "Guide" };
+            void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor, ui_guide_tab };
             ImFont *tf = font_tab;
             {   /* every label whole, with its picture: the smaller face when the window is narrow */
                 float need = 0, avail = ImGui::GetContentRegionAvail().x;
