@@ -14,6 +14,7 @@
 #include "imgui.h"
 extern "C" int ns_showing(void);
 #include "gamedata.h"
+#include "quests.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -438,6 +439,25 @@ extern "C" void worldmap_draw(void)
     ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
     ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other places", &show_other);
     ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Icons", &show_icons);
+    {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
+        static std::vector<QuestRow> qr; static int qf = -1000;
+        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N); qf = ImGui::GetFrameCount(); }
+        bool any = false;
+        for (const QuestRow &r : qr) if (r.loc >= 0 && r.group <= 1) { any = true; break; }
+        if (any && ImGui::TreeNodeEx("Tasks", ImGuiTreeNodeFlags_DefaultOpen)) {
+            for (const QuestRow &r : qr) {
+                if (r.loc < 0 || r.group > 1) continue;
+                std::string d = quest_days(r);
+                char lb[160]; snprintf(lb, sizeof lb, "%s%s%s##q%s", r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
+                if (ImGui::Selectable(lb, selected == r.loc)) {
+                    for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
+                    selected = r.loc;
+                }
+                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+            }
+            ImGui::TreePop();
+        }
+    }
     if (ImGui::TreeNodeEx("Legend", ImGuiTreeNodeFlags_DefaultOpen)) {   /* what the marks mean */
         float is = ImGui::GetFontSize() * 1.1f, colw = ImGui::GetFontSize() * 8.5f;
         ImDrawList *pl = ImGui::GetWindowDrawList();
