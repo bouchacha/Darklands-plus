@@ -340,6 +340,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         float x = RX1 - 58;
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, i, 0, 0); } }
         else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, i, 0, 0); }
+        else if (it.equipped == 2) P.text(fo, NsDraw::FS_SMALL, x + 2, y + 2.4f, soft, "rides it");   /* (the shared pack: their own mount) */
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, i, 0, 0); } }
         x += 19;
         if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
