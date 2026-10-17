@@ -21,6 +21,8 @@ extern int ns_unwinding;
 int ns_call(int sect, u16 seg, u16 off, int n, ...);       /* sect -1 = root; returns AX */
 int ns_call_dx(void);                                     /* DX of the last ns_call */
 int ns_call_ptr(u16 seg, u16 off, int n, ...);            /* a far pointer the game keeps (runtime segment) */
+u16 ns_stack_str(const char *s);                          /* a string for the game on its stack: its offset in SS (= DS) */
+void ns_stack_free(u16 sp);                               /* ... until then: SP back as it was before */
 
 /* the pointer, in game pixels, and the left button's clicks (on release) */
 typedef struct {
@@ -58,7 +60,7 @@ int ns_hidden(void);                  /* the view should not draw now (the menu 
  * portrait, a shop from a card): ns_enter / ns_leave keep a stack, ns_screen and ns_nested are
  * the top's; a view draws only while its screen is the top. */
 extern int ns_screen;
-enum { NS_NONE, NS_CARD, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY, NS_SAVES, NS_CACHE, NS_PRAY, NS_CREATE };
+enum { NS_NONE, NS_CARD, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY, NS_SAVES, NS_CACHE, NS_PRAY, NS_CREATE, NS_ROSTER };
 void ns_enter(int screen);
 void ns_leave(void);
 

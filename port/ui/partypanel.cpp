@@ -89,21 +89,20 @@ static const Portrait *portrait(const std::string &name)
     return p.tex ? &p : nullptr;
 }
 
-/* a member's figure as the game shows it beside a battle (PICS\<code>SHORT.PIC): its colours
- * 0xeb..0xf2 are the member's own (the colour keys, member_palette), the rest the battle's common
- * colours (in the PIC's own palette, else in another figure's, else the screen's) */
-struct Figure { SDL_Texture *tex = nullptr; int w = 0, h = 0; std::string key; };
-static std::map<int, Figure> figures;                   /* by party slot */
-static const Figure *figure(int m)
+/* a figure as the game shows it (PICS\<code><suffix>.PIC: SHORT beside a battle, SMALL the creation
+ * menus' portrait): its colours 0xeb..0xf2 are the member's own (the colour keys, member_palette),
+ * the rest the battle's common colours (in the PIC's own palette, else in another figure's, else
+ * the screen's). Kept per cache slot (made again when the code or the colours change). */
+struct FigTex { GamePic pic; std::string key; };
+static std::map<int, FigTex> figtex;
+const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix)
 {
-    char code[8]; gm_member_figure_code(m, code, sizeof code);
-    if (!code[0] || !pp_ren) return nullptr;
-    unsigned char mp[24]; gm_member_palette(m, mp);
-    std::string key = std::string(code) + std::string((const char *)mp, 24);
-    Figure &f = figures[m];
-    if (f.key == key) return f.tex ? &f : nullptr;
-    if (f.tex) SDL_DestroyTexture(f.tex);
-    f = Figure(); f.key = key;
+    if (!code || !code[0] || !pp_ren) return nullptr;
+    std::string key = std::string(code) + suffix + std::string((const char *)mp, 24);
+    FigTex &f = figtex[cache];
+    if (f.key == key) return f.pic.tex ? &f.pic : nullptr;
+    if (f.pic.tex) SDL_DestroyTexture(f.pic.tex);
+    f = FigTex(); f.key = key;
     static u32 pal[256], common[256]; static u8 mask[256], cmask[256]; static bool have_common;
     if (!have_common) {                                 /* the common colours: from the game's own figures */
         have_common = true;
@@ -117,7 +116,7 @@ static const Figure *figure(int m)
     }
     int w = 0, h = 0;
     memset(mask, 0, sizeof mask);
-    u8 *img = hdart_decode_pic((std::string("PICS\\") + code + "SHORT.PIC").c_str(), &w, &h, pal, mask);
+    u8 *img = hdart_decode_pic((std::string("PICS\\") + code + suffix + ".PIC").c_str(), &w, &h, pal, mask);
     if (!img) return nullptr;
     auto c8 = [](int v) { v &= 63; return (u32)(v << 2 | v >> 4); };
     std::vector<u32> argb((size_t)w * h, 0);
@@ -132,10 +131,17 @@ static const Figure *figure(int m)
         argb[i] = 0xff000000u | c;
     }
     free(img);
-    f.w = w; f.h = h;
-    f.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
-    if (f.tex) { SDL_UpdateTexture(f.tex, 0, argb.data(), w * 4); SDL_SetTextureBlendMode(f.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.tex, SDL_ScaleModeNearest); }
-    return f.tex ? &f : nullptr;
+    f.pic.w = w; f.pic.h = h;
+    f.pic.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+    if (f.pic.tex) { SDL_UpdateTexture(f.pic.tex, 0, argb.data(), w * 4); SDL_SetTextureBlendMode(f.pic.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.pic.tex, SDL_ScaleModeNearest); }
+    return f.pic.tex ? &f.pic : nullptr;
+}
+/* a member's figure beside a battle */
+static const GamePic *figure(int m)
+{
+    char code[8]; gm_member_figure_code(m, code, sizeof code);
+    unsigned char mp[24]; gm_member_palette(m, mp);
+    return ns_figure_pic(m, code, mp, "SHORT");
 }
 
 static const char *order_word(char c)
@@ -214,7 +220,7 @@ extern "C" void partypanel_draw(void)
         }
         if (!drawn && pp_pic != 3) {
             SDL_Texture *t = nullptr; int tw = 0, th = 0;
-            const Figure *fi = pp_pic != 2 ? figure(m) : nullptr;
+            const GamePic *fi = pp_pic != 2 ? figure(m) : nullptr;
             if (fi) { t = fi->tex; tw = fi->w; th = fi->h; }
             char fig = gm_member_herald_letter(m);                          /* the herald: PICS\SHIELD<letter>.PIC */
             if (!t && fig) { char fn[32]; snprintf(fn, sizeof fn, "PICS\\SHIELD%c.PIC", fig); const GamePic *g = gamepic(fn); if (g) { t = g->tex; tw = g->w; th = g->h; } }

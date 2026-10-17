@@ -643,6 +643,19 @@
 #define load_saved_game          sub_s037_1462_4184   /* (name) */
 #define text_input               sub_s037_1462_43e6   /* (buf, max, prompt) */
 #define text_input_vec           vec_20b7             /* overlay call vector of text_input */
+#define roster_screen            sub_s037_1462_0000   /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define roster_leave             sub_s037_1462_0348   /* (r): the portrait and the buttons freed, the fonts back; returns r */
+#define roster_load_pics         sub_s037_1462_0390   /* (): cretscrn.pic, buttnCR2.pic, the fonts */
+#define roster_draw              sub_s037_1462_03d4   /* (): the menu, the list, the party's boxes */
+#define roster_key               sub_s037_1462_0444   /* (key): C new, A add, D drop, K delete, H herald, S figure, 1/2/3 colours, B begin (0x11b) ... at roster_sel */
+#define roster_list              sub_s037_1462_2760   /* (win): the characters of charactr.tmp ('+' in the party), roster_n counted */
+#define roster_figures           sub_s037_1462_4562   /* (): figure_list from pics\F??stat.PIC, A??, C?? */
+#define roster_sel               D_e7da               /* int: the character chosen (charactr.tmp index; -1 none) */
+#define roster_n                 D_e7dc               /* int: characters in charactr.tmp */
+#define roster_portrait          D_e88e               /* seg: the chosen member's portrait (pics\<figure>small.pic) */
+#define roster_buttons           D_e88a               /* seg: pics\buttnCR2.pic */
+#define figure_count             D_e7de               /* int: figures in figure_list */
+#define figure_cur               D_e7e0               /* int: the figure Select Image gave last */
 #define load_game                sub_s037_1c7d_09c6   /* (): confirm, tear down, reload, longjmp to the main loop */
 #define load_game_vec            vec_1851             /* overlay call vector of load_game */
 #define create_character         sub_s037_18c8_0004   /* () */

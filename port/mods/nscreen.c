@@ -26,6 +26,17 @@ int ns_active(void) { return !plat_headless() && !config_get_int("original", 0);
 /* ---------------------------------------------------------------- calling the game */
 static u16 last_dx;
 int ns_call_dx(void) { return (s16)last_dx; }
+
+/* a string the game reads (a file name for its routines): put on its own stack below what is in
+ * use, until ns_stack_free(the SP before); its offset in SS (= DGROUP, so a near pointer too) */
+u16 ns_stack_str(const char *s)
+{
+    int n = (int)strlen(s) + 1;
+    SP = (u16)((SP - n - 2) & ~1);
+    for (int i = 0; i < n; i++) wb(SS, (u16)(SP + i), (u8)s[i]);
+    return SP;
+}
+void ns_stack_free(u16 sp) { SP = sp; }
 int ns_call(int sect, u16 seg, u16 off, int n, ...)
 {
     if (unw_active) { ns_unwinding = 1; return 0; }          /* (the game unwinds: nothing more) */

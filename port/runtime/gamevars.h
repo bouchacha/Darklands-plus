@@ -162,6 +162,12 @@
 #define GV_cache_top                    0x37d8    /* int[5]: the store's list, first shown */
 #define GV_cache_inv_sel                0x37e2    /* int[5]: the member's list, the cursor's row */
 #define GV_cache_sel                    0x37ec    /* int[5]: the store's list, the cursor's row */
+#define GV_roster_sel                   0xe7da    /* int: the character chosen (charactr.tmp index; -1 none) */
+#define GV_roster_n                     0xe7dc    /* int: characters in charactr.tmp */
+#define GV_roster_portrait              0xe88e    /* seg: the chosen member's portrait (pics\<figure>small.pic) */
+#define GV_roster_buttons               0xe88a    /* seg: pics\buttnCR2.pic */
+#define GV_figure_count                 0xe7de    /* int: figures in figure_list */
+#define GV_figure_cur                   0xe7e0    /* int: the figure Select Image gave last */
 #define GV_create_state                 0x8c1e    /* int: 0 name and gender, 1 childhood, 2 attribute EPs, 3 profession, 4 skill EPs */
 #define GV_create_row                   0x8bfc    /* int: the attribute / skill row chosen (skills: rows 7 and 14 are gaps) */
 #define GV_create_hover                 0x43ee    /* int: the list row under the pointer */
@@ -696,6 +702,13 @@
 #define GF_party_delete                 37, 0x1462, 0x3f30    /* (p) */
 #define GF_load_saved_game              37, 0x1462, 0x4184    /* (name) */
 #define GF_text_input                   37, 0x1462, 0x43e6    /* (buf, max, prompt) */
+#define GF_roster_screen                37, 0x1462, 0x0000    /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define GF_roster_leave                 37, 0x1462, 0x0348    /* (r): the portrait and the buttons freed, the fonts back; returns r */
+#define GF_roster_load_pics             37, 0x1462, 0x0390    /* (): cretscrn.pic, buttnCR2.pic, the fonts */
+#define GF_roster_draw                  37, 0x1462, 0x03d4    /* (): the menu, the list, the party's boxes */
+#define GF_roster_key                   37, 0x1462, 0x0444    /* (key): C new, A add, D drop, K delete, H herald, S figure, 1/2/3 colours, B begin (0x11b) ... at roster_sel */
+#define GF_roster_list                  37, 0x1462, 0x2760    /* (win): the characters of charactr.tmp ('+' in the party), roster_n counted */
+#define GF_roster_figures               37, 0x1462, 0x4562    /* (): figure_list from pics\F??stat.PIC, A??, C?? */
 #define GF_load_game                    37, 0x1c7d, 0x09c6    /* (): confirm, tear down, reload, longjmp to the main loop */
 #define GF_create_character             37, 0x18c8, 0x0004    /* () */
 #define GF_create_close                 37, 0x18c8, 0x047c    /* (): pictures freed, the fonts back */
