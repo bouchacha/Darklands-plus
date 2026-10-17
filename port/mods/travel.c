@@ -296,6 +296,22 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             if (travel.active) {
                 int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
                 int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
+                /* a safety: the party has not moved for many steps (each costs time): stop rather
+                   than let the days pass where it stands */
+                static int last_x = -1, last_y = -1, still;      /* (the tile: a tile takes at most some 16 steps to cross) */
+                (void)x; (void)y; (void)mx; (void)my;
+                if (px == last_x && py == last_y) still++; else still = 0;
+                last_x = px; last_y = py;
+                if (still > 150) {
+                    void ui_notice(const char *);
+                    still = 0; travel.active = 0;
+                    fprintf(stderr, "travel: stopped, the party did not move for 150 steps at (%d,%d)\n", px, py);
+                    ui_notice("Travel stopped: the party could not get any further this way.");
+                }
+            }
+            if (travel.active) {
+                int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
+                int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
                 /* the marker's tile is a rectangular approximation of the hex grid: a straight
                  * line between two tiles' centres can graze a third tile (a town would then be
                  * entered). Of the eight keys take the one that gets closest to the next tile's
