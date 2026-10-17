@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string>
 #include "nsdraw.h"
+#include "gamepics.h"
+const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/lodgeview.h"
@@ -60,7 +62,17 @@ extern "C" void lodgeview_draw(void)
         if (sel) { P.rect(LX0 + 1, y, LX1 - 1, y + rh - 1, SEL, 1.2f); P.rect(LX0 + 1, y, LX0 + 2.6f, y + rh - 1, IM_COL32(140, 70, 20, 230)); }
         else if (hov) P.rect(LX0 + 1, y, LX1 - 1, y + rh - 1, HOVER, 1.2f);
         if (P.hit(LX0 + 1, y, LX1 - 1, y + rh - 1)) ns_push(LV_SELECT, i, 0, 0);
-        P.text(f, NsDraw::FS_NAME, LX0 + 5, y + 1.5f, ink, ns_gtext(p.name), -1, LX0 + 60);
+        float nx = LX0 + 5;
+        {                                                   /* the member's figure in their colours */
+            char code[8]; unsigned char pal[24];
+            gm_member_figure_code(i, code, sizeof code); gm_member_palette(i, pal);
+            if (const GamePic *g = code[0] ? ns_figure_pic(60 + i, code, pal, "SHORT") : nullptr) {
+                float fh = fminf(rh - 4, 26.0f), fw = g->w * fh / (g->h ? g->h : 1);
+                P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(LX0 + 4, y + 2), NsDraw::w(LX0 + 4 + fw, y + 2 + fh));
+                nx = LX0 + 7 + fw;
+            }
+        }
+        P.text(f, NsDraw::FS_NAME, nx, y + 1.5f, ink, ns_gtext(p.name), -1, LX0 + 62);
         /* strength and divine favor, small bars */
         auto bar = [&](float x, float yy, const char *lab, int cur, int max, ImU32 col) {
             P.text(fo, 3.8f, x, yy - 0.6f, dim, lab);
@@ -78,7 +90,7 @@ extern "C" void lodgeview_draw(void)
             snprintf(b, sizeof b, "Train or Study: %s (%d pf a day)", SKILL[p.skill], fee);
             line = b;
         }
-        P.para(fo, NsDraw::FS_BODY, LX0 + 5, y + 12.5f, LX1 - LX0 - 9, p.act ? IM_COL32(92, 40, 12, 255) : soft, line);
+        P.para(fo, NsDraw::FS_BODY, nx, y + 12.5f, LX1 - nx - 4, p.act ? IM_COL32(92, 40, 12, 255) : soft, line);
         y += rh;
     }
 
