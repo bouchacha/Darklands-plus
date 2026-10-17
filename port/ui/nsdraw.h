@@ -127,5 +127,7 @@ std::string ns_item_line(int id);
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
+/* a weapon or an armour against what member m has in that place now, "" for other things */
+std::string ns_item_compare(int id, int q, int m);
 
 #endif

@@ -24,6 +24,57 @@ std::string ns_item_line(int id)
     return "";
 }
 
+/* a weapon or an armour against what member m has in that place now (the equipment slots of the
+ * member record: weapon +0x3d/+0x44, missile +0x0e/+0x46, body +0x37/+0x3b, legs +0x38/+0x3c,
+ * shield +0x48/+0x47: type and quality); "" for other things */
+std::string ns_item_compare(int id, int q, int m)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d || m < 0 || m >= 5 || !gm_member_present(m)) return "";
+    char nm[24]; gm_member_name(m, nm, sizeof nm);
+    std::string who = ns_gtext(nm);
+    u16 b = G_MEMBER(m);
+    auto slot = [&](int toff, int qoff, int &t, int &wq) { t = (s8)g_rb((u16)(b + toff)); wq = g_rb((u16)(b + qoff)); return t >= 0; };
+    auto name_of = [&](int t, int wq) {                     /* the record in use of that type */
+        GmItem it;
+        for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &it) && it.type == t && it.qual == wq) return ns_item_name(it.id);
+        return std::string("?");
+    };
+    auto cmpq = [&](int a, int c) { return a > c ? "better made" : a < c ? "less well made" : "as well made"; };
+    static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
+    if (d->type >= 67 && d->type <= 84) {
+        bool vital = d->type <= 75;
+        int t, wq, h = rb(G_FAR20A5, (u16)(0x781e + d->type));
+        if (!slot(vital ? 0x37 : 0x38, vital ? 0x3b : 0x3c, t, wq) || t < 67 || t > 84) return who + " wears nothing there.";
+        int wh = rb(G_FAR20A5, (u16)(0x781e + t));
+        std::string n = name_of(t, wq);
+        if (n.size() > 2 && n[1] == ':') n = n.substr(2);
+        int s1 = (h > wh) - (h < wh), s2 = (q > wq) - (q < wq);
+        return who + " wears " + n + " (" + (wh >= 0 && wh < 6 ? HN[wh] : "?") + ", q" + std::to_string(wq) + "): this is " +
+               (s1 > 0 ? "harder" : s1 < 0 ? "softer" : "as hard") + (s1 == s2 ? " and " : " but ") + cmpq(q, wq) + ".";
+    }
+    if (d->kind == K_SHIELD) {
+        int t, wq;
+        if (!slot(0x48, 0x47, t, wq)) return who + " carries no shield.";
+        return who + " carries " + name_of(t, wq) + " (q" + std::to_string(wq) + "): this is " + cmpq(q, wq) + ".";
+    }
+    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+        static const char *SKN[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
+        int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
+        bool missile = sk == 5 || sk == 6;
+        std::string r = who + "'s " + (sk < 7 ? SKN[sk] : "?") + " skill: " + std::to_string(sk < 7 ? gm_member_skill(m, sk) : 0) + ".";
+        int str, strmax; gm_member_attr(m, 1, &str, &strmax);
+        if (smin > 0 && strmax < smin) r += " Too heavy: it needs strength " + std::to_string(smin) + ".";
+        int t, wq;
+        if (slot(missile ? 0x0e : 0x3d, missile ? 0x46 : 0x44, t, wq) && t <= 62) {
+            int cp = rb(G_FAR20A5, (u16)(0x76a8 + t)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + t));
+            r += " In hand now: " + name_of(t, wq) + " (damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15) + ", q" + std::to_string(wq) + ").";
+        } else r += missile ? " No bow or crossbow ready now." : " Nothing in hand now.";
+        return r;
+    }
+    return "";
+}
+
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them). Read from the game's code: of the
  * general goods only rope and lockpicks are asked for by cards (count_items, s029 0e76:0c76: the

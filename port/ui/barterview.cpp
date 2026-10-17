@@ -202,6 +202,10 @@ extern "C" void barterview_draw(void)
             if (!l2.empty()) T(fo, NsDraw::FS_BODY, 79, SY0 + 17, ink_soft, l2);
             std::string use = ns_item_use(id);                  /* what it is good for (ingredients, rope ...) */
             if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink_soft, use);
+            else if (!L) {                                      /* a weapon or an armour: against what the member has now */
+                std::string cmp = ns_item_compare(id, qual, b.who);
+                if (!cmp.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink, cmp);
+            }
             std::string pr = L ? (price > 0 ? "The merchant pays " + money(price) : "The merchant will not buy this")
                                : "Costs " + money(price) + (price > b.total_pf ? " - more than the purse holds" : "");
             if (L && b.item[i].equipped) pr += "; in use";
