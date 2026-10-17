@@ -33,6 +33,7 @@ STEPS = [
     ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; ucmd uunpause:; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
+    ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 2'),   # (a foe that came late: hit it too; the hits land as the battle runs)
     ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),

@@ -236,11 +236,37 @@ static int file_palette(const char *dosname, u32 *pal, u8 *mask)
 }
 
 /* a PIC file of the game, unpacked (for other modules) */
+/* a picture inside one of the game's catalogues ("EINFO.CAT|E00SWST.PIC": u16 count, then 24
+ * bytes an entry: the name (12), 4 unknown, the size, the offset) */
+static int read_cat_entry(const char *catname, const char *entry, u8 **data, long *n)
+{
+    char p[1200]; dos_host_path_read(catname, p, sizeof p);
+    u8 *c; long cn;
+    if (!read_file(p, &c, &cn)) return 0;
+    int ok = 0, cnt = cn >= 2 ? c[0] | c[1] << 8 : 0;
+    for (int k = 0; k < cnt && 2 + (k + 1) * 24 <= cn && !ok; k++) {
+        const u8 *e = c + 2 + k * 24;
+        char nm[13]; memcpy(nm, e, 12); nm[12] = 0;
+        if (strcasecmp(nm, entry)) continue;
+        long len = e[16] | e[17] << 8 | (long)e[18] << 16 | (long)e[19] << 24, off = e[20] | e[21] << 8 | (long)e[22] << 16 | (long)e[23] << 24;
+        if (off < 0 || len <= 0 || off + len > cn) break;
+        *data = malloc((size_t)len + 1);
+        if (*data) { memcpy(*data, c + off, (size_t)len); *n = len; ok = 1; }
+    }
+    free(c);
+    return ok;
+}
+
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask)
 {
     char p[1200]; dos_host_path_read(dosname, p, sizeof p);
     u8 *d; long n;
-    if (!read_file(p, &d, &n)) {                /* the extra figures' pictures are made by mods/looks.c */
+    const char *bar = strchr(dosname, '|');
+    if (bar) {
+        char cat[64]; size_t cl = (size_t)(bar - dosname); if (cl >= sizeof cat) return 0;
+        memcpy(cat, dosname, cl); cat[cl] = 0;
+        if (!read_cat_entry(cat, bar + 1, &d, &n)) return 0;
+    } else if (!read_file(p, &d, &n)) {                /* the extra figures' pictures are made by mods/looks.c */
         const char *looks_virtual_file(const char *); const char *v = looks_virtual_file(dosname);
         if (!v || !read_file(v, &d, &n)) return 0;
     }
