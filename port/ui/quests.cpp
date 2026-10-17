@@ -343,11 +343,11 @@ void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
 extern "C" void journal_quests(void)
 {
     if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
-    if (game_mode() == GM_BATTLE) { ImGui::TextWrapped("After the battle (it uses the memory the quests are kept in)."); return; }
     static int sort = -1;
     if (sort < 0) sort = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N;
-    std::vector<QuestRow> v;
-    quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true);
+    static std::vector<QuestRow> v;                     /* (read while a card or the map is up: battles and their loot reuse the tables) */
+    if (game_mode() == GM_CARD || game_mode() == GM_MAP) quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true);
+    else quest_sort(v, config_get_int("quests.sort", sort) % QSORT_N);
     sort = config_get_int("quests.sort", sort) % QSORT_N;
     static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Towns", "Secrets" };
     ImGui::TextDisabled("In order of:"); ImGui::SameLine();
