@@ -138,6 +138,18 @@ extern "C" int margins_click(int x, int y)
         if (x >= o.a.x && x < o.b.x && y >= o.a.y && y < o.b.y) { menuview_request(o.m, o.i, o.s); return 1; }
     return 0;
 }
+/* a potion among the orders (the game's short name; its quality is the entry's "key", "q30"),
+   for its picture on the button; -1 none */
+void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
+static int potion_of(const std::string &name, const char *key, int *q)
+{
+    for (int id = 95; id <= 116 && id < (int)gamedata.items.size(); id++)
+        if (!gamedata.items[id].shortname.empty() && name == gamedata.items[id].shortname) {
+            *q = key[0] == 'q' ? atoi(key + 1) : -1;
+            return id;
+        }
+    return -1;
+}
 static void order_buttons(float width)
 {
     order_btns.clear();
@@ -165,14 +177,17 @@ static void order_buttons(float width)
                 std::string label = game_text(e.name, strlen(e.name));
                 if (s2 >= 0) label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + label;
                 if (e.key[0]) label += std::string(" (") + e.key + ")";
+                int pq = -1, pid = s2 >= 0 ? potion_of(game_text(e.name, strlen(e.name)), e.key, &pq) : -1;
+                float iw = pid >= 0 ? lh * 1.15f : 0;                /* (a potion: its picture, with its grade) */
                 ImVec2 ts = ImGui::CalcTextSize(label.c_str());
-                float w = ts.x + pad * 2, h = lh + pad;
+                float w = ts.x + pad * 2 + iw, h = lh + pad;
                 if (x > x0 && x + w > x1) { x = x0; y += h + gap; }
                 ImVec2 a(x, y), b(x + w, y + h);
                 bool hov = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
                 dl->AddRectFilled(a, b, hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), h * 0.2f);
                 dl->AddRect(a, b, IM_COL32(170, 132, 70, 255), h * 0.2f);
-                dl->AddText(ImVec2(a.x + pad, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), label.c_str());
+                if (pid >= 0) ui_item_icon_q(dl, ImVec2(a.x + pad + iw * 0.45f, a.y + h * 0.5f), iw, pid, pq);
+                dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), label.c_str());
                 order_btns.push_back({ a, b, j, k, s2 });
                 x += w + gap;
             }
