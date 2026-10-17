@@ -188,9 +188,15 @@ static void screen_hook(void)                 /* roster_screen (), s037 1462:000
             if (a.type == RV_KEY && (a.a & 0xdf) == 'C' && r->n > nbefore) { choose(r->n - 1); build(); note("The new character is kept: add them to the party."); }
             if (a.type == RV_KEY && (a.a & 0xdf) == 'A' && r->party_n > before) {
                 note("");
-                /* a woman gets the game's woman figure (it gives everyone the first, the tall man): Select Image with it */
+                /* a look of their own (the game gives everyone added the first figure, the tall man, in the same
+                   colours): a woman the game's woman figure (Select Image with it), and the next of the first and
+                   second colour keys' colours (the game's own keys: each goes on from the last it gave) */
                 const RosterChar *c = r->sel >= 0 && r->sel < r->n ? &r->ch[r->sel] : 0;
-                if (c && c->female && c->slot >= 0 && !strncmp(r->figure[c->slot], "F01", 3) && config_get_int("party.woman_figure", 1)) looks_pick("F60");
+                if (c && c->slot >= 0 && config_get_int("party.new_member_looks", 1)) {
+                    if (c->female && !strncmp(r->figure[c->slot], "F01", 3)) { looks_pick_next("F60"); key(0x1f53); }
+                    if (!ns_unwinding && r->party_n > 1) { key(0x0231); if (!ns_unwinding) key(0x0332); }   /* (hair, and the main colour) */
+                    if (!ns_unwinding) build();
+                }
             }
         }
         if (ns_unwinding) break;

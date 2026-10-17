@@ -965,8 +965,8 @@ void plat_events(void)
             }
             if (!e.key.repeat && menu_escape()) break;     /* any key closes menus a right click left open (the game would ignore it) */
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
-            {   /* 1..9 on a card: that option (a click on its line) */
-                SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : 0;
+            {   /* 1..9 on a card: that option (a click on its line); 0 the tenth */
+                SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : k == SDLK_0 || k == SDLK_KP_0 ? 10 : 0;
                 int gx, gy, assist_card_key(int, int *, int *);
                 if (d && !e.key.repeat && !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && assist_card_key(d, &gx, &gy)) { click_at(gx, gy); break; }
             }

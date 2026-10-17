@@ -62,7 +62,10 @@
  *            game dies ("left through an unmatched return"). remove_item_rec and the battle's
  *            use_item_idx (s014 18bf:0fa4, the same flaw) now ignore an index past the
  *            items; counts are also kept within 0..64 (16 for enemies), so saves that carry
- *            -1 mend themselves. */
+ *            -1 mend themselves.  *  testcard  Card 0 is the developers' test card ($Initi00), whose picture (pics\xhouse3.pic) the game
+ *            does not have: a card that goes back to where it came from (prev_screen) went there
+ *            when that was 0, and the game stopped. It now goes to the map or the town.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,6 +107,8 @@ Fix FIXES[] = {
       "When robbers took the party's things, the game removed one item too many; a character left with nothing ended up with -1 items, and if he or she later died in battle the game overwrote its own memory and stopped. Fixed; saved games with the fault mend themselves.", 1 },
     { "storeroom", "Nothing lost in store rooms",
       "A store room holds 100 kinds of things and its count of one thing ran over past 127 (shown as minus numbers, then lost). Putting more in is now refused with a word why.", 1 },
+    { "testcard", "No stop on the developers' test card",
+      "Card 0 is the developers' test card ($Initi00, \"Try it...you will like it!\"); a card that returns to the card it came from can go there when it came from none, and the game stops on its missing picture (pics\\xhouse3.pic). It now goes on to the map, or the town the party is in.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -493,12 +498,30 @@ static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- testcard
+ * Card 0 (the card table's first entry, s044 1838:0000, $Initi00) is the developers' test card:
+ * it sets the purse to 200 florins and loads pics\xhouse3.pic, which the game does not have, so
+ * the game stops (exit 99). A card that ends by going back where it came from (next_card =
+ * prev_screen: the town gate's challenge, s044 18d1, after its fight) goes there when prev_screen
+ * is 0. Instead: the town's own card if the party is in one (its location record +0x0c, as the
+ * map enters it), else the map (card 12). */
+static void testcard_hook(void)            /* card 0 (), s044 1838:0000 */
+{
+    int loc = (s16)g_rw(GV_cur_loc), to = 12;
+    if (loc >= 0 && loc < 92) { u32 r = g_location(loc); if (r) { int c = (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x0c)); if (c > 0) to = c; } }
+    fprintf(stderr, "fix testcard: card 0 asked for (prev_screen %d, cur_loc %d, mode %d): card %d instead\n",
+            (s16)g_rw(GV_prev_screen), loc, game_mode(), to);
+    g_ww(GV_next_card, (u16)to);
+    AX = (u16)to;
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
-    { 35, 0x1462, 0x0a46, storeroom_hook } };
+    { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook } };

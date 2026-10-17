@@ -219,7 +219,15 @@ static void battle_panel(float width, float fs)
         shown++;
     }
     if (!shown) ImGui::TextDisabled("None in sight yet.");
-    else if (down == shown) ImGui::TextDisabled("All down.");
+    else if (down == shown) {
+        ImGui::TextDisabled("All down.");
+        /* a fight in a street or a dungeon: the party stays there afterwards (combat_flags 1) and the
+           game goes on only when it walks out through a way out (s014 combat_over) */
+        if ((g_rb(GV_combat_flags) & 1) && !g_rb(GV_real_combat)) {
+            ImGui::Spacing();
+            ImGui::TextWrapped("The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs).");
+        }
+    }
 }
 
 /* the text size for what the interface writes over and beside the picture (side panels,

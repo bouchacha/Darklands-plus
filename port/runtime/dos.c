@@ -726,7 +726,9 @@ void dos_int21(void)
               if (w2 >= LOADSEG && w2 < LOADSEG + 0x3000) fprintf(stderr, " %04x:%04x", (u16)(w2 - LOADSEG), w); }
           fprintf(stderr, "\n"); }
         { int saves_party_ended(void), halloffame_record(void);          /* the Honor Roll of Glory (ui/halloffame.cpp) */
-          if (saves_party_ended() && halloffame_record()) { void plat_setenv(const char *, const char *); plat_setenv("DL_HALL", "1"); } }
+          void plat_setenv(const char *, const char *);
+          if (AL) { char c[16]; snprintf(c, sizeof c, "%d", AL); plat_setenv("DL_ERROR_EXIT", c); }   /* an error (99: a file missing, 1: out of memory ...), not the party's end */
+          else { plat_setenv("DL_ERROR_EXIT", "0"); if (saves_party_ended() && halloffame_record()) plat_setenv("DL_HALL", "1"); } }
         { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
         plat_quit(AL); break;
     case 0x39: get_str(DS, DX, name, sizeof name);

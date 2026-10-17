@@ -211,8 +211,8 @@ extern "C" void cardview_draw(void)
             dl->AddRectFilled(ImVec2(X0 - 1.5f * k, y0), ImVec2(X0 - 0.6f * k, y1), dark ? IM_COL32(240, 190, 100, 220) : IM_COL32(150, 60, 20, 220));
         }
         ImU32 col = !p.is_opt ? ink : p.state == 1 ? ink : ink_dim;
-        if (p.is_opt && menu && p.state == 1 && p.line >= 0 && p.line < 9) {           /* the key that chooses it */
-            char n[4]; snprintf(n, sizeof n, "%d", p.line + 1);
+        if (p.is_opt && menu && p.state == 1 && p.line >= 0 && p.line < 10) {          /* the key that chooses it (0: the tenth) */
+            char n[4]; snprintf(n, sizeof n, "%d", (p.line + 1) % 10);
             float ns = size * 0.72f;
             ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, n);
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);

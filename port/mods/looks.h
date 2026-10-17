@@ -19,6 +19,7 @@ int looks_picker_on(void);                  /* Select Character Image opens the 
 int looks_list(char out[][4], int max);     /* the figures it offers, in order */
 void looks_member_figure(int m, char *code);
 void looks_pick(const char *code);          /* the picker's choice (sends S to the game, which takes it) */
+void looks_pick_next(const char *code);     /* the figure the next S takes (the caller sends the S) */
 int looks_thumb(const char *code, int m, unsigned char *rgba, int maxw, int maxh, int *w, int *h);   /* m in that figure, RGBA */
 #ifdef __cplusplus
 }

@@ -708,6 +708,8 @@ void looks_pick(const char *code)
     snprintf(pending, sizeof pending, "%s", code); pending_on = 1;
     kbd_push_scancode(0x1f, 0); kbd_push_scancode(0x1f, 1);
 }
+/* the figure the next Select Character Image (S) takes, the caller giving the S itself */
+void looks_pick_next(const char *code) { snprintf(pending, sizeof pending, "%s", code); pending_on = 1; }
 
 static u8 rgb8(u8 v) { v &= 63; return (u8)(v << 2 | v >> 4); }
 /* member m in figure `code`, seen from the front: RGBA (w x h at most maxw x maxh); 0 if none */

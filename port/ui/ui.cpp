@@ -249,7 +249,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     idle_rest = config_get_int("display.idle_rest", 1);
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
-    if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
+    if (getenv("DL_RESTARTED")) {
+        const char *ee = getenv("DL_ERROR_EXIT");
+        if (ee && atoi(ee)) ui_notice_for("Darklands stopped on an error (darklands_port.log in the game folder tells which). Your saved games are kept: load the last one (autosaves are made on arrival and before battles): F12 > Saves, or Load in the game.", 30000);
+        else ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
+    }
     halloffame_set_renderer(ren);
     gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
     figures_set_renderer(ren);
@@ -549,10 +553,10 @@ static void tab_helpers(void)
     { bool nro = rosterview_is_on() != 0;
       if (ImGui::Checkbox("Choosing the party of a new game drawn by Darklands+: the four places with their figures, the characters kept, the chosen one's numbers", &nro)) { rosterview_set(nro); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("Click to choose, double-click to add or drop; the figure, herald and colours beside the chosen member. Adding, dropping and deleting are the game's own. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
-    { bool wf = config_get_int("party.woman_figure", 1) != 0;
+    { bool wf = config_get_int("party.new_member_looks", 1) != 0;
       ImGui::Indent(UIS(34));
-      if (ImGui::Checkbox("A woman added to the party gets the woman figure", &wf)) { config_set_int("party.woman_figure", wf); dirty_config = 1; }
-      hint("The game gives everyone added the first figure, the tall man; this picks the woman for a woman (Figure changes it as before)."); ImGui::Unindent(UIS(34)); }
+      if (ImGui::Checkbox("Each member added gets a look of their own", &wf)) { config_set_int("party.new_member_looks", wf); dirty_config = 1; }
+      hint("The game gives everyone added the same figure (the tall man) in the same colours, so they are hard to tell apart in a battle. This gives a woman the woman figure and each member the next colours (Figure and Colours change them as before)."); ImGui::Unindent(UIS(34)); }
     { bool ni = infoview_is_on() != 0;
       if (ImGui::Checkbox("Party Info drawn by Darklands+: fame and its title, the time, where, the wealth, and the reputation in every city", &ni)) { infoview_set(ni); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The original names one town at a time under the pointer on its little map; this lists all of them, by reputation or by name. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
