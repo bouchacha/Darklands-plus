@@ -28,6 +28,7 @@ void ovl_changed(void);
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "saves.h"
+#include "nscreen.h"
 #include "savesview.h"
 
 int saves_on = 1;                /* quick keys and autosaves (off: the original's saving only) */
@@ -205,7 +206,9 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
     if (quick_due) {
         quick_due = 0;
         if (g_rb(D_SAVE_OK) == 1) do_save("Quicksave");
-        else ui_notice("The game does not allow saving here.");
+        else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days stay spent)." :
+                       g_rb(D_IN_BATTLE) == 1 ? "The game does not allow saving during a battle." :
+                       "The game does not allow saving on this screen: leave it first (on a card, the travel map or in a town it can).");
     } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;
