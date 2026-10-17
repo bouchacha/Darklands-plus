@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include "nsdraw.h"
+#include "money.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/infoview.h"
@@ -52,11 +53,10 @@ extern "C" void infoview_draw(void)
     }
     y += 4;
     head("Wealth");
-    snprintf(b, sizeof b, "%d florins, %d groschen, %d pfennigs", m.money[0], m.money[1], m.money[2]);
-    y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, b) + 0.5f;
+    y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, money_fgp(m.money[0], m.money[1], m.money[2])) + 0.5f;
     snprintf(b, sizeof b, "%ld pfennigs in all", m.total_pf);
     P.text(fo, NsDraw::FS_SMALL, x, y, soft, b); y += 7.5f;
-    snprintf(b, sizeof b, "Notes: %d florins", m.notes);
+    snprintf(b, sizeof b, "Bank notes: %s", money_fgp(m.notes, 0, 0).c_str());
     P.text(fo, NsDraw::FS_BODY, x, y, ink, b); y += 6.5f;
     if (m.phstone) snprintf(b, sizeof b, "Philosopher's Stone: +%d to alchemy", m.phstone); else snprintf(b, sizeof b, "No Philosopher's Stone yet");
     y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, b);

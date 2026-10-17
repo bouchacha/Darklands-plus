@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string>
 #include "nsdraw.h"
+#include "money.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/savesview.h"
@@ -97,7 +98,7 @@ extern "C" void savesview_draw(void)
         for (int m = 0; m < v.nmembers; m++) { if (m) who += ", "; who += ns_gtext(v.members[m]); }
         std::string line = ns_gtext(v.place);
         if (!who.empty()) line += (line.empty() ? "" : "  -  ") + who;
-        line += "  -  " + std::to_string(v.florins) + " fl";
+        line += "  -  " + money_fgp(v.florins, 0, 0);
         P.text(fo, NsDraw::FS_SMALL, tx, y + 8.6f, dim, line, -1, X1 - 60);
         std::string tag = ago(v.mtime);
         if (v.battle) tag = "in a battle, " + tag;

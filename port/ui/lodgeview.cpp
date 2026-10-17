@@ -11,22 +11,14 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
+#include "money.h"
 }
 
 static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
     "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
-static std::string money(long pf)
-{
-    bool neg = pf < 0; if (neg) pf = -pf;
-    long fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
-    char b[64]; std::string r;
-    if (fl) { snprintf(b, sizeof b, "%ld fl", fl); r += b; }
-    if (gr) { snprintf(b, sizeof b, "%s%ld gr", r.empty() ? "" : " ", gr); r += b; }
-    if (p || r.empty()) { snprintf(b, sizeof b, "%s%ld pf", r.empty() ? "" : " ", p); r += b; }
-    return (neg ? "-" : "") + r;
-}
+static std::string money(long pf) { return money_str(pf); }
 
 extern "C" void lodgeview_draw(void)
 {
@@ -87,7 +79,7 @@ extern "C" void lodgeview_draw(void)
         std::string line = ns_gtext(p.line);
         if (p.act == 6 && p.skill >= 0 && p.skill < 19) {
             int fee = 0; for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill) fee = m.t[t].fee;
-            snprintf(b, sizeof b, "Train or Study: %s (%d pf a day)", SKILL[p.skill], fee);
+            snprintf(b, sizeof b, "Train or Study: %s (%s a day)", SKILL[p.skill], money_str(fee).c_str());
             line = b;
         }
         P.para(fo, NsDraw::FS_BODY, nx, y + 12.5f, LX1 - nx - 4, p.act ? IM_COL32(92, 40, 12, 255) : soft, line);
@@ -125,7 +117,7 @@ extern "C" void lodgeview_draw(void)
                     bool tc = p.act == 6 && p.skill == T.skill, th = P.over(x0 + 6, ay, x1, ay + 8);
                     P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
                     P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : ink, T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?");
-                    snprintf(b, sizeof b, "%d pf a day", T.fee);
+                    snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
                     P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : soft, b, x1 - 2);
                     if (th) hover_act = 100 + t;
                     if (P.hit(x0 + 6, ay, x1, ay + 8) && !tc) ns_push(LV_TEACH, t, m.sel, 0);
@@ -139,7 +131,7 @@ extern "C" void lodgeview_draw(void)
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
             const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
-            snprintf(b, sizeof b, "A teacher of %s: %d pf a day, paid each day of lessons. %s's %s is now %d.", sk, T.fee,
+            snprintf(b, sizeof b, "A teacher of %s: %s a day, paid each day of lessons. %s's %s is now %d.", sk, money_with_total(T.fee).c_str(),
                      ns_gtext(p.name).c_str(), sk, T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0);
             about = b;
         } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking for tutoring or instruction at the monastery, the university, a guild, the armourer, swordsmith, blacksmith, bowyer, artificer or the town council; they then teach here for a while.";

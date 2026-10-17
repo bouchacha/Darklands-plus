@@ -24,6 +24,7 @@
 #include <vector>
 extern "C" {
 #include "../mods/gamemodel.h"
+#include "money.h"
 }
 
 extern "C" u32 plat_ticks_ms(void);
@@ -34,16 +35,7 @@ ImVec2 g2w(float x, float y) { return NsDraw::w(x, y); }
 std::string gt(const char *s) { return ns_gtext(s); }
 const ItemDef *def(int id) { return ns_itemdef(id); }
 std::string item_name(int id) { return ns_item_name(id); }
-std::string money(long pf)
-{
-    if (pf <= 0) return "0pf";
-    long fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
-    std::string s;
-    if (fl) s += std::to_string(fl) + "fl";
-    if (gr) s += (s.empty() ? "" : " ") + std::to_string(gr) + "gr";
-    if (p) s += (s.empty() ? "" : " ") + std::to_string(p) + "pf";
-    return s;
-}
+std::string money(long pf) { return money_str(pf < 0 ? 0 : pf); }
 struct View {
     int scroll[2];          /* first row shown: wares, member's things */
     bool formulae;          /* the right column lists the party's formulae (a shop with ingredients) */
@@ -340,8 +332,8 @@ extern "C" void barterview_draw(void)
                 std::string cmp = ns_item_compare(id, qual, b.who);
                 if (!cmp.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink, cmp);
             }
-            std::string pr = L ? (price > 0 ? "The merchant pays " + money(price) : "The merchant will not buy this")
-                               : "Costs " + money(price) + (price > b.total_pf ? " - more than the purse holds" : "");
+            std::string pr = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
+                               : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
             if (L && b.item[i].equipped) pr += "; in use";
             T(fo, NsDraw::FS_BODY, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
         }

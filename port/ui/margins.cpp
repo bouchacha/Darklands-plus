@@ -27,6 +27,7 @@ std::vector<Eff> effects_now(int size);
 #include "quests.h"
 #include <functional>
 #include <set>
+#include "money.h"
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
 
@@ -460,8 +461,9 @@ extern "C" void ui_margins(void)
         ImGui::Separator();
         heading("Purse");
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
-        ImGui::TextWrapped("%d florins, %d groschen, %d pfennigs", f, g, p);
-        if (bn > 0) ImGui::TextDisabled("%d florins in bank notes", bn);
+        ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
+        money_tooltip((long)f * 240 + g * 12 + p);
+        if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
         ImGui::Separator();
         tasks_section(tables);
         ImGui::Separator();

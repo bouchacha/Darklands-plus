@@ -28,6 +28,7 @@ extern "C" {
 #include "../mods/sfx.h"
 #include "../mods/datamods.h"
 #include "ui.h"
+#include "money.h"
 extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[];
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE;
@@ -235,6 +236,9 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
             fprintf(stderr, "ui: game text also baked at %.0f pixels (screen %dx%d)\n", bake, dm.w, dm.h);
         }
     }
+    money_glyphs_add(io.Fonts);          /* the gold, silver and copper coins after amounts (ui/money.cpp) */
+    io.Fonts->Build();
+    money_glyphs_paint(io.Fonts);
     open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
     {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
         const char *dev = config_get("sound.device", "auto");
@@ -792,6 +796,8 @@ static void tab_display(void)
           if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); overlay_font_update(); dirty_config = 1; } }
         { bool so = ui_spell_out != 0;
           if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); dirty_config = 1; } }
+        { bool co = money_coins();
+          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; the total in pfennigs beside a price described", &co)) { config_set_int("display.coins", co); dirty_config = 1; } }
         ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
         static const char *E[3] = { "plain", "shadow", "outline" };
         for (int i = 0; i < 3; i++) {

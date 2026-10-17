@@ -26,6 +26,7 @@
 #include "../mods/assist.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "money.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -63,11 +64,7 @@ static int cv_formula_of_slot(int s)
 static std::string cv_formula_price(int s)
 {
     int fl = (s16)g_rw((u16)(GV_var_money1 + 6 * s)), gr = (s16)g_rw((u16)(GV_var_money1 + 6 * s + 2)), pf = (s16)g_rw((u16)(GV_var_money1 + 6 * s + 4));
-    std::string r;
-    if (fl) r += std::to_string(fl) + (fl == 1 ? " florin" : " florins");
-    if (gr) r += (r.empty() ? "" : ", ") + std::to_string(gr) + " groschen";
-    if (pf || r.empty()) r += (r.empty() ? "" : ", ") + std::to_string(pf) + " pfennigs";
-    return r;
+    return money_fgp(fl, gr, pf);
 }
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }

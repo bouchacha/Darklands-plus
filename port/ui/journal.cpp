@@ -28,6 +28,7 @@ extern "C" {
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
 #include "../mods/hdtext.h"
+#include "money.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
@@ -63,15 +64,7 @@ static std::string loc_name(int loc)
     return game_text(b, sizeof b);
 }
 
-static std::string money(int pf)
-{
-    int fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
-    char b[40];
-    if (fl) snprintf(b, sizeof b, "%dfl %dgr %dpf", fl, gr, p);
-    else if (gr) snprintf(b, sizeof b, "%dgr %dpf", gr, p);
-    else snprintf(b, sizeof b, "%dpf", p);
-    return b;
-}
+static std::string money(int pf) { return money_str(pf); }
 
 static std::string item_name(int id)
 {
@@ -205,7 +198,7 @@ struct ShopKind { int shop; u32 cats; const char *name; };
 static const ShopKind SHOPS[] = {          /* what each town shop sells (the cards' barter calls) */
     { 0, 0x040000ffu, "Blacksmith" }, { 1, 0x0002c100u, "Goods merchant" }, { 2, 0x040000ffu, "Swordsmith" },
     { 3, 0x040000ffu, "Armourer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
-    { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Herbalist" } };
+    { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Pharmacist" } };
 
 /* every shop of the town the party has just reached; prices from the game's own rule
  * (buy_price, s032 192e: the leader's charisma, the town's opinion of the party ...),

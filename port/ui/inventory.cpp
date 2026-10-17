@@ -3,6 +3,7 @@
 // dragging an item onto another member gives it to them through the game's own routine
 // (give_stack, s031 18e7:007c), so equipment, weights and stacking stay right.
 #include <stdio.h>
+#include "money.h"
 #include <string.h>
 #include <math.h>
 #include <string>
@@ -544,7 +545,7 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::Text("Quality %d", it.qual);
     if (it.count > 1) ImGui::Text("%d of them", it.count);
     ImGui::Text("Weight %d", it.weight);
-    if (d && d->value) ImGui::Text("Worth about %d pfennigs", d->value);
+    if (d && d->value) ImGui::Text("Worth about %s", money_with_total(d->value).c_str());
     if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
     ui_item_details(d, it.id);
     ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");

@@ -14,6 +14,7 @@
 #include "nsdraw.h"
 #include "../mods/gamemodel.h"
 #include "../runtime/config.h"
+#include "money.h"
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -39,15 +40,6 @@ static long sale_worth(int id, int qual)
     int cha = 25, mx = 25; gm_member_attr(gm_leader(), 5, &cha, &mx);
     price += price * (25 - cha) / -100;
     return price < 1 ? 0 : price;
-}
-static std::string pf_money(long pf)
-{
-    long fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
-    std::string s;
-    if (fl) s += std::to_string(fl) + "fl";
-    if (gr) s += (s.empty() ? "" : " ") + std::to_string(gr) + "gr";
-    if (p) s += (s.empty() ? "" : " ") + std::to_string(p) + "pf";
-    return s;
 }
 
 extern "C" void lootview_draw(void)
@@ -162,7 +154,7 @@ extern "C" void lootview_draw(void)
         if (L && l.item[i].equipped) l1 += "; in use";
         if (config_get_int("assist.loot_worth", 1)) {
             long w = sale_worth(id, qual);
-            if (w > 0) l1 += "; a shop pays about " + pf_money(w) + (cnt > 1 ? " each" : "");
+            if (w > 0) l1 += "; a shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");
         }
         P.text(fo, NsDraw::FS_BODY, 79, SY0 + 10, soft, l1);
         std::string l2 = ns_item_line(id);
