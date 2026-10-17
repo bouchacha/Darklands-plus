@@ -18,6 +18,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
+#include "nscreen.h"
 #include "cardview.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +84,28 @@ static void price_hook(void)            /* buy_price (k) / sell_price (k, qual),
     hook_call_original();
     if (!unw_active) g_wb(G_LEADER, (u8)cur);
 }
+/* two cards roll the leader as they open, before any option is shown: $Raubi02 (s080 18a5:000c)
+   Woodwise (skill 0x12) against d100 to see the ambush coming, $Revol02 (s073 1838:0000) Charisma
+   - 20 and the town's mood to calm a crowd. There too the one best at it speaks for the party (the
+   player's leader is back at the card's menu, as after a chosen option) */
+static void entry_best(int skill, int attr)
+{
+    if (!assist_best_leader || config_get_int("original", 0)) return;
+    int cur = (s8)g_rb(G_LEADER), best = cur, bv = -1000;
+    for (int m = 0; m < 5; m++) {
+        if (!leader_able(m)) continue;
+        int v = skill >= 0 ? (s16)ns_call(GF_member_skill, 2, m, skill) : (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + attr));
+        if (ns_unwinding) return;
+        if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
+    }
+    if (best == cur || !leader_able(best)) return;
+    if (saved_leader < 0) saved_leader = cur;
+    g_wb(G_LEADER, (u8)best);
+    if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: a card's opening roll: %d speaks for the party (leader %d)\n", best, saved_leader);
+}
+static void raubi02_hook(void) { entry_best(0x12, -1); if (ns_unwinding) return; hook_call_original(); }
+static void revol02_hook(void) { entry_best(-1, 5); if (ns_unwinding) return; hook_call_original(); }
+
 static u32 last_eval;
 static int last_leader = -1;
 
@@ -249,8 +272,10 @@ static void card_hooks(void)
 {
     if (assist_chances || assist_card_help || assist_card_keys || assist_watching || assist_best_leader) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
     else { hook_remove(GF_card_menu, card_menu_hook); hook_remove(GF_card_mouse, card_mouse_hook); }
-    if (assist_best_leader) { hook_install(GF_buy_price, price_hook); hook_install(GF_sell_price, price_hook); }
-    else { hook_remove(GF_buy_price, price_hook); hook_remove(GF_sell_price, price_hook); assist_leader_restore(); }
+    if (assist_best_leader) { hook_install(GF_buy_price, price_hook); hook_install(GF_sell_price, price_hook);
+                              hook_install(80, 0x18a5, 0x000c, raubi02_hook); hook_install(73, 0x1838, 0x0000, revol02_hook); }
+    else { hook_remove(GF_buy_price, price_hook); hook_remove(GF_sell_price, price_hook); assist_leader_restore();
+           hook_remove(80, 0x18a5, 0x000c, raubi02_hook); hook_remove(73, 0x1838, 0x0000, revol02_hook); }
     if (!assist_chances && !assist_best_leader) card_chances.active = 0;
 }
 
