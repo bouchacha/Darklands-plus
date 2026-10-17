@@ -19,6 +19,25 @@ void gm_member_fullname(int m, char *out, int n);
 int gm_member_female(int m);
 void gm_money(int *fl, int *gr, int *pf);
 
+/* attributes (0 END, 1 STR, 2 AGL, 3 PER, 4 INT, 5 CHR, 6 DF), skills (19, DARKLAND.LST order) */
+void gm_member_attr(int m, int k, int *cur, int *max);
+int gm_member_skill(int m, int k);
+int gm_member_age(int m);
+int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */
+int gm_member_load_band(int m);                   /* 0 light, 1 normal, 2 heavy, 3 overloaded */
+/* pictures: the figure (PICS\SHIELD<letter>.PIC, a battle look chosen at the start) and the
+ * herald (PICS\<code>STAT.PIC); "" if none */
+char gm_member_figure(int m);
+void gm_member_herald(int m, char *out, int n);
+/* the equipment as the doll shows it: item types, -1 none */
+typedef struct { int weapon, vital, limb, shield, missile; } GmEquip;
+void gm_member_equip(int m, GmEquip *e);
+/* a battle: on, the member's order letter ('-', 'A', 'M' ...; 0 none), on another floor */
+int gm_in_battle(void);
+char gm_member_order(int m);
+int gm_member_elsewhere(int m);
+int gm_member_selected(int m);                    /* chosen for orders (the game's highlighted frame) */
+
 /* a member's things: record i of member m */
 typedef struct { int id, type, qual, count, weight; } GmItem;
 int gm_item_count(int m);                         /* records (kinds of things) */

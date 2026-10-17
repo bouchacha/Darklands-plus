@@ -350,7 +350,8 @@
 #define single_file_vec          vec_1de7             /* overlay call vector of single_file */
 #define floor_view_draw          sub_s017_1ef8_0000   /* (who): redraw the 14 x 10 cell window around who */
 #define floor_view_draw_vec      vec_1c2f             /* overlay call vector of floor_view_draw */
-#define missile_launch           sub_s018_1ef8_0000   /* (...) */
+#define missile_launch           sub_s018_1ef8_0000   /* (i, target, ...) */
+#define missile_spent            sub_s018_1ef8_03ae   /* (kind, quality): a thrown weapon (always) or an arrow / bolt (7 in 10) to be found after the battle */
 #define missile_launch_vec       vec_1ced             /* overlay call vector of missile_launch */
 #define missile_remove           sub_s018_1ef8_027e   /* (idx) */
 #define missile_remove_vec       vec_1d79             /* overlay call vector of missile_remove */
@@ -440,6 +441,8 @@
 #define selected_member          D_a6b2               /* member being given orders */
 #define order_mode               D_a6b3               /* 1 while a member is selected */
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
+#define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
+#define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
 #define cursor_target            D_d845               /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
 #define hotspot_cbt              D_d848               /* hot spot -> combatant */
 #define hotspot_count            D_e0a1

@@ -1,0 +1,106 @@
+// gamepics.cpp - the game's pictures as textures (see gamepics.h).
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <map>
+#include "gamepics.h"
+extern "C" {
+#include "../runtime/cpu.h"
+#include "../runtime/hle.h"
+u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
+}
+
+static SDL_Renderer *gp_ren;
+static std::map<std::string, GamePic> cache;
+
+void gamepics_set_renderer(SDL_Renderer *r) { gp_ren = r; }
+void gamepics_flush(void)
+{
+    for (auto &e : cache) if (e.second.tex) SDL_DestroyTexture(e.second.tex);
+    cache.clear();
+}
+
+struct Img { std::vector<u8> px; int w = 0, h = 0; u32 pal[256]; u8 mask[256]; };
+static bool load(const std::string &name, Img &im)
+{
+    memset(im.mask, 0, sizeof im.mask);
+    u8 *p = hdart_decode_pic(name.c_str(), &im.w, &im.h, im.pal, im.mask);
+    if (!p) return false;
+    im.px.assign(p, p + (size_t)im.w * im.h);
+    free(p);
+    return true;
+}
+
+/* the colours: the picture's own, then palpic's, then the game's now */
+static void palette(const Img &im, const char *palpic, u32 *out)
+{
+    Img pp; bool have_pp = palpic && load(palpic, pp);
+    for (int i = 0; i < 256; i++) {
+        if (im.mask[i]) out[i] = im.pal[i];
+        else if (have_pp && pp.mask[i]) out[i] = pp.pal[i];
+        else {
+            u32 r = vga_dac[i * 3] & 63, g = vga_dac[i * 3 + 1] & 63, b = vga_dac[i * 3 + 2] & 63;
+            out[i] = 0xff000000u | ((r << 2 | r >> 4) << 16) | ((g << 2 | g >> 4) << 8) | (b << 2 | b >> 4);
+        }
+    }
+}
+
+static const GamePic *upload(const std::string &key, const std::vector<u32> &rgba, int w, int h)
+{
+    GamePic g; g.w = w; g.h = h;
+    if (gp_ren && w > 0 && h > 0) {
+        g.tex = SDL_CreateTexture(gp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+        if (g.tex) {
+            SDL_UpdateTexture(g.tex, 0, rgba.data(), w * 4);
+            SDL_SetTextureBlendMode(g.tex, SDL_BLENDMODE_BLEND);
+            SDL_SetTextureScaleMode(g.tex, SDL_ScaleModeNearest);
+        }
+    }
+    return &(cache[key] = g);
+}
+
+const GamePic *gamepic_layers(const std::vector<std::string> &names, const char *palpic)
+{
+    if (names.empty()) return nullptr;
+    std::string key = palpic ? std::string(palpic) + "|" : std::string("|");
+    for (auto &n : names) key += n + "+";
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second.tex ? &it->second : nullptr;
+    Img base;
+    if (!load(names[0], base)) { cache[key] = GamePic(); return nullptr; }
+    u32 pal[256]; palette(base, palpic, pal);
+    std::vector<u32> rgba((size_t)base.w * base.h);
+    for (size_t i = 0; i < rgba.size(); i++) rgba[i] = base.px[i] ? pal[base.px[i]] : 0;
+    for (size_t k = 1; k < names.size(); k++) {
+        Img l;
+        if (!load(names[k], l)) continue;
+        u32 lp[256]; palette(l, palpic, lp);
+        for (int y = 0; y < l.h && y < base.h; y++)
+            for (int x = 0; x < l.w && x < base.w; x++) { u8 v = l.px[(size_t)y * l.w + x]; if (v) rgba[(size_t)y * base.w + x] = lp[v]; }
+    }
+    const GamePic *g = upload(key, rgba, base.w, base.h);
+    return g->tex ? g : nullptr;
+}
+
+const GamePic *gamepic(const std::string &name, const char *palpic) { return gamepic_layers({ name }, palpic); }
+
+const GamePic *gamepic_part(const std::string &name, int x0, int y0, int w, int h, const char *palpic)
+{
+    char kb[64]; snprintf(kb, sizeof kb, "@%d,%d,%d,%d", x0, y0, w, h);
+    std::string key = (palpic ? std::string(palpic) : std::string()) + "|" + name + kb;
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second.tex ? &it->second : nullptr;
+    Img im;
+    if (!load(name, im) || w <= 0 || h <= 0) { cache[key] = GamePic(); return nullptr; }
+    u32 pal[256]; palette(im, palpic, pal);
+    std::vector<u32> rgba((size_t)w * h, 0);
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            int sx = x0 + x, sy = y0 + y;
+            if (sx < 0 || sy < 0 || sx >= im.w || sy >= im.h) continue;
+            u8 v = im.px[(size_t)sy * im.w + sx];
+            rgba[(size_t)y * w + x] = pal[v];                 /* (a part is opaque: a statue's niche) */
+        }
+    const GamePic *g = upload(key, rgba, w, h);
+    return g->tex ? g : nullptr;
+}

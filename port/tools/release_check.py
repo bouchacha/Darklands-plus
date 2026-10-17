@@ -25,8 +25,8 @@ HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + ';
 # (name, steps, patterns that must appear in the log after the steps)
 STEPS = [
     ('start and Quickstart', 'QUICKSTART; at 160 62; click; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
-     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'key Return; wait 3; ucmd ucard:'),   # (a first click in a new window may be lost)
-    ('Go to the merchants (native cards)', 'ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),
+     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'TITLE'),   # (a first click in a new window may be lost)
+    ('Go to the merchants (native cards)', 'ucmd urand:7; ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),   # (a fixed seed: no street encounter on the way)
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),
     ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
@@ -73,7 +73,10 @@ def main():
                 miss = [w for w in want if not any(re.search(w, l) for l in lines)]
                 if not miss or time.time() > deadline:
                     break
-                if probe:
+                if probe == 'TITLE':                     # still at the title (the click was lost): click Quickstart again
+                    p = 'key Return; wait 3; ucmd ucard:' if 'cardview: card' in text else 'at 160 62; click; wait 8; ucmd ucard:'
+                    subprocess.run(NCTL + ['do', NAME, p], capture_output=True, text=True, timeout=120)
+                elif probe:
                     subprocess.run(NCTL + ['do', NAME, probe], capture_output=True, text=True, timeout=120)
             seen = len(text)
             bad = [l for l in lines if BAD.search(l)]

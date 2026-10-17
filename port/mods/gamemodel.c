@@ -2,6 +2,7 @@
 #include <string.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "gamemodel.h"
 
 int gm_party_size(void) { int n = (s16)g_rw(G_PARTY_SIZE); return n < 0 ? 0 : n > 5 ? 5 : n; }
@@ -77,4 +78,73 @@ int gm_itemdef_cats(int id, unsigned long *cats)
     u32 d = itemdef(id); if (!d) return 0;
     *cats = (unsigned long)rw((u16)(d >> 16), (u16)((u16)d + 0x20)) | ((unsigned long)rw((u16)(d >> 16), (u16)((u16)d + 0x22)) << 16);
     return 1;
+}
+
+void gm_member_attr(int m, int k, int *cur, int *max)
+{
+    *cur = *max = 0;
+    if (m < 0 || m >= 5 || k < 0 || k > 6) return;
+    *cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
+    *max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + k));
+}
+int gm_member_skill(int m, int k) { return m >= 0 && m < 5 && k >= 0 && k < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) : 0; }
+int gm_member_age(int m) { return m >= 0 && m < 5 ? (s16)g_rw((u16)(G_MEMBER(m) - 2)) : 0; }   /* (the int before the record) */
+int gm_member_load(int m) { return m >= 0 && m < 5 ? g_rb((u16)(G_MEMBER(m) + G_M_LOAD)) : 0; }
+/* the sheet's load: 0 light (up to half of END + STR), 1 normal (up to all), 2 heavy (half again), 3 overloaded
+ * (s029 0e76:013a) */
+int gm_member_load_band(int m)
+{
+    int cur, mx, e, s;
+    gm_member_attr(m, 0, &e, &mx); gm_member_attr(m, 1, &s, &mx);
+    unsigned max = (unsigned)(e + s); cur = gm_member_load(m);
+    if (max / 2 >= (unsigned)cur) return 0;
+    if ((unsigned)cur <= max) return 1;
+    if ((unsigned)cur <= max * 3 / 2) return 2;
+    return 3;
+}
+char gm_member_figure(int m)
+{
+    if (m < 0 || m >= 5) return 0;
+    int c = g_rb((u16)(G_MEMBER(m) + 1));
+    if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+    return c >= 'a' && c <= 'z' ? (char)c : 0;
+}
+void gm_member_herald(int m, char *out, int n)
+{
+    out[0] = 0;
+    if (m < 0 || m >= 5 || n < 4) return;
+    for (int i = 0; i < 3; i++) { int c = g_rb((u16)(GV_member_shield + 4 * m + i)); if (c < 33 || c > 126) { out[0] = 0; return; } out[i] = (char)c; }
+    out[3] = 0;
+}
+void gm_member_equip(int m, GmEquip *e)
+{
+    u16 b = G_MEMBER(m < 0 || m >= 5 ? 0 : m);
+    e->weapon = (s8)g_rb((u16)(b + 0x3d)); e->vital = (s8)g_rb((u16)(b + 0x37)); e->limb = (s8)g_rb((u16)(b + 0x38));
+    e->shield = (s8)g_rb((u16)(b + 0x48)); e->missile = (s8)g_rb((u16)(b + 0x0e));
+}
+int gm_in_battle(void) { return g_rb(GV_in_battle) == 1; }
+int gm_member_elsewhere(int m) { return gm_in_battle() && m >= 0 && m < 5 && (u8)g_rb((u16)(GV_cbt_floor + m)) == 0x9d; }
+int gm_member_selected(int m) { return m >= 0 && m < 5 && g_rb((u16)(GV_cbt_selected + m)) != 0; }
+/* the letter the game's panel shows (root member_status_letter): the order being given, or the
+ * one in force; 0x400: an action at a place (stairs, door ...) */
+char gm_member_order(int m)
+{
+    if (!gm_in_battle() || m < 0 || m >= 5 || gm_member_status(m) == 5) return 0;
+    { int s2 = g_rb((u16)(GV_cbt_state + m)); if (s2) return s2 == 1 ? 'b' : s2 == 2 ? 'e' : 0; }
+    int st;
+    int paused = g_rb(GV_ai_paused) == 1, giving = g_rb(GV_order_mode) == 1 && (s8)g_rb(GV_selected_member) == m;
+    if (paused && giving && (s16)g_rw(GV_order_action) != -1) st = (s16)g_rw(GV_order_action);
+    else st = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 0x10));
+    if (st == 0x400) {
+        int sp = (paused && giving && (s16)g_rw(GV_order_special) != -1) ? (s16)g_rw(GV_order_special) : (s8)g_rb((u16)(GV_cbt_special + m));
+        switch (sp) { case 1: case 2: return 'U'; case 3: case 6: return 'P'; case 4: case 7: return 'D'; case 5: return 'O'; case 8: return 'X'; case 10: return 'H'; }
+        return 0;
+    }
+    switch (st) {
+    case 0: return '-';
+    case 1: return (g_rw((u16)(GV_cbt_flags + 2 * m)) & 0x1000) ? 'F' : 'W';
+    case 6: return 'B'; case 0x0a: return 'V'; case 0x12: return 'A'; case 0x22: return 'P';
+    case 0x40: return 'R'; case 0x80: return 'M'; case 0x100: return 'T';
+    }
+    return 0;
 }

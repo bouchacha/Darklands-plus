@@ -102,6 +102,8 @@
 #define GV_selected_member              0xa6b2    /* member being given orders */
 #define GV_order_mode                   0xa6b3    /* 1 while a member is selected */
 #define GV_order_action                 0xa6b0    /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
+#define GV_order_special                0xa6d1    /* the action at a place being ordered (with order_action 0x400) */
+#define GV_cbt_state                    0xa3d8    /* [5] a member's special state (1 'b', 2 'e' on the panel) */
 #define GV_cursor_target                0xd845    /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
 #define GV_hotspot_cbt                  0xd848    /* hot spot -> combatant */
 #define GV_hotspot_count                0xe0a1
@@ -512,7 +514,8 @@
 #define GF_marching_order_rebuild       16, 0x1ef8, 0x0da6    /* () */
 #define GF_single_file                  16, 0x1ef8, 0x0e7e    /* () */
 #define GF_floor_view_draw              17, 0x1ef8, 0x0000    /* (who): redraw the 14 x 10 cell window around who */
-#define GF_missile_launch               18, 0x1ef8, 0x0000    /* (...) */
+#define GF_missile_launch               18, 0x1ef8, 0x0000    /* (i, target, ...) */
+#define GF_missile_spent                18, 0x1ef8, 0x03ae    /* (kind, quality): a thrown weapon (always) or an arrow / bolt (7 in 10) to be found after the battle */
 #define GF_missile_remove               18, 0x1ef8, 0x027e    /* (idx) */
 #define GF_enemy_sees                   18, 0x1f43, 0x0006    /* (e, seen[5]): visible party members */
 #define GF_enemy_turn                   18, 0x1f43, 0x0256    /* (): enemy AI, once per tick */

@@ -27,6 +27,9 @@ typedef struct {
     int click;           /* a left click was released this round (taken by ns_take_click) */
     int cx, cy;          /* where */
     int rclick;          /* a right click */
+    int down;            /* the left button is held */
+    int pressed;         /* it went down this round (taken by the view) */
+    int px, py;          /* where it went down */
     float wheel;         /* mouse wheel notches since the last round (up > 0) */
 } NsInput;
 extern NsInput ns_in;

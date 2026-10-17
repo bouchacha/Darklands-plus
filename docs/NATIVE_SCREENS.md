@@ -97,13 +97,18 @@ The card screen came first and has its own loop. The screens after it are built 
 | shop (`mods/barterview.c`, `ui/barterview.cpp`) | barter_screen s032 1462:0000 | setup and stock 078e, buy / sell = the key handler 0f60 (P / S) with its cursor set to the row, another member 0b30, leaving 076c; prices 192e / 1b26 asked side-effect free | `display.native_shops` |
 | loot (`mods/lootview.c`, `ui/lootview.cpp`) | loot_loop s040 1462:01c8 | setup as the original (cash into the purse, loot_first_draw), take / put back = the key handler 0c22 (G / P) with its cursors set, Take all / Share out = mods/loot.c's A / S through the same handler, another member loot_redraw, leaving loot_close | `display.native_loot` |
 | alchemy (`mods/alchemyview.c`, `ui/alchemyview.cpp`) | alchemy_screen s033 1462:0000 | setup as the original (DARKLAND.ALC through the game's mem_alloc / file_load_far, alchemy_setup), choosing = the page's Esc then U, more / fewer = the page's M / F, Start = alchemy_brew, leaving alchemy_resume and alchemy_close | `display.native_alchemy` |
-| character sheet (`mods/sheetview.c`, `ui/sheetview.cpp`) | member_sheet s031 1462:0124  | setup 09b8, ready 18e7:11b2, put away 12e8, give 0000 / 007c, drop 0474 / 07d4, drink 1462:43b2, leaving 08f6 | `display.native_sheet` |
+| character sheet (`mods/sheetview.c`, `ui/sheetview.cpp`) | member_sheet s031 1462:0124  | setup 09b8, ready 18e7:11b2, put away 12e8, give 0000 / 007c (a thing dragged onto the party panel), drop 0474 / 07d4, taken back 016e add_item_q, drink 1462:43b2, leaving 08f6; the saints' statues: each saint handler (s039, through its vector) asked for its class, side-effect free | `display.native_sheet` |
+| party panel (`ui/partypanel.cpp`) | none: drawn over the game's panel wherever the game shows it (its rope frames found in the picture); the game still takes the clicks | the order letter as `member_status_letter` (root) works it out; the battle figure taken from the game's own panel in a battle (PICS\\<code>SHORT.PIC's shape, the battle's colours) and kept in `cache/figures` | `display.native_panel` |
+
+Pictures: `ui/gamepics.cpp` makes textures of the game's PIC files (unpacked by
+`mods/hdart.c`), colour 0 see-through, with the palette the game sets for that screen; the
+sheet's doll is the original's layers (s031 0b22: ARMSBACK, the limb and vital armour, the
+weapon, the shield, the missile weapon) put together in that order.
 
 ## Next screens
 
 The same pattern fits any screen whose logic is separate from its drawing:
 
-* **The character sheet in battle** (its own rules for a member on the ground).
 * **Character creation (s036 / s037)**.
 * **The travel map's menus** and **the city menus**, which are cards already.
 

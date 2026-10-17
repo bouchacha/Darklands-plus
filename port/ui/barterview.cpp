@@ -136,7 +136,7 @@ extern "C" void barterview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id);
             std::string nm = item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
+            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;

@@ -96,7 +96,7 @@ extern "C" void lootview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16]; snprintf(qs, sizeof qs, "q%d", qual);
+            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
             float tagw = eq ? P.width(fo, NsDraw::FS_SMALL, "in use") + 3 : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);

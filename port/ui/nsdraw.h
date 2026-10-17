@@ -111,6 +111,17 @@ struct NsDraw {
 static inline std::string ns_gtext(const char *s) { return game_text(s, strlen(s)); }
 static inline const ItemDef *ns_itemdef(int id) { return id >= 0 && id < (int)gamedata.items.size() ? &gamedata.items[id] : nullptr; }
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
+/* a quality worth showing: equipment, potions and tools; not for the things a shop always sells
+ * at 25 (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs */
+static inline bool ns_shows_quality(int id, int q)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d) return false;
+    bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42) || d->kind == K_INGREDIENT;
+    if (fixed) return q != 25;
+    return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
+           d->kind == K_TOOL || d->kind == K_INSTRUMENT;
+}
 /* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
 std::string ns_item_line(int id);
 

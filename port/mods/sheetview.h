@@ -1,7 +1,9 @@
-/* sheetview.h - a member's sheet and pack as a native screen (mods/sheetview.c runs it,
- * ui/sheetview.cpp draws it): the attributes, what is in use, the load, and the whole pack in
- * one list with Ready / Put away / Drink / Give / Drop on each row; skills, formulae and saints
- * in the other tabs. The game's own routines equip, give, drop and drink. */
+/* sheetview.h - a member's sheet as a native screen (mods/sheetview.c runs it, ui/sheetview.cpp
+ * draws it), the whole page drawn anew: the paper doll put together from the game's own
+ * pictures, the things (in use first; Ready, Unequip, Drink, Drop with Undo; dragged onto a
+ * member at the left to give), the attributes and skills on one page as the original has them,
+ * and for the whole party the saints (with the game's statues) and the formulae. The game's own
+ * routines equip, give, drop and drink. */
 #ifndef DL_SHEETVIEW_H
 #define DL_SHEETVIEW_H
 #ifdef __cplusplus
@@ -9,6 +11,7 @@ extern "C" {
 #endif
 
 typedef struct { int idx, id, type, qual, count, weight, equipped, drinkable; } SvItem;
+typedef struct { int id, qual, count; char name[24]; } SvDrop;
 
 typedef struct {
     int open;
@@ -19,11 +22,20 @@ typedef struct {
     int female, age;
     int attr[7], attr_max[7];
     int skill[19];
-    int load, capacity;
+    int load, capacity, load_band;
+    int weapon, vital, limb, shield, missile;   /* what the doll wears and holds (item types, -1 none) */
     int nitems;
     SvItem item[64];
-    unsigned char formula[66];    /* known formulae (DARKLAND.ALC order) */
-    unsigned char saint[160];     /* known saints (DARKLAND.LST order) */
+    /* the party, for the saints and formulae pages */
+    unsigned char formula[5][66];     /* known formulae (DARKLAND.ALC order) */
+    unsigned char saint[5][160];      /* known saints (DARKLAND.LST order) */
+    int alch[5], intel[5], relig[5], df[5];
+    int have[200];                    /* the party's count of each kind of thing (ingredients) */
+    signed char saint_class[160];     /* the statue a saint is shown with (its handler's class, 0..13; -1 not known) */
+    int nsaints;
+    /* things left behind on this sheet, to take back */
+    int ndrops;
+    SvDrop drops[16];
     unsigned seq;
     char note[160];
     unsigned note_t;
@@ -31,9 +43,11 @@ typedef struct {
 
 extern SheetModel sheet_model;
 
-enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, SV_CLOSE };
+enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, SV_CLOSE, SV_UNDO };
 /* SV_READY/PUTAWAY/DRINK item   SV_GIVE item, to member, 255 = the whole stack   SV_DROP item, 255 = the stack
-   SV_WHO / SV_LEADER member   SV_CLOSE */
+   SV_WHO / SV_LEADER member   SV_CLOSE   SV_UNDO: the last thing left behind taken back */
+
+extern int sheetview_dragging;        /* the view drags a thing: a release over the party panel is a give, not a click there */
 
 void sheetview_init(void);
 int sheetview_is_on(void);

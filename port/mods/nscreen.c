@@ -57,13 +57,15 @@ void ns_input_begin(void)
 {
     int b = g_rb(A_MOUSE_BTN);
     btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
-    ns_in.click = ns_in.rclick = 0;
+    ns_in.click = ns_in.rclick = ns_in.pressed = 0; ns_in.down = b & 1;
 }
 void ns_input_poll(void)
 {
     plat_mouse_game(&ns_in.x, &ns_in.y);
     int b = g_rb(A_MOUSE_BTN);
     if (btn_prev && !(b & 1)) { ns_in.click = 1; ns_in.cx = ns_in.x; ns_in.cy = ns_in.y; }
+    if (!btn_prev && (b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
+    ns_in.down = b & 1;
     if (rbtn_prev && !(b & 2)) ns_in.rclick = 1;
     btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
 }

@@ -64,10 +64,12 @@ extern "C" void lootview_draw(void);
 extern "C" void ns_defer_frame_end(int game_held);
 extern "C" void alchemyview_draw(void);
 extern "C" { int alchemyview_showing(void); int alchemyview_is_on(void); void alchemyview_set(int on); }
+extern "C" { int partypanel_is_on(void); void partypanel_set(int on); int partypanel_picture(void); void partypanel_set_picture(int v); void partypanel_draw(void); void partypanel_set_renderer(SDL_Renderer *r); void partypanel_init(void); }
+void gamepics_set_renderer(SDL_Renderer *r);
 extern "C" { int lootview_showing(void); int lootview_is_on(void); void lootview_set(int on); }
 extern "C" { int sheetview_showing(void); int sheetview_is_on(void); void sheetview_set(int on); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
-extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; }
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; extern int ammo_infinite; void ammo_set(int v); }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);
@@ -233,6 +235,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
     halloffame_set_renderer(ren);
+    gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
     figures_set_renderer(ren);
     if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -500,6 +503,15 @@ static void tab_helpers(void)
     if (c != assist_chances) { assist_set_chances(c); dirty_config = 1; }
 
     ImGui::PushFont(font_head); ImGui::SeparatorText("Cards, screens and lists"); ImGui::PopFont();
+    { bool pp = partypanel_is_on() != 0;
+      if (ImGui::Checkbox("The party panel drawn by Darklands+: each member's Endurance, Strength and Divine Favor as labelled bars with their numbers", &pp)) { partypanel_set(pp); dirty_config = 1; }
+      ImGui::Indent(UIS(34));
+      hint("Clicks on it still go to the game (a member's sheet; orders in a battle). A portrait of your own: put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. The battle figure (in the colours chosen for the member) is shown once a battle has shown it.");
+      int pic = partypanel_picture();
+      static const char *PICS[] = { "Your portrait, else the battle figure, else the herald", "The battle figure, else the herald", "The herald", "No picture" };
+      ImGui::SetNextItemWidth(UIS(360));
+      if (ImGui::Combo("Picture##ppic", &pic, PICS, 4)) { partypanel_set_picture(pic); dirty_config = 1; }
+      ImGui::Unindent(UIS(34)); }
     { bool nc = cardview_on != 0;
       if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
@@ -507,8 +519,8 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Shops drawn by Darklands+: all the wares and all your things in two lists, Buy and Sell on each, what is in use marked", &ns)) { barterview_set(ns); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
     { bool sv = sheetview_is_on() != 0;
-      if (ImGui::Checkbox("Character sheets drawn by Darklands+: the whole pack in one list with Ready, Give, Drop and Drink on each, skills, formulae and saints in tabs", &sv)) { sheetview_set(sv); dirty_config = 1; }
-      ImGui::Indent(UIS(34)); hint("Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
+      if (ImGui::Checkbox("Character sheets drawn by Darklands+: the paper doll, the things with Ready, Unequip, Drink and Drop, the skills on one page, the party's saints and formulae", &sv)) { sheetview_set(sv); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet."); ImGui::Unindent(UIS(34)); }
     { bool lv = lootview_is_on() != 0;
       if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game's own G and P still move every thing. Off: the game's own loot screen."); ImGui::Unindent(UIS(34)); }
@@ -522,6 +534,9 @@ static void tab_helpers(void)
       if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); dirty_config = 1; } }
     { bool rt = config_get_int("assist.return_thrown", 1) != 0;
       if (ImGui::Checkbox("After a battle, javelins, throwing axes, knives and darts go back to whoever threw them", &rt)) { config_set_int("assist.return_thrown", rt); loot_return_thrown = rt; dirty_config = 1; } }
+    { bool ia = ammo_infinite != 0;
+      if (ImGui::Checkbox("Arrows, quarrels and balls never run out (one in the pack is enough to shoot)", &ia)) { ammo_set(ia); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("The party's shots take nothing from the pack and leave nothing to pick up after the battle. Enemies still shoot and lose theirs. Off: each shot uses one, and the game leaves 7 in 10 arrows and quarrels to be found in the loot."); ImGui::Unindent(UIS(34)); }
     { bool la = config_get_int("assist.loot_all", 1) != 0;
       if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); dirty_config = 1; } }
     { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
@@ -1205,7 +1220,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

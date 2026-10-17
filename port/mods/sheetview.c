@@ -1,13 +1,17 @@
-/* sheetview.c - a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp).
+/* sheetview.c - a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp,
+ * which draws the whole page anew: the doll from the game's pictures, the things, the stats,
+ * the party's saints and formulae).
  *
  * The original (member_sheet, s031 1462:0124) shows the portrait and boxes; the pack is a
  * 14-line box opened by clicking Equipment, worked with keys (A ready, U put away, 1..5 give,
  * D drop, P drink). Here the setup and the leaving are the original's own (09b8 / 08f6: fonts,
- * cursor, buffers), and the actions are the routines its key handler calls:
+ * cursor, buffers; its picture is drawn but not shown), and the actions are the routines its
+ * key handler calls:
  *   ready      s031 18e7:11b2 (who, idx)          put away  18e7:12e8 item_unequip (who, idx, 9)
  *   give one   18e7:0000 (from, to, idx, 9)       give all  18e7:007c give_stack
  *   drop one   18e7:0474 item_take_one (who, idx) drop all  18e7:07d4 item_remove_stack
  *   drink      1462:43b2 (who, idx), then item_take_one (as the original's P)
+ *   take back what was dropped here: 18e7:016e add_item_q (who, item, quality), once per thing
  * In a battle the same, but a member on another level of the battlefield cannot be shown (the
  * original's message instead, as it does). */
 #include <stdio.h>
@@ -22,6 +26,7 @@
 #include "sheetview.h"
 
 SheetModel sheet_model;
+int sheetview_dragging;
 static int sv_on = 1;
 u32 plat_ticks_ms(void);
 
@@ -37,6 +42,29 @@ static int drinkable(int id)
     return gm_itemdef_cats(id, &c) && (c & 0x800) && !(c & 0x1000000);
 }
 
+/* the statue each saint is shown with: its handler's class (handler (0, 0, 1), s039; the
+ * prayer screen picks PICS\SNTBACK<class>.PIC by it), asked once, the game put back after */
+static signed char saint_cls[160]; static int saint_cls_n = -1;
+static void saint_classes(void)
+{
+    if (saint_cls_n >= 0) return;
+    saint_cls_n = 0;
+    memset(saint_cls, -1, sizeof saint_cls);
+    u16 tseg = (u16)(LOADSEG + 0x290e), vseg = (u16)(LOADSEG + 0x09c0);
+    void *snap = eval_snapshot();
+    for (int t = 0; t < 160; t++) {
+        u16 off = rw(tseg, (u16)(0x2937 + 4 * t)), seg = rw(tseg, (u16)(0x2937 + 4 * t + 2));
+        if (seg != vseg || off < 0x1000) break;                 /* (past the last saint) */
+        u16 a[3] = { 0, 0, 1 };
+        u32 r = game_call_ptr(seg, off, 3, a, 0);
+        eval_restore(snap);
+        saint_cls[t] = (signed char)(game_call_timed_out ? -1 : (s16)r);
+        saint_cls_n = t + 1;
+    }
+    eval_free(snap);
+    fprintf(stderr, "sheet: %d saints' statues known\n", saint_cls_n);
+}
+
 static void build(int who)
 {
     SheetModel *s = &sheet_model;
@@ -47,15 +75,26 @@ static void build(int who)
         s->present[m] = gm_member_present(m);
         s->able[m] = gm_member_status(m) == 1;
         gm_member_name(m, s->names[m], sizeof s->names[m]);
+        for (int k = 0; k < 66; k++) s->formula[m][k] = (unsigned char)(s->present[m] && gm_knows_formula(m, k));
+        for (int k = 0; k < 160; k++) s->saint[m][k] = (unsigned char)(s->present[m] && gm_knows_saint(m, k));
+        int c, mx;
+        s->alch[m] = gm_member_skill(m, 7); s->relig[m] = gm_member_skill(m, 8);
+        gm_member_attr(m, 4, &c, &mx); s->intel[m] = c;
+        gm_member_attr(m, 6, &c, &mx); s->df[m] = c;
     }
+    memset(s->have, 0, sizeof s->have);
+    for (int m = 0; m < s->npar && m < 5; m++)
+        for (int i = 0; i < gm_item_count(m); i++) { GmItem g; if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) s->have[g.id] += g.count; }
     gm_member_fullname(who, s->fullname, sizeof s->fullname);
     s->female = gm_member_female(who);
-    u16 b = G_MEMBER(who);
-    s->age = (s16)g_rw((u16)(b - 2));
-    for (int a = 0; a < 7; a++) { s->attr[a] = (s8)g_rb((u16)(b + G_M_ATTR_CUR + a)); s->attr_max[a] = (s8)g_rb((u16)(b + G_M_ATTR_MAX + a)); }
-    for (int k = 0; k < 19; k++) s->skill[k] = (s8)g_rb((u16)(b + G_M_SKILLS + k));
-    s->load = g_rb((u16)(b + G_M_LOAD));
+    s->age = gm_member_age(who);
+    for (int a = 0; a < 7; a++) gm_member_attr(who, a, &s->attr[a], &s->attr_max[a]);
+    for (int k = 0; k < 19; k++) s->skill[k] = gm_member_skill(who, k);
+    s->load = gm_member_load(who);
     s->capacity = s->attr[0] + s->attr[1];
+    s->load_band = gm_member_load_band(who);
+    GmEquip e; gm_member_equip(who, &e);
+    s->weapon = e.weapon; s->vital = e.vital; s->limb = e.limb; s->shield = e.shield; s->missile = e.missile;
     s->nitems = gm_item_count(who);
     for (int i = 0; i < s->nitems; i++) {
         GmItem g; gm_item(who, i, &g);
@@ -64,28 +103,13 @@ static void build(int who)
         it->equipped = gm_item_equipped(who, i);
         it->drinkable = drinkable(g.id);
     }
-    for (int k = 0; k < 66; k++) s->formula[k] = (unsigned char)gm_knows_formula(who, k);
-    for (int k = 0; k < 160; k++) s->saint[k] = (unsigned char)gm_knows_saint(who, k);
+    memcpy(s->saint_class, saint_cls, sizeof s->saint_class);
+    s->nsaints = saint_cls_n;
     s->seq++;
 }
 
 static void item_name(int id, char *out, int n) { gm_itemdef_name(id, out, n); }
 
-/* the paper doll (the original's left half, kept on show): drawn again by the original's own
- * 0b22 into the back window and copied to the screen as its key handler does */
-/* one of the original sheet's boxes drawn again: 39a0(box, who, screen_win), the window passed by
- * value (0x12 bytes); box 0 the name bar (Leader / Not Leader), 2 the load */
-static void box_redraw(int box, int who)
-{
-    u16 w[9]; for (int i = 0; i < 9; i++) w[i] = g_rw((u16)(GV_screen_win + 2 * i));
-    ns_call(GF_sheet_box_draw, 11, box, who, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
-}
-static void doll_redraw(int who)
-{
-    ns_call(GF_sheet_doll, 1, who);
-    ns_call(GF_gfx_copy_rect, 8, GV_back_win, 60, 13, 138, 170, GV_screen_win, 60, 13);
-    box_redraw(2, who);
-}
 /* another member: the whole original sheet drawn for them (their doll, frame, load) */
 static void member_redraw(int who)
 {
@@ -108,7 +132,7 @@ static void act(const NsAction *a, int *who)
 {
     int w = *who, idx = a->a;
     GmItem g; char nm[32] = "", t[160];
-    if (a->type != SV_WHO && a->type != SV_LEADER && a->type != SV_CLOSE) {
+    if (a->type != SV_WHO && a->type != SV_LEADER && a->type != SV_CLOSE && a->type != SV_UNDO) {
         if (!gm_item(w, idx, &g)) return;
         item_name(g.id, nm, sizeof nm);
     }
@@ -123,8 +147,27 @@ static void act(const NsAction *a, int *who)
         }
         return;
     case SV_LEADER:
-        if (gm_member_present(a->a) && gm_member_status(a->a) == 1) { g_wb(G_LEADER, (u8)a->a); ns_call(GF_party_panel_rows, 1, 0x100); box_redraw(0, w); }
+        if (gm_member_present(a->a) && gm_member_status(a->a) == 1) { g_wb(G_LEADER, (u8)a->a); ns_call(GF_party_panel_rows, 1, 0x100); }
         return;
+    case SV_UNDO: {
+        SheetModel *s = &sheet_model;
+        if (s->ndrops <= 0) return;
+        SvDrop d = s->drops[--s->ndrops];
+        int got = 0;
+        for (int k = 0; k < d.count && !ns_unwinding; k++) {
+            int before = gm_item_count(w), had = 0;
+            for (int i = 0; i < before; i++) { GmItem g; if (gm_item(w, i, &g) && g.id == d.id && g.qual == d.qual) had += g.count; }
+            ns_call(GF_add_item_q, 3, w, d.id, d.qual);
+            int now = 0;
+            for (int i = 0; i < gm_item_count(w); i++) { GmItem g; if (gm_item(w, i, &g) && g.id == d.id && g.qual == d.qual) now += g.count; }
+            if (now <= had) break;
+            got++;
+        }
+        if (ns_unwinding) return;
+        if (got) snprintf(t, sizeof t, got > 1 ? "Taken back: the %s (%d)." : "Taken back: the %s.", d.name, got);
+        else snprintf(t, sizeof t, "The %s cannot be taken back (no room).", d.name);
+        note(t);
+        return; }
     case SV_READY:
         ns_call(GF_item_ready, 2, w, idx);
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, "%s takes up the %s.", sheet_model.names[w], nm);
@@ -143,10 +186,16 @@ static void act(const NsAction *a, int *who)
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, all ? "%s gives the %s to %s." : "%s gives a %s to %s.", sheet_model.names[w], nm, sheet_model.names[to]);
         else snprintf(t, sizeof t, "%s cannot take the %s.", sheet_model.names[to], nm);
         break; }
-    case SV_DROP:
+    case SV_DROP: {
+        SheetModel *s = &sheet_model;
+        int n = a->b == 255 ? g.count : 1;
         if (a->b == 255) ns_call(GF_item_remove_stack, 2, w, idx); else ns_call(GF_item_take_one, 2, w, idx);
-        snprintf(t, sizeof t, a->b == 255 ? "Left behind: the %s (all of them)." : "Left behind: a %s.", nm);
-        break;
+        if (ns_unwinding) return;
+        if (s->ndrops == 16) { memmove(&s->drops[0], &s->drops[1], 15 * sizeof s->drops[0]); s->ndrops--; }
+        SvDrop *d = &s->drops[s->ndrops++];
+        d->id = g.id; d->qual = g.qual; d->count = n; snprintf(d->name, sizeof d->name, "%s", nm);
+        snprintf(t, sizeof t, n > 1 ? "Left behind: the %s (%d). Undo takes them back." : "Left behind: a %s. Undo takes it back.", nm, n);
+        break; }
     case SV_DRINK:
         if (!drinkable(g.id)) return;
         ns_call(GF_use_potion, 2, w, idx);
@@ -157,7 +206,6 @@ static void act(const NsAction *a, int *who)
     default: return;
     }
     if (ns_unwinding) return;
-    doll_redraw(w);
     note(t);
 }
 
@@ -175,6 +223,8 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     ns_call(GF_sheet_open, 1, who);                      /* (fonts, the original's picture, unseen) */
     if (ns_unwinding) return;
     memset(sheet_model.note, 0, sizeof sheet_model.note);
+    sheet_model.ndrops = 0;
+    saint_classes();
     build(who);
     sheet_model.open = 1;
     fprintf(stderr, "sheet: open (member %d, %d things)\n", who, sheet_model.nitems);
@@ -185,7 +235,7 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     while (!leave) {
         if (!ns_round()) break;
         int cx, cy;
-        if (ns_in.click && ns_in.cx < 0x3c) {                 /* the party panel: another member, or this one: close */
+        if (ns_in.click && ns_in.cx < 0x3c && !sheetview_dragging) {   /* the party panel: another member, or this one: close (not the end of a drag: a give) */
             ns_take_click(&cx, &cy);
             int m = cy / 40;
             if (m == who) leave = 1;
