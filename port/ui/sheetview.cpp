@@ -149,6 +149,12 @@ static void header(NsDraw &P, const SheetModel &s)
         P.rect(lx, 11.6f, lx + 17, 18.8f, IM_COL32(214, 172, 60, 255), 1.2f);
         P.text(fo, NsDraw::FS_SMALL, lx + 2, 12.4f, NsDraw::INK, "Leader");
     } else if (P.button(lx, 11.6f, lx + 26, 18.8f, "Make leader", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_LEADER, s.who, 0, 0);
+    if (P.over(lx, 11.6f, lx + (s.who == s.leader ? 17 : 26), 18.8f))
+        ImGui::SetTooltip(config_get_int("assist.best_leader", 1) && !config_get_int("original", 0)
+            ? "A card's tests are made by whoever is best at them and shops price by the best bargainer, whoever leads.\n"
+              "The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour, a thing handed over),\n"
+              "makes the few tests a card rolls as it opens, and acts first in a battle."
+            : "The leader speaks and acts for the party on the cards and bargains in the shops.");
     static const char *TABS[4] = { "Things", "Skills", "Saints", "Formulae" };
     float tw = 25.5f, x = 318 - 4 * tw;
     for (int t = 0; t < 4; t++) {
