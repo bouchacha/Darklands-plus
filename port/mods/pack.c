@@ -5,7 +5,9 @@
  * when a battle begins (run_battle, s029 0e76:2278) each member whose missile weapon needs
  * arrows, quarrels or balls and who has none is handed some from whoever carries them
  * (give_one / give_stack, s031 18e7): one when they never run out (assist.infinite_ammo), else
- * the stack of a member who does not shoot them, or half of a shooter's. */
+ * the stack of a member who does not shoot them, or half of a shooter's. The potions likewise:
+ * each kind spread over the able members, since in a battle one drinks or throws only what one
+ * carries. */
 #include <stdio.h>
 #include <stdlib.h>
 #include "../runtime/cpu.h"
@@ -60,9 +62,60 @@ static void hand_out_ammo(void)
     }
 }
 
+/* the potions, shared out: in a battle a member drinks or throws only what they carry (the
+   orders' menu lists their own), so each kind of potion in the pack is spread over the able
+   members, as evenly as it goes (the extra ones to those first in the marching order) */
+static int is_potion(int id) { unsigned long c; return gm_itemdef_cats(id, &c) && (c & 0x800); }
+static void spread_potions(void)
+{
+    int able[5], n = 0;
+    for (int k = 0; k < 6 && n < 5; k++) {                 /* the marching order first, then the rest */
+        int m = (s8)g_rb((u16)(GV_marching_order + k));
+        if (m < 0 || m > 4) continue;
+        int dup = 0; for (int j = 0; j < n; j++) if (able[j] == m) dup = 1;
+        if (!dup && gm_member_present(m) && gm_member_status(m) == 1) able[n++] = m;
+    }
+    for (int m = 0; m < 5 && n < 5; m++) {
+        int dup = 0; for (int j = 0; j < n; j++) if (able[j] == m) dup = 1;
+        if (!dup && gm_member_present(m) && gm_member_status(m) == 1) able[n++] = m;
+    }
+    if (n < 2) return;
+    struct { int id, q; } kinds[32]; int nk = 0;
+    for (int j = 0; j < n; j++)
+        for (int i = 0; i < gm_item_count(able[j]); i++) {
+            GmItem g; if (!gm_item(able[j], i, &g) || !is_potion(g.id)) continue;
+            int seen = 0; for (int k = 0; k < nk; k++) if (kinds[k].id == g.id && kinds[k].q == g.qual) seen = 1;
+            if (!seen && nk < 32) { kinds[nk].id = g.id; kinds[nk].q = g.qual; nk++; }
+        }
+    for (int k = 0; k < nk && !ns_unwinding; k++) {
+        int have[5], total = 0;
+        for (int j = 0; j < n; j++) {
+            have[j] = 0;
+            for (int i = 0; i < gm_item_count(able[j]); i++) { GmItem g; if (gm_item(able[j], i, &g) && g.id == kinds[k].id && g.qual == kinds[k].q) have[j] += g.count; }
+            total += have[j];
+        }
+        for (int j = 0; j < n && !ns_unwinding; j++) {
+            int want = total / n + (j < total % n ? 1 : 0);
+            while (have[j] < want && !ns_unwinding) {      /* from whoever has the most above their share */
+                int from = -1, over = 0;
+                for (int f = 0; f < n; f++) { int fw = total / n + (f < total % n ? 1 : 0); if (have[f] - fw > over) { over = have[f] - fw; from = f; } }
+                if (from < 0 || !gm_room_for(able[j], kinds[k].id, kinds[k].q)) break;
+                int rec = -1;
+                for (int i = 0; i < gm_item_count(able[from]); i++) { GmItem g; if (gm_item(able[from], i, &g) && g.id == kinds[k].id && g.qual == kinds[k].q) rec = i; }
+                if (rec < 0) break;
+                ns_call(GF_give_one, 4, able[from], able[j], rec, 9);
+                have[from]--; have[j]++;
+            }
+        }
+    }
+}
+
 static void battle_hook(void)             /* run_battle (s029 0e76:2278) */
 {
-    if (sheetview_shared() && gm_party_size() > 1) { hand_out_ammo(); if (ns_unwinding) return; }
+    if (sheetview_shared() && gm_party_size() > 1) {
+        hand_out_ammo(); if (ns_unwinding) return;
+        spread_potions(); if (ns_unwinding) return;
+    }
     hook_call_original();
 }
 
