@@ -33,6 +33,13 @@ extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 extern "C" int cardview_dialog;
 extern "C" u32 plat_ticks_ms(void);
+extern "C" const char *card_hint(const char *card, int opt);     /* ui/cardhints.cpp */
+static const char *greyed_hint(const CvPiece &p)                  /* why this greyed option cannot be chosen, if known */
+{
+    if (!assist_card_help || !p.is_opt || p.state != 2 || p.type == 1 || p.type == 2) return nullptr;
+    char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+    return card_hint(nm, p.opt);
+}
 float ui_face_k(ImFont *f);                                   /* overlay.cpp */
 void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
 void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula);
@@ -250,6 +257,13 @@ extern "C" void cardview_draw(void)
             float r = ns * 0.62f;
             dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
             dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
+        } else if (menu && greyed_hint(p)) {                         /* greyed, and why is known: a "?" where the number would be */
+            float ns = size * 0.72f;
+            ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, "?");
+            ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
+            float r = ns * 0.62f;
+            dl->AddCircle(cpos, r, ink_dim, 16, fmaxf(1.0f, 0.3f * k));
+            dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_dim, "?");
         }
         if (p.is_opt && p.type == -1 && p.state == 1) {          /* a fight: two crossed blades */
             ImVec2 cpos(X1 - 0.9f * size, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
@@ -351,6 +365,16 @@ extern "C" void cardview_draw(void)
     }
     if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
+    else if (menu && c.hover >= 0 && c.hover < c.npieces && greyed_hint(c.piece[c.hover])) {
+        ImGui::SetNextWindowPos(ImVec2(bx1 + 4.5f * k, laid[c.hover].y0 - shift));     /* beside the option (the pointer may be the game's only) */
+        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(ImGui::GetFontSize() * 22, FLT_MAX));
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("Not possible now");
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 21);
+        ImGui::TextUnformatted(greyed_hint(c.piece[c.hover]));
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
     else if (menu && assist_card_help && c.hover >= 0 && c.hover < c.npieces && c.popup_piece != c.hover
              && (c.piece[c.hover].type == 1 || c.piece[c.hover].type == 2)) {
         /* which saints or items this option takes, and who in the party knows or carries them
