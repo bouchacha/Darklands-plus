@@ -277,6 +277,9 @@ extern "C" void ui_toggle_map(void)
 }
 
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
+extern "C" int margins_click(int x, int y);           /* ui/margins.cpp: the battle's order buttons */
+static int margin_click_taken, outside_down;
+extern "C" int plat_win_outside(int wx, int wy);
 extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
@@ -332,6 +335,12 @@ extern "C" int ui_event(const SDL_Event *e)
     if (!open_menu) {
         if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && overlay_click(e->button.x, e->button.y)) return 1;
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
+        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && margins_click(e->button.x, e->button.y)) { margin_click_taken = 1; return 1; }
+        if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && margin_click_taken) { margin_click_taken = 0; return 1; }
+        /* a left click beside the picture (on the margins) is not the game's: its pointer waits at
+           the picture's edge, where a click would walk the party or the fighters there */
+        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && game_mode() != GM_OTHER && plat_win_outside(e->button.x, e->button.y)) { outside_down = 1; return 1; }
+        if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && outside_down) { outside_down = 0; return 1; }
         return 0;
     }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { ui_toggle(); return 1; }

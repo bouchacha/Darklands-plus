@@ -299,6 +299,7 @@ static void global_key(int key)
         g_wb(0x9c26, 1); g_wb(0x9c2f, 0); g_wb(0x9c3c, 0xff); g_wb(0x9c41, 0xff);
         return;
     }
+    if (ns_hot_key(key)) return;                              /* Alt-S, Alt-L ...: the game's hot keys */
     ns_nested = key >= 0x3b00 && key <= 0x4000 && !(key & 0xff);   /* F1..F6 open a screen */
     ns_call(GF_card_global_keys, 1, key);
     ns_nested = 0;

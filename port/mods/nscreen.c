@@ -100,13 +100,31 @@ int ns_take_click(int *x, int *y)
     return 1;
 }
 
+int ns_hot_key(int k);
 /* a key for a native screen's loop; F10 opens the menus (as hot_keys does: the loop took the key
    before menu_bar_run saw it) and is not passed on (0) */
 int ns_get_key(void)
 {
     int k = (u16)ns_call(GF_get_key, 0);
     if (k == 0x4400) { g_wb(0x9c26, 1); g_wb(0x9c2f, 0); g_wb(0x9c3c, 0xff); g_wb(0x9c41, 0xff); return 0; }
+    if (ns_hot_key(k)) return 0;
     return k;
+}
+
+/* the game's hot keys (hot_keys, root 0000:0caa: Alt-S save, Alt-L load, Alt-D difficulty, Alt-M
+   music, Alt-F sound, Alt-C saintly changes, Alt-P pause, Alt-O marching order, Alt-Q quit) when a
+   native loop took the key before menu_bar_run looked: put back and handed to hot_keys */
+void bios_kbd_inject(u16 w);
+int ns_hot_key(int k)
+{
+    switch (k) {
+    case 0x1000: case 0x1800: case 0x1900: case 0x1f00: case 0x2000: case 0x2100: case 0x2600: case 0x2e00: case 0x3200:
+        if (getenv("DL_KEYS_LOG")) fprintf(stderr, "keys: %04x to the game's hot keys (save %d, load %d)\n", k, g_rb(0x9920), g_rb(0x9934));
+        bios_kbd_inject((u16)k);
+        ns_call(GF_hot_keys, 0);
+        return 1;
+    }
+    return 0;
 }
 
 /* ---------------------------------------------------------------- actions */

@@ -56,7 +56,8 @@ int assist_test_screens(void)
 }
 static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) */
 {
-    if (ufight_pending) {               /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 */
+    int encounters_card_active(void);
+    if (ufight_pending && !encounters_card_active()) {   /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 (test; not inside a new encounter, whose script would lose its place) */
         int bf = ufight_pending; ufight_pending = 0;
         void (*f)(void) = game_func(GF_run_battle);
         u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };

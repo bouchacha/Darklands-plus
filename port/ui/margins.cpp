@@ -17,6 +17,7 @@ extern "C" {
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/travel.h"
+#include "../mods/menuview.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
@@ -107,6 +108,67 @@ static void bar(float frac, ImU32 col, float w, float hgt)
     ImGui::Dummy(ImVec2(w, hgt));
 }
 extern "C" int partypanel_shown(void);
+/* the orders for the member being given them: the game's Attack and Orders menus as buttons
+   (only what the game allows now; chosen at the battle's next round, as from the menu). The
+   margins take no input from ImGui: the buttons are drawn here and their clicks come through
+   margins_click (ui_event) */
+struct OrderBtn { ImVec2 a, b; int m, i, s; };
+static std::vector<OrderBtn> order_btns; static int order_btns_frame = -100;
+extern "C" int margins_click(int x, int y)
+{
+    if (ImGui::GetFrameCount() - order_btns_frame > 2) return 0;
+    for (const OrderBtn &o : order_btns)
+        if (x >= o.a.x && x < o.b.x && y >= o.a.y && y < o.b.y) { menuview_request(o.m, o.i, o.s); return 1; }
+    return 0;
+}
+static void order_buttons(float width)
+{
+    order_btns.clear();
+    if (!menuview_is_on() || g_rb(GV_order_mode) != 1) return;
+    int sel = (s8)g_rb(GV_selected_member);
+    if (sel < 0 || sel > 4) return;
+    const MenuModel *M = menuview_live();
+    char nm[32]; { u16 b = G_MEMBER(sel); int i = 0; for (; i < 31; i++) { char c = (char)g_rb((u16)(b + 0x2a + i)); if (!c) break; nm[i] = c; } nm[i] = 0; }
+    std::string who = game_text(nm, strlen(nm)); size_t sp = who.find(' '); if (sp != std::string::npos) who = who.substr(0, sp);
+    bool head = false;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    ImVec2 o0 = ImGui::GetCursorScreenPos(), mp = ImGui::GetIO().MousePos;
+    float x0 = o0.x, x1 = o0.x + width - ImGui::GetStyle().WindowPadding.x * 2, x = x0, y = 0, lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f, gap = lh * 0.25f;
+    for (int j = 0; j < M->nmenus; j++) {
+        std::string mn = M->menu[j].name;
+        if (!M->menu[j].enabled || (mn != "Attack" && mn != "Orders")) continue;
+        for (int k = 0; k < M->menu[j].n; k++) {
+            int ix = M->menu[j].first + k;
+            const MvItem &it = M->items[ix];
+            int nsub = M->sub_n[ix];
+            for (int s2 = nsub ? 0 : -1; s2 < (nsub ? nsub : 0); s2++) {
+                const MvItem &e = s2 >= 0 ? M->items[M->sub_first[ix] + s2] : it;
+                if (!e.enabled || (s2 >= 0 && !it.enabled)) continue;
+                if (!head) { heading(("Orders for " + who).c_str()); head = true; y = ImGui::GetCursorScreenPos().y; x = x0; }
+                std::string label = game_text(e.name, strlen(e.name));
+                if (s2 >= 0) label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + label;
+                if (e.key[0]) label += std::string(" (") + e.key + ")";
+                ImVec2 ts = ImGui::CalcTextSize(label.c_str());
+                float w = ts.x + pad * 2, h = lh + pad;
+                if (x > x0 && x + w > x1) { x = x0; y += h + gap; }
+                ImVec2 a(x, y), b(x + w, y + h);
+                bool hov = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
+                dl->AddRectFilled(a, b, hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), h * 0.2f);
+                dl->AddRect(a, b, IM_COL32(170, 132, 70, 255), h * 0.2f);
+                dl->AddText(ImVec2(a.x + pad, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), label.c_str());
+                order_btns.push_back({ a, b, j, k, s2 });
+                x += w + gap;
+            }
+        }
+    }
+    if (head) {
+        ImGui::SetCursorScreenPos(ImVec2(x0, y + lh + pad + gap));
+        ImGui::Dummy(ImVec2(1, 1));
+        ImGui::Separator();
+        order_btns_frame = ImGui::GetFrameCount();
+    }
+}
+
 static void battle_panel(float width, float fs)
 {
     static bool seen[13]; static u16 last_tick = 0xffff;
@@ -117,6 +179,7 @@ static void battle_panel(float width, float fs)
     int n = (s8)g_rb(GV_hotspot_count);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
+    order_buttons(width);
     if (!partypanel_shown()) heading("The party");      /* (the party panel drawn anew has them already) */
     for (int i = 0; i < 5 && !partypanel_shown(); i++) {
         u16 b = (u16)(0x9c55 + 0x80 * i);

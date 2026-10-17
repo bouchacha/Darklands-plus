@@ -441,6 +441,15 @@ static void to_game(int wx, int wy, int *gx, int *gy)
 }
 
 void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
+/* the system pointer is beside the picture (over the margins): the game's own pointer waits at
+   the picture's edge meanwhile (a battle must not scroll, a click there is not the game's) */
+static int ptr_out;
+int plat_pointer_outside(void) { return ptr_out; }
+int plat_win_outside(int wx, int wy)
+{
+    int ox = win_w ? wx * out_w / win_w : wx, oy = win_h ? wy * out_h / win_h : wy;
+    return ox < dest.x || ox >= dest.x + dest.w || oy < dest.y || oy >= dest.y + dest.h;
+}
 
 static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window sizes are saved divided by it */
 /* the game stands still while the menu is open, and while the window is in the background
@@ -731,7 +740,8 @@ static int menu_click(const SDL_Event *e)
         menu_sticky = 2;
         return 1;
     }
-    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1)) return 0;
+    int menuview_is_on(void);
+    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1) || menuview_is_on()) return 0;   /* (the menus drawn by Darklands+ stay open by themselves) */
     if (e->type == SDL_MOUSEBUTTONDOWN) { rdown_t = plat_ticks_ms(); rup_wait = 0; return 0; }
     if (plat_ticks_ms() - rdown_t < 350) {          /* short: held a little longer, until the game has its bar up */
         rup_wait = plat_ticks_ms();
@@ -974,6 +984,7 @@ void plat_events(void)
         case SDL_MOUSEMOTION:
             if (e.motion.x > mouse_far_x) mouse_far_x = e.motion.x; if (e.motion.y > mouse_far_y) mouse_far_y = e.motion.y;
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
+            ptr_out = plat_win_outside(e.motion.x, e.motion.y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
             if (bg_resumed && plat_ticks_ms() - bg_resumed < 400) {       /* the click that brought the window back */

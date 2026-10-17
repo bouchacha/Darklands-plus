@@ -39,7 +39,9 @@ unsigned mouse_press_count(int b);
 MenuModel menu_model;
 NsInput mv_in;                      /* the pointer's clicks while the menu is open (the views under it get none) */
 static int mv_on = 1;
-static struct { u16 seg, off; } fn[96];
+typedef struct { u16 seg, off; } MvFn;
+static int call_handler(u16 seg, u16 off);
+static MvFn fn[96];
 
 int menuview_is_on(void) { return mv_on; }
 void menuview_set(int on) { mv_on = on; config_set_int("display.native_menu", on); }
@@ -87,9 +89,8 @@ static void item_name(u16 p, MvItem *it)
     for (int k = (int)strlen(it->name) - 1; k >= 0 && it->name[k] == ' '; k--) it->name[k] = 0;
 }
 
-static void build(u16 mp)
+static void build_into(u16 mp, MenuModel *M, MvFn *fn)
 {
-    MenuModel *M = &menu_model;
     M->nmenus = 0; M->nitems = 0;
     for (int j = 0; j < 6; j++) {
         u16 e = (u16)(mp + 10 * j);
@@ -141,6 +142,26 @@ static void build(u16 mp)
             if (M->sub_n[ix]) M->items[ix].nsub = ix;
         }
     }
+}
+static void build(u16 mp) { build_into(mp, &menu_model, fn); }
+
+/* the menus' entries for buttons elsewhere (the battle margin's orders): read now; a choice is
+   carried out at the next round of the game's loop (menu_bar_run), if still allowed then */
+static MenuModel live; static MvFn live_fn[96];
+static int req_menu = -1, req_item, req_sub;
+const MenuModel *menuview_live(void) { build_into(0x9419, &live, live_fn); return &live; }
+void menuview_request(int m, int i, int s) { req_menu = m; req_item = i; req_sub = s; }
+static int run_request(void)
+{
+    int m = req_menu, i = req_item, s = req_sub;
+    req_menu = -1;
+    build_into(0x9419, &live, live_fn);
+    if (m < 0 || m >= live.nmenus || !live.menu[m].enabled || i < 0 || i >= live.menu[m].n) return 1;
+    int ix = live.menu[m].first + i;
+    if (s >= 0) { if (s >= live.sub_n[ix]) return 1; ix = live.sub_first[ix] + s; }
+    if (!live.items[ix].enabled) return 1;
+    fprintf(stderr, "menu: %s > %s (a button)\n", live.menu[m].name, live.items[ix].name);
+    return call_handler(live_fn[ix].seg, live_fn[ix].off);
 }
 
 /* ---------------------------------------------------------------- the keyboard */
@@ -279,6 +300,8 @@ static void bar_hook(void)                       /* menu_bar_run (menus, once) *
     int rclicked = rp != rp_seen; rp_seen = rp;
     if (kb || rclicked || (g_rb(GV_mouse_buttons) & 2)) {
         if (!run(mp, kb)) return;                       /* (the game unwinds: no return of ours) */
+    } else if (req_menu >= 0 && mp == 0x9419) {
+        if (!run_request()) return;
     }
     if (--first == 0) g_wb(GV_pause_depth, 0);
     hook_return_far(0);

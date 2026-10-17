@@ -38,6 +38,13 @@ STEPS = [
     ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
+    ('the store room (native)', 'ucmd ucache:; wait 4; wshot 9_store', [r'store room: open']),
+    ('leave the store room', 'ucmd unspush:5; wait 3', [r'store room: closed']),
+    ('calling on a saint (native)', 'ucmd usaint:0,0; wait 4; wshot 10_pray', [r'prayer: open']),
+    ('not praying', 'ucmd unspush:4; wait 3', [r'prayer: not prayed']),
+    ('save (Alt+S, native page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; wshot 11_save; key Return; wait 4', [r'saves: the Save page', r'saves: the page closed \(chosen\)']),
+    ('the load list (Alt+L), cancelled', 'ucmd down:Left Alt; wait 0.3; key l; wait 0.3; ucmd up:Left Alt; wait 3; wshot 12_load; key Escape; wait 3', [r'saves: the Load page', r'saves: the page closed \(cancelled\)']),
+    ('the menus (right click, Game)', 'at 200 100; rclick; wait 1; at 70 5; click; wait 1; wshot 13_menu; key Escape; wait 1', [r'.']),
 ]
 
 

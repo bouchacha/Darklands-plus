@@ -34,7 +34,8 @@ static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick o
     static int was_edge;
     int mx, my; plat_mouse_game(&mx, &my);
     u32 now = plat_ticks_ms();
-    int edge = on_edge(mx, my);
+    int plat_pointer_outside(void);
+    int edge = on_edge(mx, my) && !plat_pointer_outside();     /* (beside the picture, over the margins: no) */
     if (edge && !was_edge) edge_since = now;
     was_edge = edge;
     if (!edge) { held_since = 0; hook_call_original(); return; }

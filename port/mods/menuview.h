@@ -45,6 +45,8 @@ void menuview_init(void);
 int menuview_is_on(void);
 void menuview_set(int on);
 int menuview_open(void);          /* the native menu is up (the other views take no clicks) */
+const MenuModel *menuview_live(void);              /* the menus' entries now (for buttons elsewhere) */
+void menuview_request(int menu, int item, int sub);   /* that entry chosen, at the game's next round */
 
 #ifdef __cplusplus
 }

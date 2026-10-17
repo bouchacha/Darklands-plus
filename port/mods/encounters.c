@@ -1399,6 +1399,7 @@ static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(
     hook_call_original();
     if (unw_active) return;
     int r = (s16)AX, t = (s16)g_rw(V_TERRAIN);
+    if (getenv("DL_OVERLAND_LOG")) fprintf(stderr, "overland: next %d (step %d)\n", r, travel_step_result);
     int region = 0;
     for (int i = 0; i < (int)(sizeof REGION_CARDS / sizeof REGION_CARDS[0]); i++) if (REGION_CARDS[i] == r) region = 1;
     if (travel_step_result != 1000 || !region) return;
