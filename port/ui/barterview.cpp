@@ -87,7 +87,7 @@ extern "C" void barterview_draw(void)
         if (hit(284, 4, 315, 15)) ns_push(BV_LEAVE, 0, 0, 0);
     }
 
-    /* the member tabs (right column); right-click: holds the purse */
+    /* the member tabs (right column); the coin (or a right click): holds the purse */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9;
     T(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "For sale");
     {
@@ -98,9 +98,14 @@ extern "C" void barterview_draw(void)
             bool sel = m == b.who, h = in(mx, my, x, 19, x + tw - 1, 29);
             R(x, 19, x + tw - 1, 29, sel ? IM_COL32(112, 40, 22, 240) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255), 2);
             std::string nm = gt(b.names[m]);
-            T(f, NsDraw::FS_NAME, x + 2.5f + (m == b.payer ? 4 : 0), 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
-            if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.6f * k, IM_COL32(214, 172, 60, 255));
-            if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
+            /* the purse: a gold coin on the tab of who holds it; a click on another tab's (faint) coin hands it over */
+            bool coin_h = in(mx, my, x, 19, x + 7, 29);
+            T(f, NsDraw::FS_NAME, x + 7.0f, 20.5f, sel ? IM_COL32(250, 236, 200, 255) : ink, nm, -1, x + tw - 2);
+            if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.8f * k, IM_COL32(214, 172, 60, 255));
+            else dl->AddCircle(g2w(x + 3.5f, 24), 1.8f * k, coin_h ? IM_COL32(214, 172, 60, 255) : sel ? IM_COL32(250, 236, 200, 110) : IM_COL32(120, 90, 40, 110), 0, fmaxf(1.0f, 0.4f * k));
+            if (coin_h && m != b.payer) ImGui::SetTooltip("%s pays from now on", nm.c_str());
+            if (click && in(cx, cy, x, 19, x + 7, 29)) ns_push(BV_PAYER, m, 0, 0);
+            else if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
             if (P.rclick && in(mx, my, x, 19, x + tw - 1, 29)) ns_push(BV_PAYER, m, 0, 0);
             x += tw;
         }
@@ -202,5 +207,5 @@ extern "C" void barterview_draw(void)
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note));
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  right-click a name: that member pays");
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays");
 }

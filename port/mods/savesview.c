@@ -1,0 +1,129 @@
+/* savesview.c - the game's Save and Load as native dialogs (display.native_saves; "Play the original
+ * game" keeps the game's). The view is ui/savesview.cpp.
+ *
+ * The original saves with a one-line comment prompt (save_game, s037 1462:2a68, into a new
+ * saves\dksaveN.sav each time) and loads from a list of comments, nine at a time, after
+ * "Loading is irreversable. Proceed?" (load_game, s037 1c7d:09c6). Here Save asks for the
+ * comment on a page that also lists the saves there are (where, when in the game and in the
+ * world, who); Load is that list to choose from. Both are still the game's own routines
+ * (mods/saves.c: the comment handed to save_game's prompt; load_game led through its question
+ * and list to the save chosen). */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include "../runtime/cpu.h"
+#include "../runtime/game.h"
+#include "../runtime/gamevars.h"
+#include "../runtime/config.h"
+#include "nscreen.h"
+#include "savesview.h"
+
+u32 plat_ticks_ms(void);
+void plat_sleep_ms(int ms);
+void dl_poll(void);
+
+SavesModel saves_model;
+static int sv_on = 1;
+
+int savesview_is_on(void) { return sv_on; }
+void savesview_set(int on) { sv_on = on; config_set_int("display.native_saves", on); }
+void savesview_init(void) { sv_on = config_get_int("display.native_saves", 1); }
+
+#define NQ 16
+static NsAction q[NQ]; static int qh, qt;
+void savesview_push(int type, int a) { int n = (qt + 1) % NQ; if (n == qh) return; q[qt].type = type; q[qt].a = a; q[qt].b = q[qt].c = 0; qt = n; }
+static int pop(NsAction *o) { if (qh == qt) return 0; *o = q[qh]; qh = (qh + 1) % NQ; return 1; }
+
+static const char *MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+
+static void default_comment(char *out, int n)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    char place[24] = "";
+    u32 r = cur >= 0 ? g_location(cur) : 0;
+    if (r) g_str((u16)(r >> 16), (u16)((u16)r + 0x26), place, sizeof place);
+    for (int i = 0; place[i]; i++) if ((unsigned char)place[i] < 32 || (unsigned char)place[i] > 126) place[i] = ' ';
+    int day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH);
+    char b[64]; snprintf(b, sizeof b, "%.14s %d %.3s", place[0] ? place : "Travelling", day, MON[(unsigned)mon % 12]);
+    snprintf(out, (size_t)n, "%s", b);
+}
+
+static int ok_or_cancel(int loading)
+{
+    SavesModel *S = &saves_model;
+    qh = qt = 0;
+    free(S->saves); S->saves = 0;
+    S->nsaves = saves_list(&S->saves);
+    g_str(G_DGROUP, 0xa680, S->cur_file, sizeof S->cur_file);     /* "dksaveN.sav": the save last written or read */
+    S->loading = loading;
+    S->sel = -1;
+    if (loading) for (int i = 0; i < S->nsaves; i++) if (!strcasecmp(S->saves[i].file, S->cur_file)) { S->sel = i; break; }
+    if (loading && S->sel < 0 && S->nsaves) S->sel = 0;
+    S->open = 1; S->seq++; S->caret_t = plat_ticks_ms();
+    fprintf(stderr, "saves: the %s page (%d saves)\n", loading ? "Load" : "Save", S->nsaves);
+    ns_enter(NS_SAVES);
+    ns_input_begin();
+    int r = 0;
+    while (!r) {
+        dl_poll();
+        plat_sleep_ms(3);
+        ns_input_poll();
+        while (ns_call(GF_key_pressed, 0)) {
+            int k = (u16)ns_call(GF_get_key, 0);
+            if (k == 0x011b) { r = -1; break; }
+            if (k == 0x1c0d) { if (!loading || S->sel >= 0) { r = 1; break; } continue; }
+            if (loading) {
+                if (k == 0x4800 && S->sel > 0) S->sel--;
+                else if (k == 0x5000 && S->sel + 1 < S->nsaves) S->sel++;
+                continue;
+            }
+            int c = k & 0xff;
+            if (S->fresh && (k == 0x0e08 || (c >= 32 && c < 127))) S->comment[0] = 0;   /* (the first key replaces the suggestion) */
+            S->fresh = 0;
+            int len = (int)strlen(S->comment);
+            if (k == 0x0e08) { if (len) S->comment[len - 1] = 0; }
+            else if (c >= 32 && c < 127 && len < SV_COMMENT_MAX) { S->comment[len] = (char)c; S->comment[len + 1] = 0; }
+            S->caret_t = plat_ticks_ms();
+        }
+        NsAction a;
+        while (!r && pop(&a)) {
+            if (a.type == SVV_CANCEL) r = -1;
+            else if (a.type == SVV_SELECT) S->sel = a.a;
+            else if (a.type == SVV_OK) { if (loading) { if (a.a >= 0 && a.a < S->nsaves) { S->sel = a.a; r = 1; } } else r = 1; }
+        }
+        if (unw_active) break;
+    }
+    S->open = 0;
+    {   /* the key that closed it let go before the game goes on (its release came after the game's
+           loop had found a key waiting that was no longer there: the travel loop waited) */
+        u32 t0 = plat_ticks_ms();
+        while (plat_ticks_ms() - t0 < 160) { dl_poll(); plat_sleep_ms(3); }
+        ns_call(GF_flush_keys, 0);
+    }
+    fprintf(stderr, "saves: the page closed (%s)\n", r == 1 ? "chosen" : "cancelled");
+    ns_leave();
+    ns_input_begin();
+    return r == 1;
+}
+
+int savesview_save(char *comment, int n)
+{
+    if (!sv_on || !ns_active()) return -1;                       /* (-1: the original's way) */
+    default_comment(saves_model.comment, SV_COMMENT_MAX + 1);
+    saves_model.fresh = 1;
+    if (!ok_or_cancel(0)) return 0;
+    char *c = saves_model.comment;
+    while (*c == ' ') c++;
+    snprintf(comment, (size_t)n, "%s", *c ? c : "Darklands");
+    return 1;
+}
+
+int savesview_load(char *file, int n)
+{
+    if (!sv_on || !ns_active()) return -1;
+    if (!ok_or_cancel(1)) return 0;
+    if (saves_model.sel < 0 || saves_model.sel >= saves_model.nsaves) return 0;
+    snprintf(file, (size_t)n, "%s", saves_model.saves[saves_model.sel].file);
+    return 1;
+}

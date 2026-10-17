@@ -62,6 +62,8 @@ extern "C" void barterview_draw(void);
 extern "C" void sheetview_draw(void);
 extern "C" void lootview_draw(void);
 extern "C" void menuview_draw(void);
+extern "C" void savesview_draw(void);
+extern "C" { int savesview_is_on(void); void savesview_set(int on); }
 extern "C" { int menuview_is_on(void); void menuview_set(int on); }
 extern "C" void ns_defer_frame_end(int game_held);
 extern "C" void alchemyview_draw(void);
@@ -517,6 +519,9 @@ static void tab_helpers(void)
     { bool nm = menuview_is_on() != 0;
       if (ImGui::Checkbox("The game's menus (Game, Orders, Attack, Party ...) drawn by Darklands+: a right click or F10 opens them, a click chooses", &nm)) { menuview_set(nm); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("They stay open until you choose or click elsewhere, instead of only while the right button is held (letting go of it over an entry still chooses that entry). The entries and what they do are the game's own. Off: the game's own menu bar."); ImGui::Unindent(UIS(34)); }
+    { bool nv = savesview_is_on() != 0;
+      if (ImGui::Checkbox("The game's Save and Load drawn by Darklands+: the saves listed with where, when and who", &nv)) { savesview_set(nv); dirty_config = 1; }
+      ImGui::Indent(UIS(34)); hint("Save asks for the comment on a page that lists the saves there are; Load lists them all to choose from (no question first). The saving and loading are the game's own. Off: the game's comment prompt and its list of nine."); ImGui::Unindent(UIS(34)); }
     { bool nc = cardview_on != 0;
       if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); dirty_config = 1; }
       ImGui::Indent(UIS(34)); hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
@@ -1225,7 +1230,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); menuview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); savesview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();

@@ -34,6 +34,7 @@ u32 plat_ticks_ms(void);
 void plat_sleep_ms(int ms);
 void dl_poll(void);
 void native_go(u16 seg, u16 off);
+unsigned mouse_press_count(int b);
 
 MenuModel menu_model;
 NsInput mv_in;                      /* the pointer's clicks while the menu is open (the views under it get none) */
@@ -272,7 +273,11 @@ static void bar_hook(void)                       /* menu_bar_run (menus, once) *
     }
     if (!g_rb(GV_pause_depth)) { g_wb(GV_pause_depth, 1); first = 1; }
     int kb = g_rb(D_KEYMODE) == 1;
-    if (kb || (g_rb(GV_mouse_buttons) & 2)) {
+    /* a right click since the last time (the travel map's loop waits between steps: a quick click
+       can come and go in between) */
+    static unsigned rp_seen; unsigned rp = mouse_press_count(1);
+    int rclicked = rp != rp_seen; rp_seen = rp;
+    if (kb || rclicked || (g_rb(GV_mouse_buttons) & 2)) {
         if (!run(mp, kb)) return;                       /* (the game unwinds: no return of ours) */
     }
     if (--first == 0) g_wb(GV_pause_depth, 0);

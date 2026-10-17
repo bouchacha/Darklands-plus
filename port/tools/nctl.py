@@ -37,7 +37,8 @@ def start(name, exe, game, x11=False):
         disp = 100 + (sum(map(ord, name)) % 400)
         lock = '/tmp/.X%d-lock' % disp          # left behind by a server that was killed: Xvfb would not start
         try:
-            os.kill(int(open(lock).read().strip()), 0)
+            if 'Xvfb' not in open('/proc/%d/comm' % int(open(lock).read().strip())).read():
+                raise ValueError('not an X server')
         except (OSError, ValueError):
             for f in (lock, '/tmp/.X11-unix/X%d' % disp):
                 try:

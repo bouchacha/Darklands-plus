@@ -28,6 +28,7 @@ void ovl_changed(void);
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "saves.h"
+#include "savesview.h"
 
 int saves_on = 1;                /* quick keys and autosaves (off: the original's saving only) */
 int saves_auto_arrive = 1;       /* autosave on arriving at a place */
@@ -287,6 +288,38 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     auto_due[0] = 0;
 }
 
+/* the game's own Save and Load (the menu, Alt-S, Alt-L) as native dialogs (mods/savesview.c) */
+static void save_hook(void)                /* save_game () */
+{
+    if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
+    char c[48];
+    int r = savesview_save(c, sizeof c);
+    if (r < 0) { hook_call_original(); return; }
+    if (r == 0) { AX = 0; hook_return_far(0); return; }
+    answer = c; in_save = 1;
+    hook_call_original();
+    answer = 0; in_save = 0;
+    if (unw_active) return;
+    char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
+    char m[96]; snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    ui_notice(m);
+}
+
+static void load_hook(void)                /* load_game () */
+{
+    if (load_stage || !saves_on) { hook_call_original(); return; }   /* (ours under way; or the original's list and question) */
+    char f[16];
+    int r = savesview_load(f, sizeof f);
+    if (r < 0) { hook_call_original(); return; }
+    if (r == 0) { hook_return_far(0); return; }
+    snprintf(load_name, sizeof load_name, "%s", f);
+    load_stage = 2; load_t = plat_ticks_ms();
+    if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: loading %s (the game's Load)\n", load_name);
+    hook_call_original();                   /* (when it loads, the game unwinds through here) */
+    if (unw_active) return;
+    load_stage = 0;
+}
+
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 {
     if (saves_on && saves_auto_battle && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) do_save("Autosave: battle");
@@ -371,6 +404,9 @@ void saves_init(void)
 {
     saves_restart = config_get_int("saves.restart_on_end", 1);
     hook_install(GF_quit_to_dos, quit_hook);
+    hook_install(GF_save_game, save_hook);
+    hook_install(GF_load_game, load_hook);
+    savesview_init();
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);
     saves_auto_battle = config_get_int("saves.autosave_battle", 1);
     saves_keep_quick = config_get_int("saves.keep_quick", 3);

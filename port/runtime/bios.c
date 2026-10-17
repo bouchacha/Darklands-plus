@@ -289,6 +289,8 @@ static int ms_pending;          /* event mask for the user handler */
  * So a reset centres it, and the real position follows once the game has read the centre. */
 static int ms_hostx = 320, ms_hosty = 100, ms_resync;
 static int ms_press[3], ms_release[3], ms_lpx[3], ms_lpy[3], ms_lrx[3], ms_lry[3];
+static unsigned ms_press_total[3];      /* presses ever (for Darklands+: a click the game's loop polled too late to see) */
+unsigned mouse_press_count(int b) { return b >= 0 && b < 3 ? ms_press_total[b] : 0; }
 
 void mouse_update(int x, int y, int buttons)
 {
@@ -301,7 +303,7 @@ void mouse_update(int x, int y, int buttons)
     }
     for (int i = 0; i < 3; i++) {
         int was = (ms_b >> i) & 1, now = (buttons >> i) & 1;
-        if (now && !was) { ms_press[i]++; ms_lpx[i] = ms_x; ms_lpy[i] = ms_y; ms_pending |= 2 << (2 * i); }
+        if (now && !was) { ms_press[i]++; ms_press_total[i]++; ms_lpx[i] = ms_x; ms_lpy[i] = ms_y; ms_pending |= 2 << (2 * i); }
         if (!now && was) { ms_release[i]++; ms_lrx[i] = ms_x; ms_lry[i] = ms_y; ms_pending |= 4 << (2 * i); }
     }
     ms_b = buttons;
