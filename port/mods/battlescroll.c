@@ -14,6 +14,8 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "nscreen.h"
+#include <stdio.h>
 
 u32 plat_ticks_ms(void);
 void plat_mouse_game(int *x, int *y);
@@ -27,8 +29,26 @@ static int on_edge(int mx, int my)  /* the original's arrow zones (combat_input,
     return my < 8 || my > 0xbf || mx < 0x44 || mx >= 0x137;
 }
 
+/* the view moved by whole steps of its origin (D_c866: one step moves the picture 32 pixels
+ * sideways; D_c886: 16 aside and 16 up), asked from outside (a drag of the field, the platform's
+ * mouse) and done here, at the start of combat_input, where the game scrolls itself: vec_1d3d
+ * (s016 1ef8:0b92) clamps the origin to 1..0x27 and draws the view anew */
+static int pan_h, pan_v;
+void battlescroll_pan(int h, int v) { pan_h += h; pan_v += v; }
+static void pan_apply(void)
+{
+    if (!pan_h && !pan_v) return;
+    int h = pan_h, v = pan_v; pan_h = pan_v = 0;
+    if (game_mode() != GM_BATTLE) return;
+    u8 c = g_rb(0xc866), r = g_rb(0xc886);
+    g_wb(0xc866, (u8)((s8)c + h)); g_wb(0xc886, (u8)((s8)r + v));
+    ns_call(16, 0x1ef8, 0x0b92, 0);
+    if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: pan %d across, %d down: origin %d,%d\n", h, v, (s8)g_rb(0xc866), (s8)g_rb(0xc886));
+}
+
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
 {
+    pan_apply();
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
     static u32 last_step, edge_since, held_since;
     static int was_edge;

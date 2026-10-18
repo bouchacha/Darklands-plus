@@ -452,6 +452,60 @@ int plat_win_outside(int wx, int wy)
     return ox < dest.x || ox >= dest.x + dest.w || oy < dest.y || oy >= dest.y + dest.h;
 }
 
+/* dragging the battle field (battle.drag_pan): the right button (or the middle one) held and moved
+ * pulls the view with the pointer, a step of the view's origin at a time (mods/battlescroll.c:
+ * a step across moves the picture 32 pixels sideways, one down the grid 16 aside and 16 up). A
+ * right press is held back until it is a drag or not: not, it is played as the click it was (the
+ * menus open on its release); a drag swallows it. */
+static int drag_state, drag_btn, drag_x0, drag_y0, drag_lx, drag_ly, drag_replay;
+static float drag_ax, drag_ay;
+static SDL_Event drag_down;
+static int drag_ok(int wx, int wy)
+{
+    int ui_is_open(void), ns_showing(void);
+    return game_mode() == GM_BATTLE && !ui_is_open() && !ns_showing() && !plat_win_outside(wx, wy)
+           && config_get_int("battle.drag_pan", 1) && !config_get_int("original", 0);
+}
+static int drag_filter(SDL_Event *e)
+{
+    void battlescroll_pan(int, int);
+    if (e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP) {
+        int b = e->button.button;
+        if (b != SDL_BUTTON_RIGHT && b != SDL_BUTTON_MIDDLE) return 0;
+        if (drag_replay > 0 && b == SDL_BUTTON_RIGHT) { drag_replay--; return 0; }          /* (a held-back click played again) */
+        if (e->type == SDL_MOUSEBUTTONDOWN) {
+            if (drag_state || !drag_ok(e->button.x, e->button.y)) return 0;
+            drag_state = b == SDL_BUTTON_MIDDLE ? 2 : 1; drag_btn = b;
+            drag_x0 = drag_lx = e->button.x; drag_y0 = drag_ly = e->button.y; drag_ax = drag_ay = 0;
+            drag_down = *e;
+            return 1;
+        }
+        if (!drag_state || b != drag_btn) return 0;
+        int was = drag_state; drag_state = 0;
+        if (was == 1) {                                     /* no drag: the click it was */
+            SDL_Event up = *e;
+            drag_replay = 2;
+            SDL_PushEvent(&drag_down); SDL_PushEvent(&up);
+        }
+        return 1;
+    }
+    if (e->type == SDL_MOUSEMOTION && drag_state) {
+        if (drag_state == 1 && abs(e->motion.x - drag_x0) + abs(e->motion.y - drag_y0) > 6) drag_state = 2;
+        if (drag_state == 2) {
+            float ax, ay, bx, by; plat_game_to_win(0, 0, &ax, &ay); plat_game_to_win(320, 200, &bx, &by);
+            float kx = (bx - ax) / 320.0f, ky = (by - ay) / 200.0f;
+            if (kx > 0 && ky > 0) { drag_ax += (e->motion.x - drag_lx) / kx; drag_ay += (e->motion.y - drag_ly) / ky; }
+            drag_lx = e->motion.x; drag_ly = e->motion.y;
+            int v = (int)(-drag_ay / 16.0f);                 /* the picture follows the pointer */
+            drag_ay += 16.0f * v;
+            int h = (int)((16.0f * v - drag_ax) / 32.0f);
+            drag_ax -= -32.0f * h + 16.0f * v;
+            if (h || v) battlescroll_pan(h, v);
+        }
+    }
+    return 0;
+}
+
 static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window sizes are saved divided by it */
 /* the game stands still while the menu is open, and while the window is in the background
  * (display.pause_unfocused, on by default: a battle does not go on behind another window) */
@@ -811,6 +865,7 @@ void plat_events(void)
     while (SDL_PollEvent(&e)) {
         if (pad_event(&e)) continue;
         if (!headless && ui_event(&e)) continue;
+        if (drag_filter(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:

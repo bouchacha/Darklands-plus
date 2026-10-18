@@ -107,6 +107,7 @@ static Option OPTIONS[] = {
     { "battle.pause_foes", S_BATTLE, 0, "Pause when foes come out", "the battle stops when foes waiting in a castle, dungeon or mine come out to fight.", OC_EASE, 0, 1, 1, 0, 0, autopause_set_foes },
     { "battle.click_attack", S_BATTLE, 0, "Click to attack", "a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen.", OC_EASE, 0, 1, 1, 0, 0, click_attack },
     { "battle.click_best", S_BATTLE, "battle.click_attack", "With the better weapon", "a member better with a bow, crossbow, gun or thrown weapon than with the weapon for blows shoots from where they stand (Use Missile), unless the foe is already within reach of a blow or the line to it is blocked.", OC_EASE, 0, 1, 1 },
+    { "battle.drag_pan", S_BATTLE, 0, "Drag the field", "the right (or middle) button held and moved pulls the battle's view along; a right click without moving still opens the menus.", OC_SHOW, 0, 1, 1 },
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer flies to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling", "the pointer resting on the edge scrolls, no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
     { "battle.info", S_BATTLE, 0, "Battle info", "pointing at someone shows who it is, how hurt, attack, defence and weapon.", OC_SHOW, 0, 1, 1 },
