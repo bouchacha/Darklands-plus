@@ -866,7 +866,8 @@ static void alchrisk_hook(void)            /* the brew's end (i) */
  * card's own tests (ev8_owner_value(10, 3, town): an errand open; ev24_at_owner(10, 3, town): one
  * done, option 8) look for 3. Here t is 3 while that option runs. Option 8, "accept a relic"
  * (19c4:0e0a), gives the town's relic (rep above -10) but neither takes the thing fetched nor ends
- * the reward (kind 0x24, owner 3, tag 10, the town): it is ended here, the thing taken. */
+ * the reward (kind 0x24, owner 3, tag 10 - or 3, the bishop's robber knight - the town): it is
+ * ended here, the thing taken. */
 static int canon_asking;
 static void canon_hook(void) { canon_asking++; hook_call_original(); canon_asking--; }
 static void errand_hook(void)               /* s039 1462:1712 (t) */
@@ -883,7 +884,7 @@ static void relic_hook(void)                /* $Cathe00 option 8, s056 19c4:0e0a
     u32 e = 0;
     for (int i = 0; i < G_NEVENTS && found < 0; i++) {
         u32 p = g_event(i);
-        if (p && g_ev(p, G_EV_KIND) == 0x24 && g_ev(p, G_EV_OWNER) == 3 && g_ev(p, G_EV_TAG) == 10 && g_ev(p, G_EV_LOC) == loc) { found = i; e = p; }
+        if (p && g_ev(p, G_EV_KIND) == 0x24 && g_ev(p, G_EV_OWNER) == 3 && (g_ev(p, G_EV_TAG) == 10 || g_ev(p, G_EV_TAG) == 3) && g_ev(p, G_EV_LOC) == loc) { found = i; e = p; }
     }
     int paid = (s16)g_rw(0xee74) > -10;            /* (the card's test: the town's regard) */
     hook_call_original();
