@@ -139,6 +139,7 @@ extern "C" void tab_travel(void);
 extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
+extern "C" { int cacheview_showing(void); int cacheview_shared_pack(void); int cacheview_every_inn(void); }
 extern "C" void ui_notice(const char *msg);
 extern "C" void rules_apply(void);
 extern "C" void ui_notice_for(const char *msg, unsigned ms);
@@ -628,7 +629,7 @@ static void help_window(void)
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");
             row("Take / Put back", "on the row under the pointer: the whole stack (1: just one)");
-            if (loot_model.shared) row("Take all", "everything into the party's pack");
+            if (loot_model.shared) { row("Take all", "everything into the party's pack"); row("Potions", "go to the member shown above the right list (each member's own); the rest into the party's pack"); }
             else { row("Take all / Share out", "everything to the member shown / to whoever has some already, else the emptiest pack (A / S)");
                    row("Names above the right list, D", "another member"); }
             row("L, Esc or Leave", "leave (what is left stays behind)");
@@ -650,9 +651,19 @@ static void help_window(void)
             if (loot_enabled()) { row("T", "buy ten of the merchant's chosen item (while the money lasts)"); row("A", "sell the whole stack of your chosen item"); }
             row("B", "barter for the next member");
             row("L or Esc", "leave");
+        } else if (cacheview_showing()) {
+            ImGui::SeparatorText("Now: the store room");
+            row("Take / Put", "on the row under the pointer: the whole stack (1: just one)");
+            row("Put away", "everything not in use but the kept things and the potions");
+            if (cacheview_shared_pack()) row("Potions", "a potion taken goes to the member shown above the right list; the rest into the party's pack");
+            if (cacheview_every_inn()) row("The store", "the same at every inn (F12 > Helpers)");
+            row("L, Esc or Leave", "leave");
         } else if (sheetview_showing()) {
             ImGui::SeparatorText("Now: a character sheet");
-            if (sheet_model.shared) row("Ready / Unequip / Drink / Keep / Drop", "on the row under the pointer in Things: the pack is the whole party's (Drop with Shift: all of them); drag a thing in use onto a portrait to give it");
+            if (sheet_model.shared) { row("Ready / Unequip / Drink / Keep / Drop", "on the row under the pointer in Things: the pack is the whole party's, Ready hands the thing to this member first (Drop with Shift: all of them)");
+                                      row("Potions", "each member's own: drag one onto someone at the left to give it");
+                                      row("Keep", "a thing never sold or dropped (a small seal on its row)");
+                                      row("The load", "only what is in use weighs"); }
             else row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
             row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");

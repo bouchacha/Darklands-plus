@@ -140,7 +140,7 @@ extern "C" void cacheview_draw(void)
         if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
         std::string use = ns_item_use(id);
         if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, soft, use);
-    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here. A potion taken goes to the member above (each member's own); the rest into the party's pack."
+    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here; F1 tells what you can do."
                                                          : "Point at a thing to see it here. Click a name above the right list (or C) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }

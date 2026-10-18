@@ -258,7 +258,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ATTR[V.which]) + 0.5f;
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which));
     } else if (V.tab == TAB_THINGS && s.shared)
-        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. The pack is the whole party's: Ready hands the thing to this member first. Potions are each member's own (drag one onto someone at the left to give it). Keep marks a thing never to be sold or dropped. Only what is in use weighs.");
+        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here; F1 tells what you can do.");
     else if (V.tab == TAB_THINGS)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. Drag a thing onto someone at the left to give it to them (Shift: just one of a stack). Another member at the left shows their sheet; Esc or Close goes back.");
     else P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an attribute or a skill to see what it does.");

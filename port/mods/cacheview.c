@@ -26,6 +26,8 @@ u32 plat_ticks_ms(void);
 #define F_STORE 0x37f4                       /* cache_items, far 2e38: { int id; char quality; char count; } */
 
 int cacheview_is_on(void) { return cv_on; }
+int cacheview_shared_pack(void) { return cache_model.shared; }
+int cacheview_every_inn(void) { return cache_model.every_inn; }
 void cacheview_set(int on) { cv_on = on; config_set_int("display.native_cache", on); }
 
 static void note(const char *t) { snprintf(cache_model.note, sizeof cache_model.note, "%s", t); cache_model.note_t = plat_ticks_ms(); fprintf(stderr, "store room: %s\n", t); }
