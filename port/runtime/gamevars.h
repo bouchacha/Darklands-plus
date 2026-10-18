@@ -570,6 +570,7 @@
 #define GF_missiles_advance             14, 0x1d47, 0x0000    /* (): every missile one tick */
 #define GF_line_blocked                 14, 0x1d69, 0x000c    /* (a, b): line of sight / fire blocked by a wall, furniture or combatant */
 #define GF_ai_tick                      14, 0x1db7, 0x0008    /* () */
+#define GF_ai_costs                     14, 0x1db7, 0x0028    /* (i, lo, hi): walking costs from i to lo..hi-1, far 20a5:787e[i*5+j] */
 #define GF_ai_set_target                14, 0x1db7, 0x0c2a    /* (i, t) */
 #define GF_ai_rethink                   14, 0x1db7, 0x0e22    /* (i) */
 #define GF_cloud_blocks_line            14, 0x1ec9, 0x0142    /* (a, b): line passes through an effect cloud */

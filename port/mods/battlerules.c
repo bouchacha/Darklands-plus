@@ -28,6 +28,16 @@
  *   with mode 0x80 from s014 19cd:17f6, 0x100 from 19cd:0dcc: the barred circle and a beep), so a
  *   shooter could never be sent at a foe behind a friend, a foe or a corner. With this switch on,
  *   any foe on the member's floor can be chosen; the shot itself is still tested as the game does.
+ *
+ * battle.retarget_near (on): when a member's foe falls, the next one is a foe within reach, not one
+ *   across the melee. ai_rethink (s014 1db7:0e22) picks the new foe in three ways: one attacking the
+ *   member hand to hand; else, when anyone on the field is down to half endurance, a foe attacking the
+ *   most wounded friend - whatever the way to it, so a member walks around the whole melee to get
+ *   there; else the foe nearest on foot. Its walking costs (s014 1db7:0028, steps of the game's own
+ *   route trackers, 32000 for none) are taken as they are, but for a party member every foe much
+ *   farther than the nearest (more than 24 steps, or half again, beyond) is marked out of reach
+ *   (9999), which the second way passes over: the member helps a friend only when that friend's
+ *   attacker is about as near as anyone. The enemies choose as the game has them.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -227,8 +237,33 @@ void battlerules_test_missile(int i, int t)
     step_aside(i);
 }
 
+/* ---------------------------------------------------------------- the next foe within reach */
+#define AISEG ((u16)(LOADSEG + 0x20a5))
+static int on_near(void) { return config_get_int("battle.retarget_near", 1) && !config_get_int("original", 0); }
+static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), called by ai_rethink only */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    if (ns_unwinding || i < 0 || i >= 5 || !on_near()) return;
+    int c[13], min = 32000;
+    for (int j = 5; j < 13; j++) { c[j] = (s16)rw(AISEG, (u16)(0x787e + 2 * (i * 5 + j))); if (c[j] < min) min = c[j]; }
+    if (min >= 9999) return;
+    int lim = min + (min / 2 > 24 ? min / 2 : 24);
+    for (int j = 5; j < 13; j++)
+        if (c[j] < 9999 && c[j] > lim) {
+            ww(AISEG, (u16)(0x787e + 2 * (i * 5 + j)), 9999);
+            if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d's next foe: %d (%d steps) out of reach, the nearest %d steps\n", i, j, c[j], min);
+        }
+    if (getenv("DL_BATTLE_LOG")) {
+        fprintf(stderr, "battlerules: %d's foes on foot:", i);
+        for (int j = 5; j < 13; j++) if (c[j] < 32000) fprintf(stderr, " %d:%d", j, c[j]);
+        fprintf(stderr, "\n");
+    }
+}
+
 void battlerules_init(void)
 {
+    hook_install(GF_ai_costs, costs_hook);
     hook_install(GF_line_blocked, blocked_hook);
     hook_install(GF_melee_exchanges, exchanges_hook);
     hook_install(GF_cbt_ready, arrive_hook);
