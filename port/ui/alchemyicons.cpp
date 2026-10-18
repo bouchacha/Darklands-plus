@@ -40,7 +40,7 @@ const float LIQ[22][3] = {
     { 0.80f, 0.45f, 0.18f },   // Great Power: amber
     { 0.30f, 0.55f, 0.35f },   // Trueflight: green
     { 0.50f, 0.52f, 0.58f },   // Hardarmor: iron
-    { 0.75f, 0.45f, 0.70f },   // Transformation: rose
+    { 0.62f, 0.36f, 0.58f },   // Transformation: rose
     { 0.30f, 0.50f, 0.85f },   // Truesight: clear blue
     { 0.70f, 0.85f, 0.90f },   // New-wind: pale sky
     { 0.40f, 0.40f, 0.45f },   // Ironarm
@@ -109,16 +109,15 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier)
     ImU32 liq = C(LIQ[k][0], LIQ[k][1], LIQ[k][2], 0.95f);
     ImU32 ink = C(0.18f, 0.11f, 0.06f), white = C(0.98f, 0.97f, 0.92f), gold = C(0.98f, 0.82f, 0.25f), red = C(0.80f, 0.12f, 0.10f);
     switch (id) {
-    case 95: flask(p, liq);                                           // Noxious Aroma: a sickly cloud with its reek
-        for (int pass = 0; pass < 2; pass++) { float o = pass ? 0 : 0.55f; ImU32 k = pass ? C(0.88f, 0.92f, 0.52f) : ink;
-            p.disc(-2.4f, 4.2f, 2.2f + o, k); p.disc(0.4f, 2.8f, 2.7f + o, k); p.disc(3.0f, 4.4f, 2.0f + o, k); p.rect(-2.4f - o, 4.2f, 3.0f + o, 6.4f + o, k, 1.0f); }
-        for (int r = 0; r < 3; r++) { float x = -2.4f + r * 2.4f; p.bez(x, -0.6f, x + 1.0f, -1.8f, x, -3.0f, ink, 0.6f); }
-        break;
+    case 95: flask(p, liq);                                           // Noxious Aroma: a reeking cloud (puffs)
+        for (int pass = 0; pass < 2; pass++) { float o = pass ? 0 : 0.55f; ImU32 k = pass ? C(0.86f, 0.92f, 0.48f) : ink;
+            p.disc(-2.7f, 4.9f, 2.2f + o, k); p.disc(0.5f, 2.4f, 2.9f + o, k); p.disc(2.9f, 5.3f, 2.0f + o, k); }
+        p.disc(-0.6f, 1.4f, 0.7f, C(1, 1, 0.85f)); break;
     case 96: flask(p, liq); eye(p, 0, 3.0f, 4.2f, white, C(0.85f, 0.15f, 0.10f));   // Eyeburn: a burning eye
         for (int r = 0; r < 5; r++) { float a = -2.4f + r * 0.45f; p.line(cosf(a) * 5.2f, 3 + sinf(a) * 5.2f, cosf(a) * 6.6f, 3 + sinf(a) * 6.6f, C(1, 0.96f, 0.82f), 0.8f); } break;
-    case 97: flask(p, liq);                                           // Black Cloud: a black cloud on grey
-        for (int pass = 0; pass < 2; pass++) { float o = pass ? 0 : 0.45f; ImU32 k = pass ? C(0.08f, 0.08f, 0.10f) : C(0.98f, 0.97f, 0.92f, 0.7f);
-            p.disc(-2.8f, 4.0f, 2.4f + o, k); p.disc(0.2f, 2.0f, 3.0f + o, k); p.disc(3.0f, 4.0f, 2.3f + o, k); p.rect(-2.8f - o, 4.0f, 3.0f + o, 6.4f + o, k, 1.0f); }
+    case 97: flask(p, liq);                                           // Black Cloud: black smoke (puffs) on grey
+        for (int pass = 0; pass < 2; pass++) { float o = pass ? 0 : 0.5f; ImU32 k = pass ? C(0.07f, 0.07f, 0.09f) : C(0.97f, 0.96f, 0.92f);
+            p.disc(-2.7f, 4.9f, 2.2f + o, k); p.disc(0.5f, 2.4f, 2.9f + o, k); p.disc(2.9f, 5.3f, 2.0f + o, k); }
         break;
     case 98: flask(p, liq);                                           // Fleadust: a cloud of motes and fleas
         for (int i = 0; i < 9; i++) { float x = -4.6f + (i * 37 % 9), y = -1.8f + (i * 23 % 5); p.disc(x, y, 0.6f, C(0.25f, 0.17f, 0.10f)); }
@@ -134,45 +133,61 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier)
         for (int r = 0; r < 12; r++) { float a = r * 0.5236f; p.line(cosf(a) * 3.4f, 3 + sinf(a) * 3.4f, cosf(a) * (r & 1 ? 5.4f : 6.4f), 3 + sinf(a) * (r & 1 ? 5.4f : 6.4f), C(0.62f, 0.26f, 0.04f), 0.9f); }
         p.disc(0, 3.0f, 3.0f, C(1.0f, 0.96f, 0.62f)); p.ring(0, 3.0f, 3.0f, C(0.55f, 0.24f, 0.04f), 0.8f); break;
     case 102: flask(p, liq);                                          // Thunderbolt: a bolt in the storm
-        p.dl->PathLineTo(p.P(1.8f, -2.6f)); p.dl->PathLineTo(p.P(-2.4f, 3.6f)); p.dl->PathLineTo(p.P(0.2f, 3.6f)); p.dl->PathLineTo(p.P(-2.2f, 9.4f));
-        p.dl->PathLineTo(p.P(3.4f, 2.0f)); p.dl->PathLineTo(p.P(0.8f, 2.0f)); p.dl->PathLineTo(p.P(3.2f, -2.6f)); p.dl->PathFillConcave(C(1.0f, 0.92f, 0.35f));
-        p.poly_line({ 1.8f, -2.6f, -2.4f, 3.6f, 0.2f, 3.6f, -2.2f, 9.4f, 3.4f, 2.0f, 0.8f, 2.0f, 3.2f, -2.6f }, ink, 0.5f); break;
+        p.dl->PathLineTo(p.P(1.6f, -2.0f)); p.dl->PathLineTo(p.P(-2.2f, 3.8f)); p.dl->PathLineTo(p.P(0.2f, 3.8f)); p.dl->PathLineTo(p.P(-1.6f, 8.4f));
+        p.dl->PathLineTo(p.P(3.2f, 2.2f)); p.dl->PathLineTo(p.P(0.8f, 2.2f)); p.dl->PathLineTo(p.P(3.0f, -2.0f)); p.dl->PathFillConcave(C(1.0f, 0.92f, 0.35f));
+        p.poly_line({ 1.6f, -2.0f, -2.2f, 3.8f, 0.2f, 3.8f, -1.6f, 8.4f, 3.2f, 2.2f, 0.8f, 2.2f, 3.0f, -2.0f }, ink, 0.5f); break;
     case 103: flask(p, liq);                                          // Arabian Fire: one great flame (Firewall: a wall and flames)
-        flame(p, 0, 9.0f, 9.4f, ink, ink);
-        flame(p, 0, 8.4f, 8.2f, C(1.0f, 0.86f, 0.30f), C(1.0f, 0.98f, 0.82f)); break;
-    case 104: flask(p, liq);                                          // Stone-tar: a drop of tar on stones
-        for (int k = 0; k < 3; k++) { float x = -3.4f + k * 3.4f, y = k == 1 ? 7.2f : 7.6f;
-            p.ellipse(x, y, 2.2f, 1.5f, C(0.92f, 0.90f, 0.85f)); p.ellipse(x, y, 1.7f, 1.05f, C(0.66f, 0.63f, 0.58f)); }
-        p.disc(0, 2.6f, 2.5f, C(0.92f, 0.90f, 0.85f)); tri_o(p, -1.9f, 1.7f, 1.9f, 1.7f, 0, -2.6f, C(0.06f, 0.05f, 0.05f), C(0.92f, 0.90f, 0.85f), 0.5f);
-        p.disc(0, 2.6f, 2.0f, C(0.06f, 0.05f, 0.05f)); p.disc(-0.7f, 1.9f, 0.5f, C(0.92f, 0.90f, 0.85f)); break;
-    case 105: flask(p, liq);                                          // Deadly Blade: a blade and a drop of blood
-        p.quad(-4.9f, 7.3f, -3.4f, 8.6f, 5.0f, -0.4f, 3.6f, -1.5f, ink); p.quad(-4.5f, 7.2f, -3.5f, 8.1f, 4.5f, -0.4f, 3.6f, -1.1f, C(0.88f, 0.90f, 0.93f)); p.line(-5.2f, 5.9f, -2.2f, 8.9f, C(0.55f, 0.40f, 0.15f), 1.1f);
-        p.disc(3.8f, 5.6f, 1.6f, white); tri_o(p, 2.8f, 5.0f, 4.8f, 5.0f, 3.8f, 2.4f, red, white, 0.55f); p.disc(3.8f, 5.6f, 1.05f, red); break;
-    case 106: flask(p, liq);                                          // Strongedge: a blade with a gleaming edge
-        p.quad(-4.9f, 7.3f, -3.4f, 8.6f, 5.0f, -0.4f, 3.6f, -1.5f, ink); p.quad(-4.5f, 7.2f, -3.5f, 8.1f, 4.5f, -0.4f, 3.6f, -1.1f, C(0.88f, 0.90f, 0.93f)); p.line(-5.2f, 5.9f, -2.2f, 8.9f, C(0.55f, 0.40f, 0.15f), 1.1f);
-        for (int r = 0; r < 4; r++) { float a = r * 1.5708f; p.line(2.0f, 1.8f, 2.0f + cosf(a) * 2.2f, 1.8f + sinf(a) * 2.2f, gold, 0.8f); } break;
-    case 107: flask(p, liq);                                          // Great Power: a broken chain
-        p.ring(-2.6f, 3.0f, 2.1f, ink, 1.0f); p.arc(2.4f, 3.0f, 2.1f, 0.5f, 5.0f, ink, 1.0f);
-        for (int r = 0; r < 3; r++) { float a = -0.6f + r * 0.6f; p.line(4.6f + cosf(a) * 0.6f, 3 + sinf(a) * 0.6f, 4.6f + cosf(a) * 1.8f, 3 + sinf(a) * 1.8f, C(1.0f, 0.95f, 0.70f), 0.7f); } break;
+        flame(p, 0, 7.3f, 8.8f, ink, ink);
+        flame(p, 0, 6.9f, 7.9f, C(1.0f, 0.86f, 0.30f), C(1.0f, 0.98f, 0.82f)); break;
+    case 104: flask(p, liq);                                          // Stone-tar: a sludge that holds fast: a boot stuck in it
+        p.ellipse(0, 7.4f, 5.2f, 1.9f, C(0.92f, 0.88f, 0.78f)); p.ellipse(0, 7.4f, 4.6f, 1.45f, C(0.04f, 0.03f, 0.03f));   /* the pool, its rim lit */
+        p.poly({ -1.4f, -1.2f, 1.6f, -1.2f, 1.6f, 4.4f, 4.0f, 5.4f, 4.0f, 7.4f, -1.4f, 7.4f }, ink);                          /* the boot, sunk */
+        p.poly({ -0.9f, -0.7f, 1.1f, -0.7f, 1.1f, 4.8f, 3.5f, 5.8f, 3.5f, 7.0f, -0.9f, 7.0f }, C(0.66f, 0.50f, 0.32f));
+        p.ellipse(1.2f, 7.1f, 3.2f, 0.75f, C(0.04f, 0.03f, 0.03f));                                                    /* the tar over its foot */
+        p.line(-2.6f, 6.9f, -2.8f, 5.0f, C(0.04f, 0.03f, 0.03f), 0.7f); p.line(3.6f, 6.6f, 3.9f, 4.8f, C(0.04f, 0.03f, 0.03f), 0.6f); break;
+    case 105: flask(p, liq);                                          // Deadly Blade: more damage: blood from the blade
+        p.quad(-4.9f, 7.3f, -3.4f, 8.6f, 4.6f, 0.0f, 3.2f, -1.1f, ink); p.quad(-4.5f, 7.2f, -3.5f, 8.1f, 4.1f, 0.0f, 3.2f, -0.7f, C(0.88f, 0.90f, 0.93f));   /* the oiled blade (the three weapon oils share it) */
+        p.line(-5.4f, 6.1f, -2.4f, 9.1f, ink, 1.6f); p.line(-5.2f, 6.3f, -2.6f, 8.9f, C(0.70f, 0.52f, 0.20f), 0.9f);
+        p.disc(3.4f, 5.6f, 1.6f, white); tri_o(p, 2.4f, 5.0f, 4.4f, 5.0f, 3.4f, 2.4f, red, white, 0.55f); p.disc(3.4f, 5.6f, 1.05f, red); break;
+    case 106: flask(p, liq);                                          // Strongedge: more penetration: the point through a plate
+        p.quad(-4.9f, 7.3f, -3.4f, 8.6f, 4.6f, 0.0f, 3.2f, -1.1f, ink); p.quad(-4.5f, 7.2f, -3.5f, 8.1f, 4.1f, 0.0f, 3.2f, -0.7f, C(0.88f, 0.90f, 0.93f));   /* the oiled blade (the three weapon oils share it) */
+        p.line(-5.4f, 6.1f, -2.4f, 9.1f, ink, 1.6f); p.line(-5.2f, 6.3f, -2.6f, 8.9f, C(0.70f, 0.52f, 0.20f), 0.9f);
+        p.rect(0.4f, -2.4f, 2.6f, 5.4f, ink, 0.4f); p.rect(0.9f, -1.9f, 2.1f, 4.9f, C(0.74f, 0.76f, 0.82f), 0.3f);   /* the plate, the point through it */
+        p.quad(2.1f, 0.6f, 2.9f, 0.0f, 4.6f, 0.0f, 2.1f, 2.2f, ink); p.quad(2.1f, 1.0f, 3.2f, -0.6f, 4.1f, 0.0f, 2.1f, 1.8f, C(0.88f, 0.90f, 0.93f));
+        p.disc(1.5f, -1.0f, 0.35f, ink); p.disc(1.5f, 4.0f, 0.35f, ink); break;
+    case 107: flask(p, liq);                                          // Great Power: the weapon's quality raised: gold chevrons
+        p.quad(-4.9f, 7.3f, -3.4f, 8.6f, 4.6f, 0.0f, 3.2f, -1.1f, ink); p.quad(-4.5f, 7.2f, -3.5f, 8.1f, 4.1f, 0.0f, 3.2f, -0.7f, C(0.88f, 0.90f, 0.93f));   /* the oiled blade (the three weapon oils share it) */
+        p.line(-5.4f, 6.1f, -2.4f, 9.1f, ink, 1.6f); p.line(-5.2f, 6.3f, -2.6f, 8.9f, C(0.70f, 0.52f, 0.20f), 0.9f);
+        for (int k = 0; k < 2; k++) { float y = 5.6f + k * 2.2f;
+            p.poly_line({ 1.4f, y + 1.3f, 3.2f, y - 0.5f, 5.0f, y + 1.3f }, ink, 1.6f, false);
+            p.poly_line({ 1.4f, y + 1.3f, 3.2f, y - 0.5f, 5.0f, y + 1.3f }, C(1.0f, 0.82f, 0.22f), 0.8f, false); }
+        break;
     case 108: flask(p, liq);                                          // Trueflight: an arrow in the target's eye
         p.disc(-0.8f, 3.8f, 4.4f, white); p.ring(-0.8f, 3.8f, 4.4f, ink, 0.5f); p.ring(-0.8f, 3.8f, 2.7f, red, 1.0f); p.disc(-0.8f, 3.8f, 1.0f, red);
         p.line(-0.8f, 3.8f, 4.2f, -1.2f, ink, 0.9f); p.line(4.2f, -1.2f, 5.4f, -1.1f, ink, 0.7f); p.line(4.2f, -1.2f, 4.3f, -2.4f, ink, 0.7f); break;
     case 109: flask(p, liq);                                          // Hardarmor: a heater shield
         p.dl->PathLineTo(p.P(-3.6f, -0.5f)); p.dl->PathLineTo(p.P(3.6f, -0.5f)); p.dl->PathLineTo(p.P(3.6f, 3.6f)); p.dl->PathLineTo(p.P(0, 7.6f)); p.dl->PathLineTo(p.P(-3.6f, 3.6f));
         p.dl->PathFillConvex(C(0.86f, 0.88f, 0.92f)); p.poly_line({ -3.6f, -0.5f, 3.6f, -0.5f, 3.6f, 3.6f, 0, 7.6f, -3.6f, 3.6f }, ink, 0.6f); p.line(0, -0.5f, 0, 7.4f, red, 0.9f); p.line(-3.5f, 2.0f, 3.5f, 2.0f, red, 0.9f); break;
-    case 110: flask(p, liq);                                          // Transformation: a butterfly, the soul changed
-        p.disc(-2.0f, 1.6f, 2.0f, C(0.30f, 0.08f, 0.36f)); p.disc(2.0f, 1.6f, 2.0f, C(0.30f, 0.08f, 0.36f));
-        p.disc(-1.6f, 4.6f, 1.4f, C(0.42f, 0.10f, 0.30f)); p.disc(1.6f, 4.6f, 1.4f, C(0.42f, 0.10f, 0.30f));
-        p.disc(-2.3f, 1.3f, 0.75f, gold); p.disc(2.3f, 1.3f, 0.75f, gold);
-        p.line(0, 0.2f, 0, 6.0f, ink, 0.7f); p.line(0, 0.4f, -1.2f, -1.4f, ink, 0.4f); p.line(0, 0.4f, 1.2f, -1.4f, ink, 0.4f); break;
+    case 110: flask(p, liq);                                          // Transformation: base metal made gold (it purifies, "and sometimes appears to make more gold")
+        p.disc(-1.8f, 4.4f, 3.0f, ink); p.disc(-1.8f, 4.4f, 2.5f, C(0.58f, 0.60f, 0.64f)); p.ring(-1.8f, 4.4f, 1.6f, C(0.42f, 0.44f, 0.48f), 0.5f);   /* lead */
+        p.disc(1.8f, 2.4f, 3.0f, ink); p.disc(1.8f, 2.4f, 2.5f, C(0.98f, 0.80f, 0.22f)); p.ring(1.8f, 2.4f, 1.6f, C(0.75f, 0.52f, 0.06f), 0.5f);    /* gold */
+        p.line(1.8f, 1.2f, 1.8f, 3.6f, C(0.75f, 0.52f, 0.06f), 0.5f); p.line(0.6f, 2.4f, 3.0f, 2.4f, C(0.75f, 0.52f, 0.06f), 0.5f);
+        for (int r = 0; r < 4; r++) { float a = r * 1.5708f; p.line(4.2f, -1.4f, 4.2f + cosf(a) * 1.5f, -1.4f + sinf(a) * 1.5f, white, 0.6f); } break;
     case 111: flask(p, liq); eye(p, 0, 3.0f, 4.4f, white, C(0.30f, 0.55f, 0.90f));   // Truesight: the open eye, rays above
         for (int r = 0; r < 5; r++) { float a = -2.6f + r * 0.4f; p.line(cosf(a) * 4.6f, 3 + sinf(a) * 4.6f, cosf(a) * 6.4f, 3 + sinf(a) * 6.4f, gold, 0.6f); } break;
     case 112: flask(p, liq);                                          // New-wind: the breath of a wind's head
         for (int r = 0; r < 3; r++) { float y = 1.0f + r * 2.2f; p.bez(-5.0f, y, 0, y - 1.6f, 4.0f, y, C(0.14f, 0.28f, 0.48f), 0.9f); p.arc(4.0f, y - 0.9f, 0.9f, -1.2f, 2.6f, C(0.14f, 0.28f, 0.48f), 0.7f); }
         break;
-    case 113: flask(p, liq);                                          // Ironarm: a mailed fist
-        p.rect(-3.2f, 0.6f, 3.0f, 5.4f, C(0.78f, 0.80f, 0.85f), 1.2f); for (int f = 0; f < 3; f++) p.line(-1.6f + f * 1.6f, 0.8f, -1.6f + f * 1.6f, 3.0f, ink, 0.5f);
-        p.rect(-2.4f, 5.4f, 2.2f, 8.0f, C(0.60f, 0.62f, 0.68f)); p.disc(3.4f, 3.0f, 1.2f, C(0.78f, 0.80f, 0.85f)); break;
+    case 113: flask(p, liq);                                          // Ironarm: a mailed fist, clenched (knuckles up)
+        { ImU32 steel = C(0.86f, 0.88f, 0.92f);
+          for (int pass = 0; pass < 2; pass++) { float o = pass ? 0 : 0.5f; ImU32 k = pass ? steel : ink;
+              for (int f = 0; f < 4; f++) p.disc(-2.7f + f * 1.8f, 0.8f, 1.15f + o, k);       /* the knuckles */
+              p.rect(-3.85f - o, 0.8f, 3.85f + o, 5.0f + o, k, 1.0f); }                      /* the curled fingers */
+          for (int f = 0; f < 3; f++) p.line(-1.8f + f * 1.8f, 1.2f, -1.8f + f * 1.8f, 2.9f, ink, 0.45f);
+          p.rect(-4.2f, 2.7f, 1.4f, 4.7f, ink, 1.0f); p.rect(-3.8f, 3.1f, 1.0f, 4.3f, C(0.70f, 0.72f, 0.78f), 0.7f);   /* the thumb across them */
+          p.poly({ -2.9f, 5.0f, 2.9f, 5.0f, 3.8f, 9.0f, -3.8f, 9.0f }, ink); p.poly({ -2.4f, 5.5f, 2.4f, 5.5f, 3.2f, 8.5f, -3.2f, 8.5f }, C(0.58f, 0.60f, 0.66f));   /* the cuff */
+          p.line(-2.9f, 7.0f, 2.9f, 7.0f, ink, 0.45f); }
+        break;
     case 114: flask(p, liq);                                          // Quickmove: Mercury's winged foot
         p.quad(-3.5f, 7.5f, 3.4f, 7.5f, 3.4f, 5.6f, -1.0f, 4.4f, C(0.45f, 0.28f, 0.14f)); p.rect(-3.5f, 1.0f, -1.0f, 7.0f, C(0.45f, 0.28f, 0.14f));
         for (int f = 0; f < 3; f++) p.bez(-1.0f, 2.0f + f * 1.1f, 1.8f, -0.2f + f * 0.9f, 4.2f, -0.8f + f * 1.3f, ink, 1.6f);
