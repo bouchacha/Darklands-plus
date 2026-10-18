@@ -2,10 +2,13 @@ Darklands+ @VERSION@ for Windows (64-bit)
 =========================================
 
 Darklands (MicroProse, 1992) running natively on Windows, without DOSBox, with optional
-improvements: crisp text up to 4K, a zoomable world map with auto-travel, chances of success
-on card options, a quest log and town journal, a battle log, pausing when someone falls,
-better battle pathfinding, quick saves and autosaves, fixes for bugs of the original game, and
-mod folders for items, card texts, pictures, sounds and rules.
+improvements: most of the game's screens rebuilt for the mouse (cards, shops, the character
+sheet, loot, the inn, alchemy, saints, save and load ...), the best member making the card
+tests put to the leader, one pack for the whole party, quests with titles, deadlines and
+pictures on the maps, crisp text up to 4K, a zoomable world map with auto-travel, chances of
+success on card options, a town journal, a battle log, better battle pathfinding, quick saves
+and autosaves, fixes for bugs of the original game, and mod folders for items, card texts,
+pictures, sounds and rules. What is new since 1.0: CHANGELOG.md on the GitHub page.
 
 Everything new can be switched off. F12 > Settings > Helpers > "Play the original game" turns all of it
 off at once.
