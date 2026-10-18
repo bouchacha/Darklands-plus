@@ -73,7 +73,8 @@ extern "C" void createview_draw(void)
     std::string name = ns_gtext(c.name), nick = ns_gtext(c.nick);
     P.text(f, NsDraw::FS_TITLE, 65, 2.5f, ink, name.empty() ? "A new character" : name);
     char b[256];
-    snprintf(b, sizeof b, "%s, called %s  -  age %d", c.female ? "a woman" : "a man", nick.c_str(), c.age);
+    if (c.age > 0) snprintf(b, sizeof b, "%s, called %s  -  age %d", c.female ? "A woman" : "A man", nick.c_str(), c.age);
+    else snprintf(b, sizeof b, "%s, called %s", c.female ? "A woman" : "A man", nick.c_str());   /* (no age before the childhood) */
     P.text(fo, NsDraw::FS_SMALL, 65, 12, soft, b);
     static const char *STEP[5] = { "Name and gender", "Childhood", "Attributes", "Profession", "Skills" };
     for (int i = 0; i < 5; i++) {                             /* where in the making */
