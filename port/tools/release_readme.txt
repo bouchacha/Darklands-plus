@@ -10,8 +10,9 @@ success on card options, a town journal, a battle log, better battle pathfinding
 and autosaves, fixes for bugs of the original game, and mod folders for items, card texts,
 pictures, sounds and rules. What is new since 1.0: CHANGELOG.md on the GitHub page.
 
-Everything new can be switched off. F12 > Settings > Helpers > "Play the original game" turns all of it
-off at once.
+Everything new can be switched off. The first start asks how you would like to play, from
+"Buggy Purist" (the game exactly as it was) and "Purist" (its bugs fixed) to "Darklands+" and
+"Easy"; F12 > Settings > Helpers changes it, or any switch one by one.
 
 WHAT YOU NEED
 Your own copy of Darklands, version 483.07 (as GOG and Steam sell it). This download does not
@@ -30,9 +31,10 @@ INSTALLING
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
-The whole opening plays at the first start; after that only its last scene, the lady's welcome
-(F12 > Settings > Display: the whole opening, its last scene or nothing). A key or a click ends it
-at once. The start screen shows the version; Continue there loads your newest save.
+The opening plays at every start: a key or a click goes on to its last scene, the lady's
+welcome, and another to the start screen (F12 > Settings > Display: the whole opening, only its
+last scene, or nothing). The start screen shows the version; Continue there loads your newest
+save.
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
@@ -47,6 +49,10 @@ KEYS
   Ctrl+F12      screenshot (PNG in the screenshots folder of the Darklands folder; it also
                 writes the window's sizes into darklands_port.log, useful in a report)
   Click a foe   (battles) the selected member attacks it, even before an attack is chosen
+                (one better with a bow than a blade shoots, when the line is clear)
+  1-5           (battles) choose a member; twice: the view goes to them
+  Right drag    (battles) move the view (a right click alone opens the menus)
+  Alt           (battles) a bar over every fighter, not only the hurt
   Click a column heading  (Darklands+ tables) sort by it
   G             (city card) go to a place
   1-9           (card) pick an option
