@@ -361,7 +361,8 @@ bool citynav_town_offers(int loc, int icon)
 }
 
 /* the party's tasks in this town, by the place they lead to: a reward waiting with its giver (the
-   giver's kind of house), a thing kept in an office above the marketplace (reached at night) */
+   giver's house: a bank's, the Hanse's, the cathedral, the council), a thing kept in an office above
+   the marketplace (reached at night) */
 struct DestTask { int cat; std::string text; };
 static std::map<int, std::vector<DestTask>> dest_tasks(int town)
 {
@@ -370,8 +371,10 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
     for (const QuestRow &r : rows) {
         if (r.loc != town) continue;
         int d = -1;
-        switch (r.giver) { case 0: d = D_MERCHANT; break; case 4: d = D_FOREIGN; break; case 5: d = D_PHARMACIST; break;
-                           case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; }
+        switch (r.giver) {     /* (where the giver's card looks for the party's return, ev24_at_owner: $Medic00 6, $Hanse00 7, $Fugge00 8,
+                                  $Cathe01 3, $Counc00 10; a merchant's, a foreign trader's, a pharmacist's at the marketplace itself) */
+        case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; case 3: d = D_CATHEDRAL; break; case 10: d = D_SQUARE; break;
+        }
         if (r.office >= 0) { static const int OD[4] = { D_MERCHANT, D_MEDICI, D_FUGGER, D_HANSE }; d = OD[r.office & 3]; }
         if (d >= 0) m[d].push_back({ r.cat, r.text });
     }
