@@ -157,8 +157,11 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
     static int seen_loc = -1; static bool has[6];
     if (tables || seen_loc != loc) { for (int k = 0; k < 6; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
     const City &c = gamedata.cities[loc];
-    float lh = ImGui::GetTextLineHeight(), isz = lh * 1.35f, gap = lh * 0.35f;
+    float lh = ImGui::GetTextLineHeight(), gap = lh * 0.3f;
     float x0 = ImGui::GetCursorScreenPos().x, w = width > 0 ? width : ImGui::GetContentRegionAvail().x;
+    int nf = 0; for (int k = 0; k < 6; k++) nf += has[k];
+    float isz = lh * 1.35f;                                 /* (smaller, down to a line's height, to keep the row on one line) */
+    if (!words && nf > 1 && nf * isz + (nf - 1) * gap > w) isz = fmaxf(lh * 1.0f, (w - (nf - 1) * gap) / nf);
     ImDrawList *dl = ImGui::GetWindowDrawList();
     /* a row of chips that wraps: a picture, and a short text after it */
     auto chip = [&](bool &first, int icon, const char *text, const char *tip) {
