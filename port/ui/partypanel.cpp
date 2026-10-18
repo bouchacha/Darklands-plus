@@ -180,8 +180,8 @@ static const char *order_word(char c, int place, bool shortw)
 {
     #define W(s, l) return shortw ? s : l
     switch (c) {
-    case 'A': W("attacks", "attacks (a standard attack)");
-    case 'V': W("all-out", "attacks all-out: harder blows, a weaker defence");
+    case 'A': W("attacks", "attacks (Std Attack, a standard attack)");
+    case 'V': W("vulnerable", "attacks Vulnerable (the Orders menu's word): harder blows, a weaker defence");
     case 'B': W("berserk", "is berserk: attacks without thought of defence");
     case 'P':
         if (place == 3) W("picks", "picks the lock of the door given");

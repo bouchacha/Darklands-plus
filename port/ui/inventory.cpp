@@ -562,7 +562,10 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
     }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
-        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(UIS(320)); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
+        ImGui::PushTextWrapPos(UIS(380));
+        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
+        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ImGui::TextWrapped("In the game: %s", e.c_str()); ImGui::PopStyleColor(); } }
+        ImGui::PopTextWrapPos();
     }
 }
 
