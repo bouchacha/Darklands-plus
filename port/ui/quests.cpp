@@ -67,11 +67,8 @@ static bool loc_xy(int loc, int *x, int *y)
 
 static std::string loc_name(int loc)
 {
-    if (loc >= 0 && loc < (int)gamedata.cities.size()) return gamedata.cities[loc].name;
-    u32 r = g_location(loc);
-    if (!r) return "?";
-    char b[24]; g_str((u16)(r >> 16), (u16)(r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    std::string n = loc_display_name(loc);
+    return n.empty() ? "?" : n;
 }
 
 /* "Burg Ebeleben, north-east of Erfurt" for places that are not towns */

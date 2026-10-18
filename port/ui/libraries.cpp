@@ -38,8 +38,7 @@ const std::vector<Library> &libraries(void)
         if (!lib) continue;
         Library L;
         L.loc = k; L.x = (s16)rw(s, (u16)(o + 4)); L.y = (s16)rw(s, (u16)(o + 6));
-        if (k < (int)gamedata.cities.size()) L.name = gamedata.cities[k].name;
-        else { char b[24]; g_str(s, (u16)(o + 0x26), b, sizeof b); L.name = game_text(b, sizeof b); }
+        L.name = loc_display_name(k);
         gm_library_saints(k, L.saint);
         libs.push_back(L);
     }

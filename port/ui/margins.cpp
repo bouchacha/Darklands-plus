@@ -57,15 +57,9 @@ static std::string place_name(void)
             if (d < bd) { bd = d; best = k; }
         }
         if (best < 0 || bd > 60 * 60) return "In the wilds";
-        std::string n = best < (int)gamedata.cities.size() ? gamedata.cities[best].name : "";
-        if (n.empty()) { u32 r = g_location(best); char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b); n = game_text(b, sizeof b); }
-        return "Travelling, near " + n;
+        return "Travelling, near " + loc_display_name(best);
     }
-    if (cur < (int)gamedata.cities.size()) return gamedata.cities[cur].name;
-    u32 r = g_location(cur);
-    if (!r) return "";
-    char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    return loc_display_name(cur);
 }
 
 static std::string member_name(int m)
@@ -501,9 +495,8 @@ static void right_panel(int size)
         /* a castle, monastery, village ...: what it is, and the quests that point there */
         u32 r = g_location(cur);
         if (r) {
-            char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
             const char *loc_kind_label(int k);
-            heading(game_text(b, sizeof b).c_str());
+            heading(loc_display_name(cur).c_str());
             ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
             library_line(cur);
             place_quests(cur);

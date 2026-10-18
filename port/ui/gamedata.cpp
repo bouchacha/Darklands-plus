@@ -10,6 +10,10 @@
 
 GameData gamedata;
 extern "C" const char *datamods_redirect(const char *rel, const char *game_path);
+extern "C" {
+#include "../runtime/cpu.h"
+#include "../runtime/game.h"
+}
 
 static FILE *open_ci(const char *dir, const char *name)
 {
@@ -163,4 +167,15 @@ void gamedata_load(const char *dir)
         }
     }
     gamedata.loaded = !gamedata.items.empty();
+}
+
+std::string loc_display_name(int loc)
+{
+    if (loc >= 0 && loc < (int)gamedata.cities.size() && !gamedata.cities[loc].name.empty()) return gamedata.cities[loc].name;
+    u32 r = loc >= 0 ? g_location(loc) : 0;
+    if (!r) return "";
+    char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
+    static const struct { const char *cut, *full; } CUT[] = { { "Recklinghsn", "Recklinghausen" }, { "Marienwerd", "Marienwerder" } };
+    for (const auto &c : CUT) if (!strcmp(b, c.cut)) return c.full;
+    return game_text(b, sizeof b);
 }

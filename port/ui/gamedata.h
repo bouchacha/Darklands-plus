@@ -58,6 +58,9 @@ static inline bool shop_open_ever(int k) { return k != 4 && k != 7 && k != 8; }
 
 extern GameData gamedata;
 void gamedata_load(const char *dir);
+/* a place's name as shown: a city's in full (DARKLAND.CTY), else the location's own (+0x26, a few
+   of them cut short by the game's 11 letters: written out); "" for none */
+std::string loc_display_name(int loc);
 const char *kind_name(ItemKind k);          /* a kind's name, for a list of them ("Weapons") */
 const char *kind_name_one(ItemKind k);      /* for one thing ("Weapon") */
 // where a saint's description turns from the legend to what the saint does (an offset into text)

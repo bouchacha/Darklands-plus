@@ -217,8 +217,7 @@ static std::vector<Place> places(void)
         if (k >= 92 && (menu == 0x62 || kind == 15)) continue;          // hidden on the game's map too
         if (x < 0 || y < 0 || x >= worldmap.tiles_w || y >= worldmap.tiles_h) continue;
         Place p; p.loc = k; p.kind = k < 92 ? 0 : kind; p.x = x; p.y = y;
-        if (k < (int)gamedata.cities.size()) p.name = gamedata.cities[k].name;
-        else { char b[24]; g_str(s, (u16)(o + 0x26), b, sizeof b); p.name = game_text(b, sizeof b); }
+        p.name = loc_display_name(k);
         v.push_back(p);
     }
     return v;
@@ -649,9 +648,7 @@ extern "C" void travelmap_labels(void)
         if (k >= 92 && (menu == 0x62 || kind == 15)) continue;             /* not shown on the map */
         float sx = (float)(16 * (x - vx) + ((y & 1) ? 7 : -1) + 65), sy = (float)(4 * (y - vr) - 6 + 21);
         if (sx < 66 || sx > 314 || sy < 18 || sy > 190) continue;
-        std::string name;
-        if (k < (int)gamedata.cities.size()) name = gamedata.cities[k].name;
-        else { char b[24]; g_str(s, (u16)(o + 0x26), b, sizeof b); name = game_text(b, sizeof b); }
+        std::string name = loc_display_name(k);
         if (name.empty()) continue;
         bool town = k < 92;
         float size = base * (town ? 1.1f : 0.88f);

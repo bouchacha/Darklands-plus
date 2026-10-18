@@ -45,9 +45,7 @@ static std::string loc_name(int i, int *type)
     u32 r = g_location(i);
     if (!r) return "";
     *type = rw((u16)(r >> 16), (u16)r);
-    if (i < (int)gamedata.cities.size()) return gamedata.cities[i].name;
-    char b[24]; g_str((u16)(r >> 16), (u16)(r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    return loc_display_name(i);
 }
 
 extern "C" void ui_toggle_map(void);
