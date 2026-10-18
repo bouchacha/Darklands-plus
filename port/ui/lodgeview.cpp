@@ -12,6 +12,9 @@ extern "C" {
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
 #include "money.h"
+extern "C" {
+#include "../mods/teachers.h"
+}
 }
 
 static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
@@ -122,10 +125,11 @@ extern "C" void lodgeview_draw(void)
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
             const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
-            snprintf(b, sizeof b, "A teacher of %s: %s a day, paid each day of lessons. %s's %s is now %d.", sk, money_with_total(T.fee).c_str(),
+            snprintf(b, sizeof b, "A teacher of %s (ability %d): %s a day, paid each day of lessons; about %d lessons in 100 raise the skill by 1. %s's %s is now %d.",
+                     sk, T.val, money_with_total(T.fee).c_str(), teach_chance(T.val),
                      ns_gtext(p.name).c_str(), sk, T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0);
             about = b;
-        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking for tutoring or instruction at the monastery, the university, a guild, the armourer, swordsmith, blacksmith, bowyer, artificer or the town council; they then teach here for a while.";
+        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking the masters of a guild, the university, the monks, the physician or the alchemists (a lectern marks the option on their cards; the margin lists what the town offers); they then teach here for a week.";
         if (!about.empty()) P.para(fo, NsDraw::FS_SMALL, RX0 + 4, fmaxf(ay + 2, BY - 22), RX1 - RX0 - 8, soft, about);
     }
 

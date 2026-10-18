@@ -27,6 +27,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "money.h"
+#include "teachersui.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -159,6 +160,13 @@ extern "C" void cardview_draw(void)
         if (c.anchor == 0) { X0 = p0.x + m + padb; X1 = X0 + w; Y0 = p0.y + m + padb; }
         else if (c.anchor == 1) { X1 = p1.x - m - padb; X0 = X1 - w; Y0 = p0.y + m + padb; }
     }
+    /* the options that bring a teacher to the inn (mods/teachers.c): a lectern at the row's end */
+    std::vector<TchSource> teach(c.npieces);
+    std::vector<char> teaches(c.npieces, 0);
+    if (ui_teachers_on()) {
+        char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        for (int j = 0; j < c.npieces; j++) if (c.piece[j].is_opt && c.piece[j].state) teaches[j] = (char)teach_card_option(cn, c.piece[j].opt, &teach[j]);
+    }
     float scale = 1.0f;
     std::vector<Laid> laid(c.npieces);
     float size = 0, L = 0, gap = 0, pad = 0, cap = 0, total = 0;
@@ -187,7 +195,7 @@ extern "C" void cardview_draw(void)
             std::string body = utf[j];
             float hang = 0;                                      /* the lines of an option under its words, after the "..." */
             if (p.is_opt && p.lead[0]) { std::string ld = gtext(p.lead); hang = f->CalcTextSizeA(size, FLT_MAX, 0, ld.c_str()).x; body = ld + body; }
-            float reserve = p.is_opt && p.type == -1 ? 1.6f * size : 0;     /* room for the crossed blades */
+            float reserve = (p.is_opt && p.type == -1 ? 1.6f * size : 0) + (teaches[j] ? 1.6f * size : 0);   /* room for the crossed blades, the lectern */
             wrap(f, size, body, w - reserve, ind, indl, ws, hang);
             if (p.is_opt && j > 0 && !c.piece[j - 1].is_opt) y += gap * 0.6f;
             la.y0 = y - 0.12f * L;
@@ -295,6 +303,12 @@ extern "C" void cardview_draw(void)
                 dl->AddCircleFilled(hilt, th * 1.1f, bc, 8);
             }
         }
+        if (teaches[j]) {                                          /* brings a teacher: a lectern (left of the blades, if both) */
+            ImVec2 cpos(X1 - 0.9f * size - (p.type == -1 && p.state == 1 ? 1.6f * size : 0), (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
+            int a = p.state == 1 ? 235 : 110;
+            ImU32 ti = dark ? IM_COL32(170, 200, 245, a) : IM_COL32(32, 62, 120, a), tp = dark ? IM_COL32(238, 230, 208, a) : IM_COL32(252, 246, 228, a);
+            ui_draw_teach_mark(dl, cpos, size * 1.05f, ti, tp);
+        }
         for (const Line &l : la.lines) dl->AddText(f, size, ImVec2(l.x, l.y - shift), col, l.t.c_str());
         if (p.is_opt && (p.type == 1 || p.type == 2) && p.state == 1) {               /* opens a list: a small arrow */
             float ax = la.text_end_x + 0.45f * size, ay = la.last_y - shift + size * 0.55f, r = size * 0.22f;
@@ -382,14 +396,40 @@ extern "C" void cardview_draw(void)
         ImU32 ac = dark ? IM_COL32(246, 220, 160, (int)(255 * a)) : IM_COL32(110, 50, 15, (int)(255 * a));
         dl->AddTriangleFilled(ImVec2(ax - r, ay - r * 0.55f), ImVec2(ax + r, ay - r * 0.55f), ImVec2(ax, ay + r * 0.75f), ac);
     }
+    /* a tooltip beside the box, level with the option under the pointer; under the option when the
+       window has no room on the right for em letters' width (it returns the width to wrap at) */
+    auto tip_place = [&](float em) -> float {
+        float fs = ImGui::GetFontSize(), pad = ImGui::GetStyle().WindowPadding.x * 2 + 0.5f * fs;
+        float W = ImGui::GetIO().DisplaySize.x, x = bx1 + 4.5f * k, w = em * fs;
+        ImVec2 pos(x, laid[c.hover].y0 - shift);
+        if (x + w + pad > W) {
+            if (W - x - pad >= 14 * fs) w = W - x - pad;
+            else { pos = ImVec2(X0, laid[c.hover].y1 - shift + 2 * k); w = fminf(w, W - X0 - pad); }
+        }
+        ImGui::SetNextWindowPos(pos);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(w + pad, FLT_MAX));
+        return w;
+    };
     if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
+    else if (menu && c.hover >= 0 && c.hover < c.npieces && teaches[c.hover]) {
+        /* a teacher: what, how well, for how much, and what it takes (and why it is greyed, if known) */
+        float ww = tip_place(23);
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("Brings a teacher to the inn");
+        ImGui::PushTextWrapPos(ww);
+        ImGui::TextUnformatted(ui_teacher_text(teach[c.hover]).c_str());
+        std::string hired = ui_teachers_hired_line((s16)g_rw(GV_cur_loc));
+        if (!hired.empty()) ImGui::TextDisabled("Hired here now: %s.", hired.c_str());
+        if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ImGui::TextUnformatted(why); }
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
     else if (menu && c.hover >= 0 && c.hover < c.npieces && c.piece[c.hover].type != 1 && c.piece[c.hover].type != 2 && greyed_hint(c.piece[c.hover])) {
-        ImGui::SetNextWindowPos(ImVec2(bx1 + 4.5f * k, laid[c.hover].y0 - shift));     /* beside the option (the pointer may be the game's only) */
-        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(ImGui::GetFontSize() * 22, FLT_MAX));
+        float ww = tip_place(21);                                  /* beside the option (the pointer may be the game's only) */
         ImGui::BeginTooltip();
         ImGui::TextDisabled("Not possible now");
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 21);
+        ImGui::PushTextWrapPos(ww);
         ImGui::TextUnformatted(greyed_hint(c.piece[c.hover]));
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
@@ -433,13 +473,13 @@ extern "C" void cardview_draw(void)
             rows.push_back({ what, who.empty() ? (p.type == 2 ? "nobody knows this saint" : "nobody carries one") : who });
         }
         if (!rows.empty()) {
-            ImGui::SetNextWindowPos(ImVec2(bx1 + 4.5f * k, laid[c.hover].y0 - shift));     /* beside the option (the pointer may be the game's only) */
+            float ww = tip_place(30);                              /* beside the option (the pointer may be the game's only) */
             ImGui::BeginTooltip();
             ImGui::TextDisabled("%s", p.type == 2 ? "Saints who help here" : formulas ? "Formulae for sale" : "Items that help here");
             for (auto &r : rows) { ImGui::TextUnformatted(r.first.c_str()); ImGui::SameLine(); ImGui::TextDisabled("  %s", r.second.c_str()); }
             if (const char *why = greyed_hint(p)) {                 /* greyed for a reason of the card's own */
                 ImGui::Separator();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 21);
+                ImGui::PushTextWrapPos(fminf(ww, ImGui::GetFontSize() * 21));
                 ImGui::TextDisabled("Not possible now");
                 ImGui::TextUnformatted(why);
                 ImGui::PopTextWrapPos();

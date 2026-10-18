@@ -10,6 +10,7 @@
 #include <map>
 #include "imgui.h"
 #include "gamedata.h"
+#include "teachersui.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -237,6 +238,32 @@ static void formulae_line(int town)
             std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
             margin_tip(tip.c_str());
         }
+    }
+}
+/* the teachers the town can offer (mods/teachers.c), a line a source: who, what, the chance of a
+   day's lesson; dim when not to be had now; the whole under the pointer. Those hired now first. */
+static void teachers_lines(int loc)
+{
+    if (!ui_teachers_on()) return;
+    TchSource ts[12];
+    int n = ui_town_teachers(loc, ts, 12);
+    std::string hired = ui_teachers_hired_line(loc);
+    if (!n && hired.empty()) return;
+    ImGui::Spacing(); heading("Teachers to be hired");
+    if (!hired.empty()) {
+        ImGui::TextDisabled("At the inn now:"); ImGui::SameLine(); ImGui::TextWrapped("%s", hired.c_str());
+        if (item_hovered()) margin_tip("Hired teachers: at the inn, \"Train or study\", a lesson a day for a fee.");
+    }
+    for (int k = 0; k < n; k++) {
+        const TchSource &s = ts[k];
+        char line[160]; snprintf(line, sizeof line, "%s (%d%%)", ui_teacher_skills(s).c_str(), teach_chance(s.strength));
+        ImGui::BeginGroup();
+        ImGui::TextDisabled("%s:", ui_teacher_short(s.src)); ImGui::SameLine();
+        if (s.off) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("%s", line);
+        if (s.off) ImGui::PopStyleColor();
+        ImGui::EndGroup();
+        if (item_hovered()) margin_tip((ui_teacher_text(s) + "\n(In brackets: how many lessons in 100 raise the skill.)").c_str());
     }
 }
 extern "C" int ui_nearest_town(void);
@@ -522,6 +549,7 @@ static void right_panel(int size)
         }
         library_line(cur);
         formulae_line(cur);
+        teachers_lines(cur);
         place_quests(cur);
         any = true;
     }

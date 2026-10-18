@@ -15,6 +15,7 @@
 #include "imgui.h"
 extern "C" int ns_showing(void);
 #include "gamedata.h"
+#include "teachersui.h"
 #include "quests.h"
 #include "townicons.h"
 #include "libraries.h"
@@ -473,8 +474,8 @@ extern "C" void worldmap_draw(void)
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
             bool known_here = p.loc >= 92 || journal_visited(p.loc) || config_get_int("map.offers_unvisited", 0);
-            if (!known_here && (library_at(p.loc) || (p.loc < 92 && citynav_town_offers(p.loc, TI_ALCHEMIST))))
-                ImGui::TextDisabled("Its saints and formulae: known once the party has been there.");
+            if (!known_here && p.loc < 92)
+                ImGui::TextDisabled("Its saints, formulae and teachers: known once the party has been there.");
             if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
                 std::string t; int done[4], nd = 0;
                 for (int k = 0; k < 4; k++) {
@@ -492,6 +493,15 @@ extern "C" void worldmap_draw(void)
                     std::string t;
                     for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
                     ImGui::TextDisabled("Formulae sold here:");
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+                }
+            }
+            if (known_here && p.loc < 92 && ui_teachers_on()) {      /* the teachers it can offer (mods/teachers.c) */
+                TchSource ts[12]; int n = ui_town_teachers(p.loc, ts, 12);
+                std::string t;
+                for (int k = 0; k < n; k++) t += (t.empty() ? "" : ";  ") + std::string(ui_teacher_short(ts[k].src)) + ": " + ui_teacher_skills(ts[k]);
+                if (n) {
+                    ImGui::TextDisabled("Teachers to be hired:");
                     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
                 }
             }

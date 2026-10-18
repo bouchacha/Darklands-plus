@@ -21,6 +21,7 @@
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "teachersui.h"
 #include "townicons.h"
 #include "quests.h"
 extern "C" {
@@ -416,7 +417,11 @@ extern "C" int citynav_window(void)
         ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
         { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 19 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }   /* (the game's night: is_daylight, 5:00 to 18:59) */
         static std::map<int, std::vector<DestTask>> tasks; static int tasks_frame = -100;
-        if (ImGui::GetFrameCount() - tasks_frame > 30) { tasks = dest_tasks(cur); tasks_frame = ImGui::GetFrameCount(); }   /* (read twice a second) */
+        static TchSource teach[12]; static int nteach;            /* the teachers the town offers (ui/teachersui.h) */
+        if (ImGui::GetFrameCount() - tasks_frame > 30) {
+            tasks = dest_tasks(cur); tasks_frame = ImGui::GetFrameCount();   /* (read twice a second) */
+            nteach = ui_teachers_on() ? ui_town_teachers(cur, teach, 12) : 0;
+        }
         const int cols = 4;
         float bw = (ImGui::GetContentRegionAvail().x - (cols - 1) * ImGui::GetStyle().ItemSpacing.x) / cols;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.78f, 0.66f, 0.47f, 1));
@@ -440,7 +445,7 @@ extern "C" int citynav_window(void)
                 ImU32 fg = !here ? IM_COL32(130, 112, 90, 255) : hov ? IM_COL32(252, 242, 220, 255) : IM_COL32(51, 31, 15, 255);
                 ImVec2 sz = ImGui::GetItemRectSize();
                 dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + sz.y), bg, 4);
-                std::string lab = DEST[d].label;
+                std::string lab = DEST[d].label, tip;
                 {   /* what the party learned of the physician or the alchemist here: beside the name when it fits, else under the pointer */
                             const char *fact = d == D_PHYSICIAN ? journal_town_fact(cur, "physician") : d == D_ALCHEMIST ? journal_town_fact(cur, "alchemist") : nullptr;
                     if (fact) {
@@ -448,11 +453,17 @@ extern "C" int citynav_window(void)
                         size_t cl = shortf.find(':'); if (cl != std::string::npos) shortf.erase(cl);
                         std::string l2 = (d == D_PHYSICIAN ? "Physician: " : "Alchemists: ") + shortf;
                         if (ImGui::CalcTextSize(l2.c_str()).x < sz.x - 8) lab = l2;
-                        if (hov) ImGui::SetTooltip("%s: %s", d == D_PHYSICIAN ? "The physician" : "The alchemist", fact);
+                        if (hov) tip = std::string(d == D_PHYSICIAN ? "The physician: " : "The alchemist: ") + fact;
                     }
                 }
+                int src = d == D_SWORD ? TCH_SWORDSMITHS : d == D_ARMOR ? TCH_ARMORERS : d == D_BOW ? TCH_BOWYERS : d == D_BLACKSMITH ? TCH_BLACKSMITHS
+                        : d == D_TINKER ? TCH_ARTIFICERS : d == D_ALCHEMIST ? TCH_ALCHEMIST : d == D_PHYSICIAN ? TCH_PHYSICIAN
+                        : d == D_MONASTERY ? TCH_MONASTERY : d == D_UNIVERSITY ? TCH_UNIVERSITY : -1;
+                int ti = -1;                                               /* a teacher to be had here (ui/teachersui.h) */
+                for (int t = 0; here && src >= 0 && t < nteach; t++) if (teach[t].src == src) ti = t;
+                float mark = ti >= 0 ? sz.y * 0.8f + 6 : 0;
                 ImVec2 ts = ImGui::CalcTextSize(lab.c_str());
-                dl->AddText(ImVec2(p.x + (sz.x - ts.x) * 0.5f, p.y + (sz.y - ts.y) * 0.5f), fg, lab.c_str());
+                dl->AddText(ImVec2(p.x + fmaxf(4.0f, (sz.x - mark - ts.x) * 0.5f), p.y + (sz.y - ts.y) * 0.5f), fg, lab.c_str());
                 auto tk = tasks.find(d);
                 if (here && tk != tasks.end() && !tk->second.empty()) {        /* a task leads here: its picture at the left, the task in the tooltip */
                     float is = sz.y * 0.82f;
@@ -460,9 +471,21 @@ extern "C" int citynav_window(void)
                     if (hov) {
                         std::string t;
                         for (const DestTask &x : tk->second) { if (!t.empty()) t += "\n\n"; t += x.text; }     /* (a thing kept in an office: its text says how) */
-                        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(io.DisplaySize.x * 0.4f, FLT_MAX));
-                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(io.DisplaySize.x * 0.38f); ImGui::TextUnformatted(t.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                        tip = t + (tip.empty() ? "" : "\n\n" + tip);
                     }
+                }
+                {   /* a teacher to be had here: a lectern at the right (dim when not now), what and how in the tooltip */
+                    if (ti >= 0) { int t = ti;
+                        float is = sz.y * 0.8f;
+                        int a = teach[t].off ? 120 : 255;
+                        ui_draw_teach_mark(dl, ImVec2(p.x + sz.x - is * 0.5f - 4, p.y + sz.y * 0.5f), is,
+                                           hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
+                        if (hov) tip += (tip.empty() ? "" : "\n\n") + ui_teacher_text(teach[t]);
+                    }
+                }
+                if (hov && !tip.empty()) {
+                    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(io.DisplaySize.x * 0.4f, FLT_MAX));
+                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(io.DisplaySize.x * 0.38f); ImGui::TextUnformatted(tip.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                 }
                 ImGui::PopID();
                 if (!here) { ImGui::EndDisabled(); if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Not in this city."); }
