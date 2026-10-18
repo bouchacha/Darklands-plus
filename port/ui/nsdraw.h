@@ -112,12 +112,13 @@ struct NsDraw {
 static inline std::string ns_gtext(const char *s) { return game_text(s, strlen(s)); }
 static inline const ItemDef *ns_itemdef(int id) { return id >= 0 && id < (int)gamedata.items.size() ? &gamedata.items[id] : nullptr; }
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
-/* a quality worth showing: equipment, potions and tools; not for the things a shop always sells
- * at 25 (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs */
+/* a quality worth showing: equipment and tools; not for the things a shop always sells at 25
+ * (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs, nor
+ * for a potion (its grade is the dots on its flask) */
 static inline bool ns_shows_quality(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
-    if (!d) return false;
+    if (!d || d->kind == K_POTION) return false;
     bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42) || d->kind == K_INGREDIENT;
     if (fixed) return q != 25;
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
@@ -125,7 +126,7 @@ static inline bool ns_shows_quality(int id, int q)
 }
 /* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
 std::string ns_item_line(int id);
-std::string ns_quality_words(int id, int qual);       /* ", quality 30"; a potion: ", grade 2 of 3 (quality 35)" */
+std::string ns_quality_words(int id, int qual);       /* ", quality 30"; "" for a potion (its flask's dots tell its grade) */
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);

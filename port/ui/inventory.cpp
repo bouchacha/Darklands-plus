@@ -636,8 +636,10 @@ extern "C" void tab_inventory(void)
         ImGui::PushFont(ui_font_small);
         ImVec2 ts = ImGui::CalcTextSize(nm);
         dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, p.y + tile - ts.y - 4), col(0.2f, 0.12f, 0.06f), nm);
-        char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
-        dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
+        if (!d || d->kind != K_POTION) {                           /* (a potion: the dots on its flask) */
+            char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
+            dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
+        }
         if (it.count > 1) {
             char c[16]; snprintf(c, sizeof c, "x%d", it.count);
             ImVec2 cs = ImGui::CalcTextSize(c);

@@ -118,6 +118,20 @@ extern "C" int partypanel_shown(void);
    margins take no input from ImGui: the buttons are drawn here and their clicks come through
    margins_click (ui_event) */
 static void place_quests(int cur);
+extern "C" int ui_nearest_town(void);
+/* the right margin names the place (a town, or near one on the map, or the place of a card) */
+static bool right_shows_place(void)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    if (cur < 0) return game_mode() == GM_MAP && ui_nearest_town() >= 0;
+    return cur < (int)gamedata.cities.size() || (cur < G_NLOC && game_mode() == GM_CARD);
+}
+/* "until 16 July 1400" -> "until 16 July" in 1400 */
+static std::string short_date(const std::string &d, int year)
+{
+    std::string y = " " + std::to_string(year);
+    return d.size() > y.size() && d.compare(d.size() - y.size(), y.size(), y) == 0 ? d.substr(0, d.size() - y.size()) : d;
+}
 struct OrderBtn { ImVec2 a, b; int m, i, s; };
 static std::vector<OrderBtn> order_btns; static int order_btns_frame = -100;
 /* other things in the margins that take a click (a quest opened or closed, the order of the
@@ -177,8 +191,8 @@ static void order_buttons(float width)
                 if (!head) { heading(("Orders for " + who).c_str()); head = true; y = ImGui::GetCursorScreenPos().y; x = x0; }
                 std::string label = game_text(e.name, strlen(e.name));
                 if (s2 >= 0) label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + label;
-                if (e.key[0]) label += std::string(" (") + e.key + ")";
                 int pq = -1, pid = s2 >= 0 ? potion_of(game_text(e.name, strlen(e.name)), e.key, &pq) : -1;
+                if (e.key[0] && pid < 0) label += std::string(" (") + e.key + ")";      /* (a potion's quality: the dots on its picture) */
                 float iw = pid >= 0 ? lh * 1.15f : 0;                /* (a potion: its picture, with its grade) */
                 ImVec2 ts = ImGui::CalcTextSize(label.c_str());
                 float w = ts.x + pad * 2 + iw, h = lh + pad;
@@ -305,6 +319,7 @@ static void right_panel(int size)
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());
+        if (!near && citynav_available() && config_get_int("assist.city_goto", 1)) ImGui::TextDisabled("G: go to a place here");
         /* the location table is read while a card or the map is up; battles and their loot
            reuse that memory, so meanwhile the last value read stands */
         static std::map<int, int> rep_seen; static int rep_game = -1;
@@ -314,38 +329,45 @@ static void right_panel(int size)
         if (lr && (gm == GM_CARD || gm == GM_MAP)) rep_seen[cur] = (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12));
         int fame = (s16)g_rw(GV_party_fame);
         auto rp = rep_seen.find(cur);
-        if (rp != rep_seen.end()) ImGui::TextWrapped("Reputation here %d, fame %d", rp->second, fame);
-        else ImGui::TextWrapped("Fame %d", fame);
-        static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
-            { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
-        std::string b;
-        for (auto &x : B) if (c.buildings & (1 << x.bit)) { b += b.empty() ? "" : ", "; b += x.name; }
-        if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::TextWrapped("%s", b.c_str()); }
-        bool shops = false;
-        for (int i = 0; i < 9; i++) {
-            if (c.shopq[i] <= 0 || i == 4 || i == 7) continue;     /* (no card opens the gunsmith or the jeweller: the bowyer sells the guns) */
-            /* the shop's rating, and what its weapons and armour come out at: (25 + rating) / 2
-               (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
-            if (!shops) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                ImGui::TextWrapped("Shops: rating (their wares' quality)");
-                ImGui::PopStyleColor(); shops = true;
-            }
-            ImGui::TextUnformatted(SHOP_NAMES[i]); ImGui::SameLine(); ImGui::TextDisabled("%d (%dq)", c.shopq[i], (25 + c.shopq[i]) / 2);
-        }
-        place_quests(cur);
+        if (rp != rep_seen.end()) { ImGui::Text("Reputation %d", rp->second); ImGui::SameLine(); ImGui::TextDisabled(" fame %d", fame); }
+        else ImGui::TextDisabled("Fame %d", fame);
+        /* the town's attitude: it bars the party, or its watch wants it (its sign, a short line, the
+           meaning under the pointer) */
         static std::vector<TownMark> tm; static int tmf = -1000;
         if (ImGui::GetFrameCount() - tmf > 30 && (gm == GM_CARD || gm == GM_MAP)) { town_marks(tm); tmf = ImGui::GetFrameCount(); }
-        for (const TownMark &t : tm) if (t.loc == cur) {         /* the town bars the party, or its watch wants it */
+        for (const TownMark &t : tm) if (t.loc == cur) {
             float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
             ImVec2 p0 = ImGui::GetCursorScreenPos();
             ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
             ImGui::Indent(is + lh * 0.3f);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.55f, 0.43f, 1));
-            ImGui::TextWrapped("%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here (the town turns the party away)" : "Wanted by the watch here", t.until.c_str());
-            ImGui::PopStyleColor();
+            ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
+                                                                                       : "The watch is after the party: guards who recognise it try to arrest it, and talking or bribing one's way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
+        static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
+            { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
+        std::string b;
+        for (auto &x : B) if (c.buildings & (1 << x.bit)) { b += b.empty() ? "" : ", "; b += x.name; }
+        if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("%s", b.c_str()); ImGui::PopStyleColor(); }
+        /* the shops: each one's rating, and (under the pointer) what its weapons and armour come out
+           at: (25 + rating) / 2 (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
+        bool shops = false;
+        float rw_ = ImGui::GetContentRegionAvail().x;
+        for (int i = 0; i < 9; i++) {
+            if (c.shopq[i] <= 0 || i == 4 || i == 7) continue;     /* (no card opens the gunsmith or the jeweller: the bowyer sells the guns) */
+            if (!shops) {                                       /* (a small table: the shops, their ratings) */
+                ImGui::Spacing(); heading("Shops");
+                ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize("rating").x); ImGui::TextDisabled("rating");
+                shops = true;
+            }
+            ImGui::TextUnformatted(SHOP_NAMES[i]);
+            char r[16]; snprintf(r, sizeof r, "%d", c.shopq[i]);
+            ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize(r).x);
+            ImGui::TextDisabled("%s", r);
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("The shop's rating: its weapons and armour are of quality %d.", (25 + c.shopq[i]) / 2);
+        }
+        place_quests(cur);
         any = true;
     }
     else if (cur >= (int)gamedata.cities.size() && cur < G_NLOC && game_mode() == GM_CARD) {   /* (battles reuse the location table) */
@@ -499,32 +521,27 @@ extern "C" void ui_margins(void)
 
     if (left >= 150 && !battlelog_margin(0, left, h, fs) && begin_panel("##margin_l", 0, left, h, fs)) {
         int hour = (s16)g_rw(G_CUR_HOUR), day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH), year = (s16)g_rw(G_CUR_YEAR);
-        heading("Today");
-        ImGui::TextWrapped("%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
+        /* the date and hour, the purse, then the tasks: no labels where the thing speaks for itself */
+        char date[48]; snprintf(date, sizeof date, "%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
+        heading(date);
         ImGui::TextDisabled("%d:00, %s", hour, hour < 5 || hour >= 21 ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
-        ImGui::Separator();
+        int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
+        ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
+        money_tooltip((long)f * 240 + g * 12 + p);
+        if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
         /* the place and the tasks come from the location and event tables, which battles and their
            loot reuse: read while a card or the map is up, meanwhile the last reading stands */
         const int gm = game_mode();
         const bool tables = gm == GM_CARD || gm == GM_MAP;
         static std::string where; static bool where_read = false;
         if (tables || !where_read) { where = place_name(); where_read = tables; }
-        heading("Where");
-        ImGui::TextWrapped("%s", where.c_str());
-        if (citynav_available() && config_get_int("assist.city_goto", 1)) ImGui::TextDisabled("G: go to a place here");
-        ImGui::Separator();
-        heading("Purse");
-        int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
-        ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
-        money_tooltip((long)f * 240 + g * 12 + p);
-        if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
+        if (!(right >= 150 && right_shows_place())) ImGui::TextWrapped("%s", where.c_str());   /* (else the right margin names it) */
         ImGui::Separator();
         tasks_section(tables);
         ImGui::Separator();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped(menuview_is_on() && !config_get_int("original", 0) ? "The menus (save, load, difficulty, party, and Darklands+'s own): a right click or F10."
-                                                                            : "The game's menus (save, load, difficulty, party): a right click or F10.");
-        if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide tells how it works.");
+        ImGui::TextWrapped("Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
+        if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide.");
         ImGui::PopStyleColor();
         end_panel();
     }

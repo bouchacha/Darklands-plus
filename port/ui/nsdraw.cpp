@@ -7,12 +7,10 @@ extern "C" {
 #include "../mods/gamemodel.h"
 }
 
-int ui_potion_tier(int q, int base);
 std::string ns_quality_words(int id, int qual)
 {
     const ItemDef *d = ns_itemdef(id);
-    if (d && id >= 95 && id <= 116 && qual >= 0)               /* (the grade of the formula that brewed it: the dots on its flask) */
-        return ", grade " + std::to_string(ui_potion_tier(qual, d->quality)) + " of 3 (quality " + std::to_string(qual) + ")";
+    if (d && d->kind == K_POTION) return "";                  /* (the dots on its flask tell its grade) */
     return ", quality " + std::to_string(qual);
 }
 
