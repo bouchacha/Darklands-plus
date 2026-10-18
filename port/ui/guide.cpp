@@ -79,6 +79,7 @@ void ui_guide_tab(void)
     });
     topic("Saving", {
         "Alt+S saves with a comment, Ctrl+S quick-saves; F9 or Ctrl+L loads the quick save. Darklands+ also saves by itself on arriving in a town and before a battle (the Autosave).",
+        "The game keeps every save: on the Save page a click on an old save makes the new one take its place, and the Load page deletes the save chosen.",
         "Some places do not allow saving (in the middle of a card); save often in towns.",
     });
 }
