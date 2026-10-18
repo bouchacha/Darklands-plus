@@ -86,6 +86,7 @@ void ui_guide_tab(void)
     topic("Travel", {
         "On the map, a click walks towards a spot; Ctrl + click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there.",
         "Each step costs time, and the road brings encounters (F12 > Settings > Helpers sets how often).",
+        "Winter is hard on the road: from November to March a blizzard can catch the party in the open (in the high mountains from October to April). Keep going, call on a saint, or camp and wait it out.",
         "Castles, monasteries, mines and the rest open their own card when the party steps on them.",
     });
     topic("Saving", {

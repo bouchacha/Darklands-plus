@@ -290,7 +290,8 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
             ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */
         else if (e.kind == 0x24 && e.tag == 3)
-            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
+            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + (e.owner == 3 ? " (at the cathedral, by day: at night it holds no audience)" : "") + ".",
+                "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
                 + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can steal up to them.",

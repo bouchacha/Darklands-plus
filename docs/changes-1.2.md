@@ -32,7 +32,7 @@ Also: in a town from 19:00 to 5:00 (the game's night, which the margin used to c
 
 Fixed: with the New encounters mod on, travel could stop the game with "pics\xhouse3.pic: No such file" (the developers' test card, card 0) or meet the town guards' challenge in open country: the mod lost the map's own choice of what comes next when no new encounter was due. A guard also sends any request for card 0 on to the map or the town.
 
-Fixed (a bug of Darklands+ 1.0 to 1.1.1): with the "Blessings" fix on, a saint's lowering of an attribute (several saints lower Perception, Intellect, Agility or Charisma for a day as the price of their help) was recorded as nothing, so it never wore off. It is now given back when it runs out (never past the maximum), and a boost that ends while a lowering still runs takes off only its own share.
+Fixed (a bug of Darklands+ 1.0 to 1.1.1): with the "Blessings" fix on, a saint's lowering of an attribute (several saints lower Perception, Intellect, Agility or Charisma for a day as the price of their help) was recorded as nothing, so it never wore off. It is now given back when it runs out (never past the maximum), and a boost that ends while a lowering still runs takes off only its own share. Points already lost this way can be put back in F12 > Editor (shown when switched on in F12 > Settings > Helpers).
 
 Fixed (a bug of 483.07, the "Blessings" fix): a saint's boost to endurance or strength that a night's rest or a wound had used up was taken off again when it ran out, so resting while blessed cost endurance and a badly wounded member could die when the boost ended; now only what is still above the maximum is taken off.
 
