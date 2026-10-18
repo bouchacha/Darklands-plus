@@ -791,6 +791,7 @@ static void ingredients_page(void)
  * its cache handle (from 1). The original lists a store only when the party stands in it. With
  * one store room for every inn (mods/sharedstore.c) the towns point at the same cache: listed once. */
 extern "C" void dos_host_path(const char *dos, char *out, size_t outn);
+extern "C" int sharedstore_on(void);       /* mods/sharedstore.c */
 static void storage_page(void)
 {
     int gm = game_mode();
@@ -801,8 +802,10 @@ static void storage_page(void)
       FILE *f = fopen(path, "rb");
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
-    ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
-                       "The game shows a store only while the party is there.");
+    {
+      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Helpers).");
+      else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
+                              "The game shows a store only while the party is there."); }
     ImGui::Spacing();
     int px, py; travel_party_tile(&px, &py);
     struct Store { int loc, places; double d; std::vector<SeenItem> items; };

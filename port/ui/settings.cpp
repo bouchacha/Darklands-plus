@@ -212,7 +212,7 @@ void tab_helpers(void)
       ui_hint("Clicks on it still go to the game (a member's sheet; orders in a battle). A portrait of your own: put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. The battle figure is the little one the game shows beside a battle, in the colours chosen for the member.");
       int pic = partypanel_picture();
       static const char *PICS[] = { "Your portrait, else the battle figure, else the herald", "The battle figure, else the herald", "The herald", "No picture" };
-      ImGui::SetNextItemWidth(UIS(360));
+      ImGui::SetNextItemWidth(ImGui::CalcTextSize(PICS[0]).x + ImGui::GetFrameHeight() + UIS(24));   /* (the longest whole) */
       if (ImGui::Combo("Picture##ppic", &pic, PICS, 4)) { partypanel_set_picture(pic); ui_dirty_config = 1; }
       ImGui::Unindent(UIS(34)); }
     { bool nm = menuview_is_on() != 0;
