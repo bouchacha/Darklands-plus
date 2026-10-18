@@ -30,8 +30,9 @@ INSTALLING
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
-The MicroProse logo and the opening animations play at the first start only (F12 > Settings > Display
-plays them every time; Space or Esc moves on a picture). The title menu shows the version.
+The whole opening plays at the first start; after that only its last scene, the lady's welcome
+(F12 > Settings > Display: the whole opening, its last scene or nothing). A key or a click ends it
+at once. The start screen shows the version; Continue there loads your newest save.
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
