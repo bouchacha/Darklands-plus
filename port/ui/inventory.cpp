@@ -606,13 +606,14 @@ extern "C" void tab_inventory(void)
     for (int k = 0; k <= K_OTHER; k++) if (present[k]) { ImGui::SameLine(); if (ImGui::RadioButton(kind_name((ItemKind)k), kind_filter == k)) kind_filter = k; }
     int sort_now = -1;
     {   /* tidy the pack(s), at the right of the row */
-        float w = ImGui::CalcTextSize("Tidy the pack").x + ImGui::CalcTextSize("Everyone's").x + UIS(40);
+        float w = ImGui::CalcTextSize("Tidy this pack").x + ImGui::CalcTextSize("Tidy all packs").x + UIS(40);
         ImGui::SameLine(ImGui::GetContentRegionMax().x - w);
         ImGui::BeginDisabled(why_locked() != nullptr);
-        if (ImGui::SmallButton("Tidy the pack")) sort_now = sel_member;
+        if (ImGui::SmallButton("Tidy this pack")) sort_now = sel_member;
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort the items by kind (weapons, armour, shields, potions, ingredients ...), then name, the best first.");
         ImGui::SameLine();
-        if (ImGui::SmallButton("Everyone's")) sort_now = 99;
+        if (ImGui::SmallButton("Tidy all packs")) sort_now = 99;
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort every member's items the same way.");
         ImGui::EndDisabled();
     }
     ImGui::BeginChild("grid", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), ImGuiChildFlags_Border);
