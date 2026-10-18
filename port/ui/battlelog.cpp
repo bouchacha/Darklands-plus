@@ -15,6 +15,7 @@
 #include <float.h>
 #include <string>
 #include <vector>
+#include <map>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -39,6 +40,8 @@ static int known_end[13], known_str[13], known_st[13], last_st[13];   /* last_st
 static bool in_battle;
 static int names_gen;
 static std::string names[13];
+static std::map<std::string, int> kind_named;      /* how many of each kind of foe have had a name this battle */
+static bool naming_start;                          /* (the names given at the start: numbered as they stand) */
 
 #define CB(i) ((u16)(0x9c55 + 0x80 * (i)))
 
@@ -50,14 +53,18 @@ static std::string name_of(int i)
     if (i < 5) { char b[16]; g_str(G_DGROUP, (u16)(G_MEMBER(i) + G_M_SHORTNAME), b, sizeof b); n = game_text(b, sizeof b); }
     else n = ui_enemy_name(g_rb((u16)(GV_cbt_floor + i)), CB(i));
     if (n.empty()) n = i < 5 ? "?" : "Enemy";
-    if (i >= 5) {                                   /* "Bandit 2" when there are several */
+    if (i >= 5 && naming_start) {                   /* "Bandit 2" when there are several */
         int same = 0, nth = 0;
         for (int k = 5; k < 13; k++) {
             if (!g_rb((u16)(CB(k) + 0x14)) || (s8)g_rb((u16)(CB(k) + 0x64)) <= 0) continue;
             std::string o = k == i ? n : ui_enemy_name(g_rb((u16)(GV_cbt_floor + k)), CB(k));
             if (o == n) { same++; if (k <= i) nth++; }
         }
+        if (kind_named[n] < same) kind_named[n] = same;
         if (same > 1) n += " " + std::to_string(nth);
+    } else if (i >= 5) {                            /* one who joins later: the next number of its kind (a fallen one's slot may be reused) */
+        int k = ++kind_named[n];
+        if (k > 1) n += " " + std::to_string(k);
     }
     names[i] = n;
     return n;
@@ -82,7 +89,10 @@ static void start_battle(void)
         known_end[i] = (s8)g_rb((u16)(CB(i) + 0x5d)); known_str[i] = (s8)g_rb((u16)(CB(i) + 0x5e)); known_st[i] = g_rb((u16)(CB(i) + 0x14));
         last_st[i] = known_st[i];
     }
+    kind_named.clear();
+    naming_start = true;
     for (int i = 0; i < 13; i++) if (known_st[i]) name_of(i);    /* names (and their numbers) fixed while all are standing */
+    naming_start = false;
     in_battle = true;
 }
 
@@ -231,10 +241,13 @@ static ImU32 colour(int kind, float a)
     return (c & 0x00ffffff) | ((ImU32)(a * 255) << 24);
 }
 
+/* a battle is on (not the marching order's page, which loads the battle's code too) */
+extern "C" int battle_showing(void) { return game_mode() == GM_BATTLE && g_rb(GV_in_battle) == 1; }
+
 /* the left margin in a battle: the log, newest at the bottom */
 extern "C" int battlelog_margin(float x, float w, float h, float fs)
 {
-    if (!ui_battle_log || game_mode() != GM_BATTLE || config_get_int("original", 0)) return 0;
+    if (!ui_battle_log || !battle_showing() || config_get_int("original", 0)) return 0;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float pad = fs * 0.7f, lh = fs * 1.25f, y = h - pad;
@@ -260,7 +273,7 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
 /* no margin: the last lines over the bottom of the battlefield, fading */
 extern "C" void battlelog_overlay(void)
 {
-    if (!ui_battle_log || game_mode() != GM_BATTLE || lines.empty() || config_get_int("original", 0)) return;
+    if (!ui_battle_log || !battle_showing() || lines.empty() || config_get_int("original", 0)) return;
     float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     { extern int ui_margins_on; float l, d; plat_game_to_win(0, 0, &l, &d); if (ui_margins_on && l >= 150) return; }   /* the left margin shows them */
     ImFont *f = ui_font_overlay;

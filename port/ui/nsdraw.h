@@ -100,6 +100,20 @@ struct NsDraw {
         frame(x, y + 2, x + tw - 1, y + rowh - 1.5f, col, 1);
         text(fo, FS_SMALL, x + 1.2f, y + 2.6f, col, label);
     }
+    /* a button with an arrow up or down on it (moving a row); greyed when it cannot be pressed.
+       True when clicked and enabled */
+    bool arrow_button(float x0, float y0, float x1, float y1, bool up, bool enabled, ImU32 base)
+    {
+        bool h = enabled && over(x0, y0, x1, y1);
+        ImVec4 c = ImGui::ColorConvertU32ToFloat4(enabled ? base : IM_COL32(214, 200, 176, 255));
+        if (h) { c.x = fminf(1, c.x * 1.25f + 0.04f); c.y = fminf(1, c.y * 1.25f + 0.04f); c.z = fminf(1, c.z * 1.25f + 0.04f); c.w = 1; }
+        rect(x0, y0, x1, y1, ImGui::ColorConvertFloat4ToU32(c), 1.5f);
+        float cx = (x0 + x1) * 0.5f, cy = (y0 + y1) * 0.5f, hw = (x1 - x0) * 0.28f, hh = (y1 - y0) * 0.22f;
+        ImU32 col = enabled ? LIGHT : INK_DIM;
+        if (up) dl->AddTriangleFilled(w(cx, cy - hh), w(cx + hw, cy + hh), w(cx - hw, cy + hh), col);
+        else dl->AddTriangleFilled(w(cx - hw, cy - hh), w(cx + hw, cy - hh), w(cx, cy + hh), col);
+        return enabled && hit(x0, y0, x1, y1);
+    }
     /* a button that cannot be pressed now: greyed, its label dim (so it still says what it is) */
     void button_off(float x0, float y0, float x1, float y1, const std::string &label, float gs = FS_SMALL)
     {

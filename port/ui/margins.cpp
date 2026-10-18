@@ -32,6 +32,7 @@ std::vector<Eff> effects_now(int size);
 #include "money.h"
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
+extern "C" int battle_showing(void);                  /* ui/battlelog.cpp: a battle is on (not the marching order) */
 
 int ui_margins_on = 1;
 
@@ -583,7 +584,7 @@ extern "C" void ui_margins(void)
         end_panel();
     }
 
-    if (right >= 150 && game_mode() == GM_BATTLE && !config_get_int("original", 0) && begin_panel("##margin_rb", x1, right, h, fs)) {
+    if (right >= 150 && battle_showing() && !config_get_int("original", 0) && begin_panel("##margin_rb", x1, right, h, fs)) {
         battle_panel(right, fs);
         end_panel();
     }
