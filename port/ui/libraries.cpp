@@ -1,0 +1,76 @@
+// libraries.cpp - see libraries.h.
+//
+// Which places have a library the party can study in: the saint card ($Learn00, card 0x39) is
+// reached from a town's monastery ($CityM00), its university ($Unive00) and a monastery in the
+// country ($Count04); each draws its saints with srand(party seed + the place). So: the towns
+// with a monastery (DARKLAND.CTY building bit 7) or a university (bit 8), and the locations of the
+// monastery kind (3).
+#include <math.h>
+#include <algorithm>
+#include "libraries.h"
+#include "gamedata.h"
+#include "quests.h"
+extern "C" {
+#include "../runtime/cpu.h"
+#include "../runtime/game.h"
+#include "../mods/gamemodel.h"
+}
+
+static std::vector<Library> libs;
+static int libs_seed = -100000;
+
+const std::vector<Library> &libraries(void)
+{
+    int gm = game_mode();
+    if (gm != GM_CARD && gm != GM_MAP) return libs;               /* (battles reuse the location table) */
+    int seed = (s16)g_rw(G_PARTY_SEED);
+    if (seed == libs_seed && !libs.empty()) return libs;
+    libs.clear();
+    for (int k = 0; k < G_NLOC; k++) {
+        u32 r = g_location(k);
+        if (!r) continue;
+        u16 s = (u16)(r >> 16), o = (u16)r;
+        int kind = (s16)rw(s, o);
+        bool lib;
+        if (k < (int)gamedata.cities.size()) lib = (gamedata.cities[k].buildings >> 7 & 1) || (gamedata.cities[k].buildings >> 8 & 1);
+        else lib = kind == 3;
+        if (!lib) continue;
+        Library L;
+        L.loc = k; L.x = (s16)rw(s, (u16)(o + 4)); L.y = (s16)rw(s, (u16)(o + 6));
+        if (k < (int)gamedata.cities.size()) L.name = gamedata.cities[k].name;
+        else { char b[24]; g_str(s, (u16)(o + 0x26), b, sizeof b); L.name = game_text(b, sizeof b); }
+        gm_library_saints(k, L.saint);
+        libs.push_back(L);
+    }
+    libs_seed = seed;
+    return libs;
+}
+
+const Library *library_at(int loc)
+{
+    for (const Library &L : libraries()) if (L.loc == loc) return &L;
+    return nullptr;
+}
+
+bool party_knows_saint(int s)
+{
+    int n = gm_party_size();
+    for (int m = 0; m < n && m < 5; m++) if (gm_member_present(m) && gm_knows_saint(m, s)) return true;
+    return false;
+}
+
+std::vector<LibraryHit> libraries_teaching(int s)
+{
+    std::vector<LibraryHit> v;
+    double px = 0, py = 0; bool here = party_xy(&px, &py);
+    for (const Library &L : libraries()) {
+        bool t = false;
+        for (int k = 0; k < 4; k++) if (L.saint[k] == s) t = true;
+        if (!t) continue;
+        double d = -1;
+        if (here) { double dx = L.x - px, dy = (L.y - py) / 2.0; d = hypot(dx, dy) / 10.0; }   /* (about ten columns a day on foot: ui/quests.cpp) */
+        v.push_back({ &L, d });
+    }
+    std::sort(v.begin(), v.end(), [](const LibraryHit &a, const LibraryHit &b) { return a.days < b.days; });
+    return v;
+}

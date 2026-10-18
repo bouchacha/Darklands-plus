@@ -61,6 +61,11 @@ int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out);
 int gm_knows_formula(int m, int f);
 int gm_knows_saint(int m, int s);
 
+/* the four saints a library teaches (a monastery's or a university's, by the place it is in): the
+   saint card $Learn00 (s058 18ca) draws them with srand(party seed + the place) and rand() % 135
+   four times, so they are fixed for the whole game (two may be the same). Returns 4. */
+int gm_library_saints(int loc, int out[4]);
+
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
 int gm_itemdef_weight(int id);

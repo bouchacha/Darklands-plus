@@ -17,6 +17,7 @@ extern "C" int ns_showing(void);
 #include "gamedata.h"
 #include "quests.h"
 #include "townicons.h"
+#include "libraries.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -67,7 +68,7 @@ static const TownFind TFIND[] = {
     { "a university", TI_UNIVERSITY, -1 }, { "a cathedral", TI_CATHEDRAL, -1 }, { "an alchemist", TI_ALCHEMIST, -1 },
     { "a physician", TI_PHYSICIAN, -1 }, { "docks (boats)", TI_DOCKS, -1 }, { "a bank", TI_BANK, -1 },
     { "a swordsmith of 30q+", TI_SWORD, 2 }, { "an armourer of 30q+", TI_ARMOUR, 3 }, { "a bowyer of 30q+", TI_BOW, 5 },
-    { "an artificer of 30q+", TI_TOOLS, 6 } };
+    { "an artificer of 30q+", TI_TOOLS, 6 } };   /* (a library: nearly every town has one; F12 > Saints says where each saint is taught) */
 static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
 static int tfind = -1;                                    /* -1: off */
 static int town_find_q(int loc)                           /* > 0: town loc matches (for a shop: its quality) */
@@ -450,7 +451,20 @@ extern "C" void worldmap_draw(void)
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            if (p.loc < 92) { ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true); ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet"); }
+            if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
+            if (const Library *L = library_at(p.loc)) {        /* the saints its library teaches; new ones marked */
+                std::string t; int done[4], nd = 0;
+                for (int k = 0; k < 4; k++) {
+                    int s = L->saint[k]; bool dup = false;
+                    for (int j = 0; j < nd; j++) if (done[j] == s) dup = true;
+                    if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
+                    done[nd++] = s;
+                    t += (t.empty() ? "" : ";  ") + gamedata.saints[s].name + (party_knows_saint(s) ? "" : " (new)");
+                }
+                ImGui::TextDisabled("Its library teaches:");
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+            }
+            if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
@@ -510,7 +524,9 @@ extern "C" void worldmap_draw(void)
                 return a.first != b.first ? a.first > b.first : a.second->name < b.second->name; });
             ImGui::TextDisabled("%d town%s:", (int)m.size(), m.size() == 1 ? "" : "s");
             float wmax = UIS(380) * pk, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
+            int listed = 0;
             for (auto &e : m) {
+                if (++listed > 18) { ImGui::TextDisabled("... and %d more (ringed on the map)", (int)m.size() - 18); break; }
                 char lb[64]; if (TFIND[tfind].shop >= 0) snprintf(lb, sizeof lb, "%s %dq##tl%d", e.second->name.c_str(), e.first, e.second->loc);
                 else snprintf(lb, sizeof lb, "%s##tl%d", e.second->name.c_str(), e.second->loc);
                 float w = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;

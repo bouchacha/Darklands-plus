@@ -58,7 +58,8 @@ void ui_guide_tab(void)
         "A potion is as good as the formula that brewed it: each potion has three formulae, of grade 1, 2 and 3, and the dots on its flask (one, two or three) tell which. The description under a list says it too (\"grade 2 of 3\").",
     });
     topic("Saints", {
-        "Saints are learned (at monasteries, universities and cathedrals, among others) and called upon with divine favor, in a card's options or from the menu. Each helps with something of their own.",
+        "Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with divine favor, in a card's options or from the menu. Each helps with something of their own.",
+        "Each library teaches four saints, the same for the whole game. F12 > Saints says where the nearest library teaching each saint the party lacks is; the margin and the world map say what a town's library teaches.",
         "Darklands+ shows the chance on the prayer page and in a card's options. F12 > Saints lists who knows which saint and what each does.",
     });
     topic("Battle", {

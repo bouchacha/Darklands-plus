@@ -662,6 +662,10 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
         else if (!strcmp(s->cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
         else if (!strcmp(s->cmd, "umenu")) { int m = 0, i = 0, j = -1; sscanf(s->arg, "%d,%d,%d", &m, &i, &j); void menuview_request(int, int, int); menuview_request(m, i, j); }   /* test: menu m's entry i (sub-entry j) chosen, as a click on it does */
+        else if (!strcmp(s->cmd, "ulib")) {                /* test: the saints the library at location k teaches */
+            int k = atoi(s->arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);
+            fprintf(stderr, "library %d: %d %d %d %d\n", k, o[0], o[1], o[2], o[3]);
+        }
         else if (!strcmp(s->cmd, "ulocw")) {               /* test: word at +off of location k's record (ulocw:k,off,v; v -999 only reads) */
             int k = 0, of = 0, v = -999; sscanf(s->arg, "%d,%x,%d", &k, &of, &v);
             u32 r = g_location(k);

@@ -41,3 +41,4 @@ struct TownMark { int loc, cat; std::string until; };     // a town that bars th
 void town_marks(std::vector<TownMark> &out);   // (place, its task) with each one's QuestCat
 std::string quest_days(const QuestRow &r);                 // "37 days", "last day", "" (no deadline)
 std::string quest_distance(const QuestRow &r);             // "here", "north-east, about 2 days away"
+bool party_xy(double *x, double *y);      // the party on the travel map: the place it is at, else its tile (false: unknown)

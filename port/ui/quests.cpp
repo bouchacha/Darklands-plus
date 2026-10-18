@@ -259,8 +259,8 @@ static int day_number(int day, int month, int year)          /* days since a fix
     return year * 365 + year / 4 - year / 100 + year / 400 + CUM[month] + day;
 }
 
-/* the party's place on the map: the town or site it is at, else its tile */
-static bool party_xy(double *x, double *y)
+/* the party's place on the map: the town or site it is at, else its tile (quests.h) */
+bool party_xy(double *x, double *y)
 {
     int cur = (s16)g_rw(G_CUR_LOC), px, py;
     if (cur >= 0 && loc_xy(cur, &px, &py)) { *x = px; *y = py; return true; }

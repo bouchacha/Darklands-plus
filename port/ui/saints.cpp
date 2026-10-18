@@ -12,6 +12,7 @@
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "libraries.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -217,7 +218,8 @@ extern "C" void tab_saints(void)
     if (size < 0 || size > 5) size = 0;
     static char find[64];
     static int known_only = 0;
-    ImGui::TextWrapped("What each saint can do, and who in the party knows them. Find saints by what they help with.");
+    ImGui::TextWrapped("What each saint can do, and who in the party knows them. Find saints by what they help with. "
+                       "A saint nobody knows shows the nearest library that teaches it (a town's monastery or university, or a monastery in the country: each teaches four saints, the same all game).");
     ImGui::SetNextItemWidth(UIS(300));
     ImGui::InputTextWithHint("##sfind", "Strength, fire, heal, travel, Virtue ...", find, sizeof find);
     static const char *QUICK[] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma",
@@ -260,8 +262,12 @@ extern "C" void tab_saints(void)
             ImGui::EndTooltip();
         }
         float full = ImGui::GetContentRegionAvail().x;
+        /* where to learn it: the libraries that teach it, the nearest first (ui/libraries.h) */
+        std::vector<LibraryHit> where;
+        if (in_game && !nk) where = libraries_teaching(s);
+        auto days = [](double d) { char b[24]; if (d < 0) b[0] = 0; else if (d < 0.6) snprintf(b, sizeof b, "here"); else snprintf(b, sizeof b, "%d day%s", (int)(d + 0.5), (int)(d + 0.5) == 1 ? "" : "s"); return std::string(b); };
         if (!open) {                       /* what the saint does, in a line, to scan the list by */
-            float x0 = full * 0.30f, x1 = nk ? full * 0.70f : full - UIS(10);
+            float x0 = full * 0.30f, x1 = nk || !where.empty() ? full * 0.70f : full - UIS(10);
             std::string e = saint_summary(t.text), cut = e;
             while (!cut.empty() && ImGui::CalcTextSize((cut + "...").c_str()).x > x1 - x0) {
                 size_t sp = cut.find_last_of(' '); cut = sp == std::string::npos ? std::string() : cut.substr(0, sp);
@@ -270,7 +276,32 @@ extern "C" void tab_saints(void)
             ImGui::SameLine(x0); ImGui::TextDisabled("%s", cut.c_str());
         }
         if (nk) { ImGui::SameLine(full * (open ? 0.55f : 0.72f)); ImGui::TextDisabled("known by %s", who.c_str()); }
-        if (open) { ImGui::Indent(UIS(20)); ui_saint_text(t.text); ImGui::Unindent(UIS(20)); ImGui::Spacing(); }
+        else if (!where.empty() && !open) {
+            ImGui::SameLine(full * 0.72f);
+            std::string d = days(where[0].days);
+            ImGui::TextDisabled("learn at %s%s%s", where[0].lib->name.c_str(), d.empty() ? "" : ", ", d.c_str());
+        }
+        if (open) {
+            ImGui::Indent(UIS(20)); ui_saint_text(t.text);
+            if (in_game && !nk) {
+                std::string l;
+                if (where.empty()) l = "No library teaches this saint in this game (a saint may still be granted by a card).";
+                else {
+                    l = "Taught in the library of ";
+                    size_t n = where.size() < 6 ? where.size() : 6;
+                    for (size_t i = 0; i < n; i++) {
+                        std::string d = days(where[i].days);
+                        l += (i ? (i + 1 == n && where.size() <= 6 ? " and " : ", ") : "") + where[i].lib->name + (d.empty() ? "" : " (" + d + ")");
+                    }
+                    if (where.size() > 6) l += " and " + std::to_string(where.size() - 6) + " more";
+                    l += ".";
+                }
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::TextWrapped("%s", l.c_str());
+                ImGui::PopStyleColor();
+            }
+            ImGui::Unindent(UIS(20)); ImGui::Spacing();
+        }
         ImGui::PopID();
     }
     if (!shown) ImGui::TextDisabled("No saint matches.");

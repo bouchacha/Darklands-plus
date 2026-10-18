@@ -27,6 +27,7 @@ struct Eff { int m; std::string what; long left; };   /* (the same as ui/saints.
 std::vector<Eff> effects_now(int size);
 #include "quests.h"
 #include "townicons.h"
+#include "libraries.h"
 #include <functional>
 #include <set>
 #include "money.h"
@@ -184,6 +185,34 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
         char t[48], tip[160]; snprintf(t, sizeof t, words ? "%s %dq" : "%.0s%dq", SHOP_NAMES[s.shop], q);
         snprintf(tip, sizeof tip, "%s: %s of %dq (most shops' are about 25q).", SHOP_NAMES[s.shop], s.wares, q);
         chip(first, s.icon, t, tip);
+    }
+}
+/* the saints a place's library teaches (ui/libraries.h), one a line (their names may hold a comma:
+   "St.Edward, Confessor"): those nobody in the party knows in the margin's ink, the others dim;
+   what each does under the pointer */
+static void library_line(int loc)
+{
+    const Library *L = library_at(loc);
+    if (!L) return;
+    ImGui::Spacing(); heading("Its library teaches");
+    int shown[4], ns = 0;
+    for (int k = 0; k < 4; k++) {
+        int s = L->saint[k]; bool dup = false;
+        for (int j = 0; j < ns; j++) if (shown[j] == s) dup = true;
+        if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
+        shown[ns++] = s;
+    }
+    for (int j = 0; j < ns; j++) {
+        int s = shown[j]; bool known = party_knows_saint(s);
+        const std::string &t = gamedata.saints[s].name;
+        if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
+        if (item_hovered()) {
+            const std::string &tx = gamedata.saints[s].text;
+            std::string eff = tx.substr(saint_effect_at(tx));
+            while (!eff.empty() && (eff[0] == ' ' || eff[0] == '\n')) eff.erase(0, 1);
+            std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + eff;
+            margin_tip(tip.c_str());
+        }
     }
 }
 extern "C" int ui_nearest_town(void);
@@ -414,6 +443,7 @@ static void right_panel(int size)
             ImGui::Unindent(is + lh * 0.3f);
         }
         ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
+        library_line(cur);
         place_quests(cur);
         any = true;
     }
@@ -425,6 +455,7 @@ static void right_panel(int size)
             const char *loc_kind_label(int k);
             heading(game_text(b, sizeof b).c_str());
             ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
+            library_line(cur);
             place_quests(cur);
             if ((s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18)) > 0) ImGui::TextWrapped("The party has goods stored here (F12 > Journal > Stored).");
             any = true;

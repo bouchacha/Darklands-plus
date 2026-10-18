@@ -198,3 +198,14 @@ char gm_member_order(int m)
     }
     return 0;
 }
+
+int gm_library_saints(int loc, int out[4])
+{
+    /* the C library's srand / rand (root 06a1:09b4 / 09c6) and rand_mod (root 0000:0c70) */
+    unsigned long hold = (u16)((s16)g_rw(G_PARTY_SEED) + loc);
+    for (int k = 0; k < 4; k++) {
+        hold = (hold * 0x343fdUL + 0x269ec3UL) & 0xffffffffUL;
+        out[k] = (int)((hold >> 16) & 0x7fff) % 0x87;
+    }
+    return 4;
+}
