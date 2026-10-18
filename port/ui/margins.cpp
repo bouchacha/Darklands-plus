@@ -328,7 +328,8 @@ static void foes_left_section(void)
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
     if (!here && !others) ImGui::TextWrapped("No one else waits in this place.");
     else {
-        if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        if (here && fl.floors <= 1) ImGui::TextWrapped("Here: %d more %s, in %d %s.", here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        else if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
         else ImGui::TextWrapped("No one on this floor (%d).", fl.floor + 1);
         std::string o;
         for (int f = 0; f < fl.floors; f++) {
