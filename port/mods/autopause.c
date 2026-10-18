@@ -22,6 +22,7 @@ void ui_notice(const char *msg);
 u32 plat_ticks_ms(void);
 
 static int state[5], in_battle, last_floor, last_groups;
+static u32 foes_seen, floor_changed;      /* a group stepped out (0 none); the floor shown last changed */
 static u32 last_pause;
 
 static int member_state(int m)
@@ -53,16 +54,24 @@ void autopause_frame(void)
     if (!in_battle) {                            /* the battle begins: who is hurt already does not count */
         in_battle = 1;
         for (int m = 0; m < 5; m++) { int s = m < size ? member_state(m) : 0; state[m] = s < 0 ? 1 : s; }
-        last_floor = floor; last_groups = groups;
+        last_floor = floor; last_groups = groups; foes_seen = 0; floor_changed = 0;   /* (the place is laid out in the battle's first frames: its groups appear, a fall soon after is real) */
         return;
     }
     if ((floor != last_floor || groups != last_groups) && getenv("DL_FOES_LOG"))
         fprintf(stderr, "autopause: floor %d -> %d, groups %d -> %d (pause depth %d, ai paused %d)\n", last_floor, floor, last_groups, groups, g_rb(GV_pause_depth), g_rb(0xa695));
-    if (floor == last_floor && groups < last_groups && autopause_foes && !config_get_int("original", 0)
-        && !g_rb(GV_pause_depth) && plat_ticks_ms() - last_pause >= 1500) {
-        last_pause = plat_ticks_ms();
-        plat_press_key(SDL_SCANCODE_SPACE);
-        ui_notice("Paused: foes come out to fight");
+    /* a group steps out: the count falls while the floor stays. Going up or down, the floor shown and
+       the count of its groups change a frame or more apart, so a fall counts only well away from a
+       change of floor (and the pause comes half a second after it, the floor still the same) */
+    u32 now = plat_ticks_ms();
+    if (floor != last_floor) { floor_changed = now; foes_seen = 0; }
+    else if (groups < last_groups && now - floor_changed > 1500) foes_seen = now ? now : 1;
+    if (foes_seen && now - foes_seen >= 500) {
+        foes_seen = 0;
+        if (autopause_foes && !config_get_int("original", 0) && !g_rb(GV_pause_depth) && now - last_pause >= 1500 && now - floor_changed > 2000) {
+            last_pause = now;
+            plat_press_key(SDL_SCANCODE_SPACE);
+            ui_notice("Paused: foes come out to fight");
+        }
     }
     last_floor = floor; last_groups = groups;
     for (int m = 0; m < size; m++) {
