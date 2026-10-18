@@ -11,6 +11,7 @@
 #include <vector>
 #include "nsdraw.h"
 #include "professions.h"
+#include "townicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/createview.h"
@@ -181,9 +182,10 @@ extern "C" void createview_draw(void)
             for (int gi = 0; gi < 3; gi++) {
                 int g = COLS[col][gi];
                 if (g < 0) continue;
-                P.text(fo, NsDraw::FS_SMALL, x + 1, yy, soft, GROUPS[g].name);
-                P.rect(x + 1, yy + 6, x + cw - 3, yy + 6.3f, IM_COL32(120, 80, 36, 90));
-                yy += 7.5f;
+                ui_draw_career_icon(P.dl, NsDraw::w(x + 4.2f, yy + 3.6f), 7.6f * P.k, g);   /* (the kind's picture) */
+                P.text(f, NsDraw::FS_BODY, x + 9.5f, yy + 0.9f, soft, GROUPS[g].name);
+                P.rect(x + 9.5f, yy + 7.4f, x + cw - 3, yy + 7.7f, IM_COL32(120, 80, 36, 90));
+                yy += 9.5f;
                 for (int k = 0; k < GROUPS[g].n; k++) {
                     int p = GROUPS[g].first + k, li = -1;
                     for (int i = 0; i < c.nlist; i++) if (c.list[i] == p) li = i;
