@@ -10,7 +10,7 @@
 void ui_guide_tab(void)
 {
     if (!config_get_int("guide.seen", 0)) { config_set_int("guide.seen", 1); config_save(); }     /* (the margin's hint is not needed any more) */
-    ImGui::TextWrapped("Darklands has no tutorial: this is the short of it. Nothing here tells the story; it is the game's own rules, as Darklands+ "
+    ImGui::TextWrapped("Darklands has no tutorial: this is the short of it, with a few first steps. Nothing here tells the story; the rules are the game's own, as Darklands+ "
                        "reads them from the program. F1 at any moment lists the keys and clicks of that moment; a right click opens the menus, Darklands+'s own at the right end.");
     ImGui::Spacing();
     auto topic = [](const char *title, std::initializer_list<const char *> lines, bool open = false) {
@@ -21,6 +21,13 @@ void ui_guide_tab(void)
             ImGui::Spacing();
         }
     };
+    topic("First steps", {
+        "A new party has little money and light armour. Paid tasks come from a town's merchants, foreign traders and pharmacists (at the marketplace), the Fugger, the Medici, the Hanse, the town council and the cathedral: robber knights to kill, things to fetch. The left margin keeps each task.",
+        "Armour before anything: a weapon whose penetration is below an armour's hardness is mostly deflected. Buy the hardest armour the purse allows before travelling far (Battle, below).",
+        "Rest at an inn when strength is low, and set out with it full. After dark, wait for morning at the inn rather than in the streets.",
+        "Sell what nobody uses: in a shop, Sell spare gear sells every unused weapon, armour and shield at once.",
+        "Save often in towns; Darklands+ also saves by itself on arriving in a town and before a battle.",
+    }, true);
     topic("The party: endurance, strength, divine favor", {
         "Endurance (End) is breath and bruises: blows take it first and rest brings it back. At 0 a member falls unconscious.",
         "Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Watch the green bar: below half, keep that member out of the fight.",
@@ -28,7 +35,7 @@ void ui_guide_tab(void)
         "Each member's attributes and skills are on the character sheet (a click on the portrait, or F1 ... F5); the bars on the party panel show End, Str and DF all the time.",
         "The pack is the whole party's: a member keeps only what they use, the horse or mule they ride and their own potions; whatever else the game asks one member for (lock picks, a mount) is handed to them as it is needed. Only what is in use weighs.",
         "A card's tests are made by the member best at each (the chance and the name are beside the option). The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour), and in a battle or a dungeon, unpaused, deals with doors, chests and locks and leads the group's moves.",
-    }, true);
+    });
     topic("Money and reputation", {
         "1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you.",
         "Each town has its own reputation for you: good deeds there raise it, crimes and brawls lower it. A bad name brings trouble with the watch and higher prices.",
