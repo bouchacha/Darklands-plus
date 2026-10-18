@@ -631,6 +631,7 @@ static void help_window(void)
             row("Shift over an option", "the game's own chance of success (the badges show them all)");
             row("G", "go to a place in this city");
             row("M", "world map");
+            row("The town's pictures (right margin)", "what it has that most towns lack, and its notable shops: point at one for what it offers");
         } else if (gm == GM_MAP) {
             ImGui::SeparatorText("Now: the travel map");
             row("Click", "walk towards that spot");
