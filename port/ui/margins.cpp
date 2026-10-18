@@ -545,9 +545,11 @@ static void tasks_section(bool tables)
         if (is_open) {
             ImGui::Indent(ind);
             ImGui::TextWrapped("%s", r.text.c_str());
-            if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str());
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));   /* (wrapped: the margin is narrow) */
+            if (!r.when.empty()) ImGui::TextWrapped("%s", r.when.c_str());
             std::string d = quest_distance(r);
-            if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextDisabled("%s", d.c_str()); }
+            if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextWrapped("%s", d.c_str()); }
+            ImGui::PopStyleColor();
             if (r.loc >= 0 && r.dist >= 1.5 && travel_enabled && game_mode() == GM_MAP) {     /* (on the travel map: go there) */
                 const char *t = "Travel there";
                 ImVec2 tp = ImGui::GetCursorScreenPos(), tsz = ImGui::CalcTextSize(t);
