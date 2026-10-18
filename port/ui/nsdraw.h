@@ -100,6 +100,13 @@ struct NsDraw {
         frame(x, y + 2, x + tw - 1, y + rowh - 1.5f, col, 1);
         text(fo, FS_SMALL, x + 1.2f, y + 2.6f, col, label);
     }
+    /* a button that cannot be pressed now: greyed, its label dim (so it still says what it is) */
+    void button_off(float x0, float y0, float x1, float y1, const std::string &label, float gs = FS_SMALL)
+    {
+        rect(x0, y0, x1, y1, IM_COL32(214, 200, 176, 255), 1.5f);
+        float tw = width(fo, gs, label);
+        text(fo, gs, x0 + (x1 - x0 - tw) * 0.5f, y0 + (y1 - y0) * 0.5f - gs * 0.62f, INK_DIM, label);
+    }
     /* an item's picture (ui/inventory.cpp), centred at (x, y), `size` rows across; kept inside
        its square (a pike or a halberd is drawn long) */
     void icon(float x, float y, float size, int id, int qual = -1, int tier = 0)   /* (qual: a potion shows its grade; tier: a formula's, 1-3) */

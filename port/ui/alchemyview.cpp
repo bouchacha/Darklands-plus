@@ -103,11 +103,11 @@ extern "C" void alchemyview_draw(void)
         P.text(f, NsDraw::FS_NAME, RX0, y + 1, ink, "Batches");
         float bx = RX0 + 32;
         if (a.page && a.count > 0) { if (P.button(bx, y, bx + 9, y + 8.5f, "-", IM_COL32(120, 84, 40, 235), NsDraw::FS_BODY)) ns_push(AV_FEWER, 0, 0, 0); }
-        else P.rect(bx, y, bx + 9, y + 8.5f, IM_COL32(214, 200, 176, 255), 1.5f);
+        else P.button_off(bx, y, bx + 9, y + 8.5f, "-", NsDraw::FS_BODY);
         P.text(f, NsDraw::FS_HEAD, bx + 11, y, ink, std::to_string(a.page ? a.count : 0));
         float px = bx + 22;
         if (a.can_more) { if (P.button(px, y, px + 9, y + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(AV_MORE, 0, 0, 0); }
-        else { P.rect(px, y, px + 9, y + 8.5f, IM_COL32(214, 200, 176, 255), 1.5f); P.text(fo, NsDraw::FS_SMALL, px + 12, y + 1.6f, red, "not enough for more"); }
+        else { P.button_off(px, y, px + 9, y + 8.5f, "+", NsDraw::FS_BODY); P.text(fo, NsDraw::FS_SMALL, px + 12, y + 1.6f, red, "not enough for more"); }
         y += 11;
         /* the chance */
         int pc = a.page && a.count > 0 ? a.pct : a.pct1;
@@ -118,7 +118,7 @@ extern "C" void alchemyview_draw(void)
         y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, parts) + 3;
         bool can = a.page && a.count > 0;
         if (can) { if (P.button(RX0, y, RX0 + 50, y + 10, "Start mixing", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(AV_START, 0, 0, 0); }
-        else { P.rect(RX0, y, RX0 + 50, y + 10, IM_COL32(214, 200, 176, 255), 1.5f); P.text(fo, NsDraw::FS_BODY, RX0 + 6, y + 2, dim, "Start mixing"); }
+        else P.button_off(RX0, y, RX0 + 50, y + 10, "Start mixing", NsDraw::FS_BODY);
     }
     if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 65, 190, IM_COL32(112, 40, 22, 255), ns_gtext(a.note));
 }
