@@ -735,12 +735,11 @@ static bool knows(int m, int f)
     return (rb(G_FAR2E38, o) >> (f % 3)) & 1;
 }
 
+/* a formula's name as shown (DARKLAND.LST, in full). (The game's own table of far pointers to the
+   names, at 0x1736, does not always point at them: read from there, the page once showed garbage.) */
 static std::string virtue_name(int f)
 {
-    u16 o = rw(G_FAR2E38, (u16)(0x1736 + f * 4)), s = rw(G_FAR2E38, (u16)(0x1736 + f * 4 + 2));
-    char b[48]; if (!s) return "";
-    g_str(s, o, b, sizeof b);
-    return b;
+    return f >= 0 && f < (int)gamedata.formula_names.size() ? gamedata.formula_names[f] : std::string();
 }
 
 extern "C" void tab_alchemy(void)
@@ -816,7 +815,7 @@ extern "C" void tab_alchemy(void)
             const Formula &F = gamedata.formulas[f];
             switch (c) {
             case 0: { const ItemDef *pd = def_of(95 + f / 3);         /* by the potion, then its grade (its three formulae together) */
-                      return (pd ? game_text(pd->name.c_str(), 64) : std::string("?")) + " " + std::to_string(f % 3 + 1); }
+                      return (pd ? pd->name : std::string("?")) + " " + std::to_string(f % 3 + 1); }
             case 1: return who_of(f);
             case 2: return F.mystic;
             case 3: return F.risk;
@@ -836,7 +835,7 @@ extern "C" void tab_alchemy(void)
             icon_tier = f % 3 + 1; draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3); icon_tier = 0;
             ImGui::SameLine();
             ImGui::BeginGroup();
-            std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");
+            std::string vn = virtue_name(f), pn = pd ? pd->name : std::string("?");
             ImGui::TextWrapped("%s", vn.empty() ? pn.c_str() : vn.c_str());
             {                                                    /* the potion it makes, and which of its three formulae */
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
