@@ -21,6 +21,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hooks.h"
 #include "../mods/travel.h"
 void ui_toggle(void);
 }
@@ -180,6 +181,71 @@ static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
 
 static long when_key(const int d[4]) { return (((long)d[3] * 12 + d[2]) * 31 + d[1]) * 24 + d[0]; }   /* (year, month, day, hour) in order */
 
+/* ---------------------------------------------------------------- what the party learned of a Sabbat
+ * The game schedules a Sabbat as an event (kind 0x1c, tag 1, type0 4; aux the place, end the
+ * night; type0 5 while it is held) and lets the party learn of it on cards whose text holds
+ * $SabbatLocation and/or $SabbatTime (a dying cultist, a witch's letter, a captured villager...).
+ * When text_expand (s043 150b:06fe) expands such a block (as the card files have it, read by
+ * ui/citynav.cpp), the place or the night is noted for the Sabbat coming next (not during the
+ * card hints' trial runs, dos_no_writes), kept per game (the party's seed) beside the chronicle. */
+struct SabbatKnown { int loc, day, month, year, what; };            /* what: 1 the place, 2 the night */
+static std::vector<SabbatKnown> sab_known;
+static int sab_seed = -1;
+static std::string sab_path(int seed)
+{
+    extern char dlp_data_dir[];
+    char b[1200]; snprintf(b, sizeof b, "%s/darklands_sabbats_%u.txt", dlp_data_dir, (unsigned)seed);
+    return b;
+}
+static void sab_load(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed == sab_seed) return;
+    sab_seed = seed; sab_known.clear();
+    FILE *f = fopen(sab_path(seed).c_str(), "r");
+    if (!f) return;
+    SabbatKnown k;
+    while (fscanf(f, "%d %d %d %d %d", &k.loc, &k.day, &k.month, &k.year, &k.what) == 5) sab_known.push_back(k);
+    fclose(f);
+}
+static int sab_what(const Ev &e)
+{
+    sab_load();
+    int w = 0;
+    for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && k.day == e.end[1] && k.month == e.end[2] && k.year == e.end[3]) w |= k.what;
+    return w;
+}
+static void sab_learn(int what)
+{
+    std::vector<Ev> evs = read_events();
+    const Ev *next = nullptr;
+    for (const Ev &e : evs) if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (!next || when_key(e.end) < when_key(next->end))) next = &e;
+    if (!next) return;
+    sab_load();
+    int had = sab_what(*next);
+    if ((had | what) == had) return;
+    SabbatKnown k = { next->aux, next->end[1], next->end[2], next->end[3], what };
+    sab_known.push_back(k);
+    FILE *f = fopen(sab_path(sab_seed).c_str(), "a");
+    if (f) { fprintf(f, "%d %d %d %d %d\n", k.loc, k.day, k.month, k.year, k.what); fclose(f); }
+    fprintf(stderr, "quests: learned of the Sabbat at %d on %d.%d.%d (%s)\n", k.loc, k.day, k.month + 1, k.year, what == 3 ? "place and night" : what == 1 ? "place" : "night");
+}
+extern "C" int citynav_card_block_has(const char *card, int block, const char *word);
+static void sabbat_text_hook(void)          /* text_expand (idx, out) */
+{
+    extern int dos_no_writes;
+    int idx = (s16)rw(SS, (u16)(SP + 4)), what = 0;
+    if (!dos_no_writes && game_mode() != GM_OTHER) {
+        char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+        if (citynav_card_block_has(nm, idx, "$SabbatLocation")) what |= 1;
+        if (citynav_card_block_has(nm, idx, "$SabbatTime")) what |= 2;
+    }
+    hook_call_original();
+    if (what) sab_learn(what);
+}
+extern "C" void quests_init(void) { hook_install(GF_text_expand, sabbat_text_hook); }
+extern "C" void quests_test_learn(int what) { sab_learn(what); }
+
 static std::vector<Line> build_lines(void)
 {
     std::vector<Line> v;
@@ -223,10 +289,14 @@ static std::vector<Line> build_lines(void)
             { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing one's way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
-        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && spoilers)
-            add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), 4, e.aux, true, QC_SABBAT);
-        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && spoilers)
-            add("Sabbat now", "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", 4, -1, false, QC_SABBAT);
+        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {
+            int known = sab_what(e), w = spoilers ? 3 : known, g = known ? 0 : 4;    /* (learned: among the tasks; else a secret) */
+            if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
+            else if (w == 1) add("Sabbat @ " + loc_name(e.aux), "Witches gather at " + where(e.aux) + " (the night is not known).", "", g, e.aux, false, QC_SABBAT);
+            else add("Sabbat on " + date(e.end), "Witches gather on the night of " + date(e.end) + " (the place is not known).", "on " + date(e.end), g, -1, true, QC_SABBAT);
+        }
+        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && (spoilers || [&] { sab_load(); for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && (k.what & 1)) return true; return false; }()))
+            add("Sabbat now @ " + loc_name(e.aux), "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", spoilers ? 4 : 0, e.aux, false, QC_SABBAT);
     }
     return v;
 }

@@ -536,9 +536,11 @@ static void barter_list_hook(void)
 extern "C" void journal_set(int on) { journal_on = on; config_set_int("journal.enabled", on); }
 extern "C" int journal_enabled(void) { return journal_on; }
 
+extern "C" void quests_init(void);
 extern "C" void journal_init(void)
 {
     journal_on = config_get_int("journal.enabled", 1);
+    quests_init();                                                 /* (what the party learns of a Sabbat) */
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_text_expand, text_expand_hook);
     { void assist_watch_cards(void); assist_watch_cards(); }      /* the chronicle needs the card menu's hook (mods/assist.c) */

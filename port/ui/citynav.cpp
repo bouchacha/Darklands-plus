@@ -86,6 +86,18 @@ static std::vector<std::string> block_options(const std::string &t)
     return o;
 }
 
+/* whether block `block` of card `card` (as the card files have it, $variables unexpanded)
+   contains `word` (ui/quests.cpp: what a card tells of a Sabbat) */
+extern "C" int citynav_card_block_has(const char *card, int block, const char *word)
+{
+    { static int gen = -1; int datamods_generation(void); if (gen != datamods_generation()) { gen = datamods_generation(); cards.clear(); cards_loaded = false; } }
+    if (!cards_loaded) load_cards();
+    std::string k(card); for (char &c : k) c = (char)toupper((unsigned char)c);
+    auto it = cards.find(k);
+    if (it == cards.end() || block < 0 || block >= (int)it->second.size()) return 0;
+    return it->second[block].find(word) != std::string::npos;
+}
+
 static std::string card_now(void)
 {
     char n[13]; g_str(G_DGROUP, 0xe3d4, n, sizeof n);
