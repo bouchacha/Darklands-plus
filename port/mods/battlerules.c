@@ -71,6 +71,7 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
     /* a foe chosen as a target with no line from where the member stands: taken (the member will
        step aside, or walk towards it, until a line opens) */
     if (AX && choosing && on_reposition() && b >= 5 && b < 13 && g_rb((u16)(CBT(b) + 0x14)) == 1
+        && (g_rw(GV_order_action) & 0x180) == 0x80                                           /* (a missile, not a potion thrown or a spell) */
         && g_rb((u16)(GV_cbt_floor + a)) == g_rb((u16)(GV_cbt_floor + b))) {
         AX = 0;
         if (mode == 0x100 && getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d may target %d (no line yet)\n", a, b);
