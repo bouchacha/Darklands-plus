@@ -27,6 +27,7 @@ static std::string ago(long long t)
     if (d < 60) snprintf(b, sizeof b, "just now");
     else if (d < 3600) snprintf(b, sizeof b, "%lld min ago", d / 60);
     else if (d < 86400) snprintf(b, sizeof b, "%lld h ago", d / 3600);
+    else if (d < 86400 * 2) snprintf(b, sizeof b, "yesterday");
     else if (d < 86400 * 60) snprintf(b, sizeof b, "%lld days ago", d / 86400);
     else { struct tm *tm = localtime((time_t *)&t); strftime(b, sizeof b, "%Y-%m-%d", tm); }
     return b;

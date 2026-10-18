@@ -64,7 +64,7 @@ static void take_comment(SavesModel *S, const SaveInfo *v)
 
 static void delete_save(SavesModel *S, int i)
 {
-    if (i < 0 || i >= S->nsaves) return;
+    if (i < 0 || i >= S->nsaves || !strcasecmp(S->saves[i].file, S->cur_file)) return;    /* (not the save in play: the game's own rule) */
     u32 now = plat_ticks_ms();
     if (S->armed != i || now - S->armed_t > 4000) { S->armed = i; S->armed_t = now; return; }   /* (the first click: asks) */
     if (now - S->armed_t < 350) return;                     /* (not a double click) */

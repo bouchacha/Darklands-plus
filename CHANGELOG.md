@@ -26,7 +26,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
   - money shown as gold, silver and copper coins;
   - a new save can take the place of an old one (a click on it in the Save page), and the Load page deletes a save;
   - the level map (Tab) walks the party to a spot you click;
-  - night-time thieves and watch in towns can be made rarer;
+  - night-time thieves and watch in towns can be made rarer, and the margin says when the streets are dark (from 19:00, the game's own hour, not 21:00) with the party's chance of slipping past the cutthroats;
   - a shooter whose line is blocked steps aside to a spot with a clear one, or walks towards the foe until there is one, and can be sent at any foe;
   - archers can optionally shoot past their own fighters;
   - Z fast-forwards a battle (six times the pace) and Z again slows it back down;

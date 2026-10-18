@@ -20,6 +20,7 @@ extern "C" {
 #include "../mods/menuview.h"
 #include "../mods/assist.h"
 #include "../mods/foesleft.h"
+#include "../mods/gamemodel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
@@ -620,6 +621,33 @@ static void tasks_section(bool tables)
     if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
 }
 
+/* in a town at night: the streets' dangers (mods/travel.c has the rolls: the night watch at each
+   move, more on the main street and in a town on its guard; leaving a side street, cutthroats
+   unless (the party's average Stealth + Streetwise) / 2 beats a roll of 100, s046 194b:02d6) */
+static void night_streets(bool night)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    if (!night || game_mode() != GM_CARD || cur < 0 || cur >= (int)gamedata.cities.size() || config_get_int("original", 0)) return;
+    int st = 0, sw = 0, n = 0;
+    for (int m = 0; m < 5; m++) if (gm_member_status(m) == 1) { st += gm_member_skill(m, 15); sw += gm_member_skill(m, 16); n++; }  /* (party_avg_skill: the members on their feet) */
+    if (!n) return;
+    int t = (st / n + sw / n) / 2;
+    t = t < 0 ? 0 : t > 99 ? 99 : t;
+    int pct = config_get_int("travel.street_encounters", 100), slip = 100 - (100 - t) * pct / 100;
+    ImGui::TextColored(ImVec4(0.92f, 0.70f, 0.42f, 1), "Night in the streets");
+    if (item_hovered()) {
+        char b[460], often[40]; int k = (slip + 5) / 10;
+        if (k <= 0) snprintf(often, sizeof often, "hardly ever");
+        else if (k >= 10) snprintf(often, sizeof often, "almost always");
+        else snprintf(often, sizeof often, "about %d time%s in 10", k, k == 1 ? "" : "s");
+        snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move in its streets may meet the night watch (more often on the main street, "
+                 "and where the town is on its guard). Leaving a side street the party slips past cutthroats %s "
+                 "(the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
+                 often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Helpers" : "");
+        margin_tip(b);
+    }
+}
+
 extern "C" void ui_margins(void)
 {
     if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_overlay) return;
@@ -639,7 +667,10 @@ extern "C" void ui_margins(void)
         /* the date and hour, the purse, then the tasks: no labels where the thing speaks for itself */
         char date[48]; snprintf(date, sizeof date, "%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
         heading(date);
-        ImGui::TextDisabled("%d:00, %s", hour, hour < 5 || hour >= 21 ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
+        /* the game's own day: daylight from 5:00 to 18:59 (is_daylight, s029 1367:072a); then the towns' night streets */
+        const bool night = hour < 5 || hour >= 19;
+        ImGui::TextDisabled("%d:00, %s", hour, night ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
+        night_streets(night);
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
         ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
         { long pf = (long)f * 240 + g * 12 + p; if (pf >= 12 && item_hovered()) margin_tip(money_total(pf).c_str()); }
