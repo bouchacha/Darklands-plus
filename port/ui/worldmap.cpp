@@ -460,14 +460,14 @@ extern "C" void worldmap_draw(void)
                     done[nd++] = s;
                     t += (t.empty() ? "" : ";  ") + gamedata.saints[s].name + (party_knows_saint(s) ? "" : " (new)");
                 }
-                ImGui::TextDisabled("Its library teaches:");
+                ImGui::TextDisabled("Saints taught here:");
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
             }
             {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
                 if (p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
                     std::string t;
                     for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
-                    ImGui::TextDisabled("Its alchemist sells the formulae:");
+                    ImGui::TextDisabled("Formulae sold here:");
                     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
                 }
             }

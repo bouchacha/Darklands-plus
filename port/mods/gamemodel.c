@@ -1,3 +1,4 @@
+#include <stdio.h>
 /* gamemodel.c - see gamemodel.h */
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -234,4 +235,19 @@ int gm_library_saints(int loc, int out[4])
         out[k] = (int)((hold >> 16) & 0x7fff) % 0x87;
     }
     return 4;
+}
+
+/* ---------------------------------------------------------------- the canonical hours */
+int gm_hour_band(int h)
+{
+    return h < 3 ? 7 : h < 6 ? 0 : h < 9 ? 1 : h < 12 ? 2 : h < 15 ? 3 : h < 18 ? 4 : h < 21 ? 5 : 6;
+}
+void gm_hour_name(int hour, char *out, int n)
+{
+    static const char *const OWN[8] = { "Lauds", "Prime", "Terce", "Sexts", "Nones", "Vespers", "Compline", "Matins" };
+    int b = gm_hour_band(hour);
+    u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2));
+    out[0] = 0;
+    if (sg) g_str(sg, o, out, n);
+    if (!out[0] || !strcmp(out, "Latins")) snprintf(out, (size_t)n, "%s", OWN[b]);   /* (the game's typo for Lauds) */
 }

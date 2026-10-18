@@ -62,7 +62,7 @@ void ui_guide_tab(void)
     });
     topic("Alchemy", {
         "Each member knows formulae of their own; a formula makes one potion. Alchemists sell formulae (Darklands+ shows each one's tier and who knows it already).",
-        "Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one of Thunderbolt are ever sold: the others are traded for or found. F12 > Alchemy names the nearest alchemist selling each formula the party lacks, and the world map's tooltip on a town lists what its alchemist sells.",
+        "Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one of Thunderbolt are ever sold: the others are traded for or found. F12 > Alchemy names the nearest alchemist selling each formula the party lacks; the margin (\"Formulae sold here\", with the prices) and the world map's tooltip on a town list what its alchemist sells.",
         "The ingredients are bought from pharmacists, herbalists and alchemists; the whole party's carried ingredients count. In such a shop, the Formulae button buys what a batch more needs.",
         "The chance of a batch: 100 + the Philosopher's Stone's quality + Intelligence + Alchemy - the formula's mystic number. The 100 is less when more batches are made at once: 50 for four or five, 33 for six or seven, and so on. The party has one Philosopher's Stone at most (Party Info, F6, says which). Mixing takes a day: Alchemy work at an inn or in camp.",
         "A failed batch at an inn, in a village or a hideout goes wrong one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). The formula's risk (low, medium, high) makes it an explosion one time in four, three or two. In a camp in the wild a failure only costs the ingredients: brew there when the chance is poor.",
@@ -71,7 +71,7 @@ void ui_guide_tab(void)
     });
     topic("Saints", {
         "Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with divine favor, in a card's options or from the menu. Each helps with something of their own.",
-        "Each library teaches four saints, the same for the whole game. F12 > Saints says where the nearest library teaching each saint the party lacks is; the margin and the world map say what a town's library teaches.",
+        "Each library teaches four saints, the same for the whole game. F12 > Saints says where the nearest library teaching each saint the party lacks is; the margin (\"Saints taught here\") and the world map say what a town's library teaches.",
         "Darklands+ shows the chance on the prayer page and in a card's options. F12 > Saints lists who knows which saint and what each does.",
         "A saint's help lasts about a day. Some saints ask a price for it, a loss of Perception, Intellect, Agility or Charisma for that day (their legend says so); it comes back when the help runs out. The margin's \"In force\" shows what is at work on each member, and for how long.",
     });

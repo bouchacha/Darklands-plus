@@ -140,12 +140,17 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
         bar(p, 9.0f, -3.4f, -0.7f, -1.0f, 0, 12.0f, 0.8f, 0.8f, WOOD, o);    // the hammer's helve
         bar(p, 1.4f, -12.6f, 1.0f, -0.7f, 3.0f, 3.0f, 1.8f, 1.8f, IRON, o);  // its head
         break; }
-    case TI_TOOLS: {                                                        /* a key (the artificers' locks and picks) */
-        ImU32 brass = C(0.80f, 0.62f, 0.24f);
-        p.ring(-5.4f, -5.4f, 5.0f, INK, 3.6f); p.ring(-5.4f, -5.4f, 5.0f, brass, 2.2f);   // the bow of the key
-        bar(p, -2.0f, -2.0f, 1, 1, 0, 15.0f, 1.3f, 1.3f, brass, o);          // the shank
-        bar(p, 7.2f, 7.2f, 1, -1, 0, 4.4f, 1.1f, 1.1f, brass, o);            // the bit
-        bar(p, 4.2f, 4.2f, 1, -1, 0, 3.0f, 1.0f, 1.0f, brass, o);
+    case TI_TOOLS: {                                                        /* a halberd: the artificers' (the "metalworkers and
+                                                                               artificiers" of the tinker's square) sell the hammers,
+                                                                               maces, flails and polearms (DARKLAND.LST categories 2, 4, 8) */
+        bar(p, 0, 12.4f, 0, -1, 0, 18.4f, 0.95f, 0.95f, WOOD, o);            // the shaft
+        bar(p, 0, -5.0f, 0, -1, 0, 8.6f, 1.3f, 0.2f, STEEL, o);              // the spike
+        p.poly({ 0.0f, -8.6f, 8.6f, -11.4f, 10.4f, -5.2f, 8.6f, 0.6f, 0.0f, -2.2f }, INK);           // the axe blade
+        p.poly({ 0.8f, -7.8f, 7.9f, -10.1f, 9.3f, -5.2f, 7.9f, -0.6f, 0.8f, -3.0f }, STEEL);
+        p.line(7.9f, -10.1f, 9.3f, -5.2f, C(0.86f, 0.88f, 0.92f), 0.6f);    // its edge
+        p.line(9.3f, -5.2f, 7.9f, -0.6f, C(0.86f, 0.88f, 0.92f), 0.6f);
+        p.poly({ 0.0f, -7.4f, -7.6f, -9.2f, -0.2f, -3.4f }, INK);          // the hook at the back
+        p.poly({ -0.6f, -6.9f, -5.6f, -8.0f, -0.6f, -4.4f }, STEEL);
         break; }
     }
     p.ring(0, 0, 15.4f, INK, 0.7f);

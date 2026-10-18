@@ -78,6 +78,13 @@ int gm_knows_saint(int m, int s);
    four times, so they are fixed for the whole game (two may be the same). Returns 4. */
 int gm_library_saints(int loc, int out[4]);
 
+/* the time of day as the game tells it, by the canonical hours: hour_band (s029 1367:0744) gives
+   0-2 Matins, 3-5 Lauds, 6-8 Prime, 9-11 Terce, 12-14 Sexts, 15-17 Nones, 18-20 Vespers,
+   21-23 Compline; the names are the game's own (290e:20c3, a mod's translation shows), its
+   "Latins" for Lauds put right */
+int gm_hour_band(int hour);
+void gm_hour_name(int hour, char *out, int n);
+
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
 int gm_itemdef_weight(int id);

@@ -16,6 +16,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "gamemodel.h"
 #include "nscreen.h"
 #include "infoview.h"
 
@@ -44,7 +45,7 @@ static void build(void)
     int lv = m->fame / 50; if (lv > 10) lv = 10; if (lv < 0) lv = 0;
     far_str(0x1f7b, lv, m->fame_word, sizeof m->fame_word);
     m->hour = (s16)g_rw(GV_cur_hour); m->day = (s16)g_rw(GV_cur_day); m->month = (s16)g_rw(GV_cur_month); m->year = (s16)g_rw(GV_cur_year);
-    far_str(0x20c3, ns_call(GF_hour_band, 1, m->hour), m->bell, sizeof m->bell);
+    gm_hour_name(m->hour, m->bell, sizeof m->bell);                  /* (the game's bell names, its "Latins" put right: mods/gamemodel.c) */
     if (m->month >= 0 && m->month < 12) far_str(0x1d43, m->month, m->month_name, sizeof m->month_name); else m->month_name[0] = 0;
     int cur = (s16)g_rw(GV_cur_loc);
     m->in_city = cur >= 0 && cur < IV_CITIES;

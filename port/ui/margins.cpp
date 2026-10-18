@@ -145,7 +145,7 @@ static const char *TOWN_OFFER_TIP[6] = {
     "A bank (Fugger or Medici): heavy coin into a bank note that weighs nothing, and back, for a charge; tasks for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
-    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "tools and instruments" } };
+    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" } };
 enum { NOTABLE_Q = 30 };
 static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
 void ui_town_offers(int loc, bool tables, float width, bool words)
@@ -189,7 +189,7 @@ static void library_line(int loc)
 {
     const Library *L = library_at(loc);
     if (!L) return;
-    ImGui::Spacing(); heading("Its library teaches");
+    ImGui::Spacing(); heading("Saints taught here");
     int shown[4], ns = 0;
     for (int k = 0; k < 4; k++) {
         int s = L->saint[k]; bool dup = false;
@@ -206,6 +206,34 @@ static void library_line(int loc)
             std::string eff = tx.substr(saint_effect_at(tx));
             while (!eff.empty() && (eff[0] == ' ' || eff[0] == '\n')) eff.erase(0, 1);
             std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + eff;
+            margin_tip(tip.c_str());
+        }
+    }
+}
+/* the formulae a town's alchemist sells (ui/libraries.h), one a line: those nobody in the party knows
+   in the margin's ink, the others dim; the potion, its grade, the price and what it does under the
+   pointer */
+static void formulae_line(int town)
+{
+    int fo[4], pr[4];
+    if (town < 0 || town >= (int)gamedata.cities.size() || !alchemist_formulae(town, fo, pr)) return;
+    ImGui::Spacing(); heading("Formulae sold here");
+    for (int k = 0; k < 4; k++) {
+        int f = fo[k];
+        if (f < 0 || f >= (int)gamedata.formula_names.size()) continue;
+        bool known = party_knows_formula(f);
+        const std::string &t = gamedata.formula_names[f];
+        char price[16]; snprintf(price, sizeof price, "%d fl", pr[k]);
+        bool fits = ImGui::CalcTextSize(t.c_str()).x + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(price).x <= ImGui::GetContentRegionAvail().x;
+        ImGui::BeginGroup();                                 /* (the price beside the name when it fits; always under the pointer) */
+        if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
+        if (fits) { ImGui::SameLine(); ImGui::TextDisabled("%s", price); }
+        ImGui::EndGroup();
+        if (item_hovered()) {
+            const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
+            char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florins%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k],
+                                     known ? " (known in the party)" : " (nobody in the party knows it)");
+            std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
             margin_tip(tip.c_str());
         }
     }
@@ -487,6 +515,7 @@ static void right_panel(int size)
         }
         ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
         library_line(cur);
+        formulae_line(cur);
         place_quests(cur);
         any = true;
     }
@@ -672,7 +701,16 @@ extern "C" void ui_margins(void)
         heading(date);
         /* the game's own day: daylight from 5:00 to 18:59 (is_daylight, s029 1367:072a); then the towns' night streets */
         const bool night = hour < 5 || hour >= 19;
-        ImGui::TextDisabled("%d:00, %s", hour, night ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
+        {   /* the hour by the clock and by the bells, as the game's texts tell time (Prime, Vespers, Compline ...) */
+            char bell[24]; gm_hour_name(hour, bell, sizeof bell);
+            ImGui::TextDisabled("%d:00, %s", hour, bell);
+            if (item_hovered()) {
+                std::string t = std::string("The canonical hours, as the game's people tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11, "
+                                            "Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23. ") +
+                                (night ? "It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats." : "It is day (from 5:00 to 19:00).");
+                margin_tip(t.c_str());
+            }
+        }
         night_streets(night);
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
         ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
