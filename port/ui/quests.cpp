@@ -285,7 +285,7 @@ static std::vector<Line> build_lines(void)
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
-                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its thanks are all." : ""),
+                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its gratitude is the reward." : ""),
                 "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
             ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */
