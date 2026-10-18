@@ -29,6 +29,9 @@ struct QuestRow {
     std::string dir;         // "north-east" (from the party), "" here or unknown
     int order;               // as the game keeps them (the oldest first, roughly)
     int cat;                 // QuestCat
+    int giver = -1;          // who waits for the party in the town (a reward): the game's giver kinds (0 a merchant, 4 a foreign trader,
+                             // 5 a pharmacist, 6 the Medici, 7 the Hanse, 8 the Fugger ...), -1 none
+    int office = -1;         // a thing kept in an office above the town's marketplace: 0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse
 };
 
 enum { QSORT_DEADLINE, QSORT_NEAREST, QSORT_TAKEN, QSORT_N };

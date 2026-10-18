@@ -14,6 +14,7 @@
 #include <strings.h>
 #include <ctype.h>
 #include <math.h>
+#include <float.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -21,6 +22,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "townicons.h"
+#include "quests.h"
 extern "C" {
 int datamods_generation(void);
 #include "../runtime/cpu.h"
@@ -358,6 +360,24 @@ bool citynav_town_offers(int loc, int icon)
     return false;
 }
 
+/* the party's tasks in this town, by the place they lead to: a reward waiting with its giver (the
+   giver's kind of house), a thing kept in an office above the marketplace (reached at night) */
+struct DestTask { int cat; std::string text; };
+static std::map<int, std::vector<DestTask>> dest_tasks(int town)
+{
+    std::map<int, std::vector<DestTask>> m;
+    std::vector<QuestRow> rows; quest_rows(rows, QSORT_DEADLINE);
+    for (const QuestRow &r : rows) {
+        if (r.loc != town) continue;
+        int d = -1;
+        switch (r.giver) { case 0: d = D_MERCHANT; break; case 4: d = D_FOREIGN; break; case 5: d = D_PHARMACIST; break;
+                           case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; }
+        if (r.office >= 0) { static const int OD[4] = { D_MERCHANT, D_MEDICI, D_FUGGER, D_HANSE }; d = OD[r.office & 3]; }
+        if (d >= 0) m[d].push_back({ r.cat, r.text });
+    }
+    return m;
+}
+
 /* the "Go to" window; returns false when it closes */
 extern "C" int citynav_window(void)
 {
@@ -377,7 +397,9 @@ extern "C" int citynav_window(void)
         ImGui::SetWindowFontScale(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
         ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
-        { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
+        { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 19 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }   /* (the game's night: is_daylight, 5:00 to 18:59) */
+        static std::map<int, std::vector<DestTask>> tasks; static int tasks_frame = -100;
+        if (ImGui::GetFrameCount() - tasks_frame > 30) { tasks = dest_tasks(cur); tasks_frame = ImGui::GetFrameCount(); }   /* (read twice a second) */
         const int cols = 4;
         float bw = (ImGui::GetContentRegionAvail().x - (cols - 1) * ImGui::GetStyle().ItemSpacing.x) / cols;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.78f, 0.66f, 0.47f, 1));
@@ -403,6 +425,17 @@ extern "C" int citynav_window(void)
                 dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + sz.y), bg, 4);
                 ImVec2 ts = ImGui::CalcTextSize(DEST[d].label);
                 dl->AddText(ImVec2(p.x + (sz.x - ts.x) * 0.5f, p.y + (sz.y - ts.y) * 0.5f), fg, DEST[d].label);
+                auto tk = tasks.find(d);
+                if (here && tk != tasks.end() && !tk->second.empty()) {        /* a task leads here: its picture at the left, the task in the tooltip */
+                    float is = sz.y * 0.82f;
+                    ui_draw_quest_icon(dl, ImVec2(p.x + is * 0.5f + 3, p.y + sz.y * 0.5f), is, tk->second[0].cat);
+                    if (hov) {
+                        std::string t;
+                        for (const DestTask &x : tk->second) { if (!t.empty()) t += "\n\n"; t += x.text; }     /* (a thing kept in an office: its text says how) */
+                        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(io.DisplaySize.x * 0.4f, FLT_MAX));
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(io.DisplaySize.x * 0.38f); ImGui::TextUnformatted(t.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
+                }
                 ImGui::PopID();
                 if (!here) { ImGui::EndDisabled(); if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Not in this city."); }
                 col++;

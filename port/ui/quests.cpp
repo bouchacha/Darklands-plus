@@ -164,7 +164,7 @@ static std::string item_name(int id)
     return "an item";
 }
 
-struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; int town = -1; };
+struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; int town = -1; int giver = -1, office = -1; };
 
 /* a merchant's fetching errand (kind 8, tag 10; s039 1462:1712 picks the thing and the kind of
    place): a holy book, a crown, henbane ... from a cave, tomb, lake, spring, shrine or pagan altar;
@@ -182,12 +182,15 @@ static int fetch_cat(const Ev &e)
    town for), as the giver says ($McGuf12, s128 18f7: by the event's +0x2a, % 2 for debt notes, % 4
    for the rest); it is kept in that one's office above the town's marketplace, reached at night
    ($Marke01, then $Insid00: mods/fixes.c, debtnote) */
+static int papers_office(const Ev &e)
+{
+    int aux = e.aux < 0 ? 0 : e.aux;
+    return (e.type0 == 10 ? (fix_is_on("debtnote") ? fixes_debt_note_office(aux) : aux % 4) : aux % 4) & 3;
+}
 static std::string papers_holder(const Ev &e)
 {
     static const char *OFFICE[4] = { "the leading merchant", "the Medici", "the Fugger", "the Hanseatic League" };
-    int aux = e.aux < 0 ? 0 : e.aux;
-    int k = e.type0 == 10 ? (fix_is_on("debtnote") ? fixes_debt_note_office(aux) : aux % 4) : aux % 4;
-    return OFFICE[k & 3];
+    return OFFICE[papers_office(e)];
 }
 
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
@@ -287,16 +290,16 @@ static std::vector<Line> build_lines(void)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
                 + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3)
-            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
+            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
                 + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can steal up to them.",
-                limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e));
+                limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e)), v.back().office = papers_office(e);
         else if (e.kind == 8 && e.tag == 10)
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e));
         else if (e.kind == 0x24 && e.tag == 10)
-            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
+            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 4)
             add("Dragon near " + nearest_town(e.loc), "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
         else if (e.kind == 8 && e.tag == 12)
@@ -369,6 +372,7 @@ void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
         if (!all && l.group > 1) continue;
         QuestRow r;
         r.id = l.id; r.title = l.title; r.text = l.text; r.when = l.when; r.group = l.group; r.loc = l.loc; r.order = l.order; r.cat = l.cat;
+        r.giver = l.giver; r.office = l.office;
         r.days_left = -1;
         if (l.end >= 0) {
             int d = day_number(l.ed, l.em, l.ey) - dnow;
