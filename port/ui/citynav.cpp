@@ -110,7 +110,7 @@ static const DestInfo DEST[D_N] = {
     { "Bowyers and gunsmiths", 0, -1, -2 }, { "Blacksmiths", 0, -1, 0 }, { "Soldiers' Road", 0, -1, -1 }, { "Jewelers", 0, -1, 7 },
     { "Tinkers and artificers", 0, -1, 6 }, { "Clothmakers", 0, -1, 8 },
     { "Alchemists (Astrologists' Lane)", 1, -1, -1 }, { "Herbalists and barber-surgeons", 1, -1, -1 }, { "Pharmacists", 1, -1, -1 }, { "Physician", 1, -1, -1 },
-    { "Fugger bank", 2, -1, -1 }, { "Medici office", 2, -1, -1 }, { "Hanseatic League hall", 2, -1, -1 }, { "Pawnshop (Leihhaus)", 2, 9, -1 },
+    { "Fugger bank", 2, -1, -1 }, { "Medici office", 2, -1, -1 }, { "Hanseatic League hall", 2, -1, -1 }, { "Pawnshop (Leihhaus)", 0, 9, -1 },   /* (a shop of second-hand things, with the shops) */
     { "Cathedral", 3, 4, -1 }, { "Church", 3, -1, -1 }, { "Monastery (Kloster)", 3, 7, -1 }, { "University", 3, 8, -1 }, { "Hospital", 3, -1, -1 },
     { "Inn", 4, -1, -1 }, { "Town square (city council)", 4, 1, -1 }, { "Fortress", 4, 2, -1 }, { "Docks", 4, 11, -1 }, { "Slums", 4, 6, -1 },
     { "Grove (to wait)", 4, -1, -1 }, { "City wall", 4, -1, -1 }, { "Leave the city (a gate)", 4, -1, -1 },
