@@ -175,26 +175,35 @@ static const GamePic *figure(int m)
     return ns_figure_pic(m, code, mp, "SHORT");
 }
 
-static const char *order_word(char c)
+/* the order, in the words of the game's Orders menu: the word on the card and, in its tooltip, the sentence */
+static const char *order_word(char c, int place, bool shortw)
 {
+    #define W(s, l) return shortw ? s : l
     switch (c) {
-    case 'A': return "attacks (a standard attack)";
-    case 'V': return "attacks all-out: harder blows, a weaker defence";
-    case 'B': return "is berserk: attacks without thought of defence";
-    case 'P': return "parries: defends and does not strike";
-    case 'M': return "shoots at the target given";
-    case 'W': return "walks to the spot given";
-    case 'F': return "follows the one ahead";
-    case '-': return "waits for an order: click them here or on the field, then a foe, a spot or a choice of the Orders menu";
+    case 'A': W("attacks", "attacks (a standard attack)");
+    case 'V': W("all-out", "attacks all-out: harder blows, a weaker defence");
+    case 'B': W("berserk", "is berserk: attacks without thought of defence");
+    case 'P':
+        if (place == 3) W("picks", "picks the lock of the door given");
+        if (place == 6) W("picks", "picks the lock of the chest given");
+        W("parries", "parries: defends and does not strike");
+    case 'M': W("shoots", "shoots at the target given");
+    case 'T': W("throws", "throws a potion at the target given");
+    case 'W': W("walks", "walks to the spot given");
+    case 'F': W("flees", "flees to the spot given: does not stop to fight, nor strike back");
+    case 'U': if (place == 2) W("stairs", "takes the stairs given"); W("door", "opens or shuts the door given");
+    case 'D': W("unlocks", "dissolves the lock given");
+    case 'O': W("opens", "opens the chest given");
+    case 'X': W("leaves", "leaves the battlefield by the way out given");
+    case 'H': W("halts", "halts and stands where they are");
+    case 'b':
+        if (config_get_int("battle.reposition_shooters", 1) && !config_get_int("original", 0))
+            W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
+        W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
+    case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
+    case '-': W("waits", "waits for an order: click them here or on the field, then a foe, a spot or a choice of the Orders menu");
     }
-    return nullptr;
-}
-static const char *order_short(char c)           /* (the word on the card; order_word in its tooltip) */
-{
-    switch (c) {
-    case 'A': return "attacks"; case 'V': return "all-out"; case 'B': return "berserk"; case 'P': return "parries";
-    case 'M': return "shoots"; case 'W': return "walks"; case 'F': return "follows"; case '-': return "waits";
-    }
+    #undef W
     return nullptr;
 }
 
@@ -238,13 +247,14 @@ extern "C" void partypanel_draw(void)
         std::string name = ns_gtext(nm);
         /* the order (in a battle), a word right of the name */
         char oc = battle && !out ? gm_member_order(m) : 0;
+        int place = oc ? gm_member_order_place(m) : 0;
         float name_end = 56.5f;
-        if (oc && order_short(oc)) {
-            const char *wd = order_short(oc);
+        if (oc && order_word(oc, place, true)) {
+            const char *wd = order_word(oc, place, true);
             float ww = P.width(P.fo, NsDraw::FS_SMALL, wd);
             P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, DIM, wd, 56.5f);
             name_end = 56.5f - ww - 1.5f;
-            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc));
+            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc, place, false));
         }
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */

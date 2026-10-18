@@ -37,6 +37,8 @@ void gm_member_equip(int m, GmEquip *e);
 /* a battle: on, the member's order letter ('-', 'A', 'M' ...; 0 none), on another floor */
 int gm_in_battle(void);
 char gm_member_order(int m);
+int gm_member_order_place(int m);                 /* with order 'U', 'P', 'D' ...: the place action (1 door, 2 stairs, 3 a door's lock, 6 a chest's,
+                                                     4 / 7 dissolve a lock, 5 open a chest, 8 leave the field, 10 halt; the game's Orders menu) */
 int gm_member_elsewhere(int m);
 int gm_member_selected(int m);                    /* chosen for orders (the game's highlighted frame) */
 

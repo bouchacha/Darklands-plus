@@ -177,16 +177,21 @@ int gm_member_elsewhere(int m) { return gm_in_battle() && m >= 0 && m < 5 && (u8
 int gm_member_selected(int m) { return m >= 0 && m < 5 && g_rb((u16)(GV_cbt_selected + m)) != 0; }
 /* the letter the game's panel shows (root member_status_letter): the order being given, or the
  * one in force; 0x400: an action at a place (stairs, door ...) */
-char gm_member_order(int m)
+/* the order being given to member m (while paused and choosing one for them) or the one they carry out */
+static int order_now(int m, int *special)
+{
+    int paused = g_rb(GV_ai_paused) == 1, giving = g_rb(GV_order_mode) == 1 && (s8)g_rb(GV_selected_member) == m;
+    int st = paused && giving && (s16)g_rw(GV_order_action) != -1 ? (s16)g_rw(GV_order_action) : (s16)g_rw((u16)(GV_combatants + m * 0x80 + 0x10));
+    if (special) *special = (paused && giving && (s16)g_rw(GV_order_special) != -1) ? (s16)g_rw(GV_order_special) : (s8)g_rb((u16)(GV_cbt_special + m));
+    return st;
+}
+
+char gm_member_order(int m)                   /* (member_status_letter, root 0000) */
 {
     if (!gm_in_battle() || m < 0 || m >= 5 || gm_member_status(m) == 5) return 0;
     { int s2 = g_rb((u16)(GV_cbt_state + m)); if (s2) return s2 == 1 ? 'b' : s2 == 2 ? 'e' : 0; }
-    int st;
-    int paused = g_rb(GV_ai_paused) == 1, giving = g_rb(GV_order_mode) == 1 && (s8)g_rb(GV_selected_member) == m;
-    if (paused && giving && (s16)g_rw(GV_order_action) != -1) st = (s16)g_rw(GV_order_action);
-    else st = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 0x10));
+    int sp, st = order_now(m, &sp);
     if (st == 0x400) {
-        int sp = (paused && giving && (s16)g_rw(GV_order_special) != -1) ? (s16)g_rw(GV_order_special) : (s8)g_rb((u16)(GV_cbt_special + m));
         switch (sp) { case 1: case 2: return 'U'; case 3: case 6: return 'P'; case 4: case 7: return 'D'; case 5: return 'O'; case 8: return 'X'; case 10: return 'H'; }
         return 0;
     }
@@ -197,6 +202,12 @@ char gm_member_order(int m)
     case 0x40: return 'R'; case 0x80: return 'M'; case 0x100: return 'T';
     }
     return 0;
+}
+
+int gm_member_order_place(int m)
+{
+    int sp;
+    return gm_member_order(m) && !g_rb((u16)(GV_cbt_state + m)) && order_now(m, &sp) == 0x400 ? sp : 0;
 }
 
 int gm_library_saints(int loc, int out[4])
