@@ -640,6 +640,7 @@ static void help_window(void)
             row("M", "world map: find a place, double-click to travel there");
             row("Point at a quest's picture", "the task that leads there (a portcullis or a pillory beside a town: it bars the party, or its watch wants it)");
             row("A task in the left margin", "click to open it, then Travel there");
+            row("The town's pictures (right margin)", "near a town: what it has that most towns lack, and its notable shops (point at one)");
         } else if (gm == GM_BATTLE) {
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
