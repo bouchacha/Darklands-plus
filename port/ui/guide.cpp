@@ -44,6 +44,7 @@ void ui_guide_tab(void)
         "Under a town's name the margin shows, as pictures, what it has that most towns lack: a university, a cathedral, an alchemist, a physician, docks with boats, a bank (point at one to see what it offers); the world map (M) finds every town with one. Almost every town has a monastery, where the monks teach saints, pray for the party and heal.",
         "Streets at night are dangerous, and gates may be closed: an inn is the safe place to wait for morning.",
         "Merchants, officials and others give tasks; the left margin and F12 > Journal > Quests keep them with their places and time limits, each with a picture of its kind (the world map's legend lists them). A town that bars the party, or whose watch wants it, has a sign beside its name on the maps.",
+        "Witches gather at Sabbats on set nights at places in the wilds. Cards let slip a Sabbat's night or place now and then (a captured villager, a dying cultist, a witch's letter); once the party has heard of one, it is among the tasks, its place marked on the maps.",
     });
     topic("Healing and rest", {
         "At an inn, a member who relaxes or regains strength has full endurance again the next morning. Regain Strength adds the party's best Healing skill / 15 (at least 1) a day.",
