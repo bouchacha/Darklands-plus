@@ -26,8 +26,10 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
   - money shown as gold, silver and copper coins;
   - the level map (Tab) walks the party to a spot you click;
   - night-time thieves and watch in towns can be made rarer;
+  - a shooter whose line is blocked steps aside to a spot with a clear one, and can be sent at such a foe;
   - archers can optionally shoot past their own fighters;
   - Z fast-forwards a battle (six times the pace) and Z again slows it back down;
+  - the end of a battle says "Victory! The battle is won." instead of holding a still field for eight seconds;
   - a party panel with bars and your own portraits;
   - smoother travel (no stop every second);
   - a crash on loading with the side margins on is fixed.
