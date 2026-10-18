@@ -29,7 +29,8 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
   - worn armour that dragged identical spares down with it;
   - the bishop's errands given out as the merchants' (the merchants paid, the canon gave a new one at every visit, his relic could be taken again and again);
   - errands sent to a pagan altar the party had destroyed, which could never be done;
-  - a tomb whose thing went to the party that lost the fight for it, not the one that won.
+  - a tomb whose thing went to the party that lost the fight for it, not the one that won;
+  - in a town without a council, the lord's rewards for his tasks could never be collected (only a council's hall pays them); the lord now pays at an audience.
 - **Also:**
   - the opening plays whole; a click goes on to the lady's welcome, a second to the title;
   - the world map washes out the towns not yet visited (their saints and formulae are known once visited) and the quests glow;
