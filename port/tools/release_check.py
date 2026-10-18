@@ -45,6 +45,7 @@ STEPS = [
     ('calling on a saint (native)', 'ucmd usaint:0,0; wait 4; wshot 10_pray', [r'prayer: open']),
     ('not praying', 'ucmd unspush:4; wait 3', [r'prayer: not prayed']),
     ('save (Alt+S, native page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; wshot 11_save; key Return; wait 4', [r'saves: the Save page', r'saves: the page closed \(chosen\)']),
+    ('save over the last save (a click on it in the Save page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; at 150 52; click; wait 1; wshot 11b_saveover; at 265 9; click; wait 4', [r'saves: the Save page', r'in place of the old save']),
     ('the load list (Alt+L), cancelled', 'ucmd down:Left Alt; wait 0.3; key l; wait 0.3; ucmd up:Left Alt; wait 3; wshot 12_load; key Escape; wait 3', [r'saves: the Load page', r'saves: the page closed \(cancelled\)']),
     ('the menus (right click, Game)', 'at 200 100; rclick; wait 1; at 70 5; click; wait 1; wshot 13_menu; key Escape; wait 1', [r'.']),
     ('party info (Party menu, native)', 'ucmd umenu:3,0; wait 3; wshot 14_info; key Escape; wait 2', [r'party info: open', r'party info: closed']),

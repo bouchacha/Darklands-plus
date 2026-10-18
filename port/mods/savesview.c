@@ -7,7 +7,10 @@
  * comment on a page that also lists the saves there are (where, when in the game and in the
  * world, who); Load is that list to choose from. Both are still the game's own routines
  * (mods/saves.c: the comment handed to save_game's prompt; load_game led through its question
- * and list to the save chosen). */
+ * and list to the save chosen). Players long wished to save over an old save rather than pile up
+ * new ones: a click on a save in the Save page's list makes the new save replace it (the game
+ * still writes a new dksaveN.sav; the old one is deleted after), and the Load page deletes the
+ * save chosen (two clicks; never the one last loaded or written, the game's own rule). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,6 +52,32 @@ static void default_comment(char *out, int n)
     snprintf(out, (size_t)n, "%s", b);
 }
 
+/* the saves' comments are typed in the game's prompt: printable, at most SV_COMMENT_MAX letters */
+static void take_comment(SavesModel *S, const SaveInfo *v)
+{
+    if (!strncmp(v->comment, "Quicksave", 9) || !strncmp(v->comment, "Autosave", 8)) { default_comment(S->comment, SV_COMMENT_MAX + 1); return; }   /* (those are told apart by it) */
+    int k = 0;
+    for (const char *c = v->comment; *c && k < SV_COMMENT_MAX; c++) S->comment[k++] = (*c >= 32 && *c < 127) ? *c : ' ';
+    while (k && S->comment[k - 1] == ' ') k--;
+    S->comment[k] = 0;
+}
+
+static void delete_save(SavesModel *S, int i)
+{
+    if (i < 0 || i >= S->nsaves) return;
+    u32 now = plat_ticks_ms();
+    if (S->armed != i || now - S->armed_t > 4000) { S->armed = i; S->armed_t = now; return; }   /* (the first click: asks) */
+    if (now - S->armed_t < 350) return;                     /* (not a double click) */
+    S->armed = -1;
+    char f[16]; snprintf(f, sizeof f, "%s", S->saves[i].file);
+    if (!saves_delete(f)) { fprintf(stderr, "saves: %s not deleted (the save in play)\n", f); return; }
+    fprintf(stderr, "saves: %s deleted\n", f);
+    free(S->saves); S->saves = 0;
+    S->nsaves = saves_list(&S->saves);
+    if (S->sel >= S->nsaves) S->sel = S->nsaves - 1;
+    S->seq++;
+}
+
 static int ok_or_cancel(int loading)
 {
     SavesModel *S = &saves_model;
@@ -57,7 +86,7 @@ static int ok_or_cancel(int loading)
     S->nsaves = saves_list(&S->saves);
     g_str(G_DGROUP, 0xa680, S->cur_file, sizeof S->cur_file);     /* "dksaveN.sav": the save last written or read */
     S->loading = loading;
-    S->sel = -1;
+    S->sel = -1; S->armed = -1;
     if (loading) for (int i = 0; i < S->nsaves; i++) if (!strcasecmp(S->saves[i].file, S->cur_file)) { S->sel = i; break; }
     if (loading && S->sel < 0 && S->nsaves) S->sel = 0;
     S->open = 1; S->seq++; S->caret_t = plat_ticks_ms();
@@ -76,6 +105,7 @@ static int ok_or_cancel(int loading)
             if (loading) {
                 if (k == 0x4800 && S->sel > 0) S->sel--;
                 else if (k == 0x5000 && S->sel + 1 < S->nsaves) S->sel++;
+                else if (k == 0x5300) delete_save(S, S->sel);        /* (Del: as the row's Delete) */
                 continue;
             }
             int c = k & 0xff;
@@ -89,7 +119,13 @@ static int ok_or_cancel(int loading)
         NsAction a;
         while (!r && pop(&a)) {
             if (a.type == SVV_CANCEL) r = -1;
-            else if (a.type == SVV_SELECT) S->sel = a.a;
+            else if (a.type == SVV_SELECT && loading) { S->sel = a.a; if (S->armed != a.a) S->armed = -1; }
+            else if (a.type == SVV_SELECT && a.a >= 0 && a.a < S->nsaves) {      /* Save: the one to replace, or none again */
+                S->sel = S->sel == a.a ? -1 : a.a;
+                if (S->sel >= 0 && S->fresh) take_comment(S, &S->saves[S->sel]);
+                if (S->sel < 0 && S->fresh) default_comment(S->comment, SV_COMMENT_MAX + 1);
+            }
+            else if (a.type == SVV_DELETE && loading) delete_save(S, a.a);
             else if (a.type == SVV_OK) { if (loading) { if (a.a >= 0 && a.a < S->nsaves) { S->sel = a.a; r = 1; } } else r = 1; }
         }
         if (unw_active) break;
@@ -107,8 +143,9 @@ static int ok_or_cancel(int loading)
     return r == 1;
 }
 
-int savesview_save(char *comment, int n)
+int savesview_save(char *comment, int n, char *replace, int rn)
 {
+    if (rn > 0) replace[0] = 0;
     if (!sv_on || !ns_active()) return -1;                       /* (-1: the original's way) */
     default_comment(saves_model.comment, SV_COMMENT_MAX + 1);
     saves_model.fresh = 1;
@@ -116,6 +153,7 @@ int savesview_save(char *comment, int n)
     char *c = saves_model.comment;
     while (*c == ' ') c++;
     snprintf(comment, (size_t)n, "%s", *c ? c : "Darklands");
+    if (rn > 0 && saves_model.sel >= 0 && saves_model.sel < saves_model.nsaves) snprintf(replace, (size_t)rn, "%s", saves_model.saves[saves_model.sel].file);
     return 1;
 }
 

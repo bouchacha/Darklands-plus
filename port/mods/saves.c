@@ -295,16 +295,22 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
 static void save_hook(void)                /* save_game () */
 {
     if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
-    char c[48];
-    int r = savesview_save(c, sizeof c);
+    char c[48], old[16], before[16];
+    int r = savesview_save(c, sizeof c, old, sizeof old);
     if (r < 0) { hook_call_original(); return; }
     if (r == 0) { AX = 0; hook_return_far(0); return; }
+    g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
     answer = c; in_save = 1;
     hook_call_original();
     answer = 0; in_save = 0;
     if (unw_active) return;
     char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
-    char m[96]; snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    SaveInfo now;
+    int written = (s16)AX >= 0 && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
+    char m[128];
+    if (old[0] && written && saves_delete(old)) snprintf(m, sizeof m, "Saved: %s (%s), in place of the old save", c, name);   /* (the save chosen to replace) */
+    else snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    fprintf(stderr, "saves: %s\n", m);
     ui_notice(m);
 }
 

@@ -1,6 +1,7 @@
 // savesview.cpp - the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the
 // comment to save under, and the saves there are, newest first, each with its comment, where
-// and when in the game, who, the purse and how long ago it was written.
+// and when in the game, who, the purse and how long ago it was written. Save: a click on a save
+// makes the new one take its place; Load: the chosen save has a Delete (twice).
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -77,6 +78,7 @@ extern "C" void savesview_draw(void)
         }
         LY0 = 40;
         P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "The saves there are");
+        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft, S.sel >= 0 ? "a click on it again: it stays" : "a click on one: this save takes its place", 316);
         LY0 += 5;
     }
     else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft, "Double-click a save to load it.");
@@ -98,17 +100,24 @@ extern "C" void savesview_draw(void)
     for (int i = first; i < S.nsaves && i < first + vis + 1; i++) {
         const SaveInfo &v = S.saves[i];
         float y = LY0 + (i - first) * ROWH;
-        bool sel = S.loading && i == S.sel, h = S.loading && P.over(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1);
-        if (sel) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(226, 200, 150, 255), 1.0f);
+        bool sel = i == S.sel, h = P.over(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1);
+        bool cur = !strcasecmp(v.file, S.cur_file);
+        if (sel && !S.loading) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(232, 196, 170, 255), 1.0f);     /* (to be replaced) */
+        else if (sel) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(226, 200, 150, 255), 1.0f);
         else if (h) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(240, 226, 196, 255), 1.0f);
         else if (i % 2) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(244, 234, 210, 255));
-        bool cur = !strcasecmp(v.file, S.cur_file);
         std::string title = ns_gtext(v.comment);
         if (title.empty()) title = ns_gtext(v.place);
         float tx = X0 + 3;
         P.text(f, NsDraw::FS_NAME, tx, y + 1.0f, ink, title, -1, X1 - 72);
         char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, MON[(unsigned)v.month % 12], v.year, v.hour);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 1.8f, soft, when, X1 - 3);
+        bool armed = S.loading && S.armed == i && plat_ticks_ms() - S.armed_t <= 4000, del_hit = false;
+        if (S.loading && sel && !cur) {                           /* Load: the chosen save can be deleted (a second click does it) */
+            float wx1 = X1 - 6 - P.width(fo, NsDraw::FS_SMALL, when), wx0 = wx1 - (armed ? 34 : 22);
+            del_hit = P.over(wx0, y + 1.2f, wx1, y + 7.6f);
+            if (P.button(wx0, y + 1.2f, wx1, y + 7.6f, armed ? "Delete it?" : "Delete", armed ? IM_COL32(150, 40, 22, 240) : IM_COL32(120, 92, 70, 220))) savesview_push(SVV_DELETE, i);
+        }
         std::string who;
         for (int m = 0; m < v.nmembers; m++) { if (m) who += ", "; who += ns_gtext(v.members[m]); }
         std::string line = ns_gtext(v.place);
@@ -118,10 +127,13 @@ extern "C" void savesview_draw(void)
         std::string tag = ago(v.mtime);
         if (v.battle) tag = "in a battle, " + tag;
         if (cur) tag = (S.loading ? "the last loaded or saved, " : "the last, ") + tag;
-        P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, cur ? NsDraw::GREEN : dim, tag, X1 - 3);
-        if (S.loading && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
+        ImU32 tc = cur ? NsDraw::GREEN : dim;
+        if (sel && !S.loading) { tag = "this save takes its place"; tc = IM_COL32(150, 40, 22, 255); }
+        if (armed) { tag = "deleted for good: click again"; tc = IM_COL32(150, 40, 22, 255); }
+        P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, tc, tag, X1 - 3);
+        if (!del_hit && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
             u32 now = plat_ticks_ms();
-            if (last_click_row == i && now - last_click_t < 450) savesview_push(SVV_OK, i);
+            if (S.loading && last_click_row == i && now - last_click_t < 450) savesview_push(SVV_OK, i);
             else savesview_push(SVV_SELECT, i);
             last_click_row = i; last_click_t = now;
         }
