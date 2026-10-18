@@ -25,8 +25,7 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
-struct Eff { int m; std::string what; long left; };   /* (the same as ui/saints.cpp's, which makes them) */
-std::vector<Eff> effects_now(int size);
+#include "effects.h"
 #include "quests.h"
 #include "townicons.h"
 #include "libraries.h"

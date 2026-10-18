@@ -13,6 +13,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "libraries.h"
+#include "effects.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -40,7 +41,6 @@ static long abs_hours(int y, int mo, int d, int h)
 /* the running temporary effects: events of kind 0x48 (attribute: a saint's boost, or the
    lowering some saints bring with it), 0x49 (skill), 0x4a (weapon potion); +0 what, +0x1a member,
    +0x1e amount, +0x12 end (hour, day, month, year) */
-struct Eff { int m; std::string what; long left; };
 std::vector<Eff> effects_now(int size)
 {
     std::vector<Eff> v;
@@ -50,6 +50,12 @@ std::vector<Eff> effects_now(int size)
         if (!p) continue;
         u16 sg = (u16)(p >> 16), o = (u16)p;
         int kind = (s16)rw(sg, (u16)(o + 0x22));
+        if (kind == 0x43) {                                 /* a companion's stay (add_member: type0 the slot; its end, the day they leave) */
+            int m = (s16)rw(sg, o);
+            long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
+            if (m >= 0 && m < size && left > 0 && left < 24L * 365 * 50) v.push_back({ m, "stays with the party", left, kind });
+            continue;
+        }
         if (kind < 0x48 || kind > 0x4a) continue;
         int m = (s16)rw(sg, (u16)(o + 0x1a)), k = (s16)rw(sg, o), t = (s16)rw(sg, (u16)(o + 0x1e));
         if (m < 0 || m >= size || t == 0 || (t < 0 && kind == 0x4a)) continue;     /* (a saint's lowering of an attribute: negative) */
@@ -66,7 +72,7 @@ std::vector<Eff> effects_now(int size)
             else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);
             else snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15);
         } else continue;
-        v.push_back({ m, b, left });
+        v.push_back({ m, b, left, kind });
     }
     return v;
 }
@@ -74,6 +80,7 @@ std::vector<Eff> effects_now(int size)
 static void effects(int size)
 {
     std::vector<Eff> v = effects_now(size);
+    v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x43; }), v.end());   /* (blessings and potions only) */
     char head[64]; snprintf(head, sizeof head, "In effect now (%d)###effects", (int)v.size());
     if (!ImGui::CollapsingHeader(head, v.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) return;
     if (v.empty()) { ImGui::TextDisabled("No blessings or potions are working on the party."); return; }
