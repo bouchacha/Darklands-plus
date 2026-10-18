@@ -686,6 +686,7 @@
 #define create_nick              D_e848               /* char[]: the short name (9 letters) */
 #define create_random_name       D_8bfe               /* int: the name was drawn (a new gender draws another) */
 #define create_prof              D_4428               /* int: the last profession */
+#define create_prev              D_442a               /* int: the profession before the last */
 #define create_child             D_8c02               /* int: the childhood */
 #define create_taken             D_4402               /* char[0x25]: bit 0 a profession taken */
 #define loot_distribute          sub_s040_1462_0000   /* (items far, unsigned char *count, int far *cash): loot screen entry */

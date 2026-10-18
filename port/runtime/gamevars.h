@@ -188,6 +188,7 @@
 #define GV_create_nick                  0xe848    /* char[]: the short name (9 letters) */
 #define GV_create_random_name           0x8bfe    /* int: the name was drawn (a new gender draws another) */
 #define GV_create_prof                  0x4428    /* int: the last profession */
+#define GV_create_prev                  0x442a    /* int: the profession before the last */
 #define GV_create_child                 0x8c02    /* int: the childhood */
 #define GV_create_taken                 0x4402    /* char[0x25]: bit 0 a profession taken */
 #define GV_loot_who                     0x8dc4    /* the member receiving */

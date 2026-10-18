@@ -647,6 +647,9 @@ static void run_script(void)
             { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) fprintf(stderr, "cursor %d %d %d %d mouse %d %d\n", cx, cy, cw, ch, mouse_x, mouse_y); }
             fprintf(stderr, "text end\n");
         }
+        else if (!strcmp(s->cmd, "ucg")) {                 /* test: character creation: the professions, and the ones offered now */
+            void createview_dump(void); createview_dump();
+        }
         else if (!strcmp(s->cmd, "ucard")) {               /* test: the card's name and its option lines (option id, text) */
             int n = (s8)g_rb(0xe96e);   /* the last card's: it stays set after the card closes ("menu": its options are up) */
             int assist_in_card_menu(void), travel_map_live(void);
