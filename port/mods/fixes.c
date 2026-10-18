@@ -760,12 +760,11 @@ static void patron_hook(void)
 /* ---------------------------------------------------------------- debtnote
  * A merchant's errand for papers in a town (kind 8, tag 10; s039 1462:1712, type0 6, 9, 10, 11) is
  * done at night: the town's marketplace ($Marke01), the offices upstairs ($Insid00, s108 1925): the
- * leading merchant's, the Fugger's, the Medici's, the Hanse's (D_eeb4 0, 2, 1, 3 as chosen). The
+ * leading merchant's, the Fugger's, the Medici's, the Hanse's (GV_insid_office 0, 2, 1, 3 as chosen). The
  * papers are found when the event's +0x2a % 4 is the office (s108 1925:0438). The giver ($McGuf12,
  * s128 18f7) names the holder by the same +0x2a % 4 (goods merchant, Medici, Fugger, Hanse), but for
  * debt notes (type0 10) by +0x2a % 2 (Medici, Fugger): the office named never held them. Here the
  * office named holds them for the moment of the search (and no other does); +0x2a is put back. */
-#define D_OFFICE 0xeeb4
 static int papers_event(int loc, u16 *seg, u16 *off)
 {
     for (int i = 0; i < 300; i++) {
@@ -781,7 +780,7 @@ static void debtnote_hook(void)            /* the lock is open: search the offic
     u16 sg, o;
     int loc = (s16)g_rw(G_CUR_LOC), i = papers_event(loc, &sg, &o);
     if (i < 0 || (s16)rw(sg, o) != 10) { hook_call_original(); return; }
-    int aux = (s16)rw(sg, (u16)(o + 0x2a)), named = fixes_debt_note_office(aux), office = g_rb(D_OFFICE);
+    int aux = (s16)rw(sg, (u16)(o + 0x2a)), named = fixes_debt_note_office(aux), office = g_rb(GV_insid_office);
     int want = aux - aux % 4 + named;                        /* (the same +0x2a but for the office) */
     ww(sg, (u16)(o + 0x2a), (u16)want);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix debtnote: office %d searched, the notes in office %d (game: %d)\n", office, named, aux % 4);

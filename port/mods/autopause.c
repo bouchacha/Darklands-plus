@@ -58,7 +58,7 @@ void autopause_frame(void)
         return;
     }
     if ((floor != last_floor || groups != last_groups) && getenv("DL_FOES_LOG"))
-        fprintf(stderr, "autopause: floor %d -> %d, groups %d -> %d (pause depth %d, ai paused %d)\n", last_floor, floor, last_groups, groups, g_rb(GV_pause_depth), g_rb(0xa695));
+        fprintf(stderr, "autopause: floor %d -> %d, groups %d -> %d (pause depth %d, ai paused %d)\n", last_floor, floor, last_groups, groups, g_rb(GV_pause_depth), g_rb(GV_ai_paused));
     /* a group steps out: the count falls while the floor stays. Going up or down, the floor shown and
        the count of its groups change a frame or more apart, so a fall counts only well away from a
        change of floor (and the pause comes half a second after it, the floor still the same) */

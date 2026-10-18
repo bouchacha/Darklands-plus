@@ -105,6 +105,7 @@
 #define GV_order_action                 0xa6b0    /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define GV_order_special                0xa6d1    /* the action at a place being ordered (with order_action 0x400) */
 #define GV_cbt_state                    0xa3d8    /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define GV_insid_office                 0xeeb4    /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define GV_cbt_path_step                0xd6fb    /* char[13]: the step a walk has reached in its path */
 #define GV_cbt_mods                     0xa532    /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define GV_cursor_target                0xd845    /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */

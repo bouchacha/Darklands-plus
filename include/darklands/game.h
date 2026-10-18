@@ -445,6 +445,7 @@
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
 #define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define insid_office             D_eeb4               /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */
 #define cbt_mods                 D_a532               /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define cursor_target            D_d845               /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
