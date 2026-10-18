@@ -148,7 +148,7 @@ static std::string person(int seed)
 static const char *giver(int id)
 {
     switch (id) {
-    case 0: return "a merchant"; case 4: return "a foreign trader"; case 5: return "a pharmacist";
+    case 0: return "a merchant"; case 3: return "the bishop"; case 4: return "a foreign trader"; case 5: return "a pharmacist";
     case 6: return "the Medici"; case 7: return "the Hanse"; case 8: return "the Fugger"; case 9: return "the villagers";
     case 10: return "the city's lord"; default: return "a townsman";
     }
@@ -285,7 +285,10 @@ static std::vector<Line> build_lines(void)
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
-                + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
+                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its thanks are all." : ""),
+                "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
+        else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
+            ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */
         else if (e.kind == 0x24 && e.tag == 3)
             add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
