@@ -30,10 +30,17 @@ static std::string ago(long long t)
     return b;
 }
 
+extern "C" int savesview_showing(int *loading)
+{
+    if (!saves_model.open || ns_screen != NS_SAVES || ns_hidden()) return 0;
+    if (loading) *loading = saves_model.loading;
+    return 1;
+}
+
 extern "C" void savesview_draw(void)
 {
     SavesModel &S = saves_model;
-    if (!S.open || ns_screen != NS_SAVES || ns_hidden()) return;
+    if (!savesview_showing(nullptr)) return;
     NsDraw P;
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
@@ -44,13 +51,13 @@ extern "C" void savesview_draw(void)
 
     P.text(f, NsDraw::FS_TITLE, 65, 3, ink, S.loading ? "Load a saved game" : "Save the game");
     float bx = 284;
-    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235))) savesview_push(SVV_CANCEL, 0);
-    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235))) savesview_push(SVV_OK, S.sel); }
-    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235))) savesview_push(SVV_OK, 0);
+    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_CANCEL, 0);
+    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, S.sel); }
+    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, 0);
 
     float LY0 = 22;
     if (!S.loading) {
-        P.text(fo, NsDraw::FS_BODY, 65, 15.5f, soft, "A name for it, 22 letters at most (type; Enter saves, Esc goes back):");
+        P.text(fo, NsDraw::FS_BODY, 65, 15.5f, soft, "Its name (22 letters at most):");
         P.rect(64, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
         P.frame(64, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
         std::string c = S.comment;
@@ -64,7 +71,7 @@ extern "C" void savesview_draw(void)
         P.text(f, NsDraw::FS_HEAD, 65, LY0 - 3.5f, ink, "The saves there are");
         LY0 += 5;
     }
-    else P.text(fo, NsDraw::FS_SMALL, 65, 15.5f, soft, "Click a save, then Load (or double-click it); Up / Down and Enter work too. Cancel leaves the game as it is.");
+    else P.text(fo, NsDraw::FS_SMALL, 65, 15.5f, soft, "Double-click a save to load it.");
 
     const float X0 = 63, X1 = 317, Y1 = 196, ROWH = 15.5f;
     P.rect(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);

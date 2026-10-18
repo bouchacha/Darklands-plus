@@ -83,6 +83,7 @@ extern "C" void marchview_draw(void);
 extern "C" { int marchview_is_on(void); void marchview_set(int on); }
 extern "C" void lodgeview_draw(void);
 extern "C" int lodgeview_showing(void), lodgeview_camping(void);
+extern "C" int savesview_showing(int *loading);
 extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
@@ -612,7 +613,13 @@ static void help_window(void)
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
         auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d); };
         int gm = game_mode();
-        if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
+        int sv_loading = 0;
+        if (savesview_showing(&sv_loading)) {
+            ImGui::SeparatorText(sv_loading ? "Now: loading a game" : "Now: saving the game");
+            if (sv_loading) { row("Double-click a save", "load it (or click it, then Load)"); row("Up, Down, Enter", "choose a save, load it"); }
+            else { row("Type", "its name (22 letters at most; Backspace takes one back)"); row("Enter or Save", "save it"); }
+            row("Esc or Cancel", "back to the game as it was");
+        } else if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
             ImGui::SeparatorText(lodgeview_camping() ? "Now: a camp" : "Now: a stay");
             row("A member, or 1 ... 5", "whose day is being chosen");
             row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
