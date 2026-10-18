@@ -64,7 +64,7 @@ void ui_guide_tab(void)
         "Darklands+ shows the chance on the prayer page and in a card's options. F12 > Saints lists who knows which saint and what each does.",
     });
     topic("Battle", {
-        "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk).",
+        "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk). Z fast-forwards (and Z again slows down).",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
         "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; Darklands+ has a blocked one step aside to find it (F12 > Settings > Helpers).",

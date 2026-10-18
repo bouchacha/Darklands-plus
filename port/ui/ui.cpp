@@ -375,6 +375,10 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    /* Z in a battle: fast forward (mods/pathfix.c) */
+    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_z && !e->key.repeat
+        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && game_mode() == GM_BATTLE && !ns_showing()
+        && config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) { battle_fast_set(!battle_fast); return 1; }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
         && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
     if (open_goto) {
@@ -661,6 +665,7 @@ static void help_window(void)
             row("Ctrl + click a member", "make that member the active one");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
+            if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
             { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");

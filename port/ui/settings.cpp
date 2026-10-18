@@ -368,6 +368,8 @@ void tab_helpers(void)
             if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); ui_dirty_config = 1; }
         }
         ui_hint("Walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.");
+        bool fk = config_get_int("battle.fast_key", 1) != 0;
+        if (ImGui::Checkbox("Z in a battle: fast forward (six times the pace), Z again back to this speed", &fk)) { config_set_int("battle.fast_key", fk); if (!fk) battle_fast_set(0); ui_dirty_config = 1; }
     }
 
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
