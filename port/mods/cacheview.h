@@ -9,11 +9,13 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, count, weight, src; } CvEntry;   /* (src: the store's entry; arrows and the like left out when hidden) */
-typedef struct { int idx, id, qual, count, weight, equipped, kept, potion; } CvItem;
-/* (the shared pack, inventory.shared: the right list is the party's pack, every spare thing of
-   every member by kind and quality (idx -1, count the party's spares); Take puts a thing with
-   whoever carries some already, else with whoever has the most free places; Put stores it from
-   whoever has a spare one; Put away stores all the party's spares but the kept ones) */
+typedef struct { int idx, id, qual, count, weight, equipped, kept, potion, owner; } CvItem;
+/* (the shared pack, inventory.shared: the right list is the party's: every member's potions (owner
+   the member, idx their record) and the pack, every spare thing of every member by kind and
+   quality (owner and idx -1, count the party's spares); Take puts a thing (a potion too) with
+   whoever carries some already, else with whoever has the most free places; Put stores a potion
+   from its owner, anything else from whoever has a spare one; Put away stores all the party's
+   spares but the kept ones. No member is chosen.) */
 
 typedef struct {
     int open;

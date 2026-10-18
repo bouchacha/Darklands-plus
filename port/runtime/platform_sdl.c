@@ -22,6 +22,7 @@
 #include "../mods/hdart.h"
 #include "../mods/hdtext.h"
 #include "game.h"
+#include "gamevars.h"
 #include "config.h"
 
 static SDL_Window *win;
@@ -646,6 +647,24 @@ static void run_script(void)
             for (int i = 0; i < hdtext_nruns; i++) fprintf(stderr, "text %d %d %d %d %06x %s\n", hdtext_runs[i].x, hdtext_runs[i].y, hdtext_runs[i].w, hdtext_runs[i].h, hdtext_runs[i].rgb & 0xffffff, hdtext_runs[i].text);
             { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) fprintf(stderr, "cursor %d %d %d %d mouse %d %d\n", cx, cy, cw, ch, mouse_x, mouse_y); }
             fprintf(stderr, "text end\n");
+        }
+        else if (!strcmp(s->cmd, "ugroups")) {             /* test: the enemy groups of the place's levels, the combatants */
+            u16 es = g_rw(GV_enemy_seg), go = g_rw(GV_bf_groups);
+            for (int l = 0; l < 16; l++) {
+                int ng = (s16)g_rw((u16)(GV_group_count + 2 * l)), nm = (s16)g_rw((u16)(GV_mon_count + 2 * l));
+                if (!ng && !nm) continue;
+                fprintf(stderr, "level %d: %d monsters, %d groups:", l, nm, ng);
+                for (int k = 0; k < ng && k < 10; k++) {
+                    u16 o = (u16)(go + (l * 10 + k) * 0x1e);
+                    fprintf(stderr, " [x6 %d x7 %d t %d/%d/%d n %d/%d/%d x0 %04x x2 %04x]", (s8)rb(es, (u16)(o + 6)), (s8)rb(es, (u16)(o + 7)),
+                            (s8)rb(es, (u16)(o + 8)), (s8)rb(es, (u16)(o + 9)), (s8)rb(es, (u16)(o + 10)),
+                            (s8)rb(es, (u16)(o + 11)), (s8)rb(es, (u16)(o + 12)), (s8)rb(es, (u16)(o + 13)), rw(es, o), rw(es, (u16)(o + 2)));
+                }
+                fprintf(stderr, "\n");
+            }
+            fprintf(stderr, "combatants:");
+            for (int i = 5; i < 13; i++) fprintf(stderr, " %d:st%d,fl%d", i, g_rb((u16)(GV_combatants + 0x80 * i + 0x14)), (s8)g_rb((u16)(GV_cbt_floor + i)));
+            fprintf(stderr, " shown floor %d real %d\n", (s8)g_rb(GV_floor_shown), g_rb(GV_real_combat));
         }
         else if (!strcmp(s->cmd, "ucg")) {                 /* test: character creation: the professions, and the ones offered now */
             void createview_dump(void); createview_dump();
