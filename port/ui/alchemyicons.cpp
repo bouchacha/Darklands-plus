@@ -175,7 +175,7 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier)
 bool ui_draw_ingredient(ImDrawList *dl, ImVec2 c, float s, int id)
 {
     if (id < 72 || id > 94) return false;
-    Pen p{ dl, c, s / 16.0f };
+    Pen p{ dl, c, s / 16.0f * 0.92f };            // (the medallion, ring included, inside the icon's square: item pictures are clipped to it)
     ImU32 parch = C(0.95f, 0.90f, 0.76f), edge = C(0.45f, 0.30f, 0.15f);
     ImU32 ink = C(0.20f, 0.12f, 0.07f), red = C(0.66f, 0.12f, 0.08f), gold = C(0.80f, 0.58f, 0.10f), green = C(0.28f, 0.48f, 0.20f), blue = C(0.20f, 0.35f, 0.62f);
     p.disc(0, 0, 10.2f, parch); p.ring(0, 0, 10.2f, edge, 0.9f); p.ring(0, 0, 9.0f, C(0.45f, 0.30f, 0.15f, 0.35f), 0.4f);

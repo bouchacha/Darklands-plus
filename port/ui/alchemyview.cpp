@@ -87,7 +87,7 @@ extern "C" void alchemyview_draw(void)
         for (int k = 0; k < a.ningr; k++) {
             const AvIngr &g = a.ingr[k];
             P.icon(RX0 + 4, y + 3.5f, 6.5f, g.item);
-            P.text(fo, NsDraw::FS_BODY, RX0 + 9, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
+            P.text(fo, NsDraw::FS_BODY, RX0 + 10, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
             std::string hv = g.have ? "at hand " + std::to_string(g.have) : std::string("none at hand");
             if (g.have < g.need && config_get_int("assist.where_sold", 1)) {    /* where to get more (the shops the party has seen) */
                 static std::map<int, std::string> where; static unsigned wseq = 0;
