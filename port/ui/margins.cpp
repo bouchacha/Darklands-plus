@@ -337,6 +337,12 @@ static void foes_left_section(void)
             o += b;
         }
         if (!o.empty()) ImGui::TextWrapped("Elsewhere: %s.", o.c_str());
+        if (fl.master_floor >= 0) {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(214, 120, 90, 255));
+            if (fl.master_floor == fl.floor) ImGui::TextWrapped("The master of this place waits on this floor.");
+            else ImGui::TextWrapped("The master of this place waits on floor %d.", fl.master_floor + 1);
+            ImGui::PopStyleColor();
+        }
     }
     ImGui::PopStyleColor();
 }

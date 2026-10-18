@@ -7,6 +7,7 @@ typedef struct {
     int known[FL_FLOORS];        /* that floor's list is known */
     int foes[FL_FLOORS];         /* foes waiting on it, not yet met */
     int groups[FL_FLOORS];       /* in so many groups */
+    int master_floor;            /* the floor where the master of the place waits, not yet met (-1: none waits) */
 } FoesLeft;
 int foesleft_on(void);
 int foesleft_get(FoesLeft *out); /* 0 outside a battle */
