@@ -770,7 +770,7 @@ static void ui_cursor(void)
 /* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at;
    again: the quests' pictures, large and at the sizes of the lists, on light and on dark */
 static int icon_grid;
-extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 4; }   /* (test: potions, quests, towns) */
+extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 5; }   /* (test: potions, quests, towns, the alchemy sheet) */
 static void draw_icon_grid(void)
 {
     if (!icon_grid) return;
@@ -779,6 +779,32 @@ static void draw_icon_grid(void)
     ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(244, 234, 210, 255));
     float cell = fminf(ds.x / 12.5f, ds.y / 8.5f), s = cell * 0.62f;
+    if (icon_grid == 4) {                                   /* every potion and ingredient with its name, to show around */
+        ImFont *ft = ui_font_text ? ui_font_text : ImGui::GetFont(), *fh = ui_font_head ? ui_font_head : ft;
+        ImU32 ink = IM_COL32(52, 36, 22, 255), dim = IM_COL32(120, 98, 70, 255), rule = IM_COL32(150, 120, 80, 255);
+        float u = ds.y / 1080.0f, fs = 24 * u, top = 124 * u, mx = 34 * u;
+        dl->AddText(fh, 40 * u, ImVec2(mx, 22 * u), ink, "Darklands+: the potions and the alchemical ingredients");
+        float split = ds.x * 0.62f;
+        dl->AddText(fh, 28 * u, ImVec2(mx, top - 44 * u), ink, "Potions, grades 1, 2 and 3 (the gold dots on the neck)");
+        dl->AddText(fh, 28 * u, ImVec2(split + 20 * u, top - 44 * u), ink, "Ingredients");
+        dl->AddLine(ImVec2(split, top - 30 * u), ImVec2(split, ds.y - 24 * u), rule, 1.5f * u);
+        float pw = (split - mx) / 4, ph = (ds.y - top - 20 * u) / 6, ps = fminf(pw / 3.6f, ph * 0.62f);
+        for (int k = 0; k < 22; k++) {
+            float x0 = mx + (k % 4) * pw, y0 = top + (k / 4) * ph;
+            for (int t = 1; t <= 3; t++) ui_item_icon_tier(dl, ImVec2(x0 + ps * (0.62f + 1.08f * (t - 1)), y0 + ps * 0.62f), ps, 95 + k, t);
+            const char *nm = 95 + k < (int)gamedata.items.size() ? gamedata.items[95 + k].name.c_str() : "?";
+            dl->AddText(ft, fs, ImVec2(x0 + 4 * u, y0 + ps * 1.32f), ink, nm);
+        }
+        float iw = (ds.x - split - 40 * u) / 2, ih = (ds.y - top - 20 * u) / 12, is = fminf(ih * 0.7f, 60 * u);
+        for (int k = 0; k < 23; k++) {
+            float x0 = split + 24 * u + (k / 12) * iw, y0 = top + (k % 12) * ih;
+            ui_item_icon_tier(dl, ImVec2(x0 + is * 0.5f, y0 + ih * 0.5f), is, 72 + k, 0);
+            const char *nm = 72 + k < (int)gamedata.items.size() ? gamedata.items[72 + k].name.c_str() : "?";
+            dl->AddText(ft, fs, ImVec2(x0 + is + 12 * u, y0 + ih * 0.5f - fs * 0.55f), ink, nm);
+        }
+        (void)dim;
+        return;
+    }
     if (icon_grid == 3) {                                   /* the towns' pictures, at three sizes */
         dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
         for (int k = 0; k < TI_N; k++) {
