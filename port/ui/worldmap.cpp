@@ -1,7 +1,7 @@
 // worldmap.cpp - the world map: the whole of the Holy Roman Empire as the travel screen draws
 // it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of
 // auto-travel and the places the quest log points to. Click a place for its details, double-
-// click (or Ctrl+click anywhere) to travel there. M on the travel map opens it; M or Esc closes.
+// click (or Ctrl+click anywhere) to travel there. M on the travel map or a card opens it; M or Esc closes.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

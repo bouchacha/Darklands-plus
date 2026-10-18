@@ -59,7 +59,7 @@ extern "C" void tab_travel(void)
     {
         if (game_mode() != GM_OTHER && game_mode() != GM_BATTLE) {
             if (ImGui::Button("Open the world map")) ui_toggle_map();
-            ImGui::SameLine(); ImGui::TextDisabled("(M on the travel map)");
+            if (config_get_int("map.key_m", 1)) { ImGui::SameLine(); ImGui::TextDisabled("(M)"); }
             ImGui::Spacing();
         }
         if (citynav_available() && config_get_int("assist.city_goto", 1)) {

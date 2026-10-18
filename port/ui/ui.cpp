@@ -322,7 +322,7 @@ extern "C" void levelmap_draw(void);
 extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
-/* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
+/* the world map (ui/worldmap.cpp): M on the travel map or a card, or the Travel tab */
 extern "C" void ui_toggle_map(void)
 {
     if (open_map) { open_map = false; return; }
