@@ -666,6 +666,11 @@ static void run_script(void)
             int k = atoi(s->arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);
             fprintf(stderr, "library %d: %d %d %d %d\n", k, o[0], o[1], o[2], o[3]);
         }
+        else if (!strcmp(s->cmd, "ualc")) {                /* test: the formulae town k's alchemist sells */
+            int k = atoi(s->arg), o[4], p[4]; extern int ui_alchemist_formulae_c(int, int *, int *);
+            if (ui_alchemist_formulae_c(k, o, p)) fprintf(stderr, "alchemist %d: %d %d %d %d (%d %d %d %d fl)\n", k, o[0], o[1], o[2], o[3], p[0], p[1], p[2], p[3]);
+            else fprintf(stderr, "alchemist %d: none\n", k);
+        }
         else if (!strcmp(s->cmd, "ulocw")) {               /* test: word at +off of location k's record (ulocw:k,off,v; v -999 only reads) */
             int k = 0, of = 0, v = -999; sscanf(s->arg, "%d,%x,%d", &k, &of, &v);
             u32 r = g_location(k);

@@ -52,6 +52,7 @@ void ui_guide_tab(void)
     });
     topic("Alchemy", {
         "Each member knows formulae of their own; a formula makes one potion. Alchemists sell formulae (Darklands+ shows each one's tier and who knows it already).",
+        "Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one of Thunderbolt are ever sold: the others are traded for or found. F12 > Alchemy names the nearest alchemist selling each formula the party lacks, and the world map's tooltip on a town lists what its alchemist sells.",
         "The ingredients are bought from pharmacists, herbalists and alchemists; the whole party's carried ingredients count. In such a shop, the Formulae button buys what a batch more needs.",
         "The chance of a batch: 100 + Intelligence + Alchemy - the formula's mystic number, lower when more batches are made at once. Mixing takes a day: Alchemy work at an inn or in camp.",
         "F12 > Alchemy lists every formula the party knows with its ingredients and chance.",

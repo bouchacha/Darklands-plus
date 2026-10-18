@@ -292,7 +292,7 @@ void tab_helpers(void)
     if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); ui_dirty_config = 1; }
     ImGui::Indent(UIS(34)); ui_hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
     { extern int ui_shop_info; bool si = ui_shop_info != 0;
-      if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulas)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); ui_dirty_config = 1; } }
+      if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulae)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); ui_dirty_config = 1; } }
     { bool rt = config_get_int("assist.return_thrown", 1) != 0;
       if (ImGui::Checkbox("After a battle, javelins, throwing axes, knives and darts go back to whoever threw them", &rt)) { config_set_int("assist.return_thrown", rt); loot_return_thrown = rt; ui_dirty_config = 1; } }
     { bool ia = ammo_infinite != 0;
@@ -406,7 +406,7 @@ void tab_helpers(void)
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Editor"); ImGui::PopFont();
     bool ed = config_get_int("editor.show", 0);
     if (ImGui::Checkbox("Show the character editor (Editor tab)", &ed)) { config_set_int("editor.show", ed); ui_dirty_config = 1; }
-    ui_hint("Change money, names, attributes, skills, saints, formulas, items, and a character's colours, shield and "
+    ui_hint("Change money, names, attributes, skills, saints, formulae, items, and a character's colours, shield and "
          "figure, as the community's save-game editors do. For repairing characters hit by old bugs, or for cheating.");
 
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Fixes for bugs of the original"); ImGui::PopFont();

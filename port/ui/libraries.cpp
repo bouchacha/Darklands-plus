@@ -10,6 +10,7 @@
 #include "libraries.h"
 #include "gamedata.h"
 #include "quests.h"
+#include "townicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -74,3 +75,37 @@ std::vector<LibraryHit> libraries_teaching(int s)
     std::sort(v.begin(), v.end(), [](const LibraryHit &a, const LibraryHit &b) { return a.days < b.days; });
     return v;
 }
+
+bool alchemist_formulae(int town, int formula[4], int price_fl[4])
+{
+    if (town < 0 || town >= (int)gamedata.cities.size() || !citynav_town_offers(town, TI_ALCHEMIST)) return false;
+    const City &c = gamedata.cities[town];
+    s16 q = (s16)(c.seed + (s16)g_rw(G_PARTY_SEED));        /* loc_query 0x21: 16-bit, as the game adds them */
+    int size = c.size > 0 ? c.size : 1;                      /* loc_query 2 */
+    for (int k = 0; k < 4; k++) {
+        int v = (q + 100 + 3 * k) % 22;                      /* (C's %, as the game's idiv) */
+        formula[k] = v;
+        price_fl[k] = ((v % 3) + 1) * 10 / size;
+    }
+    return true;
+}
+
+std::vector<SellerHit> formula_sellers(int f)
+{
+    std::vector<SellerHit> v;
+    if (f < 0 || f >= 22) return v;
+    double px = 0, py = 0; bool here = party_xy(&px, &py);
+    for (int t = 0; t < (int)gamedata.cities.size() && t < 92; t++) {
+        int fo[4], pr[4];
+        if (!alchemist_formulae(t, fo, pr)) continue;
+        for (int k = 0; k < 4; k++) if (fo[k] == f) {
+            double d = -1;
+            if (here) { double dx = gamedata.cities[t].x - px, dy = (gamedata.cities[t].y - py) / 2.0; d = hypot(dx, dy) / 10.0; }
+            v.push_back({ t, gamedata.cities[t].name, d, pr[k] });
+            break;
+        }
+    }
+    std::sort(v.begin(), v.end(), [](const SellerHit &a, const SellerHit &b) { return a.days < b.days; });
+    return v;
+}
+extern "C" int ui_alchemist_formulae_c(int town, int *f, int *p) { return alchemist_formulae(town, f, p) ? 1 : 0; }   /* (the test command ualc) */

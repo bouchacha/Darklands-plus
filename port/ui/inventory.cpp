@@ -15,6 +15,7 @@
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "libraries.h"
 extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
@@ -770,11 +771,11 @@ extern "C" void tab_alchemy(void)
     }
     // formulas
     static bool all_formulas = false;
-    ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
-    ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
+    ImGui::SeparatorText(all_formulas ? "All formulae" : "Formulae the party knows");
+    ImGui::Checkbox("Show all formulae (to judge one before buying it, and see where it is sold)", &all_formulas);
     if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
         ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthStretch, 1.3f);
-        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn(all_formulas ? "Known by, or sold in" : "Known by", ImGuiTableColumnFlags_WidthStretch, all_formulas ? 0.95f : 0.6f);
         ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(28));   /* (room for the sort arrow) */
         ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(28));
         ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 1.2f);
@@ -820,7 +821,29 @@ extern "C" void tab_alchemy(void)
             }
             ImGui::EndGroup();
             if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.empty() ? "-" : who.c_str());
+            ImGui::TableNextColumn();
+            if (!who.empty()) ImGui::TextWrapped("%s", who.c_str());
+            else {                                               /* nobody knows it: where an alchemist sells it (ui/libraries.h) */
+                std::vector<SellerHit> sh = game_mode() != GM_OTHER ? formula_sellers(f) : std::vector<SellerHit>();
+                if (sh.empty()) ImGui::TextDisabled(f < 22 ? "no alchemist sells it\nin this game" : "not sold: trade for it\nor find it");
+                else {
+                    int d = (int)(sh[0].days + 0.5);
+                    bool here = sh[0].days >= 0 && sh[0].days < 0.6;
+                    ImGui::BeginGroup();
+                    if (here) ImGui::TextUnformatted("sold here");
+                    else ImGui::TextWrapped("sold in %s", sh[0].name.c_str());
+                    if (here || sh[0].days < 0) ImGui::TextDisabled("%d fl", sh[0].price_fl);
+                    else ImGui::TextDisabled("%d day%s away, %d fl", d, d == 1 ? "" : "s", sh[0].price_fl);
+                    ImGui::EndGroup();
+                    if (ImGui::IsItemHovered()) {
+                        std::string t = sh.size() == 1 ? "Only the alchemist of " + sh[0].name + " sells it." : "The alchemists who sell it, the nearest first: ";
+                        if (sh.size() > 1) for (size_t i = 0; i < sh.size(); i++) t += (i ? ", " : "") + sh[i].name;
+                        if (sh.size() > 1) t += ".";
+                        t += "\n\nEach town's alchemist sells four formulae, the same all game. Only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one of Thunderbolt are ever sold; the others are traded for or found.";
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
+                }
+            }
             ImGui::TableNextColumn(); ImGui::Text("%d", F.mystic);
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("The formula's mystical number: the higher, the harder to brew (it is set against the alchemist's skill).");
             ImGui::TableNextColumn();

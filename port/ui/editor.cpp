@@ -134,7 +134,7 @@ extern "C" void tab_editor(void)
             }
             ImGui::NewLine();
         }
-        if (ImGui::CollapsingHeader("Formulas known (each potion has three)")) {
+        if (ImGui::CollapsingHeader("Formulae known (each potion has three)")) {
             for (int p = 0; p < 22; p++) {
                 u16 o = (u16)(0x07be + m * 0x16 + p);
                 const char *pn = 95 + p < (int)gamedata.items.size() ? gamedata.items[95 + p].name.c_str() : "?";

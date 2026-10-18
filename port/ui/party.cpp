@@ -34,12 +34,12 @@ static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "P
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 static const char *SKILL_HELP[19] = {
     0, 0, 0, 0, 0, 0, 0,
-    "Mixing potions from the formulas a character knows: a better alchemist fails less often (F12 > Alchemy).",
+    "Mixing potions from the formulae a character knows: a better alchemist fails less often (F12 > Alchemy).",
     "Knowledge of the faith and its saints: learning of saints, dealings with the Church.",
     "Moral purity, valued by the saints and the Church. Sinful deeds lower it.",
     "Talking with ordinary people in their own tongue: asking, persuading, bluffing.",
     "The tongue of the Church and of scholars: priests, monks, universities.",
-    "Literacy: letters, books and formulas.",
+    "Literacy: letters, books and formulae.",
     "Tending wounds and sickness.",
     "Mechanical skill: locks, traps and devices.",
     "Moving and hiding unseen and unheard.",

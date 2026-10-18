@@ -464,6 +464,14 @@ extern "C" void worldmap_draw(void)
                 ImGui::TextDisabled("Its library teaches:");
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
             }
+            {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
+                if (p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
+                    std::string t;
+                    for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]];
+                    ImGui::TextDisabled("Its alchemist sells the formulae:");
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+                }
+            }
             if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
