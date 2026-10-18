@@ -416,6 +416,7 @@
 #define enemy_anim_free6_vec     vec_1dd3             /* overlay call vector of enemy_anim_free6 */
 #define combatants               D_9c55               /* struct cbt[13] (0x80 bytes): 0..4 party (= party - 0x14), 5..12 enemies */
 #define cbt_floor                D_a6b4               /* [13] floor (level) of each combatant */
+#define cbt_ends_battle          D_c1f3               /* [13] its fall ends the battle (the master of a place; monster record +aa) */
 #define cbt_action               D_ca64               /* [13] current action */
 #define cbt_anim                 D_ca57               /* [13] current animation (3 dying ...) */
 #define cbt_moving               D_a6d3               /* [13] moving to a target */

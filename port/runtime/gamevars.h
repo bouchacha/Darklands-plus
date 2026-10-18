@@ -76,6 +76,7 @@
 #define GV_group_count                  0xdb05    /* groups per level [16] */
 #define GV_combatants                   0x9c55    /* struct cbt[13] (0x80 bytes): 0..4 party (= party - 0x14), 5..12 enemies */
 #define GV_cbt_floor                    0xa6b4    /* [13] floor (level) of each combatant */
+#define GV_cbt_ends_battle              0xc1f3    /* [13] its fall ends the battle (the master of a place; monster record +aa) */
 #define GV_cbt_action                   0xca64    /* [13] current action */
 #define GV_cbt_anim                     0xca57    /* [13] current animation (3 dying ...) */
 #define GV_cbt_moving                   0xa6d3    /* [13] moving to a target */

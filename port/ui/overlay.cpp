@@ -1289,6 +1289,8 @@ static void draw_battle_info(void)
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
         ImGui::Text("Attack %d, defence %d", atk, def);
+        if (best >= 5 && st == 1 && g_rb((u16)(GV_cbt_ends_battle + best)) == 1)
+            ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this one has fallen and the fight is over, the place is won.");
         auto wname = [](int t) -> std::string {
             if (t < 0 || t > 33) return "";
             for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());

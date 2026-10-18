@@ -399,6 +399,7 @@ static void battle_panel(float width, float fs)
         else {
             ImGui::TextUnformatted(nm.c_str()); ImGui::SameLine(); ImGui::TextDisabled("%s", cond);
             bar((float)end / endm, IM_COL32(200, 90, 70, 255), bw, bh);
+            if (g_rb((u16)(GV_cbt_ends_battle + i)) == 1) { ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(214, 120, 90, 255)); ImGui::TextWrapped("The master of this place: once this one has fallen and the fight is over, the place is won."); ImGui::PopStyleColor(); }
         }
         shown++;
     }
