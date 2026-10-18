@@ -156,8 +156,9 @@ static inline bool ns_shows_quality(int id, int q)
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
            d->kind == K_TOOL || d->kind == K_INSTRUMENT;
 }
-/* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
-std::string ns_item_line(int id);
+/* one line on a weapon, an armour or a shield (the combat tables, far 20a5; a shield at quality q,
+   its usual quality when q < 0), "" for other things */
+std::string ns_item_line(int id, int q = -1);
 std::string ns_quality_words(int id, int qual);       /* ", 30q"; "" where the lists show none (ns_shows_quality) */
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */

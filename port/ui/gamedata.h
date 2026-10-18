@@ -8,7 +8,9 @@ enum ItemKind { K_WEAPON, K_MISSILE, K_ARMOR, K_SHIELD, K_GEAR, K_TOOL, K_INSTRU
                 K_POTION, K_RELIC, K_HORSE, K_DOCUMENT, K_QUEST, K_OTHER };
 
 struct ItemDef {
-    std::string name, shortname;
+    std::string name, shortname;     // name: as shown (gamedata_names: in full, armour by where it is worn); shortname as in the game
+    std::string game_name;           // as in DARKLAND.LST and the game's own screens and texts (match the game's text with this)
+    std::string plain;               // as shown, without where an armour is worn ("Chainmail")
     int type = 0, flags = 0, flags2 = 0, weight = 0, quality = 0, value = 0;
     int flags5 = 0, rarity = 0;      // flag byte +0x24 (0x80: not sold in shops), rarity 0..12
     unsigned cats() const { return (unsigned)flags | ((unsigned)flags2 << 16); }
@@ -35,12 +37,13 @@ struct City {
     int x = 0, y = 0;                // map position (entry)
 };
 
-struct Saint { std::string name, shortname, text; };
+struct Saint { std::string name, shortname, text, game_name; };   // name as shown ("St. Gregory Thaumaturgus"), game_name as the game writes it
 
 struct GameData {
     std::vector<ItemDef> items;
     std::vector<Saint> saints;       // LST order (bit order of saints_known)
-    std::vector<std::string> formula_names;
+    std::vector<std::string> formula_names;        // as shown (in full)
+    std::vector<std::string> formula_game_names;   // as the game writes them (match the game's text with these)
     std::vector<Formula> formulas;   // 3 per potion (potion item 95 + f/3)
     std::vector<City> cities;
     bool loaded = false;
@@ -58,6 +61,13 @@ static inline bool shop_open_ever(int k) { return k != 4 && k != 7 && k != 8; }
 
 extern GameData gamedata;
 void gamedata_load(const char *dir);
+/* the names as shown, from the game's: in full where the game cut them short for its 20 letters
+   ("Studded Lthr", "Illum. Gospel", "St.Gregory Thaumaturg.", "Raimundus Ls'"), and armour by where
+   it is worn ("Chainmail (body)" for "V:Chainmail"); settings display.full_names and
+   display.armour_worn. Run again when either changes. */
+void gamedata_names(void);
+/* a text of the game's (a card's) with the names cut short written out as gamedata_names shows them */
+std::string gamedata_spell_text(const std::string &t);
 /* a place's name as shown: a city's in full (DARKLAND.CTY), else the location's own (+0x26, a few
    of them cut short by the game's 11 letters: written out); "" for none */
 std::string loc_display_name(int loc);

@@ -527,6 +527,13 @@ void tab_display(void)
           if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); ui_overlay_font_update(); ui_dirty_config = 1; } }
         { bool so = ui_spell_out != 0;
           if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); ui_dirty_config = 1; } }
+        { bool fn = config_get_int("display.full_names", 1) != 0, aw = config_get_int("display.armour_worn", 1) != 0;
+          if (ImGui::Checkbox("Names in full where the game cut them short (Studded Leather, Illuminated Gospel, St. Gregory Thaumaturgus, Raimundus Lullus' Sunburst)", &fn)) {
+              config_set_int("display.full_names", fn); gamedata_names(); ui_dirty_config = 1; }
+          ImGui::Indent(); if (!fn) ImGui::BeginDisabled();
+          if (ImGui::Checkbox("Armour by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
+              config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
+          if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
         { bool co = money_coins();
           if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; the total in pfennigs beside a price described", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
         ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();

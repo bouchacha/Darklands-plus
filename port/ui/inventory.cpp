@@ -17,6 +17,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "libraries.h"
+#include "../mods/gamemodel.h"
 extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
@@ -86,7 +87,7 @@ static const Tint TINTS[] = {
 
 static ImVec4 tint_for(const ItemDef *d, int id)
 {
-    if (d) for (const Tint &t : TINTS) if (d->name == t.name) return ImVec4(t.r, t.g, t.b, 1);
+    if (d) for (const Tint &t : TINTS) if (d->game_name == t.name) return ImVec4(t.r, t.g, t.b, 1);
     // stable pseudo-random hue from the id
     float h = fmodf(id * 0.61803f, 1.0f), r, g, b;
     ImGui::ColorConvertHSVtoRGB(h, 0.55f, 0.85f, r, g, b);
@@ -96,12 +97,12 @@ static ImVec4 tint_for(const ItemDef *d, int id)
 static bool is_liquid(const ItemDef *d)
 {
     if (!d) return false;
-    return d->name == "Naptha" || d->name == "Aqua Regia" || d->name.find("Base") != std::string::npos;
+    return d->game_name == "Naptha" || d->game_name == "Aqua Regia" || d->game_name.find("Base") != std::string::npos;
 }
 static bool is_plant(const ItemDef *d)
 {
     if (!d) return false;
-    return d->name == "Solanaceae" || d->name == "Mondragora" || d->name == "Camomile" || d->name == "Gum" || d->name == "East. Black Bean";
+    return d->game_name == "Solanaceae" || d->game_name == "Mondragora" || d->game_name == "Camomile" || d->game_name == "Gum" || d->game_name == "East. Black Bean";
 }
 
 /* equipment drawn by item type (LST +30): each weapon class has its own shape, armour shows
@@ -339,7 +340,7 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
             dl->AddCircleFilled(P(-3, -1), 4 * u, tc);
             dl->AddCircleFilled(P(3, -6), 3.5f * u, tc);
             dl->AddCircleFilled(P(2, 3), 3 * u, tl);
-        } else if (d && d->name == "Marsh Vapor") {
+        } else if (d && d->game_name == "Marsh Vapor") {
             dl->AddCircleFilled(P(-4, 2), 5 * u, tc); dl->AddCircleFilled(P(3, -1), 6 * u, tc); dl->AddCircleFilled(P(4, 5), 4 * u, tl);
         } else {                                                  // minerals: crystals
             dl->AddTriangleFilled(P(-8, 9), P(-3, -7), P(1, 9), tc);
@@ -546,7 +547,15 @@ void ui_item_details(const ItemDef *d, int id)
         ImGui::TextDisabled("A blow that pierces also wounds strength; a good hit gets through more easily.");
         ImGui::TextDisabled("Quality: every 10 points take 1 off each blow's damage.");
     }
-    if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
+    if (d && d->type >= 95 && d->type <= 97) {             /* a shield: what each size adds to the defence (mods/gamemodel.h, the game's to-hit rolls) */
+        ImGui::Separator();
+        ImGui::TextUnformatted("Adds to its bearer's defence; not with a two-handed weapon.");
+        int q = d->quality;
+        static const char *SZ[3] = { "Small", "Medium", "Large" };
+        for (int t = 95; t <= 97; t++)
+            (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
+        ImGui::TextDisabled("No shield counts as -5. The chance to be hit is 50 + 2/3 of the attack less the defence;\nagainst a blow the defence is the shield's and twice the Agility (less of it under a load).");
+    }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(UIS(320)); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
@@ -569,29 +578,24 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::EndTooltip();
 }
 
-/* tidy a pack: the item rows sorted by kind, then name, then the best first. The game finds what
- * a member has in hand and wears by type and quality, not by row, so the order is free (as long
- * as no screen of the game shows the rows: why_locked) */
+/* a pack is always shown tidy: by kind (weapons, armour, shields, potions, ingredients ...), then
+ * name, the best first. Only the order shown: the game's own rows stay as they are (the game finds
+ * what a member has in hand and wears by type and quality, not by row) */
 static int kind_rank(const ItemDef *d)
 {
     static const int R[K_OTHER + 1] = { 0, 1, 2, 3, 6, 7, 8, 5, 4, 9, 10, 11, 12, 13 };
     return d ? R[d->kind] : 13;
 }
-static void sort_pack(int m)
+static void tidy(std::vector<InvItem> &items)
 {
-    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); if (n > 64) n = 64;
-    std::vector<std::array<u8, 6>> rows((size_t)n);
-    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) rows[(size_t)i][(size_t)k] = rb(G_FAR2E38, (u16)(G_ITEM(m, i) + k));
-    std::stable_sort(rows.begin(), rows.end(), [](const std::array<u8, 6> &a, const std::array<u8, 6> &b) {
-        int ia = (a[0] | a[1] << 8) & 0xfff, ib = (b[0] | b[1] << 8) & 0xfff;
-        const ItemDef *da = def_of(ia), *db = def_of(ib);
+    std::stable_sort(items.begin(), items.end(), [](const InvItem &a, const InvItem &b) {
+        const ItemDef *da = def_of(a.id), *db = def_of(b.id);
         int ka = kind_rank(da), kb = kind_rank(db);
         if (ka != kb) return ka < kb;
-        std::string na = da ? da->name : "", nb = db ? db->name : "";
+        const std::string &na = da ? da->name : std::string(), &nb = db ? db->name : std::string();
         if (na != nb) return na < nb;
-        return a[3] > b[3];
+        return a.qual > b.qual;
     });
-    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) wb(G_FAR2E38, (u16)(G_ITEM(m, i) + k), rows[(size_t)i][(size_t)k]);
 }
 
 extern "C" int sheetview_shared(void);
@@ -606,22 +610,11 @@ extern "C" void tab_inventory(void)
     member_cards();
     // kind filter chips
     std::vector<InvItem> items = member_items(sel_member);
+    tidy(items);
     bool present[K_OTHER + 1] = {};
     for (auto &it : items) { const ItemDef *d = def_of(it.id); present[d ? d->kind : K_OTHER] = true; }
     if (ImGui::RadioButton("Everything", kind_filter < 0)) kind_filter = -1;
     for (int k = 0; k <= K_OTHER; k++) if (present[k]) { ImGui::SameLine(); if (ImGui::RadioButton(kind_name((ItemKind)k), kind_filter == k)) kind_filter = k; }
-    int sort_now = -1;
-    {   /* tidy the pack(s), at the right of the row */
-        float w = ImGui::CalcTextSize("Tidy this pack").x + ImGui::CalcTextSize("Tidy all packs").x + UIS(40);
-        ImGui::SameLine(ImGui::GetContentRegionMax().x - w);
-        ImGui::BeginDisabled(why_locked() != nullptr);
-        if (ImGui::SmallButton("Tidy this pack")) sort_now = sel_member;
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort the items by kind (weapons, armour, shields, potions, ingredients ...), then name, the best first.");
-        ImGui::SameLine();
-        if (ImGui::SmallButton("Tidy all packs")) sort_now = 99;
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort every member's items the same way.");
-        ImGui::EndDisabled();
-    }
     ImGui::BeginChild("grid", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), ImGuiChildFlags_Border);
     const float tile = UIS(104), pad = UIS(8);
     int cols = (int)((ImGui::GetContentRegionAvail().x + pad) / (tile + pad)); if (cols < 1) cols = 1;
@@ -640,10 +633,33 @@ extern "C" void tab_inventory(void)
         if (it.equipped) dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(p.x + tile - 3, p.y + tile - 3), col(0.72f, 0.55f, 0.18f), 4, 0, 2.0f);
         dl->AddRect(p, ImVec2(p.x + tile, p.y + tile), hov ? col(0.55f, 0.24f, 0.13f) : col(0.55f, 0.42f, 0.25f), 6, 0, hov ? 2.5f : 1.0f);
         icon_tier = d ? ui_potion_tier(it.qual, d->quality) : 0; draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id); icon_tier = 0;
-        const char *nm = d ? (ImGui::CalcTextSize(d->name.c_str()).x * 0.8f < tile - 6 ? d->name.c_str() : d->shortname.c_str()) : "?";
+        float name_top = p.y + tile;
         ImGui::PushFont(ui_font_small);
-        ImVec2 ts = ImGui::CalcTextSize(nm);
-        dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, p.y + tile - ts.y - 4), col(0.2f, 0.12f, 0.06f), nm);
+        {   /* the name in full where it fits; armour without where it is worn (its picture shows a shirt or
+               leggings); else on two lines; the game's short name last */
+            float room = tile - UIS(8);
+            std::string nm = d ? d->name : "?";
+            if (d && ImGui::CalcTextSize(nm.c_str()).x > room) nm = d->plain;
+            std::string l2;
+            if (d && ImGui::CalcTextSize(nm.c_str()).x > room) {
+                size_t best = std::string::npos; float bw = 1e9f;
+                for (size_t k = nm.find(' '); k != std::string::npos; k = nm.find(' ', k + 1)) {
+                    float w = fmaxf(ImGui::CalcTextSize(nm.substr(0, k).c_str()).x, ImGui::CalcTextSize(nm.substr(k + 1).c_str()).x);
+                    if (w <= room && w < bw) { bw = w; best = k; }
+                }
+                if (best != std::string::npos) { l2 = nm.substr(best + 1); nm = nm.substr(0, best); }
+                else nm = d->shortname;
+            }
+            float lh = ImGui::GetTextLineHeight(), yb = p.y + tile - lh - 4;
+            if (!l2.empty()) {
+                ImVec2 t2 = ImGui::CalcTextSize(l2.c_str());
+                dl->AddText(ImVec2(p.x + (tile - t2.x) / 2, yb), col(0.2f, 0.12f, 0.06f), l2.c_str());
+                yb -= lh * 0.92f;
+            }
+            ImVec2 ts = ImGui::CalcTextSize(nm.c_str());
+            dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, yb), col(0.2f, 0.12f, 0.06f), nm.c_str());
+            name_top = yb;
+        }
         if (!d || d->kind != K_POTION) {                           /* (a potion: the dots on its flask) */
             char q[16]; snprintf(q, sizeof q, "%dq", it.qual);
             dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
@@ -657,7 +673,7 @@ extern "C" void tab_inventory(void)
         if (it.equipped) {
             const char *e = (d && (d->kind == K_ARMOR)) ? "worn" : "in hand";
             ImVec2 es = ImGui::CalcTextSize(e);
-            dl->AddText(ImVec2(p.x + (tile - es.x) / 2, p.y + tile - 2 * es.y - 4), col(0.45f, 0.18f, 0.10f), e);
+            dl->AddText(ImVec2(p.x + (tile - es.x) / 2, name_top - es.y * 0.95f), col(0.45f, 0.18f, 0.10f), e);
         }
         ImGui::PopFont();
         if (hov && !ImGui::IsMouseDragging(0) && !ImGui::IsPopupOpen("item_ctx")) tooltip(it, d);
@@ -689,10 +705,6 @@ extern "C" void tab_inventory(void)
     }
     if (items.empty()) ImGui::TextDisabled("Carries nothing.");
     ImGui::EndChild();
-    if (sort_now >= 0 && !why_locked()) {
-        for (int m = 0; m < MAXM; m++) if ((sort_now == 99 || m == sort_now) && member_present(m)) sort_pack(m);
-        last_msg = sort_now == 99 ? "Everyone's pack is in order." : member_name(sort_now, false) + "'s pack is in order.";
-    }
     static std::string shown; static double shown_t;
     if (last_msg != shown) { shown = last_msg; shown_t = ImGui::GetTime(); }
     else if (!last_msg.empty() && ImGui::GetTime() - shown_t > 8) last_msg.clear();

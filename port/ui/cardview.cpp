@@ -69,7 +69,7 @@ static int cv_formula_of_slot(int s)
     std::string want = game_text(t, strlen(t));
     int pot = (s16)g_rw((u16)(GV_card_items + 2 * s));
     for (int f = 0; f < (int)gamedata.formula_names.size(); f++)
-        if (gamedata.formula_names[f] == want && 95 + f / 3 == pot) return f;
+        if (gamedata.formula_game_names[f] == want && 95 + f / 3 == pot) return f;
     return -1;
 }
 static std::string cv_formula_price(int s)
@@ -164,7 +164,7 @@ extern "C" void cardview_draw(void)
     float size = 0, L = 0, gap = 0, pad = 0, cap = 0, total = 0;
     std::vector<std::string> ws;
     std::vector<std::string> utf(c.npieces);
-    for (int j = 0; j < c.npieces; j++) utf[j] = gtext(c.piece[j].text);
+    for (int j = 0; j < c.npieces; j++) utf[j] = gamedata_spell_text(gtext(c.piece[j].text));   /* (names the game cut short, in full) */
     /* a narrow column beside a picture: the first letter in the line (an initial two lines high
        would leave a word or two a line beside it) */
     const int dropcap = c.dropcap && c.w < 110 ? 0 : c.dropcap;

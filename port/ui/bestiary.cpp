@@ -51,9 +51,7 @@ static std::string item_name(int type, int code, const char *natural)
 {
     if (code == 0xff || type == 0xff) return "";
     if (code < (int)gamedata.items.size() && gamedata.items[code].type == type && !gamedata.items[code].name.empty()) {
-        std::string n = game_text(gamedata.items[code].name.c_str(), gamedata.items[code].name.size());
-        if (n.size() > 2 && (n[0] == 'V' || n[0] == 'L') && n[1] == ':') n = n.substr(2);       /* "V:Scale" */
-        return n;
+        return game_text(gamedata.items[code].plain.c_str(), gamedata.items[code].plain.size());   /* (armour without where it is worn: "Scale") */
     }
     return natural;
 }

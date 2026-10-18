@@ -16,10 +16,15 @@ std::string ns_quality_words(int id, int qual)
     return ", " + std::to_string(qual) + "q";
 }
 
-std::string ns_item_line(int id)
+std::string ns_item_line(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d) return "";
+    if (d->type >= 95 && d->type <= 97) {                  /* a shield: its defence, by size and quality (mods/gamemodel.h) */
+        if (q < 0) q = d->quality;
+        return "Defence " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
+               " against shots and throws; not with a two-handed weapon";
+    }
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
         static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile device" };
@@ -46,7 +51,8 @@ std::string ns_item_compare(int id, int q, int m)
     auto slot = [&](int toff, int qoff, int &t, int &wq) { t = (s8)g_rb((u16)(b + toff)); wq = g_rb((u16)(b + qoff)); return t >= 0; };
     auto name_of = [&](int t, int wq) {                     /* the record in use of that type */
         GmItem it;
-        for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &it) && it.type == t && it.qual == wq) return ns_item_name(it.id);
+        for (int i = 0; i < gm_item_count(m); i++)
+            if (gm_item(m, i, &it) && it.type == t && it.qual == wq) { const ItemDef *w = ns_itemdef(it.id); return w ? ns_gtext(w->plain.c_str()) : ns_item_name(it.id); }   /* (armour: "Scale") */
         return std::string("?");
     };
     auto cmpq = [&](int a, int c) { return a > c ? "better made" : a < c ? "less well made" : "as well made"; };
@@ -57,7 +63,6 @@ std::string ns_item_compare(int id, int q, int m)
         if (!slot(vital ? 0x37 : 0x38, vital ? 0x3b : 0x3c, t, wq) || t < 67 || t > 84) return who + " wears nothing there.";
         int wh = rb(G_FAR20A5, (u16)(0x781e + t));
         std::string n = name_of(t, wq);
-        if (n.size() > 2 && n[1] == ':') n = n.substr(2);
         int s1 = (h > wh) - (h < wh), s2 = (q > wq) - (q < wq);
         return who + " wears " + n + " (" + (wh >= 0 && wh < 6 ? HN[wh] : "?") + ", " + std::to_string(wq) + "q): this is " +
                (s1 > 0 ? "harder" : s1 < 0 ? "softer" : "as hard") + (s1 == s2 ? " and " : " but ") + cmpq(q, wq) + ".";
@@ -201,7 +206,7 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     if (!t.status.empty()) l1 += "; " + t.status;
     float y = y0 + 10;
     P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l1); y += 7;
-    std::string l2 = ns_item_line(t.id);
+    std::string l2 = ns_item_line(t.id, t.qual);
     if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
     if (d && d->kind == K_INGREDIENT) {                     /* an ingredient: the potions it goes into, as pictures */
         std::vector<int> pot; std::vector<bool> kn;

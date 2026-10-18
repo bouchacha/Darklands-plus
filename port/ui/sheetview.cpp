@@ -236,7 +236,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
         if (it.kept) l1 += "; kept (not sold or dropped)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
-        std::string l2 = ns_item_line(it.id);
+        std::string l2 = ns_item_line(it.id, it.qual);
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
         std::string use = ns_item_use(it.id);
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;

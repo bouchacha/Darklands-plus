@@ -18,9 +18,7 @@ static std::string type_name(int t, int k1, int k2 = -1)
     if (t < 0) return "";
     for (const ItemDef &d : gamedata.items)
         if (d.type == t && ((int)d.kind == k1 || (int)d.kind == k2)) {
-            std::string n = game_text(d.name.c_str(), d.name.size());
-            if (n.size() > 2 && n[1] == ':') n = n.substr(2);
-            return n;
+            return game_text(d.plain.c_str(), d.plain.size());
         }
     return "";
 }

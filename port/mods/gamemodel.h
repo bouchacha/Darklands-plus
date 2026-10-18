@@ -22,6 +22,12 @@ void gm_money(int *fl, int *gr, int *pf);
 /* attributes (0 END, 1 STR, 2 AGL, 3 PER, 4 INT, 5 CHR, 6 DF), skills (19, DARKLAND.LST order) */
 void gm_member_attr(int m, int k, int *cur, int *max);
 int gm_member_skill(int m, int k);
+/* the game's rules (no state): what a shield of type 95 (small), 96 (medium) or 97 (large) and
+   quality q adds to its bearer's defence against a blow (missile 0) or a shot or a throw (1); -5 for
+   no shield, or a type that is none of these (s014 18bf: the to-hit rolls, hit_chance and
+   missile_to_hit). The chance to be hit is 50 + 2/3 of (the attack - the defence), the defence
+   against a blow being this plus twice the bearer's Agility (less of it under a load). */
+int gm_shield_defence(int type, int q, int missile);
 int gm_member_age(int m);
 int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */
 int gm_member_load_band(int m);                   /* 0 light, 1 normal, 2 heavy, 3 overloaded */

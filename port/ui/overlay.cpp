@@ -870,9 +870,9 @@ static void draw_shop_info(void)
     static std::vector<std::string> item_keys, short_keys, saint_keys, formula_keys;
     if (item_keys.size() != gamedata.items.size()) {
         item_keys.clear(); short_keys.clear();
-        for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.name)); short_keys.push_back(squash(d.shortname)); }
-        saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.name));
-        formula_keys.clear(); for (const std::string &f : gamedata.formula_names) formula_keys.push_back(squash(f));
+        for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.game_name)); short_keys.push_back(squash(d.shortname)); }   /* (the game's names: matched in the game's text) */
+        saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.game_name));
+        formula_keys.clear(); for (const std::string &f : gamedata.formula_game_names) formula_keys.push_back(squash(f));
     }
     int mx, my; plat_mouse_game(&mx, &my);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { mx = cx; my = cy; } }   /* where the game shows its pointer (it moves it in lists) */
@@ -906,7 +906,7 @@ static void draw_shop_info(void)
     for (size_t i = 0; i < item_keys.size() && item < 0; i++) if (key == item_keys[i] || (short_keys[i].size() >= 4 && key == short_keys[i])) item = (int)i;
     /* armour is "V:Brigandine", "L:Chainmail" (vital and limb) in the item list; a screen may leave the "V:" out */
     for (size_t i = 0; i < item_keys.size() && item < 0; i++) {
-        const std::string &n = gamedata.items[i].name;
+        const std::string &n = gamedata.items[i].game_name;
         if (n.size() > 2 && n[1] == ':' && key == item_keys[i].substr(1)) item = (int)i;
     }
     if (item < 0) for (size_t i = 0; i < saint_keys.size() && saint < 0; i++) if (key == saint_keys[i]) saint = (int)i;
@@ -944,7 +944,6 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
         if (item >= 0) {
             const ItemDef *d = &gamedata.items[item];
             std::string nm = game_text(d->name.c_str(), d->name.size());
-            if (nm.size() > 2 && nm[1] == ':') nm = nm.substr(2);                 /* "V:Brigandine" */
             ImGui::TextUnformatted(nm.c_str());
             ImGui::TextDisabled("%s%s", kind_name_one(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
             ui_item_details(d, item);

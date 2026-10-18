@@ -133,6 +133,11 @@ void gm_member_attr(int m, int k, int *cur, int *max)
     *cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
     *max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + k));
 }
+int gm_shield_defence(int type, int q, int missile)
+{
+    if (missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;
+    return type == 95 ? 2 * q / 7 + 1 : type == 96 ? q / 2 + 4 : type == 97 ? 2 * q / 3 + 8 : -5;
+}
 int gm_member_skill(int m, int k) { return m >= 0 && m < 5 && k >= 0 && k < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) : 0; }
 int gm_member_age(int m) { return m >= 0 && m < 5 ? (s16)g_rw((u16)(G_MEMBER(m) - 2)) : 0; }   /* (the int before the record) */
 int gm_member_load(int m) { return m >= 0 && m < 5 ? g_rb((u16)(G_MEMBER(m) + G_M_LOAD)) : 0; }
