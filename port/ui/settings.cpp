@@ -331,7 +331,9 @@ void tab_helpers(void)
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
     { bool d = autopause_down, h = autopause_hurt;
       if (ImGui::Checkbox("Pause the battle when someone in the party falls", &d)) { autopause_set(d, h); ui_dirty_config = 1; }
-      if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); ui_dirty_config = 1; } }
+      if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); ui_dirty_config = 1; }
+      bool fo = autopause_foes != 0;
+      if (ImGui::Checkbox("Pause the battle when foes waiting in a castle, dungeon or mine come out to fight", &fo)) { autopause_set_foes(fo); ui_dirty_config = 1; } }
     { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
     { bool ca = orders_click_attack;
       if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); ui_dirty_config = 1; }

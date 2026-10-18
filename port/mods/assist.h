@@ -35,6 +35,8 @@ extern int battle_fast;               /* fast forward in a battle (Z) */
 void battle_fast_set(int on);
 extern int autopause_down, autopause_hurt;   /* autopause.c: battles pause when a member falls / is badly hurt */
 void autopause_set(int down, int hurt);
+extern int autopause_foes;                     /* ... when foes waiting in a castle, dungeon or mine come out to fight */
+void autopause_set_foes(int on);
 void autopause_init(void);
 #ifdef __cplusplus
 }
