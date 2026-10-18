@@ -16,18 +16,47 @@ static int find(int sect, unsigned seg, unsigned off)
     return -1;
 }
 
+/* hooks chain: several mods may hook one function. The hook installed last runs first; its
+ * hook_call_original() runs the one installed before it, and the last of them the game's own
+ * function. hook_table[i] is the first of the chain (the generated code tests it). */
+#define CHAIN_MAX 6
+static struct { void (*fn[CHAIN_MAX])(void); int n; } *chains;
+static int nchains;
+int hook_depth;
+
+static int chain_ok(int i)
+{
+    if (!chains) {
+        for (int k = 0; k < HOOK_COUNT; k++) if (HOOK_POINTS[k].idx >= nchains) nchains = HOOK_POINTS[k].idx + 1;
+        chains = calloc((size_t)nchains + 1, sizeof *chains);
+    }
+    return i >= 0 && i < nchains;
+}
+
 int hook_install(int sect, unsigned seg, unsigned off, void (*fn)(void))
 {
     int i = find(sect, seg, off);
-    if (i < 0) { fprintf(stderr, "hook: no function at s%d %04x:%04x\n", sect, seg, off); return 0; }
-    hook_table[i] = fn;
+    if (i < 0 || !chain_ok(i)) { fprintf(stderr, "hook: no function at s%d %04x:%04x\n", sect, seg, off); return 0; }
+    for (int k = 0; k < chains[i].n; k++) if (chains[i].fn[k] == fn) return 1;      /* (already in) */
+    if (chains[i].n >= CHAIN_MAX) { fprintf(stderr, "hook: s%d %04x:%04x has too many hooks\n", sect, seg, off); return 0; }
+    for (int k = chains[i].n; k > 0; k--) chains[i].fn[k] = chains[i].fn[k - 1];
+    chains[i].fn[0] = fn;
+    chains[i].n++;
+    hook_table[i] = chains[i].fn[0];
     return 1;
 }
 
-void hook_remove(int sect, unsigned seg, unsigned off)
+void hook_remove(int sect, unsigned seg, unsigned off, void (*fn)(void))
 {
     int i = find(sect, seg, off);
-    if (i >= 0) hook_table[i] = 0;
+    if (i < 0 || !chain_ok(i)) return;
+    for (int k = 0; k < chains[i].n; k++)
+        if (chains[i].fn[k] == fn) {
+            for (int j = k; j + 1 < chains[i].n; j++) chains[i].fn[j] = chains[i].fn[j + 1];
+            chains[i].n--;
+            break;
+        }
+    hook_table[i] = chains[i].n ? chains[i].fn[0] : 0;
 }
 
 /* the function each hook index belongs to, for hook_call_original (looked up once per index:
@@ -51,20 +80,27 @@ static void (*func_of(int idx))(void)
 
 void hook_run(int idx)
 {
-    int prev = hook_current;
-    hook_current = idx;
+    int prev = hook_current, pd = hook_depth;
+    hook_current = idx; hook_depth = 0;
     hook_table[idx]();
-    hook_current = prev;
+    hook_current = prev; hook_depth = pd;
 }
 
+/* the next hook of the chain, or the game's function */
 void hook_call_original(void)
 {
-    void (*f)(void) = func_of(hook_current);
+    int idx = hook_current, d = hook_depth;
+    if (chain_ok(idx) && d + 1 < chains[idx].n) {
+        hook_depth = d + 1;
+        chains[idx].fn[d + 1]();
+        hook_current = idx; hook_depth = d;
+        return;
+    }
+    void (*f)(void) = func_of(idx);
     if (!f) fatal("hook_call_original: no function");
-    int prev = hook_current;
-    hook_bypass = hook_current;
+    hook_bypass = idx;
     f();
-    hook_current = prev;
+    hook_current = idx; hook_depth = d;
 }
 
 void hook_return_far(unsigned n) { SP = (u16)(SP + 4 + n); }

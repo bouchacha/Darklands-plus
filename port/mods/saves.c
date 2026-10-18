@@ -25,8 +25,11 @@ void ovl_changed(void);
 #include "../runtime/hooks.h"
 #include "../runtime/dispatch.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "saves.h"
+#include "nscreen.h"
+#include "savesview.h"
 
 int saves_on = 1;                /* quick keys and autosaves (off: the original's saving only) */
 int saves_auto_arrive = 1;       /* autosave on arriving at a place */
@@ -36,9 +39,9 @@ int saves_keep_quick = 3, saves_keep_auto = 3;
 void ui_notice(const char *msg);
 u32 plat_ticks_ms(void);
 
-#define D_SAVE_OK  0x9920        /* Save menu item: 1 enabled */
-#define D_LOAD_OK  0x9934        /* Load menu item: 1 enabled */
-#define D_IN_BATTLE 0x907a       /* 1 during a battle */
+#define D_SAVE_OK  GV_font_flag_a        /* Save menu item: 1 enabled */
+#define D_LOAD_OK  GV_font_flag_b        /* Load menu item: 1 enabled */
+#define D_IN_BATTLE GV_in_battle       /* 1 during a battle */
 #define D_SAVENAME 0xa680        /* "dksaveN.sav": the save last written or loaded */
 
 static const char *answer;       /* text_input's answer while we save */
@@ -156,7 +159,7 @@ static int do_save(const char *comment)
     if (g_rb(D_SAVE_OK) != 1) return 0;
     char before[16]; g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
     answer = comment; in_save = 1;
-    int r = game_call_far(37, 0x1462, 0x2a68, 0, 0);
+    int r = game_call_far(GF_save_game, 0, 0);
     answer = 0; in_save = 0;
     if (r < 0) { ui_notice("Could not save."); return 0; }
     char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
@@ -175,7 +178,7 @@ static int do_save(const char *comment)
 void ovl_area(u32 *lin_start, u32 *lin_end);
 static int call_load_game(void)
 {
-    void (*f)(void) = game_func(37, 0x1c7d, 0x09c6);
+    void (*f)(void) = game_func(GF_load_game);
     if (!f) return 0;
     u32 a0, a1;
     ovl_area(&a0, &a1);
@@ -203,7 +206,9 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
     if (quick_due) {
         quick_due = 0;
         if (g_rb(D_SAVE_OK) == 1) do_save("Quicksave");
-        else ui_notice("The game does not allow saving here.");
+        else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days stay spent)." :
+                       g_rb(D_IN_BATTLE) == 1 ? "The game does not allow saving during a battle." :
+                       "The game does not allow saving on this screen: leave it first (on a card, the travel map or in a town it can).");
     } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;
@@ -247,11 +252,11 @@ static void loadlist_hook(void)            /* the load screen's list (s037 1c7d:
 static void loadscreen_hook(void)
 {
     if (load_stage != 3) { hook_call_original(); return; }
-    void (*hide)(void) = game_func(-1, 0x047c, 0x0568), (*show)(void) = game_func(-1, 0x047c, 0x056f);
+    void (*hide)(void) = game_func(GF_screen_hold), (*show)(void) = game_func(GF_screen_release);
     void (*open)(void) = game_func(37, 0x1c7d, 0x024e), (*draw)(void) = game_func(37, 0x1c7d, 0x02ce);
     void (*key)(void) = game_func(37, 0x1c7d, 0x030a), (*close)(void) = game_func(37, 0x1c7d, 0x0218);
     if (!hide || !show || !open || !draw || !key || !close) { load_stage = 0; hook_call_original(); return; }
-    g_ww(0xe7a2, g_rw(0x2816)); g_ww(0xe7a0, g_rw(0x2804));          /* the fonts, put back by 0218 */
+    g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));          /* the fonts, put back by 0218 */
     game_call_live(hide, 0, 0);
     game_call_live(open, 0, 0);
     game_call_live(draw, 0, 0);
@@ -284,6 +289,38 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     load_stage = 0;
     loaded_t = plat_ticks_ms();
     auto_due[0] = 0;
+}
+
+/* the game's own Save and Load (the menu, Alt-S, Alt-L) as native dialogs (mods/savesview.c) */
+static void save_hook(void)                /* save_game () */
+{
+    if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
+    char c[48];
+    int r = savesview_save(c, sizeof c);
+    if (r < 0) { hook_call_original(); return; }
+    if (r == 0) { AX = 0; hook_return_far(0); return; }
+    answer = c; in_save = 1;
+    hook_call_original();
+    answer = 0; in_save = 0;
+    if (unw_active) return;
+    char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
+    char m[96]; snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    ui_notice(m);
+}
+
+static void load_hook(void)                /* load_game () */
+{
+    if (load_stage || !saves_on) { hook_call_original(); return; }   /* (ours under way; or the original's list and question) */
+    char f[16];
+    int r = savesview_load(f, sizeof f);
+    if (r < 0) { hook_call_original(); return; }
+    if (r == 0) { hook_return_far(0); return; }
+    snprintf(load_name, sizeof load_name, "%s", f);
+    load_stage = 2; load_t = plat_ticks_ms();
+    if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: loading %s (the game's Load)\n", load_name);
+    hook_call_original();                   /* (when it loads, the game unwinds through here) */
+    if (unw_active) return;
+    load_stage = 0;
 }
 
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
@@ -346,7 +383,7 @@ void saves_enable(int on)
     config_set_int("saves.quick", on);
     for (size_t i = 0; i < sizeof HK / sizeof HK[0]; i++) {
         if (on) { if (!hook_install(HK[i].sect, HK[i].seg, HK[i].off, HK[i].fn)) fprintf(stderr, "saves: no hook point %d %04x:%04x\n", HK[i].sect, HK[i].seg, HK[i].off); }
-        else hook_remove(HK[i].sect, HK[i].seg, HK[i].off);
+        else hook_remove(HK[i].sect, HK[i].seg, HK[i].off, HK[i].fn);
     }
 }
 
@@ -369,7 +406,10 @@ int saves_party_ended(void) { return !user_quit && game_seen; }     /* the progr
 void saves_init(void)
 {
     saves_restart = config_get_int("saves.restart_on_end", 1);
-    hook_install(-1, 0x0000, 0x13a0, quit_hook);
+    hook_install(GF_quit_to_dos, quit_hook);
+    hook_install(GF_save_game, save_hook);
+    hook_install(GF_load_game, load_hook);
+    savesview_init();
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);
     saves_auto_battle = config_get_int("saves.autosave_battle", 1);
     saves_keep_quick = config_get_int("saves.keep_quick", 3);

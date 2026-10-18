@@ -69,7 +69,7 @@ MT32_SRC := $(wildcard $(MT32)/*.cpp) $(wildcard $(MT32)/c_interface/*.cpp) $(MT
 MT32_OBJS := $(patsubst $(MT32)/%.cpp,$(OUT)/mt32emu/%.o,$(MT32_SRC))
 OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(MT32_OBJS) $(UI_OBJS) $(GEN_OBJS) \
             $(OUT)/version.o $(if $(filter win64,$(TARGET)),$(OUT)/res.o)
-# the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > About and the log
+# the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > Settings > About and the log
 RELEASE  ?=
 VERSION  := $(shell git -C $(TOP) rev-list --count HEAD 2>/dev/null || echo 0)-$(shell git -C $(TOP) rev-parse --short HEAD 2>/dev/null || echo local)
 # the translator's id: a game module made by another one does not fit (split.h, tools/prepare.py)

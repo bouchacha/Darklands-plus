@@ -74,7 +74,7 @@ while time.time() < t_end:
     if a.x11 and rnd.random() < 0.08:          # the interface: tabs of the F12 menu, the maps, help
         act = rnd.choice(['tabs', 'map', 'level', 'help'])
         L('ui', act)
-        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(12) for _ in range(4)) + '; key F12; wait 0.5')
+        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(14) for _ in range(4)) + '; key F12; wait 0.5')
         elif act == 'map': nctl.do(name, 'ucmd umap:; wait 1.5; ucmd umap:; wait 0.5')
         elif act == 'level': nctl.do(name, 'ucmd ulevelmap:; wait 1.5; ucmd ulevelmap:; wait 0.5')
         elif act == 'help': nctl.do(name, 'ucmd uhelp:; wait 1; ucmd uhelp:; wait 0.5')
@@ -85,6 +85,8 @@ while time.time() < t_end:
     if mode == 1 and n > 1 and len(recent) == 25 and len(set(recent)) == 1 and rnd.random() < 0.5:   # going round in circles (a mine's card): another way out
         nctl.do(name, 'ucmd ucardkey:%d; wait 2; at %d %d; click; wait 6' % (rnd.randrange(n) + 1, rnd.randrange(80, 300), rnd.randrange(20, 190))); continue
     if mode in (0, 3) and ': 0/0,0/0 0/0,0/0' in party and rnd.random() < 0.7:   # no party: the title menu
+        if a.load:                               # (the party fell: the save again, to go on soaking where it matters)
+            L('no party: loading', a.load); nctl.do(name, 'key Escape; wait 1; QUICKSTART; click; wait 3; ucmd uload:%s; wait 8; click; wait 3' % a.load.rsplit(':', 1)[1]); continue
         nctl.do(name, 'at 160 62; click; wait 6; click; wait 3; click; wait 3'); continue
     if mode == 1:
         if n > 0 and rnd.random() < 0.85:
@@ -99,16 +101,22 @@ while time.time() < t_end:
         if r < 0.5 and not (len(recent) == 25 and len(set(recent)) == 1): nctl.do(name, 'ucmd travelnear:%d; wait 8' % rnd.choice([0, 1, 2, 3, 4, 6, 8, 9]))
         else: nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(80, 300), rnd.randrange(20, 190)))
     elif mode == 4:
-        if time.time() - same_since > 120:
+        if time.time() - same_since > 120 and rnd.random() < 0.5:     # (a castle or dungeon to explore: walking as well)
             L('battle stuck for 2 min: striking the enemies'); nctl.do(name, '; '.join('ucmd uhit:0,%d,40,0' % t for t in range(5, 25)) + '; wait 4')
             if paused: nctl.do(name, 'key space; wait 4')
+        elif time.time() - same_since > 120:
+            L('battle stuck for 2 min: walking'); nctl.do(name, ('key space; wait 1; ' if paused else '') + 'at %d %d; click; wait 8' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
+        elif rnd.random() < 0.06: nctl.do(name, 'key e; wait 2; click; wait 1.5')      # Enemy Info
         elif paused: nctl.do(name, 'key space; wait 6')
         elif time.time() - same_since > 20:     # nothing happens (a castle or dungeon to explore): walk somewhere
             nctl.do(name, 'at %d %d; click; wait 6' % (rnd.randrange(70, 315), rnd.randrange(15, 195)))
         else: nctl.do(name, 'wait 6')
     elif mode == 3:
-        nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
-                                  'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
+        if rnd.random() < 0.35:                 # a native screen's actions (buy, sell, take, give, ready, brew ...)
+            nctl.do(name, 'ucmd unspush:%d,%d,%d,%d; wait 1.5' % (rnd.randrange(1, 14), rnd.randrange(0, 12), rnd.choice([0, 1, 2, 3, 10, 255]), rnd.choice([0, 1, 255])))
+        else:
+            nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
+                                      'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
     else:
         nctl.do(name, rnd.choice(['key Return; wait 1.5', 'at 160 100; click; wait 1.5', 'key space; wait 1.5', 'key Escape; wait 1.5', 'at 160 62; click; wait 3']))
 L('done', steps, 'steps, modes', modes)

@@ -9,7 +9,9 @@ extern Fix FIXES[];
 extern int FIX_COUNT;
 void fixes_init(void);
 void fix_enable(int i, int on);
-void potion_bonus(int m, int *dmg, int *pen);   /* weapon potions still running for member m */
+void potion_bonus(int m, int *dmg, int *pen);
+int fix_is_on(const char *id);                  /* the fix is on (and the original game not asked for) */
+void fixes_card_opts(void);                     /* cardopts: a card's opt_on[] put right before its options are shown */   /* weapon potions still running for member m */
 #ifdef __cplusplus
 }
 #endif

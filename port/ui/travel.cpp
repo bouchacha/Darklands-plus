@@ -12,6 +12,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../mods/travel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 void ui_toggle(void);
@@ -69,7 +70,7 @@ extern "C" void tab_travel(void)
             ImGui::Spacing();
         }
     }
-    if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (Helpers tab)."); return; }
+    if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (F12 > Settings > Helpers)."); return; }
     if (travel.active) {
         ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Travelling to %s, about %s to go.", travel.name, when(travel.left > 0 ? travel.left : travel.minutes).c_str());
         ImGui::SameLine();
@@ -125,14 +126,16 @@ extern "C" void tab_travel(void)
     }
 }
 
+extern "C" int ns_showing(void);
 /* the route over the map while travelling */
 extern "C" void travel_overlay(void)
 {
     if (!travel.active || game_mode() != GM_MAP) return;
+    if (ns_showing()) return;
     if (!travel_map_live()) return;            /* a card is up over the map (a village, an encounter); the option
                                                   count of the last card stays set after it closes */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImVec2 lastp; bool have = false;
     for (int k = travel.i - 1; k < travel.n; k++) {
         if (k < 0) continue;

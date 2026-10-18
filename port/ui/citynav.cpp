@@ -24,6 +24,7 @@ extern "C" {
 int datamods_generation(void);
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "../mods/assist.h"
@@ -193,7 +194,15 @@ static bool in_city(void)
     int cur = (s16)g_rw(G_CUR_LOC);
     return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD;
 }
-extern "C" int citynav_available(void) { return in_city(); }
+/* before the walls: the city's approach, its gates and its walls ($CityE, $CityG00..04, $CityW),
+   where no street leads anywhere yet (the groves, $CityG05/06, are inside) */
+static bool outside_walls(void)
+{
+    std::string c = card_now();
+    if (c.compare(0, 6, "$CITYE") == 0 || c.compare(0, 6, "$CITYW") == 0) return true;
+    return c.compare(0, 6, "$CITYG") == 0 && c.size() >= 8 && c[6] == '0' && c[7] >= '0' && c[7] <= '4';
+}
+extern "C" int citynav_available(void) { return in_city() && !outside_walls(); }
 
 static bool leave_option(const std::string &t)
 {
@@ -218,7 +227,7 @@ static int choose_leave(const std::vector<std::string> &line)
 static void click_line(int i)
 {
     LOG("click line %d\n", i);
-    int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
     plat_click_game(x0 + 10, y0 + (h > 8 ? 4 : h / 2));
     last_act = plat_ticks_ms(); steps_taken++;
 }
@@ -234,7 +243,7 @@ extern "C" void citynav_tick(void)
     if (!in_city()) { stop(game_mode() == GM_CARD ? "left the city." : "interrupted."); return; }
     if (steps_taken > 20) { stop("too many steps; stopped."); return; }
     std::string card = card_now();
-    int blk = (s16)g_rw(0xee53);
+    int blk = (s16)g_rw(GV_options_block);
     char kb[48]; snprintf(kb, sizeof kb, "%s/%d/%d", card.c_str(), blk, assist_in_card_menu());
     if (phase_key != kb) { phase_key = kb; phase_t = now; }
     int hub = hub_of(card);
@@ -253,11 +262,11 @@ extern "C" void citynav_tick(void)
     auto it = cards.find(card);
     if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("unknown card."); return; }
     std::vector<std::string> opts = block_options(it->second[blk]);
-    int n = (s8)g_rb(0xe96e);
+    int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;
-    if (g_rb(0xee41)) return;                              /* a skill-check box is up */
+    if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
-    for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(0xe9b0 + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
+    for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
     if (logon) { LOG("%s hub %d visited %x:\n", kb, hub, visited); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (hub == H_NONE) {                                   /* a shop or other place of the city: out the way the player would leave */
         if (visited || leaves >= 3) { stop("something happened on the way."); return; }
@@ -339,7 +348,7 @@ extern "C" int citynav_window(void)
         ImGui::SetWindowFontScale(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
         ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
-        { int hour = (s16)g_rw(0x00e0); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
+        { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 21 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }
         const int cols = 4;
         float bw = (ImGui::GetContentRegionAvail().x - (cols - 1) * ImGui::GetStyle().ItemSpacing.x) / cols;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.78f, 0.66f, 0.47f, 1));

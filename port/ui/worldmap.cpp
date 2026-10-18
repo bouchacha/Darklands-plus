@@ -6,17 +6,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <strings.h>
 #include <float.h>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <SDL.h>
 #include "imgui.h"
+extern "C" int ns_showing(void);
 #include "gamedata.h"
+#include "quests.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
@@ -85,6 +89,17 @@ static int icon_kind(int k)
     case 16: case 17: case 25: return IK_WATER; case 13: return IK_TOMB; case 4: case 20: case 21: return IK_STONES;
     case 9: case 26: return IK_RUIN; default: return IK_OTHER;
     }
+}
+/* the line under a place's name: its kind, or for a site the map names only by its kind
+   ("Lake", "Cave" ...), which town it is near */
+static std::string kind_line(const std::vector<Place> &P, const Place &p)
+{
+    const char *k = kind_label(p.kind);
+    if (strcasecmp(p.name.c_str(), k)) return k;
+    const Place *best = nullptr; double bd = 1e18;
+    for (const Place &t : P)
+        if (t.kind == 0) { double d = hypot((double)(t.x - p.x), (t.y - p.y) / 2.0); if (d < bd) { bd = d; best = &t; } }
+    return best ? std::string(k) + " near " + best->name : std::string(k);
 }
 static const char *IK_LABEL[IK_N] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik)
@@ -307,8 +322,10 @@ extern "C" void worldmap_draw(void)
 
     std::vector<Place> P = places();
     static std::vector<std::pair<int, std::string>> marks;
+    static std::vector<int> mark_cats;
     static int marks_frame = -1000;
-    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks(marks); marks_frame = ImGui::GetFrameCount(); }
+    static std::vector<TownMark> tmarks;
+    if (ImGui::GetFrameCount() - marks_frame > 30) { quest_marks_cat(marks, mark_cats); town_marks(tmarks); marks_frame = ImGui::GetFrameCount(); }
 
     // auto-travel route
     if (travel.active && travel.n > 1) {
@@ -340,6 +357,10 @@ extern "C" void worldmap_draw(void)
             dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
             dl->AddCircleFilled(s, r, kind_colour(g));
         }
+        {   int n = 0;                                       /* a town that bars the party, or whose watch wants it: its sign beside it */
+            for (const TownMark &t : tmarks)
+                if (t.loc == p.loc) { float ts = fmaxf(r * 1.5f, 16.0f * fmaxf(ks, 1.0f)); ui_draw_quest_icon(dl, ImVec2(s.x + r + ts * (0.45f + 1.0f * n), s.y - r * 0.6f), ts, t.cat); n++; }
+        }
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
         float hr = 14 * fmaxf(ks, 1.0f);
         if (hovered && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
@@ -355,17 +376,19 @@ extern "C" void worldmap_draw(void)
         }
     }
     // quest marks
-    if (show_quests)
-        for (auto &m : marks) {
+    if (show_quests)                                         /* the quest's picture on a pin above the place (several: side by side) */
+        for (size_t i = 0; i < marks.size(); i++) {
+            auto &m = marks[i];
             u32 r = g_location(m.first);
             if (!r) continue;
+            int nth = 0, n = 0;
+            for (size_t j = 0; j < marks.size(); j++) if (marks[j].first == m.first) { if (j < i) nth++; n++; }
             float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
-            float k = fmaxf(ks, 1.0f);
-            ImVec2 s = to_scr(x, y); s.y -= 14 * k;
-            ImVec2 pts[3] = { ImVec2(s.x - 7 * k, s.y - 8 * k), ImVec2(s.x + 7 * k, s.y - 8 * k), ImVec2(s.x, s.y + 4 * k) };
-            dl->AddTriangleFilled(pts[0], pts[1], pts[2], IM_COL32(0, 0, 0, 220));
-            ImVec2 q[3] = { ImVec2(s.x - 5 * k, s.y - 7 * k), ImVec2(s.x + 5 * k, s.y - 7 * k), ImVec2(s.x, s.y + 2 * k) };
-            dl->AddTriangleFilled(q[0], q[1], q[2], IM_COL32(255, 210, 60, 255));
+            float k = fmaxf(ks, 1.0f), is = 22 * k;
+            ImVec2 s = to_scr(x, y); s.y -= 10 * k;
+            ImVec2 c(s.x + (nth - (n - 1) * 0.5f) * is * 1.05f, s.y - is * 0.55f);
+            dl->AddTriangleFilled(ImVec2(c.x - 4 * k, c.y + is * 0.3f), ImVec2(c.x + 4 * k, c.y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
+            ui_draw_quest_icon(dl, c, is, i < mark_cats.size() ? mark_cats[i] : 0);
         }
     // the party
     {
@@ -400,9 +423,10 @@ extern "C" void worldmap_draw(void)
             ImGui::BeginTooltip();
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
-            ImGui::TextDisabled("%s", kind_label(p.kind));
+            ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
             ImGui::EndTooltip();
             break;
@@ -425,7 +449,7 @@ extern "C" void worldmap_draw(void)
         for (const Place &p : P) {
             std::string n = p.name; std::transform(n.begin(), n.end(), n.begin(), ::tolower);
             if (n.find(f) == std::string::npos) continue;
-            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_label(p.kind), p.loc);
+            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_line(P, p).c_str(), p.loc);
             if (ImGui::Selectable(lb)) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
             if (++shown >= 8) break;
         }
@@ -433,10 +457,41 @@ extern "C" void worldmap_draw(void)
     if (ImGui::SmallButton("The party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
     ImGui::SameLine();
     if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
-    ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
-    ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other places", &show_other);
-    ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Icons", &show_icons);
-    if (ImGui::TreeNodeEx("Legend", ImGuiTreeNodeFlags_DefaultOpen)) {   /* what the marks mean */
+    {   /* what the map shows: which places (the towns always), and how */
+        float lw = fmaxf(ImGui::CalcTextSize("Places").x, ImGui::CalcTextSize("Marks").x) + ImGui::GetFontSize() * 1.4f;
+        auto label = [&](const char *t) { ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("%s", t); ImGui::SameLine(lw); };
+        label("Places"); ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
+        ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(lw); ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other", &show_other);
+        label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a little picture of its kind (else a coloured dot)");
+    }
+    {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
+        static std::vector<QuestRow> qr; static int qf = -1000;
+        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); qf = ImGui::GetFrameCount(); }
+        for (int part = 0; part < 2; part++) {                  /* the tasks; the rumours heard (marked on the map too) */
+        bool any = false;
+        auto in_part = [&](const QuestRow &r) { return r.loc >= 0 && (part ? r.group == 2 || r.group == 4 : r.group <= 1); };
+        for (const QuestRow &r : qr) if (in_part(r)) { any = true; break; }
+        if (any && ImGui::TreeNodeEx(part ? "Rumours" : "Tasks", part ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) {
+            for (const QuestRow &r : qr) {
+                if (!in_part(r)) continue;
+                std::string d = quest_days(r);
+                float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
+                std::string pad((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
+                char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
+                bool sel = ImGui::Selectable(lb, selected == r.loc);
+                { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
+                if (sel) {
+                    for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
+                    selected = r.loc;
+                }
+                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+            }
+            ImGui::TreePop();
+        }
+        }
+    }
+    if (ImGui::TreeNode("Legend")) {   /* what the marks mean (closed at first: the map is the point) */
         float is = ImGui::GetFontSize() * 1.1f, colw = ImGui::GetFontSize() * 8.5f;
         ImDrawList *pl = ImGui::GetWindowDrawList();
         for (int k = 0; k < IK_N; k++) {
@@ -453,12 +508,22 @@ extern "C" void worldmap_draw(void)
         {   ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks and the party */
             ImGui::Dummy(ImVec2(is * 1.2f, is));
             ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
-            pl->AddTriangleFilled(ImVec2(m.x - 5, m.y - 5), ImVec2(m.x + 5, m.y - 5), ImVec2(m.x, m.y + 4), IM_COL32(255, 210, 60, 255));
-            ImGui::SameLine(); ImGui::TextUnformatted("Quest");
+            ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
+            ImGui::SameLine(); ImGui::TextUnformatted("A quest (its kind)");
             ImGui::SameLine(colw);
             q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
             pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
             ImGui::SameLine(); ImGui::TextUnformatted("The party");
+        }
+        if (ImGui::TreeNode("The quests' pictures")) {
+            for (int k = 1; k < QC_N; k++) {
+                if ((k - 1) % 2) ImGui::SameLine(colw);
+                ImVec2 q = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(is * 1.3f, is * 1.1f));
+                ui_draw_quest_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.55f), is * 1.1f, k);
+                ImGui::SameLine(); ImGui::TextUnformatted(QUEST_CAT_NAME[k]);
+            }
+            ImGui::TreePop();
         }
         ImGui::TreePop();
     }
@@ -466,13 +531,14 @@ extern "C" void worldmap_draw(void)
         for (const Place &p : P) if (p.loc == selected) {
             ImGui::Separator();
             ImGui::TextUnformatted(p.name.c_str());
-            ImGui::TextDisabled("%s", kind_label(p.kind));
+            ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (on_map) {
                 int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
                 if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
                 if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
             } else ImGui::TextDisabled("Auto-travel works from the travel map.");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str()); ImGui::PopTextWrapPos(); }
             break;
         }
     }
@@ -486,11 +552,16 @@ extern "C" void worldmap_draw(void)
  * odd rows half a tile to the right (the route in ui/travel.cpp is drawn the same way). */
 extern "C" void travelmap_labels(void)
 {
-    if (!config_get_int("map.names", 1) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    bool names = config_get_int("map.names", 1) != 0, signs = config_get_int("map.quest_marks", 1) != 0;   /* (names; the quests' and towns' signs) */
+    if ((!names && !signs) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
+    if (ns_showing()) return;                                   /* (a native box over the map: a map message) */
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float base = ui_text_px();
+    static std::vector<TownMark> tmarks; static int tf = -1000;
+    static std::vector<std::pair<int, std::string>> qmarks; static std::vector<int> qcats;
+    if (ImGui::GetFrameCount() - tf > 30) { town_marks(tmarks); quest_marks_cat(qmarks, qcats); tf = ImGui::GetFrameCount(); }
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
@@ -508,9 +579,31 @@ extern "C" void travelmap_labels(void)
         ImVec2 at; plat_game_to_win(sx, sy + 5, &at.x, &at.y);
         ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0, name.c_str());
         ImVec2 tp(at.x - ts.x * 0.5f, at.y);
-        float ow = fmaxf(1.0f, roundf(size / 16.0f));
-        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
-            if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
-        dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+        if (names) {
+            float ow = fmaxf(1.0f, roundf(size / 16.0f));
+            for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
+                if (dx || dy) dl->AddText(f, size, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 200), name.c_str());
+            dl->AddText(f, size, tp, town ? IM_COL32(255, 244, 214, 255) : IM_COL32(225, 215, 195, 240), name.c_str());
+        } else { tp.x = at.x - size * 0.6f; ts.x = 0; }             /* (the signs where the name would begin) */
+        if (!signs) continue;
+        int n = 0;                                            /* the town bars the party, or its watch wants it */
+        for (const TownMark &t : tmarks)
+            if (t.loc == k) { float is = size * 1.15f; ui_draw_quest_icon(dl, ImVec2(tp.x + ts.x + is * (0.65f + 1.05f * n), tp.y + ts.y * 0.5f), is, t.cat); n++; }
+        {                                                     /* a quest that leads here: its picture above the place */
+            int nq = 0, iq = 0;
+            for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) nq++;
+            for (size_t i = 0; i < qmarks.size(); i++)
+                if (qmarks[i].first == k) {
+                    float is = base * 1.3f;
+                    ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
+                    ImVec2 c(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f);
+                    ui_draw_quest_icon(dl, c, is, i < qcats.size() ? qcats[i] : 0);
+                    ImVec2 m = ImGui::GetIO().MousePos;             /* (the pointer on it: the task) */
+                    if (fabsf(m.x - c.x) < is * 0.5f && fabsf(m.y - c.y) < is * 0.5f && !ImGui::GetIO().WantCaptureMouse) {
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(qmarks[i].second.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
+                    iq++;
+                }
+        }
     }
 }

@@ -21,7 +21,9 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hooks.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -46,13 +48,13 @@ static std::string name_of(int i)
     if (!names[i].empty()) return names[i];
     std::string n;
     if (i < 5) { char b[16]; g_str(G_DGROUP, (u16)(G_MEMBER(i) + G_M_SHORTNAME), b, sizeof b); n = game_text(b, sizeof b); }
-    else n = ui_enemy_name(g_rb((u16)(0xa6b4 + i)), CB(i));
+    else n = ui_enemy_name(g_rb((u16)(GV_cbt_floor + i)), CB(i));
     if (n.empty()) n = i < 5 ? "?" : "Enemy";
     if (i >= 5) {                                   /* "Bandit 2" when there are several */
         int same = 0, nth = 0;
         for (int k = 5; k < 13; k++) {
             if (!g_rb((u16)(CB(k) + 0x14)) || (s8)g_rb((u16)(CB(k) + 0x64)) <= 0) continue;
-            std::string o = k == i ? n : ui_enemy_name(g_rb((u16)(0xa6b4 + k)), CB(k));
+            std::string o = k == i ? n : ui_enemy_name(g_rb((u16)(GV_cbt_floor + k)), CB(k));
             if (o == n) { same++; if (k <= i) nth++; }
         }
         if (same > 1) n += " " + std::to_string(nth);
@@ -101,7 +103,7 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
     int kind = i < 5 ? 0 : 1;
     if (anim == 1 || anim == 2) {
         int de = e0 - e1, ds = s0 - s1;
-        bool back = g_rb((u16)(0xca57 + t)) == 3;       /* a heavy blow pushes the target back a step */
+        bool back = g_rb((u16)(GV_cbt_anim + t)) == 3;       /* a heavy blow pushes the target back a step */
         if (de <= 0 && ds <= 0) add(kind, a + " hits " + d + ", the armour holds" + (back ? "; knocked back" : ""));
         else add(t < 5 ? 2 : kind, a + (ds > 0 ? " wounds " : " hits ") + d + " (" + cost(de, ds) + ")" + (back ? ", knocked back" : ""));
     }
@@ -129,10 +131,54 @@ static int shooter_at(int t)
     return -1;
 }
 
+/* missiles: whether one hits is decided when it is loosed (missile_launch, s018 1ef8:0000):
+ * a missile that will strike flies to its target (record +0x11 = 0), one that misses flies
+ * on until something stops it (+0x11 = 1). The hit itself shows when the target's endurance
+ * drops (battlelog_frame); one whose armour held shows when it should have landed. */
+static int shot_by[13] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+static u32 shot_t[13];
+static std::string shot_word(int who)
+{
+    int w = (s8)g_rb((u16)(CB(who) + 0x22));
+    return w >= 0x17 && w <= 0x1a ? "'s throw" : "'s shot";      /* throwing axe, javelin, dart, throwing knife */
+}
+static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who, tgt, type, d, e) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), tgt = (s16)rw(SS, (u16)(SP + 6)), type = (s16)rw(SS, (u16)(SP + 8));
+    hook_call_original();
+    if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
+    int n = (s8)g_rb(GV_missile_count) - 1;
+    if (n < 0 || n >= 17) return;
+    u16 r = (u16)(0x944d + 0x1a * n);
+    if (!in_battle) start_battle();
+    if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, name_of(who) + shot_word(who) + " misses " + name_of(tgt));
+    else { shot_by[tgt] = who; shot_t[tgt] = plat_ticks_ms(); }
+}
+/* a message in a member's box at the left (s021 1ef8:01e2 (row, colour): "Edged changed from 30 to
+ * 33" at the end of a battle, row = the member, -2 the whole panel), and the game waits for a key
+ * or a click. Where the party panel is drawn anew it covered them: the panel shows it in the
+ * member's box instead (partypanel_note), the log keeps it, and the game goes on at once. */
+extern "C" int partypanel_shown(void);
+extern "C" void partypanel_note(int row, const char *text, int good);
+static void sidemsg_hook(void)
+{
+    int row = (s16)rw(SS, (u16)(SP + 4)), colour = (s16)rw(SS, (u16)(SP + 6));
+    if (!partypanel_shown() || config_get_int("original", 0)) { hook_call_original(); return; }
+    char b[96]; g_str(G_DGROUP, GV_msg_buf, b, sizeof b);
+    std::string t = game_text(b, strlen(b));
+    partypanel_note(row, t.c_str(), colour != 12);
+    if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, name_of(row) + ": " + t);
+    else add(4, t);
+    fprintf(stderr, "side message (row %d): %s\n", row, t.c_str());
+    hook_return_far(0);
+}
+extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
+
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)
 {
     if (game_mode() != GM_BATTLE) {
+        if (in_battle && g_rb(GV_in_battle) == 1) return;    /* a member's sheet open in the battle: not over */
         if (in_battle) {
             in_battle = false;
             if (!lines.empty()) {                     /* how it ended, from the last look at everyone */
@@ -157,8 +203,9 @@ extern "C" void battlelog_frame(void)
             if (de < 0) de = 0;
             if (ds < 0) ds = 0;
             if (de || ds) {
-                int by = shooter_at(i);
-                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + "'s shot hits " + name_of(i) + " (" + cost(de, ds) + ")");
+                int by = shot_by[i] >= 0 ? shot_by[i] : shooter_at(i);
+                shot_by[i] = -1;
+                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + name_of(i) + " (" + cost(de, ds) + ")");
                 else add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")");
             }
         }
@@ -167,6 +214,10 @@ extern "C" void battlelog_frame(void)
             else if (st == 2) add(i < 5 ? 3 : 4, name_of(i) + " falls unconscious" + (i < 5 ? "!" : ""));
             else if (st == 1 && known_st[i] == 2) add(4, name_of(i) + " comes to");
             else if (st == 5) add(i < 5 ? 3 : 4, name_of(i) + " leaves the field");
+        }
+        if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
+            int by = shot_by[i]; shot_by[i] = -1;
+            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, name_of(by) + shot_word(by) + " hits " + name_of(i) + ", the armour holds");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
         if (st) last_st[i] = st;
@@ -187,8 +238,13 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float pad = fs * 0.7f, lh = fs * 1.25f, y = h - pad;
-    dl->AddText(f, fs * 1.05f, ImVec2(x + pad, pad), IM_COL32(222, 178, 104, 255), "Battle");
+    {   /* framed as the other margins' panels (an ImGui window's border) */
+        const ImGuiStyle &st = ImGui::GetStyle();
+        if (st.WindowBorderSize > 0) dl->AddRect(ImVec2(x + 0.5f, 0.5f), ImVec2(x + w - 0.5f, h - 0.5f), ImGui::GetColorU32(ImGuiCol_Border), st.WindowRounding, 0, st.WindowBorderSize);
+    }
+    dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f), IM_COL32(222, 178, 104, 255), "Battle");
     float top = pad + lh * 1.5f;
+    if (lines.empty()) dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f + lh), IM_COL32(170, 150, 120, 255), "Each blow is told here.", 0, w - 2 * pad);
     for (int k = (int)lines.size() - 1; k >= 0 && y > top + lh; k--) {
         /* wrapped to the margin's width, so a long line takes two rows */
         const char *t = lines[k].text.c_str();

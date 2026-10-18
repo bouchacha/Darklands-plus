@@ -21,9 +21,11 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 }
 extern ImFont *ui_font_small;
+extern "C" int levelwalk_x, levelwalk_y, levelwalk_floor;   /* mods/levelwalk.c */
 
 #define NFLOORS 16
 static unsigned char seen[NFLOORS][40][40];
@@ -35,7 +37,7 @@ static inline s32 cell(int x, int y)
     u16 o = (u16)((x * 40 + y) * 4);
     return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16);
 }
-static int floor_now(void) { return (s8)g_rb(0x11ca); }
+static int floor_now(void) { return (s8)g_rb(GV_floor_shown); }
 
 extern "C" int levelmap_is_open(void) { return open_lm; }
 extern "C" int levelmap_available(void) { return game_mode() == GM_BATTLE && config_get_int("assist.level_map", 1) && !config_get_int("original", 0); }
@@ -207,7 +209,7 @@ extern "C" void levelmap_draw(void)
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
         if (st != 1 && st != 2) return false;
-        if ((s8)g_rb((u16)(0xa6b4 + i)) != fl) return false;
+        if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) return false;
         float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) return false;
         *at = P(X, Y);
@@ -216,9 +218,9 @@ extern "C" void levelmap_draw(void)
     /* who is going for whom (combatant +0x4a): the party's in blue, the enemies' in red */
     for (int i = 0; i < 13; i++) {
         ImVec2 a, b;
-        int t = (s8)g_rb((u16)(0x9c55 + 0x80 * i + 0x4a));
+        int t = (s8)g_rb((u16)(GV_combatants + 0x80 * i + 0x4a));
         if (t < 0 || t > 12 || t == i || !shown(i, &a) || !shown(t, &b)) continue;
-        if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) != 1) continue;
+        if (g_rb((u16)(GV_combatants + 0x80 * i + 0x14)) != 1) continue;
         ImU32 lc = i < 5 ? IM_COL32(90, 170, 250, 220) : IM_COL32(230, 80, 60, 220);
         float dx = b.x - a.x, dy = b.y - a.y, len = sqrtf(dx * dx + dy * dy);
         if (len < r * 2.2f) continue;
@@ -232,7 +234,7 @@ extern "C" void levelmap_draw(void)
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14));
         if (st != 1 && st != 2) continue;
-        if ((s8)g_rb((u16)(0xa6b4 + i)) != fl) continue;
+        if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
         float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) continue;
         ImVec2 m = P(X, Y);
@@ -244,6 +246,49 @@ extern "C" void levelmap_draw(void)
             char ini[3] = { nm[0] ? nm[0] : '?', (char)(nm[0] ? nm[1] : 0), 0 };     /* two letters: Gretch and Gunther */
             float fs = r * 1.1f; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, ini);
             dl->AddText(f, fs, ImVec2(m.x - ts.x * 0.5f, m.y - ts.y * 0.5f), IM_COL32(255, 255, 255, 255), ini);
+        }
+    }
+    /* a click on a floor cell, a door or stairs the party has seen: the party walks there
+       (mods/levelwalk.c) */
+    bool walk = config_get_int("assist.level_map_walk", 1) != 0;
+    if (walk && ImGui::IsWindowHovered()) {
+        ImVec2 mp = io.MousePos;
+        float Yf = (mp.y - org.y) / s / YY, Xf = ((mp.x - org.x) / s - Yf * YX) / SX;
+        int hx = (int)floorf(Xf), hy = (int)floorf(Yf);
+        int wx = -1, wy = -1;                                 /* where to, map pixels */
+        float qx0 = 0, qy0 = 0, qx1 = 0, qy1 = 0;
+        auto in_rect = [&](u16 r0, float grow) {               /* a door's or stairs' record: map pixels x, y, w, h */
+            int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
+            float X0 = x / 32.0f - grow, Y0 = y / 16.0f - grow, X1 = (x + w) / 32.0f + grow, Y1 = (y + h) / 16.0f + grow;
+            if (Xf < X0 || Xf > X1 || Yf < Y0 || Yf > Y1 || !known((int)((X0 + X1) * 0.5f), (int)((Y0 + Y1) * 0.5f))) return false;
+            wx = x + w / 2; wy = y + h / 2; qx0 = X0; qy0 = Y0; qx1 = X1; qy1 = Y1;
+            return true;
+        };
+        int nd = (s8)rb(G_FAR20A5, 0x1f52), ns = (s8)rb(G_FAR20A5, 0x2fb6);
+        for (int k = 0; k < ns && k < 6 && wx < 0; k++) in_rect((u16)(0x2fb8 + 14 * k), 0.15f);
+        for (int k = 0; k < nd && k < 40 && wx < 0; k++)
+            if (in_rect((u16)(0x1f54 + 14 * k), 0.3f)) {      /* a door stands in the wall: the floor cell before it, on the seen side */
+                float bd = 1e9f; int bx = -1, by = -1;
+                for (int x = (int)(wx / 32.0f) - 3; x <= (int)(wx / 32.0f) + 3; x++)
+                    for (int y = (int)(wy / 16.0f) - 3; y <= (int)(wy / 16.0f) + 3; y++) {
+                        if (x < 0 || x >= 40 || y < 0 || y >= 40 || !known(x, y) || cell(x, y) < 0) continue;
+                        float dx = x + 0.5f - wx / 32.0f, dy = y + 0.5f - wy / 16.0f, d = dx * dx + dy * dy;
+                        if (d < bd) { bd = d; bx = x; by = y; }
+                    }
+                if (bx < 0) { wx = -1; continue; }
+                wx = bx * 32 + 16; wy = by * 16 + 8;
+            }
+        if (wx < 0 && known(hx, hy) && hx >= 0 && hx < 40 && hy >= 0 && hy < 40 && cell(hx, hy) >= 0) {
+            wx = hx * 32 + 16; wy = hy * 16 + 8; qx0 = (float)hx; qy0 = (float)hy; qx1 = qx0 + 1; qy1 = qy0 + 1;
+        }
+        if (wx >= 0) {
+            ImVec2 a = P(qx0, qy0), b = P(qx1, qy0), cc = P(qx1, qy1), d = P(qx0, qy1);
+            dl->AddQuad(a, b, cc, d, IM_COL32(250, 220, 120, 255), 2.5f);
+            ImGui::SetTooltip("A click: the party walks here");
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                levelwalk_x = wx; levelwalk_y = wy; levelwalk_floor = fl;
+                open_lm = false;
+            }
         }
     }
     /* title and legend */
@@ -264,6 +309,6 @@ extern "C" void levelmap_draw(void)
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
     if (all) legend(HIDDEN, "not yet open", false);
-    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), "Tab or Esc closes this (the game waits).");
+    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "A click on the floor walks the party there; Tab or Esc closes this (the game waits)." : "Tab or Esc closes this (the game waits).");
     ImGui::End();
 }

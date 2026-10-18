@@ -16,9 +16,11 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "../mods/looks.h"
+#include "uiinternal.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 }
 
@@ -55,9 +57,9 @@ extern "C" void tab_editor(void)
         ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("groschen", &g)) g_ww(G_MONEY + 2, (u16)(g < 0 ? 0 : g));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("pfennigs", &p)) g_ww(G_MONEY + 4, (u16)(p < 0 ? 0 : p));
-        int bn = (s16)g_rw(0x9072), fame = (s16)g_rw(0x9082), ps = (s16)g_rw(0x9078);
+        int bn = (s16)g_rw(0x9072), fame = (s16)g_rw(GV_party_fame), ps = (s16)g_rw(0x9078);
         ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(0x9072, (u16)(bn < 0 ? 0 : bn));
-        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("fame", &fame)) g_ww(0x9082, (u16)fame);
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("fame", &fame)) g_ww(GV_party_fame, (u16)fame);
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(0x9078, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
         int loc = (s16)g_rw(G_CUR_LOC);
         u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
@@ -71,11 +73,11 @@ extern "C" void tab_editor(void)
     }
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
-    if (!ImGui::BeginTabBar("edmembers")) return;
+    if (!ui_subtabs_begin("edmembers")) return;
     for (int m = 0; m < size; m++) {
         char nick[16]; g_str(G_DGROUP, (u16)(rec(m) + 0x3e), nick, sizeof nick);
         std::string tabname = game_text(nick, sizeof nick) + "##ed" + std::to_string(m);
-        if (!ImGui::BeginTabItem(tabname.c_str())) continue;
+        if (!ui_subtab(tabname.c_str())) continue;
         ImGui::BeginChild("edm", ImVec2(0, 0));
         u16 r = rec(m);
         if (ImGui::CollapsingHeader("Name, age, looks", ImGuiTreeNodeFlags_DefaultOpen)) {

@@ -22,6 +22,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "travel.h"
 #include "encounters.h"
@@ -83,15 +84,31 @@ static int *dist, *prev;
 static unsigned char *site;           /* tiles of locations (stepping on one enters it) */
 static int field_x = -1, field_y = -1, field_seq;
 
+static short *enter;                  /* the location stepping on a tile enters, -1 none */
+
+/* the game's rule (s030 1462:1300): on a site's terrain (26, 28 and up) the party enters the
+ * first location, by index, within 1 tile (4 on terrain 29; one more to the east and south)
+ * whose menu is not 0x62. Painted from the last location to the first so the first wins. */
 static void mark_sites(void)
 {
-    if (!site) site = calloc((size_t)mw * mh, 1);
-    memset(site, 0, (size_t)mw * mh);
-    for (int i = 0; i < G_NLOC; i++) {
+    size_t n = (size_t)mw * mh;
+    if (!site) site = calloc(n, 1);
+    if (!enter) enter = malloc(n * sizeof *enter);
+    memset(site, 0, n);
+    for (size_t k = 0; k < n; k++) enter[k] = -1;
+    for (int i = G_NLOC - 1; i >= 0; i--) {
         u32 r = g_location(i);
         if (!r) continue;
-        int x = (s16)rw((u16)(r >> 16), (u16)(r + 4)), y = (s16)rw((u16)(r >> 16), (u16)(r + 6));
-        if (x >= 0 && y >= 0 && x < mw && y < mh) site[y * mw + x] = 1;
+        int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
+        if (lx >= 0 && ly >= 0 && lx < mw && ly < mh) site[ly * mw + lx] = 1;
+        if (rw((u16)(r >> 16), (u16)(r + 0x0c)) == 0x62) continue;
+        for (int y = ly - 5; y <= ly + 4; y++)
+            for (int x = lx - 5; x <= lx + 4; x++) {
+                if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
+                int t = terr[y * mw + x], rr = t == 29 ? 4 : 1;
+                if (t < 26 || t == 27) continue;
+                if (x - rr <= lx && lx <= x + rr + 1 && y - rr <= ly && ly <= y + rr + 1) enter[y * mw + x] = (short)i;
+            }
     }
 }
 
@@ -155,10 +172,10 @@ static void field(int x0, int y0)
 
 void travel_party_tile(int *x, int *y)
 {
-    int rowk = ((s16)g_rw(0x2868) + 11) / 4;
-    int py = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
-    int cold = (((py & 1) ? (s16)g_rw(0x2866) + 16 : (s16)g_rw(0x2866) + 24)) / 16;
-    *x = (s16)g_rw(0x286a) + cold - 1; *y = py;
+    int rowk = ((s16)g_rw(GV_map_marker_y) + 11) / 4;
+    int py = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
+    int cold = (((py & 1) ? (s16)g_rw(GV_map_marker_x) + 16 : (s16)g_rw(GV_map_marker_x) + 24)) / 16;
+    *x = (s16)g_rw(GV_map_view_col) + cold - 1; *y = py;
 }
 
 static int map_ready(void) { return game_mode() == GM_MAP && load_map(); }
@@ -205,23 +222,24 @@ int travel_to_tile(int x, int y, int loc, const char *name)
 
 void travel_stop(void) { travel.active = 0; }
 
-/* a location is entered by stepping on any of its tiles (a city covers several): the goal is
- * the nearest reachable tile of it, or its own tile */
+/* a location is entered by stepping on a tile of a site near it (a city covers several): the
+ * goal is the nearest reachable tile that enters this location, or its own tile. (The nearest
+ * site tile was taken before: one 3 or 4 tiles from a city's centre entered nothing, and the
+ * party stood still beside Kassel.) */
 int travel_minutes_loc(int loc, int *gx, int *gy)
 {
     u32 r = g_location(loc);
-    if (!r || travel_minutes(0, 0) == -2) return -1;     /* also refreshes the field */
+    if (!r || travel_minutes(0, 0) == -2 || !enter) return -1;   /* also refreshes the field */
     int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
     int best = -1;
-    for (int y = ly - 4; y <= ly + 5; y++)
-        for (int x = lx - 4; x <= lx + 5; x++) {
+    for (int y = ly - 5; y <= ly + 4; y++)
+        for (int x = lx - 5; x <= lx + 4; x++) {
             if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
-            int t = terr[y * mw + x];
-            if (!(x == lx && y == ly) && t != 29 && t != 28) continue;
-            if (t == 29 && (abs(x - lx) > 4 || abs(y - ly) > 4)) continue;
+            if (enter[y * mw + x] != loc) continue;
             int d = travel_minutes(x, y);
             if (d >= 0 && (best < 0 || d < best)) { best = d; if (gx) *gx = x; if (gy) *gy = y; }
         }
+    if (best < 0 && (best = travel_minutes(lx, ly)) >= 0) { if (gx) *gx = lx; if (gy) *gy = ly; }   /* (none: its own tile) */
     return best;
 }
 
@@ -236,14 +254,14 @@ int travel_to_loc(int loc, const char *name)
 static void tile_of(int mx, int my, int *tx, int *ty)
 {
     int rowk = (my + 11) / 4;
-    int py = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
+    int py = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
     *ty = py;
-    *tx = (s16)g_rw(0x286a) + ((py & 1) ? mx + 16 : mx + 24) / 16 - 1;
+    *tx = (s16)g_rw(GV_map_view_col) + ((py & 1) ? mx + 16 : mx + 24) / 16 - 1;
 }
 
 static int marker_target(int tx, int ty, int *mx, int *my)
 {
-    int vx = (s16)g_rw(0x286a), vr = (s16)g_rw(0x286e) + (s16)g_rw(0x286c);
+    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     *my = 4 * (ty - vr) - 6;
     *mx = 16 * (tx - vx) + ((ty & 1) ? 7 : -1);
     return 1;
@@ -277,7 +295,23 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             }
             if (travel.active) {
                 int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
-                int x = (s16)g_rw(0x2866), y = (s16)g_rw(0x2868);
+                int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
+                /* a safety: the party has not moved for many steps (each costs time): stop rather
+                   than let the days pass where it stands */
+                static int last_x = -1, last_y = -1, still;      /* (the tile: a tile takes at most some 16 steps to cross) */
+                (void)x; (void)y; (void)mx; (void)my;
+                if (px == last_x && py == last_y) still++; else still = 0;
+                last_x = px; last_y = py;
+                if (still > 150) {
+                    void ui_notice(const char *);
+                    still = 0; travel.active = 0;
+                    fprintf(stderr, "travel: stopped, the party did not move for 150 steps at (%d,%d)\n", px, py);
+                    ui_notice("Travel stopped: the party could not get any further this way.");
+                }
+            }
+            if (travel.active) {
+                int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
+                int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
                 /* the marker's tile is a rectangular approximation of the hex grid: a straight
                  * line between two tiles' centres can graze a third tile (a town would then be
                  * entered). Of the eight keys take the one that gets closest to the next tile's
@@ -337,7 +371,7 @@ void travel_set(int on, int fast)
     config_set_int("travel.auto", on); config_set_int("travel.fast", fast);
     hook_install(30, 0x1462, 0x0c44, step_hook);     /* always: it also tells what a step led to (travel_step_result) */
     if (on) hook_install(30, 0x1767, 0x0046, delay_hook);
-    else { hook_remove(30, 0x1767, 0x0046); travel.active = 0; }
+    else { hook_remove(30, 0x1767, 0x0046, delay_hook); travel.active = 0; }
 }
 
 /* how often the road brings an encounter (travel.encounters, % of the game's rate). Each step
@@ -357,10 +391,50 @@ static void encounter_weight_hook(void)
     AX = (u16)w;
 }
 
+/* how often the streets of a town bring trouble at night (travel.street_encounters, % of the
+ * game's rate). Two rolls make it:
+ *   the night watch ($Night00): the night main street ($MainS02, card 8) and side streets
+ *     ($SideS01, card 10) ask vec_20e9 (s039 1462:0000) on entry for the chance D (%) of
+ *     meeting it at each move (4..9 and 1..6, more where the town is on its guard); the option's
+ *     chance shown and the roll both use it;
+ *   the cutthroat thieves ($CityT00): leaving the night side streets the party slips past them
+ *     when T > rand(100), T = (the party's average Stealth + Streetwise) / 2, through clamp_range
+ *     (s029 1367:0066) called at s046 194b:02d6 - with skills about 20, thieves 8 times in 10.
+ * Both are scaled here: D by pct, and the chance of the thieves (100 - T) by pct. */
+static int street_pct(void) { return config_get_int("original", 0) ? 100 : config_get_int("travel.street_encounters", 100); }
+static int scale_chance(int c, int pct)               /* c% times pct%, rounded at random (the chances are small) */
+{
+    int x = c * pct;
+    return x / 100 + (rand() % 100 < x % 100 ? 1 : 0);
+}
+static void watch_chance_hook(void)                   /* vec_20e9 (v, ?, lo): a town's chance of trouble */
+{
+    int card = (s16)g_rw(0xa772), pct = street_pct();
+    hook_call_original();
+    if (pct == 100 || (card != 8 && card != 10)) return;
+    int d = (s16)AX, nd = scale_chance(d, pct);
+    if (nd > 99) nd = 99;
+    if (getenv("DL_ENC_LOG")) fprintf(stderr, "street: the watch %d%% -> %d%% (card %d)\n", d, nd, card);
+    AX = (u16)nd;
+}
+static void clamp_hook(void)                          /* clamp_range (lo, hi, v), s029 1367:0066 */
+{
+    u16 ret = rw(SS, SP);
+    int card = (s16)g_rw(0xa772), pct = street_pct();
+    hook_call_original();
+    if (pct == 100 || ret != 0x02db || card != 10) return;   /* (only the thieves' roll leaving the night side streets) */
+    int t = (s16)AX, miss = 100 - t, nm = scale_chance(miss, pct);
+    if (nm > 100) nm = 100;
+    if (getenv("DL_ENC_LOG")) fprintf(stderr, "street: thieves %d%% -> %d%%\n", miss, nm);
+    AX = (u16)(100 - nm);
+}
+
 void travel_init(void)
 {
     travel_set(config_get_int("travel.auto", 1), config_get_int("travel.fast", 1));
     hook_install(30, 0x1462, 0x2d44, encounter_weight_hook);
+    hook_install(39, 0x1462, 0x0000, watch_chance_hook);
+    hook_install(29, 0x1367, 0x0066, clamp_hook);
 }
 
 /* Ctrl+click at game pixel (gx, gy) on the travel map */
@@ -369,8 +443,8 @@ void travel_click(int gx, int gy)
     if (!travel_enabled || !map_ready() || gx < 62) return;
     int mx = gx - 0x41, my = gy - 0x15;                       /* marker coordinates, as the game takes a click */
     int rowk = (my + 11) / 4;
-    int ty = rowk + (s16)g_rw(0x286e) + (s16)g_rw(0x286c) - 1;
-    int tx = (s16)g_rw(0x286a) + ((ty & 1) ? mx + 16 : mx + 24) / 16 - 1;
+    int ty = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
+    int tx = (s16)g_rw(GV_map_view_col) + ((ty & 1) ? mx + 16 : mx + 24) / 16 - 1;
     /* a location there? then travel to it */
     for (int i = 0; i < G_NLOC; i++) {
         u32 r = g_location(i);

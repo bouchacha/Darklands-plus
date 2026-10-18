@@ -59,7 +59,7 @@ anything made from the game), and `.github/workflows/release.yml` does all of it
 tag `v...`. The zip's contents go into the Darklands folder; `port/tools/release_readme.txt` is
 the players' README.
 
-## What it adds (all can be switched off; F12 > Helpers > "Play the original game" turns everything off)
+## What it adds (all can be switched off; F12 > Settings > Helpers > "Play the original game" turns everything off)
 
 On the first start a short welcome names the keys that matter and offers the original game untouched.
 

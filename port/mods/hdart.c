@@ -31,6 +31,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "hdart.h"
 #include "hdtext.h"
@@ -235,11 +236,40 @@ static int file_palette(const char *dosname, u32 *pal, u8 *mask)
 }
 
 /* a PIC file of the game, unpacked (for other modules) */
+/* a picture inside one of the game's catalogues ("EINFO.CAT|E00SWST.PIC": u16 count, then 24
+ * bytes an entry: the name (12), 4 unknown, the size, the offset) */
+static int read_cat_entry(const char *catname, const char *entry, u8 **data, long *n)
+{
+    char p[1200]; dos_host_path_read(catname, p, sizeof p);
+    u8 *c; long cn;
+    if (!read_file(p, &c, &cn)) return 0;
+    int ok = 0, cnt = cn >= 2 ? c[0] | c[1] << 8 : 0;
+    for (int k = 0; k < cnt && 2 + (k + 1) * 24 <= cn && !ok; k++) {
+        const u8 *e = c + 2 + k * 24;
+        char nm[13]; memcpy(nm, e, 12); nm[12] = 0;
+        if (strcasecmp(nm, entry)) continue;
+        long len = e[16] | e[17] << 8 | (long)e[18] << 16 | (long)e[19] << 24, off = e[20] | e[21] << 8 | (long)e[22] << 16 | (long)e[23] << 24;
+        if (off < 0 || len <= 0 || off + len > cn) break;
+        *data = malloc((size_t)len + 1);
+        if (*data) { memcpy(*data, c + off, (size_t)len); *n = len; ok = 1; }
+    }
+    free(c);
+    return ok;
+}
+
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask)
 {
     char p[1200]; dos_host_path_read(dosname, p, sizeof p);
     u8 *d; long n;
-    if (!read_file(p, &d, &n)) return 0;
+    const char *bar = strchr(dosname, '|');
+    if (bar) {
+        char cat[64]; size_t cl = (size_t)(bar - dosname); if (cl >= sizeof cat) return 0;
+        memcpy(cat, dosname, cl); cat[cl] = 0;
+        if (!read_cat_entry(cat, bar + 1, &d, &n)) return 0;
+    } else if (!read_file(p, &d, &n)) {                /* the extra figures' pictures are made by mods/looks.c */
+        const char *looks_virtual_file(const char *); const char *v = looks_virtual_file(dosname);
+        if (!v || !read_file(v, &d, &n)) return 0;
+    }
     u8 *img = pic_decode(d, n, w, h, pal, mask);
     free(d);
     return img;
@@ -1011,18 +1041,18 @@ void hdart_init(void)
     hdart_on = config_get_int("display.hd_art", 1);
     hdart_show_names = config_get_int("display.art_names", 0);
     hdart_rescan();
-    hook_install(-1, 0x0617, 0x01b2, h_pic_draw);
-    hook_install(-1, 0x0617, 0x04e2, h_pic_open);
-    hook_install(-1, 0x0617, 0x0546, h_pic_mem);
-    hook_install(-1, 0x0617, 0x045c, h_pic_load);
+    hook_install(GF_pic_draw, h_pic_draw);
+    hook_install(GF_pic_draw_open, h_pic_open);
+    hook_install(GF_pic_draw_mem, h_pic_mem);
+    hook_install(GF_pic_load, h_pic_load);
     hook_install(-1, 0x047c, 0x054c, h_row);
     hook_install(-1, 0x047c, 0x05bc, h_sprite_begin);
     hook_install(-1, 0x047c, 0x05b5, h_sprite_row);
-    hook_install(-1, 0x047c, 0x04d5, h_save_rect);
-    hook_install(-1, 0x047c, 0x05a5, h_draw_pic);
-    hook_install(-1, 0x047c, 0x0553, h_copy);
-    hook_install(-1, 0x047c, 0x04ef, h_draw_sprite);
-    hook_install(14, 0x0e76, 0x3d2c, h_sprite_file);
+    hook_install(GF_gfx_save_rect, h_save_rect);
+    hook_install(GF_gfx_draw_pic, h_draw_pic);
+    hook_install(GF_gfx_copy_rect, h_copy);
+    hook_install(GF_gfx_draw_sprite, h_draw_sprite);
+    hook_install(GF_sprite_file_load, h_sprite_file);
     if (getenv("DL_THUNK_LOG")) thunk_probe();
     if (getenv("DL_ART_MAKE")) { char d[64]; snprintf(d, sizeof d, "PICS\\%s.PIC", getenv("DL_ART_MAKE")); const char *r = hdart_virtual_file(d); fprintf(stderr, "art make: %s\n", r ? r : "(none)"); }
 }

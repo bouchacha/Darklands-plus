@@ -35,10 +35,27 @@ def start(name, exe, game, x11=False):
     env = dict(os.environ, DL_HEADLESS='1', SDL_AUDIODRIVER='dummy', DL_CTL=os.path.join(d, 'ctl'))
     if x11:
         disp = 100 + (sum(map(ord, name)) % 400)
-        xv = subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
+        lock = '/tmp/.X%d-lock' % disp          # left behind by a server that was killed: Xvfb would not start
+        try:
+            lpid = int(open(lock).read().strip())
+            if 'Xvfb' not in open('/proc/%d/comm' % lpid).read():
+                raise ValueError('not an X server')
+            if '\tZ' in open('/proc/%d/status' % lpid).read().split('State:')[1][:4]:
+                raise ValueError('a dead X server, not yet reaped')
+        except (OSError, ValueError):
+            for f in (lock, '/tmp/.X11-unix/X%d' % disp):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        xv =subprocess.Popen(['Xvfb', ':%d' % disp, '-screen', '0', os.environ.get('NCTL_SCREEN', '1280x800') + 'x24', '-nolisten', 'tcp'],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         open(os.path.join(d, 'xpid'), 'w').write(str(xv.pid))
-        time.sleep(1.0)
+        for _ in range(50):                     # (until the server listens: a slow start made the game fail to open its window)
+            if os.path.exists('/tmp/.X11-unix/X%d' % disp):
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
         del env['DL_HEADLESS']
         env['DISPLAY'] = ':%d' % disp
     if exe.lower().endswith('.exe'):        # a Windows build under Wine: its output goes to darklands_port.log
@@ -71,6 +88,19 @@ def do(name, script):
         c = f[0]
         if c == 'wait':
             time.sleep(float(f[1]))
+        elif c == 'waitlog':                    # waitlog SECONDS REGEX: until the log shows a new line matching
+            import re
+            lim, rx = float(f[1]), re.compile(' '.join(f[2:]))
+            log = os.path.join(d, 'out.txt')
+            n0 = len(open(log, 'rb').read().split(b'\n'))
+            t_end = time.time() + lim
+            while time.time() < t_end:
+                lines = open(log, 'rb').read().split(b'\n')[n0 - 1:]
+                if any(rx.search(l.decode('latin-1')) for l in lines):
+                    break
+                time.sleep(0.2)
+            else:
+                print('waitlog: timed out on', rx.pattern)
         elif c == 'key':
             for k in f[1:]:
                 send(d, 'key:%s' % KEYMAP.get(k, k)); time.sleep(0.15)

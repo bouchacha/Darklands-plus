@@ -125,6 +125,8 @@
 
 /* ---- root 047c: graphics driver interface (MGRAPHIC thunks), mouse, keyboard, timer (assembly) --- */
 #define gfx_copy_rect            sub_root_047c_0553   /* (src, sx, sy, w, h, dst, dx, dy): copy a rectangle between pages */
+#define screen_hold              sub_root_047c_0568   /* (): before a whole screen is drawn (the graphics driver hides it meanwhile) */
+#define screen_release           sub_root_047c_056f   /* (): after: the screen shown */
 #define gfx_text                 sub_root_047c_055a   /* (win, x, y, char *s): draw a string */
 #define gfx_draw_pic             sub_root_047c_05a5   /* (win, x, y, seg): draw a picture held in memory (pic_load handle) */
 #define gfx_recolor_rect         sub_root_047c_04dc   /* (win, x, y, w, h, from, to): replace colour from by to (highlights) */
@@ -155,6 +157,35 @@
 #define cursor_default           D_9c42               /* mouse cursor shapes: default */
 #define cursor_current           D_a68f               /* the cursor set last */
 #define party_icons_dirty        D_9c46               /* party changed: reload the icons */
+#define menu_bar_active          D_a2e3               /* a menu of the menu bar is open */
+#define font_flag_a              D_9920               /* 2 while a screen with lists is up (barter, sheet), else 1 */
+#define font_flag_b              D_9934               /* (set with font_flag_a) */
+#define screen_kind              D_907c               /* the screen up: 2 a sheet, 5 a shop ... */
+#define saved_back_font          D_e7a2               /* back_win_font kept by the shop and the sheet */
+#define saved_screen_font        D_e7a0               /* screen_win_font kept by the shop and the sheet */
+#define in_battle                D_907a               /* 1 during a battle */
+#define shop_names_seg           D_7e66               /* segment of F_290e_207f, the shops' names (char far *[9]) */
+
+/* ---- s032: the shop (barter_screen) ------------------------------------------------------ */
+#define barter_who               D_884e               /* the member bartering (whose things are listed) */
+#define barter_leader            D_884c               /* the leader when the shop opened */
+#define barter_name              D_869c               /* char far *: the shop's name */
+#define barter_cats              D_8868               /* long: the item categories it sells */
+#define barter_shop              D_8836               /* the shop (city_rec quality index; -1, -2 others) */
+#define barter_quality           D_8834               /* the quality of its wares */
+#define barter_wares             D_86a2               /* int[]: the item ids for sale today */
+#define barter_nwares            D_885c               /* their number */
+#define barter_ware_top          D_86a0               /* the first ware shown */
+#define barter_ware_cur          D_8832               /* the ware cursor (row on screen) */
+#define barter_side              D_8842               /* int[5]: 1 the cursor is in the wares, 0 in the member's things */
+#define barter_item_top          D_8852               /* int[5]: the member's first thing shown */
+#define barter_item_cur          D_885e               /* int[5]: the cursor in the member's things */
+#define barter_item_count        D_8838               /* int[5]: the member's things, counted */
+
+/* ---- s031: the character sheet (member_sheet) -------------------------------------------- */
+#define sheet_box                D_867c               /* char: the box chosen (9: equipment) */
+#define sheet_who                D_867d               /* char: the member shown */
+#define sheet_list_open          D_867e               /* char: the chosen box's list is open */
 
 /* ---- s000: start-up (main, config.drk, drivers) ------------------------------------------ */
 #define startup_error            sub_s000_0e76_0000   /* (msg): print "<program>: msg" */
@@ -254,6 +285,7 @@
 #define cbt_forget_target        sub_s014_0e76_27cc   /* (i): enemies forget i as target */
 #define push_direction           sub_s014_0e76_2a04   /* (): attacker's facing, randomly turned by one */
 #define melee_exchanges          sub_s014_0e76_2a4a   /* (): melee rolls of a tick */
+#define cbt_ready                sub_s014_0e76_2fa2   /* (i): arrived or stopped: action 7 "ready"; one with an attack order engages at once */
 #define combat_input             sub_s014_0e76_3166   /* (): player input of one tick */
 #define cursor_keys              sub_s014_0e76_35fc   /* (): cursor keys move the mouse pointer */
 #define cbt_set_anim             sub_s014_0e76_38b6   /* (i, anim): set the animation, loading the sprite set */
@@ -319,7 +351,8 @@
 #define single_file_vec          vec_1de7             /* overlay call vector of single_file */
 #define floor_view_draw          sub_s017_1ef8_0000   /* (who): redraw the 14 x 10 cell window around who */
 #define floor_view_draw_vec      vec_1c2f             /* overlay call vector of floor_view_draw */
-#define missile_launch           sub_s018_1ef8_0000   /* (...) */
+#define missile_launch           sub_s018_1ef8_0000   /* (i, target, ...) */
+#define missile_spent            sub_s018_1ef8_03ae   /* (kind, quality): a thrown weapon (always) or an arrow / bolt (7 in 10) to be found after the battle */
 #define missile_launch_vec       vec_1ced             /* overlay call vector of missile_launch */
 #define missile_remove           sub_s018_1ef8_027e   /* (idx) */
 #define missile_remove_vec       vec_1d79             /* overlay call vector of missile_remove */
@@ -342,6 +375,7 @@
 #define combat_char_sheet        sub_s022_1ef8_0000   /* () */
 #define combat_char_sheet_vec    vec_1d65             /* overlay call vector of combat_char_sheet */
 #define do_surrender             sub_s022_1ef8_03e4   /* () */
+#define member_away_msg          sub_s022_1ef8_04e4   /* (who): "... is on another level" (the sheet in battle, for a member out of reach) */
 #define do_surrender_vec         vec_19eb             /* overlay call vector of do_surrender */
 #define choose_party_order       sub_s022_1ef8_051c   /* () */
 #define choose_party_order_vec   vec_183d             /* overlay call vector of choose_party_order */
@@ -408,6 +442,10 @@
 #define selected_member          D_a6b2               /* member being given orders */
 #define order_mode               D_a6b3               /* 1 while a member is selected */
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
+#define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
+#define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */
+#define cbt_mods                 D_a532               /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define cursor_target            D_d845               /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
 #define hotspot_cbt              D_d848               /* hot spot -> combatant */
 #define hotspot_count            D_e0a1
@@ -499,10 +537,17 @@
 /* ---- s031..s041: strategic screens ------------------------------------------------------- */
 #define member_sheet             sub_s031_1462_0124   /* ? (who): inventory / character screen of a member (F1..F5) */
 #define member_sheet_vec         vec_1fdb             /* overlay call vector of member_sheet */
+#define sheet_leave              sub_s031_1462_08f6   /* (r): fonts, cursor, buffers back; returns r */
+#define sheet_open               sub_s031_1462_09b8   /* (who): fonts kept, the whole sheet drawn */
+#define sheet_member             sub_s031_1462_0a82   /* (who): the sheet drawn for another member */
+#define sheet_doll               sub_s031_1462_0b22   /* (who): the paper doll drawn into back_win */
+#define sheet_portrait_frame     sub_s031_1462_2518   /* (who, colour): the frame of a portrait */
+#define sheet_box_draw           sub_s031_1462_39a0   /* (box, who, struct gfx win): one box's text (0 name bar, 2 load ...) */
+#define use_potion               sub_s031_1462_43b2   /* (who, idx): drink */
 #define inventory_leave          sub_s031_1462_0000   /* (): save locs.tmp / events.tmp, free the world data */
 #define inventory_leave_vec      vec_1dfb             /* overlay call vector of inventory_leave */
-#define give_one                 sub_s031_18e7_0000   /* (from, idx, to) */
-#define give_stack               sub_s031_18e7_007c   /* (from, idx, to) */
+#define give_one                 sub_s031_18e7_0000   /* (from, to, idx, box): one of the stack (box 9: the equipment list) */
+#define give_stack               sub_s031_18e7_007c   /* (from, to, idx, box): the whole stack */
 #define add_item_q               sub_s031_18e7_016e   /* (who, code, qual): one item of quality qual */
 #define add_item_q_vec           vec_1f8b             /* overlay call vector of add_item_q */
 #define item_delete              sub_s031_18e7_0406   /* (who, idx) */
@@ -510,14 +555,20 @@
 #define item_take_one_vec        vec_2003             /* overlay call vector of item_take_one */
 #define item_remove_stack        sub_s031_18e7_07d4   /* (who, idx) */
 #define item_move                sub_s031_18e7_10d2   /* (who, from, to) */
-#define item_unequip             sub_s031_18e7_12e8   /* (who, idx) */
+#define item_unequip             sub_s031_18e7_12e8   /* (who, idx, box): put away (box 9) */
+#define item_ready               sub_s031_18e7_11b2   /* (who, idx): take up / wear (the sheet's A) */
 #define equip_weight             sub_s031_18e7_140a   /* (who): recompute the weight of the equipped items */
 #define equip_weight_vec         vec_2049             /* overlay call vector of equip_weight */
 #define equipped_type            sub_s031_18e7_1460   /* (who, slot) */
 #define item_entry_quality       sub_s031_18e7_15d6   /* (who, idx) */
 #define random_item_flags        sub_s031_18e7_1894   /* (flags) */
 #define random_item_flags_vec    vec_207b             /* overlay call vector of random_item_flags */
-#define barter_screen            sub_s032_1462_0000   /* (): barter screen */
+#define barter_screen            sub_s032_1462_0000   /* (shop, char far *name, long cats): barter screen */
+#define barter_close             sub_s032_1462_076c   /* (ret, shop): fonts and the leader back */
+#define barter_draw              sub_s032_1462_078e   /* (who, name far, cats long): today's stock (seeded), the whole screen */
+#define barter_redraw            sub_s032_1462_0b30   /* (who, name far, cats long): the screen for another member */
+#define ware_quality             sub_s032_1462_0efa   /* (k): the quality of ware k here */
+#define barter_key               sub_s032_1462_0f60   /* (key): P buy, S sell, B next member ... at the cursors */
 #define barter_screen_vec        vec_1eff             /* overlay call vector of barter_screen */
 #define buy_price                sub_s032_1462_192e   /* (k): pfennigs the shop asks */
 #define sell_price               sub_s032_1462_1b26   /* (k, qual): pfennigs the shop pays */
@@ -526,10 +577,60 @@
 #define alchemy_screen_vec       vec_1ef5             /* overlay call vector of alchemy_screen */
 #define alc_view                 sub_s033_15d1_000a   /* (): formula viewer */
 #define alc_view_vec             vec_2017             /* overlay call vector of alc_view */
+#define alchemy_close            sub_s033_1462_0628   /* (r): fonts, the formula file freed, the cursor; returns r */
+#define alchemy_setup            sub_s033_1462_0658   /* (who): the formulas who knows into alchemy_rows, the party's ingredients counted */
+#define alchemy_draw_list        sub_s033_1462_0796   /* (who): the batch list screen */
+#define alchemy_draw_page        sub_s033_1462_094a   /* (who): the page of the chosen formula */
+#define alchemy_list_key         sub_s033_1462_0d54   /* (key): U use the formula (the page, one batch), Up / Down */
+#define alchemy_page_key         sub_s033_1462_0f6e   /* (key): M one batch more, F one fewer */
+#define alchemy_reserve          sub_s033_1462_125c   /* (f): take formula f's ingredients from alchemy_have; 0 if short */
+#define alchemy_unreserve        sub_s033_1462_12ec   /* (f): give them back */
+#define alchemy_has_all          sub_s033_1462_1334   /* (f): the party has formula f's ingredients */
+#define alchemy_brew             sub_s033_1462_1390   /* (hours): start the chosen batches (an event; the ingredients used) */
+#define alchemy_resume           sub_s033_1462_14e6   /* (): a batch of this member under way: its ingredients back, its count into the rows */
+#define alchemy_who              D_886c               /* the alchemist */
+#define alchemy_row              D_e7d4               /* the chosen row of alchemy_rows */
+#define alchemy_top              D_3248               /* the chosen row's place on screen */
+#define alchemy_nrows            D_3244               /* the formulas the alchemist knows */
+#define alchemy_page             D_324e               /* 0 the list, 1 the page of a formula */
+#define alchemy_can_more         D_8872               /* one batch more can be made */
+#define alchemy_have             D_e716               /* int[]: the party's ingredients (by item id), less what is reserved */
+#define alchemy_file             D_9c2b               /* char far *: DARKLAND.ALC in memory */
+#define philosophers_stone       D_9078               /* the Philosopher's Stone's bonus to alchemy (party info "PhStone") */
+#define party_notes              D_9072               /* florins in notes (party info "NOTES") */
+#define saint_pray_party         sub_s034_1462_0000   /* (who, saint): pray for the whole party; 1 heard, 0 not, -1 backed out */
+#define saint_pray               sub_s034_1462_0102   /* (who, saint): pray (the prayer screen, then the roll) */
+#define saint_screen             sub_s034_1462_022c   /* (who, saint, party): the prayer screen; the chance of success, -1 backed out */
+#define saint_finish             sub_s034_1462_06e2   /* (who, saint): the fonts back; the chance (the saint's handler, 7) */
+#define pray_box                 D_887a               /* unsigned: the names box's saved picture (0 none) */
+#define pray_df                  D_887c               /* int: the divine favor to be spent */
+#define pray_box_shown           D_887e               /* int: the names box is up */
+#define pray_target              D_89ea               /* int: the member prayed for (-1 the one praying / the party) */
+#define pray_choose              D_89ec               /* int: the saint helps one member: who is chosen */
 #define party_info_screen        sub_s034_1550_0006   /* (): party information screen (the symbol party_info) */
 #define party_info_screen_vec    vec_185b             /* overlay call vector of party_info_screen */
 #define item_cache_screen        sub_s035_1462_0000   /* (arg): item cache screen (the symbol cache_screen) */
 #define item_cache_screen_vec    vec_1ed7             /* overlay call vector of item_cache_screen */
+#define cache_close              sub_s035_1462_04bc   /* (r): the store written back (or none marked), the leader back; returns r */
+#define cache_first_draw         sub_s035_1462_0510   /* (who, arg): the whole screen; the store read (cache_load) */
+#define cache_redraw             sub_s035_1462_0782   /* (who, arg): the screen for another member */
+#define cache_key                sub_s035_1462_0a46   /* (key): G get one, P put one, C another member, arrows ... at the cursors */
+#define cache_add                sub_s035_1462_10d2   /* (id, who, quality): one more in the store */
+#define cache_take               sub_s035_1462_114a   /* (i): one fewer of entry i */
+#define cache_load               sub_s035_1462_1350   /* (handle): store number handle of cache.tmp into cache_items */
+#define cache_save               sub_s035_1462_1468   /* (handle): cache_items back into cache.tmp (-1 a new store) */
+#define cache_items              F_2e38_37f4          /* struct { int id; char quality; char count; } []: the store shown */
+#define cache_n                  D_89f6               /* unsigned: entries in cache_items */
+#define cache_n_shown            D_89f0               /* int: the same, as the screen last listed */
+#define cache_who                D_89f2               /* int: the member whose things are shown */
+#define cache_leader             D_89ee               /* int: the leader when the screen opened */
+#define cache_arg                D_89f8               /* int: the screen's argument */
+#define cache_n_items            D_37ba               /* int[5]: the member's count of things */
+#define cache_side               D_37c4               /* int[5]: 1 the cursor is in the store, 0 in the member's things */
+#define cache_inv_top            D_37ce               /* int[5]: the member's list, first shown */
+#define cache_top                D_37d8               /* int[5]: the store's list, first shown */
+#define cache_inv_sel            D_37e2               /* int[5]: the member's list, the cursor's row */
+#define cache_sel                D_37ec               /* int[5]: the store's list, the cursor's row */
 #define camp_spend_day           sub_s036_1462_147a   /* (): spend one day */
 #define save_game                sub_s037_1462_2a68   /* (): "Save game" */
 #define save_game_vec            vec_1847             /* overlay call vector of save_game */
@@ -546,15 +647,69 @@
 #define load_saved_game          sub_s037_1462_4184   /* (name) */
 #define text_input               sub_s037_1462_43e6   /* (buf, max, prompt) */
 #define text_input_vec           vec_20b7             /* overlay call vector of text_input */
+#define roster_screen            sub_s037_1462_0000   /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define roster_leave             sub_s037_1462_0348   /* (r): the portrait and the buttons freed, the fonts back; returns r */
+#define roster_load_pics         sub_s037_1462_0390   /* (): cretscrn.pic, buttnCR2.pic, the fonts */
+#define roster_draw              sub_s037_1462_03d4   /* (): the menu, the list, the party's boxes */
+#define roster_key               sub_s037_1462_0444   /* (key): C new, A add, D drop, K delete, H herald, S figure, 1/2/3 colours, B begin (0x11b) ... at roster_sel */
+#define roster_list              sub_s037_1462_2760   /* (win): the characters of charactr.tmp ('+' in the party), roster_n counted */
+#define roster_figures           sub_s037_1462_4562   /* (): figure_list from pics\F??stat.PIC, A??, C?? */
+#define roster_sel               D_e7da               /* int: the character chosen (charactr.tmp index; -1 none) */
+#define roster_n                 D_e7dc               /* int: characters in charactr.tmp */
+#define roster_portrait          D_e88e               /* seg: the chosen member's portrait (pics\<figure>small.pic) */
+#define roster_buttons           D_e88a               /* seg: pics\buttnCR2.pic */
+#define figure_count             D_e7de               /* int: figures in figure_list */
+#define figure_cur               D_e7e0               /* int: the figure Select Image gave last */
 #define load_game                sub_s037_1c7d_09c6   /* (): confirm, tear down, reload, longjmp to the main loop */
 #define load_game_vec            vec_1851             /* overlay call vector of load_game */
 #define create_character         sub_s037_18c8_0004   /* () */
 #define create_character_vec     vec_20cb             /* overlay call vector of create_character */
-#define loot_distribute          sub_s040_1462_0000   /* (): loot screen entry */
+#define create_close             sub_s037_18c8_047c   /* (): pictures freed, the fonts back */
+#define create_load_pics         sub_s037_18c8_04b2   /* (): chargen.pic, the buttons and the bubbles */
+#define create_draw              sub_s037_18c8_053e   /* (): the whole screen */
+#define create_key               sub_s037_18c8_058e   /* (key): the key / click handler (1..15 a list row); 0x11b: the character is done or given up */
+#define create_reset             sub_s037_18c8_20fa   /* (): a new character (a name drawn, the attributes of the gender) */
+#define create_state             D_8c1e               /* int: 0 name and gender, 1 childhood, 2 attribute EPs, 3 profession, 4 skill EPs */
+#define create_row               D_8bfc               /* int: the attribute / skill row chosen (skills: rows 7 and 14 are gaps) */
+#define create_hover             D_43ee               /* int: the list row under the pointer */
+#define create_nlist             D_8c00               /* int: rows in the list */
+#define create_list              D_8bd2               /* int[0x14]: the professions offered (-1 none) */
+#define create_ep                D_8bfa               /* int: experience points left this step */
+#define create_ep_step           D_8c48               /* int: the step's EPs */
+#define create_age               D_e81c               /* unsigned: age */
+#define create_female            D_e821               /* char: 1 a woman */
+#define create_attr              D_e86e               /* char[7]: End Str Agl Per Int Chr, DF */
+#define create_skill             D_e875               /* char[0x13]: the skills */
+#define create_attr_spent        D_8c06               /* int[6]: EPs put into each attribute this step */
+#define create_skill_spent       D_8c22               /* int[0x13]: EPs put into each skill this step */
+#define create_name              D_e82f               /* char[]: the full name (22 letters) */
+#define create_nick              D_e848               /* char[]: the short name (9 letters) */
+#define create_random_name       D_8bfe               /* int: the name was drawn (a new gender draws another) */
+#define create_prof              D_4428               /* int: the last profession */
+#define create_child             D_8c02               /* int: the childhood */
+#define create_taken             D_4402               /* char[0x25]: bit 0 a profession taken */
+#define loot_distribute          sub_s040_1462_0000   /* (items far, unsigned char *count, int far *cash): loot screen entry */
 #define loot_distribute_vec      vec_1dab             /* overlay call vector of loot_distribute */
+#define loot_loop                sub_s040_1462_01c8   /* (items far, count near, cash far): the loot screen's loop */
+#define loot_close               sub_s040_1462_06c8   /* (r): fonts and the leader back; returns r */
+#define loot_first_draw          sub_s040_1462_06e2   /* (who): the whole screen */
+#define loot_redraw              sub_s040_1462_0952   /* (who): the screen for another member */
+#define loot_key                 sub_s040_1462_0c22   /* (key): G get, P put, D next member ... at the cursors */
+#define loot_who                 D_8dc4               /* the member receiving */
+#define loot_leader              D_8dba               /* the leader when the screen opened */
+#define loot_n                   D_8dbc               /* entries in the pile */
+#define loot_pile                D_8db6               /* struct invitem far *: the pile (6 bytes: item, type, quality, count, weight) */
+#define loot_count_ptr           D_8dc8               /* unsigned char far *: the caller's count of the pile */
+#define loot_cash                D_8dcc               /* int far *: the cash found (fl, gr, pf) */
+#define loot_n_items             D_4c06               /* int[5]: each member's records, as the screen counted them */
+#define loot_side                D_4c10               /* int[5]: 1 the cursor is in the pile, 0 in the member's things */
+#define loot_inv_top             D_4c1a               /* int[5] */
+#define loot_pile_top            D_4c24               /* int[5] */
+#define loot_inv_sel             D_4c2e               /* int[5] */
+#define loot_pile_sel            D_4c38               /* int[5] */
 #define copyprot_run             sub_s041_1462_0000   /* (): copy-protection screen (the symbol copy_protection) */
 #define copyprot_run_vec         vec_1fd1             /* overlay call vector of copyprot_run */
-#define member_shield            D_a668               /* shield code per party slot ("F01", ...) */
+#define member_shield            D_a668               /* figure code per party slot ("F01", ...: PICS\<code>SHORT.PIC, the sprites); the herald is party byte +1 */
 #define shield_pics              D_a2d7               /* shield picture handles per member */
 #define lst_buf                  D_a889               /* darkland.lst buffer */
 #define loc_buf                  D_a885               /* location file buffer */
@@ -652,3 +807,23 @@
 #define party_present_count_impl sub_s039_1462_1de6   /* the function behind party_present_count (card.h) */
 #define conflict_outcome_impl    sub_s039_1462_0ebe   /* the function behind conflict_outcome (card.h) */
 #define side2_strength_impl      sub_s039_1462_0bf6   /* the function behind side2_strength (card.h) */
+/* overland map (s030) */
+#define map_marker_x             D_2866               /* int: the party marker's x on the map view (pixels) */
+#define map_marker_y             D_2868               /* int: its y */
+#define map_view_col             D_286a               /* int: the map view's left column (tiles) */
+#define map_view_row             D_286c               /* int: the party's row in the view buffer */
+#define map_buf_row              D_286e               /* int: the view buffer's top row on the map */
+/* the card menu's layout (s043 struct layout, 0xf6 bytes) */
+#define card_layout              D_e96e               /* char: lines (the struct's first field) */
+#define card_layout_w            D_e970               /* int: width */
+#define card_layout_x            D_e972               /* int: x */
+#define card_layout_y            D_e974               /* unsigned char[20]: each line's y */
+#define card_layout_h            D_e988               /* unsigned char[20]: each line's height */
+#define card_layout_opt          D_e9b0               /* char[20]: the option number of each line */
+#define card_layout_kind         D_e9c4               /* int[20]: 1/2 an option with a member/saint/item box (2252) */
+#define card_box_shown           D_ee41               /* char: such a box is shown */
+#define card_box_pointer         D_ee42               /* char: the pointer is in that box (its own option list) */
+/* battles */
+#define path_formation           D_e0a2               /* char: pathfinding for a formation (its collision rules) */
+#define path_target_only         D_d697               /* char: ignore combatants other than the target */
+#define pause_depth              D_07d3               /* char: pauses in force (orders being given ...) */

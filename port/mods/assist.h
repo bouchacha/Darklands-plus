@@ -8,7 +8,7 @@ extern "C" {
 typedef struct {
     int active, n, seq;
     u32 polled;                       /* plat_ticks_ms() of the last menu poll */
-    struct { int show, pct, who; } line[20];
+    struct { int show, pct, who, opt, lead; } line[20];   /* lead: the member who would do best as leader (-1: the leader is best) */
 } CardChances;
 extern CardChances card_chances;
 extern int assist_chances;            /* 0 off, 1 as the difficulty level allows, 2 always numbers */
@@ -19,6 +19,11 @@ void assist_set_card_help(int on);
 int assist_in_card_menu(void);
 void assist_watch_cards(void);      /* keep the card menu hooks (assist_in_card_menu) on */
 extern int assist_card_keys;           /* number keys pick a card's options */
+extern int assist_best_leader;         /* a check the game makes on the leader is made by the member it suits best */
+void assist_set_best_leader(int on);
+int assist_best_at_attr(int k);         /* the able member with the highest attribute k (5: charisma); the leader on a tie */
+int assist_bargainer(void);             /* who bargains: the best charisma with assist_best_leader, else the leader */
+void assist_leader_restore(void);       /* the leader the player chose back, after another spoke for the party */
 void assist_set_card_keys(int on);
 int assist_card_key(int digit, int *gx, int *gy);
 extern int pathfix_party, pathfix_enemies;

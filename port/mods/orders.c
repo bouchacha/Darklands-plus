@@ -1,5 +1,5 @@
 /* orders.c - in a battle, a member who is not yet fighting can be sent at an enemy with a click
- * on it (F12 > Helpers; "Play the original game" leaves the game's way).
+ * on it (F12 > Settings > Helpers; "Play the original game" leaves the game's way).
  *
  * The game's way: click a member (order mode), choose an attack in the order menu (Std Attack,
  * Vulnerable, Berserk, Parry), then click the enemy. A member whose standing order is only to walk
@@ -11,18 +11,19 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 
-#define D_ORDER_ACTION 0xa6b0   /* int: the attack chosen in order mode (-1 none, 1 walk ...) */
-#define D_SELECTED     0xa6b2   /* char: the member given orders */
-#define D_ORDER_MODE   0xa6b3   /* char: 1 while a member is selected */
-#define D_CBT          0x9c55   /* struct cbt[13], 0x80 bytes: +4 x, +6 y, +0x10 order, +0x14 status */
-#define D_HOT_CBT      0xd848   /* char[]: hot spot -> combatant */
+#define D_ORDER_ACTION GV_order_action   /* int: the attack chosen in order mode (-1 none, 1 walk ...) */
+#define D_SELECTED     GV_selected_member   /* char: the member given orders */
+#define D_ORDER_MODE   GV_order_mode   /* char: 1 while a member is selected */
+#define D_CBT          GV_combatants   /* struct cbt[13], 0x80 bytes: +4 x, +6 y, +0x10 order, +0x14 status */
+#define D_HOT_CBT      GV_hotspot_cbt   /* char[]: hot spot -> combatant */
 #define D_HOT_X0       0xd8f1   /* int[]: hot spot rectangles */
 #define D_HOT_X1       0xd8d7
 #define D_HOT_Y0       0xd8bd
 #define D_HOT_Y1       0xd8a3
-#define D_HOT_N        0xe0a1   /* char: hot spots */
+#define D_HOT_N        GV_hotspot_count   /* char: hot spots */
 #define STD_ATTACK     0x12
 
 int orders_click_attack = 1;

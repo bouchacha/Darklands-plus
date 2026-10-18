@@ -23,6 +23,9 @@ Never commit anything from `build/`, game files, or a `darklands_game.dll`. `.gi
 
 ## Each release
 
+0. On Linux, with your own game folder: `python3 port/tools/release_check.py --game DIR` and the
+   same with `--exe build/port_asan/darklands` (after `make -C port ASAN=1`). Both must say
+   "all passed" (docs/PORT_STRUCTURE.md).
 1. Make a test zip: on GitHub, open **Actions > Windows release > Run workflow**. When the run
    finishes, its page has the zip under **Artifacts**.
 2. Try it on Windows: unpack the zip into a copy of the Darklands folder, start

@@ -114,7 +114,7 @@ void itemedit_tab(void)
         std::string p = std::string(w) + "/DARKLAND.LST";
         FILE *f = r < 0 ? nullptr : fopen(p.c_str(), "wb");
         if (!f) msg = "Could not write " + p + ".";
-        else { fwrite(lst.data(), 1, lst.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (Mods tab) and start the game again."; }
+        else { fwrite(lst.data(), 1, lst.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Settings > Mods) and start the game again."; }
     }
     ImGui::SameLine();
     if (ImGui::Button("Undo all changes")) { lst = orig; msg.clear(); }

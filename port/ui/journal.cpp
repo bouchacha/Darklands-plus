@@ -21,12 +21,15 @@
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "uiinternal.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
 #include "../mods/hdtext.h"
+#include "money.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
@@ -62,15 +65,7 @@ static std::string loc_name(int loc)
     return game_text(b, sizeof b);
 }
 
-static std::string money(int pf)
-{
-    int fl = pf / 240, gr = pf % 240 / 12, p = pf % 12;
-    char b[40];
-    if (fl) snprintf(b, sizeof b, "%dfl %dgr %dpf", fl, gr, p);
-    else if (gr) snprintf(b, sizeof b, "%dgr %dpf", gr, p);
-    else snprintf(b, sizeof b, "%dpf", p);
-    return b;
-}
+static std::string money(int pf) { return money_str(pf); }
 
 static std::string item_name(int id)
 {
@@ -204,7 +199,7 @@ struct ShopKind { int shop; u32 cats; const char *name; };
 static const ShopKind SHOPS[] = {          /* what each town shop sells (the cards' barter calls) */
     { 0, 0x040000ffu, "Blacksmith" }, { 1, 0x0002c100u, "Goods merchant" }, { 2, 0x040000ffu, "Swordsmith" },
     { 3, 0x040000ffu, "Armourer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
-    { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Herbalist" } };
+    { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Pharmacist" } };
 
 /* every shop of the town the party has just reached; prices from the game's own rule
  * (buy_price, s032 192e: the leader's charisma, the town's opinion of the party ...),
@@ -224,8 +219,8 @@ static void record_town_stock(int loc)
         Shop sh;
         sh.shop = k.shop; sh.shopq = shopq; sh.cats = k.cats; sh.name = k.name; sh.date = d;
         sh.items = predict_stock(loc, seed, shopq, k.cats);
-        g_ww(0x8834, (u16)shopq); g_ww(0x8836, (u16)k.shop);
-        for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(32, 0x1462, 0x192e, 1, &id) & 0xffff); }
+        g_ww(GV_barter_quality, (u16)shopq); g_ww(GV_barter_shop, (u16)k.shop);
+        for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff); }
         bool have = false;
         for (Shop &o : t.shops) if (o.shop == sh.shop && o.cats == sh.cats) { have = true; if (!o.seen) o = sh; }
         if (!have) t.shops.push_back(sh);
@@ -319,7 +314,7 @@ static std::string chron_text_now(void)
         n = 0;
     };
     for (int i = 0; i < 4000; i++) {
-        char c = (char)g_rb((u16)(0x9085 + i));
+        char c = (char)g_rb((u16)(GV_msg_buf + i));
         if (!c) break;
         if (c == '\n') { end_line(); continue; }
         if (n < (int)sizeof line - 1) line[n++] = c;
@@ -364,11 +359,11 @@ extern "C" void chronicle_capture(void)
 extern "C" void chronicle_choice(int sel)
 {
     if (!chron_on() || chron.empty() || !chron_pending || !chron.back().choice.empty()) return;
-    int n = (s8)g_rb(0xe96e);
-    if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(0xe9b0 + i))); fprintf(stderr, "\n"); }
+    int n = (s8)g_rb(GV_card_layout);
+    if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(GV_card_layout_opt + i))); fprintf(stderr, "\n"); }
     for (int i = 0; i < n && i < 20; i++) {
-        if ((s8)g_rb((u16)(0xe9b0 + i)) != sel) continue;
-        int y = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+        if ((s8)g_rb((u16)(GV_card_layout_opt + i)) != sel) continue;
+        int y = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
         std::vector<const HdRun *> rs;
         for (int k = 0; k < hdtext_nruns; k++)
             if (hdtext_runs[k].x >= 60 && hdtext_runs[k].y >= y - 1 && hdtext_runs[k].y < y + h - 1) rs.push_back(&hdtext_runs[k]);
@@ -388,7 +383,7 @@ static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
-    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Helpers)."); return; }
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
     ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
     ImGui::SameLine();
@@ -500,22 +495,22 @@ static void barter_list_hook(void)
     if (!journal_on) return;
     ensure_game();
     int loc = (s16)g_rw(G_CUR_LOC);
-    int n = (s16)g_rw(0x885c);
+    int n = (s16)g_rw(GV_barter_nwares);
     if (n < 0 || n > 200) return;
     Shop sh;
     sh.seen = true;
-    sh.shop = (s16)g_rw(0x8836); sh.shopq = (s16)g_rw(0x8834);
-    sh.cats = g_rw(0x8868) | ((u32)g_rw(0x886a) << 16);
-    char nm[48]; g_str(g_rw(0x869e), g_rw(0x869c), nm, sizeof nm);
+    sh.shop = (s16)g_rw(GV_barter_shop); sh.shopq = (s16)g_rw(GV_barter_quality);
+    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(0x886a) << 16);
+    char nm[48]; g_str(g_rw(0x869e), g_rw(GV_barter_name), nm, sizeof nm);
     sh.name = game_text(nm, sizeof nm);
     sh.date = game_date();
     void *snap = eval_snapshot();
     for (int i = 0; i < n; i++) {
-        u16 id = g_rw((u16)(0x86a2 + 2 * i));
+        u16 id = g_rw((u16)(GV_barter_wares + 2 * i));
         SeenItem it; it.id = id;
-        it.q = (s16)(game_call_link(32, 0x1462, 0x0efa, 1, &id) & 0xffff);
+        it.q = (s16)(game_call_link(GF_ware_quality, 1, &id) & 0xffff);
         eval_restore(snap);
-        it.price = (u16)(game_call_link(32, 0x1462, 0x192e, 1, &id) & 0xffff);
+        it.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff);
         eval_restore(snap);
         sh.items.push_back(it);
     }
@@ -544,10 +539,10 @@ extern "C" int journal_enabled(void) { return journal_on; }
 extern "C" void journal_init(void)
 {
     journal_on = config_get_int("journal.enabled", 1);
-    hook_install(43, 0x150b, 0x000a, card_load_hook);
-    hook_install(43, 0x150b, 0x06fe, text_expand_hook);
+    hook_install(GF_card_load, card_load_hook);
+    hook_install(GF_text_expand, text_expand_hook);
     { void assist_watch_cards(void); assist_watch_cards(); }      /* the chronicle needs the card menu's hook (mods/assist.c) */
-    hook_install(32, 0x1462, 0x078e, barter_list_hook);
+    hook_install(GF_barter_draw, barter_list_hook);
 }
 
 /* ---------------------------------------------------------------- the Journal tab */
@@ -699,6 +694,51 @@ static int loc_distance(int loc, int px, int py)          /* in map tiles (rows 
     int dx = (s16)rw((u16)(r >> 16), (u16)(r + 4)) - px, dy = ((s16)rw((u16)(r >> 16), (u16)(r + 6)) - py) / 2;
     return (int)sqrtf((float)(dx * dx + dy * dy));
 }
+/* where the party can buy a thing, from the shops seen: "sold here", "Köln, 1gr 7pf" (the nearest
+   town that sells it), "" when no shop seen sells it */
+std::string journal_where_sold(int id)
+{
+    ensure_game();
+    int px = 0, py = 0; bool here = party_where(&px, &py);
+    int cur = (s16)g_rw(G_CUR_LOC);
+    int best = -1, bd = 1 << 30, bp = 0;
+    for (auto &kv : towns) {
+        int price = -1; std::string shop;
+        for (const Shop &s : kv.second.shops) for (const SeenItem &i : s.items) if (i.id == id && (price < 0 || i.price < price)) { price = i.price; shop = s.name; }
+        if (price < 0) continue;
+        if (kv.first == cur) {
+            for (char &c : shop) c = (char)tolower((unsigned char)c);
+            return shop.empty() ? "sold here" : "sold here (" + shop + ")";
+        }
+        int d = here ? loc_distance(kv.first, px, py) : 0;
+        if (d < bd) { bd = d; best = kv.first; bp = price; }
+    }
+    if (best >= 0) return loc_name(best) + ", " + money(bp);
+    if (!config_get_int("assist.where_sold_unvisited", 1)) return "";
+    /* no shop seen sells it: the nearest town whose shops will have it (the wares are fixed for
+       the whole game by the town's and the party's seeds: predict_stock), "expected" */
+    if (id < 0 || id >= (int)gamedata.items.size()) return "";
+    static int pseed = -1; static std::map<int, std::vector<int>> sold_at;      /* item -> towns */
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed != pseed) {
+        pseed = seed; sold_at.clear();
+        for (int c = 0; c < (int)gamedata.cities.size(); c++)
+            for (const ShopKind &k : SHOPS) {
+                int shopq = k.shop < 0 ? 25 : gamedata.cities[c].shopq[k.shop];
+                if (k.shop >= 0 && !shopq) continue;
+                for (const SeenItem &i : predict_stock(c, seed, shopq, k.cats)) sold_at[i.id].push_back(c);
+            }
+    }
+    auto it = sold_at.find(id);
+    if (it == sold_at.end()) return "";
+    bd = 1 << 30; best = -1;
+    for (int c : it->second) {
+        if (c == cur) return "sold here (expected)";
+        int d = here ? loc_distance(c, px, py) : 0; if (d < bd) { bd = d; best = c; }
+    }
+    return best < 0 ? "" : loc_name(best) + " (expected)";
+}
+
 static void ingredients_page(void)
 {
     int px = 0, py = 0; bool here = party_where(&px, &py);
@@ -745,11 +785,11 @@ static void ingredients_page(void)
 }
 
 /* ---------------------------------------------------------------- stored goods
- * What the party has left in storage (a monastery's store room, the caches of s035): the
- * game keeps them in CACHE.TMP (saved with the game): byte 1 the number of caches, a 16-bit
- * offset per cache at 2 x handle, there a count and {item u16, quality, number} each; a
- * location record's +0x18 is its cache handle (from 1). The original lists a store only when
- * the party stands in it. */
+ * What the party has left with innkeepers (the store rooms of s035): the game keeps them in
+ * CACHE.TMP (saved with the game): byte 1 the number of caches, a 16-bit offset per cache at
+ * 2 x handle, there a count and {item u16, quality, number} each; a location record's +0x18 is
+ * its cache handle (from 1). The original lists a store only when the party stands in it. With
+ * one store room for every inn (mods/sharedstore.c) the towns point at the same cache: listed once. */
 extern "C" void dos_host_path(const char *dos, char *out, size_t outn);
 static void storage_page(void)
 {
@@ -761,37 +801,44 @@ static void storage_page(void)
       FILE *f = fopen(path, "rb");
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
-    ImGui::TextWrapped("What the party has left in store rooms (monasteries keep goods for travellers), and where. "
+    ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
                        "The game shows a store only while the party is there.");
     ImGui::Spacing();
     int px, py; travel_party_tile(&px, &py);
-    struct Store { int loc; double d; std::vector<SeenItem> items; };
+    struct Store { int loc, places; double d; std::vector<SeenItem> items; };
     std::vector<Store> stores;
+    std::map<int, int> at;                                     /* handle -> its entry in stores */
     for (int k = 0; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
         int h = (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18));
         if (h < 1 || h > ncache || (size_t)(2 * h + 1) >= buf.size()) continue;
+        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
+        double d = px >= 0 ? hypot((double)(x - px), (y - py) / 4.0) : 0;
+        auto it0 = at.find(h);
+        if (it0 != at.end()) { Store &st = stores[it0->second]; st.places++; if (d < st.d) { st.d = d; st.loc = k; } continue; }
         size_t o = buf[2 * h] | buf[2 * h + 1] << 8;
         if (o >= buf.size()) continue;
         int n = buf[o];
-        Store st; st.loc = k;
-        int x = (s16)rw((u16)(r >> 16), (u16)((u16)r + 4)), y = (s16)rw((u16)(r >> 16), (u16)((u16)r + 6));
-        st.d = px >= 0 ? hypot((double)(x - px), (y - py) / 4.0) : 0;
+        Store st; st.loc = k; st.places = 1; st.d = d;
         for (int i = 0; i < n && o + 1 + 4 * i + 3 < buf.size(); i++) {
             const unsigned char *e = &buf[o + 1 + 4 * i];
             SeenItem it; it.id = (e[0] | e[1] << 8) & 0xfff; it.q = e[2]; it.price = e[3];   /* (price: the number) */
             if (it.price) st.items.push_back(it);
         }
-        if (!st.items.empty()) stores.push_back(st);
+        at[h] = (int)stores.size();
+        stores.push_back(st);
     }
+    stores.erase(std::remove_if(stores.begin(), stores.end(), [](const Store &s) { return s.items.empty(); }), stores.end());
     if (stores.empty()) { ImGui::TextDisabled("Nothing stored anywhere."); return; }
-    std::sort(stores.begin(), stores.end(), [](const Store &a, const Store &b) { return a.d < b.d; });
+    std::sort(stores.begin(), stores.end(), [](const Store &a, const Store &b) { return a.places != b.places ? a.places > b.places : a.d < b.d; });
     int cur = (s16)g_rw(G_CUR_LOC);
     ImGui::BeginChild("stores", ImVec2(0, 0));
     for (const Store &st : stores) {
         ImGui::PushID(st.loc);
-        std::string head = loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        std::string kinds = std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        std::string head = st.places > 1 ? "Every inn's store room  -  " + kinds
+                                         : loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + kinds;
         if (ImGui::CollapsingHeader(head.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::BeginTable("st", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);
@@ -822,14 +869,14 @@ extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
-    if (ImGui::BeginTabBar("jtabs")) {
-        if (ImGui::BeginTabItem("Quests", nullptr, want == 3 ? ImGuiTabItemFlags_SetSelected : 0)) {
+    if (ui_subtabs_begin("jtabs")) {
+        if (ui_subtab("Quests", want == 3)) {
             ImGui::BeginChild("q", ImVec2(0, 0));
             journal_quests();
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Towns", nullptr, want == 0 ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (ui_subtab("Towns", want == 0)) {
             ImGui::BeginChild("list", ImVec2(UIS(250), 0), ImGuiChildFlags_Border);
             town_list();
             ImGui::EndChild();
@@ -841,13 +888,13 @@ extern "C" void tab_journal(void)
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Chronicle", nullptr, want == 7 ? ImGuiTabItemFlags_SetSelected : 0)) { chronicle_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Notes", nullptr, want == 8 ? ImGuiTabItemFlags_SetSelected : 0)) { notes_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Stored", nullptr, want == 6 ? ImGuiTabItemFlags_SetSelected : 0)) { storage_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Battle log", nullptr, want == 5 ? ImGuiTabItemFlags_SetSelected : 0)) { battlelog_tab(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Honor Roll", nullptr, want == 4 ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (ui_subtab("Chronicle", want == 7)) { chronicle_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Notes", want == 8)) { notes_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Find goods", want == 1)) { find_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Ingredients", want == 2)) { ingredients_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Stored", want == 6)) { storage_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Battle log", want == 5)) { battlelog_tab(); ImGui::EndTabItem(); }
+        if (ui_subtab("Honor Roll", want == 4)) {
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
                                "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
                                "A party enters it when its journey ends, or now with the button.");

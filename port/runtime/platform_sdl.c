@@ -337,7 +337,7 @@ static int frame_textures(void)
 
 void plat_present(const u8 *vga, const u8 *pal)
 {
-    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); }   /* game-side checks, headless too */
+    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); }   /* game-side checks, headless too */
     { static int slow = -1; if (slow < 0) slow = getenv("DL_SLOW_PRESENT") ? atoi(getenv("DL_SLOW_PRESENT")) : 0; if (slow) plat_sleep_ms(slow); }   /* test: a slow display */
     if (headless) return;
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
@@ -441,12 +441,22 @@ static void to_game(int wx, int wy, int *gx, int *gy)
 }
 
 void plat_mouse_game(int *x, int *y) { *x = mouse_x; *y = mouse_y; }
+/* the system pointer is beside the picture (over the margins): the game's own pointer waits at
+   the picture's edge meanwhile (a battle must not scroll, a click there is not the game's) */
+static int ptr_out;
+int plat_pointer_outside(void) { return ptr_out; }
+int plat_win_outside(int wx, int wy)
+{
+    int ox = win_w ? wx * out_w / win_w : wx, oy = win_h ? wy * out_h / win_h : wy;
+    return ox < dest.x || ox >= dest.x + dest.w || oy < dest.y || oy >= dest.y + dest.h;
+}
 
 static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window sizes are saved divided by it */
 /* the game stands still while the menu is open, and while the window is in the background
  * (display.pause_unfocused, on by default: a battle does not go on behind another window) */
 static int bg_paused;           /* the window lost the focus and the game waits */
 static u32 bg_resumed;          /* when it came back: the click that brought it back is not the game's */
+int plat_headless(void) { return headless; }
 int plat_menu_open(void) { return !headless && (ui_is_open() || bg_paused); }
 int plat_in_background(void) { return bg_paused; }
 
@@ -466,7 +476,7 @@ static void run_script(void)
             if (sc == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "script: unknown key %s\n", s->arg); continue; }
             if (getenv("DL_TRACE_INPUT")) fprintf(stderr, "script %u ms: %s %s (sc %d)\n", now, s->cmd, s->arg, (int)sc);
             if (sc == SDL_SCANCODE_F12 && !headless) { ui_toggle(); continue; }
-            if (!strcmp(s->cmd, "key") && sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_9) {   /* as a player's key: a card's option */
+            if (!strcmp(s->cmd, "key") && sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_0) {   /* as a player's key: a card's option (0 the tenth) */
                 int gx, gy, assist_card_key(int, int *, int *);
                 if (assist_card_key(sc - SDL_SCANCODE_1 + 1, &gx, &gy)) { click_at(gx, gy); continue; }
             }
@@ -518,7 +528,7 @@ static void run_script(void)
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
         }
-        else if (!strcmp(s->cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Mods) */
+        else if (!strcmp(s->cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
         else if (!strcmp(s->cmd, "uset")) { char k[64]; int v = 0; if (sscanf(s->arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
         else if (!strcmp(s->cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (s->arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(s->cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
@@ -550,6 +560,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(s->cmd, "artrescan")) hdart_rescan();
         else if (!strcmp(s->cmd, "ufight")) { extern int ufight_pending, ufight_seed; ufight_seed = -1; sscanf(s->arg, "%d,%d", &ufight_pending, &ufight_seed); if (!ufight_pending) ufight_pending = 10; }   /* test: a battle (type, seed) at the next card */
+        else if (!strcmp(s->cmd, "uthrowsim")) { extern int loot_sim_m, loot_sim_n; sscanf(s->arg, "%d,%d", &loot_sim_m, &loot_sim_n); }   /* test: a throw, at the next loot screen */
         else if (!strcmp(s->cmd, "upeek")) {               /* debug: words at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, n = 8; sscanf(s->arg, "%x,%x,%u", &sg, &of, &n);
             fprintf(stderr, "peek %04x:%04x:", sg, of);
@@ -569,10 +580,17 @@ static void run_script(void)
                 fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
             }
         }
-        else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 6 int args: ucall:31,18e7,0ab8,-2,80 */
-            int sect = 0, a[6] = { 0 }; unsigned sg = 0, of = 0;
-            int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5]);
-            u16 args[6]; for (int k = 0; k < 6; k++) args[k] = (u16)a[k];
+        else if (!strcmp(s->cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
+        else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);
+            ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
+            SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
+        }
+        else if (!strcmp(s->cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 10 int args: ucall:31,18e7,0ab8,-2,80 */
+            int sect = 0, a[10] = { 0 }; unsigned sg = 0, of = 0;
+            int n = sscanf(s->arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9]);
+            u16 args[10]; for (int k = 0; k < 10; k++) args[k] = (u16)a[k];
             int v = n >= 3 ? game_call_far(sect, (u16)sg, (u16)of, n - 3 > 0 ? n - 3 : 0, args) : -1;
             fprintf(stderr, "call s%d %04x:%04x: %d\n", sect, sg, of, v);
         }
@@ -641,6 +659,35 @@ static void run_script(void)
                 fprintf(stderr, "  line %d opt %d y %d h %d on %d: %s\n", i, opt, y, h, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1, t);
             }
         }
+        else if (!strcmp(s->cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
+        else if (!strcmp(s->cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
+        else if (!strcmp(s->cmd, "umenu")) { int m = 0, i = 0, j = -1; sscanf(s->arg, "%d,%d,%d", &m, &i, &j); void menuview_request(int, int, int); menuview_request(m, i, j); }   /* test: menu m's entry i (sub-entry j) chosen, as a click on it does */
+        else if (!strcmp(s->cmd, "ulocw")) {               /* test: word at +off of location k's record (ulocw:k,off,v; v -999 only reads) */
+            int k = 0, of = 0, v = -999; sscanf(s->arg, "%d,%x,%d", &k, &of, &v);
+            u32 r = g_location(k);
+            if (r) { fprintf(stderr, "loc %d +%x: %d", k, of, (s16)rw((u16)(r >> 16), (u16)((u16)r + of)));
+                     if (v != -999) { ww((u16)(r >> 16), (u16)((u16)r + of), (u16)v); fprintf(stderr, " -> %d", v); } fprintf(stderr, "\n"); }
+        }
+        else if (!strcmp(s->cmd, "ucache")) { extern int uscreen_pending; uscreen_pending = 3; }   /* test: the store room from the card menu up */
+        else if (!strcmp(s->cmd, "usaint")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 0; sscanf(s->arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 2; }   /* test: the prayer screen (member, saint) from the card menu up */
+        else if (!strcmp(s->cmd, "unspush")) { int t = 0, x = 0, y = 0, z = 0; sscanf(s->arg, "%d,%d,%d,%d", &t, &x, &y, &z); void ns_push(int, int, int, int); ns_push(t, x, y, z); }   /* test: an action for the native screen up (mods/barterview.h BV_*, sheetview.h SV_*) */
+        else if (!strcmp(s->cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
+            int m = 0, id = 0, q = 25, n = 1; sscanf(s->arg, "%d,%d,%d,%d", &m, &id, &q, &n);
+            int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); u32 d = g_itemdef(id);
+            int same = -1;                                  /* (a stack of the same: added to it, as add_item_rec does) */
+            for (int j = 0; j < k && j < 64; j++) if (rw(G_FAR2E38, G_ITEM(m, j)) == (u16)id && rb(G_FAR2E38, (u16)(G_ITEM(m, j) + 3)) == (u8)q) same = j;
+            if (d && same >= 0) { u16 o = G_ITEM(m, same); wb(G_FAR2E38, (u16)(o + 4), (u8)(rb(G_FAR2E38, (u16)(o + 4)) + n)); fprintf(stderr, "item %d x%d to member %d (onto record %d)\n", id, n, m, same); }
+            else if (d && k < 53) { u16 o = G_ITEM(m, k); ww(G_FAR2E38, o, (u16)id); wb(G_FAR2E38, (u16)(o + 2), rb((u16)(d >> 16), (u16)((u16)d + 0x1e))); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), (u8)n); wb(G_FAR2E38, (u16)(o + 5), rb((u16)(d >> 16), (u16)((u16)d + 0x25))); g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(k + 1)); fprintf(stderr, "item %d x%d to member %d (record %d)\n", id, n, m, k); }
+        }
+        else if (!strcmp(s->cmd, "uinv")) {                /* test: member m's item records (code, type, quality, count) */
+            int m = atoi(s->arg), n = (s8)g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+            fprintf(stderr, "inv %d (%d):", m, n);
+            for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(m, k); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
+            u16 cb = (u16)(0x9c55 + m * 0x80);
+            fprintf(stderr, " | armour %d q%d, %d q%d\n", (s8)g_rb((u16)(cb + 0x4b)), (s8)g_rb((u16)(cb + 0x4f)), (s8)g_rb((u16)(cb + 0x4c)), (s8)g_rb((u16)(cb + 0x50)));
+        }
+        else if (!strcmp(s->cmd, "urand")) { unsigned v = (unsigned)atol(s->arg); g_ww(0x7b20, (u16)v); g_ww(0x7b22, (u16)(v >> 16)); fprintf(stderr, "rand seed %u\n", v); }   /* test: the C library's rand() state */
+        else if (!strcmp(s->cmd, "ucv")) { void cardview_dump(void); cardview_dump(); }      /* test: the native card screen */
         else if (!strcmp(s->cmd, "uhot")) { int n = (s8)g_rb(0xe0a1); fprintf(stderr, "hots %d, order mode %d member %d action %d\n", n, g_rb(0xa6b3), (s8)g_rb(0xa6b2), (s16)g_rw(0xa6b0)); for (int k = 0; k < n && k < 40; k++) fprintf(stderr, "hot %d cbt %d x %d..%d y %d..%d\n", k, g_rb((u16)(0xd848 + k)), (s16)g_rw((u16)(0xd8f1 + 2 * k)), (s16)g_rw((u16)(0xd8d7 + 2 * k)), (s16)g_rw((u16)(0xd8bd + 2 * k)), (s16)g_rw((u16)(0xd8a3 + 2 * k))); }
         else if (!strcmp(s->cmd, "utgt")) { u8 t = g_rb(0xd845); if (t != 255) fprintf(stderr, "tgt %d at %d,%d\n", (s8)t, mouse_x, mouse_y); }
         else if (!strcmp(s->cmd, "ucbt")) {               /* test: the battle's combatants and what the pointer is on */
@@ -718,7 +765,8 @@ static int menu_click(const SDL_Event *e)
         menu_sticky = 2;
         return 1;
     }
-    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1)) return 0;
+    int menuview_is_on(void);
+    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1) || menuview_is_on()) return 0;   /* (the menus drawn by Darklands+ stay open by themselves) */
     if (e->type == SDL_MOUSEBUTTONDOWN) { rdown_t = plat_ticks_ms(); rup_wait = 0; return 0; }
     if (plat_ticks_ms() - rdown_t < 350) {          /* short: held a little longer, until the game has its bar up */
         rup_wait = plat_ticks_ms();
@@ -760,7 +808,7 @@ static SDL_Scancode swallow_key; static int swallow_button;   /* the key or clic
  *   d-pad        arrow keys                                 LB / RB      Tab (level map) / Space (pause)
  *   Start        F12 (Darklands+ menu)                      Back         M (world map)
  *   right trigger held: Ctrl (Ctrl+click on the map travels there)   left stick pressed: F1 (keys)
- * "input.gamepad" (F12 > Helpers) switches it off. */
+ * "input.gamepad" (F12 > Settings > Helpers) switches it off. */
 static SDL_GameController *pads[4];
 static int pad_test_axis[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };   /* test: axis values set by ucmd upadaxis */
 static double pad_fx, pad_fy, pad_wheel; static u32 pad_last; static int pad_ctrl;
@@ -940,8 +988,8 @@ void plat_events(void)
             }
             if (!e.key.repeat && menu_escape()) break;     /* any key closes menus a right click left open (the game would ignore it) */
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
-            {   /* 1..9 on a card: that option (a click on its line) */
-                SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : 0;
+            {   /* 1..9 on a card: that option (a click on its line); 0 the tenth */
+                SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : k == SDLK_0 || k == SDLK_KP_0 ? 10 : 0;
                 int gx, gy, assist_card_key(int, int *, int *);
                 if (d && !e.key.repeat && !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && assist_card_key(d, &gx, &gy)) { click_at(gx, gy); break; }
             }
@@ -961,6 +1009,7 @@ void plat_events(void)
         case SDL_MOUSEMOTION:
             if (e.motion.x > mouse_far_x) mouse_far_x = e.motion.x; if (e.motion.y > mouse_far_y) mouse_far_y = e.motion.y;
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
+            ptr_out = plat_win_outside(e.motion.x, e.motion.y);
             send_mouse(); break;
         case SDL_MOUSEBUTTONDOWN: case SDL_MOUSEBUTTONUP: {
             if (bg_resumed && plat_ticks_ms() - bg_resumed < 400) {       /* the click that brought the window back */

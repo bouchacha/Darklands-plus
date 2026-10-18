@@ -22,6 +22,7 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/hle.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
 }
@@ -78,7 +79,7 @@ static bool save_roll(void)
 
 static FameRec current_party(void)
 {
-    FameRec e; e.fame = (s16)g_rw(0x9082); e.rank = 0; e.seed = (s16)g_rw(G_PARTY_SEED);
+    FameRec e; e.fame = (s16)g_rw(GV_party_fame); e.rank = 0; e.seed = (s16)g_rw(G_PARTY_SEED);
     int k = 0;
     for (int m = 0; m < 5 && k < 4; m++) {
         if (!g_rb((u16)(G_MEMBER(m) + G_M_STATUS))) continue;

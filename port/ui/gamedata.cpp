@@ -95,6 +95,12 @@ const char *kind_name(ItemKind k)
                                "Alchemical ingredients", "Potions", "Relics", "Horses", "Documents", "Curiosities", "Other" };
     return n[k];
 }
+const char *kind_name_one(ItemKind k)
+{
+    static const char *n[] = { "Weapon", "Missile weapon", "Armour", "Shield", "Gear", "Tool", "Instrument",
+                               "Alchemical ingredient", "Potion", "Relic", "Horse", "Document", "Curiosity", "Thing" };
+    return n[k];
+}
 
 void gamedata_load(const char *dir)
 {

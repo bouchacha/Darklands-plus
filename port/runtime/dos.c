@@ -575,6 +575,20 @@ static int load_overlay(const char *dosname, u16 seg, u16 relfac)
 }
 
 /* ---------------------------------------------------------------- int 21h */
+/* The time of day for int 21h 2Ah/2Ch, seconds and hundredths from one clock. They were taken
+ * from two (the seconds from the wall clock, the hundredths from the program's millisecond
+ * counter), which tick over at different moments: once a second the time then went back by up
+ * to a second, and the game's short pauses (the overland map's 30 ms between steps, s030
+ * 1767:0046) waited until it had caught up, so travel stopped for a moment every second. */
+static time_t dos_now(unsigned *ms)
+{
+    static time_t base; static u32 base_ms; static int init;
+    if (!init) { base = time(0); base_ms = plat_ticks_ms(); init = 1; }   /* (up to a second behind the wall clock: no matter) */
+    u32 d = plat_ticks_ms() - base_ms;
+    *ms = d % 1000;
+    return base + (time_t)(d / 1000);
+}
+
 void dos_int21(void)
 {
     char name[256], hp[1024];
@@ -600,10 +614,10 @@ void dos_int21(void)
     case 0x19: AL = 2; break;                                   /* C: */
     case 0x1a: dta_seg = DS; dta_off = DX; break;
     case 0x25: ww(0, (u16)(AL * 4), DX); ww(0, (u16)(AL * 4 + 2), DS); break;
-    case 0x2a: { extern int spin_polls; spin_polls++; time_t t = time(0); struct tm *tm = localtime(&t);
+    case 0x2a: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = localtime(&t);
         CX = (u16)(tm->tm_year + 1900); DH = (u8)(tm->tm_mon + 1); DL = (u8)tm->tm_mday; AL = (u8)tm->tm_wday; break; }
-    case 0x2c: { extern int spin_polls; spin_polls++; u32 ms = plat_ticks_ms(); time_t t = time(0); struct tm *tm = localtime(&t);
-        CH = (u8)tm->tm_hour; CL = (u8)tm->tm_min; DH = (u8)tm->tm_sec; DL = (u8)((ms / 10) % 100); break; }
+    case 0x2c: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = localtime(&t);
+        CH = (u8)tm->tm_hour; CL = (u8)tm->tm_min; DH = (u8)tm->tm_sec; DL = (u8)(ms / 10); break; }
     case 0x2f: ES = dta_seg; BX = dta_off; break;
     case 0x2b: case 0x2d: AL = 0; break;        /* set date / time: accepted, not applied */
     case 0x30: AX = 0x0005; BX = 0; CX = 0; break;              /* DOS 5.0 */
@@ -712,7 +726,9 @@ void dos_int21(void)
               if (w2 >= LOADSEG && w2 < LOADSEG + 0x3000) fprintf(stderr, " %04x:%04x", (u16)(w2 - LOADSEG), w); }
           fprintf(stderr, "\n"); }
         { int saves_party_ended(void), halloffame_record(void);          /* the Honor Roll of Glory (ui/halloffame.cpp) */
-          if (saves_party_ended() && halloffame_record()) { void plat_setenv(const char *, const char *); plat_setenv("DL_HALL", "1"); } }
+          void plat_setenv(const char *, const char *);
+          if (AL) { char c[16]; snprintf(c, sizeof c, "%d", AL); plat_setenv("DL_ERROR_EXIT", c); }   /* an error (99: a file missing, 1: out of memory ...), not the party's end */
+          else { plat_setenv("DL_ERROR_EXIT", "0"); if (saves_party_ended() && halloffame_record()) plat_setenv("DL_HALL", "1"); } }
         { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
         plat_quit(AL); break;
     case 0x39: get_str(DS, DX, name, sizeof name);

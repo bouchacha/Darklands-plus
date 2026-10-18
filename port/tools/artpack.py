@@ -3,11 +3,11 @@
 
   artpack.py ORIGINALS OUT [--style clown] [--scale 4] [--only NAME,NAME...]
 
-ORIGINALS is the folder Darklands+ writes with F12 > Display > "Export the original
+ORIGINALS is the folder Darklands+ writes with F12 > Settings > Display > "Export the original
 pictures" (art/original: every picture of the game as PNG, the same names, colour 0
 transparent where the game draws it as a sprite). OUT becomes a mod folder:
 
-  OUT/mod.txt          the name and description shown in F12 > Mods
+  OUT/mod.txt          the name and description shown in F12 > Settings > Mods
   OUT/art/NAME.png     a replacement for PICS/NAME.PIC, SCALE times the original size
 
 A style is a function that turns one picture (RGBA, already scaled up) into its replacement.

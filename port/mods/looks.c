@@ -51,6 +51,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "hdart.h"
@@ -66,11 +67,11 @@ void dos_host_path_read(const char *dos, char *out, size_t outn);
 #define D_FIGCUR    0xe7e0
 #define D_SELCHAR   0xe7da      /* the character under the cursor (creation menus) */
 #define D_CHARIDS   0x8d06      /* s038: character index per list row */
-#define D_FIGURE    0xa668      /* char [5][4]: each party slot's figure */
+#define D_FIGURE    GV_member_shield      /* char [5][4]: each party slot's figure */
 #define D_PORTRAIT  0xe753      /* the portrait's colours = palette entries 0xeb..0xf2 (8 RGB) */
 #define D_GROUPS    0x1166      /* near char *[7]: sprite group per combatant kind */
-#define D_WEAPONS   0x1174      /* near char *[7]: weapon suffix per kind */
-#define D_CBT       0x9c55      /* combatants [13] x 0x80; +0x16 kind */
+#define D_WEAPONS   GV_anim_file      /* near char *[7]: weapon suffix per kind */
+#define D_CBT       GV_combatants      /* combatants [13] x 0x80; +0x16 kind */
 #define D_FRAMES    0xc908      /* s8 [slot]: frames per direction of the loaded sprite file */
 #define F_PALETTE   0x33fc      /* far 20a5: member palettes [5][24] */
 #define G_FAR20A5   ((u16)(LOADSEG + 0x20a5))
@@ -707,6 +708,8 @@ void looks_pick(const char *code)
     snprintf(pending, sizeof pending, "%s", code); pending_on = 1;
     kbd_push_scancode(0x1f, 0); kbd_push_scancode(0x1f, 1);
 }
+/* the figure the next Select Character Image (S) takes, the caller giving the S itself */
+void looks_pick_next(const char *code) { snprintf(pending, sizeof pending, "%s", code); pending_on = 1; }
 
 static u8 rgb8(u8 v) { v &= 63; return (u8)(v << 2 | v >> 4); }
 /* member m in figure `code`, seen from the front: RGBA (w x h at most maxw x maxh); 0 if none */
@@ -1040,7 +1043,7 @@ void looks_init(void)
     logon = getenv("DL_LOOKS_LOG") != 0;                /* (the list itself: on first use, when the game's files are set up) */
     hook_install(37, 0x1462, 0x0444, key37_hook);
     hook_install(38, 0x1462, 0x02f8, key38_hook);
-    hook_install(14, 0x0e76, 0x38b6, set_anim_hook);
+    hook_install(GF_cbt_set_anim, set_anim_hook);
     if (getenv("DL_LOOKS_DUMP"))
         for (int i = 0; i < nlooks; i++) {
             if (!look_find(looks[i].code)) continue;

@@ -3,6 +3,7 @@
 // dragging an item onto another member gives it to them through the game's own routine
 // (give_stack, s031 18e7:007c), so equipment, weights and stacking stay right.
 #include <stdio.h>
+#include "money.h"
 #include <string.h>
 #include <math.h>
 #include <string>
@@ -10,11 +11,13 @@
 #include <array>
 #include <algorithm>
 #include "imgui.h"
+#include "../mods/nscreen.h"
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 }
 
 extern ImFont *ui_font_small;
@@ -281,8 +284,14 @@ static bool draw_equipment(ImDrawList *dl, ImVec2 c, float s, int t, bool relic)
     return true;
 }
 
+bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier);   /* ui/alchemyicons.cpp */
+bool ui_draw_ingredient(ImDrawList *dl, ImVec2 c, float s, int id);
+int ui_potion_tier(int q, int base);
+static int icon_tier;                       /* a potion's grade (1-3) for the next draw_icon, 0 unknown */
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int id)
 {
+    if (id >= 95 && id <= 116 && (!d || d->kind == K_POTION) && ui_draw_potion(dl, c, s, id, icon_tier)) return;
+    if (id >= 72 && id <= 94 && (!d || d->kind == K_INGREDIENT) && ui_draw_ingredient(dl, c, s, id)) return;
     if (d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || (d->kind == K_RELIC && d->type <= 33)
               || (d->type >= 98 && d->type <= 107) || (d->type >= 154 && d->type <= 156))
           && draw_equipment(dl, c, s, d->type, d->kind == K_RELIC)) return;
@@ -373,6 +382,15 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
 
 /* the icon of item id, for the other tabs */
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id) { draw_icon(dl, c, s, def_of(id), id); }
+/* the same with the thing's quality (a potion shows its grade), or a formula's grade (1-3) */
+void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q)
+{
+    const ItemDef *d = def_of(id);
+    icon_tier = d && q >= 0 ? ui_potion_tier(q, d->quality) : 0;
+    draw_icon(dl, c, s, d, id);
+    icon_tier = 0;
+}
+void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier) { icon_tier = tier; draw_icon(dl, c, s, def_of(id), id); icon_tier = 0; }
 void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { draw_equipment(dl, c, s, type, false); }
 
 /* ---------------------------------------------------------------- giving items */
@@ -398,23 +416,33 @@ static bool equippable(const ItemDef *d, int type)
 }
 
 extern "C" void ui_give(int from, int to, int idx);
+/* done by the game's own routines (s031: give_one, give_stack, item_ready, item_unequip) at the
+ * next safe point (mods/nscreen.h ns_defer), not in the middle of drawing */
+static void give_now(int from, int to, int idx, int one)
+{
+    u16 args[4] = { (u16)from, (u16)to, (u16)idx, 0 };
+    if (one) game_call_far(GF_give_one, 4, args); else game_call_far(GF_give_stack, 4, args);
+    last_msg = std::string(one ? "Gave one to " : "Gave to ") + member_name(to, false) + ".";
+    fprintf(stderr, "ui: %s\n", last_msg.c_str());
+}
 static void give(int from, int to, int idx, bool one = false)
 {
     if (const char *w = why_locked()) { last_msg = w; return; }
     int before = g_rb((u16)(G_MEMBER(to) + G_M_NITEMS));
     if (before >= 64) { last_msg = member_name(to, false) + " cannot carry any more items."; return; }
-    u16 args[4] = { (u16)from, (u16)to, (u16)idx, 0 };
-    /* the game's own routines (s031): give_one 18e7:0000, give_stack 18e7:007c */
-    if (game_call_far(31, 0x18e7, one ? 0x0000 : 0x007c, 4, args) < 0) { last_msg = "Could not give the item."; return; }
-    last_msg = std::string(one ? "Gave one to " : "Gave to ") + member_name(to, false) + ".";
+    ns_defer(give_now, from, to, idx, one);
 }
 
+static void equip_now(int m, int idx, int on, int)
+{
+    u16 a[3] = { (u16)m, (u16)idx, 0 };
+    if (on) game_call_far(GF_item_ready, 2, a); else game_call_far(GF_item_unequip, 3, a);
+    last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
+}
 static void equip(int m, int idx, bool on)
 {
     if (const char *w = why_locked()) { last_msg = w; return; }
-    if (on) { u16 a[2] = { (u16)m, (u16)idx }; game_call_far(31, 0x18e7, 0x11b2, 2, a); }       /* equip */
-    else { u16 a[3] = { (u16)m, (u16)idx, 0 }; game_call_far(31, 0x18e7, 0x12e8, 3, a); }      /* item_unequip */
-    last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
+    ns_defer(equip_now, m, idx, on, 0);
 }
 
 /* ---------------------------------------------------------------- the inventory tab */
@@ -528,11 +556,11 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::BeginTooltip();
     ImGui::Text("%s", d ? d->name.c_str() : "?");
     ImGui::Separator();
-    if (d) ImGui::TextDisabled("%s", kind_name(d->kind));
+    if (d) ImGui::TextDisabled("%s", kind_name_one(d->kind));
     ImGui::Text("Quality %d", it.qual);
     if (it.count > 1) ImGui::Text("%d of them", it.count);
     ImGui::Text("Weight %d", it.weight);
-    if (d && d->value) ImGui::Text("Worth about %d pfennigs", d->value);
+    if (d && d->value) ImGui::Text("Worth about %s", money_with_total(d->value).c_str());
     if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
     ui_item_details(d, it.id);
     ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");
@@ -603,13 +631,15 @@ extern "C" void tab_inventory(void)
         dl->AddRectFilled(p, ImVec2(p.x + tile, p.y + tile), bg, 6);
         if (it.equipped) dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(p.x + tile - 3, p.y + tile - 3), col(0.72f, 0.55f, 0.18f), 4, 0, 2.0f);
         dl->AddRect(p, ImVec2(p.x + tile, p.y + tile), hov ? col(0.55f, 0.24f, 0.13f) : col(0.55f, 0.42f, 0.25f), 6, 0, hov ? 2.5f : 1.0f);
-        draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id);
+        icon_tier = d ? ui_potion_tier(it.qual, d->quality) : 0; draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id); icon_tier = 0;
         const char *nm = d ? (ImGui::CalcTextSize(d->name.c_str()).x * 0.8f < tile - 6 ? d->name.c_str() : d->shortname.c_str()) : "?";
         ImGui::PushFont(ui_font_small);
         ImVec2 ts = ImGui::CalcTextSize(nm);
         dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, p.y + tile - ts.y - 4), col(0.2f, 0.12f, 0.06f), nm);
-        char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
-        dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
+        if (!d || d->kind != K_POTION) {                           /* (a potion: the dots on its flask) */
+            char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
+            dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
+        }
         if (it.count > 1) {
             char c[16]; snprintf(c, sizeof c, "x%d", it.count);
             ImVec2 cs = ImGui::CalcTextSize(c);
@@ -763,7 +793,7 @@ extern "C" void tab_alchemy(void)
             ImGui::TableNextColumn();
             ImVec2 p = ImGui::GetCursorScreenPos();
             ImGui::Dummy(ImVec2(UIS(28), UIS(28)));
-            draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3);
+            icon_tier = f % 3 + 1; draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3); icon_tier = 0;
             ImGui::SameLine();
             ImGui::BeginGroup();
             std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");
@@ -806,4 +836,4 @@ extern "C" void tab_alchemy(void)
     ImGui::EndChild();
 }
 
-extern "C" void ui_give(int from, int to, int idx) { give(from, to < 0 ? -to - 1 : to, idx, to < 0); fprintf(stderr, "ui: %s\n", last_msg.c_str()); }
+extern "C" void ui_give(int from, int to, int idx) { give(from, to < 0 ? -to - 1 : to, idx, to < 0); }

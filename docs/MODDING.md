@@ -10,7 +10,7 @@ A mod is a folder in the game folder's `mods` folder:
 
 ```
 <game>/mods/My mod/
-    mod.txt                 first line: the name shown in F12 > Mods; the rest: a description
+    mod.txt                 first line: the name shown in F12 > Settings > Mods; the rest: a description
     DARKLAND.LST            any game file, replaced whole (items, saints, cities, enemies ...)
     PICS/CASTLE1.PIC        one picture
     MSGFILES/$MAINS01.TXT   one card file as text (or .MSG); the other cards stay as they are
@@ -20,13 +20,13 @@ A mod is a folder in the game folder's `mods` folder:
     music/                  recordings that replace the game's pieces of music (below)
 ```
 
-Tick the mod in F12 > Mods. Several mods can be on at once; where two change the same file the
+Tick the mod in F12 > Settings > Mods. Several mods can be on at once; where two change the same file the
 folder that comes later in the alphabet wins (name them `10 base`, `20 tweaks` ... to set the
 order). Only reading is redirected: saves and settings stay in the game folder.
 
 When the game folder cannot be written (Windows: under Program Files, where GOG Galaxy installs
 games), the `mods`, `art` and `sounds` folders are in `%LOCALAPPDATA%\Darklands+` instead, and
-the game's saves go to Windows' VirtualStore copy of the game folder; F12 > About shows where.
+the game's saves go to Windows' VirtualStore copy of the game folder; F12 > Settings > About shows where.
 
 Card texts, pictures, sounds and weapon numbers change at once; files the game reads when it
 starts (the item list, saints, cities ...) need a restart.
@@ -36,7 +36,7 @@ Implementation: `port/mods/datamods.c` (redirect of DOS opens for reading, catal
 
 ## Card texts
 
-F12 > Mods > "Export the card texts" writes all 419 card files of MSGFILES as text into
+F12 > Settings > Mods > "Export the card texts" writes all 419 card files of MSGFILES as text into
 `mods/_export/MSGFILES/`. Copy the ones to change into your mod's `MSGFILES` folder, keeping the
 name. The format:
 
@@ -118,13 +118,13 @@ layout is in `formats/dlformats/enm.py`.
 A mod can add wilderness encounters of its own: cards like the game's, with a picture, text and
 options that test the party's skills, run by Darklands+ from a plain text script
 (`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (sixteen of
-them; tick it in F12 > Mods). Its folder is the best place to start reading:
+them; tick it in F12 > Settings > Mods). Its folder is the best place to start reading:
 `mods/New encounters/ENCOUNTERS/*.TXT` and `MSGFILES/$NW*.TXT`.
 
 While a mod with an `ENCOUNTERS` folder is ticked, some of the random encounters on the travel
 map are new ones. Each new encounter counts as `weight` more entries of the game's own table of
 encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one
-of the game's own; F12 > Mods sets an overall percentage, and none comes twice within a few days.
+of the game's own; F12 > Settings > Mods sets an overall percentage, and none comes twice within a few days.
 A small red seal in the corner of the card marks a new encounter (its tooltip names it). Not in
 "Play the original game".
 
@@ -260,14 +260,14 @@ palette gives the colours). The portrait (`ExxSMALL.PIC`) and the little battle 
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
-drawn at window resolution; F12 > Display can export all original pictures as templates
+drawn at window resolution; F12 > Settings > Display can export all original pictures as templates
 and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
-for variations) replaces a battle sound; the names are listed in F12 > Display. Mods can
+for variations) replaces a battle sound; the names are listed in F12 > Settings > Display. Mods can
 carry both folders; a mod's files win over the game folder's.
 
 ### Making a whole art pack
 
-`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Display > "Export
+`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Settings > Display > "Export
 the original pictures", which writes `art/original`) into a mod folder: `OUT/mod.txt` and
 `OUT/art/NAME.png` at four times the size. A *style* decides what becomes of each picture; the
 sample style `clown` dresses every piece of armour on the character sheet as a clown costume
@@ -303,7 +303,7 @@ As with `artpack.py`, a pack made from the game's pictures is for your own use.
 ### The sample battle sounds
 
 `port/tools/soundpack.py OUT` makes the "Battle sounds (0 A.D. recordings)" mod that comes with
-the release (off until ticked in F12 > Mods): 50 takes of the eleven battle sounds, cut from
+the release (off until ticked in F12 > Settings > Mods): 50 takes of the eleven battle sounds, cut from
 0 A.D.'s free recordings (Wildfire Games, CC BY-SA 3.0) to start on the blow, levelled, and in
 places layered (a hit on mail, the body falling after a death cry); the flask breaking and the
 magic sparkle are synthesized. It fetches only the files it uses from 0 A.D.'s repository
@@ -319,7 +319,7 @@ number the game asks its sound driver for, with anything after it: `10.ogg`, `11
 `08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
 Up to four files for one number are played in turn (`27 a.ogg`, `27 b.ogg` ...; the game's own
 piece 27 is one of four tunes in turn).
-The pieces are the same for every sound device. F12 > Display > Sound lists the numbers that
+The pieces are the same for every sound device. F12 > Settings > Display > Sound lists the numbers that
 are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
 the city square 14, the university 15, the fortress 17, the map 19 and 20, the dungeon 22, before
 a city 27 and 28, a village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names
@@ -338,6 +338,6 @@ be shared like any mod.
 
 ## Built-in changes
 
-F12 > Mods also lists changes written in C (`port/mods/builtin.c`): faster travel, cheaper inns,
+F12 > Settings > Mods also lists changes written in C (`port/mods/builtin.c`): faster travel, cheaper inns,
 heavier blows, a strong Quickstart party, a rich start. New ones are a hook on a game function
 (`hook_install`) plus an entry in the `MODS` table.

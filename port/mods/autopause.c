@@ -7,6 +7,7 @@
 #include <SDL_scancode.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
 
@@ -56,7 +57,7 @@ void autopause_frame(void)
         int was = state[m]; state[m] = s;
         if (s <= was) continue;
         if (!(s == 2 ? autopause_down : autopause_hurt)) continue;
-        if (g_rb(0x07d3)) continue;                                      /* paused already */
+        if (g_rb(GV_pause_depth)) continue;                                      /* paused already */
         if (plat_ticks_ms() - last_pause < 1500) continue;
         last_pause = plat_ticks_ms();
         plat_press_key(SDL_SCANCODE_SPACE);

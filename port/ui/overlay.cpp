@@ -16,15 +16,18 @@
 #include "imgui.h"
 #include <SDL.h>
 #include "../mods/hdart.h"
+#include "../mods/nscreen.h"
 #include "gamedata.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "../mods/datamods.h"
 #include "../mods/assist.h"
+#include "../mods/cardview.h"
 #include "../mods/hdtext.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
@@ -138,6 +141,7 @@ static FaceMetrics face_metrics(ImFont *f)
     last = f; lm = m;
     return m;
 }
+float ui_face_k(ImFont *f) { return face_metrics(f).k; }
 static float face_ref_asc(void) { static float a = -1; if (a < 0) a = face_raw(ui_font_game[0]).asc; return a; }
 
 /* where the crisp text of a run ends on screen (as hdtext_draw lays it out); window x */
@@ -159,22 +163,23 @@ static float run_end_win(const HdRun &r, float *cy, float *lh)
 /* the chance of success of each option, right after its text, at the size of the text */
 static void draw_chances(void)
 {
+    if (cardview_showing()) return;                             /* the native card screen shows them itself */
     const CardChances &cc = card_chances;
     if (!assist_chances || !cc.active || plat_ticks_ms() - cc.polled > 300) return;
-    if (g_rb(0xee41) || g_rb(0xee42)) return;                   /* a skill-check box is up */
-    int n = (s8)g_rb(0xe96e);
+    if (g_rb(GV_card_box_shown) || g_rb(GV_card_box_pointer)) return;                   /* a skill-check box is up */
+    int n = (s8)g_rb(GV_card_layout);
     if (n != cc.n) return;
     int diff = g_rb(G_DIFFICULTY) & 0x7f;
     int mode = assist_chances == 2 ? 0 : diff;                  /* 0 numbers, 1 words, 2 hidden */
     if (mode >= 2) return;
-    int x0 = 60 + (s16)g_rw(0xe972), w = (s16)g_rw(0xe970), tc = (s16)g_rw(0xee59);
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), w = (s16)g_rw(GV_card_layout_w), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
     ImDrawList *dl = ovl_list();
     ImFont *f = ui_font_overlay;
     int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {
         if (!cc.line[i].show) continue;
-        int y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+        int y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
         float ex = -1, cy = 0, lh = 0;
         int best = -1;
         for (int k = 0; k < hdtext_nruns; k++) {             /* the option's last line of crisp text */
@@ -194,7 +199,7 @@ static void draw_chances(void)
         if (mode == 0) snprintf(main, sizeof main, "%d%%", pct);
         else {
             int q = pct / 20; if (q > 6) q = 6;
-            u16 p = g_rw((u16)(0x4fce + 2 * q));
+            u16 p = g_rw((u16)(GV_quality_words + 2 * q));
             if (pct <= 0) snprintf(main, sizeof main, "hopeless");
             else g_str(G_DGROUP, p, main, sizeof main);
         }
@@ -532,13 +537,18 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
         dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;
     case 12: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
+    case 13: /* guide: an open book */
+        dl->AddQuadFilled(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), parch); dl->AddQuadFilled(P(0, -4), P(9, -6), P(9, 6), P(0, 8), C(226, 214, 184));
+        dl->AddQuad(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), ink, 0.8f * u); dl->AddQuad(P(0, -4), P(9, -6), P(9, 6), P(0, 8), ink, 0.8f * u);
+        for (int i = 0; i < 3; i++) { dl->AddLine(P(-7, -2 + i * 3.0f), P(-2, -1 + i * 3.0f), C(120, 100, 80), 0.7f * u); dl->AddLine(P(2, -1 + i * 3.0f), P(7, -2 + i * 3.0f), C(120, 100, 80), 0.7f * u); }
+        break;
     default: (void)steel; break;
     }
 }
 
 /* mods' text.txt: words on the screen said differently ("Purchase an item => Kaufen"), for
  * translations and renamings of the menus the game writes from its program; and, for
- * translators, a list of every line shown (F12 > Mods: "Collect the texts shown") */
+ * translators, a list of every line shown (F12 > Settings > Mods: "Collect the texts shown") */
 #include <unordered_map>
 #include <unordered_set>
 int ui_collect_texts;
@@ -862,11 +872,13 @@ static void draw_lcd(void)
 static float card_help_top;              /* top of the card helper panel this frame (0: none) */
 extern int ui_shop_info;
 extern "C" void plat_mouse_game(int *x, int *y);
+extern "C" int gm_knows_formula(int m, int f);
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static void draw_card_help(void)
 {
     card_help_top = 0;
-    if (!assist_card_help || !assist_in_card_menu() || g_rb(0xee41) || g_rb(0xee42)) return;
+    if (cardview_showing()) return;
+    if (!assist_card_help || !assist_in_card_menu() || g_rb(GV_card_box_shown) || g_rb(GV_card_box_pointer)) return;
     int npar = (s16)g_rw(G_PARTY_SIZE);
     if (npar < 1 || npar > 5) return;
     std::vector<std::pair<std::string, std::string>> lines;
@@ -874,7 +886,7 @@ static void draw_card_help(void)
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
     auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };   /* the dead know no saints and carry nothing */
     for (int j = 0; j < 4; j++) {
-        int s = (s16)g_rw((u16)(0xee4b + 2 * j));
+        int s = (s16)g_rw((u16)(GV_card_saints + 2 * j));
         if (s < 0 || s >= (int)gamedata.saints.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++)
@@ -884,7 +896,7 @@ static void draw_card_help(void)
     }
     int nsaints = (int)lines.size();
     for (int j = 0; j < 4; j++) {
-        int it = (s16)g_rw((u16)(0xee43 + 2 * j));
+        int it = (s16)g_rw((u16)(GV_card_items + 2 * j));
         if (it <= 0 || it >= (int)gamedata.items.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++) {
@@ -1012,8 +1024,10 @@ static std::string squash(const std::string &t)            /* letters and digits
     std::string o; for (unsigned char c : t) if (isalnum(c)) o += (char)tolower(c);
     return o;
 }
+extern "C" int ns_showing(void);
 static void draw_shop_info(void)
 {
+    if (ns_showing()) return;   /* the native shop has its own strip */
     int gm = game_mode();
     static int tip_log = getenv("DL_TIP_LOG") != 0;
     static std::string last_log;
@@ -1077,7 +1091,15 @@ static void draw_shop_info(void)
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, pivot);
+    /* kept inside the window: placed by last frame's size (a long saint's text near the bottom of
+       a card's list ran off the screen) */
+    static ImVec2 last_size(0, 0);
+    ImVec2 tl(pos.x - pivot.x * last_size.x, pos.y - pivot.y * last_size.y);
+    if (tl.x + last_size.x > io.DisplaySize.x) tl.x = io.DisplaySize.x - last_size.x;
+    if (tl.y + last_size.y > io.DisplaySize.y) tl.y = io.DisplaySize.y - last_size.y;
+    if (tl.x < 0) tl.x = 0;
+    if (tl.y < 0) tl.y = 0;
+    ImGui::SetNextWindowPos(tl, ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowBgAlpha(0.97f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
@@ -1090,7 +1112,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             std::string nm = game_text(d->name.c_str(), d->name.size());
             if (nm.size() > 2 && nm[1] == ':') nm = nm.substr(2);                 /* "V:Brigandine" */
             ImGui::TextUnformatted(nm.c_str());
-            ImGui::TextDisabled("%s%s", kind_name(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
+            ImGui::TextDisabled("%s%s", kind_name_one(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
             ui_item_details(d, item);
         } else if (saint >= 0) {
             const Saint &st = gamedata.saints[saint];
@@ -1110,7 +1132,28 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 const Formula &F = gamedata.formulas[formula];
                 const ItemDef *pd = 95 + formula / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + formula / 3] : nullptr;
                 static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
-                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? pd->name.c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                /* its place among the potion's three formulae (by difficulty) */
+                int base = formula / 3 * 3, rank = 0, n3 = 0;
+                for (int k = base; k < base + 3 && k < (int)gamedata.formulas.size(); k++) {
+                    if (k < (int)gamedata.formula_names.size() && gamedata.formula_names[k].empty()) continue;
+                    n3++;
+                    if (gamedata.formulas[k].mystic < F.mystic || (gamedata.formulas[k].mystic == F.mystic && k < formula)) rank++;
+                }
+                if (n3 == 3) {
+                    static const char *ORD[3] = { "The easiest", "The middle", "The hardest" };
+                    std::string others;
+                    for (int k = base; k < base + 3; k++) if (k != formula && k < (int)gamedata.formula_names.size()) others += (others.empty() ? "" : " and ") + gamedata.formula_names[k];
+                    ImGui::TextDisabled("%s of the three formulae for %s (the others: %s).", ORD[rank], pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "it", others.c_str());
+                }
+                {
+                    std::string who; int np = (s16)g_rw(G_PARTY_SIZE);
+                    for (int m = 0; m < np && m < 5; m++) if (gm_knows_formula(m, formula)) {
+                        char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);
+                        if (!who.empty()) who += ", "; who += game_text(n, strlen(n));
+                    }
+                    ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this formula." : ("Known to " + who + ".").c_str());
+                }
                 ImGui::Separator();
                 ImGui::TextWrapped("%s", F.text.c_str());
                 /* each ingredient with what the party carries of it (red: not enough) */
@@ -1132,6 +1175,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
         ImGui::PopTextWrapPos();
         ImGui::PopFont();
     }
+    last_size = ImGui::GetWindowSize();
     ImGui::End();
 }
 
@@ -1168,18 +1212,57 @@ std::string ui_enemy_name(int floor, u16 b)
     for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
     return "";
 }
+/* a thin bar over each fighter on the field: the endurance left (the party's blue, the enemies'
+   red), and a second, the strength, once it is down by half (battle.bars) */
+int ui_battle_bars = 1;
+static void draw_battle_bars(void)
+{
+    if (!ui_battle_bars || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    int n = (s8)g_rb(GV_hotspot_count);
+    if (n <= 0 || n > 40) return;
+    ImDrawList *dl = ovl_list();
+    bool done[13] = {};
+    float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
+    dl->PushClipRect(g2w(60, 0), g2w(320, 200), true);        /* (the field only: not over the margins or the panel) */
+    for (int i = 0; i < n; i++) {
+        int m = g_rb((u16)(GV_hotspot_cbt + i));
+        if (m >= 13 || done[m]) continue;
+        done[m] = true;
+        u16 b = (u16)(GV_combatants + m * 0x80);
+        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+        if (st != 1 || endm <= 0) continue;
+        int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
+        if (x1 <= x0 || x1 - x0 > 60) continue;
+        float cx = (x0 + x1) * 0.5f + 60, w = 10.0f, gy = (float)y0 - 5.5f;       /* (the hot spot starts at the head: the bar clear above it) */
+        if (gy < 1) gy = 1;
+        ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
+        float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x;
+        float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
+        ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
+        dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
+        if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
+        if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
+            float fs = str < 0 ? 0 : (float)str / strm;
+            ImVec2 a2(a.x, a.y + h + 1);
+            dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
+            if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
+        }
+    }
+    dl->PopClipRect();
+}
+
 static void draw_battle_info(void)
 {
     if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
-    int mx = gx - 60, my = gy, n = (s8)g_rb(0xe0a1), best = -1, by = -32768;
+    int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
     if (mx < 0 || n <= 0 || n > 40) return;
     for (int k = n - 1; k >= 0; k--) {
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
-        int m = g_rb((u16)(0xd848 + k));
+        int m = g_rb((u16)(GV_hotspot_cbt + k));
         if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
-        int cyy = (s16)g_rw((u16)(0x9c55 + m * 0x80 + 6));
+        int cyy = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
         if (cyy > by) { by = cyy; best = m; }
     }
     if (best < 0) return;
@@ -1189,7 +1272,7 @@ static void draw_battle_info(void)
     int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x23));
     std::string name;
     if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
-    else name = enemy_name(g_rb((u16)(0xa6b4 + best)), b);
+    else name = enemy_name(g_rb((u16)(GV_cbt_floor + best)), b);
     if (name.empty()) name = best < 5 ? "?" : "Enemy";
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
     if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
@@ -1259,6 +1342,7 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); void
 static ImVec2 loot_btn[2][2]; static int loot_btn_frame = -10, click_taken;
 static void draw_loot_buttons(void)
 {
+    if (ns_showing()) return;
     if ((!loot_active && !barter_active) || !loot_enabled() || game_mode() != GM_SCREEN) return;
     if (hdart_on_screen("ARMBACK")) return;                  /* a character sheet opened from the shop or the loot */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
@@ -1352,13 +1436,26 @@ extern "C" void ui_overlay(void)
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();
-    draw_version();
+    if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER) draw_version();       /* (not over a character being made, the party chosen) */
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
+    draw_battle_bars();
     draw_battle_info();
     { void battlelog_overlay(void); battlelog_overlay(); }
-    draw_creation_guide();
+    if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */
     draw_loot_buttons();
     ImGui::End();                                       /* the layer */
     ovl_dl = nullptr;
+}
+
+/* the tooltip of a saint or an item, for ui/cardview.cpp */
+void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula)
+{
+    if (formula >= 0 && formula < (int)gamedata.formula_names.size()) show_tip(pos, pivot, -1, -1, formula);
+}
+void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint)
+{
+    if (item >= (int)gamedata.items.size()) item = -1;
+    if (saint >= (int)gamedata.saints.size()) saint = -1;
+    if (item >= 0 || saint >= 0) show_tip(pos, pivot, item, saint, -1);
 }

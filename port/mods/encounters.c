@@ -3,7 +3,7 @@
  * A mod folder can hold ENCOUNTERS/<NAME>.TXT files: each is one new wilderness encounter, a
  * card like the game's own (a picture, text blocks from MSGFILES/<CARD>.TXT, a menu of options
  * with chances of success), run by this interpreter instead of compiled card code. While such a
- * mod is ticked in F12 > Mods, some of the random encounters of the wilderness are new ones,
+ * mod is ticked in F12 > Settings > Mods, some of the random encounters of the wilderness are new ones,
  * picked as if they were extra entries of the game's own table for the terrain (the format and
  * the language are described in docs/MODDING.md, "New encounters").
  *
@@ -32,6 +32,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/native.h"
 #include "../runtime/hle.h"
@@ -47,49 +48,49 @@ void ui_notice(const char *);
 #define NOPT       10
 
 /* engine variables (DGROUP, include/darklands/card.h) */
-#define V_NEXT_CARD   0xe48a
-#define V_CARD_NAME   0xe3d4
-#define V_PIC_BUF     0xe3e3
-#define V_PIC_BUF2    0xe95f
-#define V_CARD_WIN    0x017c
-#define V_CARD_WIN2   0x0154
-#define V_OPT_BLOCK   0xee53
-#define V_MSG_BUF     0x9085
-#define V_OPT_ON      0xe99c
-#define V_OPT_FN      0xea14
-#define V_OPT_FLAG    0xee76
-#define V_CARD_ITEMS  0xee43
-#define V_CARD_SAINTS 0xee4b
-#define V_ITEM_FN     0xec00
-#define V_SAINT_FN    0xecf6
-#define V_MENU_MEMBER 0xee6c
-#define V_MENU_SLOT   0xee6a
-#define V_MENU_POPUP  0xee6e
-#define V_MSG_BLOCKS  0xe8a5        /* char: the text blocks of the card loaded (msg_blocks) */
-#define V_IN_POPUP    0xee42        /* char: the pointer or the highlight is in the saints/items box */
-#define V_CHOSEN1     0xee8c
-#define V_MONEY1      0xee9c
-#define V_NUMBER1     0xed4c
-#define V_NUMBER2     0xed50
-#define V_ITEM        0xed5c
+#define V_NEXT_CARD   GV_next_card
+#define V_CARD_NAME   GV_card_name
+#define V_PIC_BUF     GV_pic_buf
+#define V_PIC_BUF2    GV_pic_buf2
+#define V_CARD_WIN    GV_card_window
+#define V_CARD_WIN2   GV_card_window2
+#define V_OPT_BLOCK   GV_options_block
+#define V_MSG_BUF     GV_msg_buf
+#define V_OPT_ON      GV_opt_on
+#define V_OPT_FN      GV_opt_fn
+#define V_OPT_FLAG    GV_opt_flag_0
+#define V_CARD_ITEMS  GV_card_items
+#define V_CARD_SAINTS GV_card_saints
+#define V_ITEM_FN     GV_item_fn
+#define V_SAINT_FN    GV_saint_fn
+#define V_MENU_MEMBER GV_menu_member
+#define V_MENU_SLOT   GV_menu_slot
+#define V_MENU_POPUP  GV_menu_popup
+#define V_MSG_BLOCKS  GV_msg_blocks        /* char: the text blocks of the card loaded (msg_blocks) */
+#define V_IN_POPUP    GV_card_box_pointer        /* char: the pointer or the highlight is in the saints/items box */
+#define V_CHOSEN1     GV_var_chosen1
+#define V_MONEY1      GV_var_money1
+#define V_NUMBER1     GV_var_number1
+#define V_NUMBER2     GV_var_number2
+#define V_ITEM        GV_var_item
 #define V_EE70        0xee70
 #define V_EE72        0xee72
-#define V_BEST_MEMBER 0x991d
+#define V_BEST_MEMBER GV_best_member
 #define V_CUR_CARD    0xa772
-#define V_PARTY_X     0xe3d0
-#define V_PARTY_Y     0xe3d2
+#define V_PARTY_X     GV_party_x
+#define V_PARTY_Y     GV_party_y
 #define V_TERRAIN     0xd843
-#define V_HOUR        0x00e0
-#define V_DAY         0x00e2
-#define V_MONTH       0x00e4
-#define V_YEAR        0x00e6
-#define S_NO_RISK     0x4f02
-#define S_SEL_POTION  0x4f0c
-#define S_SEL_SAINT   0x4f2a
-#define S_ASSURED     0x4f48
-#define S_POTION_OK   0x4f7a
-#define S_UNKNOWN     0x4f9a
-#define S_COMBAT      0x4fc0
+#define V_HOUR        GV_cur_hour
+#define V_DAY         GV_cur_day
+#define V_MONTH       GV_cur_month
+#define V_YEAR        GV_cur_year
+#define S_NO_RISK     GV_str_no_risk
+#define S_SEL_POTION  GV_str_select_potion
+#define S_SEL_SAINT   GV_str_select_saint
+#define S_ASSURED     GV_str_success_assured
+#define S_POTION_OK   GV_str_potion_works
+#define S_UNKNOWN     GV_str_unknown
+#define S_COMBAT      GV_str_enter_combat
 
 static int enc_log_on(void) { static int v = -1; if (v < 0) v = getenv("DL_ENC_LOG") != 0; return v; }
 #define LOG(...) do { if (enc_log_on()) fprintf(stderr, "encounters: " __VA_ARGS__); } while (0)
@@ -172,52 +173,52 @@ static int G(int sect, u16 seg, u16 off, int n, ...)
     return gcall(sect, seg, off, n, a);
 }
 /* root */
-static int g_rand(int n) { return G(ROOT, 0x0000, 0x0c70, 1, n); }
-static void g_mouse_show(void) { G(ROOT, 0x047c, 0x1293, 0); }
-static void g_mouse_hide(void) { G(ROOT, 0x047c, 0x12c3, 0); }
-static void g_panel_rows(void) { G(ROOT, 0x0000, 0x1716, 1, 0x100); }
+static int g_rand(int n) { return G(GF_rand_mod, 1, n); }
+static void g_mouse_show(void) { G(GF_mouse_show, 0); }
+static void g_mouse_hide(void) { G(GF_mouse_hide, 0); }
+static void g_panel_rows(void) { G(GF_party_panel_rows, 1, 0x100); }
 /* card engine, s043 */
-static void g_card_load(void) { G(43, 0x150b, 0x000a, 3, V_CARD_NAME, V_PIC_BUF, G_DGROUP); }
-static void g_card_load_near(void) { G(43, 0x150b, 0x0110, 2, V_CARD_NAME, V_PIC_BUF2); }
-static void g_card_text(int b) { G(43, 0x150b, 0x03b0, 2, b, 0); }
-static void g_card_options(int b) { G(43, 0x150b, 0x049a, 1, b); }
-static int g_card_menu(void) { return G(43, 0x150b, 0x1142, 2, g_rw(V_CARD_WIN), g_rw(V_CARD_WIN2)); }
-static int g_saints_usable(void) { return G(43, 0x150b, 0x168c, 0); }
-static int g_items_usable(void) { return G(43, 0x150b, 0x16e8, 0); }
+static void g_card_load(void) { G(GF_card_load, 3, V_CARD_NAME, V_PIC_BUF, G_DGROUP); }
+static void g_card_load_near(void) { G(GF_card_load_near, 2, V_CARD_NAME, V_PIC_BUF2); }
+static void g_card_text(int b) { G(GF_card_text, 2, b, 0); }
+static void g_card_options(int b) { G(GF_card_options, 1, b); }
+static int g_card_menu(void) { return G(GF_card_menu, 2, g_rw(V_CARD_WIN), g_rw(V_CARD_WIN2)); }
+static int g_saints_usable(void) { return G(GF_saints_usable, 0); }
+static int g_items_usable(void) { return G(GF_items_usable, 0); }
 static void g_music(void) { G(43, 0x1462, 0x09ae, 1, 0x20); }
 /* time and numbers, s029 1367 */
-static void g_hours(int h) { if (h > 0) G(29, 0x1367, 0x05c8, 1, h); }
-static void g_days(int d) { if (d > 0) G(29, 0x1367, 0x0680, 1, d); }
-static int g_hours_until(int h) { return G(29, 0x1367, 0x086a, 1, h); }
-static int g_daylight(void) { return G(29, 0x1367, 0x072a, 0); }
-static void g_chance_text(int lo, int hi) { G(29, 0x1367, 0x0c52, 3, V_MSG_BUF, lo, hi); }
+static void g_hours(int h) { if (h > 0) G(GF_advance_hours, 1, h); }
+static void g_days(int d) { if (d > 0) G(GF_advance_days, 1, d); }
+static int g_hours_until(int h) { return G(GF_hours_until, 1, h); }
+static int g_daylight(void) { return G(GF_is_daylight, 0); }
+static void g_chance_text(int lo, int hi) { G(GF_chance_text, 3, V_MSG_BUF, lo, hi); }
 /* rules, s029 0e76 */
-static int g_skill(int w, int k) { return G(29, 0x0e76, 0x01a0, 2, w, k); }
-static int g_attr(int w, int k) { return G(29, 0x0e76, 0x05ee, 2, w, k); }
-static int g_attr_max(int w, int k) { return G(29, 0x0e76, 0x0b64, 2, w, k); }
-static void g_add_skill(int w, int k, int d) { G(29, 0x0e76, 0x02ea, 3, w, k, d); }
-static void g_add_attr(int w, int k, int d) { G(29, 0x0e76, 0x0a72, 3, w, k, d); }
-static void g_add_attr_max(int w, int k, int d) { G(29, 0x0e76, 0x0bb6, 3, w, k, d); }
-static void g_set_attr(int w, int k, int v) { G(29, 0x0e76, 0x0988, 3, w, k, v); }
+static int g_skill(int w, int k) { return G(GF_member_skill, 2, w, k); }
+static int g_attr(int w, int k) { return G(GF_member_attr, 2, w, k); }
+static int g_attr_max(int w, int k) { return G(GF_member_attr_max, 2, w, k); }
+static void g_add_skill(int w, int k, int d) { G(GF_add_skill, 3, w, k, d); }
+static void g_add_attr(int w, int k, int d) { G(GF_add_attr, 3, w, k, d); }
+static void g_add_attr_max(int w, int k, int d) { G(GF_add_attr_max, 3, w, k, d); }
+static void g_set_attr(int w, int k, int v) { G(GF_set_attr, 3, w, k, v); }
 static int g_party_q(u16 off, int k) { return G(29, 0x0e76, off, 1, k); }
-static int g_party_get(int what) { return G(29, 0x0e76, 0x1326, 1, what); }
-static int g_has_item(int w, int code) { return G(29, 0x0e76, 0x118e, 2, w, code); }
-static int g_count_items(int w, int code) { return G(29, 0x0e76, 0x0c76, 2, w, code); }
-static int g_saint_lo(int w, int s) { return G(29, 0x0e76, 0x20c6, 2, w, s); }
-static int g_saint_hi(int w, int s) { return G(29, 0x0e76, 0x2116, 2, w, s); }
+static int g_party_get(int what) { return G(GF_party_get, 1, what); }
+static int g_has_item(int w, int code) { return G(GF_has_item, 2, w, code); }
+static int g_count_items(int w, int code) { return G(GF_count_items, 2, w, code); }
+static int g_saint_lo(int w, int s) { return G(GF_saint_chance_lo, 2, w, s); }
+static int g_saint_hi(int w, int s) { return G(GF_saint_chance_hi, 2, w, s); }
 static int g_invoke_saint(int w, int s)
 {
     int fake = config_get_int("test.enc_saint", -99);       /* tests: the prayer's outcome without the prayer screen */
     if (fake != -99) { fprintf(stderr, "encounters: saint %d by %d: faked %d\n", s, w, fake); return fake; }
-    return G(29, 0x0e76, 0x2180, 2, w, s);
+    return G(GF_invoke_saint, 2, w, s);
 }
-static void g_drop_away(void) { G(29, 0x0e76, 0x2434, 0); }
-static void g_rejoin_away(void) { G(29, 0x0e76, 0x251a, 0); }
-static void g_rep_adj(int loc, int a, int b) { G(29, 0x0e76, 0x19d0, 3, loc, a, b); }
-static void g_name_saint(int s) { G(29, 0x0e76, 0x1fb8, 3, 1, s, 0); }
-static void g_load_city(int c) { G(29, 0x0e76, 0x4e68, 1, c); }
-static int g_event_started(int k) { return G(29, 0x0e76, 0x32ce, 1, k); }
-static int g_count_able(void) { return G(29, 0x0e76, 0x007c, 0); }
+static void g_drop_away(void) { G(GF_party_drop_away, 0); }
+static void g_rejoin_away(void) { G(GF_party_rejoin_away, 0); }
+static void g_rep_adj(int loc, int a, int b) { G(GF_loc_reputation_adj, 3, loc, a, b); }
+static void g_name_saint(int s) { G(GF_name_to_slot, 3, 1, s, 0); }
+static void g_load_city(int c) { G(GF_load_city, 1, c); }
+static int g_event_started(int k) { return G(GF_event_started, 1, k); }
+static int g_count_able(void) { return G(GF_party_count_able, 0); }
 static int g_battle(const int *a)
 {
     int fake = config_get_int("test.enc_battle", -99);      /* tests: the battle's result without fighting it */
@@ -410,10 +411,10 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "size")) { *v = g_present(); return 1; }                       /* members present */
     if (!strcasecmp(n, "members")) { *v = (s16)g_rw(G_PARTY_SIZE); return 1; }
     if (!strcasecmp(n, "women")) { *v = g_count_able(); return 1; }
-    if (!strcasecmp(n, "avgagility")) { *v = G(29, 0x0e76, 0x060e, 0); return 1; }
-    if (!strcasecmp(n, "minagility")) { *v = G(29, 0x0e76, 0x0656, 0); return 1; }
-    if (!strcasecmp(n, "slowspeed")) { *v = G(29, 0x0e76, 0x088e, 0); return 1; }
-    if (!strcasecmp(n, "slowest")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x088e, 0); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
+    if (!strcasecmp(n, "avgagility")) { *v = G(GF_party_avg_eff_attr2, 0); return 1; }
+    if (!strcasecmp(n, "minagility")) { *v = G(GF_party_min_eff_attr2, 0); return 1; }
+    if (!strcasecmp(n, "slowspeed")) { *v = G(GF_party_min_eff_attr2_bonus, 0); return 1; }
+    if (!strcasecmp(n, "slowest")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(GF_party_min_eff_attr2_bonus, 0); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "spotvalue")) { *v = G(29, 0x0e76, 0x184a, 2, 3, 0x12); return 1; }
     if (!strcasecmp(n, "spotter")) { g_wb(V_BEST_MEMBER, (u8)leader()); G(29, 0x0e76, 0x184a, 2, 3, 0x12); *v = (s8)g_rb(V_BEST_MEMBER); if (member_status((int)*v) != 1) *v = leader(); return 1; }
     if (!strcasecmp(n, "terrain")) { *v = (s16)g_rw(V_TERRAIN); return 1; }
@@ -1392,16 +1393,17 @@ static int eligible(Enc *e, int t, long today)
     return 1;
 }
 
-static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(): the next card */
+/* the card after this step on the map: a new encounter instead of the game's own, or r. (Its
+ * conditions call the game (the daylight, an 'only' line ...), which changes AX: the card the
+ * loop returns is put back explicitly. It was not, and a step that brought no new encounter
+ * returned whatever the last of those calls left: card 0, the developers' test card (the game
+ * stopped on its missing picture), or card 1, a town gate's guards in the open country.) */
+static int choose(int r, int t)
 {
-    travel_step_result = -1;
-    hook_call_original();
-    if (unw_active) return;
-    int r = (s16)AX, t = (s16)g_rw(V_TERRAIN);
     int region = 0;
     for (int i = 0; i < (int)(sizeof REGION_CARDS / sizeof REGION_CARDS[0]); i++) if (REGION_CARDS[i] == r) region = 1;
-    if (travel_step_result != 1000 || !region) return;
-    if (!encounters_offered()) return;
+    if (travel_step_result != 1000 || !region) return r;
+    if (!encounters_offered()) return r;
     install_cards();
     aborting = 0;
     long today = game_day();
@@ -1409,21 +1411,34 @@ static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(
     if (force_next >= 0 && force_next < nenc && encs[force_next].ok) { pick = force_next; force_next = -1; }
     else {
         int share = config_get_int("encounters.share", 100);
-        if (share <= 0) return;
+        if (share <= 0) return r;
         int T = table_size(t);
-        if (!T) return;
+        if (!T) return r;
         if (share > 1000) share = 1000;
         long long w[ENC_MAX], W = 0;
         for (int i = 0; i < nenc; i++) { w[i] = eligible(&encs[i], t, today) ? (long long)encs[i].weight * share : 0; W += w[i]; }
-        if (aborting || !W) return;
+        if (aborting || !W) return r;
         long long roll = (long long)(rng() % (unsigned long long)(T * 100LL + W));
         LOG("terrain %d: table %d, new weight %lld/100, roll %lld\n", t, T, W, roll);
-        if (roll >= W) return;
+        if (roll >= W) return r;
         for (int i = 0; i < nenc; i++) { if (roll < w[i]) { pick = i; break; } roll -= w[i]; }
     }
-    if (pick < 0) return;
+    if (pick < 0) return r;
     LOG("%s instead of card %#x\n", encs[pick].id, r);
-    AX = (u16)(ENC_BASE + encs[pick].slot);
+    return ENC_BASE + encs[pick].slot;
+}
+
+static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(): the next card */
+{
+    travel_step_result = -1;
+    hook_call_original();
+    if (unw_active) return;
+    int r = (s16)AX, t = (s16)g_rw(V_TERRAIN);
+    u16 dx = DX;
+    if (getenv("DL_OVERLAND_LOG")) fprintf(stderr, "overland: next %d (step %d)\n", r, travel_step_result);
+    int c = choose(r, t);
+    if (unw_active || aborting) return;
+    AX = (u16)c; DX = dx;
 }
 
 /* ================================================================ interface */
@@ -1442,6 +1457,6 @@ int encounters_force_pending(void) { return force_next >= 0; }
 
 void encounters_init(void)
 {
-    hook_install(30, 0x1462, 0x02c0, overland_hook);
+    hook_install(GF_overland_loop, overland_hook);
     install_cards();                             /* also for a save made during a new encounter */
 }

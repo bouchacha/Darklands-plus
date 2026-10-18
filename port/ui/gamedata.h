@@ -52,7 +52,8 @@ extern const char *SHOP_NAMES[9];
 
 extern GameData gamedata;
 void gamedata_load(const char *dir);
-const char *kind_name(ItemKind k);
+const char *kind_name(ItemKind k);          /* a kind's name, for a list of them ("Weapons") */
+const char *kind_name_one(ItemKind k);      /* for one thing ("Weapon") */
 // where a saint's description turns from the legend to what the saint does (an offset into text)
 size_t saint_effect_at(const std::string &text);
 void ui_saint_text(const std::string &text);    // the legend, then the effect in another colour (ImGui, wrapped)

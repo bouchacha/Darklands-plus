@@ -14,8 +14,12 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/hle.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
+#include "nscreen.h"
+#include "cardview.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -25,23 +29,155 @@ CardChances card_chances;
 int assist_chances = 2;            /* 0 off, 1 as the difficulty level allows, 2 always numbers */
 
 static int cm_depth, cm_dirty;
+
+/* ---- the best member speaks for the party (assist.best_leader, on by default). Many cards test
+ * the leader alone (member_skill(-1, ...), member_attr(-1, ...): the charisma and Speak Common of
+ * every talk, a perception, a lore ...), and shops price by the leader's charisma, so the
+ * original had the player change the leader for each. Here each option's chance is asked of
+ * every able member as leader (the evaluation below); the option chosen is played with the
+ * member who does best as leader, and the player's own leader is back at the next card or on
+ * the map. Prices are asked with the best charisma as leader (buy_price, sell_price). */
+int assist_best_leader = 1;
+static int saved_leader = -1;           /* the player's leader, while another speaks */
+static int leader_able(int m)
+{
+    if (m < 0 || m >= 5 || m >= (s16)g_rw(G_PARTY_SIZE)) return 0;
+    return g_rb((u16)(G_MEMBER(m) + G_M_STATUS)) == 1;
+}
+int assist_best_at_attr(int k)
+{
+    int cur = (s8)g_rb(G_LEADER), best = leader_able(cur) ? cur : -1, bv = best >= 0 ? (s8)g_rb((u16)(G_MEMBER(cur) + G_M_ATTR_CUR + k)) : -1000;
+    for (int m = 0; m < 5; m++) {
+        if (!leader_able(m)) continue;
+        int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
+        if (v > bv) { bv = v; best = m; }
+    }
+    return best >= 0 ? best : cur;
+}
+int assist_bargainer(void) { return assist_best_leader && !config_get_int("original", 0) ? assist_best_at_attr(5) : (s8)g_rb(G_LEADER); }
+void assist_leader_restore(void)
+{
+    if (saved_leader < 0) return;
+    if (leader_able(saved_leader)) g_wb(G_LEADER, (u8)saved_leader);
+    if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: leader %d again\n", saved_leader);
+    saved_leader = -1;
+}
+static void leader_for_choice(int sel)
+{
+    if (!assist_best_leader || !card_chances.active || config_get_int("original", 0)) return;
+    for (int i = 0; i < card_chances.n && i < 20; i++)
+        if (card_chances.line[i].opt == sel && card_chances.line[i].lead >= 0) {
+            int m = card_chances.line[i].lead;
+            if (!leader_able(m)) return;
+            if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
+            g_wb(G_LEADER, (u8)m);
+            if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party (leader %d)\n", sel, m, saved_leader);
+            return;
+        }
+}
+static void price_hook(void)            /* buy_price (k) / sell_price (k, qual), s032: by the best charisma */
+{
+    if (!assist_best_leader || config_get_int("original", 0)) { hook_call_original(); return; }
+    int cur = (s8)g_rb(G_LEADER), m = assist_best_at_attr(5);
+    if (m == cur) { hook_call_original(); return; }
+    g_wb(G_LEADER, (u8)m);
+    hook_call_original();
+    if (!unw_active) g_wb(G_LEADER, (u8)cur);
+}
+/* two cards roll the leader as they open, before any option is shown: $Raubi02 (s080 18a5:000c)
+   Woodwise (skill 0x12) against d100 to see the ambush coming, $Revol02 (s073 1838:0000) Charisma
+   - 20 and the town's mood to calm a crowd. There too the one best at it speaks for the party (the
+   player's leader is back at the card's menu, as after a chosen option) */
+static void entry_best(int skill, int attr)
+{
+    if (!assist_best_leader || config_get_int("original", 0)) return;
+    int cur = (s8)g_rb(G_LEADER), best = cur, bv = -1000;
+    for (int m = 0; m < 5; m++) {
+        if (!leader_able(m)) continue;
+        int v = skill >= 0 ? (s16)ns_call(GF_member_skill, 2, m, skill) : (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + attr));
+        if (ns_unwinding) return;
+        if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
+    }
+    if (best == cur || !leader_able(best)) return;
+    if (saved_leader < 0) saved_leader = cur;
+    g_wb(G_LEADER, (u8)best);
+    if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: a card's opening roll: %d speaks for the party (leader %d)\n", best, saved_leader);
+}
+static void raubi02_hook(void) { entry_best(0x12, -1); if (ns_unwinding) return; hook_call_original(); }
+static void revol02_hook(void) { entry_best(-1, 5); if (ns_unwinding) return; hook_call_original(); }
+/* and two options roll the leader inside their action, with no chance shown beside them:
+   $Villa07's prayer at a village shrine (s078 191c:020c: divine favour for all of Speak Latin / 40 +
+   Religion / 60 + 1) and $Drago03's (s082 1845:0454: Virtue, then the leader is hurt) */
+static void villa07_hook(void)
+{
+    if (assist_best_leader && !config_get_int("original", 0)) {
+        int cur = (s8)g_rb(G_LEADER), best = cur, bv = -1;
+        for (int m = 0; m < 5; m++) {
+            if (!leader_able(m)) continue;
+            int v = (s16)ns_call(GF_member_skill, 2, m, 0xb) / 40 + (s16)ns_call(GF_member_skill, 2, m, 8) / 60;
+            if (ns_unwinding) return;
+            if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
+        }
+        if (best != cur && leader_able(best)) { if (saved_leader < 0) saved_leader = cur; g_wb(G_LEADER, (u8)best); }
+    }
+    hook_call_original();
+}
+static void drago03_hook(void) { entry_best(9, -1); if (ns_unwinding) return; hook_call_original(); }
+
 static u32 last_eval;
 static int last_leader = -1;
 
 int ufight_pending, ufight_seed = -1;   /* test command ufight: a battle at the next card menu */
+int uscreen_pending, uscreen_a, uscreen_b; /* test command ualchemy: the alchemy screen from the card menu up */
+/* (from the native card menu's loop, mods/cardview.c: a test screen opened as a card would open it,
+ * s029 0e76:2204 (who, hours), and the card's picture drawn again after it) */
+int assist_test_screens(void)
+{
+    if (!uscreen_pending) return 0;
+    int kind = uscreen_pending;
+    uscreen_pending = 0;
+    if (kind == 3) {                    /* the store room (its overlay vector, as the town's card calls it) */
+        void native_go(u16 seg, u16 off);
+        u16 sp = SP, ds = DS, es = ES;
+        DS = ES = G_DGROUP;
+        push16(0); push16(HLE_SEG); push16(0xfff0);
+        native_go((u16)(LOADSEG + 0x9c0), 0x1ed7);
+        if (!unw_active) { SP = sp; DS = ds; ES = es; }
+        return 1;
+    }
+    void (*f)(void) = kind == 2 ? game_func(34, 0x1462, 0x0102) : game_func(29, 0x0e76, 0x2204);   /* 2: saint_pray (who, saint) */
+    u16 args[2] = { (u16)uscreen_a, (u16)uscreen_b };
+    if (f) game_call_live(f, 2, args);
+    return 1;
+}
 static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) */
 {
-    if (ufight_pending) {               /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 */
+    int encounters_card_active(void);
+    if (ufight_pending && !encounters_card_active()) {   /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 (test; not inside a new encounter, whose script would lose its place) */
         int bf = ufight_pending; ufight_pending = 0;
-        void (*f)(void) = game_func(29, 0x0e76, 0x2278);
+        void (*f)(void) = game_func(GF_run_battle);
         u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
         if (f) game_call_live(f, 11, args);
     }
+    assist_leader_restore();            /* (a new card: the player's leader again; asked anew below) */
     cm_depth++; cm_dirty = 1;
     void chronicle_capture(void), chronicle_choice(int);
     chronicle_capture();                 /* the text on show (ui/journal.cpp) */
+    if (cardview_active()) {             /* the card screen drawn by Darklands+ (mods/cardview.c) */
+        int sel = cardview_menu();
+        int cardview_unwinding(void);
+        if (cardview_unwinding()) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }
+        chronicle_choice(sel);
+        leader_for_choice(sel);
+        cm_depth--;
+        if (!cm_depth) card_chances.active = 0;
+        AX = (u16)sel;
+        hook_return_far(0);
+        return;
+    }
     hook_call_original();
     chronicle_choice((s16)AX);           /* and the option chosen */
+    leader_for_choice((s16)AX);
     cm_depth--;
     if (!cm_depth) card_chances.active = 0;
 }
@@ -53,28 +189,29 @@ static int is_bad(u32 a) { for (int k = 0; k < nbad; k++) if (bad[k] == a) retur
 extern int dos_no_writes;
 static void evaluate(void)
 {
-    int n = (s8)g_rb(0xe96e);
+    int n = (s8)g_rb(GV_card_layout);
     if (n < 0 || n > 20) n = 0;
     void *snap = eval_snapshot();
     dos_no_writes = 1;                   /* the answers are thrown away: so is any change to the disk */
     CardChances c;
     memset(&c, 0, sizeof c);
     c.n = n;
+    for (int i = 0; i < 20; i++) { c.line[i].opt = -1; c.line[i].lead = -1; }
     for (int i = 0; i < n; i++) {
-        int opt = (s8)g_rb((u16)(0xe9b0 + i)), kind = (s16)g_rw((u16)(0xe9c4 + 2 * i));
+        int opt = (s8)g_rb((u16)(GV_card_layout_opt + i)), kind = (s16)g_rw((u16)(GV_card_layout_kind + 2 * i));
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d/%d y %d opt %d kind %d on %d\n", i, n,
-                                             g_rb((u16)(0xe974 + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(0xe99c + opt)) : -1);
+                                             g_rb((u16)(GV_card_layout_y + i)), opt, kind, opt >= 0 && opt < 20 ? g_rb((u16)(GV_opt_on + opt)) : -1);
         if (opt < 0 || opt >= 20 || kind > 0) continue;
-        if (g_rb((u16)(0xe99c + opt)) != 1) continue;               /* option disabled */
-        u16 off = g_rw((u16)(0xea14 + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
+        if (g_rb((u16)(GV_opt_on + opt)) != 1) continue;               /* option disabled */
+        u16 off = g_rw((u16)(GV_opt_fn + 4 * opt)), seg = g_rw((u16)(0xea16 + 4 * opt));
         u32 key = 0;
         if (seg) { int ovl_section_at(u32); u32 lin = LIN(seg, off); key = ((u32)(ovl_section_at(lin - ((u32)LOADSEG << 4)) & 0xff) << 20) | lin; }
         if (!seg || is_bad(key)) continue;
-        g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));  /* menu_member/slot, as the engine sets them */
+        g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));  /* menu_member/slot, as the engine sets them */
         u32 r = game_call_ptr(seg, off, 0, 0, 0x5a);
         eval_restore(snap);
         if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }
-        g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
+        g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
         u32 r2 = game_call_ptr(seg, off, 0, 0, 0xa5);
         eval_restore(snap);
         if (game_call_timed_out) { if (nbad < 64) bad[nbad++] = key; continue; }   /* waits for the player: never again (each try costs 100 ms) */
@@ -84,7 +221,7 @@ static void evaluate(void)
             /* asked again with the whole party at 1 in every attribute and skill: a chance that
                does not move is no skill check (the handlers of plain options answer too: leaving
                town "100 %", a roll of the dice "0 %" or "100 %" from one second to the next) */
-            g_ww(0xee6c, (u16)(opt / 4)); g_ww(0xee6a, (u16)(opt % 4));
+            g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
             for (int m = 0; m < 5; m++) {
                 u16 b = G_MEMBER(m);
                 for (int a = 0; a < 7; a++) { g_wb((u16)(b + G_M_ATTR_CUR + a), 1); g_wb((u16)(b + G_M_ATTR_MAX + a), 1); }
@@ -98,8 +235,26 @@ static void evaluate(void)
                 continue;
             }
         }
+        int lead = -1;
+        if (assist_best_leader && pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0)) {   /* each able member as leader */
+            int cur = (s8)g_rb(G_LEADER), bestp = pct, dep = 0;
+            for (int m = 0; m < 5; m++) {
+                if (m == cur || !leader_able(m)) continue;
+                g_wb(G_LEADER, (u8)m);
+                g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
+                u32 rm = game_call_ptr(seg, off, 0, 0, 0x5a);
+                eval_restore(snap);
+                if (game_call_timed_out) break;
+                int pm = (s16)(rm & 0xffff);
+                if (pm != pct) dep = 1;                                 /* (the leader's own check) */
+                if (pm > bestp) { bestp = pm; lead = m; }
+            }
+            if (dep) who = lead >= 0 ? lead : cur;                     /* the chance is that member's: their name beside it, not "all" */
+            if (lead >= 0) { if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% with %d as leader (%d%% with %d)\n", i, opt, bestp, lead, pct, cur); pct = bestp; }
+        }
         if (getenv("DL_ASSIST_LOG")) { int ovl_section_at(u32); fprintf(stderr, "assist: card %.12s line %d opt %d kind %d fn %04x:%04x (s%03d) -> %d%% member %d\n",
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }
+        c.line[i].opt = opt; c.line[i].lead = lead;
         if (pct >= 0) { c.line[i].show = 1; c.line[i].pct = pct > 100 ? 100 : pct; c.line[i].who = who; }
     }
     eval_free(snap);
@@ -109,9 +264,10 @@ static void evaluate(void)
     card_chances = c;
 }
 
-static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2): every menu poll */
+/* every poll of a card menu: the chances asked again when something may have changed */
+void assist_menu_poll(void)
 {
-    if (assist_chances && cm_depth && !g_rb(0xee42)) {
+    if ((assist_chances || assist_best_leader) && cm_depth && !g_rb(GV_card_box_pointer)) {
         u32 now = plat_ticks_ms();
         int lead = (s8)g_rb(G_LEADER);
         if (cm_dirty || lead != last_leader || now - last_eval > 1000) {
@@ -120,6 +276,10 @@ static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2):
         }
     }
     card_chances.polled = plat_ticks_ms();
+}
+static void card_mouse_hook(void)       /* s043 150b:1744 card_mouse(win, win2): every menu poll */
+{
+    assist_menu_poll();
     hook_call_original();
 }
 
@@ -128,9 +288,15 @@ int assist_card_keys = 1;          /* number keys pick a card's options */
 static int assist_watching;        /* ui/citynav.cpp walks through card menus */
 static void card_hooks(void)
 {
-    if (assist_chances || assist_card_help || assist_card_keys || assist_watching) { hook_install(43, 0x150b, 0x1142, card_menu_hook); hook_install(43, 0x150b, 0x1744, card_mouse_hook); }
-    else { hook_remove(43, 0x150b, 0x1142); hook_remove(43, 0x150b, 0x1744); }
-    if (!assist_chances) card_chances.active = 0;
+    if (assist_chances || assist_card_help || assist_card_keys || assist_watching || assist_best_leader) { hook_install(GF_card_menu, card_menu_hook); hook_install(GF_card_mouse, card_mouse_hook); }
+    else { hook_remove(GF_card_menu, card_menu_hook); hook_remove(GF_card_mouse, card_mouse_hook); }
+    if (assist_best_leader) { hook_install(GF_buy_price, price_hook); hook_install(GF_sell_price, price_hook);
+                              hook_install(80, 0x18a5, 0x000c, raubi02_hook); hook_install(73, 0x1838, 0x0000, revol02_hook);
+                              hook_install(78, 0x191c, 0x020c, villa07_hook); hook_install(82, 0x1845, 0x0454, drago03_hook); }
+    else { hook_remove(GF_buy_price, price_hook); hook_remove(GF_sell_price, price_hook); assist_leader_restore();
+           hook_remove(80, 0x18a5, 0x000c, raubi02_hook); hook_remove(73, 0x1838, 0x0000, revol02_hook);
+           hook_remove(78, 0x191c, 0x020c, villa07_hook); hook_remove(82, 0x1845, 0x0454, drago03_hook); }
+    if (!assist_chances && !assist_best_leader) card_chances.active = 0;
 }
 
 void assist_watch_cards(void) { if (!assist_watching) { assist_watching = 1; card_hooks(); } }
@@ -139,6 +305,13 @@ void assist_set_chances(int mode)
 {
     assist_chances = mode;
     config_set_int("assist.chances", mode);
+    card_hooks();
+}
+
+void assist_set_best_leader(int on)
+{
+    assist_best_leader = on;
+    config_set_int("assist.best_leader", on);
     card_hooks();
 }
 
@@ -165,7 +338,7 @@ const char *assist_card_key_why(int digit)
 {
     static char b[120];
     snprintf(b, sizeof b, "keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d", assist_card_keys, cm_depth,
-             (unsigned)(plat_ticks_ms() - card_chances.polled), g_rb(0xee41), g_rb(0xee42), (s8)g_rb(0xe96e));
+             (unsigned)(plat_ticks_ms() - card_chances.polled), g_rb(GV_card_box_shown), g_rb(GV_card_box_pointer), (s8)g_rb(GV_card_layout));
     (void)digit;
     return b;
 }
@@ -174,13 +347,13 @@ int assist_card_key(int digit, int *gx, int *gy)
 {
     /* D_ee42: the pointer is in the box of an option that picks a member, saint or item, and
        the menu is that box's (its lines are not numbered) */
-    if (!assist_card_keys || !assist_in_card_menu() || g_rb(0xee42)) return 0;
-    int n = (s8)g_rb(0xe96e), i = digit - 1;
+    if (!assist_card_keys || !assist_in_card_menu() || g_rb(GV_card_box_pointer)) return 0;
+    int n = (s8)g_rb(GV_card_layout), i = digit - 1;
     if (i < 0 || i >= n || n > 20) return 0;
-    int x0 = 60 + (s16)g_rw(0xe972), y0 = g_rb((u16)(0xe974 + i)), h = g_rb((u16)(0xe988 + i));
+    int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
     if (h <= 0) return 0;
     *gx = x0 + 10; *gy = y0 + (h > 8 ? 4 : h / 2);
-    if (g_rb(0xee41)) {     /* such a box is shown (the pointer rests on its option): fine unless it covers the line */
+    if (g_rb(GV_card_box_shown)) {     /* such a box is shown (the pointer rests on its option): fine unless it covers the line */
         int bx = (s16)g_rw(0xee0d) + 0x3c, by = g_rb(0xee0f), bw = (s16)g_rw(0xee11), bh = g_rb(0xee10);
         if (*gx >= bx && *gx <= bx + bw && *gy >= by && *gy <= by + bh) return 0;
     }
@@ -191,5 +364,6 @@ void assist_init(void)
 {
     assist_card_help = config_get_int("assist.card_help", 1);
     assist_card_keys = config_get_int("assist.card_keys", 1);
+    assist_best_leader = config_get_int("assist.best_leader", 1);
     assist_set_chances(config_get_int("assist.chances", 2));
 }

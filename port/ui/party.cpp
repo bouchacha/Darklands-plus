@@ -6,10 +6,12 @@
 #include <string.h>
 #include <string>
 #include "imgui.h"
+#include "../mods/nscreen.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 }
 
 std::string rules_weapons_of_skill(int k);
@@ -44,6 +46,16 @@ static const char *SKILL_HELP[19] = {
     "Handling horses.",
     "Life in the wild: finding the way, hunting, reading tracks.",
 };
+
+const char *ui_attr_help(int a) { return a >= 0 && a < 7 ? ATTR_HELP[a] : ""; }       /* (the native sheet too) */
+const char *ui_skill_help(int k) { return k >= 0 && k < 19 && SKILL_HELP[k] ? SKILL_HELP[k] : ""; }
+
+static void set_leader_now(int m, int, int, int)
+{
+    g_wb(G_LEADER, (u8)m);
+    u16 a[1] = { 0x100 };
+    game_call_far(GF_party_panel_rows, 1, a);                   /* party_panel_rows(0x100): names, the leader's in yellow */
+}
 
 static std::string nick(int m)
 {
@@ -80,7 +92,10 @@ extern "C" void tab_members(void)
     /* the leader row */
     ImGui::TableNextRow();
     ImGui::TableNextColumn(); ImGui::TextUnformatted("Leader");
-    help_tip("The leader speaks and acts for the party on many cards, and leads on the travel map. "
+    help_tip("With \"the best member makes each check\" (F12 > Settings > Helpers) a card's tests and the shops' prices no longer depend on the leader, "
+             "but the leader still matters: whatever befalls \"the leader\" on a card lands on them (the traps in mines, a church's favour, "
+             "skill practice, an item handed over), and in a battle or a dungeon, while it runs unpaused, doors, chests, locks and traps "
+             "are the leader's to deal with and the party's group moves follow the leader. "
              "The game's own way to change it: Ctrl+F1 ... Ctrl+F5 on a character sheet.");
     for (int m = 0; m < size; m++) {
         ImGui::TableNextColumn(); ImGui::PushID(m);
@@ -90,9 +105,7 @@ extern "C" void tab_members(void)
         else {
             ImGui::BeginDisabled(!can_lead);
             if (ImGui::SmallButton("Make leader")) {
-                g_wb(G_LEADER, (u8)m);
-                u16 a[1] = { 0x100 };
-                game_call_far(-1, 0x0000, 0x1716, 1, a);            /* party_panel_rows(0x100): names, the leader's in yellow */
+                ns_defer(set_leader_now, m, 0, 0, 0);                  /* (at the next safe point: mods/nscreen.h) */
             }
             ImGui::EndDisabled();
             if (!can_lead && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("On a card or the travel map");

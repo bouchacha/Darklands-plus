@@ -251,7 +251,7 @@ void rules_tab(void)
         char w[1300]; int r = datamods_new(modname, w, sizeof w);
         std::string p = std::string(w) + "/rules.ini";
         if (r < 0) msg = "Could not make the mod folder.";
-        else if (write_rules(p.c_str())) msg = "Written: " + p + ". Edit it, then tick the mod in the Mods tab.";
+        else if (write_rules(p.c_str())) msg = "Written: " + p + ". Edit it, then tick the mod in F12 > Settings > Mods.";
         else msg = "Could not write " + p + ".";
     }
     if (!msg.empty()) ImGui::TextWrapped("%s", msg.c_str());

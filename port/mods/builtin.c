@@ -5,6 +5,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "mods.h"
 #include "assist.h"
@@ -22,7 +23,7 @@ static void heavy_blows_hook(void)
         if (after > before) g_ww(slot, (u16)(after + (after - before)));
     }
 }
-static void heavy_blows(int on) { if (on) hook_install(14, 0x18bf, 0x08ca, heavy_blows_hook); else hook_remove(14, 0x18bf, 0x08ca); }
+static void heavy_blows(int on) { if (on) hook_install(GF_damage_queue, heavy_blows_hook); else hook_remove(GF_damage_queue, heavy_blows_hook); }
 
 /* ---- swift travel: overland steps cost a third of the time (s030 1462:2ac8 returns the
  * minutes of one step on a terrain) */
@@ -32,7 +33,7 @@ static void swift_travel_hook(void)
     AX = (u16)((AX + 2) / 3);
     if (!AX) AX = 1;
 }
-static void swift_travel(int on) { if (on) hook_install(30, 0x1462, 0x2ac8, swift_travel_hook); else hook_remove(30, 0x1462, 0x2ac8); }
+static void swift_travel(int on) { if (on) hook_install(30, 0x1462, 0x2ac8, swift_travel_hook); else hook_remove(30, 0x1462, 0x2ac8, swift_travel_hook); }
 
 /* ---- half-price inns: the lodging price rule (vec_2099 = s039 1462:1d2c) */
 static void cheap_inn_hook(void)
@@ -40,7 +41,7 @@ static void cheap_inn_hook(void)
     hook_call_original();
     AX = (u16)((AX + 1) / 2);
 }
-static void cheap_inn(int on) { if (on) hook_install(39, 0x1462, 0x1d2c, cheap_inn_hook); else hook_remove(39, 0x1462, 0x1d2c); }
+static void cheap_inn(int on) { if (on) hook_install(39, 0x1462, 0x1d2c, cheap_inn_hook); else hook_remove(39, 0x1462, 0x1d2c, cheap_inn_hook); }
 
 /* ---- strong party: the Quickstart party gets 60 in every attribute, 75 in every skill
  * (after s001 0e76:0000 has built the default party) */
@@ -53,7 +54,7 @@ static void strong_party_hook(void)
         for (int k = 0; k < 19; k++) g_wb((u16)(r + G_M_SKILLS + k), 75);
     }
 }
-static void strong_party(int on) { if (on) hook_install(1, 0x0e76, 0x0000, strong_party_hook); else hook_remove(1, 0x0e76, 0x0000); }
+static void strong_party(int on) { if (on) hook_install(GF_party_default, strong_party_hook); else hook_remove(GF_party_default, strong_party_hook); }
 
 /* ---- rich start: 5000 florins after the opening card script (s044 1838:0000) */
 static void rich_start_hook(void)
@@ -61,7 +62,7 @@ static void rich_start_hook(void)
     hook_call_original();
     g_ww(G_MONEY, 5000); g_ww(G_MONEY + 2, 0); g_ww(G_MONEY + 4, 0);
 }
-static void rich_start(int on) { if (on) hook_install(44, 0x1838, 0x0000, rich_start_hook); else hook_remove(44, 0x1838, 0x0000); }
+static void rich_start(int on) { if (on) hook_install(44, 0x1838, 0x0000, rich_start_hook); else hook_remove(44, 0x1838, 0x0000, rich_start_hook); }
 
 /* ---- quick learning: skills improve about twice as often through use. Cards: practice_skill
  * (s039 1462:0132, args who, k, mode, pct, lvl) gets twice the percentage; battles:
@@ -94,8 +95,8 @@ static void quick_learn_battle_hook(void)
 }
 static void quick_learning(int on)
 {
-    if (on) { hook_install(39, 0x1462, 0x0132, quick_learn_cards_hook); hook_install(21, 0x1ef8, 0x0000, quick_learn_battle_hook); }
-    else { hook_remove(39, 0x1462, 0x0132); hook_remove(21, 0x1ef8, 0x0000); }
+    if (on) { hook_install(GF_practice_skill_impl, quick_learn_cards_hook); hook_install(GF_skill_try_improve, quick_learn_battle_hook); }
+    else { hook_remove(GF_practice_skill_impl, quick_learn_cards_hook); hook_remove(GF_skill_try_improve, quick_learn_battle_hook); }
 }
 
 Mod MODS[] = {
@@ -126,6 +127,9 @@ void sfx_init(void);
 void saves_init(void);
 void mods_init(void)
 {
+    /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the
+       native screens' safe point): when on, it does the menu itself and does not call the original */
+    { void menuview_init(void); menuview_init(); }
     hdtext_init();
     hdart_init();
     sfx_init();
@@ -134,13 +138,33 @@ void mods_init(void)
     fixes_init();
     saves_init();
     assist_init();
+    { void cardview_init(void); cardview_init(); }
+    { void nscreen_init(void); nscreen_init(); }
+    { void sheetview_init(void); sheetview_init(); }
+    { void alchemyview_init(void); alchemyview_init(); }
     { void loot_init(void); loot_init(); }
+    { void cacheview_init(void); cacheview_init(); }
+    { void sharedstore_init(void); sharedstore_init(); }
+    { void prayview_init(void); prayview_init(); }
+    { void createview_init(void); createview_init(); }
+    { void rosterview_init(void); rosterview_init(); }
+    { void infoview_init(void); infoview_init(); }
+    { void marchview_init(void); marchview_init(); }
+    { void lodgeview_init(void); lodgeview_init(); }
+    { void enemyview_init(void); enemyview_init(); }
+    { void mapmsg_init(void); mapmsg_init(); }
+    { void memberlooks_init(void); memberlooks_init(); }
+    { void ammo_init(void); ammo_init(); }
     autopause_init();
     pathfix_init();
     travel_init();
     { void encounters_init(void); encounters_init(); }
     { void opening_init(void); opening_init(); }
     { void orders_init(void); orders_init(); }
+    { void battlescroll_init(void); battlescroll_init(); }
+    { void levelwalk_init(void); levelwalk_init(); }
+    { void pack_init(void); pack_init(); }
+    { void battlerules_init(void); battlerules_init(); }
     for (int i = 0; i < MOD_COUNT; i++) {
         char key[80]; snprintf(key, sizeof key, "mod.%s", MODS[i].id);
         if (config_get_int(key, 0)) { MODS[i].set(1); MODS[i].enabled = 1; }
