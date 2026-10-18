@@ -33,6 +33,7 @@ void ui_guide_tab(void)
         "Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Watch the green bar: below half, keep that member out of the fight.",
         "Divine Favor (DF) is spent calling on saints and comes back with prayer (and slowly by itself).",
         "Each member's attributes and skills are on the character sheet (a click on the portrait, or F1 ... F5); the bars on the party panel show End, Str and DF all the time.",
+        "The party has four places for characters of your own: at an inn, \"reconsider the composition of your party\" makes a new one for an empty place or lets one go. A fifth place is for companions some cards bring along for a while (a village's headman, a knight).",
         "The pack is the whole party's: a member keeps only what they use, the horse or mule they ride and their own potions; whatever else the game asks one member for (lock picks, a mount) is handed to them as it is needed. Only what is in use weighs.",
         "A card's tests are made by the member best at each (the chance and the name are beside the option). The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour), and in a battle or a dungeon, unpaused, deals with doors, chests and locks and leads the group's moves.",
     });
