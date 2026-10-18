@@ -138,11 +138,12 @@ void tab_mods(void)
 
 /* "play the original game": every change off, the player's choices kept to come back to */
 int ui_original_mode(void) { return config_get_int("original", 0); }
+extern "C" void ui_set_original_c(int on);
 void ui_set_original(bool on)
 {
     if (on) {
         char b[512]; int n = 0;
-        n += snprintf(b + n, sizeof b - n, "%d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
+        n += snprintf(b + n, sizeof b - n, "v2 %d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
         config_set_int("original.battle_speed", battle_speed);
         battle_speed_set(100);
         config_set_int("original.card_help", assist_card_help);
@@ -152,7 +153,9 @@ void ui_set_original(bool on)
         config_set_int("original.pause_down", autopause_down); config_set_int("original.pause_hurt", autopause_hurt);
         autopause_set(0, 0);
         { extern int ui_margins_on; config_set_int("original.margins", ui_margins_on); ui_margins_on = 0; config_set_int("display.margins", 0); }
+        n += snprintf(b + n, sizeof b - n, " %d", FIX_COUNT);            /* (v2: the counts, so that a later version with more fixes or mods reads it right) */
         for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
+        n += snprintf(b + n, sizeof b - n, " %d", MOD_COUNT);
         for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
         config_set("original.saved", b);
         config_set("original.sound", config_get("sound.device", "auto"));
@@ -171,10 +174,15 @@ void ui_set_original(bool on)
         const char *p = config_get("original.saved", "");
         char *e;
         auto next = [&](int def) { long v = strtol(p, &e, 10); if (e == p) return def; p = e; return (int)v; };
+        bool v2 = !strncmp(p, "v2", 2);
+        if (v2) p += 2;
         int ch = next(2), jo = next(1), pp = next(1), pe = next(0), ta = next(1), tf = next(1);
         assist_set_chances(ch); journal_set(jo); pathfix_set(pp, pe); travel_set(ta, tf);
-        for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, next(1));
-        for (int i = 0; i < MOD_COUNT; i++) if (next(0)) mod_enable(i, 1);
+        int nf = v2 ? next(0) : FIX_COUNT;                  /* (fixes and mods added since are left as they start: fixes on, mods off) */
+        for (int i = 0; i < nf; i++) { int on = next(1); if (i < FIX_COUNT) fix_enable(i, on); }
+        for (int i = nf; i < FIX_COUNT; i++) fix_enable(i, 1);
+        int nm = v2 ? next(0) : MOD_COUNT;
+        for (int i = 0; i < nm; i++) { int on = next(0); if (i < MOD_COUNT && on) mod_enable(i, 1); }
         config_set("sound.device", config_get("original.sound", "auto"));
         hdtext_set(config_get_int("original.text", 2));
         hdart_set(config_get_int("original.art", 1));
@@ -189,6 +197,16 @@ void ui_set_original(bool on)
         datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload(); musicpack_reload();
     }
     ui_dirty_config = 1;
+}
+
+extern "C" void ui_set_original_c(int on)          /* (the test command uoriginal) */
+{
+    ui_set_original(on != 0);
+    fprintf(stderr, "original %d: fixes", on);
+    for (int i = 0; i < FIX_COUNT; i++) fprintf(stderr, " %d", FIXES[i].on);
+    fprintf(stderr, " mods");
+    for (int i = 0; i < MOD_COUNT; i++) fprintf(stderr, " %d", MODS[i].enabled);
+    fprintf(stderr, "\n");
 }
 
 void tab_helpers(void)

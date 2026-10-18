@@ -21,6 +21,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
   - card options wrongly greyed or offered (a bribe you couldn't pay, a rope climb refused with a rope in the pack, a sally port whose lines ran the wrong options);
   - inn teachers that charged "-4096pfs" and taught nothing;
   - debt notes that were never where the merchant said (always in another office above the marketplace);
+  - a formula's risk the wrong way round: a failed low-risk batch at an inn blew up three times in four, a high-risk one half the time;
   - worn armour that dragged identical spares down with it.
 - **Also:**
   - the opening ends at once on a key or a click, and later starts show only its last scene (the lady's welcome);

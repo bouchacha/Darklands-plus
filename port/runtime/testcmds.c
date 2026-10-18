@@ -18,6 +18,34 @@
 void plat_mouse_game(int *x, int *y);
 u32 plat_ticks_ms(void);
 
+/* ualcrisk: many failed brews at this place, counting the accidents they bring (mods/fixes.c, alchrisk) */
+#include "hooks.h"
+static void quiet_message(void) { hook_return_far(0); }
+static u32 ev_far(int i) { u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
+static void alc_risk_test(int risk, int n)
+{
+    int boom = 0, stink = 0, none = 0, loc = (s16)g_rw(GV_cur_loc);
+    hook_install(GF_show_message, quiet_message);
+    for (int k = 0; k < n; k++) {
+        u16 a[10] = { 0, (u16)loc, 1, 0x1d, 0, 0, 1, 0, 0, 0 };     /* member 0's brew of formula 0, chance 0 */
+        game_call_far(GF_event_new, 10, a);
+        int i = (s16)AX; u32 e = i >= 0 ? ev_far(i) : 0;
+        if (!e) { fprintf(stderr, "alcrisk: no event\n"); break; }
+        ww((u16)(e >> 16), (u16)((u16)e + 0x2a), 0); ww((u16)(e >> 16), (u16)((u16)e + 0x2c), (u16)risk);
+        g_ww(GV_last_event, (u16)i);
+        u16 b[1] = { (u16)i };
+        game_call_far(29, 0x0e76, 0x3fb2, 1, b);
+        int j = (s16)g_rw(GV_last_event); u32 f = j != i && j >= 0 ? ev_far(j) : 0;
+        if (f && (s16)rw((u16)(f >> 16), (u16)((u16)f + 0x22)) == 0x51) {
+            if ((s16)rw((u16)(f >> 16), (u16)((u16)f + 0x1e))) boom++; else stink++;
+            u16 c[1] = { (u16)j }; game_call_far(GF_event_free, 1, c);
+        } else none++;
+        game_call_far(GF_event_free, 1, b);
+    }
+    hook_remove(GF_show_message, quiet_message);
+    fprintf(stderr, "alcrisk %d at %d: %d explosions, %d stinks, %d nothing (of %d failures)\n", risk, loc, boom, stink, none, n);
+}
+
 int testcmd_run(const char *cmd, const char *arg)
 {
     int x = 0, y = 0;
@@ -134,6 +162,8 @@ int testcmd_run(const char *cmd, const char *arg)
             int k = atoi(arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);
             fprintf(stderr, "library %d: %d %d %d %d\n", k, o[0], o[1], o[2], o[3]);
         }
+        else if (!strcmp(cmd, "uoriginal")) { void ui_set_original_c(int); ui_set_original_c(atoi(arg)); }   /* test: "Play the original game" on (1) or off (0) */
+        else if (!strcmp(cmd, "ualcrisk")) { int r = 0, n = 200; sscanf(arg, "%d,%d", &r, &n); alc_risk_test(r, n); }   /* test: n failed brews of risk r here: the accidents */
         else if (!strcmp(cmd, "ualc")) {                /* test: the formulae town k's alchemist sells */
             int k = atoi(arg), o[4], p[4]; extern int ui_alchemist_formulae_c(int, int *, int *);
             if (ui_alchemist_formulae_c(k, o, p)) fprintf(stderr, "alchemist %d: %d %d %d %d (%d %d %d %d fl)\n", k, o[0], o[1], o[2], o[3], p[0], p[1], p[2], p[3]);

@@ -90,6 +90,8 @@
  *            climb with a rope when the party has a rope; $CityW02 (over the wall after the
  *            guards) counts only the last member's rope. Their opt_on[] put right before the
  *            option list is shown (card_options, and from the card view's own drawing of it).
+ *  debtnote  A debt-note errand's papers lie in the office its giver names (below, debtnote).
+ *  alchrisk  A failed brew's accident follows the formula's risk the right way round (below).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,6 +147,8 @@ Fix FIXES[] = {
       "The answer was meant to teach the leader the saint, but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
     { "debtnote", "Debt notes are where the merchant says",
       "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
+    { "alchrisk", "A formula's risk the right way round",
+      "Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failure of a low-risk formula exploded three times in four, a high-risk one's half the time. Now low risk explodes one time in four, medium one in three, high one in two.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -789,6 +793,48 @@ static void debtnote_hook(void)            /* the lock is open: search the offic
     if (s2 == sg && o2 == o && (s16)rw(sg, (u16)(o + 0x2a)) == want) ww(sg, (u16)(o + 0x2a), (u16)aux);   /* (still the same errand: as it was) */
 }
 
+/* ---------------------------------------------------------------- alchrisk
+ * A brew's end (s029 0e76:3fb2, event i: +0x1e the chance, +0x2a where it was made, +0x2c the
+ * formula's risk +0x52, 0 low .. 2 high as the alchemy page says): on a failure, half the time
+ * and only at a place (cur_loc != -1), it starts an accident event 0x51 whose value is
+ * rand_mod(4 - risk) != 0: 1 the explosion ($Alche02: hurt, damages, the inn barred four months),
+ * 0 the stink (a month). That is 3/4 for low risk and 1/2 for high, the wrong way round; here the
+ * roll counts when it is 0 (1/4 low, 1/3 medium, 1/2 high). rand_mod is hooked only for the
+ * brew's end: its second roll, made only after a failure, is that one. */
+static int alch_rolls, alch_risk, alch_chance, alch_failed;
+static void alchrisk_rand_hook(void)
+{
+    int n = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    alch_rolls++;
+    if (alch_rolls == 1) { alch_failed = alch_chance <= (s16)AX; return; }      /* (the chance against rand_mod(100)) */
+    if (alch_rolls == 2 && alch_failed && n == 4 - alch_risk) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix alchrisk: risk %d, roll %d of %d: %s\n", alch_risk, (s16)AX, n, AX == 0 ? "explosion" : "stink");
+        AX = AX == 0 ? 1 : 0;
+    }
+}
+void fixes_alchemy_blast_odds(int risk, int *num, int *den)    /* of a failure's accident, the share that is an explosion */
+{
+    if (risk < 0) risk = 0;
+    if (risk > 2) risk = 2;
+    *den = 4 - risk;
+    *num = fix_is_on("alchrisk") ? 1 : 3 - risk;
+}
+static void alchrisk_hook(void)            /* the brew's end (i) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    u32 e = i >= 0 && i < 300 ? ev_ptr(i) : 0;
+    if (!e) { hook_call_original(); return; }
+    u16 s = (u16)(e >> 16), o = (u16)e;
+    alch_risk = (s16)rw(s, (u16)(o + 0x2c));
+    if (alch_risk < 0 || alch_risk > 2) { hook_call_original(); return; }
+    alch_chance = (s16)rw(s, (u16)(o + 0x1e));
+    alch_rolls = 0; alch_failed = 0;
+    if (!hook_install(GF_rand_mod, alchrisk_rand_hook)) { hook_call_original(); return; }
+    hook_call_original();
+    hook_remove(GF_rand_mod, alchrisk_rand_hook);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -796,7 +842,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
-    { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook } };
+    { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },

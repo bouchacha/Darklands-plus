@@ -11,6 +11,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/alchemyview.h"
+#include "../mods/fixes.h"
 #include "nsdraw.h"
 #include <map>
 std::string journal_where_sold(int id);              /* ui/journal.cpp */
@@ -67,6 +68,7 @@ extern "C" void alchemyview_draw(void)
 
     /* the chosen formula */
     const float RX0 = 186, RX1 = 316;
+    bool risk_hover = false;
     if (a.sel >= 0 && a.sel < a.nrows) {
         int fm = a.row[a.sel].formula;
         float y = 21;
@@ -74,7 +76,9 @@ extern "C" void alchemyview_draw(void)
         y += P.para(f, NsDraw::FS_HEAD, RX0, y, RX1 - RX0, ink, nm) + 0.5f;
         static const char *RISK[3] = { "Low risk", "Some risk", "High risk" };
         char rl[64]; snprintf(rl, sizeof rl, "%s, mystic number %d", a.risk >= 0 && a.risk < 3 ? RISK[a.risk] : "?", a.mystic);
-        P.text(fo, NsDraw::FS_BODY, RX0, y, a.risk >= 2 ? red : soft, rl); y += 7.5f;
+        P.text(fo, NsDraw::FS_BODY, RX0, y, a.risk >= 2 ? red : soft, rl);
+        risk_hover = P.over(RX0, y, RX1, y + 7);
+        y += 7.5f;
         if (fm < (int)gamedata.formulas.size()) {
             const std::string &t = gamedata.formulas[fm].text;
             y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, game_text(t.c_str(), t.size())) + 2;
@@ -121,4 +125,13 @@ extern "C" void alchemyview_draw(void)
         else P.button_off(RX0, y, RX0 + 50, y + 10, "Start mixing", NsDraw::FS_BODY);
     }
     if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 65, 190, IM_COL32(112, 40, 22, 255), ns_gtext(a.note));
+    else if (risk_hover) {                  /* what the risk means (mods/fixes.c, alchrisk) */
+        static const char *IN[5] = { "", "one time", "two times", "three times", "" }, *OF[5] = { "", "", "two", "three", "four" };
+        int num, den; fixes_alchemy_blast_odds(a.risk, &num, &den);
+        char t[400];
+        snprintf(t, sizeof t, "The risk is what a failed batch can bring. At an inn, in a village or a hideout one failure in two goes wrong: "
+                 "%s in %s an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). "
+                 "In a camp in the wild a failure only costs the ingredients.", IN[num], OF[den]);
+        P.para(fo, NsDraw::FS_SMALL, 65, 186, 250, soft, t);
+    }
 }
