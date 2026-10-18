@@ -115,7 +115,9 @@ Windows build) and takes screenshots; `tools/nctl.py` keeps a session to drive s
 battle, save and load); `tools/monkey.py` plays at random for as long as asked (a soak test: it
 reports a crash or a session that stops changing). The game folder comes from `--game` or
 `DARKLANDS_DIR`; it is copied, never changed. Scripts can use test commands of the platform
-layer (`ucmd ucard:`, `ugoto:N`, `uparty:`, `ucbt:` ...; `runtime/platform_sdl.c`, `run_script`).
+layer: those that act as the system would (keys, clicks, the wheel, a controller) in
+`runtime/platform_sdl.c` (`run_script`), the rest (`ucmd ucard:`, `ugoto:N`, `uparty:`, `ucbt:`,
+`ufight:`, `uhit:` ...) in `runtime/testcmds.c`.
 Environment variables `DL_*` switch on traces (see the sources).
 
 ## Third-party code
