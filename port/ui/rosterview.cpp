@@ -107,8 +107,40 @@ extern "C" void rosterview_draw(void)
         if (P.hit(x0, y0, x1, y1)) ns_push(RV_SELECT, c, 0, 0);
     }
 
+    /* the party's skills together: for each skill outside weapons, the best member's (a party
+       needs someone to read, to heal, to find the way ...) */
+    {
+        static const int PK[12] = { 10, 11, 12, 13, 14, 15, 16, 18, 17, 7, 8, 9 };
+        static const char *FOR[19] = { "", "", "", "", "", "", "", "brewing potions from the formulae the party knows",
+            "the saints: learning them and calling on them; churches and the clergy", "standing firm against evil; the saints' favour; some cards",
+            "talking: bargaining, persuading, most people on the cards", "talking with the learned, the clergy and the nobility",
+            "reading letters, books, papers and inscriptions", "tending wounds after a fight", "locks, traps and devices",
+            "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumours, the streets at night",
+            "riding: faster travel, mounted fights", "the wilds: finding the way, hunting, tracking, keeping out of danger" };
+        const float SY = 75.5f, CX0 = 52, CW = (316 - CX0) / 12.0f;
+        P.text(fo, 4.4f, 6, SY + 1.2f, soft, "The party at its best");
+        std::string desc = r.party_n ? "Each skill's best member. Point at one for what it is for." : "Add characters to the party to see its skills together.";
+        for (int i = 0; i < 12; i++) {
+            int k = PK[i], best = -1, who = -1;
+            for (int s = 0; s < 4; s++) { int c = r.slot_char[s]; if (c >= 0 && c < r.n && r.ch[c].skill[k] > best) { best = r.ch[c].skill[k]; who = c; } }
+            float cx = CX0 + i * CW;
+            bool h = P.over(cx, SY - 0.5f, cx + CW - 1, SY + 8.5f);
+            if (h) P.rect(cx, SY - 0.5f, cx + CW - 1, SY + 8.5f, IM_COL32(226, 204, 160, 255), 1.2f);
+            ui_skill_icon(P.dl, NsDraw::w(cx + 3.2f, SY + 4), 4.6f * P.k, k);
+            ImU32 col = best < 0 ? dim : best < 20 ? NsDraw::RED : best >= 40 ? NsDraw::GREEN : ink;
+            snprintf(b, sizeof b, best < 0 ? "-" : "%d", best);
+            P.text(f, NsDraw::FS_BODY, cx + 7.6f, SY + 1.2f, col, b);
+            if (h) {
+                if (who >= 0) snprintf(b, sizeof b, "%s %d (%s): %s.", SKILL[k], best, ns_gtext(r.ch[who].nick[0] ? r.ch[who].nick : r.ch[who].name).c_str(), FOR[k]);
+                else snprintf(b, sizeof b, "%s: %s.", SKILL[k], FOR[k]);
+                desc = b;
+            }
+        }
+        P.text(fo, NsDraw::FS_SMALL, 6, SY + 9.6f, dim, desc, -1, 316);
+    }
+
     /* the characters kept */
-    const float LX0 = 4, LX1 = 140, LY0 = 77, LY1 = 184;
+    const float LX0 = 4, LX1 = 140, LY0 = 93, LY1 = 184;
     P.rect(LX0, LY0, LX1, LY1, PANEL, 1.8f);
     snprintf(b, sizeof b, "Characters (%d)", r.n);
     P.text(f, NsDraw::FS_HEAD, LX0 + 3, LY0 + 2, ink, b);
@@ -149,7 +181,7 @@ extern "C" void rosterview_draw(void)
     if (!r.n) P.para(fo, NsDraw::FS_SMALL, LX0 + 4, RY0 + 2, LX1 - LX0 - 8, soft, "No characters are kept yet. Make one with New character.");
 
     /* the chosen one */
-    const float DX0 = 143, DX1 = 316, DY0 = 77, DY1 = 184;
+    const float DX0 = 143, DX1 = 316, DY0 = 93, DY1 = 184;
     P.rect(DX0, DY0, DX1, DY1, PANEL, 1.8f);
     if (r.sel >= 0 && r.sel < r.n) {
         const RosterChar &ch = r.ch[r.sel];

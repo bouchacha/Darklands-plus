@@ -32,6 +32,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
   - the end of a battle says "Victory! The battle is won." instead of holding a still field for eight seconds;
   - in a castle, dungeon or mine, the battle margin says how many foes still wait there, floor by floor;
   - a witches' Sabbat the party has heard of (its night, its place) goes into the tasks, the place marked on the map;
+  - choosing the party: the party's best in each skill outside weapons, weak ones in red, and what each is for;
   - a party panel with bars and your own portraits;
   - smoother travel (no stop every second);
   - a crash on loading with the side margins on is fixed.
