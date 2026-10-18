@@ -508,9 +508,20 @@ static void right_panel(int size)
     if (!e.empty()) {
         if (any) ImGui::Separator();
         heading("In force");
-        for (const Eff &x : e) {
-            if (x.left < 48) ImGui::TextWrapped("%s: %s (%ld h)", member_name(x.m).c_str(), x.what.c_str(), x.left);
-            else ImGui::TextWrapped("%s: %s (%ld d)", member_name(x.m).c_str(), x.what.c_str(), (x.left + 12) / 24);
+        /* one paragraph a member: what is at work, then how long it lasts (from the soonest to the last) */
+        auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
+        for (int m = 0; m < 5; m++) {
+            std::string what; long lo = -1, hi = -1;
+            for (const Eff &x : e) {
+                if (x.m != m) continue;
+                if (!what.empty()) what += ", ";
+                what += x.what;
+                if (lo < 0 || x.left < lo) lo = x.left;
+                if (x.left > hi) hi = x.left;
+            }
+            if (what.empty()) continue;
+            std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
+            ImGui::TextWrapped("%s: %s (%s)", member_name(m).c_str(), what.c_str(), when.c_str());
         }
         any = true;
     }
