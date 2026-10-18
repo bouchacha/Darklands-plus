@@ -336,28 +336,29 @@ void tab_helpers(void)
       if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); ui_dirty_config = 1; }
       { bool sp = battlescroll_on != 0, sr = battlescroll_rest != 0;
         if (ImGui::Checkbox("Battle map: scroll at a steady pace (Shift at the edge no longer flies to the end of the field)", &sp)) { battlescroll_set(sp, sr); ui_dirty_config = 1; }
-        if (sp) { ImGui::SameLine(); if (ImGui::Checkbox("the pointer resting on the edge scrolls, no Shift needed", &sr)) { battlescroll_set(sp, sr); ui_dirty_config = 1; } } } }
+        if (sp) { ImGui::Indent(); if (ImGui::Checkbox("the pointer resting on the edge scrolls, no Shift needed", &sr)) { battlescroll_set(sp, sr); ui_dirty_config = 1; } ImGui::Unindent(); } } }
       if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); ui_dirty_config = 1; }
+      if (bi) { ImGui::Indent(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); ui_dirty_config = 1; } ImGui::Unindent(); }
       { extern int ui_battle_bars; bool bb = ui_battle_bars != 0;
         if (ImGui::Checkbox("A bar over each fighter: the endurance left (and the strength once it is down by half)", &bb)) { ui_battle_bars = bb; config_set_int("battle.bars", bb); ui_dirty_config = 1; } }
       { extern int ui_battle_log; bool bl = ui_battle_log != 0;
         if (ImGui::Checkbox("Battle log: every blow, parry, wound and fall, in the left margin on a wide screen, else over the field (F12 > Journal keeps it)", &bl)) { ui_battle_log = bl; config_set_int("battle.log", bl); ui_dirty_config = 1; } }
-      if (bi) { ImGui::SameLine(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); ui_dirty_config = 1; } } }
+    }
     { bool lm = config_get_int("assist.level_map", 1) != 0, la = config_get_int("assist.level_map_all", 0) != 0;
       if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); ui_dirty_config = 1; }
-      if (lm) { ImGui::SameLine(); if (ImGui::Checkbox("the whole level", &la)) { config_set_int("assist.level_map_all", la); ui_dirty_config = 1; } }
-      if (lm) { bool lw = config_get_int("assist.level_map_walk", 1) != 0; ImGui::SameLine(); if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); ui_dirty_config = 1; } } }
+      if (lm) { ImGui::Indent(); if (ImGui::Checkbox("the whole level, not only what the party has seen", &la)) { config_set_int("assist.level_map_all", la); ui_dirty_config = 1; }
+                bool lw = config_get_int("assist.level_map_walk", 1) != 0; if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); ui_dirty_config = 1; } ImGui::Unindent(); } }
     { bool sp = config_get_int("battle.shoot_past_allies", 0) != 0;
       if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); ui_dirty_config = 1; }
       ui_hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
     }
     { bool rs = config_get_int("battle.reposition_shooters", 1) != 0;
-      if (ImGui::Checkbox("A shooter without a clear line steps aside to find one, instead of waiting", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
+      if (ImGui::Checkbox("A shooter without a clear line steps aside or walks on to find one, instead of waiting; any foe can be chosen", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
       ui_hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. Any foe can be chosen as the target (the game refused one with no clear line, with a barred circle and a beep); with no spot near, the shooter walks towards it until a line opens. A member told to hold stays put; any other order you give takes over.");
     }
     { bool fl = config_get_int("battle.foes_left", 1) != 0;
       if (ImGui::Checkbox("Under the enemies: the foes a castle, dungeon or mine still holds, not yet met, floor by floor", &fl)) { config_set_int("battle.foes_left", fl); ui_dirty_config = 1; }
-      ui_hint("The defenders of a place wait in groups at their posts and step out when a member sees them. A fight in a castle goes on until they are all beaten or the party walks out.");
+      ui_hint("The defenders of a place wait in groups at their posts and step out when a member sees them. A castle's or dungeon's battle ends when its master has fallen and his fight is over, or when the party walks out (and flees): the margin marks the master, or names the floor where he waits.");
     }
     { bool ew = config_get_int("battle.end_words", 1) != 0;
       if (ImGui::Checkbox("The end of a battle said in words (\"Victory! The battle is won.\") for three seconds", &ew)) { config_set_int("battle.end_words", ew); ui_dirty_config = 1; }
