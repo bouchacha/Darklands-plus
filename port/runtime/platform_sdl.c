@@ -1029,6 +1029,8 @@ void plat_events(void)
                 break;
             }
             bg_resumed = 0;
+            {   extern int opening_playing;                         /* a click ends the opening, as a key (mods/opening.c) */
+                if (opening_playing) { if (e.type == SDL_MOUSEBUTTONDOWN) bios_kbd_inject(0x3920); break; } }
             if (menu_click(&e)) break;
             {   /* a click while "go to" walks only stops it (and its release goes nowhere) */
                 int citynav_busy(void); void citynav_user_input(void);

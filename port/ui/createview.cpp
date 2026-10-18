@@ -236,7 +236,7 @@ extern "C" void createview_draw(void)
         float cw = (LX1 - LX0 - 6) / 2.0f, rh = 9.4f;
         for (int col = 0; col < 2; col++) {                   /* the heads of the columns */
             float x = LX0 + 3 + col * cw;
-            P.text(fo, NsDraw::FS_SMALL, x + 9, y, dim, "skill");
+            P.text(fo, NsDraw::FS_SMALL, x + 10, y, dim, "skill");
             P.text(fo, NsDraw::FS_SMALL, 0, y, dim, "now", x + 52);
             P.text(fo, NsDraw::FS_SMALL, 0, y, dim, "room", x + 72);
         }
@@ -247,8 +247,8 @@ extern "C" void createview_draw(void)
             int row = skill_row(i), v = c.skill[i], sp = c.skill_spent[i], room = ad.maxsk[i] - sp;
             bool sel = c.row == row, h = P.over(x, ry, x + cw - 2, ry + rh);
             if (sel || h) P.rect(x, ry, x + cw - 2, ry + rh, sel ? HOVER : IM_COL32(236, 222, 190, 255), 1.0f);
-            ui_skill_icon(P.dl, NsDraw::w(x + 4, ry + rh * 0.5f), 7.0f * P.k, i);
-            P.text(f, NsDraw::FS_BODY + 0.2f, x + 9, ry + 2.2f, ink, SKILL[i], -1, x + 42);
+            ui_skill_icon(P.dl, NsDraw::w(x + 4, ry + rh * 0.5f), 6.4f * P.k, i);
+            P.text(f, NsDraw::FS_BODY + 0.2f, x + 10, ry + 2.2f, ink, SKILL[i], -1, x + 42);
             snprintf(b, sizeof b, "%d", v);
             P.text(f, NsDraw::FS_BODY + 0.2f, 0, ry + 2.2f, ink, b, x + 52);
             if (sp) { snprintf(b, sizeof b, "+%d", sp); P.text(fo, NsDraw::FS_SMALL - 0.3f, x + 53, ry + 2.8f, NsDraw::GREEN, b); }
@@ -319,8 +319,8 @@ extern "C" void createview_draw(void)
         float cw = RW / ncol, rh = 7.4f;
         for (int i = 0; i < 7; i++) {
             float x = RX0 + 3 + (i % ncol) * cw, yy = ry + (i / ncol) * rh;
-            ui_attr_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.4f * P.k, i);
-            P.text(fo, NsDraw::FS_SMALL, x + 7, yy + 0.6f, soft, i == 6 ? "Div. Favor" : ATTR[i]);
+            ui_attr_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.0f * P.k, i);
+            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, i == 6 ? "Div. Favor" : ATTR[i]);
             int now = c.attr[i], after = i < 6 ? pv.attr[i] : now;
             snprintf(b, sizeof b, "%d", now);
             float vx = x + (one_col ? 52 : cw * 0.80f);
@@ -350,8 +350,8 @@ extern "C" void createview_draw(void)
         for (int i = 0; i < 19; i++) {
             int col = i < 10 ? 0 : 1, r = i < 10 ? i : i - 10;
             float x = RX0 + 3 + col * cw, yy = ry + r * rh;
-            ui_skill_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.4f * P.k, i);
-            P.text(fo, NsDraw::FS_SMALL, x + 7, yy + 0.6f, soft, SKILL[i], -1, x + xname);
+            ui_skill_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.0f * P.k, i);
+            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, SKILL[i], -1, x + xname);
             snprintf(b, sizeof b, "%d", c.skill[i]);
             P.text(f, NsDraw::FS_BODY, 0, yy, ink, b, x + xn);
             if (gains) {

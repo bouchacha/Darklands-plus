@@ -21,6 +21,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
   - inn teachers that charged "-4096pfs" and taught nothing;
   - worn armour that dragged identical spares down with it.
 - **Also:**
+  - the opening ends at once on a key or a click, and later starts show only its last scene (the lady's welcome);
   - money shown as gold, silver and copper coins;
   - the level map (Tab) walks the party to a spot you click;
   - night-time thieves and watch in towns can be made rarer;

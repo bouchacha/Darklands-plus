@@ -51,6 +51,8 @@ void ui_hint(const char *fmt, ...)
 
 /* ------------------------------------------------------------------ tabs */
 extern "C" int encounters_count(void);
+extern "C" int opening_mode(void);                 /* mods/opening.c */
+extern "C" void opening_set_mode(int);
 extern "C" int encounters_errors(void);
 void tab_mods(void)
 {
@@ -463,8 +465,13 @@ void tab_display(void)
       if (ImGui::Checkbox("Let the computer rest while the game waits for a click or a key (less CPU, quieter fans)", &ir)) { idle_rest = ir; config_set_int("display.idle_rest", ir); ui_dirty_config = 1; } }
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); ui_dirty_config = 1; } }
-    { bool po = config_get_int("display.play_opening", 0);
-      if (ImGui::Checkbox("Play the opening (logo and animations) at every start; otherwise only the first time", &po)) { config_set_int("display.play_opening", po); ui_dirty_config = 1; } }
+    {   /* the opening at start (mods/opening.c): the first start plays it whole */
+        static const char *N[] = { "nothing: straight to the title", "the last scene: the lady of the Darklands and her welcome", "the whole opening (logo and animations)" };
+        int m = opening_mode();
+        ImGui::SetNextItemWidth(UIS(420));
+        if (ImGui::Combo("at start", &m, N, 3)) { opening_set_mode(m); ui_dirty_config = 1; }
+        ImGui::SameLine(); ImGui::TextDisabled("(a key or a click ends it)");
+    }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();
