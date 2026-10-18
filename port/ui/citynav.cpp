@@ -475,7 +475,7 @@ extern "C" int citynav_window(void)
                     bool hall = d == D_TOWNHALL;
                     if (d == D_FORTRESS && cur >= 0 && cur < (int)gamedata.cities.size() && (gamedata.cities[cur].buildings & 2)) g = -1;   /* (a town with a council: the lord gives none) */
                     OfficeStatus os;
-                    if (here && g >= 0 && config_get_int("assist.goto_work", 1) && office_status(cur, g, hall, &os) && os.state != OFS_NONE) {
+                    if (here && g >= 0 && config_get_int("assist.goto_work", 1) && !config_get_int("original", 0) && office_status(cur, g, hall, &os) && os.state != OFS_NONE) {
                         static const char *MON[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
                         switch (os.state) {
                         case OFS_ASK: snprintf(os_txt, sizeof os_txt, "%d%%", os.chance); os_col = IM_COL32(38, 104, 34, 255); break;
