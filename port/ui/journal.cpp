@@ -564,8 +564,8 @@ static void town_list(void)
     }
 }
 
-static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "Zeughaus (armoury)", "slums",
-                                     "Kloster", "university", "pawnshop", "Muenze (mint)", "docks" };
+static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "barracks", "slums",   /* (bit 10, the mint: no card leads there) */
+                                     "monastery", "university", "pawnshop", nullptr, "docks" };
 
 /* an item's picture and name in a table cell: the picture inside the cell, the name centred on it */
 static void icon_name_cell(int id, const char *name)

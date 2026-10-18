@@ -79,8 +79,12 @@ extern "C" void tab_members(void)
     int lead = (s8)g_rb(G_LEADER);
     int mode = game_mode();
     bool can_lead = mode == GM_CARD || mode == GM_MAP;
-    ImGui::TextWrapped("On many cards the leader is the one who acts (the badges on the options name who and the chance), "
-                       "so the member best at what comes next can lead first. Hover over a row for what it is for.");
+    if (config_get_int("assist.best_leader", 1) && !config_get_int("original", 0))
+        ImGui::TextWrapped("A card's tests are made by whoever is best at them, whoever leads (the badges on the options name who). "
+                           "The leader still takes what befalls \"the leader\" on a card and leads in a battle or a dungeon. Hover over a row for what it is for.");
+    else
+        ImGui::TextWrapped("On many cards the leader is the one who acts (the badges on the options name who and the chance), "
+                           "so the member best at what comes next can lead first. Hover over a row for what it is for.");
     ImGuiTableFlags fl = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
     if (!ImGui::BeginTable("members", size + 1, fl, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 10.5f);
