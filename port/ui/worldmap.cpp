@@ -457,9 +457,14 @@ extern "C" void worldmap_draw(void)
     if (ImGui::SmallButton("The party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
     ImGui::SameLine();
     if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
-    ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
-    ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other places", &show_other);
-    ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Icons", &show_icons);
+    {   /* what the map shows: which places (the towns always), and how */
+        float lw = fmaxf(ImGui::CalcTextSize("Places").x, ImGui::CalcTextSize("Marks").x) + ImGui::GetFontSize() * 1.4f;
+        auto label = [&](const char *t) { ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("%s", t); ImGui::SameLine(lw); };
+        label("Places"); ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
+        ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(lw); ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other", &show_other);
+        label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a little picture of its kind (else a coloured dot)");
+    }
     {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
         static std::vector<QuestRow> qr; static int qf = -1000;
         if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); qf = ImGui::GetFrameCount(); }
@@ -486,7 +491,7 @@ extern "C" void worldmap_draw(void)
         }
         }
     }
-    if (ImGui::TreeNodeEx("Legend", ImGuiTreeNodeFlags_DefaultOpen)) {   /* what the marks mean */
+    if (ImGui::TreeNode("Legend")) {   /* what the marks mean (closed at first: the map is the point) */
         float is = ImGui::GetFontSize() * 1.1f, colw = ImGui::GetFontSize() * 8.5f;
         ImDrawList *pl = ImGui::GetWindowDrawList();
         for (int k = 0; k < IK_N; k++) {
