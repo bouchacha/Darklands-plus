@@ -353,7 +353,11 @@ void tab_helpers(void)
     }
     { bool rs = config_get_int("battle.reposition_shooters", 1) != 0;
       if (ImGui::Checkbox("A shooter without a clear line steps aside to find one, instead of waiting", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
-      ui_hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. A member told to hold stays put; any other order you give takes over.");
+      ui_hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. Such a foe can also be chosen as the target (the game refused it with a barred circle and a beep). A member told to hold stays put; any other order you give takes over.");
+    }
+    { bool ew = config_get_int("battle.end_words", 1) != 0;
+      if (ImGui::Checkbox("The end of a battle said in words (\"Victory! The battle is won.\") for three seconds", &ew)) { config_set_int("battle.end_words", ew); ui_dirty_config = 1; }
+      ui_hint("The game closes a battle with a box saying \"BattleResults - victory\" and holds the field still for about eight seconds, as if it had hung.");
     }
     bool pp = pathfix_party, pe = pathfix_enemies;
     if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); ui_dirty_config = 1; }
