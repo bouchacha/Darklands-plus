@@ -34,7 +34,9 @@ struct NsDraw {
     static constexpr float FS_NAME = 5.8f;    /* the rows of the lists (the game's typeface) */
     static constexpr float FS_BODY = 5.3f;    /* numbers, descriptions (the plain typeface) */
     static constexpr float FS_SMALL = 4.7f;   /* buttons, tags, hints */
+    static constexpr float FS_HEADBTN = 5.3f; /* the header's buttons (Leave, Put away, Take all: 11 rows tall) */
     static constexpr ImU32 RED = IM_COL32(140, 30, 18, 255), GREEN = IM_COL32(40, 96, 34, 255), LIGHT = IM_COL32(250, 238, 212, 255);
+    static constexpr ImU32 TAG_KEPT = IM_COL32(120, 84, 40, 255), TAG_OWNER = IM_COL32(70, 70, 120, 255);   /* (a row's tag: P.tag) */
 
     bool begin()
     {
@@ -88,6 +90,15 @@ struct NsDraw {
         float tw = width(fo, gs, label);
         text(fo, gs, x0 + (x1 - x0 - tw) * 0.5f, y0 + (y1 - y0) * 0.5f - gs * 0.62f, LIGHT, label);
         return hit(x0, y0, x1, y1);
+    }
+    /* a row's tag after its name ("in use", "kept", whose): outlined in its colour, quieter than
+       a button; (x, y): where it starts and the row's top. tag_width: what it takes, with a gap */
+    float tag_width(const char *label) const { return width(fo, FS_SMALL, label) + 3; }
+    void tag(float x, float y, float rowh, const char *label, ImU32 col)
+    {
+        float tw = tag_width(label);
+        frame(x, y + 2, x + tw - 1, y + rowh - 1.5f, col, 1);
+        text(fo, FS_SMALL, x + 1.2f, y + 2.6f, col, label);
     }
     /* an item's picture (ui/inventory.cpp), centred at (x, y), `size` rows across; kept inside
        its square (a pike or a halberd is drawn long) */

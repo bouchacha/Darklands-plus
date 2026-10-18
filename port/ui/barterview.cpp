@@ -79,18 +79,15 @@ extern "C" void barterview_draw(void)
     /* the header: shop, quality, purse, Leave */
     { std::string sn = gt(b.shopname); if (!sn.empty() && sn[0] >= 'a' && sn[0] <= 'z') sn[0] = (char)(sn[0] - 32);     /* ("herbalist": some cards name the shop in lower case) */
       T(f, NsDraw::FS_TITLE, 65, 3, ink, sn, -1, 205); }
-    char q[48]; snprintf(q, sizeof q, "Wares of quality %d", b.quality);
-    T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, q);
-    {
+    {   /* the subtitle: the wares' quality and who haggles (or pays); the purse beside Leave, no label */
         std::string purse = money(b.total_pf), who = b.payer >= 0 && b.payer < 5 ? gt(b.names[b.payer]) : "";
         int barg = assist_bargainer();                         /* (the best charisma bargains: mods/assist.c) */
-        if (assist_best_leader && barg >= 0 && barg < 5) T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse  -  " + gt(b.names[barg]) + " bargains", 280);
-        else T(fo, NsDraw::FS_BODY, 0, 3.5f, ink_soft, "Purse (" + who + ")", 280);
-        T(f, NsDraw::FS_HEAD, 0, 9.5f, ink, purse, 280);
-        bool h = in(mx, my, 284, 4, 315, 15);
-        R(284, 4, 315, 15, h ? IM_COL32(140, 44, 24, 255) : IM_COL32(112, 40, 22, 235), 2);
-        T(f, NsDraw::FS_HEAD, 290, 5.5f, IM_COL32(250, 236, 200, 255), "Leave");
-        if (hit(284, 4, 315, 15)) ns_push(BV_LEAVE, 0, 0, 0);
+        std::string sub = "Wares of quality " + std::to_string(b.quality);
+        if (assist_best_leader && barg >= 0 && barg < 5) sub += "  -  " + gt(b.names[barg]) + " bargains";
+        else if (!who.empty()) sub += "  -  " + who + " pays";
+        T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, sub);
+        T(f, NsDraw::FS_HEAD, 0, 6.0f, ink, purse, 280);
+        if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(BV_LEAVE, 0, 0, 0);
     }
 
     /* the member tabs (right column); the coin (or a right click): holds the purse */
@@ -163,7 +160,6 @@ extern "C" void barterview_draw(void)
             if (h) { new_hl = L; new_hr = i; }
             if (h) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
-            if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, red);
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
@@ -172,12 +168,11 @@ extern "C" void barterview_draw(void)
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
             const char *tag = eq == 2 ? "rides it" : eq ? "in use" : kept ? "kept" : nullptr;
-            float tagw = tag ? W(fo, NsDraw::FS_SMALL, tag) + 3 : 0;
+            float tagw = tag ? P.tag_width(tag) : 0;
             T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                R(nx, y + 2, nx + tagw - 1, y + ROWH - 1.5f, eq ? IM_COL32(140, 30, 18, 230) : IM_COL32(120, 84, 40, 230), 1);
-                T(fo, NsDraw::FS_SMALL, nx + 1.2f, y + 2.6f, IM_COL32(250, 236, 200, 255), tag);
+                P.tag(nx, y, ROWH, tag, eq ? NsDraw::RED : NsDraw::TAG_KEPT);
             }
             T(fo, NsDraw::FS_BODY, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
             bool cant = !L && price > b.total_pf;
@@ -364,7 +359,7 @@ extern "C" void barterview_draw(void)
         sbx0 -= 3;
     } else sbx0 = 316;
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note), -1, sbx0);
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a name: what they use; buys go to them"
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  what you buy goes to the name picked above"
                                               : assist_best_leader ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name: their things"
                                               : "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays", -1, sbx0);
 }

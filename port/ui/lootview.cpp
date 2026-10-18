@@ -60,12 +60,12 @@ extern "C" void lootview_draw(void)
         P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, cash ? "Found " + money_fgp(l.cash_fl, l.cash_gr, l.cash_pf) + " in cash (into the purse)." : std::string("No money found."));
     }
     float bx = 284;
-    if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL)) ns_push(LV_LEAVE, 0, 0, 0);
+    if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(LV_LEAVE, 0, 0, 0);
     if (l.shared && l.npile) {                                  /* (one pack: everything into it) */
-        if (P.button(bx - 33, 4, bx - 3, 15, "Take all", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL)) ns_push(LV_SHARE, 0, 0, 0);
+        if (P.button(bx - 33, 4, bx - 3, 15, "Take all", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(LV_SHARE, 0, 0, 0);
     } else if (l.assist && l.npile) {
         if (P.button(bx - 36, 4, bx - 3, 15, "Share out", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL)) ns_push(LV_SHARE, 0, 0, 0);
-        if (P.button(bx - 70, 4, bx - 39, 15, "Take all", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL)) ns_push(LV_TAKEALL, 0, 0, 0);
+        if (P.button(bx - 70, 4, bx - 39, 15, "Take all", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(LV_TAKEALL, 0, 0, 0);
     }
 
     /* the member tabs */
@@ -108,20 +108,18 @@ extern "C" void lootview_draw(void)
             if (h) { new_hl = L; new_hr = i; }
             if (h) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
-            if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, red);
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
             char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
             std::string owner = own ? ns_gtext(l.names[l.who]) + "'s" : std::string();
             const char *tag = eq ? "in use" : own ? owner.c_str() : kept ? "kept" : NULL;
-            float tagw = tag ? P.width(fo, NsDraw::FS_SMALL, tag) + 3 : 0;
+            float tagw = tag ? P.tag_width(tag) : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.rect(nx, y + 2, nx + tagw - 1, y + ROWH - 1.5f, eq ? IM_COL32(140, 30, 18, 230) : IM_COL32(70, 70, 120, 230), 1);
-                P.text(fo, NsDraw::FS_SMALL, nx + 1.2f, y + 2.6f, NsDraw::LIGHT, tag);
+                P.tag(nx, y, ROWH, tag, eq ? NsDraw::RED : own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
             }
             if (!h) { P.text(fo, NsDraw::FS_BODY, 0, y + 2.2f, soft, qs, x1 - 3); continue; }
             /* the actions: the whole stack, or one */
