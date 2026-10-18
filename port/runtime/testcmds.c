@@ -55,6 +55,8 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ugive")) { int a = 0, b = 0, c = 0; sscanf(arg, "%d,%d,%d", &a, &b, &c); void ui_give(int, int, int); ui_give(a, b, c); }
         else if (!strcmp(cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
         else if (!strcmp(cmd, "uset")) { char k[64]; int v = 0; if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
+        else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
+        else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */
         else if (!strcmp(cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }

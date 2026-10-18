@@ -69,6 +69,7 @@ static HeapE hpop(void)
 }
 
 static int self_i, target_i;
+static struct { s16 x, y; u8 n; } stall[13];       /* where each combatant last asked for a route, and how often since from there */
 static int ncoll;
 
 /* the game's collision test for combatant self_i standing at (x, y) */
@@ -230,6 +231,15 @@ static void path_find_hook(void)
     if (target >= 13) target = -1;
     if (target >= 0 && g_rb((u16)(GV_cbt_floor + target)) != g_rb((u16)(GV_cbt_floor + i))) { hook_call_original(); return; }
 
+    /* a combatant asking again from where it stood the last time has not got on: the route went
+       through friends on the move (who do not block a plan), and they stand in the way. Then plan
+       around everyone; and when that goes on, let the game's own planner try every other time
+       (enemies at the back of a melee stood still forever, re-planning the same route) */
+    int stuck = 0;
+    if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) { if (stall[i].n < 250) stall[i].n++; stuck = stall[i].n; }
+    else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; }
+    if (stuck >= 3 && (stuck & 1)) { hook_call_original(); return; }
+
     load_steps(i);
 
     /* collision rules while planning: walking walls (D_e0a2 0), map and combatants tested,
@@ -246,6 +256,7 @@ static void path_find_hook(void)
     int dest = collide(tx, ty);
     int reach = 0;
     if (start != -1 && !(dest != 0 && (target < 0 || (dest & ~(1 << target))))) {
+        if (stuck) g_wb(GV_path_target_only, 0);             /* everyone blocks: around them */
         cell_bfs(tx, ty);
         int c0 = (x >> 5) * 40 + (y >> 4);
         reach = c0 >= 0 && c0 < 1600 && celld[c0] >= 0;
@@ -256,8 +267,8 @@ static void path_find_hook(void)
     g_wb(GV_path_formation, s_e0a2); g_wb(GV_path_target_only, s_d697); g_wb(0xe13c, s_e13c); g_wb(0xc600, s_c600); g_ww(0xd708, s_d708);
     for (int k = 0; k < 32; k++) g_wb((u16)(0xe11c + k), s_e11c[k]);
     if (getenv("DL_PATH_LOG"))
-        fprintf(stderr, "pathfix: %d (%d,%d)->(%d,%d) target %d: start %d dest %d: %d steps, %d expanded, %d tests, %u us\n",
-                i, x, y, tx, ty, target, start, dest, len, exp, ncoll, (unsigned)(t1 - t0));
+        fprintf(stderr, "pathfix: %d (%d,%d)->(%d,%d) target %d: start %d dest %d%s: %d steps, %d expanded, %d tests, %u us\n",
+                i, x, y, tx, ty, target, start, dest, stuck ? " (stuck: around everyone)" : "", len, exp, ncoll, (unsigned)(t1 - t0));
     if (len < 0) { hook_call_original(); return; }       /* nothing found: the game's own planner decides */
 
     /* write the result the way path_find leaves it */
