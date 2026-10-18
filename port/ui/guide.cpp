@@ -40,6 +40,7 @@ void ui_guide_tab(void)
     topic("Money and reputation", {
         "1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you.",
         "Each town has its own reputation for you: good deeds there raise it, crimes and brawls lower it. A bad name brings trouble with the watch and higher prices.",
+        "A reputation runs from -99 to 99, in six words: hunted (-75 and below), wanted, suspected, unknown (-9 to 10), respected (11 to 50) and a local hero (above 50). Most deeds and saints move it by a random amount, and the further it is from 0 the likelier it stays as it is: at 50 one deed in two counts, at 90 one in ten.",
         "Fame is the party's renown everywhere; it brings a new title every 50 points.",
         "Party Info (F6, or the Party menu) shows the fame, the money and the reputation in every town at once.",
     });
