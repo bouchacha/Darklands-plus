@@ -60,6 +60,25 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static int selected = -1;
 static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true, show_icons = true;
 
+/* "Towns with ...": the towns that have a place most lack (ui/townicons.h TI_UNIVERSITY .. TI_BANK)
+   or a notable shop (wares of 30q and better), marked with its picture on the map and listed */
+struct TownFind { const char *label; int icon; int shop; };      /* shop: DARKLAND.CTY's shop index, -1 a place */
+static const TownFind TFIND[] = {
+    { "a university", TI_UNIVERSITY, -1 }, { "a cathedral", TI_CATHEDRAL, -1 }, { "an alchemist", TI_ALCHEMIST, -1 },
+    { "a physician", TI_PHYSICIAN, -1 }, { "docks (boats)", TI_DOCKS, -1 }, { "a bank", TI_BANK, -1 },
+    { "a swordsmith of 30q+", TI_SWORD, 2 }, { "an armourer of 30q+", TI_ARMOUR, 3 }, { "a bowyer of 30q+", TI_BOW, 5 },
+    { "an artificer of 30q+", TI_TOOLS, 6 } };
+static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
+static int tfind = -1;                                    /* -1: off */
+static int town_find_q(int loc)                           /* > 0: town loc matches (for a shop: its quality) */
+{
+    if (tfind < 0 || loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
+    const TownFind &f = TFIND[tfind];
+    if (f.shop < 0) return citynav_town_offers(loc, f.icon) ? 1 : 0;
+    int q = gamedata.cities[loc].shopq[f.shop] > 0 ? shop_wares_q(gamedata.cities[loc].shopq[f.shop]) : 0;
+    return q >= 30 ? q : 0;
+}
+
 void worldmap_set_renderer(SDL_Renderer *r) { wm_ren = r; }
 
 struct Place { int loc, kind, x, y; std::string name; };
@@ -358,6 +377,12 @@ extern "C" void worldmap_draw(void)
             dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
             dl->AddCircleFilled(s, r, kind_colour(g));
         }
+        if (g == 0 && tfind >= 0 && town_find_q(p.loc)) {    /* "Towns with ...": its picture over the town, a gold ring round it */
+            float k = fmaxf(ks, 1.0f), is = 24 * k;
+            dl->AddCircle(s, r + 3 * k, IM_COL32(20, 14, 8, 230), 0, 4 * k);
+            dl->AddCircle(s, r + 3 * k, IM_COL32(240, 198, 92, 255), 0, 2.2f * k);
+            ui_draw_town_icon(dl, ImVec2(s.x, s.y - r - is * 0.55f - 2 * k), is, TFIND[tfind].icon);
+        }
         {   int n = 0;                                       /* a town that bars the party, or whose watch wants it: its sign beside it */
             for (const TownMark &t : tmarks)
                 if (t.loc == p.loc) { float ts = fmaxf(r * 1.5f, 16.0f * fmaxf(ks, 1.0f)); ui_draw_quest_icon(dl, ImVec2(s.x + r + ts * (0.45f + 1.0f * n), s.y - r * 0.6f), ts, t.cat); n++; }
@@ -465,6 +490,35 @@ extern "C" void worldmap_draw(void)
         ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(lw); ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other", &show_other);
         label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a little picture of its kind (else a coloured dot)");
+        label("Towns");
+        ImGui::SetNextItemWidth(UIS(230) * pk);
+        if (ImGui::BeginCombo("##tfind", tfind < 0 ? "with ..." : (std::string("with ") + TFIND[tfind].label).c_str())) {
+            if (ImGui::Selectable("(none marked)", tfind < 0)) tfind = -1;
+            for (int k = 0; k < NTFIND; k++) {
+                ImVec2 a = ImGui::GetCursorScreenPos(); float isz = ImGui::GetTextLineHeight();
+                int nsp = (int)ceilf(isz * 1.45f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x));      /* (room for the picture) */
+                char lb[96]; snprintf(lb, sizeof lb, "%*swith %s##tf%d", nsp, "", TFIND[k].label, k);
+                if (ImGui::Selectable(lb, tfind == k)) tfind = k;
+                ui_draw_town_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.6f, a.y + isz * 0.5f), isz * 1.1f, TFIND[k].icon);
+            }
+            ImGui::EndCombo();
+        }
+        if (tfind >= 0) {                                   /* the towns, by name (a shop's: the best first), a click shows one */
+            std::vector<std::pair<int, const Place *>> m;
+            for (const Place &p : P) if (kind_group(p.kind) == 0) { int q = town_find_q(p.loc); if (q) m.push_back({ q, &p }); }
+            std::sort(m.begin(), m.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
+                return a.first != b.first ? a.first > b.first : a.second->name < b.second->name; });
+            ImGui::TextDisabled("%d town%s:", (int)m.size(), m.size() == 1 ? "" : "s");
+            float wmax = UIS(380) * pk, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
+            for (auto &e : m) {
+                char lb[64]; if (TFIND[tfind].shop >= 0) snprintf(lb, sizeof lb, "%s %dq##tl%d", e.second->name.c_str(), e.first, e.second->loc);
+                else snprintf(lb, sizeof lb, "%s##tl%d", e.second->name.c_str(), e.second->loc);
+                float w = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
+                if (linew > 0 && linew + sp + w <= wmax) { ImGui::SameLine(); linew += sp + w; }   /* (a row of buttons, wrapped) */
+                else linew = w;
+                if (ImGui::SmallButton(lb)) { tile_px(e.second->x, e.second->y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = e.second->loc; }
+            }
+        }
     }
     {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
         static std::vector<QuestRow> qr; static int qf = -1000;
