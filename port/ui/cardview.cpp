@@ -152,6 +152,13 @@ extern "C" void cardview_draw(void)
     float X0 = g2w((float)c.x, 0).x, X1 = g2w((float)(c.x + c.w), 0).x;
     float bottom = g2w(0, 191).y;
     float Y0 = g2w(0, (float)c.y).y;
+    {   /* a box anchored at the picture's top left or top right: as far from the corner across as
+           down (the picture is (67, 6) to (312, 194); the box reaches 3.5 rows past its text) */
+        ImVec2 p0 = g2w(67, 6), p1 = g2w(312, 194);
+        float m = 3.0f * k, padb = 3.5f * k, w = X1 - X0;
+        if (c.anchor == 0) { X0 = p0.x + m + padb; X1 = X0 + w; Y0 = p0.y + m + padb; }
+        else if (c.anchor == 1) { X1 = p1.x - m - padb; X0 = X1 - w; Y0 = p0.y + m + padb; }
+    }
     float scale = 1.0f;
     std::vector<Laid> laid(c.npieces);
     float size = 0, L = 0, gap = 0, pad = 0, cap = 0, total = 0;

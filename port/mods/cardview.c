@@ -111,17 +111,28 @@ static void parse(int block)
     buf[n] = 0;
     c->npieces = 0; c->nlines = 0; c->dropcap = 0;
     c->block = block;
-    c->x = 60 + (s16)g_rw((u16)(A_BLK_X + 2 * block)) + 5;
-    c->y = g_rb((u16)(A_BLK_Y + block)) + 5;
+    /* Where the block goes. Each of the card file's blocks has its own place (x, y, width in
+       the card's text window); nine in ten use 10, 10, 240, and most of the rest are a few
+       pixels off it for no reason the new text box can show (the original's letters fitted round
+       the picture's details), so their boxes started anywhere near the top left. Here every box
+       starts at one corner: the top left (x up to 60, y up to 70: the jitter), or, for a column
+       the original set at the right (x above 60), the top right. A block set low on purpose (y
+       above 70: the picture's subject at the top) keeps its height. The width: the usual one
+       for any near it (200 and more), the block's own for a narrow column. */
+    int rx = (s16)g_rw((u16)(A_BLK_X + 2 * block)), ry = g_rb((u16)(A_BLK_Y + block)), rw = (s16)g_rw((u16)(A_BLK_W + 2 * block));
+    if (rw >= 200) rw = 240;
     /* the width is counted in the original's measure, whose letters are wider than the pixels
        they cover (draw_text_wrapped wraps "You gather around the comfortable fire at the" at 230
        units into 136 pixels): about 0.6 of a pixel per unit */
-    c->w = (int)(((s16)g_rw((u16)(A_BLK_W + 2 * block)) - 10) * 0.6f + 0.5f);
+    c->w = (int)((rw - 10) * 0.6f + 0.5f);
     if (c->w < 40) c->w = 40;
-    if (c->x + c->w > 316) c->w = 316 - c->x;
+    if (c->w > 304 - 75) c->w = 304 - 75;
+    c->x = rx > 60 ? 304 - c->w : 75;                    /* (left: 60 + 10 + 5, the usual block's; right: as far from the card's right edge) */
+    c->y = ry > 70 ? ry + 5 : 15;
+    c->anchor = ry > 70 ? 2 : rx > 60 ? 1 : 0;           /* (the view puts an anchored box as far from the picture's corner across as down) */
     c->dark = g_rw(A_TEXTCOL) == 15;
-    if (getenv("DL_CARDVIEW_LOG")) fprintf(stderr, "cardview: card %.12s block %d: x %d y %d w %d (raw x %d w %d) dark %d\n", (const char *)M + LIN(G_DGROUP, 0xe3d4), block, c->x, c->y, c->w,
-                                           (s16)g_rw((u16)(A_BLK_X + 2 * block)), (s16)g_rw((u16)(A_BLK_W + 2 * block)), c->dark);
+    if (getenv("DL_CARDVIEW_LOG")) fprintf(stderr, "cardview: card %.12s block %d: x %d y %d w %d (raw x %d y %d w %d) dark %d\n", (const char *)M + LIN(G_DGROUP, 0xe3d4), block, c->x, c->y, c->w,
+                                           (s16)g_rw((u16)(A_BLK_X + 2 * block)), g_rb((u16)(A_BLK_Y + block)), (s16)g_rw((u16)(A_BLK_W + 2 * block)), c->dark);
     int i = 0;
     if (buf[0] > '@' && buf[0] < '[') { c->dropcap = buf[0]; i = 1; }      /* the illuminated letter (draw_text_wrapped's icon) */
     int kh = 0, linka = 0;
