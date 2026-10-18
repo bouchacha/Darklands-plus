@@ -145,7 +145,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_PHYSICIAN; o->who = "The physician";
         o->ask = "At the physician's, by day: \"beg him to allow you to be his students\".";
-        o->cond = "Not to a party that already heals as well as he does; and some years he takes no students.";
+        o->cond = "Not to a party that already heals better than he does; and some years he takes no students.";
         o->strength = 50;
         add(o, SK_HEALING, 60);
         int year = (s16)g_rw(G_CUR_YEAR);

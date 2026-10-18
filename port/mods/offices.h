@@ -28,7 +28,7 @@ typedef struct {
     int state;                       /* OFS_* */
     int chance;                      /* OFS_ASK: percent that asking brings a task (-1: per visit, see note) */
     int hour, day, month, year;      /* OFS_SHUT: until (the end of the lock) */
-    char note[200];                  /* what, and why, in words */
+    char note[320];                  /* what, and why, in words */
 } OfficeStatus;
 
 /* giver g (as above; 10 the lord: hall 1 at the town hall, 0 at the fortress) in town loc, now */
