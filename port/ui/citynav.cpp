@@ -109,15 +109,15 @@ static std::string card_now(void)
 }
 
 /* ---------------------------------------------------------------- the city */
-enum Hub { H_MAIN, H_MARKET, H_CHURCHES, H_CRAFTS, H_ARMS, H_CIVIL, H_SIDE, H_N, H_NONE = -1 };
-static const char *HUB_CARD[H_N] = { "$MAINS", "$MARKE", "$CHURC", "$BUSIN", "$MILCR", "$CIVCR", "$SIDES" };
+enum Hub { H_MAIN, H_MARKET, H_CHURCHES, H_CRAFTS, H_ARMS, H_CIVIL, H_SIDE, H_SQUARE, H_N, H_NONE = -1 };
+static const char *HUB_CARD[H_N] = { "$MAINS", "$MARKE", "$CHURC", "$BUSIN", "$MILCR", "$CIVCR", "$SIDES", "$CITYS" };
 
 enum Dest {
     D_MERCHANT, D_FOREIGN, D_SWORD, D_ARMOR, D_BOW, D_BLACKSMITH, D_SOLDIERS, D_JEWEL, D_TINKER, D_CLOTH,
     D_ALCHEMIST, D_HERBAL, D_PHARMACIST, D_PHYSICIAN,
     D_FUGGER, D_MEDICI, D_HANSE, D_PAWN,
     D_CATHEDRAL, D_CHURCH, D_MONASTERY, D_UNIVERSITY, D_HOSPITAL,
-    D_INN, D_SQUARE, D_FORTRESS, D_DOCKS, D_SLUM, D_GROVE, D_WALL, D_LEAVE, D_N
+    D_INN, D_SQUARE, D_TOWNHALL, D_PRISON, D_BARRACKS, D_FORTRESS, D_DOCKS, D_SLUM, D_GROVE, D_WALL, D_LEAVE, D_N
 };
 struct DestInfo { const char *label; int group; int building; int shop; };   /* building bit / shop quality index of DARKLAND.CTY, -1 = any */
 static const DestInfo DEST[D_N] = {
@@ -127,7 +127,8 @@ static const DestInfo DEST[D_N] = {
     { "Alchemists (Astrologists' Lane)", 1, -1, -1 }, { "Herbalists and barber-surgeons", 1, -1, -1 }, { "Pharmacists", 1, -1, -1 }, { "Physician", 1, -1, -1 },
     { "Fugger bank", 2, -1, -1 }, { "Medici office", 2, -1, -1 }, { "Hanseatic League hall", 2, -1, -1 }, { "Pawnshop (Leihhaus)", 0, 9, -1 },   /* (a shop of second-hand things, with the shops) */
     { "Cathedral", 3, 4, -1 }, { "Church", 3, -1, -1 }, { "Monastery (Kloster)", 3, 7, -1 }, { "University", 3, 8, -1 }, { "Hospital", 3, -1, -1 },
-    { "Inn", 4, -1, -1 }, { "Town square (city council)", 4, 1, -1 }, { "Fortress", 4, 2, -1 }, { "Docks", 4, 11, -1 }, { "Slums", 4, 6, -1 },
+    { "Inn", 4, -1, -1 }, { "Town square (notices, gossip)", 4, 1, -1 }, { "Town hall (the city council)", 4, 1, -1 },
+    { "City prison", 4, 1, -1 }, { "Barracks of the city guard", 4, 1, -1 }, { "Fortress", 4, 2, -1 }, { "Docks", 4, 11, -1 }, { "Slums", 4, 6, -1 },
     { "Grove (to wait)", 4, -1, -1 }, { "City wall", 4, -1, -1 }, { "Leave the city (a gate)", 4, -1, -1 },
 };
 static const char *GROUPS[5] = { "Shops and crafts", "Healing and alchemy", "Money", "Church and learning", "Places" };
@@ -135,14 +136,14 @@ static const char *GROUPS[5] = { "Shops and crafts", "Healing and alchemy", "Mon
 /* what an option of a hub card leads to: a place (D_*) or another hub (100 + H_*) */
 struct Rule { int hub; const char *key; int to; };
 static const Rule RULES[] = {
-    { H_MAIN, "$citysquare", D_SQUARE }, { H_MAIN, "$fortress", D_FORTRESS }, { H_MAIN, "$marketplace", 100 + H_MARKET },
+    { H_MAIN, "$citysquare", 100 + H_SQUARE }, { H_MAIN, "$fortress", D_FORTRESS }, { H_MAIN, "$marketplace", 100 + H_MARKET },
     { H_MAIN, "spires", 100 + H_CHURCHES }, { H_MAIN, "craft", 100 + H_CRAFTS }, { H_MAIN, "$inn", D_INN }, { H_MAIN, "docks", D_DOCKS },
     { H_MAIN, "side street", 100 + H_SIDE }, { H_MAIN, "grove", D_GROVE }, { H_MAIN, "gate", D_LEAVE },
     { H_MARKET, "everyday", D_MERCHANT }, { H_MARKET, "foreign", D_FOREIGN }, { H_MARKET, "pharmacist", D_PHARMACIST },
     { H_MARKET, "fugger bank", D_FUGGER }, { H_MARKET, "medici", D_MEDICI }, { H_MARKET, "hanseatic", D_HANSE },
     { H_MARKET, "leihhaus", D_PAWN }, { H_MARKET, "main street", 100 + H_MAIN }, { H_MARKET, "side street", 100 + H_SIDE },
     { H_CHURCHES, "$cathedral", D_CATHEDRAL }, { H_CHURCHES, "$citychurch", D_CHURCH }, { H_CHURCHES, "$hospital", D_HOSPITAL },
-    { H_CHURCHES, "$monastery", D_MONASTERY }, { H_CHURCHES, "$university", D_UNIVERSITY }, { H_CHURCHES, "$citysquare", D_SQUARE },
+    { H_CHURCHES, "$monastery", D_MONASTERY }, { H_CHURCHES, "$university", D_UNIVERSITY }, { H_CHURCHES, "$citysquare", 100 + H_SQUARE },
     { H_CHURCHES, "$fortress", D_FORTRESS }, { H_CHURCHES, "main street", 100 + H_MAIN }, { H_CHURCHES, "side street", 100 + H_SIDE },
     { H_CRAFTS, "arms and armor", 100 + H_ARMS }, { H_CRAFTS, "less violent", 100 + H_CIVIL }, { H_CRAFTS, "$inn", D_INN },
     { H_CRAFTS, "physician", D_PHYSICIAN }, { H_CRAFTS, "grove", D_GROVE }, { H_CRAFTS, "$slum", D_SLUM },
@@ -156,7 +157,12 @@ static const Rule RULES[] = {
     { H_CIVIL, "-making", 100 + H_ARMS }, { H_CIVIL, "side street", 100 + H_SIDE }, { H_CIVIL, "main street", 100 + H_MAIN },
     { H_SIDE, "main street", 100 + H_MAIN }, { H_SIDE, "$inn", D_INN }, { H_SIDE, "$cityslums", D_SLUM },
     { H_SIDE, "grove", D_GROVE }, { H_SIDE, "city wall", D_WALL },
+    { H_SQUARE, "$councilhall", D_TOWNHALL }, { H_SQUARE, "prison", D_PRISON }, { H_SQUARE, "$citybarracks", D_BARRACKS },
+    { H_SQUARE, "$university", D_UNIVERSITY }, { H_SQUARE, "spires", 100 + H_CHURCHES }, { H_SQUARE, "$marketplace", 100 + H_MARKET },
+    { H_SQUARE, "main street", 100 + H_MAIN }, { H_SQUARE, "side street", 100 + H_SIDE },
 };
+/* a hub that is itself a place to go to (the square: its notices and gossip) */
+static const int HUB_PLACE[H_N] = { -1, -1, -1, -1, -1, -1, -1, D_SQUARE };
 
 static int hub_of(const std::string &card)
 {
@@ -172,7 +178,7 @@ static int rule_for(int hub, const std::string &text)
 /* steps from each hub to a place, through the hubs (side streets cost more: more encounters) */
 static int dist_to(int dest, int from, unsigned avoid)
 {
-    int d[H_N]; for (int h = 0; h < H_N; h++) d[h] = 1000;
+    int d[H_N]; for (int h = 0; h < H_N; h++) d[h] = HUB_PLACE[h] == dest ? 0 : 1000;
     for (const Rule &r : RULES) if (r.to == dest && !(avoid >> r.hub & 1)) d[r.hub] = 1;
     for (int it = 0; it < H_N; it++)
         for (const Rule &r : RULES)
@@ -296,6 +302,7 @@ extern "C" void citynav_tick(void)
         leaves++; click_line(pick);
         return;
     }
+    if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
     for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
     visited |= 1u << hub;
     int best = -1, bd = 1000;
@@ -379,7 +386,7 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
         int d = -1;
         switch (r.giver) {     /* (where the giver's card looks for the party's return, ev24_at_owner: $Medic00 6, $Hanse00 7, $Fugge00 8,
                                   $Cathe01 3, $Counc00 10; a merchant's, a foreign trader's, a pharmacist's at the marketplace itself) */
-        case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; case 3: d = D_CATHEDRAL; break; case 10: d = D_SQUARE; break;
+        case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; case 3: d = D_CATHEDRAL; break; case 10: d = D_TOWNHALL; break;
         }
         if (r.office >= 0) { static const int OD[4] = { D_MERCHANT, D_MEDICI, D_FUGGER, D_HANSE }; d = OD[r.office & 3]; }
         if (d >= 0) m[d].push_back({ r.cat, r.text });
