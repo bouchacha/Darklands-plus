@@ -29,6 +29,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/sheetview.h"
+#include "../mods/gamemodel.h"
 #include "nsdraw.h"
 #include "gamepics.h"
 
@@ -246,6 +247,12 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             std::string fit = (have < minsk ? "lacks " + std::to_string(minsk - have) + " skill" : std::string("")) +
                               (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);
+        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence against a blow it gives this member (mods/gamemodel.h) */
+            int sh = gm_shield_defence(d->type, it.qual, 0), ag = gm_member_fight_agility(s.who), a = s.attr[2];
+            char b[200];
+            snprintf(b, sizeof b, "%s's defence against a blow with it: %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sh, ag, sh + 2 * ag,
+                     ag < a ? " (the load takes some of the Agility)" : "");
+            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
         } else if (l2.empty() && it.drinkable && it.id >= 95 && 3 * (it.id - 95) < (int)gamedata.formulas.size())
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, game_text(gamedata.formulas[3 * (it.id - 95)].text.c_str(), gamedata.formulas[3 * (it.id - 95)].text.size()));
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {

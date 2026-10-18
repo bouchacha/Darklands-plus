@@ -480,7 +480,7 @@ static void member_cards(void)
 
 /* what an item is good for: weapon numbers and who could use it, what armour covers, a potion's
  * effect (the inventory's tooltips, the shops' rows) */
-void ui_item_details(const ItemDef *d, int id)
+void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's quality, -1 unknown: its usual one) */
 {
     if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) {
         /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow
@@ -549,12 +549,16 @@ void ui_item_details(const ItemDef *d, int id)
     }
     if (d && d->type >= 95 && d->type <= 97) {             /* a shield: what each size adds to the defence (mods/gamemodel.h, the game's to-hit rolls) */
         ImGui::Separator();
-        ImGui::TextUnformatted("Adds to its bearer's defence; not with a two-handed weapon.");
-        int q = d->quality;
+        ImGui::TextUnformatted("Adds to its bearer's defence, the more the better made; not with a two-handed weapon.");
+        if (q < 0) q = d->quality;
         static const char *SZ[3] = { "Small", "Medium", "Large" };
         for (int t = 95; t <= 97; t++)
             (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
         ImGui::TextDisabled("No shield counts as -5. The chance to be hit is 50 + 2/3 of the attack less the defence;\nagainst a blow the defence is the shield's and twice the Agility (less of it under a load).");
+        if (member_present(sel_member)) {
+            int ag = gm_member_fight_agility(sel_member), sh = gm_shield_defence(d->type, q, 0), cur, mx; gm_member_attr(sel_member, 2, &cur, &mx);
+            ImGui::Text("%s with it: %d + twice the Agility %d = %d against a blow%s", member_name(sel_member, false).c_str(), sh, ag, sh + 2 * ag, ag < cur ? " (the load takes some)" : "");
+        }
     }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
@@ -573,7 +577,7 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::Text("Weight %d", it.weight);
     if (d && d->value) ImGui::Text("Worth about %s", money_with_total(d->value).c_str());
     if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Equipped");
-    ui_item_details(d, it.id);
+    ui_item_details(d, it.id, it.qual);
     ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");
     ImGui::EndTooltip();
 }
@@ -811,7 +815,8 @@ extern "C" void tab_alchemy(void)
         auto key = [&](int f, int c) -> SortKey {
             const Formula &F = gamedata.formulas[f];
             switch (c) {
-            case 0: { std::string vn = virtue_name(f); const ItemDef *pd = def_of(95 + f / 3); return vn.empty() ? (pd ? game_text(pd->name.c_str(), 64) : std::string("?")) : vn; }
+            case 0: { const ItemDef *pd = def_of(95 + f / 3);         /* by the potion, then its grade (its three formulae together) */
+                      return (pd ? game_text(pd->name.c_str(), 64) : std::string("?")) + " " + std::to_string(f % 3 + 1); }
             case 1: return who_of(f);
             case 2: return F.mystic;
             case 3: return F.risk;
@@ -833,9 +838,9 @@ extern "C" void tab_alchemy(void)
             ImGui::BeginGroup();
             std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");
             ImGui::TextWrapped("%s", vn.empty() ? pn.c_str() : vn.c_str());
-            if (!vn.empty() && vn != pn) {                       /* the potion it makes (three formulas each) */
+            {                                                    /* the potion it makes, and which of its three formulae */
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                ImGui::TextWrapped("%s", pn.c_str());
+                ImGui::TextWrapped("%s, grade %d of 3", pn.c_str(), f % 3 + 1);
                 ImGui::PopStyleColor();
             }
             ImGui::EndGroup();

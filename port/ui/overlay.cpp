@@ -851,7 +851,7 @@ extern "C" void travel_overlay(void);
  * "V:Brigandine"), a saint (the saints lists, a card's prayer box) or an alchemy formula (the
  * formula book) - what it is good for, as a tooltip */
 int ui_shop_info = 1;
-void ui_item_details(const ItemDef *d, int id);
+void ui_item_details(const ItemDef *d, int id, int q = -1);
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static std::string squash(const std::string &t)            /* letters and digits only, lower case: "St.Martin" = "St. Martin" */
 {

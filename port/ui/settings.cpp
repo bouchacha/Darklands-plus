@@ -138,6 +138,7 @@ void tab_mods(void)
 
 /* "play the original game": every change off, the player's choices kept to come back to */
 int ui_original_mode(void) { return config_get_int("original", 0); }
+bool ui_modding(void) { return config_get_int("editor.show", 0) && !ui_original_mode(); }
 extern "C" void ui_set_original_c(int on);
 void ui_set_original(bool on)
 {
@@ -441,7 +442,7 @@ void tab_helpers(void)
 
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Editor"); ImGui::PopFont();
     bool ed = config_get_int("editor.show", 0);
-    if (ImGui::Checkbox("Show the character editor (Editor tab)", &ed)) { config_set_int("editor.show", ed); ui_dirty_config = 1; }
+    if (ImGui::Checkbox("Show the editing tools: the Editor tab (a character's numbers and things), and changing weapons, items and foes in F12 > Records for a mod", &ed)) { config_set_int("editor.show", ed); ui_dirty_config = 1; }
     ui_hint("Change money, names, attributes, skills, saints, formulae, items, and a character's colours, shield and "
          "figure, as the community's save-game editors do. For repairing characters hit by old bugs, or for cheating.");
 

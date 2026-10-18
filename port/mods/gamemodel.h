@@ -28,6 +28,10 @@ int gm_member_skill(int m, int k);
    missile_to_hit). The chance to be hit is 50 + 2/3 of (the attack - the defence), the defence
    against a blow being this plus twice the bearer's Agility (less of it under a load). */
 int gm_shield_defence(int type, int q, int missile);
+/* the Agility member m brings to the defence against a blow (counted twice there): all of it while
+   the load is at most 5/8 of (maximum Endurance + Strength) x 1, two thirds up to 10/8, a third up
+   to 15/8, none above (s014 18bf, the to-hit roll of a blow) */
+int gm_member_fight_agility(int m);
 int gm_member_age(int m);
 int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */
 int gm_member_load_band(int m);                   /* 0 light, 1 normal, 2 heavy, 3 overloaded */
