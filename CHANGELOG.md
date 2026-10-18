@@ -24,6 +24,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
 - **Also:**
   - the opening ends at once on a key or a click, and later starts show only its last scene (the lady's welcome);
   - money shown as gold, silver and copper coins;
+  - a new save can take the place of an old one (a click on it in the Save page), and the Load page deletes a save;
   - the level map (Tab) walks the party to a spot you click;
   - night-time thieves and watch in towns can be made rarer;
   - a shooter whose line is blocked steps aside to a spot with a clear one, or walks towards the foe until there is one, and can be sent at any foe;

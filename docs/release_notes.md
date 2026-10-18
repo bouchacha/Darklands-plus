@@ -11,6 +11,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Most of the game's screens are redrawn** for the mouse and today's screens (each can be switched off): the shops, the character sheet, the loot, the store room, the inn and camping, alchemy, calling on a saint, Party Info, the marching order, Save and Load, Enemy Info and the menus.
 - **Making a character** fills the screen: all 37 professions at once by kind, with what each needs, what your character lacks for it, what it leads to and what it teaches; the skill step shows each skill's room.
 - **Choosing the party:** each member's figure and numbers, and the party at its best in each skill, the gaps in red.
+- **Saves:** a new save can take the place of an old one (a click on it in the list), and the Load page deletes a save.
 - **The best member speaks for the party:** card tests of "the leader" are made by whoever does them best.
 - **One pack for the whole party**, and **one store room for every inn**.
 - **Quests at a glance:** a short title, the days left and a picture of its kind for each, in the margin, the journal and on the maps. A witches' Sabbat the party hears of becomes a task, its place marked.
