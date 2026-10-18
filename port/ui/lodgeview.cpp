@@ -118,7 +118,7 @@ extern "C" void lodgeview_draw(void)
         /* about the one under the pointer */
         std::string about;
         if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] ? "" : std::string(" ") + WHY[hover_act]);
-        if (hover_act == 3 && m.mode != 1) about += " At an inn a failed batch can blow up (the alchemy page tells how often, under the pointer on a formula's risk); in a camp in the wild it cannot.";
+        if (hover_act == 3 && m.mode != 1) about += " At an inn a failed batch can blow up (how often: point at a formula's risk on the alchemy page); in a camp in the wild it cannot.";
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
             const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
