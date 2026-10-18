@@ -60,6 +60,13 @@ bool party_knows_saint(int s)
     return false;
 }
 
+bool party_knows_formula(int f)
+{
+    int n = gm_party_size();
+    for (int m = 0; m < n && m < 5; m++) if (gm_member_present(m) && gm_knows_formula(m, f)) return true;
+    return false;
+}
+
 std::vector<LibraryHit> libraries_teaching(int s)
 {
     std::vector<LibraryHit> v;

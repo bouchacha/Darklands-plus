@@ -21,6 +21,7 @@ const Library *library_at(int loc);                         // nullptr: no libra
 struct LibraryHit { const Library *lib; double days; };
 std::vector<LibraryHit> libraries_teaching(int s);
 bool party_knows_saint(int s);                              // anyone in the party
+bool party_knows_formula(int f);                            // anyone in the party
 
 /* the formulae a town's alchemist sells: four, fixed for the whole game ($Alche01, s064 1b0b: the
    town's seed + the party's + 100 + 3 a slot, % 22: only the first 22 formulae, DARKLAND.LST order,
