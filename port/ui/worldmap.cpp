@@ -27,6 +27,21 @@ extern "C" {
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
 int journal_visited(int loc);
+/* a soft golden halo behind a quest's picture, breathing slowly, with a few sparks turning about it:
+   the quests stand out from the towns' and places' own marks */
+static void quest_glow(ImDrawList *dl, ImVec2 c, float is)
+{
+    float t = (float)ImGui::GetTime(), p = 1.0f + 0.07f * sinf(t * 2.4f);
+    for (int k = 3; k >= 1; k--) dl->AddCircleFilled(c, is * (0.42f + 0.12f * k) * p, IM_COL32(255, 214, 110, 40 + 26 * (3 - k)), 24);
+    for (int k = 0; k < 4; k++) {
+        float a = t * 0.9f + k * 1.5708f, tw = 0.5f + 0.5f * sinf(t * 3.1f + k * 1.7f);
+        ImVec2 q(c.x + cosf(a) * is * 0.68f * p, c.y + sinf(a) * is * 0.68f * p);
+        float r = is * 0.07f * (0.6f + 0.6f * tw);
+        ImU32 col = IM_COL32(255, 240, 190, (int)(90 + 140 * tw));
+        dl->AddLine(ImVec2(q.x - r * 1.6f, q.y), ImVec2(q.x + r * 1.6f, q.y), col, fmaxf(1.0f, r * 0.5f));
+        dl->AddLine(ImVec2(q.x, q.y - r * 1.6f), ImVec2(q.x, q.y + r * 1.6f), col, fmaxf(1.0f, r * 0.5f));
+    }
+}
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 void quest_marks(std::vector<std::pair<int, std::string>> &out);
@@ -369,10 +384,15 @@ extern "C" void worldmap_draw(void)
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
         float r = (g == 0 ? 4.5f : 3.0f) * fmaxf(ks, 1.0f);
         if (g != 0 && zoom < 0.22f) continue;
+        bool unseen = g == 0 && p.loc < 92 && !journal_visited(p.loc);   /* a town the party has not been to: faded, a ring */
         if (show_icons) {                                    /* an icon for its kind, bigger as one zooms in */
             float is = r * 4.4f * fminf(fmaxf(powf(zoom / fitz, 0.25f), 1.0f), 1.6f);
             draw_icon(dl, s, is, icon_kind(p.kind));
             r = is * 0.5f;
+            if (unseen) dl->AddCircleFilled(s, r * 0.9f, IM_COL32(236, 226, 204, 150), 20);   /* (washed out, as not yet seen) */
+        } else if (unseen) {
+            dl->AddCircle(s, r, IM_COL32(0, 0, 0, 200), 0, 3.0f);
+            dl->AddCircle(s, r, kind_colour(g), 0, 1.6f);
         } else {
             dl->AddCircleFilled(s, r + 1.5f, IM_COL32(0, 0, 0, 200));
             dl->AddCircleFilled(s, r, kind_colour(g));
@@ -398,7 +418,7 @@ extern "C" void worldmap_draw(void)
             float ow = fmaxf(1.0f, roundf(fsize / 18.0f));                       /* the dark outline, thicker with the letters */
             for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
                 if (dx || dy) dl->AddText(fs, fsize, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 220), p.name.c_str());
-            dl->AddText(fs, fsize, tp, g == 0 ? IM_COL32(255, 244, 214, 255) : IM_COL32(235, 225, 205, 255), p.name.c_str());
+            dl->AddText(fs, fsize, tp, g == 0 ? (unseen ? IM_COL32(205, 192, 168, 255) : IM_COL32(255, 244, 214, 255)) : IM_COL32(235, 225, 205, 255), p.name.c_str());
         }
     }
     // quest marks
@@ -414,6 +434,7 @@ extern "C" void worldmap_draw(void)
             ImVec2 s = to_scr(x, y); s.y -= 10 * k;
             ImVec2 c(s.x + (nth - (n - 1) * 0.5f) * is * 1.05f, s.y - is * 0.55f);
             dl->AddTriangleFilled(ImVec2(c.x - 4 * k, c.y + is * 0.3f), ImVec2(c.x + 4 * k, c.y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
+            quest_glow(dl, c, is);
             ui_draw_quest_icon(dl, c, is, i < mark_cats.size() ? mark_cats[i] : 0);
         }
     // the party
@@ -451,7 +472,10 @@ extern "C" void worldmap_draw(void)
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
-            if (const Library *L = library_at(p.loc)) {        /* the saints its library teaches; new ones marked */
+            bool known_here = p.loc >= 92 || journal_visited(p.loc) || config_get_int("map.offers_unvisited", 0);
+            if (!known_here && (library_at(p.loc) || (p.loc < 92 && citynav_town_offers(p.loc, TI_ALCHEMIST))))
+                ImGui::TextDisabled("Its saints and formulae: known once the party has been there.");
+            if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
                 std::string t; int done[4], nd = 0;
                 for (int k = 0; k < 4; k++) {
                     int s = L->saint[k]; bool dup = false;
@@ -464,7 +488,7 @@ extern "C" void worldmap_draw(void)
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
             }
             {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
-                if (p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
+                if (known_here && p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
                     std::string t;
                     for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
                     ImGui::TextDisabled("Formulae sold here:");
@@ -592,6 +616,10 @@ extern "C" void worldmap_draw(void)
             q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
             pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
             ImGui::SameLine(); ImGui::TextUnformatted("The party");
+            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);   /* a town not yet visited */
+            if (show_icons) { draw_icon(pl, m, is, 0); pl->AddCircleFilled(m, is * 0.45f, IM_COL32(236, 226, 204, 150), 20); }
+            else { pl->AddCircle(m, is * 0.25f, IM_COL32(0, 0, 0, 200), 0, 3.0f); pl->AddCircle(m, is * 0.25f, kind_colour(0), 0, 1.6f); }
+            ImGui::SameLine(); ImGui::TextUnformatted("A town not visited yet (washed out)");
         }
         if (ImGui::TreeNode("The quests' pictures")) {
             for (int k = 1; k < QC_N; k++) {
@@ -673,6 +701,7 @@ extern "C" void travelmap_labels(void)
                     float is = base * 1.3f;
                     ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
                     ImVec2 c(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f);
+                    quest_glow(dl, c, is);
                     ui_draw_quest_icon(dl, c, is, i < qcats.size() ? qcats[i] : 0);
                     ImVec2 m = ImGui::GetIO().MousePos;             /* (the pointer on it: the task) */
                     if (fabsf(m.x - c.x) < is * 0.5f && fabsf(m.y - c.y) < is * 0.5f && !ImGui::GetIO().WantCaptureMouse) {

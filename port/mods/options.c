@@ -127,6 +127,7 @@ static Option OPTIONS[] = {
     { "travel.fast", S_TRAVEL, "travel.auto", "Pace", "of auto-travel.", OC_TASTE, 0, 1, 1, "as walking|4x|at once", V_PACE, tr_fast },
     { "map.names", S_TRAVEL, 0, "Place names", "the towns and places named on the travel map.", OC_SHOW, 0, 1, 1 },
     { "map.quest_marks", S_TRAVEL, 0, "Quest marks", "the quests' pictures above their places on the travel map, and a sign beside a town that bars the party or whose watch wants it.", OC_SHOW, 0, 1, 1 },
+    { "map.offers_unvisited", S_TRAVEL, 0, "What unvisited towns offer", "the world map's tooltip names the saints a town's library teaches and the formulae its alchemist sells for towns the party has not been to as well (else only for those it has seen).", OC_EASY, 0, 0, 1 },
     { "map.key_m", S_TRAVEL, 0, "World map", "M opens the map of the whole land (the towns, the quests, where saints and formulae are found).", OC_SHOW, 0, 1, 1 },
     { "travel.encounters", S_TRAVEL, 0, "Encounters on the road", "how often the road brings an encounter.", OC_EASY, 100, 100, 50, "rare (a quarter)|fewer (half)|as the game|more (double)", V_RATE },
     { "travel.street_encounters", S_TRAVEL, 0, "Thieves and the watch at night", "in a town's streets: the side streets bring cutthroats about 8 times in 10 for a party with little Stealth and Streetwise, and the main street the watch now and then.", OC_EASY, 100, 100, 50, "rare (a quarter)|fewer (half)|as the game|more (double)", V_RATE },
