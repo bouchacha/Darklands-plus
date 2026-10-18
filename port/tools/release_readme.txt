@@ -52,6 +52,7 @@ KEYS
   1-9           (card) pick an option
   Mouse wheel   (sheet, shops) move through a list
   Tab           (battles, dungeons) the level map
+  Z             (battles) fast forward, six times the pace; Z again: back to the chosen speed
   Right click   the menu bar (click an entry; a click elsewhere or any key closes it)
   A, S          (loot) take the whole pile, share it out among the party
   A, T          (shop) sell the whole stack, buy ten
@@ -105,7 +106,8 @@ yours removes or blocks darklands_game.dll, allow that file (it is made from you
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
 To remove Darklands+, delete the folder you unpacked it into, and darklands_game.dll,
-darklands_port.ini, darklands_port.log, darklands_journal_*.txt, darklands_chronicle_*.txt and darklands_notes_*.txt from the Darklands folder (or the folder
+darklands_port.ini, darklands_port.log, darklands_journal_*.txt, darklands_chronicle_*.txt,
+darklands_notes_*.txt and darklands_sabbats_*.txt from the Darklands folder (or the folder
 %LOCALAPPDATA%\Darklands+, where they go when the Darklands folder cannot be written).
 
 WHAT IS IN darklands_plus
