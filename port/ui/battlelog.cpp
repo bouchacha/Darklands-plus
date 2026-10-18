@@ -238,8 +238,13 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     ImFont *f = ui_font_overlay;
     float pad = fs * 0.7f, lh = fs * 1.25f, y = h - pad;
-    dl->AddText(f, fs * 1.05f, ImVec2(x + pad, pad), IM_COL32(222, 178, 104, 255), "Battle");
+    {   /* framed as the other margins' panels (an ImGui window's border) */
+        const ImGuiStyle &st = ImGui::GetStyle();
+        if (st.WindowBorderSize > 0) dl->AddRect(ImVec2(x + 0.5f, 0.5f), ImVec2(x + w - 0.5f, h - 0.5f), ImGui::GetColorU32(ImGuiCol_Border), st.WindowRounding, 0, st.WindowBorderSize);
+    }
+    dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f), IM_COL32(222, 178, 104, 255), "Battle");
     float top = pad + lh * 1.5f;
+    if (lines.empty()) dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f + lh), IM_COL32(170, 150, 120, 255), "Each blow is told here.", 0, w - 2 * pad);
     for (int k = (int)lines.size() - 1; k >= 0 && y > top + lh; k--) {
         /* wrapped to the margin's width, so a long line takes two rows */
         const char *t = lines[k].text.c_str();

@@ -183,6 +183,14 @@ static const char *order_word(char c)
     }
     return nullptr;
 }
+static const char *order_short(char c)           /* (the word on the card; order_word in its tooltip) */
+{
+    switch (c) {
+    case 'A': return "attacks"; case 'V': return "all-out"; case 'B': return "berserk"; case 'P': return "parries";
+    case 'M': return "shoots"; case 'W': return "walks"; case 'F': return "follows"; case '-': return "waits";
+    }
+    return nullptr;
+}
 
 extern "C" int partypanel_member_at(int gx, int gy)
 {
@@ -222,16 +230,15 @@ extern "C" void partypanel_draw(void)
         bool out = st == 3 || st == 5 || gm_member_elsewhere(m);
         char nm[32]; gm_member_name(m, nm, sizeof nm);
         std::string name = ns_gtext(nm);
-        /* the order (in a battle), right of the name */
-        char oc = battle ? gm_member_order(m) : 0;
+        /* the order (in a battle), a word right of the name */
+        char oc = battle && !out ? gm_member_order(m) : 0;
         float name_end = 56.5f;
-        if (oc) {
-            char b[2] = { oc, 0 };
-            float bw = 6.0f;
-            P.rect(56.8f - bw, y0 + 2.6f, 56.8f, y0 + 8.6f, IM_COL32(86, 60, 30, 255), 1.2f);
-            P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, CREAM, b, 56.8f - bw * 0.5f + P.width(P.fo, NsDraw::FS_SMALL, b) * 0.5f);
-            name_end = 56.8f - bw - 1;
-            if (P.over(56.8f - bw, y0 + 2.6f, 56.8f, y0 + 8.6f) && order_word(oc)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc));
+        if (oc && order_short(oc)) {
+            const char *wd = order_short(oc);
+            float ww = P.width(P.fo, NsDraw::FS_SMALL, wd);
+            P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, DIM, wd, 56.5f);
+            name_end = 56.5f - ww - 1.5f;
+            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc));
         }
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */
