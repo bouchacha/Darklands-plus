@@ -768,14 +768,23 @@ static void ingredients_page(void)
             ImGui::Text("%s  %s", loc_name(at[0].loc).c_str(), money(at[0].price).c_str());
             if (here && at[0].dist == 0) { ImGui::SameLine(); ImGui::TextDisabled("(here)"); }
             ImGui::TableNextColumn();
+            /* the other towns, the nearest first, without their prices: as many as fit on the line,
+               then "..."; every town with its price under the pointer */
             std::string more;
-            for (size_t k = 1; k < at.size() && k <= 3; k++) { if (!more.empty()) more += ",  "; more += loc_name(at[k].loc) + " " + money(at[k].price); }
-            if (at.size() > 4) { char b[32]; snprintf(b, sizeof b, "  and %d more", (int)at.size() - 4); more += b; }
-            if (cheapest > 3) more += "  (cheapest: " + loc_name(at[cheapest].loc) + " " + money(at[cheapest].price) + ")";
-            ImGui::TextWrapped("%s", more.empty() ? "-" : more.c_str());
+            float room = ImGui::GetContentRegionAvail().x, ell = ImGui::CalcTextSize(", ...").x;
+            size_t k = 1;
+            for (; k < at.size(); k++) {
+                std::string next = (more.empty() ? "" : ", ") + loc_name(at[k].loc);
+                bool last = k + 1 == at.size();
+                if (ImGui::CalcTextSize((more + next).c_str()).x + (last ? 0 : ell) > room) break;
+                more += next;
+            }
+            if (k < at.size()) more += more.empty() ? "..." : ", ...";
+            ImGui::TextUnformatted(more.empty() ? "-" : more.c_str());
             if (ImGui::IsItemHovered() && at.size() > 1) {
                 ImGui::BeginTooltip();
-                for (const Seen &s : at) ImGui::Text("%s  %s", loc_name(s.loc).c_str(), money(s.price).c_str());
+                ImGui::TextDisabled(here ? "Every town seen selling it, the nearest first:" : "Every town seen selling it:");
+                for (size_t j = 0; j < at.size(); j++) ImGui::Text("%s  %s%s", loc_name(at[j].loc).c_str(), money(at[j].price).c_str(), (int)j == cheapest && at.size() > 2 ? "  (the cheapest)" : "");
                 ImGui::EndTooltip();
             }
         }
