@@ -96,6 +96,8 @@ static Option OPTIONS[] = {
     { "party.keep_looks", S_PARTY, 0, "Looks kept", "characters keep their figure and colours when they join again at an inn.", OC_SHOW, 0, 1, 1 },
     { "party.more_figures", S_PARTY, 0, "Enemies' figures", "Select Character Image also offers the enemies' human figures (sergeant, monk, knight, Templar ... 14 more), with their own animations and colours. A figure without an animation for the weapon in hand swings the nearest one it has.", OC_PLUS, 0, 1, 1, 0, 0, 0,
       "Saved games: a save with a member in one of these figures loads only in Darklands+ (the original game on DOS stops at the missing picture)." },
+    { "rules.aging", S_PARTY, 0, "Aging", "the years take their toll in play too, as they do while a character is made: from thirty on, a little each month, more as the years go by (by seventy, 25 Endurance, 21 Strength and Agility, 10 Perception and Charisma and 5 Intellect in all). The original ages characters only while they are made.", OC_PLUS, 0, 1, 0 },
+    { "assist.loss_alerts", S_PARTY, 0, "Losses told", "anything lost for good (an attribute's maximum, a skill, armour eaten by acid or fire, the years' toll) stops the game in a window saying exactly what, and whose.", OC_SHOW, 0, 1, 1 },
     { "party.figure_picker", S_PARTY, "party.more_figures", "Figure picker", "Select Character Image shows all the figures at once to pick from (else it steps to the next, as in the original).", OC_SHOW, 0, 1, 1 },
 
     { "battle.pause_down", S_BATTLE, 0, "Pause when someone falls", "the battle stops when someone in the party falls.", OC_EASE, 0, 1, 1, 0, 0, ap_down },

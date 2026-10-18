@@ -251,3 +251,16 @@ void gm_hour_name(int hour, char *out, int n)
     if (sg) g_str(sg, o, out, n);
     if (!out[0] || !strcmp(out, "Latins")) snprintf(out, (size_t)n, "%s", OWN[b]);   /* (the game's typo for Lauds) */
 }
+
+/* ---------------------------------------------------------------- names (as the character sheet has them) */
+const char *gm_attr_name(int a)
+{
+    static const char *const A[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
+    return a >= 0 && a < 7 ? A[a] : "?";
+}
+const char *gm_skill_name(int k)
+{
+    static const char *const S[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices",
+        "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
+    return k >= 0 && k < 19 ? S[k] : "?";
+}

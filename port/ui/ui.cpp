@@ -338,7 +338,9 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open(); }
+extern "C" int ui_alert_open(void);
+void ui_alert_draw(void);
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map or a card, or the Travel tab */
@@ -978,6 +980,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         }
     }
     ui_cursor();
+    ui_alert_draw();
     draw_icon_grid();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);

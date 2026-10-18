@@ -85,6 +85,9 @@ int gm_library_saints(int loc, int out[4]);
 int gm_hour_band(int hour);
 void gm_hour_name(int hour, char *out, int n);
 
+const char *gm_attr_name(int a);                  /* "Endurance" ... "Divine Favor" (G_M_ATTR_* order) */
+const char *gm_skill_name(int k);                 /* "Edged Weapons" ... "Woodwise" (G_M_SKILLS order) */
+
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
 int gm_itemdef_weight(int id);
