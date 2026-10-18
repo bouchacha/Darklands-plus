@@ -12,6 +12,7 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
+#include "../runtime/config.h"
 }
 
 std::string rules_weapons_of_skill(int k);
