@@ -69,6 +69,12 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
         if (y - h < y0) break;
         y -= h;
         P.rect(x0, y, x1, y + h - 0.4f, IM_COL32(24, 16, 8, (int)(225 * a)), 1.2f);
+        if (now - n.t < 1600) {                                 /* new: a flash round it, twice */
+            float ph = (now - n.t) / 1600.0f, fl = 0.5f + 0.5f * cosf(ph * 4 * 3.14159f);
+            ImU32 fc = n.good ? IM_COL32(255, 214, 100, (int)(235 * fl)) : IM_COL32(240, 110, 90, (int)(235 * fl));
+            ImVec2 q0 = P.w(x0, y), q1 = P.w(x1, y + h - 0.4f);
+            P.dl->AddRect(ImVec2(q0.x - 1, q0.y - 1), ImVec2(q1.x + 1, q1.y + 1), fc, 1.2f * P.k, 0, fmaxf(1.5f, 0.6f * P.k));
+        }
         P.para(P.fo, 4.3f, x0 + 2, y + 1.0f + (h - th) * 0.5f, x1 - x0 - 4, n.good ? IM_COL32(250, 214, 110, (int)(255 * a)) : IM_COL32(240, 120, 100, (int)(255 * a)), n.text);
     }
 }

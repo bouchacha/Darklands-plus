@@ -58,6 +58,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
         else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */
         else if (!strcmp(cmd, "uaging")) { void aging_month(int); aging_month(atoi(arg) > 0 ? atoi(arg) : 1); }   /* test: months of aging at once */
+        else if (!strcmp(cmd, "uskill")) { int m = 0, k = 0, v = 0; sscanf(arg, "%d,%d,%d", &m, &k, &v); if (m >= 0 && m < 5 && k >= 0 && k < 19) g_wb((u16)(G_MEMBER(m) + G_M_SKILLS + k), (u8)v); }   /* test: member m's skill k */
         else if (!strcmp(cmd, "uage")) { int m = 0, y = 25; sscanf(arg, "%d,%d", &m, &y); if (m >= 0 && m < 5) g_ww((u16)(G_MEMBER(m) - 2), (u16)y); }   /* test: member m's age */
         else if (!strcmp(cmd, "ualert")) { void ui_alert_dismiss(void); ui_alert_dismiss(); }   /* test: the window of news clicked through */
         else if (!strcmp(cmd, "umaxattr")) { int m = 0, a = 0, v = 1; sscanf(arg, "%d,%d,%d", &m, &a, &v); if (m >= 0 && m < 5 && a >= 0 && a < 7) g_wb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a), (u8)v); }   /* test: an attribute's maximum */
@@ -214,8 +215,9 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ucbt")) {               /* test: the battle's combatants and what the pointer is on */
             fprintf(stderr, "cbt target %d\n", (s16)g_rw(0xd845));
             for (int i = 0; i < 13; i++) { u16 b = (u16)(0x9c55 + i * 0x80); char n[26]; g_str(G_DGROUP, (u16)(b + 0x25), n, sizeof n);
-                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d atk %d def %d xy %d,%d\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
-                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6))); }
+                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
+                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
+                        g_rw((u16)(b + 0x10)), (s8)g_rb((u16)(b + 0x4a)), g_rb((u16)(GV_cbt_action + i)), g_rb((u16)(GV_cbt_moving + i))); }
         }
         else if (!strcmp(cmd, "uparty")) {             /* test: End/Str of each member, battle pause flag */
             fprintf(stderr, "party %u ms paused %d mode %d:", plat_ticks_ms(), g_rb(0x07d3), game_mode());

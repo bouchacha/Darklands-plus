@@ -169,6 +169,7 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
  * or a click. Where the party panel is drawn anew it covered them: the panel shows it in the
  * member's box instead (partypanel_note), the log keeps it, and the game goes on at once. */
 extern "C" int partypanel_shown(void);
+void ui_battle_float(int m, const std::string &t, bool good);   /* battleoverlay.cpp */
 extern "C" void partypanel_note(int row, const char *text, int good);
 static void sidemsg_hook(void)
 {
@@ -176,6 +177,19 @@ static void sidemsg_hook(void)
     if (!partypanel_shown() || config_get_int("original", 0)) { hook_call_original(); return; }
     char b[96]; g_str(G_DGROUP, GV_msg_buf, b, sizeof b);
     std::string t = game_text(b, strlen(b));
+    {   /* "<skill> changed from X to Y" (skill_change_msg, s021 1ef8:0080): "Edged +3 (now 33)", and
+           the gain rising over the member's head (battleoverlay.cpp) */
+        size_t at = t.find(" changed from ");
+        int x, y;
+        if (at != std::string::npos && sscanf(t.c_str() + at, " changed from %d to %d", &x, &y) == 2 && x != y) {
+            std::string sk = t.substr(0, at);
+            if (sk.size() > 5 && sk.compare(sk.size() - 5, 5, " Wpns") == 0) sk.erase(sk.size() - 5);   /* ("Edged Wpns": Edged) */
+            char nb[96]; snprintf(nb, sizeof nb, "%s %+d (now %d)", sk.c_str(), y - x, y);
+            t = nb;
+            char fl[64]; snprintf(fl, sizeof fl, "%+d %s", y - x, sk.c_str());
+            if (game_mode() == GM_BATTLE) ui_battle_float(row, fl, y > x);
+        }
+    }
     partypanel_note(row, t.c_str(), colour != 12);
     if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, name_of(row) + ": " + t);
     else add(4, t);

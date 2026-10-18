@@ -5,7 +5,9 @@
  * victory", 150): a box with the words of its programmers' log, held for 150 timer ticks
  * (about eight seconds) over the still battlefield - long enough to take for the game hanging,
  * and players clicked to get on. Here the box says how the battle ended ("Victory! The battle
- * is won." ...) and stays about three seconds. */
+ * is won." ...) and stays about three seconds. Before it, when the last foe falls, the game holds
+ * the field still for 60 ticks of the battle clock (a defeat 240: some three and thirteen seconds)
+ * before the loot; here a second (three for a defeat). */
 #include <stdio.h>
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -40,7 +42,25 @@ static void message_hook(void)          /* show_message (text, ticks) */
     hook_call_original();
 }
 
+/* the field held still once the battle is decided (combat_over, s014 0e76:08fe: the last foe down
+   holds it 60 ticks of the battle clock, a defeat 240) before the loot or the defeat: a second, three */
+#define HOLD_WON 18
+#define HOLD_LOST 55
+static void over_hook(void)
+{
+    hook_call_original();
+    if (!on() || AX) return;
+    int res = (s16)g_rw(GV_battle_result);
+    u16 now = g_rw(GV_combat_clock), until = g_rw(0xda45);
+    int hold = res == 0 ? HOLD_WON : res == 3 || res == 5 ? HOLD_LOST : -1;
+    if (hold > 0 && (s16)(until - now) > hold) {
+        g_ww(0xda45, (u16)(now + hold));
+        fprintf(stderr, "battle end: held %d ticks, not %d\n", hold, (s16)(until - now));
+    }
+}
+
 void battleend_init(void)
 {
     hook_install(GF_show_message, message_hook);
+    hook_install(GF_combat_over, over_hook);
 }

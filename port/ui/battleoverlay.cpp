@@ -71,10 +71,42 @@ std::string ui_enemy_name(int floor, u16 b)
    (battle.reload_bar: cbt_missile_action, s014 0e76: action 9 reloading until D_dabd, 10 aiming
    until D_daa3, from D_d948 less the 10 ticks before reloading begins) */
 int ui_battle_bars = 1;
+/* a skill raised in the fight (battle.skill_gains): "+2 Edged" rising in gold over the member's
+   head for a few seconds (battlelog.cpp hands it on from the game's side message) */
+struct Float { int m; std::string t; u32 t0; bool good; };
+static std::vector<Float> floats;
+extern "C" u32 plat_ticks_ms(void);
+void ui_battle_float(int m, const std::string &t, bool good)
+{
+    if (m < 0 || m >= 5 || !config_get_int("battle.skill_gains", 1) || config_get_int("original", 0)) return;
+    int stack = 0; for (const Float &f : floats) if (f.m == m) stack++;
+    floats.push_back({ m, t, plat_ticks_ms() + (u32)(stack * 450), good });   /* (several at once: one after the other) */
+}
+static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float k, u32 now)
+{
+    if (now < f.t0) return;
+    float age = (now - f.t0) / 1000.0f;                       /* 3.5 s: rises, then fades */
+    if (age > 3.5f) return;
+    float a = age < 0.15f ? age / 0.15f : age > 2.6f ? (3.5f - age) / 0.9f : 1.0f;
+    float rise = 6.0f + 9.0f * fminf(age, 1.6f) / 1.6f;
+    ImFont *fo = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    float sz = 9.0f * k * (age < 0.25f ? 1.0f + 0.35f * (0.25f - age) / 0.25f : 1.0f);   /* (a little bigger as it appears) */
+    ImVec2 ts = fo->CalcTextSizeA(sz, FLT_MAX, 0, f.t.c_str());
+    ImVec2 p = g2w(cx, gy - rise);
+    p.x -= ts.x * 0.5f; p.y -= ts.y;
+    int A = (int)(255 * a);
+    ImU32 ink = f.good ? IM_COL32(255, 220, 110, A) : IM_COL32(245, 120, 100, A), edge = IM_COL32(20, 10, 2, (int)(230 * a));
+    for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) if (dx || dy) dl->AddText(fo, sz, ImVec2(p.x + dx * 1.5f, p.y + dy * 1.5f), edge, f.t.c_str());
+    dl->AddText(fo, sz, p, ink, f.t.c_str());
+}
 void ui_draw_battle_bars(void)
 {
     bool reload = config_get_int("battle.reload_bar", 1) != 0;
-    if ((!ui_battle_bars && !reload) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    if (game_mode() != GM_BATTLE) floats.clear();
+    if ((!ui_battle_bars && !reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    u32 nowms = plat_ticks_ms();
+    while (!floats.empty() && nowms > floats.front().t0 + 3500) floats.erase(floats.begin());
+    bool hurt_only = config_get_int("battle.bars_hurt", 1) && !ImGui::GetIO().KeyAlt;
     int n = (s8)g_rb(GV_hotspot_count);
     if (n <= 0 || n > 40) return;
     ImDrawList *dl = ovl_list();
@@ -95,7 +127,9 @@ void ui_draw_battle_bars(void)
         if (gy < 1) gy = 1;
         ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
         float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x, below = a.y;
-        if (ui_battle_bars) {
+        for (const Float &f : floats) if (f.m == m) draw_float(dl, f, cx, gy, k, nowms);
+        bool whole = end >= endm && !(strm > 0 && str * 2 <= strm);
+        if (ui_battle_bars && !(hurt_only && whole)) {         /* (unhurt: none, unless Alt is held) */
             float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
             ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
             dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
