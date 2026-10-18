@@ -32,6 +32,8 @@ Also: in a town from 19:00 to 5:00 (the game's night, which the margin used to c
 
 Fixed: with the New encounters mod on, travel could stop the game with "pics\xhouse3.pic: No such file" (the developers' test card, card 0) or meet the town guards' challenge in open country: the mod lost the map's own choice of what comes next when no new encounter was due. A guard also sends any request for card 0 on to the map or the town.
 
+Fixed (a bug of 483.07, the "Blessings" fix): a saint's boost to endurance or strength that a night's rest or a wound had used up was taken off again when it ran out, so resting while blessed cost endurance and a badly wounded member could die when the boost ended; now only what is still above the maximum is taken off.
+
 Fixed (a bug of 483.07): a merchant who sends the party for debt notes names who holds them, the Medici or the Fugger, but the game hid them in another office above the marketplace, so breaking into the office named found nothing; they are now in the office named. The quest log says who holds papers to be got in a town, and that the offices above the marketplace are reached at night.
 
 Fixed (a bug of 483.07): the inn's Train or Study could list no teachers and show a cost like "-4096pfs" (and a purse that grew), then pass the day with nothing learnt, when another town's teachers were still about; it now lists the town's own teachers and charges their fee.

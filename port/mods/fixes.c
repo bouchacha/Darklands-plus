@@ -6,7 +6,11 @@
  *            is max + the LARGEST running boost, add_attr also clamps at 99). When they run
  *            out the full recorded amount is taken off again, so a second blessing on the
  *            same attribute, or one near 99, costs points for good (Int never comes back).
- *            Fixed by recording what was really added.
+ *            Fixed by recording what was really added. And when a boost runs out (s029
+ *            0e76:448a) it is taken off whatever the attribute is by then: endurance a night's
+ *            rest has put back to its maximum, or strength wounds have taken, lost the boost
+ *            again (a member at 3 strength whose +4 ran out died). Now only what is still above
+ *            the maximum goes.
  *  fireward  St. Polycarp, St. Charity, Firewall ... set the high nibble of the member's
  *            fire-protection byte (party +0x41 = combatant +0x55). hit_damage (s014
  *            18bf:0778) adds that byte (& 0x7f) to the armour, so bits 4-6 turn into up to
@@ -100,7 +104,7 @@
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
-      "A second blessing on the same attribute, or one near 99, used to take points away when it wore off.", 1 },
+      "A second blessing on the same attribute, or one near 99, used to take points away when it wore off; and a boost to endurance or strength that a night's rest or a wound had used up was taken off again when it ran out (a badly wounded member could die of it).", 1 },
     { "fireward", "No invulnerability from fire protection",
       "St. Polycarp, Firewall and the like no longer turn into permanent armour (+16 to +64).", 1 },
     { "nullitem", "No \"(null)\" or empty items",
@@ -170,6 +174,25 @@ static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
             ww(s, (u16)(o + 0x1e), (u16)added);
         }
     }
+}
+
+/* a boost runs out (s029 0e76:448a, the expiry of kinds 0x48 / 0x49 (event i): +0x1a the member,
+   +0 the attribute, +0x1e the points): it takes off no more than what is still above the maximum */
+static void blessing_end_hook(void)
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    u32 e = i >= 0 && i < 300 ? ev_ptr(i) : 0;
+    if (!e) { hook_call_original(); return; }
+    u16 s = (u16)(e >> 16), o = (u16)e;
+    int m = (s16)rw(s, (u16)(o + 0x1a)), a = (s16)rw(s, o), rec = (s16)rw(s, (u16)(o + 0x1e));
+    if ((s16)rw(s, (u16)(o + 0x22)) != 0x48 || m < 0 || m >= 5 || a < 0 || a >= 7 || rec <= 0) { hook_call_original(); return; }
+    int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
+    int take = cur - max; if (take < 0) take = 0; if (take > rec) take = rec;
+    if (take == rec) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix blessing: member %d attr %d runs out: %d off, not %d (%d/%d)\n", m, a, take, rec, cur, max);
+    ww(s, (u16)(o + 0x1e), (u16)take);
+    hook_call_original();
+    if (ev_ptr(i) == e && (s16)rw(s, (u16)(o + 0x1e)) == take) ww(s, (u16)(o + 0x1e), (u16)rec);
 }
 
 /* ---------------------------------------------------------------- fireward (+ potions) */
@@ -778,7 +801,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
-    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook } };
+    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook },
+    { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook } };
 
 void fix_enable(int i, int on)
 {
