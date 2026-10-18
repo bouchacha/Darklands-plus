@@ -606,6 +606,16 @@ int looks_count(void) { list_init(); return nlooks; }
 const char *looks_code(int i) { list_init(); return i >= 0 && i < nlooks ? looks[i].code : ""; }
 const char *looks_title(int i) { list_init(); return i >= 0 && i < nlooks ? looks[i].title : ""; }
 int looks_usable(int i) { list_init(); return i >= 0 && i < nlooks && look_find(looks[i].code) != 0; }
+/* the weapons figure code has its own animations for (the suffixes of its XXXWK??.IMC with an
+   XXXCB??.IMC): -1 for the game's own figures, which have them all */
+int looks_weapons(const char *code, char out[][3], int max)
+{
+    Look *L = look_find(code);
+    if (!L) return -1;
+    int n = 0;
+    for (int i = 0; i < L->nweap && n < max; i++) { out[n][0] = L->weap[i][0]; out[n][1] = L->weap[i][1]; out[n][2] = 0; n++; }
+    return n;
+}
 int looks_is_extra(const char *code) { return look_find(code) != 0; }
 const char *looks_title_of(const char *code)
 {

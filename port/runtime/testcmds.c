@@ -58,6 +58,9 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
         else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */
         else if (!strcmp(cmd, "uaging")) { void aging_month(int); aging_month(atoi(arg) > 0 ? atoi(arg) : 1); }   /* test: months of aging at once */
+        else if (!strcmp(cmd, "ufigpick")) { int figpick_open(int, int); figpick_open(atoi(arg), 0); }   /* test: the figure picker for member m */
+        else if (!strcmp(cmd, "ucity")) { unsigned of = 0; int v = -999; sscanf(arg, "%x,%d", &of, &v); u16 o = g_rw(GV_city_rec), sg = g_rw((u16)(GV_city_rec + 2));
+            fprintf(stderr, "city +%x: %d", of, (s16)rw(sg, (u16)(o + of))); if (v != -999) { ww(sg, (u16)(o + of), (u16)v); fprintf(stderr, " -> %d", v); } fprintf(stderr, "\n"); }   /* test: a word of the current city's record */
         else if (!strcmp(cmd, "uskill")) { int m = 0, k = 0, v = 0; sscanf(arg, "%d,%d,%d", &m, &k, &v); if (m >= 0 && m < 5 && k >= 0 && k < 19) g_wb((u16)(G_MEMBER(m) + G_M_SKILLS + k), (u8)v); }   /* test: member m's skill k */
         else if (!strcmp(cmd, "uage")) { int m = 0, y = 25; sscanf(arg, "%d,%d", &m, &y); if (m >= 0 && m < 5) g_ww((u16)(G_MEMBER(m) - 2), (u16)y); }   /* test: member m's age */
         else if (!strcmp(cmd, "ualert")) { void ui_alert_dismiss(void); ui_alert_dismiss(); }   /* test: the window of news clicked through */

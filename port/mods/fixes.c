@@ -97,6 +97,7 @@
  *  bishop    A cathedral's errand is the bishop's, and its relic is paid once (below, bishop).
  *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
  *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not (below, tomb).
+ *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,6 +162,8 @@ Fix FIXES[] = {
       "A pagan altar the party has destroyed vanishes from the map, but errands could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; errands already sent to one go to the nearest altar still standing.", 1 },
     { "tomb", "The thing from the tomb goes to the winner",
       "Taking the thing an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the thing. Now the party has it when it wins.", 1 },
+    { "lordreward", "The lord pays for his tasks",
+      "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall: there it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -970,6 +973,31 @@ static void tomb_hook(void)                 /* $McGuf08 option, s108 1838:07ca *
     tomb_loc = -1;
 }
 
+static int started_ev(u32 e)                /* (event_has_started: its start not after now) */
+{
+    static const u16 F[4] = { 0x10, 0x0e, 0x0c, 0x0a }, NOW[4] = { G_CUR_YEAR, G_CUR_MONTH, G_CUR_DAY, G_CUR_HOUR };
+    for (int k = 0; k < 4; k++) { int a = g_ev(e, F[k]), n = (s16)g_rw(NOW[k]); if (a != n) return a < n; }
+    return 1;
+}
+/* ---------------------------------------------------------------- lordreward
+ * A town without a council (city word +0x5e bit 2 clear) has its lord in the fortress ($CityF00,
+ * s050 1a06): an audience (option 0, 1a06:026c (chance)) gives a robber knight for giver 10, but
+ * the reward (kind 0x24, owner 10, the town) is paid only by $Counc00's audience (s054 19df:0298),
+ * a card such a town never shows. Here, with a reward waiting, the fortress's audience is that
+ * one: the council's routine pays it (money by the town's size, then $Raubi01 or $McGuf13). */
+static void lord_hook(void)                 /* $CityF00 option 0, s050 1a06:026c (chance) */
+{
+    int loc = (s16)g_rw(G_CUR_LOC), waits = 0;
+    for (int i = 0; i < G_NEVENTS && !waits; i++) {
+        u32 p = g_event(i);
+        if (p && g_ev(p, G_EV_KIND) == 0x24 && g_ev(p, G_EV_OWNER) == 10 && (g_ev(p, G_EV_TAG) == 3 || g_ev(p, G_EV_TAG) == 10) && g_ev(p, G_EV_LOC) == loc && started_ev(p)) waits = 1;
+    }
+    if (!waits || !(s16)rw(SS, (u16)(SP + 4))) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix lordreward: the lord pays the reward waiting at %d\n", loc);
+    ns_call(54, 0x19df, 0x0298, 1, 0);
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -978,7 +1006,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
-    { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook } };
+    { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
+    { 50, 0x1a06, 0x026c, lord_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
