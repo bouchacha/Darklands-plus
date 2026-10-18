@@ -87,7 +87,7 @@ while time.time() < t_end:
     if mode in (0, 3) and ': 0/0,0/0 0/0,0/0' in party and rnd.random() < 0.7:   # no party: the title menu
         if a.load:                               # (the party fell: the save again, to go on soaking where it matters)
             L('no party: loading', a.load); nctl.do(name, 'key Escape; wait 1; QUICKSTART; click; wait 3; ucmd uload:%s; wait 8; click; wait 3' % a.load.rsplit(':', 1)[1]); continue
-        nctl.do(name, 'at 160 62; click; wait 6; click; wait 3; click; wait 3'); continue
+        nctl.do(name, 'key q; wait 6; click; wait 3; click; wait 3'); continue
     if mode == 1:
         if n > 0 and rnd.random() < 0.85:
             k = rnd.randrange(n) + 1
