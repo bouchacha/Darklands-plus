@@ -94,6 +94,9 @@
  *            option list is shown (card_options, and from the card view's own drawing of it).
  *  debtnote  A debt-note errand's papers lie in the office its giver names (below, debtnote).
  *  alchrisk  A failed brew's accident follows the formula's risk the right way round (below).
+ *  bishop    A cathedral's errand is the bishop's, and its relic is paid once (below, bishop).
+ *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
+ *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not (below, tomb).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,6 +108,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "fixes.h"
+#include "nscreen.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
@@ -151,6 +155,12 @@ Fix FIXES[] = {
       "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
     { "alchrisk", "A formula's risk the right way round",
       "Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failure of a low-risk formula exploded three times in four, a high-risk one's half the time. Now low risk explodes one time in four, medium one in three, high one in two.", 1 },
+    { "bishop", "The bishop's errands are the bishop's",
+      "A cathedral's canon gave out errands as if for the town's merchants: the merchants paid for them (and gave no more errands of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished task could be taken again and again. Now the errand is the bishop's, the relic is his reward, once.", 1 },
+    { "altar", "No errands to a purged pagan altar",
+      "A pagan altar the party has destroyed vanishes from the map, but errands could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; errands already sent to one go to the nearest altar still standing.", 1 },
+    { "tomb", "The thing from the tomb goes to the winner",
+      "Taking the thing an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the thing. Now the party has it when it wins.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -462,12 +472,14 @@ static void useitem_hook(void)             /* use_item_idx(who, idx): one of a s
     hook_call_original();
 }
 
+static void altar_frame(void);
 void fixes_frame(void)
 {
     colours_frame();
     if (fix_on("itemcount")) itemcount_frame();
     if (fix_on("potions")) potions_frame();
     if (fix_on("offmap")) offmap_frame();
+    if (fix_on("altar")) altar_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -848,6 +860,115 @@ static void alchrisk_hook(void)            /* the brew's end (i) */
     hook_remove(GF_rand_mod, alchrisk_rand_hook);
 }
 
+/* ---------------------------------------------------------------- bishop
+ * $Cathe00 (s056 19c4), option 4 "ask the canon" (19c4:0ac2) makes a fetching errand with
+ * vec_21b1 (s039 1462:1712 (t): t the giver, 3 the bishop) - but with t 0, the merchants': the
+ * card's own tests (ev8_owner_value(10, 3, town): an errand open; ev24_at_owner(10, 3, town): one
+ * done, option 8) look for 3. Here t is 3 while that option runs. Option 8, "accept a relic"
+ * (19c4:0e0a), gives the town's relic (rep above -10) but neither takes the thing fetched nor ends
+ * the reward (kind 0x24, owner 3, tag 10, the town): it is ended here, the thing taken. */
+static int canon_asking;
+static void canon_hook(void) { canon_asking++; hook_call_original(); canon_asking--; }
+static void errand_hook(void)               /* s039 1462:1712 (t) */
+{
+    if (canon_asking && (s16)rw(SS, (u16)(SP + 4)) == 0) {
+        ww(SS, (u16)(SP + 4), 3);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bishop: the canon's errand is the bishop's\n");
+    }
+    hook_call_original();
+}
+static void relic_hook(void)                /* $Cathe00 option 8, s056 19c4:0e0a */
+{
+    int loc = (s16)g_rw(G_CUR_LOC), found = -1;
+    u32 e = 0;
+    for (int i = 0; i < G_NEVENTS && found < 0; i++) {
+        u32 p = g_event(i);
+        if (p && g_ev(p, G_EV_KIND) == 0x24 && g_ev(p, G_EV_OWNER) == 3 && g_ev(p, G_EV_TAG) == 10 && g_ev(p, G_EV_LOC) == loc) { found = i; e = p; }
+    }
+    int paid = (s16)g_rw(0xee74) > -10;            /* (the card's test: the town's regard) */
+    hook_call_original();
+    if (found < 0 || !paid || g_event(found) != e) return;
+    int item = g_ev(e, G_EV_ITEM);
+    if (item >= 0x78 && item <= 0x8a) ns_call(31, 0x18e7, 0x04d4, 2, -2, item);    /* take_item(-2, the thing fetched) */
+    ns_call(GF_event_free, 1, found);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bishop: the relic paid, reward %d ended (item %#x taken)\n", found, item);
+}
+
+/* ---------------------------------------------------------------- altar
+ * Purging a pagan altar (s107 19ce) sets the place's menu (+0x0c) to 0x62: it is drawn no more
+ * and cannot be entered. The errand's site picker (s030 1462:28f2 (x, y, icon), and its fallback
+ * nearest_loc_type_impl) look only at the icon: such places are hidden from it (their icon
+ * changed for the call). Errands already sent to one (kind 8, tag 10) go to the nearest standing
+ * place of the same kind. */
+static int loc_purged(u32 r) { return r && (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x0c)) == 0x62; }
+static void sites_hook(void)
+{
+    int icon = (s16)rw(SS, (u16)(SP + 8));
+    static int hidden[414]; int n = 0;
+    for (int i = 0; i < 414; i++) {
+        u32 r = g_location(i);
+        if (loc_purged(r) && (s16)rw((u16)(r >> 16), (u16)r) == icon) { ww((u16)(r >> 16), (u16)r, 0x7ff0); hidden[n++] = i; }
+    }
+    hook_call_original();
+    for (int k = 0; k < n; k++) { u32 r = g_location(hidden[k]); ww((u16)(r >> 16), (u16)r, (u16)icon); }
+}
+static void altar_frame(void)
+{
+    static int tick;
+    if (++tick % 120) return;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 8 || g_ev(e, G_EV_TAG) != 10) continue;
+        int site = g_ev(e, G_EV_LOC);
+        u32 r = site >= 0 && site < 414 ? g_location(site) : 0;
+        if (!loc_purged(r)) continue;
+        u16 rs = (u16)(r >> 16), ro = (u16)r;
+        int icon = (s16)rw(rs, ro), x = (s16)rw(rs, (u16)(ro + 4)), y = (s16)rw(rs, (u16)(ro + 6)), best = -1, bd = 1 << 30;
+        for (int j = 0; j < 414; j++) {
+            u32 q = g_location(j);
+            if (!q || j == site || loc_purged(q) || (s16)rw((u16)(q >> 16), (u16)q) != icon || (rb((u16)(q >> 16), (u16)((u16)q + 0x14)) & 4)) continue;
+            int dx = abs((s16)rw((u16)(q >> 16), (u16)((u16)q + 4)) - x), dy = abs((s16)rw((u16)(q >> 16), (u16)((u16)q + 6)) - y) / 3;
+            int d = dx >= dy ? dy / 2 + dx : dx / 2 + dy;
+            if (d < bd) { bd = d; best = j; }
+        }
+        if (best < 0) continue;
+        g_ev_set(e, G_EV_LOC, best);
+        fprintf(stderr, "fix altar: errand %d sent from the purged place %d to %d\n", i, site, best);
+    }
+}
+
+/* ---------------------------------------------------------------- tomb
+ * $McGuf08 (s108 1838), "take the $NamedOneName and leave" (1838:07ca): the dead wake (1838:02b0,
+ * run_battle) and then vec_214d(cur_loc) (s039 1462:1ab0) gives the thing if an errand (ev8_at(10,
+ * cur_loc)) is there. But the victory has set cur_loc to -1 already, so nothing is given; a
+ * defeat (3, 4) leaves it set, and the thing is given. Here the battle's result is caught: the
+ * giving is let pass only after a victory, with the place for the moment of the call. */
+static int tomb_loc = -1, tomb_result = -1;
+static void tomb_battle_hook(void) { hook_call_original(); tomb_result = (s16)AX; }
+static void tomb_give_hook(void)            /* s039 1462:1ab0 (loc), during the option */
+{
+    if (tomb_loc < 0) { hook_call_original(); return; }
+    if (tomb_result != 0) {                                  /* lost, fled: no thing */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: battle %d, nothing given\n", tomb_result);
+        AX = 0; hook_return_far(0); return;
+    }
+    u16 cur = g_rw(G_CUR_LOC);
+    g_ww(G_CUR_LOC, (u16)tomb_loc); ww(SS, (u16)(SP + 4), (u16)tomb_loc);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: won, the thing given (place %d)\n", tomb_loc);
+    hook_call_original();
+    g_ww(G_CUR_LOC, cur);
+}
+static void tomb_hook(void)                 /* $McGuf08 option, s108 1838:07ca */
+{
+    tomb_loc = (s16)g_rw(G_CUR_LOC); tomb_result = -1;
+    hook_install(GF_run_battle, tomb_battle_hook);
+    hook_install(39, 0x1462, 0x1ab0, tomb_give_hook);
+    hook_call_original();
+    hook_remove(39, 0x1462, 0x1ab0, tomb_give_hook);
+    hook_remove(GF_run_battle, tomb_battle_hook);
+    tomb_loc = -1;
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -855,12 +976,14 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
-    { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook } };
+    { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
+    { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook },
-    { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook } };
+    { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
+    { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook } };
 
 void fix_enable(int i, int on)
 {
