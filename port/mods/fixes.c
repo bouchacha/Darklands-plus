@@ -10,7 +10,9 @@
  *            0e76:448a) it is taken off whatever the attribute is by then: endurance a night's
  *            rest has put back to its maximum, or strength wounds have taken, lost the boost
  *            again (a member at 3 strength whose +4 ran out died). Now only what is still above
- *            the maximum goes.
+ *            the maximum (and the other boosts and lowerings running) goes. Saints that lower an
+ *            attribute for a while (Perception, Intellect, Agility, Charisma: a negative d) are
+ *            recorded as negative and given back when they run out, never past the maximum.
  *  fireward  St. Polycarp, St. Charity, Firewall ... set the high nibble of the member's
  *            fire-protection byte (party +0x41 = combatant +0x55). hit_damage (s014
  *            18bf:0778) adds that byte (& 0x7f) to the armour, so bits 4-6 turn into up to
@@ -172,7 +174,8 @@ static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
         if (m < 0 || m >= 5 || a < 0 || a >= 7) continue;
         int added = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)) - (s8)before[m][a];
         int rec = (s16)rw(s, (u16)(o + 0x1e));
-        if (added < 0) added = 0;
+        if (rec >= 0) { if (added < 0) added = 0; if (added > rec) added = rec; }     /* a boost: what it really added */
+        else { if (added > 0) added = 0; if (added < rec) added = rec; }              /* a saint's lowering (some lower Perception, Intellect ...): what it really took */
         if (added != rec) {
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix blessing: member %d attr %d recorded %d, really added %d\n", m, a, rec, added);
             ww(s, (u16)(o + 0x1e), (u16)added);
@@ -181,7 +184,11 @@ static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
 }
 
 /* a boost runs out (s029 0e76:448a, the expiry of kinds 0x48 / 0x49 (event i): +0x1a the member,
-   +0 the attribute, +0x1e the points): it takes off no more than what is still above the maximum */
+   +0 the attribute, +0x1e the points): it takes off no more than what is still above what the
+   attribute should be without it (the maximum and the other boosts and lowerings still running);
+   a lowering that runs out gives back no more than up to that. (A lowering pulls the attribute
+   below the maximum: a boost that ends while it runs takes its whole amount, as the lowering
+   gives it back later.) */
 static void blessing_end_hook(void)
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
@@ -189,14 +196,23 @@ static void blessing_end_hook(void)
     if (!e) { hook_call_original(); return; }
     u16 s = (u16)(e >> 16), o = (u16)e;
     int m = (s16)rw(s, (u16)(o + 0x1a)), a = (s16)rw(s, o), rec = (s16)rw(s, (u16)(o + 0x1e));
-    if ((s16)rw(s, (u16)(o + 0x22)) != 0x48 || m < 0 || m >= 5 || a < 0 || a >= 7 || rec <= 0) { hook_call_original(); return; }
-    int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
-    int take = cur - max; if (take < 0) take = 0; if (take > rec) take = rec;
-    if (take == rec) { hook_call_original(); return; }
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix blessing: member %d attr %d runs out: %d off, not %d (%d/%d)\n", m, a, take, rec, cur, max);
-    ww(s, (u16)(o + 0x1e), (u16)take);
+    if ((s16)rw(s, (u16)(o + 0x22)) != 0x48 || m < 0 || m >= 5 || a < 0 || a >= 7 || rec == 0) { hook_call_original(); return; }
+    int others = 0;                                          /* the member's other boosts and lowerings of this attribute */
+    for (int j = 0; j < 300; j++) {
+        u32 f = j != i ? ev_ptr(j) : 0;
+        if (!f) continue;
+        u16 fs = (u16)(f >> 16), fo = (u16)f;
+        if ((s16)rw(fs, (u16)(fo + 0x22)) == 0x48 && (s16)rw(fs, (u16)(fo + 0x1a)) == m && (s16)rw(fs, fo) == a) others += (s16)rw(fs, (u16)(fo + 0x1e));
+    }
+    int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a)), base = max + others;
+    int now;                                                 /* what the expiry takes off (a lowering: negative, given back) */
+    if (rec > 0) { now = cur - base; if (now < 0) now = 0; if (now > rec) now = rec; }
+    else { now = cur - base; if (now > 0) now = 0; if (now < rec) now = rec; }
+    if (now == rec) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix blessing: member %d attr %d runs out: %d off, not %d (%d/%d, others %d)\n", m, a, now, rec, cur, max, others);
+    ww(s, (u16)(o + 0x1e), (u16)now);
     hook_call_original();
-    if (ev_ptr(i) == e && (s16)rw(s, (u16)(o + 0x1e)) == take) ww(s, (u16)(o + 0x1e), (u16)rec);
+    if (ev_ptr(i) == e && (s16)rw(s, (u16)(o + 0x1e)) == now) ww(s, (u16)(o + 0x1e), (u16)rec);
 }
 
 /* ---------------------------------------------------------------- fireward (+ potions) */

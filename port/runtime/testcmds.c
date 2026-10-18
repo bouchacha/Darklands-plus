@@ -162,6 +162,13 @@ int testcmd_run(const char *cmd, const char *arg)
             int k = atoi(arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);
             fprintf(stderr, "library %d: %d %d %d %d\n", k, o[0], o[1], o[2], o[3]);
         }
+        else if (!strcmp(cmd, "uevents")) {             /* test: the events of a kind (-1 all): index, kind, type0, owner +1a, loc +1c, value +1e, tag +28, +2a, +2c */
+            int k = -1; sscanf(arg, "%d", &k);
+            for (int i = 0; i < 300; i++) { u32 e = ev_far(i); if (!e) continue; u16 sg = (u16)(e >> 16), o = (u16)e;
+                if (k != -1 && (s16)rw(sg, (u16)(o + 0x22)) != k) continue;
+                fprintf(stderr, "event %d: kind %#x type0 %d owner %d loc %d value %d tag %d aux %d %d\n", i, (s16)rw(sg, (u16)(o + 0x22)), (s16)rw(sg, o), (s16)rw(sg, (u16)(o + 0x1a)),
+                        (s16)rw(sg, (u16)(o + 0x1c)), (s16)rw(sg, (u16)(o + 0x1e)), (s16)rw(sg, (u16)(o + 0x28)), (s16)rw(sg, (u16)(o + 0x2a)), (s16)rw(sg, (u16)(o + 0x2c))); }
+        }
         else if (!strcmp(cmd, "uoriginal")) { void ui_set_original_c(int); ui_set_original_c(atoi(arg)); }   /* test: "Play the original game" on (1) or off (0) */
         else if (!strcmp(cmd, "ualcrisk")) { int r = 0, n = 200; sscanf(arg, "%d,%d", &r, &n); alc_risk_test(r, n); }   /* test: n failed brews of risk r here: the accidents */
         else if (!strcmp(cmd, "ualc")) {                /* test: the formulae town k's alchemist sells */

@@ -17,6 +17,7 @@ Every change can be switched off. **F12 > Settings > Helpers > "Play the origina
 - **One store room for every inn:** whatever you leave with one innkeeper is waiting at every other.
 - **Potions with pictures:** each shows the potion's colour, an emblem of what it does, and one to three dots for its grade.
 - **F12 > Guide:** a short explanation of how the game works, for new players.
+- **Fixed, a bug of Darklands+ 1.0 to 1.1.1:** with the Blessings fix on, a saint's lowering of an attribute (several saints lower Perception, Intellect, Agility or Charisma for a day as the price of their help) never wore off. It now does.
 - **Bugs of 483.07 fixed:**
   - card options wrongly greyed or offered (a bribe you couldn't pay, a rope climb refused with a rope in the pack, a sally port whose lines ran the wrong options);
   - inn teachers that charged "-4096pfs" and taught nothing;

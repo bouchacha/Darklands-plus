@@ -24,6 +24,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Potions with pictures:** colour, emblem and the grade as dots.
 - **F12 > Guide** explains the game for new players.
 - **Sound:** fixed a loud screech and the music cutting out after loading a game when the intro had played to its end.
+- **Fixed (a bug of Darklands+ 1.0 to 1.1.1):** with the Blessings fix on, a saint's lowering of an attribute (some saints lower Perception, Intellect, Agility or Charisma for a day as the price of their help) never wore off. It now does.
 - **Fixes for bugs of 483.07:** inn teachers who charged "-4096pfs", worn armour that took identical spares down with it, card options greyed by mistake, debt notes never where the merchant said they were, a formula's risk the wrong way round, and more.
 
 Every change in detail: `docs/changes-1.2.md`.
