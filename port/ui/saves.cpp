@@ -108,7 +108,7 @@ extern "C" void tab_saves(void)
             ImGui::SameLine();
         }
         if (!strcmp(confirm_delete, s.file)) {
-            if (ImGui::Button("Really?")) { saves_delete(s.file); confirm_delete[0] = 0; refresh(); }
+            if (ImGui::Button("Delete it?")) { saves_delete(s.file); confirm_delete[0] = 0; refresh(); }
         } else if (strcasecmp(cur, s.file) && ImGui::Button("Delete")) snprintf(confirm_delete, sizeof confirm_delete, "%s", s.file);
         ImGui::PopID();
     }
