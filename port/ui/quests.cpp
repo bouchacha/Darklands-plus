@@ -219,6 +219,7 @@ static void sab_learn(int what)
 {
     std::vector<Ev> evs = read_events();
     const Ev *next = nullptr;
+    for (const Ev &e : evs) if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5) return;   /* (one is held now: the Sabbat's own cards speak of it) */
     for (const Ev &e : evs) if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (!next || when_key(e.end) < when_key(next->end))) next = &e;
     if (!next) return;
     sab_load();
