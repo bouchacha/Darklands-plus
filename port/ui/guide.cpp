@@ -67,8 +67,9 @@ void ui_guide_tab(void)
         "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk). Z fast-forwards (and Z again slows down).",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
-        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; Darklands+ has a blocked one step aside to find it (F12 > Settings > Helpers).",
+        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; with Darklands+ any foe can be chosen, and a shooter without a line steps aside, or walks towards the foe, until there is one (F12 > Settings > Helpers).",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
+        "A castle, dungeon or mine is won only when its master has fallen and his fight is over; walking out counts as fleeing. The battle margin marks the master, and lists the foes still waiting there, floor by floor, and where the master waits.",
     });
     topic("Travel", {
         "On the map, a click walks towards a spot; Ctrl + click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there.",
