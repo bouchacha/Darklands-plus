@@ -63,8 +63,20 @@ extern "C" void ui_select_tab(int t) { want_tab = t % 100; want_frames = 0; if (
 static ImFont *font_body, *font_head, *font_tab, *font_tab_small;
 /* tabs inside a page (the Journal's, Settings' ...): in the smaller face of the window's own
    tabs, under them in the order of things; the page's text in the body face */
-bool ui_subtabs_begin(const char *id) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabBar(id); ImGui::PopFont(); return r; }
-bool ui_subtab(const char *label, bool select) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0); ImGui::PopFont(); return r; }
+/* a page's own tabs: in the main tabs' face, the smaller one in a narrow window (the Journal's nine
+   need about 950 points) */
+static ImFont *subtab_font = nullptr;
+bool ui_subtabs_begin(const char *id)
+{
+    subtab_font = ImGui::GetContentRegionAvail().x >= UIS(950) ? font_tab : font_tab_small;
+    ImGui::PushFont(subtab_font); bool r = ImGui::BeginTabBar(id); ImGui::PopFont(); return r;
+}
+bool ui_subtab(const char *label, bool select)
+{
+    ImGui::PushFont(subtab_font ? subtab_font : font_tab_small);
+    bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0);
+    ImGui::PopFont(); return r;
+}
 extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
 extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
