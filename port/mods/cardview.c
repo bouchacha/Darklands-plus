@@ -451,6 +451,12 @@ static int entry_at(int mx, int my)
 
 /* card_menu: the option chosen (the script calls opt_fn[it]); from the pop-up, menu_member and
  * menu_slot say whose saint or item, and menu_popup is 1 */
+/* an option chosen by a helper rather than the mouse (Go to): taken at the menu's next step, as if
+   clicked, when it is there and can be chosen (a click by position could land on another row
+   while the native layout moved) */
+static int forced_opt = -1;
+void cardview_choose(int opt) { forced_opt = opt; }
+
 int cardview_menu(void)
 {
     CardView *c = &cardview;
@@ -463,6 +469,7 @@ int cardview_menu(void)
     g_wb(A_HILITE, 0xff);
     if (c->npieces == 0) parse((s16)g_rw(A_E959));     /* (a menu without card_options before it) */
     c->phase = 2;
+    forced_opt = -1;
     ns_enter(NS_CARD);
     btn_prev = g_rb(A_MOUSE_BTN) & 1;
     int sel = -1;
@@ -475,6 +482,11 @@ int cardview_menu(void)
         { static int lx = -1, ly = -1; if (mx != lx || my != ly) { if (lx >= 0) c->key_line = -1; lx = mx; ly = my; } }   /* the mouse moved: it leads again */
         c->hover = c->key_line >= 0 ? -1 : piece_at(mx, my);
         c->hover_entry = entry_at(mx, my);
+        if (forced_opt >= 0) {
+            int o = forced_opt; forced_opt = -1;
+            for (int j = 0; j < c->npieces; j++) if (c->piece[j].is_opt && c->piece[j].opt == o && c->piece[j].state == 1 && c->piece[j].type != 1 && c->piece[j].type != 2) sel = o;
+            if (sel >= 0) break;
+        }
         if (left_released(&mx, &my)) {
             int e = entry_at(mx, my), j = piece_at(mx, my);
             if (e >= 0 && c->entry[e].on) {

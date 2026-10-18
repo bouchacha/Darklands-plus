@@ -57,7 +57,8 @@ typedef struct {
 
 extern CardView cardview;
 extern int cardview_on;               /* the setting */
-int cardview_active(void);            /* drawing the cards (setting on, a window, not "original") */
+int cardview_active(void);
+void cardview_choose(int opt);        /* choose option opt at the menu's next step (Go to), as a click would */            /* drawing the cards (setting on, a window, not "original") */
 int cardview_showing(void);           /* something is on screen now */
 int cardview_menu(void);              /* card_menu, natively (called from mods/assist.c's hook) */
 const char *cardview_option_text(int opt);   /* the words of option opt of the last menu (game charset) */

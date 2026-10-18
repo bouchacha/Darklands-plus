@@ -31,6 +31,7 @@ int datamods_generation(void);
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "../mods/assist.h"
+#include "../mods/cardview.h"
 u32 plat_ticks_ms(void);
 void plat_click_game(int gx, int gy);
 void ui_notice(const char *msg);
@@ -241,9 +242,14 @@ static int choose_leave(const std::vector<std::string> &line)
 
 static void click_line(int i)
 {
-    LOG("click line %d\n", i);
-    int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
-    plat_click_game(x0 + 10, y0 + (h > 8 ? 4 : h / 2));
+    int o = (s8)g_rb((u16)(GV_card_layout_opt + i));
+    LOG("choose line %d (option %d)\n", i, o);
+    if (cardview_active() && o >= 0) cardview_choose(o);   /* the cards drawn by Darklands+: by the option's number (a click by
+                                                               position could land on the next row: Alchemist led to the clothmakers) */
+    else {
+        int x0 = 60 + (s16)g_rw(GV_card_layout_x), y0 = g_rb((u16)(GV_card_layout_y + i)), h = g_rb((u16)(GV_card_layout_h + i));
+        plat_click_game(x0 + 10, y0 + (h > 8 ? 4 : h / 2));
+    }
     last_act = plat_ticks_ms(); steps_taken++;
 }
 
