@@ -61,6 +61,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uage")) { int m = 0, y = 25; sscanf(arg, "%d,%d", &m, &y); if (m >= 0 && m < 5) g_ww((u16)(G_MEMBER(m) - 2), (u16)y); }   /* test: member m's age */
         else if (!strcmp(cmd, "ualert")) { void ui_alert_dismiss(void); ui_alert_dismiss(); }   /* test: the window of news clicked through */
         else if (!strcmp(cmd, "umaxattr")) { int m = 0, a = 0, v = 1; sscanf(arg, "%d,%d,%d", &m, &a, &v); if (m >= 0 && m < 5 && a >= 0 && a < 7) g_wb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a), (u8)v); }   /* test: an attribute's maximum */
+        else if (!strcmp(cmd, "ureload")) { int m = 0, t = 100; sscanf(arg, "%d,%d", &m, &t); u16 now = g_rw(GV_combat_clock); g_wb((u16)(GV_cbt_action + m), 9); g_ww((u16)(0xd948 + 2 * m), (u16)(now + 10 - t / 3)); g_ww((u16)(0xdabd + 2 * m), (u16)(now + t / 3)); g_ww((u16)(0xdaa3 + 2 * m), (u16)(now + t)); }   /* test: member m reloading (a third done) */
         else if (!strcmp(cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }

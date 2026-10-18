@@ -1,3 +1,4 @@
+#include <stdlib.h>
 // battleoverlay.cpp - drawn over a battle: a bar over each fighter (endurance, and strength once it is
 // down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's
 // weapons), and the fast-forward badge (Z). overlay.cpp calls these within its layer.
@@ -65,17 +66,22 @@ std::string ui_enemy_name(int floor, u16 b)
     return "";
 }
 /* a thin bar over each fighter on the field: the endurance left (the party's blue, the enemies'
-   red), and a second, the strength, once it is down by half (battle.bars) */
+   red), and a second, the strength, once it is down by half (battle.bars); under it, while a
+   member reloads and aims a bow, crossbow, gun or the next thrown weapon, how far that has come
+   (battle.reload_bar: cbt_missile_action, s014 0e76: action 9 reloading until D_dabd, 10 aiming
+   until D_daa3, from D_d948 less the 10 ticks before reloading begins) */
 int ui_battle_bars = 1;
 void ui_draw_battle_bars(void)
 {
-    if (!ui_battle_bars || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    bool reload = config_get_int("battle.reload_bar", 1) != 0;
+    if ((!ui_battle_bars && !reload) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     int n = (s8)g_rb(GV_hotspot_count);
     if (n <= 0 || n > 40) return;
     ImDrawList *dl = ovl_list();
     bool done[13] = {};
     float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
     dl->PushClipRect(g2w(60, 0), g2w(320, 200), true);        /* (the field only: not over the margins or the panel) */
+    u16 now = g_rw(GV_combat_clock);
     for (int i = 0; i < n; i++) {
         int m = g_rb((u16)(GV_hotspot_cbt + i));
         if (m >= 13 || done[m]) continue;
@@ -88,16 +94,31 @@ void ui_draw_battle_bars(void)
         float cx = (x0 + x1) * 0.5f + 60, w = 10.0f, gy = (float)y0 - 5.5f;       /* (the hot spot starts at the head: the bar clear above it) */
         if (gy < 1) gy = 1;
         ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
-        float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x;
-        float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
-        ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
-        dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
-        if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
-        if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
-            float fs = str < 0 ? 0 : (float)str / strm;
-            ImVec2 a2(a.x, a.y + h + 1);
-            dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
-            if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
+        float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x, below = a.y;
+        if (ui_battle_bars) {
+            float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
+            ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
+            dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
+            if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
+            below = a.y + h + 1;
+            if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
+                float fs = str < 0 ? 0 : (float)str / strm;
+                ImVec2 a2(a.x, below);
+                dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
+                if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
+                below = a2.y + h * 0.7f + 1;
+            }
+        }
+        int act = g_rb((u16)(GV_cbt_action + m));
+        if (reload && m < 5 && (act == 9 || act == 10)) {         /* reloading and aiming: a thin amber line filling up */
+            u16 s0 = (u16)(g_rw((u16)(0xd948 + 2 * m)) - 10), e0 = g_rw((u16)(0xdaa3 + 2 * m));
+            u16 span = (u16)(e0 - s0), done_t = (u16)(now - s0);
+            float f = span ? fminf(1.0f, (float)done_t / span) : 1.0f;
+            if (done_t > span) f = (s16)done_t < 0 ? 0.0f : 1.0f;
+            float rh = fmaxf(2.0f, 0.7f * k);
+            ImVec2 r0(a.x, below + (ui_battle_bars ? 0.5f : 0));
+            dl->AddRectFilled(ImVec2(r0.x - 1, r0.y - 0.5f), ImVec2(r0.x + bw + 1, r0.y + rh + 0.5f), IM_COL32(10, 6, 2, 170));
+            dl->AddRectFilled(r0, ImVec2(r0.x + bw * f, r0.y + rh), act == 10 ? IM_COL32(250, 214, 110, 235) : IM_COL32(205, 150, 60, 220));
         }
     }
     dl->PopClipRect();

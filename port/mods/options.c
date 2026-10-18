@@ -109,6 +109,7 @@ static Option OPTIONS[] = {
     { "battle.info", S_BATTLE, 0, "Battle info", "pointing at someone shows who it is, how hurt, attack, defence and weapon.", OC_SHOW, 0, 1, 1 },
     { "battle.info_numbers", S_BATTLE, "battle.info", "Numbers", "the enemies' endurance as numbers.", OC_EASY, 0, 0, 1 },
     { "battle.bars", S_BATTLE, 0, "Bars over the fighters", "the endurance left (and the strength once it is down by half).", OC_SHOW, 0, 1, 1 },
+    { "battle.reload_bar", S_BATTLE, 0, "Reloading", "a thin amber line under a member who reloads and aims a bow, crossbow, gun or the next thrown weapon, filling up until the next shot.", OC_SHOW, 0, 1, 1 },
     { "battle.log", S_BATTLE, 0, "Battle log", "every blow, parry, wound and fall, in the left margin on a wide window, else over the field (F12 > Journal keeps it).", OC_SHOW, 0, 1, 1 },
     { "assist.level_map", S_BATTLE, 0, "Level map", "Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it.", OC_SHOW, 0, 1, 1 },
     { "assist.level_map_all", S_BATTLE, "assist.level_map", "Whole level", "not only what the party has seen.", OC_EASY, 0, 0, 1 },
