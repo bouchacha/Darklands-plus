@@ -77,6 +77,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
         while (!begin && ns_call(GF_key_pressed, 0)) {
             int k = (u16)ns_call(GF_get_key, 0), c = k & 0xff;
             if (c == 13 && m->can_continue) ns_push(TV_CONTINUE, 0, 0, 0);
+            else if (c == 13 && m->nsaves == 0) ns_push(TV_NEW, 0, 0, 0);          /* (no save yet: a new party is the way in) */
             else if (c == 'l' || c == 'L' || c == 't' || c == 'T') ns_push(TV_LOAD, 0, 0, 0);
             else if (c == 'c' || c == 'C' || c == 'n' || c == 'N') ns_push(TV_NEW, 0, 0, 0);
             else if (c == 'q' || c == 'Q') ns_push(TV_QUICK, 0, 0, 0);
@@ -94,6 +95,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
                 break;
             case TV_LOAD: {
                 char f[16];
+                if (m->nsaves == 0) break;                                              /* (nothing to load: the choice is greyed) */
                 int k = m->nsaves > 0 && saves_on ? savesview_load(f, sizeof f) : -1;    /* (the native list: -1 off) */
                 if (ns_unwinding) break;
                 if (k == 1) { saves_title_load(f); r = choose(0x1454); }

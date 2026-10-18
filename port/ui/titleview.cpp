@@ -80,7 +80,7 @@ extern "C" void titleview_draw(void)
         items[n++] = { TV_CONTINUE, "Continue", sub, m.can_continue != 0 };
         snprintf(b, sizeof b, "%d saved game%s to choose from (The Story Continues)", m.nsaves, m.nsaves == 1 ? "" : "s");
         items[n++] = { TV_LOAD, "Load a saved game", b, true };
-    } else items[n++] = { TV_LOAD, "Load a saved game", "No saved games yet", true };
+    } else items[n++] = { TV_LOAD, "Load a saved game", "No saved games yet", false };
     items[n++] = { TV_NEW, "A new party", "Create a New World: up to four characters of your own", true };
     items[n++] = { TV_QUICK, "Quickstart", "Four ready-made characters, straight into the world", true };
     items[n++] = { TV_SETTINGS, "Settings", "What Darklands+ adds, the display and the sound (F12)", true };
@@ -91,7 +91,7 @@ extern "C" void titleview_draw(void)
         const Item &it = items[i];
         bool h = it.on && P.over(LX0 - 3, y, LX1 + 6, y + ih - 2);
         if (h) P.rect(LX0 - 3, y, LX1 + 6, y + ih - 2, IM_COL32(226, 204, 160, 255), 2);
-        if (i == 0 && it.action == TV_CONTINUE) P.rect(LX0 - 3, y + 1.5f, LX0 - 1.8f, y + ih - 3.5f, NsDraw::RED);
+        if ((it.action == TV_CONTINUE && i == 0) || (it.action == TV_NEW && m.nsaves == 0)) P.rect(LX0 - 3, y + 1.5f, LX0 - 1.8f, y + ih - 3.5f, NsDraw::RED);   /* (what Enter does) */
         P.text(f, NsDraw::FS_HEAD + 0.6f, LX0, y + 2.2f, it.on ? ink : dim, it.title);
         P.text(fo, NsDraw::FS_SMALL, LX0, y + 11.2f, it.on ? soft : dim, it.sub, -1, LX1 + 5);
         if (it.action == TV_CONTINUE) {
@@ -101,7 +101,7 @@ extern "C" void titleview_draw(void)
         if (it.on && P.hit(LX0 - 3, y, LX1 + 6, y + ih - 2)) ns_push(it.action, 0, 0, 0);
         y += ih;
     }
-    P.text(fo, NsDraw::FS_SMALL, LX0, 189, dim, m.can_continue ? "Enter continues;  L load,  N new party,  Q Quickstart" : "L load,  N new party,  Q Quickstart");
+    P.text(fo, NsDraw::FS_SMALL, LX0, 189, dim, m.can_continue ? "Enter continues;  L load,  N new party,  Q Quickstart" : m.nsaves ? "L load,  N new party,  Q Quickstart" : "Enter or N: a new party;  Q Quickstart");
     {   /* the version, at the foot of the page (over the picture's dark ground, in its light) */
         extern const char dlp_version[], dlp_release[];
         char v[96]; snprintf(v, sizeof v, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
