@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "../mods/nscreen.h"
 #include "tablesort.h"
+#include "skillicons.h"
 #include "ui.h"
 #include "gamedata.h"
 #include "libraries.h"
@@ -593,10 +594,15 @@ static void sort_pack(int m)
     for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) wb(G_FAR2E38, (u16)(G_ITEM(m, i) + k), rows[(size_t)i][(size_t)k]);
 }
 
+extern "C" int sheetview_shared(void);
+void ui_hint(const char *fmt, ...);
 extern "C" void tab_inventory(void)
 {
     if (!gamedata.loaded) { ImGui::Text("The item list (DARKLAND.LST) could not be read."); return; }
     if (!member_present(sel_member)) for (int m = 0; m < MAXM; m++) if (member_present(m)) { sel_member = m; break; }
+    {   /* with one pack the character sheet (F1) shows the party's things together; here is who holds what */
+        if (sheetview_shared()) ui_hint("The game itself keeps each thing with one member. With one pack for the party, the character sheet (F1) shows them together; this page shows who holds what, as the game does.");
+    }
     member_cards();
     // kind filter chips
     std::vector<InvItem> items = member_items(sel_member);

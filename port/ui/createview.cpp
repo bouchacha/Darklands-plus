@@ -12,13 +12,12 @@
 #include "nsdraw.h"
 #include "professions.h"
 #include "townicons.h"
+#include "skillicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/createview.h"
 u32 plat_ticks_ms(void);
 }
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
 
 static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
 static const char *SKILL[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices",

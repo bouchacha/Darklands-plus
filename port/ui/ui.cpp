@@ -8,6 +8,7 @@
 #include <math.h>
 #include "imgui.h"
 #include "tablesort.h"
+#include "skillicons.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 #include "gamedata.h"
@@ -154,7 +155,6 @@ extern "C" void hdtext_draw(void);
 extern "C" void hdtext_draw_cursor(void);
 extern "C" void hdtext_pointer_off(void);
 extern "C" void hdtext_pointer_frame_end(void);
-void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);
 void ui_guide_tab(void);
 extern "C" void tab_journal(void);
 extern "C" void tab_travel(void);

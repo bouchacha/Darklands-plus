@@ -11,14 +11,13 @@
 #include <algorithm>
 #include "nsdraw.h"
 #include "gamepics.h"
+#include "skillicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/rosterview.h"
 u32 plat_ticks_ms(void);
 int figpick_is_open(void);
 }
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 
 static const char *ATTR_S[7] = { "End", "Str", "Agl", "Per", "Int", "Chr", "DF" };

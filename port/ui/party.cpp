@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "../mods/nscreen.h"
 #include "gamedata.h"
+#include "skillicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -16,7 +17,6 @@ extern "C" {
 }
 
 std::string rules_weapons_of_skill(int k);
-void ui_skill_icon_inline(int k);
 
 static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
 static const char *ATTR_HELP[7] = {

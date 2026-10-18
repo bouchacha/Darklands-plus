@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "skillicons.h"
 #include "../mods/looks.h"
 #include "uiinternal.h"
 extern "C" {
@@ -25,7 +26,6 @@ extern "C" {
 }
 
 static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-void ui_skill_icon_inline(int k);
 static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
     "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
     "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };

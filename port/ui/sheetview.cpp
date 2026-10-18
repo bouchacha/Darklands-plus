@@ -17,6 +17,7 @@
  *   pointer with its effect, mystic number and risk, its ingredients against what the party
  *   carries, and each alchemist's chance with one batch. */
 #include "imgui.h"
+#include "skillicons.h"
 #include "../runtime/config.h"
 #include <math.h>
 #include <stdlib.h>
@@ -35,8 +36,6 @@ extern "C" u32 plat_ticks_ms(void);
 extern "C" int partypanel_member_at(int gx, int gy);
 extern int partypanel_focus;
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
 const char *ui_attr_help(int a);
 const char *ui_skill_help(int k);
 std::string rules_weapons_of_skill(int k);
