@@ -285,8 +285,9 @@ void tab_helpers(void)
         bool ws = config_get_int("assist.where_sold", 1) != 0;
         if (ImGui::Checkbox("Beside an ingredient that runs short: the nearest town seen selling it", &ws)) { config_set_int("assist.where_sold", ws); ui_dirty_config = 1; }
         if (ws) { bool wu = config_get_int("assist.where_sold_unvisited", 1) != 0;
-          ImGui::SameLine();
-          if (ImGui::Checkbox("or, if none, the nearest town whose shops will have it", &wu)) { config_set_int("assist.where_sold_unvisited", wu); ui_dirty_config = 1; } }
+          ImGui::Indent();
+          if (ImGui::Checkbox("or, if none, the nearest town whose shops will have it", &wu)) { config_set_int("assist.where_sold_unvisited", wu); ui_dirty_config = 1; }
+          ImGui::Unindent(); }
         ImGui::Unindent(UIS(34));
       } }
     { bool bl = assist_best_leader != 0;
