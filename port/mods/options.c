@@ -84,6 +84,7 @@ static Option OPTIONS[] = {
     { "assist.shop_info", S_CARDS, 0, "Tooltips", "what the item, saint or formula under the pointer is good for (shops, loot, character sheet, saints, formulae).", OC_SHOW, 0, 1, 1 },
     { "assist.fast_fades", S_CARDS, 0, "Quick cards", "a card shows its options at once, without the slow fade-in.", OC_SHOW, 0, 1, 1 },
     { "assist.card_keys", S_CARDS, 0, "Number keys", "1 to 9 pick a card's options.", OC_SHOW, 0, 1, 1, 0, 0, assist_set_card_keys },
+    { "assist.goto_work", S_CARDS, "assist.city_goto", "Who has work", "beside the Fugger, the Medici, the Hanse, the cathedral, the council or the lord, and the market stalls: the chance that asking brings a task, or until when they will give none (or that a task for them runs, or its reward waits).", OC_SHOW, 0, 1, 1 },
     { "assist.teachers", S_CARDS, 0, "Teachers", "a lectern beside a card's option that brings a teacher to the inn, with what, how well and for how much; the teachers each town can offer, in the margin and on the map.", OC_SHOW, 0, 1, 1 },
     { "assist.city_goto", S_CARDS, 0, "Go to", "G on a town's card lists its places; the party walks there through the menus.", OC_EASE, 0, 1, 1 },
     { "journal.enabled", S_CARDS, 0, "Town journal", "each town's shops, their wares, qualities and prices, noted on arrival (F12 > Journal).", OC_SHOW, 0, 1, 1 },

@@ -22,6 +22,9 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "teachersui.h"
+extern "C" {
+#include "../mods/offices.h"
+}
 #include "townicons.h"
 #include "quests.h"
 extern "C" {
@@ -414,7 +417,8 @@ extern "C" int citynav_window(void)
     if (ImGui::Begin(title.c_str(), &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 6 * scale));
-        ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.");
+        ImGui::TextDisabled("The party walks there through the city's own menus. A key or a click stops it.%s",
+                            config_get_int("assist.goto_work", 1) ? " Beside those who give tasks: the chance that asking brings one, or until when they give none." : "");
         { int hour = (s16)g_rw(GV_cur_hour); if (hour >= 19 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "It is night (%d:00): shops and offices are closed, and the watch is about.", hour); }   /* (the game's night: is_daylight, 5:00 to 18:59) */
         static std::map<int, std::vector<DestTask>> tasks; static int tasks_frame = -100;
         static TchSource teach[12]; static int nteach;            /* the teachers the town offers (ui/teachersui.h) */
@@ -463,7 +467,33 @@ extern "C" int citynav_window(void)
                 for (int t = 0; here && src >= 0 && t < nteach; t++) if (teach[t].src == src) ti = t;
                 float mark = ti >= 0 ? sz.y * 0.8f + 6 : 0;
                 ImVec2 ts = ImGui::CalcTextSize(lab.c_str());
-                dl->AddText(ImVec2(p.x + fmaxf(4.0f, (sz.x - mark - ts.x) * 0.5f), p.y + (sz.y - ts.y) * 0.5f), fg, lab.c_str());
+                /* a giver of tasks: whether it has work now, or until when none (mods/offices.h), at the right */
+                bool has_os = false, os_fits = false; char os_txt[40] = ""; ImU32 os_col = 0; float os_w = 0, os_h = 0, os_fsz = ImGui::GetFontSize() * 0.82f; std::string os_tip;
+                {
+                    int g = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
+                          : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
+                    bool hall = d == D_TOWNHALL;
+                    if (d == D_FORTRESS && cur >= 0 && cur < (int)gamedata.cities.size() && (gamedata.cities[cur].buildings & 2)) g = -1;   /* (a town with a council: the lord gives none) */
+                    OfficeStatus os;
+                    if (here && g >= 0 && config_get_int("assist.goto_work", 1) && office_status(cur, g, hall, &os) && os.state != OFS_NONE) {
+                        static const char *MON[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                        switch (os.state) {
+                        case OFS_ASK: snprintf(os_txt, sizeof os_txt, "%d%%", os.chance); os_col = IM_COL32(38, 104, 34, 255); break;
+                        case OFS_SHUT: snprintf(os_txt, sizeof os_txt, "to %d %s", os.day, MON[(os.month % 12 + 12) % 12]); os_col = IM_COL32(110, 92, 70, 255); break;
+                        case OFS_ON_TASK: snprintf(os_txt, sizeof os_txt, "on a task"); os_col = IM_COL32(40, 70, 140, 255); break;
+                        case OFS_REWARD: snprintf(os_txt, sizeof os_txt, "reward"); os_col = IM_COL32(150, 100, 10, 255); break;
+                        default: snprintf(os_txt, sizeof os_txt, "barred"); os_col = IM_COL32(140, 40, 25, 255); break;
+                        }
+                        ImVec2 sw = ImGui::GetFont()->CalcTextSizeA(os_fsz, FLT_MAX, 0, os_txt);
+                        os_w = sw.x; os_h = sw.y;
+                        os_fits = os_w + ts.x + 26 <= sz.x - mark;
+                        os_tip = os.note;
+                        if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, MON[(os.month % 12 + 12) % 12], os.hour); os_tip += u; }
+                        has_os = true;
+                    }
+                }
+                float room = sz.x - mark - (os_fits ? os_w + 10 : has_os ? 12 : 0);       /* (the label centred in what is left) */
+                dl->AddText(ImVec2(p.x + fmaxf(4.0f, (room - ts.x) * 0.5f), p.y + (sz.y - ts.y) * 0.5f), fg, lab.c_str());
                 auto tk = tasks.find(d);
                 if (here && tk != tasks.end() && !tk->second.empty()) {        /* a task leads here: its picture at the left, the task in the tooltip */
                     float is = sz.y * 0.82f;
@@ -482,6 +512,11 @@ extern "C" int citynav_window(void)
                                            hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
                         if (hov) tip += (tip.empty() ? "" : "\n\n") + ui_teacher_text(teach[t]);
                     }
+                }
+                if (has_os) {                                              /* (its status, at the right: drawn here, over the button) */
+                    if (os_fits) dl->AddText(ImGui::GetFont(), os_fsz, ImVec2(p.x + sz.x - 6 - mark - os_w, p.y + (sz.y - os_h) * 0.5f), hov ? IM_COL32(252, 242, 220, 255) : os_col, os_txt);
+                    else dl->AddCircleFilled(ImVec2(p.x + sz.x - 9 - mark, p.y + 6), 3.5f, hov ? IM_COL32(252, 242, 220, 255) : os_col);
+                    if (hov) tip = os_tip + (tip.empty() ? "" : "\n\n" + tip);
                 }
                 if (hov && !tip.empty()) {
                     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(io.DisplaySize.x * 0.4f, FLT_MAX));
