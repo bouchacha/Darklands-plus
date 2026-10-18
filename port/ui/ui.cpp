@@ -56,9 +56,10 @@ extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; ope
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);
 void worldmap_set_renderer(SDL_Renderer *r);
-static int want_tab = -1;                  /* a page (ui/uitabs.h) to show at the next frame */
+static int want_tab = -1;                  /* a page (ui/uitabs.h) to show; kept until its group's tabs have drawn it */
+static int want_frames;
 extern int ui_want_subtab;
-extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
+extern "C" void ui_select_tab(int t) { want_tab = t % 100; want_frames = 0; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
 static ImFont *font_body, *font_head, *font_tab, *font_tab_small;
 /* tabs inside a page (the Journal's, Settings' ...): in the smaller face of the window's own
    tabs, under them in the order of things; the page's text in the body face */
@@ -859,7 +860,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                     char lab[64]; int nsp = (int)ceilf(ImGui::GetFontSize() * 1.25f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x));
                     if (nsp > 12) nsp = 12;
                     snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", G.name, G.name);
-                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 ? ImGuiTabItemFlags_SetSelected : 0);
+                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 && want_frames == 0 ? ImGuiTabItemFlags_SetSelected : 0);
                     {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
                         ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, G.icon); }
                     if (open_t) {
@@ -872,11 +873,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                                 if (ui_subtab(pages[G.page[j]].name, j == want_sub)) { page(G.page[j]); ImGui::EndTabItem(); }
                             ImGui::EndTabBar();
                         }
+                        if (want_sub >= 0) want_tab = -1;           /* (drawn, its sub-tab chosen: done) */
                         ImGui::PopStyleVar(); ImGui::PopFont();
                         ImGui::EndTabItem();
                     }
                 }
-                want_tab = -1;
+                if (want_tab >= 0 && ++want_frames > 4) want_tab = -1;   /* (a group's tab takes a frame to open) */
                 ImGui::EndTabBar();
             }
             ImGui::PopStyleVar(); ImGui::PopFont();
