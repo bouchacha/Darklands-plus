@@ -203,6 +203,7 @@ static mt32emu_context make_synth(int rate)
     mt32emu_set_samplerate_conversion_quality(c, MT32EMU_SRCQ_GOOD);
     mt32emu_set_analog_output_mode(c, MT32EMU_AOM_ACCURATE);
     if (mt32emu_open_synth(c) != MT32EMU_RC_OK) { snprintf(why, sizeof why, "the emulator did not start"); mt32emu_free_context(c); return 0; }
+    mt32emu_set_midi_event_queue_size(c, 8192);              /* (room for a burst: a song's timbres, several songs at once) */
     snprintf(found_desc, sizeof found_desc, "%s, %s", ri.control_rom_description ? ri.control_rom_description : ri.control_rom_id,
              ri.pcm_rom_description ? ri.pcm_rom_description : ri.pcm_rom_id);
     snprintf(playing, sizeof playing, "%s", machine);
@@ -286,6 +287,7 @@ static void replay(mt32emu_context c)
 }
 
 /* from the game's thread: a whole MIDI message or SysEx (mpu.c) */
+static unsigned full;                         /* (messages the queue had no room for) */
 void mt32_msg(const unsigned char *m, int n)
 {
     if (state <= 0) return;
@@ -295,8 +297,14 @@ void mt32_msg(const unsigned char *m, int n)
     uint32_t ts = mt32emu_convert_output_to_synth_timestamp(ctx, rendered + (uint32_t)(dt * 44100 / 1000000));
     if ((int32_t)(ts - last_ts) < 0) ts = last_ts;
     last_ts = ts;
-    if (m[0] == 0xf0) mt32emu_play_sysex_at(ctx, m, (mt32emu_bit32u)n, ts);
-    else mt32emu_play_msg_at(ctx, (mt32emu_bit32u)m[0] | (n > 1 ? (mt32emu_bit32u)m[1] << 8 : 0) | (n > 2 ? (mt32emu_bit32u)m[2] << 16 : 0), ts);
+    /* the queue full (a burst: several songs started at once, each uploading its timbres): the
+       message goes in at once rather than being lost (a lost timbre upload would leave an
+       instrument wrong for the session). (Safe here: the lock keeps the renderer out.) */
+    mt32emu_bit32u sm = (mt32emu_bit32u)m[0] | (n > 1 ? (mt32emu_bit32u)m[1] << 8 : 0) | (n > 2 ? (mt32emu_bit32u)m[2] << 16 : 0);
+    unsigned was = full;
+    if (m[0] == 0xf0) { if (mt32emu_play_sysex_at(ctx, m, (mt32emu_bit32u)n, ts) != MT32EMU_RC_OK) { full++; mt32emu_play_sysex_now(ctx, m, (mt32emu_bit32u)n); } }
+    else if (mt32emu_play_msg_at(ctx, sm, ts) != MT32EMU_RC_OK) { full++; mt32emu_play_msg_now(ctx, sm); }
+    if (full != was && (full == 1 || full % 500 == 0)) fprintf(stderr, "mt32: the MIDI queue was full (%u times): played at once\n", full);
     sound_lock(0);
     remember(m, n);
 }

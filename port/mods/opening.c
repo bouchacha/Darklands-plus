@@ -14,8 +14,16 @@
  * shown, calling 04fc (kbhit) meanwhile; the later animations' readers then return at once for
  * the key still waiting. So a key ended the opening only when the animation playing had shown
  * what was already read (most of it). Here 04fc, at a key, moves the head to the tail: what is
- * read counts as shown. The last scene alone: every animation but opening9 is passed over (their
- * music cues still follow one another, so opening9 gets its own). */
+ * read counts as shown. The last scene alone: every animation but opening8 and 9 is passed over
+ * (their music cues still follow one another, so opening8 and 9 get their own).
+ *
+ * The speech: with a Sound Blaster (CONFIG.DRK, as the GOG release has it) the main loop loads
+ * OPENDARK.DGT into a buffer and gives it to the sound driver, and cues 0x34/0x35 play the lady's
+ * words from it. After opening9 the buffer is freed, but the song of cue 0x35 goes on and plays
+ * its words again from time to time - from memory that loading a game then fills with other
+ * things: a loud screech every few seconds, the music cut, for the session. A key at the end
+ * makes the game stop the song (vec_18f1(0), then the title's vec_18f1(7)); so when the opening
+ * ends by itself, a key is given for it, and the game takes its own way. */
 #include <stdio.h>
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -55,6 +63,10 @@ static void pan_hook(void)                      /* root 030b:0004 (char *name): 
     if (opening_playing) fprintf(stderr, "opening: %s.pan%s\n", name, end_only && strcmp(name, "opening8") != 0 && strcmp(name, "opening9") != 0 ? " passed over" : "");
     if (opening_playing && end_only && strcmp(name, "opening8") != 0 && strcmp(name, "opening9") != 0) { hook_return_far(0); return; }   /* (its music cue was given: the next follows) */
     hook_call_original();
+    if (opening_playing && !strcmp(name, "opening9") && !bios_kbd_avail()) {   /* ended by itself: a key, so that the game stops the song */
+        fprintf(stderr, "opening: ended by itself (a key for it: the song stops)\n");
+        bios_kbd_inject(0x3920);
+    }
 }
 
 static void tick_hook(void)                     /* root 030b:04fc: kbhit, while a PAN plays */
