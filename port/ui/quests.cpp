@@ -236,7 +236,7 @@ static void sabbat_text_hook(void)          /* text_expand (idx, out) */
 {
     extern int dos_no_writes;
     int idx = (s16)rw(SS, (u16)(SP + 4)), what = 0;
-    if (!dos_no_writes && game_mode() != GM_OTHER) {
+    if (!dos_no_writes && game_mode() != GM_OTHER && !config_get_int("original", 0)) {
         char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
         if (citynav_card_block_has(nm, idx, "$SabbatLocation")) what |= 1;
         if (citynav_card_block_has(nm, idx, "$SabbatTime")) what |= 2;
