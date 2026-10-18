@@ -210,6 +210,7 @@ static void library_line(int loc)
         }
     }
 }
+extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
 /* the formulae a town's alchemist sells (ui/libraries.h), one a line: those nobody in the party knows
    in the margin's ink, the others dim; the potion, its grade, the price and what it does under the
    pointer */
@@ -514,6 +515,11 @@ static void right_panel(int size)
             ImGui::Unindent(is + lh * 0.3f);
         }
         ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
+        {   /* what the party learned of its physician and alchemist (ui/journal.cpp) */
+            const char *ph = journal_town_fact(cur, "physician"), *al = journal_town_fact(cur, "alchemist");
+            if (ph) { ImGui::TextDisabled("Physician:"); ImGui::SameLine(); ImGui::TextWrapped("%s", ph); }
+            if (al) { ImGui::TextDisabled("Alchemist:"); ImGui::SameLine(); ImGui::TextWrapped("%s", al); }
+        }
         library_line(cur);
         formulae_line(cur);
         place_quests(cur);

@@ -10,6 +10,7 @@
 // side-effect-free evaluation. One journal per game (party_seed), kept as a text file next
 // to the game: darklands_journal_<seed>.txt.
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string>
@@ -427,12 +428,74 @@ static void chronicle_page(void)
     ImGui::EndChild();
 }
 
+/* ---------------------------------------------------------------- what the party learned of a town's
+ * physician and alchemist, from the cards' own words as they are shown (per game, in
+ * darklands_townfacts_<seed>.txt beside the journal): $Physi00 block 8 "... decides that $NamedOneName
+ * has $Text1 skill." and block 10 "... is a complete idiot"; $Alche00 block 7 "... improve your
+ * philosopher's stone to quality $Number1" and block 5 "your abilities are beyond my own" */
+static std::map<int, std::map<std::string, std::string>> facts; static int facts_seed = -1;
+static std::string facts_path(int seed) { extern char dlp_data_dir[]; char b[1200]; snprintf(b, sizeof b, "%s/darklands_townfacts_%u.txt", dlp_data_dir, (unsigned)seed); return b; }
+static void facts_sync(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed == facts_seed) return;
+    facts_seed = seed; facts.clear();
+    FILE *f = fopen(facts_path(seed).c_str(), "r");
+    if (!f) return;
+    char line[400];
+    while (fgets(line, sizeof line, f)) {
+        char *a = strchr(line, '|'), *b = a ? strchr(a + 1, '|') : nullptr;
+        if (!a || !b || line[0] == '#') continue;
+        *a = 0; *b = 0; char *v = b + 1; v[strcspn(v, "\r\n")] = 0;
+        facts[atoi(line)][a + 1] = v;
+    }
+    fclose(f);
+}
+static void facts_set(int loc, const char *key, const std::string &v)
+{
+    facts_sync();
+    if (facts[loc][key] == v) return;
+    facts[loc][key] = v;
+    FILE *f = fopen(facts_path(facts_seed).c_str(), "w");
+    if (!f) return;
+    fprintf(f, "# Darklands+: what the party learned of the towns' physicians and alchemists (town|what|words)\n");
+    for (auto &t : facts) for (auto &kv : t.second) fprintf(f, "%d|%s|%s\n", t.first, kv.first.c_str(), kv.second.c_str());
+    fclose(f);
+}
+/* "physician" / "alchemist": what is known, or NULL */
+extern "C" const char *journal_town_fact(int loc, const char *key)
+{
+    if (game_mode() == GM_OTHER) return nullptr;
+    facts_sync();
+    auto t = facts.find(loc); if (t == facts.end()) return nullptr;
+    auto k = t->second.find(key); return k == t->second.end() ? nullptr : k->second.c_str();
+}
+static void facts_scan(int block)
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    if (loc < 0 || loc >= 92 || game_mode() == GM_OTHER) return;
+    char cn[13]; g_str(G_DGROUP, 0xe3d4, cn, sizeof cn);
+    for (char *p = cn; *p; p++) *p = (char)toupper((unsigned char)*p);
+    bool phys = !strcmp(cn, "$PHYSI00"), alch = !strcmp(cn, "$ALCHE00");
+    if (!phys && !alch) return;
+    std::string t = chron_text_now();
+    if (phys && block == 8) {
+        size_t e = t.rfind(" skill"), h = e == std::string::npos ? e : t.rfind(" has ", e);
+        if (h != std::string::npos) { std::string w = t.substr(h + 5, e - h - 5); if (!w.empty()) w[0] = (char)tolower((unsigned char)w[0]); facts_set(loc, "physician", w + " skill"); }
+    } else if (phys && block == 10) facts_set(loc, "physician", "a complete idiot: worse than none");
+    else if (alch && block == 7) {
+        size_t q = t.find("to quality ");
+        if (q != std::string::npos) facts_set(loc, "alchemist", "can raise a Philosopher's Stone to " + std::to_string(atoi(t.c_str() + q + 11)) + "q");
+    } else if (alch && block == 5) facts_set(loc, "alchemist", "no better Philosopher's Stone than the party's");
+}
+
 static void text_expand_hook(void)         /* s043 150b:06fe text_expand(idx, out): the block shown before is done */
 {
     bool mine = (u16)rw(SS, (u16)(SP + 6)) == 0x9085;
+    int block = (s16)rw(SS, (u16)(SP + 4));
     if (mine) chronicle_capture();
     hook_call_original();
-    if (mine) chronicle_expanded();
+    if (mine) { chronicle_expanded(); facts_scan(block); }
 }
 
 /* ---------------------------------------------------------------- the player's own notes (per game) */

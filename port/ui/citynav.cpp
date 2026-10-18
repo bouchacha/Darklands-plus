@@ -394,6 +394,7 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
     return m;
 }
 
+extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
 /* the "Go to" window; returns false when it closes */
 extern "C" int citynav_window(void)
 {
@@ -439,8 +440,19 @@ extern "C" int citynav_window(void)
                 ImU32 fg = !here ? IM_COL32(130, 112, 90, 255) : hov ? IM_COL32(252, 242, 220, 255) : IM_COL32(51, 31, 15, 255);
                 ImVec2 sz = ImGui::GetItemRectSize();
                 dl->AddRectFilled(p, ImVec2(p.x + sz.x, p.y + sz.y), bg, 4);
-                ImVec2 ts = ImGui::CalcTextSize(DEST[d].label);
-                dl->AddText(ImVec2(p.x + (sz.x - ts.x) * 0.5f, p.y + (sz.y - ts.y) * 0.5f), fg, DEST[d].label);
+                std::string lab = DEST[d].label;
+                {   /* what the party learned of the physician or the alchemist here: beside the name when it fits, else under the pointer */
+                            const char *fact = d == D_PHYSICIAN ? journal_town_fact(cur, "physician") : d == D_ALCHEMIST ? journal_town_fact(cur, "alchemist") : nullptr;
+                    if (fact) {
+                        std::string shortf = fact; size_t sk = shortf.find(" skill"); if (sk != std::string::npos) shortf.erase(sk);
+                        size_t cl = shortf.find(':'); if (cl != std::string::npos) shortf.erase(cl);
+                        std::string l2 = (d == D_PHYSICIAN ? "Physician: " : "Alchemists: ") + shortf;
+                        if (ImGui::CalcTextSize(l2.c_str()).x < sz.x - 8) lab = l2;
+                        if (hov) ImGui::SetTooltip("%s: %s", d == D_PHYSICIAN ? "The physician" : "The alchemist", fact);
+                    }
+                }
+                ImVec2 ts = ImGui::CalcTextSize(lab.c_str());
+                dl->AddText(ImVec2(p.x + (sz.x - ts.x) * 0.5f, p.y + (sz.y - ts.y) * 0.5f), fg, lab.c_str());
                 auto tk = tasks.find(d);
                 if (here && tk != tasks.end() && !tk->second.empty()) {        /* a task leads here: its picture at the left, the task in the tooltip */
                     float is = sz.y * 0.82f;
