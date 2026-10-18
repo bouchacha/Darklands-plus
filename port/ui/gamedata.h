@@ -49,6 +49,12 @@ struct GameData {
 // the game's 7-bit text ('{' = o umlaut, '|' = u umlaut ...) as UTF-8
 std::string game_text(const char *s, size_t n);
 extern const char *SHOP_NAMES[9];
+/* the quality a shop's weapons, armour and most other wares come out at: (the thing's base, 25 for
+   most, + the shop's rating) / 2 (s032 1462:0efa item_quality; ammunition and ingredients are 25) */
+static inline int shop_wares_q(int rating) { return (25 + rating) / 2; }
+/* the shops a card can open (none opens the gunsmith, the jeweller or the clothmaker: the bowyer
+   sells the guns; the clothmakers' street offers only "leave") */
+static inline bool shop_open_ever(int k) { return k != 4 && k != 7 && k != 8; }
 
 extern GameData gamedata;
 void gamedata_load(const char *dir);

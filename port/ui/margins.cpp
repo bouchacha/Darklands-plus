@@ -26,6 +26,7 @@ extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the
 struct Eff { int m; std::string what; long left; };   /* (the same as ui/saints.cpp's, which makes them) */
 std::vector<Eff> effects_now(int size);
 #include "quests.h"
+#include "townicons.h"
 #include <functional>
 #include <set>
 #include "money.h"
@@ -92,6 +93,16 @@ static void end_panel(void)
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
 }
+/* the last item under the pointer: the margins' windows take no input (a click there must not
+   reach ImGui's windows nor the game), so ImGui never counts their items as hovered */
+static bool item_hovered(void) { return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false); }
+/* a tooltip from the margin: in the tooltips' own ink (the margin's text is light, for its black) */
+static void margin_tip(const char *text)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
+    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(text); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+    ImGui::PopStyleColor();
+}
 static void heading(const char *t)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(222, 178, 104, 255));
@@ -118,6 +129,59 @@ extern "C" int partypanel_shown(void);
    margins take no input from ImGui: the buttons are drawn here and their clicks come through
    margins_click (ui_event) */
 static void place_quests(int cur);
+
+/* what a town offers that is worth a detour, as a row of pictures (what each offers under the
+ * pointer, in the words of the town's own cards): the places most towns lack - a university (13
+ * towns), a cathedral, an alchemist, a physician (some towns, some games), the docks' boats, a
+ * Fugger or Medici bank. Not shown: what nearly every town has (a monastery: 90 of 92) or what
+ * only pays later with reputation (the town hall's and the fortress's audiences); the rest is in
+ * F12 > Journal > Towns. Then the notable shops: those whose wares come out at 30q or better (the
+ * standard is 25q), a picture and the quality each. `tables`: the location table may be read;
+ * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
+ * no tooltip can show: the world map's tooltip on a town). */
+static const char *TOWN_OFFER_TIP[6] = {
+    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better philosopher's stone, teachers to hire (it expects Latin and a sharp mind).",
+    "Cathedral: donations for divine favor (and maybe virtue), a relic from the canon, the patron saint's story, sanctuary.",
+    "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in alchemy.",
+    "A physician: wounds treated for a fee, lessons in healing, alchemical components bought and sold.",
+    "Docks: boats to other towns, for a fee (each on the day it leaves).",
+    "A bank (Fugger or Medici): heavy coin into a bank note that weighs nothing, and back, for a charge; tasks for the bold." };
+static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
+    { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
+    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "tools and instruments" } };
+enum { NOTABLE_Q = 30 };
+static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
+void ui_town_offers(int loc, bool tables, float width, bool words)
+{
+    static int seen_loc = -1; static bool has[6];
+    if (tables || seen_loc != loc) { for (int k = 0; k < 6; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
+    const City &c = gamedata.cities[loc];
+    float lh = ImGui::GetTextLineHeight(), isz = lh * 1.35f, gap = lh * 0.35f;
+    float x0 = ImGui::GetCursorScreenPos().x, w = width > 0 ? width : ImGui::GetContentRegionAvail().x;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    /* a row of chips that wraps: a picture, and a short text after it */
+    auto chip = [&](bool &first, int icon, const char *text, const char *tip) {
+        float tw = text ? ImGui::CalcTextSize(text).x + lh * 0.25f : 0, cw = isz + tw;
+        if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + cw > x0 + w) ImGui::NewLine(); }
+        first = false;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        ImGui::Dummy(ImVec2(cw, isz));
+        ui_draw_town_icon(dl, ImVec2(a.x + isz * 0.5f, a.y + isz * 0.5f), isz, icon);
+        if (text) dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), text);
+        if (item_hovered()) margin_tip(tip);
+    };
+    bool first = true;
+    for (int k = 0; k < 6; k++) if (has[k]) chip(first, k, words ? TOWN_OFFER_WORD[k] : nullptr, TOWN_OFFER_TIP[k]);
+    bool head = false;
+    for (const auto &s : NOTABLE_SHOPS) {
+        int q = c.shopq[s.shop] > 0 ? shop_wares_q(c.shopq[s.shop]) : 0;
+        if (q < NOTABLE_Q) continue;
+        if (!head) { ImGui::Spacing(); if (words) ImGui::TextDisabled("Notable shops"); else heading("Notable shops"); head = true; first = true; }
+        char t[48], tip[160]; snprintf(t, sizeof t, words ? "%s %dq" : "%.0s%dq", SHOP_NAMES[s.shop], q);
+        snprintf(tip, sizeof tip, "%s: %s of %dq (most shops' are about 25q).", SHOP_NAMES[s.shop], s.wares, q);
+        chip(first, s.icon, t, tip);
+    }
+}
 extern "C" int ui_nearest_town(void);
 /* the right margin names the place (a town, or near one on the map, or the place of a card) */
 static bool right_shows_place(void)
@@ -341,32 +405,11 @@ static void right_panel(int size)
             ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
             ImGui::Indent(is + lh * 0.3f);
             ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
+            if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
                                                                                        : "The watch is after the party: guards who recognise it try to arrest it, and talking or bribing one's way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
-        static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
-            { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
-        std::string b;
-        for (auto &x : B) if (c.buildings & (1 << x.bit)) { b += b.empty() ? "" : ", "; b += x.name; }
-        if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("%s", b.c_str()); ImGui::PopStyleColor(); }
-        /* the shops: each one's rating, and (under the pointer) what its weapons and armour come out
-           at: (25 + rating) / 2 (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
-        bool shops = false;
-        float rw_ = ImGui::GetContentRegionAvail().x;
-        for (int i = 0; i < 9; i++) {
-            if (c.shopq[i] <= 0 || i == 4 || i == 7) continue;     /* (no card opens the gunsmith or the jeweller: the bowyer sells the guns) */
-            if (!shops) {                                       /* (a small table: the shops, their ratings) */
-                ImGui::Spacing(); heading("Shops");
-                ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize("rating").x); ImGui::TextDisabled("rating");
-                shops = true;
-            }
-            ImGui::TextUnformatted(SHOP_NAMES[i]);
-            char r[16]; snprintf(r, sizeof r, "%d", c.shopq[i]);
-            ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize(r).x);
-            ImGui::TextDisabled("%s", r);
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("The shop's rating: its weapons and armour are of quality %d.", (25 + c.shopq[i]) / 2);
-        }
+        ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
         place_quests(cur);
         any = true;
     }
@@ -393,21 +436,7 @@ static void right_panel(int size)
         }
         any = true;
     }
-    /* the game's own load classes (s029 0e76:013a): the capacity is the current endurance +
-       strength; light up to half of it, heavy above it, overloaded above one and a half times */
-    bool head = false;
-    for (int m = 0; m < size; m++) {
-        u16 b = G_MEMBER(m);
-        int st = g_rb((u16)(b + G_M_STATUS));
-        if (!st || st == 3) continue;
-        int end = g_rb((u16)(b + G_M_ATTR_CUR)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1));
-        int load = g_rb((u16)(b + G_M_LOAD)), cap = end + str;
-        if (load <= cap) continue;
-        if (!head) { if (any) ImGui::Separator(); heading("Burdens"); head = true; }
-        if (load * 2 > cap * 3) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "%s: overloaded, %d/%d", member_name(m).c_str(), load, cap);
-        else ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s: heavy, %d/%d", member_name(m).c_str(), load, cap);
-    }
-    if (!any && !head) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work; nobody carries too much."); ImGui::PopStyleColor(); }
+    if (!any) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work."); ImGui::PopStyleColor(); }
 }
 
 /* the quests that lead to place `cur`, each with its picture (the place's section of the margin) */
@@ -429,15 +458,14 @@ static void place_quests(int cur)
 
 /* the party's tasks: a short title each (a click opens it: the whole task, the deadline, how
    far), the days left; in order of the deadline, of the distance or as taken (a click on the
-   order changes it). Nothing at all when there are none (false) */
-static bool tasks_section(bool tables)
+   order changes it) */
+static void tasks_section(bool tables)
 {
     static std::vector<QuestRow> q; static int qf = -1000; static bool q_read = false;
     static std::set<std::string> open;
     static int sort = -1;
     { int cs = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N; if (cs != sort) { sort = cs; quest_sort(q, sort); } }   /* (the journal may change it) */
     if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); qf = ImGui::GetFrameCount(); q_read = tables; }
-    if (q.empty()) return false;
     ImVec2 mp = ImGui::GetIO().MousePos;
     ImDrawList *dl = ImGui::GetWindowDrawList();
     float w = ImGui::GetContentRegionAvail().x, lh = ImGui::GetTextLineHeight();
@@ -455,6 +483,7 @@ static bool tasks_section(bool tables)
             mclick(a, b, [&]() { sort = (sort + 1) % QSORT_N; config_set_int("quests.sort", sort); config_save(); quest_sort(q, sort); });
         }
     }
+    if (q.empty()) { ImGui::TextDisabled("None taken on."); return; }
     for (size_t i = 0; i < q.size() && i < 10; i++) {
         const QuestRow &r = q[i];
         bool is_open = open.count(r.id) != 0;
@@ -503,7 +532,6 @@ static bool tasks_section(bool tables)
         mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
     }
     if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
-    return true;
 }
 
 extern "C" void ui_margins(void)
@@ -528,7 +556,7 @@ extern "C" void ui_margins(void)
         ImGui::TextDisabled("%d:00, %s", hour, hour < 5 || hour >= 21 ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
         ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
-        money_tooltip((long)f * 240 + g * 12 + p);
+        { long pf = (long)f * 240 + g * 12 + p; if (pf >= 12 && item_hovered()) margin_tip(money_total(pf).c_str()); }
         if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
         /* the place and the tasks come from the location and event tables, which battles and their
            loot reuse: read while a card or the map is up, meanwhile the last reading stands */
@@ -538,11 +566,20 @@ extern "C" void ui_margins(void)
         if (tables || !where_read) { where = place_name(); where_read = tables; }
         if (!(right >= 150 && right_shows_place())) ImGui::TextWrapped("%s", where.c_str());   /* (else the right margin names it) */
         ImGui::Separator();
-        if (tasks_section(tables)) ImGui::Separator();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-        if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide.");
-        ImGui::PopStyleColor();
+        tasks_section(tables);
+        {   /* the hints, at the foot of the margin (always in the same place) */
+            char h1[96]; snprintf(h1, sizeof h1, "Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
+            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : "New to Darklands? F12 > Guide.";
+            float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
+            float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0) + sp * 2;
+            float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
+            if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            ImGui::TextWrapped("%s", h1);
+            if (h2) ImGui::TextWrapped("%s", h2);
+            ImGui::PopStyleColor();
+        }
         end_panel();
     }
 

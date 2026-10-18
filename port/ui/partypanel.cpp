@@ -211,7 +211,7 @@ extern "C" void partypanel_draw(void)
     if (P.k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) P.f = ui_font_game_hi[ui_game_font];
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
     P.dl = ImGui::GetBackgroundDrawList();
-    P.mx = ns_in.x; P.my = ns_in.y;
+    { void plat_mouse_game(int *x, int *y); plat_mouse_game(&P.mx, &P.my); }   /* (the pointer now: ns_in is read only while a native screen runs) */
     shown_now = true;
 
     const ImU32 BG = IM_COL32(18, 13, 9, 255), CARD = IM_COL32(38, 29, 20, 255), EDGE = IM_COL32(112, 82, 46, 255);
@@ -266,6 +266,22 @@ extern "C" void partypanel_draw(void)
                 float s = fminf((px1 - px0 - 1.5f) / tw, (py1 - py0 - 1.5f) / th);
                 float cx = (px0 + px1) * 0.5f, cy = (py0 + py1) * 0.5f, hw = tw * s * 0.5f, hh = th * s * 0.5f;
                 P.dl->AddImage((ImTextureID)(intptr_t)t, NsDraw::w(cx - hw, cy - hh), NsDraw::w(cx + hw, cy + hh));
+            }
+        }
+        /* a heavy load: an iron weight on the picture's corner, amber (heavy) or red (overloaded);
+           the game's classes (s029 0e76:013a): above endurance + strength heavy, above one and a half times that overloaded */
+        int band = st == 1 || st == 2 ? gm_member_load_band(m) : 0;
+        if (band >= 2 && !out) {
+            float wx = px1 - 3.4f, wy = py1 - 3.6f, r = 3.0f;
+            ImU32 fill = band == 3 ? IM_COL32(200, 60, 44, 255) : IM_COL32(222, 168, 60, 255);
+            P.dl->AddCircleFilled(NsDraw::w(wx, wy), (r + 0.6f) * P.k, IM_COL32(18, 13, 9, 235));
+            ImVec2 a = NsDraw::w(wx - 2.2f, wy - 0.8f), b = NsDraw::w(wx + 2.2f, wy - 0.8f), c2 = NsDraw::w(wx + 2.8f, wy + 2.2f), d = NsDraw::w(wx - 2.8f, wy + 2.2f);
+            P.dl->AddQuadFilled(a, b, c2, d, fill);                     /* the weight */
+            P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
+            if (P.over(wx - r, wy - r, wx + r, wy + r)) {
+                int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
+                ImGui::SetTooltip("%s carries %s: %d against %d (endurance + strength).\nIt costs agility in card tests and in fending off blows, and slows the swings. A click opens the sheet.",
+                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2);
             }
         }
         if (st == 3) {

@@ -3,7 +3,7 @@
  * Over the picture beside the party panel (game x 61..319):
  *   - the shop's name, the quality of its wares, the purse and who holds it, Leave;
  *   - two lists side by side: the merchant's wares (each with its price) and the things of the
- *     member bartering (with what the merchant pays; what is in hand or worn marked "in use"),
+ *     member bartering (with what the merchant pays; what is in hand or worn marked red at its left),
  *     the member chosen by the tabs above it;
  *   - Buy / Sell on the row under the pointer (Shift: ten / the whole stack; All on a stack);
  *   - a fixed strip at the bottom describes the row under the pointer (no floating tooltips),
@@ -82,7 +82,7 @@ extern "C" void barterview_draw(void)
     {   /* the subtitle: the wares' quality and who haggles (or pays); the purse beside Leave, no label */
         std::string purse = money(b.total_pf), who = b.payer >= 0 && b.payer < 5 ? gt(b.names[b.payer]) : "";
         int barg = assist_bargainer();                         /* (the best charisma bargains: mods/assist.c) */
-        std::string sub = "Wares of quality " + std::to_string(b.quality);
+        std::string sub = "Wares " + std::to_string(shop_wares_q(b.quality)) + "q";
         if (assist_best_leader && barg >= 0 && barg < 5) sub += "  -  " + gt(b.names[barg]) + " bargains";
         else if (!who.empty()) sub += "  -  " + who + " pays";
         T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, sub);
@@ -163,16 +163,17 @@ extern "C" void barterview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
+            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "%dq", qual);
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
-            const char *tag = eq == 2 ? "rides it" : eq ? "in use" : kept ? "kept" : nullptr;
+            if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);     /* equipped: a red mark at its left (said in the strip) */
+            const char *tag = eq == 2 ? "rides it" : kept ? "kept" : nullptr;
             float tagw = tag ? P.tag_width(tag) : 0;
             T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.tag(nx, y, ROWH, tag, eq ? NsDraw::RED : NsDraw::TAG_KEPT);
+                P.tag(nx, y, ROWH, tag, NsDraw::TAG_KEPT);
             }
             T(fo, NsDraw::FS_BODY, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
             bool cant = !L && price > b.total_pf;
@@ -326,7 +327,7 @@ extern "C" void barterview_draw(void)
             int price = L ? b.item[i].price : b.ware[i].price, wt = L ? b.item[i].weight : b.ware[i].weight;
             NsStripThing t;
             t.id = id; t.qual = qual; t.weight = wt; t.count = L ? b.item[i].count : 1;
-            t.status = L && b.item[i].equipped == 2 ? "the mount this member rides" : L && b.item[i].equipped ? "in use" : "";
+            t.status = L && b.item[i].equipped == 2 ? "the mount this member rides" : L && b.item[i].equipped ? "equipped" : "";
             t.cmp_who = L ? -1 : b.who;
             t.right = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
                         : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");

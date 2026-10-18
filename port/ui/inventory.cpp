@@ -557,11 +557,11 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::Text("%s", d ? d->name.c_str() : "?");
     ImGui::Separator();
     if (d) ImGui::TextDisabled("%s", kind_name_one(d->kind));
-    ImGui::Text("Quality %d", it.qual);
+    ImGui::Text("%dq", it.qual);
     if (it.count > 1) ImGui::Text("%d of them", it.count);
     ImGui::Text("Weight %d", it.weight);
     if (d && d->value) ImGui::Text("Worth about %s", money_with_total(d->value).c_str());
-    if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
+    if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Equipped");
     ui_item_details(d, it.id);
     ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");
     ImGui::EndTooltip();
@@ -637,7 +637,7 @@ extern "C" void tab_inventory(void)
         ImVec2 ts = ImGui::CalcTextSize(nm);
         dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, p.y + tile - ts.y - 4), col(0.2f, 0.12f, 0.06f), nm);
         if (!d || d->kind != K_POTION) {                           /* (a potion: the dots on its flask) */
-            char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
+            char q[16]; snprintf(q, sizeof q, "%dq", it.qual);
             dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
         }
         if (it.count > 1) {

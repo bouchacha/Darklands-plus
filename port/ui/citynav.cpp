@@ -20,6 +20,7 @@
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "townicons.h"
 extern "C" {
 int datamods_generation(void);
 #include "../runtime/cpu.h"
@@ -306,10 +307,9 @@ extern "C" void citynav_go(int dest)
  * - the hospital and Jewelers' Avenue are never offered (their options stay switched off),
  *   nor the herbalists and barber-surgeons ($CivCr01 and $Barbe00 are unused cards). */
 static bool never(int d) { return d == D_HOSPITAL || d == D_JEWEL || d == D_HERBAL; }   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
-static bool present(int d)
+static bool present_at(int d, int cur)
 {
     if (never(d)) return false;
-    int cur = (s16)g_rw(G_CUR_LOC);
     if (cur < 0 || cur >= (int)gamedata.cities.size()) return true;
     const City &c = gamedata.cities[cur];
     if (DEST[d].building >= 0 && !(c.buildings >> DEST[d].building & 1)) return false;
@@ -327,6 +327,23 @@ static bool present(int d)
     if (d == D_PHYSICIAN && c.size <= 3 && !((s16)(q + (s16)g_rw(G_CUR_YEAR)) % 3)) return false;
     if (d == D_ALCHEMIST && ((c.size <= 3 && !(q % 2)) || (c.size == 4 && !(q % 3)))) return false;
     return true;
+}
+static bool present(int d) { return present_at(d, (s16)g_rw(G_CUR_LOC)); }
+
+/* what town loc offers that is worth knowing (ui/townicons.h TI_UNIVERSITY .. TI_BANK), for the
+   margin: as the city's cards decide (the location record is read: while a card or the map is up) */
+bool citynav_town_offers(int loc, int icon)
+{
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return false;
+    switch (icon) {
+    case TI_UNIVERSITY: return present_at(D_UNIVERSITY, loc);
+    case TI_CATHEDRAL: return present_at(D_CATHEDRAL, loc);
+    case TI_ALCHEMIST: return present_at(D_ALCHEMIST, loc);
+    case TI_PHYSICIAN: return present_at(D_PHYSICIAN, loc);
+    case TI_DOCKS: return present_at(D_DOCKS, loc);
+    case TI_BANK: return present_at(D_FUGGER, loc) || present_at(D_MEDICI, loc);
+    }
+    return false;
 }
 
 /* the "Go to" window; returns false when it closes */

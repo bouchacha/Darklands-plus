@@ -233,7 +233,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         l1 += ", weight " + std::to_string(it.weight);
         if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
         if (it.equipped == 2) l1 += "; this member's mount";
-        else if (it.equipped) l1 += "; in use";
+        else if (it.equipped) l1 += "; equipped";
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
         if (it.kept) l1 += "; kept (not sold or dropped)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
@@ -309,7 +309,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            const char *hd = i == -1 ? "In use" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
+            const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
@@ -330,7 +330,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         }
         P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end);
         if (shows_quality(d, it.qual)) {
-            char qs[16]; snprintf(qs, sizeof qs, "q%d", it.qual);
+            char qs[16]; snprintf(qs, sizeof qs, "%dq", it.qual);
             float qx = RX0 + 11 + P.width(f, NsDraw::FS_NAME, nm) + 2;
             if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end) P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs);
         }

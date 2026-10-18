@@ -604,12 +604,12 @@ static void town_page(int loc)
         for (int k = 1; k < 12; k++) if (BUILDING[k] && (c.buildings >> k) & 1) { if (!b.empty()) b += ", "; b += BUILDING[k]; }
         ImGui::TextWrapped("Size %d.%s%s", c.size, b.empty() ? "" : " Has: ", b.c_str());
         std::string sh;
-        for (int k = 0; k < 9; k++) if (c.shopq[k] && k != 4 && k != 7) {     /* no card opens the gunsmith or jeweller */
-            char e[80]; snprintf(e, sizeof e, "%s%s %d (wares %dq)", sh.empty() ? "" : ",  ", SHOP_NAMES[k], c.shopq[k], (25 + c.shopq[k]) / 2);
+        for (int k = 0; k < 9; k++) if (c.shopq[k] && shop_open_ever(k)) {
+            char e[80]; snprintf(e, sizeof e, "%s%s %dq", sh.empty() ? "" : ",  ", SHOP_NAMES[k], shop_wares_q(c.shopq[k]));
             sh += e;
         }
-        ImGui::TextWrapped("Shops (rating): %s", sh.c_str());
-        ImGui::TextDisabled("A shop's wares come out at (the item's base quality + the shop's rating) / 2; most weapons and armour have a base of 25.");
+        ImGui::TextWrapped("Shops: %s", sh.c_str());
+        ImGui::TextDisabled("The quality of a shop's weapons, armour and most wares (ammunition and ingredients are always 25q).");
     }
     if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {

@@ -91,15 +91,16 @@ extern "C" void cacheview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
+            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "%dq", qual);
             std::string owner = own ? ns_gtext(l.names[l.who]) + "'s" : std::string();
-            const char *tag = eq ? "in use" : own ? owner.c_str() : kept ? "kept" : NULL;
+            if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);   /* equipped: a red mark at its left (said in the strip) */
+            const char *tag = own ? owner.c_str() : kept ? "kept" : NULL;
             float tagw = tag ? P.tag_width(tag) : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.tag(nx, y, ROWH, tag, eq ? NsDraw::RED : own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
+                P.tag(nx, y, ROWH, tag, own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
             }
             if (!h) { P.text(fo, NsDraw::FS_BODY, 0, y + 2.2f, soft, qs, x1 - 3); continue; }
             /* the actions: the whole stack, or one */
@@ -128,7 +129,7 @@ extern "C" void cacheview_draw(void)
         int id = L ? l.item[i].id : l.store[i].id, qual = L ? l.item[i].qual : l.store[i].qual, wt = L ? l.item[i].weight : l.store[i].weight, cnt = L ? l.item[i].count : l.store[i].count;
         NsStripThing t;
         t.id = id; t.qual = qual; t.weight = wt; t.count = cnt;
-        t.status = L && l.item[i].equipped ? "in use" : L && l.item[i].kept ? "kept" : "";
+        t.status = L && l.item[i].equipped ? "equipped" : L && l.item[i].kept ? "kept" : "";
         t.cmp_who = L ? -1 : l.who;
         ns_item_strip(P, SY0, t);
     } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here; F1 tells what you can do."

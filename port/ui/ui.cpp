@@ -14,6 +14,7 @@
 #include "quests.h"
 #include "uiinternal.h"
 #include "uitabs.h"
+#include "townicons.h"
 
 extern "C" {
 #include "../runtime/cpu.h"
@@ -741,7 +742,7 @@ static void ui_cursor(void)
 /* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at;
    again: the quests' pictures, large and at the sizes of the lists, on light and on dark */
 static int icon_grid;
-extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 3; }
+extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 4; }   /* (test: potions, quests, towns) */
 static void draw_icon_grid(void)
 {
     if (!icon_grid) return;
@@ -750,6 +751,18 @@ static void draw_icon_grid(void)
     ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(244, 234, 210, 255));
     float cell = fminf(ds.x / 12.5f, ds.y / 8.5f), s = cell * 0.62f;
+    if (icon_grid == 3) {                                   /* the towns' pictures, at three sizes */
+        dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
+        for (int k = 0; k < TI_N; k++) {
+            float x = cell * 0.6f + k * cell * 0.92f;
+            ui_draw_town_icon(dl, ImVec2(x, cell * 0.7f), cell * 0.85f, k);
+            ui_draw_town_icon(dl, ImVec2(x, cell * 1.7f), 32, k);
+            ui_draw_town_icon(dl, ImVec2(x, cell * 2.3f), 20, k);
+            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 0.7f), cell * 0.85f, k);
+            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 1.7f), 32, k);
+        }
+        return;
+    }
     if (icon_grid == 2) {
         dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
         for (int k = 1; k < QC_N; k++) {

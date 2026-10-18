@@ -16,6 +16,7 @@
 extern "C" int ns_showing(void);
 #include "gamedata.h"
 #include "quests.h"
+#include "townicons.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -424,7 +425,7 @@ extern "C" void worldmap_draw(void)
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
+            if (p.loc < 92) { ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true); ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet"); }
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
             if (on_map) ImGui::TextDisabled("Double-click to travel there");

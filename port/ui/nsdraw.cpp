@@ -11,7 +11,7 @@ std::string ns_quality_words(int id, int qual)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d || !ns_shows_quality(id, qual)) return "";        /* (as the lists: a potion's dots tell its grade; gear's quality only its price) */
-    return ", quality " + std::to_string(qual);
+    return ", " + std::to_string(qual) + "q";
 }
 
 std::string ns_item_line(int id)
@@ -57,7 +57,7 @@ std::string ns_item_compare(int id, int q, int m)
         std::string n = name_of(t, wq);
         if (n.size() > 2 && n[1] == ':') n = n.substr(2);
         int s1 = (h > wh) - (h < wh), s2 = (q > wq) - (q < wq);
-        return who + " wears " + n + " (" + (wh >= 0 && wh < 6 ? HN[wh] : "?") + ", q" + std::to_string(wq) + "): this is " +
+        return who + " wears " + n + " (" + (wh >= 0 && wh < 6 ? HN[wh] : "?") + ", " + std::to_string(wq) + "q): this is " +
                (s1 > 0 ? "harder" : s1 < 0 ? "softer" : "as hard") + (s1 == s2 ? " and " : " but ") + cmpq(q, wq) + ".";
     }
     if (d->kind == K_SHIELD) {
@@ -75,7 +75,7 @@ std::string ns_item_compare(int id, int q, int m)
         int t, wq;
         if (slot(missile ? 0x0e : 0x3d, missile ? 0x46 : 0x44, t, wq) && t <= 62) {
             int cp = rb(G_FAR20A5, (u16)(0x76a8 + t)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + t));
-            r += " In hand now: " + name_of(t, wq) + " (damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15) + ", q" + std::to_string(wq) + ").";
+            r += " In hand now: " + name_of(t, wq) + " (damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15) + ", " + std::to_string(wq) + "q).";
         } else r += missile ? " No bow or crossbow ready now." : " Nothing in hand now.";
         return r;
     }
