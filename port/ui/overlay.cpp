@@ -1454,7 +1454,7 @@ extern "C" void ui_overlay(void)
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();
-    if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER) draw_version();       /* (not over a character being made, the party chosen) */
+    if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER && ns_screen != NS_SAVES) draw_version();       /* (not over a character being made, the party chosen, the saves) */
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
     draw_battle_bars();
