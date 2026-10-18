@@ -733,6 +733,7 @@ static void run_script(void)
             fprintf(stderr, "\n");
         }
         else if (!strcmp(s->cmd, "uexport")) { char w[1300]; int datamods_export_cards(char *, size_t); int r = datamods_export_cards(w, sizeof w); fprintf(stderr, "export: %d to %s\n", r, w); }
+        else if (!strcmp(s->cmd, "umissile")) { int i = 0, t = 5; sscanf(s->arg, "%d,%d", &i, &t); void battlerules_test_missile(int, int); battlerules_test_missile(i, t); }   /* test: member i shoots at t (the missile order) */
         else if (!strcmp(s->cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(s->arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(s->cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(s->cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
