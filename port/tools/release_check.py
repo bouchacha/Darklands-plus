@@ -37,7 +37,7 @@ STEPS = [
     ('fast forward (Z) on and off', 'ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 12)),   # (a foe that came late: hit it too; the hits land as the battle runs)
-    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."']),
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
     ('the store room (native)', 'ucmd ucache:; wait 4; wshot 9_store', [r'store room: open']),
