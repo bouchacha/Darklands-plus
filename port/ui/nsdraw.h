@@ -164,11 +164,12 @@ std::string ns_quality_words(int id, int qual);       /* ", 30q"; "" where the l
 std::string ns_item_use(int id);
 /* a weapon or an armour against what member m has in that place now, "" for other things */
 std::string ns_item_compare(int id, int q, int m);
+std::string ns_item_compare_party(int id, int q);    /* the same against every member (whom it would suit) */
 
 /* the strip under the lists on the shop, the loot and the store room, about the thing pointed at
  * (one layout for all three): its picture and name; what it is (kind, quality, weight, how many,
  * `status` such as "in use"); the line on a weapon or an armour; what it is good for, or else
- * how it compares with what member cmp_who has (-1: not compared). `right`, in `right_col`, at
+ * how it compares with what member cmp_who has (-1: not compared, -2: the whole party). `right`, in `right_col`, at
  * the top right: what it costs or fetches. */
 struct NsStripThing {
     int id = 0, qual = 0, weight = 0, count = 1, cmp_who = -1;

@@ -3,6 +3,8 @@
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include <set>
+#include <vector>
+#include <algorithm>
 extern "C" {
 #include "../mods/gamemodel.h"
 }
@@ -82,6 +84,67 @@ std::string ns_item_compare(int id, int q, int m)
     return "";
 }
 
+/* a weapon or an armour against the whole party (the shared pack: whom it would suit) */
+std::string ns_item_compare_party(int id, int q)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d) return "";
+    std::vector<int> ms;
+    for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_member_status(m) != 3) ms.push_back(m);
+    auto nm = [](int m) { char b[24]; gm_member_name(m, b, sizeof b); return ns_gtext(b); };
+    auto join = [](const std::vector<std::string> &v) {
+        std::string r;
+        for (size_t i = 0; i < v.size(); i++) r += (i == 0 ? "" : i + 1 == v.size() ? " and " : ", ") + v[i];
+        return r;
+    };
+    if (d->type >= 67 && d->type <= 84) {
+        bool vital = d->type <= 75;
+        int h = rb(G_FAR20A5, (u16)(0x781e + d->type));
+        std::vector<std::string> better, none;
+        for (int m : ms) {
+            u16 b = G_MEMBER(m);
+            int t = (s8)g_rb((u16)(b + (vital ? 0x37 : 0x38))), wq = g_rb((u16)(b + (vital ? 0x3b : 0x3c)));
+            if (t < 67 || t > 84) { none.push_back(nm(m)); continue; }
+            int wh = rb(G_FAR20A5, (u16)(0x781e + t));
+            if (h > wh || (h == wh && q > wq)) better.push_back(nm(m));
+        }
+        std::string r;
+        if (!better.empty()) r = "Harder or better made than what " + join(better) + (better.size() == 1 ? " wears" : " wear") + " there.";
+        if (!none.empty()) r += (r.empty() ? "" : " ") + join(none) + (none.size() == 1 ? " wears" : " wear") + " nothing there.";
+        return r.empty() ? "Everyone wears as good or better there." : r;
+    }
+    if (d->kind == K_SHIELD) {
+        std::vector<std::string> better, none;
+        for (int m : ms) {
+            u16 b = G_MEMBER(m);
+            int t = (s8)g_rb((u16)(b + 0x48)), wq = g_rb((u16)(b + 0x47));
+            if (t < 0) none.push_back(nm(m)); else if (q > wq) better.push_back(nm(m));
+        }
+        std::string r;
+        if (!better.empty()) r = "Better made than the shield of " + join(better) + ".";
+        if (!none.empty()) r += (r.empty() ? "" : " ") + join(none) + (none.size() == 1 ? " carries" : " carry") + " no shield.";
+        return r.empty() ? "Everyone's shield is as good or better." : r;
+    }
+    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+        static const char *SKN[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
+        int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
+        if (sk >= 7) return "";
+        std::vector<std::pair<int, std::string>> v; std::vector<std::string> heavy;
+        for (int m : ms) {
+            v.push_back({ gm_member_skill(m, sk), nm(m) });
+            int str, strmax; gm_member_attr(m, 1, &str, &strmax);
+            if (smin > 0 && strmax < smin) heavy.push_back(nm(m));
+        }
+        std::sort(v.begin(), v.end(), [](const std::pair<int, std::string> &a, const std::pair<int, std::string> &b) { return a.first > b.first; });
+        std::string r = std::string(SKN[sk]) + " skill: ";
+        for (size_t i = 0; i < v.size(); i++) r += (i ? ", " : "") + v[i].second + " " + std::to_string(v[i].first);
+        r += ".";
+        if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs strength " + std::to_string(smin) + ").";
+        return r;
+    }
+    return "";
+}
+
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them). Read from the game's code: of the
  * general goods only rope and lockpicks are asked for by cards (count_items, s029 0e76:0c76: the
@@ -142,8 +205,8 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
     std::string use = ns_item_use(t.id);                    /* what it is good for (ingredients, rope ...) */
     if (!use.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
-    else if (t.cmp_who >= 0) {                              /* a weapon or an armour: against what the member has now */
-        std::string cmp = ns_item_compare(t.id, t.qual, t.cmp_who);
+    else if (t.cmp_who >= 0 || t.cmp_who == -2) {          /* a weapon or an armour: against what the member (-2: the party) has now */
+        std::string cmp = t.cmp_who == -2 ? ns_item_compare_party(t.id, t.qual) : ns_item_compare(t.id, t.qual, t.cmp_who);
         if (!cmp.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp);
     }
 }
