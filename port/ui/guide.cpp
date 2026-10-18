@@ -69,7 +69,7 @@ void ui_guide_tab(void)
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
         "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; with Darklands+ any foe can be chosen, and a shooter without a line steps aside, or walks towards the foe, until there is one (F12 > Settings > Helpers).",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
-        "A castle, dungeon or mine is won only when its master has fallen and his fight is over; walking out counts as fleeing. The battle margin marks the master, and lists the foes still waiting there, floor by floor, and where the master waits.",
+        "In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over, or when the party walks out (which the game counts as fleeing). The battle margin marks the master, lists the foes still waiting there floor by floor, and says where the master waits.",
     });
     topic("Travel", {
         "On the map, a click walks towards a spot; Ctrl + click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there.",
