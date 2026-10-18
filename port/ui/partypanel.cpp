@@ -178,8 +178,14 @@ static const GamePic *figure(int m)
 static const char *order_word(char c)
 {
     switch (c) {
-    case 'A': return "attacks"; case 'V': return "attacks (vulnerable)"; case 'B': return "berserk"; case 'P': return "parries";
-    case 'M': return "shoots"; case 'W': return "walks"; case 'F': return "follows"; case '-': return "waits";
+    case 'A': return "attacks (a standard attack)";
+    case 'V': return "attacks all-out: harder blows, a weaker defence";
+    case 'B': return "is berserk: attacks without thought of defence";
+    case 'P': return "parries: defends and does not strike";
+    case 'M': return "shoots at the target given";
+    case 'W': return "walks to the spot given";
+    case 'F': return "follows the one ahead";
+    case '-': return "waits for an order: click them here or on the field, then a foe, a spot or a choice of the Orders menu";
     }
     return nullptr;
 }
