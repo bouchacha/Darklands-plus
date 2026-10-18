@@ -82,10 +82,10 @@ extern "C" void tab_members(void)
     bool can_lead = mode == GM_CARD || mode == GM_MAP;
     if (config_get_int("assist.best_leader", 1) && !config_get_int("original", 0))
         ImGui::TextWrapped("A card's tests are made by whoever is best at them, whoever leads (the badges on the options name who). "
-                           "The leader still takes what befalls \"the leader\" on a card and leads in a battle or a dungeon. Hover over a row for what it is for.");
+                           "The leader still takes what befalls \"the leader\" on a card and leads in a battle or a dungeon. * marks the party's best; hover over a row for what it is for.");
     else
         ImGui::TextWrapped("On many cards the leader is the one who acts (the badges on the options name who and the chance), "
-                           "so the member best at what comes next can lead first. Hover over a row for what it is for.");
+                           "so the member best at what comes next can lead first. * marks the party's best; hover over a row for what it is for.");
     ImGuiTableFlags fl = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
     if (!ImGui::BeginTable("members", size + 1, fl, ImVec2(0, ImGui::GetContentRegionAvail().y))) return;
     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 10.5f);
@@ -151,8 +151,8 @@ extern "C" void tab_members(void)
     {   /* load, as the character sheet shows it (s029 0e76:013a) */
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        const char *tip = "The weight carried against endurance + strength (as they are now): light up to half of it, "
-                          "heavy above it, overloaded above one and a half times.";
+        const char *tip = "The weight carried against endurance + strength (as they are now): light up to half of it, normal up to all of it, "
+                          "heavy up to one and a half times, overloaded above that. A heavier load costs Agility on cards and in melee (the character sheet says how much).";
         ImGui::Selectable("Load", false, ImGuiSelectableFlags_SpanAllColumns); help_tip(tip);
         for (int m = 0; m < size; m++) {
             ImGui::TableNextColumn();
