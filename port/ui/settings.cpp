@@ -374,8 +374,8 @@ void tab_helpers(void)
       if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); ui_dirty_config = 1; }
       ui_hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
     }
-    { bool rs = config_get_int("battle.reposition_shooters", 1) != 0;
-      if (ImGui::Checkbox("A shooter without a clear line steps aside or walks on to find one, instead of waiting; any foe can be chosen", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
+    { bool rs = config_get_int("battle.reposition_shooters", 0) != 0;
+      if (ImGui::Checkbox("Experimental: a shooter without a clear line steps aside or walks on to find one, instead of waiting; any foe can be chosen", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
       ui_hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. Any foe can be chosen as the target (the game refused one with no clear line, with a barred circle and a beep); with no spot near, the shooter walks towards it until a line opens. A member told to hold stays put; any other order you give takes over.");
     }
     { bool fl = config_get_int("battle.foes_left", 1) != 0;

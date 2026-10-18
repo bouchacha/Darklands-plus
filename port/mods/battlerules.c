@@ -10,7 +10,7 @@
  *   the party's shooters the party's other members are left out of the test: they stand on no
  *   floor while it runs. The enemies, and the enemies' shots, are as the game has them.
  *
- * battle.reposition_shooters (on by default): a member who would wait ('b') for a clear line
+ * battle.reposition_shooters (off by default, experimental): a member who would wait ('b') for a clear line
  *   steps aside to the nearest spot, within a few paces, from which the line to the target is
  *   clear, and shoots from there. melee_exchanges (s014 0e76:2a4a) is where a ready shooter
  *   finds the line blocked (cbt_state 'b', the next try 30..90 ticks on); after it, such a member
@@ -82,7 +82,7 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
 #define HELD(i) ((u16)(GV_cbt_mods + (i) * 0x12 + 9))      /* cbt_mods[i].held */
 #define PATH_STEP(i) ((u16)(GV_cbt_path_step + (i)))
 
-static int on_reposition(void) { return config_get_int("battle.reposition_shooters", 1) && !config_get_int("original", 0); }
+static int on_reposition(void) { return config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0); }
 static signed char walk_for[5] = { -1, -1, -1, -1, -1 };  /* the target a member walks aside to shoot */
 static int walk_x[5], walk_y[5];                          /* to where */
 static signed char approach[5];                           /* the walk is towards the foe, until a line opens */

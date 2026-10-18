@@ -80,7 +80,7 @@ void ui_guide_tab(void)
         "The view scrolls when the pointer rests on its edge (or with Shift). A member out of sight: Ctrl + click their portrait, and the view follows them.",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
-        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; with Darklands+ any foe can be chosen, and a shooter without a line steps aside, or walks towards the foe, until there is one (F12 > Settings > Helpers).",
+        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target: friends, foes and corners all block it, so move the shooter where the line is clear. (An experimental helper in F12 > Settings > Helpers lets a shooter look for a line by itself.)",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
         "In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over, or when the party walks out (which the game counts as fleeing). The battle margin marks the master, lists the foes still waiting there floor by floor, and says where the master waits; the battle pauses when a group of them comes out to fight.",
     });

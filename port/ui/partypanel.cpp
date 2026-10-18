@@ -197,7 +197,7 @@ static const char *order_word(char c, int place, bool shortw)
     case 'X': W("leaves", "leaves the battlefield by the way out given");
     case 'H': W("halts", "halts and stands where they are");
     case 'b':
-        if (config_get_int("battle.reposition_shooters", 1) && !config_get_int("original", 0))
+        if (config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0))
             W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
         W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
     case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
