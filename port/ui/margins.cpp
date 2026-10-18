@@ -19,6 +19,7 @@ extern "C" {
 #include "../mods/travel.h"
 #include "../mods/menuview.h"
 #include "../mods/assist.h"
+#include "../mods/foesleft.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
@@ -313,6 +314,33 @@ static void order_buttons(float width)
     }
 }
 
+/* the foes the place still holds, not yet met (mods/foesleft.c): where the rest of a castle's or
+   dungeon's defenders wait, so a fight that "does not end" says why */
+static void foes_left_section(void)
+{
+    FoesLeft fl;
+    if (!foesleft_on() || !foesleft_get(&fl)) return;
+    int here = fl.foes[fl.floor], others = 0;
+    for (int f = 0; f < fl.floors; f++) if (f != fl.floor && fl.known[f]) others += fl.foes[f];
+    if (fl.floors <= 1 && !here) return;                     /* (an open field with no one waiting: nothing to say) */
+    ImGui::Spacing();
+    heading("Not yet met");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    if (!here && !others) ImGui::TextWrapped("No one else waits in this place.");
+    else {
+        if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        else ImGui::TextWrapped("No one on this floor (%d).", fl.floor + 1);
+        std::string o;
+        for (int f = 0; f < fl.floors; f++) {
+            if (f == fl.floor || !fl.known[f] || !fl.foes[f]) continue;
+            char b[48]; snprintf(b, sizeof b, "%sfloor %d: %d", o.empty() ? "" : ", ", f + 1, fl.foes[f]);
+            o += b;
+        }
+        if (!o.empty()) ImGui::TextWrapped("Elsewhere: %s.", o.c_str());
+    }
+    ImGui::PopStyleColor();
+}
+
 static void battle_panel(float width, float fs)
 {
     static bool seen[13]; static u16 last_tick = 0xffff;
@@ -390,6 +418,7 @@ static void battle_panel(float width, float fs)
             ImGui::TextWrapped("The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs).");
         }
     }
+    foes_left_section();
 }
 
 /* the text size for what the interface writes over and beside the picture (side panels,

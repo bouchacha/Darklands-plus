@@ -656,6 +656,7 @@ static void run_script(void)
                 fprintf(stderr, "level %d: %d monsters, %d groups:", l, nm, ng);
                 for (int k = 0; k < ng && k < 10; k++) {
                     u16 o = (u16)(go + (l * 10 + k) * 0x1e);
+                    if (s->arg[0] == 'r') { fprintf(stderr, " ["); for (int q = 0; q < 0x1e; q++) fprintf(stderr, "%02x", rb(es, (u16)(o + q))); fprintf(stderr, "]"); continue; }   /* (ugroups:r: the raw records) */
                     fprintf(stderr, " [x6 %d x7 %d t %d/%d/%d n %d/%d/%d x0 %04x x2 %04x]", (s8)rb(es, (u16)(o + 6)), (s8)rb(es, (u16)(o + 7)),
                             (s8)rb(es, (u16)(o + 8)), (s8)rb(es, (u16)(o + 9)), (s8)rb(es, (u16)(o + 10)),
                             (s8)rb(es, (u16)(o + 11)), (s8)rb(es, (u16)(o + 12)), (s8)rb(es, (u16)(o + 13)), rw(es, o), rw(es, (u16)(o + 2)));
