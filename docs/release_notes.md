@@ -7,7 +7,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 **New in 1.2**
 
 - **A new start screen** in the game's own art: **Continue** loads your newest save in one click.
-- **The intro** ends at once on a key or a click; later starts show only the lady's welcome (or the whole intro, or nothing).
+- **The intro** plays whole; a click goes on to the lady's welcome, a second to the title (or show only the welcome, or nothing).
 - **Most of the game's screens are redrawn** for the mouse and today's screens (each can be switched off): the shops, the character sheet, the loot, the store room, the inn and camping, alchemy, calling on a saint, Party Info, the marching order, Save and Load, Enemy Info and the menus.
 - **Making a character** fills the screen: all 37 professions at once by kind, with what each needs, what your character lacks for it, what it leads to and what it teaches; the skill step shows each skill's room.
 - **Choosing the party:** each member's figure and numbers, and the party at its best in each skill, the gaps in red.
@@ -17,15 +17,18 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Quests at a glance:** a short title, the days left and a picture of its kind for each, in the margin, the journal and on the maps. A witches' Sabbat the party hears of becomes a task, its place marked. In a town, Go To (G) marks the house a task leads to.
 - **Where to learn a saint and buy a formula:** each library and alchemist has fixed lists for the whole game, and Darklands+ names the nearest one for each the party lacks. Under a town's name: what it has that most towns lack, and its notable shops.
 - **Cards** say why an option is greyed (about 280 reasons) and mark the options that start a fight.
-- **Battles:** **Z** fast-forwards; orders as buttons in the margin, and each member's order in words on the party panel; a bar over every fighter; and "Victory! The battle is won." at the end instead of eight seconds of a still field.
+- **Teachers:** a lectern marks every option that brings a teacher to the inn (the guilds' masters, the university, the monks, the physician, the alchemists), with what they teach, how well (each lesson's chance of +1; no limit but 99) and the real fee. Each town's teachers are listed in the margin, on the map and in Go To.
+- **Battles:** **Z** fast-forwards; orders as buttons in the margin, and each member's order in words on the party panel; a bar over every fighter who is hurt; a thin line while a shooter reloads; a skill raised rises in gold over the fighter; better pathfinding for both sides; a member whose foe falls turns on one close by instead of walking round the whole melee; a click sends a member better with a bow to shoot; and "Victory! The battle is won." at once instead of a still field.
 - **Castles, dungeons and mines** show the foes still waiting there, floor by floor, and mark the master of the place, whose fall wins it, or name the floor where he waits; the battle pauses when a group of them comes out to fight.
 - **Shops and loot** set a weapon or an armour against what the party has; an ingredient shows the potions it goes into.
 - **Arrows, quarrels and balls never run out**, and thrown weapons come back after a battle.
-- **Potions with pictures:** colour, emblem and the grade as dots.
+- **Potions with pictures:** colour, emblem and the grade as dots; each says what it really does, from the game's code (which weapons an oil works on, how long it lasts).
+- **Anything lost for good says so:** a window to click through when an attribute or a skill drops for good or armour wears down. And characters age in play, a little each month past thirty, as character creation ages them (switchable).
+- **The world map** washes out the towns not yet visited (their saints and formulae are known once visited) and makes the quests glow. The margin tells the hour by the church bells (Prime, Vespers ...), as the cards do; Go To reaches the town hall, the prison and the barracks, and remembers how skilled a town's physician and alchemists are.
 - **F12 > Guide** explains the game for new players.
 - **Sound:** fixed a loud screech and the music cutting out after loading a game when the intro had played to its end.
 - **Fixed (a bug of Darklands+ 1.0 to 1.1.1):** with the Blessings fix on, a saint's lowering of an attribute (some saints lower Perception, Intellect, Agility or Charisma for a day as the price of their help) never wore off. It now does; points already lost this way can be put back in F12 > Editor.
-- **Fixes for bugs of 483.07:** inn teachers who charged "-4096pfs", worn armour that took identical spares down with it, card options greyed by mistake, debt notes never where the merchant said they were, a formula's risk the wrong way round, and more.
+- **Fixes for bugs of 483.07:** inn teachers who charged "-4096pfs", worn armour that took identical spares down with it, card options greyed by mistake, debt notes never where the merchant said they were, a formula's risk the wrong way round, the bishop's errands paid by the merchants (and his relic claimable again and again), errands sent to a pagan altar the party had destroyed, the thing from a tomb given to the loser of its fight, and more.
 
 Every change in detail: `docs/changes-1.2.md`.
 
