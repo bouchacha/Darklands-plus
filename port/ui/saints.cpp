@@ -37,20 +37,22 @@ static long abs_hours(int y, int mo, int d, int h)
     return (days + d) * 24 + h;
 }
 
-/* the running temporary effects: events of kind 0x48 (attribute), 0x49 (skill), 0x4a (weapon
-   potion); +0 what, +0x1a member, +0x1e amount, +0x12 end (hour, day, month, year) */
+/* the running temporary effects: events of kind 0x48 (attribute: a saint's boost, or the
+   lowering some saints bring with it), 0x49 (skill), 0x4a (weapon potion); +0 what, +0x1a member,
+   +0x1e amount, +0x12 end (hour, day, month, year) */
 struct Eff { int m; std::string what; long left; };
 std::vector<Eff> effects_now(int size)
 {
     std::vector<Eff> v;
     long now = abs_hours((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR));
-    for (int i = 0; i < 300; i++) {
-        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), sg = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
-        if (!sg) continue;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        u16 sg = (u16)(p >> 16), o = (u16)p;
         int kind = (s16)rw(sg, (u16)(o + 0x22));
         if (kind < 0x48 || kind > 0x4a) continue;
         int m = (s16)rw(sg, (u16)(o + 0x1a)), k = (s16)rw(sg, o), t = (s16)rw(sg, (u16)(o + 0x1e));
-        if (m < 0 || m >= size || t <= 0) continue;
+        if (m < 0 || m >= size || t == 0 || (t < 0 && kind == 0x4a)) continue;     /* (a saint's lowering of an attribute: negative) */
         long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
         if (left <= 0) continue;
         char b[96];

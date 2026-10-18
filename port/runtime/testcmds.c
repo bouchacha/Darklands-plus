@@ -21,7 +21,7 @@ u32 plat_ticks_ms(void);
 /* ualcrisk: many failed brews at this place, counting the accidents they bring (mods/fixes.c, alchrisk) */
 #include "hooks.h"
 static void quiet_message(void) { hook_return_far(0); }
-static u32 ev_far(int i) { u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
+#define ev_far g_event
 static void alc_risk_test(int risk, int n)
 {
     int boom = 0, stink = 0, none = 0, loc = (s16)g_rw(GV_cur_loc);

@@ -37,9 +37,10 @@ static int ev_field(u16 s, u16 o, int k) { return (s16)rw(s, (u16)(o + k)); }
 static std::vector<Ev> read_events(void)
 {
     std::vector<Ev> v;
-    for (int i = 0; i < 300; i++) {
-        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
-        if (!s) continue;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        u16 s = (u16)(p >> 16), o = (u16)p;
         Ev e; e.i = i; e.seg = s; e.off = o;
         e.type0 = ev_field(s, o, 0); e.owner = ev_field(s, o, 0x1a); e.loc = ev_field(s, o, 0x1c); e.value = ev_field(s, o, 0x1e);
         e.kind = ev_field(s, o, 0x22); e.tag = ev_field(s, o, 0x28); e.aux = ev_field(s, o, 0x2a); e.reward = ev_field(s, o, 0x2c);
@@ -285,7 +286,7 @@ static std::vector<Line> build_lines(void)
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
-                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its gratitude is the reward." : ""),
+                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its reward is the village's good opinion of the party when he falls." : ""),
                 "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
             ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */

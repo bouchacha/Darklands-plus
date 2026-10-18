@@ -57,7 +57,7 @@ static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s04
     hook_call_original();
 }
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
-static u32 ev_ptr(int i) { u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
+#define ev_ptr g_event
 
 /* the town's teachers that have begun, in the events' order */
 static void teachers(LodgeModel *m)

@@ -155,8 +155,7 @@ Fix FIXES[] = {
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
 /* ---------------------------------------------------------------- blessing */
-#define EVSEG G_FAR2E38
-static u32 ev_ptr(int i) { u16 o = rw(EVSEG, (u16)(0x1b2c + 4 * i)), s = rw(EVSEG, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
+#define ev_ptr g_event
 
 static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
 {
@@ -787,10 +786,9 @@ static void patron_hook(void)
  * office named holds them for the moment of the search (and no other does); +0x2a is put back. */
 static int papers_event(int loc, u16 *seg, u16 *off)
 {
-    for (int i = 0; i < 300; i++) {
-        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), sg = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
-        if (!sg) continue;
-        if ((s16)rw(sg, (u16)(o + 0x22)) == 8 && (s16)rw(sg, (u16)(o + 0x1c)) == loc && (s16)rw(sg, (u16)(o + 0x28)) == 10) { *seg = sg; *off = o; return i; }
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (e && g_ev(e, G_EV_KIND) == 8 && g_ev(e, G_EV_LOC) == loc && g_ev(e, G_EV_TAG) == 10) { *seg = (u16)(e >> 16); *off = (u16)e; return i; }
     }
     return -1;
 }
@@ -805,8 +803,7 @@ static void debtnote_hook(void)            /* the lock is open: search the offic
     ww(sg, (u16)(o + 0x2a), (u16)want);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix debtnote: office %d searched, the notes in office %d (game: %d)\n", office, named, aux % 4);
     hook_call_original();
-    u16 s2 = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)), o2 = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i));
-    if (s2 == sg && o2 == o && (s16)rw(sg, (u16)(o + 0x2a)) == want) ww(sg, (u16)(o + 0x2a), (u16)aux);   /* (still the same errand: as it was) */
+    if (g_event(i) == (((u32)sg << 16) | o) && (s16)rw(sg, (u16)(o + 0x2a)) == want) ww(sg, (u16)(o + 0x2a), (u16)aux);   /* (still the same errand: as it was) */
 }
 
 /* ---------------------------------------------------------------- alchrisk
