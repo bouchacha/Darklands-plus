@@ -57,3 +57,5 @@ leave the game playable, and every new module keeps a switch back to the origina
 6. The travel map and its menus (s030).
 7. Battles (s014 and the rest), the largest: model first (combatants, map), then drawing,
    then input, each step comparable with the original.
+
+For other engines (Darklands Restoration and the like): what can be taken and how, `docs/MERGING.md`.
