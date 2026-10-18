@@ -5,7 +5,8 @@
 #include "config.h"
 
 typedef struct { char key[64]; char val[192]; } Entry;
-static Entry entries[256];
+#define MAXE 1024
+static Entry entries[MAXE];
 static int n;
 static char path[1100];
 
@@ -16,7 +17,7 @@ void config_load(const char *dir)
     n = 0;
     if (!f) return;
     char line[300];
-    while (fgets(line, sizeof line, f) && n < 256) {
+    while (fgets(line, sizeof line, f) && n < MAXE) {
         char *eq = strchr(line, '=');
         if (!eq || line[0] == '#' || line[0] == ';') continue;
         *eq = 0;
@@ -57,7 +58,18 @@ int config_get_int(const char *key, int def)
 void config_set(const char *key, const char *val)
 {
     for (int i = 0; i < n; i++) if (!strcmp(entries[i].key, key)) { snprintf(entries[i].val, sizeof entries[i].val, "%s", val); return; }
-    if (n < 256) { snprintf(entries[n].key, sizeof entries[n].key, "%s", key); snprintf(entries[n].val, sizeof entries[n].val, "%s", val); n++; }
+    if (n < MAXE) { snprintf(entries[n].key, sizeof entries[n].key, "%s", key); snprintf(entries[n].val, sizeof entries[n].val, "%s", val); n++; }
+}
+
+void config_unset(const char *key)
+{
+    for (int i = 0; i < n; i++) if (!strcmp(entries[i].key, key)) { entries[i] = entries[--n]; return; }
+}
+int config_count_prefix(const char *prefix, void (*each)(const char *key, const char *val))
+{
+    size_t l = strlen(prefix); int c = 0;
+    for (int i = 0; i < n; i++) if (!strncmp(entries[i].key, prefix, l)) { if (each) each(entries[i].key, entries[i].val); c++; }
+    return c;
 }
 
 void config_set_int(const char *key, int val)

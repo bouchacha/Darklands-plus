@@ -11,8 +11,8 @@
  * (cbt_collisions, s014 1462:000a, with the walking rules), so a planned path is a path the
  * member can walk. Routes longer than the game's 250-step path buffer are cut; the game
  * re-plans moving combatants every 30-90 ticks, which carries them on. If the search finds
- * nothing within its budget, the original planner runs. Enemies keep the original planner
- * unless "enemies too" is on.
+ * nothing within its budget, the original planner runs. Enemies too ("enemies too", on by
+ * default).
  *
  * Combatant records: DS:9c55 + 0x80*i (+4 x, +6 y, +8 tx, +0a ty, +19 facing, +1c own
  * index, +4a target); floors DS:a6b4[13]; step deltas D_c681/D_c6f4[set*10 + dir] (signed
@@ -30,7 +30,7 @@
 
 uint64_t plat_ticks_us(void);
 
-int pathfix_party = 1, pathfix_enemies = 0;
+int pathfix_party = 1, pathfix_enemies = 1;
 
 #define CBT(i)   ((u16)(0x9c55 + (i) * 0x80))
 #define PATHSEG  ((u16)(LOADSEG + 0x20a5))
@@ -415,5 +415,8 @@ void pathfix_init(void)
     f_waypoints = game_func(14, 0x1db7, 0x0158);
     f_cursor = game_func(GF_ems_map_page);
     if (!f_collide || !f_set) fprintf(stderr, "pathfix: game functions not found\n");
-    pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 0));
+    if (!config_get_int("migrate.enemy_paths", 0)) {          /* (on for everyone from 1.2 preview 31, once enemies no longer got stuck) */
+        config_set_int("fix.pathfinding_enemies", 1); config_set_int("migrate.enemy_paths", 1);
+    }
+    pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 1));
 }

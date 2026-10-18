@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
+#include <string>
+#include <vector>
 #include "imgui.h"
 #include "tablesort.h"
 #include "backends/imgui_impl_sdl2.h"
@@ -31,6 +34,7 @@ extern "C" {
 #include "../mods/datamods.h"
 #include "../mods/lootview.h"
 #include "../mods/sheetview.h"
+#include "../mods/options.h"
 #include "ui.h"
 #include "money.h"
 extern char game_dir[1024];
@@ -113,347 +117,243 @@ void tab_mods(void)
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
              "Card texts and pictures change at once; the item list, saints, cities and the like when the game starts.");
     }
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Built-in changes"); ImGui::PopFont();
-    ImGui::TextWrapped("Changes to the game, switched on and off here. They take effect at once "
-                       "(\"new game\" mods when the next game starts).");
     ImGui::Spacing();
-    const char *cat = "";
-    for (int i = 0; i < MOD_COUNT; i++) {
-        Mod &m = MODS[i];
-        if (strcmp(cat, m.category)) {
-            cat = m.category;
-            ImGui::PushFont(ui_font_head); ImGui::SeparatorText(cat); ImGui::PopFont();
-        }
-        bool on = m.enabled;
-        ImGui::PushID(i);
-        if (ImGui::Checkbox(m.name, &on)) { mod_enable(i, on); ui_dirty_config = 1; }
-        ImGui::Indent(UIS(34));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-        ImGui::TextWrapped("%s%s", m.desc, m.needs_new_game ? "  (New game.)" : "");
-        ImGui::PopStyleColor();
-        ImGui::Unindent(UIS(34));
-        ImGui::PopID();
-    }
+    ui_hint("The built-in changes to the rules (swift travel, half-price inns, quick learning ...) are under Helpers > Easier rules.");
 }
 
-/* "play the original game": every change off, the player's choices kept to come back to */
+/* the presets (mods/options.h): "the original game" is Buggy Purist; the player's own choices are
+   kept when a preset replaces them (Custom) */
 int ui_original_mode(void) { return config_get_int("original", 0); }
 bool ui_modding(void) { return config_get_int("editor.show", 0) && !ui_original_mode(); }
-extern "C" void ui_set_original_c(int on);
 void ui_set_original(bool on)
 {
-    if (on) {
-        char b[512]; int n = 0;
-        n += snprintf(b + n, sizeof b - n, "v2 %d %d %d %d %d %d", assist_chances, journal_enabled(), pathfix_party, pathfix_enemies, travel_enabled, travel_fast);
-        config_set_int("original.battle_speed", battle_speed);
-        battle_speed_set(100);
-        config_set_int("original.card_help", assist_card_help);
-        assist_set_card_help(0);
-        config_set_int("original.card_keys", assist_card_keys);
-        assist_set_card_keys(0);
-        config_set_int("original.pause_down", autopause_down); config_set_int("original.pause_hurt", autopause_hurt);
-        autopause_set(0, 0);
-        { extern int ui_margins_on; config_set_int("original.margins", ui_margins_on); ui_margins_on = 0; config_set_int("display.margins", 0); }
-        n += snprintf(b + n, sizeof b - n, " %d", FIX_COUNT);            /* (v2: the counts, so that a later version with more fixes or mods reads it right) */
-        for (int i = 0; i < FIX_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", FIXES[i].on);
-        n += snprintf(b + n, sizeof b - n, " %d", MOD_COUNT);
-        for (int i = 0; i < MOD_COUNT; i++) n += snprintf(b + n, sizeof b - n, " %d", MODS[i].enabled);
-        config_set("original.saved", b);
-        config_set("original.sound", config_get("sound.device", "auto"));
-        config_set_int("original.text", hdtext_mode);
-        config_set_int("original.art", hdart_on);
-        config_set_int("original.sfx", sfx_mode);
-        config_set_int("original.saves", saves_on);
-        saves_enable(0);
-        assist_set_chances(0); journal_set(0); pathfix_set(0, 0); travel_set(0, travel_fast); hdtext_set(0); hdart_set(0); sfx_set(0);
-        for (int i = 0; i < FIX_COUNT; i++) fix_enable(i, 0);
-        for (int i = 0; i < MOD_COUNT; i++) if (MODS[i].enabled) mod_enable(i, 0);
-        config_set("sound.device", "game");
-        config_set_int("original", 1);
-        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload(); musicpack_reload();
-    } else {
-        const char *p = config_get("original.saved", "");
-        char *e;
-        auto next = [&](int def) { long v = strtol(p, &e, 10); if (e == p) return def; p = e; return (int)v; };
-        bool v2 = !strncmp(p, "v2", 2);
-        if (v2) p += 2;
-        int ch = next(2), jo = next(1), pp = next(1), pe = next(0), ta = next(1), tf = next(1);
-        assist_set_chances(ch); journal_set(jo); pathfix_set(pp, pe); travel_set(ta, tf);
-        int nf = v2 ? next(0) : FIX_COUNT;                  /* (fixes and mods added since are left as they start: fixes on, mods off) */
-        for (int i = 0; i < nf; i++) { int on = next(1); if (i < FIX_COUNT) fix_enable(i, on); }
-        for (int i = nf; i < FIX_COUNT; i++) fix_enable(i, 1);
-        int nm = v2 ? next(0) : MOD_COUNT;
-        for (int i = 0; i < nm; i++) { int on = next(0); if (i < MOD_COUNT && on) mod_enable(i, 1); }
-        config_set("sound.device", config_get("original.sound", "auto"));
-        hdtext_set(config_get_int("original.text", 2));
-        hdart_set(config_get_int("original.art", 1));
-        sfx_set(config_get_int("original.sfx", 1));
-        saves_enable(config_get_int("original.saves", 1));
-        battle_speed_set(config_get_int("original.battle_speed", 100));
-        assist_set_card_help(config_get_int("original.card_help", 1));
-        assist_set_card_keys(config_get_int("original.card_keys", 1));
-        autopause_set(config_get_int("original.pause_down", 1), config_get_int("original.pause_hurt", 0));
-        { extern int ui_margins_on; ui_margins_on = config_get_int("original.margins", 1); config_set_int("display.margins", ui_margins_on); }
-        config_set_int("original", 0);
-        datamods_scan(); hdart_rescan(); rules_apply(); sfx_reload(); musicpack_reload();
-    }
+    if (on) preset_apply(PRESET_BUGGY_PURIST);
+    else if (config_get_int("custom.saved", 0)) preset_restore_custom();
+    else preset_apply(PRESET_PLUS);
     ui_dirty_config = 1;
 }
-
-extern "C" void ui_set_original_c(int on)          /* (the test command uoriginal) */
+extern "C" void ui_set_original_c(int on)          /* (the test command uoriginal: 0 off, 1 on; 10 + n preset n) */
 {
-    ui_set_original(on != 0);
-    fprintf(stderr, "original %d: fixes", on);
+    if (on >= 10) preset_apply(on - 10); else ui_set_original(on != 0);
+    fprintf(stderr, "original %d preset %d: fixes", ui_original_mode(), preset_current());
     for (int i = 0; i < FIX_COUNT; i++) fprintf(stderr, " %d", FIXES[i].on);
     fprintf(stderr, " mods");
     for (int i = 0; i < MOD_COUNT; i++) fprintf(stderr, " %d", MODS[i].enabled);
     fprintf(stderr, "\n");
 }
 
-void tab_helpers(void)
+/* a switch's words as one paragraph: the short title in bold, a colon, and what it does in grey,
+   wrapped together at the page's width; true when the words are clicked (they switch it too) */
+bool ui_title_desc(const char *title, const char *desc, bool dim, const char *id)
 {
-    bool orig = ui_original_mode();
-    if (ImGui::Checkbox("Play the original game", &orig)) ui_set_original(orig);
-    ui_hint("Switches everything below off and uses the game's own sound setup; your choices come back when you untick it.");
-    if (orig) { ImGui::TextWrapped("Darklands as it was in 1993 (version 483.07). Only the Darklands+ menu itself remains."); return; }
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Chances of success"); ImGui::PopFont();
-    ImGui::TextWrapped("Town and encounter cards show the chance of success next to each option that has one, "
-                       "and who would try it. (The original shows one at a time while you hold Shift.)");
-    int c = assist_chances;
-    if (ImGui::RadioButton("Always, as numbers", c == 2)) c = 2;
-    if (ImGui::RadioButton("As the difficulty level allows (numbers, words or nothing)", c == 1)) c = 1;
-    if (ImGui::RadioButton("Off", c == 0)) c = 0;
-    if (c != assist_chances) { assist_set_chances(c); ui_dirty_config = 1; }
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Cards, screens and lists"); ImGui::PopFont();
-    { bool pp = partypanel_is_on() != 0;
-      if (ImGui::Checkbox("The party panel drawn by Darklands+: each member's Endurance, Strength and Divine Favor as labelled bars with their numbers", &pp)) { partypanel_set(pp); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34));
-      ui_hint("Clicks on it still go to the game (a member's sheet; orders in a battle). A portrait of your own: put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. The battle figure is the little one the game shows beside a battle, in the colours chosen for the member.");
-      int pic = partypanel_picture();
-      static const char *PICS[] = { "Your portrait, else the battle figure, else the herald", "The battle figure, else the herald", "The herald", "No picture" };
-      ImGui::SetNextItemWidth(ImGui::CalcTextSize(PICS[0]).x + ImGui::GetFrameHeight() + UIS(24));   /* (the longest whole) */
-      if (ImGui::Combo("Picture##ppic", &pic, PICS, 4)) { partypanel_set_picture(pic); ui_dirty_config = 1; }
-      ImGui::Unindent(UIS(34)); }
-    { bool nm = menuview_is_on() != 0;
-      if (ImGui::Checkbox("The game's menus (Game, Orders, Attack, Party ...) drawn by Darklands+: a right click or F10 opens them, a click chooses", &nm)) { menuview_set(nm); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("They stay open until you choose or click elsewhere, instead of only while the right button is held (letting go of it over an entry still chooses that entry). The entries and what they do are the game's own. Off: the game's own menu bar."); ImGui::Unindent(UIS(34)); }
-    { bool nc2 = cacheview_is_on() != 0;
-      if (ImGui::Checkbox("Store rooms drawn by Darklands+: everything stored and everything the member carries in two lists", &nc2)) { cacheview_set(nc2); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Take and Put on each row (one or the whole stack), Put away for everything not in use. The storing is the game's own. Off: the game's screen, four things at a time."); ImGui::Unindent(UIS(34)); }
-    { bool ss = config_get_int("store.shared", 1) != 0;
-      if (ImGui::Checkbox("One store room for every inn: what is left with one innkeeper is there at every other", &ss)) { config_set_int("store.shared", ss); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Like a chest that follows the party. The stores already left in several towns join it the first time a store room is opened (as long as it has room: 100 kinds of things). Off: nothing more is joined; what is already shared stays so."); ImGui::Unindent(UIS(34)); }
-    { bool ncr = createview_is_on() != 0;
-      if (ImGui::Checkbox("Making a character drawn by Darklands+: each step on one page, with what a childhood or profession would bring", &ncr)) { createview_set(ncr); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The attributes after it (and the aging past thirty), each skill's gain and room, the virtues and saints learned. The rules are the game's own. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
-    { bool nro = rosterview_is_on() != 0;
-      if (ImGui::Checkbox("Choosing the party of a new game drawn by Darklands+: the four places with their figures, the characters kept, the chosen one's numbers", &nro)) { rosterview_set(nro); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Click to choose, double-click to add or drop; the figure, herald and colours beside the chosen member. Adding, dropping and deleting are the game's own. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
-    { bool wf = config_get_int("party.new_member_looks", 1) != 0;
-      ImGui::Indent(UIS(34));
-      if (ImGui::Checkbox("Each member added gets a look of their own", &wf)) { config_set_int("party.new_member_looks", wf); ui_dirty_config = 1; }
-      { bool kl = config_get_int("party.keep_looks", 1) != 0;
-        if (ImGui::Checkbox("Characters keep their figure and colours when they join again (at an inn)", &kl)) { config_set_int("party.keep_looks", kl); ui_dirty_config = 1; } }
-      ui_hint("The game gives everyone added the same figure (the tall man) in the same colours, so they are hard to tell apart in a battle. This gives a woman the woman figure and each member the next colours (Figure and Colours change them as before)."); ImGui::Unindent(UIS(34)); }
-    { bool nt = titleview_is_on() != 0;
-      if (ImGui::Checkbox("The start screen drawn by Darklands+: Continue (the newest save), Load, a new party, Quickstart, over the game's art", &nt)) { titleview_set(nt); ui_dirty_config = 1; } }
-    { bool ni = infoview_is_on() != 0;
-      if (ImGui::Checkbox("Party Info drawn by Darklands+: fame and its title, the time, where, the wealth, and the reputation in every city", &ni)) { infoview_set(ni); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The original names one town at a time under the pointer on its little map; this lists all of them, by reputation or by name. Off: the game's screen."); ImGui::Unindent(UIS(34)); }
-    { bool nmo = marchview_is_on() != 0;
-      if (ImGui::Checkbox("Change Marching Order as a list drawn by Darklands+: move members up and down, then Done", &nmo)) { marchview_set(nmo); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Instead of clicking each member in turn. The order is the game's own (single file follows it). Off: the game's way."); ImGui::Unindent(UIS(34)); }
-    { bool nlo = lodgeview_is_on() != 0;
-      if (ImGui::Checkbox("Inns and camps drawn by Darklands+: each member's day, its cost, the teachers and their fees, and \"Until rested\"", &nlo)) { lodgeview_set(nlo); ui_dirty_config = 1; } }
-    { bool nei = enemyview_is_on() != 0;
-      if (ImGui::Checkbox("Enemy Info (E in a battle) drawn by Darklands+: every kind of foe, its armour and weapons, and what your weapons do to it", &nei)) { enemyview_set(nei); ui_dirty_config = 1; } }
-    { bool nmm = mapmsg_is_on() != 0;
-      if (ImGui::Checkbox("The travel map's messages (a robber knight's land ...) in the cards' style", &nmm)) { mapmsg_set(nmm); ui_dirty_config = 1; } }
-    { bool np = prayview_is_on() != 0;
-      if (ImGui::Checkbox("Calling on a saint drawn by Darklands+: the statue, what the saint does, the favor to spend and the chance", &np)) { prayview_set(np); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The chance and the favor are the saint's own rules. Off: the game's prayer screen."); ImGui::Unindent(UIS(34)); }
-    { bool nv = savesview_is_on() != 0;
-      if (ImGui::Checkbox("The game's Save and Load drawn by Darklands+: the saves listed with where, when and who", &nv)) { savesview_set(nv); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Save asks for the comment on a page that lists the saves there are; Load lists them all to choose from (no question first). The saving and loading are the game's own. Off: the game's comment prompt and its list of nine."); ImGui::Unindent(UIS(34)); }
-    { bool nc = cardview_on != 0;
-      if (ImGui::Checkbox("Cards drawn by Darklands+: their text in the chosen typeface, the options as rows to click, chances beside them", &nc)) { cardview_set(nc); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The game still decides everything on a card; only the text and the choosing are new. An option that uses an item or calls on a saint lists, under it, who can. Off: the game draws its cards itself (with the crisp text over them)."); ImGui::Unindent(UIS(34)); }
-    { bool ns = barterview_is_on() != 0;
-      if (ImGui::Checkbox("Shops drawn by Darklands+: all the wares and all your things in two lists, Buy and Sell on each, what is in use marked", &ns)) { barterview_set(ns); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The merchant's stock and prices are the game's own. The bottom of the screen describes whatever the pointer is on (no tooltips over the lists). Off: the game's own shop screen."); ImGui::Unindent(UIS(34)); }
-    { bool sv = sheetview_is_on() != 0;
-      if (ImGui::Checkbox("Character sheets drawn by Darklands+: the paper doll, the things with Ready, Unequip, Drink and Drop, the skills on one page, the party's saints and formulae", &sv)) { sheetview_set(sv); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Drag a thing onto a member in the party panel to give it (Shift: one of a stack); a drop can be undone while the sheet is open. Equipping, giving, dropping and drinking are the game's own. Off: the game's own sheet.");
-      if (sv) { bool sp = config_get_int("inventory.shared", 1) != 0;
-        if (ImGui::Checkbox("One pack for the whole party: a member keeps only what they use; Ready or Drink takes from the party's pack, shops sell from it", &sp)) { config_set_int("inventory.shared", sp); ui_dirty_config = 1; }
-        ui_hint("Who carries a spare thing no longer matters (the pack weighs nothing; only what is in use counts for the load). Potions stay each member's own. Where the game asks one member for a thing, it is handed to them first: lock picks at a lock, a horse or mule to whoever has none (each rides their best), arrows, quarrels and balls before a battle. Keep marks a thing never to be sold or dropped."); }
-      ImGui::Unindent(UIS(34)); }
-    { bool lv = lootview_is_on() != 0;
-      if (ImGui::Checkbox("The loot drawn by Darklands+: the whole pile and each member's things in two lists, a whole stack in one click", &lv)) { lootview_set(lv); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The game's own G and P still move every thing. Off: the game's own loot screen.");
-      if (lv) { bool lw = config_get_int("assist.loot_worth", 1) != 0;
-        if (ImGui::Checkbox("Under the lists: about what a shop pays for the thing under the pointer", &lw)) { config_set_int("assist.loot_worth", lw); ui_dirty_config = 1; } }
-      ImGui::Unindent(UIS(34)); }
-    { bool av = alchemyview_is_on() != 0;
-      if (ImGui::Checkbox("Alchemy drawn by Darklands+: every known formula in one list, its ingredients at hand, batches with - and +, the chance of success", &av)) { alchemyview_set(av); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The chance and the mixing are the game's own. Off: the game's own alchemy screen."); ImGui::Unindent(UIS(34));
-      if (av) {
-        ImGui::Indent(UIS(34));
-        bool ws = config_get_int("assist.where_sold", 1) != 0;
-        if (ImGui::Checkbox("Beside an ingredient that runs short: the nearest town seen selling it", &ws)) { config_set_int("assist.where_sold", ws); ui_dirty_config = 1; }
-        if (ws) { bool wu = config_get_int("assist.where_sold_unvisited", 1) != 0;
-          ImGui::Indent();
-          if (ImGui::Checkbox("or, if none, the nearest town whose shops will have it", &wu)) { config_set_int("assist.where_sold_unvisited", wu); ui_dirty_config = 1; }
-          ImGui::Unindent(); }
-        ImGui::Unindent(UIS(34));
-      } }
-    { bool bl = assist_best_leader != 0;
-      if (ImGui::Checkbox("The member best at it speaks for the party: a card's test of the leader is made by whoever does best, and the best charisma bargains in shops", &bl)) { assist_set_best_leader(bl); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("No more changing the leader for each talk, lore or haggle; the chance shown on the card is that member's and their name is beside it. The leader you chose is back after the card."); ImGui::Unindent(UIS(34)); }
-    bool ch = assist_card_help;
-    if (ImGui::Checkbox("Show which saints and items work on a card, and who knows or carries them", &ch)) { assist_set_card_help(ch); ui_dirty_config = 1; }
-    ImGui::Indent(UIS(34)); ui_hint("Like the Darklands Companion: the saints a card accepts are listed even when nobody in the party knows them yet."); ImGui::Unindent(UIS(34));
-    { extern int ui_shop_info; bool si = ui_shop_info != 0;
-      if (ImGui::Checkbox("Tooltips: what the item, saint or formula under the mouse is good for (shops, loot, character sheet, saints, formulae)", &si)) { ui_shop_info = si; config_set_int("assist.shop_info", si); ui_dirty_config = 1; } }
-    { bool rt = config_get_int("assist.return_thrown", 1) != 0;
-      if (ImGui::Checkbox("After a battle, javelins, throwing axes, knives and darts go back to whoever threw them", &rt)) { config_set_int("assist.return_thrown", rt); loot_return_thrown = rt; ui_dirty_config = 1; } }
-    { bool ia = ammo_infinite != 0;
-      if (ImGui::Checkbox("Arrows, quarrels and balls never run out (one in the pack is enough to shoot)", &ia)) { ammo_set(ia); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("The party's shots take nothing from the pack and leave nothing to pick up after the battle. Enemies still shoot and lose theirs. Off: each shot uses one, and the game leaves 7 in 10 arrows and quarrels to be found in the loot."); ImGui::Unindent(UIS(34)); }
-    { bool it = thrown_infinite != 0;
-      if (ImGui::Checkbox("Javelins, throwing axes, throwing knives and darts never run out either (one in the pack is enough to throw)", &it)) { thrown_set(it); ui_dirty_config = 1; } }
-    { bool la = config_get_int("assist.loot_all", 1) != 0;
-      if (ImGui::Checkbox("Loot and shops: take the whole pile (A) or share it out (S); sell a whole stack (A), buy ten (T)", &la)) { config_set_int("assist.loot_all", la); ui_dirty_config = 1; } }
-    { extern int ui_creation_guide; bool cg = ui_creation_guide != 0;
-      if (ImGui::Checkbox("Character creation: a short guide to each step in the empty column on the left", &cg)) { ui_creation_guide = cg; config_set_int("assist.creation_guide", cg); ui_dirty_config = 1; } }
-    { bool mf = config_get_int("party.more_figures", 1) != 0;
-      if (ImGui::Checkbox("Character creation: Select Character Image also offers the enemies' human figures (sergeant, monk, knight, Templar ... 14 more)", &mf)) { config_set_int("party.more_figures", mf); ui_dirty_config = 1; }
-      ImGui::Indent(UIS(34)); ui_hint("Their own walking, fighting and dying animations, with colours of their own for the 1st/2nd/3rd color keys. A figure without an animation for the weapon in hand swings the nearest one it has. Saves keep the figure; the original game cannot show these figures."); ImGui::Unindent(UIS(34));
-      if (mf) { ImGui::Indent(UIS(34)); bool fp = config_get_int("party.figure_picker", 1) != 0;
-        if (ImGui::Checkbox("Select Character Image shows them all at once to pick from (else it steps to the next, as in the original)", &fp)) { config_set_int("party.figure_picker", fp); ui_dirty_config = 1; }
-        ImGui::Unindent(UIS(34)); } }
-    { bool ff = config_get_int("assist.fast_fades", 1) != 0;
-      if (ImGui::Checkbox("Cards show their options at once (no slow fade-in)", &ff)) { config_set_int("assist.fast_fades", ff); ui_dirty_config = 1; } }
-    bool ck = assist_card_keys;
-    if (ImGui::Checkbox("Number keys 1-9 pick a card's options", &ck)) { assist_set_card_keys(ck); ui_dirty_config = 1; }
-    { bool wl = config_get_int("assist.wheel_lists", 1) != 0;
-      if (ImGui::Checkbox("The mouse wheel moves in the game's lists (equipment, shops ...)", &wl)) { config_set_int("assist.wheel_lists", wl); ui_dirty_config = 1; } }
-    { bool gp = config_get_int("input.gamepad", 1) != 0;
-      if (ImGui::Checkbox("Game controller: the left stick moves the pointer, A clicks, B right-clicks (F1 lists the rest)", &gp)) { config_set_int("input.gamepad", gp); ui_dirty_config = 1; }
-      ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now."); }
-    { bool mc = config_get_int("assist.menu_click", 1) != 0;
-      if (ImGui::Checkbox("A right click opens the menu bar (the next click chooses; Esc closes it)", &mc)) { config_set_int("assist.menu_click", mc); ui_dirty_config = 1; }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("The game shows its menus only while the right button is held down, and takes the entry under the pointer when\nit is let go. That still works; this adds the click. F10 opens the menus from the keyboard (arrows, Enter, Esc)."); }
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Battles"); ImGui::PopFont();
-    { bool d = autopause_down, h = autopause_hurt;
-      if (ImGui::Checkbox("Pause the battle when someone in the party falls", &d)) { autopause_set(d, h); ui_dirty_config = 1; }
-      if (ImGui::Checkbox("Pause the battle when someone is badly hurt (endurance below a quarter)", &h)) { autopause_set(d, h); ui_dirty_config = 1; }
-      bool fo = autopause_foes != 0;
-      if (ImGui::Checkbox("Pause the battle when foes waiting in a castle, dungeon or mine come out to fight", &fo)) { autopause_set_foes(fo); ui_dirty_config = 1; } }
-    { extern int ui_battle_info, ui_battle_numbers; bool bi = ui_battle_info != 0, bn = ui_battle_numbers != 0;
-    { bool ca = orders_click_attack;
-      if (ImGui::Checkbox("In a battle, a click on an enemy sends the selected member at it (Std Attack), even before an attack is chosen", &ca)) { orders_click_attack = ca; config_set_int("battle.click_attack", ca); ui_dirty_config = 1; }
-      { bool sp = battlescroll_on != 0, sr = battlescroll_rest != 0;
-        if (ImGui::Checkbox("Battle map: scroll at a steady pace (Shift at the edge no longer flies to the end of the field)", &sp)) { battlescroll_set(sp, sr); ui_dirty_config = 1; }
-        if (sp) { ImGui::Indent(); if (ImGui::Checkbox("the pointer resting on the edge scrolls, no Shift needed", &sr)) { battlescroll_set(sp, sr); ui_dirty_config = 1; } ImGui::Unindent(); } } }
-      if (ImGui::Checkbox("Pointing at someone in a battle shows who it is, how hurt, attack, defence and weapon", &bi)) { ui_battle_info = bi; config_set_int("battle.info", bi); ui_dirty_config = 1; }
-      if (bi) { ImGui::Indent(); if (ImGui::Checkbox("enemies' endurance as numbers", &bn)) { ui_battle_numbers = bn; config_set_int("battle.info_numbers", bn); ui_dirty_config = 1; } ImGui::Unindent(); }
-      { extern int ui_battle_bars; bool bb = ui_battle_bars != 0;
-        if (ImGui::Checkbox("A bar over each fighter: the endurance left (and the strength once it is down by half)", &bb)) { ui_battle_bars = bb; config_set_int("battle.bars", bb); ui_dirty_config = 1; } }
-      { extern int ui_battle_log; bool bl = ui_battle_log != 0;
-        if (ImGui::Checkbox("Battle log: every blow, parry, wound and fall, in the left margin on a wide screen, else over the field (F12 > Journal keeps it)", &bl)) { ui_battle_log = bl; config_set_int("battle.log", bl); ui_dirty_config = 1; } }
-    }
-    { bool lm = config_get_int("assist.level_map", 1) != 0, la = config_get_int("assist.level_map_all", 0) != 0;
-      if (ImGui::Checkbox("Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it", &lm)) { config_set_int("assist.level_map", lm); ui_dirty_config = 1; }
-      if (lm) { ImGui::Indent(); if (ImGui::Checkbox("the whole level, not only what the party has seen", &la)) { config_set_int("assist.level_map_all", la); ui_dirty_config = 1; }
-                bool lw = config_get_int("assist.level_map_walk", 1) != 0; if (ImGui::Checkbox("a click on it walks the party there", &lw)) { config_set_int("assist.level_map_walk", lw); ui_dirty_config = 1; } ImGui::Unindent(); } }
-    { bool sp = config_get_int("battle.shoot_past_allies", 0) != 0;
-      if (ImGui::Checkbox("The party's archers, crossbowmen and gunners shoot past their own fighters (no waiting while a friend stands in the line)", &sp)) { config_set_int("battle.shoot_past_allies", sp); ui_dirty_config = 1; }
-      ui_hint("A missile never strikes anyone but its target in Darklands (a miss flies past everyone), yet the game makes a shooter wait ('b' on the panel) while anyone stands in the line of fire, unless the shooter's skill is 90 or more. Enemies in the line still block.");
-    }
-    { bool rs = config_get_int("battle.reposition_shooters", 0) != 0;
-      if (ImGui::Checkbox("Experimental: a shooter without a clear line steps aside or walks on to find one, instead of waiting; any foe can be chosen", &rs)) { config_set_int("battle.reposition_shooters", rs); ui_dirty_config = 1; }
-      ui_hint("When something stands in the line of fire (a friend, a foe, a wall's corner), the archer, crossbowman or gunner walks to the nearest spot a few paces away from which the line to the target is clear, and shoots from there. Any foe can be chosen as the target (the game refused one with no clear line, with a barred circle and a beep); with no spot near, the shooter walks towards it until a line opens. A member told to hold stays put; any other order you give takes over.");
-    }
-    { bool fl = config_get_int("battle.foes_left", 1) != 0;
-      if (ImGui::Checkbox("Under the enemies: the foes a castle, dungeon or mine still holds, not yet met, floor by floor", &fl)) { config_set_int("battle.foes_left", fl); ui_dirty_config = 1; }
-      ui_hint("The defenders of a place wait in groups at their posts and step out when a member sees them. A castle's or dungeon's battle ends when its master has fallen and his fight is over, or when the party walks out (and flees): the margin marks the master, or names the floor where he waits.");
-    }
-    { bool ew = config_get_int("battle.end_words", 1) != 0;
-      if (ImGui::Checkbox("The end of a battle said in words (\"Victory! The battle is won.\") for three seconds", &ew)) { config_set_int("battle.end_words", ew); ui_dirty_config = 1; }
-      ui_hint("The game closes a battle with a box saying \"BattleResults - victory\" and holds the field still for about eight seconds, as if it had hung.");
-    }
-    bool pp = pathfix_party, pe = pathfix_enemies;
-    if (ImGui::Checkbox("Better pathfinding for the party (no more getting stuck in mines)", &pp)) { pathfix_set(pp, pe); ui_dirty_config = 1; }
-    if (ImGui::Checkbox("Better pathfinding for enemies too (harder battles)", &pe)) { pathfix_set(pp, pe); ui_dirty_config = 1; }
-    ui_hint("Moves are planned around walls and furniture with a full route search instead of the "
-                        "original wall-following, which gives up on long or winding routes.");
-    {
-        ImGui::TextUnformatted("Speed of battles and dungeons:"); ImGui::SameLine();
-        static const int SPD[4] = { 100, 150, 200, 300 }; static const char *SPN[4] = { "as the original", "1.5x", "2x", "3x" };
-        for (int i = 0; i < 4; i++) {
-            if (i) ImGui::SameLine();
-            if (ImGui::RadioButton(SPN[i], battle_speed == SPD[i])) { battle_speed_set(SPD[i]); ui_dirty_config = 1; }
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    ImFont *fr = ImGui::GetFont(), *fb = ui_font_bold ? ui_font_bold : fr;
+    float fs = ImGui::GetFontSize(), w = ImGui::GetContentRegionAvail().x, ls = ImGui::GetTextLineHeight() + UIS(1);   /* (as TextWrapped's lines) */
+    ImVec2 p0 = ImGui::GetCursorScreenPos();
+    ImU32 ink = ImGui::GetColorU32(dim ? ImGuiCol_TextDisabled : ImGuiCol_Text);
+    ImU32 grey = ImGui::GetColorU32(ImGuiCol_TextDisabled, dim ? 0.75f : 1.0f);
+    float x = 0, y = 0;
+    auto words = [&](const char *s, ImFont *f, ImU32 col) {
+        float sp = f->CalcTextSizeA(fs, FLT_MAX, 0, " ").x;
+        while (*s) {
+            while (*s == ' ') s++;
+            const char *e = s; while (*e && *e != ' ') e++;
+            if (e == s) break;
+            float wd = f->CalcTextSizeA(fs, FLT_MAX, 0, s, e).x;
+            if (x > 0 && x + wd > w) { x = 0; y += ls; }
+            dl->AddText(f, fs, ImVec2(p0.x + x, p0.y + y), col, s, e);
+            x += wd + sp; s = e;
         }
-        ui_hint("Walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.");
-        bool fk = config_get_int("battle.fast_key", 1) != 0;
-        if (ImGui::Checkbox("Z in a battle: fast forward (six times the pace), Z again back to this speed", &fk)) { config_set_int("battle.fast_key", fk); if (!fk) battle_fast_set(0); ui_dirty_config = 1; }
+    };
+    std::string t = std::string(title) + (desc && desc[0] ? ":" : "");
+    words(t.c_str(), fb, ink);
+    if (desc) words(desc, fr, grey);
+    ImGui::SetCursorScreenPos(p0);
+    bool clicked = ImGui::InvisibleButton(id, ImVec2(w > 1 ? w : 1, y + ImGui::GetTextLineHeight()));
+    if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    return clicked;
+}
+
+static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
+static void option_row(const Option *o, int depth);
+static void option_children(const Option *o, int depth)
+{
+    int n = options_count();
+    for (int i = 0; i < n; i++) { const Option *c = options_get(i); if (c->parent && !strcmp(c->parent, o->key)) option_row(c, depth); }
+}
+/* a switch: the box, its words; a choice: its words, then the choices in a row (or a list); then
+   what it means for saved games, then the switches that belong to it while it is on */
+static void option_row(const Option *o, int depth)
+{
+    ImGui::PushID(o->key);
+    float ind = depth * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x);
+    if (ind > 0) ImGui::Indent(ind);
+    int v = option_value(o);
+    if (!o->choices) {
+        bool on = v != 0;
+        if (ImGui::Checkbox("##o", &on)) opt_set(o, on);
+        ImGui::SameLine();
+        if (ui_title_desc(o->title, o->desc)) opt_set(o, option_value(o) ? 0 : 1);
+    } else {
+        ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())); ImGui::SameLine();
+        ui_title_desc(o->title, o->desc);
+        ImGui::Indent(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x);
+        int nc = option_nchoices(o), sel = -1;
+        for (int k = 0; k < nc; k++) if (o->vals[k] == v) sel = k;
+        char lab[96];
+        if (o->flags & OF_COMBO) {
+            float wmax = 0; for (int k = 0; k < nc; k++) wmax = fmaxf(wmax, ImGui::CalcTextSize(option_choice(o, k, lab, sizeof lab)).x);
+            ImGui::SetNextItemWidth(wmax + ImGui::GetFrameHeight() + UIS(24));
+            if (ImGui::BeginCombo("##c", sel >= 0 ? option_choice(o, sel, lab, sizeof lab) : "")) {
+                for (int k = 0; k < nc; k++) if (ImGui::Selectable(option_choice(o, k, lab, sizeof lab), k == sel)) opt_set(o, o->vals[k]);
+                ImGui::EndCombo();
+            }
+        } else {
+            float right = ImGui::GetContentRegionMax().x;
+            for (int k = 0; k < nc; k++) {
+                option_choice(o, k, lab, sizeof lab);
+                float bw = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize(lab).x;
+                if (k) { ImGui::SameLine(); if (ImGui::GetCursorPosX() + bw > right) ImGui::NewLine(); }
+                ImGui::PushID(k);
+                if (ImGui::RadioButton(lab, k == sel)) opt_set(o, o->vals[k]);
+                ImGui::PopID();
+            }
+        }
+        ImGui::Unindent(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x);
     }
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Travel"); ImGui::PopFont();
-    bool ta = travel_enabled; int tf = travel_fast;
-    if (ImGui::Checkbox("Auto-travel along roads (Travel tab, or Ctrl+click on the map)", &ta)) { travel_set(ta, tf); ui_dirty_config = 1; }
-    bool cg = config_get_int("assist.city_goto", 1);
-    if (ImGui::Checkbox("Go to in cities: G on a city's card lists its places; the party walks there through the menus", &cg)) { config_set_int("assist.city_goto", cg); ui_dirty_config = 1; }
-    { bool mn = config_get_int("map.names", 1) != 0;
-      if (ImGui::Checkbox("Names of the towns and places on the travel map", &mn)) { config_set_int("map.names", mn); ui_dirty_config = 1; } }
-    { bool qm = config_get_int("map.quest_marks", 1) != 0;
-      if (ImGui::Checkbox("The quests' pictures above their places on the travel map, and a sign beside a town that bars the party or whose watch wants it", &qm)) { config_set_int("map.quest_marks", qm); ui_dirty_config = 1; } }
-    {   /* the game's rate of encounters on the road (mods/travel.c) */
-        static const int P[] = { 25, 50, 100, 200 };
-        static const char *N[] = { "rare (a quarter)", "fewer (half)", "as the game", "more (double)" };
-        int cur = config_get_int("travel.encounters", 100), sel = 2;
-        for (int i = 0; i < 4; i++) if (P[i] == cur) sel = i;
-        ImGui::SetNextItemWidth(UIS(200));
-        if (ImGui::Combo("encounters on the road", &sel, N, 4)) { config_set_int("travel.encounters", P[sel]); ui_dirty_config = 1; }
-        int cs = config_get_int("travel.street_encounters", 100), ss = 2;
-        for (int i = 0; i < 4; i++) if (P[i] == cs) ss = i;
-        ImGui::SetNextItemWidth(UIS(200));
-        if (ImGui::Combo("thieves and the watch in town streets at night", &ss, N, 4)) { config_set_int("travel.street_encounters", P[ss]); ui_dirty_config = 1; }
-        ui_hint("At night the side streets bring cutthroats about 8 times in 10 for a party with little Stealth and Streetwise, and the main street the watch now and then; \"rare\" makes both a quarter as likely.");
+    float ti = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x;
+    if (o->note) {
+        ImGui::Indent(ti);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.62f, 0.32f, 0.08f, 1));
+        ImGui::TextWrapped("%s", o->note);
+        ImGui::PopStyleColor();
+        ImGui::Unindent(ti);
     }
-    ImGui::TextUnformatted("Pace of auto-travel:"); ImGui::SameLine();
-    if (ImGui::RadioButton("as walking", tf == 0)) { travel_set(ta, 0); ui_dirty_config = 1; } ImGui::SameLine();
-    if (ImGui::RadioButton("4x", tf == 1)) { travel_set(ta, 1); ui_dirty_config = 1; } ImGui::SameLine();
-    if (ImGui::RadioButton("at once", tf == 2)) { travel_set(ta, 2); ui_dirty_config = 1; }
+    if (!strcmp(o->key, "input.gamepad")) { ImGui::Indent(ti); ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now."); ImGui::Unindent(ti); }
+    if (ind > 0) ImGui::Unindent(ind);
+    if (option_value(o)) option_children(o, depth + 1);
+    ImGui::Spacing();
+    ImGui::PopID();
+}
 
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Town journal"); ImGui::PopFont();
-    bool j = journal_enabled();
-    if (ImGui::Checkbox("Keep a journal of the towns the party visits", &j)) { journal_set(j); ui_dirty_config = 1; }
-    ui_hint("Each town's shops, their wares, qualities and prices, noted on arrival (Journal tab).");
-    if (j) {
-        bool ch = config_get_int("journal.chronicle", 1) != 0;
-        if (ImGui::Checkbox("Keep a chronicle of every text the cards show", &ch)) { config_set_int("journal.chronicle", ch); ui_dirty_config = 1; }
-        ui_hint("Word for word, with the date, the place and the choice made: a clue read weeks ago can be found again (Journal > Chronicle).");
-    }
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Editor"); ImGui::PopFont();
-    bool ed = config_get_int("editor.show", 0);
-    if (ImGui::Checkbox("Show the editing tools: the Editor tab (a character's numbers and things), and changing weapons, items and foes in F12 > Records for a mod", &ed)) { config_set_int("editor.show", ed); ui_dirty_config = 1; }
-    ui_hint("Change money, names, attributes, skills, saints, formulae, items, and a character's colours, shield and "
-         "figure, as the community's save-game editors do. For repairing characters hit by old bugs, or for cheating.");
-
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Fixes for bugs of the original"); ImGui::PopFont();
-    for (int i = 0; i < FIX_COUNT; i++) {
-        bool on = FIXES[i].on;
-        ImGui::PushID(i);
-        if (ImGui::Checkbox(FIXES[i].name, &on)) { fix_enable(i, on); ui_dirty_config = 1; }
-        ImGui::Indent(UIS(34)); ui_hint("%s", FIXES[i].desc); ImGui::Unindent(UIS(34));
+/* the presets, as switches are: a name in bold, what it is in grey; the one in force marked, or
+   "Custom" with the nearest and how many switches differ */
+static void presets_block(void)
+{
+    int cur = preset_current();
+    for (int p = 0; p < PRESET_COUNT; p++) {
+        ImGui::PushID(p);
+        if (ImGui::RadioButton("##p", cur == p)) { preset_apply(p); ui_dirty_config = 1; cur = preset_current(); }
+        ImGui::SameLine();
+        std::string nm = std::string(PRESETS[p].name) + (p == PRESET_PLUS ? " (recommended)" : "");
+        if (ui_title_desc(nm.c_str(), PRESETS[p].desc)) { preset_apply(p); ui_dirty_config = 1; cur = preset_current(); }
         ImGui::PopID();
     }
+    ImGui::PushID("custom");
+    bool kept = config_get_int("custom.saved", 0) != 0;
+    if (cur == PRESET_CUSTOM) {
+        int d = 0, near = preset_nearest(&d), shown = 0;
+        std::string t = std::string("your own choices: ") + PRESETS[near].name + ", but ";
+        int n = options_count();
+        for (int i = 0; i < n; i++) {                   /* (the switches that differ, by name: the first few) */
+            const Option *o = options_get(i); int pv = preset_value(o, near), v = option_value(o);
+            if (pv == PRESET_KEEP || v == pv) continue;
+            if (shown < 3) {
+                char lab[96]; std::string val = o->choices ? option_choice(o, 0, lab, sizeof lab) : (v ? "on" : "off");
+                if (o->choices) for (int k = 0; k < option_nchoices(o); k++) if (o->vals[k] == v) val = option_choice(o, k, lab, sizeof lab);
+                t += std::string(shown ? ", " : "") + o->title + " " + val;
+            }
+            shown++;
+        }
+        if (config_get_int("original", 0) && near != PRESET_BUGGY_PURIST) { t += shown ? ", " : ""; t += "the original game"; shown++; }
+        if (shown > 3) { char b[48]; snprintf(b, sizeof b, " and %d more", shown - 3); t += b; }
+        t += ".";
+        ImGui::RadioButton("##p", true); ImGui::SameLine(); ui_title_desc("Custom", t.c_str());
+    } else if (kept) {
+        bool c = false;
+        if (ImGui::RadioButton("##p", false)) c = true;
+        ImGui::SameLine();
+        if (ui_title_desc("Custom", "your own choices from before the preset, kept: click to have them back.") || c) { preset_restore_custom(); ui_dirty_config = 1; }
+    }
+    ImGui::PopID();
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+    ImGui::TextWrapped("Darklands+ saves in the game's own format: its saves load in the original (on DOS too), and the original's load here; "
+                       "what Darklands+ notes beside them (Sabbats learned, things kept, looks) is in files of its own. Switching presets "
+                       "or single switches at any time is safe.");
+    ImGui::PopStyleColor();
+    ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
+    ImGui::SameLine();
+    ImGui::TextWrapped("a member given one of the enemies' figures (Darklands+ and Easy offer them) loads only in Darklands+.");
+}
+
+void tab_helpers(void)
+{
+    /* the sections, from the switches' table: bookmarks at the left (a click opens the section and
+       brings it to the top), each section folding away under its heading; the bookmark of the
+       section at the top of the view is marked */
+    std::vector<const char *> sect; sect.push_back("Preset");
+    bool orig = ui_original_mode();
+    if (!orig) {
+        int n = options_count();
+        for (int i = 0; i < n; i++) {
+            const Option *o = options_get(i);
+            if (o->flags & OF_ELSEWHERE) continue;
+            bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
+            if (!seen) sect.push_back(o->section);
+        }
+    }
+    const int NSECT = (int)sect.size();
+    static int jump = -1, at_top = 0;
+    static bool fold_all = false;
+    ImGui::BeginChild("##hnav", ImVec2(UIS(210), 0), ImGuiChildFlags_Borders);
+    ImGui::TextDisabled("Sections");
+    for (int i = 0; i < NSECT; i++) {
+        const char *s = sect[i]; char lab[64];
+        snprintf(lab, sizeof lab, "%s", !strcmp(s, "Fixes for bugs of the original") ? "Fixes" : s);
+        if (ImGui::Selectable(lab, i == at_top)) jump = i;
+    }
+    ImGui::Spacing();
+    if (NSECT > 1 && ImGui::SmallButton("Fold all")) fold_all = true;
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("##hbody", ImVec2(0, 0));
+    int sec_i = 0, top_found = -1; float view_top = ImGui::GetWindowPos().y + UIS(30);   /* (a heading brought to the top counts as in view) */
+    auto section = [&](const char *name, bool foldable) -> bool {
+        int i = sec_i++;
+        ImGui::PushID(name);
+        if (jump == i) ImGui::SetNextItemOpen(true);
+        else if (fold_all && foldable) ImGui::SetNextItemOpen(false);
+        ImGui::PushFont(ui_font_head);
+        bool open = foldable ? ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen) : (ImGui::SeparatorText(name), true);
+        ImGui::PopFont();
+        if (jump == i) { ImGui::SetScrollHereY(0.0f); jump = -1; }
+        if (ImGui::GetItemRectMin().y <= view_top) top_found = i;       /* (the last heading above the top: the section in view) */
+        ImGui::PopID();
+        return open;
+    };
+    section("Preset", false);
+    presets_block();
+    if (orig) {
+        ImGui::Spacing();
+        ui_hint("Everything Darklands+ adds is off, and its switches with it: pick another preset to change single things.");
+    } else {
+        int n = options_count();
+        for (int k = 1; k < NSECT; k++) {
+            ImGui::Spacing();
+            if (!section(sect[k], true)) continue;
+            if (!strcmp(sect[k], "Easier rules")) ui_hint("Changes to the rules that make the game easier: the Easy preset takes the ones marked for it. A \"new game\" one takes effect when the next game starts.");
+            for (int i = 0; i < n; i++) {
+                const Option *o = options_get(i);
+                if ((o->flags & OF_ELSEWHERE) || o->parent || strcmp(o->section, sect[k])) continue;
+                option_row(o, 0);
+            }
+        }
+    }
+    at_top = top_found < 0 ? 0 : top_found;
+    fold_all = false;
+    ImGui::EndChild();
 }
 
 extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }

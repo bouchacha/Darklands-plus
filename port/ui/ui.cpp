@@ -18,6 +18,7 @@
 #include "townicons.h"
 
 extern "C" {
+#include "../mods/options.h"
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/config.h"
@@ -170,7 +171,7 @@ extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
 extern "C" int journal_enabled(void);
 SDL_Window *ui_window;
-ImFont *ui_font_head;
+ImFont *ui_font_head, *ui_font_bold;
 int ui_dirty_config;
 UiSettings ui_settings = { 1, 0, 0 };
 
@@ -212,6 +213,26 @@ static void style(void)
     c[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.45f);
 }
 
+/* what the interface keeps of the switches (mods/options.h), read again after one changes (key) or a
+   preset is applied (all of them; key 0 at the start) */
+extern "C" void partypanel_init(void);
+extern "C" void journal_set(int on);
+static void ui_options_reload(const char *key, int v)
+{
+    (void)v;
+    bool all = !key || !strcmp(key, "preset");
+    auto is = [&](const char *k) { return all || !strcmp(key, k); };
+    { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
+    { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
+    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
+    { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
+    { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
+    if (key && (is("display.native_panel") || is("display.panel_picture"))) partypanel_init();
+    if (key && is("journal.enabled")) journal_set(config_get_int("journal.enabled", 1));
+    if (key && (is("display.full_names") || is("display.armour_worn")) && gamedata.loaded) gamedata_names();
+    if (key) ui_dirty_config = 1;
+}
+
 extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
 {
     ui_window = win;
@@ -240,6 +261,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(24.0f), &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(32.0f), &fc);
     ui_font_head = font_head;
+    ui_font_bold = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(24.0f), &fc);   /* (the body's size: a switch's title) */
     font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(20.0f), &fc);
     font_tab_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(16.5f), &fc);   /* the tabs in a narrow window */
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(17.0f), &fc);
@@ -280,14 +302,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_text_edge = config_get_int("display.text_edge", 2);
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
-    { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
-    { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
-    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
-    { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
+    ui_options_reload(0, 0);
+    options_set_listener(ui_options_reload);
     ui_spell_out = config_get_int("display.spell_out", 1);
     ui_sys_cursor = config_get_int("display.system_cursor", 0);
     idle_rest = config_get_int("display.idle_rest", 1);
-    { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
@@ -473,7 +492,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers > Play the original game).");
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers: the Buggy Purist preset is the game as it was).");
     ImGui::Spacing();
     ImGui::TextWrapped("F1: the keys of the moment.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
@@ -528,9 +547,26 @@ static void welcome_window(void)
             ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
                                "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Darklands+ adds what players have long wished for: crisp text, chances of success on the cards, "
-                           "a party and inventory screen, a journal of quests and towns, a world map, a battle log, quick saves "
-                           "and fixes for old bugs. Each of them can be switched off.");
+        ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a party screen, "
+                           "journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
+        bool done = false;
+        {   /* how much of Darklands+: the presets (mods/options.h), the recommended one chosen */
+            ImGui::PushFont(font_head); ImGui::SeparatorText("How would you like to play?"); ImGui::PopFont();
+            static int pick = -1;
+            if (pick < 0) { pick = preset_current(); if (pick < 0) pick = PRESET_PLUS; }
+            for (int p = 0; p < PRESET_COUNT; p++) {
+                ImGui::PushID(p);
+                std::string nm = std::string(PRESETS[p].name) + (p == PRESET_PLUS ? " (recommended)" : "");
+                if (ImGui::RadioButton("##p", pick == p)) pick = p;
+                ImGui::SameLine();
+                if (ui_title_desc(nm.c_str(), PRESETS[p].desc)) pick = p;
+                ImGui::PopID();
+            }
+            ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game whichever you choose.");
+            ImGui::TextDisabled("Change it at any time, or switch single things: F12 > Settings > Helpers.");
+            ImGui::Spacing();
+            if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
+        }
         ImGui::Spacing();
         ImGui::PushFont(font_head); ImGui::SeparatorText("Keys"); ImGui::PopFont();
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
@@ -538,15 +574,7 @@ static void welcome_window(void)
         ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
         ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
         ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-        bool done = false;
-        if (ImGui::Button("Play with Darklands+")) done = true;
-        ImGui::SameLine();
-        if (ImGui::Button("Play the original game")) { ui_set_original(true); done = true; }
-        ImGui::TextDisabled("Either can be changed at any time: F12 > Settings > Helpers > Play the original game.");
-        if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
     }
     ImGui::End();
