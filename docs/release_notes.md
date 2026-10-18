@@ -16,7 +16,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Quests at a glance:** a short title, the days left and a picture of its kind for each, in the margin, the journal and on the maps. A witches' Sabbat the party hears of becomes a task, its place marked.
 - **Where to learn a saint and buy a formula:** each library and alchemist has fixed lists for the whole game, and Darklands+ names the nearest one for each the party lacks. Under a town's name: what it has that most towns lack, and its notable shops.
 - **Cards** say why an option is greyed (about 280 reasons) and mark the options that start a fight.
-- **Battles:** **Z** fast-forwards; a shooter can be sent at any foe (blocked, they step aside or walk on until the line is clear); orders as buttons in the margin; a bar over every fighter; and "Victory! The battle is won." at the end instead of eight seconds of a still field.
+- **Battles:** **Z** fast-forwards; a shooter can be sent at any foe (blocked, they step aside or walk on until the line is clear); orders as buttons in the margin, and each member's order in words on the party panel; a bar over every fighter; and "Victory! The battle is won." at the end instead of eight seconds of a still field.
 - **Castles, dungeons and mines** show the foes still waiting there, floor by floor, and mark the master of the place, whose fall wins it, or name the floor where he waits.
 - **Shops and loot** set a weapon or an armour against what the party has; an ingredient shows the potions it goes into.
 - **Arrows, quarrels and balls never run out**, and thrown weapons come back after a battle.
