@@ -139,6 +139,8 @@ Fix FIXES[] = {
       "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step).", 1 },
     { "patronsaint", "Asking a cathedral about its patron saint teaches the saint",
       "The answer was meant to teach the leader the saint, but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
+    { "debtnote", "Debt notes are where the merchant says",
+      "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -732,6 +734,39 @@ static void patron_hook(void)
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- debtnote
+ * A merchant's errand for papers in a town (kind 8, tag 10; s039 1462:1712, type0 6, 9, 10, 11) is
+ * done at night: the town's marketplace ($Marke01), the offices upstairs ($Insid00, s108 1925): the
+ * leading merchant's, the Fugger's, the Medici's, the Hanse's (D_eeb4 0, 2, 1, 3 as chosen). The
+ * papers are found when the event's +0x2a % 4 is the office (s108 1925:0438). The giver ($McGuf12,
+ * s128 18f7) names the holder by the same +0x2a % 4 (goods merchant, Medici, Fugger, Hanse), but for
+ * debt notes (type0 10) by +0x2a % 2 (Medici, Fugger): the office named never held them. Here the
+ * office named holds them for the moment of the search (and no other does); +0x2a is put back. */
+#define D_OFFICE 0xeeb4
+static int papers_event(int loc, u16 *seg, u16 *off)
+{
+    for (int i = 0; i < 300; i++) {
+        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), sg = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
+        if (!sg) continue;
+        if ((s16)rw(sg, (u16)(o + 0x22)) == 8 && (s16)rw(sg, (u16)(o + 0x1c)) == loc && (s16)rw(sg, (u16)(o + 0x28)) == 10) { *seg = sg; *off = o; return i; }
+    }
+    return -1;
+}
+int fixes_debt_note_office(int aux) { return (aux % 2 == 0) ? 1 : 2; }     /* the office the giver names (Medici 1, Fugger 2) */
+static void debtnote_hook(void)            /* the lock is open: search the office chosen */
+{
+    u16 sg, o;
+    int loc = (s16)g_rw(G_CUR_LOC), i = papers_event(loc, &sg, &o);
+    if (i < 0 || (s16)rw(sg, o) != 10) { hook_call_original(); return; }
+    int aux = (s16)rw(sg, (u16)(o + 0x2a)), named = fixes_debt_note_office(aux), office = g_rb(D_OFFICE);
+    int want = aux - aux % 4 + named;                        /* (the same +0x2a but for the office) */
+    ww(sg, (u16)(o + 0x2a), (u16)want);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix debtnote: office %d searched, the notes in office %d (game: %d)\n", office, named, aux % 4);
+    hook_call_original();
+    u16 s2 = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)), o2 = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i));
+    if (s2 == sg && o2 == o && (s16)rw(sg, (u16)(o + 0x2a)) == want) ww(sg, (u16)(o + 0x2a), (u16)aux);   /* (still the same errand: as it was) */
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -739,7 +774,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
-    { GF_set_member_bit, patron_hook } };
+    { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },

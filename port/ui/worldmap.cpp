@@ -483,7 +483,7 @@ extern "C" void worldmap_draw(void)
 
     // panel: search, layers, the selected place
     ImGui::SetNextWindowPos(ImVec2(o.x + 14, o.y + 14));
-    ImGui::SetNextWindowBgAlpha(0.88f);
+    ImGui::SetNextWindowBgAlpha(0.97f);                    /* (the map must not show through the words) */
     ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");

@@ -23,6 +23,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../runtime/hooks.h"
 #include "../mods/travel.h"
+#include "../mods/fixes.h"
 void ui_toggle(void);
 }
 
@@ -177,6 +178,17 @@ static int fetch_cat(const Ev &e)
     return e.loc >= 0 && e.loc < (int)gamedata.cities.size() ? QC_PAPERS : QC_RETRIEVE;
 }
 
+/* who holds papers to be got in a town, as the giver says ($McGuf12, s128 18f7: by the event's
+   +0x2a, % 2 for debt notes, % 4 for the rest); they are kept in that one's office above the town's
+   marketplace, reached at night ($Marke01, then $Insid00: mods/fixes.c, debtnote) */
+static std::string papers_holder(const Ev &e)
+{
+    static const char *OFFICE[4] = { "the leading merchant", "the Medici", "the Fugger", "the Hanseatic League" };
+    int aux = e.aux < 0 ? 0 : e.aux;
+    int k = e.type0 == 10 ? (fix_is_on("debtnote") ? fixes_debt_note_office(aux) : aux % 4) : aux % 4;
+    return OFFICE[k & 3];
+}
+
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
 
 static long when_key(const int d[4]) { return (((long)d[3] * 12 + d[2]) * 31 + d[1]) * 24 + d[0]; }   /* (year, month, day, hour) in order */
@@ -275,6 +287,10 @@ static std::vector<Line> build_lines(void)
                 + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3)
             add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
+        else if (e.kind == 8 && e.tag == 10 && fetch_cat(e) == QC_PAPERS && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
+            add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
+                + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can steal up to them.",
+                limit ? "by " + date(e.end) : "", 0, e.loc, limit, QC_PAPERS);
         else if (e.kind == 8 && e.tag == 10)
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e));
