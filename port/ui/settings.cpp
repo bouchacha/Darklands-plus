@@ -598,9 +598,11 @@ void tab_display(void)
         if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
         if (mt32_families() == 3) {                /* both: which one */
             const char *cur = config_get("sound.mt32_model", "mt32");
-            ImGui::TextUnformatted("Both found, play on the");
-            ImGui::SameLine(); if (ImGui::RadioButton("CM-32L / LAPC-I (its extra sound effects turn the battle sounds into chimes)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-            ImGui::SameLine(); if (ImGui::RadioButton("MT-32 (recommended: battle sounds as blows and grunts)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            ImGui::TextUnformatted("Both found; play on the:");
+            ImGui::Indent();
+            if (ImGui::RadioButton("MT-32 (recommended: battle sounds as blows and grunts)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            if (ImGui::RadioButton("CM-32L / LAPC-I (its extra sound effects turn the battle sounds into chimes)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            ImGui::Unindent();
         }
         {   bool lcd = config_get_int("sound.mt32_lcd", 1);
             if (ImGui::Checkbox("Show the synthesizer's display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
