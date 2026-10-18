@@ -95,12 +95,13 @@ extern "C" void tab_saves(void)
         std::string party;
         for (int m = 0; m < s.nmembers; m++) { if (m) party += ", "; party += game_text(s.members[m], sizeof s.members[m]); }
         ImGui::TextWrapped("%s", party.c_str());
-        ImGui::TextDisabled("%d florins, fame %d", s.florins, s.fame);
+        ImGui::TextDisabled("%d florin%s, fame %d", s.florins, s.florins == 1 ? "" : "s", s.fame);
         ImGui::TableNextColumn();
         ImGui::TextWrapped("%s", game_text(s.comment, sizeof s.comment).c_str());
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(when(s.mtime).c_str());
-        ImGui::TextDisabled("%s%s", s.file, !strcasecmp(cur, s.file) ? "  (this game)" : "");
+        if (!strcasecmp(cur, s.file)) ImGui::TextDisabled("the game now");   /* (its file name says nothing more) */
+        else ImGui::TextDisabled("%s", s.file);
         ImGui::TableNextColumn();
         if (in_game) {
             if (ImGui::Button("Load")) { if (saves_load(s.file)) ui_toggle(); }
