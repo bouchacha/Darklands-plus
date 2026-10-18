@@ -1,5 +1,5 @@
 /* fixes.c - fixes for bugs that are still in the last official version (483.07). Each can
- * be switched off (F12 > Helpers > Fixes); "play the original" switches them all off.
+ * be switched off (F12 > Settings > Helpers > Fixes); "play the original" switches them all off.
  *
  *  blessing  Saint blessings (and potions) that raise an attribute record how much they
  *            added before the attribute is capped (raise_attr_temp, s029 0e76:4c04: the cap

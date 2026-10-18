@@ -13,6 +13,7 @@
 #include "gamedata.h"
 #include "quests.h"
 #include "uiinternal.h"
+#include "uitabs.h"
 
 extern "C" {
 #include "../runtime/cpu.h"
@@ -54,10 +55,14 @@ extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; ope
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);
 void worldmap_set_renderer(SDL_Renderer *r);
-static int want_tab = -1;
+static int want_tab = -1;                  /* a page (ui/uitabs.h) to show at the next frame */
 extern int ui_want_subtab;
-extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + tab */
+extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
 static ImFont *font_body, *font_head, *font_tab, *font_tab_small;
+/* tabs inside a page (the Journal's, Settings' ...): in the smaller face of the window's own
+   tabs, under them in the order of things; the page's text in the body face */
+bool ui_subtabs_begin(const char *id) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabBar(id); ImGui::PopFont(); return r; }
+bool ui_subtab(const char *label, bool select) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0); ImGui::PopFont(); return r; }
 extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
 extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
@@ -393,18 +398,18 @@ static void item_name(int id, char *out, int n)
 void rules_tab(void);
 static void tab_party(void)
 {
-    if (!ImGui::BeginTabBar("records")) return;
-    if (ImGui::BeginTabItem("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
-    if (ImGui::BeginTabItem("Items")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
-    if (ImGui::BeginTabItem("Enemies")) { void bestiary_tab(void); bestiary_tab(); ImGui::EndTabItem(); }
-    if (!ImGui::BeginTabItem("The party's items")) { ImGui::EndTabBar(); return; }
+    if (!ui_subtabs_begin("records")) return;
+    if (ui_subtab("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
+    if (ui_subtab("Items")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
+    if (ui_subtab("Enemies")) { void bestiary_tab(void); bestiary_tab(); ImGui::EndTabItem(); }
+    if (!ui_subtab("The party's items")) { ImGui::EndTabBar(); return; }
     ImGui::TextWrapped("The party's possessions, read live from the game.");
-    if (ImGui::BeginTabBar("members")) {
+    if (ui_subtabs_begin("members")) {
         for (int m = 0; m < 5; m++) {
             char name[32];
             g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_FULLNAME), name, sizeof name);
             if (!name[0]) continue;
-            if (ImGui::BeginTabItem(name)) {
+            if (ui_subtab(name)) {
                 int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
                 if (n > 64) n = 64;
                 if (ImGui::BeginTable("inv", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
@@ -447,7 +452,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (Helpers > Play the original game).");
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers > Play the original game).");
     ImGui::Spacing();
     ImGui::TextWrapped("F1: the keys of the moment.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
@@ -519,7 +524,7 @@ static void welcome_window(void)
         if (ImGui::Button("Play with Darklands+")) done = true;
         ImGui::SameLine();
         if (ImGui::Button("Play the original game")) { ui_set_original(true); done = true; }
-        ImGui::TextDisabled("Either can be changed at any time: F12 > Helpers > Play the original game.");
+        ImGui::TextDisabled("Either can be changed at any time: F12 > Settings > Helpers > Play the original game.");
         if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
     }
@@ -585,7 +590,7 @@ static void mt32_window(void)
             ImGui::SameLine();
             if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
         }
-        ImGui::TextDisabled("F12 > Display > Sound has all of this too.");
+        ImGui::TextDisabled("F12 > Settings > Display > Sound has all of this too.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_mt32 = false; config_save(); }
     }
@@ -656,7 +661,7 @@ static void help_window(void)
             row("Take / Put", "on the row under the pointer: the whole stack (1: just one)");
             row("Put away", "everything not in use but the kept things and the potions");
             if (cacheview_shared_pack()) row("Potions", "a potion taken goes to the member shown above the right list; the rest into the party's pack");
-            if (cacheview_every_inn()) row("The store", "the same at every inn (F12 > Helpers)");
+            if (cacheview_every_inn()) row("The store", "the same at every inn (F12 > Settings > Helpers)");
             row("L, Esc or Leave", "leave");
         } else if (sheetview_showing()) {
             ImGui::SeparatorText("Now: a character sheet");
@@ -789,34 +794,56 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         ImGui::PushFont(font_body);
         bool keep = true;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-            /* the labels a little smaller than the text, so that all of them show in a 960 pixel
-               window (the whole tab bar in that face: ImGui measures the tabs again when it lays
-               them out) */
-            const char *names[] = { "Inventory", "Party", "Alchemy", "Saints", "Journal", "Saves", "Travel", "Helpers", "Mods", "Display", "Records", "About", "Editor", "Guide" };
-            void (*fns[])(void) = { tab_inventory, tab_members, tab_alchemy, tab_saints, tab_journal, tab_saves, tab_travel, tab_helpers, tab_mods, tab_display, tab_party, tab_about, tab_editor, ui_guide_tab };
+            /* the pages (ui/uitabs.h), and the window's tabs: one a page, or a group of them with
+               tabs of its own (Settings). The labels in the tabs' face, the smaller one when they
+               would not all show (the whole bar in that face: ImGui measures the tabs again when
+               it lays them out) */
+            struct Page { const char *name; void (*fn)(void); };
+            static const Page pages[UI_PAGE_N] = { { "Inventory", tab_inventory }, { "Party", tab_members }, { "Alchemy", tab_alchemy },
+                { "Saints", tab_saints }, { "Journal", tab_journal }, { "Saves", tab_saves }, { "Travel", tab_travel },
+                { "Helpers", tab_helpers }, { "Mods", tab_mods }, { "Display", tab_display }, { "Records", tab_party },
+                { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab } };
+            struct Group { const char *name; int icon; int page[4]; int n; };
+            static const Group groups[] = {
+                { "Inventory", UI_PAGE_INVENTORY, { UI_PAGE_INVENTORY }, 1 }, { "Party", UI_PAGE_PARTY, { UI_PAGE_PARTY }, 1 },
+                { "Alchemy", UI_PAGE_ALCHEMY, { UI_PAGE_ALCHEMY }, 1 }, { "Saints", UI_PAGE_SAINTS, { UI_PAGE_SAINTS }, 1 },
+                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Travel", UI_PAGE_TRAVEL, { UI_PAGE_TRAVEL }, 1 },
+                { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
+                { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
+                { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 4 } };
+            const int NG = (int)(sizeof groups / sizeof groups[0]);
+            auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || (config_get_int("editor.show", 0) && !ui_original_mode()); };
             ImFont *tf = font_tab;
             {   /* every label whole, with its picture: the smaller face when the window is narrow */
                 float need = 0, avail = ImGui::GetContentRegionAvail().x;
-                for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
-                    if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || ui_original_mode())) continue;
-                    need += font_tab->CalcTextSizeA(font_tab->FontSize, FLT_MAX, 0, names[t]).x + font_tab->FontSize * 1.25f + UIS(12) + ImGui::GetStyle().ItemInnerSpacing.x + 2;
-                }
+                for (int g = 0; g < NG; g++) if (shown(groups[g]))
+                    need += font_tab->CalcTextSizeA(font_tab->FontSize, FLT_MAX, 0, groups[g].name).x + font_tab->FontSize * 1.25f + UIS(12) + ImGui::GetStyle().ItemInnerSpacing.x + 2;
                 if (need > avail && font_tab_small) tf = font_tab_small;
             }
             ImGui::PushFont(tf); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(6), UIS(5)));
             if (ImGui::BeginTabBar("tabs")) {
-                for (int t = 0; t < (int)(sizeof fns / sizeof fns[0]); t++) {
-                    if (fns[t] == tab_editor && (!config_get_int("editor.show", 0) || ui_original_mode())) continue;
+                for (int g = 0; g < NG; g++) {
+                    const Group &G = groups[g];
+                    if (!shown(G)) continue;
+                    int want_sub = -1;
+                    for (int j = 0; j < G.n; j++) if (G.page[j] == want_tab) want_sub = j;
                     /* room for its picture at the start of the label: spaces as wide as the picture */
                     char lab[64]; int nsp = (int)ceilf(ImGui::GetFontSize() * 1.25f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x));
                     if (nsp > 12) nsp = 12;
-                    snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", names[t], names[t]);
-                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_tab == t ? ImGuiTabItemFlags_SetSelected : 0);
+                    snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", G.name, G.name);
+                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 ? ImGuiTabItemFlags_SetSelected : 0);
                     {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
-                        ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, t); }
+                        ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, G.icon); }
                     if (open_t) {
                         ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(8), UIS(4)));
-                        fns[t]();
+                        /* the page in a region of its own: a long one scrolls under the tabs, not with them */
+                        auto page = [&](int pg) { ImGui::BeginChild("##page", ImVec2(0, 0)); pages[pg].fn(); ImGui::EndChild(); };
+                        if (G.n == 1) page(G.page[0]);
+                        else if (ui_subtabs_begin(G.name)) {
+                            for (int j = 0; j < G.n; j++)
+                                if (ui_subtab(pages[G.page[j]].name, j == want_sub)) { page(G.page[j]); ImGui::EndTabItem(); }
+                            ImGui::EndTabBar();
+                        }
                         ImGui::PopStyleVar(); ImGui::PopFont();
                         ImGui::EndTabItem();
                     }

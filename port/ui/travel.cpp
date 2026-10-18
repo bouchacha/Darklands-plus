@@ -70,7 +70,7 @@ extern "C" void tab_travel(void)
             ImGui::Spacing();
         }
     }
-    if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (Helpers tab)."); return; }
+    if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (F12 > Settings > Helpers)."); return; }
     if (travel.active) {
         ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Travelling to %s, about %s to go.", travel.name, when(travel.left > 0 ? travel.left : travel.minutes).c_str());
         ImGui::SameLine();

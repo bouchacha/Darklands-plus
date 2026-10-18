@@ -528,7 +528,7 @@ static void run_script(void)
             if (win) SDL_WarpMouseInWindow(win, x, y);
             ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
         }
-        else if (!strcmp(s->cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Mods) */
+        else if (!strcmp(s->cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
         else if (!strcmp(s->cmd, "uset")) { char k[64]; int v = 0; if (sscanf(s->arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
         else if (!strcmp(s->cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (s->arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(s->cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
@@ -808,7 +808,7 @@ static SDL_Scancode swallow_key; static int swallow_button;   /* the key or clic
  *   d-pad        arrow keys                                 LB / RB      Tab (level map) / Space (pause)
  *   Start        F12 (Darklands+ menu)                      Back         M (world map)
  *   right trigger held: Ctrl (Ctrl+click on the map travels there)   left stick pressed: F1 (keys)
- * "input.gamepad" (F12 > Helpers) switches it off. */
+ * "input.gamepad" (F12 > Settings > Helpers) switches it off. */
 static SDL_GameController *pads[4];
 static int pad_test_axis[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };   /* test: axis values set by ucmd upadaxis */
 static double pad_fx, pad_fy, pad_wheel; static u32 pad_last; static int pad_ctrl;

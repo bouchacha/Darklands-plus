@@ -1,5 +1,5 @@
 /* opening.c - the opening (the MicroProse logo, the animations and the digitized speech) is
- * skipped once it has been seen (F12 > Display > "Play the opening"; "Play the original game"
+ * skipped once it has been seen (F12 > Settings > Display > "Play the opening"; "Play the original game"
  * plays it).
  *
  * The game has its own switch for this: the command line option Q (D_0bf2, s000 startup_config)
@@ -20,7 +20,7 @@ static void mainloop_hook(void)                 /* root 03a1:000a: the opening, 
 {
     int play = config_get_int("original", 0) || config_get_int("display.play_opening", 0) || !config_get_int("display.opening_seen", 0);
     if (!config_get_int("display.opening_seen", 0)) { config_set_int("display.opening_seen", 1); config_save(); }
-    if (!play && !g_rw(D_QUICK)) { g_ww(D_QUICK, 1); set_by_us = 1; fprintf(stderr, "opening: skipped (F12 > Display plays it)\n"); }
+    if (!play && !g_rw(D_QUICK)) { g_ww(D_QUICK, 1); set_by_us = 1; fprintf(stderr, "opening: skipped (F12 > Settings > Display plays it)\n"); }
     hook_call_original();
 }
 

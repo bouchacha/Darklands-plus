@@ -3,9 +3,9 @@
 
   soundpack.py OUT [--src AUDIO] [--cache DIR]
 
-OUT becomes a mod folder (put it in Darklands+'s mods folder and tick it in F12 > Mods):
+OUT becomes a mod folder (put it in Darklands+'s mods folder and tick it in F12 > Settings > Mods):
 
-  OUT/mod.txt              the name and description shown in F12 > Mods
+  OUT/mod.txt              the name and description shown in F12 > Settings > Mods
   OUT/sounds/NAME_N.ogg    the battle sounds (miss, parry, hit, knockback, death, bow, gun,
                            burst, magic, ambush, cantgo), several takes of each
   OUT/CREDITS.txt          where every sound comes from, and the licence
@@ -304,7 +304,7 @@ def main():
                 'Real sounds for the battles in place of the synthesizer notes: swords clashing,\n'
                 'shields, blows landing, cries, the bow, the handgun, a war horn for an ambush.\n'
                 "Recordings from 0 A.D. by Wildfire Games, CC BY-SA 3.0 (see CREDITS.txt).\n"
-                'F12 > Display sets their volume; switch the mod off for the game\'s own sounds.\n')
+                'F12 > Settings > Display sets their volume; switch the mod off for the game\'s own sounds.\n')
     with open(os.path.join(a.out, 'CREDITS.txt'), 'w') as f:
         f.write(CREDITS % ', '.join('%02d' % d for d in DEATHS))
     print('%d sounds written to %s' % (n, sd))

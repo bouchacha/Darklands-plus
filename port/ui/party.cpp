@@ -92,7 +92,7 @@ extern "C" void tab_members(void)
     /* the leader row */
     ImGui::TableNextRow();
     ImGui::TableNextColumn(); ImGui::TextUnformatted("Leader");
-    help_tip("With \"the best member makes each check\" (F12 > Helpers) a card's tests and the shops' prices no longer depend on the leader, "
+    help_tip("With \"the best member makes each check\" (F12 > Settings > Helpers) a card's tests and the shops' prices no longer depend on the leader, "
              "but the leader still matters: whatever befalls \"the leader\" on a card lands on them (the traps in mines, a church's favour, "
              "skill practice, an item handed over), and in a battle or a dungeon, while it runs unpaused, doors, chests, locks and traps "
              "are the leader's to deal with and the party's group moves follow the leader. "

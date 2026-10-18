@@ -7,7 +7,7 @@ on card options, a quest log and town journal, a battle log, pausing when someon
 better battle pathfinding, quick saves and autosaves, fixes for bugs of the original game, and
 mod folders for items, card texts, pictures, sounds and rules.
 
-Everything new can be switched off. F12 > Helpers > "Play the original game" turns all of it
+Everything new can be switched off. F12 > Settings > Helpers > "Play the original game" turns all of it
 off at once.
 
 WHAT YOU NEED
@@ -21,13 +21,13 @@ INSTALLING
    Windows does not let programs change that folder - GOG Galaxy installs under Program
    Files - the game's saves and other files go to the VirtualStore folder Windows keeps for
    it, %LOCALAPPDATA%\VirtualStore\...; saves that GOG's DOSBox was redirected there show
-   up too. F12 > About shows the place.)
+   up too. F12 > Settings > About shows the place.)
 3. Double-click darklands.exe. Darklands+ finds a GOG or Steam installation by itself;
    otherwise it asks you for the Darklands folder once. The original game files are not
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
-The MicroProse logo and the opening animations play at the first start only (F12 > Display
+The MicroProse logo and the opening animations play at the first start only (F12 > Settings > Display
 plays them every time; Space or Esc moves on a picture). The title menu shows the version.
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
@@ -63,34 +63,34 @@ belong to Roland and are not included. If you use Munt or DOSBox with an MT-32 y
 already: Darklands+ finds them by their contents (any file names) in Munt's ROM folder, in
 DOSBox Staging's mt32-roms folder, or in a "roms" folder next to darklands.exe or in the
 Darklands folder. When none are found, Darklands+ says so when it starts and lets you choose
-their folder (or "Don't remind me again"); F12 > Display > Sound can name the folder too. With
+their folder (or "Don't remind me again"); F12 > Settings > Display > Sound can name the folder too. With
 both a CM-32L and an MT-32 pair the MT-32 plays (on the CM-32L the battle sounds turn into
 chimes); you can switch between them there while playing.
 
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of
 swords, shields, blows, cries, the bow and the handgun in place of the synthesizer notes. Tick
-it in F12 > Mods (F12 > Display sets the volume). The recordings are from 0 A.D. by Wildfire
+it in F12 > Settings > Mods (F12 > Settings > Display sets the volume). The recordings are from 0 A.D. by Wildfire
 Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
 
 NEW ENCOUNTERS
 The mods folder also holds "New encounters": sixteen new wilderness encounters (the gallows
 oak, a herb-wife, flagellants, a robber knight's toll bridge, kobolds at a mine, deserters,
 a knight's feud and more),
-balanced against the game's own and coming up among them. Tick it in F12 > Mods; a small red
-seal marks a new encounter's card. F12 > Mods sets how often they come up.
+balanced against the game's own and coming up among them. Tick it in F12 > Settings > Mods; a small red
+seal marks a new encounter's card. F12 > Settings > Mods sets how often they come up.
 
 MAKING MODS (in the Darklands folder)
-  mods\My mod\mod.txt               first line: the name shown in F12 > Mods
+  mods\My mod\mod.txt               first line: the name shown in F12 > Settings > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)
   mods\My mod\MSGFILES\$MAINS01.TXT one card's text (the other cards stay)
   mods\My mod\text.txt              menu lines said differently (translations)
   mods\My mod\rules.ini             weapon numbers and other rules
   mods\My mod\art\, sounds\         replacement pictures and sounds
   mods\My mod\music\                recordings in place of the game's music, named by the
-                                    piece's number (10.ogg, "11 market.ogg"; F12 > Display)
+                                    piece's number (10.ogg, "11 market.ogg"; F12 > Settings > Display)
   mods\My mod\ENCOUNTERS\           new encounters as scripts (see mods\New encounters)
-  F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
+  F12 > Settings > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 
 IF SOMETHING GOES WRONG
 Darklands+ writes darklands_port.log into the game folder. If the first start fails, the log says

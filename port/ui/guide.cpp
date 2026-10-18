@@ -38,7 +38,7 @@ void ui_guide_tab(void)
     topic("Towns", {
         "G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...) to walk to directly.",
         "The inn: a room for the night, or take up residence for days: rest, regain strength, pray, brew, earn a little or study with a teacher (the page shows each member's day and what it costs). \"Until rested\" spends the days for you.",
-        "The innkeeper keeps things for the party (store items, recover items stored here): Darklands+ makes it one store room for every inn, so what is left in one town is there in all (F12 > Helpers; F12 > Journal > Stored lists it).",
+        "The innkeeper keeps things for the party (store items, recover items stored here): Darklands+ makes it one store room for every inn, so what is left in one town is there in all (F12 > Settings > Helpers; F12 > Journal > Stored lists it).",
         "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armourer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
         "Shops sell by quality: the higher a shop's rating, the better its wares (the right margin lists every shop of the town with its rating). Darklands+ compares a weapon or armour with what the member has now.",
         "Streets at night are dangerous, and gates may be closed: an inn is the safe place to wait for morning.",
@@ -64,12 +64,12 @@ void ui_guide_tab(void)
         "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk).",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
-        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Helpers). A shooter needs a clear line to the target; Darklands+ has a blocked one step aside to find it (F12 > Helpers).",
+        "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; Darklands+ has a blocked one step aside to find it (F12 > Settings > Helpers).",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
     });
     topic("Travel", {
         "On the map, a click walks towards a spot; Ctrl + click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there.",
-        "Each step costs time, and the road brings encounters (F12 > Helpers sets how often).",
+        "Each step costs time, and the road brings encounters (F12 > Settings > Helpers sets how often).",
         "Castles, monasteries, mines and the rest open their own card when the party steps on them.",
     });
     topic("Saving", {

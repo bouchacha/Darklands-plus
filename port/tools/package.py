@@ -17,7 +17,7 @@ Layout of the zip (its contents go into the Darklands folder, next to DARKLAND.E
   darklands_plus/tcc/             TinyCC
   darklands_plus/python/          embedded Python with capstone
   darklands_plus/licenses/        the notices of everything in the package
-  mods/NAME/                      --mod DIR: a mod shipped with it, off until ticked in F12 > Mods
+  mods/NAME/                      --mod DIR: a mod shipped with it, off until ticked in F12 > Settings > Mods
                                   (the sample battle sounds: port/tools/soundpack.py)
   Darklands+ README.txt
 """

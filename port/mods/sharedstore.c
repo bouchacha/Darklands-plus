@@ -1,4 +1,4 @@
-/* sharedstore.c - one store room for every inn (store.shared, F12 > Helpers; on by default): what
+/* sharedstore.c - one store room for every inn (store.shared, F12 > Settings > Helpers; on by default): what
  * is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like
  * a chest that follows the party.
  *

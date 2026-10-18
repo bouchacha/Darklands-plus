@@ -185,7 +185,7 @@ void bestiary_tab(void)
         std::string p = std::string(w) + "/DARKLAND.ENM";
         FILE *f = r < 0 ? nullptr : fopen(p.c_str(), "wb");
         if (!f) msg = "Could not write " + p + ".";
-        else { fwrite(enm.data(), 1, enm.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (Mods tab) and start the game again."; }
+        else { fwrite(enm.data(), 1, enm.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Settings > Mods) and start the game again."; }
     }
     ImGui::SameLine();
     if (ImGui::Button("Undo all changes##enm")) { enm = orig; msg.clear(); }

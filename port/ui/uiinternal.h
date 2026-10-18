@@ -1,5 +1,6 @@
 // uiinternal.h - what the Darklands+ window's files share (ui.cpp: the window, its other pages and
-// the frame; settings.cpp: the Mods, Helpers and Display pages). C++ only.
+// the frame; settings.cpp: the Mods, Helpers and Display pages; the pages with tabs of their own).
+// C++ only.
 #pragma once
 #include <SDL.h>
 #include "ui.h"
@@ -44,6 +45,8 @@ void ui_set_original(bool on);
 void tab_mods(void);
 void tab_helpers(void);
 void tab_display(void);
+bool ui_subtabs_begin(const char *id);   /* tabs inside a page: ImGui::BeginTabBar in the sub-tabs' face */
+bool ui_subtab(const char *label, bool select = false);   /* ImGui::BeginTabItem in that face */
 
 #ifdef _WIN32
 #define PATH_SEP "\\"

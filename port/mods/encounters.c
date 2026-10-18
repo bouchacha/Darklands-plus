@@ -3,7 +3,7 @@
  * A mod folder can hold ENCOUNTERS/<NAME>.TXT files: each is one new wilderness encounter, a
  * card like the game's own (a picture, text blocks from MSGFILES/<CARD>.TXT, a menu of options
  * with chances of success), run by this interpreter instead of compiled card code. While such a
- * mod is ticked in F12 > Mods, some of the random encounters of the wilderness are new ones,
+ * mod is ticked in F12 > Settings > Mods, some of the random encounters of the wilderness are new ones,
  * picked as if they were extra entries of the game's own table for the terrain (the format and
  * the language are described in docs/MODDING.md, "New encounters").
  *

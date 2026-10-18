@@ -604,7 +604,7 @@ void tab_display(void)
         int n = sfx_user_count();
         extern char dlp_user_dir[];
         if (n) ui_hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else ui_hint("No sound pack in use: put one into %s%ssounds, or tick a sound mod in F12 > Mods (\"Battle sounds\" comes with Darklands+).", dlp_user_dir, PATH_SEP);
+        else ui_hint("No sound pack in use: put one into %s%ssounds, or tick a sound mod in F12 > Settings > Mods (\"Battle sounds\" comes with Darklands+).", dlp_user_dir, PATH_SEP);
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }

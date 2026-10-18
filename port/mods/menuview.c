@@ -43,6 +43,7 @@ static int mv_on = 1;
 /* Darklands+'s own menu: its entries' actions (in place of a game handler: segment NATIVE_SEG) */
 #define NATIVE_SEG 0xffff
 enum { NA_WINDOW = 1, NA_QUESTS, NA_MAP, NA_HELPERS, NA_GUIDE, NA_HELP };
+#include "../ui/uitabs.h"
 void ui_open_tab(int t);
 void ui_toggle_map(void);
 void ui_toggle_help(void);
@@ -50,10 +51,10 @@ static void native_action(int a)
 {
     switch (a) {
     case NA_WINDOW: ui_open_tab(-1); break;
-    case NA_QUESTS: ui_open_tab(4 + 100 * (3 + 1)); break;      /* (Journal, its Quests page) */
+    case NA_QUESTS: ui_open_tab(UI_PAGE_SUB(UI_PAGE_JOURNAL, UI_JOURNAL_QUESTS)); break;
     case NA_MAP: ui_toggle_map(); break;
-    case NA_HELPERS: ui_open_tab(7); break;
-    case NA_GUIDE: ui_open_tab(12); break;
+    case NA_HELPERS: ui_open_tab(UI_PAGE_HELPERS); break;
+    case NA_GUIDE: ui_open_tab(UI_PAGE_GUIDE); break;
     case NA_HELP: ui_toggle_help(); break;
     }
 }

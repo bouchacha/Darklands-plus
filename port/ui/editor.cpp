@@ -16,6 +16,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "../mods/looks.h"
+#include "uiinternal.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -72,11 +73,11 @@ extern "C" void tab_editor(void)
     }
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
-    if (!ImGui::BeginTabBar("edmembers")) return;
+    if (!ui_subtabs_begin("edmembers")) return;
     for (int m = 0; m < size; m++) {
         char nick[16]; g_str(G_DGROUP, (u16)(rec(m) + 0x3e), nick, sizeof nick);
         std::string tabname = game_text(nick, sizeof nick) + "##ed" + std::to_string(m);
-        if (!ImGui::BeginTabItem(tabname.c_str())) continue;
+        if (!ui_subtab(tabname.c_str())) continue;
         ImGui::BeginChild("edm", ImVec2(0, 0));
         u16 r = rec(m);
         if (ImGui::CollapsingHeader("Name, age, looks", ImGuiTreeNodeFlags_DefaultOpen)) {

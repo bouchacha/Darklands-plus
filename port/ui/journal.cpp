@@ -21,6 +21,7 @@
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "uiinternal.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -382,7 +383,7 @@ static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
-    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Helpers)."); return; }
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
     ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
     ImGui::SameLine();
@@ -868,14 +869,14 @@ extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
-    if (ImGui::BeginTabBar("jtabs")) {
-        if (ImGui::BeginTabItem("Quests", nullptr, want == 3 ? ImGuiTabItemFlags_SetSelected : 0)) {
+    if (ui_subtabs_begin("jtabs")) {
+        if (ui_subtab("Quests", want == 3)) {
             ImGui::BeginChild("q", ImVec2(0, 0));
             journal_quests();
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Towns", nullptr, want == 0 ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (ui_subtab("Towns", want == 0)) {
             ImGui::BeginChild("list", ImVec2(UIS(250), 0), ImGuiChildFlags_Border);
             town_list();
             ImGui::EndChild();
@@ -887,13 +888,13 @@ extern "C" void tab_journal(void)
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Chronicle", nullptr, want == 7 ? ImGuiTabItemFlags_SetSelected : 0)) { chronicle_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Notes", nullptr, want == 8 ? ImGuiTabItemFlags_SetSelected : 0)) { notes_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Find goods", nullptr, want == 1 ? ImGuiTabItemFlags_SetSelected : 0)) { find_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Ingredients", nullptr, want == 2 ? ImGuiTabItemFlags_SetSelected : 0)) { ingredients_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Stored", nullptr, want == 6 ? ImGuiTabItemFlags_SetSelected : 0)) { storage_page(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Battle log", nullptr, want == 5 ? ImGuiTabItemFlags_SetSelected : 0)) { battlelog_tab(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem("Honor Roll", nullptr, want == 4 ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (ui_subtab("Chronicle", want == 7)) { chronicle_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Notes", want == 8)) { notes_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Find goods", want == 1)) { find_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Ingredients", want == 2)) { ingredients_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Stored", want == 6)) { storage_page(); ImGui::EndTabItem(); }
+        if (ui_subtab("Battle log", want == 5)) { battlelog_tab(); ImGui::EndTabItem(); }
+        if (ui_subtab("Honor Roll", want == 4)) {
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
                                "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
                                "A party enters it when its journey ends, or now with the button.");

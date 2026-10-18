@@ -1,4 +1,4 @@
-/* battlerules.c - rules of the battles, switches (F12 > Helpers > Battles).
+/* battlerules.c - rules of the battles, switches (F12 > Settings > Helpers > Battles).
  *
  * battle.shoot_past_allies (off by default): a member with a bow, crossbow, gun or thrown weapon will not
  *   shoot while anyone stands in the line of fire, friend or foe; they wait ('b' on the panel)
