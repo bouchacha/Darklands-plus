@@ -21,6 +21,11 @@
  *   the shot is taken at once. Each member at most once in 120 ticks; a walk the player
  *   overrides with another order (or that ends elsewhere, or long after) is forgotten. With
  *   battle.shoot_past_allies on, only walls, furniture and enemies block, as there.
+ *   The game refuses a target with no clear line when it is pointed at or clicked (line_blocked
+ *   with mode 0x80 from s014 19cd:17f6, 0x100 from 19cd:0dcc: the barred circle and a beep), so a
+ *   shooter could never be sent at a foe behind a friend, a foe or a corner. With this switch on, a foe with no line from
+ *   where the member stands is taken when one of the spots stepping aside would try has a line
+ *   to it: the member walks there and shoots (the shot itself is still tested as the game does).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,19 +38,42 @@
 
 
 static int on_past(void) { return config_get_int("battle.shoot_past_allies", 0) && !config_get_int("original", 0); }
+static int on_reposition(void);
+static int spot_with_line(int a, int b);
+static int probing;
+
+/* asked by the choice of a target: the pointer over a foe while a member's target is chosen (s014
+   19cd:17f6, mode 0x80: the barred circle) or the click choosing it (s014 19cd:0dcc, mode 0x100: the
+   beep). Every other test - the shot itself, the game's own and Darklands+'s - gets the true answer. */
+static int asked_for_target(void)
+{
+    u16 ip = rw(SS, SP), cs = (u16)(rw(SS, (u16)(SP + 2)) - LOADSEG);
+    return cs == 0x19cd && ((ip > 0x17f6 && ip < 0x1965) || (ip > 0x0dcc && ip < 0x11ec));
+}
 
 static void blocked_hook(void)                /* line_blocked (a, b, mode) */
 {
     int a = (s16)rw(SS, (u16)(SP + 4)), b = (s16)rw(SS, (u16)(SP + 6)), mode = rw(SS, (u16)(SP + 8));
-    if (a < 0 || a >= 5 || (mode != 0x80 && mode != 0x100) || !on_past()) { hook_call_original(); return; }
-    u8 fl[5];
-    for (int k = 0; k < 5; k++) {
-        fl[k] = g_rb((u16)(GV_cbt_floor + k));
-        if (k != a && k != b) g_wb((u16)(GV_cbt_floor + k), 0xff);
+    if (probing || a < 0 || a >= 5 || (mode != 0x80 && mode != 0x100)) { hook_call_original(); return; }
+    int choosing = asked_for_target();
+    if (on_past()) {
+        u8 fl[5];
+        for (int k = 0; k < 5; k++) {
+            fl[k] = g_rb((u16)(GV_cbt_floor + k));
+            if (k != a && k != b) g_wb((u16)(GV_cbt_floor + k), 0xff);
+        }
+        hook_call_original();
+        for (int k = 0; k < 5; k++) g_wb((u16)(GV_cbt_floor + k), fl[k]);
+    } else hook_call_original();
+    if (ns_unwinding) return;
+    if (getenv("DL_BATTLE_LOG") && AX && mode == 0x100) fprintf(stderr, "battlerules: %d's line to %d blocked (mode %#x)\n", a, b, mode);
+    /* a foe chosen as a target with no line from where the member stands: taken if a spot near has one */
+    if (AX && choosing && on_reposition() && b >= 5 && b < 13) {
+        u16 ax = AX;
+        int ok = spot_with_line(a, b);
+        AX = ok ? 0 : ax;
+        if (ok && mode == 0x100 && getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d may target %d: a spot near has a line\n", a, b);
     }
-    hook_call_original();
-    for (int k = 0; k < 5; k++) g_wb((u16)(GV_cbt_floor + k), fl[k]);
-    if (getenv("DL_BATTLE_LOG") && AX) fprintf(stderr, "battlerules: %d's line to %d blocked (mode %#x)\n", a, b, mode);
 }
 
 /* ---------------------------------------------------------------- stepping aside to shoot */
@@ -71,6 +99,34 @@ static int clear_from(int i, int t, int x, int y)       /* a free spot, and a cl
     }
     g_ww((u16)(c + 4), (u16)ox); g_ww((u16)(c + 6), (u16)oy);
     return ok && !ns_unwinding;
+}
+
+/* a spot within the rings step_aside tries from which member a has a line to b (the game's
+   line globals kept; kept a moment for the pointer, which asks every frame) */
+static int spot_with_line(int a, int b)
+{
+    static int ca = -1, cb = -1, cres; static s16 cax, cay, cbx, cby; static u16 ct;
+    u16 c = CBT(a);
+    int x0 = (s16)g_rw((u16)(c + 4)), y0 = (s16)g_rw((u16)(c + 6));
+    s16 bx = (s16)g_rw((u16)(CBT(b) + 4)), by = (s16)g_rw((u16)(CBT(b) + 6));
+    u16 now = g_rw(GV_combat_clock);
+    if (a == ca && b == cb && x0 == cax && y0 == cay && bx == cbx && by == cby && (u16)(now - ct) < 10) return cres;
+    u16 l0 = g_rw(GV_los_x0), l1 = g_rw(GV_los_y0), l2 = g_rw(GV_los_x1), l3 = g_rw(GV_los_y1);
+    int found = 0;
+    probing = 1;
+    for (int r = 1; r <= 6 && !found; r++)
+        for (int dy = -r; dy <= r && !found; dy++)
+            for (int dx = -r; dx <= r && !found; dx++) {
+                if (dx > -r && dx < r && dy > -r && dy < r) continue;
+                int x = x0 + dx * 16, y = y0 + dy * 8;
+                if (x < 0 || y < 0 || x >= 40 * 32 || y >= 40 * 16) continue;
+                if (clear_from(a, b, x, y)) found = 1;
+                if (ns_unwinding) { probing = 0; return 0; }
+            }
+    probing = 0;
+    g_ww(GV_los_x0, l0); g_ww(GV_los_y0, l1); g_ww(GV_los_x1, l2); g_ww(GV_los_y1, l3);
+    ca = a; cb = b; cax = (s16)x0; cay = (s16)y0; cbx = bx; cby = by; ct = now; cres = found;
+    return found;
 }
 
 static void step_aside(int i)
