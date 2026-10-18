@@ -33,7 +33,7 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
 - **Also:**
   - the opening plays whole; a click goes on to the lady's welcome, a second to the title;
   - the world map washes out the towns not yet visited (their saints and formulae are known once visited) and the quests glow;
-  - the margin tells the hour by the church bells (Prime, Vespers ...) as the cards do; Go To reaches the town hall, the prison and the barracks, and remembers a town's physician and alchemists;
+  - the margin tells the hour by the church bells (Prime, Vespers ...) as the cards do; Go To reaches the town hall, the prison and the barracks, remembers a town's physician and alchemists, and shows who has work: beside each giver of tasks, the chance that asking brings one, or until when none (a refusal shuts the Fugger's door for three days, an audience tried the council's for a week);
   - money shown as gold, silver and copper coins;
   - a new save can take the place of an old one (a click on it in the Save page), and the Load page deletes a save;
   - the level map (Tab) walks the party to a spot you click;
