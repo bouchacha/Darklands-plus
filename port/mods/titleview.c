@@ -100,6 +100,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
                 if (ns_unwinding) break;
                 if (k == 1) { saves_title_load(f); r = choose(0x1454); }
                 else if (k < 0) r = choose(0x1454);
+                else build();                                                           /* (saves may have been deleted there) */
                 break; }
             case TV_NEW: r = choose(0x2e43); break;
             case TV_QUICK: r = choose(0x1051); break;
