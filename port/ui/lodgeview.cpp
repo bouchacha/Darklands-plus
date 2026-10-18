@@ -20,11 +20,14 @@ static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "P
 
 static std::string money(long pf) { return money_str(pf); }
 
+extern int cardview_dialog;
+extern "C" int lodgeview_showing(void) { return lodge_model.open && ns_screen == NS_LODGE && !ns_hidden() && !cardview_dialog; }
+extern "C" int lodgeview_camping(void) { return lodge_model.mode == 1; }
+
 extern "C" void lodgeview_draw(void)
 {
     const LodgeModel &m = lodge_model;
-    extern int cardview_dialog;
-    if (!m.open || ns_screen != NS_LODGE || ns_hidden() || cardview_dialog) return;
+    if (!lodgeview_showing()) return;
     NsDraw P;
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
@@ -45,7 +48,9 @@ extern "C" void lodgeview_draw(void)
     const float LX0 = 63, LX1 = 186, TY = 23, BY = 170;
     P.rect(LX0, TY, LX1, BY, PANEL, 1.8f);
     int n = 0; for (int i = 0; i < 5; i++) n += m.m[i].present;
-    float rh = n ? fminf(32.0f, (BY - TY - 2) / n) : 30;
+    /* a row each: the name and the day chosen; strength and divine favor only where they are
+       short (the party panel beside shows them all; they decide Regain Strength and Pray) */
+    float rh = n ? fminf(21.0f, (BY - TY - 2) / n) : 21;
     float y = TY + 1;
     for (int i = 0; i < 5; i++) {
         const LodgeMember &p = m.m[i];
@@ -54,35 +59,20 @@ extern "C" void lodgeview_draw(void)
         if (sel) { P.rect(LX0 + 1, y, LX1 - 1, y + rh - 1, SEL, 1.2f); P.rect(LX0 + 1, y, LX0 + 2.6f, y + rh - 1, IM_COL32(140, 70, 20, 230)); }
         else if (hov) P.rect(LX0 + 1, y, LX1 - 1, y + rh - 1, HOVER, 1.2f);
         if (P.hit(LX0 + 1, y, LX1 - 1, y + rh - 1)) ns_push(LV_SELECT, i, 0, 0);
-        float nx = LX0 + 5;
-        {                                                   /* the member's figure in their colours */
-            char code[8]; unsigned char pal[24];
-            gm_member_figure_code(i, code, sizeof code); gm_member_palette(i, pal);
-            if (const GamePic *g = code[0] ? ns_figure_pic(60 + i, code, pal, "SHORT") : nullptr) {
-                float fh = fminf(rh - 4, 26.0f), fw = g->w * fh / (g->h ? g->h : 1);
-                P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(LX0 + 4, y + 2), NsDraw::w(LX0 + 4 + fw, y + 2 + fh));
-                nx = LX0 + 7 + fw;
-            }
-        }
-        P.text(f, NsDraw::FS_NAME, nx, y + 1.5f, ink, ns_gtext(p.name), -1, LX0 + 62);
-        /* strength and divine favor, small bars */
-        auto bar = [&](float x, float yy, const char *lab, int cur, int max, ImU32 col) {
-            P.text(fo, 3.8f, x, yy - 0.6f, dim, lab);
-            float bx = x + 9, bw = 30;
-            P.rect(bx, yy, bx + bw, yy + 3, IM_COL32(200, 186, 160, 255), 0.8f);
-            if (max > 0) P.rect(bx, yy, bx + bw * (cur < 0 ? 0 : cur > max ? 1 : (float)cur / max), yy + 3, col, 0.8f);
-            char t[24]; snprintf(t, sizeof t, "%d/%d", cur, max);
-            P.text(fo, 3.8f, bx + bw + 1.5f, yy - 0.6f, soft, t);
-        };
-        bar(LX0 + 64, y + 2.2f, "Str", p.str, p.str_max, IM_COL32(70, 150, 70, 255));
-        bar(LX0 + 64, y + 7.6f, "DF", p.df, p.df_max, IM_COL32(200, 160, 40, 255));
+        float nx = LX0 + 6;
+        std::string shortv;
+        if (p.str_max > 0 && p.str < p.str_max) shortv = "Str " + std::to_string(p.str) + "/" + std::to_string(p.str_max);
+        if (p.df_max > 0 && p.df < p.df_max) shortv += (shortv.empty() ? "" : "   ") + std::string("DF ") + std::to_string(p.df) + "/" + std::to_string(p.df_max);
+        float sw = shortv.empty() ? 0 : P.width(fo, NsDraw::FS_SMALL, shortv) + 4;
+        P.text(f, NsDraw::FS_NAME, nx, y + 2.0f, ink, ns_gtext(p.name), -1, LX1 - 3 - sw);
+        if (!shortv.empty()) P.text(fo, NsDraw::FS_SMALL, 0, y + 2.8f, soft, shortv, LX1 - 3);
         std::string line = ns_gtext(p.line);
         if (p.act == 6 && p.skill >= 0 && p.skill < 19) {
             int fee = 0; for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill) fee = m.t[t].fee;
             snprintf(b, sizeof b, "Train or Study: %s (%s a day)", SKILL[p.skill], money_str(fee).c_str());
             line = b;
         }
-        P.para(fo, NsDraw::FS_BODY, nx, y + 12.5f, LX1 - nx - 4, p.act ? IM_COL32(92, 40, 12, 255) : soft, line);
+        P.text(fo, NsDraw::FS_BODY, nx, y + 10.5f, p.act ? IM_COL32(92, 40, 12, 255) : soft, line, -1, LX1 - 3);
         y += rh;
     }
 
@@ -140,10 +130,10 @@ extern "C" void lodgeview_draw(void)
 
     /* the day's cost, the purse; the buttons */
     long after = m.purse - m.cost;
-    if (m.mode == 1) snprintf(b, sizeof b, "Purse: %s.", money(m.purse).c_str());
-    else if (m.cost > m.purse) snprintf(b, sizeof b, "Purse: %s. A day costs %s in all: not enough money.", money(m.purse).c_str(), money(m.cost).c_str());
-    else snprintf(b, sizeof b, "Purse: %s. A day: %s %s in all, leaving %s.", money(m.purse).c_str(), m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), money(after).c_str());
-    P.para(fo, NsDraw::FS_BODY, 64, 172, 133, m.mode != 1 && m.cost > m.purse ? NsDraw::RED : ink, b);
+    b[0] = 0;
+    if (m.cost > m.purse) snprintf(b, sizeof b, "A day costs %s in all: more than the purse holds.", money(m.cost).c_str());
+    else if (m.cost) snprintf(b, sizeof b, "A day %s %s in all; the purse %s %s.", m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), m.cost < 0 ? "will hold" : "keeps", money(after).c_str());
+    if (b[0]) P.para(fo, NsDraw::FS_BODY, 64, 172, 133, m.cost > m.purse ? NsDraw::RED : ink, b);
     float bx = 199;
     if (P.button(bx, 174, bx + 22, 184, "A day", GREEN)) ns_push(LV_DAY, 0, 0, 0);
     if (P.button(bx + 24, 174, bx + 48, 184, "A week", GREEN)) ns_push(LV_DAYS, 7, 0, 0);
@@ -152,6 +142,6 @@ extern "C" void lodgeview_draw(void)
         P.para(fo, 3.9f, 190, 186, 126, soft, m.resting ? "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens)." : "Nobody is regaining strength or praying.");
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
-    else P.text(fo, 3.9f, 190, 188, dim, "Keys as before: J R P A E G T, S a day, L leave, 1-5 a member");
+    else P.text(fo, 3.9f, 190, 188, dim, "F1: the keys");
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED)) ns_push(LV_LEAVE, 0, 0, 0);
 }

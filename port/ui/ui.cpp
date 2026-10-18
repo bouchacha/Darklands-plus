@@ -81,6 +81,7 @@ extern "C" void infoview_draw(void);
 extern "C" void marchview_draw(void);
 extern "C" { int marchview_is_on(void); void marchview_set(int on); }
 extern "C" void lodgeview_draw(void);
+extern "C" int lodgeview_showing(void), lodgeview_camping(void);
 extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
@@ -610,7 +611,13 @@ static void help_window(void)
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
         auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d); };
         int gm = game_mode();
-        if (gm == GM_CARD) {
+        if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
+            ImGui::SeparatorText(lodgeview_camping() ? "Now: a camp" : "Now: a stay");
+            row("A member, or 1 ... 5", "whose day is being chosen");
+            row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
+            row("S or A day", "one day passes; A week: seven; Until rested: until nobody regains strength or prays");
+            row("L, Esc or Leave", "leave");
+        } else if (gm == GM_CARD) {
             ImGui::SeparatorText("Now: a card");
             row("Click an option", "or press its number, 1 to 9");
             row("Shift over an option", "the game's own chance of success (the badges show them all)");
