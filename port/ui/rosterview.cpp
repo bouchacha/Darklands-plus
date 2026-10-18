@@ -33,6 +33,8 @@ static std::string word(const RosterModel &r, int i, const char *fallback)
 {
     std::string w = ns_gtext(r.word[i]);
     while (!w.empty() && (w.back() == ' ' || w.back() == '.')) w.pop_back();
+    size_t a = w.find_first_not_of(' ');                    /* (the game pads some: " Add to the Party") */
+    w = a == std::string::npos ? std::string() : w.substr(a);
     return w.empty() ? fallback : w;
 }
 
@@ -72,18 +74,22 @@ extern "C" void rosterview_draw(void)
     else { std::string t = word(r, 10, "Return"); float w = P.width(fo, NsDraw::FS_SMALL, t) + 8;
       if (P.button(316 - w, 3.5f, 316, 12, t, RED)) ns_push(RV_BACK, 0, 0, 0); }
 
-    /* the four places */
+    /* the four places; the first empty one says how to fill it, the others are only outlines */
+    int first_empty = -1; for (int s = 0; s < 4; s++) if (r.slot_char[s] < 0) { first_empty = s; break; }
     for (int s = 0; s < 4; s++) {
         float x0 = 4 + s * 78.2f, x1 = x0 + 76, y0 = 19.5f, y1 = 73;
         int c = r.slot_char[s];
         bool chosen = c >= 0 && c == r.sel, h = P.over(x0, y0, x1, y1);
-        P.rect(x0, y0, x1, y1, chosen ? CHOSEN : h && c >= 0 ? HOVER : PANEL, 1.8f);
-        P.frame(x0, y0, x1, y1, IM_COL32(120, 80, 36, chosen ? 200 : 90), 1.8f);
-        if (c < 0) {
-            P.text(fo, NsDraw::FS_SMALL, x0 + 4, y0 + 18, dim, "An empty place");
-            P.para(fo, 4.2f, x0 + 4, y0 + 26, x1 - x0 - 8, dim, r.n ? "Choose someone below and add them." : "Make a character first.");
+        if (c < 0) {                                        /* (empty: an outline, no fill) */
+            P.frame(x0, y0, x1, y1, IM_COL32(120, 80, 36, 70), 1.8f);
+            if (s == first_empty) {
+                std::string t = r.n ? "Choose someone below, then " + word(r, 1, "Add to the party") : std::string("Make a character first");
+                P.para(fo, NsDraw::FS_SMALL, x0 + 8, (y0 + y1) * 0.5f - 5, x1 - x0 - 16, dim, t);
+            }
             continue;
         }
+        P.rect(x0, y0, x1, y1, chosen ? CHOSEN : h ? HOVER : PANEL, 1.8f);
+        P.frame(x0, y0, x1, y1, IM_COL32(120, 80, 36, chosen ? 200 : 90), 1.8f);
         const RosterChar &ch = r.ch[c];
         draw_pic(P, ns_figure_pic(20 + s, r.figure[s], r.pal[s], "SHORT"), x0 + 1.5f, y0 + 3, x0 + 25, y1 - 3);
         float tx = x0 + 26;
