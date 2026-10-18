@@ -429,14 +429,15 @@ static void place_quests(int cur)
 
 /* the party's tasks: a short title each (a click opens it: the whole task, the deadline, how
    far), the days left; in order of the deadline, of the distance or as taken (a click on the
-   order changes it) */
-static void tasks_section(bool tables)
+   order changes it). Nothing at all when there are none (false) */
+static bool tasks_section(bool tables)
 {
     static std::vector<QuestRow> q; static int qf = -1000; static bool q_read = false;
     static std::set<std::string> open;
     static int sort = -1;
     { int cs = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N; if (cs != sort) { sort = cs; quest_sort(q, sort); } }   /* (the journal may change it) */
     if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); qf = ImGui::GetFrameCount(); q_read = tables; }
+    if (q.empty()) return false;
     ImVec2 mp = ImGui::GetIO().MousePos;
     ImDrawList *dl = ImGui::GetWindowDrawList();
     float w = ImGui::GetContentRegionAvail().x, lh = ImGui::GetTextLineHeight();
@@ -454,7 +455,6 @@ static void tasks_section(bool tables)
             mclick(a, b, [&]() { sort = (sort + 1) % QSORT_N; config_set_int("quests.sort", sort); config_save(); quest_sort(q, sort); });
         }
     }
-    if (q.empty()) { ImGui::TextDisabled("None taken on."); return; }
     for (size_t i = 0; i < q.size() && i < 10; i++) {
         const QuestRow &r = q[i];
         bool is_open = open.count(r.id) != 0;
@@ -503,6 +503,7 @@ static void tasks_section(bool tables)
         mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
     }
     if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
+    return true;
 }
 
 extern "C" void ui_margins(void)
@@ -537,8 +538,7 @@ extern "C" void ui_margins(void)
         if (tables || !where_read) { where = place_name(); where_read = tables; }
         if (!(right >= 150 && right_shows_place())) ImGui::TextWrapped("%s", where.c_str());   /* (else the right margin names it) */
         ImGui::Separator();
-        tasks_section(tables);
-        ImGui::Separator();
+        if (tasks_section(tables)) ImGui::Separator();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextWrapped("Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
         if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide.");

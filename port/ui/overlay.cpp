@@ -1112,7 +1112,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             std::string nm = game_text(d->name.c_str(), d->name.size());
             if (nm.size() > 2 && nm[1] == ':') nm = nm.substr(2);                 /* "V:Brigandine" */
             ImGui::TextUnformatted(nm.c_str());
-            ImGui::TextDisabled("%s%s", kind_name(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
+            ImGui::TextDisabled("%s%s", kind_name_one(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
             ui_item_details(d, item);
         } else if (saint >= 0) {
             const Saint &st = gamedata.saints[saint];

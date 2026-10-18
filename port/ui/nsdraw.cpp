@@ -10,7 +10,7 @@ extern "C" {
 std::string ns_quality_words(int id, int qual)
 {
     const ItemDef *d = ns_itemdef(id);
-    if (d && d->kind == K_POTION) return "";                  /* (the dots on its flask tell its grade) */
+    if (!d || !ns_shows_quality(id, qual)) return "";        /* (as the lists: a potion's dots tell its grade; gear's quality only its price) */
     return ", quality " + std::to_string(qual);
 }
 
@@ -20,7 +20,7 @@ std::string ns_item_line(int id)
     if (!d) return "";
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
-        static const char *SK[7] = { "edged", "impact", "flail", "polearm", "thrown", "bow", "missile device" };
+        static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile device" };
         return std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
     }
     if (d->type >= 67 && d->type <= 84) {
@@ -123,4 +123,27 @@ std::string ns_item_use(int id)
         return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for.";
     }
     return "";
+}
+
+void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
+{
+    const ItemDef *d = ns_itemdef(t.id);
+    const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT;
+    P.icon(71, y0 + 8, 11.0f, t.id, t.qual);
+    float rw = t.right.empty() ? 0 : P.width(P.fo, NsDraw::FS_BODY, t.right) + 6;
+    P.text(P.f, NsDraw::FS_HEAD, 79, y0 + 1.5f, ink, ns_item_name(t.id), -1, 314 - rw);
+    if (!t.right.empty()) P.text(P.fo, NsDraw::FS_BODY, 0, y0 + 1.8f, t.right_col, t.right, 314);
+    std::string l1 = std::string(d ? kind_name_one(d->kind) : "") + ns_quality_words(t.id, t.qual) + ", weight " + std::to_string(t.weight);
+    if (t.count > 1) l1 += " each, " + std::to_string(t.count) + " of them";
+    if (!t.status.empty()) l1 += "; " + t.status;
+    float y = y0 + 10;
+    P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l1); y += 7;
+    std::string l2 = ns_item_line(t.id);
+    if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
+    std::string use = ns_item_use(t.id);                    /* what it is good for (ingredients, rope ...) */
+    if (!use.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
+    else if (t.cmp_who >= 0) {                              /* a weapon or an armour: against what the member has now */
+        std::string cmp = ns_item_compare(t.id, t.qual, t.cmp_who);
+        if (!cmp.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp);
+    }
 }

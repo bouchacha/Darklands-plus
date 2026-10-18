@@ -556,7 +556,7 @@ static void tooltip(const InvItem &it, const ItemDef *d)
     ImGui::BeginTooltip();
     ImGui::Text("%s", d ? d->name.c_str() : "?");
     ImGui::Separator();
-    if (d) ImGui::TextDisabled("%s", kind_name(d->kind));
+    if (d) ImGui::TextDisabled("%s", kind_name_one(d->kind));
     ImGui::Text("Quality %d", it.qual);
     if (it.count > 1) ImGui::Text("%d of them", it.count);
     ImGui::Text("Weight %d", it.weight);

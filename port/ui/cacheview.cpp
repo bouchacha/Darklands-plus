@@ -126,18 +126,11 @@ extern "C" void cacheview_draw(void)
     if (V.hover_list >= 0 && (V.hover_list ? V.hover_row < l.nitems : V.hover_row < l.nstore)) {
         int L = V.hover_list, i = V.hover_row;
         int id = L ? l.item[i].id : l.store[i].id, qual = L ? l.item[i].qual : l.store[i].qual, wt = L ? l.item[i].weight : l.store[i].weight, cnt = L ? l.item[i].count : l.store[i].count;
-        const ItemDef *d = ns_itemdef(id);
-        P.icon(70, SY0 + 8, 12.0f, id, qual);
-        P.text(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, ns_item_name(id));
-        std::string l1 = std::string(d ? kind_name(d->kind) : "") + ns_quality_words(id, qual) + ", weight " + std::to_string(wt);
-        if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";
-        if (L && l.item[i].equipped) l1 += "; in use";
-        if (L && l.item[i].kept) l1 += "; kept";
-        P.text(fo, NsDraw::FS_BODY, 79, SY0 + 10, soft, l1);
-        std::string l2 = ns_item_line(id);
-        if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
-        std::string use = ns_item_use(id);
-        if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, soft, use);
+        NsStripThing t;
+        t.id = id; t.qual = qual; t.weight = wt; t.count = cnt;
+        t.status = L && l.item[i].equipped ? "in use" : L && l.item[i].kept ? "kept" : "";
+        t.cmp_who = L ? -1 : l.who;
+        ns_item_strip(P, SY0, t);
     } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here; F1 tells what you can do."
                                                          : "Point at a thing to see it here. Click a name above the right list (or C) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));

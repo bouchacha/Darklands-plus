@@ -147,26 +147,15 @@ extern "C" void lootview_draw(void)
     if (V.hover_list >= 0 && (V.hover_list ? V.hover_row < l.nitems : V.hover_row < l.npile)) {
         int L = V.hover_list, i = V.hover_row;
         int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, wt = L ? l.item[i].weight : l.pile[i].weight, cnt = L ? l.item[i].count : l.pile[i].count;
-        const ItemDef *d = ns_itemdef(id);
-        P.icon(70, SY0 + 8, 12.0f, id, qual);
-        P.text(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, ns_item_name(id));
-        std::string l1 = std::string(d ? kind_name(d->kind) : "") + ns_quality_words(id, qual) + ", weight " + std::to_string(wt);
-        if (cnt > 1) l1 += " each, " + std::to_string(cnt) + " of them";
-        if (L && l.item[i].equipped) l1 += "; in use";
-        if (L && l.item[i].kept) l1 += "; kept";
+        NsStripThing t;
+        t.id = id; t.qual = qual; t.weight = wt; t.count = cnt;
+        t.status = L && l.item[i].equipped ? "in use" : L && l.item[i].kept ? "kept" : "";
+        t.cmp_who = L ? -1 : l.who;
         if (config_get_int("assist.loot_worth", 1)) {
             long w = sale_worth(id, qual);
-            if (w > 0) l1 += "; a shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");
+            if (w > 0) t.right = "A shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");
         }
-        P.text(fo, NsDraw::FS_BODY, 79, SY0 + 10, soft, l1);
-        std::string l2 = ns_item_line(id);
-        if (!l2.empty()) P.text(fo, NsDraw::FS_BODY, 79, SY0 + 17, soft, l2);
-        std::string use = ns_item_use(id);
-        if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, soft, use);
-        else if (!L) {                                          /* a weapon or an armour in the pile: against what the member has */
-            std::string cmp = ns_item_compare(id, qual, l.who);
-            if (!cmp.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink, cmp);
-        }
+        ns_item_strip(P, SY0, t);
     } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here; F1 tells what you can do."
                                                          : "Point at a thing to see it here. Click a name above the right list (or D) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));

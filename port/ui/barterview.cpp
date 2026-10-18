@@ -324,25 +324,14 @@ extern "C" void barterview_draw(void)
         if (ok) {
             int id = L ? b.item[i].id : b.ware[i].id, qual = L ? b.item[i].qual : b.ware[i].qual;
             int price = L ? b.item[i].price : b.ware[i].price, wt = L ? b.item[i].weight : b.ware[i].weight;
-            const ItemDef *d = def(id);
-            P.icon(70, SY0 + 8, 12.0f, id, qual);
-            T(f, NsDraw::FS_HEAD, 79, SY0 + 1.5f, ink, item_name(id));
-            std::string l1 = std::string(d ? kind_name(d->kind) : "") + ns_quality_words(id, qual) + ", weight " + std::to_string(wt);
-            if (L && b.item[i].count > 1) l1 += " each, " + std::to_string(b.item[i].count) + " of them";
-            T(fo, NsDraw::FS_BODY, 79, SY0 + 10, ink_soft, l1);
-            std::string l2 = ns_item_line(id);
-            if (!l2.empty()) T(fo, NsDraw::FS_BODY, 79, SY0 + 17, ink_soft, l2);
-            std::string use = ns_item_use(id);                  /* what it is good for (ingredients, rope ...) */
-            if (!use.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink_soft, use);
-            else if (!L) {                                      /* a weapon or an armour: against what the member has now */
-                std::string cmp = ns_item_compare(id, qual, b.who);
-                if (!cmp.empty()) P.para(fo, NsDraw::FS_SMALL, 79, SY0 + (l2.empty() ? 17 : 24), 235, ink, cmp);
-            }
-            std::string pr = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
-                               : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
-            if (L && b.item[i].equipped == 2) pr += "; the mount this member rides";
-            else if (L && b.item[i].equipped) pr += "; in use";
-            T(fo, NsDraw::FS_BODY, 0, SY0 + 1.8f, L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink), pr, 314);
+            NsStripThing t;
+            t.id = id; t.qual = qual; t.weight = wt; t.count = L ? b.item[i].count : 1;
+            t.status = L && b.item[i].equipped == 2 ? "the mount this member rides" : L && b.item[i].equipped ? "in use" : "";
+            t.cmp_who = L ? -1 : b.who;
+            t.right = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
+                        : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
+            t.right_col = L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink);
+            ns_item_strip(P, SY0, t);
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
     if (show_spare) {

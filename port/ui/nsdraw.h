@@ -137,11 +137,23 @@ static inline bool ns_shows_quality(int id, int q)
 }
 /* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
 std::string ns_item_line(int id);
-std::string ns_quality_words(int id, int qual);       /* ", quality 30"; "" for a potion (its flask's dots tell its grade) */
+std::string ns_quality_words(int id, int qual);       /* ", quality 30"; "" where the lists show none (ns_shows_quality) */
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
 /* a weapon or an armour against what member m has in that place now, "" for other things */
 std::string ns_item_compare(int id, int q, int m);
+
+/* the strip under the lists on the shop, the loot and the store room, about the thing pointed at
+ * (one layout for all three): its picture and name; what it is (kind, quality, weight, how many,
+ * `status` such as "in use"); the line on a weapon or an armour; what it is good for, or else
+ * how it compares with what member cmp_who has (-1: not compared). `right`, in `right_col`, at
+ * the top right: what it costs or fetches. */
+struct NsStripThing {
+    int id = 0, qual = 0, weight = 0, count = 1, cmp_who = -1;
+    std::string status, right;
+    ImU32 right_col = NsDraw::INK_SOFT;
+};
+void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);
 
 #endif
