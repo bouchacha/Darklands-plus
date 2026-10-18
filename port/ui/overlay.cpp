@@ -29,6 +29,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
 #include "../mods/hdtext.h"
+#include "../mods/titleview.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -775,6 +776,7 @@ static void draw_version(void)
 {
     int m = game_mode();
     if (!(m == GM_OTHER || (m == GM_SCREEN && (s16)g_rw(G_PARTY_SIZE) == 0))) return;   /* (the title menu is a screen, before a party) */
+    { extern TitleModel title_model; if (title_model.open && ns_screen == NS_TITLE && !ns_hidden()) return; }   /* (the start screen drawn anew writes it on its parchment) */
     char t[96]; snprintf(t, sizeof t, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
     ImDrawList *dl = ovl_list();
     ImVec2 br = g2w(318.0f, 198.0f), sz = ImGui::CalcTextSize(t);

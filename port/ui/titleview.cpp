@@ -102,4 +102,9 @@ extern "C" void titleview_draw(void)
         y += ih;
     }
     P.text(fo, NsDraw::FS_SMALL, LX0, 189, dim, m.can_continue ? "Enter continues;  L load,  N new party,  Q Quickstart" : "L load,  N new party,  Q Quickstart");
+    {   /* the version, at the foot of the page (over the picture's dark ground, in its light) */
+        extern const char dlp_version[], dlp_release[];
+        char v[96]; snprintf(v, sizeof v, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
+        P.text(fo, NsDraw::FS_SMALL, 0, 189, IM_COL32(226, 210, 170, 200), v, 312);
+    }
 }
