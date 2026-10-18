@@ -74,6 +74,7 @@ void ui_guide_tab(void)
     });
     topic("Battle", {
         "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk). Z fast-forwards (and Z again slows down).",
+        "The view scrolls when the pointer rests on its edge (or with Shift). A member out of sight: Ctrl + click their portrait, and the view follows them.",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon's penetration above it pierces and wounds, equal to it is halved, below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of foe on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
         "Missile weapons need ammunition (Darklands+ gives the party's an endless supply, F12 > Settings > Helpers). A shooter needs a clear line to the target; with Darklands+ any foe can be chosen, and a shooter without a line steps aside, or walks towards the foe, until there is one (F12 > Settings > Helpers).",

@@ -662,7 +662,7 @@ static void help_window(void)
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
             row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
-            row("Ctrl + click a member", "make that member the active one");
+            row("Ctrl + click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
             if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
