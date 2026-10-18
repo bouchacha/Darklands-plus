@@ -726,9 +726,23 @@ extern "C" void tab_alchemy(void)
     // ingredient shelf
     ImGui::SeparatorText("The party's ingredients");
     ImDrawList *dl = ImGui::GetWindowDrawList();
+    /* those carried, as tiles; the others folded away (their signs, for reading the formulae) */
+    static bool show_missing = false;
+    int carried = 0; for (int id = 72; id <= 94; id++) { int byM[MAXM]; if (party_stock(id, byM)) carried++; }
+    if (!carried) ImGui::TextDisabled("The party carries none. Alchemists and pharmacists sell them (F12 > Journal > Ingredients: where).");
     int shown = 0;
+    for (int pass = 0; pass < 2; pass++) {
+    if (pass == 1) {
+        if (carried == 23) break;
+        char lb[64]; snprintf(lb, sizeof lb, "%s the %d not carried", show_missing ? "Hide" : "Show", 23 - carried);
+        if (shown) ImGui::NewLine();
+        if (ImGui::SmallButton(lb)) show_missing = !show_missing;
+        if (!show_missing) break;
+        shown = 0;
+    }
     for (int id = 72; id <= 94; id++) {
         int byM[MAXM]; int n = party_stock(id, byM);
+        if ((n > 0) != (pass == 0)) continue;
         const ItemDef *d = def_of(id);
         if (shown % 8) ImGui::SameLine();
         ImGui::PushID(id);
@@ -738,7 +752,7 @@ extern "C" void tab_alchemy(void)
         dl->AddRect(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), col(0.55f, 0.42f, 0.25f), 6);
         draw_icon(dl, ImVec2(p.x + UIS(44), p.y + UIS(34)), UIS(40), d, id);
         ImGui::PushFont(ui_font_small);
-        const char *sn = d ? d->shortname.c_str() : "?";
+        const char *sn = d ? (ImGui::CalcTextSize(d->name.c_str()).x <= UIS(84) ? d->name.c_str() : d->shortname.c_str()) : "?";   /* (the whole name where it fits) */
         ImVec2 ts = ImGui::CalcTextSize(sn);
         dl->AddText(ImVec2(p.x + (UIS(88) - ts.x) / 2, p.y + UIS(92) - ts.y - 3), n ? col(0.2f, 0.12f, 0.06f) : col(0.5f, 0.42f, 0.32f), sn);
         char c[12]; snprintf(c, sizeof c, "%d", n);
@@ -753,6 +767,7 @@ extern "C" void tab_alchemy(void)
         ImGui::PopID();
         shown++;
     }
+    }
     // formulas
     static bool all_formulas = false;
     ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
@@ -760,10 +775,10 @@ extern "C" void tab_alchemy(void)
     if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
         ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthStretch, 1.3f);
         ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-        ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(8));
-        ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(8));
+        ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(28));   /* (room for the sort arrow) */
+        ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(28));
         ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 1.2f);
-        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Batches").x + UIS(8));
+        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Batches").x + UIS(28));
         ImGui::TableHeadersRow();
         int listed = 0;
         auto who_of = [&](int f) { std::string who; for (int m = 0; m < MAXM; m++) if (member_present(m) && knows(m, f)) { if (!who.empty()) who += ", "; who += member_name(m, false); } return who; };
