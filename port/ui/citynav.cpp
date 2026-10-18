@@ -194,7 +194,15 @@ static bool in_city(void)
     int cur = (s16)g_rw(G_CUR_LOC);
     return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD;
 }
-extern "C" int citynav_available(void) { return in_city(); }
+/* before the walls: the city's approach, its gates and its walls ($CityE, $CityG00..04, $CityW),
+   where no street leads anywhere yet (the groves, $CityG05/06, are inside) */
+static bool outside_walls(void)
+{
+    std::string c = card_now();
+    if (c.compare(0, 6, "$CITYE") == 0 || c.compare(0, 6, "$CITYW") == 0) return true;
+    return c.compare(0, 6, "$CITYG") == 0 && c.size() >= 8 && c[6] == '0' && c[7] >= '0' && c[7] <= '4';
+}
+extern "C" int citynav_available(void) { return in_city() && !outside_walls(); }
 
 static bool leave_option(const std::string &t)
 {
