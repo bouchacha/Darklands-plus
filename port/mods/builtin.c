@@ -149,6 +149,7 @@ void mods_init(void)
     { void createview_init(void); createview_init(); }
     { void rosterview_init(void); rosterview_init(); }
     { void infoview_init(void); infoview_init(); }
+    { void titleview_init(void); titleview_init(); }
     { void marchview_init(void); marchview_init(); }
     { void lodgeview_init(void); lodgeview_init(); }
     { void enemyview_init(void); enemyview_init(); }

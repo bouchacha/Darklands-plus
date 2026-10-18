@@ -21,6 +21,7 @@ int saves_key(int sym, int ctrl);                 /* Ctrl+S, F9, Ctrl+L; 1 if ta
 void saves_quick_save(void);
 void saves_quick_load(void);
 int saves_load(const char *file);                 /* at the game's next chance */
+void saves_title_load(const char *file);          /* the start screen's load screen, about to open, reads it */
 int saves_list(SaveInfo **out);                   /* newest first; free() */
 int saves_read(const char *file, SaveInfo *si);
 int saves_delete(const char *file);               /* not the one loaded; 0 if refused */

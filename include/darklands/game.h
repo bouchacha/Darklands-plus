@@ -648,6 +648,11 @@
 #define text_input               sub_s037_1462_43e6   /* (buf, max, prompt) */
 #define text_input_vec           vec_20b7             /* overlay call vector of text_input */
 #define roster_screen            sub_s037_1462_0000   /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define title_screen             sub_s037_1e26_0008   /* (): the start screen (pics\startscr.pic): Quickstart, Create a New World, The Story Continues */
+#define title_close              sub_s037_1e26_00a6   /* (): its buttons' pictures freed, the fonts back */
+#define title_setup              sub_s037_1e26_00dc   /* (): pics\startscr.pic and its palette, the buttons' pictures */
+#define title_redraw             sub_s037_1e26_014a   /* (): the start screen copied to the screen */
+#define title_key                sub_s037_1e26_0172   /* (key): 0x1051 Quickstart, 0x2e43 create, 0x1454 load, 0x1000 quit; 0x11b: the game begins */
 #define roster_leave             sub_s037_1462_0348   /* (r): the portrait and the buttons freed, the fonts back; returns r */
 #define roster_load_pics         sub_s037_1462_0390   /* (): cretscrn.pic, buttnCR2.pic, the fonts */
 #define roster_draw              sub_s037_1462_03d4   /* (): the menu, the list, the party's boxes */

@@ -355,6 +355,15 @@ int saves_load(const char *name)
     return 1;
 }
 
+/* the start screen's Continue and Load: its load screen (title_key 0x1454, s037 1c7d:0002), about
+   to open, reads this save at once (loadscreen_hook, as for a load from the menu) */
+void saves_title_load(const char *name)
+{
+    snprintf(load_name, sizeof load_name, "%s", name);
+    load_stage = 3; load_t = plat_ticks_ms();
+    fprintf(stderr, "saves: loading %s (the start screen)\n", load_name);
+}
+
 void saves_quick_load(void)
 {
     SaveInfo *v; int n = saves_list(&v), found = -1;

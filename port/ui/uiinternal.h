@@ -14,6 +14,7 @@ extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
 extern "C" { int mapmsg_is_on(void); void mapmsg_set(int on); }
 extern "C" { int infoview_is_on(void); void infoview_set(int on); }
+extern "C" { int titleview_is_on(void); void titleview_set(int on); }
 extern "C" { int rosterview_is_on(void); void rosterview_set(int on); }
 extern "C" { int createview_is_on(void); void createview_set(int on); }
 extern "C" { int prayview_is_on(void); void prayview_set(int on); }

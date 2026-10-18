@@ -708,6 +708,11 @@
 #define GF_load_saved_game              37, 0x1462, 0x4184    /* (name) */
 #define GF_text_input                   37, 0x1462, 0x43e6    /* (buf, max, prompt) */
 #define GF_roster_screen                37, 0x1462, 0x0000    /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define GF_title_screen                 37, 0x1e26, 0x0008    /* (): the start screen (pics\startscr.pic): Quickstart, Create a New World, The Story Continues */
+#define GF_title_close                  37, 0x1e26, 0x00a6    /* (): its buttons' pictures freed, the fonts back */
+#define GF_title_setup                  37, 0x1e26, 0x00dc    /* (): pics\startscr.pic and its palette, the buttons' pictures */
+#define GF_title_redraw                 37, 0x1e26, 0x014a    /* (): the start screen copied to the screen */
+#define GF_title_key                    37, 0x1e26, 0x0172    /* (key): 0x1051 Quickstart, 0x2e43 create, 0x1454 load, 0x1000 quit; 0x11b: the game begins */
 #define GF_roster_leave                 37, 0x1462, 0x0348    /* (r): the portrait and the buttons freed, the fonts back; returns r */
 #define GF_roster_load_pics             37, 0x1462, 0x0390    /* (): cretscrn.pic, buttnCR2.pic, the fonts */
 #define GF_roster_draw                  37, 0x1462, 0x03d4    /* (): the menu, the list, the party's boxes */

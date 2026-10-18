@@ -238,6 +238,8 @@ void tab_helpers(void)
       { bool kl = config_get_int("party.keep_looks", 1) != 0;
         if (ImGui::Checkbox("Characters keep their figure and colours when they join again (at an inn)", &kl)) { config_set_int("party.keep_looks", kl); ui_dirty_config = 1; } }
       ui_hint("The game gives everyone added the same figure (the tall man) in the same colours, so they are hard to tell apart in a battle. This gives a woman the woman figure and each member the next colours (Figure and Colours change them as before)."); ImGui::Unindent(UIS(34)); }
+    { bool nt = titleview_is_on() != 0;
+      if (ImGui::Checkbox("The start screen drawn by Darklands+: Continue (the newest save), Load, a new party, Quickstart, over the game's art", &nt)) { titleview_set(nt); ui_dirty_config = 1; } }
     { bool ni = infoview_is_on() != 0;
       if (ImGui::Checkbox("Party Info drawn by Darklands+: fame and its title, the time, where, the wealth, and the reputation in every city", &ni)) { infoview_set(ni); ui_dirty_config = 1; }
       ImGui::Indent(UIS(34)); ui_hint("The original names one town at a time under the pointer on its little map; this lists all of them, by reputation or by name. Off: the game's screen."); ImGui::Unindent(UIS(34)); }

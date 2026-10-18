@@ -122,6 +122,7 @@ int savesview_save(char *comment, int n)
 int savesview_load(char *file, int n)
 {
     if (!sv_on || !ns_active()) return -1;
+
     if (!ok_or_cancel(1)) return 0;
     if (saves_model.sel < 0 || saves_model.sel >= saves_model.nsaves) return 0;
     snprintf(file, (size_t)n, "%s", saves_model.saves[saves_model.sel].file);

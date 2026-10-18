@@ -60,7 +60,7 @@ int ns_hidden(void);                  /* the view should not draw now (the menu 
  * portrait, a shop from a card): ns_enter / ns_leave keep a stack, ns_screen and ns_nested are
  * the top's; a view draws only while its screen is the top. */
 extern int ns_screen;
-enum { NS_NONE, NS_CARD, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY, NS_SAVES, NS_CACHE, NS_PRAY, NS_CREATE, NS_ROSTER, NS_INFO, NS_MARCH, NS_LODGE, NS_ENEMY, NS_MAPMSG };
+enum { NS_NONE, NS_CARD, NS_BARTER, NS_INVENTORY, NS_SHEET, NS_LOOT, NS_ALCHEMY, NS_SAVES, NS_CACHE, NS_PRAY, NS_CREATE, NS_ROSTER, NS_INFO, NS_MARCH, NS_LODGE, NS_ENEMY, NS_MAPMSG, NS_TITLE };
 void ns_enter(int screen);
 void ns_leave(void);
 

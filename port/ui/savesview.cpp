@@ -12,6 +12,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/savesview.h"
+#include "../mods/titleview.h"
 u32 plat_ticks_ms(void);
 }
 
@@ -45,11 +46,18 @@ extern "C" void savesview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM;
-    P.page();
+    /* at the start screen (no party, no panel at the left) the page is the whole screen */
+    bool full = title_model.open != 0;
+    if (full) {
+        P.rect(0, 0, 320, 200, IM_COL32(236, 222, 188, 255));
+        P.rect(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
+        P.frame(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
+    } else P.page();
+    const float L = full ? -60 : 0;                              /* (the left edge: 60 further left) */
     static unsigned seq; static float scroll; static int last_click_row = -1; static u32 last_click_t;
     if (seq != S.seq) { seq = S.seq; scroll = 0; last_click_row = -1; }
 
-    P.text(f, NsDraw::FS_TITLE, 65, 3, ink, S.loading ? "Load a saved game" : "Save the game");
+    P.text(f, NsDraw::FS_TITLE, 65 + L, 3, ink, S.loading ? "Load a saved game" : "Save the game");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_CANCEL, 0);
     if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, S.sel); }
@@ -57,23 +65,23 @@ extern "C" void savesview_draw(void)
 
     float LY0 = 22;
     if (!S.loading) {
-        P.text(fo, NsDraw::FS_BODY, 65, 15.5f, soft, "Its name (22 letters at most):");
-        P.rect(64, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
-        P.frame(64, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
+        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft, "Its name (22 letters at most):");
+        P.rect(64 + L, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
+        P.frame(64 + L, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
         std::string c = S.comment;
-        if (S.fresh && !c.empty()) { float w = P.width(f, NsDraw::FS_NAME, c); P.rect(66.2f, 24.2f, 66.8f + w, 31.8f, IM_COL32(226, 200, 150, 255), 0.6f); }
-        P.text(f, NsDraw::FS_NAME, 66.5f, 24.4f, ink, c);
+        if (S.fresh && !c.empty()) { float w = P.width(f, NsDraw::FS_NAME, c); P.rect(66.2f + L, 24.2f, 66.8f + L + w, 31.8f, IM_COL32(226, 200, 150, 255), 0.6f); }
+        P.text(f, NsDraw::FS_NAME, 66.5f + L, 24.4f, ink, c);
         if (((plat_ticks_ms() - S.caret_t) / 500) % 2 == 0) {
-            float cx = 66.8f + P.width(f, NsDraw::FS_NAME, c);
+            float cx = 66.8f + L + P.width(f, NsDraw::FS_NAME, c);
             P.rect(cx, 24.5f, cx + 0.6f, 31.5f, ink);
         }
         LY0 = 40;
-        P.text(f, NsDraw::FS_HEAD, 65, LY0 - 3.5f, ink, "The saves there are");
+        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "The saves there are");
         LY0 += 5;
     }
-    else P.text(fo, NsDraw::FS_SMALL, 65, 15.5f, soft, "Double-click a save to load it.");
+    else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft, "Double-click a save to load it.");
 
-    const float X0 = 63, X1 = 317, Y1 = 196, ROWH = 15.5f;
+    const float X0 = 63 + L, X1 = 317, Y1 = 196, ROWH = 15.5f;
     P.rect(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
     P.frame(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
     int vis = (int)((Y1 - LY0) / ROWH);
