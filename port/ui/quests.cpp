@@ -21,12 +21,13 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hooks.h"
 #include "../mods/travel.h"
+#include "../mods/fixes.h"
+#include "../mods/gamemodel.h"
 void ui_toggle(void);
 }
 
-static const char *MONTH[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
-                                 "September", "October", "November", "December" };
 
 struct Ev { int i; u16 seg, off; int type0, owner, loc, value, kind, tag, aux, reward, item; int start[4], end[4]; };
 
@@ -35,9 +36,10 @@ static int ev_field(u16 s, u16 o, int k) { return (s16)rw(s, (u16)(o + k)); }
 static std::vector<Ev> read_events(void)
 {
     std::vector<Ev> v;
-    for (int i = 0; i < 300; i++) {
-        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
-        if (!s) continue;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        u16 s = (u16)(p >> 16), o = (u16)p;
         Ev e; e.i = i; e.seg = s; e.off = o;
         e.type0 = ev_field(s, o, 0); e.owner = ev_field(s, o, 0x1a); e.loc = ev_field(s, o, 0x1c); e.value = ev_field(s, o, 0x1e);
         e.kind = ev_field(s, o, 0x22); e.tag = ev_field(s, o, 0x28); e.aux = ev_field(s, o, 0x2a); e.reward = ev_field(s, o, 0x2c);
@@ -51,7 +53,7 @@ static std::vector<Ev> read_events(void)
 static std::string date(const int d[4])
 {
     if (d[2] >= 12 || d[3] >= 1499) return "no time limit";
-    char b[48]; snprintf(b, sizeof b, "%d %s %d", d[1], MONTH[d[2] % 12], d[3]);
+    char b[48]; snprintf(b, sizeof b, "%d %s %d", d[1], gm_month_name(d[2] % 12), d[3]);
     return b;
 }
 
@@ -65,11 +67,8 @@ static bool loc_xy(int loc, int *x, int *y)
 
 static std::string loc_name(int loc)
 {
-    if (loc >= 0 && loc < (int)gamedata.cities.size()) return gamedata.cities[loc].name;
-    u32 r = g_location(loc);
-    if (!r) return "?";
-    char b[24]; g_str((u16)(r >> 16), (u16)(r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    std::string n = loc_display_name(loc);
+    return n.empty() ? "?" : n;
 }
 
 /* "Burg Ebeleben, north-east of Erfurt" for places that are not towns */
@@ -149,7 +148,7 @@ static std::string person(int seed)
 static const char *giver(int id)
 {
     switch (id) {
-    case 0: return "a merchant"; case 4: return "a foreign trader"; case 5: return "a pharmacist";
+    case 0: return "a merchant"; case 3: return "the bishop"; case 4: return "a foreign trader"; case 5: return "a pharmacist";
     case 6: return "the Medici"; case 7: return "the Hanse"; case 8: return "the Fugger"; case 9: return "the villagers";
     case 10: return "the city's lord"; default: return "a townsman";
     }
@@ -162,7 +161,7 @@ static std::string item_name(int id)
     return "an item";
 }
 
-struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; int town = -1; };
+struct Line { std::string text, when; int group; int loc = -1; std::string title, id; long end = -1; int ed = 0, em = 0, ey = 0; int order = 0; int cat = QC_NONE; int town = -1; int giver = -1, office = -1; };
 
 /* a merchant's fetching errand (kind 8, tag 10; s039 1462:1712 picks the thing and the kind of
    place): a holy book, a crown, henbane ... from a cave, tomb, lake, spring, shrine or pagan altar;
@@ -176,9 +175,90 @@ static int fetch_cat(const Ev &e)
     return e.loc >= 0 && e.loc < (int)gamedata.cities.size() ? QC_PAPERS : QC_RETRIEVE;
 }
 
+/* who holds what is to be got in a town (papers, or a thing the giver's errand sends the party to a
+   town for), as the giver says ($McGuf12, s128 18f7: by the event's +0x2a, % 2 for debt notes, % 4
+   for the rest); it is kept in that one's office above the town's marketplace, reached at night
+   ($Marke01, then $Insid00: mods/fixes.c, debtnote) */
+static int papers_office(const Ev &e)
+{
+    int aux = e.aux < 0 ? 0 : e.aux;
+    return (e.type0 == 10 ? (fix_is_on("debtnote") ? fixes_debt_note_office(aux) : aux % 4) : aux % 4) & 3;
+}
+static std::string papers_holder(const Ev &e)
+{
+    static const char *OFFICE[4] = { "the leading merchant", "the Medici", "the Fugger", "the Hanseatic League" };
+    return OFFICE[papers_office(e)];
+}
+
 static bool spoilers = getenv("DL_QUEST_SPOILERS") != 0;
 
 static long when_key(const int d[4]) { return (((long)d[3] * 12 + d[2]) * 31 + d[1]) * 24 + d[0]; }   /* (year, month, day, hour) in order */
+
+/* ---------------------------------------------------------------- what the party learned of a Sabbat
+ * The game schedules a Sabbat as an event (kind 0x1c, tag 1, type0 4; aux the place, end the
+ * night; type0 5 while it is held) and lets the party learn of it on cards whose text holds
+ * $SabbatLocation and/or $SabbatTime (a dying cultist, a witch's letter, a captured villager...).
+ * When text_expand (s043 150b:06fe) expands such a block (as the card files have it, read by
+ * ui/citynav.cpp), the place or the night is noted for the Sabbat coming next (not during the
+ * card hints' trial runs, dos_no_writes), kept per game (the party's seed) beside the chronicle. */
+struct SabbatKnown { int loc, day, month, year, what; };            /* what: 1 the place, 2 the night */
+static std::vector<SabbatKnown> sab_known;
+static int sab_seed = -1;
+static std::string sab_path(int seed)
+{
+    extern char dlp_data_dir[];
+    char b[1200]; snprintf(b, sizeof b, "%s/darklands_sabbats_%u.txt", dlp_data_dir, (unsigned)seed);
+    return b;
+}
+static void sab_load(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed == sab_seed) return;
+    sab_seed = seed; sab_known.clear();
+    FILE *f = fopen(sab_path(seed).c_str(), "r");
+    if (!f) return;
+    SabbatKnown k;
+    while (fscanf(f, "%d %d %d %d %d", &k.loc, &k.day, &k.month, &k.year, &k.what) == 5) sab_known.push_back(k);
+    fclose(f);
+}
+static int sab_what(const Ev &e)
+{
+    sab_load();
+    int w = 0;
+    for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && k.day == e.end[1] && k.month == e.end[2] && k.year == e.end[3]) w |= k.what;
+    return w;
+}
+static void sab_learn(int what)
+{
+    std::vector<Ev> evs = read_events();
+    const Ev *next = nullptr;
+    for (const Ev &e : evs) if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5) return;   /* (one is held now: the Sabbat's own cards speak of it) */
+    for (const Ev &e : evs) if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (!next || when_key(e.end) < when_key(next->end))) next = &e;
+    if (!next) return;
+    sab_load();
+    int had = sab_what(*next);
+    if ((had | what) == had) return;
+    SabbatKnown k = { next->aux, next->end[1], next->end[2], next->end[3], what };
+    sab_known.push_back(k);
+    FILE *f = fopen(sab_path(sab_seed).c_str(), "a");
+    if (f) { fprintf(f, "%d %d %d %d %d\n", k.loc, k.day, k.month, k.year, k.what); fclose(f); }
+    fprintf(stderr, "quests: learned of the Sabbat at %d on %d.%d.%d (%s)\n", k.loc, k.day, k.month + 1, k.year, what == 3 ? "place and night" : what == 1 ? "place" : "night");
+}
+extern "C" int citynav_card_block_has(const char *card, int block, const char *word);
+static void sabbat_text_hook(void)          /* text_expand (idx, out) */
+{
+    extern int dos_no_writes;
+    int idx = (s16)rw(SS, (u16)(SP + 4)), what = 0;
+    if (!dos_no_writes && game_mode() != GM_OTHER && !config_get_int("original", 0)) {
+        char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+        if (citynav_card_block_has(nm, idx, "$SabbatLocation")) what |= 1;
+        if (citynav_card_block_has(nm, idx, "$SabbatTime")) what |= 2;
+    }
+    hook_call_original();
+    if (what) sab_learn(what);
+}
+extern "C" void quests_init(void) { hook_install(GF_text_expand, sabbat_text_hook); }
+extern "C" void quests_test_learn(int what) { sab_learn(what); }
 
 static std::vector<Line> build_lines(void)
 {
@@ -205,14 +285,22 @@ static std::vector<Line> build_lines(void)
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
             add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
-                + ", for " + by + " of " + loc_name(e.value) + ".", "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
+                + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its reward is the village's good opinion of the party when he falls." : ""),
+                "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
+        else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
+            ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */
         else if (e.kind == 0x24 && e.tag == 3)
-            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
+            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + (e.owner == 3 ? " (at the cathedral, by day: at night it holds no audience)" : "") + ".",
+                "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
+        else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
+            add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
+                + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can steal up to them.",
+                limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e)), v.back().office = papers_office(e);
         else if (e.kind == 8 && e.tag == 10)
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e));
         else if (e.kind == 0x24 && e.tag == 10)
-            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD);
+            add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 4)
             add("Dragon near " + nearest_town(e.loc), "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
         else if (e.kind == 8 && e.tag == 12)
@@ -223,10 +311,14 @@ static std::vector<Line> build_lines(void)
             { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing one's way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
-        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && spoilers)
-            add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), 4, e.aux, true, QC_SABBAT);
-        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && spoilers)
-            add("Sabbat now", "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", 4, -1, false, QC_SABBAT);
+        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {
+            int known = sab_what(e), w = spoilers ? 3 : known, g = known ? 0 : 4;    /* (learned: among the tasks; else a secret) */
+            if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
+            else if (w == 1) add("Sabbat @ " + loc_name(e.aux), "Witches gather at " + where(e.aux) + " (the night is not known).", "", g, e.aux, false, QC_SABBAT);
+            else add("Sabbat on " + date(e.end), "Witches gather on the night of " + date(e.end) + " (the place is not known).", "on " + date(e.end), g, -1, true, QC_SABBAT);
+        }
+        else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && (spoilers || [&] { sab_load(); for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && (k.what & 1)) return true; return false; }()))
+            add("Sabbat now @ " + loc_name(e.aux), "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", spoilers ? 4 : 0, e.aux, false, QC_SABBAT);
     }
     return v;
 }
@@ -259,8 +351,8 @@ static int day_number(int day, int month, int year)          /* days since a fix
     return year * 365 + year / 4 - year / 100 + year / 400 + CUM[month] + day;
 }
 
-/* the party's place on the map: the town or site it is at, else its tile */
-static bool party_xy(double *x, double *y)
+/* the party's place on the map: the town or site it is at, else its tile (quests.h) */
+bool party_xy(double *x, double *y)
 {
     int cur = (s16)g_rw(G_CUR_LOC), px, py;
     if (cur >= 0 && loc_xy(cur, &px, &py)) { *x = px; *y = py; return true; }
@@ -281,6 +373,7 @@ void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
         if (!all && l.group > 1) continue;
         QuestRow r;
         r.id = l.id; r.title = l.title; r.text = l.text; r.when = l.when; r.group = l.group; r.loc = l.loc; r.order = l.order; r.cat = l.cat;
+        r.giver = l.giver; r.office = l.office;
         r.days_left = -1;
         if (l.end >= 0) {
             int d = day_number(l.ed, l.em, l.ey) - dnow;

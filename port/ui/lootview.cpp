@@ -1,8 +1,9 @@
 /* lootview.cpp - draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md).
  *
  * The pile and the member's things side by side; Take (the whole stack, or 1) on a pile row,
- * Put back (the stack, or 1) on the member's; the members as tabs; Take all and Share out;
- * a fixed strip describes the row under the pointer. Drawn from loot_model alone. */
+ * Put back (the stack, or 1) on the member's; the members as tabs (with one pack for the party,
+ * none: the party's pack, each potion marked with its owner); Take all and Share out; a fixed
+ * strip describes the row under the pointer. Drawn from loot_model alone. */
 #include "imgui.h"
 #include <math.h>
 #include <stdio.h>
@@ -72,7 +73,8 @@ extern "C" void lootview_draw(void)
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9; const int NROWS = 13;
     const float LY1 = LY0 + NROWS * ROWH;
     P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "The pile");
-    {                                                       /* (shared: the tab is whose potions are shown, and whom a potion taken goes to) */
+    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21, ink, "The party's pack");
+    else {
         int n = 0; for (int m = 0; m < 5; m++) if (l.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
         for (int m = 0; m < 5; m++) {
@@ -111,15 +113,17 @@ extern "C" void lootview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "q%d", qual);
-            std::string owner = own ? ns_gtext(l.names[l.who]) + "'s" : std::string();
-            const char *tag = eq ? "in use" : own ? owner.c_str() : kept ? "kept" : NULL;
+            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "%dq", qual);
+            int ow = L ? l.item[i].owner : -1;
+            std::string owner = own && ow >= 0 && ow < 5 ? ns_gtext(l.names[ow]) + "'s" : std::string();
+            if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);   /* equipped: a red mark at its left (said in the strip) */
+            const char *tag = own ? owner.c_str() : kept ? "kept" : NULL;
             float tagw = tag ? P.tag_width(tag) : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
             P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.tag(nx, y, ROWH, tag, eq ? NsDraw::RED : own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
+                P.tag(nx, y, ROWH, tag, own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
             }
             if (!h) { P.text(fo, NsDraw::FS_BODY, 0, y + 2.2f, soft, qs, x1 - 3); continue; }
             /* the actions: the whole stack, or one */
@@ -149,8 +153,8 @@ extern "C" void lootview_draw(void)
         int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, wt = L ? l.item[i].weight : l.pile[i].weight, cnt = L ? l.item[i].count : l.pile[i].count;
         NsStripThing t;
         t.id = id; t.qual = qual; t.weight = wt; t.count = cnt;
-        t.status = L && l.item[i].equipped ? "in use" : L && l.item[i].kept ? "kept" : "";
-        t.cmp_who = L ? -1 : l.who;
+        t.status = L && l.item[i].equipped ? "equipped" : L && l.item[i].kept ? "kept" : "";
+        t.cmp_who = L ? -1 : l.shared ? -2 : l.who;      /* (one pack: whom in the party it would suit) */
         if (config_get_int("assist.loot_worth", 1)) {
             long w = sale_worth(id, qual);
             if (w > 0) t.right = "A shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");

@@ -1,6 +1,7 @@
 // savesview.cpp - the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the
 // comment to save under, and the saves there are, newest first, each with its comment, where
-// and when in the game, who, the purse and how long ago it was written.
+// and when in the game, who, the purse and how long ago it was written. Save: a click on a save
+// makes the new one take its place; Load: the chosen save has a Delete (twice).
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -12,10 +13,11 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/savesview.h"
+#include "../mods/titleview.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 }
 
-static const char *MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 static std::string ago(long long t)
 {
@@ -25,48 +27,64 @@ static std::string ago(long long t)
     if (d < 60) snprintf(b, sizeof b, "just now");
     else if (d < 3600) snprintf(b, sizeof b, "%lld min ago", d / 60);
     else if (d < 86400) snprintf(b, sizeof b, "%lld h ago", d / 3600);
+    else if (d < 86400 * 2) snprintf(b, sizeof b, "yesterday");
     else if (d < 86400 * 60) snprintf(b, sizeof b, "%lld days ago", d / 86400);
     else { struct tm *tm = localtime((time_t *)&t); strftime(b, sizeof b, "%Y-%m-%d", tm); }
     return b;
 }
 
+extern "C" int savesview_showing(int *loading)
+{
+    if (!saves_model.open || ns_screen != NS_SAVES || ns_hidden()) return 0;
+    if (loading) *loading = saves_model.loading;
+    return 1;
+}
+
 extern "C" void savesview_draw(void)
 {
     SavesModel &S = saves_model;
-    if (!S.open || ns_screen != NS_SAVES || ns_hidden()) return;
+    if (!savesview_showing(nullptr)) return;
     NsDraw P;
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM;
-    P.page();
+    /* at the start screen (no party, no panel at the left) the page is the whole screen */
+    bool full = title_model.open != 0;
+    if (full) {
+        P.rect(0, 0, 320, 200, IM_COL32(236, 222, 188, 255));
+        P.rect(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
+        P.frame(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
+    } else P.page();
+    const float L = full ? -60 : 0;                              /* (the left edge: 60 further left) */
     static unsigned seq; static float scroll; static int last_click_row = -1; static u32 last_click_t;
     if (seq != S.seq) { seq = S.seq; scroll = 0; last_click_row = -1; }
 
-    P.text(f, NsDraw::FS_TITLE, 65, 3, ink, S.loading ? "Load a saved game" : "Save the game");
+    P.text(f, NsDraw::FS_TITLE, 65 + L, 3, ink, S.loading ? "Load a saved game" : "Save the game");
     float bx = 284;
-    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235))) savesview_push(SVV_CANCEL, 0);
-    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235))) savesview_push(SVV_OK, S.sel); }
-    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235))) savesview_push(SVV_OK, 0);
+    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_CANCEL, 0);
+    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, S.sel); }
+    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, 0);
 
     float LY0 = 22;
     if (!S.loading) {
-        P.text(fo, NsDraw::FS_BODY, 65, 15.5f, soft, "A name for it, 22 letters at most (type; Enter saves, Esc goes back):");
-        P.rect(64, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
-        P.frame(64, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
+        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft, "Its name (22 letters at most):");
+        P.rect(64 + L, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
+        P.frame(64 + L, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
         std::string c = S.comment;
-        if (S.fresh && !c.empty()) { float w = P.width(f, NsDraw::FS_NAME, c); P.rect(66.2f, 24.2f, 66.8f + w, 31.8f, IM_COL32(226, 200, 150, 255), 0.6f); }
-        P.text(f, NsDraw::FS_NAME, 66.5f, 24.4f, ink, c);
+        if (S.fresh && !c.empty()) { float w = P.width(f, NsDraw::FS_NAME, c); P.rect(66.2f + L, 24.2f, 66.8f + L + w, 31.8f, IM_COL32(226, 200, 150, 255), 0.6f); }
+        P.text(f, NsDraw::FS_NAME, 66.5f + L, 24.4f, ink, c);
         if (((plat_ticks_ms() - S.caret_t) / 500) % 2 == 0) {
-            float cx = 66.8f + P.width(f, NsDraw::FS_NAME, c);
+            float cx = 66.8f + L + P.width(f, NsDraw::FS_NAME, c);
             P.rect(cx, 24.5f, cx + 0.6f, 31.5f, ink);
         }
         LY0 = 40;
-        P.text(f, NsDraw::FS_HEAD, 65, LY0 - 3.5f, ink, "The saves there are");
+        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "The saves there are");
+        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft, S.sel >= 0 ? "a click on it again: it stays" : "a click on one: this save takes its place", 316);
         LY0 += 5;
     }
-    else P.text(fo, NsDraw::FS_SMALL, 65, 15.5f, soft, "Click a save, then Load (or double-click it); Up / Down and Enter work too. Cancel leaves the game as it is.");
+    else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft, "Double-click a save to load it.");
 
-    const float X0 = 63, X1 = 317, Y1 = 196, ROWH = 15.5f;
+    const float X0 = 63 + L, X1 = 317, Y1 = 196, ROWH = 15.5f;
     P.rect(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
     P.frame(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
     int vis = (int)((Y1 - LY0) / ROWH);
@@ -83,30 +101,40 @@ extern "C" void savesview_draw(void)
     for (int i = first; i < S.nsaves && i < first + vis + 1; i++) {
         const SaveInfo &v = S.saves[i];
         float y = LY0 + (i - first) * ROWH;
-        bool sel = S.loading && i == S.sel, h = S.loading && P.over(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1);
-        if (sel) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(226, 200, 150, 255), 1.0f);
+        bool sel = i == S.sel, h = P.over(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1);
+        bool cur = !strcasecmp(v.file, S.cur_file);
+        if (sel && !S.loading) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(232, 196, 170, 255), 1.0f);     /* (to be replaced) */
+        else if (sel) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(226, 200, 150, 255), 1.0f);
         else if (h) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(240, 226, 196, 255), 1.0f);
         else if (i % 2) P.rect(X0 + 0.5f, y, X1 - 0.5f, y + ROWH, IM_COL32(244, 234, 210, 255));
-        bool cur = !strcasecmp(v.file, S.cur_file);
         std::string title = ns_gtext(v.comment);
         if (title.empty()) title = ns_gtext(v.place);
         float tx = X0 + 3;
         P.text(f, NsDraw::FS_NAME, tx, y + 1.0f, ink, title, -1, X1 - 72);
-        char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, MON[(unsigned)v.month % 12], v.year, v.hour);
+        char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, gm_month_name((unsigned)v.month % 12), v.year, v.hour);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 1.8f, soft, when, X1 - 3);
+        bool armed = S.loading && S.armed == i && plat_ticks_ms() - S.armed_t <= 4000, del_hit = false;
+        if (S.loading && sel && !cur) {                           /* Load: the chosen save can be deleted (a second click does it) */
+            float wx1 = X1 - 6 - P.width(fo, NsDraw::FS_SMALL, when), wx0 = wx1 - (armed ? 34 : 22);
+            del_hit = P.over(wx0, y + 1.2f, wx1, y + 7.6f);
+            if (P.button(wx0, y + 1.2f, wx1, y + 7.6f, armed ? "Delete it?" : "Delete", armed ? IM_COL32(150, 40, 22, 240) : IM_COL32(120, 92, 70, 220))) savesview_push(SVV_DELETE, i);
+        }
         std::string who;
         for (int m = 0; m < v.nmembers; m++) { if (m) who += ", "; who += ns_gtext(v.members[m]); }
         std::string line = ns_gtext(v.place);
         if (!who.empty()) line += (line.empty() ? "" : "  -  ") + who;
-        line += "  -  " + money_fgp(v.florins, 0, 0);
+        line += "  -  " + money_fgp(v.florins, v.groschen, v.pfennigs);
         P.text(fo, NsDraw::FS_SMALL, tx, y + 8.6f, dim, line, -1, X1 - 60);
         std::string tag = ago(v.mtime);
         if (v.battle) tag = "in a battle, " + tag;
         if (cur) tag = (S.loading ? "the last loaded or saved, " : "the last, ") + tag;
-        P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, cur ? NsDraw::GREEN : dim, tag, X1 - 3);
-        if (S.loading && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
+        ImU32 tc = cur ? NsDraw::GREEN : dim;
+        if (sel && !S.loading) { tag = "this save takes its place"; tc = IM_COL32(150, 40, 22, 255); }
+        if (armed) { tag = "deleted for good: click again"; tc = IM_COL32(150, 40, 22, 255); }
+        P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, tc, tag, X1 - 3);
+        if (!del_hit && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
             u32 now = plat_ticks_ms();
-            if (last_click_row == i && now - last_click_t < 450) savesview_push(SVV_OK, i);
+            if (S.loading && last_click_row == i && now - last_click_t < 450) savesview_push(SVV_OK, i);
             else savesview_push(SVV_SELECT, i);
             last_click_row = i; last_click_t = now;
         }

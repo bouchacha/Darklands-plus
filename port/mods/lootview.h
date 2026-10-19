@@ -8,12 +8,12 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, count, weight, src; } LvPile;   /* (src: the entry in the game's pile; arrows and the like are left out when hidden) */
-typedef struct { int idx, id, qual, count, weight, equipped, kept, potion; } LvItem;
-/* (the shared pack, inventory.shared: the right list is the member shown's own potions (idx their
-   record, potion 1) and then the party's pack, every spare thing of every member but potions by
-   kind and quality (idx -1, count the party's spares); Take puts a potion with the member shown and
-   anything else with whoever carries some already, else whoever has the most free places; Put back
-   takes it from the member shown or from whoever has a spare one) */
+typedef struct { int idx, id, qual, count, weight, equipped, kept, potion, owner; } LvItem;
+/* (the shared pack, inventory.shared: the right list is the party's: every member's own potions
+   (owner the member, idx their record, potion 1) and then the pack, every spare thing of every
+   member but potions by kind and quality (owner and idx -1, count the party's spares); Take puts a
+   thing with whoever carries some already, else whoever has the most free places; Put back takes a
+   potion from its owner, anything else from whoever has a spare one. No member is chosen.) */
 
 typedef struct {
     int open;

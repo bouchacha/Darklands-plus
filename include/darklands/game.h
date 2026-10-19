@@ -336,6 +336,7 @@
 #define missiles_advance         sub_s014_1d47_0000   /* (): every missile one tick */
 #define line_blocked             sub_s014_1d69_000c   /* (a, b): line of sight / fire blocked by a wall, furniture or combatant */
 #define ai_tick                  sub_s014_1db7_0008   /* () */
+#define ai_costs                 sub_s014_1db7_0028   /* (i, lo, hi): walking costs from i to lo..hi-1, far 20a5:787e[i*5+j] */
 #define ai_set_target            sub_s014_1db7_0c2a   /* (i, t) */
 #define ai_rethink               sub_s014_1db7_0e22   /* (i) */
 #define cloud_blocks_line        sub_s014_1ec9_0142   /* (a, b): line passes through an effect cloud */
@@ -416,6 +417,7 @@
 #define enemy_anim_free6_vec     vec_1dd3             /* overlay call vector of enemy_anim_free6 */
 #define combatants               D_9c55               /* struct cbt[13] (0x80 bytes): 0..4 party (= party - 0x14), 5..12 enemies */
 #define cbt_floor                D_a6b4               /* [13] floor (level) of each combatant */
+#define cbt_ends_battle          D_c1f3               /* [13] its fall ends the battle (the master of a place; monster record +aa) */
 #define cbt_action               D_ca64               /* [13] current action */
 #define cbt_anim                 D_ca57               /* [13] current animation (3 dying ...) */
 #define cbt_moving               D_a6d3               /* [13] moving to a target */
@@ -443,7 +445,10 @@
 #define order_mode               D_a6b3               /* 1 while a member is selected */
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
+#define order_dest_x             D_c652               /* int: a spot on the ground clicked in this order (0 none): where order_mode_leave sends the member */
+#define order_dest_y             D_c67d               /* int: its y */
 #define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define insid_office             D_eeb4               /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */
 #define cbt_mods                 D_a532               /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define cursor_target            D_d845               /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
@@ -514,6 +519,9 @@
 #define event_48_max             sub_s029_0e76_4e0c   /* (who, a) */
 #define days_per_month           D_2776               /* int[12] */
 #define party_fame               D_9082
+#define standing_fugger          D_4bb6               /* int: the party's standing with the Fugger (their cards add and take; under 0, with the town's regard, no tasks) - not in a saved game */
+#define standing_medici          D_4bb8               /* int: with the Medici, likewise */
+#define standing_hanse           D_4bba               /* int: with the Hanse, likewise */
 #define party_money_gr           D_906d               /* groschen of party_money */
 #define party_money_pf           D_906f               /* pfennigs of party_money */
 #define inventories              F_2e38_003e          /* struct item6 [5][64] (6-byte records, 0x180 bytes per member) */
@@ -632,6 +640,8 @@
 #define cache_inv_sel            D_37e2               /* int[5]: the member's list, the cursor's row */
 #define cache_sel                D_37ec               /* int[5]: the store's list, the cursor's row */
 #define camp_spend_day           sub_s036_1462_147a   /* (): spend one day */
+#define camp_activity            D_8a18               /* int[5]: each member's day at the inn or camp (0 relax, 1 regain strength, 2 pray, 3 alchemy, 4 earn, 5 guard, 6 train) */
+#define camp_activity_arg        D_89fe               /* int[5]: its number (6: the skill taught; 4: the wage) */
 #define save_game                sub_s037_1462_2a68   /* (): "Save game" */
 #define save_game_vec            vec_1847             /* overlay call vector of save_game */
 #define char_in_slot             sub_s037_1462_3a8a   /* (p): character index in party slot p */
@@ -648,6 +658,11 @@
 #define text_input               sub_s037_1462_43e6   /* (buf, max, prompt) */
 #define text_input_vec           vec_20b7             /* overlay call vector of text_input */
 #define roster_screen            sub_s037_1462_0000   /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define title_screen             sub_s037_1e26_0008   /* (): the start screen (pics\startscr.pic): Quickstart, Create a New World, The Story Continues */
+#define title_close              sub_s037_1e26_00a6   /* (): its buttons' pictures freed, the fonts back */
+#define title_setup              sub_s037_1e26_00dc   /* (): pics\startscr.pic and its palette, the buttons' pictures */
+#define title_redraw             sub_s037_1e26_014a   /* (): the start screen copied to the screen */
+#define title_key                sub_s037_1e26_0172   /* (key): 0x1051 Quickstart, 0x2e43 create, 0x1454 load, 0x1000 quit; 0x11b: the game begins */
 #define roster_leave             sub_s037_1462_0348   /* (r): the portrait and the buttons freed, the fonts back; returns r */
 #define roster_load_pics         sub_s037_1462_0390   /* (): cretscrn.pic, buttnCR2.pic, the fonts */
 #define roster_draw              sub_s037_1462_03d4   /* (): the menu, the list, the party's boxes */
@@ -686,6 +701,7 @@
 #define create_nick              D_e848               /* char[]: the short name (9 letters) */
 #define create_random_name       D_8bfe               /* int: the name was drawn (a new gender draws another) */
 #define create_prof              D_4428               /* int: the last profession */
+#define create_prev              D_442a               /* int: the profession before the last */
 #define create_child             D_8c02               /* int: the childhood */
 #define create_taken             D_4402               /* char[0x25]: bit 0 a profession taken */
 #define loot_distribute          sub_s040_1462_0000   /* (items far, unsigned char *count, int far *cash): loot screen entry */
@@ -827,3 +843,8 @@
 #define path_formation           D_e0a2               /* char: pathfinding for a formation (its collision rules) */
 #define path_target_only         D_d697               /* char: ignore combatants other than the target */
 #define pause_depth              D_07d3               /* char: pauses in force (orders being given ...) */
+#define battle_view_col          D_c866               /* char: the battle view's origin, column (a step: 32 pixels sideways; vec_1d3d clamps it to 1..0x27) */
+#define battle_view_row          D_c886               /* char: the battle view's origin, row (a step: 16 pixels across and 16 up) */
+#define battle_follow            D_11b1               /* char: the view follows the member being given orders (1), jumping near an edge */
+#define battle_end_at            D_da45               /* unsigned: the combat clock's tick at which a decided battle ends */
+#define battle_tick              D_e092               /* unsigned: the battle's own clock, back at 0 in a new battle */

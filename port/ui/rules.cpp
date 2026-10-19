@@ -24,6 +24,7 @@
 #include "imgui.h"
 #include "tablesort.h"
 #include "ui.h"
+#include "uiinternal.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -204,7 +205,7 @@ void rules_tab(void)
     ImGui::TextWrapped("The battle numbers of every weapon, as the game uses them now%s.", rules_changed ? " (changed by a mod)" : "");
     static const char *SK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile dev." };
     if (ImGui::BeginTable("weapons", 9, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
-                          ImVec2(0, ImGui::GetContentRegionAvail().y - 110))) {
+                          ImVec2(0, ImGui::GetContentRegionAvail().y - (ui_modding() ? UIS(110) : UIS(60))))) {
         const char *H[9] = { "Weapon", "Skill", "Hands", "Damage", "Penetr.", "Time", "Reload", "Skill wanted", "Strength" };
         for (int i = 0; i < 9; i++) ImGui::TableSetupColumn(H[i], i == 0 ? ImGuiTableColumnFlags_WidthStretch : 0);
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -234,7 +235,7 @@ void rules_tab(void)
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[2]) >= 2 ? 2 : 1);
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[4]));
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[3]));
-            ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[1]));
+            ImGui::TableNextColumn(); if (get(w, FIELDS[1]) || !get(w, FIELDS[8])) ImGui::Text("%d", get(w, FIELDS[1]));   /* (blank: the reload sets the pace) */
             ImGui::TableNextColumn(); if (get(w, FIELDS[8])) ImGui::Text("%d", get(w, FIELDS[8]));
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[5]));
             ImGui::TableNextColumn(); ImGui::Text("%d-%d", get(w, FIELDS[6]), get(w, FIELDS[7]));
@@ -242,9 +243,10 @@ void rules_tab(void)
         ImGui::EndTable();
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Time: for a blow, lower is quicker. Each point of skill short of what a weapon wants costs 2 attack and 2 defence; "
+    ImGui::TextWrapped("Time: for a blow, lower is quicker; where it is blank, the Reload sets the pace. Each point of skill short of what a weapon wants costs 2 attack and 2 defence; "
                        "below its strength range each point costs 1 attack and 3 defence and blows hit softer, above it blows hit harder.");
     ImGui::PopStyleColor();
+    if (!ui_modding()) { if (!rules_log.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", rules_log.c_str()); return; }
     static char modname[64] = "My weapons"; static std::string msg;
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##rulesmod", modname, sizeof modname); ImGui::SameLine();
     if (ImGui::Button("Write these numbers into a mod folder (rules.ini)") && modname[0]) {

@@ -26,6 +26,7 @@
 #include "../runtime/config.h"
 #include "travel.h"
 #include "encounters.h"
+#include "sainttexts.h"
 
 extern char game_dir[1024];
 
@@ -35,8 +36,11 @@ TravelState travel;
 int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 instant */
 int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
 
-/* minutes per one-pixel step by terrain (s030 1462:2ac8) */
-static int minutes(int t)
+/* minutes per one-pixel step by terrain (s030 1462:2ac8; with a saint's speed, mods/sainttexts.h) */
+static int minutes_base(int t);
+static int spd_any, spd_woods;                     /* the saints' speed (mods/sainttexts.h) the field was made with */
+static int minutes(int t) { return sainttexts_scale(t, minutes_base(t), spd_any, spd_woods); }
+static int minutes_base(int t)
 {
     switch (t) {
     case 24: return 6;
@@ -149,6 +153,7 @@ static void field(int x0, int y0)
 {
     size_t n = (size_t)mw * mh;
     if (!dist) { dist = malloc(n * sizeof *dist); prev = malloc(n * sizeof *prev); }
+    sainttexts_speeds(&spd_any, &spd_woods);
     for (size_t k = 0; k < n; k++) { dist[k] = 0x7fffffff; prev[k] = -1; }
     mark_sites();
     int s = y0 * mw + x0;
@@ -186,7 +191,8 @@ int travel_minutes(int x, int y)
     if (!map_ready()) return -2;
     int px, py; travel_party_tile(&px, &py);
     if (px < 0 || py < 0 || px >= mw || py >= mh) return -1;
-    if (px != field_x || py != field_y) field(px, py);
+    int a, w; sainttexts_speeds(&a, &w);
+    if (px != field_x || py != field_y || a != spd_any || w != spd_woods) field(px, py);   /* (a saint's speed began or ended) */
     if (x < 0 || y < 0 || x >= mw || y >= mh) return -1;
     int d = dist[y * mw + x];
     return d == 0x7fffffff ? -1 : d;

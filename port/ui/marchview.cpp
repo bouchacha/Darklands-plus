@@ -19,7 +19,7 @@ extern "C" void marchview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT;
-    const ImU32 BROWN = IM_COL32(120, 84, 40, 235), GREY = IM_COL32(150, 136, 112, 140);
+    const ImU32 BROWN = IM_COL32(120, 84, 40, 235);
     static const char *NTH[5] = { "1st", "2nd", "3rd", "4th", "5th" };
     const float RH = 17, X0 = 120, X1 = 260;
     float h = 30 + m.n * RH + 16, Y0 = 100 - h * 0.5f, Y1 = Y0 + h;
@@ -40,8 +40,8 @@ extern "C" void marchview_draw(void)
         }
         P.text(f, NsDraw::FS_NAME, X0 + 34, ry + 4.5f, ink, ns_gtext(m.name[i]), -1, X1 - 32);
         bool up = k > 0, down = k + 1 < m.n;
-        if (P.button(X1 - 28, ry + 3.5f, X1 - 17, ry + 12.5f, "up", up ? BROWN : GREY) && up) ns_push(MV_UP, k, 0, 0);
-        if (P.button(X1 - 15, ry + 3.5f, X1 - 4, ry + 12.5f, "dn", down ? BROWN : GREY) && down) ns_push(MV_DOWN, k, 0, 0);
+        if (P.arrow_button(X1 - 28, ry + 3.5f, X1 - 17, ry + 12.5f, true, up, BROWN)) ns_push(MV_UP, k, 0, 0);
+        if (P.arrow_button(X1 - 15, ry + 3.5f, X1 - 4, ry + 12.5f, false, down, BROWN)) ns_push(MV_DOWN, k, 0, 0);
     }
     float by = Y1 - 13;
     if (P.button(X1 - 70, by, X1 - 38, by + 10, "Done", IM_COL32(40, 92, 34, 235))) ns_push(MV_DONE, 0, 0, 0);

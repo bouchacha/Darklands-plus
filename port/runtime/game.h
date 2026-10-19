@@ -89,6 +89,32 @@ static inline u32 g_location(int i)
     return s ? ((u32)s << 16) | o : 0;
 }
 
+/* the events (the game's timed facts: tasks and their rewards, blessings, potions, teachers,
+ * Sabbats ...): 300 far pointers at far data :1b2c (2e38:1b2c) to 0x30-byte records, 0 = free.
+ * Record: +0 type0, +0x0a the start and +0x12 the end (hour, day, month, year), +0x1a owner or
+ * member, +0x1c location, +0x1e value, +0x22 kind, +0x28 tag, +0x2a aux, +0x2c, +0x2e item */
+#define G_NEVENTS 300
+#define G_EVENTS  0x1b2c
+#define G_EV_TYPE0 0x00
+#define G_EV_START 0x0a
+#define G_EV_END   0x12
+#define G_EV_OWNER 0x1a
+#define G_EV_LOC   0x1c
+#define G_EV_VALUE 0x1e
+#define G_EV_KIND  0x22
+#define G_EV_TAG   0x28
+#define G_EV_AUX   0x2a
+#define G_EV_AUX2  0x2c
+#define G_EV_ITEM  0x2e
+static inline u32 g_event(int i)                    /* seg:off of event i, 0 if the slot is free */
+{
+    if (i < 0 || i >= G_NEVENTS) return 0;
+    u16 o = rw(G_FAR2E38, (u16)(G_EVENTS + i * 4)), s = rw(G_FAR2E38, (u16)(G_EVENTS + i * 4 + 2));
+    return s ? ((u32)s << 16) | o : 0;
+}
+static inline int g_ev(u32 e, u16 field) { return (s16)rw((u16)(e >> 16), (u16)((u16)e + field)); }        /* a word of event record e */
+static inline void g_ev_set(u32 e, u16 field, int v) { ww((u16)(e >> 16), (u16)((u16)e + field), (u16)v); }
+
 /* direct calls from hooks (registers restored, memory effects kept) */
 void (*game_func(int sect, u16 seg, u16 off))(void);           /* sect -1 = root */
 u32 game_call_native(void (*f)(void), int nargs, const u16 *args);

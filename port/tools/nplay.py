@@ -13,7 +13,7 @@ import sys, os, subprocess, shutil, tempfile, argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
-QUICKSTART = 'wait 10; key space; click; wait 3; key space; wait 6; at 160 62; click; wait 12'
+QUICKSTART = 'wait 10; key space; click; wait 3; key space; wait 6; key q; wait 12'   # (Q: Quickstart on the start screen, the game's or Darklands+'s)
 KEYMAP = {'Return': 'Return', 'space': 'Space', 'Escape': 'Escape', 'BackSpace': 'Backspace', 'Tab': 'Tab',
           'plus': 'Keypad +', 'minus': 'Keypad -', 'Up': 'Up', 'Down': 'Down', 'Left': 'Left', 'Right': 'Right'}
 

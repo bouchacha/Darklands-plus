@@ -7,6 +7,7 @@
 #include <time.h>
 #include <string>
 #include "imgui.h"
+#include "money.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -14,11 +15,11 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/saves.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 void ui_toggle(void);
 }
 
-static const char *MONTHS[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static SaveInfo *list; static int nlist = -1;
 static u32 listed_at;
 static char confirm_delete[16];
@@ -90,24 +91,25 @@ extern "C" void tab_saves(void)
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(game_text(s.place, sizeof s.place).c_str());
-        ImGui::TextDisabled("%d %s %d, %d:00%s", s.day, MONTHS[(unsigned)s.month % 12], s.year, s.hour, s.battle ? "  (in battle)" : "");
+        ImGui::TextDisabled("%d %s %d, %d:00%s", s.day, gm_month_short((unsigned)s.month % 12), s.year, s.hour, s.battle ? "  (in battle)" : "");
         ImGui::TableNextColumn();
         std::string party;
         for (int m = 0; m < s.nmembers; m++) { if (m) party += ", "; party += game_text(s.members[m], sizeof s.members[m]); }
         ImGui::TextWrapped("%s", party.c_str());
-        ImGui::TextDisabled("%d florins, fame %d", s.florins, s.fame);
+        ImGui::TextDisabled("%s, fame %d", money_fgp(s.florins, s.groschen, s.pfennigs).c_str(), s.fame);
         ImGui::TableNextColumn();
         ImGui::TextWrapped("%s", game_text(s.comment, sizeof s.comment).c_str());
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(when(s.mtime).c_str());
-        ImGui::TextDisabled("%s%s", s.file, !strcasecmp(cur, s.file) ? "  (this game)" : "");
+        if (!strcasecmp(cur, s.file)) ImGui::TextDisabled("the game now");   /* (its file name says nothing more) */
+        else ImGui::TextDisabled("%s", s.file);
         ImGui::TableNextColumn();
         if (in_game) {
             if (ImGui::Button("Load")) { if (saves_load(s.file)) ui_toggle(); }
             ImGui::SameLine();
         }
         if (!strcmp(confirm_delete, s.file)) {
-            if (ImGui::Button("Really?")) { saves_delete(s.file); confirm_delete[0] = 0; refresh(); }
+            if (ImGui::Button("Delete it?")) { saves_delete(s.file); confirm_delete[0] = 0; refresh(); }
         } else if (strcasecmp(cur, s.file) && ImGui::Button("Delete")) snprintf(confirm_delete, sizeof confirm_delete, "%s", s.file);
         ImGui::PopID();
     }

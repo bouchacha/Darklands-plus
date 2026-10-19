@@ -11,6 +11,7 @@
 #include "imgui.h"
 #include "tablesort.h"
 #include "ui.h"
+#include "uiinternal.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/hle.h"
@@ -44,13 +45,15 @@ void itemedit_tab(void)
     { static int gen = -1; if (gen != datamods_generation()) { gen = datamods_generation(); if (loaded && enm_or_lst_unchanged()) loaded = false; } }
     if (!loaded) load();
     if (lst.size() < 3) { ImGui::TextWrapped("%s", msg.c_str()); return; }
-    ImGui::TextWrapped("Every item of the game. Change names, weight, quality, rarity and value here, then save the list "
-                       "into a mod folder; it takes effect when the game is started again with that mod ticked.");
+    const bool edit = ui_modding();
+    if (edit) ImGui::TextWrapped("Every item of the game. Change names, weight, quality, rarity and value here, then save the list "
+                                 "into a mod folder; it takes effect when the game is started again with that mod ticked.");
+    else ImGui::TextWrapped("Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod: F12 > Settings > Helpers > Editor).");
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##flt", "find an item", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < nitems(); i++) if (memcmp(rec(i), &orig[3 + (size_t)i * 46], 46)) changed++;
-    ImGui::SameLine(); ImGui::TextDisabled("%d changed", changed);
+    if (edit) { ImGui::SameLine(); ImGui::TextDisabled("%d changed", changed); }
     if (ImGui::BeginTable("items", 8, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
-                          ImVec2(0, ImGui::GetContentRegionAvail().y - 80))) {
+                          ImVec2(0, ImGui::GetContentRegionAvail().y - (edit ? UIS(80) : UIS(8))))) {
         const char *H[8] = { "#", "Name", "Short name", "Kind", "Weight", "Quality", "Rarity", "Value (pf)" };
         for (int c = 0; c < 8; c++) ImGui::TableSetupColumn(H[c], c == 1 ? ImGuiTableColumnFlags_WidthStretch : 0);
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -89,13 +92,24 @@ void itemedit_tab(void)
             bool mod = memcmp(r, &orig[3 + (size_t)i * 46], 46) != 0;
             ImGui::TableNextColumn(); if (mod) ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "%d*", i); else ImGui::Text("%d", i);
             char nb[21]; memcpy(nb, r, 20); nb[20] = 0;
+            char sb[11]; memcpy(sb, r + 20, 10); sb[10] = 0;
+            const ItemDef *d = i < (int)gamedata.items.size() ? &gamedata.items[i] : nullptr;
+            if (!edit) {                                         /* the reference: the names as shown, the numbers as text */
+                ImGui::TableNextColumn(); ImGui::TextUnformatted(d ? game_text(d->name.c_str(), d->name.size()).c_str() : game_text(nb, strlen(nb)).c_str());
+                ImGui::TableNextColumn(); ImGui::TextDisabled("%s", game_text(sb, strlen(sb)).c_str());
+                ImGui::TableNextColumn(); ImGui::TextDisabled("%s", d ? kind_name(d->kind) : "");
+                ImGui::TableNextColumn(); ImGui::Text("%d", r[37]);
+                ImGui::TableNextColumn(); ImGui::Text("%d", r[38]);
+                ImGui::TableNextColumn(); ImGui::Text("%d", r[39]);
+                ImGui::TableNextColumn(); ImGui::Text("%d", r[44] | r[45] << 8);
+                ImGui::PopID();
+                continue;
+            }
             ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1);
             if (ImGui::InputText("##n", nb, sizeof nb)) { memset(r, 0, 20); memcpy(r, nb, strlen(nb)); }
-            char sb[11]; memcpy(sb, r + 20, 10); sb[10] = 0;
             ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(110));
             if (ImGui::InputText("##s", sb, sizeof sb)) { memset(r + 20, 0, 10); memcpy(r + 20, sb, strlen(sb)); }
             ImGui::TableNextColumn();
-            const ItemDef *d = i < (int)gamedata.items.size() ? &gamedata.items[i] : nullptr;
             ImGui::TextDisabled("%s", d ? kind_name(d->kind) : "");
             int v;
             v = r[37]; ImGui::TableNextColumn(); ImGui::SetNextItemWidth(UIS(70)); if (ImGui::InputInt("##w", &v, 0)) r[37] = (unsigned char)(v < 0 ? 0 : v > 255 ? 255 : v);
@@ -107,6 +121,7 @@ void itemedit_tab(void)
         }
         ImGui::EndTable();
     }
+    if (!edit) return;
     static char modname[64] = "My items";
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##itemmod", modname, sizeof modname); ImGui::SameLine();
     if (ImGui::Button("Save the list into this mod folder") && modname[0]) {

@@ -10,11 +10,13 @@
 // side-effect-free evaluation. One journal per game (party_seed), kept as a text file next
 // to the game: darklands_journal_<seed>.txt.
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <math.h>
 #include "imgui.h"
@@ -30,6 +32,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/hdtext.h"
 #include "money.h"
+#include "../mods/gamemodel.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
@@ -43,26 +46,23 @@ struct Shop { std::string name, date; int shop = 0, shopq = 0; u32 cats = 0; boo
 struct Town { bool visited = false; int visits = 0; std::string first, last; std::vector<Shop> shops; };
 
 static std::map<int, Town> towns;
+static std::set<int> places;               /* the other places the party has been to (a monastery, a castle ...: "P loc") */
 static int journal_on = 1;
 static int cur_seed = -1, last_loc = -2;
 
 /* ---------------------------------------------------------------- helpers */
-static const char *MONTHS[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static std::string game_date(void)
 {
     int d = (s16)g_rw(G_CUR_DAY), m = g_rw(G_CUR_MONTH), y = g_rw(G_CUR_YEAR);
-    char b[32]; snprintf(b, sizeof b, "%d %s %d", d, MONTHS[m % 12], y);
+    char b[32]; snprintf(b, sizeof b, "%d %s %d", d, gm_month_short(m % 12), y);
     return b;
 }
 
 static std::string loc_name(int loc)
 {
-    if (loc >= 0 && loc < (int)gamedata.cities.size()) return gamedata.cities[loc].name;
-    u32 r = g_location(loc);
-    if (!r) return "?";
-    char b[24]; g_str((u16)(r >> 16), (u16)(r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    std::string n = loc_display_name(loc);
+    return n.empty() ? "?" : n;
 }
 
 static std::string money(int pf) { return money_str(pf); }
@@ -96,6 +96,7 @@ static void save(void)
             for (const SeenItem &i : s.items) fprintf(f, "I %d %d %d\n", i.id, i.q, i.price);
         }
     }
+    for (int loc : places) fprintf(f, "P %d\n", loc);
     fclose(f);
     remove(p.c_str());
     rename(tmp.c_str(), p.c_str());
@@ -103,7 +104,7 @@ static void save(void)
 
 static void load(int seed)
 {
-    towns.clear();
+    towns.clear(); places.clear();
     FILE *f = fopen(path_for(seed).c_str(), "r");
     if (!f) return;
     char line[512];
@@ -127,6 +128,8 @@ static void load(int seed)
         } else if (line[0] == 'I' && s) {
             SeenItem i;
             if (sscanf(line + 2, "%d %d %d", &i.id, &i.q, &i.price) == 3) s->items.push_back(i);
+        } else if (line[0] == 'P') {
+            int loc; if (sscanf(line + 2, "%d", &loc) == 1) places.insert(loc);
         }
     }
     fclose(f);
@@ -237,8 +240,9 @@ static void record_town_stock(int loc)
  * and its words; \x14 starts a paragraph); card_menu (s043 1142, hooked in mods/assist.c)
  * returns the option number chosen, whose line on screen is found through the option layout
  * D_e96e (line y e974[], height e988[], option opt e9b0[]). Kept per game in
- * darklands_chronicle_<seed>.txt, one entry a line (date, place, text, choice; tabs between). */
-struct ChronEntry { std::string date, place, text, choice; };
+ * darklands_chronicle_<seed>.txt, one entry a line (date, place, text, choice, hour; tabs between;
+ * older files have no hour). */
+struct ChronEntry { std::string date, place, text, choice; int hour = -1; };   /* (hour: -1 in files from before it was kept) */
 static std::vector<ChronEntry> chron;
 static int chron_seed = -1;
 static bool chron_pending;                 /* the last entry is not in the file yet (its choice may come) */
@@ -266,7 +270,7 @@ static void chron_flush(void)
     FILE *f = fopen(chron_path(chron_seed).c_str(), "a");
     if (!f) return;
     const ChronEntry &e = chron.back();
-    fprintf(f, "%s\t%s\t%s\t%s\n", esc(e.date).c_str(), esc(e.place).c_str(), esc(e.text).c_str(), esc(e.choice).c_str());
+    fprintf(f, "%s\t%s\t%s\t%s\t%d\n", esc(e.date).c_str(), esc(e.place).c_str(), esc(e.text).c_str(), esc(e.choice).c_str(), e.hour);
     fclose(f);
 }
 static void chron_load(int seed)
@@ -278,8 +282,9 @@ static void chron_load(int seed)
     std::string line; int c;
     while ((c = fgetc(f)) != EOF) {
         if (c != '\n') { line += (char)c; continue; }
-        size_t a = line.find('\t'), b = a == std::string::npos ? a : line.find('\t', a + 1), d = b == std::string::npos ? b : line.find('\t', b + 1);
-        if (d != std::string::npos) chron.push_back({ unesc(line.substr(0, a)), unesc(line.substr(a + 1, b - a - 1)), unesc(line.substr(b + 1, d - b - 1)), unesc(line.substr(d + 1)) });
+        std::vector<std::string> fl;                       /* date, place, text, choice[, hour] */
+        for (size_t a = 0;;) { size_t t = line.find('\t', a); fl.push_back(line.substr(a, t == std::string::npos ? std::string::npos : t - a)); if (t == std::string::npos) break; a = t + 1; }
+        if (fl.size() >= 4) chron.push_back({ unesc(fl[0]), unesc(fl[1]), unesc(fl[2]), unesc(fl[3]), fl.size() >= 5 ? atoi(fl[4].c_str()) : -1 });
         line.clear();
     }
     fclose(f);
@@ -350,7 +355,7 @@ extern "C" void chronicle_capture(void)
     std::string place;
     if (loc >= 0) place = loc_name(loc);
     else { int ui_nearest_town(void); int k = ui_nearest_town(); place = k >= 0 ? "near " + loc_name(k) : "the countryside"; }
-    chron.push_back({ game_date(), place, t, "" });
+    chron.push_back({ game_date(), place, t, "", (s16)g_rw(G_CUR_HOUR) });
     chron_pending = true;
     if (chron.size() > 20000) chron.erase(chron.begin(), chron.begin() + 1000);
 }
@@ -378,14 +383,54 @@ extern "C" void chronicle_choice(int sel)
     chron_flush();
 }
 
+/* the chronicle's days, for its navigation: entries are kept in the order read, so a day is a run
+   of entries with the same date (a date seen again later, after a load of an older save, is
+   another run) */
+struct ChronDay { std::string date; int y, m, d; std::vector<int> idx; std::vector<std::pair<std::string, int>> places; };   /* places: name, first entry */
+static void chron_days(const std::string &find, std::vector<ChronDay> &out)
+{
+    out.clear();
+    for (int i = 0; i < (int)chron.size(); i++) {
+        const ChronEntry &e = chron[(size_t)i];
+        if (!find.empty()) {
+            std::string a = e.text + " " + e.place + " " + e.choice;
+            for (char &c : a) c = (char)tolower((unsigned char)c);
+            if (a.find(find) == std::string::npos) continue;
+        }
+        if (out.empty() || out.back().date != e.date) {
+            ChronDay D; D.date = e.date; D.y = D.m = D.d = 0;
+            char mon[8] = ""; sscanf(e.date.c_str(), "%d %7s %d", &D.d, mon, &D.y);
+            for (int k = 0; k < 12; k++) if (!strcmp(mon, gm_month_short(k))) D.m = k;
+            out.push_back(D);
+        }
+        ChronDay &D = out.back();
+        D.idx.push_back(i);
+        if (D.places.empty() || D.places.back().first != e.place) D.places.push_back({ e.place, i });
+    }
+}
+
+/* test (ucmd uchronfill:n): n made-up texts over some weeks and towns, in memory only */
+extern "C" void journal_test_chronicle(int n)
+{
+    static const char *T[4] = { "Strassburg", "Basel", "near Basel", "the countryside" };
+    for (int i = 0; i < n; i++) {
+        char d[32]; snprintf(d, sizeof d, "%d %s 1400", 1 + (i / 6) % 28, gm_month_short((5 + i / 40) % 12));
+        chron.push_back({ d, T[(i / 3) % 4], "A made-up text, number " + std::to_string(i) + ", to try the chronicle's days and places. "
+                          "It runs on a little so that it wraps over two lines in the window.", i % 2 ? "...leave." : "", 6 + (i % 6) * 2 });
+    }
+}
+
 static char chron_find[60];
 static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
     if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
+    static bool nav_open = true;
+    if (ImGui::SmallButton(nav_open ? "Hide the days" : "Show the days")) nav_open = !nav_open;
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
-    ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
+    ImGui::SameLine(); ImGui::TextDisabled("%d text%s read in this game", (int)chron.size(), chron.size() == 1 ? "" : "s");
     ImGui::SameLine();
     static std::string wrote;
     if (ImGui::SmallButton("Write it out as a book")) {
@@ -405,37 +450,160 @@ static void chronicle_page(void)
         } else wrote = "Could not write the file.";
     }
     if (!wrote.empty()) ImGui::TextDisabled("%s", wrote.c_str());
-    ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+
     std::string f = chron_find; for (char &c : f) c = (char)tolower((unsigned char)c);
-    int shown = 0;
-    for (int i = (int)chron.size() - 1; i >= 0 && shown < (f.empty() ? 300 : 2000); i--) {
-        const ChronEntry &e = chron[(size_t)i];
-        if (!f.empty()) {
-            std::string a = e.text + " " + e.place + " " + e.choice;
-            for (char &c : a) c = (char)tolower((unsigned char)c);
-            if (a.find(f) == std::string::npos) continue;
+    static std::vector<ChronDay> days; static size_t days_n = (size_t)-1; static std::string days_f;
+    if (days_n != chron.size() || days_f != f) { chron_days(f, days); days_n = chron.size(); days_f = f; }
+    static int sel = -1, scroll_to = -1;                  /* the day shown (an index into days), the entry to bring into view */
+    static size_t sel_n = 0; static std::string sel_f = "\x01";
+    if (sel_f != f || sel < 0 || sel >= (int)days.size() || (sel_n != chron.size() && sel == (int)days.size() - 2)) sel = (int)days.size() - 1;   /* (the newest day, and it follows new texts) */
+    sel_n = chron.size(); sel_f = f;
+    if (days.empty()) {
+        ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+        ImGui::TextWrapped(chron.empty() ? "Every text the cards show is kept here, with the date, the place and the choice you made." : "Nothing found.");
+        ImGui::EndChild();
+        return;
+    }
+
+    /* the days, by month, newest first: a day opens to its places */
+    if (nav_open) {
+        ImGui::BeginChild("chronnav", ImVec2(UIS(240), 0), ImGuiChildFlags_Border);
+        int last_month = -1;
+        bool month_open = false;
+        for (int k = (int)days.size() - 1; k >= 0; k--) {
+            const ChronDay &D = days[(size_t)k];
+            int mk = D.y * 12 + D.m;
+            if (mk != last_month) {
+                if (month_open) ImGui::TreePop();
+                char ml[48]; snprintf(ml, sizeof ml, "%s %d###m%d", gm_month_name(D.m % 12), D.y, mk);
+                bool newest = k == (int)days.size() - 1;
+                bool has_sel = sel >= 0 && days[(size_t)sel].y * 12 + days[(size_t)sel].m == mk;
+                if (has_sel) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                month_open = ImGui::TreeNodeEx(ml, newest ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+                last_month = mk;
+            }
+            if (!month_open) continue;
+            ImGui::PushID(k);
+            char dl[64]; snprintf(dl, sizeof dl, "%d %s  (%d)", D.d, gm_month_short(D.m % 12), (int)D.idx.size());
+            ImGuiTreeNodeFlags fl = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | (k == sel ? ImGuiTreeNodeFlags_Selected : 0)
+                                  | (D.places.size() <= 1 ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen : 0);
+            bool open = ImGui::TreeNodeEx("day", fl, "%s", dl);
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) { sel = k; scroll_to = D.idx.front(); }
+            if (D.places.size() <= 1) { ImGui::SameLine(); ImGui::TextDisabled("%s", D.places.empty() ? "" : D.places[0].first.c_str()); }
+            else if (open) {
+                for (size_t p = 0; p < D.places.size(); p++) {
+                    ImGui::PushID((int)p);
+                    if (ImGui::Selectable(D.places[p].first.c_str(), false)) { sel = k; scroll_to = D.places[p].second; }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
         }
-        shown++;
+        if (month_open) ImGui::TreePop();
+        ImGui::EndChild();
+        ImGui::SameLine();
+    }
+
+    /* the day chosen, in the order it was read: its places as headings, the time, the choice */
+    ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+    const ChronDay &D = days[(size_t)sel];
+    ImGui::BeginDisabled(sel <= 0); if (ImGui::SmallButton("< Day before")) { sel--; scroll_to = -2; } ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(sel >= (int)days.size() - 1); if (ImGui::SmallButton("Day after >")) { sel++; scroll_to = -2; } ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s%s", D.date.c_str(), f.empty() ? "" : " (the texts found)");
+    const ChronDay &S = days[(size_t)sel];
+    if (scroll_to == -2) { ImGui::SetScrollY(0); scroll_to = -1; }
+    std::string place;
+    for (int i : S.idx) {
+        const ChronEntry &e = chron[(size_t)i];
         ImGui::PushID(i);
-        ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s, %s", e.date.c_str(), e.place.c_str());
+        if (e.place != place) {
+            ImGui::Spacing();
+            ImGui::SeparatorText(e.place.c_str());
+            place = e.place;
+        }
+        if (i == scroll_to) { ImGui::SetScrollHereY(0.0f); scroll_to = -1; }
         ImGui::PushTextWrapPos(0);
+        if (e.hour >= 0) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%d:00", e.hour); ImGui::SameLine(); }   /* (the hour before the text, which wraps under it) */
         ImGui::TextUnformatted(e.text.c_str());
         if (!e.choice.empty()) ImGui::TextColored(ImVec4(0.18f, 0.32f, 0.55f, 1), "> %s", e.choice.c_str());
         ImGui::PopTextWrapPos();
-        ImGui::Separator();
+        ImGui::Spacing();
         ImGui::PopID();
     }
-    if (!shown) ImGui::TextWrapped(chron.empty() ? "Every text the cards show is kept here, with the date, the place and the choice you made."
-                                                 : "Nothing found.");
     ImGui::EndChild();
+}
+
+/* ---------------------------------------------------------------- what the party learned of a town's
+ * physician and alchemist, from the cards' own words as they are shown (per game, in
+ * darklands_townfacts_<seed>.txt beside the journal): $Physi00 block 8 "... decides that $NamedOneName
+ * has $Text1 skill." and block 10 "... is a complete idiot"; $Alche00 block 7 "... improve your
+ * philosopher's stone to quality $Number1" and block 5 "your abilities are beyond my own" */
+static std::map<int, std::map<std::string, std::string>> facts; static int facts_seed = -1;
+static std::string facts_path(int seed) { extern char dlp_data_dir[]; char b[1200]; snprintf(b, sizeof b, "%s/darklands_townfacts_%u.txt", dlp_data_dir, (unsigned)seed); return b; }
+static void facts_sync(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    if (seed == facts_seed) return;
+    facts_seed = seed; facts.clear();
+    FILE *f = fopen(facts_path(seed).c_str(), "r");
+    if (!f) return;
+    char line[400];
+    while (fgets(line, sizeof line, f)) {
+        char *a = strchr(line, '|'), *b = a ? strchr(a + 1, '|') : nullptr;
+        if (!a || !b || line[0] == '#') continue;
+        *a = 0; *b = 0; char *v = b + 1; v[strcspn(v, "\r\n")] = 0;
+        facts[atoi(line)][a + 1] = v;
+    }
+    fclose(f);
+}
+static void facts_set(int loc, const char *key, const std::string &v)
+{
+    facts_sync();
+    if (facts[loc][key] == v) return;
+    facts[loc][key] = v;
+    FILE *f = fopen(facts_path(facts_seed).c_str(), "w");
+    if (!f) return;
+    fprintf(f, "# Darklands+: what the party learned of the towns' physicians and alchemists (town|what|words)\n");
+    for (auto &t : facts) for (auto &kv : t.second) fprintf(f, "%d|%s|%s\n", t.first, kv.first.c_str(), kv.second.c_str());
+    fclose(f);
+}
+/* "physician" / "alchemist": what is known, or NULL */
+extern "C" const char *journal_town_fact(int loc, const char *key)
+{
+    if (game_mode() == GM_OTHER) return nullptr;
+    facts_sync();
+    auto t = facts.find(loc); if (t == facts.end()) return nullptr;
+    auto k = t->second.find(key); return k == t->second.end() ? nullptr : k->second.c_str();
+}
+static void facts_scan(int block)
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    if (loc < 0 || loc >= 92 || game_mode() == GM_OTHER) return;
+    char cn[13]; g_str(G_DGROUP, 0xe3d4, cn, sizeof cn);
+    for (char *p = cn; *p; p++) *p = (char)toupper((unsigned char)*p);
+    bool phys = !strcmp(cn, "$PHYSI00"), alch = !strcmp(cn, "$ALCHE00");
+    if (!phys && !alch) return;
+    std::string t = chron_text_now();
+    if (phys && block == 8) {
+        size_t e = t.rfind(" skill"), h = e == std::string::npos ? e : t.rfind(" has ", e);
+        if (h != std::string::npos) { std::string w = t.substr(h + 5, e - h - 5); if (!w.empty()) w[0] = (char)tolower((unsigned char)w[0]); facts_set(loc, "physician", w + " skill"); }
+    } else if (phys && block == 10) facts_set(loc, "physician", "a complete idiot: worse than none");
+    else if (alch && block == 7) {
+        size_t q = t.find("to quality ");
+        if (q != std::string::npos) facts_set(loc, "alchemist", "can raise a Philosopher's Stone to " + std::to_string(atoi(t.c_str() + q + 11)) + "q");
+    } else if (alch && block == 5) facts_set(loc, "alchemist", "no better Philosopher's Stone than the party's");
 }
 
 static void text_expand_hook(void)         /* s043 150b:06fe text_expand(idx, out): the block shown before is done */
 {
     bool mine = (u16)rw(SS, (u16)(SP + 6)) == 0x9085;
+    int block = (s16)rw(SS, (u16)(SP + 4));
     if (mine) chronicle_capture();
     hook_call_original();
-    if (mine) chronicle_expanded();
+    if (mine) { chronicle_expanded(); facts_scan(block); }
 }
 
 /* ---------------------------------------------------------------- the player's own notes (per game) */
@@ -484,7 +652,7 @@ static void card_load_hook(void)
             t.last = d; t.visits++;
             if (journal_on) record_town_stock(loc);
             save();
-        }
+        } else if (loc >= 0 && loc < G_NLOC && places.insert(loc).second) save();   /* (a monastery, a castle ...: been there) */
     }
     hook_call_original();
 }
@@ -500,8 +668,8 @@ static void barter_list_hook(void)
     Shop sh;
     sh.seen = true;
     sh.shop = (s16)g_rw(GV_barter_shop); sh.shopq = (s16)g_rw(GV_barter_quality);
-    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(0x886a) << 16);
-    char nm[48]; g_str(g_rw(0x869e), g_rw(GV_barter_name), nm, sizeof nm);
+    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(GV_barter_cats + 2) << 16);
+    char nm[48]; g_str(g_rw(GV_barter_name + 2), g_rw(GV_barter_name), nm, sizeof nm);   /* (a far pointer: offset, segment) */
     sh.name = game_text(nm, sizeof nm);
     sh.date = game_date();
     void *snap = eval_snapshot();
@@ -536,9 +704,11 @@ static void barter_list_hook(void)
 extern "C" void journal_set(int on) { journal_on = on; config_set_int("journal.enabled", on); }
 extern "C" int journal_enabled(void) { return journal_on; }
 
+extern "C" void quests_init(void);
 extern "C" void journal_init(void)
 {
     journal_on = config_get_int("journal.enabled", 1);
+    quests_init();                                                 /* (what the party learns of a Sabbat) */
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_text_expand, text_expand_hook);
     { void assist_watch_cards(void); assist_watch_cards(); }      /* the chronicle needs the card menu's hook (mods/assist.c) */
@@ -564,8 +734,8 @@ static void town_list(void)
     }
 }
 
-static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "Zeughaus (armoury)", "slums",
-                                     "Kloster", "university", "pawnshop", "Muenze (mint)", "docks" };
+static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "barracks", "slums",   /* (bit 10, the mint: no card leads there) */
+                                     "monastery", "university", "pawnshop", nullptr, "docks" };
 
 /* an item's picture and name in a table cell: the picture inside the cell, the name centred on it */
 static void icon_name_cell(int id, const char *name)
@@ -604,12 +774,12 @@ static void town_page(int loc)
         for (int k = 1; k < 12; k++) if (BUILDING[k] && (c.buildings >> k) & 1) { if (!b.empty()) b += ", "; b += BUILDING[k]; }
         ImGui::TextWrapped("Size %d.%s%s", c.size, b.empty() ? "" : " Has: ", b.c_str());
         std::string sh;
-        for (int k = 0; k < 9; k++) if (c.shopq[k] && k != 4 && k != 7) {     /* no card opens the gunsmith or jeweller */
-            char e[80]; snprintf(e, sizeof e, "%s%s %d (wares %dq)", sh.empty() ? "" : ",  ", SHOP_NAMES[k], c.shopq[k], (25 + c.shopq[k]) / 2);
+        for (int k = 0; k < 9; k++) if (c.shopq[k] && shop_open_ever(k)) {
+            char e[80]; snprintf(e, sizeof e, "%s%s %dq", sh.empty() ? "" : ",  ", SHOP_NAMES[k], shop_wares_q(c.shopq[k]));
             sh += e;
         }
-        ImGui::TextWrapped("Shops (rating): %s", sh.c_str());
-        ImGui::TextDisabled("A shop's wares come out at (the item's base quality + the shop's rating) / 2; most weapons and armour have a base of 25.");
+        ImGui::TextWrapped("Shops: %s", sh.c_str());
+        ImGui::TextDisabled("The quality of a shop's weapons, armour and most wares (ammunition and ingredients are always 25q).");
     }
     if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {
@@ -649,7 +819,9 @@ static void find_page(void)
                 std::transform(n.begin(), n.end(), n.begin(), ::tolower);
                 if (q.empty() || n.find(q) != std::string::npos) hits.push_back({ i, kv.first, s.name, s.date });
             }
-    ImGui::SameLine(); ImGui::TextDisabled("%d found", (int)hits.size());
+    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
+    if (!nshops) { ImGui::SameLine(); ImGui::TextDisabled("Nothing noted yet: the journal notes a shop's wares as the party sees them."); return; }
+    ImGui::SameLine(); ImGui::TextDisabled(q.empty() ? "%d seen in shops" : "%d found", (int)hits.size());
     if (ImGui::BeginTable("hits", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -714,7 +886,7 @@ std::string journal_where_sold(int id)
         if (d < bd) { bd = d; best = kv.first; bp = price; }
     }
     if (best >= 0) return loc_name(best) + ", " + money(bp);
-    if (!config_get_int("assist.where_sold_unvisited", 1)) return "";
+    if (!config_get_int("map.offers_unvisited", 0)) return "";   /* (what unseen shops will have: only with "What unvisited places offer") */
     /* no shop seen sells it: the nearest town whose shops will have it (the wares are fixed for
        the whole game by the town's and the party's seeds: predict_stock), "expected" */
     if (id < 0 || id >= (int)gamedata.items.size()) return "";
@@ -769,14 +941,23 @@ static void ingredients_page(void)
             ImGui::Text("%s  %s", loc_name(at[0].loc).c_str(), money(at[0].price).c_str());
             if (here && at[0].dist == 0) { ImGui::SameLine(); ImGui::TextDisabled("(here)"); }
             ImGui::TableNextColumn();
+            /* the other towns, the nearest first, without their prices: as many as fit on the line,
+               then "..."; every town with its price under the pointer */
             std::string more;
-            for (size_t k = 1; k < at.size() && k <= 3; k++) { if (!more.empty()) more += ",  "; more += loc_name(at[k].loc) + " " + money(at[k].price); }
-            if (at.size() > 4) { char b[32]; snprintf(b, sizeof b, "  and %d more", (int)at.size() - 4); more += b; }
-            if (cheapest > 3) more += "  (cheapest: " + loc_name(at[cheapest].loc) + " " + money(at[cheapest].price) + ")";
-            ImGui::TextWrapped("%s", more.empty() ? "-" : more.c_str());
+            float room = ImGui::GetContentRegionAvail().x, ell = ImGui::CalcTextSize(", ...").x;
+            size_t k = 1;
+            for (; k < at.size(); k++) {
+                std::string next = (more.empty() ? "" : ", ") + loc_name(at[k].loc);
+                bool last = k + 1 == at.size();
+                if (ImGui::CalcTextSize((more + next).c_str()).x + (last ? 0 : ell) > room) break;
+                more += next;
+            }
+            if (k < at.size()) more += more.empty() ? "..." : ", ...";
+            ImGui::TextUnformatted(more.empty() ? "-" : more.c_str());
             if (ImGui::IsItemHovered() && at.size() > 1) {
                 ImGui::BeginTooltip();
-                for (const Seen &s : at) ImGui::Text("%s  %s", loc_name(s.loc).c_str(), money(s.price).c_str());
+                ImGui::TextDisabled(here ? "Every town seen selling it, the nearest first:" : "Every town seen selling it:");
+                for (size_t j = 0; j < at.size(); j++) ImGui::Text("%s  %s%s", loc_name(at[j].loc).c_str(), money(at[j].price).c_str(), (int)j == cheapest && at.size() > 2 ? "  (the cheapest)" : "");
                 ImGui::EndTooltip();
             }
         }
@@ -791,6 +972,7 @@ static void ingredients_page(void)
  * its cache handle (from 1). The original lists a store only when the party stands in it. With
  * one store room for every inn (mods/sharedstore.c) the towns point at the same cache: listed once. */
 extern "C" void dos_host_path(const char *dos, char *out, size_t outn);
+extern "C" int sharedstore_on(void);       /* mods/sharedstore.c */
 static void storage_page(void)
 {
     int gm = game_mode();
@@ -801,8 +983,10 @@ static void storage_page(void)
       FILE *f = fopen(path, "rb");
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
-    ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
-                       "The game shows a store only while the party is there.");
+    {
+      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Helpers).");
+      else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
+                              "The game shows a store only while the party is there."); }
     ImGui::Spacing();
     int px, py; travel_party_tile(&px, &py);
     struct Store { int loc, places; double d; std::vector<SeenItem> items; };
@@ -912,5 +1096,11 @@ extern "C" void tab_journal(void)
     }
 }
 
-/* for other tabs: has the party been to city loc? */
-extern "C" int journal_visited(int loc) { auto it = towns.find(loc); return it != towns.end() && it->second.visited; }
+/* for other pages: has the party been to place loc (a town, or a monastery, castle ... in the country)? */
+extern "C" int journal_visited(int loc)
+{
+    if (game_mode() == GM_OTHER) return 0;
+    ensure_game();
+    auto it = towns.find(loc);
+    return (it != towns.end() && it->second.visited) || places.count(loc);
+}

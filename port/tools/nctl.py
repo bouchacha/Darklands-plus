@@ -16,7 +16,7 @@ import sys, os, time, subprocess, shutil, signal
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
 BASE = os.environ.get('NCTL_DIR', '/tmp/nctl')
-QUICKSTART = 'wait 10; key space; click; wait 3; key space; wait 6; at 160 62; click; wait 12'
+QUICKSTART = 'wait 10; key space; click; wait 3; key space; wait 6; key q; wait 12'   # (Q: Quickstart on the start screen, the game's or Darklands+'s)
 KEYMAP = {'space': 'Space', 'plus': 'Keypad +', 'minus': 'Keypad -', 'BackSpace': 'Backspace'}
 
 

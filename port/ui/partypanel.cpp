@@ -19,6 +19,7 @@
 #include <SDL.h>
 #include "nsdraw.h"
 #include "gamepics.h"
+#include "effects.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/hle.h"
@@ -69,6 +70,12 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
         if (y - h < y0) break;
         y -= h;
         P.rect(x0, y, x1, y + h - 0.4f, IM_COL32(24, 16, 8, (int)(225 * a)), 1.2f);
+        if (now - n.t < 1600) {                                 /* new: a flash round it, twice */
+            float ph = (now - n.t) / 1600.0f, fl = 0.5f + 0.5f * cosf(ph * 4 * 3.14159f);
+            ImU32 fc = n.good ? IM_COL32(255, 214, 100, (int)(235 * fl)) : IM_COL32(240, 110, 90, (int)(235 * fl));
+            ImVec2 q0 = P.w(x0, y), q1 = P.w(x1, y + h - 0.4f);
+            P.dl->AddRect(ImVec2(q0.x - 1, q0.y - 1), ImVec2(q1.x + 1, q1.y + 1), fc, 1.2f * P.k, 0, fmaxf(1.5f, 0.6f * P.k));
+        }
         P.para(P.fo, 4.3f, x0 + 2, y + 1.0f + (h - th) * 0.5f, x1 - x0 - 4, n.good ? IM_COL32(250, 214, 110, (int)(255 * a)) : IM_COL32(240, 120, 100, (int)(255 * a)), n.text);
     }
 }
@@ -175,20 +182,35 @@ static const GamePic *figure(int m)
     return ns_figure_pic(m, code, mp, "SHORT");
 }
 
-static const char *order_word(char c)
+/* the order, in the words of the game's Orders menu: the word on the card and, in its tooltip, the sentence */
+static const char *order_word(char c, int place, bool shortw)
 {
+    #define W(s, l) return shortw ? s : l
     switch (c) {
-    case 'A': return "attacks"; case 'V': return "attacks (vulnerable)"; case 'B': return "berserk"; case 'P': return "parries";
-    case 'M': return "shoots"; case 'W': return "walks"; case 'F': return "follows"; case '-': return "waits";
+    case 'A': W("attacks", "attacks (Std Attack, a standard attack)");
+    case 'V': W("vulnerable", "attacks Vulnerable (the Orders menu's word): harder blows, a weaker defence");
+    case 'B': W("berserk", "is berserk: attacks without thought of defence");
+    case 'P':
+        if (place == 3) W("picks", "picks the lock of the door given");
+        if (place == 6) W("picks", "picks the lock of the chest given");
+        W("parries", "parries: defends and does not strike");
+    case 'M': W("shoots", "shoots at the target given");
+    case 'T': W("throws", "throws a potion at the target given");
+    case 'W': W("walks", "walks to the spot given");
+    case 'F': W("flees", "flees to the spot given: does not stop to fight, nor strike back");
+    case 'U': if (place == 2) W("stairs", "takes the stairs given"); W("door", "opens or shuts the door given");
+    case 'D': W("unlocks", "dissolves the lock given");
+    case 'O': W("opens", "opens the chest given");
+    case 'X': W("leaves", "leaves the battlefield by the way out given");
+    case 'H': W("halts", "halts and stands where they are");
+    case 'b':
+        if (config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0))
+            W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
+        W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
+    case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
+    case '-': W("waits", "waits for an order: click them here or on the field, then a foe, a spot or a choice of the Orders menu");
     }
-    return nullptr;
-}
-static const char *order_short(char c)           /* (the word on the card; order_word in its tooltip) */
-{
-    switch (c) {
-    case 'A': return "attacks"; case 'V': return "all-out"; case 'B': return "berserk"; case 'P': return "parries";
-    case 'M': return "shoots"; case 'W': return "walks"; case 'F': return "follows"; case '-': return "waits";
-    }
+    #undef W
     return nullptr;
 }
 
@@ -211,7 +233,7 @@ extern "C" void partypanel_draw(void)
     if (P.k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) P.f = ui_font_game_hi[ui_game_font];
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
     P.dl = ImGui::GetBackgroundDrawList();
-    P.mx = ns_in.x; P.my = ns_in.y;
+    { void plat_mouse_game(int *x, int *y); plat_mouse_game(&P.mx, &P.my); }   /* (the pointer now: ns_in is read only while a native screen runs) */
     shown_now = true;
 
     const ImU32 BG = IM_COL32(18, 13, 9, 255), CARD = IM_COL32(38, 29, 20, 255), EDGE = IM_COL32(112, 82, 46, 255);
@@ -219,6 +241,7 @@ extern "C" void partypanel_draw(void)
     P.rect(0, 0, 60, 200, BG);
     int size = gm_party_size(), lead = gm_leader();
     bool battle = gm_in_battle() && game_mode() == GM_BATTLE;      /* (not the loot after it) */
+    std::vector<Eff> eff = effects_now(size);                   /* (the blessings and potions at work: a halo on the picture) */
     for (int m = 0; m < 5; m++) {
         float y0 = 40.0f * m;
         bool here = m < size && gm_member_present(m);
@@ -232,13 +255,14 @@ extern "C" void partypanel_draw(void)
         std::string name = ns_gtext(nm);
         /* the order (in a battle), a word right of the name */
         char oc = battle && !out ? gm_member_order(m) : 0;
+        int place = oc ? gm_member_order_place(m) : 0;
         float name_end = 56.5f;
-        if (oc && order_short(oc)) {
-            const char *wd = order_short(oc);
+        if (oc && order_word(oc, place, true)) {
+            const char *wd = order_word(oc, place, true);
             float ww = P.width(P.fo, NsDraw::FS_SMALL, wd);
             P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, DIM, wd, 56.5f);
             name_end = 56.5f - ww - 1.5f;
-            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc));
+            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc, place, false));
         }
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */
@@ -266,6 +290,42 @@ extern "C" void partypanel_draw(void)
                 float s = fminf((px1 - px0 - 1.5f) / tw, (py1 - py0 - 1.5f) / th);
                 float cx = (px0 + px1) * 0.5f, cy = (py0 + py1) * 0.5f, hw = tw * s * 0.5f, hh = th * s * 0.5f;
                 P.dl->AddImage((ImTextureID)(intptr_t)t, NsDraw::w(cx - hw, cy - hh), NsDraw::w(cx + hw, cy + hh));
+            }
+        }
+        /* a heavy load: an iron weight on the picture's corner, amber (heavy) or red (overloaded);
+           the game's classes (s029 0e76:013a): above endurance + strength heavy, above one and a half times that overloaded */
+        int band = st == 1 || st == 2 ? gm_member_load_band(m) : 0;
+        if (band >= 2 && !out) {
+            float wx = px1 - 3.4f, wy = py1 - 3.6f, r = 3.0f;
+            ImU32 fill = band == 3 ? IM_COL32(200, 60, 44, 255) : IM_COL32(222, 168, 60, 255);
+            P.dl->AddCircleFilled(NsDraw::w(wx, wy), (r + 0.6f) * P.k, IM_COL32(18, 13, 9, 235));
+            ImVec2 a = NsDraw::w(wx - 2.2f, wy - 0.8f), b = NsDraw::w(wx + 2.2f, wy - 0.8f), c2 = NsDraw::w(wx + 2.8f, wy + 2.2f), d = NsDraw::w(wx - 2.8f, wy + 2.2f);
+            P.dl->AddQuadFilled(a, b, c2, d, fill);                     /* the weight */
+            P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
+            if (P.over(wx - r, wy - r, wx + r, wy + r)) {
+                int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
+                ImGui::SetTooltip("%s carries %s: %d against %d (endurance + strength).\nIt costs agility in card tests and in fending off blows, and slows the swings. A click opens the sheet.",
+                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2);
+            }
+        }
+        /* a saint's help or a potion at work: a halo on the picture's upper corner, gold (or a dull red
+           when all of it is a saint's lowering of an attribute); each and the hours left under the pointer */
+        if (!out) {
+            std::string tip; bool up = false;
+            for (const Eff &x : eff) {
+                if (x.m != m || x.kind == 0x43) continue;            /* (not a companion's stay) */
+                if (x.amount >= 0) up = true;
+                char t[24]; if (x.left < 48) snprintf(t, sizeof t, "%ld hour%s", x.left, x.left == 1 ? "" : "s"); else snprintf(t, sizeof t, "%ld days", (x.left + 12) / 24);
+                tip += "\n" + x.what + " (" + t + ")";
+            }
+            if (!tip.empty()) {
+                float hx = px0 + 3.2f, hy = py0 + 3.2f, r = 2.6f;
+                ImU32 ring = up ? IM_COL32(244, 204, 96, 255) : IM_COL32(200, 92, 70, 255);
+                P.dl->AddCircleFilled(NsDraw::w(hx, hy), (r + 0.7f) * P.k, IM_COL32(18, 13, 9, 225));
+                P.dl->AddEllipse(NsDraw::w(hx, hy - 0.5f), ImVec2(2.0f * P.k, 0.9f * P.k), ring, 0, 0, fmaxf(1.2f, 0.55f * P.k));   /* the halo */
+                P.dl->AddCircleFilled(NsDraw::w(hx, hy + 1.2f), 0.9f * P.k, ring);                                                /* a head under it */
+                if (P.over(hx - r - 0.5f, hy - r - 0.5f, hx + r + 0.5f, hy + r + 0.5f))
+                    ImGui::SetTooltip("At work on %s:%s", name.c_str(), tip.c_str());
             }
         }
         if (st == 3) {

@@ -2,7 +2,7 @@
  * card scripts (src/c, and the translated code of the cards not yet decompiled), one line for
  * each option they show without letting it be chosen */
 { "$ALCHE00", 0, "You cannot afford the price, or you have already asked about a better stone on this visit." },
-{ "$ALCHE00", 3, "You tried trading formulas here in the last 60 hours (two and a half days); come back later." },
+{ "$ALCHE00", 3, "You tried trading formulae here in the last 60 hours (two and a half days); come back later." },
 { "$ALCHE00", 4, "Already arranged: the alchemist offered you lessons at the inn earlier in this visit." },
 { "$ALCHE02", 0, "You do not have enough money to pay what the innkeeper demands." },
 { "$ARMOR00", 1, "You have already asked about this guild's leaders today; try again tomorrow." },
@@ -255,7 +255,7 @@
 { "$SWORD01", 0, "Not again until the next day: you have already roused this guild tonight or asked about its leaders today." },
 { "$SWORD01", 1, "Not again until the next day: you have already roused this guild tonight or asked about its leaders today." },
 { "$SWORD01", 3, "You have already tried to get into the guild leader's home today; try again tomorrow." },
-{ "$UNIVE00", 0, "Not for about a week after a fruitless search here for the religious library or for alchemical formulas." },
+{ "$UNIVE00", 0, "Not for about a week after a fruitless search here for the religious library or for alchemical formulae." },
 { "$UNIVE00", 1, "You failed to find the alchemists on this visit; leave and come back to try again." },
 { "$UNIVE00", 2, "Needs the quoted fee in cash; can be asked once per visit, and not for about a week after a fruitless search." },
 { "$UNIVE00", 3, "Not for about a week after a fruitless search here for someone selling alchemical materials." },

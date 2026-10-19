@@ -29,6 +29,9 @@ struct QuestRow {
     std::string dir;         // "north-east" (from the party), "" here or unknown
     int order;               // as the game keeps them (the oldest first, roughly)
     int cat;                 // QuestCat
+    int giver = -1;          // who waits for the party in the town (a reward): the game's giver kinds (0 a merchant, 4 a foreign trader,
+                             // 5 a pharmacist, 6 the Medici, 7 the Hanse, 8 the Fugger ...), -1 none
+    int office = -1;         // a thing kept in an office above the town's marketplace: 0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse
 };
 
 enum { QSORT_DEADLINE, QSORT_NEAREST, QSORT_TAKEN, QSORT_N };
@@ -41,3 +44,4 @@ struct TownMark { int loc, cat; std::string until; };     // a town that bars th
 void town_marks(std::vector<TownMark> &out);   // (place, its task) with each one's QuestCat
 std::string quest_days(const QuestRow &r);                 // "37 days", "last day", "" (no deadline)
 std::string quest_distance(const QuestRow &r);             // "here", "north-east, about 2 days away"
+bool party_xy(double *x, double *y);      // the party on the travel map: the place it is at, else its tile (false: unknown)

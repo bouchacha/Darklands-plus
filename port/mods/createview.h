@@ -16,7 +16,7 @@ typedef struct {
     int ep, ep_step;
     int attr[7], attr_spent[6];
     int skill[19], skill_spent[19];
-    int prof, child;                 /* the last profession, the childhood */
+    int prof, prev, child;           /* the last profession, the one before it, the childhood */
     int row;                         /* the attribute / skill row chosen (skills: 0..20 with gaps 7 and 14) */
     int nlist, list[20];             /* states 1 and 3: what may be chosen (childhoods 0..5; professions) */
     char prof_name[37][28], child_name[6][28];

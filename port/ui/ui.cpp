@@ -6,16 +6,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
+#include <string>
 #include "imgui.h"
 #include "tablesort.h"
+#include "skillicons.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 #include "gamedata.h"
 #include "quests.h"
 #include "uiinternal.h"
 #include "uitabs.h"
+#include "townicons.h"
+#include "libraries.h"
 
 extern "C" {
+#include "../mods/options.h"
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/config.h"
@@ -40,7 +46,8 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 }
 
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
-static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32;
+static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32, open_news;
+static std::string news_key(void);
 static void welcome_window(void);
 extern "C" int orders_click_attack;
 static void help_window(void);
@@ -54,15 +61,29 @@ static bool goto_allowed(void) { return config_get_int("assist.city_goto", 1) &&
 extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; open_menu = false; open_map = false; } }
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);
+extern "C" int worldmap_find_escape(int typing);
 void worldmap_set_renderer(SDL_Renderer *r);
-static int want_tab = -1;                  /* a page (ui/uitabs.h) to show at the next frame */
+static int want_tab = -1;                  /* a page (ui/uitabs.h) to show; kept until its group's tabs have drawn it */
+static int want_frames;
 extern int ui_want_subtab;
-extern "C" void ui_select_tab(int t) { want_tab = t % 100; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
+extern "C" void ui_select_tab(int t) { want_tab = t % 100; want_frames = 0; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
 static ImFont *font_body, *font_head, *font_tab, *font_tab_small;
 /* tabs inside a page (the Journal's, Settings' ...): in the smaller face of the window's own
    tabs, under them in the order of things; the page's text in the body face */
-bool ui_subtabs_begin(const char *id) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabBar(id); ImGui::PopFont(); return r; }
-bool ui_subtab(const char *label, bool select) { ImGui::PushFont(font_tab_small); bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0); ImGui::PopFont(); return r; }
+/* a page's own tabs: in the main tabs' face, the smaller one in a narrow window (the Journal's nine
+   need about 950 points) */
+static ImFont *subtab_font = nullptr;
+bool ui_subtabs_begin(const char *id)
+{
+    subtab_font = ImGui::GetContentRegionAvail().x >= UIS(950) ? font_tab : font_tab_small;
+    ImGui::PushFont(subtab_font); bool r = ImGui::BeginTabBar(id); ImGui::PopFont(); return r;
+}
+bool ui_subtab(const char *label, bool select)
+{
+    ImGui::PushFont(subtab_font ? subtab_font : font_tab_small);
+    bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0);
+    ImGui::PopFont(); return r;
+}
 extern "C" int idle_rest;                  /* runtime/bios.c: rest while the game only waits */
 extern "C" int halloffame_is_open(void);
 extern "C" void halloffame_open(void);
@@ -78,10 +99,12 @@ extern "C" void prayview_draw(void);
 extern "C" void createview_draw(void);
 extern "C" void rosterview_draw(void);
 extern "C" void infoview_draw(void);
+extern "C" void titleview_draw(void);
 extern "C" void marchview_draw(void);
 extern "C" { int marchview_is_on(void); void marchview_set(int on); }
 extern "C" void lodgeview_draw(void);
 extern "C" int lodgeview_showing(void), lodgeview_camping(void);
+extern "C" int savesview_showing(int *loading);
 extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
@@ -129,20 +152,14 @@ void ui_overlay_font_update(void)
     extern ImFont *ui_font_text;
     ui_font_overlay = config_get_int("display.overlay_font_follow", 1) && ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
 }
-extern "C" void tab_inventory(void);
-extern "C" void tab_members(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
-extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
 extern "C" void hdtext_draw_cursor(void);
 extern "C" void hdtext_pointer_off(void);
 extern "C" void hdtext_pointer_frame_end(void);
-void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);
 void ui_guide_tab(void);
 extern "C" void tab_journal(void);
-extern "C" void tab_travel(void);
-extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
 extern "C" { int cacheview_showing(void); int cacheview_shared_pack(void); int cacheview_every_inn(void); }
@@ -154,7 +171,7 @@ extern "C" void journal_init(void);
 extern "C" void journal_set(int on);
 extern "C" int journal_enabled(void);
 SDL_Window *ui_window;
-ImFont *ui_font_head;
+ImFont *ui_font_head, *ui_font_bold;
 int ui_dirty_config;
 UiSettings ui_settings = { 1, 0, 0 };
 
@@ -196,6 +213,26 @@ static void style(void)
     c[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.45f);
 }
 
+/* what the interface keeps of the switches (mods/options.h), read again after one changes (key) or a
+   preset is applied (all of them; key 0 at the start) */
+extern "C" void partypanel_init(void);
+extern "C" void journal_set(int on);
+static void ui_options_reload(const char *key, int v)
+{
+    (void)v;
+    bool all = !key || !strcmp(key, "preset");
+    auto is = [&](const char *k) { return all || !strcmp(key, k); };
+    { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
+    { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
+    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
+    { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
+    { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
+    if (key && (is("display.native_panel") || is("display.panel_picture"))) partypanel_init();
+    if (key && is("journal.enabled")) journal_set(config_get_int("journal.enabled", 1));
+    if (key && (is("display.full_names") || is("display.armour_worn")) && gamedata.loaded) gamedata_names();
+    if (key) ui_dirty_config = 1;
+}
+
 extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
 {
     ui_window = win;
@@ -224,6 +261,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     font_body = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(24.0f), &fc);
     font_head = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(32.0f), &fc);
     ui_font_head = font_head;
+    ui_font_bold = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(24.0f), &fc);   /* (the body's size: a switch's title) */
     font_tab = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(20.0f), &fc);
     font_tab_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, UIS(16.5f), &fc);   /* the tabs in a narrow window */
     ui_font_small = io.Fonts->AddFontFromMemoryTTF((void *)FONT_SEMIBOLD, (int)FONT_SEMIBOLD_SIZE, UIS(17.0f), &fc);
@@ -253,6 +291,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     io.Fonts->Build();
     money_glyphs_paint(io.Fonts);
     open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
+    /* what is new, once, for a player of an earlier version (the first start's welcome says it all for a new one) */
+    open_news = !open_welcome && ((!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !news_key().empty() && news_key() != config_get("ui.news_seen", "")) || getenv("DL_NEWS"));
     {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
         const char *dev = config_get("sound.device", "auto");
         open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
@@ -264,14 +304,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     ui_text_edge = config_get_int("display.text_edge", 2);
     { extern int ui_text_contrast; ui_text_contrast = config_get_int("display.text_contrast", 1); }
     { extern int ui_skill_icons; ui_skill_icons = config_get_int("display.skill_icons", 1); }
-    { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
-    { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
-    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
-    { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
+    ui_options_reload(0, 0);
+    options_set_listener(ui_options_reload);
     ui_spell_out = config_get_int("display.spell_out", 1);
     ui_sys_cursor = config_get_int("display.system_cursor", 0);
     idle_rest = config_get_int("display.idle_rest", 1);
-    { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
@@ -303,15 +340,22 @@ extern "C" int levelmap_available(void);
 extern "C" void levelmap_toggle(void);
 extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open(); }
+extern "C" int ui_alert_open(void);
+void ui_alert_draw(void);
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
-/* the world map (ui/worldmap.cpp): M on the travel map, or the Travel tab */
+/* the world map (ui/worldmap.cpp): M on the travel map or a card */
 extern "C" void ui_toggle_map(void)
 {
     if (open_map) { open_map = false; return; }
     int gm = game_mode();                                   /* (battles and their loot reuse the places' memory) */
-    if (gm != GM_CARD && gm != GM_MAP) { ui_notice("The world map opens on the travel map or a card, not in a battle."); return; }
+    if (gm != GM_CARD && gm != GM_MAP) {
+        ui_notice(gm == GM_BATTLE ? "The world map opens on the travel map or a card, not in a battle."
+                  : gm == GM_SCREEN ? "The world map opens on the travel map or a card: close this screen first."
+                                    : "The world map opens on the travel map or a card, once a game is under way.");
+        return;
+    }
     if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; }
 }
 
@@ -324,6 +368,10 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
 {
+    if (open_news && !open_welcome) {       /* what is new: as the welcome */
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (open_mt32 && !open_welcome) {       /* the MT-32 recommendation, as the welcome */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -359,6 +407,10 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    /* Z in a battle: fast forward (mods/pathfix.c) */
+    if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_z && !e->key.repeat
+        && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && game_mode() == GM_BATTLE && !ns_showing()
+        && config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) { battle_fast_set(!battle_fast); return 1; }
     if (!open_menu && !open_map && !open_goto && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_g && !e->key.repeat
         && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT)) && goto_allowed()) { open_goto = true; return 1; }
     if (open_goto) {
@@ -368,6 +420,10 @@ extern "C" int ui_event(const SDL_Event *e)
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (open_map) {
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE && worldmap_find_escape(ImGui::GetIO().WantTextInput)) {   /* (Esc: a name in the Find box cleared first) */
+            if (ImGui::GetIO().WantTextInput) ImGui_ImplSDL2_ProcessEvent(e);
+            return 1;
+        }
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || (e->key.keysym.sym == SDLK_m && !ImGui::GetIO().WantTextInput))) { ui_toggle_map(); return 1; }
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -453,7 +509,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers > Play the original game).");
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers: the Buggy Purist preset is the game as it was).");
     ImGui::Spacing();
     ImGui::TextWrapped("F1: the keys of the moment.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
@@ -508,26 +564,78 @@ static void welcome_window(void)
             ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
                                "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Darklands+ adds what players have long wished for: crisp text, chances of success on the cards, "
-                           "a party and inventory screen, a journal of quests and towns, a world map, a battle log, quick saves "
-                           "and fixes for old bugs. Each of them can be switched off.");
+        ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a character sheet "
+                           "for the whole party, journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
+        bool done = false;
+        {   /* how much of Darklands+: the presets (mods/options.h), the recommended one chosen */
+            ImGui::PushFont(font_head); ImGui::SeparatorText("How would you like to play?"); ImGui::PopFont();
+            static int pick = -1;
+            if (pick < 0) { pick = preset_current(); if (pick < 0) pick = PRESET_PLUS; }
+            for (int p = 0; p < PRESET_COUNT; p++) {
+                ImGui::PushID(p);
+                std::string nm = std::string(PRESETS[p].name) + (p == PRESET_PLUS ? " (recommended)" : "");
+                if (ImGui::RadioButton("##p", pick == p)) pick = p;
+                ImGui::SameLine();
+                if (ui_title_desc(nm.c_str(), PRESETS[p].desc)) pick = p;
+                ImGui::PopID();
+            }
+            ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game whichever you choose.");
+            ImGui::TextDisabled("Change it at any time, or switch single things: F12 > Settings > Helpers.");
+            ImGui::Spacing();
+            if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
+        }
         ImGui::Spacing();
         ImGui::PushFont(font_head); ImGui::SeparatorText("Keys"); ImGui::PopFont();
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
         ImGui::BulletText("F1: the keys and clicks of the moment, the game's hidden ones too");
         ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
+        ImGui::BulletText("A click on a member at the left: their sheet, with the whole party's saints and formulae");
+        ImGui::BulletText("M: the world map, to find a place and travel there");
         ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
         ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
+        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); if (!news_key().empty()) config_set("ui.news_seen", news_key().c_str()); config_save(); }
+    }
+    ImGui::End();
+    ImGui::PopFont();
+}
+
+/* what is new in this version (its first two numbers: "1.2" from "1.2-preview35"; "" for a build
+   that is no release), shown once to a player of an earlier one */
+extern "C" const char dlp_release[];
+static std::string news_key(void)
+{
+    std::string r = dlp_release;
+    size_t a = r.find('.'); if (a == std::string::npos) return "";
+    size_t b = a + 1; while (b < r.size() && isdigit((unsigned char)r[b])) b++;
+    return r.substr(0, b);
+}
+static void news_window(void)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    float w = fminf(io.DisplaySize.x * 0.9f, UIS(760));
+    ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::PushFont(font_body);
+    std::string title = "New in Darklands+ " + news_key();
+    if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+        static const char *NEWS[] = {
+            "A click on a member at the left: the character sheet, now the one place for the party's things, skills, saints and formulae (Tab turns its pages).",
+            "M: the world map. Find a place, see how long the way is, travel there.",
+            "G in a town: Go To, a picture for every place and what matters there now.",
+            "Saints do what their texts say; each says what its help really does.",
+            "Most of the game's screens are drawn anew for the mouse: shops, loot, the inn, alchemy ...",
+            "One pack for the party, and one store room for every inn.",
+            "A halo on a member's picture: a saint's help or a potion at work (point at it)." };
+        for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
-        ImGui::Separator();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("Every change can be switched off: F12 > Settings. F12 > Guide explains the game; F1 lists the keys of the moment.");
+        ImGui::PopStyleColor();
         ImGui::Spacing();
-        bool done = false;
-        if (ImGui::Button("Play with Darklands+")) done = true;
-        ImGui::SameLine();
-        if (ImGui::Button("Play the original game")) { ui_set_original(true); done = true; }
-        ImGui::TextDisabled("Either can be changed at any time: F12 > Settings > Helpers > Play the original game.");
-        if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
-        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
+        bool done = ImGui::Button("  On with the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);
+        if (done) { open_news = false; config_set("ui.news_seen", news_key().c_str()); config_save(); }
     }
     ImGui::End();
     ImGui::PopFont();
@@ -611,11 +719,17 @@ static void help_window(void)
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
         auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d); };
         int gm = game_mode();
-        if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
+        int sv_loading = 0;
+        if (savesview_showing(&sv_loading)) {
+            ImGui::SeparatorText(sv_loading ? "Now: loading a game" : "Now: saving the game");
+            if (sv_loading) { row("Double-click a save", "load it (or click it, then Load)"); row("Up, Down, Enter", "choose a save, load it"); }
+            else { row("Type", "its name (22 letters at most; Backspace takes one back)"); row("Enter or Save", "save it"); }
+            row("Esc or Cancel", "back to the game as it was");
+        } else if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
             ImGui::SeparatorText(lodgeview_camping() ? "Now: a camp" : "Now: a stay");
             row("A member, or 1 ... 5", "whose day is being chosen");
             row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
-            row("S or A day", "one day passes; A week: seven; Until rested: until nobody regains strength or prays");
+            row("S or A day", "one day passes; A week: seven; Until rested: those short of strength who only relax regain it, until nobody regains strength or prays");
             row("L, Esc or Leave", "leave");
         } else if (gm == GM_CARD) {
             ImGui::SeparatorText("Now: a card");
@@ -623,6 +737,7 @@ static void help_window(void)
             row("Shift over an option", "the game's own chance of success (the badges show them all)");
             row("G", "go to a place in this city");
             row("M", "world map");
+            row("The town's pictures (right margin)", "what it has that most towns lack, and its notable shops: point at one for what it offers");
         } else if (gm == GM_MAP) {
             ImGui::SeparatorText("Now: the travel map");
             row("Click", "walk towards that spot");
@@ -630,13 +745,15 @@ static void help_window(void)
             row("M", "world map: find a place, double-click to travel there");
             row("Point at a quest's picture", "the task that leads there (a portcullis or a pillory beside a town: it bars the party, or its watch wants it)");
             row("A task in the left margin", "click to open it, then Travel there");
+            row("The town's pictures (right margin)", "near a town: what it has that most towns lack, and its notable shops (point at one)");
         } else if (gm == GM_BATTLE) {
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
             row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
-            row("Ctrl + click a member", "make that member the active one");
+            row("Ctrl + click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
+            if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
             { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (loot_active && lootview_showing()) {
             ImGui::SeparatorText("Now: the loot");
@@ -677,12 +794,13 @@ static void help_window(void)
                                       row("Keep", "a thing never sold or dropped (a small seal on its row)");
                                       row("The load", "only what is in use weighs"); }
             else row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
+            row("Things, Skills, Saints, Formulae", "the pages at the top (Tab or Right: the next, Shift+Tab or Left: the one before)");
             row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
             row("Wheel, Up, Down", "scroll the list");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
-            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
+            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader at the top)");
             row("Up, Down, PgUp, PgDn", "move in a list (the mouse wheel too)");
             row("1 ... 5", "in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them)");
             row("A", "in the equipment list: ready or wear the chosen item");
@@ -724,9 +842,12 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
+    /* a tooltip opens past the pointer: past the game's hand (16 by 12 of its pixels, the fingertip
+       the point) where the game draws it, else past the system arrow */
+    ImGui::GetStyle().MouseCursorScale = show ? 1.0f : fmaxf(1.0f, (y1 - y0) / 200.0f * 1.1f);
     if (show) {
         static SDL_Cursor *arrow; if (!arrow) arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
         ImGuiMouseCursor c = ImGui::GetMouseCursor();
@@ -741,7 +862,7 @@ static void ui_cursor(void)
 /* test (ucmd uicongrid): every potion in its three grades and every ingredient, large, to look at;
    again: the quests' pictures, large and at the sizes of the lists, on light and on dark */
 static int icon_grid;
-extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 3; }
+extern "C" void ui_icon_grid_toggle(void) { icon_grid = (icon_grid + 1) % 5; }   /* (test: potions, quests, towns, the alchemy sheet) */
 static void draw_icon_grid(void)
 {
     if (!icon_grid) return;
@@ -750,6 +871,43 @@ static void draw_icon_grid(void)
     ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(244, 234, 210, 255));
     float cell = fminf(ds.x / 12.5f, ds.y / 8.5f), s = cell * 0.62f;
+    if (icon_grid == 4) {                                   /* every potion and ingredient with its name, to show around */
+        ImFont *ft = ui_font_text ? ui_font_text : ImGui::GetFont(), *fh = ui_font_head ? ui_font_head : ft;
+        ImU32 ink = IM_COL32(52, 36, 22, 255), dim = IM_COL32(120, 98, 70, 255), rule = IM_COL32(150, 120, 80, 255);
+        float u = ds.y / 1080.0f, fs = 24 * u, top = 124 * u, mx = 34 * u;
+        dl->AddText(fh, 40 * u, ImVec2(mx, 22 * u), ink, "Darklands+: the potions and the alchemical ingredients");
+        float split = ds.x * 0.62f;
+        dl->AddText(fh, 28 * u, ImVec2(mx, top - 44 * u), ink, "Potions, grades 1, 2 and 3 (the gold dots on the neck)");
+        dl->AddText(fh, 28 * u, ImVec2(split + 20 * u, top - 44 * u), ink, "Ingredients");
+        dl->AddLine(ImVec2(split, top - 30 * u), ImVec2(split, ds.y - 24 * u), rule, 1.5f * u);
+        float pw = (split - mx) / 4, ph = (ds.y - top - 20 * u) / 6, ps = fminf(pw / 3.6f, ph * 0.62f);
+        for (int k = 0; k < 22; k++) {
+            float x0 = mx + (k % 4) * pw, y0 = top + (k / 4) * ph;
+            for (int t = 1; t <= 3; t++) ui_item_icon_tier(dl, ImVec2(x0 + ps * (0.62f + 1.08f * (t - 1)), y0 + ps * 0.62f), ps, 95 + k, t);
+            const char *nm = 95 + k < (int)gamedata.items.size() ? gamedata.items[95 + k].name.c_str() : "?";
+            dl->AddText(ft, fs, ImVec2(x0 + 4 * u, y0 + ps * 1.32f), ink, nm);
+        }
+        float iw = (ds.x - split - 40 * u) / 2, ih = (ds.y - top - 20 * u) / 12, is = fminf(ih * 0.7f, 60 * u);
+        for (int k = 0; k < 23; k++) {
+            float x0 = split + 24 * u + (k / 12) * iw, y0 = top + (k % 12) * ih;
+            ui_item_icon_tier(dl, ImVec2(x0 + is * 0.5f, y0 + ih * 0.5f), is, 72 + k, 0);
+            const char *nm = 72 + k < (int)gamedata.items.size() ? gamedata.items[72 + k].name.c_str() : "?";
+            dl->AddText(ft, fs, ImVec2(x0 + is + 12 * u, y0 + ih * 0.5f - fs * 0.55f), ink, nm);
+        }
+        (void)dim;
+        return;
+    }
+    if (icon_grid == 3) {                                   /* the towns' pictures, at three sizes */
+        dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
+        for (int k = 0; k < TI_N; k++) {                     /* (rows of 11: on parchment above, on the dark below) */
+            float x = cell * 0.6f + (k % 11) * cell * 0.92f, y = (k / 11) * cell * 1.3f;
+            ui_draw_town_icon(dl, ImVec2(x, y + cell * 0.6f), cell * 0.85f, k);
+            ui_draw_town_icon(dl, ImVec2(x - cell * 0.25f, y + cell * 1.15f), 32, k);
+            ui_draw_town_icon(dl, ImVec2(x + cell * 0.2f, y + cell * 1.15f), 20, k);
+            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + y + cell * 0.6f), cell * 0.85f, k);
+        }
+        return;
+    }
     if (icon_grid == 2) {
         dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
         for (int k = 1; k < QC_N; k++) {
@@ -782,10 +940,11 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();
+    if (game_mode() == GM_CARD || game_mode() == GM_MAP) libraries();   /* (kept for the character sheet, which cannot read them: ui/libraries.h) */
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); mapmsg_draw(); savesview_draw(); menuview_draw(); }
+    else { hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); titleview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); mapmsg_draw(); savesview_draw(); menuview_draw(); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
@@ -806,15 +965,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                would not all show (the whole bar in that face: ImGui measures the tabs again when
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
-            static const Page pages[UI_PAGE_N] = { { "Inventory", tab_inventory }, { "Party", tab_members }, { "Alchemy", tab_alchemy },
-                { "Saints", tab_saints }, { "Journal", tab_journal }, { "Saves", tab_saves }, { "Travel", tab_travel },
+            static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },
                 { "Helpers", tab_helpers }, { "Mods", tab_mods }, { "Display", tab_display }, { "Records", tab_party },
                 { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab } };
             struct Group { const char *name; int icon; int page[4]; int n; };
             static const Group groups[] = {
-                { "Inventory", UI_PAGE_INVENTORY, { UI_PAGE_INVENTORY }, 1 }, { "Party", UI_PAGE_PARTY, { UI_PAGE_PARTY }, 1 },
-                { "Alchemy", UI_PAGE_ALCHEMY, { UI_PAGE_ALCHEMY }, 1 }, { "Saints", UI_PAGE_SAINTS, { UI_PAGE_SAINTS }, 1 },
-                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Travel", UI_PAGE_TRAVEL, { UI_PAGE_TRAVEL }, 1 },
+                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
                 { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
                 { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
                 { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 4 } };
@@ -838,7 +994,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                     char lab[64]; int nsp = (int)ceilf(ImGui::GetFontSize() * 1.25f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x));
                     if (nsp > 12) nsp = 12;
                     snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", G.name, G.name);
-                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 ? ImGuiTabItemFlags_SetSelected : 0);
+                    bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 && want_frames == 0 ? ImGuiTabItemFlags_SetSelected : 0);
                     {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
                         ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, G.icon); }
                     if (open_t) {
@@ -851,11 +1007,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                                 if (ui_subtab(pages[G.page[j]].name, j == want_sub)) { page(G.page[j]); ImGui::EndTabItem(); }
                             ImGui::EndTabBar();
                         }
+                        if (want_sub >= 0) want_tab = -1;           /* (drawn, its sub-tab chosen: done) */
                         ImGui::PopStyleVar(); ImGui::PopFont();
                         ImGui::EndTabItem();
                     }
                 }
-                want_tab = -1;
+                if (want_tab >= 0 && ++want_frames > 4) want_tab = -1;   /* (a group's tab takes a frame to open) */
                 ImGui::EndTabBar();
             }
             ImGui::PopStyleVar(); ImGui::PopFont();
@@ -868,6 +1025,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     figpick_window();
     if (open_help) help_window();
     if (open_welcome) welcome_window();
+    else if (open_news) news_window();
     else if (open_mt32) mt32_window();
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
@@ -882,6 +1040,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         }
     }
     ui_cursor();
+    ui_alert_draw();
     draw_icon_grid();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);

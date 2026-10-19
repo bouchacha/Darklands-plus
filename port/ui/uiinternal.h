@@ -14,6 +14,7 @@ extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
 extern "C" { int mapmsg_is_on(void); void mapmsg_set(int on); }
 extern "C" { int infoview_is_on(void); void infoview_set(int on); }
+extern "C" { int titleview_is_on(void); void titleview_set(int on); }
 extern "C" { int rosterview_is_on(void); void rosterview_set(int on); }
 extern "C" { int createview_is_on(void); void createview_set(int on); }
 extern "C" { int prayview_is_on(void); void prayview_set(int on); }
@@ -36,11 +37,16 @@ extern const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS];
 
 extern int ui_dirty_config;              /* a setting changed: written when the window closes */
 extern ImFont *ui_font_head;             /* the pages' headings */
+extern ImFont *ui_font_bold;             /* the body's size, semibold: a switch's title */
 extern int ui_sys_cursor;                /* display.system_cursor */
 extern SDL_Window *ui_window;
 void ui_overlay_font_update(void);       /* the typeface of the side panels and tooltips, after a change */
 void ui_hint(const char *fmt, ...);      /* a line of explanation under a setting (greyed) */
+/* a switch's words as one paragraph: the title in bold, a colon, what it does in grey, wrapped
+   together; true when they are clicked */
+bool ui_title_desc(const char *title, const char *desc, bool dim = false, const char *id = "##td");
 int ui_original_mode(void);              /* "Play the original game" */
+bool ui_modding(void);                   /* the editing tools shown (F12 > Settings > Helpers > Editor): the Editor tab, and changing weapons, items and foes in Records */
 void ui_set_original(bool on);
 void tab_mods(void);
 void tab_helpers(void);

@@ -76,6 +76,7 @@
 #define GV_group_count                  0xdb05    /* groups per level [16] */
 #define GV_combatants                   0x9c55    /* struct cbt[13] (0x80 bytes): 0..4 party (= party - 0x14), 5..12 enemies */
 #define GV_cbt_floor                    0xa6b4    /* [13] floor (level) of each combatant */
+#define GV_cbt_ends_battle              0xc1f3    /* [13] its fall ends the battle (the master of a place; monster record +aa) */
 #define GV_cbt_action                   0xca64    /* [13] current action */
 #define GV_cbt_anim                     0xca57    /* [13] current animation (3 dying ...) */
 #define GV_cbt_moving                   0xa6d3    /* [13] moving to a target */
@@ -103,7 +104,10 @@
 #define GV_order_mode                   0xa6b3    /* 1 while a member is selected */
 #define GV_order_action                 0xa6b0    /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define GV_order_special                0xa6d1    /* the action at a place being ordered (with order_action 0x400) */
+#define GV_order_dest_x                 0xc652    /* int: a spot on the ground clicked in this order (0 none): where order_mode_leave sends the member */
+#define GV_order_dest_y                 0xc67d    /* int: its y */
 #define GV_cbt_state                    0xa3d8    /* [5] a member's special state (1 'b', 2 'e' on the panel) */
+#define GV_insid_office                 0xeeb4    /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define GV_cbt_path_step                0xd6fb    /* char[13]: the step a walk has reached in its path */
 #define GV_cbt_mods                     0xa532    /* [13] of 0x12 bytes: +9 held (1: told to hold), +0c/+0e/+10 the modifiers' ends */
 #define GV_cursor_target                0xd845    /* what the cursor points at (>= 0 combatant, -2 ground, -3 blocked) */
@@ -136,6 +140,9 @@
 #define GV_loot_list                    0xc291    /* pointer to the near loot copy (set by s002) */
 #define GV_days_per_month               0x2776    /* int[12] */
 #define GV_party_fame                   0x9082
+#define GV_standing_fugger              0x4bb6    /* int: the party's standing with the Fugger (their cards add and take; under 0, with the town's regard, no tasks) - not in a saved game */
+#define GV_standing_medici              0x4bb8    /* int: with the Medici, likewise */
+#define GV_standing_hanse               0x4bba    /* int: with the Hanse, likewise */
 #define GV_party_money_gr               0x906d    /* groschen of party_money */
 #define GV_party_money_pf               0x906f    /* pfennigs of party_money */
 #define GV_member_attrs                 0x9cb2    /* = party[i] + 0x49: attributes */
@@ -165,6 +172,8 @@
 #define GV_cache_top                    0x37d8    /* int[5]: the store's list, first shown */
 #define GV_cache_inv_sel                0x37e2    /* int[5]: the member's list, the cursor's row */
 #define GV_cache_sel                    0x37ec    /* int[5]: the store's list, the cursor's row */
+#define GV_camp_activity                0x8a18    /* int[5]: each member's day at the inn or camp (0 relax, 1 regain strength, 2 pray, 3 alchemy, 4 earn, 5 guard, 6 train) */
+#define GV_camp_activity_arg            0x89fe    /* int[5]: its number (6: the skill taught; 4: the wage) */
 #define GV_roster_sel                   0xe7da    /* int: the character chosen (charactr.tmp index; -1 none) */
 #define GV_roster_n                     0xe7dc    /* int: characters in charactr.tmp */
 #define GV_roster_portrait              0xe88e    /* seg: the chosen member's portrait (pics\<figure>small.pic) */
@@ -188,6 +197,7 @@
 #define GV_create_nick                  0xe848    /* char[]: the short name (9 letters) */
 #define GV_create_random_name           0x8bfe    /* int: the name was drawn (a new gender draws another) */
 #define GV_create_prof                  0x4428    /* int: the last profession */
+#define GV_create_prev                  0x442a    /* int: the profession before the last */
 #define GV_create_child                 0x8c02    /* int: the childhood */
 #define GV_create_taken                 0x4402    /* char[0x25]: bit 0 a profession taken */
 #define GV_loot_who                     0x8dc4    /* the member receiving */
@@ -239,6 +249,11 @@
 #define GV_path_formation               0xe0a2    /* char: pathfinding for a formation (its collision rules) */
 #define GV_path_target_only             0xd697    /* char: ignore combatants other than the target */
 #define GV_pause_depth                  0x07d3    /* char: pauses in force (orders being given ...) */
+#define GV_battle_view_col              0xc866    /* char: the battle view's origin, column (a step: 32 pixels sideways; vec_1d3d clamps it to 1..0x27) */
+#define GV_battle_view_row              0xc886    /* char: the battle view's origin, row (a step: 16 pixels across and 16 up) */
+#define GV_battle_follow                0x11b1    /* char: the view follows the member being given orders (1), jumping near an edge */
+#define GV_battle_end_at                0xda45    /* unsigned: the combat clock's tick at which a decided battle ends */
+#define GV_battle_tick                  0xe092    /* unsigned: the battle's own clock, back at 0 in a new battle */
 /* card.h */
 #define GV_next_card                    0xe48a    /* card the engine runs next (the script sets it) */
 #define GV_card_name                    0xe3d4    /* name buffer of the current card ("$CESde00") */
@@ -567,6 +582,7 @@
 #define GF_missiles_advance             14, 0x1d47, 0x0000    /* (): every missile one tick */
 #define GF_line_blocked                 14, 0x1d69, 0x000c    /* (a, b): line of sight / fire blocked by a wall, furniture or combatant */
 #define GF_ai_tick                      14, 0x1db7, 0x0008    /* () */
+#define GF_ai_costs                     14, 0x1db7, 0x0028    /* (i, lo, hi): walking costs from i to lo..hi-1, far 20a5:787e[i*5+j] */
 #define GF_ai_set_target                14, 0x1db7, 0x0c2a    /* (i, t) */
 #define GF_ai_rethink                   14, 0x1db7, 0x0e22    /* (i) */
 #define GF_cloud_blocks_line            14, 0x1ec9, 0x0142    /* (a, b): line passes through an effect cloud */
@@ -707,6 +723,11 @@
 #define GF_load_saved_game              37, 0x1462, 0x4184    /* (name) */
 #define GF_text_input                   37, 0x1462, 0x43e6    /* (buf, max, prompt) */
 #define GF_roster_screen                37, 0x1462, 0x0000    /* (): the party of a new game (pics\cretscrn.pic): 1 begin, 0 back to the title */
+#define GF_title_screen                 37, 0x1e26, 0x0008    /* (): the start screen (pics\startscr.pic): Quickstart, Create a New World, The Story Continues */
+#define GF_title_close                  37, 0x1e26, 0x00a6    /* (): its buttons' pictures freed, the fonts back */
+#define GF_title_setup                  37, 0x1e26, 0x00dc    /* (): pics\startscr.pic and its palette, the buttons' pictures */
+#define GF_title_redraw                 37, 0x1e26, 0x014a    /* (): the start screen copied to the screen */
+#define GF_title_key                    37, 0x1e26, 0x0172    /* (key): 0x1051 Quickstart, 0x2e43 create, 0x1454 load, 0x1000 quit; 0x11b: the game begins */
 #define GF_roster_leave                 37, 0x1462, 0x0348    /* (r): the portrait and the buttons freed, the fonts back; returns r */
 #define GF_roster_load_pics             37, 0x1462, 0x0390    /* (): cretscrn.pic, buttnCR2.pic, the fonts */
 #define GF_roster_draw                  37, 0x1462, 0x03d4    /* (): the menu, the list, the party's boxes */

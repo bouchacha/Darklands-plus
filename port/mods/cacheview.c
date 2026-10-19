@@ -54,13 +54,16 @@ static void build(void)
         e->weight = gm_itemdef_weight(e->id);
     }
     c->shared = sheetview_shared();
-    if (c->shared) {                                          /* the member's potions, then the party's pack: the spares of all, by kind and quality */
+    if (c->shared) {                                          /* every member's potions, then the party's pack: the spares of all, by kind and quality */
         c->nitems = 0; c->room = 0;
-        for (int i = 0; i < gm_item_count(c->who) && c->nitems < 200; i++) {
-            GmItem g; if (!gm_item(c->who, i, &g) || !gm_is_potion(g.id)) continue;
-            CvItem *it = &c->item[c->nitems++];
-            it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1;
+        for (int m = 0; m < 5; m++) {
+            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+            for (int i = 0; i < gm_item_count(m) && c->nitems < 200; i++) {
+                GmItem g; if (!gm_item(m, i, &g) || !gm_is_potion(g.id)) continue;
+                CvItem *it = &c->item[c->nitems++];
+                it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1; it->owner = m;
+            }
         }
         int first = c->nitems;
         for (int m = 0; m < 5; m++) {
@@ -75,7 +78,7 @@ static void build(void)
                 if (c->nitems >= 200) continue;
                 CvItem *it = &c->item[c->nitems++];
                 it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
-                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0; it->owner = -1;
             }
         }
         for (int a = first + 1; a < c->nitems; a++)           /* by kind, the better first */
@@ -92,7 +95,7 @@ static void build(void)
             if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
             CvItem *it = &c->item[c->nitems++];
             it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0;
+            it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0; it->owner = m;
         }
         c->room = gm_item_count(m) < 64;
     }
@@ -123,7 +126,7 @@ static int take(int i, int all)
     int id = store_id(i), q = store_q(i);
     for (int t = 0; t < (all ? 255 : 1); t++) {
         if (i >= store_n() || store_id(i) != id || store_q(i) != q) break;   /* (that entry is gone) */
-        if (shared && !gm_is_potion(id)) { m = pack_target(id, q); if (m < 0) break; g_ww(GV_cache_who, (u16)m); }
+        if (shared) { m = pack_target(id, q); if (m < 0) break; g_ww(GV_cache_who, (u16)m); }   /* (a potion too: someone's own) */
         else if (!gm_room_for(m, id, q)) break;
         g_ww((u16)(GV_cache_side + 2 * m), 1); g_ww((u16)(GV_cache_top + 2 * m), (u16)i); g_ww((u16)(GV_cache_sel + 2 * m), 0);
         g_ww(GV_cache_n_shown, (u16)store_n());
@@ -136,8 +139,9 @@ static int take(int i, int all)
     if (shared) g_ww(GV_cache_who, (u16)shown);
     char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[160];
-    if (shared && !gm_is_potion(id)) {
-        if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
+    if (shared) {
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, cache_model.names[m]);
+        else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
         else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
     }
     else if (done) snprintf(t, sizeof t, "%s takes %d %s.", cache_model.names[m], done, nm);
@@ -146,10 +150,11 @@ static int take(int i, int all)
     return done;
 }
 
-static int put(int idx, int all, int quiet)
+static int put(int m, int idx, int all, int quiet)
 {
-    int m = who_now(), done = 0;
-    GmItem first; if (!gm_item(m, idx, &first)) return 0;
+    int done = 0, shown = who_now();
+    GmItem first; if (m < 0 || m >= 5 || !gm_item(m, idx, &first)) return 0;
+    g_ww(GV_cache_who, (u16)m);                               /* (the game's key acts for the member chosen) */
     for (int t = 0; t < (all ? 255 : 1); t++) {
         GmItem g;
         if (!gm_item(m, idx, &g) || g.id != first.id || g.qual != first.qual) break;
@@ -161,6 +166,7 @@ static int put(int idx, int all, int quiet)
         if (store_units() <= before) break;
         done++;
     }
+    g_ww(GV_cache_who, (u16)shown);
     if (!quiet) {
         char nm[32]; gm_itemdef_name(first.id, nm, sizeof nm);
         char t[160];
@@ -208,7 +214,7 @@ static void put_away(void)                   /* everything the member does not h
             if (d) { kinds++; units += d; }
         }
         char t[160];
-        if (units) snprintf(t, sizeof t, "Stored %d things (%d kinds); what is in use, the potions%s stay.", units, kinds, kept ? " and what is kept" : "");
+        if (units) snprintf(t, sizeof t, "Stored %d thing%s (%d kind%s); what is in use, the potions%s stay.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? " and what is kept" : "");
         else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept things." : "Nothing to store: the pack is empty.");
         note(t);
         return;
@@ -216,11 +222,11 @@ static void put_away(void)                   /* everything the member does not h
     int m = who_now(), kinds = 0, units = 0;
     for (int i = gm_item_count(m) - 1; i >= 0 && !ns_unwinding; i--) {
         if (gm_item_equipped(m, i)) continue;
-        int d = put(i, 1, 1);
+        int d = put(m, i, 1, 1);
         if (d) { kinds++; units += d; }
     }
     char t[160];
-    if (units) snprintf(t, sizeof t, "%s stores %d things (%d kinds); what is in use stays.", cache_model.names[m], units, kinds);
+    if (units) snprintf(t, sizeof t, "%s stores %d thing%s (%d kind%s); what is in use stays.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
     else snprintf(t, sizeof t, "%s has nothing that is not in use.", cache_model.names[m]);
     note(t);
 }
@@ -283,9 +289,9 @@ static void screen_hook(void)                 /* item_cache_screen(arg), s035 14
             case CV_TAKE: if (a.a >= 0 && a.a < cache_model.nstore) take(cache_model.store[a.a].src, a.b == 255); break;
             case CV_PUT: if (cache_model.shared) { if (a.a >= 0 && a.a < cache_model.nitems) {
                              const CvItem *it = &cache_model.item[a.a];
-                             if (it->idx >= 0) put(it->idx, a.b == 255, 0);          /* (the member's own potion) */
+                             if (it->idx >= 0) put(it->owner, it->idx, a.b == 255, 0);   /* (a member's own potion) */
                              else pack_put(it->id, it->qual, a.b == 255, 0); } }
-                         else if (a.a >= 0 && a.a < cache_model.nitems) put(cache_model.item[a.a].idx, a.b == 255, 0); break;
+                         else if (a.a >= 0 && a.a < cache_model.nitems) put(who_now(), cache_model.item[a.a].idx, a.b == 255, 0); break;
             case CV_WHO: set_who(a.a); break;
             case CV_PUTAWAY: put_away(); break;
             case CV_LEAVE: leave = 1; break;

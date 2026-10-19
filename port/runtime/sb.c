@@ -121,7 +121,7 @@ static void command(void)
     case 0x10: push_bytes(0, 0); break;                          /* direct DAC: ignored */
     case 0x14: case 0x91: autoinit = 0; start_block((args[0] | args[1] << 8) + 1); break;
     case 0x1c: case 0x90: autoinit = 1; start_block(block); break;
-    case 0x40: rate = 1000000 / (256 - args[0]); break;
+    case 0x40: rate = 1000000 / (256 - args[0]); if (getenv("DL_TRACE_SB")) fprintf(stderr, "sb: rate %d Hz\n", rate); break;
     case 0x41: rate = (args[0] << 8) | args[1]; break;
     case 0x48: block = (args[0] | args[1] << 8) + 1; break;
     case 0xd0: playing = 0; break;                                /* halt */

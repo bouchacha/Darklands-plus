@@ -1,4 +1,4 @@
-/* worldmap.c - the whole overland map in one picture (for the world map, M on the travel map).
+/* worldmap.c - the whole overland map in one picture (for the world map: M on the travel map or a card).
  * Drawn the way the travel screen draws its view (s030 1462:20d2), for every tile at once:
  * DARKLAND.MAP terrain, tiles of 16x12 from MAPICONS.PIC rows 1-15 (terrain 1-15) and
  * MAPICON2.PIC rows 0-15 (terrain 16-31) at (column*16 + 8 on odd rows, row*4), colour 0

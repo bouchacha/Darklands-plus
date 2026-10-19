@@ -55,13 +55,16 @@ static void build(void)
         p->weight = gm_itemdef_weight(id);
     }
     l->shared = sheetview_shared();
-    if (l->shared) {                                          /* the member's potions, then the party's pack: the spares of all, by kind and quality */
+    if (l->shared) {                                          /* every member's potions, then the party's pack: the spares of all, by kind and quality */
         l->nitems = 0; l->room = 0;
-        for (int i = 0; i < gm_item_count(l->who) && l->nitems < 200; i++) {
-            GmItem g; if (!gm_item(l->who, i, &g) || !gm_is_potion(g.id)) continue;
-            LvItem *it = &l->item[l->nitems++];
-            it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1;
+        for (int m = 0; m < 5; m++) {
+            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+            for (int i = 0; i < gm_item_count(m) && l->nitems < 200; i++) {
+                GmItem g; if (!gm_item(m, i, &g) || !gm_is_potion(g.id)) continue;
+                LvItem *it = &l->item[l->nitems++];
+                it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1; it->owner = m;
+            }
         }
         int first = l->nitems;
         for (int m = 0; m < 5; m++) {
@@ -76,7 +79,7 @@ static void build(void)
                 if (l->nitems >= 200) continue;
                 LvItem *it = &l->item[l->nitems++];
                 it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
-                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0;
+                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0; it->owner = -1;
             }
         }
         for (int a = first + 1; a < l->nitems; a++)           /* by kind, the better first */
@@ -93,7 +96,7 @@ static void build(void)
             if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
             LvItem *it = &l->item[l->nitems++];
             it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0;
+            it->equipped = gm_item_equipped(m, i); it->kept = 0; it->potion = 0; it->owner = m;
         }
         l->room = gm_item_count(m) < 64;
     }
@@ -129,8 +132,8 @@ static void take(int i, int all)
         if (i >= pile_n()) break;
         o = pile_off(i);
         if ((rw(pile_seg(), o) & 0xfff) != id || rb(pile_seg(), (u16)(o + 3)) != q) break;   /* (that entry is gone) */
-        if (shared && !gm_is_potion(id)) { m = pack_target(rw(pile_seg(), o), q); if (m < 0) break; g_ww(GV_loot_who, (u16)m); }
-        else if (!gm_room_for(m, rw(pile_seg(), o), q)) break;     /* (a potion: the member shown's own) */
+        if (shared) { m = pack_target(rw(pile_seg(), o), q); if (m < 0) break; g_ww(GV_loot_who, (u16)m); }   /* (a potion too: someone's own) */
+        else if (!gm_room_for(m, rw(pile_seg(), o), q)) break;
         g_ww((u16)(GV_loot_side + 2 * m), 1); g_ww((u16)(GV_loot_pile_top + 2 * m), (u16)i); g_ww((u16)(GV_loot_pile_sel + 2 * m), 0);
         int before = pile_units();
         key(0x2247);
@@ -140,8 +143,9 @@ static void take(int i, int all)
     }
     if (shared) g_ww(GV_loot_who, (u16)shown);
     char t[160];
-    if (shared && !gm_is_potion(id)) {
-        if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
+    if (shared) {
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, loot_model.names[m]);
+        else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
         else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
     }
     else if (done) snprintf(t, sizeof t, "%s takes %d %s.", loot_model.names[m], done, nm);
@@ -174,10 +178,11 @@ static void pack_put(int r, int all)
     note(t);
 }
 
-static void put(int idx, int all)
+static void put(int m, int idx, int all)
 {
-    int m = who_now(), done = 0;
-    GmItem first; if (!gm_item(m, idx, &first)) return;
+    int done = 0, shown = who_now();
+    GmItem first; if (m < 0 || m >= 5 || !gm_item(m, idx, &first)) return;
+    g_ww(GV_loot_who, (u16)m);                                /* (the game's key acts for the member chosen) */
     char nm[32]; gm_itemdef_name(first.id, nm, sizeof nm);
     for (int t = 0; t < (all ? 255 : 1); t++) {
         GmItem g;
@@ -190,6 +195,7 @@ static void put(int idx, int all)
         if (pile_units() <= before) break;
         done++;
     }
+    g_ww(GV_loot_who, (u16)shown);
     char t[160];
     if (done) snprintf(t, sizeof t, "%s puts %d %s into the pile.", loot_model.names[m], done, nm);
     else snprintf(t, sizeof t, "The %s stays with %s.", nm, loot_model.names[m]);
@@ -257,17 +263,17 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             switch (a.type) {
             case LV_TAKE: if (a.a >= 0 && a.a < loot_model.npile) take(loot_model.pile[a.a].src, a.b == 255); break;
-            case LV_PUT:                                      /* (shared: a row of the member's potions is theirs to put back) */
+            case LV_PUT:                                      /* (shared: a potion's row is its owner's to put back) */
                 if (a.a < 0 || a.a >= loot_model.nitems) break;
                 if (loot_model.item[a.a].idx < 0) pack_put(a.a, a.b == 255);
-                else put(loot_model.item[a.a].idx, a.b == 255);
+                else put(loot_model.shared ? loot_model.item[a.a].owner : who_now(), loot_model.item[a.a].idx, a.b == 255);
                 break;
             case LV_WHO: set_who(a.a); break;
             case LV_TAKEALL: key(0x1e61); if (!ns_unwinding) note(pile_n() ? "Took what fits." : "Took everything."); break;
             case LV_SHARE:
-                if (loot_model.shared) {                      /* everything: potions to the member shown, the rest into the pack */
+                if (loot_model.shared) {                      /* everything into the pack (a potion to whoever carries the same, or has the most room) */
                     for (int i = 0; i < pile_n() && !ns_unwinding; ) { int n0 = pile_n(), u0 = pile_units(); take(i, 1); if (pile_n() >= n0 && pile_units() >= u0) i++; }
-                    if (!ns_unwinding) note(pile_n() ? "Took what fits." : "Took everything (the potions to the member shown).");
+                    if (!ns_unwinding) note(pile_n() ? "Took what fits." : "Took everything.");
                 } else { key(0x1f73); if (!ns_unwinding) note(pile_n() ? "Shared out what fits." : "Shared out everything."); }
                 break;
             case LV_LEAVE: leave = 1; break;

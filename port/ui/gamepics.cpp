@@ -104,3 +104,27 @@ const GamePic *gamepic_part(const std::string &name, int x0, int y0, int w, int 
     const GamePic *g = upload(key, rgba, w, h);
     return g->tex ? g : nullptr;
 }
+
+/* a part with its grey left out (see-through): a word painted on grey stone, cut out */
+const GamePic *gamepic_cutout(const std::string &name, int x0, int y0, int w, int h, int grey_tol)
+{
+    char kb[64]; snprintf(kb, sizeof kb, "#cut%d@%d,%d,%d,%d", grey_tol, x0, y0, w, h);
+    std::string key = name + kb;
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second.tex ? &it->second : nullptr;
+    Img im;
+    if (!load(name, im) || w <= 0 || h <= 0) { cache[key] = GamePic(); return nullptr; }
+    u32 pal[256]; palette(im, nullptr, pal);
+    std::vector<u32> rgba((size_t)w * h, 0);
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            int sx = x0 + x, sy = y0 + y;
+            if (sx < 0 || sy < 0 || sx >= im.w || sy >= im.h) continue;
+            u32 c = pal[im.px[(size_t)sy * im.w + sx]];
+            int r = c >> 16 & 255, g = c >> 8 & 255, b = c & 255;
+            int mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+            if (mx - mn > grey_tol || mx < 72) rgba[(size_t)y * w + x] = c | 0xff000000u;   /* (the colours, and the dark outlines) */
+        }
+    const GamePic *g = upload(key, rgba, w, h);
+    return g->tex ? g : nullptr;
+}

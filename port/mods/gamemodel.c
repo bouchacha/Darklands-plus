@@ -1,3 +1,4 @@
+#include <stdio.h>
 /* gamemodel.c - see gamemodel.h */
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -133,6 +134,21 @@ void gm_member_attr(int m, int k, int *cur, int *max)
     *cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
     *max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + k));
 }
+int gm_shield_defence(int type, int q, int missile)
+{
+    if (missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;
+    return type == 95 ? 2 * q / 7 + 1 : type == 96 ? q / 2 + 4 : type == 97 ? 2 * q / 3 + 8 : -5;
+}
+int gm_member_fight_agility(int m)
+{
+    int cur, mx, e, s, a;
+    gm_member_attr(m, 0, &cur, &e); gm_member_attr(m, 1, &cur, &s); gm_member_attr(m, 2, &a, &mx);
+    int cap = (e + s) * 5, load = gm_member_load(m);
+    if (load <= cap >> 3) return a;
+    if (load <= cap >> 2) return 2 * a / 3;
+    if (load <= (cap >> 2) * 3 >> 1) return a / 3;
+    return 0;
+}
 int gm_member_skill(int m, int k) { return m >= 0 && m < 5 && k >= 0 && k < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) : 0; }
 int gm_member_age(int m) { return m >= 0 && m < 5 ? (s16)g_rw((u16)(G_MEMBER(m) - 2)) : 0; }   /* (the int before the record) */
 int gm_member_load(int m) { return m >= 0 && m < 5 ? g_rb((u16)(G_MEMBER(m) + G_M_LOAD)) : 0; }
@@ -177,16 +193,21 @@ int gm_member_elsewhere(int m) { return gm_in_battle() && m >= 0 && m < 5 && (u8
 int gm_member_selected(int m) { return m >= 0 && m < 5 && g_rb((u16)(GV_cbt_selected + m)) != 0; }
 /* the letter the game's panel shows (root member_status_letter): the order being given, or the
  * one in force; 0x400: an action at a place (stairs, door ...) */
-char gm_member_order(int m)
+/* the order being given to member m (while paused and choosing one for them) or the one they carry out */
+static int order_now(int m, int *special)
+{
+    int paused = g_rb(GV_ai_paused) == 1, giving = g_rb(GV_order_mode) == 1 && (s8)g_rb(GV_selected_member) == m;
+    int st = paused && giving && (s16)g_rw(GV_order_action) != -1 ? (s16)g_rw(GV_order_action) : (s16)g_rw((u16)(GV_combatants + m * 0x80 + 0x10));
+    if (special) *special = (paused && giving && (s16)g_rw(GV_order_special) != -1) ? (s16)g_rw(GV_order_special) : (s8)g_rb((u16)(GV_cbt_special + m));
+    return st;
+}
+
+char gm_member_order(int m)                   /* (member_status_letter, root 0000) */
 {
     if (!gm_in_battle() || m < 0 || m >= 5 || gm_member_status(m) == 5) return 0;
     { int s2 = g_rb((u16)(GV_cbt_state + m)); if (s2) return s2 == 1 ? 'b' : s2 == 2 ? 'e' : 0; }
-    int st;
-    int paused = g_rb(GV_ai_paused) == 1, giving = g_rb(GV_order_mode) == 1 && (s8)g_rb(GV_selected_member) == m;
-    if (paused && giving && (s16)g_rw(GV_order_action) != -1) st = (s16)g_rw(GV_order_action);
-    else st = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 0x10));
+    int sp, st = order_now(m, &sp);
     if (st == 0x400) {
-        int sp = (paused && giving && (s16)g_rw(GV_order_special) != -1) ? (s16)g_rw(GV_order_special) : (s8)g_rb((u16)(GV_cbt_special + m));
         switch (sp) { case 1: case 2: return 'U'; case 3: case 6: return 'P'; case 4: case 7: return 'D'; case 5: return 'O'; case 8: return 'X'; case 10: return 'H'; }
         return 0;
     }
@@ -197,4 +218,68 @@ char gm_member_order(int m)
     case 0x40: return 'R'; case 0x80: return 'M'; case 0x100: return 'T';
     }
     return 0;
+}
+
+int gm_member_order_place(int m)
+{
+    int sp;
+    return gm_member_order(m) && !g_rb((u16)(GV_cbt_state + m)) && order_now(m, &sp) == 0x400 ? sp : 0;
+}
+
+int gm_library_saints(int loc, int out[4])
+{
+    /* the C library's srand / rand (root 06a1:09b4 / 09c6) and rand_mod (root 0000:0c70) */
+    unsigned long hold = (u16)((s16)g_rw(G_PARTY_SEED) + loc);
+    for (int k = 0; k < 4; k++) {
+        hold = (hold * 0x343fdUL + 0x269ec3UL) & 0xffffffffUL;
+        out[k] = (int)((hold >> 16) & 0x7fff) % 0x87;
+    }
+    return 4;
+}
+
+/* ---------------------------------------------------------------- the canonical hours */
+int gm_hour_band(int h)
+{
+    return h < 3 ? 7 : h < 6 ? 0 : h < 9 ? 1 : h < 12 ? 2 : h < 15 ? 3 : h < 18 ? 4 : h < 21 ? 5 : 6;
+}
+void gm_hour_name(int hour, char *out, int n)
+{
+    static const char *const OWN[8] = { "Lauds", "Prime", "Terce", "Sexts", "Nones", "Vespers", "Compline", "Matins" };
+    int b = gm_hour_band(hour);
+    u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2));
+    out[0] = 0;
+    if (sg) g_str(sg, o, out, n);
+    if (!out[0] || !strcmp(out, "Latins")) snprintf(out, (size_t)n, "%s", OWN[b]);   /* (the game's typo for Lauds) */
+}
+
+/* ---------------------------------------------------------------- names (as the character sheet has them) */
+const char *gm_attr_name(int a)
+{
+    static const char *const A[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
+    return a >= 0 && a < 7 ? A[a] : "?";
+}
+const char *gm_skill_name(int k)
+{
+    static const char *const S[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices",
+        "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
+    return k >= 0 && k < 19 ? S[k] : "?";
+}
+/* the months, from 0 (January); any number taken round the year */
+const char *gm_month_name(int m)
+{
+    static const char *const M[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
+                                       "September", "October", "November", "December" };
+    return M[((m % 12) + 12) % 12];
+}
+const char *gm_month_short(int m) { static const char *const M[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }; return M[((m % 12) + 12) % 12]; }
+/* "a" or "an" before a number written in figures: "an 8%", "an 11%", "an 18%", "an 80%" */
+const char *gm_a_an(int n)
+{
+    if (n < 0) n = -n;
+    return n == 8 || n == 11 || n == 18 || (n >= 80 && n <= 89) || (n >= 800 && n <= 899) ? "an" : "a";
+}
+const char *gm_skill_short(int k)
+{
+    static const char *const S[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices" };
+    return k >= 0 && k < 7 ? S[k] : gm_skill_name(k);
 }

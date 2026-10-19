@@ -73,8 +73,9 @@ On the first start a short welcome names the keys that matter and offers the ori
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
   a battle log (every blow, wound and fall); battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
-  quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop;
-  the party side by side with a one-click leader change; F1 for the keys of the moment (the
+  quest log, town journal; a character sheet drawn anew with the whole party's saints (what each
+  really does, where it is taught), formulae (ingredients, batches, chances, where sold), the
+  party's best at each skill, drag and drop between members and a one-click leader change; F1 for the keys of the moment (the
   game's own hidden ones too); the mouse wheel in lists; the menu bar with a right click (the
   game shows it only while the button is held); the game waits while in the background;
   a map of the level in battles and dungeons (Tab); tooltips for every item, saint and formula on
@@ -115,7 +116,9 @@ Windows build) and takes screenshots; `tools/nctl.py` keeps a session to drive s
 battle, save and load); `tools/monkey.py` plays at random for as long as asked (a soak test: it
 reports a crash or a session that stops changing). The game folder comes from `--game` or
 `DARKLANDS_DIR`; it is copied, never changed. Scripts can use test commands of the platform
-layer (`ucmd ucard:`, `ugoto:N`, `uparty:`, `ucbt:` ...; `runtime/platform_sdl.c`, `run_script`).
+layer: those that act as the system would (keys, clicks, the wheel, a controller) in
+`runtime/platform_sdl.c` (`run_script`), the rest (`ucmd ucard:`, `ugoto:N`, `uparty:`, `ucbt:`,
+`ufight:`, `uhit:` ...) in `runtime/testcmds.c`.
 Environment variables `DL_*` switch on traces (see the sources).
 
 ## Third-party code

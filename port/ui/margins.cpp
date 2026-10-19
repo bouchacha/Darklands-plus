@@ -10,6 +10,7 @@
 #include <map>
 #include "imgui.h"
 #include "gamedata.h"
+#include "teachersui.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -19,24 +20,28 @@ extern "C" {
 #include "../mods/travel.h"
 #include "../mods/menuview.h"
 #include "../mods/assist.h"
+#include "../mods/foesleft.h"
+#include "../mods/gamemodel.h"
+#include "../mods/fixes.h"
+#include "../mods/saintinfo.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
-struct Eff { int m; std::string what; long left; };   /* (the same as ui/saints.cpp's, which makes them) */
-std::vector<Eff> effects_now(int size);
+#include "effects.h"
 #include "quests.h"
+#include "townicons.h"
+#include "libraries.h"
 #include <functional>
 #include <set>
 #include "money.h"
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
+extern "C" int battle_showing(void);                  /* ui/battlelog.cpp: a battle is on (not the marching order) */
 
 int ui_margins_on = 1;
 
 extern "C" int levelmap_available(void);
-static const char *MONTHS[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
-                                  "September", "October", "November", "December" };
 
 static std::string place_name(void)
 {
@@ -52,15 +57,9 @@ static std::string place_name(void)
             if (d < bd) { bd = d; best = k; }
         }
         if (best < 0 || bd > 60 * 60) return "In the wilds";
-        std::string n = best < (int)gamedata.cities.size() ? gamedata.cities[best].name : "";
-        if (n.empty()) { u32 r = g_location(best); char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b); n = game_text(b, sizeof b); }
-        return "Travelling, near " + n;
+        return "Travelling, near " + loc_display_name(best);
     }
-    if (cur < (int)gamedata.cities.size()) return gamedata.cities[cur].name;
-    u32 r = g_location(cur);
-    if (!r) return "";
-    char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
-    return game_text(b, sizeof b);
+    return loc_display_name(cur);
 }
 
 static std::string member_name(int m)
@@ -92,11 +91,54 @@ static void end_panel(void)
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
 }
+/* the last item under the pointer: the margins' windows take no input (a click there must not
+   reach ImGui's windows nor the game), so ImGui never counts their items as hovered */
+static bool item_hovered(void) { return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false); }
+/* a tooltip from the margin: in the tooltips' own ink (the margin's text is light, for its black) */
+static void margin_tip(const char *text)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
+    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(text); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+    ImGui::PopStyleColor();
+}
 static void heading(const char *t)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(222, 178, 104, 255));
     ImGui::TextUnformatted(t);
     ImGui::PopStyleColor();
+}
+/* a name on a line of its own, in the margin's ink or dim, wrapped at the margin's edge by words (a
+   long formula's name ran past it), the lines after the first indented; a dim tail (a price) after
+   its last word, or under it when there is no room. One group: under the pointer as one. */
+static void name_line(const std::string &t, bool dim, const char *tail = nullptr)
+{
+    float avail = ImGui::GetContentRegionAvail().x;
+    float indent = ImGui::GetFontSize() * 0.8f;
+    std::vector<std::string> lines; std::string cur;
+    size_t i = 0;
+    while (i < t.size()) {                                  /* greedy, a word at a time */
+        size_t j = t.find(' ', i); if (j == std::string::npos) j = t.size();
+        std::string w = t.substr(i, j - i), next = cur.empty() ? w : cur + " " + w;
+        float room = avail - (lines.empty() ? 0 : indent);
+        if (!cur.empty() && ImGui::CalcTextSize(next.c_str()).x > room) { lines.push_back(cur); cur = w; }
+        else cur = next;
+        i = j + 1;
+    }
+    if (!cur.empty()) lines.push_back(cur);
+    ImGui::BeginGroup();
+    if (dim) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    for (size_t k = 0; k < lines.size(); k++) {
+        if (k) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+        ImGui::TextUnformatted(lines[k].c_str());
+    }
+    if (dim) ImGui::PopStyleColor();
+    if (tail && !lines.empty()) {
+        float used = ImGui::CalcTextSize(lines.back().c_str()).x + (lines.size() > 1 ? indent : 0);
+        if (used + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(tail).x <= avail) ImGui::SameLine();
+        else ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+        ImGui::TextDisabled("%s", tail);
+    }
+    ImGui::EndGroup();
 }
 
 /* in a battle: everybody's condition at a glance - the party with endurance and strength,
@@ -118,6 +160,139 @@ extern "C" int partypanel_shown(void);
    margins take no input from ImGui: the buttons are drawn here and their clicks come through
    margins_click (ui_event) */
 static void place_quests(int cur);
+
+/* what a town offers that is worth a detour, as a row of pictures (what each offers under the
+ * pointer, in the words of the town's own cards): the places most towns lack - a university (13
+ * towns), a cathedral, an alchemist, a physician (some towns, some games), the docks' boats, a
+ * Fugger or Medici bank. Not shown: what nearly every town has (a monastery: 90 of 92) or what
+ * only pays later with reputation (the town hall's and the fortress's audiences); the rest is in
+ * F12 > Journal > Towns. Then the notable shops: those whose wares come out at 30q or better (the
+ * standard is 25q), a picture and the quality each. `tables`: the location table may be read;
+ * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
+ * no tooltip can show: the world map's tooltip on a town). */
+static const char *TOWN_OFFER_TIP[6] = {
+    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better philosopher's stone, teachers to hire (it expects Latin and a sharp mind).",
+    "Cathedral: donations for divine favor (and maybe virtue), a relic from the canon, the patron saint's story, sanctuary.",
+    "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in alchemy.",
+    "A physician: wounds treated for a fee, lessons in healing, alchemical components bought and sold.",
+    "Docks: boats to other towns, for a fee (each on the day it leaves).",
+    "A bank (Fugger or Medici): heavy coin into a bank note that weighs nothing, and back, for a charge; tasks for the bold." };
+static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
+    { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
+    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
+    { 8, TI_CLOTH, "clothing and soft armour (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
+enum { NOTABLE_Q = 30 };
+static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
+void ui_town_offers(int loc, bool tables, float width, bool words)
+{
+    static int seen_loc = -1; static bool has[6];
+    if (tables || seen_loc != loc) { for (int k = 0; k < 6; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
+    const City &c = gamedata.cities[loc];
+    float lh = ImGui::GetTextLineHeight(), gap = lh * 0.3f;
+    float x0 = ImGui::GetCursorScreenPos().x, w = width > 0 ? width : ImGui::GetContentRegionAvail().x;
+    int nf = 0; for (int k = 0; k < 6; k++) nf += has[k];
+    float isz = lh * 1.35f;                                 /* (smaller, down to a line's height, to keep the row on one line) */
+    if (!words && nf > 1 && nf * isz + (nf - 1) * gap > w) isz = fmaxf(lh * 1.0f, (w - (nf - 1) * gap) / nf);
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    /* a row of chips that wraps: a picture, and a short text after it */
+    auto chip = [&](bool &first, int icon, const char *text, const char *tip) {
+        float tw = text ? ImGui::CalcTextSize(text).x + lh * 0.25f : 0, cw = isz + tw;
+        if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + cw > x0 + w) ImGui::NewLine(); }
+        first = false;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        ImGui::Dummy(ImVec2(cw, isz));
+        ui_draw_town_icon(dl, ImVec2(a.x + isz * 0.5f, a.y + isz * 0.5f), isz, icon);
+        if (text) dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), text);
+        if (item_hovered()) margin_tip(tip);
+    };
+    bool first = true;
+    for (int k = 0; k < 6; k++) if (has[k]) chip(first, k, words ? TOWN_OFFER_WORD[k] : nullptr, TOWN_OFFER_TIP[k]);
+    bool head = false;
+    for (const auto &s : NOTABLE_SHOPS) {
+        int q = c.shopq[s.shop] > 0 ? shop_wares_q(c.shopq[s.shop]) : 0;
+        if (q < NOTABLE_Q || (s.shop == 8 && !fix_is_on("cardopts"))) continue;
+        if (!head) { ImGui::Spacing(); if (words) ImGui::TextDisabled("Notable shops"); else heading("Notable shops"); head = true; first = true; }
+        char t[48], tip[160]; snprintf(t, sizeof t, words ? "%s %dq" : "%.0s%dq", SHOP_NAMES[s.shop], q);
+        snprintf(tip, sizeof tip, "%s: %s of %dq (most shops' are about 25q).", SHOP_NAMES[s.shop], s.wares, q);
+        chip(first, s.icon, t, tip);
+    }
+}
+/* the saints a place's library teaches (ui/libraries.h), one a line (their names may hold a comma:
+   "St.Edward, Confessor"): those nobody in the party knows in the margin's ink, the others dim;
+   what each does under the pointer */
+static void library_line(int loc)
+{
+    const Library *L = library_at(loc);
+    if (!L) return;
+    ImGui::Spacing(); heading("Saints taught here");
+    int shown[4], ns = 0;
+    for (int k = 0; k < 4; k++) {
+        int s = L->saint[k]; bool dup = false;
+        for (int j = 0; j < ns; j++) if (shown[j] == s) dup = true;
+        if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
+        shown[ns++] = s;
+    }
+    for (int j = 0; j < ns; j++) {
+        int s = shown[j]; bool known = party_knows_saint(s);
+        const std::string &t = gamedata.saints[s].name;
+        name_line(t, known);
+        if (item_hovered()) {
+            std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
+            margin_tip(tip.c_str());
+        }
+    }
+}
+extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
+/* the formulae a town's alchemist sells (ui/libraries.h), one a line: those nobody in the party knows
+   in the margin's ink, the others dim; the potion, its grade, the price and what it does under the
+   pointer */
+static void formulae_line(int town)
+{
+    int fo[4], pr[4];
+    if (town < 0 || town >= (int)gamedata.cities.size() || !alchemist_formulae(town, fo, pr)) return;
+    ImGui::Spacing(); heading("Formulae sold here");
+    for (int k = 0; k < 4; k++) {
+        int f = fo[k];
+        if (f < 0 || f >= (int)gamedata.formula_names.size()) continue;
+        bool known = party_knows_formula(f);
+        const std::string &t = gamedata.formula_names[f];
+        char price[16]; snprintf(price, sizeof price, "%d fl", pr[k]);
+        name_line(t, known, price);                          /* (the price after the name's last word) */
+        if (item_hovered()) {
+            const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
+            char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florin%s%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k], pr[k] == 1 ? "" : "s",
+                                     known ? " (known in the party)" : " (nobody in the party knows it)");
+            std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
+            margin_tip(tip.c_str());
+        }
+    }
+}
+/* the teachers the town can offer (mods/teachers.c), a line a source: who, what, the chance of a
+   day's lesson; dim when not to be had now; the whole under the pointer. Those hired now first. */
+static void teachers_lines(int loc)
+{
+    if (!ui_teachers_on()) return;
+    TchSource ts[12];
+    int n = ui_town_teachers(loc, ts, 12);
+    std::string hired = ui_teachers_hired_line(loc);
+    if (!n && hired.empty()) return;
+    ImGui::Spacing(); heading("Teachers to be hired");
+    if (!hired.empty()) {
+        ImGui::TextDisabled("At the inn now:"); ImGui::SameLine(); ImGui::TextWrapped("%s", hired.c_str());
+        if (item_hovered()) margin_tip("Hired teachers: at the inn, \"Train or study\", a lesson a day for a fee.");
+    }
+    for (int k = 0; k < n; k++) {
+        const TchSource &s = ts[k];
+        char line[160]; snprintf(line, sizeof line, fix_is_on("teachcap") ? "%s (to %d)" : "%s (skill %d)", ui_teacher_skills(s).c_str(), s.strength);
+        ImGui::BeginGroup();
+        ImGui::TextDisabled("%s:", ui_teacher_short(s.src)); ImGui::SameLine();
+        if (s.off) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("%s", line);
+        if (s.off) ImGui::PopStyleColor();
+        ImGui::EndGroup();
+        if (item_hovered()) margin_tip(ui_teacher_text(s).c_str());
+    }
+}
 extern "C" int ui_nearest_town(void);
 /* the right margin names the place (a town, or near one on the map, or the place of a card) */
 static bool right_shows_place(void)
@@ -216,16 +391,62 @@ static void order_buttons(float width)
     }
 }
 
+/* the foes the place still holds, not yet met (mods/foesleft.c): where the rest of a castle's or
+   dungeon's defenders wait, so a fight that "does not end" says why */
+static void foes_left_section(void)
+{
+    FoesLeft fl;
+    if (!foesleft_on() || !foesleft_get(&fl)) return;
+    int here = fl.foes[fl.floor], others = 0;
+    for (int f = 0; f < fl.floors; f++) if (f != fl.floor && fl.known[f]) others += fl.foes[f];
+    if (fl.floors <= 1 && !here) return;                     /* (an open field with no one waiting: nothing to say) */
+    ImGui::Spacing();
+    heading("Not yet met");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    if (!here && !others) ImGui::TextWrapped("No one else waits in this place.");
+    else {
+        if (here && fl.floors <= 1) ImGui::TextWrapped("Here: %d more %s, in %d %s.", here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        else if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        else ImGui::TextWrapped("No one on this floor (%d).", fl.floor + 1);
+        std::string o;
+        for (int f = 0; f < fl.floors; f++) {
+            if (f == fl.floor || !fl.known[f] || !fl.foes[f]) continue;
+            char b[48]; snprintf(b, sizeof b, "%sfloor %d: %d", o.empty() ? "" : ", ", f + 1, fl.foes[f]);
+            o += b;
+        }
+        if (!o.empty()) ImGui::TextWrapped("Elsewhere: %s.", o.c_str());
+        if (fl.master_floor >= 0) {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(214, 120, 90, 255));
+            if (fl.master_floor == fl.floor) ImGui::TextWrapped("The master of this place waits on this floor.");
+            else ImGui::TextWrapped("The master of this place waits on floor %d.", fl.master_floor + 1);
+            ImGui::PopStyleColor();
+        }
+    }
+    ImGui::PopStyleColor();
+}
+
 static void battle_panel(float width, float fs)
 {
     static bool seen[13]; static u16 last_tick = 0xffff;
     static int last_st[13]; static std::string last_name[13];      /* the fallen: the game clears their records */
-    u16 tick = g_rw(0xe092);                        /* the battle's clock: back at 0 in a new battle */
+    u16 tick = g_rw(GV_battle_tick);                        /* the battle's clock: back at 0 in a new battle */
     if (tick < last_tick) for (int i = 0; i < 13; i++) { seen[i] = false; last_st[i] = 0; last_name[i].clear(); }
     last_tick = tick;
     int n = (s8)g_rb(GV_hotspot_count);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
+    if (config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) {   /* fast forward (Z, mods/pathfix.c) */
+        const char *t = battle_fast ? "Back to the chosen speed (Z)" : "Fast forward (Z)";
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos(), ts = ImGui::CalcTextSize(t), mp = ImGui::GetIO().MousePos;
+        float pad = ImGui::GetTextLineHeight() * 0.3f;
+        ImVec2 a = p, b(p.x + ts.x + pad * 2, p.y + ts.y + pad);
+        bool hov = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
+        dl->AddRectFilled(a, b, battle_fast ? IM_COL32(150, 60, 30, 255) : hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), (b.y - a.y) * 0.2f);
+        dl->AddText(ImVec2(a.x + pad, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), t);
+        mclick(a, b, [] { battle_fast_set(!battle_fast); });
+        ImGui::Dummy(ImVec2(b.x - a.x, b.y - a.y + pad));
+    }
     order_buttons(width);
     if (!partypanel_shown()) heading("The party");      /* (the party panel drawn anew has them already) */
     for (int i = 0; i < 5 && !partypanel_shown(); i++) {
@@ -262,6 +483,7 @@ static void battle_panel(float width, float fs)
         else {
             ImGui::TextUnformatted(nm.c_str()); ImGui::SameLine(); ImGui::TextDisabled("%s", cond);
             bar((float)end / endm, IM_COL32(200, 90, 70, 255), bw, bh);
+            if (g_rb((u16)(GV_cbt_ends_battle + i)) == 1) { ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(214, 120, 90, 255)); ImGui::TextWrapped("The master of this place: once this one has fallen and the fight is over, the place is won."); ImGui::PopStyleColor(); }
         }
         shown++;
     }
@@ -281,6 +503,7 @@ static void battle_panel(float width, float fs)
             ImGui::TextWrapped("The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs).");
         }
     }
+    foes_left_section();
 }
 
 /* the text size for what the interface writes over and beside the picture (side panels,
@@ -341,32 +564,19 @@ static void right_panel(int size)
             ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
             ImGui::Indent(is + lh * 0.3f);
             ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
+            if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
                                                                                        : "The watch is after the party: guards who recognise it try to arrest it, and talking or bribing one's way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
-        static const struct { int bit; const char *name; } B[] = { { 1, "town hall" }, { 2, "fortress" }, { 4, "cathedral" }, { 7, "monastery" },
-            { 8, "university" }, { 5, "armoury" }, { 10, "mint" }, { 9, "pawnshop" }, { 11, "docks" }, { 6, "slums" } };
-        std::string b;
-        for (auto &x : B) if (c.buildings & (1 << x.bit)) { b += b.empty() ? "" : ", "; b += x.name; }
-        if (!b.empty()) { b[0] = (char)toupper((unsigned char)b[0]); ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("%s", b.c_str()); ImGui::PopStyleColor(); }
-        /* the shops: each one's rating, and (under the pointer) what its weapons and armour come out
-           at: (25 + rating) / 2 (barter's quality rule, s032 1462:0efa; most things have a base quality of 25) */
-        bool shops = false;
-        float rw_ = ImGui::GetContentRegionAvail().x;
-        for (int i = 0; i < 9; i++) {
-            if (c.shopq[i] <= 0 || i == 4 || i == 7) continue;     /* (no card opens the gunsmith or the jeweller: the bowyer sells the guns) */
-            if (!shops) {                                       /* (a small table: the shops, their ratings) */
-                ImGui::Spacing(); heading("Shops");
-                ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize("rating").x); ImGui::TextDisabled("rating");
-                shops = true;
-            }
-            ImGui::TextUnformatted(SHOP_NAMES[i]);
-            char r[16]; snprintf(r, sizeof r, "%d", c.shopq[i]);
-            ImGui::SameLine(ImGui::GetCursorPosX() + rw_ - ImGui::CalcTextSize(r).x);
-            ImGui::TextDisabled("%s", r);
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("The shop's rating: its weapons and armour are of quality %d.", (25 + c.shopq[i]) / 2);
+        ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
+        {   /* what the party learned of its physician and alchemist (ui/journal.cpp) */
+            const char *ph = journal_town_fact(cur, "physician"), *al = journal_town_fact(cur, "alchemist");
+            if (ph) { ImGui::TextDisabled("Physician:"); ImGui::SameLine(); ImGui::TextWrapped("%s", ph); }
+            if (al) { ImGui::TextDisabled("Alchemist:"); ImGui::SameLine(); ImGui::TextWrapped("%s", al); }
         }
+        library_line(cur);
+        formulae_line(cur);
+        teachers_lines(cur);
         place_quests(cur);
         any = true;
     }
@@ -374,10 +584,10 @@ static void right_panel(int size)
         /* a castle, monastery, village ...: what it is, and the quests that point there */
         u32 r = g_location(cur);
         if (r) {
-            char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
             const char *loc_kind_label(int k);
-            heading(game_text(b, sizeof b).c_str());
+            heading(loc_display_name(cur).c_str());
             ImGui::TextDisabled("%s", loc_kind_label((s16)rw((u16)(r >> 16), (u16)r)));
+            library_line(cur);
             place_quests(cur);
             if ((s16)rw((u16)(r >> 16), (u16)((u16)r + 0x18)) > 0) ImGui::TextWrapped("The party has goods stored here (F12 > Journal > Stored).");
             any = true;
@@ -387,27 +597,24 @@ static void right_panel(int size)
     if (!e.empty()) {
         if (any) ImGui::Separator();
         heading("In force");
-        for (const Eff &x : e) {
-            if (x.left < 48) ImGui::TextWrapped("%s: %s (%ld h)", member_name(x.m).c_str(), x.what.c_str(), x.left);
-            else ImGui::TextWrapped("%s: %s (%ld d)", member_name(x.m).c_str(), x.what.c_str(), (x.left + 12) / 24);
+        /* one paragraph a member: what is at work, then how long it lasts (from the soonest to the last) */
+        auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
+        for (int m = 0; m < 5; m++) {
+            std::string what; long lo = -1, hi = -1;
+            for (const Eff &x : e) {
+                if (x.m != m) continue;
+                if (!what.empty()) what += ", ";
+                what += x.what;
+                if (lo < 0 || x.left < lo) lo = x.left;
+                if (x.left > hi) hi = x.left;
+            }
+            if (what.empty()) continue;
+            std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
+            ImGui::TextWrapped("%s: %s (%s)", member_name(m).c_str(), what.c_str(), when.c_str());
         }
         any = true;
     }
-    /* the game's own load classes (s029 0e76:013a): the capacity is the current endurance +
-       strength; light up to half of it, heavy above it, overloaded above one and a half times */
-    bool head = false;
-    for (int m = 0; m < size; m++) {
-        u16 b = G_MEMBER(m);
-        int st = g_rb((u16)(b + G_M_STATUS));
-        if (!st || st == 3) continue;
-        int end = g_rb((u16)(b + G_M_ATTR_CUR)), str = g_rb((u16)(b + G_M_ATTR_CUR + 1));
-        int load = g_rb((u16)(b + G_M_LOAD)), cap = end + str;
-        if (load <= cap) continue;
-        if (!head) { if (any) ImGui::Separator(); heading("Burdens"); head = true; }
-        if (load * 2 > cap * 3) ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1), "%s: overloaded, %d/%d", member_name(m).c_str(), load, cap);
-        else ImGui::TextColored(ImVec4(0.92f, 0.78f, 0.40f, 1), "%s: heavy, %d/%d", member_name(m).c_str(), load, cap);
-    }
-    if (!any && !head) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work; nobody carries too much."); ImGui::PopStyleColor(); }
+    if (!any) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work."); ImGui::PopStyleColor(); }
 }
 
 /* the quests that lead to place `cur`, each with its picture (the place's section of the margin) */
@@ -429,15 +636,14 @@ static void place_quests(int cur)
 
 /* the party's tasks: a short title each (a click opens it: the whole task, the deadline, how
    far), the days left; in order of the deadline, of the distance or as taken (a click on the
-   order changes it). Nothing at all when there are none (false) */
-static bool tasks_section(bool tables)
+   order changes it) */
+static void tasks_section(bool tables)
 {
     static std::vector<QuestRow> q; static int qf = -1000; static bool q_read = false;
     static std::set<std::string> open;
     static int sort = -1;
     { int cs = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N; if (cs != sort) { sort = cs; quest_sort(q, sort); } }   /* (the journal may change it) */
     if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); qf = ImGui::GetFrameCount(); q_read = tables; }
-    if (q.empty()) return false;
     ImVec2 mp = ImGui::GetIO().MousePos;
     ImDrawList *dl = ImGui::GetWindowDrawList();
     float w = ImGui::GetContentRegionAvail().x, lh = ImGui::GetTextLineHeight();
@@ -455,6 +661,7 @@ static bool tasks_section(bool tables)
             mclick(a, b, [&]() { sort = (sort + 1) % QSORT_N; config_set_int("quests.sort", sort); config_save(); quest_sort(q, sort); });
         }
     }
+    if (q.empty()) { ImGui::TextDisabled("None taken on."); return; }
     for (size_t i = 0; i < q.size() && i < 10; i++) {
         const QuestRow &r = q[i];
         bool is_open = open.count(r.id) != 0;
@@ -481,9 +688,11 @@ static bool tasks_section(bool tables)
         if (is_open) {
             ImGui::Indent(ind);
             ImGui::TextWrapped("%s", r.text.c_str());
-            if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str());
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));   /* (wrapped: the margin is narrow) */
+            if (!r.when.empty()) ImGui::TextWrapped("%s", r.when.c_str());
             std::string d = quest_distance(r);
-            if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextDisabled("%s", d.c_str()); }
+            if (!d.empty()) { d[0] = (char)toupper((unsigned char)d[0]); ImGui::TextWrapped("%s", d.c_str()); }
+            ImGui::PopStyleColor();
             if (r.loc >= 0 && r.dist >= 1.5 && travel_enabled && game_mode() == GM_MAP) {     /* (on the travel map: go there) */
                 const char *t = "Travel there";
                 ImVec2 tp = ImGui::GetCursorScreenPos(), tsz = ImGui::CalcTextSize(t);
@@ -503,7 +712,33 @@ static bool tasks_section(bool tables)
         mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
     }
     if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
-    return true;
+}
+
+/* in a town at night: the streets' dangers (mods/travel.c has the rolls: the night watch at each
+   move, more on the main street and in a town on its guard; leaving a side street, cutthroats
+   unless (the party's average Stealth + Streetwise) / 2 beats a roll of 100, s046 194b:02d6) */
+static void night_streets(bool night)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    if (!night || game_mode() != GM_CARD || cur < 0 || cur >= (int)gamedata.cities.size() || config_get_int("original", 0)) return;
+    int st = 0, sw = 0, n = 0;
+    for (int m = 0; m < 5; m++) if (gm_member_status(m) == 1) { st += gm_member_skill(m, 15); sw += gm_member_skill(m, 16); n++; }  /* (party_avg_skill: the members on their feet) */
+    if (!n) return;
+    int t = (st / n + sw / n) / 2;
+    t = t < 0 ? 0 : t > 99 ? 99 : t;
+    int pct = config_get_int("travel.street_encounters", 100), slip = 100 - (100 - t) * pct / 100;
+    ImGui::TextColored(ImVec4(0.92f, 0.70f, 0.42f, 1), "Night in the streets");
+    if (item_hovered()) {
+        char b[460], often[40]; int k = (slip + 5) / 10;
+        if (k <= 0) snprintf(often, sizeof often, "hardly ever");
+        else if (k >= 10) snprintf(often, sizeof often, "almost always");
+        else snprintf(often, sizeof often, "about %d time%s in 10", k, k == 1 ? "" : "s");
+        snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move in its streets may meet the night watch (more often on the main street, "
+                 "and where the town is on its guard). Leaving a side street the party slips past cutthroats %s "
+                 "(the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
+                 often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Helpers" : "");
+        margin_tip(b);
+    }
 }
 
 extern "C" void ui_margins(void)
@@ -523,12 +758,24 @@ extern "C" void ui_margins(void)
     if (left >= 150 && !battlelog_margin(0, left, h, fs) && begin_panel("##margin_l", 0, left, h, fs)) {
         int hour = (s16)g_rw(G_CUR_HOUR), day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH), year = (s16)g_rw(G_CUR_YEAR);
         /* the date and hour, the purse, then the tasks: no labels where the thing speaks for itself */
-        char date[48]; snprintf(date, sizeof date, "%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
+        char date[48]; snprintf(date, sizeof date, "%d %s %d", day, gm_month_name((unsigned)mon % 12), year);
         heading(date);
-        ImGui::TextDisabled("%d:00, %s", hour, hour < 5 || hour >= 21 ? "night" : hour < 9 ? "morning" : hour < 17 ? "day" : "evening");
-        int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(0x9072);
+        /* the game's own day: daylight from 5:00 to 18:59 (is_daylight, s029 1367:072a); then the towns' night streets */
+        const bool night = hour < 5 || hour >= 19;
+        {   /* the hour by the clock and by the bells, as the game's texts tell time (Prime, Vespers, Compline ...) */
+            char bell[24]; gm_hour_name(hour, bell, sizeof bell);
+            ImGui::TextDisabled("%d:00, %s", hour, bell);
+            if (item_hovered()) {
+                std::string t = std::string("The canonical hours, as the game's people tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11, "
+                                            "Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23. ") +
+                                (night ? "It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats." : "It is day (from 5:00 to 19:00).");
+                margin_tip(t.c_str());
+            }
+        }
+        night_streets(night);
+        int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(GV_party_notes);
         ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
-        money_tooltip((long)f * 240 + g * 12 + p);
+        { long pf = (long)f * 240 + g * 12 + p; if (pf >= 12 && item_hovered()) margin_tip(money_total(pf).c_str()); }
         if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
         /* the place and the tasks come from the location and event tables, which battles and their
            loot reuse: read while a card or the map is up, meanwhile the last reading stands */
@@ -538,15 +785,24 @@ extern "C" void ui_margins(void)
         if (tables || !where_read) { where = place_name(); where_read = tables; }
         if (!(right >= 150 && right_shows_place())) ImGui::TextWrapped("%s", where.c_str());   /* (else the right margin names it) */
         ImGui::Separator();
-        if (tasks_section(tables)) ImGui::Separator();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-        if (!config_get_int("guide.seen", 0)) ImGui::TextWrapped("New to Darklands? F12 > Guide.");
-        ImGui::PopStyleColor();
+        tasks_section(tables);
+        {   /* the hints, at the foot of the margin (always in the same place) */
+            char h1[96]; snprintf(h1, sizeof h1, "Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
+            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : "New to Darklands? F12 > Guide.";
+            float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
+            float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0) + sp * 2;
+            float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
+            if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
+            ImGui::Separator();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            ImGui::TextWrapped("%s", h1);
+            if (h2) ImGui::TextWrapped("%s", h2);
+            ImGui::PopStyleColor();
+        }
         end_panel();
     }
 
-    if (right >= 150 && game_mode() == GM_BATTLE && !config_get_int("original", 0) && begin_panel("##margin_rb", x1, right, h, fs)) {
+    if (right >= 150 && battle_showing() && !config_get_int("original", 0) && begin_panel("##margin_rb", x1, right, h, fs)) {
         battle_panel(right, fs);
         end_panel();
     }

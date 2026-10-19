@@ -35,6 +35,7 @@ typedef struct {
     int phase;                /* 0 not shown, 1 a text (waits to go on), 2 the option menu */
     int block, how, dark;     /* text block; card_text's how; light text on a dark picture */
     int x, y, w;              /* the block's box, game pixels (x from the left of the screen) */
+    int anchor;               /* where the box sits: 0 the picture's top left, 1 its top right (x, y only a guide), 2 at x, y */
     int dropcap;              /* the first letter, drawn large (0 none) */
     int npieces;
     CvPiece piece[48];
@@ -56,7 +57,8 @@ typedef struct {
 
 extern CardView cardview;
 extern int cardview_on;               /* the setting */
-int cardview_active(void);            /* drawing the cards (setting on, a window, not "original") */
+int cardview_active(void);
+void cardview_choose(int opt);        /* choose option opt at the menu's next step (Go to), as a click would */            /* drawing the cards (setting on, a window, not "original") */
 int cardview_showing(void);           /* something is on screen now */
 int cardview_menu(void);              /* card_menu, natively (called from mods/assist.c's hook) */
 const char *cardview_option_text(int opt);   /* the words of option opt of the last menu (game charset) */

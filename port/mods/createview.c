@@ -66,7 +66,7 @@ static void build(void)
     for (int i = 0; i < 7; i++) c->attr[i] = (s8)g_rb((u16)(GV_create_attr + i));
     for (int i = 0; i < 6; i++) c->attr_spent[i] = (s16)g_rw((u16)(GV_create_attr_spent + 2 * i));
     for (int i = 0; i < 19; i++) { c->skill[i] = (s8)g_rb((u16)(GV_create_skill + i)); c->skill_spent[i] = (s16)g_rw((u16)(GV_create_skill_spent + 2 * i)); }
-    c->prof = (s16)g_rw(GV_create_prof); c->child = (s16)g_rw(GV_create_child);
+    c->prof = (s16)g_rw(GV_create_prof); c->prev = (s16)g_rw(GV_create_prev); c->child = (s16)g_rw(GV_create_child);
     c->row = (s16)g_rw(GV_create_row);
     for (int i = 0; i < 37; i++) c->taken[i] = g_rb((u16)(GV_create_taken + i)) & 1;
     c->nlist = 0;
@@ -180,4 +180,18 @@ void createview_init(void)
 {
     cg_on = config_get_int("display.native_create", 1);
     hook_install(GF_create_character, screen_hook);
+}
+
+void createview_dump(void)                    /* (the test command ucg) */
+{
+    CreateModel *c = &create_model;
+    tables(); build();
+    for (int i = 0; i < 37; i++) fprintf(stderr, "prof %d %s years %d\n", i, c->prof_name[i], c->adult[i].years);
+    for (int i = 0; i < 6; i++) fprintf(stderr, "child %d %s\n", i, c->child_name[i]);
+    fprintf(stderr, "state %d age %d prof %d prev %d child %d list:", c->state, c->age, c->prof, c->prev, c->child);
+    for (int i = 0; i < c->nlist; i++) fprintf(stderr, " %d", c->list[i]);
+    int cg_offered_c(int *out); int o[40], n = cg_offered_c(o);
+    fprintf(stderr, "\nrules:");
+    for (int i = 0; i < n; i++) fprintf(stderr, " %d", o[i]);
+    fprintf(stderr, "\n");
 }

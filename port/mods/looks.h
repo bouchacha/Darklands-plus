@@ -21,6 +21,7 @@ void looks_member_figure(int m, char *code);
 void looks_pick(const char *code);          /* the picker's choice (sends S to the game, which takes it) */
 void looks_pick_next(const char *code);     /* the figure the next S takes (the caller sends the S) */
 int looks_thumb(const char *code, int m, unsigned char *rgba, int maxw, int maxh, int *w, int *h);   /* m in that figure, RGBA */
+int looks_weapons(const char *code, char out[][3], int max);   /* the weapons it has its own animations for ("SW", "BW" ...); -1: all (the game's own figures) */
 #ifdef __cplusplus
 }
 #endif

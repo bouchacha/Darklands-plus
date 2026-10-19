@@ -19,6 +19,9 @@ const GamePic *gamepic(const std::string &dosname, const char *palpic = nullptr)
 const GamePic *gamepic_layers(const std::vector<std::string> &dosnames, const char *palpic = nullptr);
 /* a part of a picture (x, y, w, h) */
 const GamePic *gamepic_part(const std::string &dosname, int x, int y, int w, int h, const char *palpic = nullptr);
+/* a part with its greys left out (see-through), for a word painted on grey stone: the colours
+   whose channels differ by more than grey_tol stay, and the dark greys (its outline) */
+const GamePic *gamepic_cutout(const std::string &dosname, int x, int y, int w, int h, int grey_tol);
 /* forget them all (the game's palette changed for good: another game loaded) */
 void gamepics_flush(void);
 

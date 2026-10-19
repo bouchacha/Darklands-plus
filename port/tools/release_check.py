@@ -24,19 +24,23 @@ HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + ';
 
 # (name, steps, patterns that must appear in the log after the steps)
 STEPS = [
-    ('start and Quickstart', 'QUICKSTART; at 160 62; click; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
-     [r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'TITLE'),   # (a first click in a new window may be lost)
+    ('start and Quickstart', 'QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
+     [r'title: closed \(the game begins\)', r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'TITLE'),   # (a first click in a new window may be lost)
     ('Go to the merchants (native cards)', 'ucmd urand:7; ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),   # (a fixed seed: no street encounter on the way)
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),
-    ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
+    ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; at 254 15; click; wait 2; at 230 60; wait 1; wshot 4b_skills; '
+     'at 280 15; click; wait 2; at 100 45; wait 1; wshot 4c_saints; at 305 15; click; wait 2; at 100 34; wait 1; wshot 4d_formulae; '
+     'at 228 15; click; wait 1; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
     ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; ucmd uunpause:; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
     ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
+    ('fast forward (Z) on and off', 'ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
-     '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 12)),   # (a foe that came late: hit it too; the hits land as the battle runs)
-    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed']),
+     '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
+     '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."']),
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
     ('the store room (native)', 'ucmd ucache:; wait 4; wshot 9_store', [r'store room: open']),
@@ -44,13 +48,14 @@ STEPS = [
     ('calling on a saint (native)', 'ucmd usaint:0,0; wait 4; wshot 10_pray', [r'prayer: open']),
     ('not praying', 'ucmd unspush:4; wait 3', [r'prayer: not prayed']),
     ('save (Alt+S, native page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; wshot 11_save; key Return; wait 4', [r'saves: the Save page', r'saves: the page closed \(chosen\)']),
+    ('save over the last save (a click on it in the Save page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; at 150 52; click; wait 1; wshot 11b_saveover; at 265 9; click; wait 4', [r'saves: the Save page', r'in place of the old save']),
     ('the load list (Alt+L), cancelled', 'ucmd down:Left Alt; wait 0.3; key l; wait 0.3; ucmd up:Left Alt; wait 3; wshot 12_load; key Escape; wait 3', [r'saves: the Load page', r'saves: the page closed \(cancelled\)']),
     ('the menus (right click, Game)', 'at 200 100; rclick; wait 1; at 70 5; click; wait 1; wshot 13_menu; key Escape; wait 1', [r'.']),
     ('party info (Party menu, native)', 'ucmd umenu:3,0; wait 3; wshot 14_info; key Escape; wait 2', [r'party info: open', r'party info: closed']),
     ('marching order (Party menu, native)', 'ucmd umenu:3,1; wait 3; wshot 15_march; ucmd unspush:2,0; wait 1; ucmd unspush:3; wait 2', [r'marching order: open', r'marching order: closed \(set\)']),
     ('a room at the inn (native lodging)', 'ucmd urand:7; ucmd ugoto:23; wait 18; key 3; wait 5; wshot 16_inn', [r'lodging: open']),
     ('a day there, then leave', 'ucmd unspush:4; wait 6; wshot 17_day; ucmd unspush:6; wait 4', [r'lodging: closed \(1 days\)']),
-    ('F12 > Guide', 'key F12; wait 2; ucmd utab:13; wait 2; wshot 18_guide; key F12; wait 2', [r'.']),
+    ('F12 > Guide', 'key F12; wait 2; ucmd utab:8; wait 2; wshot 18_guide; key F12; wait 2', [r'.']),
 ]
 
 
@@ -88,7 +93,7 @@ def main():
                 if not miss or time.time() > deadline:
                     break
                 if probe == 'TITLE':                     # still at the title (the click was lost): click Quickstart again
-                    p = 'key Return; wait 3; ucmd ucard:' if 'cardview: card' in text else 'at 160 62; click; wait 8; ucmd ucard:'
+                    p = 'key Return; wait 3; ucmd ucard:' if 'cardview: card' in text else 'key q; wait 8; ucmd ucard:'
                     subprocess.run(NCTL + ['do', NAME, p], capture_output=True, text=True, timeout=120)
                 elif probe:
                     subprocess.run(NCTL + ['do', NAME, probe], capture_output=True, text=True, timeout=120)

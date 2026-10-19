@@ -24,7 +24,32 @@ extern ImFont *ui_font_small, *ui_font_text;
 static SDL_Renderer *fp_ren;
 static bool fp_open;
 static int fp_member, fp_sel, fp_cur, fp_frame;
-struct Fig { std::string code, title; SDL_Texture *tex = nullptr; int w = 0, h = 0; };
+struct Fig { std::string code, title, arms, arms_all; SDL_Texture *tex = nullptr; int w = 0, h = 0; };
+/* a figure's own weapon animations, in words (mods/looks.c: the enemies' figures have only those
+   of the weapons that enemy carries; another weapon is shown with the nearest of them) */
+static const char *weapon_word(const char *w)
+{
+    static const char *const W[][2] = { { "SW", "sword" }, { "S2", "two-handed sword" }, { "DR", "dagger" }, { "AX", "axe" }, { "A2", "great axe" },
+        { "MC", "mace" }, { "M2", "great mace" }, { "HM", "hammer" }, { "H2", "great hammer" }, { "FL", "flail" }, { "F2", "great flail" },
+        { "CL", "club" }, { "QS", "staff" }, { "SP", "spear" }, { "HB", "halberd" }, { "PT", "potion throw" }, { "BW", "bow" }, { "CB", "crossbow" },
+        { "HG", "gun" }, { "TA", "throwing axe" }, { "TK", "throwing knife" }, { "DT", "dart" } };
+    for (auto &x : W) if (!strncasecmp(x[0], w, 2)) return x[1];
+    return nullptr;
+}
+static void fig_arms(Fig &f)
+{
+    char w[24][3]; int n = looks_weapons(f.code.c_str(), w, 24);
+    if (n < 0) { f.arms = "every weapon"; f.arms_all = "The game's own figure: every weapon has its animation."; return; }
+    std::string all, shown; int k = 0, hidden = 0;
+    for (int i = 0; i < n; i++) {
+        const char *word = weapon_word(w[i]);
+        if (!word || !strcasecmp(w[i], "PT")) continue;             /* (throwing a potion: every figure) */
+        all += (all.empty() ? "" : ", ") + std::string(word);
+        if (k < 2) { shown += (shown.empty() ? "" : ", ") + std::string(word); k++; } else hidden++;
+    }
+    f.arms = shown + (hidden ? " +" + std::to_string(hidden) : "");
+    f.arms_all = "Its own animations: " + all + ". Any other weapon is shown with the nearest of these (a sword swung as an axe, a bow drawn as a crossbow).";
+}
 static std::vector<Fig> figs;
 
 void figures_set_renderer(SDL_Renderer *r) { fp_ren = r; }
@@ -45,6 +70,7 @@ extern "C" int figpick_open(int member, int count)
     for (int i = 0; i < n; i++) {
         Fig f; f.code = list[i]; f.title = looks_title_of(list[i]);
         if (f.title.empty()) f.title = f.code;
+        fig_arms(f);
         if (looks_thumb(list[i], member, rgba, 24, 40, &f.w, &f.h)) {
             f.tex = SDL_CreateTexture(fp_ren, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, f.w, f.h);
             if (f.tex) {
@@ -74,7 +100,7 @@ extern "C" void figpick_window(void)
     ImGuiIO &io = ImGui::GetIO();
     int n = (int)figs.size(), cols = n > 12 ? 6 : 4, rows = (n + cols - 1) / cols;
     /* the figures at a whole multiple of their pixels (40 high), as big as the screen allows */
-    float name_h = UIS(40), avail = io.DisplaySize.y * 0.86f - UIS(120);
+    float name_h = UIS(54), avail = io.DisplaySize.y * 0.86f - UIS(120);
     int k = (int)((avail / rows - name_h - UIS(16)) / 40); if (k > 4) k = 4; if (k < 1) k = 1;
     float img_h = 40.0f * k + UIS(12), cell = 26.0f * k + UIS(40); if (cell < UIS(124)) cell = UIS(124);
     float grid_w = cols * cell, grid_h = rows * (img_h + name_h + UIS(8));
@@ -125,6 +151,12 @@ extern "C" void figpick_window(void)
             ImVec2 ts = ft->CalcTextSizeA(fs, cell - UIS(10), cell - UIS(10), f.title.c_str());
             dl->AddText(ft, fs, ImVec2(p.x + (cell - UIS(6) - ts.x) * 0.5f, p.y + img_h + UIS(2)), IM_COL32(240, 228, 200, 255),
                         f.title.c_str(), nullptr, cell - UIS(10));
+            if (!f.arms.empty()) {                                     /* its weapons, small, under the name */
+                float as = fs * 0.85f;
+                ImVec2 at = ft->CalcTextSizeA(as, FLT_MAX, 0, f.arms.c_str());
+                if (at.x <= cell - UIS(10)) dl->AddText(ft, as, ImVec2(p.x + (cell - UIS(6) - at.x) * 0.5f, p.y + img_h + UIS(2) + ts.y + UIS(1)), IM_COL32(236, 222, 186, 255), f.arms.c_str());
+            }
+            if (hot) { ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(UIS(420), FLT_MAX)); ImGui::BeginTooltip(); ImGui::TextUnformatted(f.title.c_str()); ImGui::PushTextWrapPos(UIS(400)); ImGui::TextDisabled("%s", f.arms_all.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
             if (clicked) choose(i);
         }
         ImGui::SetCursorScreenPos(o); ImGui::Dummy(ImVec2(grid_w, grid_h));

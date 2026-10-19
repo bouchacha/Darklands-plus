@@ -1,31 +1,24 @@
-// saints.cpp - the saints (F12 > Saints): the blessings and potions in effect and how long they
-// last, every saint's description from DARKLAND.SNT, who in the party knows them, and a finder by what they help with ("Strength", "fire", "heal",
-// "travel on water" ...), like the saint finder of the Darklands Companion tool. Knowledge:
-// saints_known, far 2e38:082c, 0x14 bytes per member, a bit per saint in DARKLAND.LST order,
-// highest bit first.
+// saints.cpp - the saints as Darklands+ tells them (the character sheet's Saints, the prayer screen,
+// the tooltips): where a description's legend ends and its promise begins, the game's description
+// with what the help really does (mods/saintinfo.h), whether encounters call on a saint; and the
+// blessings and potions at work now and how long they last (effects_now: the margin's "In force").
 #include <stdio.h>
 #include <string.h>
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <map>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "effects.h"
+#include "../mods/fixes.h"
+#include "../mods/saintinfo.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../mods/gamemodel.h"
 }
 
-static bool knows(int m, int s)
-{
-    return (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) != 0;
-}
-
-static const char *ATTRS[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-static const char *SKILLS[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
-    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
-    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
 /* hours since year 0 (the game's calendar: 365 days, no leap years; month from 0, day from 1) */
 static long abs_hours(int y, int mo, int d, int h)
@@ -36,58 +29,98 @@ static long abs_hours(int y, int mo, int d, int h)
     return (days + d) * 24 + h;
 }
 
-/* the running temporary effects: events of kind 0x48 (attribute), 0x49 (skill), 0x4a (weapon
-   potion); +0 what, +0x1a member, +0x1e amount, +0x12 end (hour, day, month, year) */
-struct Eff { int m; std::string what; long left; };
-std::vector<Eff> effects_now(int size)
+/* the running temporary effects: events of kind 0x48 (attribute: a saint's boost, or the
+   lowering some saints bring with it), 0x49 (skill), 0x4a (weapon potion); +0 what, +0x1a member,
+   +0x1e amount, +0x12 end (hour, day, month, year) */
+static std::vector<Eff> effects_table(int size)
 {
     std::vector<Eff> v;
     long now = abs_hours((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR));
-    for (int i = 0; i < 300; i++) {
-        u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), sg = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2));
-        if (!sg) continue;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        u16 sg = (u16)(p >> 16), o = (u16)p;
         int kind = (s16)rw(sg, (u16)(o + 0x22));
+        if (kind == 0x43) {                                 /* a companion's stay (add_member: type0 the slot; its end, the day they leave) */
+            int m = (s16)rw(sg, o);
+            long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
+            if (m >= 0 && m < size && left > 0 && left < 24L * 365 * 50) v.push_back({ m, "stays with the party", left, kind });
+            continue;
+        }
         if (kind < 0x48 || kind > 0x4a) continue;
         int m = (s16)rw(sg, (u16)(o + 0x1a)), k = (s16)rw(sg, o), t = (s16)rw(sg, (u16)(o + 0x1e));
-        if (m < 0 || m >= size || t <= 0) continue;
+        if (m < 0 || m >= size || t == 0 || (t < 0 && kind == 0x4a)) continue;     /* (a saint's lowering of an attribute: negative) */
         long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
         if (left <= 0) continue;
         char b[96];
-        if (kind == 0x48 && k >= 0 && k < 7) snprintf(b, sizeof b, "%+d %s", t, ATTRS[k]);
-        else if (kind == 0x49 && k >= 0 && k < 19) snprintf(b, sizeof b, "%+d %s", t, SKILLS[k]);
-        else if (kind == 0x4a) {
-            int item = k == 0x69 ? 0x69 : t <= 5 ? 0x6a : 0x6b;
+        if ((kind == 0x48 && k >= 0 && k < 7) || (kind == 0x49 && k >= 0 && k < 19)) {
+            snprintf(b, sizeof b, "%+d %s", t, kind == 0x48 ? gm_attr_name(k) : gm_skill_name(k));
+            Eff e = { m, b, left, kind }; e.k = k; e.amount = t;
+            v.push_back(e);
+            continue;
+        }
+        if (kind == 0x4a) {
+            /* +0: 0x69 Deadly Blade; 0x6d Hardarmor (its grade), 0x16d a saint's armour, 0x16e a saint's
+               armour quality, 0x174 a saint's fire protection (armourday); 0x74 Firewall (armourday);
+               0x6b Greatpower marked by greatpower; else an inventory index:
+               Strongedge (3..5) or Greatpower (14/22/30) */
+            /* (a saint's, mods/sainttexts.c: 0x16f-0x173 armour and weapon quality, 0x175 armour against
+               missiles, 0x177 / 0x178 the party's travel faster) */
+            static const struct { int k; const char *f; } SAINTLY[] = {
+                { 0x16d, "%+d armour (a saint's)" }, { 0x16e, "worn armour %+d quality (a saint's)" },
+                { 0x16f, "metal armour %+d quality (a saint's)" }, { 0x170, "leather and cloth armour %+d quality (a saint's)" },
+                { 0x171, "weapon %+d quality (a saint's)" }, { 0x172, "edged weapon %+d quality (a saint's)" },
+                { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (a saint's)" },
+                { 0x174, "fire protection %d (a saint's)" }, { 0x175, "%+d armour against missiles (a saint's)" },
+                { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" },
+                { 0x179, "no death from wounds (a saint's)" } };
+            bool done = false;
+            if ((k == 0x177 || k == 0x178) && (t == 50 || t == 100)) {   /* (the speed in words) */
+                snprintf(b, sizeof b, "the party travels %s%s (a saint's)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");
+                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); continue;
+            }
+            for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); done = true; break; }
+            if (done) continue;
+            int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
             if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
             else if (item == 0x6a) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t);
+            else if (item == 0x6d) { static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 }; int g = t < 1 ? 1 : t > 3 ? 3 : t;
+                snprintf(b, sizeof b, "%s: armour %+d thick, %+d quality", n.c_str(), T[g], Q[g]); }
+            else if (item == 0x74) snprintf(b, sizeof b, "%s: fire protection %d", n.c_str(), t);
+            else if (fix_is_on("greatpower")) snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t);
             else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);
             else snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15);
         } else continue;
-        v.push_back({ m, b, left });
+        v.push_back({ m, b, left, kind });
     }
-    return v;
+    /* of the protections that do not add up (fire, the party's speed), only the strongest of each member's */
+    std::vector<Eff> out;
+    for (size_t i = 0; i < v.size(); i++) {
+        const Eff &e = v[i];
+        bool weaker = false;
+        if (e.kind == 0x4a && (e.k == 0x174 || e.k == 0x177 || e.k == 0x178))
+            for (size_t j = 0; j < v.size() && !weaker; j++) {
+                const Eff &o = v[j];
+                if (j != i && o.m == e.m && o.kind == 0x4a && o.k == e.k &&
+                    (o.amount > e.amount || (o.amount == e.amount && (o.left > e.left || (o.left == e.left && j < i))))) weaker = true;
+            }
+        if (!weaker) out.push_back(e);
+    }
+    return out;
 }
-
-static void effects(int size)
+/* what is at work now. While a battle has closed the cards the event table holds only what the
+   battle made (mods/fixes.c): what was at work when it began is kept from then and shown with it
+   (its hours as they were; a battle takes minutes) */
+std::vector<Eff> effects_now(int size)
 {
-    std::vector<Eff> v = effects_now(size);
-    char head[64]; snprintf(head, sizeof head, "In effect now (%d)###effects", (int)v.size());
-    if (!ImGui::CollapsingHeader(head, v.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) return;
-    if (v.empty()) { ImGui::TextDisabled("No blessings or potions are working on the party."); return; }
-    std::sort(v.begin(), v.end(), [](const Eff &a, const Eff &b) { return a.m != b.m ? a.m < b.m : a.left < b.left; });
-    if (ImGui::BeginTable("eff", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
-        for (const Eff &e : v) {
-            char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(e.m) + G_M_SHORTNAME), n, sizeof n);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(game_text(n, sizeof n).c_str());
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(e.what.c_str());
-            ImGui::TableNextColumn();
-            if (e.left < 48) ImGui::TextDisabled("%ld hour%s left", e.left, e.left == 1 ? "" : "s");
-            else ImGui::TextDisabled("%ld days left", (e.left + 12) / 24);
-        }
-        ImGui::EndTable();
-    }
-    ImGui::Spacing();
+    static std::vector<Eff> before; static int before_seed = -1;
+    int seed = (u16)g_rw(G_PARTY_SEED);
+    std::vector<Eff> v = effects_table(size);
+    if (!fixes_cards_down()) { before = v; before_seed = seed; return v; }
+    if (seed != before_seed) return v;                      /* (a game loaded in a battle: nothing from before) */
+    for (const Eff &e : before) if (e.m < size) v.push_back(e);
+    return v;
 }
 
 static std::string lower(std::string s) { std::transform(s.begin(), s.end(), s.begin(), ::tolower); return s; }
@@ -176,103 +209,33 @@ size_t saint_effect_at(const std::string &t)
     return t.size();
 }
 
-void ui_saint_text(const std::string &t)
+/* a saint, as Darklands+ tells it: the game's description, then what the help really does (the
+   game's code: mods/saintinfo.h), where the description promises otherwise, and whether encounters
+   call for the saint (its other powers) */
+void ui_saint_info(int s)
 {
-    static std::string last; static size_t at;
-    if (t != last) { last = t; at = saint_effect_at(t); }
-    size_t a = at; while (a < t.size() && t[a] == ' ') a++;
-    std::string lore = t.substr(0, at), eff = t.substr(a);
-    while (!lore.empty() && lore.back() == ' ') lore.pop_back();
-    while (!eff.empty() && eff.back() == ' ') eff.pop_back();
-    if (!lore.empty()) ImGui::TextWrapped("%s", lore.c_str());
-    if (!eff.empty()) {
-        if (!lore.empty()) ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
-        ImGui::TextWrapped("%s", eff.c_str());
-        ImGui::PopStyleColor();
-    }
+    if (s < 0 || s >= (int)gamedata.saints.size()) return;
+    ImGui::TextWrapped("%s", gamedata.saints[s].text.c_str());
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
+    ImGui::TextWrapped("What it does: %s", saint_info_does(s));
+    ImGui::PopStyleColor();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    if (*saint_info_note(s)) ImGui::TextWrapped("%s", saint_info_note(s));
+    ImGui::PopStyleColor();
+    const char *u = saint_info_unlike(s);
+    if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Unlike the text: %s", u); ImGui::PopStyleColor(); }
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped("%s", saint_encounters_line(s));
+    ImGui::PopStyleColor();
 }
 
-/* the effect part of a description as a line of its own: "He increases Charisma ..." ->
- * "Increases Charisma ..." */
-static std::string saint_summary(const std::string &t)
+/* whether encounters let a member call on the saint: its powers beyond its help */
+const char *saint_encounters_line(int s)
 {
-    static std::map<const std::string *, std::string> cache;
-    auto it = cache.find(&t);
-    if (it != cache.end()) return it->second;
-    size_t a = saint_effect_at(t);
-    while (a < t.size() && t[a] == ' ') a++;
-    std::string e = t.substr(a);
-    for (const char *p : { "He ", "She ", "It ", "They " })
-        if (e.compare(0, strlen(p), p) == 0) { e = e.substr(strlen(p)); if (!e.empty()) e[0] = (char)toupper((unsigned char)e[0]); break; }
-    cache[&t] = e;
-    return e;
-}
-
-extern "C" void tab_saints(void)
-{
-    if (gamedata.saints.empty()) { ImGui::TextWrapped("DARKLAND.LST could not be read."); return; }
-    bool in_game = game_mode() != GM_OTHER;
-    int size = in_game ? (s16)g_rw(G_PARTY_SIZE) : 0;
-    if (size < 0 || size > 5) size = 0;
-    static char find[64];
-    static int known_only = 0;
-    ImGui::TextWrapped("What each saint can do, and who in the party knows them. Find saints by what they help with.");
-    ImGui::SetNextItemWidth(UIS(300));
-    ImGui::InputTextWithHint("##sfind", "Strength, fire, heal, travel, Virtue ...", find, sizeof find);
-    static const char *QUICK[] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma",
-                                   "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile", "Alchemy", "Religion",
-                                   "Virtue", "Speak Latin", "Read/Write", "Healing", "Artifice", "Stealth", "Streetwise",
-                                   "Riding", "Woodwise", "fire", "water", "heal", "reputation", "Divine Favor" };
-    ImGui::SameLine();
-    if (ImGui::BeginCombo("##quick", "Helps with...", ImGuiComboFlags_HeightLarge)) {
-        for (const char *q : QUICK) if (ImGui::Selectable(q)) snprintf(find, sizeof find, "%s", q);
-        ImGui::EndCombo();
-    }
-    if (in_game) {
-        ImGui::RadioButton("All saints", &known_only, 0); ImGui::SameLine();
-        ImGui::RadioButton("Known in the party", &known_only, 1); ImGui::SameLine();
-        ImGui::RadioButton("Not yet known", &known_only, 2);
-    }
-    if (in_game && size > 0) effects(size);
-    ImGui::Separator();
-    std::string f = lower(find);
-    int shown = 0;
-    ImGui::BeginChild("saints", ImVec2(0, 0));
-    for (int s = 0; s < (int)gamedata.saints.size(); s++) {
-        const Saint &t = gamedata.saints[s];
-        std::string who;
-        int nk = 0;
-        for (int m = 0; m < size; m++)
-            if (knows(m, s)) {
-                char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);
-                if (!who.empty()) who += ", ";
-                who += game_text(n, sizeof n); nk++;
-            }
-        if (known_only == 1 && !nk) continue;
-        if (known_only == 2 && nk) continue;
-        if (!f.empty() && lower(t.name).find(f) == std::string::npos && lower(t.text).find(f) == std::string::npos) continue;
-        shown++;
-        ImGui::PushID(s);
-        bool open = ImGui::CollapsingHeader(t.name.c_str(), f.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen);
-        if (!open && ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-            ImGui::PushTextWrapPos(UIS(520)); ui_saint_text(t.text); ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-        float full = ImGui::GetContentRegionAvail().x;
-        if (!open) {                       /* what the saint does, in a line, to scan the list by */
-            float x0 = full * 0.30f, x1 = nk ? full * 0.70f : full - UIS(10);
-            std::string e = saint_summary(t.text), cut = e;
-            while (!cut.empty() && ImGui::CalcTextSize((cut + "...").c_str()).x > x1 - x0) {
-                size_t sp = cut.find_last_of(' '); cut = sp == std::string::npos ? std::string() : cut.substr(0, sp);
-            }
-            if (cut.size() < e.size()) cut += "...";
-            ImGui::SameLine(x0); ImGui::TextDisabled("%s", cut.c_str());
-        }
-        if (nk) { ImGui::SameLine(full * (open ? 0.55f : 0.72f)); ImGui::TextDisabled("known by %s", who.c_str()); }
-        if (open) { ImGui::Indent(UIS(20)); ui_saint_text(t.text); ImGui::Unindent(UIS(20)); ImGui::Spacing(); }
-        ImGui::PopID();
-    }
-    if (!shown) ImGui::TextDisabled("No saint matches.");
-    ImGui::EndChild();
+    int n = saint_info_cards(s);
+    return n >= 10 ? "Many encounters let you call on this saint (its other powers work there)."
+         : n >= 3 ? "Some encounters let you call on this saint (its other powers work there)."
+         : n >= 1 ? "A few encounters let you call on this saint (its other powers work there)."
+         : "No encounter calls for this saint: its help above is all it does.";
 }

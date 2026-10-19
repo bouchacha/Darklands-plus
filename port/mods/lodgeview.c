@@ -25,6 +25,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "lodgeview.h"
+#include "teachers.h"
 
 void plat_sleep_ms(int ms);
 void dl_poll(void);
@@ -57,7 +58,7 @@ static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s04
     hook_call_original();
 }
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
-static u32 ev_ptr(int i) { u16 o = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i)), s = rw(G_FAR2E38, (u16)(0x1b2c + 4 * i + 2)); return s ? ((u32)s << 16) | o : 0; }
+#define ev_ptr g_event
 
 /* the town's teachers that have begun, in the events' order */
 static void teachers(LodgeModel *m)
@@ -176,7 +177,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     ns_unwinding = 0;
     fixes_lodging(1);
     /* the original's setup (1462:0082) */
-    g_wb(0x9920, 2); g_wb(0x9934, 2);                                          /* Save, Load: off */
+    g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);                                          /* Save, Load: off */
     g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
     g_ww(0x9c3d, (u16)ns_call_ptr(VECSEG, 0x18f1, 1, 5));
     ns_call(-1, 0x047c, 0x1320, 4, 6, 0, 0, 0);
@@ -246,18 +247,26 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                 if (a.a >= 0 && a.a < 6 && select_member(a.b)) leave = key(ACT[a.a], a.a == 3);
                 break;
             case LV_TEACH:
-                if (a.a >= 0 && a.a < m->nteach && select_member(a.b)) {
+                if (a.a >= 0 && a.a < m->nteach && !teach_capped(a.b, m->t[a.a].skill, m->t[a.a].val) && select_member(a.b)) {   /* (nothing left to learn from one: not chosen) */
                     for (int t = 0; t < m->nteach; t++) g_ww((u16)(LV_TLIST + 2 * t), (u16)m->t[t].skill);
                     g_ww(LV_TEACHER, (u16)a.a);
                     leave = key(0x1454, 0);
                 }
                 break;
-            case LV_DAY: leave = key(0x1f53, 0); break;
+            case LV_DAY: if (m->cost <= m->purse) leave = key(0x1f53, 0); break;   /* (as the button: a day paid for) */
             case LV_REST: case LV_DAYS:
+                if (a.type == LV_REST) {                                /* (those short of strength who only relax regain it) */
+                    for (int i = 0; i < 5 && !leave && !ns_unwinding; i++) {
+                        const LodgeMember *p = &m->m[i];
+                        if (p->present && p->act == 0 && p->str < p->str_max && p->can[1] && select_member(i)) leave = key(ACT[1], 0);
+                    }
+                    build();
+                }
                 many_days = 1;
                 for (int d = 0; d < (a.type == LV_DAYS ? a.a : 14) && !leave && !ns_unwinding; d++) {
                     build();
                     if (a.type == LV_REST && !m->resting) break;
+                    if (m->cost > m->purse) break;                      /* (a day the purse cannot pay: the game passes no time but counts it) */
                     int before = (s16)g_rw(LV_NDAYS);
                     leave = key(0x1f53, 0);
                     if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */

@@ -11,6 +11,7 @@
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/alchemyview.h"
+#include "../mods/fixes.h"
 #include "nsdraw.h"
 #include <map>
 std::string journal_where_sold(int id);              /* ui/journal.cpp */
@@ -67,6 +68,7 @@ extern "C" void alchemyview_draw(void)
 
     /* the chosen formula */
     const float RX0 = 186, RX1 = 316;
+    bool risk_hover = false;
     if (a.sel >= 0 && a.sel < a.nrows) {
         int fm = a.row[a.sel].formula;
         float y = 21;
@@ -74,7 +76,9 @@ extern "C" void alchemyview_draw(void)
         y += P.para(f, NsDraw::FS_HEAD, RX0, y, RX1 - RX0, ink, nm) + 0.5f;
         static const char *RISK[3] = { "Low risk", "Some risk", "High risk" };
         char rl[64]; snprintf(rl, sizeof rl, "%s, mystic number %d", a.risk >= 0 && a.risk < 3 ? RISK[a.risk] : "?", a.mystic);
-        P.text(fo, NsDraw::FS_BODY, RX0, y, a.risk >= 2 ? red : soft, rl); y += 7.5f;
+        P.text(fo, NsDraw::FS_BODY, RX0, y, a.risk >= 2 ? red : soft, rl);
+        risk_hover = P.over(RX0, y, RX1, y + 7);
+        y += 7.5f;
         if (fm < (int)gamedata.formulas.size()) {
             const std::string &t = gamedata.formulas[fm].text;
             y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, game_text(t.c_str(), t.size())) + 2;
@@ -83,7 +87,7 @@ extern "C" void alchemyview_draw(void)
         for (int k = 0; k < a.ningr; k++) {
             const AvIngr &g = a.ingr[k];
             P.icon(RX0 + 4, y + 3.5f, 6.5f, g.item);
-            P.text(fo, NsDraw::FS_BODY, RX0 + 9, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
+            P.text(fo, NsDraw::FS_BODY, RX0 + 10, y + 0.8f, ink, std::to_string(g.need) + " " + ns_item_name(g.item), -1, RX1 - 30);
             std::string hv = g.have ? "at hand " + std::to_string(g.have) : std::string("none at hand");
             if (g.have < g.need && config_get_int("assist.where_sold", 1)) {    /* where to get more (the shops the party has seen) */
                 static std::map<int, std::string> where; static unsigned wseq = 0;
@@ -103,22 +107,31 @@ extern "C" void alchemyview_draw(void)
         P.text(f, NsDraw::FS_NAME, RX0, y + 1, ink, "Batches");
         float bx = RX0 + 32;
         if (a.page && a.count > 0) { if (P.button(bx, y, bx + 9, y + 8.5f, "-", IM_COL32(120, 84, 40, 235), NsDraw::FS_BODY)) ns_push(AV_FEWER, 0, 0, 0); }
-        else P.rect(bx, y, bx + 9, y + 8.5f, IM_COL32(214, 200, 176, 255), 1.5f);
+        else P.button_off(bx, y, bx + 9, y + 8.5f, "-", NsDraw::FS_BODY);
         P.text(f, NsDraw::FS_HEAD, bx + 11, y, ink, std::to_string(a.page ? a.count : 0));
         float px = bx + 22;
         if (a.can_more) { if (P.button(px, y, px + 9, y + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(AV_MORE, 0, 0, 0); }
-        else { P.rect(px, y, px + 9, y + 8.5f, IM_COL32(214, 200, 176, 255), 1.5f); P.text(fo, NsDraw::FS_SMALL, px + 12, y + 1.6f, red, "not enough for more"); }
+        else { P.button_off(px, y, px + 9, y + 8.5f, "+", NsDraw::FS_BODY); P.text(fo, NsDraw::FS_SMALL, px + 12, y + 1.6f, red, "not enough for more"); }
         y += 11;
         /* the chance */
         int pc = a.page && a.count > 0 ? a.pct : a.pct1;
         char ch[64]; snprintf(ch, sizeof ch, a.page && a.count > 0 ? "Chance of success %d%%" : "Chance with one batch %d%%", pc);
         P.text(f, NsDraw::FS_NAME, RX0, y, pc >= 50 ? green : red, ch); y += 7.5f;
-        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d intellect + %d alchemy - %d mystic number%s",
+        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d intelligence + %d alchemy - %d mystic number%s",
                                   a.base, a.intel, a.alch, a.mystic, a.stone ? (" + " + std::to_string(a.stone) + " Philosopher's Stone").c_str() : "");
         y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, parts) + 3;
         bool can = a.page && a.count > 0;
         if (can) { if (P.button(RX0, y, RX0 + 50, y + 10, "Start mixing", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(AV_START, 0, 0, 0); }
-        else { P.rect(RX0, y, RX0 + 50, y + 10, IM_COL32(214, 200, 176, 255), 1.5f); P.text(fo, NsDraw::FS_BODY, RX0 + 6, y + 2, dim, "Start mixing"); }
+        else P.button_off(RX0, y, RX0 + 50, y + 10, "Start mixing", NsDraw::FS_BODY);
     }
     if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 65, 190, IM_COL32(112, 40, 22, 255), ns_gtext(a.note));
+    else if (risk_hover) {                  /* what the risk means (mods/fixes.c, alchrisk) */
+        static const char *IN[5] = { "", "one time", "two times", "three times", "" }, *OF[5] = { "", "", "two", "three", "four" };
+        int num, den; fixes_alchemy_blast_odds(a.risk, &num, &den);
+        char t[400];
+        snprintf(t, sizeof t, "The risk is what a failed batch can bring. At an inn, in a village or a hideout one failure in two goes wrong: "
+                 "%s in %s an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). "
+                 "In a camp in the wild a failure only costs the ingredients.", IN[num], OF[den]);
+        P.para(fo, NsDraw::FS_SMALL, 65, 186, 250, soft, t);
+    }
 }

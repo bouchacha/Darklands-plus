@@ -2,13 +2,17 @@ Darklands+ @VERSION@ for Windows (64-bit)
 =========================================
 
 Darklands (MicroProse, 1992) running natively on Windows, without DOSBox, with optional
-improvements: crisp text up to 4K, a zoomable world map with auto-travel, chances of success
-on card options, a quest log and town journal, a battle log, pausing when someone falls,
-better battle pathfinding, quick saves and autosaves, fixes for bugs of the original game, and
-mod folders for items, card texts, pictures, sounds and rules.
+improvements: most of the game's screens rebuilt for the mouse (cards, shops, the character
+sheet, loot, the inn, alchemy, saints, save and load ...), the best member making the card
+tests put to the leader, one pack for the whole party, quests with titles, deadlines and
+pictures on the maps, crisp text up to 4K, a zoomable world map with auto-travel, chances of
+success on card options, a town journal, a battle log, better battle pathfinding, quick saves
+and autosaves, fixes for bugs of the original game, and mod folders for items, card texts,
+pictures, sounds and rules. What is new since 1.0: CHANGELOG.md on the GitHub page.
 
-Everything new can be switched off. F12 > Settings > Helpers > "Play the original game" turns all of it
-off at once.
+Everything new can be switched off. The first start asks how you would like to play, from
+"Buggy Purist" (the game exactly as it was) and "Purist" (its bugs fixed) to "Darklands+" and
+"Easy"; F12 > Settings > Helpers changes it, or any switch one by one.
 
 WHAT YOU NEED
 Your own copy of Darklands, version 483.07 (as GOG and Steam sell it). This download does not
@@ -27,8 +31,10 @@ INSTALLING
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
-The MicroProse logo and the opening animations play at the first start only (F12 > Settings > Display
-plays them every time; Space or Esc moves on a picture). The title menu shows the version.
+The opening plays at every start: a key or a click goes on to its last scene, the lady's
+welcome, and another to the start screen (F12 > Settings > Display: the whole opening, only its
+last scene, or nothing). The start screen shows the version; Continue there loads your newest
+save.
 
 THE FIRST START takes a minute or two (longer on an older computer). Darklands+ translates
 the game program from your DARKLAND.EXE and keeps the result as darklands_game.dll in the
@@ -43,11 +49,16 @@ KEYS
   Ctrl+F12      screenshot (PNG in the screenshots folder of the Darklands folder; it also
                 writes the window's sizes into darklands_port.log, useful in a report)
   Click a foe   (battles) the selected member attacks it, even before an attack is chosen
+                (one better with a bow than a blade shoots, when the line is clear)
+  1-5           (battles) choose a member; twice: the view goes to them
+  Right drag    (battles) move the view (a right click alone opens the menus)
+  Alt           (battles) a bar over every fighter, not only the hurt
   Click a column heading  (Darklands+ tables) sort by it
   G             (city card) go to a place
   1-9           (card) pick an option
   Mouse wheel   (sheet, shops) move through a list
   Tab           (battles, dungeons) the level map
+  Z             (battles) fast forward, six times the pace; Z again: back to the chosen speed
   Right click   the menu bar (click an entry; a click elsewhere or any key closes it)
   A, S          (loot) take the whole pile, share it out among the party
   A, T          (shop) sell the whole stack, buy ten
@@ -101,7 +112,8 @@ yours removes or blocks darklands_game.dll, allow that file (it is made from you
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
 To remove Darklands+, delete the folder you unpacked it into, and darklands_game.dll,
-darklands_port.ini, darklands_port.log, darklands_journal_*.txt, darklands_chronicle_*.txt and darklands_notes_*.txt from the Darklands folder (or the folder
+darklands_port.ini, darklands_port.log, darklands_journal_*.txt, darklands_chronicle_*.txt,
+darklands_notes_*.txt and darklands_sabbats_*.txt from the Darklands folder (or the folder
 %LOCALAPPDATA%\Darklands+, where they go when the Darklands folder cannot be written).
 
 WHAT IS IN darklands_plus

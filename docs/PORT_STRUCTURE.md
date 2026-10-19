@@ -29,14 +29,19 @@ leave the game playable, and every new module keeps a switch back to the origina
 * **Views draw, loops act.** Drawing never calls the game; a view pushes an action, the screen's
   loop does it at a safe point (between the game's rounds). Outside a native screen, the interface
   asks with `ns_defer()`: done at the start of the next round of any game screen (menu_bar_run),
-  or at the end of the frame while F12's window holds the game (F12 > Party's giving, readying
-  and leader change work so). The one exception is a pure question with
+  or at the end of the frame while F12's window holds the game (the test command ugive's giving
+  works so). The one exception is a pure question with
   no lasting effect, asked under an evaluation snapshot and kept (the quest log's person names,
   `ui/quests.cpp`); the journal's prices are asked in hooks (a card loaded, a shop drawn).
 * **Each module owns its hooks.** If two features need the same game function, each hooks it;
   the chain runs both. (Before the chain, one hook per function forced unrelated features
   into one file.)
-* **Every module has a switch,** and "Play the original game" turns all of them off.
+* **Every module has a switch,** in one table: `mods/options.c` (`OPTIONS[]`: its config key, section,
+  class, title and description; the fixes and built-in rule changes are appended). The F12 page draws
+  the table, and the presets (Buggy Purist, Purist, Purist + interface, Semi-Purist, Darklands+, Easy)
+  set it whole by each switch's class (a fix, an interface change, a convenience, a rule change, an
+  easier game ...). A new switch is one line there. Buggy Purist also sets `original`, which every
+  module checks: the game as it was.
 * **Check before a release:** `port/tools/release_check.py --game DIR` (and with the ASAN
   build) runs Quickstart, native cards, Go to, the native shop (sell, buy), a sheet opened
   from the shop, a battle with a sheet opened in it, and the loot, and fails on any memory
@@ -52,3 +57,5 @@ leave the game playable, and every new module keeps a switch back to the origina
 6. The travel map and its menus (s030).
 7. Battles (s014 and the rest), the largest: model first (combatants, map), then drawing,
    then input, each step comparable with the original.
+
+For other engines (Darklands Restoration and the like): what can be taken and how, `docs/MERGING.md`.

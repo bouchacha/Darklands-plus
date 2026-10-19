@@ -12,11 +12,12 @@ extern "C" {
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
 #include "money.h"
+extern "C" {
+#include "../mods/teachers.h"
+#include "../mods/fixes.h"
+}
 }
 
-static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
-    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
-    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
 static std::string money(long pf) { return money_str(pf); }
 
@@ -69,7 +70,7 @@ extern "C" void lodgeview_draw(void)
         std::string line = ns_gtext(p.line);
         if (p.act == 6 && p.skill >= 0 && p.skill < 19) {
             int fee = 0; for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill) fee = m.t[t].fee;
-            snprintf(b, sizeof b, "Train or Study: %s (%s a day)", SKILL[p.skill], money_str(fee).c_str());
+            snprintf(b, sizeof b, "Train or Study: %s (%s a day)", gm_skill_name(p.skill), money_str(fee).c_str());
             line = b;
         }
         P.text(fo, NsDraw::FS_BODY, nx, y + 10.5f, p.act ? IM_COL32(92, 40, 12, 255) : soft, line, -1, LX1 - 3);
@@ -104,13 +105,15 @@ extern "C" void lodgeview_draw(void)
             if (a == 6 && can) {                                    /* the teachers: one each */
                 for (int t = 0; t < m.nteach; t++) {
                     const auto &T = m.t[t];
+                    bool capped = teach_capped(m.sel, T.skill, T.val) != 0;     /* (learnt all this one teaches) */
                     bool tc = p.act == 6 && p.skill == T.skill, th = P.over(x0 + 6, ay, x1, ay + 8);
-                    P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
-                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : ink, T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?");
-                    snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
-                    P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : soft, b, x1 - 2);
+                    P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : capped ? IM_COL32(222, 210, 186, 255) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
+                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : capped ? dim : ink, gm_skill_name(T.skill));
+                    if (capped) snprintf(b, sizeof b, "learnt all (%d)", T.val);
+                    else snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
+                    P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : capped ? dim : soft, b, x1 - 2);
                     if (th) hover_act = 100 + t;
-                    if (P.hit(x0 + 6, ay, x1, ay + 8) && !tc) ns_push(LV_TEACH, t, m.sel, 0);
+                    if (P.hit(x0 + 6, ay, x1, ay + 8) && !tc && !capped) ns_push(LV_TEACH, t, m.sel, 0);
                     ay += 8.6f;
                 }
             }
@@ -118,13 +121,21 @@ extern "C" void lodgeview_draw(void)
         /* about the one under the pointer */
         std::string about;
         if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] ? "" : std::string(" ") + WHY[hover_act]);
+        if (hover_act == 3 && m.mode != 1) about += " At an inn a failed batch can blow up (how often: point at a formula's risk on the alchemy page); in a camp in the wild it cannot.";
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
-            const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
-            snprintf(b, sizeof b, "A teacher of %s: %s a day, paid each day of lessons. %s's %s is now %d.", sk, money_with_total(T.fee).c_str(),
-                     ns_gtext(p.name).c_str(), sk, T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0);
+            const char *sk = gm_skill_name(T.skill);
+            int now = T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0;
+            int c = teach_chance(T.val), days = c > 0 ? (100 + c / 2) / c : 0;
+            if (teach_capped(m.sel, T.skill, T.val))
+                snprintf(b, sizeof b, "Teacher of %s, own skill %d. %s's %s is %d already: nothing more to learn from this teacher.",
+                         sk, T.val, ns_gtext(p.name).c_str(), sk, now);
+            else
+                snprintf(b, sizeof b, "Teacher of %s, own skill %d. Fee: %s a day. Each day of lessons: %s %d%% chance of +1 (about one point every %d day%s)%s. %s's %s: %d.",
+                         sk, T.val, money_with_total(T.fee).c_str(), gm_a_an(c), c, days, days == 1 ? "" : "s", fix_is_on("teachcap") ? ", up to the teacher's own skill" : "",
+                         ns_gtext(p.name).c_str(), sk, now);
             about = b;
-        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking for tutoring or instruction at the monastery, the university, a guild, the armourer, swordsmith, blacksmith, bowyer, artificer or the town council; they then teach here for a while.";
+        } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking the masters of a guild, the university, the monks, the physician or the alchemists (a lectern marks the option on their cards; the margin lists what the town offers); they then teach here for a week.";
         if (!about.empty()) P.para(fo, NsDraw::FS_SMALL, RX0 + 4, fmaxf(ay + 2, BY - 22), RX1 - RX0 - 8, soft, about);
     }
 
@@ -134,12 +145,22 @@ extern "C" void lodgeview_draw(void)
     if (m.cost > m.purse) snprintf(b, sizeof b, "A day costs %s in all: more than the purse holds.", money(m.cost).c_str());
     else if (m.cost) snprintf(b, sizeof b, "A day %s %s in all; the purse %s %s.", m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), m.cost < 0 ? "will hold" : "keeps", money(after).c_str());
     if (b[0]) P.para(fo, NsDraw::FS_BODY, 64, 172, 133, m.cost > m.purse ? NsDraw::RED : ink, b);
+    /* a day the purse cannot pay: the game lets no time pass, yet counts it as a day stayed; so no
+       day is offered (members who earn a little money may pay for it) */
+    bool pay = m.cost <= m.purse;
     float bx = 199;
-    if (P.button(bx, 174, bx + 22, 184, "A day", GREEN)) ns_push(LV_DAY, 0, 0, 0);
-    if (P.button(bx + 24, 174, bx + 48, 184, "A week", GREEN)) ns_push(LV_DAYS, 7, 0, 0);
-    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", m.resting ? BROWN : GREY) && m.resting) ns_push(LV_REST, 0, 0, 0);
-    if (P.over(bx + 50, 174, bx + 84, 184))
-        P.para(fo, 3.9f, 190, 186, 126, soft, m.resting ? "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens)." : "Nobody is regaining strength or praying.");
+    if (P.button(bx, 174, bx + 22, 184, "A day", pay ? GREEN : GREY) && pay) ns_push(LV_DAY, 0, 0, 0);
+    if (P.button(bx + 24, 174, bx + 48, 184, "A week", pay ? GREEN : GREY) && pay) ns_push(LV_DAYS, 7, 0, 0);
+    bool hurt = false;                                      /* (someone short of strength who only relaxes: Until rested has them regain it) */
+    for (int i = 0; i < 5; i++) if (m.m[i].present && m.m[i].act == 0 && m.m[i].str < m.m[i].str_max && m.m[i].can[1]) hurt = true;
+    bool rest = (m.resting || hurt) && pay;
+    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", rest ? BROWN : GREY) && rest) ns_push(LV_REST, 0, 0, 0);
+    if (!pay && P.over(bx, 174, bx + 84, 184))
+        P.para(fo, 3.9f, 190, 186, 126, soft, "The purse cannot pay for a day. Members who Earn a little money may make up for it; else leave.");
+    else if (P.over(bx + 50, 174, bx + 84, 184))
+        P.para(fo, 3.9f, 190, 186, 126, soft, m.resting || hurt ? (hurt ? "Those short of strength who only relax regain it; then days until no one is regaining strength or praying any more (at most 14; it stops if anything happens, or when a day cannot be paid)."
+                                                                        : "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens, or when a day cannot be paid).")
+                                                     : "Nobody is short of strength, regaining it or praying.");
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
     else P.text(fo, 3.9f, 190, 188, dim, "F1: the keys");

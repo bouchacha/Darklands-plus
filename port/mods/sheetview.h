@@ -37,6 +37,8 @@ typedef struct {
     unsigned char saint[5][160];      /* known saints (DARKLAND.LST order) */
     int alch[5], intel[5], relig[5], df[5];
     int have[200];                    /* the party's count of each kind of thing (ingredients) */
+    int ingr[5][23];                  /* each member's count of the 23 ingredients (things 72..94) */
+    int pattr[5][7], pattr_max[5][7], pskill[5][19];   /* every member's, to set the shown one's against (Skills) */
     signed char saint_class[160];     /* the statue a saint is shown with (its handler's class, 0..13; -1 not known) */
     int nsaints;
     /* things left behind on this sheet, to take back */
@@ -45,6 +47,7 @@ typedef struct {
     unsigned seq;
     char note[160];
     unsigned note_t;
+    int tab_step;                     /* Tab / Shift+Tab, Right / Left: to the next or the previous page (the view takes it) */
 } SheetModel;
 
 extern SheetModel sheet_model;

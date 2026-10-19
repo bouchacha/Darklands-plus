@@ -11,8 +11,8 @@
  * (cbt_collisions, s014 1462:000a, with the walking rules), so a planned path is a path the
  * member can walk. Routes longer than the game's 250-step path buffer are cut; the game
  * re-plans moving combatants every 30-90 ticks, which carries them on. If the search finds
- * nothing within its budget, the original planner runs. Enemies keep the original planner
- * unless "enemies too" is on.
+ * nothing within its budget, the original planner runs. Enemies too ("enemies too", on by
+ * default).
  *
  * Combatant records: DS:9c55 + 0x80*i (+4 x, +6 y, +8 tx, +0a ty, +19 facing, +1c own
  * index, +4a target); floors DS:a6b4[13]; step deltas D_c681/D_c6f4[set*10 + dir] (signed
@@ -30,7 +30,7 @@
 
 uint64_t plat_ticks_us(void);
 
-int pathfix_party = 1, pathfix_enemies = 0;
+int pathfix_party = 1, pathfix_enemies = 1;
 
 #define CBT(i)   ((u16)(0x9c55 + (i) * 0x80))
 #define PATHSEG  ((u16)(LOADSEG + 0x20a5))
@@ -69,6 +69,7 @@ static HeapE hpop(void)
 }
 
 static int self_i, target_i;
+static struct { s16 x, y; u8 n; } stall[13];       /* where each combatant last asked for a route, and how often since from there */
 static int ncoll;
 
 /* the game's collision test for combatant self_i standing at (x, y) */
@@ -230,6 +231,15 @@ static void path_find_hook(void)
     if (target >= 13) target = -1;
     if (target >= 0 && g_rb((u16)(GV_cbt_floor + target)) != g_rb((u16)(GV_cbt_floor + i))) { hook_call_original(); return; }
 
+    /* a combatant asking again from where it stood the last time has not got on: the route went
+       through friends on the move (who do not block a plan), and they stand in the way. Then plan
+       around everyone; and when that goes on, let the game's own planner try every other time
+       (enemies at the back of a melee stood still forever, re-planning the same route) */
+    int stuck = 0;
+    if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) { if (stall[i].n < 250) stall[i].n++; stuck = stall[i].n; }
+    else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; }
+    if (stuck >= 3 && (stuck & 1)) { hook_call_original(); return; }
+
     load_steps(i);
 
     /* collision rules while planning: walking walls (D_e0a2 0), map and combatants tested,
@@ -246,6 +256,7 @@ static void path_find_hook(void)
     int dest = collide(tx, ty);
     int reach = 0;
     if (start != -1 && !(dest != 0 && (target < 0 || (dest & ~(1 << target))))) {
+        if (stuck) g_wb(GV_path_target_only, 0);             /* everyone blocks: around them */
         cell_bfs(tx, ty);
         int c0 = (x >> 5) * 40 + (y >> 4);
         reach = c0 >= 0 && c0 < 1600 && celld[c0] >= 0;
@@ -256,8 +267,8 @@ static void path_find_hook(void)
     g_wb(GV_path_formation, s_e0a2); g_wb(GV_path_target_only, s_d697); g_wb(0xe13c, s_e13c); g_wb(0xc600, s_c600); g_ww(0xd708, s_d708);
     for (int k = 0; k < 32; k++) g_wb((u16)(0xe11c + k), s_e11c[k]);
     if (getenv("DL_PATH_LOG"))
-        fprintf(stderr, "pathfix: %d (%d,%d)->(%d,%d) target %d: start %d dest %d: %d steps, %d expanded, %d tests, %u us\n",
-                i, x, y, tx, ty, target, start, dest, len, exp, ncoll, (unsigned)(t1 - t0));
+        fprintf(stderr, "pathfix: %d (%d,%d)->(%d,%d) target %d: start %d dest %d%s: %d steps, %d expanded, %d tests, %u us\n",
+                i, x, y, tx, ty, target, start, dest, stuck ? " (stuck: around everyone)" : "", len, exp, ncoll, (unsigned)(t1 - t0));
     if (len < 0) { hook_call_original(); return; }       /* nothing found: the game's own planner decides */
 
     /* write the result the way path_find leaves it */
@@ -363,14 +374,22 @@ void pathfix_set(int party, int enemies)
  * routine counts it up faster; the rest of the timer routine (sound, other clocks) runs as
  * before. */
 int battle_speed = 100;                  /* percent */
+int battle_fast;                         /* fast forward (Z in a battle, battle.fast_key): BATTLE_FAST_PCT while on */
 static int clock_acc;
 static void timer_hook(void)
 {
     hook_call_original();
-    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", battle_speed, g_rb(GV_pause_depth), game_mode(), g_rw(GV_combat_clock)); }
-    if (battle_speed <= 100 || g_rb(GV_pause_depth) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
-    clock_acc += battle_speed - 100;
+    int sp = battle_fast ? BATTLE_FAST_PCT : battle_speed;
+    { static int n; if (getenv("DL_SPEED_LOG") && !(n++ % 50)) fprintf(stderr, "timer: speed %d paused %d mode %d clock %u\n", sp, g_rb(GV_pause_depth), game_mode(), g_rw(GV_combat_clock)); }
+    if (game_mode() != GM_BATTLE) battle_fast = 0;              /* (a battle's fast forward ends with it) */
+    if (sp <= 100 || g_rb(GV_pause_depth) || game_mode() != GM_BATTLE) { clock_acc = 0; return; }
+    clock_acc += sp - 100;
     while (clock_acc >= 100) { clock_acc -= 100; g_ww(GV_combat_clock, (u16)(g_rw(GV_combat_clock) + 1)); }
+}
+static void timer_hook_set(void)
+{
+    if (battle_speed > 100 || battle_fast) hook_install(-1, 0x047c, 0x000a, timer_hook);
+    else hook_remove(-1, 0x047c, 0x000a, timer_hook);
 }
 
 void battle_speed_set(int pct)
@@ -379,8 +398,13 @@ void battle_speed_set(int pct)
     if (pct > 400) pct = 400;
     battle_speed = pct;
     config_set_int("battle.speed", pct);
-    if (pct > 100) hook_install(-1, 0x047c, 0x000a, timer_hook);
-    else hook_remove(-1, 0x047c, 0x000a, timer_hook);
+    timer_hook_set();
+}
+void battle_fast_set(int on)
+{
+    battle_fast = on && game_mode() == GM_BATTLE;
+    fprintf(stderr, "battle: fast forward %s\n", battle_fast ? "on" : "off");
+    timer_hook_set();
 }
 
 void pathfix_init(void)
@@ -391,5 +415,8 @@ void pathfix_init(void)
     f_waypoints = game_func(14, 0x1db7, 0x0158);
     f_cursor = game_func(GF_ems_map_page);
     if (!f_collide || !f_set) fprintf(stderr, "pathfix: game functions not found\n");
-    pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 0));
+    if (!config_get_int("migrate.enemy_paths", 0)) {          /* (on for everyone from 1.2 preview 31, once enemies no longer got stuck) */
+        config_set_int("fix.pathfinding_enemies", 1); config_set_int("migrate.enemy_paths", 1);
+    }
+    pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 1));
 }

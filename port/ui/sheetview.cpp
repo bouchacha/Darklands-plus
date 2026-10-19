@@ -2,23 +2,35 @@
  * the whole page anew beside the party panel.
  *
  * Top: the member's name, sex and age, the leader, the tabs, Close.
+ * The one place for the party's things, skills, saints and formulae (the F12 window has no pages
+ * of its own for them).
  * Things: the paper doll on its column (put together from the game's own pictures, as the
  *   original does: PICS\ARMSBACK.PIC and the armour, weapon, shield and missile weapon over it),
  *   the load under it; right, the things, those in use first, the quality only where it can
  *   differ; Ready / Unequip / Drink and Drop on the row under the pointer, Undo for what was
- *   dropped; a thing dragged onto a member at the left is given to them (Shift: one of a stack).
+ *   dropped; a thing dragged onto a member at the left is given to them (Shift: one of a stack);
+ *   a weapon, armour or shield the pointer rests on shows all its numbers and who could use it.
  * Skills: the doll; right, the attributes and the skills on one page in the original's groups,
  *   each with its sign; Endurance, Strength and Divine Favor as current/maximum, the others
- *   their value (with the maximum, in red, when lowered).
+ *   their value (with the maximum, in red, when lowered); blue what a saint raised for a while;
+ *   a gold dot where the member is the party's best. The strip: what it is for, how long a
+ *   saint's change lasts, the whole party's values; with nothing under the pointer, what is at
+ *   work on the member.
  * Saints: the whole party's - each saint someone knows (or all), who knows it, a choice of what
- *   they help with; the saint under the pointer (or clicked) with the game's statue for it (its
- *   prayer screen's picture), the legend, and what it does in another colour.
- * Formulae: the whole party's - each formula someone knows, who knows it; the one under the
- *   pointer with its effect, mystic number and risk, its ingredients against what the party
- *   carries, and each alchemist's chance with one batch. */
+ *   they help with, "taught here" by the library the party is at; the saint under the pointer (or
+ *   clicked) with the game's statue for it (its prayer screen's picture), who knows it or the
+ *   libraries the party has been to that teach it, what it does (mods/saintinfo.h), where the
+ *   text says otherwise, whether encounters call on it, and the legend.
+ * Formulae: the whole party's - each formula someone knows (or all), who knows it, the batches
+ *   its ingredients make, "sold here"; under the list the 23 ingredients the party has, those
+ *   the formula shown calls for ringed; the formula under the pointer with its effect, mystic
+ *   number and risk, its ingredients against what the party carries, and each alchemist's
+ *   chance with one batch, or where an alchemist the party has been to sells it. */
 #include "imgui.h"
+#include "skillicons.h"
 #include "../runtime/config.h"
 #include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,25 +40,27 @@
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/sheetview.h"
+#include "../mods/gamemodel.h"
+#include "../mods/saintinfo.h"
 #include "nsdraw.h"
+#include "libraries.h"
+#include "money.h"
+#include "effects.h"
+bool ui_item_tidy_less(int ida, int qa, int idb, int qb);    /* (inventory.cpp) */
 #include "gamepics.h"
 
 extern "C" u32 plat_ticks_ms(void);
 extern "C" int partypanel_member_at(int gx, int gy);
 extern int partypanel_focus;
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
 const char *ui_attr_help(int a);
 const char *ui_skill_help(int k);
 std::string rules_weapons_of_skill(int k);
 size_t saint_effect_at(const std::string &text);
+std::string journal_where_sold(int id);                     /* (ui/journal.cpp) */
+void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
 
 namespace {
-const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
-const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices",
-    "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
-    "Streetwise", "Riding", "Woodwise" };
 enum { TAB_THINGS, TAB_SKILLS, TAB_SAINTS, TAB_FORMULAE };
 /* what the saints help with: words of their effect */
 struct Use { const char *name; const char *words[12]; };
@@ -72,12 +86,34 @@ struct SheetView {
     int what = 0, which = -1; unsigned seq = 0;
     int drop_row = -1; unsigned act_seq = 0;      /* a row asking "sure?" */
     int pin_saint = -1, pin_formula = -1;         /* clicked: stays while the pointer is elsewhere */
-    bool saints_all = false; int use = 0;
+    bool saints_all = false, formulae_all = false; int use = 0;
+    int tip_row = -1; unsigned tip_t = 0;        /* a thing's row under the pointer, since when (its details after a moment) */
     /* dragging a thing */
     int drag_row = -1; bool dragging = false;
 } V;
 
 std::string lower(std::string s) { for (char &c : s) c = (char)tolower((unsigned char)c); return s; }
+
+const ImU32 BEST = IM_COL32(196, 146, 30, 255), RAISED = IM_COL32(26, 64, 132, 255);   /* the party's best; raised for a while */
+
+/* what is at work on the party now (ui/effects.h), read once a frame */
+std::vector<Eff> EFF;
+std::string hours_left(long h)
+{
+    char b[32];
+    if (h < 48) snprintf(b, sizeof b, "%ld hour%s", h, h == 1 ? "" : "s");
+    else snprintf(b, sizeof b, "%ld days", (h + 12) / 24);
+    return b;
+}
+/* a saint's (or its price's) change to member m's attribute (kind 0x48) or skill (0x49) k: the sum,
+   and the soonest it ends */
+int raised_by(int m, int kind, int k, long *left)
+{
+    int t = 0; long l = -1;
+    for (const Eff &e : EFF) if (e.m == m && e.kind == kind && e.k == k) { t += e.amount; if (l < 0 || e.left < l) l = e.left; }
+    if (left) *left = l;
+    return t;
+}
 
 /* the doll's pictures (s031 1462:0b22) */
 std::vector<std::string> doll_layers(const SheetModel &s)
@@ -119,11 +155,11 @@ void saint_parts(const std::string &t, std::string &lore, std::string &eff)
     eff = t.substr(b);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
 }
-bool saint_fits(const std::string &t, int use)
+bool saint_fits(int s, int use)
 {
     if (use <= 0) return true;
-    std::string lore, eff; saint_parts(t, lore, eff);
-    std::string e = lower(eff.empty() ? t : eff);
+    std::string lore, eff; saint_parts(gamedata.saints[s].text, lore, eff);
+    std::string e = lower((eff.empty() ? gamedata.saints[s].text : eff) + " " + saint_info_does(s));   /* (what it promises, what it does) */
     for (const char *const *w = USES[use].words; *w; w++) if (e.find(*w) != std::string::npos) return true;
     return false;
 }
@@ -142,7 +178,8 @@ static void header(NsDraw &P, const SheetModel &s)
     ImFont *f = P.f, *fo = P.fo;
     P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
     if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL)) ns_push(SV_CLOSE, 0, 0, 0);
-    char sub[64]; snprintf(sub, sizeof sub, "%s, age %d", s.female ? "Woman" : "Man", s.age);
+    char sub[96]; snprintf(sub, sizeof sub, "%s, age %d", s.female ? "Woman" : "Man", s.age);
+    for (const Eff &e : EFF) if (e.m == s.who && e.kind == 0x43) { snprintf(sub + strlen(sub), sizeof sub - strlen(sub), "; with the party %s more", hours_left(e.left).c_str()); break; }
     P.text(fo, NsDraw::FS_SMALL, 63.5f, 12.4f, NsDraw::INK_SOFT, sub);
     float lx = 63.5f + P.width(fo, NsDraw::FS_SMALL, sub) + 3;
     if (s.who == s.leader) {
@@ -150,12 +187,16 @@ static void header(NsDraw &P, const SheetModel &s)
         P.text(fo, NsDraw::FS_SMALL, lx + 2, 12.4f, NsDraw::INK, "Leader");
     } else if (P.button(lx, 11.6f, lx + 26, 18.8f, "Make leader", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_LEADER, s.who, 0, 0);
     if (P.over(lx, 11.6f, lx + (s.who == s.leader ? 17 : 26), 18.8f))
-        ImGui::SetTooltip(config_get_int("assist.best_leader", 1) && !config_get_int("original", 0)
-            ? "A card's tests are made by whoever is best at them and shops price by the best bargainer, whoever leads.\n"
-              "The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour, a thing handed over),\n"
+        ns_tip(config_get_int("assist.best_leader", 1) && !config_get_int("original", 0)
+            ? "A card's tests are made by whoever is best at them and shops price by the best bargainer, whoever leads. "
+              "The leader still takes what befalls \"the leader\" on a card (a mine's traps, a church's favour, a thing handed over), "
               "and in a battle or a dungeon, unpaused, deals with doors, chests, locks and traps, and leads the group's moves."
             : "The leader speaks and acts for the party on the cards and bargains in the shops.");
     static const char *TABS[4] = { "Things", "Skills", "Saints", "Formulae" };
+    if (sheet_model.tab_step) {                             /* (Tab, Shift+Tab, Right, Left: mods/sheetview.c) */
+        V.tab = ((V.tab + sheet_model.tab_step) % 4 + 4) % 4; V.drop_row = -1; V.what = 0;
+        sheet_model.tab_step = 0;
+    }
     float tw = 25.5f, x = 318 - 4 * tw;
     for (int t = 0; t < 4; t++) {
         bool sel = t == V.tab, h = P.over(x, 11, x + tw - 0.8f, 19.5f);
@@ -210,11 +251,58 @@ static void doll(NsDraw &P, const SheetModel &s)
     P.rect(100 + 60 / 3.0f, 194.2f, 100 + 60 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
     P.rect(100 + 120 / 3.0f, 194.2f, 100 + 120 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
     if (P.over(62, 191.5f, 198, 198) && config_get_int("assist.shop_info", 1)) {   /* what the load does */
-        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(ImGui::GetFontSize() * 26, FLT_MAX));
-        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 25);
-        ImGui::TextUnformatted(load_effects(s).c_str());
-        ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+        ns_tip(load_effects(s).c_str(), 25);
     }
+}
+
+/* where the shown member stands in the party at attribute or skill idx: 1 the best (others lower),
+   0 not, -1 nobody to compare with */
+
+/* the strip's line on a saint's change to the attribute or skill under the pointer */
+static float raised_line(NsDraw &P, const SheetModel &s, bool attr, int idx, float x, float y, float w)
+{
+    long left; int t = raised_by(s.who, attr ? 0x48 : 0x49, idx, &left);
+    if (!t) return 0;
+    char b[96]; snprintf(b, sizeof b, "%s by %d for %s more (a saint's %s).", t > 0 ? "Raised" : "Lowered", t > 0 ? t : -t, hours_left(left).c_str(), t > 0 ? "help" : "price");
+    return P.para(P.fo, NsDraw::FS_SMALL, x, y, w, t > 0 ? RAISED : NsDraw::RED, b) + 0.6f;
+}
+static int party_best(const SheetModel &s, bool attr, int idx)
+{
+    int mine = attr ? s.pattr[s.who][idx] : s.pskill[s.who][idx], n = 0, lower = 0;
+    for (int m = 0; m < 5; m++) {
+        if (!s.present[m] || m == s.who) continue;
+        int v = attr ? s.pattr[m][idx] : s.pskill[m][idx];
+        n++;
+        if (v > mine) return 0;
+        if (v < mine) lower++;
+    }
+    return n ? (lower ? 1 : 0) : -1;
+}
+
+/* the whole party at attribute or skill idx, in a line under the strip's text (what F12 > Party
+   once showed side by side): each name and value, the best in gold, the shown member underlined */
+static float party_line(NsDraw &P, const SheetModel &s, bool attr, int idx, float x0, float y, float x1)
+{
+    int hi = -1000, lo = 1000, n = 0;
+    for (int m = 0; m < 5; m++) if (s.present[m]) { int v = attr ? s.pattr[m][idx] : s.pskill[m][idx]; hi = std::max(hi, v); lo = std::min(lo, v); n++; }
+    if (n < 2) return 0;
+    const float gs = NsDraw::FS_SMALL;
+    float x = x0, lh = gs * 1.25f;
+    P.text(P.fo, gs, x, y, NsDraw::INK_SOFT, "The party:"); x += P.width(P.fo, gs, "The party:") + 1.5f;
+    for (int m = 0; m < 5; m++) {
+        if (!s.present[m]) continue;
+        int v = attr ? s.pattr[m][idx] : s.pskill[m][idx], mx = attr ? s.pattr_max[m][idx] : v;
+        std::string seg = ns_gtext(s.names[m]) + " " + (v < mx ? std::to_string(v) + "/" + std::to_string(mx) : std::to_string(v));
+        float w = P.width(P.fo, gs, seg);
+        if (x + w > x1) { x = x0 + 2; y += lh; }
+        bool best = hi > lo && v == hi;
+        if (best) P.dl->AddCircleFilled(NsDraw::w(x + 0.9f, y + gs * 0.62f), 0.8f * P.k, BEST);
+        float tx = best ? x + 2.4f : x;
+        P.text(P.fo, gs, tx, y, best ? IM_COL32(130, 92, 10, 255) : NsDraw::INK, seg);
+        if (m == s.who) P.rect(tx, y + gs * 1.12f, tx + w, y + gs * 1.12f + 0.35f, NsDraw::INK_SOFT);
+        x = tx + w + 3;
+    }
+    return y + lh;
 }
 
 /* the strip at the bottom right: what the pointer is on */
@@ -233,11 +321,11 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         l1 += ", weight " + std::to_string(it.weight);
         if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
         if (it.equipped == 2) l1 += "; this member's mount";
-        else if (it.equipped) l1 += "; in use";
+        else if (it.equipped) l1 += "; equipped";
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
         if (it.kept) l1 += "; kept (not sold or dropped)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
-        std::string l2 = ns_item_line(it.id);
+        std::string l2 = ns_item_line(it.id, it.qual);
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
         std::string use = ns_item_use(it.id);
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
@@ -247,25 +335,66 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             std::string fit = (have < minsk ? "lacks " + std::to_string(minsk - have) + " skill" : std::string("")) +
                               (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);
+        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence against a blow it gives this member (mods/gamemodel.h) */
+            int sh = gm_shield_defence(d->type, it.qual, 0), ag = gm_member_fight_agility(s.who), a = s.attr[2];
+            char b[200];
+            snprintf(b, sizeof b, "%s's defence against a blow with it: %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sh, ag, sh + 2 * ag,
+                     ag < a ? " (the load takes some of the Agility)" : "");
+            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
         } else if (l2.empty() && it.drinkable && it.id >= 95 && 3 * (it.id - 95) < (int)gamedata.formulas.size())
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, game_text(gamedata.formulas[3 * (it.id - 95)].text.c_str(), gamedata.formulas[3 * (it.id - 95)].text.size()));
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
         if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = "Attack and defence with " + (w.empty() ? std::string("these weapons") : w) + "."; }
-        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, SKILL[V.which]) + 0.5f;
-        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, help);
+        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_skill_name(V.which)) + 0.5f;
+        y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, help) + 0.8f;
+        y += raised_line(P, s, false, V.which, SX0 + 2.5f, y, SW);
+        party_line(P, s, false, V.which, SX0 + 2.5f, y, SX1 - 2);
     } else if (V.what == 5 && V.which >= 0 && V.which < 7) {
-        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ATTR[V.which]) + 0.5f;
-        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which));
+        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_attr_name(V.which)) + 0.5f;
+        y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which)) + 0.8f;
+        y += raised_line(P, s, true, V.which, SX0 + 2.5f, y, SW);
+        party_line(P, s, true, V.which, SX0 + 2.5f, y, SX1 - 2);
     } else if (V.tab == TAB_THINGS && s.shared)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here; F1 tells what you can do.");
     else if (V.tab == TAB_THINGS)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at a thing to see it here. Drag a thing onto someone at the left to give it to them (Shift: just one of a stack). Another member at the left shows their sheet; Esc or Close goes back.");
-    else P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an attribute or a skill to see what it does.");
+    else {
+        y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, s.npar > 1 ? "Point at an attribute or a skill to see what it does and the whole party's. A gold dot: the party's best at it; blue: raised by a saint for a while."
+                                                                                : "Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while.") + 1.8f;
+        std::vector<std::string> at;                     /* the blessings and potions at work on this member, as many as there is room for */
+        for (const Eff &e : EFF) if (e.m == s.who && e.kind != 0x43) at.push_back(e.what + " (" + hours_left(e.left) + ")");
+        if (!at.empty()) {
+            std::string t = "At work now: ";
+            size_t k = 0;
+            auto tail = [&](size_t left) { return left ? "; and " + std::to_string(left) + " more (the margin's In force)." : std::string("."); };
+            for (; k < at.size(); k++) {
+                std::string next = t + (k ? "; " : "") + at[k];
+                if (k && P.para_height(fo, NsDraw::FS_SMALL, SW, next + tail(at.size() - k - 1)) > SY1 - y - 1) break;
+                t = next;
+            }
+            t += tail(at.size() - k);
+            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, RAISED, t);
+        }
+    }
     if (s.note[0] && plat_ticks_ms() - s.note_t < 6000) {
         P.rect(SX0 + 1, SY1 - 8.6f, SX1 - 1, SY1 - 0.6f, IM_COL32(230, 214, 178, 255));
         P.text(fo, NsDraw::FS_SMALL, SX0 + 2.5f, SY1 - 7.8f, IM_COL32(112, 40, 22, 255), ns_gtext(s.note), -1, SX1 - 1);
     }
+}
+
+/* the details of a thing in use in a fight (ui_item_details: the numbers, who in the party could
+   use it, what armour stops), and about what a shop pays for it */
+static void gear_tip(const SvItem &it)
+{
+    const ItemDef *d = ns_itemdef(it.id);
+    if (!d || !((d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) ||
+                (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97))) return;
+    ns_tip_begin(30);
+    ImGui::TextUnformatted(ns_item_name(it.id).c_str());
+    if (d->value) ImGui::TextDisabled("Worth about %s", money_with_total(d->value).c_str());
+    ui_item_details(d, it.id, it.qual);
+    ns_tip_end();
 }
 
 static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which)
@@ -278,9 +407,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     std::vector<int> rows;                                 /* item index; -1 / -3 / -2 the headings */
     int nin = 0, npot = 0;
     for (int i = 0; i < s.nitems; i++) { if (s.item[i].equipped) nin++; else if (s.item[i].potion) npot++; }
-    if (nin) { rows.push_back(-1); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); }
-    if (npot) { rows.push_back(-3); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); }
-    if (s.nitems > nin + npot) { rows.push_back(-2); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); }
+    /* each section in the tidy order of the party's inventory page: by kind, then name, the better first */
+    auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
+    if (nin) { rows.push_back(-1); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); tidy(f); }
+    if (npot) { rows.push_back(-3); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); tidy(f); }
+    if (s.nitems > nin + npot) { rows.push_back(-2); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); tidy(f); }
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -305,11 +436,12 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (to >= 0 && to != s.who && V.drag_row < s.nitems) ns_push(SV_GIVE, s.item[V.drag_row].idx, to, P.shift ? 1 : 255);   /* (the member's record, not the row) */
         P.click = false; V.dragging = false; sheetview_dragging = 0; V.drag_row = -1;
     }
+    int tip_i = -1;
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            const char *hd = i == -1 ? "In use" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
+            const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
@@ -323,6 +455,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         const ItemDef *d = ns_itemdef(it.id);
         float name_end = (h || busy) ? RX1 - 59 : RX1 - 2;
+        if (h && P.mx < name_end) tip_i = i;
         if (it.kept) {                                     /* kept from selling and dropping: a small seal at the right */
             float kx = (h || busy) ? RX1 - 61 : RX1 - 4;
             P.dl->AddCircleFilled(NsDraw::w(kx, y + ROWH * 0.5f), 1.5f * P.k, IM_COL32(150, 40, 24, 230));
@@ -330,7 +463,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         }
         P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end);
         if (shows_quality(d, it.qual)) {
-            char qs[16]; snprintf(qs, sizeof qs, "q%d", it.qual);
+            char qs[16]; snprintf(qs, sizeof qs, "%dq", it.qual);
             float qx = RX0 + 11 + P.width(f, NsDraw::FS_NAME, nm) + 2;
             if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end) P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs);
         }
@@ -345,7 +478,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Ready", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, it.idx, 0, 0); } }
         x += 19;
         if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
-        if (P.over(x, y + 1, x + 18, y + ROWH - 1)) ImGui::SetTooltip("%s", it.kept ? "Kept from selling and dropping (Sell spare gear passes it by). A click: no longer kept."
+        if (P.over(x, y + 1, x + 18, y + ROWH - 1)) ns_tip(it.kept ? "Kept from selling and dropping (Sell spare gear passes it by). A click: no longer kept."
                                                                                : "Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again.");
         x += 19;
         if (it.kept) P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(170, 150, 130, 200), 4.4f);   /* (greyed: kept) */
@@ -360,6 +493,9 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         float th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(RX1 - 1.4f, ty, RX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
+    /* a weapon, armour or shield the pointer rests on: all its numbers, and the whole party's fit */
+    if (tip_i != V.tip_row) { V.tip_row = tip_i; V.tip_t = plat_ticks_ms(); }
+    else if (tip_i >= 0 && !V.dragging && plat_ticks_ms() - V.tip_t > 650) gear_tip(s.item[tip_i]);
     if (s.ndrops > 0) {                                  /* take back what was left behind here */
         const SvDrop &d = s.drops[s.ndrops - 1];
         std::string l = "Undo: " + ns_gtext(d.name) + (d.count > 1 ? " (" + std::to_string(d.count) + ")" : "");
@@ -403,7 +539,7 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 if (h) { P.rect(x0, y, x1, y + ROWH, IM_COL32(226, 204, 160, 255), 1); new_what = g.attr ? 5 : 2; new_which = idx; }
                 ImVec2 ic = NsDraw::w(x0 + 3.2f, y + ROWH * 0.5f);
                 if (g.attr) ui_attr_icon(P.dl, ic, 4.6f * P.k, idx); else ui_skill_icon(P.dl, ic, 4.6f * P.k, idx);
-                const char *name = g.attr ? ATTR[idx] : SKILL[idx];
+                const char *name = g.attr ? gm_attr_name(idx) : gm_skill_name(idx);
                 char v[24];
                 ImU32 vc = ink;
                 if (g.attr) {
@@ -412,14 +548,33 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                     else if (cur < mx) { snprintf(v, sizeof v, "%d/%d", cur, mx); vc = NsDraw::RED; }
                     else snprintf(v, sizeof v, "%d", cur);
                 } else snprintf(v, sizeof v, "%d", s.skill[idx]);
+                if (raised_by(s.who, g.attr ? 0x48 : 0x49, idx, nullptr) > 0) vc = RAISED;   /* (a saint's help, for a while) */
                 float vw = P.width(fo, 4.8f, v);
-                P.text(fo, 4.8f, x0 + 7, y + 1.4f, ink, name, -1, x1 - vw - 2);
+                P.text(fo, 4.8f, x0 + 7, y + 1.4f, ink, name, -1, x1 - vw - 4);
                 P.text(fo, 4.8f, 0, y + 1.4f, vc, v, x1 - 1.2f);
+                if (party_best(s, g.attr, idx) == 1)          /* the party's best at it: a gold dot */
+                    P.dl->AddCircleFilled(NsDraw::w(x1 - 1.2f - vw - 1.8f, y + ROWH * 0.5f), 0.95f * P.k, BEST);
                 y += ROWH;
             }
             y += 1.2f;
         }
     }
+}
+
+/* a small outlined tag in a list's row, ending at x_end (the initials' size); returns its width */
+/* the first n letters of a name (UTF-8: letters, not bytes, "Ülrich") */
+static std::string letters(const std::string &t, int n)
+{
+    size_t e = 0;
+    for (int c = 0; c < n && e < t.size(); c++) { e++; while (e < t.size() && ((unsigned char)t[e] & 0xC0) == 0x80) e++; }
+    return t.substr(0, e);
+}
+static float small_tag(NsDraw &P, float x_end, float ry, float rowh, const char *label)
+{
+    float w = P.width(P.fo, 4.2f, label) + 2.4f;
+    P.frame(x_end - w, ry + 1.3f, x_end, ry + rowh - 1.2f, NsDraw::GREEN, 1.1f);
+    P.text(P.fo, 4.2f, x_end - w + 1.2f, ry + 1.7f, NsDraw::GREEN, label);
+    return w;
 }
 
 static void saints(NsDraw &P, const SheetModel &s)
@@ -456,7 +611,7 @@ static void saints(NsDraw &P, const SheetModel &s)
     for (int t = 0; t < ns; t++) {
         bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
         if (!V.saints_all && !known) continue;
-        if (!saint_fits(gamedata.saints[t].text, V.use)) continue;
+        if (!saint_fits(t, V.use)) continue;
         rows.push_back(t);
     }
     int n = (int)rows.size();
@@ -468,6 +623,8 @@ static void saints(NsDraw &P, const SheetModel &s)
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
     if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, V.saints_all ? "No saint helps with that." : "Nobody in the party knows a saint that helps with that. (All saints: the others too.)");
     int hover = -1;
+    int cl = (s16)g_rw(G_CUR_LOC);
+    const Library *here = cl >= 0 && cl < G_NLOC ? library_at(cl) : nullptr;   /* (the library of the place the party is in: what it teaches, tagged) */
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int t = rows[sc + r];
         float ry = LY0 + r * ROWH;
@@ -479,11 +636,15 @@ static void saints(NsDraw &P, const SheetModel &s)
         float ix = LX1 - 2;
         for (int m = 4; m >= 0; m--) {
             if (!s.present[m] || !s.saint[m][t]) continue;
-            std::string ini = ns_gtext(s.names[m]).substr(0, 1);
+            std::string ini = letters(ns_gtext(s.names[m]), 1);
             float iw = P.width(fo, 4.2f, ini) + 2.4f;
             P.rect(ix - iw, ry + 1.3f, ix, ry + ROWH - 1.2f, m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
             P.text(fo, 4.2f, ix - iw + 1.2f, ry + 1.7f, NsDraw::LIGHT, ini);
             ix -= iw + 0.8f;
+        }
+        bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
+        if (here && !known) for (int k = 0; k < 4; k++) if (here->saint[k] == t) {
+            ix -= small_tag(P, ix, ry, ROWH, "taught here") + 0.8f; break;
         }
         P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, ink, gamedata.saints[t].name, -1, ix - 1);
     }
@@ -491,63 +652,155 @@ static void saints(NsDraw &P, const SheetModel &s)
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(LX1 - 1.4f, ty, LX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
-    /* the saint: the statue, the name, who knows it, the legend and what the saint does */
+    /* the saint: the statue, the name, who knows it (or where it is taught), what the help does
+       (mods/saintinfo.h) and where the text says otherwise, whether encounters call on it, the legend */
     int t = hover >= 0 ? hover : V.pin_saint >= 0 ? V.pin_saint : n ? rows[sc] : -1;
-    const float DX0 = 171, DX1 = 318, DY0 = LY0 - 0.5f;
-    P.rect(DX0, DY0, DX1, 197, IM_COL32(236, 224, 196, 255), 1.5f);
+    const float DX0 = 171, DX1 = 318, DY0 = LY0 - 0.5f, DY1 = 197;
+    P.rect(DX0, DY0, DX1, DY1, IM_COL32(236, 224, 196, 255), 1.5f);
     if (t < 0 || t >= ns) return;
+    std::string who;
+    for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) who += (who.empty() ? "" : ", ") + ns_gtext(s.names[m]);
+    std::string where;                                   /* nobody knows it: the libraries that teach it (of the places the party knows: ui/libraries.h) */
+    if (who.empty()) {
+        std::vector<LibraryHit> lh = libraries_teaching(t);
+        if (lh.empty()) where = "No library the party has been to teaches this saint.";
+        else {
+            where = "Taught in the library of ";
+            size_t k = std::min(lh.size(), (size_t)3);
+            for (size_t i = 0; i < k; i++) {
+                int d = (int)(lh[i].days + 0.5);
+                std::string ds = lh[i].days < 0 ? "" : lh[i].days < 0.6 ? " (here)" : " (" + std::to_string(d) + (d == 1 ? " day)" : " days)");
+                where += (i ? (i + 1 == k && lh.size() <= 3 ? " and " : ", ") : "") + lh[i].lib->name + ds;
+            }
+            if (lh.size() > 3) where += " and " + std::to_string(lh.size() - 3) + " more";
+            where += ".";
+        }
+    }
+    const std::string &lore = gamedata.saints[t].text;
+    float lore_h = P.para_height(fo, 4.4f, DX1 - DX0 - 5, lore) + 6;   /* (and the note under it) */
     const GamePic *g = t < s.nsaints ? statue(s.saint_class[t]) : nullptr;
-    float tx = DX0 + 2, sh = fminf(116, 197 - DY0 - 40);
+    float tx = DX0 + 2, sh = fmaxf(56, fminf(116, DY1 - DY0 - 4 - lore_h));   /* the statue smaller for a long legend */
     if (g) {
         float sw = g->w * sh / g->h;                        /* (the statue in its niche) */
         P.dl->AddImageRounded((ImTextureID)(intptr_t)g->tex, NsDraw::w(DX0 + 2, DY0 + 1.5f), NsDraw::w(DX0 + 2 + sw, DY0 + 1.5f + sh), ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, 1.5f * P.k);
         tx = DX0 + 4 + sw;
     }
+    P.dl->PushClipRect(NsDraw::w(DX0, DY0), NsDraw::w(DX1, DY1), true);
     float ty = DY0 + 2, tw = DX1 - tx - 2;
     ty += P.para(f, NsDraw::FS_HEAD, tx, ty, tw, ink, gamedata.saints[t].name) + 1.5f;
-    std::string who;
-    for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) who += (who.empty() ? "" : ", ") + ns_gtext(s.names[m]);
-    ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who + ".") + 1.5f;
-    std::string lore, eff; saint_parts(gamedata.saints[t].text, lore, eff);
-    if (!eff.empty()) ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), eff) + 1.5f;
+    ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who + ".") + 1;
+    if (!where.empty()) ty += P.para(fo, 4.4f, tx, ty, tw, soft, where) + 1.5f;
+    else ty += 0.5f;
+    ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), saint_info_does(t)) + 1.5f;
+    const char *un = saint_info_unlike(t);
+    if (*un) ty += P.para(fo, 4.4f, tx, ty, tw, IM_COL32(140, 50, 30, 255), std::string("Unlike the text: ") + un) + 1.5f;
+    ty += P.para(fo, 4.2f, tx, ty, tw, dim, saint_encounters_line(t)) + 1.5f;
     float ly = fmaxf(ty, g ? DY0 + 1.5f + sh + 2 : ty);
-    if (!lore.empty()) P.para(fo, 4.4f, DX0 + 2.5f, ly, DX1 - DX0 - 5, soft, lore);
+    ly += P.para(fo, 4.4f, DX0 + 2.5f, ly, DX1 - DX0 - 5, soft, lore) + 1.5f;
+    if (*saint_info_note(t)) P.para(fo, 4.0f, DX0 + 2.5f, fmaxf(ly, DY1 - 5.5f), DX1 - DX0 - 5, dim, saint_info_note(t));   /* (at the foot) */
+    P.dl->PopClipRect();
+}
+
+/* the ingredients of formula k the party has enough of, as batches */
+static int batches_of(const SheetModel &s, int k)
+{
+    if (k < 0 || k >= (int)gamedata.formulas.size()) return 0;
+    int b = INT_MAX;
+    for (const FormulaIngr &g : gamedata.formulas[k].ingr) {
+        int have = g.item >= 0 && g.item < 200 ? s.have[g.item] : 0;
+        if (g.count > 0) b = std::min(b, have / g.count);
+    }
+    return b == INT_MAX ? 0 : b;
+}
+
+/* an ingredient on the shelf: what the party has of it, who carries it, where it is sold, what uses it */
+static void ingredient_tip(const SheetModel &s, int id)
+{
+    ns_tip_begin(22);
+    ImGui::TextUnformatted(ns_item_name(id).c_str());
+    int n = s.have[id];
+    std::string by;
+    for (int m = 0; m < 5; m++) if (s.present[m] && s.ingr[m][id - 72]) by += (by.empty() ? "" : ", ") + ns_gtext(s.names[m]) + " " + std::to_string(s.ingr[m][id - 72]);
+    if (!n) ImGui::TextDisabled("The party has none.");
+    else if (s.shared) ImGui::Text("The party has %d.", n);
+    else ImGui::Text("The party has %d (%s).", n, by.c_str());
+    std::string w = journal_where_sold(id);
+    if (!w.empty()) ImGui::TextDisabled("Sold: %s", w.c_str());
+    std::string uses;                                   /* the formulae the party knows that call for it */
+    int nu = 0;
+    for (int k = 0; k < (int)gamedata.formulas.size() && k < 66; k++) {
+        bool kn = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.formula[m][k]) kn = true;
+        if (!kn) continue;
+        for (const FormulaIngr &g : gamedata.formulas[k].ingr) if (g.item == id) { if (nu < 4) uses += (uses.empty() ? "" : ", ") + gamedata.formula_names[k] + " (" + std::to_string(g.count) + ")"; nu++; }
+    }
+    if (nu > 4) uses += " and " + std::to_string(nu - 4) + " more";
+    if (!uses.empty()) ImGui::TextWrapped("Called for by %s.", uses.c_str());
+    ns_tip_end();
 }
 
 static void formulae(NsDraw &P, const SheetModel &s)
 {
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM;
-    int nf = (int)std::min(gamedata.formula_names.size(), (size_t)66);
+    int nf = (int)std::min(std::min(gamedata.formula_names.size(), gamedata.formulas.size()), (size_t)66);
     /* the alchemists: everyone who knows a formula */
     std::vector<int> al;
     for (int m = 0; m < 5; m++) { if (!s.present[m]) continue; for (int k = 0; k < nf; k++) if (s.formula[m][k]) { al.push_back(m); break; } }
-    const float LX0 = 62, LX1 = 200, LY0 = 30.5f, ROWH = 7.6f; const int NROWS = 21;
-    float colw = 9.5f, cx0 = LX1 - 2 - colw * al.size();
-    P.text(fo, NsDraw::FS_SMALL, LX0 + 2, 22.6f, soft, al.empty() ? "Nobody in the party knows a formula." : "Formulae the party knows; who knows each:");
+    auto known = [&](int k) { for (int m : al) if (s.formula[m][k]) return true; return false; };
+    const float LX0 = 62, LX1 = 200, LY0 = 30.5f, ROWH = 7.6f; const int NROWS = 14;
+    /* the choice: the formulae the party knows, or all of them (to judge one before buying it) */
+    float x = LX0 + 1;
+    for (int a = 0; a < 2; a++) {
+        const char *l = a ? "All formulae" : "Known in the party";
+        float w = P.width(fo, 4.4f, l) + 4;
+        bool sel = V.formulae_all == (a == 1);
+        P.rect(x, 22, x + w, 28.5f, sel ? IM_COL32(112, 40, 22, 240) : IM_COL32(222, 204, 168, 255), 1.2f);
+        P.text(fo, 4.4f, x + 2, 22.8f, sel ? NsDraw::LIGHT : ink, l);
+        if (P.hit(x, 22, x + w, 28.5f)) { V.formulae_all = a == 1; V.scroll[TAB_FORMULAE] = 0; }
+        x += w + 1;
+    }
+    /* who knows each: a column a member, headed by the name; its first three letters when the
+       names would take too much of the row ("Han" read as a word of its own) */
+    float colw = 9.5f; bool full = true;
+    for (int m : al) colw = std::max(colw, P.width(fo, 4.2f, ns_gtext(s.names[m])) + 2.5f);
+    if (colw * al.size() > 44) { colw = 9.5f; full = false; }
+    float cx0 = LX1 - 2 - colw * al.size();
     for (size_t a = 0; a < al.size(); a++) {
-        std::string ini = ns_gtext(s.names[al[a]]).substr(0, 3);
+        std::string ini = full ? ns_gtext(s.names[al[a]]) : letters(ns_gtext(s.names[al[a]]), 3);
         P.text(fo, 4.2f, cx0 + colw * a + (colw - P.width(fo, 4.2f, ini)) * 0.5f, 24.2f, al[a] == s.who ? NsDraw::RED : ink, ini);
     }
     std::vector<int> rows;
-    for (int k = 0; k < nf; k++) for (int m : al) if (s.formula[m][k]) { rows.push_back(k); break; }
+    for (int k = 0; k < nf; k++) if (V.formulae_all || known(k)) rows.push_back(k);
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_FORMULAE];
-    if (ns_in.wheel != 0 && ns_in.x < LX1) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
+    if (ns_in.wheel != 0 && ns_in.x < LX1 && ns_in.y < LY0 + NROWS * ROWH) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
     int maxs = n - NROWS; if (maxs < 0) maxs = 0;
     if (sc > maxs) sc = maxs;
     if (sc < 0) sc = 0;
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
+    if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, "Nobody in the party knows a formula. All formulae: every one, what it calls for and where it is sold.");
     int hover = -1;
+    int cl = (s16)g_rw(G_CUR_LOC), sold[4] = { -1, -1, -1, -1 }, price[4];
+    if (!(cl >= 0 && cl < (int)gamedata.cities.size() && alchemist_formulae(cl, sold, price))) sold[0] = sold[1] = sold[2] = sold[3] = -1;   /* (the town's alchemist: what it sells, tagged) */
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int k = rows[sc + r];
         float ry = LY0 + r * ROWH;
-        bool h = P.over(LX0, ry, LX1, ry + ROWH);
+        bool h = P.over(LX0, ry, LX1, ry + ROWH), kn = known(k);
         if (h) hover = k;
-        if (h || k == V.pin_formula) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, IM_COL32(226, 204, 160, 255));
+        if (h || k == V.pin_formula) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, k == V.pin_formula ? IM_COL32(218, 196, 150, 255) : IM_COL32(226, 204, 160, 255));
         if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = V.pin_formula == k ? -1 : k;
         P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3, -1, k % 3 + 1);
-        P.text(f, 5.4f, LX0 + 9, ry + 0.9f, ink, gamedata.formula_names[k], -1, cx0 - 1);
+        float end = cx0 - 1;
+        int b = kn ? batches_of(s, k) : 0;
+        if (b) {                                         /* what can be brewed now: how many batches */
+            std::string bs = std::to_string(b) + "x";
+            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, NsDraw::GREEN, bs, end);
+            end -= P.width(fo, NsDraw::FS_SMALL, bs) + 1.5f;
+        }
+        if (!kn && (sold[0] == k || sold[1] == k || sold[2] == k || sold[3] == k)) {
+            end -= small_tag(P, end, ry, ROWH, "sold here") + 1;
+        }
+        P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn ? ink : dim, gamedata.formula_names[k], -1, end);
         for (size_t a = 0; a < al.size(); a++) {
             if (!s.formula[al[a]][k]) continue;
             ImVec2 c = NsDraw::w(cx0 + colw * a + colw * 0.5f, ry + ROWH * 0.5f);
@@ -558,40 +811,91 @@ static void formulae(NsDraw &P, const SheetModel &s)
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(LX1 - 1.4f, ty, LX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
-    /* the formula */
     int k = hover >= 0 ? hover : V.pin_formula >= 0 ? V.pin_formula : n ? rows[sc] : -1;
-    const float DX0 = 203, DX1 = 318, DW = DX1 - DX0 - 5;
-    P.rect(DX0, 22, DX1, 197, IM_COL32(236, 224, 196, 255), 1.5f);
-    if (k < 0 || k >= (int)gamedata.formulas.size()) return;
+    if (k >= nf) k = -1;
+
+    /* the party's ingredients: all 23 always in the same places, those it has none of faded; what
+       the formula shown calls for ringed, green when there is enough */
+    const float SY0 = LY0 + NROWS * ROWH + 2.5f, GY0 = SY0 + 6, cellw = (LX1 - LX0 - 2) / 8.0f, cellh = (197 - GY0) / 3.0f;
+    P.text(fo, 4.3f, LX0 + 2, SY0, soft, "The party's ingredients");
+    int tip = -1;
+    for (int i = 0; i < 23; i++) {
+        int id = 72 + i, have = s.have[id], need = 0;
+        if (k >= 0) for (const FormulaIngr &g : gamedata.formulas[k].ingr) if (g.item == id) need += g.count;
+        float x0 = LX0 + 1 + (i % 8) * cellw, y0 = GY0 + (i / 8) * cellh, cxm = x0 + cellw * 0.5f;
+        if (need) P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, have >= need ? IM_COL32(204, 226, 184, 255) : IM_COL32(238, 196, 180, 255), 1.5f);
+        if (P.over(x0, y0, x0 + cellw, y0 + cellh)) { tip = id; P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, IM_COL32(226, 204, 160, 160), 1.5f); }
+        float is = std::min(cellw * 0.5f, cellh * 0.46f);         /* (a picture is drawn up to a third wider than its size) */
+        float iy = y0 + cellh * 0.36f;
+        P.icon(cxm, iy, is, id);
+        if (!have) P.dl->AddCircleFilled(NsDraw::w(cxm, iy), is * 0.7f * P.k, need ? IM_COL32(238, 196, 180, 160) : IM_COL32(242, 230, 200, 165));   /* (none: the sign faded) */
+        std::string c = need ? std::to_string(have) + "/" + std::to_string(need) : have ? std::to_string(have) : "";   /* (none: the faded sign says it) */
+        ImU32 cc = need ? (have >= need ? NsDraw::GREEN : NsDraw::RED) : ink;
+        if (!c.empty()) P.text(fo, NsDraw::FS_SMALL, cxm - P.width(fo, NsDraw::FS_SMALL, c) * 0.5f, y0 + cellh * 0.68f, cc, c);
+    }
+    if (tip >= 0) ingredient_tip(s, tip);
+
+    /* the formula: what it does, how hard and risky, its ingredients, the batches; who can brew
+       it and their chance, or (nobody knows it) where it is sold */
+    const float DX0 = 203, DX1 = 318, DY1 = 197, DW = DX1 - DX0 - 5;
+    P.rect(DX0, 22, DX1, DY1, IM_COL32(236, 224, 196, 255), 1.5f);
+    if (k < 0) return;
     const Formula &fm = gamedata.formulas[k];
+    bool kn = known(k);
+    P.dl->PushClipRect(NsDraw::w(DX0, 22), NsDraw::w(DX1, DY1), true);
     float y = 24;
     P.icon(DX0 + 6, y + 4, 8, 95 + k / 3, -1, k % 3 + 1);
     y += P.para(f, NsDraw::FS_HEAD, DX0 + 12, y, DW - 9, ink, gamedata.formula_names[k]) + 1.5f;
     static const char *RISK[3] = { "low risk", "some risk", "high risk" };
     char mr[64]; snprintf(mr, sizeof mr, "Mystic number %d, %s.", fm.mystic, fm.risk >= 0 && fm.risk < 3 ? RISK[fm.risk] : "risk unknown");
-    y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, soft, mr) + 1;
+    float mh = P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, soft, mr);
+    if (P.over(DX0, y, DX1, y + mh))
+        ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong.");
+    y += mh + 1;
     y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 2;
     P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: needed / the party has"); y += 6;
-    bool all = true;
     for (const FormulaIngr &g : fm.ingr) {
         int have = g.item >= 0 && g.item < 200 ? s.have[g.item] : 0;
-        if (have < g.count) all = false;
         P.icon(DX0 + 5, y + 3, 5.5f, g.item);
         P.text(fo, NsDraw::FS_SMALL, DX0 + 9.5f, y + 0.6f, ink, ns_item_name(g.item), -1, DX1 - 20);
         char v[16]; snprintf(v, sizeof v, "%d / %d", g.count, have);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 0.6f, have >= g.count ? NsDraw::GREEN : NsDraw::RED, v, DX1 - 3);
         y += 6.6f;
     }
-    y += 1.5f;
-    P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "The chance of one batch"); y += 6;
-    for (int m : al) {
-        if (!s.formula[m][k]) continue;
-        int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100;  /* (the alchemy screen's, without the Philosopher's Stone) */
-        pc = pc < 0 ? 0 : pc > 99 ? 99 : pc;
-        char v[64]; snprintf(v, sizeof v, "%s: %d%%", ns_gtext(s.names[m]).c_str(), pc);
-        P.text(fo, NsDraw::FS_SMALL, DX0 + 4, y, ink, v); y += 6;
+    int b = batches_of(s, k);
+    y += 0.5f;
+    if (b) { char bl[48]; snprintf(bl, sizeof bl, "Enough for %d batch%s.", b, b == 1 ? "" : "es"); y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::GREEN, bl) + 1.5f; }
+    else y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, dim, kn ? "The party lacks an ingredient: brewing must wait." : "The party lacks an ingredient.") + 1.5f;
+    if (kn) {
+        P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "The chance of one batch"); y += 6;
+        for (int m : al) {
+            if (!s.formula[m][k]) continue;
+            int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100;  /* (the alchemy screen's, without the Philosopher's Stone) */
+            pc = pc < 0 ? 0 : pc > 99 ? 99 : pc;
+            char v[64]; snprintf(v, sizeof v, "%s: %d%%", ns_gtext(s.names[m]).c_str(), pc);
+            P.text(fo, NsDraw::FS_SMALL, DX0 + 4, y, ink, v); y += 6;
+        }
+    } else {                                             /* nobody knows it: where an alchemist sells it (of the towns the party knows: ui/libraries.h) */
+        y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::RED, "Nobody in the party knows it.") + 1;
+        std::vector<SellerHit> sh = formula_sellers(k);
+        std::string w;
+        if (k >= 22) w = "No alchemist sells it: it is traded for or found.";
+        else if (sh.empty()) w = "No alchemist the party has been to sells it.";
+        else {
+            int d = (int)(sh[0].days + 0.5);
+            bool here = sh[0].days >= 0 && sh[0].days < 0.6;
+            w = here ? "Sold here, " + std::to_string(sh[0].price_fl) + " florins."
+                     : "Sold by the alchemist of " + sh[0].name + (sh[0].days < 0 ? "" : ", " + std::to_string(d) + (d == 1 ? " day away" : " days away")) + ", " + std::to_string(sh[0].price_fl) + " florins.";
+            if (sh.size() > 1) {
+                w += " Also in ";
+                for (size_t i = 1; i < sh.size() && i < 4; i++) w += (i > 1 ? ", " : "") + sh[i].name;
+                if (sh.size() > 4) w += " and " + std::to_string(sh.size() - 4) + " more";
+                w += ".";
+            }
+        }
+        P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, soft, w);
     }
-    if (!all) P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y + 1, DW, dim, "The party lacks an ingredient: brewing must wait.");
+    P.dl->PopClipRect();
 }
 
 extern "C" void sheetview_draw(void)
@@ -605,6 +909,7 @@ extern "C" void sheetview_draw(void)
     if (s.who != V.last_who) { V.scroll[TAB_THINGS] = 0; V.drop_row = -1; V.what = 0; V.last_who = s.who; }
     if (V.act_seq != s.seq) V.drop_row = -1;
     int new_what = 0, new_which = -1;
+    EFF = effects_now(5);
     P.page();
     header(P, s);
     if (V.tab == TAB_THINGS || V.tab == TAB_SKILLS) {
@@ -621,4 +926,3 @@ extern "C" void sheetview_draw(void)
 
 /* for the prayer screen (ui/prayview.cpp): the saint's statue, its legend and effect */
 const GamePic *ns_saint_statue(int cls) { return statue(cls); }
-void ns_saint_parts(const std::string &t, std::string &lore, std::string &eff) { saint_parts(t, lore, eff); }

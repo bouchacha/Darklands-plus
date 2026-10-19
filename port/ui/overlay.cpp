@@ -16,9 +16,13 @@
 #include "imgui.h"
 #include <SDL.h>
 #include "../mods/hdart.h"
+#include "../mods/saintinfo.h"
 #include "../mods/nscreen.h"
 #include "gamedata.h"
 #include "ui.h"
+#include "skillicons.h"
+#include "overlay.h"
+extern "C" const char *gm_a_an(int n);   /* mods/gamemodel.c */
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -29,6 +33,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
 #include "../mods/hdtext.h"
+#include "../mods/titleview.h"
 u32 plat_ticks_ms(void);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -37,6 +42,7 @@ extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
 static ImDrawList *ovl_dl;               /* the overlay layer (ui_overlay): under tooltips and windows, over the picture */
 static ImDrawList *ovl_list(void) { return ovl_dl ? ovl_dl : ImGui::GetForegroundDrawList(); }
+ImDrawList *ui_overlay_list(void) { return ovl_list(); }
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
 
@@ -99,6 +105,7 @@ static bool faint_text(ImU32 c, int bg)
 }
 
 static ImVec2 g2w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
+ImVec2 ui_g2w(float x, float y) { return g2w(x, y); }
 static u8 px(int x, int y) { return (x < 0 || x >= 320 || y < 0 || y >= 200) ? 0 : M[0xa0000 + y * 320 + x]; }
 
 /* rightmost text pixel in the last text row of an option line: returns its x, and the
@@ -226,8 +233,8 @@ static void draw_chances(void)
     if (tip_line >= 0) {                                          /* what the badge is */
         char t[200], nm[24] = "";
         if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
-        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, tip_pct);
-        else snprintf(t, sizeof t, "This option tests the whole party: a %d %% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", tip_pct);
+        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: %s %d%% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, gm_a_an(tip_pct), tip_pct);
+        else snprintf(t, sizeof t, "This option tests the whole party: %s %d%% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", gm_a_an(tip_pct), tip_pct);
         ImFont *tf = f;
         float ts = ui_text_px() * 0.8f, pad = ts * 0.45f;           /* sized like the other tooltips */
         float wrap = fminf(ImGui::GetIO().DisplaySize.x * 0.45f, ts * 26);
@@ -358,7 +365,6 @@ static void spell_columns(std::vector<Spelled> &out, ImFont *font, float size)
 
 /* small pictures for the skills of the character sheet, in the gap between value and name */
 int ui_skill_icons = 1;
-void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type);
 static int skill_of(const char *t)
 {
     static const char *SK[19] = { "wEdg", "wImp", "wFll", "wPol", "wThr", "wBow", "wMsD", "Alch", "Relg", "Virt", "SpkC", "SpkL", "R&W",
@@ -366,184 +372,13 @@ static int skill_of(const char *t)
     for (int i = 0; i < 19; i++) if (!strcmp(t, SK[i])) return i;
     return -1;
 }
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);
 static void skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { ui_skill_icon(dl, c, s, k); }
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
-{
-    static const int WT[7] = { 3, 14, 17, 19, 23, 28, 31 };     /* a weapon of each class (LST type) */
-    dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));  /* a dark disc: the picture reads on any background */
-    if (k < 7) { ui_equip_icon(dl, c, s * 1.25f, WT[k]); return; }
-    float u = s / 16.0f;
-    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
-    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), green = C(84, 150, 62), steel = C(190, 194, 204), wood = C(134, 88, 46);
-    switch (k) {
-    case 7:  /* alchemy: a flask */
-        dl->AddCircleFilled(P(0, 4), 6.2f * u, C(120, 200, 150)); dl->AddRectFilled(P(-1.8f, -9), P(1.8f, -1), C(200, 220, 225));
-        dl->AddCircle(P(0, 4), 6.2f * u, ink, 0, 1.0f * u); dl->AddRect(P(-1.8f, -9), P(1.8f, -1.5f), ink, 0, 0, 1.0f * u);
-        dl->AddRectFilled(P(-2.6f, -10.5f), P(2.6f, -8.5f), wood); break;
-    case 8:  /* religion: a cross */
-        dl->AddRectFilled(P(-1.6f, -10), P(1.6f, 10), gold); dl->AddRectFilled(P(-6.5f, -5), P(6.5f, -1.8f), gold);
-        dl->AddRect(P(-1.6f, -10), P(1.6f, 10), ink, 0, 0, 0.8f * u); dl->AddRect(P(-6.5f, -5), P(6.5f, -1.8f), ink, 0, 0, 0.8f * u); break;
-    case 9:  /* virtue: a halo with rays */
-        for (int i = 0; i < 8; i++) { float a = i * 0.785f; dl->AddLine(P(cosf(a) * 6.5f, sinf(a) * 6.5f), P(cosf(a) * 10, sinf(a) * 10), gold, 1.2f * u); }
-        dl->AddCircle(P(0, 0), 5.0f * u, gold, 0, 2.2f * u); break;
-    case 10: /* speak common: a speech bubble */
-        dl->AddRectFilled(P(-9, -8), P(9, 4), parch, 4 * u); dl->AddTriangleFilled(P(-4, 3.5f), P(-7, 9.5f), P(1, 3.5f), parch);
-        dl->AddRect(P(-9, -8), P(9, 4), ink, 4 * u, 0, 1.0f * u);
-        for (int i = 0; i < 3; i++) dl->AddCircleFilled(P(-4.5f + i * 4.5f, -2), 1.2f * u, ink); break;
-    case 11: /* speak Latin: a book */
-        dl->AddRectFilled(P(-9, -7), P(9, 7), C(120, 40, 30)); dl->AddRectFilled(P(-8, -6), P(-0.6f, 6), parch); dl->AddRectFilled(P(0.6f, -6), P(8, 6), parch);
-        for (int i = 0; i < 3; i++) { dl->AddLine(P(-6.5f, -3 + i * 3), P(-2, -3 + i * 3), ink, 0.7f * u); dl->AddLine(P(2, -3 + i * 3), P(6.5f, -3 + i * 3), ink, 0.7f * u); } break;
-    case 12: /* read & write: a quill */
-        dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(2, -10), C(245, 245, 240)); dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(8, -4), C(220, 220, 214));
-        dl->AddLine(P(-8, 10), P(7, -9), ink, 1.0f * u); break;
-    case 13: /* healing: a sprig of herbs */
-        dl->AddLine(P(0, 10), P(0, -8), C(60, 110, 40), 1.4f * u);
-        for (int i = 0; i < 3; i++) { float y = -5 + i * 5.0f;
-            dl->AddTriangleFilled(P(0, y), P(-7, y - 3), P(-3, y + 2), green); dl->AddTriangleFilled(P(0, y + 1), P(7, y - 2), P(3, y + 3), green); }
-        dl->AddCircleFilled(P(0, -9), 2.2f * u, green); break;
-    case 14: /* artifice: a cog */
-        for (int i = 0; i < 8; i++) { float a = i * 0.785f; dl->AddLine(P(cosf(a) * 5, sinf(a) * 5), P(cosf(a) * 9, sinf(a) * 9), steel, 3.0f * u); }
-        dl->AddCircleFilled(P(0, 0), 6.5f * u, steel); dl->AddCircleFilled(P(0, 0), 2.6f * u, C(60, 50, 40)); dl->AddCircle(P(0, 0), 6.5f * u, ink, 0, 0.8f * u); break;
-    case 15: /* stealth: a half-closed eye */
-        dl->AddBezierQuadratic(P(-10, 0), P(0, -8), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 6), P(10, 0), parch, 1.6f * u);
-        dl->AddCircleFilled(P(0, 0.5f), 3.0f * u, C(30, 30, 40)); dl->AddLine(P(-10, -0.5f), P(10, -0.5f), C(30, 30, 40), 2.2f * u); break;
-    case 16: /* streetwise: a purse */
-        dl->AddCircleFilled(P(0, 3), 7.0f * u, C(150, 104, 56)); dl->AddTriangleFilled(P(-3.5f, -5), P(3.5f, -5), P(0, -1), C(150, 104, 56));
-        dl->AddLine(P(-4, -4), P(4, -4), ink, 1.2f * u); dl->AddCircle(P(0, 3), 7.0f * u, ink, 0, 0.8f * u); dl->AddCircleFilled(P(0, 4), 1.8f * u, gold); break;
-    case 17: /* riding: a horseshoe */
-        dl->PathArcTo(P(0, -1), 7.0f * u, 3.1416f * 0.95f, 3.1416f * 2.05f, 16); dl->PathStroke(steel, 0, 3.4f * u);
-        dl->AddLine(P(-7, -1), P(-6, 8), steel, 3.4f * u); dl->AddLine(P(7, -1), P(6, 8), steel, 3.4f * u);
-        for (int i = 0; i < 3; i++) { dl->AddCircleFilled(P(-6.6f + i * 0.2f, 1 + i * 2.5f), 0.7f * u, ink); dl->AddCircleFilled(P(6.6f - i * 0.2f, 1 + i * 2.5f), 0.7f * u, ink); } break;
-    case 18: /* woodwise: a fir */
-        dl->AddRectFilled(P(-1.2f, 6), P(1.2f, 10), wood);
-        dl->AddTriangleFilled(P(0, -11), P(-5, -3), P(5, -3), C(52, 120, 60)); dl->AddTriangleFilled(P(0, -6), P(-7, 3), P(7, 3), C(52, 120, 60));
-        dl->AddTriangleFilled(P(0, -1), P(-8.5f, 7), P(8.5f, 7), C(52, 120, 60)); break;
-    }
-}
-
 /* the attributes on the character sheet and in character creation: a picture each */
 static int attr_of(const char *t)
 {
     static const char *AT[7] = { "End", "Str", "Agl", "Per", "Int", "Chr", "DF" };       /* (the game's words, spelled out when drawn) */
     for (int i = 0; i < 7; i++) if (!strcmp(t, AT[i])) return i;
     return -1;
-}
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k)
-{
-    dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));
-    float u = s / 16.0f;
-    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
-    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196);
-    switch (k) {
-    case 0: { /* endurance: a heart */
-        ImU32 red = C(200, 50, 45);
-        dl->AddCircleFilled(P(-3.6f, -2.5f), 4.6f * u, red); dl->AddCircleFilled(P(3.6f, -2.5f), 4.6f * u, red);
-        dl->AddTriangleFilled(P(-8.1f, -1.2f), P(8.1f, -1.2f), P(0, 9), red);
-        dl->AddCircleFilled(P(-4.5f, -4), 1.3f * u, C(250, 170, 160)); break; }
-    case 1: /* strength: an iron weight */
-        dl->AddCircle(P(0, -6), 3.2f * u, C(110, 110, 118), 0, 2.0f * u);
-        dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
-        dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
-        dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
-    case 2: /* agility: a wing */
-        for (int i = 0; i < 3; i++) {
-            float y = -6 + i * 4.5f, x = 9 - i * 3.0f;
-            dl->AddTriangleFilled(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), parch);
-            dl->AddTriangle(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), ink, 0.7f * u);
-        }
-        break;
-    case 3: /* perception: an open eye */
-        dl->AddBezierQuadratic(P(-10, 0), P(0, -9), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 9), P(10, 0), parch, 1.6f * u);
-        dl->AddCircleFilled(P(0, 0), 4.0f * u, C(80, 130, 200)); dl->AddCircleFilled(P(0, 0), 1.8f * u, C(15, 15, 20));
-        dl->AddCircleFilled(P(1.2f, -1.2f), 0.8f * u, C(255, 255, 255)); break;
-    case 4: /* intellect: a candle */
-        dl->AddRectFilled(P(-3, -2), P(3, 9), C(240, 232, 210)); dl->AddRect(P(-3, -2), P(3, 9), ink, 0, 0, 0.8f * u);
-        dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
-        dl->AddTriangleFilled(P(-2.4f, -4.5f), P(2.4f, -4.5f), P(0, -11), C(255, 200, 70));
-        dl->AddCircleFilled(P(0, -5.2f), 2.4f * u, C(255, 200, 70)); dl->AddCircleFilled(P(0, -5.5f), 1.1f * u, C(255, 250, 210)); break;
-    case 5: /* charisma: a crown */
-        dl->AddQuadFilled(P(-9, 6), P(9, 6), P(9, -5), P(-9, -5), gold);
-        dl->AddTriangleFilled(P(-9, -5), P(-4, -5), P(-6.5f, -10), gold); dl->AddTriangleFilled(P(-2.5f, -5), P(2.5f, -5), P(0, -11), gold);
-        dl->AddTriangleFilled(P(4, -5), P(9, -5), P(6.5f, -10), gold);
-        dl->AddRect(P(-9, -5), P(9, 6), ink, 0, 0, 0.8f * u);
-        dl->AddCircleFilled(P(0, 0.5f), 1.8f * u, C(190, 40, 40)); dl->AddCircleFilled(P(-5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); dl->AddCircleFilled(P(5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); break;
-    case 6: /* divine favor: a chalice */
-        dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
-        dl->AddQuadFilled(P(-7, -9), P(7, -9), P(5, -1), P(-5, -1), gold);
-        dl->AddRectFilled(P(-1, 2), P(1, 7), gold); dl->AddRectFilled(P(-5, 7), P(5, 9.5f), gold);
-        dl->AddLine(P(-7, -9), P(7, -9), ink, 0.9f * u); break;
-    }
-}
-
-/* a skill's picture in the flow of a window's text, then the text goes on beside it */
-void ui_skill_icon_inline(int k)
-{
-    float s = ImGui::GetFontSize();
-    ImVec2 p = ImGui::GetCursorScreenPos();
-    ImGui::Dummy(ImVec2(s * 1.05f, s));
-    ui_skill_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + s * 0.5f, p.y + s * 0.52f), s * 0.6f, k);
-    ImGui::SameLine(0, s * 0.2f);
-}
-
-/* the F12 menu's tabs: a small picture for each, drawn in the room left at the start of the label */
-void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
-{
-    float u = s / 16.0f;
-    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
-    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), red = C(170, 40, 30), steel = C(190, 194, 204), wood = C(150, 100, 52);
-    switch (tab) {
-    case 0:  /* inventory: a satchel */
-        dl->AddRectFilled(P(-8, -3), P(8, 9), wood, 2 * u); dl->AddRect(P(-8, -3), P(8, 9), ink, 2 * u, 0, 1.0f * u);
-        dl->AddRectFilled(P(-8, -3), P(8, 3), C(120, 78, 40), 2 * u); dl->AddRect(P(-8, -3), P(8, 3), ink, 2 * u, 0, 1.0f * u);
-        dl->PathArcTo(P(0, -3), 5.5f * u, 3.1416f, 6.2832f, 12); dl->PathStroke(ink, 0, 1.6f * u);
-        dl->AddRectFilled(P(-1.5f, 1), P(1.5f, 5), gold); break;
-    case 1:  /* party: three heads */
-        for (int i = -1; i <= 1; i++) {
-            float x = i * 6.0f, y = i == 0 ? -1.0f : 1.0f;
-            ImU32 col = i == 0 ? parch : C(205, 190, 160);
-            dl->AddCircleFilled(P(x, y - 4), 3.2f * u, col); dl->AddCircle(P(x, y - 4), 3.2f * u, ink, 0, 0.8f * u);
-            dl->PathArcTo(P(x, y + 6), 5.0f * u, 3.1416f, 6.2832f, 12); dl->PathFillConvex(col);
-        }
-        break;
-    case 2: ui_skill_icon(dl, c, s, 7); break;                 /* alchemy: the flask */
-    case 3: ui_skill_icon(dl, c, s, 9); break;                 /* saints: the halo */
-    case 4: ui_skill_icon(dl, c, s, 11); break;                /* journal: the book */
-    case 5:  /* saves: a sealed letter */
-        dl->AddRectFilled(P(-9, -6), P(9, 7), parch); dl->AddRect(P(-9, -6), P(9, 7), ink, 0, 0, 1.0f * u);
-        dl->AddLine(P(-9, -6), P(0, 1), ink, 0.9f * u); dl->AddLine(P(9, -6), P(0, 1), ink, 0.9f * u);
-        dl->AddCircleFilled(P(0, 2), 3.4f * u, red); break;
-    case 6:  /* travel: a compass rose */
-        dl->AddCircle(P(0, 0), 8.5f * u, gold, 0, 1.4f * u);
-        dl->AddTriangleFilled(P(0, -9), P(-2.4f, 0), P(2.4f, 0), red); dl->AddTriangleFilled(P(0, 9), P(-2.4f, 0), P(2.4f, 0), parch);
-        dl->AddTriangleFilled(P(-9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); dl->AddTriangleFilled(P(9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); break;
-    case 7:  /* helpers: a lit candle */
-        dl->AddRectFilled(P(-2.5f, -2), P(2.5f, 9), parch); dl->AddRect(P(-2.5f, -2), P(2.5f, 9), ink, 0, 0, 0.8f * u);
-        dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
-        dl->AddTriangleFilled(P(0, -11), P(-2.6f, -5), P(2.6f, -5), C(250, 190, 60)); dl->AddCircleFilled(P(0, -5.5f), 2.6f * u, C(250, 150, 40)); break;
-    case 8: ui_skill_icon(dl, c, s, 14); break;                /* mods: the cog */
-    case 9:  /* display: a framed picture */
-        dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
-        dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
-        dl->AddRect(P(-9, -7), P(9, 7), gold, 0, 0, 1.8f * u); break;
-    case 10: /* records: a crown */
-        dl->AddRectFilled(P(-8, 2), P(8, 7), gold);
-        dl->AddTriangleFilled(P(-8, 2), P(-8, -7), P(-3, 2), gold); dl->AddTriangleFilled(P(-4, 2), P(0, -8), P(4, 2), gold); dl->AddTriangleFilled(P(3, 2), P(8, -7), P(8, 2), gold);
-        dl->AddCircleFilled(P(0, 4.5f), 1.4f * u, red); dl->AddRect(P(-8, 2), P(8, 7), ink, 0, 0, 0.8f * u); break;
-    case 11: /* about: i in a circle */
-        dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
-        dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;
-    case 12: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
-    case 13: /* guide: an open book */
-        dl->AddQuadFilled(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), parch); dl->AddQuadFilled(P(0, -4), P(9, -6), P(9, 6), P(0, 8), C(226, 214, 184));
-        dl->AddQuad(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), ink, 0.8f * u); dl->AddQuad(P(0, -4), P(9, -6), P(9, 6), P(0, 8), ink, 0.8f * u);
-        for (int i = 0; i < 3; i++) { dl->AddLine(P(-7, -2 + i * 3.0f), P(-2, -1 + i * 3.0f), C(120, 100, 80), 0.7f * u); dl->AddLine(P(2, -1 + i * 3.0f), P(7, -2 + i * 3.0f), C(120, 100, 80), 0.7f * u); }
-        break;
-    default: (void)steel; break;
-    }
 }
 
 /* mods' text.txt: words on the screen said differently ("Purchase an item => Kaufen"), for
@@ -775,6 +610,7 @@ static void draw_version(void)
 {
     int m = game_mode();
     if (!(m == GM_OTHER || (m == GM_SCREEN && (s16)g_rw(G_PARTY_SIZE) == 0))) return;   /* (the title menu is a screen, before a party) */
+    { extern TitleModel title_model; if (title_model.open && ns_screen == NS_TITLE && !ns_hidden()) return; }   /* (the start screen drawn anew writes it on its parchment) */
     char t[96]; snprintf(t, sizeof t, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
     ImDrawList *dl = ovl_list();
     ImVec2 br = g2w(318.0f, 198.0f), sz = ImGui::CalcTextSize(t);
@@ -991,9 +827,9 @@ static void draw_learned(void)
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
-    /* the legend, then what the saint does in gold */
-    size_t at = saint_effect_at(t.text), ea = at; while (ea < t.text.size() && t.text[ea] == ' ') ea++;
-    std::string lore = t.text.substr(0, at), eff = t.text.substr(ea);
+    /* the legend, then what the saint's help does (the game's code: mods/saintinfo.h) in gold */
+    size_t at = saint_effect_at(t.text);
+    std::string lore = t.text.substr(0, at), eff = std::string(saint_info_does(learned_saint)) + (*saint_info_note(learned_saint) ? " " : "") + saint_info_note(learned_saint);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
     ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str());
     ImVec2 ls = lore.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, lore.c_str());
@@ -1017,7 +853,7 @@ extern "C" void travel_overlay(void);
  * "V:Brigandine"), a saint (the saints lists, a card's prayer box) or an alchemy formula (the
  * formula book) - what it is good for, as a tooltip */
 int ui_shop_info = 1;
-void ui_item_details(const ItemDef *d, int id);
+void ui_item_details(const ItemDef *d, int id, int q = -1);
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static std::string squash(const std::string &t)            /* letters and digits only, lower case: "St.Martin" = "St. Martin" */
 {
@@ -1036,9 +872,9 @@ static void draw_shop_info(void)
     static std::vector<std::string> item_keys, short_keys, saint_keys, formula_keys;
     if (item_keys.size() != gamedata.items.size()) {
         item_keys.clear(); short_keys.clear();
-        for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.name)); short_keys.push_back(squash(d.shortname)); }
-        saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.name));
-        formula_keys.clear(); for (const std::string &f : gamedata.formula_names) formula_keys.push_back(squash(f));
+        for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.game_name)); short_keys.push_back(squash(d.shortname)); }   /* (the game's names: matched in the game's text) */
+        saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.game_name));
+        formula_keys.clear(); for (const std::string &f : gamedata.formula_game_names) formula_keys.push_back(squash(f));
     }
     int mx, my; plat_mouse_game(&mx, &my);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { mx = cx; my = cy; } }   /* where the game shows its pointer (it moves it in lists) */
@@ -1072,7 +908,7 @@ static void draw_shop_info(void)
     for (size_t i = 0; i < item_keys.size() && item < 0; i++) if (key == item_keys[i] || (short_keys[i].size() >= 4 && key == short_keys[i])) item = (int)i;
     /* armour is "V:Brigandine", "L:Chainmail" (vital and limb) in the item list; a screen may leave the "V:" out */
     for (size_t i = 0; i < item_keys.size() && item < 0; i++) {
-        const std::string &n = gamedata.items[i].name;
+        const std::string &n = gamedata.items[i].game_name;
         if (n.size() > 2 && n[1] == ':' && key == item_keys[i].substr(1)) item = (int)i;
     }
     if (item < 0) for (size_t i = 0; i < saint_keys.size() && saint < 0; i++) if (key == saint_keys[i]) saint = (int)i;
@@ -1110,7 +946,6 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
         if (item >= 0) {
             const ItemDef *d = &gamedata.items[item];
             std::string nm = game_text(d->name.c_str(), d->name.size());
-            if (nm.size() > 2 && nm[1] == ':') nm = nm.substr(2);                 /* "V:Brigandine" */
             ImGui::TextUnformatted(nm.c_str());
             ImGui::TextDisabled("%s%s", kind_name_one(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
             ui_item_details(d, item);
@@ -1125,7 +960,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 }
             ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this saint" : ("Known to " + who).c_str());
             ImGui::Separator();
-            ui_saint_text(st.text);
+            ui_saint_info(saint);
         } else {
             ImGui::TextUnformatted(gamedata.formula_names[formula].c_str());
             if (formula < (int)gamedata.formulas.size()) {
@@ -1179,161 +1014,6 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
     ImGui::End();
 }
 
-/* in a battle: who the pointer is on (the battle's own hot spots, s014 19cd), their condition,
- * attack, defence and weapon; enemies' names from the battle's level%d.enm */
-int ui_battle_info = 1, ui_battle_numbers = 0;
-struct EnmRec { std::string name; int endm, strm, def, atk; };
-/* the enemy types of a battle level (level%d.enm, 0x122-byte records after a count: a combatant
- * record, then the name at +0x84); a combatant is told by its maxima, attack and defence */
-std::string ui_enemy_name(int floor, u16 b);
-static std::string enemy_name(int floor, u16 b) { return ui_enemy_name(floor, b); }
-std::string ui_enemy_name(int floor, u16 b)
-{
-    static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 }; static long long stamps[8];
-    if (floor < 0 || floor > 7) return "";
-    char dn[16]; snprintf(dn, sizeof dn, "level%d.enm", floor);
-    char p[1300]; dos_host_path(dn, p, sizeof p);
-    struct stat stt; long long mt = stat(p, &stt) == 0 ? (long long)stt.st_mtime : 0;
-    FILE *f = fopen(p, "rb");
-    if (!f) return "";
-    fseek(f, 0, SEEK_END); long n = ftell(f);
-    if (n != sizes[floor] || mt != stamps[floor]) {          /* every battle writes the file anew, often at the same size */
-        sizes[floor] = n; stamps[floor] = mt; recs[floor].clear();
-        for (int k = 0; k < 16; k++) {
-            unsigned char r[0x9b];
-            if (fseek(f, 1 + (long)k * 0x122, SEEK_SET) || fread(r, 1, sizeof r, f) != sizeof r) break;
-            char nm[24]; memcpy(nm, r + 0x84, 0x17); nm[0x17] = 0;
-            recs[floor].push_back(EnmRec{ game_text(nm, sizeof nm), (s8)r[0x64], (s8)r[0x65], r[0x20], r[0x21] });
-        }
-    }
-    fclose(f);
-    int endm = (s8)g_rb((u16)(b + 0x64)), strm = (s8)g_rb((u16)(b + 0x65)), def = g_rb((u16)(b + 0x20)), atk = g_rb((u16)(b + 0x21));
-    for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm && e.def == def && e.atk == atk) return e.name;
-    for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
-    return "";
-}
-/* a thin bar over each fighter on the field: the endurance left (the party's blue, the enemies'
-   red), and a second, the strength, once it is down by half (battle.bars) */
-int ui_battle_bars = 1;
-static void draw_battle_bars(void)
-{
-    if (!ui_battle_bars || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
-    int n = (s8)g_rb(GV_hotspot_count);
-    if (n <= 0 || n > 40) return;
-    ImDrawList *dl = ovl_list();
-    bool done[13] = {};
-    float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
-    dl->PushClipRect(g2w(60, 0), g2w(320, 200), true);        /* (the field only: not over the margins or the panel) */
-    for (int i = 0; i < n; i++) {
-        int m = g_rb((u16)(GV_hotspot_cbt + i));
-        if (m >= 13 || done[m]) continue;
-        done[m] = true;
-        u16 b = (u16)(GV_combatants + m * 0x80);
-        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
-        if (st != 1 || endm <= 0) continue;
-        int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
-        if (x1 <= x0 || x1 - x0 > 60) continue;
-        float cx = (x0 + x1) * 0.5f + 60, w = 10.0f, gy = (float)y0 - 5.5f;       /* (the hot spot starts at the head: the bar clear above it) */
-        if (gy < 1) gy = 1;
-        ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
-        float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x;
-        float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
-        ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
-        dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
-        if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
-        if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
-            float fs = str < 0 ? 0 : (float)str / strm;
-            ImVec2 a2(a.x, a.y + h + 1);
-            dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
-            if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
-        }
-    }
-    dl->PopClipRect();
-}
-
-static void draw_battle_info(void)
-{
-    if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
-    int gx, gy; plat_mouse_game(&gx, &gy);
-    { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
-    int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
-    if (mx < 0 || n <= 0 || n > 40) return;
-    for (int k = n - 1; k >= 0; k--) {
-        int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
-        int m = g_rb((u16)(GV_hotspot_cbt + k));
-        if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
-        int cyy = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
-        if (cyy > by) { by = cyy; best = m; }
-    }
-    if (best < 0) return;
-    u16 b = (u16)(0x9c55 + best * 0x80);
-    int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
-    /* +0x22 the missile weapon's type (0xff none), +0x23 the melee weapon's */
-    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x23));
-    std::string name;
-    if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
-    else name = enemy_name(g_rb((u16)(GV_cbt_floor + best)), b);
-    if (name.empty()) name = best < 5 ? "?" : "Enemy";
-    const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
-    if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
-    ImVec2 p = g2w((float)gx, (float)gy);
-    ImGuiIO &io = ImGui::GetIO();
-    bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
-    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -26.0f : 26.0f), p.y + (below ? -26.0f : 26.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
-    ImGui::SetNextWindowBgAlpha(0.92f);
-    if (ImGui::Begin("##battleinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
-                                               ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::PushFont(ui_font_overlay);
-        ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
-        ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
-        if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
-        if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
-        ImGui::Text("Attack %d, defence %d", atk, def);
-        auto wname = [](int t) -> std::string {
-            if (t < 0 || t > 33) return "";
-            for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());
-            return "";
-        };
-        {
-            std::string a = wname(w), m = wname(wm);
-            if (!a.empty() || !m.empty()) ImGui::TextDisabled("%s%s%s", a.c_str(), !a.empty() && !m.empty() ? ", " : "", m.c_str());
-        }
-        if (best >= 5 && st == 1) {
-            /* its body armour against the party's weapons (the game's rule, as in the armour
-               tooltips: penetration below the hardness deflects most of the blow, equal halves it,
-               above pierces and wounds strength) */
-            int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
-            static const char *HN[6] = { "no armour", "soft armour", "stiff armour", "scale armour", "mail", "plate" };
-            if (h >= 0 && h < 6) {
-                ImGui::Text("%s (hardness %d)", HN[h], h);
-                int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
-                for (int m = 0; m < size; m++) {
-                    u16 mb = (u16)(0x9c55 + m * 0x80);
-                    if (g_rb((u16)(mb + 0x14)) != 1) continue;
-                    char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-                    std::string line = game_text(nm, sizeof nm) + ":";
-                    int worst = 3;                                   /* the colour: the best of the member's weapons */
-                    for (int k = 0; k < 2; k++) {
-                        int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x23)));
-                        std::string wn = wname(mw);
-                        if (wn.empty()) continue;
-                        int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                        if (r < worst) worst = r;
-                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is deflected");
-                    }
-                    if (worst == 3) continue;
-                    ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);
-                    ImGui::TextColored(c, "%s", line.c_str());
-                }
-            }
-        }
-        ImGui::PopFont();
-    }
-    ImGui::End();
-}
-
-/* character creation: what the step on screen asks for and what the numbers on the right mean,
- * in the empty column at the left of the creation screen (s037 18c8, state D_8c1e) */
 int ui_creation_guide = 1;
 /* the loot screen and the shops: two buttons beside the game's menu (loot: Take all (A),
  * Share out (S); shops: Sell the whole stack (A), Buy ten (T); mods/loot.c); clicks come
@@ -1379,7 +1059,7 @@ extern "C" int overlay_click_up(int x, int y) { (void)x; (void)y; int t = click_
 static void draw_creation_guide(void)
 {
     if (!ui_creation_guide || config_get_int("original", 0) || !hdart_on_screen("CHARGEN")) return;
-    int st = (s16)g_rw(0x8c1e);
+    int st = (s16)g_rw(GV_create_state);
     static const char *T[5] = {
         "Making a character: name and sex first, then the family background, the attributes, and "
         "one profession after another, five years each, until you begin adventuring. Older characters "
@@ -1436,11 +1116,12 @@ extern "C" void ui_overlay(void)
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();
-    if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER) draw_version();       /* (not over a character being made, the party chosen) */
+    if (ns_screen != NS_CREATE && ns_screen != NS_ROSTER && ns_screen != NS_SAVES) draw_version();       /* (not over a character being made, the party chosen, the saves) */
     { void ui_margins(void); ui_margins(); }
     draw_shop_info();
-    draw_battle_bars();
-    draw_battle_info();
+    ui_draw_battle_bars();
+    ui_draw_battle_info();
+    ui_draw_battle_fast();
     { void battlelog_overlay(void); battlelog_overlay(); }
     if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */
     draw_loot_buttons();

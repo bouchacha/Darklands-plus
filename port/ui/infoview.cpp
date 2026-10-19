@@ -28,7 +28,7 @@ extern "C" void infoview_draw(void)
     char b[256];
     P.page();
     P.text(f, NsDraw::FS_TITLE, 65, 2.5f, ink, "The party");
-    if (P.button(290, 3, 316, 11.5f, "Close", IM_COL32(112, 40, 22, 235))) ns_push(IV_CLOSE, 0, 0, 0);
+    if (P.button(284, 2.5f, 315, 13, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(IV_CLOSE, 0, 0, 0);
 
     /* the party */
     const float LX0 = 63, LX1 = 170;
@@ -56,8 +56,10 @@ extern "C" void infoview_draw(void)
     y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, money_fgp(m.money[0], m.money[1], m.money[2])) + 0.5f;
     snprintf(b, sizeof b, "%ld pfennigs in all", m.total_pf);
     P.text(fo, NsDraw::FS_SMALL, x, y, soft, b); y += 7.5f;
-    snprintf(b, sizeof b, "Bank notes: %s", money_fgp(m.notes, 0, 0).c_str());
-    P.text(fo, NsDraw::FS_BODY, x, y, ink, b); y += 6.5f;
+    if (m.notes > 0) {                                      /* (none: nothing to say) */
+        snprintf(b, sizeof b, "Bank notes: %s", money_fgp(m.notes, 0, 0).c_str());
+        P.text(fo, NsDraw::FS_BODY, x, y, ink, b); y += 6.5f;
+    }
     if (m.phstone) snprintf(b, sizeof b, "Philosopher's Stone: +%d to alchemy", m.phstone); else snprintf(b, sizeof b, "No Philosopher's Stone yet");
     y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, b);
 

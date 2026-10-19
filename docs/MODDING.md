@@ -126,7 +126,7 @@ map are new ones. Each new encounter counts as `weight` more entries of the game
 encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one
 of the game's own; F12 > Settings > Mods sets an overall percentage, and none comes twice within a few days.
 A small red seal in the corner of the card marks a new encounter (its tooltip names it). Not in
-"Play the original game".
+the Buggy Purist preset (the game as it was).
 
 An encounter is two files: its text, `MSGFILES/<CARD>.TXT` in the card text format above (block 0
 is usually the first menu), and its script, `ENCOUNTERS/<NAME>.TXT`:

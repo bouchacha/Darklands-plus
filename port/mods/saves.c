@@ -81,7 +81,8 @@ int saves_read(const char *name, SaveInfo *si)
     memcpy(si->comment, h + 0x15, 0x4f); si->comment[0x4f] = 0;
 #define W(o) ((int)(s16)(h[o] | h[(o) + 1] << 8))
     si->year = W(0x68); si->month = W(0x6a); si->day = W(0x6c); si->hour = W(0x6e);
-    si->florins = W(0x70); si->fame = W(0x7a);
+    si->florins = h[0x70] | h[0x71] << 8; si->groschen = h[0x72] | h[0x73] << 8; si->pfennigs = h[0x74] | h[0x75] << 8;   /* (the purse: three unsigned words) */
+    si->fame = W(0x7a);
     int nd = W(0xf1), np = 0;
     for (int m = 0; m < 5; m++) {
         int id = W(0xf3 + 2 * m);
@@ -295,16 +296,22 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
 static void save_hook(void)                /* save_game () */
 {
     if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
-    char c[48];
-    int r = savesview_save(c, sizeof c);
+    char c[48], old[16], before[16];
+    int r = savesview_save(c, sizeof c, old, sizeof old);
     if (r < 0) { hook_call_original(); return; }
     if (r == 0) { AX = 0; hook_return_far(0); return; }
+    g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
     answer = c; in_save = 1;
     hook_call_original();
     answer = 0; in_save = 0;
     if (unw_active) return;
     char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
-    char m[96]; snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    SaveInfo now;
+    int written = (s16)AX >= 0 && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
+    char m[128];
+    if (old[0] && written && saves_delete(old)) snprintf(m, sizeof m, "Saved: %s (%s), in place of the old save", c, name);   /* (the save chosen to replace) */
+    else snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    fprintf(stderr, "saves: %s\n", m);
     ui_notice(m);
 }
 
@@ -350,9 +357,22 @@ void saves_quick_save(void)
 int saves_load(const char *name)
 {
     if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; use the game's own Load before that."); return 0; }
+    /* only a save that is there and can be read: once the game's load_game has torn the game down,
+       a load that fails has nothing to go back to (the game stopped: "Buffer dealloc error") */
+    SaveInfo si;
+    if (!saves_read(name, &si)) { ui_notice("That save could not be read."); return 0; }
     snprintf(load_name, sizeof load_name, "%s", name);
     load_stage = 1; load_t = plat_ticks_ms();
     return 1;
+}
+
+/* the start screen's Continue and Load: its load screen (title_key 0x1454, s037 1c7d:0002), about
+   to open, reads this save at once (loadscreen_hook, as for a load from the menu) */
+void saves_title_load(const char *name)
+{
+    snprintf(load_name, sizeof load_name, "%s", name);
+    load_stage = 3; load_t = plat_ticks_ms();
+    fprintf(stderr, "saves: loading %s (the start screen)\n", load_name);
 }
 
 void saves_quick_load(void)

@@ -12,11 +12,14 @@
 #include "imgui.h"
 #include "tablesort.h"
 #include "ui.h"
+#include "uiinternal.h"
 #include "gamedata.h"
+#include "gamepics.h"
 extern "C" {
 #include "../runtime/hle.h"
 #include "../runtime/game.h"
 #include "../mods/datamods.h"
+#include "../mods/gamemodel.h"
 }
 
 enum { NT = 71, TSZ = 204, NE = 82, ESZ = 24 };
@@ -43,17 +46,36 @@ static unsigned char *type_rec(int t) { return &enm[(size_t)t * TSZ]; }
 static unsigned char *foe_rec(int e) { return &enm[(size_t)NT * TSZ + (size_t)e * ESZ]; }
 static std::string str_at(const unsigned char *r, int len) { std::string s; for (int k = 0; k < len && r[k]; k++) s += (char)r[k]; return s; }
 
-static const char *ATTR[7] = { "End", "Str", "Agl", "Per", "Int", "Chr", "DF" };
-static const char *WSK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile dev." };
+
+/* a kind's picture: the first of EINFO.CAT's pictures of its group ("E03" -> E03CLST.PIC), as
+   Enemy Info shows it in a battle (mods/enemyview.c); "" for the few without one */
+static std::string picture_of(const unsigned char *t)
+{
+    static std::vector<std::string> cat;
+    static bool read = false;
+    if (!read) {
+        read = true;
+        char p[1300]; dos_host_path_read("EINFO.CAT", p, sizeof p);
+        if (FILE *f = fopen(p, "rb")) {
+            unsigned char h[2]; if (fread(h, 1, 2, f) == 2) {
+                int n = h[0] | h[1] << 8;
+                for (int i = 0; i < n && i < 400; i++) { unsigned char e[24]; if (fread(e, 1, 24, f) != 24) break; cat.push_back(str_at(e, 12)); }
+            }
+            fclose(f);
+        }
+    }
+    std::string g = str_at(t, 4);
+    if (g.empty()) return "";
+    for (const std::string &n : cat) if (n.compare(0, g.size(), g) == 0) return "EINFO.CAT|" + n;
+    return "";
+}
 
 /* an LST item by (type, code), or what the creature has instead */
 static std::string item_name(int type, int code, const char *natural)
 {
     if (code == 0xff || type == 0xff) return "";
     if (code < (int)gamedata.items.size() && gamedata.items[code].type == type && !gamedata.items[code].name.empty()) {
-        std::string n = game_text(gamedata.items[code].name.c_str(), gamedata.items[code].name.size());
-        if (n.size() > 2 && (n[0] == 'V' || n[0] == 'L') && n[1] == ':') n = n.substr(2);       /* "V:Scale" */
-        return n;
+        return game_text(gamedata.items[code].plain.c_str(), gamedata.items[code].plain.size());   /* (armour without where it is worn: "Scale") */
     }
     return natural;
 }
@@ -82,7 +104,7 @@ static void details(int ti)
     int hv = hardness(t[0x92]), hl = hardness(t[0x93]);
     static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
     std::string va = item_name(t[0x92], t[0x94], "natural armour"), la = item_name(t[0x93], t[0x95], "natural armour");
-    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armour quality %d",
+    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armour %dq",
                 va.empty() ? "nothing" : va.c_str(), hv, hv >= 0 && hv < 6 ? HN[hv] : "?",
                 la.empty() ? "nothing" : la.c_str(), hl, hl >= 0 && hl < 6 ? HN[hl] : "?", t[0x96]);
     std::string through;
@@ -94,10 +116,10 @@ static void details(int ti)
     }
     ImGui::TextWrapped("Weapons that pierce its body armour: %s", through.empty() ? "none" : through.c_str());
     std::string sh = item_name(t[0x97], t[0x98], "a natural shield");
-    if (!sh.empty()) ImGui::Text("Shield: %s, quality %d", sh.c_str(), t[0x99]);
+    if (!sh.empty()) ImGui::Text("Shield: %s, %dq", sh.c_str(), t[0x99]);
     std::string mw = item_name(t[0x9a], t[0x9b], "a natural missile");
-    if (!mw.empty()) { std::string am = item_name(t[0x9d], t[0x9e], "ammunition"); ImGui::Text("Missile: %s, quality %d, %d %s", mw.c_str(), t[0x9c], t[0x9f], am.c_str()); }
-    ImGui::TextWrapped("Melee: %s, quality %d", weapons_of(t).c_str(), t[0xac]);
+    if (!mw.empty()) { std::string am = item_name(t[0x9d], t[0x9e], "ammunition"); ImGui::Text("Missile: %s, %dq, %d %s", mw.c_str(), t[0x9c], t[0x9f], am.c_str()); }
+    ImGui::TextWrapped("Melee: %s, %dq", weapons_of(t).c_str(), t[0xac]);
 }
 
 void bestiary_tab(void)
@@ -106,19 +128,28 @@ void bestiary_tab(void)
     { static int gen = -1; if (gen != datamods_generation()) { gen = datamods_generation(); if (loaded && enm_or_lst_unchanged()) loaded = false; } }
     if (!loaded) load();
     if (enm.empty()) { ImGui::TextWrapped("%s", msg.c_str()); return; }
-    ImGui::TextWrapped("Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "
-                       "the difficulty). Click a name for its armour and weapons. The numbers can be changed and saved into a "
-                       "mod folder; kinds are shared, so a change applies to every foe of that kind.");
+    const bool edit = ui_modding();
+    ImGui::TextWrapped(edit ? "Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "
+                              "the difficulty). Click a name for its armour and weapons. The numbers can be changed and saved into a "
+                              "mod folder; kinds are shared, so a change applies to every foe of that kind."
+                            : "Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "
+                              "the difficulty). Point at a name for its picture; click it for its armour and weapons.");
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##eflt", "find a foe", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < NT; i++) if (memcmp(type_rec(i), &orig[(size_t)i * TSZ], TSZ)) changed++;
-    ImGui::SameLine(); ImGui::TextDisabled("%d kind%s changed", changed, changed == 1 ? "" : "s");
-    if (ImGui::BeginTable("foes", 16, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
-                          ImVec2(0, ImGui::GetContentRegionAvail().y - (open_type >= 0 ? UIS(270) : UIS(80))))) {
-        ImGui::TableSetupColumn("Foe", ImGuiTableColumnFlags_WidthStretch);
-        for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(ATTR[a]);
-        for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(WSK[k]);
-        ImGui::TableSetupColumn("Armour");
-        ImGui::TableSetupScrollFreeze(1, 1);
+    if (edit) { ImGui::SameLine(); ImGui::TextDisabled("%d kind%s changed", changed, changed == 1 ? "" : "s"); }
+    float namew = 0;                                          /* the name column as wide as the longest name */
+    for (int e = 0; e < NE; e++) { const unsigned char *r = foe_rec(e); namew = fmaxf(namew, ImGui::CalcTextSize(game_text((const char *)r + 2, strnlen((const char *)r + 2, 12)).c_str()).x); }
+    const float numw = edit ? UIS(40) : ImGui::CalcTextSize("99").x + UIS(10);
+    if (ImGui::BeginTable("foes", 17, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
+                          ImVec2(0, ImGui::GetContentRegionAvail().y - (open_type >= 0 ? UIS(270) : edit ? UIS(80) : UIS(10))))) {
+        /* the numbers' headings at a slant, so that the columns can be narrow and the names whole */
+        ImGui::TableSetupColumn("Foe", ImGuiTableColumnFlags_WidthFixed, namew + UIS(16));
+        for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(gm_attr_name(a), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(gm_skill_short(k), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        ImGui::TableSetupColumn("Armour quality", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        ImGui::TableSetupColumn("Weapons", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
+        ImGui::TableSetupScrollFreeze(1, 2);
+        ImGui::TableAngledHeadersRow();
         ImGui::TableHeadersRow();
         std::vector<int> rows;
         for (int e = 0; e < NE; e++) {
@@ -154,6 +185,23 @@ void bestiary_tab(void)
             ImGui::TableNextColumn();
             if (ImGui::Selectable((name + (mod ? " *" : "")).c_str(), open_type == ti, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
                 open_type = open_type == ti ? -1 : ti;
+            if (ImGui::IsItemHovered() && ImGui::TableGetHoveredColumn() == 0) {     /* its picture, as Enemy Info shows it */
+                std::string pic = picture_of(t);
+                const GamePic *g = pic.empty() ? nullptr : gamepic(pic);
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(name.c_str());
+                if (g && g->tex) { float s = UIS(3); ImGui::Image((ImTextureID)(intptr_t)g->tex, ImVec2(g->w * s, g->h * s * 1.2f)); }
+                else ImGui::TextDisabled("(no picture)");
+                ImGui::EndTooltip();
+            }
+            if (!edit) {                                          /* the reference: the numbers as text */
+                for (int a = 0; a < 7; a++) { ImGui::TableNextColumn(); ImGui::Text("%d", t[0x14 + a]); }
+                for (int k = 0; k < 7; k++) { ImGui::TableNextColumn(); ImGui::Text("%d", t[0x1b + k]); }
+                ImGui::TableNextColumn(); ImGui::Text("%d", t[0x96]);
+                ImGui::TableNextColumn(); ImGui::TextDisabled("%s", weapons_of(t).c_str());
+                ImGui::PopID();
+                continue;
+            }
             for (int a = 0; a < 7; a++) {
                 ImGui::TableNextColumn(); int v = t[0x14 + a];
                 ImGui::SetNextItemWidth(UIS(38)); ImGui::PushID(a);
@@ -169,6 +217,7 @@ void bestiary_tab(void)
             ImGui::TableNextColumn(); int q = t[0x96];
             ImGui::SetNextItemWidth(UIS(38));
             if (ImGui::DragInt("##q", &q, 0.2f, 0, 99)) t[0x96] = (unsigned char)q;
+            ImGui::TableNextColumn(); ImGui::TextDisabled("%s", weapons_of(t).c_str());
             ImGui::PopID();
         }
         ImGui::EndTable();
@@ -178,6 +227,7 @@ void bestiary_tab(void)
         details(open_type);
         ImGui::EndChild();
     }
+    if (!edit) return;
     static char modname[64] = "My foes";
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##enmmod", modname, sizeof modname); ImGui::SameLine();
     if (ImGui::Button("Save the foes into this mod folder") && modname[0]) {

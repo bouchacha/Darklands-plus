@@ -136,6 +136,7 @@ void mods_init(void)
     { void musicpack_init(void); musicpack_init(); }
     { void looks_init(void); looks_init(); }
     fixes_init();
+    { void aging_init(void); aging_init(); void losses_init(void); losses_init(); }
     saves_init();
     assist_init();
     { void cardview_init(void); cardview_init(); }
@@ -149,6 +150,7 @@ void mods_init(void)
     { void createview_init(void); createview_init(); }
     { void rosterview_init(void); rosterview_init(); }
     { void infoview_init(void); infoview_init(); }
+    { void titleview_init(void); titleview_init(); }
     { void marchview_init(void); marchview_init(); }
     { void lodgeview_init(void); lodgeview_init(); }
     { void enemyview_init(void); enemyview_init(); }
@@ -165,6 +167,8 @@ void mods_init(void)
     { void levelwalk_init(void); levelwalk_init(); }
     { void pack_init(void); pack_init(); }
     { void battlerules_init(void); battlerules_init(); }
+    { void battleend_init(void); battleend_init(); }
+    { void foesleft_init(void); foesleft_init(); }
     for (int i = 0; i < MOD_COUNT; i++) {
         char key[80]; snprintf(key, sizeof key, "mod.%s", MODS[i].id);
         if (config_get_int(key, 0)) { MODS[i].set(1); MODS[i].enabled = 1; }

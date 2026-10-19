@@ -75,6 +75,10 @@ struct NsDraw {
         dl->AddText(ff, sz, w(x, y), c, s.c_str(), nullptr, ww);
         return ff->CalcTextSizeA(sz, FLT_MAX, ww, s.c_str()).y / k;
     }
+    float para_height(ImFont *ff, float gs, float width, const std::string &s) const   /* (what para would take) */
+    {
+        return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, width * kx, s.c_str()).y / k;
+    }
     float width(ImFont *ff, float gs, const std::string &s) const { return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, 0, s.c_str()).x / kx; }
 
     bool over(float x0, float y0, float x1, float y1) const { return mx >= x0 && mx < x1 && my >= y0 && my < y1; }
@@ -100,6 +104,27 @@ struct NsDraw {
         frame(x, y + 2, x + tw - 1, y + rowh - 1.5f, col, 1);
         text(fo, FS_SMALL, x + 1.2f, y + 2.6f, col, label);
     }
+    /* a button with an arrow up or down on it (moving a row); greyed when it cannot be pressed.
+       True when clicked and enabled */
+    bool arrow_button(float x0, float y0, float x1, float y1, bool up, bool enabled, ImU32 base)
+    {
+        bool h = enabled && over(x0, y0, x1, y1);
+        ImVec4 c = ImGui::ColorConvertU32ToFloat4(enabled ? base : IM_COL32(214, 200, 176, 255));
+        if (h) { c.x = fminf(1, c.x * 1.25f + 0.04f); c.y = fminf(1, c.y * 1.25f + 0.04f); c.z = fminf(1, c.z * 1.25f + 0.04f); c.w = 1; }
+        rect(x0, y0, x1, y1, ImGui::ColorConvertFloat4ToU32(c), 1.5f);
+        float cx = (x0 + x1) * 0.5f, cy = (y0 + y1) * 0.5f, hw = (x1 - x0) * 0.28f, hh = (y1 - y0) * 0.22f;
+        ImU32 col = enabled ? LIGHT : INK_DIM;
+        if (up) dl->AddTriangleFilled(w(cx, cy - hh), w(cx + hw, cy + hh), w(cx - hw, cy + hh), col);
+        else dl->AddTriangleFilled(w(cx - hw, cy - hh), w(cx + hw, cy - hh), w(cx, cy + hh), col);
+        return enabled && hit(x0, y0, x1, y1);
+    }
+    /* a button that cannot be pressed now: greyed, its label dim (so it still says what it is) */
+    void button_off(float x0, float y0, float x1, float y1, const std::string &label, float gs = FS_SMALL)
+    {
+        rect(x0, y0, x1, y1, IM_COL32(214, 200, 176, 255), 1.5f);
+        float tw = width(fo, gs, label);
+        text(fo, gs, x0 + (x1 - x0 - tw) * 0.5f, y0 + (y1 - y0) * 0.5f - gs * 0.62f, INK_DIM, label);
+    }
     /* an item's picture (ui/inventory.cpp), centred at (x, y), `size` rows across; kept inside
        its square (a pike or a halberd is drawn long) */
     void icon(float x, float y, float size, int id, int qual = -1, int tier = 0)   /* (qual: a potion shows its grade; tier: a formula's, 1-3) */
@@ -122,6 +147,19 @@ struct NsDraw {
 
 static inline std::string ns_gtext(const char *s) { return game_text(s, strlen(s)); }
 static inline const ItemDef *ns_itemdef(int id) { return id >= 0 && id < (int)gamedata.items.size() ? &gamedata.items[id] : nullptr; }
+/* a tooltip over a native screen, its text the size of the text beside the picture (as the cards'
+   and the margins' tooltips): ns_tip_begin(); ImGui text ...; ns_tip_end(). width: in that text's
+   size, where it wraps */
+static inline void ns_tip_begin(float width_em = 24)
+{
+    ImGui::BeginTooltip();
+    if (ui_font_overlay) { ImGui::PushFont(ui_font_overlay); ImGui::SetWindowFontScale(ui_text_px() * 0.88f / ui_font_overlay->FontSize); }
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, ImGui::GetFontSize() * 0.22f));   /* (lines, not rows of a page) */
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * width_em);
+}
+static inline void ns_tip_end(void) { ImGui::PopTextWrapPos(); ImGui::PopStyleVar(); if (ui_font_overlay) ImGui::PopFont(); ImGui::EndTooltip(); }
+static inline void ns_tip(const char *text, float width_em = 24) { ns_tip_begin(width_em); ImGui::TextUnformatted(text); ns_tip_end(); }
+
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25
  * (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs, nor
@@ -135,19 +173,21 @@ static inline bool ns_shows_quality(int id, int q)
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
            d->kind == K_TOOL || d->kind == K_INSTRUMENT;
 }
-/* one line on a weapon or an armour (the combat tables, far 20a5), "" for other things */
-std::string ns_item_line(int id);
-std::string ns_quality_words(int id, int qual);       /* ", quality 30"; "" where the lists show none (ns_shows_quality) */
+/* one line on a weapon, an armour or a shield (the combat tables, far 20a5; a shield at quality q,
+   its usual quality when q < 0), "" for other things */
+std::string ns_item_line(int id, int q = -1);
+std::string ns_quality_words(int id, int qual);       /* ", 30q"; "" where the lists show none (ns_shows_quality) */
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
 /* a weapon or an armour against what member m has in that place now, "" for other things */
 std::string ns_item_compare(int id, int q, int m);
+std::string ns_item_compare_party(int id, int q);    /* the same against every member (whom it would suit) */
 
 /* the strip under the lists on the shop, the loot and the store room, about the thing pointed at
  * (one layout for all three): its picture and name; what it is (kind, quality, weight, how many,
  * `status` such as "in use"); the line on a weapon or an armour; what it is good for, or else
- * how it compares with what member cmp_who has (-1: not compared). `right`, in `right_col`, at
+ * how it compares with what member cmp_who has (-1: not compared, -2: the whole party). `right`, in `right_col`, at
  * the top right: what it costs or fetches. */
 struct NsStripThing {
     int id = 0, qual = 0, weight = 0, count = 1, cmp_who = -1;

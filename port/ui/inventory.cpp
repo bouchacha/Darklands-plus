@@ -1,64 +1,30 @@
-// inventory.cpp - the graphical inventory and the alchemy overview of the Darklands+ menu.
-// Items are drawn as procedural icons by kind (weapons, armour, ingredients, potions ...);
-// dragging an item onto another member gives it to them through the game's own routine
-// (give_stack, s031 18e7:007c), so equipment, weights and stacking stay right.
+// inventory.cpp - the things' pictures, drawn by kind (weapons, armour, ingredients, potions ...)
+// for every screen that lists them; what a thing is good for (ui_item_details: the numbers of a
+// weapon, armour or shield and who in the party could use it); the tidy order of a pack; and
+// giving a thing to another member through the game's own routine (give_stack, s031 18e7:007c:
+// the test command ugive). The party's things themselves are on the character sheet.
 #include <stdio.h>
-#include "money.h"
 #include <string.h>
 #include <math.h>
 #include <string>
 #include <vector>
-#include <array>
 #include <algorithm>
 #include "imgui.h"
 #include "../mods/nscreen.h"
-#include "tablesort.h"
+#include "skillicons.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "../mods/gamemodel.h"
 extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 }
 
-extern ImFont *ui_font_small;
 
-struct InvItem { int idx, id, type, qual, count, weight; bool equipped; };
-
-static const int MAXM = 5;
-static int sel_member = 0;
-static int kind_filter = -1;
-static std::string last_msg;
-
-static bool member_present(int m)
-{
-    if (m >= (s16)g_rw(G_PARTY_SIZE)) return false;
-    char nm[4]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_FULLNAME), nm, sizeof nm);
-    return nm[0] != 0;
-}
 static std::string member_name(int m, bool full)
 {
     char nm[32]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + (full ? G_M_FULLNAME : G_M_SHORTNAME)), nm, sizeof nm);
     return nm;
-}
-
-static std::vector<InvItem> member_items(int m)
-{
-    std::vector<InvItem> v;
-    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
-    if (n > 64) n = 64;
-    u16 r0 = G_MEMBER(m);
-    int eq_type[5] = { (s8)g_rb((u16)(r0 + 0x3d)), (s8)g_rb((u16)(r0 + 0x0e)), (s8)g_rb((u16)(r0 + 0x37)), (s8)g_rb((u16)(r0 + 0x38)), (s8)g_rb((u16)(r0 + 0x48)) };
-    int eq_q[5] = { g_rb((u16)(r0 + 0x44)), g_rb((u16)(r0 + 0x46)), g_rb((u16)(r0 + 0x3b)), g_rb((u16)(r0 + 0x3c)), g_rb((u16)(r0 + 0x47)) };
-    for (int i = 0; i < n; i++) {
-        u16 r = G_ITEM(m, i);
-        InvItem it;
-        it.idx = i; it.id = rw(G_FAR2E38, r); it.type = rb(G_FAR2E38, (u16)(r + 2)); it.qual = rb(G_FAR2E38, (u16)(r + 3));
-        it.count = rb(G_FAR2E38, (u16)(r + 4)); it.weight = rb(G_FAR2E38, (u16)(r + 5));
-        it.equipped = false;
-        for (int k = 0; k < 5; k++) if (eq_type[k] >= 0 && eq_type[k] == it.type && eq_q[k] == it.qual) it.equipped = true;
-        v.push_back(it);
-    }
-    return v;
 }
 
 static const ItemDef *def_of(int id)
@@ -84,7 +50,7 @@ static const Tint TINTS[] = {
 
 static ImVec4 tint_for(const ItemDef *d, int id)
 {
-    if (d) for (const Tint &t : TINTS) if (d->name == t.name) return ImVec4(t.r, t.g, t.b, 1);
+    if (d) for (const Tint &t : TINTS) if (d->game_name == t.name) return ImVec4(t.r, t.g, t.b, 1);
     // stable pseudo-random hue from the id
     float h = fmodf(id * 0.61803f, 1.0f), r, g, b;
     ImGui::ColorConvertHSVtoRGB(h, 0.55f, 0.85f, r, g, b);
@@ -94,12 +60,12 @@ static ImVec4 tint_for(const ItemDef *d, int id)
 static bool is_liquid(const ItemDef *d)
 {
     if (!d) return false;
-    return d->name == "Naptha" || d->name == "Aqua Regia" || d->name.find("Base") != std::string::npos;
+    return d->game_name == "Naptha" || d->game_name == "Aqua Regia" || d->game_name.find("Base") != std::string::npos;
 }
 static bool is_plant(const ItemDef *d)
 {
     if (!d) return false;
-    return d->name == "Solanaceae" || d->name == "Mondragora" || d->name == "Camomile" || d->name == "Gum" || d->name == "East. Black Bean";
+    return d->game_name == "Solanaceae" || d->game_name == "Mondragora" || d->game_name == "Camomile" || d->game_name == "Gum" || d->game_name == "East. Black Bean";
 }
 
 /* equipment drawn by item type (LST +30): each weapon class has its own shape, armour shows
@@ -337,7 +303,7 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
             dl->AddCircleFilled(P(-3, -1), 4 * u, tc);
             dl->AddCircleFilled(P(3, -6), 3.5f * u, tc);
             dl->AddCircleFilled(P(2, 3), 3 * u, tl);
-        } else if (d && d->name == "Marsh Vapor") {
+        } else if (d && d->game_name == "Marsh Vapor") {
             dl->AddCircleFilled(P(-4, 2), 5 * u, tc); dl->AddCircleFilled(P(3, -1), 6 * u, tc); dl->AddCircleFilled(P(4, 5), 4 * u, tl);
         } else {                                                  // minerals: crystals
             dl->AddTriangleFilled(P(-8, 9), P(-3, -7), P(1, 9), tc);
@@ -394,7 +360,6 @@ void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier) { ic
 void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { draw_equipment(dl, c, s, type, false); }
 
 /* ---------------------------------------------------------------- giving items */
-struct DragItem { int from, idx; };
 
 /* Items may change hands only where the game does not hold inventory rows on screen:
  * in a town or encounter card and on the travel map (not in battle, not on the character
@@ -409,12 +374,6 @@ static const char *why_locked(void)
     }
 }
 
-static bool equippable(const ItemDef *d, int type)
-{
-    if (!d) return false;
-    return (d->flags & 0x0f) || (d->flags & 0x30) || (type >= 0x43 && type <= 0x61);
-}
-
 extern "C" void ui_give(int from, int to, int idx);
 /* done by the game's own routines (s031: give_one, give_stack, item_ready, item_unequip) at the
  * next safe point (mods/nscreen.h ns_defer), not in the middle of drawing */
@@ -422,73 +381,29 @@ static void give_now(int from, int to, int idx, int one)
 {
     u16 args[4] = { (u16)from, (u16)to, (u16)idx, 0 };
     if (one) game_call_far(GF_give_one, 4, args); else game_call_far(GF_give_stack, 4, args);
-    last_msg = std::string(one ? "Gave one to " : "Gave to ") + member_name(to, false) + ".";
-    fprintf(stderr, "ui: %s\n", last_msg.c_str());
+    fprintf(stderr, "ui: gave %sto %s\n", one ? "one " : "", member_name(to, false).c_str());
 }
 static void give(int from, int to, int idx, bool one = false)
 {
-    if (const char *w = why_locked()) { last_msg = w; return; }
+    if (const char *w = why_locked()) { fprintf(stderr, "ui: %s\n", w); return; }
     int before = g_rb((u16)(G_MEMBER(to) + G_M_NITEMS));
-    if (before >= 64) { last_msg = member_name(to, false) + " cannot carry any more items."; return; }
+    if (before >= 64) { fprintf(stderr, "ui: %s cannot carry any more items\n", member_name(to, false).c_str()); return; }
     ns_defer(give_now, from, to, idx, one);
 }
 
-static void equip_now(int m, int idx, int on, int)
-{
-    u16 a[3] = { (u16)m, (u16)idx, 0 };
-    if (on) game_call_far(GF_item_ready, 2, a); else game_call_far(GF_item_unequip, 3, a);
-    last_msg = member_name(m, false) + (on ? " takes it up." : " puts it away.");
-}
-static void equip(int m, int idx, bool on)
-{
-    if (const char *w = why_locked()) { last_msg = w; return; }
-    ns_defer(equip_now, m, idx, on, 0);
-}
-
-/* ---------------------------------------------------------------- the inventory tab */
-static void member_cards(void)
-{
-    float w = (ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5;
-    for (int m = 0; m < MAXM; m++) {
-        if (!member_present(m)) continue;
-        ImGui::PushID(m);
-        bool sel = m == sel_member;
-        if (sel) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.45f, 0.18f, 0.10f, 1));
-        else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.72f, 0.60f, 0.42f, 1));
-        int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
-        u16 r0 = G_MEMBER(m);
-        int load = g_rb((u16)(r0 + G_M_LOAD)), cap = (s8)g_rb((u16)(r0 + G_M_ATTR_CUR)) + (s8)g_rb((u16)(r0 + G_M_ATTR_CUR + 1));
-        char label[96]; snprintf(label, sizeof label, "%s\n%d/64 kinds  load %d/%d", member_name(m, false).c_str(), n, load, cap);   /* (at most 64 kinds of things each) */
-        ImGui::PushStyleColor(ImGuiCol_Text, sel ? ImVec4(1, 0.95f, 0.85f, 1) : ImGui::GetStyle().Colors[ImGuiCol_Text]);
-        if (ImGui::Button(label, ImVec2(w, UIS(58)))) sel_member = m;
-        ImGui::PopStyleColor(2);
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload *p = ImGui::AcceptDragDropPayload("DL_ITEM")) {
-                DragItem di; memcpy(&di, p->Data, sizeof di);
-                if (di.from != m) give(di.from, m, di.idx, ImGui::GetIO().KeyShift);
-            }
-            ImGui::EndDragDropTarget();
-        }
-        ImGui::PopID();
-        ImGui::SameLine();
-    }
-    ImGui::NewLine();
-}
-
 /* what an item is good for: weapon numbers and who could use it, what armour covers, a potion's
- * effect (the inventory's tooltips, the shops' rows) */
-void ui_item_details(const ItemDef *d, int id)
+ * effect (the character sheet's and the shops' tooltips) */
+void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's quality, -1 unknown: its usual one) */
 {
     if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) {
         /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow
            time, hands and penetration, damage, skill and strength wanted */
         int w = d->type;
-        static const char *SKILL[7] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices" };
         int sk = rb(G_FAR20A5, (u16)(0x75ac + w)), speed = rb(G_FAR20A5, (u16)(0x7669 + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)),
             dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
             maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
         ImGui::Separator();
-        ImGui::Text("%s, %s", sk < 7 ? SKILL[sk] : "?", (cp >> 4) >= 2 ? "two hands" : "one hand");
+        ImGui::Text("%s, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two hands" : "one hand");
         ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
         if (speed) ImGui::Text("Time for a blow %d", speed);
         if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
@@ -544,296 +459,41 @@ void ui_item_details(const ItemDef *d, int id)
         ImGui::TextDisabled("A blow that pierces also wounds strength; a good hit gets through more easily.");
         ImGui::TextDisabled("Quality: every 10 points take 1 off each blow's damage.");
     }
-    if (d && d->type >= 95 && d->type <= 97) { ImGui::Separator(); ImGui::Text("Helps against blows and missiles; not with a two-handed weapon."); }
+    if (d && d->type >= 95 && d->type <= 97) {             /* a shield: what each size adds to the defence (mods/gamemodel.h, the game's to-hit rolls) */
+        ImGui::Separator();
+        ImGui::TextUnformatted("Adds to its bearer's defence, the more the better made; not with a two-handed weapon.");
+        if (q < 0) q = d->quality;
+        static const char *SZ[3] = { "Small", "Medium", "Large" };
+        for (int t = 95; t <= 97; t++)
+            (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
+        ImGui::TextDisabled("No shield counts as -5. The chance to be hit is 50 + 2/3 of the attack less the defence;\nagainst a blow the defence is the shield's and twice the Agility (less of it under a load).");
+    }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
-        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) { ImGui::PushTextWrapPos(UIS(320)); ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str()); ImGui::PopTextWrapPos(); }
+        ImGui::PushTextWrapPos(UIS(380));
+        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
+        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ImGui::TextWrapped("In the game: %s", e.c_str()); ImGui::PopStyleColor(); } }
+        ImGui::PopTextWrapPos();
     }
 }
 
-static void tooltip(const InvItem &it, const ItemDef *d)
-{
-    ImGui::BeginTooltip();
-    ImGui::Text("%s", d ? d->name.c_str() : "?");
-    ImGui::Separator();
-    if (d) ImGui::TextDisabled("%s", kind_name_one(d->kind));
-    ImGui::Text("Quality %d", it.qual);
-    if (it.count > 1) ImGui::Text("%d of them", it.count);
-    ImGui::Text("Weight %d", it.weight);
-    if (d && d->value) ImGui::Text("Worth about %s", money_with_total(d->value).c_str());
-    if (it.equipped) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "In use");
-    ui_item_details(d, it.id);
-    ImGui::TextDisabled("Drag onto a name to give it (Shift: just one). Right-click for more.");
-    ImGui::EndTooltip();
-}
-
-/* tidy a pack: the item rows sorted by kind, then name, then the best first. The game finds what
- * a member has in hand and wears by type and quality, not by row, so the order is free (as long
- * as no screen of the game shows the rows: why_locked) */
+/* a pack is always shown tidy: by kind (weapons, armour, shields, potions, ingredients ...), then
+ * name, the best first. Only the order shown: the game's own rows stay as they are (the game finds
+ * what a member has in hand and wears by type and quality, not by row) */
 static int kind_rank(const ItemDef *d)
 {
     static const int R[K_OTHER + 1] = { 0, 1, 2, 3, 6, 7, 8, 5, 4, 9, 10, 11, 12, 13 };
     return d ? R[d->kind] : 13;
 }
-static void sort_pack(int m)
+/* the tidy order of two things (id, quality): kind, then name, then the better first (the
+   character sheet's lists use it too) */
+bool ui_item_tidy_less(int ida, int qa, int idb, int qb)
 {
-    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); if (n > 64) n = 64;
-    std::vector<std::array<u8, 6>> rows((size_t)n);
-    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) rows[(size_t)i][(size_t)k] = rb(G_FAR2E38, (u16)(G_ITEM(m, i) + k));
-    std::stable_sort(rows.begin(), rows.end(), [](const std::array<u8, 6> &a, const std::array<u8, 6> &b) {
-        int ia = (a[0] | a[1] << 8) & 0xfff, ib = (b[0] | b[1] << 8) & 0xfff;
-        const ItemDef *da = def_of(ia), *db = def_of(ib);
-        int ka = kind_rank(da), kb = kind_rank(db);
-        if (ka != kb) return ka < kb;
-        std::string na = da ? da->name : "", nb = db ? db->name : "";
-        if (na != nb) return na < nb;
-        return a[3] > b[3];
-    });
-    for (int i = 0; i < n; i++) for (int k = 0; k < 6; k++) wb(G_FAR2E38, (u16)(G_ITEM(m, i) + k), rows[(size_t)i][(size_t)k]);
+    const ItemDef *da = def_of(ida), *db = def_of(idb);
+    int ka = kind_rank(da), kb = kind_rank(db);
+    if (ka != kb) return ka < kb;
+    const std::string &na = da ? da->name : std::string(), &nb = db ? db->name : std::string();
+    if (na != nb) return na < nb;
+    return qa > qb;
 }
-
-extern "C" void tab_inventory(void)
-{
-    if (!gamedata.loaded) { ImGui::Text("The item list (DARKLAND.LST) could not be read."); return; }
-    if (!member_present(sel_member)) for (int m = 0; m < MAXM; m++) if (member_present(m)) { sel_member = m; break; }
-    member_cards();
-    // kind filter chips
-    std::vector<InvItem> items = member_items(sel_member);
-    bool present[K_OTHER + 1] = {};
-    for (auto &it : items) { const ItemDef *d = def_of(it.id); present[d ? d->kind : K_OTHER] = true; }
-    if (ImGui::RadioButton("Everything", kind_filter < 0)) kind_filter = -1;
-    for (int k = 0; k <= K_OTHER; k++) if (present[k]) { ImGui::SameLine(); if (ImGui::RadioButton(kind_name((ItemKind)k), kind_filter == k)) kind_filter = k; }
-    int sort_now = -1;
-    {   /* tidy the pack(s), at the right of the row */
-        float w = ImGui::CalcTextSize("Tidy the pack").x + ImGui::CalcTextSize("Everyone's").x + UIS(40);
-        ImGui::SameLine(ImGui::GetContentRegionMax().x - w);
-        ImGui::BeginDisabled(why_locked() != nullptr);
-        if (ImGui::SmallButton("Tidy the pack")) sort_now = sel_member;
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sort the items by kind (weapons, armour, shields, potions, ingredients ...), then name, the best first.");
-        ImGui::SameLine();
-        if (ImGui::SmallButton("Everyone's")) sort_now = 99;
-        ImGui::EndDisabled();
-    }
-    ImGui::BeginChild("grid", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), ImGuiChildFlags_Border);
-    const float tile = UIS(104), pad = UIS(8);
-    int cols = (int)((ImGui::GetContentRegionAvail().x + pad) / (tile + pad)); if (cols < 1) cols = 1;
-    int col_i = 0;
-    ImDrawList *dl = ImGui::GetWindowDrawList();
-    for (auto &it : items) {
-        const ItemDef *d = def_of(it.id);
-        if (kind_filter >= 0 && (d ? d->kind : K_OTHER) != kind_filter) continue;
-        if (col_i) ImGui::SameLine(0, pad);
-        ImGui::PushID(it.idx);
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        ImGui::InvisibleButton("tile", ImVec2(tile, tile));
-        bool hov = ImGui::IsItemHovered();
-        ImU32 bg = it.equipped ? col(0.87f, 0.76f, 0.55f) : col(0.96f, 0.92f, 0.82f);
-        dl->AddRectFilled(p, ImVec2(p.x + tile, p.y + tile), bg, 6);
-        if (it.equipped) dl->AddRect(ImVec2(p.x + 3, p.y + 3), ImVec2(p.x + tile - 3, p.y + tile - 3), col(0.72f, 0.55f, 0.18f), 4, 0, 2.0f);
-        dl->AddRect(p, ImVec2(p.x + tile, p.y + tile), hov ? col(0.55f, 0.24f, 0.13f) : col(0.55f, 0.42f, 0.25f), 6, 0, hov ? 2.5f : 1.0f);
-        icon_tier = d ? ui_potion_tier(it.qual, d->quality) : 0; draw_icon(dl, ImVec2(p.x + tile / 2, p.y + UIS(40)), UIS(46), d, it.id); icon_tier = 0;
-        const char *nm = d ? (ImGui::CalcTextSize(d->name.c_str()).x * 0.8f < tile - 6 ? d->name.c_str() : d->shortname.c_str()) : "?";
-        ImGui::PushFont(ui_font_small);
-        ImVec2 ts = ImGui::CalcTextSize(nm);
-        dl->AddText(ImVec2(p.x + (tile - ts.x) / 2, p.y + tile - ts.y - 4), col(0.2f, 0.12f, 0.06f), nm);
-        if (!d || d->kind != K_POTION) {                           /* (a potion: the dots on its flask) */
-            char q[16]; snprintf(q, sizeof q, "q%d", it.qual);
-            dl->AddText(ImVec2(p.x + 5, p.y + 3), col(0.45f, 0.35f, 0.25f), q);
-        }
-        if (it.count > 1) {
-            char c[16]; snprintf(c, sizeof c, "x%d", it.count);
-            ImVec2 cs = ImGui::CalcTextSize(c);
-            dl->AddRectFilled(ImVec2(p.x + tile - cs.x - 10, p.y + 3), ImVec2(p.x + tile - 3, p.y + cs.y + 5), col(0.55f, 0.24f, 0.13f), 4);
-            dl->AddText(ImVec2(p.x + tile - cs.x - 6, p.y + 4), col(1, 0.95f, 0.85f), c);
-        }
-        if (it.equipped) {
-            const char *e = (d && (d->kind == K_ARMOR)) ? "worn" : "in hand";
-            ImVec2 es = ImGui::CalcTextSize(e);
-            dl->AddText(ImVec2(p.x + (tile - es.x) / 2, p.y + tile - 2 * es.y - 4), col(0.45f, 0.18f, 0.10f), e);
-        }
-        ImGui::PopFont();
-        if (hov && !ImGui::IsMouseDragging(0) && !ImGui::IsPopupOpen("item_ctx")) tooltip(it, d);
-        if (ImGui::BeginPopupContextItem("item_ctx")) {
-            ImGui::TextDisabled("%s", d ? d->name.c_str() : "?");
-            for (int m = 0; m < MAXM; m++) {
-                if (m == sel_member || !member_present(m)) continue;
-                if (ImGui::MenuItem(("Give to " + member_name(m, false)).c_str())) give(sel_member, m, it.idx);
-                if (it.count > 1 && ImGui::MenuItem(("Give one to " + member_name(m, false)).c_str())) give(sel_member, m, it.idx, true);
-            }
-            if (equippable(d, it.type)) {
-                ImGui::Separator();
-                if (!it.equipped && ImGui::MenuItem((d && d->kind == K_ARMOR) ? "Wear" : "Take in hand")) equip(sel_member, it.idx, true);
-                if (it.equipped && ImGui::MenuItem((d && d->kind == K_ARMOR) ? "Take off" : "Put away")) equip(sel_member, it.idx, false);
-            }
-            ImGui::EndPopup();
-        }
-        if (ImGui::BeginDragDropSource()) {
-            DragItem di = { sel_member, it.idx };
-            ImGui::SetDragDropPayload("DL_ITEM", &di, sizeof di);
-            ImVec2 cp = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(UIS(52), UIS(52)));
-            draw_icon(ImGui::GetWindowDrawList(), ImVec2(cp.x + UIS(26), cp.y + UIS(26)), UIS(44), d, it.id);
-            ImGui::Text("%s", d ? d->name.c_str() : "?");
-            ImGui::EndDragDropSource();
-        }
-        ImGui::PopID();
-        col_i = (col_i + 1) % cols;
-    }
-    if (items.empty()) ImGui::TextDisabled("Carries nothing.");
-    ImGui::EndChild();
-    if (sort_now >= 0 && !why_locked()) {
-        for (int m = 0; m < MAXM; m++) if ((sort_now == 99 || m == sort_now) && member_present(m)) sort_pack(m);
-        last_msg = sort_now == 99 ? "Everyone's pack is in order." : member_name(sort_now, false) + "'s pack is in order.";
-    }
-    static std::string shown; static double shown_t;
-    if (last_msg != shown) { shown = last_msg; shown_t = ImGui::GetTime(); }
-    else if (!last_msg.empty() && ImGui::GetTime() - shown_t > 8) last_msg.clear();
-    const char *lock = why_locked();
-    ImGui::TextDisabled("%s", !last_msg.empty() ? last_msg.c_str() : lock ? lock
-                        : "Drag an item onto a name to hand it over (hold Shift for just one); right-click for more.");
-}
-
-/* ---------------------------------------------------------------- the alchemy tab */
-static int party_stock(int item, int *by_member)
-{
-    int total = 0;
-    for (int m = 0; m < MAXM; m++) {
-        if (by_member) by_member[m] = 0;
-        if (!member_present(m)) continue;
-        for (auto &it : member_items(m)) if (it.id == item) { total += it.count; if (by_member) by_member[m] += it.count; }
-    }
-    return total;
-}
-
-static bool knows(int m, int f)
-{
-    u16 o = (u16)(0x07be + m * 22 + f / 3);
-    return (rb(G_FAR2E38, o) >> (f % 3)) & 1;
-}
-
-static std::string virtue_name(int f)
-{
-    u16 o = rw(G_FAR2E38, (u16)(0x1736 + f * 4)), s = rw(G_FAR2E38, (u16)(0x1736 + f * 4 + 2));
-    char b[48]; if (!s) return "";
-    g_str(s, o, b, sizeof b);
-    return b;
-}
-
-extern "C" void tab_alchemy(void)
-{
-    if (!gamedata.loaded || gamedata.formulas.empty()) { ImGui::Text("The formula list (DARKLAND.ALC) could not be read."); return; }
-    ImGui::BeginChild("alc", ImVec2(0, 0));
-    // ingredient shelf
-    ImGui::SeparatorText("The party's ingredients");
-    ImDrawList *dl = ImGui::GetWindowDrawList();
-    int shown = 0;
-    for (int id = 72; id <= 94; id++) {
-        int byM[MAXM]; int n = party_stock(id, byM);
-        const ItemDef *d = def_of(id);
-        if (shown % 8) ImGui::SameLine();
-        ImGui::PushID(id);
-        ImVec2 p = ImGui::GetCursorScreenPos();
-        ImGui::InvisibleButton("ing", ImVec2(UIS(88), UIS(92)));
-        dl->AddRectFilled(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), n ? col(0.96f, 0.92f, 0.82f) : col(0.88f, 0.83f, 0.72f, 0.6f), 6);
-        dl->AddRect(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), col(0.55f, 0.42f, 0.25f), 6);
-        draw_icon(dl, ImVec2(p.x + UIS(44), p.y + UIS(34)), UIS(40), d, id);
-        ImGui::PushFont(ui_font_small);
-        const char *sn = d ? d->shortname.c_str() : "?";
-        ImVec2 ts = ImGui::CalcTextSize(sn);
-        dl->AddText(ImVec2(p.x + (UIS(88) - ts.x) / 2, p.y + UIS(92) - ts.y - 3), n ? col(0.2f, 0.12f, 0.06f) : col(0.5f, 0.42f, 0.32f), sn);
-        char c[12]; snprintf(c, sizeof c, "%d", n);
-        dl->AddText(ImVec2(p.x + 5, p.y + 3), n ? col(0.55f, 0.24f, 0.13f) : col(0.6f, 0.5f, 0.4f), c);
-        ImGui::PopFont();
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("%s: %d", d ? d->name.c_str() : "?", n);
-            for (int m = 0; m < MAXM; m++) if (byM[m]) ImGui::Text("  %s carries %d", member_name(m, false).c_str(), byM[m]);
-            ImGui::EndTooltip();
-        }
-        ImGui::PopID();
-        shown++;
-    }
-    // formulas
-    static bool all_formulas = false;
-    ImGui::SeparatorText(all_formulas ? "All formulas" : "Formulas the party knows");
-    ImGui::Checkbox("Show all formulas (to judge one before buying it)", &all_formulas);
-    if (ImGui::BeginTable("forms", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
-        ImGui::TableSetupColumn("Potion", ImGuiTableColumnFlags_WidthStretch, 1.3f);
-        ImGui::TableSetupColumn("Known by", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-        ImGui::TableSetupColumn("Difficulty", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Difficulty").x + UIS(8));
-        ImGui::TableSetupColumn("Risk", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("medium").x + UIS(8));
-        ImGui::TableSetupColumn("Ingredients (the party has)", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 1.2f);
-        ImGui::TableSetupColumn("Batches", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Batches").x + UIS(8));
-        ImGui::TableHeadersRow();
-        int listed = 0;
-        auto who_of = [&](int f) { std::string who; for (int m = 0; m < MAXM; m++) if (member_present(m) && knows(m, f)) { if (!who.empty()) who += ", "; who += member_name(m, false); } return who; };
-        auto batches_of = [&](int f) { const Formula &F = gamedata.formulas[f]; int b = 999;
-            for (size_t k = 0; k < F.ingr.size(); k++) { int have = party_stock(F.ingr[k].item, nullptr), x = F.ingr[k].count ? have / F.ingr[k].count : 999; if (x < b) b = x; }
-            return b == 999 ? 0 : b; };
-        std::vector<int> rows;
-        for (int f = 0; f < (int)gamedata.formulas.size(); f++) if (all_formulas || !who_of(f).empty()) rows.push_back(f);
-        static TableSort ts;
-        auto key = [&](int f, int c) -> SortKey {
-            const Formula &F = gamedata.formulas[f];
-            switch (c) {
-            case 0: { std::string vn = virtue_name(f); const ItemDef *pd = def_of(95 + f / 3); return vn.empty() ? (pd ? game_text(pd->name.c_str(), 64) : std::string("?")) : vn; }
-            case 1: return who_of(f);
-            case 2: return F.mystic;
-            case 3: return F.risk;
-            case 5: return batches_of(f);
-            default: return f;
-            }
-        };
-        for (int f : table_order(ts, rows, key)) {
-            std::string who = who_of(f);
-            listed++;
-            const Formula &F = gamedata.formulas[f];
-            const ItemDef *pd = def_of(95 + f / 3);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(UIS(28), UIS(28)));
-            icon_tier = f % 3 + 1; draw_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + UIS(14), p.y + UIS(14)), UIS(26), pd, 95 + f / 3); icon_tier = 0;
-            ImGui::SameLine();
-            ImGui::BeginGroup();
-            std::string vn = virtue_name(f), pn = pd ? game_text(pd->name.c_str(), 64) : std::string("?");
-            ImGui::TextWrapped("%s", vn.empty() ? pn.c_str() : vn.c_str());
-            if (!vn.empty() && vn != pn) {                       /* the potion it makes (three formulas each) */
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                ImGui::TextWrapped("%s", pn.c_str());
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndGroup();
-            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(UIS(360)); ImGui::TextWrapped("%s", F.text.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", who.empty() ? "-" : who.c_str());
-            ImGui::TableNextColumn(); ImGui::Text("%d", F.mystic);
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("The formula's mystical number: the higher, the harder to brew (it is set against the alchemist's skill).");
-            ImGui::TableNextColumn();
-            { static const char *RISK[3] = { "low", "medium", "high" }; int r = F.risk >= 0 && F.risk < 3 ? F.risk : 0;
-              ImGui::TextColored(r == 0 ? ImVec4(0.2f, 0.45f, 0.15f, 1) : r == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%s", RISK[r]);
-              if (ImGui::IsItemHovered()) ImGui::SetTooltip("How badly a failed brew can go wrong."); }
-            ImGui::TableNextColumn();
-            int batches = 999;
-            for (size_t k = 0; k < F.ingr.size(); k++) {           /* one ingredient a line */
-                int have = party_stock(F.ingr[k].item, nullptr);
-                const ItemDef *d = def_of(F.ingr[k].item);
-                ImVec2 q = ImGui::GetCursorScreenPos();
-                ImGui::Dummy(ImVec2(UIS(22), UIS(22)));
-                draw_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + UIS(11), q.y + UIS(11)), UIS(20), d, F.ingr[k].item);
-                ImGui::SameLine(0, UIS(4));
-                ImGui::TextColored(have >= F.ingr[k].count ? ImVec4(0.2f, 0.12f, 0.06f, 1) : ImVec4(0.65f, 0.15f, 0.10f, 1), "%d %s", F.ingr[k].count, d ? d->name.c_str() : "?");
-                ImGui::SameLine(); ImGui::TextDisabled("(%d)", have);
-                int b = F.ingr[k].count ? have / F.ingr[k].count : 999;
-                if (b < batches) batches = b;
-            }
-            ImGui::TableNextColumn();
-            if (batches == 999) batches = 0;
-            ImGui::TextColored(batches ? ImVec4(0.2f, 0.45f, 0.15f, 1) : ImVec4(0.6f, 0.5f, 0.4f, 1), "%d", batches);
-        }
-        ImGui::EndTable();
-        if (!listed) ImGui::TextDisabled("Nobody in the party knows a formula.");
-    }
-    ImGui::EndChild();
-}
-
 extern "C" void ui_give(int from, int to, int idx) { give(from, to < 0 ? -to - 1 : to, idx, to < 0); }
