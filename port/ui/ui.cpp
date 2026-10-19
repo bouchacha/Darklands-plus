@@ -8,6 +8,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string>
+#include "padglyphs.h"
 #include "imgui.h"
 #include "tablesort.h"
 #include "skillicons.h"
@@ -748,7 +749,7 @@ static void help_window(void)
             row("Shift over an option", "the game's own chance of success (the badges show them all)");
             row("G", "go to a place in this city");
             row("M", "world map");
-            row("The town's pictures (right margin)", "what it has that most towns lack, and its notable shops: point at one for what it offers");
+            row("Town pictures", "(in the right margin) what it has that most towns lack, and its notable shops: point at one for what it offers");
         } else if (gm == GM_MAP) {
             ImGui::SeparatorText("Now: the travel map");
             row("Click", "walk towards that spot");
@@ -756,7 +757,7 @@ static void help_window(void)
             row("M", "world map: find a place, double-click to travel there");
             row("Point at a quest's picture", "the task that leads there (a portcullis or a pillory beside a town: it bars the party, or its watch wants it)");
             row("A task in the left margin", "click to open it, then Travel there");
-            row("The town's pictures (right margin)", "near a town: what it has that most towns lack, and its notable shops (point at one)");
+            row("Town pictures", "(in the right margin, near a town) what it has that most towns lack, and its notable shops (point at one)");
         } else if (gm == GM_BATTLE) {
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
@@ -830,14 +831,23 @@ static void help_window(void)
         row("F12", "the Darklands+ menu (pauses the game)");
         row("Ctrl+S / F9 or Ctrl+L", "quick save / quick load");
         row("Alt+Enter", "full screen    Ctrl+F12 screenshot");
-        { if (plat_controller_connected() && config_get_int("input.gamepad", 1)) {
+        { if ((plat_controller_connected() || ui_pad_prompts()) && config_get_int("input.gamepad", 1)) {
+            /* the buttons drawn as the controller in use has them (padglyphs.h), else named */
             ImGui::SeparatorText("The controller");
-            row("Left stick", "the pointer (left trigger held: slowly)    right stick: the wheel");
-            row("A / B", "click / right click (the menu bar)");
-            row("X / Y", "Enter / Esc");
-            row("D-pad", "arrow keys    LB: Tab (level map)    RB: Space (pause)");
-            row("Start / Back", "F12 (this menu) / M (world map)");
-            row("Right trigger", "held: Ctrl (on the travel map: Ctrl + click travels there)    left stick pressed: F1");
+            auto prow = [](const char *keys, const char *d) {     /* keys: "{A} {B}" */
+                float x0 = ImGui::GetCursorPosX();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.18f, 0.10f, 1)); ui_pad_text(keys); ImGui::PopStyleColor();
+                (void)x0; ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d);
+            };
+            prow("{LSTICK}", "the pointer (the left trigger held: slowly)");
+            prow("{RSTICK}", "the mouse wheel");
+            prow("{A} {B}", "click / right click (the menu bar)");
+            prow("{X} {Y}", "Enter / Esc");
+            prow("{DPAD}", "the arrow keys");
+            prow("{LB} {RB}", "Tab (the level map) / Space (pause)");
+            prow("{START} {BACK}", "F12 (this menu) / M (the world map)");
+            prow("{RT}", "held: Ctrl (on the travel map: Ctrl + click travels there)");
+            prow("{LS}", "pressed: F1 (this list)");
           } }
         ImGui::TextDisabled("F1, Esc or a click closes this.");
     }
