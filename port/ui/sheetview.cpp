@@ -31,6 +31,7 @@
 #include "../mods/sheetview.h"
 #include "../mods/gamemodel.h"
 #include "nsdraw.h"
+bool ui_item_tidy_less(int ida, int qa, int idb, int qb);    /* (inventory.cpp) */
 #include "gamepics.h"
 
 extern "C" u32 plat_ticks_ms(void);
@@ -284,9 +285,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     std::vector<int> rows;                                 /* item index; -1 / -3 / -2 the headings */
     int nin = 0, npot = 0;
     for (int i = 0; i < s.nitems; i++) { if (s.item[i].equipped) nin++; else if (s.item[i].potion) npot++; }
-    if (nin) { rows.push_back(-1); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); }
-    if (npot) { rows.push_back(-3); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); }
-    if (s.nitems > nin + npot) { rows.push_back(-2); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); }
+    /* each section in the tidy order of the party's inventory page: by kind, then name, the better first */
+    auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
+    if (nin) { rows.push_back(-1); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); tidy(f); }
+    if (npot) { rows.push_back(-3); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); tidy(f); }
+    if (s.nitems > nin + npot) { rows.push_back(-2); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); tidy(f); }
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }

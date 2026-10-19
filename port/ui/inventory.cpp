@@ -593,16 +593,20 @@ static int kind_rank(const ItemDef *d)
     static const int R[K_OTHER + 1] = { 0, 1, 2, 3, 6, 7, 8, 5, 4, 9, 10, 11, 12, 13 };
     return d ? R[d->kind] : 13;
 }
+/* the tidy order of two things (id, quality): kind, then name, then the better first (the
+   character sheet's lists use it too) */
+bool ui_item_tidy_less(int ida, int qa, int idb, int qb)
+{
+    const ItemDef *da = def_of(ida), *db = def_of(idb);
+    int ka = kind_rank(da), kb = kind_rank(db);
+    if (ka != kb) return ka < kb;
+    const std::string &na = da ? da->name : std::string(), &nb = db ? db->name : std::string();
+    if (na != nb) return na < nb;
+    return qa > qb;
+}
 static void tidy(std::vector<InvItem> &items)
 {
-    std::stable_sort(items.begin(), items.end(), [](const InvItem &a, const InvItem &b) {
-        const ItemDef *da = def_of(a.id), *db = def_of(b.id);
-        int ka = kind_rank(da), kb = kind_rank(db);
-        if (ka != kb) return ka < kb;
-        const std::string &na = da ? da->name : std::string(), &nb = db ? db->name : std::string();
-        if (na != nb) return na < nb;
-        return a.qual > b.qual;
-    });
+    std::stable_sort(items.begin(), items.end(), [](const InvItem &a, const InvItem &b) { return ui_item_tidy_less(a.id, a.qual, b.id, b.qual); });
 }
 
 extern "C" int sheetview_shared(void);
