@@ -109,6 +109,7 @@ static Option OPTIONS[] = {
     { "battle.click_best", S_BATTLE, "battle.click_attack", "With the better weapon", "a member better with a bow, crossbow, gun or thrown weapon than with the weapon for blows shoots from where they stand (Use Missile), unless the foe is already within reach of a blow or the line to it is blocked.", OC_EASE, 0, 1, 1 },
     { "battle.drag_pan", S_BATTLE, 0, "Drag the field", "the right (or middle) button held and moved pulls the battle's view along; a right click without moving still opens the menus.", OC_SHOW, 0, 1, 1 },
     { "battle.select_stays", S_BATTLE, 0, "Choosing doesn't move the view", "1 to 5 choose a member without moving the view while the member is in sight; pressed twice, the view goes to the member and follows.", OC_SHOW, 0, 1, 1 },
+    { "battle.smooth_scroll", S_BATTLE, 0, "Smooth scrolling", "a step of the battle's view slides the field to its new place instead of jumping (a whole step at once: 32 pixels across, 16 up or down).", OC_SHOW, 0, 1, 1 },
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer flies to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling", "the pointer resting on the edge scrolls, no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
     { "battle.info", S_BATTLE, 0, "Battle info", "pointing at someone shows who it is, how hurt, attack, defence and weapon.", OC_SHOW, 0, 1, 1 },

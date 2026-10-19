@@ -28,7 +28,8 @@ extern ImFont *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
 static ImDrawList *ovl_list(void) { return ui_overlay_list(); }
-static ImVec2 g2w(float x, float y) { return ui_g2w(x, y); }
+extern "C" void plat_field_slide(float *x, float *y);
+static ImVec2 g2w(float x, float y) { float sx, sy; plat_field_slide(&sx, &sy); return ui_g2w(x + sx, y + sy); }   /* (with the field while it slides) */
 extern "C" int ns_showing(void);
 extern "C" void plat_mouse_game(int *x, int *y);
 
@@ -112,7 +113,7 @@ void ui_draw_battle_bars(void)
     ImDrawList *dl = ovl_list();
     bool done[13] = {};
     float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
-    dl->PushClipRect(g2w(60, 0), g2w(320, 200), true);        /* (the field only: not over the margins or the panel) */
+    dl->PushClipRect(ui_g2w(60, 0), ui_g2w(320, 200), true);  /* (the field only: not over the margins or the panel) */
     u16 now = g_rw(GV_combat_clock);
     for (int i = 0; i < n; i++) {
         int m = g_rb((u16)(GV_hotspot_cbt + i));
