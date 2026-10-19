@@ -358,7 +358,7 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     sheet_model.ndrops = 0;
     saint_classes();
     build(who);
-    sheet_model.open = 1;
+    sheet_model.open = 1; sheet_model.tab_step = 0;
     fprintf(stderr, "sheet: open (member %d, %d things)\n", who, sheet_model.nitems);
     ns_enter(NS_SHEET);
     ns_clear();
@@ -384,6 +384,8 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
             else if (k >= 0x3b00 && k <= 0x3f00 && !(k & 0xff)) { int m = (k >> 8) - 0x3b; if (m == who) leave = 1; else { NsAction a = { SV_WHO, m, 0, 0 }; act(&a, &who); build(who); } }
             else if (k >= 0x5e00 && k <= 0x6200 && !(k & 0xff)) { NsAction a = { SV_LEADER, (k >> 8) - 0x5e, 0, 0 }; act(&a, &who); build(who); }
             else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;
+            else if (k == 0x0f09 || k == 0x4d00) sheet_model.tab_step++;          /* (Tab, Right: the next page) */
+            else if (k == 0x0f00 || k == 0x4b00) sheet_model.tab_step--;          /* (Shift+Tab, Left) */
             else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
             else if (k == 0x1000) { ns_call(GF_sheet_leave, 1, -1); ns_call(GF_quit_to_dos, 0); }
         }

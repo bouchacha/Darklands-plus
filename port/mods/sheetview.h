@@ -47,6 +47,7 @@ typedef struct {
     unsigned seq;
     char note[160];
     unsigned note_t;
+    int tab_step;                     /* Tab / Shift+Tab, Right / Left: to the next or the previous page (the view takes it) */
 } SheetModel;
 
 extern SheetModel sheet_model;

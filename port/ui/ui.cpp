@@ -744,6 +744,7 @@ static void help_window(void)
                                       row("Keep", "a thing never sold or dropped (a small seal on its row)");
                                       row("The load", "only what is in use weighs"); }
             else row("Ready / Away / Drink / Give / Drop", "on the row under the pointer in Things (Give and Drop with Shift: the whole stack)");
+            row("Things, Skills, Saints, Formulae", "the pages at the top (Tab or Right: the next, Shift+Tab or Left: the one before)");
             row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
             row("Wheel, Up, Down", "scroll the list");

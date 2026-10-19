@@ -193,6 +193,10 @@ static void header(NsDraw &P, const SheetModel &s)
               "and in a battle or a dungeon, unpaused, deals with doors, chests, locks and traps, and leads the group's moves."
             : "The leader speaks and acts for the party on the cards and bargains in the shops.");
     static const char *TABS[4] = { "Things", "Skills", "Saints", "Formulae" };
+    if (sheet_model.tab_step) {                             /* (Tab, Shift+Tab, Right, Left: mods/sheetview.c) */
+        V.tab = ((V.tab + sheet_model.tab_step) % 4 + 4) % 4; V.drop_row = -1; V.what = 0;
+        sheet_model.tab_step = 0;
+    }
     float tw = 25.5f, x = 318 - 4 * tw;
     for (int t = 0; t < 4; t++) {
         bool sel = t == V.tab, h = P.over(x, 11, x + tw - 0.8f, 19.5f);
