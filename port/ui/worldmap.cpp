@@ -327,6 +327,8 @@ static std::string fold_name(const std::string &s, bool umlaut_e)
 extern "C" void ui_toggle_map(void);
 
 static char wm_find[48];                                   /* the Find box's text */
+static int wm_test_enter;                                   /* (test command ufind: the text, then Enter) */
+extern "C" void worldmap_test_find(const char *t) { snprintf(wm_find, sizeof wm_find, "%s", t); wm_test_enter = 1; }
 /* Esc on the map: a name being looked for is cleared first (1: by the box itself while typing in
    it), the map closed only then */
 extern "C" int worldmap_find_escape(int typing)
@@ -593,6 +595,7 @@ extern "C" void worldmap_draw(void)
     char *find = wm_find;
     ImGui::SetNextItemWidth(UIS(260) * pk);
     bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
+    if (wm_test_enter) { enter = true; wm_test_enter = 0; }
     if (find[0]) {                                         /* the places named so, the nearest first on the travel map, with the journey */
         std::string f = fold_name(find, false);
         std::vector<std::pair<int, const Place *>> hits;      /* (minutes on the way, -1 unknown) */
@@ -609,7 +612,7 @@ extern "C" void worldmap_draw(void)
             const Place &p = *hits[i].second;
             ImGui::PushID(p.loc);
             ImVec2 a = ImGui::GetCursorScreenPos();
-            if (ImGui::Selectable("##hit", false, 0, ImVec2(rw, 0)) || (enter && i == 0)) {   /* (Enter: the first) */ tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
+            if (ImGui::Selectable("##hit", false, 0, ImVec2(rw, 0)) || (enter && i == 0)) {   /* (Enter: the first) */ fprintf(stderr, "world map: found %s\n", p.name.c_str()); tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
             ImGui::PopID();
             draw_icon(pdl, ImVec2(a.x + isz * 0.5f, a.y + lh * 0.5f), isz, icon_kind(p.kind));
             std::string t = hits[i].first >= 0 ? hhmm(hits[i].first) : std::string();

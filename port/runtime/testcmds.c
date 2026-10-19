@@ -154,6 +154,7 @@ int testcmd_run(const char *cmd, const char *arg)
             if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
             else encounters_force(atoi(arg));
         }
+        else if (!strcmp(cmd, "ufind")) { void worldmap_test_find(const char *); worldmap_test_find(arg); }   /* test: the world map's Find, the text then Enter */
         else if (!strcmp(cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
         else if (!strcmp(cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }
         else if (!strcmp(cmd, "uload")) { int saves_load(const char *); saves_load(arg); }
