@@ -30,6 +30,7 @@ Each file's header says what the original does, with the function's address
 | Bugs of 483.07 and their fixes (about 30: blessings, fire protection, weapon oils, armour potions, Great Power, castle battles, bounties, alchemy, teachers at the inn, debt notes, the bishop's errands, purged altars, tomb fights, saints called in battle, the companies' standing in saves ...) | `port/mods/fixes.c` (header, then a section per fix) |
 | Every potion: the code, the manual, what the fixes change | `docs/POTIONS.md` |
 | Every saint: the code, the texts, what the fixes change (`port/mods/saintinfo.c` tells it in the game) | `docs/SAINTS.md` |
+| The 35 saints made to do what their texts say (travel speed, fire, weapon and armour quality ...) and why | `docs/SAINTS.md`, `port/mods/sainttexts.c` |
 | Why each greyed card option is greyed (280+ reasons from the cards' scripts) | `port/ui/cardhints_data.h`, `port/ui/cardhints.cpp` |
 | What each potion really does (which weapons, how long, the original's overflow) | `ns_potion_effect` in `port/ui/nsdraw.cpp` |
 | Teachers: who brings one, the skills, ability, the daily chance, fees, conditions | `port/mods/teachers.h` |
@@ -63,6 +64,7 @@ These files include no interface. They read the game through:
 | `port/mods/aging.c` | the years' toll, month by month | the age, the birth month, attribute maxima |
 | `port/mods/losses.c` | what was lost for good, to tell the player | maxima and skills, events 0x48 / 0x49 |
 | `port/mods/gamemodel.c/.h` | members, items, what is known, library saints, the hours' names | the party and item records |
+| `port/mods/sainttexts.c/.h` | each of 35 saints' help as its text says; the party's travel speed from it | `ns_call` (the saints' routines), events, a hook on the minutes of a step |
 
 For an engine with its own model, write those accessors over it (or replace each read by the
 model's field: the offsets are named in the comments) and keep the logic. Where a file calls a
@@ -81,7 +83,7 @@ presets:
 | interface | shows more, changes no rule | Purist + interface |
 | convenience | saves the player work; a small change to how the game plays (the best member speaks, a click attacks) | Semi-Purist |
 | new rule | changes how the game plays (aging, one pack for the party) | Darklands+ |
-| easier | makes the game easier (cheap inns, heavy blows) | Easy only |
+| easier | makes the game easier (cheap inns, heavy blows), or tells what the party cannot know (what unvisited places offer, the foes not yet met) | Easy only |
 | experimental | not finished | never by a preset |
 | taste | a matter of taste (speed, pictures): the original in the purist presets, else the player's own | - |
 | tool | the editor and the like: never set by a preset | - |
