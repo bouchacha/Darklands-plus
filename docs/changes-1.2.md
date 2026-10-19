@@ -78,6 +78,10 @@ Fixed (bugs of 483.07): a cathedral's canon gave out errands as if for the town'
 
 **Black Cloud in battle** (a switch, on in Darklands+ and Easy): the party can throw Black Cloud in a battle too. The game left it out of the party's battle menu (the manual: "the screen takes too long", on the machines of 1992), though its smoke is in the battle's rules and enemies use it. **Teachers' tooltips** were rewritten in plain words: what they teach, the fee, the teacher's own skill (as far as they can teach), the chance a day of lessons adds a point, how to hire one, whom they accept and how it stands now; the margin lists each town's teachers with how far they teach.
 
+**What is new, once:** a player coming from an earlier version is shown, at the first start of 1.2, a short list of what is new (the character sheet, the world map, Go To, the saints, the screens, the one pack, the halo), then never again; a new player gets the welcome instead.
+
+**How good a town's shops are is common knowledge:** the world map's "Towns with a swordsmith (armourer, bowyer, artificer) of 30q+" lists every town, not only those the party has been to ("everyone knows the swordsmiths of Nuremberg"); what a shop will have, the saints, formulae and teachers stay known once visited (or with "What unvisited places offer").
+
 **Saves:** each save in the lists names the whole purse (it showed only the florins: "0" for a party with groschen and pfennigs).
 
 **At a glance on the party panel:** a small halo on a member's picture while a saint's help or a potion is at work on them (a dull red one when all of it is a saint's lowering of an attribute); under the pointer, each boost and the hours left; in a battle too (the game puts the events away while it lasts: what was at work when it began is shown with what the battle brought). Tooltips now open past the game's large hand pointer instead of under it.

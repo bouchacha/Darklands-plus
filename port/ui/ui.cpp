@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
+#include <string>
 #include "imgui.h"
 #include "tablesort.h"
 #include "skillicons.h"
@@ -44,7 +46,8 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 }
 
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
-static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32;
+static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32, open_news;
+static std::string news_key(void);
 static void welcome_window(void);
 extern "C" int orders_click_attack;
 static void help_window(void);
@@ -288,6 +291,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     io.Fonts->Build();
     money_glyphs_paint(io.Fonts);
     open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
+    /* what is new, once, for a player of an earlier version (the first start's welcome says it all for a new one) */
+    open_news = !open_welcome && ((!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !news_key().empty() && news_key() != config_get("ui.news_seen", "")) || getenv("DL_NEWS"));
     {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
         const char *dev = config_get("sound.device", "auto");
         open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
@@ -337,7 +342,7 @@ extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
 extern "C" int ui_alert_open(void);
 void ui_alert_draw(void);
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
 /* the world map (ui/worldmap.cpp): M on the travel map or a card */
@@ -363,6 +368,10 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
 {
+    if (open_news && !open_welcome) {       /* what is new: as the welcome */
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (open_mt32 && !open_welcome) {       /* the MT-32 recommendation, as the welcome */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -585,7 +594,48 @@ static void welcome_window(void)
         ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
         ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
-        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
+        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); if (!news_key().empty()) config_set("ui.news_seen", news_key().c_str()); config_save(); }
+    }
+    ImGui::End();
+    ImGui::PopFont();
+}
+
+/* what is new in this version (its first two numbers: "1.2" from "1.2-preview35"; "" for a build
+   that is no release), shown once to a player of an earlier one */
+extern "C" const char dlp_release[];
+static std::string news_key(void)
+{
+    std::string r = dlp_release;
+    size_t a = r.find('.'); if (a == std::string::npos) return "";
+    size_t b = a + 1; while (b < r.size() && isdigit((unsigned char)r[b])) b++;
+    return r.substr(0, b);
+}
+static void news_window(void)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    float w = fminf(io.DisplaySize.x * 0.9f, UIS(760));
+    ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::PushFont(font_body);
+    std::string title = "New in Darklands+ " + news_key();
+    if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+        static const char *NEWS[] = {
+            "A click on a member at the left: the character sheet, now the one place for the party's things, skills, saints and formulae (Tab turns its pages).",
+            "M: the world map. Find a place, see how long the way is, travel there.",
+            "G in a town: Go To, a picture for every place and what matters there now.",
+            "Saints do what their texts say; each says what its help really does.",
+            "Most of the game's screens are drawn anew for the mouse: shops, loot, the inn, alchemy ...",
+            "One pack for the party, and one store room for every inn.",
+            "A halo on a member's picture: a saint's help or a potion at work (point at it)." };
+        for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("Every change can be switched off: F12 > Settings. F12 > Guide explains the game; F1 lists the keys of the moment.");
+        ImGui::PopStyleColor();
+        ImGui::Spacing();
+        bool done = ImGui::Button("  On with the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);
+        if (done) { open_news = false; config_set("ui.news_seen", news_key().c_str()); config_save(); }
     }
     ImGui::End();
     ImGui::PopFont();
@@ -792,7 +842,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     /* a tooltip opens past the pointer: past the game's hand (16 by 12 of its pixels, the fingertip
@@ -975,6 +1025,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     figpick_window();
     if (open_help) help_window();
     if (open_welcome) welcome_window();
+    else if (open_news) news_window();
     else if (open_mt32) mt32_window();
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */

@@ -92,9 +92,10 @@ static int town_find_q(int loc)                           /* > 0: town loc match
 {
     if (tfind < 0 || loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
     const TownFind &f = TFIND[tfind];
-    /* (a university, a cathedral, docks, a bank: known far and wide; the alchemists, a physician and
-       how good a shop is, once the party has been there: ui/libraries.h) */
-    if ((f.shop >= 0 || f.icon == TI_ALCHEMIST || f.icon == TI_PHYSICIAN) && !place_offers_known(loc)) return 0;
+    /* (a university, a cathedral, docks, a bank, and how good a town's smiths and the like are: known
+       far and wide, as "everyone knows the swordsmiths of Nuremberg"; the alchemists and a physician,
+       once the party has been there: ui/libraries.h) */
+    if ((f.icon == TI_ALCHEMIST || f.icon == TI_PHYSICIAN) && !place_offers_known(loc)) return 0;
     if (f.shop < 0) return citynav_town_offers(loc, f.icon) ? 1 : 0;
     int q = gamedata.cities[loc].shopq[f.shop] > 0 ? shop_wares_q(gamedata.cities[loc].shopq[f.shop]) : 0;
     return q >= 30 ? q : 0;
@@ -614,7 +615,11 @@ extern "C" void worldmap_draw(void)
         label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a little picture of its kind (else a coloured dot)");
         label("Towns");
-        ImGui::SetNextItemWidth(UIS(230) * pk);
+        {   /* (wide enough for the longest choice: "with an artificer of 30q+") */
+            float cw = UIS(230) * pk;
+            for (int k = 0; k < NTFIND; k++) cw = fmaxf(cw, ImGui::CalcTextSize((std::string("with ") + TFIND[k].label).c_str()).x + ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2);
+            ImGui::SetNextItemWidth(cw);
+        }
         if (ImGui::BeginCombo("##tfind", tfind < 0 ? "with ..." : (std::string("with ") + TFIND[tfind].label).c_str())) {
             if (ImGui::Selectable("(none marked)", tfind < 0)) tfind = -1;
             for (int k = 0; k < NTFIND; k++) {
@@ -632,7 +637,7 @@ extern "C" void worldmap_draw(void)
             std::sort(m.begin(), m.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
                 return a.first != b.first ? a.first > b.first : a.second->name < b.second->name; });
             const TownFind &tf = TFIND[tfind];
-            bool seen_only = (tf.shop >= 0 || tf.icon == TI_ALCHEMIST || tf.icon == TI_PHYSICIAN) && !config_get_int("map.offers_unvisited", 0);
+            bool seen_only = (tf.icon == TI_ALCHEMIST || tf.icon == TI_PHYSICIAN) && !config_get_int("map.offers_unvisited", 0);
             ImGui::TextDisabled("%d town%s%s", (int)m.size(), m.size() == 1 ? "" : "s", seen_only ? " the party has been to:" : ":");
             float wmax = UIS(380) * pk, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
             int listed = 0;
