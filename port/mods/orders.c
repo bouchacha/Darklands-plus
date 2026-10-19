@@ -47,6 +47,40 @@ static int topmost(int x, int y)
     return m;
 }
 
+/* a foe whose hot spot (head to waist, 8 pixels wide) is near (x, y): a little beside it or at its
+   feet - where a click meant for the foe lands as often as not, and the game took it for the ground
+   beside it (the member walked there). The centre of the nearest such spot, or 0. */
+static int near_foe(int x, int y, int *cx, int *cy)
+{
+    int n = (s8)g_rb(D_HOT_N), best = -1; long bd = 1L << 30;
+    for (int k = 0; k < n; k++) {
+        int c = g_rb((u16)(D_HOT_CBT + k));
+        if (c < 5 || c >= 13 || g_rb((u16)(D_CBT + c * 0x80 + 0x14)) != 1) continue;
+        int x0 = (s16)g_rw((u16)(D_HOT_X0 + 2 * k)), x1 = (s16)g_rw((u16)(D_HOT_X1 + 2 * k));
+        int y0 = (s16)g_rw((u16)(D_HOT_Y0 + 2 * k)), y1 = (s16)g_rw((u16)(D_HOT_Y1 + 2 * k));
+        if (x < x0 - 5 || x > x1 + 5 || y < y0 - 3 || y > y1 + 10) continue;
+        int mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+        long d = (long)(x - mx) * (x - mx) + (long)(y - my) * (y - my);
+        if (d < bd) { bd = d; best = k; *cx = mx; *cy = my; }
+    }
+    return best >= 0;
+}
+/* a click or the pointer in order mode just beside a foe, while the order is (or will be) an attack:
+   moved onto the foe (the call's x, y), so the game takes the foe */
+static void snap_to_foe(void)
+{
+    if (!orders_click_attack || config_get_int("original", 0) || g_rb(D_ORDER_MODE) != 1) return;
+    int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6));
+    int m = topmost(x, y);
+    if (m >= 0) return;                                  /* (on someone already) */
+    int act = (s16)g_rw(D_ORDER_ACTION), i = (s8)g_rb(D_SELECTED);
+    if (i < 0 || i > 4) return;
+    int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    int attack = act == -1 ? (f == 0 || f == 1 || (f & 2) || f == 0x80) : ((act & 2) || act == 0x80);
+    int cx, cy;
+    if (attack && near_foe(x, y, &cx, &cy)) { ww(SS, (u16)(SP + 4), (u16)cx); ww(SS, (u16)(SP + 6), (u16)cy); }
+}
+
 /* the attack a click sends member i at foe m with: Use Missile (0x80) when the member is better
    with the missile weapon in hand (+0x22, its type) than with the default one (+0x51) - by the
    skill each wants (far 20a5:75ac) - can loose it (can_fire, s014 18bf:0c02) and the foe is not
@@ -87,6 +121,7 @@ static int wants_attack(int x, int y)
 
 static void hover_hook(void)                    /* s014 19cd:0ad4 (x, y): the pointer in order mode */
 {
+    snap_to_foe();
     int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6));
     int set = wants_attack(x, y);
     if (set) g_ww(D_ORDER_ACTION, (u16)set);
@@ -96,12 +131,17 @@ static void hover_hook(void)                    /* s014 19cd:0ad4 (x, y): the po
 
 static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a click in order mode */
 {
+    snap_to_foe();
     int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6));
-    int set = wants_attack(x, y);
+    int set = wants_attack(x, y), m = topmost(x, y);
     if (set) {
         g_ww(D_ORDER_ACTION, (u16)set);                 /* as if the attack had been chosen first */
-        fprintf(stderr, "orders: member %d %s what was clicked\n", (s8)g_rb(D_SELECTED), set == MISSILE ? "shoots at" : "attacks");
+        fprintf(stderr, "orders: member %d %s %d (clicked at %d,%d)\n", (s8)g_rb(D_SELECTED), set == MISSILE ? "shoots at" : "attacks", m, x, y);
     }
+    /* a foe clicked: a spot on the ground clicked before in this order is no longer the way there
+       (order_mode_leave, s014 19cd:0738, makes it the member's goal while the path goes to the foe:
+       "walking" to beside the foe) */
+    if (m >= 5 && orders_click_attack && !config_get_int("original", 0) && g_rw(GV_order_dest_x)) { g_ww(GV_order_dest_x, 0); g_ww(GV_order_dest_y, 0); }
     hook_call_original();
 }
 

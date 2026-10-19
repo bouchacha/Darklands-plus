@@ -104,6 +104,8 @@
 #define GV_order_mode                   0xa6b3    /* 1 while a member is selected */
 #define GV_order_action                 0xa6b0    /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define GV_order_special                0xa6d1    /* the action at a place being ordered (with order_action 0x400) */
+#define GV_order_dest_x                 0xc652    /* int: a spot on the ground clicked in this order (0 none): where order_mode_leave sends the member */
+#define GV_order_dest_y                 0xc67d    /* int: its y */
 #define GV_cbt_state                    0xa3d8    /* [5] a member's special state (1 'b', 2 'e' on the panel) */
 #define GV_insid_office                 0xeeb4    /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define GV_cbt_path_step                0xd6fb    /* char[13]: the step a walk has reached in its path */

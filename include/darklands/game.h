@@ -336,6 +336,7 @@
 #define missiles_advance         sub_s014_1d47_0000   /* (): every missile one tick */
 #define line_blocked             sub_s014_1d69_000c   /* (a, b): line of sight / fire blocked by a wall, furniture or combatant */
 #define ai_tick                  sub_s014_1db7_0008   /* () */
+#define ai_costs                 sub_s014_1db7_0028   /* (i, lo, hi): walking costs from i to lo..hi-1, far 20a5:787e[i*5+j] */
 #define ai_set_target            sub_s014_1db7_0c2a   /* (i, t) */
 #define ai_rethink               sub_s014_1db7_0e22   /* (i) */
 #define cloud_blocks_line        sub_s014_1ec9_0142   /* (a, b): line passes through an effect cloud */
@@ -444,6 +445,8 @@
 #define order_mode               D_a6b3               /* 1 while a member is selected */
 #define order_action             D_a6b0               /* chosen action (1 walk, 0x80 missile, 0x100 spell/item ...) */
 #define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
+#define order_dest_x             D_c652               /* int: a spot on the ground clicked in this order (0 none): where order_mode_leave sends the member */
+#define order_dest_y             D_c67d               /* int: its y */
 #define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
 #define insid_office             D_eeb4               /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */
