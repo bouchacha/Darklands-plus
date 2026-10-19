@@ -119,6 +119,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "teachers.h"
+#include "battlerules.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
@@ -760,6 +761,7 @@ static void greatpower_frame(void)
         if (!g_rb(G_MEMBER(m)) || g_rb((u16)(c + 0x14)) != 1) continue;
         int base = (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x5a : 0x58)));
         int q = (s8)g_rb((u16)(c + 0x0d)), add = running_potions(m, 0x6b, 0);
+        if (add && oils_manual_on() && !oils_allow(0x6b, oils_weapon(m))) add = 0;     /* (battle.oils_manual: not on this weapon) */
         int want = add ? (base + add > 99 ? 99 : base + add) : base;
         if (q == want) { gp_boost[m] = want - base; continue; }
         if (!add && !gp_boost[m]) continue;             /* (not ours to touch) */

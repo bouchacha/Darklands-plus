@@ -30,6 +30,9 @@ ones through the battle's effect code (s019). "A day" in the code is an event of
 | Essence o'Grace (115) | heals 50/70/90 % of lost Strength (heal_attr_pct: from above the maximum it lowers, so Ironarm's boost was mostly lost), Endurance +9-29 for about 30 h | restores Endurance and Strength | `healboost`: healing only raises |
 | Firewall (116) | fire protection (party +0x10) 50/70/90, no event: permanent; and +1 to the high nibble of the armour byte: +16 armour for good | armour against fire only; a day | `armourday`: a day, no high-nibble change; `fireward`: those bits never count as armour |
 
+The switch "Oils as the manual says" (`battle.oils_manual`, off by default) leaves out, in each hit, what the
+weapon used may not have by the manual (port/mods/battlerules.c).
+
 Saints: St. Dunstan adds +1 and St. Patrick +2 to the same armour nibble as Hardarmor, for good
 (`armourday`: a day). A battle puts the event list away (cards_shutdown, s043 1462:054e) and reads
 it back after (cards_startup, 1462:078e) into its first slots, over what the battle added: a

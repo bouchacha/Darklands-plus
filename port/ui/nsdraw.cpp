@@ -151,6 +151,7 @@ std::string ns_item_compare_party(int id, int q)
 }
 
 extern "C" int fix_is_on(const char *id);
+#include "../mods/battlerules.h"
 std::string ns_potion_effect(int id);
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them). Read from the game's code: of the
@@ -227,9 +228,11 @@ std::string ns_potion_effect(int id)
     case 102: return "Thrown: it bursts with great force: 1d8 + 4, 6 or 8 (grade 1, 2, 3), penetration 6, 7 or 8 on the target and less around it; it also wears the armour down by a quarter of the damage.";
     case 103: return "Thrown: burning pitch that no armour stops: 1d6 + 4, 6 or 8 (grade 1, 2, 3), a quarter of it further off, less a tenth of the armour's quality (and of Firewall's protection); it also wears the armour down.";
     case 104: return "Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while.";
-    case 105: return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: the game ties it to the member, not a blade, so bows, guns, impact weapons and fists gain too (its label says non-impact weapons). Damage only, not the chance to hit;" + day;
-    case 106: return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
-    case 107: if (fix_is_on("greatpower")) return "Used by a member: the weapon in hand counts 14, 22 or 30 points of quality more (grade 1, 2, 3; up to 99), bows, guns and fists too, for about a day (19 to 21 hours). Each 10 points of quality is a step more damage. A second adds to the first.";
+    case 105: if (oils_manual_on()) return std::string("Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with a weapon but an impact weapon or a flail, as the manual says (\"Oils as the manual says\" is on). Damage only, not the chance to hit;") + day;
+              return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: the game ties it to the member, not a blade, so bows, guns, impact weapons and fists gain too (its label says non-impact weapons). Damage only, not the chance to hit;" + day;
+    case 106: if (oils_manual_on()) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, as the manual says, " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original") + ";" + day;
+              return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
+    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts 14, 22 or 30 points of quality more (grade 1, 2, 3; up to 99), ") + (oils_manual_on() ? "if it is an impact weapon, a flail or a handgun, as the manual says" : "bows, guns and fists too") + ", for about a day (19 to 21 hours). Each 10 points of quality is a step more damage. A second adds to the first.";
               return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the byte holding both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
     case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second adds to the first.";
     case 109: if (fix_is_on("armourday")) return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, for about a day (19 to 21 hours). Several add up, to 15.";

@@ -47,6 +47,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "battlerules.h"
 
 
 static int on_past(void) { return config_get_int("battle.shoot_past_allies", 0) && !config_get_int("original", 0); }
@@ -261,8 +262,46 @@ static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), cal
     }
 }
 
+/* ---------------------------------------------------------------- battle.oils_manual
+ * The weapon oils are the member's in the game: one byte (party +0x34 = combatant +0x48, damage
+ * high, penetration low) counts in every hit the member lands (hit_damage, s014 18bf:0778), with
+ * any weapon, and Great Power (the greatpower fix) raises whatever weapon is in hand. The manual:
+ * Deadly Blade works on "all weapons except impact and flail types", Strongedge "only ... edged
+ * weapons and polearms", Great Power "only impact weapons, flails and handguns". With this on, a
+ * hit leaves out what the weapon used may not have: its type is +0x22 (the missile weapon) when
+ * readied with the alternate skill (+0x57 bit 7), else +0x51; 0-8 edged, 10-15 impact, 16-17
+ * flails, 18-22 polearms, 23-26 thrown, 27-29 bows, 30-31 crossbows, 32-33 handguns (9 fists). */
+int oils_manual_on(void) { return config_get_int("battle.oils_manual", 0) && !config_get_int("original", 0); }
+int oils_weapon(int i)                          /* the weapon type member i strikes with now */
+{
+    u16 c = (u16)(GV_combatants + 0x80 * i);
+    return (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x22 : 0x51)));
+}
+int oils_allow(int oil, int w)                  /* 0x69 Deadly Blade, 0x6a Strongedge, 0x6b Great Power on weapon type w */
+{
+    int edged = w >= 0 && w <= 8, impact = w >= 10 && w <= 15, flail = w == 16 || w == 17, pole = w >= 18 && w <= 22;
+    if (w < 0 || w == 9 || w > 33) return 0;
+    if (oil == 0x69) return !impact && !flail;
+    if (oil == 0x6a) return edged || pole;
+    return impact || flail || w == 32 || w == 33;
+}
+static void oils_hit_hook(void)                 /* hit_damage (a, t, r, loc) */
+{
+    int a = (s16)rw(SS, (u16)(SP + 4));
+    if (a < 0 || a > 4 || !oils_manual_on()) { hook_call_original(); return; }
+    u16 b = (u16)(GV_combatants + 0x80 * a + 0x48);
+    u8 was = g_rb(b), v = was;
+    int w = oils_weapon(a);
+    if (!oils_allow(0x69, w)) v &= 0x0f;
+    if (!oils_allow(0x6a, w)) v &= 0xf0;
+    if (v != was) { g_wb(b, v); if (getenv("DL_FIX_LOG")) fprintf(stderr, "oils: member %d hits with weapon type %d: bonus %02x counts as %02x\n", a, w, was, v); }
+    hook_call_original();
+    if (v != was) g_wb(b, was);
+}
+
 void battlerules_init(void)
 {
+    hook_install(GF_hit_damage, oils_hit_hook);
     hook_install(GF_ai_costs, costs_hook);
     hook_install(GF_line_blocked, blocked_hook);
     hook_install(GF_melee_exchanges, exchanges_hook);
