@@ -211,7 +211,7 @@ void ui_saint_info(int s)
     ImGui::TextWrapped("What it does: %s", saint_info_does(s));
     ImGui::PopStyleColor();
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-    ImGui::TextWrapped("%s", saint_info_note());
+    if (*saint_info_note(s)) ImGui::TextWrapped("%s", saint_info_note(s));
     ImGui::PopStyleColor();
     const char *u = saint_info_unlike(s);
     if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Unlike the text: %s", u); ImGui::PopStyleColor(); }

@@ -828,7 +828,7 @@ static void draw_learned(void)
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
     /* the legend, then what the saint's help does (the game's code: mods/saintinfo.h) in gold */
     size_t at = saint_effect_at(t.text);
-    std::string lore = t.text.substr(0, at), eff = std::string(saint_info_does(learned_saint)) + " " + saint_info_note();
+    std::string lore = t.text.substr(0, at), eff = std::string(saint_info_does(learned_saint)) + (*saint_info_note(learned_saint) ? " " : "") + saint_info_note(learned_saint);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
     ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str());
     ImVec2 ls = lore.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, lore.c_str());

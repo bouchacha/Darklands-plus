@@ -14,7 +14,7 @@
  * member call on the saint (card_saints: counted here per saint, the card scripts naming it).
  * Some of the help depends on the fixes (mods/fixes.c: pauls, saintrep, armourday; sainttexts,
  * mods/sainttexts.c, gives 39 saints the help their texts describe): the texts follow them. A
- * boost lasts about a day: the texts say so only of other spans (saint_info_note, once a screen). */
+ * boost lasts about a day: the texts say so only of other spans (saint_info_note, beside a help that wears off). */
 #include <stdio.h>
 #include <string.h>
 #include "fixes.h"
@@ -489,4 +489,12 @@ const char *saint_info_unlike(int s)
 
 int saint_info_cards(int s) { return s >= 0 && s < SAINT_INFO_N ? INFO[s].cards : 0; }
 
-const char *saint_info_note(void) { return "A saint's help lasts about a day, unless said otherwise."; }
+/* "" for a saint whose help holds nothing to wear off (healing, the reputation, money: St. Clare) */
+const char *saint_info_note(int s)
+{
+    static const char *WEARS[] = { "+", "lowered", "protection", "better", "thicker" };
+    const char *d = saint_info_does(s);
+    for (size_t k = 0; k < sizeof WEARS / sizeof *WEARS; k++)
+        if (strstr(d, WEARS[k])) return "A saint's help lasts about a day, unless said otherwise.";
+    return "";
+}
