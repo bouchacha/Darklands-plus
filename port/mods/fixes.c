@@ -112,6 +112,11 @@
  *  pauls     The two St. Pauls each do what their texts say (below, pauls).
  *  saintrep  A saint's reputation goes to a real town: St. John Nepomuk's in Prag to Prag, St.
  *            Cecilia's away from any place to the nearest town (below, saintrep).
+ *  nightbowyer The bowyers' street by night ($Bowye01, s065 1a29:02ac) opens the bowyer's shop
+ *            (barter shop 5) through the card call s029 0e76:21aa with the smiths' item categories,
+ *            0x040000FF (what $Black00, $Sword00/01 and $Armor00/01 pass), not the bowyer's
+ *            0x083C0030 (by day, $Bowye00, s065 18fb): at night the bowyer sold the smiths'
+ *            weapons and armour and no bows. Found by Arkana Mechanika (Darklands Restoration).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -202,6 +207,8 @@ Fix FIXES[] = {
       "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised that of the place before the first in the list, writing into memory that is not a place. Now Prag gets Nepomuk's, and the nearest town Cecilia's, as the other saints do.", 1 },
     { "sainttexts", "Saints do what their texts say",
       "39 saints' help, as the game codes it, falls short of or strays from their own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now a week faster, the days on the road fewer), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails for Riding; St. Charity, St. Erasmus and St. Pantaleon no protection against fire for the party; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never bettered a weapon or armour; St. Crispin bettered metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md tell each one). The armour and fire saints need the armourday fix.", 1 },
+    { "nightbowyer", "The bowyer sells bows at night too",
+      "Woken at night, a bowyer opened a shop of the smiths' weapons and armour and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1548,6 +1555,20 @@ static void repadj_hook(void)              /* loc_reputation_adj(loc, a, b) */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- nightbowyer
+ * The card call that opens a shop, s029 0e76:21aa (shop, name far, cats lo, cats hi): the night
+ * bowyer's (barter shop 5) comes with the smiths' categories, the day bowyer's with its own. */
+static void nightbowyer_hook(void)          /* s029 0e76:21aa */
+{
+    int shop = (s16)rw(SS, (u16)(SP + 4));
+    u32 cats = rw(SS, (u16)(SP + 10)) | (u32)rw(SS, (u16)(SP + 12)) << 16;
+    if (shop == 5 && cats == 0x040000FFu) {
+        ww(SS, (u16)(SP + 10), 0x0030); ww(SS, (u16)(SP + 12), 0x083c);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nightbowyer: the bowyer's own goods (0x083C0030, not the smiths' 0x040000FF)\n");
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1560,7 +1581,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
-    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 } };
+    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook } };
+_Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
