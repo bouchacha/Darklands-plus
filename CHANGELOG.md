@@ -1,5 +1,11 @@
 # Darklands+ changelog
 
+## Since 1.2
+
+- **World map:** the view stays on the map instead of scrolling into black past its edges (the west edge stops beside the panel, so the places under it can be seen). A place picked in Find, or with a click, shows in the panel what the pointer shows (what it has, its notable shops, and its saints, formulae and teachers once known), with the journey and Travel there first; a long panel scrolls. Times on the way read as estimates ("22 hours", "1.4 days"), and Find no longer cuts what a place is in the middle of a word.
+- **Go to:** a town hall's or a lord's chance of an audience is the same number the card shows (it said one more).
+- **Tasks:** a place without a name of its own reads "the pagan altar north-west of Hall".
+
 ## Since 1.0, most important first
 
 Every change can be switched off. **F12 > Settings > Helpers** offers presets: **Buggy Purist** (the game as it was), **Purist** (its bugs fixed), **Purist + interface**, **Semi-Purist**, **Darklands+** and **Easy**, then every switch in one table.
