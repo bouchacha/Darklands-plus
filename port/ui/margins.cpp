@@ -109,6 +109,39 @@ static void heading(const char *t)
     ImGui::TextUnformatted(t);
     ImGui::PopStyleColor();
 }
+/* a name on a line of its own, in the margin's ink or dim, wrapped at the margin's edge by words (a
+   long formula's name ran past it), the lines after the first indented; a dim tail (a price) after
+   its last word, or under it when there is no room. One group: under the pointer as one. */
+static void name_line(const std::string &t, bool dim, const char *tail = nullptr)
+{
+    float avail = ImGui::GetContentRegionAvail().x;
+    float indent = ImGui::GetFontSize() * 0.8f;
+    std::vector<std::string> lines; std::string cur;
+    size_t i = 0;
+    while (i < t.size()) {                                  /* greedy, a word at a time */
+        size_t j = t.find(' ', i); if (j == std::string::npos) j = t.size();
+        std::string w = t.substr(i, j - i), next = cur.empty() ? w : cur + " " + w;
+        float room = avail - (lines.empty() ? 0 : indent);
+        if (!cur.empty() && ImGui::CalcTextSize(next.c_str()).x > room) { lines.push_back(cur); cur = w; }
+        else cur = next;
+        i = j + 1;
+    }
+    if (!cur.empty()) lines.push_back(cur);
+    ImGui::BeginGroup();
+    if (dim) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    for (size_t k = 0; k < lines.size(); k++) {
+        if (k) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+        ImGui::TextUnformatted(lines[k].c_str());
+    }
+    if (dim) ImGui::PopStyleColor();
+    if (tail && !lines.empty()) {
+        float used = ImGui::CalcTextSize(lines.back().c_str()).x + (lines.size() > 1 ? indent : 0);
+        if (used + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(tail).x <= avail) ImGui::SameLine();
+        else ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+        ImGui::TextDisabled("%s", tail);
+    }
+    ImGui::EndGroup();
+}
 
 /* in a battle: everybody's condition at a glance - the party with endurance and strength,
  * the enemies the party has seen (in the battle's hot spots) with how hurt they are */
@@ -204,7 +237,7 @@ static void library_line(int loc)
     for (int j = 0; j < ns; j++) {
         int s = shown[j]; bool known = party_knows_saint(s);
         const std::string &t = gamedata.saints[s].name;
-        if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
+        name_line(t, known);
         if (item_hovered()) {
             std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + "\n" + saint_info_note();   /* (what its help really does: mods/saintinfo.h) */
             margin_tip(tip.c_str());
@@ -226,11 +259,7 @@ static void formulae_line(int town)
         bool known = party_knows_formula(f);
         const std::string &t = gamedata.formula_names[f];
         char price[16]; snprintf(price, sizeof price, "%d fl", pr[k]);
-        bool fits = ImGui::CalcTextSize(t.c_str()).x + ImGui::GetStyle().ItemSpacing.x + ImGui::CalcTextSize(price).x <= ImGui::GetContentRegionAvail().x;
-        ImGui::BeginGroup();                                 /* (the price beside the name when it fits; always under the pointer) */
-        if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
-        if (fits) { ImGui::SameLine(); ImGui::TextDisabled("%s", price); }
-        ImGui::EndGroup();
+        name_line(t, known, price);                          /* (the price after the name's last word) */
         if (item_hovered()) {
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
             char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florins%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k],

@@ -562,6 +562,13 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
 }
 
 /* a small outlined tag in a list's row, ending at x_end (the initials' size); returns its width */
+/* the first n letters of a name (UTF-8: letters, not bytes, "Ülrich") */
+static std::string letters(const std::string &t, int n)
+{
+    size_t e = 0;
+    for (int c = 0; c < n && e < t.size(); c++) { e++; while (e < t.size() && ((unsigned char)t[e] & 0xC0) == 0x80) e++; }
+    return t.substr(0, e);
+}
 static float small_tag(NsDraw &P, float x_end, float ry, float rowh, const char *label)
 {
     float w = P.width(P.fo, 4.2f, label) + 2.4f;
@@ -629,7 +636,7 @@ static void saints(NsDraw &P, const SheetModel &s)
         float ix = LX1 - 2;
         for (int m = 4; m >= 0; m--) {
             if (!s.present[m] || !s.saint[m][t]) continue;
-            std::string ini = ns_gtext(s.names[m]).substr(0, 1);
+            std::string ini = letters(ns_gtext(s.names[m]), 1);
             float iw = P.width(fo, 4.2f, ini) + 2.4f;
             P.rect(ix - iw, ry + 1.3f, ix, ry + ROWH - 1.2f, m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
             P.text(fo, 4.2f, ix - iw + 1.2f, ry + 1.7f, NsDraw::LIGHT, ini);
@@ -752,9 +759,14 @@ static void formulae(NsDraw &P, const SheetModel &s)
         if (P.hit(x, 22, x + w, 28.5f)) { V.formulae_all = a == 1; V.scroll[TAB_FORMULAE] = 0; }
         x += w + 1;
     }
-    float colw = 9.5f, cx0 = LX1 - 2 - colw * al.size();
-    for (size_t a = 0; a < al.size(); a++) {                /* who knows each: a column a member */
-        std::string ini = ns_gtext(s.names[al[a]]).substr(0, 3);
+    /* who knows each: a column a member, headed by the name; its first three letters when the
+       names would take too much of the row ("Han" read as a word of its own) */
+    float colw = 9.5f; bool full = true;
+    for (int m : al) colw = std::max(colw, P.width(fo, 4.2f, ns_gtext(s.names[m])) + 2.5f);
+    if (colw * al.size() > 44) { colw = 9.5f; full = false; }
+    float cx0 = LX1 - 2 - colw * al.size();
+    for (size_t a = 0; a < al.size(); a++) {
+        std::string ini = full ? ns_gtext(s.names[al[a]]) : letters(ns_gtext(s.names[al[a]]), 3);
         P.text(fo, 4.2f, cx0 + colw * a + (colw - P.width(fo, 4.2f, ini)) * 0.5f, 24.2f, al[a] == s.who ? NsDraw::RED : ink, ini);
     }
     std::vector<int> rows;
