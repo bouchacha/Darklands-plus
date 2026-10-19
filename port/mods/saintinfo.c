@@ -101,7 +101,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Charisma +8 to 15, Speak Common +30 to 89, Latin +6 to 11, Read & Write +10 to 19.",
       "",
       0, 0, 0, 0 },   /* 25 St.Colman of Cloyne */
-    { "Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception -5 to 9, the skills of the weapons in hand +10 to 19.",
+    { "Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception lowered by 5 to 9, the skills of the weapons in hand +10 to 19.",
       "",
       0, 0, 0, 0 },   /* 26 St.Columba */
     { "Heals 10% of lost Endurance and 10% of lost Strength. Perception +4 to 7, Healing +40 to 79. Teaches St. Damian.",
@@ -197,9 +197,9 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step on the map it is carried to the nearest town.",
       "",
       0, 0, 0, 4 },   /* 57 St.Gertrude o'Nivelles */
-    { "Heals 40% of lost Endurance and 10% of lost Strength. Agility -4 to 7, the skills of the weapons in hand -15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89.",
+    { "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89.",
       "Woodwise and Streetwise the other way round (the text: a little Streetwise, a tremendous Woodwise); no money.",
-      "Heals 40% of lost Endurance and 10% of lost Strength. Agility -4 to 7, the skills of the weapons in hand -15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen.", "", 0, 0 },   /* 58 St.Giles */
+      "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen.", "", 0, 0 },   /* 58 St.Giles */
     { "Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good.",
       "",
       0, 0, 0, 0 },   /* 59 St.Giles of Portugal */
@@ -244,14 +244,14 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 72 St.Ita */
     { "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34.",
       "The reputation in Spain: a place not in the game; no Intelligence lost.",
-      "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence -3 to 5.", "The reputation in Spain: a place not in the game.", 0, 0 },   /* 73 St.James */
+      "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence lowered by 3 to 5.", "The reputation in Spain: a place not in the game.", 0, 0 },   /* 73 St.James */
     { "No help of its own: its powers work only where an encounter calls for it.",
       "",
       0, 0, 0, 3 },   /* 74 St.Januarius */
     { "A woman: heals all lost Endurance and 20% of lost Strength, and Endurance +5 to 9, Strength +4 to 7. A man: heals 30% of lost Endurance and 10% of lost Strength.",
       "",
       0, 0, 0, 0 },   /* 75 St.John of Bridlington */
-    { "Charisma +8 to 15, Perception -6 to 11, Speak Common and Latin +30 to 59.",
+    { "Charisma +8 to 15, Perception lowered by 6 to 11, Speak Common and Latin +30 to 59.",
       "",
       0, 0, 0, 0 },   /* 76 St.John Chrysostom */
     { "Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise each +1 to 4, and 1 more for every 5 points of Virtue.",
@@ -365,7 +365,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Intelligence +12 to 19, Alchemy +20 to 39, Read & Write +30 to 59. Endurance and Strength below 9 are raised to 9.",
       "",
       0, 0, 0, 0 },   /* 113 St.Raymond Lull */
-    { "Heals 30% of lost Endurance. Charisma -6 to 11, Alchemy +6 to 17, Artifice +35 to 69.",
+    { "Heals 30% of lost Endurance. Charisma lowered by 6 to 11, Alchemy +6 to 17, Artifice +35 to 69.",
       "",
       0, 0, 0, 7 },   /* 114 St.Reinold */
     { "Heals 20% of lost Endurance and 20% of lost Strength. Healing +10 to 19, Artifice +8 to 15.",
