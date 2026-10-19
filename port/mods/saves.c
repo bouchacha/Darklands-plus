@@ -356,6 +356,10 @@ void saves_quick_save(void)
 int saves_load(const char *name)
 {
     if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; use the game's own Load before that."); return 0; }
+    /* only a save that is there and can be read: once the game's load_game has torn the game down,
+       a load that fails has nothing to go back to (the game stopped: "Buffer dealloc error") */
+    SaveInfo si;
+    if (!saves_read(name, &si)) { ui_notice("That save could not be read."); return 0; }
     snprintf(load_name, sizeof load_name, "%s", name);
     load_stage = 1; load_t = plat_ticks_ms();
     return 1;
