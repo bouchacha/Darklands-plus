@@ -79,7 +79,7 @@ std::string ui_teacher_text(const TchSource &s)
         else
             snprintf(b, sizeof b, "The teacher's own skill: %d (in the original game it sets no limit: up to 99).\n", s.strength);
         t += b;
-        snprintf(b, sizeof b, "Each day of lessons: a %d%% chance of +1 to the skill (about one point every %d days).\n", c, days);
+        snprintf(b, sizeof b, "Each day of lessons: %s %d%% chance of +1 to the skill (about one point every %d days).\n", gm_a_an(c), c, days);
         t += b;
     }
     t += "\nHow to hire: " + std::string(s.ask) + " The teacher then stays in town for a week; at the inn, set a member to \"Train or study\".";

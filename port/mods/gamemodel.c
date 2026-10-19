@@ -264,6 +264,12 @@ const char *gm_skill_name(int k)
         "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
     return k >= 0 && k < 19 ? S[k] : "?";
 }
+/* "a" or "an" before a number written in figures: "an 8%", "an 11%", "an 18%", "an 80%" */
+const char *gm_a_an(int n)
+{
+    if (n < 0) n = -n;
+    return n == 8 || n == 11 || n == 18 || (n >= 80 && n <= 89) || (n >= 800 && n <= 899) ? "an" : "a";
+}
 const char *gm_skill_short(int k)
 {
     static const char *const S[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices" };
