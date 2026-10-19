@@ -717,6 +717,13 @@ static void draw_card_help(void)
     if (!assist_card_help || !assist_in_card_menu() || g_rb(GV_card_box_shown) || g_rb(GV_card_box_pointer)) return;
     int npar = (s16)g_rw(G_PARTY_SIZE);
     if (npar < 1 || npar > 5) return;
+    {   /* only on a card with an option that takes a saint or an item (a box of names opens on it):
+           the lists are the card script's, and a card without such an option leaves them as they
+           were (four times St. Adrian, saint 0, on a town's main street) */
+        int n = (s8)g_rb(GV_card_layout), any = 0;
+        for (int i = 0; i < n && i < 20; i++) if ((s16)g_rw((u16)(GV_card_layout_kind + 2 * i)) > 0) any = 1;
+        if (!any) return;
+    }
     std::vector<std::pair<std::string, std::string>> lines;
     std::vector<int> ids;                                   /* a saint, or 1000 + an item */
     auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
