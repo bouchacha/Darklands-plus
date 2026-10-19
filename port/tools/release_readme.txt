@@ -32,6 +32,13 @@ INSTALLING
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
    signed): choose "More info", then "Run anyway".
 
+STEAM AND THE STEAM DECK
+To start Darklands+ from your Steam library: Steam > Games > "Add a Non-Steam Game to My
+Library", Browse to darklands.exe and add it. On a Steam Deck, in Desktop Mode: unpack this zip
+into the Darklands folder (steamapps/common/Darklands), add darklands.exe as above, then in its
+Properties > Compatibility tick "Force the use of a specific Steam Play compatibility tool" and
+choose Proton. In Gaming Mode it is then in your library, and the controller works.
+
 The opening plays at every start: a key or a click goes on to its last scene, the lady's
 welcome, and another to the start screen (F12 > Settings > Display: the whole opening, only its
 last scene, or nothing). The start screen shows the version; Continue there loads your newest

@@ -38,6 +38,10 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 2. Download the zip from **[Releases](https://github.com/bouchacha/Darklands-plus/releases/latest)**, unpack it anywhere and run `darklands.exe`.
 3. It finds your GOG or Steam installation by itself, or asks for the folder once. The first start takes a minute or two while Darklands+ prepares the game; after that it starts at once.
 
+**From your Steam library:** in Steam, *Games > Add a Non-Steam Game to My Library*, *Browse* to `darklands.exe`, and add it.
+
+**On a Steam Deck:** in Desktop Mode, unpack the zip into the Darklands folder (`steamapps/common/Darklands`), add `darklands.exe` as a non-Steam game as above, then in its *Properties > Compatibility* tick *Force the use of a specific Steam Play compatibility tool* and choose Proton. Back in Gaming Mode it is in your library, and the controller works.
+
 ## Questions
 
 - **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra figures Darklands+ offers). The first start of each version also copies them into a "Darklands+ save backups" folder.
