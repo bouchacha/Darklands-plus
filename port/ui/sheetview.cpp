@@ -551,6 +551,15 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     }
 }
 
+/* a small outlined tag in a list's row, ending at x_end (the initials' size); returns its width */
+static float small_tag(NsDraw &P, float x_end, float ry, float rowh, const char *label)
+{
+    float w = P.width(P.fo, 4.2f, label) + 2.4f;
+    P.frame(x_end - w, ry + 1.3f, x_end, ry + rowh - 1.2f, NsDraw::GREEN, 1.1f);
+    P.text(P.fo, 4.2f, x_end - w + 1.2f, ry + 1.7f, NsDraw::GREEN, label);
+    return w;
+}
+
 static void saints(NsDraw &P, const SheetModel &s)
 {
     ImFont *f = P.f, *fo = P.fo;
@@ -597,6 +606,8 @@ static void saints(NsDraw &P, const SheetModel &s)
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
     if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, V.saints_all ? "No saint helps with that." : "Nobody in the party knows a saint that helps with that. (All saints: the others too.)");
     int hover = -1;
+    int cl = (s16)g_rw(G_CUR_LOC);
+    const Library *here = cl >= 0 && cl < G_NLOC ? library_at(cl) : nullptr;   /* (the library of the place the party is in: what it teaches, tagged) */
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int t = rows[sc + r];
         float ry = LY0 + r * ROWH;
@@ -613,6 +624,10 @@ static void saints(NsDraw &P, const SheetModel &s)
             P.rect(ix - iw, ry + 1.3f, ix, ry + ROWH - 1.2f, m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
             P.text(fo, 4.2f, ix - iw + 1.2f, ry + 1.7f, NsDraw::LIGHT, ini);
             ix -= iw + 0.8f;
+        }
+        bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
+        if (here && !known) for (int k = 0; k < 4; k++) if (here->saint[k] == t) {
+            ix -= small_tag(P, ix, ry, ROWH, "taught here") + 0.8f; break;
         }
         P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, ink, gamedata.saints[t].name, -1, ix - 1);
     }
@@ -743,6 +758,8 @@ static void formulae(NsDraw &P, const SheetModel &s)
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
     if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, "Nobody in the party knows a formula. All formulae: every one, what it calls for and where it is sold.");
     int hover = -1;
+    int cl = (s16)g_rw(G_CUR_LOC), sold[4] = { -1, -1, -1, -1 }, price[4];
+    if (!(cl >= 0 && cl < (int)gamedata.cities.size() && alchemist_formulae(cl, sold, price))) sold[0] = sold[1] = sold[2] = sold[3] = -1;   /* (the town's alchemist: what it sells, tagged) */
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int k = rows[sc + r];
         float ry = LY0 + r * ROWH;
@@ -757,6 +774,9 @@ static void formulae(NsDraw &P, const SheetModel &s)
             std::string bs = std::to_string(b) + "x";
             P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, NsDraw::GREEN, bs, end);
             end -= P.width(fo, NsDraw::FS_SMALL, bs) + 1.5f;
+        }
+        if (!kn && (sold[0] == k || sold[1] == k || sold[2] == k || sold[3] == k)) {
+            end -= small_tag(P, end, ry, ROWH, "sold here") + 1;
         }
         P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn ? ink : dim, gamedata.formula_names[k], -1, end);
         for (size_t a = 0; a < al.size(); a++) {
