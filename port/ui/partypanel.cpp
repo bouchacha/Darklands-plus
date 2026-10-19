@@ -19,6 +19,7 @@
 #include <SDL.h>
 #include "nsdraw.h"
 #include "gamepics.h"
+#include "effects.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/hle.h"
@@ -240,6 +241,7 @@ extern "C" void partypanel_draw(void)
     P.rect(0, 0, 60, 200, BG);
     int size = gm_party_size(), lead = gm_leader();
     bool battle = gm_in_battle() && game_mode() == GM_BATTLE;      /* (not the loot after it) */
+    std::vector<Eff> eff = effects_now(size);                   /* (the blessings and potions at work: a halo on the picture) */
     for (int m = 0; m < 5; m++) {
         float y0 = 40.0f * m;
         bool here = m < size && gm_member_present(m);
@@ -304,6 +306,26 @@ extern "C" void partypanel_draw(void)
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
                 ImGui::SetTooltip("%s carries %s: %d against %d (endurance + strength).\nIt costs agility in card tests and in fending off blows, and slows the swings. A click opens the sheet.",
                                   name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2);
+            }
+        }
+        /* a saint's help or a potion at work: a halo on the picture's upper corner, gold (or a dull red
+           when all of it is a saint's lowering of an attribute); each and the hours left under the pointer */
+        if (!out) {
+            std::string tip; bool up = false;
+            for (const Eff &x : eff) {
+                if (x.m != m || x.kind == 0x43) continue;            /* (not a companion's stay) */
+                if (x.amount >= 0) up = true;
+                char t[24]; if (x.left < 48) snprintf(t, sizeof t, "%ld h", x.left); else snprintf(t, sizeof t, "%ld days", (x.left + 12) / 24);
+                tip += "\n" + x.what + " (" + t + ")";
+            }
+            if (!tip.empty()) {
+                float hx = px0 + 3.2f, hy = py0 + 3.2f, r = 2.6f;
+                ImU32 ring = up ? IM_COL32(244, 204, 96, 255) : IM_COL32(200, 92, 70, 255);
+                P.dl->AddCircleFilled(NsDraw::w(hx, hy), (r + 0.7f) * P.k, IM_COL32(18, 13, 9, 225));
+                P.dl->AddEllipse(NsDraw::w(hx, hy - 0.5f), ImVec2(2.0f * P.k, 0.9f * P.k), ring, 0, 0, fmaxf(1.2f, 0.55f * P.k));   /* the halo */
+                P.dl->AddCircleFilled(NsDraw::w(hx, hy + 1.2f), 0.9f * P.k, ring);                                                /* a head under it */
+                if (P.over(hx - r - 0.5f, hy - r - 0.5f, hx + r + 0.5f, hy + r + 0.5f))
+                    ImGui::SetTooltip("At work on %s:%s", name.c_str(), tip.c_str());
             }
         }
         if (st == 3) {

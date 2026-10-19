@@ -789,6 +789,9 @@ static void ui_cursor(void)
     bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
+    /* a tooltip opens past the pointer: past the game's hand (16 by 12 of its pixels, the fingertip
+       the point) where the game draws it, else past the system arrow */
+    ImGui::GetStyle().MouseCursorScale = show ? 1.0f : fmaxf(1.0f, (y1 - y0) / 200.0f * 1.1f);
     if (show) {
         static SDL_Cursor *arrow; if (!arrow) arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
         ImGuiMouseCursor c = ImGui::GetMouseCursor();
