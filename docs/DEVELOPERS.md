@@ -17,7 +17,7 @@ This repository contains **no game files** and no code generated from them. Ever
 
 * **Download** the Windows zip from this repository's Releases, unpack it anywhere and start `darklands.exe`. It finds a GOG or Steam installation of Darklands by itself, or asks for the folder once; an installation under Program Files (GOG Galaxy's) works as it is, with the saves in Windows' VirtualStore. You need your own copy of Darklands 483.07 (GOG or Steam).
 * **On the first start** Darklands+ spends a minute or two translating the game program from your `DARKLAND.EXE`. The download contains nothing from the game itself.
-* Players' notes: `port/tools/release_readme.txt`. Features and keys: `port/README.md`. Making mods: `docs/MODDING.md`. Working on it: `CONTRIBUTING.md`. Taking parts into another engine: `docs/MERGING.md`.
+* Players' notes: `port/tools/release_readme.txt`. Features and keys: `port/README.md`. Making mods: `docs/MODDING.md`. Working on it: `CONTRIBUTING.md`. Taking parts into another engine: `docs/MERGING.md`. The cut political campaign (what exists, what is missing): `docs/cut_politics.md`.
 
 ## What works today
 
