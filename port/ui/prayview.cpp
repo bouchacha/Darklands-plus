@@ -39,7 +39,8 @@ extern "C" void prayview_draw(void)
     if (p.day[0]) y += P.para(fo, NsDraw::FS_SMALL, tx, y, tw, dim, std::string("Saint's day: ") + p.day) + 1.5f;
     if (known) {
         /* what the help really does (mods/saintinfo.h), where the text says otherwise, then the text */
-        y += P.para(fo, NsDraw::FS_BODY, tx, y, tw, IM_COL32(26, 64, 132, 255), saint_info_does(p.saint)) + 2;
+        y += P.para(fo, NsDraw::FS_BODY, tx, y, tw, IM_COL32(26, 64, 132, 255), saint_info_does(p.saint)) + 0.5f;
+        y += P.para(fo, 4.2f, tx, y, tw, dim, saint_info_note()) + 1.5f;
         const char *un = saint_info_unlike(p.saint);
         if (*un) y += P.para(fo, 4.4f, tx, y, tw, IM_COL32(140, 50, 30, 255), std::string("Unlike the text: ") + un) + 1.5f;
         y += P.para(fo, 4.4f, tx, y, tw, soft, gamedata.saints[p.saint].text) + 2;

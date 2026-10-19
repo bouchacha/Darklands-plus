@@ -74,7 +74,7 @@ while time.time() < t_end:
     if a.x11 and rnd.random() < 0.08:          # the interface: tabs of the F12 menu, the maps, help
         act = rnd.choice(['tabs', 'map', 'level', 'help'])
         L('ui', act)
-        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(14) for _ in range(4)) + '; key F12; wait 0.5')
+        if act == 'tabs': nctl.do(name, 'key F12; wait 0.5; ' + '; '.join('utab %d; wait 0.6' % rnd.randrange(9) for _ in range(4)) + '; key F12; wait 0.5')
         elif act == 'map': nctl.do(name, 'ucmd umap:; wait 1.5; ucmd umap:; wait 0.5')
         elif act == 'level': nctl.do(name, 'ucmd ulevelmap:; wait 1.5; ucmd ulevelmap:; wait 0.5')
         elif act == 'help': nctl.do(name, 'ucmd uhelp:; wait 1; ucmd uhelp:; wait 0.5')

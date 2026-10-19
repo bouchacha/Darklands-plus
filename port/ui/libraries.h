@@ -13,11 +13,17 @@ struct Library {
     int saint[4];            // the saints it teaches (DARKLAND.LST order; two may be the same)
 };
 
+/* whether the party knows what place loc offers (the saints its library teaches, the formulae its
+   alchemist sells, the goods its shops will have): it is there or has been there (the journal's
+   record), or the switch "What unvisited places offer" (map.offers_unvisited: off, but in the Easy
+   preset) is on. The lists below name only such places. */
+bool place_offers_known(int loc);
+
 /* the libraries of this game (read while a card or the travel map is up, kept otherwise) */
 const std::vector<Library> &libraries(void);
 const Library *library_at(int loc);                         // nullptr: no library there
-/* the libraries that teach saint s, the nearest to the party first; the distance in days on foot
-   (about), -1 unknown */
+/* the libraries that teach saint s, of the places whose offers the party knows, the nearest first;
+   the distance in days on foot (about), -1 unknown */
 struct LibraryHit { const Library *lib; double days; };
 std::vector<LibraryHit> libraries_teaching(int s);
 bool party_knows_saint(int s);                              // anyone in the party
@@ -27,6 +33,7 @@ bool party_knows_formula(int f);                            // anyone in the par
    town's seed + the party's + 100 + 3 a slot, % 22: only the first 22 formulae, DARKLAND.LST order,
    are ever sold), with their prices in florins. False: the town has no alchemist. */
 bool alchemist_formulae(int town, int formula[4], int price_fl[4]);
-/* the towns whose alchemist sells formula f, the nearest first (days -1: unknown) */
+/* the towns whose alchemist sells formula f, of those whose offers the party knows, the nearest
+   first (days -1: unknown) */
 struct SellerHit { int town; std::string name; double days; int price_fl; };
 std::vector<SellerHit> formula_sellers(int f);

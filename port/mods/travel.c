@@ -26,6 +26,7 @@
 #include "../runtime/config.h"
 #include "travel.h"
 #include "encounters.h"
+#include "sainttexts.h"
 
 extern char game_dir[1024];
 
@@ -35,8 +36,10 @@ TravelState travel;
 int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 instant */
 int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
 
-/* minutes per one-pixel step by terrain (s030 1462:2ac8) */
-static int minutes(int t)
+/* minutes per one-pixel step by terrain (s030 1462:2ac8; with a saint's speed, mods/sainttexts.h) */
+static int minutes_base(int t);
+static int minutes(int t) { return sainttexts_step_minutes(t, minutes_base(t)); }
+static int minutes_base(int t)
 {
     switch (t) {
     case 24: return 6;

@@ -144,7 +144,7 @@ static void take(int i, int all)
     if (shared) g_ww(GV_loot_who, (u16)shown);
     char t[160];
     if (shared) {
-        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (F12 > Inventory hands it to another).", done, nm, loot_model.names[m]);
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, loot_model.names[m]);
         else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
         else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
     }

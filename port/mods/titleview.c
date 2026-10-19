@@ -8,6 +8,7 @@
  * original's. Continue and Load are the handler's load screen (0x1454), told beforehand which
  * save to read (the newest; or the one chosen on the native Load page, mods/savesview.c), so the
  * game's own load runs (mods/saves.c: saves_title_load). */
+#include "../ui/uitabs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,7 +105,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
                 break; }
             case TV_NEW: r = choose(0x2e43); break;
             case TV_QUICK: r = choose(0x1051); break;
-            case TV_SETTINGS: ui_open_tab(7 /* UI_PAGE_HELPERS */); break;
+            case TV_SETTINGS: ui_open_tab(UI_PAGE_HELPERS); break;
             case TV_QUIT: choose(0x1000); break;
             }
             if (r == 0x11b) begin = 1;

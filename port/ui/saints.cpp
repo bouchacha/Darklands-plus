@@ -1,29 +1,21 @@
-// saints.cpp - the saints (F12 > Saints): the blessings and potions in effect and how long they
-// last, every saint's description from DARKLAND.SNT, who in the party knows them, and a finder by what they help with ("Strength", "fire", "heal",
-// "travel on water" ...), like the saint finder of the Darklands Companion tool. Knowledge:
-// saints_known, far 2e38:082c, 0x14 bytes per member, a bit per saint in DARKLAND.LST order,
-// highest bit first.
+// saints.cpp - the saints as Darklands+ tells them (the character sheet's Saints, the prayer screen,
+// the tooltips): where a description's legend ends and its promise begins, the game's description
+// with what the help really does (mods/saintinfo.h), whether encounters call on a saint; and the
+// blessings and potions at work now and how long they last (effects_now: the margin's "In force").
 #include <stdio.h>
 #include <string.h>
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <map>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
-#include "libraries.h"
 #include "effects.h"
 #include "../mods/fixes.h"
 #include "../mods/saintinfo.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
-}
-
-static bool knows(int m, int s)
-{
-    return (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7))) != 0;
 }
 
 static const char *ATTRS[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
@@ -64,16 +56,29 @@ std::vector<Eff> effects_now(int size)
         long left = abs_hours((s16)rw(sg, (u16)(o + 0x18)), (s16)rw(sg, (u16)(o + 0x16)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x12))) - now;
         if (left <= 0) continue;
         char b[96];
-        if (kind == 0x48 && k >= 0 && k < 7) snprintf(b, sizeof b, "%+d %s", t, ATTRS[k]);
-        else if (kind == 0x49 && k >= 0 && k < 19) snprintf(b, sizeof b, "%+d %s", t, SKILLS[k]);
-        else if (kind == 0x4a) {
-            /* +0: 0x69 Deadly Blade; 0x6d Hardarmor (its grade), 0x16d a saint's armour, 0x16e St. Crispin's
+        if ((kind == 0x48 && k >= 0 && k < 7) || (kind == 0x49 && k >= 0 && k < 19)) {
+            snprintf(b, sizeof b, "%+d %s", t, kind == 0x48 ? ATTRS[k] : SKILLS[k]);
+            Eff e = { m, b, left, kind }; e.k = k; e.amount = t;
+            v.push_back(e);
+            continue;
+        }
+        if (kind == 0x4a) {
+            /* +0: 0x69 Deadly Blade; 0x6d Hardarmor (its grade), 0x16d a saint's armour, 0x16e a saint's
                armour quality, 0x174 a saint's fire protection (armourday); 0x74 Firewall (armourday);
                0x6b Greatpower marked by greatpower; else an inventory index:
                Strongedge (3..5) or Greatpower (14/22/30) */
-            if (k == 0x16d) { snprintf(b, sizeof b, "%+d armour (a saint's)", t); v.push_back({ m, b, left, kind }); continue; }
-            if (k == 0x16e) { snprintf(b, sizeof b, "%+d armour quality (St. Crispin)", t); v.push_back({ m, b, left, kind }); continue; }
-            if (k == 0x174) { snprintf(b, sizeof b, "fire protection %d (a saint's)", t); v.push_back({ m, b, left, kind }); continue; }
+            /* (a saint's, mods/sainttexts.c: 0x16f-0x173 armour and weapon quality, 0x175 armour against
+               missiles, 0x177 / 0x178 the party's travel faster) */
+            static const struct { int k; const char *f; } SAINTLY[] = {
+                { 0x16d, "%+d armour (a saint's)" }, { 0x16e, "worn armour %+d quality (a saint's)" },
+                { 0x16f, "metal armour %+d quality (a saint's)" }, { 0x170, "leather and cloth armour %+d quality (a saint's)" },
+                { 0x171, "weapon %+d quality (a saint's)" }, { 0x172, "edged weapon %+d quality (a saint's)" },
+                { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (a saint's)" },
+                { 0x174, "fire protection %d (a saint's)" }, { 0x175, "%+d armour against missiles (a saint's)" },
+                { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" } };
+            bool done = false;
+            for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); v.push_back({ m, b, left, kind }); done = true; break; }
+            if (done) continue;
             int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
             if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
@@ -88,29 +93,6 @@ std::vector<Eff> effects_now(int size)
         v.push_back({ m, b, left, kind });
     }
     return v;
-}
-
-static void effects(int size)
-{
-    std::vector<Eff> v = effects_now(size);
-    v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x43; }), v.end());   /* (blessings and potions only) */
-    char head[64]; snprintf(head, sizeof head, "In effect now (%d)###effects", (int)v.size());
-    if (!ImGui::CollapsingHeader(head, v.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) return;
-    if (v.empty()) { ImGui::TextDisabled("No blessings or potions are working on the party."); return; }
-    std::sort(v.begin(), v.end(), [](const Eff &a, const Eff &b) { return a.m != b.m ? a.m < b.m : a.left < b.left; });
-    if (ImGui::BeginTable("eff", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
-        for (const Eff &e : v) {
-            char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(e.m) + G_M_SHORTNAME), n, sizeof n);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(game_text(n, sizeof n).c_str());
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(e.what.c_str());
-            ImGui::TableNextColumn();
-            if (e.left < 48) ImGui::TextDisabled("%ld hour%s left", e.left, e.left == 1 ? "" : "s");
-            else ImGui::TextDisabled("%ld days left", (e.left + 12) / 24);
-        }
-        ImGui::EndTable();
-    }
-    ImGui::Spacing();
 }
 
 static std::string lower(std::string s) { std::transform(s.begin(), s.end(), s.begin(), ::tolower); return s; }
@@ -210,6 +192,9 @@ void ui_saint_info(int s)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
     ImGui::TextWrapped("What it does: %s", saint_info_does(s));
     ImGui::PopStyleColor();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped("%s", saint_info_note());
+    ImGui::PopStyleColor();
     const char *u = saint_info_unlike(s);
     if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Unlike the text: %s", u); ImGui::PopStyleColor(); }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -225,111 +210,4 @@ const char *saint_encounters_line(int s)
          : n >= 3 ? "Some encounters let you call on this saint (its other powers work there)."
          : n >= 1 ? "A few encounters let you call on this saint (its other powers work there)."
          : "No encounter calls for this saint: its help above is all it does.";
-}
-
-/* the help as a line, to scan the list by */
-static std::string saint_summary(int s)
-{
-    std::string e = saint_info_does(s);
-    for (size_t k; (k = e.find("For a day: ")) != std::string::npos; ) e.erase(k, 11);   /* (the list is about a day's help) */
-    if (!e.empty()) e[0] = (char)toupper((unsigned char)e[0]);
-    return e;
-}
-
-extern "C" void tab_saints(void)
-{
-    if (gamedata.saints.empty()) { ImGui::TextWrapped("DARKLAND.LST could not be read."); return; }
-    bool in_game = game_mode() != GM_OTHER;
-    int size = in_game ? (s16)g_rw(G_PARTY_SIZE) : 0;
-    if (size < 0 || size > 5) size = 0;
-    static char find[64];
-    static int known_only = 0;
-    ImGui::TextWrapped("What each saint can do, and who in the party knows them. Find saints by what they help with. "
-                       "A saint nobody knows shows the nearest library that teaches it (a town's monastery or university, or a monastery in the country: each teaches four saints, the same all game).");
-    ImGui::SetNextItemWidth(UIS(300));
-    ImGui::InputTextWithHint("##sfind", "Strength, fire, heal, travel, Virtue ...", find, sizeof find);
-    static const char *QUICK[] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma",
-                                   "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile", "Alchemy", "Religion",
-                                   "Virtue", "Speak Latin", "Read/Write", "Healing", "Artifice", "Stealth", "Streetwise",
-                                   "Riding", "Woodwise", "fire", "water", "heal", "reputation", "Divine Favor" };
-    ImGui::SameLine();
-    if (ImGui::BeginCombo("##quick", "Helps with...", ImGuiComboFlags_HeightLarge)) {
-        for (const char *q : QUICK) if (ImGui::Selectable(q)) snprintf(find, sizeof find, "%s", q);
-        ImGui::EndCombo();
-    }
-    if (in_game) {
-        ImGui::RadioButton("All saints", &known_only, 0); ImGui::SameLine();
-        ImGui::RadioButton("Known in the party", &known_only, 1); ImGui::SameLine();
-        ImGui::RadioButton("Not yet known", &known_only, 2);
-    }
-    if (in_game && size > 0) effects(size);
-    ImGui::Separator();
-    std::string f = lower(find);
-    int shown = 0;
-    ImGui::BeginChild("saints", ImVec2(0, 0));
-    for (int s = 0; s < (int)gamedata.saints.size(); s++) {
-        const Saint &t = gamedata.saints[s];
-        std::string who;
-        int nk = 0;
-        for (int m = 0; m < size; m++)
-            if (knows(m, s)) {
-                char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n);
-                if (!who.empty()) who += ", ";
-                who += game_text(n, sizeof n); nk++;
-            }
-        if (known_only == 1 && !nk) continue;
-        if (known_only == 2 && nk) continue;
-        if (!f.empty() && lower(t.name).find(f) == std::string::npos && lower(t.text).find(f) == std::string::npos && lower(saint_info_does(s)).find(f) == std::string::npos) continue;
-        shown++;
-        ImGui::PushID(s);
-        bool open = ImGui::CollapsingHeader(t.name.c_str(), f.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen);
-        if (!open && ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-            ImGui::PushTextWrapPos(UIS(520)); ui_saint_info(s); ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-        float full = ImGui::GetContentRegionAvail().x;
-        /* where to learn it: the libraries that teach it, the nearest first (ui/libraries.h) */
-        std::vector<LibraryHit> where;
-        if (in_game && !nk) where = libraries_teaching(s);
-        auto days = [](double d) { char b[24]; if (d < 0) b[0] = 0; else if (d < 0.6) snprintf(b, sizeof b, "here"); else snprintf(b, sizeof b, "%d day%s", (int)(d + 0.5), (int)(d + 0.5) == 1 ? "" : "s"); return std::string(b); };
-        if (!open) {                       /* what the saint does, in a line, to scan the list by */
-            float x0 = full * 0.30f, x1 = nk || !where.empty() ? full * 0.70f : full - UIS(10);
-            std::string e = saint_summary(s), cut = e;
-            while (!cut.empty() && ImGui::CalcTextSize((cut + "...").c_str()).x > x1 - x0) {
-                size_t sp = cut.find_last_of(' '); cut = sp == std::string::npos ? std::string() : cut.substr(0, sp);
-            }
-            if (cut.size() < e.size()) cut += "...";
-            ImGui::SameLine(x0); ImGui::TextDisabled("%s", cut.c_str());
-        }
-        if (nk) { ImGui::SameLine(full * (open ? 0.55f : 0.72f)); ImGui::TextDisabled("known by %s", who.c_str()); }
-        else if (!where.empty() && !open) {
-            ImGui::SameLine(full * 0.72f);
-            std::string d = days(where[0].days);
-            ImGui::TextDisabled("learn at %s%s%s", where[0].lib->name.c_str(), d.empty() ? "" : ", ", d.c_str());
-        }
-        if (open) {
-            ImGui::Indent(UIS(20)); ui_saint_info(s);
-            if (in_game && !nk) {
-                std::string l;
-                if (where.empty()) l = "No library teaches this saint in this game (a saint may still be granted by a card).";
-                else {
-                    l = "Taught in the library of ";
-                    size_t n = where.size() < 6 ? where.size() : 6;
-                    for (size_t i = 0; i < n; i++) {
-                        std::string d = days(where[i].days);
-                        l += (i ? (i + 1 == n && where.size() <= 6 ? " and " : ", ") : "") + where[i].lib->name + (d.empty() ? "" : " (" + d + ")");
-                    }
-                    if (where.size() > 6) l += " and " + std::to_string(where.size() - 6) + " more";
-                    l += ".";
-                }
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                ImGui::TextWrapped("%s", l.c_str());
-                ImGui::PopStyleColor();
-            }
-            ImGui::Unindent(UIS(20)); ImGui::Spacing();
-        }
-        ImGui::PopID();
-    }
-    if (!shown) ImGui::TextDisabled("No saint matches.");
-    ImGui::EndChild();
 }

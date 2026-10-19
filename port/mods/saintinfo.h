@@ -10,6 +10,7 @@ extern "C" {
 const char *saint_info_does(int s);      /* the help as the code gives it (with the fixes as they are now) */
 const char *saint_info_unlike(int s);    /* where the description promises otherwise; "" none */
 int saint_info_cards(int s);             /* how many of the encounters' card scripts let a member call on it */
+const char *saint_info_note(void);       /* said once on a screen of saints: how long the help lasts (the texts say only other spans) */
 
 #ifdef __cplusplus
 }

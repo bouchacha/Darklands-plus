@@ -109,7 +109,6 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `assist.loot_worth` | Worth | interface | lootview.cpp |
 | `display.native_alchemy` | Alchemy | interface | alchemyview.c |
 | `assist.where_sold` | Where sold | interface | alchemyview.cpp |
-| `assist.where_sold_unvisited` | Where it will be sold | interface | journal.cpp |
 | `display.native_cache` | Store rooms | interface | cacheview.c |
 | `store.shared` | One store room for every inn | new rule | sharedstore.c |
 | `display.native_lodge` | Inns and camps | interface | lodgeview.c |
@@ -125,7 +124,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `assist.hall_of_fame` | Honor Roll of Glory | interface | halloffame.cpp |
 | **Cards and towns** | | | |
 | `assist.chances` | Chances of success | interface | assist.c |
-| `assist.best_leader` | The best speaks for the party | convenience | assist.c, party.cpp, sheetview.cpp |
+| `assist.best_leader` | The best speaks for the party | convenience | assist.c, sheetview.cpp |
 | `assist.card_help` | Saints and items on cards | interface | assist.c |
 | `assist.shop_info` | Tooltips | interface | sheetview.cpp, ui.cpp |
 | `assist.fast_fades` | Quick cards | interface | hdtext.c |
@@ -178,7 +177,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `travel.fast` | Pace | taste | travel.c |
 | `map.names` | Place names | interface | worldmap.cpp |
 | `map.quest_marks` | Quest marks | interface | worldmap.cpp |
-| `map.offers_unvisited` | What unvisited towns offer | easier | worldmap.cpp |
+| `map.offers_unvisited` | What unvisited places offer | easier | libraries.cpp (place_offers_known), journal.cpp |
 | `map.key_m` | World map | interface | travel.cpp, ui.cpp |
 | `travel.encounters` | Encounters on the road | easier | travel.c |
 | `travel.street_encounters` | Thieves and the watch at night | easier | margins.cpp, travel.c |

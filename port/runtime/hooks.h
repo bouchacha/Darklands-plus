@@ -23,6 +23,7 @@ extern int hook_bypass, hook_current, hook_depth;
 void hook_run(int idx);
 int hook_install(int sect, unsigned seg, unsigned off, void (*fn)(void));   /* sect -1 = root; 0 if no such function */
 void hook_remove(int sect, unsigned seg, unsigned off, void (*fn)(void));
+int hook_point(int sect, unsigned seg, unsigned off);   /* its index (hook_current while it runs), -1 none */
 void hook_call_original(void);
 void hook_return_far(unsigned n);
 void hook_return_near(unsigned n);

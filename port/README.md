@@ -73,8 +73,9 @@ On the first start a short welcome names the keys that matter and offers the ori
   keys for card options; "Go to" in cities (G); shop and inventory tooltips with weapon numbers
   and who could use an item; battle info under the pointer; battles pausing when someone falls;
   a battle log (every blow, wound and fall); battle and dungeon speed; better battle pathfinding; auto-travel and a zoomable world map (M);
-  quest log, town journal, saints finder, alchemy formulas, party inventory with drag and drop;
-  the party side by side with a one-click leader change; F1 for the keys of the moment (the
+  quest log, town journal; a character sheet drawn anew with the whole party's saints (what each
+  really does, where it is taught), formulae (ingredients, batches, chances, where sold), the
+  party's best at each skill, drag and drop between members and a one-click leader change; F1 for the keys of the moment (the
   game's own hidden ones too); the mouse wheel in lists; the menu bar with a right click (the
   game shows it only while the button is held); the game waits while in the background;
   a map of the level in battles and dungeons (Tab); tooltips for every item, saint and formula on

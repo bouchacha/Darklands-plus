@@ -2,6 +2,7 @@
 // read at any size (the character sheet, character creation, the roster, card chances, the tabs).
 #include <math.h>
 #include "imgui.h"
+#include "uitabs.h"
 #include "skillicons.h"
 
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
@@ -117,7 +118,7 @@ void ui_skill_icon_inline(int k)
     ImGui::SameLine(0, s * 0.2f);
 }
 
-/* the F12 menu's tabs: a small picture for each, drawn in the room left at the start of the label */
+/* the F12 menu's tabs (ui/uitabs.h): a small picture for each, drawn in the room left at the start of the label */
 void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
 {
     float u = s / 16.0f;
@@ -125,52 +126,33 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
     auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
     ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), red = C(170, 40, 30), steel = C(190, 194, 204), wood = C(150, 100, 52);
     switch (tab) {
-    case 0:  /* inventory: a satchel */
-        dl->AddRectFilled(P(-8, -3), P(8, 9), wood, 2 * u); dl->AddRect(P(-8, -3), P(8, 9), ink, 2 * u, 0, 1.0f * u);
-        dl->AddRectFilled(P(-8, -3), P(8, 3), C(120, 78, 40), 2 * u); dl->AddRect(P(-8, -3), P(8, 3), ink, 2 * u, 0, 1.0f * u);
-        dl->PathArcTo(P(0, -3), 5.5f * u, 3.1416f, 6.2832f, 12); dl->PathStroke(ink, 0, 1.6f * u);
-        dl->AddRectFilled(P(-1.5f, 1), P(1.5f, 5), gold); break;
-    case 1:  /* party: three heads */
-        for (int i = -1; i <= 1; i++) {
-            float x = i * 6.0f, y = i == 0 ? -1.0f : 1.0f;
-            ImU32 col = i == 0 ? parch : C(205, 190, 160);
-            dl->AddCircleFilled(P(x, y - 4), 3.2f * u, col); dl->AddCircle(P(x, y - 4), 3.2f * u, ink, 0, 0.8f * u);
-            dl->PathArcTo(P(x, y + 6), 5.0f * u, 3.1416f, 6.2832f, 12); dl->PathFillConvex(col);
-        }
-        break;
-    case 2: ui_skill_icon(dl, c, s, 7); break;                 /* alchemy: the flask */
-    case 3: ui_skill_icon(dl, c, s, 9); break;                 /* saints: the halo */
-    case 4: ui_skill_icon(dl, c, s, 11); break;                /* journal: the book */
-    case 5:  /* saves: a sealed letter */
+    case UI_PAGE_JOURNAL: ui_skill_icon(dl, c, s, 11); break;   /* journal: the book */
+    case UI_PAGE_SAVES:  /* saves: a sealed letter */
         dl->AddRectFilled(P(-9, -6), P(9, 7), parch); dl->AddRect(P(-9, -6), P(9, 7), ink, 0, 0, 1.0f * u);
         dl->AddLine(P(-9, -6), P(0, 1), ink, 0.9f * u); dl->AddLine(P(9, -6), P(0, 1), ink, 0.9f * u);
         dl->AddCircleFilled(P(0, 2), 3.4f * u, red); break;
-    case 6:  /* travel: a compass rose */
-        dl->AddCircle(P(0, 0), 8.5f * u, gold, 0, 1.4f * u);
-        dl->AddTriangleFilled(P(0, -9), P(-2.4f, 0), P(2.4f, 0), red); dl->AddTriangleFilled(P(0, 9), P(-2.4f, 0), P(2.4f, 0), parch);
-        dl->AddTriangleFilled(P(-9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); dl->AddTriangleFilled(P(9, 0), P(0, -2), P(0, 2), C(205, 190, 160)); break;
-    case 7:  /* helpers: a lit candle */
+    case UI_PAGE_HELPERS:  /* helpers: a lit candle */
         dl->AddRectFilled(P(-2.5f, -2), P(2.5f, 9), parch); dl->AddRect(P(-2.5f, -2), P(2.5f, 9), ink, 0, 0, 0.8f * u);
         dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
         dl->AddTriangleFilled(P(0, -11), P(-2.6f, -5), P(2.6f, -5), C(250, 190, 60)); dl->AddCircleFilled(P(0, -5.5f), 2.6f * u, C(250, 150, 40)); break;
-    case 8: ui_skill_icon(dl, c, s, 14); break;                /* mods: the cog */
-    case 9:  /* display: a framed picture */
+    case UI_PAGE_MODS: ui_skill_icon(dl, c, s, 14); break;                /* mods: the cog */
+    case UI_PAGE_DISPLAY:  /* display: a framed picture */
         dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
         dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
         dl->AddRect(P(-9, -7), P(9, 7), gold, 0, 0, 1.8f * u); break;
-    case 10: /* records: a crown */
+    case UI_PAGE_RECORDS: /* records: a crown */
         dl->AddRectFilled(P(-8, 2), P(8, 7), gold);
         dl->AddTriangleFilled(P(-8, 2), P(-8, -7), P(-3, 2), gold); dl->AddTriangleFilled(P(-4, 2), P(0, -8), P(4, 2), gold); dl->AddTriangleFilled(P(3, 2), P(8, -7), P(8, 2), gold);
         dl->AddCircleFilled(P(0, 4.5f), 1.4f * u, red); dl->AddRect(P(-8, 2), P(8, 7), ink, 0, 0, 0.8f * u); break;
-    case 11: /* about: i in a circle */
+    case UI_PAGE_ABOUT: /* about: i in a circle */
         dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
         dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;
-    case 12: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
-    case 13: /* guide: an open book */
+    case UI_PAGE_EDITOR: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
+    case UI_PAGE_GUIDE: /* guide: an open book */
         dl->AddQuadFilled(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), parch); dl->AddQuadFilled(P(0, -4), P(9, -6), P(9, 6), P(0, 8), C(226, 214, 184));
         dl->AddQuad(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), ink, 0.8f * u); dl->AddQuad(P(0, -4), P(9, -6), P(9, 6), P(0, 8), ink, 0.8f * u);
         for (int i = 0; i < 3; i++) { dl->AddLine(P(-7, -2 + i * 3.0f), P(-2, -1 + i * 3.0f), C(120, 100, 80), 0.7f * u); dl->AddLine(P(2, -1 + i * 3.0f), P(7, -2 + i * 3.0f), C(120, 100, 80), 0.7f * u); }
         break;
-    default: (void)steel; break;
+    default: (void)steel; (void)wood; break;
     }
 }

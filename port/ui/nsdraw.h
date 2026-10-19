@@ -75,6 +75,10 @@ struct NsDraw {
         dl->AddText(ff, sz, w(x, y), c, s.c_str(), nullptr, ww);
         return ff->CalcTextSizeA(sz, FLT_MAX, ww, s.c_str()).y / k;
     }
+    float para_height(ImFont *ff, float gs, float width, const std::string &s) const   /* (what para would take) */
+    {
+        return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, width * kx, s.c_str()).y / k;
+    }
     float width(ImFont *ff, float gs, const std::string &s) const { return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, 0, s.c_str()).x / kx; }
 
     bool over(float x0, float y0, float x1, float y1) const { return mx >= x0 && mx < x1 && my >= y0 && my < y1; }
@@ -143,6 +147,19 @@ struct NsDraw {
 
 static inline std::string ns_gtext(const char *s) { return game_text(s, strlen(s)); }
 static inline const ItemDef *ns_itemdef(int id) { return id >= 0 && id < (int)gamedata.items.size() ? &gamedata.items[id] : nullptr; }
+/* a tooltip over a native screen, its text the size of the text beside the picture (as the cards'
+   and the margins' tooltips): ns_tip_begin(); ImGui text ...; ns_tip_end(). width: in that text's
+   size, where it wraps */
+static inline void ns_tip_begin(float width_em = 24)
+{
+    ImGui::BeginTooltip();
+    if (ui_font_overlay) { ImGui::PushFont(ui_font_overlay); ImGui::SetWindowFontScale(ui_text_px() * 0.88f / ui_font_overlay->FontSize); }
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, ImGui::GetFontSize() * 0.22f));   /* (lines, not rows of a page) */
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * width_em);
+}
+static inline void ns_tip_end(void) { ImGui::PopTextWrapPos(); ImGui::PopStyleVar(); if (ui_font_overlay) ImGui::PopFont(); ImGui::EndTooltip(); }
+static inline void ns_tip(const char *text, float width_em = 24) { ns_tip_begin(width_em); ImGui::TextUnformatted(text); ns_tip_end(); }
+
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25
  * (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs, nor

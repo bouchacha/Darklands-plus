@@ -127,6 +127,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "teachers.h"
+#include "sainttexts.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
@@ -199,6 +200,8 @@ Fix FIXES[] = {
       "St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; virtue 19, as the manual says) was in the game but never called. Now each does what its text says.", 1 },
     { "saintrep", "A saint's reputation goes to a real town",
       "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised that of the place before the first in the list, writing into memory that is not a place. Now Prag gets Nepomuk's, and the nearest town Cecilia's, as the other saints do.", 1 },
+    { "sainttexts", "Saints do what their texts say",
+      "35 saints' help, as the game codes it, falls short of or strays from their own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now a week faster, the days on the road fewer), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails for Riding; St. Charity, St. Erasmus and St. Pantaleon no protection against fire for the party; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never bettered a weapon or armour; St. Crispin bettered metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md tell each one). The armour and fire saints need the armourday fix.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -521,7 +524,7 @@ void fixes_frame(void)
     if (fix_on("offmap")) offmap_frame();
     if (fix_on("altar")) altar_frame();
     if (fix_on("armourday")) armourday_frame();
-    if (fix_on("greatpower")) greatpower_frame();
+    if (fix_on("greatpower") || sainttexts_on) greatpower_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -732,7 +735,7 @@ static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43
 static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's (2) blessing, (who, x, what) */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
-    if (what != 8 || who < 0 || who > 4) { hook_call_original(); return; }
+    if (what != 8 || who < 0 || who > 4 || sainttexts_handles(add == 1 ? 39 : 104)) { hook_call_original(); return; }   /* (sainttexts: theirs) */
     u16 mb = (u16)G_MEMBER(who);
     u8 a41 = g_rb((u16)(mb + 0x41));
     hook_call_original();
@@ -759,17 +762,31 @@ static void hardarmor_give(int m, int *thick, int *qual)
 }
 /* the quality: added to the target's armour (+0x4f body, +0x50 legs) for the hit alone - Hardarmor's
    everywhere, St. Crispin's on the armour worn (party +0x37 body, +0x38 legs: -1 none) */
+/* sainttexts adds: St. Dunstan's quality to metal armour worn (0x16f: hardness 3 scale and up), St.
+   Crispin's to the other (0x170), and St. Patrick's thickness against a missile (0x175: the
+   attacker's +0x57 bit 7, the missile weapon in use; added to the armour byte +0x55's low bits) */
+static int worn_quality(int t, int part)            /* the saints' and potions' quality for the armour worn on the body (0) or legs (1) */
+{
+    int type = (s8)g_rb((u16)(G_MEMBER(t) + 0x37 + part));
+    if (type < 0) return 0;
+    int hard = rb(G_FAR20A5, (u16)(0x781e + type));
+    return running_potions(t, 0x16e, 0) + running_potions(t, hard >= 3 ? 0x16f : 0x170, 0);
+}
 static void armour_hit_hook(void)          /* hit_damage (a, t, r, loc) */
 {
-    int t = (s16)rw(SS, (u16)(SP + 6)), th, q = 0, cr = 0;
-    if (t >= 0 && t < 5 && g_rb(G_MEMBER(t))) { hardarmor_give(t, &th, &q); cr = running_potions(t, 0x16e, 0); }
-    int q0 = q + ((s8)g_rb((u16)(G_MEMBER(t) + 0x37)) >= 0 ? cr : 0), q1 = q + ((s8)g_rb((u16)(G_MEMBER(t) + 0x38)) >= 0 ? cr : 0);
-    if (!q0 && !q1) { hook_call_original(); return; }
-    u16 c = (u16)(GV_combatants + 0x80 * t + 0x4f);
-    u8 a0 = g_rb(c), a1 = g_rb((u16)(c + 1));
+    int a = (s16)rw(SS, (u16)(SP + 4)), t = (s16)rw(SS, (u16)(SP + 6)), th, q = 0, q0 = 0, q1 = 0, miss = 0;
+    if (t >= 0 && t < 5 && g_rb(G_MEMBER(t))) {
+        hardarmor_give(t, &th, &q);
+        q0 = q + worn_quality(t, 0); q1 = q + worn_quality(t, 1);
+        if (a >= 0 && a < 13 && (g_rb((u16)(GV_combatants + 0x80 * a + 0x57)) & 0x80)) miss = running_potions(t, 0x175, 0);
+    }
+    if (!q0 && !q1 && !miss) { hook_call_original(); return; }
+    u16 c = (u16)(GV_combatants + 0x80 * t + 0x4f), ab = (u16)(GV_combatants + 0x80 * t + 0x55);
+    u8 a0 = g_rb(c), a1 = g_rb((u16)(c + 1)), b = g_rb(ab);
     g_wb(c, (u8)((s8)a0 + q0 > 99 ? 99 : (s8)a0 + q0)); g_wb((u16)(c + 1), (u8)((s8)a1 + q1 > 99 ? 99 : (s8)a1 + q1));
+    if (miss) { int lo = (b & 0x7f) + miss; g_wb(ab, (u8)((b & 0x80) | (lo > 0x7f ? 0x7f : lo))); }
     hook_call_original();
-    g_wb(c, a0); g_wb((u16)(c + 1), a1);
+    g_wb(c, a0); g_wb((u16)(c + 1), a1); g_wb(ab, b);
 }
 
 /* St. Crispin (s039 165c:1868): +10 to the quality of every member's worn body and leg armour
@@ -780,7 +797,7 @@ static void armour_hit_hook(void)          /* hit_damage (a, t, r, loc) */
 static void crispin_hook(void)
 {
     int what = (s16)rw(SS, (u16)(SP + 8));
-    if (what != 8) { hook_call_original(); return; }
+    if (what != 8 || sainttexts_handles(28)) { hook_call_original(); return; }
     u8 q[5][2];
     for (int m = 0; m < 5; m++) { q[m][0] = g_rb((u16)(G_MEMBER(m) + 0x3b)); q[m][1] = g_rb((u16)(G_MEMBER(m) + 0x3c)); }
     hook_call_original();
@@ -800,10 +817,10 @@ static void crispin_hook(void)
    battle counts bits 4-6 as armour (+32, +48: the "fireward" fix hides them) and bit 7 makes the
    member's own blows fire. Here the byte stays as it was and the member (Polycarp: each member)
    has fire protection 90 for about a day (a kind 0x4a event, type0 0x174), as Polycarp's. */
-static void fire_saint(int whole)
+static void fire_saint(int whole, int saint)
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
-    if (what != 8 || who < 0 || who > 4) { hook_call_original(); return; }
+    if (what != 8 || who < 0 || who > 4 || sainttexts_handles(saint)) { hook_call_original(); return; }
     u8 a41[5], f10[5];
     for (int m = 0; m < 5; m++) { a41[m] = g_rb((u16)(G_MEMBER(m) + 0x41)); f10[m] = g_rb((u16)(G_MEMBER(m) + 0x10)); }
     hook_call_original();
@@ -816,10 +833,10 @@ static void fire_saint(int whole)
     }
     AX = ax; DX = dx;
 }
-static void charity_hook(void) { fire_saint(0); }
-static void erasmus_hook(void) { fire_saint(0); }
-static void pantaleon_hook(void) { fire_saint(0); }
-static void polycarp_hook(void) { fire_saint(1); }
+static void charity_hook(void) { fire_saint(0, 20); }
+static void erasmus_hook(void) { fire_saint(0, 45); }
+static void pantaleon_hook(void) { fire_saint(0, 103); }
+static void polycarp_hook(void) { fire_saint(1, 110); }
 
 static void armourday_frame(void)
 {
@@ -844,16 +861,26 @@ static void armourday_frame(void)
     }
 }
 
+/* the saints' weapon quality (sainttexts) for weapon type w: any (0x171), an edged one (0x172),
+   St. Eligius's blades, hammers and maces, polearms, crossbows and guns (0x173) */
+static int saint_weapon_quality(int m, int w)
+{
+    if (w < 0 || w > 33) return 0;
+    int sk = rb(G_FAR20A5, (u16)(0x75ac + w));
+    return running_potions(m, 0x171, 0) + (sk == 0 ? running_potions(m, 0x172, 0) : 0) +
+           (sk == 0 || sk == 1 || sk == 3 || sk == 6 ? running_potions(m, 0x173, 0) : 0);
+}
 static int gp_boost[5];                    /* what greatpower_frame added to each member's +0x0d */
-static void greatpower_frame(void)
+static void greatpower_frame(void)         /* (Great Power's, with greatpower; the saints', with sainttexts) */
 {
     if (game_mode() != GM_BATTLE) { memset(gp_boost, 0, sizeof gp_boost); return; }
     for (int m = 0; m < 5; m++) {
         u16 c = (u16)(GV_combatants + 0x80 * m);
         if (!g_rb(G_MEMBER(m)) || g_rb((u16)(c + 0x14)) != 1) continue;
         int base = (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x5a : 0x58)));
-        int q = (s8)g_rb((u16)(c + 0x0d)), add = running_potions(m, 0x6b, 0);
+        int q = (s8)g_rb((u16)(c + 0x0d)), add = fix_on("greatpower") ? running_potions(m, 0x6b, 0) : 0;
         if (add && !oils_allow(0x6b, oils_weapon(m))) add = 0;     /* (oilweapons: not on this weapon) */
+        if (sainttexts_on) add += saint_weapon_quality(m, oils_weapon(m));
         int want = add ? (base + add > 99 ? 99 : base + add) : base;
         if (q == want) { gp_boost[m] = want - base; continue; }
         if (!add && !gp_boost[m]) continue;             /* (not ours to touch) */
@@ -1531,7 +1558,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
-    { 39, 0x165c, 0x41fa, nepomuk_hook } };
+    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
@@ -1555,6 +1582,7 @@ void fix_enable(int i, int on)
         if (k != i && FIXES[k].on && HOOKS[k].fn == HOOKS[i].fn && HOOKS[k].sect == HOOKS[i].sect && HOOKS[k].seg == HOOKS[i].seg && HOOKS[k].off == HOOKS[i].off) shared = 1;
     for (unsigned k = 0; k < sizeof MORE / sizeof MORE[0]; k++)
         if (!strcmp(MORE[k].fix, FIXES[i].id)) { if (on) hook_install(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); else hook_remove(MORE[k].sect, MORE[k].seg, MORE[k].off, MORE[k].fn); }
+    if (!strcmp(FIXES[i].id, "sainttexts")) sainttexts_enable(on);                /* (its hooks are its own) */
     if (!HOOKS[i].fn) return;                /* checked every frame (fixes_frame), no hook */
     if (on) { if (!hook_install(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn)) fprintf(stderr, "fix %s: no hook point\n", FIXES[i].id); }
     else if (!shared) hook_remove(HOOKS[i].sect, HOOKS[i].seg, HOOKS[i].off, HOOKS[i].fn);

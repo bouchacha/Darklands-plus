@@ -29,8 +29,8 @@ leave the game playable, and every new module keeps a switch back to the origina
 * **Views draw, loops act.** Drawing never calls the game; a view pushes an action, the screen's
   loop does it at a safe point (between the game's rounds). Outside a native screen, the interface
   asks with `ns_defer()`: done at the start of the next round of any game screen (menu_bar_run),
-  or at the end of the frame while F12's window holds the game (F12 > Party's giving, readying
-  and leader change work so). The one exception is a pure question with
+  or at the end of the frame while F12's window holds the game (the test command ugive's giving
+  works so). The one exception is a pure question with
   no lasting effect, asked under an evaluation snapshot and kept (the quest log's person names,
   `ui/quests.cpp`); the journal's prices are asked in hooks (a card loaded, a shop drawn).
 * **Each module owns its hooks.** If two features need the same game function, each hooks it;

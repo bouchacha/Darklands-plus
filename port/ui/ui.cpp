@@ -16,6 +16,7 @@
 #include "uiinternal.h"
 #include "uitabs.h"
 #include "townicons.h"
+#include "libraries.h"
 
 extern "C" {
 #include "../mods/options.h"
@@ -147,10 +148,7 @@ void ui_overlay_font_update(void)
     extern ImFont *ui_font_text;
     ui_font_overlay = config_get_int("display.overlay_font_follow", 1) && ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
 }
-extern "C" void tab_inventory(void);
-extern "C" void tab_members(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
-extern "C" void tab_alchemy(void);
 extern "C" void ui_overlay(void);
 extern "C" void hdtext_draw(void);
 extern "C" void hdtext_draw_cursor(void);
@@ -158,8 +156,6 @@ extern "C" void hdtext_pointer_off(void);
 extern "C" void hdtext_pointer_frame_end(void);
 void ui_guide_tab(void);
 extern "C" void tab_journal(void);
-extern "C" void tab_travel(void);
-extern "C" void tab_saints(void);
 extern "C" void tab_saves(void);
 extern "C" void ui_draw_notice(void);
 extern "C" { int cacheview_showing(void); int cacheview_shared_pack(void); int cacheview_every_inn(void); }
@@ -343,7 +339,7 @@ void ui_alert_draw(void);
 extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
-/* the world map (ui/worldmap.cpp): M on the travel map or a card, or the Travel tab */
+/* the world map (ui/worldmap.cpp): M on the travel map or a card */
 extern "C" void ui_toggle_map(void)
 {
     if (open_map) { open_map = false; return; }
@@ -741,7 +737,7 @@ static void help_window(void)
             row("Wheel, Up, Down", "scroll the list");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
             ImGui::SeparatorText("Now: a character sheet");
-            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or F12 > Party)");
+            row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader at the top)");
             row("Up, Down, PgUp, PgDn", "move in a list (the mouse wheel too)");
             row("1 ... 5", "in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them)");
             row("A", "in the equipment list: ready or wear the chosen item");
@@ -878,6 +874,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();
+    if (game_mode() == GM_CARD || game_mode() == GM_MAP) libraries();   /* (kept for the character sheet, which cannot read them: ui/libraries.h) */
     if (open_map) worldmap_draw();
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
@@ -902,15 +899,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                would not all show (the whole bar in that face: ImGui measures the tabs again when
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
-            static const Page pages[UI_PAGE_N] = { { "Inventory", tab_inventory }, { "Party", tab_members }, { "Alchemy", tab_alchemy },
-                { "Saints", tab_saints }, { "Journal", tab_journal }, { "Saves", tab_saves }, { "Travel", tab_travel },
+            static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },
                 { "Helpers", tab_helpers }, { "Mods", tab_mods }, { "Display", tab_display }, { "Records", tab_party },
                 { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab } };
             struct Group { const char *name; int icon; int page[4]; int n; };
             static const Group groups[] = {
-                { "Inventory", UI_PAGE_INVENTORY, { UI_PAGE_INVENTORY }, 1 }, { "Party", UI_PAGE_PARTY, { UI_PAGE_PARTY }, 1 },
-                { "Alchemy", UI_PAGE_ALCHEMY, { UI_PAGE_ALCHEMY }, 1 }, { "Saints", UI_PAGE_SAINTS, { UI_PAGE_SAINTS }, 1 },
-                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Travel", UI_PAGE_TRAVEL, { UI_PAGE_TRAVEL }, 1 },
+                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
                 { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
                 { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
                 { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 4 } };

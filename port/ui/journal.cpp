@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <math.h>
 #include "imgui.h"
@@ -44,6 +45,7 @@ struct Shop { std::string name, date; int shop = 0, shopq = 0; u32 cats = 0; boo
 struct Town { bool visited = false; int visits = 0; std::string first, last; std::vector<Shop> shops; };
 
 static std::map<int, Town> towns;
+static std::set<int> places;               /* the other places the party has been to (a monastery, a castle ...: "P loc") */
 static int journal_on = 1;
 static int cur_seed = -1, last_loc = -2;
 
@@ -94,6 +96,7 @@ static void save(void)
             for (const SeenItem &i : s.items) fprintf(f, "I %d %d %d\n", i.id, i.q, i.price);
         }
     }
+    for (int loc : places) fprintf(f, "P %d\n", loc);
     fclose(f);
     remove(p.c_str());
     rename(tmp.c_str(), p.c_str());
@@ -101,7 +104,7 @@ static void save(void)
 
 static void load(int seed)
 {
-    towns.clear();
+    towns.clear(); places.clear();
     FILE *f = fopen(path_for(seed).c_str(), "r");
     if (!f) return;
     char line[512];
@@ -125,6 +128,8 @@ static void load(int seed)
         } else if (line[0] == 'I' && s) {
             SeenItem i;
             if (sscanf(line + 2, "%d %d %d", &i.id, &i.q, &i.price) == 3) s->items.push_back(i);
+        } else if (line[0] == 'P') {
+            int loc; if (sscanf(line + 2, "%d", &loc) == 1) places.insert(loc);
         }
     }
     fclose(f);
@@ -648,7 +653,7 @@ static void card_load_hook(void)
             t.last = d; t.visits++;
             if (journal_on) record_town_stock(loc);
             save();
-        }
+        } else if (loc >= 0 && loc < G_NLOC && places.insert(loc).second) save();   /* (a monastery, a castle ...: been there) */
     }
     hook_call_original();
 }
@@ -880,7 +885,7 @@ std::string journal_where_sold(int id)
         if (d < bd) { bd = d; best = kv.first; bp = price; }
     }
     if (best >= 0) return loc_name(best) + ", " + money(bp);
-    if (!config_get_int("assist.where_sold_unvisited", 1)) return "";
+    if (!config_get_int("map.offers_unvisited", 0)) return "";   /* (what unseen shops will have: only with "What unvisited places offer") */
     /* no shop seen sells it: the nearest town whose shops will have it (the wares are fixed for
        the whole game by the town's and the party's seeds: predict_stock), "expected" */
     if (id < 0 || id >= (int)gamedata.items.size()) return "";
@@ -1090,5 +1095,11 @@ extern "C" void tab_journal(void)
     }
 }
 
-/* for other tabs: has the party been to city loc? */
-extern "C" int journal_visited(int loc) { auto it = towns.find(loc); return it != towns.end() && it->second.visited; }
+/* for other pages: has the party been to place loc (a town, or a monastery, castle ... in the country)? */
+extern "C" int journal_visited(int loc)
+{
+    if (game_mode() == GM_OTHER) return 0;
+    ensure_game();
+    auto it = towns.find(loc);
+    return (it != towns.end() && it->second.visited) || places.count(loc);
+}

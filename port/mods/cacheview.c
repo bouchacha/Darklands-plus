@@ -140,7 +140,7 @@ static int take(int i, int all)
     char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[160];
     if (shared) {
-        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (F12 > Inventory hands it to another).", done, nm, cache_model.names[m]);
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, cache_model.names[m]);
         else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
         else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
     }

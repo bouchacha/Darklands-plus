@@ -1,127 +1,14 @@
-// travel.cpp - the Travel tab (pick a destination, see how long it takes) and the route
-// drawn over the overland map (mods/travel.c walks it).
+// travel.cpp - the route of auto-travel drawn over the overland map (mods/travel.c walks it; the
+// world map, ui/worldmap.cpp, is where a journey is chosen).
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <vector>
-#include <algorithm>
 #include "imgui.h"
-#include "ui.h"
-#include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../mods/travel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
-void ui_toggle(void);
-int journal_visited(int loc);
-}
-
-extern ImFont *ui_font_small;
-
-static std::string when(int minutes)
-{
-    int h = (minutes + 30) / 60, d = h / 24; h %= 24;
-    char b[48];
-    if (d) snprintf(b, sizeof b, "%d day%s %d h", d, d == 1 ? "" : "s", h);
-    else snprintf(b, sizeof b, "%d h", h ? h : 1);
-    return b;
-}
-
-static const char *kind(int t)
-{
-    switch (t) {
-    case 0: return "city"; case 1: return "castle"; case 2: return "robber knight's castle"; case 3: return "monastery";
-    case 6: return "mine"; case 8: return "village"; default: return "place";
-    }
-}
-
-struct Dest { int loc, type, minutes; std::string name; };
-
-static std::string loc_name(int i, int *type)
-{
-    u32 r = g_location(i);
-    if (!r) return "";
-    *type = rw((u16)(r >> 16), (u16)r);
-    return loc_display_name(i);
-}
-
-extern "C" void ui_toggle_map(void);
-extern "C" int citynav_available(void);
-extern "C" void ui_open_goto(void);
-extern "C" int config_get_int(const char *key, int def);
-extern "C" void tab_travel(void)
-{
-    static char filter[48];
-    static bool show[4] = { true, true, false, true };     /* cities, castles & monasteries, villages, mines */
-    {
-        if (game_mode() != GM_OTHER && game_mode() != GM_BATTLE) {
-            if (ImGui::Button("Open the world map")) ui_toggle_map();
-            if (config_get_int("map.key_m", 1)) { ImGui::SameLine(); ImGui::TextDisabled("(M)"); }
-            ImGui::Spacing();
-        }
-        if (citynav_available() && config_get_int("assist.city_goto", 1)) {
-            if (ImGui::Button("Go to a place in this city...")) ui_open_goto();
-            ImGui::SameLine(); ImGui::TextDisabled("(G on the city's cards)");
-            ImGui::Spacing();
-        }
-    }
-    if (!travel_enabled) { ImGui::TextWrapped("Auto-travel is switched off (F12 > Settings > Helpers)."); return; }
-    if (travel.active) {
-        ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Travelling to %s, about %s to go.", travel.name, when(travel.left > 0 ? travel.left : travel.minutes).c_str());
-        ImGui::SameLine();
-        if (ImGui::Button("Stop")) travel_stop();
-    }
-    if (game_mode() != GM_MAP) {
-        ImGui::TextWrapped("Journeys are planned on the travel map: leave the town (or finish the encounter) and open this tab there.");
-        ImGui::TextWrapped("On the map you can also hold Ctrl and click any spot to travel there.");
-        return;
-    }
-    ImGui::TextWrapped("Pick a destination: the party travels by the quickest way, keeping to roads and bridges. "
-                       "Encounters interrupt the journey; it carries on afterwards. Any key or click stops it. "
-                       "Ctrl+click on the map travels to that spot.");
-    ImGui::SetNextItemWidth(UIS(260));
-    ImGui::InputTextWithHint("##f", "name", filter, sizeof filter);
-    ImGui::SameLine(); ImGui::Checkbox("Cities", &show[0]);
-    ImGui::SameLine(); ImGui::Checkbox("Castles & monasteries", &show[1]);
-    ImGui::SameLine(); ImGui::Checkbox("Villages", &show[2]);
-    ImGui::SameLine(); ImGui::Checkbox("Mines", &show[3]);
-    std::vector<Dest> v;
-    std::string f = filter; std::transform(f.begin(), f.end(), f.begin(), ::tolower);
-    for (int i = 0; i < G_NLOC; i++) {
-        int t = -1; std::string n = loc_name(i, &t);
-        if (n.empty()) continue;
-        bool ok = (t == 0 && show[0]) || ((t == 1 || t == 2 || t == 3) && show[1]) || (t == 8 && show[2]) || (t == 6 && show[3]);
-        if (!ok) continue;
-        std::string l = n; std::transform(l.begin(), l.end(), l.begin(), ::tolower);
-        if (!f.empty() && l.find(f) == std::string::npos) continue;
-        int m = travel_minutes_loc(i, nullptr, nullptr);
-        if (m < 0) continue;
-        v.push_back({ i, t, m, n });
-    }
-    std::sort(v.begin(), v.end(), [](const Dest &a, const Dest &b) { return a.minutes < b.minutes; });
-    if (ImGui::BeginTable("dest", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY, ImVec2(0, ImGui::GetContentRegionAvail().y))) {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Destination", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-        ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthFixed, UIS(130));
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, UIS(70));
-        ImGui::TableHeadersRow();
-        for (const Dest &d : v) {
-            ImGui::PushID(d.loc);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(d.name.c_str());
-            if (d.type == 0 && journal_visited(d.loc)) { ImGui::SameLine(); ImGui::TextDisabled("(visited)"); }
-            ImGui::TableNextColumn(); ImGui::TextDisabled("%s", kind(d.type));
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(when(d.minutes).c_str());
-            ImGui::TableNextColumn();
-            if (ImGui::SmallButton("Go") && travel_to_loc(d.loc, d.name.c_str())) ui_toggle();
-            ImGui::PopID();
-        }
-        ImGui::EndTable();
-    }
 }
 
 extern "C" int ns_showing(void);

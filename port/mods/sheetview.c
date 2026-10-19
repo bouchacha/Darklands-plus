@@ -83,10 +83,17 @@ static void build(int who)
         s->alch[m] = gm_member_skill(m, 7); s->relig[m] = gm_member_skill(m, 8);
         gm_member_attr(m, 4, &c, &mx); s->intel[m] = c;
         gm_member_attr(m, 6, &c, &mx); s->df[m] = c;
+        for (int a = 0; a < 7; a++) { if (s->present[m]) gm_member_attr(m, a, &s->pattr[m][a], &s->pattr_max[m][a]); else s->pattr[m][a] = s->pattr_max[m][a] = 0; }
+        for (int k = 0; k < 19; k++) s->pskill[m][k] = s->present[m] ? gm_member_skill(m, k) : 0;
     }
     memset(s->have, 0, sizeof s->have);
+    memset(s->ingr, 0, sizeof s->ingr);
     for (int m = 0; m < s->npar && m < 5; m++)
-        for (int i = 0; i < gm_item_count(m); i++) { GmItem g; if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) s->have[g.id] += g.count; }
+        for (int i = 0; i < gm_item_count(m); i++) {
+            GmItem g; if (!gm_item(m, i, &g) || g.id < 0 || g.id >= 200) continue;
+            s->have[g.id] += g.count;
+            if (g.id >= 72 && g.id <= 94) s->ingr[m][g.id - 72] += g.count;
+        }
     gm_member_fullname(who, s->fullname, sizeof s->fullname);
     s->female = gm_member_female(who);
     s->age = gm_member_age(who);

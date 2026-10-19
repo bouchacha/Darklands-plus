@@ -8,6 +8,7 @@
 #include <math.h>
 #include <strings.h>
 #include <float.h>
+#include <limits.h>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -84,7 +85,7 @@ static const TownFind TFIND[] = {
     { "a university", TI_UNIVERSITY, -1 }, { "a cathedral", TI_CATHEDRAL, -1 }, { "an alchemist", TI_ALCHEMIST, -1 },
     { "a physician", TI_PHYSICIAN, -1 }, { "docks (boats)", TI_DOCKS, -1 }, { "a bank", TI_BANK, -1 },
     { "a swordsmith of 30q+", TI_SWORD, 2 }, { "an armourer of 30q+", TI_ARMOUR, 3 }, { "a bowyer of 30q+", TI_BOW, 5 },
-    { "an artificer of 30q+", TI_TOOLS, 6 } };   /* (a library: nearly every town has one; F12 > Saints says where each saint is taught) */
+    { "an artificer of 30q+", TI_TOOLS, 6 } };   /* (a library: nearly every town has one; the character sheet's Saints say where each saint is taught) */
 static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
 static int tfind = -1;                                    /* -1: off */
 static int town_find_q(int loc)                           /* > 0: town loc matches (for a shop: its quality) */
@@ -473,9 +474,11 @@ extern "C" void worldmap_draw(void)
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
-            bool known_here = p.loc >= 92 || journal_visited(p.loc) || config_get_int("map.offers_unvisited", 0);
+            bool known_here = place_offers_known(p.loc);           /* (ui/libraries.h: been there, or the switch) */
             if (!known_here && p.loc < 92)
                 ImGui::TextDisabled("Its saints, formulae and teachers: known once the party has been there.");
+            else if (!known_here && library_at(p.loc))
+                ImGui::TextDisabled("The saints its library teaches: known once the party has been there.");
             if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
                 std::string t; int done[4], nd = 0;
                 for (int k = 0; k < 4; k++) {
@@ -524,16 +527,28 @@ extern "C" void worldmap_draw(void)
     static char find[48];
     ImGui::SetNextItemWidth(UIS(260) * pk);
     ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof find);
-    if (find[0]) {
+    if (find[0]) {                                         /* the places named so, the nearest first on the travel map, with the journey */
         std::string f = find; std::transform(f.begin(), f.end(), f.begin(), ::tolower);
-        int shown = 0;
+        std::vector<std::pair<int, const Place *>> hits;      /* (minutes on the way, -1 unknown) */
         for (const Place &p : P) {
             std::string n = p.name; std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-            if (n.find(f) == std::string::npos) continue;
-            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_line(P, p).c_str(), p.loc);
-            if (ImGui::Selectable(lb)) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
-            if (++shown >= 8) break;
+            if (n.find(f) != std::string::npos) hits.push_back({ on_map ? travel_minutes_loc(p.loc, nullptr, nullptr) : -1, &p });
         }
+        std::stable_sort(hits.begin(), hits.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
+            return (a.first < 0 ? INT_MAX : a.first) < (b.first < 0 ? INT_MAX : b.first); });
+        float tw = ImGui::GetFontSize() * 6.5f;
+        for (size_t i = 0; i < hits.size() && i < 8; i++) {
+            const Place &p = *hits[i].second;
+            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_line(P, p).c_str(), p.loc);
+            if (ImGui::Selectable(lb, false, 0, ImVec2(UIS(260) * pk - tw, 0))) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
+            if (hits[i].first >= 0) { ImGui::SameLine(UIS(260) * pk - tw + ImGui::GetStyle().ItemSpacing.x * 2); ImGui::TextDisabled("%s", hhmm(hits[i].first).c_str()); }
+        }
+        if (hits.empty()) ImGui::TextDisabled("No place of that name.");
+    }
+    if (travel.active) {                                   /* the journey under way */
+        ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.12f, 1), "Travelling to %s", travel.name);
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Stop")) travel_stop();
     }
     if (ImGui::SmallButton("The party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
     ImGui::SameLine();

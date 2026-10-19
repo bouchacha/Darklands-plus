@@ -15,6 +15,8 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/gamemodel.h"
+#include "../runtime/config.h"
+int journal_visited(int loc);
 }
 
 static std::vector<Library> libs;
@@ -46,6 +48,13 @@ const std::vector<Library> &libraries(void)
     return libs;
 }
 
+bool place_offers_known(int loc)
+{
+    if (config_get_int("map.offers_unvisited", 0)) return true;
+    if (game_mode() == GM_CARD && loc == (s16)g_rw(G_CUR_LOC)) return true;
+    return journal_visited(loc) != 0;
+}
+
 const Library *library_at(int loc)
 {
     for (const Library &L : libraries()) if (L.loc == loc) return &L;
@@ -73,7 +82,7 @@ std::vector<LibraryHit> libraries_teaching(int s)
     for (const Library &L : libraries()) {
         bool t = false;
         for (int k = 0; k < 4; k++) if (L.saint[k] == s) t = true;
-        if (!t) continue;
+        if (!t || !place_offers_known(L.loc)) continue;
         double d = -1;
         if (here) { double dx = L.x - px, dy = (L.y - py) / 2.0; d = hypot(dx, dy) / 10.0; }   /* (about ten columns a day on foot: ui/quests.cpp) */
         v.push_back({ &L, d });
@@ -103,7 +112,7 @@ std::vector<SellerHit> formula_sellers(int f)
     double px = 0, py = 0; bool here = party_xy(&px, &py);
     for (int t = 0; t < (int)gamedata.cities.size() && t < 92; t++) {
         int fo[4], pr[4];
-        if (!alchemist_formulae(t, fo, pr)) continue;
+        if (!place_offers_known(t) || !alchemist_formulae(t, fo, pr)) continue;
         for (int k = 0; k < 4; k++) if (fo[k] == f) {
             double d = -1;
             if (here) { double dx = gamedata.cities[t].x - px, dy = (gamedata.cities[t].y - py) / 2.0; d = hypot(dx, dy) / 10.0; }
