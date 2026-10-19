@@ -253,12 +253,13 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                     leave = key(0x1454, 0);
                 }
                 break;
-            case LV_DAY: leave = key(0x1f53, 0); break;
+            case LV_DAY: if (m->cost <= m->purse) leave = key(0x1f53, 0); break;   /* (as the button: a day paid for) */
             case LV_REST: case LV_DAYS:
                 many_days = 1;
                 for (int d = 0; d < (a.type == LV_DAYS ? a.a : 14) && !leave && !ns_unwinding; d++) {
                     build();
                     if (a.type == LV_REST && !m->resting) break;
+                    if (m->cost > m->purse) break;                      /* (a day the purse cannot pay: the game passes no time but counts it) */
                     int before = (s16)g_rw(LV_NDAYS);
                     leave = key(0x1f53, 0);
                     if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */

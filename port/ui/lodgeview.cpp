@@ -148,11 +148,16 @@ extern "C" void lodgeview_draw(void)
     if (m.cost > m.purse) snprintf(b, sizeof b, "A day costs %s in all: more than the purse holds.", money(m.cost).c_str());
     else if (m.cost) snprintf(b, sizeof b, "A day %s %s in all; the purse %s %s.", m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), m.cost < 0 ? "will hold" : "keeps", money(after).c_str());
     if (b[0]) P.para(fo, NsDraw::FS_BODY, 64, 172, 133, m.cost > m.purse ? NsDraw::RED : ink, b);
+    /* a day the purse cannot pay: the game lets no time pass, yet counts it as a day stayed; so no
+       day is offered (members who earn a little money may pay for it) */
+    bool pay = m.cost <= m.purse;
     float bx = 199;
-    if (P.button(bx, 174, bx + 22, 184, "A day", GREEN)) ns_push(LV_DAY, 0, 0, 0);
-    if (P.button(bx + 24, 174, bx + 48, 184, "A week", GREEN)) ns_push(LV_DAYS, 7, 0, 0);
-    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", m.resting ? BROWN : GREY) && m.resting) ns_push(LV_REST, 0, 0, 0);
-    if (P.over(bx + 50, 174, bx + 84, 184))
+    if (P.button(bx, 174, bx + 22, 184, "A day", pay ? GREEN : GREY) && pay) ns_push(LV_DAY, 0, 0, 0);
+    if (P.button(bx + 24, 174, bx + 48, 184, "A week", pay ? GREEN : GREY) && pay) ns_push(LV_DAYS, 7, 0, 0);
+    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", m.resting && pay ? BROWN : GREY) && m.resting && pay) ns_push(LV_REST, 0, 0, 0);
+    if (!pay && P.over(bx, 174, bx + 84, 184))
+        P.para(fo, 3.9f, 190, 186, 126, soft, "The purse cannot pay for a day. Members who Earn a little money may make up for it; else leave.");
+    else if (P.over(bx + 50, 174, bx + 84, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, m.resting ? "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens)." : "Nobody is regaining strength or praying.");
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
