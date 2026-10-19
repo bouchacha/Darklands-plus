@@ -102,6 +102,7 @@
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
  *  battlesaints A saint's boosts called in a battle wear off (below, potions: the cards close).
+ *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  */
 #include <stdio.h>
@@ -180,6 +181,8 @@ Fix FIXES[] = {
       "The companies' cards raise and lower the party's standing with them (under nothing, with the town's regard, they give no tasks), but a saved game did not keep it: after a load it was whatever the last game played left, or nothing after a restart. It is now kept in the save, in room the game leaves empty (the original game still reads such saves).", 1 },
     { "battlesaints", "A saint's help called in a battle wears off",
       "A battle puts away the game's list of what is running and reads it back afterwards over most of what was added to it during the fight: a saint called in a battle raised attributes and skills for good (as a rule), and the price some saints ask (a lowered attribute) was never given back. They now last their day, like help called outside a battle.", 1 },
+    { "healboost", "Healing no longer takes a boost away",
+      "Healing (Essence o'Grace, a saint's) brings a wounded attribute part of the way back to its maximum, but the game did the same from above: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
       "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
 };
@@ -1278,6 +1281,30 @@ static void standings_load_hook(void)          /* s037 1c7d:0d24 (file): read a 
     AX = ax; DX = dx;
 }
 
+/* ---------------------------------------------------------------- healboost
+ * heal_attr_pct (s029 0e76:08f2, (who, k, pct)) sets attribute k to cur + (max - cur) * pct / 100:
+ * from above the maximum (a boost: Ironarm, New-wind, a saint) that brings it down. Essence
+ * o'Grace heals Strength so (use_potion: pct = twice its quality): drunk while Ironarm ran it took
+ * most of the boost away ("Ironarm interacts poorly with Essence of Grace"). A member above the
+ * maximum keeps what they have. */
+static void healboost_hook(void)
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), k = (s16)rw(SS, (u16)(SP + 6));
+    if (who == -1) who = (s8)g_rb(G_LEADER);
+    s8 was[5]; int keep[5] = { 0 };
+    for (int m = 0; m < 5 && k >= 0 && k < 7; m++) {
+        if (who != -2 && m != who) continue;
+        was[m] = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
+        keep[m] = was[m] > (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + k));
+    }
+    hook_call_original();
+    for (int m = 0; m < 5; m++) {
+        if (!keep[m] || (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k)) == was[m]) continue;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix healboost: member %d's attribute %d stays %d (the healing made it %d)\n", m, k, was[m], (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k)));
+        g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k), (u8)was[m]);
+    }
+}
+
 /* ---------------------------------------------------------------- teachcap
  * A day at the inn (camp_spend_day, s036 1462:147a): a member set to "Train or study" (activity 6,
  * the skill in camp_activity_arg) pays the fee of the town's teacher of it (kind 0x28: +0x1e the
@@ -1312,7 +1339,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
-    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_camp_spend_day, teachcap_hook } };
+    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
+    { GF_camp_spend_day, teachcap_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },

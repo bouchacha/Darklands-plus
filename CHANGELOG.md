@@ -35,7 +35,8 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
   - Great Power's quality points added to damage and penetration instead (so the second grade gave +1 damage and only +6 penetration); it now raises the weapon's quality;
   - inn teachers who took a skill past their own ability, to 99;
   - the party's standing with the Fugger, the Medici and the Hanse, which a saved game did not keep (a load kept the last game's, or none after a restart);
-  - a saint called in a battle whose help never wore off (and whose price was never given back).
+  - a saint called in a battle whose help never wore off (and whose price was never given back);
+  - healing that took a boost away: Essence o'Grace drunk while Ironarm ran brought Strength back down towards its maximum.
 - **Also:**
   - the opening plays whole; a click goes on to the lady's welcome, a second to the title;
   - the world map washes out the towns not yet visited (their saints and formulae are known once visited) and the quests glow;
