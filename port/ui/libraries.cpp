@@ -97,10 +97,10 @@ bool alchemist_formulae(int town, int formula[4], int price_fl[4])
     const City &c = gamedata.cities[town];
     s16 q = (s16)(c.seed + (s16)g_rw(G_PARTY_SEED));        /* loc_query 0x21: 16-bit, as the game adds them */
     int size = c.size > 0 ? c.size : 1;                      /* loc_query 2 */
-    for (int k = 0; k < 4; k++) {
-        int v = (q + 100 + 3 * k) % 22;                      /* (C's %, as the game's idiv) */
-        formula[k] = v;
-        price_fl[k] = ((v % 3) + 1) * 10 / size;
+    for (int k = 0; k < 4; k++) {                            /* (16 bits, unsigned: the game's div, $Alche01 s064 1b0b) */
+        unsigned v = (u16)(q + 100 + 3 * k) % 22u;
+        formula[k] = (int)v;
+        price_fl[k] = (int)(((v % 3) + 1) * 10 / (unsigned)size);
     }
     return true;
 }
