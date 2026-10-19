@@ -365,6 +365,7 @@ extern "C" void cardview_draw(void)
                 if (en.who[0]) dl->AddText(fs, size * 0.82f, ImVec2(ex, ey + 0.08f * h), ink_soft, gtext(en.who).c_str());
                 ImU32 ec = !en.on || en.code == 0x83 ? ink_dim : en.code == 0x87 ? (dark ? IM_COL32(250, 210, 110, 255) : IM_COL32(150, 90, 0, 255)) : ink;
                 std::string et = gtext(en.text);
+                if (c.popup_kind == 2 && en.id >= 0 && en.id < (int)gamedata.saints.size() && !gamedata.saints[en.id].name.empty()) et = gamedata.saints[en.id].name;   /* (the saint's whole name, as the sheet writes it: not the card's "S.Christina") */
                 int ef = c.popup_kind == 2 ? -1 : cv_formula_of_slot(en.slot);
                 float isz = c.popup_kind == 2 ? 0 : size * 1.05f;     /* (an item's picture before it: a potion's with its grade) */
                 if (ef >= 0) {                                       /* (a formula on sale: its own name, and whether this member knows it) */
