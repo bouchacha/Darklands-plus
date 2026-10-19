@@ -10,6 +10,7 @@
 - **Tasks:** a place without a name of its own reads "the pagan altar north-west of Hall".
 - **Battles:** a member's sheet opened in a battle keeps the battle's margins (the log and the enemies) instead of the town's. Closing it no longer starts the field scrolling because the pointer rests on the top edge where the Close button was. The margin's list of enemies includes those the log has named even when they are out of view (it said "All down." while foes beyond the view were still fighting).
 
+- **Controller button prompts:** while a controller is in use, the screens' Leave, Close, Cancel, Save and Load buttons, the margin's hints, the world map and a card waiting to go on show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them (as the controller is; F12 > Settings > Helpers can fix one). "Go to a place here" in the margin opens Go to with a click (a controller has no G).
 - **Comic Sans**, as an eighth typeface for the game's text (F12 > Settings > Display). We are so sorry. Windows' own Comic Sans where the system has it, else Comic Neue, which comes with Darklands+.
 
 ## Since 1.0, most important first

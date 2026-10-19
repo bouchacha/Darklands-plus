@@ -229,7 +229,16 @@ static void option_row(const Option *o, int depth)
         ImGui::PopStyleColor();
         ImGui::Unindent(ti);
     }
-    if (!strcmp(o->key, "input.gamepad")) { ImGui::Indent(ti); ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now."); ImGui::Unindent(ti); }
+    if (!strcmp(o->key, "input.gamepad")) {
+        ImGui::Indent(ti); ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now.");
+        /* the button prompts (ui/padglyphs.h): the controller's buttons on screen while it is in use */
+        static const char *PM[5] = { "As the input in use", "Keys and mouse always", "Xbox always", "PlayStation always", "Nintendo always" };
+        int pm = config_get_int("input.prompts", 0); if (pm < 0 || pm > 4) pm = 0;
+        ImGui::SetNextItemWidth(UIS(260));
+        if (ImGui::Combo("Button prompts", &pm, PM, 5)) { config_set_int("input.prompts", pm); ui_dirty_config = 1; }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("While the controller is in use, the hints and the screens' buttons show its buttons (Xbox, PlayStation or Nintendo, as the controller is). \"Always\": for a Steam Deck played with its trackpads, which count as a mouse.");
+        ImGui::Unindent(ti);
+    }
     if (ind > 0) ImGui::Unindent(ind);
     if (option_value(o)) option_children(o, depth + 1);
     ImGui::Spacing();

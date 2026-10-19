@@ -28,7 +28,7 @@ extern "C" void infoview_draw(void)
     char b[256];
     P.page();
     P.text(f, NsDraw::FS_TITLE, 65, 2.5f, ink, "The party");
-    if (P.button(284, 2.5f, 315, 13, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(IV_CLOSE, 0, 0, 0);
+    if (P.button(284, 2.5f, 315, 13, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(IV_CLOSE, 0, 0, 0);
 
     /* the party */
     const float LX0 = 63, LX1 = 170;

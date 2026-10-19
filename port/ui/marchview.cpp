@@ -44,6 +44,6 @@ extern "C" void marchview_draw(void)
         if (P.arrow_button(X1 - 15, ry + 3.5f, X1 - 4, ry + 12.5f, false, down, BROWN)) ns_push(MV_DOWN, k, 0, 0);
     }
     float by = Y1 - 13;
-    if (P.button(X1 - 70, by, X1 - 38, by + 10, "Done", IM_COL32(40, 92, 34, 235))) ns_push(MV_DONE, 0, 0, 0);
-    if (P.button(X1 - 35, by, X1 - 4, by + 10, "Cancel", IM_COL32(112, 40, 22, 235))) ns_push(MV_CANCEL, 0, 0, 0);
+    if (P.button(X1 - 70, by, X1 - 38, by + 10, "Done", IM_COL32(40, 92, 34, 235), NsDraw::FS_SMALL, PB_X)) ns_push(MV_DONE, 0, 0, 0);
+    if (P.button(X1 - 35, by, X1 - 4, by + 10, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(MV_CANCEL, 0, 0, 0);
 }

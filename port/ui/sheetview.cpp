@@ -177,7 +177,7 @@ static void header(NsDraw &P, const SheetModel &s)
 {
     ImFont *f = P.f, *fo = P.fo;
     P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
-    if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL)) ns_push(SV_CLOSE, 0, 0, 0);
+    if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
     char sub[96]; snprintf(sub, sizeof sub, "%s, age %d", s.female ? "Woman" : "Man", s.age);
     for (const Eff &e : EFF) if (e.m == s.who && e.kind == 0x43) { snprintf(sub + strlen(sub), sizeof sub - strlen(sub), "; with the party %s more", hours_left(e.left).c_str()); break; }
     P.text(fo, NsDraw::FS_SMALL, 63.5f, 12.4f, NsDraw::INK_SOFT, sub);

@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include "padglyphs.h"
 #include "imgui.h"
 #include "gamedata.h"
 #include "teachersui.h"
@@ -35,6 +36,7 @@ extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the
 #include <functional>
 #include <set>
 #include "money.h"
+extern "C" void ui_open_goto(void);
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
 extern "C" int battle_showing(void);                  /* ui/battlelog.cpp: a battle is on (not the marching order) */
@@ -543,7 +545,11 @@ static void right_panel(int size)
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());
-        if (!near && citynav_available() && config_get_int("assist.city_goto", 1)) ImGui::TextDisabled("G: go to a place here");
+        if (!near && citynav_available() && config_get_int("assist.city_goto", 1)) {   /* (a click opens it too: the controller has no G) */
+            ImGui::TextDisabled(ui_pad_prompts() ? "Go to a place here" : "G: go to a place here");
+            if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("A click (or G) opens Go to: a list of the places in this town; the party walks there."); }
+            if (ImGui::IsItemClicked()) ui_open_goto();
+        }
         /* the location table is read while a card or the map is up; battles and their loot
            reuse that memory, so meanwhile the last value read stands */
         static std::map<int, int> rep_seen; static int rep_game = -1;
@@ -788,17 +794,21 @@ extern "C" void ui_margins(void)
         ImGui::Separator();
         tasks_section(tables);
         {   /* the hints, at the foot of the margin (always in the same place) */
-            char h1[96]; snprintf(h1, sizeof h1, "Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : "New to Darklands? F12 > Guide.";
+            const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
+            char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
+            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > Guide.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
             float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0) + sp * 2;
             float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
             if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
             ImGui::Separator();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-            ImGui::TextWrapped("%s", h1);
-            if (h2) ImGui::TextWrapped("%s", h2);
-            ImGui::PopStyleColor();
+            if (pad) { ui_pad_text(h1, true); if (h2) ui_pad_text(h2, true); }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::TextWrapped("%s", h1);
+                if (h2) ImGui::TextWrapped("%s", h2);
+                ImGui::PopStyleColor();
+            }
         }
         end_panel();
     }

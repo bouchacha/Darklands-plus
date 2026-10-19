@@ -13,6 +13,7 @@
 #include <vector>
 #include <algorithm>
 #include <SDL.h>
+#include "padglyphs.h"
 #include "imgui.h"
 extern "C" int ns_showing(void);
 #include "gamedata.h"
@@ -591,7 +592,8 @@ extern "C" void worldmap_draw(void)
     wm_panel_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - o.x;
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
-    ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
+    if (ui_pad_prompts()) ui_pad_text("{LSTICK} the pointer, {A} held to drag, {RSTICK} zooms. {BACK} or {Y} closes.", true);
+    else ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
     char *find = wm_find;
     ImGui::SetNextItemWidth(UIS(260) * pk);
     bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);

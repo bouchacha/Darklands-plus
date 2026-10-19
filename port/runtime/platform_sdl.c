@@ -808,6 +808,45 @@ static SDL_Scancode swallow_key; static int swallow_button;   /* the key or clic
 static SDL_GameController *pads[4];
 static int pad_test_axis[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };   /* test: axis values set by ucmd upadaxis */
 static double pad_fx, pad_fy, pad_wheel; static u32 pad_last; static int pad_ctrl;
+/* button prompts (plat_prompts): the controller drawn on screen while it is the one in use - the
+   last input came from it, not from the keyboard or the mouse - in the look of its kind */
+static int input_pad, pad_style = 1;           /* (1 Xbox, 2 PlayStation, 3 Nintendo) */
+static int pad_injected;                       /* key and button events the controller pushed, not yet taken */
+static int pad_warp_x = -1, pad_warp_y = -1;   /* where the stick last put the pointer */
+static int style_of(SDL_GameController *g)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 12)
+    switch (SDL_GameControllerGetType(g)) {
+    case SDL_CONTROLLER_TYPE_PS3: case SDL_CONTROLLER_TYPE_PS4:
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+    case SDL_CONTROLLER_TYPE_PS5:
+#endif
+        return 2;
+    case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+    case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT: case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT: case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+#endif
+        return 3;
+    default: return 1;
+    }
+#else
+    (void)g; return 1;
+#endif
+}
+/* 0: keys and mouse; 1 Xbox, 2 PlayStation, 3 Nintendo (input.prompts: 0 as the input in use, 1 keys
+   and mouse always, 2..4 a controller's always - a Steam Deck's trackpads count as a mouse) */
+int plat_prompts(void)
+{
+    int m = config_get_int("input.prompts", 0);
+    if (m >= 2 && m <= 4) return m - 1;
+    if (m == 1 || !config_get_int("input.gamepad", 1)) return 0;
+    return input_pad ? pad_style : 0;
+}
+static void pad_used(SDL_JoystickID id)
+{
+    input_pad = 1;
+    for (int i = 0; i < 4; i++) if (pads[i] && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(pads[i])) == id) pad_style = style_of(pads[i]);
+}
 
 static int pad_enabled(void) { return !headless && config_get_int("input.gamepad", 1); }
 static void pad_key(SDL_Scancode sc, int up)
@@ -816,7 +855,7 @@ static void pad_key(SDL_Scancode sc, int up)
     ev.type = up ? SDL_KEYUP : SDL_KEYDOWN; ev.key.windowID = win ? SDL_GetWindowID(win) : 0;
     ev.key.state = up ? SDL_RELEASED : SDL_PRESSED;
     ev.key.keysym.scancode = sc; ev.key.keysym.sym = SDL_GetKeyFromScancode(sc); ev.key.keysym.mod = (Uint16)SDL_GetModState();
-    SDL_PushEvent(&ev);
+    if (SDL_PushEvent(&ev) == 1) pad_injected++;
 }
 static void pad_button(int b, int up)
 {
@@ -824,7 +863,7 @@ static void pad_button(int b, int up)
     SDL_Event ev; memset(&ev, 0, sizeof ev);
     ev.type = up ? SDL_MOUSEBUTTONUP : SDL_MOUSEBUTTONDOWN; ev.button.windowID = win ? SDL_GetWindowID(win) : 0;
     ev.button.button = (Uint8)b; ev.button.state = up ? SDL_RELEASED : SDL_PRESSED; ev.button.clicks = 1; ev.button.x = x; ev.button.y = y;
-    SDL_PushEvent(&ev);
+    if (SDL_PushEvent(&ev) == 1) pad_injected++;
 }
 static int pad_axis(int a)
 {
@@ -862,6 +901,7 @@ static void pad_tick(void)
             pad_fx -= dx; pad_fy -= dy;
             x += dx; y += dy; if (x < 0) x = 0; if (y < 0) y = 0; if (x >= w) x = w - 1; if (y >= h) y = h - 1;
             SDL_WarpMouseInWindow(win, x, y);
+            pad_warp_x = x; pad_warp_y = y; input_pad = 1;
             if (getenv("DL_CTL")) {                  /* tests (a virtual display may not report the warp) */
                 SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_MOUSEMOTION; ev.motion.windowID = SDL_GetWindowID(win); ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
             }
@@ -894,6 +934,7 @@ static int pad_event(const SDL_Event *e)
         return 1;
     }
     if (e->type == SDL_CONTROLLERAXISMOTION) {
+        if (pad_enabled() && (e->caxis.value > 12000 || e->caxis.value < -12000)) pad_used(e->caxis.which);
         if (e->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT && pad_enabled()) {
             int on = e->caxis.value > 12000;
             if (on != pad_ctrl) { pad_ctrl = on; SDL_SetModState(on ? (SDL_Keymod)(SDL_GetModState() | KMOD_LCTRL) : (SDL_Keymod)(SDL_GetModState() & ~KMOD_CTRL)); }
@@ -903,6 +944,7 @@ static int pad_event(const SDL_Event *e)
     if (e->type != SDL_CONTROLLERBUTTONDOWN && e->type != SDL_CONTROLLERBUTTONUP) return 0;
     if (!pad_enabled()) return 1;
     int up = e->type == SDL_CONTROLLERBUTTONUP;
+    if (!up) pad_used(e->cbutton.which);
     switch (e->cbutton.button) {
     case SDL_CONTROLLER_BUTTON_A: pad_button(SDL_BUTTON_LEFT, up); break;
     case SDL_CONTROLLER_BUTTON_B: pad_button(SDL_BUTTON_RIGHT, up); break;
@@ -932,6 +974,12 @@ void plat_events(void)
     pad_tick();
     while (SDL_PollEvent(&e)) {
         if (pad_event(&e)) continue;
+        /* the keyboard or the mouse in use again (not what the controller pushed or the stick did) */
+        if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+            if (pad_injected > 0) pad_injected--;
+            else if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) input_pad = 0;
+        } else if (e.type == SDL_MOUSEMOTION && input_pad && (abs(e.motion.x - pad_warp_x) > 2 || abs(e.motion.y - pad_warp_y) > 2)
+                   && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
         if (!headless && ui_event(&e)) continue;
         if (drag_filter(&e)) continue;
         switch (e.type) {

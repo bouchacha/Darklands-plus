@@ -66,7 +66,7 @@ extern "C" void prayview_draw(void)
     if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More favor, a better chance (up to 99%); the favor is spent either way.");
     yy += 8;
     float bw = 40;
-    if (P.button(316 - bw, 184, 316, 194, "Don't pray", IM_COL32(112, 40, 22, 235))) ns_push(PV_CANCEL, 0, 0, 0);
+    if (P.button(316 - bw, 184, 316, 194, "Don't pray", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(PV_CANCEL, 0, 0, 0);
     if (p.chance > 0) {
         if (!p.choose) { if (P.button(316 - 2 * bw - 3, 184, 316 - bw - 3, 194, "Pray now", IM_COL32(40, 92, 34, 235))) ns_push(PV_PRAY, -1, 0, 0); }
         else {

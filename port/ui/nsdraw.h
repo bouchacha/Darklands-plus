@@ -10,6 +10,7 @@
 #include "../mods/nscreen.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "padglyphs.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -85,14 +86,19 @@ struct NsDraw {
     bool hit(float x0, float y0, float x1, float y1) const { return click && cx >= x0 && cx < x1 && cy >= y0 && cy < y1; }
 
     /* a button; true when clicked */
-    bool button(float x0, float y0, float x1, float y1, const std::string &label, ImU32 base, float gs = FS_SMALL)
+    bool button(float x0, float y0, float x1, float y1, const std::string &label, ImU32 base, float gs = FS_SMALL, int pad = -1)
     {
         bool h = over(x0, y0, x1, y1);
         ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
         if (h) { c.x = fminf(1, c.x * 1.25f + 0.04f); c.y = fminf(1, c.y * 1.25f + 0.04f); c.z = fminf(1, c.z * 1.25f + 0.04f); c.w = 1; }
         rect(x0, y0, x1, y1, ImGui::ColorConvertFloat4ToU32(c), 1.5f);
-        float tw = width(fo, gs, label);
-        text(fo, gs, x0 + (x1 - x0 - tw) * 0.5f, y0 + (y1 - y0) * 0.5f - gs * 0.62f, LIGHT, label);
+        float tw = width(fo, gs, label), gw = 0, gh = 0;
+        if (pad >= 0 && ui_pad_prompts()) {                 /* the controller's button for it, before the label (padglyphs.h) */
+            gh = (y1 - y0) * 0.7f * k; gw = ui_pad_glyph_width(gh, pad) / kx + 1.2f;
+        }
+        float tx = x0 + (x1 - x0 - tw - gw) * 0.5f;
+        if (gw > 0) ui_pad_glyph(dl, w(tx + (gw - 1.2f) * 0.5f, (y0 + y1) * 0.5f), gh, pad);
+        text(fo, gs, tx + gw, y0 + (y1 - y0) * 0.5f - gs * 0.62f, LIGHT, label);
         return hit(x0, y0, x1, y1);
     }
     /* a row's tag after its name ("in use", "kept", whose): outlined in its colour, quieter than

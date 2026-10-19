@@ -61,9 +61,9 @@ extern "C" void savesview_draw(void)
 
     P.text(f, NsDraw::FS_TITLE, 65 + L, 3, ink, S.loading ? "Load a saved game" : "Save the game");
     float bx = 284;
-    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_CANCEL, 0);
-    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, S.sel); }
-    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) savesview_push(SVV_OK, 0);
+    if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) savesview_push(SVV_CANCEL, 0);
+    if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN, PB_X)) savesview_push(SVV_OK, S.sel); }
+    else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN, PB_X)) savesview_push(SVV_OK, 0);
 
     float LY0 = 22;
     if (!S.loading) {

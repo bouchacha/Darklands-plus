@@ -34,7 +34,7 @@ extern "C" void alchemyview_draw(void)
     P.page();
     P.text(f, NsDraw::FS_TITLE, 65, 3, ink, "Alchemy");
     P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, ns_gtext(a.name) + " mixes; the party's ingredients count.");
-    if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(AV_LEAVE, 0, 0, 0);
+    if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
     /* the formulas */
     const float LX0 = 63, LX1 = 180, LY0 = 22, ROWH = 9; const int NROWS = 18;

@@ -87,7 +87,7 @@ extern "C" void barterview_draw(void)
         else if (!who.empty()) sub += "  -  " + who + " pays";
         T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, sub);
         T(f, NsDraw::FS_HEAD, 0, 6.0f, ink, purse, 280);
-        if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(BV_LEAVE, 0, 0, 0);
+        if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(BV_LEAVE, 0, 0, 0);
     }
 
     /* the member tabs (right column); the coin (or a right click): holds the purse */

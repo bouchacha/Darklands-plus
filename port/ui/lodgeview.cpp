@@ -164,5 +164,5 @@ extern "C" void lodgeview_draw(void)
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
     else P.text(fo, 3.9f, 190, 188, dim, "F1: the keys");
-    if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED)) ns_push(LV_LEAVE, 0, 0, 0);
+    if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
 }

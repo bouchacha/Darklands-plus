@@ -12,6 +12,7 @@
  *  - everything shrinks a little when a long text would run off the card.
  * The rows' places go back to the engine in game pixels (cardview.row_y0 ...), where the
  * game's own pointer is tested against them. */
+#include "padglyphs.h"
 #include "imgui.h"
 #include <math.h>
 #include <string.h>
@@ -397,6 +398,7 @@ extern "C" void cardview_draw(void)
         float r = size * 0.28f, ax = X1 - r, ay = yend - shift * 0 - 0.62f * L;
         ImU32 ac = dark ? IM_COL32(246, 220, 160, (int)(255 * a)) : IM_COL32(110, 50, 15, (int)(255 * a));
         dl->AddTriangleFilled(ImVec2(ax - r, ay - r * 0.55f), ImVec2(ax + r, ay - r * 0.55f), ImVec2(ax, ay + r * 0.75f), ac);
+        if (ui_pad_prompts()) ui_pad_glyph(dl, ImVec2(ax - r * 4.2f, ay + r * 0.1f), r * 3.0f, PB_A);   /* (a controller: A goes on) */
     }
     /* a tooltip beside the box, level with the option under the pointer; under the option when the
        window has no room on the right for em letters' width (it returns the width to wrap at) */

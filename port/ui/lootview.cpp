@@ -61,7 +61,7 @@ extern "C" void lootview_draw(void)
         P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, cash ? "Found " + money_fgp(l.cash_fl, l.cash_gr, l.cash_pf) + " in cash (into the purse)." : std::string("No money found."));
     }
     float bx = 284;
-    if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN)) ns_push(LV_LEAVE, 0, 0, 0);
+    if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
     if (l.shared && l.npile) {                                  /* (one pack: everything into it) */
         if (P.button(bx - 33, 4, bx - 3, 15, "Take all", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(LV_SHARE, 0, 0, 0);
     } else if (l.assist && l.npile) {
