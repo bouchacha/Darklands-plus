@@ -86,10 +86,10 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
         int p = (rep + speaker() / 2) / 2;
         p = hall ? clampi(1, 70, p) : clampi(0, 99, p);
         if (hall && reward_waiting(10, loc)) { o->state = OFS_REWARD; snprintf(o->note, sizeof o->note, "You finished a task for the lord: your reward is waiting (an audience is certain)."); return 1; }
-        o->state = OFS_ASK; o->chance = p + 1;
+        o->state = OFS_ASK; o->chance = p;               /* (the number the card itself shows on the option: the same) */
         if (!hall && reward_waiting(10, loc)) { snprintf(o->note, sizeof o->note, "You finished a task for the lord, but in a town without a council the game never pays the reward (a bug of the original game)."); return 1; }
         snprintf(o->note, sizeof o->note, hall ? "Each request for an audience with the council: %s %d%% chance (your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week."
-                                               : "Each request for an audience with the lord: %s %d%% chance (your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p + 1), p + 1);
+                                               : "Each request for an audience with the lord: %s %d%% chance (your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p), p);
         return 1; }
     case 0: case 4: case 5: {
         if (lock) return shut(o, lock, "No tasks for three days: at your last visit none came, one was turned down, or a reward was paid.");
