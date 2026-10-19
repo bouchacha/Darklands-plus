@@ -4,6 +4,15 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**New in 1.2.1**
+
+- **Your saves are backed up:** the first start of each new version copies them into a "Darklands+ save backups" folder.
+- **Controller button prompts:** while you play with a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.
+- **World map:** it stays on the map, a place found shows what it offers with Travel there at the top, and journeys read "22 hours" or "1.4 days".
+- **Calling on a saint** says why there is no chance (too little Virtue, or too little favor).
+- **Battles:** a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down.
+- Smaller fixes to Go to, the town journal, cards and task texts, and Comic Sans as an eighth typeface (we are so sorry).
+
 **New in 1.2**
 
 - **A new start screen** in the game's own art: **Continue** loads your newest save in one click.
