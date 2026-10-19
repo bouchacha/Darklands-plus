@@ -255,6 +255,13 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                 break;
             case LV_DAY: if (m->cost <= m->purse) leave = key(0x1f53, 0); break;   /* (as the button: a day paid for) */
             case LV_REST: case LV_DAYS:
+                if (a.type == LV_REST) {                                /* (those short of strength who only relax regain it) */
+                    for (int i = 0; i < 5 && !leave && !ns_unwinding; i++) {
+                        const LodgeMember *p = &m->m[i];
+                        if (p->present && p->act == 0 && p->str < p->str_max && p->can[1] && select_member(i)) leave = key(ACT[1], 0);
+                    }
+                    build();
+                }
                 many_days = 1;
                 for (int d = 0; d < (a.type == LV_DAYS ? a.a : 14) && !leave && !ns_unwinding; d++) {
                     build();

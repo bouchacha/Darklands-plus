@@ -80,7 +80,9 @@ Fixed (bugs of 483.07): a cathedral's canon gave out errands as if for the town'
 
 **Saves:** each save in the lists names the whole purse (it showed only the florins: "0" for a party with groschen and pfennigs).
 
-**At a glance on the party panel:** a small halo on a member's picture while a saint's help or a potion is at work on them (a dull red one when all of it is a saint's lowering of an attribute); under the pointer, each boost and the hours left. Tooltips now open past the game's large hand pointer instead of under it.
+**At a glance on the party panel:** a small halo on a member's picture while a saint's help or a potion is at work on them (a dull red one when all of it is a saint's lowering of an attribute); under the pointer, each boost and the hours left; in a battle too (the game puts the events away while it lasts: what was at work when it began is shown with what the battle brought). Tooltips now open past the game's large hand pointer instead of under it.
+
+**Until rested** at an inn or a camp also has those short of strength who only relax regain it (it needed each set by hand, and was greyed until one was), and stops when the purse cannot pay another day.
 
 **An inn the purse cannot pay:** A day, A week and Until rested are greyed while a day costs more than the party has, and say that members who earn a little money may make up for it. The game let no time pass on such a day, yet counted it as a day stayed (the native inn screen showed nothing happening but "Days stayed" rising); a week stops on the first day that cannot be paid.
 

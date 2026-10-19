@@ -151,11 +151,16 @@ extern "C" void lodgeview_draw(void)
     float bx = 199;
     if (P.button(bx, 174, bx + 22, 184, "A day", pay ? GREEN : GREY) && pay) ns_push(LV_DAY, 0, 0, 0);
     if (P.button(bx + 24, 174, bx + 48, 184, "A week", pay ? GREEN : GREY) && pay) ns_push(LV_DAYS, 7, 0, 0);
-    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", m.resting && pay ? BROWN : GREY) && m.resting && pay) ns_push(LV_REST, 0, 0, 0);
+    bool hurt = false;                                      /* (someone short of strength who only relaxes: Until rested has them regain it) */
+    for (int i = 0; i < 5; i++) if (m.m[i].present && m.m[i].act == 0 && m.m[i].str < m.m[i].str_max && m.m[i].can[1]) hurt = true;
+    bool rest = (m.resting || hurt) && pay;
+    if (P.button(bx + 50, 174, bx + 84, 184, "Until rested", rest ? BROWN : GREY) && rest) ns_push(LV_REST, 0, 0, 0);
     if (!pay && P.over(bx, 174, bx + 84, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "The purse cannot pay for a day. Members who Earn a little money may make up for it; else leave.");
     else if (P.over(bx + 50, 174, bx + 84, 184))
-        P.para(fo, 3.9f, 190, 186, 126, soft, m.resting ? "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens)." : "Nobody is regaining strength or praying.");
+        P.para(fo, 3.9f, 190, 186, 126, soft, m.resting || hurt ? (hurt ? "Those short of strength who only relax regain it; then days until no one is regaining strength or praying any more (at most 14; it stops if anything happens, or when a day cannot be paid)."
+                                                                        : "Days until no one is regaining strength or praying any more (at most 14; it stops if anything happens, or when a day cannot be paid).")
+                                                     : "Nobody is short of strength, regaining it or praying.");
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
     else P.text(fo, 3.9f, 190, 188, dim, "F1: the keys");

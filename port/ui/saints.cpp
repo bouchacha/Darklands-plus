@@ -32,7 +32,7 @@ static long abs_hours(int y, int mo, int d, int h)
 /* the running temporary effects: events of kind 0x48 (attribute: a saint's boost, or the
    lowering some saints bring with it), 0x49 (skill), 0x4a (weapon potion); +0 what, +0x1a member,
    +0x1e amount, +0x12 end (hour, day, month, year) */
-std::vector<Eff> effects_now(int size)
+static std::vector<Eff> effects_table(int size)
 {
     std::vector<Eff> v;
     long now = abs_hours((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR));
@@ -108,6 +108,19 @@ std::vector<Eff> effects_now(int size)
         if (!weaker) out.push_back(e);
     }
     return out;
+}
+/* what is at work now. While a battle has closed the cards the event table holds only what the
+   battle made (mods/fixes.c): what was at work when it began is kept from then and shown with it
+   (its hours as they were; a battle takes minutes) */
+std::vector<Eff> effects_now(int size)
+{
+    static std::vector<Eff> before; static int before_seed = -1;
+    int seed = (u16)g_rw(G_PARTY_SEED);
+    std::vector<Eff> v = effects_table(size);
+    if (!fixes_cards_down()) { before = v; before_seed = seed; return v; }
+    if (seed != before_seed) return v;                      /* (a game loaded in a battle: nothing from before) */
+    for (const Eff &e : before) if (e.m < size) v.push_back(e);
+    return v;
 }
 
 static std::string lower(std::string s) { std::transform(s.begin(), s.end(), s.begin(), ::tolower); return s; }

@@ -679,7 +679,7 @@ static void help_window(void)
             ImGui::SeparatorText(lodgeview_camping() ? "Now: a camp" : "Now: a stay");
             row("A member, or 1 ... 5", "whose day is being chosen");
             row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
-            row("S or A day", "one day passes; A week: seven; Until rested: until nobody regains strength or prays");
+            row("S or A day", "one day passes; A week: seven; Until rested: those short of strength who only relax regain it, until nobody regains strength or prays");
             row("L, Esc or Leave", "leave");
         } else if (gm == GM_CARD) {
             ImGui::SeparatorText("Now: a card");

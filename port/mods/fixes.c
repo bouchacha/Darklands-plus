@@ -695,7 +695,8 @@ static int running_potions(int m, int k, int largest)
     }
     return v;
 }
-int fixes_running(int m, int type0) { return running_potions(m, type0, 1); }   /* (fixes.h: also over a battle, when the table holds only the battle's) */
+int fixes_running(int m, int type0) { return running_potions(m, type0, 1); }
+int fixes_cards_down(void) { return cards_down; }   /* (fixes.h) */   /* (fixes.h: also over a battle, when the table holds only the battle's) */
 
 static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43b2 */
 {
