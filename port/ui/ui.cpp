@@ -592,7 +592,8 @@ static void welcome_window(void)
                 ImGui::PopID();
             }
             ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game whichever you choose.");
-            ImGui::TextDisabled("Change it at any time, or switch single things: F12 > Settings > Helpers.");
+            if (ui_pad_prompts()) ui_pad_text("Change it at any time, or switch single things: {START} > Settings > Helpers. {LSTICK} moves the pointer, {A} clicks.", true);
+            else ImGui::TextDisabled("Change it at any time, or switch single things: F12 > Settings > Helpers.");
             ImGui::Spacing();
             if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
         }
