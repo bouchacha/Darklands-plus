@@ -150,6 +150,8 @@ static void white_set(const char *rel, int on)
     if (on && i == nwhite) { whiteout = realloc(whiteout, sizeof *whiteout * (size_t)(nwhite + 1)); whiteout[nwhite++] = strdup(rel); white_save(); }
     if (!on && i < nwhite) { free(whiteout[i]); whiteout[i] = whiteout[--nwhite]; white_save(); }
 }
+static void mkdirs_for(const char *path);
+void dos_mkdirs_for(const char *path) { mkdirs_for(path); }   /* (for the port's own files: saves.c's backups) */
 static void mkdirs_for(const char *path)       /* the folders a file path needs */
 {
     char d[1100]; snprintf(d, sizeof d, "%s", path);

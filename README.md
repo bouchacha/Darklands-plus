@@ -40,7 +40,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 ## Questions
 
-- **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra figures Darklands+ offers).
+- **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra figures Darklands+ offers). The first start of each version also copies them into a "Darklands+ save backups" folder.
 - **My antivirus complains.** On the first start Darklands+ builds the game module, `darklands_game.dll`, from your own `DARKLAND.EXE`; some antivirus programs distrust files that were just compiled. Allow it.
 - **Mac?** Not natively. Wine-based tools may work but are untested.
 - **Something went wrong.** `darklands_port.log` in the game folder says why a start failed. See also `Darklands+ README.txt` in the download.

@@ -21,7 +21,8 @@ include anything from the game.
 INSTALLING
 1. Unpack this zip into a folder of its own, for example C:\Games\Darklands+. (You can also
    unpack it into your Darklands folder, the one that contains DARKLAND.EXE.)
-2. Back up your SAVES folder. Saves stay in the Darklands folder, as in the original. (If
+2. Your saves stay in the Darklands folder, as in the original, and the first start of each
+   version of Darklands+ copies them into "Darklands+ save backups" beside them. (If
    Windows does not let programs change that folder - GOG Galaxy installs under Program
    Files - the game's saves and other files go to the VirtualStore folder Windows keeps for
    it, %LOCALAPPDATA%\VirtualStore\...; saves that GOG's DOSBox was redirected there show

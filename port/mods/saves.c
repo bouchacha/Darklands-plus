@@ -19,6 +19,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/stat.h>
+#include <time.h>
 #include "../runtime/cpu.h"
 void ovl_changed(void);
 #include "../runtime/hle.h"
@@ -435,4 +436,33 @@ void saves_init(void)
     saves_keep_quick = config_get_int("saves.keep_quick", 3);
     saves_keep_auto = config_get_int("saves.keep_auto", 3);
     saves_enable(config_get_int("saves.quick", 1));
+}
+
+/* ---- the first start of each version: a copy of the saved games before it writes any
+ * ("Darklands+ save backups/<version> <date>/" in the player's Darklands+ folder: the game
+ * folder, or the data folder when that cannot be written). saves.backup = 0 switches it off. */
+void dos_mkdirs_for(const char *path);
+void saves_backup_once(void)
+{
+    extern const char dlp_release[], dlp_version[]; extern char dlp_user_dir[];
+    if (((getenv("DL_SCRIPT") || getenv("DL_CTL") || getenv("DL_HEADLESS")) && !getenv("DL_SAVES_BACKUP")) || !config_get_int("saves.backup", 1)) return;   /* (tests: only when asked) */
+    const char *ver = dlp_release[0] ? dlp_release : dlp_version;
+    if (!strcmp(config_get("saves.backed_up", ""), ver)) return;
+    FindEnt *l = 0; int n = dos_list_dos("SAVES", "*.*", &l), done = 0, failed = 0;
+    time_t t = time(0); struct tm *tm = localtime(&t);
+    char dir[1400]; snprintf(dir, sizeof dir, "%s/Darklands+ save backups/%s, %04d-%02d-%02d", dlp_user_dir, ver, tm ? tm->tm_year + 1900 : 0, tm ? tm->tm_mon + 1 : 0, tm ? tm->tm_mday : 0);
+    for (int i = 0; i < n; i++) {
+        char dn[64], src[1100], dst[1700]; snprintf(dn, sizeof dn, "SAVES\\%s", l[i].name);
+        dos_host_path(dn, src, sizeof src);
+        snprintf(dst, sizeof dst, "%s/%s", dir, l[i].real);
+        dos_mkdirs_for(dst);
+        FILE *a = fopen(src, "rb"), *b = a ? fopen(dst, "wb") : 0;
+        if (a && b) { char buf[16384]; size_t k; int bad = 0; while ((k = fread(buf, 1, sizeof buf, a)) > 0) if (fwrite(buf, 1, k, b) != k) bad = 1; if (bad) failed++; else done++; }
+        else failed++;
+        if (a) fclose(a);
+        if (b) fclose(b);
+    }
+    free(l);
+    fprintf(stderr, "saves: %d file%s backed up in %s%s\n", done, done == 1 ? "" : "s", dir, failed ? " (some could not be copied)" : "");
+    if (!failed) { config_set("saves.backed_up", ver); config_save(); }
 }

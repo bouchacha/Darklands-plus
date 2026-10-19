@@ -314,6 +314,7 @@ int main(int argc, char **argv)
     dos_mem_init2(env, (u16)(psp_seg - 1 - env), psp_seg);
 
     { void ui_late_init(void); ui_late_init(); }
+    { void saves_backup_once(void); saves_backup_once(); }   /* the saves copied once a version, before it writes any (mods/saves.c) */
     mods_init();
     { void rules_apply(void); rules_apply(); }       /* mods' rules.ini (ui/rules.cpp) */
 
