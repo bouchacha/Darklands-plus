@@ -262,8 +262,51 @@ static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), cal
     }
 }
 
+/* ---------------------------------------------------------------- battle.black_cloud
+ * The party's potions to throw in a battle are listed by s019 1ef8:0c80 (i): every potion of
+ * 0x5f..0x68 of quality 20..49 the member carries, three grades a potion, at most 20 (the middle
+ * grades dropped first), into the menu's items (DS:9a47, 22 bytes: +0 the name's pointer from
+ * DS:114e[potion], +3 "q45", +7 how many, +8 the quality, +9 the potion; DS:114a after the last),
+ * DS:97dd 1 (something) or 2 (nothing). It leaves Black Cloud (0x61) out: the manual says it
+ * "cannot be used in battle because the screen takes too long" (1992's machines), though its
+ * effect is in the battle's code (enemies throw it). With this on, the list is made the same way
+ * with Black Cloud in it. */
+static int on_cloud(void) { return config_get_int("battle.black_cloud", 1) && !config_get_int("original", 0); }
+static void throwlist_hook(void)                /* s019 1ef8:0c80 (i) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (!on_cloud() || i < 0 || i > 4) { hook_call_original(); return; }
+    u16 c = (u16)(GV_combatants + 0x80 * i);
+    if ((g_rw((u16)(c + 0x10)) & 2) == 2) { g_wb(0x97dd, 2); hook_return_far(0); return; }
+    struct { int id, q, n; } list[30];
+    for (int k = 0; k < 30; k++) list[k].id = list[k].q = list[k].n = -1;
+    int cnt = 0, nit = g_rb((u16)(c + 0x7e));
+    for (int k = 0; k < nit && k < 64; k++) {
+        u16 o = G_ITEM(i, k);
+        int id = rw(G_FAR2E38, o), q = rb(G_FAR2E38, (u16)(o + 3));
+        if (id < 0x5f || id > 0x68 || q < 0x14 || q >= 0x32) continue;
+        int a = id - 0x5f, x = a * 3 + q / 10 - 2;
+        list[x].id = a; list[x].q = q; list[x].n = rb(G_FAR2E38, (u16)(o + 4));
+        cnt++;
+    }
+    for (int k = 1; cnt > 20 && k < 30; k += 3) if (list[k].id != -1) { list[k].id = -1; cnt--; }
+    int m = 0;
+    for (int k = 0; k < 30; k++) {
+        if (list[k].id == -1) continue;
+        u16 e = (u16)(0x9a47 + 22 * m++);
+        char nm[8]; snprintf(nm, sizeof nm, "q%d", list[k].q);
+        g_ww(e, g_rw((u16)(0x114e + 2 * list[k].id)));
+        for (int j = 0; j < 4; j++) g_wb((u16)(e + 3 + j), (u8)nm[j]);
+        g_wb((u16)(e + 7), (u8)list[k].n); g_wb((u16)(e + 8), (u8)list[k].q); g_wb((u16)(e + 9), (u8)list[k].id);
+    }
+    g_ww((u16)(0x9a47 + 22 * m), g_rw(0x114a));
+    g_wb(0x97dd, (u8)(m ? 1 : 2));
+    hook_return_far(0);
+}
+
 void battlerules_init(void)
 {
+    hook_install(19, 0x1ef8, 0x0c80, throwlist_hook);
     hook_install(GF_ai_costs, costs_hook);
     hook_install(GF_line_blocked, blocked_hook);
     hook_install(GF_melee_exchanges, exchanges_hook);

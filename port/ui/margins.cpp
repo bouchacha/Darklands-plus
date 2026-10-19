@@ -22,6 +22,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/foesleft.h"
 #include "../mods/gamemodel.h"
+#include "../mods/fixes.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
@@ -256,14 +257,14 @@ static void teachers_lines(int loc)
     }
     for (int k = 0; k < n; k++) {
         const TchSource &s = ts[k];
-        char line[160]; snprintf(line, sizeof line, "%s (%d%%)", ui_teacher_skills(s).c_str(), teach_chance(s.strength));
+        char line[160]; snprintf(line, sizeof line, fix_is_on("teachcap") ? "%s (to %d)" : "%s (skill %d)", ui_teacher_skills(s).c_str(), s.strength);
         ImGui::BeginGroup();
         ImGui::TextDisabled("%s:", ui_teacher_short(s.src)); ImGui::SameLine();
         if (s.off) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextWrapped("%s", line);
         if (s.off) ImGui::PopStyleColor();
         ImGui::EndGroup();
-        if (item_hovered()) margin_tip((ui_teacher_text(s) + "\n(In brackets: how many lessons in 100 raise the skill.)").c_str());
+        if (item_hovered()) margin_tip(ui_teacher_text(s).c_str());
     }
 }
 extern "C" int ui_nearest_town(void);

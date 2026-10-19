@@ -129,12 +129,13 @@ extern "C" void lodgeview_draw(void)
             const auto &T = m.t[hover_act - 100];
             const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
             int now = T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0;
+            int c = teach_chance(T.val), days = c > 0 ? (100 + c / 2) / c : 0;
             if (teach_capped(m.sel, T.skill, T.val))
-                snprintf(b, sizeof b, "A teacher of %s (ability %d) teaches up to %d; %s's %s is %d already: nothing more to learn from this one.",
-                         sk, T.val, T.val, ns_gtext(p.name).c_str(), sk, now);
+                snprintf(b, sizeof b, "Teacher of %s, own skill %d. %s's %s is %d already: nothing more to learn from this teacher.",
+                         sk, T.val, ns_gtext(p.name).c_str(), sk, now);
             else
-                snprintf(b, sizeof b, "A teacher of %s (ability %d): %s a day, paid each day of lessons; about %d lessons in 100 raise the skill by 1%s. %s's %s is now %d.",
-                         sk, T.val, money_with_total(T.fee).c_str(), teach_chance(T.val), fix_is_on("teachcap") ? ", up to the teacher's ability" : "",
+                snprintf(b, sizeof b, "Teacher of %s, own skill %d. Fee: %s a day. Each day of lessons: a %d%% chance of +1 (about one point every %d days)%s. %s's %s: %d.",
+                         sk, T.val, money_with_total(T.fee).c_str(), c, days, fix_is_on("teachcap") ? ", up to the teacher's own skill" : "",
                          ns_gtext(p.name).c_str(), sk, now);
             about = b;
         } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking the masters of a guild, the university, the monks, the physician or the alchemists (a lectern marks the option on their cards; the margin lists what the town offers); they then teach here for a week.";

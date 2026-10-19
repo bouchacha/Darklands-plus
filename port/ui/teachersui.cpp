@@ -56,28 +56,35 @@ std::string ui_teacher_skills(const TchSource &s)
     return r;
 }
 
+/* what a teacher's tooltip says: what is taught, how well and for how much, how to hire one, who
+   is accepted and how it stands now - each a line of its own, the label first */
 std::string ui_teacher_text(const TchSource &s)
 {
-    std::string t = s.who;
-    if (!s.n) t += " teach nothing that can be learned.";
+    std::string t = std::string(s.who) + "\n";
+    if (!s.n) t += "Teaches: nothing that can be learned.\n";
     else {
         bool same = true;
         for (int k = 1; k < s.n; k++) if (s.fee[k] != s.fee[0]) same = false;
-        t += s.src == TCH_PHYSICIAN ? " teaches " : " teach ";
+        t += "Teaches: ";
         for (int k = 0; k < s.n; k++) {
             t += (k == 0 ? "" : k + 1 == s.n ? " and " : ", ") + std::string(gm_skill_name(s.skill[k]));
-            if (!same) t += " (" + money_str(s.fee[k]) + ")";
+            if (!same) t += " (" + money_str(s.fee[k]) + " a day)";
         }
-        t += same ? ", for " + money_str(s.fee[0]) + " a member a day." : ", the fee a member a day.";
+        t += ".\n";
+        if (same) t += "Fee: " + money_str(s.fee[0]) + " per student per day.\n";
+        int c = teach_chance(s.strength), days = c > 0 ? (100 + c / 2) / c : 0;
+        char b[240];
+        if (fix_is_on("teachcap"))
+            snprintf(b, sizeof b, "The teacher's own skill: %d. Students can be taught up to %d, no further.\n", s.strength, s.strength);
+        else
+            snprintf(b, sizeof b, "The teacher's own skill: %d (in the original game it sets no limit: up to 99).\n", s.strength);
+        t += b;
+        snprintf(b, sizeof b, "Each day of lessons: a %d%% chance of +1 to the skill (about one point every %d days).\n", c, days);
+        t += b;
     }
-    char b[200];
-    snprintf(b, sizeof b, "\nAbility %d: about %d lessons in 100 raise the skill by 1, %s. A teacher stays a week: "
-                          "at the inn, \"Train or study\", a lesson a day.", s.strength, teach_chance(s.strength),
-             fix_is_on("teachcap") ? "up to the teacher's ability" : "with no limit but 99");
-    t += b;
-    t += "\n" + std::string(s.ask);
-    if (s.cond && *s.cond) t += "\n" + std::string(s.cond);
-    if (s.now[0]) t += "\nNow: " + std::string(s.now);
+    t += "\nHow to hire: " + std::string(s.ask) + " The teacher then stays in town for a week; at the inn, set a member to \"Train or study\".";
+    if (s.cond && *s.cond) t += "\nWho they accept: " + std::string(s.cond);
+    if (s.now[0]) t += "\nRight now: " + std::string(s.now);
     return t;
 }
 
