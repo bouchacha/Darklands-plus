@@ -24,11 +24,10 @@ extern "C" {
 #include "../runtime/hooks.h"
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
+#include "../mods/gamemodel.h"
 void ui_toggle(void);
 }
 
-static const char *MONTH[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
-                                 "September", "October", "November", "December" };
 
 struct Ev { int i; u16 seg, off; int type0, owner, loc, value, kind, tag, aux, reward, item; int start[4], end[4]; };
 
@@ -54,7 +53,7 @@ static std::vector<Ev> read_events(void)
 static std::string date(const int d[4])
 {
     if (d[2] >= 12 || d[3] >= 1499) return "no time limit";
-    char b[48]; snprintf(b, sizeof b, "%d %s %d", d[1], MONTH[d[2] % 12], d[3]);
+    char b[48]; snprintf(b, sizeof b, "%d %s %d", d[1], gm_month_name(d[2] % 12), d[3]);
     return b;
 }
 

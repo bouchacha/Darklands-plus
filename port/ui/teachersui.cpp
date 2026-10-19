@@ -90,14 +90,13 @@ std::string ui_teacher_text(const TchSource &s)
 
 std::string ui_teachers_hired_line(int loc)
 {
-    static const char *const MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
     TchHired h[16];
     int n = teach_hired(loc, h, 16);
     std::string r;
     for (int k = 0; k < n; k++) {
         char b[80];
         if (h[k].skill < 0 || h[k].skill >= 19) continue;
-        snprintf(b, sizeof b, "%s (until %d %s)", skill_short(h[k].skill), h[k].day, MON[(h[k].month % 12 + 12) % 12]);
+        snprintf(b, sizeof b, "%s (until %d %s)", skill_short(h[k].skill), h[k].day, gm_month_name((h[k].month % 12 + 12) % 12));
         r += (r.empty() ? "" : ", ") + std::string(b);
     }
     return r;

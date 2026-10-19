@@ -13,9 +13,9 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/titleview.h"
+#include "../mods/gamemodel.h"
 }
 
-static const char *MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 static std::string written(long long t)          /* when a save was written, on this computer */
 {
@@ -25,7 +25,7 @@ static std::string written(long long t)          /* when a save was written, on 
     char s[64];
     if (a.tm_year == b.tm_year && a.tm_yday == b.tm_yday) snprintf(s, sizeof s, "saved today at %d:%02d", a.tm_hour, a.tm_min);
     else if (a.tm_year == b.tm_year && a.tm_yday + 1 == b.tm_yday) snprintf(s, sizeof s, "saved yesterday at %d:%02d", a.tm_hour, a.tm_min);
-    else snprintf(s, sizeof s, "saved %d %s %d", a.tm_mday, MON[a.tm_mon % 12], a.tm_year + 1900);
+    else snprintf(s, sizeof s, "saved %d %s %d", a.tm_mday, gm_month_name(a.tm_mon % 12), a.tm_year + 1900);
     return s;
 }
 
@@ -74,7 +74,7 @@ extern "C" void titleview_draw(void)
         std::string who;
         for (int i = 0; i < s.nmembers && i < 5; i++) who += (i ? ", " : "") + ns_gtext(s.members[i]);
         char b[200];
-        snprintf(b, sizeof b, "%s, %d %s %d", ns_gtext(s.place).c_str(), s.day, MON[(unsigned)s.month % 12], s.year);
+        snprintf(b, sizeof b, "%s, %d %s %d", ns_gtext(s.place).c_str(), s.day, gm_month_name((unsigned)s.month % 12), s.year);
         std::string sub = b;
         if (!who.empty()) sub += " - " + who;
         items[n++] = { TV_CONTINUE, "Continue", sub, m.can_continue != 0 };

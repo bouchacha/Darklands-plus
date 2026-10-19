@@ -32,6 +32,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/hdtext.h"
 #include "money.h"
+#include "../mods/gamemodel.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
 void ovl_enter(int sect);
@@ -50,12 +51,11 @@ static int journal_on = 1;
 static int cur_seed = -1, last_loc = -2;
 
 /* ---------------------------------------------------------------- helpers */
-static const char *MONTHS[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static std::string game_date(void)
 {
     int d = (s16)g_rw(G_CUR_DAY), m = g_rw(G_CUR_MONTH), y = g_rw(G_CUR_YEAR);
-    char b[32]; snprintf(b, sizeof b, "%d %s %d", d, MONTHS[m % 12], y);
+    char b[32]; snprintf(b, sizeof b, "%d %s %d", d, gm_month_short(m % 12), y);
     return b;
 }
 
@@ -400,7 +400,7 @@ static void chron_days(const std::string &find, std::vector<ChronDay> &out)
         if (out.empty() || out.back().date != e.date) {
             ChronDay D; D.date = e.date; D.y = D.m = D.d = 0;
             char mon[8] = ""; sscanf(e.date.c_str(), "%d %7s %d", &D.d, mon, &D.y);
-            for (int k = 0; k < 12; k++) if (!strcmp(mon, MONTHS[k])) D.m = k;
+            for (int k = 0; k < 12; k++) if (!strcmp(mon, gm_month_short(k))) D.m = k;
             out.push_back(D);
         }
         ChronDay &D = out.back();
@@ -414,7 +414,7 @@ extern "C" void journal_test_chronicle(int n)
 {
     static const char *T[4] = { "Strassburg", "Basel", "near Basel", "the countryside" };
     for (int i = 0; i < n; i++) {
-        char d[32]; snprintf(d, sizeof d, "%d %s 1400", 1 + (i / 6) % 28, MONTHS[(5 + i / 40) % 12]);
+        char d[32]; snprintf(d, sizeof d, "%d %s 1400", 1 + (i / 6) % 28, gm_month_short((5 + i / 40) % 12));
         chron.push_back({ d, T[(i / 3) % 4], "A made-up text, number " + std::to_string(i) + ", to try the chronicle's days and places. "
                           "It runs on a little so that it wraps over two lines in the window.", i % 2 ? "...leave." : "", 6 + (i % 6) * 2 });
     }
@@ -475,8 +475,7 @@ static void chronicle_page(void)
             int mk = D.y * 12 + D.m;
             if (mk != last_month) {
                 if (month_open) ImGui::TreePop();
-                static const char *MN[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-                char ml[48]; snprintf(ml, sizeof ml, "%s %d###m%d", MN[D.m % 12], D.y, mk);
+                char ml[48]; snprintf(ml, sizeof ml, "%s %d###m%d", gm_month_name(D.m % 12), D.y, mk);
                 bool newest = k == (int)days.size() - 1;
                 bool has_sel = sel >= 0 && days[(size_t)sel].y * 12 + days[(size_t)sel].m == mk;
                 if (has_sel) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -485,7 +484,7 @@ static void chronicle_page(void)
             }
             if (!month_open) continue;
             ImGui::PushID(k);
-            char dl[64]; snprintf(dl, sizeof dl, "%d %s  (%d)", D.d, MONTHS[D.m % 12], (int)D.idx.size());
+            char dl[64]; snprintf(dl, sizeof dl, "%d %s  (%d)", D.d, gm_month_short(D.m % 12), (int)D.idx.size());
             ImGuiTreeNodeFlags fl = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | (k == sel ? ImGuiTreeNodeFlags_Selected : 0)
                                   | (D.places.size() <= 1 ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen : 0);
             bool open = ImGui::TreeNodeEx("day", fl, "%s", dl);

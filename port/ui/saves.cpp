@@ -15,11 +15,11 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/saves.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 void ui_toggle(void);
 }
 
-static const char *MONTHS[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static SaveInfo *list; static int nlist = -1;
 static u32 listed_at;
 static char confirm_delete[16];
@@ -91,7 +91,7 @@ extern "C" void tab_saves(void)
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(game_text(s.place, sizeof s.place).c_str());
-        ImGui::TextDisabled("%d %s %d, %d:00%s", s.day, MONTHS[(unsigned)s.month % 12], s.year, s.hour, s.battle ? "  (in battle)" : "");
+        ImGui::TextDisabled("%d %s %d, %d:00%s", s.day, gm_month_short((unsigned)s.month % 12), s.year, s.hour, s.battle ? "  (in battle)" : "");
         ImGui::TableNextColumn();
         std::string party;
         for (int m = 0; m < s.nmembers; m++) { if (m) party += ", "; party += game_text(s.members[m], sizeof s.members[m]); }

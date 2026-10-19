@@ -14,10 +14,10 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/savesview.h"
 #include "../mods/titleview.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 }
 
-static const char *MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 static std::string ago(long long t)
 {
@@ -111,7 +111,7 @@ extern "C" void savesview_draw(void)
         if (title.empty()) title = ns_gtext(v.place);
         float tx = X0 + 3;
         P.text(f, NsDraw::FS_NAME, tx, y + 1.0f, ink, title, -1, X1 - 72);
-        char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, MON[(unsigned)v.month % 12], v.year, v.hour);
+        char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, gm_month_name((unsigned)v.month % 12), v.year, v.hour);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 1.8f, soft, when, X1 - 3);
         bool armed = S.loading && S.armed == i && plat_ticks_ms() - S.armed_t <= 4000, del_hit = false;
         if (S.loading && sel && !cur) {                           /* Load: the chosen save can be deleted (a second click does it) */

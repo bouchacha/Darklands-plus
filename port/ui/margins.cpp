@@ -42,8 +42,6 @@ extern "C" int battle_showing(void);                  /* ui/battlelog.cpp: a bat
 int ui_margins_on = 1;
 
 extern "C" int levelmap_available(void);
-static const char *MONTHS[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
-                                  "September", "October", "November", "December" };
 
 static std::string place_name(void)
 {
@@ -760,7 +758,7 @@ extern "C" void ui_margins(void)
     if (left >= 150 && !battlelog_margin(0, left, h, fs) && begin_panel("##margin_l", 0, left, h, fs)) {
         int hour = (s16)g_rw(G_CUR_HOUR), day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH), year = (s16)g_rw(G_CUR_YEAR);
         /* the date and hour, the purse, then the tasks: no labels where the thing speaks for itself */
-        char date[48]; snprintf(date, sizeof date, "%d %s %d", day, MONTHS[(unsigned)mon % 12], year);
+        char date[48]; snprintf(date, sizeof date, "%d %s %d", day, gm_month_name((unsigned)mon % 12), year);
         heading(date);
         /* the game's own day: daylight from 5:00 to 18:59 (is_daylight, s029 1367:072a); then the towns' night streets */
         const bool night = hour < 5 || hour >= 19;

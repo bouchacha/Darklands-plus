@@ -21,6 +21,7 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "savesview.h"
+#include "gamemodel.h"
 
 u32 plat_ticks_ms(void);
 void plat_sleep_ms(int ms);
@@ -38,7 +39,6 @@ static NsAction q[NQ]; static int qh, qt;
 void savesview_push(int type, int a) { int n = (qt + 1) % NQ; if (n == qh) return; q[qt].type = type; q[qt].a = a; q[qt].b = q[qt].c = 0; qt = n; }
 static int pop(NsAction *o) { if (qh == qt) return 0; *o = q[qh]; qh = (qh + 1) % NQ; return 1; }
 
-static const char *MON[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 static void default_comment(char *out, int n)
 {
@@ -48,7 +48,7 @@ static void default_comment(char *out, int n)
     if (r) g_str((u16)(r >> 16), (u16)((u16)r + 0x26), place, sizeof place);
     for (int i = 0; place[i]; i++) if ((unsigned char)place[i] < 32 || (unsigned char)place[i] > 126) place[i] = ' ';
     int day = (s16)g_rw(G_CUR_DAY), mon = (s16)g_rw(G_CUR_MONTH);
-    char b[64]; snprintf(b, sizeof b, "%.14s %d %.3s", place[0] ? place : "Travelling", day, MON[(unsigned)mon % 12]);
+    char b[64]; snprintf(b, sizeof b, "%.14s %d %.3s", place[0] ? place : "Travelling", day, gm_month_name((unsigned)mon % 12));
     snprintf(out, (size_t)n, "%s", b);
 }
 

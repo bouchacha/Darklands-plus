@@ -264,6 +264,14 @@ const char *gm_skill_name(int k)
         "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
     return k >= 0 && k < 19 ? S[k] : "?";
 }
+/* the months, from 0 (January); any number taken round the year */
+const char *gm_month_name(int m)
+{
+    static const char *const M[12] = { "January", "February", "March", "April", "May", "June", "July", "August",
+                                       "September", "October", "November", "December" };
+    return M[((m % 12) + 12) % 12];
+}
+const char *gm_month_short(int m) { static const char *const M[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }; return M[((m % 12) + 12) % 12]; }
 /* "a" or "an" before a number written in figures: "an 8%", "an 11%", "an 18%", "an 80%" */
 const char *gm_a_an(int n)
 {

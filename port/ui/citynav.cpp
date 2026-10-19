@@ -37,6 +37,7 @@ int datamods_generation(void);
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
 #include "../mods/fixes.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 void plat_click_game(int gx, int gy);
 void ui_notice(const char *msg);
@@ -445,7 +446,6 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
 
 extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
 extern ImFont *ui_font_bold;
-static const char *MON3[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 /* text cut to fit `w` pixels at font size `fs`, with "..." when cut */
 static std::string fit(const std::string &t, float fs, float w)
@@ -544,7 +544,7 @@ extern "C" int citynav_window(void)
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
                 case OFS_ASK: snprintf(b, sizeof b, "%d%% chance of a task", os.chance); c = GREEN; break;
-                case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, MON3[(os.month % 12 + 12) % 12]); break;
+                case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
                 case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
                 case OFS_BARRED: snprintf(b, sizeof b, "No tasks: reputation too low"); c = REDD; break;
@@ -552,7 +552,7 @@ extern "C" int citynav_window(void)
                 }
                 if (b[0]) T.lines.push_back({ b, c });
                 std::string n = os.note;
-                if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, MON3[(os.month % 12 + 12) % 12], os.hour); n += u; }
+                if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, gm_month_short((os.month % 12 + 12) % 12), os.hour); n += u; }
                 if (!n.empty()) T.tip.push_back({ "Tasks", n });
             }
             /* the party's own tasks that lead here */
