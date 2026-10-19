@@ -77,7 +77,7 @@ std::vector<Eff> effects_now(int size)
                 { 0x174, "fire protection %d (a saint's)" }, { 0x175, "%+d armour against missiles (a saint's)" },
                 { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" } };
             bool done = false;
-            for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); v.push_back({ m, b, left, kind }); done = true; break; }
+            for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); done = true; break; }
             if (done) continue;
             int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
@@ -92,7 +92,20 @@ std::vector<Eff> effects_now(int size)
         } else continue;
         v.push_back({ m, b, left, kind });
     }
-    return v;
+    /* of the protections that do not add up (fire, the party's speed), only the strongest of each member's */
+    std::vector<Eff> out;
+    for (size_t i = 0; i < v.size(); i++) {
+        const Eff &e = v[i];
+        bool weaker = false;
+        if (e.kind == 0x4a && (e.k == 0x174 || e.k == 0x177 || e.k == 0x178))
+            for (size_t j = 0; j < v.size() && !weaker; j++) {
+                const Eff &o = v[j];
+                if (j != i && o.m == e.m && o.kind == 0x4a && o.k == e.k &&
+                    (o.amount > e.amount || (o.amount == e.amount && (o.left > e.left || (o.left == e.left && j < i))))) weaker = true;
+            }
+        if (!weaker) out.push_back(e);
+    }
+    return out;
 }
 
 static std::string lower(std::string s) { std::transform(s.begin(), s.end(), s.begin(), ::tolower); return s; }
