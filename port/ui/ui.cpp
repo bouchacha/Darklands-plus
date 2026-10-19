@@ -837,13 +837,12 @@ static void draw_icon_grid(void)
     }
     if (icon_grid == 3) {                                   /* the towns' pictures, at three sizes */
         dl->AddRectFilled(ImVec2(0, ds.y * 0.5f), ds, IM_COL32(24, 18, 12, 255));
-        for (int k = 0; k < TI_N; k++) {
-            float x = cell * 0.6f + k * cell * 0.92f;
-            ui_draw_town_icon(dl, ImVec2(x, cell * 0.7f), cell * 0.85f, k);
-            ui_draw_town_icon(dl, ImVec2(x, cell * 1.7f), 32, k);
-            ui_draw_town_icon(dl, ImVec2(x, cell * 2.3f), 20, k);
-            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 0.7f), cell * 0.85f, k);
-            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + cell * 1.7f), 32, k);
+        for (int k = 0; k < TI_N; k++) {                     /* (rows of 11: on parchment above, on the dark below) */
+            float x = cell * 0.6f + (k % 11) * cell * 0.92f, y = (k / 11) * cell * 1.3f;
+            ui_draw_town_icon(dl, ImVec2(x, y + cell * 0.6f), cell * 0.85f, k);
+            ui_draw_town_icon(dl, ImVec2(x - cell * 0.25f, y + cell * 1.15f), 32, k);
+            ui_draw_town_icon(dl, ImVec2(x + cell * 0.2f, y + cell * 1.15f), 20, k);
+            ui_draw_town_icon(dl, ImVec2(x, ds.y * 0.5f + y + cell * 0.6f), cell * 0.85f, k);
         }
         return;
     }
