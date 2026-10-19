@@ -293,7 +293,40 @@ static std::string hhmm(int minutes)
     return b;
 }
 
+/* a name for the search: lower case, the accents off ("Köln" -> "koln"), or with German's "oe"
+   for an umlaut ("koeln"), ß as "ss"; so "Kol", "Koln", "Koeln" and "Köln" all find Köln */
+static std::string fold_name(const std::string &s, bool umlaut_e)
+{
+    /* U+00C0..U+00FF, lower case without the accent ('-': the Latin-1 signs kept out) */
+    static const char *L1 = "aaaaaaaceeeeiiii" "dnooooo-ouuuuyts" "aaaaaaaceeeeiiii" "dnooooo-ouuuuyty";
+    std::string o;
+    for (size_t i = 0; i < s.size(); i++) {
+        unsigned char c = (unsigned char)s[i];
+        if (c == 0xC3 && i + 1 < s.size()) {
+            int cp = 0xC0 + ((unsigned char)s[++i] & 0x3F);
+            if (cp == 0xDF) { o += "ss"; continue; }
+            char b = L1[cp - 0xC0];
+            if (b == '-') continue;
+            o += b;
+            if (umlaut_e && (cp == 0xC4 || cp == 0xD6 || cp == 0xDC || cp == 0xE4 || cp == 0xF6 || cp == 0xFC)) o += 'e';
+        }
+        else if (c < 0x80) o += (char)tolower(c);
+        else o += (char)c;                                   /* (other letters as they are) */
+    }
+    return o;
+}
+
 extern "C" void ui_toggle_map(void);
+
+static char wm_find[48];                                   /* the Find box's text */
+/* Esc on the map: a name being looked for is cleared first (1: by the box itself while typing in
+   it), the map closed only then */
+extern "C" int worldmap_find_escape(int typing)
+{
+    if (!wm_find[0]) return 0;
+    if (!typing) wm_find[0] = 0;
+    return 1;
+}
 
 extern "C" void worldmap_draw(void)
 {
@@ -527,25 +560,42 @@ extern "C" void worldmap_draw(void)
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
     ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
-    static char find[48];
+    char *find = wm_find;
     ImGui::SetNextItemWidth(UIS(260) * pk);
-    ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof find);
+    bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
     if (find[0]) {                                         /* the places named so, the nearest first on the travel map, with the journey */
-        std::string f = find; std::transform(f.begin(), f.end(), f.begin(), ::tolower);
+        std::string f = fold_name(find, false);
         std::vector<std::pair<int, const Place *>> hits;      /* (minutes on the way, -1 unknown) */
-        for (const Place &p : P) {
-            std::string n = p.name; std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-            if (n.find(f) != std::string::npos) hits.push_back({ on_map ? travel_minutes_loc(p.loc, nullptr, nullptr) : -1, &p });
-        }
+        for (const Place &p : P)
+            if (fold_name(p.name, false).find(f) != std::string::npos || fold_name(p.name, true).find(f) != std::string::npos)
+                hits.push_back({ on_map ? travel_minutes_loc(p.loc, nullptr, nullptr) : -1, &p });
         std::stable_sort(hits.begin(), hits.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
             return (a.first < 0 ? INT_MAX : a.first) < (b.first < 0 ? INT_MAX : b.first); });
-        float tw = ImGui::GetFontSize() * 6.5f;
+        /* a row a place: its picture, the name, what it is (dim, cut short when the row is full) and
+           the journey at the right; the whole row to click */
+        float rw = UIS(260) * pk, lh = ImGui::GetTextLineHeight(), isz = lh * 0.95f, gap = ImGui::GetStyle().ItemSpacing.x;
+        ImDrawList *pdl = ImGui::GetWindowDrawList();
         for (size_t i = 0; i < hits.size() && i < 8; i++) {
             const Place &p = *hits[i].second;
-            char lb[96]; snprintf(lb, sizeof lb, "%s (%s)##%d", p.name.c_str(), kind_line(P, p).c_str(), p.loc);
-            if (ImGui::Selectable(lb, false, 0, ImVec2(UIS(260) * pk - tw, 0))) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
-            if (hits[i].first >= 0) { ImGui::SameLine(UIS(260) * pk - tw + ImGui::GetStyle().ItemSpacing.x * 2); ImGui::TextDisabled("%s", hhmm(hits[i].first).c_str()); }
+            ImGui::PushID(p.loc);
+            ImVec2 a = ImGui::GetCursorScreenPos();
+            if (ImGui::Selectable("##hit", false, 0, ImVec2(rw, 0)) || (enter && i == 0)) {   /* (Enter: the first) */ tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
+            ImGui::PopID();
+            draw_icon(pdl, ImVec2(a.x + isz * 0.5f, a.y + lh * 0.5f), isz, icon_kind(p.kind));
+            std::string t = hits[i].first >= 0 ? hhmm(hits[i].first) : std::string();
+            float tx = a.x + rw - ImGui::CalcTextSize(t.c_str()).x, nx = a.x + isz + gap * 0.6f;
+            ImU32 ink = ImGui::GetColorU32(ImGuiCol_Text), dimc = ImGui::GetColorU32(ImGuiCol_TextDisabled);
+            ImVec4 clip(nx, a.y, tx - gap, a.y + lh);
+            pdl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(nx, a.y), ink, p.name.c_str(), nullptr, 0, &clip);
+            float kx = nx + ImGui::CalcTextSize(p.name.c_str()).x + gap * 0.7f;
+            if (kx < tx - gap) {
+                std::string k = kind_line(P, p);
+                if (kx + ImGui::CalcTextSize(k.c_str()).x > tx - gap) k = kind_label(p.kind);   /* ("cave near Köln": "cave") */
+                pdl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(kx, a.y), dimc, k.c_str(), nullptr, 0, &clip);
+            }
+            if (!t.empty()) pdl->AddText(ImVec2(tx, a.y), dimc, t.c_str());
         }
+        if (hits.size() > 8) ImGui::TextDisabled("and %d more: a longer name narrows it", (int)hits.size() - 8);
         if (hits.empty()) ImGui::TextDisabled("No place of that name.");
     }
     if (travel.active) {                                   /* the journey under way */

@@ -58,6 +58,7 @@ static bool goto_allowed(void) { return config_get_int("assist.city_goto", 1) &&
 extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; open_menu = false; open_map = false; } }
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);
+extern "C" int worldmap_find_escape(int typing);
 void worldmap_set_renderer(SDL_Renderer *r);
 static int want_tab = -1;                  /* a page (ui/uitabs.h) to show; kept until its group's tabs have drawn it */
 static int want_frames;
@@ -405,6 +406,10 @@ extern "C" int ui_event(const SDL_Event *e)
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (open_map) {
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE && worldmap_find_escape(ImGui::GetIO().WantTextInput)) {   /* (Esc: a name in the Find box cleared first) */
+            if (ImGui::GetIO().WantTextInput) ImGui_ImplSDL2_ProcessEvent(e);
+            return 1;
+        }
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || (e->key.keysym.sym == SDLK_m && !ImGui::GetIO().WantTextInput))) { ui_toggle_map(); return 1; }
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
