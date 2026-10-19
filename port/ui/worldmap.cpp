@@ -75,6 +75,8 @@ static SDL_Texture *full_tile(int i, int j)
     return ftex[k];
 }
 static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-screen pixel; centre
+static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
+static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static int selected = -1;
 static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true, show_icons = true;
 
@@ -372,10 +374,15 @@ extern "C" void worldmap_draw(void)
     if (ImGui::IsKeyDown(ImGuiKey_RightArrow)) cx += step * io.DeltaTime * 8;
     if (ImGui::IsKeyDown(ImGuiKey_UpArrow)) cy -= step * io.DeltaTime * 8;
     if (ImGui::IsKeyDown(ImGuiKey_DownArrow)) cy += step * io.DeltaTime * 8;
-    if (cx < 0) cx = 0;
-    if (cx > worldmap.full_w) cx = (float)worldmap.full_w;
-    if (cy < 0) cy = 0;
-    if (cy > worldmap.full_h) cy = (float)worldmap.full_h;
+    if (wm_panel_run >= 3 && ImGui::GetFrameCount() - wm_panel_frame <= 1) {   /* the view stays on the map: an edge goes no further in than the window's edge (the west one
+           than the panel's right side, so the places under the panel can be seen); a map smaller
+           than the window sits in the middle of what the panel leaves */
+        float hw = sz.x * 0.5f / zoom, hh = sz.y * 0.5f / (zoom * ay), L = wm_panel_right / zoom;
+        float lo = hw - L, hi = worldmap.full_w - hw;
+        cx = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(cx, lo), hi);
+        lo = hh; hi = worldmap.full_h - hh;
+        cy = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(cy, lo), hi);
+    }
 
     // the picture: the level whose texels are closest to the screen's pixels
     int l = 0;
@@ -558,6 +565,9 @@ extern "C" void worldmap_draw(void)
     ImGui::SetNextWindowPos(ImVec2(o.x + 14, o.y + 14));
     ImGui::SetNextWindowBgAlpha(0.97f);                    /* (the map must not show through the words) */
     ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    if (ImGui::GetFrameCount() - wm_panel_frame > 1) wm_panel_run = 0;
+    wm_panel_run++; wm_panel_frame = ImGui::GetFrameCount();
+    wm_panel_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - o.x;
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
     ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
