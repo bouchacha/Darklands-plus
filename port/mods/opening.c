@@ -1,6 +1,6 @@
 /* opening.c - the opening (the MicroProse logo, the animations, the music and the digitized
- * speech), F12 > Settings > Display > "At start": the whole opening (the first start always),
- * its last scene alone (the lady of the Darklands and her welcome; the default), or nothing.
+ * speech), F12 > Settings > Display > "At start": the whole opening (the default), its last
+ * scene alone (the lady of the Darklands and her welcome), or nothing.
  * "Play the original game" plays it whole. Played whole (the default), a key or a click during the
  * gargoyles and the rest goes on to the lady's welcome (opening8 and 9), and one there ends it; the
  * last scene alone, or the original, a key ends it at once.
