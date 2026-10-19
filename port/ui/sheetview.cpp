@@ -2,20 +2,30 @@
  * the whole page anew beside the party panel.
  *
  * Top: the member's name, sex and age, the leader, the tabs, Close.
+ * The one place for the party's things, skills, saints and formulae (the F12 window has no pages
+ * of its own for them).
  * Things: the paper doll on its column (put together from the game's own pictures, as the
  *   original does: PICS\ARMSBACK.PIC and the armour, weapon, shield and missile weapon over it),
  *   the load under it; right, the things, those in use first, the quality only where it can
  *   differ; Ready / Unequip / Drink and Drop on the row under the pointer, Undo for what was
- *   dropped; a thing dragged onto a member at the left is given to them (Shift: one of a stack).
+ *   dropped; a thing dragged onto a member at the left is given to them (Shift: one of a stack);
+ *   a weapon, armour or shield the pointer rests on shows all its numbers and who could use it.
  * Skills: the doll; right, the attributes and the skills on one page in the original's groups,
  *   each with its sign; Endurance, Strength and Divine Favor as current/maximum, the others
- *   their value (with the maximum, in red, when lowered).
+ *   their value (with the maximum, in red, when lowered); blue what a saint raised for a while;
+ *   a gold dot where the member is the party's best. The strip: what it is for, how long a
+ *   saint's change lasts, the whole party's values; with nothing under the pointer, what is at
+ *   work on the member.
  * Saints: the whole party's - each saint someone knows (or all), who knows it, a choice of what
- *   they help with; the saint under the pointer (or clicked) with the game's statue for it (its
- *   prayer screen's picture), the legend, and what it does in another colour.
- * Formulae: the whole party's - each formula someone knows, who knows it; the one under the
- *   pointer with its effect, mystic number and risk, its ingredients against what the party
- *   carries, and each alchemist's chance with one batch. */
+ *   they help with, "taught here" by the library the party is at; the saint under the pointer (or
+ *   clicked) with the game's statue for it (its prayer screen's picture), who knows it or the
+ *   libraries the party has been to that teach it, what it does (mods/saintinfo.h), where the
+ *   text says otherwise, whether encounters call on it, and the legend.
+ * Formulae: the whole party's - each formula someone knows (or all), who knows it, the batches
+ *   its ingredients make, "sold here"; under the list the 23 ingredients the party has, those
+ *   the formula shown calls for ringed; the formula under the pointer with its effect, mystic
+ *   number and risk, its ingredients against what the party carries, and each alchemist's
+ *   chance with one batch, or where an alchemist the party has been to sells it. */
 #include "imgui.h"
 #include "skillicons.h"
 #include "../runtime/config.h"
