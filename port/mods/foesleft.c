@@ -95,7 +95,7 @@ static void place_hook(void)                  /* battlefield_build / battle_rest
     hook_call_original();
 }
 
-int foesleft_on(void) { return config_get_int("battle.foes_left", 1) && !config_get_int("original", 0); }
+int foesleft_on(void) { return config_get_int("battle.foes_left", 0) && !config_get_int("original", 0); }   /* (a peek at the unknown: off but in Easy) */
 
 int foesleft_get(FoesLeft *out)
 {

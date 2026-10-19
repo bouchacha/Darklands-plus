@@ -92,6 +92,9 @@ static int town_find_q(int loc)                           /* > 0: town loc match
 {
     if (tfind < 0 || loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
     const TownFind &f = TFIND[tfind];
+    /* (a university, a cathedral, docks, a bank: known far and wide; the alchemists, a physician and
+       how good a shop is, once the party has been there: ui/libraries.h) */
+    if ((f.shop >= 0 || f.icon == TI_ALCHEMIST || f.icon == TI_PHYSICIAN) && !place_offers_known(loc)) return 0;
     if (f.shop < 0) return citynav_town_offers(loc, f.icon) ? 1 : 0;
     int q = gamedata.cities[loc].shopq[f.shop] > 0 ? shop_wares_q(gamedata.cities[loc].shopq[f.shop]) : 0;
     return q >= 30 ? q : 0;
@@ -578,7 +581,9 @@ extern "C" void worldmap_draw(void)
             for (const Place &p : P) if (kind_group(p.kind) == 0) { int q = town_find_q(p.loc); if (q) m.push_back({ q, &p }); }
             std::sort(m.begin(), m.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
                 return a.first != b.first ? a.first > b.first : a.second->name < b.second->name; });
-            ImGui::TextDisabled("%d town%s:", (int)m.size(), m.size() == 1 ? "" : "s");
+            const TownFind &tf = TFIND[tfind];
+            bool seen_only = (tf.shop >= 0 || tf.icon == TI_ALCHEMIST || tf.icon == TI_PHYSICIAN) && !config_get_int("map.offers_unvisited", 0);
+            ImGui::TextDisabled("%d town%s%s", (int)m.size(), m.size() == 1 ? "" : "s", seen_only ? " the party has been to:" : ":");
             float wmax = UIS(380) * pk, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
             int listed = 0;
             for (auto &e : m) {
