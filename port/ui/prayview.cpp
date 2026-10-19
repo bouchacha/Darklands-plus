@@ -63,7 +63,7 @@ extern "C" void prayview_draw(void)
     snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance);
     P.text(f, NsDraw::FS_HEAD, x, yy, p.chance >= 50 ? NsDraw::GREEN : p.chance > 0 ? ink : NsDraw::RED, b);
     yy += 9;
-    P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More favor, a better chance (up to 99%); the favor is spent either way.");
+    if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More favor, a better chance (up to 99%); the favor is spent either way.");
     yy += 8;
     float bw = 40;
     if (P.button(316 - bw, 184, 316, 194, "Don't pray", IM_COL32(112, 40, 22, 235))) ns_push(PV_CANCEL, 0, 0, 0);
@@ -81,5 +81,12 @@ extern "C" void prayview_draw(void)
                 px += w + 2;
             }
         }
-    } else P.text(fo, NsDraw::FS_SMALL, x, 186.5f, NsDraw::RED, "No chance as it is: spend more favor (or the saint does not help here).");
+    } else {
+        char b[160];
+        if (p.why == 1) snprintf(b, sizeof b, "%s's Virtue (%d) is below the %d this saint asks: more favor will not help.", who.c_str(), p.virtue, p.vmin);
+        else if (p.why == 2 && p.maxdf < p.xmin) snprintf(b, sizeof b, "This saint asks at least %d favor; %s has only %d.", p.xmin, who.c_str(), p.maxdf);
+        else if (p.why == 2) snprintf(b, sizeof b, "This saint asks at least %d favor: spend more.", p.xmin);
+        else snprintf(b, sizeof b, "No chance as it is: spend more favor (or the saint does not help here).");
+        P.text(fo, NsDraw::FS_SMALL, x, 186.5f, NsDraw::RED, b);
+    }
 }

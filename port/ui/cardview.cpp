@@ -47,6 +47,7 @@ void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
 void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula);
 extern "C" {
 #include "../mods/gamemodel.h"
+extern "C" int ui_is_open(void);
 }
 void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
 void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
@@ -410,9 +411,11 @@ extern "C" void cardview_draw(void)
         ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(w + pad, FLT_MAX));
         return w;
     };
+    const bool tipmenu = menu && !ui_is_open();                  /* (no card tooltips over the Darklands+ window, the world map, Go to ...) */
+    if (ui_is_open()) tip_formula = tip_item = tip_saint = -1;
     if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
-    else if (menu && c.hover >= 0 && c.hover < c.npieces && teaches[c.hover]) {
+    else if (tipmenu && c.hover >= 0 && c.hover < c.npieces && teaches[c.hover]) {
         /* a teacher: what, how well, for how much, and what it takes (and why it is greyed, if known) */
         float ww = tip_place(23);
         ImGui::BeginTooltip();
@@ -425,7 +428,7 @@ extern "C" void cardview_draw(void)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
-    else if (menu && c.hover >= 0 && c.hover < c.npieces && c.piece[c.hover].type != 1 && c.piece[c.hover].type != 2 && greyed_hint(c.piece[c.hover])) {
+    else if (tipmenu && c.hover >= 0 && c.hover < c.npieces && c.piece[c.hover].type != 1 && c.piece[c.hover].type != 2 && greyed_hint(c.piece[c.hover])) {
         float ww = tip_place(21);                                  /* beside the option (the pointer may be the game's only) */
         ImGui::BeginTooltip();
         ImGui::TextDisabled("Not possible now");
@@ -434,7 +437,7 @@ extern "C" void cardview_draw(void)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
-    else if (menu && assist_card_help && c.hover >= 0 && c.hover < c.npieces && c.popup_piece != c.hover
+    else if (tipmenu && assist_card_help && c.hover >= 0 && c.hover < c.npieces && c.popup_piece != c.hover
              && (c.piece[c.hover].type == 1 || c.piece[c.hover].type == 2)) {
         /* which saints or items this option takes, and who in the party knows or carries them
            (even when nobody does: the option is then greyed) */

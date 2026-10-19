@@ -41,6 +41,11 @@ static void build(void)
     p->df = (s16)g_rw(GV_pray_df);
     p->maxdf = (s8)g_rb(D_MAXDF(p->who));
     p->chance = clamp99(H(p->saint, p->who, p->df, 7));
+    /* no chance: why, as the saints' common reckoning has it (s039 165c:0000: nothing unless the
+       member's Virtue reaches the saint's minimum, its table's 4, and the favor its least, 2) */
+    p->why = 0; p->virtue = (s8)g_rb((u16)(G_MEMBER(p->who) + G_M_SKILLS + 9));
+    p->vmin = H(p->saint, p->who, 0, 4); p->xmin = H(p->saint, p->who, 0, 2);
+    if (!p->chance && p->vmin > 0 && p->vmin < 100) { if (p->virtue < p->vmin) p->why = 1; else if (p->df < p->xmin) p->why = 2; }
     for (int m = 0; m < 5; m++) { p->present[m] = gm_member_present(m) && gm_member_status(m) != 0; gm_member_name(m, p->names[m], sizeof p->names[m]); }
     p->seq++;
 }

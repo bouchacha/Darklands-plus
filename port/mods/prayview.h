@@ -12,6 +12,7 @@ typedef struct {
     int who, saint, party;           /* who prays; the saint (DARKLAND.LST order); for the whole party */
     int choose;                      /* the saint helps one member: who is chosen */
     int df, maxdf, chance;           /* the favor to spend, what the member has, the chance (0..99) */
+    int why, virtue, vmin, xmin;     /* no chance: 1 the member's Virtue is below the saint's minimum (vmin), 2 less favor than its least (xmin), 0 another reason */
     int cls;                         /* the statue (the handler's class) */
     char day[32];                    /* the saint's day */
     int present[5];
