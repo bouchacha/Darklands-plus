@@ -56,7 +56,7 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
   - archers can optionally shoot past their own fighters;
   - Z fast-forwards a battle (six times the pace) and Z again slows it back down;
   - the end of a battle says "Victory! The battle is won." instead of holding a still field for eight seconds;
-  - in a castle, dungeon or mine, the battle margin says how many foes still wait there, floor by floor, and the battle pauses when a group of them comes out to fight;
+  - in a castle, dungeon or mine, the battle margin can say how many foes still wait there, floor by floor (Foes left: a peek, so only in the Easy preset), and the battle pauses when a group of them comes out to fight;
   - a witches' Sabbat the party has heard of (its night, its place) goes into the tasks, the place marked on the map;
   - choosing the party: the party's best in each skill outside weapons, weak ones in red, and what each is for;
   - a party panel with bars and your own portraits; in a battle each member's order in words (attacks, flees, no line, stairs, picks ...), pointing at it says more;
