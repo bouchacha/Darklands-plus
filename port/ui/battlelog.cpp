@@ -256,7 +256,11 @@ static ImU32 colour(int kind, float a)
 }
 
 /* a battle is on (not the marching order's page, which loads the battle's code too) */
-extern "C" int battle_showing(void) { return game_mode() == GM_BATTLE && g_rb(GV_in_battle) == 1; }
+extern "C" int battle_showing(void)          /* (a member's sheet opened in the battle too: the battle's margins stay, not the town's) */
+{
+    int gm = game_mode();
+    return g_rb(GV_in_battle) == 1 && (gm == GM_BATTLE || (gm == GM_SCREEN && in_battle));
+}
 
 /* the left margin in a battle: the log, newest at the bottom */
 extern "C" int battlelog_margin(float x, float w, float h, float fs)

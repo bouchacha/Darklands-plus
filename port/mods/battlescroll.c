@@ -72,18 +72,24 @@ static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick o
     pan_apply();
     if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 1); } }
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
-    static u32 last_step, edge_since, held_since;
-    static int was_edge;
+    static u32 last_step, edge_since, held_since, last_call;
+    static int was_edge, stale;
     int mx, my; plat_mouse_game(&mx, &my);
     u32 now = plat_ticks_ms();
     int plat_pointer_outside(void);
     int edge = on_edge(mx, my) && !plat_pointer_outside();     /* (beside the picture, over the margins: no) */
+    /* back from another screen (a member's sheet, enemy info, the menus: no input ticks meanwhile)
+       with the pointer on an edge, where that screen's button was (the sheet's Close is at the top):
+       it rests there by chance, so no scrolling until it has left the edge once (Shift still does) */
+    if (now - last_call > 250) stale = edge;
+    last_call = now;
+    if (!edge) stale = 0;
     if (edge && !was_edge) edge_since = now;
     was_edge = edge;
     if (!edge) { held_since = 0; hook_call_original(); return; }
     u8 f = rb(0x40, 0x17);
     int shift = (f & 3) != 0;
-    int want = shift || (battlescroll_rest && now - edge_since >= 300);
+    int want = shift || (battlescroll_rest && !stale && now - edge_since >= 300);
     if (want) {
         if (!held_since) { held_since = now; last_step = 0; }
         u32 held = now - held_since;
