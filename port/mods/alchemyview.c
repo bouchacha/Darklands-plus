@@ -168,7 +168,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
                 int r = (s16)g_rw(GV_alchemy_row);
                 if ((s16)g_rw(GV_alchemy_page) != 1 || row_count(r) <= 0) { note("Choose a formula and at least one batch first."); break; }
                 char nm[32]; gm_member_name(who, nm, sizeof nm);
-                char t[120]; snprintf(t, sizeof t, "%s starts %d batches.", nm, row_count(r));
+                char t[120]; snprintf(t, sizeof t, "%s starts %d batch%s.", nm, row_count(r), row_count(r) == 1 ? "" : "es");
                 ns_call(GF_alchemy_brew, 1, hours);
                 if (!ns_unwinding) { note(t); started = 1; leave = 1; }
                 break; }

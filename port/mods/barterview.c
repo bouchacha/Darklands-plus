@@ -296,7 +296,7 @@ void barterview_run(void)
                 else {
                     int now = 0; for (int h = 0; h < 5; h++) if (gm_member_present(h)) now += gm_item_count(h);
                     char mo[64]; money_cstr(got, mo, sizeof mo);
-                    snprintf(t, sizeof t, "Sold the spare gear (%d kinds of things) for %s.", batch_items - now, mo);
+                    snprintf(t, sizeof t, "Sold the spare gear (%d kind%s of things) for %s.", batch_items - now, batch_items - now == 1 ? "" : "s", mo);
                 }
                 note(t);
                 break;

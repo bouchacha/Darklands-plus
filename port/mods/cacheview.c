@@ -214,7 +214,7 @@ static void put_away(void)                   /* everything the member does not h
             if (d) { kinds++; units += d; }
         }
         char t[160];
-        if (units) snprintf(t, sizeof t, "Stored %d things (%d kinds); what is in use, the potions%s stay.", units, kinds, kept ? " and what is kept" : "");
+        if (units) snprintf(t, sizeof t, "Stored %d thing%s (%d kind%s); what is in use, the potions%s stay.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? " and what is kept" : "");
         else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept things." : "Nothing to store: the pack is empty.");
         note(t);
         return;
@@ -226,7 +226,7 @@ static void put_away(void)                   /* everything the member does not h
         if (d) { kinds++; units += d; }
     }
     char t[160];
-    if (units) snprintf(t, sizeof t, "%s stores %d things (%d kinds); what is in use stays.", cache_model.names[m], units, kinds);
+    if (units) snprintf(t, sizeof t, "%s stores %d thing%s (%d kind%s); what is in use stays.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
     else snprintf(t, sizeof t, "%s has nothing that is not in use.", cache_model.names[m]);
     note(t);
 }

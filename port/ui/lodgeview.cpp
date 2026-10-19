@@ -131,8 +131,8 @@ extern "C" void lodgeview_draw(void)
                 snprintf(b, sizeof b, "Teacher of %s, own skill %d. %s's %s is %d already: nothing more to learn from this teacher.",
                          sk, T.val, ns_gtext(p.name).c_str(), sk, now);
             else
-                snprintf(b, sizeof b, "Teacher of %s, own skill %d. Fee: %s a day. Each day of lessons: %s %d%% chance of +1 (about one point every %d days)%s. %s's %s: %d.",
-                         sk, T.val, money_with_total(T.fee).c_str(), gm_a_an(c), c, days, fix_is_on("teachcap") ? ", up to the teacher's own skill" : "",
+                snprintf(b, sizeof b, "Teacher of %s, own skill %d. Fee: %s a day. Each day of lessons: %s %d%% chance of +1 (about one point every %d day%s)%s. %s's %s: %d.",
+                         sk, T.val, money_with_total(T.fee).c_str(), gm_a_an(c), c, days, days == 1 ? "" : "s", fix_is_on("teachcap") ? ", up to the teacher's own skill" : "",
                          ns_gtext(p.name).c_str(), sk, now);
             about = b;
         } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking the masters of a guild, the university, the monks, the physician or the alchemists (a lectern marks the option on their cards; the margin lists what the town offers); they then teach here for a week.";

@@ -262,7 +262,7 @@ static void formulae_line(int town)
         name_line(t, known, price);                          /* (the price after the name's last word) */
         if (item_hovered()) {
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
-            char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florins%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k],
+            char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florin%s%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k], pr[k] == 1 ? "" : "s",
                                      known ? " (known in the party)" : " (nobody in the party knows it)");
             std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
             margin_tip(tip.c_str());
