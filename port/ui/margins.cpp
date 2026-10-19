@@ -23,6 +23,7 @@ extern "C" {
 #include "../mods/foesleft.h"
 #include "../mods/gamemodel.h"
 #include "../mods/fixes.h"
+#include "../mods/saintinfo.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
 extern ImFont *ui_font_text;
@@ -204,10 +205,7 @@ static void library_line(int loc)
         const std::string &t = gamedata.saints[s].name;
         if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
         if (item_hovered()) {
-            const std::string &tx = gamedata.saints[s].text;
-            std::string eff = tx.substr(saint_effect_at(tx));
-            while (!eff.empty() && (eff[0] == ' ' || eff[0] == '\n')) eff.erase(0, 1);
-            std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + eff;
+            std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + saint_info_does(s);   /* (what its help really does: mods/saintinfo.h) */
             margin_tip(tip.c_str());
         }
     }

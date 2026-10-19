@@ -30,6 +30,7 @@
 #include "../runtime/game.h"
 #include "../mods/sheetview.h"
 #include "../mods/gamemodel.h"
+#include "../mods/saintinfo.h"
 #include "nsdraw.h"
 bool ui_item_tidy_less(int ida, int qa, int idb, int qb);    /* (inventory.cpp) */
 #include "gamepics.h"
@@ -120,11 +121,11 @@ void saint_parts(const std::string &t, std::string &lore, std::string &eff)
     eff = t.substr(b);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
 }
-bool saint_fits(const std::string &t, int use)
+bool saint_fits(int s, int use)
 {
     if (use <= 0) return true;
-    std::string lore, eff; saint_parts(t, lore, eff);
-    std::string e = lower(eff.empty() ? t : eff);
+    std::string lore, eff; saint_parts(gamedata.saints[s].text, lore, eff);
+    std::string e = lower((eff.empty() ? gamedata.saints[s].text : eff) + " " + saint_info_does(s));   /* (what it promises, what it does) */
     for (const char *const *w = USES[use].words; *w; w++) if (e.find(*w) != std::string::npos) return true;
     return false;
 }
@@ -465,7 +466,7 @@ static void saints(NsDraw &P, const SheetModel &s)
     for (int t = 0; t < ns; t++) {
         bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
         if (!V.saints_all && !known) continue;
-        if (!saint_fits(gamedata.saints[t].text, V.use)) continue;
+        if (!saint_fits(t, V.use)) continue;
         rows.push_back(t);
     }
     int n = (int)rows.size();
@@ -517,10 +518,12 @@ static void saints(NsDraw &P, const SheetModel &s)
     std::string who;
     for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) who += (who.empty() ? "" : ", ") + ns_gtext(s.names[m]);
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who + ".") + 1.5f;
-    std::string lore, eff; saint_parts(gamedata.saints[t].text, lore, eff);
-    if (!eff.empty()) ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), eff) + 1.5f;
+    /* what the help really does (mods/saintinfo.h), where the text says otherwise, then the text */
+    ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), saint_info_does(t)) + 1.5f;
+    const char *un = saint_info_unlike(t);
+    if (*un) ty += P.para(fo, 4.4f, tx, ty, tw, IM_COL32(140, 50, 30, 255), std::string("Unlike the text: ") + un) + 1.5f;
     float ly = fmaxf(ty, g ? DY0 + 1.5f + sh + 2 : ty);
-    if (!lore.empty()) P.para(fo, 4.4f, DX0 + 2.5f, ly, DX1 - DX0 - 5, soft, lore);
+    P.para(fo, 4.4f, DX0 + 2.5f, ly, DX1 - DX0 - 5, soft, gamedata.saints[t].text);
 }
 
 static void formulae(NsDraw &P, const SheetModel &s)
@@ -630,4 +633,3 @@ extern "C" void sheetview_draw(void)
 
 /* for the prayer screen (ui/prayview.cpp): the saint's statue, its legend and effect */
 const GamePic *ns_saint_statue(int cls) { return statue(cls); }
-void ns_saint_parts(const std::string &t, std::string &lore, std::string &eff) { saint_parts(t, lore, eff); }

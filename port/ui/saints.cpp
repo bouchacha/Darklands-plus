@@ -15,6 +15,7 @@
 #include "libraries.h"
 #include "effects.h"
 #include "../mods/fixes.h"
+#include "../mods/saintinfo.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -198,36 +199,40 @@ size_t saint_effect_at(const std::string &t)
     return t.size();
 }
 
-void ui_saint_text(const std::string &t)
+/* a saint, as Darklands+ tells it: the game's description, then what the help really does (the
+   game's code: mods/saintinfo.h), where the description promises otherwise, and whether encounters
+   call for the saint (its other powers) */
+void ui_saint_info(int s)
 {
-    static std::string last; static size_t at;
-    if (t != last) { last = t; at = saint_effect_at(t); }
-    size_t a = at; while (a < t.size() && t[a] == ' ') a++;
-    std::string lore = t.substr(0, at), eff = t.substr(a);
-    while (!lore.empty() && lore.back() == ' ') lore.pop_back();
-    while (!eff.empty() && eff.back() == ' ') eff.pop_back();
-    if (!lore.empty()) ImGui::TextWrapped("%s", lore.c_str());
-    if (!eff.empty()) {
-        if (!lore.empty()) ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
-        ImGui::TextWrapped("%s", eff.c_str());
-        ImGui::PopStyleColor();
-    }
+    if (s < 0 || s >= (int)gamedata.saints.size()) return;
+    ImGui::TextWrapped("%s", gamedata.saints[s].text.c_str());
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
+    ImGui::TextWrapped("What it does: %s", saint_info_does(s));
+    ImGui::PopStyleColor();
+    const char *u = saint_info_unlike(s);
+    if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Unlike the text: %s", u); ImGui::PopStyleColor(); }
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextWrapped("%s", saint_encounters_line(s));
+    ImGui::PopStyleColor();
 }
 
-/* the effect part of a description as a line of its own: "He increases Charisma ..." ->
- * "Increases Charisma ..." */
-static std::string saint_summary(const std::string &t)
+/* whether encounters let a member call on the saint: its powers beyond its help */
+const char *saint_encounters_line(int s)
 {
-    static std::map<const std::string *, std::string> cache;
-    auto it = cache.find(&t);
-    if (it != cache.end()) return it->second;
-    size_t a = saint_effect_at(t);
-    while (a < t.size() && t[a] == ' ') a++;
-    std::string e = t.substr(a);
-    for (const char *p : { "He ", "She ", "It ", "They " })
-        if (e.compare(0, strlen(p), p) == 0) { e = e.substr(strlen(p)); if (!e.empty()) e[0] = (char)toupper((unsigned char)e[0]); break; }
-    cache[&t] = e;
+    int n = saint_info_cards(s);
+    return n >= 10 ? "Many encounters let you call on this saint (its other powers work there)."
+         : n >= 3 ? "Some encounters let you call on this saint (its other powers work there)."
+         : n >= 1 ? "A few encounters let you call on this saint (its other powers work there)."
+         : "No encounter calls for this saint: its help above is all it does.";
+}
+
+/* the help as a line, to scan the list by */
+static std::string saint_summary(int s)
+{
+    std::string e = saint_info_does(s);
+    for (size_t k; (k = e.find("For a day: ")) != std::string::npos; ) e.erase(k, 11);   /* (the list is about a day's help) */
+    if (!e.empty()) e[0] = (char)toupper((unsigned char)e[0]);
     return e;
 }
 
@@ -274,12 +279,12 @@ extern "C" void tab_saints(void)
             }
         if (known_only == 1 && !nk) continue;
         if (known_only == 2 && nk) continue;
-        if (!f.empty() && lower(t.name).find(f) == std::string::npos && lower(t.text).find(f) == std::string::npos) continue;
+        if (!f.empty() && lower(t.name).find(f) == std::string::npos && lower(t.text).find(f) == std::string::npos && lower(saint_info_does(s)).find(f) == std::string::npos) continue;
         shown++;
         ImGui::PushID(s);
         bool open = ImGui::CollapsingHeader(t.name.c_str(), f.empty() ? 0 : ImGuiTreeNodeFlags_DefaultOpen);
         if (!open && ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
-            ImGui::PushTextWrapPos(UIS(520)); ui_saint_text(t.text); ImGui::PopTextWrapPos();
+            ImGui::PushTextWrapPos(UIS(520)); ui_saint_info(s); ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
         float full = ImGui::GetContentRegionAvail().x;
@@ -289,7 +294,7 @@ extern "C" void tab_saints(void)
         auto days = [](double d) { char b[24]; if (d < 0) b[0] = 0; else if (d < 0.6) snprintf(b, sizeof b, "here"); else snprintf(b, sizeof b, "%d day%s", (int)(d + 0.5), (int)(d + 0.5) == 1 ? "" : "s"); return std::string(b); };
         if (!open) {                       /* what the saint does, in a line, to scan the list by */
             float x0 = full * 0.30f, x1 = nk || !where.empty() ? full * 0.70f : full - UIS(10);
-            std::string e = saint_summary(t.text), cut = e;
+            std::string e = saint_summary(s), cut = e;
             while (!cut.empty() && ImGui::CalcTextSize((cut + "...").c_str()).x > x1 - x0) {
                 size_t sp = cut.find_last_of(' '); cut = sp == std::string::npos ? std::string() : cut.substr(0, sp);
             }
@@ -303,7 +308,7 @@ extern "C" void tab_saints(void)
             ImGui::TextDisabled("learn at %s%s%s", where[0].lib->name.c_str(), d.empty() ? "" : ", ", d.c_str());
         }
         if (open) {
-            ImGui::Indent(UIS(20)); ui_saint_text(t.text);
+            ImGui::Indent(UIS(20)); ui_saint_info(s);
             if (in_game && !nk) {
                 std::string l;
                 if (where.empty()) l = "No library teaches this saint in this game (a saint may still be granted by a card).";

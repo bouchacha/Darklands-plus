@@ -16,6 +16,7 @@
 #include "imgui.h"
 #include <SDL.h>
 #include "../mods/hdart.h"
+#include "../mods/saintinfo.h"
 #include "../mods/nscreen.h"
 #include "gamedata.h"
 #include "ui.h"
@@ -825,9 +826,9 @@ static void draw_learned(void)
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
-    /* the legend, then what the saint does in gold */
-    size_t at = saint_effect_at(t.text), ea = at; while (ea < t.text.size() && t.text[ea] == ' ') ea++;
-    std::string lore = t.text.substr(0, at), eff = t.text.substr(ea);
+    /* the legend, then what the saint's help does (the game's code: mods/saintinfo.h) in gold */
+    size_t at = saint_effect_at(t.text);
+    std::string lore = t.text.substr(0, at), eff = saint_info_does(learned_saint);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
     ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str());
     ImVec2 ls = lore.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, lore.c_str());
@@ -958,7 +959,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 }
             ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this saint" : ("Known to " + who).c_str());
             ImGui::Separator();
-            ui_saint_text(st.text);
+            ui_saint_info(saint);
         } else {
             ImGui::TextUnformatted(gamedata.formula_names[formula].c_str());
             if (formula < (int)gamedata.formulas.size()) {

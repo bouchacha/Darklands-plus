@@ -106,17 +106,18 @@ int testcmd_run(const char *cmd, const char *arg)
             eval_free(snap);
         }
         else if (!strcmp(cmd, "usaintdo")) {            /* test: saint s's help for member m (saint_fns[s](m, 50, 8)) */
-            int m = 0, st = 0, loc = -1; sscanf(arg, "%d,%d,%d", &m, &st, &loc);   /* (loc: the party there meanwhile, and its reputation shown) */
+            int m = 0, st = 0, loc = -99; sscanf(arg, "%d,%d,%d", &m, &st, &loc);   /* (loc: the party there meanwhile, -1 on the map; its reputation shown) */
             u16 tseg = (u16)(LOADSEG + 0x290e), off = rw(tseg, (u16)(0x2937 + 4 * st)), seg = rw(tseg, (u16)(0x2937 + 4 * st + 2));
             u16 a[3] = { (u16)m, 50, 8 }, cl = g_rw(G_CUR_LOC);
             u32 lr = loc >= 0 ? g_location(loc) : 0;
+            int set = loc != -99;
             int rep0 = lr ? (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)) : 0;
-            if (loc >= 0) g_ww(G_CUR_LOC, (u16)loc);
+            if (set) g_ww(G_CUR_LOC, (u16)loc);
             int ns_call_ptr(u16, u16, int, ...);
             u8 msgs = g_rb(GV_opt_saint_msgs); g_wb(GV_opt_saint_msgs, 0);   /* (no message to wait for its key: no script runs meanwhile) */
             int r = ns_call_ptr(seg, off, 3, a[0], a[1], a[2]);
             g_wb(GV_opt_saint_msgs, msgs);
-            if (loc >= 0) g_ww(G_CUR_LOC, cl);
+            if (set) g_ww(G_CUR_LOC, cl);
             fprintf(stderr, "saint %d for member %d: %d", st, m, (s16)r);
             if (lr) fprintf(stderr, " (reputation at %d: %d -> %d)", loc, rep0, (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)));
             fprintf(stderr, "\n");

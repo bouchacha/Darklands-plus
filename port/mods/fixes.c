@@ -107,7 +107,8 @@
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
  *  pauls     The two St. Pauls each do what their texts say (below, pauls).
- *  nepomuk   St. John Nepomuk's reputation in Prag goes to Prag (below, nepomuk).
+ *  saintrep  A saint's reputation goes to a real town: St. John Nepomuk's in Prag to Prag, St.
+ *            Cecilia's away from any place to the nearest town (below, saintrep).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,8 +194,8 @@ Fix FIXES[] = {
       "Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too.", 1 },
     { "pauls", "The two St. Pauls do what their texts say",
       "St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; virtue 19, as the manual says) was in the game but never called. Now each does what its text says.", 1 },
-    { "nepomuk", "St. John Nepomuk's reputation in Prag goes to Prag",
-      "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's. Now Prag gets it.", 1 },
+    { "saintrep", "A saint's reputation goes to a real town",
+      "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised that of the place before the first in the list, writing into memory that is not a place. Now Prag gets Nepomuk's, and the nearest town Cecilia's, as the other saints do.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1485,9 +1486,11 @@ static void paul_simple_hook(void)         /* 165c:5d6c, reached for St. Paul th
     hook_return_far(0);
 }
 
-/* ---------------------------------------------------------------- nepomuk
+/* ---------------------------------------------------------------- saintrep
  * St. John Nepomuk (165c:41fa) in Prag (location 0x46) passes loc_reputation_adj (s029 0e76:19d0)
- * a local never set as the place, so the +15..25 went wherever that pointed. */
+ * a local never set as the place, so the +15..24 went wherever that pointed; St. Cecilia (1024)
+ * passes cur_loc, -1 on the map (the other saints take the nearest town then): the place before
+ * the first, memory that is not a place's, is written. */
 static int nep_prag;
 static void nepomuk_hook(void)
 {
@@ -1497,9 +1500,13 @@ static void nepomuk_hook(void)
 }
 static void repadj_hook(void)              /* loc_reputation_adj(loc, a, b) */
 {
-    if (nep_prag) {
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nepomuk: reputation for location %d goes to Prag\n", (s16)rw(SS, (u16)(SP + 4)));
-        ww(SS, (u16)(SP + 4), 0x46);
+    int loc = (s16)rw(SS, (u16)(SP + 4)), to = loc;
+    if (nep_prag) to = 0x46;
+    else if (loc < 0 || loc >= 0x19e) to = ns_call(GF_nearest_city_impl, 2, g_rw(GV_party_x), g_rw((u16)(GV_party_x + 2)));
+    if (to < 0 || to >= 0x19e) { AX = 0; DX = 0; hook_return_far(0); return; }   /* (still no place: nothing written) */
+    if (to != loc) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix saintrep: reputation for location %d goes to %d\n", loc, to);
+        ww(SS, (u16)(SP + 4), (u16)to);
     }
     hook_call_original();
 }
@@ -1527,7 +1534,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "armourday", GF_hit_damage, armour_hit_hook }, { "armourday", 39, 0x165c, 0x1868, crispin_hook },
     { "armourday", 39, 0x165c, 0x125a, charity_hook }, { "armourday", 39, 0x165c, 0x2628, erasmus_hook },
     { "armourday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armourday", 39, 0x165c, 0x6122, polycarp_hook },
-    { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "nepomuk", GF_loc_reputation_adj, repadj_hook },
+    { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "saintrep", GF_loc_reputation_adj, repadj_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook } };
 
 void fix_enable(int i, int on)

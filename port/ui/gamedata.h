@@ -75,4 +75,5 @@ const char *kind_name(ItemKind k);          /* a kind's name, for a list of them
 const char *kind_name_one(ItemKind k);      /* for one thing ("Weapon") */
 // where a saint's description turns from the legend to what the saint does (an offset into text)
 size_t saint_effect_at(const std::string &text);
-void ui_saint_text(const std::string &text);    // the legend, then the effect in another colour (ImGui, wrapped)
+void ui_saint_info(int s);                      // the description, what the help really does, where they differ (ImGui, wrapped)
+const char *saint_encounters_line(int s);        // whether encounters let a member call on saint s

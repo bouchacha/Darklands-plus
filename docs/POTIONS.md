@@ -33,7 +33,7 @@ ones through the battle's effect code (s019). "A day" in the code is an event of
 The fix `oilweapons` (on by default) leaves out, in each hit, what the weapon used may not have by the
 manual (port/mods/fixes.c).
 
-Saints: St. Dunstan adds +1 and St. Patrick +2 to the same armour nibble as Hardarmor, for good
+Saints (all of them: [SAINTS.md](SAINTS.md)): St. Dunstan adds +1 and St. Patrick +2 to the same armour nibble as Hardarmor, for good
 (`armourday`: a day). A battle puts the event list away (cards_shutdown, s043 1462:054e) and reads
 it back after (cards_startup, 1462:078e) into its first slots, over what the battle added: a
 saint's help called in a battle was never undone (`battlesaints`), and a potion's day ended with
