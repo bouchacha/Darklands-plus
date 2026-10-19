@@ -6,9 +6,12 @@ which ends in an arrest, a march on the town hall or the fortress, and a new (or
 government. Its 19 `$Revol` cards and a dozen helper cards are in the game, written and
 coded. None of it ever happens, because the one routine that starts it is never called.
 
-This page charts what exists, what is broken and what is missing. It was checked by switching
-the storyline on in a test game (Dortmund, 14 September 1400): the guild masters' job offer,
-the interview, the strategy talk and the march on the town hall all run.
+Darklands+ restores it as an experimental option, off by default: F12 > Settings > Helpers >
+Cards and towns > **City politics** (`rules.politics`; port/mods/politics.c). This page charts
+what the game has, what was broken or missing, and what Darklands+ wrote or put right. Both
+sides were played through in Dortmund: the rumours, the job offers, the interviews, the
+strategy talks, the war councils, the decisive days (the march on the Stadthaus and its street
+battles, the arrests and the escort), the other side striking first, a day missed, the rewards.
 
 ## How it was meant to play
 
@@ -132,34 +135,75 @@ it. Red: switched off or never called. Dashed: text only, or not written at all.
   0 or 1, so a success can change the party's own side.
 - Street cards: a night/day chance inside `if (side == -1) { if (side == 1) ... }` can never be
   used.
+- The groups' sides are -1 for the rebels in every rule (strengths, the advice to march, the
+  bribes' prices, the guilds swayed to the party's side), but the names table reads -1 as
+  "oppose", so every report said the opposite of the facts.
+- `$Revol03` offers the march only in a city with an imperial mint (`cur_loc_query(0x17)`; the
+  town hall is 0x18), and tells the sides apart by `party_x`, the party's map position, which
+  the cards use as a scratch variable.
+- `$Artif00` was copied from the blacksmiths' card: it hides sneaking into the artisans' master's
+  home when the blacksmiths are the agitators, and reports their attitude.
+- The texts' `$VarString` and `$VarPhrase` tokens are not in the engine's list: they showed as
+  written. `$Revol11` says "$CityLord Title" (a space in the token) and offers formulas and
+  saints named by `$Text2` and `$Text3`, which nothing sets. `$Polit01`'s bribe shows a
+  `$Money1` it never sets (it takes a tenth of the purse).
+- `$Revol04` never sets option 0, shows four unwritten lines ("5" to "8") and does nothing for
+  "government activities" and "rebel activities"; `$Revol09` shows lines "2" to "5".
+- `$Consi00` never shows its first text (the tally) and fills the option table with stubs.
+- `$CityN00`'s "discuss the political situation here" goes to the general news, like "gossip
+  about the situation"; the street gossip had no way in.
+- "Eat your handbills" ($Polit01) never lets the party go: the thugs are still there.
+- The guild cards mark "asked", "met the masters" and "sneaked in" once for the whole season,
+  though the leader asks the party to report every day (through the agitators' guild).
+- `conflict_outcome` marks the city overthrown (flag 0x80) whoever won, so the news afterwards
+  always told of a new government; and it checks whether the party deserted (facts 0x24, 0x25)
+  after clearing the season's facts.
+- The guild leaders' names and `$Speci00`'s names are set only by the cards that lead there.
 - Typos in the texts: "virutous", "the the guildsmen".
 
-## What completing it takes
+## What Darklands+ does
 
-1. **Switch it on (small).** Start a season now and then in a city (for example: on arrival,
-   if none is running anywhere, with a small chance), with the side set to 0. Optional, off by
-   default, in Settings.
-2. **The decisive day (medium).** Code the war council's options from its texts: the tally,
-   "review the plan", "put the plan into effect, three days from now". Write facts 0x15/0x16
-   for that day. Let the other side set its own day when it is stronger, with the warnings of
-   `$Revol04` texts 4–9 in the street gossip. Start `$Revol08`/`$Revol09` when the party is
-   at headquarters at that hour; the street cards already start `$Revol17/18` and `$Revol05/06`
-   otherwise. End the season afterwards.
-3. **The missing small cards (small).** A way into `$Revol04`; `$Situa00` and `$Speci01` written
-   as cards from their texts, or left out.
-4. **The bugs above, and playtesting (large).** The secrets need the setup to give some guild
-   leaders one. Then: both sides, both outcomes, being there or not, leaving the city
-   mid-campaign, saving and loading in between, the season running out. None of this code has
-   ever run for players, so more will turn up.
+With the option ticked (port/mods/politics.c; nothing changes while it is off):
 
-## Trying it today
+1. **Seasons.** On arriving in a city, if no season runs anywhere, one starts with a chance of
+   1 in 6 (not in a city overthrown before, nor one whose rebellion was put down in the last 60
+   days, nor one without a guild street). The setup is the game's own; then the party's side is
+   set to 0, the agitators' guild is moved off the merchants (which have no guild card) and put
+   on the side of change, and about one guild leader in three is given a secret.
+2. **Every day** the guilds can be asked, met and visited again.
+3. **The strategy talk** offers the march on the town hall (or the fortress, in a town without
+   one) to the rebels and the arrests to the government's side, and `party_x` is set from the
+   side.
+4. **The war council** shows the tally (the same eleven groups the strengths count), lets the
+   party review the plan (the new council or the exiled heir, as `$Revol02` chose) and put it
+   into effect: the rebels march at Terce, the guard arrests at Lauds, three days later (facts
+   0x16, 0x15, for twelve hours). A rebel speaks first, by the strength of the cause. If the
+   other side has set its day, the leader says why not now.
+5. **The other side strikes first** when the season is three weeks old and it is at least as
+   strong, or five weeks old in any case: two days later, with the warnings in the gossip.
+6. **On the day**, the leader's house starts the rally (`$Revol09`) or the arrest (`$Revol08`);
+   joining in the street (`$Revol18`) starts with the rally too. A day the party missed is
+   settled when it comes back (the side that acted wins by its strength), without reward or
+   blame, and a notice says what happened.
+7. **The gossip** (`$Revol04`), from the news and from the rumours of jobs, tells of the coming
+   day ("within a day", "in the next few days") or names the leaders.
+8. **Texts:** `$VarString` filled (the town hall's or the fortress's name, the exiled heir, a
+   banner, the attitude), `$Support` the right way round, "the the" made "the", "$CityLord
+   Title", the boon names, `$Polit01`'s bribe; the unwritten lines hidden.
+9. **Afterwards:** a city whose government held is not marked overthrown and the news tells of
+   the rebellion put down for 60 days.
 
-The test command `upolit:` (port/runtime/testcmds.c) starts a season in the current city. Set
-the side to 0 with `ucall:29,0e76,2e74,-2,LOC,28,0,0,2,0` (`event_update`), then go to the
-guild named by fact 0x17 (`uevents:28`: type 23, a bit: 1 blacksmiths, 2 swordsmiths, 8 bowyers,
-0x10 armourers, 0x20 artisans, 0x40 clothmakers, 0x80 jewellers) and ask to meet the masters.
-`ucall:29,0e76,2c4e,-2,LOC,90,28,22,0,0,24,0,2` (`event_new`) makes "the rebels march today"
-(type 21 for the arrest); the next street card starts the day.
+Not done: `$Situa00` (estimating the odds) and `$Speci01` (the arms-makers' street) exist only as
+text; the bugs in `$Snuck00`, `$Cleri00`, `$Revol03`'s clergy report and `conflict_outcome`'s
+desertion check are left as they are.
+
+## Testing
+
+Test commands (port/runtime/testcmds.c): `upolit:` starts a season in the current city (option
+or not); `upolitage:N` makes the season N days older (the other side then strikes at the next
+street card). `ucall:29,0e76,2e74,-2,LOC,28,0,S,2,0` (`event_update`) sets the party's side S
+(-1 rebels, 1 government); `uevents:28` lists the season's facts. `DL_POLITICS_LOG=1` logs what
+the module does.
 
 ## Reference: the season's facts (tag 2, at the city)
 

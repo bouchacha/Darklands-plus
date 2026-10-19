@@ -154,11 +154,11 @@ int testcmd_run(const char *cmd, const char *arg)
             if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
             else encounters_force(atoi(arg));
         }
-        else if (!strcmp(cmd, "upolit")) {              /* test: the cut city politics started here (s039 1462:0558(cur_loc): never called by the game) */
-            u16 a[1] = { g_rw(G_CUR_LOC) };
-            game_call_far(39, 0x1462, 0x0558, 1, a);
-            fprintf(stderr, "politics started at %d\n", (s16)a[0]);
+        else if (!strcmp(cmd, "upolit")) {              /* test: a political season starts here (mods/politics.c; the setup s039 1462:0558 and its fix-ups) */
+            int politics_test_start(void);
+            fprintf(stderr, "politics started at %d: %d\n", (s16)g_rw(G_CUR_LOC), politics_test_start());
         }
+        else if (!strcmp(cmd, "upolitage")) { void politics_test_age(int); politics_test_age(atoi(arg)); }   /* test: the season here began N days earlier */
         else if (!strcmp(cmd, "ufind")) { void worldmap_test_find(const char *); worldmap_test_find(arg); }   /* test: the world map's Find, the text then Enter */
         else if (!strcmp(cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
         else if (!strcmp(cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }
