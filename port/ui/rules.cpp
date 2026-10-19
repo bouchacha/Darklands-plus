@@ -235,7 +235,7 @@ void rules_tab(void)
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[2]) >= 2 ? 2 : 1);
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[4]));
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[3]));
-            ImGui::TableNextColumn(); if (get(w, FIELDS[1]) || !get(w, FIELDS[8])) ImGui::Text("%d", get(w, FIELDS[1]));   /* (a shot's time is its reload) */
+            ImGui::TableNextColumn(); if (get(w, FIELDS[1]) || !get(w, FIELDS[8])) ImGui::Text("%d", get(w, FIELDS[1]));   /* (blank: the reload sets the pace) */
             ImGui::TableNextColumn(); if (get(w, FIELDS[8])) ImGui::Text("%d", get(w, FIELDS[8]));
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[5]));
             ImGui::TableNextColumn(); ImGui::Text("%d-%d", get(w, FIELDS[6]), get(w, FIELDS[7]));
@@ -243,7 +243,7 @@ void rules_tab(void)
         ImGui::EndTable();
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Time: for a blow, lower is quicker; a shot or a throw takes its Reload instead. Each point of skill short of what a weapon wants costs 2 attack and 2 defence; "
+    ImGui::TextWrapped("Time: for a blow, lower is quicker; where it is blank, the Reload sets the pace. Each point of skill short of what a weapon wants costs 2 attack and 2 defence; "
                        "below its strength range each point costs 1 attack and 3 defence and blows hit softer, above it blows hit harder.");
     ImGui::PopStyleColor();
     if (!ui_modding()) { if (!rules_log.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", rules_log.c_str()); return; }
