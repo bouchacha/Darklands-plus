@@ -555,8 +555,8 @@ static void welcome_window(void)
             ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
                                "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a party screen, "
-                           "journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
+        ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a character sheet "
+                           "for the whole party, journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
         bool done = false;
         {   /* how much of Darklands+: the presets (mods/options.h), the recommended one chosen */
             ImGui::PushFont(font_head); ImGui::SeparatorText("How would you like to play?"); ImGui::PopFont();
