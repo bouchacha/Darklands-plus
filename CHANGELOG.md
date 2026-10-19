@@ -6,7 +6,7 @@
 - **Go to:** a town hall's or a lord's chance of an audience is the same number the card shows (it said one more).
 - **Town journal:** what a town has follows Go to (its banks, the Hanse, the physician and the alchemist too).
 - **Calling on a saint:** when there is no chance, the screen says why: the member's Virtue is below what the saint asks (more favor will not help), or the saint asks more favor than is spent or than the member has. It used to say only "spend more favor".
-- **Cards:** a card's tooltip (the saints or items an option takes) no longer stays over the F12 window, the world map or Go to.
+- **Cards:** a card's tooltip (the saints or items an option takes) no longer stays over the F12 window, the world map or Go to, and the saints an option takes are listed by their whole names ("St. Christina the Astonishing", not "S.Christina").
 - **Tasks:** a place without a name of its own reads "the pagan altar north-west of Hall".
 - **Battles:** a member's sheet opened in a battle keeps the battle's margins (the log and the enemies) instead of the town's. Closing it no longer starts the field scrolling because the pointer rests on the top edge where the Close button was. The margin's list of enemies includes those the log has named even when they are out of view (it said "All down." while foes beyond the view were still fighting).
 
