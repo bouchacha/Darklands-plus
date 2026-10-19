@@ -287,12 +287,17 @@ extern "C" int worldmap_open(void)
     return 1;
 }
 
-static std::string hhmm(int minutes)
+static std::string hhmm(int minutes)      /* a time on the way, as an estimate reads: "40 minutes", "22 hours", "1.4 days", "14 days" */
 {
     char b[48];
     if (minutes < 60) snprintf(b, sizeof b, "%d minute%s", minutes, minutes == 1 ? "" : "s");
-    else if (minutes < 24 * 60) snprintf(b, sizeof b, "%d h %02d", minutes / 60, minutes % 60);
-    else snprintf(b, sizeof b, "%.1f days", minutes / 1440.0);
+    else if (minutes < 23 * 60 + 30) { int h = (minutes + 30) / 60; snprintf(b, sizeof b, "%d hour%s", h, h == 1 ? "" : "s"); }
+    else {
+        int t = (minutes * 10 + 720) / 1440;                  /* tenths of a day */
+        if (t == 10) snprintf(b, sizeof b, "1 day");
+        else if (t < 100) snprintf(b, sizeof b, "%d.%d days", t / 10, t % 10);
+        else snprintf(b, sizeof b, "%d days", (t + 5) / 10);
+    }
     return b;
 }
 
@@ -582,7 +587,7 @@ extern "C" void worldmap_draw(void)
                 hits.push_back({ on_map ? travel_minutes_loc(p.loc, nullptr, nullptr) : -1, &p });
         std::stable_sort(hits.begin(), hits.end(), [](const std::pair<int, const Place *> &a, const std::pair<int, const Place *> &b) {
             return (a.first < 0 ? INT_MAX : a.first) < (b.first < 0 ? INT_MAX : b.first); });
-        /* a row a place: its picture, the name, what it is (dim, cut short when the row is full) and
+        /* a row a place: its picture, the name, what it is (dim, left out when the row has no room) and
            the journey at the right; the whole row to click */
         float rw = UIS(260) * pk, lh = ImGui::GetTextLineHeight(), isz = lh * 0.95f, gap = ImGui::GetStyle().ItemSpacing.x;
         ImDrawList *pdl = ImGui::GetWindowDrawList();
@@ -602,7 +607,8 @@ extern "C" void worldmap_draw(void)
             if (kx < tx - gap) {
                 std::string k = kind_line(P, p);
                 if (kx + ImGui::CalcTextSize(k.c_str()).x > tx - gap) k = kind_label(p.kind);   /* ("cave near Köln": "cave") */
-                pdl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(kx, a.y), dimc, k.c_str(), nullptr, 0, &clip);
+                if (kx + ImGui::CalcTextSize(k.c_str()).x <= tx - gap)                        /* (whole or not at all: the picture says it too) */
+                    pdl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(kx, a.y), dimc, k.c_str(), nullptr, 0, &clip);
             }
             if (!t.empty()) pdl->AddText(ImVec2(tx, a.y), dimc, t.c_str());
         }
