@@ -43,7 +43,7 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
   - healing that took a boost away: Essence o'Grace drunk while Ironarm ran brought Strength back down towards its maximum;
   - St. Paul the Apostle and St. Paul the Simple each gave the other's help (the Apostle's own was in the game but never called);
   - St. John Nepomuk called on in Prag raised the reputation of a place picked from whatever lay in memory, and St. Cecilia called on away from any town wrote it into memory that is not a place's;
-  - St. Crispin's +10 armour quality, and the protection against fire of St. Polycarp, St. Charity, St. Erasmus and St. Pantaleon, stayed for good (the last three as +32 armour, or nothing at all): now a day each, the fire saints as fire protection.
+  - St. Crispin's +10 armour quality, and the protection against fire of St. Polycarp, St. Charity, St. Erasmus and St. Pantaleon, stayed for good (the last three as +32 armour, or nothing at all): now a day each, the fire saints as fire protection;
   - a bowyer woken at night sold the smiths' swords, axes and armour and no bows (found by Arkana Mechanika, Darklands Restoration);
   - a confession in a town where the party's reputation is past 109 took no time, or turned the clock back (found by Arkana Mechanika).
 - **Also:**
