@@ -345,7 +345,12 @@ extern "C" void ui_toggle_map(void)
 {
     if (open_map) { open_map = false; return; }
     int gm = game_mode();                                   /* (battles and their loot reuse the places' memory) */
-    if (gm != GM_CARD && gm != GM_MAP) { ui_notice("The world map opens on the travel map or a card, not in a battle."); return; }
+    if (gm != GM_CARD && gm != GM_MAP) {
+        ui_notice(gm == GM_BATTLE ? "The world map opens on the travel map or a card, not in a battle."
+                  : gm == GM_SCREEN ? "The world map opens on the travel map or a card: close this screen first."
+                                    : "The world map opens on the travel map or a card, once a game is under way.");
+        return;
+    }
     if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; }
 }
 
