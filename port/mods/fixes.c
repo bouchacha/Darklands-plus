@@ -100,6 +100,7 @@
  *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
  *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour and Firewall last a day (below).
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
+ *  standings A saved game keeps the party's standing with the three companies (below, standings).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  */
 #include <stdio.h>
@@ -111,6 +112,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hle.h"
 #include "fixes.h"
 #include "nscreen.h"
 #include "gamemodel.h"
@@ -173,6 +175,8 @@ Fix FIXES[] = {
       "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings and Firewall's protection against fire never wore off, and the armour added up with every one. They now last about a day, as the manual says, and armour piled up this way in a saved game goes back to normal.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "The manual's Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
+    { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
+      "The companies' cards raise and lower the party's standing with them (under nothing, with the town's regard, they give no tasks), but a saved game did not keep it: after a load it was whatever the last game played left, or nothing after a restart. It is now kept in the save, in room the game leaves empty (the original game still reads such saves).", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
       "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
 };
@@ -1213,6 +1217,52 @@ static void lord_hook(void)                 /* $CityF00 option 0, s050 1a06:026c
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- standings
+ * The party's standing with the Fugger, the Medici and the Hanse (standing_fugger .. _hanse,
+ * DS:4bb6..4bba: their cards add and take; offices.h says what it decides) is not among what a
+ * save holds (save: s037 1462:2ace; load: 1c7d:0d24), so a load kept the last game's, or 0. The
+ * header has 35 words written as 0 and read into nothing (from 0xa7 on): the three go into the
+ * first three, with "D+" (0x2b44) in the fourth to tell them from an older save's zeros; a save
+ * without it loads with standing 0. The original game reads such saves as before. */
+#define STANDING_AT 0xa7
+static const u16 STANDING_GV[3] = { GV_standing_fugger, GV_standing_medici, GV_standing_hanse };
+static FILE *save_file(const char *mode)       /* the save last written or read (DS:a680 "dksaveN.sav") */
+{
+    char name[16], dn[40], p[1200];
+    g_str(G_DGROUP, 0xa680, name, sizeof name);
+    if (strncasecmp(name, "dksave", 6)) return 0;
+    snprintf(dn, sizeof dn, "SAVES\\%s", name);
+    dos_host_path(dn, p, sizeof p);
+    return fopen(p, mode);
+}
+static void standings_save_hook(void)          /* s037 1462:2ace (comment): write a save */
+{
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    FILE *f = save_file("r+b");
+    if (f) {
+        u8 b[8];
+        for (int k = 0; k < 3; k++) { u16 v = g_rw(STANDING_GV[k]); b[2 * k] = (u8)v; b[2 * k + 1] = (u8)(v >> 8); }
+        b[6] = 0x44; b[7] = 0x2b;
+        if (fseek(f, STANDING_AT, SEEK_SET) == 0) fwrite(b, 1, 8, f);
+        fclose(f);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix standings: saved %d %d %d\n", (s16)g_rw(STANDING_GV[0]), (s16)g_rw(STANDING_GV[1]), (s16)g_rw(STANDING_GV[2]));
+    }
+    AX = ax; DX = dx;
+}
+static void standings_load_hook(void)          /* s037 1c7d:0d24 (file): read a save */
+{
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    FILE *f = save_file("rb");
+    u8 b[8] = { 0 };
+    int ok = f && fseek(f, STANDING_AT, SEEK_SET) == 0 && fread(b, 1, 8, f) == 8 && b[6] == 0x44 && b[7] == 0x2b;
+    if (f) fclose(f);
+    for (int k = 0; k < 3; k++) g_ww(STANDING_GV[k], ok ? (u16)(b[2 * k] | b[2 * k + 1] << 8) : 0);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix standings: loaded %d %d %d%s\n", (s16)g_rw(STANDING_GV[0]), (s16)g_rw(STANDING_GV[1]), (s16)g_rw(STANDING_GV[2]), ok ? "" : " (an older save: 0)");
+    AX = ax; DX = dx;
+}
+
 /* ---------------------------------------------------------------- teachcap
  * A day at the inn (camp_spend_day, s036 1462:147a): a member set to "Train or study" (activity 6,
  * the skill in camp_activity_arg) pays the fee of the town's teacher of it (kind 0x28: +0x1e the
@@ -1247,14 +1297,15 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
-    { GF_camp_spend_day, teachcap_hook } };
+    { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_camp_spend_day, teachcap_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook },
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
     { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook },
-    { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook } };
+    { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook },
+    { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook } };
 
 void fix_enable(int i, int on)
 {

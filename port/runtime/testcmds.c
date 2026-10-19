@@ -128,6 +128,11 @@ int testcmd_run(const char *cmd, const char *arg)
             g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
             fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
         }
+        else if (!strcmp(cmd, "uww")) {                /* test: a word of DGROUP (hex offset), set to v when given, then shown */
+            unsigned of = 0; int v = 0; int n = sscanf(arg, "%x,%d", &of, &v);
+            if (n == 2) g_ww((u16)of, (u16)v);
+            fprintf(stderr, "ds:%04x = %d\n", of, (s16)g_rw((u16)of));
+        }
         else if (!strcmp(cmd, "uteach")) {             /* test: a teacher of skill k (ability S, fee f) hired here for a week (as the cards make one) */
             int k = 0, S = 30, fee = 50; sscanf(arg, "%d,%d,%d", &k, &S, &fee);
             u16 a[10] = { 0xfffe, g_rw(GV_cur_loc), (u16)S, 0x28, (u16)k, (u16)fee, 0, 168, 0, 0 };

@@ -62,7 +62,7 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
     switch (g) {
     case 8: case 6: case 7: {
         if (lock) return shut(o, lock, "Asked lately (or paid): the door is shut for three days.");
-        int standing = (s16)g_rw((u16)(g == 8 ? 0x4bb6 : g == 6 ? 0x4bb8 : 0x4bba));
+        int standing = (s16)g_rw(g == 8 ? GV_standing_fugger : g == 6 ? GV_standing_medici : GV_standing_hanse);
         if (g == 7 && (rep <= -75 || standing + rep <= -50)) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "The Hanse shows the party out: the town's regard is too low."); return 1; }
         if (g != 7 && (rep < 0 || standing + (g == 8 && standing <= 0 ? 1 : 0) < 0)) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "No task while the town's regard is below nothing."); return 1; }
         int p = g == 8 ? clampi(10, 50, rep + (s8)rb(ls, (u16)(lo + 0x15)) + fame)

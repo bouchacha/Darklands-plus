@@ -519,6 +519,9 @@
 #define event_48_max             sub_s029_0e76_4e0c   /* (who, a) */
 #define days_per_month           D_2776               /* int[12] */
 #define party_fame               D_9082
+#define standing_fugger          D_4bb6               /* int: the party's standing with the Fugger (their cards add and take; under 0, with the town's regard, no tasks) - not in a saved game */
+#define standing_medici          D_4bb8               /* int: with the Medici, likewise */
+#define standing_hanse           D_4bba               /* int: with the Hanse, likewise */
 #define party_money_gr           D_906d               /* groschen of party_money */
 #define party_money_pf           D_906f               /* pfennigs of party_money */
 #define inventories              F_2e38_003e          /* struct item6 [5][64] (6-byte records, 0x180 bytes per member) */

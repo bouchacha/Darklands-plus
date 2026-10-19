@@ -140,6 +140,9 @@
 #define GV_loot_list                    0xc291    /* pointer to the near loot copy (set by s002) */
 #define GV_days_per_month               0x2776    /* int[12] */
 #define GV_party_fame                   0x9082
+#define GV_standing_fugger              0x4bb6    /* int: the party's standing with the Fugger (their cards add and take; under 0, with the town's regard, no tasks) - not in a saved game */
+#define GV_standing_medici              0x4bb8    /* int: with the Medici, likewise */
+#define GV_standing_hanse               0x4bba    /* int: with the Hanse, likewise */
 #define GV_party_money_gr               0x906d    /* groschen of party_money */
 #define GV_party_money_pf               0x906f    /* pfennigs of party_money */
 #define GV_member_attrs                 0x9cb2    /* = party[i] + 0x49: attributes */
