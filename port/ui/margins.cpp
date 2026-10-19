@@ -436,7 +436,7 @@ static void battle_panel(float width, float fs)
     int n = (s8)g_rb(GV_hotspot_count);
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
-    if (config_get_int("battle.fast_key", 1) && !config_get_int("original", 0)) {   /* fast forward (Z, mods/pathfix.c) */
+    if (config_get_int("battle.fast_key", 1) && !config_get_int("original", 0) && game_mode() == GM_BATTLE) {   /* fast forward (Z, mods/pathfix.c): on the field (not over a sheet or the loot) */
         const char *t = battle_fast ? "Back to the chosen speed (Z)" : "Fast forward (Z)";
         ImDrawList *dl = ImGui::GetWindowDrawList();
         ImVec2 p = ImGui::GetCursorScreenPos(), ts = ImGui::CalcTextSize(t), mp = ImGui::GetIO().MousePos;
