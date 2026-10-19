@@ -90,7 +90,10 @@
  *            purse against the sewer-without-horses option instead of the bribe, so the bribe
  *            could be chosen without the money; $Revol14 (the crowd at the fortress) greys the
  *            climb with a rope when the party has a rope; $CityW02 (over the wall after the
- *            guards) counts only the last member's rope. Their opt_on[] put right before the
+ *            guards) counts only the last member's rope; Clothmakers' Street by day ($Cloth00, s053
+ *            1924:0004) hides its shopfronts (opt_flag_0 = 0: the other guilds' streets show
+ *            theirs, its handler 02be opens the clothmaker's shop as at night, when a woken
+ *            sleeper sells for a point of reputation). Their opt_on[] put right before the
  *            option list is shown (card_options, and from the card view's own drawing of it).
  *  debtnote  A debt-note errand's papers lie in the office its giver names (below, debtnote).
  *  alchrisk  A failed brew's accident follows the formula's risk the right way round (below).
@@ -163,7 +166,7 @@ Fix FIXES[] = {
     { "teachers", "Training at the inn finds the town's teachers",
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
     { "cardopts", "Card options greyed by mistake",
-      "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step).", 1 },
+      "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but \"leave\": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, to a sleeper woken at the cost of reputation; they are open by day now.", 1 },
     { "patronsaint", "Asking a cathedral about its patron saint teaches the saint",
       "The answer was meant to teach the leader the saint, but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
     { "debtnote", "Debt notes are where the merchant says",
@@ -1051,6 +1054,11 @@ void fixes_card_opts(void)                  /* before a card's option list is sh
     if (!fix_is_on("cardopts")) return;
     char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
     if (!strcasecmp(nm, "$CityW04") && (s16)rw(SS, (u16)(SP + 4)) == 0) { w04_options(); return; }     /* (its option list, block 0) */
+    if (!strcasecmp(nm, "$Cloth00") && (s16)rw(SS, (u16)(SP + 4)) == 0 && !g_rb(GV_opt_on)) {           /* Clothmakers' Street by day (s053 1924:0004): */
+        g_wb(GV_opt_on, 1);                 /* its script hides the shopfronts (opt_flag_0 = 0), which every other guild's street */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardopts: $Cloth00 shopfronts open by day\n");   /* opens, and whose handler is there (02be) */
+        return;
+    }
     int c = !strcasecmp(nm, "$Selec01") ? 1 : !strcasecmp(nm, "$Revol14") ? 2 : !strcasecmp(nm, "$CityW02") ? 3 : 0;
     if (!c) return;
     int rope = gcall(GF_count_items, 2, (u16)-2, 0x3b) > 0;

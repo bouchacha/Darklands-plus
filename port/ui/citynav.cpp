@@ -131,47 +131,48 @@ struct DestInfo { const char *label; const char *desc; int group; int building; 
 static const DestInfo DEST[D_N] = {
     { "Merchant", "Market stalls: everyday goods to buy and sell.", 0, -1, 1, TI_MARKET },
     { "Foreign trader", "Pavilions of traders from distant lands: goods to buy and sell.", 0, -1, -1, TI_FOREIGN },
-    { "Swordsmith", "Swordsmith's Lane: weapons, and the swordsmiths' guild.", 1, -1, 2, TI_SWORD },
-    { "Armourer", "Armorer's Way: armour and shields, and the armourers' guild.", 1, -1, 3, TI_ARMOUR },
-    { "Bowyer", "The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild.", 1, -1, -2, TI_BOW },
-    { "Blacksmith", "The Street of the Blacksmiths: weapons, and the blacksmiths' guild.", 1, -1, 0, TI_SMITH },
-    { "Soldiers' Road", "Shops and push-carts crowded with soldiers and camp followers, and the street's leaders.", 1, -1, -1, TI_SOLDIERS },
-    { "Jeweller", "", 1, -1, 7, TI_FOREIGN },
-    { "Artificer", "Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild.", 1, -1, 6, TI_TOOLS },
-    { "Clothmaker", "Clothmakers' Street: shopfronts, and the clothmakers' guild.", 1, -1, 8, TI_CLOTH },
+    { "Swordsmith", "Swordsmith's Lane: weapons, and the swordsmiths' guild.", 0, -1, 2, TI_SWORD },
+    { "Armourer", "Armorer's Way: armour and shields, and the armourers' guild.", 0, -1, 3, TI_ARMOUR },
+    { "Bowyer", "The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild.", 0, -1, -2, TI_BOW },
+    { "Blacksmith", "The Street of the Blacksmiths: weapons, and the blacksmiths' guild.", 0, -1, 0, TI_SMITH },
+    { "Soldiers' Road", "Shops and push-carts crowded with soldiers and camp followers, and the street's leaders.", 0, -1, -1, TI_SOLDIERS },
+    { "Jeweller", "", 0, -1, 7, TI_FOREIGN },
+    { "Artificer", "Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild.", 0, -1, 6, TI_TOOLS },
+    { "Clothmaker", "Clothmakers' Street: clothing and soft armour (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild.", 0, -1, 8, TI_CLOTH },   /* (shown with the cardopts fix: by day its shopfronts are switched off in 483.07) */
     { "Alchemist", "Astrologists' Lane: formulas to buy or trade, a better philosopher's stone, lessons in Alchemy.", 3, -1, -1, TI_ALCHEMIST },
     { "Herbalist", "", 3, -1, -1, TI_PHARMACY },
     { "Pharmacist", "Stalls with herbs and rare materials: alchemical components.", 0, -1, -1, TI_PHARMACY },
     { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical components bought and sold.", 3, -1, -1, TI_PHYSICIAN },
-    { "Fugger bank", "Heavy coin changed into a letter of credit that weighs nothing, and back, for a fee.", 2, -1, -1, TI_FUGGER },
-    { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 2, -1, -1, TI_MEDICI },
-    { "Hanseatic League", "The offices of the league of northern merchant towns.", 2, -1, -1, TI_HANSE },
+    { "Fugger bank", "Heavy coin changed into a letter of credit that weighs nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
+    { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
+    { "Hanseatic League", "The offices of the league of northern merchant towns.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
-    { "Cathedral", "Donations for divine favour, a relic from the canon, the patron saint's story, sanctuary.", 3, 4, -1, TI_CATHEDRAL },
-    { "Church", "Mass, confession, alms for divine favour, sanctuary.", 3, -1, -1, TI_CHURCH },
-    { "Monastery", "The monks' library (Religion, Latin) and prayers for divine favour.", 3, 7, -1, TI_MONASTERY },
+    { "Cathedral", "Donations for divine favour, a relic from the canon, the patron saint's story, sanctuary.", 2, 4, -1, TI_CATHEDRAL },
+    { "Church", "Mass, confession, alms for divine favour, sanctuary.", 2, -1, -1, TI_CHURCH },
+    { "Monastery", "The monks' library (Religion, Latin) and prayers for divine favour.", 2, 7, -1, TI_MONASTERY },
     { "University", "New saints and alchemical formulas to learn, rare alchemical materials, a better philosopher's stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
     { "Hospice", "", 3, -1, -1, TI_PHYSICIAN },
     { "Inn", "Meals and a bed, news and rumours, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
     { "Town square", "Notices, gossip and news.", 4, 1, -1, TI_SQUARE },
-    { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 4, 1, -1, TI_TOWNHALL },
+    { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 1, 1, -1, TI_TOWNHALL },
     { "Prison", "The city's prison.", 4, 1, -1, TI_PRISON },
     { "Barracks", "The city guard's headquarters: people to join the party, weapons training.", 4, 1, -1, TI_BARRACKS },
-    { "Fortress", "The lord's fortress: an audience with the lord, prisoners in the dungeons.", 4, 2, -1, TI_FORTRESS },
+    { "Fortress", "The lord's fortress: an audience with the lord, prisoners in the dungeons.", 1, 2, -1, TI_FORTRESS },
     { "Docks", "Boats to other towns, for a fee (each leaves on its own day).", 4, 11, -1, TI_DOCKS },
     { "Slums", "A dangerous slum: rumours, and a room for next to nothing.", 4, 6, -1, TI_SLUMS },
     { "Grove", "A quiet corner where the party can wait: an hour, three hours, or until nightfall.", 4, -1, -1, TI_GROVE },
     { "City wall", "An alley to a stretch of the wall: a way out when the gates will not do.", 4, -1, -1, TI_WALL },
     { "City gate", "Leave the city by one of its gates.", 4, -1, -1, TI_GATE },
 };
-static const char *GROUPS[5] = { "Market", "Crafts", "Banks and trading houses", "Church, learning and healing", "Around town" };
-/* the order within the list (the sections' own) */
+static const char *GROUPS[5] = { "Merchants", "Quest givers", "Religion", "Learning and healing", "Around town" };
+/* the order within the list (the sections' own); every place has its tile in every town, the
+   ones the town lacks greyed, so the tiles stay where they are from town to town */
 static const int ORDER[] = {
-    D_MERCHANT, D_FOREIGN, D_PHARMACIST, D_PAWN,
-    D_SWORD, D_ARMOR, D_BOW, D_BLACKSMITH, D_TINKER, D_CLOTH, D_SOLDIERS, D_JEWEL,
-    D_FUGGER, D_MEDICI, D_HANSE,
-    D_CATHEDRAL, D_CHURCH, D_MONASTERY, D_UNIVERSITY, D_PHYSICIAN, D_ALCHEMIST, D_HERBAL, D_HOSPITAL,
-    D_INN, D_SQUARE, D_TOWNHALL, D_FORTRESS, D_PRISON, D_BARRACKS, D_DOCKS, D_SLUM, D_GROVE, D_WALL, D_LEAVE,
+    D_MERCHANT, D_FOREIGN, D_PHARMACIST, D_PAWN, D_SWORD, D_ARMOR, D_BOW, D_BLACKSMITH, D_TINKER, D_CLOTH, D_SOLDIERS, D_JEWEL,
+    D_FUGGER, D_MEDICI, D_HANSE, D_TOWNHALL, D_FORTRESS,
+    D_CATHEDRAL, D_CHURCH, D_MONASTERY,
+    D_UNIVERSITY, D_PHYSICIAN, D_ALCHEMIST, D_HERBAL, D_HOSPITAL,
+    D_INN, D_SQUARE, D_BARRACKS, D_PRISON, D_DOCKS, D_SLUM, D_GROVE, D_WALL, D_LEAVE,
 };
 
 /* what an option of a hub card leads to: a place (D_*) or another hub (100 + H_*) */
@@ -374,9 +375,14 @@ extern "C" void citynav_go(int dest)
  *   (from the city's seed, the game's seed and, for the physician, the year);
  * - the hospital and Jewelers' Avenue are never offered (their options stay switched off),
  *   nor the herbalists and barber-surgeons ($CivCr01 and $Barbe00 are unused cards);
- * - Clothmakers' Street is offered, but its card ($Cloth00) has nothing on it but "leave" (its
- *   other options stay switched off): not listed, a walk there would be for nothing. */
-static bool never(int d) { return d == D_HOSPITAL || d == D_JEWEL || d == D_HERBAL || d == D_CLOTH; }   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
+ * - Clothmakers' Street by day ($Cloth00) has nothing on it but "leave" in 483.07 (its shopfronts
+ *   switched off by mistake: the "cardopts" fix opens them); without the fix it is not listed, a
+ *   walk there would be for nothing (at night a sleeper woken there sells, for reputation). */
+static bool never(int d)
+{
+    if (d == D_CLOTH) return !fix_is_on("cardopts");
+    return d == D_HOSPITAL || d == D_JEWEL || d == D_HERBAL;   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
+}
 static bool present_at(int d, int cur)
 {
     if (never(d)) return false;
@@ -480,15 +486,15 @@ static void place_tooltip(int d, const std::vector<TipPart> &parts)
  * party's own task there, a teacher to hire, a shop's wares, what the party learned of the
  * physician or the alchemists. A tile is as tall as its row needs. A lectern beside the name marks
  * a teacher, a task's picture the place a task of the party's leads to; the whole of each is under
- * the pointer. The places the city lacks are named in one line at the foot. */
+ * the pointer. A place the town lacks keeps its tile, greyed, so every place is always where it was. */
 struct TileLine { std::string text; ImU32 col; };
-struct Tile { int d; std::vector<TileLine> lines; std::vector<TipPart> tip; int teach; int task_cat; bool teach_off; };
+struct Tile { int d; std::vector<TileLine> lines; std::vector<TipPart> tip; int teach; int task_cat; bool teach_off; bool here; };
 
 extern "C" int citynav_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 90));
-    float w = fminf(io.DisplaySize.x * 0.94f, UIS(1240)), maxh = io.DisplaySize.y * 0.94f;
+    float w = fminf(io.DisplaySize.x * 0.94f, UIS(1500)), maxh = io.DisplaySize.y * 0.94f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, maxh));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     bool keep = true;
@@ -519,7 +525,7 @@ extern "C" int citynav_window(void)
         float lh = ImGui::GetFontSize(), sfs = lh * 0.8f, slh = sfs * 1.18f, pad = 6 * scale, rnd = 6 * scale;
         float is = floorf(lh * 2.1f);                              /* the place's picture */
         float gap = ImGui::GetStyle().ItemSpacing.x, avail = ImGui::GetContentRegionAvail().x;
-        int cols = (int)((avail + gap) / (lh * 14.0f + gap));      /* (a tile about 14 lines of type wide: its lines fit) */
+        int cols = (int)((avail + gap) / (lh * 12.0f + gap));      /* (a tile about 12 lines of type wide: its lines fit) */
         cols = cols < 3 ? 3 : cols > 5 ? 5 : cols;
         float bw = floorf((avail - (cols - 1) * gap) / cols);
         static const ImU32 GREEN = IM_COL32(38, 100, 34, 255), BROWN = IM_COL32(104, 82, 58, 255), BLUE = IM_COL32(40, 70, 140, 255),
@@ -527,7 +533,8 @@ extern "C" int citynav_window(void)
 
         /* what each place's tile says */
         auto make_tile = [&](int d) {
-            Tile T{ d, {}, {}, -1, -1, false };
+            Tile T{ d, {}, {}, -1, -1, false, true };
+            if (!present(d)) { T.here = false; return T; }          /* (a place the town lacks: its name greyed, no more) */
             /* a task giver: whether it has a task now, or until when none (mods/offices.h) */
             int giver = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
                       : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
@@ -565,8 +572,8 @@ extern "C" int citynav_window(void)
             if (T.teach >= 0) {
                 const TchSource &S = teach[T.teach];
                 T.teach_off = S.off != 0;
-                char b[48]; snprintf(b, sizeof b, fix_is_on("teachcap") ? " (to %d)" : " (skill %d)", S.strength);
-                T.lines.push_back({ "Teaches " + ui_teacher_skills(S) + b + (T.teach_off ? ", not now" : ""), T.teach_off ? GREY : IM_COL32(32, 62, 120, 255) });
+                char b[48]; snprintf(b, sizeof b, fix_is_on("teachcap") ? " to %d" : " (skill %d)", S.strength);
+                T.lines.push_back({ "Teaches " + ui_teacher_skills(S) + b, T.teach_off ? GREY : IM_COL32(32, 62, 120, 255) });   /* (greyed, with a faint lectern: not now) */
                 T.tip.push_back({ "Teacher", ui_teacher_text(S) });
             }
             /* a shop: the quality of its wares */
@@ -598,12 +605,10 @@ extern "C" int citynav_window(void)
         auto tile_h = [&](const Tile &T) { return fmaxf(is + 2 * pad, 2 * pad + lh + T.lines.size() * slh); };
 
         bool any_teach = false, any_task = false;
-        std::string absent;
         for (int g = 0; g < 5; g++) {
             std::vector<Tile> tiles;
             for (int d : ORDER) {
                 if (DEST[d].group != g || never(d)) continue;
-                if (!present(d)) { absent += (absent.empty() ? "" : ", ") + std::string(DEST[d].label); continue; }
                 tiles.push_back(make_tile(d));
             }
             if (tiles.empty()) continue;
@@ -617,12 +622,13 @@ extern "C" int citynav_window(void)
                     if (k > r0) ImGui::SameLine();
                     ImGui::PushID(d);
                     ImVec2 p = ImGui::GetCursorScreenPos();
-                    if (ImGui::InvisibleButton("b", ImVec2(bw, th))) picked = d;
-                    bool hov = ImGui::IsItemHovered();
+                    if (ImGui::InvisibleButton("b", ImVec2(bw, th)) && T.here) picked = d;
+                    bool hov = ImGui::IsItemHovered() && T.here, hov_absent = ImGui::IsItemHovered() && !T.here;
                     ImDrawList *dl = ImGui::GetWindowDrawList();
-                    dl->AddRectFilled(p, ImVec2(p.x + bw, p.y + th), hov ? IM_COL32(140, 61, 33, 255) : IM_COL32(224, 204, 166, 255), rnd);
-                    if (!hov) dl->AddRect(p, ImVec2(p.x + bw, p.y + th), IM_COL32(178, 148, 106, 255), rnd);
+                    dl->AddRectFilled(p, ImVec2(p.x + bw, p.y + th), hov ? IM_COL32(140, 61, 33, 255) : T.here ? IM_COL32(224, 204, 166, 255) : IM_COL32(232, 220, 196, 255), rnd);
+                    if (!hov) dl->AddRect(p, ImVec2(p.x + bw, p.y + th), T.here ? IM_COL32(178, 148, 106, 255) : IM_COL32(205, 190, 164, 255), rnd);
                     ui_draw_town_icon(dl, ImVec2(p.x + pad + is * 0.5f, p.y + th * 0.5f), is, DEST[d].icon);
+                    if (!T.here) dl->AddCircleFilled(ImVec2(p.x + pad + is * 0.5f, p.y + th * 0.5f), is * 0.5f + 1, IM_COL32(232, 220, 196, 165));   /* (the picture faded) */
                     float tx = p.x + pad * 2 + is, rx = p.x + bw - pad, ny = T.lines.empty() ? p.y + (th - lh) * 0.5f : p.y + pad;
                     float ms = lh * 1.15f;                              /* the marks beside the name */
                     if (T.task_cat >= 0) { any_task = true; ui_draw_quest_icon(dl, ImVec2(rx - ms * 0.5f, ny + lh * 0.5f), ms, T.task_cat); rx -= ms + 3 * scale; }
@@ -633,7 +639,7 @@ extern "C" int citynav_window(void)
                                            hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
                         rx -= ms + 3 * scale;
                     }
-                    ImU32 fg = hov ? IM_COL32(252, 242, 220, 255) : IM_COL32(51, 31, 15, 255);
+                    ImU32 fg = hov ? IM_COL32(252, 242, 220, 255) : T.here ? IM_COL32(51, 31, 15, 255) : IM_COL32(150, 134, 112, 255);
                     std::string lab = fit(DEST[d].label, lh, rx - tx - 2 * scale);
                     dl->AddText(ImVec2(tx, ny), fg, lab.c_str());
                     float ly = ny + lh + 1 * scale, room = p.x + bw - pad - tx;
@@ -643,12 +649,13 @@ extern "C" int citynav_window(void)
                         ly += slh;
                     }
                     if (hov) place_tooltip(d, T.tip);
+                    else if (hov_absent) { std::vector<TipPart> t{ { "", std::string("Not in ") + (city ? gamedata.cities[cur].name : std::string("this town")) + "." } }; place_tooltip(d, t); }
                     ImGui::PopID();
                 }
             }
         }
         /* the foot: what the marks mean (those shown), and what this city lacks */
-        if (any_teach || any_task || !absent.empty()) { ImGui::Spacing(); ImGui::Separator(); }
+        if (any_teach || any_task) { ImGui::Spacing(); ImGui::Separator(); }
         if (any_teach || any_task) {
             ImDrawList *dl = ImGui::GetWindowDrawList();
             float ms = lh * 1.05f;
@@ -664,11 +671,6 @@ extern "C" int citynav_window(void)
             bool first = true;
             if (any_teach) { mark(0, "A teacher to hire (faint: not now)"); first = false; }
             if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A task of yours leads here"); }
-        }
-        if (!absent.empty()) {
-            ImGui::PushTextWrapPos(0);
-            ImGui::TextDisabled("Not in %s: %s.", city ? gamedata.cities[cur].name.c_str() : "this city", absent.c_str());
-            ImGui::PopTextWrapPos();
         }
         ImGui::PopStyleVar();
     }

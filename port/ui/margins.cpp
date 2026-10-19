@@ -148,7 +148,8 @@ static const char *TOWN_OFFER_TIP[6] = {
     "A bank (Fugger or Medici): heavy coin into a bank note that weighs nothing, and back, for a charge; tasks for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
-    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" } };
+    { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
+    { 8, TI_CLOTH, "clothing and soft armour (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
 enum { NOTABLE_Q = 30 };
 static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
 void ui_town_offers(int loc, bool tables, float width, bool words)
@@ -178,7 +179,7 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
     bool head = false;
     for (const auto &s : NOTABLE_SHOPS) {
         int q = c.shopq[s.shop] > 0 ? shop_wares_q(c.shopq[s.shop]) : 0;
-        if (q < NOTABLE_Q) continue;
+        if (q < NOTABLE_Q || (s.shop == 8 && !fix_is_on("cardopts"))) continue;
         if (!head) { ImGui::Spacing(); if (words) ImGui::TextDisabled("Notable shops"); else heading("Notable shops"); head = true; first = true; }
         char t[48], tip[160]; snprintf(t, sizeof t, words ? "%s %dq" : "%.0s%dq", SHOP_NAMES[s.shop], q);
         snprintf(tip, sizeof tip, "%s: %s of %dq (most shops' are about 25q).", SHOP_NAMES[s.shop], s.wares, q);
