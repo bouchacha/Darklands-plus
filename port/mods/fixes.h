@@ -11,6 +11,9 @@ void fixes_init(void);
 void fix_enable(int i, int on);
 void potion_bonus(int m, int *dmg, int *pen);
 int fix_is_on(const char *id);                  /* the fix is on (and the original game not asked for) */
+/* oilweapons: each weapon oil only with the weapons the manual names */
+int oils_weapon(int i);                         /* the weapon type member i strikes with now (combatant +0x51, or +0x22 when shooting) */
+int oils_allow(int oil, int w);                 /* oil 0x69 Deadly Blade, 0x6a Strongedge, 0x6b Great Power, on weapon type w (1: in force) */
 void fixes_alchemy_blast_odds(int risk, int *num, int *den);   /* alchrisk: of a failed brew's accidents (at a place), num in den are explosions */
 int fixes_debt_note_office(int aux);            /* debtnote: the office a debt-note errand's giver names (1 the Medici, 2 the Fugger) */
 void fixes_card_opts(void);                     /* cardopts: a card's opt_on[] put right before its options are shown */   /* weapon potions still running for member m */

@@ -104,6 +104,7 @@
  *  battlesaints A saint's boosts called in a battle wear off (below, potions: the cards close).
  *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
+ *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +120,6 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "teachers.h"
-#include "battlerules.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
@@ -174,8 +174,8 @@ Fix FIXES[] = {
       "Taking the thing an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the thing. Now the party has it when it wins.", 1 },
     { "lordreward", "The lord pays for his tasks",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall: there it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
-    { "armourday", "Armour from potions and saints lasts a day",
-      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings and Firewall's protection against fire never wore off, and the armour added up with every one. They now last about a day, as the manual says, and armour piled up this way in a saved game goes back to normal.", 1 },
+    { "armourday", "Armour from potions and saints lasts a day; Hardarmor as the manual says",
+      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings and Firewall's protection against fire never wore off, and the armour added up with every one. They now last about a day, as the manual says, and armour piled up this way in a saved game goes back to normal. Hardarmor also does what the manual says: armour 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second while one runs keeps the stronger.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "The manual's Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
@@ -186,6 +186,8 @@ Fix FIXES[] = {
       "Healing (Essence o'Grace, a saint's) brings a wounded attribute part of the way back to its maximum, but the game did the same from above: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
       "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
+    { "oilweapons", "Each weapon oil works with the weapons the manual names",
+      "Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -617,7 +619,7 @@ void potion_bonus(int m, int *dmg, int *pen)
     for (int i = 0; i < n; i++) {
         int type0 = v[i].type0, t = v[i].t;
         if (v[i].m != m) continue;
-        if (type0 == 0x6d || type0 == 0x74) continue;      /* (armour and fire: armourday's) */
+        if (type0 != 0x69 && type0 != 0x6b && (type0 < 0 || type0 >= 64)) continue;   /* (armour, fire: armourday's) */
         if (gp_event(type0, t) && fix_on("greatpower")) continue;   /* (the weapon's quality: greatpower's) */
         if (type0 == 0x69) *dmg += t;                      /* Deadly Blade */
         else if (t <= 5) *pen += t;                         /* Strongedge */
@@ -647,9 +649,10 @@ static void potions_frame(void)
  * (165c:5b82) 2, and Firewall sets the fire protection (party +0x10 = combatant +0x24: Arabian
  * Fire does a tenth of it less, the blows of a foe with bit 7 of +0x55 a twentieth), with no event: all of
  * it stays for good and the armour adds up (past 15 into the fire bits). The manual: a day.
- * Here each records a kind 0x4a event of about a day (type0 0x6d armour, 0x74 Firewall), and the
- * low nibble and the fire protection are rebuilt from the running ones every frame (nothing else
- * writes them), so armour piled up in a save goes back too.
+ * Here each records a kind 0x4a event of about a day (type0 0x6d Hardarmor, the value its grade;
+ * 0x16d a saint's armour, the value the levels; 0x74 Firewall), and the low nibble and the fire
+ * protection are rebuilt from the running ones every frame (nothing else writes them), so armour
+ * piled up in a save goes back too. Hardarmor follows the manual (hardarmor_give).
  * greatpower: Greatpower adds 14/22/30 to the damage-and-penetration byte (party +0x34, see
  * potions); the manual: "increases the overall quality of a weapon ... up to a limit of 99".
  * Here the byte is left alone, the event is marked 0x6b, and in battle the quality a member's
@@ -666,7 +669,8 @@ static void record_potion(int who, int type0, int t)
 {
     ns_call(GF_event_new, 10, who, (s16)g_rw(G_CUR_LOC), 0x63, 0x4a, type0, t, 6, 19 + rand() % 3, 1, 0);
 }
-/* the sum (armour: 0x6d) or the largest (Firewall: 0x74, Greatpower: 0x6b) of member m's running
+/* the sum (a saint's armour: 0x16d) or the largest (Hardarmor's grade: 0x6d, Firewall: 0x74,
+   Greatpower: 0x6b) of member m's running
    kind 0x4a events of type0 k */
 static int running_potions(int m, int k, int largest)
 {
@@ -690,10 +694,10 @@ static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43
     hook_call_original();
     u16 ax = AX, dx = DX;
     if (code == 0x6d) {
-        int t = (u8)(g_rb((u16)(mb + 0x41)) - a41);
-        g_wb((u16)(mb + 0x41), a41);                    /* (the frame puts the sum of the running ones) */
-        if (t > 0 && t < 16) record_potion(who, 0x6d, t);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Hardarmor +%d for a day\n", who, t);
+        g_wb((u16)(mb + 0x41), a41);                    /* (the frame puts what the running ones give) */
+        int q = rb(G_FAR2E38, (u16)(G_ITEM(who, idx) + 3)), grade = q <= 25 ? 1 : q <= 35 ? 2 : 3;
+        record_potion(who, 0x6d, grade);                /* (the grade: hardarmor_give) */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Hardarmor grade %d for a day\n", who, grade);
     } else if (code == 0x74) {
         int t = (s8)g_rb((u16)(mb + 0x10));
         g_wb((u16)(mb + 0x41), a41);                    /* (its +16 armour: fireward's, gone with it) */
@@ -723,12 +727,37 @@ static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's
     hook_call_original();
     u16 ax = AX, dx = DX;                               /* (what it returns) */
     g_wb((u16)(mb + 0x41), a41);
-    record_potion(who, 0x6d, add);
+    record_potion(who, 0x16d, add);                     /* (0x16d: a saint's armour, added to Hardarmor's) */
     AX = ax; DX = dx;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d blessed with +%d armour for a day\n", who, add);
 }
 static void dunstan_hook(void) { saint_armour(1); }
 static void patrick_hook(void) { saint_armour(2); }
+
+/* Hardarmor by the manual: "Quality improves by 20 to 30 points, and thickness by one or two levels"
+   (the game: thickness 1, 2 or 3, no quality). Grade 1, 2, 3: thickness 1, 2, 2 and quality 20,
+   25, 30. A second while one runs keeps the stronger; a saint's armour adds to it. */
+static void hardarmor_give(int m, int *thick, int *qual)
+{
+    static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 };
+    int g = running_potions(m, 0x6d, 1);
+    if (g < 0) g = 0; if (g > 3) g = 3;
+    *thick = T[g] + running_potions(m, 0x16d, 0);
+    if (*thick > 15) *thick = 15;
+    *qual = Q[g];
+}
+/* the quality: added to the target's armour (+0x4f, per hit location) for the hit alone */
+static void armour_hit_hook(void)          /* hit_damage (a, t, r, loc) */
+{
+    int t = (s16)rw(SS, (u16)(SP + 6)), th, q = 0;
+    if (t >= 0 && t < 5 && g_rb(G_MEMBER(t))) hardarmor_give(t, &th, &q);
+    if (!q) { hook_call_original(); return; }
+    u16 c = (u16)(GV_combatants + 0x80 * t + 0x4f);
+    u8 a0 = g_rb(c), a1 = g_rb((u16)(c + 1));
+    g_wb(c, (u8)((s8)a0 + q > 99 ? 99 : (s8)a0 + q)); g_wb((u16)(c + 1), (u8)((s8)a1 + q > 99 ? 99 : (s8)a1 + q));
+    hook_call_original();
+    g_wb(c, a0); g_wb((u16)(c + 1), a1);
+}
 
 static void armourday_frame(void)
 {
@@ -738,8 +767,8 @@ static void armourday_frame(void)
     for (int m = 0; m < size; m++) {
         if (!g_rb(G_MEMBER(m))) continue;
         u16 mb = (u16)G_MEMBER(m);
-        int arm = running_potions(m, 0x6d, 0), fire = running_potions(m, 0x74, 1);
-        if (arm > 15) arm = 15;
+        int arm, q, fire = running_potions(m, 0x74, 1);
+        hardarmor_give(m, &arm, &q);
         u8 was = g_rb((u16)(mb + 0x41)), v = (u8)((was & 0xf0) | arm);
         if (v != was) {
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d armour bonus %d -> %d\n", m, was & 15, arm);
@@ -761,7 +790,7 @@ static void greatpower_frame(void)
         if (!g_rb(G_MEMBER(m)) || g_rb((u16)(c + 0x14)) != 1) continue;
         int base = (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x5a : 0x58)));
         int q = (s8)g_rb((u16)(c + 0x0d)), add = running_potions(m, 0x6b, 0);
-        if (add && oils_manual_on() && !oils_allow(0x6b, oils_weapon(m))) add = 0;     /* (battle.oils_manual: not on this weapon) */
+        if (add && !oils_allow(0x6b, oils_weapon(m))) add = 0;     /* (oilweapons: not on this weapon) */
         int want = add ? (base + add > 99 ? 99 : base + add) : base;
         if (q == want) { gp_boost[m] = want - base; continue; }
         if (!add && !gp_boost[m]) continue;             /* (not ours to touch) */
@@ -1307,6 +1336,44 @@ static void healboost_hook(void)
     }
 }
 
+/* ---------------------------------------------------------------- oilweapons
+ * The weapon oils are the member's in the game: one byte (party +0x34 = combatant +0x48, damage
+ * high, penetration low) counts in every hit the member lands (hit_damage, s014 18bf:0778), with
+ * any weapon, and Great Power (the greatpower fix) raises whatever weapon is in hand. The manual:
+ * Deadly Blade works on "all weapons except impact and flail types", Strongedge "only ... edged
+ * weapons and polearms", Great Power "only impact weapons, flails and handguns" (Deadly Blade's
+ * label: "applied to non-impact weapons", Strongedge's: "to blades and poles"). Here a hit leaves
+ * out what the weapon used may not have: its type is +0x22 (the missile weapon) when
+ * readied with the alternate skill (+0x57 bit 7), else +0x51; 0-8 edged, 10-15 impact, 16-17
+ * flails, 18-22 polearms, 23-26 thrown, 27-29 bows, 30-31 crossbows, 32-33 handguns (9 fists). */
+int oils_weapon(int i)                          /* the weapon type member i strikes with now */
+{
+    u16 c = (u16)(GV_combatants + 0x80 * i);
+    return (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x22 : 0x51)));
+}
+int oils_allow(int oil, int w)                  /* 0x69 Deadly Blade, 0x6a Strongedge, 0x6b Great Power on weapon type w */
+{
+    if (!fix_on("oilweapons")) return 1;
+    int edged = w >= 0 && w <= 8, impact = w >= 10 && w <= 15, flail = w == 16 || w == 17, pole = w >= 18 && w <= 22;
+    if (w < 0 || w == 9 || w > 33) return 0;
+    if (oil == 0x69) return !impact && !flail;
+    if (oil == 0x6a) return edged || pole;
+    return impact || flail || w == 32 || w == 33;
+}
+static void oils_hit_hook(void)                 /* hit_damage (a, t, r, loc) */
+{
+    int a = (s16)rw(SS, (u16)(SP + 4));
+    if (a < 0 || a > 4) { hook_call_original(); return; }
+    u16 b = (u16)(GV_combatants + 0x80 * a + 0x48);
+    u8 was = g_rb(b), v = was;
+    int w = oils_weapon(a);
+    if (!oils_allow(0x69, w)) v &= 0x0f;
+    if (!oils_allow(0x6a, w)) v &= 0xf0;
+    if (v != was) { g_wb(b, v); if (getenv("DL_FIX_LOG")) fprintf(stderr, "oils: member %d hits with weapon type %d: bonus %02x counts as %02x\n", a, w, was, v); }
+    hook_call_original();
+    if (v != was) g_wb(b, was);
+}
+
 /* ---------------------------------------------------------------- teachcap
  * A day at the inn (camp_spend_day, s036 1462:147a): a member set to "Train or study" (activity 6,
  * the skill in camp_activity_arg) pays the fee of the town's teacher of it (kind 0x28: +0x1e the
@@ -1342,7 +1409,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
-    { GF_camp_spend_day, teachcap_hook } };
+    { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
@@ -1350,6 +1417,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
     { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook },
     { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook },
+    { "armourday", GF_hit_damage, armour_hit_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook } };
 
 void fix_enable(int i, int on)
