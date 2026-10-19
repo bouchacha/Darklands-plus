@@ -564,7 +564,7 @@ void tab_display(void)
             ImGui::SetNextItemWidth(UIS(260));
             if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }
             static char msg[400];
-            if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sounds found.", sfx_user_count()); }
+            if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sound%s found.", sfx_user_count(), sfx_user_count() == 1 ? "" : "s"); }
             ImGui::SameLine();
             if (ImGui::Button("Write the synthesized sounds as .wav")) sfx_export(msg, sizeof msg);
             if (msg[0]) ui_hint("%s", msg);

@@ -430,7 +430,7 @@ static void chronicle_page(void)
     if (ImGui::SmallButton(nav_open ? "Hide the days" : "Show the days")) nav_open = !nav_open;
     ImGui::SameLine();
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
-    ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
+    ImGui::SameLine(); ImGui::TextDisabled("%d text%s read in this game", (int)chron.size(), chron.size() == 1 ? "" : "s");
     ImGui::SameLine();
     static std::string wrote;
     if (ImGui::SmallButton("Write it out as a book")) {
@@ -822,7 +822,7 @@ static void find_page(void)
             }
     size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
     if (!nshops) { ImGui::SameLine(); ImGui::TextDisabled("Nothing noted yet: the journal notes a shop's wares as the party sees them."); return; }
-    ImGui::SameLine(); ImGui::TextDisabled(q.empty() ? "%d things seen in shops" : "%d found", (int)hits.size());
+    ImGui::SameLine(); ImGui::TextDisabled(q.empty() ? "%d seen in shops" : "%d found", (int)hits.size());
     if (ImGui::BeginTable("hits", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);

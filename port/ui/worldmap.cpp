@@ -287,7 +287,7 @@ extern "C" int worldmap_open(void)
 static std::string hhmm(int minutes)
 {
     char b[48];
-    if (minutes < 60) snprintf(b, sizeof b, "%d minutes", minutes);
+    if (minutes < 60) snprintf(b, sizeof b, "%d minute%s", minutes, minutes == 1 ? "" : "s");
     else if (minutes < 24 * 60) snprintf(b, sizeof b, "%d h %02d", minutes / 60, minutes % 60);
     else snprintf(b, sizeof b, "%.1f days", minutes / 1440.0);
     return b;
