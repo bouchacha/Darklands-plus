@@ -13,7 +13,7 @@
  * (banishing demons, escaping prison, light ...) happens only where an encounter's card lets a
  * member call on the saint (card_saints: counted here per saint, the card scripts naming it).
  * Some of the help depends on the fixes (mods/fixes.c: pauls, saintrep, armourday; sainttexts,
- * mods/sainttexts.c, gives 38 saints the help their texts describe): the texts follow them. A
+ * mods/sainttexts.c, gives 39 saints the help their texts describe): the texts follow them. A
  * boost lasts about a day: the texts say so only of other spans (saint_info_note, once a screen). */
 #include <stdio.h>
 #include <string.h>
@@ -64,7 +64,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Heals 30% of lost Endurance and 10% of lost Strength.", "", 0, 9 },   /* 12 St.Apollinarius */
     { "Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours.",
       "",
-      0, 0, 0, 1 },   /* 13 St.Barbara */
+      "Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. In a battle, wounds cannot bring the one prayed for below 1 Strength: no death from wounds.", "", 0, 1 },   /* 13 St.Barbara */
     { "Intelligence +4 to 8, Perception +3 to 6.",
       "",
       0, 0, 0, 1 },   /* 14 St.Bathildis */

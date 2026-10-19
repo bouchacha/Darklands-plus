@@ -75,7 +75,8 @@ std::vector<Eff> effects_now(int size)
                 { 0x171, "weapon %+d quality (a saint's)" }, { 0x172, "edged weapon %+d quality (a saint's)" },
                 { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (a saint's)" },
                 { 0x174, "fire protection %d (a saint's)" }, { 0x175, "%+d armour against missiles (a saint's)" },
-                { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" } };
+                { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" },
+                { 0x179, "no death from wounds (a saint's)" } };
             bool done = false;
             if ((k == 0x177 || k == 0x178) && (t == 50 || t == 100)) {   /* (the speed in words) */
                 snprintf(b, sizeof b, "the party travels %s%s (a saint's)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");

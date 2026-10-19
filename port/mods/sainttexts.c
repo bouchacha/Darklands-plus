@@ -20,6 +20,8 @@
  *   0x175  armour thicker against missiles (St. Patrick)
  *   0x177  the party's travel faster, by that percent (St. Christopher, St. Drogo, St. Wilfrid)
  *   0x178  the same, in woods and forests (St. Eustace)
+ *   0x179  wounds in a battle cannot bring the member below 1 Strength (St. Barbara: damage_apply,
+ *          s014 18bf:098e, takes the queued Strength damage; at 0 the member dies)
  * Armour and fire need armourday (its hit hook and frame): without it those saints keep the game's
  * help. Weapon quality is counted in the greatpower frame, which runs for this fix too. Speed: the minutes of a step on the map (s030 1462:2ac8), for the party
  * when any member's runs; travel.c's plans count it too. */
@@ -269,6 +271,11 @@ static void willibrord(int w)               /* reputation among the Frisians */
     rep_in(T, 8, 10, 0x14);
     skill(w, 18, 8, 8, 0x18); skill(w, 10, 20, 20, 0x18); attr(w, 5, 10, 10, 0x18);
 }
+static void barbara(int w)                  /* "prevents death from wounds for a period (strength never goes below 1)" */
+{
+    skill(w, 14, 15, 15, 5); skill(w, 6, 20, 20, 0xa);
+    record(w, 0x179, 1, day());
+}
 static void hildegard(int w)                /* sometimes the reputation, by the Rhine */
 {
     static const int T[10] = { 0x4c, 0x36, 0x35, 0x34, 0x31, 0x30, 0x1a, 0x19, 0x17, 0x16 };   /* Basel ... Xanten */
@@ -287,7 +294,7 @@ static const struct { int saint; u16 off; void (*fn)(int who); int arm; } SAINTS
     { 104, 0x5b82, patrick, 1 }, { 39, 0x2052, dunstan, 1 }, { 28, 0x1868, crispin, 1 }, { 55, 0x2d58, george, 1 },
     { 96, 0x5334, michael, 1 }, { 86, 0x49e4, longinius, 0 }, { 95, 0x5296, maurice, 0 }, { 42, 0x23fe, eligius, 0 },
     { 117, 0x664a, sebastian, 0 }, { 64, 0x3612, hedwig, 0 }, { 79, 0x4320, joseph, 0 }, { 51, 0x2b30, florian, 0 },
-    { 118, 0x671e, stanislaus, 0 }, { 133, 0x7288, willibrord, 0 }, { 68, 0x3934, hildegard, 0 },
+    { 118, 0x671e, stanislaus, 0 }, { 133, 0x7288, willibrord, 0 }, { 68, 0x3934, hildegard, 0 }, { 13, 0x0c20, barbara, 0 },
 };
 #define NSAINTS (int)(sizeof SAINTS / sizeof SAINTS[0])
 
@@ -362,6 +369,22 @@ static void step_hook(void)                 /* s030 1462:2ac8 (terrain): the min
     if (m != (s16)AX) { if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix sainttexts: a step on terrain %d takes %d minutes, not %d\n", t, m, (s16)AX); AX = (u16)m; }
 }
 
+/* ---------------------------------------------------------------- St. Barbara: no death from wounds */
+static int barbara_running(int m) { return fixes_running(m, 0x179) > 0; }   /* (in a battle the events are put away: mods/fixes.c keeps them) */
+static void damage_hook(void)               /* damage_apply(i): the queued damage taken (+0 endurance, +1 strength) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i >= 0 && i < 5 && present(i) && barbara_running(i)) {
+        u16 q = (u16)(GV_cbt_queued_damage + 2 * i + 1);
+        int str = (s8)g_rb((u16)(G_MEMBER(i) + G_M_ATTR_CUR + 1)), d = (s8)g_rb(q);
+        if (d > 0 && str - d < 1) {
+            g_wb(q, (u8)(str > 1 ? str - 1 : 0));
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix sainttexts: St. Barbara keeps member %d at %d Strength (a wound of %d)\n", i, str - (str > 1 ? str - 1 : 0), d);
+        }
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- on and off */
 int hook_point(int sect, unsigned seg, unsigned off);       /* (runtime/hooks.c: its index, hook_current while it runs) */
 void sainttexts_enable(int on)
@@ -372,4 +395,5 @@ void sainttexts_enable(int on)
         else hook_remove(39, 0x165c, SAINTS[i].off, saint_hook);
     }
     if (on) hook_install(30, 0x1462, 0x2ac8, step_hook); else hook_remove(30, 0x1462, 0x2ac8, step_hook);
+    if (on) hook_install(GF_damage_apply, damage_hook); else hook_remove(GF_damage_apply, damage_hook);
 }

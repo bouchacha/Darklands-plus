@@ -54,7 +54,7 @@ Fixes.
 
 ## As the texts say (the sainttexts fix)
 
-38 saints' help, as coded, falls short of or strays from their own description. The texts are what
+39 saints' help, as coded, falls short of or strays from their own description. The texts are what
 the player reads before spending divine favour, and the manual repeats them, so where the two part
 the text is taken as the intent, unless it is plainly the text that errs (`port/mods/sainttexts.c`;
 the table below gives each saint's old help too). The judgement, saint by saint:
@@ -91,7 +91,8 @@ the table below gives each saint's old help too). The judgement, saint by saint:
   and St. Hedwig heal the Endurance or Strength their texts name; St. Martin of Tours and St.
   Pantaleon heal only one who wears armour; St. Lutgardis's ecstasies cost 5 to 9 Endurance (the
   code gave Endurance), St. Vitus one time in two 3 to 8, never below 1; St. James lowers
-  Intelligence a little, as his text says.
+  Intelligence a little, as his text says; St. Barbara keeps the one prayed for from dying of
+  wounds for a day ("strength never goes below 1": damage_apply, s014 18bf:098e, leaves 1).
 - **Reputation**: St. Nicholas only in Lorraine (Nancy), St. Florian in Poland too (Posen,
   Bromberg), St. Stanislaus in Poland, St. Willibrord among the Frisians (Groningen to Elburg), St.
   Hildegard by the Rhine (Basel to Xanten), St. Thomas Aquinas in a town with a monastery or a
@@ -109,7 +110,6 @@ without it they keep the game's help.
 - **Reputation the help does not give** (it may come in encounters): Henry, Raymond Penafort (the
   Dominicans), Wolfgang, Wenceslaus (with nobles). Gottschalk raises it in exactly the seven towns
   his text names; Michael anywhere (the text: "Germany and Brussels": all of the game is Germany).
-- **St. Barbara**'s protection from death by wounds (Strength never below 1) is not in her help.
 - **St. Januarius** has no help of his own (his beasts are the encounters').
 - Everything a description promises in encounters (banishing demons, escaping prison, sensing evil,
   animals ...) stays the cards' business: the last column says how many call for the saint.
@@ -134,7 +134,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 10 | St. Anthony of Padua | 59 | 10-99 | 65% | Perception +6 to 11, Strength +4 to 7, Charisma +15 to 24, Speak Common +20 to 29, Impact and Latin +10 to 19. |  | a few |
 | 11 | St. Arnulf | 18 | 15-99 | 25% | Perception +6 to 11, Strength and Intelligence +4 to 7, every weapon skill +10 to 19, Streetwise and Latin +6 to 11, Read & Write and Riding +8 to 15. |  | none |
 | 12 | St. Apollinarius | 78 | 20-50 | 70% | Heals 30% of lost Endurance and 10% of lost Strength. | **As the text** (sainttexts); the game: Endurance +8 to 23, Strength +2 to 4. | some |
-| 13 | St. Barbara | 32 | 20-50 | 40% | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. |  | a few |
+| 13 | St. Barbara | 32 | 20-50 | 40% | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. In a battle, wounds cannot bring the one prayed for below 1 Strength: no death from wounds. | **As the text** (sainttexts); the game: Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. | a few |
 | 14 | St. Bathildis | 21 | 15-60 | 20% | Intelligence +4 to 8, Perception +3 to 6. |  | a few |
 | 15 | St. Boniface | 25 | 10-90 | 10% | Charisma +8 to 15, every weapon skill +10 to 19, Speak Common +8 to 15. |  | many |
 | 16 | St. Catherine | 46 | 30-70 | 30% | Charisma and Intelligence +8 to 15, Speak Common +40 to 99. |  | a few |

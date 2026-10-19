@@ -201,7 +201,7 @@ Fix FIXES[] = {
     { "saintrep", "A saint's reputation goes to a real town",
       "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised that of the place before the first in the list, writing into memory that is not a place. Now Prag gets Nepomuk's, and the nearest town Cecilia's, as the other saints do.", 1 },
     { "sainttexts", "Saints do what their texts say",
-      "38 saints' help, as the game codes it, falls short of or strays from their own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now a week faster, the days on the road fewer), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails for Riding; St. Charity, St. Erasmus and St. Pantaleon no protection against fire for the party; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never bettered a weapon or armour; St. Crispin bettered metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md tell each one). The armour and fire saints need the armourday fix.", 1 },
+      "39 saints' help, as the game codes it, falls short of or strays from their own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now a week faster, the days on the road fewer), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails for Riding; St. Charity, St. Erasmus and St. Pantaleon no protection against fire for the party; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never bettered a weapon or armour; St. Crispin bettered metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md tell each one). The armour and fire saints need the armourday fix.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -574,7 +574,7 @@ static int pot_all(PotEv *out, int max)
         for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
     return n;
 }
-static int any_potion_fix(void) { return fix_on("potions") || fix_on("armourday") || fix_on("greatpower"); }
+static int any_potion_fix(void) { return fix_on("potions") || fix_on("armourday") || fix_on("greatpower") || sainttexts_on; }   /* (their kind 0x4a events kept over a battle) */
 static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e */
 {
     pot_nkept = any_potion_fix() ? pot_table(pot_kept, 64) : 0;
@@ -695,6 +695,7 @@ static int running_potions(int m, int k, int largest)
     }
     return v;
 }
+int fixes_running(int m, int type0) { return running_potions(m, type0, 1); }   /* (fixes.h: also over a battle, when the table holds only the battle's) */
 
 static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43b2 */
 {
