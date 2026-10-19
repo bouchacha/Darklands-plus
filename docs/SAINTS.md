@@ -95,7 +95,7 @@ the table below gives each saint's old help too). The judgement, saint by saint:
   Hildegard by the Rhine (Basel to Xanten), St. Thomas Aquinas in a town with a monastery or a
   university.
 
-The armour, fire and weapon saints need the armourday fix (its hit hook and frame do the counting):
+The armour and fire saints need the armourday fix (its hit hook and frame do the counting):
 without it they keep the game's help.
 
 ## Left as the game has it
@@ -161,7 +161,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 39 | St. Dunstan | 45 | 30-60 | 60% | Every member's metal armour (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. | **As the text** (sainttexts, with armourday); the game: Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. Armour one level thicker. | none |
 | 40 | St. Dymphna | 21 | 20-75 | 10% | Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19. |  | a few |
 | 41 | St. Edward, Confessor | 5 | 20-99 | 10% | Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |  | some |
-| 42 | St. Eligius | 29 | 10-60 | 25% | Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15. | **As the text** (sainttexts, with armourday); the game: Artifice +25 to 74, Alchemy +8 to 15. | none |
+| 42 | St. Eligius | 29 | 10-60 | 25% | Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15. | **As the text** (sainttexts); the game: Artifice +25 to 74, Alchemy +8 to 15. | none |
 | 43 | St. Emydius | 31 | 20-99 | 55% | Charisma +15 to 29, Speak Common +20 to 39. |  | some |
 | 44 | St. Engelbert | 40 | 15-99 | 30% | Charisma +5 to 9, Riding and Woodwise +10 to 19, Speak Common +6 to 11. The party can cross water as if it were land. |  | a few |
 | 45 | St. Erasmus | 32 | 15-50 | 40% | Fire protection 50 for every member. Agility and Perception +6 to 11. | **As the text** (sainttexts, with armourday); the game: Fire protection 90 for the one prayed for. Agility and Perception +6 to 11. | a few |
@@ -205,7 +205,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 83 | St. Lasdislaus | 51 | 25-99 | 60% | Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |  | none |
 | 84 | St. Lawrence | 20 | 30-99 | 10% | Heals all lost Endurance. Charisma +12 to 19, Speak Common and Streetwise +10 to 19. |  | some |
 | 85 | St. Lazarus | 80 | 50-99 | 60% | Heals 30% of lost Endurance and all lost Strength. |  | a few |
-| 86 | St. Longinius | 49 | 30-99 | 45% | The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19. | **As the text** (sainttexts, with armourday); the game: Every weapon skill +10 to 19. | none |
+| 86 | St. Longinius | 49 | 30-99 | 45% | The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19. | **As the text** (sainttexts); the game: Every weapon skill +10 to 19. | none |
 | 87 | St. Lucy | 77 | 40-99 | 65% | Heals all lost Endurance and Strength. Perception +6 to 11. |  | some |
 | 88 | St. Luke | 17 | 20-99 | 35% | Heals 50% of lost Endurance and 30% of lost Strength. Healing +20 to 39. |  | none |
 | 89 | St. Lutgardis | 60 | 35-99 | 50% | Costs 5 to 9 Endurance (not below 1). Charisma +6 to 11, Perception +8 to 15, Virtue +6 to 17. | **As the text** (sainttexts); the game: Charisma +6 to 11, Perception +8 to 15, Endurance +5 to 9, Virtue +6 to 17. | many |
@@ -214,7 +214,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 92 | St. Mark | 35 | 25-99 | 40% | Agility +12 to 23, Read & Write +15 to 29. |  | none |
 | 93 | St. Martin of Tours | 69 | 25-99 | 65% | One who wears armour has 30% of lost Endurance and Strength healed. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. | **As the text** (sainttexts); the game: Heals 30% of lost Endurance and 30% of lost Strength. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. | many |
 | 94 | St. Matthew | 26 | 20-80 | 25% | Intelligence +8 to 15, Latin +15 to 29, Read & Write +25 to 49. The party's standing with the Fugger and with the Medici rises by 20 to 39 each. |  | none |
-| 95 | St. Maurice | 81 | 30-50 | 70% | An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19. | **As the text** (sainttexts, with armourday); the game: Edged +20 to 39, Alchemy +10 to 19. | none |
+| 95 | St. Maurice | 81 | 30-50 | 70% | An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19. | **As the text** (sainttexts); the game: Edged +20 to 39, Alchemy +10 to 19. | none |
 | 96 | St. Michael | 72 | 25-99 | 55% | Every member's weapon and armour count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. | **As the text** (sainttexts, with armourday); the game: May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. | none |
 | 97 | St. Milburga | 71 | 35-99 | 70% | Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land. |  | many |
 | 98 | St. Moses the Black | 66 | 10-99 | 65% | Every weapon skill +15 to 29, Stealth +20 to 39, Woodwise and Streetwise +10 to 19. |  | a few |

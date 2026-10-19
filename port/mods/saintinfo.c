@@ -151,7 +151,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 6 },   /* 41 St.Edward, Confessor */
     { "Artifice +25 to 74, Alchemy +8 to 15.",
       "",
-      "Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15.", "", 1, 0 },   /* 42 St.Eligius */
+      "Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15.", "", 0, 0 },   /* 42 St.Eligius */
     { "Charisma +15 to 29, Speak Common +20 to 39.",
       "",
       0, 0, 0, 9 },   /* 43 St.Emydius */
@@ -283,7 +283,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 1 },   /* 85 St.Lazarus */
     { "Every weapon skill +10 to 19.",
       "",
-      "The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19.", "", 1, 0 },   /* 86 St.Longinius */
+      "The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19.", "", 0, 0 },   /* 86 St.Longinius */
     { "Heals all lost Endurance and Strength. Perception +6 to 11.",
       "",
       0, 0, 0, 3 },   /* 87 St.Lucy */
@@ -310,7 +310,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 94 St.Matthew */
     { "Edged +20 to 39, Alchemy +10 to 19.",
       "",
-      "An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19.", "", 1, 0 },   /* 95 St.Maurice */
+      "An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19.", "", 0, 0 },   /* 95 St.Maurice */
     { "May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.",
       "In combat it raises the skills of the weapons in hand, not the weapons and armour.",
       "Every member's weapon and armour count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "", 1, 0 },   /* 96 St.Michael */

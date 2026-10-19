@@ -20,8 +20,8 @@
  *   0x175  armour thicker against missiles (St. Patrick)
  *   0x177  the party's travel faster, by that percent (St. Christopher, St. Drogo, St. Wilfrid)
  *   0x178  the same, in woods and forests (St. Eustace)
- * Armour, fire and weapon quality need armourday (its hit hook and frame): without it those saints
- * keep the game's help. Speed: the minutes of a step on the map (s030 1462:2ac8), for the party
+ * Armour and fire need armourday (its hit hook and frame): without it those saints keep the game's
+ * help. Weapon quality is counted in the greatpower frame, which runs for this fix too. Speed: the minutes of a step on the map (s030 1462:2ac8), for the party
  * when any member's runs; travel.c's plans count it too. */
 #include <stdio.h>
 #include <stdlib.h>
@@ -268,7 +268,7 @@ static const struct { int saint; u16 off; void (*fn)(int who); int arm; } SAINTS
     { 32, 0x1b02, denis, 0 }, { 89, 0x4c46, lutgardis, 0 }, { 128, 0x6e62, vitus, 0 }, { 73, 0x74ea, james, 0 },
     { 90, 0x4d1a, margaret, 1 }, { 45, 0x2628, erasmus, 1 }, { 103, 0x5a84, pantaleon, 1 }, { 93, 0x50cc, martin, 0 },
     { 104, 0x5b82, patrick, 1 }, { 39, 0x2052, dunstan, 1 }, { 28, 0x1868, crispin, 1 }, { 55, 0x2d58, george, 1 },
-    { 96, 0x5334, michael, 1 }, { 86, 0x49e4, longinius, 1 }, { 95, 0x5296, maurice, 1 }, { 42, 0x23fe, eligius, 1 },
+    { 96, 0x5334, michael, 1 }, { 86, 0x49e4, longinius, 0 }, { 95, 0x5296, maurice, 0 }, { 42, 0x23fe, eligius, 0 },
     { 117, 0x664a, sebastian, 0 }, { 64, 0x3612, hedwig, 0 }, { 79, 0x4320, joseph, 0 }, { 51, 0x2b30, florian, 0 },
     { 118, 0x671e, stanislaus, 0 }, { 133, 0x7288, willibrord, 0 }, { 68, 0x3934, hildegard, 0 },
 };
