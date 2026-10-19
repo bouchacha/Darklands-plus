@@ -3,7 +3,7 @@
 Each saint's help is a function in the overlay s039 (`src/c/s039/s039_165c.c`), called through the
 table `saint_fns` (far 290e:2937) with `what` 8. Saint *i* (the order of DARKLAND.LST) is the
 function vector *i* leads to, not the *i*-th in the file. The same function answers `what` 0 to 6
-with the saint's table (feast day, kind, the divine favour to spend at least and at most, the
+with the saint's table (feast day, kind, the divine favor to spend at least and at most, the
 virtue needed, the base chance) and `what` 7 with the chance:
 (virtue − needed) / 2 + base + favour spent − the least favour, 0 below the virtue or the least favour.
 
@@ -55,7 +55,7 @@ Fixes.
 ## As the texts say (the sainttexts fix)
 
 39 saints' help, as coded, falls short of or strays from their own description. The texts are what
-the player reads before spending divine favour, and the manual repeats them, so where the two part
+the player reads before spending divine favor, and the manual repeats them, so where the two part
 the text is taken as the intent, unless it is plainly the text that errs (`port/mods/sainttexts.c`;
 the table below gives each saint's old help too). The judgement, saint by saint:
 
@@ -116,7 +116,7 @@ without it they keep the game's help.
 
 ## The table
 
-Virtue: the least needed. Favour: the divine favour to spend (least to most). Base: the base
+Virtue: the least needed. Favour: the divine favor to spend (least to most). Base: the base
 chance. What it does: with the fixes on (a boost: about a day). Encounters: how many card scripts accept the saint.
 
 | # | Saint | Virtue | Favour | Base | What it does | Unlike the text / fixed | Encounters |
