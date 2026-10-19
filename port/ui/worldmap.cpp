@@ -336,6 +336,54 @@ extern "C" int worldmap_find_escape(int typing)
     return 1;
 }
 
+/* what a place has, for the pointer on it and for the place picked in the panel: its offers, the
+ * saints its library teaches, the formulae its alchemist sells, its teachers (once known), whether
+ * it is in the journal */
+static void place_details(const Place &p, float wrap)
+{
+    auto dim = [wrap](const char *t) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t); ImGui::PopTextWrapPos();
+        ImGui::PopStyleColor();
+    };
+    if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
+    bool known_here = place_offers_known(p.loc);           /* (ui/libraries.h: been there, or the switch) */
+    if (!known_here && p.loc < 92)
+        dim("Its saints, formulae and teachers: known once the party has been there.");
+    else if (!known_here && library_at(p.loc))
+        dim("The saints its library teaches: known once the party has been there.");
+    if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
+        std::string t; int done[4], nd = 0;
+        for (int k = 0; k < 4; k++) {
+            int s = L->saint[k]; bool dup = false;
+            for (int j = 0; j < nd; j++) if (done[j] == s) dup = true;
+            if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
+            done[nd++] = s;
+            t += (t.empty() ? "" : ";  ") + gamedata.saints[s].name + (party_knows_saint(s) ? "" : " (new)");
+        }
+        ImGui::TextDisabled("Saints taught here:");
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+    }
+    {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
+        if (known_here && p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
+            std::string t;
+            for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
+            ImGui::TextDisabled("Formulae sold here:");
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+        }
+    }
+    if (known_here && p.loc < 92 && ui_teachers_on()) {      /* the teachers it can offer (mods/teachers.c) */
+        TchSource ts[12]; int n = ui_town_teachers(p.loc, ts, 12);
+        std::string t;
+        for (int k = 0; k < n; k++) t += (t.empty() ? "" : ";  ") + std::string(ui_teacher_short(ts[k].src)) + ": " + ui_teacher_skills(ts[k]);
+        if (n) {
+            ImGui::TextDisabled("Teachers to be hired:");
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
+        }
+    }
+    if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
+}
+
 extern "C" void worldmap_draw(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -522,42 +570,7 @@ extern "C" void worldmap_draw(void)
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
-            bool known_here = place_offers_known(p.loc);           /* (ui/libraries.h: been there, or the switch) */
-            if (!known_here && p.loc < 92)
-                ImGui::TextDisabled("Its saints, formulae and teachers: known once the party has been there.");
-            else if (!known_here && library_at(p.loc))
-                ImGui::TextDisabled("The saints its library teaches: known once the party has been there.");
-            if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
-                std::string t; int done[4], nd = 0;
-                for (int k = 0; k < 4; k++) {
-                    int s = L->saint[k]; bool dup = false;
-                    for (int j = 0; j < nd; j++) if (done[j] == s) dup = true;
-                    if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
-                    done[nd++] = s;
-                    t += (t.empty() ? "" : ";  ") + gamedata.saints[s].name + (party_knows_saint(s) ? "" : " (new)");
-                }
-                ImGui::TextDisabled("Saints taught here:");
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-            }
-            {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
-                if (known_here && p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
-                    std::string t;
-                    for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
-                    ImGui::TextDisabled("Formulae sold here:");
-                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-                }
-            }
-            if (known_here && p.loc < 92 && ui_teachers_on()) {      /* the teachers it can offer (mods/teachers.c) */
-                TchSource ts[12]; int n = ui_town_teachers(p.loc, ts, 12);
-                std::string t;
-                for (int k = 0; k < n; k++) t += (t.empty() ? "" : ";  ") + std::string(ui_teacher_short(ts[k].src)) + ": " + ui_teacher_skills(ts[k]);
-                if (n) {
-                    ImGui::TextDisabled("Teachers to be hired:");
-                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-                }
-            }
-            if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
+            place_details(p, ImGui::GetFontSize() * 22);
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
             if (on_map) ImGui::TextDisabled("Double-click to travel there");
@@ -569,7 +582,8 @@ extern "C" void worldmap_draw(void)
     // panel: search, layers, the selected place
     ImGui::SetNextWindowPos(ImVec2(o.x + 14, o.y + 14));
     ImGui::SetNextWindowBgAlpha(0.97f);                    /* (the map must not show through the words) */
-    ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, sz.y - 28));   /* (no taller than the window: it scrolls then) */
+    ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     if (ImGui::GetFrameCount() - wm_panel_frame > 1) wm_panel_run = 0;
     wm_panel_run++; wm_panel_frame = ImGui::GetFrameCount();
     wm_panel_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - o.x;
@@ -739,11 +753,12 @@ extern "C" void worldmap_draw(void)
             ImGui::Separator();
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            if (on_map) {
+            if (on_map) {                                    /* (the journey first: what the panel is mostly opened for) */
                 int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
                 if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
                 if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
             } else ImGui::TextDisabled("Auto-travel works from the travel map.");
+            place_details(p, 320 * pk);
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str()); ImGui::PopTextWrapPos(); }
             break;
