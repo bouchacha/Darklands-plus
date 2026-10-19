@@ -47,9 +47,11 @@ static int topmost(int x, int y)
     return m;
 }
 
-/* a foe whose hot spot (head to waist, 8 pixels wide) is near (x, y): a little beside it or at its
-   feet - where a click meant for the foe lands as often as not, and the game took it for the ground
-   beside it (the member walked there). The centre of the nearest such spot, or 0. */
+/* a foe whose hot spot is near (x, y): for a human figure 8 pixels wide and 25 high, from the
+   feet up (s014 14f7; a figure is about 27 high, its arms and weapon reach beyond), so a click a
+   little beside the figure, on the top of its head or at its feet - where a click meant for the
+   foe lands as often as not - was taken for the ground beside it (the member walked there). 1
+   and the centre of the nearest such spot, or 0. */
 static int near_foe(int x, int y, int *cx, int *cy)
 {
     int n = (s8)g_rb(D_HOT_N), best = -1; long bd = 1L << 30;
@@ -58,7 +60,7 @@ static int near_foe(int x, int y, int *cx, int *cy)
         if (c < 5 || c >= 13 || g_rb((u16)(D_CBT + c * 0x80 + 0x14)) != 1) continue;
         int x0 = (s16)g_rw((u16)(D_HOT_X0 + 2 * k)), x1 = (s16)g_rw((u16)(D_HOT_X1 + 2 * k));
         int y0 = (s16)g_rw((u16)(D_HOT_Y0 + 2 * k)), y1 = (s16)g_rw((u16)(D_HOT_Y1 + 2 * k));
-        if (x < x0 - 5 || x > x1 + 5 || y < y0 - 3 || y > y1 + 10) continue;
+        if (x < x0 - 5 || x > x1 + 5 || y < y0 - 5 || y > y1 + 6) continue;    /* (beside, the head, the feet) */
         int mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
         long d = (long)(x - mx) * (x - mx) + (long)(y - my) * (y - my);
         if (d < bd) { bd = d; best = k; *cx = mx; *cy = my; }
