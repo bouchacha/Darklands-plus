@@ -213,7 +213,7 @@ int teach_card_option(const char *card, int opt, TchSource *out)
     int loc = (s16)g_rw(GV_cur_loc);
     TchTown t; teach_town_here(&t);
     if (src == TCH_GUILD) {                              /* $Guild00 (sub_s070_19af_0394): by the guild (D_e3d0) */
-        int bit = (s16)g_rw(0xe3d0);
+        int bit = (s16)g_rw(GV_party_x);
         u16 seed = (u16)(t.seed + (s16)g_rw(G_PARTY_SEED));
         memset(out, 0, sizeof *out);
         out->src = TCH_GUILD; out->who = "The guild's masters";

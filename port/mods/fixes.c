@@ -934,13 +934,13 @@ void ui_notice_for(const char *msg, unsigned ms);
 /* why a P (put) with key `key` would overflow the open store, or 0 (also mods/sharedstore.c) */
 const char *storeroom_put_refusal(int key)
 {
-    int m = (s16)g_rw(0x89f2);
+    int m = (s16)g_rw(GV_cache_who);
     if ((key == 'p' || key == 'P') && m >= 0 && m < 5 && !g_rw((u16)(0x37c4 + 2 * m)) && g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) {
         int idx = (s16)g_rw((u16)(0x37e2 + 2 * m)) + (s16)g_rw((u16)(0x37ce + 2 * m));
         if (idx >= 0 && idx < 64) {
             u16 o = G_ITEM(m, idx);
             int id = rw(G_FAR2E38, o) & 0xfff, q = rb(G_FAR2E38, (u16)(o + 3));
-            unsigned n = g_rw(0x89f6); int found = -1;
+            unsigned n = g_rw(GV_cache_n); int found = -1;
             for (unsigned i = 0; i < n && i < 100; i++) {
                 u16 e = (u16)(0x37f4 + 4 * i);
                 if ((rw(G_FAR2E38, e) & 0xfff) == id && rb(G_FAR2E38, (u16)(e + 2)) == q) { found = (int)i; break; }
@@ -1254,7 +1254,7 @@ static void relic_hook(void)                /* $Cathe00 option 8, s056 19c4:0e0a
         u32 p = g_event(i);
         if (p && g_ev(p, G_EV_KIND) == 0x24 && g_ev(p, G_EV_OWNER) == 3 && (g_ev(p, G_EV_TAG) == 10 || g_ev(p, G_EV_TAG) == 3) && g_ev(p, G_EV_LOC) == loc) { found = i; e = p; }
     }
-    int paid = (s16)g_rw(0xee74) > -10;            /* (the card's test: the town's regard) */
+    int paid = (s16)g_rw(GV_cur_rep) > -10;            /* (the card's test: the town's regard) */
     hook_call_original();
     if (found < 0 || !paid || g_event(found) != e) return;
     int item = g_ev(e, G_EV_ITEM);

@@ -54,10 +54,10 @@ extern "C" void tab_editor(void)
         ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("groschen", &g)) g_ww(G_MONEY + 2, (u16)(g < 0 ? 0 : g));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("pfennigs", &p)) g_ww(G_MONEY + 4, (u16)(p < 0 ? 0 : p));
-        int bn = (s16)g_rw(0x9072), fame = (s16)g_rw(GV_party_fame), ps = (s16)g_rw(0x9078);
-        ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(0x9072, (u16)(bn < 0 ? 0 : bn));
+        int bn = (s16)g_rw(GV_party_notes), fame = (s16)g_rw(GV_party_fame), ps = (s16)g_rw(GV_philosophers_stone);
+        ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(GV_party_notes, (u16)(bn < 0 ? 0 : bn));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("fame", &fame)) g_ww(GV_party_fame, (u16)fame);
-        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(0x9078, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(GV_philosophers_stone, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
         int loc = (s16)g_rw(G_CUR_LOC);
         u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
         if (lr) {

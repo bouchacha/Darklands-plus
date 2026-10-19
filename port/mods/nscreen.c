@@ -151,7 +151,7 @@ int ns_hot_key(int k)
 {
     switch (k) {
     case 0x1000: case 0x1800: case 0x1900: case 0x1f00: case 0x2000: case 0x2100: case 0x2600: case 0x2e00: case 0x3200:
-        if (getenv("DL_KEYS_LOG")) fprintf(stderr, "keys: %04x to the game's hot keys (save %d, load %d)\n", k, g_rb(0x9920), g_rb(0x9934));
+        if (getenv("DL_KEYS_LOG")) fprintf(stderr, "keys: %04x to the game's hot keys (save %d, load %d)\n", k, g_rb(GV_font_flag_a), g_rb(GV_font_flag_b));
         bios_kbd_inject((u16)k);
         ns_call(GF_hot_keys, 0);
         return 1;

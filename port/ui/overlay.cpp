@@ -1059,7 +1059,7 @@ extern "C" int overlay_click_up(int x, int y) { (void)x; (void)y; int t = click_
 static void draw_creation_guide(void)
 {
     if (!ui_creation_guide || config_get_int("original", 0) || !hdart_on_screen("CHARGEN")) return;
-    int st = (s16)g_rw(0x8c1e);
+    int st = (s16)g_rw(GV_create_state);
     static const char *T[5] = {
         "Making a character: name and sex first, then the family background, the attributes, and "
         "one profession after another, five years each, until you begin adventuring. Older characters "

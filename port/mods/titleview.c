@@ -58,7 +58,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
     TitleModel *m = &title_model;
     ns_unwinding = 0;
     ns_call(-1, 0x047c, 0x0568, 0);                                  /* (the original's setup) */
-    g_ww(0xe7a2, g_rw(GV_back_win_font)); g_ww(0xe7a0, g_rw(GV_screen_win_font));
+    g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
     ns_call(GF_title_setup, 0);
     ns_call(GF_title_redraw, 0);
     ns_call(-1, 0x047c, 0x056f, 0);

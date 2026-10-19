@@ -177,7 +177,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     ns_unwinding = 0;
     fixes_lodging(1);
     /* the original's setup (1462:0082) */
-    g_wb(0x9920, 2); g_wb(0x9934, 2);                                          /* Save, Load: off */
+    g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);                                          /* Save, Load: off */
     g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
     g_ww(0x9c3d, (u16)ns_call_ptr(VECSEG, 0x18f1, 1, 5));
     ns_call(-1, 0x047c, 0x1320, 4, 6, 0, 0, 0);
