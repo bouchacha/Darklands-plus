@@ -315,7 +315,7 @@ extern "C" void partypanel_draw(void)
             for (const Eff &x : eff) {
                 if (x.m != m || x.kind == 0x43) continue;            /* (not a companion's stay) */
                 if (x.amount >= 0) up = true;
-                char t[24]; if (x.left < 48) snprintf(t, sizeof t, "%ld h", x.left); else snprintf(t, sizeof t, "%ld days", (x.left + 12) / 24);
+                char t[24]; if (x.left < 48) snprintf(t, sizeof t, "%ld hour%s", x.left, x.left == 1 ? "" : "s"); else snprintf(t, sizeof t, "%ld days", (x.left + 12) / 24);
                 tip += "\n" + x.what + " (" + t + ")";
             }
             if (!tip.empty()) {
