@@ -1,38 +1,53 @@
 # Darklands+
 
-**Darklands (MicroProse, 1992) running natively on Windows, without DOSBox, with the improvements players have wanted for thirty years. Every one of them can be switched off.**
+**A free, unofficial update for *Darklands* (MicroProse, 1992), the role-playing game of 15th-century Germany.** Darklands+ runs your own copy of the game natively on modern Windows, without DOSBox. It keeps the game as it was and adds what it always lacked: screens made for the mouse, the information the game kept hidden, less busywork, and fixes for its bugs. Every change can be switched off.
 
-<img width="1600" height="900" alt="A card drawn by Darklands+: crisp text, chances of success, the party and the town beside it" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/1-cards-and-margins.png" />
-<img width="1600" height="900" alt="Go to: every place in a city, with what it teaches, sells and offers" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/2-city-go-to.png" />
-<img width="1600" height="900" alt="A shop rebuilt for the mouse" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/3-shop.png" />
-<img width="1600" height="900" alt="The character sheet: skills, with the whole party compared" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/4-character-sheet.png" />
-<img width="1600" height="900" alt="A battle with its log and the enemies' state" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/5-battle-log.png" />
-<img width="1600" height="900" alt="The world map: find a place, see how far it is, travel there" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/6-world-map-find.jpg" />
-<img width="1600" height="900" alt="Making a character: every profession at once, with what it needs and teaches" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/7-character-creation.png" />
+> Darklands+ is not a remake and does not contain the game. You need your own copy of Darklands from GOG or Steam.
 
-## Play
+<p>
+<img width="49%" alt="A card drawn by Darklands+: crisp text, chances of success, the party and the town beside it" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/1-cards-and-margins.png" />
+<img width="49%" alt="A battle with its log and the enemies' state" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/5-battle-log.png" />
+<img width="49%" alt="The character sheet: skills, with the whole party compared" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/4-character-sheet.png" />
+<img width="49%" alt="The world map: find a place, see how far it is, travel there" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/6-world-map-find.jpg" />
+<img width="49%" alt="Go to: every place in a city, with what it teaches, sells and offers" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/2-city-go-to.png" />
+<img width="49%" alt="A shop rebuilt for the mouse" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/3-shop.png" />
+</p>
+
+## What is Darklands?
+
+An open-world role-playing game from 1992. You lead a party of up to five through the Holy Roman Empire around 1400: real cities, real saints, alchemy that follows medieval beliefs, and battles in real time with pause. There is no single plot; you make your name with quests, robber knights, witches' Sabbats and the occasional dragon. It is loved for its depth and notorious for its clumsy interface, hidden rules and bugs. Darklands+ is about the second part.
+
+## What Darklands+ changes
+
+- **It runs on today's PCs.** Natively on Windows 10 and 11, in a window of any size or full screen, with crisp text up to 4K. The Roland MT-32 music is built in (with your own ROM files), and game controllers and the Steam Deck work.
+- **Screens made for the mouse.** The cards, shops, character sheet, loot, inn, alchemy, saints, saving and loading are drawn anew: click an option, drag an item, point at anything for an explanation.
+- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what a foe's armour stops.
+- **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and the world map travels to any place you pick.
+- **Quests you can follow.** Each task has a title, a deadline and a marker on the map. A journal keeps every text the game has shown you, a record of each town, and your own notes.
+- **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on a foe to attack it, and a map of the level.
+- **Bugs fixed.** 38 fixes for bugs of the original, and 39 saints that now do what their descriptions say.
+- **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
+
+**You decide how much changes.** F12 > Settings > Helpers offers presets, from *Buggy Purist* (the original game exactly, bugs and all) and *Purist* (its bugs fixed) to *Easy*, and every switch one by one.
+
+## Install
 
 1. You need your own **Darklands 483.07** (GOG or Steam) and **64-bit Windows 10 or 11**. On Linux and Steam Deck it runs through Proton or Wine.
 2. Download the zip from **[Releases](https://github.com/bouchacha/Darklands-plus/releases/latest)**, unpack it anywhere and run `darklands.exe`.
-3. It finds your GOG or Steam installation by itself, or asks for the folder once. The first start takes a minute or two. Your saved games stay where they are.
+3. It finds your GOG or Steam installation by itself, or asks for the folder once. The first start takes a minute or two while Darklands+ prepares the game; after that it starts at once.
 
-The download contains nothing from the game itself.
+## Questions
 
-## What it adds
-
-- **Modern screens** for the cards, shops, the character sheet, loot, the inn, alchemy, saints, saving and loading: crisp text at any window size, made for the mouse.
-- **Less busywork:** the party's best member takes the tests the game puts to the leader, one pack serves the whole party, Go to walks you through a town, and the world map travels for you.
-- **What the game kept hidden:** chances of success on card options, why an option is greyed, what saints and potions really do, and quests with deadlines and markers on the map.
-- **Battles:** a log of every blow, fast-forward, better pathfinding, a click on a foe to attack it, enemy info and a map of the level.
-- **38 fixes** for bugs of the original, and 39 saints that now do what their descriptions say.
-- **The Roland MT-32 built in** (with your own ROM files), controllers and the Steam Deck, and mods. Two mods come with it: real battle sounds and sixteen new encounters.
-
-F12 > Settings > Helpers has **presets**, from *Buggy Purist* (the 1992 game exactly) and *Purist* (its bugs fixed) to *Easy*. The full list is in the [release notes](docs/release_notes.md); [CHANGELOG.md](CHANGELOG.md) has what is new.
+- **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra figures Darklands+ offers).
+- **My antivirus complains.** On the first start Darklands+ builds the game module, `darklands_game.dll`, from your own `DARKLAND.EXE`; some antivirus programs distrust files that were just compiled. Allow it.
+- **Mac?** Not natively. Wine-based tools may work but are untested.
+- **Something went wrong.** `darklands_port.log` in the game folder says why a start failed. See also `Darklands+ README.txt` in the download.
+- **Where do I report bugs?** There is no support (see below). The full list of features is in the [release notes](docs/release_notes.md), and [CHANGELOG.md](CHANGELOG.md) says what changed.
 
 ## Status
 
 Finished and handed over. The author is not a programmer and will not maintain the project or answer bug reports. The code was written by an AI (Anthropic's Claude) from the author's direction and play-testing, and anyone is free to fork it and carry it on. See [LICENSE](LICENSE).
 
-## Under the hood
+## For developers
 
 Darklands+ rests on a matching decompilation of Darklands 483.07: 382 of the game's source files are C that Microsoft C 6.00A compiles back to the original bytes, and `port/` recompiles the whole game to run natively. This repository holds no game files and no code generated from them. Start with [docs/DEVELOPERS.md](docs/DEVELOPERS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/MODDING.md](docs/MODDING.md) and [docs/MERGING.md](docs/MERGING.md).
