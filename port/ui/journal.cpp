@@ -668,8 +668,8 @@ static void barter_list_hook(void)
     Shop sh;
     sh.seen = true;
     sh.shop = (s16)g_rw(GV_barter_shop); sh.shopq = (s16)g_rw(GV_barter_quality);
-    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(0x886a) << 16);
-    char nm[48]; g_str(g_rw(0x869e), g_rw(GV_barter_name), nm, sizeof nm);
+    sh.cats = g_rw(GV_barter_cats) | ((u32)g_rw(GV_barter_cats + 2) << 16);
+    char nm[48]; g_str(g_rw(GV_barter_name + 2), g_rw(GV_barter_name), nm, sizeof nm);   /* (a far pointer: offset, segment) */
     sh.name = game_text(nm, sizeof nm);
     sh.date = game_date();
     void *snap = eval_snapshot();

@@ -843,3 +843,8 @@
 #define path_formation           D_e0a2               /* char: pathfinding for a formation (its collision rules) */
 #define path_target_only         D_d697               /* char: ignore combatants other than the target */
 #define pause_depth              D_07d3               /* char: pauses in force (orders being given ...) */
+#define battle_view_col          D_c866               /* char: the battle view's origin, column (a step: 32 pixels sideways; vec_1d3d clamps it to 1..0x27) */
+#define battle_view_row          D_c886               /* char: the battle view's origin, row (a step: 16 pixels across and 16 up) */
+#define battle_follow            D_11b1               /* char: the view follows the member being given orders (1), jumping near an edge */
+#define battle_end_at            D_da45               /* unsigned: the combat clock's tick at which a decided battle ends */
+#define battle_tick              D_e092               /* unsigned: the battle's own clock, back at 0 in a new battle */

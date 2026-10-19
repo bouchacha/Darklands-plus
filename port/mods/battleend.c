@@ -51,10 +51,10 @@ static void over_hook(void)
     hook_call_original();
     if (!on() || AX) return;
     int res = (s16)g_rw(GV_battle_result);
-    u16 now = g_rw(GV_combat_clock), until = g_rw(0xda45);
+    u16 now = g_rw(GV_combat_clock), until = g_rw(GV_battle_end_at);
     int hold = res == 0 ? HOLD_WON : res == 3 || res == 5 ? HOLD_LOST : -1;
     if (hold > 0 && (s16)(until - now) > hold) {
-        g_ww(0xda45, (u16)(now + hold));
+        g_ww(GV_battle_end_at, (u16)(now + hold));
         fprintf(stderr, "battle end: held %d ticks, not %d\n", hold, (s16)(until - now));
     }
 }

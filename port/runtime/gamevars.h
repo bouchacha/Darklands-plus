@@ -249,6 +249,11 @@
 #define GV_path_formation               0xe0a2    /* char: pathfinding for a formation (its collision rules) */
 #define GV_path_target_only             0xd697    /* char: ignore combatants other than the target */
 #define GV_pause_depth                  0x07d3    /* char: pauses in force (orders being given ...) */
+#define GV_battle_view_col              0xc866    /* char: the battle view's origin, column (a step: 32 pixels sideways; vec_1d3d clamps it to 1..0x27) */
+#define GV_battle_view_row              0xc886    /* char: the battle view's origin, row (a step: 16 pixels across and 16 up) */
+#define GV_battle_follow                0x11b1    /* char: the view follows the member being given orders (1), jumping near an edge */
+#define GV_battle_end_at                0xda45    /* unsigned: the combat clock's tick at which a decided battle ends */
+#define GV_battle_tick                  0xe092    /* unsigned: the battle's own clock, back at 0 in a new battle */
 /* card.h */
 #define GV_next_card                    0xe48a    /* card the engine runs next (the script sets it) */
 #define GV_card_name                    0xe3d4    /* name buffer of the current card ("$CESde00") */

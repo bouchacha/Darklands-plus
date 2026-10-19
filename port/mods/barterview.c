@@ -236,7 +236,7 @@ void barterview_run(void)
     g_ww(GV_barter_cats, cats_lo); g_ww(GV_barter_cats + 2, cats_hi);
     s_int(GV_barter_shop, shop);
     if (shop < 0 || shop >= 9) s_int(GV_barter_quality, 25);
-    else { u16 co = g_rw(GV_city_rec), cs = g_rw(0x9787);                /* city_rec */ s_int(GV_barter_quality, cs ? (s8)rb(cs, (u16)(co + 0x62 + shop)) : 25); }
+    else { u16 co = g_rw(GV_city_rec), cs = g_rw(GV_city_rec + 2);        /* city_rec (offset, segment) */ s_int(GV_barter_quality, cs ? (s8)rb(cs, (u16)(co + 0x62 + shop)) : 25); }
     if (shop == -2) s_int(GV_barter_quality, 10);
     for (int r = 0; r < 5; r++) { s_int((u16)(GV_barter_side + 2 * r), 1); s_int((u16)(GV_barter_item_count + 2 * r), 0); s_int((u16)(GV_barter_item_top + 2 * r), 0); s_int((u16)(GV_barter_item_cur + 2 * r), 0); }
     s_int(GV_barter_nwares, 0); s_int(GV_barter_ware_top, 0); s_int(GV_barter_ware_cur, 0);

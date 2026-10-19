@@ -40,10 +40,10 @@ static void pan_apply(void)
     if (!pan_h && !pan_v) return;
     int h = pan_h, v = pan_v; pan_h = pan_v = 0;
     if (game_mode() != GM_BATTLE) return;
-    u8 c = g_rb(0xc866), r = g_rb(0xc886);
-    g_wb(0xc866, (u8)((s8)c + h)); g_wb(0xc886, (u8)((s8)r + v));
+    u8 c = g_rb(GV_battle_view_col), r = g_rb(GV_battle_view_row);
+    g_wb(GV_battle_view_col, (u8)((s8)c + h)); g_wb(GV_battle_view_row, (u8)((s8)r + v));
     ns_call(16, 0x1ef8, 0x0b92, 0);
-    if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: pan %d across, %d down: origin %d,%d\n", h, v, (s8)g_rb(0xc866), (s8)g_rb(0xc886));
+    if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: pan %d across, %d down: origin %d,%d\n", h, v, (s8)g_rb(GV_battle_view_col), (s8)g_rb(GV_battle_view_row));
 }
 
 /* 1..5 in a battle (s016 1ef8:0a2c (i): the member chosen to be given orders) sets the view to follow
@@ -64,13 +64,13 @@ static void select_hook(void)
     if (twice) { center_req = i; return; }
     int n = (s8)g_rb(GV_hotspot_count), seen = 0;
     for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) seen = 1;
-    if (seen) g_wb(0x11b1, 0);                               /* (in sight: no following, no jump) */
+    if (seen) g_wb(GV_battle_follow, 0);                               /* (in sight: no following, no jump) */
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
 {
     pan_apply();
-    if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(0x11b1, 1); } }
+    if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 1); } }
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
     static u32 last_step, edge_since, held_since;
     static int was_edge;
