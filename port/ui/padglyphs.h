@@ -20,7 +20,7 @@ enum PadButton {
     PB_LS,       /* the left stick pressed: F1 */
     PB_RT,       /* the right trigger held: Ctrl */
     PB_LSTICK,   /* the left stick: the pointer */
-    PB_RSTICK,   /* the right stick: the wheel */
+    PB_RSTICK,   /* the right stick: the wheel (pressed: Z, fast forward in a battle) */
     PB_DPAD,     /* the arrow keys */
     PB_COUNT
 };

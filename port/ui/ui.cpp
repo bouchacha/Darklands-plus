@@ -840,7 +840,7 @@ static void help_window(void)
                 (void)x0; ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d);
             };
             prow("{LSTICK}", "the pointer (the left trigger held: slowly)");
-            prow("{RSTICK}", "the mouse wheel");
+            prow("{RSTICK}", "the mouse wheel; pressed: Z (fast forward in a battle)");
             prow("{A} {B}", "click / right click (the menu bar)");
             prow("{X} {Y}", "Enter / Esc");
             prow("{DPAD}", "the arrow keys");

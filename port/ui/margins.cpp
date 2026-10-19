@@ -440,14 +440,16 @@ static void battle_panel(float width, float fs)
     for (int k = 0; k < n && k < 40; k++) { int m = g_rb((u16)(GV_hotspot_cbt + k)); if (m < 13) seen[m] = true; }
     float bw = width - fs * 1.6f, bh = fs * 0.32f;
     if (config_get_int("battle.fast_key", 1) && !config_get_int("original", 0) && game_mode() == GM_BATTLE) {   /* fast forward (Z, mods/pathfix.c): on the field (not over a sheet or the loot) */
-        const char *t = battle_fast ? "Back to the chosen speed (Z)" : "Fast forward (Z)";
+        const bool padp = ui_pad_prompts();               /* (a controller in use: its right stick pressed is Z) */
+        const char *t = battle_fast ? (padp ? "Back to the chosen speed" : "Back to the chosen speed (Z)") : (padp ? "Fast forward" : "Fast forward (Z)");
         ImDrawList *dl = ImGui::GetWindowDrawList();
         ImVec2 p = ImGui::GetCursorScreenPos(), ts = ImGui::CalcTextSize(t), mp = ImGui::GetIO().MousePos;
-        float pad = ImGui::GetTextLineHeight() * 0.3f;
-        ImVec2 a = p, b(p.x + ts.x + pad * 2, p.y + ts.y + pad);
+        float pad = ImGui::GetTextLineHeight() * 0.3f, gh = ts.y * 1.05f, gw = padp ? ui_pad_glyph_width(gh, PB_RSTICK) + pad : 0;
+        ImVec2 a = p, b(p.x + ts.x + gw + pad * 2, p.y + ts.y + pad);
         bool hov = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
         dl->AddRectFilled(a, b, battle_fast ? IM_COL32(150, 60, 30, 255) : hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), (b.y - a.y) * 0.2f);
-        dl->AddText(ImVec2(a.x + pad, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), t);
+        if (padp) ui_pad_glyph(dl, ImVec2(a.x + pad + (gw - pad) * 0.5f, (a.y + b.y) * 0.5f), gh, PB_RSTICK);
+        dl->AddText(ImVec2(a.x + pad + gw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), t);
         mclick(a, b, [] { battle_fast_set(!battle_fast); });
         ImGui::Dummy(ImVec2(b.x - a.x, b.y - a.y + pad));
     }
