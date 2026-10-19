@@ -29,7 +29,9 @@ STEPS = [
     ('Go to the merchants (native cards)', 'ucmd urand:7; ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),   # (a fixed seed: no street encounter on the way)
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),
-    ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
+    ('a member\'s sheet from the shop', 'at 20 70; click; wait 4; wshot 4_sheet; at 254 15; click; wait 2; at 230 60; wait 1; wshot 4b_skills; '
+     'at 280 15; click; wait 2; at 100 45; wait 1; wshot 4c_saints; at 305 15; click; wait 2; at 100 34; wait 1; wshot 4d_formulae; '
+     'at 228 15; click; wait 1; key Escape; wait 3', [r'sheet: open', r'sheet: closed']),
     ('leave the shop', 'ucmd ufight:99,5; ucmd unspush:5; wait 4', [r'shop: closed']),
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; ucmd uunpause:; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
