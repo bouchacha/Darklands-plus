@@ -41,8 +41,8 @@ extern "C" {
 #include "ui.h"
 #include "money.h"
 extern char game_dir[1024];
-extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[];
-extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE;
+extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[], FONT_COMIC[];
+extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE, FONT_COMIC_SIZE;
 }
 
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
@@ -142,7 +142,7 @@ extern int ui_spell_out;                   /* overlay.cpp: character sheet names
 int ui_sys_cursor;                     /* display.system_cursor: the system pointer stays over the game */
 const char *UI_GAME_FONT_NAMES[UI_GAME_FONTS] = { "EB Garamond (book face)", "Alegreya (calligraphic)", "IM Fell English (old print)",
     "Atkinson Hyperlegible (easiest to read)", "MedievalSharp (medieval hand)", "Fraktur (blackletter, for the brave)",
-    "Grenze Gotisch (gothic, still readable)" };
+    "Grenze Gotisch (gothic, still readable)", "Comic Sans (we are so sorry)" };
 #define UI_DEFAULT_FONT 6                  /* Grenze Gotisch */
 /* the text over and beside the picture (side panels, tooltips, map names, notices): the game
    text's typeface, or the menus' (display.overlay_font_follow) */
@@ -277,8 +277,18 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         ImFontConfig tc; tc.FontDataOwnedByAtlas = false; tc.OversampleH = 2; tc.OversampleV = 2;
         static const ImWchar ranges[] = { 0x20, 0xff, 0 };
         ui_font_text = io.Fonts->AddFontFromMemoryTTF((void *)FONT_MEDIUM, (int)FONT_MEDIUM_SIZE, 34.0f, &tc, ranges);
-        const unsigned char *data[UI_GAME_FONTS] = { FONT_MEDIUM, FONT_ALEGREYA, FONT_FELL, FONT_ATKINSON, FONT_MEDIEVAL, FONT_FRAKTUR, FONT_GRENZE };
-        const unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE };
+        const unsigned char *data[UI_GAME_FONTS] = { FONT_MEDIUM, FONT_ALEGREYA, FONT_FELL, FONT_ATKINSON, FONT_MEDIEVAL, FONT_FRAKTUR, FONT_GRENZE, FONT_COMIC };
+        unsigned int size[UI_GAME_FONTS] = { FONT_MEDIUM_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_ATKINSON_SIZE, FONT_MEDIEVAL_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE, FONT_COMIC_SIZE };
+        {   /* the joke typeface: the real Comic Sans where the system has it (Windows' own, or Linux's
+               msttcorefonts; read from there, never shipped), else Comic Neue (OFL), which comes with
+               Darklands+ and is named so */
+            static unsigned char *comic; static size_t comic_n;
+            const char *wd = getenv("WINDIR"); std::string p1 = std::string(wd ? wd : "C:\\Windows") + "\\Fonts\\comic.ttf";
+            const char *paths[] = { p1.c_str(), "/usr/share/fonts/truetype/msttcorefonts/comic.ttf", "/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS.ttf" };
+            for (const char *pth : paths) if (!comic) { size_t n = 0; void *d = SDL_LoadFile(pth, &n); if (d && n > 1000) { comic = (unsigned char *)d; comic_n = n; } else if (d) SDL_free(d); }
+            if (comic) { data[7] = comic; size[7] = (unsigned int)comic_n; }
+            else UI_GAME_FONT_NAMES[7] = "Comic Neue (Comic Sans, we are so sorry)";
+        }
         ui_font_game[0] = ui_font_text;
         for (int i = 1; i < UI_GAME_FONTS; i++) ui_font_game[i] = io.Fonts->AddFontFromMemoryTTF((void *)data[i], (int)size[i], 34.0f, &tc, ranges);
         if (bake > 44) {      /* big screens: a second, larger set for the game's text in a big window */
@@ -538,7 +548,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::SeparatorText("Made with"); ImGui::PopFont();
     ui_hint("Dear ImGui (MIT licence); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); stb_image, stb_image_write, "
          "stb_vorbis (public domain); SDL2 (zlib licence); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
-         "MedievalSharp and UnifrakturMaguntia (SIL Open Font License 1.1).");
+         "MedievalSharp, UnifrakturMaguntia and Comic Neue (SIL Open Font License 1.1).");
     ui_hint("With thanks to the Darklands community: vvendigo's tools, Merle's and Joel \"Quadko\" McIntyre's documentation "
          "of the file formats, and the Darklands Companion.");
 }

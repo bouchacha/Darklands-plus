@@ -12,5 +12,8 @@ License 1.1 (the OFL*.txt files beside them):
   GrenzeGotisch-Medium.ttf                         Grenze Gotisch, the weight-500 instance of the
                                                    variable font from google/fonts, made with
                                                    fontTools' instancer (OFL-grenze-gotisch.txt)
+  ComicNeue-Bold.ttf                               Comic Neue Bold, as github.com/crozynski/comicneue
+                                                   has it (OFL-comic-neue.txt): the joke typeface
+                                                   where the system has no Comic Sans of its own
 
 The subsets come from the Fontsource packages (npm @fontsource/*), converted from WOFF to TTF.

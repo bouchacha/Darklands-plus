@@ -10,6 +10,8 @@
 - **Tasks:** a place without a name of its own reads "the pagan altar north-west of Hall".
 - **Battles:** a member's sheet opened in a battle keeps the battle's margins (the log and the enemies) instead of the town's. Closing it no longer starts the field scrolling because the pointer rests on the top edge where the Close button was. The margin's list of enemies includes those the log has named even when they are out of view (it said "All down." while foes beyond the view were still fighting).
 
+- **Comic Sans**, as an eighth typeface for the game's text (F12 > Settings > Display). We are so sorry. Windows' own Comic Sans where the system has it, else Comic Neue, which comes with Darklands+.
+
 ## Since 1.0, most important first
 
 Every change can be switched off. **F12 > Settings > Helpers** offers presets: **Buggy Purist** (the game as it was), **Purist** (its bugs fixed), **Purist + interface**, **Semi-Purist**, **Darklands+** and **Easy**, then every switch in one table.
