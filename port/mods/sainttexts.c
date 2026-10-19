@@ -315,13 +315,27 @@ static int speed_bonus(int woods)
     return best;
 }
 static int woods(int t) { return t == 6 || t == 7 || (t >= 12 && t <= 17); }   /* (woods, forests, pinewoods) */
-int sainttexts_step_minutes(int terrain, int minutes)
+u32 plat_ticks_ms(void);
+void sainttexts_speeds(int *any, int *in_woods)
 {
-    if (!sainttexts_on || game_mode() == GM_OTHER) return minutes;
-    int b = speed_bonus(woods(terrain));
+    static int a, w; static u32 at; static int valid;     /* (asked for every tile of a plan: read the events a few times a second) */
+    *any = *in_woods = 0;
+    if (!sainttexts_on || game_mode() == GM_OTHER) { valid = 0; return; }
+    u32 now = plat_ticks_ms();
+    if (!valid || now - at > 250) { a = speed_bonus(0); w = speed_bonus(1); at = now; valid = 1; }
+    *any = a; *in_woods = w;
+}
+int sainttexts_scale(int terrain, int minutes, int any, int in_woods)
+{
+    int b = woods(terrain) && in_woods > any ? in_woods : any;
     if (!b) return minutes;
     int m = minutes * 100 / (100 + b);
     return m < 1 ? 1 : m;
+}
+int sainttexts_step_minutes(int terrain, int minutes)
+{
+    int a, w; sainttexts_speeds(&a, &w);
+    return sainttexts_scale(terrain, minutes, a, w);
 }
 static void step_hook(void)                 /* s030 1462:2ac8 (terrain): the minutes of one step on the map */
 {
