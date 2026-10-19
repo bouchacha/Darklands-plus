@@ -33,7 +33,7 @@ static int chain_ok(int i)
     return i >= 0 && i < nchains;
 }
 
-int hook_point(int sect, unsigned seg, unsigned off) { return find(sect, seg, off); }
+int hook_point(int sect, unsigned seg, unsigned off) { return find(sect, seg, off); }   /* (not in hooks.h: a translator file) */
 
 int hook_install(int sect, unsigned seg, unsigned off, void (*fn)(void))
 {

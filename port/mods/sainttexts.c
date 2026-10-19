@@ -332,6 +332,7 @@ static void step_hook(void)                 /* s030 1462:2ac8 (terrain): the min
 }
 
 /* ---------------------------------------------------------------- on and off */
+int hook_point(int sect, unsigned seg, unsigned off);       /* (runtime/hooks.c: its index, hook_current while it runs) */
 void sainttexts_enable(int on)
 {
     sainttexts_on = on;
