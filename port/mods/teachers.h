@@ -3,7 +3,8 @@
  * A teacher is hired for a week: the cards make it (event_new(-2, town, S, 0x28, skill, fee, 0,
  * 168 h, 0, 0)), the inn uses it ("Train or study", s036): each day a member pays the fee and
  * practice_skill (s039 1462) rolls rand(100) <= (S * 20 / 100) * 33 / 10 for +1. Nothing caps the
- * skill but 99 (the cards' "you cannot progress beyond our teacher's ability" is never shown).
+ * skill but 99, though the cards' text says "you cannot progress beyond" the teacher's ability (a
+ * line never shown) and the physician refuses a party that heals better: the "teachcap" fix caps it.
  * Who brings which, from the cards' scripts (src/c, build/asm), with the town's seed
  * seed = city +0x56 + party seed:
  *   a guild's card by day, "request a meeting with the guild's masters" (option 2; when no dispute
@@ -55,6 +56,12 @@ int teach_card_option(const char *card, int opt, TchSource *out);
 /* the teachers hired in town loc now (begun, not ended): skill, strength, fee, last day */
 typedef struct { int skill, strength, fee, day, month, year; } TchHired;
 int teach_hired(int loc, TchHired *out, int max);
+
+/* the town's teacher of skill now (the first begun, as the inn takes it): ability, or -1 */
+int teach_ability_here(int skill);
+/* lessons stop at the teacher's ability (the "teachcap" fix): member m's skill has reached the
+   teacher's ability a (>= 0) - nothing more to learn from that teacher */
+int teach_capped(int m, int skill, int a);
 
 #ifdef __cplusplus
 }

@@ -98,6 +98,9 @@
  *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
  *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not (below, tomb).
  *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
+ *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour and Firewall last a day (below).
+ *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
+ *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,6 +113,8 @@
 #include "../runtime/config.h"
 #include "fixes.h"
 #include "nscreen.h"
+#include "gamemodel.h"
+#include "teachers.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
@@ -164,6 +169,12 @@ Fix FIXES[] = {
       "Taking the thing an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the thing. Now the party has it when it wins.", 1 },
     { "lordreward", "The lord pays for his tasks",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall: there it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
+    { "armourday", "Armour from potions and saints lasts a day",
+      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings and Firewall's protection against fire never wore off, and the armour added up with every one. They now last about a day, as the manual says, and armour piled up this way in a saved game goes back to normal.", 1 },
+    { "greatpower", "Great Power raises the weapon's quality",
+      "The manual's Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
+    { "teachcap", "Teachers teach only up to their own ability",
+      "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -476,6 +487,8 @@ static void useitem_hook(void)             /* use_item_idx(who, idx): one of a s
 }
 
 static void altar_frame(void);
+static void armourday_frame(void);
+static void greatpower_frame(void);
 void fixes_frame(void)
 {
     colours_frame();
@@ -483,6 +496,8 @@ void fixes_frame(void)
     if (fix_on("potions")) potions_frame();
     if (fix_on("offmap")) offmap_frame();
     if (fix_on("altar")) altar_frame();
+    if (fix_on("armourday")) armourday_frame();
+    if (fix_on("greatpower")) greatpower_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -490,27 +505,97 @@ void fixes_frame(void)
  * potion's inventory index (the original passes idx for Strongedge and Greatpower), +0x1a the
  * member, +0x1e the amount (3..5 for the first two, 14/22/30 for Greatpower), +0x12 the end
  * (hour, day, month, year). The bonus byte is rebuilt from them every frame: it is nothing else
- * (only use_potion writes it), so saves spoilt by the old bug mend themselves. */
-static int ev_running(u16 s, u16 o)
+ * (only use_potion writes it), so saves spoilt by the old bug mend themselves.
+ * A battle closes the cards (run_battle: cards_shutdown, s043 1462:054e, writes the events to
+ * events.tmp and frees them; cards_startup, 1462:078e, reads them back after the battle and its
+ * loot): in between the table holds only what the battle makes, a potion drunk there, and that is
+ * lost with it. So the party's running potions are kept when the cards close and counted until
+ * they open, and those drunk meanwhile are put back into the table when it is read back. */
+typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
+static PotEv pot_kept[64], pot_new[32];
+static int pot_nkept, pot_nnew, cards_down;
+
+static int pot_running(const s16 *end)
 {
-    static const u16 f[4] = { 0x18, 0x16, 0x14, 0x12 }, now[4] = { G_CUR_YEAR, G_CUR_MONTH, G_CUR_DAY, G_CUR_HOUR };
-    for (int k = 0; k < 4; k++) {
-        int e = (s16)rw(s, (u16)(o + f[k])), n = (s16)g_rw(now[k]);
-        if (e != n) return e > n;
-    }
+    static const u16 now[4] = { G_CUR_HOUR, G_CUR_DAY, G_CUR_MONTH, G_CUR_YEAR };
+    for (int k = 3; k >= 0; k--) { int n = (s16)g_rw(now[k]); if (end[k] != n) return end[k] > n; }
     return 0;
 }
+/* the party's running potions in the table now (kind 0x4a, a member, a sane amount) */
+static int pot_table(PotEv *out, int max)
+{
+    int n = 0;
+    for (int i = 0; i < 300 && n < max; i++) {
+        u32 e = ev_ptr(i);
+        if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        PotEv v = { (s16)rw(s, (u16)(o + 0x1a)), (s16)rw(s, o), (s16)rw(s, (u16)(o + 0x1e)), { 0 } };
+        if ((s16)rw(s, (u16)(o + 0x22)) != 0x4a || v.m < 0 || v.m > 4 || v.t < 0 || v.t > 0x7f) continue;
+        for (int k = 0; k < 4; k++) v.end[k] = (s16)rw(s, (u16)(o + 0x12 + 2 * k));
+        if (pot_running(v.end)) out[n++] = v;
+    }
+    return n;
+}
+static int pot_same(const PotEv *a, const PotEv *b) { return a->m == b->m && a->type0 == b->type0 && a->t == b->t && !memcmp(a->end, b->end, sizeof a->end); }
+/* all the party's running potions: the table's, and while the cards are closed those kept */
+static int pot_all(PotEv *out, int max)
+{
+    int n = pot_table(out, max);
+    if (cards_down) {
+        for (int k = 0; k < pot_nnew; k++) {                /* (drunk now: kept for the table's return) */
+            int j = 0; while (j < n && !pot_same(&out[j], &pot_new[k])) j++;
+            if (j == n) pot_new[k].m = -1;                  /* (no longer in the table: gone, or ended) */
+        }
+        int w = 0; for (int k = 0; k < pot_nnew; k++) if (pot_new[k].m >= 0) pot_new[w++] = pot_new[k];
+        pot_nnew = w;
+        for (int j = 0; j < n && pot_nnew < 32; j++) {
+            int k = 0; while (k < pot_nnew && !pot_same(&pot_new[k], &out[j])) k++;
+            if (k == pot_nnew) pot_new[pot_nnew++] = out[j];
+        }
+        for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
+    }
+    return n;
+}
+static int any_potion_fix(void) { return fix_on("potions") || fix_on("armourday") || fix_on("greatpower"); }
+static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e */
+{
+    if (any_potion_fix()) { pot_nkept = pot_table(pot_kept, 64); pot_nnew = 0; }
+    hook_call_original();
+    cards_down = any_potion_fix();
+    if (cards_down && getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
+}
+static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
+{
+    hook_call_original();
+    if (!cards_down) return;
+    u16 ax = AX, dx = DX;
+    cards_down = 0;
+    PotEv t[64]; int n = pot_table(t, 64);
+    for (int k = 0; k < pot_nnew; k++) {                    /* the potions drunk while they were closed: back in */
+        int j = 0; while (j < n && !pot_same(&t[j], &pot_new[k])) j++;
+        if (j < n || !pot_running(pot_new[k].end)) continue;
+        int i = (s16)ns_call(GF_event_new, 10, pot_new[k].m, (s16)g_rw(G_CUR_LOC), 0x63, 0x4a, pot_new[k].type0, pot_new[k].t, 6, 24, 1, 0);
+        u32 e = ev_ptr(i);
+        if (e) for (int f = 0; f < 4; f++) ww((u16)(e >> 16), (u16)((u16)e + 0x12 + 2 * f), (u16)pot_new[k].end[f]);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: member %d's potion (%d, %d) drunk in the battle kept (event %d)\n", pot_new[k].m, pot_new[k].type0, pot_new[k].t, i);
+    }
+    pot_nkept = pot_nnew = 0;
+    AX = ax; DX = dx;
+}
+
+/* a running kind 0x4a event that is Greatpower's: marked 0x6b by greatpower, else (the original's)
+   an inventory index with 14, 22 or 30 */
+static int gp_event(int type0, int t) { return type0 == 0x6b || (type0 >= 0 && type0 < 64 && t > 5); }
 
 void potion_bonus(int m, int *dmg, int *pen)
 {
     *dmg = *pen = 0;
-    for (int i = 0; i < 300; i++) {
-        u32 e = ev_ptr(i);
-        if (!e) continue;
-        u16 s = (u16)(e >> 16), o = (u16)e;
-        if ((s16)rw(s, (u16)(o + 0x22)) != 0x4a || (s16)rw(s, (u16)(o + 0x1a)) != m || !ev_running(s, o)) continue;
-        int type0 = (s16)rw(s, o), t = (s16)rw(s, (u16)(o + 0x1e));
-        if (t < 0 || t > 0x7f) continue;
+    PotEv v[96]; int n = pot_all(v, 96);
+    for (int i = 0; i < n; i++) {
+        int type0 = v[i].type0, t = v[i].t;
+        if (v[i].m != m) continue;
+        if (type0 == 0x6d || type0 == 0x74) continue;      /* (armour and fire: armourday's) */
+        if (gp_event(type0, t) && fix_on("greatpower")) continue;   /* (the weapon's quality: greatpower's) */
         if (type0 == 0x69) *dmg += t;                      /* Deadly Blade */
         else if (t <= 5) *pen += t;                         /* Strongedge */
         else { *dmg += t >> 4; *pen += t & 15; }            /* Greatpower, without the carry */
@@ -530,6 +615,135 @@ static void potions_frame(void)
         if (v == was) continue;
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: member %d bonus %02x -> %02x\n", m, was, v);
         g_wb((u16)(G_MEMBER(m) + 0x34), v);
+    }
+}
+
+/* ---------------------------------------------------------------- armourday, greatpower
+ * armourday: Hardarmor adds 1/2/3 to the member's armour byte (party +0x41, low nibble; hit_damage
+ * adds it to the armour of every hit location), St. Dunstan (s039 165c:2052) 1 and St. Patrick
+ * (165c:5b82) 2, and Firewall sets the fire protection (party +0x10 = combatant +0x24: Arabian
+ * Fire does a tenth of it less, the blows of a foe with bit 7 of +0x55 a twentieth), with no event: all of
+ * it stays for good and the armour adds up (past 15 into the fire bits). The manual: a day.
+ * Here each records a kind 0x4a event of about a day (type0 0x6d armour, 0x74 Firewall), and the
+ * low nibble and the fire protection are rebuilt from the running ones every frame (nothing else
+ * writes them), so armour piled up in a save goes back too.
+ * greatpower: Greatpower adds 14/22/30 to the damage-and-penetration byte (party +0x34, see
+ * potions); the manual: "increases the overall quality of a weapon ... up to a limit of 99".
+ * Here the byte is left alone, the event is marked 0x6b, and in battle the quality a member's
+ * blows count (combatant +0x0d, set by weapon_ready, s014 18bf:0a40, from +0x58, or +0x5a for the
+ * missile weapon: hit_damage's (quality - armour) / 10 is a step of damage each 10 points) is
+ * the weapon's + the running Greatpowers', up to 99. */
+static int ev_new_count(u8 *had)
+{
+    int n = 0;
+    for (int i = 0; i < 300; i++) { had[i] = g_event(i) != 0; n += had[i]; }
+    return n;
+}
+static void record_potion(int who, int type0, int t)
+{
+    ns_call(GF_event_new, 10, who, (s16)g_rw(G_CUR_LOC), 0x63, 0x4a, type0, t, 6, 19 + rand() % 3, 1, 0);
+}
+/* the sum (armour: 0x6d) or the largest (Firewall: 0x74, Greatpower: 0x6b) of member m's running
+   kind 0x4a events of type0 k */
+static int running_potions(int m, int k, int largest)
+{
+    PotEv p[96]; int n = pot_all(p, 96), v = 0;
+    for (int i = 0; i < n; i++) {
+        if (p[i].m != m || (k == 0x6b ? !gp_event(p[i].type0, p[i].t) : p[i].type0 != k)) continue;
+        if (largest) { if (p[i].t > v) v = p[i].t; } else v += p[i].t;
+    }
+    return v;
+}
+
+static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43b2 */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), idx = (s16)rw(SS, (u16)(SP + 6));
+    int code = who >= 0 && who < 5 && idx >= 0 && idx < 64 ? rw(G_FAR2E38, G_ITEM(who, idx)) & 0xfff : -1;
+    int arm = fix_on("armourday") && (code == 0x6d || code == 0x74), gp = fix_on("greatpower") && code == 0x6b;
+    if (!arm && !gp) { hook_call_original(); return; }
+    u16 mb = (u16)G_MEMBER(who);
+    u8 a41 = g_rb((u16)(mb + 0x41)), b34 = g_rb((u16)(mb + 0x34)), had[300];
+    ev_new_count(had);
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    if (code == 0x6d) {
+        int t = (u8)(g_rb((u16)(mb + 0x41)) - a41);
+        g_wb((u16)(mb + 0x41), a41);                    /* (the frame puts the sum of the running ones) */
+        if (t > 0 && t < 16) record_potion(who, 0x6d, t);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Hardarmor +%d for a day\n", who, t);
+    } else if (code == 0x74) {
+        int t = (s8)g_rb((u16)(mb + 0x10));
+        g_wb((u16)(mb + 0x41), a41);                    /* (its +16 armour: fireward's, gone with it) */
+        if (t > 0) record_potion(who, 0x74, t);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Firewall %d for a day\n", who, t);
+    } else {
+        g_wb((u16)(mb + 0x34), b34);                    /* (the byte as it was) */
+        for (int i = 0; i < 300; i++) {                 /* the event it made: marked Greatpower's */
+            u32 e = ev_ptr(i);
+            if (!e || had[i]) continue;
+            u16 s = (u16)(e >> 16), o = (u16)e;
+            if ((s16)rw(s, (u16)(o + 0x22)) == 0x4a && (s16)rw(s, (u16)(o + 0x1a)) == who) {
+                ww(s, o, 0x6b);
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix greatpower: member %d weapon quality +%d for a day\n", who, (s16)rw(s, (u16)(o + 0x1e)));
+            }
+        }
+    }
+    AX = ax; DX = dx;
+}
+
+static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's (2) blessing, (who, x, what) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
+    if (what != 8 || who < 0 || who > 4) { hook_call_original(); return; }
+    u16 mb = (u16)G_MEMBER(who);
+    u8 a41 = g_rb((u16)(mb + 0x41));
+    hook_call_original();
+    u16 ax = AX, dx = DX;                               /* (what it returns) */
+    g_wb((u16)(mb + 0x41), a41);
+    record_potion(who, 0x6d, add);
+    AX = ax; DX = dx;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d blessed with +%d armour for a day\n", who, add);
+}
+static void dunstan_hook(void) { saint_armour(1); }
+static void patrick_hook(void) { saint_armour(2); }
+
+static void armourday_frame(void)
+{
+    if (game_mode() == GM_OTHER) return;
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    if (size < 1 || size > 5) return;
+    for (int m = 0; m < size; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;
+        u16 mb = (u16)G_MEMBER(m);
+        int arm = running_potions(m, 0x6d, 0), fire = running_potions(m, 0x74, 1);
+        if (arm > 15) arm = 15;
+        u8 was = g_rb((u16)(mb + 0x41)), v = (u8)((was & 0xf0) | arm);
+        if (v != was) {
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d armour bonus %d -> %d\n", m, was & 15, arm);
+            g_wb((u16)(mb + 0x41), v);
+        }
+        if ((s8)g_rb((u16)(mb + 0x10)) != fire) {
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d fire protection %d -> %d\n", m, (s8)g_rb((u16)(mb + 0x10)), fire);
+            g_wb((u16)(mb + 0x10), (u8)fire);
+        }
+    }
+}
+
+static int gp_boost[5];                    /* what greatpower_frame added to each member's +0x0d */
+static void greatpower_frame(void)
+{
+    if (game_mode() != GM_BATTLE) { memset(gp_boost, 0, sizeof gp_boost); return; }
+    for (int m = 0; m < 5; m++) {
+        u16 c = (u16)(GV_combatants + 0x80 * m);
+        if (!g_rb(G_MEMBER(m)) || g_rb((u16)(c + 0x14)) != 1) continue;
+        int base = (s8)g_rb((u16)(c + ((g_rb((u16)(c + 0x57)) & 0x80) ? 0x5a : 0x58)));
+        int q = (s8)g_rb((u16)(c + 0x0d)), add = running_potions(m, 0x6b, 0);
+        int want = add ? (base + add > 99 ? 99 : base + add) : base;
+        if (q == want) { gp_boost[m] = want - base; continue; }
+        if (!add && !gp_boost[m]) continue;             /* (not ours to touch) */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix greatpower: member %d blows count quality %d (the weapon's %d)\n", m, want, base);
+        g_wb((u16)(c + 0x0d), (u8)want);
+        gp_boost[m] = want - base;
     }
 }
 
@@ -571,6 +785,7 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
  * + DS:37e2[5] the member's cursor. cache_add stacks without a limit and appends without
  * one: P (put) is refused when it would overflow either. */
 void ui_notice(const char *msg);
+void ui_notice_for(const char *msg, unsigned ms);
 /* why a P (put) with key `key` would overflow the open store, or 0 (also mods/sharedstore.c) */
 const char *storeroom_put_refusal(int key)
 {
@@ -998,6 +1213,30 @@ static void lord_hook(void)                 /* $CityF00 option 0, s050 1a06:026c
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- teachcap
+ * A day at the inn (camp_spend_day, s036 1462:147a): a member set to "Train or study" (activity 6,
+ * the skill in camp_activity_arg) pays the fee of the town's teacher of it (kind 0x28: +0x1e the
+ * fee, +0x20 the ability S) and practice_skill rolls for +1, whatever the skill already is. The
+ * guilds' text "our teacher's ability is $Text2, so you cannot progress beyond that under our
+ * instruction" (never shown) and the physician's refusal of a party that heals better than he
+ * does say what was meant. Here a member whose skill has reached S rests that day instead (no
+ * fee, no lesson), with a word why; the inn's lodging view greys such a teacher. */
+static void teachcap_hook(void)            /* camp_spend_day(mode), s036 1462:147a */
+{
+    for (int i = 0; i < 5; i++) {
+        if (g_rb((u16)(G_MEMBER(i) + G_M_STATUS)) != 1 || (s16)g_rw((u16)(GV_camp_activity + 2 * i)) != 6) continue;
+        int k = (s16)g_rw((u16)(GV_camp_activity_arg + 2 * i)), a = teach_ability_here(k);
+        if (!teach_capped(i, k, a)) continue;
+        g_ww((u16)(GV_camp_activity + 2 * i), 0);       /* rests */
+        char name[32], msg[160];
+        gm_member_name(i, name, sizeof name);
+        snprintf(msg, sizeof msg, "%s has learnt all the teacher of %s can teach (ability %d), and rests instead.", name, gm_skill_name(k), a);
+        ui_notice_for(msg, 6000);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix teachcap: member %d's %s (%d) has reached the teacher's %d\n", i, gm_skill_name(k), (s8)g_rb((u16)(G_MEMBER(i) + G_M_SKILLS + k)), a);
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1007,13 +1246,15 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
-    { 50, 0x1a06, 0x026c, lord_hook } };
+    { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
+    { GF_camp_spend_day, teachcap_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook },
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
-    { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook } };
+    { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook },
+    { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook } };
 
 void fix_enable(int i, int on)
 {
@@ -1045,6 +1286,8 @@ static void copy_check_hook(void)
 void fixes_init(void)
 {
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
+    hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
+    hook_install(GF_cards_startup, cards_up_hook);
     for (int i = 0; i < FIX_COUNT; i++) {
         char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
         fix_enable(i, config_get_int(key, FIXES[i].on));

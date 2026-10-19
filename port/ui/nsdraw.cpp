@@ -229,16 +229,20 @@ std::string ns_potion_effect(int id)
     case 104: return "Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while.";
     case 105: return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: the game ties it to the member, not a blade, so bows, guns, impact weapons and fists gain too (its label says non-impact weapons). Damage only, not the chance to hit;" + day;
     case 106: return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
-    case 107: return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the byte holding both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
+    case 107: if (fix_is_on("greatpower")) return "Used by a member: the weapon in hand counts 14, 22 or 30 points of quality more (grade 1, 2, 3; up to 99), bows, guns and fists too, for about a day (19 to 21 hours). Each 10 points of quality is a step more damage. A second adds to the first.";
+              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the byte holding both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
     case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second adds to the first.";
-    case 109: return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, for good: the game never takes it off, and it adds up.";
+    case 109: if (fix_is_on("armourday")) return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, for about a day (19 to 21 hours). Several add up, to 15.";
+              return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, for good: the game never takes it off, and it adds up.";
     case 110: return "Drunk it yields just one florin: its use is on cards, where an encounter asks for it (to purify, or to make gold).";
     case 111: return "Drunk: Perception up by 9-14, 15-21 or 22-29 (grade 1, 2, 3) above the maximum, for about a day. A second while the first runs adds only what goes beyond it.";
     case 112: return "Drunk: Endurance up by 6-11, 8-13 or 10-15 (grade 1, 2, 3) above the maximum, for about a day. A second while the first runs adds only what goes beyond it.";
     case 113: return "Drunk: Strength up by 6-11, 8-13 or 10-15 (grade 1, 2, 3) above the maximum, for about a day. A second while the first runs adds only what goes beyond it.";
     case 114: return "Drunk: Agility up by 6-11, 8-15 or 10-17 (grade 1, 2, 3) above the maximum, for about a day. A second while the first runs adds only what goes beyond it.";
     case 115: return "Drunk: heals 50, 70 or 90 % of the Strength lost to wounds (grade 1, 2, 3), for good; and Endurance up by 9-14, 15-21 or 22-29 for about 30 hours.";
-    case 116: { return std::string("Drunk: protection against fire: Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armour for good (a bug Darklands+ fixes)."); }
+    case 116: {
+        if (fix_is_on("armourday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3). A second keeps the stronger.";
+        return std::string("Drunk: protection against fire, for good (the game never takes it off): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armour for good (a bug Darklands+ fixes)."); }
     }
     return "";
 }

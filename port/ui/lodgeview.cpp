@@ -14,6 +14,7 @@ extern "C" {
 #include "money.h"
 extern "C" {
 #include "../mods/teachers.h"
+#include "../mods/fixes.h"
 }
 }
 
@@ -107,13 +108,15 @@ extern "C" void lodgeview_draw(void)
             if (a == 6 && can) {                                    /* the teachers: one each */
                 for (int t = 0; t < m.nteach; t++) {
                     const auto &T = m.t[t];
+                    bool capped = teach_capped(m.sel, T.skill, T.val) != 0;     /* (learnt all this one teaches) */
                     bool tc = p.act == 6 && p.skill == T.skill, th = P.over(x0 + 6, ay, x1, ay + 8);
-                    P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
-                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : ink, T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?");
-                    snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
-                    P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : soft, b, x1 - 2);
+                    P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : capped ? IM_COL32(222, 210, 186, 255) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
+                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : capped ? dim : ink, T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?");
+                    if (capped) snprintf(b, sizeof b, "learnt all (%d)", T.val);
+                    else snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
+                    P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : capped ? dim : soft, b, x1 - 2);
                     if (th) hover_act = 100 + t;
-                    if (P.hit(x0 + 6, ay, x1, ay + 8) && !tc) ns_push(LV_TEACH, t, m.sel, 0);
+                    if (P.hit(x0 + 6, ay, x1, ay + 8) && !tc && !capped) ns_push(LV_TEACH, t, m.sel, 0);
                     ay += 8.6f;
                 }
             }
@@ -125,9 +128,14 @@ extern "C" void lodgeview_draw(void)
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
             const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
-            snprintf(b, sizeof b, "A teacher of %s (ability %d): %s a day, paid each day of lessons; about %d lessons in 100 raise the skill by 1. %s's %s is now %d.",
-                     sk, T.val, money_with_total(T.fee).c_str(), teach_chance(T.val),
-                     ns_gtext(p.name).c_str(), sk, T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0);
+            int now = T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0;
+            if (teach_capped(m.sel, T.skill, T.val))
+                snprintf(b, sizeof b, "A teacher of %s (ability %d) teaches up to %d; %s's %s is %d already: nothing more to learn from this one.",
+                         sk, T.val, T.val, ns_gtext(p.name).c_str(), sk, now);
+            else
+                snprintf(b, sizeof b, "A teacher of %s (ability %d): %s a day, paid each day of lessons; about %d lessons in 100 raise the skill by 1%s. %s's %s is now %d.",
+                         sk, T.val, money_with_total(T.fee).c_str(), teach_chance(T.val), fix_is_on("teachcap") ? ", up to the teacher's ability" : "",
+                         ns_gtext(p.name).c_str(), sk, now);
             about = b;
         } else if (m.nteach == 0 && m.mode != 1) about = "No teacher offers lessons in this town now. Teachers are found by asking the masters of a guild, the university, the monks, the physician or the alchemists (a lectern marks the option on their cards; the margin lists what the town offers); they then teach here for a week.";
         if (!about.empty()) P.para(fo, NsDraw::FS_SMALL, RX0 + 4, fmaxf(ay + 2, BY - 22), RX1 - RX0 - 8, soft, about);

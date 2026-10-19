@@ -12,6 +12,7 @@
 extern "C" {
 #include "../mods/gamemodel.h"
 }
+#include "../mods/fixes.h"
 
 bool ui_teachers_on(void) { return config_get_int("assist.teachers", 1) && !config_get_int("original", 0); }
 
@@ -70,8 +71,9 @@ std::string ui_teacher_text(const TchSource &s)
         t += same ? ", for " + money_str(s.fee[0]) + " a member a day." : ", the fee a member a day.";
     }
     char b[200];
-    snprintf(b, sizeof b, "\nAbility %d: about %d lessons in 100 raise the skill by 1, with no limit but 99. A teacher stays a week: "
-                          "at the inn, \"Train or study\", a lesson a day.", s.strength, teach_chance(s.strength));
+    snprintf(b, sizeof b, "\nAbility %d: about %d lessons in 100 raise the skill by 1, %s. A teacher stays a week: "
+                          "at the inn, \"Train or study\", a lesson a day.", s.strength, teach_chance(s.strength),
+             fix_is_on("teachcap") ? "up to the teacher's ability" : "with no limit but 99");
     t += b;
     t += "\n" + std::string(s.ask);
     if (s.cond && *s.cond) t += "\n" + std::string(s.cond);

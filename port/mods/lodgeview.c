@@ -25,6 +25,7 @@
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "lodgeview.h"
+#include "teachers.h"
 
 void plat_sleep_ms(int ms);
 void dl_poll(void);
@@ -246,7 +247,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                 if (a.a >= 0 && a.a < 6 && select_member(a.b)) leave = key(ACT[a.a], a.a == 3);
                 break;
             case LV_TEACH:
-                if (a.a >= 0 && a.a < m->nteach && select_member(a.b)) {
+                if (a.a >= 0 && a.a < m->nteach && !teach_capped(a.b, m->t[a.a].skill, m->t[a.a].val) && select_member(a.b)) {   /* (nothing left to learn from one: not chosen) */
                     for (int t = 0; t < m->nteach; t++) g_ww((u16)(LV_TLIST + 2 * t), (u16)m->t[t].skill);
                     g_ww(LV_TEACHER, (u16)a.a);
                     leave = key(0x1454, 0);

@@ -637,6 +637,8 @@
 #define cache_inv_sel            D_37e2               /* int[5]: the member's list, the cursor's row */
 #define cache_sel                D_37ec               /* int[5]: the store's list, the cursor's row */
 #define camp_spend_day           sub_s036_1462_147a   /* (): spend one day */
+#define camp_activity            D_8a18               /* int[5]: each member's day at the inn or camp (0 relax, 1 regain strength, 2 pray, 3 alchemy, 4 earn, 5 guard, 6 train) */
+#define camp_activity_arg        D_89fe               /* int[5]: its number (6: the skill taught; 4: the wage) */
 #define save_game                sub_s037_1462_2a68   /* (): "Save game" */
 #define save_game_vec            vec_1847             /* overlay call vector of save_game */
 #define char_in_slot             sub_s037_1462_3a8a   /* (p): character index in party slot p */

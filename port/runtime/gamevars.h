@@ -169,6 +169,8 @@
 #define GV_cache_top                    0x37d8    /* int[5]: the store's list, first shown */
 #define GV_cache_inv_sel                0x37e2    /* int[5]: the member's list, the cursor's row */
 #define GV_cache_sel                    0x37ec    /* int[5]: the store's list, the cursor's row */
+#define GV_camp_activity                0x8a18    /* int[5]: each member's day at the inn or camp (0 relax, 1 regain strength, 2 pray, 3 alchemy, 4 earn, 5 guard, 6 train) */
+#define GV_camp_activity_arg            0x89fe    /* int[5]: its number (6: the skill taught; 4: the wage) */
 #define GV_roster_sel                   0xe7da    /* int: the character chosen (charactr.tmp index; -1 none) */
 #define GV_roster_n                     0xe7dc    /* int: characters in charactr.tmp */
 #define GV_roster_portrait              0xe88e    /* seg: the chosen member's portrait (pics\<figure>small.pic) */

@@ -89,7 +89,7 @@ int testcmd_run(const char *cmd, const char *arg)
                 u16 a[2] = { (u16)m, (u16)n };
                 game_call_far(31, 0x1462, 0x43b2, 2, a);
                 g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)n);
-                fprintf(stderr, "potion %x q%d for %d: bonus byte %02x\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)));
+                fprintf(stderr, "potion %x q%d for %d: bonus byte %02x, armour byte %02x, fire %d\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)), g_rb((u16)(G_MEMBER(m) + 0x41)), (s8)g_rb((u16)(G_MEMBER(m) + 0x10)));
             }
         }
         else if (!strcmp(cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
@@ -127,6 +127,11 @@ int testcmd_run(const char *cmd, const char *arg)
             while (h >= 24) { h -= 24; if (++d > D[mo]) { d = 1; if (++mo >= 12) { mo = 0; y++; } } }
             g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
             fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
+        }
+        else if (!strcmp(cmd, "uteach")) {             /* test: a teacher of skill k (ability S, fee f) hired here for a week (as the cards make one) */
+            int k = 0, S = 30, fee = 50; sscanf(arg, "%d,%d,%d", &k, &S, &fee);
+            u16 a[10] = { 0xfffe, g_rw(GV_cur_loc), (u16)S, 0x28, (u16)k, (u16)fee, 0, 168, 0, 0 };
+            fprintf(stderr, "teacher of skill %d (ability %d, fee %d) at %d: event %d\n", k, S, fee, (s16)g_rw(GV_cur_loc), game_call_far(GF_event_new, 10, a));
         }
         else if (!strcmp(cmd, "upoke")) {               /* debug: byte at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, v = 0; sscanf(arg, "%x,%x,%x", &sg, &of, &v);
@@ -219,9 +224,10 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ucbt")) {               /* test: the battle's combatants and what the pointer is on */
             fprintf(stderr, "cbt target %d\n", (s16)g_rw(0xd845));
             for (int i = 0; i < 13; i++) { u16 b = (u16)(0x9c55 + i * 0x80); char n[26]; g_str(G_DGROUP, (u16)(b + 0x25), n, sizeof n);
-                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d to %d,%d\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
+                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d to %d,%d q %d (%d/%d) arm %02x\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
                         (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
-                        g_rw((u16)(b + 0x10)), (s8)g_rb((u16)(b + 0x4a)), g_rb((u16)(GV_cbt_action + i)), g_rb((u16)(GV_cbt_moving + i)), (s16)g_rw((u16)(b + 8)), (s16)g_rw((u16)(b + 10))); }
+                        g_rw((u16)(b + 0x10)), (s8)g_rb((u16)(b + 0x4a)), g_rb((u16)(GV_cbt_action + i)), g_rb((u16)(GV_cbt_moving + i)), (s16)g_rw((u16)(b + 8)), (s16)g_rw((u16)(b + 10)),
+                        (s8)g_rb((u16)(b + 0x0d)), (s8)g_rb((u16)(b + 0x58)), (s8)g_rb((u16)(b + 0x5a)), g_rb((u16)(b + 0x55))); }
         }
         else if (!strcmp(cmd, "uparty")) {             /* test: End/Str of each member, battle pause flag */
             fprintf(stderr, "party %u ms paused %d mode %d:", plat_ticks_ms(), g_rb(0x07d3), game_mode());

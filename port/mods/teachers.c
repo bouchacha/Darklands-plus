@@ -6,6 +6,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "gamemodel.h"
+#include "fixes.h"
 #include "teachers.h"
 
 enum { SK_EDGED = 0, SK_IMPACT = 1, SK_THROWN = 4, SK_BOWS = 5, SK_MISSILE = 6, SK_ALCHEMY = 7, SK_RELIGION = 8,
@@ -229,4 +230,18 @@ int teach_card_option(const char *card, int opt, TchSource *out)
     int n = teach_town(loc, &t, all, 12);
     for (int k = 0; k < n; k++) if (all[k].src == src) { *out = all[k]; return 1; }
     return 0;
+}
+
+int teach_ability_here(int skill)
+{
+    int i = event_at(0x28, (s16)g_rw(GV_cur_loc), skill);
+    if (i < 0) return -1;
+    u32 e = g_event(i);
+    return (s16)rw((u16)(e >> 16), (u16)((u16)e + 0x20));
+}
+
+int teach_capped(int m, int skill, int a)
+{
+    if (a < 0 || m < 0 || m > 4 || skill < 0 || skill >= 19 || !fix_is_on("teachcap")) return 0;
+    return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + skill)) >= a;
 }

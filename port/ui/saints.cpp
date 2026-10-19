@@ -14,6 +14,7 @@
 #include "gamedata.h"
 #include "libraries.h"
 #include "effects.h"
+#include "../mods/fixes.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -65,10 +66,16 @@ std::vector<Eff> effects_now(int size)
         if (kind == 0x48 && k >= 0 && k < 7) snprintf(b, sizeof b, "%+d %s", t, ATTRS[k]);
         else if (kind == 0x49 && k >= 0 && k < 19) snprintf(b, sizeof b, "%+d %s", t, SKILLS[k]);
         else if (kind == 0x4a) {
-            int item = k == 0x69 ? 0x69 : t <= 5 ? 0x6a : 0x6b;
+            /* +0: 0x69 Deadly Blade; 0x6d armour (Hardarmor, or St. Dunstan's or St. Patrick's: armourday);
+               0x74 Firewall (armourday); 0x6b Greatpower marked by greatpower; else an inventory index:
+               Strongedge (3..5) or Greatpower (14/22/30) */
+            int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
             if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
             else if (item == 0x6a) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t);
+            else if (item == 0x6d) snprintf(b, sizeof b, "%+d armour", t);
+            else if (item == 0x74) snprintf(b, sizeof b, "%s: fire %d less", n.c_str(), t / 10);
+            else if (fix_is_on("greatpower")) snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t);
             else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);
             else snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15);
         } else continue;
