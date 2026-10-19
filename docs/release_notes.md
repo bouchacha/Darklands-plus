@@ -7,7 +7,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 **New in 1.2**
 
 - **A new start screen** in the game's own art: **Continue** loads your newest save in one click.
-- **The intro** plays whole; a click goes on to the lady's welcome, a second to the title (or show only the welcome, or nothing).
+- **The intro** plays whole; a click goes on to the lady's welcome (the gargoyles' music stops for her words), a second to the title (or show only the welcome, or nothing).
 - **Most of the game's screens are redrawn** for the mouse and today's screens (each can be switched off): the shops, the character sheet, the loot, the store room, the inn and camping, alchemy, calling on a saint, Party Info, the marching order, Save and Load, Enemy Info and the menus.
 - **Making a character** fills the screen: all 37 professions at once by kind, with what each needs, what your character lacks for it, what it leads to and what it teaches; the skill step shows each skill's room.
 - **Choosing the party:** each member's figure and numbers, and the party at its best in each skill, the gaps in red.

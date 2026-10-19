@@ -17,7 +17,9 @@
  * the key still waiting. So a key ended the opening only when the animation playing had shown
  * what was already read (most of it). Here 04fc, at a key, moves the head to the tail: what is
  * read counts as shown. The last scene alone: every animation but opening8 and 9 is passed over
- * (their music cues still follow one another, so opening8 and 9 get their own).
+ * (their music cues still follow one another, so opening8 and 9 get their own). The opening's music
+ * is one piece (47) timed to the animations, so it is stopped at the first animation passed over:
+ * else the gargoyles' part went on under the lady's scene (her words are the Sound Blaster's).
  *
  * The speech: with a Sound Blaster (CONFIG.DRK, as the GOG release has it) the main loop loads
  * OPENDARK.DGT into a buffer and gives it to the sound driver, and cues 0x34/0x35 play the lady's
@@ -34,11 +36,14 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "nscreen.h"
+#define VECSEG ((u16)(LOADSEG + 0x9c0))   /* the overlay call vectors: 18f1 the sound driver's (sound_play) */
 
 #define D_QUICK 0x0bf2          /* int: 'Q' on the command line */
 #define PAN_HEAD 0xa716         /* unsigned long: the next cel to show (the timer advances it) */
 #define PAN_TAIL 0xa71a         /* unsigned long: the end of the last cel read */
 static int set_by_us, end_only, to_welcome;   /* to_welcome: a key before the lady's scene: on to it */
+static int music_cut;           /* the opening's piece stopped for the lady's scene */
 static char cur_pan[16];
 static int welcome_pan(const char *n) { return !strcmp(n, "opening8") || !strcmp(n, "opening9"); }
 int opening_playing;            /* (platform_sdl.c: a click then ends it, as a key) */
@@ -67,7 +72,13 @@ static void pan_hook(void)                      /* root 030b:0004 (char *name): 
     snprintf(cur_pan, sizeof cur_pan, "%s", name);
     int pass = opening_playing && (end_only || to_welcome) && !welcome_pan(name);
     if (opening_playing) fprintf(stderr, "opening: %s.pan%s\n", name, pass ? " passed over" : "");
-    if (pass) { hook_return_far(0); return; }   /* (its music cue was given: the next follows) */
+    if (pass) {                                 /* (its music cue was given: the next follows) */
+        /* the opening is one piece of music (47, at opening2; the later cues 48-53 are settings
+           and the lady's words), timed to the animations: passed over, the gargoyles' part would
+           go on under the lady's scene. It is stopped (1: fading) before her cues. */
+        if (!music_cut) { ns_call_ptr(VECSEG, 0x18f1, 1, 1); music_cut = 1; fprintf(stderr, "opening: its music stopped for the lady's scene\n"); }
+        hook_return_far(0); return;
+    }
     if (opening_playing && to_welcome == 1 && welcome_pan(name)) { while (bios_kbd_avail()) bios_kbd_get(1); to_welcome = 2; }   /* (the key that brought us here) */
     hook_call_original();
     if (opening_playing && !strcmp(name, "opening9") && !bios_kbd_avail()) {   /* ended by itself: a key, so that the game stops the song */
@@ -93,7 +104,7 @@ static void tick_hook(void)                     /* root 030b:04fc: kbhit, while 
 static void loading_hook(void)                  /* root 0617:06d8: the first call ends the opening block */
 {
     if (set_by_us) { g_ww(D_QUICK, 0); set_by_us = 0; }
-    opening_playing = 0; end_only = 0; to_welcome = 0;
+    opening_playing = 0; end_only = 0; to_welcome = 0; music_cut = 0;
     hook_call_original();
 }
 
