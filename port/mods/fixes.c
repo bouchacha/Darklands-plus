@@ -11,7 +11,7 @@
  *            rest has put back to its maximum, or strength wounds have taken, lost the boost
  *            again (a member at 3 strength whose +4 ran out died). Now only what is still above
  *            the maximum (and the other boosts and lowerings running) goes. Saints that lower an
- *            attribute for a while (Perception, Intellect, Agility, Charisma: a negative d) are
+ *            attribute for a while (Perception, Intelligence, Agility, Charisma: a negative d) are
  *            recorded as negative and given back when they run out, never past the maximum.
  *  fireward  St. Polycarp, St. Charity, Firewall ... set the high nibble of the member's
  *            fire-protection byte (party +0x41 = combatant +0x55). hit_damage (s014
@@ -225,7 +225,7 @@ static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
         int added = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)) - (s8)before[m][a];
         int rec = (s16)rw(s, (u16)(o + 0x1e));
         if (rec >= 0) { if (added < 0) added = 0; if (added > rec) added = rec; }     /* a boost: what it really added */
-        else { if (added > 0) added = 0; if (added < rec) added = rec; }              /* a saint's lowering (some lower Perception, Intellect ...): what it really took */
+        else { if (added > 0) added = 0; if (added < rec) added = rec; }              /* a saint's lowering (some lower Perception, Intelligence ...): what it really took */
         if (added != rec) {
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix blessing: member %d attr %d recorded %d, really added %d\n", m, a, rec, added);
             ww(s, (u16)(o + 0x1e), (u16)added);

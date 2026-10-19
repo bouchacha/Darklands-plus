@@ -45,7 +45,7 @@ static unsigned char *type_rec(int t) { return &enm[(size_t)t * TSZ]; }
 static unsigned char *foe_rec(int e) { return &enm[(size_t)NT * TSZ + (size_t)e * ESZ]; }
 static std::string str_at(const unsigned char *r, int len) { std::string s; for (int k = 0; k < len && r[k]; k++) s += (char)r[k]; return s; }
 
-static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
+static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
 static const char *WSK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices" };
 
 /* a kind's picture: the first of EINFO.CAT's pictures of its group ("E03" -> E03CLST.PIC), as

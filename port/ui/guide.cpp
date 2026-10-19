@@ -73,7 +73,7 @@ void ui_guide_tab(void)
         "Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with divine favor, in a card's options or from the menu. Each helps with something of their own.",
         "Each library teaches four saints, the same for the whole game. The character sheet's Saints (All saints) say which libraries the party has been to teach a saint it lacks; the margin (\"Saints taught here\") and the world map say what a town's library teaches.",
         "Darklands+ shows the chance on the prayer page and in a card's options. The character sheet's Saints list who knows which saint and what each really does.",
-        "A saint's help lasts about a day. Some saints ask a price for it, a loss of Perception, Intellect, Agility or Charisma for that day (their legend says so); it comes back when the help runs out. The margin's \"In force\" shows what is at work on each member, and for how long; on the character sheet's Skills a raised value is blue.",
+        "A saint's help lasts about a day. Some saints ask a price for it, a loss of Perception, Intelligence, Agility or Charisma for that day (their legend says so); it comes back when the help runs out. The margin's \"In force\" shows what is at work on each member, and for how long; on the character sheet's Skills a raised value is blue.",
     });
     topic("Battle", {
         "Battles run in real time; Space pauses, and orders can be given while paused: click a member, then an enemy (attack) or a place (walk). Z fast-forwards (and Z again slows down).",

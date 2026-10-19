@@ -61,7 +61,7 @@ std::string journal_where_sold(int id);                     /* (ui/journal.cpp) 
 void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
 
 namespace {
-const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
+const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
 const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices",
     "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
     "Streetwise", "Riding", "Woodwise" };
@@ -850,7 +850,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
     char mr[64]; snprintf(mr, sizeof mr, "Mystic number %d, %s.", fm.mystic, fm.risk >= 0 && fm.risk < 3 ? RISK[fm.risk] : "risk unknown");
     float mh = P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, soft, mr);
     if (P.over(DX0, y, DX1, y + mh))
-        ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intellect). The risk: how badly a failed brew can go wrong.");
+        ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong.");
     y += mh + 1;
     y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 2;
     P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: needed / the party has"); y += 6;

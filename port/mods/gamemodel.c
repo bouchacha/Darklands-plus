@@ -255,7 +255,7 @@ void gm_hour_name(int hour, char *out, int n)
 /* ---------------------------------------------------------------- names (as the character sheet has them) */
 const char *gm_attr_name(int a)
 {
-    static const char *const A[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
+    static const char *const A[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
     return a >= 0 && a < 7 ? A[a] : "?";
 }
 const char *gm_skill_name(int k)

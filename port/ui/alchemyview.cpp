@@ -117,7 +117,7 @@ extern "C" void alchemyview_draw(void)
         int pc = a.page && a.count > 0 ? a.pct : a.pct1;
         char ch[64]; snprintf(ch, sizeof ch, a.page && a.count > 0 ? "Chance of success %d%%" : "Chance with one batch %d%%", pc);
         P.text(f, NsDraw::FS_NAME, RX0, y, pc >= 50 ? green : red, ch); y += 7.5f;
-        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d intellect + %d alchemy - %d mystic number%s",
+        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d intelligence + %d alchemy - %d mystic number%s",
                                   a.base, a.intel, a.alch, a.mystic, a.stone ? (" + " + std::to_string(a.stone) + " Philosopher's Stone").c_str() : "");
         y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, parts) + 3;
         bool can = a.page && a.count > 0;

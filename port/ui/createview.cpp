@@ -19,7 +19,7 @@ extern "C" {
 u32 plat_ticks_ms(void);
 }
 
-static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intellect", "Charisma", "Divine Favor" };
+static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
 static const char *SKILL[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices",
     "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
     "Streetwise", "Riding", "Woodwise" };

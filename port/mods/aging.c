@@ -3,7 +3,7 @@
  * The game ages characters only at creation (s037 18c8:356c): each time a career step brings the
  * age to 30 + 5k, row k of the table at 290e:3521 (End, Str, Agl, Per, Int, Chr) is added to the
  * attributes, so that by 70 a character has lost 25 Endurance, 21 Strength and Agility, 10
- * Perception and Charisma and 5 Intellect. In play the game counts birthdays (s029 0e76:281c, at
+ * Perception and Charisma and 5 Intelligence. In play the game counts birthdays (s029 0e76:281c, at
  * every month's start: a member's birth month is the one with (party seed + month) % 12 == slot)
  * and nothing more.
  *

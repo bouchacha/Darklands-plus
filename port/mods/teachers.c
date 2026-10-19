@@ -130,7 +130,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_UNIVERSITY; o->who = "University";
         o->ask = "In the daytime, go to the university and choose \"a teacher you can hire\".";
-        o->cond = "They may say no (it depends on Perception, Intellect, Latin, the party's best Alchemy and fame). A refusal shuts their door for a week and lowers the party's reputation here a little.";
+        o->cond = "They may say no (it depends on Perception, Intelligence, Latin, the party's best Alchemy and fame). A refusal shuts their door for a week and lowers the party's reputation here a little.";
         o->strength = (int)(seed % 15) + 45;
         add(o, SK_ALCHEMY, 90); add(o, SK_RELIGION, 70); add(o, SK_LATIN, 50); add(o, SK_RW, 50); add(o, SK_HEALING, 110);
     }
