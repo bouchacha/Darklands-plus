@@ -65,9 +65,10 @@ while time.time() < t_end:
     elif time.time() - same_since > 240 and mode != 4:
         L('STUCK for 4 min:', sig); print(name, 'STUCK', sig)
         nctl.do(name, 'wshot stuck_%d' % steps); same_since = time.time()
-        # a screen the rules above do not know (the party roster at an inn, say): clicks anywhere, Escape, Return
+        # a screen the rules above do not know (the party roster at an inn, say): clicks anywhere, Escape (the game's, and the
+        # system's for Darklands+'s own windows: the figure picker), Return
         nctl.do(name, '; '.join(rnd.choice(['at %d %d; click; wait 1.5' % (rnd.randrange(60, 320), rnd.randrange(10, 200)),
-                                            'key Escape; wait 1', 'key Return; wait 1', 'key r; wait 1']) for _ in range(12)))
+                                            'key Escape; wait 1', 'ucmd ukey:Escape; wait 1', 'key Return; wait 1', 'key r; wait 1']) for _ in range(12)))
         continue
     steps += 1
     L('mode', mode, 'card', card, 'n', n, 'menu' if menu else '', 'map' if maplive else '', party[:120])
@@ -115,7 +116,7 @@ while time.time() < t_end:
         if rnd.random() < 0.35:                 # a native screen's actions (buy, sell, take, give, ready, brew ...)
             nctl.do(name, 'ucmd unspush:%d,%d,%d,%d; wait 1.5' % (rnd.randrange(1, 14), rnd.randrange(0, 12), rnd.choice([0, 1, 2, 3, 10, 255]), rnd.choice([0, 1, 255])))
         else:
-            nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
+            nctl.do(name, rnd.choice(['key Escape; wait 1.5', 'ucmd ukey:Escape; wait 1.5', 'key L; wait 1.5', 'key Return; wait 1.5', 'key a; wait 1.5', 'key s; wait 1.5', 'key t; wait 1.5', 'key r; wait 1.5',
                                       'at %d %d; click; wait 1.5' % (rnd.randrange(60, 310), rnd.randrange(10, 190))]))
     else:
         nctl.do(name, rnd.choice(['key Return; wait 1.5', 'at 160 100; click; wait 1.5', 'key space; wait 1.5', 'key Escape; wait 1.5', 'at 160 62; click; wait 3']))
