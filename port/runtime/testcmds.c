@@ -289,6 +289,10 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
         else if (!strcmp(cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
+        else if (!strcmp(cmd, "utravel")) {             /* test: auto-travel to place loc (the world map's Travel there); the time as it sets off */
+            int travel_to_loc(int, const char *), travel_minutes_loc(int, int *, int *); int l = atoi(arg);
+            fprintf(stderr, "utravel %d: %d minutes planned, %d (day %d hour %d)\n", l, travel_minutes_loc(l, 0, 0), travel_to_loc(l, "test"), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR)); }
+        else if (!strcmp(cmd, "uwhen")) fprintf(stderr, "when: day %d month %d hour %d, place %d\n", (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_LOC));   /* test: the date */
         else if (!strcmp(cmd, "urestart")) { void plat_restart(void); if (!getenv("DL_RESTARTED")) plat_restart(); }   /* test: start again (once) */
     else return 0;
     return 1;

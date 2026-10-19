@@ -77,6 +77,10 @@ std::vector<Eff> effects_now(int size)
                 { 0x174, "fire protection %d (a saint's)" }, { 0x175, "%+d armour against missiles (a saint's)" },
                 { 0x177, "the party travels %d%% faster (a saint's)" }, { 0x178, "the party travels %d%% faster in woods (a saint's)" } };
             bool done = false;
+            if ((k == 0x177 || k == 0x178) && (t == 50 || t == 100)) {   /* (the speed in words) */
+                snprintf(b, sizeof b, "the party travels %s%s (a saint's)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");
+                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); continue;
+            }
             for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); done = true; break; }
             if (done) continue;
             int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;

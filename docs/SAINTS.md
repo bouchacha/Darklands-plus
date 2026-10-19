@@ -54,7 +54,7 @@ Fixes.
 
 ## As the texts say (the sainttexts fix)
 
-35 saints' help, as coded, falls short of or strays from their own description. The texts are what
+38 saints' help, as coded, falls short of or strays from their own description. The texts are what
 the player reads before spending divine favour, and the manual repeats them, so where the two part
 the text is taken as the intent, unless it is plainly the text that errs (`port/mods/sainttexts.c`;
 the table below gives each saint's old help too). The judgement, saint by saint:
@@ -85,7 +85,9 @@ the table below gives each saint's old help too). The judgement, saint by saint:
   round) and money when the party has none; St. Dismas Stealth for the whole party, and Charisma and
   Speak Common; St. Eustace every weapon skill but impact and flail; St. Sebastian the other weapon
   skills; St. Joseph Charisma only inside a city.
-- **Healing and costs**: St. Apollinarius heals (the code gave boosts); St. Christopher, St. Denis
+- **Healing and costs**: St. Adrian, St. Agatha and St. Anthony heal Endurance, up to its maximum
+  ("Endurance (healing only)"; the code raised it past the maximum for a day); St. Apollinarius
+  heals (the code gave boosts); St. Christopher, St. Denis
   and St. Hedwig heal the Endurance or Strength their texts name; St. Martin of Tours and St.
   Pantaleon heal only one who wears armour; St. Lutgardis's ecstasies cost 5 to 9 Endurance (the
   code gave Endurance), St. Vitus one time in two 3 to 8, never below 1; St. James lowers
@@ -119,8 +121,8 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 
 | # | Saint | Virtue | Favour | Base | What it does | Unlike the text / fixed | Encounters |
 |---|---|---|---|---|---|---|---|
-| 0 | St. Adrian | 43 | 15-99 | 25% | Endurance +8 to 15, Charisma +6 to 11, every weapon skill +15 to 29. |  | many |
-| 1 | St. Agatha | 24 | 20-80 | 25% | Endurance +6 to 11 (a woman: +12 to 23), Charisma +6 to 11. |  | none |
+| 0 | St. Adrian | 43 | 15-99 | 25% | Heals 8 to 15 Endurance (up to its maximum). Charisma +6 to 11, every weapon skill +15 to 29. | **As the text** (sainttexts); the game: Endurance +8 to 15, Charisma +6 to 11, every weapon skill +15 to 29. | many |
+| 1 | St. Agatha | 24 | 20-80 | 25% | Heals 6 to 11 Endurance (a woman: 12 to 23; up to its maximum). Charisma +6 to 11. | **As the text** (sainttexts); the game: Endurance +6 to 11 (a woman: +12 to 23), Charisma +6 to 11. | none |
 | 2 | St. Agnes | 19 | 10-99 | 25% | Only if a woman is in the party: may raise the reputation in the nearest town by 10 to 19; Charisma +10 to 29. |  | a few |
 | 3 | St. Aidan | 23 | 15-99 | 25% | Woodwise +25 to 29. |  | many |
 | 4 | St. Albert the Great | 39 | 25-99 | 60% | Intelligence +8 to 15, Perception +6 to 11, Alchemy +30 to 44, Latin and Read & Write +15 to 29. |  | none |
@@ -128,7 +130,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 6 | St. Alexis | 28 | 10-99 | 40% | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11. A party with neither florins nor groschen gets 3 to 9 groschen. |  | a few |
 | 7 | St. Andrew | 14 | 5-50 | 20% | Endurance +6 to 11, Charisma +8 to 15. | The reputation in Scotland or Russia: places not in the game. | none |
 | 8 | St. Andrew the Tribune | 37 | 20-99 | 15% | Edged, Impact, Polearms, Thrown and Bows +15 to 29. |  | none |
-| 9 | St. Anthony | 35 | 20-99 | 35% | Endurance +4 to 9, Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |  | some |
+| 9 | St. Anthony | 35 | 20-99 | 35% | Heals 4 to 9 Endurance (up to its maximum). Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. | **As the text** (sainttexts); the game: Endurance +4 to 9, Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. | some |
 | 10 | St. Anthony of Padua | 59 | 10-99 | 65% | Perception +6 to 11, Strength +4 to 7, Charisma +15 to 24, Speak Common +20 to 29, Impact and Latin +10 to 19. |  | a few |
 | 11 | St. Arnulf | 18 | 15-99 | 25% | Perception +6 to 11, Strength and Intelligence +4 to 7, every weapon skill +10 to 19, Streetwise and Latin +6 to 11, Read & Write and Riding +8 to 15. |  | none |
 | 12 | St. Apollinarius | 78 | 20-50 | 70% | Heals 30% of lost Endurance and 10% of lost Strength. | **As the text** (sainttexts); the game: Endurance +8 to 23, Strength +2 to 4. | some |

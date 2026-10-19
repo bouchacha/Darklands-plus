@@ -570,6 +570,8 @@ static void welcome_window(void)
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
         ImGui::BulletText("F1: the keys and clicks of the moment, the game's hidden ones too");
         ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
+        ImGui::BulletText("A click on a member at the left: their sheet, with the whole party's saints and formulae");
+        ImGui::BulletText("M: the world map, to find a place and travel there");
         ImGui::BulletText("Right click: the game's menu bar (save, load, orders in battle)");
         ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;

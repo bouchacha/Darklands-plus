@@ -13,7 +13,7 @@
  * (banishing demons, escaping prison, light ...) happens only where an encounter's card lets a
  * member call on the saint (card_saints: counted here per saint, the card scripts naming it).
  * Some of the help depends on the fixes (mods/fixes.c: pauls, saintrep, armourday; sainttexts,
- * mods/sainttexts.c, gives 35 saints the help their texts describe): the texts follow them. A
+ * mods/sainttexts.c, gives 38 saints the help their texts describe): the texts follow them. A
  * boost lasts about a day: the texts say so only of other spans (saint_info_note, once a screen). */
 #include <stdio.h>
 #include <string.h>
@@ -25,10 +25,10 @@
 static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_arm, cards; } INFO[SAINT_INFO_N] = {
     { "Endurance +8 to 15, Charisma +6 to 11, every weapon skill +15 to 29.",
       "",
-      0, 0, 0, 39 },   /* 0 St.Adrian */
+      "Heals 8 to 15 Endurance (up to its maximum). Charisma +6 to 11, every weapon skill +15 to 29.", "", 0, 39 },   /* 0 St.Adrian */
     { "Endurance +6 to 11 (a woman: +12 to 23), Charisma +6 to 11.",
       "",
-      0, 0, 0, 0 },   /* 1 St.Agatha */
+      "Heals 6 to 11 Endurance (a woman: 12 to 23; up to its maximum). Charisma +6 to 11.", "", 0, 0 },   /* 1 St.Agatha */
     { "Only if a woman is in the party: may raise the reputation in the nearest town by 10 to 19; Charisma +10 to 29.",
       "",
       0, 0, 0, 1 },   /* 2 St.Agnes */
@@ -52,7 +52,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 8 St.Andrew the Tribune */
     { "Endurance +4 to 9, Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39.",
       "",
-      0, 0, 0, 3 },   /* 9 St.Anthony */
+      "Heals 4 to 9 Endurance (up to its maximum). Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39.", "", 0, 3 },   /* 9 St.Anthony */
     { "Perception +6 to 11, Strength +4 to 7, Charisma +15 to 24, Speak Common +20 to 29, Impact and Latin +10 to 19.",
       "",
       0, 0, 0, 1 },   /* 10 St.Anthony of Padua */

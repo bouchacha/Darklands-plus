@@ -42,6 +42,7 @@ static void attr(int who, int a, int lo, int span, int h) { int d = lo + (span >
 static void attr_down(int who, int a, int lo, int span, int h) { int d = lo + (span > 0 ? rnd(span) : 0); ns_call(GF_raise_attr_temp, 4, who, a, -d, h); }
 static void skill(int who, int k, int lo, int span, int h) { int d = lo + (span > 0 ? rnd(span) : 0); ns_call(GF_lower_skill_temp, 4, who, k, d, h); }
 static void heal(int who, int a, int pct) { ns_call(GF_heal_attr_pct, 3, who, a, pct); }
+static void mend(int who, int a, int lo, int span) { int d = lo + (span > 0 ? rnd(span) : 0); ns_call(GF_add_attr, 3, who, a, d); }      /* ("healing only": up to the maximum) */
 static void lose(int who, int a, int lo, int span) { int d = lo + (span > 0 ? rnd(span) : 0); ns_call(GF_add_attr, 3, who, a, -d); }   /* (the cost: down to 1 at most) */
 static void weapons(int who, int v) { ns_call(GF_equip_bonuses, 2, who, v); }
 static void rep(int loc, int a, int b) { ns_call(GF_loc_reputation_adj, 3, loc, a, b); }
@@ -73,6 +74,21 @@ static void rep_in(const int *towns, int n, int a, int b)   /* the reputation wh
 }
 
 /* ---------------------------------------------------------------- the saints */
+static void adrian(int w)                   /* "Endurance (healing only)" */
+{
+    mend(w, 0, 8, 8); attr(w, 5, 6, 6, 0x18);
+    for (int k = 0; k < 7; k++) skill(w, k, 15, 15, 0x18);
+}
+static void agatha(int w)                   /* "Endurance (healing only)"; a woman more */
+{
+    if (g_rb((u16)(G_MEMBER(w) + 0x03))) mend(w, 0, 12, 12); else mend(w, 0, 6, 6);
+    attr(w, 5, 6, 6, 0x18);
+}
+static void anthony(int w)                  /* "Strength and Endurance (healing only)" */
+{
+    mend(w, 0, 4, 6); attr(w, 1, 5, 6, 0x18); attr(w, 5, 1, 10, 0x18);
+    skill(w, 10, 10, 10, 0x18); skill(w, 11, 10, 10, 0x18); skill(w, 12, 20, 20, 0x18);
+}
 static void christopher(int w)              /* travel speed; heals a little Strength, some Endurance */
 {
     heal(w, 1, 10); heal(w, 0, 20);
@@ -262,6 +278,7 @@ static void hildegard(int w)                /* sometimes the reputation, by the 
 
 /* the saints by their function (s039 165c), with whether their help needs armourday */
 static const struct { int saint; u16 off; void (*fn)(int who); int arm; } SAINTS[] = {
+    { 0, 0x0034, adrian, 0 }, { 1, 0x0190, agatha, 0 }, { 9, 0x0792, anthony, 0 },
     { 22, 0x13d4, christopher, 0 }, { 38, 0x1f8c, drogo, 0 }, { 130, 0x7038, wilfrid, 0 }, { 47, 0x27c2, eustace, 0 },
     { 99, 0x563a, nicholas, 0 }, { 123, 0x6ae8, theodore, 0 }, { 20, 0x125a, charity, 1 }, { 125, 0x6bb8, aquinas, 0 },
     { 52, 0x76d4, francis, 0 }, { 58, 0x307e, giles, 0 }, { 35, 0x1cf2, dismas, 0 }, { 12, 0x0b82, apollinarius, 0 },
