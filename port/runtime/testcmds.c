@@ -137,6 +137,11 @@ int testcmd_run(const char *cmd, const char *arg)
             int v = game_call_far(14, 0x18bf, 0x0778, 4, args);
             fprintf(stderr, "hit %d on %d: %d (AX %d)\n", a, t, v, (s16)AX);
         }
+        else if (!strcmp(cmd, "ukill")) {               /* test (in battle): wounds that fell combatant c when the battle next takes its damage (GV_cbt_queued_damage) */
+            int c = atoi(arg);
+            if (c >= 0 && c < 13) { g_wb((u16)(GV_cbt_queued_damage + 2 * c), 100); g_wb((u16)(GV_cbt_queued_damage + 2 * c + 1), 100); }
+            fprintf(stderr, "kill %d queued\n", c);
+        }
         else if (!strcmp(cmd, "utextdump")) { extern int hdtext_dump; hdtext_dump = 1; }     /* test: as Ctrl+F12, the text verdicts of the next frame */
         else if (!strcmp(cmd, "ulooks")) { int looks_count(void), looks_usable(int); int n = looks_count(), u = 0; for (int k = 0; k < n; k++) u += looks_usable(k); fprintf(stderr, "looks: %d of %d usable\n", u, n); }   /* test: analyse every figure (DL_LOOKS_DUMP) */
         else if (!strcmp(cmd, "uenc")) {                /* test: the next wilderness encounter is new encounter N (mods/encounters.c) */
