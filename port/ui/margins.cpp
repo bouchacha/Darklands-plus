@@ -36,6 +36,7 @@ extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the
 #include <functional>
 #include <set>
 #include "money.h"
+extern "C" int encounters_card_active(void);
 extern "C" void ui_open_goto(void);
 extern "C" int citynav_available(void);
 extern "C" int battlelog_margin(float x, float w, float h, float fs);
@@ -542,6 +543,7 @@ static void right_panel(int size)
     int cur = (s16)g_rw(G_CUR_LOC);
     bool any = false, near = false;
     if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; }
+    else if (cur >= 0 && encounters_card_active()) near = true;    /* (a new encounter on the road out of town) */
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());

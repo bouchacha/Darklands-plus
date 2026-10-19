@@ -254,10 +254,13 @@ extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); }
 extern "C" int citynav_busy(void) { return goal >= 0; }
 extern "C" { extern int hdtext_fast_fades; }
 
+extern "C" int encounters_card_active(void);
 static bool in_city(void)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
-    return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD;
+    /* (a new encounter met on the way out, still on the town's square of the map, keeps the town
+       as the game's place: the party is on the road, not in the streets) */
+    return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD && !encounters_card_active();
 }
 /* before the walls: the city's approach, its gates and its walls ($CityE, $CityG00..04, $CityW),
    where no street leads anywhere yet (the groves, $CityG05/06, are inside) */
