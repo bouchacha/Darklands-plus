@@ -88,7 +88,11 @@ static std::string where(int loc)
     double ang = atan2(-(double)(y - cy) / 2.0, (double)(x - cx)) * 180 / M_PI;
     static const char *DIR[8] = { "east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east" };
     int k = (int)floor((ang + 22.5 + 360) / 45) % 8;
-    return n + ", " + (bd < 3 ? "near " : std::string(DIR[k]) + " of ") + loc_name(best);
+    std::string rel = (bd < 3 ? "near " : std::string(DIR[k]) + " of ") + loc_name(best);
+    static const char *KIND[] = { "Cave", "Tomb", "Lair", "Spring", "Lake", "Shrine", "Pagan Altar" };   /* a place with no name of its own: */
+    for (const char *kd : KIND)                                                                          /* "the pagan altar north-west of Hall" */
+        if (n == kd) { std::string l = n; for (char &c : l) c = (char)tolower((unsigned char)c); return "the " + l + " " + rel; }
+    return n + ", " + rel;
 }
 
 /* the town nearest a place (its own name for a town) */
