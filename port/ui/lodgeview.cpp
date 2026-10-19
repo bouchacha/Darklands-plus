@@ -18,9 +18,6 @@ extern "C" {
 }
 }
 
-static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
-    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
-    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
 static std::string money(long pf) { return money_str(pf); }
 
@@ -73,7 +70,7 @@ extern "C" void lodgeview_draw(void)
         std::string line = ns_gtext(p.line);
         if (p.act == 6 && p.skill >= 0 && p.skill < 19) {
             int fee = 0; for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill) fee = m.t[t].fee;
-            snprintf(b, sizeof b, "Train or Study: %s (%s a day)", SKILL[p.skill], money_str(fee).c_str());
+            snprintf(b, sizeof b, "Train or Study: %s (%s a day)", gm_skill_name(p.skill), money_str(fee).c_str());
             line = b;
         }
         P.text(fo, NsDraw::FS_BODY, nx, y + 10.5f, p.act ? IM_COL32(92, 40, 12, 255) : soft, line, -1, LX1 - 3);
@@ -111,7 +108,7 @@ extern "C" void lodgeview_draw(void)
                     bool capped = teach_capped(m.sel, T.skill, T.val) != 0;     /* (learnt all this one teaches) */
                     bool tc = p.act == 6 && p.skill == T.skill, th = P.over(x0 + 6, ay, x1, ay + 8);
                     P.rect(x0 + 6, ay, x1, ay + 8, tc ? IM_COL32(140, 70, 20, 235) : capped ? IM_COL32(222, 210, 186, 255) : th ? IM_COL32(214, 190, 146, 255) : IM_COL32(236, 224, 196, 255), 1.0f);
-                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : capped ? dim : ink, T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?");
+                    P.text(fo, NsDraw::FS_BODY, x0 + 9, ay + 1.2f, tc ? NsDraw::LIGHT : capped ? dim : ink, gm_skill_name(T.skill));
                     if (capped) snprintf(b, sizeof b, "learnt all (%d)", T.val);
                     else snprintf(b, sizeof b, "%s a day", money_str(T.fee).c_str());
                     P.text(fo, NsDraw::FS_SMALL, 0, ay + 1.8f, tc ? NsDraw::LIGHT : capped ? dim : soft, b, x1 - 2);
@@ -127,7 +124,7 @@ extern "C" void lodgeview_draw(void)
         if (hover_act == 3 && m.mode != 1) about += " At an inn a failed batch can blow up (how often: point at a formula's risk on the alchemy page); in a camp in the wild it cannot.";
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
-            const char *sk = T.skill >= 0 && T.skill < 19 ? SKILL[T.skill] : "?";
+            const char *sk = gm_skill_name(T.skill);
             int now = T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0;
             int c = teach_chance(T.val), days = c > 0 ? (100 + c / 2) / c : 0;
             if (teach_capped(m.sel, T.skill, T.val))

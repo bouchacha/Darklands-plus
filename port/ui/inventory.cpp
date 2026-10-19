@@ -399,12 +399,11 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow
            time, hands and penetration, damage, skill and strength wanted */
         int w = d->type;
-        static const char *SKILL[7] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices" };
         int sk = rb(G_FAR20A5, (u16)(0x75ac + w)), speed = rb(G_FAR20A5, (u16)(0x7669 + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)),
             dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
             maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
         ImGui::Separator();
-        ImGui::Text("%s, %s", sk < 7 ? SKILL[sk] : "?", (cp >> 4) >= 2 ? "two hands" : "one hand");
+        ImGui::Text("%s, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two hands" : "one hand");
         ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
         if (speed) ImGui::Text("Time for a blow %d", speed);
         if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);

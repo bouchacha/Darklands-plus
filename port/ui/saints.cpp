@@ -16,12 +16,9 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../mods/gamemodel.h"
 }
 
-static const char *ATTRS[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-static const char *SKILLS[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
-    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
-    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 
 /* hours since year 0 (the game's calendar: 365 days, no leap years; month from 0, day from 1) */
 static long abs_hours(int y, int mo, int d, int h)
@@ -57,7 +54,7 @@ std::vector<Eff> effects_now(int size)
         if (left <= 0) continue;
         char b[96];
         if ((kind == 0x48 && k >= 0 && k < 7) || (kind == 0x49 && k >= 0 && k < 19)) {
-            snprintf(b, sizeof b, "%+d %s", t, kind == 0x48 ? ATTRS[k] : SKILLS[k]);
+            snprintf(b, sizeof b, "%+d %s", t, kind == 0x48 ? gm_attr_name(k) : gm_skill_name(k));
             Eff e = { m, b, left, kind }; e.k = k; e.amount = t;
             v.push_back(e);
             continue;

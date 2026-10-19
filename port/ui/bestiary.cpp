@@ -19,6 +19,7 @@ extern "C" {
 #include "../runtime/hle.h"
 #include "../runtime/game.h"
 #include "../mods/datamods.h"
+#include "../mods/gamemodel.h"
 }
 
 enum { NT = 71, TSZ = 204, NE = 82, ESZ = 24 };
@@ -45,8 +46,6 @@ static unsigned char *type_rec(int t) { return &enm[(size_t)t * TSZ]; }
 static unsigned char *foe_rec(int e) { return &enm[(size_t)NT * TSZ + (size_t)e * ESZ]; }
 static std::string str_at(const unsigned char *r, int len) { std::string s; for (int k = 0; k < len && r[k]; k++) s += (char)r[k]; return s; }
 
-static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-static const char *WSK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices" };
 
 /* a kind's picture: the first of EINFO.CAT's pictures of its group ("E03" -> E03CLST.PIC), as
    Enemy Info shows it in a battle (mods/enemyview.c); "" for the few without one */
@@ -145,8 +144,8 @@ void bestiary_tab(void)
                           ImVec2(0, ImGui::GetContentRegionAvail().y - (open_type >= 0 ? UIS(270) : edit ? UIS(80) : UIS(10))))) {
         /* the numbers' headings at a slant, so that the columns can be narrow and the names whole */
         ImGui::TableSetupColumn("Foe", ImGuiTableColumnFlags_WidthFixed, namew + UIS(16));
-        for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(ATTR[a], ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
-        for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(WSK[k], ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(gm_attr_name(a), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(gm_skill_short(k), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         ImGui::TableSetupColumn("Armour quality", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         ImGui::TableSetupColumn("Weapons", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
         ImGui::TableSetupScrollFreeze(1, 2);

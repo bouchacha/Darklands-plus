@@ -23,12 +23,9 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../mods/gamemodel.h"
 }
 
-static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-static const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows",
-    "Missile Devices", "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing",
-    "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
 static const char *FIGURES[] = { "F01", "F60", "C00", "A00" };      /* the game's own; then the enemies' (mods/looks.c) */
 
 static u16 rec(int m) { return (u16)(0x9c55 + 0x80 * m); }
@@ -116,12 +113,12 @@ extern "C" void tab_editor(void)
             for (int a = 0; a < 7; a++) {
                 ImGui::PushID(a);
                 byte_slider("##cur", G_DGROUP, (u16)(r + 0x5d + a), 0, 99); ImGui::SameLine();
-                byte_slider(ATTR[a], G_DGROUP, (u16)(r + 0x64 + a), 1, 99);
+                byte_slider(gm_attr_name(a), G_DGROUP, (u16)(r + 0x64 + a), 1, 99);
                 ImGui::PopID();
             }
         }
         if (ImGui::CollapsingHeader("Skills")) {
-            for (int k = 0; k < 19; k++) { ImGui::PushID(100 + k); ui_skill_icon_inline(k); byte_slider(SKILL[k], G_DGROUP, (u16)(r + 0x6b + k), 0, 99); ImGui::PopID(); }
+            for (int k = 0; k < 19; k++) { ImGui::PushID(100 + k); ui_skill_icon_inline(k); byte_slider(gm_skill_name(k), G_DGROUP, (u16)(r + 0x6b + k), 0, 99); ImGui::PopID(); }
         }
         if (ImGui::CollapsingHeader("Saints known")) {
             for (int s = 0; s < (int)gamedata.saints.size(); s++) {

@@ -44,7 +44,7 @@ const char *ui_teacher_short(int src)
 
 static const char *skill_short(int k)
 {
-    static const char *const S[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices", "Alchemy",
+    static const char *const S[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices", "Alchemy",
         "Religion", "Virtue", "Speak Common", "Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
     return k >= 0 && k < 19 ? S[k] : "?";
 }

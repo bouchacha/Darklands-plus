@@ -264,3 +264,8 @@ const char *gm_skill_name(int k)
         "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
     return k >= 0 && k < 19 ? S[k] : "?";
 }
+const char *gm_skill_short(int k)
+{
+    static const char *const S[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices" };
+    return k >= 0 && k < 7 ? S[k] : gm_skill_name(k);
+}

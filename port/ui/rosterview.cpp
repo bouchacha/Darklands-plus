@@ -15,15 +15,13 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/rosterview.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 int figpick_is_open(void);
 }
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 
 static const char *ATTR_S[7] = { "End", "Str", "Agl", "Per", "Int", "Chr", "DF" };
-static const char *SKILL[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices",
-    "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
-    "Streetwise", "Riding", "Woodwise" };
 
 enum { K_ADD = 0x1e41, K_DROP = 0x2044, K_KILL = 0x254b, K_NEW = 0x2e43, K_HERALD = 0x2348, K_FIGURE = 0x1f53,
        K_C1 = 0x0231, K_C2 = 0x0332, K_C3 = 0x0433, K_BEGIN = 0x3042 };
@@ -130,8 +128,8 @@ extern "C" void rosterview_draw(void)
             snprintf(b, sizeof b, best < 0 ? "-" : "%d", best);
             P.text(f, NsDraw::FS_BODY, cx + 7.6f, SY + 1.2f, col, b);
             if (h) {
-                if (who >= 0) snprintf(b, sizeof b, "%s %d (%s): %s.", SKILL[k], best, ns_gtext(r.ch[who].nick[0] ? r.ch[who].nick : r.ch[who].name).c_str(), FOR[k]);
-                else snprintf(b, sizeof b, "%s: %s.", SKILL[k], FOR[k]);
+                if (who >= 0) snprintf(b, sizeof b, "%s %d (%s): %s.", gm_skill_short(k), best, ns_gtext(r.ch[who].nick[0] ? r.ch[who].nick : r.ch[who].name).c_str(), FOR[k]);
+                else snprintf(b, sizeof b, "%s: %s.", gm_skill_short(k), FOR[k]);
                 desc = b;
             }
         }
@@ -210,7 +208,7 @@ extern "C" void rosterview_draw(void)
             int k = ord[i];
             float sx = x + (i % 2) * 64, sy = y + (i / 2) * 6.6f;
             ui_skill_icon(P.dl, NsDraw::w(sx + 2.4f, sy + 2.9f), 4.2f * P.k, k);
-            P.text(fo, 4.4f, sx + 6.8f, sy, ink, SKILL[k]);
+            P.text(fo, 4.4f, sx + 6.8f, sy, ink, gm_skill_short(k));
             snprintf(b, sizeof b, "%d", ch.skill[k]);
             P.text(fo, 4.4f, 0, sy, ink, b, sx + 60);
         }

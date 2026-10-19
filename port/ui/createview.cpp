@@ -16,13 +16,10 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/createview.h"
+#include "../mods/gamemodel.h"
 u32 plat_ticks_ms(void);
 }
 
-static const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-static const char *SKILL[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile devices",
-    "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
-    "Streetwise", "Riding", "Woodwise" };
 static int skill_row(int s) { return s < 7 ? s : s < 13 ? s + 1 : s + 2; }   /* the game's row (gaps 7, 14) */
 static int attr_cost(int v) { return v >= 39 ? 3 : v >= 29 ? 2 : 1; }
 static int skill_cost(int v) { return v >= 79 ? 3 : v >= 49 ? 2 : 1; }
@@ -216,7 +213,7 @@ extern "C" void createview_draw(void)
             bool sel = c.row == i, h = P.over(LX0 + 1, ry, LX1 - 1, ry + rh);
             if (sel || h) P.rect(LX0 + 1.5f, ry, LX1 - 1.5f, ry + rh, sel ? HOVER : IM_COL32(236, 222, 190, 255), 1.0f);
             ui_attr_icon(P.dl, NsDraw::w(LX0 + 7, ry + rh * 0.5f), 6.8f * P.k, i);
-            P.text(f, NsDraw::FS_NAME, LX0 + 14, ry + 3, ink, ATTR[i]);
+            P.text(f, NsDraw::FS_NAME, LX0 + 14, ry + 3, ink, gm_attr_name(i));
             snprintf(b, sizeof b, "%d", v);
             float vx = LX0 + 70;
             P.text(f, NsDraw::FS_NAME, 0, ry + 3, ink, b, vx);
@@ -249,7 +246,7 @@ extern "C" void createview_draw(void)
             bool sel = c.row == row, h = P.over(x, ry, x + cw - 2, ry + rh);
             if (sel || h) P.rect(x, ry, x + cw - 2, ry + rh, sel ? HOVER : IM_COL32(236, 222, 190, 255), 1.0f);
             ui_skill_icon(P.dl, NsDraw::w(x + 4, ry + rh * 0.5f), 6.4f * P.k, i);
-            P.text(f, NsDraw::FS_BODY + 0.2f, x + 10, ry + 2.2f, ink, SKILL[i], -1, x + 42);
+            P.text(f, NsDraw::FS_BODY + 0.2f, x + 10, ry + 2.2f, ink, gm_skill_short(i), -1, x + 42);
             snprintf(b, sizeof b, "%d", v);
             P.text(f, NsDraw::FS_BODY + 0.2f, 0, ry + 2.2f, ink, b, x + 52);
             if (sp) { snprintf(b, sizeof b, "+%d", sp); P.text(fo, NsDraw::FS_SMALL - 0.3f, x + 53, ry + 2.8f, NsDraw::GREEN, b); }
@@ -260,7 +257,7 @@ extern "C" void createview_draw(void)
             if (can_plus && P.button(bx - bw, ry + 1, bx, ry + rh - 1, "+", GREEN, NsDraw::FS_BODY)) ns_push(CG_ROWPLUS, row, 0, 0);
             if (sp && P.button(bx - 2 * bw - 1, ry + 1, bx - bw - 1, ry + rh - 1, "-", BROWN, NsDraw::FS_BODY)) ns_push(CG_ROWMINUS, row, 0, 0);
             if (h) {
-                snprintf(b, sizeof b, "%s %d: a point costs %d EP now; room for %d more this profession.", SKILL[i], v, skill_cost(v), room < 0 ? 0 : room);
+                snprintf(b, sizeof b, "%s %d: a point costs %d EP now; room for %d more this profession.", gm_skill_short(i), v, skill_cost(v), room < 0 ? 0 : room);
                 P.text(fo, NsDraw::FS_SMALL, LX0 + 3, y + 10 * rh + 2, soft, b, -1, LX1 - 3);
             }
         }
@@ -321,7 +318,7 @@ extern "C" void createview_draw(void)
         for (int i = 0; i < 7; i++) {
             float x = RX0 + 3 + (i % ncol) * cw, yy = ry + (i / ncol) * rh;
             ui_attr_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.0f * P.k, i);
-            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, i == 6 ? "Div. Favor" : ATTR[i]);
+            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, i == 6 ? "Div. Favor" : gm_attr_name(i));
             int now = c.attr[i], after = i < 6 ? pv.attr[i] : now;
             snprintf(b, sizeof b, "%d", now);
             float vx = x + (one_col ? 52 : cw * 0.80f);
@@ -352,7 +349,7 @@ extern "C" void createview_draw(void)
             int col = i < 10 ? 0 : 1, r = i < 10 ? i : i - 10;
             float x = RX0 + 3 + col * cw, yy = ry + r * rh;
             ui_skill_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.0f * P.k, i);
-            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, SKILL[i], -1, x + xname);
+            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, gm_skill_short(i), -1, x + xname);
             snprintf(b, sizeof b, "%d", c.skill[i]);
             P.text(f, NsDraw::FS_BODY, 0, yy, ink, b, x + xn);
             if (gains) {

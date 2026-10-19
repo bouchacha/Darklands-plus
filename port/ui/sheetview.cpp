@@ -61,10 +61,6 @@ std::string journal_where_sold(int id);                     /* (ui/journal.cpp) 
 void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
 
 namespace {
-const char *ATTR[7] = { "Endurance", "Strength", "Agility", "Perception", "Intelligence", "Charisma", "Divine Favor" };
-const char *SKILL[19] = { "Edged Weapons", "Impact Weapons", "Flails", "Polearms", "Thrown Weapons", "Bows", "Missile Devices",
-    "Alchemy", "Religion", "Virtue", "Speak Common", "Speak Latin", "Read & Write", "Healing", "Artifice", "Stealth",
-    "Streetwise", "Riding", "Woodwise" };
 enum { TAB_THINGS, TAB_SKILLS, TAB_SAINTS, TAB_FORMULAE };
 /* what the saints help with: words of their effect */
 struct Use { const char *name; const char *words[12]; };
@@ -346,12 +342,12 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
         if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = "Attack and defence with " + (w.empty() ? std::string("these weapons") : w) + "."; }
-        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, SKILL[V.which]) + 0.5f;
+        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_skill_name(V.which)) + 0.5f;
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, help) + 0.8f;
         y += raised_line(P, s, false, V.which, SX0 + 2.5f, y, SW);
         party_line(P, s, false, V.which, SX0 + 2.5f, y, SX1 - 2);
     } else if (V.what == 5 && V.which >= 0 && V.which < 7) {
-        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ATTR[V.which]) + 0.5f;
+        y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_attr_name(V.which)) + 0.5f;
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, ui_attr_help(V.which)) + 0.8f;
         y += raised_line(P, s, true, V.which, SX0 + 2.5f, y, SW);
         party_line(P, s, true, V.which, SX0 + 2.5f, y, SX1 - 2);
@@ -539,7 +535,7 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 if (h) { P.rect(x0, y, x1, y + ROWH, IM_COL32(226, 204, 160, 255), 1); new_what = g.attr ? 5 : 2; new_which = idx; }
                 ImVec2 ic = NsDraw::w(x0 + 3.2f, y + ROWH * 0.5f);
                 if (g.attr) ui_attr_icon(P.dl, ic, 4.6f * P.k, idx); else ui_skill_icon(P.dl, ic, 4.6f * P.k, idx);
-                const char *name = g.attr ? ATTR[idx] : SKILL[idx];
+                const char *name = g.attr ? gm_attr_name(idx) : gm_skill_name(idx);
                 char v[24];
                 ImU32 vc = ink;
                 if (g.attr) {
