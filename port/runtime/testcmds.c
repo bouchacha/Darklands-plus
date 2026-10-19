@@ -105,6 +105,8 @@ int testcmd_run(const char *cmd, const char *arg)
             }
             eval_free(snap);
         }
+        else if (!strcmp(cmd, "uchronfill")) { void journal_test_chronicle(int); journal_test_chronicle(atoi(arg)); }   /* test: n made-up texts in the chronicle (memory only) */
+        else if (!strcmp(cmd, "usubtab")) { extern int ui_want_subtab; ui_want_subtab = atoi(arg); }   /* test: the sub-tab to open next (the journal's: 7 the chronicle) */
         else if (!strcmp(cmd, "usaintdo")) {            /* test: saint s's help for member m (saint_fns[s](m, 50, 8)) */
             int m = 0, st = 0, loc = -99; sscanf(arg, "%d,%d,%d", &m, &st, &loc);   /* (loc: the party there meanwhile, -1 on the map; its reputation shown) */
             u16 tseg = (u16)(LOADSEG + 0x290e), off = rw(tseg, (u16)(0x2937 + 4 * st)), seg = rw(tseg, (u16)(0x2937 + 4 * st + 2));

@@ -235,8 +235,9 @@ static void record_town_stock(int loc)
  * and its words; \x14 starts a paragraph); card_menu (s043 1142, hooked in mods/assist.c)
  * returns the option number chosen, whose line on screen is found through the option layout
  * D_e96e (line y e974[], height e988[], option opt e9b0[]). Kept per game in
- * darklands_chronicle_<seed>.txt, one entry a line (date, place, text, choice; tabs between). */
-struct ChronEntry { std::string date, place, text, choice; };
+ * darklands_chronicle_<seed>.txt, one entry a line (date, place, text, choice, hour; tabs between;
+ * older files have no hour). */
+struct ChronEntry { std::string date, place, text, choice; int hour = -1; };   /* (hour: -1 in files from before it was kept) */
 static std::vector<ChronEntry> chron;
 static int chron_seed = -1;
 static bool chron_pending;                 /* the last entry is not in the file yet (its choice may come) */
@@ -264,7 +265,7 @@ static void chron_flush(void)
     FILE *f = fopen(chron_path(chron_seed).c_str(), "a");
     if (!f) return;
     const ChronEntry &e = chron.back();
-    fprintf(f, "%s\t%s\t%s\t%s\n", esc(e.date).c_str(), esc(e.place).c_str(), esc(e.text).c_str(), esc(e.choice).c_str());
+    fprintf(f, "%s\t%s\t%s\t%s\t%d\n", esc(e.date).c_str(), esc(e.place).c_str(), esc(e.text).c_str(), esc(e.choice).c_str(), e.hour);
     fclose(f);
 }
 static void chron_load(int seed)
@@ -276,8 +277,9 @@ static void chron_load(int seed)
     std::string line; int c;
     while ((c = fgetc(f)) != EOF) {
         if (c != '\n') { line += (char)c; continue; }
-        size_t a = line.find('\t'), b = a == std::string::npos ? a : line.find('\t', a + 1), d = b == std::string::npos ? b : line.find('\t', b + 1);
-        if (d != std::string::npos) chron.push_back({ unesc(line.substr(0, a)), unesc(line.substr(a + 1, b - a - 1)), unesc(line.substr(b + 1, d - b - 1)), unesc(line.substr(d + 1)) });
+        std::vector<std::string> fl;                       /* date, place, text, choice[, hour] */
+        for (size_t a = 0;;) { size_t t = line.find('\t', a); fl.push_back(line.substr(a, t == std::string::npos ? std::string::npos : t - a)); if (t == std::string::npos) break; a = t + 1; }
+        if (fl.size() >= 4) chron.push_back({ unesc(fl[0]), unesc(fl[1]), unesc(fl[2]), unesc(fl[3]), fl.size() >= 5 ? atoi(fl[4].c_str()) : -1 });
         line.clear();
     }
     fclose(f);
@@ -348,7 +350,7 @@ extern "C" void chronicle_capture(void)
     std::string place;
     if (loc >= 0) place = loc_name(loc);
     else { int ui_nearest_town(void); int k = ui_nearest_town(); place = k >= 0 ? "near " + loc_name(k) : "the countryside"; }
-    chron.push_back({ game_date(), place, t, "" });
+    chron.push_back({ game_date(), place, t, "", (s16)g_rw(G_CUR_HOUR) });
     chron_pending = true;
     if (chron.size() > 20000) chron.erase(chron.begin(), chron.begin() + 1000);
 }
@@ -376,12 +378,52 @@ extern "C" void chronicle_choice(int sel)
     chron_flush();
 }
 
+/* the chronicle's days, for its navigation: entries are kept in the order read, so a day is a run
+   of entries with the same date (a date seen again later, after a load of an older save, is
+   another run) */
+struct ChronDay { std::string date; int y, m, d; std::vector<int> idx; std::vector<std::pair<std::string, int>> places; };   /* places: name, first entry */
+static void chron_days(const std::string &find, std::vector<ChronDay> &out)
+{
+    out.clear();
+    for (int i = 0; i < (int)chron.size(); i++) {
+        const ChronEntry &e = chron[(size_t)i];
+        if (!find.empty()) {
+            std::string a = e.text + " " + e.place + " " + e.choice;
+            for (char &c : a) c = (char)tolower((unsigned char)c);
+            if (a.find(find) == std::string::npos) continue;
+        }
+        if (out.empty() || out.back().date != e.date) {
+            ChronDay D; D.date = e.date; D.y = D.m = D.d = 0;
+            char mon[8] = ""; sscanf(e.date.c_str(), "%d %7s %d", &D.d, mon, &D.y);
+            for (int k = 0; k < 12; k++) if (!strcmp(mon, MONTHS[k])) D.m = k;
+            out.push_back(D);
+        }
+        ChronDay &D = out.back();
+        D.idx.push_back(i);
+        if (D.places.empty() || D.places.back().first != e.place) D.places.push_back({ e.place, i });
+    }
+}
+
+/* test (ucmd uchronfill:n): n made-up texts over some weeks and towns, in memory only */
+extern "C" void journal_test_chronicle(int n)
+{
+    static const char *T[4] = { "Strassburg", "Basel", "near Basel", "the countryside" };
+    for (int i = 0; i < n; i++) {
+        char d[32]; snprintf(d, sizeof d, "%d %s 1400", 1 + (i / 6) % 28, MONTHS[(5 + i / 40) % 12]);
+        chron.push_back({ d, T[(i / 3) % 4], "A made-up text, number " + std::to_string(i) + ", to try the chronicle's days and places. "
+                          "It runs on a little so that it wraps over two lines in the window.", i % 2 ? "...leave." : "", 6 + (i % 6) * 2 });
+    }
+}
+
 static char chron_find[60];
 static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
     if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
+    static bool nav_open = true;
+    if (ImGui::SmallButton(nav_open ? "Hide the days" : "Show the days")) nav_open = !nav_open;
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
     ImGui::SameLine(); ImGui::TextDisabled("%d texts read in this game", (int)chron.size());
     ImGui::SameLine();
@@ -403,28 +445,90 @@ static void chronicle_page(void)
         } else wrote = "Could not write the file.";
     }
     if (!wrote.empty()) ImGui::TextDisabled("%s", wrote.c_str());
-    ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+
     std::string f = chron_find; for (char &c : f) c = (char)tolower((unsigned char)c);
-    int shown = 0;
-    for (int i = (int)chron.size() - 1; i >= 0 && shown < (f.empty() ? 300 : 2000); i--) {
-        const ChronEntry &e = chron[(size_t)i];
-        if (!f.empty()) {
-            std::string a = e.text + " " + e.place + " " + e.choice;
-            for (char &c : a) c = (char)tolower((unsigned char)c);
-            if (a.find(f) == std::string::npos) continue;
+    static std::vector<ChronDay> days; static size_t days_n = (size_t)-1; static std::string days_f;
+    if (days_n != chron.size() || days_f != f) { chron_days(f, days); days_n = chron.size(); days_f = f; }
+    static int sel = -1, scroll_to = -1;                  /* the day shown (an index into days), the entry to bring into view */
+    static size_t sel_n = 0; static std::string sel_f = "\x01";
+    if (sel_f != f || sel < 0 || sel >= (int)days.size() || (sel_n != chron.size() && sel == (int)days.size() - 2)) sel = (int)days.size() - 1;   /* (the newest day, and it follows new texts) */
+    sel_n = chron.size(); sel_f = f;
+    if (days.empty()) {
+        ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+        ImGui::TextWrapped(chron.empty() ? "Every text the cards show is kept here, with the date, the place and the choice you made." : "Nothing found.");
+        ImGui::EndChild();
+        return;
+    }
+
+    /* the days, by month, newest first: a day opens to its places */
+    if (nav_open) {
+        ImGui::BeginChild("chronnav", ImVec2(UIS(240), 0), ImGuiChildFlags_Border);
+        int last_month = -1;
+        bool month_open = false;
+        for (int k = (int)days.size() - 1; k >= 0; k--) {
+            const ChronDay &D = days[(size_t)k];
+            int mk = D.y * 12 + D.m;
+            if (mk != last_month) {
+                if (month_open) ImGui::TreePop();
+                static const char *MN[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+                char ml[48]; snprintf(ml, sizeof ml, "%s %d###m%d", MN[D.m % 12], D.y, mk);
+                bool newest = k == (int)days.size() - 1;
+                bool has_sel = sel >= 0 && days[(size_t)sel].y * 12 + days[(size_t)sel].m == mk;
+                if (has_sel) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                month_open = ImGui::TreeNodeEx(ml, newest ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+                last_month = mk;
+            }
+            if (!month_open) continue;
+            ImGui::PushID(k);
+            char dl[64]; snprintf(dl, sizeof dl, "%d %s  (%d)", D.d, MONTHS[D.m % 12], (int)D.idx.size());
+            ImGuiTreeNodeFlags fl = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | (k == sel ? ImGuiTreeNodeFlags_Selected : 0)
+                                  | (D.places.size() <= 1 ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen : 0);
+            bool open = ImGui::TreeNodeEx("day", fl, "%s", dl);
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) { sel = k; scroll_to = D.idx.front(); }
+            if (D.places.size() <= 1) { ImGui::SameLine(); ImGui::TextDisabled("%s", D.places.empty() ? "" : D.places[0].first.c_str()); }
+            else if (open) {
+                for (size_t p = 0; p < D.places.size(); p++) {
+                    ImGui::PushID((int)p);
+                    if (ImGui::Selectable(D.places[p].first.c_str(), false)) { sel = k; scroll_to = D.places[p].second; }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
         }
-        shown++;
+        if (month_open) ImGui::TreePop();
+        ImGui::EndChild();
+        ImGui::SameLine();
+    }
+
+    /* the day chosen, in the order it was read: its places as headings, the time, the choice */
+    ImGui::BeginChild("chron", ImVec2(0, 0), ImGuiChildFlags_Border);
+    const ChronDay &D = days[(size_t)sel];
+    ImGui::BeginDisabled(sel <= 0); if (ImGui::SmallButton("< Day before")) { sel--; scroll_to = -2; } ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(sel >= (int)days.size() - 1); if (ImGui::SmallButton("Day after >")) { sel++; scroll_to = -2; } ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s%s", D.date.c_str(), f.empty() ? "" : " (the texts found)");
+    const ChronDay &S = days[(size_t)sel];
+    if (scroll_to == -2) { ImGui::SetScrollY(0); scroll_to = -1; }
+    std::string place;
+    for (int i : S.idx) {
+        const ChronEntry &e = chron[(size_t)i];
         ImGui::PushID(i);
-        ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s, %s", e.date.c_str(), e.place.c_str());
+        if (e.place != place) {
+            ImGui::Spacing();
+            ImGui::SeparatorText(e.place.c_str());
+            place = e.place;
+        }
+        if (i == scroll_to) { ImGui::SetScrollHereY(0.0f); scroll_to = -1; }
         ImGui::PushTextWrapPos(0);
+        if (e.hour >= 0) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%d:00", e.hour); ImGui::SameLine(); }   /* (the hour before the text, which wraps under it) */
         ImGui::TextUnformatted(e.text.c_str());
         if (!e.choice.empty()) ImGui::TextColored(ImVec4(0.18f, 0.32f, 0.55f, 1), "> %s", e.choice.c_str());
         ImGui::PopTextWrapPos();
-        ImGui::Separator();
+        ImGui::Spacing();
         ImGui::PopID();
     }
-    if (!shown) ImGui::TextWrapped(chron.empty() ? "Every text the cards show is kept here, with the date, the place and the choice you made."
-                                                 : "Nothing found.");
     ImGui::EndChild();
 }
 
