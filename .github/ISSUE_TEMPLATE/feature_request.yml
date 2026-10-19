@@ -1,0 +1,11 @@
+name: Suggestion
+description: An idea for Darklands+
+labels: [suggestion]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should change, and why it would make the game better to play. Everything in Darklands+ can be switched off, so say whether it should be on by default.
+    validations:
+      required: true

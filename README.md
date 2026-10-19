@@ -44,11 +44,11 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 - **My antivirus complains.** On the first start Darklands+ builds the game module, `darklands_game.dll`, from your own `DARKLAND.EXE`; some antivirus programs distrust files that were just compiled. Allow it.
 - **Mac?** Not natively. Wine-based tools may work but are untested.
 - **Something went wrong.** `darklands_port.log` in the game folder says why a start failed. See also `Darklands+ README.txt` in the download.
-- **Where do I report bugs?** There is no support (see below). The full list of features is in the [release notes](docs/release_notes.md), and [CHANGELOG.md](CHANGELOG.md) says what changed.
+- **Where do I report bugs?** On GitHub, under [Issues](https://github.com/bouchacha/Darklands-plus/issues). Attach `darklands_port.log` from the game folder and, if you can, a save from just before the problem. The full list of features is in the [release notes](docs/release_notes.md), and [CHANGELOG.md](CHANGELOG.md) says what changed.
 
 ## Status
 
-Finished and handed over. The author is not a programmer and will not maintain the project or answer bug reports. The code was written by an AI (Anthropic's Claude) from the author's direction and play-testing, and anyone is free to fork it and carry it on. See [LICENSE](LICENSE).
+Actively developed. Bug reports, suggestions and contributions are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). The author directs and play-tests; the code is written by an AI (Anthropic's Claude). See [LICENSE](LICENSE).
 
 ## For developers
 

@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in Darklands+ does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check first whether the original game does the same: **F12 > Settings > Helpers > Buggy Purist** plays it exactly as it was. Some oddities are the original's, and many of those already have a fix you can switch on.
+  - type: input
+    id: version
+    attributes:
+      label: Darklands+ version
+      description: The start screen shows it (for example 1.2).
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: System
+      options: [Windows 11, Windows 10, Linux (Wine or Proton), Steam Deck, Other]
+    validations:
+      required: true
+  - type: input
+    id: preset
+    attributes:
+      label: Preset
+      description: F12 > Settings > Helpers (Buggy Purist, Purist, Darklands+, Easy ... or your own switches).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      description: Where you were (town, card, battle), what you clicked, what you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen again
+      placeholder: "1. Load the save\n2. Go to the inn\n3. ..."
+  - type: textarea
+    id: files
+    attributes:
+      label: The log and a save
+      description: Drag in darklands_port.log from the game folder, and if you can a save from just before the problem (the DKSAVEn.SAV and DKSAVEn.BSV files from SAVES, zipped). A screenshot (Ctrl+F12) helps too.

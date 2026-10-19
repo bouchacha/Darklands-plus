@@ -1,6 +1,6 @@
 # Working on Darklands+
 
-This project is meant to be carried on by the Darklands community. This page is the map: where
+Contributions are welcome: fixes, features, mods, matched functions. This page is the map: where
 things are, how to build and test them, and how a change usually goes. The details are in the
 documents it points to.
 
