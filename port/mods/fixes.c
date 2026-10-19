@@ -117,6 +117,20 @@
  *            0x040000FF (what $Black00, $Sword00/01 and $Armor00/01 pass), not the bowyer's
  *            0x083C0030 (by day, $Bowye00, s065 18fb): at night the bowyer sold the smiths'
  *            weapons and armour and no bows. Found by Arkana Mechanika (Darklands Restoration).
+ *  confession A town church's confession ($CityC00, s057 1838:03cc) lasts 11 - reputation / 10 hours
+ *            (from 0; below 0, 12 + reputation / 20): an hour at 100, none at 110, and from 120 a
+ *            negative number that advance_hours (s029 1367:05c8) adds to the hour, turning the clock
+ *            back (to hour -1 at midnight). Reputation passes 99 where a card sets it without the
+ *            clamp of loc_reputation_adj ($Polit00 s070 1ac1:0532, +14..19; $Polit01). It now takes
+ *            an hour at least. Found by Arkana Mechanika (Darklands Restoration).
+ *
+ * Known, and left as the game has them (no fix: they are the game's design, or never reached):
+ *  - An alchemist offers formula (seed + 100 + 3k) % 22 (k 0..3): only formulae 0..21 are ever
+ *    sold, the first seven potions and Thunderbolt's first grade (ui/libraries.cpp reads it so;
+ *    the cause found by Arkana Mechanika).
+ *  - An event "for ever" (9999 hours) ends on 31 December 1499 (s029 event_new and kin): on 1
+ *    January 1500 they all end together and the quests' facts they kept are cleared. A game a
+ *    hundred years long (Arkana Mechanika).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -209,6 +223,8 @@ Fix FIXES[] = {
       "39 saints' help, as the game codes it, falls short of or strays from their own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now a week faster, the days on the road fewer), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails for Riding; St. Charity, St. Erasmus and St. Pantaleon no protection against fire for the party; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never bettered a weapon or armour; St. Crispin bettered metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md tell each one). The armour and fire saints need the armourday fix.", 1 },
     { "nightbowyer", "The bowyer sells bows at night too",
       "Woken at night, a bowyer opened a shop of the smiths' weapons and armour and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
+    { "confession", "Confession takes time",
+      "The better the party's name in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes an hour at least.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1569,6 +1585,19 @@ static void nightbowyer_hook(void)          /* s029 0e76:21aa */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- confession
+ * The confession ($CityC00's option, s057 1838:03cc) reads the town's reputation (cur_rep, DS:ee74)
+ * only for its hours: past 109 it is read as 109 (an hour), and put back. */
+static void confession_hook(void)           /* s057 1838:03cc */
+{
+    int rep = (s16)g_rw(GV_cur_rep);
+    if (rep <= 109) { hook_call_original(); return; }
+    g_ww(GV_cur_rep, 109);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix confession: reputation %d read as 109 (an hour, not %d)\n", rep, 11 - rep / 10);
+    hook_call_original();
+    g_ww(GV_cur_rep, (u16)rep);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1581,7 +1610,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
-    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook } };
+    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
+    { 57, 0x1838, 0x03cc, confession_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

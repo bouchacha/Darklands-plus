@@ -78,6 +78,8 @@ Fixed (bugs of 483.07): a cathedral's canon gave out errands as if for the town'
 
 **Black Cloud in battle** (a switch, on in Darklands+ and Easy): the party can throw Black Cloud in a battle too. The game left it out of the party's battle menu (the manual: "the screen takes too long", on the machines of 1992), though its smoke is in the battle's rules and enemies use it. **Teachers' tooltips** were rewritten in plain words: what they teach, the fee, the teacher's own skill (as far as they can teach), the chance a day of lessons adds a point, how to hire one, whom they accept and how it stands now; the margin lists each town's teachers with how far they teach.
 
+**Fixed (483.07): confession turned the clock back.** A town church's confession lasts the fewer hours the better the party's name there: none at a reputation of 110, and from 120 a negative number of hours that set the clock back (two hours at 130). Reputation passes 99 where a card sets it directly (a council's favour). Confession now takes an hour at least (the "confession" fix; found by Arkana Mechanika).
+
 **Fixed (483.07): the bowyer woken at night sold the smiths' goods.** The night card opened the bowyer's shop with the smiths' item categories, so it offered swords, axes and armour and no bows; it now sells what it sells by day (the "nightbowyer" fix; found by Arkana Mechanika, Darklands Restoration).
 
 **What is new, once:** a player coming from an earlier version is shown, at the first start of 1.2, a short list of what is new (the character sheet, the world map, Go To, the saints, the screens, the one pack, the halo), then never again; a new player gets the welcome instead.
