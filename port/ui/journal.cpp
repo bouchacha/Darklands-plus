@@ -734,9 +734,6 @@ static void town_list(void)
     }
 }
 
-static const char *BUILDING[12] = { nullptr, "town hall", "fortress", nullptr, "cathedral", "barracks", "slums",   /* (bit 10, the mint: no card leads there) */
-                                     "monastery", "university", "pawnshop", nullptr, "docks" };
-
 /* an item's picture and name in a table cell: the picture inside the cell, the name centred on it */
 static void icon_name_cell(int id, const char *name)
 {
@@ -770,8 +767,8 @@ static void town_page(int loc)
     if (t.visited) ImGui::TextDisabled("First reached %s, last %s (%d visit%s).", t.first.c_str(), t.last.c_str(), t.visits, t.visits == 1 ? "" : "s");
     if (loc >= 0 && loc < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[loc];
-        std::string b;
-        for (int k = 1; k < 12; k++) if (BUILDING[k] && (c.buildings >> k) & 1) { if (!b.empty()) b += ", "; b += BUILDING[k]; }
+        std::string citynav_town_has(int loc);
+        std::string b = citynav_town_has(loc);                 /* (as Go to lists the town's places: ui/citynav.cpp) */
         ImGui::TextWrapped("Size %d.%s%s", c.size, b.empty() ? "" : " Has: ", b.c_str());
         std::string sh;
         for (int k = 0; k < 9; k++) if (c.shopq[k] && shop_open_ever(k)) {
