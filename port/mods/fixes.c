@@ -101,6 +101,7 @@
  *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour and Firewall last a day (below).
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
+ *  battlesaints A saint's boosts called in a battle wear off (below, potions: the cards close).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  */
 #include <stdio.h>
@@ -177,6 +178,8 @@ Fix FIXES[] = {
       "The manual's Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
       "The companies' cards raise and lower the party's standing with them (under nothing, with the town's regard, they give no tasks), but a saved game did not keep it: after a load it was whatever the last game played left, or nothing after a restart. It is now kept in the save, in room the game leaves empty (the original game still reads such saves).", 1 },
+    { "battlesaints", "A saint's help called in a battle wears off",
+      "A battle puts away the game's list of what is running and reads it back afterwards over most of what was added to it during the fight: a saint called in a battle raised attributes and skills for good (as a rule), and the price some saints ask (a lowered attribute) was never given back. They now last their day, like help called outside a battle.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
       "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
 };
@@ -512,12 +515,13 @@ void fixes_frame(void)
  * (only use_potion writes it), so saves spoilt by the old bug mend themselves.
  * A battle closes the cards (run_battle: cards_shutdown, s043 1462:054e, writes the events to
  * events.tmp and frees them; cards_startup, 1462:078e, reads them back after the battle and its
- * loot): in between the table holds only what the battle makes, a potion drunk there, and that is
- * lost with it. So the party's running potions are kept when the cards close and counted until
- * they open, and those drunk meanwhile are put back into the table when it is read back. */
+ * loot): in between the table holds only what the battle makes, a potion drunk there, and the
+ * table read back over it loses it (but what lay past the slots read back). So the party's running potions are kept when the cards close and counted until
+ * they open, and those drunk meanwhile are put back into the table when it is read back (as are
+ * a saint's boosts called in a battle, with "battlesaints": the game never took them off). */
 typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
-static PotEv pot_kept[64], pot_new[32];
-static int pot_nkept, pot_nnew, cards_down;
+static PotEv pot_kept[64];
+static int pot_nkept, cards_down;
 
 static int pot_running(const s16 *end)
 {
@@ -541,49 +545,60 @@ static int pot_table(PotEv *out, int max)
     return n;
 }
 static int pot_same(const PotEv *a, const PotEv *b) { return a->m == b->m && a->type0 == b->type0 && a->t == b->t && !memcmp(a->end, b->end, sizeof a->end); }
-/* all the party's running potions: the table's, and while the cards are closed those kept */
+/* all the party's running potions: the table's (while the cards are closed: those drunk in the
+   battle), and while the cards are closed those kept from before */
 static int pot_all(PotEv *out, int max)
 {
     int n = pot_table(out, max);
-    if (cards_down) {
-        for (int k = 0; k < pot_nnew; k++) {                /* (drunk now: kept for the table's return) */
-            int j = 0; while (j < n && !pot_same(&out[j], &pot_new[k])) j++;
-            if (j == n) pot_new[k].m = -1;                  /* (no longer in the table: gone, or ended) */
-        }
-        int w = 0; for (int k = 0; k < pot_nnew; k++) if (pot_new[k].m >= 0) pot_new[w++] = pot_new[k];
-        pot_nnew = w;
-        for (int j = 0; j < n && pot_nnew < 32; j++) {
-            int k = 0; while (k < pot_nnew && !pot_same(&pot_new[k], &out[j])) k++;
-            if (k == pot_nnew) pot_new[pot_nnew++] = out[j];
-        }
+    if (cards_down)
         for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
-    }
     return n;
 }
 static int any_potion_fix(void) { return fix_on("potions") || fix_on("armourday") || fix_on("greatpower"); }
 static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e */
 {
-    if (any_potion_fix()) { pot_nkept = pot_table(pot_kept, 64); pot_nnew = 0; }
+    pot_nkept = any_potion_fix() ? pot_table(pot_kept, 64) : 0;
     hook_call_original();
-    cards_down = any_potion_fix();
-    if (cards_down && getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
+    cards_down = 1;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
 }
+/* the cards open again after a battle: the table is read back into its first slots, so what the
+   battle put in it is lost (but what lay past them) unless it is carried over - the members'
+   potions (kind 0x4a: the potion fixes) and a saint's help called in it (0x48 attribute, 0x49
+   skill, its price too: battlesaints), whole records */
 static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
 {
+    static u8 rec[48][0x30];
+    int n = 0, pots = cards_down && any_potion_fix(), saints = cards_down && fix_on("battlesaints");
+    for (int i = 0; i < 300 && n < 48 && (pots || saints); i++) {
+        u32 e = ev_ptr(i);
+        if (!e) continue;
+        int kind = g_ev(e, G_EV_KIND), m = g_ev(e, G_EV_OWNER);
+        if (m < 0 || m > 4 || !((kind == 0x4a && pots) || ((kind == 0x48 || kind == 0x49) && saints))) continue;
+        for (int k = 0; k < 0x30; k++) rec[n][k] = rb((u16)(e >> 16), (u16)((u16)e + k));
+        n++;
+    }
     hook_call_original();
     if (!cards_down) return;
     u16 ax = AX, dx = DX;
-    cards_down = 0;
-    PotEv t[64]; int n = pot_table(t, 64);
-    for (int k = 0; k < pot_nnew; k++) {                    /* the potions drunk while they were closed: back in */
-        int j = 0; while (j < n && !pot_same(&t[j], &pot_new[k])) j++;
-        if (j < n || !pot_running(pot_new[k].end)) continue;
-        int i = (s16)ns_call(GF_event_new, 10, pot_new[k].m, (s16)g_rw(G_CUR_LOC), 0x63, 0x4a, pot_new[k].type0, pot_new[k].t, 6, 24, 1, 0);
+    cards_down = 0; pot_nkept = 0;
+    for (int r = 0; r < n; r++) {
+        const u8 *b = rec[r];
+        int kind = b[0x22] | b[0x23] << 8, m = b[0x1a] | b[0x1b] << 8, there = 0;
+        for (int i = 0; i < 300 && !there; i++) {          /* (the table is read back into its first slots: */
+            u32 e = ev_ptr(i);                              /*  what the battle put past them is still there) */
+            if (!e) continue;
+            int k = 0; while (k < 0x30 && rb((u16)(e >> 16), (u16)((u16)e + k)) == b[k]) k++;
+            there = k == 0x30;
+        }
+        if (there) continue;
+        int i = (s16)ns_call(GF_event_new, 10, m, (s16)g_rw(G_CUR_LOC), 0x63, kind, b[0] | b[1] << 8, b[0x1e] | b[0x1f] << 8, 6, 24, 1, 0);
         u32 e = ev_ptr(i);
-        if (e) for (int f = 0; f < 4; f++) ww((u16)(e >> 16), (u16)((u16)e + 0x12 + 2 * f), (u16)pot_new[k].end[f]);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: member %d's potion (%d, %d) drunk in the battle kept (event %d)\n", pot_new[k].m, pot_new[k].type0, pot_new[k].t, i);
+        if (!e) continue;
+        for (int k = 0; k < 0x30; k++) wb((u16)(e >> 16), (u16)((u16)e + k), b[k]);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix %s: member %d's kind %#x (%d, %d) from the battle kept (event %d)\n",
+                                          kind == 0x4a ? "potions" : "battlesaints", m, kind, (s16)(b[0] | b[1] << 8), (s16)(b[0x1e] | b[0x1f] << 8), i);
     }
-    pot_nkept = pot_nnew = 0;
     AX = ax; DX = dx;
 }
 
@@ -1297,7 +1312,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
-    { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_camp_spend_day, teachcap_hook } };
+    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_camp_spend_day, teachcap_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
