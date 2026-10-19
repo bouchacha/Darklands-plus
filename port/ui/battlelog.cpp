@@ -38,6 +38,7 @@ struct BLine { u32 t; std::string text; int kind; };   /* kind: 0 the party acts
 static std::vector<BLine> lines, prev_lines;
 static int known_end[13], known_str[13], known_st[13], last_st[13];   /* last_st: the last status that was not 0 (the game clears the fallen's records) */
 static bool in_battle;
+static bool met[13];                               /* named in a blow this battle (seen or not: the log told of it) */
 static int names_gen;
 static std::string names[13];
 static std::map<std::string, int> kind_named;      /* how many of each kind of foe have had a name this battle */
@@ -71,6 +72,7 @@ static std::string name_of(int i)
 }
 
 std::string battlelog_name(int i) { return name_of(i); }     /* "Villager 2": as the log calls them */
+bool battlelog_met(int i) { return in_battle && i >= 0 && i < 13 && met[i]; }   /* (the margin lists the foes the log has named, out of sight too) */
 
 static void add(int kind, const std::string &t)
 {
@@ -90,6 +92,7 @@ static void start_battle(void)
         last_st[i] = known_st[i];
     }
     kind_named.clear();
+    for (int i = 0; i < 13; i++) met[i] = false;
     naming_start = true;
     for (int i = 0; i < 13; i++) if (known_st[i]) name_of(i);    /* names (and their numbers) fixed while all are standing */
     naming_start = false;
@@ -110,6 +113,7 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
     if (!ui_battle_log || game_mode() != GM_BATTLE || i < 0 || i >= 13 || t < 0 || t >= 13 || i == t) return;
     if (!in_battle) start_battle();
     std::string a = name_of(i), d = name_of(t);
+    met[i] = met[t] = true;
     int kind = i < 5 ? 0 : 1;
     if (anim == 1 || anim == 2) {
         int de = e0 - e1, ds = s0 - s1;
@@ -229,8 +233,8 @@ extern "C" void battlelog_frame(void)
             if (de || ds) {
                 int by = shot_by[i] >= 0 ? shot_by[i] : shooter_at(i);
                 shot_by[i] = -1;
-                if (by >= 0) add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + name_of(i) + " (" + cost(de, ds) + ")");
-                else add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")");
+                if (by >= 0) { met[by] = met[i] = true; add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + name_of(i) + " (" + cost(de, ds) + ")"); }
+                else { met[i] = true; add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")"); }
             }
         }
         if (st != known_st[i]) {

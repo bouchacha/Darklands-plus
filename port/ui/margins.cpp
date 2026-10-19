@@ -144,6 +144,7 @@ static void name_line(const std::string &t, bool dim, const char *tail = nullptr
 /* in a battle: everybody's condition at a glance - the party with endurance and strength,
  * the enemies the party has seen (in the battle's hot spots) with how hurt they are */
 std::string battlelog_name(int i);
+bool battlelog_met(int i);
 static void bar(float frac, ImU32 col, float w, float hgt)
 {
     ImVec2 p = ImGui::GetCursorScreenPos();
@@ -469,7 +470,7 @@ static void battle_panel(float width, float fs)
     for (int i = 5; i < 13; i++) {
         u16 b = (u16)(0x9c55 + 0x80 * i);
         int st = g_rb((u16)(b + 0x14)), endm = (s8)g_rb((u16)(b + 0x64));
-        if (!seen[i]) continue;
+        if (!seen[i] && !battlelog_met(i)) continue;            /* (in sight once, or named in the log) */
         if (!st || endm <= 0) {
             if (last_st[i] >= 2 && !last_name[i].empty()) { ImGui::TextDisabled("%s - %s", last_name[i].c_str(), last_st[i] == 3 ? "dead" : last_st[i] == 5 ? "fled" : "unconscious"); shown++; down++; }
             continue;
