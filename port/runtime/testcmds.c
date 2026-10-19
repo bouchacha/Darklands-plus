@@ -93,6 +93,34 @@ int testcmd_run(const char *cmd, const char *arg)
             }
         }
         else if (!strcmp(cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
+        else if (!strcmp(cmd, "usainttab")) {           /* test: each saint's table entry t[0..6] (day, class, min x, max, virtue, base, t6), through saint_fns */
+            u16 tseg = (u16)(LOADSEG + 0x290e), vseg = (u16)(LOADSEG + 0x09c0);
+            void *snap = eval_snapshot();
+            for (int t = 0; t < 160; t++) {
+                u16 off = rw(tseg, (u16)(0x2937 + 4 * t)), seg = rw(tseg, (u16)(0x2937 + 4 * t + 2));
+                if (seg != vseg || off < 0x1000) break;
+                fprintf(stderr, "sainttab %d %04x:", t, off);
+                for (int w = 0; w < 7; w++) { u16 a[3] = { 0, 0, (u16)w }; u32 r = game_call_ptr(seg, off, 3, a, 0); eval_restore(snap); fprintf(stderr, " %d", (s16)r); }
+                fprintf(stderr, "\n");
+            }
+            eval_free(snap);
+        }
+        else if (!strcmp(cmd, "usaintdo")) {            /* test: saint s's help for member m (saint_fns[s](m, 50, 8)) */
+            int m = 0, st = 0, loc = -1; sscanf(arg, "%d,%d,%d", &m, &st, &loc);   /* (loc: the party there meanwhile, and its reputation shown) */
+            u16 tseg = (u16)(LOADSEG + 0x290e), off = rw(tseg, (u16)(0x2937 + 4 * st)), seg = rw(tseg, (u16)(0x2937 + 4 * st + 2));
+            u16 a[3] = { (u16)m, 50, 8 }, cl = g_rw(G_CUR_LOC);
+            u32 lr = loc >= 0 ? g_location(loc) : 0;
+            int rep0 = lr ? (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)) : 0;
+            if (loc >= 0) g_ww(G_CUR_LOC, (u16)loc);
+            int ns_call_ptr(u16, u16, int, ...);
+            u8 msgs = g_rb(GV_opt_saint_msgs); g_wb(GV_opt_saint_msgs, 0);   /* (no message to wait for its key: no script runs meanwhile) */
+            int r = ns_call_ptr(seg, off, 3, a[0], a[1], a[2]);
+            g_wb(GV_opt_saint_msgs, msgs);
+            if (loc >= 0) g_ww(G_CUR_LOC, cl);
+            fprintf(stderr, "saint %d for member %d: %d", st, m, (s16)r);
+            if (lr) fprintf(stderr, " (reputation at %d: %d -> %d)", loc, rep0, (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12)));
+            fprintf(stderr, "\n");
+        }
         else if (!strcmp(cmd, "ucall")) {               /* test: call sect seg:off (link, hex) with up to 10 int args: ucall:31,18e7,0ab8,-2,80 */
             int sect = 0, a[10] = { 0 }; unsigned sg = 0, of = 0;
             int n = sscanf(arg, "%d,%x,%x,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", &sect, &sg, &of, &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9]);

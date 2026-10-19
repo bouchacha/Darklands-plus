@@ -756,23 +756,12 @@ extern "C" void tab_alchemy(void)
     // ingredient shelf
     ImGui::SeparatorText("The party's ingredients");
     ImDrawList *dl = ImGui::GetWindowDrawList();
-    /* those carried, as tiles; the others folded away (their signs, for reading the formulae) */
-    static bool show_missing = false;
+    /* all 23, always in the same places: those the party carries in ink, the others greyed */
     int carried = 0; for (int id = 72; id <= 94; id++) { int byM[MAXM]; if (party_stock(id, byM)) carried++; }
     if (!carried) ImGui::TextDisabled("The party carries none. Alchemists and pharmacists sell them (F12 > Journal > Ingredients: where).");
     int shown = 0;
-    for (int pass = 0; pass < 2; pass++) {
-    if (pass == 1) {
-        if (carried == 23) break;
-        char lb[64]; snprintf(lb, sizeof lb, "%s the %d not carried", show_missing ? "Hide" : "Show", 23 - carried);
-        if (shown) ImGui::NewLine();
-        if (ImGui::SmallButton(lb)) show_missing = !show_missing;
-        if (!show_missing) break;
-        shown = 0;
-    }
     for (int id = 72; id <= 94; id++) {
         int byM[MAXM]; int n = party_stock(id, byM);
-        if ((n > 0) != (pass == 0)) continue;
         const ItemDef *d = def_of(id);
         if (shown % 8) ImGui::SameLine();
         ImGui::PushID(id);
@@ -781,6 +770,7 @@ extern "C" void tab_alchemy(void)
         dl->AddRectFilled(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), n ? col(0.96f, 0.92f, 0.82f) : col(0.88f, 0.83f, 0.72f, 0.6f), 6);
         dl->AddRect(p, ImVec2(p.x + UIS(88), p.y + UIS(92)), col(0.55f, 0.42f, 0.25f), 6);
         draw_icon(dl, ImVec2(p.x + UIS(44), p.y + UIS(34)), UIS(40), d, id);
+        if (!n) dl->AddRectFilled(ImVec2(p.x + UIS(20), p.y + UIS(10)), ImVec2(p.x + UIS(68), p.y + UIS(58)), col(0.90f, 0.86f, 0.77f, 0.62f), UIS(24));   /* (not carried: the sign faded) */
         ImGui::PushFont(ui_font_small);
         const char *sn = d ? (ImGui::CalcTextSize(d->name.c_str()).x <= UIS(84) ? d->name.c_str() : d->shortname.c_str()) : "?";   /* (the whole name where it fits) */
         ImVec2 ts = ImGui::CalcTextSize(sn);
@@ -790,13 +780,13 @@ extern "C" void tab_alchemy(void)
         ImGui::PopFont();
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            ImGui::Text("%s: %d", d ? d->name.c_str() : "?", n);
+            if (n) ImGui::Text("%s: %d", d ? d->name.c_str() : "?", n);
+            else ImGui::Text("%s: the party carries none", d ? d->name.c_str() : "?");
             for (int m = 0; m < MAXM; m++) if (byM[m]) ImGui::Text("  %s carries %d", member_name(m, false).c_str(), byM[m]);
             ImGui::EndTooltip();
         }
         ImGui::PopID();
         shown++;
-    }
     }
     // formulas
     static bool all_formulas = false;

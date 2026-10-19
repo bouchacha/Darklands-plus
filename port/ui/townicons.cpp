@@ -220,7 +220,8 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
         p.arc(0, 1.0f, 5.0f, 3.6f, 4.4f, C(0.92f, 0.94f, 0.98f), 1.0f);    // a gleam
         p.line(-12.0f, 1.6f, 12.0f, 1.6f, C(0.58f, 0.60f, 0.66f), 0.6f);
         break; }
-    case TI_FUGGER: {                                                       /* the Fugger's arms: a lily, gold on blue beside blue on gold */
+    case TI_FUGGER: {                                                       /* the arms of the Fugger "von der Lilie", the banking line: per pale gold and
+                                                                               blue, two lilies counterchanged (granted 1473; the bank itself came after 1400) */
         ImU32 blue = C(0.22f, 0.34f, 0.66f);
         p.poly({ -10.0f - o, -11.0f - o, 10.0f + o, -11.0f - o, 10.0f + o, 1.0f, 0, 12.6f + o, -10.0f - o, 1.0f }, INK);
         p.poly({ -10.0f, -11.0f, 0, -11.0f, 0, 11.6f, -10.0f, 1.0f }, GOLD);
@@ -233,11 +234,12 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
             p.tri(x - 1.2f, 0.8f, x + 1.2f, 0.8f, x, 4.0f, k);
         }
         break; }
-    case TI_MEDICI: {                                                       /* the Medici's arms: red balls on gold */
+    case TI_MEDICI: {                                                       /* the Medici's arms as about 1400: seven red balls (palle) in an orle on gold,
+                                                                               as in the Old Sacristy of San Lorenzo (the blue ball with France's lilies came in 1465) */
         p.poly({ -10.0f - o, -11.0f - o, 10.0f + o, -11.0f - o, 10.0f + o, 1.0f, 0, 12.6f + o, -10.0f - o, 1.0f }, INK);
         p.poly({ -10.0f, -11.0f, 10.0f, -11.0f, 10.0f, 1.0f, 0, 11.6f, -10.0f, 1.0f }, GOLD);
-        const float bx[6] = { 0, -5.0f, 5.0f, -6.4f, 6.4f, 0 }, by[6] = { -7.6f, -4.6f, -4.6f, 0.6f, 0.6f, 5.6f };
-        for (int k = 0; k < 6; k++) { p.disc(bx[k], by[k], 2.4f + o * 0.6f, INK); p.disc(bx[k], by[k], 2.4f, k == 0 ? C(0.24f, 0.36f, 0.72f) : RED); }
+        const float bx[7] = { -5.6f, 0, 5.6f, -6.2f, 6.2f, -3.4f, 3.4f }, by[7] = { -7.0f, -7.4f, -7.0f, -1.8f, -1.8f, 3.8f, 3.8f };
+        for (int k = 0; k < 7; k++) { p.disc(bx[k], by[k], 2.2f + o * 0.6f, INK); p.disc(bx[k], by[k], 2.2f, RED); p.disc(bx[k] - 0.7f, by[k] - 0.7f, 0.6f, C(0.95f, 0.55f, 0.45f)); }
         break; }
     case TI_HANSE: {                                                        /* a Hanseatic cog: a round hull, one square sail in red and white */
         ImU32 hull = C(0.46f, 0.28f, 0.13f), white = C(0.97f, 0.94f, 0.86f), water = C(0.30f, 0.50f, 0.76f);
@@ -249,6 +251,8 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
         p.rect(-12.6f - o, -0.6f - o, -8.0f + o, 3.0f, INK); p.rect(-12.4f, -0.4f, -8.4f, 3.0f, hull);   // the castles, fore and aft
         p.rect(8.0f - o, -0.6f - o, 12.6f + o, 3.0f, INK); p.rect(8.4f, -0.4f, 12.4f, 3.0f, hull);
         for (int k = -1; k <= 1; k++) p.arc(k * 6.0f, 13.4f, 3.0f, 3.6f, 5.8f, water, 1.3f);
+        p.poly({ 0, -13.2f, 5.4f, -12.4f, 0, -11.4f }, RED);                 // the pennant at the masthead, red and white (Lübeck's, the Hanse's colours)
+        p.poly({ 0, -12.3f, 5.4f, -12.4f, 0, -11.4f }, white);
         break; }
     case TI_CHURCH: {                                                       /* a town church: a nave and its bell tower */
         ImU32 roof = C(0.66f, 0.26f, 0.18f), dark = C(0.20f, 0.14f, 0.10f);

@@ -98,13 +98,16 @@
  *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
  *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not (below, tomb).
  *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
- *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour and Firewall last a day (below).
+ *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour, St. Crispin's armour quality, Firewall
+ *            and the fire saints' protection last a day (below).
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
  *  battlesaints A saint's boosts called in a battle wear off (below, potions: the cards close).
  *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
+ *  pauls     The two St. Pauls each do what their texts say (below, pauls).
+ *  nepomuk   St. John Nepomuk's reputation in Prag goes to Prag (below, nepomuk).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -174,8 +177,8 @@ Fix FIXES[] = {
       "Taking the thing an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the thing. Now the party has it when it wins.", 1 },
     { "lordreward", "The lord pays for his tasks",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall: there it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
-    { "armourday", "Armour from potions and saints lasts a day; Hardarmor as the manual says",
-      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings and Firewall's protection against fire never wore off, and the armour added up with every one. They now last about a day, as the manual says, and armour piled up this way in a saved game goes back to normal. Hardarmor also does what the manual says: armour 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second while one runs keeps the stronger.", 1 },
+    { "armourday", "Armour and fire protection from potions and saints last a day; Hardarmor as the manual says",
+      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armour) and the protection against fire of Firewall and St. Polycarp never wore off, and added up with every one. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) wrote their protection against fire where the battle reads armour: +32 or +48 armour for good (or nothing, with the fire protection fix); the member now has fire protection 90 for a day, as St. Polycarp's. Hardarmor also does what the manual says: armour 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second while one runs keeps the stronger.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "The manual's Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
@@ -188,6 +191,10 @@ Fix FIXES[] = {
       "The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead.", 1 },
     { "oilweapons", "Each weapon oil works with the weapons the manual names",
       "Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too.", 1 },
+    { "pauls", "The two St. Pauls do what their texts say",
+      "St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; virtue 19, as the manual says) was in the game but never called. Now each does what its text says.", 1 },
+    { "nepomuk", "St. John Nepomuk's reputation in Prag goes to Prag",
+      "Called on in Prag, St. John Nepomuk raised the reputation of a place picked from whatever lay in memory (another town, or memory past the list of places) instead of Prag's. Now Prag gets it.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -746,18 +753,69 @@ static void hardarmor_give(int m, int *thick, int *qual)
     if (*thick > 15) *thick = 15;
     *qual = Q[g];
 }
-/* the quality: added to the target's armour (+0x4f, per hit location) for the hit alone */
+/* the quality: added to the target's armour (+0x4f body, +0x50 legs) for the hit alone - Hardarmor's
+   everywhere, St. Crispin's on the armour worn (party +0x37 body, +0x38 legs: -1 none) */
 static void armour_hit_hook(void)          /* hit_damage (a, t, r, loc) */
 {
-    int t = (s16)rw(SS, (u16)(SP + 6)), th, q = 0;
-    if (t >= 0 && t < 5 && g_rb(G_MEMBER(t))) hardarmor_give(t, &th, &q);
-    if (!q) { hook_call_original(); return; }
+    int t = (s16)rw(SS, (u16)(SP + 6)), th, q = 0, cr = 0;
+    if (t >= 0 && t < 5 && g_rb(G_MEMBER(t))) { hardarmor_give(t, &th, &q); cr = running_potions(t, 0x16e, 0); }
+    int q0 = q + ((s8)g_rb((u16)(G_MEMBER(t) + 0x37)) >= 0 ? cr : 0), q1 = q + ((s8)g_rb((u16)(G_MEMBER(t) + 0x38)) >= 0 ? cr : 0);
+    if (!q0 && !q1) { hook_call_original(); return; }
     u16 c = (u16)(GV_combatants + 0x80 * t + 0x4f);
     u8 a0 = g_rb(c), a1 = g_rb((u16)(c + 1));
-    g_wb(c, (u8)((s8)a0 + q > 99 ? 99 : (s8)a0 + q)); g_wb((u16)(c + 1), (u8)((s8)a1 + q > 99 ? 99 : (s8)a1 + q));
+    g_wb(c, (u8)((s8)a0 + q0 > 99 ? 99 : (s8)a0 + q0)); g_wb((u16)(c + 1), (u8)((s8)a1 + q1 > 99 ? 99 : (s8)a1 + q1));
     hook_call_original();
     g_wb(c, a0); g_wb((u16)(c + 1), a1);
 }
+
+/* St. Crispin (s039 165c:1868): +10 to the quality of every member's worn body and leg armour
+   (+0x3b, +0x3c), for good and piling up; and as the worn armour is known by its type and quality,
+   the armour in use then no longer matched its record in the pack. Here the bytes stay, and each
+   member has a kind 0x4a event of about a day (type0 0x16e, the value the points), counted in each
+   hit on the armour worn (armour_hit_hook). */
+static void crispin_hook(void)
+{
+    int what = (s16)rw(SS, (u16)(SP + 8));
+    if (what != 8) { hook_call_original(); return; }
+    u8 q[5][2];
+    for (int m = 0; m < 5; m++) { q[m][0] = g_rb((u16)(G_MEMBER(m) + 0x3b)); q[m][1] = g_rb((u16)(G_MEMBER(m) + 0x3c)); }
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    for (int m = 0; m < 5; m++) {
+        g_wb((u16)(G_MEMBER(m) + 0x3b), q[m][0]); g_wb((u16)(G_MEMBER(m) + 0x3c), q[m][1]);
+        if (!g_rb(G_MEMBER(m))) continue;
+        record_potion(m, 0x16e, 10);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d armour quality +10 (St. Crispin) for a day\n", m);
+    }
+    AX = ax; DX = dx;
+}
+
+/* the saints of fire: St. Charity (165c:125a), St. Erasmus (2628) and St. Pantaleon (5a84) set the
+   high nibble of the member's armour byte (+0x41) to 0xa, St. Polycarp (6122) every member's to 0xb
+   and their fire protection (+0x10) to 90 - all for good. Those bits are not fire protection: the
+   battle counts bits 4-6 as armour (+32, +48: the "fireward" fix hides them) and bit 7 makes the
+   member's own blows fire. Here the byte stays as it was and the member (Polycarp: each member)
+   has fire protection 90 for about a day (a kind 0x4a event, type0 0x174), as Polycarp's. */
+static void fire_saint(int whole)
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
+    if (what != 8 || who < 0 || who > 4) { hook_call_original(); return; }
+    u8 a41[5], f10[5];
+    for (int m = 0; m < 5; m++) { a41[m] = g_rb((u16)(G_MEMBER(m) + 0x41)); f10[m] = g_rb((u16)(G_MEMBER(m) + 0x10)); }
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    for (int m = 0; m < 5; m++) {
+        g_wb((u16)(G_MEMBER(m) + 0x41), a41[m]); g_wb((u16)(G_MEMBER(m) + 0x10), f10[m]);
+        if (!g_rb(G_MEMBER(m)) || (!whole && m != who)) continue;
+        record_potion(m, 0x174, 90);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d fire protection 90 (a saint's) for a day\n", m);
+    }
+    AX = ax; DX = dx;
+}
+static void charity_hook(void) { fire_saint(0); }
+static void erasmus_hook(void) { fire_saint(0); }
+static void pantaleon_hook(void) { fire_saint(0); }
+static void polycarp_hook(void) { fire_saint(1); }
 
 static void armourday_frame(void)
 {
@@ -767,7 +825,8 @@ static void armourday_frame(void)
     for (int m = 0; m < size; m++) {
         if (!g_rb(G_MEMBER(m))) continue;
         u16 mb = (u16)G_MEMBER(m);
-        int arm, q, fire = running_potions(m, 0x74, 1);
+        int arm, q, fire = running_potions(m, 0x74, 1), sf = running_potions(m, 0x174, 1);
+        if (sf > fire) fire = sf;                       /* (Firewall's or a saint's, the stronger) */
         hardarmor_give(m, &arm, &q);
         u8 was = g_rb((u16)(mb + 0x41)), v = (u8)((was & 0xf0) | arm);
         if (v != was) {
@@ -1398,6 +1457,53 @@ static void teachcap_hook(void)            /* camp_spend_day(mode), s036 1462:14
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- pauls
+ * The saints' table (saint_fns, far 290e:2937) sends St. Paul (105) to 165c:5cca, which heals all
+ * lost Strength and Endurance and takes half the Intelligence for a day, with virtue 70 - what the
+ * texts and the manual give St. Paul the Simple - and St. Paul the Simple (106) to 5d6c, a copy of
+ * St. Thomas Aquinas's help (6bb8) with the table values of 75d8. 75d8, which nothing calls, is the
+ * Apostle's: Speak Common, Latin, Read & Write, Charisma, Endurance, a tenth of lost Strength,
+ * virtue 19, as his text and the manual. Here Paul is answered by 75d8, Paul the Simple by 5cca. */
+static int pauls_inner;
+static void paul_hook(void)                /* 165c:5cca (who, x, what), reached for St. Paul */
+{
+    if (pauls_inner) { hook_call_original(); return; }  /* (Paul the Simple's, below) */
+    int who = (s16)rw(SS, (u16)(SP + 4)), x = (s16)rw(SS, (u16)(SP + 6)), what = (s16)rw(SS, (u16)(SP + 8));
+    int v = ns_call(39, 0x165c, 0x75d8, 3, who, x, what);
+    AX = (u16)v; DX = (u16)ns_call_dx();
+    if (getenv("DL_FIX_LOG") && what == 8) fprintf(stderr, "fix pauls: St. Paul the Apostle's help for member %d\n", who);
+    hook_return_far(0);
+}
+static void paul_simple_hook(void)         /* 165c:5d6c, reached for St. Paul the Simple */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), x = (s16)rw(SS, (u16)(SP + 6)), what = (s16)rw(SS, (u16)(SP + 8));
+    pauls_inner = 1;
+    int v = ns_call(39, 0x165c, 0x5cca, 3, who, x, what);
+    pauls_inner = 0;
+    AX = (u16)v; DX = (u16)ns_call_dx();
+    if (getenv("DL_FIX_LOG") && what == 8) fprintf(stderr, "fix pauls: St. Paul the Simple's help for member %d\n", who);
+    hook_return_far(0);
+}
+
+/* ---------------------------------------------------------------- nepomuk
+ * St. John Nepomuk (165c:41fa) in Prag (location 0x46) passes loc_reputation_adj (s029 0e76:19d0)
+ * a local never set as the place, so the +15..25 went wherever that pointed. */
+static int nep_prag;
+static void nepomuk_hook(void)
+{
+    nep_prag = (s16)rw(SS, (u16)(SP + 8)) == 8 && (s16)g_rw(G_CUR_LOC) == 0x46;
+    hook_call_original();
+    nep_prag = 0;
+}
+static void repadj_hook(void)              /* loc_reputation_adj(loc, a, b) */
+{
+    if (nep_prag) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nepomuk: reputation for location %d goes to Prag\n", (s16)rw(SS, (u16)(SP + 4)));
+        ww(SS, (u16)(SP + 4), 0x46);
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1409,7 +1515,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
-    { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook } };
+    { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
+    { 39, 0x165c, 0x41fa, nepomuk_hook } };
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
@@ -1417,7 +1524,10 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
     { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook },
     { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook },
-    { "armourday", GF_hit_damage, armour_hit_hook },
+    { "armourday", GF_hit_damage, armour_hit_hook }, { "armourday", 39, 0x165c, 0x1868, crispin_hook },
+    { "armourday", 39, 0x165c, 0x125a, charity_hook }, { "armourday", 39, 0x165c, 0x2628, erasmus_hook },
+    { "armourday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armourday", 39, 0x165c, 0x6122, polycarp_hook },
+    { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "nepomuk", GF_loc_reputation_adj, repadj_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook } };
 
 void fix_enable(int i, int on)

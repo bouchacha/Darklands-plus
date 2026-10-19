@@ -36,6 +36,7 @@ int datamods_generation(void);
 #include "../runtime/hle.h"
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
+#include "../mods/fixes.h"
 u32 plat_ticks_ms(void);
 void plat_click_game(int gx, int gy);
 void ui_notice(const char *msg);
@@ -418,7 +419,7 @@ bool citynav_town_offers(int loc, int icon)
 /* the party's tasks in this town, by the place they lead to: a reward waiting with its giver (the
    giver's house: a bank's, the Hanse's, the cathedral, the council), a thing kept in an office above
    the marketplace (reached at night) */
-struct DestTask { int cat; std::string text; };
+struct DestTask { int cat; std::string title, text; };
 static std::map<int, std::vector<DestTask>> dest_tasks(int town)
 {
     std::map<int, std::vector<DestTask>> m;
@@ -431,7 +432,7 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
         case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; case 3: d = D_CATHEDRAL; break; case 10: d = D_TOWNHALL; break;
         }
         if (r.office >= 0) { static const int OD[4] = { D_MERCHANT, D_MEDICI, D_FUGGER, D_HANSE }; d = OD[r.office & 3]; }
-        if (d >= 0) m[d].push_back({ r.cat, r.text });
+        if (d >= 0) m[d].push_back({ r.cat, r.title, r.text });
     }
     return m;
 }
@@ -474,11 +475,15 @@ static void place_tooltip(int d, const std::vector<TipPart> &parts)
 }
 
 /* the "Go to" window; returns false when it closes.
- * Each place is a tile: its picture, its name, and under it the one thing worth knowing now (a
- * task giver's chance of a task or until when none, a reward waiting; a shop's wares; what the
- * party learned of the physician or the alchemist). At the right: a lectern where a teacher is to
- * be had, a task's picture where one of the party's tasks leads. The rest is under the pointer.
- * The places the city lacks are named in one line at the foot. */
+ * Each place is a tile: its picture, its name, and under the name a line for each thing worth
+ * knowing now - a task giver's chance of a task (or until when none, a reward waiting), the
+ * party's own task there, a teacher to hire, a shop's wares, what the party learned of the
+ * physician or the alchemists. A tile is as tall as its row needs. A lectern beside the name marks
+ * a teacher, a task's picture the place a task of the party's leads to; the whole of each is under
+ * the pointer. The places the city lacks are named in one line at the foot. */
+struct TileLine { std::string text; ImU32 col; };
+struct Tile { int d; std::vector<TileLine> lines; std::vector<TipPart> tip; int teach; int task_cat; bool teach_off; };
+
 extern "C" int citynav_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -511,113 +516,135 @@ extern "C" int citynav_window(void)
             nteach = ui_teachers_on() ? ui_town_teachers(cur, teach, 12) : 0;
         }
         bool work_on = config_get_int("assist.goto_work", 1) && !config_get_int("original", 0);
-        float lh = ImGui::GetFontSize(), sfs = lh * 0.8f, th = floorf(lh + sfs + lh * 0.55f), rnd = 6 * scale;
+        float lh = ImGui::GetFontSize(), sfs = lh * 0.8f, slh = sfs * 1.18f, pad = 6 * scale, rnd = 6 * scale;
+        float is = floorf(lh * 2.1f);                              /* the place's picture */
         float gap = ImGui::GetStyle().ItemSpacing.x, avail = ImGui::GetContentRegionAvail().x;
-        float need = ImGui::CalcTextSize("Hanseatic League").x + th * (0.8f + 0.62f + 0.56f) + th * 0.5f;   /* (the longest name, the picture, both marks) */
-        int cols = (int)((avail + gap) / (need + gap));
-        cols = cols < 3 ? 3 : cols > 6 ? 6 : cols;
+        int cols = (int)((avail + gap) / (lh * 14.0f + gap));      /* (a tile about 14 lines of type wide: its lines fit) */
+        cols = cols < 3 ? 3 : cols > 5 ? 5 : cols;
         float bw = floorf((avail - (cols - 1) * gap) / cols);
+        static const ImU32 GREEN = IM_COL32(38, 100, 34, 255), BROWN = IM_COL32(104, 82, 58, 255), BLUE = IM_COL32(40, 70, 140, 255),
+                           GOLDD = IM_COL32(150, 96, 0, 255), REDD = IM_COL32(150, 40, 25, 255), GREY = IM_COL32(140, 124, 104, 255);
+
+        /* what each place's tile says */
+        auto make_tile = [&](int d) {
+            Tile T{ d, {}, {}, -1, -1, false };
+            /* a task giver: whether it has a task now, or until when none (mods/offices.h) */
+            int giver = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
+                      : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
+            if (d == D_FORTRESS && city && (gamedata.cities[cur].buildings & 2)) giver = -1;   /* (a town with a council: the lord gives none at the fortress) */
+            OfficeStatus os;
+            if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
+                char b[64]; ImU32 c = BROWN;
+                switch (os.state) {
+                case OFS_ASK: snprintf(b, sizeof b, "%d%% chance of a task", os.chance); c = GREEN; break;
+                case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, MON3[(os.month % 12 + 12) % 12]); break;
+                case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
+                case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
+                case OFS_BARRED: snprintf(b, sizeof b, "No tasks: reputation too low"); c = REDD; break;
+                default: b[0] = 0; break;
+                }
+                if (b[0]) T.lines.push_back({ b, c });
+                std::string n = os.note;
+                if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, MON3[(os.month % 12 + 12) % 12], os.hour); n += u; }
+                if (!n.empty()) T.tip.push_back({ "Tasks", n });
+            }
+            /* the party's own tasks that lead here */
+            auto tk = tasks.find(d);
+            if (tk != tasks.end() && !tk->second.empty()) {
+                T.task_cat = tk->second[0].cat;
+                for (const DestTask &x : tk->second) {
+                    T.lines.push_back({ "Your task: " + (x.title.empty() ? std::string("see the journal") : x.title), BLUE });
+                    T.tip.push_back({ "Your task", x.text });
+                }
+            }
+            /* a teacher to be had here (ui/teachersui.h) */
+            int src = d == D_SWORD ? TCH_SWORDSMITHS : d == D_ARMOR ? TCH_ARMORERS : d == D_BOW ? TCH_BOWYERS : d == D_BLACKSMITH ? TCH_BLACKSMITHS
+                    : d == D_TINKER ? TCH_ARTIFICERS : d == D_ALCHEMIST ? TCH_ALCHEMIST : d == D_PHYSICIAN ? TCH_PHYSICIAN
+                    : d == D_MONASTERY ? TCH_MONASTERY : d == D_UNIVERSITY ? TCH_UNIVERSITY : -1;
+            for (int t = 0; src >= 0 && t < nteach; t++) if (teach[t].src == src) T.teach = t;
+            if (T.teach >= 0) {
+                const TchSource &S = teach[T.teach];
+                T.teach_off = S.off != 0;
+                char b[48]; snprintf(b, sizeof b, fix_is_on("teachcap") ? " (to %d)" : " (skill %d)", S.strength);
+                T.lines.push_back({ "Teaches " + ui_teacher_skills(S) + b + (T.teach_off ? ", not now" : ""), T.teach_off ? GREY : IM_COL32(32, 62, 120, 255) });
+                T.tip.push_back({ "Teacher", ui_teacher_text(S) });
+            }
+            /* a shop: the quality of its wares */
+            if (city && DEST[d].shop != -1) {
+                const City &c = gamedata.cities[cur];
+                int r = DEST[d].shop >= 0 ? c.shopq[DEST[d].shop] : c.shopq[5] ? c.shopq[5] : c.shopq[4];
+                if (r > 0) {
+                    int q = shop_wares_q(r);
+                    char b[96]; snprintf(b, sizeof b, q >= 30 ? "Wares %dq, better than most" : "Wares %dq", q);
+                    T.lines.push_back({ b, q >= 30 ? GREEN : BROWN });
+                    snprintf(b, sizeof b, "Wares of %dq (most shops sell about 25q).", q);
+                    T.tip.insert(T.tip.begin(), { "", b });
+                }
+            }
+            /* what the party learned of the physician or the alchemist here */
+            if (d == D_PHYSICIAN || d == D_ALCHEMIST) {
+                const char *fact = journal_town_fact(cur, d == D_PHYSICIAN ? "physician" : "alchemist");
+                if (fact) {
+                    std::string f = fact, l;
+                    if (d == D_PHYSICIAN) { l = f; size_t cl = l.find(':'); if (cl != std::string::npos) l.erase(cl); }
+                    else { size_t q = f.rfind(" to "); l = q != std::string::npos ? "Raises a Philosopher's Stone to" + f.substr(q + 3) : "No better stone than the party's"; }
+                    if (!l.empty()) l[0] = (char)toupper((unsigned char)l[0]);
+                    T.lines.push_back({ l, BROWN });
+                    T.tip.push_back({ "What you learned", std::string(d == D_PHYSICIAN ? "The physician: " : "The alchemist: ") + f + "." });
+                }
+            }
+            return T;
+        };
+        auto tile_h = [&](const Tile &T) { return fmaxf(is + 2 * pad, 2 * pad + lh + T.lines.size() * slh); };
+
         bool any_teach = false, any_task = false;
         std::string absent;
         for (int g = 0; g < 5; g++) {
-            int col = 0;
+            std::vector<Tile> tiles;
             for (int d : ORDER) {
                 if (DEST[d].group != g || never(d)) continue;
                 if (!present(d)) { absent += (absent.empty() ? "" : ", ") + std::string(DEST[d].label); continue; }
-                if (!col) ImGui::SeparatorText(GROUPS[g]);
-                else if (col % cols) ImGui::SameLine();
-                col++;
-                ImGui::PushID(d);
-                ImVec2 p = ImGui::GetCursorScreenPos();
-                if (ImGui::InvisibleButton("b", ImVec2(bw, th))) picked = d;
-                bool hov = ImGui::IsItemHovered();
-                ImDrawList *dl = ImGui::GetWindowDrawList();
-                dl->AddRectFilled(p, ImVec2(p.x + bw, p.y + th), hov ? IM_COL32(140, 61, 33, 255) : IM_COL32(224, 204, 166, 255), rnd);
-                if (!hov) dl->AddRect(p, ImVec2(p.x + bw, p.y + th), IM_COL32(178, 148, 106, 255), rnd);
-                std::vector<TipPart> tip;
-                std::string sub; ImU32 subcol = IM_COL32(104, 82, 58, 255);
-                /* a task giver: whether it has a task now, or until when none (mods/offices.h) */
-                {
-                    int giver = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
-                              : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
-                    if (d == D_FORTRESS && city && (gamedata.cities[cur].buildings & 2)) giver = -1;   /* (a town with a council: the lord gives none at the fortress) */
-                    OfficeStatus os;
-                    if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os) && os.state != OFS_NONE) {
-                        char b[48];
-                        switch (os.state) {
-                        case OFS_ASK: snprintf(b, sizeof b, "%d%% chance of a task", os.chance); subcol = IM_COL32(38, 100, 34, 255); break;
-                        case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, MON3[(os.month % 12 + 12) % 12]); break;
-                        case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); subcol = IM_COL32(40, 70, 140, 255); break;
-                        case OFS_REWARD: snprintf(b, sizeof b, "Reward waiting"); subcol = IM_COL32(150, 96, 0, 255); break;
-                        default: snprintf(b, sizeof b, "Reputation too low"); subcol = IM_COL32(150, 40, 25, 255); break;
-                        }
-                        sub = b;
-                        std::string n = os.note;
-                        if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, MON3[(os.month % 12 + 12) % 12], os.hour); n += u; }
-                        tip.push_back({ "Tasks", n });
-                    } else if (giver >= 0 && os.note[0] && work_on) tip.push_back({ "Tasks", os.note });
-                }
-                /* a shop: the quality of its wares */
-                if (city && DEST[d].shop != -1) {
-                    const City &c = gamedata.cities[cur];
-                    int r = DEST[d].shop >= 0 ? c.shopq[DEST[d].shop] : c.shopq[5] ? c.shopq[5] : c.shopq[4];
-                    if (r > 0) {
-                        int q = shop_wares_q(r);
-                        char b[96]; snprintf(b, sizeof b, "Wares %dq", q);
-                        if (sub.empty()) { sub = b; if (q >= 30) subcol = IM_COL32(38, 100, 34, 255); }
-                        snprintf(b, sizeof b, "Wares of %dq (most shops sell about 25q).", q);
-                        tip.insert(tip.begin(), { "", b });
+                tiles.push_back(make_tile(d));
+            }
+            if (tiles.empty()) continue;
+            ImGui::SeparatorText(GROUPS[g]);
+            for (size_t r0 = 0; r0 < tiles.size(); r0 += cols) {            /* a row: as tall as its tallest tile */
+                float th = 0;
+                for (size_t k = r0; k < tiles.size() && k < r0 + cols; k++) th = fmaxf(th, tile_h(tiles[k]));
+                th = floorf(th);
+                for (size_t k = r0; k < tiles.size() && k < r0 + cols; k++) {
+                    const Tile &T = tiles[k]; int d = T.d;
+                    if (k > r0) ImGui::SameLine();
+                    ImGui::PushID(d);
+                    ImVec2 p = ImGui::GetCursorScreenPos();
+                    if (ImGui::InvisibleButton("b", ImVec2(bw, th))) picked = d;
+                    bool hov = ImGui::IsItemHovered();
+                    ImDrawList *dl = ImGui::GetWindowDrawList();
+                    dl->AddRectFilled(p, ImVec2(p.x + bw, p.y + th), hov ? IM_COL32(140, 61, 33, 255) : IM_COL32(224, 204, 166, 255), rnd);
+                    if (!hov) dl->AddRect(p, ImVec2(p.x + bw, p.y + th), IM_COL32(178, 148, 106, 255), rnd);
+                    ui_draw_town_icon(dl, ImVec2(p.x + pad + is * 0.5f, p.y + th * 0.5f), is, DEST[d].icon);
+                    float tx = p.x + pad * 2 + is, rx = p.x + bw - pad, ny = T.lines.empty() ? p.y + (th - lh) * 0.5f : p.y + pad;
+                    float ms = lh * 1.15f;                              /* the marks beside the name */
+                    if (T.task_cat >= 0) { any_task = true; ui_draw_quest_icon(dl, ImVec2(rx - ms * 0.5f, ny + lh * 0.5f), ms, T.task_cat); rx -= ms + 3 * scale; }
+                    if (T.teach >= 0) {
+                        any_teach = true;
+                        int a = T.teach_off ? 110 : 255;
+                        ui_draw_teach_mark(dl, ImVec2(rx - ms * 0.5f, ny + lh * 0.5f), ms * 0.95f,
+                                           hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
+                        rx -= ms + 3 * scale;
                     }
-                }
-                /* what the party learned of the physician or the alchemist here */
-                if (d == D_PHYSICIAN || d == D_ALCHEMIST) {
-                    const char *fact = journal_town_fact(cur, d == D_PHYSICIAN ? "physician" : "alchemist");
-                    if (fact) {
-                        std::string f = fact, s;
-                        if (d == D_PHYSICIAN) { s = f; size_t cl = s.find(':'); if (cl != std::string::npos) s.erase(cl); }
-                        else { size_t q = f.rfind(" to "); s = q != std::string::npos ? "Stone up to" + f.substr(q + 3) : "No better stone than yours"; }
-                        if (!s.empty()) s[0] = (char)toupper((unsigned char)s[0]);
-                        if (sub.empty()) sub = s;
-                        tip.push_back({ "What you learned", std::string(d == D_PHYSICIAN ? "The physician: " : "The alchemist: ") + f + "." });
+                    ImU32 fg = hov ? IM_COL32(252, 242, 220, 255) : IM_COL32(51, 31, 15, 255);
+                    std::string lab = fit(DEST[d].label, lh, rx - tx - 2 * scale);
+                    dl->AddText(ImVec2(tx, ny), fg, lab.c_str());
+                    float ly = ny + lh + 1 * scale, room = p.x + bw - pad - tx;
+                    for (const TileLine &L : T.lines) {
+                        std::string s2 = fit(L.text, sfs, room);
+                        dl->AddText(ImGui::GetFont(), sfs, ImVec2(tx, ly), hov ? IM_COL32(240, 214, 180, 255) : L.col, s2.c_str());
+                        ly += slh;
                     }
+                    if (hov) place_tooltip(d, T.tip);
+                    ImGui::PopID();
                 }
-                /* the party's tasks that lead here; a teacher to be had here */
-                auto tk = tasks.find(d);
-                bool task = tk != tasks.end() && !tk->second.empty();
-                if (task) { any_task = true; for (const DestTask &x : tk->second) tip.push_back({ "Your task", x.text }); }
-                int src = d == D_SWORD ? TCH_SWORDSMITHS : d == D_ARMOR ? TCH_ARMORERS : d == D_BOW ? TCH_BOWYERS : d == D_BLACKSMITH ? TCH_BLACKSMITHS
-                        : d == D_TINKER ? TCH_ARTIFICERS : d == D_ALCHEMIST ? TCH_ALCHEMIST : d == D_PHYSICIAN ? TCH_PHYSICIAN
-                        : d == D_MONASTERY ? TCH_MONASTERY : d == D_UNIVERSITY ? TCH_UNIVERSITY : -1;
-                int ti = -1;
-                for (int t = 0; src >= 0 && t < nteach; t++) if (teach[t].src == src) ti = t;
-                if (ti >= 0) { any_teach = true; tip.push_back({ "Teacher", ui_teacher_text(teach[ti]) }); }
-                /* the picture, the badges at the right, the name and the line under it */
-                float is = th * 0.8f, pad = (th - is) * 0.5f;
-                ui_draw_town_icon(dl, ImVec2(p.x + pad + is * 0.5f, p.y + th * 0.5f), is, DEST[d].icon);
-                float tx = p.x + pad * 2 + is + 2 * scale, rx = p.x + bw - pad;
-                if (task) {
-                    float qs = th * 0.62f;
-                    ui_draw_quest_icon(dl, ImVec2(rx - qs * 0.5f, p.y + th * 0.5f), qs, tk->second[0].cat);
-                    rx -= qs + 3 * scale;
-                }
-                if (ti >= 0) {
-                    float ls = th * 0.56f; int a = teach[ti].off ? 110 : 255;
-                    ui_draw_teach_mark(dl, ImVec2(rx - ls * 0.5f, p.y + th * 0.5f), ls,
-                                       hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
-                    rx -= ls + 3 * scale;
-                }
-                float room = rx - tx - 2 * scale;
-                std::string lab = fit(DEST[d].label, lh, room);
-                ImU32 fg = hov ? IM_COL32(252, 242, 220, 255) : IM_COL32(51, 31, 15, 255);
-                if (sub.empty()) dl->AddText(ImVec2(tx, p.y + (th - lh) * 0.5f), fg, lab.c_str());
-                else {
-                    float y0 = p.y + (th - lh - sfs) * 0.5f;
-                    dl->AddText(ImVec2(tx, y0), fg, lab.c_str());
-                    std::string s2 = fit(sub, sfs, room);
-                    dl->AddText(ImGui::GetFont(), sfs, ImVec2(tx, y0 + lh), hov ? IM_COL32(240, 214, 180, 255) : subcol, s2.c_str());
-                }
-                if (hov) place_tooltip(d, tip);
-                ImGui::PopID();
             }
         }
         /* the foot: what the marks mean (those shown), and what this city lacks */
@@ -636,7 +663,7 @@ extern "C" int citynav_window(void)
             };
             bool first = true;
             if (any_teach) { mark(0, "A teacher to hire (faint: not now)"); first = false; }
-            if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "One of your tasks leads here"); }
+            if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A task of yours leads here"); }
         }
         if (!absent.empty()) {
             ImGui::PushTextWrapPos(0);
