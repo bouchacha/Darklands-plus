@@ -1,9 +1,14 @@
-# darklands-re
-<img width="1600" height="900" alt="1-crisp-text-and-margins" src="https://github.com/user-attachments/assets/842534c2-8831-489c-8843-9b025701a917" />
-<img width="1600" height="900" alt="2-battle-info" src="https://github.com/user-attachments/assets/29adfed0-5535-4249-b671-159a411c7a99" />
-<img width="1600" height="900" alt="3-world-map" src="https://github.com/user-attachments/assets/bdcc3994-86b4-4a1d-9584-b0dc52eb7aa1" />
-<img width="1600" height="900" alt="4-city-go-to" src="https://github.com/user-attachments/assets/61546603-f5ef-4392-b5f1-b56cba92e808" />
-<img width="1600" height="900" alt="5-party-inventory" src="https://github.com/user-attachments/assets/3d0df965-c82a-466e-821e-d9b04f3b2365" />
+<img width="619" height="1118" alt="0-questlog" src="https://github.com/user-attachments/assets/a72197df-9f75-4ef0-a614-e4a336ce6573" />
+<img width="1456" height="819" alt="9-saiints" src="https://github.com/user-attachments/assets/477a8867-698e-47ae-a860-eec2076f8cbf" />
+<img width="1456" height="819" alt="8-alchemy" src="https://github.com/user-attachments/assets/172be814-4dee-4d70-87d6-5f3e4962deb7" />
+<img width="1600" height="900" alt="7-character-creation" src="https://github.com/user-attachments/assets/9aa8b892-331e-42b2-8ef6-a5ad71042313" />
+<img width="1600" height="900" alt="6-world-map-find" src="https://github.com/user-attachments/assets/39355c90-db70-40a1-8618-32b10f00ac7b" />
+<img width="1600" height="900" alt="5-battle-log" src="https://github.com/user-attachments/assets/939f66cb-e63a-4157-921b-f792fbe429fc" />
+<img width="1600" height="900" alt="4-character-sheet" src="https://github.com/user-attachments/assets/5b952690-99c6-4ae9-87e2-b36530a174fb" />
+<img width="1600" height="900" alt="3-shop" src="https://github.com/user-attachments/assets/79d2de07-0f3d-41a1-81ed-e49185c12597" />
+<img width="1600" height="900" alt="2-city-go-to" src="https://github.com/user-attachments/assets/9ac5e161-fc1a-4b9a-8317-e58c9e4d652b" />
+<img width="1600" height="900" alt="1-cards-and-margins" src="https://github.com/user-attachments/assets/f14d37a2-c53b-44bc-a8c6-714ad1171413" />
+
 
 This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-DOS), version 483.07 (the GOG release). The aim is a matching decompilation as a verifiable baseline, then moddable reimplementations of each game module.
 
