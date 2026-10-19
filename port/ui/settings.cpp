@@ -87,8 +87,8 @@ void tab_mods(void)
                 ImGui::Indent(UIS(34));
                 int share = config_get_int("encounters.share", 100);
                 ImGui::SetNextItemWidth(UIS(220));
-                if (ImGui::SliderInt("How often they come up##encshare", &share, 0, 300, "%d %%")) { config_set_int("encounters.share", share); ui_dirty_config = 1; }
-                ui_hint("100 %%: each counts as one more entry (or as many as its weight) of the game's own table of encounters for the terrain.");
+                if (ImGui::SliderInt("How often they come up##encshare", &share, 0, 300, "%d%%")) { config_set_int("encounters.share", share); ui_dirty_config = 1; }
+                ui_hint("100%%: each counts as one more entry (or as many as its weight) of the game's own table of encounters for the terrain.");
                 bool seal = config_get_int("encounters.seal", 1) != 0;
                 if (ImGui::Checkbox("Mark them with a seal in the corner of the card", &seal)) { config_set_int("encounters.seal", seal); ui_dirty_config = 1; }
                 ImGui::Unindent(UIS(34));
@@ -379,10 +379,10 @@ void tab_display(void)
         static const int P[] = { 70, 80, 90, 100, 115, 130, 150, 175, 200 };
         int cur = config_get_int("display.text_size", 100), sel = 3;
         for (int i = 0; i < 9; i++) if (P[i] == cur) sel = i;
-        char lab[16]; snprintf(lab, sizeof lab, "%d %%", P[sel]);
+        char lab[16]; snprintf(lab, sizeof lab, "%d%%", P[sel]);
         ImGui::SetNextItemWidth(UIS(160));
         if (ImGui::BeginCombo("text size in the margins, tooltips and on the map", lab)) {
-            for (int i = 0; i < 9; i++) { char t[16]; snprintf(t, sizeof t, "%d %%", P[i]); if (ImGui::Selectable(t, i == sel)) { config_set_int("display.text_size", P[i]); ui_dirty_config = 1; } }
+            for (int i = 0; i < 9; i++) { char t[16]; snprintf(t, sizeof t, "%d%%", P[i]); if (ImGui::Selectable(t, i == sel)) { config_set_int("display.text_size", P[i]); ui_dirty_config = 1; } }
             ImGui::EndCombo();
         }
     }
@@ -390,7 +390,7 @@ void tab_display(void)
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { ui_sys_cursor = sc; config_set_int("display.system_cursor", sc); ui_dirty_config = 1; } }
     {   /* the menus' size (fonts are baked at start-up) */
         static const int P[] = { 0, 100, 125, 150, 175, 200, 250 };
-        static const char *N[] = { "automatic (the system's scale)", "100 %", "125 %", "150 %", "175 %", "200 %", "250 %" };
+        static const char *N[] = { "automatic (the system's scale)", "100%", "125%", "150%", "175%", "200%", "250%" };
         int cur = config_get_int("display.ui_scale", 0), sel = 0;
         for (int i = 0; i < 7; i++) if (P[i] == cur) sel = i;
         ImGui::SetNextItemWidth(UIS(260));

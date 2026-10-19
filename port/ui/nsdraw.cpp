@@ -247,7 +247,7 @@ std::string ns_potion_effect(int id)
         else t += "When it wears off, what it added goes again.";
         return t + " A second while the first runs adds only what goes beyond it.";
     }
-    case 115: return "Drunk: heals 50, 70 or 90 % of the Strength lost to wounds (grade 1, 2, 3), for good; and Endurance up by 9-14, 15-21 or 22-29 for about 30 hours.";
+    case 115: return "Drunk: heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), for good; and Endurance up by 9-14, 15-21 or 22-29 for about 30 hours.";
     case 116: {
         if (fix_is_on("armourday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3). A second keeps the stronger.";
         return std::string("Drunk: protection against fire, for good (the game never takes it off): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armour for good (a bug Darklands+ fixes)."); }
