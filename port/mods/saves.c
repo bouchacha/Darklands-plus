@@ -81,7 +81,8 @@ int saves_read(const char *name, SaveInfo *si)
     memcpy(si->comment, h + 0x15, 0x4f); si->comment[0x4f] = 0;
 #define W(o) ((int)(s16)(h[o] | h[(o) + 1] << 8))
     si->year = W(0x68); si->month = W(0x6a); si->day = W(0x6c); si->hour = W(0x6e);
-    si->florins = W(0x70); si->fame = W(0x7a);
+    si->florins = h[0x70] | h[0x71] << 8; si->groschen = h[0x72] | h[0x73] << 8; si->pfennigs = h[0x74] | h[0x75] << 8;   /* (the purse: three unsigned words) */
+    si->fame = W(0x7a);
     int nd = W(0xf1), np = 0;
     for (int m = 0; m < 5; m++) {
         int id = W(0xf3 + 2 * m);

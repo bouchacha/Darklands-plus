@@ -78,6 +78,8 @@ Fixed (bugs of 483.07): a cathedral's canon gave out errands as if for the town'
 
 **Black Cloud in battle** (a switch, on in Darklands+ and Easy): the party can throw Black Cloud in a battle too. The game left it out of the party's battle menu (the manual: "the screen takes too long", on the machines of 1992), though its smoke is in the battle's rules and enemies use it. **Teachers' tooltips** were rewritten in plain words: what they teach, the fee, the teacher's own skill (as far as they can teach), the chance a day of lessons adds a point, how to hire one, whom they accept and how it stands now; the margin lists each town's teachers with how far they teach.
 
+**Saves:** each save in the lists names the whole purse (it showed only the florins: "0" for a party with groschen and pfennigs).
+
 **At a glance on the party panel:** a small halo on a member's picture while a saint's help or a potion is at work on them (a dull red one when all of it is a saint's lowering of an attribute); under the pointer, each boost and the hours left. Tooltips now open past the game's large hand pointer instead of under it.
 
 **An inn the purse cannot pay:** A day, A week and Until rested are greyed while a day costs more than the party has, and say that members who earn a little money may make up for it. The game let no time pass on such a day, yet counted it as a day stayed (the native inn screen showed nothing happening but "Days stayed" rising); a week stops on the first day that cannot be paid.

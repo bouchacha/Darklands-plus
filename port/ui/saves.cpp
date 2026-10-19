@@ -7,6 +7,7 @@
 #include <time.h>
 #include <string>
 #include "imgui.h"
+#include "money.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -95,7 +96,7 @@ extern "C" void tab_saves(void)
         std::string party;
         for (int m = 0; m < s.nmembers; m++) { if (m) party += ", "; party += game_text(s.members[m], sizeof s.members[m]); }
         ImGui::TextWrapped("%s", party.c_str());
-        ImGui::TextDisabled("%d florin%s, fame %d", s.florins, s.florins == 1 ? "" : "s", s.fame);
+        ImGui::TextDisabled("%s, fame %d", money_fgp(s.florins, s.groschen, s.pfennigs).c_str(), s.fame);
         ImGui::TableNextColumn();
         ImGui::TextWrapped("%s", game_text(s.comment, sizeof s.comment).c_str());
         ImGui::TableNextColumn();
