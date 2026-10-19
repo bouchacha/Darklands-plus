@@ -763,6 +763,23 @@ extern "C" void travelmap_labels(void)
         ImVec2 at; plat_game_to_win(sx, sy + 5, &at.x, &at.y);
         ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0, name.c_str());
         ImVec2 tp(at.x - ts.x * 0.5f, at.y);
+        {   /* the pointer on the place or its name: what it is, the journey, and that Ctrl+click goes there */
+            ImVec2 m = ImGui::GetIO().MousePos, i0, i1;
+            plat_game_to_win(sx - 7, sy - 5, &i0.x, &i0.y); plat_game_to_win(sx + 7, sy + 4, &i1.x, &i1.y);
+            bool on_icon = m.x >= i0.x && m.x < i1.x && m.y >= i0.y && m.y < i1.y;
+            bool on_name = names && m.x >= tp.x && m.x < tp.x + ts.x && m.y >= tp.y && m.y < tp.y + ts.y;
+            if ((on_icon || on_name) && !ImGui::GetIO().WantCaptureMouse) {
+                static int tip_loc = -1, tip_min = -1, tip_frame = -1000;
+                if (tip_loc != k || ImGui::GetFrameCount() - tip_frame > 120) { tip_loc = k; tip_min = travel_minutes_loc(k, nullptr, nullptr); }   /* (a route search: once, while the pointer stays) */
+                tip_frame = ImGui::GetFrameCount();
+                ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+                ImGui::TextUnformatted(name.c_str());
+                ImGui::TextDisabled("%s", loc_kind_label(kind));
+                if (tip_min > 0) ImGui::Text("About %s on the way", hhmm(tip_min).c_str());
+                if (config_get_int("travel.auto", 1)) ImGui::TextDisabled("Ctrl + click: travel there along the roads");
+                ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+            }
+        }
         if (names) {
             float ow = fmaxf(1.0f, roundf(size / 16.0f));
             for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
