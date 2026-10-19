@@ -238,9 +238,9 @@ const Preset PRESETS[PRESET_COUNT] = {
       "Saves load in the original game and back." },
     { "Semi-Purist", "As Purist + interface, with what saves clicks and waiting: auto-travel, Go to, the best member speaking for the party, thrown weapons picked up, pauses in battles, autosaves. Only what you could do by hand.",
       "Saves load in the original game and back." },
-    { "Darklands+", "The standard set: also one pack for the party, one store room for every inn, endless ammunition, the foes waiting in a castle shown, and the enemies' figures for your characters.",
+    { "Darklands+", "The standard set: also one pack for the party, one store room for every inn, endless ammunition, and the enemies' figures for your characters.",
       "Saves load in the original game and back, unless a member has one of the enemies' figures." },
-    { "Easy", "For the story more than the struggle: fewer encounters on the road and in the streets, quick learning, half-price inns, heavy blows, a rich start, shooters firing past friends, the whole level on the map.",
+    { "Easy", "For the story more than the struggle: fewer encounters on the road and in the streets, quick learning, half-price inns, heavy blows, a rich start, shooters firing past friends; and what the party could not know: the whole level on the map, the foes a castle still holds, what unvisited places offer, the enemies' endurance as numbers.",
       "Saves load in the original game and back, unless a member has one of the enemies' figures." },
 };
 
