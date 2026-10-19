@@ -1,68 +1,38 @@
-# darklands-re
-<img width="1600" height="900" alt="1-crisp-text-and-margins" src="https://github.com/user-attachments/assets/842534c2-8831-489c-8843-9b025701a917" />
-<img width="1600" height="900" alt="2-battle-info" src="https://github.com/user-attachments/assets/29adfed0-5535-4249-b671-159a411c7a99" />
-<img width="1600" height="900" alt="3-world-map" src="https://github.com/user-attachments/assets/bdcc3994-86b4-4a1d-9584-b0dc52eb7aa1" />
-<img width="1600" height="900" alt="4-city-go-to" src="https://github.com/user-attachments/assets/61546603-f5ef-4392-b5f1-b56cba92e808" />
-<img width="1600" height="900" alt="5-party-inventory" src="https://github.com/user-attachments/assets/3d0df965-c82a-466e-821e-d9b04f3b2365" />
+# Darklands+
 
-This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-DOS), version 483.07 (the GOG release). The aim is a matching decompilation as a verifiable baseline, then moddable reimplementations of each game module.
+**Darklands (MicroProse, 1992) running natively on Windows, without DOSBox, with the improvements players have wanted for thirty years. Every one of them can be switched off.**
 
-> **Status: finished and handed over.** The author is not a programmer and will not maintain this
-> project or answer bug reports (the issue tracker is switched off). It is free for anyone to
-> take over: fork it, fix it, improve it, and publish your own releases. The code was written
-> entirely by an AI (Anthropic's Claude), working from the author's direction and play-testing;
-> `CONTRIBUTING.md` and `docs/` are written so that you, or an AI assistant of your own, can
-> carry on. See `LICENSE` for what is and is not covered.
+<img width="1600" height="900" alt="A card drawn by Darklands+: crisp text, chances of success, the party and the town beside it" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/1-cards-and-margins.png" />
+<img width="1600" height="900" alt="Go to: every place in a city, with what it teaches, sells and offers" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/2-city-go-to.png" />
+<img width="1600" height="900" alt="A shop rebuilt for the mouse" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/3-shop.png" />
+<img width="1600" height="900" alt="The character sheet: skills, with the whole party compared" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/4-character-sheet.png" />
+<img width="1600" height="900" alt="A battle with its log and the enemies' state" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/5-battle-log.png" />
+<img width="1600" height="900" alt="The world map: find a place, see how far it is, travel there" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/6-world-map-find.jpg" />
+<img width="1600" height="900" alt="Making a character: every profession at once, with what it needs and teaches" src="https://github.com/bouchacha/Darklands-plus/releases/download/1.2/7-character-creation.png" />
 
-This repository contains **no game files** and no code generated from them. Everything under `build/` is regenerated from your own copy of `DARKLAND.EXE`.
+## Play
 
-## Playing: Darklands+
+1. You need your own **Darklands 483.07** (GOG or Steam) and **64-bit Windows 10 or 11**. On Linux and Steam Deck it runs through Proton or Wine.
+2. Download the zip from **[Releases](https://github.com/bouchacha/Darklands-plus/releases/latest)**, unpack it anywhere and run `darklands.exe`.
+3. It finds your GOG or Steam installation by itself, or asks for the folder once. The first start takes a minute or two. Your saved games stay where they are.
 
-**Darklands+** runs Darklands natively on Windows, without DOSBox. It adds optional improvements: most of the game's screens rebuilt for the mouse and modern screens (cards, shops, the character sheet, loot, the store room, inn stays, alchemy, saints, save and load ...; docs/NATIVE_SCREENS.md), the party's best member making the card tests the game puts to the leader, one pack for the whole party, quests with titles, deadlines and pictures on the maps, chances of success and the reasons for greyed options on cards, crisp text, a world map with auto-travel, a battle log, tooltips for items, saints and formulae, fixes for the original's bugs, the Roland MT-32 built in (with your own ROM files), game-controller support, a bestiary and mod folders (a sample battle-sound mod comes with it). Every addition can be switched off, and "Play the original game" turns them all off at once. What is new since 1.0: `CHANGELOG.md`.
+The download contains nothing from the game itself.
 
-* **Download** the Windows zip from this repository's Releases, unpack it anywhere and start `darklands.exe`. It finds a GOG or Steam installation of Darklands by itself, or asks for the folder once; an installation under Program Files (GOG Galaxy's) works as it is, with the saves in Windows' VirtualStore. You need your own copy of Darklands 483.07 (GOG or Steam).
-* **On the first start** Darklands+ spends a minute or two translating the game program from your `DARKLAND.EXE`. The download contains nothing from the game itself.
-* Players' notes: `port/tools/release_readme.txt`. Features and keys: `port/README.md`. Making mods: `docs/MODDING.md`. Working on it: `CONTRIBUTING.md`. Taking parts into another engine: `docs/MERGING.md`.
+## What it adds
 
-## What works today
+- **Modern screens** for the cards, shops, the character sheet, loot, the inn, alchemy, saints, saving and loading: crisp text at any window size, made for the mouse.
+- **Less busywork:** the party's best member takes the tests the game puts to the leader, one pack serves the whole party, Go to walks you through a town, and the world map travels for you.
+- **What the game kept hidden:** chances of success on card options, why an option is greyed, what saints and potions really do, and quests with deadlines and markers on the map.
+- **Battles:** a log of every blow, fast-forward, better pathfinding, a click on a foe to attack it, enemy info and a map of the level.
+- **38 fixes** for bugs of the original, and 39 saints that now do what their descriptions say.
+- **The Roland MT-32 built in** (with your own ROM files), controllers and the Steam Deck, and mods. Two mods come with it: real battle sounds and sixteen new encounters.
 
-* **Native Darklands ("Darklands+").** `port/` recompiles the game to C and runs it natively on Linux and Windows (no DOSBox), with a modern layer on top that can be switched off entirely: crisp text, a zoomable world map with auto-travel, helpers (chances of success, saints, "Go to" in cities, shop and battle info), quick saves and autosaves, fixes for original bugs, and mod folders for data, card texts, menu texts, weapon numbers, items, art and sounds. See `port/README.md` and `docs/MODDING.md`.
+F12 > Settings > Helpers has **presets**, from *Buggy Purist* (the 1992 game exactly) and *Purist* (its bugs fixed) to *Easy*. The full list is in the [release notes](docs/release_notes.md); [CHANGELOG.md](CHANGELOG.md) has what is new.
 
-* **Matching decompilation.** 382 original source files — about 8,500 of the game's ~10,100 functions (84%), 900 KB of code — are C that Microsoft C 6.00A compiles back to the original bytes. `tools/build.py` rebuilds a **byte-identical** `DARKLAND.EXE` (MD5 `0d51cc9458a6724e1bd34a9fe0d81e7f`) from that C plus reassembled code for the rest. All but ~13 card scripts are done, and large parts of the engine (strategic rules, saints, character creation, combat sub-modules, PAN player, heap/EMS/XMS code).
-* **The whole game from C (functional build).** `tools/build.py <EXE> --skip-analysis --mod --functional` adds the complete-but-not-yet-byte-exact drafts in `src/wip/` (overland map, inventory, barter, camping, alchemy, loot, card engine, strategic core, tactical combat engine, battlefield generators, start-up, game shell...): about 9,500 functions (94%) come from C. It is play-tested in DOSBox against the original (`docs/QA.md`): city, inns, market, overland travel, encounters, battles and loot, character creation, save/load, alchemy, saints, menus. What is left in assembly is the C run-time library, the RTLink overlay manager, the PKWARE compression library, the graphics-driver glue and a few hand-written routines.
-* **Mods.** `tools/build.py --mod --overlay <mod dir>` (optionally with `--functional`) builds a game in which edited modules may grow or shrink: the linker re-lays out the overlay tree and can move the data section. New strings go into the code segment (`static char _based(_segname("_CODE")) s[]`). Example mods in `mods/`: faster overland travel, half-price inn, double damage against enemies, strong starting party, richer start.
-* **Readable source.** `include/darklands/card.h` (~280 names) and `include/darklands/game.h` (~600 names) give engine variables and rule functions readable names (`next_card`, `money_set`, `combatants`, `path_find`...); all card scripts and most engine files use them and still compile to the same bytes. Guides: `docs/CARDS.md` (card scripts), `docs/ENGINE.md` (engine modules, data layouts, original-game bugs).
-* **Headless play-testing.** `tools/play.py` runs the game in DOSBox on a virtual display with scripted mouse/keys and screenshots; `tools/playtests/` has scenario scripts and a lock-step runner that plays the original and a test build side by side.
-* **Toolchain.** MSC 6.00A under emu2 (`tools/msc.py`), an MSC-6 decompiler (`tools/dec16.py`), per-function match checking (`tools/fmatch.py`); `docs/PORTING.md` and `docs/PORTING_NOTES.md` collect the compiler idioms learned. The remaining non-matching functions are mostly code-generation differences between the game's MSC 6.00 and the 6.00A available to us.
-* **Data formats, module map, Ghidra export** as before: `formats/`, `docs/MODULE_MAP.md`, `tools/run_ghidra.sh`.
+## Status
 
-## Quick start
+Finished and handed over. The author is not a programmer and will not maintain the project or answer bug reports. The code was written by an AI (Anthropic's Claude) from the author's direction and play-testing, and anyone is free to fork it and carry it on. See [LICENSE](LICENSE).
 
-```
-pip install capstone
-# build JWasm: git clone https://github.com/Baron-von-Riedesel/JWasm && make -f GccUnix.mak
-JWASM=/path/to/jwasm python3 -I tools/build.py /path/to/DARKLAND/DARKLAND.EXE
-python3 -I tools/funcdb.py  /path/to/DARKLAND.EXE build/analysis/analysis.pickle
-python3 -I tools/modules.py /path/to/DARKLAND.EXE build/analysis
-python3 -I formats/tests/test_roundtrip.py          # DARKLANDS_DIR=/path/to/DARKLAND
-```
+## Under the hood
 
-## Layout
-
-| path | contents |
-|---|---|
-| `tools/rtlink.py` | RTLink/Plus executable parser and repacker |
-| `tools/analyze.py` | recursive-descent analysis (segments, overlay vectors, switch tables) |
-| `tools/emit_asm.py` | reassemblable MASM/JWasm source generator |
-| `tools/omflink.py` | OMF linker that writes the RTLink layout |
-| `tools/build.py` | end-to-end rebuild and comparison |
-| `tools/funcdb.py`, `tools/modules.py` | function database, module map |
-| `tools/ghidra_prep.py`, `tools/ghidra/`, `tools/run_ghidra.sh` | Ghidra headless pseudo-C export |
-| `symbols/names.txt` | function names (applied everywhere) |
-| `symbols/split.txt` | functions emitted as standalone modules, ready for C replacement |
-| `formats/` | data-file library, tests and `docs/FORMATS.md` |
-| `docs/` | toolchain, rebuild pipeline, module map, roadmap |
-
-## Credits
-
-The data-format work builds on vvendigo's Darklands tools and on documentation by Merle and Joel "Quadko" McIntyre. The overall method follows neuviemeporte's F-15 Strike Eagle II reconstruction and mzretools. Darklands+ uses Dear ImGui, SDL2, Nuked OPL3, Munt's libmt32emu, stb and the fonts listed in `port/README.md`; the sample battle sounds are made from 0 A.D.'s recordings (Wildfire Games, CC BY-SA 3.0).
+Darklands+ rests on a matching decompilation of Darklands 483.07: 382 of the game's source files are C that Microsoft C 6.00A compiles back to the original bytes, and `port/` recompiles the whole game to run natively. This repository holds no game files and no code generated from them. Start with [docs/DEVELOPERS.md](docs/DEVELOPERS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/MODDING.md](docs/MODDING.md) and [docs/MERGING.md](docs/MERGING.md).
