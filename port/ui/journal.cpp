@@ -820,7 +820,9 @@ static void find_page(void)
                 std::transform(n.begin(), n.end(), n.begin(), ::tolower);
                 if (q.empty() || n.find(q) != std::string::npos) hits.push_back({ i, kv.first, s.name, s.date });
             }
-    ImGui::SameLine(); ImGui::TextDisabled("%d found", (int)hits.size());
+    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
+    if (!nshops) { ImGui::SameLine(); ImGui::TextDisabled("Nothing noted yet: the journal notes a shop's wares as the party sees them."); return; }
+    ImGui::SameLine(); ImGui::TextDisabled(q.empty() ? "%d things seen in shops" : "%d found", (int)hits.size());
     if (ImGui::BeginTable("hits", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
