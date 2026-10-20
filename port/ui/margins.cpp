@@ -3,6 +3,7 @@
 // tasks the party has taken on (with their deadlines), and on the other side the town the party
 // is in, the blessings and potions working on the party, and who carries too much.
 #include <stdio.h>
+#include <float.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -788,14 +789,42 @@ static void night_streets(bool night)
     }
 }
 
+/* no right margin to hold them (a window narrower than 16:9, as a 4:3 screen or 1680 x 1050): the
+   order buttons in a strip at the foot of the battlefield while a member is given orders
+   (battle.order_bar); their clicks come through margins_click, as the margin's */
+static void order_bar(float x0, float x1, float y1)
+{
+    if (!battle_showing() || config_get_int("original", 0) || !config_get_int("battle.order_bar", 1) || !menuview_is_on() || g_rb(GV_order_mode) != 1) return;
+    float fs = std::max(ui_text_px() * 0.85f, 14.0f), w = (x1 - x0) * 0.94f;
+    ImGui::SetNextWindowPos(ImVec2((x0 + x1) * 0.5f, y1 - fs * 0.4f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, FLT_MAX));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(fs * 0.6f, fs * 0.5f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(fs * 0.3f, fs * 0.22f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(24, 18, 12, 225));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(232, 218, 186, 255));
+    ImGui::PushStyleColor(ImGuiCol_Separator, IM_COL32(0, 0, 0, 0));
+    if (ImGui::Begin("##orderbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize |
+                                            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav)) {
+        ImGui::PushFont(ui_font_overlay);
+        ImGui::SetWindowFontScale(fs / ui_font_overlay->FontSize);
+        order_buttons(w - fs * 1.2f);
+        ImGui::PopFont();
+    }
+    ImGui::End();
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+}
+
 extern "C" void ui_margins(void)
 {
-    if (!ui_margins_on || game_mode() == GM_OTHER || !ui_font_overlay) return;
+    if (game_mode() == GM_OTHER || !ui_font_overlay) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
     if (size < 1 || size > 5) return;
     ImGuiIO &io = ImGui::GetIO();
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     float left = x0, right = io.DisplaySize.x - x1;
+    if (!ui_margins_on || right < 150) order_bar(x0 + (x1 - x0) * 60 / 320, x1, y1);   /* (the field: right of the party's panel) */
+    if (!ui_margins_on) return;
     if (left < 150 && right < 150) return;
     float h = io.DisplaySize.y;
     /* with the picture (the margins' width keeps lines from getting too short), and the setting */

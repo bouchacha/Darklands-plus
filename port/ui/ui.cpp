@@ -764,7 +764,12 @@ static void help_window(void)
         } else if (gm == GM_BATTLE) {
             ImGui::SeparatorText("Now: a battle");
             row("Space", "pause / go on - orders can be given while paused");
-            row("Click a member", "then click an enemy, a place or a choice of the menu for the order");
+            if (!ui_original_mode() && config_get_int("battle.quick_orders", 1)) {
+                row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
+                row("1 to 5", "select a member; Esc: cancel the order being given");
+                row("The right margin's buttons", "the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once");
+            } else
+                row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
             row("Ctrl + click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");

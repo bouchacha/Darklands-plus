@@ -159,13 +159,34 @@ void ui_draw_battle_bars(void)
     dl->PopClipRect();
 }
 
+/* what a click there would do, while a member is given orders (battle.click_hint, mods/orders.c):
+   "Click: attack", or why not ("No clear shot"), the first line of the info, or alone by the pointer */
+extern "C" const char *orders_hint(void);
+extern "C" int plat_pointer_outside(void);
+static void hint_line(const char *h)
+{
+    bool no = strncmp(h, "Click", 5) != 0;
+    ImGui::TextColored(no ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1), "%s", h);
+}
+static void place_by_pointer(ImVec2 p)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
+    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -26.0f : 26.0f), p.y + (below ? -26.0f : 26.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.92f);
+}
+static const ImGuiWindowFlags INFO_FLAGS = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
+                                           ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
+
 void ui_draw_battle_info(void)
 {
-    if (!ui_battle_info || game_mode() != GM_BATTLE || config_get_int("original", 0)) return;
+    if (game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
     int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
-    if (mx < 0 || n <= 0 || n > 40) return;
+    const char *hint = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? orders_hint() : nullptr;
+    if (hint && (!ui_battle_info || n <= 0 || n > 40)) n = 0;          /* (the hint alone) */
+    else if (!ui_battle_info || mx < 0 || n <= 0 || n > 40) return;
     for (int k = n - 1; k >= 0; k--) {
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
         int m = g_rb((u16)(GV_hotspot_cbt + k));
@@ -173,7 +194,18 @@ void ui_draw_battle_info(void)
         int cyy = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
         if (cyy > by) { by = cyy; best = m; }
     }
-    if (best < 0) return;
+    if (best < 0) {
+        if (!hint) return;
+        place_by_pointer(g2w((float)gx, (float)gy));
+        if (ImGui::Begin("##clickhint", nullptr, INFO_FLAGS)) {
+            ImGui::PushFont(ui_font_overlay);
+            ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
+            hint_line(hint);
+            ImGui::PopFont();
+        }
+        ImGui::End();
+        return;
+    }
     u16 b = (u16)(0x9c55 + best * 0x80);
     int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
     /* +0x22 the missile weapon's type (0xff none), +0x23 the melee weapon's */
@@ -184,15 +216,11 @@ void ui_draw_battle_info(void)
     if (name.empty()) name = best < 5 ? "?" : "Enemy";
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
     if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
-    ImVec2 p = g2w((float)gx, (float)gy);
-    ImGuiIO &io = ImGui::GetIO();
-    bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
-    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -26.0f : 26.0f), p.y + (below ? -26.0f : 26.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
-    ImGui::SetNextWindowBgAlpha(0.92f);
-    if (ImGui::Begin("##battleinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
-                                               ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
+    place_by_pointer(g2w((float)gx, (float)gy));
+    if (ImGui::Begin("##battleinfo", nullptr, INFO_FLAGS)) {
         ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
+        if (hint) hint_line(hint);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
