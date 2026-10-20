@@ -125,8 +125,19 @@ void hdtext_init(void);
 void hdart_init(void);
 void sfx_init(void);
 void saves_init(void);
+/* 1.3: what MicroProse left unused and Darklands+ put back is experimental and off unless chosen
+   (F12 > Settings > Restored). Black Cloud in battle and the Honor Roll were on by default before:
+   once, a value left at that old default goes off (a player who wants them ticks them again) */
+static void restored_migrate(void)
+{
+    if (config_get_int("migrate.restored_off", 0)) return;
+    static const char *K[] = { "battle.black_cloud", "assist.hall_of_fame" };
+    for (int i = 0; i < 2; i++) if (config_get_int(K[i], 0)) config_set_int(K[i], 0);
+    config_set_int("migrate.restored_off", 1);
+}
 void mods_init(void)
 {
+    restored_migrate();
     /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the
        native screens' safe point): when on, it does the menu itself and does not call the original */
     { void menuview_init(void); menuview_init(); }

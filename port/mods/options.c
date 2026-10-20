@@ -47,6 +47,7 @@ static const int V_RATE[] = { 25, 50, 100, 200 };
 #define S_CONTROL "Controls"
 #define S_EDIT    "Editing tools"
 #define S_OTHER   "Elsewhere"
+#define S_RESTORED "Restored cut content"   /* their own page, F12 > Settings > Restored (experimental): off by default and in every preset */
 
 /* key, section, parent, title, description, class, original, Darklands+, Easy, choices, values, apply, note, flags */
 static Option OPTIONS[] = {
@@ -74,7 +75,6 @@ static Option OPTIONS[] = {
     { "display.native_enemyinfo", S_SCREENS, 0, "Enemy Info", "E in a battle: every kind of foe on the field, its armour and weapons, and what your weapons do to it.", OC_SHOW, 0, 1, 1, 0, 0, enemyview_set },
     { "display.native_mapmsg", S_SCREENS, 0, "Travel map messages", "a robber knight's land and the like, in the cards' style.", OC_SHOW, 0, 1, 1, 0, 0, mapmsg_set },
     { "display.native_saves", S_SCREENS, 0, "Save and Load", "the saves listed with where, when and who: Save asks for the comment on a page that lists them, Load lists them all (the game's own list holds nine).", OC_SHOW, 0, 1, 1, 0, 0, savesview_set },
-    { "assist.hall_of_fame", S_SCREENS, 0, "Honor Roll of Glory", "the hall of fame MicroProse left unfinished in the game: a party enters it when its journey ends (and from F12 > Journal).", OC_SHOW, 0, 1, 1 },
 
     { "assist.chances", S_CARDS, 0, "Chances of success", "beside each option of a town or encounter card that has one, with who would try it (the original shows one at a time while Shift is held).", OC_SHOW, 0, 2, 2, "Always, as numbers|As the difficulty level allows|Off", V_CHANCES, assist_set_chances },
     { "assist.best_leader", S_CARDS, 0, "The best speaks for the party", "a card's test of the leader is made by whoever does it best, and the best Charisma bargains in shops; the chance shown is that member's, with their name. The leader you chose is back after the card.", OC_EASE, 0, 1, 1, 0, 0, assist_set_best_leader },
@@ -87,9 +87,6 @@ static Option OPTIONS[] = {
     { "assist.city_goto", S_CARDS, 0, "Go to", "G on a town's card lists its places; the party walks there through the menus.", OC_EASE, 0, 1, 1 },
     { "journal.enabled", S_CARDS, 0, "Town journal", "each town's shops, their wares, qualities and prices, noted on arrival (F12 > Journal).", OC_SHOW, 0, 1, 1 },
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made: a clue read weeks ago can be found again (F12 > Journal > Chronicle).", OC_SHOW, 0, 1, 1 },
-    { "rules.cut_encounters", S_CARDS, 0, "Unused encounters", "encounters MicroProse wrote and never used: soldiers of a private war (\"Fehde!\") now and then lie in ambush on the road instead of the mercenaries turned bandits, with the same chances and battle (docs/cut_content.md).", OC_PLUS, 0, 1, 1 },
-    { "rules.war", S_CARDS, 0, "Cities at war", "experimental: coded by MicroProse and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns wayfarers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war takes it into the original game.", OC_EXPERIMENT, 0, 0, 0 },
-    { "rules.politics", S_CARDS, 0, "City politics", "experimental: the campaign MicroProse wrote and never switched on. Now and then a city has a season of unrest: rumours in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. Never played by anyone in 1992: expect rough edges (docs/cut_politics.md).", OC_EXPERIMENT, 0, 0, 0 },
 
     { "assist.return_thrown", S_PARTY, 0, "Thrown weapons come back", "after a battle, javelins, throwing axes, knives and darts go back to whoever threw them.", OC_EASE, 0, 1, 1, 0, 0, return_thrown },
     { "assist.infinite_ammo", S_PARTY, 0, "Endless ammunition", "arrows, quarrels and balls never run out (one in the pack is enough to shoot); enemies still use up theirs. Off: each shot uses one, and the game leaves 7 in 10 arrows and quarrels to be found in the loot.", OC_PLUS, 0, 1, 1, 0, 0, ammo_set },
@@ -125,7 +122,6 @@ static Option OPTIONS[] = {
     { "assist.level_map_walk", S_BATTLE, "assist.level_map", "Walk there", "a click on the map walks the party there.", OC_EASE, 0, 1, 1 },
     { "battle.foes_left", S_BATTLE, 0, "Foes left", "under the enemies, the foes a castle, dungeon or mine still holds, not yet met, floor by floor; the master of the place marked, or the floor where he waits (what the party cannot know: off but in the Easy preset).", OC_EASY, 0, 0, 1 },
     { "battle.end_words", S_BATTLE, 0, "A quick end", "when the last foe falls the field stands still a second, not three and a half, before the loot; then \"Victory! The battle is won.\" (or how else it ended) for three seconds, not eight, as if the game had hung.", OC_SHOW, 0, 1, 1 },
-    { "battle.black_cloud", S_BATTLE, 0, "Black Cloud in battle", "the party can throw Black Cloud in a battle too. The manual left it out (\"the screen takes too long\" on the machines of 1992), but its smoke is in the battle's rules: shots through it hit a fifth as often, and fighting from inside it costs 15 to hit. Enemies and cards use it.", OC_PLUS, 0, 1, 1 },
     { "battle.retarget_near", S_BATTLE, 0, "Next foe within reach", "when a member's foe falls, the member turns on a foe close by, rather than walking around the whole melee to help the most wounded friend.", OC_EASE, 0, 1, 1 },
     { "battle.shoot_past_allies", S_BATTLE, 0, "Shoot past friends", "the party's archers, crossbowmen and gunners shoot past their own fighters. A missile never strikes anyone but its target in Darklands, yet the game makes a shooter wait while a friend stands in the line (unless the shooter's skill is 90 or more). Enemies in the line still block.", OC_EASY, 0, 0, 1 },
     { "battle.reposition_shooters", S_BATTLE, 0, "Shooters look for a line", "experimental: a shooter without a clear line steps aside or walks on to find one instead of waiting, and any foe can be chosen. A member told to hold stays put.", OC_EXPERIMENT, 0, 0, 0 },
@@ -159,6 +155,13 @@ static Option OPTIONS[] = {
     { "saves.autosave_arrive", S_OTHER, 0, "Autosave on arriving", "", OC_EASE, 0, 1, 1, 0, 0, auto_arrive, 0, OF_ELSEWHERE },
     { "saves.autosave_battle", S_OTHER, 0, "Autosave before a battle", "", OC_EASE, 0, 1, 1, 0, 0, auto_battle, 0, OF_ELSEWHERE },
     { "saves.restart_on_end", S_OTHER, 0, "Start again at the end", "", OC_EASE, 0, 1, 1, 0, 0, restart_end, 0, OF_ELSEWHERE },
+    /* what MicroProse wrote, coded or left unfinished and never switched on, put back: experimental, off by default and in every preset */
+    { "rules.fehde", S_RESTORED, 0, "\"Fehde!\"", "an ambush on the road by soldiers of a private war, written for the mercenaries' ambush and never used: half the times that ambush comes up it is the Fehde instead, with its own texts and the same chances and battle (the enemies Soldiers, led by a Knight).", OC_EXPERIMENT, 0, 0, 0 },
+    { "rules.hospice", S_RESTORED, 0, "The hospice", "a town's hospice by day, written with no code: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to lists it.", OC_EXPERIMENT, 0, 0, 0 },
+    { "rules.war", S_RESTORED, 0, "Cities at war", "coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns wayfarers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war takes it into the original game.", OC_EXPERIMENT, 0, 0, 0 },
+    { "rules.politics", S_RESTORED, 0, "City politics", "the campaign written and never switched on. Now and then a city has a season of unrest: rumours in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. Never played by anyone in 1992: expect rough edges (docs/cut_politics.md).", OC_EXPERIMENT, 0, 0, 0 },
+    { "battle.black_cloud", S_RESTORED, 0, "Black Cloud in battle", "the party can throw Black Cloud in a battle too. The manual left it out (\"the screen takes too long\" on the machines of 1992), but its smoke is in the battle's rules: shots through it hit a fifth as often, and fighting from inside it costs 15 to hit. Enemies and cards use it.", OC_EXPERIMENT, 0, 0, 0 },
+    { "assist.hall_of_fame", S_RESTORED, 0, "Honor Roll of Glory", "the hall of fame left unfinished in the game (its picture and its table, which nothing called): a party enters it when its journey ends, and F12 > Journal shows it.", OC_EXPERIMENT, 0, 0, 0 },
 };
 #define NSTATIC ((int)(sizeof OPTIONS / sizeof OPTIONS[0]))
 

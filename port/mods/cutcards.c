@@ -1,5 +1,6 @@
-/* cutcards.c - encounters MicroProse wrote and never used, put back (rules.cut_encounters;
- * the catalogue of what the game holds unused is docs/cut_content.md).
+/* cutcards.c - encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice:
+ * F12 > Settings > Restored, experimental, off by default; the catalogue of what the game holds
+ * unused is docs/cut_content.md).
  *
  * "Fehde!" ($MeetF00): soldiers of a private war lie in ambush on the road. The text is the
  * ambush of the mercenaries turned bandits ($MeetB02, card 0x103) written again block for block
@@ -22,12 +23,13 @@
 #include "nscreen.h"
 #include "travel.h"
 
-static int cut_on(void) { return config_get_int("rules.cut_encounters", 1) && !config_get_int("original", 0); }
+static int fehde_on(void) { return config_get_int("rules.fehde", 0) && !config_get_int("original", 0); }
+static int hospice_on(void) { return config_get_int("rules.hospice", 0) && !config_get_int("original", 0); }
 
 static int fehde;                           /* this ambush is the private war's */
 static void meetb02_hook(void)              /* the mercenaries' ambush ($MeetB02), s108 1b3a:0008 */
 {
-    fehde = cut_on() && (ns_call(GF_rand_mod, 1, 2) == 0 || getenv("DL_FEHDE"));   /* (DL_FEHDE: every time, for tests) */
+    fehde = fehde_on() && (ns_call(GF_rand_mod, 1, 2) == 0 || getenv("DL_FEHDE"));   /* (DL_FEHDE: every time, for tests) */
     if (fehde) fprintf(stderr, "cutcards: Fehde! ($MeetF00 for $MeetB02)\n");
     hook_call_original();
     fehde = 0;
@@ -102,8 +104,8 @@ static const char HOSPICE[] =
     "do       set wage = 24 + skill(chosen, Healing); money1 wage; text 3; money1 240; gain wage\n"
     "         practice chosen, Healing, 1, 40, 0; practice party, Healing, 1, 10, 0; hours 24; disable 1\n";
 
-int cutcards_restored_on(void) { return cut_on(); }
-int cutcards_hospice_on(void) { return cut_on(); }
+int cutcards_restored_on(void) { return hospice_on(); }   /* (the scripts of places written and never coded: the hospice) */
+int cutcards_hospice_on(void) { return hospice_on(); }
 int cutcards_scripts(const char **id, const char **text, int i)
 {
     if (i != 0) return 0;
@@ -117,7 +119,7 @@ static void churches_text_hook(void)        /* text_expand (idx, out): $Churc00'
     int idx = (s16)rw(SS, (u16)(SP + 4));
     u16 out = rw(SS, (u16)(SP + 6));
     hook_call_original();
-    if (ns_unwinding || idx != 0 || !cut_on() || !card_is("$Churc00")) return;
+    if (ns_unwinding || idx != 0 || !hospice_on() || !card_is("$Churc00")) return;
     char t[1000]; int n = 0; u8 c;
     while (n < (int)sizeof t - 1 && (c = g_rb((u16)(out + n)))) t[n++] = (char)c;
     t[n] = 0;
@@ -133,12 +135,12 @@ static void churches_text_hook(void)        /* text_expand (idx, out): $Churc00'
 }
 static void churches_options_hook(void)     /* card_options (block): the hospice's line on, by day */
 {
-    if (cut_on() && (s16)rw(SS, (u16)(SP + 4)) == 0 && card_is("$Churc00") && encounters_card_of("HOSPICE") > 0) g_wb((u16)(GV_opt_on + 2), 1);
+    if (hospice_on() && (s16)rw(SS, (u16)(SP + 4)) == 0 && card_is("$Churc00") && encounters_card_of("HOSPICE") > 0) g_wb((u16)(GV_opt_on + 2), 1);
     hook_call_original();
 }
 static void churches_hospice_hook(void)     /* $Churc00 option 2 (s048 1a88:04c2): an empty handler */
 {
-    int card = cut_on() ? encounters_card_of("HOSPICE") : -1;
+    int card = hospice_on() ? encounters_card_of("HOSPICE") : -1;
     if (card <= 0) { hook_call_original(); return; }
     ns_call(GF_advance_hours, 1, 0);
     if (ns_unwinding) return;

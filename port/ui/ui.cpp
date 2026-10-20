@@ -635,9 +635,9 @@ static void news_window(void)
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
             "City politics, restored (experimental, off at first): the campaign MicroProse wrote and never switched on. Take the rebels' side "
-            "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Settings > Helpers > Cards and towns.",
-            "More of what MicroProse left unused: cities preparing for war or under siege (experimental, off at first), and \"Fehde!\", soldiers of a private war "
-            "waiting in ambush on the road.",
+            "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Settings > Restored (experimental).",
+            "More of what MicroProse left unused, on a page of its own (F12 > Settings > Restored, experimental, all off at first): cities preparing for war or "
+            "under siege, \"Fehde!\", soldiers of a private war waiting in ambush on the road, and a town's hospice.",
             "With a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.",
             "M: the world map. A place found shows what it offers, with Travel there first.",
             "Calling on a saint says why there is no chance: too little Virtue, or too little favor.",
@@ -991,13 +991,13 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             struct Page { const char *name; void (*fn)(void); };
             static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },
                 { "Helpers", tab_helpers }, { "Mods", tab_mods }, { "Display", tab_display }, { "Records", tab_party },
-                { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab } };
-            struct Group { const char *name; int icon; int page[4]; int n; };
+                { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab }, { "Restored (experimental)", tab_restored } };
+            struct Group { const char *name; int icon; int page[5]; int n; };
             static const Group groups[] = {
                 { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
                 { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
                 { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
-                { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 4 } };
+                { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_RESTORED, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 5 } };
             const int NG = (int)(sizeof groups / sizeof groups[0]);
             auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || (config_get_int("editor.show", 0) && !ui_original_mode()); };
             ImFont *tf = font_tab;

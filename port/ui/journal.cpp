@@ -1075,7 +1075,7 @@ extern "C" void tab_journal(void)
         if (ui_subtab("Ingredients", want == 2)) { ingredients_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Stored", want == 6)) { storage_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Battle log", want == 5)) { battlelog_tab(); ImGui::EndTabItem(); }
-        if (ui_subtab("Honor Roll", want == 4)) {
+        if (config_get_int("assist.hall_of_fame", 0) && !config_get_int("original", 0) && ui_subtab("Honor Roll", want == 4)) {   /* (restored: F12 > Settings > Restored) */
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
                                "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
                                "A party enters it when its journey ends, or now with the button.");

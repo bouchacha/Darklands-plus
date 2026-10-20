@@ -50,6 +50,7 @@ bool ui_modding(void);                   /* the editing tools shown (F12 > Setti
 void ui_set_original(bool on);
 void tab_mods(void);
 void tab_helpers(void);
+void tab_restored(void);
 void tab_display(void);
 bool ui_subtabs_begin(const char *id);   /* tabs inside a page: ImGui::BeginTabBar in the sub-tabs' face */
 bool ui_subtab(const char *label, bool select = false);   /* ImGui::BeginTabItem in that face */

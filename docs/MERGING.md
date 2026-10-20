@@ -85,7 +85,7 @@ presets:
 | convenience | saves the player work; a small change to how the game plays (the best member speaks, a click attacks) | Semi-Purist |
 | new rule | changes how the game plays (aging, one pack for the party) | Darklands+ |
 | easier | makes the game easier (cheap inns, heavy blows), or tells what the party cannot know (what unvisited places offer, the foes not yet met) | Easy only |
-| experimental | not finished | never by a preset |
+| experimental | not finished, or content MicroProse never switched on (restored cut content: its own page) | never by a preset |
 | taste | a matter of taste (speed, pictures): the original in the purist presets, else the player's own | - |
 | tool | the editor and the like: never set by a preset | - |
 
@@ -124,7 +124,6 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `display.native_enemyinfo` | Enemy Info | interface | enemyview.c |
 | `display.native_mapmsg` | Travel map messages | interface | mapmsg.c |
 | `display.native_saves` | Save and Load | interface | savesview.c |
-| `assist.hall_of_fame` | Honor Roll of Glory | interface | halloffame.cpp |
 | **Cards and towns** | | | |
 | `assist.chances` | Chances of success | interface | assist.c |
 | `assist.best_leader` | The best speaks for the party | convenience | assist.c, sheetview.cpp |
@@ -200,6 +199,13 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `saves.autosave_arrive` | Autosave on arriving | convenience | saves.c, saves.cpp |
 | `saves.autosave_battle` | Autosave before a battle | convenience | saves.c, saves.cpp |
 | `saves.restart_on_end` | Start again at the end | convenience | saves.c, saves.cpp |
+| **Restored cut content** (their own page, F12 > Settings > Restored) | | | |
+| `rules.fehde` | "Fehde!" | experimental | cutcards.c |
+| `rules.hospice` | The hospice | experimental | cutcards.c, encounters.c, citynav.cpp |
+| `rules.war` | Cities at war | experimental | war.c |
+| `rules.politics` | City politics | experimental | politics.c, quests.cpp |
+| `battle.black_cloud` | Black Cloud in battle | experimental | battlerules.c |
+| `assist.hall_of_fame` | Honor Roll of Glory | experimental | halloffame.cpp, journal.cpp |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

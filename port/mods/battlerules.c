@@ -271,7 +271,7 @@ static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), cal
  * "cannot be used in battle because the screen takes too long" (1992's machines), though its
  * effect is in the battle's code (enemies throw it). With this on, the list is made the same way
  * with Black Cloud in it. */
-static int on_cloud(void) { return config_get_int("battle.black_cloud", 1) && !config_get_int("original", 0); }
+static int on_cloud(void) { return config_get_int("battle.black_cloud", 0) && !config_get_int("original", 0); }   /* (restored: experimental, off by default) */
 static void throwlist_hook(void)                /* s019 1ef8:0c80 (i) */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));

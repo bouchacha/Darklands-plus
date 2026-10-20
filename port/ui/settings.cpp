@@ -308,7 +308,7 @@ void tab_helpers(void)
         int n = options_count();
         for (int i = 0; i < n; i++) {
             const Option *o = options_get(i);
-            if (o->flags & OF_ELSEWHERE) continue;
+            if ((o->flags & OF_ELSEWHERE) || !strcmp(o->section, "Restored cut content")) continue;   /* (that one: its own page, tab_restored) */
             bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
             if (!seen) sect.push_back(o->section);
         }
@@ -363,6 +363,26 @@ void tab_helpers(void)
     at_top = top_found < 0 ? 0 : top_found;
     fold_all = false;
     ImGui::EndChild();
+}
+
+/* what MicroProse wrote, coded or left unfinished and never switched on, put back by Darklands+:
+   a page of its own, experimental, every switch off by default and in every preset */
+void tab_restored(void)
+{
+    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Restored cut content"); ImGui::PopFont();
+    ImGui::TextColored(ImVec4(0.75f, 0.35f, 0.1f, 1), "Experimental.");
+    ImGui::SameLine();
+    ImGui::TextWrapped("What MicroProse wrote, coded or left unfinished and never switched on, put back by Darklands+. Nobody played it in 1992: "
+                       "expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again.");
+    ui_hint("What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md).");
+    ImGui::Spacing();
+    if (ui_original_mode()) { ui_hint("Off while the original game is played (Buggy Purist): pick another preset to tick these."); return; }
+    int n = options_count();
+    for (int i = 0; i < n; i++) {
+        const Option *o = options_get(i);
+        if ((o->flags & OF_ELSEWHERE) || o->parent || strcmp(o->section, "Restored cut content")) continue;
+        option_row(o, 0);
+    }
 }
 
 extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }

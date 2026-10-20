@@ -92,7 +92,7 @@ static FameRec current_party(void)
 /* the party joins the roll (or betters its own place): its fame against the four best */
 extern "C" int halloffame_record(void)
 {
-    if (config_get_int("original", 0) || !config_get_int("assist.hall_of_fame", 1)) return 0;
+    if (config_get_int("original", 0) || !config_get_int("assist.hall_of_fame", 0)) return 0;
     if (game_mode() == GM_OTHER) return 0;
     FameRec cur = current_party();
     if (cur.names[0].empty()) return 0;

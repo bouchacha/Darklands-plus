@@ -16,14 +16,16 @@ encounter tables and the other scripts.
 
 | | What MicroProse left | Darklands+ |
 |---|---|---|
-| **City politics** | 19 cards written and coded; the routine that starts a season is never called | Experimental option, off by default: *City politics* ([its page](cut_politics.md)) |
-| **Cities at war** | 5 coded cards with 78 texts, plus effects across the game (prices, news, docks, a soldiers' street); the state that turns them on is never set, and the war's arrival card loads no text | Experimental option, off by default: *Cities at war* (below) |
-| **"Fehde!"** | A finished wilderness encounter with no code | *Unused encounters*, on in the Darklands+ and Easy presets (below) |
-| **The hospice** | A town's hospice by day, written with no code, and an empty line in the church district that once led there | *Unused encounters* (below) |
+| **City politics** | 19 cards written and coded; the routine that starts a season is never called | *City politics* ([its page](cut_politics.md)) |
+| **Cities at war** | 5 coded cards with 78 texts, plus effects across the game (prices, news, docks, a soldiers' street); the state that turns them on is never set, and the war's arrival card loads no text | *Cities at war* (below) |
+| **"Fehde!"** | A finished wilderness encounter with no code | *"Fehde!"* (below) |
+| **The hospice** | A town's hospice by day, written with no code, and an empty line in the church district that once led there | *The hospice* (below) |
 | **Honor Roll of Glory** | An unfinished hall of fame | *Honor Roll of Glory* |
+| **Black Cloud in battle** | The party's battle menu leaves Black Cloud out ("the screen takes too long", the manual says), though its smoke is in the battle's rules and enemies throw it | *Black Cloud in battle* |
 
-All of them are in F12 > Settings > Helpers > Cards and towns (the Honor Roll under Screens).
-None is in the Buggy Purist preset.
+All of them are on a page of their own, F12 > Settings > Restored (experimental): each a switch, off
+unless ticked, and off in every preset. Only what was plainly a coding error is put right among the
+fixes instead (the saints' texts, the option lines that ran the next one's choice, and the like).
 
 ## Cities at war
 
@@ -120,7 +122,7 @@ are its own: "In a private war (feud), anyone not an ally is the enemy"; prisone
 on oath; "We defeated this group of soldiers, but how many more are roaming nearby?". It was
 written for that card's code and never given a place in the encounter tables.
 
-**What Darklands+ does** (`rules.cut_encounters`, port/mods/cutcards.c): half the times
+**What Darklands+ does** (`rules.fehde`, port/mods/cutcards.c): half the times
 `$MeetB02` comes up, it loads `$MeetF00` instead. Everything else is the card's own: the
 chances, saints and potions, the battle and the losses. In the battle, the mercenaries are the
 game's "Soldier" (the same enemy under another name), and the robber captain who leads them is
@@ -134,7 +136,7 @@ district (`$Churc00`) has an empty third option line, switched off, whose handle
 an early version of that card (`$Churc01`) has "the $hospital, where injuries and the ill are
 tended" there.
 
-**What Darklands+ does** (`rules.cut_encounters`, port/mods/cutcards.c): by day that line reads
+**What Darklands+ does** (`rules.hospice`, port/mods/cutcards.c): by day that line reads
 "visit the Heilig-Geist-Spital, where injuries and the ill are tended" (`$hospital` has no name
 in `DARKLAND.CTY`) and leads to the hospice, run as a script (the new-encounter language of
 port/mods/encounters.c) with the card's own texts and the cloister picture `XDAMONK`:
