@@ -549,7 +549,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::SeparatorText("Made with"); ImGui::PopFont();
     ui_hint("Dear ImGui (MIT licence); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, "
          "stb_vorbis (public domain); SDL2 (zlib licence); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
-         "MedievalSharp, UnifrakturMaguntia and Comic Neue (SIL Open Font License 1.1).");
+         "MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1).");
     ui_hint("Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game.");
     ui_hint("With thanks to the Darklands community: vvendigo's tools, Merle's and Joel \"Quadko\" McIntyre's documentation "
          "of the file formats, the Darklands Companion, and Arkana Mechanika (Darklands Restoration) for bug reports.");
@@ -676,7 +676,7 @@ static void mt32_window(void)
                            "wrong instruments altogether.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ has the MT-32 built in (Munt's emulator). It only needs the synthesizer's two ROM files, "
-                           "control and PCM, of an MT-32 or a CM-32L (CM-32L is best). They belong to Roland, so they cannot come "
+                           "control and PCM, of an MT-32 or a CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come "
                            "with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: "
                            "show Darklands+ the folder.");
         ImGui::Spacing();
