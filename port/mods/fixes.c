@@ -142,6 +142,15 @@
  *  university $Unive00's question about formulae (option 1, s056 18c0:0494) on failure notes the week's
  *            refusal as event_here_type(0x4e, 0, 168 h): the saints' question's (option 0). It now notes
  *            its own (type 1). Found by Arkana Mechanika (Darklands Restoration).
+ *  partyitems add_item_rec_impl (s031 18e7:01b4) for "everyone" (-2: $Dunge00, footpads ...) joins the
+ *            thing to a member's matching stack and then also appends it (no else): two. Each member now
+ *            gets it through the one-member path. Found by Arkana Mechanika (Darklands Restoration).
+ *  itemflags item_quality_flags_impl (s031 18e7:171c), the best quality of the things of a kind (LST
+ *            flags) a member carries, compares item_defs[0]'s flags, not each thing's: 0 unless the
+ *            first item's flags happened to match (then every thing counted). Its two callers ($WildH00,
+ *            $meetw00: riding away) add the poorest rider's mount. Now each thing's own flags; and
+ *            $meetw00 (s084 1838:0536) asks for flags 0x02000000, which no thing has, for the mounts'
+ *            0x2000. Found by Arkana Mechanika (Darklands Restoration).
  *  membervalue Two cards take the value a party query returns for the member who has it (the query
  *            leaves that member in best_member, DS:991d): a town church's tenth ($CityC00, s057
  *            1838:067c) raises first the Divine Favor of "member" party_max_skill(Religion), a skill
@@ -259,6 +268,10 @@ Fix FIXES[] = {
       "Placing the party on some levels of a castle draws rooms until one is not the gate room; when the gate room was the only one to draw, the game drew for ever and stood still. It now takes the first room then.", 1 },
     { "university", "A failed search for formulae at a university shuts that search, not the saints'",
       "Asking a university about alchemical formulae and failing noted the saints' question as asked: the saints were refused for a week, and the formulae could be asked about again at once. It now notes the formulae.", 1 },
+    { "partyitems", "A thing given to everyone is given once",
+      "Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack and as a new one.", 1 },
+    { "itemflags", "A mount's quality helps the ride away",
+      "Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked up the kind of the first item in its list instead of each one's, and so added nothing. It now finds the mounts.", 1 },
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
 };
@@ -1683,6 +1696,48 @@ static void university_hook(void)           /* s056 18c0:0494 (chance) */
     hook_remove(GF_event_here_type, uni_mark_hook);
 }
 
+/* ---------------------------------------------------------------- partyitems, itemflags */
+static void partyitems_hook(void)           /* add_item_rec_impl (who, struct item) */
+{
+    if ((s16)rw(SS, (u16)(SP + 4)) != -2) { hook_call_original(); return; }
+    u16 w0 = rw(SS, (u16)(SP + 6)), w1 = rw(SS, (u16)(SP + 8)), w2 = rw(SS, (u16)(SP + 10));
+    int last = 0;
+    for (int m = 0; m < 5; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;                    /* (present, as the original's party[who].present) */
+        last = ns_call(GF_add_item_rec_impl, 4, m, w0, w1, w2);
+        if (ns_unwinding) return;
+    }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix partyitems: item %d given once to each member\n", w0 & 0xfff);
+    AX = (u16)last;
+    hook_return_far(0);
+}
+static int best_quality_of(int m, u32 flags)
+{
+    int best = 0, n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+    for (int i = 0; i < n && i < 64; i++) {
+        u16 code = rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff;
+        u32 d = g_itemdef(code);
+        if (!d) continue;
+        u32 f = (u32)rw((u16)(d >> 16), (u16)((u16)d + 0x20)) | (u32)rw((u16)(d >> 16), (u16)((u16)d + 0x22)) << 16;
+        int q = rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 3));
+        if (f == flags && q > best) best = q;
+    }
+    return best;
+}
+static void itemflags_hook(void)            /* item_quality_flags_impl (who, long flags) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    u32 flags = (u32)rw(SS, (u16)(SP + 6)) | (u32)rw(SS, (u16)(SP + 8)) << 16;
+    int best = 0;
+    if (flags == 0x02000000UL) flags = 0x2000;     /* ($meetw00's: 0x200 for 0x2000, a flag no thing has) */
+    if (who == -1) who = (s8)g_rb(G_LEADER);
+    if (who == -2) { for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m)) && g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) { int q = best_quality_of(m, flags); if (q > best) best = q; } }
+    else if (who >= 0 && who < 5) best = best_quality_of(who, flags);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix itemflags: best quality of flags %08x for %d: %d\n", (unsigned)flags, who, best);
+    AX = (u16)best;
+    hook_return_far(0);
+}
+
 /* ---------------------------------------------------------------- appointment */
 static void appointment_hook(void)          /* the sweep of the events that ended, s029 0e76:3f30 */
 {
@@ -1732,7 +1787,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
-    { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { 57, 0x1838, 0x067c, mv_wrap_hook } };
+    { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
+    { 57, 0x1838, 0x067c, mv_wrap_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
