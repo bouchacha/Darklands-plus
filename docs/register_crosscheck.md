@@ -164,6 +164,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-61f351 | 0E76:00DC; 1EF8:059A; 0E76:0694 | TacticalBattle.WriteBattleFile | fixed | fix.castle |
 | B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | avoided | saves.quick,  display.native_saves |
 | B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed now | fix.battledead |
+| B-d7cb44 | 14F7:31E6 | CombatantSetup.BackToMember | confirmed, harmless (never read as a location; see uncertain_crosscheck.md) |  |
 
 ## Not on the register
 
