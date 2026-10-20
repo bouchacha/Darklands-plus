@@ -12,6 +12,8 @@ int encounters_card_active(void);           /* a new encounter's card is on the 
 int encounters_offered(void);               /* new encounters may come up now (setting, mods, not the original game) */
 void encounters_force(int i);               /* test: the next wilderness encounter is new encounter i */
 int encounters_force_pending(void);
+int encounters_builtin(int i);              /* encounter i is Darklands+'s own (cut content restored), not a mod's */
+int encounters_card_of(const char *id);     /* the card number of a loaded encounter, or -1 */
 #ifdef __cplusplus
 }
 #endif

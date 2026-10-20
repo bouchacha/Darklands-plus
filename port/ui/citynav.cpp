@@ -152,7 +152,7 @@ static const DestInfo DEST[D_N] = {
     { "Church", "Mass, confession, alms for divine favor, sanctuary.", 2, -1, -1, TI_CHURCH },
     { "Monastery", "The monks' library (Religion, Latin) and prayers for divine favor.", 2, 7, -1, TI_MONASTERY },
     { "University", "New saints and alchemical formulas to learn, rare alchemical materials, a better philosopher's stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
-    { "Hospice", "", 3, -1, -1, TI_PHYSICIAN },
+    { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or for nothing if they will have you. By day.", 3, -1, -1, TI_PHYSICIAN },
     { "Inn", "Meals and a bed, news and rumours, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
     { "Town square", "Notices, gossip and news.", 4, 1, -1, TI_SQUARE },
     { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 1, 1, -1, TI_TOWNHALL },
@@ -212,8 +212,10 @@ static int hub_of(const std::string &card)
     for (int h = 0; h < H_N; h++) if (!strncmp(card.c_str(), HUB_CARD[h], 6)) return h;
     return H_NONE;
 }
+extern "C" int cutcards_hospice_on(void);
 static int rule_for(int hub, const std::string &text)
 {
+    if (hub == H_CHURCHES && text.empty() && cutcards_hospice_on()) return D_HOSPITAL;   /* ($Churc00's empty line: the hospice, mods/cutcards.c) */
     for (const Rule &r : RULES) if (r.hub == hub && text.find(r.key) != std::string::npos) return r.to;
     return -1;
 }
@@ -255,12 +257,15 @@ extern "C" int citynav_busy(void) { return goal >= 0; }
 extern "C" { extern int hdtext_fast_fades; }
 
 extern "C" int encounters_card_active(void);
+extern "C" int encounters_builtin(int i);
 static bool in_city(void)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
     /* (a new encounter met on the way out, still on the town's square of the map, keeps the town
-       as the game's place: the party is on the road, not in the streets) */
-    return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD && !encounters_card_active();
+       as the game's place: the party is on the road, not in the streets; the restored hospice is
+       a place in town) */
+    int enc = encounters_card_active();
+    return cur >= 0 && cur < 0x5c && game_mode() == GM_CARD && (!enc || encounters_builtin(enc - 1));
 }
 /* before the walls: the city's approach, its gates and its walls ($CityE, $CityG00..04, $CityW),
    where no street leads anywhere yet (the groves, $CityG05/06, are inside) */
@@ -385,7 +390,8 @@ extern "C" void citynav_go(int dest)
 static bool never(int d)
 {
     if (d == D_CLOTH) return !fix_is_on("cardopts");
-    return d == D_HOSPITAL || d == D_JEWEL || d == D_HERBAL;   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
+    if (d == D_HOSPITAL) return !cutcards_hospice_on();          /* (by day: the restored hospice, mods/cutcards.c) */
+    return d == D_JEWEL || d == D_HERBAL;   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
 }
 static bool present_at(int d, int cur)
 {

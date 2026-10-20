@@ -192,6 +192,7 @@ menu comes back unless its actions went elsewhere.
 |---|---|
 | `text N` | show text block N (and wait for a key) |
 | `goto SECTION`, `exit` | go to another section; back to the map |
+| `card N` | on to the game's card N (in a town: 0x13 the church district ...) |
 | `tocity` | end at the nearest city's gate |
 | `if EXPR goto A else goto B` | |
 | `if EXPR then ACTION else ACTION` | an action, or several in `{ ... }` |
@@ -200,7 +201,8 @@ menu comes back unless its actions went elsewhere.
 | `practice WHO, SKILL, MODE, PCT, LEVEL` | the game's chance to improve a skill by use (as its cards: success `1, 10, 0`, failure `0, 10, 0`) |
 | `skill WHO, K, D`, `attr WHO, K, D`, `attrmax WHO, K, D`, `setattr WHO, K, V` | change skills and attributes. With `party`, D is worked out for each member (`who` is that member) |
 | `injure WHO, A, B, MULT` | the game's wounds (its boars: `1, 1, 10`) |
-| `pay PF`, `gain PF`, `money1 PF` | money in pfennigs (240 to the florin); `money1` sets `$Money1` |
+| `pay PF`, `gain PF`, `money1 PF`, `money2 PF` | money in pfennigs (240 to the florin); `money1` and `money2` set `$Money1`, `$Money2` |
+| `heal WHO, ATTR, PCT` | that share of what was lost of an attribute comes back (the game's healing) |
 | `number1 N`, `number2 N` | `$Number1`, `$Number2` |
 | `additem WHO, CODE[, QUALITY]`, `takeitem WHO, CODE` | items (`$ItemName` names the last added) |
 | `loseitems WHO`, `keepitems WHO, PCT`, `removeitems WHO, MASK` | the game's losses: robbed (with `party` also the purse), each stack kept with PCT % |
@@ -219,7 +221,7 @@ menu comes back unless its actions went elsewhere.
 |---|---|
 | members | `leader`, `party`, `who`, `chosen`, `bestskill(K)`, `worstskill(K)`, `bestattr(K)`, `worstattr(K)`, `bestskill2(K1, K2)`, `bestskillsum(K1, K2)`, `bestattrsum(A1, A2)`, `bestattrskill(A, K)`, `spotter` (best Perception + Woodwise), `slowest` (the slowest with their load) |
 | one member | `skill(W, K)`, `attr(W, K)`, `attrmax(W, K)`, `able(W)`, `has(W, CODE)`, `count(W, CODE)`, `quality(W, CODE)` (`has(party, CODE)`: anyone) |
-| the party | `maxskill(K)`, `minskill(K)`, `avgskill(K)`, `maxattr(K)`, `minattr(K)`, `avgattr(K)`, `maxskill2(K1, K2)`, `maxskillsum(K1, K2)`, `maxattrsum`, `maxattrskill`, `spotvalue`, `avgagility`, `minagility` (agility with the load), `slowspeed`, `lore` (1-10, the game's measure of the party's strength), `fame`, `money` (pfennigs), `size` (members present), `members`, `women`, `mounted` |
+| the party | `wounds(ATTR)` (what the members present have lost of it, together), `standing` (the reputation here, or in the nearest town), `maxskill(K)`, `minskill(K)`, `avgskill(K)`, `maxattr(K)`, `minattr(K)`, `avgattr(K)`, `maxskill2(K1, K2)`, `maxskillsum(K1, K2)`, `maxattrsum`, `maxattrskill`, `spotvalue`, `avgagility`, `minagility` (agility with the load), `slowspeed`, `lore` (1-10, the game's measure of the party's strength), `fame`, `money` (pfennigs), `size` (members present), `members`, `women`, `mounted` |
 | the world | `daylight`, `night`, `hour`, `day` (1-31), `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
 | rolls | `random(N)` (0..N-1), `roll(C)` (a check of C %), `clamp(LO, HI, V)`, `min`, `max`, `abs` |
 | after | `result` (a battle), `q`, `item`, `saint` |

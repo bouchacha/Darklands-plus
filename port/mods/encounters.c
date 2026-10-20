@@ -126,6 +126,7 @@ typedef struct {
     long card_bytes;                    /* its size as the game loads it (.MSG) */
     unsigned char nopts[64], optcode[64][NOPT];   /* each block's option lines and their codes (0x15 0x16 0x10 0x06) */
     int maxopts;                        /* the most option lines in one block */
+    int builtin;                        /* one of Darklands+'s own (cut content restored: cutcards.c), not a mod's */
 } Enc;
 
 static Enc encs[ENC_MAX];
@@ -393,12 +394,13 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "number1")) { *v = p->dry ? 0 : (s16)g_rw(V_NUMBER1); return 1; }
     if (!strcasecmp(n, "money1")) { *v = p->dry ? 0 : money_get(V_MONEY1); return 1; }
     if (p->dry) {                        /* zero-argument functions: checked, not run */
-        static const char *Z[] = { "lore", "fame", "mounted", "daylight", "night", "hour", "month", "day", "year", "money", "size",
+        static const char *Z[] = { "lore", "standing", "fame", "mounted", "daylight", "night", "hour", "month", "day", "year", "money", "size",
             "women", "avgagility", "minagility", "slowest", "slowspeed", "spotter", "spotvalue", "terrain", "difficulty", "members", 0 };
         for (int k = 0; Z[k]; k++) if (!strcasecmp(n, Z[k])) { *v = 0; return 1; }
         return 0;
     }
     if (!strcasecmp(n, "lore")) { *v = g_lore(); return 1; }
+    if (!strcasecmp(n, "standing")) { int l = (s16)g_rw(G_CUR_LOC); *v = G(GF_loc_reputation, 1, l >= 0 && l < 0x5c ? l : g_nearest_city()); return 1; }   /* the reputation here (or in the nearest city) */
     if (!strcasecmp(n, "fame")) { *v = g_party_get(4); return 1; }
     if (!strcasecmp(n, "mounted")) { *v = g_party_get(5) != 0; return 1; }
     if (!strcasecmp(n, "daylight")) { *v = g_daylight() != 0; return 1; }
@@ -461,6 +463,13 @@ static long call_fn(P *p, const char *f, const long *a, int n)
         if (f[0] == 'c') return g_count_items(w == -1 ? leader() : w, code);
         if (w == -2) { for (int m = 0; m < 5; m++) if (member_status(m) == 1 && g_has_item(m, code) == 1) return 1; return 0; }
         return g_has_item(resolve_who(w), code) == 1;
+    }
+    if (!strcasecmp(f, "wounds")) {             /* what the party has lost of an attribute, its present members together */
+        if (!nargs_ok(p, f, n, 1, 1) || p->dry) return 0;
+        if (a[0] < 0 || a[0] > 6) { perr(p, "wounds: an attribute"); return 0; }
+        long t = 0;
+        for (int m = 0; m < 5; m++) if (member_status(m) && member_status(m) != 3) { int d = g_attr_max(m, (int)a[0]) - g_attr(m, (int)a[0]); if (d > 0) t += d; }
+        return t;
     }
     if (!strcasecmp(f, "able")) { if (!nargs_ok(p, f, n, 1, 1) || p->dry) return 0; return member_status(resolve_who((int)a[0])) == 1; }
     if (!strcasecmp(f, "event")) { if (!nargs_ok(p, f, n, 1, 1) || p->dry) return 0; return g_event_started((int)a[0]) != 0; }
@@ -613,6 +622,7 @@ static int arg_range(P *p, const char *w, const long *a, int n)
     else if (!strcasecmp(w, "text")) { if (a[0] < 0 || a[0] >= (s8)g_rb(V_MSG_BLOCKS)) bad = "a text block of the card"; }
     else if (!strcasecmp(w, "hours") || !strcasecmp(w, "days")) { if (a[0] > 9999) bad = "at most 9999"; }
     else if (!strcasecmp(w, "until")) { if (a[0] < 0 || a[0] > 23) bad = "an hour (0 to 23)"; }
+    else if (!strcasecmp(w, "heal")) { if (!who_ok(a[0], 1)) bad = "who"; else if (a[1] < 0 || a[1] > 6) bad = "an attribute (0 to 6)"; else if (a[2] < 0 || a[2] > 100) bad = "a percentage (0 to 100)"; }
     if (!bad) return 1;
     perr(p, "%s: %s expected", w, bad);
     return 0;
@@ -647,6 +657,12 @@ static int exec_stmt(P *p)
     }
     if (!strcasecmp(w, "goto")) { char t[48]; snprintf(t, sizeof t, "%s", p->id); nx(p); return jump(p, t); }
     if (!strcasecmp(w, "exit")) { if (!dry) { exit_to_map(); return 1; } return 0; }
+    if (!strcasecmp(w, "card")) {               /* on to one of the game's cards (a town's street ...) */
+        n = args(p, a, 1, 1, w);
+        if (!p->err && (a[0] < 1 || a[0] > 0x16d)) perr(p, "card: one of the game's cards, 1 to 0x16d");
+        if (!dry && !p->err) { g_ww(V_NEXT_CARD, (u16)a[0]); return 1; }
+        return 0;
+    }
     if (!strcasecmp(w, "tocity")) {             /* the journey ends at the nearest city's gate */
         if (!dry) { int c = g_nearest_city(); g_ww(G_CUR_LOC, (u16)c); g_load_city(c); g_ww(V_NEXT_CARD, 0x0c); return 1; }
         return 0;
@@ -723,7 +739,7 @@ static int exec_stmt(P *p)
     static const struct { const char *w; int lo, hi; } K[] = {
         { "text", 1, 1 }, { "hours", 1, 1 }, { "days", 1, 1 }, { "until", 1, 1 }, { "practice", 2, 5 },
         { "injure", 2, 4 }, { "pay", 1, 1 }, { "gain", 1, 1 },
-        { "money1", 1, 1 }, { "number1", 1, 1 }, { "number2", 1, 1 }, { "fame", 1, 1 }, { "reputation", 2, 2 },
+        { "money1", 1, 1 }, { "money2", 1, 1 }, { "heal", 3, 3 }, { "number1", 1, 1 }, { "number2", 1, 1 }, { "fame", 1, 1 }, { "reputation", 2, 2 },
         { "additem", 2, 3 }, { "takeitem", 2, 2 }, { "loseitems", 1, 1 }, { "keepitems", 2, 2 }, { "removeitems", 2, 2 },
         { "kill", 1, 1 }, { "chosen", 1, 1 }, { "chosen2", 1, 1 }, { "itemname", 1, 1 }, { "saintname", 1, 1 }, { "actor", 1, 1 } };
     int k = -1;
@@ -746,6 +762,8 @@ static int exec_stmt(P *p)
     else if (!strcasecmp(w, "pay")) money_put(G_MONEY, money_get(G_MONEY) - a[0]);
     else if (!strcasecmp(w, "gain")) money_put(G_MONEY, money_get(G_MONEY) + a[0]);
     else if (!strcasecmp(w, "money1")) money_put(V_MONEY1, a[0]);
+    else if (!strcasecmp(w, "money2")) money_put(GV_var_money2, a[0]);
+    else if (!strcasecmp(w, "heal")) G(GF_heal_attr_pct, 3, (int)a[0], (int)a[1], (int)a[2]);   /* heal WHO, ATTR, PCT: that share of what was lost */
     else if (!strcasecmp(w, "number1")) g_ww(V_NUMBER1, (u16)a[0]);
     else if (!strcasecmp(w, "number2")) g_ww(V_NUMBER2, (u16)a[0]);
     else if (!strcasecmp(w, "fame")) g_reward((int)a[0]);
@@ -860,19 +878,30 @@ static void ferr(Enc *e, int line, const char *fmt, ...)
     e->ok = 0;
 }
 
-static int load_file(Enc *e, const char *path, const char *id)
+/* the script's text, from a file or from memory (Darklands+'s own: cutcards.c) */
+static int next_line(const char **pos, char *line, int size)
+{
+    const char *q = *pos;
+    if (!*q) return 0;
+    int n = 0;
+    while (*q && *q != '\n') { if (n < size - 1) line[n++] = *q; q++; }
+    if (*q == '\n') q++;
+    line[n] = 0;
+    *pos = q;
+    return 1;
+}
+static int load_text(Enc *e, const char *text, const char *label, const char *id)
 {
     memset(e, 0, sizeof *e);
-    snprintf(e->file, sizeof e->file, "%s", path);
+    snprintf(e->file, sizeof e->file, "%s", label);
     snprintf(e->id, sizeof e->id, "%s", id);
     snprintf(e->title, sizeof e->title, "%s", id);
     e->weight = 1; e->terrain = 0x01fffff0u; e->ok = 1; e->last_day = -1000;
-    FILE *f = fopen(path, "rb");
-    if (!f) return 0;
     char line[2000];
     int ln = 0;
+    const char *pos = text;
     Sec *s = 0; Opt *o = 0; Src *last = 0;
-    while (fgets(line, sizeof line, f)) {
+    while (next_line(&pos, line, sizeof line)) {
         ln++;
         char *h = strchr(line, '#'); if (h) *h = 0;
         size_t L = strlen(line);
@@ -959,11 +988,25 @@ static int load_file(Enc *e, const char *path, const char *id)
         if (indented && last) { src_add(last, t); continue; }
         ferr(e, ln, "unknown key %s", w);
     }
-    fclose(f);
     if (!e->card[0]) ferr(e, 1, "no card (the MSGFILES text) given");
     if (!e->pic[0]) ferr(e, 1, "no picture given");
     if (!e->nsec) ferr(e, 1, "no [section]");
     return 1;
+}
+
+static int load_file(Enc *e, const char *path, const char *id)
+{
+    FILE *f = fopen(path, "rb");
+    if (!f) return 0;
+    fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
+    if (n < 0 || n > 1 << 20) { fclose(f); return 0; }
+    char *buf = malloc((size_t)n + 1);
+    size_t got = fread(buf, 1, (size_t)n, f);
+    fclose(f);
+    buf[got] = 0;
+    int r = load_text(e, buf, path, id);
+    free(buf);
+    return r;
 }
 
 /* the shape of the encounter's card text (MSGFILES/<card>.TXT of a mod): its blocks and, in each,
@@ -1070,9 +1113,11 @@ static void check(Enc *e)
 static unsigned slot_hash(const char *id) { unsigned h = 2166136261u; for (; *id; id++) h = (h ^ (unsigned)tolower((unsigned char)*id)) * 16777619u; return h; }
 static int cmp_enc(const void *a, const void *b) { return strcasecmp(((const Enc *)a)->id, ((const Enc *)b)->id); }
 
+int cutcards_restored_on(void);                 /* (cutcards.c) the cut content restored: its scripts */
+int cutcards_scripts(const char **id, const char **text, int i);
 static void reload(void)
 {
-    int gen = datamods_generation();
+    int gen = datamods_generation() * 2 + (cutcards_restored_on() != 0);
     if (gen == loaded_gen) return;
     if (rt.active) return;                       /* mods ticked while a new encounter is on the screen: afterwards */
     loaded_gen = gen;
@@ -1099,6 +1144,20 @@ static void reload(void)
             nenc++;
         }
         closedir(dp);
+    }
+    if (cutcards_restored_on()) {               /* Darklands+'s own: places written for the game and never coded */
+        const char *id, *text;
+        for (int k = 0; cutcards_scripts(&id, &text, k) && nenc < ENC_MAX; k++) {
+            int dup = 0; for (int i = 0; i < nenc; i++) if (!strcasecmp(encs[i].id, id)) dup = 1;
+            if (dup) continue;
+            Enc *e = &encs[nenc];
+            char label[64]; snprintf(label, sizeof label, "(Darklands+ %s)", id);
+            load_text(e, text, label, id);
+            e->builtin = 1;
+            if (e->ok) check(e);
+            if (!e->ok) nerr++;
+            nenc++;
+        }
     }
     qsort(encs, (size_t)nenc, sizeof(Enc), cmp_enc);
     /* card numbers by name, so a save made during one still finds it with other mods in use */
@@ -1370,7 +1429,7 @@ int encounters_offered(void)
 {
     if (config_get_int("original", 0) || !config_get_int("encounters.new", 1)) return 0;
     reload();
-    for (int i = 0; i < nenc; i++) if (encs[i].ok) return 1;
+    for (int i = 0; i < nenc; i++) if (encs[i].ok && !encs[i].builtin) return 1;
     return 0;
 }
 
@@ -1442,7 +1501,15 @@ static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(
 }
 
 /* ================================================================ interface */
-int encounters_count(void) { reload(); int n = 0; for (int i = 0; i < nenc; i++) n += encs[i].ok; return n; }
+int encounters_count(void) { reload(); int n = 0; for (int i = 0; i < nenc; i++) n += encs[i].ok && !encs[i].builtin; return n; }
+int encounters_builtin(int i) { return i >= 0 && i < nenc && encs[i].builtin; }
+int encounters_card_of(const char *id)          /* the card number of an encounter loaded (Darklands+'s own too), or -1 */
+{
+    reload();
+    install_cards();
+    for (int i = 0; i < nenc; i++) if (encs[i].ok && !strcasecmp(encs[i].id, id)) return ENC_BASE + encs[i].slot;
+    return -1;
+}
 int encounters_errors(void) { reload(); return nerr; }
 const char *encounters_title(int i) { return i >= 0 && i < nenc ? encs[i].title : ""; }
 int encounters_card_active(void) { return rt.active ? rt.enc + 1 : 0; }

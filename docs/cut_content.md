@@ -19,6 +19,7 @@ encounter tables and the other scripts.
 | **City politics** | 19 cards written and coded; the routine that starts a season is never called | Experimental option, off by default: *City politics* ([its page](cut_politics.md)) |
 | **Cities at war** | 5 coded cards with 78 texts, plus effects across the game (prices, news, docks, a soldiers' street); the state that turns them on is never set, and the war's arrival card loads no text | Experimental option, off by default: *Cities at war* (below) |
 | **"Fehde!"** | A finished wilderness encounter with no code | *Unused encounters*, on in the Darklands+ and Easy presets (below) |
+| **The hospice** | A town's hospice by day, written with no code, and an empty line in the church district that once led there | *Unused encounters* (below) |
 | **Honor Roll of Glory** | An unfinished hall of fame | *Honor Roll of Glory* |
 
 All of them are in F12 > Settings > Helpers > Cards and towns (the Honor Roll under Screens).
@@ -125,6 +126,30 @@ chances, saints and potions, the battle and the losses. In the battle, the merce
 game's "Soldier" (the same enemy under another name), and the robber captain who leads them is
 a knight, since declaring a feud was a knight's affair. The "Captain" of a stronger party stays.
 
+## The hospice
+
+`$CityH00` (7 texts) is a town's hospice by day: give alms, work a day beside the nuns, have the
+party's wounds tended for a fee, or beg to be tended for nothing. No code shows it. The church
+district (`$Churc00`) has an empty third option line, switched off, whose handler does nothing;
+an early version of that card (`$Churc01`) has "the $hospital, where injuries and the ill are
+tended" there.
+
+**What Darklands+ does** (`rules.cut_encounters`, port/mods/cutcards.c): by day that line reads
+"visit the Heilig-Geist-Spital, where injuries and the ill are tended" (`$hospital` has no name
+in `DARKLAND.CTY`) and leads to the hospice, run as a script (the new-encounter language of
+port/mods/encounters.c) with the card's own texts and the cloister picture `XDAMONK`:
+
+- alms of a florin: a little Divine Favor for each member and some standing in the town;
+- a day's work: the nuns take a helper whose best healer has Healing 20 or more; the healer
+  practises Healing, the others a little, and the nuns pay a few groschen;
+- the wounds tended for a fee (2 pfennigs a point of Endurance lost, 8 of Strength): a day, and
+  everyone is whole;
+- the wounds tended for nothing: a chance by the town's standing and the party's best Charisma
+  (less for a full purse); a day, all Endurance and half the lost Strength back.
+
+Go to lists the hospice by day. `$CityH01`, the hospice at night ("City hospice, at night."), is
+left unused.
+
 ## Written, never coded
 
 These texts exist only in `MSGFILES`, with no code to show them.
@@ -134,11 +159,6 @@ These texts exist only in `MSGFILES`, with no code to show them.
   campaign: the shopfronts, the guild's leaders, revealing the guild master's secret, sneaking
   into his home. An early crafts-quarter card (`$CivCr01`) leads to the "Road of the Herbalists
   and Surgeon-Barbers". In the game as shipped, that line is the physician's townhouse.
-- **The hospice** (`$CityH00`, 7 texts; `$CityH01`, a one-line placeholder for night). Give
-  money, work a day and a night beside the nuns (Healing practice, and they pay you), have
-  wounds healed for a fee, or beg to be healed for free. An early church-district card
-  (`$Churc01`) leads to "the hospital". The shipped one has an empty line there, and the nuns'
-  care went to the monastery (`$NunsH00`).
 - **The annual fair at the gate** (`$CityE03`, 7 texts). The approach to a city crowded for
   its fair. The fair itself is in the game: within 14 days of a city's fair day, a shell-game
   man works the square and the market (`$Shell00`).

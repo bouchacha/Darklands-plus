@@ -55,6 +55,97 @@ static void battle_hook(void)               /* run_battle (field, seed, enemy, q
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- the hospice
+ * $CityH00 (7 texts) is a city's hospice by day, written and never coded: give alms, work a day
+ * beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for
+ * nothing; $CityH01 is a one-line placeholder for the night. The church district ($Churc00, s048
+ * 1a88) has an empty third option line, switched off, whose handler does nothing (an early version
+ * of the card, $Churc01, has "the $hospital, where injuries and the ill are tended" there). Here,
+ * by day, that line leads to the hospice, run as a script (encounters.c) with the card's own texts. */
+static const char HOSPICE[] =
+    "name     The hospice\n"
+    "card     $CityH00\n"
+    "picture  XDAMONK\n"
+    "terrain  any\n"
+    "weight   0\n"
+    "vars     cost, wage\n"
+    "[start]\n"
+    "block    0\n"
+    "chosen   bestskill(Healing)\n"
+    "do       set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost; money1 240\n"
+    "option 0\n"                                            /* alms: a florin */
+    "  need   money >= 240\n"
+    "  chance none\n"
+    "  ok     pay 240; text 1; attr party, DF, 1; reputation 1, 2; hours 1; disable 0\n"
+    "option 1\n"                                            /* a day's work beside the nuns */
+    "  who    chosen\n"
+    "  chance none\n"
+    "  ok     if skill(chosen, Healing) < 20 goto refused else goto work\n"
+    "option 2\n"                                            /* the wounds tended, for a fee */
+    "  need   wounds(End) + wounds(Str) > 0 and money >= cost\n"
+    "  chance none\n"
+    "  ok     pay cost; hours 24; heal party, End, 100; heal party, Str, 100; text 4;\n"
+    "         set cost = 12; money2 cost\n"
+    "option 3\n"                                            /* ... or for nothing, as paupers */
+    "  need   wounds(End) + wounds(Str) > 0\n"
+    "  who    bestattr(Cha)\n"
+    "  chance clamp(5, 95, 40 + standing / 2 + maxattr(Cha) / 4 - money / 2400)\n"
+    "  ok     hours 24; heal party, End, 100; heal party, Str, 50; text 5; disable 3;\n"
+    "         set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost\n"
+    "  fail   text 6; hours 1; disable 3\n"
+    "option 4\n"                                            /* back to the church district */
+    "  chance none\n"
+    "  ok     card 0x13\n"
+    "[refused]\n"                                           /* (no novices: the best healer has under 20) */
+    "do       text 2; hours 1; disable 1\n"
+    "[work]\n"
+    "do       set wage = 24 + skill(chosen, Healing); money1 wage; text 3; money1 240; gain wage\n"
+    "         practice chosen, Healing, 1, 40, 0; practice party, Healing, 1, 10, 0; hours 24; disable 1\n";
+
+int cutcards_restored_on(void) { return cut_on(); }
+int cutcards_hospice_on(void) { return cut_on(); }
+int cutcards_scripts(const char **id, const char **text, int i)
+{
+    if (i != 0) return 0;
+    *id = "HOSPICE"; *text = HOSPICE;
+    return 1;
+}
+int encounters_card_of(const char *id);
+static int card_is(const char *n) { char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm); return !strcasecmp(nm, n); }
+static void churches_text_hook(void)        /* text_expand (idx, out): $Churc00's empty line by day: the hospice */
+{
+    int idx = (s16)rw(SS, (u16)(SP + 4));
+    u16 out = rw(SS, (u16)(SP + 6));
+    hook_call_original();
+    if (ns_unwinding || idx != 0 || !cut_on() || !card_is("$Churc00")) return;
+    char t[1000]; int n = 0; u8 c;
+    while (n < (int)sizeof t - 1 && (c = g_rb((u16)(out + n)))) t[n++] = (char)c;
+    t[n] = 0;
+    char *q = 0;
+    for (char *r = t; (r = strchr(r, 0x15)); r++) if (r[1] == 0x14 || r[1] == '\r' || r[1] == '\n' || !r[1]) { q = r + 1; break; }
+    if (!q) return;
+    /* ($Churc01's words; its $hospital has no name in DARKLAND.CTY: the hospital of the Holy Spirit,
+       as most German towns had one) */
+    static const char line[] = "...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended.";
+    if (n + (int)strlen(line) >= 880) return;
+    memmove(q + strlen(line), q, strlen(q) + 1); memcpy(q, line, strlen(line));
+    for (int i = 0; ; i++) { g_wb((u16)(out + i), (u8)t[i]); if (!t[i]) break; }
+}
+static void churches_options_hook(void)     /* card_options (block): the hospice's line on, by day */
+{
+    if (cut_on() && (s16)rw(SS, (u16)(SP + 4)) == 0 && card_is("$Churc00") && encounters_card_of("HOSPICE") > 0) g_wb((u16)(GV_opt_on + 2), 1);
+    hook_call_original();
+}
+static void churches_hospice_hook(void)     /* $Churc00 option 2 (s048 1a88:04c2): an empty handler */
+{
+    int card = cut_on() ? encounters_card_of("HOSPICE") : -1;
+    if (card <= 0) { hook_call_original(); return; }
+    ns_call(GF_advance_hours, 1, 0);
+    if (ns_unwinding) return;
+    g_ww(GV_next_card, (u16)card);
+    hook_return_far(0);
+}
+
 /* test: the next random encounter on the map is the game's card n (ugamecard:N) */
 static int force_card = -1;
 void cutcards_force(int n) { force_card = n; fprintf(stderr, "cutcards: the next random encounter is card %#x\n", n); }
@@ -83,6 +174,9 @@ void cutcards_init(void)
     hook_install(46, 0x18aa, 0x0004, street_hook);
     hook_install(46, 0x194b, 0x0002, street_hook);
     hook_install(GF_overland_loop, overland_hook);
+    hook_install(GF_text_expand, churches_text_hook);
+    hook_install(GF_card_options, churches_options_hook);
+    hook_install(48, 0x1a88, 0x04c2, churches_hospice_hook);
     hook_install(108, 0x1b3a, 0x0008, meetb02_hook);
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_run_battle, battle_hook);

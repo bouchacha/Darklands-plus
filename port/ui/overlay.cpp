@@ -578,10 +578,12 @@ static void draw_picture_name(void)
  * so the player can tell it from the game's own; its tooltip names it */
 extern "C" int encounters_card_active(void);
 extern "C" const char *encounters_title(int i);
+extern "C" int encounters_builtin(int i);
 static void draw_new_encounter_seal(void)
 {
     int a = encounters_card_active();
     if (!a || game_mode() != GM_CARD || !config_get_int("encounters.seal", 1)) return;
+    if (encounters_builtin(a - 1)) return;               /* (the game's own unused cards, put back: no mod's) */
     ImDrawList *dl = ovl_list();
     ImVec2 c = g2w(307.0f, 14.0f), e = g2w(313.0f, 14.0f);
     float r = e.x - c.x; if (r < 7) r = 7;
