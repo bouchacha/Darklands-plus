@@ -96,8 +96,13 @@ static void end_panel(void)
     ImGui::PopStyleVar(2);
 }
 /* the last item under the pointer: the margins' windows take no input (a click there must not
-   reach ImGui's windows nor the game), so ImGui never counts their items as hovered */
-static bool item_hovered(void) { return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false); }
+   reach ImGui's windows nor the game), so ImGui never counts their items as hovered. Not while
+   another window lies over it there (Go to, the world map, F12's window): its tooltip would show
+   over that window */
+static bool item_hovered(void)
+{
+    return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), false) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+}
 /* a tooltip from the margin: in the tooltips' own ink (the margin's text is light, for its black) */
 static void margin_tip(const char *text)
 {
