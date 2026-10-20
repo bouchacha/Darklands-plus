@@ -183,6 +183,11 @@
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
  *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
  *            Found by Arkana Mechanika (Darklands Restoration).
+ *  enemygroups A battle's loader (groups_fixup, s004 0e76:1d90) drops each level's empty groups
+ *            (no kind of enemy or none of it) by moving the later ones down, but tests the moved
+ *            group by the empty one's count (its table is not moved): every group after the
+ *            first empty one was dropped too, enemies the battle was built with. Now only the
+ *            empty ones go. Found by Arkana Mechanika (Darklands Restoration).
  *  nightwall Along a city's walls at night ($CityW01, s047 1a44): the arrival looks for the best
  *            climber from member 1 on (never the first) and keeps his number (DS:5828) but not his
  *            value; the rope's chance (1a44:03e2) is DS:582A, which only a failed climb of
@@ -313,6 +318,8 @@ Fix FIXES[] = {
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
       "Each member on guard at camp lowers the risk of an attack, one point more when skilled (30 or more) with a weapon: any weapon but impact weapons (maces, hammers, axes), which the game forgot to count. Now they count too.", 1 },
+    { "enemygroups", "No band of enemies goes missing",
+      "Setting up a battle, the game drops the bands of enemies that turned out empty, but a slip dropped every band after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty bands go.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2020,6 +2027,30 @@ static void campguard_hook(void)            /* s036 1462:1b80 (): the camp's ris
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- enemygroups */
+static void enemygroups_hook(void)          /* groups_fixup (nlev), s004 0e76:1d90 */
+{
+    int nlev = (s16)rw(SS, (u16)(SP + 4));
+    u16 seg = g_rw(GV_enemy_seg), base = g_rw(GV_bf_groups);
+    for (int lv = 0; lv < nlev && lv < 16; lv++) {
+        int n = (s16)g_rw((u16)(GV_group_count + 2 * lv)), mons = (s16)g_rw((u16)(GV_mon_count + 2 * lv)), kept = 0;
+        if (n < 0 || n > 10) continue;
+        for (int k = 0; k < n; k++) {
+            u16 g = (u16)(base + (lv * 10 + k) * 0x1e);
+            int used = 0;
+            for (int j = 0; j < 3; j++) { int t = (s8)rb(seg, (u16)(g + 8 + j)), c = (s8)rb(seg, (u16)(g + 0x0b + j)); if (t >= 0 && t < mons && c > 0) used = 1; }
+            if (!used) continue;
+            if (kept != k) { u16 to = (u16)(base + (lv * 10 + kept) * 0x1e); for (int b = 0; b < 0x1e; b++) wb(seg, (u16)(to + b), rb(seg, (u16)(g + b))); }
+            kept++;
+        }
+        if (kept != n) {
+            g_ww((u16)(GV_group_count + 2 * lv), (u16)kept);
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix enemygroups: level %d keeps %d of %d bands (the game kept the ones before the first empty one)\n", lv, kept, n);
+        }
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2035,7 +2066,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
-    { 36, 0x1462, 0x1b80, campguard_hook } };
+    { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
