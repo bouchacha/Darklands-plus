@@ -75,6 +75,10 @@ this state in many places:
 7. The arms-makers' quarter (`$MilCr00`) switches Soldiers' Road off, then switches it off
    again unless the city is at war, so the road never appears. Chosen, it would first show
    the quarter's own menu for the night or the fair as if that were a description.
+8. At the sally port (`$CityW05`), the strongest member's chance reads the highest Strength's
+   value as a member number (Arkana Mechanika found it), and a potion thrown at the door is
+   forced to the fire potion with a certain success before the roll, so the Thunderbolt's and
+   the acid's texts and the miss never show.
 
 **What Darklands+ does** (`rules.war`, port/mods/war.c):
 
@@ -89,7 +93,9 @@ this state in many places:
 6. The patrols fight as the city's "Guard", an enemy of the same strength.
 7. Soldiers' Road appears in the arms-makers' quarter while the war lasts, and leads straight
    to the arms outfitter.
-8. The margin shows "Preparing for war" or "At war", with what that means.
+8. At the sally port, the strongest member is the one tested, and the potion thrown is the one
+   chosen, with its own chance.
+9. The margin shows "Preparing for war" or "At war", with what that means.
 
 Turning the option off puts every city back at peace. A save made during a war carries the war
 into the original game, where card 0x73 is broken as described above.

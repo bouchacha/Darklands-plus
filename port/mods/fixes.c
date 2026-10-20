@@ -123,6 +123,13 @@
  *            back (to hour -1 at midnight). Reputation passes 99 where a card sets it without the
  *            clamp of loc_reputation_adj ($Polit00 s070 1ac1:0532, +14..19; $Polit01). It now takes
  *            an hour at least. Found by Arkana Mechanika (Darklands Restoration).
+ *  membervalue Two cards take the value a party query returns for the member who has it (the query
+ *            leaves that member in best_member, DS:991d): a town church's tenth ($CityC00, s057
+ *            1838:067c) raises first the Divine Favor of "member" party_max_skill(Religion), a skill
+ *            value (40 or so: party + 40 * 0x80 is past the party, in the game's data); a guild
+ *            leader's house raised at night ($Snuck00, s071 1838:02a8) names party_min_attr(Agility)
+ *            as $ChosenOneName. Within them the first such query returns the member (below,
+ *            membervalue). Found by Arkana Mechanika (Darklands Restoration).
  *
  * Known, and left as the game has them (no fix: they are the game's design, or never reached):
  *  - An alchemist offers formula (seed + 100 + 3k) % 22 (k 0..3): only formulae 0..21 are ever
@@ -225,6 +232,8 @@ Fix FIXES[] = {
       "Woken at night, a bowyer opened a shop of the smiths' weapons and armour and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
     { "confession", "Confession takes time",
       "The better the party's name in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes an hour at least.", 1 },
+    { "membervalue", "A church's tenth blesses the party, not memory",
+      "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1598,6 +1607,26 @@ static void confession_hook(void)           /* s057 1838:03cc */
     g_ww(GV_cur_rep, (u16)rep);
 }
 
+/* ---------------------------------------------------------------- membervalue
+ * Within a card option that mistakes a party query's value for its member (above), the first
+ * party_max_skill / party_min_attr returns the member it found (best_member). */
+static int mv_active, mv_done;
+static void mv_query_hook(void)             /* party_max_skill (k), party_min_attr (k) */
+{
+    hook_call_original();
+    if (!mv_active || mv_done) return;
+    mv_done = 1;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix membervalue: %d taken for member %d\n", (s16)AX, g_rb(GV_best_member));
+    AX = (u16)g_rb(GV_best_member);
+}
+static void mv_wrap_hook(void)              /* $CityC00's tenth (s057 1838:067c), $Snuck00's raised house (s071 1838:02a8) */
+{
+    int was = mv_active, done = mv_done;
+    mv_active = 1; mv_done = 0;
+    hook_call_original();
+    mv_active = was; mv_done = done;
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1611,7 +1640,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
-    { 57, 0x1838, 0x03cc, confession_hook } };
+    { 57, 0x1838, 0x03cc, confession_hook }, { 57, 0x1838, 0x067c, mv_wrap_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -1624,7 +1653,9 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "armourday", 39, 0x165c, 0x125a, charity_hook }, { "armourday", 39, 0x165c, 0x2628, erasmus_hook },
     { "armourday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armourday", 39, 0x165c, 0x6122, polycarp_hook },
     { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "saintrep", GF_loc_reputation_adj, repadj_hook },
-    { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook } };
+    { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook },
+    { "membervalue", 71, 0x1838, 0x02a8, mv_wrap_hook }, { "membervalue", GF_party_max_skill, mv_query_hook },
+    { "membervalue", GF_party_min_attr, mv_query_hook } };
 
 void fix_enable(int i, int on)
 {

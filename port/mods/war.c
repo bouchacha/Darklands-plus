@@ -192,6 +192,49 @@ static void text_log_hook(void)
     hook_call_original();
 }
 
+/* $CityW05, forcing the sally port before the soldiers come up: the chance of the strongest
+   (s055 1932:034c) reads "member" D_8dfc, the highest Strength's value, for the member found
+   with it (var_chosen1); and a potion thrown at the door (1932:0196) sets menu_slot = 2 and its
+   chance to 100 before the roll (left from testing): always the fire potion's text, never the
+   Thunderbolt's or the acid's, never a miss. Both as the card meant them */
+static void w05_strength_hook(void)         /* s055 1932:034c () -> (chance, who) */
+{
+    if (!war_on()) { hook_call_original(); return; }
+    int who = (s16)g_rw(GV_var_chosen1);
+    int v = ns_call(GF_member_attr, 2, who, 1) / 3;
+    AX = (u16)v; DX = (u16)who;
+    hook_return_far(0);
+}
+static void w05_blast_hook(void)            /* s055 1932:0196 (chance) */
+{
+    if (!war_on()) { hook_call_original(); return; }
+    int chance = (s16)rw(SS, (u16)(SP + 4)), slot = (s16)g_rw(GV_menu_slot), loc = (s16)g_rw(GV_cur_loc);
+    if (slot < 0 || slot > 2) slot = 2;
+    ns_call(GF_take_item_impl, 2, (s16)g_rw(GV_menu_member), (s16)g_rw((u16)(GV_card_items + 2 * slot)));
+    ns_call(GF_event_renew, 10, -2, loc, 0, 0x13, 1, 0x63, 0, 0x18, 0, 0);
+    if (ns_unwinding) return;
+    int next;
+    if (ns_call(GF_rand_mod, 1, 100) > chance) {
+        ns_call(GF_card_text, 2, 4, 1);
+        if (ns_unwinding) return;
+        ns_call(GF_advance_hours, 1, 0);
+        next = 0x76;
+    } else {
+        ns_call(GF_loc_reputation_adj, 3, loc, 0, -3);
+        static const int TEXT[3] = { 1, 2, 3 }, RA[3] = { -1, 0, -1 }, RB[3] = { -6, -3, -4 };
+        ns_call(GF_card_text, 2, TEXT[slot], 1);
+        if (ns_unwinding) return;
+        if (slot == 2) ns_call(GF_injure_impl, 4, -2, 0, 0, 5);
+        ns_call(GF_loc_reputation_adj, 3, loc, RA[slot], RB[slot]);
+        ns_call(GF_advance_hours, 1, 0);
+        next = ns_call(GF_is_daylight, 0) ? 9 : 0xa;
+    }
+    if (ns_unwinding) return;
+    g_ww(GV_next_card, (u16)next);
+    AX = (u16)next;
+    hook_return_far(0);
+}
+
 /* card 0x73's empty helper, run just before its menu: its card, $CityE01 */
 static void war_gate_hook(void)             /* s072 1981:057e */
 {
@@ -223,6 +266,8 @@ void war_init(void)
     hook_install(GF_card_options, card_options_hook);
     hook_install(GF_card_text, card_text_hook);
     hook_install(GF_run_battle, battle_hook);
+    hook_install(55, 0x1932, 0x034c, w05_strength_hook);
+    hook_install(55, 0x1932, 0x0196, w05_blast_hook);
     if (getenv("DL_WAR_LOG")) { hook_install(GF_card_menu, menu_log_hook); hook_install(GF_card_text, text_log_hook); }
     if (!hook_install(72, 0x1981, 0x057e, war_gate_hook)) fprintf(stderr, "war: no hook for card 0x73\n");
 }
