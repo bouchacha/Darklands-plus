@@ -179,11 +179,14 @@
  *            knight's bounty ($Raubi01, s080 1870:000c) tells by a coin toss whether the Hanse's
  *            guide leaves (text 6) or there was none (7), and says the village's Schulz "departs
  *            from your party" (text 1) whether or not he came along; neither is let go (he stayed
- *            until his days were up). Now the texts follow who came, and he goes home.
+ *            until his days were up). Now the texts follow who came, and he goes home. Also (below,
+ *            "more"): $Selec00's second gate fight, the docks' passage hint.
  *  campguard The risk of a night at camp (s036 1462:1b80) is lowered by each member on guard: by
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
  *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
  *            Found by Arkana Mechanika (Darklands Restoration).
+ *  cityalert, dayjobs, cloudline, attrsum: below, each at its hook (Arkana Mechanika's B-55afd6,
+ *            B-074e99, B-3cc78a and B-bfb04e, B-82a302).
  *  enemygroups A battle's loader (groups_fixup, s004 0e76:1d90) drops each level's empty groups
  *            (no kind of enemy or none of it) by moving the later ones down, but tests the moved
  *            group by the empty one's count (its table is not moved): every group after the
@@ -224,7 +227,7 @@
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
-      "A second blessing on the same attribute, or one near 99, used to take points away when it wore off; and a boost to endurance or strength that a night's rest or a wound had used up was taken off again when it ran out (a badly wounded member could die of it).", 1 },
+      "A second blessing on the same attribute, or one near 99, used to take points away when it wore off; and a boost to endurance or strength that a night's rest or a wound had used up was taken off again when it ran out (a badly wounded member could die of it). A lowering given to the whole party (the Cavern of Fire and Hail) stopped at the first member boosted above it.", 1 },
     { "fireward", "No invulnerability from fire protection",
       "St. Polycarp, Firewall and the like no longer turn into permanent armour (+16 to +64).", 1 },
     { "nullitem", "No \"(null)\" or empty items",
@@ -236,7 +239,7 @@ Fix FIXES[] = {
     { "alchemy", "Brewing uses up all the ingredients",
       "The original took only part of them when an ingredient was spread over several stacks.", 1 },
     { "fullpack", "No more items lost to a full pack",
-      "A character carries at most 64 kinds of things; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room.", 1 },
+      "A character carries at most 64 kinds of things; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room. Buying with nobody's pack free took the money for nothing, and taking a thing from a store room lost it: both are now refused.", 1 },
     { "innsave", "Saving and loading stay possible after the inn",
       "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened.", 1 },
     { "colours", "Characters keep their colours (the \"neon hair\" bug)",
@@ -261,8 +264,8 @@ Fix FIXES[] = {
       "When another town's teachers were still about, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
     { "cardopts", "Card options greyed by mistake",
       "Getting out over a city wall, the bribe could be offered without the money (the purse was checked against crawling out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each line from the second on did the next line's deed (three \"abandon the horses\" lines the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but \"leave\": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, to a sleeper woken at the cost of reputation; they are open by day now.", 1 },
-    { "patronsaint", "Asking a cathedral about its patron saint teaches the saint",
-      "The answer was meant to teach the leader the saint, but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
+    { "patronsaint", "Saints taught are learnt: the cathedral's patron, St. Cosmas and St. Damian",
+      "Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game wrote it for \"member -1\": nobody learnt the saint, and a bit of the fifth member's formulae was set instead.", 1 },
     { "debtnote", "Debt notes are where the merchant says",
       "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
     { "alchrisk", "A formula's risk the right way round",
@@ -314,13 +317,21 @@ Fix FIXES[] = {
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
     { "cardslips", "Slips in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). Paid for a robber knight, the Hanse's guide or the village's Schulz who came along was said to leave by the toss of a coin (or when he had never come) and then stayed on.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). Paid for a robber knight, the Hanse's guide or the village's Schulz who came along was said to leave by the toss of a coin (or when he had never come) and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, and trouble on the way to a town's grove by night led to the night's grove after the day had come.", 1 },
     { "nightwall", "Climbing a city wall at night: the true chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
       "Each member on guard at camp lowers the risk of an attack, one point more when skilled (30 or more) with a weapon: any weapon but impact weapons (maces, hammers, axes), which the game forgot to count. Now they count too.", 1 },
     { "enemygroups", "No band of enemies goes missing",
       "Setting up a battle, the game drops the bands of enemies that turned out empty, but a slip dropped every band after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty bands go.", 1 },
+    { "cityalert", "A town on alert remembers the trouble",
+      "After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, when a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The game asked about the alert the wrong way round, so it never counted.", 1 },
+    { "dayjobs", "The friars' day jobs can be had",
+      "Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a slip in the test closed them everywhere. Now a member who suits them can be offered them.", 1 },
+    { "cloudline", "Shots through clouds: only the clouds there are",
+      "Whether a missile's line passes through a cloud (Black Cloud, smoke) was tested against one cloud too many (an old cloud's copy, or nothing), and once a cloud was missed by the line the next ones were tested against a line made of leftovers: shots were stopped by clouds that were not in the way, or went through ones that were. Now each cloud on the field is tested against the shot's own line.", 1 },
+    { "attrsum", "Two attributes added, not one doubled",
+      "Three cards weigh the party's best at two attributes together (a dungeon's passage, $Dunge00; a town's $CityM00; the country's $Count02): the game took the first attribute twice, of whichever member came last among those it compared. Now each member's two attributes are added and the best sum counts.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -329,6 +340,13 @@ int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
 static void blessing_hook(void)            /* raise_attr_temp(who, k, d, h) */
 {
+    if ((s16)rw(SS, (u16)(SP + 4)) == -2) {  /* (everyone: the game's loop ended at the first member already boosted past
+                                                d, and carried a cut d on to the next; Arkana Mechanika's B-8b2837) */
+        int k = (s16)rw(SS, (u16)(SP + 6)), d = (s16)rw(SS, (u16)(SP + 8)), h = (s16)rw(SS, (u16)(SP + 10));
+        for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m))) { ns_call(GF_raise_attr_temp, 4, m, k, d, h); if (ns_unwinding) return; }
+        hook_return_far(0);
+        return;
+    }
     static u8 had[300];
     u8 before[5][7];
     for (int i = 0; i < 300; i++) had[i] = ev_ptr(i) != 0;
@@ -1210,6 +1228,14 @@ void fixes_card_opts(void)                  /* before a card's option list is sh
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardopts: $Cloth00 shopfronts open by day\n");   /* opens, and whose handler is there (02be) */
         return;
     }
+    if (!strcasecmp(nm, "$CityC00") && (s16)rw(SS, (u16)(SP + 4)) == 0 && g_rb((u16)(GV_opt_on + 3)) == 2) {   /* a town church by day (s057 1838:0000): */
+        long pf = (long)g_rw(G_MONEY) * 240 + (long)g_rw((u16)(G_MONEY + 2)) * 12 + g_rw((u16)(G_MONEY + 4));       /* the tenth is greyed when the purse's */
+        if (pf >= 10) {                                                                                              /* pfennigs' low word is under 10 (cmp ax, 10: */
+            g_wb((u16)(GV_opt_on + 3), 1);                                                                            /* Arkana Mechanika's B-42f89c) */
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardopts: $CityC00's tenth open (%ld pf)\n", pf);
+        }
+        return;
+    }
     int c = !strcasecmp(nm, "$Selec01") ? 1 : !strcasecmp(nm, "$Revol14") ? 2 : !strcasecmp(nm, "$CityW02") ? 3 : 0;
     if (!c) return;
     int rope = gcall(GF_count_items, 2, (u16)-2, 0x3b) > 0;
@@ -2052,6 +2078,217 @@ static void enemygroups_hook(void)          /* groups_fixup (nlev), s004 0e76:1d
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- cityalert
+ * loc_hostile (s039 1462:00ba): hostile is an event 0x11 here, or a standing of -75 or less, or of
+ * -10 or less while the town is on alert (event 0x13: $Selec00, s058 191a, for 24 hours after a
+ * fight or a failed potion at the gate; conflict_outcome for 28 days). The alert's test passes its
+ * arguments the wrong way round (event_at(loc, 0x13)), so it never held. Found by Arkana Mechanika
+ * (Darklands Restoration), B-55afd6. (mods/war.c does the same for its own cards.) */
+static void cityalert_hook(void)
+{
+    hook_call_original();
+    if (AX || ns_unwinding) return;
+    u16 ax = AX, dx = DX;
+    int loc = (s16)g_rw(G_CUR_LOC);
+    int alert = loc >= 0 ? ns_call(GF_event_at, 2, 0x13, loc) : 0, rep = alert ? ns_call(GF_loc_reputation, 1, loc) : 0;
+    if (ns_unwinding) return;
+    AX = ax; DX = dx;
+    if (alert && rep <= -10) {
+        AX = 1;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cityalert: %d on alert, standing %d: hostile\n", loc, rep);
+    }
+}
+
+/* ---------------------------------------------------------------- dayjobs
+ * The best day job of a member (s036 1462:197e): the table at DS:3ace, 31 jobs of 18 bytes (+2 the
+ * town kinds it needs, +6 the kinds it is closed in, +0x0a the place's flags it needs). The second
+ * test reads `!cats2 & city.cats`, so a job with cats2 (3, preaching friar, 0x4000; 5, mendicant
+ * friar, 0x8000) is never open; meant is !(cats2 & city.cats) (no town has those bits). Here those
+ * jobs' cats2 is cleared for the call where the town has none of them. Found by Arkana Mechanika
+ * (Darklands Restoration), B-074e99. */
+static void dayjobs_hook(void)
+{
+    u16 o = g_rw(GV_city_rec), sg = g_rw((u16)(GV_city_rec + 2));
+    u32 cats = sg ? ((u32)rw(sg, (u16)(o + 0x5e)) | (u32)rw(sg, (u16)(o + 0x60)) << 16) : 0;
+    u32 kept[31]; int changed = 0;
+    for (int i = 0; i < 31; i++) {
+        u16 a = (u16)(0x3ace + 18 * i + 6);
+        kept[i] = (u32)g_rw(a) | (u32)g_rw((u16)(a + 2)) << 16;
+        if (kept[i] && !(kept[i] & cats)) { g_ww(a, 0); g_ww((u16)(a + 2), 0); changed = 1; }
+    }
+    hook_call_original();
+    if (changed) for (int i = 0; i < 31; i++) { u16 a = (u16)(0x3ace + 18 * i + 6); g_ww(a, (u16)kept[i]); g_ww((u16)(a + 2), (u16)(kept[i] >> 16)); }
+}
+
+/* ---------------------------------------------------------------- cloudline
+ * cloud_blocks_line (a, b), s014 1ec9:0142: does the line from combatant a to b pass through an effect
+ * cloud? The clouds: DS:a33d their number, DS:a2eb 10 bytes each (+0 x, +2 y, +4 the size in the high
+ * nibble); a cloud's box is its centre +- the bytes DS:18b6[n], 18bc[n]; its n*n puffs lie at the
+ * centre + the signed bytes the near pointers DS:21b2[n], 21bc[n] lead to. A puff that the centre
+ * sees (line_blocked, 1d69:000c, on the line DS:e0a5/e0a3 - e0a9/e0a7) blocks the shot when the shot
+ * crosses its box (+-8, +-4; 1d69:0354, the box DS:e1d5, e1d9, e1d7, e1db). The loop ran to the count
+ * inclusive (a slot past the last cloud), and after a cloud whose box the shot missed it reloaded the
+ * line from words saved only when a box was hit (stack leftovers until then). Found by Arkana
+ * Mechanika (Darklands Restoration), B-3cc78a, B-bfb04e. */
+static void cl_line(int x0, int y0, int x1, int y1) { g_ww(0xe0a5, (u16)x0); g_ww(0xe0a3, (u16)y0); g_ww(0xe0a9, (u16)x1); g_ww(0xe0a7, (u16)y1); }
+static void cl_box(int x0, int y0, int x1, int y1) { g_ww(0xe1d5, (u16)x0); g_ww(0xe1d9, (u16)y0); g_ww(0xe1d7, (u16)x1); g_ww(0xe1db, (u16)y1); }
+static void cloudline_hook(void)
+{
+    int a = (s16)rw(SS, (u16)(SP + 4)), b = (s16)rw(SS, (u16)(SP + 6)), n = (s8)g_rb(0xa33d);
+    if (n <= 0 || n > 8 || a < 0 || a > 40 || b < 0 || b > 40) { hook_call_original(); return; }
+    u16 ca = (u16)(GV_combatants + 0x80 * a), cb = (u16)(GV_combatants + 0x80 * b);
+    int ax = (s16)g_rw((u16)(ca + 4)), ay = (s16)g_rw((u16)(ca + 6)), bx = (s16)g_rw((u16)(cb + 4)), by = (s16)g_rw((u16)(cb + 6));
+    int hit = 0;
+    for (int i = 0; i < n && !hit; i++) {
+        u16 c = (u16)(0xa2eb + 10 * i);
+        int x = (s16)g_rw(c), y = (s16)g_rw((u16)(c + 2)), sz = g_rb((u16)(c + 4)) >> 4;
+        int hx = (s8)g_rb((u16)(0x18b6 + sz)), hy = (s8)g_rb((u16)(0x18bc + sz));
+        cl_line(ax, ay, bx, by); cl_box(x - hx, y - hy, x + hx, y + hy);
+        int crosses = ns_call(14, 0x1d69, 0x0354, 0);
+        if (ns_unwinding) return;
+        if (crosses != 1) continue;
+        u16 px = g_rw((u16)(0x21b2 + 2 * sz)), py = g_rw((u16)(0x21bc + 2 * sz));
+        for (int k = 0; k < sz * sz && !hit; k++) {
+            int fx = x + (s8)g_rb((u16)(px + k)), fy = y + (s8)g_rb((u16)(py + k));
+            cl_line(x, y, fx, fy);
+            int blocked = ns_call(GF_line_blocked, 3, -1, -1, 0);
+            if (ns_unwinding) return;
+            if (blocked) continue;
+            cl_box(fx - 8, fy - 4, fx + 8, fy + 4); cl_line(ax, ay, bx, by);
+            hit = ns_call(14, 0x1d69, 0x0354, 0) == 1;
+            if (ns_unwinding) return;
+        }
+    }
+    cl_line(ax, ay, bx, by);
+    AX = (u16)hit; DX = 0;
+    hook_return_far(0);
+}
+
+/* ---------------------------------------------------------------- attrsum
+ * party_max_attr_sum (a, b), s029 0e76:179c: the highest sum of attributes a + b over the present
+ * members, kept in best_value (a byte) and best_member. It stores a * 2 instead of the sum (and
+ * compares the next member's sum with that). Callers: $CityM00 (s057 192f: maxima 11 and 12),
+ * $Dunge00 (s047 1852), $Count02 (s105 1838), and the encounter scripts' maxattrsum. Found by Arkana Mechanika (Darklands Restoration), B-82a302. */
+static void attrsum_hook(void)
+{
+    int a = (s16)rw(SS, (u16)(SP + 4)), b = (s16)rw(SS, (u16)(SP + 6));
+    if (a < 0 || a > 13 || b < 0 || b > 13) { hook_call_original(); return; }   /* (7..13: the maxima; $CityM00 asks 11 and 12) */
+    int best = 0;
+    g_wb(GV_best_value, 0);
+    for (int m = 0; m < 5; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;
+        int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)) + (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + b));
+        if (v > best) { best = v; g_wb(GV_best_value, (u8)v); g_wb(GV_best_member, (u8)m); }
+    }
+    AX = (u16)(best & 0xff); DX = 0;
+    hook_return_far(0);
+}
+
+/* ---------------------------------------------------------------- more for cardslips, patronsaint, fullpack, blessing */
+/* $Selec00 (the town gate, s058 191a): its fights (01f4, 09ba) set the standing to cur_rep - 40, cur_rep
+   read once when the card was entered: after a fight that keeps the party at the gate, a second one
+   took nothing more. Read again before each (B-0818ac). */
+static void gate_rep_hook(void)
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    if (loc >= 0) {
+        int rep = ns_call(GF_loc_reputation, 1, loc);
+        if (ns_unwinding) return;
+        g_ww(GV_cur_rep, (u16)rep);
+    }
+    hook_call_original();
+}
+/* The docks' passage hints (s051 19f2:0792, 09a6, 0bba, 0dd0, 0fe4): short of money they copy the
+   string table's entry 290e:1e5f ("You need a missile weapon") for the one before it, 1e5b ("Not
+   enough money") (B-a73a8e). */
+static void docks_hint_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding) return;
+    u16 ax = AX, dx = DX, t = (u16)(LOADSEG + 0x290e);
+    char now[48], want[48], wrong[48];
+    g_str(G_DGROUP, GV_msg_buf, now, sizeof now);
+    g_str(rw(t, 0x1e61), rw(t, 0x1e5f), wrong, sizeof wrong);
+    g_str(rw(t, 0x1e5d), rw(t, 0x1e5b), want, sizeof want);
+    if (want[0] && !strcmp(now, wrong)) {
+        int i = 0; for (; want[i] && i < 47; i++) g_wb((u16)(GV_msg_buf + i), (u8)want[i]);
+        g_wb((u16)(GV_msg_buf + i), 0);
+    }
+    AX = ax; DX = dx;
+}
+/* $SideS01 (a side street at night, s046 194b:0736), "to the grove": trouble on the way sends the
+   party to an encounter (0x3c) that returns to the night grove (0x22) though the hour spent may have
+   brought the day; the clear way picks the day's grove (0x21) or the night's by daylight (B-ed73b9). */
+static void grove_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding) return;
+    u16 ax = AX, dx = DX;
+    if (g_rw(GV_next_card) == 0x3c && g_rw(GV_saved_card) == 0x22 && ns_call(GF_is_daylight, 0)) g_ww(GV_saved_card, 0x21);
+    AX = ax; DX = dx;
+}
+/* St. Cosmas (s039 165c:17a4) and St. Damian (1988) teach each other (saints_known[who][3] |= 2,
+   0x10), with who -1 from the prayer screen's P (s034 saints.c): row -1 is the fifth member's
+   formulae (one of them set), and nobody learnt the saint. As the cathedral's patron (below): the
+   leader (B-94efea). */
+static void teach_saint_hook(void)
+{
+    if ((s16)rw(SS, (u16)(SP + 8)) == 8 && (s16)rw(SS, (u16)(SP + 4)) == -1) {
+        ww(SS, (u16)(SP + 4), (u16)(s8)g_rb(G_LEADER));
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix patronsaint: the saint taught to the leader\n");
+    }
+    hook_call_original();
+}
+/* room for one of (id, quality) with member m, or (fullpack passes it on) with anyone */
+static int room_anywhere(int m, int id, int q)
+{
+    u32 d = g_itemdef(id & 0xfff);
+    u8 type = d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : 0;
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    for (int k = 0; k < 5 && k < size; k++) {
+        if (k != m && (!fix_on("fullpack") || !g_rb(G_MEMBER(k)))) continue;
+        if (g_rb((u16)(G_MEMBER(k) + G_M_NITEMS)) < 64 || stacks(k, (u16)id, type, (u8)q, 1)) return 1;
+    }
+    return 0;
+}
+/* buying (barter_key P, s032 1462:0f60) pays and then adds the thing, with no test of the pack: with
+   no room for it the money was gone (B-fd421f). Refused. */
+static void buy_room_hook(void)
+{
+    int k = (s16)rw(SS, (u16)(SP + 4));
+    if (k == 0x1950 || k == 0x1970) {
+        int i = (s16)g_rw(GV_barter_ware_cur) + (s16)g_rw(GV_barter_ware_top), m = (s16)g_rw(GV_barter_who);
+        int id = i >= 0 && i < 100 ? (s16)g_rw((u16)(GV_barter_wares + 2 * i)) : -1;
+        if (id > 0 && m >= 0 && m < 5) {
+            int q = ns_call(32, 0x1462, 0x0efa, 1, id);
+            if (ns_unwinding) return;
+            if (!room_anywhere(m, id, q)) {
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix fullpack: no room to buy item %d\n", id);
+                ui_notice("No room in the pack for another kind of thing: not bought.");
+                AX = (u16)k; hook_return_far(0); return;
+            }
+        }
+    }
+    hook_call_original();
+}
+/* taking from a store room (cache_key G, s035 1462:0a46) gives up the store's entry whatever the
+   adding did: with no room the thing was lost (B-2cf199). Refused. */
+static void store_get_room_hook(void)
+{
+    int k = rw(SS, (u16)(SP + 4)) & 0xff, m = (s16)g_rw(GV_cache_who);
+    if ((k == 'g' || k == 'G') && m >= 0 && m < 5 && g_rw((u16)(0x37c4 + 2 * m))) {
+        int e = (s16)g_rw((u16)(0x37d8 + 2 * m)) + (s16)g_rw((u16)(0x37ec + 2 * m));
+        if (e >= 0 && e < 100 && e < (s16)g_rw(GV_cache_n)) {
+            u16 o = (u16)(0x37f4 + 4 * e);
+            if (!room_anywhere(m, rw(G_FAR2E38, o) & 0xfff, rb(G_FAR2E38, (u16)(o + 2)))) {
+                ui_notice("No room in the pack for another kind of thing.");
+                hook_return_far(0); return;
+            }
+        }
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2067,7 +2304,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
-    { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook } };
+    { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
+    { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -2087,7 +2325,13 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
     { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
     { "nightwall", 47, 0x1a44, 0x03e2, nightwall_rope_hook },
-    { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook } };
+    { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook },
+    { "cardslips", 58, 0x191a, 0x01f4, gate_rep_hook }, { "cardslips", 58, 0x191a, 0x09ba, gate_rep_hook },
+    { "cardslips", 51, 0x19f2, 0x0792, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x09a6, docks_hint_hook },
+    { "cardslips", 51, 0x19f2, 0x0bba, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x0dd0, docks_hint_hook },
+    { "cardslips", 51, 0x19f2, 0x0fe4, docks_hint_hook }, { "cardslips", 46, 0x194b, 0x0736, grove_hook },
+    { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
+    { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook } };
 
 void fix_enable(int i, int on)
 {

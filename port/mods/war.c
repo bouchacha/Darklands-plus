@@ -236,9 +236,11 @@ static void w05_blast_hook(void)            /* s055 1932:0196 (chance) */
 }
 
 /* loc_hostile (s039 1462:00ba): hostile is an event 0x11 here, or a standing of -75 or less, or of
-   -10 or less while the town is on alert (event 0x13, which only a blasted sally port sets: $CityW05);
-   the alert's test passes its arguments the wrong way round (event_at(loc, 0x13)), so it never held
-   (found by Arkana Mechanika, Darklands Restoration) */
+   -10 or less while the town is on alert (event 0x13: a fight at the gate, $Selec00; a rising,
+   conflict_outcome; here a blasted sally port, $CityW05); the alert's test passes its arguments the
+   wrong way round (event_at(loc, 0x13)), so it never held (found by Arkana Mechanika, Darklands
+   Restoration). The fix cityalert (mods/fixes.c) does the same for every town; this keeps it for
+   the war's cards when that fix is off. */
 static void hostile_hook(void)
 {
     hook_call_original();
