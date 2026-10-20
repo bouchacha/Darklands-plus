@@ -170,9 +170,9 @@ static void step_aside(int i)
     if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d walks from %d,%d towards %d until a line opens\n", i, x0, y0, t);
 }
 
-static void step_hook(void)                   /* cbt_step (i), s014 0e76:1624: one step along the path */
+static void step_hook(void)                   /* cbt_step (i, set), s014 0e76:1624: one step along the path (a near call) */
 {
-    int i = (s16)rw(SS, (u16)(SP + 4));
+    int i = (s16)rw(SS, (u16)(SP + 2));
     hook_call_original();
     if (ns_unwinding || i < 0 || i >= 5 || !approach[i]) return;
     u16 c = CBT(i);

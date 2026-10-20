@@ -14,7 +14,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **More of the original's bugs fixed**, many found by Arkana Mechanika (Darklands Restoration): climbing a city wall at night (everyone always made it, the climber with a rope always fell), claiming friendship with Hussites (1 in 100 whatever the chance), mounts that never helped outrun wolves, the Templars' desk teaching formulae you knew, a footpads' potion never used up, a church's tenth blessing nobody, an audience "fixed for tomorrow" that never happened, four more saints that strayed from their texts, a town on alert after a fight at its gate, shots stopped by clouds that were not in the way, money lost buying into a full pack, and a dozen more.
 - **A day at the inn or in camp** no longer looks frozen: the page shows the hours going by, and a click skips it.
 - **Calling on a saint** says why there is no chance (too little Virtue, or too little favor).
-- **Battles:** a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down.
+- **Battles:** fighters in a melee crowd no longer stand still for seconds when someone is in their way, enemies at the back wait or pick another foe instead of walking round the houses, and planning their routes no longer makes the battle stutter; a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down.
 - Smaller fixes to Go to, the town journal, cards and task texts, and Comic Sans as an eighth typeface (we are so sorry).
 
 **New in 1.2**

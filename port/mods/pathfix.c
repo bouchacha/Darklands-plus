@@ -10,9 +10,20 @@
  * step vectors the walker uses, testing every step with the game's own collision function
  * (cbt_collisions, s014 1462:000a, with the walking rules), so a planned path is a path the
  * member can walk. Routes longer than the game's 250-step path buffer are cut; the game
- * re-plans moving combatants every 30-90 ticks, which carries them on. If the search finds
- * nothing within its budget, the original planner runs. Enemies too ("enemies too", on by
- * default).
+ * re-plans moving combatants every 30-90 ticks, which carries them on. Enemies too ("enemies
+ * too", on by default).
+ *
+ * In a melee crowd (stress-tested with traces of whole battles, DL_BATTLE_TRACE below):
+ * - the collision test is the game's for the floor, asked once per spot and kept, and done here
+ *   for the fighters (collide below): a search costs a few ms at most, not 40;
+ * - the goal is any step that touches the target, as for the walker and the game's planner, and
+ *   a foe with no free side is known at once (target_open), not after combing the map;
+ * - a fighter whose last step was blocked plans around the one in its way, asks again soon
+ *   (crowd_step_hook), starts a new route from its first step, and follows a foe that moved
+ *   (crowd_approach_hook); an enemy takes no long way round a crowd, and one that cannot get on
+ *   from a spot is told so (the game then waits, or picks another foe).
+ * If the search runs out of time, or the target's cells are out of reach (an enemy opens
+ * closed doors, which only the original does), the original planner runs.
  *
  * Combatant records: DS:9c55 + 0x80*i (+4 x, +6 y, +8 tx, +0a ty, +19 facing, +1c own
  * index, +4a target); floors DS:a6b4[13]; step deltas D_c681/D_c6f4[set*10 + dir] (signed
@@ -27,6 +38,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
+#include "nscreen.h"
 
 uint64_t plat_ticks_us(void);
 
@@ -68,23 +80,114 @@ static HeapE hpop(void)
     return top;
 }
 
-static int self_i, target_i;
-static struct { s16 x, y; u8 n; } stall[13];       /* where each combatant last asked for a route, and how often since from there */
+static int self_i, target_i, bounded, search_cut;
+static unsigned search_budget = 40000;   /* us */
+#define D_REPLAN 0xd97c                  /* int[13]: re-plan time */
+#define D_BLOCKER 0xd5f6                 /* int[13]: who blocked the last step */
+#define D_NEXTSTEP 0xca30                /* char[13]: the step lined up, -1 none */
+#define FLOORSEG_ ((u16)(LOADSEG + 0x20a5))   /* the floor's cells, far 20a5:0000 (below) */
+static struct { s16 x, y; u8 n; u16 clk; } stall[13];   /* where each combatant last asked for a route, and how often since from there */
 static int ncoll;
 
-/* the game's collision test for combatant self_i standing at (x, y) */
-static int collide(int x, int y)
+/* the game's collision test for combatant self_i standing at (x, y); others: 0 leaves the
+ * combatants out (D_c600 1), the floor alone */
+static int collide_game(int x, int y, int others)
 {
     u16 c = CBT(self_i);
     u16 sx = g_rw((u16)(c + 4)), sy = g_rw((u16)(c + 6));
+    u8 s_c600 = g_rb(0xc600);
     g_ww((u16)(c + 4), (u16)x); g_ww((u16)(c + 6), (u16)y);
+    if (!others) g_wb(0xc600, 1);
     u16 arg = c;
     int r = (s16)game_call_native(f_collide, 1, &arg);
-    g_ww((u16)(c + 4), sx); g_ww((u16)(c + 6), sy);
-    ncoll++;
+    g_ww((u16)(c + 4), sx); g_ww((u16)(c + 6), sy); g_wb(0xc600, s_c600);
     return r;
 }
 
+/* That test costs a couple of microseconds, and a search makes tens of thousands: a long one took
+ * 40 ms, a frame and more. Its two parts are taken apart here. The floor (walls, furniture, the
+ * void: 1462:01f0, 083e) depends on nothing but the spot, the walker's size and the floor's cells;
+ * it is asked of the game once per spot and size and kept (until a cell changes: a door, another
+ * floor, another battle). The others in the way are tested here as the game tests them
+ * (1462:0740: active, on the walker's floor, and with D_d697 only the target and those standing;
+ * boxes that overlap, but for the two edge cases it lets pass). DL_PATH_CHECK=1 compares every
+ * test with the game's own and tells of any difference. */
+#define NSLOT 4
+static u8 *smap[NSLOT]; static u16 skey[NSLOT]; static u32 suse[NSLOT], sclock;
+static u32 scells[1600]; static u8 *scur;
+static int ob_n; static struct { int x, y, w, h, bit; } ob[13];
+static int self_k, self_w, self_h, pcheck = -1, pcheck_bad;
+static u16 also_block;                   /* those who blocked the walker's last step: in the way though on the move */
+static void others_setup(void)           /* who blocks, by the current D_d697 / D_d6cd */
+{
+    int d697 = g_rb(GV_path_target_only), d6cd = (s8)g_rb(0xd6cd), fl = g_rb((u16)(GV_cbt_floor + self_k));
+    ob_n = 0;
+    for (int i = 0; i < 13; i++) {
+        u16 c = CBT(i);
+        if (i == self_k || g_rb((u16)(c + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
+        if (d697 && d6cd != i && g_rb((u16)(GV_cbt_moving + i)) && !(also_block >> i & 1)) continue;
+        ob[ob_n].x = (s16)g_rw((u16)(c + 4)); ob[ob_n].y = (s16)g_rw((u16)(c + 6));
+        ob[ob_n].w = (s8)g_rb((u16)(GV_cbt_half_w + i)); ob[ob_n].h = (s8)g_rb((u16)(GV_cbt_half_h + i));
+        ob[ob_n].bit = (s16)g_rw((u16)(0x01e4 + 2 * i));                   /* D_01e4[i]: 1 << i */
+        ob_n++;
+    }
+}
+static void collide_setup(void)          /* at each planning, once the collision rules are set */
+{
+    static u32 cells[1600];
+    for (int k = 0; k < 1600; k++) cells[k] = (u32)rw(FLOORSEG_, (u16)(4 * k)) | ((u32)rw(FLOORSEG_, (u16)(4 * k + 2)) << 16);
+    if (memcmp(cells, scells, sizeof cells)) {
+        if (getenv("DL_PATH_LOG")) { int n = 0, f = -1; for (int k = 0; k < 1600; k++) if (cells[k] != scells[k]) { n++; if (f < 0) f = k; }
+            fprintf(stderr, "pathfix: floor cache cleared: %d cells changed (first %d: %08x -> %08x)\n", n, f, scells[f], cells[f]); }
+        memcpy(scells, cells, sizeof cells);
+        for (int k = 0; k < NSLOT; k++) if (smap[k]) memset(smap[k], 0, (size_t)MAPW * MAPH);
+    }
+    if (pcheck < 0) pcheck = getenv("DL_PATH_CHECK") != 0;
+    u16 c = CBT(self_i);
+    self_k = g_rb((u16)(c + 0x1c));
+    self_w = (s8)g_rb((u16)(GV_cbt_half_w + self_k)); self_h = (s8)g_rb((u16)(GV_cbt_half_h + self_k));
+    u16 key = (u16)((self_w & 0xff) | (self_h & 0xff) << 8);
+    int k = -1;
+    for (int j = 0; j < NSLOT; j++) if (smap[j] && skey[j] == key) k = j;
+    if (k < 0) {
+        for (int j = 0; j < NSLOT && k < 0; j++) if (!smap[j]) k = j;
+        if (k < 0) { k = 0; for (int j = 1; j < NSLOT; j++) if (suse[j] < suse[k]) k = j; }
+        if (!smap[k]) smap[k] = malloc((size_t)MAPW * MAPH);
+        if (smap[k]) memset(smap[k], 0, (size_t)MAPW * MAPH);
+        skey[k] = key;
+    }
+    suse[k] = ++sclock;
+    scur = smap[k];
+    others_setup();
+}
+static int collide(int x, int y)
+{
+    ncoll++;
+    if (!scur || x < 0 || x >= MAPW || y < 0 || y >= MAPH) return collide_game(x, y, 1);
+    u8 *p = &scur[(u32)x * MAPH + (u32)y];
+    if (!*p) { int f = collide_game(x, y, 0); *p = f == -1 ? 0xff : f == 0 ? 1 : (u8)(0x80 | ((f >> 8) & 0x7f)); }
+    int r = *p == 0xff ? -1 : *p == 1 ? 0 : (*p & 0x7f) << 8;
+    if (r != -1) {
+        int R = x + self_w - 1, L = x - self_w + 1, B = y + self_h - 1, T = y - self_h + 1;
+        for (int k = 0; k < ob_n; k++) {
+            int ox = ob[k].x, oy = ob[k].y, ow = ob[k].w, oh = ob[k].h;
+            if (abs(ox - x) < ow + self_w && abs(oy - y) < oh + self_h) {
+                int sr = ow + ox, sb = oh + oy, st = oy - oh;
+                if ((ox - ow != R || (B != st && T != sb)) && (L != sr || (B != st && sb != T))) r |= ob[k].bit;
+            }
+        }
+    }
+    if (pcheck) {
+        int g = collide_game(x, y, 1);
+        int h = r;
+        if (h != -1 && g != -1) { g &= ~also_block; h &= ~also_block; }   /* (those the game lets pass on the move) */
+        if (g != h && pcheck_bad++ < 20) fprintf(stderr, "pathfix check: %d at %d,%d: %#x here, %#x by the game\n", self_i, x, y, h & 0xffff, g & 0xffff);
+    }
+    return r;
+}
+
+/* a step that touches the target ends the walk in a fight, whoever else it touches (cbt_step,
+ * s014 0e76:1624, and the game's planner test D_e11c[target] alone): such a spot is a goal */
 static int node_coll(u32 idx, int x, int y)
 {
     Node *n = &nodes[idx];
@@ -92,7 +195,7 @@ static int node_coll(u32 idx, int x, int y)
     if (!n->coll) {
         int r = collide(x, y);
         if (r == 0) n->coll = 1;
-        else if (target_i >= 0 && r == (1 << target_i)) n->coll = 3;
+        else if (target_i >= 0 && r != -1 && (r & (1 << target_i))) n->coll = 3;
         else n->coll = 2;
     }
     return n->coll;
@@ -167,6 +270,27 @@ static void load_steps(int i)
     }
 }
 
+/* is there a free spot one step from the target, from where a step reaches it? A foe whose every
+ * side is taken (a melee blob) cannot be reached, and the search would comb the map for a way
+ * until its time ran out: tens of milliseconds, for every enemy at the back, many times over */
+static int target_open(int x0, int y0)
+{
+    u16 cs = CBT(self_i), ct = CBT(target_i);
+    int tx = (s16)g_rw((u16)(ct + 4)), ty = (s16)g_rw((u16)(ct + 6));
+    int W = g_rb((u16)(GV_cbt_half_w + g_rb((u16)(cs + 0x1c)))) + g_rb((u16)(GV_cbt_half_w + g_rb((u16)(ct + 0x1c))));
+    int H = g_rb((u16)(GV_cbt_half_h + g_rb((u16)(cs + 0x1c)))) + g_rb((u16)(GV_cbt_half_h + g_rb((u16)(ct + 0x1c))));
+    int bw = W + maxdx, bh = H + maxdy;
+    if (abs(x0 - tx) <= bw && abs(y0 - ty) <= bh) return 1;    /* (beside it already) */
+    for (int dy = -bh; dy <= bh; dy++)
+        for (int dx = -bw; dx <= bw; dx++) {
+            if (abs(dx) < W - 1 && abs(dy) < H - 1) continue;   /* (on the target) */
+            int x = tx + dx, y = ty + dy;
+            if (x < 0 || x >= MAPW || y < 0 || y >= MAPH) continue;
+            if (node_coll((u32)x * MAPH + (u32)y, x, y) == 1) return 1;
+        }
+    return 0;
+}
+
 /* A* from (x0, y0) to (tx, ty); returns the number of steps (directions in path[]), -1 if none */
 static int search(int x0, int y0, int tx, int ty, int *expanded)
 {
@@ -176,12 +300,27 @@ static int search(int x0, int y0, int tx, int ty, int *expanded)
     if (x0 < 0 || x0 >= MAPW || y0 < 0 || y0 >= MAPH) return -1;
     u32 s = (u32)x0 * MAPH + (u32)y0;
     nodes[s].stamp = gen; nodes[s].g = 0; nodes[s].dir = 0xff; nodes[s].coll = 1;
-    hpush(heur(x0, y0, tx, ty) * 3, s);
+    *expanded = 0;
+    if (target_i >= 0 && !target_open(x0, y0)) return -1;
+    u32 h0 = heur(x0, y0, tx, ty);
+    hpush(h0 * 3, s);
+    /* no long way round a crowd. An enemy goes for a foe by at most half again the way the floor
+       allows (the cells' distance, in the heuristic) and 30 steps more; anyone planning around
+       everyone (stuck) by at most twice it and 40 more. A melee blob that closes the near side of
+       a foe sent the ones at the back on walks of 150 or 200 steps, round the houses, for a foe
+       they would reach when the fight had moved on; now they look for another foe or wait (the
+       game's own choice when it finds no way: 2cca, enemy_turn). The bound is on g + h (the
+       shortest route through a spot), so a search for a foe out of reach stays near the line to it */
+    u32 maxg = 0xfff0, m;
+    if (bounded & 1) { m = (h0 * 3 / 2 + 30) * 5 / 2; if (m < maxg) maxg = m; }   /* (g: 2 a step, 1 more a turn) */
+    if (bounded & 2) { m = (h0 * 2 + 40) * 5 / 2; if (m < maxg) maxg = m; }
+    if (bounded & 4) { m = 250 * 5 / 2; if (m < maxg) maxg = m; }              /* (a cost: the trackers' 250 steps) */
     int exp = 0;
     u32 goal = 0xffffffffu;
-    uint64_t t_end = plat_ticks_us() + 40000;            /* at most 40 ms, then the game's own planner */
-    while (hn && exp < MAXEXP) {
-        if (!(exp & 511) && plat_ticks_us() > t_end) break;
+    uint64_t t_end = plat_ticks_us() + search_budget;    /* at most 40 ms (a route) or 5 (a cost), then the game's own planner */
+    search_cut = 0;
+    while (hn) {
+        if (exp >= MAXEXP || (!(exp & 511) && plat_ticks_us() > t_end)) { search_cut = 1; break; }
         HeapE e = hpop();
         Node *n = &nodes[e.idx];
         int x = (int)(e.idx / MAPH), y = (int)(e.idx % MAPH);
@@ -200,9 +339,11 @@ static int search(int x0, int y0, int tx, int ty, int *expanded)
             Node *m = &nodes[ni];
             /* a small extra cost for changing direction keeps the walk smooth */
             u32 g = (u32)n->g + 2 + (n->dir != 0xff && n->dir != d ? 1 : 0);
-            if (g >= m->g || g > 0xfff0) continue;
+            if (g >= m->g) continue;
+            u32 h = heur(nx, ny, tx, ty);
+            if (g + 2 * h > maxg) continue;
             m->g = (u16)g; m->dir = (u8)d;
-            hpush(g + heur(nx, ny, tx, ty) * 3, ni);             /* weighted (1.5 x, g counted twice) */
+            hpush(g + h * 3, ni);                                 /* weighted (1.5 x, g counted twice) */
         }
     }
     *expanded = exp;
@@ -219,9 +360,22 @@ static int search(int x0, int y0, int tx, int ty, int *expanded)
 }
 
 static void sweep(int i, int n);
+static FILE *trace; static FILE *trace_file(void);
+/* path_find's answer "no way" (2), the state left as it leaves it */
+static void no_way(void)
+{
+    g_ww(0xe118, 9999);
+    g_wb(GV_path_formation, 0); g_wb(GV_path_target_only, 0);
+    if (f_cursor) { u16 a[3] = { 0, 0, g_rw(GV_ems_frame_handle) }; game_call_native(f_cursor, 3, a); }
+    g_ww(0x18c2, 0);
+    AX = 2;
+    hook_return_far(0);
+}
+static u16 plan_clock[13]; static u8 plan_count[13];  /* when each combatant last had a route planned */
 static void path_find_hook(void)
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i >= 0 && i < 13) { plan_clock[i] = g_rw(GV_combat_clock); plan_count[i]++; }
     { static int done; const char *e = getenv("DL_PATH_SWEEP"); if (!e) e = getenv("DL_PATH_SWEEP_FAR"); if (e && !done && i < 5) { done = 1; sweep(i, atoi(e)); } }
     if (i < 0 || i >= 13 || !(i < 5 ? pathfix_party : pathfix_enemies) || !f_collide || !f_set) { hook_call_original(); return; }
     u16 c = CBT(i);
@@ -233,12 +387,21 @@ static void path_find_hook(void)
 
     /* a combatant asking again from where it stood the last time has not got on: the route went
        through friends on the move (who do not block a plan), and they stand in the way. Then plan
-       around everyone; and when that goes on, let the game's own planner try every other time
-       (enemies at the back of a melee stood still forever, re-planning the same route) */
+       around everyone. (Asks within a few ticks are one: the enemies' choice of a foe asks for
+       each foe in turn.) Asked eight times from one spot, it is told there is no way: the game
+       then gives the foe up, or the member looks for a spot near it (2cca), and does not go on
+       asking for ever */
     int stuck = 0;
-    if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) { if (stall[i].n < 250) stall[i].n++; stuck = stall[i].n; }
-    else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; }
-    if (stuck >= 3 && (stuck & 1)) { hook_call_original(); return; }
+    u16 now = g_rw(GV_combat_clock);
+    if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) {
+        if ((u16)(now - stall[i].clk) >= 6 && stall[i].n < 250) { stall[i].n++; stall[i].clk = now; }
+        stuck = stall[i].n;
+    } else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; stall[i].clk = now; }
+    if (stuck >= 8) {
+        if (trace_file()) fprintf(trace, "P %u %d %d %d %d %d %d %d %d %d %d %u\n", now, i, x, y, tx, ty, target, stuck, -2, 0, 0, 0u);
+        no_way();
+        return;
+    }
 
     load_steps(i);
 
@@ -248,15 +411,18 @@ static void path_find_hook(void)
     u16 s_d708 = g_rw(0xd708);
     u8 s_e11c[32]; for (int k = 0; k < 32; k++) s_e11c[k] = g_rb((u16)(0xe11c + k));
     g_wb(GV_path_formation, 0); g_wb(GV_path_target_only, 1); g_wb(0xe13c, 0); g_wb(0xc600, 0); g_wb(0xd6cd, (u8)target);
-    self_i = i; target_i = target; ncoll = 0;
+    self_i = i; target_i = target; ncoll = 0; bounded = i >= 5 && target >= 0;
+    also_block = g_rw((u16)(D_BLOCKER + 2 * i)) & 0x1fff;  /* (D_d5f6, set by a blocked step, cleared by the next good one) */
+    collide_setup();
 
     uint64_t t0 = plat_ticks_us();
     int exp = 0, len = -1;
     int start = collide(x, y);
     int dest = collide(tx, ty);
     int reach = 0;
-    if (start != -1 && !(dest != 0 && (target < 0 || (dest & ~(1 << target))))) {
-        if (stuck) g_wb(GV_path_target_only, 0);             /* everyone blocks: around them */
+    /* (the destination as path_find tests it: free, or touching the target, whoever else is there) */
+    if (start != -1 && (dest == 0 || (target >= 0 && dest != -1 && (dest & (1 << target))))) {
+        if (stuck) { g_wb(GV_path_target_only, 0); others_setup(); bounded |= 2; }   /* everyone blocks: around them */
         cell_bfs(tx, ty);
         int c0 = (x >> 5) * 40 + (y >> 4);
         reach = c0 >= 0 && c0 < 1600 && celld[c0] >= 0;
@@ -269,7 +435,18 @@ static void path_find_hook(void)
     if (getenv("DL_PATH_LOG"))
         fprintf(stderr, "pathfix: %d (%d,%d)->(%d,%d) target %d: start %d dest %d%s: %d steps, %d expanded, %d tests, %u us\n",
                 i, x, y, tx, ty, target, start, dest, stuck ? " (stuck: around everyone)" : "", len, exp, ncoll, (unsigned)(t1 - t0));
-    if (len < 0) { hook_call_original(); return; }       /* nothing found: the game's own planner decides */
+    if (trace_file()) fprintf(trace, "P %u %d %d %d %d %d %d %d %d %d %d %u\n", g_rw(GV_combat_clock), i, x, y, tx, ty, target, stuck, len, exp, ncoll, (unsigned)(t1 - t0));
+    /* nothing found. The search looked everywhere it may (no way, or none short enough for an
+       enemy, or no free side of the foe): there is none, and the game's planner, with the same
+       steps and tests, would only take its time to say so (tens of ms in a crowd). Else (cells
+       out of reach: an enemy opens closed doors, which only the game's planner does; or out of
+       time) the game's planner decides */
+    if (len < 0 && reach && !search_cut) { no_way(); return; }
+    if (len < 0) {
+        hook_call_original();
+        if (trace) fprintf(trace, "O %u %d %d %u\n", g_rw(GV_combat_clock), i, (s16)AX, (unsigned)(plat_ticks_us() - t1));
+        return;
+    }
 
     /* write the result the way path_find leaves it */
     int n = len < 249 ? len : 249;
@@ -290,6 +467,96 @@ static void path_find_hook(void)
     if (f_cursor) { u16 a[3] = { 0, 0, g_rw(GV_ems_frame_handle) }; game_call_native(f_cursor, 3, a); }   /* normal cursor, as path_find leaves it */
     g_ww(0x18c2, 0);
     AX = 1;
+    hook_return_far(0);
+}
+
+/* ---- walking in a crowd
+ * A walker re-plans when its re-plan time comes (D_d97c[i]): 30..120 ticks after its last good
+ * step (cbt_step), or after its last plan (the approach, s014 0e76:2cca). Two things made a melee
+ * blob stand still and jerk:
+ * - a walker whose step was blocked by somebody stood until that time came, up to two and a half
+ *   seconds, though the one in its way had stopped to fight. It now asks again after 12..24 ticks
+ *   (from the same spot the plan goes around everyone, see stall[] above);
+ * - on a new plan it still took the step of the old route that it had lined up (D_ca30[i]) and
+ *   then went on along the new one from its second step: a step off the route, into somebody.
+ *   The new route now starts from its first step.
+ * And a walker going for a foe re-plans when the foe has moved on from where the route ends
+ * (it walked to the old spot first, stopped, and only then turned), at most every 30 ticks. */
+static int crowd_on(int i) { return i >= 0 && i < 13 && (i < 5 ? pathfix_party : pathfix_enemies); }
+static void crowd_step_hook(void)        /* cbt_step (i, set), s014 0e76:1624 (a near call) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 2));
+    if (!crowd_on(i)) { hook_call_original(); return; }
+    u16 c = CBT(i);
+    u8 next = g_rb((u16)(D_NEXTSTEP + i));
+    u16 x = g_rw((u16)(c + 4)), y = g_rw((u16)(c + 6));
+    hook_call_original();
+    if (ns_unwinding || next == 0xff || g_rb((u16)(D_NEXTSTEP + i)) != 0xff || !g_rb((u16)(GV_cbt_moving + i))) return;
+    if (g_rw((u16)(c + 4)) != x || g_rw((u16)(c + 6)) != y || !g_rw((u16)(D_BLOCKER + 2 * i))) return;
+    u16 due = (u16)(g_rw(GV_combat_clock) + 12 + rand() % 13);   /* blocked by somebody: ask again soon */
+    if (g_rw((u16)(D_REPLAN + 2 * i)) > due) g_ww((u16)(D_REPLAN + 2 * i), due);
+}
+static void crowd_approach_hook(void)    /* the approach (i), s014 0e76:2cca: every tick while walking */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (!crowd_on(i)) { hook_call_original(); return; }
+    u16 c = CBT(i), now = g_rw(GV_combat_clock);
+    int t = (s8)g_rb((u16)(c + 0x4a));
+    if (t >= 0 && t < 13 && g_rb((u16)(CBT(t) + 0x14)) == 1 && g_rb((u16)(GV_cbt_floor + t)) == g_rb((u16)(GV_cbt_floor + i))
+        && (u16)(now - plan_clock[i]) >= 30 && g_rw((u16)(D_REPLAN + 2 * i)) > now
+        && (abs((s16)g_rw((u16)(CBT(t) + 4)) - (s16)g_rw((u16)(c + 8))) > 12 || abs((s16)g_rw((u16)(CBT(t) + 6)) - (s16)g_rw((u16)(c + 0xa))) > 8))
+        g_ww((u16)(D_REPLAN + 2 * i), now);               /* the foe has moved on: a new route now */
+    u8 n0 = plan_count[i];
+    hook_call_original();
+    if (ns_unwinding) return;
+    if (plan_count[i] != n0 && g_rb((u16)(GV_cbt_path_step + i)) == 0) g_wb((u16)(D_NEXTSTEP + i), 0xff);   /* a new route: from its first step */
+}
+
+/* ---- the AI's walking costs
+ * When a member's foe falls (ai_rethink), ai_costs (s014 1db7:0028) measures the way on foot to
+ * each foe with the game's route trackers (12f7:03ea), everyone else in the way: five to eight
+ * runs of up to ten trackers by 250 steps, the game's collision test at every step, 10 to 40 ms
+ * in one tick (a hitch, at each kill). Here each is measured with the search above (the same
+ * steps, tests and goal: a step touching the foe; at most 250 steps; 5 ms each, else the
+ * trackers). The cost is the route's steps, as the trackers' (D_e116); none, 32000 as before. */
+static int costs_who = -1;
+static void costs_hook(void)             /* ai_costs (i, lo, hi) */
+{
+    int was = costs_who;
+    costs_who = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    costs_who = was;
+}
+static void trackers_hook(void)          /* path_trackers (rec), a copy of the combatant with tx, ty, target set */
+{
+    int i = costs_who;
+    if (i < 0 || i >= 13 || !(i < 5 ? pathfix_party : pathfix_enemies) || !f_collide || !f_set) { hook_call_original(); return; }
+    u16 rec = rw(SS, (u16)(SP + 4));
+    int x = (s16)g_rw((u16)(rec + 4)), y = (s16)g_rw((u16)(rec + 6)), tx = (s16)g_rw((u16)(rec + 8)), ty = (s16)g_rw((u16)(rec + 0xa));
+    int target = (s8)g_rb((u16)(rec + 0x4a));
+    if (target < 0 || target >= 13 || x != (s16)g_rw((u16)(CBT(i) + 4)) || y != (s16)g_rw((u16)(CBT(i) + 6))) { hook_call_original(); return; }
+    load_steps(i);
+    u8 s_e0a2 = g_rb(GV_path_formation), s_e13c = g_rb(0xe13c), s_c600 = g_rb(0xc600), s_d6cd = g_rb(0xd6cd); u16 s_d708 = g_rw(0xd708);
+    u8 s_e11c[32]; for (int k = 0; k < 32; k++) s_e11c[k] = g_rb((u16)(0xe11c + k));
+    g_wb(GV_path_formation, 0); g_wb(0xe13c, 0); g_wb(0xc600, 0); g_wb(0xd6cd, (u8)target);   /* (walking rules; D_d697 as the caller left it: everyone blocks) */
+    self_i = i; target_i = target; ncoll = 0; bounded = 4; also_block = 0;
+    collide_setup();
+    uint64_t t0 = plat_ticks_us();
+    int exp = 0, len = -1, reach = 0;
+    if (collide(x, y) != -1) {
+        cell_bfs(tx, ty);
+        int c0 = (x >> 5) * 40 + (y >> 4);
+        reach = c0 >= 0 && c0 < 1600 && celld[c0] >= 0;
+        if (reach) { search_budget = 5000; len = search(x, y, tx, ty, &exp); search_budget = 40000; }
+    }
+    g_wb(GV_path_formation, s_e0a2); g_wb(0xe13c, s_e13c); g_wb(0xc600, s_c600); g_wb(0xd6cd, s_d6cd); g_ww(0xd708, s_d708);
+    for (int k = 0; k < 32; k++) g_wb((u16)(0xe11c + k), s_e11c[k]);
+    if (trace_file()) fprintf(trace, "C %u %d %d %d %d %u\n", g_rw(GV_combat_clock), i, target, len, exp, (unsigned)(plat_ticks_us() - t0));
+    if (len < 0 && (!reach || search_cut)) { hook_call_original(); return; }   /* (doors for an enemy, or out of time: the trackers) */
+    if (len > 249) len = -1;
+    g_wb(GV_path_target_only, 0);
+    if (len >= 0) g_ww(0xe116, (u16)len);
+    AX = len >= 0 ? 1 : 2;
     hook_return_far(0);
 }
 
@@ -324,9 +591,10 @@ static void sweep(int i, int n)
         int bucket = far ? (dld[k * nd / n] <= 5 ? 0 : dld[k * nd / n] <= 10 ? 1 : dld[k * nd / n] <= 20 ? 2 : 3) : 0;
         if (tx < 16 || tx > MAPW - 16 || ty < 16 || ty > MAPH - 16) continue;
         g_ww((u16)(c + 8), (u16)tx); g_ww((u16)(c + 0x0a), (u16)ty); g_wb((u16)(c + 0x4a), 0xff);
-        self_i = i; target_i = -1;
+        self_i = i; target_i = -1; bounded = 0;
         u8 s_e0a2 = g_rb(GV_path_formation), s_d697 = g_rb(GV_path_target_only);
         g_wb(GV_path_formation, 0); g_wb(GV_path_target_only, 1); g_wb(0xd6cd, 0xff);
+        also_block = 0; collide_setup();
         int dest = collide(tx, ty);
         int e = 0; uint64_t t0 = plat_ticks_us();
         int ln = -1, unreach = 0;
@@ -363,8 +631,19 @@ void pathfix_set(int party, int enemies)
 {
     pathfix_party = party; pathfix_enemies = enemies;
     config_set_int("fix.pathfinding", party); config_set_int("fix.pathfinding_enemies", enemies);
-    if (party || enemies) hook_install(GF_path_find, path_find_hook);
-    else hook_remove(GF_path_find, path_find_hook);
+    if (party || enemies) {
+        hook_install(GF_path_find, path_find_hook);
+        hook_install(GF_cbt_step, crowd_step_hook);
+        hook_install(14, 0x0e76, 0x2cca, crowd_approach_hook);
+        hook_install(GF_ai_costs, costs_hook);
+        hook_install(GF_path_trackers, trackers_hook);
+    } else {
+        hook_remove(GF_path_find, path_find_hook);
+        hook_remove(GF_cbt_step, crowd_step_hook);
+        hook_remove(14, 0x0e76, 0x2cca, crowd_approach_hook);
+        hook_remove(GF_ai_costs, costs_hook);
+        hook_remove(GF_path_trackers, trackers_hook);
+    }
 }
 
 /* ---------------------------------------------------------------- battle speed
@@ -407,8 +686,70 @@ void battle_fast_set(int on)
     timer_hook_set();
 }
 
+/* ---------------------------------------------------------------- tests
+ * DL_BATTLE_TRACE=file: after every combat tick (s014 0e76:0f58), one line per active combatant:
+ * clock, index, x, y, action (+0x10), moving, target, cbt_action, anim, tx, ty, wall-clock us, what blocked the
+ * last step (D_d5f6), the re-plan time (D_d97c), the path step reached. And
+ * DL_PATH_TRACE: each planning (the hook above) with its cost goes there too (P lines). */
+static FILE *trace_file(void)
+{
+    static int tried;
+    if (!tried) { tried = 1; const char *f = getenv("DL_BATTLE_TRACE"); if (f) trace = fopen(f, "w"); }
+    return trace;
+}
+static uint64_t costs_us, trackers_us; static int costs_n, trackers_n;
+static void costs_time_hook(void) { uint64_t t = plat_ticks_us(); hook_call_original(); costs_us += plat_ticks_us() - t; costs_n++; }
+static void trackers_time_hook(void) { uint64_t t = plat_ticks_us(); hook_call_original(); trackers_us += plat_ticks_us() - t; trackers_n++; }
+static void tick_trace_hook(void)
+{
+    uint64_t t0 = plat_ticks_us();
+    costs_us = trackers_us = 0; costs_n = trackers_n = 0;
+    hook_call_original();
+    FILE *f = trace_file();
+    if (!f || ns_unwinding) return;
+    {   /* K: a combat tick that took long (us in all, in ai_costs, in the game's trackers) */
+        uint64_t dt = plat_ticks_us() - t0;
+        if (dt > 4000) fprintf(f, "K %u %u %u %d %u %d\n", g_rw(GV_combat_clock), (unsigned)dt, (unsigned)costs_us, costs_n, (unsigned)trackers_us, trackers_n);
+    }
+    unsigned clk = g_rw(GV_combat_clock);
+    static unsigned last = 0xffffffffu;
+    if (clk == last) return;                                 /* (the tick runs every frame: once a clock step) */
+    last = clk;
+    unsigned long long us = (unsigned long long)plat_ticks_us();
+    for (int i = 0; i < 13; i++) {
+        u16 c = CBT(i);
+        if (g_rb((u16)(c + 0x14)) != 1) continue;
+        fprintf(f, "T %u %d %d %d %d %d %d %d %d %d %d %llu %u %u %d\n", clk, i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)),
+                (s16)g_rw((u16)(c + 0x10)), g_rb((u16)(GV_cbt_moving + i)), (s8)g_rb((u16)(c + 0x4a)), (s8)g_rb((u16)(GV_cbt_action + i)),
+                (s8)g_rb((u16)(GV_cbt_anim + i)), (s16)g_rw((u16)(c + 8)), (s16)g_rw((u16)(c + 0x0a)), us,
+                g_rw((u16)(0xd5f6 + 2 * i)), g_rw((u16)(0xd97c + 2 * i)), g_rb((u16)(GV_cbt_path_step + i)));
+    }
+    fflush(f);
+}
+
+/* test command uwalk:i,x,y: combatant i walks to x, y (map pixels) as a click on the floor sends it */
+void pathfix_test_walk(int i, int x, int y)
+{
+    if (i < 0 || i >= 13) return;
+    u16 c = CBT(i);
+    g_ww((u16)(c + 8), (u16)x); g_ww((u16)(c + 0xa), (u16)y); g_wb((u16)(c + 0x4a), 0xff);
+    int r = ns_call(GF_path_find, 1, i);
+    if (ns_unwinding) return;
+    if (r != 1) { fprintf(stderr, "walk: %d finds no way to %d,%d\n", i, x, y); return; }
+    ns_call(GF_order_queue_clear, 1, i);
+    if (ns_unwinding) return;
+    ns_call(GF_path_give, 1, i);
+    if (ns_unwinding) return;
+    g_wb((u16)(GV_cbt_moving + i), 1);
+    g_ww((u16)(c + 0x10), 1);
+    g_wb((u16)(GV_cbt_path_step + i), 0);
+    g_ww((u16)(D_REPLAN + 2 * i), (u16)(g_rw(GV_combat_clock) + 30));
+    fprintf(stderr, "walk: %d from %d,%d to %d,%d\n", i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)), x, y);
+}
+
 void pathfix_init(void)
 {
+    if (getenv("DL_BATTLE_TRACE")) { hook_install(GF_combat_tick, tick_trace_hook); hook_install(GF_ai_costs, costs_time_hook); hook_install(GF_path_trackers, trackers_time_hook); }
     battle_speed_set(config_get_int("battle.speed", 100));
     f_collide = game_func(GF_cbt_collisions);
     f_set = game_func(GF_cbt_anim_set);

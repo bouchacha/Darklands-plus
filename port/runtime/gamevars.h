@@ -525,7 +525,7 @@
 #define GF_combat_recover               14, 0x0e76, 0x0dee    /* (): after a fight: clear damage, endurance 3/4, wake the unconscious */
 #define GF_combat_tick                  14, 0x0e76, 0x0f58    /* (): one tick: AI, locations, melee, actions, redraw */
 #define GF_combat_actions               14, 0x0e76, 0x116e    /* (): action state machine of every combatant */
-#define GF_cbt_step                     14, 0x0e76, 0x1624    /* (i): one step along the path */
+#define GF_cbt_step                     14, 0x0e76, 0x1624    /* (i, set): one step along the path (a near call: i at SP+2) */
 #define GF_cbt_missile_action           14, 0x0e76, 0x1ba0    /* (i): draw/loose, reload, aim */
 #define GF_cbt_location_action          14, 0x0e76, 0x2170    /* (i): door/lock/chest actions ordered from the menu */
 #define GF_cbt_dying                    14, 0x0e76, 0x2324    /* (i): falling / dying, the body becomes a loot pile */

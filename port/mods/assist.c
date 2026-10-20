@@ -127,7 +127,8 @@ static void drago03_hook(void) { entry_best(9, -1); if (ns_unwinding) return; ho
 static u32 last_eval;
 static int last_leader = -1;
 
-int ufight_pending, ufight_seed = -1;   /* test command ufight: a battle at the next card menu */
+int ufight_pending, ufight_seed = -1;
+int ufight_groups[9] = { 3, 2, 5, 0, 1, 1, -1, 0, 0 };   /* (enemy type, quality, number) x 3; ufight:bf,seed,t,q,n,... */   /* test command ufight: a battle at the next card menu */
 int uscreen_pending, uscreen_a, uscreen_b; /* test command ualchemy: the alchemy screen from the card menu up */
 /* (from the native card menu's loop, mods/cardview.c: a test screen opened as a card would open it,
  * s029 0e76:2204 (who, hours), and the card's picture drawn again after it) */
@@ -156,7 +157,8 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
     if (ufight_pending && !encounters_card_active()) {   /* run_battle(battlefield, seed, 3 x (enemy type, quality, number)), s029 0e76:2278 (test; not inside a new encounter, whose script would lose its place) */
         int bf = ufight_pending; ufight_pending = 0;
         void (*f)(void) = game_func(GF_run_battle);
-        u16 args[11] = { (u16)bf, (u16)ufight_seed, 3, 2, 5, 0, 1, 1, 0xffff, 0, 0 };
+        u16 args[11] = { (u16)bf, (u16)ufight_seed };
+        for (int k = 0; k < 9; k++) args[2 + k] = (u16)ufight_groups[k];
         if (f) game_call_live(f, 11, args);
     }
     assist_leader_restore();            /* (a new card: the player's leader again; asked anew below) */

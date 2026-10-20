@@ -56,6 +56,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
         else if (!strcmp(cmd, "upreset")) { void preset_apply(int); preset_apply(atoi(arg)); void config_save(void); config_save(); fprintf(stderr, "preset %d (saved)\n", atoi(arg)); }   /* test: a preset (0 Buggy Purist, 1 Purist, 2 Purist + interface ...) */
         else if (!strcmp(cmd, "uset")) { char k[64]; int v = 0; if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
+        else if (!strcmp(cmd, "uwalk")) { void pathfix_test_walk(int, int, int); int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y); pathfix_test_walk(i, x, y); }   /* test: combatant i walks to x, y (battle map pixels) */
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
         else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */
         else if (!strcmp(cmd, "uaging")) { void aging_month(int); aging_month(atoi(arg) > 0 ? atoi(arg) : 1); }   /* test: months of aging at once */
@@ -72,7 +73,13 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(cmd, "artrescan")) hdart_rescan();
-        else if (!strcmp(cmd, "ufight")) { extern int ufight_pending, ufight_seed; ufight_seed = -1; sscanf(arg, "%d,%d", &ufight_pending, &ufight_seed); if (!ufight_pending) ufight_pending = 10; }   /* test: a battle (type, seed) at the next card */
+        else if (!strcmp(cmd, "ufight")) {              /* test: a battle (type, seed[, 3 x (enemy type, quality, number)]) at the next card */
+            extern int ufight_pending, ufight_seed, ufight_groups[9]; int g[9] = { 3, 2, 5, 0, 1, 1, -1, 0, 0 };
+            ufight_seed = -1;
+            sscanf(arg, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", &ufight_pending, &ufight_seed, &g[0], &g[1], &g[2], &g[3], &g[4], &g[5], &g[6], &g[7], &g[8]);
+            for (int k = 0; k < 9; k++) ufight_groups[k] = g[k];
+            if (!ufight_pending) ufight_pending = 10;
+        }
         else if (!strcmp(cmd, "uthrowsim")) { extern int loot_sim_m, loot_sim_n; sscanf(arg, "%d,%d", &loot_sim_m, &loot_sim_n); }   /* test: a throw, at the next loot screen */
         else if (!strcmp(cmd, "upeek")) {               /* debug: words at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, n = 8; sscanf(arg, "%x,%x,%u", &sg, &of, &n);
