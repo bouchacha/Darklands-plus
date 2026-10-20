@@ -46,6 +46,7 @@ int ui_margins_on = 1;
 
 extern "C" int levelmap_available(void);
 
+extern "C" int politics_unrest_at(int loc);           /* (mods/politics.c) */
 static std::string place_name(void)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
@@ -578,6 +579,19 @@ static void right_panel(int size)
             if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
                                                                                        : "The watch is after the party: guards who recognise it try to arrest it, and talking or bribing one's way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
+        }
+        {   /* a season of city politics (mods/politics.c, experimental): the town in turmoil, until the party takes a side
+               (then it is a task) */
+            if (politics_unrest_at(cur) == 2) {
+                float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
+                ImVec2 p0 = ImGui::GetCursorScreenPos();
+                ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, QC_POLITICS);
+                ImGui::Indent(is + lh * 0.3f);
+                ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.45f, 1), "In turmoil");
+                if (item_hovered()) margin_tip("Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) "
+                                               "and its rumours of special jobs lead to them; so does the guild where the agitators meet.");
+                ImGui::Unindent(is + lh * 0.3f);
+            }
         }
         ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
         {   /* what the party learned of its physician and alchemist (ui/journal.cpp) */

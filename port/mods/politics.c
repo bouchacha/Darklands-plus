@@ -486,6 +486,15 @@ static void outcome_hook(void)
     }
 }
 
+/* (the margin) a season runs at loc: the party's side there (-1, 1), 2 none yet; 0 no season */
+int politics_unrest_at(int loc)
+{
+    if (!politics_on()) return 0;
+    u32 e = season_rec(loc);
+    if (!e) return 0;
+    int v = g_ev(e, G_EV_VALUE);
+    return v == REBELS || v == GOVT ? v : 2;
+}
 int politics_test_start(void) { return politics_start(cur_loc()); }
 /* (tests) the season here began d days earlier */
 void politics_test_age(int d)

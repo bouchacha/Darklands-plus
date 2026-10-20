@@ -191,8 +191,9 @@ With the option ticked (port/mods/politics.c; nothing changes while it is off):
 8. **Texts:** `$VarString` filled (the town hall's or the fortress's name, the exiled heir, a
    banner, the attitude), `$Support` the right way round, "the the" made "the", "$CityLord
    Title", the boon names, `$Polit01`'s bribe; the unwritten lines hidden.
-9. **Tasks:** the side the party took, and its own side's day (the hour and the date), are tasks
-   in the margin, the journal and on the map, with a banner for a picture.
+9. **Tasks:** a town in a season reads "In turmoil" in the margin until the party takes a side;
+   then the side, and its own side's day (the hour and the date), are tasks in the margin, the
+   journal and on the map, with a banner for a picture.
 10. **Afterwards:** a city whose government held is not marked overthrown and the news tells of
    the rebellion put down for 60 days.
 
