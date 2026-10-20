@@ -175,6 +175,10 @@
  *            warehouse (s134 1838:0550, 0692) add the Endurance and Strength their texts take; the
  *            warehouse's owner ($DPost00, s134 1838:0000) is $NamedOneName, which nothing sets
  *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?").
+ *  campguard The risk of a night at camp (s036 1462:1b80) is lowered by each member on guard: by
+ *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
+ *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
+ *            Found by Arkana Mechanika (Darklands Restoration).
  *  nightwall Along a city's walls at night ($CityW01, s047 1a44): the arrival looks for the best
  *            climber from member 1 on (never the first) and keeps his number (DS:5828) but not his
  *            value; the rope's chance (1a44:03e2) is DS:582A, which only a failed climb of
@@ -303,6 +307,8 @@ Fix FIXES[] = {
       "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\").", 1 },
     { "nightwall", "Climbing a city wall at night: the true chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
+    { "campguard", "A guard skilled with impact weapons keeps the camp safer",
+      "Each member on guard at camp lowers the risk of an attack, one point more when skilled (30 or more) with a weapon: any weapon but impact weapons (maces, hammers, axes), which the game forgot to count. Now they count too.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1953,6 +1959,29 @@ static void nightwall_all_hook(void)        /* s047 1a44:05f0 () -> (everyone's 
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- campguard */
+static void campguard_hook(void)            /* s036 1462:1b80 (): the camp's risk, grown */
+{
+    int started = ns_call(GF_event_started, 1, 0x60);
+    if (ns_unwinding) return;
+    if (started) { g_ww(0x8a34, 0); AX = 0; hook_return_far(0); return; }
+    int total = (s16)g_rw(0x8a36);
+    for (int i = 0; i < 5; i++) {
+        u16 r = G_MEMBER(i);
+        if (g_rb(r) != 1 || (s16)g_rw((u16)(GV_camp_activity + 2 * i)) != 5) continue;
+        int wood = (s8)g_rb((u16)(r + G_M_SKILLS + 18)), st = (s8)g_rb((u16)(r + G_M_SKILLS + 15)), armed = 0;
+        total -= wood >= 70 ? 3 : wood >= 30 ? 2 : 1;
+        if (st >= 70) total -= 2; else if (st >= 30) total--;
+        for (int k = 0; k < 7; k++) if ((s8)g_rb((u16)(r + G_M_SKILLS + k)) >= 30) armed = 1;   /* (Impact, +0x58, too) */
+        if (armed) total--;
+    }
+    if (total >= 15) total = 15; else if (total <= 1) total = 1;
+    int risk = (s16)g_rw(0x8a34) + total;
+    g_ww(0x8a34, (u16)risk);
+    AX = (u16)(risk / 5);
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1967,7 +1996,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
-    { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook } };
+    { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
+    { 36, 0x1462, 0x1b80, campguard_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
