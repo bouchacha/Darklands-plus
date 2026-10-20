@@ -174,7 +174,11 @@
  *            Cavern of Fire and Hail crossed under armour (s130 190c:033e) and the spider
  *            warehouse (s134 1838:0550, 0692) add the Endurance and Strength their texts take; the
  *            warehouse's owner ($DPost00, s134 1838:0000) is $NamedOneName, which nothing sets
- *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?").
+ *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?"); a robber
+ *            knight's bounty ($Raubi01, s080 1870:000c) tells by a coin toss whether the Hanse's
+ *            guide leaves (text 6) or there was none (7), and says the village's Schulz "departs
+ *            from your party" (text 1) whether or not he came along; neither is let go (he stayed
+ *            until his days were up). Now the texts follow who came, and he goes home.
  *  campguard The risk of a night at camp (s036 1462:1b80) is lowered by each member on guard: by
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
  *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
@@ -304,7 +308,7 @@ Fix FIXES[] = {
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
     { "cardslips", "Slips in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\").", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). Paid for a robber knight, the Hanse's guide or the village's Schulz who came along was said to leave by the toss of a coin (or when he had never come) and then stayed on.", 1 },
     { "nightwall", "Climbing a city wall at night: the true chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -1814,11 +1818,13 @@ static void mv_wrap_hook(void)              /* $CityC00's tenth (s057 1838:067c)
 
 /* ---------------------------------------------------------------- cardslips
  * Each card routine below is wrapped; while it runs (slip), a call it makes is put right. */
-enum { SLIP_NONE, SLIP_HUSSITE, SLIP_STABLES, SLIP_SCHULZ, SLIP_TATZEL, SLIP_HURT };
-static int slip, slip_p, slip_saw;
-static void slip_rand_hook(void)            /* rand_mod (n): the Hussites' == made <= */
+enum { SLIP_NONE, SLIP_HUSSITE, SLIP_STABLES, SLIP_SCHULZ, SLIP_TATZEL, SLIP_HURT, SLIP_RAUBI };
+static int slip, slip_p, slip_saw, raubi_card, raubi_guide;
+static void slip_rand_hook(void)            /* rand_mod (n): the Hussites' == made <=; $Raubi01's coin */
 {
+    int n = (s16)rw(SS, (u16)(SP + 4));
     hook_call_original();
+    if (slip == SLIP_RAUBI && n == 2) { AX = (u16)(raubi_guide >= 0); return; }   /* (text 6: the guide leaves; 7: there was none) */
     if (slip != SLIP_HUSSITE) return;
     int r = (s16)AX;
     if (r <= slip_p) AX = (u16)slip_p;      /* (the script's test is r == p; a higher r stays, never p) */
@@ -1830,6 +1836,7 @@ static void slip_text_hook(void)            /* card_text (block, how) */
     int b = (s16)rw(SS, (u16)(SP + 4));
     if (slip == SLIP_STABLES && (b == 1 || b == 7)) ww(SS, (u16)(SP + 4), (u16)(b == 1 ? 7 : 1));
     if (slip == SLIP_SCHULZ && b == 6) slip_saw = 1;
+    if (slip == SLIP_RAUBI && raubi_card == 0x86 && raubi_guide < 0 && b == 1) ww(SS, (u16)(SP + 4), 2);   /* (no Schulz came along) */
     hook_call_original();
 }
 static void slip_away_hook(void)            /* s029 0e76:2474: one member who fled is lost; returns how many fled */
@@ -1911,6 +1918,37 @@ static void spider_man_hook(void)           /* $DPost00 (s134 1838:0000): the wa
     ns_call(GF_random_name, 3, (s16)g_rw(GV_cur_loc) + 0x9c4, 0, 0);
     if (ns_unwinding) return;
     hook_call_original();
+}
+static int guide_member(const char *shortname)
+{
+    for (int m = 0; m < 5; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;
+        char nm[12]; int i = 0;
+        for (; i < 11; i++) { nm[i] = (char)g_rb((u16)(G_MEMBER(m) + 0x2a + i)); if (!nm[i]) break; }
+        nm[i] = 0;
+        if (!strcmp(nm, shortname)) return m;
+    }
+    return -1;
+}
+static void raubi_hook(void)                /* $Raubi01, a robber knight's bounty paid (s080 1870:000c) */
+{
+    int sc = (s16)g_rw(GV_saved_card);
+    if (sc != 0x47 && sc != 0x86) { hook_call_original(); return; }
+    int guide = guide_member(sc == 0x47 ? "Hanse" : "Schulz"), was = slip;
+    slip = SLIP_RAUBI; raubi_card = sc; raubi_guide = guide;
+    hook_install(GF_rand_mod, slip_rand_hook); hook_install(GF_card_text, slip_text_hook);
+    hook_call_original();
+    hook_remove(GF_card_text, slip_text_hook); hook_remove(GF_rand_mod, slip_rand_hook);
+    slip = was;
+    if (ns_unwinding || guide < 0 || g_rb(G_MEMBER(guide)) == 0) return;
+    u16 ax = AX, dx = DX;                   /* (the card's next) */
+    g_wb(G_MEMBER(guide), 0);               /* the guide who came along goes home, as the text says */
+    ns_call(GF_party_delete, 1, guide);
+    if (ns_unwinding) return;
+    ns_call(GF_party_panel_rows, 1, 0x100);
+    if (ns_unwinding) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: the %s guide (member %d) leaves the party\n", sc == 0x47 ? "Hanse" : "Schulz", guide);
+    AX = ax; DX = dx;
 }
 static void witches_offer(void)             /* (from fixes_card_opts) $Witcd40 block 4: the ointment, or stay and fight */
 {
@@ -2017,7 +2055,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
     { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
     { "nightwall", 47, 0x1a44, 0x03e2, nightwall_rope_hook },
-    { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook } };
+    { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook } };
 
 void fix_enable(int i, int on)
 {
