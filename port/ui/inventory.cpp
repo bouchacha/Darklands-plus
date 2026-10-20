@@ -407,9 +407,17 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
         if (speed) ImGui::Text("Time for a blow %d", speed);
         if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
-        ImGui::Text("Skill needed %d: each point short costs 2 attack and 2 defence", minsk);
-        if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 1 attack and 3 defence and blows hit softer;\nabove %d, each point adds 2 defence and blows hit harder", minst, maxst, maxst);
-        else ImGui::Text("Strength %d: below that, each point short costs 1 attack and 3 defence and blows hit softer", minst);
+        /* (the combatant's melee rating +0x20 and aim +0x21, weapon_ready: mods/gamemodel.h) */
+        const bool shot = sk >= 4 && sk <= 6;                 /* (Thrown, Bows, Missile Devices: aimed) */
+        if (shot) {
+            ImGui::Text("Skill needed %d: each point short costs 2 aim", minsk);
+            if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder", minst, maxst, maxst);
+            else ImGui::Text("Strength %d: below that, each point short costs 1 aim and hits are softer", minst);
+        } else {
+            ImGui::Text("Skill needed %d: each point short costs 2 melee rating (attack and defence hand to hand)", minsk);
+            if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 3 melee rating and blows hit softer;\nabove %d, each point adds 2 melee rating and blows hit harder", minst, maxst, maxst);
+            else ImGui::Text("Strength %d: below that, each point short costs 3 melee rating and blows hit softer", minst);
+        }
         ImGui::TextDisabled("Lower times are quicker.");
         /* who in the party could use it, and what it would cost them */
         ImGui::Separator();
@@ -423,9 +431,9 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             if (ss > 0) v += "needs " + std::to_string(ss) + " more skill";
             if (ws > 0) v += std::string(v.empty() ? "" : ", ") + "too weak by " + std::to_string(ws);
             if (v.empty()) v = str > maxst && maxst < 99 ? "suits (strong enough to hit harder)" : "suits";
-            int att = 2 * (ss > 0 ? ss : 0) + (ws > 0 ? ws : 0), def = 2 * (ss > 0 ? ss : 0) + 3 * (ws > 0 ? ws : 0);
-            ImVec4 c = att ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
-            if (att) ImGui::TextColored(c, "%s: skill %d, Strength %d - %s (-%d attack, -%d defence)", game_text(n, sizeof n).c_str(), have, str, v.c_str(), att, def);
+            int loss = 2 * (ss > 0 ? ss : 0) + (shot ? 1 : 3) * (ws > 0 ? ws : 0);
+            ImVec4 c = loss ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
+            if (loss) ImGui::TextColored(c, "%s: skill %d, Strength %d - %s (-%d %s)", game_text(n, sizeof n).c_str(), have, str, v.c_str(), loss, shot ? "aim" : "melee rating");
             else ImGui::TextColored(c, "%s: skill %d, Strength %d - %s", game_text(n, sizeof n).c_str(), have, str, v.c_str());
         }
     }
@@ -466,7 +474,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         static const char *SZ[3] = { "Small", "Medium", "Large" };
         for (int t = 95; t <= 97; t++)
             (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
-        ImGui::TextDisabled("No shield counts as -5. The chance to be hit is 50 + 2/3 of the attack minus the defence;\nagainst a blow the defence is the shield's value plus twice Agility (less under a load).");
+        ImGui::TextDisabled("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defence is the shield plus twice Agility (less under a load).");
     }
     if (d && d->kind == K_POTION) {
         int p = id - 95;

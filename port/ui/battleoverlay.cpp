@@ -224,7 +224,8 @@ void ui_draw_battle_info(void)
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, Strength %d/%d", end, endm, str, strm);
-        ImGui::Text("Attack %d, defence %d", atk, def);
+        if (wm >= 0 && wm <= 33) ImGui::Text("Melee rating %d, aim %d", def, atk);   /* (+0x20 both ways hand to hand, +0x21 shooting: mods/gamemodel.h) */
+        else ImGui::Text("Melee rating %d", def);
         if (best >= 5 && st == 1 && g_rb((u16)(GV_cbt_ends_battle + best)) == 1)
             ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this enemy has fallen and the fight is over, the place is won.");
         auto wname = [](int t) -> std::string {

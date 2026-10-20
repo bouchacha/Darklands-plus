@@ -87,7 +87,7 @@ int far cbt_anim_set(int);
 void far sub_s014_1db7_05c8(int);
 int far cloud_blocks_line(int, int);
 int far to_hit_roll(int, int, int *);
-int far missile_to_hit(int, int, unsigned char, struct cbt *, struct cbt *);
+int far melee_to_hit(int, int, unsigned char, struct cbt *, struct cbt *);
 int far hit_damage(int, int, int, int);
 int far damage_queue(int, int, int, int);
 void far weapon_ready(int, int, int);
@@ -249,7 +249,7 @@ int far to_hit_roll(int a, int t, int *crit)
     if ((st >> 8 & 1) == 1)
         return 2;                       /* helpless target: automatic hit */
     if ((st & 2) == 2) {
-        chance = missile_to_hit(a, t, (unsigned char)st, ca, ct);
+        chance = melee_to_hit(a, t, (unsigned char)st, ca, ct);
     } else {
         atk = ca->atk;
         if (a < 5) {
@@ -320,8 +320,11 @@ int far to_hit_roll(int a, int t, int *crit)
     return 2;
 }
 
-/* missile to-hit chance of a (record ca) against t (record ct) */
-int far missile_to_hit(int a, int t, unsigned char st, struct cbt *ca, struct cbt *ct)
+/* the chance of a blow (an order with bit 2: Std Attack, Vulnerable, Berserk, Parry) by a (record ca)
+   against t (record ct): +0x20 ("def" here; the melee rating, weapon_ready) on both sides, the
+   defender's shield against blows (none against a flail), the stances and the crowd. The shot or throw
+   is the caller's own branch, with +0x21 ("atk": the aim) against the shield and twice the Agility. */
+int far melee_to_hit(int a, int t, unsigned char st, struct cbt *ca, struct cbt *ct)
 {
     int sh;
     int m;

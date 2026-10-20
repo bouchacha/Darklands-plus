@@ -136,8 +136,8 @@ void gm_member_attr(int m, int k, int *cur, int *max)
 }
 int gm_shield_defence(int type, int q, int missile)
 {
-    if (missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;
-    return type == 95 ? 2 * q / 7 + 1 : type == 96 ? q / 2 + 4 : type == 97 ? 2 * q / 3 + 8 : -5;
+    if (!missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;      /* (s014 18bf:0592, a blow) */
+    return type == 95 ? 2 * q / 7 + 1 : type == 96 ? q / 2 + 4 : type == 97 ? 2 * q / 3 + 8 : -5;         /* (18bf:02a8's own branch, a shot or throw) */
 }
 int gm_member_fight_agility(int m)
 {

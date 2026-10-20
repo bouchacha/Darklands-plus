@@ -77,8 +77,8 @@ penetration = 4
 hands = 1
 time = 40                 ; for a blow; lower is quicker
 reload = 0                ; missile weapons
-skill_wanted = 16         ; each point short: -2 attack, -2 defence
-strength = 13-28          ; below: -1 attack, -3 defence per point, softer blows; above: harder blows
+skill_wanted = 16         ; each point short: -2 melee rating (or aim)
+strength = 13-28          ; below: -3 melee rating (-1 aim) per point, softer blows; above: +2 melee rating, harder blows
 ```
 
 The numbers live in tables of the game's code (far segment 20a5, read by the battle module s014

@@ -335,17 +335,17 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             std::string fit = (have < minsk ? "needs " + std::to_string(minsk - have) + " more skill" : std::string("")) +
                               (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);
-        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence against a blow it gives this member (mods/gamemodel.h) */
-            int sh = gm_shield_defence(d->type, it.qual, 0), ag = gm_member_fight_agility(s.who), a = s.attr[2];
-            char b[200];
-            snprintf(b, sizeof b, "%s's defence against a blow with it: %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sh, ag, sh + 2 * ag,
+        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence it gives this member (mods/gamemodel.h) */
+            int sb = gm_shield_defence(d->type, it.qual, 0), sh = gm_shield_defence(d->type, it.qual, 1), ag = gm_member_fight_agility(s.who), a = s.attr[2];
+            char b[240];
+            snprintf(b, sizeof b, "%s's defence with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sb, sh, ag, sh + 2 * ag,
                      ag < a ? " (the load lowers Agility)" : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
         } else if (l2.empty() && it.drinkable && it.id >= 95 && 3 * (it.id - 95) < (int)gamedata.formulas.size())
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, game_text(gamedata.formulas[3 * (it.id - 95)].text.c_str(), gamedata.formulas[3 * (it.id - 95)].text.size()));
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
-        if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = "Attack and defence with " + (w.empty() ? std::string("these weapons") : w) + "."; }
+        if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = (V.which >= 4 ? "Aim with " : "Attack and defence hand to hand with ") + (w.empty() ? std::string("these weapons") : w) + "."; }
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_skill_name(V.which)) + 0.5f;
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, help) + 0.8f;
         y += raised_line(P, s, false, V.which, SX0 + 2.5f, y, SW);

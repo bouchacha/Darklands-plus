@@ -24,13 +24,18 @@ void gm_member_attr(int m, int k, int *cur, int *max);
 int gm_member_skill(int m, int k);
 /* the game's rules (no state): what a shield of type 95 (small), 96 (medium) or 97 (large) and
    quality q adds to its bearer's defence against a blow (missile 0) or a shot or a throw (1); -5 for
-   no shield, or a type that is none of these (s014 18bf: the to-hit rolls, hit_chance and
-   missile_to_hit). The chance to be hit is 50 + 2/3 of (the attack - the defence), the defence
-   against a blow being this plus twice the bearer's Agility (less of it under a load). */
+   no shield, or a type that is none of these. The to-hit roll (s014 18bf:02a8): a blow (an order with
+   bit 2: Std Attack, Vulnerable, Berserk, Parry) is decided by 18bf:0592 (melee_to_hit): 50 + 2/3 of (the attacker's combatant +0x20 - (the defender's +0x20 + this
+   shield value)), with the stances' and the crowd's modifiers (and no shield against a flail); a
+   shot or a throw by 02a8 itself: 50 + 2/3 of (the shooter's +0x21, less in a crowd or a cloud -
+   (this shield value + twice the target's Agility, less of it under a load)). +0x20, the "melee
+   rating" (weapon_ready, 18bf:0a40), is the weapon's skill + 2 per point of Strength above the
+   weapon's range - 3 per point below it - 2 per point of skill below the weapon's need; +0x21, the
+   "aim", the skill - 1 per point of Strength below - 2 per point of skill below. */
 int gm_shield_defence(int type, int q, int missile);
-/* the Agility member m brings to the defence against a blow (counted twice there): all of it while
+/* the Agility member m brings to the defence against a shot or a throw (counted twice there): all of it while
    the load is at most 5/8 of (maximum Endurance + Strength) x 1, two thirds up to 10/8, a third up
-   to 15/8, none above (s014 18bf, the to-hit roll of a blow) */
+   to 15/8, none above (s014 18bf:02a8, the to-hit roll of a shot or throw) */
 int gm_member_fight_agility(int m);
 int gm_member_age(int m);
 int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */

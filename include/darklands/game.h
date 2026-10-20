@@ -311,7 +311,7 @@
 #define attack_rate              sub_s014_18bf_0002   /* (i) */
 #define cbt_attack               sub_s014_18bf_0102   /* (a, t): one attack, returns the to-hit result */
 #define to_hit_roll              sub_s014_18bf_02a8   /* (a, t, *crit): 0 miss, 1 parried/dodged, 2 hit, 3 good hit */
-#define missile_to_hit           sub_s014_18bf_0592   /* (...) */
+#define melee_to_hit           sub_s014_18bf_0592   /* (...) */
 #define hit_damage               sub_s014_18bf_0778   /* (a, t, loc, r) */
 #define damage_queue             sub_s014_18bf_08ca   /* (t, d, ...) */
 #define damage_apply             sub_s014_18bf_098e   /* (): endurance 0 unconscious, strength 0 dead */

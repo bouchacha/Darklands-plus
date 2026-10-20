@@ -559,7 +559,7 @@
 #define GF_attack_rate                  14, 0x18bf, 0x0002    /* (i) */
 #define GF_cbt_attack                   14, 0x18bf, 0x0102    /* (a, t): one attack, returns the to-hit result */
 #define GF_to_hit_roll                  14, 0x18bf, 0x02a8    /* (a, t, *crit): 0 miss, 1 parried/dodged, 2 hit, 3 good hit */
-#define GF_missile_to_hit               14, 0x18bf, 0x0592    /* (...) */
+#define GF_melee_to_hit                 14, 0x18bf, 0x0592    /* (a, t, order, ca, ct): the chance of a blow (an order with bit 2), against the defender's +0x20 and shield */
 #define GF_hit_damage                   14, 0x18bf, 0x0778    /* (a, t, loc, r) */
 #define GF_damage_queue                 14, 0x18bf, 0x08ca    /* (t, d, ...) */
 #define GF_damage_apply                 14, 0x18bf, 0x098e    /* (): endurance 0 unconscious, strength 0 dead */

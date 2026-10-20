@@ -117,7 +117,7 @@ static Option OPTIONS[] = {
     { "battle.smooth_scroll", S_BATTLE, 0, "Smooth scrolling", "each step of the battle view slides to its new place instead of jumping (a step is 32 pixels across, 16 up or down).", OC_SHOW, 0, 1, 1 },
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer races to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling without Shift", "resting the pointer on the edge of the screen scrolls the battle map; no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
-    { "battle.info", S_BATTLE, 0, "Info under the pointer", "pointing at someone shows who it is, how badly hurt they are, their attack, defence and weapon.", OC_SHOW, 0, 1, 1 },
+    { "battle.info", S_BATTLE, 0, "Info under the pointer", "pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
     { "battle.info_numbers", S_BATTLE, "battle.info", "Enemy Endurance as numbers", "the enemies' Endurance shown as numbers.", OC_EASY, 0, 0, 1 },
     { "battle.bars", S_BATTLE, 0, "Health bars over the fighters", "the Endurance left (and the Strength, once it is down by half).", OC_SHOW, 0, 1, 1 },
     { "battle.bars_hurt", S_BATTLE, "battle.bars", "Bars only over the wounded", "no bar over a fighter still unhurt (hold Alt to show them all), so the field stays clear.", OC_SHOW, 0, 1, 1 },

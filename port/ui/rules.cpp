@@ -184,7 +184,7 @@ static bool write_rules(const char *path)
     fprintf(f, "# Weapon numbers (F12 > Records > Weapons). Change what you like and delete the rest;\n"
                "# the original game's numbers stay for any weapon not named here.\n"
                "# skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker).\n"
-               "# strength = min-max: below min each point costs 1 attack and 3 defence; above max blows hit harder.\n\n");
+               "# strength = min-max: below min each point costs 3 melee rating (1 aim for a missile weapon); above max, 2 melee rating more and harder blows.\n\n");
     for (int w = 0; w <= 33; w++) {
         std::string n = weapon_name(w);
         if (n.empty()) continue;
@@ -243,7 +243,7 @@ void rules_tab(void)
         ImGui::EndTable();
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Each point of skill below what a weapon needs costs 2 attack and 2 defence; each point of Strength below its range costs 1 attack and 3 defence and makes blows weaker; above the range, blows hit harder.");
+    ImGui::TextWrapped("Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Hand to hand, a fighter's melee rating counts both in attack and in defence; each point of skill below what a weapon needs costs 2 of it, each point of Strength below the weapon's range 3 (and weaker blows), each point above the range adds 2 (and harder blows). With a missile weapon, the aim: 2 per point of skill short, 1 per point of Strength short.");
     ImGui::PopStyleColor();
     if (!ui_modding()) { if (!rules_log.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", rules_log.c_str()); return; }
     static char modname[64] = "My weapons"; static std::string msg;
