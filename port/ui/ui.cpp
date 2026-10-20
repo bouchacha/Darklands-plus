@@ -373,6 +373,7 @@ extern "C" void ui_toggle_map(void)
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
 extern "C" int ns_showing(void);
 extern "C" int margins_click(int x, int y);           /* ui/margins.cpp: the battle's order buttons */
+extern "C" int partypanel_click(int x, int y);        /* ui/partypanel.cpp: shoot or melee on a member's box */
 static int margin_click_taken, outside_down;
 extern "C" int plat_win_outside(int wx, int wy);
 extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
@@ -442,7 +443,7 @@ extern "C" int ui_event(const SDL_Event *e)
     if (!open_menu) {
         if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && overlay_click(e->button.x, e->button.y)) return 1;
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
-        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && margins_click(e->button.x, e->button.y)) { margin_click_taken = 1; return 1; }
+        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y))) { margin_click_taken = 1; return 1; }
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && margin_click_taken) { margin_click_taken = 0; return 1; }
         /* a left click beside the picture (on the margins) is not the game's: its pointer waits at
            the picture's edge, where a click would walk the party or the fighters there */
@@ -767,6 +768,7 @@ static void help_window(void)
             if (!ui_original_mode() && config_get_int("battle.quick_orders", 1)) {
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
                 row("1 to 5", "select a member; Esc: cancel the order being given");
+                if (config_get_int("battle.volley_toggle", 1)) row("The bow or sword on a member's picture", "shoot or fight hand to hand when you click an enemy (click it to switch)");
                 row("The right margin's buttons", "the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");

@@ -87,20 +87,50 @@ static void snap_to_foe(void)
     if (attack && near_foe(x, y, &cx, &cy)) { ww(SS, (u16)(SP + 4), (u16)cx); ww(SS, (u16)(SP + 6), (u16)cy); }
 }
 
-/* the attack a click sends member i at foe m with: Use Missile (0x80) when the member is better
-   with the missile weapon in hand (+0x22, its type) than with the default one (+0x51) - by the
-   skill each wants (far 20a5:75ac) - can loose it (can_fire, s014 18bf:0c02) and the foe is not
-   already within reach of a blow (far 20a5:7900, ai 1db7:09ae); else Std Attack */
+/* ---------------------------------------------------------------- battle.volley
+ * Shoot or melee: each member with a bow, crossbow, gun or thrown weapon in hand (+0x22, its type)
+ * opens a fight one way or the other, shown on their box in the party panel and switched with a
+ * click there (ui/partypanel.cpp; kept by the character's name, battle.shoot.<name>). Until it is
+ * switched, a member better with the missile weapon than with the default one (+0x51), by the
+ * skill each wants (far 20a5:75ac), shoots (battle.click_best). */
+static void member_key(int m, char *key, int n)
+{
+    char nm[26]; int k = 0;
+    for (; k < 24; k++) { char ch = (char)g_rb((u16)(G_MEMBER(m) + G_M_FULLNAME + k)); if (!ch) break; nm[k] = ch == ' ' || ch == '=' ? '_' : ch; }
+    nm[k] = 0;
+    snprintf(key, n, "battle.shoot.%s", nm);
+}
+int orders_member_mode(int m)                   /* 1 shoot, 0 melee, -1 no missile weapon in hand */
+{
+    if (m < 0 || m > 4) return -1;
+    u16 c = (u16)(D_CBT + m * 0x80);
+    int wm = (s8)g_rb((u16)(c + 0x22)), wd = (s8)g_rb((u16)(c + 0x51));
+    if (wm < 0 || wm > 62) return -1;
+    char key[48]; member_key(m, key, sizeof key);
+    int v = config_get_int(key, -1);
+    if (v == 0 || v == 1) return v;
+    if (!config_get_int("battle.click_best", 1)) return 0;
+    int skm = rb(G_FAR20A5, (u16)(0x75ac + wm)), skd = wd >= 0 && wd <= 62 ? rb(G_FAR20A5, (u16)(0x75ac + wd)) : -1;
+    int vm = skm < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + skm)) : 0, vd = skd >= 0 && skd < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + skd)) : 0;
+    return vm > vd;
+}
+void orders_member_mode_set(int m, int shoot)
+{
+    if (orders_member_mode(m) < 0) return;
+    char key[48]; member_key(m, key, sizeof key);
+    config_set_int(key, shoot ? 1 : 0); config_save();
+    fprintf(stderr, "orders: member %d opens with %s\n", m, shoot ? "the missile weapon" : "the melee weapon");
+}
+
+/* the attack a click sends member i at foe m with: Use Missile (0x80) when the member opens by
+   shooting (orders_member_mode), can loose the missile weapon (can_fire, s014 18bf:0c02) and the
+   foe is not already within reach of a blow (far 20a5:7900, ai 1db7:09ae); else Std Attack */
 static int best_attack(int i, int m)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
-    int wm = (s8)g_rb((u16)(c + 0x22)), wd = (s8)g_rb((u16)(c + 0x51));
-    if (wm < 0 || wm > 62 || !config_get_int("battle.click_best", 1)) return STD_ATTACK;
+    if (orders_member_mode(i) != 1) return STD_ATTACK;
     if (rb(G_FAR20A5, (u16)(0x7900 + i * 13 + m))) return STD_ATTACK;          /* beside it: hand to hand */
-    int skm = rb(G_FAR20A5, (u16)(0x75ac + wm)), skd = wd >= 0 && wd <= 62 ? rb(G_FAR20A5, (u16)(0x75ac + wd)) : -1;
-    int vm = skm < 19 ? (s8)g_rb((u16)(G_MEMBER(i) + G_M_SKILLS + skm)) : 0, vd = skd >= 0 && skd < 19 ? (s8)g_rb((u16)(G_MEMBER(i) + G_M_SKILLS + skd)) : 0;
-    if (vm <= vd) return STD_ATTACK;
-    if (!ns_call(GF_can_fire, 1, i)) return STD_ATTACK;
+    if (!ns_call(GF_can_fire, 1, i)) { if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d cannot shoot (nothing to loose)\n", i); return STD_ATTACK; }
     /* a clear line from where the member stands (line_blocked, s014 1d69:000c, as the order's pointer
        tests it): else the member closes in instead */
     u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
@@ -108,7 +138,55 @@ static int best_attack(int i, int m)
     g_ww(GV_los_x1, g_rw((u16)(D_CBT + m * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(D_CBT + m * 0x80 + 6)));
     int blocked = ns_call(GF_line_blocked, 3, i, m, 0x80);
     g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
+    if (blocked && getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no clear line to %d\n", i, m);
     return blocked ? STD_ATTACK : MISSILE;
+}
+
+/* battle.volley_melee: a member shooting (order Use Missile, 0x80) goes on shooting whatever comes:
+   a foe beside it, a line of fire blocked by the melee, no arrows left - it stands and waits ('b',
+   'e' on the panel) or shoots at point blank until given another order. With this on, after
+   melee_exchanges (s014 0e76:2a4a) each tick: a shooter with a foe within reach of a blow (far
+   20a5:7900) draws its melee weapon and fights it (its own target if that one is beside it), as
+   Std Attack on a foe beside the member gives it (order_mode_leave, s014 19cd:0738: weapon_ready
+   with the default weapon, the target, order 0x12, action 7); one with nothing left to shoot ('e'),
+   or whose line is blocked ('b') while its target is already fighting one of the party, walks to
+   its target and fights it (path_find, path_give, order_queue: the leave's way for a foe further
+   off). The volley before the lines meet is the shooters'; the melee after it is everyone's. */
+static int volley_on(void) { return config_get_int("battle.volley_melee", 1) && !config_get_int("original", 0); }
+static void to_melee(int i, int t, int beside)
+{
+    u16 c = (u16)(D_CBT + i * 0x80);
+    ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + 0x51)), 0);
+    g_wb((u16)(c + 0x4a), (u8)t);
+    if (beside) { g_ww((u16)(c + 0x10), STD_ATTACK); g_wb((u16)(GV_cbt_action + i), 7); }
+    else {
+        g_ww((u16)(c + 8), g_rw((u16)(D_CBT + t * 0x80 + 4))); g_ww((u16)(c + 0x0a), g_rw((u16)(D_CBT + t * 0x80 + 6)));
+        if (ns_call(GF_path_find, 1, i) != 1) { g_ww((u16)(c + 0x10), STD_ATTACK); g_wb((u16)(GV_cbt_action + i), 7); return; }   /* (no way: it fights when the foe comes) */
+        ns_call(GF_path_give, 1, i);
+        g_wb((u16)(GV_cbt_moving + i), 1); g_wb((u16)(GV_cbt_path_step + i), 0);
+        g_ww((u16)(c + 0x10), 1);
+        ns_call(GF_order_queue, 2, i, STD_ATTACK);
+    }
+    g_wb((u16)(GV_cbt_state + i), 0);
+    fprintf(stderr, "orders: member %d puts the missile weapon away for %d (%s)\n", i, t, beside ? "beside it" : "walking to it");
+}
+static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchanges() */
+{
+    hook_call_original();
+    if (ns_unwinding || !volley_on() || g_rb(GV_ai_paused)) return;
+    for (int i = 0; i < 5; i++) {
+        u16 c = (u16)(D_CBT + i * 0x80);
+        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != MISSILE || g_rb((u16)(GV_cbt_moving + i))) continue;
+        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;           /* (told to hold) */
+        int t = (s8)g_rb((u16)(c + 0x4a)), near = -1;
+        for (int j = 5; j < 13; j++)
+            if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { if (near < 0 || j == t) near = j; }
+        if (near >= 0) { to_melee(i, near, 1); continue; }
+        if (t < 5 || t >= 13 || g_rb((u16)(D_CBT + t * 0x80 + 0x14)) != 1) continue;
+        int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;
+        for (int p = 0; p < 5; p++) if (p != i && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + t))) engaged = 1;
+        if (st == 2 || (st == 1 && engaged && !config_get_int("battle.reposition_shooters", 0))) to_melee(i, t, 0);
+    }
 }
 
 /* the order the click now being given should take on what is under (x, y): 0 the game's own */
@@ -119,10 +197,16 @@ static int wants_attack(int x, int y)
     int i = (s8)g_rb(D_SELECTED);
     if (i < 0 || i > 4) return 0;
     int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
-    if (f != 0 && f != 1) return 0;                     /* already fighting: the game's own way */
     int m = topmost(x, y);
     if (m < 5 || m >= 13 || g_rb((u16)(D_CBT + m * 0x80 + 0x14)) != 1) return 0;
-    return best_attack(i, m);
+    if (f == 0 || f == 1) return best_attack(i, m);
+    /* already fighting: the game's own way (the same kind of attack, at the foe clicked), unless the
+       weapon changes - a shooter sent at a foe beside it (or who opens with the melee weapon), or a
+       member fighting hand to hand who opens by shooting, at a foe it can shoot */
+    if (orders_member_mode(i) < 0) return 0;
+    int b = best_attack(i, m);
+    if ((f == MISSILE && b != MISSILE) || ((f & 2) && b == MISSILE)) return b;
+    return 0;
 }
 
 /* battle.click_hint: what a click would do, in words beside the pointer (ui/battleoverlay.cpp), from
@@ -336,4 +420,5 @@ void orders_init(void)
     hook_install(16, 0x1ef8, 0x1590, place_hook);
     hook_install(16, 0x1ef8, 0x156e, attack_hook);
     hook_install(GF_combat_input, input_hook);
+    hook_install(GF_melee_exchanges, melee_hook);
 }

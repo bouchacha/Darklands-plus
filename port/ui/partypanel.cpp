@@ -20,6 +20,7 @@
 #include "nsdraw.h"
 #include "gamepics.h"
 #include "effects.h"
+#include "ordericons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/hle.h"
@@ -214,6 +215,26 @@ static const char *order_word(char c, int place, bool shortw)
     return nullptr;
 }
 
+/* in a battle, on the picture's lower left: how a member with a missile weapon opens a fight, a bow
+   (shoots) or a sword (melee), switched with a click (mods/orders.c, battle.volley); the clicks come
+   through partypanel_click (ui_event), not the game */
+extern "C" int orders_member_mode(int m);
+extern "C" void orders_member_mode_set(int m, int shoot);
+static struct { float x0, y0, x1, y1; int m; } mode_btn[5]; static int mode_btns, mode_btns_frame = -100;
+extern "C" int partypanel_click(int wx, int wy)
+{
+    (void)wx; (void)wy;
+    if (ImGui::GetFrameCount() - mode_btns_frame > 2) return 0;
+    int gx, gy; { void plat_mouse_game(int *x, int *y); plat_mouse_game(&gx, &gy); }
+    for (int k = 0; k < mode_btns; k++)
+        if (gx >= mode_btn[k].x0 && gx <= mode_btn[k].x1 && gy >= mode_btn[k].y0 && gy <= mode_btn[k].y1) {
+            int m = mode_btn[k].m, v = orders_member_mode(m);
+            if (v >= 0) orders_member_mode_set(m, !v);
+            return 1;
+        }
+    return 0;
+}
+
 extern "C" int partypanel_member_at(int gx, int gy)
 {
     if (!shown_now || gx < 0 || gx >= 60 || gy < 0 || gy >= 200) return -1;
@@ -326,6 +347,22 @@ extern "C" void partypanel_draw(void)
                 P.dl->AddCircleFilled(NsDraw::w(hx, hy + 1.2f), 0.9f * P.k, ring);                                                /* a head under it */
                 if (P.over(hx - r - 0.5f, hy - r - 0.5f, hx + r + 0.5f, hy + r + 0.5f))
                     ImGui::SetTooltip("In effect on %s:%s", name.c_str(), tip.c_str());
+            }
+        }
+        /* shoot or melee (battle.volley): a bow or a sword on the picture's lower left */
+        if (battle && !out && st == 1 && config_get_int("battle.volley_toggle", 1)) {
+            int mode = orders_member_mode(m);
+            if (mode >= 0) {
+                float bx = px0 + 3.6f, by = py1 - 3.8f, r = 3.3f;
+                bool hov = P.over(bx - r, by - r, bx + r, by + r);
+                P.dl->AddCircleFilled(NsDraw::w(bx, by), (r + 0.5f) * P.k, hov ? IM_COL32(150, 112, 56, 245) : IM_COL32(18, 13, 9, 230));
+                P.dl->AddCircle(NsDraw::w(bx, by), (r + 0.5f) * P.k, IM_COL32(170, 132, 70, 255), 0, fmaxf(1.0f, 0.35f * P.k));
+                ui_draw_order_icon(P.dl, NsDraw::w(bx, by), r * 1.9f * P.k, mode ? OI_MISSILE : OI_ATTACK);
+                if (mode_btns_frame != ImGui::GetFrameCount()) { mode_btns = 0; mode_btns_frame = ImGui::GetFrameCount(); }
+                if (mode_btns < 5) mode_btn[mode_btns++] = { bx - r, by - r, bx + r, by + r, m };
+                if (hov) ImGui::SetTooltip(mode ? "%s opens with the missile weapon: a click on an enemy makes %s shoot while the line is clear,\nthen fight hand to hand once the enemies close in. Click here: melee from the start."
+                                                : "%s opens with the melee weapon: a click on an enemy makes %s close in and fight hand to hand.\nClick here: shoot first, then fight hand to hand once the enemies close in.",
+                                           name.c_str(), name.c_str());
             }
         }
         if (st == 3) {

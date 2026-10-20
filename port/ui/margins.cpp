@@ -354,6 +354,7 @@ static int potion_of(const std::string &name, const char *key, int *q)
         }
     return -1;
 }
+extern int ui_battle_info;                       /* ui/battleoverlay.cpp: battle.info */
 static void order_buttons(float width)
 {
     order_btns.clear();
@@ -381,7 +382,11 @@ static void order_buttons(float width)
                 std::string label = game_text(e.name, strlen(e.name));
                 if (s2 >= 0) label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + label;
                 int pq = -1, pid = s2 >= 0 ? potion_of(game_text(e.name, strlen(e.name)), e.key, &pq) : -1;
-                int oi = pid < 0 && config_get_int("battle.order_icons", 1) ? ui_order_icon_for(game_text(e.name, strlen(e.name)).c_str()) : OI_NONE;
+                int kind = s2 < 0 ? ui_order_icon_for(game_text(e.name, strlen(e.name)).c_str()) : OI_NONE;
+                /* (not what is at hand otherwise: Enemy Info when pointing at an enemy tells it, and
+                   "<name> finished" when a click gives the order) */
+                if ((kind == OI_INFO && ui_battle_info) || (kind == OI_DONE && config_get_int("battle.quick_orders", 1))) continue;
+                int oi = pid < 0 && config_get_int("battle.order_icons", 1) ? kind : OI_NONE;
                 if (e.key[0] && pid < 0) label += std::string(" (") + e.key + ")";      /* (a potion's quality: the dots on its picture) */
                 float iw = pid >= 0 || oi != OI_NONE ? lh * 1.15f : 0;   /* (a potion: its picture, with its grade; an order: ui/ordericons.cpp) */
                 ImVec2 ts = ImGui::CalcTextSize(label.c_str());
