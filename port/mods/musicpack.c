@@ -4,7 +4,7 @@
  * a piece by number with sound_play(n) (root 047c:078a; music_play(n), s043 1462:09ae, asks
  * only while the music is on). Every driver (Roland, Sound Blaster, AdLib, PC speaker) knows
  * the same numbers:
- *   0 reset, 1 stop (fading), 2 pause, 3 go on, 5 which piece is playing, 6 silence,
+ *   0 reset, 1 stop at once, 2 pause (mute and hold), 3 go on, 5 which piece is playing, 6 fade out,
  *   8-47 pieces (a new one replaces the last one; 33 and 34 are short sounds over it; 47 is
  *   the opening, 45 the ending), 48-59 settings sent to the synthesizer (no music).
  * (The driver's table of handlers is at 0f4c in RSOUND.DLC; a piece loads its instruments,
@@ -366,8 +366,8 @@ void musicpack_cmd(int n)
     else if (n == 0 || n == 1 || n == 6) last_song = -1;
     if (!musicpack_on || !nfiles) { if (owns || st[0].on || st[1].on || st[2].on) stop_all(0.3f, 1); return; }
     switch (n) {
-    case 0: case 6: stop_all(0.1f, 0); return;   /* the driver's piece stops too (slowly with 1): heard no more */
-    case 1: stop_all(1.5f, 0); return;
+    case 0: case 1: stop_all(0.1f, 0); return;   /* the driver's piece stops too (gradually with 6): heard no more */
+    case 6: stop_all(1.5f, 0); return;
     case 2: case 3:
         sound_lock(1); for (int k = 0; k < 3; k++) st[k].paused = n == 2; sound_lock(0);
         return;
