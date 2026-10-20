@@ -100,7 +100,7 @@ static void details(int ti)
     ImGui::Text("Kind: %s (picture group %s)", str_at(t + 4, 10).c_str(), str_at(t, 4).c_str());
     std::string names;
     for (int e = 0; e < NE; e++) { const unsigned char *r = foe_rec(e); if ((r[0] | r[1] << 8) == ti) names += (names.empty() ? "" : ", ") + game_text((const char *)r + 2, strnlen((const char *)r + 2, 12)); }
-    if (!names.empty()) ImGui::TextWrapped("Met as: %s", names.c_str());
+    if (!names.empty()) ImGui::TextWrapped("Enemies of this kind: %s", names.c_str());
     int hv = hardness(t[0x92]), hl = hardness(t[0x93]);
     static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
     std::string va = item_name(t[0x92], t[0x94], "natural armour"), la = item_name(t[0x93], t[0x95], "natural armour");
@@ -129,12 +129,9 @@ void bestiary_tab(void)
     if (!loaded) load();
     if (enm.empty()) { ImGui::TextWrapped("%s", msg.c_str()); return; }
     const bool edit = ui_modding();
-    ImGui::TextWrapped(edit ? "Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "
-                              "the difficulty). Click a name for its armour and weapons. The numbers can be changed and saved into a "
-                              "mod folder; kinds are shared, so a change applies to every foe of that kind."
-                            : "Every foe of the game with its numbers as the game file has them (a fight adds the luck of the dice and "
-                              "the difficulty). Point at a name for its picture; click it for its armour and weapons.");
-    ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##eflt", "find a foe", filter, sizeof filter);
+    ImGui::TextWrapped(edit ? "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Click a name to see its armour and weapons. The numbers can be changed and saved into a mod folder; enemies of one kind share their numbers, so a change applies to every enemy of that kind."
+                            : "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Point at a name to see its picture; click it to see its armour and weapons.");
+    ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##eflt", "find an enemy", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < NT; i++) if (memcmp(type_rec(i), &orig[(size_t)i * TSZ], TSZ)) changed++;
     if (edit) { ImGui::SameLine(); ImGui::TextDisabled("%d kind%s changed", changed, changed == 1 ? "" : "s"); }
     float namew = 0;                                          /* the name column as wide as the longest name */
@@ -143,7 +140,7 @@ void bestiary_tab(void)
     if (ImGui::BeginTable("foes", 17, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - (open_type >= 0 ? UIS(270) : edit ? UIS(80) : UIS(10))))) {
         /* the numbers' headings at a slant, so that the columns can be narrow and the names whole */
-        ImGui::TableSetupColumn("Foe", ImGuiTableColumnFlags_WidthFixed, namew + UIS(16));
+        ImGui::TableSetupColumn("Enemy", ImGuiTableColumnFlags_WidthFixed, namew + UIS(16));
         for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(gm_attr_name(a), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(gm_skill_short(k), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         ImGui::TableSetupColumn("Armour quality", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
@@ -230,7 +227,7 @@ void bestiary_tab(void)
     if (!edit) return;
     static char modname[64] = "My foes";
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputText("##enmmod", modname, sizeof modname); ImGui::SameLine();
-    if (ImGui::Button("Save the foes into this mod folder") && modname[0]) {
+    if (ImGui::Button("Save the enemies into this mod folder") && modname[0]) {
         char w[1300]; int r = datamods_new(modname, w, sizeof w);
         std::string p = std::string(w) + "/DARKLAND.ENM";
         FILE *f = r < 0 ? nullptr : fopen(p.c_str(), "wb");

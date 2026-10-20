@@ -115,8 +115,8 @@ extern "C" void rosterview_draw(void)
             "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumours, the streets at night",
             "riding: faster travel, mounted fights", "the wilds: finding the way, hunting, tracking, keeping out of danger" };
         const float SY = 75.5f, CX0 = 52, CW = (316 - CX0) / 12.0f;
-        P.text(fo, 4.4f, 6, SY + 1.2f, soft, "The party at its best");
-        std::string desc = r.party_n ? "Each skill's best member. Point at one for what it is for." : "Add characters to the party to see its skills together.";
+        P.text(fo, 4.4f, 6, SY + 1.2f, soft, "The party's best skills");
+        std::string desc = r.party_n ? "Each skill's best level in the party. Point at one to see what it is for." : "Add characters to the party to see its skills together.";
         for (int i = 0; i < 12; i++) {
             int k = PK[i], best = -1, who = -1;
             for (int s = 0; s < 4; s++) { int c = r.slot_char[s]; if (c >= 0 && c < r.n && r.ch[c].skill[k] > best) { best = r.ch[c].skill[k]; who = c; } }
@@ -141,7 +141,7 @@ extern "C" void rosterview_draw(void)
     P.rect(LX0, LY0, LX1, LY1, PANEL, 1.8f);
     snprintf(b, sizeof b, "Characters (%d)", r.n);
     P.text(f, NsDraw::FS_HEAD, LX0 + 3, LY0 + 2, ink, b);
-    P.text(fo, 3.9f, 0, LY0 + 3.6f, dim, "double-click: add / drop", LX1 - 3);
+    P.text(fo, 3.9f, 0, LY0 + 3.6f, dim, "double-click: add / remove", LX1 - 3);
     const float RH = 8.4f, RY0 = LY0 + 11;
     int rows = (int)((LY1 - 1 - RY0) / RH);
     if (P.over(LX0, RY0, LX1, LY1) && ns_in.wheel != 0) { scroll -= ns_in.wheel; ns_in.wheel = 0; }
@@ -220,7 +220,7 @@ extern "C" void rosterview_draw(void)
         /* what can be done */
         float bx = x, by = DY1 - 22, bh = 9;
         if (slot >= 0) {
-            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Stays here") : std::string("Remove from the party"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
+            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Leave at the inn") : std::string("Remove from the party"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
             if (P.button(bx + 42, by, bx + 72, by + bh, "Sheet", BROWN)) ns_push(RV_SHEET, slot, 0, 0);
         } else if (P.button(bx, by, bx + 72, by + bh, std::string("Add to the party"), r.party_n >= 4 ? GREY : GREEN)) ns_push(RV_KEY, K_ADD, 0, 0);
         bool asking = del_ask == r.sel && plat_ticks_ms() - del_t < 4000;
@@ -245,7 +245,7 @@ extern "C" void rosterview_draw(void)
                 if (P.over(cx, by, cx + 9, by + bh) && !tip.empty()) P.text(fo, 3.9f, 0, by - 5, dim, tip, DX1 - 3);
                 cx += 10.5f;
             }
-        } else P.text(fo, 4.0f, bx, by + 2, dim, "Sprite, heraldry and colours: once in the party.");
+        } else P.text(fo, 4.0f, bx, by + 2, dim, "Add to the party to set sprite, heraldry and colours.");
     } else P.text(fo, NsDraw::FS_SMALL, DX0 + 4, DY0 + 4, soft, r.n ? "Choose a character on the left." : "");
 
     /* along the bottom */

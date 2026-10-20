@@ -67,7 +67,7 @@ extern "C" void savesview_draw(void)
 
     float LY0 = 22;
     if (!S.loading) {
-        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft, "Its name (22 letters at most):");
+        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft, "Save name (up to 22 characters):");
         P.rect(64 + L, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
         P.frame(64 + L, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
         std::string c = S.comment;
@@ -78,8 +78,8 @@ extern "C" void savesview_draw(void)
             P.rect(cx, 24.5f, cx + 0.6f, 31.5f, ink);
         }
         LY0 = 40;
-        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "The saves there are");
-        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft, S.sel >= 0 ? "a click on it again: it stays" : "a click on one: this save takes its place", 316);
+        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "Existing saves");
+        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft, S.sel >= 0 ? "click it again to keep it" : "click one to replace it with this save", 316);
         LY0 += 5;
     }
     else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft, "Double-click a save to load it.");
@@ -127,10 +127,10 @@ extern "C" void savesview_draw(void)
         P.text(fo, NsDraw::FS_SMALL, tx, y + 8.6f, dim, line, -1, X1 - 60);
         std::string tag = ago(v.mtime);
         if (v.battle) tag = "in a battle, " + tag;
-        if (cur) tag = (S.loading ? "the last loaded or saved, " : "the last, ") + tag;
+        if (cur) tag = (S.loading ? "the last loaded or saved, " : "the last used, ") + tag;
         ImU32 tc = cur ? NsDraw::GREEN : dim;
-        if (sel && !S.loading) { tag = "this save takes its place"; tc = IM_COL32(150, 40, 22, 255); }
-        if (armed) { tag = "deleted for good: click again"; tc = IM_COL32(150, 40, 22, 255); }
+        if (sel && !S.loading) { tag = "will be replaced by this save"; tc = IM_COL32(150, 40, 22, 255); }
+        if (armed) { tag = "click again to delete it for good"; tc = IM_COL32(150, 40, 22, 255); }
         P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, tc, tag, X1 - 3);
         if (!del_hit && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
             u32 now = plat_ticks_ms();

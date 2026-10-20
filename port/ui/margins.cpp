@@ -186,11 +186,11 @@ static void place_quests(int cur);
  * no tooltip can show: the world map's tooltip on a town). */
 static const char *TOWN_OFFER_TIP[6] = {
     "University: new saints and alchemical formulae to learn, rare alchemical materials, a better philosopher's stone, teachers to hire (it expects Latin and a sharp mind).",
-    "Cathedral: donations for divine favor (and maybe virtue), a relic from the canon, the patron saint's story, sanctuary.",
-    "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in alchemy.",
-    "A physician: wounds treated for a fee, lessons in healing, alchemical components bought and sold.",
-    "Docks: boats to other towns, for a fee (each on the day it leaves).",
-    "A bank (Fugger or Medici): heavy coin into a bank note that weighs nothing, and back, for a charge; tasks for the bold." };
+    "Cathedral: donations for Divine Favor (and maybe Virtue), a relic from the canon, the patron saint's story, sanctuary.",
+    "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in Alchemy.",
+    "A physician: wounds treated for a fee, lessons in Healing, alchemical components bought and sold.",
+    "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
+    "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; tasks for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
     { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
@@ -227,7 +227,7 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
         if (q < NOTABLE_Q || (s.shop == 8 && !fix_is_on("cardopts"))) continue;
         if (!head) { ImGui::Spacing(); if (words) ImGui::TextDisabled("Notable shops"); else heading("Notable shops"); head = true; first = true; }
         char t[48], tip[160]; snprintf(t, sizeof t, words ? "%s %dq" : "%.0s%dq", SHOP_NAMES[s.shop], q);
-        snprintf(tip, sizeof tip, "%s: %s of %dq (most shops' are about 25q).", SHOP_NAMES[s.shop], s.wares, q);
+        snprintf(tip, sizeof tip, "%s: %s of %dq (most shops sell about 25q).", SHOP_NAMES[s.shop], s.wares, q);
         chip(first, s.icon, t, tip);
     }
 }
@@ -251,7 +251,7 @@ static void library_line(int loc)
         const std::string &t = gamedata.saints[s].name;
         name_line(t, known);
         if (item_hovered()) {
-            std::string tip = gamedata.saints[s].name + (known ? " (known in the party): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
+            std::string tip = gamedata.saints[s].name + (known ? " (someone in the party knows this saint): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
             margin_tip(tip.c_str());
         }
     }
@@ -275,7 +275,7 @@ static void formulae_line(int town)
         if (item_hovered()) {
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
             char head[160]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florin%s%s. ", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k], pr[k] == 1 ? "" : "s",
-                                     known ? " (known in the party)" : " (nobody in the party knows it)");
+                                     known ? " (someone in the party knows it)" : " (nobody in the party knows it)");
             std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
             margin_tip(tip.c_str());
         }
@@ -293,7 +293,7 @@ static void teachers_lines(int loc)
     ImGui::Spacing(); heading("Teachers to be hired");
     if (!hired.empty()) {
         ImGui::TextDisabled("At the inn now:"); ImGui::SameLine(); ImGui::TextWrapped("%s", hired.c_str());
-        if (item_hovered()) margin_tip("Hired teachers: at the inn, \"Train or study\", a lesson a day for a fee.");
+        if (item_hovered()) margin_tip("Hired teachers give lessons at the inn: set a member to \"Train or study\" there, a lesson a day, for a fee.");
     }
     for (int k = 0; k < n; k++) {
         const TchSource &s = ts[k];
@@ -417,12 +417,12 @@ static void foes_left_section(void)
     for (int f = 0; f < fl.floors; f++) if (f != fl.floor && fl.known[f]) others += fl.foes[f];
     if (fl.floors <= 1 && !here) return;                     /* (an open field with no one waiting: nothing to say) */
     ImGui::Spacing();
-    heading("Not yet met");
+    heading("Enemies not yet met");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
     if (!here && !others) ImGui::TextWrapped("No one else waits in this place.");
     else {
-        if (here && fl.floors <= 1) ImGui::TextWrapped("Here: %d more %s, in %d %s.", here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
-        else if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "foe" : "foes", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        if (here && fl.floors <= 1) ImGui::TextWrapped("Here: %d more %s, in %d %s.", here, here == 1 ? "enemy" : "enemies", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
+        else if (here) ImGui::TextWrapped("On this floor (%d): %d %s, in %d %s.", fl.floor + 1, here, here == 1 ? "enemy" : "enemies", fl.groups[fl.floor], fl.groups[fl.floor] == 1 ? "group" : "groups");
         else ImGui::TextWrapped("No one on this floor (%d).", fl.floor + 1);
         std::string o;
         for (int f = 0; f < fl.floors; f++) {
@@ -510,8 +510,8 @@ static void battle_panel(float width, float fs)
     if (!shown) {
         ImGui::TextDisabled("None in sight yet.");
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), a click on a door, a passage or stairs walks the party there%s.",
-                           !levelmap_available() ? "" : config_get_int("assist.level_map_walk", 1) ? "; Tab shows the level as far as seen, and a click on it walks the party there" : "; Tab shows the level as far as seen");
+        ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s.",
+                           !levelmap_available() ? "" : config_get_int("assist.level_map_walk", 1) ? "; Tab shows a map of the level as far as the party has seen it, and a click on the map walks the party there" : "; Tab shows a map of the level as far as the party has seen it");
         ImGui::PopStyleColor();
     }
     else if (down == shown) {
@@ -565,7 +565,7 @@ static void right_panel(int size)
         heading(((near ? "Near " : "") + c.name).c_str());
         if (!near && citynav_available() && config_get_int("assist.city_goto", 1)) {   /* (a click opens it too: the controller has no G) */
             ImGui::TextDisabled(ui_pad_prompts() ? "Go to a place here" : "G: go to a place here");
-            if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("A click (or G) opens Go to: a list of the places in this town; the party walks there."); }
+            if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there."); }
             if (ImGui::IsItemClicked()) ui_open_goto();
         }
         /* the location table is read while a card or the map is up; battles and their loot
@@ -590,7 +590,7 @@ static void right_panel(int size)
             ImGui::Indent(is + lh * 0.3f);
             ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
             if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
-                                                                                       : "The watch is after the party: guards who recognise it try to arrest it, and talking or bribing one's way out is harder.");
+                                                                                       : "The watch is after the party: guards who recognise the party try to arrest it, and talking or bribing your way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
         {   /* a season of city politics (mods/politics.c, experimental): the town in turmoil, until the party takes a side
@@ -614,10 +614,10 @@ static void right_panel(int size)
                 ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, QC_WAR);
                 ImGui::Indent(is + lh * 0.3f);
                 ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s", w == 1 ? "Preparing for war" : "At war");
-                if (item_hovered()) margin_tip(w == 1 ? "Prices are a quarter higher, the gate turns wayfarers away and patrols watch the walls; "
+                if (item_hovered()) margin_tip(w == 1 ? "Prices are a quarter higher, the gate turns travellers away and patrols watch the walls; "
                                                         "Soldiers' Road and its market are open, and few boats take passengers."
-                                                      : "Prices are half again as high, food is short and the docks are barricaded; "
-                                                        "the gate turns wayfarers away and patrols watch the walls. Soldiers' Road and its market are open.");
+                                                      : "Prices are 50% higher, food is short and the docks are barricaded; "
+                                                        "the gate turns travellers away and patrols watch the walls. Soldiers' Road and its market are open.");
                 ImGui::Unindent(is + lh * 0.3f);
             }
         }
@@ -786,9 +786,9 @@ static void night_streets(bool night)
         if (k <= 0) snprintf(often, sizeof often, "hardly ever");
         else if (k >= 10) snprintf(often, sizeof often, "almost always");
         else snprintf(often, sizeof often, "about %d time%s in 10", k, k == 1 ? "" : "s");
-        snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move in its streets may meet the night watch (more often on the main street, "
-                 "and where the town is on its guard). Leaving a side street the party slips past cutthroats %s "
-                 "(the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
+        snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, "
+                 "and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s "
+                 "(depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
                  often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Helpers" : "");
         margin_tip(b);
     }
@@ -847,7 +847,7 @@ extern "C" void ui_margins(void)
             char bell[24]; gm_hour_name(hour, bell, sizeof bell);
             ImGui::TextDisabled("%d:00, %s", hour, bell);
             if (item_hovered()) {
-                std::string t = std::string("The canonical hours, as the game's people tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11, "
+                std::string t = std::string("The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11, "
                                             "Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23. ") +
                                 (night ? "It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats." : "It is day (from 5:00 to 19:00).");
                 margin_tip(t.c_str());
@@ -869,7 +869,7 @@ extern "C" void ui_margins(void)
         tasks_section(tables);
         {   /* the hints, at the foot of the margin (always in the same place) */
             const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
-            char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
+            char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right-click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
             const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > Guide.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
             float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0) + sp * 2;

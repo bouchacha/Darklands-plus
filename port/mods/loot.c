@@ -102,9 +102,9 @@ static void take_all(int share)
     if (redraw) { u16 a[1] = { (u16)cur }; game_call_live(redraw, 1, a); }
     int left = pile_units();
     char msg[160];
-    if (!taken && left) snprintf(msg, sizeof msg, share ? "Nobody has room: everyone carries 64 kinds of things already."
-                                                        : "No room: this person carries 64 kinds of things already (S shares it out).");
-    else if (left) snprintf(msg, sizeof msg, "%s %d; %d left in the pile (no room for more kinds of things).", share ? "Shared out" : "Took", taken, left);
+    if (!taken && left) snprintf(msg, sizeof msg, share ? "Nobody has room: every member already carries 64 kinds of items."
+                                                        : "No room: this member already carries 64 kinds of items (S shares the pile out among the party).");
+    else if (left) snprintf(msg, sizeof msg, "%s %d; %d left in the pile (no room for more kinds of items).", share ? "Shared out" : "Took", taken, left);
     else snprintf(msg, sizeof msg, share ? "Shared out all %d." : "Took all %d.", taken);
     ui_notice(msg);
     if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: %s\n", msg);
@@ -287,7 +287,7 @@ static void barter_many(int buy)
         }
         snprintf(msg, sizeof msg, n ? "Bought %d." : "Bought none: not enough money, or no room.", n);
     } else {
-        if (g_rw((u16)(B_SIDE + 2 * m))) { ui_notice("Point at one of your own things first (the lower list)."); return; }
+        if (g_rw((u16)(B_SIDE + 2 * m))) { ui_notice("Point at one of your own items first (the lower list)."); return; }
         int idx = (s16)g_rw((u16)(B_TOP + 2 * m)) + (s16)g_rw((u16)(B_SEL + 2 * m));
         if (idx < 0 || idx >= g_rb((u16)(G_MEMBER(m) + G_M_NITEMS))) return;
         u16 o = G_ITEM(m, idx), id = rw(G_FAR2E38, o);

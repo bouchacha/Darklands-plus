@@ -45,7 +45,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 1 },   /* 6 St.Alexis */
     { "Endurance +6 to 11, Charisma +8 to 15.",
-      "The reputation in Scotland or Russia: places not in the game.",
+      "No reputation in Scotland or Russia, which are not in the game.",
       0, 0, 0, 0 },   /* 7 St.Andrew */
     { "Edged, Impact, Polearms, Thrown and Bows +15 to 29.",
       "",
@@ -77,20 +77,20 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Charisma and Perception +1 to 15, Speak Common +10 to 29.",
       "",
       0, 0, 0, 12 },   /* 17 St.Catherine of Siena */
-    { "Charisma +3 to 10. If the one prayed for carries a musical instrument, it may raise the reputation of the town the party is in (on the map: the nearest) by 20 to 59.",
+    { "Charisma +3 to 10. If the one prayed for carries a musical instrument, the reputation of the town the party is in (on the map: the nearest) may rise by 20 to 59.",
       "",
       0, 0, 0, 7 },   /* 18 St.Cecilia */
     { "Perception and Intelligence +3 to 5, Strength +6 to 11, every weapon skill and Latin +6 to 11.",
       "",
       0, 0, 0, 0 },   /* 19 St.Ceolwulf */
     { "@FIRE1 May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Flails +15 to 29.",
-      "Not in the text: Flails and the reputation. The fire protection is for the one prayed for only (the text: everyone, and one person greatly), and no Endurance is healed.",
+      "Flails and the reputation are not in the text. The fire protection is only for the one prayed for (the text promises it to everyone, and much more to one person), and no Endurance is healed.",
       "Fire protection 50 for every member, 90 for the one prayed for. Heals 10% of lost Endurance.", "", 1, 3 },   /* 20 St.Charity */
     { "Agility +8 to 15, Charisma +1 to 10.",
       "",
       0, 0, 0, 8 },   /* 21 St.Christina, Astonish. */
     { "Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11.",
-      "Not in the game: faster travel, and the Strength and Endurance restored.",
+      "No faster travel, and no Strength or Endurance restored.",
       "The party travels half again as fast for a week (fewer days on the road). Heals 10% of lost Strength and 20% of lost Endurance. Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11.", "", 0, 1 },   /* 22 St.Christopher */
     { "Heals all lost Endurance and Strength.",
       "",
@@ -120,13 +120,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 31 St.David */
     { "Heals all lost Strength. Charisma +15 to 44, Speak Common +25 to 49.",
-      "The reputation in Paris and France: places not in the game.",
-      "Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49.", "The reputation in Paris and France: places not in the game.", 0, 0 },   /* 32 St.Denis */
+      "No reputation in Paris and France, which are not in the game.",
+      "Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49.", "No reputation in Paris and France, which are not in the game.", 0, 0 },   /* 32 St.Denis */
     { "Heals 30% of lost Endurance. Strength +5 to 14, the skills of the weapons in hand +20 to 59.",
       "",
       0, 0, 0, 0 },   /* 33 St.Derfel Gadarn */
     { "Heals all lost Endurance and 20% of lost Strength. Charisma +15 to 29.",
-      "The reputation in Corsica and Monaco: places not in the game.",
+      "No reputation in Corsica and Monaco, which are not in the game.",
       0, 0, 0, 4 },   /* 34 St.Devota */
     { "Agility +10 to 19, Woodwise and Stealth +10 to 19, Streetwise and Artifice +20 to 39.",
       "Only the one prayed for, not the entire party; no Charisma or Speak Common.",
@@ -162,7 +162,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "Fire protection 50 for every member. Agility and Perception +6 to 11.", "", 1, 2 },   /* 45 St.Erasmus */
     { "Strength +8 to 23, Charisma +4 to 7, the skills of the weapons in hand +15 to 24, Riding and Speak Common +6 to 11.",
-      "The reputation in Sweden: a place not in the game.",
+      "No reputation in Sweden, which is not in the game.",
       0, 0, 0, 6 },   /* 46 St.Eric */
     { "Riding +10 to 19, Woodwise +40 to 69, Edged, Thrown and Bows +6 to 11.",
       "Not in the game: faster travel through woods. The weapon skills are only Edged, Thrown and Bows.",
@@ -237,14 +237,14 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 70 St.Illtyd */
     { "Charisma +8 to 15, Streetwise +10 to 19, Speak Common +5 to 9.",
-      "The reputation in Madrid and Spain: places not in the game.",
+      "No reputation in Madrid and Spain, which are not in the game.",
       0, 0, 0, 2 },   /* 71 St.Isidore */
     { "Heals 50% of lost Endurance and all lost Strength. Charisma +8 to 15, Healing +20 to 39.",
       "",
       0, 0, 0, 0 },   /* 72 St.Ita */
     { "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34.",
-      "The reputation in Spain: a place not in the game; no Intelligence lost.",
-      "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence lowered by 3 to 5.", "The reputation in Spain: a place not in the game.", 0, 0 },   /* 73 St.James */
+      "No reputation in Spain, which is not in the game; no Intelligence lost.",
+      "Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence lowered by 3 to 5.", "No reputation in Spain, which is not in the game.", 0, 0 },   /* 73 St.James */
     { "No help of its own: its powers work only where an encounter calls for it.",
       "",
       0, 0, 0, 3 },   /* 74 St.Januarius */
@@ -312,7 +312,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19.", "", 0, 0 },   /* 95 St.Maurice */
     { "May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.",
-      "In combat it raises the skills of the weapons in hand, not the weapons and armour.",
+      "In combat it raises the skills of the weapons in hand, not the quality of the weapons and armour.",
       "Every member's weapon and armour count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "", 1, 0 },   /* 96 St.Michael */
     { "Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land.",
       "",
@@ -322,7 +322,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 1 },   /* 98 St.Moses the Black */
     { "May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Endurance +4 to 8, Flails +15 to 29.",
       "Flails and Endurance instead of Agility and Riding; the reputation anywhere, not only in his lands.",
-      "May raise the reputation in Nancy (Lorraine) by 10 to 19. Agility and Charisma +6 to 11, Riding +40 to 79.", "The reputation in Russia, Greece, Sicily and Apulia: places not in the game.", 0, 2 },   /* 99 St.Nicholas */
+      "May raise the reputation in Nancy (Lorraine) by 10 to 19. Agility and Charisma +6 to 11, Riding +40 to 79.", "No reputation in Russia, Greece, Sicily and Apulia, which are not in the game.", 0, 2 },   /* 99 St.Nicholas */
     { "May raise the reputation by 15 to 24 in Strassburg or Basel (nowhere else). Perception +6 to 11.",
       "",
       0, 0, 0, 2 },   /* 100 St.Odilia */
@@ -333,13 +333,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 102 St.Olaf */
     { "@FIRE1 Heals 30% of lost Endurance and 30% of lost Strength. Charisma +6 to 11, Alchemy +10 to 19, Healing +15 to 29. The party can cross water as if it were land.",
-      "Fire protection for the one prayed for (not the party), and the crossing of water, not in the text; nothing against animals.",
+      "The fire protection is only for the one prayed for, not the party; the crossing of water is not in the text; nothing against animals.",
       "Fire protection 50 for every member. One who wears armour has 30% of lost Endurance and Strength healed. Alchemy +10 to 19, Healing +15 to 29.", "Nothing against animals.", 1, 5 },   /* 103 St.Pantaleon */
     { "Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. @ARM2",
       "The armour is against every blow, not only missiles.",
       "Armour two levels thicker against missiles. Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29.", "", 1, 0 },   /* 104 St.Patrick */
     { "@PAUL",
-      "The reputation in Greece and Malta: places not in the game.",
+      "No reputation in Greece and Malta, which are not in the game.",
       0, 0, 0, 0 },   /* 105 St.Paul */
     { "@SIMPLE",
       "",
@@ -379,7 +379,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Heals 10% of lost Endurance and Strength. Agility +12 to 19, Bows +20 to 39, the other weapon skills +6 to 11, Riding +10 to 19.", "", 0, 2 },   /* 117 St.Sebastian */
     { "Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39.",
       "No reputation in its help (Poland and Cracow: no such places in the game).",
-      "May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39.", "The reputation in Cracow: a place not in the game.", 0, 0 },   /* 118 St.Stanislaus */
+      "May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39.", "No reputation in Cracow, which is not in the game.", 0, 0 },   /* 118 St.Stanislaus */
     { "In Pressburg, may raise the reputation by 15 to 24. Charisma +6 to 11, Intelligence +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19.",
       "",
       0, 0, 0, 0 },   /* 119 St.Stephen */
@@ -439,8 +439,8 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
     int arm = fix_is_on("armourday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
     (void)s;
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
-        fire ? "Meant as protection against fire: written where the battle reads armour, for good (it does nothing with the fire protection fix)."
-             : "Meant as protection against fire: armour +32 for good, for the one prayed for (where the battle reads armour).";
+        fire ? "Meant as protection against fire, but the code writes it into the armour, for good (with the fire protection fix on, it does nothing)."
+             : "Meant as protection against fire, it gives the one prayed for armour +32 in battle instead, for good.";
     if (!strcmp(tok, "CRISPIN")) return arm ? "Every member's worn armour counts 10 points better in quality."
                                             : "Every member's worn body and leg armour +10 quality, for good, piling up with each prayer.";
     if (!strcmp(tok, "ARM1")) return arm ? "Armour one level thicker." : "Armour one level thicker, for good, piling up.";
@@ -482,8 +482,8 @@ const char *saint_info_does(int s)
 const char *saint_info_unlike(int s)
 {
     if (s < 0 || s >= SAINT_INFO_N) return "";
-    if (s == 105 && !fix_is_on("pauls")) return "This is the help the texts and the manual give St. Paul the Simple: the two Pauls are mixed up (the \"pauls\" fix).";
-    if (s == 106 && !fix_is_on("pauls")) return "This is St. Thomas Aquinas's help: the two Pauls are mixed up (the \"pauls\" fix).";
+    if (s == 105 && !fix_is_on("pauls")) return "This is the help the texts and the manual give St. Paul the Simple: the two Pauls are mixed up (the fix \"The two St. Pauls do what their texts say\" sets this right).";
+    if (s == 106 && !fix_is_on("pauls")) return "This is St. Thomas Aquinas's help: the two Pauls are mixed up (the fix \"The two St. Pauls do what their texts say\" sets this right).";
     return st(s) ? INFO[s].st_unlike : INFO[s].unlike;
 }
 

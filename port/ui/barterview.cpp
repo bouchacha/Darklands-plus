@@ -103,7 +103,7 @@ extern "C" void barterview_draw(void)
     }
     if (!can_formulae) V.formulae = false;
     else {
-        const char *lab = V.formulae ? "Your things" : "Formulae";
+        const char *lab = V.formulae ? "Your items" : "Formulae";
         float bx1 = LX1, bx0 = bx1 - W(fo, NsDraw::FS_SMALL, lab) - 6;
         if (P.button(bx0, 20.5f, bx1, 28.5f, lab, IM_COL32(120, 84, 40, 235))) { V.formulae = !V.formulae; V.fscroll = 0; }
     }
@@ -125,7 +125,7 @@ extern "C" void barterview_draw(void)
             }
             if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.8f * k, IM_COL32(214, 172, 60, 255));
             else dl->AddCircle(g2w(x + 3.5f, 24), 1.8f * k, coin_h ? IM_COL32(214, 172, 60, 255) : sel ? IM_COL32(250, 236, 200, 110) : IM_COL32(120, 90, 40, 110), 0, fmaxf(1.0f, 0.4f * k));
-            if (coin_h && m != b.payer) ImGui::SetTooltip("%s pays from now on", nm.c_str());
+            if (coin_h && m != b.payer) ImGui::SetTooltip("Click to have %s pay from now on", nm.c_str());
             if (click && in(cx, cy, x, 19, x + 7, 29)) ns_push(BV_PAYER, m, 0, 0);
             else if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
             if (P.rclick && in(mx, my, x, 19, x + tw - 1, 29)) ns_push(BV_PAYER, m, 0, 0);
@@ -262,8 +262,8 @@ extern "C" void barterview_draw(void)
                 if (P.button(bx - bw, y + 1.2f, bx, y + 8.2f, lab, en ? (cost > b.total_pf ? IM_COL32(140, 60, 40, 200) : IM_COL32(40, 92, 34, 235)) : IM_COL32(150, 136, 112, 140)) && en)
                     for (auto &bb : buys) ns_push(BV_BUY, bb.first, bb.second, 0);
                 if (in(mx, my, bx - bw, y + 1.2f, bx, y + 8.2f))
-                    V.fnote = buys.empty() ? (!ok ? "Not sold here: " + notsold + "; the rest the party has." : "The party has enough for that already.") :
-                              "Buys " + list + " for " + money(cost) + (cost > b.total_pf ? " (more than the purse holds)" : "") + "; to " + to + "." +
+                    V.fnote = buys.empty() ? (!ok ? "Not sold here: " + notsold + "; the party has the rest." : "The party has enough for that already.") :
+                              "Buys " + list + " for " + money(cost) + (cost > b.total_pf ? " (more than the purse holds)" : "") + "; they go to " + to + "." +
                               (!ok ? " Not sold here (to find elsewhere): " + notsold + "." : "");
                 bx -= bw + 1.5f;
             }
@@ -275,7 +275,7 @@ extern "C" void barterview_draw(void)
                     d += (gi ? (gi + 1 == F.ingr.size() ? " and " : ", ") : "") + std::to_string(g.count) + " " + item_name(g.item) +
                          " (the party has " + std::to_string(carried(g.item)) + (w >= 0 ? "; " + money(b.ware[w].price) + " here)" : "; not sold here)");
                 }
-                V.fnote = d + ". +1 and +5 buy what one or five batches more need.";
+                V.fnote = d + ". +1 and +5 buy what one or five more batches need.";
             }
             T(f, NsDraw::FS_NAME * 0.9f, RX0 + 3, y + 1.2f, ink, gamedata.formula_names[fr.f], -1, bx - 1);
             std::string l2 = fr.batches ? "Enough for " + std::to_string(fr.batches) + (fr.batches == 1 ? " batch" : " batches") : "Not enough for a batch";
@@ -311,7 +311,7 @@ extern "C" void barterview_draw(void)
     bool spare_h = show_spare && (asking || in(mx, my, sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f));
     if (spare_h && V.fnote.empty()) {
         char t[200];
-        snprintf(t, sizeof t, "%d thing%s not in use (weapons, armour, shields; not ammunition or things to throw), for about %s in all.%s",
+        snprintf(t, sizeof t, "%d item%s not in use (weapons, armour, shields; not ammunition or throwing weapons), for about %s in all.%s",
                  spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
         V.fnote = t; V.fhead = "Spare gear";
     }
@@ -334,7 +334,7 @@ extern "C" void barterview_draw(void)
             t.right_col = L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink);
             ns_item_strip(P, SY0, t);
         }
-    } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or at one of your things to see it here.");
+    } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or one of your items to see it here.");
     if (show_spare) {
         if (P.button(sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f, slab, asking ? IM_COL32(140, 60, 40, 235) : IM_COL32(120, 84, 40, 235))) {
             if (asking) {
@@ -349,7 +349,7 @@ extern "C" void barterview_draw(void)
         sbx0 -= 3;
     } else sbx0 = 316;
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note), -1, sbx0);
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  what you buy goes to the name picked above"
-                                              : assist_best_leader ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name: their things"
-                                              : "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  a click on a name's coin: that member pays", -1, sbx0);
+    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above"
+                                              : assist_best_leader ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items"
+                                              : "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay", -1, sbx0);
 }

@@ -223,10 +223,10 @@ void ui_draw_battle_info(void)
         if (hint) hint_line(hint);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
-        if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, strength %d/%d", end, endm, str, strm);
+        if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, Strength %d/%d", end, endm, str, strm);
         ImGui::Text("Attack %d, defence %d", atk, def);
         if (best >= 5 && st == 1 && g_rb((u16)(GV_cbt_ends_battle + best)) == 1)
-            ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this one has fallen and the fight is over, the place is won.");
+            ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this enemy has fallen and the fight is over, the place is won.");
         auto wname = [](int t) -> std::string {
             if (t < 0 || t > 33) return "";
             for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());
@@ -257,7 +257,7 @@ void ui_draw_battle_info(void)
                         if (wn.empty()) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
                         if (r < worst) worst = r;
-                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is deflected");
+                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is deflected");
                     }
                     if (worst == 3) continue;
                     ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);

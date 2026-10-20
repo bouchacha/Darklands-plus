@@ -148,11 +148,11 @@ static const DestInfo DEST[D_N] = {
     { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
     { "Hanseatic League", "The offices of the league of northern merchant towns.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
-    { "Cathedral", "Donations for divine favor, a relic from the canon, the patron saint's story, sanctuary.", 2, 4, -1, TI_CATHEDRAL },
-    { "Church", "Mass, confession, alms for divine favor, sanctuary.", 2, -1, -1, TI_CHURCH },
-    { "Monastery", "The monks' library (Religion, Latin) and prayers for divine favor.", 2, 7, -1, TI_MONASTERY },
+    { "Cathedral", "Donations for Divine Favor, a relic from the canon, the patron saint's story, sanctuary.", 2, 4, -1, TI_CATHEDRAL },
+    { "Church", "Mass, confession, alms for Divine Favor, sanctuary.", 2, -1, -1, TI_CHURCH },
+    { "Monastery", "The monks' library (Religion, Latin) and prayers for Divine Favor.", 2, 7, -1, TI_MONASTERY },
     { "University", "New saints and alchemical formulas to learn, rare alchemical materials, a better philosopher's stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
-    { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or for nothing if they will have you. By day.", 3, -1, -1, TI_PHYSICIAN },
+    { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only.", 3, -1, -1, TI_PHYSICIAN },
     { "Inn", "Meals and a bed, news and rumours, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
     { "Town square", "Notices, gossip and news.", 4, 1, -1, TI_SQUARE },
     { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 1, 1, -1, TI_TOWNHALL },
@@ -162,7 +162,7 @@ static const DestInfo DEST[D_N] = {
     { "Docks", "Boats to other towns, for a fee (each leaves on its own day).", 4, 11, -1, TI_DOCKS },
     { "Slums", "A dangerous slum: rumours, and a room for next to nothing.", 4, 6, -1, TI_SLUMS },
     { "Grove", "A quiet corner where the party can wait: an hour, three hours, or until nightfall.", 4, -1, -1, TI_GROVE },
-    { "City wall", "An alley to a stretch of the wall: a way out when the gates will not do.", 4, -1, -1, TI_WALL },
+    { "City wall", "An alley to a stretch of the wall: a way out when you cannot use the gates.", 4, -1, -1, TI_WALL },
     { "City gate", "Leave the city by one of its gates.", 4, -1, -1, TI_GATE },
 };
 static const char *GROUPS[5] = { "Merchants", "Quest givers", "Religion", "Learning and healing", "Around town" };
@@ -338,7 +338,7 @@ extern "C" void citynav_tick(void)
     if (now - phase_t < 120) return;                       /* the option list fading in (at once while walking) */
     if (kb == last_key) { if (++same_count > 3) { stop("the way is blocked."); return; } } else { last_key = kb; same_count = 0; }
     auto it = cards.find(card);
-    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("unknown card."); return; }
+    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("cannot find the way from this card."); return; }
     std::vector<std::string> opts = block_options(it->second[blk]);
     int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;
@@ -702,7 +702,7 @@ extern "C" int citynav_window(void)
                 ImGui::TextDisabled("%s", text);
             };
             bool first = true;
-            if (any_teach) { mark(0, "A teacher to hire (faint: not now)"); first = false; }
+            if (any_teach) { mark(0, "A teacher to hire (faint: not available now)"); first = false; }
             if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A task of yours leads here"); }
         }
         ImGui::PopStyleVar();

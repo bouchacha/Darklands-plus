@@ -427,13 +427,13 @@ static void chronicle_page(void)
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
     if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
     static bool nav_open = true;
-    if (ImGui::SmallButton(nav_open ? "Hide the days" : "Show the days")) nav_open = !nav_open;
+    if (ImGui::SmallButton(nav_open ? "Hide the list of days" : "Show the list of days")) nav_open = !nav_open;
     ImGui::SameLine();
     ImGui::SetNextItemWidth(UIS(260)); ImGui::InputTextWithHint("##cfind", "find words (a name, a place, a clue)", chron_find, sizeof chron_find);
     ImGui::SameLine(); ImGui::TextDisabled("%d text%s read in this game", (int)chron.size(), chron.size() == 1 ? "" : "s");
     ImGui::SameLine();
     static std::string wrote;
-    if (ImGui::SmallButton("Write it out as a book")) {
+    if (ImGui::SmallButton("Save as a text file")) {
         extern char dlp_data_dir[];
         char b[1200]; snprintf(b, sizeof b, "%s/darklands_chronicle_%u_book.txt", dlp_data_dir, (unsigned)chron_seed);
         FILE *f = fopen(b, "w");
@@ -512,7 +512,7 @@ static void chronicle_page(void)
     ImGui::SameLine();
     ImGui::BeginDisabled(sel >= (int)days.size() - 1); if (ImGui::SmallButton("Day after >")) { sel++; scroll_to = -2; } ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::TextDisabled("%s%s", D.date.c_str(), f.empty() ? "" : " (the texts found)");
+    ImGui::TextDisabled("%s%s", D.date.c_str(), f.empty() ? "" : " (matching texts only)");
     const ChronDay &S = days[(size_t)sel];
     if (scroll_to == -2) { ImGui::SetScrollY(0); scroll_to = -1; }
     std::string place;
@@ -624,7 +624,7 @@ static int notes_resize(ImGuiInputTextCallbackData *d)
 static void notes_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
-    if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first: the notes belong to a game."); return; }
+    if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first: each game has its own notes."); return; }
     if (seed != notes_seed) {
         notes_save(); notes_seed = seed; notes_text.clear();
         FILE *f = fopen(notes_path(seed).c_str(), "r");
@@ -724,7 +724,7 @@ static void town_list(void)
     std::vector<int> v;
     for (auto &kv : towns) if (kv.second.visited || !kv.second.shops.empty()) v.push_back(kv.first);
     std::sort(v.begin(), v.end(), [](int a, int b) { return loc_name(a) < loc_name(b); });
-    if (v.empty()) { ImGui::TextDisabled("No towns yet."); return; }
+    if (v.empty()) { ImGui::TextDisabled("No towns visited yet."); return; }
     if (sel_town < 0 || !towns.count(sel_town)) sel_town = v[0];
     for (int loc : v) {
         const Town &t = towns[loc];
@@ -764,7 +764,7 @@ static void town_page(int loc)
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
     ImGui::TextUnformatted(loc_name(loc).c_str());
     ImGui::PopFont();
-    if (t.visited) ImGui::TextDisabled("First reached %s, last %s (%d visit%s).", t.first.c_str(), t.last.c_str(), t.visits, t.visits == 1 ? "" : "s");
+    if (t.visited) ImGui::TextDisabled("First visited %s, last visited %s (%d visit%s).", t.first.c_str(), t.last.c_str(), t.visits, t.visits == 1 ? "" : "s");
     if (loc >= 0 && loc < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[loc];
         std::string citynav_town_has(int loc);
@@ -776,7 +776,7 @@ static void town_page(int loc)
             sh += e;
         }
         ImGui::TextWrapped("Shops: %s", sh.c_str());
-        ImGui::TextDisabled("The quality of a shop's weapons, armour and most wares (ammunition and ingredients are always 25q).");
+        ImGui::TextDisabled("The number after each shop is the quality of its weapons, armour and most wares (ammunition and ingredients are always 25q).");
     }
     if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {
@@ -912,7 +912,7 @@ static void ingredients_page(void)
 {
     int px = 0, py = 0; bool here = party_where(&px, &py);
     ImGui::TextWrapped("Where each alchemical ingredient is sold, in the towns the party has visited (bought ingredients are always "
-                       "quality 25)%s.", here ? ": the nearest town first; point at a row for every town" : "");
+                       "quality 25)%s.", here ? ": the nearest town first; hold the pointer over a row to see every town" : "");
     if (ImGui::BeginTable("ingr", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
@@ -933,7 +933,7 @@ static void ingredients_page(void)
             ImGui::TableNextColumn();
             icon_name_cell(id, item_name(id).c_str());
             ImGui::TableNextColumn();
-            if (at.empty()) { ImGui::TextDisabled("not seen yet"); ImGui::TableNextColumn(); continue; }
+            if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
             int cheapest = 0; for (size_t k = 1; k < at.size(); k++) if (at[k].price < at[cheapest].price) cheapest = (int)k;
             ImGui::Text("%s  %s", loc_name(at[0].loc).c_str(), money(at[0].price).c_str());
             if (here && at[0].dist == 0) { ImGui::SameLine(); ImGui::TextDisabled("(here)"); }
@@ -974,7 +974,7 @@ static void storage_page(void)
 {
     int gm = game_mode();
     if (gm == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
-    if (gm == GM_BATTLE) { ImGui::TextWrapped("After the battle."); return; }
+    if (gm == GM_BATTLE) { ImGui::TextWrapped("Available after the battle."); return; }
     std::vector<unsigned char> buf;
     { char path[1200]; dos_host_path("CACHE.TMP", path, sizeof path);
       FILE *f = fopen(path, "rb");
@@ -983,7 +983,7 @@ static void storage_page(void)
     {
       if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Helpers).");
       else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
-                              "The game shows a store only while the party is there."); }
+                              "The original game shows a store room only while the party is in it."); }
     ImGui::Spacing();
     int px, py; travel_party_tile(&px, &py);
     struct Store { int loc, places; double d; std::vector<SeenItem> items; };
@@ -1017,7 +1017,7 @@ static void storage_page(void)
     ImGui::BeginChild("stores", ImVec2(0, 0));
     for (const Store &st : stores) {
         ImGui::PushID(st.loc);
-        std::string kinds = std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of thing" : " kinds of things");
+        std::string kinds = std::to_string(st.items.size()) + (st.items.size() == 1 ? " kind of item" : " kinds of items");
         std::string head = st.places > 1 ? "Every inn's store room  -  " + kinds
                                          : loc_name(st.loc) + (st.loc == cur ? "  (here)" : "") + "  -  " + kinds;
         if (ImGui::CollapsingHeader(head.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -1084,7 +1084,7 @@ extern "C" void tab_journal(void)
             ImGui::SameLine();
             static std::string msg;
             ImGui::BeginDisabled(game_mode() == GM_OTHER);
-            if (ImGui::Button("Enter the party now")) msg = halloffame_record() ? "The party is on the roll." : "Not famous enough yet for the four best (or the roll could not be written).";
+            if (ImGui::Button("Enter the party now")) msg = halloffame_record() ? "The party is on the roll." : "The party is not yet famous enough to be among the four best (or the roll could not be saved).";
             ImGui::EndDisabled();
             if (!msg.empty()) ImGui::TextDisabled("%s", msg.c_str());
             ImGui::EndTabItem();

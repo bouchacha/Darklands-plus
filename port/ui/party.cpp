@@ -2,8 +2,8 @@
 // page shows it under the pointer, with the whole party's values).
 static const char *ATTR_HELP[7] = {
     "Health and stamina. Wounds take it away; at 0 the character falls unconscious. Rest brings it back.",
-    "Bodily strength. Weapons and armour want a certain strength (the shops' tooltips tell), and endurance and "
-    "strength together are what a character can carry. Bad wounds take strength too; at 0 the character dies.",
+    "Bodily strength. Weapons and armour need a minimum Strength (shown in the shops' tooltips), and Endurance and "
+    "Strength together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies.",
     "Speed and deftness, of the body and of the hands.",
     "Alertness: noticing things, people and dangers.",
     "Wits and learning.",
@@ -12,7 +12,7 @@ static const char *ATTR_HELP[7] = {
 };
 static const char *SKILL_HELP[19] = {
     0, 0, 0, 0, 0, 0, 0,
-    "Mixing potions from the formulae a character knows: a better alchemist fails less often (the sheet's Formulae give each one's chance).",
+    "Mixing potions from the formulae a character knows: a better alchemist fails less often (the character sheet's Formulae tab shows each member's chance).",
     "Knowledge of the faith and its saints: learning of saints, dealings with the Church.",
     "Moral purity, valued by the saints and the Church. Sinful deeds lower it.",
     "Talking with ordinary people in their own tongue: asking, persuading, bluffing.",

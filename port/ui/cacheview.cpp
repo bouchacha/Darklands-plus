@@ -39,13 +39,13 @@ extern "C" void cacheview_draw(void)
 
     /* the header */
     P.text(f, NsDraw::FS_TITLE, 65, 3, ink, "The store room");
-    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's things: the same store at every inn.");
-    else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's things kept in " + ns_gtext(l.place) + ", for when it comes back.");
+    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's items: the same store at every inn.");
+    else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's items kept in " + ns_gtext(l.place) + ", for when it returns.");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(CV_LEAVE, 0, 0, 0);
     if (l.nitems && P.button(bx - 46, 4, bx - 3, 15, "Put away", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(CV_PUTAWAY, 0, 0, 0);
     if (l.nitems && P.over(bx - 46, 4, bx - 3, 15)) {
-        if (l.shared) ImGui::SetTooltip("Everything in the party's pack goes into the store, but what is kept (the character sheet's Keep) and the potions.");
+        if (l.shared) ImGui::SetTooltip("Everything in the party's pack goes into the store, except kept items (Keep on the character sheet) and potions.");
         else ImGui::SetTooltip("Everything %s carries that is not in use goes into the store.", ns_gtext(l.names[l.who]).c_str());
     }
 
@@ -80,7 +80,7 @@ extern "C" void cacheview_draw(void)
         int maxs = n - NROWS; if (maxs < 0) maxs = 0;
         if (V.scroll[L] > maxs) V.scroll[L] = maxs;
         if (V.scroll[L] < 0) V.scroll[L] = 0;
-        if (!n) P.text(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, dim, L ? (l.shared ? "No potions, nothing spare in the pack." : "Carries nothing.") : "Nothing stored here.");
+        if (!n) P.text(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, dim, L ? (l.shared ? "No potions or spare items in the pack." : "Carries nothing.") : "Nothing stored here.");
         for (int r = 0; r < NROWS && V.scroll[L] + r < n; r++) {
             int i = V.scroll[L] + r;
             float y = LY0 + r * ROWH;
@@ -135,7 +135,7 @@ extern "C" void cacheview_draw(void)
         t.status = L && l.item[i].equipped ? "equipped" : L && l.item[i].kept ? "kept" : "";
         t.cmp_who = L ? -1 : l.shared ? -2 : l.who;      /* (one pack: whom in the party it would suit) */
         ns_item_strip(P, SY0, t);
-    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at a thing to see it here; F1 tells what you can do."
-                                                         : "Point at a thing to see it here. Click a name above the right list (or C) for another member.");
+    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F1 shows what you can do."
+                                                         : "Point at an item to see it here. Click a name above the right list (or press C) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }

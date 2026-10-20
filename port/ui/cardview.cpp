@@ -382,8 +382,8 @@ extern "C" void cardview_draw(void)
                     if (isz > 0 && en.id >= 0) { ui_item_icon_q(dl, ImVec2(tx + isz * 0.5f, ey + 0.46f * h), isz, en.id, best_quality(en.member, en.id)); tx += isz * 1.15f; }
                     dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
                     /* why a line is there that cannot be chosen, or can without the thing (the game's colour codes) */
-                    const char *why = en.code == 0x84 ? "knows its formula, carries none" :
-                                      en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest level the leader need not know the saint" : "at the easiest level the leader needs none") : nullptr;
+                    const char *why = en.code == 0x84 ? "knows the formula but carries none" :
+                                      en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest difficulty, the leader need not know the saint" : "at the easiest difficulty, the leader needs none") : nullptr;
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
                 }
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
@@ -490,7 +490,7 @@ extern "C" void cardview_draw(void)
                 ImGui::TextUnformatted(why);
                 ImGui::PopTextWrapPos();
             }
-            if (formulas) ImGui::TextDisabled("(click to choose who learns one; each formula's details there)");
+            if (formulas) ImGui::TextDisabled("(click to choose who learns one; point at a formula there for its details)");
             else if (p.state == 1) ImGui::TextDisabled("(click to choose who)");
             ImGui::EndTooltip();
         }

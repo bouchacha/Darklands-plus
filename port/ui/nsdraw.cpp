@@ -23,11 +23,11 @@ std::string ns_item_line(int id, int q)
     if (d->type >= 95 && d->type <= 97) {                  /* a shield: its defence, by size and quality (mods/gamemodel.h) */
         if (q < 0) q = d->quality;
         return "Defence " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
-               " against shots and throws; not with a two-handed weapon";
+               " against shots and throws; unusable with a two-handed weapon";
     }
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
-        static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile device" };
+        static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
         return std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
     }
     if (d->type >= 67 && d->type <= 84) {
@@ -70,7 +70,7 @@ std::string ns_item_compare(int id, int q, int m)
     if (d->kind == K_SHIELD) {
         int t, wq;
         if (!slot(0x48, 0x47, t, wq)) return who + " carries no shield.";
-        return who + " carries " + name_of(t, wq) + " (q" + std::to_string(wq) + "): this is " + cmpq(q, wq) + ".";
+        return who + " carries " + name_of(t, wq) + " (" + std::to_string(wq) + "q): this is " + cmpq(q, wq) + ".";
     }
     if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         static const char *SKN[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
@@ -78,12 +78,12 @@ std::string ns_item_compare(int id, int q, int m)
         bool missile = sk == 5 || sk == 6;
         std::string r = who + "'s " + (sk < 7 ? SKN[sk] : "?") + " skill: " + std::to_string(sk < 7 ? gm_member_skill(m, sk) : 0) + ".";
         int str, strmax; gm_member_attr(m, 1, &str, &strmax);
-        if (smin > 0 && strmax < smin) r += " Too heavy: it needs strength " + std::to_string(smin) + ".";
+        if (smin > 0 && strmax < smin) r += " Too heavy: it needs Strength " + std::to_string(smin) + ".";
         int t, wq;
         if (slot(missile ? 0x0e : 0x3d, missile ? 0x46 : 0x44, t, wq) && t <= 62) {
             int cp = rb(G_FAR20A5, (u16)(0x76a8 + t)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + t));
             r += " In hand now: " + name_of(t, wq) + " (damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15) + ", " + std::to_string(wq) + "q).";
-        } else r += missile ? " No bow or crossbow ready now." : " Nothing in hand now.";
+        } else r += missile ? " No missile weapon ready now." : " Nothing in hand now.";
         return r;
     }
     return "";
@@ -144,7 +144,7 @@ std::string ns_item_compare_party(int id, int q)
         std::string r = std::string(SKN[sk]) + " skill: ";
         for (size_t i = 0; i < v.size(); i++) r += (i ? ", " : "") + v[i].second + " " + std::to_string(v[i].first);
         r += ".";
-        if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs strength " + std::to_string(smin) + ").";
+        if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs Strength " + std::to_string(smin) + ").";
         return r;
     }
     return "";
@@ -216,41 +216,41 @@ std::string ns_item_use(int id)
 std::string ns_potion_effect(int id)
 {
     bool fixed = fix_is_on("potions") != 0;
-    std::string day = fixed ? " for about a day (19 to 21 hours)." : " for good, adding up with the next (the original game never takes them off).";
+    std::string day = fixed ? " for about a day (19 to 21 hours)." : " permanently, adding up with the next dose (the original game never removes them).";
     switch (id) {
-    case 95: return "Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their Agility, Perception and weapon skills, the others in the cloud a quarter, friend or foe alike, while it hangs (longer with the grade).";
-    case 96: return "Thrown: blinding powder. The one hit loses a third of Agility, Perception and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside a quarter. Longer with the grade.";
-    case 97: return "Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Longer with the grade. (The battle's menu never offers it to the party: it is for cards, and enemies throw it.)";
-    case 98: return "Thrown: itching powder. Weapon skills fall by five times the armour worn at the body and limbs: the heavier the armour, the worse the itch. Longer with the grade.";
-    case 99: return "Thrown: acid that eats the armour worn, its quality down by 1d8 + 4, 6 or 8 (grade 1, 2, 3); armour eaten to nothing is gone, and against no armour (or what is left over) it wounds through. Also dissolves locks.";
-    case 100: return "Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armour stops, worse for the weaker; more with the grade.";
-    case 101: return "Thrown: a blinding flash. The target and every foe of the thrower on that floor who faces it are blinded for a while (longer with the grade); friends are spared.";
-    case 102: return "Thrown: it bursts with great force: 1d8 + 4, 6 or 8 (grade 1, 2, 3), penetration 6, 7 or 8 on the target and less around it; it also wears the armour down by a quarter of the damage.";
-    case 103: return "Thrown: burning pitch that no armour stops: 1d6 + 4, 6 or 8 (grade 1, 2, 3), a quarter of it further off, less a tenth of the armour's quality (and of Firewall's protection); it also wears the armour down.";
+    case 95: return "Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their Agility, Perception and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades).";
+    case 96: return "Thrown: blinding powder. The target loses a third of their Agility, Perception and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades.";
+    case 97: return "Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.)";
+    case 98: return "Thrown: itching powder. Weapon skills fall by five times the armour worn on the body and limbs: the heavier the armour, the worse the itch. Lasts longer at higher grades.";
+    case 99: return "Thrown: acid that eats the target's armour, lowering its quality by 1d8 + 4, 6 or 8 (grade 1, 2, 3); armour eaten to nothing is destroyed, and where there is no armour (or damage is left over) it wounds the target. Also dissolves locks.";
+    case 100: return "Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armour stops, worse for weaker targets; stronger at higher grades.";
+    case 101: return "Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared.";
+    case 102: return "Thrown: it bursts with great force: damage 1d8 + 4, 6 or 8 (grade 1, 2, 3), penetration 6, 7 or 8 on the target and less around it; it also wears the armour down by a quarter of the damage.";
+    case 103: return "Thrown: burning pitch that no armour stops: damage 1d6 + 4, 6 or 8 (grade 1, 2, 3), a quarter of that further off, minus a tenth of the armour's quality (and of Firewall's protection); it also wears the armour down.";
     case 104: return "Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while.";
-    case 105: if (fix_is_on("oilweapons")) return std::string("Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with a weapon but an impact weapon or a flail, as the manual says. Damage only, not the chance to hit;") + day;
+    case 105: if (fix_is_on("oilweapons")) return std::string("Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail, as the manual says. Damage only, not the chance to hit;") + day;
               return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: the game ties it to the member, not a blade, so bows, guns, impact weapons and fists gain too (its label says non-impact weapons). Damage only, not the chance to hit;" + day;
     case 106: if (fix_is_on("oilweapons")) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, as the manual says, " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original") + ";" + day;
               return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
-    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts 14, 22 or 30 points of quality more (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun, as the manual says" : "bows, guns and fists too") + ", for about a day (19 to 21 hours). Each 10 points of quality is a step more damage. A second adds to the first.";
+    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun, as the manual says" : "including bows, guns and fists") + ", for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first.";
               return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the byte holding both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
-    case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second adds to the first.";
-    case 109: if (fix_is_on("armourday")) return "Used by a member: their armour counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, as the manual says, for about a day (19 to 21 hours). A second while one runs keeps the stronger.";
-              return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, for good: the game never takes it off, and it adds up.";
-    case 110: return "Drunk it yields just one florin: its use is on cards, where an encounter asks for it (to purify, or to make gold).";
+    case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first.";
+    case 109: if (fix_is_on("armourday")) return "Used by a member: their armour counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, as the manual says, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger.";
+              return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armour against every hit, blow or shot, permanently: the game never removes it, and doses add up.";
+    case 110: return "Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold).";
     case 111: case 112: case 113: case 114: {
         static const char *const ATT[4] = { "Perception", "Endurance", "Strength", "Agility" };
         static const char *const AMT[4] = { "9-14, 15-21 or 22-29", "6-11, 8-13 or 10-15", "6-11, 8-13 or 10-15", "6-11, 8-15 or 10-17" };
         int a = id - 111;
-        std::string t = std::string("Drunk: ") + ATT[a] + " up by " + AMT[a] + " (grade 1, 2, 3) for about a day: the value now goes up, past the maximum if need be; the maximum itself stays. ";
-        if (a == 1 || a == 2) t += std::string("On a wounded member it is healing: ") + (fix_is_on("blessing") ? "when it wears off only what still stands above the maximum goes, so the healed part stays." : "but when it wears off the game takes the whole amount back, healed or not (the Blessings fix keeps the healed part).");
-        else t += "When it wears off, what it added goes again.";
-        return t + " A second while the first runs adds only what goes beyond it.";
+        std::string t = std::string("Drunk: ") + ATT[a] + " up by " + AMT[a] + " (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change. ";
+        if (a == 1 || a == 2) t += std::string("On a wounded member it heals: ") + (fix_is_on("blessing") ? "when it wears off, only the part still above the maximum is lost, so the healing stays." : "but when it wears off the game takes the whole amount back, healed or not (the Blessings fix keeps the healed part).");
+        else t += "When it wears off, what it added is lost.";
+        return t + " A second dose while the first is active adds only what goes beyond it.";
     }
-    case 115: return "Drunk: heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), for good; and Endurance up by 9-14, 15-21 or 22-29 for about 30 hours.";
+    case 115: return "Drunk: permanently heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), and raises Endurance by 9-14, 15-21 or 22-29 for about 30 hours.";
     case 116: {
-        if (fix_is_on("armourday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3). A second keeps the stronger.";
-        return std::string("Drunk: protection against fire, for good (the game never takes it off): Arabian Fire does less, by 5, 7 or 9 points (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armour for good (a bug Darklands+ fixes)."); }
+        if (fix_is_on("armourday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger.";
+        return std::string("Drunk: permanent protection against fire (the game never removes it): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armour permanently (a bug Darklands+ fixes)."); }
     }
     return "";
 }
@@ -316,11 +316,11 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
                 line += b; first = false;
             }
             int other = 0; for (int g = 0; g < 3; g++) if (!u.need[g]) other++;
-            if (other) line += other == 2 ? "; the other two grades do without" : "; the other grade does without";
+            if (other) line += other == 2 ? "; the other two grades don't use it" : "; the other grade doesn't use it";
         } else {
             int nk = 0; for (const Use &u : uses) nk += u.known[0] || u.known[1] || u.known[2];
-            line = "Pips: the grades (1 to 3) whose formula takes it, gold where the party knows it. Point at a potion for more.";
-            if (!nk) line = "Nobody in the party knows a formula with it. Pips: the grades (1 to 3) that take it; point at a potion for more.";
+            line = "Pips: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more.";
+            if (!nk) line = "Nobody in the party knows a formula with it. Pips: the grades (1 to 3) that use it; point at a potion for more.";
         }
         P.text(P.fo, NsDraw::FS_SMALL, 79, y + sz + 4.2f, hov >= 0 ? ink : NsDraw::INK_DIM, line, -1, 314);
         return;

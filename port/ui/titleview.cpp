@@ -82,8 +82,8 @@ extern "C" void titleview_draw(void)
         items[n++] = { TV_LOAD, "Load a saved game", b, true };
     } else items[n++] = { TV_LOAD, "Load a saved game", "No saved games yet", false };
     items[n++] = { TV_NEW, "A new party", "Create a New World: up to four characters of your own", true };
-    items[n++] = { TV_QUICK, "Quickstart", "Four ready-made characters, straight into the world", true };
-    items[n++] = { TV_SETTINGS, "Settings", "What Darklands+ adds, the display and the sound (F12)", true };
+    items[n++] = { TV_QUICK, "Quickstart", "Start at once with four ready-made characters", true };
+    items[n++] = { TV_SETTINGS, "Settings", "Darklands+ options, display and sound (F12)", true };
     items[n++] = { TV_QUIT, "Quit", "Back to the desktop", true };
 
     float y = 50, ih = 21;

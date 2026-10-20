@@ -37,7 +37,7 @@ int ui_town_teachers(int loc, TchSource *out, int max)
 
 const char *ui_teacher_short(int src)
 {
-    static const char *const N[] = { "Blacksmiths", "Swordsmiths", "Armorers", "Bowyers", "Artificers", "The guild",
+    static const char *const N[] = { "Blacksmiths", "Swordsmiths", "Armourers", "Bowyers", "Artificers", "The guild",
                                      "University", "Monastery", "Physician", "Alchemists" };
     return src >= 0 && src < (int)(sizeof N / sizeof N[0]) ? N[src] : "?";
 }
@@ -77,7 +77,7 @@ std::string ui_teacher_text(const TchSource &s)
         if (fix_is_on("teachcap"))
             snprintf(b, sizeof b, "The teacher's own skill: %d. Students can be taught up to %d, no further.\n", s.strength, s.strength);
         else
-            snprintf(b, sizeof b, "The teacher's own skill: %d (in the original game it sets no limit: up to 99).\n", s.strength);
+            snprintf(b, sizeof b, "The teacher's own skill: %d (in the original game this sets no limit: students can reach 99).\n", s.strength);
         t += b;
         snprintf(b, sizeof b, "Each day of lessons: %s %d%% chance of +1 to the skill (about one point every %d day%s).\n", gm_a_an(c), c, days, days == 1 ? "" : "s");
         t += b;

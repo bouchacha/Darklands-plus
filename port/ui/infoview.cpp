@@ -60,7 +60,7 @@ extern "C" void infoview_draw(void)
         snprintf(b, sizeof b, "Bank notes: %s", money_fgp(m.notes, 0, 0).c_str());
         P.text(fo, NsDraw::FS_BODY, x, y, ink, b); y += 6.5f;
     }
-    if (m.phstone) snprintf(b, sizeof b, "Philosopher's Stone: +%d to alchemy", m.phstone); else snprintf(b, sizeof b, "No Philosopher's Stone yet");
+    if (m.phstone) snprintf(b, sizeof b, "Philosopher's Stone: +%d to Alchemy", m.phstone); else snprintf(b, sizeof b, "No Philosopher's Stone yet");
     y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, b);
 
     /* every city */

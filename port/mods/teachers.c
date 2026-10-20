@@ -221,7 +221,7 @@ int teach_card_option(const char *card, int opt, TchSource *out)
         out->cond = "They may say no (it depends on Charisma, reputation here and fame); they always agree if the guild owes the party a favour.";
         int q = bit == 2 || bit == 0x10 ? t.shopq[0] : bit == 4 ? t.shopq[2] : bit == 8 ? t.shopq[5] : t.shopq[6];
         out->strength = q + (int)(seed % 15) - 5;
-        if (bit == 8) snprintf(out->now, sizeof out->now, "A slip of the original game: this guild's teacher teaches no skill at all.");
+        if (bit == 8) snprintf(out->now, sizeof out->now, "A bug in the original game: this guild's teacher teaches no skill at all.");
         else if (bit == 2 || bit == 0x10 || bit == 4) { add(out, SK_EDGED, 50); add(out, SK_IMPACT, 50); }
         else add(out, SK_ARTIFICE, 50);
         return 1;

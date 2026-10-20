@@ -81,7 +81,7 @@ void aging_month(int n)
     }
     if (getenv("DL_AGING_LOG")) fprintf(stderr, "aging: %d month(s): %s\n", n, any ? body : "nothing");
     if (any) ui_alert("The years take their toll", body,
-                      "Lost for good, as at character creation: from thirty on, a little each month, more as the years go by. "
+                      "These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. "
                       "(Aging: F12 > Settings > Helpers > The party and its items.)");
 }
 

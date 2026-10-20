@@ -284,7 +284,7 @@ extern "C" void levelmap_draw(void)
         if (wx >= 0) {
             ImVec2 a = P(qx0, qy0), b = P(qx1, qy0), cc = P(qx1, qy1), d = P(qx0, qy1);
             dl->AddQuad(a, b, cc, d, IM_COL32(250, 220, 120, 255), 2.5f);
-            ImGui::SetTooltip("A click: the party walks here");
+            ImGui::SetTooltip("Click to walk the party here");
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 levelwalk_x = wx; levelwalk_y = wy; levelwalk_floor = fl;
                 open_lm = false;
@@ -304,11 +304,11 @@ extern "C" void levelmap_draw(void)
     legend(IM_COL32(70, 150, 230, 255), "party", true);
     legend(IM_COL32(210, 60, 50, 255), "enemies seen", true);
     legend(FLOOR_NOW, "in view now", false);
-    legend(IM_COL32(90, 170, 250, 220), "arrows: targets", false);
+    legend(IM_COL32(90, 170, 250, 220), "arrows: who targets whom", false);
     legend(DOOR, "door", false);
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
-    if (all) legend(HIDDEN, "not yet open", false);
-    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "A click on the floor walks the party there; Tab or Esc closes this (the game waits)." : "Tab or Esc closes this (the game waits).");
+    if (all) legend(HIDDEN, "not yet revealed", false);
+    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "Click the floor to walk the party there. Tab or Esc closes the map; the game is paused until then." : "Tab or Esc closes the map; the game is paused until then.");
     ImGui::End();
 }

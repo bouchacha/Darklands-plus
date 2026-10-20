@@ -153,10 +153,15 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `battle.pause_foes` | Pause when enemies come out | convenience | autopause.c |
 | `battle.click_attack` | Click an enemy to attack it | convenience | orders.c |
 | `battle.click_best` | Attack with the better weapon | convenience | orders.c |
+| `battle.quick_orders` | One click gives an order | convenience | orders.c |
+| `battle.next_member` | Then select the next member without orders | convenience | orders.c |
+| `battle.order_bar` | Order buttons over the field | interface | margins.cpp |
+| `battle.order_icons` | Pictures on the order buttons | interface | margins.cpp, ordericons.cpp |
+| `battle.click_hint` | Say what a click will do | interface | orders.c, battleoverlay.cpp |
 | `battle.scroll_paced` | Steady scrolling | interface | battlescroll.c |
 | `battle.scroll_rest` | Edge scrolling without Shift | interface | battlescroll.c |
 | `battle.info` | Info under the pointer | interface | ui.cpp |
-| `battle.info_numbers` | Enemy endurance as numbers | easier | ui.cpp |
+| `battle.info_numbers` | Enemy Endurance as numbers | easier | ui.cpp |
 | `battle.bars` | Health bars over the fighters | interface | ui.cpp |
 | `battle.bars_hurt` | Bars only over the wounded | interface | battleoverlay.cpp |
 | `battle.skill_gains` | Show skill gains | interface | battleoverlay.cpp |
@@ -184,7 +189,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `travel.street_encounters` | Night encounters in the streets | easier | margins.cpp, travel.c |
 | **Controls** | | | |
 | `assist.wheel_lists` | Mouse wheel in lists | interface | platform_sdl.c |
-| `assist.menu_click` | Right click for the menus | interface | platform_sdl.c, ui.cpp |
+| `assist.menu_click` | Right-click for the menus | interface | platform_sdl.c, ui.cpp |
 | `input.gamepad` | Game controller | interface | platform_sdl.c, settings.cpp, ui.cpp |
 | **Editing tools** | | | |
 | `editor.show` | Editing tools | tool | settings.cpp, ui.cpp |

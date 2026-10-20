@@ -140,12 +140,12 @@ static int take(int i, int all)
     char nm[32]; gm_itemdef_name(id, nm, sizeof nm);
     char t[160];
     if (shared) {
-        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, cache_model.names[m]);
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another member on the character sheet).", done, nm, cache_model.names[m]);
         else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
-        else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
+        else snprintf(t, sizeof t, "No room: every member already carries 64 kinds of items.");
     }
     else if (done) snprintf(t, sizeof t, "%s takes %d %s.", cache_model.names[m], done, nm);
-    else snprintf(t, sizeof t, "%s has no room for another kind of thing (64 at most).", cache_model.names[m]);
+    else snprintf(t, sizeof t, "%s has no room for another kind of item (64 at most).", cache_model.names[m]);
     note(t);
     return done;
 }
@@ -214,8 +214,8 @@ static void put_away(void)                   /* everything the member does not h
             if (d) { kinds++; units += d; }
         }
         char t[160];
-        if (units) snprintf(t, sizeof t, "Stored %d thing%s (%d kind%s); what is in use, the potions%s stay.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? " and what is kept" : "");
-        else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept things." : "Nothing to store: the pack is empty.");
+        if (units) snprintf(t, sizeof t, "Stored %d item%s (%d kind%s); potions%s and items in use stay in the pack.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? ", kept items" : "");
+        else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept items." : "Nothing to store: the pack is empty.");
         note(t);
         return;
     }
@@ -226,8 +226,8 @@ static void put_away(void)                   /* everything the member does not h
         if (d) { kinds++; units += d; }
     }
     char t[160];
-    if (units) snprintf(t, sizeof t, "%s stores %d thing%s (%d kind%s); what is in use stays.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
-    else snprintf(t, sizeof t, "%s has nothing that is not in use.", cache_model.names[m]);
+    if (units) snprintf(t, sizeof t, "%s stores %d item%s (%d kind%s); items in use stay.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
+    else snprintf(t, sizeof t, "Nothing to store: everything %s carries is in use.", cache_model.names[m]);
     note(t);
 }
 

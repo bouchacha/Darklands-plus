@@ -70,32 +70,32 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
               : g == 6 ? clampi(10, 50, fame + standing + rep)
               : clampi(10, 50, rep + fame > rep / 2 + standing / 2 + fame ? rep + fame : rep / 2 + standing / 2 + fame);
         o->state = OFS_ASK; o->chance = p + 1;
-        snprintf(o->note, sizeof o->note, "Each time you ask (by day), %s %d%% chance of a task: %s. If none comes, or you turn it down, no other for three days.", gm_a_an(p + 1), p + 1,
+        snprintf(o->note, sizeof o->note, "Each time you ask (by day), there is %s %d%% chance of a task: %s. If none comes, or you turn it down, there is no new task for three days.", gm_a_an(p + 1), p + 1,
                  g == 7 ? "3 in 10 are robber knights to hunt, the rest items to fetch" : "a robber knight to hunt or an item to fetch, half and half");
         return 1; }
     case 3: {
         if (!(s16)rw(ls, (u16)(lo + 0x1c))) { snprintf(o->note, sizeof o->note, "This cathedral keeps no relic, so its canon has no tasks."); return 1; }
-        if (lock) return shut(o, lock, "You asked lately: the canon will not hear of it for three days.");
+        if (lock) return shut(o, lock, "You asked lately: the canon will offer no task for three days.");
         int p = clampi(1, 99, rep - 50);
         o->state = OFS_ASK; o->chance = p + 1;
-        snprintf(o->note, sizeof o->note, "Each time you ask the canon (by day), %s %d%% chance of a task (your reputation in this town, less 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, no other for three days.", gm_a_an(p + 1), p + 1);
+        snprintf(o->note, sizeof o->note, "Each time you ask the canon (by day), there is %s %d%% chance of a task (your reputation in this town minus 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, there is no new task for three days.", gm_a_an(p + 1), p + 1);
         return 1; }
     case 10: {
-        if (lock) return shut(o, lock, "You sought an audience lately: for a week the chance is only 1%.");
+        if (lock) return shut(o, lock, "You asked for an audience lately: for a week the chance is only 1%.");
         if (rep <= -40) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "The lord grants no audience while your reputation in this town is -40 or lower."); return 1; }
         int p = (rep + speaker() / 2) / 2;
         p = hall ? clampi(1, 70, p) : clampi(0, 99, p);
         if (hall && reward_waiting(10, loc)) { o->state = OFS_REWARD; snprintf(o->note, sizeof o->note, "You finished a task for the lord: your reward is waiting (an audience is certain)."); return 1; }
         o->state = OFS_ASK; o->chance = p;               /* (the number the card itself shows on the option: the same) */
         if (!hall && reward_waiting(10, loc)) { snprintf(o->note, sizeof o->note, "You finished a task for the lord, but in a town without a council the game never pays the reward (a bug of the original game)."); return 1; }
-        snprintf(o->note, sizeof o->note, hall ? "Each request for an audience with the council: %s %d%% chance (your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week."
-                                               : "Each request for an audience with the lord: %s %d%% chance (your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p), p);
+        snprintf(o->note, sizeof o->note, hall ? "Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week."
+                                               : "Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p), p);
         return 1; }
     case 0: case 4: case 5: {
         if (lock) return shut(o, lock, "No tasks for three days: at your last visit none came, one was turned down, or a reward was paid.");
         o->state = OFS_ASK; o->chance = 14;
         snprintf(o->note, sizeof o->note, "The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job "
-                                          "(mostly an item to fetch, sometimes a robber knight to hunt). When none comes, none for three days.");
+                                          "(mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days.");
         return 1; }
     }
     return 0;

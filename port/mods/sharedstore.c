@@ -118,7 +118,7 @@ static int merge(int cur)
         for (int k = 0; k < G_NLOC; k++) if (loc_cache(k) == h) loc_set_cache(k, H);
         fprintf(stderr, "store: cache %d (%d kinds) joined the shared %d (%d kinds)\n", h, na, H, nt);
     }
-    if (stuck) { ui_notice("This inn's old store holds too many kinds of things to join the shared store room: it stays here until some are taken out."); return mine; }
+    if (stuck) { ui_notice("This inn's old store holds too many kinds of items to join the shared store room: it stays at this inn until some are taken out."); return mine; }
     loc_set_cache(cur, H);
     return H;
 }

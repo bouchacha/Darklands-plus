@@ -66,7 +66,7 @@ void tab_mods(void)
         char md[1100]; datamods_folder(md, sizeof md);
         extern char dlp_user_dir[];
         ImGui::TextWrapped("A mod is a folder in %s" PATH_SEP "mods with files laid out like the game folder: "
-                           "while it is ticked the game reads them instead of its own (the game's files are never changed).", dlp_user_dir);
+                           "while the mod is ticked, the game reads the mod's files in place of the originals (the game folder is never changed).", dlp_user_dir);
         if (!datamods_n) ui_hint("No mods found yet.");
         for (int i = 0; i < datamods_n; i++) {
             ImGui::PushID(1000 + i);
@@ -87,10 +87,10 @@ void tab_mods(void)
                 ImGui::Indent(UIS(34));
                 int share = config_get_int("encounters.share", 100);
                 ImGui::SetNextItemWidth(UIS(220));
-                if (ImGui::SliderInt("How often they come up##encshare", &share, 0, 300, "%d%%")) { config_set_int("encounters.share", share); ui_dirty_config = 1; }
-                ui_hint("100%%: each counts as one more entry (or as many as its weight) of the game's own table of encounters for the terrain.");
+                if (ImGui::SliderInt("How often new encounters come up##encshare", &share, 0, 300, "%d%%")) { config_set_int("encounters.share", share); ui_dirty_config = 1; }
+                ui_hint("At 100%%, each new encounter counts as one more entry (or as many entries as its weight) in the original game's encounter table for the terrain.");
                 bool seal = config_get_int("encounters.seal", 1) != 0;
-                if (ImGui::Checkbox("Mark them with a seal in the corner of the card", &seal)) { config_set_int("encounters.seal", seal); ui_dirty_config = 1; }
+                if (ImGui::Checkbox("Mark new encounters with a seal in the corner of the card", &seal)) { config_set_int("encounters.seal", seal); ui_dirty_config = 1; }
                 ImGui::Unindent(UIS(34));
             }
         }
@@ -110,12 +110,12 @@ void tab_mods(void)
         }
         ImGui::SameLine(); ui_hint("every town and encounter text, editable, with its options");
         { extern int ui_collect_texts; bool ct = ui_collect_texts != 0;
-          if (ImGui::Checkbox("Collect the texts shown (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
-        ui_hint("A mod's text.txt says lines differently, one per line: Purchase an item => Kaufen (menus the game writes from its program; needs crisp text).");
+          if (ImGui::Checkbox("Write every text shown to a file (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
+        ui_hint("A mod's text.txt replaces lines of text, one per line: Purchase an item => Kaufen (for the menus built into the game's program; needs crisp text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         ui_hint("Mods are applied in alphabetical order of their folders: where two change the same file, the later one wins. "
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
-             "Card texts and pictures change at once; the item list, saints, cities and the like when the game starts.");
+             "Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts.");
     }
     ImGui::Spacing();
     ui_hint("The built-in changes to the rules (swift travel, half-price inns, quick learning ...) are under Helpers > Easier rules.");
@@ -232,11 +232,11 @@ static void option_row(const Option *o, int depth)
     if (!strcmp(o->key, "input.gamepad")) {
         ImGui::Indent(ti); ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now.");
         /* the button prompts (ui/padglyphs.h): the controller's buttons on screen while it is in use */
-        static const char *PM[5] = { "As the input in use", "Keys and mouse always", "Xbox always", "PlayStation always", "Nintendo always" };
+        static const char *PM[5] = { "Match the device in use", "Keys and mouse always", "Xbox always", "PlayStation always", "Nintendo always" };
         int pm = config_get_int("input.prompts", 0); if (pm < 0 || pm > 4) pm = 0;
         ImGui::SetNextItemWidth(UIS(260));
         if (ImGui::Combo("Button prompts", &pm, PM, 5)) { config_set_int("input.prompts", pm); ui_dirty_config = 1; }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("While the controller is in use, the hints and the screens' buttons show its buttons (Xbox, PlayStation or Nintendo, as the controller is). \"Always\": for a Steam Deck played with its trackpads, which count as a mouse.");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("While a controller is in use, the hints and on-screen buttons show its buttons (Xbox, PlayStation or Nintendo, matching the controller). The \"always\" choices are for a Steam Deck played with its trackpads, which count as a mouse.");
         ImGui::Unindent(ti);
     }
     if (ind > 0) ImGui::Unindent(ind);
@@ -282,14 +282,14 @@ static void presets_block(void)
         bool c = false;
         if (ImGui::RadioButton("##p", false)) c = true;
         ImGui::SameLine();
-        if (ui_title_desc("Custom", "your own choices from before the preset, kept: click to have them back.") || c) { preset_restore_custom(); ui_dirty_config = 1; }
+        if (ui_title_desc("Custom", "your own choices from before you picked a preset, kept: click to restore them.") || c) { preset_restore_custom(); ui_dirty_config = 1; }
     }
     ImGui::PopID();
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Darklands+ saves in the game's own format: its saves load in the original (on DOS too), and the original's load here; "
-                       "what Darklands+ notes beside them (Sabbats learned, items marked Keep, sprites and colours) is in files of its own. Switching presets "
+    ImGui::TextWrapped("Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; "
+                       "what Darklands+ records on top (Sabbats learned, items marked Keep, sprites and colours) goes into separate files of its own. Switching presets "
                        "or single switches at any time is safe.");
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
@@ -346,13 +346,13 @@ void tab_helpers(void)
     presets_block();
     if (orig) {
         ImGui::Spacing();
-        ui_hint("Everything Darklands+ adds is off, and its switches with it: pick another preset to change single things.");
+        ui_hint("Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches.");
     } else {
         int n = options_count();
         for (int k = 1; k < NSECT; k++) {
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
-            if (!strcmp(sect[k], "Easier rules")) ui_hint("Changes to the rules that make the game easier: the Easy preset takes the ones marked for it. A \"new game\" one takes effect when the next game starts.");
+            if (!strcmp(sect[k], "Easier rules")) ui_hint("Rule changes that make the game easier; the Easy preset turns on the ones marked for it. Some take effect only when the next new game starts (their note says so).");
             for (int i = 0; i < n; i++) {
                 const Option *o = options_get(i);
                 if ((o->flags & OF_ELSEWHERE) || o->parent || strcmp(o->section, sect[k])) continue;
@@ -403,7 +403,7 @@ void tab_display(void)
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
-      if (ImGui::Checkbox("Wide screens: date, place, purse, tasks, the town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; } }
+      if (ImGui::Checkbox("On wide screens, show the date, place, purse, tasks, town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; } }
     {   /* grows with the picture; this scales it */
         static const int P[] = { 70, 80, 90, 100, 115, 130, 150, 175, 200 };
         int cur = config_get_int("display.text_size", 100), sel = 3;
@@ -430,11 +430,11 @@ void tab_display(void)
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); ui_dirty_config = 1; } }
     {   /* the opening at start (mods/opening.c): the first start plays it whole */
-        static const char *N[] = { "nothing: straight to the title", "the last scene: the lady of the Darklands and her welcome", "the whole opening (a click: on to the lady's welcome)" };
+        static const char *N[] = { "nothing: straight to the start screen", "the last scene: the lady of the Darklands and her welcome", "the whole opening (a click skips to the lady's welcome)" };
         int m = opening_mode();
         ImGui::SetNextItemWidth(UIS(420));
         if (ImGui::Combo("at start-up", &m, N, 3)) { opening_set_mode(m); ui_dirty_config = 1; }
-        ImGui::SameLine(); ImGui::TextDisabled(m == 2 ? "(a click skips to the welcome, another to the title)" : "(a key or a click ends it)");
+        ImGui::SameLine(); ImGui::TextDisabled(m == 2 ? "(a click skips to the welcome, another to the start screen)" : "(a key or a click ends it)");
     }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -442,7 +442,7 @@ void tab_display(void)
     int hm = hdtext_mode;
     if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
     if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
-    if (ImGui::RadioButton("The game's own lettering", hm == 0)) { hdtext_set(0); ui_dirty_config = 1; }
+    if (ImGui::RadioButton("The original lettering", hm == 0)) { hdtext_set(0); ui_dirty_config = 1; }
     if (hm) {
         ImGui::SetNextItemWidth(UIS(380));
         if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
@@ -465,7 +465,7 @@ void tab_display(void)
               config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
           if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
         { bool co = money_coins();
-          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; the total in pfennigs beside a price described", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
+          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; in a description, a price also shows its total in pfennigs", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
         ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
         static const char *E[3] = { "plain", "shadow", "outline" };
         for (int i = 0; i < 3; i++) {
@@ -501,7 +501,7 @@ void tab_display(void)
              "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
              "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
         ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the fifteen of the game "
-             "(Heraldry, when making a party). A character with one of them needs this version of the game to be loaded.", PATH_SEP);
+             "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
@@ -556,7 +556,7 @@ void tab_display(void)
         if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
         if (mt32_families() == 3) {                /* both: which one */
             const char *cur = config_get("sound.mt32_model", "mt32");
-            ImGui::TextUnformatted("Both found; play on the:");
+            ImGui::TextUnformatted("Both ROM sets found; play on the:");
             ImGui::Indent();
             if (ImGui::RadioButton("MT-32 (recommended: battle sounds as blows and grunts)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
             if (ImGui::RadioButton("CM-32L / LAPC-I (its extra sound effects turn the battle sounds into chimes)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
@@ -583,7 +583,7 @@ void tab_display(void)
         if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
         int n = sfx_user_count();
         extern char dlp_user_dir[];
-        if (n) ui_hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        if (n) ui_hint("%d sound%s in %s%ssounds; the original sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
         else ui_hint("No sound pack in use: put one into %s%ssounds, or tick a sound mod in F12 > Settings > Mods (\"Battle sounds\" comes with Darklands+).", dlp_user_dir, PATH_SEP);
         if (sp) {
             ImGui::Indent(UIS(30));
@@ -615,7 +615,7 @@ void tab_display(void)
             const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
             ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
         }
-        else ui_hint("No music pack: a mod's music folder, or %s%smusic, with a recording for each piece named by its number "
+        else ui_hint("No music pack found. A music pack is a mod's music folder, or %s%smusic, with a recording for each piece named by its number "
                   "(10.ogg, \"11 market.ogg\", .ogg or .wav). Darklands+ comes with none.", dlp_user_dir, PATH_SEP);
         int fp = 0, now = musicpack_now(&fp);
         if (now >= 0) {

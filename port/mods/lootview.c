@@ -145,12 +145,12 @@ static void take(int i, int all)
     if (shared) g_ww(GV_loot_who, (u16)shown);
     char t[160];
     if (shared) {
-        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another on the character sheet).", done, nm, loot_model.names[m]);
+        if (done && gm_is_potion(id)) snprintf(t, sizeof t, "%d %s to %s (drag it onto another member on the character sheet).", done, nm, loot_model.names[m]);
         else if (done) snprintf(t, sizeof t, "%d %s into the party's pack.", done, nm);
-        else snprintf(t, sizeof t, "No room: everyone carries 64 kinds of things already.");
+        else snprintf(t, sizeof t, "No room: every member already carries 64 kinds of items.");
     }
     else if (done) snprintf(t, sizeof t, "%s takes %d %s.", loot_model.names[m], done, nm);
-    else snprintf(t, sizeof t, "%s has no room for another kind of thing (64 at most).", loot_model.names[m]);
+    else snprintf(t, sizeof t, "%s has no room for another kind of item (64 at most).", loot_model.names[m]);
     note(t);
 }
 
@@ -160,7 +160,7 @@ static void pack_put(int r, int all)
     if (r < 0 || r >= loot_model.nitems) return;
     int id = loot_model.item[r].id, q = loot_model.item[r].qual, shown = who_now(), done = 0;
     char nm[32], t[160]; gm_itemdef_name(id, nm, sizeof nm);
-    if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is kept (the character sheet's Keep): it stays in the pack.", nm); note(t); return; }
+    if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is marked Keep on the character sheet: it stays in the pack.", nm); note(t); return; }
     for (int k = 0; k < (all ? 255 * 5 : 1); k++) {
         int m, rec;
         if (!gm_pack_find(shown, id, q, &m, &rec)) break;

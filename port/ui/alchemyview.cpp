@@ -33,7 +33,7 @@ extern "C" void alchemyview_draw(void)
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM, red = NsDraw::RED, green = NsDraw::GREEN;
     P.page();
     P.text(f, NsDraw::FS_TITLE, 65, 3, ink, "Alchemy");
-    P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, ns_gtext(a.name) + " mixes; the party's ingredients count.");
+    P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, ns_gtext(a.name) + " mixes; ingredients carried by the whole party count.");
     if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
     /* the formulas */
@@ -117,7 +117,7 @@ extern "C" void alchemyview_draw(void)
         int pc = a.page && a.count > 0 ? a.pct : a.pct1;
         char ch[64]; snprintf(ch, sizeof ch, a.page && a.count > 0 ? "Chance of success %d%%" : "Chance with one batch %d%%", pc);
         P.text(f, NsDraw::FS_NAME, RX0, y, pc >= 50 ? green : red, ch); y += 7.5f;
-        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d intelligence + %d alchemy - %d mystic number%s",
+        char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d Intelligence + %d Alchemy - %d mystic number%s",
                                   a.base, a.intel, a.alch, a.mystic, a.stone ? (" + " + std::to_string(a.stone) + " Philosopher's Stone").c_str() : "");
         y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, parts) + 3;
         bool can = a.page && a.count > 0;
@@ -129,8 +129,8 @@ extern "C" void alchemyview_draw(void)
         static const char *IN[5] = { "", "one time", "two times", "three times", "" }, *OF[5] = { "", "", "two", "three", "four" };
         int num, den; fixes_alchemy_blast_odds(a.risk, &num, &den);
         char t[400];
-        snprintf(t, sizeof t, "The risk is what a failed batch can bring. At an inn, in a village or a hideout one failure in two goes wrong: "
-                 "%s in %s an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). "
+        snprintf(t, sizeof t, "The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two goes wrong: "
+                 "%s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). "
                  "In a camp in the wild a failure only costs the ingredients.", IN[num], OF[den]);
         P.para(fo, NsDraw::FS_SMALL, 65, 186, 250, soft, t);
     }

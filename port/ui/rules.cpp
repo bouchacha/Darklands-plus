@@ -182,7 +182,7 @@ static bool write_rules(const char *path)
     FILE *f = fopen(path, "wb");
     if (!f) return false;
     fprintf(f, "# Weapon numbers (F12 > Records > Weapons). Change what you like and delete the rest;\n"
-               "# the game's own numbers stay for anything not named here.\n"
+               "# the original game's numbers stay for any weapon not named here.\n"
                "# skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker).\n"
                "# strength = min-max: below min each point costs 1 attack and 3 defence; above max blows hit harder.\n\n");
     for (int w = 0; w <= 33; w++) {
@@ -206,7 +206,7 @@ void rules_tab(void)
     static const char *SK[7] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile dev." };
     if (ImGui::BeginTable("weapons", 9, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - (ui_modding() ? UIS(110) : UIS(60))))) {
-        const char *H[9] = { "Weapon", "Skill", "Hands", "Damage", "Penetr.", "Time", "Reload", "Skill wanted", "Strength" };
+        const char *H[9] = { "Weapon", "Skill", "Hands", "Damage", "Penetr.", "Time", "Reload", "Skill needed", "Strength" };
         for (int i = 0; i < 9; i++) ImGui::TableSetupColumn(H[i], i == 0 ? ImGuiTableColumnFlags_WidthStretch : 0);
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
@@ -243,8 +243,7 @@ void rules_tab(void)
         ImGui::EndTable();
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Time: for a blow, lower is quicker; where it is blank, the Reload sets the pace. Each point of skill short of what a weapon wants costs 2 attack and 2 defence; "
-                       "below its strength range each point costs 1 attack and 3 defence and blows hit softer, above it blows hit harder.");
+    ImGui::TextWrapped("Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Each point of skill below what a weapon needs costs 2 attack and 2 defence; each point of Strength below its range costs 1 attack and 3 defence and makes blows weaker; above the range, blows hit harder.");
     ImGui::PopStyleColor();
     if (!ui_modding()) { if (!rules_log.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", rules_log.c_str()); return; }
     static char modname[64] = "My weapons"; static std::string msg;

@@ -39,7 +39,7 @@ static const char *weapon_word(const char *w)
 static void fig_arms(Fig &f)
 {
     char w[24][3]; int n = looks_weapons(f.code.c_str(), w, 24);
-    if (n < 0) { f.arms = "every weapon"; f.arms_all = "The game's own sprite: every weapon has its animation."; return; }
+    if (n < 0) { f.arms = "every weapon"; f.arms_all = "An original party sprite: it has an animation for every weapon."; return; }
     std::string all, shown; int k = 0, hidden = 0;
     for (int i = 0; i < n; i++) {
         const char *word = weapon_word(w[i]);
@@ -114,7 +114,7 @@ extern "C" void figpick_window(void)
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
         if (ui_font_small) ImGui::PushFont(ui_font_small);
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Click a sprite (or use the arrow keys and Enter). The first four are the game's own; the others are its enemies'. The 1st, 2nd and 3rd colour buttons dye them afterwards.");
+        ImGui::TextWrapped("Click a sprite (or use the arrow keys and Enter). The first four are the original party sprites; the others are enemy sprites. The 1st, 2nd and 3rd colour buttons recolour them afterwards.");
         ImGui::PopStyleColor();
         if (ui_font_small) ImGui::PopFont();
         ImGui::Spacing();
@@ -160,7 +160,7 @@ extern "C" void figpick_window(void)
             if (clicked) choose(i);
         }
         ImGui::SetCursorScreenPos(o); ImGui::Dummy(ImVec2(grid_w, grid_h));
-        if (fp_open && ImGui::Button("Keep the old one (Esc)")) keep = false;
+        if (fp_open && ImGui::Button("Keep the current sprite (Esc)")) keep = false;
     }
     ImGui::End();
     if (!keep) fp_open = false;

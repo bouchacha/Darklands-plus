@@ -48,7 +48,7 @@ static void name_edit(const char *label, u16 off, int n)
 extern "C" void tab_editor(void)
 {
     if (game_mode() == GM_OTHER) { ImGui::TextWrapped("Start or load a game first."); return; }
-    ImGui::TextColored(ImVec4(0.55f, 0.2f, 0.1f, 1), "Changes the running game at once. Save afterwards to keep them.");
+    ImGui::TextColored(ImVec4(0.55f, 0.2f, 0.1f, 1), "Changes here apply to the running game at once. Save afterwards to keep them.");
     {
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4);
         ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins", &f)) g_ww(G_MONEY, (u16)(f < 0 ? 0 : f));
@@ -77,7 +77,7 @@ extern "C" void tab_editor(void)
         if (!ui_subtab(tabname.c_str())) continue;
         ImGui::BeginChild("edm", ImVec2(0, 0));
         u16 r = rec(m);
-        if (ImGui::CollapsingHeader("Name, age, looks", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Name, age, shield and sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
             name_edit("full name", (u16)(r + 0x25), 25);
             name_edit("nickname", (u16)(r + 0x3e), 11);
             int age = (s16)g_rw((u16)(r + 0x12));
@@ -147,7 +147,7 @@ extern "C" void tab_editor(void)
                 ImGui::PopID();
             }
         }
-        if (ImGui::CollapsingHeader("Items: quality and number")) {
+        if (ImGui::CollapsingHeader("Items: quality and count")) {
             int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
             for (int i = 0; i < n && i < 64; i++) {
                 u16 o = G_ITEM(m, i);

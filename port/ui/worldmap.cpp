@@ -146,7 +146,7 @@ static std::string kind_line(const std::vector<Place> &P, const Place &p)
         if (t.kind == 0) { double d = hypot((double)(t.x - p.x), (t.y - p.y) / 2.0); if (d < bd) { bd = d; best = &t; } }
     return best ? std::string(k) + " near " + best->name : std::string(k);
 }
-static const char *IK_LABEL[IK_N] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
+static const char *IK_LABEL[IK_N] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring or lake", "Tomb", "Pagan site", "Ruins", "Other" };
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik)
 {
     const ImU32 K = IM_COL32(20, 14, 8, 235);                          /* the dark outline */
@@ -592,7 +592,7 @@ extern "C" void worldmap_draw(void)
     wm_panel_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - o.x;
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
-    if (ui_pad_prompts()) ui_pad_text("{LSTICK} the pointer, {A} held to drag, {RSTICK} zooms. {BACK} or {Y} closes.", true);
+    if (ui_pad_prompts()) ui_pad_text("{LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the map.", true);
     else ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
     char *find = wm_find;
     ImGui::SetNextItemWidth(UIS(260) * pk);
@@ -631,7 +631,7 @@ extern "C" void worldmap_draw(void)
             }
             if (!t.empty()) pdl->AddText(ImVec2(tx, a.y), dimc, t.c_str());
         }
-        if (hits.size() > 8) ImGui::TextDisabled("and %d more: a longer name narrows it", (int)hits.size() - 8);
+        if (hits.size() > 8) ImGui::TextDisabled("and %d more: type more of the name to narrow the list", (int)hits.size() - 8);
         if (hits.empty()) ImGui::TextDisabled("No place of that name.");
     }
     if (travel.active) {                                   /* the journey under way */
@@ -648,7 +648,7 @@ extern "C" void worldmap_draw(void)
         label("Places"); ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
         ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(lw); ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other", &show_other);
         label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a little picture of its kind (else a coloured dot)");
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a small picture of its kind. When off: a coloured dot.");
         label("Towns");
         {   /* (wide enough for the longest choice: "with an artificer of 30q+") */
             float cw = UIS(230) * pk;
@@ -760,9 +760,9 @@ extern "C" void worldmap_draw(void)
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (on_map) {                                    /* (the journey first: what the panel is mostly opened for) */
                 int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
-                if (m >= 0) ImGui::Text("About %s on the way", hhmm(m).c_str());
+                if (m >= 0) ImGui::Text("About %s of travel", hhmm(m).c_str());
                 if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
-            } else ImGui::TextDisabled("Auto-travel works from the travel map.");
+            } else ImGui::TextDisabled("Auto-travel works only from the travel map.");
             place_details(p, 320 * pk);
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str()); ImGui::PopTextWrapPos(); }
@@ -816,8 +816,8 @@ extern "C" void travelmap_labels(void)
                 ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                 ImGui::TextUnformatted(name.c_str());
                 ImGui::TextDisabled("%s", loc_kind_label(kind));
-                if (tip_min > 0) ImGui::Text("About %s on the way", hhmm(tip_min).c_str());
-                if (config_get_int("travel.auto", 1)) ImGui::TextDisabled("Ctrl + click: travel there along the roads");
+                if (tip_min > 0) ImGui::Text("About %s of travel", hhmm(tip_min).c_str());
+                if (config_get_int("travel.auto", 1)) ImGui::TextDisabled("Ctrl+click: travel there along the roads");
                 ImGui::PopTextWrapPos(); ImGui::EndTooltip();
             }
         }

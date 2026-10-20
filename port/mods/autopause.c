@@ -70,7 +70,7 @@ void autopause_frame(void)
         if (autopause_foes && !config_get_int("original", 0) && !g_rb(GV_pause_depth) && now - last_pause >= 1500 && now - floor_changed > 2000) {
             last_pause = now;
             plat_press_key(SDL_SCANCODE_SPACE);
-            ui_notice("Paused: foes come out to fight");
+            ui_notice("Paused: enemies come out to fight");
         }
     }
     last_floor = floor; last_groups = groups;

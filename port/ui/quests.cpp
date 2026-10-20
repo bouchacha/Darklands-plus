@@ -294,7 +294,7 @@ static std::vector<Line> build_lines(void)
         };
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
-            add("Raubritter @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
+            add("Robber knight @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
                 + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its reward is the village's good opinion of the party when he falls." : ""),
                 "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
@@ -304,7 +304,7 @@ static std::vector<Line> build_lines(void)
                 "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
-                + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can steal up to them.",
+                + "The offices of the merchants and bankers are above " + place + "'s marketplace; at night the party can sneak up to them.",
                 limit ? "by " + date(e.end) : "", 0, e.loc, limit, fetch_cat(e)), v.back().office = papers_office(e);
         else if (e.kind == 8 && e.tag == 10)
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + where(e.loc) + " for " + by + " of " + loc_name(e.value) + ".",
@@ -320,7 +320,7 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing one's way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
+            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {
             int known = sab_what(e), w = spoilers ? 3 : known, g = known ? 0 : 4;    /* (learned: among the tasks; else a secret) */
             if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
@@ -331,7 +331,7 @@ static std::vector<Line> build_lines(void)
             if (e.value == -1)                                  /* (a season of city politics, mods/politics.c: the party took a side) */
                 add("Rebels @ " + place, "You have joined the rebels of " + place + ". Post their handbills, win the guilds over (ask about their "
                     "leaders and politics, meet their masters), and when the cause is strong ask your leader for a war council: it sets the day of "
-                    "the march. The leader is reached through the agitators' guild or the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
+                    "the march. You reach the leader through the agitators' guild or the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
             else
                 add("For the government @ " + place, "You serve the government of " + place + " against the rebels. Post its handbills, win "
                     "the guilds over, and when the time is right ask your patron for a war council: it sets the day of the arrests. Your patron's "
@@ -343,9 +343,9 @@ static std::vector<Line> build_lines(void)
             char at[64]; gm_hour_name(e.start[0], at, sizeof at);
             add(std::string(march ? "The march" : "The arrests") + " @ " + place,
                 march ? "Your side marches on the " + std::string(hall ? "town hall" : "fortress") + " of " + place + " at " + at + " on " + date(e.start)
-                        + ". Be in " + place + " that day: at the leader's house the rally starts there, in the streets the march finds you."
+                        + ". Be in " + place + " that day: if you are at the leader's house, the rally starts there; if you are in the streets, the march finds you."
                       : "The city guard arrests the rebel leaders at " + std::string(at) + " on " + date(e.start) + ". Be in " + place
-                        + " that day: at your patron's house the arrest starts there, in the streets the escort finds you.",
+                        + " that day: if you are at your patron's house, the arrest starts there; if you are in the streets, the escort finds you.",
                 "on " + date(e.start), 0, e.loc, false, QC_POLITICS);
         }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && (spoilers || [&] { sab_load(); for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && (k.what & 1)) return true; return false; }()))
@@ -373,7 +373,7 @@ void town_marks(std::vector<TownMark> &out)
         if (l.town >= 0) out.push_back({ l.town, l.cat, l.when });
 }
 
-const char *QSORT_NAME[QSORT_N] = { "deadline", "nearest", "taken" };
+const char *QSORT_NAME[QSORT_N] = { "deadline", "nearest", "date taken" };
 
 static int day_number(int day, int month, int year)          /* days since a fixed day (the real month lengths) */
 {
@@ -473,13 +473,13 @@ extern "C" void journal_quests(void)
     if (game_mode() == GM_CARD || game_mode() == GM_MAP) quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true);
     else quest_sort(v, config_get_int("quests.sort", sort) % QSORT_N);
     sort = config_get_int("quests.sort", sort) % QSORT_N;
-    static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Towns", "Secrets" };
+    static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Unwelcome or wanted", "Secrets" };
     ImGui::TextDisabled("In order of:"); ImGui::SameLine();
     for (int k = 0; k < QSORT_N; k++) {
         if (k) ImGui::SameLine();
         if (ImGui::RadioButton(QSORT_NAME[k], sort == k)) { sort = k; config_set_int("quests.sort", k); config_save(); }
     }
-    ImGui::SameLine(); ImGui::TextDisabled("  (a click on a quest opens it)");
+    ImGui::SameLine(); ImGui::TextDisabled("  (click a quest to open it)");
     bool any = false;
     for (int g = 0; g < 5; g++) {
         bool head = false;

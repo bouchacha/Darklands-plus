@@ -110,7 +110,7 @@ const char *kind_name(ItemKind k)
 const char *kind_name_one(ItemKind k)
 {
     static const char *n[] = { "Weapon", "Missile weapon", "Armour", "Shield", "Gear", "Tool", "Instrument",
-                               "Alchemical ingredient", "Potion", "Relic", "Horse", "Document", "Curiosity", "Thing" };
+                               "Alchemical ingredient", "Potion", "Relic", "Horse", "Document", "Curiosity", "Item" };
     return n[k];
 }
 

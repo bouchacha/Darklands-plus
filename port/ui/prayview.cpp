@@ -42,7 +42,7 @@ extern "C" void prayview_draw(void)
         y += P.para(fo, NsDraw::FS_BODY, tx, y, tw, IM_COL32(26, 64, 132, 255), saint_info_does(p.saint)) + 0.5f;
         if (*saint_info_note(p.saint)) y += P.para(fo, 4.2f, tx, y, tw, dim, saint_info_note(p.saint)) + 1.5f;
         const char *un = saint_info_unlike(p.saint);
-        if (*un) y += P.para(fo, 4.4f, tx, y, tw, IM_COL32(140, 50, 30, 255), std::string("Unlike the text: ") + un) + 1.5f;
+        if (*un) y += P.para(fo, 4.4f, tx, y, tw, IM_COL32(140, 50, 30, 255), std::string("Differs from the description: ") + un) + 1.5f;
         y += P.para(fo, 4.4f, tx, y, tw, soft, gamedata.saints[p.saint].text) + 2;
     }
 
@@ -50,7 +50,7 @@ extern "C" void prayview_draw(void)
     float by = fmaxf(y + 2, 128);
     P.rect(tx - 1.5f, by, 317, 196, IM_COL32(236, 224, 196, 255), 1.5f);
     float x = tx + 1.5f, yy = by + 2.5f;
-    P.text(f, NsDraw::FS_HEAD, x, yy, ink, "Divine favor to spend");
+    P.text(f, NsDraw::FS_HEAD, x, yy, ink, "Divine Favor to spend");
     char b[64]; snprintf(b, sizeof b, "%d", p.df);
     float bx = 316 - 2;
     if (P.button(bx - 9, yy, bx, yy + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(PV_MORE, 0, 0, 0);
@@ -63,7 +63,7 @@ extern "C" void prayview_draw(void)
     snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance);
     P.text(f, NsDraw::FS_HEAD, x, yy, p.chance >= 50 ? NsDraw::GREEN : p.chance > 0 ? ink : NsDraw::RED, b);
     yy += 9;
-    if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More favor, a better chance (up to 99%); the favor is spent either way.");
+    if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More favor gives a better chance (up to 99%); the favor is spent either way.");
     yy += 8;
     float bw = 40;
     if (P.button(316 - bw, 184, 316, 194, "Don't pray", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(PV_CANCEL, 0, 0, 0);

@@ -208,9 +208,9 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
     if (quick_due) {
         quick_due = 0;
         if (g_rb(D_SAVE_OK) == 1) do_save("Quicksave");
-        else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days stay spent)." :
+        else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back)." :
                        g_rb(D_IN_BATTLE) == 1 ? "The game does not allow saving during a battle." :
-                       "The game does not allow saving on this screen: leave it first (on a card, the travel map or in a town it can).");
+                       "The game does not allow saving on this screen: leave it first (saving works on a card, on the travel map or in a town).");
     } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;
@@ -285,7 +285,7 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     }
     hook_call_original();
     if (load_name[0] && load_stage) {
-        char m[80]; snprintf(m, sizeof m, g_rb(D_IN_BATTLE) == 1 ? "Loaded %s: a battle, paused - Space goes on" : "Loaded %s", load_name);
+        char m[80]; snprintf(m, sizeof m, g_rb(D_IN_BATTLE) == 1 ? "Loaded %s: a battle, paused (Space resumes it)" : "Loaded %s", load_name);
         ui_notice(m);
     }
     load_stage = 0;
@@ -357,7 +357,7 @@ void saves_quick_save(void)
 
 int saves_load(const char *name)
 {
-    if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; use the game's own Load before that."); return 0; }
+    if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; until then, load from the start screen."); return 0; }
     /* only a save that is there and can be read: once the game's load_game has torn the game down,
        a load that fails has nothing to go back to (the game stopped: "Buffer dealloc error") */
     SaveInfo si;

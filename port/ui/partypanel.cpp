@@ -188,7 +188,7 @@ static const char *order_word(char c, int place, bool shortw)
     #define W(s, l) return shortw ? s : l
     switch (c) {
     case 'A': W("attacks", "attacks (Std Attack, a standard attack)");
-    case 'V': W("vulnerable", "attacks Vulnerable (the Orders menu's word): harder blows, a weaker defence");
+    case 'V': W("vulnerable", "attacks with Vulnerable (an Orders menu choice): harder blows, a weaker defence");
     case 'B': W("berserk", "is berserk: attacks without thought of defence");
     case 'P':
         if (place == 3) W("picks", "picks the lock of the door given");
@@ -197,18 +197,18 @@ static const char *order_word(char c, int place, bool shortw)
     case 'M': W("shoots", "shoots at the target given");
     case 'T': W("throws", "throws a potion at the target given");
     case 'W': W("walks", "walks to the spot given");
-    case 'F': W("flees", "flees to the spot given: does not stop to fight, nor strike back");
+    case 'F': W("flees", "flees to the spot given: does not stop to fight or strike back");
     case 'U': if (place == 2) W("stairs", "takes the stairs given"); W("door", "opens or shuts the door given");
     case 'D': W("unlocks", "dissolves the lock given");
     case 'O': W("opens", "opens the chest given");
-    case 'X': W("leaves", "leaves the battlefield by the way out given");
+    case 'X': W("leaves", "leaves the battlefield by the chosen exit");
     case 'H': W("halts", "halts and stands where they are");
     case 'b':
         if (config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0))
             W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
         W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
     case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
-    case '-': W("waits", "waits for an order: click them here or on the field, then a foe, a spot or a choice of the Orders menu");
+    case '-': W("waits", "waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu");
     }
     #undef W
     return nullptr;
@@ -304,7 +304,7 @@ extern "C" void partypanel_draw(void)
             P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
-                ImGui::SetTooltip("%s carries %s: %d against %d (endurance + strength).\nIt costs agility in card tests and in fending off blows, and slows the swings. A click opens the sheet.",
+                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\nIt lowers Agility in card tests and in fending off blows, and slows melee attacks. Click to open the sheet.",
                                   name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2);
             }
         }
@@ -325,7 +325,7 @@ extern "C" void partypanel_draw(void)
                 P.dl->AddEllipse(NsDraw::w(hx, hy - 0.5f), ImVec2(2.0f * P.k, 0.9f * P.k), ring, 0, 0, fmaxf(1.2f, 0.55f * P.k));   /* the halo */
                 P.dl->AddCircleFilled(NsDraw::w(hx, hy + 1.2f), 0.9f * P.k, ring);                                                /* a head under it */
                 if (P.over(hx - r - 0.5f, hy - r - 0.5f, hx + r + 0.5f, hy + r + 0.5f))
-                    ImGui::SetTooltip("At work on %s:%s", name.c_str(), tip.c_str());
+                    ImGui::SetTooltip("In effect on %s:%s", name.c_str(), tip.c_str());
             }
         }
         if (st == 3) {

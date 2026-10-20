@@ -17,16 +17,16 @@
 
 ## What is Darklands?
 
-An open-world role-playing game from 1992. You lead a party of up to five through the Holy Roman Empire around 1400: real cities, real saints, alchemy that follows medieval beliefs, and battles in real time with pause. There is no single plot; you make your name with quests, robber knights, witches' Sabbats and the occasional dragon. It is loved for its depth and notorious for its clumsy interface, hidden rules and bugs. Darklands+ is about the second part.
+An open-world role-playing game from 1992. You lead a party of up to five through the Holy Roman Empire around 1400: real cities, real saints, alchemy that follows medieval beliefs, and battles in real time with pause. There is no single plot; you make your name with quests, robber knights, witches' Sabbats and the occasional dragon. It is loved for its depth and notorious for its clumsy interface, hidden rules and bugs. Darklands+ takes on the interface, the hidden rules and the bugs.
 
 ## What Darklands+ changes
 
 - **It runs on today's PCs.** Natively on Windows 10 and 11, in a window of any size or full screen, with crisp text up to 4K. The Roland MT-32 music is built in (with your own ROM files), and game controllers and the Steam Deck work.
-- **Screens made for the mouse.** The cards, shops, character sheet, loot, inn, alchemy, saints, saving and loading are drawn anew: click an option, drag an item, point at anything for an explanation.
-- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what a foe's armour stops.
-- **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and the world map travels to any place you pick.
+- **Screens made for the mouse.** The cards, shops, character sheet, loot, inn, alchemy, saints, saving and loading are redrawn: click an option, drag an item, point at anything for an explanation.
+- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what an enemy's armour stops.
+- **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and from the world map the party travels to any place you pick.
 - **Quests you can follow.** Each task has a title, a deadline and a marker on the map. A journal keeps every text the game has shown you, a record of each town, and your own notes.
-- **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on a foe to attack it, and a map of the level.
+- **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on an enemy to attack it, and a map of the level.
 - **Bugs fixed.** 57 fixes for bugs of the original, and 43 saints that now do what their descriptions say.
 - **What MicroProse left unfinished**, on a page of its own (F12 > Settings > Restored), experimental and off unless you tick it: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices, an ambush by soldiers of a private war ("Fehde!"), a town's hospice, Black Cloud in battle and the Honor Roll of Glory the game never showed. [What else the game holds unused](docs/cut_content.md).
 - **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
@@ -45,7 +45,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 ## Questions
 
-- **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra figures Darklands+ offers). The first start of each version also copies them into a "Darklands+ save backups" folder.
+- **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra sprites Darklands+ offers). The first start of each version also copies them into a "Darklands+ save backups" folder.
 - **Does it go online?** No. Darklands+ never connects to the internet and collects nothing.
 - **My antivirus complains.** On the first start Darklands+ builds the game module, `darklands_game.dll`, from your own `DARKLAND.EXE`; some antivirus programs distrust files that were just compiled. Allow it.
 - **Mac?** Not natively. Wine-based tools may work but are untested.

@@ -148,7 +148,7 @@ const char *musicpack_desc(int n)
     case 45: return "the ending";
     case 47: return "the opening";
     }
-    if (n == 33 || n == 34) return "a short sound over the piece playing";
+    if (n == 33 || n == 34) return "a short sound played over the current piece";
     return "";
 }
 

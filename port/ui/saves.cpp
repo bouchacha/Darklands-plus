@@ -53,7 +53,7 @@ extern "C" void tab_saves(void)
     bool on = saves_on != 0;
     if (ImGui::Checkbox("Quick save, quick load and autosaves", &on)) saves_enable(on);
     { bool rs = saves_restart != 0;
-      if (ImGui::Checkbox("When the party's journey ends, start again at the title (the original closes)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
+      if (ImGui::Checkbox("When the party's journey ends, return to the title screen (the original game quits)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
     if (on) {
         ImGui::TextDisabled("Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quicksave.");
         ImGui::Indent(UIS(20));
@@ -75,7 +75,7 @@ extern "C" void tab_saves(void)
     if (nlist == 0) { ImGui::TextDisabled("No saved games yet."); return; }
     ImGui::Text("%d saved game%s, newest first", nlist, nlist == 1 ? "" : "s");
     ImGui::SameLine(); if (ImGui::SmallButton("Refresh")) refresh();
-    if (!in_game) ImGui::TextDisabled("Loading from here works once a game is running; before that use the game's own Load.");
+    if (!in_game) ImGui::TextDisabled("Loading from here works once a game is running; before that, use Load on the title screen.");
     if (!ImGui::BeginTable("saves", 5, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersInnerH, ImVec2(0, 0)))
         return;
     ImGui::TableSetupScrollFreeze(0, 1);
@@ -101,7 +101,7 @@ extern "C" void tab_saves(void)
         ImGui::TextWrapped("%s", game_text(s.comment, sizeof s.comment).c_str());
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(when(s.mtime).c_str());
-        if (!strcasecmp(cur, s.file)) ImGui::TextDisabled("the game now");   /* (its file name says nothing more) */
+        if (!strcasecmp(cur, s.file)) ImGui::TextDisabled("current game");   /* (its file name says nothing more) */
         else ImGui::TextDisabled("%s", s.file);
         ImGui::TableNextColumn();
         if (in_game) {

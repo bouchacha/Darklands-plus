@@ -131,7 +131,7 @@ extern "C" void createview_draw(void)
 
     if (c.state == 0) {
         title("Name and gender");
-        note("Type a name, or have one drawn; then the childhood.");
+        note("Type a name or pick a random one, then go on to the childhood.");
         const char *lab[2] = { "Name", "Short name (the one the cards use)" };
         for (int k = 0; k < 2; k++) {
             P.text(fo, NsDraw::FS_SMALL, LX0 + 3, y, soft, lab[k]);
@@ -145,17 +145,16 @@ extern "C" void createview_draw(void)
             if (!typing && P.hit(LX0 + 3, y, LX1 - 3, y + 11)) ns_push(CG_TYPE, k + 1, 0, 0);
             y += 14;
         }
-        if (c.typing) note("Enter keeps it, Esc does not.");
+        if (c.typing) note("Enter keeps it, Esc cancels.");
         float mid = (LX0 + LX1) * 0.5f;
-        if (P.button(LX0 + 3, y, mid - 1.5f, y + 11, "Draw a name", BROWN, NsDraw::FS_BODY)) ns_push(CG_KEY, 3, 0, 0);
+        if (P.button(LX0 + 3, y, mid - 1.5f, y + 11, "Random name", BROWN, NsDraw::FS_BODY)) ns_push(CG_KEY, 3, 0, 0);
         if (P.button(mid + 1.5f, y, LX1 - 3, y + 11, c.female ? "Be a man" : "Be a woman", BROWN, NsDraw::FS_BODY)) ns_push(CG_KEY, 2, 0, 0);
         y += 15;
         if (P.button(LX0 + 3, y, LX1 - 3, y + 13, "On to the childhood", GREEN, NsDraw::FS_HEADBTN)) ns_push(CG_KEY, 1, 0, 0);
-        if (P.button(LX0 + 3, Y1 - 15, LX1 - 3, Y1 - 3, "Back to the party (no character)", RED, NsDraw::FS_BODY)) ns_push(CG_KEY, 6, 0, 0);
+        if (P.button(LX0 + 3, Y1 - 15, LX1 - 3, Y1 - 3, "Cancel and return to the party", RED, NsDraw::FS_BODY)) ns_push(CG_KEY, 6, 0, 0);
     } else if (c.state == 1) {
         title("Childhood");
-        note("The family decides the first attributes and skills, and which professions are open at first. "
-             "Point at one for what it brings (right); a click chooses it.");
+        note("The family decides the starting attributes and skills, and which professions are open at first. Point at one to see what it brings (on the right); click to choose it.");
         y += 1;
         for (int i = 0; i < c.nlist; i++) {
             float ry = y + i * 12;
@@ -168,8 +167,7 @@ extern "C" void createview_draw(void)
         }
     } else if (c.state == 3) {
         title("Profession");
-        note("Five years each. The dark ones are open to this character now: a click takes one. "
-             "Point at any for what it needs and brings.");
+        note("Five years each. Those in dark letters are open now: click one to take it. Point at any to see what it needs and brings.");
         /* every profession, by kind, in three columns: the open ones dark and clickable */
         static const int COLS[3][3] = { { 0, 1, 5 }, { 2, 3, -1 }, { 4, 6, -1 } };
         float cw = (LX1 - LX0 - 6) / 3.0f, y0 = y;
@@ -200,11 +198,11 @@ extern "C" void createview_draw(void)
         }
         float ly = Y1 - 9;
         P.dl->AddCircleFilled(NsDraw::w(LX0 + 5, ly + 3.2f), 0.9f * P.k, NsDraw::GREEN);
-        P.text(fo, NsDraw::FS_SMALL, LX0 + 7.5f, ly + 0.5f, dim, "taken before (again: the same years once more)");
+        P.text(fo, NsDraw::FS_SMALL, LX0 + 7.5f, ly + 0.5f, dim, "taken before (can be taken again for five more years)");
         if (!c.nlist) P.text(fo, NsDraw::FS_SMALL, LX0 + 3, ly - 7, NsDraw::RED, "No profession is open to this character now.");
     } else if (c.state == 2) {
         title("Attributes");
-        snprintf(b, sizeof b, "%d of %d EPs left. + and - on a row (- takes back what this step gave). A point costs 1 EP, 2 from 29, 3 from 39; at most 40.", c.ep, c.ep_step);
+        snprintf(b, sizeof b, "%d of %d EPs left. Use + and - on a row (- only takes back this step's points). A point costs 1 EP, 2 at 29+, 3 at 39+; an attribute can reach 40 at most.", c.ep, c.ep_step);
         note(b);
         y += 1;
         for (int i = 0; i < 6; i++) {
@@ -228,7 +226,7 @@ extern "C" void createview_draw(void)
         if (P.button(LX0 + 3, Y1 - 15, LX1 - 3, Y1 - 3, "On to the profession", GREEN, NsDraw::FS_HEADBTN)) ns_push(CG_KEY, 1, 0, 0);
     } else if (c.state == 4) {
         title("Skills");
-        snprintf(b, sizeof b, "%d of %d EPs left. A point costs 1 EP, 2 from 49, 3 from 79. Room: how many more points this profession lets the EPs put into the skill.", c.ep, c.ep_step);
+        snprintf(b, sizeof b, "%d of %d EPs left. A point costs 1 EP, 2 at 49+, 3 at 79+. Room: how many more points this profession still lets you add to the skill.", c.ep, c.ep_step);
         note(b);
         const CgProf &ad = c.adult[c.prof >= 0 && c.prof < 37 ? c.prof : 0];
         float cw = (LX1 - LX0 - 6) / 2.0f, rh = 9.4f;
@@ -257,7 +255,7 @@ extern "C" void createview_draw(void)
             if (can_plus && P.button(bx - bw, ry + 1, bx, ry + rh - 1, "+", GREEN, NsDraw::FS_BODY)) ns_push(CG_ROWPLUS, row, 0, 0);
             if (sp && P.button(bx - 2 * bw - 1, ry + 1, bx - bw - 1, ry + rh - 1, "-", BROWN, NsDraw::FS_BODY)) ns_push(CG_ROWMINUS, row, 0, 0);
             if (h) {
-                snprintf(b, sizeof b, "%s %d: a point costs %d EP now; room for %d more this profession.", gm_skill_short(i), v, skill_cost(v), room < 0 ? 0 : room);
+                snprintf(b, sizeof b, "%s %d: a point costs %d EP now; this profession allows %d more.", gm_skill_short(i), v, skill_cost(v), room < 0 ? 0 : room);
                 P.text(fo, NsDraw::FS_SMALL, LX0 + 3, y + 10 * rh + 2, soft, b, -1, LX1 - 3);
             }
         }
@@ -285,13 +283,13 @@ extern "C" void createview_draw(void)
         snprintf(b, sizeof b, c.state == 1 ? "%d EPs for the attributes, then age %d." : "%d EPs for the skills, then age %d.", pv.ep, c.age + (c.state == 1 ? 15 : 5));
         P.text(fo, NsDraw::FS_BODY, RX0 + 3, ry, soft, b);
         ry += 7;
-        if (c.state == 3 && c.age + 5 > 30) { P.text(fo, NsDraw::FS_SMALL, RX0 + 3, ry, NsDraw::RED, "Past thirty, the years cost attributes (shown below)."); ry += 6.5f; }
+        if (c.state == 3 && c.age + 5 > 30) { P.text(fo, NsDraw::FS_SMALL, RX0 + 3, ry, NsDraw::RED, "Over 30, aging lowers attributes (shown below)."); ry += 6.5f; }
         if (c.state == 3) {                                   /* what it needs, what this character lacks, what it leads to */
             CgCtx x = ctx_of(c);
             ry += P.para(fo, NsDraw::FS_SMALL, RX0 + 3, ry, RW, ink, std::string("Needs: ") + cg_prof_needs(hover)) + 1.5f;
             if (!offered) {
                 std::string why;
-                if (cg_prof_rule(hover, x)) why = "Open by its rules, but the game lists at most 15 professions and this one comes after them.";
+                if (cg_prof_rule(hover, x)) why = "This character qualifies, but the game lists at most 15 professions and this one comes after them.";
                 else why = cg_prof_why(hover, x);
                 ry += P.para(fo, NsDraw::FS_SMALL, RX0 + 3, ry, RW, NsDraw::RED, why) + 1.5f;
             }
@@ -301,13 +299,13 @@ extern "C" void createview_draw(void)
             CgCtx x = ctx_of(c); x.age = 15; x.child = hover;
             for (int k = 0; k < 6; k++) x.attr[k] = (signed char)pv.attr[k];
             for (int k = 0; k < 19; k++) x.skill[k] = (signed char)(c.skill[k] + pv.gain[k]);
-            ry += P.para(fo, NsDraw::FS_SMALL, RX0 + 3, ry, RW, ink, "Open at first: " + join_profs(c, cg_prof_offered(x)) + ".") + 1.5f;
+            ry += P.para(fo, NsDraw::FS_SMALL, RX0 + 3, ry, RW, ink, "Professions open at first: " + join_profs(c, cg_prof_offered(x)) + ".") + 1.5f;
         }
         ry += 1.5f;
     } else {
-        P.text(f, NsDraw::FS_HEAD, RX0 + 3, ry, ink, "As it stands");
+        P.text(f, NsDraw::FS_HEAD, RX0 + 3, ry, ink, "The character so far");
         ry += 9.5f;
-        if (c.state == 1 || c.state == 3) { P.text(fo, NsDraw::FS_SMALL, RX0 + 3, ry, dim, c.state == 1 ? "Point at a childhood for what it brings." : "Point at a profession for what it needs and brings."); ry += 7; }
+        if (c.state == 1 || c.state == 3) { P.text(fo, NsDraw::FS_SMALL, RX0 + 3, ry, dim, c.state == 1 ? "Point at a childhood to see what it brings." : "Point at a profession to see what it needs and brings."); ry += 7; }
     }
 
     /* the attributes (not on the attribute step: they are on the left), with what the row pointed at changes */
@@ -364,7 +362,7 @@ extern "C" void createview_draw(void)
             }
         }
         ry += 10 * rh + 2;
-        if (room) { ry += P.para(fo, NsDraw::FS_SMALL - 0.4f, RX0 + 3, ry, RW, dim, "teaches: the points the five years give; room: how many more the skill EPs may put in afterwards.") + 1.5f; }
+        if (room) { ry += P.para(fo, NsDraw::FS_SMALL - 0.4f, RX0 + 3, ry, RW, dim, "teaches: the points the five years give; room: how many more points skill EPs can add afterwards.") + 1.5f; }
     }
 
     /* the past: professions, virtues, saints */

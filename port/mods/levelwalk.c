@@ -63,9 +63,9 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     g_wb((u16)(CBT(lead) + 0x4a), 0xff);
     g_wb((u16)(0xd6fb + lead), 0);
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode);
-    if (g_rb(GV_ai_paused) == 1) ui_notice(was_mode != 2 ? "The party will walk there in single file (G: as a group again); Space resumes the battle."
+    if (g_rb(GV_ai_paused) == 1) ui_notice(was_mode != 2 ? "The party will walk there in single file (press G to move as a group again); Space resumes the battle."
                                                           : "The party will walk there: Space resumes the battle.");
-    else if (was_mode != 2) ui_notice("The party walks there in single file (G: as a group again).");
+    else if (was_mode != 2) ui_notice("The party walks there in single file (press G to move as a group again).");
     hook_call_original();
 }
 

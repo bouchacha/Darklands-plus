@@ -312,10 +312,10 @@ static float fam_dist(const u8 *a, const u8 *b)
 
 /* the dyes of the colour keys */
 typedef struct { const char *name; float h, s; int mode; } Dye;     /* mode 0 the figure's own, 1 hue, 2 dark, 3 light */
-static const Dye DYE_C[] = { { "its own", 0, 0, 0 }, { "red", 0.0f, 0.85f, 1 }, { "blue", 0.61f, 0.75f, 1 }, { "green", 0.33f, 0.6f, 1 },
+static const Dye DYE_C[] = { { "default", 0, 0, 0 }, { "red", 0.0f, 0.85f, 1 }, { "blue", 0.61f, 0.75f, 1 }, { "green", 0.33f, 0.6f, 1 },
     { "gold", 0.12f, 0.85f, 1 }, { "purple", 0.79f, 0.6f, 1 }, { "brown", 0.08f, 0.6f, 1 }, { "teal", 0.5f, 0.6f, 1 },
     { "black", 0, 0, 2 }, { "white", 0, 0, 3 } };
-static const Dye DYE_N[] = { { "its own", 0, 0, 0 }, { "dark", 0, 0, 2 }, { "light", 0, 0, 3 }, { "brown", 0.08f, 0.45f, 1 },
+static const Dye DYE_N[] = { { "default", 0, 0, 0 }, { "dark", 0, 0, 2 }, { "light", 0, 0, 3 }, { "brown", 0.08f, 0.45f, 1 },
     { "blue", 0.6f, 0.35f, 1 }, { "green", 0.3f, 0.3f, 1 }, { "red", 0.0f, 0.45f, 1 }, { "gold", 0.12f, 0.5f, 1 } };
 #define NDYE_C ((int)(sizeof DYE_C / sizeof DYE_C[0]))
 #define NDYE_N ((int)(sizeof DYE_N / sizeof DYE_N[0]))
@@ -819,8 +819,8 @@ static void key_hook(int ovl)
                 Look *L = look_find(now);
                 char msg[160];
                 if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite%s)", k, n, L->title,
-                                L->npart > 2 ? "; the 1st, 2nd and 3rd color keys dye it" : L->npart > 1 ? "; the 1st and 2nd color keys dye it" :
-                                L->npart ? "; the 1st color key dyes it" : "");
+                                L->npart > 2 ? "; the 1st, 2nd and 3rd colour buttons recolour it" : L->npart > 1 ? "; the 1st and 2nd colour buttons recolour it" :
+                                L->npart ? "; the 1st colour button recolours it" : "");
                 else snprintf(msg, sizeof msg, "Sprite %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);
                 figure_notice(msg);
             }
@@ -839,7 +839,7 @@ static void key_hook(int ovl)
             if (d) { char msg[80]; snprintf(msg, sizeof msg, "%s color: %s", part == 0 ? "1st" : part == 1 ? "2nd" : "3rd", d); figure_notice(msg); }
             else {
                 char code[4]; looks_member_figure(m, code);
-                if (look_find(code)) figure_notice(part ? "This sprite has no more colours of its own." : "This sprite's colours are its own: they cannot be changed.");
+                if (look_find(code)) figure_notice(part ? "This sprite has no more colours that can be changed." : "This sprite's colours are fixed: they cannot be changed.");
             }
         }
         AX = ax;

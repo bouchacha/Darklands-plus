@@ -41,7 +41,7 @@ extern "C" void enemyview_draw(void)
     P.rect(X0, Y0, X1, Y1, IM_COL32(242, 230, 200, 252), 2);
     P.frame(X0, Y0, X1, Y1, IM_COL32(120, 80, 36, 180), 2);
     P.text(f, NsDraw::FS_TITLE, X0 + 4, Y0 + 1.5f, ink, "The enemy");
-    P.text(fo, NsDraw::FS_SMALL, 0, Y0 + 4, dim, "a key or a click: back to the battle", X1 - 4);
+    P.text(fo, NsDraw::FS_SMALL, 0, Y0 + 4, dim, "press a key or click to return to the battle", X1 - 4);
     float cw = (X1 - X0 - 6 - (cols - 1) * 3) / cols;
     int size = gm_party_size(); if (size < 0 || size > 5) size = 0;
     for (int i = 0; i < m.n; i++) {
@@ -93,7 +93,7 @@ extern "C" void enemyview_draw(void)
                     if (mw < 0 || mw > 62) continue;
                     int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
                     if (r < best) best = r;
-                    s += std::string(s.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " is halved" : " is deflected");
+                    s += std::string(s.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is deflected");
                 }
                 if (best == 3) continue;
                 ImU32 c = best == 0 ? IM_COL32(40, 96, 34, 255) : best == 1 ? IM_COL32(150, 100, 10, 255) : NsDraw::RED;

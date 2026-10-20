@@ -163,7 +163,7 @@ static int run(void)
                     a.a = 0x1e41; lo = 'A';
                 }
                 if (lo == 'B' && !r->party_n) { note("Add someone to the party first."); break; }
-                if (lo == 'A' && r->sel >= 0 && r->ch[r->sel].slot < 0 && r->party_n >= 4) { note("The party is full: four travel together. Drop someone first."); break; }
+                if (lo == 'A' && r->sel >= 0 && r->ch[r->sel].slot < 0 && r->party_n >= 4) { note("The party is full: up to four travel together. Drop someone first."); break; }
                 if (key(a.a) == 0x11b) result = 1;
                 break;
             }
@@ -177,7 +177,7 @@ static int run(void)
             }
             if (ns_unwinding) break;
             build();
-            if (a.type == RV_KEY && (a.a & 0xdf) == 'C' && r->n > nbefore) { choose(r->n - 1); build(); note("The new character is kept: add them to the party."); }
+            if (a.type == RV_KEY && (a.a & 0xdf) == 'C' && r->n > nbefore) { choose(r->n - 1); build(); note("The new character is in the list: add them to the party."); }
             if (a.type == RV_KEY && (a.a & 0xdf) == 'A' && r->party_n > before) {
                 note("");
                 /* a look of their own (the game gives everyone added the first figure, the tall man, in the same

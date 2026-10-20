@@ -233,8 +233,8 @@ static void draw_chances(void)
     if (tip_line >= 0) {                                          /* what the badge is */
         char t[200], nm[24] = "";
         if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
-        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: %s %d%% chance of success.\nThe game's own number (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, gm_a_an(tip_pct), tip_pct);
-        else snprintf(t, sizeof t, "This option tests the whole party: %s %d%% chance of success.\nThe game's own number (hold Shift over an option); it rises with the skills and attributes the test asks for.", gm_a_an(tip_pct), tip_pct);
+        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: %s %d%% chance of success.\nThe original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested.", nm, gm_a_an(tip_pct), tip_pct);
+        else snprintf(t, sizeof t, "This option tests the whole party: %s %d%% chance of success.\nThe original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested.", gm_a_an(tip_pct), tip_pct);
         ImFont *tf = f;
         float ts = ui_text_px() * 0.8f, pad = ts * 0.45f;           /* sized like the other tooltips */
         float wrap = fminf(ImGui::GetIO().DisplaySize.x * 0.45f, ts * 26);
@@ -759,7 +759,7 @@ static void draw_card_help(void)
     ImFont *f = ui_font_overlay;
     ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
     float base = (br.y - tl.y) / 197.0f * 7.6f; if (base < 15) base = 15;
-    const char *hs = "Saints that work here", *hi = "Items that work here";
+    const char *hs = "Saints who help here", *hi = "Items that help here";
     int nrows = (int)lines.size() + (nsaints ? 1 : 0) + (nsaints < (int)lines.size() ? 1 : 0);
     float size = base, w = 0, h = 0, gapx = 0, padx = 0, pady = 0, lh = 0;
     ImVec2 p0, p1;
@@ -1075,13 +1075,8 @@ static void draw_creation_guide(void)
         "know more, but age costs attributes.",
         "The family decides the first attributes and skills. The right side shows what the background "
         "under the pointer would give; EP (top right) are the points to spend next.",
-        "Spend the EP on attributes: pick one, then + or -. Endurance and strength are the hit points "
-        "(and together say how much one can carry); agility counts in battle; perception, intelligence "
-        "and charisma serve many skills.",
-        "Choose the profession for the next five years. The right side shows the one under the pointer: "
-        "the EP it gives (top), the attributes after it, and for each skill gain:room - what it adds at "
-        "once : how many EP that skill can still take. Some professions open only after others, or need "
-        "certain attributes.",
+        "Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills.",
+        "Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes.",
         "Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the "
         "colon. Then choose the next profession, or begin adventuring.",
     };

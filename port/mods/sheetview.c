@@ -198,7 +198,7 @@ static int pack_fetch(int w, int id, int q, const char *nm, char *t, size_t tn)
     int h, i;
     if (!pack_holder(w, id, q, &h, &i)) { snprintf(t, tn, "No %s is left in the pack.", nm); return -1; }
     if (h != w) {
-        if (gm_item_count(w) >= 64 && record_of(w, id, q, 0) < 0) { snprintf(t, tn, "%s cannot carry another kind of thing.", sheet_model.names[w]); return -1; }
+        if (gm_item_count(w) >= 64 && record_of(w, id, q, 0) < 0) { snprintf(t, tn, "%s cannot carry another kind of item.", sheet_model.names[w]); return -1; }
         ns_call(GF_give_one, 4, h, w, i, 9);
         if (ns_unwinding) return -1;
     }
@@ -217,7 +217,7 @@ static void act(const NsAction *a, int *who)
         switch (a->type) {
         case SV_KEEP:
             keep_set(id, q, a->c);
-            snprintf(t, sizeof t, a->c ? "The %s is kept: not sold or dropped until you unmark it." : "The %s may be sold and dropped again.", nm);
+            snprintf(t, sizeof t, a->c ? "The %s is marked Keep: it will not be sold or dropped until you unmark it." : "The %s may be sold and dropped again.", nm);
             break;
         case SV_PREADY: {
             int r = pack_fetch(w, id, q, nm, t, sizeof t);
@@ -240,7 +240,7 @@ static void act(const NsAction *a, int *who)
             snprintf(t, sizeof t, "%s drinks the %s.", sheet_model.names[w], nm);
             break; }
         case SV_PDROP: {
-            if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is kept (unmark it first).", nm); break; }
+            if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is marked Keep: unmark it before dropping it.", nm); break; }
             int want = a->c == 255 ? 9999 : 1, done = 0, h, i;
             while (done < want && pack_holder(-1, id, q, &h, &i)) {
                 GmItem g2; gm_item(h, i, &g2);
@@ -312,14 +312,14 @@ static void act(const NsAction *a, int *who)
         int to = a->b, all = a->c == 255;
         if (to == w || !gm_member_present(to) || gm_member_status(to) == 5) return;
         int before = gm_item_count(to);
-        if (before >= 64 && !all) { snprintf(t, sizeof t, "%s cannot carry another kind of thing.", sheet_model.names[to]); break; }
+        if (before >= 64 && !all) { snprintf(t, sizeof t, "%s cannot carry another kind of item.", sheet_model.names[to]); break; }
         if (all) ns_call(GF_give_stack, 4, w, to, idx, 9); else ns_call(GF_give_one, 4, w, to, idx, 9);
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, all ? "%s gives the %s to %s." : "%s gives a %s to %s.", sheet_model.names[w], nm, sheet_model.names[to]);
         else snprintf(t, sizeof t, "%s cannot take the %s.", sheet_model.names[to], nm);
         break; }
     case SV_DROP: {
         SheetModel *s = &sheet_model;
-        if (keep_is(g.id, g.qual)) { snprintf(t, sizeof t, "The %s is kept (unmark it first).", nm); break; }
+        if (keep_is(g.id, g.qual)) { snprintf(t, sizeof t, "The %s is marked Keep: unmark it before dropping it.", nm); break; }
         int n = a->b == 255 ? g.count : 1;
         if (a->b == 255) ns_call(GF_item_remove_stack, 2, w, idx); else ns_call(GF_item_take_one, 2, w, idx);
         if (ns_unwinding) return;

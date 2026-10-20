@@ -240,7 +240,7 @@ extern "C" void battlelog_frame(void)
         if (st != known_st[i]) {
             if (st == 3) add(i < 5 ? 3 : 4, name_of(i) + (i < 5 ? " is killed!" : " is killed"));
             else if (st == 2) add(i < 5 ? 3 : 4, name_of(i) + " falls unconscious" + (i < 5 ? "!" : ""));
-            else if (st == 1 && known_st[i] == 2) add(4, name_of(i) + " comes to");
+            else if (st == 1 && known_st[i] == 2) add(4, name_of(i) + " wakes up");
             else if (st == 5) add(i < 5 ? 3 : 4, name_of(i) + " leaves the field");
         }
         if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
@@ -279,7 +279,7 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
     }
     dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f), IM_COL32(222, 178, 104, 255), "Battle");
     float top = pad + lh * 1.5f;
-    if (lines.empty()) dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f + lh), IM_COL32(170, 150, 120, 255), "Each blow is told here.", 0, w - 2 * pad);
+    if (lines.empty()) dl->AddText(f, fs, ImVec2(x + pad, fs * 0.8f + lh), IM_COL32(170, 150, 120, 255), "Each blow will be listed here.", 0, w - 2 * pad);
     for (int k = (int)lines.size() - 1; k >= 0 && y > top + lh; k--) {
         /* wrapped to the margin's width, so a long line takes two rows */
         const char *t = lines[k].text.c_str();
@@ -323,11 +323,11 @@ extern "C" void battlelog_overlay(void)
 /* F12 > Journal: the whole of the last battle */
 extern "C" void battlelog_tab(void)
 {
-    if (lines.empty() && prev_lines.empty()) { ImGui::TextWrapped("Nothing yet: the log of a battle shows here, blow by blow, while it lasts and after."); return; }
+    if (lines.empty() && prev_lines.empty()) { ImGui::TextWrapped("No battle yet: the battle log shows here, blow by blow, during each battle and after it."); return; }
     static int which = 0;
     if (!prev_lines.empty()) {
         ImGui::RadioButton("The last battle", &which, 0); ImGui::SameLine();
-        ImGui::RadioButton("The one before", &which, 1);
+        ImGui::RadioButton("The battle before", &which, 1);
     } else which = 0;
     const std::vector<BLine> &v = which ? prev_lines : lines;
     ImGui::TextDisabled("%d lines.", (int)v.size());

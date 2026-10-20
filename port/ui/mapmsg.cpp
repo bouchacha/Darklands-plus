@@ -39,5 +39,5 @@ extern "C" void mapmsg_draw(void)
         if (p.empty()) continue;
         y += P.para(P.f, GS, X0 + 7, y, W, NsDraw::INK, p) + 3;
     }
-    P.text(P.fo, NsDraw::FS_SMALL, 0, Y1 - 7.5f, NsDraw::INK_DIM, "a key or a click: go on", X1 - 6);
+    P.text(P.fo, NsDraw::FS_SMALL, 0, Y1 - 7.5f, NsDraw::INK_DIM, "press a key or click to go on", X1 - 6);
 }
