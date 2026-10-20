@@ -15,7 +15,7 @@ using pen::Pen;
 
 const char *QUEST_CAT_NAME[QC_N] = {
     "Quest", "Robber knight", "Reward waiting", "A thing to fetch", "Papers to get in a town", "Mine",
-    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics"
+    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics", "City at war"
 };
 
 namespace {
@@ -171,6 +171,17 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.rect(-1.0f, 2.4f, 9.0f, 11.0f, C(0.98f, 0.95f, 0.86f));
         for (int k = 0; k < 3; k++) p.line(1.0f, 4.8f + k * 2.2f, 7.0f, 4.8f + k * 2.2f, C(0.55f, 0.45f, 0.30f), 0.6f);
         p.disc(4.0f, 2.8f, 0.7f, IRON);
+        break; }
+    case QC_WAR: {                                                          /* two pikes crossed behind a round shield */
+        for (int sd = -1; sd <= 1; sd += 2) {
+            float hx = 8.5f * sd, hy = 11.0f, dx = -(float)sd * 0.62f, dy = -0.78f;
+            bar(p, hx, hy, dx, dy, 0, 26.0f, 0.8f, 0.8f, WOOD, o);           // the shaft
+            float tx = hx + dx * 26.0f, ty = hy + dy * 26.0f;
+            bar(p, tx, ty, dx, dy, 0, 4.2f, 1.4f, 0.1f, STEEL, o);           // the head
+        }
+        p.disc(0, 2.0f, 8.4f + o, INK); p.disc(0, 2.0f, 8.4f, RED);
+        p.ring(0, 2.0f, 7.0f, GOLD, 0.9f);
+        p.disc(0, 2.0f, 2.4f + o, INK); p.disc(0, 2.0f, 2.4f, STEEL);       // the boss
         break; }
     default:                                                                /* a scroll */
         p.rect(-7.0f, -9.0f, 7.0f, 9.0f, C(0.98f, 0.95f, 0.86f)); p.rect_line(-7.0f, -9.0f, 7.0f, 9.0f, INK, 0.8f);

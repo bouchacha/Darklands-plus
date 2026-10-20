@@ -12,7 +12,7 @@ struct ImDrawList; struct ImVec2;
    a town), a reward waiting, and a town's trouble with the party (not a task: shown at the town) */
 enum QuestCat {
     QC_NONE, QC_ROBBER, QC_REWARD, QC_RETRIEVE, QC_PAPERS, QC_MINE, QC_DRAGON, QC_HUNT,
-    QC_UNWELCOME, QC_WANTED, QC_SABBAT, QC_POLITICS, QC_N
+    QC_UNWELCOME, QC_WANTED, QC_SABBAT, QC_POLITICS, QC_WAR, QC_N
 };
 extern const char *QUEST_CAT_NAME[QC_N];
 void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat);   // a roundel about s pixels across, centred on c

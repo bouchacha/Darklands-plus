@@ -154,6 +154,8 @@ int testcmd_run(const char *cmd, const char *arg)
             if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
             else encounters_force(atoi(arg));
         }
+        else if (!strcmp(cmd, "uwar")) { int l = -1, st = -1; sscanf(arg, "%d,%d", &l, &st); void war_test(int, int); war_test(l, st); }   /* test: the cities at war today; uwar:LOC,STATE forces one (mods/war.c) */
+        else if (!strcmp(cmd, "ugamecard")) { void cutcards_force(int); cutcards_force((int)strtol(arg, 0, 0)); }   /* test: the next random encounter on the map is the game's card N */
         else if (!strcmp(cmd, "upolit")) {              /* test: a political season starts here (mods/politics.c; the setup s039 1462:0558 and its fix-ups) */
             int politics_test_start(void);
             fprintf(stderr, "politics started at %d: %d\n", (s16)g_rw(G_CUR_LOC), politics_test_start());

@@ -47,6 +47,7 @@ int ui_margins_on = 1;
 extern "C" int levelmap_available(void);
 
 extern "C" int politics_unrest_at(int loc);           /* (mods/politics.c) */
+extern "C" int war_state(int loc, int *left);          /* (mods/war.c) */
 static std::string place_name(void)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
@@ -595,6 +596,21 @@ static void right_panel(int size)
                 ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.45f, 1), "In turmoil");
                 if (item_hovered()) margin_tip("Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) "
                                                "and its rumours of special jobs lead to them; so does the guild where the agitators meet.");
+                ImGui::Unindent(is + lh * 0.3f);
+            }
+        }
+        {   /* a city preparing for war or at war (mods/war.c, experimental) */
+            int left = 0, w = war_state(cur, &left);
+            if (w && !politics_unrest_at(cur)) {
+                float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f;
+                ImVec2 p0 = ImGui::GetCursorScreenPos();
+                ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, QC_WAR);
+                ImGui::Indent(is + lh * 0.3f);
+                ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s", w == 1 ? "Preparing for war" : "At war");
+                if (item_hovered()) margin_tip(w == 1 ? "Prices are a quarter higher, the gate turns wayfarers away and patrols watch the walls; "
+                                                        "Soldiers' Road and its market are open, and few boats take passengers."
+                                                      : "Prices are half again as high, food is short and the docks are barricaded; "
+                                                        "the gate turns wayfarers away and patrols watch the walls. Soldiers' Road and its market are open.");
                 ImGui::Unindent(is + lh * 0.3f);
             }
         }

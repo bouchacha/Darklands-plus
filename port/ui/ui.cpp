@@ -636,6 +636,8 @@ static void news_window(void)
         static const char *NEWS[] = {
             "City politics, restored (experimental, off at first): the campaign MicroProse wrote and never switched on. Take the rebels' side "
             "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Settings > Helpers > Cards and towns.",
+            "More of what MicroProse left unused: cities preparing for war or under siege (experimental, off at first), and \"Fehde!\", soldiers of a private war "
+            "waiting in ambush on the road.",
             "With a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.",
             "M: the world map. A place found shows what it offers, with Travel there first.",
             "Calling on a saint says why there is no chance: too little Virtue, or too little favor.",
