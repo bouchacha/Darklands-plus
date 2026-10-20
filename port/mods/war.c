@@ -235,6 +235,22 @@ static void w05_blast_hook(void)            /* s055 1932:0196 (chance) */
     hook_return_far(0);
 }
 
+/* loc_hostile (s039 1462:00ba): hostile is an event 0x11 here, or a standing of -75 or less, or of
+   -10 or less while the town is on alert (event 0x13, which only a blasted sally port sets: $CityW05);
+   the alert's test passes its arguments the wrong way round (event_at(loc, 0x13)), so it never held
+   (found by Arkana Mechanika, Darklands Restoration) */
+static void hostile_hook(void)
+{
+    hook_call_original();
+    if (AX || !war_on() || ns_unwinding) return;
+    u16 ax = AX, dx = DX;
+    int loc = (s16)g_rw(GV_cur_loc);
+    int alert = ns_call(GF_event_at, 2, 0x13, loc), rep = alert ? ns_call(GF_loc_reputation, 1, loc) : 0;
+    if (ns_unwinding) return;
+    AX = ax; DX = dx;
+    if (alert && rep <= -10) AX = 1;
+}
+
 /* card 0x73's empty helper, run just before its menu: its card, $CityE01 */
 static void war_gate_hook(void)             /* s072 1981:057e */
 {
@@ -268,6 +284,7 @@ void war_init(void)
     hook_install(GF_run_battle, battle_hook);
     hook_install(55, 0x1932, 0x034c, w05_strength_hook);
     hook_install(55, 0x1932, 0x0196, w05_blast_hook);
+    hook_install(GF_loc_hostile_impl, hostile_hook);
     if (getenv("DL_WAR_LOG")) { hook_install(GF_card_menu, menu_log_hook); hook_install(GF_card_text, text_log_hook); }
     if (!hook_install(72, 0x1981, 0x057e, war_gate_hook)) fprintf(stderr, "war: no hook for card 0x73\n");
 }

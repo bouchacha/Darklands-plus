@@ -79,6 +79,9 @@ this state in many places:
    value as a member number (Arkana Mechanika found it), and a potion thrown at the door is
    forced to the fire potion with a certain success before the roll, so the Thunderbolt's and
    the acid's texts and the miss never show.
+9. Blasting the sally port puts the town on alert for a day (event 0x13), during which a party
+   of poor standing (-10 or less) counts as hostile; the test for it passes its arguments the
+   wrong way round, so it never held (Arkana Mechanika found it).
 
 **What Darklands+ does** (`rules.war`, port/mods/war.c):
 
@@ -95,7 +98,8 @@ this state in many places:
    to the arms outfitter.
 8. At the sally port, the strongest member is the one tested, and the potion thrown is the one
    chosen, with its own chance.
-9. The margin shows "Preparing for war" or "At war", with what that means.
+9. The alert after a blasted sally port counts.
+10. The margin shows "Preparing for war" or "At war", with what that means.
 
 Turning the option off puts every city back at peace. A save made during a war carries the war
 into the original game, where card 0x73 is broken as described above.
