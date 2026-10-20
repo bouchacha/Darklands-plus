@@ -8,6 +8,7 @@
  * Take all and Share out are mods/loot.c's A and S, through the same key handler (they work
  * through G too). The thrown weapons go back to their throwers on the first draw (mods/loot.c). */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../runtime/cpu.h"
 #include "../runtime/hooks.h"
@@ -241,6 +242,11 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
     build();
     loot_model.open = 1;
     fprintf(stderr, "loot screen: open (%d in the pile)\n", loot_model.npile);
+    if (getenv("DL_LOOT_LOG")) {                              /* the pile's records as the game gave them (item, type, quality, count, +5) */
+        int n = (s16)g_rw(count);
+        for (int k = 0; k < n && k < 200; k++) { u16 o = (u16)(items_o + 6 * k);
+            fprintf(stderr, "loot pile %d: item %#06x %02x q%d x%d %02x\n", k, rw(items_s, o), rb(items_s, (u16)(o + 2)), rb(items_s, (u16)(o + 3)), rb(items_s, (u16)(o + 4)), rb(items_s, (u16)(o + 5))); }
+    }
     ns_enter(NS_LOOT);
     ns_clear();
     ns_input_begin();

@@ -56,6 +56,13 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
         else if (!strcmp(cmd, "upreset")) { void preset_apply(int); preset_apply(atoi(arg)); void config_save(void); config_save(); fprintf(stderr, "preset %d (saved)\n", atoi(arg)); }   /* test: a preset (0 Buggy Purist, 1 Purist, 2 Purist + interface ...) */
         else if (!strcmp(cmd, "uset")) { char k[64]; int v = 0; if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
+        else if (!strcmp(cmd, "uenemyinv")) {          /* test: enemy i's items (far 2e38:0dbe [i-5][16], count at +7e) */
+            int i = atoi(arg); if (i < 5 || i > 12) i = 5;
+            int n = (s8)g_rb((u16)(0x9c55 + i * 0x80 + 0x7e));
+            fprintf(stderr, "enemyinv %d (%d):", i, n);
+            for (int k = 0; k < 16; k++) { u16 o = (u16)(0x0dbe + (i - 5) * 96 + k * 6); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
+            fprintf(stderr, "\n");
+        }
         else if (!strcmp(cmd, "uwalk")) { void pathfix_test_walk(int, int, int); int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y); pathfix_test_walk(i, x, y); }   /* test: combatant i walks to x, y (battle map pixels) */
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
         else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */

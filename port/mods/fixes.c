@@ -2308,11 +2308,15 @@ static void store_get_room_hook(void)
  * (+0 the item, +2, +3 its type and quality, +4 the count) merged into the list at far DS:c654
  * (DS:c67f entries), the count added in a byte with no test: past 255 it wrapped. Here a record
  * fills the ones that match up to 255 and the rest goes on as a new one. Found by Arkana Mechanika
- * (Darklands Restoration), B-e080d4. */
+ * (Darklands Restoration), B-e080d4. The list is in EMS (logical page 10 in physical page 3, which
+ * the original maps in and out around its loop: CURSOR_BUSY / CURSOR_IDLE in s014_19cd.c). */
 static void lootcount_hook(void)
 {
     u16 po = rw(SS, (u16)(SP + 4)), ps = rw(SS, (u16)(SP + 6)), lo = g_rw(0xc654), ls = g_rw(0xc656);
     int c = (s16)rw(SS, (u16)(SP + 8));
+    ns_call(GF_ems_map_page, 3, 3, 10, g_rw(GV_ems_frame_handle));   /* the list lives in EMS page 10, mapped in as the original does
+                                                                        (its "busy cursor" macro); without it the list was another page's memory */
+    if (ns_unwinding) return;
     for (; c > 0; c--, po = (u16)(po + 6)) {
         u16 id = rw(ps, po); u8 a = rb(ps, (u16)(po + 2)), b = rb(ps, (u16)(po + 3));
         int left = rb(ps, (u16)(po + 4)), n = (s16)g_rw(0xc67f), had = 0;
@@ -2331,6 +2335,8 @@ static void lootcount_hook(void)
             if (had && getenv("DL_FIX_LOG")) fprintf(stderr, "fix lootcount: item %d past 255, %d more in a new line\n", id & 0xfff, left);
         }
     }
+    ns_call(GF_ems_map_page, 3, 3, 3, g_rw(GV_ems_frame_handle));    /* (and page 3 back) */
+    if (ns_unwinding) return;
     hook_return_far(0);
 }
 
