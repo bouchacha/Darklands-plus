@@ -123,6 +123,25 @@
  *            back (to hour -1 at midnight). Reputation passes 99 where a card sets it without the
  *            clamp of loc_reputation_adj ($Polit00 s070 1ac1:0532, +14..19; $Polit01). It now takes
  *            an hour at least. Found by Arkana Mechanika (Darklands Restoration).
+ *  appointment A council's clerk ($Counc00, s054 19df:0888) or a lord's steward ($CityF00, s050 1a06) who fits
+ *            the party "into the audience schedule tomorrow" makes a kind 0x3a event (until the evening, or
+ *            dawn) whose expiry handler 4 (s029 0e76:4436, event_here(0x3b, 24): the appointment the
+ *            audience chance reads as 99) was meant to follow; but it is made with flags 0 and the sweep
+ *            (0e76:3f30) runs a handler only with flag 1: the appointment never came. It is now made
+ *            when the 0x3a event ends, at its own town (the handler used wherever the party was).
+ *            Found by Arkana Mechanika (Darklands Restoration).
+ *  pileup    damage_queue (s014 18bf:08ca) adds a blow's Endurance (up to 42) and Strength (up to 37)
+ *            to the target's queued damage, signed bytes (DS:d70c) that damage_apply (098e) deals:
+ *            past 127 they wrap negative, its "more than 42" cap misses them, and the target gains
+ *            what it should have lost. Now they stop at 127. Found by Arkana Mechanika (Darklands
+ *            Restoration).
+ *  castlefreeze The party's starting room on a level of battlefield kind 0x7c (s007 15af:1d78) is drawn with
+ *            roll_dice(1, rooms) until it is not the gate room (DS:db63): with one room to draw and that
+ *            the gate, for ever (a frozen game). After 50 draws of the gate room, room 0 is taken.
+ *            Found by Arkana Mechanika (Darklands Restoration).
+ *  university $Unive00's question about formulae (option 1, s056 18c0:0494) on failure notes the week's
+ *            refusal as event_here_type(0x4e, 0, 168 h): the saints' question's (option 0). It now notes
+ *            its own (type 1). Found by Arkana Mechanika (Darklands Restoration).
  *  membervalue Two cards take the value a party query returns for the member who has it (the query
  *            leaves that member in best_member, DS:991d): a town church's tenth ($CityC00, s057
  *            1838:067c) raises first the Divine Favor of "member" party_max_skill(Religion), a skill
@@ -232,6 +251,14 @@ Fix FIXES[] = {
       "Woken at night, a bowyer opened a shop of the smiths' weapons and armour and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
     { "confession", "Confession takes time",
       "The better the party's name in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes an hour at least.", 1 },
+    { "appointment", "An audience promised for tomorrow is kept",
+      "A council's clerk or a lord's steward who \"fits you into the audience schedule tomorrow\" set an appointment that was never made: its ending was to open the audience, but the game never ran it, and the next day the party asked again like anyone else. The audience is now certain the next day.", 1 },
+    { "pileup", "Blows piled on one fighter all count",
+      "The wounds a fighter takes are added up until they are dealt, in a number that holds at most 127. Four heavy blows landing at once (a member mobbed by a pack) went past it and turned negative: the fighter regained Endurance and Strength instead of falling. The sum now stops at 127.", 1 },
+    { "castlefreeze", "No freeze placing the party in a castle",
+      "Placing the party on some levels of a castle draws rooms until one is not the gate room; when the gate room was the only one to draw, the game drew for ever and stood still. It now takes the first room then.", 1 },
+    { "university", "A failed search for formulae at a university shuts that search, not the saints'",
+      "Asking a university about alchemical formulae and failing noted the saints' question as asked: the saints were refused for a week, and the formulae could be asked about again at once. It now notes the formulae.", 1 },
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
 };
@@ -1607,6 +1634,71 @@ static void confession_hook(void)           /* s057 1838:03cc */
     g_ww(GV_cur_rep, (u16)rep);
 }
 
+/* ---------------------------------------------------------------- pileup */
+static void pileup_hook(void)               /* damage_queue (d, t, pen, arm) */
+{
+    int t = (s16)rw(SS, (u16)(SP + 6));
+    if (t < 0 || t >= 13) { hook_call_original(); return; }
+    u16 q = (u16)(GV_cbt_queued_damage + 2 * t);
+    int e0 = (s8)g_rb(q), s0 = (s8)g_rb((u16)(q + 1));
+    hook_call_original();
+    int e1 = (s8)g_rb(q), s1 = (s8)g_rb((u16)(q + 1));
+    if (e1 < e0) g_wb(q, 127);
+    if (s1 < s0) g_wb((u16)(q + 1), 127);
+    if ((e1 < e0 || s1 < s0) && getenv("DL_FIX_LOG")) fprintf(stderr, "fix pileup: fighter %d's queued damage held at 127\n", t);
+}
+
+/* ---------------------------------------------------------------- castlefreeze */
+static int cf_tries;
+static void cf_dice_hook(void)              /* roll_dice (n, d), while 1d78 places the party on a kind 0x7c level */
+{
+    hook_call_original();
+    if ((s16)AX != (s16)g_rw(0xdb63)) return;
+    if (++cf_tries < 50) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix castlefreeze: only the gate room to draw: room 0\n");
+    AX = 0;
+}
+static void castlefreeze_hook(void)         /* s007 15af:1d78 (l, t, pn, room*, dir*) */
+{
+    if ((s16)rw(SS, (u16)(SP + 6)) != 0x7c) { hook_call_original(); return; }
+    cf_tries = 0;
+    hook_install(GF_roll_dice, cf_dice_hook);
+    hook_call_original();
+    hook_remove(GF_roll_dice, cf_dice_hook);
+}
+
+/* ---------------------------------------------------------------- university */
+static void uni_mark_hook(void)             /* event_here_type (kind, type, hours), within $Unive00's formulae question */
+{
+    if ((s16)rw(SS, (u16)(SP + 4)) == 0x4e && (s16)rw(SS, (u16)(SP + 6)) == 0) {
+        ww(SS, (u16)(SP + 6), 1);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix university: the formulae noted as asked (not the saints)\n");
+    }
+    hook_call_original();
+}
+static void university_hook(void)           /* s056 18c0:0494 (chance) */
+{
+    hook_install(GF_event_here_type, uni_mark_hook);
+    hook_call_original();
+    hook_remove(GF_event_here_type, uni_mark_hook);
+}
+
+/* ---------------------------------------------------------------- appointment */
+static void appointment_hook(void)          /* the sweep of the events that ended, s029 0e76:3f30 */
+{
+    for (int i = 0; i < 300; i++) {
+        u32 e = g_event(i);
+        if (!e) continue;
+        u16 sg = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(sg, (u16)(o + 0x22)) != 0x3a || (s16)rw(sg, (u16)(o + 0x26)) != 4 || (rw(sg, (u16)(o + 0x24)) & 1)) continue;
+        if (!ns_call(GF_event_has_ended, 1, i)) continue;
+        int loc = (s16)rw(sg, (u16)(o + 0x1c));
+        ns_call(GF_event_new, 10, -2, loc, 0, 0x3b, 0, 100, 0, 24, 0, 0);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix appointment: the audience at place %d tomorrow\n", loc);
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- membervalue
  * Within a card option that mistakes a party query's value for its member (above), the first
  * party_max_skill / party_min_attr returns the member it found (best_member). */
@@ -1640,7 +1732,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
-    { 57, 0x1838, 0x03cc, confession_hook }, { 57, 0x1838, 0x067c, mv_wrap_hook } };
+    { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { 57, 0x1838, 0x067c, mv_wrap_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

@@ -507,6 +507,63 @@ void politics_test_age(int d)
     fprintf(stderr, "politics: the season is %d days old\n", season_days(cur_loc()));
 }
 
+/* ---------------------------------------------------------------- the season's cards, put right
+ * (found by Arkana Mechanika, Darklands Restoration):
+ *  - $Polit01, the thugs who come for a handbill poster: the main street's fight (prev_screen 6,
+ *    8) falls through into the side street's (s057 1a02:0282, no break): two battles, the first
+ *    one's outcome lost. The second is not fought;
+ *  - $Revol00, the faction's house by day, asking around (s048 1838:03d6): at the government's
+ *    house the patricians' visits (text 12) were followed by the rebels' (texts 3 or 4) again;
+ *  - a potion that "makes success assured" ($Revol00 1838:0916, $Revol01 190e:06f6: their pop-ups
+ *    give -1, rand(100) <= -1) never worked: it does;
+ *  - $Revol01, knocking at the back door of the party's own side (s048 190e:04ee): the chance
+ *    was whatever the copy left in AX; it reads "Success is assured" */
+static long party_x_val(void) { return (long)((u32)g_rw(GV_party_x) | (u32)g_rw((u16)(GV_party_x + 2)) << 16); }
+static int fight_active, fights, first_result;
+static void polit01_battle_hook(void)       /* run_battle, inside $Polit01's fight */
+{
+    if (fight_active && ++fights == 2) {
+        int ps = (s16)g_rw(GV_prev_screen);
+        if (ps == 6 || ps == 8) { AX = (u16)first_result; hook_return_far(0); return; }
+    }
+    hook_call_original();
+    if (fight_active && fights == 1) first_result = (s16)AX;
+}
+static void polit01_fight_hook(void)        /* s057 1a02:0282 */
+{
+    if (!politics_on()) { hook_call_original(); return; }
+    fight_active = 1; fights = 0;
+    hook_call_original();
+    fight_active = 0;
+}
+static void revol00_gossip_hook(void)       /* s048 1838:03d6 (chance) */
+{
+    if (!politics_on() || !party_x_val()) { hook_call_original(); return; }
+    int p = (s16)rw(SS, (u16)(SP + 4)), loc = cur_loc();
+    C(GF_advance_hours, 1, rnd(2) + 1);
+    if (rnd(100) <= p) { C(GF_card_text, 2, 2, 1); if (!ns_unwinding) C(GF_card_text, 2, 0xc, 1); }
+    else C(GF_card_text, 2, 1, 1);
+    if (ns_unwinding) return;
+    g_ww(GV_opt_flag_0, 2);
+    C(GF_event_new, 10, -2, loc, 0x5a, 0x1c, 0x1c, 0, 0, 0x5a0, 0, 2);
+    int next = C(GF_is_daylight, 0) ? 0x10 : 0x11;
+    g_ww(GV_next_card, (u16)next); AX = (u16)next;
+    hook_return_far(0);
+}
+static void revol_potion_hook(void)         /* $Revol00 1838:0916, $Revol01 190e:06f6 (chance) */
+{
+    if (politics_on() && (s16)rw(SS, (u16)(SP + 4)) < 0) ww(SS, (u16)(SP + 4), 100);
+    hook_call_original();
+}
+static void revol01_knock_chance_hook(void) /* s048 190e:04ee () -> (chance, who) */
+{
+    hook_call_original();
+    if (!politics_on()) return;
+    int v = fact_value(F_SIDE);
+    long px = party_x_val();
+    if ((v == -1 && !px) || (v == 1 && px)) { AX = 0xffff; DX = 0xfffe; }
+}
+
 void politics_init(void)
 {
     hook_install(GF_card_load, card_load_hook);
@@ -526,4 +583,10 @@ void politics_init(void)
     hook_install(91, 0x18f2, 0x060e, gossip_exit_hook);
     hook_install(91, 0x18f2, 0x0496, gossip_govt_hook);
     hook_install(91, 0x18f2, 0x04d6, gossip_rebels_hook);
+    hook_install(57, 0x1a02, 0x0282, polit01_fight_hook);
+    hook_install(GF_run_battle, polit01_battle_hook);
+    hook_install(48, 0x1838, 0x03d6, revol00_gossip_hook);
+    hook_install(48, 0x1838, 0x0916, revol_potion_hook);
+    hook_install(48, 0x190e, 0x06f6, revol_potion_hook);
+    hook_install(48, 0x190e, 0x04ee, revol01_knock_chance_hook);
 }
