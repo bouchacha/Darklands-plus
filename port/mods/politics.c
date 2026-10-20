@@ -342,6 +342,8 @@ static void card_options_hook(void)                                  /* card_opt
             ON(0, s == REBELS); ON(1, s == GOVT);
             ON(2, s == REBELS && free); ON(3, s == GOVT && free);
             ON(6, 1);
+        } else if (card_is("$Snuck00")) {                            /* (a blank line, its handler empty) */
+            ON(3, 0);
         } else if (card_is("$Revol09")) {                            /* (lines "2" to "5": options never written) */
             for (int i = 2; i < 6; i++) ON(i, 0);
         } else if (card_is("$Revol04")) {                            /* (option 0 never set; 5-8 are unwritten) */

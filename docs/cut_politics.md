@@ -148,7 +148,8 @@ it. Red: switched off or never called. Dashed: text only, or not written at all.
   saints named by `$Text2` and `$Text3`, which nothing sets. `$Polit01`'s bribe shows a
   `$Money1` it never sets (it takes a tenth of the purse).
 - `$Revol04` never sets option 0, shows four unwritten lines ("5" to "8") and does nothing for
-  "government activities" and "rebel activities"; `$Revol09` shows lines "2" to "5".
+  "government activities" and "rebel activities"; `$Revol09` shows lines "2" to "5"; `$Snuck00`
+  a blank line whose handler is empty.
 - `$Consi00` never shows its first text (the tally) and fills the option table with stubs.
 - `$CityN00`'s "discuss the political situation here" goes to the general news, like "gossip
   about the situation"; the street gossip had no way in.
