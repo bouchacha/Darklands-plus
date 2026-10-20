@@ -190,7 +190,9 @@ With the option ticked (port/mods/politics.c; nothing changes while it is off):
 8. **Texts:** `$VarString` filled (the town hall's or the fortress's name, the exiled heir, a
    banner, the attitude), `$Support` the right way round, "the the" made "the", "$CityLord
    Title", the boon names, `$Polit01`'s bribe; the unwritten lines hidden.
-9. **Afterwards:** a city whose government held is not marked overthrown and the news tells of
+9. **Tasks:** the side the party took, and its own side's day (the hour and the date), are tasks
+   in the margin, the journal and on the map, with a banner for a picture.
+10. **Afterwards:** a city whose government held is not marked overthrown and the news tells of
    the rebellion put down for 60 days.
 
 Not done: `$Situa00` (estimating the odds) and `$Speci01` (the arms-makers' street) exist only as

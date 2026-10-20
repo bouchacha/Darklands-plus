@@ -15,7 +15,7 @@ using pen::Pen;
 
 const char *QUEST_CAT_NAME[QC_N] = {
     "Quest", "Robber knight", "Reward waiting", "A thing to fetch", "Papers to get in a town", "Mine",
-    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat"
+    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics"
 };
 
 namespace {
@@ -161,6 +161,16 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.poly({ -5.0f, 7.2f, -3.8f, 8.4f, -7.8f, 13.0f, -11.4f, 9.4f }, C(0.82f, 0.66f, 0.30f));
         for (int k = 0; k < 3; k++) p.line(-4.6f - k * 0.6f, 8.0f - k * 0.6f + 0.6f, -10.0f + k * 1.6f, 9.8f + k * 1.4f, C(0.60f, 0.45f, 0.18f), 0.5f);
         p.line(-5.6f, 6.4f, -3.0f, 9.0f, GOLD, 1.0f);
+        break; }
+    case QC_POLITICS: {                                                     /* a swallow-tailed banner on its pole, a handbill nailed below */
+        bar(p, -7.0f, 12.5f, 0, -1, 0, 24.0f, 0.9f, 0.9f, WOOD, o);          // the pole
+        p.disc(-7.0f, -11.8f, 1.4f + o, INK); p.disc(-7.0f, -11.8f, 1.4f, GOLD);
+        p.poly({ -6.2f, -10.0f, 10.0f, -10.0f, 5.6f, -5.4f, 10.0f, -0.8f, -6.2f, -0.8f }, INK);
+        p.poly({ -6.2f, -9.2f, 8.4f, -9.2f, 4.4f, -5.4f, 8.4f, -1.6f, -6.2f, -1.6f }, RED);
+        p.rect(-1.0f - o, 2.4f - o, 9.0f + o, 11.0f + o, INK);
+        p.rect(-1.0f, 2.4f, 9.0f, 11.0f, C(0.98f, 0.95f, 0.86f));
+        for (int k = 0; k < 3; k++) p.line(1.0f, 4.8f + k * 2.2f, 7.0f, 4.8f + k * 2.2f, C(0.55f, 0.45f, 0.30f), 0.6f);
+        p.disc(4.0f, 2.8f, 0.7f, IRON);
         break; }
     default:                                                                /* a scroll */
         p.rect(-7.0f, -9.0f, 7.0f, 9.0f, C(0.98f, 0.95f, 0.86f)); p.rect_line(-7.0f, -9.0f, 7.0f, 9.0f, INK, 0.8f);

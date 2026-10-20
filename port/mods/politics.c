@@ -106,11 +106,7 @@ static long serial(int y, int m, int d, int h)                        /* hours s
 static long now(void) { return serial((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR)); }
 static long ev_start(u32 e) { return serial(g_ev(e, 0x10), g_ev(e, 0x0e), g_ev(e, 0x0c), g_ev(e, 0x0a)); }
 static const char *MONTHS[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-static const char *bell(int h)
-{
-    static const char *B[8] = { "Matins", "Lauds", "Prime", "Terce", "Sext", "None", "Vespers", "Compline" };
-    return B[(h / 3) & 7];
-}
+void gm_hour_name(int hour, char *out, int n);                         /* (mods/gamemodel.c: the game's own names of the bells) */
 /* "d days from now at hour h": the hours until then, and the date as text */
 static int hours_to(int d, int h, char *date, int n)
 {
@@ -307,7 +303,8 @@ static void card_load_hook(void)                                     /* card_loa
         int s = side(); char date[40];
         int target = s == GOVT ? H_ARREST : H_MARCH;
         hours_to(3, target, date, sizeof date);
-        dset(GV_var_text1, bell(target), 40); dset(GV_var_text2, date, 40);
+        char b[24]; gm_hour_name(target, b, sizeof b);
+        dset(GV_var_text1, b, 40); dset(GV_var_text2, date, 40);
         u16 p = (u16)GV_var_text3;                                   /* the seat, by its name */
         dset(p, has_council() ? "councilHall" : "fortress", 24); C(GF_var_expand, 1, p);
         dset(GV_var_text4, "the exiled heir", 40);

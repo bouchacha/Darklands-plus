@@ -264,10 +264,16 @@ static void sabbat_text_hook(void)          /* text_expand (idx, out) */
 extern "C" void quests_init(void) { hook_install(GF_text_expand, sabbat_text_hook); }
 extern "C" void quests_test_learn(int what) { sab_learn(what); }
 
+static int side_at(const std::vector<Ev> &evs, int loc)        /* the party's side in a season of city politics there */
+{
+    for (const Ev &e : evs) if (e.kind == 8 && e.tag == 2 && e.loc == loc) return e.value == -1 || e.value == 1 ? e.value : 0;
+    return 0;
+}
 static std::vector<Line> build_lines(void)
 {
     std::vector<Line> v;
     std::vector<Ev> evs = read_events();
+    bool politics = config_get_int("rules.politics", 0) && !config_get_int("original", 0);
     /* a town's bans and warrants: the game keeps one event for each time it was imposed;
        only the one that lasts longest still counts, and none that has run out */
     int today[4] = { (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_YEAR) };
@@ -320,6 +326,27 @@ static std::vector<Line> build_lines(void)
             if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
             else if (w == 1) add("Sabbat @ " + loc_name(e.aux), "Witches gather at " + where(e.aux) + " (the night is not known).", "", g, e.aux, false, QC_SABBAT);
             else add("Sabbat on " + date(e.end), "Witches gather on the night of " + date(e.end) + " (the place is not known).", "on " + date(e.end), g, -1, true, QC_SABBAT);
+        }
+        else if (e.kind == 8 && e.tag == 2 && (e.value == -1 || e.value == 1) && politics && e.loc >= 0 && e.loc < (int)gamedata.cities.size()) {
+            if (e.value == -1)                                  /* (a season of city politics, mods/politics.c: the party took a side) */
+                add("Rebels @ " + place, "You have joined the rebels of " + place + ". Post their handbills, win the guilds over (ask about their "
+                    "leaders and politics, meet their masters), and when the cause is strong ask your leader for a war council: it sets the day of "
+                    "the march. The leader is reached through the agitators' guild or the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
+            else
+                add("For the government @ " + place, "You serve the government of " + place + " against the rebels. Post its handbills, win "
+                    "the guilds over, and when the time is right ask your patron for a war council: it sets the day of the arrests. Your patron's "
+                    "house is in the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
+        }
+        else if (e.kind == 0x1c && e.tag == 2 && (e.type0 == 0x15 || e.type0 == 0x16) && politics && side_at(evs, e.loc) == e.value) {
+            bool march = e.type0 == 0x16;                       /* (the party's own side's day; the other side's is learnt from the gossip) */
+            bool hall = e.loc >= 0 && e.loc < (int)gamedata.cities.size() && (gamedata.cities[e.loc].buildings & 2);
+            char at[64]; gm_hour_name(e.start[0], at, sizeof at);
+            add(std::string(march ? "The march" : "The arrests") + " @ " + place,
+                march ? "Your side marches on the " + std::string(hall ? "town hall" : "fortress") + " of " + place + " at " + at + " on " + date(e.start)
+                        + ". Be in " + place + " that day: at the leader's house the rally starts there, in the streets the march finds you."
+                      : "The city guard arrests the rebel leaders at " + std::string(at) + " on " + date(e.start) + ". Be in " + place
+                        + " that day: at your patron's house the arrest starts there, in the streets the escort finds you.",
+                "on " + date(e.start), 0, e.loc, false, QC_POLITICS);
         }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && (spoilers || [&] { sab_load(); for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && (k.what & 1)) return true; return false; }()))
             add("Sabbat now @ " + loc_name(e.aux), "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", spoilers ? 4 : 0, e.aux, false, QC_SABBAT);
