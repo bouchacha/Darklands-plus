@@ -570,7 +570,7 @@ extern "C" int citynav_window(void)
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
-                case OFS_ASK: snprintf(b, sizeof b, "%d%% chance of a task", os.chance); c = GREEN; break;
+                case OFS_ASK: snprintf(b, sizeof b, giver == 0 || giver == 4 || giver == 5 ? "%d%% chance of a task after shopping" : "%d%% chance of a task", os.chance); c = GREEN; break;
                 case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
                 case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
