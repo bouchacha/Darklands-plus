@@ -13,7 +13,7 @@
  * (banishing demons, escaping prison, light ...) happens only where an encounter's card lets a
  * member call on the saint (card_saints: counted here per saint, the card scripts naming it).
  * Some of the help depends on the fixes (mods/fixes.c: pauls, saintrep, armourday; sainttexts,
- * mods/sainttexts.c, gives 39 saints the help their texts describe): the texts follow them. A
+ * mods/sainttexts.c, gives 43 saints the help their texts describe): the texts follow them. A
  * boost lasts about a day: the texts say so only of other spans (saint_info_note, beside a help that wears off). */
 #include <stdio.h>
 #include <string.h>
@@ -147,8 +147,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 2 },   /* 40 St.Dymphna */
     { "Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.",
-      "",
-      0, 0, 0, 6 },   /* 41 St.Edward, Confessor */
+      "Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the code counts only part of the purse).",
+      "Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.", "", 0, 6 },   /* 41 St.Edward, Confessor */
     { "Artifice +25 to 74, Alchemy +8 to 15.",
       "",
       "Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15.", "", 0, 0 },   /* 42 St.Eligius */
@@ -192,8 +192,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "The weapon and the armour of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.", "", 1, 0 },   /* 55 St.George */
     { "Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39.",
-      "",
-      0, 0, 0, 0 },   /* 56 St.Gerlac */
+      "No Charisma, and only the skills of the weapons in hand, not all weapon skills.",
+      "Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11.", "", 0, 0 },   /* 56 St.Gerlac */
     { "Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step on the map it is carried to the nearest town.",
       "",
       0, 0, 0, 4 },   /* 57 St.Gertrude o'Nivelles */
@@ -255,8 +255,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 76 St.John Chrysostom */
     { "Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise each +1 to 4, and 1 more for every 5 points of Virtue.",
-      "",
-      0, 0, 0, 0 },   /* 77 St.John Climacus */
+      "Not all skills: no weapon skills and no Riding.",
+      "Every skill +1 to 4, and 1 more for every 5 points of Virtue.", "", 0, 0 },   /* 77 St.John Climacus */
     { "@NEPOMUK Charisma +8 to 15, Intelligence +6 to 11, Speak Common +20 to 39, Streetwise +4 to 7.",
       "",
       0, 0, 0, 6 },   /* 78 St.John Nepolmuchen */
@@ -264,8 +264,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "Artifice and Streetwise +30 to 59; in a town, Charisma +6 to 11.", "", 0, 1 },   /* 79 St.Joseph */
     { "Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Stealth, Artifice, Woodwise and Streetwise +6 to 11.",
-      "",
-      0, 0, 0, 9 },   /* 80 St.Jude */
+      "Not every skill: no Riding, and no weapon skill but those of the weapons in hand.",
+      "Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11.", "", 0, 9 },   /* 80 St.Jude */
     { "Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land.",
       "",
       0, 0, 0, 1 },   /* 81 St.Julian, Hospitaler */

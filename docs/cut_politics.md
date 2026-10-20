@@ -56,7 +56,8 @@ flowchart TD
     EST["Estimate the odds $Situa00<br/>text only"]:::missing
     ARMS["Arms-makers' street $Speci01<br/>text only"]:::missing
     COUNCIL["War council $Consi00<br/>plan options switched off:<br/>'Sorry, this option isn't working yet.'"]:::stub
-    DAY["The decisive day<br/>facts 0x15 / 0x16<br/>NEVER SET"]:::missing
+    DAILY["The season's day, every 24 hours<br/>s029 0e76:4180 (made by the setup)"]:::ok
+    DAY["The decisive day<br/>facts 0x15 / 0x16<br/>set only for the other side"]:::unreached
     ARREST["Arrest with the sergeant $Revol08"]:::unreached
     RALLY["The rally $Revol09"]:::unreached
     FORGOT["'You forgot!' on the street<br/>$Revol17 / $Revol18"]:::ok
@@ -74,7 +75,8 @@ flowchart TD
     SETUP -.-> EST
     SETUP -.-> ARMS
     JOIN --> PLAN --> WORK
-    PLAN --> COUNCIL --> DAY
+    PLAN --> COUNCIL -.-> DAY
+    SETUP --> DAILY --> DAY
     DAY --> ARREST --> ESCORT
     DAY --> RALLY --> MARCH
     DAY --> FORGOT
@@ -104,7 +106,8 @@ it. Red: switched off or never called. Dashed: text only, or not written at all.
 | Estimating the revolt's odds | Text only | `$Situa00` |
 | The arms-makers' street to the agitator's home | Text only | `$Speci01` |
 | The war council | Text complete; code keeps only "get back to work" | `$Consi00` 0x70 (s072) |
-| The decisive day ("the guard arrests today", "the rebels march today") | Read by 15 street cards, **written by nothing** | facts 0x15, 0x16 |
+| The season's day: the guilds open again, the groups drift, the other side's strike | Coded, made by the setup (fact 0xc, every 24 hours) | s029 0e76:4180 |
+| The decisive day ("the guard arrests today", "the rebels march today") | Read by 15 street cards; written only by the season's day, for the side against the party, never by the war council | facts 0x15, 0x16 |
 | Being at headquarters on the day: the arrest, the rally | Coded, nothing leads to them | `$Revol08` 0xb7, `$Revol09` 0xb8 |
 | Meeting the day on the street, the other side striking | Coded, run (once the day is set) | `$Revol17` 0xbd, `$Revol18` 0xbe, `$Revol05` 0x80, `$Revol06` 0x7b |
 | The escort, the march, the sieges, the relief, the flight, the victory | Coded, chained | `$Revol10`–`$Revol16`, `$Revol07` |
@@ -159,8 +162,11 @@ it. Red: switched off or never called. Dashed: text only, or not written at all.
 - `$CityN00`'s "discuss the political situation here" goes to the general news, like "gossip
   about the situation"; the street gossip had no way in.
 - "Eat your handbills" ($Polit01) never lets the party go: the thugs are still there.
-- The guild cards mark "asked", "met the masters" and "sneaked in" once for the whole season,
-  though the leader asks the party to report every day (through the agitators' guild).
+- The season's day (s029 0e76:4180) works on the place the party is in, not the season's city:
+  the group it turns and the strengths it weighs (`loc_side_get/set`, `side1/2_percent` read
+  `cur_loc`), so away from the city it writes the groups of whatever town the party is in (also
+  in Arkana Mechanika's register, which keeps it). The day it sets lasts 480 hours, is made again
+  every week while it holds, and nothing settles it if the party is not there.
 - `conflict_outcome` marks the city overthrown (flag 0x80) whoever won, so the news afterwards
   always told of a new government; and it checks whether the party deserted (facts 0x24, 0x25)
   after clearing the season's facts.
@@ -176,7 +182,9 @@ With the option ticked (port/mods/politics.c; nothing changes while it is off):
    days, nor one without a guild street). The setup is the game's own; then the party's side is
    set to 0, the agitators' guild is moved off the merchants (which have no guild card) and put
    on the side of change, and about one guild leader in three is given a secret.
-2. **Every day** the guilds can be asked, met and visited again.
+2. **The season's day** (the game's own, every 24 hours) runs for the season's city wherever the
+   party is: the guilds can be asked, met and visited again, one group in two days turns, and on
+   the city's weekday the other side may strike (below).
 3. **The strategy talk** offers the march on the town hall (or the fortress, in a town without
    one) to the rebels and the arrests to the government's side, and `party_x` is set from the
    side.
@@ -185,8 +193,10 @@ With the option ticked (port/mods/politics.c; nothing changes while it is off):
    into effect: the rebels march at Terce, the guard arrests at Lauds, three days later (facts
    0x16, 0x15, for twelve hours). A rebel speaks first, by the strength of the cause. If the
    other side has set its day, the leader says why not now.
-5. **The other side strikes first** when the season is three weeks old and it is at least as
-   strong, or five weeks old in any case: two days later, with the warnings in the gossip.
+5. **The other side strikes first** by the game's own rule: on the city's weekday, once the
+   season is five weeks old, or three weeks if that side is half again as strong, or at any time
+   if it is more than two and a half times as strong (with no side taken, the stronger side). Its
+   day comes the next day, with the warnings in the gossip.
 6. **On the day**, the leader's house starts the rally (`$Revol09`) or the arrest (`$Revol08`);
    joining in the street (`$Revol18`) starts with the rally too. A day the party missed is
    settled when it comes back (the side that acted wins by its strength), without reward or
@@ -212,8 +222,8 @@ desertion check are left as they are.
 ## Testing
 
 Test commands (port/runtime/testcmds.c): `upolit:` starts a season in the current city (option
-or not); `upolitage:N` makes the season N days older (the other side then strikes at the next
-street card). `ucall:29,0e76,2e74,-2,LOC,28,0,S,2,0` (`event_update`) sets the party's side S
+or not); `upolitage:N` makes the season N days older. `ucall:29,1367,05c8,24` then
+`ucall:29,0e76,3f30` passes a day and runs the events that ended (the season's day among them). `ucall:29,0e76,2e74,-2,LOC,28,0,S,2,0` (`event_update`) sets the party's side S
 (-1 rebels, 1 government); `uevents:28` lists the season's facts. `DL_POLITICS_LOG=1` logs what
 the module does.
 
@@ -230,10 +240,12 @@ the module does.
 | 0x17 | The agitators' guild (one bit) |
 | 0x19, 0x1a | The two hiring rumours heard |
 | 0x1b–0x22 | Visits to the leader's house (by day, by night; how they went) |
-| 0x15, 0x16 | The guard arrests today / the rebels march today (never written) |
+| 6, 7 | The season's first three weeks, its first five (they end) |
+| 0xc | The season's day: ends every 24 hours, its handler s029 0e76:4180 makes it again |
+| 0x15, 0x16 | The guard arrests today / the rebels march today (the season's day sets them for 480 hours; Darklands+: for twelve hours, the next day) |
 | 0x24, 0x25 | The government's strike / the rebels' march has taken place |
 | 0x26 | A day of siege waited out |
-| 0x23 | A random 0–99 (read by nothing) |
+| 0x23 | A random 0–99, drawn again each day (read by nothing) |
 
 Group bits: 1 local merchants, 2 blacksmiths, 4 swordsmiths, 8 bowyers, 0x10 armourers, 0x20
 artisans, 0x40 clothmakers, 0x80 jewellers, 0x400 and 0x800 the city church and the monastery,

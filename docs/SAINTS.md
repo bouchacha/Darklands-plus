@@ -54,7 +54,7 @@ Fixes.
 
 ## As the texts say (the sainttexts fix)
 
-39 saints' help, as coded, falls short of or strays from their own description. The texts are what
+43 saints' help, as coded, falls short of or strays from their own description. The texts are what
 the player reads before spending divine favor, and the manual repeats them, so where the two part
 the text is taken as the intent, unless it is plainly the text that errs (`port/mods/sainttexts.c`;
 the table below gives each saint's old help too). The judgement, saint by saint:
@@ -84,9 +84,15 @@ the table below gives each saint's old help too). The judgement, saint by saint:
   warns); St. Giles a tremendous Woodwise and a little Streetwise (the code had them the other way
   round) and money when the party has none; St. Dismas Stealth for the whole party, and Charisma and
   Speak Common; St. Eustace every weapon skill but impact and flail; St. Sebastian the other weapon
-  skills; St. Joseph Charisma only inside a city.
+  skills; St. Joseph Charisma only inside a city; St. Gerlac Charisma and every weapon skill (the
+  code: the weapons in hand); St. John Climacus and St. Jude every skill (the code left out the
+  weapons and Riding: Climacus all of them, Jude those not in hand). These four were found by
+  Arkana Mechanika (Darklands Restoration).
 - **Healing and costs**: St. Adrian, St. Agatha and St. Anthony heal Endurance, up to its maximum
-  ("Endurance (healing only)"; the code raised it past the maximum for a day); St. Apollinarius
+  ("Endurance (healing only)"; the code raised it past the maximum for a day), and St. Edward the
+  Confessor a little ("heals a small amount"), whose cost is now a true quarter of the money (the
+  code took a quarter of the pfennigs cut to 16 bits, so a party with more than 273 florins paid
+  less); St. Apollinarius
   heals (the code gave boosts); St. Christopher, St. Denis
   and St. Hedwig heal the Endurance or Strength their texts name; St. Martin of Tours and St.
   Pantaleon heal only one who wears armour; St. Lutgardis's ecstasies cost 5 to 9 Endurance (the
@@ -162,7 +168,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 38 | St. Drogo | 59 | 15-99 | 60% | The party travels half again as fast for a week. Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. | **As the text** (sainttexts); the game: Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). | a few |
 | 39 | St. Dunstan | 45 | 30-60 | 60% | Every member's metal armour (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. | **As the text** (sainttexts, with armourday); the game: Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. Armour one level thicker. | none |
 | 40 | St. Dymphna | 21 | 20-75 | 10% | Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19. |  | a few |
-| 41 | St. Edward, Confessor | 5 | 20-99 | 10% | Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |  | some |
+| 41 | St. Edward, Confessor | 5 | 20-99 | 10% | Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. | **As the text** (sainttexts); the game: Endurance +4 to 7 (a boost), and a rich party lost less than a quarter (the code takes a quarter of the purse's pfennigs cut to 16 bits: 65535 at most). | some |
 | 42 | St. Eligius | 29 | 10-60 | 25% | Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15. | **As the text** (sainttexts); the game: Artifice +25 to 74, Alchemy +8 to 15. | none |
 | 43 | St. Emydius | 31 | 20-99 | 55% | Charisma +15 to 29, Speak Common +20 to 39. |  | some |
 | 44 | St. Engelbert | 40 | 15-99 | 30% | Charisma +5 to 9, Riding and Woodwise +10 to 19, Speak Common +6 to 11. The party can cross water as if it were land. |  | a few |
@@ -177,7 +183,7 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 53 | St. Gabriel | 56 | 30-75 | 45% | Intelligence and Perception +10 to 29. |  | many |
 | 54 | St. Genevieve | 73 | 40-99 | 75% | Heals 30% of lost Endurance and 20% of lost Strength. For a week no ambush takes the party by surprise (bandits and the like). |  | many |
 | 55 | St. George | 23 | 40-99 | 10% | The weapon and the armour of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. | **As the text** (sainttexts, with armourday); the game: Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. | none |
-| 56 | St. Gerlac | 34 | 40-75 | 50% | Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39. |  | none |
+| 56 | St. Gerlac | 34 | 40-75 | 50% | Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11. | **As the text** (sainttexts); the game: only the skills of the weapons in hand +15 to 24, no Charisma. | none |
 | 57 | St. Gertrude o'Nivelles | 26 | 35-99 | 30% | Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step on the map it is carried to the nearest town. |  | some |
 | 58 | St. Giles | 45 | 35-99 | 15% | Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen. | **As the text** (sainttexts); the game: Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89. | none |
 | 59 | St. Giles of Portugal | 64 | 15-99 | 60% | Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good. |  | none |
@@ -198,10 +204,10 @@ chance. What it does: with the fixes on (a boost: about a day). Encounters: how 
 | 74 | St. Januarius | 66 | 35-75 | 50% | No help of its own: its powers work only where an encounter calls for it. |  | some |
 | 75 | St. John of Bridlington | 36 | 10-99 | 15% | A woman: heals all lost Endurance and 20% of lost Strength, and Endurance +5 to 9, Strength +4 to 7. A man: heals 30% of lost Endurance and 10% of lost Strength. |  | none |
 | 76 | St. John Chrysostom | 37 | 10-50 | 25% | Charisma +8 to 15, Perception lowered by 6 to 11, Speak Common and Latin +30 to 59. |  | none |
-| 77 | St. John Climacus | 20 | 40-99 | 30% | Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise each +1 to 4, and 1 more for every 5 points of Virtue. |  | none |
+| 77 | St. John Climacus | 20 | 40-99 | 30% | Every skill +1 to 4, and 1 more for every 5 points of Virtue. | **As the text** (sainttexts); the game: no weapon skills and no Riding. | none |
 | 78 | St. John Nepolmuchen | 22 | 15-60 | 30% | May raise the reputation by 15 to 24 in Prag, and by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else). Charisma +8 to 15, Intelligence +6 to 11, Speak Common +20 to 39, Streetwise +4 to 7. | **Fixed** (saintrep): in Prag the game sent the reputation to a place read from an uninitialised local. | some |
 | 79 | St. Joseph | 27 | 35-99 | 35% | Artifice and Streetwise +30 to 59; in a town, Charisma +6 to 11. | **As the text** (sainttexts); the game: Charisma +6 to 11, Artifice and Streetwise +30 to 59. | a few |
-| 80 | St. Jude | 15 | 20-90 | 5% | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Stealth, Artifice, Woodwise and Streetwise +6 to 11. |  | some |
+| 80 | St. Jude | 15 | 20-90 | 5% | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11. | **As the text** (sainttexts); the game: no Riding, and no weapon skill but those of the weapons in hand. | some |
 | 81 | St. Julian, Hospitaler | 61 | 40-99 | 75% | Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land. |  | a few |
 | 82 | St. Kessog | 31 | 20-99 | 25% | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11, Speak Common +15 to 29, Riding +4 to 7, Healing +10 to 19. |  | none |
 | 83 | St. Lasdislaus | 51 | 25-99 | 60% | Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |  | none |

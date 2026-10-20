@@ -284,6 +284,40 @@ static void hildegard(int w)                /* sometimes the reputation, by the 
 }
 
 /* the saints by their function (s039 165c), with whether their help needs armourday */
+/* (found by Arkana Mechanika's register) */
+static long purse_pf(void) { return (long)g_rw(G_MONEY) * 240 + (long)g_rw((u16)(G_MONEY + 2)) * 12 + g_rw((u16)(G_MONEY + 4)); }
+static void purse_set(long pf) { g_ww(G_MONEY, (u16)(pf / 240)); g_ww((u16)(G_MONEY + 2), (u16)(pf % 240 / 12)); g_ww((u16)(G_MONEY + 4), (u16)(pf % 12)); }
+static void edward(int w)                   /* "heals a small amount of Endurance" (the code: a day's boost) */
+{
+    mend(w, 0, 4, 4); attr(w, 4, 6, 6, 0x18); attr(w, 3, 8, 8, 0x18); skill(w, 17, 8, 8, 0x18);
+    for (int k = 0; k < 7; k++) skill(w, k, 6, 6, 0x18);
+    int any = 0;
+    for (int m = 0; m < 5; m++) if (present(m)) { if (ns_call(GF_member_skill, 2, m, 9) < 20) ns_call(GF_set_skill, 3, m, 9, 20); any = 1; }
+    if (any) { long pf = purse_pf(); purse_set(pf - pf / 4); }   /* (the code: a quarter of the purse's low word, (unsigned) pfennigs >> 2) */
+}
+static void gerlac(int w)                   /* "a modest increase to Charisma, a good increase to all weapons skills" (the code: no Charisma, the weapons in hand) */
+{
+    heal(w, 0, 30); heal(w, 1, 20); skill(w, 13, 20, 20, 0x18);
+    int d = rnd(10) + 15;
+    for (int k = 0; k < 7; k++) ns_call(GF_lower_skill_temp, 4, w, k, d, 0x18);
+    attr(w, 5, 6, 6, 0x18);
+}
+static void climacus(int w)                 /* "Enhances ALL skills by a small amount plus one for every five points of virtue" (the code: no weapons, no Riding) */
+{
+    static const int K[18] = { 7, 8, 10, 11, 12, 13, 15, 14, 18, 16, 0, 1, 2, 3, 4, 5, 6, 17 };
+    for (int i = 0; i < 18; i++) skill(w, K[i], ns_call(GF_member_skill, 2, w, 9) / 5 + 1, 4, 0x18);
+}
+static void jude(int w)                     /* "every skill by a modest amount" (the code: no Riding, no weapon skill but those in hand) */
+{
+    static const int A[6] = { 0, 5, 1, 3, 2, 4 }, K[11] = { 7, 8, 10, 11, 12, 13, 15, 14, 18, 16, 17 };
+    for (int i = 0; i < 6; i++) attr(w, A[i], 4, 5, 0x18);
+    u8 before[7];
+    for (int k = 0; k < 7; k++) before[k] = g_rb((u16)(G_MEMBER(w) + 0x57 + k));
+    weapons(w, rnd(10) + 15);                                       /* (the game's: the weapons in hand +15 to 24) */
+    for (int k = 0; k < 7; k++) if (g_rb((u16)(G_MEMBER(w) + 0x57 + k)) == before[k]) skill(w, k, 6, 6, 0x18);
+    for (int i = 0; i < 11; i++) skill(w, K[i], 6, 6, 0x18);
+}
+
 static const struct { int saint; u16 off; void (*fn)(int who); int arm; } SAINTS[] = {
     { 0, 0x0034, adrian, 0 }, { 1, 0x0190, agatha, 0 }, { 9, 0x0792, anthony, 0 },
     { 22, 0x13d4, christopher, 0 }, { 38, 0x1f8c, drogo, 0 }, { 130, 0x7038, wilfrid, 0 }, { 47, 0x27c2, eustace, 0 },
@@ -295,6 +329,7 @@ static const struct { int saint; u16 off; void (*fn)(int who); int arm; } SAINTS
     { 96, 0x5334, michael, 1 }, { 86, 0x49e4, longinius, 0 }, { 95, 0x5296, maurice, 0 }, { 42, 0x23fe, eligius, 0 },
     { 117, 0x664a, sebastian, 0 }, { 64, 0x3612, hedwig, 0 }, { 79, 0x4320, joseph, 0 }, { 51, 0x2b30, florian, 0 },
     { 118, 0x671e, stanislaus, 0 }, { 133, 0x7288, willibrord, 0 }, { 68, 0x3934, hildegard, 0 }, { 13, 0x0c20, barbara, 0 },
+    { 41, 0x2208, edward, 0 }, { 56, 0x2ece, gerlac, 0 }, { 77, 0x3fc2, climacus, 0 }, { 80, 0x43d8, jude, 0 },
 };
 #define NSAINTS (int)(sizeof SAINTS / sizeof SAINTS[0])
 

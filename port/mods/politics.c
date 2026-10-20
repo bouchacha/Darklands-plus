@@ -3,16 +3,18 @@
  *
  * The game has a city's "political season" (s039 1462:0558: 15 interest groups each leaning to
  * the rebels or the government, the guild where the agitators meet, 56 days), 19 $Revol cards and
- * their helpers, all coded, but nothing calls the season's setup, the war council ($Consi00) keeps
- * only "back to work", and the decisive day (facts 0x15 "the guard arrests today" and 0x16 "the
- * rebels march today", read by every street card) is written by nothing. This module:
+ * their helpers, all coded, but nothing calls the season's setup, and the war council ($Consi00)
+ * keeps only "back to work": the party's own side never sets the decisive day (facts 0x15 "the
+ * guard arrests today" and 0x16 "the rebels march today", read by every street card; only the
+ * season's daily handler sets it, for the other side). This module:
  *  - starts a season now and then when the party arrives in a city (one at a time), putting right
  *    what the setup gets wrong: the party's side starts at the city's number instead of 0 (the
  *    season's own record doubles as fact 0, so the agitators' guild master never offered the job),
  *    the agitators' guild can be the merchants (no guild card), no guild leader is given a secret;
  *  - makes the war council work from its texts (the tally, the plan, "put the plan into effect,
- *    three days from now") and writes the decisive day; the other side strikes on its own when it
- *    is stronger or the season grows old; a day the party missed is settled when it comes back;
+ *    three days from now") and writes the decisive day; the other side strikes by the season's
+ *    own daily handler (run for the season's city, its day made a day like the council's); a day
+ *    the party missed is settled when it comes back;
  *  - lets the strategy talk offer the march or the arrest by the city's layout (the game asked
  *    for an imperial mint, a slip for the town hall), and on the day sends the party at
  *    headquarters to the rally or the arrest ($Revol09, $Revol08: nothing led there);
@@ -207,7 +209,6 @@ static void settle_missed(int loc)
     if (party) ui_notice(msg);
 }
 static int arrived = -1;
-static long last_day = -1;
 static void street(void)
 {
     int loc = cur_loc();
@@ -217,19 +218,51 @@ static void street(void)
         if (ns_unwinding) return;
     }
     if (!season(loc)) return;
-    long today = now() / 24;
-    if (today != last_day) {                                         /* a new day: the guilds can be asked, met and visited again */
-        last_day = today;                                            /* (the cards mark each once for the whole season: the leader's
-                                                                        "report here every day" went through the agitators' guild) */
-        for (int t = 3; t <= 5; t++) C(GF_event_update, 7, -2, loc, 0x1c, t, 0, TAG, 0);
+    u32 over = fact_rec(F_DAYOVER, loc);
+    if (over && ev_start(over) <= now()) settle_missed(loc);
+}
+
+/* the season's day: fact 0xc's expiry handler (s029 0e76:4180), made by the setup and made again
+   for 24 hours each time. It clears facts 3-5 (the guilds can be asked, met and visited again),
+   draws 0x23 anew, one day in two turns one interest group (not the agitators') to the other
+   side, and on the city's weekday ((loc_query(city, 0x21) + day) % 7 == 0) lets the side against
+   the party (with none, the stronger) strike: once the season is five weeks old (fact 7 gone),
+   three weeks (fact 6) if that side is at 150% of the other, or at any time past 267%: fact 0x15
+   or 0x16 for 480 hours. Its slips: the groups and the strengths it uses (loc_side_*,
+   side*_percent) are those of the place the party is in, whichever it is (Arkana Mechanika's
+   register keeps this); and its day has no end but the season's and is made again every week.
+   Here it runs with the season's city as the current place, and its strike becomes a decisive
+   day as the war council's: the next day at its hour, settled if the party misses it. */
+static void daily_hook(void)
+{
+    if (!politics_on()) { hook_call_original(); return; }
+    u32 ev = g_event((s16)rw(SS, (u16)(SP + 4)));
+    int loc = ev ? g_ev(ev, G_EV_LOC) : -1;
+    if (loc < 0 || loc >= 0x5c) { hook_call_original(); return; }
+    static u8 had[G_NEVENTS];
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        had[i] = e && g_ev(e, G_EV_KIND) == 0x1c && g_ev(e, G_EV_TAG) == TAG && g_ev(e, G_EV_LOC) == loc;
+    }
+    u16 here = g_rw(G_CUR_LOC);
+    g_ww(G_CUR_LOC, (u16)loc);
+    hook_call_original();
+    g_ww(G_CUR_LOC, here);
+    if (ns_unwinding) return;
+    int who = 0;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (had[i] || !e || g_ev(e, G_EV_KIND) != 0x1c || g_ev(e, G_EV_TAG) != TAG || g_ev(e, G_EV_LOC) != loc) continue;
+        int t = g_ev(e, G_EV_TYPE0);
+        if (t != F_ARREST && t != F_MARCH) continue;
+        who = t == F_MARCH ? REBELS : GOVT;
+        C(GF_event_free, 1, i);
         if (ns_unwinding) return;
     }
-    u32 over = fact_rec(F_DAYOVER, loc);
-    if (over && ev_start(over) <= now()) { settle_missed(loc); return; }
-    int s = side();
-    if (!s || over) return;                                          /* (the party has no side, or the day is set) */
-    int days = season_days(loc), opp = s == REBELS ? govt_pct() : rebels_pct();
-    if ((days >= 21 && opp >= 100) || days >= 35) set_day(loc, -s, 2);   /* the other side strikes first */
+    if (who && !fact_rec(F_DAYOVER, loc) && !fact_rec(F_ARREST, loc) && !fact_rec(F_MARCH, loc)) {
+        LOG("the season's day at %d: the %s strike\n", loc, who == REBELS ? "rebels" : "government");
+        set_day(loc, who, 1);
+    }
 }
 
 /* ---------------------------------------------------------------- texts */
@@ -670,6 +703,7 @@ void politics_init(void)
     hook_install(89, 0x18ce, 0x033c, boon_take_formula_hook);
     hook_install(89, 0x18ce, 0x03be, boon_take_saint_hook);
     hook_install(GF_card_load, card_load_hook);
+    hook_install(29, 0x0e76, 0x4180, daily_hook);
     hook_install(GF_card_options, card_options_hook);
     hook_install(GF_var_expand, var_expand_hook);
     hook_install(GF_text_expand, text_expand_hook);
