@@ -763,7 +763,7 @@ static void help_window(void)
         } else if (gm == GM_MAP) {
             ImGui::SeparatorText("Now: the travel map");
             row("Click", "walk towards that spot");
-            row("Ctrl + click", "travel there along the roads (any key or click stops)");
+            row("Ctrl+click", "travel there along the roads (any key or click stops)");
             row("M", "world map: find a place, double-click to travel there");
             row("Point at a quest's picture", "the task that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party)");
             row("A task in the left margin", "click to open it, then Travel there");
@@ -775,11 +775,11 @@ static void help_window(void)
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
                 row("1 to 5", "select a member; Esc: cancel the order being given");
                 if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "click: select them (double-click: and move the view to them); right-click: their sheet");
-                if (config_get_int("battle.volley_toggle", 1)) row("The bow or sword on a member's picture", "shoot or fight hand to hand when you click an enemy (click it to switch)");
+                if (config_get_int("battle.volley_toggle", 1)) row("Bow or sword on a picture", "that member shoots or fights hand to hand when you click an enemy (click it to switch)");
                 row("The right margin's buttons", "the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
-            row("Ctrl + click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
+            row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
             if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
@@ -863,7 +863,7 @@ static void help_window(void)
             prow("{DPAD}", "the arrow keys");
             prow("{LB} {RB}", "Tab (the level map) / Space (pause)");
             prow("{START} {BACK}", "F12 (this menu) / M (the world map)");
-            prow("{RT}", "held: Ctrl (on the travel map: Ctrl + click travels there)");
+            prow("{RT}", "held: Ctrl (on the travel map: Ctrl+click travels there)");
             prow("{LS}", "pressed: F1 (this list)");
           } }
         ImGui::TextDisabled("F1, Esc or a click closes this.");
