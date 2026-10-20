@@ -27,6 +27,8 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/config.h"
 #include "../mods/gamemodel.h"
+#include "../mods/nscreen.h"
+#include "../runtime/gamevars.h"
 #include "../third_party/stb/stb_image.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
 extern char dlp_user_dir[], game_dir[];
@@ -218,21 +220,51 @@ static const char *order_word(char c, int place, bool shortw)
 /* in a battle, on the picture's lower left: how a member with a missile weapon opens a fight, a bow
    (shoots) or a sword (melee), switched with a click (mods/orders.c, battle.volley); the clicks come
    through partypanel_click (ui_event), not the game */
+extern "C" void plat_mouse_game(int *x, int *y);
 extern "C" int orders_member_mode(int m);
 extern "C" void orders_member_mode_set(int m, int shoot);
 static struct { float x0, y0, x1, y1; int m; } mode_btn[5]; static int mode_btns, mode_btns_frame = -100;
+/* in a battle (battle.panel_select): a click on a member's box chooses them to be given orders, as
+   1 to 5 do (s016 1ef8:0a2c; twice in a moment, the view also goes to them: mods/battlescroll.c),
+   and a right-click opens their sheet, as F1 to F5 or the game's click on the box do (s022
+   1ef8:0000 with the box's row, then s019 1ef8:0b9e for each member able to fight, as combat_input) */
+static void choose_member(int m, int, int, int) { ns_call(16, 0x1ef8, 0x0a2c, 1, m); }
+static void open_sheet(int m, int, int, int)
+{
+    ns_call(GF_combat_char_sheet, 1, m * 40 + 10);
+    for (int i = 0; i < 5 && !ns_unwinding; i++) if (g_rb((u16)(0x9c55 + 0x14 + 0x80 * i)) == 1) ns_call(19, 0x1ef8, 0x0b9e, 1, i);
+}
+extern "C" int partypanel_member_at(int gx, int gy);
+static int box_at(void)                         /* the member whose box is under the pointer in a battle, or -1 */
+{
+    if (!shown_now || game_mode() != GM_BATTLE || !gm_in_battle() || config_get_int("original", 0) || !config_get_int("battle.panel_select", 1) || ns_showing()) return -1;
+    int gx, gy; plat_mouse_game(&gx, &gy);
+    int m = partypanel_member_at(gx, gy);
+    return m >= 0 && gm_member_status(m) == 1 && !gm_member_elsewhere(m) ? m : -1;
+}
 extern "C" int partypanel_click(int wx, int wy)
 {
     (void)wx; (void)wy;
-    if (ImGui::GetFrameCount() - mode_btns_frame > 2) return 0;
-    int gx, gy; { void plat_mouse_game(int *x, int *y); plat_mouse_game(&gx, &gy); }
-    for (int k = 0; k < mode_btns; k++)
-        if (gx >= mode_btn[k].x0 && gx <= mode_btn[k].x1 && gy >= mode_btn[k].y0 && gy <= mode_btn[k].y1) {
-            int m = mode_btn[k].m, v = orders_member_mode(m);
-            if (v >= 0) orders_member_mode_set(m, !v);
-            return 1;
-        }
-    return 0;
+    int gx, gy; plat_mouse_game(&gx, &gy);
+    if (ImGui::GetFrameCount() - mode_btns_frame <= 2)
+        for (int k = 0; k < mode_btns; k++)
+            if (gx >= mode_btn[k].x0 && gx <= mode_btn[k].x1 && gy >= mode_btn[k].y0 && gy <= mode_btn[k].y1) {
+                int m = mode_btn[k].m, v = orders_member_mode(m);
+                if (v >= 0) orders_member_mode_set(m, !v);
+                return 1;
+            }
+    int m = box_at();
+    if (m < 0) return 0;
+    ns_defer(choose_member, m, 0, 0, 0);
+    return 1;
+}
+extern "C" int partypanel_rclick(int wx, int wy)
+{
+    (void)wx; (void)wy;
+    int m = box_at();
+    if (m < 0) return 0;
+    ns_defer(open_sheet, m, 0, 0, 0);
+    return 1;
 }
 
 extern "C" int partypanel_member_at(int gx, int gy)
@@ -325,8 +357,9 @@ extern "C" void partypanel_draw(void)
             P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
-                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\nIt lowers Agility in card tests and in fending off blows, and slows melee attacks. Click to open the sheet.",
-                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2);
+                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\nIt lowers Agility in card tests and in dodging shots and throws, and slows melee attacks. %s.",
+                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2,
+                                  battle && config_get_int("battle.panel_select", 1) ? "Right-click to open the sheet" : "Click to open the sheet");
             }
         }
         /* a saint's help or a potion at work: a halo on the picture's upper corner, gold (or a dull red

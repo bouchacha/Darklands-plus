@@ -155,6 +155,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `battle.click_best` | Attack with the better weapon | convenience | orders.c |
 | `battle.volley_toggle` | Shoot or melee on each member's box | interface | orders.c, partypanel.cpp |
 | `battle.volley_melee` | Shooters fight hand to hand once the enemies close in | convenience | orders.c |
+| `battle.panel_select` | Click a member's box to give them orders | convenience | partypanel.cpp |
 | `battle.quick_orders` | One click gives an order | convenience | orders.c |
 | `battle.next_member` | Then select the next member without orders | convenience | orders.c |
 | `battle.order_bar` | Order buttons over the field | interface | margins.cpp |
