@@ -2276,7 +2276,8 @@ static void buy_room_hook(void)
             if (ns_unwinding) return;
             if (!room_anywhere(m, id, q)) {
                 if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix fullpack: no room to buy item %d\n", id);
-                ui_notice("No room in the pack for another kind of thing: not bought.");
+                int barterview_on(void);
+                if (!barterview_on()) ui_notice("No room in the pack for another kind of thing: not bought.");   /* (the shop drawn anew says it itself) */
                 AX = (u16)k; hook_return_far(0); return;
             }
         }
@@ -2293,7 +2294,8 @@ static void store_get_room_hook(void)
         if (e >= 0 && e < 100 && e < (s16)g_rw(GV_cache_n)) {
             u16 o = (u16)(0x37f4 + 4 * e);
             if (!room_anywhere(m, rw(G_FAR2E38, o) & 0xfff, rb(G_FAR2E38, (u16)(o + 2)))) {
-                ui_notice("No room in the pack for another kind of thing.");
+                int cacheview_is_on(void);
+                if (!cacheview_is_on()) ui_notice("No room in the pack for another kind of thing.");
                 hook_return_far(0); return;
             }
         }
