@@ -68,7 +68,8 @@
  *            game dies ("left through an unmatched return"). remove_item_rec and the battle's
  *            use_item_idx (s014 18bf:0fa4, the same flaw) now ignore an index past the
  *            items; counts are also kept within 0..64 (16 for enemies), so saves that carry
- *            -1 mend themselves.  *  testcard  Card 0 is the developers' test card ($Initi00), whose picture (pics\xhouse3.pic) the game
+ *            -1 mend themselves.
+ *  testcard  Card 0 is the developers' test card ($Initi00), whose picture (pics\xhouse3.pic) the game
  *            does not have: a card that goes back to where it came from (prev_screen) went there
  *            when that was 0, and the game stopped. It now goes to the map or the town.
  *  teachers  The lodging screen (s036 1462:0082) lists the town's teachers (kind 0x28 events) into
