@@ -36,6 +36,7 @@ extern "C" void lodgeview_draw(void)
     const ImU32 PANEL = IM_COL32(244, 234, 210, 255), HOVER = IM_COL32(232, 214, 176, 255), SEL = IM_COL32(222, 196, 146, 255);
     const ImU32 BROWN = IM_COL32(120, 84, 40, 235), GREY = IM_COL32(150, 136, 112, 140), GREEN = IM_COL32(40, 92, 34, 235), RED = IM_COL32(112, 40, 22, 235);
     char b[160];
+    if (m.passing) P.click = false;                         /* (the hours going by: a click skips them, mods/lodgeview.c) */
     P.page();
     std::string place = ns_gtext(m.place);
     std::string title = m.mode == 1 ? "Camping" : m.mode == 0 ? "A room at the inn" : "Staying here";
@@ -165,4 +166,28 @@ extern "C" void lodgeview_draw(void)
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days as chosen (it stops if anything happens, or when a day cannot be paid).");
     else P.text(fo, 3.9f, 190, 188, dim, "F1: the keys");
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
+
+    /* the hours going by (the game's hourglass, here): the bell, the day, how far through */
+    if (m.passing) {
+        P.rect(60, 0, 320, 200, IM_COL32(40, 26, 12, 70));
+        const float X0 = 118, X1 = 262, Y0 = 72, Y1 = 124;
+        P.rect(X0 - 1.2f, Y0 - 1.2f, X1 + 1.2f, Y1 + 1.2f, IM_COL32(120, 84, 40, 255), 3);
+        P.rect(X0, Y0, X1, Y1, PANEL, 2.5f);
+        std::string head = m.pass_n == 0 ? (m.mode == 1 ? "A day in camp" : "A day at the inn")
+                         : m.pass_of ? "Day " + std::to_string(m.pass_n) + " of " + std::to_string(m.pass_of)
+                                     : "Day " + std::to_string(m.pass_n) + ", until rested";
+        float hw = P.width(f, NsDraw::FS_HEAD, head);
+        P.text(f, NsDraw::FS_HEAD, (X0 + X1 - hw) * 0.5f, Y0 + 4, soft, head);
+        char bell[24]; gm_hour_name(m.pass_hour, bell, sizeof bell);
+        snprintf(b, sizeof b, "%s, %d %s", bell, m.pass_day, gm_month_name(m.pass_month));
+        std::string when = ns_gtext(b);
+        float ww = P.width(f, NsDraw::FS_TITLE, when);
+        P.text(f, NsDraw::FS_TITLE, (X0 + X1 - ww) * 0.5f, Y0 + 15, ink, when);
+        float frac = m.pass_steps > 0 ? (float)m.pass_step / m.pass_steps : 1.0f;
+        P.rect(X0 + 10, Y0 + 31, X1 - 10, Y0 + 36, IM_COL32(222, 206, 172, 255), 2);
+        P.rect(X0 + 10, Y0 + 31, X0 + 10 + (X1 - X0 - 20) * frac, Y0 + 36, BROWN, 2);
+        const char *hint = m.pass_n ? "Click or press a key to skip to the end" : "Click or press a key to skip";
+        float tw = P.width(fo, NsDraw::FS_SMALL, hint);
+        P.text(fo, NsDraw::FS_SMALL, (X0 + X1 - tw) * 0.5f, Y0 + 41, dim, hint);
+    }
 }

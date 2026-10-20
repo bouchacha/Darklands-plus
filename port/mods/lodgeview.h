@@ -34,6 +34,11 @@ typedef struct {
     long lodging;                     /* the lodging alone */
     int resting;                      /* someone regains strength or prays */
     char place[32];                   /* the town (game charset) */
+    /* time passing (the game's hourglass, drawn here instead: the original's is under this page) */
+    int passing;                      /* the hours of a day are going by */
+    int pass_hour, pass_day, pass_month;   /* the time shown */
+    int pass_step, pass_steps;        /* three-hour steps shown, of those to go */
+    int pass_n, pass_of;              /* several days at once: this one, and how many (0: until rested) */
     unsigned seq;
 } LodgeModel;
 

@@ -49,13 +49,43 @@ static int lv_mode;
 int lodgeview_is_on(void) { return lv_on; }
 void lodgeview_set(int on) { lv_on = on; config_set_int("display.native_lodge", on); }
 
-/* while several days are spent at once, the hourglass of each day (drawn under this page, unseen)
-   is skipped: it only shows the time passing (advance_hours has moved the clock already) */
-static int many_days;
+/* the hours passing: the original's hourglass (advance_hours calls it before it moves the clock;
+   every three hours a step with the bell, day and month, 400 ms each and a second at the end; a
+   key or click skips it) would be drawn under this page, unseen, and the page would stand still
+   for four seconds. Here the page shows the same steps itself, faster (150 ms; 45 ms each while
+   several days go by), and a click or a key skips them (the rest of a run of days too) */
+static int many_days, skip_run;
+u32 plat_ticks_ms(void);
 static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s043 150b:2a04 */
 {
-    if (many_days) { hook_return_far(0); return; }
-    hook_call_original();
+    LodgeModel *m = &lodge_model;
+    if (!lv_on || !m->open) { hook_call_original(); return; }
+    int steps = (s16)rw(SS, (u16)(SP + 4)) / 3;
+    if (steps <= 0 || skip_run) { hook_return_far(0); return; }
+    int h = (s16)g_rw(GV_cur_hour), day = (s16)g_rw(GV_cur_day), month = (s16)g_rw(GV_cur_month);
+    int per = many_days ? 45 : 150, skip = 0;
+    m->passing = 1; m->pass_steps = steps;
+    ns_input_begin();                                   /* (the click that spent the day is not a skip) */
+    for (int s = 0; s <= steps && !skip; s++) {
+        m->pass_step = s; m->pass_hour = h; m->pass_day = day; m->pass_month = month; m->seq++;
+        u32 t0 = plat_ticks_ms(), wait = (u32)(s == steps ? 2 * per : per);
+        while (plat_ticks_ms() - t0 < wait) {
+            dl_poll();
+            plat_sleep_ms(4);
+            ns_input_poll();
+            if (ns_in.pressed || ns_in.rclick) skip = 1;
+            if (ns_call(GF_key_pressed, 0)) { ns_call(GF_get_key, 0); skip = 1; }
+            if (skip || ns_unwinding) break;
+        }
+        if ((h += 3) >= 24) {                           /* (as the original counts the days on) */
+            h -= 24;
+            if (++day > (s16)g_rw((u16)(GV_days_per_month + 2 * (month % 12)))) { day = 1; month = (month + 1) % 12; }
+        }
+    }
+    if (skip && many_days) skip_run = 1;
+    m->passing = many_days && !skip_run; m->seq++;     /* (several days: the box stays up between them) */
+    ns_input_begin();                                   /* (nor is the skipping click one on the page) */
+    hook_return_far(0);
 }
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 #define ev_ptr g_event
@@ -253,7 +283,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                     leave = key(0x1454, 0);
                 }
                 break;
-            case LV_DAY: if (m->cost <= m->purse) leave = key(0x1f53, 0); break;   /* (as the button: a day paid for) */
+            case LV_DAY: if (m->cost <= m->purse) { m->pass_n = m->pass_of = 0; leave = key(0x1f53, 0); } break;   /* (as the button: a day paid for) */
             case LV_REST: case LV_DAYS:
                 if (a.type == LV_REST) {                                /* (those short of strength who only relax regain it) */
                     for (int i = 0; i < 5 && !leave && !ns_unwinding; i++) {
@@ -262,19 +292,26 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                     }
                     build();
                 }
-                many_days = 1;
+                many_days = 1; skip_run = 0;
+                ns_input_begin();
                 for (int d = 0; d < (a.type == LV_DAYS ? a.a : 14) && !leave && !ns_unwinding; d++) {
                     build();
                     if (a.type == LV_REST && !m->resting) break;
                     if (m->cost > m->purse) break;                      /* (a day the purse cannot pay: the game passes no time but counts it) */
                     int before = (s16)g_rw(LV_NDAYS);
+                    m->pass_n = d + 1; m->pass_of = a.type == LV_DAYS ? a.a : 0;
                     leave = key(0x1f53, 0);
                     if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */
                     build();
-                    dl_poll();
-                    plat_sleep_ms(250);                                 /* (a moment to see each day) */
+                    for (int w = 0; w < 30 && !skip_run; w++) {         /* (a moment to see each day: the hours went by on the page) */
+                        dl_poll(); plat_sleep_ms(4);
+                        ns_input_poll();
+                        if (ns_in.pressed || ns_in.rclick) skip_run = 1;
+                    }
+                    if (skip_run) m->passing = 0;
                 }
-                many_days = 0;
+                many_days = 0; skip_run = 0; m->passing = 0; m->pass_n = m->pass_of = 0; m->seq++;
+                ns_input_begin();
                 break;
             case LV_SHEET: if (a.a >= 0 && a.a < 5) leave = key(0x3b00 + (a.a << 8), 1); break;
             case LV_LEAVE: leave = 1; break;
