@@ -175,7 +175,7 @@ extern "C" void rosterview_draw(void)
         float th = (LY1 - 2 - RY0) * rows / r.n, ty = RY0 + (LY1 - 2 - RY0 - th) * (scroll / maxtop);
         P.rect(LX1 - 2.2f, ty, LX1 - 1, ty + th, IM_COL32(120, 80, 36, 120), 0.6f);
     }
-    if (!r.n) P.para(fo, NsDraw::FS_SMALL, LX0 + 4, RY0 + 2, LX1 - LX0 - 8, soft, "No characters are kept yet. Make one with New character.");
+    if (!r.n) P.para(fo, NsDraw::FS_SMALL, LX0 + 4, RY0 + 2, LX1 - LX0 - 8, soft, "No characters are kept yet. Make one with Create a Character.");
 
     /* the chosen one */
     const float DX0 = 143, DX1 = 316, DY0 = 93, DY1 = 184;
@@ -220,7 +220,7 @@ extern "C" void rosterview_draw(void)
         /* what can be done */
         float bx = x, by = DY1 - 22, bh = 9;
         if (slot >= 0) {
-            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Leave at the inn") : std::string("Remove from the party"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
+            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Leave at the inn") : std::string("Remove from the party"), ch.can_leave ? BROWN : GREY)) ns_push(RV_KEY, K_DROP, 0, 0);
             if (P.button(bx + 42, by, bx + 72, by + bh, "Sheet", BROWN)) ns_push(RV_SHEET, slot, 0, 0);
         } else if (P.button(bx, by, bx + 72, by + bh, std::string("Add to the party"), r.party_n >= 4 ? GREY : GREEN)) ns_push(RV_KEY, K_ADD, 0, 0);
         bool asking = del_ask == r.sel && plat_ticks_ms() - del_t < 4000;

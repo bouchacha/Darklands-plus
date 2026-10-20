@@ -37,10 +37,31 @@ void rosterview_set(int on) { rv_on = on; config_set_int("display.native_roster"
 static int bits(const unsigned char *p, int n) { int c = 0; for (int i = 0; i < n; i++) for (int b = p[i]; b; b &= b - 1) c++; return c; }
 static void cstr(char *out, int n, const unsigned char *p, int max) { int i = 0; for (; i < max && i < n - 1 && p[i]; i++) out[i] = (char)p[i]; out[i] = 0; }
 
+/* the inn's list (s038 1462:23ec, drawing it) shows only some of the characters kept: those in the
+   party, and the others whose record's first word (their place) is the town the party is in
+   (cur_loc), not the dead (status 5), nor a companion who travels with the party for a while (an
+   event 0x43); its rows are D_8d06[row] = the character, and the screen's keys act on
+   D_8d06[roster_sel]. So the view lists the rows the game drew, in its order, and its choice is a
+   row: here the rows are taken from D_8d06 after each drawing of the list (the entries past the
+   last row are first set to -1 to know where it ends). */
+#define D_ROWS 0x8d06                     /* int[20]: inn list row -> character */
+static int inn_rows = -1, inn_row_char[20];
+static void list_hook(void)               /* s038 1462:23ec (font), near */
+{
+    if (!rv_on || !ns_active()) { hook_call_original(); return; }
+    for (int k = 0; k < 20; k++) g_ww((u16)(D_ROWS + 2 * k), 0xffff);
+    hook_call_original();
+    int n = 0;
+    while (n < 20 && (s16)g_rw((u16)(D_ROWS + 2 * n)) >= 0) { inn_row_char[n] = (s16)g_rw((u16)(D_ROWS + 2 * n)); n++; }
+    inn_rows = n;
+    if (getenv("DL_ROSTER_LOG")) fprintf(stderr, "roster: the inn lists %d characters\n", n);
+}
+
 static void build(void)
 {
     RosterModel *r = &roster_model;
     char host[1200];
+    static RosterChar all[RV_MAX]; int nall = 0;
     r->n = 0;
     for (int i = 0; i < 5; i++) r->slot_char[i] = -1;
     dos_host_path_read("charactr.tmp", host, sizeof host);
@@ -50,8 +71,8 @@ static void build(void)
         if (fread(h, 1, 32, f) == 32) {
             int n = (s16)(h[0] | h[1] << 8);
             for (int i = 0; i < 5; i++) r->slot_char[i] = (s16)(h[2 + 2 * i] | h[3 + 2 * i] << 8);
-            for (int i = 0; i < n && r->n < RV_MAX && fread(rec, 1, sizeof rec, f) == sizeof rec; i++) {
-                RosterChar *c = &r->ch[r->n++];
+            for (int i = 0; i < n && nall < RV_MAX && fread(rec, 1, sizeof rec, f) == sizeof rec; i++) {
+                RosterChar *c = &all[nall++];
                 memset(c, 0, sizeof *c);
                 cstr(c->name, sizeof c->name, rec + 0x25, 25);
                 cstr(c->nick, sizeof c->nick, rec + 0x3e, 11);
@@ -67,11 +88,21 @@ static void build(void)
         }
         fclose(f);
     }
+    /* the rows: every character kept (a new game's screen), or the inn's rows */
+    int rowchar[RV_MAX];
+    if (r->inn && inn_rows >= 0) { for (int k = 0; k < inn_rows && k < RV_MAX; k++) if (inn_row_char[k] < nall) { rowchar[r->n] = inn_row_char[k]; r->ch[r->n++] = all[inn_row_char[k]]; } }
+    else for (int k = 0; k < nall; k++) { rowchar[r->n] = k; r->ch[r->n++] = all[k]; }
+    /* at an inn a member stays behind only where they joined (s038 02f8, A: an event 0x4c for the
+       character at cur_loc, made when they were added); one who came from elsewhere parts by the inn
+       card's "allow ... to retire" */
+    for (int k = 0; k < r->n; k++)
+        r->ch[k].can_leave = !r->inn || ns_call(GF_event_type_at, 3, 0x4c, rowchar[k], (s16)g_rw(GV_cur_loc)) != 0;
     r->party_n = 0;
     for (int s = 0; s < 5; s++) {
-        int c = r->slot_char[s];
-        if (c >= 0 && c < r->n) { r->ch[c].slot = s; r->party_n++; }
-        else r->slot_char[s] = -1;
+        int c = r->slot_char[s], row = -1;                  /* (the party's slots name characters, not rows) */
+        for (int k = 0; k < r->n; k++) if (rowchar[k] == c) row = k;
+        r->slot_char[s] = row;
+        if (row >= 0) { r->ch[row].slot = s; r->party_n++; }
         for (int k = 0; k < 4; k++) r->figure[s][k] = (char)g_rb((u16)(GV_member_shield + 4 * s + k));
         r->figure[s][3] = 0;
         for (int k = 0; k < 24; k++) r->pal[s][k] = rb(G_FAR20A5, (u16)(0x33fc + 24 * s + k)) & 63;
@@ -160,6 +191,11 @@ static int run(void)
                 if (r->inn && (lo == 'B' || lo == 'K' || lo == 'D')) {   /* (the inn's screen has no begin or delete; A drops too) */
                     if (lo != 'D') break;
                     if (r->sel < 0 || r->sel >= r->n || r->ch[r->sel].slot < 0) break;
+                    if (!r->ch[r->sel].can_leave) {
+                        char t[200], nk[16]; snprintf(nk, sizeof nk, "%s", r->ch[r->sel].nick[0] ? r->ch[r->sel].nick : r->ch[r->sel].name);
+                        snprintf(t, sizeof t, "%s joined elsewhere, so can't stay behind here. To part: Done, then \"allow %s to retire\".", nk, nk);
+                        note(t); break;
+                    }
                     a.a = 0x1e41; lo = 'A';
                 }
                 if (lo == 'B' && !r->party_n) { note("Add someone to the party first."); break; }
@@ -243,6 +279,7 @@ static void inn_screen_hook(void)
     if (!rv_on || !ns_active()) { hook_call_original(); return; }
     ns_unwinding = 0;
     roster_model.inn = 1;
+    inn_rows = -1;
     /* the original's setup (0000 up to its loop) */
     ns_call(GF_screen_hold, 0);
     g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);         /* (bytes) */
@@ -266,4 +303,5 @@ void rosterview_init(void)
     rv_on = config_get_int("display.native_roster", 1);
     hook_install(GF_roster_screen, screen_hook);
     hook_install(38, 0x1462, 0x0000, inn_screen_hook);
+    hook_install(38, 0x1462, 0x23ec, list_hook);
 }

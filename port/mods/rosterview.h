@@ -13,6 +13,7 @@ typedef struct {
     int skill[19];
     int slot;                        /* the party slot, -1 none */
     int nsaints, nformulae, nitems;
+    int can_leave;                   /* at an inn: joined here (the game's event 0x4c), so it can stay here; elsewhere 1 */
 } RosterChar;
 
 #define RV_MAX 40
