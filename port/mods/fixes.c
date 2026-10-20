@@ -158,6 +158,23 @@
  *            leader's house raised at night ($Snuck00, s071 1838:02a8) names party_min_attr(Agility)
  *            as $ChosenOneName. Within them the first such query returns the member (below,
  *            membervalue). Found by Arkana Mechanika (Darklands Restoration).
+ *  cardslips Slips in single card scripts (below, cardslips), all found by Arkana Mechanika
+ *            (Darklands Restoration): the Hussites' "claim friendship" (s114 18d3:041c) succeeds
+ *            when rand(100) == the chance, not <= (1 in 100 whatever the chance shown); a potion
+ *            thrown at footpads (s053 1838:0aa8) is never used up; the inn's stablemaster (s051
+ *            18c9:05d0) asks a mounted party whether its mounts are for sale only when it has
+ *            none (texts 1 and 7 swapped); a village Schulz (s077 1996:0378) says "Please accept
+ *            this florin" to a full party and gives none; the Templars' writing desk (s118
+ *            1a2b:02ac) looks for unknown formulae with && for &, so it skips every potion of
+ *            which one formula is known, and teaches a known one when all are; the sabbat's
+ *            ointment offer between waves ($Witcd40 block 4, s128 1838:03b8) has both its lines
+ *            switched off (the block's options were cleared and never set); the tatzelwurm's
+ *            meal (s106 19bc:03e8) takes the count of members who fled (s029 0e76:2474) for the
+ *            member eaten, so the death text and the Virtue practice came whoever fled; the
+ *            Cavern of Fire and Hail crossed under armour (s130 190c:033e) and the spider
+ *            warehouse (s134 1838:0550, 0692) add the Endurance and Strength their texts take; the
+ *            warehouse's owner ($DPost00, s134 1838:0000) is $NamedOneName, which nothing sets
+ *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?").
  *
  * Known, and left as the game has them (no fix: they are the game's design, or never reached):
  *  - An alchemist offers formula (seed + 100 + 3k) % 22 (k 0..3): only formulae 0..21 are ever
@@ -274,6 +291,8 @@ Fix FIXES[] = {
       "Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked up the kind of the first item in its list instead of each one's, and so added nothing. It now finds the mounts.", 1 },
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
+    { "cardslips", "Slips in single cards",
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\").", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1150,10 +1169,12 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
 int fix_is_on(const char *id) { for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, id)) return FIXES[i].on && !config_get_int("original", 0); return 0; }
 static int gcall(int sect, u16 seg, u16 off, int n, u16 a0, u16 a1) { u16 a[2] = { a0, a1 }; return (s16)game_call_far(sect, seg, off, n, a); }
 static void w04_options(void);
+static void witches_offer(void);
 void fixes_card_opts(void)                  /* before a card's option list is shown: its opt_on[] put right */
 {
-    if (!fix_is_on("cardopts")) return;
     char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
+    if (!strcasecmp(nm, "$Witcd40") && (s16)rw(SS, (u16)(SP + 4)) == 4 && fix_is_on("cardslips")) { witches_offer(); return; }
+    if (!fix_is_on("cardopts")) return;
     if (!strcasecmp(nm, "$CityW04") && (s16)rw(SS, (u16)(SP + 4)) == 0) { w04_options(); return; }     /* (its option list, block 0) */
     if (!strcasecmp(nm, "$Cloth00") && (s16)rw(SS, (u16)(SP + 4)) == 0 && !g_rb(GV_opt_on)) {           /* Clothmakers' Street by day (s053 1924:0004): */
         g_wb(GV_opt_on, 1);                 /* its script hides the shopfronts (opt_flag_0 = 0), which every other guild's street */
@@ -1774,6 +1795,114 @@ static void mv_wrap_hook(void)              /* $CityC00's tenth (s057 1838:067c)
     mv_active = was; mv_done = done;
 }
 
+/* ---------------------------------------------------------------- cardslips
+ * Each card routine below is wrapped; while it runs (slip), a call it makes is put right. */
+enum { SLIP_NONE, SLIP_HUSSITE, SLIP_STABLES, SLIP_SCHULZ, SLIP_TATZEL, SLIP_HURT };
+static int slip, slip_p, slip_saw;
+static void slip_rand_hook(void)            /* rand_mod (n): the Hussites' == made <= */
+{
+    hook_call_original();
+    if (slip != SLIP_HUSSITE) return;
+    int r = (s16)AX;
+    if (r <= slip_p) AX = (u16)slip_p;      /* (the script's test is r == p; a higher r stays, never p) */
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: Hussites' friendship, %d against %d%%: %s\n", r, slip_p, r <= slip_p ? "won" : "lost");
+    slip = SLIP_NONE;
+}
+static void slip_text_hook(void)            /* card_text (block, how) */
+{
+    int b = (s16)rw(SS, (u16)(SP + 4));
+    if (slip == SLIP_STABLES && (b == 1 || b == 7)) ww(SS, (u16)(SP + 4), (u16)(b == 1 ? 7 : 1));
+    if (slip == SLIP_SCHULZ && b == 6) slip_saw = 1;
+    hook_call_original();
+}
+static void slip_away_hook(void)            /* s029 0e76:2474: one member who fled is lost; returns how many fled */
+{
+    hook_call_original();
+    if (slip == SLIP_TATZEL) AX = (u16)((s16)AX > 0 ? (s16)(s8)g_rb(GV_best_member) : -1);
+}
+static void slip_attr_hook(void)            /* add_attr (who, k, d): Endurance, Strength taken, not given */
+{
+    int k = (s16)rw(SS, (u16)(SP + 6)), d = (s16)rw(SS, (u16)(SP + 8));
+    if (slip == SLIP_HURT && (k == 0 || k == 1) && d > 0) {
+        ww(SS, (u16)(SP + 8), (u16)-d);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: attribute %d taken by %d, not given\n", k, d);
+    }
+    hook_call_original();
+}
+static void slip_run(int which, int sect, unsigned seg, unsigned off, void (*fn)(void))
+{
+    int was = slip; slip = which; slip_saw = 0;
+    hook_install(sect, (u16)seg, (u16)off, fn);
+    hook_call_original();
+    hook_remove(sect, (u16)seg, (u16)off, fn);
+    slip = was;
+}
+static void hussite_hook(void)              /* $Witcd.. Hussite band, "claim friendship" (s114 18d3:041c, chance) */
+{
+    slip_p = (s16)rw(SS, (u16)(SP + 4));
+    slip_run(SLIP_HUSSITE, GF_rand_mod, slip_rand_hook);
+}
+static void footpads_potion_hook(void)      /* footpads, a potion thrown (s053 1838:0aa8) */
+{
+    int slot = (s16)g_rw(GV_menu_slot), m = (s16)g_rw(GV_menu_member);
+    int code = slot >= 0 && slot < 4 ? (s16)g_rw((u16)(GV_card_items + 2 * slot)) : -1;
+    if (code > 0 && m >= 0 && m < 5) {
+        ns_call(GF_take_item_impl, 2, m, code);
+        if (ns_unwinding) return;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: footpads, potion %d used up by member %d\n", code, m);
+    }
+    hook_call_original();
+}
+static void stables_hook(void) { slip_run(SLIP_STABLES, GF_card_text, slip_text_hook); }   /* $Urban00 stables (s051 18c9:05d0) */
+static void schulz_hook(void)               /* a village's Schulz, asked for help (s077 1996:0378) */
+{
+    u16 fl = g_rw(G_MONEY), gr = g_rw(G_MONEY + 2), pf = g_rw(G_MONEY + 4);
+    slip_run(SLIP_SCHULZ, GF_card_text, slip_text_hook);
+    if (ns_unwinding) return;
+    if (slip_saw && g_rw(G_MONEY) == fl && g_rw(G_MONEY + 2) == gr && g_rw(G_MONEY + 4) == pf) {
+        ns_call(GF_money_add_fgp, 4, G_MONEY, 1, 0, 0);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: the Schulz's florin given\n");
+    }
+}
+static int knows_formula(int m, int f) { return (rb(G_FAR2E38, (u16)(0x07be + m * 22 + f / 3)) >> (f % 3)) & 1; }
+static void templar_hook(void)              /* $Witcd02, the writing desk read (s118 1a2b:02ac, chance) */
+{
+    int p = (s16)rw(SS, (u16)(SP + 4));
+    g_ww(GV_opt_flag_1, 2);
+    ns_call(GF_party_max_skill_sum, 2, 0xc, 0xb);
+    if (ns_unwinding) return;
+    if (ns_call(GF_rand_mod, 1, 100) <= p) {
+        ns_call(GF_card_text, 2, 3, 0);
+        if (ns_unwinding) return;
+        int m = (s8)g_rb(GV_best_member);
+        if (m < 0 || m > 4) m = 0;
+        for (int k = 0; k < 3; k++) {          /* three formulae, each from a random start to the next unknown one */
+            int start = ns_call(GF_rand_mod, 1, 66), f = start;
+            while (knows_formula(m, f)) { if (++f >= 66) f = 0; if (f == start) break; }
+            u16 a = (u16)(0x07be + m * 22 + f / 3);
+            if (!knows_formula(m, f) && getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: Templars' desk teaches formula %d to member %d\n", f, m);
+            wb(G_FAR2E38, a, (u8)(rb(G_FAR2E38, a) | 1 << f % 3));
+        }
+    } else ns_call(GF_card_text, 2, 4, 0);
+    if (ns_unwinding) return;
+    hook_return_far(0);
+}
+static void tatzel_hook(void) { slip_run(SLIP_TATZEL, 29, 0x0e76, 0x2474, slip_away_hook); }   /* $McGuf02's tatzelwurm (s106 19bc:03e8) */
+static void hurt_hook(void) { slip_run(SLIP_HURT, GF_add_attr, slip_attr_hook); }              /* the cavern (s130 190c:033e), the spiders (s134 1838:0550, 0692) */
+static void spider_man_hook(void)           /* $DPost00 (s134 1838:0000): the warehouse owner's $NamedOneName, never set */
+{
+    ns_call(GF_random_name, 3, (s16)g_rw(GV_cur_loc) + 0x9c4, 0, 0);
+    if (ns_unwinding) return;
+    hook_call_original();
+}
+static void witches_offer(void)             /* (from fixes_card_opts) $Witcd40 block 4: the ointment, or stay and fight */
+{
+    if (!g_rb(GV_opt_on) && !g_rb((u16)(GV_opt_on + 1))) {
+        g_wb(GV_opt_on, 1); g_wb((u16)(GV_opt_on + 1), 1);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: $Witcd40's ointment offer switched on\n");
+    }
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1788,7 +1917,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
-    { 57, 0x1838, 0x067c, mv_wrap_hook } };
+    { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -1803,7 +1932,11 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "saintrep", GF_loc_reputation_adj, repadj_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook },
     { "membervalue", 71, 0x1838, 0x02a8, mv_wrap_hook }, { "membervalue", GF_party_max_skill, mv_query_hook },
-    { "membervalue", GF_party_min_attr, mv_query_hook } };
+    { "membervalue", GF_party_min_attr, mv_query_hook },
+    { "cardslips", 53, 0x1838, 0x0aa8, footpads_potion_hook }, { "cardslips", 51, 0x18c9, 0x05d0, stables_hook },
+    { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
+    { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
+    { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook } };
 
 void fix_enable(int i, int on)
 {

@@ -155,6 +155,7 @@ int testcmd_run(const char *cmd, const char *arg)
             else encounters_force(atoi(arg));
         }
         else if (!strcmp(cmd, "uwar")) { int l = -1, st = -1; sscanf(arg, "%d,%d", &l, &st); void war_test(int, int); war_test(l, st); }   /* test: the cities at war today; uwar:LOC,STATE forces one (mods/war.c) */
+        else if (!strcmp(cmd, "ujumpcard")) { void cutcards_jump(int); cutcards_jump((int)strtol(arg, 0, 0)); }   /* test: the town's next street menu is the game's card N */
         else if (!strcmp(cmd, "ugamecard")) { void cutcards_force(int); cutcards_force((int)strtol(arg, 0, 0)); }   /* test: the next random encounter on the map is the game's card N */
         else if (!strcmp(cmd, "upolit")) {              /* test: a political season starts here (mods/politics.c; the setup s039 1462:0558 and its fix-ups) */
             int politics_test_start(void);

@@ -65,8 +65,23 @@ static void overland_hook(void)             /* s030 1462:02c0 overland_loop(): t
     AX = (u16)force_card; force_card = -1;
 }
 
+/* test: in a town, the next time its main street (card 6) or a district's street menu (cards 9, 0x0a) comes up, card n
+   runs instead (ujumpcard:N) */
+static int jump_card = -1;
+void cutcards_jump(int n) { jump_card = n; fprintf(stderr, "cutcards: the town's next street menu is card %#x\n", n); }
+static void street_hook(void)               /* s045 18fc:0000 (card 6), s046 18aa:0004 (card 9), 194b:0002 (card 0x0a) */
+{
+    if (jump_card < 0) { hook_call_original(); return; }
+    int n = jump_card; jump_card = -1;
+    g_ww(GV_next_card, (u16)n); AX = (u16)n;
+    hook_return_far(0);
+}
+
 void cutcards_init(void)
 {
+    hook_install(45, 0x18fc, 0x0000, street_hook);
+    hook_install(46, 0x18aa, 0x0004, street_hook);
+    hook_install(46, 0x194b, 0x0002, street_hook);
     hook_install(GF_overland_loop, overland_hook);
     hook_install(108, 0x1b3a, 0x0008, meetb02_hook);
     hook_install(GF_card_load, card_load_hook);
