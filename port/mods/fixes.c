@@ -175,6 +175,14 @@
  *            warehouse (s134 1838:0550, 0692) add the Endurance and Strength their texts take; the
  *            warehouse's owner ($DPost00, s134 1838:0000) is $NamedOneName, which nothing sets
  *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?").
+ *  nightwall Along a city's walls at night ($CityW01, s047 1a44): the arrival looks for the best
+ *            climber from member 1 on (never the first) and keeps his number (DS:5828) but not his
+ *            value; the rope's chance (1a44:03e2) is DS:582A, which only a failed climb of
+ *            everyone sets (the last member's value): 0 the first time, so the climber always fell.
+ *            Everyone's chance (05f0) compares each member with DS:582A instead of the lowest so
+ *            far: 999 (certain) the first time. Now, before each menu, the best climber of all and
+ *            his value; everyone's chance is the weakest's. Found by Arkana Mechanika (Darklands
+ *            Restoration).
  *
  * Known, and left as the game has them (no fix: they are the game's design, or never reached):
  *  - An alchemist offers formula (seed + 100 + 3k) % 22 (k 0..3): only formulae 0..21 are ever
@@ -293,6 +301,8 @@ Fix FIXES[] = {
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
     { "cardslips", "Slips in single cards",
       "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\").", 1 },
+    { "nightwall", "Climbing a city wall at night: the true chances",
+      "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1169,11 +1179,12 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
 int fix_is_on(const char *id) { for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, id)) return FIXES[i].on && !config_get_int("original", 0); return 0; }
 static int gcall(int sect, u16 seg, u16 off, int n, u16 a0, u16 a1) { u16 a[2] = { a0, a1 }; return (s16)game_call_far(sect, seg, off, n, a); }
 static void w04_options(void);
-static void witches_offer(void);
+static void witches_offer(void), nightwall_options(void);
 void fixes_card_opts(void)                  /* before a card's option list is shown: its opt_on[] put right */
 {
     char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm);
     if (!strcasecmp(nm, "$Witcd40") && (s16)rw(SS, (u16)(SP + 4)) == 4 && fix_is_on("cardslips")) { witches_offer(); return; }
+    if (!strcasecmp(nm, "$CityW01") && (s16)rw(SS, (u16)(SP + 4)) == 0 && fix_is_on("nightwall")) { nightwall_options(); return; }
     if (!fix_is_on("cardopts")) return;
     if (!strcasecmp(nm, "$CityW04") && (s16)rw(SS, (u16)(SP + 4)) == 0) { w04_options(); return; }     /* (its option list, block 0) */
     if (!strcasecmp(nm, "$Cloth00") && (s16)rw(SS, (u16)(SP + 4)) == 0 && !g_rb(GV_opt_on)) {           /* Clothmakers' Street by day (s053 1924:0004): */
@@ -1903,6 +1914,45 @@ static void witches_offer(void)             /* (from fixes_card_opts) $Witcd40 b
     }
 }
 
+/* ---------------------------------------------------------------- nightwall */
+static int climb_value(int m) { return (ns_call(GF_member_eff_attr2, 1, m) * 2 + ns_call(GF_member_skill, 2, m, 0xf)) / 2; }
+static void nightwall_options(void)         /* (from fixes_card_opts) $CityW01 block 0: the climber */
+{
+    int best = -1, bv = -1, n = (s16)g_rw(GV_party_size);
+    for (int m = 0; m < n && m < 5; m++) {
+        if (g_rb(G_MEMBER(m)) != 1) continue;
+        int v = climb_value(m);
+        if (ns_unwinding) return;
+        if (v > bv) { bv = v; best = m; }
+    }
+    if (best < 0) return;
+    g_ww(0x5828, (u16)best); g_ww(0x582a, (u16)bv); g_ww(GV_var_chosen1, (u16)best);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix nightwall: the climber %d, %d%%\n", best, bv);
+}
+static void nightwall_rope_hook(void)       /* s047 1a44:03e2 () -> (the rope's chance, the climber) */
+{
+    int m = (s16)g_rw(0x5828);
+    if (m < 0 || m > 4) { hook_call_original(); return; }
+    int v = climb_value(m);
+    if (ns_unwinding) return;
+    g_ww(0x582a, (u16)v); g_ww(GV_var_chosen1, (u16)m);
+    AX = (u16)v; DX = (u16)m;
+    hook_return_far(0);
+}
+static void nightwall_all_hook(void)        /* s047 1a44:05f0 () -> (everyone's chance, -2) */
+{
+    int low = 999, who = -1, n = (s16)g_rw(GV_party_size);
+    for (int m = 0; m < n && m < 5; m++) {
+        if (g_rb(G_MEMBER(m)) != 1) continue;
+        int v = climb_value(m);
+        if (ns_unwinding) return;
+        if (v < low) { low = v; who = m; }
+    }
+    if (who >= 0) g_ww(GV_var_chosen1, (u16)who);
+    AX = (u16)low; DX = 0xfffe;
+    hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -1917,7 +1967,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
-    { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook } };
+    { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -1936,6 +1986,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 53, 0x1838, 0x0aa8, footpads_potion_hook }, { "cardslips", 51, 0x18c9, 0x05d0, stables_hook },
     { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
     { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
+    { "nightwall", 47, 0x1a44, 0x03e2, nightwall_rope_hook },
     { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook } };
 
 void fix_enable(int i, int on)
