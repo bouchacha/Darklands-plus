@@ -634,13 +634,13 @@ static void news_window(void)
     std::string title = "New in Darklands+ " + news_key();
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
-            "A click on a member at the left: the character sheet, now the one place for the party's things, skills, saints and formulae (Tab turns its pages).",
-            "M: the world map. Find a place, see how long the way is, travel there.",
-            "G in a town: Go To, a picture for every place and what matters there now.",
-            "Saints do what their texts say; each says what its help really does.",
-            "Most of the game's screens are drawn anew for the mouse: shops, loot, the inn, alchemy ...",
-            "One pack for the party, and one store room for every inn.",
-            "A halo on a member's picture: a saint's help or a potion at work (point at it)." };
+            "City politics, restored (experimental, off at first): the campaign MicroProse wrote and never switched on. Take the rebels' side "
+            "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Settings > Helpers > Cards and towns.",
+            "With a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.",
+            "M: the world map. A place found shows what it offers, with Travel there first.",
+            "Calling on a saint says why there is no chance: too little Virtue, or too little favor.",
+            "Your saved games are copied into \"Darklands+ save backups\" the first time each new version starts.",
+            "A click on a member at the left: the character sheet, the one place for the party's things, skills, saints and formulae." };
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));

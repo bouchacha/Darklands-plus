@@ -4,7 +4,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
-**New in 1.2.1**
+**New in 1.3**
 
 - **City politics, restored (experimental, off by default):** the political campaign MicroProse wrote and never switched on: take the rebels' side or the government's in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders (F12 > Settings > Helpers > Cards and towns).
 - **Your saves are backed up:** the first start of each new version copies them into a "Darklands+ save backups" folder.
