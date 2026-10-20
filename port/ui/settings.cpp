@@ -289,12 +289,12 @@ static void presets_block(void)
     ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     ImGui::TextWrapped("Darklands+ saves in the game's own format: its saves load in the original (on DOS too), and the original's load here; "
-                       "what Darklands+ notes beside them (Sabbats learned, things kept, looks) is in files of its own. Switching presets "
+                       "what Darklands+ notes beside them (Sabbats learned, items marked Keep, sprites and colours) is in files of its own. Switching presets "
                        "or single switches at any time is safe.");
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
     ImGui::SameLine();
-    ImGui::TextWrapped("a member given one of the enemies' figures (Darklands+ and Easy offer them) loads only in Darklands+.");
+    ImGui::TextWrapped("a save with a member using an enemy sprite (Darklands+ and Easy offer them) loads only in Darklands+.");
 }
 
 void tab_helpers(void)
@@ -398,7 +398,7 @@ void tab_display(void)
             if (i) ImGui::SameLine();
             if (ImGui::RadioButton(SC[i], ui_settings.scaler == i)) { ui_settings.scaler = i; config_set_int("display.scaler", i); ui_dirty_config = 1; }
         }
-        ui_hint("Rounds off the stair-steps of diagonal edges in the pictures and figures without blurring them "
+        ui_hint("Rounds off the stair-steps of diagonal edges in the pictures and sprites without blurring them "
              "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree). "
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
@@ -433,7 +433,7 @@ void tab_display(void)
         static const char *N[] = { "nothing: straight to the title", "the last scene: the lady of the Darklands and her welcome", "the whole opening (a click: on to the lady's welcome)" };
         int m = opening_mode();
         ImGui::SetNextItemWidth(UIS(420));
-        if (ImGui::Combo("at start", &m, N, 3)) { opening_set_mode(m); ui_dirty_config = 1; }
+        if (ImGui::Combo("at start-up", &m, N, 3)) { opening_set_mode(m); ui_dirty_config = 1; }
         ImGui::SameLine(); ImGui::TextDisabled(m == 2 ? "(a click skips to the welcome, another to the title)" : "(a key or a click ends it)");
     }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;

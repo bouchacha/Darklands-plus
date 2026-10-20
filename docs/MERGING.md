@@ -99,91 +99,91 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 
 | Switch | What | Class | Where |
 |---|---|---|---|
-| **Screens drawn anew** | | | |
-| `display.native_panel` | Party panel | interface | partypanel.cpp, ui.cpp |
-| `display.panel_picture` | Picture | taste | partypanel.cpp, ui.cpp |
-| `display.native_menu` | Menus | interface | menuview.c |
-| `display.native_title` | Start screen | interface | titleview.c |
-| `display.native_cards` | Cards | interface | cardview.c |
-| `display.native_shops` | Shops | interface | barterview.c |
-| `display.native_sheet` | Character sheets | interface | sheetview.c |
-| `inventory.shared` | One pack for the party | new rule | sheetview.c |
-| `display.native_loot` | Loot | interface | lootview.c |
-| `assist.loot_worth` | Worth | interface | lootview.cpp |
-| `display.native_alchemy` | Alchemy | interface | alchemyview.c |
-| `assist.where_sold` | Where sold | interface | alchemyview.cpp |
-| `display.native_cache` | Store rooms | interface | cacheview.c |
-| `store.shared` | One store room for every inn | new rule | sharedstore.c |
-| `display.native_lodge` | Inns and camps | interface | lodgeview.c |
-| `display.native_pray` | Calling on a saint | interface | prayview.c |
-| `display.native_create` | Making a character | interface | createview.c |
-| `assist.creation_guide` | Guide | interface | ui.cpp |
-| `display.native_roster` | Choosing the party | interface | rosterview.c |
-| `display.native_info` | Party Info | interface | infoview.c |
-| `display.native_march` | Marching order | interface | marchview.c |
-| `display.native_enemyinfo` | Enemy Info | interface | enemyview.c |
-| `display.native_mapmsg` | Travel map messages | interface | mapmsg.c |
-| `display.native_saves` | Save and Load | interface | savesview.c |
+| **New screens** | | | |
+| `display.native_panel` | New party panel | interface | partypanel.cpp, ui.cpp |
+| `display.panel_picture` | Picture in the party panel | taste | partypanel.cpp, ui.cpp |
+| `display.native_menu` | New menus | interface | menuview.c |
+| `display.native_title` | New start screen | interface | titleview.c |
+| `display.native_cards` | New card screens | interface | cardview.c |
+| `display.native_shops` | New shop screen | interface | barterview.c |
+| `display.native_sheet` | New character sheet | interface | sheetview.c |
+| `inventory.shared` | One shared pack for the party | new rule | sheetview.c |
+| `display.native_loot` | New loot screen | interface | lootview.c |
+| `assist.loot_worth` | Shop value in the loot screen | interface | lootview.cpp |
+| `display.native_alchemy` | New alchemy screen | interface | alchemyview.c |
+| `assist.where_sold` | Where to buy missing ingredients | interface | alchemyview.cpp |
+| `display.native_cache` | New store room screen | interface | cacheview.c |
+| `store.shared` | One store room shared by every inn | new rule | sharedstore.c |
+| `display.native_lodge` | New inn and camp screen | interface | lodgeview.c |
+| `display.native_pray` | New prayer screen | interface | prayview.c |
+| `display.native_create` | New character creation | interface | createview.c |
+| `assist.creation_guide` | Step-by-step guide | interface | ui.cpp |
+| `display.native_roster` | New party selection screen | interface | rosterview.c |
+| `display.native_info` | New Party Info screen | interface | infoview.c |
+| `display.native_march` | New marching order screen | interface | marchview.c |
+| `display.native_enemyinfo` | New Enemy Info screen | interface | enemyview.c |
+| `display.native_mapmsg` | New travel map messages | interface | mapmsg.c |
+| `display.native_saves` | New Save and Load screens | interface | savesview.c |
 | **Cards and towns** | | | |
 | `assist.chances` | Chances of success | interface | assist.c |
-| `assist.best_leader` | The best speaks for the party | convenience | assist.c, sheetview.cpp |
+| `assist.best_leader` | The best member speaks for the party | convenience | assist.c, sheetview.cpp |
 | `assist.card_help` | Saints and items on cards | interface | assist.c |
 | `assist.shop_info` | Tooltips | interface | sheetview.cpp, ui.cpp |
-| `assist.fast_fades` | Quick cards | interface | hdtext.c |
-| `assist.card_keys` | Number keys | interface | assist.c |
+| `assist.fast_fades` | Cards without the fade-in | interface | hdtext.c |
+| `assist.card_keys` | Number keys for card options | interface | assist.c |
 | `assist.goto_work` | Who has work | interface | citynav.cpp |
 | `assist.teachers` | Teachers | interface | teachersui.cpp |
-| `assist.city_goto` | Go to | convenience | margins.cpp, travel.cpp, ui.cpp |
+| `assist.city_goto` | Go to (G) | convenience | margins.cpp, travel.cpp, ui.cpp |
 | `journal.enabled` | Town journal | interface | journal.cpp, ui.cpp |
 | `journal.chronicle` | Chronicle | interface | journal.cpp |
-| **The party and its things** | | | |
+| **The party and its items** | | | |
 | `assist.return_thrown` | Thrown weapons come back | convenience | loot.c |
 | `assist.infinite_ammo` | Endless ammunition | new rule | ammo.c |
 | `assist.infinite_thrown` | Endless thrown weapons | new rule | ammo.c |
 | `assist.loot_all` | Loot and shop keys | interface | loot.c |
-| `party.new_member_looks` | A look for each | interface | memberlooks.c, rosterview.c |
-| `party.keep_looks` | Looks kept | interface | memberlooks.c |
-| `party.more_figures` | Enemies' figures | new rule | looks.c |
-| `rules.aging` | Aging | new rule | aging.c |
-| `assist.loss_alerts` | Losses told | interface | losses.c |
-| `party.figure_picker` | Figure picker | interface | looks.c |
+| `party.new_member_looks` | A sprite of their own for each new member | interface | memberlooks.c, rosterview.c |
+| `party.keep_looks` | Characters keep their sprite and colours | interface | memberlooks.c |
+| `party.more_figures` | Enemy sprites for your own characters | new rule | looks.c |
+| `rules.aging` | Aging during play | new rule | aging.c |
+| `assist.loss_alerts` | Warn about permanent losses | interface | losses.c |
+| `party.figure_picker` | Sprite picker | interface | looks.c |
 | **Battles** | | | |
 | `battle.pause_down` | Pause when someone falls | convenience | autopause.c |
 | `battle.pause_hurt` | Pause when badly hurt | convenience | autopause.c |
-| `battle.pause_foes` | Pause when foes come out | convenience | autopause.c |
-| `battle.click_attack` | Click to attack | convenience | orders.c |
-| `battle.click_best` | With the better weapon | convenience | orders.c |
+| `battle.pause_foes` | Pause when enemies come out | convenience | autopause.c |
+| `battle.click_attack` | Click an enemy to attack it | convenience | orders.c |
+| `battle.click_best` | Attack with the better weapon | convenience | orders.c |
 | `battle.scroll_paced` | Steady scrolling | interface | battlescroll.c |
-| `battle.scroll_rest` | Edge scrolling | interface | battlescroll.c |
-| `battle.info` | Battle info | interface | ui.cpp |
-| `battle.info_numbers` | Numbers | easier | ui.cpp |
-| `battle.bars` | Bars over the fighters | interface | ui.cpp |
-| `battle.bars_hurt` | Only the hurt | interface | battleoverlay.cpp |
-| `battle.skill_gains` | Skill gains | interface | battleoverlay.cpp |
-| `battle.reload_bar` | Reloading | interface | battleoverlay.cpp |
+| `battle.scroll_rest` | Edge scrolling without Shift | interface | battlescroll.c |
+| `battle.info` | Info under the pointer | interface | ui.cpp |
+| `battle.info_numbers` | Enemy endurance as numbers | easier | ui.cpp |
+| `battle.bars` | Health bars over the fighters | interface | ui.cpp |
+| `battle.bars_hurt` | Bars only over the wounded | interface | battleoverlay.cpp |
+| `battle.skill_gains` | Show skill gains | interface | battleoverlay.cpp |
+| `battle.reload_bar` | Reload bar | interface | battleoverlay.cpp |
 | `battle.log` | Battle log | interface | ui.cpp |
-| `assist.level_map` | Level map | interface | levelmap.cpp |
-| `assist.level_map_all` | Whole level | easier | levelmap.cpp |
-| `assist.level_map_walk` | Walk there | convenience | levelmap.cpp, margins.cpp |
-| `battle.foes_left` | Foes left | new rule | foesleft.c |
-| `battle.end_words` | A quick end | interface | battleend.c |
-| `battle.retarget_near` | Next foe within reach | convenience | battlerules.c |
+| `assist.level_map` | Level map (Tab) | interface | levelmap.cpp |
+| `assist.level_map_all` | Show the whole level | easier | levelmap.cpp |
+| `assist.level_map_walk` | Click the map to walk there | convenience | levelmap.cpp, margins.cpp |
+| `battle.foes_left` | Enemies still waiting | new rule | foesleft.c |
+| `battle.end_words` | Shorter end of battle | interface | battleend.c |
+| `battle.retarget_near` | Next enemy within reach | convenience | battlerules.c |
 | `battle.shoot_past_allies` | Shoot past friends | easier | battlerules.c |
-| `battle.reposition_shooters` | Shooters look for a line | experimental | battlerules.c, partypanel.cpp |
+| `battle.reposition_shooters` | Shooters move for a clear shot | experimental | battlerules.c, partypanel.cpp |
 | `fix.pathfinding` | Better pathfinding | fix | pathfix.c |
-| `battle.speed` | Speed of battles and dungeons | taste | pathfix.c |
-| `battle.fast_key` | Fast forward | interface | margins.cpp, ui.cpp |
+| `battle.speed` | Battle speed | taste | pathfix.c |
+| `battle.fast_key` | Fast forward (Z) | interface | margins.cpp, ui.cpp |
 | **Travel** | | | |
 | `travel.auto` | Auto-travel | convenience | travel.c |
-| `travel.fast` | Pace | taste | travel.c |
-| `map.names` | Place names | interface | worldmap.cpp |
-| `map.quest_marks` | Quest marks | interface | worldmap.cpp |
+| `travel.fast` | Auto-travel speed | taste | travel.c |
+| `map.names` | Place names on the map | interface | worldmap.cpp |
+| `map.quest_marks` | Quest markers on the map | interface | worldmap.cpp |
 | `map.offers_unvisited` | What unvisited places offer | easier | libraries.cpp (place_offers_known), journal.cpp |
-| `map.key_m` | World map | interface | travel.cpp, ui.cpp |
+| `map.key_m` | World map (M) | interface | travel.cpp, ui.cpp |
 | `travel.encounters` | Encounters on the road | easier | travel.c |
-| `travel.street_encounters` | Thieves and the watch at night | easier | margins.cpp, travel.c |
+| `travel.street_encounters` | Night encounters in the streets | easier | margins.cpp, travel.c |
 | **Controls** | | | |
-| `assist.wheel_lists` | Mouse wheel | interface | platform_sdl.c |
+| `assist.wheel_lists` | Mouse wheel in lists | interface | platform_sdl.c |
 | `assist.menu_click` | Right click for the menus | interface | platform_sdl.c, ui.cpp |
 | `input.gamepad` | Game controller | interface | platform_sdl.c, settings.cpp, ui.cpp |
 | **Editing tools** | | | |
@@ -200,12 +200,12 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `saves.autosave_battle` | Autosave before a battle | convenience | saves.c, saves.cpp |
 | `saves.restart_on_end` | Start again at the end | convenience | saves.c, saves.cpp |
 | **Restored cut content** (their own page, F12 > Settings > Restored) | | | |
-| `rules.fehde` | "Fehde!" | experimental | cutcards.c |
-| `rules.hospice` | The hospice | experimental | cutcards.c, encounters.c, citynav.cpp |
+| `rules.fehde` | "Fehde!" ambush | experimental | cutcards.c |
+| `rules.hospice` | Town hospice | experimental | cutcards.c, encounters.c, citynav.cpp |
 | `rules.war` | Cities at war | experimental | war.c |
 | `rules.politics` | City politics | experimental | politics.c, quests.cpp |
 | `battle.black_cloud` | Black Cloud in battle | experimental | battlerules.c |
-| `assist.hall_of_fame` | Honor Roll of Glory | experimental | halloffame.cpp, journal.cpp |
+| `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | experimental | halloffame.cpp, journal.cpp |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
