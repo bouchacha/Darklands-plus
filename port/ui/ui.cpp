@@ -739,7 +739,14 @@ static void help_window(void)
     ImGui::PushFont(font_body);
     if (ImGui::Begin("Keys and clicks (F1)", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
-        auto row = [](const char *k, const char *d) { ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "%s", k); ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d); };
+        auto row = [](const char *k, const char *d) {     /* (a label too long for its column wraps within it) */
+            ImGui::BeginGroup();
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + UIS(222));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.18f, 0.10f, 1)); ImGui::TextWrapped("%s", k); ImGui::PopStyleColor();
+            ImGui::PopTextWrapPos();
+            ImGui::EndGroup();
+            ImGui::SameLine(UIS(230)); ImGui::TextWrapped("%s", d);
+        };
         int gm = game_mode();
         int sv_loading = 0;
         if (savesview_showing(&sv_loading)) {

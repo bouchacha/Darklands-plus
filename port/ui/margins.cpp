@@ -355,6 +355,36 @@ static int potion_of(const std::string &name, const char *key, int *q)
     return -1;
 }
 extern int ui_battle_info;                       /* ui/battleoverlay.cpp: battle.info */
+/* what each order does, under the pointer (s016 1ef8's handlers, s014 0e76 and 18bf: what an order does in a fight) */
+static const char *order_tip(int kind)
+{
+    switch (kind) {
+    case OI_RESUME: return "The battle runs again (the key: Space). Any order being given is given first.";
+    case OI_DONE: return "This member's order is given; the battle stays paused, to give others theirs (the key: Enter).";
+    case OI_INFO: return "Every kind of enemy on the field: attributes, weapons, armour (the key: E).";
+    case OI_WALK: return "Then click a spot: the member walks there.";
+    case OI_FLEE: return "Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee).";
+    case OI_HALT: return "The member stops where they are and waits.";
+    case OI_GROUP: return "The party moves together as a group.";
+    case OI_FILE: return "The party moves in single file, the leader first.";
+    case OI_DOOR: return "Open or shut the door beside the member.";
+    case OI_STAIRS: return "Take the stairs beside the member to another floor.";
+    case OI_CHEST: return "Open the chest beside the member.";
+    case OI_PICK: return "Pick the lock beside the member.";
+    case OI_DISSOLVE: return "Dissolve the lock beside the member with an Eater-Water potion.";
+    case OI_DISARM: return "Disarm the trap on the chest beside the member.";
+    case OI_SURRENDER: return "The whole party gives up the fight.";
+    case OI_LOOT: return "Search the fallen for their belongings.";
+    case OI_EXIT: return "Leave the battlefield by the way out beside the member.";
+    case OI_CANCEL: return "Stop giving this member an order (the key: Esc); the battle stays paused.";
+    case OI_ATTACK: return "Then click an enemy: a standard attack, balanced between blows and guard.";
+    case OI_VULNERABLE: return "Then click an enemy: heavy blows (1 to 4 more penetration, good against armour), but fewer of them and a weaker guard.";
+    case OI_BERSERK: return "Then click an enemy: quick, furious blows without thought of defence.";
+    case OI_PARRY: return "Then click an enemy: the member mostly defends, hard to hit, striking back only now and then.";
+    case OI_MISSILE: return "Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed).";
+    }
+    return nullptr;
+}
 static void order_buttons(float width)
 {
     order_btns.clear();
@@ -400,6 +430,7 @@ static void order_buttons(float width)
                 else if (oi != OI_NONE) ui_draw_order_icon(dl, ImVec2(a.x + pad + iw * 0.42f, a.y + h * 0.5f), iw * 0.95f, oi);
                 dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), label.c_str());
                 order_btns.push_back({ a, b, j, k, s2 });
+                if (hov && order_tip(kind)) margin_tip(order_tip(kind));
                 x += w + gap;
             }
         }

@@ -178,9 +178,27 @@ static void place_by_pointer(ImVec2 p)
 static const ImGuiWindowFlags INFO_FLAGS = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
+/* the first battle with the easier controls: what changed, once (battle.intro_seen) */
+extern "C" void ui_alert(const char *title, const char *body, const char *foot);
+static void battle_intro(void)
+{
+    if (config_get_int("battle.intro_seen", 0) || !config_get_int("battle.quick_orders", 1)) return;
+    config_set_int("battle.intro_seen", 1); config_save();
+    ui_alert("Battles need fewer clicks",
+             "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
+             "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
+             "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy, and draws their melee weapon once enemies come within "
+             "a few paces. The bow or sword on their picture at the left switches them to melee from the start.\n\n"
+             "Against armour their weapon cannot pierce, members attack Vulnerable (heavier blows) by themselves, and shots pass anyone in the way "
+             "(in Darklands a missile only ever hits its target).\n\n"
+             "Point at an order button in the right margin to see what it does.",
+             "Each of these can be switched off: F12 > Settings > Helpers > Battles. F1 lists the battle's keys and clicks.");
+}
+
 void ui_draw_battle_info(void)
 {
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    battle_intro();
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
     int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;

@@ -1,14 +1,15 @@
 /* battlerules.c - rules of the battles, switches (F12 > Settings > Helpers > Battles).
  *
- * battle.shoot_past_allies (off by default): a member with a bow, crossbow, gun or thrown weapon will not
+ * battle.shoot_past_allies (on): a member with a bow, crossbow, gun or thrown weapon will not
  *   shoot while anyone stands in the line of fire, friend or foe; they wait ('b' on the panel)
  *   and try again. The test is line_blocked (s014 1d69:000c, (a shooter, b target, mode 0x80 at
  *   firing and pointing, 0x100 on a click)): walls, furniture, then every active body on the floor
  *   shown but the shooter and the target, its box shrunk by the shooter's skill / 90 (none at 90).
  *   Yet a missile never strikes anyone but its target: a hit is decided before it flies and flies
  *   to the target, a miss passes through everyone (s018 1ef8 missile_launch, s014 1d47). So for
- *   the party's shooters the party's other members are left out of the test: they stand on no
- *   floor while it runs. The enemies, and the enemies' shots, are as the game has them.
+ *   the party's shooters everyone but the shooter and the target is left out of the test (they
+ *   stand on no floor while it runs): only walls and furniture block. The enemies' shots are as
+ *   the game has them.
  *
  * battle.reposition_shooters (off by default, experimental): a member who would wait ('b') for a clear line
  *   steps aside to the nearest spot, within a few paces, from which the line to the target is
@@ -50,7 +51,7 @@
 #include "battlerules.h"
 
 
-static int on_past(void) { return config_get_int("battle.shoot_past_allies", 0) && !config_get_int("original", 0); }
+static int on_past(void) { return config_get_int("battle.shoot_past_allies", 1) && !config_get_int("original", 0); }
 #define CBT(i) ((u16)(GV_combatants + (i) * 0x80))
 static int on_reposition(void);
 
@@ -69,13 +70,13 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
     if (a < 0 || a >= 5 || (mode != 0x80 && mode != 0x100)) { hook_call_original(); return; }
     int choosing = asked_for_target();
     if (on_past()) {
-        u8 fl[5];
-        for (int k = 0; k < 5; k++) {
+        u8 fl[13];
+        for (int k = 0; k < 13; k++) {
             fl[k] = g_rb((u16)(GV_cbt_floor + k));
             if (k != a && k != b) g_wb((u16)(GV_cbt_floor + k), 0xff);
         }
         hook_call_original();
-        for (int k = 0; k < 5; k++) g_wb((u16)(GV_cbt_floor + k), fl[k]);
+        for (int k = 0; k < 13; k++) g_wb((u16)(GV_cbt_floor + k), fl[k]);
     } else hook_call_original();
     if (ns_unwinding) return;
     if (getenv("DL_BATTLE_LOG") && AX && mode == 0x100) fprintf(stderr, "battlerules: %d's line to %d blocked (mode %#x)\n", a, b, mode);
