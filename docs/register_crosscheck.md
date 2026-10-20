@@ -9,7 +9,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 
 | Id | Where (483.07) | Their name | Darklands+ | Switch |
 |---|---|---|---|---|
-| B-126118 | 18C8:0004 | CharacterCreation.Back | confirmed, not fixed yet |  |
+| B-126118 | 18C8:0004 | CharacterCreation.Back | fixed now | fix.createback |
 | B-047d71 | 0E76:4650 | GameState.HanseStanding | fixed | fix.standings |
 | B-9224b7 | 1462:1630 | BrewingBench.TakeFromParty | fixed | fix.alchemy |
 | B-9d2829 | 1462:1EC2 | Brewing.CallOff | fixed (the symptom) | fix.nullitem |
@@ -102,7 +102,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-86c8e5 | 1A06:05B8 | FortressByDay.SeekService | fixed | fix.appointment |
 | B-a73a8e | 19F2:1276; 19F2:1258 | Docks.PassageHint | fixed now | fix.cardslips |
 | B-e95c32 | 18C9:05D0 | InnByDay.VisitTheStables | fixed | fix.cardslips |
-| B-ba6123 | 1924:0A5E | ClothmakersStreet_Cloth00.SneakIn | confirmed, not fixed yet |  |
+| B-ba6123 | 1924:0A5E | ClothmakersStreet_Cloth00.SneakIn | fixed now | fix.cardslips |
 | B-556a53 | 1838:0C36; 1838:0C72; 1838:0CAE; 1838:0CEA | Footpads.ThrowAPotion | fixed | fix.cardslips |
 | B-227a55 | 19DF:0888 | CouncilHall.AskForAnErrand | fixed | fix.appointment |
 | B-0c78c7 | 1932:034C | CityWallSallyPort.ForceChance | fixed (experimental) | rules.war |
@@ -154,13 +154,13 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-08f8dd | 18BF:08CA | Attacks.QueueDamage | fixed | fix.pileup |
 | B-a044f7 | 0E76:1D90 | BattlefieldForces.FixGroups | fixed | fix.enemygroups |
 | B-8fdd39 | 15AF:1D78 | CastleGenerator.PlaceParty | fixed | fix.castlefreeze |
-| B-c90740 | 15AF:0698 | CastleGenerator.OpenExitsAndDecorateWalls | confirmed, not fixed yet |  |
+| B-c90740 | 15AF:0698 | CastleGenerator.OpenExitsAndDecorateWalls | fixed now | fix.corridors |
 | B-ab0e37 | 1432:096A | FortressBattlefield.Fortress.SetUpRoom14 | confirmed, kept |  |
-| B-e080d4 | 19CD:33C0 | LootStore.Merge | confirmed, not fixed yet |  |
+| B-e080d4 | 19CD:33C0 | LootStore.Merge | fixed now | fix.lootcount |
 | B-fd2f1c | 1EF8:0914 | EffectField.DropWornOut | fixed | fix.armourwear |
 | B-8e79e5 | 1EF8:0968 | EffectField.WearItem | fixed | fix.armourwear |
 | B-3cc78a | 1EC9:0142 | EffectField.LineCrossesCloud | fixed now | fix.cloudline |
 | B-bfb04e | 1EC9:0142 | EffectField.LineCrossesCloud | fixed now | fix.cloudline |
 | B-61f351 | 0E76:00DC; 1EF8:059A; 0E76:0694 | TacticalBattle.WriteBattleFile | fixed | fix.castle |
 | B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | avoided | saves.quick,  display.native_saves |
-| B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | confirmed, not fixed yet |  |
+| B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed now | fix.battledead |

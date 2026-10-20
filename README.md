@@ -27,7 +27,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 - **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and the world map travels to any place you pick.
 - **Quests you can follow.** Each task has a title, a deadline and a marker on the map. A journal keeps every text the game has shown you, a record of each town, and your own notes.
 - **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on a foe to attack it, and a map of the level.
-- **Bugs fixed.** 53 fixes for bugs of the original, and 43 saints that now do what their descriptions say.
+- **Bugs fixed.** 57 fixes for bugs of the original, and 43 saints that now do what their descriptions say.
 - **What MicroProse left unfinished.** The Honor Roll of Glory the game never showed, an ambush by soldiers of a private war ("Fehde!"), and two experimental options, off at first: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), and cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices. [What else the game holds unused](docs/cut_content.md).
 - **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
 

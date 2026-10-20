@@ -185,8 +185,9 @@
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
  *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
  *            Found by Arkana Mechanika (Darklands Restoration).
- *  cityalert, dayjobs, cloudline, attrsum: below, each at its hook (Arkana Mechanika's B-55afd6,
- *            B-074e99, B-3cc78a and B-bfb04e, B-82a302).
+ *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, battledead, createback: below, each
+ *            at its hook (Arkana Mechanika's B-55afd6, B-074e99, B-3cc78a and B-bfb04e, B-82a302,
+ *            B-e080d4, B-c90740, B-f7799c, B-126118).
  *  enemygroups A battle's loader (groups_fixup, s004 0e76:1d90) drops each level's empty groups
  *            (no kind of enemy or none of it) by moving the later ones down, but tests the moved
  *            group by the empty one's count (its table is not moved): every group after the
@@ -317,7 +318,7 @@ Fix FIXES[] = {
     { "membervalue", "A church's tenth blesses the party, not memory",
       "Giving a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value taken for the member), past the party into the game's memory; and a guild leader's house raised at night named a member from the lowest Agility's value (a garbled name). Both now take the member.", 1 },
     { "cardslips", "Slips in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). Paid for a robber knight, the Hanse's guide or the village's Schulz who came along was said to leave by the toss of a coin (or when he had never come) and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, and trouble on the way to a town's grove by night led to the night's grove after the day had come.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both lines were off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party their texts say were hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). Paid for a robber knight, the Hanse's guide or the village's Schulz who came along was said to leave by the toss of a coin (or when he had never come) and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove by night led to the night's grove after the day had come, and sneaking into a guild's quarters made the whole party practise once for each member.", 1 },
     { "nightwall", "Climbing a city wall at night: the true chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last time everyone climbed (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never taken for the climber. Now the climber is the best of all, his chance is his own, and everyone's is the weakest's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -332,6 +333,14 @@ Fix FIXES[] = {
       "Whether a missile's line passes through a cloud (Black Cloud, smoke) was tested against one cloud too many (an old cloud's copy, or nothing), and once a cloud was missed by the line the next ones were tested against a line made of leftovers: shots were stopped by clouds that were not in the way, or went through ones that were. Now each cloud on the field is tested against the shot's own line.", 1 },
     { "attrsum", "Two attributes added, not one doubled",
       "Three cards weigh the party's best at two attributes together (a dungeon's passage, $Dunge00; a town's $CityM00; the country's $Count02): the game took the first attribute twice, of whichever member came last among those it compared. Now each member's two attributes are added and the best sum counts.", 1 },
+    { "lootcount", "No loot lost past 255 of a kind",
+      "Piles of loot gathered after a battle add up equal things in a count that holds at most 255: past it the count wrapped round and the rest was lost (a battle of many arrows or bolts). Now what does not fit goes on in another line.", 1 },
+    { "corridors", "Castle passages decorated along their own walls",
+      "Laying out a castle, the game picks a spot along each passage's wall to mark, counted from the passage's far end instead of its start: all but one roll fell past its end, on another room's cells. Now the spot is on the passage.", 1 },
+    { "battledead", "A hireling killed in battle takes his contract with him",
+      "A member who dies in a battle is let go while the game has put its record of timed events aside, so the end of his contract and his \"has left\" notice were not cancelled and came back after the battle: later they could send away whoever took his place in the party. Now they are cancelled after the battle.", 1 },
+    { "createback", "Esc after the childhood leads on, not back",
+      "Making a character, Esc on the points of the childhood went back to the list of childhoods, though the childhood was already taken (the character was 15): a row then started an adult profession by its number on the wrong list. Now Esc there leads on to the professions, as Esc on a profession's points does.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -679,6 +688,7 @@ void fixes_frame(void)
 typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
 static PotEv pot_kept[64];
 static int pot_nkept, cards_down;
+static void battledead_after(void);
 
 static int pot_running(const s16 *end)
 {
@@ -739,6 +749,8 @@ static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
     if (!cards_down) return;
     u16 ax = AX, dx = DX;
     cards_down = 0; pot_nkept = 0;
+    battledead_after();
+    if (ns_unwinding) return;
     for (int r = 0; r < n; r++) {
         const u8 *b = rec[r];
         int kind = b[0x22] | b[0x23] << 8, m = b[0x1a] | b[0x1b] << 8, there = 0;
@@ -2289,6 +2301,131 @@ static void store_get_room_hook(void)
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- lootcount
+ * The loot list after a battle (s014 19cd:33c0, (struct loot far *p, int c)): c records of 6 bytes
+ * (+0 the item, +2, +3 its type and quality, +4 the count) merged into the list at far DS:c654
+ * (DS:c67f entries), the count added in a byte with no test: past 255 it wrapped. Here a record
+ * fills the ones that match up to 255 and the rest goes on as a new one. Found by Arkana Mechanika
+ * (Darklands Restoration), B-e080d4. */
+static void lootcount_hook(void)
+{
+    u16 po = rw(SS, (u16)(SP + 4)), ps = rw(SS, (u16)(SP + 6)), lo = g_rw(0xc654), ls = g_rw(0xc656);
+    int c = (s16)rw(SS, (u16)(SP + 8));
+    for (; c > 0; c--, po = (u16)(po + 6)) {
+        u16 id = rw(ps, po); u8 a = rb(ps, (u16)(po + 2)), b = rb(ps, (u16)(po + 3));
+        int left = rb(ps, (u16)(po + 4)), n = (s16)g_rw(0xc67f), had = 0;
+        for (int k = 0; k < n && left > 0; k++) {
+            u16 q = (u16)(lo + 6 * k);
+            if (rw(ls, q) != id || rb(ls, (u16)(q + 2)) != a || rb(ls, (u16)(q + 3)) != b) continue;
+            had = 1;
+            int room = 255 - rb(ls, (u16)(q + 4)), t = left < room ? left : room;
+            wb(ls, (u16)(q + 4), (u8)(rb(ls, (u16)(q + 4)) + t)); left -= t;
+        }
+        if (left > 0 || !had) {
+            u16 q = (u16)(lo + 6 * n);
+            for (int k = 0; k < 6; k++) wb(ls, (u16)(q + k), rb(ps, (u16)(po + k)));
+            wb(ls, (u16)(q + 4), (u8)left);
+            g_ww(0xc67f, (u16)(n + 1));
+            if (had && getenv("DL_FIX_LOG")) fprintf(stderr, "fix lootcount: item %d past 255, %d more in a new line\n", id & 0xfff, left);
+        }
+    }
+    hook_return_far(0);
+}
+
+/* ---------------------------------------------------------------- corridors
+ * A castle level's rooms (s007 15af:0698): a passage (room kind 7, its cells o0..o1 by o2..o3) gets
+ * a mark on one wall cell, x = o1 + roll_dice(1, o1 - o0 + 1) - 1 (or y from o3): from the far end,
+ * so every roll but 1 falls past it. Here those two rolls (the calls returning to 15af:0a71 and
+ * 0adf) come back less the passage's length minus one: x = o0 + roll - 1. Found by Arkana Mechanika
+ * (Darklands Restoration), B-c90740. */
+static void corridor_roll_hook(void)        /* roll_dice (n, d), only within 0698 */
+{
+    u16 ret = rw(SS, SP);
+    int d = (s16)rw(SS, (u16)(SP + 6));
+    hook_call_original();
+    if (ns_unwinding) return;
+    if (ret == 0x0a71 || ret == 0x0adf) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix corridors: roll %d of %d becomes %d\n", (s16)AX, d, (s16)AX - (d - 1));
+        AX = (u16)((s16)AX - (d - 1));
+    }
+}
+static void corridors_hook(void)
+{
+    hook_install(GF_roll_dice, corridor_roll_hook);
+    hook_call_original();
+    hook_remove(GF_roll_dice, corridor_roll_hook);
+}
+
+/* ---------------------------------------------------------------- battledead
+ * party_delete (s037 1462:3f30) cancels the member's contract (kind 0x43) and "has left" notice
+ * (0x47). A member who dies in a battle is deleted while the table is in events.tmp (between
+ * cards_shutdown and cards_startup: root 03a1:000a, run_battle), so both came back with it; the
+ * notice later sent away whoever had that place in the party then. Here they are cancelled once
+ * the table is back (cards_up_hook). Found by Arkana Mechanika (Darklands Restoration), B-f7799c. */
+static int dead_pending;
+static void battledead_hook(void)          /* party_delete (p) */
+{
+    int p = (s16)rw(SS, (u16)(SP + 4));
+    if (cards_down && p >= 0 && p < 5) dead_pending |= 1 << p;
+    hook_call_original();
+}
+static void battledead_after(void)          /* (cards_up_hook, the table back) */
+{
+    int was = dead_pending; dead_pending = 0;
+    if (!was || !fix_on("battledead")) return;
+    for (int p = 0; p < 5; p++) {
+        if (!(was & 1 << p) || g_rb(G_MEMBER(p))) continue;          /* (still gone) */
+        for (int kind = 0x43; kind <= 0x47; kind += 4) {
+            int i = ns_call(GF_event_find, 6, kind, p, -1, -1, -1, -1);
+            if (ns_unwinding) return;
+            if (i >= 0) {
+                ns_call(GF_event_free, 1, i);
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix battledead: member %d's kind %#x event cancelled\n", p, kind);
+            }
+        }
+    }
+}
+
+/* ---------------------------------------------------------------- createback
+ * Making a character (s037 18c8): Esc on the attribute points of the childhood (state 2) sets
+ * state 1, the list of childhoods, though the childhood is applied (age 15); a row there takes the
+ * adult path (356c) with the profession of that number. State 1 at 15 or more is reached only so:
+ * the screen is drawn (053e) as state 3, the professions, as Esc on a profession's points (4 to 3)
+ * does. Found by Arkana Mechanika (Darklands Restoration), B-126118. */
+static void createback_hook(void)
+{
+    if ((s16)g_rw(GV_create_state) == 1 && g_rw(GV_create_age) >= 15) {
+        g_ww(GV_create_state, 3);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix createback: on to the professions\n");
+    }
+    hook_call_original();
+}
+
+/* $Cloth00 and the other guild quarters by day, "sneak in" (s053 1924:0a5e, s062 19fe:0a06,
+   s063 1a3b:09cc, s064 190c:0a1a, s065 18fb:0a44, s065 1afe:09cc, s067 1869:06e6): for each able
+   member, practice_skill(-2, that member's Stealth or Streetwise): the whole party practised once
+   per able member. Each call is given its member (B-ba6123). Reached in a political season. */
+static int sneak_next;
+static void sneak_practice_hook(void)       /* practice_skill_impl (who, k, mode, pct, lvl) */
+{
+    if ((s16)rw(SS, (u16)(SP + 4)) == -2) {
+        int size = (s16)g_rw(G_PARTY_SIZE);
+        while (sneak_next < 5 && sneak_next < size && g_rb(G_MEMBER(sneak_next)) != 1) sneak_next++;
+        if (sneak_next < 5 && sneak_next < size) {
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: sneaking in, member %d practises skill %d\n", sneak_next, (s16)rw(SS, (u16)(SP + 6)));
+            ww(SS, (u16)(SP + 4), (u16)sneak_next++);
+        }
+    }
+    hook_call_original();
+}
+static void sneak_hook(void)
+{
+    sneak_next = 0;
+    hook_install(GF_practice_skill_impl, sneak_practice_hook);
+    hook_call_original();
+    hook_remove(GF_practice_skill_impl, sneak_practice_hook);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2305,7 +2442,9 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
-    { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook } };
+    { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
+    { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
+    { GF_create_draw, createback_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -2330,6 +2469,10 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 51, 0x19f2, 0x0792, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x09a6, docks_hint_hook },
     { "cardslips", 51, 0x19f2, 0x0bba, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x0dd0, docks_hint_hook },
     { "cardslips", 51, 0x19f2, 0x0fe4, docks_hint_hook }, { "cardslips", 46, 0x194b, 0x0736, grove_hook },
+    { "cardslips", 53, 0x1924, 0x0a5e, sneak_hook }, { "cardslips", 62, 0x19fe, 0x0a06, sneak_hook },
+    { "cardslips", 63, 0x1a3b, 0x09cc, sneak_hook }, { "cardslips", 64, 0x190c, 0x0a1a, sneak_hook },
+    { "cardslips", 65, 0x18fb, 0x0a44, sneak_hook }, { "cardslips", 65, 0x1afe, 0x09cc, sneak_hook },
+    { "cardslips", 67, 0x1869, 0x06e6, sneak_hook },
     { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
     { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook } };
 
