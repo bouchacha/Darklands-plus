@@ -213,18 +213,18 @@ extern "C" void rosterview_draw(void)
             P.text(fo, 4.4f, 0, sy, ink, b, sx + 60);
         }
         y += 4 * 6.6f + 1;
-        snprintf(b, sizeof b, "Knows %d saint%s and %d formula%s; carries %d thing%s.", ch.nsaints, ch.nsaints == 1 ? "" : "s",
+        snprintf(b, sizeof b, "Knows %d saint%s and %d formula%s; carries %d item%s.", ch.nsaints, ch.nsaints == 1 ? "" : "s",
                  ch.nformulae, ch.nformulae == 1 ? "" : "e", ch.nitems, ch.nitems == 1 ? "" : "s");
         P.text(fo, 4.2f, x, y, soft, b);
         y += 7;
         /* what can be done */
         float bx = x, by = DY1 - 22, bh = 9;
         if (slot >= 0) {
-            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Stays here") : word(r, 7, "Drop"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
+            if (P.button(bx, by, bx + 40, by + bh, r.inn ? std::string("Stays here") : std::string("Remove from the party"), BROWN)) ns_push(RV_KEY, K_DROP, 0, 0);
             if (P.button(bx + 42, by, bx + 72, by + bh, "Sheet", BROWN)) ns_push(RV_SHEET, slot, 0, 0);
-        } else if (P.button(bx, by, bx + 72, by + bh, word(r, 1, "Add to the party"), r.party_n >= 4 ? GREY : GREEN)) ns_push(RV_KEY, K_ADD, 0, 0);
+        } else if (P.button(bx, by, bx + 72, by + bh, std::string("Add to the party"), r.party_n >= 4 ? GREY : GREEN)) ns_push(RV_KEY, K_ADD, 0, 0);
         bool asking = del_ask == r.sel && plat_ticks_ms() - del_t < 4000;
-        if (!r.inn && P.button(DX1 - 3 - (asking ? 62 : 36), by, DX1 - 3, by + bh, asking ? "Click again to delete" : word(r, 8, "Delete"), RED)) {
+        if (!r.inn && P.button(DX1 - 3 - (asking ? 62 : 36), by, DX1 - 3, by + bh, asking ? "Click again to delete" : std::string("Delete character"), RED)) {
             if (asking) { ns_push(RV_KEY, K_KILL, 0, 0); del_ask = -1; }
             else { del_ask = r.sel; del_t = plat_ticks_ms(); }
         }
@@ -232,8 +232,8 @@ extern "C" void rosterview_draw(void)
         if (slot >= 0) {                                        /* the looks (the game keeps them per party place) */
             const GamePic *her = nullptr;
             if (r.herald[slot] >= 'A' && r.herald[slot] <= 'Z') { snprintf(b, sizeof b, "PICS\\SHIELD%c.PIC", r.herald[slot]); her = gamepic(b); }
-            if (P.button(bx, by, bx + 36, by + bh, "Figure...", BROWN)) ns_push(RV_KEY, K_FIGURE, 0, 0);
-            if (P.button(bx + 38, by, bx + 74, by + bh, "Herald >", BROWN)) ns_push(RV_KEY, K_HERALD, 0, 0);
+            if (P.button(bx, by, bx + 36, by + bh, "Sprite...", BROWN)) ns_push(RV_KEY, K_FIGURE, 0, 0);
+            if (P.button(bx + 38, by, bx + 74, by + bh, "Heraldry >", BROWN)) ns_push(RV_KEY, K_HERALD, 0, 0);
             draw_pic(P, her, bx + 75, by - 0.5f, bx + 84, by + bh + 0.5f);
             float cx = bx + 87;
             P.text(fo, 4.2f, cx, by + 2, soft, "Colours");
@@ -245,7 +245,7 @@ extern "C" void rosterview_draw(void)
                 if (P.over(cx, by, cx + 9, by + bh) && !tip.empty()) P.text(fo, 3.9f, 0, by - 5, dim, tip, DX1 - 3);
                 cx += 10.5f;
             }
-        } else P.text(fo, 4.0f, bx, by + 2, dim, "Figure, herald and colours: once in the party.");
+        } else P.text(fo, 4.0f, bx, by + 2, dim, "Sprite, heraldry and colours: once in the party.");
     } else P.text(fo, NsDraw::FS_SMALL, DX0 + 4, DY0 + 4, soft, r.n ? "Choose a character on the left." : "");
 
     /* along the bottom */

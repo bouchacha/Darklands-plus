@@ -244,7 +244,7 @@ Fix FIXES[] = {
     { "innsave", "Saving and loading stay possible after the inn",
       "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened.", 1 },
     { "colours", "Characters keep their colours (the \"neon hair\" bug)",
-      "Characters' colours and figures sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
+      "Characters' colours and sprites sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
     { "potions", "Weapon potions wear off and don't ruin weapons",

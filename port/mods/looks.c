@@ -818,10 +818,10 @@ static void key_hook(int ovl)
                 for (int i = 0; i < nlooks; i++) if (look_find(looks[i].code)) { n++; if (!strncasecmp(looks[i].code, now, 3)) k = n; }
                 Look *L = look_find(now);
                 char msg[160];
-                if (L) snprintf(msg, sizeof msg, "Figure %d of %d: %s (an enemy's figure%s)", k, n, L->title,
+                if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite%s)", k, n, L->title,
                                 L->npart > 2 ? "; the 1st, 2nd and 3rd color keys dye it" : L->npart > 1 ? "; the 1st and 2nd color keys dye it" :
                                 L->npart ? "; the 1st color key dyes it" : "");
-                else snprintf(msg, sizeof msg, "Figure %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);
+                else snprintf(msg, sizeof msg, "Sprite %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);
                 figure_notice(msg);
             }
         }
@@ -839,7 +839,7 @@ static void key_hook(int ovl)
             if (d) { char msg[80]; snprintf(msg, sizeof msg, "%s color: %s", part == 0 ? "1st" : part == 1 ? "2nd" : "3rd", d); figure_notice(msg); }
             else {
                 char code[4]; looks_member_figure(m, code);
-                if (look_find(code)) figure_notice(part ? "This figure has no more colours of its own." : "This figure's colours are its own: they cannot be changed.");
+                if (look_find(code)) figure_notice(part ? "This sprite has no more colours of its own." : "This sprite's colours are its own: they cannot be changed.");
             }
         }
         AX = ax;

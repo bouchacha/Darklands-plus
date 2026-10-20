@@ -233,8 +233,8 @@ static void draw_chances(void)
     if (tip_line >= 0) {                                          /* what the badge is */
         char t[200], nm[24] = "";
         if (tip_who >= 0 && tip_who < 5) g_str(G_DGROUP, (u16)(G_MEMBER(tip_who) + G_M_SHORTNAME), nm, sizeof nm);
-        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: %s %d%% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, gm_a_an(tip_pct), tip_pct);
-        else snprintf(t, sizeof t, "This option tests the whole party: %s %d%% chance of success.\nThe game's own figure (hold Shift over an option); it rises with the skills and attributes the test asks for.", gm_a_an(tip_pct), tip_pct);
+        if (nm[0]) snprintf(t, sizeof t, "This option tests %s: %s %d%% chance of success.\nThe game's own number (hold Shift over an option); it rises with the skills and attributes the test asks for.", nm, gm_a_an(tip_pct), tip_pct);
+        else snprintf(t, sizeof t, "This option tests the whole party: %s %d%% chance of success.\nThe game's own number (hold Shift over an option); it rises with the skills and attributes the test asks for.", gm_a_an(tip_pct), tip_pct);
         ImFont *tf = f;
         float ts = ui_text_px() * 0.8f, pad = ts * 0.45f;           /* sized like the other tooltips */
         float wrap = fminf(ImGui::GetIO().DisplaySize.x * 0.45f, ts * 26);

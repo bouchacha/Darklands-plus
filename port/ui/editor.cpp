@@ -89,7 +89,7 @@ extern "C" void tab_editor(void)
             char fig[4]; g_str(G_DGROUP, (u16)(0xa668 + 4 * m), fig, sizeof fig);
             ImGui::SetNextItemWidth(UIS(110));
             std::string cur = std::string(fig) + "  " + looks_title_of(fig);
-            if (ImGui::BeginCombo("figure", cur.c_str())) {
+            if (ImGui::BeginCombo("sprite", cur.c_str())) {
                 auto item = [&](const char *f) {
                     std::string lab = std::string(f) + "  " + looks_title_of(f);
                     if (ImGui::Selectable(lab.c_str(), !strncmp(f, fig, 3))) looks_set_figure(m, f);
@@ -98,8 +98,8 @@ extern "C" void tab_editor(void)
                 for (int i = 0; i < looks_count(); i++) if (looks_usable(i)) item(looks_code(i));
                 ImGui::EndCombo();
             }
-            if (looks_is_extra(fig)) { ImGui::SameLine(); ImGui::TextDisabled("(an enemy's figure: its colours below are its own shades)"); }
-            ImGui::TextDisabled("Colours of the figure and its portrait (battles and the party panel):");
+            if (looks_is_extra(fig)) { ImGui::SameLine(); ImGui::TextDisabled("(an enemy's sprite: its colours below are its own shades)"); }
+            ImGui::TextDisabled("Colours of the sprite and its portrait (battles and the party panel):");
             for (int c = 0; c < 8; c++) {
                 u16 o = (u16)(0x33fc + m * 24 + c * 3);
                 float col[3] = { (rb(G_FAR20A5, o) & 63) / 63.0f, (rb(G_FAR20A5, (u16)(o + 1)) & 63) / 63.0f, (rb(G_FAR20A5, (u16)(o + 2)) & 63) / 63.0f };

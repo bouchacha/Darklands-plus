@@ -39,7 +39,7 @@ static const char *weapon_word(const char *w)
 static void fig_arms(Fig &f)
 {
     char w[24][3]; int n = looks_weapons(f.code.c_str(), w, 24);
-    if (n < 0) { f.arms = "every weapon"; f.arms_all = "The game's own figure: every weapon has its animation."; return; }
+    if (n < 0) { f.arms = "every weapon"; f.arms_all = "The game's own sprite: every weapon has its animation."; return; }
     std::string all, shown; int k = 0, hidden = 0;
     for (int i = 0; i < n; i++) {
         const char *word = weapon_word(w[i]);
@@ -108,13 +108,13 @@ extern "C" void figpick_window(void)
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowFocus();
     char nick[16]; g_str(G_DGROUP, (u16)(0x9c55 + 0x80 * fp_member + 0x3e), nick, sizeof nick);
-    std::string title = "Choose a figure for " + game_text(nick, sizeof nick) + "##figpick";
+    std::string title = "Choose a sprite for " + game_text(nick, sizeof nick) + "##figpick";
     bool keep = true;
     if (ImGui::Begin(title.c_str(), &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings)) {
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
         if (ui_font_small) ImGui::PushFont(ui_font_small);
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Click a figure (or the arrow keys and Enter). The first four are the game's own; the others are its enemies'. 1st/2nd/3rd color dye them afterwards.");
+        ImGui::TextWrapped("Click a sprite (or use the arrow keys and Enter). The first four are the game's own; the others are its enemies'. The 1st, 2nd and 3rd colour buttons dye them afterwards.");
         ImGui::PopStyleColor();
         if (ui_font_small) ImGui::PopFont();
         ImGui::Spacing();
