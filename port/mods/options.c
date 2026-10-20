@@ -23,8 +23,7 @@ static void ap_down(int v) { autopause_set(v, autopause_hurt); }
 static void ap_hurt(int v) { autopause_set(autopause_down, v); }
 static void bs_paced(int v) { battlescroll_set(v, battlescroll_rest); }
 static void bs_rest(int v) { battlescroll_set(battlescroll_on, v); }
-static void pf_party(int v) { pathfix_set(v, pathfix_enemies); }
-static void pf_enemies(int v) { pathfix_set(pathfix_party, v); }
+static void pf_set(int v) { pathfix_set(v, v); }
 static void tr_auto(int v) { travel_set(v, travel_fast); }
 static void tr_fast(int v) { travel_set(travel_enabled, v); }
 static void click_attack(int v) { orders_click_attack = v; }
@@ -130,8 +129,7 @@ static Option OPTIONS[] = {
     { "battle.retarget_near", S_BATTLE, 0, "Next foe within reach", "when a member's foe falls, the member turns on a foe close by, rather than walking around the whole melee to help the most wounded friend.", OC_EASE, 0, 1, 1 },
     { "battle.shoot_past_allies", S_BATTLE, 0, "Shoot past friends", "the party's archers, crossbowmen and gunners shoot past their own fighters. A missile never strikes anyone but its target in Darklands, yet the game makes a shooter wait while a friend stands in the line (unless the shooter's skill is 90 or more). Enemies in the line still block.", OC_EASY, 0, 0, 1 },
     { "battle.reposition_shooters", S_BATTLE, 0, "Shooters look for a line", "experimental: a shooter without a clear line steps aside or walks on to find one instead of waiting, and any foe can be chosen. A member told to hold stays put.", OC_EXPERIMENT, 0, 0, 0 },
-    { "fix.pathfinding", S_BATTLE, 0, "Better pathfinding", "moves are planned around walls, furniture and the other fighters with a full route search, instead of the original's wall-following, which gives up on long or winding routes (members stuck in mines). In a melee crowd, a fighter whose way is blocked looks for another at once instead of standing still for a couple of seconds.", OC_FIX, 0, 1, 1, 0, 0, pf_party },
-    { "fix.pathfinding_enemies", S_BATTLE, 0, "Better pathfinding for enemies", "the same for the foes: they find their way to the party around corners and each other (harder battles); those at the back of a melee wait or pick another foe rather than walking round the houses.", OC_FIX, 0, 1, 1, 0, 0, pf_enemies },
+    { "fix.pathfinding", S_BATTLE, 0, "Better pathfinding", "moves are planned around walls, furniture and the other fighters with a full route search, instead of the original's wall-following, which gives up on long or winding routes (members stuck in mines). For the party and the foes alike: they find their way around corners and each other (harder battles); in a melee crowd, a fighter whose way is blocked looks for another at once instead of standing still for a couple of seconds, and foes at the back wait or pick another foe rather than walking round the houses.", OC_FIX, 0, 1, 1, 0, 0, pf_set },
     { "battle.speed", S_BATTLE, 0, "Speed of battles and dungeons", "walking (also through dungeons, castles and mines), attacks and spells all go faster; pausing (Space) works as before.", OC_TASTE, 100, 100, 100, "as the original|1.5x|2x|3x", V_SPEED, battle_speed_set },
     { "battle.fast_key", S_BATTLE, 0, "Fast forward", "Z in a battle: six times the pace; Z again back to the chosen speed.", OC_SHOW, 0, 1, 1, 0, 0, fast_key },
 

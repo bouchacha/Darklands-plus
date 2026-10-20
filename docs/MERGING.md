@@ -172,7 +172,6 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `battle.shoot_past_allies` | Shoot past friends | easier | battlerules.c |
 | `battle.reposition_shooters` | Shooters look for a line | experimental | battlerules.c, partypanel.cpp |
 | `fix.pathfinding` | Better pathfinding | fix | pathfix.c |
-| `fix.pathfinding_enemies` | Better pathfinding for enemies | fix | pathfix.c |
 | `battle.speed` | Speed of battles and dungeons | taste | pathfix.c |
 | `battle.fast_key` | Fast forward | interface | margins.cpp, ui.cpp |
 | **Travel** | | | |

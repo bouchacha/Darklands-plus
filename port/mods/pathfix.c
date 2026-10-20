@@ -10,8 +10,8 @@
  * step vectors the walker uses, testing every step with the game's own collision function
  * (cbt_collisions, s014 1462:000a, with the walking rules), so a planned path is a path the
  * member can walk. Routes longer than the game's 250-step path buffer are cut; the game
- * re-plans moving combatants every 30-90 ticks, which carries them on. Enemies too ("enemies
- * too", on by default).
+ * re-plans moving combatants every 30-90 ticks, which carries them on. The party and the
+ * enemies alike (one switch, fix.pathfinding).
  *
  * In a melee crowd (stress-tested with traces of whole battles, DL_BATTLE_TRACE below):
  * - the collision test is the game's for the floor, asked once per spot and kept, and done here
@@ -630,7 +630,7 @@ static void sweep(int i, int n)
 void pathfix_set(int party, int enemies)
 {
     pathfix_party = party; pathfix_enemies = enemies;
-    config_set_int("fix.pathfinding", party); config_set_int("fix.pathfinding_enemies", enemies);
+    config_set_int("fix.pathfinding", party || enemies);     /* (one switch for both sides; apart only for tests: upath) */
     if (party || enemies) {
         hook_install(GF_path_find, path_find_hook);
         hook_install(GF_cbt_step, crowd_step_hook);
@@ -756,8 +756,6 @@ void pathfix_init(void)
     f_waypoints = game_func(14, 0x1db7, 0x0158);
     f_cursor = game_func(GF_ems_map_page);
     if (!f_collide || !f_set) fprintf(stderr, "pathfix: game functions not found\n");
-    if (!config_get_int("migrate.enemy_paths", 0)) {          /* (on for everyone from 1.2 preview 31, once enemies no longer got stuck) */
-        config_set_int("fix.pathfinding_enemies", 1); config_set_int("migrate.enemy_paths", 1);
-    }
-    pathfix_set(config_get_int("fix.pathfinding", 1), config_get_int("fix.pathfinding_enemies", 1));
+    int on = config_get_int("fix.pathfinding", 1);          /* (one switch for the party and the foes since 1.3; fix.pathfinding_enemies is no more) */
+    pathfix_set(on, on);
 }
