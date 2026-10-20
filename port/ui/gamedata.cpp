@@ -10,6 +10,13 @@
 #endif
 
 GameData gamedata;
+static std::vector<std::string> formula_raw;      /* the formulae's names as DARKLAND.LST writes them (the game's own letters) */
+extern "C" int gamedata_formula_raw(int f, char *out, int n)   /* (for text the game shows: a card's $Text2) */
+{
+    if (f < 0 || f >= (int)formula_raw.size() || n < 1) return 0;
+    snprintf(out, (size_t)n, "%s", formula_raw[(size_t)f].c_str());
+    return 1;
+}
 extern "C" const char *datamods_redirect(const char *rel, const char *game_path);
 extern "C" {
 #include "../runtime/cpu.h"
@@ -130,7 +137,8 @@ void gamedata_load(const char *dir)
         auto cstr = [&](void) { std::string r; while (pos < lst.size() && lst[pos]) r += (char)lst[pos++]; pos++; return r; };
         for (int i = 0; i < ns && pos < lst.size(); i++) { Saint t; t.game_name = t.name = game_text(cstr().c_str(), 64); gamedata.saints.push_back(t); }
         for (int i = 0; i < ns && pos < lst.size(); i++) gamedata.saints[i].shortname = game_text(cstr().c_str(), 64);
-        for (int i = 0; i < nf && pos < lst.size(); i++) gamedata.formula_game_names.push_back(game_text(cstr().c_str(), 64));
+        formula_raw.clear();
+        for (int i = 0; i < nf && pos < lst.size(); i++) { std::string r = cstr(); formula_raw.push_back(r); gamedata.formula_game_names.push_back(game_text(r.c_str(), 64)); }
         gamedata.formula_names = gamedata.formula_game_names;
     }
     std::vector<unsigned char> snt = read_all(open_ci(dir, "DARKLAND.SNT"));

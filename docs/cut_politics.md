@@ -147,6 +147,11 @@ it. Red: switched off or never called. Dashed: text only, or not written at all.
   written. `$Revol11` says "$CityLord Title" (a space in the token) and offers formulas and
   saints named by `$Text2` and `$Text3`, which nothing sets. `$Polit01`'s bribe shows a
   `$Money1` it never sets (it takes a tenth of the purse).
+- `$Revol11`'s boons of a formula and a saint could not be had. Both are offered through the
+  potions' and the saints' pop-ups, which list only what members carry or know, never the boon;
+  the saint's routine has no return statement, so the saint was saint 0 (found by Arkana
+  Mechanika); the formula's routine names a place as `$NamedTwoName`; and taking the formula
+  set the formulae of the potion numbered by the saint (all three of the first potion).
 - `$Revol04` never sets option 0, shows four unwritten lines ("5" to "8") and does nothing for
   "government activities" and "rebel activities"; `$Revol09` shows lines "2" to "5"; `$Snuck00`
   a blank line whose handler is empty.
@@ -191,6 +196,9 @@ With the option ticked (port/mods/politics.c; nothing changes while it is off):
 8. **Texts:** `$VarString` filled (the town hall's or the fortress's name, the exiled heir, a
    banner, the attitude), `$Support` the right way round, "the the" made "the", "$CityLord
    Title", the boon names, `$Polit01`'s bribe; the unwritten lines hidden.
+   The lord's boons are plain options: the formula is the best of the city's potion that the
+   party's best alchemist does not know, taught to that alchemist; the saint, one nobody in the
+   party knows, to the member best at Religion.
 9. **Tasks:** a town in a season reads "In turmoil" in the margin until the party takes a side;
    then the side, and its own side's day (the hour and the date), are tasks in the margin, the
    journal and on the map, with a banner for a picture.

@@ -34,6 +34,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "gamemodel.h"
 
 void ui_notice(const char *);
 
@@ -263,8 +264,8 @@ static void var_expand_hook(void)                                    /* var_expa
 static void text_expand_hook(void)                                   /* text_expand (idx, out): "the the" -> "the" */
 {
     u16 out = rw(SS, (u16)(SP + 6));
-    int was = cur_block;
-    cur_block = (s16)rw(SS, (u16)(SP + 4));
+    int was = cur_block, blk = (s16)rw(SS, (u16)(SP + 4));
+    cur_block = blk;
     hook_call_original();
     cur_block = was;
     if (!politics_on()) return;
@@ -280,7 +281,10 @@ static void text_expand_hook(void)                                   /* text_exp
             memmove(q + strlen(v), q + 15, strlen(q + 15) + 1); memcpy(q, v, strlen(v)); changed = 1;
         }
     }
-    if (card_is("$Revol11")) for (char *r; (r = strstr(t, ", ?")); changed = 1) memmove(r, r + 2, strlen(r + 2) + 1);   /* (its boon names, never set) */
+    if (card_is("$Revol11")) {
+        for (char *r; (r = strstr(t, ", ?")); changed = 1) memmove(r, r + 2, strlen(r + 2) + 1);   /* (its boon names, if unset) */
+        if (blk == 2) for (char *r = t; *r; r++) if (*r == 0x10 || *r == 0x16) { *r = 0x15; changed = 1; }   /* (the boons: plain options, below) */
+    }
     if (changed && (int)strlen(t) < n + 16) for (int i = 0; ; i++) { g_wb((u16)(out + i), (u8)t[i]); if (!t[i]) break; }
 }
 
@@ -564,8 +568,107 @@ static void revol01_knock_chance_hook(void) /* s048 190e:04ee () -> (chance, who
     if ((v == -1 && !px) || (v == 1 && px)) { AX = 0xffff; DX = 0xfffe; }
 }
 
+/* ---------------------------------------------------------------- $Revol11, the city lord's boons
+ * The lord offers one of his alchemist's formulae ($Text2) or a rare saint ($Text3), among others.
+ * As MicroProse left it (the saint found by Arkana Mechanika, Darklands Restoration):
+ *  - the saint (s089 18ce:02fc) is the first from the city's own that nobody in the party knows,
+ *    but the routine has no return statement: the boon was saint 0;
+ *  - the formula's potion (18ce:02a8) is one of six by the city; it names place 0x64.. as
+ *    $NamedTwoName instead of the formula, and neither $Text2 nor $Text3 is ever set;
+ *  - both are offered through the potions' and the saints' pop-ups (\10, \16), which list only
+ *    what members carry or know: never the boon;
+ *  - taking the formula (18ce:033c) sets formulas_known[member][the saint's number] = 7: all three
+ *    formulae of the first potion.
+ * Here both are plain options, named: the formula is the best of the potion's three that the
+ * party's best alchemist does not know, taught to that alchemist; the saint, to the member best
+ * at Religion. */
+int gamedata_formula_raw(int f, char *out, int n);                  /* (ui/gamedata.cpp) */
+static int boon_formula = -1, boon_saint = -1;
+static int best_at(int k)
+{
+    int b = -1, bv = -1;
+    for (int m = 0; m < 5; m++) if (gm_member_present(m) && gm_member_status(m) == 1) { int v = gm_member_skill(m, k); if (v > bv) { bv = v; b = m; } }
+    return b >= 0 ? b : (s8)g_rb(G_LEADER);
+}
+static int knows_formula(int m, int f) { return (rb(G_FAR2E38, (u16)(0x07be + m * 22 + f / 3)) >> (f % 3)) & 1; }
+static void boon_formula_hook(void)         /* s089 18ce:02a8 () -> the potion */
+{
+    hook_call_original();
+    if (!politics_on() || ns_unwinding) return;
+    int code = (s16)AX, k = code - 0x5f, m = best_at(7), g = 2;
+    if (k < 0 || k >= 22) { boon_formula = -1; return; }
+    while (g > 0 && knows_formula(m, 3 * k + g)) g--;
+    if (knows_formula(m, 3 * k + g)) g = 2;
+    boon_formula = 3 * k + g;
+    char nm[48];
+    if (gamedata_formula_raw(boon_formula, nm, sizeof nm)) dset(GV_var_text2, nm, 40);
+    LOG("the lord's boon: formula %d (%s) for member %d\n", boon_formula, nm, m);
+}
+static void boon_saint_hook(void)           /* s089 18ce:02fc () -> the saint */
+{
+    if (!politics_on()) { hook_call_original(); return; }
+    int v = (s16)C(GF_cur_loc_query, 1, 0x21) % 0x88, n = 0;
+    if (v < 0) v += 0x88;
+    while (C(GF_member_bit, 2, -2, v) && n++ < 0x88) { if (ns_unwinding) return; v = (v + 1) % 0x88; }
+    C(GF_name_to_slot, 3, 1, v, 1);                                  /* ($NamedTwoName: text 4) */
+    if (ns_unwinding) return;
+    char nm[32]; int i = 0;
+    for (; i < 29; i++) { u8 ch = rb(G_FAR2E38, (u16)(0x1a96 + 30 + i)); nm[i] = (char)ch; if (!ch) break; }
+    nm[i] = 0;
+    const char *bare = !strncmp(nm, "St. ", 4) ? nm + 4 : !strncmp(nm, "St.", 3) ? nm + 3 : nm;   /* (the texts say "Saint ...") */
+    dset(GV_var_text3, bare, 40);
+    for (i = 0; ; i++) { wb(G_FAR2E38, (u16)(0x1a96 + 30 + i), (u8)bare[i]); if (!bare[i]) break; }
+    boon_saint = v;
+    LOG("the lord's boon: saint %d (%s)\n", v, bare);
+    AX = (u16)v;
+    hook_return_far(0);
+}
+static void boon_chance_hook(void)          /* s089 18ce:0386, 0428 (the two options' chances): sure */
+{
+    if (!politics_on()) { hook_call_original(); return; }
+    for (int i = 0; i < 80; i++) { u8 ch = g_rb((u16)(GV_str_success_assured + i)); g_wb((u16)(GV_msg_buf + i), ch); if (!ch) break; }
+    AX = 0xffff; DX = 0xfffe;
+    hook_return_far(0);
+}
+static void boon_end(int text, int hours)
+{
+    C(GF_card_text, 2, text, 0);
+    if (ns_unwinding) return;
+    C(GF_advance_hours, 1, hours);
+    int next = C(GF_is_daylight, 0) ? 0x12 : 0x19;
+    if (ns_unwinding) return;
+    g_ww(GV_next_card, (u16)next); AX = (u16)next;
+    hook_return_far(0);
+}
+static void boon_take_formula_hook(void)    /* s089 18ce:033c */
+{
+    if (!politics_on() || boon_formula < 0) { hook_call_original(); return; }
+    int m = best_at(7), f = boon_formula;
+    u16 a = (u16)(0x07be + m * 22 + f / 3);
+    wb(G_FAR2E38, a, (u8)(rb(G_FAR2E38, a) | 1 << f % 3));
+    g_ww(GV_var_chosen1, (u16)m);
+    LOG("the lord's boon: member %d learns formula %d\n", m, f);
+    boon_end(3, 1);
+}
+static void boon_take_saint_hook(void)      /* s089 18ce:03be */
+{
+    if (!politics_on() || boon_saint < 0) { hook_call_original(); return; }
+    int m = best_at(8), s = boon_saint;
+    u16 a = (u16)(0x082c + m * 0x14 + s / 8);
+    wb(G_FAR2E38, a, (u8)(rb(G_FAR2E38, a) | 0x80 >> s % 8));
+    g_ww(GV_var_chosen1, (u16)m);
+    LOG("the lord's boon: member %d learns saint %d\n", m, s);
+    boon_end(4, 2);
+}
+
 void politics_init(void)
 {
+    hook_install(89, 0x18ce, 0x02a8, boon_formula_hook);
+    hook_install(89, 0x18ce, 0x02fc, boon_saint_hook);
+    hook_install(89, 0x18ce, 0x0386, boon_chance_hook);
+    hook_install(89, 0x18ce, 0x0428, boon_chance_hook);
+    hook_install(89, 0x18ce, 0x033c, boon_take_formula_hook);
+    hook_install(89, 0x18ce, 0x03be, boon_take_saint_hook);
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_card_options, card_options_hook);
     hook_install(GF_var_expand, var_expand_hook);
