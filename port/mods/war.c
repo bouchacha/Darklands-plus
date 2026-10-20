@@ -103,6 +103,7 @@ static void card_load_hook(void)
     char pic[16];
     u16 po = rw(SS, (u16)(SP + 6)), ps = rw(SS, (u16)(SP + 8));     /* (the picture: a far pointer after the name) */
     g_str(ps, po, pic, sizeof pic);
+    if (getenv("DL_WAR_LOG")) { char nm[16]; u16 no = rw(SS, (u16)(SP + 4)); g_str(G_DGROUP, no, nm, sizeof nm); fprintf(stderr, "war: card %s picture \"%s\"\n", nm, pic); }
     if (!strcasecmp(pic, "gate4")) {
         u16 t = (u16)(LOADSEG + 0x2caf), o = rw(t, 0x0a57), sg = rw(t, 0x0a59);
         char gate[16] = "";

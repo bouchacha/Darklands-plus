@@ -164,3 +164,32 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-61f351 | 0E76:00DC; 1EF8:059A; 0E76:0694 | TacticalBattle.WriteBattleFile | fixed | fix.castle |
 | B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | avoided | saves.quick,  display.native_saves |
 | B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed now | fix.battledead |
+
+## Not on the register
+
+Bugs of 483.07 that Darklands+ fixes and the register does not list (also as CSV: `docs/not_in_register.csv`).
+
+| Where (483.07) | Area | What the original does | Darklands+ | Switch |
+|---|---|---|---|---|
+| DARKLAND.LOC record 373 | data | One location (a cave) lies at y 931, one row below the 931-row map: quests that send the party there cannot be finished. | Moved onto the last row. | fix.offmap |
+| s036 1462:0082 | screens | The lodging screen disables Save and Load (DS:9920, DS:9934 = 2) and re-enables them on most exits but not all (a click on an empty party slot returns at once): Save/Load stay grey until a character sheet is opened. | Enabled again on the way out. | fix.innsave |
+| (not located) | screens | The 'neon hair' bug: characters' colours (and figures) change after encounters. | We only watch and put them back each frame; the cause is not found. A save that shows it would help. | fix.colours |
+| s044 1838:0000 ($Initi00, card 0) | cards | A card that goes back to where it came from (prev_screen) goes to card 0 when it came from none; card 0 is the developers' test card, whose picture (pics\xhouse3.pic) is missing: the game stops. | Goes on to the map or the town. | fix.testcard |
+| s053 1924:0004 ($Cloth00) | cards | Clothmakers' Street by day hides its shopfronts (opt_flag_0 = 0), unlike every other guild street by day; its handler 02be would open the clothmaker's shop as at night. | Shown. | fix.cardopts |
+| s134 1838:0000 ($DPost00) | cards | The spider warehouse's owner is $NamedOneName, which nothing on the way sets: 'I am . Are ye hardy adventurers?' (or whoever was named last). | Given a name. | fix.cardslips |
+| s084 1838:0536 ($meetw00) | cards | Besides item_defs[0] (register B-19435f), the mask asked for is 0x02000000, which no item has; the mounts' LST flag is 0x2000. | Mapped to 0x2000. | fix.itemflags |
+| s039 165c:2208 (St. Edward) | saints | The price, a quarter of the money, is money_pfennigs() cast to unsigned and shifted: a quarter of the purse cut to 16 bits, so a party with more than 273 florins pays less. | A true quarter. | fix.sainttexts |
+| s039 165c (39 saints before the register, 43 now) | saints | Where a saint's coded help departs from DARKLAND.SNT; the register has most of them. Not on it: St. Vitus (6e62), St. Martin of Tours (50cc), St. Florian (2b30) and St. Hildegard (3934). | docs/SAINTS.md has the table, saint by saint. | fix.sainttexts |
+| s039 1462:0558 | rules | The season's own record (kind 8) doubles as fact 0 (loc_fact matches kind 8 too) and the setup fills it with the city's number instead of 0: the agitators' guild master never offers the job (except in city 0). | Set to 0 after the setup. | rules.politics |
+| s039 1462:0558 | rules | No guild leader is ever given a secret: the setup never fills fact 8, only the cards clear it. | About one in three gets one. | rules.politics |
+| s039 1462:0558 | rules | The agitators' guild (fact 0x17) can be the local merchants, who have no guild card; and the setup loops for ever in a city without a guild street. | Moved to a guild with a street; such cities get no season. | rules.politics |
+| s039 1462:conflict_outcome_impl | rules | conflict_outcome marks the city overthrown (+0x14 /= 0x80) whoever won, and checks whether the party deserted (facts 0x24, 0x25) after clearing the season's facts. | The first put right; the second left. | rules.politics |
+| $Revol04 (0xbf), $Revol09 (0xb8), $Snuck00 | cards | $Revol04 never sets option 0, shows four unwritten lines ('5' to '8') and does nothing for 'government activities' and 'rebel activities'; $Revol09 shows lines '2' to '5'; $Snuck00 a blank line whose handler is empty. | Hidden or written. | rules.politics |
+| $Consi00 (s072 1838) | cards | The war council never shows its first text (the tally) and fills the option table with stubs ('Sorry, this option isn't working yet.'). | Written from its texts. | rules.politics |
+| $CityN00 (s069 195d:0358) | cards | 'Discuss the political situation here' goes to the general news, like 'gossip about the situation': the street gossip ($Revol04) has no way in. | Leads to $Revol04 during a season. | rules.politics |
+| $Polit01 (s057 1a02:053c) | cards | 'Eat your handbills': the thugs walk off but the card asks again; the party is never let go. | Goes on to the street. | rules.politics |
+| $Revol13 (s090) | cards | The bribe's flag is overwritten with the saint's (register B-65bf20, from the other side): no money needed. | Needs the money. | rules.politics |
+| s029 0e76:4180 | rules | The season's day (register B-ea8f8b): besides cur_loc, the strike it sets (facts 0x15/0x16) lasts 480 hours, is made again every week while it holds, and nothing settles it if the party is away. | A day like the war council's: the next day, twelve hours, settled when the party comes back. | rules.politics |
+| byte +0x14 of a city's location | rules | Cities preparing for war (1) and at war (2) are read all over (prices, the news, Soldier's Road, the docks, the war's city gate, card 0x73) but nothing sets them, and DARKLAND.LOC has 0 for every city. | port/mods/war.c; its cards' own slips listed there. | rules.war |
+| s072 1981 (card 0x73, the war's city gate) | cards | The card names $CityE00 and loads no card at all, so its menu is the last card's and its texts 7 to 9 do not exist. | Given its text. | rules.war |
+| s014 0e76:2cca (the approach); 0e76:1624 (cbt_step) | battles | A walker re-plans every 30 to 120 ticks without a good step, but the step it had lined up from the old route (D_ca30[i]) is still taken first, and the new route then goes on from its second step: one step off the new route, often into somebody. And a walker blocked by somebody waits for that re-plan time (up to 2.5 s), though the one in its way stopped to fight. | The new route starts from its first step; a blocked walker re-plans within 12 to 24 ticks, around whoever blocked it. | fix.pathfinding |
