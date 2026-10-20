@@ -27,7 +27,7 @@ Each file's header says what the original does, with the function's address
 
 | Subject | Where |
 |---|---|
-| Bugs of 483.07 and their fixes (about 30: blessings, fire protection, weapon oils, armour potions, Great Power, castle battles, bounties, alchemy, teachers at the inn, debt notes, the bishop's errands, purged altars, tomb fights, saints called in battle, the companies' standing in saves ...) | `port/mods/fixes.c` (header, then a section per fix) |
+| Bugs of 483.07 and their fixes (about 50: blessings, fire protection, weapon oils, armour potions, Great Power, castle battles, bounties, the night wall's chances, the Hussites' friendship, slips in single cards, alchemy, teachers at the inn, debt notes, the bishop's errands, purged altars, tomb fights, saints called in battle, the companies' standing in saves ...) | `port/mods/fixes.c` (header, then a section per fix) |
 | Every potion: the code, the manual, what the fixes change | `docs/POTIONS.md` |
 | Every saint: the code, the texts, what the fixes change (`port/mods/saintinfo.c` tells it in the game) | `docs/SAINTS.md` |
 | The 39 saints made to do what their texts say (travel speed, fire, weapon and armour quality ...) and why | `docs/SAINTS.md`, `port/mods/sainttexts.c` |
