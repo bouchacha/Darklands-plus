@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "gamedata.h"
 #include "teachersui.h"
+#include "ordericons.h"
 #include "ui.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -380,8 +381,9 @@ static void order_buttons(float width)
                 std::string label = game_text(e.name, strlen(e.name));
                 if (s2 >= 0) label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + label;
                 int pq = -1, pid = s2 >= 0 ? potion_of(game_text(e.name, strlen(e.name)), e.key, &pq) : -1;
+                int oi = pid < 0 && config_get_int("battle.order_icons", 1) ? ui_order_icon_for(game_text(e.name, strlen(e.name)).c_str()) : OI_NONE;
                 if (e.key[0] && pid < 0) label += std::string(" (") + e.key + ")";      /* (a potion's quality: the dots on its picture) */
-                float iw = pid >= 0 ? lh * 1.15f : 0;                /* (a potion: its picture, with its grade) */
+                float iw = pid >= 0 || oi != OI_NONE ? lh * 1.15f : 0;   /* (a potion: its picture, with its grade; an order: ui/ordericons.cpp) */
                 ImVec2 ts = ImGui::CalcTextSize(label.c_str());
                 float w = ts.x + pad * 2 + iw, h = lh + pad;
                 if (x > x0 && x + w > x1) { x = x0; y += h + gap; }
@@ -390,6 +392,7 @@ static void order_buttons(float width)
                 dl->AddRectFilled(a, b, hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), h * 0.2f);
                 dl->AddRect(a, b, IM_COL32(170, 132, 70, 255), h * 0.2f);
                 if (pid >= 0) ui_item_icon_q(dl, ImVec2(a.x + pad + iw * 0.45f, a.y + h * 0.5f), iw, pid, pq);
+                else if (oi != OI_NONE) ui_draw_order_icon(dl, ImVec2(a.x + pad + iw * 0.42f, a.y + h * 0.5f), iw * 0.95f, oi);
                 dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), label.c_str());
                 order_btns.push_back({ a, b, j, k, s2 });
                 x += w + gap;
@@ -454,11 +457,13 @@ static void battle_panel(float width, float fs)
         ImDrawList *dl = ImGui::GetWindowDrawList();
         ImVec2 p = ImGui::GetCursorScreenPos(), ts = ImGui::CalcTextSize(t), mp = ImGui::GetIO().MousePos;
         float pad = ImGui::GetTextLineHeight() * 0.3f, gh = ts.y * 1.05f, gw = padp ? ui_pad_glyph_width(gh, PB_RSTICK) + pad : 0;
-        ImVec2 a = p, b(p.x + ts.x + gw + pad * 2, p.y + ts.y + pad);
+        float iw = !padp && config_get_int("battle.order_icons", 1) ? ImGui::GetTextLineHeight() * 1.15f : 0;   /* (its picture, as the orders') */
+        ImVec2 a = p, b(p.x + ts.x + gw + iw + pad * 2, p.y + ts.y + pad);
         bool hov = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
         dl->AddRectFilled(a, b, battle_fast ? IM_COL32(150, 60, 30, 255) : hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), (b.y - a.y) * 0.2f);
         if (padp) ui_pad_glyph(dl, ImVec2(a.x + pad + (gw - pad) * 0.5f, (a.y + b.y) * 0.5f), gh, PB_RSTICK);
-        dl->AddText(ImVec2(a.x + pad + gw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), t);
+        if (iw > 0) ui_draw_order_icon(dl, ImVec2(a.x + pad + iw * 0.42f, (a.y + b.y) * 0.5f), iw * 0.95f, battle_fast ? OI_RESUME : OI_FAST);
+        dl->AddText(ImVec2(a.x + pad + gw + iw, a.y + pad * 0.5f), IM_COL32(244, 232, 204, 255), t);
         mclick(a, b, [] { battle_fast_set(!battle_fast); });
         ImGui::Dummy(ImVec2(b.x - a.x, b.y - a.y + pad));
     }
