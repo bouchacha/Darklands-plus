@@ -33,9 +33,10 @@ this state in many places:
   party cost 8/3 as much at war.
 - The news says so: people grumble about prices, and at war two citizens argue whether rats are
   better stewed or in a pie (`$Situa01`).
-- Soldiers' Road opens off the craftsmen's quarter: a street of shops "crowded with soldiers and
-  camp-followers", with a street leader the political campaign can win over (`$Soldi00`,
-  `$Soldi01`). Go to lists it then.
+- Soldiers' Road opens in the arms-makers' quarter: an arms outfitter selling every kind of
+  weapon. Go to lists it then. (A card for the street itself, "crowded with soldiers and
+  camp-followers", with a leader the political campaign could win over, `$Soldi00` and
+  `$Soldi01`, is coded but nothing leads to it.)
 - At the docks, guard patrols must be dodged and fewer boats leave, at twice the price. At war
   the docks are barricaded, and the officer lets only "useless mouths" leave (`$Docks00`).
 - No political season starts in a city at war.
@@ -71,6 +72,9 @@ this state in many places:
    `$CityW03` also shows its sally-port option, meant to be hidden, the first time.
 6. The patrols at the walls fight as the game's "Brigand", though every text calls them
    soldiers and guards.
+7. The arms-makers' quarter (`$MilCr00`) switches Soldiers' Road off, then switches it off
+   again unless the city is at war, so the road never appears. Chosen, it would first show
+   the quarter's own menu for the night or the fair as if that were a description.
 
 **What Darklands+ does** (`rules.war`, port/mods/war.c):
 
@@ -83,7 +87,9 @@ this state in many places:
 5. The twins are taken out of `$CityW03`'s option text, and its hidden option stays hidden.
    `$CityW04` was already put right by the *cardopts* fix.
 6. The patrols fight as the city's "Guard", an enemy of the same strength.
-7. The margin shows "Preparing for war" or "At war", with what that means.
+7. Soldiers' Road appears in the arms-makers' quarter while the war lasts, and leads straight
+   to the arms outfitter.
+8. The margin shows "Preparing for war" or "At war", with what that means.
 
 Turning the option off puts every city back at peace. A save made during a war carries the war
 into the original game, where card 0x73 is broken as described above.
@@ -91,8 +97,8 @@ into the original game, where card 0x73 is broken as described above.
 **Tested** in Soest and Dortmund: arrival by land; the gate refusing wayfarers ("Soest is at
 war. We have no need for useless mouths to feed"); rushing the walls, the chase and a fight at
 the foot of the wall, back to the gate; sneaking up at night; the sewer grating; the bribe that
-opens the sally port into the city; the margin; Soldiers' Road in Go to. Not yet seen in play:
-the docks at war, the news, and the dungeon after a surrender.
+opens the sally port into the city; the news (rats); Soldiers' Road and its outfitter through
+Go to; the margin. Not yet seen in play: the docks at war, and the dungeon after a surrender.
 
 ## "Fehde!"
 

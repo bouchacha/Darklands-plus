@@ -19,7 +19,9 @@
  *  - gives that card its text: it names $CityE00 and loads no card at all, so its menu was the
  *    last card's and its texts 7 to 9 did not exist; its code follows $CityE01 block for block
  *    (the city "seethes like an anthill", the night watch, "Spies trying to enter!", the dungeon),
- *    the text MicroProse wrote for it and never used.
+ *    the text MicroProse wrote for it and never used;
+ *  - puts right what the war's cards get wrong: a picture never drawn, option lines that ran the
+ *    next one's choice, the patrols' enemy, and Soldiers' Road, which its quarter never showed.
  * Switched off, every city is put back at peace (+0x14 bits 1 and 2 cleared, the arrival card 4). */
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,9 +144,29 @@ static void text_expand_hook(void)          /* text_expand (idx, out) */
 
 /* $CityW03 with no sally port in sight (its text 0) clears that option's switch only after the
    menu's switches were copied: "...hidden option" stood among the choices the first time */
+/* $MilCr00, the arms-makers' quarter, switches Soldiers' Road off, then switches it off again
+   unless the city prepares for war or is at war: it never came on */
+static int war_here(void)
+{
+    int loc = (s16)g_rw(GV_cur_loc);
+    u32 r = loc >= 0 && loc < NCITY ? g_location(loc) : 0;
+    int f = r ? rb((u16)(r >> 16), (u16)((u16)r + 0x14)) : 0;
+    return f == 1 || f == 2;                                  /* (as the card tests it: loc_query 0x20) */
+}
+/* ...and its Soldiers' Road, once open, shows the quarter's own menu for the night or the fair
+   (its texts 1 and 2) as if it were a description before the soldiers' market: not shown */
+static void card_text_hook(void)            /* card_text (block, how) */
+{
+    int b = (s16)rw(SS, (u16)(SP + 4));
+    if (war_on() && (b == 1 || b == 2) && card_is("$MilCr00")) { hook_return_far(0); return; }
+    hook_call_original();
+}
 static void card_options_hook(void)         /* card_options (block) */
 {
-    if (war_on() && (s16)rw(SS, (u16)(SP + 4)) == 0 && card_is("$CityW03")) g_wb((u16)(GV_opt_on + 1), 0);
+    if (war_on() && (s16)rw(SS, (u16)(SP + 4)) == 0) {
+        if (card_is("$CityW03")) g_wb((u16)(GV_opt_on + 1), 0);
+        else if (card_is("$MilCr00") && war_here()) g_wb(GV_opt_on, 1);
+    }
     hook_call_original();
 }
 
@@ -186,7 +208,11 @@ void war_test(int loc, int st)
 {
     if (loc >= 0 && loc < NCITY) forced[loc] = (signed char)(st < 0 ? 0 : st + 1);
     apply();
-    for (int l = 0; l < NCITY; l++) { int left, w = war_state(l, &left); if (w) fprintf(stderr, "war: city %d state %d, %d days to go\n", l, w, left); }
+    for (int l = 0; l < NCITY; l++) {
+        int left, w = war_state(l, &left);
+        u32 r = g_location(l);
+        if (w && r) fprintf(stderr, "war: city %d state %d, %d days to go (+0x14 %02x, arrival card %#x)\n", l, w, left, rb((u16)(r >> 16), (u16)((u16)r + 0x14)), rw((u16)(r >> 16), (u16)((u16)r + 0x0c)));
+    }
 }
 
 void war_init(void)
@@ -195,6 +221,7 @@ void war_init(void)
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_text_expand, text_expand_hook);
     hook_install(GF_card_options, card_options_hook);
+    hook_install(GF_card_text, card_text_hook);
     hook_install(GF_run_battle, battle_hook);
     if (getenv("DL_WAR_LOG")) { hook_install(GF_card_menu, menu_log_hook); hook_install(GF_card_text, text_log_hook); }
     if (!hook_install(72, 0x1981, 0x057e, war_gate_hook)) fprintf(stderr, "war: no hook for card 0x73\n");
