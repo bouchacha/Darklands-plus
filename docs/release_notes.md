@@ -11,6 +11,8 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Your saves are backed up:** the first start of each new version copies them into a "Darklands+ save backups" folder.
 - **Controller button prompts:** while you play with a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.
 - **World map:** it stays on the map, a place found shows what it offers with Travel there at the top, and journeys read "22 hours" or "1.4 days".
+- **More of the original's bugs fixed**, many found by Arkana Mechanika (Darklands Restoration): climbing a city wall at night (everyone always made it, the climber with a rope always fell), claiming friendship with Hussites (1 in 100 whatever the chance), mounts that never helped outrun wolves, the Templars' desk teaching formulae you knew, a footpads' potion never used up, a church's tenth blessing nobody, an audience "fixed for tomorrow" that never happened, and a dozen more.
+- **A day at the inn or in camp** no longer looks frozen: the page shows the hours going by, and a click skips it.
 - **Calling on a saint** says why there is no chance (too little Virtue, or too little favor).
 - **Battles:** a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down.
 - Smaller fixes to Go to, the town journal, cards and task texts, and Comic Sans as an eighth typeface (we are so sorry).
