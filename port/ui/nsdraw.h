@@ -186,6 +186,8 @@ std::string ns_quality_words(int id, int qual);       /* ", 30q"; "" where the l
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
+std::string ns_item_encounters(int id, ImU32 *col);   /* "Many encounters let you use it." (potions), coloured by how many */
+ImU32 ns_tier_colour(int n);                         /* many green, some blue, a few brown, none grey */
 /* a weapon or an armour against what member m has in that place now, "" for other things */
 std::string ns_item_compare(int id, int q, int m);
 std::string ns_item_compare_party(int id, int q);    /* the same against every member (whom it would suit) */

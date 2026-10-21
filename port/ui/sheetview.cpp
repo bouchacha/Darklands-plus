@@ -330,6 +330,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
         std::string use = ns_item_use(it.id);
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
+        { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
         if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
             y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "Drag it onto a member at the left to give them the lot (Shift: just one)." : "Drag it onto a member at the left to give it to them.") + 0.5f;
         if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
@@ -697,7 +698,7 @@ static void saints(NsDraw &P, const SheetModel &s)
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), saint_info_does(t)) + 1.5f;
     const char *un = saint_info_unlike(t);
     if (*un) ty += P.para(fo, 4.4f, tx, ty, tw, IM_COL32(140, 50, 30, 255), std::string("Differs from the description: ") + un) + 1.5f;
-    ty += P.para(fo, 4.2f, tx, ty, tw, dim, saint_encounters_line(t)) + 1.5f;
+    ty += P.para(fo, 4.2f, tx, ty, tw, ns_tier_colour(saint_info_cards(t) >= 10 ? 20 : saint_info_cards(t) >= 3 ? 5 : saint_info_cards(t)), saint_encounters_line(t)) + 1.5f;
     float ly = fmaxf(ty, g ? DY0 + 1.5f + sh + 2 : ty);
     ly += P.para(fo, 4.4f, DX0 + 2.5f, ly, DX1 - DX0 - 5, soft, lore) + 1.5f;
     if (*saint_info_note(t)) P.para(fo, 4.0f, DX0 + 2.5f, fmaxf(ly, DY1 - 5.5f), DX1 - DX0 - 5, dim, saint_info_note(t));   /* (at the foot) */

@@ -157,6 +157,18 @@ std::string ns_item_compare_party(int id, int q)
 extern "C" int fix_is_on(const char *id);
 #include "../mods/fixes.h"
 std::string ns_potion_effect(int id);
+/* how much the encounters ask for a thing (a potion: the card scripts that list it among an
+   option's potions, card_items, counted from the game's code) or a saint (mods/saintinfo.h):
+   the line, and its colour - many green, some blue, a few brown, none grey */
+ImU32 ns_tier_colour(int n) { return n >= 20 ? IM_COL32(34, 110, 30, 255) : n >= 5 ? IM_COL32(36, 78, 150, 255) : n >= 1 ? IM_COL32(150, 92, 30, 255) : IM_COL32(140, 124, 104, 255); }
+std::string ns_item_encounters(int id, ImU32 *col)
+{
+    if (id < 95 || id > 116) return "";
+    static const unsigned char CARDS[22] = { 61, 42, 54, 5, 15, 2, 73, 41, 11, 7, 0, 1, 0, 0, 1, 6, 1, 1, 0, 0, 1, 6 };
+    int n = CARDS[id - 95];
+    if (col) *col = ns_tier_colour(n);
+    return n >= 20 ? "Many encounters let you use it." : n >= 5 ? "Some encounters let you use it." : n >= 1 ? "A few encounters let you use it." : "No encounter asks for it.";
+}
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them). Read from the game's code: of the
  * general goods only rope and lockpicks are asked for by cards (count_items, s029 0e76:0c76: the
@@ -341,7 +353,11 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
         return;
     }
     std::string use = ns_item_use(t.id);                    /* what it is good for (rope, lockpicks ...) */
-    if (!use.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
+    if (!use.empty()) {
+        float h = P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
+        ImU32 ec; std::string enc = ns_item_encounters(t.id, &ec);
+        if (!enc.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y + h + 0.5f, 235, ec, enc);
+    }
     else if (t.cmp_who >= 0 || t.cmp_who == -2) {          /* a weapon or an armour: against what the member (-2: the party) has now */
         std::string cmp = t.cmp_who == -2 ? ns_item_compare_party(t.id, t.qual) : ns_item_compare(t.id, t.qual, t.cmp_who);
         if (!cmp.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp);

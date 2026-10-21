@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include "imgui.h"
+ImU32 ns_tier_colour(int n);   /* ui/nsdraw.cpp */
 #include "ui.h"
 #include "gamedata.h"
 #include "effects.h"
@@ -225,9 +226,9 @@ void ui_saint_info(int s)
     ImGui::PopStyleColor();
     const char *u = saint_info_unlike(s);
     if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Differs from the description: %s", u); ImGui::PopStyleColor(); }
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-    ImGui::TextWrapped("%s", saint_encounters_line(s));
-    ImGui::PopStyleColor();
+    {   int n = saint_info_cards(s);                       /* (coloured: many green, some blue, a few brown, none grey) */
+        ImU32 c = ns_tier_colour(n >= 10 ? 20 : n >= 3 ? 5 : n);
+        ImGui::PushStyleColor(ImGuiCol_Text, c); ImGui::TextWrapped("%s", saint_encounters_line(s)); ImGui::PopStyleColor(); }
 }
 
 /* whether encounters let a member call on the saint: its powers beyond its help */
