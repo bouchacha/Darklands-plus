@@ -165,7 +165,7 @@ struct NsDraw {
         rect(60, 0, 320, 200, IM_COL32(236, 222, 188, 255));
         rect(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
         frame(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
-        if (orn_on()) { orn_parchment_edges(dl, w(61.5f, 1.5f), w(318.5f, 198.5f), 6 * k); orn_gilt_frame(dl, w(60.5f, 0.5f), w(319.5f, 199.5f), 5 * k); }
+        if (orn_on()) { orn_parchment_edges(dl, w(62, 2), w(318, 198), 6 * k); orn_frame(dl, w(60, 0), w(320, 200), 1.9f * k); }   /* (the style's band round the page) */
     }
 };
 
