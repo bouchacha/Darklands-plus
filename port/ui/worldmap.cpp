@@ -1075,7 +1075,7 @@ float ui_face_k(ImFont *f);                                  /* overlay.cpp */
    today are bright (a click chooses that boat on the card), the others faded; the option under
    the pointer on the card lights its way. Returns the option clicked on the map, or -1. */
 extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int here, const int *dest, const int *opt,
-                                    const int *state, int n, int hover_opt)
+                                    const int *state, const char *const *fare, int n, int hover_opt)
 {
     if (n <= 0 || x1 - x0 < 80 || y1 - y0 < 60 || !worldmap_build()) return -1;
     upload();
@@ -1182,6 +1182,7 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
         if (state[i] != 1) dl->AddCircleFilled(dpos[i], fsz * 0.7f, IM_COL32(236, 226, 204, 150), 20);
         if (lit) dl->AddCircle(dpos[i], fsz * 1.1f, IM_COL32(200, 120, 20, 255), 24, 2.5f);
         std::string nm = dest[i] < (int)gamedata.cities.size() ? gamedata.cities[dest[i]].name : std::string("?");
+        if (fare && fare[i] && fare[i][0]) nm += std::string(" \xc2\xb7 ") + fare[i];   /* (and its fare) */
         label(dpos[i], nm, state[i] == 1 ? IM_COL32(44, 26, 10, 255) : IM_COL32(44, 26, 10, 130), lit);
     }
     ImVec2 hp = to_scr(hx, hy);
