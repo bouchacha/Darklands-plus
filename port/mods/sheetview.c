@@ -388,6 +388,15 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
             else if (k == 0x0f00 || k == 0x4b00) sheet_model.tab_step--;          /* (Shift+Tab, Left) */
             else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
             else if (k == 0x1000) { ns_call(GF_sheet_leave, 1, -1); ns_call(GF_quit_to_dos, 0); }
+            else if (((k & 0xff) >= '1' && (k & 0xff) <= '5') || ((k >> 8) >= 2 && (k >> 8) <= 6 && (k & 0xff) && strchr("!@#$%", k & 0xff))) {
+                /* 1..5: the thing under the pointer to that member, the whole stack (Shift: one) */
+                int sheetview_pointed_item(void);
+                int r = sheetview_pointed_item(), to = (k >> 8) - 2, one = !((k & 0xff) >= '1' && (k & 0xff) <= '5');
+                const SheetModel *sm = &sheet_model;
+                if (r >= 0 && r < sm->nitems && sm->item[r].holder >= 0 && !sm->item[r].equipped && to != who) {
+                    NsAction g = { SV_GIVE, sm->item[r].idx, to, one ? 1 : 255 }; act(&g, &who); build(who);
+                }
+            }
         }
         if (ns_unwinding) break;
         NsAction a;

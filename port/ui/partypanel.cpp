@@ -385,8 +385,9 @@ extern "C" void partypanel_draw(void)
             P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
-                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\nIt lowers Agility in card tests and in dodging shots and throws, and slows melee attacks. %s.",
-                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2,
+                const char *ui_load_effect(int band);
+                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\n%s %s.",
+                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2, ui_load_effect(band),
                                   battle && config_get_int("battle.panel_select", 1) ? "Right-click to open the sheet" : "Click to open the sheet");
             }
         }

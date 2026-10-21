@@ -146,6 +146,21 @@ std::vector<std::string> doll_layers(const SheetModel &s)
 bool shows_quality(const ItemDef *d, int q) { return d && ns_shows_quality((int)(d - &gamedata.items[0]), q); }
 
 const char *LOAD[4] = { "Light load", "Normal load", "Heavy load", "Overloaded" };
+/* what each band does, from the game's code (equip_weight s031 18e7:140a: the equipped things'
+   weights; s014 18bf: attack_rate adds 30 to a melee blow's time between half and all of
+   Endurance + Strength, 100 beyond half again - nothing between; the dodge keeps the whole
+   Agility up to 5/8 of it, two thirds up to 1 1/4, a third up to 1 7/8, then none) */
+/* the row of a thing under the pointer (the strip shows it), -1 none: 1..5 give it (mods/sheetview.c) */
+extern "C" int sheetview_pointed_item(void);
+extern "C" const char *ui_load_effect(int band)
+{
+    switch (band) {
+    case 0: return "Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts: the weapons, armour and shield in use.";
+    case 1: return "Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds.";
+    case 2: return "Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (the game forgets to slow them in this band).";
+    default: return "Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength.";
+    }
+}
 
 /* a saint's description: legend, then what it does */
 void saint_parts(const std::string &t, std::string &lore, std::string &eff)
@@ -243,6 +258,7 @@ static void doll(NsDraw &P, const SheetModel &s)
     int band = s.load_band < 0 ? 0 : s.load_band > 3 ? 3 : s.load_band;
     ImU32 c = band >= 3 ? NsDraw::RED : band == 2 ? IM_COL32(150, 80, 20, 255) : NsDraw::INK;
     P.text(P.fo, NsDraw::FS_SMALL, 63.5f, 192.3f, c, LOAD[band]);
+    if (P.over(62, 191, 198, 197.5f)) ns_tip(ui_load_effect(band), 26);
     char v[24]; snprintf(v, sizeof v, "%d of %d", s.load, s.capacity);
     P.text(P.fo, NsDraw::FS_SMALL, 0, 192.3f, NsDraw::INK_SOFT, v, 197);
     float f = s.capacity > 0 ? fminf(1.5f, (float)s.load / s.capacity) / 1.5f : 0;
@@ -332,7 +348,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
         { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
         if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
-            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "Drag it onto a member at the left to give them the lot (Shift: just one)." : "Drag it onto a member at the left to give it to them.") + 0.5f;
+            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") + 0.5f;
         if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
             int have = sk < 7 ? s.skill[sk] : 0;
@@ -930,3 +946,5 @@ extern "C" void sheetview_draw(void)
 
 /* for the prayer screen (ui/prayview.cpp): the saint's statue, its legend and effect */
 const GamePic *ns_saint_statue(int cls) { return statue(cls); }
+
+extern "C" int sheetview_pointed_item(void) { return V.what == 1 ? V.which : -1; }
