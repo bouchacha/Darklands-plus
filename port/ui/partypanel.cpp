@@ -309,7 +309,10 @@ extern "C" void partypanel_draw(void)
         bool focus = m == partypanel_focus && here, sel = battle && here && gm_member_selected(m);
         if (orn_on()) {                                         /* period ornaments: a walnut panel in a gilt rule, the bosses at its corners */
             ImVec2 a = NsDraw::w(1.2f, y0 + 1.2f), b = NsDraw::w(58.8f, y0 + 38.8f);
-            P.dl->AddRectFilledMultiColor(a, b, IM_COL32(58, 40, 24, 255), IM_COL32(48, 33, 20, 255), IM_COL32(28, 20, 12, 255), IM_COL32(34, 24, 14, 255));
+            int os = orn_style();                               /* (in the chosen style's colours: walnut, oxblood, slate) */
+            if (os == 3) P.dl->AddRectFilledMultiColor(a, b, IM_COL32(70, 24, 18, 255), IM_COL32(60, 20, 16, 255), IM_COL32(34, 10, 8, 255), IM_COL32(40, 12, 10, 255));
+            else if (os == 4) P.dl->AddRectFilledMultiColor(a, b, IM_COL32(64, 62, 60, 255), IM_COL32(56, 54, 52, 255), IM_COL32(30, 29, 28, 255), IM_COL32(36, 35, 33, 255));
+            else P.dl->AddRectFilledMultiColor(a, b, IM_COL32(58, 40, 24, 255), IM_COL32(48, 33, 20, 255), IM_COL32(28, 20, 12, 255), IM_COL32(34, 24, 14, 255));
             orn_gilt_frame(P.dl, a, b, 3.2f * P.k);
             if (focus || sel) P.frame(1.2f, y0 + 1.2f, 58.8f, y0 + 38.8f, focus ? IM_COL32(110, 230, 236, 255) : IM_COL32(250, 236, 170, 255), 2);
         } else
