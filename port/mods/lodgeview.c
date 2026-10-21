@@ -88,7 +88,7 @@ static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s04
     LodgeModel *m = &lodge_model;
     if (!lv_on || !m->open) {
         int steps = (s16)rw(SS, (u16)(SP + 4)) / 3;
-        if (steps > 0 && ns_showing() && !config_get_int("original", 0)) { hourglass_other(steps); hook_return_far(0); return; }
+        if (steps > 0 && (ns_showing() || config_get_int("display.clock", 1)) && !config_get_int("original", 0)) { hourglass_other(steps); hook_return_far(0); return; }   /* (the Darklands+ clock everywhere, or the game's under a Darklands+ page) */
         hook_call_original(); return;
     }
     int steps = (s16)rw(SS, (u16)(SP + 4)) / 3;

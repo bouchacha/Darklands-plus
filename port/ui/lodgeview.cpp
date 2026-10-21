@@ -172,7 +172,7 @@ extern "C" void lodgeview_draw(void)
        above it and how to skip below */
     if (m.passing) {
         P.rect(60, 0, 320, 200, IM_COL32(20, 12, 4, 120));
-        const float CX0 = 130, CY0 = 52;
+        const float CX0 = 130, CY0 = 44;
         std::string head = m.pass_n == 0 ? (m.mode == 1 ? "A day in camp" : "A day at the inn")
                          : m.pass_of ? "Day " + std::to_string(m.pass_n) + " of " + std::to_string(m.pass_of)
                                      : "Day " + std::to_string(m.pass_n) + ", until rested";
@@ -182,7 +182,7 @@ extern "C" void lodgeview_draw(void)
         ui_draw_hourglass(P.dl, NsDraw::w(CX0, CY0), P.kx, P.k, m.pass_hour, m.pass_day, m.pass_month);
         const char *hint = m.pass_n ? "Click or press a key to skip to the end" : "Click or press a key to skip";
         float tw = P.width(fo, NsDraw::FS_SMALL, hint);
-        P.rect(190 - tw * 0.5f - 4, CY0 + 106, 190 + tw * 0.5f + 4, CY0 + 114, IM_COL32(40, 26, 12, 220), 2);
-        P.text(fo, NsDraw::FS_SMALL, 190 - tw * 0.5f, CY0 + 107, IM_COL32(230, 214, 178, 255), hint);
+        P.rect(190 - tw * 0.5f - 4, CY0 + 121, 190 + tw * 0.5f + 4, CY0 + 129, IM_COL32(40, 26, 12, 220), 2);
+        P.text(fo, NsDraw::FS_SMALL, 190 - tw * 0.5f, CY0 + 122, IM_COL32(230, 214, 178, 255), hint);
     }
 }
