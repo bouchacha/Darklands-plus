@@ -62,12 +62,17 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
 {
     std::vector<PNote> &v = pnotes[k];
     u32 now = plat_ticks_ms();
-    while (!v.empty() && now - v.front().t > 9000) v.erase(v.begin());
+    /* the time a note shows counts only while the panel is on the screen (the battle's end, the
+       loot: the notes wait for the panel to come back) */
+    static u32 last_drawn[6];
+    if (last_drawn[k] && now - last_drawn[k] > 250) for (PNote &n : v) n.t += now - last_drawn[k];
+    last_drawn[k] = now;
+    while (!v.empty() && now - v.front().t > 14000) v.erase(v.begin());
     if (v.empty()) return;
     float y = y1;
     for (int i = (int)v.size() - 1; i >= 0; i--) {
         const PNote &n = v[i];
-        float a = now - n.t > 8000 ? (9000 - (now - n.t)) / 1000.0f : 1.0f;
+        float a = now - n.t > 12000 ? (14000 - (now - n.t)) / 2000.0f : 1.0f;
         float th = P.fo->CalcTextSizeA(P.size(P.fo, 4.3f), FLT_MAX, (x1 - x0 - 4) * P.kx, n.text.c_str()).y / P.k + 2.4f;
         float h = k < 5 ? fmaxf(th, (y1 - y0) / 3.0f) : th;    /* (on a member: at least a bar's row - half a row covered looked broken) */
         if (y - h < y0) break;
@@ -191,7 +196,7 @@ static const char *order_word(char c, int place, bool shortw)
     #define W(s, l) return shortw ? s : l
     switch (c) {
     case 'A': W("attacks", "attacks (Std Attack, a standard attack)");
-    case 'V': W("vulnerable", "attacks with Vulnerable (an Orders menu choice): harder blows, a weaker defence");
+    case 'V': W("vulnerable", "attacks with Vulnerable: aims at the gaps in the armour (1 to 4 more penetration), slower and a little less likely to land");
     case 'B': W("berserk", "is berserk: attacks without thought of defence");
     case 'P':
         if (place == 3) W("picks", "picks the lock of the door given");
@@ -311,11 +316,34 @@ extern "C" void partypanel_draw(void)
         int place = oc ? gm_member_order_place(m) : 0;
         float name_end = 56.5f;
         if (oc && order_word(oc, place, true)) {
+            /* the kind of attack (or other order) at a glance: its picture, as on the order buttons,
+               and the word in that order's colour */
             const char *wd = order_word(oc, place, true);
+            int oi = OI_NONE; ImU32 col = DIM;
+            switch (oc) {
+            case 'A': oi = OI_ATTACK; col = IM_COL32(236, 170, 120, 255); break;
+            case 'V': oi = OI_VULNERABLE; col = IM_COL32(240, 206, 110, 255); break;
+            case 'B': oi = OI_BERSERK; col = IM_COL32(240, 110, 90, 255); break;
+            case 'P': oi = place == 3 || place == 6 ? OI_PICK : OI_PARRY; col = place == 3 || place == 6 ? DIM : IM_COL32(140, 186, 236, 255); break;
+            case 'M': case 'T': oi = OI_MISSILE; col = IM_COL32(150, 214, 130, 255); break;
+            case 'W': oi = OI_WALK; break;
+            case 'F': oi = OI_FLEE; col = IM_COL32(236, 200, 150, 255); break;
+            case 'H': oi = OI_HALT; break;
+            case 'U': oi = place == 2 ? OI_STAIRS : OI_DOOR; break;
+            case 'D': oi = OI_DISSOLVE; break;
+            case 'O': oi = OI_CHEST; break;
+            case 'X': oi = OI_EXIT; break;
+            }
             float ww = P.width(P.fo, NsDraw::FS_SMALL, wd);
-            P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, DIM, wd, 56.5f);
-            name_end = 56.5f - ww - 1.5f;
-            if (P.over(56.5f - ww, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc, place, false));
+            P.text(P.fo, NsDraw::FS_SMALL, 0, y0 + 2.9f, col, wd, 56.5f);
+            float left = 56.5f - ww;
+            if (oi != OI_NONE) {
+                ImVec2 a = NsDraw::w(left - 4.6f, y0 + 2.2f), b = NsDraw::w(left - 0.8f, y0 + 6.0f);
+                ui_draw_order_icon(P.dl, ImVec2((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f), b.y - a.y, oi);
+                left -= 4.6f;
+            }
+            name_end = left - 1.5f;
+            if (P.over(left, y0 + 2.0f, 56.5f, y0 + 8.6f)) ImGui::SetTooltip("%s %s", name.c_str(), order_word(oc, place, false));
         }
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */

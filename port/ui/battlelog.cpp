@@ -307,6 +307,7 @@ extern "C" void battlelog_overlay(void)
     if (!n) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     float lh = fs * 1.2f, pad = fs * 0.4f;
+    { extern float ui_orderbar_top; if (ui_orderbar_top > 0 && ui_orderbar_top < y1) y1 = ui_orderbar_top; }   /* (above the order strip) */
     float y = y1 - pad - lh * n;
     for (int k = (int)lines.size() - n; k < (int)lines.size(); k++, y += lh) {
         u32 age = now - lines[k].t;

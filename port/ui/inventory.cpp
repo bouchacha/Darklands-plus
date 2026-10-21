@@ -254,8 +254,127 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier);   /* u
 bool ui_draw_ingredient(ImDrawList *dl, ImVec2 c, float s, int id);
 int ui_potion_tier(int q, int base);
 static int icon_tier;                       /* a potion's grade (1-3) for the next draw_icon, 0 unknown */
+
+/* the quest things and trophies, each its own picture (they were all a sheet of paper) */
+static bool draw_special(ImDrawList *dl, ImVec2 c, float s, int id)
+{
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    ImU32 ink = col(0.18f, 0.12f, 0.07f), gold = col(0.90f, 0.72f, 0.24f), goldd = col(0.62f, 0.46f, 0.12f), bone = col(0.93f, 0.89f, 0.78f),
+          boned = col(0.70f, 0.64f, 0.52f), silver = col(0.80f, 0.82f, 0.86f), silverd = col(0.52f, 0.54f, 0.60f), red = col(0.62f, 0.14f, 0.10f),
+          brown = col(0.46f, 0.30f, 0.16f), cloth = col(0.40f, 0.33f, 0.24f), green = col(0.30f, 0.50f, 0.22f), parch = col(0.94f, 0.88f, 0.70f);
+    auto book = [&](ImU32 cover, ImU32 trim) {
+        dl->AddRectFilled(P(-7, -9), P(7, 9), cover, 1.2f * u);
+        dl->AddRectFilled(P(5, -8), P(7, 8), parch);
+        dl->AddRect(P(-7, -9), P(7, 9), ink, 1.2f * u, 0, 0.8f * u);
+        dl->AddRectFilled(P(-1, -6), P(1, 4), trim); dl->AddRectFilled(P(-4, -3), P(4, -1), trim);
+    };
+    switch (id) {
+    case 126:                                                                          /* Evil Medallion */
+        dl->AddLine(P(-5, -10), P(0, -4), goldd, 0.8f * u); dl->AddLine(P(5, -10), P(0, -4), goldd, 0.8f * u);
+        dl->AddCircleFilled(P(0, 2), 7 * u, col(0.30f, 0.26f, 0.22f)); dl->AddCircle(P(0, 2), 7 * u, goldd, 0, 1.2f * u);
+        dl->AddTriangleFilled(P(0, 7), P(-4, -2), P(4, -2), red); dl->AddTriangleFilled(P(-4, -2), P(-5, -5), P(-2, -2), red); dl->AddTriangleFilled(P(4, -2), P(5, -5), P(2, -2), red);
+        return true;
+    case 128:                                                                          /* Counterfeits: false coins */
+        dl->AddEllipseFilled(P(-2, 4), ImVec2(7 * u, 3 * u), goldd); dl->AddEllipseFilled(P(-2, 2.5f), ImVec2(7 * u, 3 * u), gold);
+        dl->AddEllipseFilled(P(2, -2), ImVec2(7 * u, 3 * u), goldd); dl->AddEllipseFilled(P(2, -3.5f), ImVec2(7 * u, 3 * u), gold);
+        dl->AddLine(P(-2, -8), P(6, 2), red, 1.4f * u);
+        return true;
+    case 129: book(col(0.30f, 0.18f, 0.10f), gold); return true;                     /* Prayerbook */
+    case 130: book(red, gold); dl->AddRect(P(-6, -8), P(4, 8), gold, 0, 0, 0.8f * u); return true;   /* Illuminated Gospel */
+    case 131:                                                                          /* Hermit's Habit: a hooded robe */
+        dl->AddQuadFilled(P(-4, -6), P(4, -6), P(8, 10), P(-8, 10), cloth);
+        dl->AddCircleFilled(P(0, -7), 4.5f * u, cloth); dl->AddCircleFilled(P(0, -6.5f), 2.6f * u, col(0.16f, 0.12f, 0.08f));
+        dl->AddLine(P(-3, 1), P(3, 1), brown, 1.2f * u);
+        return true;
+    case 132:                                                                          /* History Scroll */
+        dl->AddRectFilled(P(-6, -7), P(6, 7), parch);
+        dl->AddRectFilled(P(-8, -9), P(8, -6), brown, 1.5f * u); dl->AddRectFilled(P(-8, 6), P(8, 9), brown, 1.5f * u);
+        for (int r = -4; r <= 4; r += 2) dl->AddLine(P(-4, (float)r), P(4, (float)r), col(0.4f, 0.3f, 0.2f), 0.6f * u);
+        return true;
+    case 133:                                                                          /* Ancient Crown */
+        dl->PathLineTo(P(-9, 6)); dl->PathLineTo(P(-9, -6)); dl->PathLineTo(P(-5, -1)); dl->PathLineTo(P(-2.5f, -8)); dl->PathLineTo(P(0, -2));
+        dl->PathLineTo(P(2.5f, -8)); dl->PathLineTo(P(5, -1)); dl->PathLineTo(P(9, -6)); dl->PathLineTo(P(9, 6)); dl->PathFillConcave(gold);
+        dl->AddRectFilled(P(-9, 3), P(9, 7), goldd);
+        dl->AddCircleFilled(P(0, 5), 1.4f * u, red); dl->AddCircleFilled(P(-5, 5), 1.1f * u, col(0.2f, 0.4f, 0.8f)); dl->AddCircleFilled(P(5, 5), 1.1f * u, col(0.2f, 0.6f, 0.3f));
+        return true;
+    case 134:                                                                          /* Hyoscyamus (henbane): a stem and pale flowers */
+        dl->AddBezierQuadratic(P(0, 10), P(-1, 0), P(1, -8), green, 1.4f * u);
+        dl->AddCircleFilled(P(-4, -4), 3 * u, col(0.86f, 0.82f, 0.50f)); dl->AddCircleFilled(P(-4, -4), 1.1f * u, col(0.35f, 0.15f, 0.30f));
+        dl->AddCircleFilled(P(4, -7), 3 * u, col(0.86f, 0.82f, 0.50f)); dl->AddCircleFilled(P(4, -7), 1.1f * u, col(0.35f, 0.15f, 0.30f));
+        dl->AddTriangleFilled(P(0, 3), P(-6, 1), P(-1, 6), green); dl->AddTriangleFilled(P(0, 1), P(6, -1), P(1, 4), green);
+        return true;
+    case 135:                                                                          /* Silver Mace */
+        dl->AddLine(P(-6, 9), P(3, -3), brown, 2.0f * u);
+        dl->AddCircleFilled(P(4.5f, -4.5f), 4.2f * u, silver); dl->AddCircle(P(4.5f, -4.5f), 4.2f * u, silverd, 0, 0.8f * u);
+        for (int k = 0; k < 6; k++) { float a = k * 1.047f; dl->AddTriangleFilled(P(4.5f + cosf(a) * 4, -4.5f + sinf(a) * 4), P(4.5f + cosf(a + 0.35f) * 4, -4.5f + sinf(a + 0.35f) * 4), P(4.5f + cosf(a + 0.17f) * 6.5f, -4.5f + sinf(a + 0.17f) * 6.5f), silverd); }
+        return true;
+    case 136:                                                                          /* Tarnhelm */
+        dl->PathArcTo(P(0, 2), 8 * u, 3.14159f, 6.28318f, 20); dl->PathFillConvex(silver);
+        dl->AddRectFilled(P(-8, 2), P(8, 4.5f), silverd);
+        dl->AddRectFilled(P(-1, 2), P(1, 9), silverd);
+        dl->AddTriangleFilled(P(-8, -2), P(-12, -9), P(-6, -5), bone); dl->AddTriangleFilled(P(8, -2), P(12, -9), P(6, -5), bone);
+        return true;
+    case 139:                                                                          /* a quest's thing: a tied bundle */
+        dl->AddRectFilled(P(-7, -5), P(7, 8), brown, 2 * u); dl->AddLine(P(0, -5), P(0, 8), gold, 1.2f * u); dl->AddLine(P(-7, 1), P(7, 1), gold, 1.2f * u);
+        dl->AddCircleFilled(P(0, -6), 2.2f * u, gold);
+        return true;
+    case 140:                                                                          /* Globe with Fish */
+        dl->AddCircleFilled(P(0, 0), 8.5f * u, col(0.62f, 0.80f, 0.92f, 0.8f)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
+        dl->AddTriangleFilled(P(-4, 0), P(2, -3), P(2, 3), col(0.95f, 0.55f, 0.15f)); dl->AddTriangleFilled(P(2, 0), P(5, -2.5f), P(5, 2.5f), col(0.95f, 0.55f, 0.15f));
+        dl->AddCircleFilled(P(-3, -4.5f), 1.4f * u, col(1, 1, 1, 0.7f));
+        return true;
+    case 141:                                                                          /* Lantern of Light */
+        dl->AddCircleFilled(P(0, 1), 9 * u, col(1.0f, 0.9f, 0.5f, 0.30f));
+        dl->AddRectFilled(P(-5, -6), P(5, 8), col(1.0f, 0.90f, 0.50f)); dl->AddRect(P(-5, -6), P(5, 8), goldd, 0, 0, 1.2f * u);
+        dl->AddLine(P(0, -6), P(0, 8), goldd, 0.8f * u); dl->AddTriangleFilled(P(-6, -6), P(6, -6), P(0, -10), goldd);
+        return true;
+    case 142:                                                                          /* Magic Honey: a pot */
+        dl->AddCircleFilled(P(0, 3), 7.5f * u, col(0.80f, 0.60f, 0.30f)); dl->AddRectFilled(P(-5, -7), P(5, -3), col(0.80f, 0.60f, 0.30f));
+        dl->AddRectFilled(P(-6, -8), P(6, -6), brown); dl->AddCircleFilled(P(-2, 3), 2.5f * u, col(0.95f, 0.75f, 0.20f));
+        dl->AddBezierQuadratic(P(-6, -7), P(-3, -1), P(-4, 4), col(0.98f, 0.78f, 0.20f), 1.6f * u);
+        return true;
+    case 143:                                                                          /* Seed of Life: a glowing seed with a sprout */
+        dl->AddCircleFilled(P(0, 3), 8 * u, col(0.6f, 0.9f, 0.5f, 0.25f));
+        dl->AddEllipseFilled(P(0, 4), ImVec2(4.5f * u, 6 * u), col(0.55f, 0.38f, 0.18f));
+        dl->AddBezierQuadratic(P(0, -2), P(0, -7), P(4, -9), green, 1.5f * u); dl->AddTriangleFilled(P(1, -6), P(-5, -9), P(-1, -4), green);
+        return true;
+    case 144:                                                                          /* Magic Balance */
+        dl->AddRectFilled(P(-0.8f, -8), P(0.8f, 8), goldd); dl->AddRectFilled(P(-5, 8), P(5, 10), goldd);
+        dl->AddLine(P(-8, -6), P(8, -6), gold, 1.4f * u);
+        dl->AddLine(P(-8, -6), P(-10, 1), goldd, 0.6f * u); dl->AddLine(P(-8, -6), P(-6, 1), goldd, 0.6f * u);
+        dl->AddLine(P(8, -6), P(6, 1), goldd, 0.6f * u); dl->AddLine(P(8, -6), P(10, 1), goldd, 0.6f * u);
+        dl->PathArcTo(P(-8, 1), 3 * u, 0, 3.14159f, 10); dl->PathFillConvex(gold);
+        dl->PathArcTo(P(8, 1), 3 * u, 0, 3.14159f, 10); dl->PathFillConvex(gold);
+        return true;
+    case 146:                                                                          /* Tusk of a Boar: two curved tusks */
+        dl->AddBezierQuadratic(P(-7, 8), P(-9, -4), P(-1, -9), bone, 3.0f * u); dl->AddBezierQuadratic(P(-7, 8), P(-9, -4), P(-1, -9), boned, 0.8f * u);
+        dl->AddBezierQuadratic(P(2, 9), P(0, -2), P(8, -6), bone, 2.6f * u); dl->AddBezierQuadratic(P(2, 9), P(0, -2), P(8, -6), boned, 0.7f * u);
+        dl->AddLine(P(-8, 8), P(3, 9), brown, 1.5f * u);
+        return true;
+    case 147:                                                                          /* Wolfskin: a grey pelt */
+        dl->PathLineTo(P(-5, -9)); dl->PathLineTo(P(5, -9)); dl->PathLineTo(P(9, -3)); dl->PathLineTo(P(7, 3)); dl->PathLineTo(P(9, 9));
+        dl->PathLineTo(P(-9, 9)); dl->PathLineTo(P(-7, 3)); dl->PathLineTo(P(-9, -3)); dl->PathFillConcave(col(0.55f, 0.55f, 0.56f));
+        dl->AddTriangleFilled(P(-3, -9), P(3, -9), P(0, -12), col(0.55f, 0.55f, 0.56f));
+        dl->AddLine(P(0, -7), P(0, 7), col(0.40f, 0.40f, 0.42f), 1.0f * u);
+        return true;
+    case 148:                                                                          /* Bone */
+        dl->AddLine(P(-6, 6), P(6, -6), bone, 3.0f * u);
+        dl->AddCircleFilled(P(-7.5f, 5), 2.2f * u, bone); dl->AddCircleFilled(P(-5, 7.5f), 2.2f * u, bone);
+        dl->AddCircleFilled(P(7.5f, -5), 2.2f * u, bone); dl->AddCircleFilled(P(5, -7.5f), 2.2f * u, bone);
+        return true;
+    case 149:                                                                          /* Gold Cup */
+        dl->PathArcTo(P(0, -5), 7 * u, 0, 3.14159f, 16); dl->PathFillConvex(gold);
+        dl->AddRectFilled(P(-7, -6), P(7, -4.5f), goldd);
+        dl->AddRectFilled(P(-1, 1.5f), P(1, 7), goldd); dl->AddRectFilled(P(-5, 7), P(5, 9), gold);
+        dl->AddCircleFilled(P(0, -2), 1.3f * u, red);
+        return true;
+    }
+    return false;
+}
 static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int id)
 {
+    if (((id >= 129 && id <= 149) || id == 126 || id == 128) && id != 137 && id != 138 && id != 145 && draw_special(dl, c, s, id)) return;
     if (id >= 95 && id <= 116 && (!d || d->kind == K_POTION) && ui_draw_potion(dl, c, s, id, icon_tier)) return;
     if (id >= 72 && id <= 94 && (!d || d->kind == K_INGREDIENT) && ui_draw_ingredient(dl, c, s, id)) return;
     if (d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || (d->kind == K_RELIC && d->type <= 33)
@@ -346,18 +465,38 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
     }
 }
 
+/* the long weapons (a maul, a field axe, a two-handed flail, lying diagonally) reach well past
+   their square and were cut off at the edge of a list: an icon is drawn, then shrunk round its
+   centre until it fits a square a third larger than its size (most icons already do: unchanged) */
+static void fit_icon(ImDrawList *dl, int v0, ImVec2 c, float s)
+{
+    int v1 = dl->VtxBuffer.Size;
+    if (v1 <= v0) return;
+    float ext = 0;
+    for (int i = v0; i < v1; i++) { ImVec2 p = dl->VtxBuffer[i].pos; ext = fmaxf(ext, fmaxf(fabsf(p.x - c.x), fabsf(p.y - c.y))); }
+    float lim = s * 0.66f;
+    if (ext <= lim) return;
+    float k = lim / ext;
+    for (int i = v0; i < v1; i++) { ImVec2 &p = dl->VtxBuffer[i].pos; p.x = c.x + (p.x - c.x) * k; p.y = c.y + (p.y - c.y) * k; }
+}
+static void draw_icon_fit(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int id)
+{
+    int v0 = dl->VtxBuffer.Size;
+    draw_icon(dl, c, s, d, id);
+    fit_icon(dl, v0, c, s);
+}
 /* the icon of item id, for the other tabs */
-void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id) { draw_icon(dl, c, s, def_of(id), id); }
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id) { draw_icon_fit(dl, c, s, def_of(id), id); }
 /* the same with the thing's quality (a potion shows its grade), or a formula's grade (1-3) */
 void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q)
 {
     const ItemDef *d = def_of(id);
     icon_tier = d && q >= 0 ? ui_potion_tier(q, d->quality) : 0;
-    draw_icon(dl, c, s, d, id);
+    draw_icon_fit(dl, c, s, d, id);
     icon_tier = 0;
 }
-void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier) { icon_tier = tier; draw_icon(dl, c, s, def_of(id), id); icon_tier = 0; }
-void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { draw_equipment(dl, c, s, type, false); }
+void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier) { icon_tier = tier; draw_icon_fit(dl, c, s, def_of(id), id); icon_tier = 0; }
+void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type) { int v0 = dl->VtxBuffer.Size; draw_equipment(dl, c, s, type, false); fit_icon(dl, v0, c, s); }
 
 /* ---------------------------------------------------------------- giving items */
 

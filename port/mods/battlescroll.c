@@ -62,9 +62,9 @@ static void select_hook(void)
     hook_call_original();
     if (!config_get_int("battle.select_stays", 1) || config_get_int("original", 0) || i < 0 || i >= 5) return;
     if (twice) { center_req = i; return; }
-    int n = (s8)g_rb(GV_hotspot_count), seen = 0;
-    for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) seen = 1;
-    if (seen) g_wb(GV_battle_follow, 0);                               /* (in sight: no following, no jump) */
+    /* the view stays where it is (a second press within a moment goes to them); only a member on
+       another floor is followed there, the view having nothing of them to show */
+    if (g_rb((u16)(GV_cbt_floor + i)) == g_rb(GV_floor_shown)) g_wb(GV_battle_follow, 0);
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */

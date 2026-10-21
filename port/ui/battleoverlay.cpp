@@ -86,9 +86,9 @@ void ui_battle_float(int m, const std::string &t, bool good)
 static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float k, u32 now)
 {
     if (now < f.t0) return;
-    float age = (now - f.t0) / 1000.0f;                       /* 3.5 s: rises, then fades */
-    if (age > 3.5f) return;
-    float a = age < 0.15f ? age / 0.15f : age > 2.6f ? (3.5f - age) / 0.9f : 1.0f;
+    float age = (now - f.t0) / 1000.0f;                       /* 5 s: rises, then fades */
+    if (age > 5.0f) return;
+    float a = age < 0.15f ? age / 0.15f : age > 3.8f ? (5.0f - age) / 1.2f : 1.0f;
     float rise = 6.0f + 9.0f * fminf(age, 1.6f) / 1.6f;
     ImFont *fo = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
     float sz = 9.0f * k * (age < 0.25f ? 1.0f + 0.35f * (0.25f - age) / 0.25f : 1.0f);   /* (a little bigger as it appears) */
@@ -106,7 +106,7 @@ void ui_draw_battle_bars(void)
     if (game_mode() != GM_BATTLE) floats.clear();
     if ((!ui_battle_bars && !reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     u32 nowms = plat_ticks_ms();
-    while (!floats.empty() && nowms > floats.front().t0 + 3500) floats.erase(floats.begin());
+    while (!floats.empty() && nowms > floats.front().t0 + 5000) floats.erase(floats.begin());
     bool hurt_only = config_get_int("battle.bars_hurt", 1) && !ImGui::GetIO().KeyAlt;
     int n = (s8)g_rb(GV_hotspot_count);
     if (n <= 0 || n > 40) return;
@@ -189,7 +189,7 @@ static void battle_intro(void)
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
              "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy, and draws their melee weapon once enemies come within "
              "a few paces. The bow or sword on their picture at the left switches them to melee from the start.\n\n"
-             "Against armour their weapon cannot pierce, members attack Vulnerable (heavier blows) by themselves, and shots pass anyone in the way "
+             "Against armour their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armour) by themselves, and shots pass anyone in the way "
              "(in Darklands a missile only ever hits its target).\n\n"
              "Point at an order button in the right margin to see what it does.",
              "Each of these can be switched off: F12 > Settings > Helpers > Battles. F1 lists the battle's keys and clicks.");

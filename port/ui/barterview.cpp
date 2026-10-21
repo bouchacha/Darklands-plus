@@ -138,6 +138,18 @@ extern "C" void barterview_draw(void)
     const int NROWS = 13;
     float LY1 = LY0 + NROWS * ROWH;
     int new_hl = -1, new_hr = -1;
+    /* a thing "Sell spare gear" would sell: the weapons, armour and shields not in use (not
+       arrows, quarrels, balls or things to throw), that this shop pays for, not kept */
+    auto is_spare = [&](int i) {
+        const BvItem &it = b.item[i];
+        const ItemDef *d = def(it.id);
+        if (!d || it.equipped || it.price <= 0 || it.kept) return false;
+        if (!(d->kind == K_WEAPON || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_MISSILE)) return false;
+        if ((d->type >= 0x17 && d->type <= 0x1a) || (d->type >= 0x40 && d->type <= 0x42)) return false;
+        return true;
+    };
+    static bool spare_lit;                       /* the button under the pointer (last frame): its things pulse in the list */
+    float pulse = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
     for (int L = 0; L < 2; L++) {
         if (L == 1 && V.formulae) continue;
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
@@ -160,6 +172,10 @@ extern "C" void barterview_draw(void)
             if (h) { new_hl = L; new_hr = i; }
             if (h) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
+            if (L && spare_lit && is_spare(i)) {
+                R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(200, 120, 60, (int)(60 + 90 * pulse)));
+                Rl(x0 + 0.8f, y + 0.3f, x1 - 0.8f, y + ROWH - 0.3f, IM_COL32(150, 56, 30, (int)(120 + 120 * pulse)), 1.0f);
+            }
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
@@ -297,11 +313,8 @@ extern "C" void barterview_draw(void)
     static unsigned ask_t; static int ask_who = -1;
     std::vector<int> spare; long spare_pf = 0; int spare_n = 0;
     for (int i = 0; i < b.nitems; i++) {
+        if (!is_spare(i)) continue;
         const BvItem &it = b.item[i];
-        const ItemDef *d = def(it.id);
-        if (!d || it.equipped || it.price <= 0 || it.kept) continue;           /* (not what is kept) */
-        if (!(d->kind == K_WEAPON || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_MISSILE)) continue;
-        if ((d->type >= 0x17 && d->type <= 0x1a) || (d->type >= 0x40 && d->type <= 0x42)) continue;
         spare.push_back(b.shared ? i : it.idx); spare_pf += (long)it.price * it.count; spare_n += it.count;
     }
     bool asking = ask_who == b.who && plat_ticks_ms() - ask_t < 5000;
@@ -309,9 +322,10 @@ extern "C" void barterview_draw(void)
     float sbx1 = 314, sbx0 = sbx1 - W(fo, NsDraw::FS_SMALL, slab) - 6;
     bool show_spare = !spare.empty() && !V.formulae;
     bool spare_h = show_spare && (asking || in(mx, my, sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f));
+    spare_lit = spare_h;
     if (spare_h && V.fnote.empty()) {
         char t[200];
-        snprintf(t, sizeof t, "%d item%s not in use (weapons, armour, shields; not ammunition or throwing weapons), for about %s in all.%s",
+        snprintf(t, sizeof t, "%d item%s not in use (weapons, armour, shields; not ammunition or throwing weapons), for about %s in all: the ones pulsing in the list.%s",
                  spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
         V.fnote = t; V.fhead = "Spare gear";
     }

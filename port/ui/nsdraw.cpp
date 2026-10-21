@@ -28,7 +28,11 @@ std::string ns_item_line(int id, int q)
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
         static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
-        return std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
+        int tm = rb(G_FAR20A5, (u16)(0x7669 + w)), rl = rb(G_FAR20A5, (u16)(0x77e3 + w));
+        std::string r = std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
+        if (tm) r += ", time for a blow " + std::to_string(tm);
+        if (rl) r += std::string(", time to ") + (w >= 30 ? "reload " : w >= 27 ? "draw and loose " : "throw ") + std::to_string(rl);
+        return r;
     }
     if (d->type >= 67 && d->type <= 84) {
         static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
@@ -204,7 +208,15 @@ std::string ns_item_use(int id)
     case 0x41: case 0x42: return "St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument.";
     case 0x39: case 0x3a: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
         return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for.";
+    /* the quest things and trophies (read from the cards' scripts: add_item, count_items, take_item) */
+    case 0x8c: case 0x8d: case 0x8e: case 0x8f: case 0x90: case 0x91:
+        return "One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it.";
+    case 0x92: return "A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them.";
+    case 0x93: return "A trophy. Nothing in the game asks for it.";
+    case 0x94: return "A skeleton near a cemetery wants its bone back: give it this and it will talk with you.";
+    case 0x95: return "The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure.";
     }
+    if (id >= 129 && id <= 139) return "Wanted by whoever sent you to fetch it: bring it to them (the journal, F12, says who and where).";
     return "";
 }
 

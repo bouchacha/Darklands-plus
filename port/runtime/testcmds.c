@@ -203,6 +203,12 @@ int testcmd_run(const char *cmd, const char *arg)
             u16 a[10] = { 0xfffe, g_rw(GV_cur_loc), (u16)S, 0x28, (u16)k, (u16)fee, 0, 168, 0, 0 };
             fprintf(stderr, "teacher of skill %d (ability %d, fee %d) at %d: event %d\n", k, S, fee, (s16)g_rw(GV_cur_loc), game_call_far(GF_event_new, 10, a));
         }
+        else if (!strcmp(cmd, "ufar")) {                /* debug: n bytes of far data 20a5 at offset off (hex): ufar:7669,40 */
+            unsigned of = 0; int n = 16; sscanf(arg, "%x,%d", &of, &n);
+            fprintf(stderr, "far 20a5:%04x:", of);
+            for (int k = 0; k < n && k < 256; k++) fprintf(stderr, " %d", rb(G_FAR20A5, (u16)(of + k)));
+            fprintf(stderr, "\n");
+        }
         else if (!strcmp(cmd, "upoke")) {               /* debug: byte at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, v = 0; sscanf(arg, "%x,%x,%x", &sg, &of, &v);
             wb((u16)(LOADSEG + sg), (u16)of, (u8)v);

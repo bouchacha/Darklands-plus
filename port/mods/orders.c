@@ -192,6 +192,18 @@ static void to_melee(int i, int t, int beside)
     g_wb((u16)(GV_cbt_state + i), 0);
     fprintf(stderr, "orders: member %d puts the missile weapon away for %d (%s)\n", i, t, beside ? "beside it" : "walking to it");
 }
+/* the member's next shot comes soon: loosing, ready, aiming, or near the end of reloading
+   (cbt_missile_action, s014 0e76:1288: action 1 loose, 9 reload, 10 aim, 7 ready; the aim ends at
+   DS:daa3[i], in combat clock ticks) - a foe a few paces off is shot at first */
+#define D_AIM_END 0xdaa3
+static int shot_soon(int i)
+{
+    if (g_rb((u16)(GV_cbt_state + i))) return 0;                              /* (no line, nothing to shoot) */
+    int a = g_rb((u16)(GV_cbt_action + i));
+    if (a == 1 || a == 7 || a == 10) return 1;
+    if (a == 9) return (s16)(g_rw((u16)(D_AIM_END + 2 * i)) - g_rw(GV_combat_clock)) <= 30;
+    return 0;
+}
 static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchanges() */
 {
     hook_call_original();
@@ -206,7 +218,8 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         if (near >= 0) { to_melee(i, near, 1); continue; }
         for (int j = 5; j < 13 && near < 0; j++)                              /* (a foe within some five paces: it closes in) */
             if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && g_rb((u16)(GV_cbt_floor + j)) == g_rb((u16)(GV_cbt_floor + i)) && near_foe_of(i, j)) near = j;
-        if (near >= 0) { to_melee(i, near, 0); continue; }
+        if (near >= 0 && !shot_soon(i)) { to_melee(i, near, 0); continue; }
+        if (near >= 0) continue;                                              /* (the shot first: the foe is not yet beside it) */
         if (t < 5 || t >= 13 || g_rb((u16)(D_CBT + t * 0x80 + 0x14)) != 1) continue;
         int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;
         for (int p = 0; p < 5; p++) if (p != i && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + t))) engaged = 1;
@@ -324,9 +337,24 @@ static int give_pending, foe_pending = -1;
    does not end it.) */
 u32 plat_ticks_ms(void);
 static int running; static u32 run_since;
+/* a member chosen by the player (a key 1..5, a click on them or on their box) as opposed to the
+   battle's own choosing (its start, a pause for orders): only the player's choice, made while the
+   battle runs, lets the order resume it */
+static u32 user_pick_t; static int own_select;
+static void pick_key_hook(void)                 /* s016 1ef8:0a2c (i): a member chosen */
+{
+    if (!own_select) user_pick_t = plat_ticks_ms();
+    hook_call_original();
+}
+static void pick_mouse_hook(void)               /* s014 19cd:0006 combat_mouse () */
+{
+    if (g_rb(GV_mouse_buttons) & 1) user_pick_t = plat_ticks_ms();
+    hook_call_original();
+}
 static void enter_hook(void)                    /* s014 19cd:069c order_mode_enter() */
 {
-    if (g_rb(GV_ai_paused) == 0 && running && plat_ticks_ms() - run_since >= 300) resume_after = 1;
+    u32 now = plat_ticks_ms();
+    if (g_rb(GV_ai_paused) == 0 && running && now - run_since >= 300 && now - user_pick_t < 600) resume_after = 1;
     hint_sel = -1;
     hook_call_original();
 }
@@ -398,7 +426,7 @@ static void give_now(void)
     int n = config_get_int("battle.next_member", 1) ? next_waiting(i) : -1;
     if (n >= 0) fprintf(stderr, "orders: member %d's order given, the next to choose for: %d\n", i, n);
     else fprintf(stderr, "orders: member %d's order given\n", i);
-    if (n >= 0) ns_call(16, 0x1ef8, 0x0a2c, 1, n);      /* (as the key 1..5: chosen at the next tick) */
+    if (n >= 0) { own_select = 1; ns_call(16, 0x1ef8, 0x0a2c, 1, n); own_select = 0; }   /* (as the key 1..5: chosen at the next tick) */
 }
 static void input_hook(void)                    /* s014 0e76:3166 combat_input() */
 {
@@ -441,6 +469,8 @@ void orders_init(void)
     hook_install(14, 0x19cd, 0x0ad4, hover_hook);
     hook_install(14, 0x19cd, 0x0dcc, click_hook);
     hook_install(GF_order_mode_enter, enter_hook);
+    hook_install(16, 0x1ef8, 0x0a2c, pick_key_hook);
+    hook_install(GF_combat_mouse, pick_mouse_hook);
     hook_install(16, 0x1ef8, 0x13d4, cancel_hook);
     hook_install(16, 0x1ef8, 0x1590, place_hook);
     hook_install(16, 0x1ef8, 0x156e, attack_hook);

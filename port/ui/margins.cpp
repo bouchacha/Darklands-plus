@@ -378,7 +378,7 @@ static const char *order_tip(int kind)
     case OI_EXIT: return "Leave the battlefield by the way out beside the member.";
     case OI_CANCEL: return "Stop giving this member an order (the key: Esc); the battle stays paused.";
     case OI_ATTACK: return "Then click an enemy: a standard attack, balanced between blows and guard.";
-    case OI_VULNERABLE: return "Then click an enemy: heavy blows (1 to 4 more penetration, good against armour), but fewer of them and a weaker guard.";
+    case OI_VULNERABLE: return "Then click an enemy: blows aimed at the gaps in the armour (1 to 4 more penetration), but slower and a little less likely to land.";
     case OI_BERSERK: return "Then click an enemy: quick, furious blows without thought of defence.";
     case OI_PARRY: return "Then click an enemy: the member mostly defends, hard to hit, striking back only now and then.";
     case OI_MISSILE: return "Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed).";
@@ -833,8 +833,10 @@ static void night_streets(bool night)
 /* no right margin to hold them (a window narrower than 16:9, as a 4:3 screen or 1680 x 1050): the
    order buttons in a strip at the foot of the battlefield while a member is given orders
    (battle.order_bar); their clicks come through margins_click, as the margin's */
+extern "C" { float ui_orderbar_top = 0; }       /* the strip's top while shown, else 0 (the battle log keeps above it) */
 static void order_bar(float x0, float x1, float y1)
 {
+    ui_orderbar_top = 0;
     if (!battle_showing() || config_get_int("original", 0) || !config_get_int("battle.order_bar", 1) || !menuview_is_on() || g_rb(GV_order_mode) != 1) return;
     float fs = std::max(ui_text_px() * 0.85f, 14.0f), w = (x1 - x0) * 0.94f;
     ImGui::SetNextWindowPos(ImVec2((x0 + x1) * 0.5f, y1 - fs * 0.4f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
@@ -850,6 +852,7 @@ static void order_bar(float x0, float x1, float y1)
         ImGui::SetWindowFontScale(fs / ui_font_overlay->FontSize);
         order_buttons(w - fs * 1.2f);
         ImGui::PopFont();
+        ui_orderbar_top = ImGui::GetWindowPos().y;
     }
     ImGui::End();
     ImGui::PopStyleColor(3);
@@ -865,6 +868,7 @@ extern "C" void ui_margins(void)
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     float left = x0, right = io.DisplaySize.x - x1;
     if (!ui_margins_on || right < 150) order_bar(x0 + (x1 - x0) * 60 / 320, x1, y1);   /* (the field: right of the party's panel) */
+    else ui_orderbar_top = 0;
     if (!ui_margins_on) return;
     if (left < 150 && right < 150) return;
     float h = io.DisplaySize.y;
