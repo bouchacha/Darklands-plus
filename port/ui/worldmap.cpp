@@ -1069,6 +1069,7 @@ extern "C" void travelmap_labels(void)
     }
 }
 
+float ui_face_k(ImFont *f);                                  /* overlay.cpp */
 /* assist.docks_map: beside the docks' list of boats ($Docks00), a small map of the town and the
    towns its boats go to, the way each boat takes along the rivers and coasts. The boats leaving
    today are bright (a click chooses that boat on the card), the others faded; the option under
@@ -1090,10 +1091,11 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
     }
     float ay = aspect();
     ImFont *ft = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
-    float fsz = fmaxf(17.0f, ui_text_px() * 0.8f), title = fsz * 1.6f, pad = fsz * 0.6f;
+    float fsz = fmaxf(22.0f, ui_text_px()), title = fsz * 1.5f, pad = fsz * 0.5f;
+    const float tk = ui_face_k(ft);   /* (the face's letters to the size asked) */
     float mx0 = x0 + pad, my0 = y0 + title, mx1 = x1 - pad, my1 = y1 - pad;
     float m = 60;                                                 /* (room round the towns for their names) */
-    bx0 -= m * 1.6f; bx1 += m * 1.6f; by0 -= m; by1 += m;
+    bx0 -= m * 1.6f; bx1 += m * 1.6f; by0 -= m; by1 += m * 2.2f;      /* (more below: the names hang under the towns) */
     float z = fminf((mx1 - mx0) / (bx1 - bx0), (my1 - my0) / ((by1 - by0) * ay));
     if (z > 1.0f) z = 1.0f;
     float vcx = (bx0 + bx1) * 0.5f, vcy = (by0 + by1) * 0.5f;
@@ -1117,12 +1119,12 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
     if (orn_on()) orn_gilt_frame(dl, ImVec2(x0, y0), ImVec2(x1, y1), fsz * 0.8f);
     std::string hn = here < (int)gamedata.cities.size() ? gamedata.cities[here].name : std::string("here");
     std::string tt = "Boats from " + hn;
-    dl->AddText(ft, fsz * 1.05f, ImVec2(mx0, y0 + (title - fsz * 1.05f) * 0.5f), IM_COL32(44, 26, 10, 255), tt.c_str());
+    dl->AddText(ft, fsz * 1.05f * tk, ImVec2(mx0, y0 + (title - fsz * 1.05f * tk) * 0.5f), IM_COL32(44, 26, 10, 255), tt.c_str());
     {
         const char *lg = "faded: leaves later this week";
-        ImVec2 ls = ft->CalcTextSizeA(fsz * 0.8f, FLT_MAX, 0, lg);
-        if (mx1 - ls.x > mx0 + ft->CalcTextSizeA(fsz * 1.05f, FLT_MAX, 0, tt.c_str()).x + fsz)
-            dl->AddText(ft, fsz * 0.8f, ImVec2(mx1 - ls.x, y0 + (title - ls.y) * 0.5f), IM_COL32(92, 60, 30, 200), lg);
+        ImVec2 ls = ft->CalcTextSizeA(fsz * 0.8f * tk, FLT_MAX, 0, lg);
+        if (mx1 - ls.x > mx0 + ft->CalcTextSizeA(fsz * 1.05f * tk, FLT_MAX, 0, tt.c_str()).x + fsz)
+            dl->AddText(ft, fsz * 0.8f * tk, ImVec2(mx1 - ls.x, y0 + (title - ls.y) * 0.5f), IM_COL32(92, 60, 30, 200), lg);
     }
     dl->PushClipRect(ImVec2(mx0, my0), ImVec2(mx1, my1), true);
     int l = 0;
@@ -1168,7 +1170,7 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
             }
         }
     auto label = [&](ImVec2 c, const std::string &s, ImU32 col, bool bold) {
-        float fs2 = fsz * (bold ? 1.0f : 0.9f);
+        float fs2 = fsz * tk * (bold ? 1.0f : 0.9f);
         ImVec2 ts = ft->CalcTextSizeA(fs2, FLT_MAX, 0, s.c_str());
         ImVec2 p(c.x - ts.x * 0.5f, c.y + fsz * 0.9f);
         dl->AddRectFilled(ImVec2(p.x - 3, p.y - 1), ImVec2(p.x + ts.x + 3, p.y + ts.y), IM_COL32(240, 226, 192, bold ? 235 : 190), 3);
