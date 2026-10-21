@@ -29,6 +29,7 @@ void ovl_changed(void);
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "saves.h"
+#include "assist.h"
 #include "nscreen.h"
 #include "savesview.h"
 
@@ -337,9 +338,27 @@ static void load_hook(void)                /* load_game () */
     load_stage = 0;
 }
 
+/* the card's option switches (DS:ee76.., set by the card's script as its menu comes up) as they
+   were while the menu was up. A save before a battle is made after the option chosen has run,
+   which may have used them for something else (the boars' "use your horses" switch was left on);
+   loaded, the card's menu comes up again from the saved switches without its script, and offered
+   the horses to a party without any. The battle's autosave keeps the menu's switches instead */
+static char menu_card[16]; static u16 menu_flags[10];
+static void note_menu_flags(void)
+{
+    if (!assist_in_card_menu()) return;
+    g_str(G_DGROUP, GV_card_name, menu_card, sizeof menu_card);
+    for (int k = 0; k < 10; k++) menu_flags[k] = g_rw((u16)(GV_opt_flag_0 + 2 * k));
+}
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 {
-    if (saves_on && saves_auto_battle && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) do_save("Autosave: battle");
+    if (saves_on && saves_auto_battle && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) {
+        char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        u16 now[10]; int swap = menu_card[0] && !strcmp(cn, menu_card);
+        for (int k = 0; k < 10; k++) { now[k] = g_rw((u16)(GV_opt_flag_0 + 2 * k)); if (swap) g_ww((u16)(GV_opt_flag_0 + 2 * k), menu_flags[k]); }
+        do_save("Autosave: battle");
+        for (int k = 0; k < 10; k++) g_ww((u16)(GV_opt_flag_0 + 2 * k), now[k]);
+    }
     hook_call_original();
 }
 
@@ -347,6 +366,7 @@ static int last_loc = -2;
 void saves_frame(void)
 {
     { void saves_note_game(void); saves_note_game(); }
+    note_menu_flags();
     if (load_stage == 1 && plat_ticks_ms() - load_t > 30000) load_stage = 0;    /* never a moment to load */
     if (!saves_on || game_mode() == GM_OTHER) { last_loc = -2; return; }
     int loc = (s16)g_rw(G_CUR_LOC);
