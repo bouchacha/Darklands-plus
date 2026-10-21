@@ -22,6 +22,7 @@ extern "C" {
  * day blue above the horizon, the night below with its stars, a red band at dawn and at dusk.
  * Under it a banderole with the canonical hour and the day. The hand sweeps from one bell to the
  * next. (display.clock: 1 this, 0 the game's own) */
+void ui_draw_hourglass_original(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
 static const char *ROMAN[12] = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" };
 static void period_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
 {
@@ -112,9 +113,102 @@ static void period_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour,
     dl->AddText(f, fs2, ImVec2(tx + ts.x + R * 0.12f, by + (bh - ts2.y) * 0.5f + fs * 0.08f), IM_COL32(236, 206, 170, 255), dd);
 }
 
+/* ---------------------------------------------------------------- the game's armillary, drawn anew
+ * The game's clock is an armillary sphere - bronze rings for the heavens round a disc of day and
+ * night - over a plate with three windows (hours, days, months). Here the same, drawn smooth at any
+ * size: the outer ring with its studs and a fleur-de-lis on top, the crossing rings of the
+ * meridian and the ecliptic, and in the middle the disc, its day half (the sun) and night half (the
+ * moon) turning with the hours instead of in eight jumps. */
+static void armillary_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
+{
+    const float PI = 3.14159265f;
+    ImVec2 c(tl.x + 60 * kx, tl.y + 41 * k);
+    float R = 36 * k;
+    static float shown = -1; static double last_t;
+    double now = ImGui::GetTime();
+    if (shown < 0 || now - last_t > 1.0) shown = (float)hour;
+    float d = fmodf((float)hour - shown + 36.0f, 24.0f) - 12.0f;
+    shown = fmodf(shown + d * fminf(1.0f, (float)(now - last_t) * 5.0f) + 24.0f, 24.0f);
+    last_t = now;
+    const ImU32 bronze = IM_COL32(176, 104, 38, 255), bronzel = IM_COL32(230, 160, 70, 255), bronzed = IM_COL32(96, 52, 18, 255),
+                gold = IM_COL32(246, 210, 80, 255), ink = IM_COL32(24, 14, 6, 255);
+    float th = fmaxf(2.0f, R * 0.13f);
+    /* the crossing rings behind the disc */
+    auto ellipse = [&](float rx, float ry, float rot, ImU32 col, float w) {
+        const int N = 48; ImVec2 pts[N];
+        for (int i = 0; i < N; i++) { float a = i * 2 * PI / N, x = cosf(a) * rx, y = sinf(a) * ry; pts[i] = ImVec2(c.x + x * cosf(rot) - y * sinf(rot), c.y + x * sinf(rot) + y * cosf(rot)); }
+        dl->AddPolyline(pts, N, col, ImDrawFlags_Closed, w);
+    };
+    dl->AddCircleFilled(c, R, IM_COL32(20, 12, 6, 230), 64);
+    ellipse(R * 0.78f, R * 0.34f, 0.0f, bronzed, th * 0.75f);
+    ellipse(R * 0.36f, R * 0.80f, 0.0f, bronzed, th * 0.75f);
+    ellipse(R * 0.78f, R * 0.30f, 0.42f, bronze, th * 0.6f);
+    ellipse(R * 0.78f, R * 0.30f, -0.42f, bronze, th * 0.6f);
+    /* the disc of day and night, turning */
+    float rd = R * 0.36f, a = (shown - 12.0f) / 24.0f * 2 * PI;     /* (the sun at the top at noon) */
+    dl->AddCircleFilled(c, rd, IM_COL32(20, 48, 110, 255), 40);        /* night */
+    dl->PathArcTo(c, rd, a - PI, a, 24); dl->PathFillConvex(IM_COL32(178, 190, 200, 255));   /* day: the half towards the sun */
+    ImVec2 sun(c.x + sinf(a) * rd * 0.58f, c.y - cosf(a) * rd * 0.58f), moon(c.x - sinf(a) * rd * 0.58f, c.y + cosf(a) * rd * 0.58f);
+    dl->AddCircleFilled(sun, rd * 0.28f, IM_COL32(252, 236, 60, 255), 20);
+    dl->AddCircleFilled(moon, rd * 0.2f, IM_COL32(170, 176, 186, 255), 20);
+    dl->AddCircle(c, rd, bronzed, 40, th * 0.5f);
+    /* the outer ring, its studs, and the fleur-de-lis */
+    dl->AddCircle(c, R - th * 0.5f, bronze, 64, th);
+    dl->AddCircle(c, R - th * 0.15f, bronzel, 64, fmaxf(1.0f, th * 0.25f));
+    dl->AddCircle(c, R - th, bronzed, 64, fmaxf(1.0f, th * 0.2f));
+    for (int i = 0; i < 12; i++) { float b = i * PI / 6; dl->AddCircleFilled(ImVec2(c.x + cosf(b) * (R - th * 0.5f), c.y + sinf(b) * (R - th * 0.5f)), th * 0.22f, gold, 8); }
+    ImVec2 top(c.x, c.y - R);
+    dl->AddTriangleFilled(ImVec2(top.x, top.y - R * 0.3f), ImVec2(top.x - R * 0.06f, top.y), ImVec2(top.x + R * 0.06f, top.y), gold);
+    dl->AddBezierQuadratic(ImVec2(top.x - R * 0.02f, top.y - R * 0.05f), ImVec2(top.x - R * 0.2f, top.y - R * 0.2f), ImVec2(top.x - R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
+    dl->AddBezierQuadratic(ImVec2(top.x + R * 0.02f, top.y - R * 0.05f), ImVec2(top.x + R * 0.2f, top.y - R * 0.2f), ImVec2(top.x + R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
+    dl->AddRectFilled(ImVec2(top.x - R * 0.12f, top.y - R * 0.02f), ImVec2(top.x + R * 0.12f, top.y + R * 0.05f), gold);
+    dl->AddRectFilled(ImVec2(c.x - R * 0.12f, c.y + R - R * 0.05f), ImVec2(c.x + R * 0.12f, c.y + R + R * 0.06f), gold);   /* (the foot) */
+    /* the plate with its three windows */
+    float py0 = tl.y + 79 * k, py1 = tl.y + 101 * k;
+    ImVec2 a0(tl.x + 2 * kx, py0), a1(tl.x + 118 * kx, py1);
+    dl->AddRectFilled(a0, a1, IM_COL32(120, 72, 36, 255), 3 * k);
+    dl->AddRect(a0, a1, bronzel, 3 * k, 0, fmaxf(1.0f, k));
+    ImFont *f = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    char bell[24]; gm_hour_name(hour, bell, sizeof bell);
+    std::string b = ns_gtext(bell);
+    char dd[8], mm[8]; snprintf(dd, sizeof dd, "%d", day); snprintf(mm, sizeof mm, "%d", month % 12 + 1);
+    auto win = [&](float x0, float x1, const char *t, const char *lab) {
+        ImVec2 w0(tl.x + x0 * kx, py0 + 2 * k), w1(tl.x + x1 * kx, py0 + 12 * k);
+        dl->AddRectFilled(w0, w1, ink, 1.5f * k);
+        dl->AddRect(w0, w1, gold, 1.5f * k, 0, fmaxf(1.0f, 0.8f * k));
+        float fs = 8.0f * k; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, t);
+        if (ts.x > w1.x - w0.x - 3) { fs *= (w1.x - w0.x - 3) / ts.x; ts = f->CalcTextSizeA(fs, FLT_MAX, 0, t); }
+        dl->AddText(f, fs, ImVec2((w0.x + w1.x - ts.x) * 0.5f, (w0.y + w1.y - ts.y) * 0.5f), IM_COL32(252, 236, 84, 255), t);
+        float ls = 5.5f * k; ImVec2 lsz = f->CalcTextSizeA(ls, FLT_MAX, 0, lab);
+        dl->AddText(f, ls, ImVec2((w0.x + w1.x - lsz.x) * 0.5f, w1.y + 0.8f * k), IM_COL32(250, 214, 140, 255), lab);
+    };
+    win(7, 61, b.c_str(), "HOURS");
+    win(68, 87, dd, "DAYS");
+    win(93, 113, mm, "MONTHS");
+}
+
+const char *ui_clock_name(int k) { return k == 0 ? "The game's own" : k == 1 ? "Tower dial (about 1400)" : "Armillary, drawn anew"; }
+void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
+{
+    if (style == 1) period_clock(dl, tl, kx, k, hour, day, month);
+    else if (style == 2) armillary_clock(dl, tl, kx, k, hour, day, month);
+    else {
+        const GamePic *base = gamepic("PICS\\TIMER01.PIC");
+        if (!base || !base->tex) { armillary_clock(dl, tl, kx, k, hour, day, month); return; }
+        ui_draw_hourglass_original(dl, tl, kx, k, hour, day, month);
+    }
+}
+
 void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
 {
-    if (config_get_int("display.clock", 1)) { period_clock(dl, tl, kx, k, hour, day, month); return; }
+    int st = config_get_int("display.clock", 1);
+    if (st == 1) { period_clock(dl, tl, kx, k, hour, day, month); return; }
+    if (st == 2) { armillary_clock(dl, tl, kx, k, hour, day, month); return; }
+    ui_draw_hourglass_original(dl, tl, kx, k, hour, day, month);
+}
+
+void ui_draw_hourglass_original(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
+{
     const GamePic *base = gamepic("PICS\\TIMER01.PIC");
     if (!base || !base->tex) return;
     dl->AddImage((ImTextureID)(intptr_t)base->tex, tl, ImVec2(tl.x + base->w * kx, tl.y + base->h * k));

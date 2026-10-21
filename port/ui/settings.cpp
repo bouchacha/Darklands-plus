@@ -504,6 +504,34 @@ void tab_display(void)
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
+    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Clock"); ImGui::PopFont();
+    {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
+        void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
+        const char *ui_clock_name(int k);
+        int cur = config_get_int("display.clock", 1);
+        float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+        static const int ORDER[3] = { 1, 2, 0 };
+        for (int j = 0; j < 3; j++) {
+            int st = ORDER[j];
+            if (j) ImGui::SameLine();
+            ImGui::PushID(st);
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("clk", ImVec2(cw, ch))) { config_set_int("display.clock", st); ui_dirty_config = 1; cur = st; }
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+            dl->PushClipRect(p, ImVec2(p.x + cw, p.y + ch), true);
+            ui_draw_clock_style(st, dl, ImVec2(p.x + 10 * k, p.y + 6 * k), k, k, 9, 10, 11);
+            dl->PopClipRect();
+            const char *n = ui_clock_name(st);
+            ImVec2 ts = ImGui::CalcTextSize(n);
+            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
+            ImGui::PopID();
+        }
+        ui_hint("Shown while hours pass (at the inn, waiting, travelling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
+                "the game's own clock is an armillary sphere, here also drawn anew at the window's resolution.");
+    }
+
     ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
     static const char *ids[] = { "auto", "mt32", "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {

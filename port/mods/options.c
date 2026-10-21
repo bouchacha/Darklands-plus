@@ -52,7 +52,6 @@ static const int V_RATE[] = { 25, 50, 100, 200 };
 
 /* key, section, parent, title, description, class, original, Darklands+, Easy, choices, values, apply, note, flags */
 static Option OPTIONS[] = {
-    { "display.clock", S_SCREENS, 0, "The clock as time passes", "the Darklands+ clock, after the great clocks of about 1400 (a 24-hour dial, the sun on its hand), or the game's own.", OC_TASTE, 0, 1, 1, "The game's own|Darklands+", V_CLOCK, 0, 0, OF_COMBO },
     { "display.native_panel", S_SCREENS, 0, "New party panel", "each member's Endurance, Strength and Divine Favor as labelled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name.", OC_SHOW, 0, 1, 1 },
     { "display.panel_picture", S_SCREENS, "display.native_panel", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "Your portrait, else the battle sprite, else the shield emblem|The battle sprite, else the shield emblem|The shield emblem|No picture", V_PICTURE, 0, 0, OF_COMBO },
     { "display.native_menu", S_SCREENS, 0, "New menus", "the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held.", OC_SHOW, 0, 1, 1, 0, 0, menuview_set },
