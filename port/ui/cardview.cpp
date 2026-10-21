@@ -35,6 +35,7 @@ extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
 extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 extern "C" int cardview_dialog;
+extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int here, const int *dest, const int *opt, const int *state, int n, int hover_opt);
 extern "C" u32 plat_ticks_ms(void);
 extern "C" const char *card_hint(const char *card, int opt);     /* ui/cardhints.cpp */
 static const char *greyed_hint(const CvPiece &p)                  /* why this greyed option cannot be chosen, if known */
@@ -493,6 +494,28 @@ extern "C" void cardview_draw(void)
             if (formulas) ImGui::TextDisabled("(click to choose who learns one; point at a formula there for its details)");
             else if (p.state == 1) ImGui::TextDisabled("(click to choose who)");
             ImGui::EndTooltip();
+        }
+    }
+    /* the docks' boats (assist.docks_map): a small map of where they go, under the list */
+    if (menu && config_get_int("assist.docks_map", 1)) {
+        char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        int here = (s16)g_rw(G_CUR_LOC);
+        if (!strcasecmp(cn, "$DOCKS00") && here >= 0 && here < (int)gamedata.cities.size()) {
+            int dest[5], opt[5], st[5], n = 0, hov = -1;
+            for (int j = 0; j < c.npieces && n < 5; j++) {
+                const CvPiece &p = c.piece[j];
+                if (!p.is_opt || p.opt < 0 || p.opt > 4 || (p.state != 1 && p.state != 2)) continue;
+                int d = gamedata.cities[here].docks[p.opt];
+                if (d < 0 || d >= (int)gamedata.cities.size() || d == here) continue;
+                dest[n] = d; opt[n] = p.opt; st[n] = p.state; n++;
+                if (c.hover == j || (c.key_line >= 0 && p.line == c.key_line)) hov = p.opt;
+            }
+            ImVec2 p1 = g2w(312, 194);
+            float y0 = by1 + 4 * k, y1 = p1.y - 4 * k, x0 = bx0, x1 = fminf(p1.x - 4 * k, bx0 + (y1 - y0) * 1.9f);
+            if (n > 0 && y1 - y0 > 40 * k) {
+                int o = worldmap_docks_inset(x0, y0, x1, y1, here, dest, opt, st, n, hov);
+                if (o >= 0) cardview_choose(o);
+            }
         }
     }
 }

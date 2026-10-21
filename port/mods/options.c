@@ -86,6 +86,7 @@ static Option OPTIONS[] = {
     { "assist.goto_work", S_CARDS, "assist.city_goto", "Who has work", "beside the Fugger, the Medici, the Hanse, the cathedral, the council, the lord and the market stalls: the chance that asking brings a task, or the date until which they have none (or that a task for them is under way, or its reward is waiting).", OC_SHOW, 0, 1, 1 },
     { "assist.teachers", S_CARDS, 0, "Teachers", "a lectern icon beside a card option that brings a teacher to the inn, with what, how well and at what fee; the teachers each town can offer, in the margin and on the map.", OC_SHOW, 0, 1, 1 },
     { "assist.city_goto", S_CARDS, 0, "Go to (G)", "G on a town's card lists its places; pick one and the party walks there through the menus.", OC_EASE, 0, 1, 1 },
+    { "assist.docks_map", S_CARDS, 0, "Map at the docks", "beside the docks' list of boats, a small map of the towns they go to and the way each takes along the rivers and coasts; a click on a town takes that boat.", OC_EASE, 0, 1, 1 },
     { "journal.enabled", S_CARDS, 0, "Town journal", "each town's shops, their wares, qualities and prices, noted on arrival (F12 > Journal).", OC_SHOW, 0, 1, 1 },
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle).", OC_SHOW, 0, 1, 1 },
 

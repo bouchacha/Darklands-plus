@@ -1067,3 +1067,131 @@ extern "C" void travelmap_labels(void)
         }
     }
 }
+
+/* assist.docks_map: beside the docks' list of boats ($Docks00), a small map of the town and the
+   towns its boats go to, the way each boat takes along the rivers and coasts. The boats leaving
+   today are bright (a click chooses that boat on the card), the others faded; the option under
+   the pointer on the card lights its way. Returns the option clicked on the map, or -1. */
+extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int here, const int *dest, const int *opt,
+                                    const int *state, int n, int hover_opt)
+{
+    if (n <= 0 || x1 - x0 < 80 || y1 - y0 < 60 || !worldmap_build()) return -1;
+    upload();
+    auto loc_px = [](int loc, float *x, float *y) {
+        u32 r = g_location(loc); if (!r) return false;
+        tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), x, y); return true; };
+    float hx, hy; if (!loc_px(here, &hx, &hy)) return -1;
+    float bx0 = hx, by0 = hy, bx1 = hx, by1 = hy;
+    for (int i = 0; i < n; i++) {
+        const short *xs, *ys; int m = travel_boat_way(here, dest[i], &xs, &ys);
+        for (int k = 0; k < m; k++) { float x, y; tile_px(xs[k], ys[k], &x, &y); bx0 = fminf(bx0, x); bx1 = fmaxf(bx1, x); by0 = fminf(by0, y); by1 = fmaxf(by1, y); }
+        float x, y; if (loc_px(dest[i], &x, &y)) { bx0 = fminf(bx0, x); bx1 = fmaxf(bx1, x); by0 = fminf(by0, y); by1 = fmaxf(by1, y); }
+    }
+    float ay = aspect();
+    ImFont *ft = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    float fsz = fmaxf(17.0f, ui_text_px() * 0.8f), title = fsz * 1.6f, pad = fsz * 0.6f;
+    float mx0 = x0 + pad, my0 = y0 + title, mx1 = x1 - pad, my1 = y1 - pad;
+    float m = 60;                                                 /* (room round the towns for their names) */
+    bx0 -= m * 1.6f; bx1 += m * 1.6f; by0 -= m; by1 += m;
+    float z = fminf((mx1 - mx0) / (bx1 - bx0), (my1 - my0) / ((by1 - by0) * ay));
+    if (z > 1.0f) z = 1.0f;
+    float vcx = (bx0 + bx1) * 0.5f, vcy = (by0 + by1) * 0.5f;
+    float hw = (mx1 - mx0) * 0.5f / z, hh = (my1 - my0) * 0.5f / (z * ay);  /* the view fills the box (and stays on the map) */
+    vcx = fminf(fmaxf(vcx, hw), worldmap.full_w - hw); vcy = fminf(fmaxf(vcy, hh), worldmap.full_h - hh);
+    ImVec2 mid((mx0 + mx1) * 0.5f, (my0 + my1) * 0.5f);
+    auto to_scr = [&](float x, float y) { return ImVec2(mid.x + (x - vcx) * z, mid.y + (y - vcy) * z * ay); };
+
+    ImGui::SetNextWindowPos(ImVec2(x0, y0));
+    ImGui::SetNextWindowSize(ImVec2(x1 - x0, y1 - y0));
+    ImGui::SetNextWindowBgAlpha(0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    ImGui::Begin("##docksmap", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                 ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::PopStyleVar(2);
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    float rr = fsz * 0.35f;
+    dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(240, 226, 192, 232), rr);
+    dl->AddRect(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(120, 80, 36, 140), rr, 0, 1.5f);
+    std::string hn = here < (int)gamedata.cities.size() ? gamedata.cities[here].name : std::string("here");
+    std::string tt = "Boats from " + hn;
+    dl->AddText(ft, fsz * 1.05f, ImVec2(mx0, y0 + (title - fsz * 1.05f) * 0.5f), IM_COL32(44, 26, 10, 255), tt.c_str());
+    {
+        const char *lg = "faded: leaves later this week";
+        ImVec2 ls = ft->CalcTextSizeA(fsz * 0.8f, FLT_MAX, 0, lg);
+        if (mx1 - ls.x > mx0 + ft->CalcTextSizeA(fsz * 1.05f, FLT_MAX, 0, tt.c_str()).x + fsz)
+            dl->AddText(ft, fsz * 0.8f, ImVec2(mx1 - ls.x, y0 + (title - ls.y) * 0.5f), IM_COL32(92, 60, 30, 200), lg);
+    }
+    dl->PushClipRect(ImVec2(mx0, my0), ImVec2(mx1, my1), true);
+    int l = 0;
+    while (l < WM_LEVELS - 1 && z * (2 << l) < 0.75f) l++;
+    if (tex[l]) {
+        ImVec2 a = to_scr(0, 0), b = to_scr((float)worldmap.full_w, (float)worldmap.full_h);
+        dl->AddImage((ImTextureID)tex[l], a, b);
+    }
+    float t = (float)ImGui::GetTime();
+    ImGuiIO &io = ImGui::GetIO();
+    int over = -1;
+    std::vector<ImVec2> dpos(n);
+    for (int i = 0; i < n; i++) { float x, y; dpos[i] = loc_px(dest[i], &x, &y) ? to_scr(x, y) : ImVec2(-1e5f, -1e5f); }
+    for (int i = 0; i < n; i++) {
+        float dx = io.MousePos.x - dpos[i].x, dy = io.MousePos.y - dpos[i].y;
+        if (state[i] == 1 && dx * dx + dy * dy < (fsz * 1.6f) * (fsz * 1.6f) && ImGui::IsWindowHovered()) over = i;
+    }
+    for (int pass = 0; pass < 2; pass++)                          /* the faded ways first, the lit one on top */
+        for (int i = 0; i < n; i++) {
+            bool lit = over == i || (over < 0 && hover_opt >= 0 && opt[i] == hover_opt);
+            if ((pass == 1) != lit) continue;
+            const short *xs, *ys; int m2 = travel_boat_way(here, dest[i], &xs, &ys);
+            std::vector<ImVec2> pts;
+            if (m2 >= 2) for (int k = 0; k < m2; k++) { float x, y; tile_px(xs[k], ys[k], &x, &y); pts.push_back(to_scr(x, y)); }
+            else { pts.push_back(to_scr(hx, hy)); pts.push_back(dpos[i]); }
+            float lw = lit ? 3.2f : 2.2f;
+            int al = state[i] == 1 ? 255 : 110;
+            dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(20, 60, 140, lit ? 150 : al / 3), 0, lw * 3.0f);
+            float dash = 9 * lw, gap = 6 * lw, acc = -fmodf(t * 18 * lw, dash + gap);
+            ImU32 dc = lit ? IM_COL32(255, 236, 150, 255) : IM_COL32(170, 215, 255, al);
+            for (size_t k = 1; k < pts.size(); k++) {
+                ImVec2 p0 = pts[k - 1], p1 = pts[k];
+                float L = sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+                if (L <= 0) continue;
+                for (float s0 = 0; s0 < L;) {
+                    float cyc = fmodf(acc + s0 + 10000 * (dash + gap), dash + gap);
+                    float run = cyc < dash ? fminf(dash - cyc, L - s0) : fminf(dash + gap - cyc, L - s0);
+                    if (cyc < dash) dl->AddLine(ImVec2(p0.x + (p1.x - p0.x) * s0 / L, p0.y + (p1.y - p0.y) * s0 / L),
+                                                ImVec2(p0.x + (p1.x - p0.x) * (s0 + run) / L, p0.y + (p1.y - p0.y) * (s0 + run) / L), dc, lw);
+                    s0 += fmaxf(run, 0.5f);
+                }
+                acc += L;
+            }
+        }
+    auto label = [&](ImVec2 c, const std::string &s, ImU32 col, bool bold) {
+        float fs2 = fsz * (bold ? 1.0f : 0.9f);
+        ImVec2 ts = ft->CalcTextSizeA(fs2, FLT_MAX, 0, s.c_str());
+        ImVec2 p(c.x - ts.x * 0.5f, c.y + fsz * 0.9f);
+        dl->AddRectFilled(ImVec2(p.x - 3, p.y - 1), ImVec2(p.x + ts.x + 3, p.y + ts.y), IM_COL32(240, 226, 192, bold ? 235 : 190), 3);
+        dl->AddText(ft, fs2, p, col, s.c_str());
+    };
+    for (int i = 0; i < n; i++) {
+        bool lit = over == i || (over < 0 && hover_opt >= 0 && opt[i] == hover_opt);
+        draw_icon(dl, dpos[i], fsz * 1.5f, 0);
+        if (state[i] != 1) dl->AddCircleFilled(dpos[i], fsz * 0.7f, IM_COL32(236, 226, 204, 150), 20);
+        if (lit) dl->AddCircle(dpos[i], fsz * 1.1f, IM_COL32(200, 120, 20, 255), 24, 2.5f);
+        std::string nm = dest[i] < (int)gamedata.cities.size() ? gamedata.cities[dest[i]].name : std::string("?");
+        label(dpos[i], nm, state[i] == 1 ? IM_COL32(44, 26, 10, 255) : IM_COL32(44, 26, 10, 130), lit);
+    }
+    ImVec2 hp = to_scr(hx, hy);
+    draw_icon(dl, hp, fsz * 1.7f, 0);
+    dl->AddCircle(hp, fsz * 1.2f, IM_COL32(170, 30, 20, 255), 24, 2.5f);
+    label(hp, hn, IM_COL32(120, 20, 10, 255), true);
+    dl->PopClipRect();
+    int clicked = -1;
+    if (over >= 0) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        std::string nm = dest[over] < (int)gamedata.cities.size() ? gamedata.cities[dest[over]].name : std::string("?");
+        ImGui::SetTooltip("Take the boat to %s", nm.c_str());
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) clicked = opt[over];
+    }
+    ImGui::End();
+    return clicked;
+}
