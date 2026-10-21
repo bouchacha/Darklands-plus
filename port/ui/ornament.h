@@ -31,5 +31,9 @@ void orn_septext(const char *label);
 void orn_hairline(ImDrawList *dl, ImVec2 a, ImVec2 b, float g, bool across);
 /* under the chosen tab: a gilt line with a small lozenge in the middle (k: pixels per game row) */
 void orn_tab_mark(ImDrawList *dl, ImVec2 a, ImVec2 b, float k);
+/* a frame or a button in the given style (display.frame_style, display.button_style; see ornament.cpp) */
+void orn_frame_style_box(ImDrawList *dl, ImVec2 a, ImVec2 b, float s, int style);
+void orn_button_style(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool rivets, int style);
+int orn_button_lettered(void);                             /* buttons as words: their labels in ink, not light */
 /* the interface's windows: a plaited band round each (tooltips a gilt rule); before ImGui::Render */
 void orn_windows(void);

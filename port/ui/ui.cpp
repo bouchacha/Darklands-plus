@@ -24,7 +24,7 @@
 extern "C" int saves_loading_cover(void);   /* mods/saves.c */
 void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);   /* ui/hourglass.cpp */
 extern "C" void banner_draw(void);                                   /* ui/banner.cpp */
-extern "C" void worldmap_icon_sheet_draw(void);                      /* ui/worldmap.cpp (a test) */
+extern "C" void worldmap_icon_sheet_draw(void); extern "C" void orn_test_sheet_draw(void);                      /* ui/worldmap.cpp (a test) */
 extern "C" {
 #include "../mods/options.h"
 #include "../runtime/cpu.h"
@@ -1115,7 +1115,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ui_cursor();
     ui_alert_draw();
     draw_icon_grid();
-    worldmap_icon_sheet_draw();
+    worldmap_icon_sheet_draw(); orn_test_sheet_draw();
     orn_windows();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);

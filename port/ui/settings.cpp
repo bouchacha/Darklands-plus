@@ -527,6 +527,15 @@ void tab_display(void)
             dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
             ImGui::PopID();
         }
+        {   /* the frames round tooltips and panels, and the buttons (with any band) */
+            static const char *FR[4] = { "a double gilt rule", "rubricated (a red rule, as a manuscript)", "pen flourishes at the corners", "blind tooling (as a leather binding)" };
+            static const char *BT[4] = { "metal plaques", "rubrics (flat, a fine gold line)", "seal tabs (rounded)", "lettered (the word, underlined)" };
+            int fr = config_get_int("display.frame_style", 0) & 3, bt = config_get_int("display.button_style", 0) & 3;
+            ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted("Frames:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(330));
+            if (ImGui::BeginCombo("##ornfr", FR[fr])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(FR[k], fr == k)) { config_set_int("display.frame_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
+            ImGui::SameLine(); ImGui::TextUnformatted("Buttons:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(300));
+            if (ImGui::BeginCombo("##ornbt", BT[bt])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(BT[k], bt == k)) { config_set_int("display.button_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
+        }
         ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
                 "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
                 "and the buttons and tabs are metal plaques.");

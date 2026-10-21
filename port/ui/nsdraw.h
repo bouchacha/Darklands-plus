@@ -72,7 +72,9 @@ struct NsDraw {
     {
         ImU32 c = sel ? IM_COL32(112, 40, 22, 240) : hov ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255);
         if (!orn_on()) { dl->AddRectFilled(w(x0, y0), w(x1, y1), c, rnd * k); return; }
-        orn_plaque(dl, w(x0, y0), w(x1, y1), sel ? IM_COL32(120, 36, 20, 255) : hov ? IM_COL32(222, 196, 146, 255) : IM_COL32(210, 188, 146, 255), false, false);
+        ImU32 tc = sel ? IM_COL32(120, 36, 20, 255) : hov ? IM_COL32(222, 196, 146, 255) : IM_COL32(210, 188, 146, 255);
+        if (orn_button_lettered()) orn_button_style(dl, w(x0, y0), w(x1, y1), tc, false, false, 1);   /* (tabs stay filled: the chosen one must show) */
+        else orn_plaque(dl, w(x0, y0), w(x1, y1), tc, false, false);
         if (sel) orn_tab_mark(dl, w(x0, y1), w(x1, y1), k);
     }
     void frame(float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRect(w(x0, y0), w(x1, y1), c, rnd * k, 0, fmaxf(1.0f, 0.4f * k)); }
@@ -115,7 +117,7 @@ struct NsDraw {
         }
         float tx = x0 + (x1 - x0 - tw - gw) * 0.5f;
         if (gw > 0) ui_pad_glyph(dl, w(tx + (gw - 1.2f) * 0.5f, (y0 + y1) * 0.5f), gh, pad);
-        text(fo, gs, tx + gw, y0 + (y1 - y0) * 0.5f - gs * 0.62f, LIGHT, label);
+        text(fo, gs, tx + gw, y0 + (y1 - y0) * 0.5f - gs * 0.62f, orn_button_lettered() ? base | IM_COL32(0, 0, 0, 255) : LIGHT, label);   /* (lettered buttons: the word in the button's colour) */
         return hit(x0, y0, x1, y1);
     }
     /* a row's tag after its name ("in use", "kept", whose): outlined in its colour, quieter than

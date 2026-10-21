@@ -2,6 +2,7 @@
 #include "ornament.h"
 #include "imgui_internal.h"
 #include <math.h>
+#include <float.h>
 #include "../runtime/config.h"
 
 static const ImU32 BAND = IM_COL32(52, 30, 16, 255), STRAND_EDGE = IM_COL32(36, 18, 8, 255);
@@ -73,7 +74,7 @@ void orn_braid_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
     lozenge(dl, ImVec2(a.x + h, b.y - h), r, true); lozenge(dl, ImVec2(b.x - h, b.y - h), r, true);
 }
 
-void orn_gilt_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float s)
+static void gilt_frame_rule(ImDrawList *dl, ImVec2 a, ImVec2 b, float s)
 {
     float o = fmaxf(2.0f, s * 0.18f), lw = fmaxf(1.0f, s * 0.08f);
     dl->AddRect(ImVec2(a.x + o, a.y + o), ImVec2(b.x - o, b.y - o), GOLD_DK, 0, 0, lw * 1.6f);
@@ -113,7 +114,7 @@ static ImU32 shade(ImU32 c, float k, int a = -1)
     return ImGui::ColorConvertFloat4ToU32(v);
 }
 
-void orn_plaque(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool rivets)
+static void plaque_metal(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool rivets)
 {
     ImU32 c = base ? base : IM_COL32(186, 150, 84, 255);
     if (hover) c = shade(c, 1.18f);
@@ -392,4 +393,124 @@ void orn_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style, ImFont *f)
     ImVec2 p0(b.x - w * 7.5f, b.y - w * 3.6f), p1(b.x - w * 1.8f, b.y - w * 1.6f);
     if (style) orn_plaque(dl, p0, p1, IM_COL32(120, 36, 20, 255), false, true);
     else dl->AddRectFilled(p0, p1, IM_COL32(112, 40, 22, 235), 4);
+}
+
+/* ---------------------------------------------------------------- the choices for frames and buttons
+   frames (display.frame_style): 0 a double gilt rule with lozenges; 1 rubricated: a vermilion
+   rule inside a fine ink one, a small fleuron at each corner (as a manuscript's ruled text block);
+   2 pen flourishes at the corners only; 3 blind tooling: a dark leather line and a dotted one
+   within, as a binding.
+   buttons (display.button_style): 0 a lit metal plaque; 1 a rubric: flat colour in a fine gold
+   line, nothing raised; 2 a seal: a rounded tab, softly domed; 3 lettered: the word on parchment,
+   underlined, coloured only when pointed at */
+static int frame_style(void) { return config_get_int("display.frame_style", 0) & 3; }
+static int button_style(void) { return config_get_int("display.button_style", 0) & 3; }
+
+static void fleuron(ImDrawList *dl, ImVec2 c, float r, ImU32 col)       /* a small three-leaved sprig */
+{
+    for (int i = 0; i < 3; i++) { float t = -1.5708f + (i - 1) * 0.9f; dl->AddCircleFilled(ImVec2(c.x + cosf(t) * r * 0.55f, c.y + sinf(t) * r * 0.55f), r * 0.38f, col, 10); }
+    dl->AddCircleFilled(c, r * 0.3f, col, 8);
+}
+void orn_frame_style_box(ImDrawList *dl, ImVec2 a, ImVec2 b, float s, int st)
+{
+    float lw = fmaxf(1.0f, s * 0.08f), o = fmaxf(2.0f, s * 0.18f);
+    switch (st) {
+    case 1: {
+        const ImU32 VER = IM_COL32(168, 40, 26, 230), INKC = IM_COL32(40, 24, 12, 160);
+        dl->AddRect(ImVec2(a.x + o, a.y + o), ImVec2(b.x - o, b.y - o), VER, 0, 0, lw * 1.4f);
+        dl->AddRect(ImVec2(a.x + o + lw * 2.4f, a.y + o + lw * 2.4f), ImVec2(b.x - o - lw * 2.4f, b.y - o - lw * 2.4f), INKC, 0, 0, lw * 0.6f);
+        float r = fmaxf(3.0f, s * 0.3f);
+        fleuron(dl, ImVec2(a.x + o, a.y + o), r, VER); fleuron(dl, ImVec2(b.x - o, a.y + o), r, VER);
+        fleuron(dl, ImVec2(a.x + o, b.y - o), r, VER); fleuron(dl, ImVec2(b.x - o, b.y - o), r, VER);
+        break; }
+    case 2: {                                                            /* pen flourishes at the corners */
+        const ImU32 PEN = IM_COL32(60, 34, 16, 210);
+        float L = fminf(s * 2.6f, fminf(b.x - a.x, b.y - a.y) * 0.3f);
+        for (int cx = 0; cx < 2; cx++) for (int cy = 0; cy < 2; cy++) {
+            float sx = cx ? -1.0f : 1.0f, sy = cy ? -1.0f : 1.0f;
+            ImVec2 c(cx ? b.x - o : a.x + o, cy ? b.y - o : a.y + o);
+            dl->AddBezierCubic(ImVec2(c.x + sx * L, c.y), ImVec2(c.x + sx * L * 0.3f, c.y - sy * L * 0.12f), ImVec2(c.x, c.y), ImVec2(c.x, c.y + sy * L), PEN, lw * 1.2f);
+            dl->AddBezierCubic(ImVec2(c.x + sx * L * 0.2f, c.y + sy * L * 0.2f), ImVec2(c.x + sx * L * 0.55f, c.y + sy * L * 0.05f), ImVec2(c.x + sx * L * 0.5f, c.y + sy * L * 0.45f), ImVec2(c.x + sx * L * 0.3f, c.y + sy * L * 0.35f), PEN, lw);
+            dl->AddCircleFilled(ImVec2(c.x + sx * L, c.y), lw * 1.3f, PEN, 8);
+            dl->AddCircleFilled(ImVec2(c.x, c.y + sy * L), lw * 1.3f, PEN, 8);
+        }
+        break; }
+    case 3: {                                                            /* blind tooling */
+        const ImU32 LEA = IM_COL32(86, 52, 26, 220), LEA_L = IM_COL32(160, 118, 72, 160);
+        dl->AddRect(ImVec2(a.x + o, a.y + o), ImVec2(b.x - o, b.y - o), LEA, 0, 0, lw * 1.8f);
+        dl->AddRect(ImVec2(a.x + o + lw, a.y + o + lw), ImVec2(b.x - o + lw, b.y - o + lw), LEA_L, 0, 0, lw * 0.6f);
+        float in = o + lw * 3.4f, step = fmaxf(4.0f, s * 0.42f);
+        for (float x = a.x + in; x <= b.x - in; x += step) { dl->AddCircleFilled(ImVec2(x, a.y + in), lw * 0.75f, LEA, 6); dl->AddCircleFilled(ImVec2(x, b.y - in), lw * 0.75f, LEA, 6); }
+        for (float y = a.y + in + step; y <= b.y - in - step * 0.5f; y += step) { dl->AddCircleFilled(ImVec2(a.x + in, y), lw * 0.75f, LEA, 6); dl->AddCircleFilled(ImVec2(b.x - in, y), lw * 0.75f, LEA, 6); }
+        break; }
+    default: gilt_frame_rule(dl, a, b, s);
+    }
+}
+void orn_gilt_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float s) { orn_frame_style_box(dl, a, b, s, frame_style()); }
+
+void orn_button_style(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool rivets, int st)
+{
+    ImU32 c = base ? base : IM_COL32(186, 150, 84, 255);
+    float h = b.y - a.y, lw = fmaxf(1.0f, h * 0.05f);
+    switch (st) {
+    case 1: {                                                            /* a rubric: flat, a fine gold line within */
+        dl->AddRectFilled(a, b, hover ? shade(c, 1.15f) : c, h * 0.08f);
+        dl->AddRect(ImVec2(a.x + lw * 1.6f, a.y + lw * 1.6f), ImVec2(b.x - lw * 1.6f, b.y - lw * 1.6f), IM_COL32(226, 186, 96, 200), h * 0.05f, 0, lw * 0.8f);
+        break; }
+    case 2: {                                                            /* a seal: a rounded tab, domed */
+        float r = h * 0.5f;
+        dl->AddRectFilled(ImVec2(a.x, a.y + lw), ImVec2(b.x, b.y + lw), IM_COL32(0, 0, 0, 60), r);
+        dl->AddRectFilled(a, b, hover ? shade(c, 1.12f) : c, r);
+        dl->AddRectFilled(ImVec2(a.x + r * 0.5f, a.y + h * 0.1f), ImVec2(b.x - r * 0.5f, a.y + h * 0.42f), shade(c, 1.3f, 110), r * 0.6f);
+        dl->AddRect(a, b, shade(c, 0.55f), r, 0, lw);
+        break; }
+    case 3: {                                                            /* lettered: only the word, underlined */
+        if (hover) dl->AddRectFilled(a, b, shade(c, 1.0f, 60), h * 0.1f);
+        dl->AddLine(ImVec2(a.x + h * 0.4f, b.y - lw * 1.5f), ImVec2(b.x - h * 0.4f, b.y - lw * 1.5f), shade(c, 0.9f), lw * 1.2f);
+        dl->AddCircleFilled(ImVec2(a.x + h * 0.3f, b.y - lw * 1.5f), lw * 1.3f, shade(c, 0.9f), 8);
+        dl->AddCircleFilled(ImVec2(b.x - h * 0.3f, b.y - lw * 1.5f), lw * 1.3f, shade(c, 0.9f), 8);
+        break; }
+    default: plaque_metal(dl, a, b, base, hover, rivets);
+    }
+}
+void orn_plaque(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool rivets) { orn_button_style(dl, a, b, base, hover, rivets, button_style()); }
+int orn_button_lettered(void) { return orn_on() && button_style() == 3; }
+
+/* test: the frames and buttons of each style side by side (ucmd uornsheet:) */
+static int orn_sheet;
+extern "C" void orn_test_sheet(void) { orn_sheet = !orn_sheet; }
+extern "C" void orn_test_sheet_draw(void)
+{
+    if (!orn_sheet) return;
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImFont *f = ImGui::GetFont(); float fs = 17;
+    ImVec2 o(16, 16);
+    float cw = 226, ch = 150;
+    dl->AddRectFilled(o, ImVec2(o.x + cw * 4 + 30, o.y + ch * 2 + 70), IM_COL32(60, 44, 30, 255), 6);
+    static const char *FN[4] = { "Gilt rule", "Rubricated", "Pen flourishes", "Blind tooling" };
+    static const char *BN[4] = { "Metal plaque", "Rubric", "Seal tab", "Lettered" };
+    for (int i = 0; i < 4; i++) {          /* frames: a tooltip-like panel */
+        ImVec2 a(o.x + 10 + i * (cw + 4), o.y + 10), b(a.x + cw - 6, a.y + ch - 30);
+        dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
+        orn_parchment_edges(dl, a, b, 10);
+        orn_frame_style_box(dl, a, b, 16, i);
+        dl->AddText(f, fs, ImVec2(a.x + 22, a.y + 24), IM_COL32(44, 26, 10, 255), "St. Adrian");
+        dl->AddText(f, fs * 0.8f, ImVec2(a.x + 22, a.y + 50), IM_COL32(110, 84, 56, 255), "Heals 8 to 15 Endurance");
+        dl->AddText(f, fs, ImVec2(a.x + 8, b.y + 6), IM_COL32(246, 236, 214, 255), FN[i]);
+    }
+    for (int i = 0; i < 4; i++) {          /* buttons: on parchment, in three colours */
+        ImVec2 a(o.x + 10 + i * (cw + 4), o.y + ch + 20), b(a.x + cw - 6, a.y + ch - 30);
+        dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255));
+        static const ImU32 C[3] = { IM_COL32(112, 40, 22, 235), IM_COL32(40, 92, 34, 235), IM_COL32(120, 84, 40, 235) };
+        static const char *L[3] = { "Leave", "Buy", "Sell" };
+        for (int k = 0; k < 3; k++) {
+            ImVec2 p0(a.x + 20, a.y + 14 + k * 34), p1(a.x + 150, a.y + 40 + k * 34);
+            orn_button_style(dl, p0, p1, C[k], k == 1, true, i);
+            ImU32 tc = i == 3 ? (C[k] | IM_COL32(0, 0, 0, 255)) : IM_COL32(250, 240, 220, 255);
+            ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, L[k]);
+            dl->AddText(f, fs, ImVec2((p0.x + p1.x - ts.x) * 0.5f, (p0.y + p1.y - ts.y) * 0.5f), tc, L[k]);
+        }
+        dl->AddText(f, fs * 0.75f, ImVec2(a.x + 158, a.y + 54), IM_COL32(110, 84, 56, 255), "(pointed)");
+        dl->AddText(f, fs, ImVec2(a.x + 8, b.y + 6), IM_COL32(246, 236, 214, 255), BN[i]);
+    }
 }
