@@ -260,8 +260,10 @@ static void horses_even(void)
 static void mount_query_hook(void) { horses_even(); if (ns_unwinding) return; hook_call_original(); }
 static void party_get_hook(void)          /* party_get (what): 5 = everyone mounted */
 {
-    if ((s16)rw(SS, (u16)(SP + 4)) == 5) { horses_even(); if (ns_unwinding) return; }
+    int what = (s16)rw(SS, (u16)(SP + 4));
+    if (what == 5) { horses_even(); if (ns_unwinding) return; }
     hook_call_original();
+    if (what == 5 && getenv("DL_PACK_LOG")) fprintf(stderr, "pack: party_get(5) = %d\n", (s16)AX);
 }
 static void best_quality_hook(void)       /* best_item_quality (who, long mask) */
 {

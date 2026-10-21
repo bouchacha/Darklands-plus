@@ -227,6 +227,10 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
     hook_call_original();
 }
 
+/* a load under way (the game's load screen and its "Difficulty is now set to ..." box): the
+   interface covers the view meanwhile (ui/ui.cpp) */
+int saves_loading_cover(void) { return load_stage == 2 || load_stage == 3; }
+
 static void askyesno_hook(void)            /* ask_yes_no(question) */
 {
     if (load_stage == 2) {                  /* "Loading is irreversable. Proceed?" */
@@ -262,7 +266,8 @@ static void loadscreen_hook(void)
     game_call_live(hide, 0, 0);
     game_call_live(open, 0, 0);
     game_call_live(draw, 0, 0);
-    game_call_live(show, 0, 0);
+    /* (the load screen and the game's "Difficulty is now set to ..." stay hidden: the screen is
+       shown again only once the save is read, as the game draws the place it was saved in) */
     char first[16]; g_str(G_FAR2E38, 0x3b2e, first, sizeof first);
     int ok = 0;
     if (!strcasecmp(first, load_name) && (s16)g_rw(0x8c54) > 0) {
@@ -270,6 +275,7 @@ static void loadscreen_hook(void)
         u16 k = 0x264c;
         ok = (u16)game_call_live(key, 1, &k) == 0x11b;
     }
+    game_call_live(show, 0, 0);
     if (!ok) ui_notice("That save could not be read.");
     load_stage = 0;
     u16 a = (u16)ok;

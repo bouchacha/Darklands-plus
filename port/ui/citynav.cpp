@@ -234,7 +234,29 @@ static int dist_to(int dest, int from, unsigned avoid)
     return d[from];
 }
 
+
+/* a timed refusal the cards keep as an event at the town (event_here: kind, the hours; +0x1c the
+   place, +0x22 the kind, +0 the type, +0x12.. the end: hour, day, month, year): the alchemists
+   turning the party away ($Alche00: 0x44, 60 hours), the monastery's library after a visit
+   ($CityM00 option 2: 0x34, 60 days after studying, 30 after a refusal), its prayers (0x30, a
+   week), the university's library after a refusal ($Unive00: 0x4e type 0, a week) */
+static bool town_event_end(int loc, int kind, int type0, int end[4])
+{
+    bool any = false; long best = 0;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        u16 sg = (u16)(p >> 16), o = (u16)p;
+        if ((s16)rw(sg, (u16)(o + 0x22)) != kind || (s16)rw(sg, (u16)(o + 0x1c)) != loc) continue;
+        if (type0 >= 0 && (s16)rw(sg, o) != type0) continue;
+        int e[4]; for (int k = 0; k < 4; k++) e[k] = (s16)rw(sg, (u16)(o + 0x12 + 2 * k));
+        long key = (((long)e[3] * 12 + e[2]) * 31 + e[1]) * 24 + e[0];
+        if (!any || key > best) { any = true; best = key; memcpy(end, e, sizeof e); }
+    }
+    return any;
+}
 /* ---------------------------------------------------------------- walking */
+static bool night_closed(int d);
 static int goal = -1, steps_taken;
 static unsigned visited;                                   /* hubs passed on this walk: not again */
 static int conts, leaves;                                  /* texts read on, places left before the first hub */
@@ -355,6 +377,7 @@ extern "C" void citynav_tick(void)
     }
     if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
     for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
+    if (hub == H_MARKET && night_closed(goal)) { stop("closed at night; it opens at 5:00."); return; }
     visited |= 1u << hub;
     int best = -1, bd = 1000;
     for (int i = 0; i < n; i++) {
@@ -415,6 +438,14 @@ static bool present_at(int d, int cur)
     return true;
 }
 static bool present(int d) { return present_at(d, (s16)g_rw(G_CUR_LOC)); }
+/* the marketplace by night ($Marke01, is_daylight: 5:00 to 18:59) offers no stall or office, only a
+   sneak upstairs: the places reached through it are shut until 5:00 */
+static bool is_night(void) { int h = (s16)g_rw(GV_cur_hour); return h >= 19 || h < 5; }
+static bool night_closed(int d)
+{
+    switch (d) { case D_MERCHANT: case D_FOREIGN: case D_PHARMACIST: case D_PAWN: case D_FUGGER: case D_MEDICI: case D_HANSE: return is_night(); }
+    return false;
+}
 
 /* what town loc offers that is worth knowing (ui/townicons.h TI_UNIVERSITY .. TI_BANK), for the
    margin: as the city's cards decide (the location record is read: while a card or the map is up) */
@@ -493,24 +524,33 @@ static std::string fit(const std::string &t, float fs, float w)
 
 /* a place's tooltip: its name, what it is, then what is known of it now, a heading to each part */
 struct TipPart { std::string head, text; };
-static void place_tooltip(int d, const std::vector<TipPart> &parts)
+/* the pane at the right of Go to: the place under the pointer (or the last one pointed at) - its
+   name, what it is, then what is known of it now, a heading to each part. It stays put, where a
+   tooltip followed the pointer over the tiles */
+static int pane_d = -1; static std::vector<TipPart> pane_parts; static bool pane_absent;
+static void place_pane(float w, float h, float scale)
 {
-    ImGuiIO &io = ImGui::GetIO();
-    float w = fminf(io.DisplaySize.x * 0.36f, UIS(560));
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(w + UIS(24), FLT_MAX));
-    ImGui::BeginTooltip();
-    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + w);
-    if (ui_font_bold) ImGui::PushFont(ui_font_bold);
-    ImGui::TextUnformatted(DEST[d].label);
-    if (ui_font_bold) ImGui::PopFont();
-    ImGui::TextUnformatted(DEST[d].desc);
-    for (const TipPart &x : parts) {
-        ImGui::Spacing();
-        if (!x.head.empty()) ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.13f, 1), "%s", x.head.c_str());
-        ImGui::TextUnformatted(x.text.c_str());
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(236, 222, 192, 255));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 6 * scale);
+    ImGui::BeginChild("detail", ImVec2(w, h), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
+    ImGui::PushTextWrapPos(0);
+    if (pane_d < 0) ImGui::TextDisabled("Point at a place to read about it here: what it offers, its tasks, its teachers.");
+    else {
+        if (ui_font_bold) ImGui::PushFont(ui_font_bold);
+        ImGui::TextUnformatted(DEST[pane_d].label);
+        if (ui_font_bold) ImGui::PopFont();
+        if (DEST[pane_d].desc[0]) ImGui::TextUnformatted(DEST[pane_d].desc);
+        for (const TipPart &x : pane_parts) {
+            ImGui::Spacing();
+            if (!x.head.empty()) ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.13f, 1), "%s", x.head.c_str());
+            ImGui::TextUnformatted(x.text.c_str());
+        }
+        if (!pane_absent) { ImGui::Spacing(); ImGui::TextDisabled("Click the tile and the party walks there."); }
     }
     ImGui::PopTextWrapPos();
-    ImGui::EndTooltip();
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
 }
 
 /* the "Go to" window; returns false when it closes.
@@ -527,7 +567,7 @@ extern "C" int citynav_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 90));
-    float w = fminf(io.DisplaySize.x * 0.94f, UIS(1500)), maxh = io.DisplaySize.y * 0.94f;
+    float w = fminf(io.DisplaySize.x * 0.94f, UIS(1250)), maxh = io.DisplaySize.y * 0.94f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, maxh));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     bool keep = true;
@@ -546,7 +586,7 @@ extern "C" int citynav_window(void)
         ImGui::PushTextWrapPos(0);
         ImGui::TextDisabled("Pick a place and the party walks there through the streets. Press any key or click to stop them.");
         { int hour = (s16)g_rw(GV_cur_hour);    /* (the game's night: is_daylight, 5:00 to 18:59) */
-          if (hour >= 19 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Night (%d:00): shops and offices are closed, and the watch is out.", hour); }
+          if (hour >= 19 || hour < 5) ImGui::TextColored(ImVec4(0.45f, 0.18f, 0.10f, 1), "Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out.", hour); }
         ImGui::PopTextWrapPos();
         static std::map<int, std::vector<DestTask>> tasks; static int tasks_frame = -100;
         static TchSource teach[12]; static int nteach;            /* the teachers the town offers (ui/teachersui.h) */
@@ -557,7 +597,13 @@ extern "C" int citynav_window(void)
         bool work_on = config_get_int("assist.goto_work", 1) && !config_get_int("original", 0);
         float lh = ImGui::GetFontSize(), sfs = lh * 0.8f, slh = sfs * 1.18f, pad = 6 * scale, rnd = 6 * scale;
         float is = floorf(lh * 2.1f);                              /* the place's picture */
-        float gap = ImGui::GetStyle().ItemSpacing.x, avail = ImGui::GetContentRegionAvail().x;
+        float gap = ImGui::GetStyle().ItemSpacing.x;
+        float pane_w = floorf(fminf(UIS(330) * scale, ImGui::GetContentRegionAvail().x * 0.3f));
+        float tiles_maxh = fmaxf(UIS(200), maxh - ImGui::GetCursorPosY() - ImGui::GetStyle().WindowPadding.y - 4);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, tiles_maxh));
+        ImGui::BeginChild("tiles", ImVec2(ImGui::GetContentRegionAvail().x - pane_w - gap, 0), ImGuiChildFlags_AutoResizeY);
+        int hov_now = -1; bool hov_now_absent = false; std::vector<TipPart> hov_now_parts;
+        float avail = ImGui::GetContentRegionAvail().x;
         int cols = (int)((avail + gap) / (lh * 12.0f + gap));      /* (a tile about 12 lines of type wide: its lines fit) */
         cols = cols < 3 ? 3 : cols > 5 ? 5 : cols;
         float bw = floorf((avail - (cols - 1) * gap) / cols);
@@ -568,6 +614,23 @@ extern "C" int citynav_window(void)
         auto make_tile = [&](int d) {
             Tile T{ d, {}, {}, -1, -1, false, true };
             if (!present(d)) { T.here = false; return T; }          /* (a place the town lacks: its name greyed, no more) */
+            if (night_closed(d)) { T.lines.push_back({ "Closed until 5:00", REDD }); T.tip.push_back({ "", "Closed at night: the marketplace's stalls and offices open at 5:00." }); }
+            {   /* a refusal that lasts a while */
+                struct Ban { int d, kind, type0; const char *line, *tip; };
+                static const Ban BANS[] = {
+                    { D_ALCHEMIST, 0x44, -1, "Turned away until %d %s", "The alchemists turned the party away; they will see you again from %d %s, %d:00." },
+                    { D_MONASTERY, 0x34, -1, "Library shut until %d %s", "The monks' library (where saints are learned) is shut to the party until %d %s, %d:00." },
+                    { D_MONASTERY, 0x30, -1, "Prayers again from %d %s", "The party prayed with the monks; they may again from %d %s, %d:00." },
+                    { D_UNIVERSITY, 0x4e, 0, "Library shut until %d %s", "The university's library (where saints are learned) is shut to the party until %d %s, %d:00." },
+                };
+                for (const Ban &B : BANS) {
+                    int e[4];
+                    if (B.d != d || !town_event_end(cur, B.kind, B.type0, e)) continue;
+                    const char *mo = gm_month_short((e[2] % 12 + 12) % 12);
+                    char b[96], t[200]; snprintf(b, sizeof b, B.line, e[1], mo); snprintf(t, sizeof t, B.tip, e[1], mo, e[0]);
+                    T.lines.push_back({ b, REDD }); T.tip.push_back({ "Not now", t });
+                }
+            }
             /* a task giver: whether it has a task now, or until when none (mods/offices.h) */
             int giver = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
                       : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
@@ -576,7 +639,8 @@ extern "C" int citynav_window(void)
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
-                case OFS_ASK: snprintf(b, sizeof b, giver == 0 || giver == 4 || giver == 5 ? "%d%% chance of a task after shopping" : "%d%% chance of a task", os.chance); c = GREEN; break;
+                case OFS_ASK: snprintf(b, sizeof b, "Task chance %d%%", os.chance); c = GREEN;
+                    if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Tasks", "A merchant may offer a task after you have bought or sold something." }); break;
                 case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
                 case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
@@ -681,8 +745,8 @@ extern "C" int citynav_window(void)
                         dl->AddText(ImGui::GetFont(), sfs, ImVec2(tx, ly), hov ? IM_COL32(240, 214, 180, 255) : L.col, s2.c_str());
                         ly += slh;
                     }
-                    if (hov) place_tooltip(d, T.tip);
-                    else if (hov_absent) { std::vector<TipPart> t{ { "", std::string("Not in ") + (city ? gamedata.cities[cur].name : std::string("this town")) + "." } }; place_tooltip(d, t); }
+                    if (hov) { hov_now = d; hov_now_parts = T.tip; }
+                    else if (hov_absent) { hov_now = d; hov_now_absent = true; hov_now_parts = { { "", std::string("Not in ") + (city ? gamedata.cities[cur].name : std::string("this town")) + "." } }; }
                     ImGui::PopID();
                 }
             }
@@ -705,9 +769,16 @@ extern "C" int citynav_window(void)
             if (any_teach) { mark(0, "A teacher to hire (faint: not available now)"); first = false; }
             if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A task of yours leads here"); }
         }
+        ImGui::EndChild();
+        float tiles_h = ImGui::GetItemRectSize().y;
+        if (hov_now >= 0) { pane_d = hov_now; pane_parts = hov_now_parts; pane_absent = hov_now_absent; }
+        ImGui::SameLine(0, gap);
+        place_pane(pane_w, tiles_h, scale);
         ImGui::PopStyleVar();
     }
     ImGui::End();
+    if (!keep || picked >= 0) pane_d = -1;
+    if (picked >= 0 && night_closed(picked)) { char m[96]; snprintf(m, sizeof m, "%s is closed at night; it opens at 5:00.", DEST[picked].label); ui_notice(m); picked = -1; }
     if (picked >= 0) { citynav_go(picked); return 0; }
     return keep;
 }

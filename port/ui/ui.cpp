@@ -21,6 +21,7 @@
 #include "townicons.h"
 #include "libraries.h"
 
+extern "C" int saves_loading_cover(void);   /* mods/saves.c */
 extern "C" {
 #include "../mods/options.h"
 #include "../runtime/cpu.h"
@@ -1072,6 +1073,13 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_welcome) welcome_window();
     else if (open_news) news_window();
     else if (open_mt32) mt32_window();
+    { if (saves_loading_cover()) {                 /* a load under way: the game's load screen hidden */
+          ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
+          dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(20, 14, 10, 255));
+          const char *t = "Loading...";
+          ImVec2 ts = ImGui::CalcTextSize(t);
+          dl->AddText(ImVec2((io.DisplaySize.x - ts.x) * 0.5f, (io.DisplaySize.y - ts.y) * 0.5f), IM_COL32(230, 210, 170, 255), t);
+      } }
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
