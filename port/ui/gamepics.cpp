@@ -128,3 +128,20 @@ const GamePic *gamepic_cutout(const std::string &name, int x0, int y0, int w, in
     const GamePic *g = upload(key, rgba, w, h);
     return g->tex ? g : nullptr;
 }
+
+/* test: a picture written as a PNG in the colours the game shows it in now (ucmd upicpng:NAME,SCALE) */
+extern "C" int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
+extern "C" int gamepics_write_png(const char *name, const char *out, int scale)
+{
+    Img im; if (!load(name, im)) return 0;
+    u32 pal[256]; palette(im, nullptr, pal);
+    if (scale < 1) scale = 1;
+    int W = im.w * scale, H = im.h * scale;
+    std::vector<u8> rgba((size_t)W * H * 4);
+    for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+        u8 c = im.px[(size_t)(y / scale) * im.w + x / scale]; u32 v = pal[c];
+        u8 *d = &rgba[((size_t)y * W + x) * 4];
+        d[0] = (u8)(v >> 16); d[1] = (u8)(v >> 8); d[2] = (u8)v; d[3] = c ? 255 : 0;
+    }
+    return stbi_write_png(out, W, H, 4, rgba.data(), W * 4);
+}
