@@ -87,7 +87,7 @@ static void screen_hook(void)                 /* saint_screen(who, saint, party)
             int k = ns_get_key();
             if (k == 0x11b || k == 0x2044 || k == 0x2064) r = -1;
             else if (k == 0x1950 || k == 0x1970) { if (H(p->saint, p->who, (s16)g_rw(GV_pray_df), 7)) { g_ww(GV_pray_target, 0xffff); r = 1; } }
-            else if (k == 0x0d2b || k == 0x324d || k == 0x326d || k == 0x4e2b || k == 0x4800) ns_push(PV_MORE, 0, 0, 0);
+            else if (k == 0x0d2b || k == 0x0d3d || k == 0x324d || k == 0x326d || k == 0x4e2b || k == 0x4800) ns_push(PV_MORE, 0, 0, 0);
             else if (k == 0x0c2d || k == 0x264c || k == 0x266c || k == 0x4a2d || k == 0x5000) ns_push(PV_LESS, 0, 0, 0);
             else if (k == 0x1000) { ns_call(GF_saint_finish, 2, p->who, p->saint); ns_call(GF_quit_to_dos, 0); }
         }

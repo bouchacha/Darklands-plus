@@ -890,12 +890,14 @@ static void help_window(void)
 /* one cursor at a time: over the game picture the game draws its own, so the system cursor
  * is hidden there; it shows with the menu or the world map open, and outside the picture */
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
+extern "C" { extern int hdtext_live_pointer; }
 static void ui_cursor(void)
 {
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor;
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor
+                || (ns_showing() && !hdtext_live_pointer);     /* (a Darklands+ page where the game hides its pointer, the saints from a card: the system's) */
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
     /* a tooltip opens past the pointer: past the game's hand (16 by 12 of its pixels, the fingertip
