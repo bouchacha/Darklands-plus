@@ -69,6 +69,7 @@ int testcmd_run(const char *cmd, const char *arg)
                 fprintf(stderr, "upicpng %s: %d\n", path, gamepics_write_png(dos, path, sc, ppd)); } }
         else if (!strcmp(cmd, "uiconsheet")) { void worldmap_icon_sheet(void); worldmap_icon_sheet(); }   /* test: the place pictures of each set, large */
         else if (!strcmp(cmd, "uornsheet")) { void orn_test_sheet(void); orn_test_sheet(); }   /* test: the frame and button styles side by side */
+        else if (!strcmp(cmd, "unichesheet")) { void niche_test_sheet(void); niche_test_sheet(); }   /* test: the niche's corner styles side by side */
         else if (!strcmp(cmd, "uwalk")) { void pathfix_test_walk(int, int, int); int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y); pathfix_test_walk(i, x, y); }   /* test: combatant i walks to x, y (battle map pixels) */
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */
         else if (!strcmp(cmd, "ubells")) { for (int b = 0; b < 8; b++) { u16 tb = (u16)(LOADSEG + 0x290e), o = rw(tb, (u16)(0x20c3 + 4 * b)), sg = rw(tb, (u16)(0x20c3 + 4 * b + 2)); char t[24] = ""; if (sg) g_str(sg, o, t, sizeof t); fprintf(stderr, "bell %d: %s\n", b, t); } }   /* test: the game's names of the hours */

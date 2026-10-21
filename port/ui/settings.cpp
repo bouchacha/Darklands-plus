@@ -535,6 +535,10 @@ void tab_display(void)
             if (ImGui::BeginCombo("##ornfr", FR[fr])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(FR[k], fr == k)) { config_set_int("display.frame_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
             ImGui::SameLine(); ImGui::TextUnformatted("Buttons:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(300));
             if (ImGui::BeginCombo("##ornbt", BT[bt])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(BT[k], bt == k)) { config_set_int("display.button_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
+            static const char *NC[4] = { "acanthus leaves", "tracery (a quatrefoil)", "a shield in a roundel", "a carved rose" };
+            int nc = config_get_int("display.niche_corners", 0) & 3;
+            ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted("The character sheet's arch, its corners:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(260));
+            if (ImGui::BeginCombo("##ornnc", NC[nc])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(NC[k], nc == k)) { config_set_int("display.niche_corners", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
         }
         ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
                 "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
