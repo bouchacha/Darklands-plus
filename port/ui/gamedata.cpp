@@ -173,6 +173,7 @@ void gamedata_load(const char *dir)
             for (int k = 0; k < 9; k++) c.shopq[k] = r[0x62 + k];
             c.x = w16(r + 0x42); c.y = w16(r + 0x44);
             c.seed = w16(r + 0x56);
+            for (int k = 0; k < 5; k++) c.docks[k] = (short)w16(r + 0x4a + 2 * k);
             gamedata.cities.push_back(c);
         }
     }

@@ -35,6 +35,7 @@ struct City {
     int shopq[9] = {};               // Blacksmith, Goods Merchant, Swordsmith, Armorer, Gunsmith, Bowyer,
                                      // Artificer, Jeweler, Clothmaker (0 = none)
     int x = 0, y = 0;                // map position (entry)
+    int docks[5] = { -1, -1, -1, -1, -1 };   // +0x4a..+0x52: the towns its boats go to ($Docks00), -1 none
 };
 
 struct Saint { std::string name, shortname, text, game_name; };   // name as shown ("St. Gregory Thaumaturgus"), game_name as the game writes it

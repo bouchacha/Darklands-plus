@@ -495,3 +495,71 @@ int travel_nearest(int type)
     if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: nearest of type %d is %d (%d minutes)\n", type, best, bm);
     return travel_to_loc(best, "nearest");
 }
+
+/* ---------------------------------------------------------------- the boats' ways
+ * a boat from the docks of town a to town b ($Docks00, DARKLAND.CTY +0x4a..): the way it goes on
+ * the map, by water (ocean 1, major river 2) from a water tile beside a to one beside b, the
+ * fewest tiles; tiles out to *n (at most max), the towns' own tiles first and last. 0: no way by
+ * water (the caller draws a straight line). Kept per pair. */
+typedef struct { int a, b, n; short *x, *y; } BoatWay;
+static BoatWay *boats; static int nboats;
+int travel_boat_way(int a, int b, const short **xs, const short **ys)
+{
+    for (int i = 0; i < nboats; i++) if (boats[i].a == a && boats[i].b == b) { *xs = boats[i].x; *ys = boats[i].y; return boats[i].n; }
+    if (!load_map()) return 0;
+    u32 ra = g_location(a), rb2 = g_location(b);
+    if (!ra || !rb2) return 0;
+    int ax = (s16)rw((u16)(ra >> 16), (u16)(ra + 4)), ay = (s16)rw((u16)(ra >> 16), (u16)(ra + 6));
+    int bx = (s16)rw((u16)(rb2 >> 16), (u16)(rb2 + 4)), by = (s16)rw((u16)(rb2 >> 16), (u16)(rb2 + 6));
+    size_t n = (size_t)mw * mh;
+    int *dd = malloc(n * sizeof *dd), *pv = malloc(n * sizeof *pv), *q = malloc(n * sizeof *q);
+    if (!dd || !pv || !q) { free(dd); free(pv); free(q); return 0; }
+    for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
+    /* Dijkstra: a start tile costs 3 per tile of land crossed from the town, so the
+       route leaves from the nearest water rather than fanning out to any river. */
+    int hn = 0, R = 5, goal = -1;
+    long *heap = malloc(n * 6 * sizeof *heap);
+    if (!heap) { free(dd); free(pv); free(q); return 0; }
+#define HPUSH(c, i) do { long v_ = ((long)(c) << 32) | (long)(i); int j_ = hn++; \
+        while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
+    for (int y = ay - 2 * R; y <= ay + 2 * R; y++) for (int x = ax - R; x <= ax + R; x++) {
+        if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
+        int t = terr[y * mw + x]; if (!blocked(t)) continue;
+        int dx = abs(x - ax), dy = abs(y - ay) / 2, c = 3 * (dx > dy ? dx : dy);
+        dd[y * mw + x] = c; HPUSH(c, y * mw + x);
+    }
+    while (hn > 0 && hn < (int)(n * 6) - 8) {
+        long top = heap[0], last = heap[--hn];
+        int j = 0;
+        for (;;) { int c = 2 * j + 1; if (c >= hn) break; if (c + 1 < hn && heap[c + 1] < heap[c]) c++;
+            if (heap[c] >= last) break; heap[j] = heap[c]; j = c; }
+        if (hn > 0) heap[j] = last;
+        int i = (int)(top & 0xffffffff), cst = (int)(top >> 32);
+        if (cst != dd[i]) continue;
+        int x = i % mw, y = i / mw;
+        if (abs(x - bx) <= R && abs(y - by) <= R * 2) { goal = i; break; }
+        for (int k = 0; k < 6; k++) {
+            int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
+            int ni = ny * mw + nx; if (!blocked(terr[ni])) continue;
+            if (dd[ni] >= 0 && dd[ni] <= cst + 1) continue;
+            dd[ni] = cst + 1; pv[ni] = i; HPUSH(cst + 1, ni);
+        }
+    }
+#undef HPUSH
+    free(heap);
+    int cnt = 0;
+    BoatWay w = { a, b, 0, 0, 0 };
+    if (goal >= 0) {
+        for (int i = goal; i >= 0; i = pv[i]) cnt++;
+        w.x = malloc((size_t)(cnt + 2) * sizeof(short)); w.y = malloc((size_t)(cnt + 2) * sizeof(short));
+        int k = cnt + 1;
+        w.x[k] = (short)bx; w.y[k] = (short)by; k--;
+        for (int i = goal; i >= 0; i = pv[i], k--) { w.x[k] = (short)(i % mw); w.y[k] = (short)(i / mw); }
+        w.x[0] = (short)ax; w.y[0] = (short)ay;
+        w.n = cnt + 2;
+    }
+    free(dd); free(pv); free(q);
+    boats = realloc(boats, (size_t)(nboats + 1) * sizeof *boats); boats[nboats++] = w;
+    *xs = w.x; *ys = w.y;
+    return w.n;
+}

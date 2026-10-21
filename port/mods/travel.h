@@ -24,6 +24,7 @@ int travel_to_tile(int x, int y, int loc, const char *name);
 int travel_to_loc(int loc, const char *name);
 void travel_after_leaving(int loc, const char *name);   /* set off for loc once the party is out on the travel map */
 void travel_stop(void);
+int travel_boat_way(int a, int b, const short **xs, const short **ys);   /* the tiles a boat from town a to b sails by (water), 0 none */
 void travel_party_tile(int *x, int *y);
 int travel_map_live(void);                   /* the overland loop is running (no card or screen over the map) */
 int travel_terrain(int x, int y);

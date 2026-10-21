@@ -81,7 +81,7 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static int selected = -1;
-static bool show_names = true, show_quests = true, show_icons = true;
+static bool show_names = true, show_quests = true, show_icons = true, show_boats = true;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
 
 /* "Towns with ...": the towns that have a place most lack (ui/townicons.h TI_UNIVERSITY .. TI_BANK)
@@ -556,6 +556,46 @@ extern "C" void worldmap_draw(void)
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 220, 90, 255), 0, 2.5f);
     }
 
+    // the boats between the towns' docks: a glowing dashed blue line along the water
+    if (show_boats) {
+        float t = (float)ImGui::GetTime();
+        float lw = fmaxf(1.5f, 2.2f * fminf(1.6f, zoom / fitz));
+        for (int a = 0; a < (int)gamedata.cities.size(); a++)
+            for (int k = 0; k < 5; k++) {
+                int b = gamedata.cities[a].docks[k];
+                if (b < 0 || b >= (int)gamedata.cities.size() || b == a) continue;
+                bool both = false; for (int j = 0; j < 5; j++) if (gamedata.cities[b].docks[j] == a) both = true;
+                if (both && b < a) continue;                         /* (a way both ways: drawn once) */
+                bool lit = selected == a || selected == b;
+                const short *xs, *ys; int n = travel_boat_way(a, b, &xs, &ys);
+                std::vector<ImVec2> pts;
+                if (n >= 2) for (int i = 0; i < n; i += (n > 60 ? 2 : 1)) { float x, y; tile_px(xs[i], ys[i], &x, &y); pts.push_back(to_scr(x, y)); }
+                if (n >= 2) { float x, y; tile_px(xs[n - 1], ys[n - 1], &x, &y); pts.push_back(to_scr(x, y)); }
+                else for (int e = 0; e < 2; e++) { u32 r = g_location(e ? b : a); if (!r) continue; float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y); pts.push_back(to_scr(x, y)); }
+                if (pts.size() < 2) continue;
+                int al = selected >= 0 && !lit ? 90 : 255;
+                dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(60, 150, 255, lit ? 110 : al / 4), 0, lw * 3.2f);   /* the glow */
+                /* the dashes, moving with the boats */
+                float dash = 9 * lw, gap = 6 * lw, ph = fmodf(t * 18 * lw, dash + gap), acc = -ph;
+                for (size_t i = 1; i < pts.size(); i++) {
+                    ImVec2 p0 = pts[i - 1], p1 = pts[i];
+                    float L = sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+                    if (L <= 0) continue;
+                    float s0 = 0;
+                    while (s0 < L) {
+                        float cyc = fmodf(acc + s0 + 10000 * (dash + gap), dash + gap);
+                        float run = cyc < dash ? fminf(dash - cyc, L - s0) : fminf(dash + gap - cyc, L - s0);
+                        if (cyc < dash) {
+                            ImVec2 q0(p0.x + (p1.x - p0.x) * s0 / L, p0.y + (p1.y - p0.y) * s0 / L), q1(p0.x + (p1.x - p0.x) * (s0 + run) / L, p0.y + (p1.y - p0.y) * (s0 + run) / L);
+                            dl->AddLine(q0, q1, lit ? IM_COL32(200, 235, 255, 255) : IM_COL32(150, 205, 255, al), lw);
+                        }
+                        s0 += fmaxf(run, 0.5f);
+                    }
+                    acc += L;
+                }
+            }
+    }
+
     // places
     int hover = -1; float hd = 1e9f;
     /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
@@ -734,6 +774,17 @@ extern "C" void worldmap_draw(void)
             place_details(p, colw - 8);
             ImGui::TableNextColumn();
             ImGui::PushTextWrapPos(0);
+            if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
+                const City &town = gamedata.cities[p.loc];
+                bool any = false;
+                for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size()) {
+                    if (!any) { ImGui::TextDisabled("Boats from its docks to:"); any = true; } else ImGui::SameLine();
+                    const City &d2 = gamedata.cities[town.docks[k]];
+                    char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d", d2.name.c_str(), k);
+                    if (ImGui::SmallButton(lb)) { selected = town.docks[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
+                }
+                if (any) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
+            }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
             ImGui::PopTextWrapPos();
@@ -892,6 +943,8 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::Spacing();
         ImGui::TextDisabled("Show"); ImGui::SameLine(); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a small picture of its kind. When off: a coloured dot.");
+        ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(ImGui::CalcTextSize("Show").x + ImGui::GetStyle().ItemSpacing.x); ImGui::Checkbox("Boats", &show_boats);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a small picture of its kind. When off: a coloured dot.");
     }
     {
