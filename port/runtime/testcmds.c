@@ -63,9 +63,10 @@ int testcmd_run(const char *cmd, const char *arg)
             for (int k = 0; k < 16; k++) { u16 o = (u16)(0x0dbe + (i - 5) * 96 + k * 6); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
             fprintf(stderr, "\n");
         }
-        else if (!strcmp(cmd, "upicpng")) { int gamepics_write_png(const char *, const char *, int); char nm[64], path[200]; int sc = 4;   /* test: PICS\NAME.PIC as a PNG in today's colours */
-            if (sscanf(arg, "%63[^,],%d", nm, &sc) >= 1) { char dos[80]; snprintf(dos, sizeof dos, "PICS\\%s.PIC", nm); snprintf(path, sizeof path, "pic_%s.png", nm);
-                fprintf(stderr, "upicpng %s: %d\n", path, gamepics_write_png(dos, path, sc)); } }
+        else if (!strcmp(cmd, "upicpng")) { int gamepics_write_png(const char *, const char *, int, const char *); char nm[64], path[200], pp[64] = "", ppd[80] = ""; int sc = 4;   /* test: PICS\NAME.PIC as a PNG in today's colours */
+            if (sscanf(arg, "%63[^,],%d,%63s", nm, &sc, pp) >= 1) { char dos[80]; snprintf(dos, sizeof dos, "PICS\\%s.PIC", nm); snprintf(path, sizeof path, "pic_%s.png", nm);
+                if (pp[0]) snprintf(ppd, sizeof ppd, "PICS\\%s.PIC", pp);
+                fprintf(stderr, "upicpng %s: %d\n", path, gamepics_write_png(dos, path, sc, ppd)); } }
         else if (!strcmp(cmd, "uiconsheet")) { void worldmap_icon_sheet(void); worldmap_icon_sheet(); }   /* test: the place pictures of each set, large */
         else if (!strcmp(cmd, "uwalk")) { void pathfix_test_walk(int, int, int); int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y); pathfix_test_walk(i, x, y); }   /* test: combatant i walks to x, y (battle map pixels) */
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */

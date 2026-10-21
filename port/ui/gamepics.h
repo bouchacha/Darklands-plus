@@ -17,6 +17,8 @@ void gamepics_set_renderer(SDL_Renderer *r);
 const GamePic *gamepic(const std::string &dosname, const char *palpic = nullptr);
 /* several pictures drawn one over the other at (0, 0) (the first one sets the size) */
 const GamePic *gamepic_layers(const std::vector<std::string> &dosnames, const char *palpic = nullptr);
+/* the layers over the first with the first itself left out (the doll without its niche) */
+const GamePic *gamepic_layers_off_back(const std::vector<std::string> &dosnames, const char *palpic = nullptr);
 /* a part of a picture (x, y, w, h) */
 const GamePic *gamepic_part(const std::string &dosname, int x, int y, int w, int h, const char *palpic = nullptr);
 /* a part with its greys left out (see-through), for a word painted on grey stone: the colours

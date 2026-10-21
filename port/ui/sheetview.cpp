@@ -251,9 +251,16 @@ static std::string load_effects(const SheetModel &s)
 
 static void doll(NsDraw &P, const SheetModel &s)
 {
+    if (orn_on()) {                                         /* the stone niche drawn anew (ui/niche.cpp), the doll over it */
+        void ui_draw_doll_niche(ImDrawList *dl, ImVec2 o, float kx, float k);
+        ui_draw_doll_niche(P.dl, NsDraw::w(62, 21.5f), P.kx, P.k);
+        const GamePic *d = gamepic_layers_off_back(doll_layers(s), "PICS\\ARMBACK.PIC");
+        if (d) P.dl->AddImage((ImTextureID)(intptr_t)d->tex, NsDraw::w(62, 21.5f), NsDraw::w(62 + d->w, 21.5f + d->h));
+    } else {
     const GamePic *g = gamepic_layers(doll_layers(s), "PICS\\ARMBACK.PIC");
     if (g) P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(62, 21.5f), NsDraw::w(62 + g->w, 21.5f + g->h));
     else P.rect(62, 21.5f, 198, 191.5f, IM_COL32(200, 196, 190, 255));
+    }
     /* the load */
     int band = s.load_band < 0 ? 0 : s.load_band > 3 ? 3 : s.load_band;
     ImU32 c = band >= 3 ? NsDraw::RED : band == 2 ? IM_COL32(150, 80, 20, 255) : NsDraw::INK;

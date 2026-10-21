@@ -82,6 +82,35 @@ const GamePic *gamepic_layers(const std::vector<std::string> &names, const char 
     return g->tex ? g : nullptr;
 }
 
+
+/* the layers over the first, with whatever is still the first left out (see-through): the doll
+   without its stone niche, for a niche drawn anew behind it. The weapons' pictures carry a piece
+   of the niche's pillar round them; that goes too, as it matches the niche pixel for pixel */
+const GamePic *gamepic_layers_off_back(const std::vector<std::string> &names, const char *palpic)
+{
+    if (names.size() < 2) return nullptr;
+    std::string key = std::string("offback|") + (palpic ? palpic : "") + "|";
+    for (auto &n : names) key += n + "+";
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second.tex ? &it->second : nullptr;
+    Img base;
+    if (!load(names[0], base)) { cache[key] = GamePic(); return nullptr; }
+    u32 pal[256]; palette(base, palpic, pal);
+    std::vector<u32> back((size_t)base.w * base.h), rgba;
+    for (size_t i = 0; i < back.size(); i++) back[i] = base.px[i] ? pal[base.px[i]] : 0;
+    rgba = back;
+    for (size_t k = 1; k < names.size(); k++) {
+        Img l;
+        if (!load(names[k], l)) continue;
+        u32 lp[256]; palette(l, palpic, lp);
+        for (int y = 0; y < l.h && y < base.h; y++)
+            for (int x = 0; x < l.w && x < base.w; x++) { u8 v = l.px[(size_t)y * l.w + x]; if (v) rgba[(size_t)y * base.w + x] = lp[v]; }
+    }
+    for (size_t i = 0; i < rgba.size(); i++) if (rgba[i] == back[i]) rgba[i] = 0;
+    const GamePic *g = upload(key, rgba, base.w, base.h);
+    return g->tex ? g : nullptr;
+}
+
 const GamePic *gamepic(const std::string &name, const char *palpic) { return gamepic_layers({ name }, palpic); }
 
 const GamePic *gamepic_part(const std::string &name, int x0, int y0, int w, int h, const char *palpic)
@@ -131,10 +160,10 @@ const GamePic *gamepic_cutout(const std::string &name, int x0, int y0, int w, in
 
 /* test: a picture written as a PNG in the colours the game shows it in now (ucmd upicpng:NAME,SCALE) */
 extern "C" int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
-extern "C" int gamepics_write_png(const char *name, const char *out, int scale)
+extern "C" int gamepics_write_png(const char *name, const char *out, int scale, const char *palpic)
 {
     Img im; if (!load(name, im)) return 0;
-    u32 pal[256]; palette(im, nullptr, pal);
+    u32 pal[256]; palette(im, palpic && palpic[0] ? palpic : nullptr, pal);
     if (scale < 1) scale = 1;
     int W = im.w * scale, H = im.h * scale;
     std::vector<u8> rgba((size_t)W * H * 4);
