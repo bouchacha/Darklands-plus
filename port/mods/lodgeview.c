@@ -56,10 +56,41 @@ void lodgeview_set(int on) { lv_on = on; config_set_int("display.native_lodge", 
    several days go by), and a click or a key skips them (the rest of a run of days too) */
 static int many_days, skip_run;
 u32 plat_ticks_ms(void);
+/* under any other Darklands+ page (ns_showing), the same clock is drawn over the page by the
+   interface (ui/ui.cpp: hourglass_now), with the original's pace (400 ms a step) */
+int hg_active, hg_hour, hg_day, hg_month;
+static void hourglass_other(int steps)
+{
+    int h = (s16)g_rw(GV_cur_hour), day = (s16)g_rw(GV_cur_day), month = (s16)g_rw(GV_cur_month), skip = 0;
+    hg_active = 1;
+    ns_input_begin();
+    for (int s = 0; s <= steps && !skip; s++) {
+        hg_hour = h; hg_day = day; hg_month = month;
+        u32 t0 = plat_ticks_ms(), wait = (u32)(s == steps ? 1000 : 400);
+        while (plat_ticks_ms() - t0 < wait) {
+            dl_poll();
+            plat_sleep_ms(4);
+            ns_input_poll();
+            if (ns_in.pressed || ns_in.rclick) skip = 1;
+            if (ns_call(GF_key_pressed, 0)) { ns_call(GF_get_key, 0); skip = 1; }
+            if (skip || ns_unwinding) break;
+        }
+        if ((h += 3) >= 24) {
+            h -= 24;
+            if (++day > (s16)g_rw((u16)(GV_days_per_month + 2 * (month % 12)))) { day = 1; month = (month + 1) % 12; }
+        }
+    }
+    hg_active = 0;
+    ns_input_begin();
+}
 static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s043 150b:2a04 */
 {
     LodgeModel *m = &lodge_model;
-    if (!lv_on || !m->open) { hook_call_original(); return; }
+    if (!lv_on || !m->open) {
+        int steps = (s16)rw(SS, (u16)(SP + 4)) / 3;
+        if (steps > 0 && ns_showing() && !config_get_int("original", 0)) { hourglass_other(steps); hook_return_far(0); return; }
+        hook_call_original(); return;
+    }
     int steps = (s16)rw(SS, (u16)(SP + 4)) / 3;
     if (steps <= 0 || skip_run) { hook_return_far(0); return; }
     int h = (s16)g_rw(GV_cur_hour), day = (s16)g_rw(GV_cur_day), month = (s16)g_rw(GV_cur_month);

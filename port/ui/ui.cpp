@@ -22,6 +22,7 @@
 #include "libraries.h"
 
 extern "C" int saves_loading_cover(void);   /* mods/saves.c */
+void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);   /* ui/hourglass.cpp */
 extern "C" {
 #include "../mods/options.h"
 #include "../runtime/cpu.h"
@@ -1073,6 +1074,14 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_welcome) welcome_window();
     else if (open_news) news_window();
     else if (open_mt32) mt32_window();
+    { extern int hg_active, hg_hour, hg_day, hg_month;          /* time passing under a Darklands+ page (mods/lodgeview.c) */
+      if (hg_active) {
+          ImDrawList *dl = ImGui::GetForegroundDrawList();
+          float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+          dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(20, 12, 4, 120));
+          float kx = (x1 - x0) / 320.0f, ky = (y1 - y0) / 200.0f;
+          ui_draw_hourglass(dl, ImVec2(x0 + 130 * kx, y0 + 49 * ky), kx, ky, hg_hour, hg_day, hg_month);
+      } }
     { if (saves_loading_cover()) {                 /* a load under way: the game's load screen hidden */
           ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
           dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(20, 14, 10, 255));

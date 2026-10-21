@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string>
 #include "nsdraw.h"
+void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);   /* ui/hourglass.cpp */
 #include "gamepics.h"
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 extern "C" {
@@ -167,27 +168,21 @@ extern "C" void lodgeview_draw(void)
     else P.text(fo, 3.9f, 190, 188, dim, "F1: list of keys");
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
 
-    /* the hours going by (the game's hourglass, here): the bell, the day, how far through */
+    /* the hours going by: the game's own clock (ui/hourglass.cpp), with the day of a run of days
+       above it and how to skip below */
     if (m.passing) {
-        P.rect(60, 0, 320, 200, IM_COL32(40, 26, 12, 70));
-        const float X0 = 118, X1 = 262, Y0 = 72, Y1 = 124;
-        P.rect(X0 - 1.2f, Y0 - 1.2f, X1 + 1.2f, Y1 + 1.2f, IM_COL32(120, 84, 40, 255), 3);
-        P.rect(X0, Y0, X1, Y1, PANEL, 2.5f);
+        P.rect(60, 0, 320, 200, IM_COL32(20, 12, 4, 120));
+        const float CX0 = 130, CY0 = 52;
         std::string head = m.pass_n == 0 ? (m.mode == 1 ? "A day in camp" : "A day at the inn")
                          : m.pass_of ? "Day " + std::to_string(m.pass_n) + " of " + std::to_string(m.pass_of)
                                      : "Day " + std::to_string(m.pass_n) + ", until rested";
         float hw = P.width(f, NsDraw::FS_HEAD, head);
-        P.text(f, NsDraw::FS_HEAD, (X0 + X1 - hw) * 0.5f, Y0 + 4, soft, head);
-        char bell[24]; gm_hour_name(m.pass_hour, bell, sizeof bell);
-        snprintf(b, sizeof b, "%s, %d %s", bell, m.pass_day, gm_month_name(m.pass_month));
-        std::string when = ns_gtext(b);
-        float ww = P.width(f, NsDraw::FS_TITLE, when);
-        P.text(f, NsDraw::FS_TITLE, (X0 + X1 - ww) * 0.5f, Y0 + 15, ink, when);
-        float frac = m.pass_steps > 0 ? (float)m.pass_step / m.pass_steps : 1.0f;
-        P.rect(X0 + 10, Y0 + 31, X1 - 10, Y0 + 36, IM_COL32(222, 206, 172, 255), 2);
-        P.rect(X0 + 10, Y0 + 31, X0 + 10 + (X1 - X0 - 20) * frac, Y0 + 36, BROWN, 2);
+        P.rect(190 - hw * 0.5f - 5, CY0 - 13, 190 + hw * 0.5f + 5, CY0 - 3, IM_COL32(40, 26, 12, 230), 2);
+        P.text(f, NsDraw::FS_HEAD, 190 - hw * 0.5f, CY0 - 12, IM_COL32(244, 226, 180, 255), head);
+        ui_draw_hourglass(P.dl, NsDraw::w(CX0, CY0), P.kx, P.k, m.pass_hour, m.pass_day, m.pass_month);
         const char *hint = m.pass_n ? "Click or press a key to skip to the end" : "Click or press a key to skip";
         float tw = P.width(fo, NsDraw::FS_SMALL, hint);
-        P.text(fo, NsDraw::FS_SMALL, (X0 + X1 - tw) * 0.5f, Y0 + 41, dim, hint);
+        P.rect(190 - tw * 0.5f - 4, CY0 + 106, 190 + tw * 0.5f + 4, CY0 + 114, IM_COL32(40, 26, 12, 220), 2);
+        P.text(fo, NsDraw::FS_SMALL, 190 - tw * 0.5f, CY0 + 107, IM_COL32(230, 214, 178, 255), hint);
     }
 }
