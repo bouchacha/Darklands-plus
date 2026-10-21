@@ -36,7 +36,6 @@ static void restart_end(int v) { saves_restart = v; }
 static const int V_CHANCES[] = { 2, 1, 0 };
 static const int V_PICTURE[] = { 0, 1, 2, 3 };
 static const int V_CLOCK[] = { 0, 1 };
-static const int V_ORNATE[] = { 0, 1, 2, 3, 4 };
 static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
@@ -56,7 +55,6 @@ static Option OPTIONS[] = {
     { "display.native_panel", S_SCREENS, 0, "New party panel", "each member's Endurance, Strength and Divine Favor as labelled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name.", OC_SHOW, 0, 1, 1 },
     { "display.panel_picture", S_SCREENS, "display.native_panel", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "Your portrait, else the battle sprite, else the shield emblem|The battle sprite, else the shield emblem|The shield emblem|No picture", V_PICTURE, 0, 0, OF_COMBO },
     { "display.native_menu", S_SCREENS, 0, "New menus", "the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held.", OC_SHOW, 0, 1, 1, 0, 0, menuview_set },
-    { "display.ornate", S_SCREENS, 0, "Period ornaments", "the new screens and windows dressed in the original's manner: a band round each window (the cards' plaited copper, the party sheet's walnut and brass, the illuminated capitals' vermilion and gold, or the paper doll's carved stone), gilt rules and corner bosses, buttons as lit metal plaques. Off: plain parchment panels.", OC_TASTE, 0, 1, 1, "Off|Plaited copper|Walnut and brass|Illuminated|Gothic stone", V_ORNATE, 0, 0, OF_COMBO },
     { "display.native_title", S_SCREENS, 0, "New start screen", "Continue (loads the newest save), Load, New party and Quickstart, over the original game's art.", OC_SHOW, 0, 1, 1, 0, 0, titleview_set },
     { "display.native_cards", S_SCREENS, 0, "New card screens", "card text in the typeface you choose, the options as rows to click with their chances beside them; an option that uses an item or a saint lists who can. The game still decides every outcome. When off: the original cards (with crisp text drawn over them).", OC_SHOW, 0, 1, 1, 0, 0, cardview_set },
     { "display.native_shops", S_SCREENS, 0, "New shop screen", "all the wares and all your items in two lists, with Buy and Sell on each row and the items in use marked; the bottom of the screen describes whatever is under the pointer. Stock and prices are unchanged.", OC_SHOW, 0, 1, 1, 0, 0, barterview_set },

@@ -505,6 +505,33 @@ void tab_display(void)
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
+    ImGui::PushFont(ui_font_head); orn_septext("Ornaments"); ImGui::PopFont();
+    {   /* the band round the windows (ui/ornament.cpp): a picture of each to choose from */
+        int cur = orn_style();
+        float cw = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170)), ch = cw * 0.78f + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+        static const int ORDER[5] = { 1, 2, 3, 4, 0 };
+        for (int j = 0; j < 5; j++) {
+            int st = ORDER[j];
+            if (j) ImGui::SameLine();
+            ImGui::PushID(100 + st);
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("orn", ImVec2(cw, ch))) { config_set_int("display.ornate", st); ui_dirty_config = 1; cur = st; }
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+            float m = cw * 0.08f;
+            extern ImFont *ui_font_overlay;
+            orn_preview(dl, ImVec2(p.x + m, p.y + m), ImVec2(p.x + cw - m, p.y + cw * 0.78f - m * 0.4f), st, ui_font_overlay);
+            const char *n = orn_style_name(st);
+            ImVec2 ts = ImGui::CalcTextSize(n);
+            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
+            ImGui::PopID();
+        }
+        ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
+                "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
+                "and the buttons and tabs are metal plaques.");
+    }
+
     ImGui::PushFont(ui_font_head); orn_septext("Clock"); ImGui::PopFont();
     {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
         void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);

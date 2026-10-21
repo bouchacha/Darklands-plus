@@ -9,6 +9,9 @@ int orn_style(void);                                       /* 0 off, 1 plaited c
 const char *orn_style_name(int s);
 /* the chosen style's band round a..b, w wide inside it */
 void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
+void orn_frame_style(ImDrawList *dl, ImVec2 a, ImVec2 b, float w, int style);
+/* a small window in style s (a heading, lines, a button), for the settings' choice */
+void orn_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style, ImFont *f);
 /* a plaited band (two copper strands, over and under) round the rectangle a..b, w wide inside it;
    a gilt lozenge at each corner */
 void orn_braid_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);

@@ -354,9 +354,10 @@ static void gothic_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
     }
 }
 
-void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w) { orn_frame_style(dl, a, b, w, orn_style()); }
+void orn_frame_style(ImDrawList *dl, ImVec2 a, ImVec2 b, float w, int style)
 {
-    switch (orn_style()) {
+    switch (style) {
     case 2: walnut_frame(dl, a, b, w * 1.15f); break;
     case 3: illum_frame(dl, a, b, w); break;
     case 4: gothic_frame(dl, a, b, w * 1.1f); break;
@@ -364,3 +365,30 @@ void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
     }
 }
 const char *orn_style_name(int s) { static const char *N[5] = { "Off", "Plaited copper", "Walnut and brass", "Illuminated", "Gothic stone" }; return s >= 0 && s <= 4 ? N[s] : "?"; }
+
+/* a small window in the given style, for the settings' choice */
+void orn_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style, ImFont *f)
+{
+    float w = (b.x - a.x) * 0.06f;
+    dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255), style ? 0 : 6);
+    if (!style) {
+        dl->AddRect(a, b, IM_COL32(107, 77, 41, 204), 6, 0, 1.5f);
+        dl->AddLine(ImVec2(a.x + w * 1.5f, a.y + w * 3.2f), ImVec2(b.x - w * 1.5f, a.y + w * 3.2f), IM_COL32(140, 107, 64, 255), 1.5f);
+    } else {
+        orn_parchment_edges(dl, ImVec2(a.x + w, a.y + w), ImVec2(b.x - w, b.y - w), w * 1.5f);
+        orn_frame_style(dl, a, b, w, style);
+        float y = a.y + w * 3.2f, x0 = a.x + w * 1.8f;
+        lozenge(dl, ImVec2(x0, y), w * 0.35f, false);
+        dl->AddLine(ImVec2(x0 + w * 5, y - w * 0.12f), ImVec2(b.x - w * 2.2f, y - w * 0.12f), GOLD_DK, 1.2f);
+        dl->AddLine(ImVec2(x0 + w * 5, y + w * 0.12f), ImVec2(b.x - w * 2.2f, y + w * 0.12f), IM_COL32(176, 134, 60, 200), 1.2f);
+        lozenge(dl, ImVec2(b.x - w * 1.9f, y), w * 0.3f, false);
+    }
+    if (f) dl->AddText(f, w * 1.6f, ImVec2(a.x + w * (style ? 2.6f : 1.6f), a.y + w * 2.3f), IM_COL32(44, 26, 10, 255), "Tasks");
+    for (int i = 0; i < 3; i++) {                                  /* lines of text */
+        float y = a.y + w * (5.2f + i * 1.4f);
+        dl->AddRectFilled(ImVec2(a.x + w * 1.8f, y), ImVec2(a.x + w * (1.8f + 9 - i * 2.2f), y + w * 0.5f), IM_COL32(120, 92, 60, 150), 2);
+    }
+    ImVec2 p0(b.x - w * 7.5f, b.y - w * 3.6f), p1(b.x - w * 1.8f, b.y - w * 1.6f);
+    if (style) orn_plaque(dl, p0, p1, IM_COL32(120, 36, 20, 255), false, true);
+    else dl->AddRectFilled(p0, p1, IM_COL32(112, 40, 22, 235), 4);
+}
