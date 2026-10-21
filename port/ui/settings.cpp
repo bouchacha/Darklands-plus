@@ -542,7 +542,7 @@ void tab_display(void)
         }
         ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
                 "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
-                "and the buttons and tabs are metal plaques.");
+                "and the frames and buttons are as chosen below the pictures.");
     }
 
     ImGui::PushFont(ui_font_head); orn_septext("Clock"); ImGui::PopFont();
@@ -551,10 +551,10 @@ void tab_display(void)
         const char *ui_clock_name(int k);
         int cur = config_get_int("display.clock", 1);
         float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
-        static const int ORDER[3] = { 1, 2, 0 };
-        for (int j = 0; j < 3; j++) {
+        static const int ORDER[6] = { 1, 3, 4, 5, 2, 0 };
+        for (int j = 0; j < 6; j++) {
             int st = ORDER[j];
-            if (j) ImGui::SameLine();
+            if (j % 3) ImGui::SameLine();
             ImGui::PushID(st);
             ImVec2 p = ImGui::GetCursorScreenPos();
             if (ImGui::InvisibleButton("clk", ImVec2(cw, ch))) { config_set_int("display.clock", st); ui_dirty_config = 1; cur = st; }
