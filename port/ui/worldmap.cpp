@@ -1273,6 +1273,11 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
             else { pts.push_back(to_scr(hx, hy)); pts.push_back(dpos[i]); }
             float lw = lit ? 3.2f : 2.2f;
             int al = state[i] == 1 ? 255 : 110;
+            if (lit) {                                            /* the way it takes, glowing */
+                float pulse = 0.75f + 0.25f * sinf(t * 4.0f);
+                dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 220, 120, (int)(70 * pulse)), 0, lw * 7.0f);
+                dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 236, 160, (int)(110 * pulse)), 0, lw * 4.0f);
+            }
             dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(20, 60, 140, lit ? 150 : al / 3), 0, lw * 3.0f);
             float dash = 9 * lw, gap = 6 * lw, acc = -fmodf(t * 18 * lw, dash + gap);
             ImU32 dc = lit ? IM_COL32(255, 236, 150, 255) : IM_COL32(170, 215, 255, al);
@@ -1315,7 +1320,16 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
     if (over >= 0) {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         std::string nm = dest[over] < (int)gamedata.cities.size() ? gamedata.cities[dest[over]].name : std::string("?");
-        ImGui::SetTooltip("Take the boat to %s", nm.c_str());
+        {   /* what the town offers, as on the world map */
+            ImGui::BeginTooltip();
+            if (ui_font_overlay) ImGui::PushFont(ui_font_overlay);
+            ImGui::TextUnformatted(nm.c_str());
+            std::vector<Place> P = places();
+            for (const Place &pl : P) if (pl.loc == dest[over]) { place_details(pl, ImGui::GetFontSize() * 18); break; }
+            ImGui::TextDisabled("Click to take the boat.");
+            if (ui_font_overlay) ImGui::PopFont();
+            ImGui::EndTooltip();
+        }
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) clicked = opt[over];
     }
     ImGui::End();

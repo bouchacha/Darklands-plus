@@ -503,6 +503,9 @@ int travel_nearest(int type)
  * water (the caller draws a straight line). Kept per pair. */
 typedef struct { int a, b, n; short *x, *y; } BoatWay;
 static BoatWay *boats; static int nboats;
+/* where a boat goes: the sea (1), the great rivers (2) and the lesser ones (3: the Leine at
+   Hannover, the Oker at Braunschweig) */
+static int boat_water(int t) { return t == 1 || t == 2 || t == 3; }
 int travel_boat_way(int a, int b, const short **xs, const short **ys)
 {
     for (int i = 0; i < nboats; i++) if (boats[i].a == a && boats[i].b == b) { *xs = boats[i].x; *ys = boats[i].y; return boats[i].n; }
@@ -517,14 +520,14 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
     /* Dijkstra: a start tile costs 3 per tile of land crossed from the town, so the
        route leaves from the nearest water rather than fanning out to any river. */
-    int hn = 0, R = 5, goal = -1;
+    int hn = 0, R = 3, goal = -1;
     long *heap = malloc(n * 6 * sizeof *heap);
     if (!heap) { free(dd); free(pv); free(q); return 0; }
 #define HPUSH(c, i) do { long v_ = ((long)(c) << 32) | (long)(i); int j_ = hn++; \
         while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
     for (int y = ay - 2 * R; y <= ay + 2 * R; y++) for (int x = ax - R; x <= ax + R; x++) {
         if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
-        int t = terr[y * mw + x]; if (!blocked(t)) continue;
+        int t = terr[y * mw + x]; if (!boat_water(t)) continue;
         int dx = abs(x - ax), dy = abs(y - ay) / 2, c = 3 * (dx > dy ? dx : dy);
         dd[y * mw + x] = c; HPUSH(c, y * mw + x);
     }
@@ -540,7 +543,7 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
         if (abs(x - bx) <= R && abs(y - by) <= R * 2) { goal = i; break; }
         for (int k = 0; k < 6; k++) {
             int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
-            int ni = ny * mw + nx; if (!blocked(terr[ni])) continue;
+            int ni = ny * mw + nx; if (!boat_water(terr[ni])) continue;
             if (dd[ni] >= 0 && dd[ni] <= cst + 1) continue;
             dd[ni] = cst + 1; pv[ni] = i; HPUSH(cst + 1, ni);
         }
