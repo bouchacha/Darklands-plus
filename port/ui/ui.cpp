@@ -395,6 +395,12 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    if (ui_alert_open() && !open_menu) {     /* a notice to click through (ui/alerts.cpp) takes every event until it closes: the
+                                               battle under it must not take its click (or the Esc / Space meant for it) */
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { ui_toggle(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (figpick_is_open()) {                /* the figure picker (ui/figures.cpp) takes every event until it closes */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;

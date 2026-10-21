@@ -1056,8 +1056,10 @@ static void draw_loot_buttons(void)
     loot_btn_frame = ImGui::GetFrameCount();
 }
 /* a click outside the menus on something the overlay drew: 1 if taken */
+extern "C" int battleoverlay_arrow_click(int x, int y);
 extern "C" int overlay_click(int x, int y)
 {
+    if (battleoverlay_arrow_click(x, y)) { click_taken = 1; return 1; }
     if (ImGui::GetFrameCount() - loot_btn_frame <= 2 && (loot_active || barter_active))
         for (int i = 0; i < 2; i++)
             if (x >= loot_btn[i][0].x && x < loot_btn[i][1].x && y >= loot_btn[i][0].y && y < loot_btn[i][1].y) { loot_press(i); click_taken = 1; return 1; }

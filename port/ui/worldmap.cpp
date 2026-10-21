@@ -50,6 +50,8 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 void quest_marks(std::vector<std::pair<int, std::string>> &out);
 extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
+extern ImFont *ui_font_bold;
+extern "C" int citynav_available(void);
 
 static SDL_Renderer *wm_ren;
 static SDL_Texture *tex[WM_LEVELS];
@@ -79,7 +81,8 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static int selected = -1;
-static bool show_villages = true, show_castles = true, show_holy = true, show_other = true, show_names = true, show_quests = true, show_icons = true;
+static bool show_names = true, show_quests = true, show_icons = true;
+static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
 
 /* "Towns with ...": the towns that have a place most lack (ui/townicons.h TI_UNIVERSITY .. TI_BANK)
    or a notable shop (wares of 30q and better), marked with its picture on the map and listed */
@@ -480,7 +483,7 @@ extern "C" void worldmap_draw(void)
     float fsize = ui_text_px() * 0.68f * fminf(fmaxf(powf(zoom / fitz, 0.3f), 0.9f), 1.6f);
     for (const Place &p : P) {
         int g = kind_group(p.kind);
-        if ((g == 1 && !show_villages) || (g == 2 && !show_castles) || (g == 3 && !show_holy) || (g == 4 && !show_other)) continue;
+        if (!show_kind[icon_kind(p.kind)]) continue;
         float x, y; tile_px(p.x, p.y, &x, &y);
         ImVec2 s = to_scr(x, y);
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
@@ -573,19 +576,97 @@ extern "C" void worldmap_draw(void)
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            place_details(p, ImGui::GetFontSize() * 22);
+            if (selected != p.loc) ImGui::TextDisabled("Click for what it offers, and to travel there");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
-            if (on_map) ImGui::TextDisabled("Double-click to travel there");
             ImGui::EndTooltip();
             break;
         }
     }
 
-    // panel: search, layers, the selected place
-    ImGui::SetNextWindowPos(ImVec2(o.x + 14, o.y + 14));
-    ImGui::SetNextWindowBgAlpha(0.97f);                    /* (the map must not show through the words) */
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, sz.y - 28));   /* (no taller than the window: it scrolls then) */
+    /* three panels round the map: the party's tasks at the left; finding, the legend (which also
+       switches what the map shows) and the towns with something at the top right; the place chosen
+       at the foot, its Travel there always in view */
+    float pad = 14 * fmaxf(1.0f, pk * 0.8f);
+    bool in_town = !on_map && citynav_available() && !config_get_int("original", 0);
+    float foot_h = 0;
+    const Place *sel = nullptr;
+    for (const Place &p : P) if (p.loc == selected) sel = &p;
+
+    /* ---- the foot: the place chosen */
+    if (sel) {
+        const Place &p = *sel;
+        float fw = sz.x - 2 * pad, fh = fminf(sz.y * 0.34f, UIS(300) * pk);
+        ImGui::SetNextWindowPos(ImVec2(o.x + pad, o.y + sz.y - pad), ImGuiCond_Always, ImVec2(0, 1));
+        ImGui::SetNextWindowSize(ImVec2(fw, fh));
+        ImGui::SetNextWindowBgAlpha(0.97f);
+        ImGui::Begin("##wmplace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar);
+        ImGui::SetWindowFontScale(pk);
+        foot_h = fh;
+        /* its head, always in view: the name, what it is, the journey and the button */
+        if (ui_font_bold) ImGui::PushFont(ui_font_bold);
+        ImGui::TextUnformatted(p.name.c_str());
+        if (ui_font_bold) ImGui::PopFont();
+        ImGui::SameLine(); ImGui::TextDisabled("%s", kind_line(P, p).c_str());
+        float bx = ImGui::GetWindowContentRegionMax().x;
+        if (on_map) {
+            int m = travel_minutes_loc(p.loc, nullptr, nullptr);
+            std::string j = m >= 0 ? "About " + hhmm(m) + " of travel" : std::string("No way there from here");
+            float bw = ImGui::CalcTextSize("Travel there").x + ImGui::GetStyle().FramePadding.x * 2;
+            ImGui::SameLine(bx - bw - ImGui::CalcTextSize(j.c_str()).x - ImGui::GetStyle().ItemSpacing.x * 2);
+            ImGui::TextDisabled("%s", j.c_str());
+            ImGui::SameLine(bx - bw);
+            ImGui::BeginDisabled(m < 0);
+            if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
+            ImGui::EndDisabled();
+        } else if (in_town) {
+            const char *lb = "Leave town and travel there";
+            float bw = ImGui::CalcTextSize(lb).x + ImGui::GetStyle().FramePadding.x * 2;
+            ImGui::SameLine(bx - bw);
+            if (ImGui::Button(lb)) ImGui::OpenPopup("##leavetravel");
+        } else {
+            const char *t = "Travel from the travel map, or from a town's streets";
+            ImGui::SameLine(bx - ImGui::CalcTextSize(t).x); ImGui::TextDisabled("%s", t);
+        }
+        if (ImGui::BeginPopupModal("##leavetravel", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
+            int cur = (s16)g_rw(G_CUR_LOC);
+            std::string town = cur >= 0 && cur < (int)gamedata.cities.size() ? gamedata.cities[cur].name : std::string("the town");
+            ImGui::Text("Walk out of %s's gate and travel to %s?", town.c_str(), p.name.c_str());
+            ImGui::TextDisabled("The party walks through the streets to a gate and out; on the travel map the journey begins.");
+            if (ImGui::Button("Leave and travel")) {
+                void citynav_leave_town(void);
+                travel_after_leaving(p.loc, p.name.c_str());
+                citynav_leave_town();
+                ImGui::CloseCurrentPopup(); ImGui::EndPopup(); ImGui::End(); ui_toggle_map(); ImGui::End(); return;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Stay")) ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+        ImGui::SameLine(); ImGui::Dummy(ImVec2(0, 0));
+        ImGui::Separator();
+        /* the rest, scrolling under the head */
+        ImGui::BeginChild("##wmplacebody", ImVec2(0, 0));
+        float colw = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+        if (ImGui::BeginTable("##wmpt", 2, ImGuiTableFlags_SizingStretchSame)) {
+            ImGui::TableNextColumn();
+            place_details(p, colw - 8);
+            ImGui::TableNextColumn();
+            ImGui::PushTextWrapPos(0);
+            for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::EndTable();
+        }
+        ImGui::EndChild();
+        ImGui::End();
+    }
+    float avail_h = sz.y - 2 * pad - (foot_h > 0 ? foot_h + pad : 0);
+
+    /* ---- the left: what the map is, the view buttons, the journey, the tasks and rumours */
+    ImGui::SetNextWindowPos(ImVec2(o.x + pad, o.y + pad));
+    ImGui::SetNextWindowBgAlpha(0.97f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fminf(UIS(470) * pk, sz.x * 0.36f), avail_h));
     ImGui::Begin("##wmpanel", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     if (ImGui::GetFrameCount() - wm_panel_frame > 1) wm_panel_run = 0;
     wm_panel_run++; wm_panel_frame = ImGui::GetFrameCount();
@@ -594,8 +675,54 @@ extern "C" void worldmap_draw(void)
     ImGui::TextUnformatted("The Holy Roman Empire");
     if (ui_pad_prompts()) ui_pad_text("{LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the map.", true);
     else ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
+    if (travel.active) {                                   /* the journey under way */
+        ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.12f, 1), "Travelling to %s", travel.name);
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Stop")) travel_stop();
+    }
+    if (ImGui::SmallButton("The party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
+    {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
+        static std::vector<QuestRow> qr; static int qf = -1000;
+        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); qf = ImGui::GetFrameCount(); }
+        bool none = true;
+        for (int part = 0; part < 2; part++) {                  /* the tasks; the rumours heard (marked on the map too) */
+        bool any = false;
+        auto in_part = [&](const QuestRow &r) { return r.loc >= 0 && (part ? r.group == 2 || r.group == 4 : r.group <= 1); };
+        for (const QuestRow &r : qr) if (in_part(r)) { any = true; break; }
+        if (any) none = false;
+        if (any && ImGui::TreeNodeEx(part ? "Rumours" : "Tasks", ImGuiTreeNodeFlags_DefaultOpen)) {
+            for (const QuestRow &r : qr) {
+                if (!in_part(r)) continue;
+                std::string d = quest_days(r);
+                float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
+                std::string pad2((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
+                char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad2.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
+                bool sl = ImGui::Selectable(lb, selected == r.loc);
+                { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
+                if (sl) {
+                    for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
+                    selected = r.loc;
+                }
+                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+            }
+            ImGui::TreePop();
+        }
+        }
+        if (none) ImGui::TextDisabled("No tasks or rumours yet.");
+    }
+    ImGui::End();
+
+    /* ---- the top right: find, the legend (a click on an entry hides or shows those places), marks, towns with ... */
+    ImGui::SetNextWindowPos(ImVec2(o.x + sz.x - pad, o.y + pad), ImGuiCond_Always, ImVec2(1, 0));
+    ImGui::SetNextWindowBgAlpha(0.97f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fminf(UIS(420) * pk, sz.x * 0.34f), avail_h));
+    ImGui::Begin("##wmfind", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::SetWindowFontScale(pk);
+    float rw = UIS(300) * pk;
     char *find = wm_find;
-    ImGui::SetNextItemWidth(UIS(260) * pk);
+    ImGui::SetNextItemWidth(rw);
     bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
     if (wm_test_enter) { enter = true; wm_test_enter = 0; }
     if (find[0]) {                                         /* the places named so, the nearest first on the travel map, with the journey */
@@ -608,7 +735,7 @@ extern "C" void worldmap_draw(void)
             return (a.first < 0 ? INT_MAX : a.first) < (b.first < 0 ? INT_MAX : b.first); });
         /* a row a place: its picture, the name, what it is (dim, left out when the row has no room) and
            the journey at the right; the whole row to click */
-        float rw = UIS(260) * pk, lh = ImGui::GetTextLineHeight(), isz = lh * 0.95f, gap = ImGui::GetStyle().ItemSpacing.x;
+        float lh = ImGui::GetTextLineHeight(), isz = lh * 0.95f, gap = ImGui::GetStyle().ItemSpacing.x;
         ImDrawList *pdl = ImGui::GetWindowDrawList();
         for (size_t i = 0; i < hits.size() && i < 8; i++) {
             const Place &p = *hits[i].second;
@@ -634,24 +761,62 @@ extern "C" void worldmap_draw(void)
         if (hits.size() > 8) ImGui::TextDisabled("and %d more: type more of the name to narrow the list", (int)hits.size() - 8);
         if (hits.empty()) ImGui::TextDisabled("No place of that name.");
     }
-    if (travel.active) {                                   /* the journey under way */
-        ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.12f, 1), "Travelling to %s", travel.name);
-        ImGui::SameLine();
-        if (ImGui::SmallButton("Stop")) travel_stop();
-    }
-    if (ImGui::SmallButton("The party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
-    {   /* what the map shows: which places (the towns always), and how */
-        float lw = fmaxf(ImGui::CalcTextSize("Places").x, ImGui::CalcTextSize("Marks").x) + ImGui::GetFontSize() * 1.4f;
-        auto label = [&](const char *t) { ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("%s", t); ImGui::SameLine(lw); };
-        label("Places"); ImGui::Checkbox("Villages", &show_villages); ImGui::SameLine(); ImGui::Checkbox("Castles", &show_castles);
-        ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(lw); ImGui::Checkbox("Holy places", &show_holy); ImGui::SameLine(); ImGui::Checkbox("Other", &show_other);
-        label("Marks"); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
+    {   /* the legend: each kind of place, a click shows or hides them */
+        float is = ImGui::GetFontSize() * 1.15f, colw = rw * 0.5f;
+        ImDrawList *pl = ImGui::GetWindowDrawList();
+        ImGui::Spacing();
+        ImGui::TextDisabled("Places (click to show or hide)");
+        for (int k = 0; k < IK_N; k++) {
+            if (k % 2) ImGui::SameLine(colw);
+            ImVec2 q = ImGui::GetCursorScreenPos();
+            ImGui::PushID(k);
+            char lb[48]; snprintf(lb, sizeof lb, "##lg%d", k);
+            if (ImGui::InvisibleButton(lb, ImVec2(colw - ImGui::GetStyle().ItemSpacing.x, is))) show_kind[k] = !show_kind[k];
+            bool hv = ImGui::IsItemHovered();
+            ImGui::PopID();
+            if (hv) pl->AddRectFilled(q, ImVec2(q.x + colw - ImGui::GetStyle().ItemSpacing.x, q.y + is), IM_COL32(200, 170, 120, 90), 3);
+            ImVec2 c(q.x + is * 0.6f, q.y + is * 0.5f);
+            if (show_icons) draw_icon(pl, c, is, k);
+            else { static const int G[IK_N] = { 0, 1, 2, 3, 3, 4, 4, 3, 3, 4, 1, 4 }; pl->AddCircleFilled(c, is * 0.25f, kind_colour(G[k])); }
+            ImU32 ink = show_kind[k] ? ImGui::GetColorU32(ImGuiCol_Text) : ImGui::GetColorU32(ImGuiCol_TextDisabled);
+            pl->AddText(ImVec2(q.x + is * 1.35f, q.y + (is - ImGui::GetFontSize()) * 0.5f), ink, IK_LABEL[k]);
+            if (!show_kind[k]) {                                   /* hidden: the picture faded and struck through */
+                pl->AddCircleFilled(c, is * 0.55f, IM_COL32(236, 226, 204, 170));
+                pl->AddLine(ImVec2(c.x - is * 0.45f, c.y + is * 0.45f), ImVec2(c.x + is * 0.45f, c.y - is * 0.45f), IM_COL32(150, 50, 30, 220), 2);
+            }
+        }
+        {   ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks, the party, a town not visited */
+            ImGui::Dummy(ImVec2(is * 1.2f, is));
+            ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
+            ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
+            ImGui::SameLine(); ImGui::TextUnformatted("A quest");
+            ImGui::SameLine(colw);
+            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
+            pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
+            ImGui::SameLine(); ImGui::TextUnformatted("The party");
+            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
+            if (show_icons) { draw_icon(pl, m, is, 0); pl->AddCircleFilled(m, is * 0.45f, IM_COL32(236, 226, 204, 150), 20); }
+            else { pl->AddCircle(m, is * 0.25f, IM_COL32(0, 0, 0, 200), 0, 3.0f); pl->AddCircle(m, is * 0.25f, kind_colour(0), 0, 1.6f); }
+            ImGui::SameLine(); ImGui::TextUnformatted("A town not visited yet");
+        }
+        if (ImGui::TreeNode("The quests' pictures")) {
+            for (int k = 1; k < QC_N; k++) {
+                if ((k - 1) % 2) ImGui::SameLine(colw);
+                ImVec2 q = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(is * 1.3f, is * 1.1f));
+                ui_draw_quest_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.55f), is * 1.1f, k);
+                ImGui::SameLine(); ImGui::TextUnformatted(QUEST_CAT_NAME[k]);
+            }
+            ImGui::TreePop();
+        }
+        ImGui::Spacing();
+        ImGui::TextDisabled("Show"); ImGui::SameLine(); ImGui::Checkbox("Names", &show_names); ImGui::SameLine(); ImGui::Checkbox("Quests", &show_quests); ImGui::SameLine(); ImGui::Checkbox("Pictures", &show_icons);
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a small picture of its kind. When off: a coloured dot.");
-        label("Towns");
+    }
+    {
+        ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("Towns"); ImGui::SameLine();
         {   /* (wide enough for the longest choice: "with an artificer of 30q+") */
-            float cw = UIS(230) * pk;
+            float cw = rw - ImGui::CalcTextSize("Towns ").x - ImGui::GetStyle().ItemSpacing.x;
             for (int k = 0; k < NTFIND; k++) cw = fmaxf(cw, ImGui::CalcTextSize((std::string("with ") + TFIND[k].label).c_str()).x + ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2);
             ImGui::SetNextItemWidth(cw);
         }
@@ -674,7 +839,7 @@ extern "C" void worldmap_draw(void)
             const TownFind &tf = TFIND[tfind];
             bool seen_only = (tf.icon == TI_ALCHEMIST || tf.icon == TI_PHYSICIAN) && !config_get_int("map.offers_unvisited", 0);
             ImGui::TextDisabled("%d town%s%s", (int)m.size(), m.size() == 1 ? "" : "s", seen_only ? " the party has been to:" : ":");
-            float wmax = UIS(380) * pk, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
+            float wmax = rw, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
             int listed = 0;
             for (auto &e : m) {
                 if (++listed > 18) { ImGui::TextDisabled("... and %d more (ringed on the map)", (int)m.size() - 18); break; }
@@ -685,88 +850,6 @@ extern "C" void worldmap_draw(void)
                 else linew = w;
                 if (ImGui::SmallButton(lb)) { tile_px(e.second->x, e.second->y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = e.second->loc; }
             }
-        }
-    }
-    {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
-        static std::vector<QuestRow> qr; static int qf = -1000;
-        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); qf = ImGui::GetFrameCount(); }
-        for (int part = 0; part < 2; part++) {                  /* the tasks; the rumours heard (marked on the map too) */
-        bool any = false;
-        auto in_part = [&](const QuestRow &r) { return r.loc >= 0 && (part ? r.group == 2 || r.group == 4 : r.group <= 1); };
-        for (const QuestRow &r : qr) if (in_part(r)) { any = true; break; }
-        if (any && ImGui::TreeNodeEx(part ? "Rumours" : "Tasks", part ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) {
-            for (const QuestRow &r : qr) {
-                if (!in_part(r)) continue;
-                std::string d = quest_days(r);
-                float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
-                std::string pad((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
-                char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
-                bool sel = ImGui::Selectable(lb, selected == r.loc);
-                { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
-                if (sel) {
-                    for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
-                    selected = r.loc;
-                }
-                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
-            }
-            ImGui::TreePop();
-        }
-        }
-    }
-    if (ImGui::TreeNode("Legend")) {   /* what the marks mean (closed at first: the map is the point) */
-        float is = ImGui::GetFontSize() * 1.1f, colw = ImGui::GetFontSize() * 8.5f;
-        ImDrawList *pl = ImGui::GetWindowDrawList();
-        for (int k = 0; k < IK_N; k++) {
-            if (k % 2) ImGui::SameLine(colw);
-            ImVec2 q = ImGui::GetCursorScreenPos();
-            ImGui::Dummy(ImVec2(is * 1.2f, is));
-            if (show_icons) draw_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.5f), is, k);
-            else {
-                static const int G[IK_N] = { 0, 1, 2, 3, 3, 4, 4, 3, 3, 4, 1, 4 };
-                pl->AddCircleFilled(ImVec2(q.x + is * 0.6f, q.y + is * 0.5f), is * 0.25f, kind_colour(G[k]));
-            }
-            ImGui::SameLine(); ImGui::TextUnformatted(IK_LABEL[k]);
-        }
-        {   ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks and the party */
-            ImGui::Dummy(ImVec2(is * 1.2f, is));
-            ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
-            ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
-            ImGui::SameLine(); ImGui::TextUnformatted("A quest (its kind)");
-            ImGui::SameLine(colw);
-            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
-            pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
-            ImGui::SameLine(); ImGui::TextUnformatted("The party");
-            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);   /* a town not yet visited */
-            if (show_icons) { draw_icon(pl, m, is, 0); pl->AddCircleFilled(m, is * 0.45f, IM_COL32(236, 226, 204, 150), 20); }
-            else { pl->AddCircle(m, is * 0.25f, IM_COL32(0, 0, 0, 200), 0, 3.0f); pl->AddCircle(m, is * 0.25f, kind_colour(0), 0, 1.6f); }
-            ImGui::SameLine(); ImGui::TextUnformatted("A town not visited yet (washed out)");
-        }
-        if (ImGui::TreeNode("The quests' pictures")) {
-            for (int k = 1; k < QC_N; k++) {
-                if ((k - 1) % 2) ImGui::SameLine(colw);
-                ImVec2 q = ImGui::GetCursorScreenPos();
-                ImGui::Dummy(ImVec2(is * 1.3f, is * 1.1f));
-                ui_draw_quest_icon(pl, ImVec2(q.x + is * 0.6f, q.y + is * 0.55f), is * 1.1f, k);
-                ImGui::SameLine(); ImGui::TextUnformatted(QUEST_CAT_NAME[k]);
-            }
-            ImGui::TreePop();
-        }
-        ImGui::TreePop();
-    }
-    if (selected >= 0) {
-        for (const Place &p : P) if (p.loc == selected) {
-            ImGui::Separator();
-            ImGui::TextUnformatted(p.name.c_str());
-            ImGui::TextDisabled("%s", kind_line(P, p).c_str());
-            if (on_map) {                                    /* (the journey first: what the panel is mostly opened for) */
-                int gx, gy, m = travel_minutes_loc(p.loc, &gx, &gy);
-                if (m >= 0) ImGui::Text("About %s of travel", hhmm(m).c_str());
-                if (ImGui::Button("Travel there")) { if (travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); } }
-            } else ImGui::TextDisabled("Auto-travel works only from the travel map.");
-            place_details(p, 320 * pk);
-            for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
-            for (const TownMark &t : tmarks) if (t.loc == p.loc) { ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 320 * pk); ImGui::TextWrapped("%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str()); ImGui::PopTextWrapPos(); }
-            break;
         }
     }
     ImGui::End();

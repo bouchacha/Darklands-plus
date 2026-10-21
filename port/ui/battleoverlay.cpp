@@ -195,10 +195,72 @@ static void battle_intro(void)
              "Each of these can be switched off: F12 > Settings > Helpers > Battles. F1 lists the battle's keys and clicks.");
 }
 
+/* battle.foe_arrow: no enemy of the fight on the screen, but some on this floor - an arrow at the
+   edge of the field points to the nearest (from the middle of the view), and a click on it shows
+   it. Only the fight's own enemies (combatants 5..12 up, on the floor shown): no more than
+   scrolling about would find. The view: the 140 cells the game draws, DS:c866/c886 its origin,
+   offsets at DS:1fc6/2052; cells 32 x 16 map pixels, drawn as the level map draws them */
+static float arrow_box[4]; static int arrow_foe = -1, arrow_frame = -10;
+extern "C" void battlescroll_look(int i);
+extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
+extern "C" int battleoverlay_arrow_click(int x, int y)
+{
+    if (ImGui::GetFrameCount() - arrow_frame > 2 || arrow_foe < 0) return 0;
+    if (x < arrow_box[0] || x > arrow_box[2] || y < arrow_box[1] || y > arrow_box[3]) return 0;
+    battlescroll_look(arrow_foe);
+    return 1;
+}
+static void foe_arrow(void)
+{
+    if (!config_get_int("battle.foe_arrow", 1) || !g_rb(GV_real_combat)) return;
+    int fl = (s8)g_rb(GV_floor_shown), n = (s8)g_rb(GV_hotspot_count);
+    if (n < 0 || n > 40) return;
+    for (int k = 0; k < n; k++) { int c = g_rb((u16)(GV_hotspot_cbt + k)); if (c >= 5 && c < 13 && g_rb((u16)(GV_combatants + 0x80 * c + 0x14)) == 1) { if (getenv("DL_ARROW_LOG")) fprintf(stderr, "arrow: %d in sight (of %d spots)\n", c, n); return; } }   /* (one in sight) */
+    float vx = 0, vy = 0; int nv = 0;
+    int ox = (s8)g_rb(0xc866), oy = (s8)g_rb(0xc886);
+    for (int k = 0; k < 140; k++) { vx += ox + (s8)g_rb((u16)(0x1fc6 + k)) + 0.5f; vy += oy + (s8)g_rb((u16)(0x2052 + k)) + 0.5f; nv++; }
+    vx /= nv; vy /= nv;
+    int best = -1; float bd = 1e9f, bdx = 0, bdy = 0;
+    for (int c = 5; c < 13; c++) {
+        u16 b = (u16)(GV_combatants + 0x80 * c);
+        if (g_rb((u16)(b + 0x14)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + c)) != fl) continue;
+        float X = (s16)g_rw((u16)(b + 4)) / 32.0f - vx, Y = (s16)g_rw((u16)(b + 6)) / 16.0f - vy;
+        float d = X * X + Y * Y;
+        if (d < bd) { bd = d; best = c; bdx = X * 1.0f + Y * -0.5f; bdy = Y * 0.6f; }
+    }
+    if (best < 0 || (bdx == 0 && bdy == 0)) return;
+    float len = sqrtf(bdx * bdx + bdy * bdy); bdx /= len; bdy /= len;
+    float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+    float cxw = (x0 + x1) * 0.5f, cyw = (y0 + y1) * 0.5f, k = (y1 - y0) / 200.0f, in = 16 * k;
+    float tx = bdx > 0 ? (x1 - in - cxw) / bdx : bdx < 0 ? (x0 + in - cxw) / bdx : 1e9f;
+    float ty = bdy > 0 ? (y1 - in - cyw) / bdy : bdy < 0 ? (y0 + in - cyw) / bdy : 1e9f;
+    float t = fminf(tx, ty);
+    ImVec2 tip(cxw + bdx * t, cyw + bdy * t);
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    float L = 13 * k, W = 7 * k, pulse = 0.75f + 0.25f * sinf((float)ImGui::GetTime() * 4);
+    ImVec2 base(tip.x - bdx * L, tip.y - bdy * L), nrm(-bdy, bdx);
+    ImVec2 a(base.x + nrm.x * W, base.y + nrm.y * W), b2(base.x - nrm.x * W, base.y - nrm.y * W);
+    dl->AddTriangleFilled(tip, a, b2, IM_COL32(20, 10, 4, 220));
+    ImVec2 tip2(tip.x - bdx * 2 * k, tip.y - bdy * 2 * k), a2(base.x + nrm.x * (W - 2 * k) - bdx * k, base.y + nrm.y * (W - 2 * k) - bdy * k), b3(base.x - nrm.x * (W - 2 * k) - bdx * k, base.y - nrm.y * (W - 2 * k) - bdy * k);
+    dl->AddTriangleFilled(tip2, a2, b3, IM_COL32(230, 80, 50, (int)(255 * pulse)));
+    ImFont *fo = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    const char *lab = "Enemies";
+    float fs = 6.5f * k; ImVec2 ts = fo->CalcTextSizeA(fs, FLT_MAX, 0, lab);
+    ImVec2 lp(base.x - bdx * (ts.x * 0.5f + 4 * k) - ts.x * 0.5f, base.y - bdy * (ts.y * 0.5f + 4 * k) - ts.y * 0.5f);
+    dl->AddRectFilled(ImVec2(lp.x - 3, lp.y - 1), ImVec2(lp.x + ts.x + 3, lp.y + ts.y + 1), IM_COL32(20, 10, 4, 190), 3);
+    dl->AddText(fo, fs, lp, IM_COL32(250, 220, 190, 255), lab);
+    arrow_box[0] = fminf(fminf(tip.x, a.x), fminf(b2.x, lp.x)) - 4; arrow_box[1] = fminf(fminf(tip.y, a.y), fminf(b2.y, lp.y)) - 4;
+    arrow_box[2] = fmaxf(fmaxf(tip.x, a.x), fmaxf(b2.x, lp.x + ts.x)) + 4; arrow_box[3] = fmaxf(fmaxf(tip.y, a.y), fmaxf(b2.y, lp.y + ts.y)) + 4;
+    arrow_foe = best; arrow_frame = ImGui::GetFrameCount();
+    if (ImGui::GetIO().MousePos.x >= arrow_box[0] && ImGui::GetIO().MousePos.x <= arrow_box[2] && ImGui::GetIO().MousePos.y >= arrow_box[1] && ImGui::GetIO().MousePos.y <= arrow_box[3])
+        ImGui::SetTooltip("The nearest enemy is this way: click to look");
+}
+
 void ui_draw_battle_info(void)
 {
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     battle_intro();
+    foe_arrow();
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
     int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;

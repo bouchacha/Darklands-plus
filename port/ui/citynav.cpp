@@ -146,10 +146,10 @@ static const DestInfo DEST[D_N] = {
     { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical components bought and sold.", 3, -1, -1, TI_PHYSICIAN },
     { "Fugger bank", "Heavy coin changed into a letter of credit that weighs nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
     { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
-    { "Hanseatic League", "The offices of the league of northern merchant towns.", 1, -1, -1, TI_HANSE },
+    { "Hanseatic League", "The offices of the league of northern merchant towns: tasks for pay. Asking politely counts your standing with the Hanse, boldly your reputation here and your fame; collecting a reward politely also raises your standing.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
-    { "Cathedral", "Donations for Divine Favor, a relic from the canon, the patron saint's story, sanctuary.", 2, 4, -1, TI_CATHEDRAL },
-    { "Church", "Mass, confession, alms for Divine Favor, sanctuary.", 2, -1, -1, TI_CHURCH },
+    { "Cathedral", "Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
+    { "Church", "Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you.", 2, -1, -1, TI_CHURCH },
     { "Monastery", "The monks' library (Religion, Latin) and prayers for Divine Favor.", 2, 7, -1, TI_MONASTERY },
     { "University", "New saints and alchemical formulas to learn, rare alchemical materials, a better philosopher's stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
     { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only.", 3, -1, -1, TI_PHYSICIAN },
@@ -274,7 +274,8 @@ static void stop(const char *why)
     goal = -1;
 }
 
-extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); }
+static int leaving_flag(int v);
+extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); leaving_flag(0); }
 extern "C" int citynav_busy(void) { return goal >= 0; }
 extern "C" { extern int hdtext_fast_fades; }
 
@@ -332,9 +333,51 @@ static void click_line(int i)
     last_act = plat_ticks_ms(); steps_taken++;
 }
 
+/* leaving for a journey (the world map's "Leave and travel there"): the walk to a gate, then the
+   card at the gate ($Selec00 ...) answered with the plain way out ("simply walk out", "leave"),
+   never a sneak or a bribe: when there is none, the player chooses */
+static int leaving; static u32 leaving_t;
+extern "C" void citynav_go(int dest);
+static bool walk_out_option(const std::string &t)
+{
+    if (t.find("sneak") != std::string::npos || t.find("hide") != std::string::npos || t.find("bribe") != std::string::npos || t.find("saint") != std::string::npos
+        || t.find("alchem") != std::string::npos || t.find("fight") != std::string::npos || t.find("attack") != std::string::npos) return false;
+    return t.find("walk out") != std::string::npos || t.find("leave the city") != std::string::npos || t.find("leave town") != std::string::npos
+        || t.find("out of the city") != std::string::npos || t.find("ride out") != std::string::npos;
+}
+static void leaving_tick(void)
+{
+    u32 now = plat_ticks_ms();
+    if (game_mode() == GM_MAP) { leaving = 0; return; }                        /* out: the journey begins (mods/travel.c) */
+    if (now - leaving_t > 20000 || !in_city()) { leaving = 0; return; }
+    if (goal >= 0 || now - last_act < 300) return;                             /* (still walking to the gate) */
+    if (!assist_in_card_menu()) { std::string c = card_now(); if (hub_of(c) == H_NONE && now - phase_t > 300) { plat_click_game(304, 12); last_act = now; } return; }
+    if (g_rb(GV_card_box_shown)) return;
+    std::string card = card_now();
+    int blk = (s16)g_rw(GV_options_block);
+    auto it = cards.find(card);
+    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) return;
+    std::vector<std::string> opts = block_options(it->second[blk]);
+    int n = (s8)g_rb(GV_card_layout);
+    if (n <= 0 || n > 20) return;
+    for (int i = 0; i < n; i++) {
+        int o = (s8)g_rb((u16)(GV_card_layout_opt + i));
+        if (o >= 0 && o < (int)opts.size() && walk_out_option(opts[o])) { LOG("leaving: %s\n", opts[o].c_str()); click_line(i); leaving = 0; return; }
+    }
+    leaving = 0;
+    ui_notice("The gate: choose how to get out, and the journey begins on the map.");
+}
+static int leaving_flag(int v) { int o = leaving; if (v >= 0) leaving = v; return o; }
+extern "C" void citynav_leave_town(void)
+{
+    citynav_go(D_LEAVE);
+    leaving = 1; leaving_t = plat_ticks_ms();
+}
+
 extern "C" void citynav_tick(void)
 {
-    hdtext_fast_fades = goal >= 0;                         /* the cards' fades at once while walking */
+    hdtext_fast_fades = goal >= 0 || leaving;              /* the cards' fades at once while walking */
+    if (leaving && goal < 0) { if (!cards_loaded) load_cards(); leaving_tick(); return; }
     if (goal < 0) return;
     { static int gen = -1; int datamods_generation(void); if (gen != datamods_generation()) { gen = datamods_generation(); cards.clear(); cards_loaded = false; } }
     if (!cards_loaded) load_cards();

@@ -228,6 +228,21 @@ int travel_to_tile(int x, int y, int loc, const char *name)
 
 void travel_stop(void) { travel.active = 0; }
 
+/* a journey asked for from inside a town (the world map's "Leave and travel there"): set off as
+   soon as the party is out on the travel map */
+static int pend_loc = -1; static char pend_name[48]; static u32 pend_t;
+u32 plat_ticks_ms(void);
+void travel_after_leaving(int loc, const char *name) { pend_loc = loc; snprintf(pend_name, sizeof pend_name, "%s", name ? name : ""); pend_t = plat_ticks_ms(); }
+static int pending_check(void)
+{
+    if (pend_loc < 0) return 0;
+    if (plat_ticks_ms() - pend_t > 60000) { pend_loc = -1; return 0; }
+    if (!map_ready()) return 0;
+    int loc = pend_loc; pend_loc = -1;
+    if (!travel_to_loc(loc, pend_name)) { void ui_notice(const char *); ui_notice("No way there from here."); return 0; }
+    return 1;
+}
+
 /* a location is entered by stepping on a tile of a site near it (a city covers several): the
  * goal is the nearest reachable tile that enters this location, or its own tile. (The nearest
  * site tile was taken before: one 3 or 4 tiles from a city's centre entered nothing, and the
@@ -283,11 +298,12 @@ int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polle
 
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
+    int started = pending_check();                  /* (this step's key was read before: not the player's taking over) */
     { static int lg = -1; if (lg < 0) lg = getenv("DL_MAP_POLL_LOG") != 0; u32 t = plat_ticks_ms(); if (lg && t - map_polled > 200) fprintf(stderr, "map poll gap %u ms\n", t - map_polled); }
     map_polled = plat_ticks_ms();
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
-        if (key != 0x4c35) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: stopped by key %04x\n", key); }   /* the player took over */
+        if (key != 0x4c35 && !started) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: stopped by key %04x\n", key); }   /* the player took over */
         else {
             int px, py; travel_party_tile(&px, &py);
             if (travel.replan) { travel.replan = 0; field(px, py); if (!plan(travel.tx, travel.ty)) travel.active = 0; }

@@ -93,15 +93,15 @@ static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality
     int i = (s16)rw(SS, (u16)(SP + 4)), type = rw(SS, (u16)(SP + 6)) & 0xff, q = rw(SS, (u16)(SP + 8)) & 0xff, amt = (s16)rw(SS, (u16)(SP + 10));
     int id = -1;
     if (i >= 0 && i < 5) {
-        int n = (s8)g_rb(CB_NITEMS(i));
-        for (int k = 0; k < n && k < 64; k++)
-            if (rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 2)) == type && rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 3)) == q) { id = rw(G_FAR2E38, G_ITEM(i, k)); break; }
+        int n = gm_item_count(i);
+        for (int k = 0; k < n && k < 64; k++) { GmItem g; if (gm_item(i, k, &g) && g.type == type && g.qual == q) { id = g.id; break; } }   /* (the id: its low 12 bits; the high ones are flags) */
     }
     hook_call_original();
     if (id < 0 || amt <= 0 || !losses_on()) return;
     char nm[24], nu[80], it[40], iu[80];
     gm_member_name(i, nm, sizeof nm); ui_text_utf8(nm, nu, sizeof nu);
     gm_itemdef_name(id, it, sizeof it); ui_text_utf8(it, iu, sizeof iu);
+    if (!iu[0]) snprintf(iu, sizeof iu, "armour");
     int nq = q - amt;
     worn_len += (size_t)snprintf(worn + worn_len, sizeof worn - worn_len, "%s%s's %s: ", worn_len ? "\n" : "", nu, iu);
     if (worn_len >= sizeof worn) worn_len = sizeof worn - 1;

@@ -123,6 +123,7 @@ static Option OPTIONS[] = {
     { "battle.info_numbers", S_BATTLE, "battle.info", "Enemy Endurance as numbers", "the enemies' Endurance shown as numbers.", OC_EASY, 0, 0, 1 },
     { "battle.bars", S_BATTLE, 0, "Health bars over the fighters", "the Endurance left (and the Strength, once it is down by half).", OC_SHOW, 0, 1, 1 },
     { "battle.bars_hurt", S_BATTLE, "battle.bars", "Bars only over the wounded", "no bar over a fighter still unhurt (hold Alt to show them all), so the field stays clear.", OC_SHOW, 0, 1, 1 },
+    { "battle.foe_arrow", S_BATTLE, 0, "Arrow to the enemies", "when no enemy of the fight is on the screen, an arrow at the edge of the field points to the nearest; a click on it shows them.", OC_EASE, 0, 1, 1 },
     { "battle.skill_gains", S_BATTLE, 0, "Show skill gains", "a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and the note in the member's box flashes.", OC_SHOW, 0, 1, 1 },
     { "battle.reload_bar", S_BATTLE, 0, "Reload bar", "a thin amber line under a member reloading and aiming a bow, crossbow, gun or the next thrown weapon, filling up until the next shot.", OC_SHOW, 0, 1, 1 },
     { "battle.log", S_BATTLE, 0, "Battle log", "every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal keeps it).", OC_SHOW, 0, 1, 1 },

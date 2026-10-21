@@ -51,7 +51,9 @@ static void pan_apply(void)
  * the view stays where it is when the member is in sight (it has a hot spot: the order then needs
  * no scrolling); pressed twice within a moment, the view goes to the member (floor_view_draw, s017
  * 1ef8:0000, around who) and follows. */
-static int center_req = -1;
+static int center_req = -1, look_req = -1;
+/* the view to combatant i, without following it (the arrow to the enemies: ui/battleoverlay.cpp) */
+void battlescroll_look(int i) { look_req = i; }
 static void select_hook(void)
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
@@ -70,6 +72,7 @@ static void select_hook(void)
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
 {
     pan_apply();
+    if (look_req >= 0) { int c = look_req; look_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 0); } }
     if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 1); } }
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
     static u32 last_step, edge_since, held_since, last_call;

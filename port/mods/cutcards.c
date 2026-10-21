@@ -154,7 +154,7 @@ void cutcards_force(int n) { force_card = n; fprintf(stderr, "cutcards: the next
 static void overland_hook(void)             /* s030 1462:02c0 overland_loop(): the next card */
 {
     hook_call_original();
-    if (unw_active || force_card < 0 || travel_step_result != 1000) return;
+    if (unw_active || force_card < 0 || (travel_step_result != 1000 && !getenv("DL_FORCE_NOW"))) return;   /* (DL_FORCE_NOW: at the next step, encounter or not) */
     AX = (u16)force_card; force_card = -1;
 }
 

@@ -158,8 +158,15 @@ static std::string shot_word(int who)
 }
 static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who, tgt, type, d, e) */
 {
-    int who = (s16)rw(SS, (u16)(SP + 4)), tgt = (s16)rw(SS, (u16)(SP + 6)), type = (s16)rw(SS, (u16)(SP + 8));
+    int who = (s16)rw(SS, (u16)(SP + 4)), tgt = (s16)rw(SS, (u16)(SP + 6)), type = (s16)rw(SS, (u16)(SP + 8)), kind = (s16)rw(SS, (u16)(SP + 10));
     hook_call_original();
+    if (!unw_active && ui_battle_log && type == 6 && who >= 0 && who < 13) {       /* a potion thrown (s014 0e76: type 6, the potion 95 + kind, its quality) */
+        if (!in_battle) start_battle();
+        int id = 95 + kind;
+        std::string pn = id >= 95 && id <= 104 && id < (int)gamedata.items.size() ? game_text(gamedata.items[id].name.c_str(), gamedata.items[id].name.size()) : std::string("a potion");
+        add(who < 5 ? 0 : 1, name_of(who) + " throws " + pn + (tgt >= 0 && tgt < 13 && tgt != who ? " at " + name_of(tgt) : std::string()));
+        return;
+    }
     if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
     int n = (s8)g_rb(GV_missile_count) - 1;
     if (n < 0 || n >= 17) return;
