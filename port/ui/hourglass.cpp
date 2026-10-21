@@ -113,6 +113,26 @@ static void period_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour,
     dl->AddText(f, fs2, ImVec2(tx + ts.x + R * 0.12f, by + (bh - ts2.y) * 0.5f + fs * 0.08f), IM_COL32(236, 206, 170, 255), dd);
 }
 
+/* the armillary's disc of day and night (also beside the time in the margin, and in the travel
+   map's banner): the day half, sky-grey with the sun, turned towards the sun's place in the sky,
+   the night half deep blue with the moon; noon puts the sun at the top. rim: a bronze ring round it */
+void ui_draw_daynight(ImDrawList *dl, ImVec2 c, float rd, float hour, bool rim)
+{
+    const float PI = 3.14159265f;
+    float a = (hour - 12.0f) / 24.0f * 2 * PI;
+    dl->AddCircleFilled(c, rd, IM_COL32(20, 48, 110, 255), 40);        /* night */
+    dl->PathArcTo(c, rd, a - PI, a, 24); dl->PathFillConvex(IM_COL32(178, 190, 200, 255));   /* day: the half towards the sun */
+    ImVec2 sun(c.x + sinf(a) * rd * 0.55f, c.y - cosf(a) * rd * 0.55f), moon(c.x - sinf(a) * rd * 0.55f, c.y + cosf(a) * rd * 0.55f);
+    dl->AddCircleFilled(sun, rd * 0.3f, IM_COL32(252, 236, 60, 255), 20);
+    dl->AddCircleFilled(moon, rd * 0.2f, IM_COL32(170, 176, 186, 255), 20);
+    if (rim) {
+        float w = fmaxf(1.5f, rd * 0.16f);
+        dl->AddCircle(c, rd + w * 0.5f, IM_COL32(24, 14, 6, 255), 40, w + 1.5f);
+        dl->AddCircle(c, rd + w * 0.5f, IM_COL32(176, 104, 38, 255), 40, w);
+        dl->PathArcTo(c, rd + w * 0.4f, PI * 1.05f, PI * 1.95f, 20); dl->PathStroke(IM_COL32(230, 160, 70, 255), 0, fmaxf(1.0f, w * 0.35f));
+    }
+}
+
 /* ---------------------------------------------------------------- the game's armillary, drawn anew
  * The game's clock is an armillary sphere - bronze rings for the heavens round a disc of day and
  * night - over a plate with three windows (hours, days, months). Here the same, drawn smooth at any
@@ -164,12 +184,8 @@ static void armillary_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
     ring(R * ax * 0.62f, R * 0.56f, th * 0.55f, 0, -R * 0.12f);
     ring(R * ax * 0.62f, R * 0.56f, th * 0.55f, 1, R * 0.12f);
     /* the disc of day and night, turning, in its own small ring */
-    float rd = R * 0.34f, a = (shown - 12.0f) / 24.0f * 2 * PI;     /* (the sun at the top at noon) */
-    dl->AddCircleFilled(c, rd, IM_COL32(20, 48, 110, 255), 40);        /* night */
-    dl->PathArcTo(c, rd, a - PI, a, 24); dl->PathFillConvex(IM_COL32(178, 190, 200, 255));   /* day: the half towards the sun */
-    ImVec2 sun(c.x + sinf(a) * rd * 0.55f, c.y - cosf(a) * rd * 0.55f), moon(c.x - sinf(a) * rd * 0.55f, c.y + cosf(a) * rd * 0.55f);
-    dl->AddCircleFilled(sun, rd * 0.3f, IM_COL32(252, 236, 60, 255), 20);
-    dl->AddCircleFilled(moon, rd * 0.2f, IM_COL32(170, 176, 186, 255), 20);
+    float rd = R * 0.34f;
+    ui_draw_daynight(dl, c, rd, shown, false);
     ring(rd + th * 0.25f, rd + th * 0.25f, th * 0.45f, 1);
     /* the great outer ring, face on: broad, its notches at the quarters */
     ring(R * ax - th * 0.5f, R - th * 0.5f, th, 1);

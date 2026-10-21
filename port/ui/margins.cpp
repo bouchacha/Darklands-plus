@@ -859,6 +859,7 @@ static void order_bar(float x0, float x1, float y1)
     ImGui::PopStyleVar(2);
 }
 
+void ui_draw_daynight(ImDrawList *dl, ImVec2 c, float rd, float hour, bool rim);   /* ui/hourglass.cpp */
 extern "C" void ui_margins(void)
 {
     if (game_mode() == GM_OTHER || !ui_font_overlay) return;
@@ -885,6 +886,12 @@ extern "C" void ui_margins(void)
         const bool night = hour < 5 || hour >= 19;
         {   /* the hour by the clock and by the bells, as the game's texts tell time (Prime, Vespers, Compline ...) */
             char bell[24]; gm_hour_name(hour, bell, sizeof bell);
+            {   /* the armillary's disc of day and night before it (ui/hourglass.cpp) */
+                float lh = ImGui::GetTextLineHeight(), r = lh * 0.62f;
+                ImVec2 p = ImGui::GetCursorScreenPos();
+                ui_draw_daynight(ImGui::GetWindowDrawList(), ImVec2(p.x + r + 1, p.y + lh * 0.5f), r, (float)hour, true);
+                ImGui::Dummy(ImVec2(2 * r + 2, lh)); ImGui::SameLine(0, lh * 0.45f);
+            }
             ImGui::TextDisabled("%d:00, %s", hour, bell);
             if (item_hovered()) {
                 std::string t = std::string("The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11, "
