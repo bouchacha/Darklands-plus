@@ -86,7 +86,8 @@ static unsigned search_budget = 40000;   /* us */
 #define D_BLOCKER 0xd5f6                 /* int[13]: who blocked the last step */
 #define D_NEXTSTEP 0xca30                /* char[13]: the step lined up, -1 none */
 #define FLOORSEG_ ((u16)(LOADSEG + 0x20a5))   /* the floor's cells, far 20a5:0000 (below) */
-static struct { s16 x, y; u8 n; u16 clk; } stall[13];   /* where each combatant last asked for a route, and how often since from there */
+static struct { s16 x, y; u8 n; u16 clk; } stall[13];
+static u8 stall_resets[13];                                 /* (the party: times a member blocked only by friends kept asking) */   /* where each combatant last asked for a route, and how often since from there */
 static int ncoll;
 
 /* the game's collision test for combatant self_i standing at (x, y); others: 0 leaves the
@@ -397,6 +398,16 @@ static void path_find_hook(void)
         if ((u16)(now - stall[i].clk) >= 6 && stall[i].n < 250) { stall[i].n++; stall[i].clk = now; }
         stuck = stall[i].n;
     } else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; stall[i].clk = now; }
+    /* two of the party in each other's way (paths crossing in a doorway or a corridor): both
+       planned around everyone from where they stood, both stepped the same way, and after eight
+       tries both were told there is no way and stopped ("waits"). Now, with only the party in the
+       way, a member keeps asking a few times over before it gives up; they ask again at different
+       moments (12 to 24 ticks, crowd_step_hook), so one gets round while the other stands */
+    if (stuck >= 8 && i < 5 && target < 0 && stall_resets[i] < 4) {
+        u16 blk = g_rw((u16)(D_BLOCKER + 2 * i)) & 0x1fff;
+        if (blk && !(blk & ~0x1fu)) { stall[i].n = 3; stuck = 3; stall_resets[i]++; }
+    }
+    if (stuck == 0) stall_resets[i] = 0;
     if (stuck >= 8) {
         if (trace_file()) fprintf(trace, "P %u %d %d %d %d %d %d %d %d %d %d %u\n", now, i, x, y, tx, ty, target, stuck, -2, 0, 0, 0u);
         no_way();
