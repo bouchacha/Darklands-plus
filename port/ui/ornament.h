@@ -5,6 +5,10 @@
 #include "imgui.h"
 
 bool orn_on(void);                                         /* display.ornate */
+int orn_style(void);                                       /* 0 off, 1 plaited copper, 2 walnut and brass, 3 illuminated, 4 gothic stone */
+const char *orn_style_name(int s);
+/* the chosen style's band round a..b, w wide inside it */
+void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
 /* a plaited band (two copper strands, over and under) round the rectangle a..b, w wide inside it;
    a gilt lozenge at each corner */
 void orn_braid_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
@@ -20,5 +24,9 @@ void orn_plaque(ImDrawList *dl, ImVec2 a, ImVec2 b, ImU32 base, bool hover, bool
 void orn_parchment_edges(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
 /* ImGui::SeparatorText dressed: a lozenge before the words, a double gilt rule after */
 void orn_septext(const char *label);
+/* a hairline rule from a to b (across or down): two gilt lines g apart; across, a lozenge at its end */
+void orn_hairline(ImDrawList *dl, ImVec2 a, ImVec2 b, float g, bool across);
+/* under the chosen tab: a gilt line with a small lozenge in the middle (k: pixels per game row) */
+void orn_tab_mark(ImDrawList *dl, ImVec2 a, ImVec2 b, float k);
 /* the interface's windows: a plaited band round each (tooltips a gilt rule); before ImGui::Render */
 void orn_windows(void);

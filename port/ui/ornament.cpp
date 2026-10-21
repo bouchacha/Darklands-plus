@@ -9,7 +9,8 @@ static const ImU32 COPPER = IM_COL32(194, 114, 56, 255), COPPER_LIT = IM_COL32(2
 static const ImU32 GOLD = IM_COL32(210, 166, 76, 255), GOLD_LIT = IM_COL32(252, 228, 150, 255), GOLD_DK = IM_COL32(128, 90, 34, 255);
 static const ImU32 VERMILION = IM_COL32(150, 36, 24, 255);
 
-bool orn_on(void) { return config_get_int("display.ornate", 1) != 0; }
+int orn_style(void) { int v = config_get_int("display.ornate", 1); return v < 0 || v > 4 ? 1 : v; }
+bool orn_on(void) { return orn_style() != 0; }
 
 static ImVec2 mix(ImVec2 p, ImVec2 d, float t, ImVec2 n, float s) { return ImVec2(p.x + d.x * t + n.x * s, p.y + d.y * t + n.y * s); }
 
@@ -156,13 +157,13 @@ void orn_windows(void)
             orn_parchment_edges(dl, a, b, fs * 0.6f);
             orn_gilt_frame(dl, a, b, fs * 0.8f);
         } else if (!(w->Flags & ImGuiWindowFlags_NoTitleBar)) {   /* a title bar: the band outside, round the whole window */
-            float bw = fmaxf(6.0f, fs * 0.5f);
+            float bw = fmaxf(8.0f, fs * 0.66f);
             orn_parchment_edges(dl, ImVec2(a.x, a.y + w->TitleBarHeight), b, fs * 0.9f);
-            orn_braid_frame(dl, ImVec2(a.x - bw, a.y - bw), ImVec2(b.x + bw, b.y + bw), bw);
+            orn_frame(dl, ImVec2(a.x - bw, a.y - bw), ImVec2(b.x + bw, b.y + bw), bw);
         } else {
             float bw = fminf(fmaxf(6.0f, fs * 0.5f), fminf(w->WindowPadding.x, w->WindowPadding.y) * 0.85f);
             orn_parchment_edges(dl, ImVec2(a.x + bw, a.y + bw), ImVec2(b.x - bw, b.y - bw), fs * 0.9f);
-            orn_braid_frame(dl, a, b, bw);
+            orn_frame(dl, a, b, bw);
         }
         dl->PopClipRect();
     }
@@ -189,3 +190,177 @@ void orn_septext(const char *label)
         lozenge(dl, ImVec2(x1, y), r, false);
     }
 }
+
+void orn_hairline(ImDrawList *dl, ImVec2 a, ImVec2 b, float g, bool across)
+{
+    float lw = fmaxf(1.0f, g * 0.45f), h = g * 0.5f;
+    if (across) {
+        float r = g * 1.6f;
+        dl->AddLine(ImVec2(a.x, a.y - h), ImVec2(b.x - r, a.y - h), IM_COL32(150, 108, 44, 220), lw);
+        dl->AddLine(ImVec2(a.x, a.y + h), ImVec2(b.x - r, a.y + h), IM_COL32(196, 156, 80, 170), lw);
+        lozenge(dl, ImVec2(b.x - r * 0.6f, a.y), r * 0.6f, false);
+    } else {
+        dl->AddLine(ImVec2(a.x - h, a.y), ImVec2(a.x - h, b.y), IM_COL32(150, 108, 44, 200), lw);
+        dl->AddLine(ImVec2(a.x + h, a.y), ImVec2(a.x + h, b.y), IM_COL32(196, 156, 80, 150), lw);
+    }
+}
+
+void orn_tab_mark(ImDrawList *dl, ImVec2 a, ImVec2 b, float k)
+{
+    dl->AddLine(ImVec2(a.x + k, a.y - k * 0.6f), ImVec2(b.x - k, b.y - k * 0.6f), GOLD, fmaxf(1.0f, k * 0.35f));
+    lozenge(dl, ImVec2((a.x + b.x) * 0.5f, a.y - k * 0.6f), k * 0.9f, false);
+}
+
+/* ---------------------------------------------------------------- the other bands
+   walnut and brass: the party sheet's wooden panels and brass name plates (PTYSTATS);
+   illuminated: the illuminated capitals' vermilion and gold diaper (ILLMCAPS), as a manuscript's border;
+   gothic stone: the carved stone niche the paper doll stands in, quatrefoils in a moulding */
+static void band_quads(ImDrawList *dl, ImVec2 a, ImVec2 b, float w, ImU32 c)   /* the band's four sides, filled */
+{
+    dl->AddRectFilled(a, ImVec2(b.x, a.y + w), c);
+    dl->AddRectFilled(ImVec2(a.x, b.y - w), b, c);
+    dl->AddRectFilled(ImVec2(a.x, a.y + w), ImVec2(a.x + w, b.y - w), c);
+    dl->AddRectFilled(ImVec2(b.x - w, a.y + w), ImVec2(b.x, b.y - w), c);
+}
+/* along the band's middle line, every `step`: fn(point, along-x?) */
+template <class F> static void along(ImVec2 a, ImVec2 b, float w, float step, F fn)
+{
+    float h = w * 0.5f;
+    for (int side = 0; side < 4; side++) {
+        bool across = side < 2;
+        float L = across ? (b.x - a.x - 2 * w) : (b.y - a.y - 2 * w);
+        int n = (int)floorf(L / step); if (n < 1) continue;
+        float st = L / n;
+        for (int i = 0; i < n; i++) {
+            float t = (i + 0.5f) * st + w;
+            ImVec2 p = across ? ImVec2(a.x + t, side == 0 ? a.y + h : b.y - h) : ImVec2(side == 2 ? a.x + h : b.x - h, a.y + t);
+            fn(p, across);
+        }
+    }
+}
+
+static void walnut_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+{
+    const ImU32 dark = IM_COL32(58, 32, 16, 255), mid = IM_COL32(112, 64, 30, 255), lite = IM_COL32(156, 96, 48, 255);
+    /* the moulding: dark at its outer edge, lit along its crest, a groove inside */
+    band_quads(dl, a, b, w, mid);
+    float h = w * 0.5f; (void)h;
+    for (int i = 0; i < 3; i++) {                                 /* the grain: wavering lines along each side */
+        float off = w * (0.22f + 0.28f * i);
+        ImU32 gc = i == 1 ? IM_COL32(90, 50, 22, 200) : IM_COL32(134, 80, 38, 200);
+        const int N = 40;
+        for (int side = 0; side < 4; side++) {
+            ImVec2 pts[N];
+            for (int j = 0; j < N; j++) {
+                float t = (float)j / (N - 1), wob = sinf(t * 23.0f + i * 2.1f + side) * w * 0.05f;
+                if (side == 0) pts[j] = ImVec2(a.x + w + t * (b.x - a.x - 2 * w), a.y + off + wob);
+                else if (side == 1) pts[j] = ImVec2(a.x + w + t * (b.x - a.x - 2 * w), b.y - off + wob);
+                else if (side == 2) pts[j] = ImVec2(a.x + off + wob, a.y + w + t * (b.y - a.y - 2 * w));
+                else pts[j] = ImVec2(b.x - off + wob, a.y + w + t * (b.y - a.y - 2 * w));
+            }
+            dl->AddPolyline(pts, N, gc, 0, fmaxf(1.0f, w * 0.07f));
+        }
+    }
+    float lw = fmaxf(1.0f, w * 0.1f);
+    dl->AddRect(a, b, dark, 0, 0, lw * 1.5f);
+    dl->AddRect(ImVec2(a.x + w * 0.3f, a.y + w * 0.3f), ImVec2(b.x - w * 0.3f, b.y - w * 0.3f), lite, 0, 0, lw);
+    dl->AddRect(ImVec2(a.x + w - lw, a.y + w - lw), ImVec2(b.x - w + lw, b.y - w + lw), dark, 0, 0, lw * 1.4f);
+    /* brass corner plates, each with its rivets, and rivets along the sides */
+    float cs = w * 2.6f;
+    for (int cx = 0; cx < 2; cx++) for (int cy = 0; cy < 2; cy++) {
+        ImVec2 o(cx ? b.x : a.x, cy ? b.y : a.y);
+        float sx = cx ? -1.0f : 1.0f, sy = cy ? -1.0f : 1.0f;
+        ImU32 br = IM_COL32(204, 160, 72, 255);                  /* an L of brass along the band, no further in */
+        ImVec2 q[6] = { o, ImVec2(o.x + sx * cs, o.y), ImVec2(o.x + sx * cs, o.y + sy * w), ImVec2(o.x + sx * w, o.y + sy * w),
+                        ImVec2(o.x + sx * w, o.y + sy * cs), ImVec2(o.x, o.y + sy * cs) };
+        dl->AddRectFilled(ImVec2(fminf(o.x, q[2].x), fminf(o.y, q[2].y)), ImVec2(fmaxf(o.x, q[2].x), fmaxf(o.y, q[2].y)), br);
+        dl->AddRectFilled(ImVec2(fminf(o.x, q[4].x), fminf(o.y, q[4].y)), ImVec2(fmaxf(o.x, q[4].x), fmaxf(o.y, q[4].y)), br);
+        dl->AddLine(ImVec2(o.x, o.y + sy * lw), ImVec2(q[1].x, o.y + sy * lw), GOLD_LIT, lw);
+        dl->AddPolyline(q, 6, GOLD_DK, ImDrawFlags_Closed, lw);
+        orn_rivet(dl, ImVec2(o.x + sx * w * 0.55f, o.y + sy * w * 0.55f), w * 0.2f);
+        orn_rivet(dl, ImVec2(o.x + sx * cs * 0.75f, o.y + sy * w * 0.5f), w * 0.14f);
+        orn_rivet(dl, ImVec2(o.x + sx * w * 0.5f, o.y + sy * cs * 0.75f), w * 0.14f);
+    }
+    along(a, b, w, w * 7, [&](ImVec2 p, bool across) {
+        float t0 = across ? p.x - a.x : p.y - a.y, t1 = across ? b.x - p.x : b.y - p.y;
+        if (t0 < cs + w || t1 < cs + w) return;               /* (not on the corner plates) */
+        orn_rivet(dl, p, w * 0.15f);
+    });
+}
+
+static void illum_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+{
+    const ImU32 red = IM_COL32(150, 34, 22, 255), redd = IM_COL32(104, 20, 12, 255), blue = IM_COL32(34, 58, 140, 255);
+    band_quads(dl, a, b, w, red);
+    /* the diaper: gold lozenges with a white pearl between, as on the capitals */
+    float s = w * 0.62f;
+    along(a, b, w, s * 1.2f, [&](ImVec2 p, bool across) {
+        float r = w * 0.26f;
+        ImVec2 q[4] = { ImVec2(p.x, p.y - r), ImVec2(p.x + r, p.y), ImVec2(p.x, p.y + r), ImVec2(p.x - r, p.y) };
+        dl->AddConvexPolyFilled(q, 4, IM_COL32(226, 180, 84, 255));
+        ImVec2 pe = across ? ImVec2(p.x + s * 0.6f, p.y) : ImVec2(p.x, p.y + s * 0.6f);
+        dl->AddCircleFilled(pe, w * 0.07f, IM_COL32(250, 240, 220, 230), 6);
+    });
+    float lw = fmaxf(1.0f, w * 0.12f);
+    dl->AddRect(a, b, GOLD, 0, 0, lw * 1.4f);
+    dl->AddRect(ImVec2(a.x + w, a.y + w), ImVec2(b.x - w, b.y - w), GOLD, 0, 0, lw * 1.2f);
+    dl->AddRect(ImVec2(a.x + w + lw * 1.6f, a.y + w + lw * 1.6f), ImVec2(b.x - w - lw * 1.6f, b.y - w - lw * 1.6f), redd, 0, 0, lw * 0.7f);
+    /* the corners: a gold square, blue within, a red quatrefoil and a gold pearl */
+    for (int cx = 0; cx < 2; cx++) for (int cy = 0; cy < 2; cy++) {
+        ImVec2 c(cx ? b.x - w * 0.5f : a.x + w * 0.5f, cy ? b.y - w * 0.5f : a.y + w * 0.5f);
+        float r = w * 0.85f;
+        dl->AddRectFilled(ImVec2(c.x - r, c.y - r), ImVec2(c.x + r, c.y + r), GOLD);
+        dl->AddRectFilled(ImVec2(c.x - r * 0.78f, c.y - r * 0.78f), ImVec2(c.x + r * 0.78f, c.y + r * 0.78f), blue);
+        for (int i = 0; i < 4; i++) { float an = i * 1.5708f; dl->AddCircleFilled(ImVec2(c.x + cosf(an) * r * 0.32f, c.y + sinf(an) * r * 0.32f), r * 0.3f, red, 12); }
+        dl->AddCircleFilled(c, r * 0.2f, GOLD_LIT, 10);
+        dl->AddRect(ImVec2(c.x - r, c.y - r), ImVec2(c.x + r, c.y + r), GOLD_DK, 0, 0, lw);
+    }
+}
+
+static void gothic_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+{
+    const ImU32 stone = IM_COL32(176, 168, 152, 255), lit = IM_COL32(222, 216, 200, 255), shadow = IM_COL32(104, 96, 84, 255), deep = IM_COL32(70, 62, 54, 255);
+    band_quads(dl, a, b, w, stone);
+    float lw = fmaxf(1.0f, w * 0.1f);
+    /* the moulding: lit above and left, in shadow below and right */
+    dl->AddLine(ImVec2(a.x, a.y + lw * 0.5f), ImVec2(b.x, a.y + lw * 0.5f), lit, lw * 1.5f);
+    dl->AddLine(ImVec2(a.x + lw * 0.5f, a.y), ImVec2(a.x + lw * 0.5f, b.y), lit, lw * 1.5f);
+    dl->AddLine(ImVec2(a.x, b.y - lw * 0.5f), ImVec2(b.x, b.y - lw * 0.5f), shadow, lw * 1.5f);
+    dl->AddLine(ImVec2(b.x - lw * 0.5f, a.y), ImVec2(b.x - lw * 0.5f, b.y), shadow, lw * 1.5f);
+    dl->AddRect(ImVec2(a.x + w - lw, a.y + w - lw), ImVec2(b.x - w + lw, b.y - w + lw), deep, 0, 0, lw * 1.3f);
+    /* quatrefoils carved along it */
+    along(a, b, w, w * 1.5f, [&](ImVec2 p, bool) {
+        float r = w * 0.17f;
+        for (int i = 0; i < 4; i++) {
+            float an = i * 1.5708f + 0.7854f;
+            ImVec2 q(p.x + cosf(an) * r, p.y + sinf(an) * r);
+            dl->AddCircleFilled(ImVec2(q.x + lw * 0.4f, q.y + lw * 0.4f), r * 0.95f, lit, 12);
+            dl->AddCircleFilled(q, r * 0.95f, shadow, 12);
+        }
+        dl->AddCircleFilled(p, r * 0.5f, deep, 8);
+    });
+    /* the corners: a square boss with a rose */
+    for (int cx = 0; cx < 2; cx++) for (int cy = 0; cy < 2; cy++) {
+        ImVec2 c(cx ? b.x - w * 0.5f : a.x + w * 0.5f, cy ? b.y - w * 0.5f : a.y + w * 0.5f);
+        float r = w * 0.8f;
+        dl->AddRectFilled(ImVec2(c.x - r, c.y - r), ImVec2(c.x + r, c.y + r), stone);
+        dl->AddRect(ImVec2(c.x - r, c.y - r), ImVec2(c.x + r, c.y + r), deep, 0, 0, lw);
+        for (int i = 0; i < 6; i++) {
+            float an = i * 1.0472f;
+            dl->AddCircleFilled(ImVec2(c.x + cosf(an) * r * 0.42f, c.y + sinf(an) * r * 0.42f), r * 0.3f, i < 3 ? shadow : lit, 12);
+        }
+        dl->AddCircleFilled(c, r * 0.3f, IM_COL32(150, 36, 24, 255), 12);
+        dl->AddCircleFilled(ImVec2(c.x - r * 0.08f, c.y - r * 0.08f), r * 0.1f, IM_COL32(255, 180, 150, 220), 8);
+    }
+}
+
+void orn_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+{
+    switch (orn_style()) {
+    case 2: walnut_frame(dl, a, b, w * 1.15f); break;
+    case 3: illum_frame(dl, a, b, w); break;
+    case 4: gothic_frame(dl, a, b, w * 1.1f); break;
+    default: orn_braid_frame(dl, a, b, w); break;
+    }
+}
+const char *orn_style_name(int s) { static const char *N[5] = { "Off", "Plaited copper", "Walnut and brass", "Illuminated", "Gothic stone" }; return s >= 0 && s <= 4 ? N[s] : "?"; }

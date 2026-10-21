@@ -215,7 +215,7 @@ static void header(NsDraw &P, const SheetModel &s)
     float tw = 25.5f, x = 318 - 4 * tw;
     for (int t = 0; t < 4; t++) {
         bool sel = t == V.tab, h = P.over(x, 11, x + tw - 0.8f, 19.5f);
-        P.rect(x, 11, x + tw - 0.8f, 19.5f, sel ? IM_COL32(112, 40, 22, 240) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255), 1.5f);
+        P.tab(x, 11, x + tw - 0.8f, 19.5f, sel, h);
         P.text(f, 5.2f, x + (tw - 0.8f - P.width(f, 5.2f, TABS[t])) * 0.5f, 12.3f, sel ? NsDraw::LIGHT : NsDraw::INK, TABS[t]);
         if (P.hit(x, 11, x + tw - 0.8f, 19.5f)) { V.tab = t; V.drop_row = -1; V.what = 0; }
         x += tw;

@@ -59,7 +59,22 @@ struct NsDraw {
     static ImVec2 w(float x, float y) { float a, b; plat_game_to_win(x, y, &a, &b); return ImVec2(a, b); }
     float size(ImFont *ff, float gs) const { return gs * k * (ff == f ? fk : fok); }
 
-    void rect(float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRectFilled(w(x0, y0), w(x1, y1), c, rnd * k); }
+    void rect(float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0)
+    {
+        if (orn_on() && ((c >> 24) & 0xff) < 200) {             /* a hairline rule (a heading's, a column's): gilt, doubled, a lozenge at its end */
+            if (y1 - y0 <= 0.6f && x1 - x0 >= 16) { orn_hairline(dl, w(x0, (y0 + y1) * 0.5f), w(x1, (y0 + y1) * 0.5f), 1.2f * k, true); return; }
+            if (x1 - x0 <= 0.6f && y1 - y0 >= 16) { orn_hairline(dl, w((x0 + x1) * 0.5f, y0), w((x0 + x1) * 0.5f, y1), 1.2f * k, false); return; }
+        }
+        dl->AddRectFilled(w(x0, y0), w(x1, y1), c, rnd * k);
+    }
+    /* a tab (Items, Skills ...): the chosen one dark red, the others parchment; the caller writes the label */
+    void tab(float x0, float y0, float x1, float y1, bool sel, bool hov, float rnd = 1.5f)
+    {
+        ImU32 c = sel ? IM_COL32(112, 40, 22, 240) : hov ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255);
+        if (!orn_on()) { dl->AddRectFilled(w(x0, y0), w(x1, y1), c, rnd * k); return; }
+        orn_plaque(dl, w(x0, y0), w(x1, y1), sel ? IM_COL32(120, 36, 20, 255) : hov ? IM_COL32(222, 196, 146, 255) : IM_COL32(210, 188, 146, 255), false, false);
+        if (sel) orn_tab_mark(dl, w(x0, y1), w(x1, y1), k);
+    }
     void frame(float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRect(w(x0, y0), w(x1, y1), c, rnd * k, 0, fmaxf(1.0f, 0.4f * k)); }
     /* text at (x, y) (its top); right_to >= 0: ending there; clip_to >= 0: cut there */
     void text(ImFont *ff, float gs, float x, float y, ImU32 c, const std::string &s, float right_to = -1, float clip_to = -1)

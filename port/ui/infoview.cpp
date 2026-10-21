@@ -72,7 +72,7 @@ extern "C" void infoview_draw(void)
     for (int k = 0; k < 2; k++) {
         float sx = RX0 + 3 + k * 36;
         bool on = by_name == k;
-        P.rect(sx, sy, sx + 34, sy + 7, on ? IM_COL32(112, 40, 22, 230) : IM_COL32(222, 204, 168, 255), 1.2f);
+        P.tab(sx, sy, sx + 34, sy + 7, on, false, 1.2f);
         P.text(fo, 4.0f, sx + (34 - P.width(fo, 4.0f, SORT[k])) * 0.5f, sy + 1.3f, on ? NsDraw::LIGHT : dim, SORT[k]);
         if (P.hit(sx, sy, sx + 34, sy + 7)) { by_name = k; scroll = 0; }
     }

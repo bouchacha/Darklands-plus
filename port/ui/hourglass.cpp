@@ -132,37 +132,62 @@ static void armillary_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
     last_t = now;
     const ImU32 bronze = IM_COL32(176, 104, 38, 255), bronzel = IM_COL32(230, 160, 70, 255), bronzed = IM_COL32(96, 52, 18, 255),
                 gold = IM_COL32(246, 210, 80, 255), ink = IM_COL32(24, 14, 6, 255);
-    float th = fmaxf(2.0f, R * 0.13f);
-    /* the crossing rings behind the disc */
-    auto ellipse = [&](float rx, float ry, float rot, ImU32 col, float w) {
-        const int N = 48; ImVec2 pts[N];
-        for (int i = 0; i < N; i++) { float a = i * 2 * PI / N, x = cosf(a) * rx, y = sinf(a) * ry; pts[i] = ImVec2(c.x + x * cosf(rot) - y * sinf(rot), c.y + x * sinf(rot) + y * cosf(rot)); }
-        dl->AddPolyline(pts, N, col, ImDrawFlags_Closed, w);
+    float th = fmaxf(2.0f, R * 0.19f);
+    const float ax = 1.12f;                                   /* (wider than tall, as the game's) */
+    const ImVec2 c0 = c;
+    /* a bronze ring seen at a slant (rx by ry): its dark rim, the metal, the light along its upper
+       arc and the shade along its lower */
+    auto ring = [&](float rx, float ry, float w, float lit, float dy = 0) {
+        const int N = 72; ImVec2 pts[N];
+        ImVec2 c(c0.x, c0.y + dy);
+        for (int i = 0; i < N; i++) { float a = i * 2 * PI / N; pts[i] = ImVec2(c.x + cosf(a) * rx, c.y + sinf(a) * ry); }
+        dl->AddPolyline(pts, N, ink, ImDrawFlags_Closed, w + fmaxf(1.5f, w * 0.3f));
+        dl->AddPolyline(pts, N, bronze, ImDrawFlags_Closed, w);
+        ImVec2 arc[N / 2 + 1];
+        int n = 0;
+        for (int i = N / 2; i <= N; i++) { float a = i * 2 * PI / N; arc[n++] = ImVec2(c.x + cosf(a) * (rx - w * 0.18f), c.y + sinf(a) * (ry - w * 0.18f)); }
+        dl->AddPolyline(arc, n, lit > 0.5f ? bronzel : IM_COL32(206, 136, 56, 255), 0, fmaxf(1.0f, w * 0.28f));
+        n = 0;
+        for (int i = 0; i <= N / 2; i++) { float a = i * 2 * PI / N; arc[n++] = ImVec2(c.x + cosf(a) * (rx + w * 0.2f), c.y + sinf(a) * (ry + w * 0.2f)); }
+        dl->AddPolyline(arc, n, bronzed, 0, fmaxf(1.0f, w * 0.25f));
     };
-    dl->AddCircleFilled(c, R, IM_COL32(20, 12, 6, 230), 64);
-    ellipse(R * 0.78f, R * 0.34f, 0.0f, bronzed, th * 0.75f);
-    ellipse(R * 0.36f, R * 0.80f, 0.0f, bronzed, th * 0.75f);
-    ellipse(R * 0.78f, R * 0.30f, 0.42f, bronze, th * 0.6f);
-    ellipse(R * 0.78f, R * 0.30f, -0.42f, bronze, th * 0.6f);
-    /* the disc of day and night, turning */
-    float rd = R * 0.36f, a = (shown - 12.0f) / 24.0f * 2 * PI;     /* (the sun at the top at noon) */
+    /* the heavens behind: dark, the wheels of the works dim within */
+    dl->AddEllipseFilled(c, ImVec2(R * ax, R), IM_COL32(16, 10, 6, 240), 0, 64);
+    for (int g = 0; g < 2; g++) {                             /* two cog wheels, half hidden */
+        ImVec2 gc(c.x + (g ? R * 0.42f : -R * 0.38f), c.y + (g ? -R * 0.32f : R * 0.36f));
+        float gr = R * (g ? 0.42f : 0.36f);
+        dl->AddCircle(gc, gr, IM_COL32(86, 86, 92, 200), 32, fmaxf(1.0f, R * 0.06f));
+        for (int t = 0; t < 14; t++) { float a = t * 2 * PI / 14; dl->AddLine(ImVec2(gc.x + cosf(a) * gr, gc.y + sinf(a) * gr), ImVec2(gc.x + cosf(a) * gr * 1.14f, gc.y + sinf(a) * gr * 1.14f), IM_COL32(86, 86, 92, 200), fmaxf(1.0f, R * 0.05f)); }
+    }
+    /* the inner rings, nearly face on, one a little above the middle and one a little below (as
+       the game draws them: their arcs pair up over and under the disc), and one round the disc */
+    ring(R * ax * 0.62f, R * 0.56f, th * 0.55f, 0, -R * 0.12f);
+    ring(R * ax * 0.62f, R * 0.56f, th * 0.55f, 1, R * 0.12f);
+    /* the disc of day and night, turning, in its own small ring */
+    float rd = R * 0.34f, a = (shown - 12.0f) / 24.0f * 2 * PI;     /* (the sun at the top at noon) */
     dl->AddCircleFilled(c, rd, IM_COL32(20, 48, 110, 255), 40);        /* night */
     dl->PathArcTo(c, rd, a - PI, a, 24); dl->PathFillConvex(IM_COL32(178, 190, 200, 255));   /* day: the half towards the sun */
-    ImVec2 sun(c.x + sinf(a) * rd * 0.58f, c.y - cosf(a) * rd * 0.58f), moon(c.x - sinf(a) * rd * 0.58f, c.y + cosf(a) * rd * 0.58f);
-    dl->AddCircleFilled(sun, rd * 0.28f, IM_COL32(252, 236, 60, 255), 20);
+    ImVec2 sun(c.x + sinf(a) * rd * 0.55f, c.y - cosf(a) * rd * 0.55f), moon(c.x - sinf(a) * rd * 0.55f, c.y + cosf(a) * rd * 0.55f);
+    dl->AddCircleFilled(sun, rd * 0.3f, IM_COL32(252, 236, 60, 255), 20);
     dl->AddCircleFilled(moon, rd * 0.2f, IM_COL32(170, 176, 186, 255), 20);
-    dl->AddCircle(c, rd, bronzed, 40, th * 0.5f);
-    /* the outer ring, its studs, and the fleur-de-lis */
-    dl->AddCircle(c, R - th * 0.5f, bronze, 64, th);
-    dl->AddCircle(c, R - th * 0.15f, bronzel, 64, fmaxf(1.0f, th * 0.25f));
-    dl->AddCircle(c, R - th, bronzed, 64, fmaxf(1.0f, th * 0.2f));
-    for (int i = 0; i < 12; i++) { float b = i * PI / 6; dl->AddCircleFilled(ImVec2(c.x + cosf(b) * (R - th * 0.5f), c.y + sinf(b) * (R - th * 0.5f)), th * 0.22f, gold, 8); }
+    ring(rd + th * 0.25f, rd + th * 0.25f, th * 0.45f, 1);
+    /* the great outer ring, face on: broad, its notches at the quarters */
+    ring(R * ax - th * 0.5f, R - th * 0.5f, th, 1);
+    for (int q = 0; q < 8; q++) {
+        float b = q * PI / 4, x0 = cosf(b), y0 = sinf(b);
+        ImVec2 p0(c.x + x0 * (R * ax - th), c.y + y0 * (R - th)), p1(c.x + x0 * R * ax, c.y + y0 * R);
+        dl->AddLine(p0, p1, q % 2 ? bronzed : IM_COL32(236, 170, 90, 255), fmaxf(1.0f, th * (q % 2 ? 0.18f : 0.32f)));
+    }
+    /* gold clasps where the rings meet it, top and bottom, and the finial */
+    for (int e = -1; e <= 1; e += 2) {
+        float y = c.y + e * (R - th * 0.5f);
+        for (int t = -1; t <= 1; t++) dl->AddRectFilled(ImVec2(c.x + t * R * 0.09f - R * 0.025f, y - th * 0.45f), ImVec2(c.x + t * R * 0.09f + R * 0.025f, y + th * 0.45f), gold);
+        dl->AddRectFilled(ImVec2(c.x - R * 0.13f, y + e * th * 0.45f - R * 0.012f), ImVec2(c.x + R * 0.13f, y + e * th * 0.45f + R * 0.02f), gold);
+    }
     ImVec2 top(c.x, c.y - R);
     dl->AddTriangleFilled(ImVec2(top.x, top.y - R * 0.3f), ImVec2(top.x - R * 0.06f, top.y), ImVec2(top.x + R * 0.06f, top.y), gold);
     dl->AddBezierQuadratic(ImVec2(top.x - R * 0.02f, top.y - R * 0.05f), ImVec2(top.x - R * 0.2f, top.y - R * 0.2f), ImVec2(top.x - R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
     dl->AddBezierQuadratic(ImVec2(top.x + R * 0.02f, top.y - R * 0.05f), ImVec2(top.x + R * 0.2f, top.y - R * 0.2f), ImVec2(top.x + R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
-    dl->AddRectFilled(ImVec2(top.x - R * 0.12f, top.y - R * 0.02f), ImVec2(top.x + R * 0.12f, top.y + R * 0.05f), gold);
-    dl->AddRectFilled(ImVec2(c.x - R * 0.12f, c.y + R - R * 0.05f), ImVec2(c.x + R * 0.12f, c.y + R + R * 0.06f), gold);   /* (the foot) */
     /* the plate with its three windows */
     float py0 = tl.y + 79 * k, py1 = tl.y + 101 * k;
     ImVec2 a0(tl.x + 2 * kx, py0), a1(tl.x + 118 * kx, py1);

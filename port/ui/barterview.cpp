@@ -114,7 +114,7 @@ extern "C" void barterview_draw(void)
         for (int m = 0; m < 5; m++) {
             if (!b.present[m]) continue;
             bool sel = m == b.who, h = in(mx, my, x, 19, x + tw - 1, 29);
-            R(x, 19, x + tw - 1, 29, sel ? IM_COL32(112, 40, 22, 240) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255), 2);
+            P.tab(x, 19, x + tw - 1, 29, sel, h, 2);
             std::string nm = gt(b.names[m]);
             /* the purse: a gold coin on the tab of who holds it; a click on another tab's (faint) coin hands it over */
             bool coin_h = in(mx, my, x, 19, x + 7, 29);

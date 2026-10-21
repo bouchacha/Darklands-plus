@@ -114,7 +114,7 @@ extern "C" void createview_draw(void)
     for (int i = 0; i < 5; i++) {
         float x0 = 172 + i * 28.8f, x1 = x0 + 28;
         bool cur = i == c.state, done = i < c.state;
-        P.rect(x0, 3, x1, 12.5f, cur ? IM_COL32(112, 40, 22, 240) : done ? IM_COL32(214, 190, 150, 255) : IM_COL32(230, 216, 186, 255), 1.5f);
+        P.tab(x0, 3, x1, 12.5f, cur, done);
         snprintf(b, sizeof b, "%d  %s", i + 1, STEP[i]);
         P.text(fo, NsDraw::FS_SMALL, x0 + (28 - P.width(fo, NsDraw::FS_SMALL, b)) * 0.5f, 5.0f, cur ? NsDraw::LIGHT : done ? ink : dim, b);
     }

@@ -61,7 +61,7 @@ extern "C" void cacheview_draw(void)
             if (!l.present[m]) continue;
             bool sel = m == l.who, h = P.over(x, 19, x + tw - 1, 29);
             ImU32 bg = sel ? IM_COL32(112, 40, 22, 240) : !l.able[m] ? IM_COL32(210, 200, 180, 255) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255);
-            P.rect(x, 19, x + tw - 1, 29, bg, 2);
+            if (sel || l.able[m]) P.tab(x, 19, x + tw - 1, 29, sel, h, 2); else P.rect(x, 19, x + tw - 1, 29, bg, 2);
             P.text(f, NsDraw::FS_NAME, x + 2.5f, 20.5f, sel ? NsDraw::LIGHT : l.able[m] ? ink : dim, ns_gtext(l.names[m]), -1, x + tw - 2);
             if (l.able[m] && P.hit(x, 19, x + tw - 1, 29)) ns_push(CV_WHO, m, 0, 0);
             x += tw;
