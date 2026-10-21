@@ -57,6 +57,13 @@ static void over_hook(void)
         g_ww(GV_battle_end_at, (u16)(now + hold));
         fprintf(stderr, "battle end: held %d ticks, not %d\n", hold, (s16)(until - now));
     }
+    /* the battle clock stands while the battle is paused (for orders: the next member chosen, a
+       fall) - decided, it would wait there for a click before the victory: it runs on */
+    static u32 last_kick;
+    if (hold > 0 && g_rb(GV_ai_paused) == 1) {
+        u32 plat_ticks_ms(void); void bios_kbd_inject(u16);
+        if (plat_ticks_ms() - last_kick > 400) { last_kick = plat_ticks_ms(); bios_kbd_inject(0x3920); fprintf(stderr, "battle end: decided while paused, resumed\n"); }
+    }
 }
 
 void battleend_init(void)
