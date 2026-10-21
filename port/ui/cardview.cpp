@@ -26,6 +26,7 @@
 #include "../mods/nscreen.h"
 #include "../mods/assist.h"
 #include "ui.h"
+#include "ornament.h"
 #include "gamedata.h"
 #include "money.h"
 #include "teachersui.h"
@@ -231,6 +232,7 @@ extern "C" void cardview_draw(void)
         ImU32 edge = dark ? IM_COL32(170, 125, 65, 120) : IM_COL32(120, 80, 36, 110);
         dl->AddRectFilled(ImVec2(bx0, by0), ImVec2(bx1, by1), bg, 5.0f * k * 0.5f);
         dl->AddRect(ImVec2(bx0, by0), ImVec2(bx1, by1), edge, 5.0f * k * 0.5f, 0, fmaxf(1.0f, 0.35f * k));
+        if (orn_on()) orn_gilt_frame(dl, ImVec2(bx0, by0), ImVec2(bx1, by1), 3.2f * k);
     }
     {   /* the box in game pixels, for the engine's pointer tests */
         ImVec2 a = g2w(0, 0), b = g2w(320, 0);

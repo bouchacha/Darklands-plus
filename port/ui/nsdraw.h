@@ -4,6 +4,7 @@
 #ifndef DL_NSDRAW_H
 #define DL_NSDRAW_H
 #include "imgui.h"
+#include "ornament.h"
 #include <string.h>
 #include <string>
 #include "../runtime/cpu.h"
@@ -91,7 +92,8 @@ struct NsDraw {
         bool h = over(x0, y0, x1, y1);
         ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
         if (h) { c.x = fminf(1, c.x * 1.25f + 0.04f); c.y = fminf(1, c.y * 1.25f + 0.04f); c.z = fminf(1, c.z * 1.25f + 0.04f); c.w = 1; }
-        rect(x0, y0, x1, y1, ImGui::ColorConvertFloat4ToU32(c), 1.5f);
+        if (orn_on()) orn_plaque(dl, w(x0, y0), w(x1, y1), base, h, false);
+        else rect(x0, y0, x1, y1, ImGui::ColorConvertFloat4ToU32(c), 1.5f);
         float tw = width(fo, gs, label), gw = 0, gh = 0;
         if (pad >= 0 && ui_pad_prompts()) {                 /* the controller's button for it, before the label (padglyphs.h) */
             gh = (y1 - y0) * 0.7f * k; gw = ui_pad_glyph_width(gh, pad) / kx + 1.2f;
@@ -148,6 +150,7 @@ struct NsDraw {
         rect(60, 0, 320, 200, IM_COL32(236, 222, 188, 255));
         rect(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
         frame(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
+        if (orn_on()) { orn_parchment_edges(dl, w(61.5f, 1.5f), w(318.5f, 198.5f), 6 * k); orn_gilt_frame(dl, w(60.5f, 0.5f), w(319.5f, 199.5f), 5 * k); }
     }
 };
 

@@ -13,6 +13,7 @@
 #include <map>
 #include <algorithm>
 #include "imgui.h"
+#include "ornament.h"
 #include "ui.h"
 #include "gamedata.h"
 #include "quests.h"
@@ -485,7 +486,7 @@ extern "C" void journal_quests(void)
         bool head = false;
         for (const QuestRow &l : v) {
             if (l.group != g) continue;
-            if (!head) { ImGui::SeparatorText(HEAD[g]); head = true; }
+            if (!head) { orn_septext(HEAD[g]); head = true; }
             ImGui::PushID(l.id.c_str());
             std::string days = g == 3 ? "" : quest_days(l), d = quest_distance(l);
             float isz = ImGui::GetTextLineHeight() * 1.2f, sp = ImGui::CalcTextSize(" ").x;

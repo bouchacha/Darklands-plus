@@ -19,6 +19,7 @@
 #include <vector>
 #include <map>
 #include "imgui.h"
+#include "ornament.h"
 #include "ui.h"
 #include "gamedata.h"
 #include "teachersui.h"
@@ -752,7 +753,7 @@ extern "C" int citynav_window(void)
                 tiles.push_back(make_tile(d));
             }
             if (tiles.empty()) continue;
-            ImGui::SeparatorText(GROUPS[g]);
+            orn_septext(GROUPS[g]);
             for (size_t r0 = 0; r0 < tiles.size(); r0 += cols) {            /* a row: as tall as its tallest tile */
                 float th = 0;
                 for (size_t k = r0; k < tiles.size() && k < r0 + cols; k++) th = fmaxf(th, tile_h(tiles[k]));

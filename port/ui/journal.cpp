@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <math.h>
 #include "imgui.h"
+#include "ornament.h"
 #include "tablesort.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -521,7 +522,7 @@ static void chronicle_page(void)
         ImGui::PushID(i);
         if (e.place != place) {
             ImGui::Spacing();
-            ImGui::SeparatorText(e.place.c_str());
+            orn_septext(e.place.c_str());
             place = e.place;
         }
         if (i == scroll_to) { ImGui::SetScrollHereY(0.0f); scroll_to = -1; }

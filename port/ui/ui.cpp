@@ -47,6 +47,7 @@ extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[], FONT_COMIC[];
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE, FONT_COMIC_SIZE;
 }
+#include "ornament.h"
 
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
 static bool open_menu, open_map, open_goto, open_help, open_welcome, open_mt32, open_news;
@@ -539,7 +540,7 @@ static void tab_about(void)
     ImGui::Spacing();
     ImGui::TextWrapped("F1: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
-    ImGui::PushFont(font_head); ImGui::SeparatorText("Files"); ImGui::PopFont();
+    ImGui::PushFont(font_head); orn_septext("Files"); ImGui::PopFont();
     {   extern char dos_shadow[];
         if (dos_shadow[0]) ImGui::BulletText("saved games, and every other file the game writes: %s (Darklands+ cannot write to the game "
                                              "folder; the saved games in its SAVES folder can still be loaded)", dos_shadow);
@@ -561,7 +562,7 @@ static void tab_about(void)
 #endif
 #endif
     }
-    ImGui::PushFont(font_head); ImGui::SeparatorText("Made with"); ImGui::PopFont();
+    ImGui::PushFont(font_head); orn_septext("Made with"); ImGui::PopFont();
     ui_hint("Dear ImGui (MIT licence); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, "
          "stb_vorbis (public domain); SDL2 (zlib licence); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
          "MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1).");
@@ -595,7 +596,7 @@ static void welcome_window(void)
                            "for the whole party, journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
         bool done = false;
         {   /* how much of Darklands+: the presets (mods/options.h), the recommended one chosen */
-            ImGui::PushFont(font_head); ImGui::SeparatorText("How would you like to play?"); ImGui::PopFont();
+            ImGui::PushFont(font_head); orn_septext("How would you like to play?"); ImGui::PopFont();
             static int pick = -1;
             if (pick < 0) { pick = preset_current(); if (pick < 0) pick = PRESET_PLUS; }
             for (int p = 0; p < PRESET_COUNT; p++) {
@@ -613,7 +614,7 @@ static void welcome_window(void)
             if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
         }
         ImGui::Spacing();
-        ImGui::PushFont(font_head); ImGui::SeparatorText("Keys"); ImGui::PopFont();
+        ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
         ImGui::BulletText("F1: the keys and clicks for the current screen, including the game's hidden ones");
         ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
@@ -758,25 +759,25 @@ static void help_window(void)
         int gm = game_mode();
         int sv_loading = 0;
         if (savesview_showing(&sv_loading)) {
-            ImGui::SeparatorText(sv_loading ? "Now: loading a game" : "Now: saving the game");
+            orn_septext(sv_loading ? "Now: loading a game" : "Now: saving the game");
             if (sv_loading) { row("Double-click a save", "load it (or click it, then Load)"); row("Up, Down, Enter", "choose a save, load it"); }
             else { row("Type", "a name for the save (22 letters at most; Backspace deletes one)"); row("Enter or Save", "save it"); }
             row("Esc or Cancel", "back to the game as it was");
         } else if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
-            ImGui::SeparatorText(lodgeview_camping() ? "Now: a camp" : "Now: a stay at the inn");
+            orn_septext(lodgeview_camping() ? "Now: a camp" : "Now: a stay at the inn");
             row("A member, or 1 ... 5", "choose the member whose day you are planning");
             row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
             row("S or A day", "one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain strength, then days pass until nobody is regaining Strength or praying");
             row("L, Esc or Leave", "leave");
         } else if (gm == GM_CARD) {
-            ImGui::SeparatorText("Now: a card");
+            orn_septext("Now: a card");
             row("Click an option", "or press its number, 1 to 9");
             row("Hold Shift over an option", "the chance of success as the original game shows it (the badges show every option's chance)");
             row("G", "go to a place in this city");
             row("M", "world map");
             row("Town pictures", "(in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers");
         } else if (gm == GM_MAP) {
-            ImGui::SeparatorText("Now: the travel map");
+            orn_septext("Now: the travel map");
             row("Click", "walk towards that spot");
             row("Ctrl+click", "travel there along the roads (any key or click stops)");
             row("M", "world map: find a place, double-click to travel there");
@@ -784,7 +785,7 @@ static void help_window(void)
             row("A task in the left margin", "click to open it, then Travel there");
             row("Town pictures", "(in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers)");
         } else if (gm == GM_BATTLE) {
-            ImGui::SeparatorText("Now: a battle");
+            orn_septext("Now: a battle");
             row("Space", "pause / resume; orders can be given while paused");
             if (!ui_original_mode() && config_get_int("battle.quick_orders", 1)) {
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
@@ -800,39 +801,39 @@ static void help_window(void)
             if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
             { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
         } else if (loot_active && lootview_showing()) {
-            ImGui::SeparatorText("Now: the loot");
+            orn_septext("Now: the loot");
             row("Take / Put back", "on the row under the pointer: the whole stack (1: just one)");
             if (loot_model.shared) { row("Take all", "everything into the party's pack"); row("Potions", "go to the member shown above the right list (each member's own); the rest into the party's pack"); }
             else { row("Take all / Share out", "everything to the member shown / to whoever has some already, else the emptiest pack (A / S)");
                    row("Names above the right list, D", "switch to another member"); }
             row("L, Esc or Leave", "leave (what is left stays behind)");
         } else if (loot_active) {
-            ImGui::SeparatorText("Now: the loot");
+            orn_septext("Now: the loot");
             row("G / P", "get the chosen item from the pile / put one back (the cursor's list)");
             row("D", "hand out to the next member");
             if (loot_enabled()) { row("A", "take the whole pile for the member shown"); row("S", "share the pile out: each item to whoever has some already, else the emptiest pack"); }
             row("L or Esc", "leave (what is left stays behind)");
         } else if (barter_active && barterview_showing()) {
-            ImGui::SeparatorText("Now: a shop");
+            orn_septext("Now: a shop");
             row("Buy / Sell", "on the row under the pointer; with Shift: ten / the whole stack");
             row("Names above your list", "whose items are listed (B: the next member); right-click a name: that member holds the purse");
             row("Wheel, Up, Down", "scroll the list under the pointer");
             row("L, Esc or Leave", "leave");
         } else if (barter_active) {
-            ImGui::SeparatorText("Now: a shop");
+            orn_septext("Now: a shop");
             row("P / S", "buy the merchant's chosen item / sell your chosen item (one at a time)");
             if (loot_enabled()) { row("T", "buy ten of the merchant's chosen item (while the money lasts)"); row("A", "sell the whole stack of your chosen item"); }
             row("B", "barter for the next member");
             row("L or Esc", "leave");
         } else if (cacheview_showing()) {
-            ImGui::SeparatorText("Now: the store room");
+            orn_septext("Now: the store room");
             row("Take / Put", "on the row under the pointer: the whole stack (1: just one)");
             row("Put away", "every item not in use, except kept items and potions");
             if (cacheview_shared_pack()) row("Potions", "a potion taken goes to the member shown above the right list; the rest into the party's pack");
             if (cacheview_every_inn()) row("The store room", "the same at every inn (F12 > Settings > Helpers)");
             row("L, Esc or Leave", "leave");
         } else if (sheetview_showing()) {
-            ImGui::SeparatorText("Now: a character sheet");
+            orn_septext("Now: a character sheet");
             if (sheet_model.shared) { row("Ready / Unequip / Drink / Keep / Drop", "on the row under the pointer on the Items page: the pack is the whole party's, and Ready first hands the item to this member (Drop with Shift: all of them)");
                                       row("Potions", "each member's own: drag one onto someone at the left to give it");
                                       row("Keep", "marks an item never to be sold or dropped (a small seal on its row)");
@@ -843,14 +844,14 @@ static void help_window(void)
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
             row("Wheel, Up, Down", "scroll the list");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */
-            ImGui::SeparatorText("Now: a character sheet");
+            orn_septext("Now: a character sheet");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader at the top)");
             row("Up, Down, PgUp, PgDn", "move in a list (the mouse wheel too)");
             row("1 ... 5", "in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them)");
             row("A", "in the equipment list: ready or wear the chosen item");
             row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
         }
-        ImGui::SeparatorText("Keys of the original game");
+        orn_septext("Keys of the original game");
         if (config_get_int("assist.menu_click", 1) && !ui_original_mode()) row("Right-click", "the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard");
         else row("Right mouse button", "the menu bar, while it is held: let go on an entry (F10 with the keyboard)");
         row("Alt+S / Alt+L", "save / load (with a comment, nine saves)");
@@ -859,13 +860,13 @@ static void help_window(void)
         row("Alt+C", "messages about saints' changes on / off");
         row("F6", "the party's information");
         row("Alt+Q", "quit to the desktop");
-        ImGui::SeparatorText("Darklands+");
+        orn_septext("Darklands+");
         row("F12", "the Darklands+ menu (pauses the game)");
         row("Ctrl+S / F9 or Ctrl+L", "quick save / quick load");
         row("Alt+Enter", "full screen    Ctrl+F12 screenshot");
         { if ((plat_controller_connected() || ui_pad_prompts()) && config_get_int("input.gamepad", 1)) {
             /* the buttons drawn as the controller in use has them (padglyphs.h), else named */
-            ImGui::SeparatorText("The controller");
+            orn_septext("The controller");
             auto prow = [](const char *keys, const char *d) {     /* keys: "{A} {B}" */
                 float x0 = ImGui::GetCursorPosX();
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.18f, 0.10f, 1)); ui_pad_text(keys); ImGui::PopStyleColor();
@@ -1112,6 +1113,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ui_cursor();
     ui_alert_draw();
     draw_icon_grid();
+    orn_windows();
     ImGui::Render();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
 }
@@ -1135,6 +1137,7 @@ extern "C" void ui_progress_draw(SDL_Renderer *ren, const char *step, int pct, c
     ImGui::TextWrapped("%s", note && *note ? note : "Nothing from the game is included in the Darklands+ download; it is built here from your own copy.");
     ImGui::PopStyleColor();
     ImGui::End();
+    orn_windows();
     ImGui::Render();
     SDL_SetRenderDrawColor(ren, 20, 16, 12, 255);
     SDL_RenderClear(ren);

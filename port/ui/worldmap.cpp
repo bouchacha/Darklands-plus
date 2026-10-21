@@ -22,6 +22,7 @@ extern "C" int ns_showing(void);
 #include "townicons.h"
 #include "libraries.h"
 #include "ui.h"
+#include "ornament.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -1106,13 +1107,14 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
     ImGui::SetNextWindowBgAlpha(0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::Begin("##docksmap", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+    ImGui::Begin("##docksmap", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                  ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoScrollWithMouse);
     ImGui::PopStyleVar(2);
     ImDrawList *dl = ImGui::GetWindowDrawList();
     float rr = fsz * 0.35f;
     dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(240, 226, 192, 232), rr);
     dl->AddRect(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(120, 80, 36, 140), rr, 0, 1.5f);
+    if (orn_on()) orn_gilt_frame(dl, ImVec2(x0, y0), ImVec2(x1, y1), fsz * 0.8f);
     std::string hn = here < (int)gamedata.cities.size() ? gamedata.cities[here].name : std::string("here");
     std::string tt = "Boats from " + hn;
     dl->AddText(ft, fsz * 1.05f, ImVec2(mx0, y0 + (title - fsz * 1.05f) * 0.5f), IM_COL32(44, 26, 10, 255), tt.c_str());

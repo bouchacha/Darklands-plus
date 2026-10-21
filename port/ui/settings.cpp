@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "ornament.h"
 #include "tablesort.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
@@ -60,7 +61,7 @@ extern "C" void opening_set_mode(int);
 extern "C" int encounters_errors(void);
 void tab_mods(void)
 {
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Mod folders"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Mod folders"); ImGui::PopFont();
     {
         static char msg[1400];
         char md[1100]; datamods_folder(md, sizeof md);
@@ -335,7 +336,7 @@ void tab_helpers(void)
         if (jump == i) ImGui::SetNextItemOpen(true);
         else if (fold_all && foldable) ImGui::SetNextItemOpen(false);
         ImGui::PushFont(ui_font_head);
-        bool open = foldable ? ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen) : (ImGui::SeparatorText(name), true);
+        bool open = foldable ? ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen) : (orn_septext(name), true);
         ImGui::PopFont();
         if (jump == i) { ImGui::SetScrollHereY(0.0f); jump = -1; }
         if (ImGui::GetItemRectMin().y <= view_top) top_found = i;       /* (the last heading above the top: the section in view) */
@@ -369,7 +370,7 @@ void tab_helpers(void)
    a page of its own, experimental, every switch off by default and in every preset */
 void tab_restored(void)
 {
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Restored cut content"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Restored cut content"); ImGui::PopFont();
     ImGui::TextColored(ImVec4(0.75f, 0.35f, 0.1f, 1), "Experimental.");
     ImGui::SameLine();
     ImGui::TextWrapped("What MicroProse wrote, coded or left unfinished and never switched on, put back by Darklands+. Nobody played it in 1992: "
@@ -438,7 +439,7 @@ void tab_display(void)
     }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Text"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Text"); ImGui::PopFont();
     int hm = hdtext_mode;
     if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
     if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
@@ -480,7 +481,7 @@ void tab_display(void)
     ui_hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
          "the window's resolution; anything it cannot match exactly is left as the game drew it.");
 
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Pictures"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Pictures"); ImGui::PopFont();
     bool ha = hdart_on;
     if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
     {
@@ -504,7 +505,7 @@ void tab_display(void)
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Clock"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Clock"); ImGui::PopFont();
     {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
         void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
         const char *ui_clock_name(int k);
@@ -532,7 +533,7 @@ void tab_display(void)
                 "the game's own clock is an armillary sphere, here also drawn anew at the window's resolution.");
     }
 
-    ImGui::PushFont(ui_font_head); ImGui::SeparatorText("Sound"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Sound"); ImGui::PopFont();
     static const char *ids[] = { "auto", "mt32", "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {
         "Automatic: the Roland MT-32 when its ROM files are found, otherwise the Sound Blaster - recommended",

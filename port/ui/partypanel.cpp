@@ -307,6 +307,12 @@ extern "C" void partypanel_draw(void)
         P.rect(1.2f, y0 + 1.2f, 58.8f, y0 + 38.8f, CARD, 2);
         int st = here ? gm_member_status(m) : 0;
         bool focus = m == partypanel_focus && here, sel = battle && here && gm_member_selected(m);
+        if (orn_on()) {                                         /* period ornaments: a walnut panel in a gilt rule, the bosses at its corners */
+            ImVec2 a = NsDraw::w(1.2f, y0 + 1.2f), b = NsDraw::w(58.8f, y0 + 38.8f);
+            P.dl->AddRectFilledMultiColor(a, b, IM_COL32(58, 40, 24, 255), IM_COL32(48, 33, 20, 255), IM_COL32(28, 20, 12, 255), IM_COL32(34, 24, 14, 255));
+            orn_gilt_frame(P.dl, a, b, 3.2f * P.k);
+            if (focus || sel) P.frame(1.2f, y0 + 1.2f, 58.8f, y0 + 38.8f, focus ? IM_COL32(110, 230, 236, 255) : IM_COL32(250, 236, 170, 255), 2);
+        } else
         P.frame(1.2f, y0 + 1.2f, 58.8f, y0 + 38.8f, focus ? IM_COL32(110, 230, 236, 255) : sel ? IM_COL32(250, 236, 170, 255) : EDGE, 2);
         bool out = st == 3 || st == 5 || gm_member_elsewhere(m);
         char nm[32]; gm_member_name(m, nm, sizeof nm);
@@ -348,7 +354,8 @@ extern "C" void partypanel_draw(void)
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */
         float px0 = 2.6f, py0 = y0 + 9.6f, px1 = 17.4f, py1 = y0 + 37.0f;
-        P.rect(px0, py0, px1, py1, IM_COL32(24, 20, 30, 255), 1.2f);
+        if (orn_on()) P.dl->AddRectFilledMultiColor(NsDraw::w(px0, py0), NsDraw::w(px1, py1), IM_COL32(40, 50, 120, 255), IM_COL32(30, 40, 104, 255), IM_COL32(10, 14, 44, 255), IM_COL32(14, 18, 56, 255));   /* (blue velvet, as the original's) */
+        else P.rect(px0, py0, px1, py1, IM_COL32(24, 20, 30, 255), 1.2f);
         bool drawn = false;
         if (pp_pic == 0) {
             char full[40]; gm_member_fullname(m, full, sizeof full);
