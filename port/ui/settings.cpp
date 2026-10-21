@@ -89,7 +89,7 @@ void tab_mods(void)
                 int share = config_get_int("encounters.share", 100);
                 ImGui::SetNextItemWidth(UIS(220));
                 if (ImGui::SliderInt("How often new encounters come up##encshare", &share, 0, 300, "%d%%")) { config_set_int("encounters.share", share); ui_dirty_config = 1; }
-                ui_hint("At 100%%, each new encounter counts as one more entry (or as many entries as its weight) in the original game's encounter table for the terrain.");
+                ui_hint("At 100%%, each new encounter is as likely as any one of the original encounters for that terrain (or more, if its file gives it a weight).");
                 bool seal = config_get_int("encounters.seal", 1) != 0;
                 if (ImGui::Checkbox("Mark new encounters with a seal in the corner of the card", &seal)) { config_set_int("encounters.seal", seal); ui_dirty_config = 1; }
                 ImGui::Unindent(UIS(34));
@@ -112,7 +112,7 @@ void tab_mods(void)
         ImGui::SameLine(); ui_hint("every town and encounter text, editable, with its options");
         { extern int ui_collect_texts; bool ct = ui_collect_texts != 0;
           if (ImGui::Checkbox("Write every text shown to a file (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
-        ui_hint("A mod's text.txt replaces lines of text, one per line: Purchase an item => Kaufen (for the menus built into the game's program; needs crisp text).");
+        ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs crisp text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         ui_hint("Mods are applied in alphabetical order of their folders: where two change the same file, the later one wins. "
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
@@ -377,7 +377,7 @@ void tab_restored(void)
                        "expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again.");
     ui_hint("What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md).");
     ImGui::Spacing();
-    if (ui_original_mode()) { ui_hint("Off while the original game is played (Buggy Purist): pick another preset to tick these."); return; }
+    if (ui_original_mode()) { ui_hint("Off while playing the original game (Buggy Purist): pick another preset to tick these."); return; }
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
@@ -400,7 +400,7 @@ void tab_display(void)
             if (ImGui::RadioButton(SC[i], ui_settings.scaler == i)) { ui_settings.scaler = i; config_set_int("display.scaler", i); ui_dirty_config = 1; }
         }
         ui_hint("Rounds off the stair-steps of diagonal edges in the pictures and sprites without blurring them "
-             "(the EPX/Scale2x rule: a pixel's corner takes its neighbours' colour where two of them agree). "
+             ""
              "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
@@ -501,7 +501,7 @@ void tab_display(void)
              "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
              "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
              "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
-        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the fifteen of the game "
+        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
