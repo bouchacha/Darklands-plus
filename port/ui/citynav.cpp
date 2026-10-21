@@ -825,3 +825,11 @@ extern "C" int citynav_window(void)
     if (picked >= 0) { citynav_go(picked); return 0; }
     return keep;
 }
+
+/* a town's buildings bits (DARKLAND.CTY +0x5e) and size, for the day jobs (mods/lodgeview.c); 0 if no town */
+extern "C" int citynav_town_facts(int loc, int *size)
+{
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
+    if (size) *size = gamedata.cities[loc].size;
+    return gamedata.cities[loc].buildings;
+}

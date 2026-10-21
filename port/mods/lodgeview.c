@@ -118,6 +118,32 @@ static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s04
     ns_input_begin();                                   /* (nor is the skipping click one on the page) */
     hook_return_far(0);
 }
+/* assist.more_jobs: the day job a member finds (s036 1462:197e, the best paid of 31 by an attribute and
+   two skills) can be one of the jobs the game keeps for towns marked so in the location record
+   (+0x14: mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer,
+   preaching friar) - a mark no town ever gets, so the game never offered them. Here, while the
+   job is chosen, a town counts as marked by what it has: an arsenal or a fortress (0x01: soldiers),
+   a fortress (0x04: a lord's household), a town hall (0x08: the council's clerks and players), a
+   city of size 6 or more (0x10: a great house's scribes and guards), size 4 or more (0x20: crowds
+   to entertain), a monastery (0x40: preaching friars). */
+static void job_hook(void)                   /* s036 1462:197e (who) */
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    u32 lr = cur >= 0 ? g_location(cur) : 0;
+    if (!lr || !config_get_int("assist.more_jobs", 1) || config_get_int("original", 0)) { hook_call_original(); return; }
+    int citynav_town_facts(int loc, int *size), size = 0, b = citynav_town_facts(cur, &size);
+    u16 ls = (u16)(lr >> 16), lo = (u16)((u16)lr + 0x14);
+    u8 was = rb(ls, lo), add = 0;
+    if (b & ((1 << 5) | (1 << 2))) add |= 0x01;
+    if (b & (1 << 2)) add |= 0x04;
+    if (b & (1 << 1)) add |= 0x08;
+    if (size >= 6) add |= 0x10;
+    if (size >= 4) add |= 0x20;
+    if (b & (1 << 7)) add |= 0x40;
+    wb(ls, lo, (u8)(was | add));
+    hook_call_original();
+    wb(ls, lo, was);
+}
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 #define ev_ptr g_event
 
@@ -365,4 +391,5 @@ void lodgeview_init(void)
     lv_on = config_get_int("display.native_lodge", 1);
     hook_install(36, 0x1462, 0x0082, lodge_hook);
     hook_install(GF_pass_hours_hourglass, hourglass_hook);
+    hook_install(36, 0x1462, 0x197e, job_hook);
 }
