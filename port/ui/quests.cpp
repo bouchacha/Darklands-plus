@@ -426,6 +426,30 @@ void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
     quest_sort(out, sort);
 }
 
+/* the same task taken from several givers (two merchants who both want the robber knight of
+   Oberkatz dead) as one row: "x2", the texts one after the other, the nearest deadline. Once done
+   each giver's reward is its own row again (group 1) */
+void quest_merge(std::vector<QuestRow> &rows)
+{
+    std::vector<QuestRow> out;
+    std::vector<int> n;
+    for (const QuestRow &r : rows) {
+        int at = -1;
+        if (r.group == 0)
+            for (size_t i = 0; i < out.size(); i++)
+                if (out[i].group == 0 && out[i].cat == r.cat && out[i].loc == r.loc && out[i].title == r.title) { at = (int)i; break; }
+        if (at < 0) { out.push_back(r); n.push_back(1); continue; }
+        QuestRow &m = out[at];
+        n[at]++;
+        m.text += "\n" + r.text;
+        if (r.order < m.order) { m.order = r.order; m.id = r.id; }
+        if (r.days_left >= 0 && (m.days_left < 0 || r.days_left < m.days_left)) { m.days_left = r.days_left; m.when = r.when; }
+    }
+    for (size_t i = 0; i < out.size(); i++)
+        if (n[i] > 1) { out[i].title += " \xc3\x97" + std::to_string(n[i]); out[i].text = "Asked by " + std::to_string(n[i]) + " givers:\n" + out[i].text; }
+    rows.swap(out);
+}
+
 void quest_sort(std::vector<QuestRow> &out, int sort)
 {
     std::stable_sort(out.begin(), out.end(), [sort](const QuestRow &a, const QuestRow &b) {
@@ -471,7 +495,7 @@ extern "C" void journal_quests(void)
     static int sort = -1;
     if (sort < 0) sort = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N;
     static std::vector<QuestRow> v;                     /* (read while a card or the map is up: battles and their loot reuse the tables) */
-    if (game_mode() == GM_CARD || game_mode() == GM_MAP) quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true);
+    if (game_mode() == GM_CARD || game_mode() == GM_MAP) { quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true); quest_merge(v); }
     else quest_sort(v, config_get_int("quests.sort", sort) % QSORT_N);
     sort = config_get_int("quests.sort", sort) % QSORT_N;
     static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Unwelcome or wanted", "Secrets" };

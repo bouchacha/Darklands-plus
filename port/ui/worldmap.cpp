@@ -818,7 +818,7 @@ extern "C" void worldmap_draw(void)
     if (ImGui::SmallButton("Whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
     {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
         static std::vector<QuestRow> qr; static int qf = -1000;
-        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); qf = ImGui::GetFrameCount(); }
+        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); quest_merge(qr); qf = ImGui::GetFrameCount(); }
         bool none = true;
         for (int part = 0; part < 2; part++) {                  /* the tasks; the rumours heard (marked on the map too) */
         bool any = false;

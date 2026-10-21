@@ -732,7 +732,7 @@ static void tasks_section(bool tables)
     static std::set<std::string> open;
     static int sort = -1;
     { int cs = config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N; if (cs != sort) { sort = cs; quest_sort(q, sort); } }   /* (the journal may change it) */
-    if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); qf = ImGui::GetFrameCount(); q_read = tables; }
+    if (ImGui::GetFrameCount() - qf > 30 && (tables || !q_read)) { quest_rows(q, sort); quest_merge(q); qf = ImGui::GetFrameCount(); q_read = tables; }
     ImVec2 mp = ImGui::GetIO().MousePos;
     ImDrawList *dl = ImGui::GetWindowDrawList();
     float w = ImGui::GetContentRegionAvail().x, lh = ImGui::GetTextLineHeight();

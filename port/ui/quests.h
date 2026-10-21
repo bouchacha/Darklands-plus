@@ -39,6 +39,7 @@ extern const char *QSORT_NAME[QSORT_N];
 
 void quest_rows(std::vector<QuestRow> &out, int sort, bool all = false);   // tasks and rewards (all: rumours, town troubles and secrets too), sorted
 void quest_sort(std::vector<QuestRow> &rows, int sort);
+void quest_merge(std::vector<QuestRow> &rows);   // one row for the same task from several givers (shown lists; not citynav)
 void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<int> &cats);
 struct TownMark { int loc, cat; std::string until; };     // a town that bars the party (QC_UNWELCOME) or whose watch wants it (QC_WANTED)
 void town_marks(std::vector<TownMark> &out);   // (place, its task) with each one's QuestCat
