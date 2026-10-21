@@ -318,8 +318,9 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ns_item_name(it.id)) + 0.5f;
         std::string l1 = std::string(d ? kind_name_one(d->kind) : "");
         if (shows_quality(d, it.qual)) l1 += ns_quality_words(it.id, it.qual);
-        l1 += ", weight " + std::to_string(it.weight);
-        if (it.count > 1) l1 += " each, " + std::to_string(it.count) + " of them";
+        bool wearable = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);   /* (only equipped things count toward the load: equip_weight) */
+        if (wearable) l1 += ", weight " + std::to_string(it.weight) + (it.equipped ? "" : " when equipped");
+        if (it.count > 1) l1 += std::string(wearable ? " each" : "") + ", " + std::to_string(it.count) + " of them";
         if (it.equipped == 2) l1 += "; this member's mount";
         else if (it.equipped) l1 += "; equipped";
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
@@ -329,6 +330,8 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
         std::string use = ns_item_use(it.id);
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
+        if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
+            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "Drag it onto a member at the left to give them the lot (Shift: just one)." : "Drag it onto a member at the left to give it to them.") + 0.5f;
         if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
             int have = sk < 7 ? s.skill[sk] : 0;

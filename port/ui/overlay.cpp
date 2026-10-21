@@ -956,7 +956,8 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             const ItemDef *d = &gamedata.items[item];
             std::string nm = game_text(d->name.c_str(), d->name.size());
             ImGui::TextUnformatted(nm.c_str());
-            ImGui::TextDisabled("%s%s", kind_name_one(d->kind), d->weight ? (", weight " + std::to_string(d->weight)).c_str() : "");
+            bool wearable = d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD;   /* (only equipped things count toward the load) */
+            ImGui::TextDisabled("%s%s", kind_name_one(d->kind), wearable && d->weight ? (", weight " + std::to_string(d->weight) + " when equipped").c_str() : "");
             ui_item_details(d, item);
         } else if (saint >= 0) {
             const Saint &st = gamedata.saints[saint];

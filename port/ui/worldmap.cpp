@@ -390,6 +390,84 @@ static void place_details(const Place &p, float wrap)
     if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
 }
 
+
+/* the frame round the map, after the printed map that came with the game: a checkered green and
+   white rule, then a band of coloured fields lettered A-H along the top and the foot and numbered
+   1-8 down the sides, a thin dark line each side; a compass rose at the lower left */
+static float map_border_px(void) { return fmaxf(26.0f, ui_text_px() * 1.25f); }
+static void compass_rose(ImDrawList *dl, ImVec2 c, float r)
+{
+    const ImU32 ink = IM_COL32(60, 40, 24, 255), gold = IM_COL32(214, 160, 60, 255), red = IM_COL32(160, 52, 34, 255), blue = IM_COL32(52, 82, 130, 255);
+    dl->AddCircleFilled(c, r * 0.98f, IM_COL32(236, 226, 200, 230));
+    dl->AddCircle(c, r * 0.98f, ink, 48, fmaxf(1.0f, r * 0.04f));
+    dl->AddCircle(c, r * 0.80f, ink, 48, fmaxf(1.0f, r * 0.02f));
+    for (int k = 0; k < 16; k++) {                          /* the points: four long, four middle, eight short */
+        float a = k * 3.14159265f / 8 - 3.14159265f / 2, len = k % 4 == 0 ? 1.0f : k % 2 == 0 ? 0.72f : 0.5f, w = k % 4 == 0 ? 0.16f : 0.11f;
+        ImVec2 tip(c.x + cosf(a) * r * len, c.y + sinf(a) * r * len);
+        ImVec2 l(c.x + cosf(a - 1.5708f) * r * w, c.y + sinf(a - 1.5708f) * r * w), rr(c.x + cosf(a + 1.5708f) * r * w, c.y + sinf(a + 1.5708f) * r * w);
+        ImU32 f1 = k % 4 == 0 ? (k == 0 ? red : blue) : k % 2 == 0 ? gold : IM_COL32(170, 140, 90, 255);
+        dl->AddTriangleFilled(c, l, tip, f1);
+        dl->AddTriangleFilled(c, tip, rr, IM_COL32(250, 240, 214, 255));
+        dl->AddTriangle(l, tip, rr, ink, fmaxf(1.0f, r * 0.015f));
+    }
+    dl->AddCircleFilled(c, r * 0.08f, gold);
+    ImFont *f = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    float fs = r * 0.36f; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, "N");
+    dl->AddText(f, fs, ImVec2(c.x - ts.x * 0.5f, c.y - r * 1.02f - ts.y), ink, "N");
+}
+static void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b)
+{
+    float B = map_border_px(), chk = B * 0.3f, band = B - chk;
+    const ImU32 ink = IM_COL32(48, 32, 20, 255), green = IM_COL32(58, 128, 72, 255), white = IM_COL32(246, 240, 224, 255);
+    static const ImU32 FIELD[3] = { IM_COL32(214, 140, 52, 255), IM_COL32(176, 64, 44, 255), IM_COL32(198, 160, 70, 255) };
+    /* the checkered rule, just outside the map */
+    ImVec2 c0(a.x - chk, a.y - chk), c1(b.x + chk, b.y + chk);
+    dl->AddRectFilled(c0, ImVec2(c1.x, a.y), white); dl->AddRectFilled(ImVec2(c0.x, b.y), c1, white);
+    dl->AddRectFilled(ImVec2(c0.x, a.y), ImVec2(a.x, b.y), white); dl->AddRectFilled(ImVec2(b.x, a.y), ImVec2(c1.x, b.y), white);
+    for (float x = c0.x, i = 0; x < c1.x; x += chk, i++) if ((int)i % 2 == 0) {
+        dl->AddRectFilled(ImVec2(x, c0.y), ImVec2(fminf(x + chk, c1.x), a.y), green);
+        dl->AddRectFilled(ImVec2(x, b.y), ImVec2(fminf(x + chk, c1.x), c1.y), green);
+    }
+    for (float y = a.y, i = 0; y < b.y; y += chk, i++) if ((int)i % 2 == 1) {
+        dl->AddRectFilled(ImVec2(c0.x, y), ImVec2(a.x, fminf(y + chk, b.y)), green);
+        dl->AddRectFilled(ImVec2(b.x, y), ImVec2(c1.x, fminf(y + chk, b.y)), green);
+    }
+    /* the lettered band */
+    ImVec2 o0(c0.x - band, c0.y - band), o1(c1.x + band, c1.y + band);
+    ImFont *f = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
+    float fs = band * 0.85f;
+    for (int k = 0; k < 8; k++) {
+        float x0 = c0.x + (c1.x - c0.x) * k / 8, x1 = c0.x + (c1.x - c0.x) * (k + 1) / 8;
+        float y0 = c0.y + (c1.y - c0.y) * k / 8, y1 = c0.y + (c1.y - c0.y) * (k + 1) / 8;
+        ImU32 fc = FIELD[k % 3];
+        dl->AddRectFilled(ImVec2(x0, o0.y), ImVec2(x1, c0.y), fc); dl->AddRectFilled(ImVec2(x0, c1.y), ImVec2(x1, o1.y), fc);
+        dl->AddRectFilled(ImVec2(o0.x, y0), ImVec2(c0.x, y1), fc); dl->AddRectFilled(ImVec2(c1.x, y0), ImVec2(o1.x, y1), fc);
+        dl->AddLine(ImVec2(x0, o0.y), ImVec2(x0, c0.y), ink); dl->AddLine(ImVec2(x0, c1.y), ImVec2(x0, o1.y), ink);
+        dl->AddLine(ImVec2(o0.x, y0), ImVec2(c0.x, y0), ink); dl->AddLine(ImVec2(c1.x, y0), ImVec2(o1.x, y0), ink);
+        char L[2] = { (char)('A' + k), 0 }, N[2] = { (char)('1' + k), 0 };
+        ImVec2 ls = f->CalcTextSizeA(fs, FLT_MAX, 0, L), ns = f->CalcTextSizeA(fs, FLT_MAX, 0, N);
+        float mx = (x0 + x1) * 0.5f, my = (y0 + y1) * 0.5f;
+        dl->AddText(f, fs, ImVec2(mx - ls.x * 0.5f, o0.y + (band - ls.y) * 0.5f), ink, L);
+        dl->AddText(f, fs, ImVec2(mx - ls.x * 0.5f, c1.y + (band - ls.y) * 0.5f), ink, L);
+        dl->AddText(f, fs, ImVec2(o0.x + (band - ns.x) * 0.5f, my - ns.y * 0.5f), ink, N);
+        dl->AddText(f, fs, ImVec2(c1.x + (band - ns.x) * 0.5f, my - ns.y * 0.5f), ink, N);
+    }
+    for (int s2 = 0; s2 < 4; s2++) {                         /* the corners: plain fields */
+        ImVec2 p0(s2 & 1 ? c1.x : o0.x, s2 & 2 ? c1.y : o0.y);
+        dl->AddRectFilled(p0, ImVec2(p0.x + band, p0.y + band), FIELD[1]);
+    }
+    dl->AddRect(o0, o1, ink, 0, 0, 2.0f);
+    dl->AddRect(c0, c1, ink, 0, 0, 1.0f);
+    dl->AddRect(a, b, ink, 0, 0, 1.0f);
+    /* the title over the top, and the rose at the lower left */
+    const char *t = "Map of Greater Germany";
+    float tfs = band * 1.3f; ImVec2 tsz = f->CalcTextSizeA(tfs, FLT_MAX, 0, t);
+    float tx = (a.x + b.x) * 0.5f - tsz.x * 0.5f, ty = o0.y - tsz.y - band * 0.3f;
+    dl->AddText(f, tfs, ImVec2(tx, ty), ink, t);
+    float r = fminf((b.x - a.x) * 0.06f, 70.0f);
+    if (r > 14) compass_rose(dl, ImVec2(o0.x + r * 0.35f, o1.y - r * 0.35f), r);   /* (over the lower left corner, as on the printed map) */
+}
+
 extern "C" void worldmap_draw(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -402,9 +480,10 @@ extern "C" void worldmap_draw(void)
     upload();
     ImDrawList *dl = ImGui::GetWindowDrawList();
     ImVec2 o = ImGui::GetWindowPos(), sz = io.DisplaySize;
-    dl->AddRectFilled(o, ImVec2(o.x + sz.x, o.y + sz.y), IM_COL32(18, 14, 10, 255));
+    dl->AddRectFilled(o, ImVec2(o.x + sz.x, o.y + sz.y), IM_COL32(236, 226, 200, 255));   /* (the paper round the map, as the printed one) */
     float ay = aspect();
-    float fitz = fminf(sz.x / worldmap.full_w, sz.y / (worldmap.full_h * ay));
+    float fb = map_border_px() * 2 + map_border_px() * 1.6f;     /* (the frame and the title over it) */
+    float fitz = fminf((sz.x - fb) / worldmap.full_w, (sz.y - fb) / (worldmap.full_h * ay));
     if (zoom < fitz * 0.9f) zoom = fitz * 0.9f;
     if (zoom > 10) zoom = 10;
     ImVec2 mid(o.x + sz.x * 0.5f, o.y + sz.y * 0.5f);
@@ -436,7 +515,8 @@ extern "C" void worldmap_draw(void)
     if (wm_panel_run >= 3 && ImGui::GetFrameCount() - wm_panel_frame <= 1) {   /* the view stays on the map: an edge goes no further in than the window's edge (the west one
            than the panel's right side, so the places under the panel can be seen); a map smaller
            than the window sits in the middle of what the panel leaves */
-        float hw = sz.x * 0.5f / zoom, hh = sz.y * 0.5f / (zoom * ay), L = wm_panel_right / zoom;
+        float bm = map_border_px() / zoom;                       /* (room for the frame) */
+        float hw = sz.x * 0.5f / zoom - bm, hh = sz.y * 0.5f / (zoom * ay) - bm / ay, L = wm_panel_right / zoom;
         float lo = hw - L, hi = worldmap.full_w - hw;
         cx = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(cx, lo), hi);
         lo = hh; hi = worldmap.full_h - hh;
@@ -459,6 +539,7 @@ extern "C" void worldmap_draw(void)
                 dl->AddImage((ImTextureID)t, to_scr(tx0, ty0), to_scr(tx1, ty1));
             }
     } else if (tex[l]) dl->AddImage((ImTextureID)tex[l], to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
+    draw_map_frame(dl, to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
 
     std::vector<Place> P = places();
     static std::vector<std::pair<int, std::string>> marks;

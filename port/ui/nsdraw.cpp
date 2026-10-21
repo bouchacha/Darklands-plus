@@ -275,7 +275,10 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     float rw = t.right.empty() ? 0 : P.width(P.fo, NsDraw::FS_BODY, t.right) + 6;
     P.text(P.f, NsDraw::FS_HEAD, 79, y0 + 1.5f, ink, ns_item_name(t.id), -1, 314 - rw);
     if (!t.right.empty()) P.text(P.fo, NsDraw::FS_BODY, 0, y0 + 1.8f, t.right_col, t.right, 314);
-    std::string l1 = std::string(d ? kind_name_one(d->kind) : "") + ns_quality_words(t.id, t.qual) + ", weight " + std::to_string(t.weight);
+    /* (the weight only of what can be worn or wielded: the load is the equipped things' alone,
+       equip_weight s031 18e7:140a; what is merely carried weighs nothing) */
+    bool wearable = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);
+    std::string l1 = std::string(d ? kind_name_one(d->kind) : "") + ns_quality_words(t.id, t.qual) + (wearable ? ", weight " + std::to_string(t.weight) + " when equipped" : std::string());
     if (t.count > 1) l1 += " each, " + std::to_string(t.count) + " of them";
     if (!t.status.empty()) l1 += "; " + t.status;
     float y = y0 + 10;
