@@ -586,7 +586,7 @@ void sfx_init(void)
     sfx_mode = config_get_int("sound.effects", 1);
     sfx_volume = config_get_int("sound.effects_volume", 100);
     sfx_added_hits = config_get_int("sound.hit_sounds", 1);
-    sfx_synth = config_get_int("sound.synth_effects", 0);
+    sfx_synth = 0;                  /* (the made-up sounds: no longer offered; a sound the pack lacks is the game's own) */
     sfx_reload();
     hook_install(14, 0x0e76, 0x465e, battle_sound_hook);
     hook_install(GF_sound_play, sound_play_hook);

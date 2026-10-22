@@ -704,9 +704,10 @@ void tab_display(void)
         const char *ui_clock_name(int k);
         int cur = config_get_int("display.clock", 1);
         float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
-        static const int ORDER[4] = { 1, 3, 5, 0 };
+        static const int ORDER[3] = { 1, 3, 0 };
         if (cur == 2 || cur == 4) cur = 1;                          /* (dropped clocks: the tower dial) */
-        for (int j = 0; j < 4; j++) {
+        if (cur == 5) cur = 3;                                      /* (and the copper astrolabe) */
+        for (int j = 0; j < 3; j++) {
             int st = ORDER[j];
             if (j % 3) ImGui::SameLine();
             ImGui::PushID(st);
@@ -846,15 +847,11 @@ void tab_display(void)
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
-            if (ImGui::Checkbox("Experimental: fill the pack's gaps with computer-made sounds", &sy)) { sfx_set_synth(sy); ui_dirty_config = 1; }
-            ImGui::Indent(UIS(34)); ui_hint("A sound pack may lack a recording for some sounds (a parry, a miss ...). Those normally play as the game's own sound; with this, Darklands+ makes one up instead (a computer-made clash or thud)."); ImGui::Unindent(UIS(34));
             int v = sfx_volume;
             ImGui::SetNextItemWidth(UIS(260));
             if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }
             static char msg[400];
             if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sound%s found.", sfx_user_count(), sfx_user_count() == 1 ? "" : "s"); }
-            ImGui::SameLine();
-            if (ImGui::Button("Write the synthesized sounds as .wav")) sfx_export(msg, sizeof msg);
             if (msg[0]) ui_hint("%s", msg);
             ImGui::Unindent(UIS(30));
         }

@@ -132,12 +132,11 @@ void ui_draw_daynight(ImDrawList *dl, ImVec2 c, float rd, float hour, bool rim)
     }
 }
 
-/* ---------------------------------------------------------------- two astrolabe clocks
+/* ---------------------------------------------------------------- the astrolabe clock
  * The game's own clock looks most like an astrolabe hung on a clock: the throne at the top, a
- * rim with its notches, off-centre rings, a turning disc, the works dim behind. Two readings:
+ * rim with its notches, off-centre rings, a turning disc, the works dim behind. 
  *  3: an astrolabe in the game's own manner (its copper oval, rings, tabs and plate);
- *  5: the game's own picture drawn true: the broad rim notched at the quarters, four equal rings
- *     about the middle, the lens they make round the disc, the works dim behind, throne and clasp. */
+ */
 static float eased(int slot, int hour)
 {
     static float shown[8] = { -1, -1, -1, -1, -1, -1, -1, -1 }; static double last[8];
@@ -216,21 +215,21 @@ static void lit_band(ImDrawList *dl, ImVec2 c, ImVec2 ro, ImVec2 ri, ImU32 dark,
 static void astrolabe_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
 {
     const float PI = 3.14159265f;
-    ImVec2 c(tl.x + 60.5f * kx, tl.y + 39.5f * k);
-    float RX = 39.5f * kx, RY = 33.0f * k, h = eased(3, hour), u = fminf(kx, k);
+    ImVec2 c(tl.x + 60.5f * kx, tl.y + 38.5f * k);
+    float u = fminf(kx, k), RX = 36.0f * u, RY = 36.0f * u, h = eased(3, hour);   /* (a true circle, whatever the pixels' shape) */
     const ImU32 cu_d = IM_COL32(124, 56, 18, 255), cu = IM_COL32(194, 100, 40, 255), cu_l = IM_COL32(244, 164, 92, 255),
                 gold = IM_COL32(252, 220, 60, 255), gold_d = IM_COL32(150, 98, 10, 255), edge = IM_COL32(30, 14, 4, 255);
-    float rimx = 9.0f * kx, rimy = 6.5f * k;
+    float rimx = 7.5f * u, rimy = 7.5f * u;
     /* the works behind: dark, two grey wheels */
     dl->AddEllipseFilled(c, ImVec2(RX - rimx * 0.5f, RY - rimy * 0.5f), IM_COL32(16, 10, 6, 255), 0, 64);
-    gear(dl, ImVec2(c.x - 15 * kx, c.y - 9 * k), 10 * u, 12, 0.3f + h * 0.05f, IM_COL32(86, 84, 86, 255), fmaxf(1.0f, 1.2f * u));
-    gear(dl, ImVec2(c.x + 19 * kx, c.y + 6 * k), 8 * u, 10, -h * 0.06f, IM_COL32(74, 72, 76, 255), fmaxf(1.0f, 1.1f * u));
-    gear(dl, ImVec2(c.x + 14 * kx, c.y - 15 * k), 5 * u, 8, 0.6f, IM_COL32(64, 62, 66, 255), fmaxf(1.0f, 0.9f * u));
+    gear(dl, ImVec2(c.x - 13 * u, c.y - 9 * u), 10 * u, 12, 0.3f + h * 0.05f, IM_COL32(86, 84, 86, 255), fmaxf(1.0f, 1.2f * u));
+    gear(dl, ImVec2(c.x + 16 * u, c.y + 7 * u), 8 * u, 10, -h * 0.06f, IM_COL32(74, 72, 76, 255), fmaxf(1.0f, 1.1f * u));
+    gear(dl, ImVec2(c.x + 12 * u, c.y - 15 * u), 5 * u, 8, 0.6f, IM_COL32(64, 62, 66, 255), fmaxf(1.0f, 0.9f * u));
     /* the rete, turning once a day about the pin: two great rings either side, a small one under */
     float rot = (h - 12.0f) / 24.0f * 2 * PI;
-    auto rp = [&](float x, float y) { float xx = x * kx, yy = y * k; return ImVec2(c.x + xx * cosf(rot) - yy * sinf(rot), c.y + xx * sinf(rot) + yy * cosf(rot)); };
+    auto rp = [&](float x, float y) { float xx = x * u, yy = y * u; return ImVec2(c.x + xx * cosf(rot) - yy * sinf(rot), c.y + xx * sinf(rot) + yy * cosf(rot)); };
     auto ring = [&](ImVec2 rc, float r, float w) {
-        dl->AddCircle(rc, r, edge, 64, w + 1.4f * u);
+        dl->AddCircle(ImVec2(rc.x + 0.8f * u, rc.y + 1.0f * u), r, IM_COL32(0, 0, 0, 70), 64, w);   /* (a soft shadow on the works, no outline) */
         lit_band(dl, rc, ImVec2(r + w * 0.5f, r + w * 0.5f), ImVec2(r - w * 0.5f, r - w * 0.5f), cu_d, cu, cu_l);
     };
     ring(rp(-8, -2), 17 * u, 3.4f * u);
@@ -239,14 +238,14 @@ static void astrolabe_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
     for (int j = 0; j < 4; j++) {                                 /* the stars' gold points where the rings cross */
         static const float P[4][2] = { { 0, -17.5f }, { 0, 13.5f }, { -9, 12 }, { 9, 12 } };
         ImVec2 q = rp(P[j][0], P[j][1]);
-        dl->AddRectFilled(ImVec2(q.x - 1.3f * u, q.y - 0.9f * u), ImVec2(q.x + 1.3f * u, q.y + 0.9f * u), gold);
+        dl->AddCircleFilled(q, 1.1f * u, gold_d, 10); dl->AddCircleFilled(ImVec2(q.x - 0.3f * u, q.y - 0.3f * u), 0.75f * u, gold, 10);
     }
     /* the disc of day and night at the pin */
     ui_draw_daynight(dl, c, 9.0f * u, h, true);
     /* the broad copper rim over all: lit, its edges dark, notched at the twelve hours, scaled */
-    dl->AddEllipse(c, ImVec2(RX + 0.6f * u, RY + 0.6f * u), edge, 0, 96, 1.6f * u);
+    dl->AddCircleFilled(ImVec2(c.x + 1.2f * u, c.y + 1.6f * u), RX + 0.4f * u, IM_COL32(0, 0, 0, 60), 96);   /* (its shadow) */
     lit_band(dl, c, ImVec2(RX, RY), ImVec2(RX - rimx, RY - rimy), cu_d, cu, cu_l);
-    dl->AddEllipse(c, ImVec2(RX - rimx, RY - rimy), edge, 0, 96, 1.2f * u);
+    dl->AddEllipse(c, ImVec2(RX - rimx, RY - rimy), IM_COL32(90, 40, 12, 200), 0, 96, 0.9f * u);   /* (the rim's inner lip) */
     dl->AddEllipse(c, ImVec2(RX - rimx * 0.5f, RY - rimy * 0.5f), IM_COL32(110, 50, 18, 160), 0, 96, 0.8f * u);   /* (a groove round its middle) */
     for (int t = 0; t < 72; t++) {                                /* the degree scale on its inner edge */
         float a = t * 2 * PI / 72, l = t % 6 == 0 ? 0.42f : 0.2f;
@@ -257,31 +256,29 @@ static void astrolabe_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
         if (t % 3 == 0) continue;                                 /* (the quarters: the tabs and the sides) */
         float a = t * 2 * PI / 12;
         ImVec2 p0(c.x + cosf(a) * (RX - rimx * 0.8f), c.y + sinf(a) * (RY - rimy * 0.8f)), p1(c.x + cosf(a) * (RX - rimx * 0.15f), c.y + sinf(a) * (RY - rimy * 0.15f));
-        dl->AddLine(p0, p1, IM_COL32(70, 28, 6, 255), fmaxf(1.0f, 1.0f * u));
+        dl->AddLine(p0, p1, IM_COL32(110, 48, 14, 220), fmaxf(1.0f, 0.9f * u));
         dl->AddLine(ImVec2(p0.x + 0.7f * u, p0.y + 0.7f * u), ImVec2(p1.x + 0.7f * u, p1.y + 0.7f * u), IM_COL32(240, 160, 96, 200), fmaxf(1.0f, 0.6f * u));
     }
     for (int sd = -1; sd <= 1; sd += 2) {                         /* notches at the sides */
         ImVec2 p0(c.x + sd * (RX - rimx * 0.85f), c.y), p1(c.x + sd * (RX - rimx * 0.1f), c.y);
-        dl->AddLine(p0, p1, IM_COL32(70, 28, 6, 255), fmaxf(1.0f, 1.2f * u));
+        dl->AddLine(p0, p1, IM_COL32(110, 48, 14, 220), fmaxf(1.0f, 1.0f * u));
     }
     /* the gold tabs at top and foot (two bars and a cap, as the game's), and the finial */
     for (int e = -1; e <= 1; e += 2) {
         float y = c.y + e * (RY - rimy * 0.5f);
         for (int t = -1; t <= 1; t += 2) {
-            ImVec2 a0(c.x + t * 3.2f * kx - 1.6f * kx, y - 2.2f * k), a1(c.x + t * 3.2f * kx + 1.6f * kx, y + 2.2f * k);
-            dl->AddRectFilled(ImVec2(a0.x - 0.5f * u, a0.y - 0.5f * u), ImVec2(a1.x + 0.5f * u, a1.y + 0.5f * u), edge);
-            dl->AddRectFilled(a0, a1, gold);
-            dl->AddRectFilled(ImVec2(a1.x - 0.7f * kx, a0.y), a1, gold_d);
+            ImVec2 a0(c.x + t * 3.2f * u - 1.6f * u, y - 2.2f * u), a1(c.x + t * 3.2f * u + 1.6f * u, y + 2.2f * u);
+            dl->AddRectFilledMultiColor(a0, a1, IM_COL32(255, 236, 140, 255), IM_COL32(230, 190, 70, 255), IM_COL32(150, 98, 20, 255), IM_COL32(200, 150, 40, 255));   /* (lit from the upper left) */
         }
-        float cy = y - e * 3.0f * k;
-        dl->AddRectFilled(ImVec2(c.x - 5.2f * kx, cy - 0.8f * k), ImVec2(c.x + 5.2f * kx, cy + 0.8f * k), gold);
+        float cy = y - e * 3.0f * u;
+        dl->AddRectFilledMultiColor(ImVec2(c.x - 5.2f * u, cy - 0.8f * u), ImVec2(c.x + 5.2f * u, cy + 0.8f * u), IM_COL32(255, 236, 140, 255), IM_COL32(230, 190, 70, 255), IM_COL32(150, 98, 20, 255), IM_COL32(200, 150, 40, 255));
     }
-    {   ImVec2 t0(c.x, c.y - RY - 0.5f * k);                      /* the finial: a gold fleur on a stem */
-        dl->AddRectFilled(ImVec2(t0.x - 1.0f * kx, t0.y - 4 * k), ImVec2(t0.x + 1.0f * kx, t0.y), gold);
-        dl->AddCircleFilled(ImVec2(t0.x, t0.y - 6.5f * k), 2.0f * u, gold, 12);
-        dl->AddCircleFilled(ImVec2(t0.x - 2.6f * kx, t0.y - 4.6f * k), 1.5f * u, gold, 10);
-        dl->AddCircleFilled(ImVec2(t0.x + 2.6f * kx, t0.y - 4.6f * k), 1.5f * u, gold, 10);
-        dl->AddCircleFilled(ImVec2(t0.x, t0.y - 8.8f * k), 1.0f * u, IM_COL32(255, 250, 200, 255), 8);
+    {   ImVec2 t0(c.x, c.y - RY - 0.5f * u);                      /* the finial: a gold fleur on a stem */
+        dl->AddRectFilled(ImVec2(t0.x - 1.0f * u, t0.y - 3.2f * u), ImVec2(t0.x + 1.0f * u, t0.y), gold);
+        dl->AddCircleFilled(ImVec2(t0.x, t0.y - 5.2f * u), 1.8f * u, gold, 12);
+        dl->AddCircleFilled(ImVec2(t0.x - 2.3f * u, t0.y - 3.8f * u), 1.3f * u, gold, 10);
+        dl->AddCircleFilled(ImVec2(t0.x + 2.3f * u, t0.y - 3.8f * u), 1.3f * u, gold, 10);
+        dl->AddCircleFilled(ImVec2(t0.x - 0.5f * u, t0.y - 5.8f * u), 0.7f * u, IM_COL32(255, 250, 210, 255), 8);
     }
     /* the plate under it: copper, mottled; the windows edged in yellow, their names in orange */
     {
@@ -319,51 +316,6 @@ static void astrolabe_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
     }
 }
 
-static void game_armillary_true(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)
-{
-    const float PI = 3.14159265f;
-    ImVec2 c(tl.x + 60 * kx, tl.y + 42 * k);
-    float R = 35 * k, h = eased(5, hour), th = R * 0.2f;
-    const ImU32 bronze = IM_COL32(176, 96, 30, 255), bronzel = IM_COL32(226, 150, 70, 255), bronzed = IM_COL32(92, 48, 14, 255),
-                gold = IM_COL32(246, 210, 80, 255), ink = IM_COL32(20, 12, 4, 255);
-    auto ring = [&](ImVec2 rc, float rr, float w) {
-        dl->AddCircle(rc, rr, IM_COL32(20, 12, 4, 150), 64, w + 1.0f);   /* (a fine edge, not an outline) */
-        dl->AddCircle(rc, rr, bronze, 64, w);
-        dl->PathArcTo(rc, rr - w * 0.2f, PI * 1.05f, PI * 1.95f, 24); dl->PathStroke(bronzel, 0, fmaxf(1.0f, w * 0.3f));
-        dl->PathArcTo(rc, rr + w * 0.2f, PI * 0.05f, PI * 0.95f, 24); dl->PathStroke(bronzed, 0, fmaxf(1.0f, w * 0.3f));
-    };
-    /* the sky inside, the works dim behind it */
-    dl->AddCircleFilled(c, R, IM_COL32(14, 10, 8, 255), 64);
-    gear(dl, ImVec2(c.x - R * 0.42f, c.y - R * 0.3f), R * 0.3f, 12, 0.2f, IM_COL32(74, 74, 80, 255), fmaxf(1.0f, R * 0.04f));
-    gear(dl, ImVec2(c.x + R * 0.38f, c.y + R * 0.36f), R * 0.26f, 10, 0.5f, IM_COL32(74, 74, 80, 255), fmaxf(1.0f, R * 0.04f));
-    gear(dl, ImVec2(c.x + R * 0.45f, c.y - R * 0.42f), R * 0.16f, 8, 0.1f, IM_COL32(64, 64, 70, 255), fmaxf(1.0f, R * 0.03f));
-    /* four equal rings about the middle: left and right, above and below */
-    float rr = R * 0.5f, off = R * 0.2f;
-    ring(ImVec2(c.x, c.y - off), rr, th * 0.5f);
-    ring(ImVec2(c.x - off, c.y), rr, th * 0.5f);
-    ring(ImVec2(c.x + off, c.y), rr, th * 0.5f);
-    ring(ImVec2(c.x, c.y + off), rr, th * 0.5f);
-    /* the disc in the lens they make */
-    ui_draw_daynight(dl, c, R * 0.27f, h, true);
-    /* the broad rim, notched at the quarters and between */
-    ring(c, R - th * 0.5f, th);
-    for (int q = 0; q < 8; q++) {
-        float b = q * PI / 4;
-        dl->AddLine(ImVec2(c.x + cosf(b) * (R - th), c.y + sinf(b) * (R - th)), ImVec2(c.x + cosf(b) * R, c.y + sinf(b) * R), q % 2 ? bronzed : IM_COL32(236, 170, 90, 255), fmaxf(1.0f, th * (q % 2 ? 0.18f : 0.3f)));
-    }
-    /* clasps at top and bottom, the finial */
-    for (int e = -1; e <= 1; e += 2) {
-        float y = c.y + e * (R - th * 0.5f);
-        for (int t = -1; t <= 1; t += 2) dl->AddRectFilled(ImVec2(c.x + t * R * 0.07f - R * 0.03f, y - th * 0.4f), ImVec2(c.x + t * R * 0.07f + R * 0.03f, y + th * 0.4f), gold);
-        dl->AddRectFilled(ImVec2(c.x - R * 0.12f, y + e * th * 0.45f - R * 0.015f), ImVec2(c.x + R * 0.12f, y + e * th * 0.45f + R * 0.02f), gold);
-        dl->AddCircleFilled(ImVec2(c.x, y - e * th * 0.85f), R * 0.03f, gold, 8);
-    }
-    ImVec2 top(c.x, c.y - R);
-    dl->AddTriangleFilled(ImVec2(top.x, top.y - R * 0.3f), ImVec2(top.x - R * 0.06f, top.y), ImVec2(top.x + R * 0.06f, top.y), gold);
-    dl->AddBezierQuadratic(ImVec2(top.x - R * 0.02f, top.y - R * 0.05f), ImVec2(top.x - R * 0.2f, top.y - R * 0.2f), ImVec2(top.x - R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
-    dl->AddBezierQuadratic(ImVec2(top.x + R * 0.02f, top.y - R * 0.05f), ImVec2(top.x + R * 0.2f, top.y - R * 0.2f), ImVec2(top.x + R * 0.14f, top.y - R * 0.02f), gold, fmaxf(1.0f, R * 0.04f));
-    clock_plate(dl, tl, kx, k, hour, day, month, IM_COL32(120, 72, 36, 255), bronzel, gold);
-}
 
 const char *ui_clock_name(int k)
 {
@@ -374,7 +326,6 @@ void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k
 {
     if (style == 1) period_clock(dl, tl, kx, k, hour, day, month);
     else if (style == 3) astrolabe_clock(dl, tl, kx, k, hour, day, month);
-    else if (style == 5) game_armillary_true(dl, tl, kx, k, hour, day, month);
     else {
         const GamePic *base = gamepic("PICS\\TIMER01.PIC");
         if (!base || !base->tex) { period_clock(dl, tl, kx, k, hour, day, month); return; }
@@ -387,7 +338,8 @@ void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, i
     int st = config_get_int("display.clock", 1);
     if (st == 1) { period_clock(dl, tl, kx, k, hour, day, month); return; }
     if (st == 2 || st == 4) { period_clock(dl, tl, kx, k, hour, day, month); return; }   /* (two clocks since dropped: the tower dial) */
-    if (st == 3 || st == 5) { ui_draw_clock_style(st, dl, tl, kx, k, hour, day, month); return; }
+    if (st == 3) { ui_draw_clock_style(st, dl, tl, kx, k, hour, day, month); return; }
+    if (st == 5) { ui_draw_clock_style(3, dl, tl, kx, k, hour, day, month); return; }   /* (dropped: the copper astrolabe) */
     ui_draw_hourglass_original(dl, tl, kx, k, hour, day, month);
 }
 
@@ -434,7 +386,7 @@ extern "C" void clock_test_sheet_draw(void)
     if (!clock_sheet) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     float k = 3.1f;
-    static const int ST[4] = { 0, 3, 5, 1 };
+    static const int ST[4] = { 0, 3, 1, 1 };
     dl->AddRectFilled(ImVec2(0, 0), ImVec2(4 * (122 * k + 10) + 10, 110 * k + 40), IM_COL32(52, 40, 28, 255));
     for (int i = 0; i < 4; i++) {
         ImVec2 tl(10 + i * (122 * k + 10), 10 + 6 * k);
