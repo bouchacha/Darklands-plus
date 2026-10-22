@@ -122,6 +122,54 @@ static void wrap(ImFont *f, float size, const std::string &t, float w, float ind
 
 static std::string gtext(const char *s) { return game_text(s, strlen(s)); }
 
+/* the mark of the key that chooses an option (display.card_numbers): 0 a ring, 1 a red numeral (a
+   manuscript's rubric), 2 a gilt lozenge, 3 a faint figure in the margin (in ink under the pointer),
+   4 none. c: the mark's middle; size: the card's letters; f, fs: the card's face, the small one */
+static void card_key_mark(ImDrawList *dl, ImFont *f, ImFont *fs, ImVec2 cpos, float size, float k, const char *n, int ms, bool dark, bool hov)
+{
+    const ImU32 ink_soft = dark ? IM_COL32(220, 200, 165, 220) : IM_COL32(92, 60, 30, 230);
+    const ImU32 ink_dim = dark ? IM_COL32(246, 234, 208, 115) : IM_COL32(44, 26, 10, 110);
+    float ns = size * 0.72f;
+    ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, n);
+    float r = ns * 0.62f;
+    if (ms == 4) return;
+    if (ms == 1) {
+        char rn[6]; snprintf(rn, sizeof rn, "%s.", n);
+        float rs = size * 1.0f; ImVec2 rt = f->CalcTextSizeA(rs, FLT_MAX, 0, rn);
+        ImU32 red = dark ? IM_COL32(232, 118, 92, 255) : IM_COL32(158, 34, 20, 255);
+        dl->AddText(f, rs, ImVec2(cpos.x - rt.x * 0.5f, cpos.y - rt.y * 0.52f), red, rn);
+    } else if (ms == 2) {
+        ImU32 gold = dark ? IM_COL32(222, 182, 98, 255) : IM_COL32(150, 106, 34, 255);
+        float d = r * 0.98f;
+        ImVec2 q[4] = { ImVec2(cpos.x, cpos.y - d), ImVec2(cpos.x + d, cpos.y), ImVec2(cpos.x, cpos.y + d), ImVec2(cpos.x - d, cpos.y) };
+        dl->AddQuadFilled(q[0], q[1], q[2], q[3], dark ? IM_COL32(222, 182, 98, 40) : IM_COL32(200, 150, 60, 50));
+        dl->AddQuad(q[0], q[1], q[2], q[3], gold, fmaxf(1.0f, 0.3f * k));
+        dl->AddText(fs, ns * 0.8f, ImVec2(cpos.x - nt.x * 0.4f, cpos.y - nt.y * 0.4f), gold, n);
+    } else if (ms == 3) {
+        ImU32 c3 = hov ? ink_soft : (ink_dim & 0x00ffffff) | (110u << 24);
+        dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), c3, n);
+    } else {
+        dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
+        dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
+    }
+}
+/* for the settings' pictures: two options of a card in style ms, on the dark of a card's picture */
+void cardview_key_mark_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int ms)
+{
+    ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
+    ImFont *fs = ui_font_overlay ? ui_font_overlay : f;
+    if (!f) return;
+    dl->AddRectFilled(a, b, IM_COL32(40, 30, 24, 255), 4);
+    float h = (b.y - a.y) / 2.3f, size = h * 0.8f;
+    static const char *T[2] = { "...the market.", "...the inn." };
+    for (int i = 0; i < 2; i++) {
+        float y = a.y + h * (0.2f + i * 1.05f);
+        char n[4]; snprintf(n, sizeof n, "%d", i + 1);
+        card_key_mark(dl, f, fs, ImVec2(a.x + size * 0.9f, y + size * 0.52f), size, size / 8.0f, n, ms, true, i == 1);
+        dl->AddText(f, size, ImVec2(a.x + size * 1.8f, y), IM_COL32(246, 234, 208, 255), T[i]);
+    }
+}
+
 extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
@@ -279,38 +327,22 @@ extern "C" void cardview_draw(void)
         ImU32 col = !p.is_opt ? ink : p.state == 1 ? ink : ink_dim;
         if (p.is_opt && menu && p.state == 1 && p.line >= 0 && p.line < 10) {          /* the key that chooses it (0: the tenth) */
             char n[4]; snprintf(n, sizeof n, "%d", (p.line + 1) % 10);
-            float ns = size * 0.72f;
-            ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, n);
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
-            float r = ns * 0.62f;
-            int ms = config_get_int("display.card_numbers", 0);   /* the key's mark: 0 a ring, 1 a red numeral (a rubric), 2 a gilt lozenge, 3 a faint figure in the margin */
-            if (ms == 1) {
-                char rn[6]; snprintf(rn, sizeof rn, "%s.", n);
-                float rs = size * 1.0f; ImVec2 rt = f->CalcTextSizeA(rs, FLT_MAX, 0, rn);
-                ImU32 red = dark ? IM_COL32(232, 118, 92, 255) : IM_COL32(158, 34, 20, 255);
-                dl->AddText(f, rs, ImVec2(cpos.x - rt.x * 0.5f, cpos.y - rt.y * 0.52f), red, rn);
-            } else if (ms == 2) {
-                ImU32 gold = dark ? IM_COL32(222, 182, 98, 255) : IM_COL32(150, 106, 34, 255);
-                float d = r * 0.98f;
-                ImVec2 q[4] = { ImVec2(cpos.x, cpos.y - d), ImVec2(cpos.x + d, cpos.y), ImVec2(cpos.x, cpos.y + d), ImVec2(cpos.x - d, cpos.y) };
-                dl->AddQuadFilled(q[0], q[1], q[2], q[3], dark ? IM_COL32(222, 182, 98, 40) : IM_COL32(200, 150, 60, 50));
-                dl->AddQuad(q[0], q[1], q[2], q[3], gold, fmaxf(1.0f, 0.3f * k));
-                dl->AddText(fs, ns * 0.8f, ImVec2(cpos.x - nt.x * 0.4f, cpos.y - nt.y * 0.4f), gold, n);
-            } else if (ms == 3) {
-                ImU32 c3 = hov ? ink_soft : (ink_dim & 0x00ffffff) | (110u << 24);
-                dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), c3, n);
-            } else {
-                dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
-                dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
-            }
+            card_key_mark(dl, f, fs, cpos, size, k, n, config_get_int("display.card_numbers", 1), dark, hov);
         } else if (menu && (greyed_hint(p) || (assist_card_help && p.is_opt && p.state == 2 && (p.type == 1 || p.type == 2)))) {
             /* greyed, and why is known (the card's own reason, or the saints or items nobody has): a "?" where the number would be */
             float ns = size * 0.72f;
             ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, "?");
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
             float r = ns * 0.62f;
-            dl->AddCircle(cpos, r, ink_dim, 16, fmaxf(1.0f, 0.3f * k));
-            dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_dim, "?");
+            int ms = config_get_int("display.card_numbers", 1);
+            if (ms == 0) {
+                dl->AddCircle(cpos, r, ink_dim, 16, fmaxf(1.0f, 0.3f * k));
+                dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_dim, "?");
+            } else if (ms == 1) {                                  /* (as the numerals, dim) */
+                float rs = size * 1.0f; ImVec2 rt = f->CalcTextSizeA(rs, FLT_MAX, 0, "?");
+                dl->AddText(f, rs, ImVec2(cpos.x - rt.x * 0.5f, cpos.y - rt.y * 0.52f), ink_dim, "?");
+            } else if (ms != 4) dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_dim, "?");
         }
         if (p.is_opt && p.type == -1 && p.state == 1) {          /* a fight: two crossed blades */
             ImVec2 cpos(X1 - 0.9f * size, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);

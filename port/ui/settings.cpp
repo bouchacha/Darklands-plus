@@ -506,6 +506,14 @@ static void display_icons(void)
         for (int k = 0; k < 3; k++) ui_item_icon_tier(dl, ImVec2(a.x + (b.x - a.x) * (0.2f + k * 0.3f), (a.y + b.y) * 0.5f), s, k == 0 ? 99 : k == 1 ? 95 : 104, k + 1);
         potion_grade_preview = -1;
     });
+    ImGui::TextUnformatted("The number keys' marks beside a card's options");
+    static const int NV[5] = { 1, 0, 2, 3, 4 };
+    static const char *NL[5] = { "Red numerals", "Rings", "Gilt lozenges", "Faint", "None" };
+    float cw5 = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170));
+    pic_choice("cardnums", "display.card_numbers", 1, NV, NL, 5, cw5, cw5 * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+        void cardview_key_mark_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int ms);
+        cardview_key_mark_preview(dl, a, b, v);
+    });
     ImGui::TextUnformatted("The places' pictures on the world map");
     static const int MV[3] = { 0, 1, 2 };
     static const char *ML[3] = { "Painted", "Woodcut", "Seals" };
