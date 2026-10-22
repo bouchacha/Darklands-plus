@@ -159,6 +159,23 @@ void order_bar(const S &s, bool on)
         for (int i = 0; i < 3; i++) { s.rect(3 + i * 32, 48.5f, 31 + i * 32, 58, IM_COL32(120, 84, 40, 255), 1.5f); s.text(6 + i * 32, 48.8f, 4.6f, CREAM, L[i]); }
     }
 }
+void los_line(const S &s, bool on)
+{
+    s.ground();
+    s.figure(18, 50, OURS);
+    s.figure(84, 30, FOE);
+    ImVec2 r0 = s.p(46, 30), r1 = s.p(58, 42);                          /* a rock between */
+    s.dl->AddEllipseFilled(ImVec2((r0.x + r1.x) * 0.5f, (r0.y + r1.y) * 0.5f), ImVec2((r1.x - r0.x) * 0.5f, (r1.y - r0.y) * 0.5f), IM_COL32(150, 150, 150, 255));
+    if (!on) return;
+    const ImU32 RED = IM_COL32(235, 60, 40, 255);
+    ImVec2 q[4] = { s.p(44, 39), s.p(60, 39), s.p(56, 45), s.p(40, 45) };
+    s.dl->AddQuadFilled(q[0], q[1], q[2], q[3], IM_COL32(235, 60, 40, 90));
+    s.dl->AddPolyline(q, 4, RED, ImDrawFlags_Closed, 1.5f);
+    ImVec2 a = s.p(18, 50), h = s.p(50, 41), z = s.p(84, 30);
+    s.dl->AddLine(a, h, IM_COL32(250, 214, 110, 230), 1.5f);
+    for (int k = 0; k < 6; k += 2) { float t0 = k / 6.0f, t1 = (k + 1) / 6.0f; s.dl->AddLine(ImVec2(h.x + (z.x - h.x) * t0, h.y + (z.y - h.y) * t0), ImVec2(h.x + (z.x - h.x) * t1, h.y + (z.y - h.y) * t1), RED, 1.5f); }
+    s.dl->AddCircle(z, 2.5f * s.k, RED, 14, 1.5f);
+}
 } // namespace
 
 /* the switch's picture, off or on, in a..b (its height about 0.6 of its width); false: none */
@@ -167,7 +184,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     struct E { const char *key; int id; };
     static const E T[] = { { "display.panel_losses", 1 }, { "battle.bars", 2 }, { "battle.bars_hurt", 3 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
-                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 } };
+                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 } };
     int id = 0;
     for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
     if (!id) return false;
@@ -189,6 +206,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     case 12: full_names(s, on); break;
     case 13: volley_toggle(s, on); break;
     case 14: order_bar(s, on); break;
+    case 15: los_line(s, on); break;
     }
     dl->PopClipRect();
     return true;

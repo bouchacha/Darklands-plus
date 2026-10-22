@@ -290,6 +290,32 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     }
 }
 
+void plat_mouse_game(int *x, int *y);
+static int selected_ok(void);
+/* battle.los_line (mods/losaim.c): the member chosen and the foe under the pointer, when a click
+   there would shoot (0x80) or throw (0x100) at it: the order chosen in the menu, or the order the
+   member follows, or (none chosen) the shot a click on a foe gives one who opens by shooting */
+static int aim_of(int *who, int *foe)
+{
+    if (config_get_int("original", 0) || g_rb(D_ORDER_MODE) != 1 || !selected_ok()) return 0;
+    int gx, gy; plat_mouse_game(&gx, &gy);
+    int mx = gx - 60, my = gy, i = (s8)g_rb(D_SELECTED);
+    if (mx < 0 || mx >= 0x104 || i < 0 || i > 4) return 0;
+    int m = topmost(mx, my), cx, cy;
+    if ((m < 5 || m >= 13) && near_foe(mx, my, &cx, &cy)) m = topmost(cx, cy);
+    if (m < 5 || m >= 13 || g_rb((u16)(D_CBT + m * 0x80 + 0x14)) != 1) return 0;
+    int act = (s16)g_rw(D_ORDER_ACTION), f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10)), mode = 0;
+    if (act == MISSILE || act == 0x100) mode = act;
+    else if (act == -1) {
+        if (f == MISSILE || f == 0x100) mode = f;
+        else if (orders_click_attack && orders_member_mode(i) == 1 && !rb(G_FAR20A5, (u16)(0x7900 + i * 13 + m)) && !near_foe_of(i, m)) mode = MISSILE;
+    }
+    if (!mode) return 0;
+    *who = i; *foe = m;
+    return mode;
+}
+int orders_aim(int *who, int *foe) { return config_get_int("battle.los_line", 1) ? aim_of(who, foe) : 0; }
+
 /* the order the click now being given should take on what is under (x, y): 0 the game's own */
 static int wants_attack(int x, int y)
 {
@@ -339,6 +365,10 @@ const char *orders_hint(void)
     case 0x0a: return "Click: attack (Vulnerable)";
     case 6: return "Click: attack (Berserk)";
     case 0x22: return "Click: parry its blows";
+    }
+    if ((a == STD_ATTACK || a == 0x0a) && hint_sel >= 0) {       /* one who opens by shooting, sent in instead: no clear shot */
+        int w, f;
+        if (aim_of(&w, &f) == MISSILE && f == hint_ct) return "No clear shot: goes closer";
     }
     return 0;                                                    /* (a plain attack goes without saying) */
 }

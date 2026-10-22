@@ -1,3 +1,4 @@
+#include "../mods/losaim.h"
 #include <stdlib.h>
 // battleoverlay.cpp - drawn over a battle: a bar over each fighter (endurance, and strength once it is
 // down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's
@@ -100,8 +101,71 @@ static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float
     for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) if (dx || dy) dl->AddText(fo, sz, ImVec2(p.x + dx * 1.5f, p.y + dy * 1.5f), edge, f.t.c_str());
     dl->AddText(fo, sz, p, ink, f.t.c_str());
 }
+/* battle.los_line: the line of a shot about to be ordered and what stands across it (mods/losaim.c).
+   The field's picture is the map sheared: a map point (x, y) is drawn at x - y across and y down,
+   from the view's origin (D_c26c, D_c293: cbt_screen_pos, s014 14f7) */
+static ImVec2 map2w(float x, float y, float up = 0)
+{
+    float ox = (s16)g_rw(0xc26c), oy = (s16)g_rw(0xc293);
+    return g2w(60 + (x - ox) - (y - oy) + 0x88, (y - oy) + 0x69 - up);
+}
+static float seg_enter(float x0, float y0, float x1, float y1, const LosBox &b)   /* where the line meets the box, 0..1 (Liang-Barsky) */
+{
+    float t0 = 0, t1 = 1, dx = x1 - x0, dy = y1 - y0;
+    float p[4] = { -dx, dx, -dy, dy }, q[4] = { x0 - b.x0, b.x1 - x0, y0 - b.y0, b.y1 - y0 };
+    for (int k = 0; k < 4; k++) {
+        if (p[k] == 0) { if (q[k] < 0) return 1; continue; }
+        float r = q[k] / p[k];
+        if (p[k] < 0) { if (r > t0) t0 = r; } else if (r < t1) t1 = r;
+    }
+    return t0 <= t1 ? t0 : 1;
+}
+static void draw_aim(ImDrawList *dl)
+{
+    int i, m, mode = orders_aim(&i, &m);
+    if (!mode) return;
+    LosBox bx[24];
+    int n = los_trace(i, m, mode, bx, 24);
+    float x0 = (s16)g_rw((u16)(GV_combatants + i * 0x80 + 4)), y0 = (s16)g_rw((u16)(GV_combatants + i * 0x80 + 6));
+    float x1 = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 4)), y1 = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
+    float k = g2w(0, 1).y - g2w(0, 0).y, lw = fmaxf(1.5f, 0.55f * k);
+    const ImU32 RED = IM_COL32(235, 60, 40, 255), RED_F = IM_COL32(235, 60, 40, 90), CLEAR = IM_COL32(250, 214, 110, 230), EDGE = IM_COL32(20, 10, 4, 170);
+    float t = 1;
+    for (int j = 0; j < n; j++) {                              /* each thing in the way: where it stands, outlined */
+        const LosBox &b = bx[j];
+        ImVec2 q[4] = { map2w(b.x0, b.y0), map2w(b.x1 + 1, b.y0), map2w(b.x1 + 1, b.y1 + 1), map2w(b.x0, b.y1 + 1) };
+        dl->AddQuadFilled(q[0], q[1], q[2], q[3], RED_F);
+        dl->AddPolyline(q, 4, EDGE, ImDrawFlags_Closed, lw + 2);
+        dl->AddPolyline(q, 4, RED, ImDrawFlags_Closed, lw);
+        float e = seg_enter(x0, y0, x1, y1, b);
+        if (e < t) t = e;
+    }
+    ImVec2 a = map2w(x0, y0), z = map2w(x1, y1), h = map2w(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+    dl->AddLine(a, h, EDGE, lw + 2);
+    dl->AddLine(a, h, n ? IM_COL32(250, 214, 110, 200) : CLEAR, lw);
+    if (n) {                                                  /* past the first thing in the way: dashes, red */
+        float L = sqrtf((z.x - h.x) * (z.x - h.x) + (z.y - h.y) * (z.y - h.y)), d = 3.0f * k;
+        for (float s0 = 0; s0 < L; s0 += 2 * d) {
+            float s1 = fminf(L, s0 + d);
+            ImVec2 p0(h.x + (z.x - h.x) * s0 / L, h.y + (z.y - h.y) * s0 / L), p1(h.x + (z.x - h.x) * s1 / L, h.y + (z.y - h.y) * s1 / L);
+            dl->AddLine(p0, p1, EDGE, lw + 2); dl->AddLine(p0, p1, RED, lw);
+        }
+        float r = 1.6f * k;                                    /* a cross where it stops */
+        dl->AddLine(ImVec2(h.x - r, h.y - r), ImVec2(h.x + r, h.y + r), RED, lw * 1.3f);
+        dl->AddLine(ImVec2(h.x - r, h.y + r), ImVec2(h.x + r, h.y - r), RED, lw * 1.3f);
+    }
+    dl->AddCircleFilled(a, lw * 1.4f, n ? IM_COL32(250, 214, 110, 220) : CLEAR, 10);
+    dl->AddCircle(z, 2.2f * k, n ? RED : CLEAR, 16, lw);
+}
+
 void ui_draw_battle_bars(void)
 {
+    if (game_mode() == GM_BATTLE && !ns_showing() && !config_get_int("original", 0)) {
+        ImDrawList *dl0 = ovl_list();
+        dl0->PushClipRect(ui_g2w(60, 0), ui_g2w(320, 200), true);
+        draw_aim(dl0);
+        dl0->PopClipRect();
+    }
     bool reload = config_get_int("battle.reload_bar", 1) != 0;
     if (game_mode() != GM_BATTLE) floats.clear();
     if ((!ui_battle_bars && !reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
