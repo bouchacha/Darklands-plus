@@ -283,8 +283,26 @@ extern "C" void cardview_draw(void)
             ImVec2 nt = fs->CalcTextSizeA(ns, FLT_MAX, 0, n);
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
             float r = ns * 0.62f;
-            dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
-            dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
+            int ms = config_get_int("display.card_numbers", 0);   /* the key's mark: 0 a ring, 1 a red numeral (a rubric), 2 a gilt lozenge, 3 a faint figure in the margin */
+            if (ms == 1) {
+                char rn[6]; snprintf(rn, sizeof rn, "%s.", n);
+                float rs = size * 1.0f; ImVec2 rt = f->CalcTextSizeA(rs, FLT_MAX, 0, rn);
+                ImU32 red = dark ? IM_COL32(232, 118, 92, 255) : IM_COL32(158, 34, 20, 255);
+                dl->AddText(f, rs, ImVec2(cpos.x - rt.x * 0.5f, cpos.y - rt.y * 0.52f), red, rn);
+            } else if (ms == 2) {
+                ImU32 gold = dark ? IM_COL32(222, 182, 98, 255) : IM_COL32(150, 106, 34, 255);
+                float d = r * 0.98f;
+                ImVec2 q[4] = { ImVec2(cpos.x, cpos.y - d), ImVec2(cpos.x + d, cpos.y), ImVec2(cpos.x, cpos.y + d), ImVec2(cpos.x - d, cpos.y) };
+                dl->AddQuadFilled(q[0], q[1], q[2], q[3], dark ? IM_COL32(222, 182, 98, 40) : IM_COL32(200, 150, 60, 50));
+                dl->AddQuad(q[0], q[1], q[2], q[3], gold, fmaxf(1.0f, 0.3f * k));
+                dl->AddText(fs, ns * 0.8f, ImVec2(cpos.x - nt.x * 0.4f, cpos.y - nt.y * 0.4f), gold, n);
+            } else if (ms == 3) {
+                ImU32 c3 = hov ? ink_soft : (ink_dim & 0x00ffffff) | (110u << 24);
+                dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), c3, n);
+            } else {
+                dl->AddCircle(cpos, r, ink_soft, 16, fmaxf(1.0f, 0.3f * k));
+                dl->AddText(fs, ns, ImVec2(cpos.x - nt.x * 0.5f, cpos.y - nt.y * 0.5f), ink_soft, n);
+            }
         } else if (menu && (greyed_hint(p) || (assist_card_help && p.is_opt && p.state == 2 && (p.type == 1 || p.type == 2)))) {
             /* greyed, and why is known (the card's own reason, or the saints or items nobody has): a "?" where the number would be */
             float ns = size * 0.72f;
