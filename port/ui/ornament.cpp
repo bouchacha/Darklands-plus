@@ -31,9 +31,9 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
     dl->PushClipRect(lo, hi, true);
     const int S = 8;
     ImVec2 pts[S + 1];
-    auto strand = [&](float t0, float t1, float sg) {
+    auto strand = [&](float t0, float t1, float sg, bool edge = true) {
         for (int i = 0; i <= S; i++) { float t = t0 + (t1 - t0) * i / S; pts[i] = mix(P, d, t, n, sg * A * sinf(3.14159265f * t / half)); }
-        dl->AddPolyline(pts, S + 1, STRAND_EDGE, 0, th + fmaxf(1.0f, w * 0.12f));
+        if (edge) dl->AddPolyline(pts, S + 1, STRAND_EDGE, 0, th + fmaxf(1.0f, w * 0.12f));
         dl->AddPolyline(pts, S + 1, COPPER, 0, th);
         for (int i = 0; i <= S; i++) { pts[i].x -= n.x * th * 0.22f; pts[i].y -= n.y * th * 0.22f; }
         dl->AddPolyline(pts, S + 1, COPPER_LIT, 0, fmaxf(1.0f, th * 0.28f));
@@ -43,6 +43,10 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
         float over = (k & 1) ? 1.0f : -1.0f;
         strand(t0, t1, -over);
         strand(t0, t1, over);
+    }
+    for (int k = 0; k <= m; k++) {                              /* (the joins fall on the crests: drawn over again, whole) */
+        float c = (k + 0.5f) * half, e = half * 0.22f;
+        strand(c - e, c + e, 1.0f, true); strand(c - e, c + e, -1.0f, true);
     }
     dl->PopClipRect();
     dl->AddLine(mix(P, d, 0, n, -w * 0.5f), mix(Q, d, 0, n, -w * 0.5f), GOLD_DK, 1.0f);
@@ -72,6 +76,42 @@ void orn_braid_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
     float r = w * 0.78f;
     lozenge(dl, ImVec2(a.x + h, a.y + h), r, true); lozenge(dl, ImVec2(b.x - h, a.y + h), r, true);
     lozenge(dl, ImVec2(a.x + h, b.y - h), r, true); lozenge(dl, ImVec2(b.x - h, b.y - h), r, true);
+}
+/* the same band turning its corners as the game's cards have it: the two strands bend round the
+   corner, crossing once on the diagonal, no jewel */
+void orn_braid_frame_knotted(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
+{
+    float h = w * 0.5f;
+    braid_side(dl, ImVec2(a.x + w, a.y + h), ImVec2(b.x - w, a.y + h), w);
+    braid_side(dl, ImVec2(a.x + w, b.y - h), ImVec2(b.x - w, b.y - h), w);
+    braid_side(dl, ImVec2(a.x + h, a.y + w), ImVec2(a.x + h, b.y - w), w);
+    braid_side(dl, ImVec2(b.x - h, a.y + w), ImVec2(b.x - h, b.y - w), w);
+    const float PI = 3.14159265f;
+    float th = fmaxf(1.5f, w * 0.30f), ew = th + fmaxf(1.0f, w * 0.12f), A = w * 0.24f;
+    /* each corner: the inner corner point, and the quarter turn's start angle */
+    struct K { ImVec2 c, lo, hi; float a0; };
+    K C[4] = { { ImVec2(a.x + w, a.y + w), ImVec2(a.x, a.y), ImVec2(a.x + w, a.y + w), PI },
+               { ImVec2(b.x - w, a.y + w), ImVec2(b.x - w, a.y), ImVec2(b.x, a.y + w), PI * 1.5f },
+               { ImVec2(b.x - w, b.y - w), ImVec2(b.x - w, b.y - w), ImVec2(b.x, b.y), 0 },
+               { ImVec2(a.x + w, b.y - w), ImVec2(a.x, b.y - w), ImVec2(a.x + w, b.y), PI * 0.5f } };
+    for (const K &k : C) {
+        dl->AddRectFilled(k.lo, k.hi, BAND);
+        dl->PushClipRect(k.lo, k.hi, true);
+        const int S = 14; ImVec2 pts[S + 1];
+        auto strand = [&](float sg, float u0, float u1, bool lit) {
+            for (int i = 0; i <= S; i++) {
+                float u = u0 + (u1 - u0) * i / S, an = k.a0 + u * PI * 0.5f, r = h + sg * A * cosf(PI * u);
+                pts[i] = ImVec2(k.c.x + cosf(an) * r, k.c.y + sinf(an) * r);
+            }
+            dl->AddPolyline(pts, S + 1, STRAND_EDGE, 0, ew);
+            dl->AddPolyline(pts, S + 1, lit ? COPPER : COPPER, 0, th);
+            for (int i = 0; i <= S; i++) { pts[i].x += (k.c.x - pts[i].x) * 0.06f; pts[i].y += (k.c.y - pts[i].y) * 0.06f; }
+            dl->AddPolyline(pts, S + 1, COPPER_LIT, 0, fmaxf(1.0f, th * 0.28f));
+        };
+        strand(1.0f, -0.05f, 1.05f, true);                     /* under */
+        strand(-1.0f, -0.05f, 1.05f, true);                    /* over, at the crossing on the diagonal */
+        dl->PopClipRect();
+    }
 }
 
 static void gilt_frame_rule(ImDrawList *dl, ImVec2 a, ImVec2 b, float s)

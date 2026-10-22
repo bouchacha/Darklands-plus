@@ -182,6 +182,7 @@ extern "C" void cardview_draw(void)
     if (k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) f = ui_font_game_hi[ui_game_font];
     ImFont *fs = ui_font_overlay ? ui_font_overlay : f;
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    if (orn_on()) orn_braid_frame_knotted(dl, g2w(60, 0), g2w(320, 200), 7.0f * k);   /* the card's border: the plaited copper band, over the game's */
     const bool dark = c.dark;                                    /* light letters on a dark picture */
     const bool menu = c.phase == 2;
     const ImU32 ink = dark ? IM_COL32(246, 234, 208, 255) : IM_COL32(44, 26, 10, 255);

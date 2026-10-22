@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "cpu.h"
+#include "config.h"
 #include "hle.h"
 
 void dos_int21(void);
@@ -652,9 +653,32 @@ void dl_poll(void)
         present_end = plat_ticks_ms();
         present_cost = present_end - now; if (present_cost > 100) present_cost = 100;
         if (plat_menu_open()) {               /* the game is paused while the menu is open */
-            void sound_pause(int); sound_pause(1);
-            int plat_in_background(void);
-            while (plat_menu_open()) { plat_events(); plat_present(M + 0xa0000, vga_dac); plat_sleep_ms(plat_in_background() ? 100 : 15); }
+            /* the music plays on (sound.music_in_menus) while the world map, F12 or another window of
+               Darklands+ is open, outside battles: the game's timer interrupt (which drives the music
+               driver) keeps coming while the game itself waits; in a battle (its clock counts those
+               ticks) and with the window in the background, the sound stops as before */
+            int game_mode(void), plat_in_background(void);
+            int keep = config_get_int("sound.music_in_menus", 1) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8);
+            void sound_pause(int);
+            if (!keep) sound_pause(1);
+            u32 lt = plat_ticks_ms(); double acc = 0;
+            int paused_bg = 0;
+            while (plat_menu_open()) {
+                plat_events(); plat_present(M + 0xa0000, vga_dac);
+                int bg = plat_in_background();
+                if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
+                plat_sleep_ms(bg ? 100 : 15);
+                if (keep && !bg) {
+                    u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 200) d = 200;
+                    acc += d * 1000.0;
+                    double per = pit_period_us();
+                    in_irq = 1;
+                    for (int n = 0; acc >= per && n < 8; n++) { acc -= per; call_handler(8); }
+                    if (acc > per * 8) acc = 0;
+                    { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }
+                    in_irq = 0;
+                } else lt = plat_ticks_ms();
+            }
             sound_pause(0);
             last_ms = now = present_end = plat_ticks_ms();
             tick_us_acc = 0;

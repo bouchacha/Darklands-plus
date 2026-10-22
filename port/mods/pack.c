@@ -314,8 +314,33 @@ static void delete_hook(void)             /* party_delete (p) */
     hook_call_original();
 }
 
+
+/* a saint's help that asks whether the one prayed for carries something (St.Cecilia: a musical
+   instrument, count_items_flags 0x20000000; another's own healing kit, flag 1): with the shared
+   pack the spare things are kept with whoever, so while a prayer is answered the question is
+   asked of the whole party */
+static int in_pray, counting;
+static void pray_hook(void) { in_pray++; hook_call_original(); in_pray--; }
+static void count_flags_hook(void)        /* count_items_flags (who, long mask) */
+{
+    if (!in_pray || counting || !sheetview_shared() || config_get_int("original", 0)) { hook_call_original(); return; }
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    u16 lo = rw(SS, (u16)(SP + 6)), hi = rw(SS, (u16)(SP + 8));
+    int n = 0;
+    counting = 1;
+    for (int m = 0; m < 5 && !ns_unwinding; m++) if (gm_member_present(m)) n += ns_call(GF_count_items_flags, 3, m, lo, hi);
+    counting = 0;
+    if (ns_unwinding) return;
+    if (n && getenv("DL_PACK_LOG")) fprintf(stderr, "pack: a prayer asks if member %d carries flags %04x%04x: the party does (%d)\n", who, hi, lo, n);
+    AX = (u16)n;
+    hook_return_far(0);
+}
+
 void pack_init(void)
 {
+    hook_install(GF_saint_pray, pray_hook);
+    hook_install(GF_saint_pray_party, pray_hook);
+    hook_install(GF_count_items_flags, count_flags_hook);
     hook_install(GF_run_battle, battle_hook);
     hook_install(GF_party_remove, leave_hook);
     hook_install(GF_party_delete, delete_hook);

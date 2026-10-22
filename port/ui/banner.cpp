@@ -35,9 +35,9 @@ static void band(ImDrawList *dl, ImVec2 a, ImVec2 b)
     const int S = 10;
     ImVec2 pts[S + 1];
     dl->PushClipRect(a, b, true);
-    auto strand = [&](float t0, float t1, float sg, bool light) {
+    auto strand = [&](float t0, float t1, float sg, bool light, bool edge = true) {
         for (int i = 0; i <= S; i++) { float t = t0 + (t1 - t0) * i / S; pts[i] = ImVec2(a.x + t, my + sg * A * sinf(3.14159265f * t / half)); }
-        dl->AddPolyline(pts, S + 1, EDGE, 0, th + fmaxf(1.5f, h * 0.06f));
+        if (edge) dl->AddPolyline(pts, S + 1, EDGE, 0, th + fmaxf(1.5f, h * 0.06f));
         dl->AddPolyline(pts, S + 1, light ? LIGHT : DARK, 0, th);
         for (int i = 0; i <= S; i++) pts[i].y -= th * 0.22f;
         dl->AddPolyline(pts, S + 1, light ? LIGHT_HI : DARK_HI, 0, fmaxf(1.0f, th * 0.28f));
@@ -47,6 +47,10 @@ static void band(ImDrawList *dl, ImVec2 a, ImVec2 b)
         bool light_over = (k & 1) != 0;
         strand(t0, t1, light_over ? -1.0f : 1.0f, !light_over);
         strand(t0, t1, light_over ? 1.0f : -1.0f, light_over);
+    }
+    for (int k = 0; k <= m; k++) {                               /* (the joins fall on the crests: drawn over again, whole) */
+        float c = (k + 0.5f) * half, e = half * 0.22f;
+        strand(c - e, c + e, 1.0f, true, true); strand(c - e, c + e, -1.0f, false, true);   /* (the light strand is always the +1 one) */
     }
     dl->PopClipRect();
     dl->AddLine(ImVec2(a.x, a.y + 0.5f), ImVec2(b.x, a.y + 0.5f), GREY_D, 1.0f);
@@ -82,5 +86,5 @@ extern "C" void banner_draw(void)
     float d = fmodf(hour - shown + 36.0f, 24.0f) - 12.0f;        /* (the disc eases round with the hours) */
     shown = fmodf(shown + d * fminf(1.0f, (float)(now - last) * 4.0f) + 24.0f, 24.0f);
     last = now;
-    sky(dl, g2w(289, 0), g2w(320, 16), shown);
+    (void)shown; (void)sky;                                      /* (the sky box: the game's own, eclipse and all, as the player asked) */
 }

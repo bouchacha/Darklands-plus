@@ -197,6 +197,92 @@ static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 8, TI_CLOTH, "clothing and soft armour (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
 enum { NOTABLE_Q = 30 };
 static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
+/* what was drawn into dl since vertex v0, faded to alpha k (a known formula, a teacher nobody needs) */
+static void dim_since(ImDrawList *dl, int v0, float k)
+{
+    for (int i = v0; i < dl->VtxBuffer.Size; i++) {
+        ImU32 &c = dl->VtxBuffer[i].col;
+        unsigned al = (c >> IM_COL32_A_SHIFT) & 255;
+        c = (c & ~IM_COL32_A_MASK) | ((ImU32)(al * k) << IM_COL32_A_SHIFT);
+    }
+}
+/* the teachers to be had in town loc (mods/teachers.c), and whether anyone in the party could use
+   them: a fighting skill only if some member's best weapon of that kind (hand to hand: Edged,
+   Impact, Flails, Polearms; at range: Thrown, Bows, Missile Devices) is below what the teacher
+   teaches to; a skill the party needs once (Alchemy, Healing, Artifice, Latin, Read & Write, Speak
+   Common, Streetwise, Woodwise) only if the party's best is below it; a skill each member needs
+   (Religion, Virtue, Stealth, Riding) if anyone's is */
+extern "C" void ui_text_utf8(const char *game, char *out, int n);
+static bool margin_town_row;                               /* (the margin's own row of the town's offers: the teachers too) */
+static int skill_of(int m, int k) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)); }
+static bool teach_useful(int k, int to, std::string *who)
+{
+    int best = -1; std::string w;
+    for (int m = 0; m < 5; m++) {
+        if (!gm_member_present(m)) continue;
+        int v;
+        if (k <= 3) { v = 0; for (int j = 0; j <= 3; j++) v = std::max(v, skill_of(m, j)); }
+        else if (k <= 6) { v = 0; for (int j = 4; j <= 6; j++) v = std::max(v, skill_of(m, j)); }
+        else v = skill_of(m, k);
+        bool each = k <= 6 || k == 8 || k == 9 || k == 15 || k == 17;
+        if (each) { if (v < to) { char nm[24]; gm_member_name(m, nm, sizeof nm); char nu[48]; ui_text_utf8(nm, nu, sizeof nu); if (!w.empty()) w += ", "; w += nu; } }
+        else best = std::max(best, v);
+    }
+    bool each = k <= 6 || k == 8 || k == 9 || k == 15 || k == 17;
+    if (each) { if (who) *who = w; return !w.empty(); }
+    if (who) *who = best >= 0 && best < to ? "the party (best " + std::to_string(best) + ")" : "";
+    return best >= 0 && best < to;
+}
+static void teachers_chip(int loc, bool &first, float isz, float gap, float x0, float w)
+{
+    if (!ui_teachers_on()) return;
+    TchSource ts[12];
+    int n = ui_town_teachers(loc, ts, 12);
+    if (!n) return;
+    int useful = 0;
+    struct Row { std::string head, who, closed; bool any, off; };
+    std::vector<Row> rows;
+    for (int i = 0; i < n; i++) {
+        const TchSource &t = ts[i];
+        Row r; r.any = false; r.off = t.off != 0;
+        for (int j = 0; j < t.n; j++) { std::string who; if (teach_useful(t.skill[j], t.strength, &who)) { r.any = true; if (!r.who.empty()) r.who += "; "; r.who += std::string(t.n > 1 ? std::string(gm_skill_name(t.skill[j])) + ": " : "") + who; } }
+        if (r.any && !r.off) useful++;
+        char line[160]; snprintf(line, sizeof line, "%s: %s to %d", ui_teacher_short(t.src), ui_teacher_skills(t).c_str(), t.strength);
+        r.head = line;
+        if (r.off) { r.closed = t.now; size_t p2 = r.closed.find(" ("); if (p2 != std::string::npos) r.closed = r.closed.substr(0, p2) + "."; }
+        rows.push_back(r);
+    }
+    char num[8]; snprintf(num, sizeof num, "%d", n);
+    float lh = ImGui::GetTextLineHeight(), tw = ImGui::CalcTextSize(num).x + lh * 0.25f, cw = isz + tw;
+    if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + cw > x0 + w) ImGui::NewLine(); }
+    first = false;
+    ImVec2 a = ImGui::GetCursorScreenPos();
+    ImGui::Dummy(ImVec2(cw, isz));
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    int v0 = dl->VtxBuffer.Size;
+    ImVec2 c(a.x + isz * 0.5f, a.y + isz * 0.5f);              /* on a parchment roundel, as the town's other icons */
+    dl->AddCircleFilled(c, isz * 0.48f, IM_COL32(240, 228, 198, 255), 24);
+    dl->AddCircle(c, isz * 0.48f, IM_COL32(92, 60, 30, 255), 24, fmaxf(1.0f, isz * 0.05f));
+    ui_draw_teach_mark(dl, ImVec2(c.x, c.y + isz * 0.02f), isz * 0.72f, IM_COL32(70, 44, 20, 255), IM_COL32(252, 246, 228, 255));
+    dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), num);
+    if (!useful) dim_since(dl, v0, 0.38f);                   /* nobody would learn anything now: dim, as a known saint */
+    if (item_hovered()) {                                    /* a row a teacher: who would learn, or why not now */
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
+        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24);
+        ImGui::TextUnformatted("Teachers here: a lesson a day at the inn, for a fee");
+        ImGui::Separator();
+        for (const Row &r : rows) {
+            if (r.any && !r.off) ImGui::TextUnformatted(r.head.c_str()); else ImGui::TextDisabled("%s", r.head.c_str());
+            ImGui::Indent();
+            if (r.off) ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "Not now: %s", r.closed.c_str());
+            if (r.any) ImGui::TextColored(ImVec4(0.15f, 0.42f, 0.15f, 1), "Would teach %s", r.who.c_str());
+            else ImGui::TextDisabled("Nobody in the party would learn anything");
+            ImGui::Unindent();
+        }
+        ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+        ImGui::PopStyleColor();
+    }
+}
 void ui_town_offers(int loc, bool tables, float width, bool words)
 {
     static int seen_loc = -1; static bool has[6];
@@ -205,8 +291,10 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
     float lh = ImGui::GetTextLineHeight(), gap = lh * 0.3f;
     float x0 = ImGui::GetCursorScreenPos().x, w = width > 0 ? width : ImGui::GetContentRegionAvail().x;
     int nf = 0; for (int k = 0; k < 6; k++) nf += has[k];
+    if (margin_town_row && ui_teachers_on()) nf++;                /* (the lectern too) */
     float isz = lh * 1.35f;                                 /* (smaller, down to a line's height, to keep the row on one line) */
-    if (!words && nf > 1 && nf * isz + (nf - 1) * gap > w) isz = fmaxf(lh * 1.0f, (w - (nf - 1) * gap) / nf);
+    float wn = margin_town_row ? w - lh * 1.0f : w;              /* (the lectern's number beside it) */
+    if (!words && nf > 1 && nf * isz + (nf - 1) * gap > wn) isz = fmaxf(lh * 1.0f, (wn - (nf - 1) * gap) / nf);
     ImDrawList *dl = ImGui::GetWindowDrawList();
     /* a row of chips that wraps: a picture, and a short text after it */
     auto chip = [&](bool &first, int icon, const char *text, const char *tip) {
@@ -221,6 +309,7 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
     };
     bool first = true;
     for (int k = 0; k < 6; k++) if (has[k]) chip(first, k, words ? TOWN_OFFER_WORD[k] : nullptr, TOWN_OFFER_TIP[k]);
+    if (!words && margin_town_row) teachers_chip(loc, first, isz, gap, x0, w);   /* (the margin: the lectern and how many) */
     bool head = false;
     for (const auto &s : NOTABLE_SHOPS) {
         int q = c.shopq[s.shop] > 0 ? shop_wares_q(c.shopq[s.shop]) : 0;
@@ -277,8 +366,9 @@ static void formulae_line(int town)
         ImVec2 a = ImGui::GetCursorScreenPos();
         ImGui::Dummy(ImVec2(s, s));
         ImDrawList *dl = ImGui::GetWindowDrawList();
+        int v0 = dl->VtxBuffer.Size;
         ui_draw_potion(dl, ImVec2(a.x + s * 0.5f, a.y + s * 0.5f), s, 95 + f / 3, f % 3 + 1);
-        if (known) dl->AddRectFilled(a, ImVec2(a.x + s, a.y + s), IM_COL32(0, 0, 0, 150));   /* known to the party: dim, as the saints above */
+        if (known) dim_since(dl, v0, 0.38f);                 /* known to the party: dim, as the saints above (the whole icon) */
         if (item_hovered()) {
             const std::string &t = gamedata.formula_names[f];
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
@@ -598,8 +688,10 @@ extern "C" int ui_nearest_town(void)                /* in the wilds: the nearest
     return bd <= 60 * 60 ? best : -1;
 }
 
+static bool goto_hint;
 static void right_panel(int size)
 {
+    goto_hint = false;
     int cur = (s16)g_rw(G_CUR_LOC);
     bool any = false, near = false;
     if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; }
@@ -607,11 +699,7 @@ static void right_panel(int size)
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         heading(((near ? "Near " : "") + c.name).c_str());
-        if (!near && citynav_available() && config_get_int("assist.city_goto", 1)) {   /* (a click opens it too: the controller has no G) */
-            ImGui::TextDisabled(ui_pad_prompts() ? "Go to a place here" : "G: go to a place here");
-            if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there."); }
-            if (ImGui::IsItemClicked()) ui_open_goto();
-        }
+        goto_hint = !near && citynav_available() && config_get_int("assist.city_goto", 1);   /* (at the foot, as the left margin's hints) */
         /* the location table is read while a card or the map is up; battles and their loot
            reuse that memory, so meanwhile the last value read stands */
         static std::map<int, int> rep_seen; static int rep_game = -1;
@@ -621,7 +709,14 @@ static void right_panel(int size)
         if (lr && (gm == GM_CARD || gm == GM_MAP)) rep_seen[cur] = (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12));
         int fame = (s16)g_rw(GV_party_fame);
         auto rp = rep_seen.find(cur);
-        if (rp != rep_seen.end()) { ImGui::Text("Reputation %d", rp->second); ImGui::SameLine(); ImGui::TextDisabled(" fame %d", fame); }
+        if (rp != rep_seen.end()) {                                   /* coloured by how the town sees the party */
+            int r = rp->second;
+            ImVec4 col = r <= -30 ? ImVec4(0.95f, 0.22f, 0.16f, 1) : r < -10 ? ImVec4(0.95f, 0.45f, 0.35f, 1) : r < 0 ? ImVec4(0.95f, 0.68f, 0.55f, 1)
+                       : r >= 30 ? ImVec4(0.55f, 0.88f, 0.50f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            ImGui::TextColored(col, "Reputation %d", r);
+            if (item_hovered()) margin_tip(r <= -30 ? "The town hates the party: guards, shopkeepers and its people will turn on you." : r < -10 ? "The town distrusts the party: expect cold welcomes and worse." : r < 0 ? "The town is wary of the party." : r >= 30 ? "The party is well thought of here." : "The town's opinion of the party (rises with good deeds here, falls with crimes).");
+            ImGui::SameLine(); ImGui::TextDisabled(" fame %d", fame);
+        }
         else ImGui::TextDisabled("Fame %d", fame);
         /* the town's attitude: it bars the party, or its watch wants it (its sign, a short line, the
            meaning under the pointer) */
@@ -665,7 +760,7 @@ static void right_panel(int size)
                 ImGui::Unindent(is + lh * 0.3f);
             }
         }
-        ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP);
+        margin_town_row = true; ui_town_offers(cur, gm == GM_CARD || gm == GM_MAP); margin_town_row = false;
         {   /* what the party learned of its physician and alchemist (ui/journal.cpp) */
             const char *ph = journal_town_fact(cur, "physician"), *al = journal_town_fact(cur, "alchemist");
             if (ph) { ImGui::TextDisabled("Physician:"); ImGui::SameLine(); ImGui::TextWrapped("%s", ph); }
@@ -673,7 +768,6 @@ static void right_panel(int size)
         }
         library_line(cur);
         formulae_line(cur);
-        teachers_lines(cur);
         place_quests(cur);
         any = true;
     }
@@ -712,6 +806,16 @@ static void right_panel(int size)
         any = true;
     }
     if (!any) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work."); ImGui::PopStyleColor(); }
+    if (goto_hint) {                                                /* the foot, as the left margin's hints */
+        const char *h = ui_pad_prompts() ? "Go to a place here" : "G: go to a place here";
+        float sp = ImGui::GetStyle().ItemSpacing.y, hh = ImGui::GetTextLineHeight() + sp * 2;
+        float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
+        if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
+        ImGui::Separator();
+        ImGui::TextDisabled("%s", h);
+        if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there."); }
+        if (ImGui::IsItemClicked()) ui_open_goto();
+    }
 }
 
 /* the quests that lead to place `cur`, each with its picture (the place's section of the margin) */

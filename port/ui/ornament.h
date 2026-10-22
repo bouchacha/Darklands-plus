@@ -15,6 +15,8 @@ void orn_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style, ImFont *f);
 /* a plaited band (two copper strands, over and under) round the rectangle a..b, w wide inside it;
    a gilt lozenge at each corner */
 void orn_braid_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
+/* the plaited band with knotted corners, as the game's cards (no jewels) */
+void orn_braid_frame_knotted(ImDrawList *dl, ImVec2 a, ImVec2 b, float w);
 /* a double gilt rule round a..b (s: its scale, about the line spacing in pixels), corner lozenges */
 void orn_gilt_frame(ImDrawList *dl, ImVec2 a, ImVec2 b, float s);
 /* a straight gilt rule from x0 to x1 at y: two lines, a lozenge in the middle, dots at the ends */

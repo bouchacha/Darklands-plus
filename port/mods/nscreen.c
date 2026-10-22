@@ -210,6 +210,10 @@ void ns_enter(int screen)
 void ns_leave(void)
 {
     if (depth <= 0) return;
+    /* a screen of Darklands+'s closed (a shop, the sheet ...): the game redraws its own screen behind
+       before the next card or screen of ours sets up; held, up to half a second, so the old
+       interface never flashes (the next ns_enter shows again at once) */
+    if (ns_screen != NS_CARD && ns_screen != NS_NONE && !config_get_int("original", 0)) { void plat_hold(int ms); plat_hold(500); }
     depth--;
     if (depth < 8) { ns_screen = stk[depth].screen; ns_nested = stk[depth].nested; ns_nested_since = stk[depth].since; }
 }
