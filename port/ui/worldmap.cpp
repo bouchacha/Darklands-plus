@@ -80,6 +80,7 @@ static SDL_Texture *full_tile(int i, int j)
 }
 static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-screen pixel; centre
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
+static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static int selected = -1;
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true;
@@ -637,9 +638,13 @@ extern "C" void worldmap_draw(void)
            than the window sits in the middle of what the panel leaves */
         float bm = map_border_px() / zoom;                       /* (room for the frame) */
         float hw = sz.x * 0.5f / zoom - bm, hh = sz.y * 0.5f / (zoom * ay) - bm / ay, L = wm_panel_right / zoom;
-        float lo = hw - L, hi = worldmap.full_w - hw;
+        /* (and the other edges may come in past the panels over them, and a little more: a corner under a
+           panel can be brought out into the open) */
+        float slack = 0.12f * fminf(sz.x, sz.y) / zoom;
+        float E = fmaxf(0.0f, sz.x - fminf(wm_find_left, sz.x)) / zoom, N = wm_find_bottom / zoom, S = fmaxf(0.0f, sz.y - fminf(wm_foot_top, sz.y)) / zoom;
+        float lo = hw - L - slack, hi = worldmap.full_w - hw + E + slack;
         cx = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(cx, lo), hi);
-        lo = hh; hi = worldmap.full_h - hh;
+        lo = hh - (N + slack) / ay; hi = worldmap.full_h - hh + (S + slack) / ay;
         cy = lo > hi ? (lo + hi) * 0.5f : fminf(fmaxf(cy, lo), hi);
     }
 
@@ -844,6 +849,7 @@ extern "C" void worldmap_draw(void)
         ImGui::Begin("##wmplace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::SetWindowFontScale(pk);
         foot_h = ImGui::GetWindowHeight();
+        wm_foot_top = ImGui::GetWindowPos().y - o.y;
         /* its head, always in view: the name, what it is, the journey and the button */
         if (ui_font_bold) ImGui::PushFont(ui_font_bold);
         ImGui::TextUnformatted(p.name.c_str());
@@ -913,6 +919,7 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::End();
     }
+    if (!sel) wm_foot_top = 1e9f;
     float avail_h = sz.y - 2 * pad - (foot_h > 0 ? foot_h + pad : 0);
 
     /* ---- the left: what the map is, the view buttons, the journey, the tasks and rumours */
@@ -967,6 +974,7 @@ extern "C" void worldmap_draw(void)
     ImGui::SetNextWindowBgAlpha(0.97f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fminf(UIS(380) * pk, sz.x * 0.27f), avail_h));
     ImGui::Begin("##wmfind", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+    wm_find_left = ImGui::GetWindowPos().x - o.x; wm_find_bottom = ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - o.y;
     ImGui::SetWindowFontScale(pk);
     float rw = fminf(UIS(300) * pk, sz.x * 0.27f - 2 * ImGui::GetStyle().WindowPadding.x);
     char *find = wm_find;
