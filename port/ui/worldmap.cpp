@@ -694,7 +694,7 @@ extern "C" void worldmap_draw(void)
                 else for (int e = 0; e < 2; e++) { u32 r = g_location(e ? b : a); if (!r) continue; float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y); pts.push_back(to_scr(x, y)); }
                 if (pts.size() < 2) continue;
                 int al = selected >= 0 && !lit ? 90 : 255;
-                dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(60, 150, 255, lit ? 110 : al / 4), 0, lw * 3.2f);   /* the glow */
+                dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(40, 22, 8, lit ? 170 : al / 2), 0, lw * 2.6f);   /* a dark casing: the way stands out from the rivers it follows */
                 /* the dashes, moving with the boats */
                 float dash = 9 * lw, gap = 6 * lw, ph = fmodf(t * 18 * lw, dash + gap), acc = -ph;
                 for (size_t i = 1; i < pts.size(); i++) {
@@ -707,7 +707,7 @@ extern "C" void worldmap_draw(void)
                         float run = cyc < dash ? fminf(dash - cyc, L - s0) : fminf(dash + gap - cyc, L - s0);
                         if (cyc < dash) {
                             ImVec2 q0(p0.x + (p1.x - p0.x) * s0 / L, p0.y + (p1.y - p0.y) * s0 / L), q1(p0.x + (p1.x - p0.x) * (s0 + run) / L, p0.y + (p1.y - p0.y) * (s0 + run) / L);
-                            dl->AddLine(q0, q1, lit ? IM_COL32(200, 235, 255, 255) : IM_COL32(150, 205, 255, al), lw);
+                            dl->AddLine(q0, q1, lit ? IM_COL32(255, 244, 190, 255) : IM_COL32(250, 204, 104, al), lw);
                         }
                         s0 += fmaxf(run, 0.5f);
                     }
@@ -1282,9 +1282,9 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
                 dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 220, 120, (int)(70 * pulse)), 0, lw * 7.0f);
                 dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 236, 160, (int)(110 * pulse)), 0, lw * 4.0f);
             }
-            dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(20, 60, 140, lit ? 150 : al / 3), 0, lw * 3.0f);
+            dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(40, 22, 8, lit ? 190 : al * 2 / 3), 0, lw * 2.6f);   /* (dark under the dashes: the rivers are blue) */
             float dash = 9 * lw, gap = 6 * lw, acc = -fmodf(t * 18 * lw, dash + gap);
-            ImU32 dc = lit ? IM_COL32(255, 236, 150, 255) : IM_COL32(170, 215, 255, al);
+            ImU32 dc = lit ? IM_COL32(255, 244, 190, 255) : IM_COL32(250, 204, 104, al);
             for (size_t k = 1; k < pts.size(); k++) {
                 ImVec2 p0 = pts[k - 1], p1 = pts[k];
                 float L = sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
