@@ -1,4 +1,5 @@
 /* nsdraw.cpp - see nsdraw.h */
+#include "../runtime/config.h"
 #include "nsdraw.h"
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -362,4 +363,17 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
         std::string cmp = t.cmp_who == -2 ? ns_item_compare_party(t.id, t.qual) : ns_item_compare(t.id, t.qual, t.cmp_who);
         if (!cmp.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp);
     }
+}
+
+std::string ns_quality_tag(int id, int qual)
+{
+    char b[24] = "";
+    const ItemDef *d = ns_itemdef(id);
+    if (ns_shows_quality(id, qual)) snprintf(b, sizeof b, "%dq", qual);
+    else if (d && d->kind == K_POTION && config_get_int("display.potion_grade", 1) == 2) {
+        int ui_potion_tier(int q, int base);
+        int t = ui_potion_tier(qual, d->quality);
+        if (t > 0) snprintf(b, sizeof b, "grade %d", t);
+    }
+    return b;
 }

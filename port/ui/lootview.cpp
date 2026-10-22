@@ -113,7 +113,7 @@ extern "C" void lootview_draw(void)
             P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = ns_item_name(id);
             if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16] = ""; if (ns_shows_quality(id, qual)) snprintf(qs, sizeof qs, "%dq", qual);
+            char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(id, qual).c_str());
             int ow = L ? l.item[i].owner : -1;
             std::string owner = own && ow >= 0 && ow < 5 ? ns_gtext(l.names[ow]) + "'s" : std::string();
             if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);   /* equipped: a red mark at its left (said in the strip) */

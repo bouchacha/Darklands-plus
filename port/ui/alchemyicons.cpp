@@ -12,6 +12,7 @@
 // planets' signs for the metals, the elements' triangles for the four humours' bases, sulphur's
 // triangle and cross ...), or for the herbs and roots a small drawing as in a herbal (the mandrake
 // a little man).
+#include "../runtime/config.h"
 #include "imgui.h"
 #include <math.h>
 
@@ -69,6 +70,15 @@ void grade_dots(const Pen &p, int tier)
 {
     if (tier < 1) return;
     if (tier > 3) tier = 3;
+    if (config_get_int("display.potion_grade", 1) == 0) {     /* (the earlier dots, for a comparison) */
+        float r = fmaxf(1.3f, 2.0f / p.u), step = fmaxf(3.3f, 2 * r + 0.5f / p.u);
+        for (int k = 0; k < tier; k++) {
+            float x = 5.4f + (r - 1.3f) * 0.8f, y = -10.6f + k * step;
+            p.disc(x, y, r, C(0.98f, 0.80f, 0.20f));
+            p.ring(x, y, r, C(0.30f, 0.18f, 0.06f), fmaxf(0.45f, 0.8f / p.u));
+        }
+        return;
+    }
     float r = fmaxf(1.7f, 2.6f / p.u), step = fmaxf(3.9f, 2 * r + 0.7f / p.u);
     float x = 5.4f + (r - 1.3f) * 0.8f, y0 = -10.6f;
     /* on a dark strip, so they stand out from the flask and the page */

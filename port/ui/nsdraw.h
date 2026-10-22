@@ -203,6 +203,8 @@ static inline bool ns_shows_quality(int id, int q)
    its usual quality when q < 0), "" for other things */
 std::string ns_item_line(int id, int q = -1);
 std::string ns_quality_words(int id, int qual);       /* ", 30q"; "" where the lists show none (ns_shows_quality) */
+/* the tag after a thing's name in a list: "30q" (ns_shows_quality), a potion's "grade 2" (display.potion_grade 2), else "" */
+std::string ns_quality_tag(int id, int qual);
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);

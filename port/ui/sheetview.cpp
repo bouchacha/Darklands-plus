@@ -489,8 +489,8 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             name_end -= 4;
         }
         P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end);
-        if (shows_quality(d, it.qual)) {
-            char qs[16]; snprintf(qs, sizeof qs, "%dq", it.qual);
+        if (!ns_quality_tag(it.id, it.qual).empty()) {
+            char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(it.id, it.qual).c_str());
             float qx = RX0 + 11 + P.width(f, NsDraw::FS_NAME, nm) + 2;
             if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end) P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs);
         }
