@@ -1031,24 +1031,26 @@ extern "C" void worldmap_draw(void)
             ImGui::PushTextWrapPos(0);
             if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
                 const City &town = gamedata.cities[p.loc];
-                bool any = false;
-                for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) {   /* (Groningen's lists itself) */
-                    const City &d2 = gamedata.cities[town.docks[k]];
-                    char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d", d2.name.c_str(), k);
-                    float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
-                    if (!any) { ImGui::TextDisabled("Boats from its docks to:"); any = true; }
-                    else if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();   /* (wrapped to the column) */
-                    bool clk = ImGui::SmallButton(lb);
-                    if (ImGui::IsItemHovered()) dock_hover_next = town.docks[k];
-                    if (clk) { selected = town.docks[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
-                }
-                if (any) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
-                else if (citynav_town_offers(p.loc, TI_DOCKS)) {         /* docks with nowhere to sail to (Groningen, Flensburg: the game's own data) */
-                    std::string from;
-                    for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { if (!from.empty()) from += ", "; from += gamedata.cities[o].name; }
-                    ImGui::TextDisabled("Its docks have no boats leaving (so the game has it).");
-                    if (!from.empty()) ImGui::TextWrapped("Boats come here from %s.", from.c_str());
-                }
+                /* a row of town buttons, wrapped to the column: pointed at, the route lights; a click shows the town */
+                auto boat_row = [&](const char *head, const std::vector<int> &to, int tag) {
+                    for (size_t k = 0; k < to.size(); k++) {
+                        const City &d2 = gamedata.cities[to[k]];
+                        char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d_%d", d2.name.c_str(), tag, (int)k);
+                        float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
+                        if (!k) ImGui::TextDisabled("%s", head);
+                        else if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
+                        bool clk = ImGui::SmallButton(lb);
+                        if (ImGui::IsItemHovered()) dock_hover_next = to[k];
+                        if (clk) { selected = to[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
+                    }
+                };
+                std::vector<int> out, in;
+                for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) out.push_back(town.docks[k]);   /* (Groningen's lists itself) */
+                for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
+                boat_row("Boats from its docks to:", out, 0);
+                if (out.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (so the game has it).");
+                if (!in.empty()) { if (!out.empty()) ImGui::Spacing(); boat_row("Boats here from:", in, 1); }
+                if (!out.empty() || !in.empty()) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
             }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
