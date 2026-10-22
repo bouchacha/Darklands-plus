@@ -421,7 +421,7 @@ extern "C" void citynav_tick(void)
     }
     if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
     for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
-    if (hub == H_MARKET && night_closed(goal)) { stop("closed at night; it opens at 5:00."); return; }
+    if (hub == H_MARKET && night_closed(goal)) { stop("the marketplace: shut for the night, its stalls and offices open at 5:00."); return; }   /* (taken there all the same: a task, a theft) */
     visited |= 1u << hub;
     int best = -1, bd = 1000;
     for (int i = 0; i < n; i++) {
@@ -658,7 +658,7 @@ extern "C" int citynav_window(void)
         auto make_tile = [&](int d) {
             Tile T{ d, {}, {}, -1, -1, false, true };
             if (!present(d)) { T.here = false; return T; }          /* (a place the town lacks: its name greyed, no more) */
-            if (night_closed(d)) { T.lines.push_back({ "Closed until 5:00", REDD }); T.tip.push_back({ "", "Closed at night: the marketplace's stalls and offices open at 5:00." }); }
+            if (night_closed(d)) { T.lines.push_back({ "Closed until 5:00", REDD }); T.tip.push_back({ "", "Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same." }); }
             {   /* a refusal that lasts a while */
                 struct Ban { int d, kind, type0; const char *line, *tip; };
                 static const Ban BANS[] = {
@@ -822,7 +822,6 @@ extern "C" int citynav_window(void)
     }
     ImGui::End();
     if (!keep || picked >= 0) pane_d = -1;
-    if (picked >= 0 && night_closed(picked)) { char m[96]; snprintf(m, sizeof m, "%s is closed at night; it opens at 5:00.", DEST[picked].label); ui_notice(m); picked = -1; }
     if (picked >= 0) { citynav_go(picked); return 0; }
     return keep;
 }

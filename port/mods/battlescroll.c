@@ -51,9 +51,17 @@ static void pan_apply(void)
  * the view stays where it is when the member is in sight (it has a hot spot: the order then needs
  * no scrolling); pressed twice within a moment, the view goes to the member (floor_view_draw, s017
  * 1ef8:0000, around who) and follows. */
-static int center_req = -1, look_req = -1, reselect = -1, reselect_ticks;   /* (reselect: a member chosen off the screen, chosen again once the view shows them) */
+static int center_req = -1, look_req = -1;
 /* the view to combatant i, without following it (the arrow to the enemies: ui/battleoverlay.cpp) */
 void battlescroll_look(int i) { look_req = i; }
+#define D_PENDING     0xd6f1      /* char: a member's choice waiting for their spot on the screen (s016 1ef8:0a2c) */
+#define D_PENDING_WHO 0xd6ed      /* who */
+static int has_spot(int i)
+{
+    int n = (s8)g_rb(GV_hotspot_count);
+    for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) return 1;
+    return 0;
+}
 static void select_hook(void)
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
@@ -61,18 +69,28 @@ static void select_hook(void)
     u32 now = plat_ticks_ms();
     int twice = i == last_i && now - last_t < 450;
     last_i = i; last_t = now;
+    int stays = config_get_int("battle.select_stays", 1) && !config_get_int("original", 0) && i >= 0 && i < 5 && game_mode() == GM_BATTLE;
+    /* off the screen on this floor: the game's choice waits (D_d6f1, s014 combat_main) until the
+       member has a spot on the screen, and makes the view follow them there. Chosen here at once
+       instead, as the game does it (order_mode_enter), the view left where it is - choosing shooters
+       far from their marks without the view swinging to and fro */
+    if (stays && !twice && g_rb((u16)(GV_cbt_floor + i)) == g_rb(GV_floor_shown) && !has_spot(i)) {
+        hook_call_original();
+        if (g_rb(D_PENDING) == 1 && (s8)g_rb(D_PENDING_WHO) == i) {
+            g_wb(GV_battle_follow, 0);
+            g_wb(GV_selected_member, (u8)i);
+            ns_call(GF_order_mode_enter, 0);
+            g_wb(D_PENDING, 0);
+            if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: %d chosen off the screen, the view kept\n", i);
+        }
+        return;
+    }
     hook_call_original();
-    if (!config_get_int("battle.select_stays", 1) || config_get_int("original", 0) || i < 0 || i >= 5) return;
+    if (!stays) return;
     if (twice) { center_req = i; return; }
-    /* the view stays where it is (a second press within a moment goes to them); only a member on
-       another floor is followed there, the view having nothing of them to show */
-    /* the view stays only when the member is in sight (has a spot on the screen): the game's choice
-       of a member needs it, so off the screen the view goes to them, as in the original */
+    /* only a member on another floor is followed there, the view having nothing of them to show */
     if (g_rb((u16)(GV_cbt_floor + i)) != g_rb(GV_floor_shown)) return;
-    int n = (s8)g_rb(GV_hotspot_count), seen = 0;
-    for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) seen = 1;
-    if (seen) g_wb(GV_battle_follow, 0);
-    else { center_req = i; if (reselect != i) { reselect = i; reselect_ticks = 2; } else reselect = -1; }   /* (the game's choice needs a spot on the screen: chosen again there) */
+    g_wb(GV_battle_follow, 0);
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
@@ -80,11 +98,6 @@ static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick o
     pan_apply();
     if (look_req >= 0) { int c = look_req; look_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 0); } }
     if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 1); } }
-    else if (reselect >= 0 && --reselect_ticks <= 0) {      /* the view on them now: the choice again, as the key */
-        int c = reselect;
-        if (game_mode() == GM_BATTLE && (s8)g_rb(GV_selected_member) != c) { if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: %d chosen again in view\n", c); ns_call(16, 0x1ef8, 0x0a2c, 1, c); }
-        reselect = -1;
-    }
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
     static u32 last_step, edge_since, held_since, last_call;
     static int was_edge, stale;

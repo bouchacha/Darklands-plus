@@ -838,6 +838,7 @@ void tab_display(void)
         bool sp = sfx_mode, hs = sfx_added_hits, sy = sfx_synth;
         extern char game_dir[1024];
         if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
+        ImGui::Indent(UIS(34)); ui_hint("A sound pack is a set of recordings (.wav or .ogg) that replace the game's battle sounds: blows, parries, cries. Darklands+ comes with one, the \"Battle sounds\" mod (F12 > Settings > Mods)."); ImGui::Unindent(UIS(34));
         int n = sfx_user_count();
         extern char dlp_user_dir[];
         if (n) ui_hint("%d sound%s in %s%ssounds; the original sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
@@ -845,8 +846,8 @@ void tab_display(void)
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
-            if (ImGui::Checkbox("Experimental: make up the sounds the pack lacks", &sy)) { sfx_set_synth(sy); ui_dirty_config = 1; }
-            ImGui::Indent(UIS(34)); ui_hint("A sound missing from the pack is made by Darklands+ (a computer-made clash or thud) instead of the game's own."); ImGui::Unindent(UIS(34));
+            if (ImGui::Checkbox("Experimental: fill the pack's gaps with computer-made sounds", &sy)) { sfx_set_synth(sy); ui_dirty_config = 1; }
+            ImGui::Indent(UIS(34)); ui_hint("A sound pack may lack a recording for some sounds (a parry, a miss ...). Those normally play as the game's own sound; with this, Darklands+ makes one up instead (a computer-made clash or thud)."); ImGui::Unindent(UIS(34));
             int v = sfx_volume;
             ImGui::SetNextItemWidth(UIS(260));
             if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }

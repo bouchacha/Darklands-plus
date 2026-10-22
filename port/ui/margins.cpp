@@ -258,7 +258,7 @@ static void library_line(int loc)
 }
 extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
 /* the formulae a town's alchemist sells (ui/libraries.h): a row of the potions' icons, each with its
-   grade; those someone in the party knows ticked. The formula, its price and what it does under the
+   grade; those someone in the party knows dim (as the saints taught). The formula, its price and what it does under the
    pointer */
 bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier);   /* ui/alchemyicons.cpp */
 static void formulae_line(int town)
@@ -266,27 +266,19 @@ static void formulae_line(int town)
     int fo[4], pr[4];
     if (town < 0 || town >= (int)gamedata.cities.size() || !alchemist_formulae(town, fo, pr)) return;
     ImGui::Spacing(); heading("Formulae sold here");
-    float gap = ImGui::GetStyle().ItemSpacing.x, s = fminf(ImGui::GetFontSize() * 2.0f, (ImGui::GetContentRegionAvail().x - 3 * gap) / 4 - 1);   /* (four to the row) */
-    bool any_known = false, first = true;
+    float gap = ImGui::GetStyle().ItemSpacing.x, s = fminf(ImGui::GetTextLineHeight() * 1.35f, (ImGui::GetContentRegionAvail().x - 3 * gap) / 4 - 1);   /* (as the town's icons above) */
+    bool first = true;
     for (int k = 0; k < 4; k++) {
         int f = fo[k];
         if (f < 0 || f >= (int)gamedata.formula_names.size()) continue;
         bool known = party_knows_formula(f);
-        any_known |= known;
         if (!first) ImGui::SameLine(0, gap);
         first = false;
         ImVec2 a = ImGui::GetCursorScreenPos();
         ImGui::Dummy(ImVec2(s, s));
         ImDrawList *dl = ImGui::GetWindowDrawList();
-        ImVec2 c(a.x + s * 0.5f, a.y + s * 0.5f);
-        ui_draw_potion(dl, c, s, 95 + f / 3, f % 3 + 1);
-        if (known) {                                         /* a tick on a green disc, at the foot */
-            ImVec2 t(a.x + s * 0.84f, a.y + s * 0.84f); float r = s * 0.17f;
-            dl->AddCircleFilled(t, r, IM_COL32(40, 120, 50, 255), 16);
-            dl->AddCircle(t, r, IM_COL32(230, 240, 220, 255), 16, 1.2f);
-            ImVec2 tk[3] = { ImVec2(t.x - r * 0.5f, t.y), ImVec2(t.x - r * 0.1f, t.y + r * 0.42f), ImVec2(t.x + r * 0.55f, t.y - r * 0.45f) };
-            dl->AddPolyline(tk, 3, IM_COL32(255, 255, 255, 255), 0, fmaxf(1.5f, r * 0.3f));
-        }
+        ui_draw_potion(dl, ImVec2(a.x + s * 0.5f, a.y + s * 0.5f), s, 95 + f / 3, f % 3 + 1);
+        if (known) dl->AddRectFilled(a, ImVec2(a.x + s, a.y + s), IM_COL32(0, 0, 0, 150));   /* known to the party: dim, as the saints above */
         if (item_hovered()) {
             const std::string &t = gamedata.formula_names[f];
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
@@ -296,7 +288,6 @@ static void formulae_line(int town)
             margin_tip(tip.c_str());
         }
     }
-    if (any_known) ImGui::TextDisabled("Ticked: known to the party.");
 }
 /* the teachers the town can offer (mods/teachers.c), a line a source: who, what, the chance of a
    day's lesson; dim when not to be had now; the whole under the pointer. Those hired now first. */
@@ -307,21 +298,21 @@ static void teachers_lines(int loc)
     int n = ui_town_teachers(loc, ts, 12);
     std::string hired = ui_teachers_hired_line(loc);
     if (!n && hired.empty()) return;
-    ImGui::Spacing(); heading("Teachers to be hired");
-    if (!hired.empty()) {
-        ImGui::TextDisabled("At the inn now:"); ImGui::SameLine(); ImGui::TextWrapped("%s", hired.c_str());
-        if (item_hovered()) margin_tip("Hired teachers give lessons at the inn: set a member to \"Train or study\" there, a lesson a day, for a fee.");
-    }
-    for (int k = 0; k < n; k++) {
-        const TchSource &s = ts[k];
-        char line[160]; snprintf(line, sizeof line, fix_is_on("teachcap") ? "%s (to %d)" : "%s (skill %d)", ui_teacher_skills(s).c_str(), s.strength);
-        ImGui::BeginGroup();
-        ImGui::TextDisabled("%s:", ui_teacher_short(s.src)); ImGui::SameLine();
-        if (s.off) ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("%s", line);
-        if (s.off) ImGui::PopStyleColor();
-        ImGui::EndGroup();
-        if (item_hovered()) margin_tip(ui_teacher_text(s).c_str());
+    /* one line, the list under the pointer: the margin is for what is at hand */
+    ImGui::Spacing();
+    int open = 0; for (int k = 0; k < n; k++) if (!ts[k].off) open++;
+    if (!hired.empty()) ImGui::TextUnformatted("Teachers: some at the inn now");
+    else if (open) ImGui::Text("Teachers: %d here", open);
+    else ImGui::TextDisabled("Teachers: none to be had now");
+    if (item_hovered()) {
+        std::string tip;
+        if (!hired.empty()) tip += "At the inn now: " + hired + "\nHired teachers give lessons at the inn: set a member to \"Train or study\" there, a lesson a day, for a fee.\n\n";
+        for (int k = 0; k < n; k++) {
+            const TchSource &t = ts[k];
+            char line[200]; snprintf(line, sizeof line, fix_is_on("teachcap") ? "%s: %s (to %d)%s\n" : "%s: %s (skill %d)%s\n", ui_teacher_short(t.src), ui_teacher_skills(t).c_str(), t.strength, t.off ? " - not now" : "");
+            tip += line;
+        }
+        margin_tip(tip.c_str());
     }
 }
 extern "C" int ui_nearest_town(void);
