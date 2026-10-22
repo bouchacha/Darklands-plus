@@ -24,6 +24,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "barterview.h"
 #include "keep.h"
@@ -223,6 +224,7 @@ void barterview_run(void)
     u16 name_o = rw(SS, (u16)(SP + 6)), name_s = rw(SS, (u16)(SP + 8));
     u16 cats_lo = rw(SS, (u16)(SP + 10)), cats_hi = rw(SS, (u16)(SP + 12));
     ns_unwinding = 0;
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     /* the original's setup (barter_screen's first lines) */
     g_wb(GV_font_flag_a, 2); g_wb(GV_font_flag_b, 2);
     g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));   /* back/screen window fonts kept */

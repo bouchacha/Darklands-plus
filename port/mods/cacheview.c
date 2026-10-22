@@ -13,6 +13,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "cacheview.h"
 #include "keep.h"
@@ -242,6 +243,7 @@ static void set_who(int m)
 static void screen_hook(void)                 /* item_cache_screen(arg), s035 1462:0000 */
 {
     if (!cv_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     cv_arg = (s16)rw(SS, (u16)(SP + 4));
     ns_unwinding = 0;
     /* the original's setup (cache_screen's first lines) */

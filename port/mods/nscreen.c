@@ -205,6 +205,7 @@ void ns_enter(int screen)
     if (depth < 8) { stk[depth].screen = ns_screen; stk[depth].nested = ns_nested; stk[depth].since = ns_nested_since; }
     depth++;
     ns_screen = screen; ns_nested = 0;
+    { void plat_hold(int ms); plat_hold(0); }                 /* (its own view draws from now: shown again) */
 }
 void ns_leave(void)
 {

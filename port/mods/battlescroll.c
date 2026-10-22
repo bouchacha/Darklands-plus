@@ -66,7 +66,13 @@ static void select_hook(void)
     if (twice) { center_req = i; return; }
     /* the view stays where it is (a second press within a moment goes to them); only a member on
        another floor is followed there, the view having nothing of them to show */
-    if (g_rb((u16)(GV_cbt_floor + i)) == g_rb(GV_floor_shown)) g_wb(GV_battle_follow, 0);
+    /* the view stays only when the member is in sight (has a spot on the screen): the game's choice
+       of a member needs it, so off the screen the view goes to them, as in the original */
+    if (g_rb((u16)(GV_cbt_floor + i)) != g_rb(GV_floor_shown)) return;
+    int n = (s8)g_rb(GV_hotspot_count), seen = 0;
+    for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) seen = 1;
+    if (seen) g_wb(GV_battle_follow, 0);
+    else center_req = i;
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */

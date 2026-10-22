@@ -18,6 +18,7 @@
 #include "../runtime/config.h"
 #include "gamemodel.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "infoview.h"
 
 void plat_sleep_ms(int ms);
@@ -82,6 +83,7 @@ static void build(void)
 static void screen_hook(void)                 /* party_info (), s034 1550:0006 */
 {
     if (!iv_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     InfoModel *m = &info_model;
     ns_unwinding = 0;
     build();

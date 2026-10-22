@@ -22,6 +22,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "sheetview.h"
 #include "keep.h"
@@ -353,6 +354,7 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
 {
     int who = (s16)rw(SS, (u16)(SP + 4));
     if (!sv_on || !ns_active() || who < 0 || who > 4) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     int st = gm_member_status(who);
     if (st == 0 || st == 5) { AX = 0xffff; hook_return_far(0); return; }
     /* the original's setup */

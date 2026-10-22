@@ -19,6 +19,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "createview.h"
 
 u32 plat_ticks_ms(void);
@@ -99,6 +100,7 @@ static void set_text(u16 at, const char *t, int max)
 static void screen_hook(void)                 /* create_character (), s037 18c8:0004 */
 {
     if (!cg_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     CreateModel *c = &create_model;
     ns_unwinding = 0;
     /* the original's setup */

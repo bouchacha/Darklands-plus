@@ -16,6 +16,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "prayview.h"
 
@@ -53,6 +54,7 @@ static void build(void)
 static void screen_hook(void)                 /* saint_screen(who, saint, party), s034 1462:022c */
 {
     if (!pv_on || !config_get_int("display.native_pray", 1) || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     PrayModel *p = &pray_model;
     p->who = ARG(0); p->saint = ARG(1); p->party = ARG(2);
     ns_unwinding = 0;

@@ -19,6 +19,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "alchemyview.h"
 
@@ -116,6 +117,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
     char host[512]; struct stat st;
     dos_host_path_read("darkland.alc", host, sizeof host);
     if (!av_on || !ns_active() || who < 0 || who > 4 || stat(host, &st) != 0 || st.st_size < 1 || st.st_size > 0x8000) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     /* the original's setup */
     g_ww(GV_saved_back_font, g_rw(GV_back_win_font)); g_ww(GV_saved_screen_font, g_rw(GV_screen_win_font));
     g_wb(GV_screen_kind, 4);

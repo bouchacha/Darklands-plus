@@ -403,11 +403,18 @@ static void slide_draw(void)                /* the field: the old frame leaving,
     SDL_RenderSetClipRect(ren, 0);
 }
 
+int plat_rec_frames;
+/* a native screen being set up (the original's own screen drawn first, unseen): the last frame
+   stays on screen until the new view is up (ns_enter releases it), at most ms */
+static u32 hold_until;
+void plat_hold(int ms) { hold_until = ms > 0 ? SDL_GetTicks() + (u32)ms : 0; }
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); }   /* game-side checks, headless too */
     { static int slow = -1; if (slow < 0) slow = getenv("DL_SLOW_PRESENT") ? atoi(getenv("DL_SLOW_PRESENT")) : 0; if (slow) plat_sleep_ms(slow); }   /* test: a slow display */
     if (headless) return;
+    if (hold_until && (s32)(hold_until - SDL_GetTicks()) > 0) { SDL_PumpEvents(); return; }
+    hold_until = 0;
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
     to_rgb(vga, pal);
@@ -453,6 +460,15 @@ void plat_present(const u8 *vga, const u8 *pal)
             void ui_notice(const char *); ui_notice(msg);
         }
         free(px);
+    }
+    {   /* test: DL_REC=dir, ucmd urec:N - the next N frames each saved (to catch a frame's flash) */
+        extern int plat_rec_frames; static int recn;
+        if (plat_rec_frames > 0 && getenv("DL_REC")) {
+            SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
+            if (sf) { char fp[600]; snprintf(fp, sizeof fp, "%s/f%04d.bmp", getenv("DL_REC"), recn++);
+                      SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch); SDL_SaveBMP(sf, fp); SDL_FreeSurface(sf); }
+            plat_rec_frames--;
+        }
     }
     if (pending_wshot[0]) {
         SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);

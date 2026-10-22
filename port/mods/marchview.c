@@ -16,6 +16,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "marchview.h"
 
@@ -42,6 +43,7 @@ static void build_names(void)
 static void screen_hook(void)                 /* choose_party_order (), s022 1ef8:051c */
 {
     if (!mv_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     MarchModel *m = &march_model;
     ns_unwinding = 0;
     /* the able members: in the present order first, then the others */

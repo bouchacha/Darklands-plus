@@ -18,6 +18,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "enemyview.h"
 
 void plat_sleep_ms(int ms);
@@ -80,6 +81,7 @@ static void info_hook(void)                 /* enemy_info (), s021 1ef8:02ce */
     if (!ev_on || !ns_active()) { hook_call_original(); return; }
     build();
     if (!enemy_model.n) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     EnemyModel *m = &enemy_model;
     ns_unwinding = 0;
     m->open = 1;

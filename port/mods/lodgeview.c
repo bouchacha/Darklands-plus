@@ -23,6 +23,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "lodgeview.h"
 #include "teachers.h"
@@ -259,6 +260,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
 {
     int mode = (s16)rw(SS, (u16)(SP + 4));
     if (!lv_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     LodgeModel *m = &lodge_model;
     lv_mode = mode;
     ns_unwinding = 0;

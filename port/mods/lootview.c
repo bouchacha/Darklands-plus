@@ -16,6 +16,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+void plat_hold(int ms);
 #include "gamemodel.h"
 #include "lootview.h"
 #include "keep.h"
@@ -214,6 +215,7 @@ static void set_who(int m)
 static void loop_hook(void)                  /* loot_loop(items far, count near, cash far), s040 1462:01c8 */
 {
     if (!lv_on || !ns_active()) { hook_call_original(); return; }
+    plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     u16 items_o = rw(SS, (u16)(SP + 4)), items_s = rw(SS, (u16)(SP + 6)), count = rw(SS, (u16)(SP + 8));
     u16 cash_o = rw(SS, (u16)(SP + 10)), cash_s = rw(SS, (u16)(SP + 12));
     ns_unwinding = 0;
