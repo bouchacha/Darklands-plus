@@ -522,18 +522,18 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     size_t n = (size_t)bw * bh;
 #define BI(x, y) (((y) - Y0) * bw + ((x) - X0))
     int *dd = malloc(n * sizeof *dd), *pv = malloc(n * sizeof *pv);
-    long *heap = malloc(n * 6 * sizeof *heap);
+    long long *heap = malloc(n * 6 * sizeof *heap);
     if (!dd || !pv || !heap) { free(dd); free(pv); free(heap); return 0; }
     for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
     /* Dijkstra from town to town: a tile of river or of sea by a shore costs 2, open sea 3 (so the
        boats keep to the coasts, as they did), land 12 (so a town away from the water goes overland
        to the nearest of it, and no route cuts across land to save a bend). */
     int hn = 0, goal = -1;
-#define HPUSH(c, i) do { long v_ = ((long)(c) << 32) | (long)(i); int j_ = hn++; \
+#define HPUSH(c, i) do { long long v_ = ((long long)(c) << 32) | (long long)(i); int j_ = hn++; \
         while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
     dd[BI(ax, ay)] = 0; HPUSH(0, BI(ax, ay));
     while (hn > 0 && hn < (int)(n * 6) - 8) {
-        long top = heap[0], last = heap[--hn];
+        long long top = heap[0], last = heap[--hn];
         int j = 0;
         for (;;) { int c = 2 * j + 1; if (c >= hn) break; if (c + 1 < hn && heap[c + 1] < heap[c]) c++;
             if (heap[c] >= last) break; heap[j] = heap[c]; j = c; }
