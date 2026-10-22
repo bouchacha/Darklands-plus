@@ -10,6 +10,7 @@
  *     and says what the last purchase or sale did.
  * Drawn from barter_model alone; clicks become actions (BV_*) for the screen's loop. */
 #include "imgui.h"
+#include <map>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -149,6 +150,10 @@ extern "C" void barterview_draw(void)
         if ((d->type >= 0x17 && d->type <= 0x1a) || (d->type >= 0x40 && d->type <= 0x42)) return false;
         return true;
     };
+    /* how many of each thing the party carries (an ingredient for sale says it) */
+    std::map<int, int> have_n;
+    { GmItem g; for (int m = 0; m < 5; m++) if (b.present[m]) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g)) have_n[g.id] += g.count; }
+    auto ingredient = [&](int id) { const ItemDef *d = def(id); return d && d->kind == K_INGREDIENT; };
     static bool spare_lit;                       /* the button under the pointer (last frame): its things pulse in the list */
     float pulse = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
     for (int L = 0; L < 2; L++) {
@@ -204,12 +209,14 @@ extern "C" void barterview_draw(void)
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
             if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);     /* equipped: a red mark at its left (said in the strip) */
-            const char *tag = eq == 2 ? "rides it" : kept ? "kept" : nullptr;
+            char haves[24] = "";
+            if (!L && ingredient(id)) snprintf(haves, sizeof haves, "have %d", have_n.count(id) ? have_n[id] : 0);
+            const char *tag = eq == 2 ? "rides it" : kept ? "kept" : haves[0] ? haves : nullptr;
             float tagw = tag ? P.tag_width(tag) : 0;
             T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.tag(nx, y, ROWH, tag, NsDraw::TAG_KEPT);
+                P.tag(nx, y, ROWH, tag, haves[0] ? (have_n.count(id) ? NsDraw::TAG_OWNER : NsDraw::INK_DIM) : NsDraw::TAG_KEPT);
             }
             T(fo, NsDraw::FS_BODY, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
             bool cant = !L && price > b.total_pf;
@@ -217,7 +224,8 @@ extern "C" void barterview_draw(void)
             /* the action on the row under the pointer */
             if (h) {
                 const char *lab = L ? "Sell" : "Buy";
-                bool two = L && count > 1;
+                bool ten = !L && ingredient(id);                      /* (an ingredient: ten at once) */
+                bool two = (L && count > 1) || ten;
                 float bw = 15, bx1 = x1 - 2 - pw - 2, bx0 = bx1 - bw, ax0 = bx0 - (two ? 13 : 0);
                 if (!(L && (price <= 0 || kept))) {
                     R(ax0 - 1, y + 0.8f, bx1, y + ROWH - 0.8f, IM_COL32(226, 204, 160, 255));
@@ -231,8 +239,9 @@ extern "C" void barterview_draw(void)
                     if (two) {
                         bool ha = in(mx, my, ax0, y, bx0 - 1, y + ROWH);
                         R(ax0, y + 1, bx0 - 1, y + ROWH - 1, ha ? IM_COL32(150, 56, 30, 255) : IM_COL32(120, 44, 24, 200), 1.5f);
-                        T(fo, NsDraw::FS_BODY, ax0 + 1.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), "All");
-                        if (hit(ax0, y, bx0 - 1, y + ROWH)) { if (pack) ns_push(BV_PSELL, id, qual, 255); else ns_push(BV_SELL, b.item[i].idx, 255, 0); }
+                        if (ten) R(ax0, y + 1, bx0 - 1, y + ROWH - 1, ha ? IM_COL32(52, 112, 44, 255) : IM_COL32(40, 92, 34, 200), 1.5f);
+                        T(fo, NsDraw::FS_BODY, ax0 + 1.5f, y + 2.2f, IM_COL32(250, 240, 214, 255), ten ? "x10" : "All");
+                        if (hit(ax0, y, bx0 - 1, y + ROWH)) { if (ten) ns_push(BV_BUY, i, 10, 0); else if (pack) ns_push(BV_PSELL, id, qual, 255); else ns_push(BV_SELL, b.item[i].idx, 255, 0); }
                     }
                 }
             }
