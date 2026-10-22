@@ -57,7 +57,31 @@ extern "C" void prayview_draw(void)
     P.text(f, NsDraw::FS_HEAD, 0, yy, ink, b, bx - 12);
     if (P.button(bx - 33, yy, bx - 24, yy + 8.5f, "-", IM_COL32(120, 84, 40, 235), NsDraw::FS_BODY)) ns_push(PV_LESS, 0, 0, 0);
     yy += 10;
-    snprintf(b, sizeof b, "%s has %d; %d will be left.", who.c_str(), p.maxdf, p.maxdf - p.df);
+    {   /* the bar: drag (or click) to set the favor; the mark where the best chance is reached */
+        float x0 = x, x1 = bx, y0 = yy, y1 = yy + 5.5f;
+        P.rect(x0, y0, x1, y1, IM_COL32(120, 100, 70, 255), 1.5f);
+        float f = p.maxdf > 0 ? (float)p.df / p.maxdf : 0;
+        P.rect(x0 + 0.5f, y0 + 0.5f, x0 + 0.5f + (x1 - x0 - 1) * f, y1 - 0.5f, IM_COL32(222, 186, 70, 255), 1.2f);
+        if (p.df99 >= 0 && p.maxdf > 0) {
+            float mx2 = x0 + (x1 - x0) * p.df99 / p.maxdf;
+            P.rect(mx2 - 0.4f, y0 - 1.5f, mx2 + 0.4f, y1 + 1.5f, NsDraw::GREEN);
+        }
+        float hx = x0 + (x1 - x0) * f;
+        P.rect(hx - 1.2f, y0 - 1.0f, hx + 1.2f, y1 + 1.0f, IM_COL32(90, 60, 20, 255), 0.8f);
+        static bool drag;
+        if (!ns_in.down) drag = false;
+        else if (ns_in.px >= x0 - 2 && ns_in.px < x1 + 2 && ns_in.py >= y0 - 3 && ns_in.py < y1 + 3) drag = true;   /* (went down on the bar) */
+        if (P.hit(x0 - 2, y0 - 3, x1 + 2, y1 + 3)) drag = true;                                                     /* (a click on it) */
+        if (drag && p.maxdf > 0) {
+            float t = (P.mx - x0) / (x1 - x0); t = t < 0 ? 0 : t > 1 ? 1 : t;
+            int v = (int)(t * p.maxdf + 0.5f);
+            if (p.df99 >= 0 && v > p.df99 && v < p.df99 + p.maxdf / 40 + 1) v = p.df99;   /* (snaps to the best chance's mark) */
+            if (v != p.df) ns_push(PV_SET, v, 0, 0);
+            if (!ns_in.down) drag = false;
+        }
+        yy += 8;
+    }
+    snprintf(b, sizeof b, p.df99 >= 0 && p.df > p.df99 ? "%s has %d; %d will be left. Past the green mark the chance rises no more." : "%s has %d; %d will be left.", who.c_str(), p.maxdf, p.maxdf - p.df);
     P.text(fo, NsDraw::FS_SMALL, x, yy, soft, b);
     yy += 7.5f;
     snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance);

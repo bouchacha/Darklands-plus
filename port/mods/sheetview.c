@@ -430,3 +430,11 @@ void sheetview_init(void)
     sv_on = config_get_int("display.native_sheet", 1);
     hook_install(GF_member_sheet, sheet_hook);
 }
+
+/* test: member m prays to saint s (as the sheet's "X prays") */
+void sheetview_test_pray(int m, int s)
+{
+    if (s < 0) for (int k = 0; k < 140 && s < 0; k++) if (gm_knows_saint(m, k)) s = k;   /* (-1: the first saint the member knows) */
+    fprintf(stderr, "test: member %d prays to %d\n", m, s);
+    ns_push(SV_PRAY, m, s, 0);
+}

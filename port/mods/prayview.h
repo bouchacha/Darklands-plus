@@ -12,6 +12,7 @@ typedef struct {
     int who, saint, party;           /* who prays; the saint (DARKLAND.LST order); for the whole party */
     int choose;                      /* the saint helps one member: who is chosen */
     int df, maxdf, chance;           /* the favor to spend, what the member has, the chance (0..99) */
+    int df99;                        /* the least favor that gives the best chance (more is wasted), -1 none */
     int why, virtue, vmin, xmin;     /* no chance: 1 the member's Virtue is below the saint's minimum (vmin), 2 less favor than its least (xmin), 0 another reason */
     int cls;                         /* the statue (the handler's class) */
     char day[32];                    /* the saint's day */
@@ -22,7 +23,7 @@ typedef struct {
 
 extern PrayModel pray_model;
 
-enum { PV_MORE = 1, PV_LESS, PV_PRAY, PV_CANCEL };   /* PV_PRAY a: the member prayed for (-1 as P) */
+enum { PV_MORE = 1, PV_LESS, PV_PRAY, PV_CANCEL, PV_SET };   /* PV_SET a: the favor to spend (the bar) */   /* PV_PRAY a: the member prayed for (-1 as P) */
 
 void prayview_init(void);
 int prayview_is_on(void);

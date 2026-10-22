@@ -42,6 +42,15 @@ static void build(void)
     p->df = (s16)g_rw(GV_pray_df);
     p->maxdf = (s8)g_rb(D_MAXDF(p->who));
     p->chance = clamp99(H(p->saint, p->who, p->df, 7));
+    {   /* the least favor that gives the best chance this member can have (the bar's mark) */
+        static int memo_who = -1, memo_saint = -1, memo_max = -1, memo = -1;
+        if (memo_who != p->who || memo_saint != p->saint || memo_max != p->maxdf) {
+            int best = -1, at = -1;
+            for (int d = 0; d <= p->maxdf && !ns_unwinding; d++) { int c = clamp99(H(p->saint, p->who, d, 7)); if (c > best) { best = c; at = d; } if (c >= 99) break; }
+            memo = best > 0 ? at : -1; memo_who = p->who; memo_saint = p->saint; memo_max = p->maxdf;
+        }
+        p->df99 = memo;
+    }
     /* no chance: why, as the saints' common reckoning has it (s039 165c:0000: nothing unless the
        member's Virtue reaches the saint's minimum, its table's 4, and the favor its least, 2) */
     p->why = 0; p->virtue = (s8)g_rb((u16)(G_MEMBER(p->who) + G_M_SKILLS + 9));
@@ -102,6 +111,7 @@ static void screen_hook(void)                 /* saint_screen(who, saint, party)
                 if (H(p->saint, p->who, cur, 7) < 99) { cur++; if (cur > (s8)g_rb(D_MAXDF(p->who))) cur = (s8)g_rb(D_MAXDF(p->who)); g_ww(GV_pray_df, (u16)cur); }
                 break;
             case PV_LESS: if (cur > 0) g_ww(GV_pray_df, (u16)(cur - 1)); break;
+            case PV_SET: { int v = a.a, mx = (s8)g_rb(D_MAXDF(p->who)); if (v < 0) v = 0; if (v > mx) v = mx; g_ww(GV_pray_df, (u16)v); break; }
             case PV_PRAY:
                 if (!H(p->saint, p->who, cur, 7)) break;
                 if (a.a >= 0 && (a.a >= gm_party_size() || !gm_member_present(a.a))) break;
