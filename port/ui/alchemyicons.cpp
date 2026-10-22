@@ -70,7 +70,22 @@ void grade_dots(const Pen &p, int tier)
 {
     if (tier < 1) return;
     if (tier > 3) tier = 3;
-    if (config_get_int("display.potion_grade", 1) == 0) {     /* (the earlier dots, for a comparison) */
+    int gm = config_get_int("display.potion_grade", 1);
+    if (gm == 3 || gm == 4) {                                    /* chevrons, as a rank's: one to three, stacked */
+        float hw = fmaxf(2.4f, 3.4f / p.u), hh = hw * 0.62f, th = fmaxf(1.1f, 1.7f / p.u), step = hh + th * 1.25f;
+        float x = gm == 3 ? 5.6f : 5.8f, y0 = gm == 3 ? -10.4f : 9.6f - (tier - 1) * step;
+        if (gm == 4) {                                           /* a dark badge in the corner, the chevrons on it */
+            p.dl->AddRectFilled(p.P(x - hw - th, y0 - hh * 0.5f - th * 1.3f), p.P(x + hw + th, y0 + (tier - 1) * step + hh * 0.5f + th * 1.6f), C(0.16f, 0.10f, 0.05f, 0.92f), th * p.u);
+        }
+        for (int k = 0; k < tier; k++) {
+            float y = y0 + k * step;
+            ImVec2 pts[3] = { p.P(x - hw, y + hh * 0.5f), p.P(x, y - hh * 0.5f), p.P(x + hw, y + hh * 0.5f) };
+            if (gm == 3) p.dl->AddPolyline(pts, 3, C(0.20f, 0.12f, 0.04f, 0.95f), 0, (th + 1.2f / p.u) * p.u);
+            p.dl->AddPolyline(pts, 3, C(1.0f, 0.82f, 0.20f), 0, th * p.u);
+        }
+        return;
+    }
+    if (gm == 0) {     /* (the earlier dots, for a comparison) */
         float r = fmaxf(1.3f, 2.0f / p.u), step = fmaxf(3.3f, 2 * r + 0.5f / p.u);
         for (int k = 0; k < tier; k++) {
             float x = 5.4f + (r - 1.3f) * 0.8f, y = -10.6f + k * step;
