@@ -299,7 +299,7 @@ const char *orders_hint(void)
     if (!config_get_int("battle.click_hint", 1) || config_get_int("original", 0) || g_rb(D_ORDER_MODE) != 1 || (s8)g_rb(D_SELECTED) != hint_sel) return 0;
     int a = hint_act, flee = (g_rw((u16)(GV_cbt_flags + 2 * hint_sel)) & 0x1000) != 0;
     switch (hint_ct) {
-    case -2: return a == 0x100 ? "Click: throw here" : flee && a == 1 ? "Click: flee here" : "Click: walk here";
+    case -2: return a == 0x100 ? "Click: throw here" : flee && a == 1 ? "Click: flee here" : 0;   /* (walking there goes without saying) */
     case -3: return a == 0x100 ? "No clear throw" : "Can't walk there";
     case -4: return a == MISSILE ? "No clear shot" : a == 0x100 ? "No clear throw" : "No way there";
     case -1: return 0;
@@ -312,7 +312,7 @@ const char *orders_hint(void)
     case 6: return "Click: attack (Berserk)";
     case 0x22: return "Click: parry its blows";
     }
-    return "Click: attack";
+    return 0;                                                    /* (a plain attack goes without saying) */
 }
 /* the game tests the pointer only while the button is held (or the cursor keys move it: combat_mouse,
    s014 19cd:0006, D_d728); for the words beside it, the same test is run whenever the pointer moves

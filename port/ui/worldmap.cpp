@@ -932,11 +932,6 @@ extern "C" void worldmap_draw(void)
         ImGui::SameLine();
         if (ImGui::SmallButton("Stop")) travel_stop();
     }
-    if (ImGui::SmallButton("Find the party")) { int px, py; party_tile(&px, &py); if (px >= 0) tile_px(px, py, &cx, &cy); }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Moves the map to where the party is.");
-    ImGui::SameLine();
-    if (ImGui::SmallButton("See the whole map")) { zoom = fitz; cx = worldmap.full_w * 0.5f; cy = worldmap.full_h * 0.5f; }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Zooms out to the whole Empire.");
     {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
         static std::vector<QuestRow> qr; static int qf = -1000;
         if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); quest_merge(qr); qf = ImGui::GetFrameCount(); }
@@ -1056,9 +1051,14 @@ extern "C" void worldmap_draw(void)
             ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
             ImGui::SameLine(); ImGui::TextUnformatted("A quest");
             ImGui::SameLine(rcolw);
-            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
+            q = ImGui::GetCursorScreenPos();                          /* the party: a click shows where it is */
+            if (ImGui::InvisibleButton("##party", ImVec2(rcolw - ImGui::GetStyle().ItemSpacing.x, is))) { int px, py; party_tile(&px, &py); if (px >= 0) { tile_px(px, py, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; } }
+            bool phv = ImGui::IsItemHovered();
+            if (phv) { pl->AddRectFilled(q, ImVec2(q.x + rcolw - ImGui::GetStyle().ItemSpacing.x, q.y + is), IM_COL32(200, 170, 120, 90), 3); ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); }
+            m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
             pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
-            ImGui::SameLine(); ImGui::TextUnformatted("The party");
+            pl->AddText(ImVec2(q.x + is * 1.35f, q.y + (is - ImGui::GetFontSize()) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), "The party");
+            if (phv) ImGui::SetTooltip("Click to find the party on the map.");
             q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
             if (show_icons) { draw_icon(pl, m, is, 0); pl->AddCircleFilled(m, is * 0.45f, IM_COL32(236, 226, 204, 150), 20); }
             else { pl->AddCircle(m, is * 0.25f, IM_COL32(0, 0, 0, 200), 0, 3.0f); pl->AddCircle(m, is * 0.25f, kind_colour(0), 0, 1.6f); }
@@ -1068,9 +1068,7 @@ extern "C" void worldmap_draw(void)
         /* what the map shows: two to a row, as the entries above */
         ImGui::Checkbox("Names", &show_names); ImGui::SameLine(rcolw); ImGui::Checkbox("Quests", &show_quests);
         ImGui::Checkbox("Boats", &show_boats);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("The boats between towns' docks, along the rivers and coasts.");
         ImGui::SameLine(rcolw); ImGui::Checkbox("Icons", &show_icons);
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Each place as a small icon of its kind. When off: a coloured dot.");
         if (show_icons) {                                        /* which set of icons (map.icon_set) */
             static const char *SETS[3] = { "Painted", "Woodcut", "Seals" };
             int st = icon_set();
@@ -1080,7 +1078,6 @@ extern "C" void worldmap_draw(void)
                 for (int k = 0; k < 3; k++) if (ImGui::Selectable(SETS[k], st == k)) { config_set_int("map.icon_set", k); extern int ui_dirty_config; ui_dirty_config = 1; }
                 ImGui::EndCombo();
             }
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Painted, woodcut (ink, as the printed maps of about 1500) or seals (a roundel in the colour of its kind).");
         }
         if (ui_font_small) ImGui::PopFont();
     }

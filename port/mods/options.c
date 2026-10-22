@@ -35,6 +35,7 @@ static void restart_end(int v) { saves_restart = v; }
 
 static const int V_CHANCES[] = { 2, 1, 0 };
 static const int V_PICTURE[] = { 0, 1, 2, 3 };
+static const int V_TIPDELAY[] = { 0, 500, 1000 };
 static const int V_CLOCK[] = { 0, 1 };
 static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
@@ -55,6 +56,7 @@ static Option OPTIONS[] = {
     { "display.native_panel", S_SCREENS, 0, "New party panel", "each member's Endurance, Strength and Divine Favor as labelled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name.", OC_SHOW, 0, 1, 1 },
     { "display.panel_losses", S_SCREENS, "display.native_panel", "Losses shown pale in the party panel", "the Endurance and Strength a member has lost show as a pale part at the end of the bar, so even a point or two lost stands out (as the original's white against the blue).", OC_SHOW, 0, 1, 1 },
     { "display.panel_picture", S_SCREENS, "display.native_panel", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "your portrait, else the battle sprite, else the crest|the battle sprite, else the crest|the crest|no picture", V_PICTURE, 0, 0, OF_COMBO },
+    { "display.tooltip_delay", S_SCREENS, 0, "Tooltips", "the notes that appear by the pointer: how long the pointer rests on something before its note shows (once one shows, the next is at once).", OC_TASTE, 0, 500, 500, "at once|after a moment|after a second", V_TIPDELAY, 0, 0, OF_COMBO },
     { "display.native_menu", S_SCREENS, 0, "New menus", "the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held.", OC_SHOW, 0, 1, 1, 0, 0, menuview_set },
     { "display.native_title", S_SCREENS, 0, "New start screen", "Continue (loads the newest save), Load, New party and Quickstart, over the original game's art.", OC_SHOW, 0, 1, 1, 0, 0, titleview_set },
     { "display.native_cards", S_SCREENS, 0, "New card screens", "card text in the typeface you choose, the options as rows to click with their chances beside them; an option that uses an item or a saint lists who can. The game still decides every outcome. When off: the original cards (with crisp text drawn over them).", OC_SHOW, 0, 1, 1, 0, 0, cardview_set },
@@ -116,7 +118,7 @@ static Option OPTIONS[] = {
     { "battle.next_member", S_BATTLE, "battle.quick_orders", "Then select the next member without orders", "while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle.", OC_EASE, 0, 1, 1 },
     { "battle.order_bar", S_BATTLE, 0, "Order buttons over the field", "when the window has no room for a right margin (narrower than 16:9), the order buttons appear in a strip at the bottom of the battlefield while a member is selected, so no right-click menu is needed.", OC_SHOW, 0, 1, 1 },
     { "battle.order_icons", S_BATTLE, 0, "Pictures on the order buttons", "each order button in the right margin (or over the field) shows a picture beside its name: a sword for Std Attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender.", OC_SHOW, 0, 1, 1 },
-    { "battle.click_hint", S_BATTLE, 0, "Say what a click will do", "with a member selected, a short label by the pointer says what a click there does (attack, shoot, walk here) or why it can't (no way there, no clear shot).", OC_SHOW, 0, 1, 1 },
+    { "battle.click_hint", S_BATTLE, 0, "Say what a click will do", "with a member selected, a short label by the pointer says what a click there does when it isn't a plain attack or walk (shoot, throw, flee, a Vulnerable or Berserk attack) or why it can't (no way there, no clear shot).", OC_SHOW, 0, 1, 1 },
     { "battle.drag_pan", S_BATTLE, 0, "Drag to move the view", "hold the right (or middle) button and move the mouse to drag the battle view; a right-click without moving still opens the menus.", OC_SHOW, 0, 1, 1 },
     { "battle.select_stays", S_BATTLE, 0, "Selecting a member doesn't move the view", "1 to 5 (or a click on a member's box) select a member without moving the view; press twice to move the view to the member and follow them. Selecting a member on another floor still moves the view to them.", OC_SHOW, 0, 1, 1 },
     { "battle.smooth_scroll", S_BATTLE, 0, "Smooth scrolling", "the battle view slides to each new place instead of jumping.", OC_SHOW, 0, 1, 1 },

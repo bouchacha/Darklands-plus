@@ -993,6 +993,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
+    ImGui::GetStyle().HoverDelayNormal = config_get_int("display.tooltip_delay", 500) / 1000.0f;   /* (third_party/imgui: a tooltip waits so long) */
     ImGui::NewFrame();
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
@@ -1126,6 +1127,7 @@ extern "C" void ui_progress_draw(SDL_Renderer *ren, const char *step, int pct, c
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
+    ImGui::GetStyle().HoverDelayNormal = config_get_int("display.tooltip_delay", 500) / 1000.0f;   /* (third_party/imgui: a tooltip waits so long) */
     ImGui::NewFrame();
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

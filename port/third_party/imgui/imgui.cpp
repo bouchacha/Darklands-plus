@@ -11471,6 +11471,22 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
     }
     ImGuiWindowFlags flags = ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
     Begin(window_name, NULL, flags | extra_window_flags);
+    // Darklands+: a tooltip shows only once the pointer has rested on its thing a moment
+    // (GImGui->Style.HoverDelayNormal, 0 none); one just shown, the next is at once (as a menu bar).
+    if (!is_dragdrop_tooltip && g.Style.HoverDelayNormal > 0.0f)
+    {
+        static int dlp_last_frame = -10; static float dlp_wanted; static float dlp_shown_until;
+        if (g.FrameCount - dlp_last_frame > 1) dlp_wanted = 0.0f;
+        if (g.FrameCount != dlp_last_frame) { dlp_wanted += g.IO.DeltaTime; dlp_last_frame = g.FrameCount; }
+        if (ImLengthSqr(g.IO.MouseDelta) > 4.0f * 4.0f && dlp_wanted < g.Style.HoverDelayNormal) dlp_wanted = 0.0f;   // (still moving across it)
+        bool soon_after = (float)g.Time < dlp_shown_until;
+        if (dlp_wanted < g.Style.HoverDelayNormal && !soon_after)
+        {
+            g.CurrentWindow->Hidden = g.CurrentWindow->SkipItems = true;   // (this frame; kept laid out as it would be)
+        }
+        else
+            dlp_shown_until = (float)g.Time + 0.35f;
+    }
     // 2023-03-09: Added bool return value to the API, but currently always returning true.
     // If this ever returns false we need to update BeginDragDropSource() accordingly.
     //if (!ret)

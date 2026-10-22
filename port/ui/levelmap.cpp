@@ -284,7 +284,6 @@ extern "C" void levelmap_draw(void)
         if (wx >= 0) {
             ImVec2 a = P(qx0, qy0), b = P(qx1, qy0), cc = P(qx1, qy1), d = P(qx0, qy1);
             dl->AddQuad(a, b, cc, d, IM_COL32(250, 220, 120, 255), 2.5f);
-            ImGui::SetTooltip("Click to walk the party here");
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 levelwalk_x = wx; levelwalk_y = wy; levelwalk_floor = fl;
                 open_lm = false;

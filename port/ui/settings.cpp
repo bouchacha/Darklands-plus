@@ -86,7 +86,6 @@ void tab_mods(void)
                     float y = a.y + h * (0.32f + 0.18f * k);
                     dl->AddLine(ImVec2(a.x + h * 0.12f, y), ImVec2(a.x + h * 0.58f, y), ImGui::GetColorU32(hv ? ImGuiCol_Text : ImGuiCol_TextDisabled), fmaxf(1.5f, h * 0.07f));
                 }
-                if (ImGui::IsItemHovered() && !ImGui::IsItemActive()) ImGui::SetTooltip("Drag to reorder: lower in the list wins.");
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
                     ImGui::SetDragDropPayload("DL_MOD", &i, sizeof i);
                     ImGui::EndDragDropSource();
@@ -95,12 +94,10 @@ void tab_mods(void)
                 ImGui::BeginDisabled(i == 0);
                 if (ImGui::ArrowButton("##up", ImGuiDir_Up)) { move_from = i; move_to = i - 1; }
                 ImGui::EndDisabled();
-                if (i > 0 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move up (loses to the mods below it)");
                 ImGui::SameLine();
                 ImGui::BeginDisabled(i == datamods_n - 1);
                 if (ImGui::ArrowButton("##down", ImGuiDir_Down)) { move_from = i; move_to = i + 1; }
                 ImGui::EndDisabled();
-                if (i < datamods_n - 1 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move down (wins over the mods above it)");
                 ImGui::SameLine();
             }
             bool on = datamods[i].on != 0;
@@ -686,8 +683,9 @@ void tab_display(void)
         const char *ui_clock_name(int k);
         int cur = config_get_int("display.clock", 1);
         float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
-        static const int ORDER[6] = { 1, 3, 4, 5, 2, 0 };
-        for (int j = 0; j < 6; j++) {
+        static const int ORDER[4] = { 1, 3, 5, 0 };
+        if (cur == 2 || cur == 4) cur = 1;                          /* (dropped clocks: the tower dial) */
+        for (int j = 0; j < 4; j++) {
             int st = ORDER[j];
             if (j % 3) ImGui::SameLine();
             ImGui::PushID(st);
@@ -705,7 +703,7 @@ void tab_display(void)
             ImGui::PopID();
         }
         ui_hint("Shown while hours pass (at the inn, waiting, travelling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
-                "the game's own clock is an armillary sphere, here also drawn anew at the window's resolution.");
+                "the game's own clock looks most like an astrolabe, here also drawn anew at the window's resolution.");
     }
 
     dsec("Icons");
