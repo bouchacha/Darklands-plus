@@ -717,7 +717,19 @@ static void saints(NsDraw &P, const SheetModel &s)
     ty += P.para(f, NsDraw::FS_HEAD, tx, ty, tw, ink, gamedata.saints[t].name) + 1.5f;
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who + ".") + 1;
     if (!where.empty()) ty += P.para(fo, 4.4f, tx, ty, tw, soft, where) + 1.5f;
-    else ty += 0.5f;
+    else {                                               /* pray: a button for each who knows it (the original: a click on the saint) */
+        float bx = tx, bh = 8.5f;
+        for (int m = 0; m < 5; m++) {
+            if (!s.present[m] || !s.saint[m][t]) continue;
+            std::string lb = ns_gtext(s.names[m]) + " prays";
+            float bw = P.width(P.fo, NsDraw::FS_SMALL, lb) + 6;
+            if (bx + bw > DX1 - 1 && bx > tx) { bx = tx; ty += bh + 1; }
+            if (P.button(bx, ty, bx + bw, ty + bh, lb, IM_COL32(40, 70, 130, 235))) ns_push(SV_PRAY, m, t, 0);
+            if (P.over(bx, ty, bx + bw, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much divine favor to spend.", 20);
+            bx += bw + 1.5f;
+        }
+        ty += bh + 2;
+    }
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), saint_info_does(t)) + 1.5f;
     const char *un = saint_info_unlike(t);
     if (*un) ty += P.para(fo, 4.4f, tx, ty, tw, IM_COL32(140, 50, 30, 255), std::string("Differs from the description: ") + un) + 1.5f;

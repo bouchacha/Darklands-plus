@@ -263,6 +263,14 @@ static void act(const NsAction *a, int *who)
         note(t);
         return;
     }
+    if (a->type == SV_PRAY) {                   /* the original sheet's saints list: a saint clicked calls on it (saint_pray) */
+        int m = a->a, t = a->b;
+        if (!gm_member_present(m) || gm_member_status(m) != 1 || !gm_knows_saint(m, t)) return;
+        ns_call(GF_saint_pray, 2, m, t);
+        if (ns_unwinding) return;
+        member_redraw(*who);
+        return;
+    }
     if (a->type != SV_WHO && a->type != SV_LEADER && a->type != SV_CLOSE && a->type != SV_UNDO) {
         if (!gm_item(w, idx, &g)) return;
         item_name(g.id, nm, sizeof nm);

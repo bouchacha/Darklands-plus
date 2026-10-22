@@ -53,10 +53,11 @@ typedef struct {
 extern SheetModel sheet_model;
 
 enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, SV_CLOSE, SV_UNDO,
-       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP };
+       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY };
 /* the pack's: SV_PREADY / SV_PDRINK item id, quality   SV_PDROP id, quality, 255 = all the party's spares
    SV_KEEP id, quality, on (kept from selling and dropping) */
 /* SV_READY/PUTAWAY/DRINK item   SV_GIVE item, to member, 255 = the whole stack   SV_DROP item, 255 = the stack
+   SV_PRAY member, saint (the prayer screen, as a click on a saint in the original sheet)
    SV_WHO / SV_LEADER member   SV_CLOSE   SV_UNDO: the last thing left behind taken back */
 
 extern int sheetview_dragging;        /* the view drags a thing: a release over the party panel is a give, not a click there */
