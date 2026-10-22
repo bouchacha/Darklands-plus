@@ -498,8 +498,8 @@ int travel_nearest(int type)
 
 /* ---------------------------------------------------------------- the boats' ways
  * a boat from the docks of town a to town b ($Docks00, DARKLAND.CTY +0x4a..): the way it goes on
- * the map, by water (ocean 1, major river 2) from a water tile beside a to one beside b, the
- * fewest tiles; tiles out to *n (at most max), the towns' own tiles first and last. 0: no way by
+ * the map: along the rivers and the coasts, overland only to reach the water; the towns' own
+ * tiles first and last. 0: no way by
  * water (the caller draws a straight line). Kept per pair. */
 typedef struct { int a, b, n; short *x, *y; } BoatWay;
 static BoatWay *boats; static int nboats;
@@ -518,19 +518,16 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     int *dd = malloc(n * sizeof *dd), *pv = malloc(n * sizeof *pv), *q = malloc(n * sizeof *q);
     if (!dd || !pv || !q) { free(dd); free(pv); free(q); return 0; }
     for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
-    /* Dijkstra: a start tile costs 3 per tile of land crossed from the town, so the
-       route leaves from the nearest water rather than fanning out to any river. */
-    int hn = 0, R = 3, goal = -1;
+    /* Dijkstra from town to town over the whole map: a tile of river or of sea by a shore costs 2,
+       open sea 3 (so the boats keep to the coasts, as they did), land 12 (so a town away from the
+       water goes overland to the nearest of it, and no route cuts across land to save a bend). */
+    int hn = 0, goal = -1;
     long *heap = malloc(n * 6 * sizeof *heap);
     if (!heap) { free(dd); free(pv); free(q); return 0; }
 #define HPUSH(c, i) do { long v_ = ((long)(c) << 32) | (long)(i); int j_ = hn++; \
         while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
-    for (int y = ay - 2 * R; y <= ay + 2 * R; y++) for (int x = ax - R; x <= ax + R; x++) {
-        if (x < 0 || y < 0 || x >= mw || y >= mh) continue;
-        int t = terr[y * mw + x]; if (!boat_water(t)) continue;
-        int dx = abs(x - ax), dy = abs(y - ay) / 2, c = 3 * (dx > dy ? dx : dy);
-        dd[y * mw + x] = c; HPUSH(c, y * mw + x);
-    }
+    if (ax < 0 || ay < 0 || ax >= mw || ay >= mh || bx < 0 || by < 0 || bx >= mw || by >= mh) { free(heap); free(dd); free(pv); free(q); return 0; }
+    dd[ay * mw + ax] = 0; HPUSH(0, ay * mw + ax);
     while (hn > 0 && hn < (int)(n * 6) - 8) {
         long top = heap[0], last = heap[--hn];
         int j = 0;
@@ -540,12 +537,20 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
         int i = (int)(top & 0xffffffff), cst = (int)(top >> 32);
         if (cst != dd[i]) continue;
         int x = i % mw, y = i / mw;
-        if (abs(x - bx) <= R && abs(y - by) <= R * 2) { goal = i; break; }
+        if (x == bx && y == by) { goal = i; break; }
         for (int k = 0; k < 6; k++) {
             int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
-            int ni = ny * mw + nx; if (!boat_water(terr[ni])) continue;
-            if (dd[ni] >= 0 && dd[ni] <= cst + 1) continue;
-            dd[ni] = cst + 1; pv[ni] = i; HPUSH(cst + 1, ni);
+            int ni = ny * mw + nx, t = terr[ni], step = 12;
+            if (boat_water(t)) {
+                step = 2;
+                if (t == 1) {
+                    int open = 1;
+                    for (int k2 = 0; k2 < 6 && open; k2++) { int mx, my, s2; if (nb(nx, ny, k2, &mx, &my, &s2) && terr[my * mw + mx] != 1) open = 0; }
+                    if (open) step = 3;
+                }
+            }
+            if (dd[ni] >= 0 && dd[ni] <= cst + step) continue;
+            dd[ni] = cst + step; pv[ni] = i; HPUSH(cst + step, ni);
         }
     }
 #undef HPUSH
@@ -554,12 +559,10 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     BoatWay w = { a, b, 0, 0, 0 };
     if (goal >= 0) {
         for (int i = goal; i >= 0; i = pv[i]) cnt++;
-        w.x = malloc((size_t)(cnt + 2) * sizeof(short)); w.y = malloc((size_t)(cnt + 2) * sizeof(short));
-        int k = cnt + 1;
-        w.x[k] = (short)bx; w.y[k] = (short)by; k--;
+        w.x = malloc((size_t)cnt * sizeof(short)); w.y = malloc((size_t)cnt * sizeof(short));
+        int k = cnt - 1;
         for (int i = goal; i >= 0; i = pv[i], k--) { w.x[k] = (short)(i % mw); w.y[k] = (short)(i / mw); }
-        w.x[0] = (short)ax; w.y[0] = (short)ay;
-        w.n = cnt + 2;
+        w.n = cnt;
     }
     free(dd); free(pv); free(q);
     boats = realloc(boats, (size_t)(nboats + 1) * sizeof *boats); boats[nboats++] = w;
