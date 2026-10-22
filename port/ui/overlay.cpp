@@ -148,6 +148,7 @@ static FaceMetrics face_metrics(ImFont *f)
     last = f; lm = m;
     return m;
 }
+extern "C" int battleend_is_message(const char *t);      /* mods/battleend.c */
 float ui_face_k(ImFont *f) { return face_metrics(f).k; }
 static float face_ref_asc(void) { static float a = -1; if (a < 0) a = face_raw(ui_font_game[0]).asc; return a; }
 
@@ -486,7 +487,7 @@ extern "C" void hdtext_draw(void)
         }
         if (!sp[i].text.empty() && !mapped) { t = sp[i].text; size = bh * 1.18f * fm.k * sp[i].scale; x0 = sp[i].x; }
         ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
-        if (r.center) x0 += (bw - ts.x) * 0.5f;
+        if (r.center || battleend_is_message(r.text)) x0 += (bw - ts.x) * 0.5f;   /* (the end of a battle's words: centred in their box) */
         ImU32 c0 = IM_COL32((r.rgb >> 16) & 255, (r.rgb >> 8) & 255, r.rgb & 255, 255);
         bool faint = r.flatbg && faint_text(c0, (int)(r.bgrgb & 0xffffff));   /* greyed out in a menu: no outline, which would make it stand out */
         ImU32 c = contrast_fix(c0, (int)(r.bgrgb & 0xffffff));

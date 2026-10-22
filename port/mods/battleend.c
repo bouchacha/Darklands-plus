@@ -20,6 +20,8 @@
 
 static int on(void) { return config_get_int("battle.end_words", 1) && !config_get_int("original", 0); }
 
+static char shown[48];                  /* the words in the box now (centred in crisp text: ui/overlay.cpp) */
+int battleend_is_message(const char *t) { return shown[0] && !strcmp(t, shown); }
 static void message_hook(void)          /* show_message (text, ticks) */
 {
     u16 t = rw(SS, (u16)(SP + 4));
@@ -35,6 +37,7 @@ static void message_hook(void)          /* show_message (text, ticks) */
             const char *w = W[k][1];
             for (int i = 0; ; i++) { g_wb((u16)(t + i), (u8)w[i]); if (!w[i]) break; }
             if ((s16)rw(SS, (u16)(SP + 6)) > END_TICKS) ww(SS, (u16)(SP + 6), END_TICKS);
+            snprintf(shown, sizeof shown, "%s", w);
             fprintf(stderr, "battle end: \"%s\"\n", w);
             break;
         }
