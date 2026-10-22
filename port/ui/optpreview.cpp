@@ -137,6 +137,28 @@ void full_names(const S &s, bool on)
     s.text(5, 8, 6, GOLD, on ? "Gretchen Wilburg" : "Gretch");
     s.text(5, 32, 6, GOLD, on ? "Ebhard of Achdorf" : "Ebhard");
 }
+void volley_toggle(const S &s, bool on)
+{
+    s.rect(0, 0, 100, 60, PANEL);
+    s.frame(3, 3, 97, 57, GOLD, 1, 2);
+    s.text(8, 5, 5.5f, GOLD, "Hans");
+    s.bar(8, 30, 60, 0.9f, END_C, false); s.bar(8, 42, 60, 1.0f, STR_C, false);
+    if (on) {                                                  /* the bow on the box */
+        ImVec2 c = s.p(76, 22);
+        s.dl->PathArcTo(c, 9 * s.k, -1.2f, 1.2f, 12); s.dl->PathStroke(IM_COL32(200, 150, 80, 255), 0, 2.0f);
+        s.dl->AddLine(s.p(76 + 9 * 0.36f, 22 - 9 * 0.93f), s.p(76 + 9 * 0.36f, 22 + 9 * 0.93f), CREAM, 1.0f);
+    }
+}
+void order_bar(const S &s, bool on)
+{
+    s.ground();
+    s.figure(40, 40, OURS); s.figure(70, 34, FOE);
+    if (on) {
+        s.rect(0, 46, 100, 60, IM_COL32(30, 22, 16, 235));
+        const char *L[3] = { "Attack", "Parry", "Halt" };
+        for (int i = 0; i < 3; i++) { s.rect(3 + i * 32, 48.5f, 31 + i * 32, 58, IM_COL32(120, 84, 40, 255), 1.5f); s.text(6 + i * 32, 48.8f, 4.6f, CREAM, L[i]); }
+    }
+}
 } // namespace
 
 /* the switch's picture, off or on, in a..b (its height about 0.6 of its width); false: none */
@@ -145,7 +167,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     struct E { const char *key; int id; };
     static const E T[] = { { "display.panel_losses", 1 }, { "battle.bars", 2 }, { "battle.bars_hurt", 3 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
-                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 } };
+                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 } };
     int id = 0;
     for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
     if (!id) return false;
@@ -165,6 +187,8 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     case 10: map_scene(s, on, false); break;
     case 11: map_scene(s, true, on); break;
     case 12: full_names(s, on); break;
+    case 13: volley_toggle(s, on); break;
+    case 14: order_bar(s, on); break;
     }
     dl->PopClipRect();
     return true;
