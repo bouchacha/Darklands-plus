@@ -12,6 +12,7 @@ extern int datamods_n;
 void datamods_init(void);
 void datamods_scan(void);
 void datamods_set(int i, int on);
+void datamods_move(int i, int j);     /* to place j of the list (the later wins where two change a file) */
 int datamods_active(void);
 int datamods_enabled(void);          /* not in "Play the original game" */
 int datamods_generation(void);

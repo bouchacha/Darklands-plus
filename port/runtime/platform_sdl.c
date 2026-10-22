@@ -655,6 +655,14 @@ static void run_script(void)
             ev.button.x = x; ev.button.y = y; ev.button.clicks = 1; SDL_PushEvent(&ev);
             ev.type = SDL_MOUSEBUTTONUP; ev.button.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "udown") || !strcmp(s->cmd, "uup")) {   /* test: the left button pressed or let go there (window pixels): a drag between */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            Uint32 wid = win ? SDL_GetWindowID(win) : 0;
+            if (win) SDL_WarpMouseInWindow(win, x, y);
+            ev.type = SDL_MOUSEMOTION; ev.motion.windowID = wid; ev.motion.x = x; ev.motion.y = y; SDL_PushEvent(&ev);
+            memset(&ev, 0, sizeof ev); ev.type = s->cmd[1] == 'd' ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP; ev.button.windowID = wid; ev.button.button = SDL_BUTTON_LEFT;
+            ev.button.state = s->cmd[1] == 'd' ? SDL_PRESSED : SDL_RELEASED; ev.button.x = x; ev.button.y = y; ev.button.clicks = 1; SDL_PushEvent(&ev);
+        }
         else if (!strcmp(s->cmd, "ukey")) {               /* test: a key as from the system (SDL events), by SDL name */
             SDL_Scancode sc = SDL_GetScancodeFromName(s->arg);
             SDL_Event ev; memset(&ev, 0, sizeof ev);

@@ -70,16 +70,59 @@ void tab_mods(void)
         ImGui::TextWrapped("A mod is a folder in %s" PATH_SEP "mods with files laid out like the game folder: "
                            "while the mod is ticked, the game reads the mod's files in place of the originals (the game folder is never changed).", dlp_user_dir);
         if (!datamods_n) ui_hint("No mods found yet.");
+        else if (datamods_n > 1) ui_hint("Where two mods change the same file, the one lower in the list wins. Drag a mod by its handle (or use its arrows) to reorder.");
+        int move_from = -1, move_to = -1;
         for (int i = 0; i < datamods_n; i++) {
             ImGui::PushID(1000 + i);
+            ImGui::BeginGroup();
+            if (datamods_n > 1) {                                /* the handle: dragged to another mod's place */
+                float h = ImGui::GetFrameHeight();
+                ImVec2 a = ImGui::GetCursorScreenPos();
+                ImGui::InvisibleButton("##grip", ImVec2(h * 0.7f, h));
+                bool hv = ImGui::IsItemHovered() || ImGui::IsItemActive();
+                if (hv) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+                ImDrawList *dl = ImGui::GetWindowDrawList();
+                for (int k = 0; k < 3; k++) {
+                    float y = a.y + h * (0.32f + 0.18f * k);
+                    dl->AddLine(ImVec2(a.x + h * 0.12f, y), ImVec2(a.x + h * 0.58f, y), ImGui::GetColorU32(hv ? ImGuiCol_Text : ImGuiCol_TextDisabled), fmaxf(1.5f, h * 0.07f));
+                }
+                if (ImGui::IsItemHovered() && !ImGui::IsItemActive()) ImGui::SetTooltip("Drag to reorder: lower in the list wins.");
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip)) {
+                    ImGui::SetDragDropPayload("DL_MOD", &i, sizeof i);
+                    ImGui::EndDragDropSource();
+                }
+                ImGui::SameLine();
+                ImGui::BeginDisabled(i == 0);
+                if (ImGui::ArrowButton("##up", ImGuiDir_Up)) { move_from = i; move_to = i - 1; }
+                ImGui::EndDisabled();
+                if (i > 0 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move up (loses to the mods below it)");
+                ImGui::SameLine();
+                ImGui::BeginDisabled(i == datamods_n - 1);
+                if (ImGui::ArrowButton("##down", ImGuiDir_Down)) { move_from = i; move_to = i + 1; }
+                ImGui::EndDisabled();
+                if (i < datamods_n - 1 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move down (wins over the mods above it)");
+                ImGui::SameLine();
+            }
             bool on = datamods[i].on != 0;
             if (ImGui::Checkbox(datamods[i].title, &on)) { datamods_set(i, on); ui_dirty_config = 1; }
-            ImGui::Indent(UIS(34));
+            ImGui::Indent(datamods_n > 1 ? ImGui::GetFrameHeight() * 2.7f + ImGui::GetStyle().ItemSpacing.x * 3 + UIS(34) : UIS(34));
             if (datamods[i].desc[0]) ui_hint("%s", datamods[i].desc);
             { std::string fp = datamods[i].path; for (char &c : fp) if (c == '/' || c == '\\') c = PATH_SEP[0]; ui_hint("folder: %s", fp.c_str()); }
-            ImGui::Unindent(UIS(34));
+            ImGui::Unindent(datamods_n > 1 ? ImGui::GetFrameHeight() * 2.7f + ImGui::GetStyle().ItemSpacing.x * 3 + UIS(34) : UIS(34));
+            ImGui::EndGroup();
+            if (ImGui::BeginDragDropTarget()) {                  /* (dropped on a mod: takes its place) */
+                ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
+                if (const ImGuiPayload *pl = ImGui::AcceptDragDropPayload("DL_MOD", ImGuiDragDropFlags_AcceptNoDrawDefaultRect)) { move_from = *(const int *)pl->Data; move_to = i; }
+                else if (const ImGuiPayload *pk = ImGui::GetDragDropPayload()) {
+                    int from = *(const int *)pk->Data;              /* a gilt line where it will go */
+                    float y = from < i ? b.y + 2 : a.y - 2;
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2(a.x, y), ImVec2(b.x, y), IM_COL32(220, 180, 90, 255), 3.0f);
+                }
+                ImGui::EndDragDropTarget();
+            }
             ImGui::PopID();
         }
+        if (move_from >= 0) { datamods_move(move_from, move_to); ui_dirty_config = 1; }
         {   /* mods with ENCOUNTERS folders (mods/encounters.c) */
             int ne = encounters_count(), nerr = encounters_errors();
             if (ne || nerr) {
@@ -115,7 +158,7 @@ void tab_mods(void)
           if (ImGui::Checkbox("Write every text shown to a file (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
         ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs crisp text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
-        ui_hint("Mods are applied in alphabetical order of their folders: where two change the same file, the later one wins. "
+        ui_hint("Mods are applied in the order of the list above: where two change the same file, the lower one wins. "
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
              "Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts.");
     }

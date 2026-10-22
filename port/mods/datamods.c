@@ -10,8 +10,8 @@
  *   mods/My mod/art/, sounds/          replacement art and sounds, as in the game folder
  *   mods/My mod/music/                 recordings in place of the game's music (musicpack.c)
  *   mods/My mod/mod.txt                first line: the name shown; the rest: a description
- * Mods are applied in alphabetical order of their folders: where two change the same file, the
- * later one wins. Only reading is redirected: saves and settings stay in the game folder. */
+ * Mods are applied in the order of the list in the settings (dragged there; at first alphabetical,
+ * a mod new to the list at its end): where two change the same file, the later one wins. Only reading is redirected: saves and settings stay in the game folder. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +73,33 @@ static void mods_dir(char *out, size_t n) { find_ci(dlp_user_dir[0] ? dlp_user_d
 void datamods_folder(char *out, size_t n) { mods_dir(out, n); }
 
 /* ---------------------------------------------------------------- the list */
-static int cmp_mod(const void *a, const void *b) { return strcasecmp(((const DataMod *)a)->folder, ((const DataMod *)b)->folder); }
+/* its place in the order (datamod_order.<folder>), or past the end if never placed */
+static int mod_place(const DataMod *m) { char key[200]; snprintf(key, sizeof key, "datamod_order.%s", m->folder); return config_get_int(key, 1 << 20); }
+static int cmp_mod(const void *a, const void *b)
+{
+    int pa = mod_place(a), pb = mod_place(b);
+    if (pa != pb) return pa < pb ? -1 : 1;
+    return strcasecmp(((const DataMod *)a)->folder, ((const DataMod *)b)->folder);
+}
+static void mods_changed(void)
+{
+    generation++;
+    void hdart_rescan(void); hdart_rescan();
+    void rules_apply(void); rules_apply();
+    void sfx_reload(void); sfx_reload();             /* a mod's sounds and music come and go at once */
+    void musicpack_reload(void); musicpack_reload();
+}
+/* mod i moved to place j of the list (the later wins); the order kept */
+void datamods_move(int i, int j)
+{
+    if (i < 0 || i >= datamods_n || j < 0 || j >= datamods_n || i == j) return;
+    DataMod t = datamods[i];
+    if (i < j) memmove(&datamods[i], &datamods[i + 1], (size_t)(j - i) * sizeof t);
+    else memmove(&datamods[j + 1], &datamods[j], (size_t)(i - j) * sizeof t);
+    datamods[j] = t;
+    for (int k = 0; k < datamods_n; k++) { char key[200]; snprintf(key, sizeof key, "datamod_order.%s", datamods[k].folder); config_set_int(key, k); }
+    mods_changed();
+}
 
 void datamods_scan(void)
 {
@@ -135,11 +161,7 @@ void datamods_set(int i, int on)
     datamods[i].on = on;
     char key[200]; snprintf(key, sizeof key, "datamod.%s", datamods[i].folder);
     config_set_int(key, on);
-    generation++;
-    void hdart_rescan(void); hdart_rescan();
-    void rules_apply(void); rules_apply();
-    void sfx_reload(void); sfx_reload();             /* a mod's sounds and music come and go at once */
-    void musicpack_reload(void); musicpack_reload();
+    mods_changed();
 }
 int datamods_generation(void) { return generation; }
 /* "Play the original game" (F12 > Settings > Helpers) leaves the mods out too */
