@@ -57,7 +57,7 @@ static void over_hook(void)
     int res = (s16)g_rw(GV_battle_result);
     u16 now = g_rw(GV_combat_clock), until = g_rw(GV_battle_end_at);
     int hold = res == 0 ? HOLD_WON : res == 3 || res == 5 ? HOLD_LOST : -1;
-    { u32 plat_ticks_ms(void); decided_t = plat_ticks_ms(); }
+    if (hold > 0 && until && (s16)(until - now) > 0) { u32 plat_ticks_ms(void); decided_t = plat_ticks_ms(); }   /* (the end set: the field held till then) */
     if (hold > 0 && (s16)(until - now) > hold) {
         g_ww(GV_battle_end_at, (u16)(now + hold));
         fprintf(stderr, "battle end: held %d ticks, not %d\n", hold, (s16)(until - now));
@@ -78,18 +78,21 @@ void battleend_frame(void)
 {
     u32 plat_ticks_ms(void); void bios_kbd_inject(u16);
     static u16 last_clock; static u32 still_since, last_kick;
-    if (!on() || game_mode() != GM_BATTLE || !g_rb(GV_real_combat)) { still_since = 0; return; }
+    static int in_battle, seen_foes;
+    if (!on() || game_mode() != GM_BATTLE || !g_rb(GV_real_combat)) { still_since = 0; in_battle = 0; return; }
+    if (!in_battle) { in_battle = 1; decided_t = 0; seen_foes = 0; }   /* (a new battle: not decided, whatever the last was) */
     u32 now = plat_ticks_ms();
-    int foes = 0, ours = 0;                                 /* decided: no foe left standing, or none of the party */
+    int foes = 0, ours = 0;                                 /* decided: no foe left standing (once there were some), or none of the party */
     for (int i = 0; i < 13; i++) if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) == 1) { if (i < 5) ours++; else foes++; }
-    int decided = (foes == 0 || ours == 0) || (decided_t && now - decided_t < 20000);
+    if (foes) seen_foes = 1;                                /* (at a battle's start the foes not yet on the field count as down: a paused start was set going) */
+    int decided = (seen_foes && foes == 0) || ours == 0 || (decided_t && now - decided_t < 20000);
     if (!decided) { still_since = 0; return; }
     u16 c = g_rw(GV_combat_clock);
     if (c != last_clock) { last_clock = c; still_since = now; return; }
     if (!still_since) still_since = now;
     if (now - still_since > 1100 && now - last_kick > 1500 && (g_rb(GV_ai_paused) == 1 || g_rb(GV_pause_depth))) {
         last_kick = now; bios_kbd_inject(0x3920);
-        fprintf(stderr, "battle end: decided, but the clock stood still: resumed\n");
+        fprintf(stderr, "battle end: decided (foes %d, ours %d, by the game %d), but the clock stood still: resumed\n", foes, ours, decided_t != 0);
     }
 }
 void battleend_init(void)

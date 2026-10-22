@@ -51,7 +51,7 @@ static void pan_apply(void)
  * the view stays where it is when the member is in sight (it has a hot spot: the order then needs
  * no scrolling); pressed twice within a moment, the view goes to the member (floor_view_draw, s017
  * 1ef8:0000, around who) and follows. */
-static int center_req = -1, look_req = -1;
+static int center_req = -1, look_req = -1, reselect = -1, reselect_ticks;   /* (reselect: a member chosen off the screen, chosen again once the view shows them) */
 /* the view to combatant i, without following it (the arrow to the enemies: ui/battleoverlay.cpp) */
 void battlescroll_look(int i) { look_req = i; }
 static void select_hook(void)
@@ -72,7 +72,7 @@ static void select_hook(void)
     int n = (s8)g_rb(GV_hotspot_count), seen = 0;
     for (int k = 0; k < n && k < 40; k++) if (g_rb((u16)(GV_hotspot_cbt + k)) == i) seen = 1;
     if (seen) g_wb(GV_battle_follow, 0);
-    else center_req = i;
+    else { center_req = i; if (reselect != i) { reselect = i; reselect_ticks = 2; } else reselect = -1; }   /* (the game's choice needs a spot on the screen: chosen again there) */
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
@@ -80,6 +80,11 @@ static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick o
     pan_apply();
     if (look_req >= 0) { int c = look_req; look_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 0); } }
     if (center_req >= 0) { int c = center_req; center_req = -1; if (game_mode() == GM_BATTLE) { ns_call(GF_floor_view_draw, 1, c); g_wb(GV_battle_follow, 1); } }
+    else if (reselect >= 0 && --reselect_ticks <= 0) {      /* the view on them now: the choice again, as the key */
+        int c = reselect;
+        if (game_mode() == GM_BATTLE && (s8)g_rb(GV_selected_member) != c) { if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: %d chosen again in view\n", c); ns_call(16, 0x1ef8, 0x0a2c, 1, c); }
+        reselect = -1;
+    }
     if (!battlescroll_on || config_get_int("original", 0)) { hook_call_original(); return; }
     static u32 last_step, edge_since, held_since, last_call;
     static int was_edge, stale;

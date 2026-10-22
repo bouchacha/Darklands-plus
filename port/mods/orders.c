@@ -435,15 +435,15 @@ static int point_on(int t, int *px, int *py)
     }
     return 0;
 }
-/* the next member, after i, who has no order: active, on the floor shown, in sight; -1 none */
+/* the next member, after i, who has no order: active, on the floor shown (in sight or not: one off the
+   screen is brought into view, mods/battlescroll.c); -1 none */
 static int next_waiting(int i)
 {
-    int n = (s8)g_rb(D_HOT_N);
     for (int d = 1; d < 5; d++) {
         int m = (i + d) % 5;
         u16 c = (u16)(D_CBT + m * 0x80);
         if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_state + m)) || g_rb((u16)(GV_cbt_floor + m)) != g_rb(GV_floor_shown)) continue;
-        for (int k = 0; k < n; k++) if (g_rb((u16)(D_HOT_CBT + k)) == m) return m;
+        return m;
     }
     return -1;
 }
