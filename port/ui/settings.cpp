@@ -216,6 +216,7 @@ bool ui_title_desc(const char *title, const char *desc, bool dim, const char *id
     return clicked;
 }
 
+bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on);   /* ui/optpreview.cpp */
 static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
 static void option_row(const Option *o, int depth);
 static void option_children(const Option *o, int depth)
@@ -264,6 +265,26 @@ static void option_row(const Option *o, int depth)
         ImGui::Unindent(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x);
     }
     float ti = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x;
+    if (!o->choices && ui_option_preview(o->key, nullptr, ImVec2(), ImVec2(), false)) {   /* its picture, off and on (a click chooses) */
+        ImGui::Indent(ti);
+        float pw = UIS(200), ph = pw * 0.6f;
+        for (int st = 0; st < 2; st++) {
+            if (st) ImGui::SameLine(0, UIS(14));
+            ImGui::PushID(st);
+            ImVec2 a = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("##pv", ImVec2(pw, ph + ImGui::GetTextLineHeightWithSpacing()))) opt_set(o, st);
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            ui_option_preview(o->key, dl, a, ImVec2(a.x + pw, a.y + ph), st != 0);
+            bool cur = (v != 0) == (st != 0);
+            dl->AddRect(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + pw + 1, a.y + ph + 1), cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(120, 100, 80, 160), 3, 0, cur ? 3.0f : 1.0f);
+            const char *lb = st ? "On" : "Off";
+            ImVec2 ts = ImGui::CalcTextSize(lb);
+            dl->AddText(ImVec2(a.x + (pw - ts.x) * 0.5f, a.y + ph + 2), ImGui::GetColorU32(cur ? ImGuiCol_Text : ImGuiCol_TextDisabled), lb);
+            ImGui::PopID();
+        }
+        ImGui::Unindent(ti);
+    }
     if (o->note) {
         ImGui::Indent(ti);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.62f, 0.32f, 0.08f, 1));
