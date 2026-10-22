@@ -204,10 +204,45 @@ static int shot_soon(int i)
     if (a == 9) return (s16)(g_rw((u16)(D_AIM_END + 2 * i)) - g_rw(GV_combat_clock)) <= 30;
     return 0;
 }
+/* battle.retarget_shots: the game drops a shooter's order when its mark falls (the order back to
+   0); the member then stands with the bow until told again. Here it shoots at the nearest foe still
+   standing on its floor */
+static signed char shot_at[5] = { -1, -1, -1, -1, -1 };
+static void retarget_shooters(void)
+{
+    if (!config_get_int("battle.retarget_shots", 1) || config_get_int("original", 0)) return;
+    for (int i = 0; i < 5; i++) {
+        u16 c = (u16)(D_CBT + i * 0x80);
+        int ord = g_rw((u16)(c + 0x10)), t = (s8)g_rb((u16)(c + 0x4a));
+        if (g_rb((u16)(c + 0x14)) != 1) { shot_at[i] = -1; continue; }
+        if (getenv("DL_SHOT_LOG") && ord != 0) fprintf(stderr, "shots: %d order %#x target %d\n", i, ord, t);
+        if (ord == MISSILE) { shot_at[i] = (signed char)t; continue; }
+        if (shot_at[i] < 5) continue;
+        if (g_rb((u16)(D_CBT + shot_at[i] * 0x80 + 0x14)) == 1) { shot_at[i] = -1; continue; }   /* (its mark stands: the order changed for another reason) */
+        /* its mark has just fallen: whatever the game's AI gave it instead (to walk at someone, to
+           fight hand to hand), it shoots again */
+        { int wm = (s8)g_rb((u16)(c + 0x22)); if (wm < 0 || wm > 62) { shot_at[i] = -1; continue; } }   /* (no missile weapon now) */
+        int best = -1; long bd = 0;
+        int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
+        for (int j = 5; j < 13; j++) {
+            u16 d = (u16)(D_CBT + j * 0x80);
+            if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
+            long dx = (s16)g_rw((u16)(d + 4)) - x, dy = ((s16)g_rw((u16)(d + 6)) - y) * 2;
+            if (best < 0 || dx * dx + dy * dy < bd) { best = j; bd = dx * dx + dy * dy; }
+        }
+        shot_at[i] = -1;
+        if (best < 0) continue;
+        g_ww((u16)(c + 0x10), MISSILE); g_wb((u16)(c + 0x4a), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
+        shot_at[i] = (signed char)best;
+        fprintf(stderr, "orders: member %d's mark fell: now shoots at %d\n", i, best);
+    }
+}
 static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchanges() */
 {
     hook_call_original();
-    if (ns_unwinding || !volley_on() || g_rb(GV_ai_paused)) return;
+    if (ns_unwinding || g_rb(GV_ai_paused)) return;
+    retarget_shooters();
+    if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != MISSILE || g_rb((u16)(GV_cbt_moving + i))) continue;
