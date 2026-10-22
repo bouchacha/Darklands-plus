@@ -514,20 +514,24 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     if (!ra || !rb2) return 0;
     int ax = (s16)rw((u16)(ra >> 16), (u16)(ra + 4)), ay = (s16)rw((u16)(ra >> 16), (u16)(ra + 6));
     int bx = (s16)rw((u16)(rb2 >> 16), (u16)(rb2 + 4)), by = (s16)rw((u16)(rb2 >> 16), (u16)(rb2 + 6));
-    size_t n = (size_t)mw * mh;
-    int *dd = malloc(n * sizeof *dd), *pv = malloc(n * sizeof *pv), *q = malloc(n * sizeof *q);
-    if (!dd || !pv || !q) { free(dd); free(pv); free(q); return 0; }
-    for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
-    /* Dijkstra from town to town over the whole map: a tile of river or of sea by a shore costs 2,
-       open sea 3 (so the boats keep to the coasts, as they did), land 12 (so a town away from the
-       water goes overland to the nearest of it, and no route cuts across land to save a bend). */
-    int hn = 0, goal = -1;
+    if (ax < 0 || ay < 0 || ax >= mw || ay >= mh || bx < 0 || by < 0 || bx >= mw || by >= mh) return 0;
+    /* searched within the two towns' box and a margin round it (a coast route bends out, not far) */
+    int X0 = (ax < bx ? ax : bx) - 24, X1 = (ax > bx ? ax : bx) + 24, Y0 = (ay < by ? ay : by) - 48, Y1 = (ay > by ? ay : by) + 48;
+    if (X0 < 0) X0 = 0; if (Y0 < 0) Y0 = 0; if (X1 >= mw) X1 = mw - 1; if (Y1 >= mh) Y1 = mh - 1;
+    int bw = X1 - X0 + 1, bh = Y1 - Y0 + 1;
+    size_t n = (size_t)bw * bh;
+#define BI(x, y) (((y) - Y0) * bw + ((x) - X0))
+    int *dd = malloc(n * sizeof *dd), *pv = malloc(n * sizeof *pv);
     long *heap = malloc(n * 6 * sizeof *heap);
-    if (!heap) { free(dd); free(pv); free(q); return 0; }
+    if (!dd || !pv || !heap) { free(dd); free(pv); free(heap); return 0; }
+    for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
+    /* Dijkstra from town to town: a tile of river or of sea by a shore costs 2, open sea 3 (so the
+       boats keep to the coasts, as they did), land 12 (so a town away from the water goes overland
+       to the nearest of it, and no route cuts across land to save a bend). */
+    int hn = 0, goal = -1;
 #define HPUSH(c, i) do { long v_ = ((long)(c) << 32) | (long)(i); int j_ = hn++; \
         while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
-    if (ax < 0 || ay < 0 || ax >= mw || ay >= mh || bx < 0 || by < 0 || bx >= mw || by >= mh) { free(heap); free(dd); free(pv); free(q); return 0; }
-    dd[ay * mw + ax] = 0; HPUSH(0, ay * mw + ax);
+    dd[BI(ax, ay)] = 0; HPUSH(0, BI(ax, ay));
     while (hn > 0 && hn < (int)(n * 6) - 8) {
         long top = heap[0], last = heap[--hn];
         int j = 0;
@@ -536,11 +540,12 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
         if (hn > 0) heap[j] = last;
         int i = (int)(top & 0xffffffff), cst = (int)(top >> 32);
         if (cst != dd[i]) continue;
-        int x = i % mw, y = i / mw;
+        int x = X0 + i % bw, y = Y0 + i / bw;
         if (x == bx && y == by) { goal = i; break; }
         for (int k = 0; k < 6; k++) {
             int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
-            int ni = ny * mw + nx, t = terr[ni], step = 12;
+            if (nx < X0 || nx > X1 || ny < Y0 || ny > Y1) continue;
+            int t = terr[ny * mw + nx], step = 12;
             if (boat_water(t)) {
                 step = 2;
                 if (t == 1) {
@@ -549,22 +554,23 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
                     if (open) step = 3;
                 }
             }
+            int ni = BI(nx, ny);
             if (dd[ni] >= 0 && dd[ni] <= cst + step) continue;
             dd[ni] = cst + step; pv[ni] = i; HPUSH(cst + step, ni);
         }
     }
 #undef HPUSH
-    free(heap);
     int cnt = 0;
     BoatWay w = { a, b, 0, 0, 0 };
     if (goal >= 0) {
         for (int i = goal; i >= 0; i = pv[i]) cnt++;
         w.x = malloc((size_t)cnt * sizeof(short)); w.y = malloc((size_t)cnt * sizeof(short));
         int k = cnt - 1;
-        for (int i = goal; i >= 0; i = pv[i], k--) { w.x[k] = (short)(i % mw); w.y[k] = (short)(i / mw); }
+        for (int i = goal; i >= 0; i = pv[i], k--) { w.x[k] = (short)(X0 + i % bw); w.y[k] = (short)(Y0 + i / bw); }
         w.n = cnt;
     }
-    free(dd); free(pv); free(q);
+#undef BI
+    free(dd); free(pv); free(heap);
     boats = realloc(boats, (size_t)(nboats + 1) * sizeof *boats); boats[nboats++] = w;
     *xs = w.x; *ys = w.y;
     return w.n;

@@ -106,6 +106,18 @@ int worldmap_build(void)
     int month = (s16)g_rw(G_CUR_MONTH);
     if (game_mode() == GM_MAP) take_palette();
     int ground = (month <= 2 || month >= 10) ? 0x0f : (month == 3 || month == 8 || month == 9) ? 6 : 0x68;
+    {   /* nothing changed since the last (the season's ground, the colours, the places): kept, so the
+           map opens at once (the build and the upload took a good part of a second) */
+        static u32 last_sig; static int have_sig;
+        u32 sig = 2166136261u;
+        #define MIX(v) (sig = (sig ^ (u32)(v)) * 16777619u)
+        MIX(ground); MIX(have_mappal); MIX(mw); MIX(mh);
+        for (int i = 0; i < 256; i++) MIX(have_mappal ? mappal[i] : sheetmask[i] ? sheetpal[i] : dac_rgb(i));
+        for (size_t i = 0; i < (size_t)mw * mh; i++) if (g[i] != terr[i]) { MIX(i); MIX(g[i]); }
+        #undef MIX
+        if (have_sig && sig == last_sig && worldmap.px[0]) { free(g); return 1; }
+        last_sig = sig; have_sig = 1;
+    }
     u8 *c = malloc((size_t)W * H);
     memset(c, ground, (size_t)W * H);
     #define G(yy, xx) (((yy) < 0 || (yy) >= mh || (xx) < 0 || (xx) >= mw) ? 0 : g[(yy) * mw + (xx)])
