@@ -49,6 +49,7 @@ static void message_hook(void)          /* show_message (text, ticks) */
    holds it 60 ticks of the battle clock, a defeat 240) before the loot or the defeat: a second, three */
 #define HOLD_WON 18
 #define HOLD_LOST 55
+static u32 decided_t;                  /* when combat_over last said the battle is decided */
 static void over_hook(void)
 {
     hook_call_original();
@@ -56,6 +57,7 @@ static void over_hook(void)
     int res = (s16)g_rw(GV_battle_result);
     u16 now = g_rw(GV_combat_clock), until = g_rw(GV_battle_end_at);
     int hold = res == 0 ? HOLD_WON : res == 3 || res == 5 ? HOLD_LOST : -1;
+    { u32 plat_ticks_ms(void); decided_t = plat_ticks_ms(); }
     if (hold > 0 && (s16)(until - now) > hold) {
         g_ww(GV_battle_end_at, (u16)(now + hold));
         fprintf(stderr, "battle end: held %d ticks, not %d\n", hold, (s16)(until - now));
@@ -69,6 +71,27 @@ static void over_hook(void)
     }
 }
 
+/* a watchdog (each frame): once decided, a battle clock that stands still for more than a second
+   (a pause from any side - a member chosen, a fall, Space - while the field waits to close) is set
+   going again, so the victory and the loot come without a click */
+void battleend_frame(void)
+{
+    u32 plat_ticks_ms(void); void bios_kbd_inject(u16);
+    static u16 last_clock; static u32 still_since, last_kick;
+    if (!on() || game_mode() != GM_BATTLE || !g_rb(GV_real_combat)) { still_since = 0; return; }
+    u32 now = plat_ticks_ms();
+    int foes = 0, ours = 0;                                 /* decided: no foe left standing, or none of the party */
+    for (int i = 0; i < 13; i++) if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) == 1) { if (i < 5) ours++; else foes++; }
+    int decided = (foes == 0 || ours == 0) || (decided_t && now - decided_t < 20000);
+    if (!decided) { still_since = 0; return; }
+    u16 c = g_rw(GV_combat_clock);
+    if (c != last_clock) { last_clock = c; still_since = now; return; }
+    if (!still_since) still_since = now;
+    if (now - still_since > 1100 && now - last_kick > 1500 && (g_rb(GV_ai_paused) == 1 || g_rb(GV_pause_depth))) {
+        last_kick = now; bios_kbd_inject(0x3920);
+        fprintf(stderr, "battle end: decided, but the clock stood still: resumed\n");
+    }
+}
 void battleend_init(void)
 {
     hook_install(GF_show_message, message_hook);
