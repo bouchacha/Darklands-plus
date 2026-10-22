@@ -468,7 +468,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions" : s.shared ? "The party's pack" : "Carried";
+            const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions (the gold dots: grade 1 to 3)" : s.shared ? "The party's pack" : "Carried";
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;

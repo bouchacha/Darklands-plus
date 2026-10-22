@@ -69,11 +69,14 @@ void grade_dots(const Pen &p, int tier)
 {
     if (tier < 1) return;
     if (tier > 3) tier = 3;
-    float r = fmaxf(1.3f, 2.0f / p.u), step = fmaxf(3.3f, 2 * r + 0.5f / p.u);
+    float r = fmaxf(1.7f, 2.6f / p.u), step = fmaxf(3.9f, 2 * r + 0.7f / p.u);
+    float x = 5.4f + (r - 1.3f) * 0.8f, y0 = -10.6f;
+    /* on a dark strip, so they stand out from the flask and the page */
+    p.dl->AddRectFilled(p.P(x - r - 0.7f, y0 - r - 0.7f), p.P(x + r + 0.7f, y0 + (tier - 1) * step + r + 0.7f), C(0.16f, 0.10f, 0.05f, 0.85f), (r + 0.7f) * p.u);
     for (int k = 0; k < tier; k++) {
-        float x = 5.4f + (r - 1.3f) * 0.8f, y = -10.6f + k * step;
-        p.disc(x, y, r, C(0.98f, 0.80f, 0.20f));
-        p.ring(x, y, r, C(0.30f, 0.18f, 0.06f), fmaxf(0.45f, 0.8f / p.u));
+        float y = y0 + k * step;
+        p.disc(x, y, r, C(1.0f, 0.84f, 0.22f));
+        p.disc(x - r * 0.3f, y - r * 0.3f, r * 0.35f, C(1.0f, 0.97f, 0.75f));
     }
 }
 void puff(const Pen &p, float x, float y, float r, ImU32 k) { p.disc(x, y, r, k); }
