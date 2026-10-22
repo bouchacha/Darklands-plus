@@ -213,6 +213,8 @@ static void dim_since(ImDrawList *dl, int v0, float k)
    Common, Streetwise, Woodwise) only if the party's best is below it; a skill each member needs
    (Religion, Virtue, Stealth, Riding) if anyone's is */
 extern "C" void ui_text_utf8(const char *game, char *out, int n);
+extern "C" u32 plat_ticks_ms(void);
+extern "C" int ns_showing(void);
 static bool margin_town_row;                               /* (the margin's own row of the town's offers: the teachers too) */
 static int skill_of(int m, int k) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)); }
 static bool teach_useful(int k, int to, std::string *who)
@@ -1015,6 +1017,25 @@ extern "C" void ui_margins(void)
         night_streets(night);
         int f = (s16)g_rw(G_MONEY), g = (s16)g_rw(G_MONEY + 2), p = (s16)g_rw(G_MONEY + 4), bn = (s16)g_rw(GV_party_notes);
         ImGui::TextWrapped("%s", money_fgp(f, g, p).c_str());
+        {   /* money come in on a card (a reward, a find; not a shop's sale): "+25 florins" rises beside it and fades */
+            static long last_pf = -1; static long gain; static u32 gain_t; static int last_seed;
+            long pf = (long)f * 240 + g * 12 + p;
+            int seed = (s16)g_rw(G_PARTY_SEED);
+            u32 now = plat_ticks_ms();
+            if (last_pf >= 0 && seed == last_seed && pf > last_pf && game_mode() == GM_CARD && !ns_showing()) { gain = (now - gain_t < 4500 ? gain : 0) + (pf - last_pf); gain_t = now; }
+            last_pf = pf; last_seed = seed;
+            if (gain > 0 && now - gain_t < 4500) {
+                float t = (now - gain_t) / 4500.0f, al = t < 0.75f ? 1.0f : (1.0f - t) / 0.25f;
+                ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
+                std::string s2 = "+" + money_fgp((int)(gain / 240), (int)(gain / 12 % 20), (int)(gain % 12));
+                float fs = ImGui::GetFontSize() * (1.15f + 0.25f * (1.0f - fminf(1.0f, t * 4)));
+                ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0, s2.c_str());
+                ImVec2 pos(fminf(b.x + 6, ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ts.x - 4), a.y - t * ImGui::GetFontSize() * 0.4f);
+                ImDrawList *fl = ImGui::GetForegroundDrawList();
+                fl->AddRectFilled(ImVec2(pos.x - 4, pos.y - 1), ImVec2(pos.x + ts.x + 4, pos.y + ts.y + 1), IM_COL32(30, 20, 8, (int)(200 * al)), 4);
+                fl->AddText(ImGui::GetFont(), fs, pos, IM_COL32(255, 214, 80, (int)(255 * al)), s2.c_str());
+            }
+        }
         { long pf = (long)f * 240 + g * 12 + p; if (pf >= 12 && item_hovered()) margin_tip(money_total(pf).c_str()); }
         if (bn > 0) ImGui::TextDisabled("%s in bank notes", money_fgp(bn, 0, 0).c_str());
         /* the place and the tasks come from the location and event tables, which battles and their

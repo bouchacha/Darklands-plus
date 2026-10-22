@@ -53,11 +53,14 @@ extern "C" void prayview_draw(void)
     P.text(f, NsDraw::FS_HEAD, x, yy, ink, "Divine Favor to spend");
     char b[64]; snprintf(b, sizeof b, "%d", p.df);
     float bx = 316 - 2;
-    if (P.button(bx - 9, yy, bx, yy + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(PV_MORE, 0, 0, 0);
+    if (p.why != 1 && P.button(bx - 9, yy, bx, yy + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(PV_MORE, 0, 0, 0);
     P.text(f, NsDraw::FS_HEAD, 0, yy, ink, b, bx - 12);
-    if (P.button(bx - 33, yy, bx - 24, yy + 8.5f, "-", IM_COL32(120, 84, 40, 235), NsDraw::FS_BODY)) ns_push(PV_LESS, 0, 0, 0);
+    if (p.why != 1 && P.button(bx - 33, yy, bx - 24, yy + 8.5f, "-", IM_COL32(120, 84, 40, 235), NsDraw::FS_BODY)) ns_push(PV_LESS, 0, 0, 0);
     yy += 10;
-    {   /* the bar: drag (or click) to set the favor; the mark where the best chance is reached */
+    if (p.why == 1) {                                         /* Virtue too low: no favor helps, the bar greyed and still */
+        P.rect(x, yy, bx, yy + 5.5f, IM_COL32(170, 166, 158, 255), 1.5f);
+        yy += 8;
+    } else {   /* the bar: drag (or click) to set the favor; the mark where the best chance is reached */
         float x0 = x, x1 = bx, y0 = yy, y1 = yy + 5.5f;
         P.rect(x0, y0, x1, y1, IM_COL32(120, 100, 70, 255), 1.5f);
         float f = p.maxdf > 0 ? (float)p.df / p.maxdf : 0;

@@ -47,12 +47,12 @@ static int drinkable(int id)
 
 /* the statue each saint is shown with: its handler's class (handler (0, 0, 1), s039; the
  * prayer screen picks PICS\SNTBACK<class>.PIC by it), asked once, the game put back after */
-static signed char saint_cls[160]; static int saint_cls_n = -1;
+static signed char saint_cls[160], saint_vmin[160]; static int saint_cls_n = -1;
 static void saint_classes(void)
 {
     if (saint_cls_n >= 0) return;
     saint_cls_n = 0;
-    memset(saint_cls, -1, sizeof saint_cls);
+    memset(saint_cls, -1, sizeof saint_cls); memset(saint_vmin, 0, sizeof saint_vmin);
     u16 tseg = (u16)(LOADSEG + 0x290e), vseg = (u16)(LOADSEG + 0x09c0);
     void *snap = eval_snapshot();
     for (int t = 0; t < 160; t++) {
@@ -62,6 +62,11 @@ static void saint_classes(void)
         u32 r = game_call_ptr(seg, off, 3, a, 0);
         eval_restore(snap);
         saint_cls[t] = (signed char)(game_call_timed_out ? -1 : (s16)r);
+        {   u16 b[3] = { 0, 0, 4 };                              /* the Virtue the saint asks (handler (who, 0, 4)) */
+            u32 v = game_call_ptr(seg, off, 3, b, 0);
+            eval_restore(snap);
+            saint_vmin[t] = (signed char)(game_call_timed_out || (s16)v < 0 || (s16)v > 99 ? 0 : (s16)v);
+        }
         saint_cls_n = t + 1;
     }
     eval_free(snap);
@@ -158,6 +163,7 @@ static void build(int who)
         }
     }
     memcpy(s->saint_class, saint_cls, sizeof s->saint_class);
+    memcpy(s->saint_vmin, saint_vmin, sizeof s->saint_vmin);
     s->nsaints = saint_cls_n;
     s->seq++;
 }

@@ -89,7 +89,7 @@ void orn_braid_frame_knotted(ImDrawList *dl, ImVec2 a, ImVec2 b, float w)
     }
     braid_side(dl, C[0], C[1], w); braid_side(dl, C[3], C[2], w);
     braid_side(dl, C[0], C[3], w); braid_side(dl, C[1], C[2], w);
-    float th = fmaxf(1.5f, w * 0.30f), r = w * 0.26f;
+    float th = fmaxf(1.5f, w * 0.30f), r = w * 0.33f;   /* (wide enough to take in the strands where they leave the sides) */
     for (int q = 0; q < 4; q++) {                               /* the loop where the four strands meet */
         dl->AddCircle(C[q], r, STRAND_EDGE, 20, th + fmaxf(1.0f, w * 0.12f));
         dl->AddCircle(C[q], r, COPPER, 20, th);

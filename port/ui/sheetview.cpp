@@ -665,7 +665,8 @@ static void saints(NsDraw &P, const SheetModel &s)
             if (!s.present[m] || !s.saint[m][t]) continue;
             std::string ini = letters(ns_gtext(s.names[m]), 1);
             float iw = P.width(fo, 4.2f, ini) + 2.4f;
-            P.rect(ix - iw, ry + 1.3f, ix, ry + ROWH - 1.2f, m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
+            bool lowv = t < s.nsaints && s.saint_vmin[t] > 0 && s.pskill[m][9] < s.saint_vmin[t];   /* (Virtue below what the saint asks: grey) */
+            P.rect(ix - iw, ry + 1.3f, ix, ry + ROWH - 1.2f, lowv ? IM_COL32(150, 146, 140, 200) : m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
             P.text(fo, 4.2f, ix - iw + 1.2f, ry + 1.7f, NsDraw::LIGHT, ini);
             ix -= iw + 0.8f;
         }
@@ -673,7 +674,9 @@ static void saints(NsDraw &P, const SheetModel &s)
         if (here && !known) for (int k = 0; k < 4; k++) if (here->saint[k] == t) {
             ix -= small_tag(P, ix, ry, ROWH, "taught here") + 0.8f; break;
         }
-        P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, ink, gamedata.saints[t].name, -1, ix - 1);
+        bool any_can = false, knowers = false;                   /* nobody who knows it has the Virtue it asks: slate grey */
+        for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) { knowers = true; if (!(t < s.nsaints && s.saint_vmin[t] > 0 && s.pskill[m][9] < s.saint_vmin[t])) any_can = true; }
+        P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, knowers && !any_can ? IM_COL32(110, 116, 128, 255) : ink, gamedata.saints[t].name, -1, ix - 1);
     }
     if (n > NROWS) {
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
@@ -716,6 +719,12 @@ static void saints(NsDraw &P, const SheetModel &s)
     float ty = DY0 + 2, tw = DX1 - tx - 2;
     ty += P.para(f, NsDraw::FS_HEAD, tx, ty, tw, ink, gamedata.saints[t].name) + 1.5f;
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who + ".") + 1;
+    if (t < s.nsaints && s.saint_vmin[t] > 0) {                /* the Virtue it asks; who lacks it (Virtue rises slowly: nothing restores it) */
+        std::string low;
+        for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t] && s.pskill[m][9] < s.saint_vmin[t]) low += (low.empty() ? "" : ", ") + ns_gtext(s.names[m]) + " (" + std::to_string(s.pskill[m][9]) + ")";
+        char b[200]; snprintf(b, sizeof b, low.empty() ? "Asks a Virtue of %d." : "Asks a Virtue of %d: too low for %s, who cannot be heard.", s.saint_vmin[t], low.c_str());
+        ty += P.para(fo, 4.4f, tx, ty, tw, low.empty() ? soft : IM_COL32(90, 98, 112, 255), b) + 1;
+    }
     if (!where.empty()) ty += P.para(fo, 4.4f, tx, ty, tw, soft, where) + 1.5f;
     else {                                               /* pray: a button for each who knows it (the original: a click on the saint) */
         float bx = tx, bh = 8.5f;

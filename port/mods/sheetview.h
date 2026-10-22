@@ -40,6 +40,7 @@ typedef struct {
     int ingr[5][23];                  /* each member's count of the 23 ingredients (things 72..94) */
     int pattr[5][7], pattr_max[5][7], pskill[5][19];   /* every member's, to set the shown one's against (Skills) */
     signed char saint_class[160];     /* the statue a saint is shown with (its handler's class, 0..13; -1 not known) */
+    signed char saint_vmin[160];      /* the Virtue a saint asks of the one who prays (0 none) */
     int nsaints;
     /* things left behind on this sheet, to take back */
     int ndrops;

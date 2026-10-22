@@ -410,6 +410,10 @@ extern "C" void cardview_draw(void)
                 const char *none = p.type == 2 ? "Nobody in the party knows a saint who can help here." : "Nobody in the party carries anything that helps here.";
                 dl->AddText(fs, size * 0.86f, ImVec2(ex, ey), ink_dim, none);
             }
+            /* a list of saints to learn (a library, a teacher), not to call on: some member is offered one it
+               does not know; then those it knows already are dimmed */
+            bool saint_learning = false;
+            if (c.popup_kind == 2) for (int e = 0; e < c.nentries; e++) { const CvEntry &q = c.entry[e]; if (q.id >= 0 && q.member >= 0 && q.member < 5 && !gm_knows_saint(q.member, q.id)) saint_learning = true; }
             float namew = 0;
             for (int e = 0; e < c.nentries; e++) if (c.entry[e].who[0]) namew = fmaxf(namew, fs->CalcTextSizeA(size * 0.82f, FLT_MAX, 0, gtext(c.entry[e].who).c_str()).x);
             for (int e = 0; e < c.nentries; e++) {
@@ -433,11 +437,14 @@ extern "C" void cardview_draw(void)
                     if (knows) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, "knows it already");
                 } else {
                     float tx = ex + namew + 0.9f * size;
+                    bool knows_saint = c.popup_kind == 2 && en.id >= 0 && en.member >= 0 && en.member < 5 && saint_learning && gm_knows_saint(en.member, en.id);
+                    if (knows_saint) ec = ink_dim;                   /* (a saint to learn that the member knows already: dim, as a known formula) */
                     if (isz > 0 && en.id >= 0) { ui_item_icon_q(dl, ImVec2(tx + isz * 0.5f, ey + 0.46f * h), isz, en.id, best_quality(en.member, en.id)); tx += isz * 1.15f; }
                     dl->AddText(f, size * 0.95f, ImVec2(tx, ey), ec, et.c_str());
                     /* why a line is there that cannot be chosen, or can without the thing (the game's colour codes) */
                     const char *why = en.code == 0x84 ? "knows the formula but carries none" :
                                       en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest difficulty, the leader need not know the saint" : "at the easiest difficulty, the leader needs none") : nullptr;
+                    if (knows_saint) why = "knows this saint already";
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
                 }
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
