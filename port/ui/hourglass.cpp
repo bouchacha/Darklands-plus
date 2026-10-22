@@ -88,9 +88,8 @@ static void period_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour,
     for (int ry = 0; ry < 16; ry++) { float b = ry * PI / 8; dl->AddLine(ImVec2(su.x + cosf(b) * sr, su.y + sinf(b) * sr), ImVec2(su.x + cosf(b) * sr * (ry % 2 ? 1.35f : 1.6f), su.y + sinf(b) * sr * (ry % 2 ? 1.35f : 1.6f)), gold, fmaxf(1.0f, R * 0.018f)); }
     dl->AddCircleFilled(su, sr, IM_COL32(244, 200, 80, 255), 24);
     dl->AddCircle(su, sr, goldd, 24, fmaxf(1.0f, R * 0.015f));
-    dl->AddCircleFilled(ImVec2(su.x - sr * 0.35f, su.y - sr * 0.15f), sr * 0.12f, goldd, 8);   /* (a face: eyes and a mouth) */
-    dl->AddCircleFilled(ImVec2(su.x + sr * 0.35f, su.y - sr * 0.15f), sr * 0.12f, goldd, 8);
-    dl->PathArcTo(ImVec2(su.x, su.y + sr * 0.1f), sr * 0.4f, 0.4f, PI - 0.4f, 8); dl->PathStroke(goldd, 0, fmaxf(1.0f, R * 0.012f));
+    dl->AddCircle(su, sr * 0.62f, goldd, 20, fmaxf(1.0f, R * 0.01f));          /* (a gilt boss, no face: an inner ring, a gleam) */
+    dl->AddCircleFilled(ImVec2(su.x - sr * 0.28f, su.y - sr * 0.28f), sr * 0.2f, IM_COL32(255, 238, 170, 255), 12);
     dl->AddCircleFilled(c, R * 0.05f, gold, 16); dl->AddCircle(c, R * 0.05f, goldd, 16, 1);
     /* the banderole: the bell and the day */
     char bell[24]; gm_hour_name(hour, bell, sizeof bell);

@@ -427,7 +427,7 @@ void tab_restored(void)
     }
 }
 
-extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
+extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; int mt32_available(void); void ui_show_mt32_help(void); }
 /* a row of pictures to choose from (show, don't describe): n cards, each drawn by draw(dl, a, b,
    value) in its box, its label under it; a click sets the config key */
 static void pic_choice(const char *id, const char *key, int def, const int *vals, const char *const *labels, int n, float cw, float ph,
@@ -710,19 +710,50 @@ void tab_display(void)
     display_icons();
 
     dsec("Sound");
-    static const char *ids[] = { "auto", "mt32", "fm", "adlib", "midi", "speaker", "off", "game" };
+    {   /* Darklands was composed for the MT-32: while it isn't heard, say so first, plainly, with the way to it */
+        const char *dv = config_get("sound.device", "auto");
+        bool on_mt32 = (!strcmp(dv, "auto") || !strcmp(dv, "mt32")) && mt32_available();
+        if (!on_mt32 && strcmp(dv, "midi")) {
+            ImVec2 a = ImGui::GetCursorScreenPos(); float w = ImGui::GetContentRegionAvail().x;
+            ImGui::GetWindowDrawList()->ChannelsSplit(2); ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+            ImGui::Indent(UIS(14)); ImGui::Dummy(ImVec2(0, UIS(4)));
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 30, 16, 255));
+            ImGui::TextWrapped("You are not hearing Darklands as it was composed.");
+            ImGui::PopStyleColor();
+            ImGui::TextWrapped("Its music and battle sounds were written for the Roland MT-32; every other choice below is a lesser version of them. "
+                               "Darklands+ has the MT-32 built in and only needs its two ROM files, which belong to Roland and can't be included.");
+            if (ImGui::Button("Get the MT-32 working...")) ui_show_mt32_help();
+            ImGui::Dummy(ImVec2(0, UIS(4))); ImGui::Unindent(UIS(14));
+            ImGui::GetWindowDrawList()->ChannelsSetCurrent(0);
+            ImVec2 b(a.x + w, ImGui::GetCursorScreenPos().y);
+            ImGui::GetWindowDrawList()->AddRectFilled(a, b, IM_COL32(246, 222, 180, 255), 6);
+            ImGui::GetWindowDrawList()->AddRect(a, b, IM_COL32(150, 60, 30, 255), 6, 0, 2.0f);
+            ImGui::GetWindowDrawList()->ChannelsMerge();
+            ImGui::Spacing();
+        }
+    }
+    /* the choices, best first, each with what it lacks in plain words */
+    static const char *ids[] = { "mt32", "auto", "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {
-        "Automatic: the Roland MT-32 when its ROM files are found, otherwise the Sound Blaster - recommended",
-        "Roland MT-32 / LAPC-I, emulated (Munt; needs the MT-32 or CM-32L ROM files)",
-        "Sound Blaster Pro (OPL-3 FM, emulated)",
-        "AdLib / Sound Blaster (OPL-2 FM, emulated)",
-        "Roland MIDI to your system's MIDI device (a real MT-32, or Munt installed as a device)",
+        "Roland MT-32, emulated - recommended: the music and battle sounds as composed (needs the MT-32 ROM files)",
+        "Automatic: the MT-32 when its ROM files are found, otherwise the Sound Blaster Pro",
+        "Sound Blaster Pro (OPL3 FM chip, emulated)",
+        "AdLib (OPL2 FM chip, emulated)",
+        "Roland MIDI out, to a device on your system",
         "PC speaker",
         "Off",
         "As in the game's own setup (INSTALL)" };
+    static const char *limits[] = {
+        0, 0,
+        "What most players heard in 1992: the score arranged for an FM chip, and recorded (digitized) battle sounds. Thinner and buzzier than the MT-32.",
+        "The older FM chip: music much like the Sound Blaster's, but no recorded sounds at all, so the battle sounds are FM noises too. Only for the nostalgic.",
+        "Only for a real MT-32 on a MIDI interface, or Munt installed as a MIDI device. A General MIDI synthesizer (Windows' own) plays the wrong instruments: \"random notes rather than clashing swords\".",
+        "Beeps only.", 0, 0 };
     const char *cur = config_get("sound.device", "auto");
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++) {
         if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); ui_dirty_config = 1; }
+        if (limits[i]) { ImGui::Indent(UIS(30)); ui_hint("%s", limits[i]); ImGui::Unindent(UIS(30)); }
+    }
     ui_hint("Takes effect after the next battle, or when the game is started again.");
     if (!strcmp(cur, "midi")) {                     /* which MIDI output */
         ImGui::Indent(UIS(30));
@@ -763,8 +794,8 @@ void tab_display(void)
             const char *cur = config_get("sound.mt32_model", "mt32");
             ImGui::TextUnformatted("Both ROM sets found; play on the:");
             ImGui::Indent();
-            if (ImGui::RadioButton("MT-32 (recommended: battle sounds as blows and grunts)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-            if (ImGui::RadioButton("CM-32L / LAPC-I (its extra sound effects turn the battle sounds into chimes)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            if (ImGui::RadioButton("MT-32 (recommended: the battle sounds as blows and grunts, as composed)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            if (ImGui::RadioButton("CM-32L / LAPC-I, as a curiosity (its own sound effects stand in for the battle sounds: chimes and odd noises)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
             ImGui::Unindent();
         }
         {   bool lcd = config_get_int("sound.mt32_lcd", 1);
@@ -793,7 +824,8 @@ void tab_display(void)
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
-            if (ImGui::Checkbox("Experimental: synthesized sounds where the pack has none", &sy)) { sfx_set_synth(sy); ui_dirty_config = 1; }
+            if (ImGui::Checkbox("Experimental: make up the sounds the pack lacks", &sy)) { sfx_set_synth(sy); ui_dirty_config = 1; }
+            ImGui::Indent(UIS(34)); ui_hint("A sound missing from the pack is made by Darklands+ (a computer-made clash or thud) instead of the game's own."); ImGui::Unindent(UIS(34));
             int v = sfx_volume;
             ImGui::SetNextItemWidth(UIS(260));
             if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }
@@ -843,10 +875,6 @@ void tab_display(void)
             ImGui::TreePop();
         }
     }
-    ImGui::TextWrapped("The GOG release plays everything through its Roland driver, which on a General MIDI synthesizer "
-                       "sounds like \"random notes rather than clashing swords\": it is meant for an MT-32. With the MT-32's "
-                       "ROM files Darklands+ plays it as composed; without them, the Sound Blaster setting uses the game's "
-                       "own FM drivers and digitized effects, as most players heard it in 1992.");
     d_top = d_found < 0 ? 0 : d_found;
     ImGui::EndChild();
 }
