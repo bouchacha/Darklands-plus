@@ -485,6 +485,7 @@ static void pic_choice(const char *id, const char *key, int def, const int *vals
 static const char *DSECT[] = { "Screen", "Text", "Pictures", "Ornaments", "Clock", "Icons", "Sound" };
 static const int NDSECT = (int)(sizeof DSECT / sizeof DSECT[0]);
 static int d_jump = -1, d_top = 0, d_found = -1; static float d_view;
+extern "C" void settings_display_jump(int k) { d_jump = k; }   /* (test: udsect) */
 static void dsec(const char *name)
 {
     int i = 0; while (i < NDSECT && strcmp(DSECT[i], name)) i++;
@@ -513,6 +514,13 @@ static void display_icons(void)
     pic_choice("cardnums", "display.card_numbers", 1, NV, NL, 5, cw5, cw5 * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
         void cardview_key_mark_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int ms);
         cardview_key_mark_preview(dl, a, b, v);
+    });
+    ImGui::TextUnformatted("The boats' routes on the world map");
+    static const int BSV[4] = { 0, 1, 2, 3 };
+    static const char *BSL[4] = { "Amber on black", "Red ink", "Wake with ships", "Navy double line" };
+    pic_choice("boatstyle", "map.boat_style", 0, BSV, BSL, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+        void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style);
+        worldmap_boat_style_preview(dl, a, b, v);
     });
     ImGui::TextUnformatted("The places' pictures on the world map");
     static const int MV[3] = { 0, 1, 2 };

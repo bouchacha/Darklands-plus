@@ -80,6 +80,7 @@ int testcmd_run(const char *cmd, const char *arg)
             for (int f = 1; f < 16; f++) if (hist[f]) fprintf(stderr, " %d:%d", f, hist[f]);
             fprintf(stderr, "\n");
         }
+        else if (!strcmp(cmd, "udsect")) { void settings_display_jump(int); settings_display_jump(atoi(arg)); }   /* test: the Display page at section N */
         else if (!strcmp(cmd, "uaim")) {               /* test: who shoots, and the aim under the pointer */
             extern int orders_member_mode(int m); extern int orders_aim(int *who, int *foe);
             for (int m = 0; m < 5; m++) fprintf(stderr, "aim: member %d mode %d weapon %d order %#x\n", m, orders_member_mode(m), (s8)g_rb((u16)(0x9c55 + m * 0x80 + 0x22)), g_rw((u16)(0x9c55 + m * 0x80 + 0x10)));

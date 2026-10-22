@@ -668,6 +668,17 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
     }
 }
 static int boat_style(void) { return config_get_int("map.boat_style", 0) % 4; }
+/* the settings' picture of a boat style: a way over a strip of sea and shore, moving (ui/settings.cpp) */
+void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style)
+{
+    dl->AddRectFilled(a, b, IM_COL32(40, 80, 170, 255), 4);
+    float w = b.x - a.x, h = b.y - a.y;
+    dl->AddRectFilled(ImVec2(a.x, a.y + h * 0.72f), b, IM_COL32(70, 130, 60, 255), 4, ImDrawFlags_RoundCornersBottom);
+    std::vector<ImVec2> pts;
+    for (int k = 0; k <= 16; k++) { float u = k / 16.0f; pts.push_back(ImVec2(a.x + w * (0.1f + 0.8f * u), a.y + h * (0.6f - 0.35f * sinf(u * 3.1416f)))); }
+    boat_way_draw(dl, pts, fmaxf(2.0f, h * 0.05f), false, 255, (float)ImGui::GetTime(), style, true);
+    for (int e = 0; e < 2; e++) dl->AddCircleFilled(pts[e ? pts.size() - 1 : 0], h * 0.06f, IM_COL32(240, 230, 210, 255), 12);
+}
 
 /* the four things the map can show or not (names, quest marks, boats, the places' icons): buttons
    floating on the map, under the top right panel */
