@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include "imgui.h"
+#include "gamepics.h"
 
 namespace {
 const ImU32 GRASS = IM_COL32(58, 92, 40, 255), GRASS_D = IM_COL32(44, 72, 30, 255), INK = IM_COL32(40, 26, 12, 255),
@@ -176,6 +177,15 @@ void los_line(const S &s, bool on)
     for (int k = 0; k < 6; k += 2) { float t0 = k / 6.0f, t1 = (k + 1) / 6.0f; s.dl->AddLine(ImVec2(h.x + (z.x - h.x) * t0, h.y + (z.y - h.y) * t0), ImVec2(h.x + (z.x - h.x) * t1, h.y + (z.y - h.y) * t1), RED, 1.5f); }
     s.dl->AddCircle(z, 2.5f * s.k, RED, 14, 1.5f);
 }
+void alchemy_art(const S &s, bool on)
+{
+    const GamePic *g = on ? gamepic("PICS\\ALCSCRN0.PIC") : nullptr;
+    if (g && g->tex) { s.dl->AddImage((ImTextureID)(intptr_t)g->tex, s.p(0, 0), s.p(100, 60), ImVec2(60.0f / 320, 0), ImVec2(1, 1)); return; }
+    s.rect(0, 0, 100, 60, IM_COL32(242, 230, 200, 255));
+    s.text(4, 3, 6, INK, "Alchemy");
+    for (int i = 0; i < 5; i++) s.rect(4, 14 + i * 7, 44, 19 + i * 7, i == 1 ? IM_COL32(214, 186, 140, 255) : IM_COL32(230, 216, 186, 255));
+    for (int i = 0; i < 6; i++) s.rect(52, 14 + i * 6, i ? 92 : 80, 16 + i * 6, IM_COL32(150, 120, 90, 255));
+}
 } // namespace
 
 /* the switch's picture, off or on, in a..b (its height about 0.6 of its width); false: none */
@@ -184,7 +194,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     struct E { const char *key; int id; };
     static const E T[] = { { "display.panel_losses", 1 }, { "battle.bars", 2 }, { "battle.bars_hurt", 3 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
-                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 } };
+                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.alchemy_art", 16 } };
     int id = 0;
     for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
     if (!id) return false;
@@ -207,6 +217,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     case 13: volley_toggle(s, on); break;
     case 14: order_bar(s, on); break;
     case 15: los_line(s, on); break;
+    case 16: alchemy_art(s, on); break;
     }
     dl->PopClipRect();
     return true;
