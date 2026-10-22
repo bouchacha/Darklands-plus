@@ -22,6 +22,7 @@
 #include "../mods/nscreen.h"
 #include "../mods/barterview.h"
 #include "nsdraw.h"
+#include "../runtime/config.h"
 #include <vector>
 extern "C" {
 #include "../mods/gamemodel.h"
@@ -54,6 +55,43 @@ struct View {
 /* the hidden VGA under the native screen still holds the original's; the crisp text and the
  * shop tooltips leave it alone while this is up */
 extern "C" int barterview_showing(void) { return ns_screen == NS_BARTER && barter_model.open && !ns_hidden(); }
+
+/* the place a thing is worn or held: 1 body armour, 2 the limbs' armour, 3 shield, 4 the weapon in
+   hand, 5 the missile weapon; 0 none */
+static int slot_of(int id)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d) return 0;
+    if (d->type >= 67 && d->type <= 84) return d->type <= 75 ? 1 : 2;
+    if (d->kind == K_SHIELD) return 3;
+    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+        int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type));
+        return sk == 5 || sk == 6 ? 5 : 4;
+    }
+    return 0;
+}
+/* a ware against what member m has there now: 1 better, -1 worse, 0 alike or not to be weighed
+   (another kind of weapon or shield), 2 nothing there. Armour: harder first, then better made
+   (as ns_item_compare says it); a weapon or shield: better made, of the same kind */
+static int against_worn(int id, int q, int m)
+{
+    int sl = slot_of(id);
+    if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return 0;
+    static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e }, QOFF[6] = { 0, 0x3b, 0x3c, 0x47, 0x44, 0x46 };
+    u16 b = G_MEMBER(m);
+    int t = (s8)g_rb((u16)(b + TOFF[sl])), wq = g_rb((u16)(b + QOFF[sl]));
+    if (t < 0) return 2;
+    const ItemDef *d = ns_itemdef(id);
+    if (sl <= 2) {
+        if (t < 67 || t > 84) return 2;
+        int h = rb(G_FAR20A5, (u16)(0x781e + d->type)), wh = rb(G_FAR20A5, (u16)(0x781e + t));
+        if (h != wh) return h > wh ? 1 : -1;
+        return q > wq ? 1 : q < wq ? -1 : 0;
+    }
+    if (sl >= 4 && t > 62) return 2;
+    if (t != d->type) return 0;
+    return q > wq ? 1 : q < wq ? -1 : 0;
+}
 
 extern "C" void barterview_draw(void)
 {
@@ -154,6 +192,8 @@ extern "C" void barterview_draw(void)
     std::map<int, int> have_n;
     { GmItem g; for (int m = 0; m < 5; m++) if (b.present[m]) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g)) have_n[g.id] += g.count; }
     auto ingredient = [&](int id) { const ItemDef *d = def(id); return d && d->kind == K_INGREDIENT; };
+    const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
+    const int cmp_slot = cmp_on && V.hover_list == 0 && V.hover_row >= 0 && V.hover_row < b.nwares ? slot_of(b.ware[V.hover_row].id) : 0;
     static bool spare_lit;                       /* the button under the pointer (last frame): its things pulse in the list */
     float pulse = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
     for (int L = 0; L < 2; L++) {
@@ -208,6 +248,18 @@ extern "C" void barterview_draw(void)
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
+            int vs = !L && cmp_on ? against_worn(id, qual, b.who) : 0;     /* (a ware: better or worse than what the member has there) */
+            if (vs) {
+                float ax = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 4.5f, name_end - 2.5f), ay = y + ROWH * 0.5f;   /* (just after the name) */
+                ImU32 ac = vs == 1 ? NsDraw::GREEN : vs == 2 ? IM_COL32(40, 96, 34, 170) : NsDraw::RED;
+                ImVec2 p0 = NsDraw::w(ax - 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p1 = NsDraw::w(ax + 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p2 = NsDraw::w(ax, vs < 0 ? ay + 1.8f : ay - 1.8f);
+                if (vs == 2) P.dl->AddTriangle(p0, p1, p2, ac, 0.3f * P.k); else P.dl->AddTriangleFilled(p0, p1, p2, ac);
+                name_end -= 6;
+            }
+            if (L && cmp_slot && b.item[i].equipped == 1 && slot_of(id) == cmp_slot) {      /* what the ware pointed at would replace */
+                R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(214, 170, 60, (int)(40 + 50 * pulse)));
+                Rl(x0 + 0.8f, y + 0.3f, x1 - 0.8f, y + ROWH - 0.3f, IM_COL32(170, 120, 30, (int)(150 + 100 * pulse)), 1.0f);
+            }
             if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);     /* equipped: a red mark at its left (said in the strip) */
             char haves[24] = "";
             if (!L && ingredient(id)) snprintf(haves, sizeof haves, "have %d", have_n.count(id) ? have_n[id] : 0);

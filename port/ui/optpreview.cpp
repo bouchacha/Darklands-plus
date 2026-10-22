@@ -2,6 +2,7 @@
  * with it off and on, side by side under the switch (ui/settings.cpp option_row). Drawn, not taken
  * from the game's art: a sketch of the interface in its own colours. */
 #include <math.h>
+#include <float.h>
 #include <string.h>
 #include "imgui.h"
 #include "gamepics.h"
@@ -186,6 +187,25 @@ void alchemy_art(const S &s, bool on)
     for (int i = 0; i < 5; i++) s.rect(4, 14 + i * 7, 44, 19 + i * 7, i == 1 ? IM_COL32(214, 186, 140, 255) : IM_COL32(230, 216, 186, 255));
     for (int i = 0; i < 6; i++) s.rect(52, 14 + i * 6, i ? 92 : 80, 16 + i * 6, IM_COL32(150, 120, 90, 255));
 }
+void shop_compare(const S &s, bool on)
+{
+    s.rect(0, 0, 100, 60, IM_COL32(250, 242, 222, 255));
+    const char *L[3] = { "Padded (body)", "Chainmail (body)", "Plate Armor (body)" };
+    int v[3] = { -1, 0, 1 };
+    for (int i = 0; i < 3; i++) {
+        float y = 6 + i * 13;
+        if (i & 1) s.rect(2, y - 2, 98, y + 9, IM_COL32(240, 230, 204, 255));
+        s.text(5, y, 6, INK, L[i]);
+        if (on && v[i]) {
+            float ax = 5 + ImGui::GetFont()->CalcTextSizeA(6 * s.k, FLT_MAX, 0, L[i]).x / s.k + 4, ay = y + 3.5f;
+            ImU32 c = v[i] > 0 ? IM_COL32(40, 96, 34, 255) : IM_COL32(140, 30, 18, 255);
+            s.dl->AddTriangleFilled(s.p(ax - 2.2f, v[i] < 0 ? ay - 1.6f : ay + 1.6f), s.p(ax + 2.2f, v[i] < 0 ? ay - 1.6f : ay + 1.6f), s.p(ax, v[i] < 0 ? ay + 2 : ay - 2), c);
+        }
+    }
+    float y = 46;
+    if (on) s.rect(2, y - 2, 98, y + 9, IM_COL32(214, 170, 60, 110));
+    s.text(5, y, 6, INK, "Worn: Brigandine");
+}
 } // namespace
 
 /* the switch's picture, off or on, in a..b (its height about 0.6 of its width); false: none */
@@ -194,7 +214,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     struct E { const char *key; int id; };
     static const E T[] = { { "display.panel_losses", 1 }, { "battle.bars", 2 }, { "battle.bars_hurt", 3 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
-                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.alchemy_art", 16 } };
+                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.alchemy_art", 16 }, { "display.shop_compare", 17 } };
     int id = 0;
     for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
     if (!id) return false;
@@ -218,6 +238,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     case 14: order_bar(s, on); break;
     case 15: los_line(s, on); break;
     case 16: alchemy_art(s, on); break;
+    case 17: shop_compare(s, on); break;
     }
     dl->PopClipRect();
     return true;
