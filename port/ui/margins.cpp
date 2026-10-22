@@ -352,6 +352,7 @@ extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/jour
    grade; those someone in the party knows dim (as the saints taught). The formula, its price and what it does under the
    pointer */
 bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier);   /* ui/alchemyicons.cpp */
+std::string ns_item_encounters(int id, ImU32 *col);   /* ui/nsdraw.cpp */
 static void formulae_line(int town)
 {
     int fo[4], pr[4];
@@ -377,6 +378,7 @@ static void formulae_line(int town)
             char head[200]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florin%s.\n%s\n\n", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k], pr[k] == 1 ? "" : "s",
                                      known ? "Someone in the party knows this formula." : "Nobody in the party knows this formula.");
             std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
+            { std::string enc = ns_item_encounters(95 + f / 3, nullptr); if (!enc.empty()) tip += "\n\n" + enc; }
             margin_tip(tip.c_str());
         }
     }

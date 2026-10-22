@@ -95,7 +95,10 @@ extern "C" void alchemyview_draw(void)
         y += 7.5f;
         if (fm < (int)gamedata.formulas.size()) {
             const std::string &t = gamedata.formulas[fm].text;
-            y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, game_text(t.c_str(), t.size())) + 2;
+            y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, soft, game_text(t.c_str(), t.size())) + 0.5f;
+            ImU32 ec; std::string enc = ns_item_encounters(95 + fm / 3, &ec);
+            if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, ec, enc);
+            y += 1.5f;
         }
         P.text(f, NsDraw::FS_NAME, RX0, y, ink, "Ingredients for a batch"); y += 8;
         for (int k = 0; k < a.ningr; k++) {

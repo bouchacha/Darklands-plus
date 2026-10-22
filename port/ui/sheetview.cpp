@@ -900,7 +900,9 @@ static void formulae(NsDraw &P, const SheetModel &s)
     if (P.over(DX0, y, DX1, y + mh))
         ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong.");
     y += mh + 1;
-    y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 2;
+    y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 0.5f;
+    { ImU32 ec; std::string enc = ns_item_encounters(95 + k / 3, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, ec, enc); }
+    y += 1.5f;
     P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: needed / the party has"); y += 6;
     for (const FormulaIngr &g : fm.ingr) {
         int have = g.item >= 0 && g.item < 200 ? s.have[g.item] : 0;
