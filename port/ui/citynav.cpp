@@ -201,6 +201,11 @@ static const Rule RULES[] = {
     { H_CIVIL, "-making", 100 + H_ARMS }, { H_CIVIL, "side street", 100 + H_SIDE }, { H_CIVIL, "main street", 100 + H_MAIN },
     { H_SIDE, "main street", 100 + H_MAIN }, { H_SIDE, "$inn", D_INN }, { H_SIDE, "$cityslums", D_SLUM },
     { H_SIDE, "grove", D_GROVE }, { H_SIDE, "city wall", D_WALL },
+    /* (by night, $SIDES01 and $MAINS02 put it otherwise) */
+    { H_SIDE, "city marketplace", 100 + H_MARKET }, { H_SIDE, "central city square", 100 + H_SQUARE }, { H_SIDE, "spires", 100 + H_CHURCHES },
+    { H_SIDE, "crafts district", 100 + H_CRAFTS }, { H_SIDE, "docks", D_DOCKS }, { H_SIDE, "central fortress", D_FORTRESS },
+    { H_MAIN, "crafts district", 100 + H_CRAFTS }, { H_MAIN, "side streets and alleys", 100 + H_SIDE },
+    { H_SQUARE, "posted notices", D_SQUARE },
     { H_SQUARE, "$councilhall", D_TOWNHALL }, { H_SQUARE, "prison", D_PRISON }, { H_SQUARE, "$citybarracks", D_BARRACKS },
     { H_SQUARE, "$university", D_UNIVERSITY }, { H_SQUARE, "spires", 100 + H_CHURCHES }, { H_SQUARE, "$marketplace", 100 + H_MARKET },
     { H_SQUARE, "main street", 100 + H_MAIN }, { H_SQUARE, "side street", 100 + H_SIDE },
@@ -412,6 +417,11 @@ extern "C" void citynav_tick(void)
     std::vector<std::string> line(n);
     for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
     if (logon) { LOG("%s hub %d visited %x:\n", kb, hub, visited); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
+    if (card == "$INSID00" && blk == 0) {                   /* the offices above the marketplace by night: the one wanted, else out by the window */
+        static const struct { int d; const char *key; } OFF[] = { { D_MERCHANT, "leading merchant" }, { D_FUGGER, "fugger" }, { D_MEDICI, "medici" }, { D_HANSE, "hanseatic" } };
+        for (auto &o : OFF) if (o.d == goal) for (int i = 0; i < n; i++) if (line[i].find(o.key) != std::string::npos) { click_line(i); goal = -1; return; }
+        for (int i = 0; i < n; i++) if (line[i].find("window") != std::string::npos) { leaves++; click_line(i); return; }
+    }
     if (hub == H_NONE) {                                   /* a shop or other place of the city: out the way the player would leave */
         if (visited || leaves >= 3) { stop("something happened on the way."); return; }
         int pick = choose_leave(line);
@@ -421,7 +431,12 @@ extern "C" void citynav_tick(void)
     }
     if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
     for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
-    if (hub == H_MARKET && night_closed(goal)) { stop("the marketplace: shut for the night, its stalls and offices open at 5:00."); return; }   /* (taken there all the same: a task, a theft) */
+    if (hub == H_MARKET && (night_closed(goal) || card == "$MARKE01")) {    /* the marketplace by night ($MARKE01): its stalls shut, the offices upstairs to be reached past the guards */
+        bool office = goal == D_MERCHANT || goal == D_FUGGER || goal == D_MEDICI || goal == D_HANSE;
+        stop(office ? "the marketplace by night: choose how to get past the guards to the offices upstairs (G again there goes on to the office)."
+                    : "the marketplace by night: its stalls are shut until 5:00.");
+        return;
+    }
     visited |= 1u << hub;
     int best = -1, bd = 1000;
     for (int i = 0; i < n; i++) {
