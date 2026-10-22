@@ -358,6 +358,14 @@ extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
 extern "C" int ui_alert_open(void);
 void ui_alert_draw(void);
+/* (third_party/imgui/imconfig.h: a failed check of ImGui's, logged once a place) */
+void dl_imgui_assert(const char *expr, const char *file, int line)
+{
+    static const char *seen[64]; static int ns;
+    for (int i = 0; i < ns; i++) if (seen[i] == expr) return;
+    if (ns < 64) seen[ns++] = expr;
+    fprintf(stderr, "imgui: check failed: %s (%s:%d)\n", expr, file, line);
+}
 extern "C" void ui_show_mt32_help(void) { open_mt32 = true; }   /* (the settings' Sound: how to get the MT-32) */
 extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */

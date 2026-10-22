@@ -593,8 +593,10 @@ static void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b)
 /* a boat's way, in the chosen look (map.boat_style): 0 amber dashes on a dark casing, moving; 1 a
    chart's red ink, as the rhumb lines of a portolan, its stops dotted; 2 a ship's wake: white dots,
    little cogs sailing along it; 3 a sea chart's double line, white in dark blue, moving. al: 255 for
-   a boat leaving today (or any, on the world map), less for one leaving later; lit: the one chosen */
-static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float lw, bool lit, int al, float t, int style)
+   a boat leaving today (or any, on the world map), less for one leaving later; lit: the one chosen;
+   both_ways: boats sail it both ways (most do): the dashes breathe in place rather than run one way,
+   and the little ships sail both ways */
+static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float lw, bool lit, int al, float t, int style, bool both_ways = false)
 {
     if (pts.size() < 2) return;
     int n = (int)pts.size();
@@ -610,6 +612,11 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
         }
     };
     auto dashes = [&](float dash, float gap, float speed, ImU32 c, float w) {
+        if (both_ways) {                                          /* (in place, brightening and fading) */
+            speed = 0;
+            int a0 = (int)(c >> IM_COL32_A_SHIFT) & 255; float pl = 0.72f + 0.28f * sinf(t * 2.2f);
+            c = (c & ~IM_COL32_A_MASK) | ((ImU32)(a0 * pl) << IM_COL32_A_SHIFT);
+        }
         float acc = -fmodf(t * speed, dash + gap);
         for (int k = 1; k < n; k++) {
             ImVec2 p0 = pts[k - 1], p1 = pts[k];
@@ -637,7 +644,9 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
         break;
     case 2:                                                       /* a ship's wake, and the ships on it */
         along(lw * 4.2f, 0, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.6f, IM_COL32(255, 255, 255, lit ? 255 : al * 4 / 5), 6); });
-        along(lw * 60, t * lw * 10, [&](ImVec2 p, ImVec2 d) {
+        for (int dir = 0; dir < (both_ways ? 2 : 1); dir++)     /* (both ways: half of them sail back) */
+        along(lw * 60, dir ? lw * 30 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {
+            if (dir) d = ImVec2(-d.x, -d.y);
             float h = lw * 2.6f; bool right = d.x >= 0;
             ImVec2 hull[4] = { ImVec2(p.x - h * 1.1f, p.y), ImVec2(p.x + h * 1.1f, p.y), ImVec2(p.x + h * 0.7f, p.y + h * 0.55f), ImVec2(p.x - h * 0.7f, p.y + h * 0.55f) };
             dl->AddConvexPolyFilled(hull, 4, IM_COL32(110, 64, 30, al));
@@ -658,13 +667,11 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
 }
 static int boat_style(void) { return config_get_int("map.boat_style", 0) % 4; }
 
-/* the four things the map can show or not (names, quest marks, boats, the places' icons), and how
-   they are switched (map.layers_ui, the choice to make): 0 tick boxes in the legend, 1 chips in the
-   legend, 2 entries of the legend as the kinds of place, 3 buttons on the map's corner */
+/* the four things the map can show or not (names, quest marks, boats, the places' icons): buttons
+   floating on the map, under the top right panel */
 static bool *const LAYER[4] = { &show_names, &show_quests, &show_boats, &show_icons };
 static const char *const LAYER_NAME[4] = { "Names", "Quests", "Boats", "Icons" };
 static const char *const LAYER_TIP[4] = { "Place names", "Quest marks", "Boats between the towns' docks", "Each place as an icon of its kind (else a dot)" };
-static int layers_ui(void) { return config_get_int("map.layers_ui", 0) % 4; }
 static void layer_glyph(ImDrawList *dl, ImVec2 c, float s, int which, ImU32 ink)
 {
     switch (which) {
@@ -699,6 +706,7 @@ extern "C" void worldmap_draw(void)
     upload();
     ImDrawList *dl = ImGui::GetWindowDrawList();
     ImVec2 o = ImGui::GetWindowPos(), sz = io.DisplaySize;
+    if (sz.x < 64 || sz.y < 64) { ImGui::End(); return; }      /* (the window minimized: nothing to draw into) */
     dl->AddRectFilled(o, ImVec2(o.x + sz.x, o.y + sz.y), IM_COL32(236, 226, 200, 255));   /* (the paper round the map, as the printed one) */
     float ay = aspect();
     float fb = map_border_px() * 2 + map_border_px() * 1.6f;     /* (the frame and the title over it) */
@@ -797,7 +805,7 @@ extern "C" void worldmap_draw(void)
                 else for (int e = 0; e < 2; e++) { u32 r = g_location(e ? b : a); if (!r) continue; float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y); pts.push_back(to_scr(x, y)); }
                 if (pts.size() < 2) continue;
                 int al = selected >= 0 && !lit ? 90 : 255;
-                boat_way_draw(dl, pts, lw, lit, al, t, boat_style());
+                boat_way_draw(dl, pts, lw, lit, al, t, boat_style(), both);
             }
     }
 
@@ -1154,36 +1162,6 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::Spacing();
         /* what the map shows: two to a row, as the entries above */
-        int lu = layers_ui();
-        if (lu == 0) {
-            ImGui::Checkbox("Names", &show_names); ImGui::SameLine(rcolw); ImGui::Checkbox("Quests", &show_quests);
-            ImGui::Checkbox("Boats", &show_boats);
-            ImGui::SameLine(rcolw); ImGui::Checkbox("Icons", &show_icons);
-        } else if (lu == 1) {                                   /* chips: a glyph and a word, filled while shown */
-            ImGui::TextDisabled("Show on the map");
-            float x = 0, is = ImGui::GetFontSize() * 1.1f;
-            for (int k = 0; k < 4; k++) {
-                float w = is * 1.3f + ImGui::CalcTextSize(LAYER_NAME[k]).x + is * 0.6f, h = is * 1.35f;
-                if (k && x + w <= rw) ImGui::SameLine(); else x = 0;
-                x += w + ImGui::GetStyle().ItemSpacing.x;
-                ImGui::PushID(200 + k);
-                ImVec2 a = ImGui::GetCursorScreenPos();
-                if (ImGui::InvisibleButton("##chip", ImVec2(w, h))) *LAYER[k] = !*LAYER[k];
-                bool hv = ImGui::IsItemHovered(), on = *LAYER[k];
-                ImGui::PopID();
-                ImDrawList *pl = ImGui::GetWindowDrawList();
-                ImVec2 b(a.x + w, a.y + h);
-                pl->AddRectFilled(a, b, on ? IM_COL32(150, 96, 44, hv ? 255 : 235) : IM_COL32(236, 226, 204, hv ? 255 : 200), h * 0.5f);
-                pl->AddRect(a, b, IM_COL32(120, 80, 36, 200), h * 0.5f, 0, 1.2f);
-                layer_glyph(pl, ImVec2(a.x + h * 0.55f, a.y + h * 0.5f), is * 0.9f, k, on ? IM_COL32(250, 240, 220, 255) : IM_COL32(110, 80, 50, 255));
-                pl->AddText(ImVec2(a.x + is * 1.3f, a.y + (h - ImGui::GetFontSize()) * 0.5f), on ? IM_COL32(250, 240, 220, 255) : ImGui::GetColorU32(ImGuiCol_TextDisabled), LAYER_NAME[k]);
-            }
-        } else if (lu == 2) {                                   /* entries of the legend, as the kinds of place: a click shows or hides */
-            ImGui::TextDisabled("Also on the map:");
-            for (int k = 0; k < 4; k++)
-                if (grid_entry(300 + k, *LAYER[k], false, LAYER_NAME[k], [&](ImDrawList *pl, ImVec2 c, float is) { layer_glyph(pl, c, is, k, ImGui::GetColorU32(ImGuiCol_Text)); }))
-                    *LAYER[k] = !*LAYER[k];
-        }
         if (show_icons) {                                        /* which set of icons (map.icon_set) */
             static const char *SETS[3] = { "Painted", "Woodcut", "Seals" };
             int st = icon_set();
@@ -1225,7 +1203,9 @@ extern "C" void worldmap_draw(void)
         }
     }
     ImGui::End();
-    if (layers_ui() == 3) {                                       /* buttons on the map, under the top right panel: always at hand */
+    {                                                             /* the map's switches: buttons on the map, under the top right panel, always at hand */
+        static bool loaded;
+        if (!loaded) { loaded = true; for (int k = 0; k < 4; k++) { char key[32]; snprintf(key, sizeof key, "map.show_%d", k); *LAYER[k] = config_get_int(key, 1) != 0; } }
         float bs = fmaxf(34.0f, ui_text_px() * 1.6f), gap = bs * 0.18f;
         float x0 = o.x + sz.x - pad - bs, y0 = o.y + wm_find_bottom + pad;
         ImGui::SetNextWindowPos(ImVec2(x0 - gap, y0 - gap));
@@ -1238,7 +1218,10 @@ extern "C" void worldmap_draw(void)
             ImVec2 a(x0, y0 + k * (bs + gap)), b(a.x + bs, a.y + bs);
             ImGui::SetCursorScreenPos(a);
             ImGui::PushID(400 + k);
-            if (ImGui::InvisibleButton("##lay", ImVec2(bs, bs))) *LAYER[k] = !*LAYER[k];
+            if (ImGui::InvisibleButton("##lay", ImVec2(bs, bs))) {
+                *LAYER[k] = !*LAYER[k];
+                char key[32]; snprintf(key, sizeof key, "map.show_%d", k); config_set_int(key, *LAYER[k]); extern int ui_dirty_config; ui_dirty_config = 1;   /* (kept) */
+            }
             bool hv = ImGui::IsItemHovered(), on = *LAYER[k];
             if (hv) ImGui::SetTooltip("%s: %s", LAYER_TIP[k], on ? "shown (click to hide)" : "hidden (click to show)");
             ImGui::PopID();

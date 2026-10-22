@@ -506,6 +506,26 @@ static BoatWay *boats; static int nboats;
 /* where a boat goes: the sea (1), the great rivers (2) and the lesser ones (3: the Leine at
    Hannover, the Oker at Braunschweig) */
 static int boat_water(int t) { return t == 1 || t == 2 || t == 3; }
+/* each water tile's distance (in steps) to the nearest land: 0 on land (the boats' ways) */
+static unsigned char *shore_dist;
+static void shore_dist_build(void)
+{
+    size_t n = (size_t)mw * mh;
+    shore_dist = malloc(n);
+    int *q = malloc(n * sizeof *q);
+    if (!shore_dist || !q) { free(q); if (shore_dist) memset(shore_dist, 2, n); return; }
+    int h = 0, tl = 0;
+    for (size_t i = 0; i < n; i++) { if (boat_water(terr[i])) shore_dist[i] = 255; else { shore_dist[i] = 0; q[tl++] = (int)i; } }
+    while (h < tl) {
+        int i = q[h++], x = i % mw, y = i / mw;
+        for (int k = 0; k < 6; k++) {
+            int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
+            int ni = ny * mw + nx;
+            if (shore_dist[ni] > shore_dist[i] + 1 && shore_dist[i] < 250) { shore_dist[ni] = (unsigned char)(shore_dist[i] + 1); q[tl++] = ni; }
+        }
+    }
+    free(q);
+}
 int travel_boat_way(int a, int b, const short **xs, const short **ys)
 {
     for (int i = 0; i < nboats; i++) if (boats[i].a == a && boats[i].b == b) { *xs = boats[i].x; *ys = boats[i].y; return boats[i].n; }
@@ -525,9 +545,13 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
     long long *heap = malloc(n * 6 * sizeof *heap);
     if (!dd || !pv || !heap) { free(dd); free(pv); free(heap); return 0; }
     for (size_t k = 0; k < n; k++) { dd[k] = -1; pv[k] = -1; }
-    /* Dijkstra from town to town: a tile of river or of sea by a shore costs 2, open sea 3 (so the
-       boats keep to the coasts, as they did), land 12 (so a town away from the water goes overland
-       to the nearest of it, and no route cuts across land to save a bend). */
+    /* Dijkstra from town to town, as the Hanse's skippers sailed: by the land in sight (the sea books
+       steered by coasts, churches and islands), not along the very shore. A river costs 4; the sea
+       within sight of land (2 to 6 tiles out, some 15 km) 4, the shallows by the shore 6, the open sea
+       beyond 8 (crossed where it saves much); land 24 (a town away from the water goes overland to
+       the nearest of it). So a route stands off the coast, cuts across bays and river mouths, and
+       in the North Sea runs outside the Frisian islands, as the bigger ships did. */
+    if (!shore_dist) shore_dist_build();
     int hn = 0, goal = -1;
 #define HPUSH(c, i) do { long long v_ = ((long long)(c) << 32) | (long long)(i); int j_ = hn++; \
         while (j_ > 0 && heap[(j_ - 1) / 2] > v_) { heap[j_] = heap[(j_ - 1) / 2]; j_ = (j_ - 1) / 2; } heap[j_] = v_; } while (0)
@@ -545,14 +569,10 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
         for (int k = 0; k < 6; k++) {
             int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
             if (nx < X0 || nx > X1 || ny < Y0 || ny > Y1) continue;
-            int t = terr[ny * mw + nx], step = 12;
+            int t = terr[ny * mw + nx], step = 24;
             if (boat_water(t)) {
-                step = 2;
-                if (t == 1) {
-                    int open = 1;
-                    for (int k2 = 0; k2 < 6 && open; k2++) { int mx, my, s2; if (nb(nx, ny, k2, &mx, &my, &s2) && terr[my * mw + mx] != 1) open = 0; }
-                    if (open) step = 3;
-                }
+                int dl = shore_dist[ny * mw + nx];
+                step = t != 1 ? 4 : dl <= 1 ? 6 : dl <= 6 ? 4 : 8;
             }
             int ni = BI(nx, ny);
             if (dd[ni] >= 0 && dd[ni] <= cst + step) continue;

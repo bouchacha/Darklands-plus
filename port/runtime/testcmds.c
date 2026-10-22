@@ -71,6 +71,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uornsheet")) { void orn_test_sheet(void); orn_test_sheet(); }   /* test: the frame and button styles side by side */
         else if (!strcmp(cmd, "unichesheet")) { void niche_test_sheet(void); niche_test_sheet(); }   /* test: the niche's corner styles side by side */
         else if (!strcmp(cmd, "uclocksheet")) { void clock_test_sheet(void); clock_test_sheet(); }   /* test: the clocks large, side by side */
+        else if (!strcmp(cmd, "ulcd")) { void ui_mt32_lcd(const char *); ui_mt32_lcd(arg); }   /* test: the MT-32 display shows the text */
         else if (!strcmp(cmd, "urec")) { extern int plat_rec_frames; plat_rec_frames = atoi(arg); }   /* test: save the next N frames (DL_REC=dir) */
         else if (!strcmp(cmd, "uwalk")) { void pathfix_test_walk(int, int, int); int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y); pathfix_test_walk(i, x, y); }   /* test: combatant i walks to x, y (battle map pixels) */
         else if (!strcmp(cmd, "upath")) { void pathfix_set(int, int); int pp = 1, pe = 0; sscanf(arg, "%d,%d", &pp, &pe); pathfix_set(pp, pe); fprintf(stderr, "pathfix party %d enemies %d\n", pp, pe); }   /* test: better pathfinding (party, enemies) */

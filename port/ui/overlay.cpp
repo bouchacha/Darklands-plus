@@ -657,7 +657,7 @@ extern "C" void ui_draw_notice(void)
 }
 
 /* the MT-32's display (mt32.c): what the game writes there ("[ MPS Darklands ]") shown for a
- * few seconds in the top right corner, amber on black as on the synthesizer */
+ * few seconds in the top right corner on a little MT-32 front panel, so the player knows it plays */
 static char lcd_next[24]; static volatile int lcd_new;
 static char lcd[24]; static u32 lcd_t;
 static char lcd_caption[120];                       /* a line under it, the first time */
@@ -668,6 +668,7 @@ extern "C" void ui_mt32_lcd(const char *text)       /* from the synthesizer's th
     snprintf(lcd_next, sizeof lcd_next, "%-20.20s", text);
     lcd_new = 1;
 }
+extern ImFont *ui_font_bold;
 static void draw_lcd(void)
 {
     if (lcd_new) { memcpy(lcd, lcd_next, sizeof lcd); lcd_new = 0; lcd_t = plat_ticks_ms(); }
@@ -676,24 +677,65 @@ static void draw_lcd(void)
     const u32 SHOW = 6000;
     if (age > SHOW) { lcd[0] = 0; lcd_caption[0] = 0; return; }
     float a = age < 300 ? age / 300.0f : age + 800 > SHOW ? (SHOW - age) / 800.0f : 1.0f;
+    /* a little MT-32 front panel: its dark grey face, "Roland" and the model, the MIDI MESSAGE and
+       POWER lights, the part buttons, and the display (amber on black) with what the game wrote */
     ImGuiIO &io = ImGui::GetIO();
     ImFont *f = ImGui::GetIO().Fonts->Fonts[0];
+    ImFont *fb = ui_font_bold ? ui_font_bold : f;
     float fs = fmaxf(14.0f, io.DisplaySize.y / 40.0f);
     float cw = fs * 0.62f;                                   /* a fixed pitch, as the display's cells */
-    float w = cw * 20 + fs, h = fs * 1.7f;
-    ImVec2 p0(io.DisplaySize.x - w - fs * 0.8f, fs * 0.8f), p1(p0.x + w, p0.y + h);
+    float lw = cw * 20 + fs, lh = fs * 1.7f;                 /* the display */
+    float pad = fs * 0.55f, W = lw + 2 * pad, H = fs * 1.35f + lh + fs * 1.6f + 2 * pad;
+    ImVec2 P0(io.DisplaySize.x - W - fs * 0.8f, fs * 0.8f), P1(P0.x + W, P0.y + H);
+    auto A = [&](int al) { return (int)(al * a); };
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    dl->AddRectFilled(ImVec2(p0.x - 4, p0.y - 4), ImVec2(p1.x + 4, p1.y + 4), IM_COL32(52, 48, 44, (int)(235 * a)), 5);   /* the panel */
-    dl->AddRectFilled(p0, p1, IM_COL32(18, 8, 4, (int)(245 * a)), 3);
+    dl->AddRectFilled(ImVec2(P0.x + 3, P0.y + 4), ImVec2(P1.x + 3, P1.y + 4), IM_COL32(0, 0, 0, A(90)), 6);   /* its shadow */
+    dl->AddRectFilledMultiColor(P0, P1, IM_COL32(66, 64, 62, A(250)), IM_COL32(66, 64, 62, A(250)), IM_COL32(40, 38, 37, A(250)), IM_COL32(40, 38, 37, A(250)));
+    dl->AddRect(P0, P1, IM_COL32(110, 108, 104, A(255)), 6, 0, 1.5f);
+    /* the top line: Roland, the model, MT-32 ACTIVE by a lit light */
+    float ty = P0.y + pad * 0.7f, ls = fs * 0.95f;
+    dl->AddText(fb, ls, ImVec2(P0.x + pad, ty), IM_COL32(236, 236, 232, A(255)), "Roland");
+    const char *act = "MT-32 ACTIVE";
+    ImVec2 as = fb->CalcTextSizeA(ls * 0.85f, FLT_MAX, 0, act);
+    float ax = P1.x - pad - as.x;
+    dl->AddText(fb, ls * 0.85f, ImVec2(ax, ty + ls * 0.08f), IM_COL32(236, 236, 232, A(255)), act);
+    ImVec2 led(ax - fs * 0.6f, ty + ls * 0.5f);
+    dl->AddCircleFilled(led, fs * 0.42f, IM_COL32(80, 255, 90, A(50)), 16);
+    dl->AddCircleFilled(led, fs * 0.22f, IM_COL32(110, 255, 120, A(255)), 12);
+    /* the display */
+    ImVec2 p0(P0.x + pad, P0.y + pad + fs * 1.35f), p1(p0.x + lw, p0.y + lh);
+    dl->AddRectFilled(ImVec2(p0.x - 3, p0.y - 3), ImVec2(p1.x + 3, p1.y + 3), IM_COL32(20, 20, 20, A(255)), 3);
+    dl->AddRectFilled(p0, p1, IM_COL32(18, 8, 4, A(250)), 2);
     for (int i = 0; i < 20; i++) {
         char ch[2] = { lcd[i], 0 };
         float x = p0.x + fs * 0.5f + cw * i;
-        dl->AddRectFilled(ImVec2(x + 1, p0.y + fs * 0.25f), ImVec2(x + cw - 1, p1.y - fs * 0.25f), IM_COL32(60, 22, 8, (int)(120 * a)), 1);   /* the dim cells */
+        dl->AddRectFilled(ImVec2(x + 1, p0.y + fs * 0.25f), ImVec2(x + cw - 1, p1.y - fs * 0.25f), IM_COL32(60, 22, 8, A(120)), 1);   /* the dim cells */
         if (ch[0] != ' ') {
             ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, ch);
-            dl->AddText(f, fs, ImVec2(x + (cw - ts.x) * 0.5f, p0.y + (h - ts.y) * 0.5f), IM_COL32(255, 150, 40, (int)(255 * a)), ch);
+            dl->AddText(f, fs, ImVec2(x + (cw - ts.x) * 0.5f, p0.y + (lh - ts.y) * 0.5f), IM_COL32(255, 150, 40, A(255)), ch);
         }
     }
+    /* under it: MIDI MESSAGE (blinking now and then, as notes come), the part buttons, the volume knob */
+    float by = p1.y + fs * 0.45f, bh = fs * 0.75f, small = fs * 0.55f;
+    bool blink = ((age / 140) % 5) < 2;
+    ImVec2 mled(p0.x + fs * 0.3f, by + bh * 0.5f);
+    dl->AddCircleFilled(mled, fs * 0.2f, blink ? IM_COL32(255, 70, 50, A(255)) : IM_COL32(90, 30, 24, A(255)), 10);
+    dl->AddText(f, small, ImVec2(mled.x + fs * 0.35f, by + (bh - small) * 0.5f), IM_COL32(200, 198, 192, A(255)), "MIDI MESSAGE");
+    float bx = mled.x + fs * 0.35f + f->CalcTextSizeA(small, FLT_MAX, 0, "MIDI MESSAGE").x + fs * 0.6f;
+    static const char *PARTS[6] = { "1", "2", "3", "4", "5", "R" };
+    float bw = (p1.x - bx - fs * 1.6f) / 6.0f;
+    for (int k = 0; k < 6; k++) {
+        ImVec2 b0(bx + k * bw + 2, by), b1(bx + (k + 1) * bw - 2, by + bh);
+        dl->AddRectFilled(b0, b1, IM_COL32(150, 148, 142, A(255)), 2);
+        dl->AddLine(ImVec2(b0.x, b1.y), b1, IM_COL32(60, 58, 56, A(255)), 1.5f);
+        ImVec2 ts = f->CalcTextSizeA(small, FLT_MAX, 0, PARTS[k]);
+        dl->AddText(f, small, ImVec2((b0.x + b1.x - ts.x) * 0.5f, (b0.y + b1.y - ts.y) * 0.5f), IM_COL32(40, 38, 36, A(255)), PARTS[k]);
+    }
+    ImVec2 knob(p1.x - fs * 0.6f, by + bh * 0.5f);
+    dl->AddCircleFilled(knob, fs * 0.5f, IM_COL32(28, 28, 28, A(255)), 20);
+    dl->AddCircle(knob, fs * 0.5f, IM_COL32(120, 118, 114, A(255)), 20, 1.2f);
+    dl->AddLine(knob, ImVec2(knob.x + fs * 0.32f, knob.y - fs * 0.32f), IM_COL32(230, 230, 226, A(255)), 1.5f);
+    p1 = P1;
     if (lcd_caption[0]) {
         ImGui::PushFont(ui_font_text);
         ImVec2 ts = ImGui::CalcTextSize(lcd_caption);
