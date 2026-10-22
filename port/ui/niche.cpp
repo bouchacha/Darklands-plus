@@ -91,21 +91,44 @@ static void spandrels(ImDrawList *dl, ImVec2 o, float kx, float k, int style)
             circ(cx, cy, R * 0.18f, 150);
             for (int f = 0; f < 5; f++) { float t = -PI / 2 + PI / 5 + f * 2 * PI / 5; dl->AddLine(Q(cx + cosf(t) * R * 0.72f, cy + sinf(t) * R * 0.72f), Q(cx + cosf(t) * R * 0.98f, cy + sinf(t) * R * 0.98f), G(120), 0.9f * k); }   /* the sepals */
             break; }
-        default: {                                                   /* acanthus: a leaf curling out of the corner, along the arch */
-            /* the stem: up the side from the capital, into a spiral in the corner, then out along the top */
-            curve(Q(8, 34), Q(6, 26), Q(6, 16), Q(10, 9), 2.0f, 186);
-            curve(Q(10, 9), Q(14, 3), Q(21, 6), Q(18, 11), 1.8f, 186);
-            curve(Q(18, 11), Q(16, 14), Q(12, 12), Q(14.5f, 9.5f), 1.4f, 186);
-            curve(Q(12, 4), Q(20, 1.5f), Q(28, 1.5f), Q(34, 3), 1.6f, 186);
-            /* the lobes: small curls off the stem, each with a sunk eye */
-            static const float L[5][4] = { { 7, 28, 3.2f, 0.4f }, { 6.5f, 19, 3.0f, 0.8f }, { 22, 2.6f, 2.6f, 2.8f }, { 29, 2.6f, 2.2f, 3.0f }, { 9, 12, 2.4f, 1.4f } };
-            for (auto &l : L) {
-                float x = l[0], y = l[1], r = l[2], t = l[3];
-                ImVec2 p0 = Q(x, y), p1 = Q(x + cosf(t) * r, y - sinf(t) * r), p2 = Q(x + cosf(t + 1.2f) * r * 1.3f, y - sinf(t + 1.2f) * r * 1.3f), p3 = Q(x + cosf(t + 2.2f) * r * 0.7f, y - sinf(t + 2.2f) * r * 0.7f);
-                curve(p0, p1, p2, p3, 1.3f, 200);
-                dl->AddCircleFilled(Q(x + cosf(t + 2.2f) * r * 0.7f, y - sinf(t + 2.2f) * r * 0.7f), 0.6f * k, G(110), 8);
-            }
-            circ(15.5f, 9.5f, 1.2f, 210);                                /* the spiral's eye */
+        default: {                                                   /* acanthus, as the game's: broad leaves in relief fanning from a boss */
+            /* the panel: sunk, a dark border round a mid-grey field */
+            dl->AddRectFilled(Q(4, 0), Q(64, 42), G(150));
+            dl->AddLine(Q(5, 1.2f), Q(64, 1.2f), G(92), 1.4f * k);
+            dl->AddLine(Q(5.2f, 1), Q(5.2f, 38), side ? G(200) : G(92), 1.4f * k);
+            /* a leaf: base to tip, w wide, its edge lobed; lit from the top left */
+            auto leaf = [&](float bx, float by, float tx, float ty, float w, float curl) {
+                const int N = 16;
+                float dx = tx - bx, dy = ty - by, L = sqrtf(dx * dx + dy * dy), nx = -dy / L, ny = dx / L;
+                ImVec2 lft[N + 1], rgt[N + 1], mid[N + 1];
+                for (int q = 0; q <= N; q++) {
+                    float u = (float)q / N, wd = w * sinf(PI * powf(u, 0.8f)) * (0.9f + 0.1f * cosf(u * 2 * PI * 3));
+                    float bend = curl * u * u * L * 0.25f;
+                    float cx = bx + dx * u + nx * bend, cy = by + dy * u + ny * bend;
+                    mid[q] = Q(cx, cy); lft[q] = Q(cx + nx * wd, cy + ny * wd); rgt[q] = Q(cx - nx * wd, cy - ny * wd);
+                }
+                bool lit_left = (nx * (side ? 1 : -1) - ny) > 0;          /* the half facing the light */
+                for (int q = 0; q < N; q++) {
+                    ImVec2 a1[4] = { mid[q], lft[q], lft[q + 1], mid[q + 1] }, a2[4] = { mid[q], rgt[q], rgt[q + 1], mid[q + 1] };
+                    dl->AddConvexPolyFilled(a1, 4, lit_left ? G(222) : G(178));
+                    dl->AddConvexPolyFilled(a2, 4, lit_left ? G(178) : G(222));
+                }
+                dl->AddPolyline(lft, N + 1, G(96), 0, 0.7f * k);
+                dl->AddPolyline(rgt, N + 1, G(96), 0, 0.7f * k);
+                dl->AddPolyline(mid, N + 1, G(120), 0, 0.6f * k);           /* the midrib */
+                for (int q = 3; q < N; q += 4) {                            /* the veins, to the lobes */
+                    dl->AddLine(mid[q], ImVec2((mid[q].x + lft[q + 1].x) * 0.5f, (mid[q].y + lft[q + 1].y) * 0.5f), G(130), 0.5f * k);
+                    dl->AddLine(mid[q], ImVec2((mid[q].x + rgt[q + 1].x) * 0.5f, (mid[q].y + rgt[q + 1].y) * 0.5f), G(130), 0.5f * k);
+                }
+            };
+            const float bx = 15, by = 13;                                   /* the boss the leaves spring from */
+            leaf(bx, by, 7, 3.5f, 5.0f, 0.3f);                              /* into the corner */
+            leaf(bx, by, 7.5f, 24, 4.6f, -0.3f);                            /* down the side */
+            leaf(bx, by, 26, 3.5f, 4.6f, -0.3f);                            /* along the top */
+            leaf(bx, by, 6.5f, 13, 3.8f, 0.2f);                             /* out to the side, under the first */
+            leaf(bx, by, 17, 3, 4.0f, 0.1f);                                /* up, between */
+            circ(bx, by, 2.4f, 205);                                        /* the boss */
+            circ(bx, by, 1.1f, 150);
         }
         }
     }
@@ -164,14 +187,33 @@ void ui_draw_doll_niche_style(ImDrawList *dl, ImVec2 o, float kx, float k, int s
             dl->AddRectFilled(P(x0 + t * (x1 - x0), y), P(x0 + t * (x1 - x0) + 0.8f, y + 0.6f), G(110 + (int)((h >> 20) % 110)));
         }
     }
-    /* the arch's moulding: a band round the opening, lit on its inner edge */
+    /* the arch's moulding, as the game's: a broad carved band, a fillet each side, rosettes along it */
     {
-        const int N = 48;
-        for (int ring = 0; ring < 3; ring++) {
-            float r = RI + ring * (RO - RI) / 2.0f;
+        const int N = 64;
+        const float RM = RO + 3.5f;                                       /* (the band reaches into the corners) */
+        for (int i = 0; i < N; i++) {                                     /* the band, shaded across the curve */
+            float t0 = PI + PI * i / N, t1 = PI + PI * (i + 1) / N;
+            ImVec2 q[4] = { P(C.x + cosf(t0) * RI, C.y + sinf(t0) * RI), P(C.x + cosf(t0) * RM, C.y + sinf(t0) * RM),
+                            P(C.x + cosf(t1) * RM, C.y + sinf(t1) * RM), P(C.x + cosf(t1) * RI, C.y + sinf(t1) * RI) };
+            float lit = 0.5f - 0.5f * cosf((t0 + t1) * 0.5f + 0.8f);
+            dl->AddConvexPolyFilled(q, 4, G((int)(168 + 40 * lit)));
+        }
+        auto arc = [&](float r, ImU32 c, float w) {
             dl->PathClear();
             for (int i = 0; i <= N; i++) { float t = PI + PI * i / N; dl->PathLineTo(P(C.x + cosf(t) * r, C.y + sinf(t) * r)); }
-            dl->PathStroke(ring == 0 ? G(232) : ring == 1 ? G(196) : G(104), 0, (ring == 1 ? 3.0f : 1.0f) * k);
+            dl->PathStroke(c, 0, w * k);
+        };
+        arc(RI, G(240), 1.1f); arc(RI + 1.3f, G(110), 0.7f);
+        arc(RM - 1.3f, G(240), 0.7f); arc(RM, G(96), 1.1f);
+        for (int r = 0; r < 9; r++) {                                     /* the rosettes along it */
+            float t = PI + PI * (r + 0.5f) / 9, rr = (RI + RM) * 0.5f;
+            float cx = C.x + cosf(t) * rr, cy = C.y + sinf(t) * rr;
+            for (int pt = 0; pt < 4; pt++) {
+                float a = pt * PI / 2 + PI / 4;
+                dl->AddCircleFilled(P(cx + cosf(a) * 1.5f, cy + sinf(a) * 1.5f), 1.25f * k, pt == 3 || pt == 2 ? G(120) : G(236), 10);
+            }
+            dl->AddCircleFilled(P(cx, cy), 1.6f * k, G(196), 12);
+            dl->AddCircleFilled(P(cx, cy), 0.7f * k, G(104), 8);
         }
     }
     /* the pilasters: fluted shafts, square capitals with a rosette, a base */
@@ -209,7 +251,7 @@ void ui_draw_doll_niche_style(ImDrawList *dl, ImVec2 o, float kx, float k, int s
 
 void ui_draw_doll_niche(ImDrawList *dl, ImVec2 o, float kx, float k)
 {
-    ui_draw_doll_niche_style(dl, o, kx, k, config_get_int("display.niche_corners", 0) & 3);
+    ui_draw_doll_niche_style(dl, o, kx, k, 0);
 }
 
 /* test: the four corners side by side (ucmd unichesheet:) */

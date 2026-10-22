@@ -18,6 +18,8 @@
 
 #include "pen.h"
 
+extern int potion_grade_preview;
+int potion_grade_preview = -1;                 /* (the settings' pictures: this style, not the chosen one) */
 namespace {
 using pen::C;
 using pen::Pen;
@@ -70,7 +72,7 @@ void grade_dots(const Pen &p, int tier)
 {
     if (tier < 1) return;
     if (tier > 3) tier = 3;
-    int gm = config_get_int("display.potion_grade", 1);
+    int gm = potion_grade_preview >= 0 ? potion_grade_preview : config_get_int("display.potion_grade", 4);
     if (gm == 3 || gm == 4) {                                    /* chevrons, as a rank's: one to three, stacked */
         float hw = fmaxf(2.4f, 3.4f / p.u), hh = hw * 0.62f, th = fmaxf(1.1f, 1.7f / p.u), step = hh + th * 1.25f;
         float x = gm == 3 ? 5.6f : 5.8f, y0 = gm == 3 ? -10.4f : 9.6f - (tier - 1) * step;

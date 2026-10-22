@@ -370,7 +370,7 @@ std::string ns_quality_tag(int id, int qual)
     char b[24] = "";
     const ItemDef *d = ns_itemdef(id);
     if (ns_shows_quality(id, qual)) snprintf(b, sizeof b, "%dq", qual);
-    else if (d && d->kind == K_POTION && config_get_int("display.potion_grade", 1) == 2) {
+    else if (d && d->kind == K_POTION && config_get_int("display.potion_grade", 4) == 2) {
         int ui_potion_tier(int q, int base);
         int t = ui_potion_tier(qual, d->quality);
         if (t > 0) snprintf(b, sizeof b, "grade %d", t);

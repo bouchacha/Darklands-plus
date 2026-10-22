@@ -412,7 +412,7 @@ static void game_armillary_true(ImDrawList *dl, ImVec2 tl, float kx, float k, in
     const ImU32 bronze = IM_COL32(176, 96, 30, 255), bronzel = IM_COL32(226, 150, 70, 255), bronzed = IM_COL32(92, 48, 14, 255),
                 gold = IM_COL32(246, 210, 80, 255), ink = IM_COL32(20, 12, 4, 255);
     auto ring = [&](ImVec2 rc, float rr, float w) {
-        dl->AddCircle(rc, rr, ink, 64, w + fmaxf(1.5f, w * 0.35f));
+        dl->AddCircle(rc, rr, IM_COL32(20, 12, 4, 150), 64, w + 1.0f);   /* (a fine edge, not an outline) */
         dl->AddCircle(rc, rr, bronze, 64, w);
         dl->PathArcTo(rc, rr - w * 0.2f, PI * 1.05f, PI * 1.95f, 24); dl->PathStroke(bronzel, 0, fmaxf(1.0f, w * 0.3f));
         dl->PathArcTo(rc, rr + w * 0.2f, PI * 0.05f, PI * 0.95f, 24); dl->PathStroke(bronzed, 0, fmaxf(1.0f, w * 0.3f));

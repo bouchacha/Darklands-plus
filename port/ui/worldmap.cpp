@@ -1358,3 +1358,10 @@ extern "C" void worldmap_icon_sheet_draw(void)
     }
     config_set_int("map.icon_set", keep);
 }
+
+/* the settings' pictures: a place's picture in set `set` (0 painted, 1 woodcut, 2 seals) */
+void worldmap_place_icon(ImDrawList *dl, ImVec2 c, float s, int ik, int set)
+{
+    if (ik < 0 || ik >= IK_N) return;
+    if (set == 1) draw_icon_woodcut(dl, c, s, ik); else if (set == 2) draw_icon_seal(dl, c, s, ik); else draw_icon_painted(dl, c, s, ik);
+}

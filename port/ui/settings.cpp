@@ -10,6 +10,7 @@
 #include <float.h>
 #include <string>
 #include <vector>
+#include <functional>
 #include "imgui.h"
 #include "ornament.h"
 #include "tablesort.h"
@@ -387,8 +388,85 @@ void tab_restored(void)
 }
 
 extern "C" { int mpu_out_count(void); const char *mpu_out_name(int i); int mt32_families(void); int mt32_switch_pending(void); int mt32_switch(void); const char *mt32_status(void); void mt32_rescan(void); int mt32_dir_count(void); const char *mt32_dir(int); extern int sound_music_volume; }
+/* a row of pictures to choose from (show, don't describe): n cards, each drawn by draw(dl, a, b,
+   value) in its box, its label under it; a click sets the config key */
+static void pic_choice(const char *id, const char *key, int def, const int *vals, const char *const *labels, int n, float cw, float ph,
+                       const std::function<void(ImDrawList *, ImVec2, ImVec2, int)> &draw)
+{
+    int cur = config_get_int(key, def);
+    float ch = ph + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+    float avail = ImGui::GetContentRegionAvail().x;
+    ImGui::PushID(id);
+    float x = 0;
+    for (int j = 0; j < n; j++) {
+        if (j) { if (x + cw > avail) x = 0; else ImGui::SameLine(); }
+        x += cw + ImGui::GetStyle().ItemSpacing.x;
+        ImGui::PushID(j);
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        if (ImGui::InvisibleButton("c", ImVec2(cw, ch))) { config_set_int(key, vals[j]); ui_dirty_config = 1; cur = vals[j]; }
+        bool hv = ImGui::IsItemHovered();
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), vals[j] == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+        float m = cw * 0.06f;
+        dl->PushClipRect(ImVec2(p.x + m * 0.5f, p.y + m * 0.5f), ImVec2(p.x + cw - m * 0.5f, p.y + ph), true);
+        draw(dl, ImVec2(p.x + m, p.y + m), ImVec2(p.x + cw - m, p.y + ph - m * 0.4f), vals[j]);
+        dl->PopClipRect();
+        ImVec2 ts = ImGui::CalcTextSize(labels[j]);
+        float sc = ts.x > cw - 8 ? (cw - 8) / ts.x : 1.0f;
+        dl->AddText(ImGui::GetFont(), ImGui::GetFontSize() * sc, ImVec2(p.x + (cw - ts.x * sc) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), labels[j]);
+        ImGui::PopID();
+    }
+    ImGui::PopID();
+}
+
+/* the Display page's sections: bookmarks at the left, as the Helpers page (a click brings the
+   section to the top; the one at the top of the view is marked) */
+static const char *DSECT[] = { "Screen", "Text", "Pictures", "Ornaments", "Clock", "Icons", "Sound" };
+static const int NDSECT = (int)(sizeof DSECT / sizeof DSECT[0]);
+static int d_jump = -1, d_top = 0, d_found = -1; static float d_view;
+static void dsec(const char *name)
+{
+    int i = 0; while (i < NDSECT && strcmp(DSECT[i], name)) i++;
+    ImGui::PushFont(ui_font_head); orn_septext(name); ImGui::PopFont();
+    if (d_jump == i) { ImGui::SetScrollHereY(0.0f); d_jump = -1; }
+    if (ImGui::GetItemRectMin().y <= d_view) d_found = i;
+}
+static void display_icons(void)
+{
+    float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
+    ImGui::TextUnformatted("A potion's grade, on its flask");
+    static const int PV[4] = { 4, 3, 1, 0 };
+    static const char *PL[4] = { "Chevrons on a badge", "Chevrons", "Dots on a strip", "Small dots" };
+    pic_choice("pgrade", "display.potion_grade", 4, PV, PL, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+        extern int potion_grade_preview; void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
+        dl->AddRectFilled(a, b, IM_COL32(244, 234, 210, 255), 4);
+        potion_grade_preview = v;
+        float s = (b.y - a.y) * 0.62f;
+        for (int k = 0; k < 3; k++) ui_item_icon_tier(dl, ImVec2(a.x + (b.x - a.x) * (0.2f + k * 0.3f), (a.y + b.y) * 0.5f), s, k == 0 ? 99 : k == 1 ? 95 : 104, k + 1);
+        potion_grade_preview = -1;
+    });
+    ImGui::TextUnformatted("The places' pictures on the world map");
+    static const int MV[3] = { 0, 1, 2 };
+    static const char *ML[3] = { "Painted", "Woodcut", "Seals" };
+    pic_choice("mapicons", "map.icon_set", 0, MV, ML, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+        void worldmap_place_icon(ImDrawList *dl, ImVec2 c, float s, int kind, int set);
+        dl->AddRectFilled(a, b, IM_COL32(150, 172, 110, 255), 4);
+        float s = (b.y - a.y) * 0.4f;
+        static const int K[6] = { 0, 2, 3, 5, 7, 9 };
+        for (int k = 0; k < 6; k++) worldmap_place_icon(dl, ImVec2(a.x + (b.x - a.x) * (0.18f + (k % 3) * 0.32f), a.y + (b.y - a.y) * (k < 3 ? 0.3f : 0.72f)), s, K[k], v);
+    });
+}
+
 void tab_display(void)
 {
+    ImGui::BeginChild("##dnav", ImVec2(UIS(170), 0), ImGuiChildFlags_Borders);
+    ImGui::TextDisabled("Sections");
+    for (int k = 0; k < NDSECT; k++) if (ImGui::Selectable(DSECT[k], k == d_top)) d_jump = k;
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("##dbody", ImVec2(0, 0));
+    d_found = -1; d_view = ImGui::GetWindowPos().y + UIS(30);
+    dsec("Screen");
     bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
     if (ImGui::Checkbox("Smooth scaling", &s)) { ui_settings.smooth = s; config_set_int("display.smooth", s); ui_dirty_config = 1; }
     if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); ui_dirty_config = 1; }
@@ -439,7 +517,7 @@ void tab_display(void)
     }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    ImGui::PushFont(ui_font_head); orn_septext("Text"); ImGui::PopFont();
+    dsec("Text");
     int hm = hdtext_mode;
     if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
     if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
@@ -481,7 +559,7 @@ void tab_display(void)
     ui_hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
          "the window's resolution; anything it cannot match exactly is left as the game drew it.");
 
-    ImGui::PushFont(ui_font_head); orn_septext("Pictures"); ImGui::PopFont();
+    dsec("Pictures");
     bool ha = hdart_on;
     if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
     {
@@ -505,7 +583,7 @@ void tab_display(void)
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
 
-    ImGui::PushFont(ui_font_head); orn_septext("Ornaments"); ImGui::PopFont();
+    dsec("Ornaments");
     {   /* the band round the windows (ui/ornament.cpp): a picture of each to choose from */
         int cur = orn_style();
         float cw = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170)), ch = cw * 0.78f + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
@@ -528,24 +606,38 @@ void tab_display(void)
             ImGui::PopID();
         }
         {   /* the frames round tooltips and panels, and the buttons (with any band) */
-            static const char *FR[4] = { "a double gilt rule", "rubricated (a red rule, as a manuscript)", "pen flourishes at the corners", "blind tooling (as a leather binding)" };
-            static const char *BT[4] = { "metal plaques", "rubrics (flat, a fine gold line)", "seal tabs (rounded)", "lettered (the word, underlined)" };
-            int fr = config_get_int("display.frame_style", 0) & 3, bt = config_get_int("display.button_style", 0) & 3;
-            ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted("Frames:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(330));
-            if (ImGui::BeginCombo("##ornfr", FR[fr])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(FR[k], fr == k)) { config_set_int("display.frame_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
-            ImGui::SameLine(); ImGui::TextUnformatted("Buttons:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(300));
-            if (ImGui::BeginCombo("##ornbt", BT[bt])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(BT[k], bt == k)) { config_set_int("display.button_style", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
-            static const char *NC[4] = { "acanthus leaves", "tracery (a quatrefoil)", "a shield in a roundel", "a carved rose" };
-            int nc = config_get_int("display.niche_corners", 0) & 3;
-            ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted("The character sheet's arch, its corners:"); ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(260));
-            if (ImGui::BeginCombo("##ornnc", NC[nc])) { for (int k = 0; k < 4; k++) if (ImGui::Selectable(NC[k], nc == k)) { config_set_int("display.niche_corners", k); ui_dirty_config = 1; } ImGui::EndCombo(); }
+            float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
+            static const int V4[4] = { 0, 1, 2, 3 };
+            static const char *FR[4] = { "Gilt rule", "Rubricated", "Pen flourishes", "Blind tooling" };
+            static const char *BT[4] = { "Metal plaques", "Rubrics", "Seal tabs", "Lettered" };
+            ImGui::TextUnformatted("Frames (tooltips, the card text, the new screens' pages)");
+            pic_choice("ornfr", "display.frame_style", 0, V4, FR, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+                dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
+                orn_parchment_edges(dl, a, b, (b.y - a.y) * 0.12f);
+                orn_frame_style_box(dl, a, b, (b.x - a.x) * 0.09f, v);
+                dl->AddText(ImVec2(a.x + (b.x - a.x) * 0.2f, a.y + (b.y - a.y) * 0.35f), IM_COL32(60, 40, 20, 255), "St. Adrian");
+            });
+            ImGui::TextUnformatted("Buttons");
+            pic_choice("ornbt", "display.button_style", 0, V4, BT, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+                dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 4);
+                static const ImU32 C[2] = { IM_COL32(112, 40, 22, 235), IM_COL32(40, 92, 34, 235) };
+                static const char *L[2] = { "Leave", "Buy" };
+                float h = (b.y - a.y) * 0.3f;
+                for (int k = 0; k < 2; k++) {
+                    ImVec2 p0(a.x + (b.x - a.x) * 0.15f, a.y + (b.y - a.y) * (0.14f + k * 0.46f)), p1(b.x - (b.x - a.x) * 0.15f, p0.y + h);
+                    orn_button_style(dl, p0, p1, C[k], k == 1, true, v);
+                    ImU32 tc = v == 3 ? (C[k] | IM_COL32(0, 0, 0, 255)) : IM_COL32(250, 240, 220, 255);
+                    ImVec2 ts = ImGui::CalcTextSize(L[k]);
+                    dl->AddText(ImVec2((p0.x + p1.x - ts.x) * 0.5f, (p0.y + p1.y - ts.y) * 0.5f), tc, L[k]);
+                }
+            });
         }
         ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
                 "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
-                "and the frames and buttons are as chosen below the pictures.");
+                "and the frames and buttons are as chosen here.");
     }
 
-    ImGui::PushFont(ui_font_head); orn_septext("Clock"); ImGui::PopFont();
+    dsec("Clock");
     {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
         void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
         const char *ui_clock_name(int k);
@@ -562,7 +654,7 @@ void tab_display(void)
             ImDrawList *dl = ImGui::GetWindowDrawList();
             dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
             dl->PushClipRect(p, ImVec2(p.x + cw, p.y + ch), true);
-            ui_draw_clock_style(st, dl, ImVec2(p.x + 10 * k, p.y + 6 * k), k, k, 9, 10, 11);
+            ui_draw_clock_style(st, dl, ImVec2(p.x + 10 * k, p.y + 6 * k), k, k, (int)(ImGui::GetTime() * 1.5) % 24, 10, 11);   /* (moving: a day in sixteen seconds) */
             dl->PopClipRect();
             const char *n = ui_clock_name(st);
             ImVec2 ts = ImGui::CalcTextSize(n);
@@ -573,7 +665,10 @@ void tab_display(void)
                 "the game's own clock is an armillary sphere, here also drawn anew at the window's resolution.");
     }
 
-    ImGui::PushFont(ui_font_head); orn_septext("Sound"); ImGui::PopFont();
+    dsec("Icons");
+    display_icons();
+
+    dsec("Sound");
     static const char *ids[] = { "auto", "mt32", "fm", "adlib", "midi", "speaker", "off", "game" };
     static const char *labels[] = {
         "Automatic: the Roland MT-32 when its ROM files are found, otherwise the Sound Blaster - recommended",
@@ -711,5 +806,7 @@ void tab_display(void)
                        "sounds like \"random notes rather than clashing swords\": it is meant for an MT-32. With the MT-32's "
                        "ROM files Darklands+ plays it as composed; without them, the Sound Blaster setting uses the game's "
                        "own FM drivers and digitized effects, as most players heard it in 1992.");
+    d_top = d_found < 0 ? 0 : d_found;
+    ImGui::EndChild();
 }
 
