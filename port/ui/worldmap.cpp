@@ -1043,6 +1043,12 @@ extern "C" void worldmap_draw(void)
                     if (clk) { selected = town.docks[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
                 }
                 if (any) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
+                else if (citynav_town_offers(p.loc, TI_DOCKS)) {         /* docks with nowhere to sail to (Groningen, Flensburg: the game's own data) */
+                    std::string from;
+                    for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { if (!from.empty()) from += ", "; from += gamedata.cities[o].name; }
+                    ImGui::TextDisabled("Its docks have no boats leaving (so the game has it).");
+                    if (!from.empty()) ImGui::TextWrapped("Boats come here from %s.", from.c_str());
+                }
             }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());

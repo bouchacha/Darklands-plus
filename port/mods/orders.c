@@ -149,8 +149,19 @@ static int best_attack(int i, int m)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
     int melee = melee_kind(i, m);
-    if (orders_member_mode(i) != 1) return melee;
-    if (rb(G_FAR20A5, (u16)(0x7900 + i * 13 + m)) || near_foe_of(i, m)) return melee;   /* beside it, or close: hand to hand */
+    int mode = orders_member_mode(i);
+    if (mode < 0) return melee;
+    if (rb(G_FAR20A5, (u16)(0x7900 + i * 13 + m))) return melee;   /* beside it: hand to hand */
+    if (mode == 0 || near_foe_of(i, m)) {
+        /* hand to hand, unless there is no way to the foe at all (hemmed in by others): then a shot,
+           if the member has a missile weapon and something to loose */
+        u16 tx = g_rw((u16)(c + 8)), ty = g_rw((u16)(c + 0x0a));
+        g_ww((u16)(c + 8), g_rw((u16)(D_CBT + m * 0x80 + 4))); g_ww((u16)(c + 0x0a), g_rw((u16)(D_CBT + m * 0x80 + 6)));
+        int way = ns_call(GF_path_find, 1, i) == 1;
+        g_ww((u16)(c + 8), tx); g_ww((u16)(c + 0x0a), ty);
+        if (way) return melee;
+        if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no way to %d: a shot instead\n", i, m);
+    }
     if (!ns_call(GF_can_fire, 1, i)) { if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d cannot shoot (nothing to loose)\n", i); return melee; }
     /* a clear line from where the member stands (line_blocked, s014 1d69:000c, as the order's pointer
        tests it): else the member closes in instead */
@@ -237,10 +248,27 @@ static void retarget_shooters(void)
         fprintf(stderr, "orders: member %d's mark fell: now shoots at %d\n", i, best);
     }
 }
+/* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
+   to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
+   is kept for that fight too, until the member is given another order */
+static int kept_kind[5] = { -1, -1, -1, -1, -1 };
+static void keep_kinds(void)
+{
+    if (config_get_int("original", 0)) return;
+    for (int i = 0; i < 5; i++) {
+        if (kept_kind[i] < 0) continue;
+        u16 c = (u16)(D_CBT + i * 0x80);
+        if (g_rb((u16)(c + 0x14)) != 1) { kept_kind[i] = -1; continue; }
+        int f = (s16)g_rw((u16)(c + 0x10));
+        if (f == STD_ATTACK) { g_ww((u16)(c + 0x10), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
+        else if (f == MISSILE || f == 0) kept_kind[i] = -1;                 /* (another kind of order now) */
+    }
+}
 static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchanges() */
 {
     hook_call_original();
     if (ns_unwinding || g_rb(GV_ai_paused)) return;
+    keep_kinds();
     retarget_shooters();
     if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {
@@ -481,6 +509,10 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     snap_to_foe();
     int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6));
     int set = wants_attack(x, y), m = topmost(x, y);
+    {   /* the kind of attack chosen for this order (Parry, Berserk, Vulnerable), kept (below) */
+        int sel = (s8)g_rb(D_SELECTED), act = set ? set : (s16)g_rw(D_ORDER_ACTION);
+        if (sel >= 0 && sel < 5) kept_kind[sel] = m >= 5 && (act == 0x22 || act == 6 || act == 0x0a) ? act : -1;
+    }
     if (set) {
         g_ww(D_ORDER_ACTION, (u16)set);                 /* as if the attack had been chosen first */
         fprintf(stderr, "orders: member %d %s %d (clicked at %d,%d)\n", (s8)g_rb(D_SELECTED), set == MISSILE ? "shoots at" : "attacks", m, x, y);
