@@ -75,9 +75,9 @@ std::string ui_teacher_text(const TchSource &s)
         int c = teach_chance(s.strength), days = c > 0 ? (100 + c / 2) / c : 0;
         char b[240];
         if (fix_is_on("teachcap"))
-            snprintf(b, sizeof b, "The teacher's own skill: %d. Students can be taught up to %d, no further.\n", s.strength, s.strength);
+            snprintf(b, sizeof b, "Lessons go up to %d, no further.\n", s.strength);
         else
-            snprintf(b, sizeof b, "The teacher's own skill: %d (in the original game this sets no limit: students can reach 99).\n", s.strength);
+            snprintf(b, sizeof b, "Lessons are given at strength %d (in the original game there is no limit: students can reach 99).\n", s.strength);
         t += b;
         snprintf(b, sizeof b, "Each day of lessons: %s %d%% chance of +1 to the skill (about one point every %d day%s).\n", gm_a_an(c), c, days, days == 1 ? "" : "s");
         t += b;

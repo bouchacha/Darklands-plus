@@ -146,19 +146,26 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_PHYSICIAN; o->who = "Physician";
         o->ask = "In the daytime, go to the physician and choose \"beg him to allow you to be his students\".";
-        o->cond = "Not if someone in the party already heals better than he does. Some years he takes no students.";
+        o->cond = "He takes no one who already heals better than he does himself (his own Healing changes from week to week; a visit tells it). Some years he takes no students.";
         o->strength = 50;
         add(o, SK_HEALING, 60);
         int year = (s16)g_rw(G_CUR_YEAR);
-        if ((s16)(seed + year) % 3 == 0) { snprintf(o->now, sizeof o->now, "He takes no students this year."); o->off = 1; }
-        else if (here) {
-            int e = event_at(0x37, loc, -1);
-            if (e >= 0) {
-                u32 p = g_event(e); int P = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x1e));
-                if (P <= 1) { snprintf(o->now, sizeof o->now, "He takes no students at the moment."); o->off = 1; }
-                else if (party_best_skill(SK_HEALING) > P) { snprintf(o->now, sizeof o->now, "The party already heals better than he does."); o->off = 1; }
-            }
-        }
+        /* his own skill this week: the game's roll (s050 1838:0000), or its range before a visit */
+        int k = (int)(seed % 10), lo = k * (t->size - 3), hi = k * (t->size);
+        if (lo < 1) lo = 1; if (hi < 1) hi = 1; if (lo > 99) lo = 99; if (hi > 99) hi = 99;
+        int P = -1;
+        if (here) { int e = event_at(0x37, loc, -1); if (e >= 0) { u32 p = g_event(e); P = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x1e)); } }
+        int best = party_best_skill(SK_HEALING);
+        /* (in the game's order: the party healing better first, then the year) */
+        if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
+        else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
+        else if ((s16)(seed + year) % 3 == 0) { snprintf(o->now, sizeof o->now, "He takes no students this year."); o->off = 1; }
+        else if (P >= 0) {
+            if (P <= 1) { snprintf(o->now, sizeof o->now, "He takes no students at the moment."); o->off = 1; }
+            else if (best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
+            else snprintf(o->now, sizeof o->now, "His own Healing is %d this week: he will teach you.", P);
+        } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
+        else if (best > lo) snprintf(o->now, sizeof o->now, "His own Healing is %d to %d this week (a visit tells): he teaches only if it is at least the party's best, %d.", lo, hi, best);
     }
     if (t->alchemist) {
         TchSource *o = NEXT(); if (!o) return n;
