@@ -264,6 +264,19 @@ int travel_minutes_loc(int loc, int *gx, int *gy)
     return best;
 }
 
+/* the way the party would take to location loc (as travel_to_loc would): its tiles, the party's first;
+   n at most max, 0 if no way (for the world map's dotted line) */
+int travel_preview_loc(int loc, short *xs, short *ys, int max)
+{
+    int gx = -1, gy = -1;
+    if (travel_minutes_loc(loc, &gx, &gy) < 0 || !dist) return 0;
+    int g = gy * mw + gx, n = 0;
+    for (int i = g; i >= 0 && n < 100000; i = prev[i]) n++;
+    if (n > max) return 0;
+    for (int i = g, k = n - 1; i >= 0 && k >= 0; i = prev[i], k--) { xs[k] = (short)(i % mw); ys[k] = (short)(i / mw); }
+    return n;
+}
+
 int travel_to_loc(int loc, const char *name)
 {
     int gx = -1, gy = -1;
@@ -506,25 +519,51 @@ static BoatWay *boats; static int nboats;
 /* where a boat goes: the sea (1), the great rivers (2) and the lesser ones (3: the Leine at
    Hannover, the Oker at Braunschweig) */
 static int boat_water(int t) { return t == 1 || t == 2 || t == 3; }
-/* each water tile's distance (in steps) to the nearest land: 0 on land (the boats' ways) */
-static unsigned char *shore_dist;
-static void shore_dist_build(void)
+/* each water tile's distance (in steps) to the nearest land: 0 on land (the boats' ways); and the
+   shallows between an island and the coast (both within 4 steps: the Wadden behind the Frisian
+   islands, where only small boats went) */
+static unsigned char *shore_dist, *wadden;
+static void dist_from(unsigned char *d, int *q, const int *is_src)
 {
-    size_t n = (size_t)mw * mh;
-    shore_dist = malloc(n);
-    int *q = malloc(n * sizeof *q);
-    if (!shore_dist || !q) { free(q); if (shore_dist) memset(shore_dist, 2, n); return; }
-    int h = 0, tl = 0;
-    for (size_t i = 0; i < n; i++) { if (boat_water(terr[i])) shore_dist[i] = 255; else { shore_dist[i] = 0; q[tl++] = (int)i; } }
+    size_t n = (size_t)mw * mh; int h = 0, tl = 0;
+    for (size_t i = 0; i < n; i++) { if (is_src[i]) { d[i] = 0; q[tl++] = (int)i; } else d[i] = 255; }
     while (h < tl) {
         int i = q[h++], x = i % mw, y = i / mw;
+        if (d[i] >= 12) continue;
         for (int k = 0; k < 6; k++) {
             int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue;
             int ni = ny * mw + nx;
-            if (shore_dist[ni] > shore_dist[i] + 1 && shore_dist[i] < 250) { shore_dist[ni] = (unsigned char)(shore_dist[i] + 1); q[tl++] = ni; }
+            if (d[ni] > d[i] + 1) { d[ni] = (unsigned char)(d[i] + 1); q[tl++] = ni; }
         }
     }
-    free(q);
+}
+static void shore_dist_build(void)
+{
+    size_t n = (size_t)mw * mh;
+    shore_dist = malloc(n); wadden = calloc(n, 1);
+    int *q = malloc(n * sizeof *q), *src = malloc(n * sizeof *src), *comp = malloc(n * sizeof *comp);
+    unsigned char *di = malloc(n), *dm = malloc(n);
+    if (!shore_dist || !wadden || !q || !src || !comp || !di || !dm) { if (shore_dist) memset(shore_dist, 2, n); free(q); free(src); free(comp); free(di); free(dm); return; }
+    for (size_t i = 0; i < n; i++) src[i] = !boat_water(terr[i]);
+    dist_from(shore_dist, q, src);
+    /* the land's pieces, and their sizes: a small one is an island */
+    for (size_t i = 0; i < n; i++) comp[i] = -1;
+    int *sz = NULL, nc = 0;
+    for (size_t i0 = 0; i0 < n; i0++) {
+        if (!src[i0] || comp[i0] >= 0) continue;
+        int h = 0, tl = 0; q[tl++] = (int)i0; comp[i0] = nc;
+        while (h < tl) {
+            int i = q[h++], x = i % mw, y = i / mw;
+            for (int k = 0; k < 6; k++) { int nx, ny, st; if (!nb(x, y, k, &nx, &ny, &st)) continue; int ni = ny * mw + nx; if (src[ni] && comp[ni] < 0) { comp[ni] = nc; q[tl++] = ni; } }
+        }
+        sz = realloc(sz, (size_t)(nc + 1) * sizeof *sz); sz[nc++] = tl;
+    }
+    for (size_t i = 0; i < n; i++) src[i] = comp[i] >= 0 && sz[comp[i]] < 300;
+    dist_from(di, q, src);
+    for (size_t i = 0; i < n; i++) src[i] = comp[i] >= 0 && sz[comp[i]] >= 300;
+    dist_from(dm, q, src);
+    for (size_t i = 0; i < n; i++) wadden[i] = terr[i] == 1 && di[i] <= 4 && dm[i] <= 4;
+    free(sz); free(q); free(src); free(comp); free(di); free(dm);
 }
 int travel_boat_way(int a, int b, const short **xs, const short **ys)
 {
@@ -572,7 +611,7 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys)
             int t = terr[ny * mw + nx], step = 24;
             if (boat_water(t)) {
                 int dl = shore_dist[ny * mw + nx];
-                step = t != 1 ? 4 : dl <= 1 ? 6 : dl <= 6 ? 4 : 8;
+                step = t != 1 ? 4 : wadden[ny * mw + nx] ? 7 : dl <= 1 ? 6 : dl <= 6 ? 4 : 8;   /* (the Wadden: the small boats' way, the bigger ships stood outside the islands) */
             }
             int ni = BI(nx, ny);
             if (dd[ni] >= 0 && dd[ni] <= cst + step) continue;

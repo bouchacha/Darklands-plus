@@ -251,7 +251,7 @@ static std::string load_effects(const SheetModel &s)
 
 static void doll(NsDraw &P, const SheetModel &s)
 {
-    if (orn_on()) {                                         /* the stone niche drawn anew (ui/niche.cpp), the doll over it */
+    if (false) {                                            /* (the stone niche drawn anew, ui/niche.cpp: set aside, the player preferring the game's own) */
         void ui_draw_doll_niche(ImDrawList *dl, ImVec2 o, float kx, float k);
         ui_draw_doll_niche(P.dl, NsDraw::w(62, 21.5f), P.kx, P.k);
         const GamePic *d = gamepic_layers_off_back(doll_layers(s), "PICS\\ARMBACK.PIC");

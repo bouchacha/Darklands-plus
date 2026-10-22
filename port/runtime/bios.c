@@ -667,7 +667,7 @@ void dl_poll(void)
                 plat_events(); plat_present(M + 0xa0000, vga_dac);
                 int bg = plat_in_background();
                 if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
-                plat_sleep_ms(bg ? 100 : 15);
+                { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); }
                 if (keep && !bg) {
                     u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 200) d = 200;
                     acc += d * 1000.0;

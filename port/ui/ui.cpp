@@ -1009,7 +1009,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();
     if (game_mode() == GM_CARD || game_mode() == GM_MAP) libraries();   /* (kept for the character sheet, which cannot read them: ui/libraries.h) */
-    if (open_map) worldmap_draw();
+    if (open_map) {
+        static int tl = -1; if (tl < 0) tl = getenv("DL_WM_TIME") != 0;
+        Uint64 t0 = tl ? SDL_GetPerformanceCounter() : 0;
+        worldmap_draw();
+        if (tl) { static int fr; static double acc; acc += (SDL_GetPerformanceCounter() - t0) * 1000.0 / SDL_GetPerformanceFrequency(); if (++fr % 60 == 0) { fprintf(stderr, "wm: %.2f ms a frame\n", acc / 60); acc = 0; } }
+    }
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
     else { banner_draw(); hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); titleview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); mapmsg_draw(); savesview_draw(); menuview_draw(); }

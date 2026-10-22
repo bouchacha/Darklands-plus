@@ -501,7 +501,7 @@ static void resync_surface(const char *why)
 {
     int pw, ph, ow, oh; SDL_GetWindowSizeInPixels(win, &pw, &ph); SDL_GetRendererOutputSize(ren, &ow, &oh);
     int ww, wh; SDL_GetWindowSize(win, &ww, &wh);
-    if (pw > 0 && ph > 0 && !(SDL_GetWindowFlags(win) & SDL_WINDOW_MINIMIZED)) {
+    if (pw > 0 && ph > 0 && !(SDL_GetWindowFlags(win) & SDL_WINDOW_MINIMIZED) && (ow != pw || oh != ph || ww != win_w || wh != win_h)) {   /* (only when the sizes differ: renewing the surface at each return to the window was a hitch) */
         SDL_Event ev; memset(&ev, 0, sizeof ev);
         ev.type = SDL_WINDOWEVENT; ev.window.event = SDL_WINDOWEVENT_SIZE_CHANGED; ev.window.windowID = SDL_GetWindowID(win);
         ev.window.data1 = ww; ev.window.data2 = wh; ev.window.timestamp = SDL_GetTicks();
@@ -598,6 +598,9 @@ static u32 bg_resumed;          /* when it came back: the click that brought it 
 int plat_headless(void) { return headless; }
 int plat_menu_open(void) { return !headless && (ui_is_open() || bg_paused); }
 int plat_in_background(void) { return bg_paused; }
+/* the window can't be seen (minimized): the waiting loops may rest long; behind another window it is
+   still seen, and the interface over it is drawn at a steady pace */
+int plat_bg_sleep_ms(void) { return !bg_paused ? 15 : (win && (SDL_GetWindowFlags(win) & SDL_WINDOW_MINIMIZED)) ? 100 : 33; }
 
 /* ---------------------------------------------------------------- events */
 static void click_at(int x, int y);

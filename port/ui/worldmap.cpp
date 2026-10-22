@@ -84,6 +84,7 @@ static float wm_panel_right;                      // the panel's right side (win
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static int selected = -1;
+static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
 
@@ -400,6 +401,7 @@ static void party_tile(int *x, int *y)
 /* opening: draw the map again (seasons, castles burnt down) and look at the party */
 /* opened from a city or encounter (M on a card): the route waits for the travel map */
 extern "C" void ui_notice(const char *msg);
+extern "C" int travel_preview_loc(int loc, short *xs, short *ys, int max);
 static void route_note(void) { if (game_mode() != GM_MAP) ui_notice("Route planned: the party sets off once it is on the travel map."); }
 
 extern "C" int worldmap_open(void)
@@ -707,6 +709,7 @@ extern "C" void worldmap_draw(void)
     ImDrawList *dl = ImGui::GetWindowDrawList();
     ImVec2 o = ImGui::GetWindowPos(), sz = io.DisplaySize;
     if (sz.x < 64 || sz.y < 64) { ImGui::End(); return; }      /* (the window minimized: nothing to draw into) */
+    dock_hover = dock_hover_next; dock_hover_next = -1;
     dl->AddRectFilled(o, ImVec2(o.x + sz.x, o.y + sz.y), IM_COL32(236, 226, 200, 255));   /* (the paper round the map, as the printed one) */
     float ay = aspect();
     float fb = map_border_px() * 2 + map_border_px() * 1.6f;     /* (the frame and the title over it) */
@@ -797,7 +800,7 @@ extern "C" void worldmap_draw(void)
                 if (b < 0 || b >= (int)gamedata.cities.size() || b == a) continue;
                 bool both = false; for (int j = 0; j < 5; j++) if (gamedata.cities[b].docks[j] == a) both = true;
                 if (both && b < a) continue;                         /* (a way both ways: drawn once) */
-                bool lit = selected == a || selected == b;
+                bool lit = dock_hover >= 0 ? ((a == selected && b == dock_hover) || (b == selected && a == dock_hover)) : (selected == a || selected == b);
                 const short *xs, *ys; int n = travel_boat_way(a, b, &xs, &ys);
                 std::vector<ImVec2> pts;
                 if (n >= 2) for (int i = 0; i < n; i += (n > 60 ? 2 : 1)) { float x, y; tile_px(xs[i], ys[i], &x, &y); pts.push_back(to_scr(x, y)); }
@@ -809,6 +812,45 @@ extern "C" void worldmap_draw(void)
             }
     }
 
+    // the way the party would take to the place chosen: a dotted line (on the travel map; the
+    // planned journey's own way while travelling there)
+    if (selected >= 0 && game_mode() == GM_MAP && travel_enabled) {
+
+        static short px_[4096], py_[4096]; static int pn, p_loc = -2, p_frame;
+        int px0, py0; party_tile(&px0, &py0);
+        static int ppx = -1, ppy = -1;
+        if (p_loc != selected || ppx != px0 || ppy != py0 || ImGui::GetFrameCount() - p_frame > 120) {
+            pn = travel_preview_loc(selected, px_, py_, 4096); if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "world map: the way to %d: %d tiles\n", selected, pn); p_loc = selected; ppx = px0; ppy = py0; p_frame = ImGui::GetFrameCount();
+        }
+        if (pn >= 2) {
+            float dz = fmaxf(3.5f, 4.0f * fminf(1.6f, zoom / fitz));
+            float t = (float)ImGui::GetTime(), acc = fmodf(t * 30.0f, dz * 4.0f), sp = dz * 4.0f;
+            ImVec2 prev = ImVec2(0, 0);
+            for (int i = 0; i < pn; i++) {
+                float x, y; tile_px(px_[i], py_[i], &x, &y); ImVec2 q = to_scr(x, y);
+                if (i) {
+                    float L = sqrtf((q.x - prev.x) * (q.x - prev.x) + (q.y - prev.y) * (q.y - prev.y));
+                    for (float s0 = fmodf(sp - acc + 1000 * sp, sp); s0 < L; s0 += sp) {
+                        ImVec2 d(prev.x + (q.x - prev.x) * s0 / L, prev.y + (q.y - prev.y) * s0 / L);
+                        dl->AddCircleFilled(d, dz * 1.05f, IM_COL32(40, 20, 8, 230), 10);
+                        dl->AddCircleFilled(d, dz * 0.7f, IM_COL32(255, 240, 180, 255), 10);
+                    }
+                    acc = fmodf(acc + L, sp);
+                }
+                prev = q;
+            }
+        }
+    }
+
+    if (dock_hover >= 0) {                                         /* a boat's destination pointed at in the place panel: ringed, pulsing */
+        u32 r = g_location(dock_hover);
+        if (r) {
+            float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
+            ImVec2 c = to_scr(x, y); float pr = 18.0f + 4.0f * sinf((float)ImGui::GetTime() * 5.0f);
+            dl->AddCircle(c, pr + 3, IM_COL32(40, 20, 8, 200), 32, 5.0f);
+            dl->AddCircle(c, pr, IM_COL32(255, 220, 110, 255), 32, 3.0f);
+        }
+    }
     // places
     int hover = -1; float hd = 1e9f;
     /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
@@ -996,7 +1038,9 @@ extern "C" void worldmap_draw(void)
                     float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
                     if (!any) { ImGui::TextDisabled("Boats from its docks to:"); any = true; }
                     else if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();   /* (wrapped to the column) */
-                    if (ImGui::SmallButton(lb)) { selected = town.docks[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
+                    bool clk = ImGui::SmallButton(lb);
+                    if (ImGui::IsItemHovered()) dock_hover_next = town.docks[k];
+                    if (clk) { selected = town.docks[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
                 }
                 if (any) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
             }
