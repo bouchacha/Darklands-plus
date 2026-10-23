@@ -208,6 +208,8 @@ std::string ns_quality_tag(int id, int qual);
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
+int ns_item_section(int id);              /* the section of the items list: 1 potions, 2 spare equipment, 3 utility, 4 trophies and quest things, 5 ingredients */
+const char *ns_item_section_name(int sec);   /* (0 "Equipped") */
 int ns_slot_of(int id);                    /* where a thing is worn or held: 1 body, 2 limbs, 3 shield, 4 weapon in hand, 5 missile weapon; 0 none */
 int ns_against_worn(int id, int q, int m); /* against what member m has there: 1 better, -1 worse, 0 alike or not to be weighed, 2 nothing there */
 void ns_compare_arrow(ImDrawList *dl, float x, float y, int vs, float k);   /* the shop's arrow at (x, y), game coordinates */

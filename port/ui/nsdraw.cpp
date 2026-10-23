@@ -423,3 +423,24 @@ void ns_compare_arrow(ImDrawList *dl, float ax, float ay, int vs, float k)
     ImVec2 p0 = NsDraw::w(ax - 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p1 = NsDraw::w(ax + 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p2 = NsDraw::w(ax, vs < 0 ? ay + 1.8f : ay - 1.8f);
     if (vs == 2) dl->AddTriangle(p0, p1, p2, ac, 0.3f * k); else dl->AddTriangleFilled(p0, p1, p2, ac);
 }
+
+/* the section of the items list a thing goes in (the character sheet, the shops): 0 equipped (the
+   caller's), 1 potions, 2 spare equipment (weapons, armour, shields, mounts), 3 utility (rope,
+   lockpicks, instruments, tools ...), 4 trophies and quest things (relics, documents), 5 ingredients */
+int ns_item_section(int id)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d) return 3;
+    switch (d->kind) {
+    case K_POTION: return 1;
+    case K_WEAPON: case K_MISSILE: case K_ARMOR: case K_SHIELD: case K_HORSE: return 2;
+    case K_RELIC: case K_DOCUMENT: case K_QUEST: return 4;
+    case K_INGREDIENT: return 5;
+    default: return 3;
+    }
+}
+const char *ns_item_section_name(int sec)
+{
+    static const char *N[6] = { "Equipped", "Potions", "Spare equipment", "Utility", "Trophies and quest things", "Ingredients" };
+    return sec >= 0 && sec < 6 ? N[sec] : "";
+}

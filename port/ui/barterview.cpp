@@ -167,13 +167,12 @@ extern "C" void barterview_draw(void)
         std::vector<int> order;
         if (!L) for (int i = 0; i < b.nwares; i++) order.push_back(i);
         else {
-            auto potion = [&](int i) { const ItemDef *d = def(b.item[i].id); return d && d->kind == K_POTION; };
             auto tidy = [&](size_t from) { std::stable_sort(order.begin() + from, order.end(), [&](int a, int c) { return ui_item_tidy_less(b.item[a].id, b.item[a].qual, b.item[c].id, b.item[c].qual); }); };
-            int nin = 0, npot = 0;
-            for (int i = 0; i < b.nitems; i++) { if (b.item[i].equipped) nin++; else if (potion(i)) npot++; }
-            if (nin) { order.push_back(-1); size_t f = order.size(); for (int i = 0; i < b.nitems; i++) if (b.item[i].equipped) order.push_back(i); tidy(f); }
-            if (npot) { order.push_back(-3); size_t f = order.size(); for (int i = 0; i < b.nitems; i++) if (!b.item[i].equipped && potion(i)) order.push_back(i); tidy(f); }
-            if (b.nitems > nin + npot) { order.push_back(-2); size_t f = order.size(); for (int i = 0; i < b.nitems; i++) if (!b.item[i].equipped && !potion(i)) order.push_back(i); tidy(f); }
+            for (int sec = 0; sec < 6; sec++) {                    /* (the character sheet's sections: ns_item_section) */
+                size_t head = order.size(); order.push_back(-1 - sec);
+                for (int i = 0; i < b.nitems; i++) if ((sec == 0) == (b.item[i].equipped != 0) && (sec == 0 || ns_item_section(b.item[i].id) == sec)) order.push_back(i);
+                if (order.size() == head + 1) order.pop_back(); else tidy(head + 1);
+            }
         }
         int n = (int)order.size();
         R(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
@@ -188,7 +187,7 @@ extern "C" void barterview_draw(void)
             int i = order[V.scroll[L] + r];
             float y = LY0 + r * ROWH;
             if (i < 0) {                                         /* a heading, as on the character sheet */
-                const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions" : "Carried";
+                const char *hd = ns_item_section_name(-1 - i);
                 T(fo, NsDraw::FS_SMALL, x0 + 3, y + 2.2f, ink_soft, hd);
                 R(x0 + 3 + W(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, x1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
                 continue;

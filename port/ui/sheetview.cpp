@@ -431,14 +431,14 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     const float RX0 = 200, RX1 = 318, LY0 = 21.5f, ROWH = 8.0f; const int NROWS = 16;
     const float LY1 = LY0 + NROWS * ROWH;
     /* the rows: a heading, then those in use; a heading, then the rest */
-    std::vector<int> rows;                                 /* item index; -1 / -3 / -2 the headings */
-    int nin = 0, npot = 0;
-    for (int i = 0; i < s.nitems; i++) { if (s.item[i].equipped) nin++; else if (s.item[i].potion) npot++; }
+    std::vector<int> rows;                                 /* item index; -1 - section: a section's heading */
     /* each section in the tidy order of the party's inventory page: by kind, then name, the better first */
     auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
-    if (nin) { rows.push_back(-1); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (s.item[i].equipped) rows.push_back(i); tidy(f); }
-    if (npot) { rows.push_back(-3); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].potion) rows.push_back(i); tidy(f); }
-    if (s.nitems > nin + npot) { rows.push_back(-2); size_t f = rows.size(); for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && !s.item[i].potion) rows.push_back(i); tidy(f); }
+    for (int sec = 0; sec < 6; sec++) {
+        size_t head = rows.size(); rows.push_back(-1 - sec);
+        for (int i = 0; i < s.nitems; i++) if ((sec == 0) == (s.item[i].equipped != 0) && (sec == 0 || ns_item_section(s.item[i].id) == sec)) rows.push_back(i);
+        if (rows.size() == head + 1) rows.pop_back(); else tidy(head + 1);
+    }
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -472,7 +472,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            const char *hd = i == -1 ? "Equipped" : i == -3 ? "Potions (the marks on a flask: its grade, 1 to 3)" : s.shared ? "The party's pack" : "Carried";
+            int sec = -1 - i;
+            std::string hds = ns_item_section_name(sec);
+            if (sec == 1) hds += " (the marks on a flask: its grade, 1 to 3)";
+            else if (sec > 1 && s.shared) hds += " (the party's pack)";
+            const char *hd = hds.c_str();
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
