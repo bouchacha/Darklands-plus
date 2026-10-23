@@ -466,7 +466,12 @@ void plat_present(const u8 *vga, const u8 *pal)
         if (plat_rec_frames > 0 && getenv("DL_REC")) {
             SDL_Surface *sf = SDL_CreateRGBSurfaceWithFormat(0, out_w, out_h, 32, SDL_PIXELFORMAT_ARGB8888);
             if (sf) { char fp[600]; snprintf(fp, sizeof fp, "%s/f%04d.bmp", getenv("DL_REC"), recn++);
-                      SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch); SDL_SaveBMP(sf, fp); SDL_FreeSurface(sf); }
+                      SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch);
+                      int sm = getenv("DL_REC_SMALL") ? atoi(getenv("DL_REC_SMALL")) : 1;   /* (1/N the size: long recordings) */
+                      if (sm > 1) { SDL_Surface *s2 = SDL_CreateRGBSurfaceWithFormat(0, out_w / sm, out_h / sm, 32, SDL_PIXELFORMAT_ARGB8888);
+                                    if (s2) { SDL_BlitScaled(sf, NULL, s2, NULL); SDL_SaveBMP(s2, fp); SDL_FreeSurface(s2); } }
+                      else SDL_SaveBMP(sf, fp);
+                      SDL_FreeSurface(sf); }
             plat_rec_frames--;
         }
     }
