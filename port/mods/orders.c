@@ -262,6 +262,7 @@ static void retarget_shooters(void)
         shot_at[i] = -1;
         if (best < 0) continue;
         g_ww((u16)(c + 0x10), MISSILE); g_wb((u16)(c + 0x4a), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
+        if (g_rb((u16)(GV_cbt_action + i)) == 0) g_wb((u16)(GV_cbt_action + i), 7);   /* (idle: "ready", so the shooting starts) */
         shot_at[i] = (signed char)best;
         fprintf(stderr, "orders: member %d's mark fell: now shoots at %d (%s)\n", i, best, best_clear ? "a clear line" : "no clear line: steps aside for one");
     }
@@ -320,6 +321,7 @@ static void back_to_bow(void)
         g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
         g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
         g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+        g_wb((u16)(GV_cbt_action + i), 7);              /* "ready", as a click's order leaves it: the game then reloads, aims and looses (from 0 it never starts) */
         bow_given[i] = g_rw(GV_combat_clock); if (!bow_given[i]) bow_given[i] = 1;
         fprintf(stderr, "orders: member %d has no foe beside it now: the missile weapon again, at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
     }
@@ -336,6 +338,7 @@ void orders_test_shoot(int i, int t)
     g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
     g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
     g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+    g_wb((u16)(GV_cbt_action + i), 7);
     fprintf(stderr, "orders: test: %d shoots at %d\n", i, t);
 }
 /* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
@@ -360,6 +363,21 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (ns_unwinding || g_rb(GV_ai_paused)) return;
     keep_kinds();
     retarget_shooters();
+    if (combat_improved()) {                    /* a shooter standing idle with its order (Use Missile, action 0, not walking): made ready */
+        static u16 idle_since[5];
+        u16 now = g_rw(GV_combat_clock);
+        for (int i = 0; i < 5; i++) {
+            u16 c = (u16)(D_CBT + i * 0x80);
+            int t = (s8)g_rb((u16)(c + 0x4a));
+            int idle = g_rb((u16)(c + 0x14)) == 1 && g_rw((u16)(c + 0x10)) == MISSILE && g_rb((u16)(GV_cbt_action + i)) == 0
+                        && !g_rb((u16)(GV_cbt_moving + i)) && g_rb((u16)(GV_cbt_state + i)) == 0 && t >= 5 && t < 13 && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1;
+            if (!idle) { idle_since[i] = 0; continue; }
+            if (!idle_since[i]) { idle_since[i] = now ? now : 1; continue; }
+            if ((u16)(now - idle_since[i]) < 40) continue;
+            g_wb((u16)(GV_cbt_action + i), 7); idle_since[i] = 0;
+            fprintf(stderr, "orders: member %d stood idle with its bow: ready again, at %d\n", i, t);
+        }
+    }
     if (combat_improved()) back_to_bow();
     if (ns_unwinding) return;
     if (!volley_on()) return;
