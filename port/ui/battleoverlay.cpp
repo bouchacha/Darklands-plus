@@ -251,12 +251,12 @@ static void battle_intro(void)
     ui_alert("Battles need fewer clicks",
              "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
-             "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy, and draws their melee weapon once enemies come within "
-             "a few paces. The bow or sword on their picture at the left switches them to melee from the start.\n\n"
-             "Against armour their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armour) by themselves, and shots pass anyone in the way "
-             "(in Darklands a missile only ever hits its target).\n\n"
+             "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, "
+             "moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. "
+             "The bow or sword on their picture at the left switches them to melee from the start.\n\n"
+             "Against armour their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armour) by themselves.\n\n"
              "Point at an order button in the right margin to see what it does.",
-             "Each of these can be switched off: F12 > Settings > Helpers > Battles. F1 lists the battle's keys and clicks.");
+             "Improved combat can be switched off (the game's own ways): F12 > Settings > Helpers > Battles. F1 lists the battle's keys and clicks.");
 }
 
 /* battle.foe_arrow: no enemy of the fight on the screen, but some on this floor - an arrow at the

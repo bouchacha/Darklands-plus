@@ -1,17 +1,11 @@
 /* battlerules.c - rules of the battles, switches (F12 > Settings > Helpers > Battles).
  *
- * battle.shoot_past_allies (on): a member with a bow, crossbow, gun or thrown weapon will not
- *   shoot while anyone stands in the line of fire, friend or foe; they wait ('b' on the panel)
- *   and try again. The test is line_blocked (s014 1d69:000c, (a shooter, b target, mode 0x80 at
- *   firing and pointing, 0x100 on a click)): walls, furniture, then every active body on the floor
- *   shown but the shooter and the target, its box shrunk by the shooter's skill / 90 (none at 90).
- *   Yet a missile never strikes anyone but its target: a hit is decided before it flies and flies
- *   to the target, a miss passes through everyone (s018 1ef8 missile_launch, s014 1d47). So for
- *   the party's shooters everyone but the shooter and the target is left out of the test (they
- *   stand on no floor while it runs): only walls and furniture block. The enemies' shots are as
- *   the game has them.
+ * People in the line of fire block a shot, friend or foe, as the game has it (line_blocked, s014
+ *   1d69:000c: walls, furniture, then every active body on the floor shown but the shooter and the
+ *   target, its box shrunk by the shooter's skill / 90). (Shooting past them was tried and left out:
+ *   the player wants the game's rule.)
  *
- * battle.reposition_shooters (off by default, experimental): a member who would wait ('b') for a clear line
+ * Improved combat (battle.improved): a member who would wait ('b') for a clear line
  *   steps aside to the nearest spot, within a few paces, from which the line to the target is
  *   clear, and shoots from there. melee_exchanges (s014 0e76:2a4a) is where a ready shooter
  *   finds the line blocked (cbt_state 'b', the next try 30..90 ticks on); after it, such a member
@@ -20,8 +14,7 @@
  *   (cbt_collisions at it, line_blocked from it), nearest first, ties to the one farther from the
  *   target. On arriving (s014 0e76:2fa2, "ready") the missile order and its target are back and
  *   the shot is taken at once. Each member at most once in 120 ticks; a walk the player
- *   overrides with another order (or that ends elsewhere, or long after) is forgotten. With
- *   battle.shoot_past_allies on, only walls, furniture and enemies block, as there.
+ *   overrides with another order (or that ends elsewhere, or long after) is forgotten.
  *   No spot near: the member walks towards the foe (path_find to it), and at each step
  *   (cbt_step, s014 0e76:1624) the line from there is tested; when it is clear the walk stops
  *   and the member shoots (the missile order back, cbt_ready).
@@ -53,7 +46,6 @@
 
 /* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
 int combat_improved(void) { return config_get_int("battle.improved", 1) && !config_get_int("original", 0); }
-static int on_past(void) { return combat_improved(); }
 #define CBT(i) ((u16)(GV_combatants + (i) * 0x80))
 static int on_reposition(void);
 
@@ -71,15 +63,7 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
     int a = (s16)rw(SS, (u16)(SP + 4)), b = (s16)rw(SS, (u16)(SP + 6)), mode = rw(SS, (u16)(SP + 8));
     if (a < 0 || a >= 5 || (mode != 0x80 && mode != 0x100)) { hook_call_original(); return; }
     int choosing = asked_for_target();
-    if (on_past()) {
-        u8 fl[13];
-        for (int k = 0; k < 13; k++) {
-            fl[k] = g_rb((u16)(GV_cbt_floor + k));
-            if (k != a && k != b) g_wb((u16)(GV_cbt_floor + k), 0xff);
-        }
-        hook_call_original();
-        for (int k = 0; k < 13; k++) g_wb((u16)(GV_cbt_floor + k), fl[k]);
-    } else hook_call_original();
+    hook_call_original();
     if (ns_unwinding) return;
     if (getenv("DL_BATTLE_LOG") && AX && mode == 0x100) fprintf(stderr, "battlerules: %d's line to %d blocked (mode %#x)\n", a, b, mode);
     /* a foe chosen as a target with no line from where the member stands: taken (the member will

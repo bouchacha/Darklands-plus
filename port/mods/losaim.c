@@ -6,13 +6,12 @@
  * furniture's id is at least D_c1cf (on a forest map the trees, on a street the stalls...), then
  * every other combatant, its box shrunk by the shooter's height. Each box is clipped against the
  * line the game's way (one clip step, 1d69:0354), so a box counts exactly when it counts for the
- * game. With battle.shoot_past_allies on, the party's shots pass the people between (battlerules.c). */
+ * game. */
 #include <stdlib.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
-#include "battlerules.h"
 #include "losaim.h"
 
 static int bx0, bx1, by0, by1;                 /* the box (D_e1d5, D_e1d7, D_e1d9, D_e1db) */
@@ -93,8 +92,6 @@ int los_trace(int a, int b, int mode, LosBox *out, int max)
     }
     int h = mode == 0x100 ? (s8)g_rb((u16)(GV_combatants + a * 0x80 + 0x6f)) : (s8)g_rb((u16)(GV_combatants + a * 0x80 + 0x59));
     if (h >= 90) return n;
-    /* battle.shoot_past_allies (mods/battlerules.c): a member's shot passes everyone but the target */
-    if (a < 5 && combat_improved()) return n;
     for (int i = 0; i < 13; i++) {
         u16 c = (u16)(GV_combatants + i * 0x80);
         if (g_rb((u16)(c + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != g_rb(GV_floor_shown) || i == a || i == b) continue;
