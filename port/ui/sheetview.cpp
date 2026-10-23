@@ -464,6 +464,10 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         P.click = false; V.dragging = false; sheetview_dragging = 0; V.drag_row = -1;
     }
     int tip_i = -1;
+    const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
+    static int hover_carried = -1;                         /* (the carried row pointed at last frame: what it would replace is lit) */
+    int cmp_slot = cmp_on && hover_carried >= 0 && hover_carried < s.nitems && !s.item[hover_carried].equipped ? ns_slot_of(s.item[hover_carried].id) : 0;
+    hover_carried = -1;
     for (int r = 0; r < NROWS && sc + r < n; r++) {
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
@@ -475,7 +479,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         }
         const SvItem &it = s.item[i];
         bool h = !V.dragging && P.over(RX0, y, RX1, y + ROWH), busy = i == V.drop_row;
-        if (h) { new_what = 1; new_which = i; }
+        if (h) { new_what = 1; new_which = i; hover_carried = i; }
         if (h || busy || (V.dragging && i == V.drag_row)) P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
         P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.3f, it.id, it.qual);
         std::string nm = ns_item_name(it.id);
@@ -488,12 +492,21 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             P.dl->AddCircleFilled(NsDraw::w(kx, y + ROWH * 0.5f), 1.5f * P.k, IM_COL32(150, 40, 24, 230));
             name_end -= 4;
         }
-        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end);
+        /* (display.shop_compare) a weapon, armour or shield carried: better or worse than what this member has there now,
+           as in a shop; the one pointed at lights what it would replace */
+        int vs = !it.equipped && cmp_on ? ns_against_worn(it.id, it.qual, s.who) : 0;
+        if (it.equipped == 1 && cmp_slot && ns_slot_of(it.id) == cmp_slot) {
+            float pl = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
+            P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(214, 170, 60, (int)(40 + 50 * pl)));
+        }
+        float nw = P.width(f, NsDraw::FS_NAME, nm), qend = RX0 + 11 + nw;
+        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end - (vs ? 6 : 0));
         if (!ns_quality_tag(it.id, it.qual).empty()) {
             char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(it.id, it.qual).c_str());
-            float qx = RX0 + 11 + P.width(f, NsDraw::FS_NAME, nm) + 2;
-            if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end) P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs);
+            float qx = RX0 + 11 + nw + 2;
+            if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end - (vs ? 6 : 0)) { P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs); qend = qx + P.width(fo, NsDraw::FS_SMALL, qs); }
         }
+        if (vs) ns_compare_arrow(P.dl, fminf(qend + 4, name_end - 3), y + ROWH * 0.5f, vs, P.k);
         if (!(h || busy)) continue;
         /* the actions */
         bool gear = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);

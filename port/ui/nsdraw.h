@@ -208,6 +208,9 @@ std::string ns_quality_tag(int id, int qual);
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
+int ns_slot_of(int id);                    /* where a thing is worn or held: 1 body, 2 limbs, 3 shield, 4 weapon in hand, 5 missile weapon; 0 none */
+int ns_against_worn(int id, int q, int m); /* against what member m has there: 1 better, -1 worse, 0 alike or not to be weighed, 2 nothing there */
+void ns_compare_arrow(ImDrawList *dl, float x, float y, int vs, float k);   /* the shop's arrow at (x, y), game coordinates */
 std::string ns_item_encounters(int id, ImU32 *col);   /* "Many encounters let you use it." (potions), coloured by how many */
 ImU32 ns_tier_colour(int n);                         /* many green, some blue, a few brown, none grey */
 /* a weapon or an armour against what member m has in that place now, "" for other things */

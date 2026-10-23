@@ -377,3 +377,49 @@ std::string ns_quality_tag(int id, int qual)
     }
     return b;
 }
+
+/* the place a thing is worn or held: 1 body armour, 2 the limbs' armour, 3 shield, 4 the weapon in
+   hand, 5 the missile weapon; 0 none */
+int ns_slot_of(int id)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d) return 0;
+    if (d->type >= 67 && d->type <= 84) return d->type <= 75 ? 1 : 2;
+    if (d->kind == K_SHIELD) return 3;
+    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+        int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type));
+        return sk == 4 || sk == 5 || sk == 6 ? 5 : 4;   /* (thrown weapons are readied as the missile weapon) */
+    }
+    return 0;
+}
+/* a ware against what member m has there now: 1 better, -1 worse, 0 alike or not to be weighed
+   (another kind of weapon or shield), 2 nothing there. Armour: harder first, then better made
+   (as ns_item_compare says it); a weapon or shield: better made, of the same kind */
+int ns_against_worn(int id, int q, int m)
+{
+    int sl = ns_slot_of(id);
+    if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return 0;
+    static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e }, QOFF[6] = { 0, 0x3b, 0x3c, 0x47, 0x44, 0x46 };
+    u16 b = G_MEMBER(m);
+    int t = (s8)g_rb((u16)(b + TOFF[sl])), wq = g_rb((u16)(b + QOFF[sl]));
+    if (t < 0) return 2;
+    const ItemDef *d = ns_itemdef(id);
+    if (sl <= 2) {
+        if (t < 67 || t > 84) return 2;
+        int h = rb(G_FAR20A5, (u16)(0x781e + d->type)), wh = rb(G_FAR20A5, (u16)(0x781e + t));
+        if (h != wh) return h > wh ? 1 : -1;
+        return q > wq ? 1 : q < wq ? -1 : 0;
+    }
+    if (sl >= 4 && t > 62) return 2;
+    if (t != d->type) return 0;
+    return q > wq ? 1 : q < wq ? -1 : 0;
+}
+
+
+void ns_compare_arrow(ImDrawList *dl, float ax, float ay, int vs, float k)
+{
+    if (!vs) return;
+    ImU32 ac = vs == 1 ? NsDraw::GREEN : vs == 2 ? IM_COL32(40, 96, 34, 170) : NsDraw::RED;
+    ImVec2 p0 = NsDraw::w(ax - 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p1 = NsDraw::w(ax + 2, vs < 0 ? ay - 1.4f : ay + 1.4f), p2 = NsDraw::w(ax, vs < 0 ? ay + 1.8f : ay - 1.8f);
+    if (vs == 2) dl->AddTriangle(p0, p1, p2, ac, 0.3f * k); else dl->AddTriangleFilled(p0, p1, p2, ac);
+}
