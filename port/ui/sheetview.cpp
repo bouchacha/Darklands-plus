@@ -383,7 +383,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += raised_line(P, s, true, V.which, SX0 + 2.5f, y, SW);
         party_line(P, s, true, V.which, SX0 + 2.5f, y, SX1 - 2);
     } else if (V.tab == TAB_THINGS && s.shared)
-        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an item to see it here; F1 shows what you can do.");
+        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an item to see it here; F11 shows what you can do.");
     else if (V.tab == TAB_THINGS)
         P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y + 1, SW, dim, "Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back.");
     else {

@@ -165,7 +165,7 @@ static void build_into(u16 mp, MenuModel *M, MvFn *fn)
     /* Darklands+'s own menu, at the right end: its window and pages (handled here, not the game's) */
     static const struct { const char *name, *key; int act; } DP[] = {
         { "Darklands+ window", "F12", NA_WINDOW }, { "Quests", "", NA_QUESTS }, { "World map", "M", NA_MAP },
-        { "Helpers (settings)", "", NA_HELPERS }, { "Guide", "", NA_GUIDE }, { "Keys and clicks on this screen", "F1", NA_HELP },
+        { "Helpers (settings)", "", NA_HELPERS }, { "Guide", "", NA_GUIDE }, { "Keys and clicks on this screen", "F11", NA_HELP },
     };
     int nd = (int)(sizeof DP / sizeof DP[0]);
     if (M->nmenus < 7 && M->nitems + nd <= 96) {

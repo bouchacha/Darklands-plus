@@ -160,7 +160,7 @@ extern "C" void lootview_draw(void)
             if (w > 0) t.right = "A shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");
         }
         ns_item_strip(P, SY0, t);
-    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F1 shows what you can do."
+    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F11 shows what you can do."
                                                          : "Point at an item to see it here. Click a name above the right list (or press D) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }

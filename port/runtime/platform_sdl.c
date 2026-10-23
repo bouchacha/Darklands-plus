@@ -990,7 +990,7 @@ static int pad_event(const SDL_Event *e)
     case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: pad_key(SDL_SCANCODE_SPACE, up); break;
     case SDL_CONTROLLER_BUTTON_START: pad_key(SDL_SCANCODE_F12, up); break;
     case SDL_CONTROLLER_BUTTON_BACK: pad_key(SDL_SCANCODE_M, up); break;
-    case SDL_CONTROLLER_BUTTON_LEFTSTICK: pad_key(SDL_SCANCODE_F1, up); break;
+    case SDL_CONTROLLER_BUTTON_LEFTSTICK: pad_key(SDL_SCANCODE_F11, up); break;   /* (the keys of the moment: F1 ... F5 are the game's) */
     case SDL_CONTROLLER_BUTTON_RIGHTSTICK: pad_key(SDL_SCANCODE_Z, up); break;   /* (Z: fast forward in a battle) */
     default: break;
     }

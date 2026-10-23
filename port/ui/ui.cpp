@@ -420,9 +420,9 @@ extern "C" int ui_event(const SDL_Event *e)
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
     if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
         && (game_mode() == GM_MAP || game_mode() == GM_CARD) && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
-    if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F1 && !e->key.repeat && !open_menu && !open_map && !open_goto) { open_help = !open_help; return 1; }
+    if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F11 && !e->key.repeat && !open_menu && !open_map && !open_goto) { open_help = !open_help; return 1; }
     if (open_help) {
-        if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_F1)) { open_help = false; return 1; }
+        if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_F11)) { open_help = false; return 1; }
         if (e->type == SDL_MOUSEBUTTONDOWN) { open_help = false; return 1; }
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
@@ -549,7 +549,7 @@ static void tab_about(void)
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
                        "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers: the Buggy Purist preset is the game as it was).");
     ImGui::Spacing();
-    ImGui::TextWrapped("F1: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
+    ImGui::TextWrapped("F11: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
     ImGui::PushFont(font_head); orn_septext("Files"); ImGui::PopFont();
     {   extern char dos_shadow[];
@@ -582,7 +582,7 @@ static void tab_about(void)
          "of the file formats, the Darklands Companion, and Arkana Mechanika (Darklands Restoration) for bug reports.");
 }
 
-/* F1: the keys and clicks of the moment (the game's own and Darklands+'s) */
+/* F11: the keys and clicks of the moment (F1 ... F5 are the game's: a member's sheet) (the game's own and Darklands+'s) */
 /* the first start: what Darklands+ is, the keys that matter, and the choice to play the
  * original game untouched (the purists' switch), once */
 static void welcome_window(void)
@@ -627,7 +627,7 @@ static void welcome_window(void)
         ImGui::Spacing();
         ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
         ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
-        ImGui::BulletText("F1: the keys and clicks for the current screen, including the game's hidden ones");
+        ImGui::BulletText("F11: the keys and clicks for the current screen, including the game's hidden ones");
         ImGui::BulletText("F12 > Guide: how Darklands works, for a new player");
         ImGui::BulletText("Click a party member on the left: their character sheet, with the whole party's saints and formulae");
         ImGui::BulletText("M: the world map, to find a place and travel there");
@@ -673,7 +673,7 @@ static void news_window(void)
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Every change can be switched off: F12 > Settings. F12 > Guide explains the game; F1 lists the keys for the current screen.");
+        ImGui::TextWrapped("Every change can be switched off: F12 > Settings. F12 > Guide explains the game; F11 lists the keys for the current screen.");
         ImGui::PopStyleColor();
         ImGui::Spacing();
         bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);
@@ -757,7 +757,7 @@ static void help_window(void)
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, io.DisplaySize.y * 0.94f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::PushFont(font_body);
-    if (ImGui::Begin("Keys and clicks (F1)", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
+    if (ImGui::Begin("Keys and clicks (F11)", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(fminf(1.0f, fmaxf(0.7f, io.DisplaySize.y / 1000.0f)));
         auto row = [](const char *k, const char *d) {     /* (a label too long for its column wraps within it) */
             ImGui::BeginGroup();
@@ -891,9 +891,9 @@ static void help_window(void)
             prow("{LB} {RB}", "Tab (the level map) / Space (pause)");
             prow("{START} {BACK}", "F12 (this menu) / M (the world map)");
             prow("{RT}", "held: Ctrl (on the travel map: Ctrl+click travels there)");
-            prow("{LS}", "pressed: F1 (this list)");
+            prow("{LS}", "pressed: F11 (this list)");
           } }
-        ImGui::TextDisabled("F1, Esc or a click closes this.");
+        ImGui::TextDisabled("F11, Esc or a click closes this.");
     }
     ImGui::End();
     ImGui::PopFont();

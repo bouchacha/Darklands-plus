@@ -135,7 +135,7 @@ extern "C" void cacheview_draw(void)
         t.status = L && l.item[i].equipped ? "equipped" : L && l.item[i].kept ? "kept" : "";
         t.cmp_who = L ? -1 : l.shared ? -2 : l.who;      /* (one pack: whom in the party it would suit) */
         ns_item_strip(P, SY0, t);
-    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F1 shows what you can do."
+    } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F11 shows what you can do."
                                                          : "Point at an item to see it here. Click a name above the right list (or press C) for another member.");
     if (l.note[0] && plat_ticks_ms() - l.note_t < 6000) P.text(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), ns_gtext(l.note));
 }

@@ -154,7 +154,7 @@ static Option OPTIONS[] = {
 
     { "assist.wheel_lists", S_CONTROL, 0, "Mouse wheel in lists", "scrolls the original game's lists (equipment, shops ...).", OC_SHOW, 0, 1, 1 },
     { "assist.menu_click", S_CONTROL, 0, "Right-click for the menus", "a right-click opens the menu bar, the next click chooses and Esc closes it; F10 opens it from the keyboard.", OC_SHOW, 0, 1, 1 },
-    { "input.gamepad", S_CONTROL, 0, "Game controller", "the left stick moves the pointer, A clicks, B right-clicks (F1 lists the rest).", OC_SHOW, 0, 1, 1 },
+    { "input.gamepad", S_CONTROL, 0, "Game controller", "the left stick moves the pointer, A clicks, B right-clicks (F11 lists the rest).", OC_SHOW, 0, 1, 1 },
 
     { "editor.show", S_EDIT, 0, "Editing tools", "the Editor tab, to change a character's money, name, attributes, skills, saints, formulae, items, colours, shield and sprite (as the community's save editors do: to repair characters hit by old bugs, or to cheat), and F12 > Records, to edit weapons, items and enemies for a mod.", OC_TOOL, 0, 0, 0 },
 

@@ -165,7 +165,7 @@ extern "C" void lodgeview_draw(void)
                                                      : "Nobody is short of Strength, regaining it or praying.");
     else if (P.over(bx + 24, 174, bx + 48, 184))
         P.para(fo, 3.9f, 190, 186, 126, soft, "Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid).");
-    else P.text(fo, 3.9f, 190, 188, dim, "F1: list of keys");
+    else P.text(fo, 3.9f, 190, 188, dim, "F11: list of keys");
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
 
     /* the hours going by: the game's own clock (ui/hourglass.cpp), with the day of a run of days

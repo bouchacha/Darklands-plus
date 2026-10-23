@@ -11,7 +11,7 @@ void ui_guide_tab(void)
 {
     if (!config_get_int("guide.seen", 0)) { config_set_int("guide.seen", 1); config_save(); }     /* (the margin's hint is not needed any more) */
     ImGui::TextWrapped("Darklands has no tutorial: this page sums up how it works, with a few first steps. Nothing here tells the story; the rules are the original game's, as Darklands+ "
-                       "reads them from the program. F1 lists the keys and clicks for the current screen at any time; a right-click opens the menus, with Darklands+'s own at the right end.");
+                       "reads them from the program. F11 lists the keys and clicks for the current screen at any time; a right-click opens the menus, with Darklands+'s own at the right end.");
     ImGui::Spacing();
     auto topic = [](const char *title, std::initializer_list<const char *> lines, bool open = false) {
         if (ImGui::CollapsingHeader(title, open ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {

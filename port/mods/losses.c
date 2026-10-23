@@ -49,17 +49,28 @@ static void take(int m)
 /* (aging.c lowered member m's attributes and told it: taken as they are now) */
 void losses_retake(int m) { if (m >= 0 && m < 5) take(m); }
 
+/* a battle under way (run_battle, s029 0e76:2278): its records are the fight's until it ends, even
+   while another overlay (a saint's prayer, the loot) stands in for the battle's own and game_mode
+   no longer says "battle" - the watch waits, then starts afresh */
+static int in_battle;
+static void battle_hook(void)
+{
+    in_battle++;
+    hook_call_original();
+    in_battle--;
+    for (int m = 0; m < 5; m++) take(m);
+}
 void losses_battle_frame(void);
 void losses_frame(void)
 {
     losses_battle_frame();
     extern unsigned dos_save_read_ms;
     static unsigned last_read; static int grace;
-    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; grace = 300; }
+    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; grace = 300; in_battle = 0; }   /* (a game loaded: a battle left by it never returned) */
     if (grace > 0) grace--;
     int seed = (s16)g_rw(G_PARTY_SEED);
     int gm = game_mode();
-    if (gm == GM_BATTLE) return;                                     /* (the watch waits for its end) */
+    if (gm == GM_BATTLE || in_battle) return;                        /* (the watch waits for its end) */
     int fresh = !losses_on() || grace > 0 || gm == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open() || seed != snap_seed;
     if (fresh) { for (int m = 0; m < 5; m++) take(m); snap_seed = seed; return; }
     char body[1600]; size_t len = 0; body[0] = 0;
@@ -117,4 +128,4 @@ void losses_battle_frame(void)
     worn_len = 0; worn[0] = 0;
 }
 
-void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); }
+void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(GF_run_battle, battle_hook); hook_install(GF_combat_main, battle_hook); }
