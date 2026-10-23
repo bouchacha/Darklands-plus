@@ -60,6 +60,7 @@ static void help_window(void);
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 extern "C" int citynav_window(void);
 extern "C" int citynav_available(void);
+extern "C" void citynav_draw_cover(void);   /* ui/citynav.cpp: Go to under way, the streets passed not shown */
 extern "C" void citynav_tick(void);
 extern "C" void citynav_go(int dest);
 /* "Go to" in cities (ui/citynav.cpp): G on a city card */
@@ -1115,6 +1116,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
           ImVec2 ts = ImGui::CalcTextSize(t);
           dl->AddText(ImVec2((io.DisplaySize.x - ts.x) * 0.5f, (io.DisplaySize.y - ts.y) * 0.5f), IM_COL32(230, 210, 170, 255), t);
       } }
+    if (!open_menu && !open_map) citynav_draw_cover();   /* (Go to under way: the streets passed are not shown) */
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();

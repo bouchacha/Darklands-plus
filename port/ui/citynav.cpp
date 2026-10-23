@@ -265,7 +265,8 @@ static bool town_event_end(int loc, int kind, int type0, int end[4])
 static bool night_closed(int d);
 static int goal = -1, steps_taken;
 static unsigned visited;                                   /* hubs passed on this walk: not again */
-static int conts, leaves, replans;                         /* texts read on, places left before the first hub, ways planned anew */
+static int conts, leaves, replans;
+static int arrived_last;                                   /* the last walk ended by arriving (not stopped) */                         /* texts read on, places left before the first hub, ways planned anew */
 static std::string last_key; static int same_count;
 static u32 phase_t, last_act;
 static std::string phase_key;
@@ -430,7 +431,7 @@ extern "C" void citynav_tick(void)
         return;
     }
     if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
-    for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
+    for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); arrived_last = 1; goal = -1; return; }   /* there */
     bool market_goal = false;                                /* (a place of the marketplace itself: elsewhere, the way goes on through it) */
     for (const Rule &r : RULES) if (r.hub == H_MARKET && r.to == goal) market_goal = true;
     if (hub == H_MARKET && (night_closed(goal) || (card == "$MARKE01" && market_goal))) {    /* the marketplace by night ($MARKE01): its stalls shut, the offices upstairs to be reached past the guards */
@@ -465,8 +466,53 @@ extern "C" void citynav_go(int dest)
 {
     if (dest < 0 || dest >= D_N) return;
     assist_watch_cards();
-    goal = dest; steps_taken = 0; visited = 0; conts = leaves = replans = 0; same_count = 0; last_key.clear(); phase_key.clear(); last_act = 0;
+    goal = dest; steps_taken = 0; visited = 0; conts = leaves = replans = 0; arrived_last = 0; same_count = 0; last_key.clear(); phase_key.clear(); last_act = 0;
     char m[120]; snprintf(m, sizeof m, "Going to: %s. Press any key or click to stop.", DEST[dest].label); ui_notice(m);
+}
+
+/* while Go to walks the party through the streets, the cards it passes are not shown (each was up
+   for a moment: they read as flashes): the field is covered by a page saying where the party
+   goes, the place's picture and footsteps along a dotted way, until it arrives (or stops) */
+extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
+extern "C" void citynav_draw_cover(void)
+{
+    static u32 shown_from, ended_t; static int last_goal = -1, tail_goal = -1; static std::string tail_card;
+    u32 now = plat_ticks_ms();
+    int g = goal >= 0 ? goal : leaving ? D_LEAVE : -1;
+    if (g >= 0 && (steps_taken || leaving)) tail_goal = -1;
+    if (g < 0 && last_goal >= 0 && arrived_last && tail_goal < 0 && now - ended_t > 3000) {          /* (arrived: the last street's card stays until the place's own comes) */
+        tail_goal = last_goal; tail_card = card_now(); ended_t = now;
+    }
+    if (g < 0 && tail_goal >= 0) {
+        if (card_now() != tail_card || now - ended_t > 2500 || game_mode() != GM_CARD) tail_goal = -1;
+        else g = tail_goal;
+    }
+    if (g < 0 || !config_get_int("assist.city_goto_cover", 1)) { last_goal = -1; return; }
+    if (g != last_goal) { if (tail_goal < 0) shown_from = now; last_goal = g; }
+    if (!steps_taken && !leaving && tail_goal < 0) return;   /* (not yet under way: the card it starts from) */
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+    float w = x1 - x0, h = y1 - y0, k = h / 200.0f;
+    dl->AddRectFilledMultiColor(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(236, 222, 188, 255), IM_COL32(230, 214, 176, 255), IM_COL32(214, 194, 152, 255), IM_COL32(222, 204, 164, 255));
+    if (orn_on()) { orn_parchment_edges(dl, ImVec2(x0 + 2 * k, y0 + 2 * k), ImVec2(x1 - 2 * k, y1 - 2 * k), 6 * k); orn_frame(dl, ImVec2(x0, y0), ImVec2(x1, y1), 1.9f * k); }
+    ImVec2 c(x0 + w * 0.5f, y0 + h * 0.42f);
+    ui_draw_town_icon(dl, c, 46 * k, DEST[g].icon);
+    char t[96]; snprintf(t, sizeof t, g == D_LEAVE ? "Walking to the city gate" : "Walking to: %s", DEST[g].label);
+    ImFont *f = ImGui::GetFont(); float fs = 9.0f * k;
+    ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, t);
+    dl->AddText(f, fs, ImVec2(c.x - ts.x * 0.5f, c.y + 30 * k), IM_COL32(51, 31, 15, 255), t);
+    /* footsteps along a dotted way under it, walking on */
+    float py = c.y + 48 * k, px0 = c.x - 60 * k, px1 = c.x + 60 * k;
+    for (float x = px0; x <= px1; x += 4 * k) dl->AddCircleFilled(ImVec2(x, py), 0.7f * k, IM_COL32(120, 90, 60, 160), 6);
+    float tt = (now - shown_from) / 1000.0f;
+    for (int i = 0; i < 4; i++) {
+        float ph = fmodf(tt * 0.6f + i * 0.25f, 1.0f), x = px0 + (px1 - px0) * ph, a = sinf(ph * 3.14159f);
+        float oy = (i & 1 ? -2.2f : 2.2f) * k;
+        dl->AddEllipseFilled(ImVec2(x, py + oy), ImVec2(2.4f * k, 1.3f * k), IM_COL32(80, 50, 26, (int)(220 * a)), 0, 12);
+    }
+    const char *sub = "Any key or click stops the walk.";
+    float ss = 5.5f * k; ImVec2 s2 = f->CalcTextSizeA(ss, FLT_MAX, 0, sub);
+    dl->AddText(f, ss, ImVec2(c.x - s2.x * 0.5f, py + 10 * k), IM_COL32(110, 84, 56, 255), sub);
 }
 
 /* ---------------------------------------------------------------- the list */

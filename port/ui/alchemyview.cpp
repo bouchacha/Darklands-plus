@@ -133,12 +133,20 @@ extern "C" void alchemyview_draw(void)
             if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, ec, enc);
             y += 2;
         }
-        {   /* the potion carried already, by grade */
-            int k = fm / 3; std::string cl;
-            if (k >= 0 && k < 22) for (int g2 = 1; g2 <= 3; g2++) if (pot[k][g2]) cl += (cl.empty() ? "" : ", ") + std::to_string(pot[k][g2]) + " of grade " + std::to_string(g2);
-            if (k >= 0 && k < 22 && pot[k][0]) cl += (cl.empty() ? "" : ", ") + std::to_string(pot[k][0]) + " ungraded";
-            P.text(fo, NsDraw::FS_SMALL, RX0, y, soft, cl.empty() ? "The party carries none of this potion." : "The party carries " + cl + ".", -1, RX1);
-            y += 7;
+        {   /* the potion carried already: a flask of each grade the party has, with how many */
+            int k = fm / 3; float x = RX0;
+            P.text(fo, NsDraw::FS_SMALL, x, y + 0.8f, soft, "Carried"); x += P.width(fo, NsDraw::FS_SMALL, "Carried") + 3;
+            bool any = false;
+            if (k >= 0 && k < 22) for (int g2 = 0; g2 <= 3; g2++) {
+                int nn = pot[k][g2 == 0 ? 0 : g2]; if (g2 == 0 || !nn) continue;
+                P.icon(x + 3, y + 3.2f, 6.5f, 95 + k, -1, g2);
+                std::string c = std::to_string(nn);
+                P.text(fo, NsDraw::FS_SMALL, x + 7.5f, y + 0.8f, ink, c);
+                x += 10 + P.width(fo, NsDraw::FS_SMALL, c); any = true;
+            }
+            if (k >= 0 && k < 22 && pot[k][0]) { P.icon(x + 3, y + 3.2f, 6.5f, 95 + k); std::string c = std::to_string(pot[k][0]); P.text(fo, NsDraw::FS_SMALL, x + 7.5f, y + 0.8f, ink, c); any = true; }
+            if (!any) P.text(fo, NsDraw::FS_SMALL, x, y + 0.8f, dim, "none");
+            y += 10;
         }
         P.rect(RX0, y - 0.6f, RX1, y - 0.3f, IM_COL32(120, 80, 36, 90));
         P.text(fo, 4.3f, RX0, y + 0.5f, soft, "For a batch: at hand / needed"); y += 6.5f;
