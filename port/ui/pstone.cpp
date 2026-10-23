@@ -1,108 +1,160 @@
-/* pstone.cpp - the Philosopher's Stone, as the alchemists of the age pictured it (display.pstone_look):
- *   0 the red stone: the end of the Great Work (rubedo), a heavy, glassy stone the colour of a ruby,
- *     shining by its own light - "red as a ruby, transparent as crystal, fusible as wax";
- *   1 the powder of projection: the Stone ground to a red powder kept in a phial, a grain of which,
- *     thrown on molten lead, turns it to gold (the transmutation stories of the age);
- *   2 the philosophers' egg: the sealed glass vessel (vas hermeticum) in which the Work was done,
- *     the red stone ripening inside it, the sun and moon joined over it.
- * Each drawn at c, s across; quality > 0 lights it (the better the stone, the brighter); 0: none
- * yet, drawn faint. */
+/* pstone.cpp - the Philosopher's Stone, as the alchemists pictured it (display.pstone_look). The
+ * Great Work went through its colours in order - nigredo (black: the raven), albedo (white: the
+ * swan; the white stone, which makes silver), citrinitas (yellow; the many colours of the
+ * peacock's tail between), rubedo (red: the phoenix; the red stone, which makes gold) - and the
+ * party's stone shows the colour its quality has reached:
+ *   quality 1-9 black, 10-19 white, 20-34 the peacock's colours, yellow, 35 and up red.
+ *   0 the philosophers' egg: the sealed glass vessel of the Work (vas hermeticum), its neck melted
+ *     shut ("Hermes' seal"), sitting in the athanor's mouth; the matter in it of the stage's colour,
+ *     and the stage's bird over it;
+ *   1 the stone itself: an unworked lump, glassy and heavy, black, white, yellow or (at the end)
+ *     red to purple and shining - not a jeweller's cut gem.
+ * Each drawn at c, s across; quality 0: none yet, the empty egg or a faint outline. */
 #include "imgui.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "../runtime/config.h"
 
-static ImU32 A(ImU32 c, float a) { int al = (int)(((c >> IM_COL32_A_SHIFT) & 255) * a); return (c & ~IM_COL32_A_MASK) | ((ImU32)(al < 0 ? 0 : al > 255 ? 255 : al) << IM_COL32_A_SHIFT); }
-static void glow(ImDrawList *dl, ImVec2 c, float r, ImU32 col, float strength)
+namespace {
+const float PI = 3.14159265f;
+ImU32 A(ImU32 c, float a) { int al = (int)(((c >> IM_COL32_A_SHIFT) & 255) * a); return (c & ~IM_COL32_A_MASK) | ((ImU32)(al < 0 ? 0 : al > 255 ? 255 : al) << IM_COL32_A_SHIFT); }
+void glow(ImDrawList *dl, ImVec2 c, float r, ImU32 col, float strength)
 {
     for (int i = 12; i >= 1; i--) { float f = i / 12.0f; dl->AddCircleFilled(c, r * f, A(col, strength * (1 - f) * (1 - f) * 0.35f), 32); }
 }
+/* the stage a quality has reached: 0 none, 1 black, 2 white, 3 peacock / yellow, 4 red */
+int stage_of(int q) { return q <= 0 ? 0 : q < 10 ? 1 : q < 20 ? 2 : q < 35 ? 3 : 4; }
+ImU32 matter(int st, int shade)                    /* shade 0 dark, 1 mid, 2 light */
+{
+    static const ImU32 C[5][3] = {
+        { IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, 0) },
+        { IM_COL32(14, 12, 14, 255), IM_COL32(40, 36, 42, 255), IM_COL32(90, 84, 100, 255) },
+        { IM_COL32(170, 172, 180, 255), IM_COL32(222, 224, 230, 255), IM_COL32(252, 252, 255, 255) },
+        { IM_COL32(176, 120, 20, 255), IM_COL32(226, 178, 40, 255), IM_COL32(255, 230, 120, 255) },
+        { IM_COL32(96, 8, 30, 255), IM_COL32(178, 20, 40, 255), IM_COL32(250, 96, 90, 255) } };
+    return C[st < 0 ? 0 : st > 4 ? 4 : st][shade];
+}
+/* the bird of the stage, small, wings spread over the matter: raven, swan, peacock, phoenix */
+void bird(ImDrawList *dl, ImVec2 c, float u, int st, float t)
+{
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    float flap = sinf(t * 3.0f) * 0.8f;
+    ImU32 body = st == 1 ? IM_COL32(20, 18, 22, 255) : st == 2 ? IM_COL32(250, 250, 252, 255) : st == 3 ? IM_COL32(30, 110, 130, 255) : IM_COL32(210, 40, 20, 255);
+    ImU32 edge = st == 2 ? IM_COL32(120, 120, 130, 255) : IM_COL32(0, 0, 0, 180);
+    if (st == 3)                                       /* the peacock's tail: a fan of eyes */
+        for (int i = 0; i < 7; i++) {
+            float a = PI * (0.62f + 0.76f * i / 6.0f);
+            ImVec2 e = P(cosf(a) * 8, 2 + sinf(a) * 8 * -1);
+            dl->AddLine(P(0, 2), e, IM_COL32(40, 120, 70, 255), 0.8f * u);
+            dl->AddCircleFilled(e, 1.6f * u, IM_COL32(30, 140, 110, 255), 10);
+            dl->AddCircleFilled(e, 0.9f * u, IM_COL32(40, 60, 170, 255), 8);
+            dl->AddCircleFilled(e, 0.4f * u, IM_COL32(230, 190, 60, 255), 6);
+        }
+    if (st == 4) {                                     /* the phoenix rises from flames */
+        for (int i = -2; i <= 2; i++) dl->AddTriangleFilled(P(i * 1.8f - 1.4f, 5), P(i * 1.8f + 0.2f * sinf(t * 7 + i), 1.5f - (2 - abs(i)) * 0.8f), P(i * 1.8f + 1.4f, 5), IM_COL32(255, 170, 40, 230));
+    }
+    /* wings */
+    dl->AddTriangleFilled(P(-0.5f, 0), P(-7, -3 + flap), P(-5, 1.5f), body);
+    dl->AddTriangleFilled(P(0.5f, 0), P(7, -3 + flap), P(5, 1.5f), body);
+    if (st == 2) { dl->AddTriangle(P(-0.5f, 0), P(-7, -3 + flap), P(-5, 1.5f), edge, 0.6f * u); dl->AddTriangle(P(0.5f, 0), P(7, -3 + flap), P(5, 1.5f), edge, 0.6f * u); }
+    /* body and head */
+    dl->AddEllipseFilled(P(0, 0.6f), ImVec2(2.0f * u, 3.0f * u), body, 0, 16);
+    dl->AddCircleFilled(P(0, -3.2f), 1.4f * u, body, 12);
+    if (st == 2) dl->AddEllipse(P(0, 0.6f), ImVec2(2.0f * u, 3.0f * u), edge, 0, 16, 0.6f * u);
+    dl->AddTriangleFilled(P(-0.4f, -3.4f), P(0.4f, -3.4f), P(0, -1.9f), st == 1 ? IM_COL32(60, 56, 50, 255) : IM_COL32(240, 150, 30, 255));   /* the beak */
+    if (st == 4) for (int i = 0; i < 3; i++) dl->AddLine(P(-0.8f + i * 0.8f, -4.5f), P(-1.2f + i * 1.2f, -6.2f), IM_COL32(255, 200, 60, 255), 0.6f * u);   /* (its crest) */
+}
+} // namespace
 
 void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t)
 {
-    float u = s / 40.0f, on = quality > 0 ? 1.0f : 0.35f;
-    float lum = quality > 0 ? 0.55f + 0.45f * fminf(1.0f, quality / 40.0f) : 0.0f;
+    float u = s / 40.0f;
+    int st = stage_of(quality);
     float pulse = 0.85f + 0.15f * sinf(t * 2.2f);
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    const ImU32 RUBY = IM_COL32(170, 18, 30, 255), RUBY_DK = IM_COL32(90, 6, 16, 255), RUBY_LT = IM_COL32(240, 90, 90, 255), GOLD = IM_COL32(214, 168, 60, 255), GOLD_DK = IM_COL32(130, 92, 30, 255);
-    switch (look) {
-    default:
-    case 0: {                                                   /* the red stone: a cut ruby-like stone, its own light */
-        if (lum > 0) glow(dl, P(0, 0), 26 * u, IM_COL32(255, 60, 40, 255), lum * pulse);
-        ImVec2 o[8], in[8];
-        for (int i = 0; i < 8; i++) { float a = i * 3.14159f / 4 + 3.14159f / 8; o[i] = P(cosf(a) * 15, sinf(a) * 13 + 1); in[i] = P(cosf(a) * 8, sinf(a) * 6.5f - 1); }
-        dl->AddConvexPolyFilled(o, 8, A(RUBY_DK, on));
-        for (int i = 0; i < 8; i++) {                           /* the crown's facets: lit from the upper left */
-            int j = (i + 1) % 8;
-            float l = cosf((i + 0.5f) * 3.14159f / 4 + 3.14159f / 8 - 3.14159f * 1.25f);
-            ImU32 col = l > 0.5f ? RUBY_LT : l > -0.2f ? RUBY : RUBY_DK;
-            ImVec2 q[4] = { o[i], o[j], in[j], in[i] };
-            dl->AddConvexPolyFilled(q, 4, A(col, on));
-            dl->AddLine(o[i], in[i], A(IM_COL32(60, 0, 8, 200), on), 0.8f * u);
+    const ImU32 GLASS = IM_COL32(214, 230, 236, 70), GLASS_EDGE = IM_COL32(80, 104, 116, 255), SHINE = IM_COL32(255, 255, 255, 150);
+    if (look == 1) {                                   /* the stone: an unworked lump */
+        static const float R[11] = { 1.0f, 0.86f, 0.95f, 0.78f, 0.9f, 1.02f, 0.84f, 0.96f, 0.8f, 0.92f, 0.88f };
+        ImVec2 o[11];
+        for (int i = 0; i < 11; i++) { float a = i * 2 * PI / 11 + 0.3f; o[i] = P(cosf(a) * 15 * R[i], sinf(a) * 12 * R[(i + 3) % 11] + 2); }
+        if (st == 0) { dl->AddPolyline(o, 11, IM_COL32(120, 100, 80, 120), ImDrawFlags_Closed, 1.2f * u); return; }
+        if (st == 4) glow(dl, P(0, 2), 26 * u, IM_COL32(255, 50, 40, 255), pulse);
+        else if (st == 3) glow(dl, P(0, 2), 22 * u, IM_COL32(255, 200, 60, 255), 0.6f * pulse);
+        else if (st == 2) glow(dl, P(0, 2), 20 * u, IM_COL32(255, 255, 255, 255), 0.5f);
+        dl->AddConcavePolyFilled(o, 11, matter(st, 1));
+        /* its glassy body: darker below, a lighter cleft above, a highlight; the red one shows depth */
+        ImVec2 top[5] = { o[6], o[7], o[8], P(-2, -2), P(-8, 0) };
+        dl->AddConcavePolyFilled(top, 5, matter(st, 2));
+        ImVec2 bot[5] = { o[1], o[2], o[3], P(-4, 6), P(6, 5) };
+        dl->AddConcavePolyFilled(bot, 5, matter(st, 0));
+        if (st == 3) {                                 /* (the peacock's colours: a sheen of green and blue across the yellow) */
+            dl->AddLine(P(-10, 3), P(6, -5), IM_COL32(40, 150, 120, 110), 2.2f * u);
+            dl->AddLine(P(-8, 7), P(9, -2), IM_COL32(60, 80, 180, 90), 2.0f * u);
         }
-        dl->AddConvexPolyFilled(in, 8, A(IM_COL32(205, 36, 46, 255), on));                     /* the table */
-        dl->AddTriangleFilled(in[4], in[5], in[6], A(IM_COL32(255, 170, 160, 220), on));         /* (its highlight) */
-        dl->AddPolyline(in, 8, A(IM_COL32(110, 10, 20, 255), on), ImDrawFlags_Closed, 0.8f * u);
-        dl->AddPolyline(o, 8, A(IM_COL32(60, 0, 8, 255), on), ImDrawFlags_Closed, 1.2f * u);
-        if (lum > 0) dl->AddCircleFilled(P(-5, -5), 1.6f * u, IM_COL32(255, 255, 255, (int)(220 * pulse)), 8);
-        break; }
-    case 1: {                                                   /* the powder of projection: a phial of red powder, a grain spilt */
-        if (lum > 0) glow(dl, P(0, 8), 20 * u, IM_COL32(255, 80, 40, 255), lum * pulse * 0.8f);
-        /* the bottle: a round belly and a neck */
-        dl->AddCircleFilled(P(0, 7), 12 * u, A(IM_COL32(200, 220, 230, 90), on), 32);
-        dl->AddRectFilled(P(-4, -14), P(4, -2), A(IM_COL32(200, 220, 230, 90), on));
-        /* the powder inside: the belly's lower half */
-        dl->PathClear(); for (int i = 0; i <= 16; i++) { float a = 3.14159f * i / 16; dl->PathLineTo(P(cosf(a) * 11, 7 + sinf(a) * 11)); } dl->PathFillConvex(A(RUBY, on));
-        dl->AddRectFilledMultiColor(P(-11, 7), P(11, 9), A(RUBY_LT, on), A(RUBY_LT, on), A(RUBY, on), A(RUBY, on));
-        dl->AddCircle(P(0, 7), 12 * u, A(IM_COL32(90, 110, 120, 255), on), 32, 1.1f * u);
-        dl->AddLine(P(-4, -14), P(-4, -4.5f), A(IM_COL32(90, 110, 120, 255), on), 1.1f * u);
-        dl->AddLine(P(4, -14), P(4, -4.5f), A(IM_COL32(90, 110, 120, 255), on), 1.1f * u);
-        dl->AddRectFilled(P(-5, -19), P(5, -14), A(IM_COL32(150, 100, 60, 255), on), 1.5f * u);   /* the cork, */
-        dl->AddRectFilled(P(-6.5f, -15), P(6.5f, -13), A(RUBY_DK, on));                          /* sealed with red wax */
-        dl->AddLine(P(-7, 0), P(-3, 13), A(IM_COL32(255, 255, 255, 120), on), 1.6f * u);         /* (the glass's shine) */
-        for (int i = 0; i < 5; i++) dl->AddCircleFilled(P(14 + i * 1.7f, 17 - (i % 2) * 1.2f), 0.9f * u, A(RUBY, on), 6);   /* a grain spilt */
-        break; }
-    case 2: {                                                   /* the philosophers' egg: the sealed vessel, the stone within, sun and moon joined above */
-        if (lum > 0) glow(dl, P(0, 4), 22 * u, IM_COL32(255, 70, 40, 255), lum * pulse);
-        dl->AddEllipseFilled(P(0, 4), ImVec2(11 * u, 15 * u), A(IM_COL32(210, 228, 236, 80), on), 0, 36);
-        dl->AddEllipse(P(0, 4), ImVec2(11 * u, 15 * u), A(IM_COL32(80, 100, 110, 255), on), 0, 36, 1.2f * u);
-        dl->AddRectFilled(P(-2.5f, -14), P(2.5f, -10.5f), A(IM_COL32(80, 100, 110, 255), on));   /* the sealed neck */
-        dl->AddCircleFilled(P(0, 9), 6 * u, A(RUBY, on), 20);                                     /* the stone ripening */
-        dl->AddCircleFilled(P(-2, 7), 2 * u, A(RUBY_LT, on), 12);
-        /* sun and moon joined over it (gold disc, silver crescent) */
-        dl->AddCircleFilled(P(-2, -20), 4.5f * u, A(GOLD, on), 20);
-        for (int i = 0; i < 8; i++) { float a = i * 3.14159f / 4; dl->AddLine(P(-2 + cosf(a) * 5.5f, -20 + sinf(a) * 5.5f), P(-2 + cosf(a) * 7.5f, -20 + sinf(a) * 7.5f), A(GOLD_DK, on), 1.0f * u); }
-        dl->PathClear(); dl->PathArcTo(P(9, -20), 4.2f * u, -1.9f, 1.9f, 16); dl->PathArcTo(P(7.4f, -20), 3.4f * u, 1.75f, -1.75f, 16);
-        dl->PathFillConcave(A(IM_COL32(214, 220, 232, 255), on));                                   /* the moon, a crescent beside it */
-        /* a wooden stand */
-        dl->AddQuadFilled(P(-9, 17), P(9, 17), P(12, 21), P(-12, 21), A(IM_COL32(110, 70, 36, 255), on));
-        dl->AddLine(P(-7, -2), P(-6, 10), A(IM_COL32(255, 255, 255, 140), on), 1.6f * u);
-        break; }
+        if (st == 4) dl->AddCircleFilled(P(1, 3), 5 * u, IM_COL32(255, 120, 100, (int)(110 * pulse)), 20);
+        dl->AddPolyline(o, 11, st == 2 ? IM_COL32(120, 120, 130, 255) : IM_COL32(20, 10, 10, 220), ImDrawFlags_Closed, 1.1f * u);
+        dl->AddLine(P(-7, -5), P(-3, -6.5f), SHINE, 1.4f * u);
+        dl->AddCircleFilled(P(-8.5f, -4), 1.0f * u, SHINE, 8);
+        return;
     }
+    /* the philosophers' egg in the athanor's mouth */
+    /* the athanor: a squat tower of brick, its fire showing at the door */
+    dl->AddRectFilled(P(-12, 9), P(12, 22), IM_COL32(150, 80, 50, 255), 1.5f * u);
+    for (int r = 0; r < 3; r++) for (int k = 0; k < 4; k++) dl->AddRect(P(-12 + k * 6 + (r & 1) * 3 - 3, 9 + r * 4.3f), P(-12 + k * 6 + (r & 1) * 3 + 3, 13.3f + r * 4.3f), IM_COL32(90, 44, 26, 160), 0, 0, 0.5f * u);
+    dl->AddRectFilled(P(-14, 7.5f), P(14, 10), IM_COL32(110, 60, 36, 255), 1 * u);
+    dl->AddRectFilled(P(-4, 15), P(4, 22), IM_COL32(30, 14, 8, 255), 3 * u, ImDrawFlags_RoundCornersTop);
+    if (st > 0) { dl->AddTriangleFilled(P(-3, 22), P(0, 16.5f + sinf(t * 8) * 0.8f), P(3, 22), IM_COL32(255, 140, 30, 255)); dl->AddTriangleFilled(P(-1.5f, 22), P(0, 18.5f), P(1.5f, 22), IM_COL32(255, 230, 120, 255)); }
+    /* the glow of the stage */
+    if (st == 4) glow(dl, P(0, 2), 24 * u, IM_COL32(255, 60, 40, 255), pulse);
+    else if (st == 3) glow(dl, P(0, 2), 20 * u, IM_COL32(255, 210, 80, 255), 0.6f * pulse);
+    else if (st == 2) glow(dl, P(0, 2), 18 * u, IM_COL32(255, 255, 255, 255), 0.5f);
+    /* the egg: a tall oval of glass, its neck drawn long and melted shut */
+    dl->AddRectFilled(P(-1.6f, -21), P(1.6f, -10), GLASS);
+    dl->AddLine(P(-1.6f, -21), P(-1.6f, -10.5f), GLASS_EDGE, 0.9f * u);
+    dl->AddLine(P(1.6f, -21), P(1.6f, -10.5f), GLASS_EDGE, 0.9f * u);
+    dl->AddCircleFilled(P(0, -21.5f), 1.9f * u, GLASS_EDGE, 12);                       /* (the seal: the glass melted into a knob) */
+    dl->AddEllipseFilled(P(0, 0), ImVec2(9.5f * u, 12.5f * u), GLASS, 0, 40);
+    /* the matter in it, filling its lower third: the colour of the stage */
+    if (st > 0) {
+        dl->PathClear();
+        for (int i = 0; i <= 20; i++) { float a = PI * (0.06f + 0.88f * i / 20.0f); dl->PathLineTo(P(cosf(a) * 9.1f, sinf(a) * 12.1f)); }
+        dl->PathFillConvex(matter(st, 1));
+        dl->AddEllipseFilled(P(0, 1.2f), ImVec2(8.6f * u, 1.4f * u), matter(st, 2), 0, 24);
+        if (st == 3)
+            for (int i = 0; i < 5; i++) { static const ImU32 PC[5] = { IM_COL32(40, 140, 120, 160), IM_COL32(50, 70, 170, 150), IM_COL32(160, 40, 130, 140), IM_COL32(60, 150, 60, 150), IM_COL32(230, 120, 30, 150) };
+                dl->AddCircleFilled(P(-6 + i * 3, 1.2f), 1.3f * u, PC[i], 10); }
+        bird(dl, P(0, -4), u * 0.85f, st, t);
+    }
+    dl->AddEllipse(P(0, 0), ImVec2(9.5f * u, 12.5f * u), GLASS_EDGE, 0, 40, 1.1f * u);
+    dl->AddLine(P(-6.5f, -6), P(-5.5f, 4), SHINE, 1.4f * u);
 }
-int ui_pstone_look(void) { int v = config_get_int("display.pstone_look", 0); return v >= 0 && v <= 2 ? v : 0; }
-const char *ui_pstone_look_name(int k) { static const char *N[3] = { "The red stone", "The powder of projection", "The philosophers' egg" }; return k >= 0 && k <= 2 ? N[k] : "?"; }
+int ui_pstone_look(void) { int v = config_get_int("display.pstone_look", 0); return v >= 0 && v <= 1 ? v : 0; }
+const char *ui_pstone_look_name(int k) { static const char *N[2] = { "The philosophers' egg", "The stone itself" }; return k >= 0 && k <= 1 ? N[k] : "?"; }
+const char *ui_pstone_stage_name(int q)
+{
+    static const char *N[5] = { "none yet", "black (nigredo): the raven", "white (albedo): the swan", "yellow (citrinitas): the peacock's colours", "red (rubedo): the phoenix" };
+    return N[stage_of(q)];
+}
 
-/* test (DL_PSTONE_SHEET): the three looks, large, without and with a stone */
+/* test (DL_PSTONE_SHEET): both looks, through every stage */
 extern "C" void ui_pstone_sheet_draw(void)
 {
     static int on = -1; if (on < 0) on = getenv("DL_PSTONE_SHEET") != 0;
     if (!on) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(242, 230, 200, 255));
-    static const char *WHY[3] = { "Red as a ruby, glassy, heavy, shining by its own light: the end of the Great Work.",
-                                  "Ground to a red powder and kept in a sealed phial: a grain on molten lead makes gold.",
-                                  "The sealed glass vessel of the Work, the red stone ripening inside; sun and moon joined." };
-    float colw = ds.x / 3;
-    for (int k = 0; k < 3; k++) {
-        float cx = colw * (k + 0.5f);
-        dl->AddText(ImGui::GetFont(), ds.y * 0.04f, ImVec2(cx - colw * 0.42f, ds.y * 0.05f), IM_COL32(110, 30, 20, 255), ui_pstone_look_name(k));
-        ui_pstone_draw(dl, ImVec2(cx, ds.y * 0.38f), ds.y * 0.42f, k, 30, (float)ImGui::GetTime());
-        dl->AddText(ImGui::GetFont(), ds.y * 0.026f, ImVec2(cx - colw * 0.42f, ds.y * 0.66f), IM_COL32(60, 40, 20, 255), WHY[k], nullptr, colw * 0.84f);
-        for (int q = 0; q < 3; q++) {                         /* small: none, a weak stone, a strong one */
-            static const int Q[3] = { 0, 8, 40 };
-            ui_pstone_draw(dl, ImVec2(cx - colw * 0.25f + q * colw * 0.25f, ds.y * 0.86f), ds.y * 0.09f, k, Q[q], (float)ImGui::GetTime());
+    static const int Q[5] = { 0, 5, 15, 25, 40 };
+    static const char *SN[5] = { "none yet", "1-9: black", "10-19: white", "20-34: yellow", "35+: red" };
+    float colw = ds.x / 5.4f;
+    for (int look = 0; look < 2; look++) {
+        float y = ds.y * (0.06f + look * 0.47f);
+        dl->AddText(ImGui::GetFont(), ds.y * 0.035f, ImVec2(ds.x * 0.03f, y), IM_COL32(110, 30, 20, 255), ui_pstone_look_name(look));
+        for (int k = 0; k < 5; k++) {
+            float cx = colw * (k + 0.75f);
+            ui_pstone_draw(dl, ImVec2(cx, y + ds.y * 0.2f), ds.y * 0.26f, look, Q[k], (float)ImGui::GetTime());
+            dl->AddText(ImGui::GetFont(), ds.y * 0.024f, ImVec2(cx - colw * 0.3f, y + ds.y * 0.36f), IM_COL32(60, 40, 20, 255), SN[k]);
+            ui_pstone_draw(dl, ImVec2(cx + colw * 0.36f, y + ds.y * 0.36f), ds.y * 0.05f, look, Q[k], (float)ImGui::GetTime());   /* (and as small as it is drawn on the screens) */
         }
     }
 }

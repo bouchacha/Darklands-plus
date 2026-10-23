@@ -419,6 +419,7 @@ void quest_rows(std::vector<QuestRow> &out, int sort, bool all)
             if (r.dist >= 1.5) {
                 static const char *DIR[8] = { "east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east" };
                 r.dir = DIR[(int)floor((atan2(-dy, dx) * 180 / M_PI + 22.5 + 360) / 45) % 8];
+                r.ang = (float)atan2(-dy, dx);
             }
         }
         out.push_back(r);
@@ -489,6 +490,50 @@ std::string quest_distance(const QuestRow &r)
     return b;
 }
 
+void ui_compass_icon(ImDrawList *dl, ImVec2 c, float s, float ang)
+{
+    float r = s * 0.5f;
+    dl->AddCircleFilled(c, r, IM_COL32(236, 222, 186, 255), 20);
+    dl->AddCircle(c, r, IM_COL32(150, 110, 50, 255), 20, fmaxf(1.0f, s * 0.08f));
+    for (int i = 0; i < 4; i++) { float a = i * 1.5708f; dl->AddLine(ImVec2(c.x + cosf(a) * r * 0.72f, c.y - sinf(a) * r * 0.72f), ImVec2(c.x + cosf(a) * r * 0.92f, c.y - sinf(a) * r * 0.92f), IM_COL32(120, 90, 50, 200), fmaxf(1.0f, s * 0.06f)); }
+    ImVec2 d(cosf(ang), -sinf(ang)), n(-d.y, d.x);
+    ImVec2 tip(c.x + d.x * r * 0.82f, c.y + d.y * r * 0.82f), tail(c.x - d.x * r * 0.62f, c.y - d.y * r * 0.62f);
+    float w = r * 0.26f;
+    dl->AddTriangleFilled(tip, ImVec2(c.x + n.x * w, c.y + n.y * w), ImVec2(c.x - n.x * w, c.y - n.y * w), IM_COL32(170, 30, 20, 255));
+    dl->AddTriangleFilled(tail, ImVec2(c.x - n.x * w, c.y - n.y * w), ImVec2(c.x + n.x * w, c.y + n.y * w), IM_COL32(70, 60, 50, 255));
+    dl->AddCircleFilled(c, r * 0.12f, IM_COL32(214, 170, 70, 255), 8);
+}
+void ui_boot_icon(ImDrawList *dl, ImVec2 c, float s, unsigned int col)
+{
+    float u = s / 20.0f;
+    auto Q = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    ImVec2 leg[4] = { Q(-5, -9), Q(1, -9), Q(1, 2), Q(-5, 2) };
+    dl->AddConvexPolyFilled(leg, 4, col);
+    ImVec2 foot[5] = { Q(-5, 1), Q(3, 1), Q(8, 4), Q(8, 7), Q(-5, 7) };
+    dl->AddConvexPolyFilled(foot, 5, col);
+    dl->AddRectFilled(Q(-5.5f, 7), Q(8.5f, 8.6f), IM_COL32(40, 26, 14, 255));      /* (the sole) */
+    dl->AddLine(Q(-5, -6.5f), Q(1, -6.5f), IM_COL32(40, 26, 14, 160), 0.8f * u);    /* (the cuff) */
+}
+void quest_way_inline(const QuestRow &r)
+{
+    if (r.dist < 0) return;
+    float h = ImGui::GetTextLineHeight();
+    ImGui::SameLine();
+    if (r.dist < 1.5) { ImGui::TextDisabled("here"); return; }
+    double days = r.dist / 10.0;
+    int d = (int)(days + 0.5);
+    char b[32]; if (days < 0.6) snprintf(b, sizeof b, "<1 d"); else snprintf(b, sizeof b, "~%d d", d);
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float w = h * 1.05f + h * 1.0f + ImGui::CalcTextSize(b).x + h * 0.3f;
+    ImGui::Dummy(ImVec2(w, h));
+    bool hov = ImGui::IsItemHovered();
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    ui_compass_icon(dl, ImVec2(p.x + h * 0.5f, p.y + h * 0.52f), h * 0.92f, r.ang);
+    ui_boot_icon(dl, ImVec2(p.x + h * 1.6f, p.y + h * 0.52f), h * 0.82f, IM_COL32(120, 80, 44, 255));
+    dl->AddText(ImVec2(p.x + h * 2.15f, p.y), ImGui::GetColorU32(ImGuiCol_TextDisabled), b);
+    if (hov) ImGui::SetTooltip("%s", (std::string(r.dir) + ", " + (days < 0.6 ? std::string("less than a day") : "about " + std::to_string(d) + (d == 1 ? " day" : " days")) + " on foot as the crow flies (roads and rivers make it longer)").c_str());
+}
+
 /* the tasks and rewards waiting (text, when): kept for anything that wants the plain list */
 void quest_brief(std::vector<std::pair<std::string, std::string>> &out)
 {
@@ -527,11 +572,9 @@ extern "C" void journal_quests(void)
                 ImVec2 ic(a.x + ImGui::GetTreeNodeToLabelSpacing() + isz * 0.5f, (a.y + b.y) * 0.5f), m = ImGui::GetIO().MousePos;
                 ui_draw_quest_icon(ImGui::GetWindowDrawList(), ic, isz, l.cat);
                 if (ImGui::IsItemHovered() && fabsf(m.x - ic.x) < isz * 0.5f && fabsf(m.y - ic.y) < isz * 0.5f) ImGui::SetTooltip("%s", QUEST_CAT_NAME[l.cat]); }
-            if (!days.empty() || !d.empty()) {
-                ImGui::SameLine();
-                std::string right = days + (days.empty() || d.empty() ? "" : "  -  ") + d;
-                ImGui::TextDisabled("   %s", right.c_str());
-            }
+            if (!days.empty()) { ImGui::SameLine(); ImGui::TextDisabled("   %s", days.c_str()); }
+            quest_way_inline(l);                                       /* (the way: a compass, a boot, "~7 d") */
+            (void)d;
             if (open) {
                 ImGui::TextWrapped("%s", l.text.c_str());
                 if (!l.when.empty()) ImGui::TextDisabled("%s", l.when.c_str());

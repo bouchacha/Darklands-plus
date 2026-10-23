@@ -27,6 +27,7 @@ struct QuestRow {
     int days_left;           // to the deadline (-1 none; 0 the last day)
     double dist;             // from the party, map units (-1 unknown)
     std::string dir;         // "north-east" (from the party), "" here or unknown
+    float ang = 0;           // the direction, radians (0 east, counter-clockwise: north up)
     int order;               // as the game keeps them (the oldest first, roughly)
     int cat;                 // QuestCat
     int giver = -1;          // who waits for the party in the town (a reward): the game's giver kinds (0 a merchant, 4 a foreign trader,
@@ -37,7 +38,10 @@ struct QuestRow {
 enum { QSORT_DEADLINE, QSORT_NEAREST, QSORT_TAKEN, QSORT_N };
 extern const char *QSORT_NAME[QSORT_N];
 
-void quest_rows(std::vector<QuestRow> &out, int sort, bool all = false);   // tasks and rewards (all: rumours, town troubles and secrets too), sorted
+void quest_rows(std::vector<QuestRow> &out, int sort, bool all = false);
+void quest_way_inline(const QuestRow &r);   // in a window's line: a small compass pointing the way, a boot and "~7 d"; the words in a tooltip
+void ui_compass_icon(ImDrawList *dl, ImVec2 c, float s, float ang);   // a compass rose, its needle pointing ang (radians, 0 east, north up)
+void ui_boot_icon(ImDrawList *dl, ImVec2 c, float s, unsigned int col);       // a walking boot: days on foot   // tasks and rewards (all: rumours, town troubles and secrets too), sorted
 void quest_sort(std::vector<QuestRow> &rows, int sort);
 void quest_merge(std::vector<QuestRow> &rows);   // one row for the same task from several givers (shown lists; not citynav)
 void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<int> &cats);
