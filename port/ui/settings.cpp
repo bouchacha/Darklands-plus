@@ -494,25 +494,6 @@ static void dsec(const char *name)
     if (d_jump == i) { ImGui::SetScrollHereY(0.0f); d_jump = -1; }
     if (ImGui::GetItemRectMin().y <= d_view) d_found = i;
 }
-static void alchemy_desk_choice(void)
-{
-    float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
-    ImGui::TextUnformatted("The alchemy screen's desk");
-    static const int ADV[3] = { 2, 1, 0 };
-    static const char *ADL[3] = { "Drawn anew", "The game's picture", "A plain page" };
-    pic_choice("alcdesk", "display.alchemy_art", 2, ADV, ADL, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-        void alchemy_desk_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, float t);
-        const GamePic *g = v == 1 ? gamepic("PICS\\ALCSCRN0.PIC") : nullptr;
-        if (v == 2) alchemy_desk_preview(dl, a, b, (float)ImGui::GetTime());
-        else if (g && g->tex) dl->AddImage((ImTextureID)(intptr_t)g->tex, a, b, ImVec2(60.0f / 320, 0), ImVec2(1, 1));
-        else {
-            dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 4);
-            float w = b.x - a.x, h = b.y - a.y;
-            for (int i = 0; i < 5; i++) dl->AddRectFilled(ImVec2(a.x + w * 0.05f, a.y + h * (0.2f + i * 0.14f)), ImVec2(a.x + w * 0.45f, a.y + h * (0.29f + i * 0.14f)), i == 1 ? IM_COL32(214, 186, 140, 255) : IM_COL32(230, 216, 186, 255));
-            for (int i = 0; i < 6; i++) dl->AddRectFilled(ImVec2(a.x + w * 0.52f, a.y + h * (0.2f + i * 0.11f)), ImVec2(a.x + w * (i ? 0.92f : 0.8f), a.y + h * (0.25f + i * 0.11f)), IM_COL32(150, 120, 90, 255));
-        }
-    });
-}
 static void display_icons(void)
 {
     float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
@@ -679,9 +660,6 @@ void tab_display(void)
         ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
     }
-
-    ImGui::Spacing();
-    alchemy_desk_choice();
 
     dsec("Ornaments");
     {   /* the band round the windows (ui/ornament.cpp): a picture of each to choose from */

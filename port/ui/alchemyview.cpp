@@ -13,6 +13,8 @@
 #include "../mods/alchemyview.h"
 #include "../mods/fixes.h"
 #include "nsdraw.h"
+#include "../mods/gamemodel.h"
+#include "../mods/gamemodel.h"
 #include "gamepics.h"
 #include <map>
 std::string journal_where_sold(int id);              /* ui/journal.cpp */
@@ -32,17 +34,12 @@ extern "C" void alchemyview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM, red = NsDraw::RED, green = NsDraw::GREEN;
-    /* display.alchemy_art: the game's own desk (ALCSCRN0.PIC: the open book, the bowl, the bag, the
-       ribbon), the formulas on the book's left page, the chosen one on its right */
-    const int look = config_get_int("display.alchemy_art", 2);     /* 0 a plain page, 1 the game's picture, 2 drawn anew (ui/alchemydesk.cpp) */
-    const GamePic *desk = look == 1 ? gamepic("PICS\\ALCSCRN0.PIC") : nullptr;
-    const bool art = (desk && desk->tex) || look == 2;
+    /* the desk (ui/alchemydesk.cpp): the formulae on the book's left page and under them all the
+       party's ingredients, the chosen formula on the right page */
+    void alchemy_desk_draw(float t); alchemy_desk_draw((float)ImGui::GetTime());
+    if (orn_on()) orn_frame(P.dl, NsDraw::w(60, 0), NsDraw::w(320, 200), 1.9f * P.k);
+    const bool art = true;
     const ImU32 cream = IM_COL32(244, 230, 196, 255), cream_soft = IM_COL32(226, 204, 160, 235);
-    if (look == 2) { void alchemy_desk_draw(float t); alchemy_desk_draw((float)ImGui::GetTime()); if (orn_on()) orn_frame(P.dl, NsDraw::w(60, 0), NsDraw::w(320, 200), 1.9f * P.k); }
-    else if (art) {
-        P.dl->AddImage((ImTextureID)(intptr_t)desk->tex, NsDraw::w(60, 0), NsDraw::w(320, 200), ImVec2(60.0f / 320, 0), ImVec2(1, 1));
-        if (orn_on()) orn_frame(P.dl, NsDraw::w(60, 0), NsDraw::w(320, 200), 1.9f * P.k);
-    } else P.page();
     auto shade = [&](float x0, float y0, float x1, float y1) { if (art) P.rect(x0, y0, x1, y1, IM_COL32(24, 12, 4, 150), 1.5f); };
     shade(63, 2, 240, 20);
     P.text(f, NsDraw::FS_TITLE, 65, 3, art ? cream : ink, "Alchemy");
@@ -51,7 +48,7 @@ extern "C" void alchemyview_draw(void)
     else if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
     /* the formulas */
-    const float LX0 = art ? 70 : 63, LX1 = art ? 186 : 180, LY0 = art ? 50 : 22, ROWH = 9; const int NROWS = art ? 12 : 18;
+    const float LX0 = 70, LX1 = 186, LY0 = 48, ROWH = 9; const int NROWS = 6;
     const float LY1 = LY0 + NROWS * ROWH;
     if (!art) {
         P.rect(LX0, LY0 - 1, LX1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
@@ -80,6 +77,40 @@ extern "C" void alchemyview_draw(void)
     if (a.nrows > NROWS) {
         float th = (LY1 - LY0) * NROWS / a.nrows, ty = LY0 + (LY1 - LY0 - th) * V.scroll / (float)(a.nrows - NROWS);
         P.rect(LX1 - 1.6f, ty, LX1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
+    }
+
+    /* the party's ingredients (as on the character sheet's Formulae page): all 23 always in the same
+       places, those the party has none of faded; what the chosen formula calls for ringed, green when
+       there is enough for a batch */
+    {
+        static int have[200]; GmItem g;
+        for (int i = 0; i < 200; i++) have[i] = 0;
+        for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count;
+        int fm = a.sel >= 0 && a.sel < a.nrows ? a.row[a.sel].formula : -1;
+        const float SY0 = LY0 + NROWS * ROWH + 3, GY0 = SY0 + 6, cellw = (LX1 - LX0 - 2) / 8.0f, cellh = (165 - GY0) / 3.0f;
+        P.rect(LX0 + 1, SY0 - 1.5f, LX1 - 1, SY0 - 1.2f, IM_COL32(120, 80, 36, 90));
+        P.text(fo, 4.3f, LX0 + 2, SY0, soft, "The party's ingredients");
+        int tip = -1;
+        for (int i = 0; i < 23; i++) {
+            int id = 72 + i, hv = have[id], need = 0;
+            if (fm >= 0 && fm < (int)gamedata.formulas.size()) for (const FormulaIngr &q : gamedata.formulas[fm].ingr) if (q.item == id) need += q.count;
+            float x0 = LX0 + 1 + (i % 8) * cellw, y0 = GY0 + (i / 8) * cellh, cxm = x0 + cellw * 0.5f;
+            if (need) P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, hv >= need ? IM_COL32(150, 190, 120, 120) : IM_COL32(210, 120, 100, 110), 1.5f);
+            if (P.over(x0, y0, x0 + cellw, y0 + cellh)) { tip = id; P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, IM_COL32(150, 60, 40, 40), 1.5f); }
+            float is = fminf(cellw * 0.5f, cellh * 0.46f), iy = y0 + cellh * 0.36f;
+            P.icon(cxm, iy, is, id);
+            if (!hv) P.dl->AddCircleFilled(NsDraw::w(cxm, iy), is * 0.7f * P.k, need ? IM_COL32(238, 196, 180, 160) : IM_COL32(240, 228, 200, 165));   /* (none: the sign faded) */
+            std::string c = need ? std::to_string(hv) + "/" + std::to_string(need) : hv ? std::to_string(hv) : "";
+            ImU32 cc = need ? (hv >= need ? green : red) : ink;
+            if (!c.empty()) P.text(fo, NsDraw::FS_SMALL, cxm - P.width(fo, NsDraw::FS_SMALL, c) * 0.5f, y0 + cellh * 0.68f, cc, c);
+        }
+        if (tip >= 0) {
+            std::string use = ns_item_use(tip);
+            char hl[64]; snprintf(hl, sizeof hl, "The party has %d.", have[tip]);
+            ns_tip_begin(); ImGui::TextUnformatted(ns_item_name(tip).c_str()); ImGui::TextDisabled("%s", hl);
+            if (!use.empty()) ImGui::TextUnformatted(use.c_str());
+            ns_tip_end();
+        }
     }
 
     /* the chosen formula */
