@@ -431,7 +431,9 @@ extern "C" void citynav_tick(void)
     }
     if (HUB_PLACE[hub] == goal) { LOG("arrived\n"); goal = -1; return; }   /* the square itself */
     for (int i = 0; i < n; i++) if (rule_for(hub, line[i]) == goal) { click_line(i); goal = -1; return; }   /* there */
-    if (hub == H_MARKET && (night_closed(goal) || card == "$MARKE01")) {    /* the marketplace by night ($MARKE01): its stalls shut, the offices upstairs to be reached past the guards */
+    bool market_goal = false;                                /* (a place of the marketplace itself: elsewhere, the way goes on through it) */
+    for (const Rule &r : RULES) if (r.hub == H_MARKET && r.to == goal) market_goal = true;
+    if (hub == H_MARKET && (night_closed(goal) || (card == "$MARKE01" && market_goal))) {    /* the marketplace by night ($MARKE01): its stalls shut, the offices upstairs to be reached past the guards */
         bool office = goal == D_MERCHANT || goal == D_FUGGER || goal == D_MEDICI || goal == D_HANSE;
         stop(office ? "the marketplace by night: choose how to get past the guards to the offices upstairs (G again there goes on to the office)."
                     : "the marketplace by night: its stalls are shut until 5:00.");
