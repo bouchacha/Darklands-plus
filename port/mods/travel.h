@@ -20,6 +20,7 @@ void travel_init(void);
 void travel_set(int on, int fast);
 int travel_minutes(int x, int y);             /* from the party, -1 unreachable / not on the map */
 int travel_minutes_loc(int loc, int *gx, int *gy);
+int travel_minutes_loc_from(int ox, int oy, int loc);   /* from tile (ox, oy): -1 no way */
 int travel_to_tile(int x, int y, int loc, const char *name);
 int travel_to_loc(int loc, const char *name);
 void travel_after_leaving(int loc, const char *name);   /* set off for loc once the party is out on the travel map */

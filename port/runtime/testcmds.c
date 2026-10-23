@@ -388,6 +388,7 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "uquests")) { void quests_test_dump(void); quests_test_dump(); }   /* test: the tasks, printed */
         else if (!strcmp(cmd, "udlg")) { extern int cardview_dialog, game_dialog_kind; extern char game_dialog_text[600]; snprintf(game_dialog_text, sizeof game_dialog_text, "%s", arg); for (char *q = game_dialog_text; *q; q++) if (*q == '_') *q = ' '; game_dialog_kind = *arg ? 2 : 0; cardview_dialog = *arg ? 1 : 0; }   /* test: the native box for a game message (udlg:Title_-_text; udlg: off) */
+        else if (!strcmp(cmd, "uwhere")) { void journal_test_where(int); journal_test_where(atoi(arg)); }   /* test: where item N is sold, days to some towns */
         else if (!strcmp(cmd, "usabbat")) { void quests_test_learn(int); quests_test_learn(atoi(arg)); }   /* test: as if a card told of the next Sabbat (1 place, 2 night) */
         else if (!strcmp(cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }

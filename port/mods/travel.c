@@ -264,6 +264,27 @@ int travel_minutes_loc(int loc, int *gx, int *gy)
     return best;
 }
 
+/* minutes of travel from tile (ox, oy) to location loc, as the party would go (the same search,
+   from another start: a town the party is in, for "how far is it" in towns' lists); -1 no way */
+int travel_minutes_loc_from(int ox, int oy, int loc)
+{
+    u32 r = g_location(loc);
+    if (!r || !load_map() || ox < 0 || oy < 0 || ox >= mw || oy >= mh) return -1;
+    int a, w; sainttexts_speeds(&a, &w);
+    if (ox != field_x || oy != field_y || a != spd_any || w != spd_woods || !dist) field(ox, oy);
+    if (!enter || !dist) return -1;
+    int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
+    int best = -1;
+    for (int y = ly - 5; y <= ly + 4; y++)
+        for (int x = lx - 5; x <= lx + 4; x++) {
+            if (x < 0 || y < 0 || x >= mw || y >= mh || enter[y * mw + x] != loc) continue;
+            int d = dist[y * mw + x];
+            if (d != 0x7fffffff && (best < 0 || d < best)) best = d;
+        }
+    if (best < 0 && lx >= 0 && ly >= 0 && lx < mw && ly < mh && dist[ly * mw + lx] != 0x7fffffff) best = dist[ly * mw + lx];
+    return best;
+}
+
 /* the way the party would take to location loc (as travel_to_loc would): its tiles, the party's first;
    n at most max, 0 if no way (for the world map's dotted line) */
 int travel_preview_loc(int loc, short *xs, short *ys, int max)

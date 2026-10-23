@@ -735,6 +735,30 @@ static void town_list(void)
     }
 }
 
+/* how long the party would travel to loc: from where it stands on the map, or from the town it is
+   in (mods/travel.c's search, cached per start); -1 no way or not known */
+extern "C" { int travel_minutes_loc_from(int ox, int oy, int loc); void travel_party_tile(int *x, int *y); }
+static int travel_min_to(int loc)
+{
+    int cur = (s16)g_rw(G_CUR_LOC), ox = -1, oy = -1;
+    if (loc == cur) return 0;
+    if (cur >= 0) { u32 r = g_location(cur); if (!r) return -1; ox = (s16)rw((u16)(r >> 16), (u16)(r + 4)); oy = (s16)rw((u16)(r >> 16), (u16)(r + 6)); }
+    else if (game_mode() == GM_MAP) travel_party_tile(&ox, &oy);
+    else return -1;
+    return travel_minutes_loc_from(ox, oy, loc);
+}
+/* the time as a traveller reckons it: "here", "half a day", "1 day", "4 days" */
+static std::string travel_days(int m)
+{
+    if (m < 0) return "";
+    if (m == 0) return "here";
+    if (m < 9 * 60) return "under a day";
+    if (m < 18 * 60) return "half a day";
+    int d = (m + 12 * 60) / (24 * 60); if (d < 1) d = 1;
+    return std::to_string(d) + (d == 1 ? " day" : " days");
+}
+std::string journal_travel_days(int loc) { return travel_days(travel_min_to(loc)); }
+
 /* an item's picture and name in a table cell: the picture inside the cell, the name centred on it */
 static void icon_name_cell(int id, const char *name)
 {
@@ -749,13 +773,15 @@ static void icon_name_cell(int id, const char *name)
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (h - ImGui::GetTextLineHeight()) * 0.5f);
     ImGui::TextUnformatted(name);
 }
-static void item_row(const SeenItem &i, const char *where = nullptr)
+static void item_row(const SeenItem &i, const char *where = nullptr, const char *travel = nullptr)
 {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     icon_name_cell(i.id, item_name(i.id).c_str());
     ImGui::TableNextColumn(); ImGui::Text("%d", i.q);
-    ImGui::TableNextColumn(); ImGui::TextUnformatted(money(i.price).c_str());
+    ImGui::TableNextColumn();
+    if (travel) { if (*travel) ImGui::TextUnformatted(travel); else ImGui::TextDisabled("-"); }   /* (where to find it: how far, not the price) */
+    else ImGui::TextUnformatted(money(i.price).c_str());
     if (where) { ImGui::TableNextColumn(); ImGui::TextUnformatted(where); }
 }
 
@@ -826,23 +852,25 @@ static void find_page(void)
         ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);
         ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_DefaultSort,
                                 ImGui::CalcTextSize("Quality").x + ImGui::GetFontSize() * 1.3f);
-        ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("88fl 88gr 88pf").x + UIS(8));
+        ImGui::TableSetupColumn("Travel", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("under a day").x + UIS(8));
         ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthStretch, 1.25f);
         ImGui::TableHeadersRow();
         ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs();
         int col = 1; bool desc = true;
         if (ss && ss->SpecsCount) { col = ss->Specs[0].ColumnIndex; desc = ss->Specs[0].SortDirection == ImGuiSortDirection_Descending; }
+        std::map<int, int> mins;
+        for (const Hit &h : hits) if (!mins.count(h.loc)) { int m = travel_min_to(h.loc); mins[h.loc] = m >= 0 ? m : 1 << 29; }
         std::stable_sort(hits.begin(), hits.end(), [&](const Hit &a, const Hit &b) {
             int c = 0;
             switch (col) {
             case 0: c = item_name(a.it.id).compare(item_name(b.it.id)); break;
             case 1: c = a.it.q - b.it.q; break;
-            case 2: c = a.it.price - b.it.price; break;
+            case 2: c = mins[b.loc] < mins[a.loc] ? 1 : mins[b.loc] > mins[a.loc] ? -1 : 0; c = -c; break;
             default: c = loc_name(a.loc).compare(loc_name(b.loc)); break;
             }
             return desc ? c > 0 : c < 0;
         });
-        for (const Hit &h : hits) { std::string w = loc_name(h.loc) + ", " + h.shop; item_row(h.it, w.c_str()); }
+        for (const Hit &h : hits) { std::string w = loc_name(h.loc) + ", " + h.shop, t = travel_days(mins[h.loc] < (1 << 29) ? mins[h.loc] : -1); item_row(h.it, w.c_str(), t.c_str()); }
         ImGui::EndTable();
     }
 }
@@ -864,6 +892,7 @@ static int loc_distance(int loc, int px, int py)          /* in map tiles (rows 
     int dx = (s16)rw((u16)(r >> 16), (u16)(r + 4)) - px, dy = ((s16)rw((u16)(r >> 16), (u16)(r + 6)) - py) / 2;
     return (int)sqrtf((float)(dx * dx + dy * dy));
 }
+
 /* where the party can buy a thing, from the shops seen: "sold here", "Köln, 1gr 7pf" (the nearest
    town that sells it), "" when no shop seen sells it */
 std::string journal_where_sold(int id)
@@ -880,10 +909,11 @@ std::string journal_where_sold(int id)
             for (char &c : shop) c = (char)tolower((unsigned char)c);
             return shop.empty() ? "sold here" : "sold here (" + shop + ")";
         }
-        int d = here ? loc_distance(kv.first, px, py) : 0;
+        int m = travel_min_to(kv.first), d = m >= 0 ? m : (here ? loc_distance(kv.first, px, py) * 600 : 1 << 29);
         if (d < bd) { bd = d; best = kv.first; bp = price; }
     }
-    if (best >= 0) return loc_name(best) + ", " + money(bp);
+    (void)bp;
+    if (best >= 0) { std::string t = travel_days(travel_min_to(best)); return loc_name(best) + (t.empty() ? "" : ", " + t + " away"); }
     if (!config_get_int("map.offers_unvisited", 0)) return "";   /* (what unseen shops will have: only with "What unvisited places offer") */
     /* no shop seen sells it: the nearest town whose shops will have it (the wares are fixed for
        the whole game by the town's and the party's seeds: predict_stock), "expected" */
@@ -904,16 +934,18 @@ std::string journal_where_sold(int id)
     bd = 1 << 30; best = -1;
     for (int c : it->second) {
         if (c == cur) return "sold here (expected)";
-        int d = here ? loc_distance(c, px, py) : 0; if (d < bd) { bd = d; best = c; }
+        int m = travel_min_to(c), d = m >= 0 ? m : (here ? loc_distance(c, px, py) * 600 : 1 << 29); if (d < bd) { bd = d; best = c; }
     }
-    return best < 0 ? "" : loc_name(best) + " (expected)";
+    if (best < 0) return "";
+    std::string t = travel_days(travel_min_to(best));
+    return loc_name(best) + (t.empty() ? "" : ", " + t + " away") + " (expected)";
 }
 
 static void ingredients_page(void)
 {
     int px = 0, py = 0; bool here = party_where(&px, &py);
     ImGui::TextWrapped("How many of each alchemical ingredient the party carries, and where each is sold in the towns the party has visited (bought ingredients are always "
-                       "quality 25)%s.", here ? ": the nearest town first; hold the pointer over a row to see every town" : "");
+                       "quality 25)%s.", here ? ", with the days of travel to each: the nearest first; hold the pointer over a row to see every town" : "");
     int have[200] = {};                                    /* what the party carries now (all its members) */
     { GmItem g; for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count; }
     if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
@@ -930,7 +962,7 @@ static void ingredients_page(void)
             for (auto &kv : towns) {
                 int best = -1;
                 for (const Shop &s : kv.second.shops) for (const SeenItem &i : s.items) if (i.id == id && (best < 0 || i.price < best)) best = i.price;
-                if (best >= 0) at.push_back({ kv.first, best, here ? loc_distance(kv.first, px, py) : 0 });
+                if (best >= 0) { int m = travel_min_to(kv.first); at.push_back({ kv.first, best, m >= 0 ? m : here ? loc_distance(kv.first, px, py) * 600 : 1 << 29 }); }
             }
             std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
             ImGui::TableNextRow();
@@ -940,9 +972,9 @@ static void ingredients_page(void)
             if (have[id]) ImGui::Text("%d", have[id]); else ImGui::TextDisabled("none");
             ImGui::TableNextColumn();
             if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
-            int cheapest = 0; for (size_t k = 1; k < at.size(); k++) if (at[k].price < at[cheapest].price) cheapest = (int)k;
-            ImGui::Text("%s  %s", loc_name(at[0].loc).c_str(), money(at[0].price).c_str());
-            if (here && at[0].dist == 0) { ImGui::SameLine(); ImGui::TextDisabled("(here)"); }
+            {   std::string t = travel_days(travel_min_to(at[0].loc));
+                ImGui::TextUnformatted(loc_name(at[0].loc).c_str());
+                if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t == "here" ? "(here)" : t.c_str()); } }
             ImGui::TableNextColumn();
             /* the other towns, the nearest first, without their prices: as many as fit on the line,
                then "..."; every town with its price under the pointer */
@@ -960,7 +992,7 @@ static void ingredients_page(void)
             if (ImGui::IsItemHovered() && at.size() > 1) {
                 ImGui::BeginTooltip();
                 ImGui::TextDisabled(here ? "Every town seen selling it, the nearest first:" : "Every town seen selling it:");
-                for (size_t j = 0; j < at.size(); j++) ImGui::Text("%s  %s%s", loc_name(at[j].loc).c_str(), money(at[j].price).c_str(), (int)j == cheapest && at.size() > 2 ? "  (the cheapest)" : "");
+                for (size_t j = 0; j < at.size(); j++) { std::string t = travel_days(travel_min_to(at[j].loc)); ImGui::Text("%s%s%s", loc_name(at[j].loc).c_str(), t.empty() ? "" : "  -  ", t.c_str()); }
                 ImGui::EndTooltip();
             }
         }
@@ -1106,4 +1138,9 @@ extern "C" int journal_visited(int loc)
     ensure_game();
     auto it = towns.find(loc);
     return (it != towns.end() && it->second.visited) || places.count(loc);
+}
+extern "C" void journal_test_where(int id)   /* test (uwhere:id): where an item is sold, and the days to a few towns */
+{
+    fprintf(stderr, "where %d: %s\n", id, journal_where_sold(id).c_str());
+    for (int c = 0; c < 92; c += 13) fprintf(stderr, "travel to %s: %s (%d min)\n", loc_name(c).c_str(), journal_travel_days(c).c_str(), travel_min_to(c));
 }
