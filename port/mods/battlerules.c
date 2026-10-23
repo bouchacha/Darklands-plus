@@ -109,6 +109,27 @@ static void step_aside(int i)
     int x0 = (s16)g_rw((u16)(c + 4)), y0 = (s16)g_rw((u16)(c + 6));
     int tx = (s16)g_rw((u16)(CBT(t) + 4)), ty = (s16)g_rw((u16)(CBT(t) + 6));
     int otx = (s16)g_rw((u16)(c + 8)), oty = (s16)g_rw((u16)(c + 0xa));
+    /* another foe in plain sight from here: shoot it rather than walk (the mark has gone behind
+       someone; the nearest with a clear line) */
+    {   int best = -1; long bd = 0;
+        u16 l0 = g_rw(GV_los_x0), l1 = g_rw(GV_los_y0), l2 = g_rw(GV_los_x1), l3 = g_rw(GV_los_y1);
+        for (int j = 5; j < 13; j++) {
+            if (j == t || g_rb((u16)(CBT(j) + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
+            g_ww(GV_los_x0, (u16)x0); g_ww(GV_los_y0, (u16)y0);
+            g_ww(GV_los_x1, g_rw((u16)(CBT(j) + 4))); g_ww(GV_los_y1, g_rw((u16)(CBT(j) + 6)));
+            int bl = ns_call(GF_line_blocked, 3, i, j, 0x80);
+            if (ns_unwinding) return;
+            if (bl) continue;
+            long dx = (s16)g_rw((u16)(CBT(j) + 4)) - x0, dy = 2L * ((s16)g_rw((u16)(CBT(j) + 6)) - y0), d = dx * dx + dy * dy;
+            if (best < 0 || d < bd) { best = j; bd = d; }
+        }
+        g_ww(GV_los_x0, l0); g_ww(GV_los_y0, l1); g_ww(GV_los_x1, l2); g_ww(GV_los_y1, l3);
+        if (best >= 0) {
+            g_wb((u16)(c + 0x4a), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
+            fprintf(stderr, "battlerules: %d has no line to %d: shoots at %d instead\n", i, t, best);
+            return;
+        }
+    }
     /* rings of half cells (16 x 8 pixels; a cell is 32 x 16) out to three cells */
     for (int r = 1; r <= 6 && !getenv("DL_TEST_APPROACH"); r++) {   /* (debugging: DL_TEST_APPROACH tries the walk towards the foe at once) */
         int bx = 0, by = 0; long bd = -1;

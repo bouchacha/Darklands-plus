@@ -22,8 +22,8 @@ extern "C" {
 
 static std::string money(long pf) { return money_str(pf); }
 
-extern int cardview_dialog;
-extern "C" int lodgeview_showing(void) { return lodge_model.open && ns_screen == NS_LODGE && !ns_hidden() && !cardview_dialog; }
+extern int cardview_dialog, game_dialog_kind;
+extern "C" int lodgeview_showing(void) { return lodge_model.open && ns_screen == NS_LODGE && !ns_hidden() && !(cardview_dialog && !game_dialog_kind); }
 extern "C" int lodgeview_camping(void) { return lodge_model.mode == 1; }
 
 extern "C" void lodgeview_draw(void)

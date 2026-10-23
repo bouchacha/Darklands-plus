@@ -66,3 +66,38 @@ extern "C" void ui_text_utf8(const char *game, char *out, int n)
     std::string t = game_text(game, strlen(game));
     snprintf(out, (size_t)n, "%s", t.c_str());
 }
+
+/* the game's own message or question ("Alchemy Success - ...", "Quit to DOS? y/n"), over a native
+   screen: drawn here as a note on parchment instead of letting the old screen show for it
+   (mods/cardview.c catches its words; the game still waits for its key as before) */
+#include "../mods/nscreen.h"
+#include "ornament.h"
+extern "C" { extern int cardview_dialog, game_dialog_kind; extern char game_dialog_text[600]; void plat_game_to_win(float gx, float gy, float *wx, float *wy); }
+extern ImFont *ui_font_text;
+
+extern "C" void game_dialog_draw(void)
+{
+    if (!cardview_dialog || !game_dialog_kind || ns_screen == NS_NONE) return;
+    std::string t = game_text(game_dialog_text, strlen(game_dialog_text)), title;
+    size_t d = t.find(" - ");
+    if (d != std::string::npos && d < 40) { title = t.substr(0, d); t = t.substr(d + 3); }
+    for (char &c : t) if (c == '\n' || c == '\r') c = ' ';
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
+    float k = (y1 - y0) / 200.0f, w = (x1 - x0) * 0.62f, pad = 8 * k;
+    ImFont *fh = ui_font_head ? ui_font_head : ImGui::GetFont(), *fb = ui_font_text ? ui_font_text : ImGui::GetFont();
+    float sh = 9 * k, sb = 7 * k;
+    ImVec2 tb = fb->CalcTextSizeA(sb, FLT_MAX, w - pad * 2, t.c_str());
+    float h = pad * 2 + (title.empty() ? 0 : sh * 1.4f) + tb.y + sb * 1.8f;
+    ImVec2 a((x0 + x1 - w) * 0.5f, (y0 + y1 - h) * 0.5f), b(a.x + w, a.y + h);
+    dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(10, 6, 2, 110));
+    dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 3 * k);
+    if (orn_on()) { orn_parchment_edges(dl, a, b, 6 * k); orn_gilt_frame(dl, a, b, 6 * k); }
+    else dl->AddRect(a, b, IM_COL32(120, 80, 36, 255), 3 * k, 0, fmaxf(1, k * 0.6f));
+    float y = a.y + pad;
+    if (!title.empty()) { ImVec2 ts = fh->CalcTextSizeA(sh, FLT_MAX, 0, title.c_str()); dl->AddText(fh, sh, ImVec2((a.x + b.x - ts.x) * 0.5f, y), IM_COL32(120, 36, 20, 255), title.c_str()); y += sh * 1.4f; }
+    dl->AddText(fb, sb, ImVec2(a.x + pad, y), IM_COL32(44, 26, 10, 255), t.c_str(), nullptr, w - pad * 2);
+    y += tb.y + sb * 0.6f;
+    const char *foot = game_dialog_kind == 3 ? "Y: yes     N: no" : game_dialog_kind == 2 ? "Any key or click: go on" : "";
+    if (*foot) { ImVec2 fs = fb->CalcTextSizeA(sb * 0.85f, FLT_MAX, 0, foot); dl->AddText(fb, sb * 0.85f, ImVec2((a.x + b.x - fs.x) * 0.5f, y), IM_COL32(110, 80, 50, 255), foot); }
+}

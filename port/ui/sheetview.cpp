@@ -1,3 +1,4 @@
+#include "vtrace.h"
 /* sheetview.cpp - draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md),
  * the whole page anew beside the party panel.
  *
@@ -435,6 +436,10 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     /* each section in the tidy order of the party's inventory page: by kind, then name, the better first */
     auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
     for (int sec = 0; sec < 6; sec++) {
+        if (sec == 1 && s.shared) {                       /* (the pack's sections under one heading) */
+            bool more = false; for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped) more = true;
+            if (more) rows.push_back(-10);
+        }
         size_t head = rows.size(); rows.push_back(-1 - sec);
         for (int i = 0; i < s.nitems; i++) if ((sec == 0) == (s.item[i].equipped != 0) && (sec == 0 || ns_item_section(s.item[i].id) == sec)) rows.push_back(i);
         if (rows.size() == head + 1) rows.pop_back(); else tidy(head + 1);
@@ -474,8 +479,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (i < 0) {                                       /* a heading */
             int sec = -1 - i;
             std::string hds = ns_item_section_name(sec);
-            if (sec == 1) hds += " (the marks on a flask: its grade, 1 to 3)";
-            else if (sec > 1 && s.shared) hds += " (the party's pack)";
+            if (i == -10) {                                   /* the shared pack's own heading, once, above its sections */
+                P.text(f, NsDraw::FS_HEAD * 0.85f, RX0 + 3, y + 1.0f, ink, "The party's pack");
+                P.rect(RX0 + 3 + P.width(f, NsDraw::FS_HEAD * 0.85f, "The party's pack") + 2, y + 4.6f, RX1 - 3, y + 5.2f, IM_COL32(120, 80, 36, 160));
+                continue;
+            }
             const char *hd = hds.c_str();
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
             P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
@@ -570,8 +578,8 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     const float ROWH = 7.9f;
     P.rect(200, 21, 318, 150, IM_COL32(250, 242, 222, 255), 1.5f);
     struct Group { const char *name; int first, n; bool attr; };
-    const Group COL1[2] = { { "Attributes", 0, 7, true }, { "Weapons", 0, 7, false } };
-    const Group COL2[2] = { { "Knowledge", 7, 6, false }, { "Abilities", 13, 6, false } };
+    const Group COL1[2] = { { "Attributes", 0, 7, true }, { "Knowledge", 7, 6, false } };
+    const Group COL2[2] = { { "Weapons", 0, 7, false }, { "Abilities", 13, 6, false } };
     for (int c = 0; c < 2; c++) {
         float x0 = c ? 259.5f : 201, x1 = c ? 317 : 257.5f, y = 21.6f;
         for (const Group &g : c ? COL2 : COL1) {
@@ -582,7 +590,9 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 bool h = P.over(x0, y, x1, y + ROWH);
                 if (h) { P.rect(x0, y, x1, y + ROWH, IM_COL32(226, 204, 160, 255), 1); new_what = g.attr ? 5 : 2; new_which = idx; }
                 ImVec2 ic = NsDraw::w(x0 + 3.2f, y + ROWH * 0.5f);
+                extern int ui_icon_disc; ui_icon_disc = 0;                 /* (on the page: no disc behind) */
                 if (g.attr) ui_attr_icon(P.dl, ic, 4.6f * P.k, idx); else ui_skill_icon(P.dl, ic, 4.6f * P.k, idx);
+                ui_icon_disc = 1;
                 const char *name = g.attr ? gm_attr_name(idx) : gm_skill_name(idx);
                 char v[24];
                 ImU32 vc = ink;
@@ -591,7 +601,14 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                     if (idx == 0 || idx == 1 || idx == 6) { snprintf(v, sizeof v, "%d/%d", cur, mx); if (cur < mx) vc = NsDraw::RED; }
                     else if (cur < mx) { snprintf(v, sizeof v, "%d/%d", cur, mx); vc = NsDraw::RED; }
                     else snprintf(v, sizeof v, "%d", cur);
-                } else snprintf(v, sizeof v, "%d", s.skill[idx]);
+                } else {
+                    snprintf(v, sizeof v, "%d", s.skill[idx]);
+                    /* a skill's number coloured by how high it is: faded at the bottom, deepening to a
+                       strong green at 60 and over (a master's) */
+                    float t = fminf(1.0f, fmaxf(0.0f, s.skill[idx] / 60.0f));
+                    auto mix = [&](int a0, int a1) { return (int)(a0 + (a1 - a0) * t); };
+                    vc = IM_COL32(mix(150, 30), mix(128, 110), mix(100, 40), 255);
+                }
                 if (raised_by(s.who, g.attr ? 0x48 : 0x49, idx, nullptr) > 0) vc = RAISED;   /* (a saint's help, for a while) */
                 float vw = P.width(fo, 4.8f, v);
                 P.text(fo, 4.8f, x0 + 7, y + 1.4f, ink, name, -1, x1 - vw - 4);
@@ -701,7 +718,7 @@ static void saints(NsDraw &P, const SheetModel &s)
     }
     /* the saint: the statue, the name, who knows it (or where it is taught), what the help does
        (mods/saintinfo.h) and where the text says otherwise, whether encounters call on it, the legend */
-    int t = hover >= 0 ? hover : V.pin_saint >= 0 ? V.pin_saint : n ? rows[sc] : -1;
+    int t = V.pin_saint >= 0 ? V.pin_saint : hover >= 0 ? hover : n ? rows[sc] : -1;   /* (one clicked stays shown until clicked again) */
     const float DX0 = 171, DX1 = 318, DY0 = LY0 - 0.5f, DY1 = 197;
     P.rect(DX0, DY0, DX1, DY1, IM_COL32(236, 224, 196, 255), 1.5f);
     if (t < 0 || t >= ns) return;
@@ -876,7 +893,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(LX1 - 1.4f, ty, LX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
-    int k = hover >= 0 ? hover : V.pin_formula >= 0 ? V.pin_formula : n ? rows[sc] : -1;
+    int k = V.pin_formula >= 0 ? V.pin_formula : hover >= 0 ? hover : n ? rows[sc] : -1;   /* (one clicked stays shown until clicked again; then the one under the pointer) */
     if (k >= nf) k = -1;
 
     /* the party's ingredients: all 23 always in the same places, those it has none of faded; what
@@ -977,18 +994,18 @@ extern "C" void sheetview_draw(void)
     if (V.act_seq != s.seq) V.drop_row = -1;
     int new_what = 0, new_which = -1;
     EFF = effects_now(5);
-    P.page();
-    header(P, s);
+    VT(P.page());
+    VT(header(P, s));
     if (V.tab == TAB_THINGS || V.tab == TAB_SKILLS) {
-        doll(P, s);
-        if (V.tab == TAB_THINGS) things(P, s, new_what, new_which);
-        else skills(P, s, new_what, new_which);
+        VT(doll(P, s));
+        if (V.tab == TAB_THINGS) VT(things(P, s, new_what, new_which));
+        else VT(skills(P, s, new_what, new_which));
         if (new_what) { V.what = new_what; V.which = new_which; V.seq = s.seq; }
         else if (V.seq != s.seq) V.what = 0;
         else if (!P.over(200, 21, 318, 197)) V.what = 0;
-        strip(P, s, 200, 318, V.tab == TAB_THINGS ? 159.5f : 152, 197);
-    } else if (V.tab == TAB_SAINTS) saints(P, s);
-    else formulae(P, s);
+        VT(strip(P, s, 200, 318, V.tab == TAB_THINGS ? 159.5f : 152, 197));
+    } else if (V.tab == TAB_SAINTS) VT(saints(P, s));
+    else VT(formulae(P, s));
 }
 
 /* for the prayer screen (ui/prayview.cpp): the saint's statue, its legend and effect */

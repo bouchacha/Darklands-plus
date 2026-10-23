@@ -440,6 +440,8 @@ void plat_present(const u8 *vga, const u8 *pal)
     uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
     uint64_t pt3 = ptime ? plat_ticks_us() : 0;
+    extern unsigned long long ui_build_us;
+    uint64_t ptb = ptime && ui_build_us ? (uint64_t)((ui_build_us - t0) * 1000000 / freq) : pt3;
     if (pending_shot) {
         pending_shot = 0;
         unsigned char *px = malloc((size_t)out_w * out_h * 4);
@@ -482,9 +484,10 @@ void plat_present(const u8 *vga, const u8 *pal)
         pending_wshot[0] = 0;
     }
     SDL_RenderPresent(ren);
-    if (ptime) { static uint64_t acc, mx, cnt, a1, a2, a3; uint64_t t4 = plat_ticks_us(), d = t4 - pt0; acc += d; if (d > mx) mx = d;
-                 a1 += pt1 - pt0; a2 += pt3 - pt2; a3 += t4 - pt3;
-                 if (++cnt % 100 == 0) { fprintf(stderr, "present: %.2f ms average (prepare %.2f, ui %.2f, present %.2f), %.2f ms worst\n", acc / 1000.0 / 100, a1 / 1e5, a2 / 1e5, a3 / 1e5, mx / 1000.0); acc = mx = a1 = a2 = a3 = 0; } }
+    if (ptime) { static uint64_t acc, mx, cnt, a1, a2, a3, ab, mb, vx, vm, cm; extern int ui_vtx, ui_cmds; vx += ui_vtx; if ((uint64_t)ui_vtx > vm) vm = ui_vtx; if ((uint64_t)ui_cmds > cm) cm = ui_cmds; uint64_t t4 = plat_ticks_us(), d = t4 - pt0; acc += d; if (d > mx) mx = d;
+                 a1 += pt1 - pt0; a2 += pt3 - pt2; a3 += t4 - pt3; { uint64_t b = ptb > pt2 && ptb <= pt3 ? ptb - pt2 : pt3 - pt2; ab += b; if (b > mb) mb = b; }
+                 static int pn; if (!pn) { pn = atoi(getenv("DL_PRESENT_TIME")); if (pn < 10) pn = 100; }
+                 if (++cnt % pn == 0) { fprintf(stderr, "present: %.2f ms average (prepare %.2f, ui %.2f, build %.2f, present %.2f), %.2f ms worst, build worst %.2f, vertices %llu (max %llu), draw calls max %llu\n", acc / 1000.0 / pn, a1 / 1e3 / pn, a2 / 1e3 / pn, ab / 1e3 / pn, a3 / 1e3 / pn, mx / 1000.0, mb / 1000.0, (unsigned long long)(vx / pn), (unsigned long long)vm, (unsigned long long)cm); acc = mx = a1 = a2 = a3 = ab = mb = vx = vm = cm = 0; } }
 }
 
 /* game pixel (gx, gy) -> window coordinates, where the interface draws (valid after the

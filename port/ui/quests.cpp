@@ -541,3 +541,8 @@ extern "C" void journal_quests(void)
     ImGui::Spacing();
     ImGui::Checkbox("Show secrets (Sabbat dates and places, even before the party learns them)", &spoilers);
 }
+extern "C" void quests_test_dump(void)      /* test (uquests): the tasks as the journal lists them, with their ids */
+{
+    std::vector<QuestRow> r; quest_rows(r, 0, true);
+    for (const QuestRow &q : r) fprintf(stderr, "quest %s | %s | %s | %s\n", q.id.c_str(), q.title.c_str(), q.when.c_str(), q.text.c_str());
+}

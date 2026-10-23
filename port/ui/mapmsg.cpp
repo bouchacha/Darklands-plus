@@ -12,8 +12,8 @@ extern "C" {
 extern "C" void mapmsg_draw(void)
 {
     const MapMsgModel &m = mapmsg_model;
-    extern int cardview_dialog;
-    if (!m.open || ns_screen != NS_MAPMSG || ns_hidden() || cardview_dialog) return;
+    extern int cardview_dialog, game_dialog_kind;
+    if (!m.open || ns_screen != NS_MAPMSG || ns_hidden() || (cardview_dialog && !game_dialog_kind)) return;
     NsDraw P;
     if (!P.begin()) return;
     /* the paragraphs (the record's newlines), without their leading spaces */

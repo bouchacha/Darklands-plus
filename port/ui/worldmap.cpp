@@ -1080,9 +1080,9 @@ extern "C" void worldmap_draw(void)
                 std::vector<int> out, in;
                 for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) out.push_back(town.docks[k]);   /* (Groningen's lists itself) */
                 for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
-                boat_row("Boats from its docks to:", out, 0);
+                boat_row("Boats leaving here for:", out, 0);
                 if (out.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (so the game has it).");
-                if (!in.empty()) { if (!out.empty()) ImGui::Spacing(); boat_row("Boats here from:", in, 1); }
+                if (!in.empty()) { if (!out.empty()) ImGui::Spacing(); boat_row("Boats arriving here from:", in, 1); }
                 if (!out.empty() || !in.empty()) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
             }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());

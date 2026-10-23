@@ -1,3 +1,4 @@
+#include <stdarg.h>
 // citynav.cpp - "Go to" in cities. A city in Darklands is a maze of card menus (main street,
 // market, churches, the crafts district, side streets ...); the list here names every place at
 // once, and picking one walks the party there through the game's own menus - the very options a
@@ -271,12 +272,25 @@ static std::string last_key; static int same_count;
 static u32 phase_t, last_act;
 static std::string phase_key;
 
+/* the walk's steps: printed as they go with DL_CITYNAV_LOG, and kept, so that a walk which fails
+   writes how it went into the log (darklands_port.log) for a bug report */
 static int logon = -1;
-#define LOG(...) do { if (logon < 0) logon = getenv("DL_CITYNAV_LOG") != 0; if (logon) fprintf(stderr, "citynav: " __VA_ARGS__); } while (0)
+static std::string trail;
+static void trail_add(const char *fmt, ...)
+{
+    char b[512]; va_list ap; va_start(ap, fmt); vsnprintf(b, sizeof b, fmt, ap); va_end(ap);
+    if (logon < 0) logon = getenv("DL_CITYNAV_LOG") != 0;
+    if (logon) fprintf(stderr, "citynav: %s", b);
+    if (trail.size() > 6000) trail.erase(0, trail.size() - 4000);
+    trail += b;
+}
+#define LOG(...) trail_add(__VA_ARGS__)
 
 static void stop(const char *why)
 {
     LOG("stop: %s\n", why ? why : "");
+    bool failed = why && strcmp(why, "stopped.") && goal >= 0;
+    if (failed && !logon) { fprintf(stderr, "Go to %s failed (%s). The walk:\n%s", DEST[goal].label, why, trail.c_str()); fflush(stderr); }
     if (goal >= 0 && why) { char m[160]; snprintf(m, sizeof m, "Go to %s: %s", DEST[goal].label, why); ui_notice(m); }
     goal = -1;
 }
@@ -417,7 +431,7 @@ extern "C" void citynav_tick(void)
     if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
     for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
-    if (logon) { LOG("%s hub %d visited %x:\n", kb, hub, visited); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
+    { LOG("%s hub %d visited %x, line %d of %d:\n", kb, hub, visited, (int)g_rb(GV_card_layout_opt), (int)it->second.size()); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (card == "$INSID00" && blk == 0) {                   /* the offices above the marketplace by night: the one wanted, else out by the window */
         static const struct { int d; const char *key; } OFF[] = { { D_MERCHANT, "leading merchant" }, { D_FUGGER, "fugger" }, { D_MEDICI, "medici" }, { D_HANSE, "hanseatic" } };
         for (auto &o : OFF) if (o.d == goal) for (int i = 0; i < n; i++) if (line[i].find(o.key) != std::string::npos) { click_line(i); goal = -1; return; }
@@ -466,6 +480,7 @@ extern "C" void citynav_go(int dest)
 {
     if (dest < 0 || dest >= D_N) return;
     assist_watch_cards();
+    trail.clear(); LOG("go to %s from %s (place %d)\n", DEST[dest].label, card_now().c_str(), (s16)g_rw(G_CUR_LOC));
     goal = dest; steps_taken = 0; visited = 0; conts = leaves = replans = 0; arrived_last = 0; same_count = 0; last_key.clear(); phase_key.clear(); last_act = 0;
     char m[120]; snprintf(m, sizeof m, "Going to: %s. Press any key or click to stop.", DEST[dest].label); ui_notice(m);
 }

@@ -126,8 +126,6 @@ static Option OPTIONS[] = {
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling without Shift", "resting the pointer on the edge of the screen scrolls the battle map; no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
     { "battle.info", S_BATTLE, 0, "Info under the pointer", "pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
     { "battle.info_numbers", S_BATTLE, "battle.info", "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
-    { "battle.bars", S_BATTLE, 0, "Health bars over the fighters", "the Endurance left (and the Strength, once it is down by half).", OC_SHOW, 0, 1, 1 },
-    { "battle.bars_hurt", S_BATTLE, "battle.bars", "Bars only over the wounded", "no bar over a fighter still unhurt (hold Alt to show them all), so the field stays clear.", OC_SHOW, 0, 1, 1 },
     { "battle.foe_arrow", S_BATTLE, 0, "Arrow to enemies off screen", "when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there.", OC_EASE, 0, 1, 1 },
     { "battle.skill_gains", S_BATTLE, 0, "Show skill gains", "a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel.", OC_SHOW, 0, 1, 1 },
     { "battle.reload_bar", S_BATTLE, 0, "Reload bar", "a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot.", OC_SHOW, 0, 1, 1 },

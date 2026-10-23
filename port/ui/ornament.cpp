@@ -4,6 +4,7 @@
 #include <math.h>
 #include <float.h>
 #include "../runtime/config.h"
+#include "drawcache.h"
 
 static const ImU32 BAND = IM_COL32(52, 30, 16, 255), STRAND_EDGE = IM_COL32(36, 18, 8, 255);
 static const ImU32 COPPER = IM_COL32(194, 114, 56, 255), COPPER_LIT = IM_COL32(244, 184, 116, 255), COPPER_DK = IM_COL32(132, 70, 30, 255);
@@ -27,6 +28,9 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
     float A = w * 0.24f, th = fmaxf(1.5f, w * 0.30f);
     ImVec2 c0 = mix(P, d, 0, n, -w * 0.5f), c1 = mix(Q, d, 0, n, w * 0.5f);
     ImVec2 lo(fminf(c0.x, c1.x), fminf(c0.y, c1.y)), hi(fmaxf(c0.x, c1.x), fmaxf(c0.y, c1.y));
+    unsigned long long key = 0xb4a1dull;                       /* (drawn once, kept as a picture: ui/drawcache.h) */
+    for (float v : { P.x - floorf(lo.x), P.y - floorf(lo.y), Q.x - floorf(lo.x), Q.y - floorf(lo.y), w }) key = dc_key(key, v);
+    dc_draw(dl, lo, hi, key, [&](ImDrawList *dl) {
     dl->AddRectFilled(lo, hi, BAND);
     dl->PushClipRect(lo, hi, true);
     const int S = 8;
@@ -49,6 +53,7 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
         strand(c - e, c + e, 1.0f, true); strand(c - e, c + e, -1.0f, true);
     }
     dl->PopClipRect();
+    });
     dl->AddLine(mix(P, d, 0, n, -w * 0.5f), mix(Q, d, 0, n, -w * 0.5f), GOLD_DK, 1.0f);
     dl->AddLine(mix(P, d, 0, n, w * 0.5f), mix(Q, d, 0, n, w * 0.5f), GOLD_DK, 1.0f);
 }

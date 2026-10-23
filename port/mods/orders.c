@@ -147,6 +147,7 @@ void orders_member_mode_set(int m, int shoot)
 /* the attack a click sends member i at foe m with: Use Missile (0x80) when the member opens by
    shooting (orders_member_mode), can loose the missile weapon (can_fire, s014 18bf:0c02) and the
    foe is not already within reach of a blow (far 20a5:7900, ai 1db7:09ae); else Std Attack */
+static int line_clear(int i, int j);
 static int best_attack(int i, int m)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
@@ -162,6 +163,7 @@ static int best_attack(int i, int m)
         int way = ns_call(GF_path_find, 1, i) == 1;
         g_ww((u16)(c + 8), tx); g_ww((u16)(c + 0x0a), ty);
         if (way) return melee;
+        if (!line_clear(i, m)) return melee;                         /* (no way found, nor a line: the game's own attack, which walks round as it can) */
         if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no way to %d: a shot instead\n", i, m);
     }
     if (!ns_call(GF_can_fire, 1, i)) { if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d cannot shoot (nothing to loose)\n", i); return melee; }
@@ -189,6 +191,8 @@ static int best_attack(int i, int m)
    off). The volley before the lines meet is the shooters'; the melee after it is everyone's. */
 static int volley_on(void) { return combat_improved(); }
 static signed char by_volley[5];
+static u16 bow_given[5], bow_hold[5];   /* back_to_bow: when the bow was last given back; the game's way let be since */
+static unsigned char bow_flips[5];
 static signed char player_melee[5];   /* the player told this member to fight hand to hand (order_mode_leave): the bow is not taken up again for it */
 static void leave_hook(void)                    /* s014 19cd:0738 order_mode_leave(): the order chosen applied */
 {
@@ -197,7 +201,7 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     if (ns_unwinding || i < 0 || i > 4) return;
     int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
     player_melee[i] = f != MISSILE && f != 0x100 && f != 0 && f != 1;
-    by_volley[i] = 0;
+    by_volley[i] = 0; bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* put the missile weapon away for a foe beside it (improved combat): the bow again once none is */
 static void to_melee(int i, int t, int beside)
 {
@@ -295,6 +299,18 @@ static void back_to_bow(void)
         int beside = 0;
         for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
         if (beside) continue;
+        /* a foe within a few paces coming at it: the fight is about to reach it, the bow would only be
+           put away again (each change of weapon starts the reloading over: a shooter switched back and
+           forth never shoots) */
+        { int coming = 0;
+          for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && near_foe_of(i, j) && (s8)g_rb((u16)(D_CBT + j * 0x80 + 0x4a)) == i) coming = 1;
+          if (coming) continue; }
+        /* the game took the bow away again just after it was given back: let the game have its way
+           for a while (its AI sees a fight the member is in) */
+        { u16 now = g_rw(GV_combat_clock);
+          if (bow_given[i] && (u16)(now - bow_given[i]) < 90) { if (++bow_flips[i] >= 2) { bow_hold[i] = now ? now : 1; bow_flips[i] = 0; } continue; }
+          if (bow_hold[i] && (u16)(now - bow_hold[i]) < 600) continue;
+          bow_hold[i] = 0; }
         int clear = 0, t = shot_target(i, &clear);
         if (ns_unwinding) return;
         by_volley[i] = 0;
@@ -304,6 +320,7 @@ static void back_to_bow(void)
         g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
         g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
         g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+        bow_given[i] = g_rw(GV_combat_clock); if (!bow_given[i]) bow_given[i] = 1;
         fprintf(stderr, "orders: member %d has no foe beside it now: the missile weapon again, at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
     }
 }

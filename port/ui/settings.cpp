@@ -12,6 +12,7 @@
 #include <vector>
 #include <functional>
 #include "imgui.h"
+#include "skillicons.h"
 #include "gamepics.h"
 #include "ornament.h"
 #include "tablesort.h"
@@ -507,6 +508,21 @@ static void display_icons(void)
         float s = (b.y - a.y) * 0.62f;
         for (int k = 0; k < 3; k++) ui_item_icon_tier(dl, ImVec2(a.x + (b.x - a.x) * (0.2f + k * 0.3f), (a.y + b.y) * 0.5f), s, k == 0 ? 99 : k == 1 ? 95 : 104, k + 1);
         potion_grade_preview = -1;
+    });
+    ImGui::TextUnformatted("The pictures of the attributes and skills");
+    static const int SKV[3] = { 0, 1, 2 };
+    static const char *SKL[3] = { "In colour", "Woodcut", "Heraldic" };
+    pic_choice("skillicons", "display.skill_icons", 0, SKV, SKL, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+        void ui_icon_style_preview(int st); extern int ui_icon_disc;
+        dl->AddRectFilled(a, b, IM_COL32(246, 236, 212, 255), 4);
+        ui_icon_style_preview(v); int keep = ui_icon_disc; ui_icon_disc = 0;
+        float s2 = (b.y - a.y) * 0.32f;
+        static const int K[6] = { 0, 3, 7, 14, 8, 17 };   /* (attributes 0 and 3; skills Edged, Healing, Religion, Woodwise) */
+        for (int i = 0; i < 6; i++) {
+            ImVec2 c(a.x + (b.x - a.x) * (0.18f + (i % 3) * 0.32f), a.y + (b.y - a.y) * (i < 3 ? 0.3f : 0.72f));
+            if (i < 2) ui_attr_icon(dl, c, s2, K[i]); else ui_skill_icon(dl, c, s2, K[i] - 7);
+        }
+        ui_icon_style_preview(-1); ui_icon_disc = keep;
     });
     ImGui::TextUnformatted("The number keys' marks beside a card's options");
     static const int NV[5] = { 1, 0, 2, 3, 4 };

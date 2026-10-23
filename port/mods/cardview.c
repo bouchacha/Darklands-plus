@@ -549,13 +549,30 @@ void cardview_dump(void)
 /* the game's own questions and messages ("Quit to DOS? y/n", hot keys' messages, a card
  * script's message box) are drawn into the picture: the native card steps aside meanwhile */
 int cardview_dialog;
-static void dialog_hook(void) { cardview_dialog++; hook_call_original(); cardview_dialog--; }
+/* its words, for the native box drawn in its place (ui/gamedialog.cpp): kind 1 a message for a
+   while, 2 a message until a key, 3 a question (y/n) */
+char game_dialog_text[600]; int game_dialog_kind;
+static void dialog_hook_k(int kind)
+{
+    u16 t = rw(SS, (u16)(SP + 4));
+    int ok = kind, prev = game_dialog_kind; char prevt[sizeof game_dialog_text];
+    memcpy(prevt, game_dialog_text, sizeof prevt);
+    g_str(G_DGROUP, t, game_dialog_text, sizeof game_dialog_text);
+    if (!game_dialog_text[0]) ok = 0;
+    game_dialog_kind = ok;
+    if (getenv("DL_DIALOG_LOG")) fprintf(stderr, "dialog %d: %s\n", kind, game_dialog_text);
+    cardview_dialog++; hook_call_original(); cardview_dialog--;
+    game_dialog_kind = prev; memcpy(game_dialog_text, prevt, sizeof prevt);
+}
+static void dialog_ask(void) { dialog_hook_k(3); }
+static void dialog_msg(void) { dialog_hook_k(1); }
+static void dialog_box(void) { dialog_hook_k(2); }
 
 static void hooks(void)
 {
-    hook_install(GF_ask_yes_no, dialog_hook);          /* ask_yes_no */
-    hook_install(GF_show_message, dialog_hook);          /* show_message */
-    hook_install(GF_message_box, dialog_hook);            /* message_box */
+    hook_install(GF_ask_yes_no, dialog_ask);           /* ask_yes_no */
+    hook_install(GF_show_message, dialog_msg);           /* show_message */
+    hook_install(GF_message_box, dialog_box);            /* message_box */
     if (cardview_on) {
         hook_install(GF_card_text, text_hook);
         hook_install(GF_card_options, options_hook);

@@ -67,12 +67,9 @@ std::string ui_enemy_name(int floor, u16 b)
     for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
     return "";
 }
-/* a thin bar over each fighter on the field: the endurance left (the party's blue, the enemies'
-   red), and a second, the strength, once it is down by half (battle.bars); under it, while a
-   member reloads and aims a bow, crossbow, gun or the next thrown weapon, how far that has come
+/* over a member, while it reloads and aims a bow, crossbow, gun or the next thrown weapon, how far that has come
    (battle.reload_bar: cbt_missile_action, s014 0e76: action 9 reloading until D_dabd, 10 aiming
    until D_daa3, from D_d948 less the 10 ticks before reloading begins) */
-int ui_battle_bars = 1;
 /* a skill raised in the fight (battle.skill_gains): "+2 Edged" rising in gold over the member's
    head for a few seconds (battlelog.cpp hands it on from the game's side message) */
 struct Float { int m; std::string t; u32 t0; bool good; };
@@ -168,10 +165,9 @@ void ui_draw_battle_bars(void)
     }
     bool reload = config_get_int("battle.reload_bar", 1) != 0;
     if (game_mode() != GM_BATTLE) floats.clear();
-    if ((!ui_battle_bars && !reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    if ((!reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     u32 nowms = plat_ticks_ms();
     while (!floats.empty() && nowms > floats.front().t0 + 5000) floats.erase(floats.begin());
-    bool hurt_only = config_get_int("battle.bars_hurt", 1) && !ImGui::GetIO().KeyAlt;
     int n = (s8)g_rb(GV_hotspot_count);
     if (n <= 0 || n > 40) return;
     ImDrawList *dl = ovl_list();
@@ -184,7 +180,7 @@ void ui_draw_battle_bars(void)
         if (m >= 13 || done[m]) continue;
         done[m] = true;
         u16 b = (u16)(GV_combatants + m * 0x80);
-        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+        int st = g_rb((u16)(b + 0x14)), endm = (s8)g_rb((u16)(b + 0x64));
         if (st != 1 || endm <= 0) continue;
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
         if (x1 <= x0 || x1 - x0 > 60) continue;
@@ -193,21 +189,6 @@ void ui_draw_battle_bars(void)
         ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
         float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x, below = a.y;
         for (const Float &f : floats) if (f.m == m) draw_float(dl, f, cx, gy, k, nowms);
-        bool whole = end >= endm && !(strm > 0 && str * 2 <= strm);
-        if (ui_battle_bars && !(hurt_only && whole)) {         /* (unhurt: none, unless Alt is held) */
-            float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
-            ImU32 col = m < 5 ? IM_COL32(110, 140, 240, 235) : (fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235));
-            dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
-            if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
-            below = a.y + h + 1;
-            if (strm > 0 && str * 2 <= strm) {                     /* gravely wounded: the strength too */
-                float fs = str < 0 ? 0 : (float)str / strm;
-                ImVec2 a2(a.x, below);
-                dl->AddRectFilled(ImVec2(a2.x - 1, a2.y), ImVec2(a2.x + bw + 1, a2.y + h * 0.7f + 1), IM_COL32(10, 6, 2, 200));
-                if (fs > 0) dl->AddRectFilled(a2, ImVec2(a2.x + bw * fs, a2.y + h * 0.7f), IM_COL32(110, 200, 100, 235));
-                below = a2.y + h * 0.7f + 1;
-            }
-        }
         int act = g_rb((u16)(GV_cbt_action + m));
         if (reload && m < 5 && (act == 9 || act == 10)) {         /* reloading and aiming: a thin amber line filling up */
             u16 s0 = (u16)(g_rw((u16)(0xd948 + 2 * m)) - 10), e0 = g_rw((u16)(0xdaa3 + 2 * m));
@@ -215,7 +196,7 @@ void ui_draw_battle_bars(void)
             float f = span ? fminf(1.0f, (float)done_t / span) : 1.0f;
             if (done_t > span) f = (s16)done_t < 0 ? 0.0f : 1.0f;
             float rh = fmaxf(2.0f, 0.7f * k);
-            ImVec2 r0(a.x, below + (ui_battle_bars ? 0.5f : 0));
+            ImVec2 r0(a.x, below);
             dl->AddRectFilled(ImVec2(r0.x - 1, r0.y - 0.5f), ImVec2(r0.x + bw + 1, r0.y + rh + 0.5f), IM_COL32(10, 6, 2, 170));
             dl->AddRectFilled(r0, ImVec2(r0.x + bw * f, r0.y + rh), act == 10 ? IM_COL32(250, 214, 110, 235) : IM_COL32(205, 150, 60, 220));
         }

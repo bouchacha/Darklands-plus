@@ -5,10 +5,9 @@
 #include "uitabs.h"
 #include "skillicons.h"
 
-void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
+static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
     static const int WT[7] = { 3, 14, 17, 19, 23, 28, 31 };     /* a weapon of each class (LST type) */
-    dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));  /* a dark disc: the picture reads on any background */
     if (k < 7) { ui_equip_icon(dl, c, s * 1.25f, WT[k]); return; }
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
@@ -25,10 +24,13 @@ void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
     case 9:  /* virtue: a halo with rays */
         for (int i = 0; i < 8; i++) { float a = i * 0.785f; dl->AddLine(P(cosf(a) * 6.5f, sinf(a) * 6.5f), P(cosf(a) * 10, sinf(a) * 10), gold, 1.2f * u); }
         dl->AddCircle(P(0, 0), 5.0f * u, gold, 0, 2.2f * u); break;
-    case 10: /* speak common: a speech bubble */
-        dl->AddRectFilled(P(-9, -8), P(9, 4), parch, 4 * u); dl->AddTriangleFilled(P(-4, 3.5f), P(-7, 9.5f), P(1, 3.5f), parch);
-        dl->AddRect(P(-9, -8), P(9, 4), ink, 4 * u, 0, 1.0f * u);
-        for (int i = 0; i < 3; i++) dl->AddCircleFilled(P(-4.5f + i * 4.5f, -2), 1.2f * u, ink); break;
+    case 10: /* speak common: a herald's trumpet with its banner */
+        dl->AddQuadFilled(P(-9, -1.2f), P(5, -2.4f), P(5, 2.4f), P(-9, 1.2f), gold);
+        dl->AddTriangleFilled(P(5, -2.4f), P(10, -6), P(10, 6), gold); dl->AddTriangleFilled(P(5, 2.4f), P(10, 6), P(5, -2.4f), gold);
+        dl->AddLine(P(10, -6), P(10, 6), ink, 0.9f * u); dl->AddCircleFilled(P(-9.5f, 0), 1.6f * u, gold);
+        dl->AddQuadFilled(P(-5, 1.5f), P(3, 1.5f), P(3, 8), P(-5, 8), C(170, 40, 30));
+        dl->AddTriangleFilled(P(-5, 8), P(3, 8), P(-1, 5.5f), C(238, 226, 196, 0) ); dl->AddLine(P(-5, 8), P(-1, 5.5f), ink, 0.6f * u); dl->AddLine(P(3, 8), P(-1, 5.5f), ink, 0.6f * u);
+        dl->AddCircleFilled(P(-1, 4.3f), 1.3f * u, gold); break;
     case 11: /* speak Latin: a book */
         dl->AddRectFilled(P(-9, -7), P(9, 7), C(120, 40, 30)); dl->AddRectFilled(P(-8, -6), P(-0.6f, 6), parch); dl->AddRectFilled(P(0.6f, -6), P(8, 6), parch);
         for (int i = 0; i < 3; i++) { dl->AddLine(P(-6.5f, -3 + i * 3), P(-2, -3 + i * 3), ink, 0.7f * u); dl->AddLine(P(2, -3 + i * 3), P(6.5f, -3 + i * 3), ink, 0.7f * u); } break;
@@ -40,12 +42,16 @@ void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
         for (int i = 0; i < 3; i++) { float y = -5 + i * 5.0f;
             dl->AddTriangleFilled(P(0, y), P(-7, y - 3), P(-3, y + 2), green); dl->AddTriangleFilled(P(0, y + 1), P(7, y - 2), P(3, y + 3), green); }
         dl->AddCircleFilled(P(0, -9), 2.2f * u, green); break;
-    case 14: /* artifice: a cog */
-        for (int i = 0; i < 8; i++) { float a = i * 0.785f; dl->AddLine(P(cosf(a) * 5, sinf(a) * 5), P(cosf(a) * 9, sinf(a) * 9), steel, 3.0f * u); }
-        dl->AddCircleFilled(P(0, 0), 6.5f * u, steel); dl->AddCircleFilled(P(0, 0), 2.6f * u, C(60, 50, 40)); dl->AddCircle(P(0, 0), 6.5f * u, ink, 0, 0.8f * u); break;
-    case 15: /* stealth: a half-closed eye */
-        dl->AddBezierQuadratic(P(-10, 0), P(0, -8), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 6), P(10, 0), parch, 1.6f * u);
-        dl->AddCircleFilled(P(0, 0.5f), 3.0f * u, C(30, 30, 40)); dl->AddLine(P(-10, -0.5f), P(10, -0.5f), C(30, 30, 40), 2.2f * u); break;
+    case 14: /* artifice: a key, its bow and wards (locks, traps, devices) */
+        dl->AddCircle(P(-5.5f, -5.5f), 3.6f * u, steel, 0, 2.2f * u);
+        dl->AddLine(P(-3, -3), P(7.5f, 7.5f), steel, 2.2f * u);
+        dl->AddLine(P(4.5f, 4.5f), P(2, 7), steel, 2.0f * u); dl->AddLine(P(6.5f, 6.5f), P(4.5f, 9), steel, 2.0f * u);
+        dl->AddCircle(P(-5.5f, -5.5f), 4.8f * u, ink, 0, 0.6f * u); break;
+    case 15: /* stealth: a dark hood, the face in shadow */
+        dl->AddTriangleFilled(P(0, -10), P(-8, 9), P(8, 9), C(70, 60, 70));
+        dl->AddCircleFilled(P(0, -1), 4.6f * u, C(70, 60, 70));
+        dl->AddEllipseFilled(P(0, 0), ImVec2(3.0f * u, 3.8f * u), C(20, 16, 22));
+        dl->AddCircleFilled(P(-1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); dl->AddCircleFilled(P(1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); break;
     case 16: /* streetwise: a purse */
         dl->AddCircleFilled(P(0, 3), 7.0f * u, C(150, 104, 56)); dl->AddTriangleFilled(P(-3.5f, -5), P(3.5f, -5), P(0, -1), C(150, 104, 56));
         dl->AddLine(P(-4, -4), P(4, -4), ink, 1.2f * u); dl->AddCircle(P(0, 3), 7.0f * u, ink, 0, 0.8f * u); dl->AddCircleFilled(P(0, 4), 1.8f * u, gold); break;
@@ -60,9 +66,8 @@ void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k)
     }
 }
 
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k)
+static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
-    dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
     auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
@@ -107,6 +112,62 @@ void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(-7, -9), P(7, -9), ink, 0.9f * u); break;
     }
 }
+
+/* the look of the skills' and attributes' pictures (display.skill_icons): 0 drawn in colour, 1 a
+   woodcut (the shapes in ink alone, as the prints of the age), 2 heraldic (a charge in gold on a
+   shield, its tincture by the group: sable the attributes, gules the weapons, azure knowledge, vert
+   the abilities). ui_icon_disc: the dark disc behind a coloured one, where it must read on any ground */
+int ui_icon_disc = 1;
+#include "../runtime/config.h"
+static int icon_style(void) { int v = config_get_int("display.skill_icons", 0); return v >= 0 && v <= 2 ? v : 0; }
+static int style_override = -1;
+void ui_icon_style_preview(int st) { style_override = st; }
+/* two tones: the light parts of a picture (a page, a flame's heart, a lens) become `light`, the rest
+   `col`, so the detail drawn in pale paint stays visible instead of filling in */
+static void recolor_since(ImDrawList *dl, int v0, ImU32 col, ImU32 light)
+{
+    for (int i = v0; i < dl->VtxBuffer.Size; i++) {
+        ImU32 &c = dl->VtxBuffer[i].col; int a = (int)(c >> IM_COL32_A_SHIFT) & 255;
+        int r = c & 255, g = (c >> 8) & 255, b = (c >> 16) & 255;
+        ImU32 to = (r * 3 + g * 6 + b) / 10 >= 185 ? light : col;
+        c = (to & ~IM_COL32_A_MASK) | ((ImU32)a << IM_COL32_A_SHIFT);
+    }
+}
+static void shield(ImDrawList *dl, ImVec2 c, float s, ImU32 field)
+{
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    ImVec2 pts[12]; int n = 0;
+    pts[n++] = P(-10, -11); pts[n++] = P(10, -11); pts[n++] = P(10, 0);
+    for (int i = 1; i <= 4; i++) { float t = i / 5.0f; pts[n++] = P(10 * (1 - t) * (1 - t) + 0, 0 + 12 * t * (2 - t)); }
+    pts[n++] = P(0, 12);
+    for (int i = 4; i >= 1; i--) { float t = i / 5.0f; pts[n++] = P(-10 * (1 - t) * (1 - t), 12 * t * (2 - t)); }
+    pts[n++] = P(-10, 0);
+    dl->AddConvexPolyFilled(pts, n, field);
+    dl->AddPolyline(pts, n, IM_COL32(210, 170, 70, 255), ImDrawFlags_Closed, 1.1f * u);
+}
+static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(ImDrawList *, ImVec2, float, int), int k)
+{
+    int st = style_override >= 0 ? style_override : icon_style();
+    if (st == 2) {
+        static const ImU32 FIELD[4] = { IM_COL32(36, 30, 30, 255), IM_COL32(160, 30, 30, 255), IM_COL32(30, 60, 140, 255), IM_COL32(30, 110, 50, 255) };
+        shield(dl, c, s, FIELD[group]);
+        int v0 = dl->VtxBuffer.Size;
+        body(dl, ImVec2(c.x, c.y - s * 0.03f), s * 0.66f, k);
+        recolor_since(dl, v0, IM_COL32(236, 196, 80, 255), FIELD[group]);
+        return;
+    }
+    if (st == 1) {
+        int v0 = dl->VtxBuffer.Size;
+        body(dl, c, s, k);
+        recolor_since(dl, v0, IM_COL32(44, 30, 18, 255), IM_COL32(240, 228, 200, 255));
+        return;
+    }
+    if (ui_icon_disc) dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));   /* a dark disc: the picture reads on any background */
+    body(dl, c, s, k);
+}
+void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, k < 7 ? 1 : k < 13 ? 2 : 3, skill_body, k); }
+void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 0, attr_body, k); }
 
 /* a skill's picture in the flow of a window's text, then the text goes on beside it */
 void ui_skill_icon_inline(int k)
@@ -154,5 +215,30 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         for (int i = 0; i < 3; i++) { dl->AddLine(P(-7, -2 + i * 3.0f), P(-2, -1 + i * 3.0f), C(120, 100, 80), 0.7f * u); dl->AddLine(P(2, -1 + i * 3.0f), P(7, -2 + i * 3.0f), C(120, 100, 80), 0.7f * u); }
         break;
     default: (void)steel; (void)wood; break;
+    }
+}
+
+/* test (uiconstyles): the pictures in each look, side by side */
+static int sheet_on;
+extern "C" void ui_icon_styles_sheet(int on) { sheet_on = on; }
+extern "C" const char *gm_skill_name(int k); extern "C" const char *gm_attr_name(int a);
+extern "C" void ui_icon_styles_draw(void)
+{
+    if (!sheet_on) return;
+    ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
+    dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(246, 236, 212, 255));
+    static const char *TITLE[3] = { "Drawn in colour (no disc)", "Woodcut", "Heraldic" };
+    float colw = ds.x / 3, row = ds.y / 27.5f, sz = row * 0.8f;
+    for (int st = 0; st < 3; st++) {
+        float x = st * colw + 20;
+        dl->AddText(ImGui::GetFont(), row * 0.7f, ImVec2(x, row * 0.3f), IM_COL32(60, 40, 20, 255), TITLE[st]);
+        ui_icon_style_preview(st); int keep = ui_icon_disc; ui_icon_disc = 0;
+        for (int i = 0; i < 26; i++) {
+            float y = row * (1.4f + i);
+            ImVec2 c(x + sz * 0.6f, y + row * 0.5f);
+            if (i < 7) ui_attr_icon(dl, c, sz, i); else ui_skill_icon(dl, c, sz, i - 7);
+            dl->AddText(ImGui::GetFont(), row * 0.55f, ImVec2(x + sz * 1.5f, y + row * 0.2f), IM_COL32(60, 40, 20, 255), i < 7 ? gm_attr_name(i) : gm_skill_name(i - 7));
+        }
+        ui_icon_style_preview(-1); ui_icon_disc = keep;
     }
 }

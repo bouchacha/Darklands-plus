@@ -14,6 +14,7 @@
 #include "skillicons.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
+#include "drawcache.h"
 #include "gamedata.h"
 #include "quests.h"
 #include "uiinternal.h"
@@ -60,7 +61,8 @@ static void help_window(void);
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 extern "C" int citynav_window(void);
 extern "C" int citynav_available(void);
-extern "C" void citynav_draw_cover(void);   /* ui/citynav.cpp: Go to under way, the streets passed not shown */
+extern "C" void citynav_draw_cover(void);
+extern "C" void ui_icon_styles_draw(void);   /* ui/skillicons.cpp (test) */   /* ui/citynav.cpp: Go to under way, the streets passed not shown */
 extern "C" void citynav_tick(void);
 extern "C" void citynav_go(int dest);
 /* "Go to" in cities (ui/citynav.cpp): G on a city card */
@@ -231,7 +233,7 @@ static void ui_options_reload(const char *key, int v)
     auto is = [&](const char *k) { return all || !strcmp(key, k); };
     { extern int ui_shop_info; ui_shop_info = config_get_int("assist.shop_info", 1); }
     { extern int ui_creation_guide; ui_creation_guide = config_get_int("assist.creation_guide", 1); }
-    { extern int ui_battle_info, ui_battle_numbers, ui_battle_bars; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); ui_battle_bars = config_get_int("battle.bars", 1); }
+    { extern int ui_battle_info, ui_battle_numbers; ui_battle_info = config_get_int("battle.info", 1); ui_battle_numbers = config_get_int("battle.info_numbers", 0); }
     { extern int ui_battle_log; ui_battle_log = config_get_int("battle.log", 1); }
     { extern int ui_margins_on; ui_margins_on = config_get_int("display.margins", 1); }
     if (key && (is("display.native_panel") || is("display.panel_picture"))) partypanel_init();
@@ -396,6 +398,7 @@ extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
 extern "C" int plat_controller_connected(void);
 extern "C" int ui_event(const SDL_Event *e)
 {
+    if (e->type == SDL_RENDER_TARGETS_RESET || e->type == SDL_RENDER_DEVICE_RESET) dc_reset();   /* (the kept pictures lost) */
     if (open_news && !open_welcome) {       /* what is new: as the welcome */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -999,12 +1002,20 @@ static void draw_icon_grid(void)
     }
 }
 
+
+#include "vtrace.h"
+int vt_on = -1, vt_frame;
+extern "C" unsigned long long ui_build_us;   /* (DL_PRESENT_TIME: when the interface was built, before it is drawn) */
+unsigned long long ui_build_us;
+extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
 extern "C" void ui_draw(SDL_Renderer *ren)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::GetStyle().HoverDelayNormal = config_get_int("display.tooltip_delay", 500) / 1000.0f;   /* (third_party/imgui: a tooltip waits so long) */
     ImGui::NewFrame();
+    if (vt_on < 0) vt_on = getenv("DL_VTX_TRACE") != 0;
+    vt_frame++;
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
     if (open_goto && !goto_allowed()) open_goto = false;
@@ -1018,8 +1029,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { banner_draw(); hdtext_draw(); partypanel_draw(); cardview_draw(); barterview_draw(); sheetview_draw(); lootview_draw(); alchemyview_draw(); cacheview_draw(); prayview_draw(); createview_draw(); rosterview_draw(); infoview_draw(); titleview_draw(); marchview_draw(); lodgeview_draw(); enemyview_draw(); mapmsg_draw(); savesview_draw(); menuview_draw(); }
-    if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) ui_overlay();
+    else { VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(savesview_draw()); VT(menuview_draw()); }
+    if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) VT(ui_overlay());
     {
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
         else hdtext_pointer_off();
@@ -1116,7 +1127,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
           ImVec2 ts = ImGui::CalcTextSize(t);
           dl->AddText(ImVec2((io.DisplaySize.x - ts.x) * 0.5f, (io.DisplaySize.y - ts.y) * 0.5f), IM_COL32(230, 210, 170, 255), t);
       } }
-    if (!open_menu && !open_map) citynav_draw_cover();   /* (Go to under way: the streets passed are not shown) */
+    if (!open_menu && !open_map) VT(citynav_draw_cover());
+    ui_icon_styles_draw();   /* (Go to under way: the streets passed are not shown) */
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
@@ -1129,12 +1141,17 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             dl->AddText(ui_font_small, 13, ImVec2(p.x + 4, p.y + 46), IM_COL32(240, 230, 210, 255), n.c_str());
         }
     }
-    ui_cursor();
-    ui_alert_draw();
+    VT(ui_cursor());
+    VT(ui_alert_draw());
+    { void game_dialog_draw(void); game_dialog_draw(); }
     draw_icon_grid();
+    if (vt_on > 0 && vt_frame % 120 == 0) fprintf(stderr, "vtx total %d\n", vt_total());
+    dc_frame_end();
     worldmap_icon_sheet_draw(); orn_test_sheet_draw(); niche_test_sheet_draw(); clock_test_sheet_draw();
     orn_windows();
     ImGui::Render();
+    ui_build_us = SDL_GetPerformanceCounter();
+    { ImDrawData *dd = ImGui::GetDrawData(); ui_vtx = dd->TotalVtxCount; ui_cmds = 0; for (int i = 0; i < dd->CmdListsCount; i++) ui_cmds += dd->CmdLists[i]->CmdBuffer.Size; }
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
 }
 

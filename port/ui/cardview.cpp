@@ -35,7 +35,7 @@ extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
 extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
-extern "C" int cardview_dialog;
+extern "C" int cardview_dialog, game_dialog_kind;
 extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int here, const int *dest, const int *opt, const int *state, const char *const *fare, int n, int hover_opt);
 extern "C" u32 plat_ticks_ms(void);
 extern "C" const char *card_hint(const char *card, int opt);     /* ui/cardhints.cpp */
@@ -173,7 +173,7 @@ void cardview_key_mark_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int ms)
 extern "C" void cardview_draw(void)
 {
     CardView &c = cardview;
-    if (!c.phase || cardview_dialog) return;
+    if (!c.phase || (cardview_dialog && !game_dialog_kind)) return;
     if (ns_screen != NS_CARD || ns_hidden()) return;           /* a member's sheet ..., the menu bar or what it opened (mods/nscreen.h) */
     ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ui_font_text;
     if (!f) return;
