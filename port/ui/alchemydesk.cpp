@@ -1,7 +1,7 @@
 /* alchemydesk.cpp - the alchemy screen's workbench (ui/alchemyview.cpp writes on it; where each
  * thing lies: ui/alchemydesk.h): an oak table; the formulary open on it, bound in red leather with
  * gilt tooling and brass corners, its ribbon out of the gutter; an apothecary's chest of walnut,
- * open, 3 x 8 compartments for the ingredients, a label inside its lid; a wax tablet in a wooden
+ * open, 8 x 3 compartments for the ingredients, a label inside its lid; a wax tablet in a wooden
  * frame with its stylus, for the reckoning; a small brick furnace with fire in its mouth and a
  * brass plate for Start. In game coordinates (x 60..320, y 0..200). */
 #include "imgui.h"
@@ -128,7 +128,7 @@ void book(ImDrawList *dl, float k)
     dl->AddTriangleFilled(notch[0], notch[1], notch[2], IM_COL32(70, 42, 22, 255));
 }
 
-/* an apothecary's chest, open: its lid behind, inside it a label; the box of compartments, 3 x 8 */
+/* an apothecary's chest, open: its lid behind, inside it a label; the box of compartments */
 void chest(ImDrawList *dl, float k, float u)
 {
     const float X0 = AD_CHEST_X0, X1 = AD_CHEST_X1, LY = AD_CHEST_LID, Y0 = AD_CHEST_Y0, Y1 = AD_CHEST_Y1;
@@ -140,8 +140,8 @@ void chest(ImDrawList *dl, float k, float u)
     ImVec2 a = W(X0, Y0), b = W(X1, Y1);
     dl->AddRectFilledMultiColor(a, b, IM_COL32(150, 94, 50, 255), IM_COL32(128, 78, 40, 255), IM_COL32(92, 54, 26, 255), IM_COL32(112, 66, 32, 255));
     dl->AddRect(a, b, IM_COL32(30, 14, 4, 255), 1.5f * k, 0, 1.5f);
-    const float w = 2.4f, cx0 = X0 + w, cx1 = X1 - w, cy0 = Y0 + w, cy1 = Y1 - w, cw = (cx1 - cx0) / 3, ch = (cy1 - cy0) / 8;
-    for (int r = 0; r < 8; r++) for (int c = 0; c < 3; c++) {
+    const float w = 2.4f, cx0 = X0 + w, cx1 = X1 - w, cy0 = Y0 + w, cy1 = Y1 - w, cw = (cx1 - cx0) / AD_CHEST_COLS, ch = (cy1 - cy0) / AD_CHEST_ROWS;
+    for (int r = 0; r < AD_CHEST_ROWS; r++) for (int c = 0; c < AD_CHEST_COLS; c++) {
         float x0 = cx0 + c * cw + 0.7f, y0 = cy0 + r * ch + 0.7f, x1 = x0 + cw - 1.4f, y1 = y0 + ch - 1.4f;
         dl->AddRectFilledMultiColor(W(x0, y0), W(x1, y1), IM_COL32(40, 22, 10, 255), IM_COL32(52, 30, 14, 255), IM_COL32(70, 42, 20, 255), IM_COL32(58, 34, 16, 255));
         dl->AddLine(W(x0, y0), W(x1, y0), IM_COL32(10, 4, 0, 200), 1.2f);                 /* (the wall's shadow inside) */
@@ -170,7 +170,7 @@ void tablet(ImDrawList *dl, float k)
         dl->AddLine(W(x, y), W(x + 20 + 30 * hash(i * 7), y + 0.6f), IM_COL32(90, 80, 60, 50), 1.0f);
     }
     /* the stylus lying across its corner */
-    ImVec2 s0 = W(X1 - 26, Y1 + 1), s1 = W(X1 - 2, Y1 - 9);
+    ImVec2 s0 = W(X0 + 6, Y1 + 1.6f), s1 = W(X0 + 40, Y1 + 0.4f);   /* (along the frame's lower edge, off the wax) */
     dl->AddLine(s0, s1, IM_COL32(0, 0, 0, 70), 2.6f * k * 0.5f + 2);
     dl->AddLine(s0, s1, IM_COL32(210, 196, 160, 255), 1.6f);
 }

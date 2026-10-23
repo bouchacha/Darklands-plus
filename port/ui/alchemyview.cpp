@@ -60,7 +60,7 @@ extern "C" void alchemyview_draw(void)
     if (P.button(282, 4, 316, 16, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
     /* ---- the formulary's left page: the index */
-    const float LX0 = AD_BOOK_X0 + 6, LX1 = AD_GUTTER - 3, LY0 = AD_BOOK_Y0 + 11, ROWH = 12.5f; const int NROWS = 9;
+    const float LX0 = AD_BOOK_X0 + 6, LX1 = AD_GUTTER - 4, LY0 = AD_BOOK_Y0 + 11, ROWH = 12.5f; const int NROWS = 7;
     const float LY1 = LY0 + NROWS * ROWH;
     P.text(fo, 4.3f, LX0 + 1, AD_BOOK_Y0 + 5, soft, "Formulae known");
     if (P.over(LX0, LY0, LX1, LY1) && ns_in.wheel != 0) { V.scroll -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -96,14 +96,16 @@ extern "C" void alchemyview_draw(void)
     }
 
     /* ---- the right page: the chosen formula written out */
-    const float RX0 = AD_GUTTER + 4, RX1 = AD_BOOK_X1 - 6;
+    const float RX0 = AD_GUTTER + 8, RX1 = AD_BOOK_X1 - 7;   /* (clear of the shade in the gutter) */
     bool risk_hover = false;
     if (sel_f >= 0) {
         int fm = sel_f;
         float y = AD_BOOK_Y0 + 5;
         std::string nm = fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : "?";
         P.icon(RX0 + 4, y + 4.5f, 8, 95 + fm / 3, -1, fm % 3 + 1);
+        float ty0 = y;
         y += P.para(f, NsDraw::FS_HEAD * 0.92f, RX0 + 10, y, RX1 - RX0 - 10, ink, nm) + 0.5f;
+        if (y < ty0 + 10.5f) y = ty0 + 10.5f;                        /* (below the flask) */
         static const char *RISK[3] = { "low risk", "some risk", "high risk" };
         char rl[64]; snprintf(rl, sizeof rl, "Mystic number %d, %s", a.mystic, a.risk >= 0 && a.risk < 3 ? RISK[a.risk] : "?");
         P.text(fo, NsDraw::FS_SMALL, RX0, y, a.risk >= 2 ? red : soft, rl);
@@ -131,20 +133,20 @@ extern "C" void alchemyview_draw(void)
     /* ---- the apothecary's chest: a compartment an ingredient */
     {
         const float X0 = AD_CHEST_X0, X1 = AD_CHEST_X1, Y0 = AD_CHEST_Y0, Y1 = AD_CHEST_Y1, wl = 2.4f;
-        const float cx0 = X0 + wl, cy0 = Y0 + wl, cw = (X1 - wl - cx0) / 3, ch = (Y1 - wl - cy0) / 8;
+        const float cx0 = X0 + wl, cy0 = Y0 + wl, cw = (X1 - wl - cx0) / AD_CHEST_COLS, ch = (Y1 - wl - cy0) / AD_CHEST_ROWS;
         /* the label inside the lid */
-        P.rect(X0 + 14, AD_CHEST_LID + 1.8f, X1 - 14, Y0 - 1.6f, IM_COL32(236, 222, 186, 255), 0.6f);
+        P.rect((X0 + X1) * 0.5f - 34, AD_CHEST_LID + 1.6f, (X0 + X1) * 0.5f + 34, Y0 - 1.4f, IM_COL32(236, 222, 186, 255), 0.6f);
         const char *lab = "The party's ingredients";
         P.text(fo, 4.0f, (X0 + X1) * 0.5f - P.width(fo, 4.0f, lab) * 0.5f, AD_CHEST_LID + 2.6f, ink, lab);
         int tip = -1;
         for (int i = 0; i < 23; i++) {
             int id = 72 + i, hv = have[id], need = 0;
             if (sel_f >= 0 && sel_f < (int)gamedata.formulas.size()) for (const FormulaIngr &q : gamedata.formulas[sel_f].ingr) if (q.item == id) need += q.count;
-            float x0 = cx0 + (i % 3) * cw + 0.7f, y0 = cy0 + (i / 3) * ch + 0.7f, x1 = x0 + cw - 1.4f, y1 = y0 + ch - 1.4f;
+            float x0 = cx0 + (i % AD_CHEST_COLS) * cw + 0.7f, y0 = cy0 + (i / AD_CHEST_COLS) * ch + 0.7f, x1 = x0 + cw - 1.4f, y1 = y0 + ch - 1.4f;
             bool hov = P.over(x0, y0, x1, y1);
             if (hov) { tip = id; P.dl->AddRect(NsDraw::w(x0, y0), NsDraw::w(x1, y1), IM_COL32(250, 214, 130, 255), 0, 0, 1.5f); }
             if (need) P.dl->AddRect(NsDraw::w(x0 + 0.3f, y0 + 0.3f), NsDraw::w(x1 - 0.3f, y1 - 0.3f), hv >= need ? IM_COL32(150, 214, 120, 255) : IM_COL32(240, 110, 86, 255), 0, 0, 2.0f);
-            float is = fminf(ch * 0.66f, cw * 0.5f), icx = (x0 + x1) * 0.5f, icy = (y0 + y1) * 0.5f;   /* (in the middle of its compartment) */
+            float is = fminf(ch * 0.5f, cw * 0.5f), icx = (x0 + x1) * 0.5f, icy = (y0 + y1) * 0.5f;   /* (in the middle of its compartment) */
             P.icon(icx, icy, is, id);
             if (!hv) P.dl->AddCircleFilled(NsDraw::w(icx, icy), is * 0.72f * P.k, IM_COL32(40, 24, 12, 175));   /* (none: the compartment empty, its sign faint) */
             if (need) {                                              /* a paper tag: needed for a batch, and at hand */
@@ -183,17 +185,18 @@ extern "C" void alchemyview_draw(void)
             P.text(f, NsDraw::FS_HEAD, bx + 13 - P.width(f, NsDraw::FS_HEAD, cnt) * 0.5f, y - 0.4f, wax, cnt);
             float px = bx + 18;
             if (a.can_more) { if (P.button(px, y, px + 8, y + 7.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(AV_MORE, 0, 0, 0); }
-            else { P.button_off(px, y, px + 8, y + 7.5f, "+", NsDraw::FS_BODY); P.text(fo, NsDraw::FS_SMALL, px + 11, y + 1.4f, wax_red, "not enough for more"); }
-            y += 9.5f;
+            else P.button_off(px, y, px + 8, y + 7.5f, "+", NsDraw::FS_BODY);
+            y += 9.0f;
+            if (!a.can_more) { P.text(fo, NsDraw::FS_SMALL, X0, y, wax_red, "not enough for more", -1, X1); y += 6.0f; }
             int pc = a.page && a.count > 0 ? a.pct : a.pct1;
-            char chs[64]; snprintf(chs, sizeof chs, a.page && a.count > 0 ? "Chance of success %d%%" : "Chance with one batch %d%%", pc);
+            char chs[64]; snprintf(chs, sizeof chs, a.page && a.count > 0 ? "Chance %d%%" : "Chance, one batch: %d%%", pc);
             P.text(f, NsDraw::FS_NAME, X0, y, pc >= 50 ? wax_green : wax_red, chs);
             y += 7.5f;
-            if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.text(fo, NsDraw::FS_SMALL, X0, y, wax, ns_gtext(a.note), -1, X1);
+            if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.para(fo, NsDraw::FS_SMALL, X0, y, X1 - X0, wax, ns_gtext(a.note));
             else {
                 char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d Int + %d Alchemy - %d mystic%s",
                                           a.base, a.intel, a.alch, a.mystic, a.stone ? (" + " + std::to_string(a.stone) + " Stone").c_str() : "");
-                P.text(fo, 4.2f, X0, y, wax_soft, parts, -1, X1);
+                P.para(fo, 4.0f, X0, y, X1 - X0, wax_soft, parts);
             }
         } else P.para(fo, NsDraw::FS_SMALL, X0, Y0 + 2, X1 - X0, wax_soft, "Choose a formula in the book.");
     }
