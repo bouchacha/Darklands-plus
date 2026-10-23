@@ -912,12 +912,15 @@ std::string journal_where_sold(int id)
 static void ingredients_page(void)
 {
     int px = 0, py = 0; bool here = party_where(&px, &py);
-    ImGui::TextWrapped("Where each alchemical ingredient is sold, in the towns the party has visited (bought ingredients are always "
+    ImGui::TextWrapped("How many of each alchemical ingredient the party carries, and where each is sold in the towns the party has visited (bought ingredients are always "
                        "quality 25)%s.", here ? ": the nearest town first; hold the pointer over a row to see every town" : "");
-    if (ImGui::BeginTable("ingr", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
+    int have[200] = {};                                    /* what the party carries now (all its members) */
+    { GmItem g; for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count; }
+    if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
                           ImVec2(0, ImGui::GetContentRegionAvail().y))) {
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
+        ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed, UIS(70));
         ImGui::TableSetupColumn(here ? "Nearest town" : "Sold at", ImGuiTableColumnFlags_WidthStretch, 1.0f);
         ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch, 1.2f);
         ImGui::TableHeadersRow();
@@ -933,6 +936,8 @@ static void ingredients_page(void)
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             icon_name_cell(id, item_name(id).c_str());
+            ImGui::TableNextColumn();
+            if (have[id]) ImGui::Text("%d", have[id]); else ImGui::TextDisabled("none");
             ImGui::TableNextColumn();
             if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
             int cheapest = 0; for (size_t k = 1; k < at.size(); k++) if (at[k].price < at[cheapest].price) cheapest = (int)k;
