@@ -101,6 +101,7 @@ int testcmd_run(const char *cmd, const char *arg)
             fprintf(stderr, "losall: %d agree (%d blocked), %d differ\n", agree, blocked, differ);
         }
         else if (!strcmp(cmd, "ushoot")) { int i = 0, t = 5; sscanf(arg, "%d,%d", &i, &t); void orders_test_shoot(int, int); orders_test_shoot(i, t); }   /* test: member i shoots at t (as ordered) */
+        else if (!strcmp(cmd, "uskysheet")) { void banner_sky_sheet(int); banner_sky_sheet(atoi(arg)); }   /* test: the travel map's sky box at every second hour */
         else if (!strcmp(cmd, "uaim")) {               /* test: who shoots, and the aim under the pointer */
             extern int orders_member_mode(int m); extern int orders_aim(int *who, int *foe);
             for (int m = 0; m < 5; m++) fprintf(stderr, "aim: member %d mode %d weapon %d order %#x\n", m, orders_member_mode(m), (s8)g_rb((u16)(0x9c55 + m * 0x80 + 0x22)), g_rw((u16)(0x9c55 + m * 0x80 + 0x10)));
