@@ -214,7 +214,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     struct E { const char *key; int id; };
     static const E T[] = { { "display.panel_losses", 1 }, { "battle.bars", 2 }, { "battle.bars_hurt", 3 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
-                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.alchemy_art", 16 }, { "display.shop_compare", 17 } };
+                           { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.shop_compare", 17 } };
     int id = 0;
     for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
     if (!id) return false;

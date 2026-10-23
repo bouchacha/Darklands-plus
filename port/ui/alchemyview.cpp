@@ -34,10 +34,12 @@ extern "C" void alchemyview_draw(void)
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM, red = NsDraw::RED, green = NsDraw::GREEN;
     /* display.alchemy_art: the game's own desk (ALCSCRN0.PIC: the open book, the bowl, the bag, the
        ribbon), the formulas on the book's left page, the chosen one on its right */
-    const GamePic *desk = config_get_int("display.alchemy_art", 1) ? gamepic("PICS\\ALCSCRN0.PIC") : nullptr;
-    const bool art = desk && desk->tex;
+    const int look = config_get_int("display.alchemy_art", 2);     /* 0 a plain page, 1 the game's picture, 2 drawn anew (ui/alchemydesk.cpp) */
+    const GamePic *desk = look == 1 ? gamepic("PICS\\ALCSCRN0.PIC") : nullptr;
+    const bool art = (desk && desk->tex) || look == 2;
     const ImU32 cream = IM_COL32(244, 230, 196, 255), cream_soft = IM_COL32(226, 204, 160, 235);
-    if (art) {
+    if (look == 2) { void alchemy_desk_draw(float t); alchemy_desk_draw((float)ImGui::GetTime()); if (orn_on()) orn_frame(P.dl, NsDraw::w(60, 0), NsDraw::w(320, 200), 1.9f * P.k); }
+    else if (art) {
         P.dl->AddImage((ImTextureID)(intptr_t)desk->tex, NsDraw::w(60, 0), NsDraw::w(320, 200), ImVec2(60.0f / 320, 0), ImVec2(1, 1));
         if (orn_on()) orn_frame(P.dl, NsDraw::w(60, 0), NsDraw::w(320, 200), 1.9f * P.k);
     } else P.page();
