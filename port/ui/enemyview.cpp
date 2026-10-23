@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string>
 #include "nsdraw.h"
+#include "ornament.h"
 #include "gamepics.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -38,21 +39,27 @@ extern "C" void enemyview_draw(void)
     if (ch > 62) ch = 62;
     const float Y1 = Y0 + 14 + rows * (ch + 3) + 1;
     P.rect(60, 0, 320, 200, IM_COL32(20, 12, 6, 120));
+    P.dl->AddRectFilled(NsDraw::w(X0 + 2, Y0 + 3), NsDraw::w(X1 + 2, Y1 + 3), IM_COL32(0, 0, 0, 110), 3 * P.k);
     P.rect(X0, Y0, X1, Y1, IM_COL32(242, 230, 200, 252), 2);
-    P.frame(X0, Y0, X1, Y1, IM_COL32(120, 80, 36, 180), 2);
-    P.text(f, NsDraw::FS_TITLE, X0 + 4, Y0 + 1.5f, ink, "The enemy");
+    if (orn_on()) { orn_parchment_edges(P.dl, NsDraw::w(X0, Y0), NsDraw::w(X1, Y1), 5 * P.k); orn_gilt_frame(P.dl, NsDraw::w(X0, Y0), NsDraw::w(X1, Y1), 5 * P.k); }
+    else P.frame(X0, Y0, X1, Y1, IM_COL32(120, 80, 36, 180), 2);
+    P.text(f, NsDraw::FS_TITLE, X0 + 5, Y0 + 2, IM_COL32(130, 30, 18, 255), "The enemy");     /* (a rubric, as a bestiary's) */
     P.text(fo, NsDraw::FS_SMALL, 0, Y0 + 4, dim, "press a key or click to return to the battle", X1 - 4);
     float cw = (X1 - X0 - 6 - (cols - 1) * 3) / cols;
     int size = gm_party_size(); if (size < 0 || size > 5) size = 0;
     for (int i = 0; i < m.n; i++) {
         const EnemyKind &e = m.k[i];
         float x = X0 + 3 + (i % cols) * (cw + 3), y = Y0 + 14 + (i / cols) * (ch + 3);
-        P.rect(x, y, x + cw, y + ch, IM_COL32(234, 220, 190, 255), 1.5f);
+        P.rect(x, y, x + cw, y + ch, IM_COL32(236, 224, 196, 255), 1.5f);
+        P.dl->AddRect(NsDraw::w(x + 0.6f, y + 0.6f), NsDraw::w(x + cw - 0.6f, y + ch - 0.6f), IM_COL32(110, 70, 34, 170), 1.2f * P.k, 0, fmaxf(1.0f, 0.5f * P.k));
+        P.dl->AddRect(NsDraw::w(x + 1.6f, y + 1.6f), NsDraw::w(x + cw - 1.6f, y + ch - 1.6f), IM_COL32(150, 40, 26, 90), 1.0f * P.k, 0, 1.0f);
         float tx = x + 3;
-        if (const GamePic *g = gamepic(e.pic)) {
-            float ph = fminf(ch - 6, 34.0f), pw = g->w * ph / (g->h ? g->h : 1);
-            P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(x + 3, y + 3), NsDraw::w(x + 3 + pw, y + 3 + ph));
-            tx = x + 6 + pw;
+        if (const GamePic *g = gamepic(e.pic)) {                /* the figure in a small framed miniature */
+            float ph = fminf(ch - 7, 34.0f), pw = g->w * ph / (g->h ? g->h : 1);
+            P.dl->AddRectFilledMultiColor(NsDraw::w(x + 3, y + 3), NsDraw::w(x + 5 + pw, y + 5 + ph), IM_COL32(60, 80, 60, 255), IM_COL32(60, 80, 60, 255), IM_COL32(90, 110, 70, 255), IM_COL32(90, 110, 70, 255));
+            P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(x + 4, y + 4), NsDraw::w(x + 4 + pw, y + 4 + ph));
+            P.dl->AddRect(NsDraw::w(x + 3, y + 3), NsDraw::w(x + 5 + pw, y + 5 + ph), IM_COL32(196, 150, 70, 255), 0, 0, fmaxf(1.0f, 0.6f * P.k));
+            tx = x + 8 + pw;
         }
         P.text(f, NsDraw::FS_HEAD, tx, y + 1.5f, ink, ns_gtext(e.name), -1, x + cw - 2);
         char b[160];
