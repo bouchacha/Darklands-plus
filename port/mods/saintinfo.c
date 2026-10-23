@@ -19,6 +19,7 @@
 #include <string.h>
 #include "fixes.h"
 #include "saintinfo.h"
+#include "sheetview.h"
 
 /* does / unlike: the game's code; st_does / st_unlike: with the sainttexts fix (0: the same), st_arm:
    that needs armourday (else the game's help); cards: the encounters that call for the saint */
@@ -77,7 +78,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Charisma and Perception +1 to 15, Speak Common +10 to 29.",
       "",
       0, 0, 0, 12 },   /* 17 St.Catherine of Siena */
-    { "Charisma +3 to 10. If the one prayed for carries a musical instrument, the reputation of the town the party is in (on the map: the nearest) may rise by 20 to 59.",
+    { "Charisma +3 to 10. @INSTR, the reputation of the town the party is in (on the map: the nearest) may rise by 20 to 59.",
       "",
       0, 0, 0, 7 },   /* 18 St.Cecilia */
     { "Perception and Intelligence +3 to 5, Strength +6 to 11, every weapon skill and Latin +6 to 11.",
@@ -438,6 +439,7 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
 {
     int arm = fix_is_on("armourday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
     (void)s;
+    if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If the party carries a musical instrument (the shared pack: anyone's counts, whoever is prayed for)" : "If the one prayed for carries a musical instrument";
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
         fire ? "Meant as protection against fire, but the code writes it into the armour, for good (with the fire protection fix on, it does nothing)."
              : "Meant as protection against fire, it gives the one prayed for armour +32 in battle instead, for good.";

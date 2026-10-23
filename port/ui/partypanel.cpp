@@ -28,6 +28,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/gamemodel.h"
 #include "../mods/nscreen.h"
+extern "C" int combat_improved(void);
 #include "../runtime/gamevars.h"
 #include "../third_party/stb/stb_image.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
@@ -225,7 +226,7 @@ static const char *order_word(char c, int place, bool shortw)
     case 'X': W("leaves", "leaves the battlefield by the chosen exit");
     case 'H': W("halts", "halts and stands where they are");
     case 'b':
-        if (config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0))
+        if (combat_improved())
             W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
         W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
     case 'e': W("no shot", "has nothing left to shoot or throw: give another order");

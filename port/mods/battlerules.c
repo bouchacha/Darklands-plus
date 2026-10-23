@@ -51,7 +51,9 @@
 #include "battlerules.h"
 
 
-static int on_past(void) { return config_get_int("battle.shoot_past_allies", 1) && !config_get_int("original", 0); }
+/* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
+int combat_improved(void) { return config_get_int("battle.improved", 1) && !config_get_int("original", 0); }
+static int on_past(void) { return combat_improved(); }
 #define CBT(i) ((u16)(GV_combatants + (i) * 0x80))
 static int on_reposition(void);
 
@@ -94,7 +96,7 @@ static void blocked_hook(void)                /* line_blocked (a, b, mode) */
 #define HELD(i) ((u16)(GV_cbt_mods + (i) * 0x12 + 9))      /* cbt_mods[i].held */
 #define PATH_STEP(i) ((u16)(GV_cbt_path_step + (i)))
 
-static int on_reposition(void) { return config_get_int("battle.reposition_shooters", 0) && !config_get_int("original", 0); }
+static int on_reposition(void) { return combat_improved(); }
 static signed char walk_for[5] = { -1, -1, -1, -1, -1 };  /* the target a member walks aside to shoot */
 static int walk_x[5], walk_y[5];                          /* to where */
 static signed char approach[5];                           /* the walk is towards the foe, until a line opens */
@@ -241,7 +243,7 @@ void battlerules_test_missile(int i, int t)
 
 /* ---------------------------------------------------------------- the next foe within reach */
 #define AISEG ((u16)(LOADSEG + 0x20a5))
-static int on_near(void) { return config_get_int("battle.retarget_near", 1) && !config_get_int("original", 0); }
+static int on_near(void) { return combat_improved(); }
 static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), called by ai_rethink only */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));

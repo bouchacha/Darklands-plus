@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+int combat_improved(void);     /* battle.improved (and not the original game) */
 void battlerules_init(void);
 void battlerules_test_missile(int i, int t);
 #ifdef __cplusplus

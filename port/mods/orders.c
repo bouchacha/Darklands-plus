@@ -16,6 +16,8 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "battlerules.h"
+#include "losaim.h"
 
 #define D_ORDER_ACTION GV_order_action   /* int: the attack chosen in order mode (-1 none, 1 walk ...) */
 #define D_SELECTED     GV_selected_member   /* char: the member given orders */
@@ -110,7 +112,7 @@ int orders_member_mode(int m)                   /* 1 shoot, 0 melee, -1 no missi
     int v = config_get_int(key, -1);
     if (v == 0 || v == 1) return v;
     (void)wd;
-    return config_get_int("battle.click_best", 1) != 0;   /* (until switched: everyone with a missile weapon shoots first) */
+    return combat_improved();   /* (until switched: with improved combat, everyone with a missile weapon shoots first) */
 }
 
 /* the melee attack member i opens with against foe t: Vulnerable (0x0a: 1d4 more penetration, fewer
@@ -119,7 +121,7 @@ int orders_member_mode(int m)                   /* 1 shoot, 0 melee, -1 no missi
    +0x4b) but would with the extra 1d4 (battle.auto_vulnerable); else Std Attack */
 static int melee_kind(int i, int t)
 {
-    if (!config_get_int("battle.auto_vulnerable", 1) || t < 5 || t >= 13) return STD_ATTACK;
+    if (!combat_improved() || t < 5 || t >= 13) return STD_ATTACK;
     int w = (s8)g_rb((u16)(D_CBT + i * 0x80 + 0x51)), at = g_rb((u16)(D_CBT + t * 0x80 + 0x4b));
     if (w < 0 || w > 62 || at == 0xff) return STD_ATTACK;
     int pen = rb(G_FAR20A5, (u16)(0x76a8 + w)) & 15, h = rb(G_FAR20A5, (u16)(0x781e + at));
@@ -152,7 +154,7 @@ static int best_attack(int i, int m)
     int mode = orders_member_mode(i);
     if (mode < 0) return melee;
     if (rb(G_FAR20A5, (u16)(0x7900 + i * 13 + m))) return melee;   /* beside it: hand to hand */
-    if (mode == 0 || near_foe_of(i, m)) {
+    if (mode == 0 || (!combat_improved() && near_foe_of(i, m))) {   /* (improved combat: a shooter shoots until the foe is beside it) */
         /* hand to hand, unless there is no way to the foe at all (hemmed in by others): then a shot,
            if the member has a missile weapon and something to loose */
         u16 tx = g_rw((u16)(c + 8)), ty = g_rw((u16)(c + 0x0a));
@@ -171,6 +173,7 @@ static int best_attack(int i, int m)
     int blocked = ns_call(GF_line_blocked, 3, i, m, 0x80);
     g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
     if (blocked && getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no clear line to %d\n", i, m);
+    if (blocked && combat_improved()) return MISSILE;                   /* (it steps aside for a line: mods/battlerules.c) */
     return blocked ? melee : MISSILE;
 }
 
@@ -184,10 +187,12 @@ static int best_attack(int i, int m)
    or whose line is blocked ('b') while its target is already fighting one of the party, walks to
    its target and fights it (path_find, path_give, order_queue: the leave's way for a foe further
    off). The volley before the lines meet is the shooters'; the melee after it is everyone's. */
-static int volley_on(void) { return config_get_int("battle.volley_melee", 1) && !config_get_int("original", 0); }
+static int volley_on(void) { return combat_improved(); }
+static signed char by_volley[5];     /* put the missile weapon away for a foe beside it (improved combat): the bow again once none is */
 static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
+    by_volley[i] = 1;
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + 0x51)), 0);
     g_wb((u16)(c + 0x4a), (u8)t);
     int kind = melee_kind(i, t);
@@ -203,50 +208,104 @@ static void to_melee(int i, int t, int beside)
     g_wb((u16)(GV_cbt_state + i), 0);
     fprintf(stderr, "orders: member %d puts the missile weapon away for %d (%s)\n", i, t, beside ? "beside it" : "walking to it");
 }
-/* the member's next shot comes soon: loosing, ready, aiming, or near the end of reloading
-   (cbt_missile_action, s014 0e76:1288: action 1 loose, 9 reload, 10 aim, 7 ready; the aim ends at
-   DS:daa3[i], in combat clock ticks) - a foe a few paces off is shot at first */
-#define D_AIM_END 0xdaa3
-static int shot_soon(int i)
-{
-    if (g_rb((u16)(GV_cbt_state + i))) return 0;                              /* (no line, nothing to shoot) */
-    int a = g_rb((u16)(GV_cbt_action + i));
-    if (a == 1 || a == 7 || a == 10) return 1;
-    if (a == 9) return (s16)(g_rw((u16)(D_AIM_END + 2 * i)) - g_rw(GV_combat_clock)) <= 30;
-    return 0;
-}
 /* battle.retarget_shots: the game drops a shooter's order when its mark falls (the order back to
    0); the member then stands with the bow until told again. Here it shoots at the nearest foe still
    standing on its floor */
+/* a clear line of fire from member i to foe j, where i stands (line_blocked, s014 1d69:000c, as the shot is tested) */
+static int line_clear(int i, int j)
+{
+    u16 c = (u16)(D_CBT + i * 0x80);
+    u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
+    g_ww(GV_los_x0, g_rw((u16)(c + 4))); g_ww(GV_los_y0, g_rw((u16)(c + 6)));
+    g_ww(GV_los_x1, g_rw((u16)(D_CBT + j * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(D_CBT + j * 0x80 + 6)));
+    int blocked = ns_call(GF_line_blocked, 3, i, j, 0x80);
+    g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
+    return !blocked;
+}
 static signed char shot_at[5] = { -1, -1, -1, -1, -1 };
+static int shot_target(int i, int *clear_out);
 static void retarget_shooters(void)
 {
-    if (!config_get_int("battle.retarget_shots", 1) || config_get_int("original", 0)) return;
+    if (!combat_improved()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
         int ord = g_rw((u16)(c + 0x10)), t = (s8)g_rb((u16)(c + 0x4a));
         if (g_rb((u16)(c + 0x14)) != 1) { shot_at[i] = -1; continue; }
         if (getenv("DL_SHOT_LOG") && ord != 0) fprintf(stderr, "shots: %d order %#x target %d\n", i, ord, t);
-        if (ord == MISSILE) { shot_at[i] = (signed char)t; continue; }
+        if (ord == MISSILE && t >= 5 && t < 13 && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1) { shot_at[i] = (signed char)t; continue; }
+        if (ord == MISSILE && shot_at[i] < 5) shot_at[i] = 5;                 /* (the order kept, its mark gone (-1, or fallen): a new mark now, below) */
         if (shot_at[i] < 5) continue;
-        if (g_rb((u16)(D_CBT + shot_at[i] * 0x80 + 0x14)) == 1) { shot_at[i] = -1; continue; }   /* (its mark stands: the order changed for another reason) */
+        if (ord != MISSILE && g_rb((u16)(D_CBT + shot_at[i] * 0x80 + 0x14)) == 1) { shot_at[i] = -1; continue; }   /* (its mark stands: the order changed for another reason) */
         /* its mark has just fallen: whatever the game's AI gave it instead (to walk at someone, to
            fight hand to hand), it shoots again */
         { int wm = (s8)g_rb((u16)(c + 0x22)); if (wm < 0 || wm > 62) { shot_at[i] = -1; continue; } }   /* (no missile weapon now) */
-        int best = -1; long bd = 0;
-        int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
-        for (int j = 5; j < 13; j++) {
-            u16 d = (u16)(D_CBT + j * 0x80);
-            if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
-            long dx = (s16)g_rw((u16)(d + 4)) - x, dy = ((s16)g_rw((u16)(d + 6)) - y) * 2;
-            if (best < 0 || dx * dx + dy * dy < bd) { best = j; bd = dx * dx + dy * dy; }
-        }
+        { int beside = 0; for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+          if (beside) { shot_at[i] = -1; continue; } }                       /* (a foe beside it: hand to hand first, the bow after: back_to_bow) */
+        /* the nearest foe on its floor with a clear line from where it stands; none: the nearest (the
+           stepping aside finds a spot to shoot it from, mods/battlerules.c) */
+        int best_clear = 0, best = shot_target(i, &best_clear);
+        if (ns_unwinding) return;
         shot_at[i] = -1;
         if (best < 0) continue;
         g_ww((u16)(c + 0x10), MISSILE); g_wb((u16)(c + 0x4a), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
         shot_at[i] = (signed char)best;
-        fprintf(stderr, "orders: member %d's mark fell: now shoots at %d\n", i, best);
+        fprintf(stderr, "orders: member %d's mark fell: now shoots at %d (%s)\n", i, best, best_clear ? "a clear line" : "no clear line: steps aside for one");
     }
+}
+/* the foe a shooter turns to: the nearest on its floor with a clear line; none: the nearest */
+static int shot_target(int i, int *clear_out)
+{
+    u16 c = (u16)(D_CBT + i * 0x80);
+    int best = -1, best_clear = 0; long bd = 0;
+    int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
+    for (int j = 5; j < 13; j++) {
+        u16 d = (u16)(D_CBT + j * 0x80);
+        if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
+        long dx = (s16)g_rw((u16)(d + 4)) - x, dy = ((s16)g_rw((u16)(d + 6)) - y) * 2, dd = dx * dx + dy * dy;
+        int clear = line_clear(i, j);
+        if (ns_unwinding) return -1;
+        if (best < 0 || clear > best_clear || (clear == best_clear && dd < bd)) { best = j; bd = dd; best_clear = clear; }
+    }
+    if (clear_out) *clear_out = best_clear;
+    return best;
+}
+/* a shooter who fought a foe beside it: with none beside it now, the missile weapon again, at the
+   next foe (as the game readies it for Use Missile, s014 19cd order_mode_leave) */
+static void back_to_bow(void)
+{
+    for (int i = 0; i < 5; i++) {
+        if (!by_volley[i]) continue;
+        u16 c = (u16)(D_CBT + i * 0x80);
+        int f = (s16)g_rw((u16)(c + 0x10)), wm = (s8)g_rb((u16)(c + 0x22));
+        if (g_rb((u16)(c + 0x14)) != 1 || f == MISSILE || f == 1 || wm < 0 || wm > 62 || orders_member_mode(i) != 1) { by_volley[i] = 0; continue; }   /* (fallen, shooting, walking where sent, or set to fight) */
+        int beside = 0;
+        for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+        if (beside) continue;
+        int clear = 0, t = shot_target(i, &clear);
+        if (ns_unwinding) return;
+        by_volley[i] = 0;
+        if (t < 0) continue;
+        ns_call(GF_weapon_ready, 3, i, wm, 0x80);
+        g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+        g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
+        g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
+        g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+        fprintf(stderr, "orders: member %d has no foe beside it now: the missile weapon again, at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
+    }
+}
+/* test (ushoot:i,t): member i told to shoot at t, as the order's click gives it */
+void orders_test_shoot(int i, int t)
+{
+    if (i < 0 || i > 4 || t < 5 || t > 12) return;
+    u16 c = (u16)(D_CBT + i * 0x80);
+    int wm = (s8)g_rb((u16)(c + 0x22));
+    if (wm < 0 || wm > 62) { fprintf(stderr, "orders: test: %d has no missile weapon\n", i); return; }
+    ns_call(GF_weapon_ready, 3, i, wm, 0x80);
+    g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+    g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
+    g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
+    g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+    fprintf(stderr, "orders: test: %d shoots at %d\n", i, t);
 }
 /* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
    to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
@@ -254,7 +313,7 @@ static void retarget_shooters(void)
 static int kept_kind[5] = { -1, -1, -1, -1, -1 };
 static void keep_kinds(void)
 {
-    if (config_get_int("original", 0)) return;
+    if (!combat_improved()) return;
     for (int i = 0; i < 5; i++) {
         if (kept_kind[i] < 0) continue;
         u16 c = (u16)(D_CBT + i * 0x80);
@@ -270,6 +329,8 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (ns_unwinding || g_rb(GV_ai_paused)) return;
     keep_kinds();
     retarget_shooters();
+    if (combat_improved()) back_to_bow();
+    if (ns_unwinding) return;
     if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
@@ -279,14 +340,11 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         for (int j = 5; j < 13; j++)
             if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { if (near < 0 || j == t) near = j; }
         if (near >= 0) { to_melee(i, near, 1); continue; }
-        for (int j = 5; j < 13 && near < 0; j++)                              /* (a foe within some five paces: it closes in) */
-            if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && g_rb((u16)(GV_cbt_floor + j)) == g_rb((u16)(GV_cbt_floor + i)) && near_foe_of(i, j)) near = j;
-        if (near >= 0 && !shot_soon(i)) { to_melee(i, near, 0); continue; }
-        if (near >= 0) continue;                                              /* (the shot first: the foe is not yet beside it) */
+        /* (a foe some paces off, coming: the shooter goes on shooting it, and fights hand to hand once it is beside) */
         if (t < 5 || t >= 13 || g_rb((u16)(D_CBT + t * 0x80 + 0x14)) != 1) continue;
         int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;
         for (int p = 0; p < 5; p++) if (p != i && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + t))) engaged = 1;
-        if (st == 2 || (st == 1 && engaged && !config_get_int("battle.reposition_shooters", 0))) to_melee(i, t, 0);
+        if (st == 2) to_melee(i, t, 0);                                  /* (nothing left to shoot; a line blocked is the stepping aside's: mods/battlerules.c) */
     }
 }
 
@@ -360,7 +418,11 @@ const char *orders_hint(void)
     }
     if (hint_ct < 5 || hint_ct >= 13) return 0;
     switch (a) {
-    case MISSILE: return "Click: shoot";
+    case MISSILE: {
+        int w, f;                                                  /* (improved combat: a shooter with no line moves for one) */
+        if (combat_improved() && aim_of(&w, &f) == MISSILE && f == hint_ct) { LosBox bx[4]; if (los_trace(w, f, MISSILE, bx, 4)) return "Click: shoot (moves for a clear line)"; }
+        return "Click: shoot";
+    }
     case 0x100: return "Click: throw";
     case 0x0a: return "Click: attack (Vulnerable)";
     case 6: return "Click: attack (Berserk)";
