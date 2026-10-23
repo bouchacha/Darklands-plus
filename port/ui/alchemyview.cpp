@@ -16,6 +16,8 @@
 #include "../mods/alchemyview.h"
 #include "../mods/fixes.h"
 #include "nsdraw.h"
+void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t);
+int ui_pstone_look(void);
 #include "../mods/gamemodel.h"
 #include "alchemydesk.h"
 #include <map>
@@ -65,9 +67,18 @@ extern "C" void alchemyview_draw(void)
     int sel_f = a.sel >= 0 && a.sel < a.nrows ? a.row[a.sel].formula : -1;
 
     /* the head, on the table */
-    P.rect(63, 2, 237, 19, IM_COL32(24, 12, 4, 150), 1.5f);
+    P.rect(63, 2, 214, 19, IM_COL32(24, 12, 4, 150), 1.5f);
     P.text(f, NsDraw::FS_TITLE, 65, 3, cream, "Alchemy");
-    P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, ns_gtext(a.name) + " mixes; ingredients carried by the whole party count.", -1, 236);
+    P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, ns_gtext(a.name) + " mixes; the whole party's ingredients count.", -1, 213);
+    {   /* the party's Philosopher's Stone, on its own plaque: what it adds to every batch */
+        P.rect(216, 2, 279, 19, IM_COL32(24, 12, 4, 170), 1.5f);
+        ui_pstone_draw(P.dl, NsDraw::w(225, 10.5f), 15 * P.k, ui_pstone_look(), a.stone, (float)ImGui::GetTime());
+        P.text(f, NsDraw::FS_NAME, 233, 3, a.stone ? IM_COL32(255, 196, 150, 255) : cream_soft, a.stone ? "Stone +" + std::to_string(a.stone) : std::string("No Stone"));
+        P.text(fo, NsDraw::FS_SMALL, 233, 11.5f, cream_soft, a.stone ? "to every batch" : "yet", -1, 278);
+        if (P.over(216, 2, 279, 19))
+            ns_tip(a.stone ? ("The party's Philosopher's Stone, of quality " + std::to_string(a.stone) + ": it adds " + std::to_string(a.stone) + " to the chance of every batch, whoever mixes. An alchemist or a university can make it better, for a price.").c_str()
+                           : "The party has no Philosopher's Stone yet. An alchemist or a university makes one, for a price; its quality adds to the chance of every batch.");
+    }
     if (P.button(282, 4, 316, 16, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
     /* ---- the formulary's left page: the index */
@@ -224,8 +235,8 @@ extern "C" void alchemyview_draw(void)
             y += 7.5f;
             if (a.note[0] && plat_ticks_ms() - a.note_t < 6000) P.para(fo, NsDraw::FS_SMALL, X0, y, X1 - X0, wax, ns_gtext(a.note));
             else {
-                char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d Int + %d Alchemy - %d mystic%s",
-                                          a.base, a.intel, a.alch, a.mystic, a.stone ? (" + " + std::to_string(a.stone) + " Stone").c_str() : "");
+                char parts[120]; snprintf(parts, sizeof parts, "%d (fewer batches: higher) + %d Int + %d Alchemy + %d Stone - %d mystic",
+                                          a.base, a.intel, a.alch, a.stone, a.mystic);
                 P.para(fo, 4.0f, X0, y, X1 - X0, wax_soft, parts);
             }
         } else P.para(fo, NsDraw::FS_SMALL, X0, Y0 + 2, X1 - X0, wax_soft, "Choose a formula in the book.");

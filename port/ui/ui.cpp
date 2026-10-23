@@ -1128,7 +1128,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
           dl->AddText(ImVec2((io.DisplaySize.x - ts.x) * 0.5f, (io.DisplaySize.y - ts.y) * 0.5f), IM_COL32(230, 210, 170, 255), t);
       } }
     if (!open_menu && !open_map) VT(citynav_draw_cover());
-    ui_icon_styles_draw();   /* (Go to under way: the streets passed are not shown) */
+    ui_icon_styles_draw();
+    { void ui_pstone_sheet_draw(void); ui_pstone_sheet_draw(); }   /* (test: DL_PSTONE_SHEET) */
     ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();

@@ -343,6 +343,8 @@ Fix FIXES[] = {
       "In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does.", 1 },
     { "ruinkeep", "The burnt-out keep lets the party go after searching it",
       "Searching the burnt-out ruin of a robber knight's keep ($Raubr00) ends \"as you resume your journey...\", yet the card came back to its first page, as if the party had just arrived. Now the party is back on the road, as the text says.", 1 },
+    { "rkonce", "A giver asks for a robber knight once",
+      "A town's lord or council (and any giver) always names the robber knight nearest its town; asked again a week later it gave the party the same knight a second time, as a second task with its own deadline, though the game had found the first. Now a giver who already asked the party for that knight repeats the request instead of adding another.", 1 },
     { "bestteacher", "Of two teachers of one skill, the better one teaches",
       "When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals).", 1 },
 };
@@ -2438,6 +2440,27 @@ static void sneak_hook(void)
     hook_remove(GF_practice_skill_impl, sneak_practice_hook);
 }
 
+/* ---------------------------------------------------------------- rkonce
+ * A robber knight asked for (s039 1462:10b6 (who, castle, person, v, lvl, x)): the givers all pick
+ * the castle nearest their town (nearest_loc_type), so asking again names the same knight; the
+ * routine finds the task already given (event_find(8, -1, castle, -1, 3, -1)) and makes another
+ * anyway. Here a task from the same giver of the same town for that castle stands: no second one. */
+static void rkonce_hook(void)
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), castle = (s16)rw(SS, (u16)(SP + 6)), here = (s16)g_rw(G_CUR_LOC);
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i); if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + G_EV_KIND)) != 8 || (s16)rw(s, (u16)(o + G_EV_TAG)) != 3 || (s16)rw(s, (u16)(o + G_EV_LOC)) != castle
+            || (s16)rw(s, (u16)(o + G_EV_OWNER)) != who || (s16)rw(s, (u16)(o + G_EV_VALUE)) != here) continue;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix rkonce: giver %d already asked for the knight of %d (task %d)\n", who, castle, i);
+        AX = 1;
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- bestteacher
  * The inn finds a member's teacher by its skill (event_find(0x28, skill, town), the first hired):
  * with two teachers of one skill the first always taught. Here the best of them answers. */
@@ -2481,7 +2504,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { GF_event_find, bestteacher_hook } };
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

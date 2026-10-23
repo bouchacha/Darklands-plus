@@ -954,7 +954,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
         P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Chance of brewing one batch"); y += 6;
         for (int m : al) {
             if (!s.formula[m][k]) continue;
-            int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100;  /* (the alchemy screen's, without the Philosopher's Stone) */
+            int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100 + (s16)g_rw(0x9078);  /* (the alchemy screen's, one batch, with the party's Philosopher's Stone) */
             pc = pc < 0 ? 0 : pc > 99 ? 99 : pc;
             char v[64]; snprintf(v, sizeof v, "%s: %d%%", ns_gtext(s.names[m]).c_str(), pc);
             P.text(fo, NsDraw::FS_SMALL, DX0 + 4, y, ink, v); y += 6;
