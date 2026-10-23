@@ -188,7 +188,17 @@ static int best_attack(int i, int m)
    its target and fights it (path_find, path_give, order_queue: the leave's way for a foe further
    off). The volley before the lines meet is the shooters'; the melee after it is everyone's. */
 static int volley_on(void) { return combat_improved(); }
-static signed char by_volley[5];     /* put the missile weapon away for a foe beside it (improved combat): the bow again once none is */
+static signed char by_volley[5];
+static signed char player_melee[5];   /* the player told this member to fight hand to hand (order_mode_leave): the bow is not taken up again for it */
+static void leave_hook(void)                    /* s014 19cd:0738 order_mode_leave(): the order chosen applied */
+{
+    int i = (s8)g_rb(D_SELECTED);
+    hook_call_original();
+    if (ns_unwinding || i < 0 || i > 4) return;
+    int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    player_melee[i] = f != MISSILE && f != 0x100 && f != 0 && f != 1;
+    by_volley[i] = 0;
+}     /* put the missile weapon away for a foe beside it (improved combat): the bow again once none is */
 static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
@@ -274,10 +284,14 @@ static int shot_target(int i, int *clear_out)
 static void back_to_bow(void)
 {
     for (int i = 0; i < 5; i++) {
-        if (!by_volley[i]) continue;
         u16 c = (u16)(D_CBT + i * 0x80);
         int f = (s16)g_rw((u16)(c + 0x10)), wm = (s8)g_rb((u16)(c + 0x22));
-        if (g_rb((u16)(c + 0x14)) != 1 || f == MISSILE || f == 1 || wm < 0 || wm > 62 || orders_member_mode(i) != 1) { by_volley[i] = 0; continue; }   /* (fallen, shooting, walking where sent, or set to fight) */
+        /* hand to hand by our doing (by_volley) or the game's (its AI turns a shooter set upon to Parry or a
+           Std Attack), not the player's */
+        int melee = f == STD_ATTACK || f == 0x0a || f == 0x22 || f == 6;
+        if (f == MISSILE) player_melee[i] = 0;
+        if (!by_volley[i] && !(melee && !player_melee[i])) continue;
+        if (g_rb((u16)(c + 0x14)) != 1 || !melee || wm < 0 || wm > 62 || orders_member_mode(i) != 1 || g_rb((u16)(GV_cbt_moving + i))) { if (!melee) by_volley[i] = 0; continue; }   /* (fallen, shooting, walking where sent, set to fight, on its way) */
         int beside = 0;
         for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
         if (beside) continue;
@@ -635,4 +649,5 @@ void orders_init(void)
     hook_install(16, 0x1ef8, 0x156e, attack_hook);
     hook_install(GF_combat_input, input_hook);
     hook_install(GF_melee_exchanges, melee_hook);
+    hook_install(GF_order_mode_leave, leave_hook);
 }
