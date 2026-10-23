@@ -230,7 +230,18 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
 
 /* a load under way (the game's load screen and its "Difficulty is now set to ..." box): the
    interface covers the view meanwhile (ui/ui.cpp) */
-int saves_loading_cover(void) { return load_stage == 2 || load_stage == 3; }
+/* the cover over the game's load screen: while it opens and reads the save, and after, until that
+   screen (s037) is gone and the place saved in has had a moment to be drawn (it showed for a few
+   frames as the save was read: "Difficulty is now set to ...", the list) */
+int saves_loading_cover(void)
+{
+    static u32 gone_t;
+    if (load_stage == 2 || load_stage == 3) { gone_t = 0; return 1; }
+    if (!loaded_t || plat_ticks_ms() - loaded_t > 4000) return 0;
+    if (ovl_loaded[37]) { gone_t = 0; return 1; }
+    if (!gone_t) gone_t = plat_ticks_ms();
+    return plat_ticks_ms() - gone_t < 200;
+}
 
 static void askyesno_hook(void)            /* ask_yes_no(question) */
 {
