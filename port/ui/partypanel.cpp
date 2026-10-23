@@ -89,7 +89,8 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
 }
 
 /* the game's panel is on the screen: the rope frames left and right of its boxes (three
- * browns, or cyan round the member a screen is about) */
+ * browns, or cyan round the member a screen is about; by colour, or by the rope's colour numbers
+ * 130, 135 and 137, which stay while the palette fades and its colours do not match for a frame) */
 static bool frame_colour(u8 v)
 {
     const u8 *c = vga_dac + v * 3;
@@ -102,8 +103,20 @@ static bool game_panel_shown(void)
     for (int i = 0; i < 5; i++) {
         int good = 0, all = 0;
         for (int dy = 4; dy < 40; dy += 8)
-            for (int x : { 0, 1, 2, 57, 58, 59 }) { all++; if (frame_colour(rb(0xa000, (u16)((40 * i + dy) * 320 + x)))) good++; }
+            for (int x : { 0, 1, 2, 57, 58, 59 }) {
+                all++;
+                u8 v = rb(0xa000, (u16)((40 * i + dy) * 320 + x));
+                if (frame_colour(v) || v == 130 || v == 135 || v == 137) good++;   /* (or the rope's own colours by number: the same while the palette fades in, as a battle opens) */
+            }
         if (good * 5 >= all * 4) rows++;
+    }
+    if (getenv("DL_PANEL_LOG")) {                                      /* (test: the indices at the frame's spots, when the answer changes) */
+        static int last = -1;
+        if ((rows >= 3) != last) {
+            last = rows >= 3; fprintf(stderr, "panel: shown %d rows %d idx", last, rows);
+            for (int i = 0; i < 5; i++) for (int x : { 0, 1, 2, 57, 58, 59 }) fprintf(stderr, " %d", rb(0xa000, (u16)((40 * i + 12) * 320 + x)));
+            fprintf(stderr, "\n");
+        }
     }
     return rows >= 3;
 }
