@@ -9,6 +9,8 @@
 #include <math.h>
 #include <string>
 #include "nsdraw.h"
+#include "drawcache.h"
+#include "alchemydesk.h"
 #include "money.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -54,12 +56,16 @@ extern "C" void savesview_draw(void)
         P.rect(0, 0, 320, 200, IM_COL32(236, 222, 188, 255));
         P.rect(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
         P.frame(1.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
-    } else P.page();
+    } else {                                                     /* the register on the table (ui/alchemydesk.cpp's oak) */
+        ImVec2 o = NsDraw::w(60, 0), e = NsDraw::w(320, 200);
+        dc_draw(P.dl, o, e, 0x5a7e5ull, [&](ImDrawList *dl) { desk_table(dl); });
+    }
+    const ImU32 ink_t = full ? ink : IM_COL32(246, 232, 200, 255), soft_t = full ? soft : IM_COL32(226, 210, 180, 235);   /* (on the table: light letters) */
     const float L = full ? -60 : 0;                              /* (the left edge: 60 further left) */
     static unsigned seq; static float scroll; static int last_click_row = -1; static u32 last_click_t;
     if (seq != S.seq) { seq = S.seq; scroll = 0; last_click_row = -1; }
 
-    P.text(f, NsDraw::FS_TITLE, 65 + L, 3, ink, S.loading ? "Load a saved game" : "Save the game");
+    P.text(f, NsDraw::FS_TITLE, 65 + L, 3, ink_t, S.loading ? "Load a saved game" : "Save the game");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) savesview_push(SVV_CANCEL, 0);
     if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN, PB_X)) savesview_push(SVV_OK, S.sel); }
@@ -67,7 +73,7 @@ extern "C" void savesview_draw(void)
 
     float LY0 = 22;
     if (!S.loading) {
-        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft, "Save name (up to 22 characters):");
+        P.text(fo, NsDraw::FS_BODY, 65 + L, 15.5f, soft_t, "Save name (up to 22 characters):");
         P.rect(64 + L, 23, 316, 33, IM_COL32(255, 250, 236, 255), 1.5f);
         P.frame(64 + L, 23, 316, 33, IM_COL32(120, 80, 36, 160), 1.5f);
         std::string c = S.comment;
@@ -78,15 +84,23 @@ extern "C" void savesview_draw(void)
             P.rect(cx, 24.5f, cx + 0.6f, 31.5f, ink);
         }
         LY0 = 40;
-        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink, "Existing saves");
-        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft, S.sel >= 0 ? "click it again to keep it" : "click one to replace it with this save", 316);
+        P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink_t, "Existing saves");
+        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft_t, S.sel >= 0 ? "click it again to keep it" : "click one to replace it with this save", 316);
         LY0 += 5;
     }
-    else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft, "Double-click a save to load it.");
+    else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft_t, "Double-click a save to load it.");
 
     const float X0 = 63 + L, X1 = 317, Y1 = 196, ROWH = 15.5f;
+    if (!full) {                                                 /* the register: bound in leather, stitched at the spine, its ribbon */
+        P.dl->AddRectFilled(NsDraw::w(X0 - 1, LY0 - 1.5f), NsDraw::w(X1 + 2.5f, Y1 + 3.5f), IM_COL32(0, 0, 0, 100), 2.5f * P.k);
+        P.dl->AddRectFilledMultiColor(NsDraw::w(X0 - 2.5f, LY0 - 2.2f), NsDraw::w(X1 + 1.5f, Y1 + 2.5f), IM_COL32(100, 52, 28, 255), IM_COL32(90, 46, 24, 255), IM_COL32(60, 28, 14, 255), IM_COL32(70, 34, 18, 255));
+        P.dl->AddRect(NsDraw::w(X0 - 1.6f, LY0 - 1.6f), NsDraw::w(X1 + 0.6f, Y1 + 1.6f), IM_COL32(214, 170, 80, 140), 1.5f * P.k, 0, 0.8f);
+    }
     P.rect(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
     P.frame(X0, LY0 - 1, X1, Y1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
+    if (!full) {
+        for (float yy = LY0 + 2; yy < Y1; yy += 6) P.dl->AddLine(NsDraw::w(X0 - 2, yy), NsDraw::w(X0 + 1.2f, yy + 1.5f), IM_COL32(200, 180, 140, 220), fmaxf(1.0f, 0.5f * P.k));   /* (the stitches) */
+    }
     int vis = (int)((Y1 - LY0) / ROWH);
     float maxs = S.nsaves > vis ? (float)(S.nsaves - vis) : 0;
     if (P.over(X0, LY0, X1, Y1) && ns_in.wheel != 0) { scroll -= ns_in.wheel; ns_in.wheel = 0; }
