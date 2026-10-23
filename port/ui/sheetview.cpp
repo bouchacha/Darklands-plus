@@ -903,12 +903,12 @@ static void formulae(NsDraw &P, const SheetModel &s)
     y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 0.5f;
     { ImU32 ec; std::string enc = ns_item_encounters(95 + k / 3, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, ec, enc); }
     y += 1.5f;
-    P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: needed / the party has"); y += 6;
+    P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: the party has / needed"); y += 6;
     for (const FormulaIngr &g : fm.ingr) {
         int have = g.item >= 0 && g.item < 200 ? s.have[g.item] : 0;
         P.icon(DX0 + 5, y + 3, 5.5f, g.item);
         P.text(fo, NsDraw::FS_SMALL, DX0 + 9.5f, y + 0.6f, ink, ns_item_name(g.item), -1, DX1 - 20);
-        char v[16]; snprintf(v, sizeof v, "%d / %d", g.count, have);
+        char v[16]; snprintf(v, sizeof v, "%d / %d", have, g.count);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 0.6f, have >= g.count ? NsDraw::GREEN : NsDraw::RED, v, DX1 - 3);
         y += 6.6f;
     }

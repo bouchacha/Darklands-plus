@@ -144,7 +144,7 @@ extern "C" void alchemyview_draw(void)
             bool hov = P.over(x0, y0, x1, y1);
             if (hov) { tip = id; P.dl->AddRect(NsDraw::w(x0, y0), NsDraw::w(x1, y1), IM_COL32(250, 214, 130, 255), 0, 0, 1.5f); }
             if (need) P.dl->AddRect(NsDraw::w(x0 + 0.3f, y0 + 0.3f), NsDraw::w(x1 - 0.3f, y1 - 0.3f), hv >= need ? IM_COL32(150, 214, 120, 255) : IM_COL32(240, 110, 86, 255), 0, 0, 2.0f);
-            float is = fminf(ch * 0.62f, cw * 0.42f), icx = x0 + is * 0.62f + 0.6f, icy = (y0 + y1) * 0.5f;
+            float is = fminf(ch * 0.66f, cw * 0.5f), icx = (x0 + x1) * 0.5f, icy = (y0 + y1) * 0.5f;   /* (in the middle of its compartment) */
             P.icon(icx, icy, is, id);
             if (!hv) P.dl->AddCircleFilled(NsDraw::w(icx, icy), is * 0.72f * P.k, IM_COL32(40, 24, 12, 175));   /* (none: the compartment empty, its sign faint) */
             if (need) {                                              /* a paper tag: needed for a batch, and at hand */
@@ -152,9 +152,10 @@ extern "C" void alchemyview_draw(void)
                 float tw = P.width(fo, 4.0f, tg) + 2.2f, tx1 = x1 - 0.5f, ty0 = y0 + 1.2f;
                 P.rect(tx1 - tw, ty0, tx1, ty0 + 5.6f, IM_COL32(238, 226, 196, 255), 0.6f);
                 P.text(fo, 4.0f, tx1 - tw + 1.1f, ty0 + 0.5f, hv >= need ? green : red, tg);
-            } else if (hv) {
+            } else if (hv) {                                         /* how many, in the compartment's lower right corner */
                 std::string c = std::to_string(hv);
-                P.text(fo, 4.6f, x1 - 1.2f - P.width(fo, 4.6f, c), (y0 + y1) * 0.5f - 2.6f, cream, c);
+                float cwid = P.width(fo, 4.4f, c);
+                P.text(fo, 4.4f, x1 - 1.0f - cwid, y1 - 5.6f, cream, c);
             }
         }
         if (tip >= 0) {

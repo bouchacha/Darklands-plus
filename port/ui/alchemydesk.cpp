@@ -149,9 +149,9 @@ void chest(ImDrawList *dl, float k, float u)
     }
     for (int c = 0; c < 4; c++) {                                  /* brass corner plates */
         float x = c & 1 ? X1 : X0, y = c & 2 ? Y1 : Y0;
-        ImVec2 p = W(x + (c & 1 ? -2.5f : 2.5f), y + (c & 2 ? -2.5f : 2.5f));
-        dl->AddRectFilled(ImVec2(p.x - 2.5f * u, p.y - 2.5f * u), ImVec2(p.x + 2.5f * u, p.y + 2.5f * u), IM_COL32(196, 150, 70, 255), 0.6f * u);
-        orn_rivet(dl, p, 0.9f * u);
+        ImVec2 p = W(x + (c & 1 ? -1.2f : 1.2f), y + (c & 2 ? -1.2f : 1.2f));      /* (on the wall's corner, clear of the compartments) */
+        dl->AddRectFilled(ImVec2(p.x - 1.6f * u, p.y - 1.6f * u), ImVec2(p.x + 1.6f * u, p.y + 1.6f * u), IM_COL32(196, 150, 70, 255), 0.4f * u);
+        orn_rivet(dl, p, 0.7f * u);
     }
 }
 
