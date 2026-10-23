@@ -517,9 +517,9 @@ static void display_icons(void)
         cardview_key_mark_preview(dl, a, b, v);
     });
     ImGui::TextUnformatted("The boats' routes on the world map");
-    static const int BSV[4] = { 0, 1, 2, 3 };
-    static const char *BSL[4] = { "Amber on black", "Red ink", "Wake with ships", "Navy double line" };
-    pic_choice("boatstyle", "map.boat_style", 0, BSV, BSL, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+    static const int BSV[3] = { 0, 1, 2 };
+    static const char *BSL[3] = { "Amber on black", "Red ink", "Wake with ships" };
+    pic_choice("boatstyle", "map.boat_style", 0, BSV, BSL, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
         void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style);
         worldmap_boat_style_preview(dl, a, b, v);
     });

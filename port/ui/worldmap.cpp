@@ -593,8 +593,8 @@ static void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b)
 }
 
 /* a boat's way, in the chosen look (map.boat_style): 0 amber dashes on a dark casing, moving; 1 a
-   chart's red ink, as the rhumb lines of a portolan, its stops dotted; 2 a ship's wake: white dots,
-   little cogs sailing along it; 3 a sea chart's double line, white in dark blue, moving. al: 255 for
+   chart's red ink, as the rhumb lines of a portolan, its dots running along; 2 a ship's wake: white
+   dots, a little cog now and then sailing along it. al: 255 for
    a boat leaving today (or any, on the world map), less for one leaving later; lit: the one chosen;
    both_ways: boats sail it both ways (most do): the dashes breathe in place rather than run one way,
    and the little ships sail both ways */
@@ -660,12 +660,20 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
     case 1:                                                       /* red ink */
         dl->AddPolyline(pts.data(), n, IM_COL32(250, 236, 200, al / 2), 0, lw * 2.2f);
         dl->AddPolyline(pts.data(), n, lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al), 0, lw * 1.1f);
-        along(lw * 16, 0, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.95f, lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al), 8); });
+        {   /* the dots run along it, as the ink of a ship's track drawn on: both ways, two rows of them going opposite ways */
+            ImU32 dc = lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al);
+            if (!both_ways) along(lw * 16, -t * lw * 8, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.95f, dc, 8); });
+            else for (int dir = 0; dir < 2; dir++)
+                along(lw * 16, dir ? t * lw * 8 : -t * lw * 8, [&](ImVec2 p, ImVec2 d) {
+                    float o = (dir ? -1.0f : 1.0f) * lw * 0.9f;
+                    dl->AddCircleFilled(ImVec2(p.x + d.y * o, p.y - d.x * o), lw * 0.8f, dc, 8);
+                });
+        }
         break;
     case 2:                                                       /* a ship's wake, and the ships on it */
         along(lw * 4.2f, 0, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.6f, IM_COL32(255, 255, 255, lit ? 255 : al * 4 / 5), 6); });
         for (int dir = 0; dir < (both_ways ? 2 : 1); dir++)     /* (both ways: half of them sail back) */
-        along(lw * 60, dir ? lw * 30 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {
+        along(lw * 200, dir ? lw * 100 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {   /* (a ship every so often, not a fleet) */
             if (dir) d = ImVec2(-d.x, -d.y);
             float h = lw * 2.6f; bool right = d.x >= 0;
             ImVec2 hull[4] = { ImVec2(p.x - h * 1.1f, p.y), ImVec2(p.x + h * 1.1f, p.y), ImVec2(p.x + h * 0.7f, p.y + h * 0.55f), ImVec2(p.x - h * 0.7f, p.y + h * 0.55f) };
@@ -675,17 +683,13 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
             dl->AddTriangleFilled(ImVec2(p.x, p.y - h * 1.45f), ImVec2(p.x, p.y - h * 0.2f), ImVec2(p.x + sx * h * 0.95f, p.y - h * 0.35f), IM_COL32(250, 246, 232, al));
         });
         break;
-    case 3:                                                       /* a sea chart's double line */
-        dl->AddPolyline(pts.data(), n, IM_COL32(16, 30, 70, lit ? 230 : al * 3 / 4), 0, lw * 2.4f);
-        dashes(lw * 6, lw * 3, lw * 14, lit ? IM_COL32(255, 244, 190, 255) : IM_COL32(236, 244, 255, al), lw * 0.9f);
-        break;
     default:                                                      /* amber dashes on a dark casing */
         dl->AddPolyline(pts.data(), n, IM_COL32(40, 22, 8, lit ? 190 : al * 2 / 3), 0, lw * 2.6f);
         dashes(9 * lw, 6 * lw, 18 * lw, lit ? IM_COL32(255, 244, 190, 255) : IM_COL32(250, 204, 104, al), lw);
         break;
     }
 }
-static int boat_style(void) { return config_get_int("map.boat_style", 0) % 4; }
+static int boat_style(void) { int v = config_get_int("map.boat_style", 0); return v >= 0 && v <= 2 ? v : 0; }
 /* the settings' picture of a boat style: a way over a strip of sea and shore, moving (ui/settings.cpp) */
 void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style)
 {
