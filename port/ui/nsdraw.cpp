@@ -444,3 +444,62 @@ const char *ns_item_section_name(int sec)
     static const char *N[6] = { "Equipped", "Potions", "Spare equipment", "Utility", "Trophies and quest things", "Ingredients" };
     return sec >= 0 && sec < 6 ? N[sec] : "";
 }
+
+/* ---------------------------------------------------------------- a merchant's counter
+   The screens where things change hands (the shop, the store room): the back wall of dark timber
+   with an awning's scalloped edge along the top, the oak counter below it (the alchemy desk's
+   table), the lists laid on it as sheets of paper with their shadows (ns_sheet). Drawn once and
+   kept (ui/drawcache.h). */
+#include "alchemydesk.h"
+#include "drawcache.h"
+void ns_counter_backdrop(NsDraw &P, float wall_to, ImU32 awning, bool stone)
+{
+    ImVec2 o = NsDraw::w(60, 0), e = NsDraw::w(320, 200);
+    unsigned long long key = 0xc0417e5ull;
+    key = dc_key(key, wall_to); key = dc_key(key, (double)awning); key = dc_key(key, stone);
+    dc_draw(P.dl, o, e, key, [&](ImDrawList *dl) {
+        desk_table(dl);
+        /* the wall: vertical boards, darker, with their seams, the counter's front edge under it */
+        ImVec2 a = NsDraw::w(60, 0), b = NsDraw::w(320, wall_to);
+        dl->AddRectFilledMultiColor(a, b, IM_COL32(58, 36, 20, 255), IM_COL32(52, 32, 18, 255), IM_COL32(40, 24, 12, 255), IM_COL32(44, 26, 14, 255));
+        if (stone) {                                           /* a cellar's wall: courses of stone blocks, lit from the upper left */
+            dl->AddRectFilledMultiColor(a, b, IM_COL32(96, 90, 80, 255), IM_COL32(86, 80, 72, 255), IM_COL32(58, 54, 48, 255), IM_COL32(64, 60, 54, 255));
+            for (int r = 0; r * 7.5f < wall_to; r++) {
+                float y0 = r * 7.5f, y1 = fminf(wall_to, y0 + 7.5f);
+                for (int c = -1; c < 14; c++) {
+                    float x0 = 60 + c * 20 + (r & 1) * 10 + (float)((r * 7 + c * 13) % 5), x1 = x0 + 19.4f;
+                    unsigned h = (unsigned)(r * 131 + c * 71) * 2654435761u; int v = (int)((h >> 24) % 30) - 15;
+                    dl->AddRectFilled(NsDraw::w(fmaxf(60, x0 + 0.6f), y0 + 0.6f), NsDraw::w(fminf(320, x1), y1 - 0.4f), IM_COL32(110 + v, 104 + v, 92 + v, 120), 1.2f * P.k);
+                    dl->AddLine(NsDraw::w(fmaxf(60, x0 + 0.6f), y0 + 0.8f), NsDraw::w(fminf(320, x1), y0 + 0.8f), IM_COL32(170, 160, 140, 70), 1.0f);
+                }
+                dl->AddLine(NsDraw::w(60, y1), NsDraw::w(320, y1), IM_COL32(30, 26, 22, 200), 1.2f);
+            }
+        } else
+        for (int i = 0; i < 18; i++) {
+            float x = 60 + i * 14.6f + (i * 37 % 5);
+            dl->AddLine(NsDraw::w(x, 0), NsDraw::w(x, wall_to), IM_COL32(20, 10, 4, 200), 1.4f);
+            dl->AddLine(NsDraw::w(x + 0.6f, 0), NsDraw::w(x + 0.6f, wall_to), IM_COL32(110, 74, 40, 60), 1.0f);
+        }
+        dl->AddRectFilledMultiColor(NsDraw::w(60, wall_to - 1.2f), NsDraw::w(320, wall_to + 2.2f), IM_COL32(120, 78, 40, 255), IM_COL32(120, 78, 40, 255), IM_COL32(60, 36, 16, 255), IM_COL32(60, 36, 16, 255));
+        dl->AddRectFilledMultiColor(NsDraw::w(60, wall_to + 2.2f), NsDraw::w(320, wall_to + 6), IM_COL32(0, 0, 0, 110), IM_COL32(0, 0, 0, 110), 0, 0);
+        /* the awning's edge: scallops in two colours */
+        if (awning) {
+            ImU32 alt = IM_COL32(236, 224, 196, 255);
+            for (int i = 0; i < 26; i++) {
+                float x0 = 60 + i * 10, xm = x0 + 5;
+                ImU32 c = i & 1 ? alt : awning;
+                dl->AddRectFilled(NsDraw::w(x0, 0), NsDraw::w(x0 + 10, 1.4f), c);
+                dl->PathClear(); dl->PathLineTo(NsDraw::w(x0, 1.4f));
+                for (int k = 0; k <= 8; k++) { float t = 3.14159f * k / 8; dl->PathLineTo(NsDraw::w(xm - cosf(t) * 5, 1.4f + sinf(t) * 2.2f)); }
+                dl->PathFillConvex(c);
+            }
+        }
+    });
+}
+/* a sheet of paper lying on the counter: its shadow, the paper (then the list is written on it) */
+void ns_sheet(NsDraw &P, float x0, float y0, float x1, float y1, ImU32 paper)
+{
+    P.dl->AddRectFilled(NsDraw::w(x0 + 1.2f, y0 + 1.8f), NsDraw::w(x1 + 1.6f, y1 + 2.2f), IM_COL32(0, 0, 0, 90), 2 * P.k);
+    P.dl->AddRectFilled(NsDraw::w(x0, y0), NsDraw::w(x1, y1), paper, 1.5f * P.k);
+    P.dl->AddRectFilledMultiColor(NsDraw::w(x0, y1 - 4), NsDraw::w(x1, y1), 0, 0, IM_COL32(120, 90, 50, 40), IM_COL32(120, 90, 50, 40));
+}

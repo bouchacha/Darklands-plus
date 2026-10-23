@@ -35,12 +35,13 @@ extern "C" void cacheview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM, red = NsDraw::RED;
-    P.page();
+    ns_counter_backdrop(P, 30, 0, true);                     /* (a cellar: stone walls, the table in it) */
+    const ImU32 cream = IM_COL32(246, 232, 200, 255), cream_soft = IM_COL32(226, 212, 186, 235);
 
     /* the header */
-    P.text(f, NsDraw::FS_TITLE, 65, 3, ink, "The store room");
-    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's items: the same store at every inn.");
-    else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, soft, "The party's items kept in " + ns_gtext(l.place) + ", for when it returns.");
+    P.text(f, NsDraw::FS_TITLE, 65, 3, cream, "The store room");
+    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, "The party's items: the same store at every inn.");
+    else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, "The party's items kept in " + ns_gtext(l.place) + ", for when it returns.");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(CV_LEAVE, 0, 0, 0);
     if (l.nitems && P.button(bx - 46, 4, bx - 3, 15, "Put away", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(CV_PUTAWAY, 0, 0, 0);
@@ -52,8 +53,8 @@ extern "C" void cacheview_draw(void)
     /* the member tabs */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9; const int NROWS = 13;
     const float LY1 = LY0 + NROWS * ROWH;
-    P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "In store");
-    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21, ink, "The party's pack");   /* (one pack: no member to choose) */
+    P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21, cream, "In store");
+    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21, cream, "The party's pack");   /* (one pack: no member to choose) */
     else {
         int n = 0; for (int m = 0; m < 5; m++) if (l.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
@@ -73,7 +74,7 @@ extern "C" void cacheview_draw(void)
     for (int L = 0; L < 2; L++) {
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
         int n = L ? l.nitems : l.nstore;
-        P.rect(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
+        ns_sheet(P, x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255));
         P.frame(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
         bool over = P.over(x0, LY0, x1, LY1) || (!L && !P.over(RX0, LY0, RX1, LY1));
         if (over && ns_in.wheel != 0) { V.scroll[L] -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -126,7 +127,7 @@ extern "C" void cacheview_draw(void)
 
     /* the strip */
     float SY0 = LY1 + 3, SY1 = 196;
-    P.rect(63, SY0, 317, SY1, IM_COL32(230, 214, 178, 255), 1.5f);
+    ns_sheet(P, 63, SY0, 317, SY1, IM_COL32(236, 222, 188, 255));
     if (V.hover_list >= 0 && (V.hover_list ? V.hover_row < l.nitems : V.hover_row < l.nstore)) {
         int L = V.hover_list, i = V.hover_row;
         int id = L ? l.item[i].id : l.store[i].id, qual = L ? l.item[i].qual : l.store[i].qual, wt = L ? l.item[i].weight : l.store[i].weight, cnt = L ? l.item[i].count : l.store[i].count;

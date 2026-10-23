@@ -76,26 +76,27 @@ extern "C" void barterview_draw(void)
     auto hit = [&](float x0, float y0, float x1, float y1) { return P.hit(x0, y0, x1, y1); };
     (void)click;
 
-    /* the page */
-    P.page();
+    /* the shop: its counter, the wall behind (ui/nsdraw.cpp) */
+    const ImU32 cream = IM_COL32(246, 232, 200, 255), cream_soft = IM_COL32(222, 204, 170, 235);
+    ns_counter_backdrop(P, 30, IM_COL32(150, 36, 26, 255));
 
     /* the header: shop, quality, purse, Leave */
     { std::string sn = gt(b.shopname); if (!sn.empty() && sn[0] >= 'a' && sn[0] <= 'z') sn[0] = (char)(sn[0] - 32);     /* ("herbalist": some cards name the shop in lower case) */
-      T(f, NsDraw::FS_TITLE, 65, 3, ink, sn, -1, 205); }
+      T(f, NsDraw::FS_TITLE, 65, 3, cream, sn, -1, 205); }
     {   /* the subtitle: the wares' quality and who haggles (or pays); the purse beside Leave, no label */
         std::string purse = money(b.total_pf), who = b.payer >= 0 && b.payer < 5 ? gt(b.names[b.payer]) : "";
         int barg = assist_bargainer();                         /* (the best charisma bargains: mods/assist.c) */
         std::string sub = "Wares " + std::to_string(shop_wares_q(b.quality)) + "q";
         if (assist_best_leader && barg >= 0 && barg < 5) sub += "  -  " + gt(b.names[barg]) + " bargains";
         else if (!who.empty()) sub += "  -  " + who + " pays";
-        T(fo, NsDraw::FS_BODY, 65, 12.5f, ink_soft, sub);
-        T(f, NsDraw::FS_HEAD, 0, 6.0f, ink, purse, 280);
+        T(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, sub);
+        T(f, NsDraw::FS_HEAD, 0, 6.0f, cream, purse, 280);
         if (P.button(284, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(BV_LEAVE, 0, 0, 0);
     }
 
     /* the member tabs (right column); the coin (or a right click): holds the purse */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9;
-    T(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "For sale");
+    T(f, NsDraw::FS_HEAD, LX0 + 1, 21, cream, "For sale");
     /* a shop with ingredients and a party that knows formulae: the formulae, to buy for batches */
     bool can_formulae = false;
     for (int i = 0; i < b.nwares && !can_formulae; i++) { const ItemDef *d = def(b.ware[i].id); if (d && d->kind == K_INGREDIENT) can_formulae = true; }
@@ -175,7 +176,7 @@ extern "C" void barterview_draw(void)
             }
         }
         int n = (int)order.size();
-        R(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
+        ns_sheet(P, x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255));
         Rl(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
         bool over = in(mx, my, x0, LY0, x1, LY1) || (!L && !in(mx, my, RX0, LY0, RX1, LY1));
         if (over && ns_in.wheel != 0) { V.scroll[L] -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -267,7 +268,7 @@ extern "C" void barterview_draw(void)
         /* the formulae the party knows whose ingredients this shop sells: what is carried, what a
            batch more needs, and +1 / +5: buy what that many batches more need (for the member of the
            tab; the game's own purchases, one by one) */
-        R(RX0, LY0 - 1, RX1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
+        ns_sheet(P, RX0, LY0 - 1, RX1, LY1 + 1, IM_COL32(250, 242, 222, 255));
         Rl(RX0, LY0 - 1, RX1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
         auto carried = [&](int id) {
             int n = 0; GmItem g;
@@ -370,7 +371,7 @@ extern "C" void barterview_draw(void)
                  spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
         V.fnote = t; V.fhead = "Spare gear";
     }
-    R(63, SY0, 317, SY1, IM_COL32(230, 214, 178, 255), 1.5f);
+    ns_sheet(P, 63, SY0, 317, SY1, IM_COL32(236, 222, 188, 255));
     if (!V.fnote.empty()) {
         T(f, NsDraw::FS_HEAD, 68, SY0 + 1.5f, ink, V.fhead.empty() ? "For the formula" : V.fhead);
         P.para(fo, NsDraw::FS_BODY, 68, SY0 + 10, 245, ink_soft, V.fnote);

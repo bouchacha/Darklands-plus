@@ -522,7 +522,7 @@ static int give_pending, foe_pending = -1;
    D_d6f1, entering order mode at its first tick; that pause is the battle's, so the leader's order
    does not end it.) */
 u32 plat_ticks_ms(void);
-static int running; static u32 run_since;
+static int running; static u32 run_since; static u16 run_clock;
 /* a member chosen by the player (a key 1..5, a click on them or on their box) as opposed to the
    battle's own choosing (its start, a pause for orders): only the player's choice, made while the
    battle runs, lets the order resume it */
@@ -540,7 +540,9 @@ static void pick_mouse_hook(void)               /* s014 19cd:0006 combat_mouse (
 static void enter_hook(void)                    /* s014 19cd:069c order_mode_enter() */
 {
     u32 now = plat_ticks_ms();
-    if (g_rb(GV_ai_paused) == 0 && running && now - run_since >= 300 && now - user_pick_t < 600) resume_after = 1;
+    /* (the battle must really have run: its clock gone on some ticks, not only the moments before its
+       first pause, when the view still scrolls to the leader or a member chosen off the screen) */
+    if (g_rb(GV_ai_paused) == 0 && running && now - run_since >= 300 && (u16)(g_rw(GV_combat_clock) - run_clock) >= 12 && now - user_pick_t < 600) resume_after = 1;
     hint_sel = -1;
     hook_call_original();
 }
@@ -616,7 +618,7 @@ static void give_now(void)
 }
 static void input_hook(void)                    /* s014 0e76:3166 combat_input() */
 {
-    if (g_rb(GV_ai_paused) == 0 && g_rb(D_ORDER_MODE) != 1) { resume_after = 0; if (!running) { running = 1; run_since = plat_ticks_ms(); } }
+    if (g_rb(GV_ai_paused) == 0 && g_rb(D_ORDER_MODE) != 1) { resume_after = 0; if (!running) { running = 1; run_since = plat_ticks_ms(); run_clock = g_rw(GV_combat_clock); } }
     else running = 0;
     if (foe_pending >= 0) {
         int t = foe_pending, x, y; foe_pending = -1;

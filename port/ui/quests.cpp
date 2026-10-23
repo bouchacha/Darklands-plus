@@ -446,7 +446,14 @@ void quest_merge(std::vector<QuestRow> &rows)
         if (r.days_left >= 0 && (m.days_left < 0 || r.days_left < m.days_left)) { m.days_left = r.days_left; m.when = r.when; }
     }
     for (size_t i = 0; i < out.size(); i++)
-        if (n[i] > 1) { out[i].title += " \xc3\x97" + std::to_string(n[i]); out[i].text = "Asked by " + std::to_string(n[i]) + " givers:\n" + out[i].text; }
+        if (n[i] > 1) {
+            /* the same giver twice (the original gave a lord's robber knight again; fix rkonce stops it): one line */
+            std::string first = out[i].text.substr(0, out[i].text.find('\n'));
+            bool same = true; size_t p = 0;
+            while ((p = out[i].text.find('\n', p)) != std::string::npos) { p++; if (out[i].text.compare(p, first.size(), first) != 0) same = false; }
+            if (same) { out[i].text = first + " (The same giver asked twice.)"; continue; }
+            out[i].title += " \xc3\x97" + std::to_string(n[i]); out[i].text = "Asked by " + std::to_string(n[i]) + " givers:\n" + out[i].text;
+        }
     rows.swap(out);
 }
 

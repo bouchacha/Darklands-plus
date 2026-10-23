@@ -232,3 +232,7 @@ struct NsStripThing {
 void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);
 
 #endif
+/* the counter of a shop (the store room): a timber wall to wall_to (rows), an awning's edge in
+   that colour (0: none), the oak counter below; ns_sheet: a sheet of paper on it, with its shadow */
+void ns_counter_backdrop(NsDraw &P, float wall_to, ImU32 awning, bool stone = false);
+void ns_sheet(NsDraw &P, float x0, float y0, float x1, float y1, ImU32 paper);
