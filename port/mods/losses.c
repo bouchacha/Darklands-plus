@@ -49,7 +49,7 @@ static void take(int m)
 /* (aging.c lowered member m's attributes and told it: taken as they are now) */
 void losses_retake(int m) { if (m >= 0 && m < 5) take(m); }
 
-/* a battle under way (run_battle, s029 0e76:2278): its records are the fight's until it ends, even
+/* a battle under way (combat_main, s014 0e76:0000): its records are the fight's until it ends, even
    while another overlay (a saint's prayer, the loot) stands in for the battle's own and game_mode
    no longer says "battle" - the watch waits, then starts afresh */
 static int in_battle;
@@ -128,4 +128,4 @@ void losses_battle_frame(void)
     worn_len = 0; worn[0] = 0;
 }
 
-void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(GF_run_battle, battle_hook); hook_install(GF_combat_main, battle_hook); }
+void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(GF_combat_main, battle_hook); }   /* (run_battle has hooks enough: combat_main is the battle itself) */
