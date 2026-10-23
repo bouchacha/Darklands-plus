@@ -1,13 +1,13 @@
-/* alchemydesk.cpp - the alchemy screen's desk drawn anew (display.alchemy_art 2; ui/alchemyview.cpp):
- * the game's own arrangement (ALCSCRN0.PIC: an open book on a wooden table, a bowl at the upper
- * right, the bag and ribbon below, a bar at the lower right) in the style of the other drawn
- * pieces: an oak table, a book bound in red leather with gilt tooling, a brass mortar and its
- * pestle, a tallow candle in a pewter dish, a glass flask, the red ribbon, a brass plate for the
- * button. In game coordinates (x 60..320, y 0..200), the book's pages where the screen writes:
- * x 67..189 and 191..312, y 45..166. */
+/* alchemydesk.cpp - the alchemy screen's workbench (ui/alchemyview.cpp writes on it; where each
+ * thing lies: ui/alchemydesk.h): an oak table; the formulary open on it, bound in red leather with
+ * gilt tooling and brass corners, its ribbon out of the gutter; an apothecary's chest of walnut,
+ * open, 3 x 8 compartments for the ingredients, a label inside its lid; a wax tablet in a wooden
+ * frame with its stylus, for the reckoning; a small brick furnace with fire in its mouth and a
+ * brass plate for Start. In game coordinates (x 60..320, y 0..200). */
 #include "imgui.h"
 #include <math.h>
 #include "ornament.h"
+#include "alchemydesk.h"
 
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 
@@ -90,156 +90,131 @@ void table(ImDrawList *dl)
 
 void book(ImDrawList *dl, float k)
 {
+    const float X0 = AD_BOOK_X0, X1 = AD_BOOK_X1, Y0 = AD_BOOK_Y0, Y1 = AD_BOOK_Y1, G = AD_GUTTER;
     /* its shadow, the leather, the gilt line tooled round it */
-    dl->AddRectFilled(W(66, 46), W(318, 175), IM_COL32(0, 0, 0, 90), 6 * k);
-    dl->AddRectFilled(W(64, 46), W(316, 172), IM_COL32(0, 0, 0, 60), 4 * k);
-    ImVec2 ca = W(63, 41), cb = W(316, 171);
+    dl->AddRectFilled(W(X0 + 3, Y0 + 5), W(X1 + 3, Y1 + 4), IM_COL32(0, 0, 0, 90), 6 * k);
+    ImVec2 ca = W(X0, Y0), cb = W(X1, Y1);
     dl->AddRectFilledMultiColor(ca, cb, IM_COL32(136, 36, 26, 255), IM_COL32(118, 30, 22, 255), IM_COL32(84, 18, 14, 255), IM_COL32(100, 24, 18, 255));
     dl->AddRect(ca, cb, IM_COL32(40, 6, 4, 255), 2 * k, 0, 1.5f);
-    dl->AddRect(W(64.2f, 42.2f), W(314.8f, 169.8f), IM_COL32(222, 178, 84, 170), 0, 0, 1.0f);
+    dl->AddRect(W(X0 + 1.2f, Y0 + 1.2f), W(X1 - 1.2f, Y1 - 1.2f), IM_COL32(222, 178, 84, 170), 0, 0, 1.0f);
     for (int c = 0; c < 4; c++) {                                  /* brass corners */
-        float x = c & 1 ? 316 : 63, y = c & 2 ? 171 : 41, sx = c & 1 ? -1.0f : 1.0f, sy = c & 2 ? -1.0f : 1.0f;
+        float x = c & 1 ? X1 : X0, y = c & 2 ? Y1 : Y0, sx = c & 1 ? -1.0f : 1.0f, sy = c & 2 ? -1.0f : 1.0f;
         ImVec2 tri[3] = { W(x, y), W(x + sx * 7, y), W(x, y + sy * 10) };
         dl->AddTriangleFilled(tri[0], tri[1], tri[2], IM_COL32(196, 150, 70, 255));
         dl->AddLine(tri[1], tri[2], IM_COL32(250, 214, 130, 255), 1.0f);
     }
     /* the pages: the block of leaves at each side, then the open leaves darkening into the gutter */
     for (int s = 0; s < 2; s++) {
-        float x0 = s ? 190 : 66, x1 = s ? 314 : 190;
+        float x0 = s ? G : X0 + 3, x1 = s ? X1 - 3 : G;
         for (int i = 0; i < 3; i++) {                              /* the edges of the leaves under */
             float o = 2.2f - i * 0.7f;
-            ImVec2 pa = W(s ? x0 : x0 + o * 0.3f, 44 + o * 0.2f), pb = W(s ? x1 - o * 0.3f : x1, 167 + o);
+            ImVec2 pa = W(s ? x0 : x0 + o * 0.3f, Y0 + 3 + o * 0.2f), pb = W(s ? x1 - o * 0.3f : x1, Y1 - 4 + o);
             dl->AddRectFilled(pa, pb, i & 1 ? IM_COL32(214, 196, 160, 255) : IM_COL32(236, 222, 190, 255));
         }
-        ImVec2 pa = W(s ? 190.5f : 67, 44), pb = W(s ? 313 : 189.5f, 166);
+        ImVec2 pa = W(s ? G + 0.5f : X0 + 4, Y0 + 3), pb = W(s ? X1 - 3 : G - 0.5f, Y1 - 5);
         ImU32 out = IM_COL32(246, 236, 210, 255), in = IM_COL32(226, 208, 170, 255);
         if (s) dl->AddRectFilledMultiColor(pa, pb, in, out, out, in);
         else dl->AddRectFilledMultiColor(pa, pb, out, in, in, out);
         float gw = (W(10, 0).x - W(0, 0).x);
         if (s) dl->AddRectFilledMultiColor(pa, ImVec2(pa.x + gw, pb.y), IM_COL32(90, 60, 30, 110), 0, 0, IM_COL32(90, 60, 30, 110));
         else dl->AddRectFilledMultiColor(ImVec2(pb.x - gw, pa.y), pb, 0, IM_COL32(90, 60, 30, 110), IM_COL32(90, 60, 30, 110), 0);
-        /* a ruled margin, as a scribe's page (faint) */
-        float mx = s ? 309.5f : 70.5f;
-        dl->AddLine(W(mx, 47), W(mx, 163), IM_COL32(170, 60, 40, 46), 1.0f);
     }
-    dl->AddLine(W(190, 44), W(190, 166), IM_COL32(70, 44, 20, 200), 1.5f);   /* the gutter */
-    /* the ribbon, out of the gutter and over the table */
-    ImVec2 r0 = W(186, 160), r1 = W(190, 160), r2 = W(191.5f, 192), r3 = W(184.5f, 192), rv = W(188, 188);
-    ImVec2 rib[5] = { r0, r1, r2, rv, r3 };
-    dl->AddRectFilled(W(187, 166), W(193, 195), IM_COL32(0, 0, 0, 70));
-    dl->AddConvexPolyFilled(rib, 3, IM_COL32(170, 24, 20, 255));
+    dl->AddLine(W(G, Y0 + 3), W(G, Y1 - 5), IM_COL32(70, 44, 20, 200), 1.5f);   /* the gutter */
+    /* the ribbon, out of the gutter onto the table */
+    ImVec2 r0 = W(G - 2, Y1 - 6), r1 = W(G + 2, Y1 - 6), r2 = W(G + 3.5f, Y1 + 6), r3 = W(G - 3.5f, Y1 + 6), rv = W(G, Y1 + 3);
     ImVec2 rq[4] = { r0, r1, r2, r3 };
     dl->AddConvexPolyFilled(rq, 4, IM_COL32(170, 24, 20, 255));
     ImVec2 notch[3] = { r3, r2, rv };
     dl->AddTriangleFilled(notch[0], notch[1], notch[2], IM_COL32(70, 42, 22, 255));
-    dl->AddLine(W(187, 166), W(186, 191), IM_COL32(230, 90, 70, 200), 1.0f);
 }
 
-void mortar(ImDrawList *dl, float u)
+/* an apothecary's chest, open: its lid behind, inside it a label; the box of compartments, 3 x 8 */
+void chest(ImDrawList *dl, float k, float u)
 {
-    ImVec2 c = W(297, 21);
-    glow(dl, ImVec2(c.x + 4 * u, c.y + 6 * u), ImVec2(30 * u, 30 * u), IM_COL32(0, 0, 0, 160), 12);
-    const ImU32 br_d = IM_COL32(110, 70, 20, 255), br = IM_COL32(184, 134, 52, 255), br_l = IM_COL32(250, 214, 130, 255);
-    lit_band(dl, c, ImVec2(25 * u, 25 * u), ImVec2(19 * u, 19 * u), br_d, br, br_l);
-    /* the hollow: dark brass going down, the powder at its bottom */
-    dl->AddCircleFilled(c, 19 * u, IM_COL32(70, 44, 14, 255), 48);
-    glow(dl, ImVec2(c.x - 4 * u, c.y - 4 * u), ImVec2(17 * u, 17 * u), IM_COL32(200, 150, 70, 160), 10);
-    dl->AddCircleFilled(ImVec2(c.x + 2 * u, c.y + 2 * u), 9 * u, IM_COL32(120, 140, 70, 255), 32);       /* green herbs ground */
-    for (int i = 0; i < 18; i++) {
-        float a = 6.28f * hash(i * 3), r = 8 * u * sqrtf(hash(i * 7 + 1));
-        dl->AddCircleFilled(ImVec2(c.x + 2 * u + cosf(a) * r, c.y + 2 * u + sinf(a) * r), 0.9f * u, hash(i) > 0.5f ? IM_COL32(160, 176, 90, 255) : IM_COL32(80, 100, 44, 255), 6);
+    const float X0 = AD_CHEST_X0, X1 = AD_CHEST_X1, LY = AD_CHEST_LID, Y0 = AD_CHEST_Y0, Y1 = AD_CHEST_Y1;
+    dl->AddRectFilled(W(X0 + 3, LY + 4), W(X1 + 3, Y1 + 4), IM_COL32(0, 0, 0, 100), 3 * k);
+    /* the lid, standing open behind the box: its inside with a paper label */
+    dl->AddRectFilledMultiColor(W(X0 + 2, LY), W(X1 - 2, Y0), IM_COL32(120, 70, 36, 255), IM_COL32(120, 70, 36, 255), IM_COL32(70, 38, 18, 255), IM_COL32(70, 38, 18, 255));
+    dl->AddRect(W(X0 + 2, LY), W(X1 - 2, Y0), IM_COL32(30, 14, 4, 255), 1 * k, 0, 1.2f);
+    /* the box: thick walnut walls lit at the upper left, the floor of each compartment dark */
+    ImVec2 a = W(X0, Y0), b = W(X1, Y1);
+    dl->AddRectFilledMultiColor(a, b, IM_COL32(150, 94, 50, 255), IM_COL32(128, 78, 40, 255), IM_COL32(92, 54, 26, 255), IM_COL32(112, 66, 32, 255));
+    dl->AddRect(a, b, IM_COL32(30, 14, 4, 255), 1.5f * k, 0, 1.5f);
+    const float w = 2.4f, cx0 = X0 + w, cx1 = X1 - w, cy0 = Y0 + w, cy1 = Y1 - w, cw = (cx1 - cx0) / 3, ch = (cy1 - cy0) / 8;
+    for (int r = 0; r < 8; r++) for (int c = 0; c < 3; c++) {
+        float x0 = cx0 + c * cw + 0.7f, y0 = cy0 + r * ch + 0.7f, x1 = x0 + cw - 1.4f, y1 = y0 + ch - 1.4f;
+        dl->AddRectFilledMultiColor(W(x0, y0), W(x1, y1), IM_COL32(40, 22, 10, 255), IM_COL32(52, 30, 14, 255), IM_COL32(70, 42, 20, 255), IM_COL32(58, 34, 16, 255));
+        dl->AddLine(W(x0, y0), W(x1, y0), IM_COL32(10, 4, 0, 200), 1.2f);                 /* (the wall's shadow inside) */
+        dl->AddLine(W(x0, y1), W(x1, y1), IM_COL32(200, 150, 96, 110), 1.0f);              /* (the lit lip of the divider) */
     }
-    dl->AddCircle(c, 19 * u, IM_COL32(40, 22, 4, 255), 48, 1.2f);
-    /* the pestle across it, wood with a worn brass end */
-    ImVec2 p0(c.x - 2 * u, c.y + 3 * u), p1(c.x - 34 * u, c.y + 26 * u);
-    dl->AddLine(ImVec2(p0.x + 2 * u, p0.y + 3 * u), ImVec2(p1.x + 2 * u, p1.y + 3 * u), IM_COL32(0, 0, 0, 90), 6.5f * u);
-    dl->AddLine(p0, p1, IM_COL32(120, 76, 40, 255), 5.5f * u);
-    dl->AddLine(ImVec2(p0.x - 0.8f * u, p0.y - 1.2f * u), ImVec2(p1.x - 0.8f * u, p1.y - 1.2f * u), IM_COL32(176, 128, 80, 255), 1.6f * u);
-    dl->AddCircleFilled(p1, 3.4f * u, IM_COL32(110, 70, 36, 255), 16);
-    dl->AddCircleFilled(p0, 3.6f * u, IM_COL32(184, 134, 52, 255), 16);
-    dl->AddCircleFilled(ImVec2(p0.x - 1 * u, p0.y - 1 * u), 1.4f * u, IM_COL32(250, 214, 130, 255), 10);
-}
-
-void candle(ImDrawList *dl, float u, float t)
-{
-    /* a tallow candle standing in a pewter dish, seen from the front and a little above */
-    ImVec2 c = W(84, 191);
-    float fl = 0.85f + 0.15f * sinf(t * 9.0f) * sinf(t * 3.7f + 1.0f), sw = 0.6f * sinf(t * 5.3f);
-    glow(dl, ImVec2(c.x, c.y - 22 * u), ImVec2(80 * u * fl, 70 * u * fl), IM_COL32(255, 190, 90, 80), 16);   /* its light on the table */
-    glow(dl, ImVec2(c.x + 6 * u, c.y + 3 * u), ImVec2(16 * u, 6 * u), IM_COL32(0, 0, 0, 160), 8);
-    lit_band(dl, c, ImVec2(13 * u, 4.6f * u), ImVec2(9 * u, 3.0f * u), IM_COL32(70, 74, 80, 255), IM_COL32(140, 144, 150, 255), IM_COL32(220, 224, 228, 255));
-    dl->AddEllipseFilled(c, ImVec2(9 * u, 3.0f * u), IM_COL32(96, 100, 106, 255), 0, 32);
-    lit_band(dl, ImVec2(c.x + 14 * u, c.y), ImVec2(3.4f * u, 2.0f * u), ImVec2(2.0f * u, 1.0f * u), IM_COL32(70, 74, 80, 255), IM_COL32(140, 144, 150, 255), IM_COL32(220, 224, 228, 255));
-    float top = c.y - 20 * u, hw = 3.2f * u;
-    dl->AddRectFilledMultiColor(ImVec2(c.x - hw, top), ImVec2(c.x + hw, c.y), IM_COL32(250, 240, 210, 255), IM_COL32(206, 190, 150, 255), IM_COL32(206, 190, 150, 255), IM_COL32(250, 240, 210, 255));
-    dl->AddEllipseFilled(ImVec2(c.x, c.y), ImVec2(hw, 1.1f * u), IM_COL32(206, 190, 150, 255), 0, 16);
-    dl->AddEllipseFilled(ImVec2(c.x, top), ImVec2(hw, 1.1f * u), IM_COL32(240, 220, 170, 255), 0, 16);
-    dl->AddRectFilled(ImVec2(c.x - hw - 0.4f * u, top + 1 * u), ImVec2(c.x - hw + 1.0f * u, top + 7 * u), IM_COL32(246, 236, 206, 255), 0.8f * u);   /* a drip */
-    dl->AddLine(ImVec2(c.x, top), ImVec2(c.x + 0.3f * u, top - 1.6f * u), IM_COL32(30, 20, 10, 255), 0.8f * u);   /* the wick */
-    /* the flame */
-    ImVec2 fb(c.x + 0.2f * u, top - 2.2f * u), ft(c.x + sw * 1.5f * u, top - 14.0f * u * fl);
-    glow(dl, ImVec2(fb.x, fb.y - 3 * u), ImVec2(12 * u * fl, 14 * u * fl), IM_COL32(255, 220, 130, 200), 10);
-    dl->PathClear();
-    for (int i = 0; i <= 20; i++) {
-        float a = i / 20.0f * 2 * PI, x = sinf(a), y = cosf(a);
-        float r = 2.8f * u;
-        ImVec2 p = y >= 0 ? ImVec2(fb.x + x * r, fb.y + y * r * 0.6f) : ImVec2(fb.x + (ft.x - fb.x) * (-y) + x * r * (1 + y), fb.y + (ft.y - fb.y) * (-y));
-        dl->PathLineTo(p);
+    for (int c = 0; c < 4; c++) {                                  /* brass corner plates */
+        float x = c & 1 ? X1 : X0, y = c & 2 ? Y1 : Y0;
+        ImVec2 p = W(x + (c & 1 ? -2.5f : 2.5f), y + (c & 2 ? -2.5f : 2.5f));
+        dl->AddRectFilled(ImVec2(p.x - 2.5f * u, p.y - 2.5f * u), ImVec2(p.x + 2.5f * u, p.y + 2.5f * u), IM_COL32(196, 150, 70, 255), 0.6f * u);
+        orn_rivet(dl, p, 0.9f * u);
     }
-    dl->PathFillConvex(IM_COL32(255, 196, 80, 240));
-    dl->AddEllipseFilled(ImVec2(fb.x + sw * 0.3f * u, fb.y - 3.0f * u), ImVec2(1.5f * u, 3.6f * u), IM_COL32(255, 250, 220, 255), 0, 12);
-    dl->AddEllipseFilled(ImVec2(fb.x, fb.y + 0.2f * u), ImVec2(1.2f * u, 1.0f * u), IM_COL32(90, 120, 220, 200), 0, 10);   /* (blue at its root) */
 }
 
-void flask(ImDrawList *dl, float u)
+/* a wax tablet in its wooden frame: dark wax to write the reckoning in */
+void tablet(ImDrawList *dl, float k)
 {
-    ImVec2 c = W(122, 186);
-    glow(dl, ImVec2(c.x + 3 * u, c.y + 5 * u), ImVec2(13 * u, 9 * u), IM_COL32(0, 0, 0, 130), 8);
-    /* lying on its side: the round body, the neck to the right, a cork */
-    ImVec2 n0(c.x + 7 * u, c.y - 2.5f * u), n1(c.x + 19 * u, c.y + 1 * u);
-    dl->AddQuadFilled(ImVec2(c.x + 6 * u, c.y - 5 * u), ImVec2(n1.x, n1.y - 3.2f * u), ImVec2(n1.x, n1.y + 2.6f * u), ImVec2(c.x + 6 * u, c.y + 4 * u), IM_COL32(150, 200, 190, 150));
-    dl->AddRectFilled(ImVec2(n1.x - 0.5f * u, n1.y - 3.0f * u), ImVec2(n1.x + 3.5f * u, n1.y + 2.6f * u), IM_COL32(150, 104, 60, 255), 1 * u);
-    dl->AddCircleFilled(c, 9 * u, IM_COL32(120, 180, 170, 140), 40);
-    dl->AddCircleFilled(ImVec2(c.x + 1 * u, c.y + 3 * u), 6.5f * u, IM_COL32(150, 40, 40, 200), 32);   /* a red tincture */
-    dl->AddCircle(c, 9 * u, IM_COL32(220, 250, 240, 170), 40, 1.0f);
-    dl->PathArcTo(c, 6.5f * u, PI * 1.05f, PI * 1.55f, 12);
-    dl->PathStroke(IM_COL32(255, 255, 255, 220), 0, 1.6f * u);
-    dl->AddCircleFilled(ImVec2(c.x - 3 * u, c.y - 4.5f * u), 1.2f * u, IM_COL32(255, 255, 255, 230), 8);
-    (void)n0;
-}
-
-void inkwell(ImDrawList *dl, float u)
-{
-    ImVec2 c = W(152, 189);
-    glow(dl, ImVec2(c.x + 4 * u, c.y + 3 * u), ImVec2(12 * u, 6 * u), IM_COL32(0, 0, 0, 150), 8);
-    /* a horn inkwell: a squat dark pot, its mouth with ink in it */
-    dl->AddRectFilledMultiColor(ImVec2(c.x - 7 * u, c.y - 8 * u), ImVec2(c.x + 7 * u, c.y), IM_COL32(90, 70, 50, 255), IM_COL32(40, 30, 20, 255), IM_COL32(30, 22, 14, 255), IM_COL32(80, 60, 42, 255));
-    dl->AddEllipseFilled(c, ImVec2(7 * u, 2.4f * u), IM_COL32(36, 26, 16, 255), 0, 24);
-    lit_band(dl, ImVec2(c.x, c.y - 8 * u), ImVec2(7 * u, 2.4f * u), ImVec2(4 * u, 1.4f * u), IM_COL32(40, 28, 16, 255), IM_COL32(110, 84, 58, 255), IM_COL32(170, 140, 100, 255));
-    dl->AddEllipseFilled(ImVec2(c.x, c.y - 8 * u), ImVec2(4 * u, 1.4f * u), IM_COL32(8, 8, 14, 255), 0, 16);
-    /* the quill standing in it, leaning back over the table */
-    ImVec2 q0(c.x + 0.5f * u, c.y - 8 * u), q1(c.x + 20 * u, c.y - 34 * u);
-    dl->AddLine(ImVec2(q0.x + 3 * u, q0.y + 2 * u), ImVec2(q1.x + 5 * u, q1.y + 6 * u), IM_COL32(0, 0, 0, 28), 2.5f * u);
-    float dx = q1.x - q0.x, dy = q1.y - q0.y, L = sqrtf(dx * dx + dy * dy), nx = -dy / L, ny = dx / L;
-    for (int i = 0; i < 16; i++) {                                  /* the vane: barbs along the upper part of the shaft */
-        float f = 0.35f + 0.65f * i / 15.0f, w = (i < 12 ? 4.5f : 4.5f * (16 - i) / 4.0f) * u;
-        ImVec2 p(q0.x + dx * f, q0.y + dy * f);
-        dl->AddLine(p, ImVec2(p.x + nx * w - dx / L * 2.5f * u, p.y + ny * w - dy / L * 2.5f * u), IM_COL32(236, 230, 214, 230), 1.4f * u);
-        dl->AddLine(p, ImVec2(p.x - nx * w * 0.5f - dx / L * 2 * u, p.y - ny * w * 0.5f - dy / L * 2 * u), IM_COL32(206, 198, 180, 220), 1.2f * u);
+    const float X0 = AD_TAB_X0, X1 = AD_TAB_X1, Y0 = AD_TAB_Y0, Y1 = AD_TAB_Y1;
+    dl->AddRectFilled(W(X0 + 2, Y0 + 3), W(X1 + 2, Y1 + 2), IM_COL32(0, 0, 0, 100), 2 * k);
+    dl->AddRectFilledMultiColor(W(X0, Y0), W(X1, Y1), IM_COL32(170, 118, 66, 255), IM_COL32(150, 100, 56, 255), IM_COL32(110, 70, 36, 255), IM_COL32(130, 86, 46, 255));
+    dl->AddRect(W(X0, Y0), W(X1, Y1), IM_COL32(40, 20, 6, 255), 1.5f * k, 0, 1.2f);
+    ImVec2 wa = W(X0 + 3, Y0 + 2.5f), wb = W(X1 - 3, Y1 - 2.5f);
+    dl->AddRectFilledMultiColor(wa, wb, IM_COL32(52, 44, 30, 255), IM_COL32(46, 40, 28, 255), IM_COL32(34, 30, 20, 255), IM_COL32(40, 34, 24, 255));
+    dl->AddRect(wa, wb, IM_COL32(20, 12, 4, 220), 0, 0, 1.0f);
+    for (int i = 0; i < 6; i++) {                                  /* old strokes smoothed over, faint in the wax */
+        float y = Y0 + 6 + 4.5f * i + hash(i) * 2, x = X0 + 8 + 60 * hash(i * 3);
+        dl->AddLine(W(x, y), W(x + 20 + 30 * hash(i * 7), y + 0.6f), IM_COL32(90, 80, 60, 50), 1.0f);
     }
-    dl->AddLine(q0, q1, IM_COL32(220, 206, 170, 255), 1.1f * u);
+    /* the stylus lying across its corner */
+    ImVec2 s0 = W(X1 - 26, Y1 + 1), s1 = W(X1 - 2, Y1 - 9);
+    dl->AddLine(s0, s1, IM_COL32(0, 0, 0, 70), 2.6f * k * 0.5f + 2);
+    dl->AddLine(s0, s1, IM_COL32(210, 196, 160, 255), 1.6f);
 }
 
-void plate(ImDrawList *dl, float u)
+/* a small brick furnace (an athanor), fire in its mouth, a brass door plate for the button */
+void furnace(ImDrawList *dl, float k, float u, float t)
 {
-    /* a brass plate under the Start button (216..296, 174..186) */
-    ImVec2 a = W(212, 171.5f), b = W(300, 188.5f);
-    dl->AddRectFilled(ImVec2(a.x + 2 * u, a.y + 3 * u), ImVec2(b.x + 2 * u, b.y + 3 * u), IM_COL32(0, 0, 0, 110), 2 * u);
-    dl->AddRectFilledMultiColor(a, b, IM_COL32(236, 196, 112, 255), IM_COL32(200, 154, 70, 255), IM_COL32(140, 96, 34, 255), IM_COL32(176, 128, 52, 255));
-    dl->AddRect(a, b, IM_COL32(70, 40, 8, 255), 2 * u, 0, 1.2f);
-    dl->AddRect(ImVec2(a.x + 1.5f * u, a.y + 1.5f * u), ImVec2(b.x - 1.5f * u, b.y - 1.5f * u), IM_COL32(255, 236, 170, 120), 1 * u, 0, 1.0f);
-    for (int c = 0; c < 4; c++) orn_rivet(dl, ImVec2(c & 1 ? b.x - 3.0f * u : a.x + 3.0f * u, c & 2 ? b.y - 3.0f * u : a.y + 3.0f * u), 1.5f * u);
+    const float X0 = AD_FURN_X0, X1 = AD_FURN_X1, Y0 = AD_FURN_Y0, Y1 = AD_FURN_Y1;
+    dl->AddRectFilled(W(X0 + 2, Y0 + 3), W(X1 + 2, Y1 + 2), IM_COL32(0, 0, 0, 110), 2 * k);
+    dl->AddRectFilled(W(X0, Y0), W(X1, Y1), IM_COL32(120, 52, 34, 255), 1.5f * k);
+    for (int r = 0; Y0 + r * 4 < Y1; r++) {                        /* courses of brick */
+        float y = Y0 + r * 4;
+        dl->AddLine(W(X0, y), W(X1, y), IM_COL32(60, 30, 20, 200), 1.0f);
+        for (float x = X0 + (r & 1 ? 4 : 0); x < X1; x += 8) dl->AddLine(W(x, y), W(x, fminf(y + 4, Y1)), IM_COL32(60, 30, 20, 200), 1.0f);
+        for (float x = X0 + (r & 1 ? 4 : 0); x + 7 < X1; x += 8) if (hash(r * 31 + (int)x) > 0.7f) dl->AddRectFilled(W(x + 0.6f, y + 0.6f), W(x + 7.4f, fminf(y + 3.4f, Y1)), IM_COL32(150, 70, 44, 120));
+    }
+    dl->AddRect(W(X0, Y0), W(X1, Y1), IM_COL32(40, 16, 8, 255), 1.5f * k, 0, 1.4f);
+    /* the fire's mouth at the left, flickering */
+    float fl = 0.8f + 0.2f * sinf(t * 7.3f) * sinf(t * 2.9f + 0.7f);
+    ImVec2 mc = W(X0 + 15, Y1 - 8);
+    glow(dl, mc, ImVec2(26 * u * fl, 20 * u * fl), IM_COL32(255, 150, 40, 200), 10);
+    dl->AddRectFilled(W(X0 + 5, Y1 - 20), W(X0 + 25, Y1 - 1), IM_COL32(30, 10, 4, 255), 9 * u, ImDrawFlags_RoundCornersTop);
+    glow(dl, mc, ImVec2(11 * u * fl, 10 * u * fl), IM_COL32(255, 200, 80, 255), 8);
+    for (int i = 0; i < 3; i++) {                                  /* flames licking up */
+        float fx = X0 + 9 + i * 5, h = (7 + 3 * sinf(t * (5 + i) + i * 2.1f)) * fl;
+        ImVec2 b0 = W(fx - 2.4f, Y1 - 3), b1 = W(fx + 2.4f, Y1 - 3), tp = W(fx + 0.8f * sinf(t * 6 + i), Y1 - 3 - h);
+        dl->AddTriangleFilled(b0, b1, tp, IM_COL32(255, 170, 60, 230));
+        dl->AddTriangleFilled(W(fx - 1.1f, Y1 - 3), W(fx + 1.1f, Y1 - 3), W(fx, Y1 - 3 - h * 0.55f), IM_COL32(255, 240, 170, 240));
+    }
+    for (int i = 0; i < 4; i++) {                                  /* the coals */
+        ImVec2 c = W(X0 + 8 + i * 4.5f, Y1 - 2.5f);
+        dl->AddCircleFilled(c, 1.3f * u, mixc(IM_COL32(200, 60, 10, 255), IM_COL32(255, 220, 100, 255), 0.5f + 0.5f * sinf(t * 4 + i * 1.7f)), 8);
+    }
+    /* the brass plate the button sits on */
+    ImVec2 pa = W(AD_START_X0 - 3, AD_START_Y0 - 3), pb = W(AD_START_X1 + 3, AD_START_Y1 + 3);
+    dl->AddRectFilledMultiColor(pa, pb, IM_COL32(236, 196, 112, 255), IM_COL32(200, 154, 70, 255), IM_COL32(140, 96, 34, 255), IM_COL32(176, 128, 52, 255));
+    dl->AddRect(pa, pb, IM_COL32(70, 40, 8, 255), 1.5f * u, 0, 1.2f);
+    for (int c = 0; c < 4; c++) orn_rivet(dl, ImVec2(c & 1 ? pb.x - 2.5f * u : pa.x + 2.5f * u, c & 2 ? pb.y - 2.5f * u : pa.y + 2.5f * u), 1.2f * u);
 }
+
+
+
+
+
 } // namespace
 
 static void desk(ImDrawList *dl, float t)
@@ -249,11 +224,9 @@ static void desk(ImDrawList *dl, float t)
     dl->PushClipRect(o, e, true);
     table(dl);
     book(dl, k);
-    flask(dl, u);
-    inkwell(dl, u);
-    candle(dl, u, t);
-    mortar(dl, u);
-    plate(dl, u);
+    chest(dl, k, u);
+    tablet(dl, k);
+    furnace(dl, k, u, t);
     dl->PopClipRect();
 }
 extern "C" void alchemy_desk_draw(float t) { in_box = false; desk(ImGui::GetBackgroundDrawList(), t); }
