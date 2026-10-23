@@ -265,7 +265,7 @@ static bool town_event_end(int loc, int kind, int type0, int end[4])
 static bool night_closed(int d);
 static int goal = -1, steps_taken;
 static unsigned visited;                                   /* hubs passed on this walk: not again */
-static int conts, leaves;                                  /* texts read on, places left before the first hub */
+static int conts, leaves, replans;                         /* texts read on, places left before the first hub, ways planned anew */
 static std::string last_key; static int same_count;
 static u32 phase_t, last_act;
 static std::string phase_key;
@@ -447,6 +447,16 @@ extern "C" void citynav_tick(void)
         int d = dist_to(goal, to - 100, visited) + (to - 100 == H_SIDE ? 3 : 1);
         if (d < bd) { bd = d; best = i; }
     }
+    if ((best < 0 || bd >= 1000) && visited != (1u << hub) && ++replans <= 2) {   /* (set back on the way, as when guards turn the party away: the hubs passed are open again) */
+        LOG("no way on through new hubs: the way planned anew\n");
+        visited = 1u << hub;
+        for (int i = 0; i < n; i++) {
+            int to = rule_for(hub, line[i]);
+            if (to < 100 || to - 100 == hub) continue;
+            int d = dist_to(goal, to - 100, visited) + (to - 100 == H_SIDE ? 3 : 1);
+            if (d < bd) { bd = d; best = i; }
+        }
+    }
     if (best < 0 || bd >= 1000) { stop("not found in this city."); return; }
     click_line(best);
 }
@@ -455,7 +465,7 @@ extern "C" void citynav_go(int dest)
 {
     if (dest < 0 || dest >= D_N) return;
     assist_watch_cards();
-    goal = dest; steps_taken = 0; visited = 0; conts = leaves = 0; same_count = 0; last_key.clear(); phase_key.clear(); last_act = 0;
+    goal = dest; steps_taken = 0; visited = 0; conts = leaves = replans = 0; same_count = 0; last_key.clear(); phase_key.clear(); last_act = 0;
     char m[120]; snprintf(m, sizeof m, "Going to: %s. Press any key or click to stop.", DEST[dest].label); ui_notice(m);
 }
 

@@ -631,7 +631,9 @@ void dl_poll(void)
     u32 now = plat_ticks_ms();
     if (now != last_ms) {
         u32 d = now - last_ms; last_ms = now;
-        if (d > 200) d = 200;
+        { static u32 mx, lt2; static int on = -1; if (on < 0) on = getenv("DL_TRACE_PIT") != 0;
+          if (on) { if (d > mx) mx = d; if (now - lt2 >= 1000) { fprintf(stderr, "pit: longest gap %u ms\n", mx); mx = 0; lt2 = now; } } }
+        if (d > 500) d = 500;
         tick_us_acc += d * 1000.0;
     }
     /* a frame every 14 ms, but the game always gets at least as long to run as the last frame
@@ -669,12 +671,12 @@ void dl_poll(void)
                 if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
                 { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); }
                 if (keep && !bg) {
-                    u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 200) d = 200;
+                    u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 500) d = 500;
                     acc += d * 1000.0;
                     double per = pit_period_us();
                     in_irq = 1;
-                    for (int n = 0; acc >= per && n < 8; n++) { acc -= per; call_handler(8); }
-                    if (acc > per * 8) acc = 0;
+                    for (int n = 0; acc >= per && n < 32; n++) { acc -= per; call_handler(8); }   /* (all that fell due: the music keeps its tempo) */
+                    if (acc > 500000.0) acc = 0;
                     { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }
                     in_irq = 0;
                 } else lt = plat_ticks_ms();
@@ -688,16 +690,20 @@ void dl_poll(void)
     in_irq = 1;
     double per = pit_period_us();
     int delivered = 0;
-    while (tick_us_acc >= per && delivered < 4) {
+    /* the timer's ticks as they fall due: a slow frame (a big window, a heavy screen drawn) leaves
+       several due at once, and they are all delivered (the music driver counts its tempo in them:
+       ticks dropped played the music slower); only a stall of half a second or more (loading, the
+       window dragged) is let go */
+    while (tick_us_acc >= per && delivered < 32) {
         tick_us_acc -= per;
         delivered++;
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
     }
     static u32 st_deliv, st_drop, st_t; static int st_on = -1;
     if (st_on < 0) st_on = getenv("DL_TRACE_PIT") != 0;
-    if (st_on) { st_deliv += (u32)delivered; if (tick_us_acc > per * 8) st_drop += (u32)(tick_us_acc / per) - 1;
+    if (st_on) { st_deliv += (u32)delivered; if (tick_us_acc > 500000.0) st_drop += (u32)(tick_us_acc / per) - 1;
                  if (now - st_t >= 1000) { fprintf(stderr, "pit %u: %.1f Hz, %u ticks delivered, %u dropped\n", now, 1e6 / per, st_deliv, st_drop); st_deliv = st_drop = 0; st_t = now; } }
-    if (tick_us_acc > per * 8) tick_us_acc = per;   /* fell behind: drop ticks */
+    if (tick_us_acc > 500000.0) tick_us_acc = per;   /* fell far behind (a stall): drop ticks */
     { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }   /* Sound Blaster transfer done */
     static u32 last_key_ms;
     while (kq_head != kq_tail && now - last_key_ms >= 10) {   /* one key event per 10 ms, as a keyboard would */
