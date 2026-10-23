@@ -23,6 +23,7 @@ std::string journal_where_sold(int id);              /* ui/journal.cpp */
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
+int ui_potion_tier(int q, int base);   /* ui/alchemyicons.cpp */
 
 namespace { struct AlchemyView { int scroll = 0; } V; }
 
@@ -51,6 +52,16 @@ extern "C" void alchemyview_draw(void)
         for (const FormulaIngr &q : gamedata.formulas[fm].ingr) if (q.count > 0) { int c = (q.item >= 0 && q.item < 200 ? have[q.item] : 0) / q.count; if (c < b) b = c; }
         return b == 1 << 20 ? 0 : b;
     };
+    /* the potions carried, by grade (1 to 3, as the formula's: ui_potion_tier) */
+    static int pot[22][4];
+    for (int k = 0; k < 22; k++) for (int g2 = 0; g2 < 4; g2++) pot[k][g2] = 0;
+    for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++)
+        if (gm_item(m, i, &g) && g.id >= 95 && g.id <= 116) {
+            const ItemDef *d = ns_itemdef(g.id);
+            int t = d ? ui_potion_tier(g.qual, d->quality) : 0; if (t < 1 || t > 3) t = 0;
+            pot[g.id - 95][t] += g.count;
+        }
+    auto potions_of = [&](int fm) { int k = fm / 3; return k >= 0 && k < 22 ? pot[k][0] + pot[k][1] + pot[k][2] + pot[k][3] : 0; };
     int sel_f = a.sel >= 0 && a.sel < a.nrows ? a.row[a.sel].formula : -1;
 
     /* the head, on the table */
@@ -78,7 +89,11 @@ extern "C" void alchemyview_draw(void)
         P.icon(LX0 + 5, y + ROWH * 0.5f, 7.5f, 95 + w.formula / 3, -1, w.formula % 3 + 1);
         std::string nm = w.formula < (int)gamedata.formula_names.size() ? gamedata.formula_names[w.formula] : "?";
         int bt = batches_of(w.formula);
-        P.text(f, 5.0f, LX0 + 10.5f, y + 0.9f, bt || w.count ? ink : dim, nm, -1, LX1 - 1);
+        int pc = potions_of(w.formula);                                   /* (the potion carried already, any grade) */
+        std::string pcs = pc ? std::to_string(pc) + " carried" : "";
+        float pcw = pc ? P.width(fo, 4.2f, pcs) + 2 : 0;
+        P.text(f, 5.0f, LX0 + 10.5f, y + 0.9f, bt || w.count ? ink : dim, nm, -1, LX1 - 1 - pcw);
+        if (pc) P.text(fo, 4.2f, 0, y + 1.6f, soft, pcs, LX1 - 1);
         std::string l2;
         if (bt) l2 = "makings of " + std::to_string(bt) + (bt == 1 ? " batch" : " batches");
         else if (w.formula < (int)gamedata.formulas.size()) {                /* what is short: the first, and how many more */
@@ -117,6 +132,13 @@ extern "C" void alchemyview_draw(void)
             ImU32 ec; std::string enc = ns_item_encounters(95 + fm / 3, &ec);
             if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, ec, enc);
             y += 2;
+        }
+        {   /* the potion carried already, by grade */
+            int k = fm / 3; std::string cl;
+            if (k >= 0 && k < 22) for (int g2 = 1; g2 <= 3; g2++) if (pot[k][g2]) cl += (cl.empty() ? "" : ", ") + std::to_string(pot[k][g2]) + " of grade " + std::to_string(g2);
+            if (k >= 0 && k < 22 && pot[k][0]) cl += (cl.empty() ? "" : ", ") + std::to_string(pot[k][0]) + " ungraded";
+            P.text(fo, NsDraw::FS_SMALL, RX0, y, soft, cl.empty() ? "The party carries none of this potion." : "The party carries " + cl + ".", -1, RX1);
+            y += 7;
         }
         P.rect(RX0, y - 0.6f, RX1, y - 0.3f, IM_COL32(120, 80, 36, 90));
         P.text(fo, 4.3f, RX0, y + 0.5f, soft, "For a batch: at hand / needed"); y += 6.5f;
