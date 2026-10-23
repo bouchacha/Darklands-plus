@@ -341,6 +341,8 @@ Fix FIXES[] = {
       "A member who dies in a battle is dismissed while the game's list of timed events is set aside, so the end of his contract and his \"has left\" notice were not cancelled and came back after the battle: later they could send away whoever had taken his place in the party. Now they are cancelled after the battle.", 1 },
     { "createback", "Esc in character creation doesn't reopen a childhood already chosen",
       "In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does.", 1 },
+    { "ruinkeep", "The burnt-out keep lets the party go after searching it",
+      "Searching the burnt-out ruin of a robber knight's keep ($Raubr00) ends \"as you resume your journey...\", yet the card came back to its first page, as if the party had just arrived. Now the party is back on the road, as the text says.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2434,6 +2436,19 @@ static void sneak_hook(void)
     hook_remove(GF_practice_skill_impl, sneak_practice_hook);
 }
 
+/* ---------------------------------------------------------------- ruinkeep
+ * $Raubr00, the burnt-out keep (s129 1942:0004): its first option, "investigate the ruin" (1942:021c),
+ * shows the search ("... As you resume your journey ...") and an hour passes, but sets no next card:
+ * the card's loop runs again from its first page. Here the journey resumes (next card 0x0c, as its
+ * second option "continue on your journey", 1942:026c, sets) */
+static void ruinkeep_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding) return;
+    g_ww(GV_next_card, 0x0c);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix ruinkeep: searched, the journey resumes\n");
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2452,7 +2467,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook } };
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
