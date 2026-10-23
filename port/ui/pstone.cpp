@@ -14,6 +14,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 #include "../runtime/config.h"
 
 namespace {
@@ -24,7 +25,9 @@ void glow(ImDrawList *dl, ImVec2 c, float r, ImU32 col, float strength)
     for (int i = 12; i >= 1; i--) { float f = i / 12.0f; dl->AddCircleFilled(c, r * f, A(col, strength * (1 - f) * (1 - f) * 0.35f), 32); }
 }
 /* the stage a quality has reached: 0 none, 1 black, 2 white, 3 peacock / yellow, 4 red */
-int stage_of(int q) { return q <= 0 ? 0 : q < 10 ? 1 : q < 20 ? 2 : q < 35 ? 3 : 4; }
+/* (the best stone the game makes: a university's, 14..29 by the town; an alchemist's 1..25 (s056 18c94,
+   s066 1957e): the stages in four steps up to 29) */
+int stage_of(int q) { return q <= 0 ? 0 : q <= 7 ? 1 : q <= 14 ? 2 : q <= 21 ? 3 : 4; }
 ImU32 matter(int st, int shade)                    /* shade 0 dark, 1 mid, 2 light */
 {
     static const ImU32 C[5][3] = {
@@ -73,6 +76,46 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
     int st = stage_of(quality);
     float pulse = 0.85f + 0.15f * sinf(t * 2.2f);
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    if (look == 2) {                                   /* the squared circle (Maier, Atalanta fugiens, emblem XXI, 1618):
+           "make of a man and a woman a circle, of that a square, of this a triangle, then a circle again,
+           and you will have the Philosophers' Stone" - drawn inward as the stone grows: the circle, then the
+           square in it, the triangle, the small circle; the ink black, white, gold, red by the stage; the
+           stone's quality in the middle */
+        float R = 18 * u, q = (float)quality, full = quality >= 29 ? 1.0f : 0.0f;
+        ImU32 ink = st == 0 ? IM_COL32(120, 100, 80, 110) : st == 1 ? IM_COL32(24, 20, 22, 255) : st == 2 ? IM_COL32(236, 238, 244, 255)
+                  : st == 3 ? IM_COL32(222, 170, 40, 255) : IM_COL32(190, 24, 30, 255);
+        ImU32 back = st == 2 ? IM_COL32(60, 64, 76, 255) : IM_COL32(244, 234, 208, 255);
+        float lw = fmaxf(1.0f, 1.5f * u);
+        if (st == 4) glow(dl, c, R * 1.5f, IM_COL32(255, 60, 40, 255), (0.6f + 0.4f * full) * pulse);
+        else if (st == 3) glow(dl, c, R * 1.4f, IM_COL32(255, 200, 60, 255), 0.5f * pulse);
+        dl->AddCircleFilled(c, R, back, 48);
+        dl->AddCircle(c, R, ink, 48, lw * 1.3f);
+        float sq = R * 0.7071f;                                    /* the square, its corners on the circle */
+        ImVec2 S[4] = { P(-sq / u, -sq / u), P(sq / u, -sq / u), P(sq / u, sq / u), P(-sq / u, sq / u) };
+        if (st >= 2 || (st == 1 && q >= 4)) dl->AddPolyline(S, 4, ink, ImDrawFlags_Closed, lw);
+        /* the triangle, its corners on the square's sides: point up, base on the square's foot */
+        ImVec2 T[3] = { P(0, -sq / u), P(sq / u, sq / u), P(-sq / u, sq / u) };
+        if (st >= 3 || (st == 2 && q >= 11)) dl->AddPolyline(T, 3, ink, ImDrawFlags_Closed, lw);
+        /* the small circle in the triangle (its incircle) */
+        float ir = sq * 2 * 0.3090f, icy = c.y + sq - ir;     /* (inradius of that triangle: base 2sq, height 2sq) */
+        if (st >= 4 || (st == 3 && q >= 18)) {
+            dl->AddCircleFilled(ImVec2(c.x, icy), ir, st == 4 ? IM_COL32(200, 30, 30, 255) : IM_COL32(236, 196, 70, 255), 32);
+            dl->AddCircle(ImVec2(c.x, icy), ir, ink, 32, lw);
+        }
+        /* the number: the stone's quality, in the middle */
+        if (quality > 0) {
+            char b[8]; snprintf(b, sizeof b, "%d", quality);
+            ImFont *f = ImGui::GetFont(); float fs = R * 0.82f;     /* (large: it must read when the figure is small) */
+            ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, b);
+            ImU32 nc = st >= 3 && (st == 4 || q >= 18) ? IM_COL32(255, 248, 230, 255) : st == 2 ? IM_COL32(240, 240, 248, 255) : IM_COL32(30, 24, 20, 255);
+            ImU32 oc = (nc & 0xff) > 128 ? IM_COL32(40, 10, 10, 220) : IM_COL32(250, 240, 220, 220);
+            ImVec2 tp(c.x - ts.x * 0.5f, icy - ts.y * 0.52f);
+            float o = fmaxf(1.0f, fs * 0.06f);
+            for (int k = 0; k < 8; k++) { float a = k * PI / 4; dl->AddText(f, fs, ImVec2(tp.x + cosf(a) * o, tp.y + sinf(a) * o), oc, b); }
+            dl->AddText(f, fs, tp, nc, b);
+        }
+        return;
+    }
     const ImU32 GLASS = IM_COL32(214, 230, 236, 70), GLASS_EDGE = IM_COL32(80, 104, 116, 255), SHINE = IM_COL32(255, 255, 255, 150);
     if (look == 1) {                                   /* the stone: an unworked lump */
         static const float R[11] = { 1.0f, 0.86f, 0.95f, 0.78f, 0.9f, 1.02f, 0.84f, 0.96f, 0.8f, 0.92f, 0.88f };
@@ -129,8 +172,8 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
     dl->AddEllipse(P(0, 0), ImVec2(9.5f * u, 12.5f * u), GLASS_EDGE, 0, 40, 1.1f * u);
     dl->AddLine(P(-6.5f, -6), P(-5.5f, 4), SHINE, 1.4f * u);
 }
-int ui_pstone_look(void) { int v = config_get_int("display.pstone_look", 0); return v >= 0 && v <= 1 ? v : 0; }
-const char *ui_pstone_look_name(int k) { static const char *N[2] = { "The philosophers' egg", "The stone itself" }; return k >= 0 && k <= 1 ? N[k] : "?"; }
+int ui_pstone_look(void) { int v = config_get_int("display.pstone_look", 2); return v >= 0 && v <= 2 ? v : 2; }
+const char *ui_pstone_look_name(int k) { static const char *N[3] = { "The philosophers' egg", "The stone itself", "The squared circle" }; return k >= 0 && k <= 2 ? N[k] : "?"; }
 const char *ui_pstone_stage_name(int q)
 {
     static const char *N[5] = { "none yet", "black (nigredo): the raven", "white (albedo): the swan", "yellow (citrinitas): the peacock's colours", "red (rubedo): the phoenix" };
@@ -144,17 +187,17 @@ extern "C" void ui_pstone_sheet_draw(void)
     if (!on) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(242, 230, 200, 255));
-    static const int Q[5] = { 0, 5, 15, 25, 40 };
-    static const char *SN[5] = { "none yet", "1-9: black", "10-19: white", "20-34: yellow", "35+: red" };
+    static const int Q[5] = { 0, 5, 12, 19, 29 };
+    static const char *SN[5] = { "none yet", "5 (1-7: black)", "12 (8-14: white)", "19 (15-21: yellow)", "29 (22-29: red)" };
     float colw = ds.x / 5.4f;
-    for (int look = 0; look < 2; look++) {
-        float y = ds.y * (0.06f + look * 0.47f);
+    for (int look = 0; look < 3; look++) {
+        float y = ds.y * (0.02f + look * 0.32f);
         dl->AddText(ImGui::GetFont(), ds.y * 0.035f, ImVec2(ds.x * 0.03f, y), IM_COL32(110, 30, 20, 255), ui_pstone_look_name(look));
         for (int k = 0; k < 5; k++) {
             float cx = colw * (k + 0.75f);
-            ui_pstone_draw(dl, ImVec2(cx, y + ds.y * 0.2f), ds.y * 0.26f, look, Q[k], (float)ImGui::GetTime());
-            dl->AddText(ImGui::GetFont(), ds.y * 0.024f, ImVec2(cx - colw * 0.3f, y + ds.y * 0.36f), IM_COL32(60, 40, 20, 255), SN[k]);
-            ui_pstone_draw(dl, ImVec2(cx + colw * 0.36f, y + ds.y * 0.36f), ds.y * 0.05f, look, Q[k], (float)ImGui::GetTime());   /* (and as small as it is drawn on the screens) */
+            ui_pstone_draw(dl, ImVec2(cx, y + ds.y * 0.15f), ds.y * 0.2f, look, Q[k], (float)ImGui::GetTime());
+            dl->AddText(ImGui::GetFont(), ds.y * 0.022f, ImVec2(cx - colw * 0.3f, y + ds.y * 0.27f), IM_COL32(60, 40, 20, 255), SN[k]);
+            ui_pstone_draw(dl, ImVec2(cx + colw * 0.36f, y + ds.y * 0.27f), ds.y * 0.05f, look, Q[k], (float)ImGui::GetTime());   /* (and as small as it is drawn on the screens) */
         }
     }
 }

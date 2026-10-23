@@ -18,6 +18,7 @@
 #include "nsdraw.h"
 void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t);
 int ui_pstone_look(void);
+const char *ui_pstone_stage_name(int q);
 #include "../mods/gamemodel.h"
 #include "alchemydesk.h"
 #include <map>
@@ -76,8 +77,8 @@ extern "C" void alchemyview_draw(void)
         P.text(f, NsDraw::FS_NAME, 233, 3, a.stone ? IM_COL32(255, 196, 150, 255) : cream_soft, a.stone ? "Stone +" + std::to_string(a.stone) : std::string("No Stone"));
         P.text(fo, NsDraw::FS_SMALL, 233, 11.5f, cream_soft, a.stone ? "to every batch" : "yet", -1, 278);
         if (P.over(216, 2, 279, 19))
-            ns_tip(a.stone ? ("The party's Philosopher's Stone, of quality " + std::to_string(a.stone) + ": it adds " + std::to_string(a.stone) + " to the chance of every batch, whoever mixes. An alchemist or a university can make it better, for a price.").c_str()
-                           : "The party has no Philosopher's Stone yet. An alchemist or a university makes one, for a price; its quality adds to the chance of every batch.");
+            ns_tip(a.stone ? ("The party's Philosopher's Stone, of quality " + std::to_string(a.stone) + ": it adds " + std::to_string(a.stone) + " to the chance of every batch, whoever mixes. It stands at the " + std::string(ui_pstone_stage_name(a.stone)) + " stage of the Work. An alchemist (up to 25) or a university (up to 29, by the town) can make it better, for a price.").c_str()
+                           : "The party has no Philosopher's Stone yet. An alchemist (up to quality 25) or a university (up to 29) makes one, for a price; its quality adds to the chance of every batch.");
     }
     if (P.button(282, 4, 316, 16, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
