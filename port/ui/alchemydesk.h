@@ -30,4 +30,7 @@
 #define AD_START_X1 311.0f
 #define AD_START_Y0 178.0f
 #define AD_START_Y1 193.0f
+#include "imgui.h"
+void desk_table(ImDrawList *dl);                                     /* the oak table over the whole picture */
+void desk_book(ImDrawList *dl, float x0, float y0, float x1, float y1, float gutter, ImU32 leather);   /* a book open on it */
 #endif

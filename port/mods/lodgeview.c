@@ -148,6 +148,12 @@ static void job_hook(void)                   /* s036 1462:197e (who) */
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 #define ev_ptr g_event
 
+static long days_of(int y, int mo, int d)       /* (a day count: month 0-11, the Julian calendar) */
+{
+    static const int CUM[12] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+    if (mo < 0 || mo > 11) mo = 0;
+    return (long)y * 365 + y / 4 + CUM[mo] + (y % 4 == 0 && mo > 1) + d;
+}
 /* the town's teachers that have begun, in the events' order */
 static void teachers(LodgeModel *m)
 {
@@ -162,6 +168,12 @@ static void teachers(LodgeModel *m)
         m->t[m->nteach].skill = (s16)rw(s, o);
         m->t[m->nteach].fee = (s16)rw(s, (u16)(o + 0x1e));
         m->t[m->nteach].val = (s16)rw(s, (u16)(o + 0x20));
+        {   /* the days left of its week: its end (+0x12 hour, +0x14 day, +0x16 month, +0x18 year) from now */
+            long end = days_of((s16)rw(s, (u16)(o + 0x18)), (s16)rw(s, (u16)(o + 0x16)), (s16)rw(s, (u16)(o + 0x14)));
+            long now = days_of((s16)g_rw(G_CUR_YEAR), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_DAY));
+            m->t[m->nteach].days_left = (int)(end - now);
+        }
+        m->t[m->nteach].used = teach_best_here(m->t[m->nteach].skill) == i;
         m->nteach++;
     }
 }
@@ -216,6 +228,7 @@ static void build(void)
         g_str(G_DGROUP, (u16)(LV_DETAIL + 20 * i), p->detail, sizeof p->detail);
         gm_member_attr(i, 1, &p->str, &p->str_max);
         gm_member_attr(i, 6, &p->df, &p->df_max);
+        gm_member_attr(i, 0, &p->end, &p->end_max);
         p->skill = -1;
         if (p->act >= 0 && p->act <= 6) day_line(p->line, sizeof p->line, p->act, p->val, p->detail);
         if (p->act == 6) { p->skill = p->val; fees += fee_of(p->val); }
@@ -287,6 +300,17 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     ns_call(GF_screen_release, 0);
     if (ns_unwinding) { fixes_lodging(0); return; }
     build();
+    /* assist.inn_earn: a day of Just Relax refills Endurance and nothing else; one already at full
+       Endurance earns a little money instead (an inn in a town), as the player would choose */
+    if (mode == 0 && config_get_int("assist.inn_earn", 1) && !config_get_int("original", 0)) {
+        int any = 0, sel0 = (s16)g_rw(LV_SEL);
+        for (int i = 0; i < 5 && !ns_unwinding; i++) {
+            const LodgeMember *p = &m->m[i];
+            if (p->present && p->act == 0 && p->can[4] && p->end >= p->end_max && select_member(i)) { key(0x1245, 0); any = 1; }
+        }
+        if (any && !ns_unwinding) { select_member(sel0 >= 0 ? sel0 : 0); build(); }
+        if (ns_unwinding) { fixes_lodging(0); return; }
+    }
     m->open = 1;
     fprintf(stderr, "lodging: open (mode %d, %d teachers, a day %ld pf)\n", mode, m->nteach, m->cost);
     ns_enter(NS_LODGE);

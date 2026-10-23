@@ -692,13 +692,28 @@ extern "C" int ui_nearest_town(void)                /* in the wilds: the nearest
     return bd <= 60 * 60 ? best : -1;
 }
 
-static bool goto_hint;
+#include "repwatch.h"
+static bool goto_hint, camp_hint;
+extern "C" void plat_press_key(int scancode);
+/* a small campfire: two crossed logs, the flames over them (the map's "C: camp here") */
+static void campfire_icon(ImDrawList *dl, ImVec2 c, float s)
+{
+    float u = s / 20.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    ImU32 wood = IM_COL32(120, 74, 36, 255), wood_dk = IM_COL32(70, 40, 18, 255);
+    dl->AddLine(P(-8, 8), P(8, 3), wood_dk, 3.6f * u); dl->AddLine(P(-8, 3), P(8, 8), wood_dk, 3.6f * u);
+    dl->AddLine(P(-8, 8), P(8, 3), wood, 2.4f * u); dl->AddLine(P(-8, 3), P(8, 8), wood, 2.4f * u);
+    ImVec2 f1[3] = { P(-6, 4), P(0, -10), P(6, 4) }, f2[3] = { P(-3.5f, 4), P(0.5f, -5), P(3.5f, 4) }, f3[3] = { P(-1.6f, 4), P(0, -1), P(1.6f, 4) };
+    dl->AddTriangleFilled(f1[0], f1[1], f1[2], IM_COL32(200, 70, 20, 255));
+    dl->AddTriangleFilled(f2[0], f2[1], f2[2], IM_COL32(240, 150, 40, 255));
+    dl->AddTriangleFilled(f3[0], f3[1], f3[2], IM_COL32(255, 230, 140, 255));
+}
 static void right_panel(int size)
 {
-    goto_hint = false;
+    goto_hint = false; camp_hint = false;
     int cur = (s16)g_rw(G_CUR_LOC);
     bool any = false, near = false;
-    if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; }
+    if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; camp_hint = true; }
     else if (cur >= 0 && encounters_card_active() && !encounters_builtin(encounters_card_active() - 1)) near = true;    /* (a new encounter on the road out of town; not the restored hospice, a place in town) */
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
@@ -718,7 +733,28 @@ static void right_panel(int size)
             ImVec4 col = r <= -30 ? ImVec4(0.95f, 0.22f, 0.16f, 1) : r < -10 ? ImVec4(0.95f, 0.45f, 0.35f, 1) : r < 0 ? ImVec4(0.95f, 0.68f, 0.55f, 1)
                        : r >= 30 ? ImVec4(0.55f, 0.88f, 0.50f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_Text);
             ImGui::TextColored(col, "Reputation %d", r);
-            if (item_hovered()) margin_tip(r <= -30 ? "The town hates the party: guards, shopkeepers and its people will turn on you." : r < -10 ? "The town distrusts the party: expect cold welcomes and worse." : r < 0 ? "The town is wary of the party." : r >= 30 ? "The party is well thought of here." : "The town's opinion of the party (rises with good deeds here, falls with crimes).");
+            bool rep_hov = item_hovered();
+            const RepChange *rc = repwatch_last(cur);
+            u32 rage = rc ? plat_ticks_ms() - rc->t : 999999;
+            if (rc && rage < 12000) {                                 /* just changed: the change, beside it, for a while */
+                ImGui::SameLine(0, ImGui::GetFontSize() * 0.3f);
+                float pulse = rage < 3000 ? 0.65f + 0.35f * sinf(rage * 0.012f) : rage > 10000 ? (12000 - rage) / 2000.0f : 1.0f;
+                ImVec4 dc = rc->delta < 0 ? ImVec4(1.0f, 0.38f, 0.28f, pulse) : ImVec4(0.55f, 0.95f, 0.45f, pulse);
+                ImGui::TextColored(dc, "%+d", rc->delta);
+                rep_hov = rep_hov || item_hovered();
+            }
+            if (rep_hov) {
+                std::vector<RepChange> L; repwatch_list(cur, L);
+                if (!L.empty()) {
+                    std::string t = "Changes seen since this game was loaded:";
+                    for (int k = (int)L.size() - 1, n = 0; k >= 0 && n < 6; k--, n++) {
+                        const RepChange &c = L[k]; char b[64]; snprintf(b, sizeof b, "\n%+d on %d.%d.%d", c.delta, c.day, c.month + 1, c.year); t += b;
+                        t += c.choice.empty() ? " (" + std::string(c.card[0] == '$' ? "a card" : "the map") + ")" : ", after choosing \"" + c.choice + "\"";
+                    }
+                    margin_tip(t.c_str());
+                }
+            }
+            if (rep_hov && !repwatch_last(cur)) margin_tip(r <= -30 ? "The town hates the party: guards, shopkeepers and its people will turn on you." : r < -10 ? "The town distrusts the party: expect cold welcomes and worse." : r < 0 ? "The town is wary of the party." : r >= 30 ? "The party is well thought of here." : "The town's opinion of the party (rises with good deeds here, falls with crimes).");
             ImGui::SameLine(); ImGui::TextDisabled(" fame %d", fame);
         }
         else ImGui::TextDisabled("Fame %d", fame);
@@ -810,6 +846,18 @@ static void right_panel(int size)
         any = true;
     }
     if (!any) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work."); ImGui::PopStyleColor(); }
+    if (camp_hint) {                                                /* on the map: the original's C, to camp in the wild */
+        float sp = ImGui::GetStyle().ItemSpacing.y, lh = ImGui::GetTextLineHeight(), hh = lh * 1.4f + sp * 2;
+        float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
+        if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
+        ImGui::Separator();
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        campfire_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + lh * 0.7f, p.y + lh * 0.7f), lh * 1.4f);
+        ImGui::SetCursorScreenPos(ImVec2(p.x + lh * 1.6f, p.y + lh * 0.2f));
+        ImGui::TextDisabled("%s", ui_pad_prompts() ? "Camp here" : "C: camp here");
+        if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp."); }
+        if (ImGui::IsItemClicked()) plat_press_key(SDL_SCANCODE_C);
+    }
     if (goto_hint) {                                                /* the foot, as the left margin's hints */
         const char *h = ui_pad_prompts() ? "Go to a place here" : "G: go to a place here";
         float sp = ImGui::GetStyle().ItemSpacing.y, hh = ImGui::GetTextLineHeight() + sp * 2;

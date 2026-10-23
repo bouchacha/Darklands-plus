@@ -59,6 +59,7 @@ int teach_hired(int loc, TchHired *out, int max);
 
 /* the town's teacher of skill now (the first begun, as the inn takes it): ability, or -1 */
 int teach_ability_here(int skill);
+int teach_best_here(int skill);               /* the event index of the teacher used for a skill here (-1 none) */
 /* lessons stop at the teacher's ability (the "teachcap" fix): member m's skill has reached the
    teacher's ability a (>= 0) - nothing more to learn from that teacher */
 int teach_capped(int m, int skill, int a);

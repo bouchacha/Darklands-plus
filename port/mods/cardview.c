@@ -526,6 +526,12 @@ int cardview_menu(void)
     g_ww(A_8DDE, 1);
     for (int j = 0; j < c->npieces; j++) if (c->piece[j].opt == sel && c->piece[j].line >= 0) g_wb(A_HILITE, (u8)c->piece[j].line);
     click_record();
+    {   /* what was chosen, for what follows from it (mods/repwatch.c: why a town's opinion changed) */
+        extern char cardview_last_choice[160]; extern unsigned cardview_last_choice_t;
+        cardview_last_choice[0] = 0;
+        for (int j = 0; j < c->npieces; j++) if (c->piece[j].is_opt && c->piece[j].opt == sel) { snprintf(cardview_last_choice, 160, "%s%s", c->piece[j].lead, c->piece[j].text); break; }
+        cardview_last_choice_t = plat_ticks_ms();
+    }
     ns_call(ROOT, 0x047c, 0x059e, 1, 0);
     if (getenv("DL_CARDVIEW_LOG")) fprintf(stderr, "cardview: chose option %d (pop-up %d member %d slot %d)\n", sel, g_rw(A_MENU_POPUP), g_rw(A_MENU_MEMBER), g_rw(A_MENU_SLOT));
     return sel;
@@ -549,6 +555,7 @@ void cardview_dump(void)
 /* the game's own questions and messages ("Quit to DOS? y/n", hot keys' messages, a card
  * script's message box) are drawn into the picture: the native card steps aside meanwhile */
 int cardview_dialog;
+char cardview_last_choice[160]; unsigned cardview_last_choice_t;
 /* its words, for the native box drawn in its place (ui/gamedialog.cpp): kind 1 a message for a
    while, 2 a message until a key, 3 a question (y/n) */
 char game_dialog_text[600]; int game_dialog_kind;

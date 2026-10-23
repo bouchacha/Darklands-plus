@@ -15,7 +15,7 @@ typedef struct {
     int act, val;                     /* the day's activity (0 relax .. 6 train) and its number */
     char detail[24];                  /* the game's word for it (a job, "potions", "50pfs") */
     char line[64];                    /* the game's own line for it ("Regain strength (gain 2)") */
-    int str, str_max, df, df_max;
+    int str, str_max, df, df_max, end, end_max;
     int can[7];                       /* each activity possible (the original's bright or dim word) */
     int skill;                        /* training: the skill (-1 none) */
 } LodgeMember;
@@ -28,7 +28,7 @@ typedef struct {
     int risk;                         /* camping: the risk of being caught (of 10) */
     LodgeMember m[5];
     int nteach;
-    struct { int skill, fee, val; } t[LV_TEACHERS];
+    struct { int skill, fee, val, days_left, used; } t[LV_TEACHERS];   /* (used: the teacher the inn uses for that skill, teach_best_here) */
     long purse;                       /* pfennigs */
     long cost;                        /* a day: lodging + fees - earnings (the game's sum) */
     long lodging;                     /* the lodging alone */

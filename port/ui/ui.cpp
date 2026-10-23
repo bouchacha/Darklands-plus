@@ -1004,7 +1004,7 @@ static void draw_icon_grid(void)
 
 
 #include "vtrace.h"
-int vt_on = -1, vt_frame;
+int vt_on = -1, vt_frame, vt_last_mark;
 extern "C" unsigned long long ui_build_us;   /* (DL_PRESENT_TIME: when the interface was built, before it is drawn) */
 unsigned long long ui_build_us;
 extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
@@ -1141,6 +1141,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             dl->AddText(ui_font_small, 13, ImVec2(p.x + 4, p.y + 46), IM_COL32(240, 230, 210, 255), n.c_str());
         }
     }
+    { void repwatch_tick(void); repwatch_tick(); }
     VT(ui_cursor());
     VT(ui_alert_draw());
     { void game_dialog_draw(void); game_dialog_draw(); }

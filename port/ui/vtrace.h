@@ -12,3 +12,6 @@ static inline int vt_total(void)
     return n;
 }
 #define VT(x) do { int _v0 = vt_on > 0 ? vt_total() : 0; x; if (vt_on > 0 && vt_frame % 120 == 0) { int _d = vt_total() - _v0; if (_d > 2000) fprintf(stderr, "vtx %-40.40s %d\n", #x, _d); } } while (0)
+/* VTMARK("name"): the vertices added since the last mark (within one function, marks in order) */
+#define VTMARK(name) do { static int _vm; if (vt_on > 0) { int _t = vt_total(); if (vt_frame % 120 == 0 && _t - vt_last_mark > 2000) fprintf(stderr, "vtx %-40.40s %d\n", name, _t - vt_last_mark); vt_last_mark = _t; } (void)_vm; } while (0)
+extern int vt_last_mark;

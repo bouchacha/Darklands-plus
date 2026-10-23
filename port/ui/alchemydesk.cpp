@@ -8,6 +8,7 @@
 #include <math.h>
 #include "ornament.h"
 #include "alchemydesk.h"
+#include "drawcache.h"
 
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 
@@ -88,13 +89,13 @@ void table(ImDrawList *dl)
     dl->AddRectFilledMultiColor(a, ImVec2(b.x, a.y + ey), IM_COL32(0, 0, 0, 80), IM_COL32(0, 0, 0, 80), 0, 0);
 }
 
-void book(ImDrawList *dl, float k)
+void book_at(ImDrawList *dl, float k, float X0, float Y0, float X1, float Y1, float G, ImU32 leather)
 {
-    const float X0 = AD_BOOK_X0, X1 = AD_BOOK_X1, Y0 = AD_BOOK_Y0, Y1 = AD_BOOK_Y1, G = AD_GUTTER;
     /* its shadow, the leather, the gilt line tooled round it */
     dl->AddRectFilled(W(X0 + 3, Y0 + 5), W(X1 + 3, Y1 + 4), IM_COL32(0, 0, 0, 90), 6 * k);
     ImVec2 ca = W(X0, Y0), cb = W(X1, Y1);
-    dl->AddRectFilledMultiColor(ca, cb, IM_COL32(136, 36, 26, 255), IM_COL32(118, 30, 22, 255), IM_COL32(84, 18, 14, 255), IM_COL32(100, 24, 18, 255));
+    {   ImU32 l0 = leather, l1 = mixc(leather, IM_COL32(0, 0, 0, 255), 0.13f), l2 = mixc(leather, IM_COL32(0, 0, 0, 255), 0.38f), l3 = mixc(leather, IM_COL32(0, 0, 0, 255), 0.26f);
+        dl->AddRectFilledMultiColor(ca, cb, l0, l1, l2, l3); }
     dl->AddRect(ca, cb, IM_COL32(40, 6, 4, 255), 2 * k, 0, 1.5f);
     dl->AddRect(W(X0 + 1.2f, Y0 + 1.2f), W(X1 - 1.2f, Y1 - 1.2f), IM_COL32(222, 178, 84, 170), 0, 0, 1.0f);
     for (int c = 0; c < 4; c++) {                                  /* brass corners */
@@ -127,6 +128,8 @@ void book(ImDrawList *dl, float k)
     ImVec2 notch[3] = { r3, r2, rv };
     dl->AddTriangleFilled(notch[0], notch[1], notch[2], IM_COL32(70, 42, 22, 255));
 }
+
+void book(ImDrawList *dl, float k) { book_at(dl, k, AD_BOOK_X0, AD_BOOK_Y0, AD_BOOK_X1, AD_BOOK_Y1, AD_GUTTER, IM_COL32(136, 36, 26, 255)); }
 
 /* an apothecary's chest, open: its lid behind, inside it a label; the box of compartments */
 void chest(ImDrawList *dl, float k, float u)
@@ -222,12 +225,18 @@ static void desk(ImDrawList *dl, float t)
     ImVec2 o = W(60, 0), e = W(320, 200);
     float k = (e.y - o.y) / 200.0f, kx = (e.x - o.x) / 260.0f, u = fminf(k, kx);
     dl->PushClipRect(o, e, true);
-    table(dl);
-    book(dl, k);
-    chest(dl, k, u);
-    tablet(dl, k);
+    auto still = [&](ImDrawList *d) { table(d); book(d, k); chest(d, k, u); tablet(d, k); };
+    if (in_box) still(dl);
+    else dc_draw(dl, o, e, 0xa1c4e31ull, still);              /* (all but the fire: drawn once, kept: ui/drawcache.h) */
     furnace(dl, k, u, t);
     dl->PopClipRect();
+}
+/* the same oak table and a book on it, for other screens (the inn's ledger): game coordinates */
+void desk_table(ImDrawList *dl) { in_box = false; table(dl); }
+void desk_book(ImDrawList *dl, float x0, float y0, float x1, float y1, float gutter, ImU32 leather)
+{
+    in_box = false; ImVec2 o = W(60, 0), e = W(320, 200);
+    book_at(dl, (e.y - o.y) / 200.0f, x0, y0, x1, y1, gutter, leather);
 }
 extern "C" void alchemy_desk_draw(float t) { in_box = false; desk(ImGui::GetBackgroundDrawList(), t); }
 /* the settings' picture: the desk in a..b */

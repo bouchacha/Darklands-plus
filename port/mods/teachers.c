@@ -239,9 +239,24 @@ int teach_card_option(const char *card, int opt, TchSource *out)
     return 0;
 }
 
+/* the teacher of a skill here who teaches best (the highest ability; the lower fee between equals):
+   the one the inn uses with the "bestteacher" fix (several hired for one skill), else the first */
+int teach_best_here(int skill)
+{
+    int loc = (s16)g_rw(GV_cur_loc), best = -1, bs = -1, bf = 0;
+    if (!fix_is_on("bestteacher")) return event_at(0x28, loc, skill);
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i); if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + 0x22)) != 0x28 || (s16)rw(s, (u16)(o + 0x1c)) != loc || (s16)rw(s, o) != skill || !started(s, o)) continue;
+        int a = (s16)rw(s, (u16)(o + 0x20)), f = (s16)rw(s, (u16)(o + 0x1e));
+        if (best < 0 || a > bs || (a == bs && f < bf)) { best = i; bs = a; bf = f; }
+    }
+    return best;
+}
 int teach_ability_here(int skill)
 {
-    int i = event_at(0x28, (s16)g_rw(GV_cur_loc), skill);
+    int i = teach_best_here(skill);
     if (i < 0) return -1;
     u32 e = g_event(i);
     return (s16)rw((u16)(e >> 16), (u16)((u16)e + 0x20));

@@ -1,3 +1,4 @@
+#include "vtrace.h"
 // worldmap.cpp - the world map: the whole of the Holy Roman Empire as the travel screen draws
 // it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of
 // auto-travel and the places the quest log points to. Click a place for its details, double-
@@ -630,6 +631,8 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
         return q;
     };
     auto dash_run = [&](const std::vector<ImVec2> &P, float dash, float gap, float speed, ImU32 c, float w) {
+        ImDrawListFlags fl = dl->Flags; dl->Flags &= ~ImDrawListFlags_AntiAliasedLines;   /* (short dashes: plain quads, a quarter of the vertices) */
+        struct Restore { ImDrawList *d; ImDrawListFlags f; ~Restore() { d->Flags = f; } } restore{ dl, fl };
         float acc = -fmodf(t * speed + 10000 * (dash + gap), dash + gap);
         for (int k = 1; k < (int)P.size(); k++) {
             ImVec2 p0 = P[k - 1], p1 = P[k];
@@ -806,7 +809,9 @@ extern "C" void worldmap_draw(void)
                 dl->AddImage((ImTextureID)t, to_scr(tx0, ty0), to_scr(tx1, ty1));
             }
     } else if (tex[l]) dl->AddImage((ImTextureID)tex[l], to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
+    VTMARK("wm start");
     draw_map_frame(dl, to_scr(0, 0), to_scr((float)worldmap.full_w, (float)worldmap.full_h));
+    VTMARK("wm frame");
 
     std::vector<Place> P = places();
     static std::vector<std::pair<int, std::string>> marks;
@@ -840,11 +845,24 @@ extern "C" void worldmap_draw(void)
                 if (n >= 2) { float x, y; tile_px(xs[n - 1], ys[n - 1], &x, &y); pts.push_back(to_scr(x, y)); }
                 else for (int e = 0; e < 2; e++) { u32 r = g_location(e ? b : a); if (!r) continue; float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y); pts.push_back(to_scr(x, y)); }
                 if (pts.size() < 2) continue;
+                {   /* (off the window: not drawn; points closer than a few pixels: one, the way looks the same with far fewer vertices) */
+                    ImVec2 lo = pts[0], hi = pts[0];
+                    for (const ImVec2 &q : pts) { lo.x = fminf(lo.x, q.x); lo.y = fminf(lo.y, q.y); hi.x = fmaxf(hi.x, q.x); hi.y = fmaxf(hi.y, q.y); }
+                    ImVec2 ds = ImGui::GetIO().DisplaySize;
+                    if (hi.x < -20 || hi.y < -20 || lo.x > ds.x + 20 || lo.y > ds.y + 20) continue;
+                    std::vector<ImVec2> q; q.reserve(pts.size());
+                    for (size_t i = 0; i < pts.size(); i++) {
+                        if (!q.empty() && i + 1 < pts.size()) { float dx = pts[i].x - q.back().x, dy = pts[i].y - q.back().y; if (dx * dx + dy * dy < 36) continue; }
+                        q.push_back(pts[i]);
+                    }
+                    pts.swap(q);
+                }
                 int al = selected >= 0 && !lit ? 90 : 255;
                 boat_way_draw(dl, pts, lw, lit, al, t, boat_style(), both);
             }
     }
 
+    VTMARK("wm boats");
     // the way the party would take to the place chosen: a dotted line (on the travel map; the
     // planned journey's own way while travelling there)
     if (selected >= 0 && game_mode() == GM_MAP && travel_enabled) {
@@ -886,6 +904,7 @@ extern "C" void worldmap_draw(void)
     }
     // places
     int hover = -1; float hd = 1e9f;
+    VTMARK("wm way");
     /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
     ImFont *fs = ui_font_overlay;
     float ks = ui_text_px() / 22.0f;
@@ -977,6 +996,7 @@ extern "C" void worldmap_draw(void)
     if (hovered && hover >= 0 && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && on_map) {
         for (const Place &p : P) if (p.loc == hover && travel_to_loc(p.loc, p.name.c_str())) { route_note(); ui_toggle_map(); break; }
     }
+    VTMARK("wm places");
     /* the panel and the tooltips: at least as big as the menus, bigger on a big screen */
     float pk = fmaxf(1.0f, ui_text_px() * 0.8f / ImGui::GetFontSize());
     if (hover >= 0) {
@@ -1095,6 +1115,7 @@ extern "C" void worldmap_draw(void)
     if (!sel) wm_foot_top = 1e9f;
     float avail_h = sz.y - 2 * pad - (foot_h > 0 ? foot_h + pad : 0);
 
+    VTMARK("wm foot");
     /* ---- the left: what the map is, the view buttons, the journey, the tasks and rumours */
     ImGui::SetNextWindowPos(ImVec2(o.x + pad, o.y + pad));
     ImGui::SetNextWindowBgAlpha(0.97f);

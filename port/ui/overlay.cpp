@@ -870,8 +870,8 @@ static void draw_learned(void)
 {
     if (learned_saint < 0) return;
     u32 age = plat_ticks_ms() - learned_t;
-    if (age > 25000) { learned_saint = -1; return; }
-    float a = age < 24000 ? 1.0f : (25000 - age) / 1000.0f;
+    if (age > 12500) { learned_saint = -1; return; }
+    float a = age < 11500 ? 1.0f : (12500 - age) / 1000.0f;
     const Saint &t = gamedata.saints[learned_saint];
     char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
     std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;

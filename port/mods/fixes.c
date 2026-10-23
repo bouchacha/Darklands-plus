@@ -343,6 +343,8 @@ Fix FIXES[] = {
       "In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does.", 1 },
     { "ruinkeep", "The burnt-out keep lets the party go after searching it",
       "Searching the burnt-out ruin of a robber knight's keep ($Raubr00) ends \"as you resume your journey...\", yet the card came back to its first page, as if the party had just arrived. Now the party is back on the road, as the text says.", 1 },
+    { "bestteacher", "Of two teachers of one skill, the better one teaches",
+      "When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals).", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2436,6 +2438,18 @@ static void sneak_hook(void)
     hook_remove(GF_practice_skill_impl, sneak_practice_hook);
 }
 
+/* ---------------------------------------------------------------- bestteacher
+ * The inn finds a member's teacher by its skill (event_find(0x28, skill, town), the first hired):
+ * with two teachers of one skill the first always taught. Here the best of them answers. */
+static void bestteacher_hook(void)          /* event_find (kind, type, loc, owner, tag, f2a) */
+{
+    int kind = (s16)rw(SS, (u16)(SP + 4)), type = (s16)rw(SS, (u16)(SP + 6)), loc = (s16)rw(SS, (u16)(SP + 8));
+    hook_call_original();
+    if (ns_unwinding || kind != 0x28 || type < 0 || loc != (s16)g_rw(GV_cur_loc) || (s16)AX < 0) return;
+    int b = teach_best_here(type);
+    if (b >= 0 && b != (s16)AX) { if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bestteacher: %s taught by teacher %d, not %d\n", gm_skill_name(type), b, (s16)AX); AX = (u16)b; }
+}
+
 /* ---------------------------------------------------------------- ruinkeep
  * $Raubr00, the burnt-out keep (s129 1942:0004): its first option, "investigate the ruin" (1942:021c),
  * shows the search ("... As you resume your journey ...") and an hour passes, but sets no next card:
@@ -2467,7 +2481,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook } };
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { GF_event_find, bestteacher_hook } };
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
