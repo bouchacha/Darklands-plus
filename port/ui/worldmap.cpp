@@ -613,15 +613,26 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
             acc += L;
         }
     };
-    auto dashes = [&](float dash, float gap, float speed, ImU32 c, float w) {
-        if (both_ways) {                                          /* (in place, brightening and fading) */
-            speed = 0;
-            int a0 = (int)(c >> IM_COL32_A_SHIFT) & 255; float pl = 0.72f + 0.28f * sinf(t * 2.2f);
-            c = (c & ~IM_COL32_A_MASK) | ((ImU32)(a0 * pl) << IM_COL32_A_SHIFT);
+    /* the way moved aside by off (its left, as it runs), for a second lane */
+    auto offset = [&](float off) {
+        std::vector<ImVec2> q(n);
+        for (int k = 0; k < n; k++) {
+            ImVec2 d0 = k > 0 ? ImVec2(pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y) : ImVec2(0, 0);
+            ImVec2 d1 = k + 1 < n ? ImVec2(pts[k + 1].x - pts[k].x, pts[k + 1].y - pts[k].y) : ImVec2(0, 0);
+            float l0 = sqrtf(d0.x * d0.x + d0.y * d0.y), l1 = sqrtf(d1.x * d1.x + d1.y * d1.y);
+            ImVec2 d(0, 0);
+            if (l0 > 0) { d.x += d0.x / l0; d.y += d0.y / l0; }
+            if (l1 > 0) { d.x += d1.x / l1; d.y += d1.y / l1; }
+            float l = sqrtf(d.x * d.x + d.y * d.y);
+            if (l <= 0) { q[k] = pts[k]; continue; }
+            q[k] = ImVec2(pts[k].x + d.y / l * off, pts[k].y - d.x / l * off);
         }
-        float acc = -fmodf(t * speed, dash + gap);
-        for (int k = 1; k < n; k++) {
-            ImVec2 p0 = pts[k - 1], p1 = pts[k];
+        return q;
+    };
+    auto dash_run = [&](const std::vector<ImVec2> &P, float dash, float gap, float speed, ImU32 c, float w) {
+        float acc = -fmodf(t * speed + 10000 * (dash + gap), dash + gap);
+        for (int k = 1; k < (int)P.size(); k++) {
+            ImVec2 p0 = P[k - 1], p1 = P[k];
             float L = sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
             if (L <= 0) continue;
             for (float s0 = 0; s0 < L;) {
@@ -632,6 +643,13 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
             }
             acc += L;
         }
+    };
+    /* the moving dashes; both ways: two lanes side by side, running opposite ways (as two streams of boats) */
+    auto dashes = [&](float dash, float gap, float speed, ImU32 c, float w) {
+        if (!both_ways) { dash_run(pts, dash, gap, speed, c, w); return; }
+        float off = w * 0.55f, w2 = w * 0.62f;
+        dash_run(offset(off), dash * 0.8f, gap * 0.8f, speed, c, w2);
+        dash_run(offset(-off), dash * 0.8f, gap * 0.8f, -speed, c, w2);
     };
     if (lit) {                                                    /* the chosen way glows */
         float pulse = 0.75f + 0.25f * sinf(t * 4.0f);
