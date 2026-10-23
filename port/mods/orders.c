@@ -368,7 +368,7 @@ const char *orders_hint(void)
     }
     if ((a == STD_ATTACK || a == 0x0a) && hint_sel >= 0) {       /* one who opens by shooting, sent in instead: no clear shot */
         int w, f;
-        if (aim_of(&w, &f) == MISSILE && f == hint_ct) return "No clear shot: goes closer";
+        if (aim_of(&w, &f) == MISSILE && f == hint_ct) return "No clear shot: walks up to fight";
     }
     return 0;                                                    /* (a plain attack goes without saying) */
 }

@@ -13,6 +13,7 @@
 #include "../mods/hdtext.h"
 #include "game.h"
 #include "gamevars.h"
+#include "../mods/losaim.h"
 #include "config.h"
 
 void plat_mouse_game(int *x, int *y);
@@ -81,14 +82,31 @@ int testcmd_run(const char *cmd, const char *arg)
             fprintf(stderr, "\n");
         }
         else if (!strcmp(cmd, "udsect")) { void settings_display_jump(int); settings_display_jump(atoi(arg)); }   /* test: the Display page at section N */
+        else if (!strcmp(cmd, "ulosall")) {            /* test: from every member to every foe, the game's line test against mods/losaim.c's */
+            typedef LosBox B;
+            int ns_call(int, u16, u16, int, ...); int agree = 0, differ = 0, blocked = 0;
+            for (int w = 0; w < 5; w++) for (int f = 5; f < 13; f++) {
+                if (g_rb((u16)(0x9c55 + w * 0x80 + 0x14)) != 1 || g_rb((u16)(0x9c55 + f * 0x80 + 0x14)) != 1) continue;
+                for (int md = 0x80; md <= 0x100; md += 0x80) {
+                    B bx[24]; int n = los_trace(w, f, md, bx, 24);
+                    u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
+                    g_ww(GV_los_x0, g_rw((u16)(0x9c55 + w * 0x80 + 4))); g_ww(GV_los_y0, g_rw((u16)(0x9c55 + w * 0x80 + 6)));
+                    g_ww(GV_los_x1, g_rw((u16)(0x9c55 + f * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(0x9c55 + f * 0x80 + 6)));
+                    int bl = ns_call(GF_line_blocked, 3, w, f, md) != 0;
+                    g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
+                    if (bl == (n > 0)) agree++; else { differ++; fprintf(stderr, "losall: differ %d->%d mode %#x game %d boxes %d:", w, f, md, bl, n); for (int j = 0; j < n; j++) fprintf(stderr, " k%d id%d %d,%d-%d,%d", bx[j].kind, bx[j].id, bx[j].x0, bx[j].y0, bx[j].x1, bx[j].y1); fprintf(stderr, " | %d,%d -> %d,%d h59 %d\n", (s16)g_rw((u16)(0x9c55 + w * 0x80 + 4)), (s16)g_rw((u16)(0x9c55 + w * 0x80 + 6)), (s16)g_rw((u16)(0x9c55 + f * 0x80 + 4)), (s16)g_rw((u16)(0x9c55 + f * 0x80 + 6)), (s8)g_rb((u16)(0x9c55 + w * 0x80 + 0x59))); }
+                    blocked += bl;
+                }
+            }
+            fprintf(stderr, "losall: %d agree (%d blocked), %d differ\n", agree, blocked, differ);
+        }
         else if (!strcmp(cmd, "uaim")) {               /* test: who shoots, and the aim under the pointer */
             extern int orders_member_mode(int m); extern int orders_aim(int *who, int *foe);
             for (int m = 0; m < 5; m++) fprintf(stderr, "aim: member %d mode %d weapon %d order %#x\n", m, orders_member_mode(m), (s8)g_rb((u16)(0x9c55 + m * 0x80 + 0x22)), g_rw((u16)(0x9c55 + m * 0x80 + 0x10)));
             int w = -1, f = -1, md = orders_aim(&w, &f);
             fprintf(stderr, "aim: %#x member %d foe %d selected %d\n", md, w, f, (s8)g_rb(GV_selected_member));
             if (md) {
-                typedef struct { int x0, y0, x1, y1, kind, id; } B; extern int los_trace(int, int, int, B *, int);
-                B bx[24]; int n = los_trace(w, f, md, bx, 24);
+                LosBox bx[24]; int n = los_trace(w, f, md, bx, 24);
                 for (int j = 0; j < n; j++) fprintf(stderr, "aim: box kind %d id %d %d,%d-%d,%d\n", bx[j].kind, bx[j].id, bx[j].x0, bx[j].y0, bx[j].x1, bx[j].y1);
                 u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
                 g_ww(GV_los_x0, g_rw((u16)(0x9c55 + w * 0x80 + 4))); g_ww(GV_los_y0, g_rw((u16)(0x9c55 + w * 0x80 + 6)));
