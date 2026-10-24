@@ -330,8 +330,12 @@ static int frame_textures(void)
         if (!own[t]) own[t] = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 1024, 512);
         if (!own[t]) { fprintf(stderr, "scaler: no texture: %s\n", SDL_GetError()); ui_settings.scaler = 0; return frame_textures(); }
         int tx = t % n, ty = t / n;
-        SDL_Rect r = { 0, 0, 640, 400 };
-        SDL_UpdateTexture(own[t], &r, px + (ty * 400) * w + tx * 640, w * 4);
+        /* each tile carries a pixel of its neighbours round its inner edges: smoothed (linear)
+           scaling reads past a tile's own pixels, and without them the seams showed as lines */
+        int l = tx > 0, tp = ty > 0, rt = tx < n - 1, bt = ty < n - 1;
+        SDL_Rect up = { 0, 0, 640 + l + rt, 400 + tp + bt };
+        SDL_UpdateTexture(own[t], &up, px + (ty * 400 - tp) * w + tx * 640 - l, w * 4);
+        SDL_Rect r = { l, tp, 640, 400 };
         tiles[t] = own[t]; tile_src[t] = r;
         tile_dst[t] = (SDL_FRect){ (float)tx / n, (float)ty / n, 1.0f / n, 1.0f / n };
     }
@@ -436,6 +440,10 @@ void plat_present(const u8 *vga, const u8 *pal)
         SDL_SetTextureScaleMode(tiles[t], ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
         SDL_SetTextureBlendMode(tiles[t], hdart_ndraws ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
         SDL_FRect d = { dest.x + tile_dst[t].x * dest.w, dest.y + tile_dst[t].y * dest.h, tile_dst[t].w * dest.w, tile_dst[t].h * dest.h };
+        if (nt > 1) {                            /* (tiles: edges on whole pixels, shared by neighbours: no gap or overlap between them) */
+            float x0 = roundf(d.x), y0 = roundf(d.y), x1 = roundf(d.x + d.w), y1 = roundf(d.y + d.h);
+            d = (SDL_FRect){ x0, y0, x1 - x0, y1 - y0 };
+        }
         SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
     }
     if (slide_watch()) slide_draw();
