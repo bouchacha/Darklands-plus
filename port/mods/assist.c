@@ -188,11 +188,65 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
 static u32 bad[64]; static int nbad;
 static int is_bad(u32 a) { for (int k = 0; k < nbad; k++) if (bad[k] == a) return 1; return 0; }
 
+/* what an option's chance reads (CardChances reads): the party's numbers changed for every member,
+   the option asked again; a group at a time, halved until the ones that matter are left - raised
+   (skills 99, attributes 60, the town's opinion and fame high), or lowered when the chance is near
+   certain and cannot rise. A handful of calls for an option that reads one or two things */
+enum { F_ATTR = 19, F_REP = 26, F_FAME = 27 };
+static int ask_with(u16 seg, u16 off, int opt, void *snap, const int *fs, int nf, int high)
+{
+    for (int q = 0; q < nf; q++) {
+        int f = fs[q];
+        if (f < F_ATTR) { for (int m = 0; m < 5; m++) g_wb((u16)(G_MEMBER(m) + G_M_SKILLS + f), (u8)(high ? 99 : 1)); }
+        else if (f < F_REP) { for (int m = 0; m < 5; m++) { g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + f - F_ATTR), (u8)(high ? 60 : 1)); g_wb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + f - F_ATTR), (u8)(high ? 60 : 1)); } }
+        else if (f == F_REP) {
+            s16 v = high ? 100 : -100; int loc = (s16)g_rw(G_CUR_LOC);
+            g_ww(GV_cur_rep, (u16)v);
+            if (loc >= 0) { u32 r = g_location(loc); if (r) ww((u16)(r >> 16), (u16)((u16)r + 0x12), (u16)v); }
+        } else g_ww(GV_party_fame, (u16)(high ? 30000 : 0));
+    }
+    g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
+    u32 r = game_call_ptr(seg, off, 0, 0, 0x5a);
+    eval_restore(snap);
+    return game_call_timed_out ? -1000 : (s16)(r & 0xffff);
+}
+static void find_reads(u16 seg, u16 off, int opt, void *snap, int p0, const int *fs, int nf, int high, u32 *reads, int *calls)
+{
+    if (nf <= 0 || *calls > 40) return;
+    (*calls)++;
+    int p = ask_with(seg, off, opt, snap, fs, nf, high);
+    if (p == -1000 || p == p0) return;
+    if (nf == 1) { *reads |= 1u << fs[0]; return; }
+    find_reads(seg, off, opt, snap, p0, fs, nf / 2, high, reads, calls);
+    find_reads(seg, off, opt, snap, p0, fs + nf / 2, nf - nf / 2, high, reads, calls);
+}
+static struct { u32 key; u32 reads; } reads_cache[24]; static int nreads_cache; static char reads_card[13];
+static u32 option_reads(u16 seg, u16 off, int opt, void *snap, int p0)
+{
+    /* asked once for each option of a card and its leader: the chances are asked again every second,
+       what they read does not change */
+    char card[13]; memcpy(card, (const char *)M + LIN(G_DGROUP, 0xe3d4), 12); card[12] = 0;
+    if (strcmp(card, reads_card)) { strcpy(reads_card, card); nreads_cache = 0; }
+    u32 key = ((u32)seg << 16 | off) ^ ((u32)(u8)g_rb(G_LEADER) << 28) ^ (u32)opt << 24;
+    for (int k = 0; k < nreads_cache; k++) if (reads_cache[k].key == key) return reads_cache[k].reads;
+    static const int SK[19] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 };
+    static const int AT[7] = { 19, 20, 21, 22, 23, 24, 25 }, RP[1] = { F_REP }, FM[1] = { F_FAME };
+    u32 reads = 0; int calls = 0, high = p0 < 95;
+    find_reads(seg, off, opt, snap, p0, SK, 19, high, &reads, &calls);
+    find_reads(seg, off, opt, snap, p0, AT, 7, high, &reads, &calls);
+    find_reads(seg, off, opt, snap, p0, RP, 1, high, &reads, &calls);
+    find_reads(seg, off, opt, snap, p0, FM, 1, high, &reads, &calls);
+    if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: opt %d reads %#x (%d calls)\n", opt, reads, calls);
+    if (nreads_cache < 24) { reads_cache[nreads_cache].key = key; reads_cache[nreads_cache].reads = reads; nreads_cache++; }
+    return reads;
+}
+
 extern int dos_no_writes;
 static void evaluate(void)
 {
     int n = (s8)g_rb(GV_card_layout);
     if (n < 0 || n > 20) n = 0;
+    u32 t0 = plat_ticks_ms();
     void *snap = eval_snapshot();
     dos_no_writes = 1;                   /* the answers are thrown away: so is any change to the disk */
     CardChances c;
@@ -258,12 +312,20 @@ static void evaluate(void)
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }
         c.line[i].opt = opt; c.line[i].lead = lead;
         if (pct >= 0) { c.line[i].show = 1; c.line[i].pct = pct > 100 ? 100 : pct; c.line[i].who = who; }
+        if (pct >= 0 && r != 0xffffffffu) {                            /* what it reads, with the leader who would do it */
+            int cur = (s8)g_rb(G_LEADER);
+            if (lead >= 0) g_wb(G_LEADER, (u8)lead);
+            void *s2 = lead >= 0 ? eval_snapshot() : snap;
+            c.line[i].reads = option_reads(seg, off, opt, s2, pct);
+            if (lead >= 0) { eval_free(s2); g_wb(G_LEADER, (u8)cur); }
+        }
     }
     eval_free(snap);
     dos_no_writes = 0;
     c.active = 1;
     c.seq = card_chances.seq + 1;
     card_chances = c;
+    { u32 dt = plat_ticks_ms() - t0; if (getenv("DL_ASSIST_LOG") || dt > 60) fprintf(stderr, "assist: the card's chances took %u ms (%d lines)\n", dt, n); }
 }
 
 /* every poll of a card menu: the chances asked again when something may have changed */

@@ -8,9 +8,14 @@ extern "C" {
 typedef struct {
     int active, n, seq;
     u32 polled;                       /* plat_ticks_ms() of the last menu poll */
-    struct { int show, pct, who, opt, lead; } line[20];   /* lead: the member who would do best as leader (-1: the leader is best) */
+    struct { int show, pct, who, opt, lead; u32 reads; } line[20];   /* lead: the member who would do best as leader (-1: the leader is best);
+                                                                         reads: what the chance depends on (CC_SKILL(k) bits 0-18, CC_ATTR(a) 19-25, CC_REP, CC_FAME) */
 } CardChances;
 extern CardChances card_chances;
+#define CC_SKILL(k) (1u << (k))
+#define CC_ATTR(a)  (1u << (19 + (a)))
+#define CC_REP      (1u << 26)
+#define CC_FAME     (1u << 27)
 extern int assist_chances;            /* 0 off, 1 as the difficulty level allows, 2 always numbers */
 void assist_set_chances(int mode);
 void assist_init(void);

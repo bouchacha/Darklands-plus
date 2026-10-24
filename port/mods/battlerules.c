@@ -86,6 +86,7 @@ static int walk_x[5], walk_y[5];                          /* to where */
 static signed char approach[5];                           /* the walk is towards the foe, until a line opens */
 static u16 last_try[5], seen_engage[5], walk_since[5];
 
+static int strict_spot;                                 /* the line clear to where the mark is going too (a first pass) */
 static int clear_from(int i, int t, int x, int y)       /* a free spot, and a clear line from it to t */
 {
     u16 c = CBT(i);
@@ -97,11 +98,35 @@ static int clear_from(int i, int t, int x, int y)       /* a free spot, and a cl
         g_ww(GV_los_x1, g_rw((u16)(CBT(t) + 4))); g_ww(GV_los_y1, g_rw((u16)(CBT(t) + 6)));
         ok = ns_call(GF_line_blocked, 3, i, t, 0x80) == 0;
     }
+    if (ok && !ns_unwinding && strict_spot && g_rb((u16)(GV_cbt_moving + t))) {   /* (and to where the mark walks, so the line holds as it comes) */
+        u16 tc = CBT(t); int tx = (s16)g_rw((u16)(tc + 4)), ty = (s16)g_rw((u16)(tc + 6));
+        g_ww((u16)(tc + 4), g_rw((u16)(tc + 8))); g_ww((u16)(tc + 6), g_rw((u16)(tc + 0xa)));
+        g_ww(GV_los_x0, (u16)x); g_ww(GV_los_y0, (u16)y);
+        g_ww(GV_los_x1, g_rw((u16)(tc + 8))); g_ww(GV_los_y1, g_rw((u16)(tc + 0xa)));
+        ok = ns_call(GF_line_blocked, 3, i, t, 0x80) == 0;
+        g_ww((u16)(tc + 4), (u16)tx); g_ww((u16)(tc + 6), (u16)ty);
+    }
     g_ww((u16)(c + 4), (u16)ox); g_ww((u16)(c + 6), (u16)oy);
     return ok && !ns_unwinding;
 }
 
+static void step_aside_at(int i);
+/* friends on their way somewhere are taken as there already while a spot is chosen (three shooters in
+   a column each picked a spot the others then walked into: they crept aside, sixteen pixels at a
+   time, and never shot); the line to where the mark walks is wanted too, then only to where it is */
 static void step_aside(int i)
+{
+    int sx[5], sy[5], moved[5] = { 0 };
+    for (int j = 0; j < 5; j++) {
+        u16 f = CBT(j);
+        if (j == i || g_rb((u16)(f + 0x14)) != 1 || !g_rb((u16)(GV_cbt_moving + j))) continue;
+        sx[j] = (s16)g_rw((u16)(f + 4)); sy[j] = (s16)g_rw((u16)(f + 6)); moved[j] = 1;
+        g_ww((u16)(f + 4), g_rw((u16)(f + 8))); g_ww((u16)(f + 6), g_rw((u16)(f + 0xa)));
+    }
+    step_aside_at(i);
+    for (int j = 0; j < 5; j++) if (moved[j]) { g_ww((u16)(CBT(j) + 4), (u16)sx[j]); g_ww((u16)(CBT(j) + 6), (u16)sy[j]); }
+}
+static void step_aside_at(int i)
 {
     u16 c = CBT(i);
     int t = (s8)g_rb((u16)(c + 0x4a));
@@ -130,18 +155,22 @@ static void step_aside(int i)
             return;
         }
     }
-    /* rings of half cells (16 x 8 pixels; a cell is 32 x 16) out to three cells */
+    /* rings of half cells (16 x 8 pixels; a cell is 32 x 16) out to three cells; first with the line
+       holding to where the mark walks, then to where it is */
+    for (int pass = 0; pass < 2; pass++)
     for (int r = 1; r <= 6 && !getenv("DL_TEST_APPROACH"); r++) {   /* (debugging: DL_TEST_APPROACH tries the walk towards the foe at once) */
+        strict_spot = pass == 0;
         int bx = 0, by = 0; long bd = -1;
         for (int dy = -r; dy <= r; dy++)
             for (int dx = -r; dx <= r; dx++) {
                 if (dx > -r && dx < r && dy > -r && dy < r) continue;
                 int x = x0 + dx * 16, y = y0 + dy * 8;
                 if (x < 0 || y < 0 || x >= 40 * 32 || y >= 40 * 16) continue;
-                if (!clear_from(i, t, x, y)) { if (ns_unwinding) return; continue; }
+                if (!clear_from(i, t, x, y)) { if (ns_unwinding) { strict_spot = 0; return; } continue; }
                 long d = (long)(x - tx) * (x - tx) + 4L * (y - ty) * (y - ty);   /* (rows half as tall) */
                 if (d > bd) { bd = d; bx = x; by = y; }
             }
+        strict_spot = 0;
         if (bd < 0) continue;
         g_ww((u16)(c + 8), (u16)bx); g_ww((u16)(c + 0xa), (u16)by);
         int found = ns_call(GF_path_find, 1, i) == 1;

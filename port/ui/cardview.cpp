@@ -30,12 +30,28 @@
 #include "gamedata.h"
 #include "money.h"
 #include "teachersui.h"
+#include "skillicons.h"
+#include "gamepics.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
 extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 extern "C" int cardview_dialog, game_dialog_kind;
+extern "C" { void gm_member_figure_code(int m, char *out, int n); void gm_member_palette(int m, unsigned char *mp); const char *gm_skill_name(int k); const char *gm_attr_name(int a); }
+const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *mp, ImVec2 *uv0, ImVec2 *uv1);   /* ui/partypanel.cpp */
+extern int ui_icon_heraldic_here;
+/* who tries an option: the member's head, as on the character sheet's saints (from the figure beside a battle) */
+static bool member_head(ImDrawList *dl, int m, ImVec2 p0, float sz)
+{
+    char code[8]; gm_member_figure_code(m, code, sizeof code);
+    unsigned char mp[24]; gm_member_palette(m, mp);
+    ImVec2 u0, u1;
+    const GamePic *g = ns_figure_head(60 + m, code, mp, &u0, &u1);
+    if (!g) return false;
+    dl->AddImage((ImTextureID)(intptr_t)g->tex, p0, ImVec2(p0.x + sz, p0.y + sz), u0, u1);
+    return true;
+}
 extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int here, const int *dest, const int *opt, const int *state, const char *const *fare, int n, int hover_opt);
 extern "C" u32 plat_ticks_ms(void);
 extern "C" const char *card_hint(const char *card, int opt);     /* ui/cardhints.cpp */
@@ -277,6 +293,7 @@ extern "C" void cardview_draw(void)
     }
 
     int tip_item = -1, tip_saint = -1, tip_formula = -1; ImVec2 tip_at;
+    int chance_tip = -1; ImVec2 chance_tip_at;                   /* (the pointer on an option's chance: who tries it, and what it rests on) */
     for (int j = 0; j < c.npieces; j++) {
         const CvPiece &p = c.piece[j];
         Laid &la = laid[j];
@@ -339,11 +356,23 @@ extern "C" void cardview_draw(void)
                 if (pct <= 0) snprintf(main, sizeof main, "hopeless");
                 else g_str(G_DGROUP, pp, main, sizeof main);
             }
+            /* who tries it (their heads: one, or the whole party when each tries), and what it rests on
+               (the skills and attributes as on the character sheet, the town's opinion, fame) */
+            u32 reads = cc.line[p.line].reads;
+            int heads[5], nh = 0, icons[30], ni = 0;
+            if (who >= 0 && who < 5) heads[nh++] = who;
+            else if (who == -2) for (int m = 0; m < members && m < 5; m++) heads[nh++] = m;
+            for (int q = 0; q < 19; q++) if (reads & CC_SKILL(q)) icons[ni++] = q;
+            for (int q = 0; q < 7; q++) if (reads & CC_ATTR(q)) icons[ni++] = 100 + q;
+            if (reads & CC_REP) icons[ni++] = 200;
+            if (reads & CC_FAME) icons[ni++] = 201;
             if (who >= 0 && who < 5 && members > 1) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), nm, sizeof nm); snprintf(sub, sizeof sub, "%s", game_text(nm, strlen(nm)).c_str()); }
             else if (who == -2 && members > 1) snprintf(sub, sizeof sub, "all");
             float ms = size * 0.82f, ss = size * 0.66f;
+            float hsz = ms * 1.18f, isz = ms * 1.05f, gap = 0.28f * ms;
+            if (nh) sub[0] = 0;                                     /* (the heads say who: no name) */
             ImVec2 mt = fs->CalcTextSizeA(ms, FLT_MAX, 0, main), st = sub[0] ? fs->CalcTextSizeA(ss, FLT_MAX, 0, sub) : ImVec2(0, 0);
-            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms, bh = ms * 1.02f;
+            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * (isz + 0.12f * ms) : 0), bh = fmaxf(ms * 1.02f, (nh || ni) ? hsz * 1.12f : 0);
             /* beside the box, level with the option's first line: a tab on the card's edge */
             float cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
             float bxl = X1 + 4.5f * k, bxr = bxl + bw;
@@ -354,6 +383,22 @@ extern "C" void cardview_draw(void)
             dl->AddRect(q0, q1, hov ? IM_COL32(230, 185, 100, 240) : IM_COL32(170, 125, 65, 200), bh * 0.3f, 0, fmaxf(1.0f, 0.3f * k));
             dl->AddText(fs, ms, ImVec2(q0.x + 0.3f * ms, cy - mt.y * 0.52f), fg, main);
             if (sub[0]) dl->AddText(fs, ss, ImVec2(q0.x + 0.3f * ms + mt.x + 0.3f * ms, cy - st.y * 0.5f), IM_COL32(215, 195, 160, 240), sub);
+            float hx = q0.x + 0.3f * ms + mt.x + gap;
+            for (int h = 0; h < nh; h++, hx += hsz * 0.92f)
+                if (!member_head(dl, heads[h], ImVec2(hx, cy - hsz * 0.55f), hsz)) {   /* (no figure: the initial) */
+                    char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(heads[h]) + G_M_SHORTNAME), nm, sizeof nm); nm[1] = 0;
+                    dl->AddText(fs, ss, ImVec2(hx + hsz * 0.25f, cy - ss * 0.5f), IM_COL32(215, 195, 160, 240), game_text(nm, 1).c_str());
+                }
+            if (nh) hx += gap * 0.5f;
+            ui_icon_heraldic_here = 1;
+            for (int q = 0; q < ni; q++, hx += isz + 0.12f * ms) {
+                ImVec2 ic(hx + isz * 0.5f, cy);
+                if (icons[q] < 100) ui_skill_icon(dl, ic, isz, icons[q]);
+                else if (icons[q] < 200) ui_attr_icon(dl, ic, isz, icons[q] - 100);
+                else ui_standing_icon(dl, ic, isz, icons[q] - 200);
+            }
+            ui_icon_heraldic_here = 0;
+            if (menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false)) { chance_tip = j; chance_tip_at = ImVec2(q1.x + 4 * k, q0.y); }
         }
         /* the list under it */
         if (p.is_opt && c.popup_piece == j) {
@@ -430,7 +475,27 @@ extern "C" void cardview_draw(void)
     };
     const bool tipmenu = menu && !ui_is_open();                  /* (no card tooltips over the Darklands+ window, the world map, Go to ...) */
     if (ui_is_open()) tip_formula = tip_item = tip_saint = -1;
-    if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
+    if (chance_tip >= 0 && !ui_is_open()) {
+        const CvPiece &p = c.piece[chance_tip];
+        int who = cc.line[p.line].who; u32 reads = cc.line[p.line].reads;
+        std::string w, r;
+        if (who >= 0 && who < 5) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), nm, sizeof nm); w = game_text(nm, strlen(nm)) + " tries it"; }
+        else if (who == -2) w = "Each member tries it";
+        for (int q = 0; q < 19; q++) if (reads & CC_SKILL(q)) r += (r.empty() ? "" : ", ") + game_text(gm_skill_name(q), 40);
+        for (int q = 0; q < 7; q++) if (reads & CC_ATTR(q)) r += (r.empty() ? "" : ", ") + game_text(gm_attr_name(q), 40);
+        if (reads & CC_REP) r += std::string(r.empty() ? "" : ", ") + "the town's opinion of the party (its reputation here)";
+        if (reads & CC_FAME) r += std::string(r.empty() ? "" : ", ") + "the party's fame";
+        if (!w.empty() || !r.empty()) {
+            ImGui::SetNextWindowPos(chance_tip_at);
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+            if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
+            if (!r.empty()) ImGui::TextUnformatted(("It rests on: " + r + ".").c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
+    else if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
     else if (tipmenu && c.hover >= 0 && c.hover < c.npieces && teaches[c.hover]) {
         /* a teacher: what, how well, for how much, and what it takes (and why it is greyed, if known) */

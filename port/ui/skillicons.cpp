@@ -160,7 +160,8 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
 {
     int st = style_override >= 0 ? style_override : icon_style();
     if (st == 2) {
-        static const ImU32 FIELD[4] = { IM_COL32(36, 30, 30, 255), IM_COL32(160, 30, 30, 255), IM_COL32(30, 60, 140, 255), IM_COL32(30, 110, 50, 255) };
+        static const ImU32 FIELD[5] = { IM_COL32(36, 30, 30, 255), IM_COL32(160, 30, 30, 255), IM_COL32(30, 60, 140, 255), IM_COL32(30, 110, 50, 255),
+                                        IM_COL32(100, 38, 110, 255) };   /* (sable the attributes, gules the weapons, azure knowledge, vert the abilities, purpure the party's standing) */
         shield(dl, c, s, FIELD[group]);
         /* the charge: as large as the shield allows, in gold with a dark edge under it (it must read when
            small); only near-white details (a page, a highlight) take the field's colour, so a steel key
@@ -178,6 +179,36 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
     if (ui_icon_disc) dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));   /* a dark disc: the picture reads on any background */
     body(dl, c, s, k);
 }
+/* the party's standing, which some cards weigh: 0 the town's opinion of the party (its reputation here),
+   two hands clasped; 1 the party's fame, a herald's trumpet with its banner */
+static void standing_body(ImDrawList *dl, ImVec2 c, float s, int k)
+{
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    const ImU32 INK = IM_COL32(40, 24, 12, 255);
+    if (k == 0) {
+        const ImU32 SLEEVE_L = IM_COL32(150, 60, 50, 255), SLEEVE_R = IM_COL32(60, 90, 150, 255), SKIN = IM_COL32(226, 184, 140, 255);
+        ImVec2 l[4] = { P(-9.5f, 1.5f), P(-4.0f, -2.2f), P(-2.4f, 1.4f), P(-8.0f, 5.4f) };
+        ImVec2 r[4] = { P(9.5f, 1.5f), P(4.0f, -2.2f), P(2.4f, 1.4f), P(8.0f, 5.4f) };
+        dl->AddConvexPolyFilled(l, 4, SLEEVE_L); dl->AddPolyline(l, 4, INK, ImDrawFlags_Closed, 0.9f * u);
+        dl->AddConvexPolyFilled(r, 4, SLEEVE_R); dl->AddPolyline(r, 4, INK, ImDrawFlags_Closed, 0.9f * u);
+        dl->AddEllipseFilled(P(0, -0.4f), ImVec2(4.6f * u, 3.0f * u), SKIN, -0.15f);
+        dl->AddEllipse(P(0, -0.4f), ImVec2(4.6f * u, 3.0f * u), INK, -0.15f, 0, 0.9f * u);
+        for (int f = 0; f < 3; f++) dl->AddLine(P(-1.6f + f * 1.6f, -2.8f), P(-0.8f + f * 1.6f, 1.6f), INK, 0.7f * u);   /* (the fingers over the other hand) */
+        dl->AddLine(P(-4.0f, -2.2f), P(-2.4f, 1.4f), IM_COL32(240, 230, 210, 255), 1.0f * u);   /* (the cuffs) */
+        dl->AddLine(P(4.0f, -2.2f), P(2.4f, 1.4f), IM_COL32(240, 230, 210, 255), 1.0f * u);
+    } else {
+        const ImU32 BRASS = IM_COL32(214, 168, 60, 255), CLOTH = IM_COL32(170, 40, 40, 255);
+        ImVec2 b[5] = { P(-4.6f, -4.2f), P(4.6f, -4.2f), P(4.6f, 3.8f), P(0, 1.8f), P(-4.6f, 3.8f) };   /* the banner, swallow-tailed */
+        dl->AddConcavePolyFilled(b, 5, CLOTH); dl->AddPolyline(b, 5, INK, ImDrawFlags_Closed, 0.9f * u);
+        dl->AddLine(P(-9.0f, -5.0f), P(6.0f, -5.0f), INK, 2.6f * u);                       /* the tube */
+        dl->AddLine(P(-9.0f, -5.0f), P(6.0f, -5.0f), BRASS, 1.5f * u);
+        ImVec2 bell[3] = { P(5.0f, -5.0f), P(9.6f, -8.4f), P(9.6f, -1.6f) };
+        dl->AddTriangleFilled(bell[0], bell[1], bell[2], BRASS); dl->AddTriangle(bell[0], bell[1], bell[2], INK, 0.9f * u);
+        dl->AddCircleFilled(P(-9.4f, -5.0f), 1.1f * u, BRASS); dl->AddCircle(P(-9.4f, -5.0f), 1.1f * u, INK, 0, 0.7f * u);   /* the mouthpiece */
+    }
+}
+void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 4, standing_body, k); }
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, k < 7 ? 1 : k < 13 ? 2 : 3, skill_body, k); }
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 0, attr_body, k); }
 
