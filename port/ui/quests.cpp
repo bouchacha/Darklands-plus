@@ -1,4 +1,4 @@
-// quests.cpp - the quest log (Journal > Quests): the game keeps its quests as timed events
+// quests.cpp - the quest list (on the world map, M): the game keeps its quests as timed events
 // (far table 2e38:1b2c, 300 pointers to 0x30-byte records) but never lists them; players
 // used MicroProse's own DKQUE.EXE or other tools for that. Record fields (s16): +00 type0,
 // +02/+0A/+12 dates written/start/end {hour, day, month 0-11, year}, +1A owner, +1C loc,

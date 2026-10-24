@@ -14,7 +14,7 @@ A mod is a folder in the game folder's `mods` folder:
     DARKLAND.LST            any game file, replaced whole (items, saints, cities, enemies ...)
     PICS/CASTLE1.PIC        one picture
     MSGFILES/$MAINS01.TXT   one card file as text (or .MSG); the other cards stay as they are
-    A00C.CAT/<entry>        one file inside a .CAT catalogue (also BC, LCASTLE)
+    A00C.CAT/<entry>        one file inside a .CAT catalog (also BC, LCASTLE)
     rules.ini               weapon numbers (below)
     art/  sounds/           replacement pictures (PNG) and sounds (WAV/OGG), as in the game folder
     music/                  recordings that replace the game's pieces of music (below)
@@ -31,7 +31,7 @@ the game's saves go to Windows' VirtualStore copy of the game folder; F12 > Abou
 Card texts, pictures, sounds and weapon numbers change at once; files the game reads when it
 starts (the item list, saints, cities ...) need a restart.
 
-Implementation: `port/mods/datamods.c` (redirect of DOS opens for reading, catalogue merging into
+Implementation: `port/mods/datamods.c` (redirect of DOS opens for reading, catalog merging into
 `mods/.cache/`), `port/ui/rules.cpp` (rules.ini).
 
 ## Card texts
@@ -66,7 +66,7 @@ change their words. The text form converts back byte-for-byte (all 419 files wer
 
 ## Weapon numbers (rules.ini)
 
-F12 > Records > Weapons lists the battle numbers of every weapon; "Write these numbers into a
+F12 > New Player Guide > Weapons lists the battle numbers of every weapon; "Write these numbers into a
 mod folder" makes a `rules.ini` with all of them to start from.
 
 ```ini
@@ -95,21 +95,22 @@ Purchase an item => Ware kaufen
 The Goods Merchant offers... => Der Krämer bietet an...
 ```
 
-A hotkey letter and the rest of its word count as one line. "Collect the texts shown" (F12 >
-Mods) writes every line the game shows into `mods/_export/texts_seen.txt`, ready to translate.
-This works with crisp text on (it replaces the words where they are drawn).
+A hotkey letter and the rest of its word count as one line. "Write every text shown to a file"
+(F12 > Mods) writes every line the game shows into `mods/_export/texts_seen.txt`, ready to
+translate. This works with New text on (F12 > Settings > Text; it replaces the words where they
+are drawn).
 
 ## Items
 
-F12 > Records > Items lists every item of DARKLAND.LST with its name, short name, weight,
+F12 > Editor > "Items (for a mod)" lists every item of DARKLAND.LST with its name, short name, weight,
 quality, rarity and value, all editable; "Save the list into this mod folder" writes the whole
 list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
 
 ## Foes
 
-F12 > Records > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with its
-attributes, weapon skills, armour, shield and weapons, and which weapons pierce its armour. The
-attributes, skills and armour quality can be changed there; "Save the foes into this mod folder"
+F12 > New Player Guide > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with
+its attributes, weapon skills, armor, shield and weapons, and which weapons pierce its armor. The
+attributes, skills and armor quality can be changed there; "Save the enemies into this mod folder"
 writes the whole file as the mod's `DARKLAND.ENM`. Foes of one kind share their numbers. The file's
 layout is in `formats/dlformats/enm.py`.
 
@@ -121,12 +122,12 @@ options that test the party's skills, run by Darklands+ from a plain text script
 them; tick it in F12 > Mods). Its folder is the best place to start reading:
 `mods/New encounters/ENCOUNTERS/*.TXT` and `MSGFILES/$NW*.TXT`.
 
-While a mod with an `ENCOUNTERS` folder is ticked, some of the random encounters on the travel
-map are new ones. Each new encounter counts as `weight` more entries of the game's own table of
+While a mod with an `ENCOUNTERS` folder is ticked, some of the random encounters in the overland
+view are new ones. Each new encounter counts as `weight` more entries of the game's own table of
 encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one
 of the game's own; F12 > Mods sets an overall percentage, and none comes twice within a few days.
 A small red seal in the corner of the card marks a new encounter (its tooltip names it). Not in
-the Buggy Purist preset (the game as it was).
+the Full Original preset (the game as it was).
 
 An encounter is two files: its text, `MSGFILES/<CARD>.TXT` in the card text format above (block 0
 is usually the first menu), and its script, `ENCOUNTERS/<NAME>.TXT`:
@@ -255,24 +256,24 @@ Select Character Image offers the game's own figures (any `PICS\F??STAT.PIC`, `A
 add one: a new group `Exx` in `E00C.CAT` (`ExxWK<weapon>.IMC`, `ExxCB<weapon>.IMC` for the same
 weapons, `ExxDY.IMC`), a `TACANIM.DB` record with its buffer sizes and an enemy type in
 `DARKLAND.ENM` whose image group is `Exx` (its name names the figure; its first `ENEMYPAL.DAT`
-palette gives the colours). The portrait (`ExxSMALL.PIC`) and the little battle figure
-(`ExxSHORT.PIC`) are made from the sprites unless the mod has its own in `PICS` (use colours
-0xEB-0xF2 for the member's own colours, as the game's pictures do).
+palette gives the colors). The portrait (`ExxSMALL.PIC`) and the little battle figure
+(`ExxSHORT.PIC`) are made from the sprites unless the mod has its own in `PICS` (use colors
+0xEB-0xF2 for the member's own colors, as the game's pictures do).
 
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
-drawn at window resolution; F12 > Settings > Window and sound can export all original pictures as templates
-and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
-for variations) replaces a battle sound; the names are listed in F12 > Settings > Window and sound. Mods can
-carry both folders; a mod's files win over the game folder's.
+drawn at window resolution; F12 > Mods, under "Replacement art (for artists)", can export all
+original pictures as templates and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
+for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
+"Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 
 ### Making a whole art pack
 
-`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Settings > Window and sound > "Export
-the original pictures", which writes `art/original`) into a mod folder: `OUT/mod.txt` and
+`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Mods > "Export the original pictures",
+under "Replacement art (for artists)", which writes `art/original`) into a mod folder: `OUT/mod.txt` and
 `OUT/art/NAME.png` at four times the size. A *style* decides what becomes of each picture; the
-sample style `clown` dresses every piece of armour on the character sheet as a clown costume
+sample style `clown` dresses every piece of armor on the character sheet as a clown costume
 and turns shields into bullseyes, which makes it easy to see that the replacer works. Styles are
 plain Python functions (picture in, picture out, or None to leave it), so an image model can be
 plugged in the same way. A pack made from the originals carries the game's pictures: keep it
@@ -281,10 +282,10 @@ for yourself.
 ### Repainting the pictures with an image model
 
 `port/tools/aiart.py ORIGINALS OUT --backend ...` is the pipeline for a full replacement: every
-card and screen picture (and, if asked, the armour, shields and weapons) goes through an image
+card and screen picture (and, if asked, the armor, shields and weapons) goes through an image
 model as image-to-image, starting from the original scaled up, so the composition stays and
 the painting is new. It keeps what must not move (the parchment edge of the cards, the shapes of
-the items), draws the colours towards the original's, writes `art/NAME.jpg` / `.png` at four
+the items), draws the colors towards the original's, writes `art/NAME.jpg` / `.png` at four
 times the size, and makes `review.html` with each original beside its new picture.
 
 - **Backends:** `a1111` (a local Stable Diffusion WebUI such as AUTOMATIC1111 or Forge, started
@@ -306,7 +307,7 @@ As with `artpack.py`, a pack made from the game's pictures is for your own use.
 
 `port/tools/soundpack.py OUT` makes the "Battle sounds (0 A.D. recordings)" mod that comes with
 the release (off until ticked in F12 > Mods): 50 takes of the eleven battle sounds, cut from
-0 A.D.'s free recordings (Wildfire Games, CC BY-SA 3.0) to start on the blow, levelled, and in
+0 A.D.'s free recordings (Wildfire Games, CC BY-SA 3.0) to start on the blow, leveled, and in
 places layered (a hit on mail, the body falling after a death cry); the flask breaking and the
 magic sparkle are synthesized. It fetches only the files it uses from 0 A.D.'s repository
 (`--src` takes a 0 A.D. `audio` folder instead) and needs numpy and ffmpeg. The pack holds
@@ -321,11 +322,10 @@ number the game asks its sound driver for, with anything after it: `10.ogg`, `11
 `08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
 Up to four files for one number are played in turn (`27 a.ogg`, `27 b.ogg` ...; the game's own
 piece 27 is one of four tunes in turn).
-The pieces are the same for every sound device. F12 > Settings > Window and sound lists the numbers that
-are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
+The pieces are the same for every sound device. F12 > Settings > Sound lists the numbers that are
+known, under "Custom sound packs" > "The pieces" (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
 the city square 14, the university 15, the fortress 17, the map 19 and 20, the dungeon 22, before
-a city 27 and 28, a village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names
-each piece as it starts, so a pack can be made by listening.
+a city 27 and 28, a village 41, the ending 45, the opening 47 ...; 8 to 47 in all).
 
 A piece in the pack plays from its file while the synthesizer is silenced; a piece the pack
 lacks plays from the synthesizer as before, so a pack can be partial. A piece that loops in the

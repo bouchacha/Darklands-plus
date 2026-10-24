@@ -1,6 +1,6 @@
 # Darklands+
 
-**A free, unofficial update for *Darklands* (MicroProse, 1992), the role-playing game of 15th-century Germany.** Darklands+ runs your own copy of the game natively on modern Windows, without DOSBox. It keeps the game as it was and adds what it always lacked: screens made for the mouse, the information the game kept hidden, less busywork, and fixes for its bugs. Every change can be switched off.
+**A free, unofficial update for *Darklands* (MicroProse, 1992), the role-playing game of 15th-century Germany.** Darklands+ runs your own copy of the game natively on modern Windows, without DOSBox. It keeps the game as it was and adds what it always lacked: screens made for the mouse, the information the game kept hidden, less busywork, and fixes for its bugs. Most changes can be switched off.
 
 > Darklands+ is not a remake and does not contain the game. You need your own copy of Darklands from GOG or Steam.
 
@@ -23,15 +23,15 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 - **It runs on today's PCs.** Natively on Windows 10 and 11, in a window of any size or full screen, with crisp text up to 4K. The Roland MT-32 music is built in (with your own ROM files), and game controllers and the Steam Deck work.
 - **Screens made for the mouse.** The cards, shops, character sheet, loot, inn, alchemy, saints, saving and loading are redrawn: click an option, drag an item, point at anything for an explanation.
-- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what an enemy's armour stops.
+- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what an enemy's armor stops.
 - **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and from the world map the party travels to any place you pick.
-- **Quests you can follow.** Each task has a title, a deadline and a marker on the map. A journal keeps every text the game has shown you, a record of each town, and your own notes.
+- **Quests you can follow.** Each quest has a title, a deadline and a marker on the map, and the world map (M) lists them all, with a record of each town. A journal keeps every text the game has shown you, and your own notes.
 - **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on an enemy to attack it, and a map of the level.
 - **Bugs fixed.** 57 fixes for bugs of the original, and 43 saints that now do what their descriptions say.
-- **What MicroProse left unfinished**, on a page of its own (F12 > Settings > Restored), experimental and off unless you tick it: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices, an ambush by soldiers of a private war ("Fehde!"), a town's hospice, Black Cloud in battle and the Honor Roll of Glory the game never showed. [What else the game holds unused](docs/cut_content.md).
+- **What MicroProse left unfinished**, on a page of its own (F12 > Reconstructed Content), experimental and off unless you tick it: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices, an ambush by soldiers of a private war ("Fehde!"), a town's hospice, Black Cloud in battle and the Honor Roll of Glory the game never showed. [What else the game holds unused](docs/cut_content.md).
 - **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
 
-**You decide how much changes.** F12 > Settings > Helpers offers presets, from *Buggy Purist* (the original game exactly, bugs and all) and *Purist* (its bugs fixed) to *Easy*, and every switch one by one.
+**You decide how much changes.** F12 > Settings > Preset offers presets, from *Full Original* (the original game exactly, bugs and all) and *Purist* (its bugs fixed) to *Darklands+* (recommended), and every switch one by one; easier play comes as built-in mods in F12 > Mods.
 
 ## Install
 
