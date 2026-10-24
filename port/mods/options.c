@@ -409,3 +409,43 @@ void preset_apply(int p)
     void datamods_scan(void), musicpack_reload(void); datamods_scan(); musicpack_reload();
     if (listener) listener("preset", p);
 }
+
+/* ---------------------------------------------------------------- the list for other engines */
+/* docs/SWITCHES.md: every switch, its key (its name for good), what it does and why, its group, its
+   class and its value in the original, in Darklands+ and in Easy; then the retired keys
+   (DL_DUMP_SWITCHES=path, runtime/main.c) */
+const char *option_why(const Option *o);
+extern const char *const OPTIONS_RETIRED[];
+static const char *cls_name(int c)
+{
+    switch (c) { case OC_FIX: return "fix"; case OC_SHOW: return "show"; case OC_EASE: return "ease"; case OC_PLUS: return "plus";
+                 case OC_EASY: return "easy"; case OC_EXPERIMENT: return "experiment"; case OC_TASTE: return "taste"; case OC_TOOL: return "tool"; }
+    return "?";
+}
+static void md(FILE *f, const char *t) { for (; t && *t; t++) { if (*t == '|') fputs("\\|", f); else if (*t == '\n') fputc(' ', f); else fputc(*t, f); } }
+int options_dump_markdown(const char *path)
+{
+    FILE *f = fopen(path, "w");
+    if (!f) return 0;
+    fputs("# Darklands+ switches\n\n"
+          "Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group\n"
+          "switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste,\n"
+          "tool) and its value in the original game / Darklands+ / the Easy preset. Made by the game itself\n"
+          "(`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py`\n"
+          "fails if a key disappears without being listed as retired.\n\n", f);
+    const char *last = "";
+    int n = options_count();
+    for (int i = 0; i < n; i++) {
+        const Option *o = options_get(i);
+        if (strcmp(o->section, last)) { fprintf(f, "\n## %s\n\n| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |\n|---|---|---|---|---|---|---|\n", o->section); last = o->section; }
+        int g = bundle_of(o->key);
+        fputs("| `", f); md(f, o->key); fputs("` | ", f); md(f, o->title); fputs(" | ", f); md(f, o->desc && o->desc[0] ? o->desc : o->title); fputs(" | ", f);
+        md(f, option_why(o)); fputs(" | ", f);
+        if (g >= 0) { fputs("`", f); md(f, BUNDLES[g].key); fputs("`", f); }
+        fprintf(f, " | %s | %d / %d / %d |\n", cls_name(o->cls), o->orig, o->def, o->easy);
+    }
+    fputs("\n## Retired keys\n\nNo longer offered; not to be used for anything else.\n\n", f);
+    for (int i = 0; OPTIONS_RETIRED[i]; i++) fprintf(f, "- `%s`\n", OPTIONS_RETIRED[i]);
+    fclose(f);
+    return 1;
+}

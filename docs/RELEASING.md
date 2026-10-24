@@ -60,3 +60,13 @@ the latter because that is what the first start was tested with.
 Their own Darklands 483.07 (GOG) and Windows 10 or 11, 64-bit. On Linux and Steam Deck the
 Windows zip runs under Wine / Proton. The players' README in the zip is
 `port/tools/release_readme.txt`.
+
+## Switch names
+
+Before a release, write the switch list afresh and check that no switch lost its name:
+
+    DL_DUMP_SWITCHES=/tmp/sw.md build/port/darklands GAME_FOLDER
+    python3 port/tools/check_switches.py docs/SWITCHES.md /tmp/sw.md && cp /tmp/sw.md docs/SWITCHES.md
+
+A switch's key is never renamed or reused; one no longer offered goes into `OPTIONS_RETIRED` (`port/mods/optwhy.c`).
+A new switch gets a line in `WHY` there (why it exists), beside its description (what it does) in `port/mods/options.c`.

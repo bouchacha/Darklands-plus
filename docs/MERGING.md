@@ -1,5 +1,7 @@
 # Taking from Darklands+ into another engine
 
+Every switch, with what it does and why, is listed in `docs/SWITCHES.md` (made by the game from its own table; the keys never change).
+
 This is for the authors of other Darklands projects, first of all **Darklands Restoration**
 (Arkana Mechanika, C# and SDL, its own core). Darklands+ runs the original game program,
 recompiled function by function, and changes it from the outside; a restoration with its own
