@@ -607,30 +607,6 @@ bool citynav_town_offers(int loc, int icon)
     return false;
 }
 
-/* the places of town loc beyond the shops and the everyday ones (the inn, the square, the church,
-   the gate ...), as Go to lists them, in its order: for the town journal ("Has: town hall, cathedral,
-   alchemist, Fugger bank ..."). The banks, the Hanse and Soldiers' Road are in the location record,
-   read while a card or the map is up; meanwhile the last reading of the town stands */
-std::string citynav_town_has(int loc)
-{
-    static std::map<int, std::string> last;
-    int gm = game_mode();
-    if (gm != GM_CARD && gm != GM_MAP) { auto it = last.find(loc); if (it != last.end()) return it->second; }
-    static const int D[] = { D_TOWNHALL, D_FORTRESS, D_FUGGER, D_MEDICI, D_HANSE, D_CATHEDRAL, D_MONASTERY, D_UNIVERSITY, D_PHYSICIAN,
-                             D_ALCHEMIST, D_PAWN, D_SOLDIERS, D_BARRACKS, D_DOCKS, D_SLUM };
-    std::string t;
-    for (int d : D) {
-        bool loc_rec = d == D_FUGGER || d == D_MEDICI || d == D_HANSE || d == D_SOLDIERS;
-        if (loc_rec && gm != GM_CARD && gm != GM_MAP) continue;
-        if (!present_at(d, loc)) continue;
-        std::string n = DEST[d].label;
-        if (d != D_FUGGER && d != D_MEDICI && d != D_HANSE) for (size_t i = 0; i < n.size(); i++) if (i == 0 || n[i - 1] == ' ') n[i] = (char)tolower((unsigned char)n[i]);
-        t += (t.empty() ? "" : ", ") + n;
-    }
-    if (gm == GM_CARD || gm == GM_MAP) last[loc] = t;
-    return t;
-}
-
 /* the party's tasks in this town, by the place they lead to: a reward waiting with its giver (the
    giver's house: a bank's, the Hanse's, the cathedral, the council), a thing kept in an office above
    the marketplace (reached at night) */

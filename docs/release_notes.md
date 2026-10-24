@@ -16,7 +16,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **A day at the inn or in camp** no longer looks frozen: the page shows the hours going by, and a click skips it.
 - **Calling on a saint** says why there is no chance (too little Virtue, or too little favor).
 - **Battles:** fighters in a melee crowd no longer stand still for seconds when someone is in their way, enemies at the back wait or pick another target instead of taking a long detour, and planning their routes no longer makes the battle stutter; a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down.
-- Smaller fixes to Go to, the town journal, cards and quest texts, and Comic Sans as an eighth typeface (we are so sorry).
+- Smaller fixes to Go to, cards and quest texts, and Comic Sans as an eighth typeface (we are so sorry).
 
 **New in 1.2**
 
@@ -88,7 +88,7 @@ Every change in detail: `docs/changes-1.2.md`.
 - **Game controllers:** an Xbox, PlayStation or Switch pad, or a Steam Deck, plays the game: the left stick moves the pointer, A clicks, B opens the menu bar, X / Y are Enter / Esc, the d-pad the arrow keys, Start the Darklands+ menu, Back the world map, the right stick pressed fast-forwards a battle (F1 lists them all). While it is in use the screens show its buttons. Its settings are in F12 > Settings > Controller.
 - **Real MT-32s and other MIDI synthesizers:** the "Roland MIDI" setting can send to any MIDI output Windows has (a real MT-32 on a MIDI interface, Munt's driver, a Sound Canvas), chosen in F12 > Settings > Sound.
 - **Music volume:** its own slider (F12 > Settings > Sound), for the FM and the MT-32 alike.
-- **Music packs:** a mod (or a "music" folder) can replace the game's pieces of music with recordings (Ogg or WAV), piece by piece; F12 > Settings > Sound lists the pieces by number (under "Custom sound packs"). None comes with Darklands+.
+- **Music packs:** a mod (or a "music" folder) can replace the game's pieces of music with recordings (Ogg or WAV), piece by piece; F12 > Settings > Sound names the piece playing and lists them all by number (under "Custom sound packs"). None comes with Darklands+.
 - **Battle sounds:** a mod with real recordings (swords clashing, shields, blows, cries, the bow, the handgun, a war horn for an ambush) in place of the synthesizer notes comes with the download; tick it in F12 > Mods. The recordings are from 0 A.D. (CC BY-SA 3.0).
 - **New encounters:** sixteen new wilderness encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): a mandrake under the gallows oak, a herb-wife, flagellants, a robber knight's bridge toll, the lord's deer and his huntsmen, kobolds at a mine, will-o'-the-wisps in the marsh, a procession of the dead, an overturned wagon that may be bait, a lost child, a relic seller, charcoal burners, grave robbers, a peasants' boar hunt, a camp of deserters and a knight's feud. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters, and they come up among them about as often as one of the game's own. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
 - **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds; mods switch on and off at once, sounds included. F12 > Mods makes a new mod folder with instructions.

@@ -47,7 +47,6 @@
 - **Go to:** a town hall's or a lord's chance of an audience is the same number the card shows (it said one more). The market stalls' chance of a quest (merchants, foreign traders, pharmacists) says "after shopping": their offer comes as the party leaves the stalls, one time in seven, and not again for three days when none comes.
 - **A room at the inn, camping:** spending a day no longer looks like the game froze. The game's clock ran for four seconds under the page, unseen; now the page shows the hours going by itself (the bell, the day, a bar), in about a second, and a click or a key skips it. A week, or Until rested, shows each day the same way, faster ("Day 3 of 7"), and a click skips to the end.
 - **Margins:** their tooltips (a saint, a teacher, a quest) no longer show on top of Go to, the world map or the F12 window when one of those lies over the margin.
-- **Town journal:** what a town has follows Go to (its banks, the Hanse, the physician and the alchemist too).
 - **Cards:** a card's tooltip (the saints or items an option takes) no longer stays over the F12 window, the world map or Go to, and the saints an option takes are listed by their whole names ("St. Christina the Astonishing", not "S.Christina").
 - **New encounters:** one met on the way out of a town, while the party still stands by its gate, no longer offers Go to in the margin.
 - **Quests:** a place without a name of its own reads "the pagan altar north-west of Hall".

@@ -309,6 +309,8 @@ void setup_sound(void)
                 ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
             }
             else ui_hint("No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, \"11 market.ogg\").", dlp_user_dir, PATH_SEP);
+            {   int fp = 0, now = musicpack_now(&fp);              /* (the piece playing: to make a pack by listening) */
+                if (now > 0) { const char *d = musicpack_desc(now); ui_hint("The game's music now: piece %d%s%s%s, %s (silent while Settings is open).", now, d[0] ? " (" : "", d, d[0] ? ")" : "", fp ? "from the pack" : "by the synthesizer"); } }
             if (ImGui::TreeNode("The pieces")) {
                 ui_hint("A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). "
                         "Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent.");
