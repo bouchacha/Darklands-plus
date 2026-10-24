@@ -178,6 +178,23 @@ static void step_aside(int i)
     if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d walks from %d,%d towards %d until a line opens\n", i, x0, y0, t);
 }
 
+/* the missile order at t, engaged now: after cbt_ready, which takes the next queued order in
+   place of the one set (s014 3cc4: the queue empty, the order became none and the shooter stood
+   idle, its mark still set); as orders.c idle_shooters gives it */
+static void shoot_now(int i, int t)
+{
+    u16 c = CBT(i);
+    int wm = (s8)g_rb((u16)(c + 0x22));
+    if (wm < 0 || wm > 62) return;
+    ns_call(GF_weapon_ready, 3, i, wm, 0x80);
+    if (ns_unwinding) return;
+    g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), 0x80);
+    g_wb((u16)(GV_cbt_state + i), 0);
+    g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
+    g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+    g_wb((u16)(GV_cbt_action + i), 7);
+}
+
 static void step_hook(void)                   /* cbt_step (i, set), s014 0e76:1624: one step along the path (a near call) */
 {
     int i = (s16)rw(SS, (u16)(SP + 2));
@@ -195,10 +212,9 @@ static void step_hook(void)                   /* cbt_step (i, set), s014 0e76:16
     if (ns_unwinding || blocked) return;
     approach[i] = 0; walk_for[i] = -1;                        /* a line: stop here and shoot */
     g_wb((u16)(GV_cbt_moving + i), 0);
-    g_ww((u16)(c + 0x10), 0x80);
-    g_wb((u16)(c + 0x4a), (u8)t);
     if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d has a line to %d at %d,%d: shoots\n", i, t, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)));
     ns_call(GF_cbt_ready, 1, i);
+    if (!ns_unwinding) shoot_now(i, t);
 }
 
 static void exchanges_hook(void)              /* melee_exchanges (), s014 0e76:2a4a */
@@ -228,12 +244,12 @@ static void arrive_hook(void)                 /* cbt_ready (i), s014 0e76:2fa2: 
                 && (s16)g_rw((u16)(c + 8)) == walk_x[i] && (s16)g_rw((u16)(c + 0xa)) == walk_y[i]       /*  still that walk, */
                 && (u16)(g_rw(GV_combat_clock) - walk_since[i]) < 600;                                  /*  not long ago) */
     if (i >= 0 && i < 5) walk_for[i] = -1, approach[i] = 0;
+    hook_call_original();
+    if (ns_unwinding) return;
     if (still && g_rb((u16)(CBT(was) + 0x14)) == 1 && g_rb((u16)(c + 0x14)) == 1) {
-        g_ww((u16)(c + 0x10), 0x80);                          /* the missile order again: 2fa2 sees it and engages now */
-        g_wb((u16)(c + 0x4a), (u8)was);
+        shoot_now(i, was);                                    /* the missile order again, at the mark it walked for */
         if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d in place, shoots at %d\n", i, was);
     }
-    hook_call_original();
 }
 
 /* test (umissile:i,t): member i, told to shoot at t, finds the line blocked (step_aside at once) */

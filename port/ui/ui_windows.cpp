@@ -124,8 +124,9 @@ void welcome_window(void)
             ImGui::TextWrapped("This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. "
                                "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a character sheet "
-                           "for the whole party, journals, a world map, a battle log, quick saves, fixes for old bugs), each of which can be switched off.");
+        ImGui::TextWrapped("Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet "
+                           "for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; "
+                           "most of it can also be switched on or off one by one.");
         bool done = false;
         {   /* how much of Darklands+: the presets (mods/options.h), the recommended one chosen */
             ImGui::PushFont(font_head); orn_septext("How would you like to play?"); ImGui::PopFont();
@@ -143,17 +144,21 @@ void welcome_window(void)
             if (ui_pad_prompts()) ui_pad_text("Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks.", true);
             else ImGui::TextDisabled("Change it at any time, or turn single features on or off: F12 > Settings.");
             ImGui::Spacing();
+            bool guide = false;
             if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
+            ImGui::SameLine();
+            if (ImGui::Button("  Read the New Player Guide first  ")) { if (pick != preset_current()) preset_apply(pick); done = guide = true; }
+            if (guide) ui_open_tab(UI_PAGE_GUIDE);
         }
         ImGui::Spacing();
         ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
-        ImGui::BulletText("F12: the Darklands+ window (the game waits while it is open)");
-        ImGui::BulletText("F11: the keys and clicks for the current screen, including the game's hidden ones");
-        ImGui::BulletText("F12 > New Player Guide: how Darklands works, for a new player");
-        ImGui::BulletText("Click a party member on the left: their character sheet, with the whole party's saints and formulae");
-        ImGui::BulletText("M: the world map, to find a place and travel there");
-        ImGui::BulletText("Right-click: the game's menu bar (save, load, orders in battle)");
-        ImGui::BulletText("Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load");
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "F12: the Darklands+ window (the game waits while it is open)"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "F11: the keys and clicks for the current screen, including the game's hidden ones"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "F12 > New Player Guide: how Darklands works, for a new player"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "Click a party member on the left: their character sheet, with the whole party's saints and formulae"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "M: the world map, to find a place and travel there"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "Right-click: the game's menu bar (save, load, orders in battle)"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load"); }
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); if (!news_key().empty()) config_set("ui.news_seen", news_key().c_str()); config_save(); }
     }
@@ -215,12 +220,12 @@ void mt32_window(void)
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::PushFont(font_body);
     if (ImGui::Begin("Darklands sounds best on a Roland MT-32", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::TextWrapped("Darklands was composed for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). The game loads its own "
-                           "instruments into it: the music is played as written, with flutes, strings and horns, and the battles "
-                           "sound like swords and shields.");
+        ImGui::TextWrapped("Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game "
+                           "plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, "
+                           "with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note.");
         ImGui::Spacing();
         ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and "
-                           "only rough imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the "
+                           "rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the "
                            "wrong instruments altogether.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: "
@@ -257,14 +262,12 @@ void mt32_window(void)
             if (ImGui::Button("Restart with the MT-32")) { config_save(); plat_restart(); }
             ImGui::SameLine();
         }
-        if (ImGui::Button(have ? "Close" : "Not now")) done = true;
-        if (!have) {
-            ImGui::SameLine();
-            if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
-        }
+        static bool never;
+        if (ImGui::Button(have ? "  Close  " : "  Not now  ")) done = true;
+        if (!have) tips_never_box(&never);
         ImGui::TextDisabled("F12 > Settings > Sound has all of this too.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
-        if (done) { open_mt32 = false; config_save(); }
+        if (done) { open_mt32 = false; if (never && !have) config_set_int("sound.mt32_prompt", 0); config_save(); }
     }
     ImGui::End();
     ImGui::PopFont();

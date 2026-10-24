@@ -11,6 +11,9 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
 std::string news_key(void);
 void welcome_window(void);
+extern "C" { void tips_init(void); int tips_open(void); void ui_open_tab(int t); }
+void tips_frame(void);
+bool tips_never_box(bool *never);       /* ui/tips.cpp: "Never show again", from the fourth start */
 extern "C" int orders_click_attack;
 void help_window(void);
 void tab_about(void); void news_window(void); void mt32_window(void);

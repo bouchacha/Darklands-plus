@@ -234,12 +234,13 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     money_glyphs_add(io.Fonts);          /* the gold, silver and copper coins after amounts (ui/money.cpp) */
     io.Fonts->Build();
     money_glyphs_paint(io.Fonts);
-    open_welcome = (!config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_WELCOME");   /* the first start */
+    tips_init();                         /* (the starts counted: ui/tips.cpp) */
+    open_welcome = getenv("DL_WELCOME") != nullptr;   /* (the first start's welcome comes on the start screen: tips_title_reached) */
     /* what is new, once, for a player of an earlier version (the first start's welcome says it all for a new one) */
-    open_news = !open_welcome && ((!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !news_key().empty() && news_key() != config_get("ui.news_seen", "")) || getenv("DL_NEWS"));
+    open_news = (config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_RESTARTED") && !news_key().empty() && news_key() != config_get("ui.news_seen", "")) || getenv("DL_NEWS");
     {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
         const char *dev = config_get("sound.device", "auto");
-        open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
+        open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_RESTARTED")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
                     && !config_get_int("original", 0) && (!strcmp(dev, "auto") || !strcmp(dev, "mt32")) && !mt32_available();
     }
     ui_game_font = config_get_int("display.text_font", UI_DEFAULT_FONT);
@@ -289,7 +290,7 @@ void dl_imgui_assert(const char *expr, const char *file, int line)
     fprintf(stderr, "imgui: check failed: %s (%s:%d)\n", expr, file, line);
 }
 extern "C" void ui_show_mt32_help(void) { open_mt32 = true; }   /* (the settings' Sound: how to get the MT-32) */
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" int ui_map_open(void) { return open_map; }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
@@ -319,7 +320,7 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
-    if (open_welcome) {                     /* the first start's word of welcome takes every event until closed */
+    if (open_welcome || tips_open()) {      /* the first start's word of welcome, and the tips (ui/tips.cpp), take every event until closed */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
@@ -435,7 +436,7 @@ static void ui_cursor(void)
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor
+    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor
                 || (ns_showing() && !hdtext_live_pointer);     /* (a Darklands+ page where the game hides its pointer, the saints from a card: the system's) */
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
@@ -643,6 +644,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_welcome) welcome_window();
     else if (open_news) news_window();
     else if (open_mt32) mt32_window();
+    else tips_frame();                      /* (the start screen's note, the first battle's tips: ui/tips.cpp) */
     { extern int hg_active, hg_hour, hg_day, hg_month;          /* time passing under a Darklands+ page (mods/lodgeview.c) */
       if (hg_active) {
           ImDrawList *dl = ImGui::GetForegroundDrawList();

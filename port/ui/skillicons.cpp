@@ -3,6 +3,7 @@
 #include <math.h>
 #include "imgui.h"
 #include "uitabs.h"
+#include "ordericons.h"
 #include "skillicons.h"
 
 static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
@@ -55,7 +56,7 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddCircleFilled(P(0, -1), 4.6f * u, C(70, 60, 70));
         dl->AddEllipseFilled(P(0, 0), ImVec2(3.0f * u, 3.8f * u), C(20, 16, 22));
         dl->AddCircleFilled(P(-1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); dl->AddCircleFilled(P(1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); break;
-    case 16: /* streetwise: a thief's mask (not a purse: earning at the inn has it) */
+    case 16: /* streetwise: a thief's mask (not a purse: a quest's reward has it) */
         dl->AddEllipseFilled(P(-4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40)); dl->AddEllipseFilled(P(4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40));
         dl->AddRectFilled(P(-2, -2.5f), P(2, 1.5f), C(40, 34, 40));
         dl->AddEllipseFilled(P(-4.4f, -0.4f), ImVec2(2.2f * u, 1.4f * u), C(230, 214, 180)); dl->AddEllipseFilled(P(4.4f, -0.4f), ImVec2(2.2f * u, 1.4f * u), C(230, 214, 180));
@@ -345,6 +346,10 @@ void ui_section_icon(ImDrawList *dl, ImVec2 c, float s, const char *name)
 static int sheet_on;
 extern "C" void ui_icon_styles_sheet(int on) { sheet_on = on; }
 extern "C" const char *gm_skill_name(int k); extern "C" const char *gm_attr_name(int a);
+void ui_lodge_act_icon(ImDrawList *, ImVec2, float, int); void ui_campfire_icon(ImDrawList *, ImVec2, float);   /* (the other sets, for the sheet) */
+void draw_icon_seal(ImDrawList *, ImVec2, float, int); void layer_glyph(ImDrawList *, ImVec2, float, int, ImU32);
+void ui_compass_icon(ImDrawList *, ImVec2, float, float); void ui_boot_icon(ImDrawList *, ImVec2, float, unsigned int);
+void ui_draw_teach_mark(ImDrawList *, ImVec2, float, unsigned, unsigned); void ui_item_icon(ImDrawList *, ImVec2, float, int);
 extern "C" void ui_icon_styles_draw(void)
 {
     if (!sheet_on) return;
@@ -364,6 +369,22 @@ extern "C" void ui_icon_styles_draw(void)
         for (int i = 0; i < 10; i++) ui_page_icon(dl, at(n++), sz * 0.8f, i);
         n = (n + 13) / 14 * 14;
         for (const char *t : SECT) ui_section_icon(dl, at(n++), sz * 0.8f, t);
+        n = (n + 13) / 14 * 14;                                                          /* the inn's and camp's day choices, the camp's fire */
+        for (int i = 0; i < 7; i++) ui_lodge_act_icon(dl, at(n++), sz * 0.9f, i);
+        ui_campfire_icon(dl, at(n++), sz * 0.8f);
+        return;
+    }
+    if (sheet_on == 3) {   /* the rest (uiconstyles:3): battle orders, the world map's, ingredients and potions */
+        float cell = ds.x / 14, sz = cell * 0.5f; int n = 0;
+        auto at = [&](int k) { return ImVec2(cell * 0.5f + (k % 14) * cell, cell * 0.45f + (k / 14) * cell * 0.9f); };
+        for (int i = 0; i < OI_N; i++) ui_draw_order_icon(dl, at(n++), sz * 0.8f, i);
+        n = (n + 13) / 14 * 14;                                                          /* the alchemists' ingredients (72-94) and potions (95-116) */
+        for (int i = 72; i <= 116; i++) { if (i == 95) n = (n + 13) / 14 * 14; ui_item_icon(dl, at(n++), sz * 0.95f, i); }
+        n = (n + 13) / 14 * 14;                                                          /* the world map: its places, its layers, a quest's way */
+        for (int i = 0; i < 12; i++) draw_icon_seal(dl, at(n++), sz * 0.7f, i);
+        for (int i = 0; i < 5; i++) layer_glyph(dl, at(n++), sz * 0.7f, i, IM_COL32(80, 50, 24, 255));
+        ui_compass_icon(dl, at(n++), sz * 0.7f, 0.6f); ui_boot_icon(dl, at(n++), sz * 0.7f, IM_COL32(80, 50, 24, 255));
+        ui_draw_teach_mark(dl, at(n++), sz * 0.9f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
         return;
     }
     static const char *TITLE[2] = { "Drawn in color (no disc)", "Heraldic" }; static const int ST[2] = { 0, 2 };

@@ -79,7 +79,9 @@ static void backdrop(NsDraw &P, int camp)
         }
     });
 }
-/* the activities' pictures: a tankard, the skills' and attributes' own, a purse */
+/* the activities' pictures: a tankard, a bed, a rosary, the Stone, a few small coins, a polearm, the lectern */
+static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a);
+void ui_lodge_act_icon(ImDrawList *dl, ImVec2 c, float s, int a) { act_icon(dl, c, s, a); }   /* (the icon sheet, uiconstyles:2) */
 static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
 {
     float u = s / 20.0f;
@@ -115,24 +117,21 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         int q = (s16)g_rw(0x9078);
         ui_pstone_draw(dl, c, s * 0.92f, 2, q > 0 ? -q : -1, (float)ImGui::GetTime());
         break; }
-    case 4: {                                                  /* Earn a little money: a leather purse tied at the neck, a coin before it */
-        const ImU32 LEATHER = IM_COL32(150, 98, 50, 255), DARK = IM_COL32(92, 56, 24, 255);
-        dl->PathClear();                                       /* the body: narrow at the neck, round below */
-        dl->PathLineTo(Q(-2.2f, -3.5f));
-        dl->PathBezierCubicCurveTo(Q(-8.5f, 0), Q(-8.5f, 9), Q(0, 9), 12);
-        dl->PathBezierCubicCurveTo(Q(8.5f, 9), Q(8.5f, 0), Q(2.2f, -3.5f), 12);
-        dl->PathFillConvex(LEATHER);
-        dl->PathClear();
-        dl->PathLineTo(Q(-2.2f, -3.5f)); dl->PathBezierCubicCurveTo(Q(-8.5f, 0), Q(-8.5f, 9), Q(0, 9), 12);
-        dl->PathBezierCubicCurveTo(Q(8.5f, 9), Q(8.5f, 0), Q(2.2f, -3.5f), 12);
-        dl->PathStroke(DARK, ImDrawFlags_Closed, 0.8f * u);
-        ImVec2 top[4] = { Q(-2.4f, -3.6f), Q(-4.2f, -7.5f), Q(4.2f, -7.5f), Q(2.4f, -3.6f) };   /* the gathered top */
-        dl->AddConvexPolyFilled(top, 4, LEATHER); dl->AddPolyline(top, 4, DARK, ImDrawFlags_Closed, 0.7f * u);
-        dl->AddLine(Q(-3, -3.8f), Q(3, -3.8f), IM_COL32(200, 160, 80, 255), 1.4f * u);   /* the cord */
-        dl->AddLine(Q(2.6f, -3.8f), Q(4.6f, -1.5f), IM_COL32(200, 160, 80, 255), 0.9f * u);
-        dl->AddCircleFilled(Q(5.6f, 6.6f), 3.0f * u, IM_COL32(226, 182, 64, 255), 16);   /* a florin */
-        dl->AddCircle(Q(5.6f, 6.6f), 3.0f * u, IM_COL32(150, 110, 30, 255), 16, 0.8f * u);
-        dl->AddCircle(Q(5.6f, 6.6f), 1.9f * u, IM_COL32(170, 128, 40, 200), 12, 0.5f * u);
+    case 4: {                                                  /* Earn a little money: a few small coins, silver groschen and copper pfennigs (a day's
+                                                                  wage, not a fortune: a quest's reward is the purse, ui/questicons.cpp) */
+        const ImU32 SILVER = IM_COL32(208, 208, 214, 255), SILVER_D = IM_COL32(112, 112, 124, 255), COPPER = IM_COL32(190, 112, 58, 255), COPPER_D = IM_COL32(106, 56, 24, 255);
+        struct Co { float x, y, r; bool silver; };
+        static const Co COINS[] = { { -6.6f, -2.4f, 2.5f, false }, { 3.2f, 6.4f, 2.6f, false }, { -1.6f, -6.2f, 2.4f, false }, { -4.2f, 4.6f, 3.5f, true }, { 4.6f, -1.2f, 3.5f, true } };
+        for (const Co &k : COINS) {
+            ImU32 f = k.silver ? SILVER : COPPER, d = k.silver ? SILVER_D : COPPER_D;
+            dl->AddCircleFilled(Q(k.x + 0.5f, k.y + 0.6f), k.r * u, IM_COL32(60, 40, 20, 90), 16);     /* (its shadow on the table) */
+            dl->AddCircleFilled(Q(k.x, k.y), k.r * u, f, 16);
+            dl->AddCircle(Q(k.x, k.y), k.r * u, d, 16, 0.8f * u);
+            if (k.silver) {                                    /* a groschen's cross */
+                dl->AddLine(Q(k.x - k.r * 0.5f, k.y), Q(k.x + k.r * 0.5f, k.y), d, 0.8f * u);
+                dl->AddLine(Q(k.x, k.y - k.r * 0.5f), Q(k.x, k.y + k.r * 0.5f), d, 0.8f * u);
+            } else dl->AddCircleFilled(Q(k.x, k.y), 0.7f * u, d, 8);   /* a pfennig's boss */
+        }
         break; }
     case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
     default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */

@@ -52,8 +52,10 @@ static int choose(int key)                   /* the original's handler: 0x11b wh
     return r;
 }
 
+void tips_title_reached(void);               /* ui/tips.cpp: the New Player Guide's note (the welcome, the first time) */
 static void screen_hook(void)                 /* title_screen (), s037 1e26:0008 */
 {
+    tips_title_reached();
     if (!tv_on || !ns_active()) { hook_call_original(); return; }
     TitleModel *m = &title_model;
     ns_unwinding = 0;

@@ -229,7 +229,8 @@ int testcmd_run(const char *cmd, const char *arg)
             int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y);
             if (i >= 0 && i < 13) { u16 c = (u16)(GV_combatants + i * 0x80);
                 g_ww((u16)(c + 4), (u16)x); g_ww((u16)(c + 6), (u16)y); g_ww((u16)(c + 8), (u16)x); g_ww((u16)(c + 0x0a), (u16)y);
-                g_wb((u16)(GV_cbt_moving + i), 0); fprintf(stderr, "arena: %d placed at %d,%d\n", i, x, y); }
+                g_wb((u16)(GV_cbt_moving + i), 0); g_ww((u16)(c + 0x10), 0); g_wb((u16)(c + 0x4a), 0xff); g_wb((u16)(GV_cbt_action + i), 7);
+                fprintf(stderr, "arena: %d placed at %d,%d\n", i, x, y); }
         }
         else if (!strcmp(cmd, "uarenaplace")) {        /* test (in battle): "i,dx,dy/..." each combatant put at member 0's spot + dx, dy, standing */
             int x0 = (s16)g_rw((u16)(GV_combatants + 4)), y0 = (s16)g_rw((u16)(GV_combatants + 6));
@@ -239,14 +240,16 @@ int testcmd_run(const char *cmd, const char *arg)
                     u16 c = (u16)(GV_combatants + i * 0x80);
                     g_ww((u16)(c + 4), (u16)(x0 + dx)); g_ww((u16)(c + 6), (u16)(y0 + dy)); g_ww((u16)(c + 8), (u16)(x0 + dx)); g_ww((u16)(c + 0x0a), (u16)(y0 + dy));
                     g_wb((u16)(GV_cbt_moving + i), 0);
+                    g_ww((u16)(c + 0x10), 0); g_wb((u16)(c + 0x4a), 0xff); g_wb((u16)(GV_cbt_action + i), 7);   /* (no walk left to a spot it stands on: ready, so the AI or the player gives the next) */
                     fprintf(stderr, "arena: %d placed at %d,%d\n", i, x0 + dx, y0 + dy);
                 }
                 const char *n = strchr(q, '/'); if (!n) break; q = n + 1;
             }
         }
+        else if (!strcmp(cmd, "utip")) { void tips_show(int); tips_show(atoi(arg)); }   /* test: a tip window: 1 the start screen's (the New Player Guide), 2 the first battle's, 3 the welcome */
         else if (!strcmp(cmd, "uattack")) { int i = 0, t = 5; sscanf(arg, "%d,%d", &i, &t); void orders_test_attack(int, int); orders_test_attack(i, t); }   /* test (in battle): member i attacks t hand to hand (the player's order) */
         else if (!strcmp(cmd, "uhold")) { int i = 0, on = 1; sscanf(arg, "%d,%d", &i, &on); void orders_test_hold(int, int); orders_test_hold(i, on); }   /* test (in battle): member i told to hold */
-        else if (!strcmp(cmd, "uopt")) {               /* test: a switch set as the settings set it (its own effect applied): key=value */
+        else if (!strcmp(cmd, "uoption")) {               /* test: a switch set as the settings set it (its own effect applied): key=value (uopt is the text click, platform_sdl.c; uset sets the value alone) */
             char k[64]; int v = 0;
             if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { const struct Option *options_find(const char *); void option_set(const struct Option *, int);
                 const struct Option *o = options_find(k); if (o) { option_set(o, v); fprintf(stderr, "option %s = %d\n", k, v); } else fprintf(stderr, "option %s: none\n", k); }

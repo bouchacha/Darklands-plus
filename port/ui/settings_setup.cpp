@@ -227,7 +227,7 @@ void setup_sound(void)
     };
     auto tier = [&](const char *t) { ImGui::Spacing(); ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
     tier("Best");
-    device("mt32", "Roland MT-32", "Roland's synthesizer of 1987, the one Darklands' music and battle sounds were written for: they sound as intended.",
+    device("mt32", "Roland MT-32", "Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets.",
            !strcmp(cur, "mt32") || !strcmp(cur, "auto"));
     {
         ImGui::Indent(UIS(30));
@@ -242,7 +242,7 @@ void setup_sound(void)
         if (more) {
             ImGui::Indent(UIS(14));
             if (!roms) {
-                ImGui::TextWrapped("The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it, and every other choice here is a "
+                ImGui::TextWrapped("The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a "
                                    "lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland "
                                    "and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays.");
                 if (ImGui::Button("Where to find them...")) ui_show_mt32_help();

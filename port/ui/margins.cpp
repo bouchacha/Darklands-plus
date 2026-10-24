@@ -470,6 +470,8 @@ extern "C" int ui_nearest_town(void)                /* in the wilds: the nearest
 static bool goto_hint, camp_hint;
 extern "C" void plat_press_key(int scancode);
 /* a small campfire: two crossed logs, the flames over them (the map's "C: camp here") */
+static void campfire_icon(ImDrawList *dl, ImVec2 c, float s);
+void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s) { campfire_icon(dl, c, s); }   /* (the icon sheet, uiconstyles:2) */
 static void campfire_icon(ImDrawList *dl, ImVec2 c, float s)
 {
     float u = s / 20.0f;

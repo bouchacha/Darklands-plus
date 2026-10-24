@@ -69,7 +69,7 @@ void ui_draw_career_icon(ImDrawList *dl, ImVec2 c, float s, int kind)
         p.poly({ -6.0f, 12.0f, -3.6f, 8.6f, 3.6f, 8.6f, 6.0f, 12.0f }, C(0.80f, 0.60f, 0.18f));
         p.disc(0, -4.7f, 1.3f, RED);
         break; }
-    case 3: {                                                   /* trade: a merchant's bale, corded, his mark on it (not a purse or a balance: the inn's earning, the money changers') */
+    case 3: {                                                   /* trade: a merchant's bale, corded, his mark on it (not a purse or a balance: a quest's reward, the money changers') */
         ImU32 cloth = C(0.86f, 0.80f, 0.64f), shade = C(0.72f, 0.66f, 0.50f);
         p.rect(-11.0f - o, -7.0f - o, 11.0f + o, 9.0f + o, INK, 2.4f); p.rect(-11.0f, -7.0f, 11.0f, 9.0f, cloth, 2.4f);
         p.rect(4.0f, -7.0f, 11.0f, 9.0f, shade, 2.4f);
