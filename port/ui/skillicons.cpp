@@ -113,10 +113,9 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
     }
 }
 
-/* the look of the skills' and attributes' pictures (display.skill_icon_look): 0 drawn in colour, 1 a
-   woodcut (the shapes in ink alone, as the prints of the age), 2 heraldic (a charge in gold on a
-   shield, its tincture by the group: sable the attributes, gules the weapons, azure knowledge, vert
-   the abilities). ui_icon_disc: the dark disc behind a coloured one, where it must read on any ground */
+/* the look of the skills' and attributes' pictures (display.skill_icon_look): 0 drawn in colour, 2
+   heraldic (a charge in gold on a shield, its tincture by the group: sable the attributes, gules the
+   weapons, azure knowledge, vert the abilities), on the character sheet only. ui_icon_disc: the dark disc behind a coloured one, where it must read on any ground */
 int ui_icon_disc = 1;
 #include "../runtime/config.h"
 int ui_icon_heraldic_here;                    /* (the character sheet's skills page sets it while it draws: the heraldic look is for there only) */
@@ -164,12 +163,6 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
         v0 = dl->VtxBuffer.Size;
         body(dl, cc, cs, k);
         recolor_since(dl, v0, IM_COL32(240, 202, 86, 255), FIELD[group], 236, IM_COL32(60, 34, 10, 255), 45);
-        return;
-    }
-    if (st == 1) {
-        int v0 = dl->VtxBuffer.Size;
-        body(dl, c, s, k);
-        recolor_since(dl, v0, IM_COL32(44, 30, 18, 255), IM_COL32(240, 228, 200, 255));
         return;
     }
     if (ui_icon_disc) dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));   /* a dark disc: the picture reads on any background */
@@ -271,12 +264,12 @@ extern "C" void ui_icon_styles_draw(void)
     if (!sheet_on) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(246, 236, 212, 255));
-    static const char *TITLE[3] = { "Drawn in color (no disc)", "Woodcut", "Heraldic" };
-    float colw = ds.x / 3, row = ds.y / 27.5f, sz = row * 0.8f;
-    for (int st = 0; st < 3; st++) {
-        float x = st * colw + 20;
-        dl->AddText(ImGui::GetFont(), row * 0.7f, ImVec2(x, row * 0.3f), IM_COL32(60, 40, 20, 255), TITLE[st]);
-        ui_icon_style_preview(st); int keep = ui_icon_disc; ui_icon_disc = 0;
+    static const char *TITLE[2] = { "Drawn in color (no disc)", "Heraldic" }; static const int ST[2] = { 0, 2 };
+    float colw = ds.x / 2, row = ds.y / 27.5f, sz = row * 0.8f;
+    for (int j = 0; j < 2; j++) {
+        float x = j * colw + 20;
+        dl->AddText(ImGui::GetFont(), row * 0.7f, ImVec2(x, row * 0.3f), IM_COL32(60, 40, 20, 255), TITLE[j]);
+        ui_icon_style_preview(ST[j]); int keep = ui_icon_disc; ui_icon_disc = 0;
         for (int i = 0; i < 26; i++) {
             float y = row * (1.4f + i);
             ImVec2 c(x + sz * 0.6f, y + row * 0.5f);
