@@ -235,89 +235,6 @@ static void draw_icon_painted(ImDrawList *dl, ImVec2 c, float s, int ik)
     }
 }
 
-/* the woodcut set: ink lines and a few washes of colour, as the towns and abbeys stand on the
-   printed maps of about 1500 (Etzlaub's road map, the Nuremberg Chronicle's views) */
-static void draw_icon_woodcut(ImDrawList *dl, ImVec2 c, float s, int ik)
-{
-    const ImU32 INK = IM_COL32(34, 22, 12, 240), RED = IM_COL32(176, 52, 34, 255), WALL = IM_COL32(242, 230, 200, 255), BLUE = IM_COL32(58, 98, 170, 255);
-    float h = s * 0.5f, t = fmaxf(1.0f, s / 11.0f);
-    auto P = [&](float x, float y) { return ImVec2(c.x + x * h, c.y + y * h); };
-    auto quad = [&](float x0, float y0, float x1, float y1, ImU32 fill) {
-        dl->AddRectFilled(P(x0, y0), P(x1, y1), fill); dl->AddRect(P(x0, y0), P(x1, y1), INK, 0, 0, t); };
-    auto roof = [&](float x0, float x1, float y, float top, ImU32 fill) {
-        ImVec2 a = P(x0, y), b = P(x1, y), d = P((x0 + x1) * 0.5f, top);
-        dl->AddTriangleFilled(a, b, d, fill); dl->AddTriangle(a, b, d, INK, t); };
-    auto line = [&](float x0, float y0, float x1, float y1, float w = 1) { dl->AddLine(P(x0, y0), P(x1, y1), INK, t * w); };
-    switch (ik) {
-    case IK_TOWN:                                                     /* towers behind a wall, red roofs */
-        quad(-0.75f, -0.35f, -0.35f, 0.5f, WALL); roof(-0.82f, -0.28f, -0.35f, -0.95f, RED);
-        quad(0.35f, -0.25f, 0.75f, 0.5f, WALL); roof(0.28f, 0.82f, -0.25f, -0.8f, RED);
-        quad(-0.2f, -0.6f, 0.2f, 0.5f, WALL); roof(-0.27f, 0.27f, -0.6f, -1.2f, RED);
-        quad(-1.0f, 0.3f, 1.0f, 0.9f, WALL);
-        for (float x = -0.9f; x < 0.95f; x += 0.3f) line(x, 0.3f, x, 0.18f, 1.6f);   /* crenels */
-        dl->AddRectFilled(P(-0.12f, 0.55f), P(0.12f, 0.9f), INK);
-        break;
-    case IK_VILLAGE:                                                  /* two cottages, thatched */
-        quad(-0.85f, 0.05f, -0.1f, 0.8f, WALL); roof(-0.95f, 0.0f, 0.05f, -0.55f, IM_COL32(196, 160, 96, 255));
-        quad(0.15f, 0.2f, 0.85f, 0.8f, WALL); roof(0.05f, 0.95f, 0.2f, -0.3f, IM_COL32(196, 160, 96, 255));
-        line(-0.95f, 0.85f, 0.95f, 0.85f);
-        break;
-    case IK_CASTLE:                                                   /* a keep on its mound */
-        dl->AddBezierQuadratic(P(-1.0f, 0.95f), P(0.0f, 0.2f), P(1.0f, 0.95f), INK, t);
-        quad(-0.45f, -0.55f, 0.45f, 0.62f, WALL);
-        for (int k = 0; k < 3; k++) quad(-0.45f + k * 0.35f, -0.85f, -0.25f + k * 0.35f, -0.55f, WALL);
-        dl->AddRectFilled(P(-0.1f, 0.25f), P(0.1f, 0.62f), INK);
-        line(0, -0.85f, 0, -1.15f); dl->AddTriangleFilled(P(0, -1.15f), P(0.35f, -1.05f), P(0, -0.95f), RED);
-        break;
-    case IK_MONASTERY:                                                /* a church: nave, tower, cross */
-        quad(-0.9f, -0.05f, 0.3f, 0.8f, WALL); roof(-0.98f, 0.38f, -0.05f, -0.45f, RED);
-        quad(0.3f, -0.6f, 0.8f, 0.8f, WALL); roof(0.25f, 0.85f, -0.6f, -1.05f, BLUE);
-        line(0.55f, -1.05f, 0.55f, -1.35f); line(0.42f, -1.22f, 0.68f, -1.22f);
-        dl->AddCircleFilled(P(-0.3f, 0.3f), 0.14f * h, INK, 10);
-        break;
-    case IK_SHRINE:                                                   /* a wayside cross on steps */
-        quad(-0.6f, 0.65f, 0.6f, 0.9f, WALL); quad(-0.35f, 0.45f, 0.35f, 0.65f, WALL);
-        line(0, 0.45f, 0, -1.0f, 1.8f); line(-0.4f, -0.55f, 0.4f, -0.55f, 1.8f);
-        break;
-    case IK_CAVE:                                                     /* rocks with a dark arch */
-        dl->AddBezierCubic(P(-1.0f, 0.9f), P(-0.8f, -0.9f), P(0.8f, -0.9f), P(1.0f, 0.9f), INK, t);
-        dl->AddCircleFilled(P(0, 0.55f), 0.4f * h, INK, 14);
-        dl->AddRectFilled(P(-0.4f, 0.55f), P(0.4f, 0.9f), INK);
-        line(-0.7f, -0.1f, -0.45f, -0.3f); line(0.45f, -0.35f, 0.7f, -0.1f);
-        break;
-    case IK_MINE:                                                     /* pick and hammer crossed */
-        line(-0.7f, 0.8f, 0.6f, -0.6f, 1.8f); line(0.7f, 0.8f, -0.6f, -0.6f, 1.8f);
-        dl->AddBezierQuadratic(P(0.2f, -0.95f), P(0.7f, -0.75f), P(0.95f, -0.25f), INK, t * 1.8f);
-        dl->AddRectFilled(P(-0.85f, -0.85f), P(-0.4f, -0.5f), INK);
-        break;
-    case IK_WATER:                                                    /* wavy lines in a ring */
-        dl->AddCircleFilled(c, 0.9f * h, IM_COL32(178, 208, 236, 255), 18); dl->AddCircle(c, 0.9f * h, INK, 18, t);
-        for (int k = -1; k <= 1; k++) {
-            float y = k * 0.38f;
-            dl->AddBezierCubic(P(-0.62f, y), P(-0.3f, y - 0.22f), P(0.0f, y + 0.22f), P(0.62f, y), BLUE, t * 1.3f);
-        }
-        break;
-    case IK_TOMB:                                                     /* a sarcophagus with a cross */
-        quad(-0.85f, 0.0f, 0.85f, 0.75f, WALL);
-        { ImVec2 q[4] = { P(-0.95f, 0.0f), P(-0.7f, -0.35f), P(0.7f, -0.35f), P(0.95f, 0.0f) };
-          dl->AddConvexPolyFilled(q, 4, IM_COL32(220, 210, 190, 255)); dl->AddPolyline(q, 4, INK, 0, t); }
-        line(0, 0.15f, 0, 0.6f); line(-0.2f, 0.3f, 0.2f, 0.3f);
-        break;
-    case IK_STONES:                                                   /* a ring of stones */
-        for (int k = 0; k < 5; k++) { float a = k * 1.2566f - 1.5708f; ImVec2 q = P(cosf(a) * 0.65f, sinf(a) * 0.5f + 0.1f);
-            dl->AddRectFilled(ImVec2(q.x - 0.13f * h, q.y - 0.32f * h), ImVec2(q.x + 0.13f * h, q.y + 0.2f * h), IM_COL32(170, 160, 150, 255));
-            dl->AddRect(ImVec2(q.x - 0.13f * h, q.y - 0.32f * h), ImVec2(q.x + 0.13f * h, q.y + 0.2f * h), INK, 0, 0, t); }
-        break;
-    case IK_RUIN:                                                     /* a broken arch */
-        quad(-0.8f, -0.2f, -0.45f, 0.85f, WALL); quad(0.45f, 0.15f, 0.8f, 0.85f, WALL);
-        dl->AddBezierQuadratic(P(-0.45f, -0.2f), P(-0.1f, -0.75f), P(0.15f, -0.45f), INK, t * 1.6f);
-        line(-0.95f, 0.88f, 0.95f, 0.88f);
-        break;
-    default:
-        dl->AddCircleFilled(c, 0.35f * h, IM_COL32(150, 110, 170, 255), 12); dl->AddCircle(c, 0.35f * h, INK, 12, t);
-    }
-}
-
 /* the seal set: a roundel in the colour of the place's group (towns, villages, castles, the
    holy places, the wild), the painted picture small and pale within */
 static ImU32 kind_colour(int g);
@@ -333,15 +250,7 @@ static void draw_icon_seal(ImDrawList *dl, ImVec2 c, float s, int ik)
     draw_icon_painted(dl, c, s * 0.62f, ik);
 }
 
-static int icon_set(void) { return config_get_int("map.icon_set", 0) % 3; }
-static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik)
-{
-    switch (icon_set()) {
-    case 1: draw_icon_woodcut(dl, c, s, ik); break;
-    case 2: draw_icon_seal(dl, c, s, ik); break;
-    default: draw_icon_painted(dl, c, s, ik);
-    }
-}
+static void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik) { draw_icon_seal(dl, c, s, ik); }   /* (the seals: the one set) */
 
 static int kind_group(int k)        // 0 town 1 village 2 castle 3 holy 4 other
 {
@@ -1282,16 +1191,6 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::Spacing();
         /* what the map shows: two to a row, as the entries above */
-        if (show_icons) {                                        /* which set of icons (map.icon_set) */
-            static const char *SETS[3] = { "Painted", "Woodcut", "Seals" };
-            int st = icon_set();
-            ImGui::AlignTextToFramePadding(); ImGui::TextDisabled("Icon style"); ImGui::SameLine(rcolw);
-            ImGui::SetNextItemWidth(rcolw - ImGui::GetStyle().ItemSpacing.x);
-            if (ImGui::BeginCombo("##iconset", SETS[st])) {
-                for (int k = 0; k < 3; k++) if (ImGui::Selectable(SETS[k], st == k)) { config_set_int("map.icon_set", k); extern int ui_dirty_config; ui_dirty_config = 1; }
-                ImGui::EndCombo();
-            }
-        }
         if (ui_font_small) ImGui::PopFont();
     }
     if (fold_head(tfind < 0 ? "Towns with ..." : (std::string("Towns with ") + TFIND[tfind].label + "###tw").c_str(), FOLD_TOWNS)) {
@@ -1573,24 +1472,11 @@ extern "C" void worldmap_icon_sheet_draw(void)
     if (!icon_sheet) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     ImVec2 o(20, 20); float sz = 52, gx = 70, gy = 96;
-    dl->AddRectFilled(o, ImVec2(o.x + gx * IK_N + 20, o.y + gy * 3 + 20), IM_COL32(220, 206, 170, 255), 6);
-    int keep = config_get_int("map.icon_set", 0);
-    static const char *SET[3] = { "Painted", "Woodcut", "Seals" };
-    for (int st = 0; st < 3; st++) {
-        config_set_int("map.icon_set", st);
-        for (int k = 0; k < IK_N; k++) {
-            ImVec2 c(o.x + 20 + gx * k + gx * 0.5f, o.y + 20 + gy * st + sz * 0.6f);
-            draw_icon(dl, c, sz, k);
-            draw_icon(dl, ImVec2(c.x + 18, c.y + sz * 0.75f), sz * 0.36f, k);
-        }
-        dl->AddText(ImVec2(o.x + 6, o.y + 4 + gy * st), IM_COL32(60, 30, 10, 255), SET[st]);
+    dl->AddRectFilled(o, ImVec2(o.x + gx * IK_N + 20, o.y + gy + 20), IM_COL32(220, 206, 170, 255), 6);
+    for (int k = 0; k < IK_N; k++) {
+        ImVec2 c(o.x + 20 + gx * k + gx * 0.5f, o.y + 20 + sz * 0.6f);
+        draw_icon(dl, c, sz, k);
+        draw_icon(dl, ImVec2(c.x + 18, c.y + sz * 0.75f), sz * 0.36f, k);
     }
-    config_set_int("map.icon_set", keep);
 }
 
-/* the settings' pictures: a place's picture in set `set` (0 painted, 1 woodcut, 2 seals) */
-void worldmap_place_icon(ImDrawList *dl, ImVec2 c, float s, int ik, int set)
-{
-    if (ik < 0 || ik >= IK_N) return;
-    if (set == 1) draw_icon_woodcut(dl, c, s, ik); else if (set == 2) draw_icon_seal(dl, c, s, ik); else draw_icon_painted(dl, c, s, ik);
-}

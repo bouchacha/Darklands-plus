@@ -190,7 +190,14 @@ extern "C" void barterview_draw(void)
             if (i < 0) {                                         /* a heading, as on the character sheet */
                 const char *hd = ns_item_section_name(-1 - i);
                 T(fo, NsDraw::FS_SMALL, x0 + 3, y + 2.2f, ink_soft, hd);
-                R(x0 + 3 + W(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, x1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
+                float lw = 0;
+                if (i == -1) {                                    /* Equipped: the member's load, and what the thing pointed at would make it */
+                    int after = -1;
+                    if (V.hover_list == 0 && V.hover_row >= 0 && V.hover_row < b.nwares) after = ns_load_with(b.ware[V.hover_row].id, b.who);
+                    else if (V.hover_list == 1 && V.hover_row >= 0 && V.hover_row < b.nitems && !b.item[V.hover_row].equipped) after = ns_load_with(b.item[V.hover_row].id, b.who);
+                    lw = ns_load_note(P, x1 - 3, y + 2.2f, b.who, after) + 3;
+                }
+                R(x0 + 3 + W(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, x1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
                 continue;
             }
             int id, qual, price, count = 1, eq = 0, kept = 0, pack = 0;

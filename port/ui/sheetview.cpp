@@ -471,6 +471,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     int tip_i = -1;
     const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
     static int hover_carried = -1;                         /* (the carried row pointed at last frame: what it would replace is lit) */
+    const int cmp_hover = hover_carried;
     int cmp_slot = cmp_on && hover_carried >= 0 && hover_carried < s.nitems && !s.item[hover_carried].equipped ? ns_slot_of(s.item[hover_carried].id) : 0;
     hover_carried = -1;
     for (int r = 0; r < NROWS && sc + r < n; r++) {
@@ -486,7 +487,12 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             }
             const char *hd = hds.c_str();
             P.text(fo, NsDraw::FS_SMALL, RX0 + 3, y + 2.2f, soft, hd);
-            P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3, y + 5.1f, IM_COL32(120, 80, 36, 90));
+            float lw = 0;
+            if (sec == 0) {                                 /* Equipped: the load, and what the thing pointed at would make it */
+                int after = cmp_hover >= 0 && cmp_hover < s.nitems && !s.item[cmp_hover].equipped ? ns_load_with(s.item[cmp_hover].id, s.who) : -1;
+                lw = ns_load_note(P, RX1 - 3, y + 2.2f, s.who, after) + 3;
+            }
+            P.rect(RX0 + 3 + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
         }
         const SvItem &it = s.item[i];

@@ -539,16 +539,6 @@ static void display_icons(void)
         void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style);
         worldmap_boat_style_preview(dl, a, b, v);
     });
-    ImGui::TextUnformatted("The places' pictures on the world map");
-    static const int MV[3] = { 0, 1, 2 };
-    static const char *ML[3] = { "Painted", "Woodcut", "Seals" };
-    pic_choice("mapicons", "map.icon_set", 0, MV, ML, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-        void worldmap_place_icon(ImDrawList *dl, ImVec2 c, float s, int kind, int set);
-        dl->AddRectFilled(a, b, IM_COL32(150, 172, 110, 255), 4);
-        float s = (b.y - a.y) * 0.4f;
-        static const int K[6] = { 0, 2, 3, 5, 7, 9 };
-        for (int k = 0; k < 6; k++) worldmap_place_icon(dl, ImVec2(a.x + (b.x - a.x) * (0.18f + (k % 3) * 0.32f), a.y + (b.y - a.y) * (k < 3 ? 0.3f : 0.72f)), s, K[k], v);
-    });
 }
 
 void tab_display(void)

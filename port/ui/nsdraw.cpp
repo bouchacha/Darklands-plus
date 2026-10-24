@@ -395,6 +395,37 @@ int ns_slot_of(int id)
 /* a ware against what member m has there now: 1 better, -1 worse, 0 alike or not to be weighed
    (another kind of weapon or shield), 2 nothing there. Armour: harder first, then better made
    (as ns_item_compare says it); a weapon or shield: better made, of the same kind */
+/* member m's load were thing id worn in its slot instead of what is there (only equipped things
+   weigh: equip_weight); -1 when it is not worn */
+int ns_load_with(int id, int m)
+{
+    int sl = ns_slot_of(id);
+    if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return -1;
+    static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e };
+    int t = (s8)g_rb((u16)(G_MEMBER(m) + TOFF[sl])), old = 0;
+    if (t >= 0) for (int k = 0; k < (int)gamedata.items.size(); k++) if (gamedata.items[k].type == t) { old = gm_itemdef_weight(k); break; }
+    int v = gm_member_load(m) - old + gm_itemdef_weight(id);
+    return v < 0 ? 0 : v;
+}
+/* "Load 42 of 76", or with a thing pointed at "Load 42 > 47 of 76", right-aligned to x1 on a heading
+   line at y, coloured by the band it comes to; its width (the heading's rule stops short of it) */
+float ns_load_note(NsDraw &P, float x1, float y, int m, int after)
+{
+    if (m < 0 || m >= 5 || !gm_member_present(m)) return 0;
+    int e, s, mx; gm_member_attr(m, 0, &e, &mx); gm_member_attr(m, 1, &s, &mx);
+    int cap = e + s, cur = gm_member_load(m), v = after >= 0 ? after : cur;
+    auto band = [&](int l) { return 2 * l <= cap ? 0 : l <= cap ? 1 : 2 * l <= 3 * cap ? 2 : 3; };
+    int b = band(v);
+    ImU32 c = b >= 3 ? NsDraw::RED : b == 2 ? IM_COL32(150, 80, 20, 255) : NsDraw::INK_SOFT;
+    char t[64];
+    if (after >= 0 && after != cur) snprintf(t, sizeof t, "Load %d \xc2\xbb %d of %d", cur, after, cap);
+    else snprintf(t, sizeof t, "Load %d of %d", cur, cap);
+    if (after >= 0 && after != cur && b == band(cur)) c = after < cur ? NsDraw::GREEN : NsDraw::INK;   /* (the same band: lighter green, heavier ink) */
+    float w = P.width(P.fo, NsDraw::FS_SMALL, t);
+    P.text(P.fo, NsDraw::FS_SMALL, 0, y, c, t, x1);
+    return w;
+}
+
 int ns_against_worn(int id, int q, int m)
 {
     int sl = ns_slot_of(id);

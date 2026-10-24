@@ -211,6 +211,8 @@ std::string ns_item_use(int id);
 int ns_item_section(int id);              /* the section of the items list: 1 potions, 2 spare equipment, 3 utility, 4 trophies and quest things, 5 ingredients */
 const char *ns_item_section_name(int sec);   /* (0 "Equipped") */
 int ns_slot_of(int id);                    /* where a thing is worn or held: 1 body, 2 limbs, 3 shield, 4 weapon in hand, 5 missile weapon; 0 none */
+int ns_load_with(int id, int m);           /* member m's load with thing id worn in its slot instead; -1 not worn */
+float ns_load_note(NsDraw &P, float x1, float y, int m, int after);   /* "Load 42 >> 47 of 76" right-aligned on a heading; its width */
 int ns_against_worn(int id, int q, int m); /* against what member m has there: 1 better, -1 worse, 0 alike or not to be weighed, 2 nothing there */
 void ns_compare_arrow(ImDrawList *dl, float x, float y, int vs, float k);   /* the shop's arrow at (x, y), game coordinates */
 std::string ns_item_encounters(int id, ImU32 *col);   /* "Many encounters let you use it." (potions), coloured by how many */
