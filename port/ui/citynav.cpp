@@ -431,6 +431,18 @@ extern "C" void citynav_tick(void)
     if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
     for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
+    {   /* the option block named holds no options for these lines (seen: $SIDES01 shown again after a
+           night's errand upstairs, its options block 1 while its options are block 0's): the card's block
+           that has them */
+        bool none = true; for (const std::string &l : line) if (!l.empty()) none = false;
+        if (none)
+            for (size_t b = 0; b < it->second.size(); b++) {
+                std::vector<std::string> o2 = block_options(it->second[b]);
+                std::vector<std::string> l2(n); bool ok = true;
+                for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); if (o < 0 || o >= (int)o2.size() || o2[o].empty()) { ok = false; break; } l2[i] = o2[o]; }
+                if (ok) { LOG("block %d has no options for these lines: block %d's taken\n", blk, (int)b); line = l2; break; }
+            }
+    }
     { LOG("%s hub %d visited %x, line %d of %d:\n", kb, hub, visited, (int)g_rb(GV_card_layout_opt), (int)it->second.size()); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (card == "$INSID00" && blk == 0) {                   /* the offices above the marketplace by night: the one wanted, else out by the window */
         static const struct { int d; const char *key; } OFF[] = { { D_MERCHANT, "leading merchant" }, { D_FUGGER, "fugger" }, { D_MEDICI, "medici" }, { D_HANSE, "hanseatic" } };

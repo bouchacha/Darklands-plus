@@ -6,17 +6,62 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <vector>
+extern "C" int config_get_int(const char *key, int def);
 extern "C" SDL_Renderer *plat_renderer(void);
 
 struct DcEnt { unsigned long long key; int w, h; SDL_Texture *t; int used; };
 static std::vector<DcEnt> cache;
 static int frame_no, usable = -1;
+/* the other way of keeping a drawing (display.draw_cache 3, and on Direct3D 11, where a picture drawn
+   into showed as a wash over the screen on a player's machine): its triangles, made once, copied into
+   the frame each time - the same pixels, none of the work of making them, no picture on the card */
+struct DcGeo { unsigned long long key; std::vector<ImDrawVert> v; std::vector<ImDrawIdx> i; std::vector<int> cmd_n, cmd_vlo, cmd_vhi; ImTextureID tex; int used; };
+static std::vector<DcGeo> geos;
+static int mode = -1;                          /* 0 none, 2 pictures, 3 triangles */
 
 void dc_reset(void)
 {
     for (DcEnt &e : cache) if (e.t) SDL_DestroyTexture(e.t);
     cache.clear();
+}
+static void geo_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const std::function<void(ImDrawList *)> &fn)
+{
+    DcGeo *g = nullptr;
+    for (DcGeo &c : geos) if (c.key == key) { g = &c; break; }
+    if (!g) {
+        if (geos.size() >= 192) { dl->PushClipRect(lo, hi, true); fn(dl); dl->PopClipRect(); return; }
+        ImDrawList tmp(ImGui::GetDrawListSharedData());
+        tmp._ResetForNewFrame();
+        tmp.PushClipRect(lo, hi);
+        tmp.PushTextureID(ImGui::GetIO().Fonts->TexID);
+        fn(&tmp);
+        DcGeo n; n.key = key; n.tex = ImGui::GetIO().Fonts->TexID; n.used = frame_no;
+        n.v.assign(tmp.VtxBuffer.Data, tmp.VtxBuffer.Data + tmp.VtxBuffer.Size);
+        for (const ImDrawCmd &cmd : tmp.CmdBuffer) {
+            if (cmd.UserCallback || cmd.ElemCount == 0) continue;
+            int vlo = 1 << 30, vhi = -1;
+            for (unsigned k = 0; k < cmd.ElemCount; k++) { int vi = (int)cmd.VtxOffset + tmp.IdxBuffer[cmd.IdxOffset + k]; vlo = vi < vlo ? vi : vlo; vhi = vi > vhi ? vi : vhi; }
+            for (unsigned k = 0; k < cmd.ElemCount; k++) n.i.push_back((ImDrawIdx)((int)cmd.VtxOffset + tmp.IdxBuffer[cmd.IdxOffset + k] - vlo));
+            n.cmd_n.push_back((int)cmd.ElemCount); n.cmd_vlo.push_back(vlo); n.cmd_vhi.push_back(vhi);
+        }
+        geos.push_back(std::move(n));
+        g = &geos.back();
+    }
+    g->used = frame_no;
+    dl->PushClipRect(lo, hi, true);
+    size_t ip = 0;
+    for (size_t c = 0; c < g->cmd_n.size(); c++) {             /* (each of its commands: its own run of vertices) */
+        int nv = g->cmd_vhi[c] - g->cmd_vlo[c] + 1, ni = g->cmd_n[c];
+        dl->PrimReserve(ni, nv);
+        ImDrawIdx base = (ImDrawIdx)dl->_VtxCurrentIdx;
+        memcpy(dl->_VtxWritePtr, &g->v[g->cmd_vlo[c]], nv * sizeof(ImDrawVert));
+        for (int k = 0; k < ni; k++) dl->_IdxWritePtr[k] = (ImDrawIdx)(base + g->i[ip + k]);
+        dl->_VtxWritePtr += nv; dl->_IdxWritePtr += ni; dl->_VtxCurrentIdx += nv;
+        ip += ni;
+    }
+    dl->PopClipRect();
 }
 /* (after the frame is built: pictures not used for a few seconds are let go; never during the
    frame, when the draw lists may still point at them) */
@@ -27,16 +72,26 @@ void dc_frame_end(void)
     for (size_t i = 0; i < cache.size();)
         if (frame_no - cache[i].used > 120 || (cache.size() > 160 && frame_no - cache[i].used > 2)) { SDL_DestroyTexture(cache[i].t); cache[i] = cache.back(); cache.pop_back(); }
         else i++;
+    for (size_t i = 0; i < geos.size();)
+        if (frame_no - geos[i].used > 120 || (geos.size() > 160 && frame_no - geos[i].used > 2)) { geos[i] = std::move(geos.back()); geos.pop_back(); }
+        else i++;
     (void)made_now;
 }
 
 void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const std::function<void(ImDrawList *)> &fn)
 {
     SDL_Renderer *r = plat_renderer();
-    if (usable < 0) {
-        SDL_RendererInfo ri;
-        usable = r && !getenv("DL_NO_DRAWCACHE") && SDL_GetRendererInfo(r, &ri) == 0 && (ri.flags & SDL_RENDERER_TARGETTEXTURE);
+    if (mode < 0) {                            /* display.draw_cache: 1 (the default) pictures, triangles on Direct3D 11; 0 off; 2 pictures; 3 triangles */
+        SDL_RendererInfo ri; int have = r && SDL_GetRendererInfo(r, &ri) == 0;
+        int want = getenv("DL_NO_DRAWCACHE") ? 0 : getenv("DL_DRAWCACHE") ? atoi(getenv("DL_DRAWCACHE")) : config_get_int("display.draw_cache", 1);
+        if (want == 1) want = have && !strcmp(ri.name, "direct3d11") ? 3 : 2;
+        if (want == 2 && !(have && (ri.flags & SDL_RENDERER_TARGETTEXTURE))) want = 3;
+        mode = want;
+        fprintf(stderr, "drawcache: %s\n", mode == 0 ? "off" : mode == 2 ? "pictures" : "triangles");
     }
+    if (mode == 0) { dl->PushClipRect(lo, hi, true); fn(dl); dl->PopClipRect(); return; }
+    if (mode == 3) { geo_draw(dl, lo, hi, dc_key(dc_key(dc_key(key, lo.x), lo.y), hi.x * 7 + hi.y * 13), fn); return; }
+    if (usable < 0) usable = 1;
     float x0 = floorf(lo.x), y0 = floorf(lo.y);
     int w = (int)ceilf(hi.x) - (int)x0, h = (int)ceilf(hi.y) - (int)y0;
     auto direct = [&]() { dl->PushClipRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + h), true); fn(dl); dl->PopClipRect(); };   /* (drawn as it is, kept to its box) */
