@@ -1,5 +1,7 @@
 # Darklands+ for developers
 
+Where each part of the code is: `docs/CODE_MAP.md` (made by `port/tools/code_map.py`). Every switch, with what it does and why: `docs/SWITCHES.md`.
+
 The technical side of the project: the matching decompilation, the native port, the tools and the layout. Players: see the main [README](../README.md).
 
 This is reverse-engineering groundwork for **Darklands** (MicroProse, 1992, MS-DOS), version 483.07 (the GOG release). The aim is a matching decompilation as a verifiable baseline, then moddable reimplementations of each game module.
