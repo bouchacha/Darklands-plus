@@ -40,30 +40,123 @@ struct S {                                     /* the scene's box: x, y in 0..10
     }
 };
 
-/* New screens: the original's card (pixel text in a box on black) beside the same card drawn anew
-   (parchment in the plaited frame, the initial, the options as rows) */
-void native_screens(const S &s, bool on)
+/* New screens: a few of the screens as the original draws them (blue boxes and pixel text on black)
+   beside the same screens drawn anew, one after another every few seconds (dots below say which):
+   a card, a shop, the inn, the character sheet */
+namespace ns_pv {
+const ImU32 DOS_BG = IM_COL32(8, 8, 8, 255), DOS_BOX = IM_COL32(20, 20, 120, 255), DOS_RIM = IM_COL32(150, 150, 150, 255),
+            DOS_TXT = IM_COL32(230, 230, 230, 255), DOS_HI = IM_COL32(250, 230, 90, 255),
+            PAPER = IM_COL32(240, 228, 198, 255), PAPER2 = IM_COL32(228, 212, 176, 255), WOOD = IM_COL32(74, 48, 26, 255),
+            RIM = IM_COL32(150, 110, 60, 255), RUBRIC = IM_COL32(140, 30, 18, 255), SEL = IM_COL32(214, 170, 60, 110);
+void dos_box(const S &s, float x0, float y0, float x1, float y1) { s.rect(x0, y0, x1, y1, DOS_RIM); s.rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, DOS_BOX); }
+void braid(const S &s)
 {
-    if (!on) {
-        s.rect(0, 0, 100, 60, IM_COL32(8, 8, 8, 255));
-        s.rect(8, 6, 92, 54, IM_COL32(150, 150, 150, 255)); s.rect(9.5f, 7.5f, 90.5f, 52.5f, IM_COL32(20, 20, 120, 255));
-        const char *L[4] = { "Before you lies the", "walled city of Worms.", "1. Enter the city", "2. Leave" };
-        for (int i = 0; i < 4; i++) s.text(13, 10 + i * 10 + (i >= 2 ? 3 : 0), 5.2f, i < 2 ? IM_COL32(230, 230, 230, 255) : IM_COL32(250, 230, 90, 255), L[i]);
-        return;
-    }
-    s.rect(0, 0, 100, 60, IM_COL32(52, 34, 18, 255));
-    for (int i = 0; i < 26; i++) {                                   /* the plaited band, roughly */
+    for (int i = 0; i < 26; i++) {
         float x = 2 + i * 3.8f;
         s.dl->AddCircle(s.p(x, 2.6f), 1.6f * s.k, GOLD, 8, 0.8f * s.k); s.dl->AddCircle(s.p(x, 57.4f), 1.6f * s.k, GOLD, 8, 0.8f * s.k);
     }
-    s.rect(6, 6, 94, 54, IM_COL32(236, 222, 190, 255), 1.5f); s.frame(6, 6, 94, 54, IM_COL32(150, 110, 60, 255), 1, 1.5f);
-    s.rect(9, 9, 18, 19, IM_COL32(140, 30, 18, 255), 1); s.text(10.6f, 9.6f, 6.5f, GOLD, "B");
+}
+void card(const S &s, bool on)
+{
+    if (!on) {
+        s.rect(0, 0, 100, 60, DOS_BG); dos_box(s, 8, 6, 92, 54);
+        const char *L[4] = { "Before you lies the", "walled city of Worms.", "1. Enter the city", "2. Leave" };
+        for (int i = 0; i < 4; i++) s.text(13, 10 + i * 10 + (i >= 2 ? 3 : 0), 5.2f, i < 2 ? DOS_TXT : DOS_HI, L[i]);
+        return;
+    }
+    s.rect(0, 0, 100, 60, IM_COL32(52, 34, 18, 255)); braid(s);
+    s.rect(6, 6, 94, 54, PAPER, 1.5f); s.frame(6, 6, 94, 54, RIM, 1, 1.5f);
+    s.rect(9, 9, 18, 19, RUBRIC, 1); s.text(10.6f, 9.6f, 6.5f, GOLD, "B");
     s.text(20, 9, 4.8f, INK, "efore you lies the walled"); s.text(20, 15, 4.8f, INK, "city of Worms. You...");
-    s.rect(9, 30, 91, 39, IM_COL32(214, 170, 60, 110), 1);
-    s.text(11, 31, 4.8f, IM_COL32(140, 30, 18, 255), "1."); s.text(17, 31, 4.8f, INK, "...enter the city.");
-    s.text(11, 42, 4.8f, IM_COL32(140, 30, 18, 255), "2."); s.text(17, 42, 4.8f, INK, "...leave this place.");
+    s.rect(9, 30, 91, 39, SEL, 1);
+    s.text(11, 31, 4.8f, RUBRIC, "1."); s.text(17, 31, 4.8f, INK, "...enter the city.");
+    s.text(11, 42, 4.8f, RUBRIC, "2."); s.text(17, 42, 4.8f, INK, "...leave this place.");
+}
+void shop(const S &s, bool on)
+{
+    if (!on) {
+        s.rect(0, 0, 100, 60, DOS_BG); dos_box(s, 4, 4, 96, 56);
+        s.text(8, 6, 5, DOS_HI, "SWORDSMITH");
+        const char *L[4] = { "Long Sword  2fl", "Short Sword 1fl", "Dagger      8gr", "Maul        1fl" };
+        for (int i = 0; i < 4; i++) s.text(8, 15 + i * 8, 4.6f, i == 1 ? DOS_HI : DOS_TXT, L[i]);
+        s.text(8, 48, 4.4f, DOS_TXT, "Buy  Sell  Leave");
+        return;
+    }
+    s.rect(0, 0, 100, 60, WOOD);
+    for (int i = 0; i < 10; i++) s.rect(i * 10.0f, 0, i * 10.0f + 5, 5, i & 1 ? CREAM : RUBRIC);   /* the awning */
+    s.text(4, 7, 5.4f, CREAM, "Swordsmith");
+    s.rect(4, 15, 49, 56, PAPER, 1); s.rect(52, 15, 96, 56, PAPER, 1);
+    const char *W[4] = { "Long Sword", "Short Sword", "Dagger", "Maul" }, *M[4] = { "Short Sword", "Javelin", "Chainmail", "Small Shield" };
+    for (int i = 0; i < 4; i++) {
+        if (i & 1) { s.rect(4.5f, 17 + i * 9, 48.5f, 25 + i * 9, PAPER2); s.rect(52.5f, 17 + i * 9, 95.5f, 25 + i * 9, PAPER2); }
+        s.text(7, 18 + i * 9, 4.4f, INK, W[i]); s.text(55, 18 + i * 9, 4.4f, INK, M[i]);
+        s.rect(52.5f, 18 + i * 9, 53.5f, 24 + i * 9, RUBRIC);
+    }
+    s.rect(34, 44, 47, 51, IM_COL32(40, 96, 34, 255), 1); s.text(36, 44.6f, 4.4f, CREAM, "Buy");
+}
+void inn(const S &s, bool on)
+{
+    if (!on) {
+        s.rect(0, 0, 100, 60, DOS_BG); dos_box(s, 6, 8, 94, 52);
+        s.text(10, 11, 5, DOS_HI, "Stay at the inn");
+        const char *L[4] = { "Gunther: Relax", "Ursula: Earn money", "Jorg: Train", "How many days?" };
+        for (int i = 0; i < 4; i++) s.text(10, 20 + i * 8, 4.6f, DOS_TXT, L[i]);
+        return;
+    }
+    s.rect(0, 0, 100, 60, WOOD);
+    s.rect(30, 2, 70, 9, IM_COL32(110, 70, 36, 255), 1); s.text(36, 2.6f, 4.8f, CREAM, "The inn");
+    s.rect(6, 12, 49, 56, PAPER, 1); s.rect(51, 12, 94, 56, PAPER, 1);           /* the open ledger */
+    s.rect(49, 12, 51, 56, IM_COL32(150, 120, 80, 255));
+    const char *L[3] = { "Gunther", "Ursula", "Jorg" }, *A[3] = { "Relax", "Earn 9 pf", "Train" };
+    for (int i = 0; i < 3; i++) { s.text(9, 15 + i * 13, 4.6f, INK, L[i]); s.text(12, 21 + i * 13, 4.0f, RUBRIC, A[i]); }
+    s.rect(53, 22, 92, 29, SEL, 1); s.text(55, 23, 4.2f, INK, "Earn a little money");
+    s.text(55, 31, 4.2f, INK, "Train or study"); s.text(55, 39, 4.2f, IM_COL32(92, 60, 30, 230), "Alchemy 47%");
+    s.rect(88, 2, 90, 9, CREAM); s.dl->AddCircleFilled(s.p(89, 1.5f), 1.0f * s.k, IM_COL32(250, 200, 80, 255));   /* the candle */
+}
+void sheet(const S &s, bool on)
+{
+    if (!on) {
+        s.rect(0, 0, 100, 60, DOS_BG); dos_box(s, 4, 4, 50, 56); dos_box(s, 52, 4, 96, 56);
+        s.rect(18, 12, 36, 48, IM_COL32(110, 110, 110, 255));                   /* the doll */
+        const char *L[4] = { "Long Sword", "Chainmail", "Small Shield", "Rope" };
+        for (int i = 0; i < 4; i++) s.text(55, 8 + i * 9, 4.4f, DOS_TXT, L[i]);
+        return;
+    }
+    s.rect(0, 0, 100, 60, PAPER2);
+    s.rect(4, 4, 46, 56, IM_COL32(200, 196, 190, 255), 1); s.frame(4, 4, 46, 56, RIM, 1, 1);
+    s.figure(25, 50, IM_COL32(150, 150, 160, 255));
+    s.rect(49, 4, 96, 56, PAPER, 1);
+    s.text(51, 5, 3.8f, IM_COL32(92, 60, 30, 230), "Equipped");
+    const char *L[4] = { "Long Sword", "Chainmail", "Small Shield", "Rope" };
+    for (int i = 0; i < 4; i++) { if (i & 1) s.rect(49.5f, 12 + i * 9, 95.5f, 20 + i * 9, PAPER2); s.text(52, 13 + i * 9, 4.4f, INK, L[i]); }
+    s.text(51, 49, 3.8f, INK, "Normal load");
+}
+} // namespace ns_pv
+void native_screens(const S &s, bool on)
+{
+    int k = (int)(ImGui::GetTime() / 3.5) % 4;
+    switch (k) { case 0: ns_pv::card(s, on); break; case 1: ns_pv::shop(s, on); break; case 2: ns_pv::inn(s, on); break; default: ns_pv::sheet(s, on); }
+    for (int i = 0; i < 4; i++) {                                         /* which of the four */
+        ImVec2 c = s.p(44 + i * 4.0f, 58.4f);
+        s.dl->AddCircleFilled(c, 0.9f * s.k, i == k ? GOLD : IM_COL32(120, 100, 80, 200), 8);
+    }
 }
 
+/* Card helpers: an option with its chance and who would try it, and the saint it accepts */
+void card_helpers(const S &s, bool on)
+{
+    s.rect(0, 0, 100, 60, IM_COL32(240, 228, 198, 255));
+    s.text(5, 5, 4.8f, INK, "The gate is barred. You...");
+    s.rect(4, 17, 96, 27, IM_COL32(214, 170, 60, 110), 1);
+    s.text(6, 18, 4.8f, IM_COL32(140, 30, 18, 255), "1."); s.text(12, 18, 4.6f, INK, "...climb the wall");
+    s.text(6, 31, 4.8f, IM_COL32(140, 30, 18, 255), "2."); s.text(12, 31, 4.6f, INK, "...pray to a saint");
+    s.text(6, 44, 4.8f, IM_COL32(140, 30, 18, 255), "3."); s.text(12, 44, 4.6f, INK, "...leave");
+    if (!on) return;
+    s.rect(70, 18.3f, 94, 25.7f, IM_COL32(250, 242, 222, 255), 1); s.frame(70, 18.3f, 94, 25.7f, IM_COL32(150, 110, 60, 255), 0.8f, 1);
+    s.text(72, 18.8f, 4.2f, IM_COL32(40, 96, 34, 255), "61% Ursula");
+    s.rect(64, 31.3f, 94, 38.7f, IM_COL32(250, 242, 222, 255), 1); s.frame(64, 31.3f, 94, 38.7f, IM_COL32(150, 110, 60, 255), 0.8f, 1);
+    s.text(66, 31.8f, 4.2f, IM_COL32(70, 70, 120, 255), "St. Odilia: Jorg");
+}
 void reload_bar(const S &s, bool on)
 {
     s.ground();
@@ -218,7 +311,7 @@ void shop_compare(const S &s, bool on)
 bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on)
 {
     struct E { const char *key; int id; };
-    static const E T[] = { { "display.native_screens", 1 }, { "battle.reload_bar", 4 },
+    static const E T[] = { { "display.native_screens", 1 }, { "battle.controls", 5 }, { "battle.helpers", 9 }, { "assist.card_helpers", 18 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
                            { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.shop_compare", 17 } };
     int id = 0;
@@ -243,6 +336,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     case 15: los_line(s, on); break;
     case 16: alchemy_art(s, on); break;
     case 17: shop_compare(s, on); break;
+    case 18: card_helpers(s, on); break;
     }
     dl->PopClipRect();
     return true;

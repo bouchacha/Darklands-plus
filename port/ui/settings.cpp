@@ -418,11 +418,20 @@ void tab_helpers(void)
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
             if (!strcmp(sect[k], "Easier rules")) ui_hint("Rule changes that make the game easier; the Easy preset turns on the ones marked for it. Some take effect only when the next new game starts (their note says so).");
+            bool fixes = !strcmp(sect[k], "Fixes for bugs of the original");
+            if (fixes) {                                  /* (a long list, each its own switch since what counts as a bug is open to argument: folded) */
+                int nf = 0, on = 0;
+                for (int i = 0; i < n; i++) { const Option *o = options_get(i); if (o->cls == OC_FIX && !strcmp(o->section, sect[k])) { nf++; on += option_value(o) != 0; } }
+                ui_hint("The original game's bugs put right. Each is its own switch, since what counts as a bug (and how to mend it) is open to argument.");
+                char lab[96]; snprintf(lab, sizeof lab, "Every fix, one by one (%d of %d on)###fixlist", on, nf);
+                if (!ImGui::TreeNodeEx(lab, ImGuiTreeNodeFlags_SpanAvailWidth)) continue;
+            }
             for (int i = 0; i < n; i++) {
                 const Option *o = options_get(i);
                 if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, sect[k])) continue;
                 option_row(o, 0);
             }
+            if (fixes) ImGui::TreePop();
         }
     }
     at_top = top_found < 0 ? 0 : top_found;

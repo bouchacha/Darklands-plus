@@ -42,26 +42,47 @@ static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
 
 
-/* "New screens": one switch for every redrawn screen and what goes with them (a screen at a time was
-   more to choose than anyone wants, and more ways for the screens to meet untested). The members
-   are kept as their own keys, which the modules read, but not shown: the master sets them all. */
-static const char *const BUNDLE[] = {
-    "display.native_panel", "display.shop_compare", "display.native_menu", "display.native_title", "display.native_cards",
-    "display.native_shops", "display.native_sheet", "display.native_loot", "assist.loot_worth", "display.native_alchemy",
-    "assist.where_sold", "display.native_cache", "display.native_lodge", "display.native_pray", "display.native_create",
-    "assist.creation_guide", "display.native_roster", "display.native_info", "display.native_march", "display.native_enemyinfo",
-    "display.native_mapmsg", "display.native_saves", 0 };
-int option_bundled(const Option *o) { for (int i = 0; BUNDLE[i]; i++) if (!strcmp(o->key, BUNDLE[i])) return 1; return 0; }
-static void screens_set(int v)
+/* groups: one switch for a set of features nobody would want one by one (a screen at a time, each
+   battle helper alone ...: more to choose than anyone wants, and more ways for them to meet untested).
+   The members keep their own keys, which the modules read, but are not shown: the group's switch
+   sets them all, each to its Darklands+ value (on) or the original's (off). */
+typedef struct { const char *key; const char *members[26]; } Bundle;
+static const Bundle BUNDLES[] = {
+    { "display.native_screens", { "display.native_panel", "display.shop_compare", "display.native_menu", "display.native_title",
+      "display.native_cards", "display.native_shops", "display.native_sheet", "display.native_loot", "assist.loot_worth",
+      "display.native_alchemy", "assist.where_sold", "display.native_cache", "display.native_lodge", "display.native_pray",
+      "display.native_create", "assist.creation_guide", "display.native_roster", "display.native_info", "display.native_march",
+      "display.native_enemyinfo", "display.native_mapmsg", "display.native_saves", 0 } },
+    { "battle.controls", { "battle.click_attack", "battle.volley_toggle", "battle.panel_select", "battle.quick_orders", "battle.next_member",
+      "battle.order_bar", "battle.order_icons", "battle.drag_pan", "battle.select_stays", "battle.end_words", 0 } },
+    { "battle.helpers", { "battle.info", "battle.los_line", "battle.click_hint", "battle.foe_arrow", "battle.skill_gains",
+      "battle.reload_bar", "battle.log", 0 } },
+    { "battle.pauses", { "battle.pause_down", "battle.pause_hurt", "battle.pause_foes", 0 } },
+    { "battle.scrolling", { "battle.smooth_scroll", "battle.scroll_paced", "battle.scroll_rest", 0 } },
+    { "assist.card_helpers", { "assist.chances", "assist.card_help", "assist.shop_info", "assist.fast_fades", "assist.card_keys",
+      "assist.teachers", "assist.docks_map", 0 } },
+};
+#define NBUNDLE ((int)(sizeof BUNDLES / sizeof BUNDLES[0]))
+static int bundle_of(const char *key)
 {
-    for (int i = 0; BUNDLE[i]; i++) { const Option *o = options_find(BUNDLE[i]); if (o) option_set(o, v ? o->def : o->orig); }
+    for (int g = 0; g < NBUNDLE; g++) for (int i = 0; BUNDLES[g].members[i]; i++) if (!strcmp(key, BUNDLES[g].members[i])) return g;
+    return -1;
 }
-/* at start: the members as the master says (a config from before the master: on unless the cards were off) */
+int option_bundled(const Option *o) { return bundle_of(o->key) >= 0; }
+static void bundle_set(int g, int v)
+{
+    for (int i = 0; BUNDLES[g].members[i]; i++) { const Option *o = options_find(BUNDLES[g].members[i]); if (o) option_set(o, v ? o->def : o->orig); }
+}
+/* at start: the members as their group says (a config from before the groups: the group on unless
+   its first member was set to the original's way) */
 void options_sync_bundles(void)
 {
-    int v = config_get_int("display.native_screens", config_get_int("display.native_cards", 1));
-    config_set_int("display.native_screens", v);
-    for (int i = 0; BUNDLE[i]; i++) { const Option *o = options_find(BUNDLE[i]); if (o) config_set_int(o->key, v ? o->def : o->orig); }
+    for (int g = 0; g < NBUNDLE; g++) {
+        const Option *f = options_find(BUNDLES[g].members[0]);
+        int v = config_get_int(BUNDLES[g].key, f ? config_get_int(f->key, f->def) != f->orig : 1);
+        config_set_int(BUNDLES[g].key, v);
+        for (int i = 0; BUNDLES[g].members[i]; i++) { const Option *o = options_find(BUNDLES[g].members[i]); if (o) config_set_int(o->key, v ? o->def : o->orig); }
+    }
 }
 
 #define S_SCREENS "New screens"
@@ -76,7 +97,7 @@ void options_sync_bundles(void)
 
 /* key, section, parent, title, description, class, original, Darklands+, Easy, choices, values, apply, note, flags */
 static Option OPTIONS[] = {
-    { "display.native_screens", S_SCREENS, 0, "New screens", "every screen of the game drawn anew, in the game's own style: the party panel, the menus, the start screen, cards, shops, the character sheet, loot, alchemy, the store room, the inn and camp, prayer, character creation, the party roster, Party Info, the marching order, Enemy Info, the travel map's messages, and Save and Load. More on screen (chances, what an item is worth, where an ingredient is sold), the same game underneath. Off: the original screens.", OC_SHOW, 0, 1, 1, 0, 0, screens_set },
+    { "display.native_screens", S_SCREENS, 0, "New screens", "every screen of the game drawn anew, in the game's own style: the party panel, the menus, the start screen, cards, shops, the character sheet, loot, alchemy, the store room, the inn and camp, prayer, character creation, the party roster, Party Info, the marching order, Enemy Info, the travel map's messages, and Save and Load. More on screen (chances, what an item is worth, where an ingredient is sold), the same game underneath. Off: the original screens.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 0, bundle_set },
     { "display.shop_compare", S_SCREENS, 0, "Wares weighed against what is worn", "in a shop, a green arrow by a weapon, armour or shield that is better than what the member has there now, a red one by a worse one (an empty arrow: nothing there now); pointing at a ware lights what it would replace.", OC_SHOW, 0, 1, 1 },
     { "display.native_panel", S_SCREENS, 0, "New party panel", "each member's Endurance, Strength and Divine Favor as labelled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name.", OC_SHOW, 0, 1, 1 },
     { "display.panel_picture", S_SCREENS, "display.native_screens", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "your portrait, else the battle sprite, else the crest|the battle sprite, else the crest|the crest|no picture", V_PICTURE, 0, 0, OF_COMBO },
@@ -92,7 +113,7 @@ static Option OPTIONS[] = {
     { "display.native_alchemy", S_SCREENS, 0, "New alchemy screen", "every known formula in one list, with its ingredients at hand, batches set with - and +, and the chance of success. The chance and the brewing are unchanged.", OC_SHOW, 0, 1, 1, 0, 0, alchemyview_set },
     { "assist.where_sold", S_SCREENS, "display.native_alchemy", "Where to buy missing ingredients", "beside an ingredient that runs short, the nearest town seen selling it.", OC_SHOW, 0, 1, 1 },
     { "display.native_cache", S_SCREENS, 0, "New store room screen", "everything stored and everything the member carries in two lists, with Take and Put on each row (one or the whole stack), and Put away for everything not in use. When off: the original screen, four items at a time.", OC_SHOW, 0, 1, 1, 0, 0, cacheview_set },
-    { "store.shared", S_SCREENS, "display.native_screens", "One store room shared by every inn", "what you leave with one innkeeper is there at every other inn, like a chest that follows the party (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened.", OC_PLUS, 0, 1, 1 },
+    { "store.shared", S_SCREENS, "display.native_screens", "One store room shared by every inn", "what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened.", OC_PLUS, 0, 1, 1 },
     { "assist.inn_earn", S_CARDS, 0, "At the inn, the rested earn money", "a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen.", OC_EASE, 0, 1, 1 },
     { "display.native_lodge", S_SCREENS, 0, "New inn and camp screen", "each member's activity for the day, its cost, the teachers and their fees, and \"Until rested\".", OC_SHOW, 0, 1, 1, 0, 0, lodgeview_set },
     { "display.native_pray", S_SCREENS, 0, "New prayer screen", "the saint's statue, what the saint does, the Divine Favor to spend and the chance (by the original game's rules).", OC_SHOW, 0, 1, 1, 0, 0, prayview_set },
@@ -105,6 +126,7 @@ static Option OPTIONS[] = {
     { "display.native_mapmsg", S_SCREENS, 0, "New travel map messages", "the travel map's messages (a robber knight's land and the like) drawn in the style of the cards.", OC_SHOW, 0, 1, 1, 0, 0, mapmsg_set },
     { "display.native_saves", S_SCREENS, 0, "New Save and Load screens", "each save listed with its place, date and party; Save asks for its comment beside the list, and Load lists every save (the original lists only nine).", OC_SHOW, 0, 1, 1, 0, 0, savesview_set },
 
+    { "assist.card_helpers", S_CARDS, 0, "Card helpers", "on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes. Tooltips say what an item, saint or formula is good for.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 5, bundle_set },
     { "assist.chances", S_CARDS, 0, "Chances of success", "beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held).", OC_SHOW, 0, 2, 2, "Always, as numbers|As the difficulty level allows|Off", V_CHANCES, assist_set_chances },
     { "assist.best_leader", S_CARDS, 0, "The best member speaks for the party", "when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their name. Your chosen leader returns after the card.", OC_EASE, 0, 1, 1, 0, 0, assist_set_best_leader },
     { "assist.card_help", S_CARDS, 0, "Saints and items on cards", "which saints and items a card accepts, and who knows or carries them (as the Darklands Companion did: saints are listed even when nobody knows them yet).", OC_SHOW, 0, 1, 1, 0, 0, assist_set_card_help },
@@ -130,6 +152,10 @@ static Option OPTIONS[] = {
     { "assist.loss_alerts", S_PARTY, 0, "Warn about permanent losses", "anything lost for good (an attribute's maximum, a skill, armour eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom.", OC_SHOW, 0, 1, 1 },
     { "party.figure_picker", S_PARTY, "party.more_figures", "Sprite picker", "Select Character Image shows all the sprites at once to pick from. When off: it steps to the next one, as in the original.", OC_SHOW, 0, 1, 1 },
 
+    { "battle.controls", S_BATTLE, 0, "Easier battle controls", "click a member (or their box in the party panel), then an enemy to attack it or the ground to walk there: one click gives the order, and while paused the next member without orders is chosen. A bow or sword on each shooter's box says whether a click shoots or fights. Order buttons with pictures, right-drag to move the view, selecting doesn't jerk the view, and a shorter wait at the end of a battle.", OC_EASE, 0, 1, 1, 0, 0, 0, 0, 0, 1, bundle_set },
+    { "battle.helpers", S_BATTLE, 0, "Battle info on screen", "a bar over each wounded enemy, and pointing at someone shows who it is, how hurt, their melee rating, aim and weapons; the line of a shot with what is in the way; what a click will do; an arrow to enemies off screen; skill gains rising over the fighter; a reload bar under a shooter; and the battle log (every blow, parry and fall).", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 2, bundle_set },
+    { "battle.pauses", S_BATTLE, 0, "Pauses in battle", "the battle pauses when a member falls and when enemies waiting in a castle, dungeon or mine come out to fight.", OC_EASE, 0, 1, 1, 0, 0, 0, 0, 0, 3, bundle_set },
+    { "battle.scrolling", S_BATTLE, 0, "Smooth, steady scrolling", "the battle view slides instead of jumping, scrolls at a steady pace, and resting the pointer on the edge scrolls it without Shift.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 4, bundle_set },
     { "battle.pause_down", S_BATTLE, 0, "Pause when a member falls", "", OC_EASE, 0, 1, 1, 0, 0, ap_down },
     { "battle.pause_hurt", S_BATTLE, 0, "Pause when badly hurt", "the battle pauses when a party member's Endurance drops below a quarter.", OC_EASE, 0, 0, 0, 0, 0, ap_hurt },
     { "battle.pause_foes", S_BATTLE, 0, "Pause when enemies come out", "the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight.", OC_EASE, 0, 1, 1, 0, 0, autopause_set_foes },
@@ -149,7 +175,7 @@ static Option OPTIONS[] = {
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer races to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling without Shift", "resting the pointer on the edge of the screen scrolls the battle map; no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
     { "battle.info", S_BATTLE, 0, "Info under the pointer", "a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
-    { "battle.info_numbers", S_BATTLE, "battle.info", "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
+    { "battle.info_numbers", S_BATTLE, "battle.helpers", "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
     { "battle.foe_arrow", S_BATTLE, 0, "Arrow to enemies off screen", "when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there.", OC_EASE, 0, 1, 1 },
     { "battle.skill_gains", S_BATTLE, 0, "Show skill gains", "a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel.", OC_SHOW, 0, 1, 1 },
     { "battle.reload_bar", S_BATTLE, 0, "Reload bar", "a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot.", OC_SHOW, 0, 1, 1 },
@@ -286,7 +312,7 @@ const Preset PRESETS[PRESET_COUNT] = {
 
 int preset_value(const Option *o, int p)
 {
-    if (option_bundled(o)) { const Option *m = options_find("display.native_screens"); return m && preset_value(m, p) ? o->def : o->orig; }
+    { int g = bundle_of(o->key); if (g >= 0) { const Option *m = options_find(BUNDLES[g].key); return m && preset_value(m, p) ? o->def : o->orig; } }
     if (o->cls == OC_TOOL) return PRESET_KEEP;
     if (o->cls == OC_TASTE) return p <= PRESET_PURIST ? o->orig : PRESET_KEEP;
     if (p == PRESET_EASY && o->cls != OC_EXPERIMENT) return o->easy;
