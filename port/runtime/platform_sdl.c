@@ -558,6 +558,11 @@ static int drag_ok(int wx, int wy)
     return game_mode() == GM_BATTLE && !ui_is_open() && !ns_showing() && !plat_win_outside(wx, wy)
            && config_get_int("battle.drag_pan", 1) && !config_get_int("original", 0);
 }
+/* a click that started something in the interface (a double-click on the world map that sets off
+   travelling and closes it): its release, and any press before it, kept from the game, which
+   would take it for a walk to where the pointer is (and that ends the travelling) */
+static int swallow_click;
+void plat_swallow_click(void) { if (SDL_GetMouseState(0, 0) & (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK)) swallow_click = 1; }
 static int drag_filter(SDL_Event *e)
 {
     void battlescroll_pan(int, int);
@@ -1016,7 +1021,8 @@ void plat_events(void)
             else if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) input_pad = 0;
         } else if (e.type == SDL_MOUSEMOTION && input_pad && (abs(e.motion.x - pad_warp_x) > 2 || abs(e.motion.y - pad_warp_y) > 2)
                    && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
-        if (!headless && ui_event(&e)) continue;
+        if (!headless && ui_event(&e)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }   /* (a release taken by the interface ends the swallowing too) */
+        if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;

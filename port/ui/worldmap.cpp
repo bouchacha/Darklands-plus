@@ -878,7 +878,7 @@ extern "C" void worldmap_draw(void)
         }
         if (pn >= 2) {
             float dz = fmaxf(3.5f, 4.0f * fminf(1.6f, zoom / fitz));
-            float t = (float)ImGui::GetTime(), acc = fmodf(t * 30.0f, dz * 4.0f), sp = dz * 4.0f;
+            float t = (float)ImGui::GetTime(), sp = dz * 4.0f, acc = sp - fmodf(t * 30.0f, sp);   /* (the dots run from the party towards the place) */
             ImVec2 prev = ImVec2(0, 0);
             for (int i = 0; i < pn; i++) {
                 float x, y; tile_px(px_[i], py_[i], &x, &y); ImVec2 q = to_scr(x, y);

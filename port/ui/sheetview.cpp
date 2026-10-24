@@ -999,7 +999,7 @@ extern "C" void sheetview_draw(void)
     if (V.tab == TAB_THINGS || V.tab == TAB_SKILLS) {
         VT(doll(P, s));
         if (V.tab == TAB_THINGS) VT(things(P, s, new_what, new_which));
-        else VT(skills(P, s, new_what, new_which));
+        else { extern int ui_icon_heraldic_here; ui_icon_heraldic_here = 1; VT(skills(P, s, new_what, new_which)); ui_icon_heraldic_here = 0; }
         if (new_what) { V.what = new_what; V.which = new_which; V.seq = s.seq; }
         else if (V.seq != s.seq) V.what = 0;
         else if (!P.over(200, 21, 318, 197)) V.what = 0;

@@ -222,7 +222,8 @@ int travel_to_tile(int x, int y, int loc, const char *name)
     travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y;
     snprintf(travel.name, sizeof travel.name, "%s", name ? name : "");
     travel.replan = 0;
-    if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: to %s (%d,%d) from (%d,%d): %d tiles, %d minutes\n", travel.name, x, y, px, py, travel.n, travel.minutes);
+    fprintf(stderr, "travel: to %s (%d,%d) from (%d,%d): %d tiles, %d minutes\n", travel.name, x, y, px, py, travel.n, travel.minutes);
+    { void plat_swallow_click(void); plat_swallow_click(); }   /* (the click that set it off: not for the game) */
     return 1;
 }
 
@@ -337,7 +338,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     map_polled = plat_ticks_ms();
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
-        if (key != 0x4c35 && !started) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: stopped by key %04x\n", key); }   /* the player took over */
+        if (key != 0x4c35 && !started) { travel.active = 0; fprintf(stderr, "travel: stopped by key %04x (the player took over)\n", key); }   /* the player took over */
         else {
             int px, py; travel_party_tile(&px, &py);
             if (travel.replan) { travel.replan = 0; field(px, py); if (!plan(travel.tx, travel.ty)) travel.active = 0; }

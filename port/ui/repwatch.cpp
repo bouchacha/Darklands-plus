@@ -15,6 +15,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 u32 plat_ticks_ms(void);
+int saves_loading_cover(void);
 extern char cardview_last_choice[160]; extern unsigned cardview_last_choice_t;
 }
 std::string game_text(const char *s, size_t n);
@@ -32,9 +33,11 @@ extern "C" void repwatch_tick(void)
     for (int i = 0; i < NTOWN; i++) { u32 r = g_location(i); now[i] = r ? (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x12)) : 0; }
     int changed = 0;
     for (int i = 0; i < NTOWN; i++) if (now[i] != last[i]) changed++;
+    char card[16]; g_str(G_DGROUP, GV_card_name, card, sizeof card);
+    /* the save/load menu ($Selec..) and a load under way: towns read from the save, not news */
+    if (saves_loading_cover() || !strncmp(card, "$Selec", 6) || !strncmp(card, "$SELEC", 6)) { memcpy(last, now, sizeof last); have = 1; seed = sd; return; }
     if (!have || sd != seed || changed > 3) { memcpy(last, now, sizeof last); have = 1; if (sd != seed) hist.clear(); seed = sd; return; }
     if (!changed) return;
-    char card[16]; g_str(G_DGROUP, GV_card_name, card, sizeof card);
     for (int i = 0; i < NTOWN; i++) {
         if (now[i] == last[i]) continue;
         RepChange c; c.loc = i; c.delta = now[i] - last[i]; c.value = now[i]; c.t = plat_ticks_ms();

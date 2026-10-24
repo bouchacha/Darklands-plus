@@ -119,7 +119,8 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
    the abilities). ui_icon_disc: the dark disc behind a coloured one, where it must read on any ground */
 int ui_icon_disc = 1;
 #include "../runtime/config.h"
-static int icon_style(void) { int v = config_get_int("display.skill_icon_look", 2); return v == 0 ? 0 : 2; }   /* (0 in colour, 2 heraldic, the default; the woodcut look (1) was dropped) */
+int ui_icon_heraldic_here;                    /* (the character sheet's skills page sets it while it draws: the heraldic look is for there only) */
+static int icon_style(void) { int v = config_get_int("display.skill_icon_look", 2); return v == 0 || !ui_icon_heraldic_here ? 0 : 2; }   /* (0 in colour, 2 heraldic, the default; the woodcut look (1) was dropped) */
 static int style_override = -1;
 void ui_icon_style_preview(int st) { style_override = st; }
 /* two tones: the light parts of a picture (a page, a flame's heart, a lens) become `light`, the rest
