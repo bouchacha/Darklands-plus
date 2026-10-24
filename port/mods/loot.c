@@ -33,7 +33,7 @@
 int loot_active;                         /* the loot screen's loop is running */
 void ui_notice(const char *msg);
 
-int loot_enabled(void) { return config_get_int("assist.loot_all", 1) && !config_get_int("original", 0); }
+int loot_enabled(void) { return !config_get_int("original", 0); }   /* (always, as the other keys; assist.loot_all retired) */
 
 static u16 pile_seg(void) { return g_rw(L_PILE + 2); }
 static u16 pile_off(int i) { return (u16)(g_rw(L_PILE) + 6 * i); }

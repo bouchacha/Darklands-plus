@@ -61,6 +61,8 @@ static const Bundle BUNDLES[] = {
     { "battle.scrolling", { "battle.smooth_scroll", "battle.scroll_paced", "battle.scroll_rest", 0 } },
     { "assist.card_helpers", { "assist.chances", "assist.card_help", "assist.shop_info", "assist.fast_fades", "assist.card_keys",
       "assist.teachers", "assist.docks_map", 0 } },
+    { "assist.endless", { "assist.infinite_ammo", "assist.infinite_thrown", 0 } },
+    { "map.overland_marks", { "map.names", "map.quest_marks", 0 } },
 };
 #define NBUNDLE ((int)(sizeof BUNDLES / sizeof BUNDLES[0]))
 static int bundle_of(const char *key)
@@ -142,9 +144,9 @@ static Option OPTIONS[] = {
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
 
     { "assist.return_thrown", S_PARTY, 0, "Thrown weapons picked up after a battle", "when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them.", OC_EASE, 0, 1, 1, 0, 0, return_thrown },
+    { "assist.endless", S_PARTY, 0, "Endless ammunition and thrown weapons", "arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards.", OC_PLUS, 0, 1, 1, 0, 0, 0, 0, 0, 6, bundle_set },
     { "assist.infinite_ammo", S_PARTY, 0, "Endless ammunition", "arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards.", OC_PLUS, 0, 1, 1, 0, 0, ammo_set },
     { "assist.infinite_thrown", S_PARTY, 0, "Endless thrown weapons", "javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw).", OC_PLUS, 0, 1, 1, 0, 0, thrown_set },
-    { "assist.loot_all", S_PARTY, 0, "Loot and shop keys", "in the loot, A takes the whole pile and S shares it out; in a shop, A sells a whole stack and T buys ten.", OC_SHOW, 0, 1, 1 },
     { "rules.aging", S_PARTY, 0, "Aging during play", "characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence).", OC_PLUS, 0, 1, 0 },
     { "assist.loss_alerts", S_PARTY, 0, "Warn about permanent losses", "anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom.", OC_SHOW, 0, 1, 1 },
 
@@ -188,6 +190,7 @@ static Option OPTIONS[] = {
     { "map.key_m", S_TRAVEL, 0, "World map (M)", "M opens a map of the whole land (the towns, the quests, where saints and formulae are found).", OC_SHOW, 0, 1, 1 },
     { "travel.auto", S_TRAVEL, "map.key_m", "Auto-travel", "the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it.", OC_EASE, 0, 1, 1, 0, 0, tr_auto },
     { "travel.fast", S_TRAVEL, "travel.auto", "Auto-travel speed", "", OC_TASTE, 0, 1, 1, "walking pace|4x|instant", V_PACE, tr_fast },
+    { "map.overland_marks", S_TRAVEL, 0, "Names and quest markers in the overland view", "the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 7, bundle_set },
     { "map.names", S_TRAVEL, 0, "Place names in the overland view", "the towns and places named in the overland view.", OC_SHOW, 0, 1, 1 },
     { "map.quest_marks", S_TRAVEL, 0, "Quest markers in the overland view", "each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1 },
     { "map.offers_unvisited", S_EASYPLAY, 0, "What unvisited places offer", "the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.)", OC_EASY, 0, 0, 1 },
@@ -455,16 +458,24 @@ int options_dump_markdown(const char *path)
           "tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself\n"
           "(`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py`\n"
           "fails if a key disappears without being listed as retired.\n\n", f);
-    const char *last = "";
     int n = options_count();
+    const char *secs[64]; int ns = 0;                 /* the sections in the order they first appear; each one's switches together */
+    for (int i = 0; i < n; i++) {
+        const Option *o = options_get(i); int k = 0;
+        while (k < ns && strcmp(secs[k], o->section)) k++;
+        if (k == ns && ns < 64) secs[ns++] = o->section;
+    }
+    for (int sct = 0; sct < ns; sct++) {
+    fprintf(f, "\n## %s\n\n| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |\n|---|---|---|---|---|---|---|\n", secs[sct]);
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
-        if (strcmp(o->section, last)) { fprintf(f, "\n## %s\n\n| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |\n|---|---|---|---|---|---|---|\n", o->section); last = o->section; }
+        if (strcmp(o->section, secs[sct])) continue;
         int g = bundle_of(o->key);
         fputs("| `", f); md(f, o->key); fputs("` | ", f); md(f, o->title); fputs(" | ", f); md(f, o->desc && o->desc[0] ? o->desc : o->title); fputs(" | ", f);
         md(f, option_why(o)); fputs(" | ", f);
         if (g >= 0) { fputs("`", f); md(f, BUNDLES[g].key); fputs("`", f); }
         fprintf(f, " | %s | %d / %d / %d |\n", cls_name(o->cls), o->orig, o->def, o->easy);
+    }
     }
     fputs("\n## Retired keys\n\nNo longer offered; not to be used for anything else.\n\n", f);
     for (int i = 0; OPTIONS_RETIRED[i]; i++) fprintf(f, "- `%s`\n", OPTIONS_RETIRED[i]);

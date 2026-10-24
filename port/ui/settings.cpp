@@ -331,7 +331,7 @@ static void option_row(const Option *o, int depth)
         if (screenpics_map_draw(ImGui::GetWindowDrawList(), a, ImVec2(a.x + pw, a.y + ph))) ImGui::Dummy(ImVec2(pw, ph + UIS(4)));
         else ui_hint("A picture of the world map appears here once you have opened it (M) in your game.");
         ImGui::Unindent(ti);
-    } else if (!strcmp(o->key, "map.names")) {          /* the overland view as the player last saw it, names and quest marks on it */
+    } else if (!strcmp(o->key, "map.overland_marks")) {          /* the overland view as the player last saw it, names and quest marks on it */
         ImGui::Indent(ti);
         float pw = fminf(UIS(420), ImGui::GetContentRegionAvail().x), ph = pw * 9 / 16;
         ImVec2 a = ImGui::GetCursorScreenPos();

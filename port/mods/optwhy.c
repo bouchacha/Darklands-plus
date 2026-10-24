@@ -57,9 +57,10 @@ static const struct { const char *key, *why; } WHY[] = {
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
     { "assist.return_thrown", "Gathering thrown weapons after each battle is busywork." },
+    { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out." },
+    { "map.overland_marks", "The original overland view names nothing and shows no quest." },
     { "assist.infinite_ammo", "Counting arrows is bookkeeping, not play; enemies still run out." },
     { "assist.infinite_thrown", "The same for thrown weapons." },
-    { "assist.loot_all", "Taking or sharing the whole loot was one click per item." },
     { "rules.aging", "Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost." },
     { "assist.loss_alerts", "Permanent losses happen silently in the original." },
     { "assist.more_jobs", "Jobs written into the game's tables and never offered." },
@@ -138,6 +139,7 @@ const char *const OPTIONS_RETIRED[] = {
     "assist.stairs_together",        /* the party takes the stairs together: always, but in the original game */
     "assist.wheel_lists", "assist.menu_click", "input.gamepad",   /* controls: always, but in the original game (the controller always) */
     "editor.show",                   /* the Editor tab: always, but in the original game */
+    "assist.loot_all",               /* the loot's and shops' keys: always, as the other keys */
     "display.integer_scale",         /* whole-number scaling: three ways to scale instead (Sharp pixels, Rounded edges, Soft) */
     "display.idle_rest",             /* the game waits without spinning: always */
     "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */

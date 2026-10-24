@@ -28,17 +28,6 @@ fails if a key disappears without being listed as retired.
 | `assist.where_sold` | Where to buy missing ingredients | beside an ingredient that runs short, the nearest town seen selling it. | Missing ingredients meant searching the towns by memory. | `display.native_screens` | show | 0 / 1 / 1 |
 | `display.native_cache` | New store room screen | everything stored and everything the member carries in two lists, with Take and Put on each row (one or the whole stack), and Put away to store everything not equipped. When off: the original screen, four items at a time. | The original shows four stored items at a time. | `display.native_screens` | show | 0 / 1 / 1 |
 | `store.shared` | One store room shared by every inn | what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened. | A store room per town made stored items as good as lost. |  | plus | 0 / 1 / 1 |
-
-## Cards and towns
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `assist.inn_earn` | At the inn, rested members earn money | a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen. | A rested member relaxing gains nothing; earning was the better choice the player always had to make by hand. |  | ease | 0 / 1 / 1 |
-
-## New screens
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
 | `display.native_lodge` | New inn and camp screen | each member's activity for the day, its cost, the teachers and their fees, and "Until rested". | The original hides the cost and the teachers' terms. | `display.native_screens` | show | 0 / 1 / 1 |
 | `display.native_pray` | New prayer screen | the saint's statue, what the saint does, the Divine Favor to spend and the chance (by the original game's rules). | The original hides what a saint does and the chance. | `display.native_screens` | show | 0 / 1 / 1 |
 | `display.native_create` | New character creation | each step on one page, with what a childhood or profession would give: the attributes afterwards (and the aging past thirty), each skill's gain and how far it can still rise, the Virtue and the saints gained. The rules are unchanged. | The original hides what each choice will give. | `display.native_screens` | show | 0 / 1 / 1 |
@@ -54,6 +43,7 @@ fails if a key disappears without being listed as retired.
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
+| `assist.inn_earn` | At the inn, rested members earn money | a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen. | A rested member relaxing gains nothing; earning was the better choice the player always had to make by hand. |  | ease | 0 / 1 / 1 |
 | `assist.card_helpers` | Chances and hints on the cards | on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes. Tooltips say what an item, saint or formula is good for. | The original hides the odds and what a card accepts behind Shift and the manual; the game's own numbers, shown. |  | show | 0 / 1 / 1 |
 | `assist.chances` | Chances of success | beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held). | The original shows a chance only while Shift is held, one option at a time. | `assist.card_helpers` | show | 0 / 2 / 2 |
 | `assist.best_leader` | The best member speaks for the party | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their name. After the card, your chosen leader is leader again. | The original tests only the leader, so the player swaps leaders before each card by hand. |  | ease | 0 / 1 / 1 |
@@ -73,11 +63,12 @@ fails if a key disappears without being listed as retired.
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
 | `assist.return_thrown` | Thrown weapons picked up after a battle | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. | Gathering thrown weapons after each battle is busywork. |  | ease | 0 / 1 / 1 |
-| `assist.infinite_ammo` | Endless ammunition | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards. | Counting arrows is bookkeeping, not play; enemies still run out. |  | plus | 0 / 1 / 1 |
-| `assist.infinite_thrown` | Endless thrown weapons | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). | The same for thrown weapons. |  | plus | 0 / 1 / 1 |
-| `assist.loot_all` | Loot and shop keys | in the loot, A takes the whole pile and S shares it out; in a shop, A sells a whole stack and T buys ten. | Taking or sharing the whole loot was one click per item. |  | show | 0 / 1 / 1 |
+| `assist.endless` | Endless ammunition and thrown weapons | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards. | Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. |  | plus | 0 / 1 / 1 |
+| `assist.infinite_ammo` | Endless ammunition | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards. | Counting arrows is bookkeeping, not play; enemies still run out. | `assist.endless` | plus | 0 / 1 / 1 |
+| `assist.infinite_thrown` | Endless thrown weapons | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). | The same for thrown weapons. | `assist.endless` | plus | 0 / 1 / 1 |
 | `rules.aging` | Aging during play | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). | Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost. |  | plus | 0 / 1 / 0 |
 | `assist.loss_alerts` | Warn about permanent losses | anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom. | Permanent losses happen silently in the original. |  | show | 0 / 1 / 1 |
+| `assist.more_jobs` | More day jobs | nine jobs the original never offers (mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer, preaching friar) turn up in towns with the right places: soldiers' jobs by an arsenal or fortress, a lord's household at a fortress, clerks at a town hall, the great houses in a big city, friars by a monastery. Each member still takes the best-paid job they qualify for. | Jobs written into the game's tables and never offered. |  | ease | 0 / 1 / 1 |
 
 ## Battles
 
@@ -106,49 +97,32 @@ fails if a key disappears without being listed as retired.
 | `battle.scroll_paced` | Steady scrolling | the battlefield scrolls at a steady pace (holding Shift at the edge no longer scrolls all the way to the end of the field at speed). | (part of Smooth, steady scrolling) | `battle.scrolling` | show | 0 / 1 / 1 |
 | `battle.scroll_rest` | Edge scrolling without Shift | resting the pointer on the edge of the screen scrolls the battlefield; no Shift needed. | (part of Smooth, steady scrolling) | `battle.scrolling` | show | 0 / 1 / 1 |
 | `battle.info` | Info under the pointer | a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defense hand to hand), their aim with a missile weapon, and their weapons. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
+| `battle.foe_arrow` | Arrow to enemies off screen | when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there. | (part of Battle info on screen) | `battle.helpers` | ease | 0 / 1 / 1 |
+| `battle.skill_gains` | Show skill gains | a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
+| `battle.reload_bar` | Reload bar | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
+| `battle.log` | Battle log | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal > Battle log keeps it). | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
+| `assist.level_map` | Level map (Tab) | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it; a click on it walks the party there. | Dungeons and castles are hard to find one's way in without a map. |  | show | 0 / 1 / 1 |
+| `battle.end_words` | Shorter wait at the end of a battle | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. | (part of Easier battle controls) The original's long wait at the end looked like a freeze. | `battle.controls` | show | 0 / 1 / 1 |
+| `fix.pathfinding` | Fighters find their way around obstacles | fighters plan their way around walls, furniture and each other; in the original they often give up on long or winding routes (members get stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. | Puts right a bug of the original (the description says which). |  | fix | 0 / 1 / 1 |
+| `battle.speed` | Battle speed | walking (in dungeons, castles and mines too), attacks, drinking potions and calling on saints all go faster; pausing (Space) works as before. | A matter of taste: some find the original's battles slow. |  | taste | 100 / 100 / 100 |
+| `battle.fast_key` | Fast forward (Z) | Z in a battle runs it six times faster; Z again goes back to the chosen speed. | (part of Easier battle controls) Battles already won take long to finish. | `battle.controls` | show | 0 / 1 / 1 |
 
 ## Easier play
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
 | `battle.info_numbers` | Enemy Endurance as numbers | Enemy Endurance as numbers | Easier: exact numbers the party could not know. |  | easy | 0 / 0 / 1 |
-
-## Battles
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `battle.foe_arrow` | Arrow to enemies off screen | when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there. | (part of Battle info on screen) | `battle.helpers` | ease | 0 / 1 / 1 |
-| `battle.skill_gains` | Show skill gains | a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
-| `battle.reload_bar` | Reload bar | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
-| `battle.log` | Battle log | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal > Battle log keeps it). | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
-| `assist.level_map` | Level map (Tab) | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it; a click on it walks the party there. | Dungeons and castles are hard to find one's way in without a map. |  | show | 0 / 1 / 1 |
-
-## Easier play
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
 | `assist.level_map_all` | The whole level on the level map | Tab shows the whole level, not only what the party has seen. | Easier: the parts not yet seen. |  | easy | 0 / 0 / 1 |
-
-## The party and its items
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `assist.more_jobs` | More day jobs | nine jobs the original never offers (mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer, preaching friar) turn up in towns with the right places: soldiers' jobs by an arsenal or fortress, a lord's household at a fortress, clerks at a town hall, the great houses in a big city, friars by a monastery. Each member still takes the best-paid job they qualify for. | Jobs written into the game's tables and never offered. |  | ease | 0 / 1 / 1 |
-
-## Easier play
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
 | `battle.foes_left` | Enemies still waiting | under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have). | Easier: knowledge the party could not have. |  | easy | 0 / 0 / 1 |
-
-## Battles
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `battle.end_words` | Shorter wait at the end of a battle | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. | (part of Easier battle controls) The original's long wait at the end looked like a freeze. | `battle.controls` | show | 0 / 1 / 1 |
-| `fix.pathfinding` | Fighters find their way around obstacles | fighters plan their way around walls, furniture and each other; in the original they often give up on long or winding routes (members get stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. | Puts right a bug of the original (the description says which). |  | fix | 0 / 1 / 1 |
-| `battle.speed` | Battle speed | walking (in dungeons, castles and mines too), attacks, drinking potions and calling on saints all go faster; pausing (Space) works as before. | A matter of taste: some find the original's battles slow. |  | taste | 100 / 100 / 100 |
-| `battle.fast_key` | Fast forward (Z) | Z in a battle runs it six times faster; Z again goes back to the chosen speed. | (part of Easier battle controls) Battles already won take long to finish. | `battle.controls` | show | 0 / 1 / 1 |
+| `map.offers_unvisited` | What unvisited places offer | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) | Easier: knowledge the party could not have. |  | easy | 0 / 0 / 1 |
+| `travel.encounters` | Encounters on the road | how often travel brings an encounter. | Easier: fewer interruptions. |  | easy | 100 / 100 / 50 |
+| `travel.street_encounters` | Night encounters in the streets | how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street). | Easier: the original's night streets are near-certain ambushes. |  | easy | 100 / 100 / 50 |
+| `mod.swift_travel` | Faster overland travel | Overland travel takes a third of the time. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
+| `mod.cheap_inn` | Half-price inns | Lodging costs half as much. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.quick_learning` | Quick learning | Skills improve about twice as often through use, on cards and in battles (slow ones such as Streetwise and Latin too). | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.heavy_blows` | Double damage against enemies | Every hit on an enemy does double damage. Hits on the party are unchanged. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.strong_party` | Strong Quickstart party | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
+| `mod.rich_start` | Rich start | A party made with Create a New World starts with 5000 florins instead of 200. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
 
 ## Travel
 
@@ -157,16 +131,9 @@ fails if a key disappears without being listed as retired.
 | `map.key_m` | World map (M) | M opens a map of the whole land (the towns, the quests, where saints and formulae are found). | The original has no map of the whole land. |  | show | 0 / 1 / 1 |
 | `travel.auto` | Auto-travel | the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it. | Steering across the overland view step by step took many key presses, none of them a real choice. |  | ease | 0 / 1 / 1 |
 | `travel.fast` | Auto-travel speed | Auto-travel speed | A matter of taste. |  | taste | 0 / 1 / 1 |
-| `map.names` | Place names in the overland view | the towns and places named in the overland view. | The original overland view names nothing. |  | show | 0 / 1 / 1 |
-| `map.quest_marks` | Quest markers in the overland view | each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it. | Where a quest leads was in the player's notes only. |  | show | 0 / 1 / 1 |
-
-## Easier play
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `map.offers_unvisited` | What unvisited places offer | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) | Easier: knowledge the party could not have. |  | easy | 0 / 0 / 1 |
-| `travel.encounters` | Encounters on the road | how often travel brings an encounter. | Easier: fewer interruptions. |  | easy | 100 / 100 / 50 |
-| `travel.street_encounters` | Night encounters in the streets | how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street). | Easier: the original's night streets are near-certain ambushes. |  | easy | 100 / 100 / 50 |
+| `map.overland_marks` | Names and quest markers in the overland view | the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it. | The original overland view names nothing and shows no quest. |  | show | 0 / 1 / 1 |
+| `map.names` | Place names in the overland view | the towns and places named in the overland view. | The original overland view names nothing. | `map.overland_marks` | show | 0 / 1 / 1 |
+| `map.quest_marks` | Quest markers in the overland view | each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it. | Where a quest leads was in the player's notes only. | `map.overland_marks` | show | 0 / 1 / 1 |
 
 ## Elsewhere
 
@@ -229,17 +196,6 @@ fails if a key disappears without being listed as retired.
 | `rules.politics` | City politics | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. | Written by MicroProse and never switched on. |  | experiment | 0 / 0 / 0 |
 | `battle.black_cloud` | Black Cloud in battle | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. | Left out in 1992 for the machines' speed; the rules handle it. |  | experiment | 0 / 0 / 0 |
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. | Left unfinished in the game's files. |  | experiment | 0 / 0 / 0 |
-
-## Easier play
-
-| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
-|---|---|---|---|---|---|---|
-| `mod.swift_travel` | Faster overland travel | Overland travel takes a third of the time. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
-| `mod.cheap_inn` | Half-price inns | Lodging costs half as much. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
-| `mod.quick_learning` | Quick learning | Skills improve about twice as often through use, on cards and in battles (slow ones such as Streetwise and Latin too). | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
-| `mod.heavy_blows` | Double damage against enemies | Every hit on an enemy does double damage. Hits on the party are unchanged. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
-| `mod.strong_party` | Strong Quickstart party | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
-| `mod.rich_start` | Rich start | A party made with Create a New World starts with 5000 florins instead of 200. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
 
 ## Fixes for bugs of the original
 
@@ -327,6 +283,7 @@ No longer offered; not to be used for anything else.
 - `assist.menu_click`
 - `input.gamepad`
 - `editor.show`
+- `assist.loot_all`
 - `display.integer_scale`
 - `display.idle_rest`
 - `sound.hit_sounds`
