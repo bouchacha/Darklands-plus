@@ -857,16 +857,10 @@ static void formulae(NsDraw &P, const SheetModel &s)
         if (P.hit(x, 22, x + w, 28.5f)) { V.formulae_all = a == 1; V.scroll[TAB_FORMULAE] = 0; }
         x += w + 1;
     }
-    /* who knows each: a column a member, headed by the name; its first three letters when the
-       names would take too much of the row ("Han" read as a word of its own) */
-    float colw = 9.5f; bool full = true;
-    for (int m : al) colw = std::max(colw, P.width(fo, 4.2f, ns_gtext(s.names[m])) + 2.5f);
-    if (colw * al.size() > 44) { colw = 9.5f; full = false; }
-    float cx0 = LX1 - 2 - colw * al.size();
-    for (size_t a = 0; a < al.size(); a++) {
-        std::string ini = full ? ns_gtext(s.names[al[a]]) : letters(ns_gtext(s.names[al[a]]), 3);
-        P.text(fo, 4.2f, cx0 + colw * a + (colw - P.width(fo, 4.2f, ini)) * 0.5f, 24.2f, al[a] == s.who ? NsDraw::RED : ink, ini);
-    }
+    /* who knows each: their initials at the right of the row, as on the Saints page; when one member
+       alone knows formulae, no initials (the heading says who) */
+    bool tags = al.size() > 1;
+    if (al.size() == 1) { std::string w = "Known by " + ns_gtext(s.names[al[0]]); P.text(fo, 4.2f, 0, 24.2f, soft, w, LX1 - 2); }
     std::vector<int> rows;
     for (int k = 0; k < nf; k++) if (V.formulae_all || known(k)) rows.push_back(k);
     int n = (int)rows.size();
@@ -888,7 +882,16 @@ static void formulae(NsDraw &P, const SheetModel &s)
         if (h || k == V.pin_formula) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, k == V.pin_formula ? IM_COL32(218, 196, 150, 255) : IM_COL32(226, 204, 160, 255));
         if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = V.pin_formula == k ? -1 : k;
         P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3, -1, k % 3 + 1);
-        float end = cx0 - 1;
+        float end = LX1 - 2;
+        if (tags) for (int m = 4; m >= 0; m--) {              /* (who knows it: initials, as Saints) */
+            if (!s.present[m] || !s.formula[m][k]) continue;
+            std::string ini = letters(ns_gtext(s.names[m]), 1);
+            float iw = P.width(fo, 4.2f, ini) + 2.4f;
+            P.rect(end - iw, ry + 1.3f, end, ry + ROWH - 1.2f, m == s.who ? IM_COL32(112, 40, 22, 230) : IM_COL32(120, 84, 40, 200), 1.1f);
+            P.text(fo, 4.2f, end - iw + 1.2f, ry + 1.7f, NsDraw::LIGHT, ini);
+            end -= iw + 0.8f;
+        }
+        end -= 1;
         int b = kn ? batches_of(s, k) : 0, have = carried_of(s, k);
         if (kn || have) {                                /* how many carried, and how many batches the ingredients carried make */
             std::string bs = "brew " + std::to_string(b);
@@ -902,11 +905,6 @@ static void formulae(NsDraw &P, const SheetModel &s)
             end -= small_tag(P, end, ry, ROWH, "sold here") + 1;
         }
         P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn && have ? ink : dim, gamedata.formula_names[k], -1, end);   /* (grey: none carried, or not known) */
-        for (size_t a = 0; a < al.size(); a++) {
-            if (!s.formula[al[a]][k]) continue;
-            ImVec2 c = NsDraw::w(cx0 + colw * a + colw * 0.5f, ry + ROWH * 0.5f);
-            P.dl->AddCircleFilled(c, 1.3f * P.k, al[a] == s.who ? NsDraw::RED : IM_COL32(120, 84, 40, 255));
-        }
     }
     if (n > NROWS) {
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
