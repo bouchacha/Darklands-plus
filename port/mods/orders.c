@@ -352,6 +352,45 @@ static void idle_shooters(void)
         fprintf(stderr, "orders: member %d had no orders: opens fire at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
     }
 }
+/* a member left without orders who does not shoot (no missile weapon, nothing to loose, or set to
+   fight hand to hand): it joins a fight right beside it - a foe on itself, or on one of the party a
+   few paces off that fewer than two of the party already fight - rather than stand and watch. Not
+   one told to hold; Halt keeps its own order (0x400) and is let be */
+static int has_ammo(int i, int wm)              /* member i carries what its missile weapon looses (a thrown weapon: itself) */
+{
+    int t = rb(G_FAR20A5, (u16)(0x7822 + wm)), n = g_rb((u16)(G_MEMBER(i) + G_M_NITEMS));
+    if (!t) return 1;
+    for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(i, k); if (rb(G_FAR2E38, (u16)(o + 2)) == t && rb(G_FAR2E38, (u16)(o + 4)) > 0) return 1; }
+    return 0;
+}
+static void idle_fighters(void)
+{
+    if (!combat_improved()) return;
+    for (int i = 0; i < 5; i++) {
+        u16 c = (u16)(D_CBT + i * 0x80);
+        int act = g_rb((u16)(GV_cbt_action + i));
+        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
+        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;                  /* (told to hold) */
+        int wm = (s8)g_rb((u16)(c + 0x22));
+        if (wm >= 0 && wm <= 62 && orders_member_mode(i) == 1 && !player_melee[i] && has_ammo(i, wm)) continue;   /* (a shooter with something to loose: idle_shooters' and the volley's) */
+        int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1, beside = 0; long bd = 0;
+        for (int j = 5; j < 13; j++) {
+            u16 d = (u16)(D_CBT + j * 0x80);
+            if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl) continue;
+            int on_me = rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j)) != 0, on_it = 0, on_friend = 0;
+            for (int p = 0; p < 5; p++)
+                if (p != i && g_rb((u16)(D_CBT + p * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) { on_friend = 1; on_it++; }
+            if (!on_me && (!on_friend || on_it >= 2 || !near_foe_of(i, j))) continue;
+            long dx = (s16)g_rw((u16)(d + 4)) - (s16)g_rw((u16)(c + 4)), dy = 2 * ((s16)g_rw((u16)(d + 6)) - (s16)g_rw((u16)(c + 6))), dd = dx * dx + dy * dy;
+            if (best < 0 || (on_me && !beside) || (on_me == beside && dd < bd)) { best = j; bd = dd; beside = on_me; }
+        }
+        if (best < 0) continue;
+        to_melee(i, best, beside);
+        if (ns_unwinding) return;
+        by_volley[i] = 0;
+        fprintf(stderr, "orders: member %d had no orders: joins the fight against %d (%s)\n", i, best, beside ? "beside it" : "a friend's, a few paces off");
+    }
+}
 /* a shooter who fought a foe beside it: with none beside it now, the missile weapon again, at the
    next foe (as the game readies it for Use Missile, s014 19cd order_mode_leave) */
 static void back_to_bow(void)
@@ -467,6 +506,8 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (combat_improved()) back_to_bow();
     if (ns_unwinding) return;
     idle_shooters();
+    if (ns_unwinding) return;
+    idle_fighters();
     if (ns_unwinding) return;
     if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {

@@ -219,10 +219,20 @@ int testcmd_run(const char *cmd, const char *arg)
                     if (k && ammo == w) break;
                     if (ni >= 64) break;
                     u16 o = G_ITEM(m, ni);
-                    ww(G_FAR2E38, o, (u16)code); wb(G_FAR2E38, (u16)(o + 2), 0); wb(G_FAR2E38, (u16)(o + 3), 30); wb(G_FAR2E38, (u16)(o + 4), (u8)cnt); wb(G_FAR2E38, (u16)(o + 5), 0);
+                    u32 d = g_itemdef(code); int ty = d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : 0;   /* (its type, as the game files it: can_fire counts the ammunition by it) */
+                    ww(G_FAR2E38, o, (u16)code); wb(G_FAR2E38, (u16)(o + 2), (u8)ty); wb(G_FAR2E38, (u16)(o + 3), 25);   /* (quality 25: a shot takes an arrow of that quality, consume_item) */ wb(G_FAR2E38, (u16)(o + 4), (u8)cnt); wb(G_FAR2E38, (u16)(o + 5), 0);
                     g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(ni + 1));
                 }
                 fprintf(stderr, "arena: member %d armed with %d (ammunition %d x %d)\n", m, w, ammo, n);
+            }
+        }
+        else if (!strcmp(cmd, "uitems")) {             /* test: member m's item records: code, type, quality, count (and the missile weapon's ammunition type) */
+            int m = atoi(arg);
+            if (m >= 0 && m < 5) {
+                int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), w = (s8)g_rb((u16)(G_MEMBER(m) + 0x0e));
+                fprintf(stderr, "items of %d: missile weapon %d (its ammunition type %#x)\n", m, w, w >= 0 && w < 64 ? rb(G_FAR20A5, (u16)(0x7822 + w)) : -1);
+                for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(m, k); u32 d = g_itemdef(rw(G_FAR2E38, o) & 0xfff);
+                    fprintf(stderr, "  %d: code %d type %#x quality %d count %d (definition +0x1e: %#x)\n", k, rw(G_FAR2E38, o) & 0xfff, rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4)), d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1); }
             }
         }
         else if (!strcmp(cmd, "uplace")) {             /* test (in battle): combatant i put at x, y (battle map pixels), standing */

@@ -87,16 +87,19 @@ static signed char approach[5];                           /* the walk is towards
 static u16 last_try[5], seen_engage[5], walk_since[5];
 
 static int strict_spot;                                 /* the line clear to where the mark is going too (a first pass) */
+static int spots_taken, spots_noline, spots_noway;      /* (DL_BATTLE_LOG: why no spot was found) */
 static int clear_from(int i, int t, int x, int y)       /* a free spot, and a clear line from it to t */
 {
     u16 c = CBT(i);
     int ox = (s16)g_rw((u16)(c + 4)), oy = (s16)g_rw((u16)(c + 6));
     g_ww((u16)(c + 4), (u16)x); g_ww((u16)(c + 6), (u16)y);
     int ok = ns_call(GF_cbt_collisions, 1, c) == 0;
+    if (!ok) spots_taken++;
     if (ok && !ns_unwinding) {
         g_ww(GV_los_x0, (u16)x); g_ww(GV_los_y0, (u16)y);
         g_ww(GV_los_x1, g_rw((u16)(CBT(t) + 4))); g_ww(GV_los_y1, g_rw((u16)(CBT(t) + 6)));
         ok = ns_call(GF_line_blocked, 3, i, t, 0x80) == 0;
+        if (!ok) spots_noline++;
     }
     if (ok && !ns_unwinding && strict_spot && g_rb((u16)(GV_cbt_moving + t))) {   /* (and to where the mark walks, so the line holds as it comes) */
         u16 tc = CBT(t); int tx = (s16)g_rw((u16)(tc + 4)), ty = (s16)g_rw((u16)(tc + 6));
@@ -155,6 +158,7 @@ static void step_aside_at(int i)
             return;
         }
     }
+    spots_taken = spots_noline = spots_noway = 0;
     /* rings of half cells (16 x 8 pixels; a cell is 32 x 16) out to three cells; first with the line
        holding to where the mark walks, then to where it is */
     for (int pass = 0; pass < 2; pass++)
@@ -175,7 +179,7 @@ static void step_aside_at(int i)
         g_ww((u16)(c + 8), (u16)bx); g_ww((u16)(c + 0xa), (u16)by);
         int found = ns_call(GF_path_find, 1, i) == 1;
         if (ns_unwinding) return;
-        if (!found) { g_ww((u16)(c + 8), (u16)otx); g_ww((u16)(c + 0xa), (u16)oty); continue; }
+        if (!found) { spots_noway++; g_ww((u16)(c + 8), (u16)otx); g_ww((u16)(c + 0xa), (u16)oty); continue; }
         ns_call(GF_path_give, 1, i);
         if (ns_unwinding) return;
         g_wb((u16)(GV_cbt_moving + i), 1);
@@ -187,6 +191,7 @@ static void step_aside_at(int i)
         if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d steps aside from %d,%d to %d,%d to shoot at %d\n", i, x0, y0, bx, by, t);
         return;
     }
+    if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d's spots near %d,%d: %d taken, %d with no line, %d with no way to them\n", i, x0, y0, spots_taken, spots_noline, spots_noway);
     /* no spot near: walk towards the foe until a line opens (step_hook) */
     g_ww((u16)(c + 8), (u16)tx); g_ww((u16)(c + 0xa), (u16)ty);
     int found = ns_call(GF_path_find, 1, i) == 1;

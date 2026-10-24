@@ -98,6 +98,10 @@ sc('last_arrow', 'one arrow and no endless ammunition, the line blocked: step as
    place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10)], orders=['ushoot:2,5'], end=False, shots=[(2, 1)])
 sc('many_shooters_woods', 'four shooters against eight in the trees: lines blocked by trunks and friends, many changes of mark, the frame time steady',
    arms=[(0, BOW, 30), (1, XBOW, 30), (2, LONGBOW, 30), (3, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0), bf=WILDS, secs=90)
+sc('idle_join', 'a friend set upon a few paces off, two members with no orders nearby, one of them told to hold: the other joins in, the held one stays',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
+   place=[(0, 0, 0), (1, -30, 10), (3, -30, -10), (2, -70, 0), (5, 14, 0), (6, 14, 8)], orders=['uhold:3,1'], end=False,
+   expect=[r'orders: member 1 had no orders: joins the fight'], forbid=[r'orders: member 3 had no orders: joins'])
 sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
    arms=[(2, BOW, 30)], set=['battle.improved=0'], end=False)
 
@@ -115,7 +119,11 @@ def run(s, game, exe, out):
     g = ','.join(str(x) for x in s['groups'])
     steps += ['ucmd ufight:%d,%d,%s' % (s['bf'], s['seed'], g), 'ucmd ugoto:24', 'wait 14', 'ucmd ucbt:']
     if s['place']:
-        steps += ['ucmd uarenaplace:%s' % '/'.join('%d,%d,%d' % p for p in s['place'])]
+        place = list(s['place'])
+        if any(i < 5 for i, dx, dy in place):          # (party members not placed: out of the way behind, not where the battle happened to put them)
+            placed = {i for i, dx, dy in place}
+            place += [(m, -170, -40 + 26 * m) for m in range(4) if m not in placed]
+        steps += ['ucmd uarenaplace:%s' % '/'.join('%d,%d,%d' % p for p in place)]
     steps += [o if o.startswith('wait ') else 'ucmd %s' % o for o in s['orders']]   # ('wait N': a pause between orders)
     steps += ['ucmd uarenalog:10', 'ucmd uunpause:', 'wait 1', 'key z']
     secs = s['secs']
