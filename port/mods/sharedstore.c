@@ -1,4 +1,4 @@
-/* sharedstore.c - one store room for every inn (store.shared, F12 > Settings > Game; on by default): what
+/* sharedstore.c - one store room for every inn (store.shared, F12 > Settings; on by default): what
  * is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like
  * a chest that follows the party.
  *
@@ -118,7 +118,7 @@ static int merge(int cur)
         for (int k = 0; k < G_NLOC; k++) if (loc_cache(k) == h) loc_set_cache(k, H);
         fprintf(stderr, "store: cache %d (%d kinds) joined the shared %d (%d kinds)\n", h, na, H, nt);
     }
-    if (stuck) { ui_notice("This inn's old store holds too many kinds of items to join the shared store room: it stays at this inn until some are taken out."); return mine; }
+    if (stuck) { ui_notice("This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out."); return mine; }
     loc_set_cache(cur, H);
     return H;
 }

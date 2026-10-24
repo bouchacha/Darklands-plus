@@ -19,9 +19,10 @@ static uint8_t t1_val, t2_val, t_ctrl, status;
 static uint64_t t1_start, t2_start;
 
 static FILE *wav; static uint32_t wav_bytes;
-int sound_music_volume = 100;                                /* percent, F12 > Settings > Window, sound and saves (sound.music_volume) */
+int sound_music_volume = 100;                                /* percent, F12 > Settings (sound.music_volume) */
 /* pause (the game held while the menu or the world map is open): the chip, the sample
  * channel and the effects stop where they are, after a short fade, and go on after it */
+volatile int sound_music_hushed;                          /* the music quiet while the settings are open (but a preview) */
 static volatile int paused; static int fade;              /* fade: 0 none, 1 out, 2 in */
 static void callback(void *u, Uint8 *stream, int len)
 {
@@ -30,13 +31,13 @@ static void callback(void *u, Uint8 *stream, int len)
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
     OPL3_GenerateStream(&chip, s16, (uint32_t)n);
     { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
-    if (musicpack_mutes()) memset(stream, 0, (size_t)len);   /* a music pack's piece plays instead */
+    if (musicpack_mutes() || sound_music_hushed) memset(stream, 0, (size_t)len);   /* a music pack's piece plays instead; or the settings are open */
     else if (sound_music_volume != 100)                      /* the music (FM or MT-32), before the effects go in */
         for (int i = 0; i < 2 * n; i++) {
             int y = s16[i] * sound_music_volume / 100;
             s16[i] = (int16_t)(y > 32767 ? 32767 : y < -32768 ? -32768 : y);
         }
-    musicpack_mix((short *)stream, n);
+    if (!sound_music_hushed) musicpack_mix((short *)stream, n);
     { void sb_mix(int16_t *, int, int); sb_mix(s16, n, 44100); }
     { void sfx_mix(short *, int); sfx_mix((short *)stream, n); }
     if (fade) {
@@ -63,6 +64,7 @@ static void wav_close(void)
     fseek(wav, 0, SEEK_SET); fwrite(h, 4, 11, wav); fclose(wav); wav = 0;
 }
 
+static uint32_t chip_rate = 49716;
 void sound_init(void)
 {
     { int config_get_int(const char *, int); sound_music_volume = config_get_int("sound.music_volume", 100); }
@@ -73,7 +75,7 @@ void sound_init(void)
     want.freq = 44100; want.format = AUDIO_S16SYS; want.channels = 2; want.samples = 1024; want.callback = callback;
     dev = SDL_OpenAudioDevice(0, 0, &want, &have, 0);
     if (!dev) { fprintf(stderr, "no audio device: %s\n", SDL_GetError()); return; }
-    OPL3_Reset(&chip, (uint32_t)have.freq);
+    OPL3_Reset(&chip, (uint32_t)have.freq); chip_rate = (uint32_t)have.freq;
     { void sb_set_audio(SDL_AudioDeviceID); sb_set_audio(dev); }
     const char *w = getenv("DL_WAV");        /* debugging: record the music */
     if (w && (wav = fopen(w, "wb"))) { fseek(wav, 44, SEEK_SET); atexit(wav_close); }
@@ -98,6 +100,15 @@ static void update_timers(void)
 
 static int nwrites, nreads;
 static void stats(void) { if (getenv("DL_TRACE_OPL")) fprintf(stderr, "opl: %d writes, %d status reads\n", nwrites, nreads); }
+/* the FM chip silenced at once (a note held when its driver was let go would sound on for ever):
+   the sound preview (mods/soundpreview.c) changes drivers in the middle of the music */
+void opl_silence(void)
+{
+    if (!ok) return;
+    SDL_LockAudioDevice(dev);
+    OPL3_Reset(&chip, chip_rate);
+    SDL_UnlockAudioDevice(dev);
+}
 void opl_out(u16 port, u8 v)
 {
     if (!nwrites++) atexit(stats);

@@ -1,6 +1,6 @@
-/* optpreview.cpp - small pictures of what a switch in the settings does: the same little scene drawn
- * with it off and on, side by side under the switch (ui/settings.cpp option_row). Drawn, not taken
- * from the game's art: a sketch of the interface in its own colours. */
+/* optpreview.cpp - small pictures of what a switch in the settings turns on, up to four in a row
+ * under the switch, each with a word (ui/settings.cpp option_row). Drawn, not taken from the
+ * game's art: a sketch of the interface in its own colors. */
 #include <math.h>
 #include <float.h>
 #include <string.h>
@@ -85,26 +85,114 @@ void map_scene(const S &s, bool names, bool marks)
         if (marks && i) { s.dl->AddCircleFilled(s.p(x + 7, y - 7), 3.2f * s.k, IM_COL32(176, 40, 30, 255), 14); s.dl->AddCircle(s.p(x + 7, y - 7), 3.2f * s.k, GOLD, 14, 1.2f); }
     }
 }
+/* the line of a shot: the shooter, an ally in the way (red), and a clear line (green) to another enemy */
+void los_line(const S &s)
+{
+    s.ground();
+    s.figure(14, 54, OURS); s.figure(52, 40, OURS); s.figure(86, 30, FOE); s.figure(80, 58, FOE);
+    s.dl->AddLine(s.p(18, 36), s.p(50, 26), IM_COL32(200, 50, 40, 255), 1.6f * s.k);
+    s.dl->AddLine(s.p(50, 26), s.p(84, 14), IM_COL32(200, 50, 40, 120), 1.0f * s.k);
+    s.dl->AddLine(s.p(18, 40), s.p(78, 44), IM_COL32(120, 220, 90, 255), 1.6f * s.k);
+}
+void skill_gain(const S &s)
+{
+    s.ground();
+    s.figure(46, 56, OURS);
+    s.text(36, 8, 5.4f, IM_COL32(240, 200, 70, 255), "+2 Edged");
+    s.rect(44, 57, 60, 58.6f, IM_COL32(10, 6, 2, 200)); s.rect(44.3f, 57.3f, 54, 58.3f, IM_COL32(230, 160, 50, 255));   /* (the reload bar) */
+}
+void battle_log(const S &s)
+{
+    s.rect(0, 0, 100, 60, IM_COL32(236, 222, 190, 255));
+    static const char *L[5] = { "Jorg hits the bandit", "The bandit parries", "Anna shoots: a wound", "The bandit falls", "Jorg: +1 Edged" };
+    for (int i = 0; i < 5; i++) s.text(5, 4 + i * 11, 4.4f, i == 3 ? IM_COL32(150, 40, 25, 255) : INK, L[i]);
+}
+void shoot_switch(const S &s)
+{
+    s.rect(0, 0, 100, 60, PANEL);
+    for (int k = 0; k < 2; k++) {
+        float y = 6 + k * 27;
+        s.rect(6, y, 94, y + 22, IM_COL32(60, 44, 30, 255), 2); s.frame(6, y, 94, y + 22, GOLD, 0.8f, 2);
+        s.text(12, y + 5, 5.0f, CREAM, k ? "Anna" : "Jorg");
+        float cx = 78, cy = y + 11;
+        if (k) {   /* a bow */
+            s.dl->AddBezierQuadratic(s.p(cx - 3, cy - 8), s.p(cx + 7, cy), s.p(cx - 3, cy + 8), GOLD, 1.6f * s.k);
+            s.dl->AddLine(s.p(cx - 3, cy - 8), s.p(cx - 3, cy + 8), CREAM, 0.8f * s.k);
+        } else {   /* a sword */
+            s.dl->AddLine(s.p(cx - 7, cy + 7), s.p(cx + 6, cy - 6), CREAM, 1.8f * s.k);
+            s.dl->AddLine(s.p(cx - 7, cy + 1), s.p(cx - 1, cy + 7), GOLD, 1.6f * s.k);
+        }
+    }
+}
+void order_bar(const S &s)
+{
+    s.ground();
+    s.rect(0, 40, 100, 60, PANEL);
+    static const char *B[4] = { "Parry", "Berserk", "Missile", "Halt" };
+    for (int k = 0; k < 4; k++) { float x = 3 + k * 24.5f; s.rect(x, 44, x + 22, 56, IM_COL32(112, 40, 22, 235), 1.5f); s.text(x + 2, 46, 3.6f, CREAM, B[k]); }
+    s.figure(30, 36, OURS); s.figure(70, 30, FOE);
+}
+void fast_forward(const S &s)
+{
+    s.ground();
+    s.figure(30, 54, OURS); s.figure(66, 50, FOE);
+    for (int k = 0; k < 2; k++) {   /* the fast-forward mark */
+        float x = 40 + k * 10;
+        s.dl->AddTriangleFilled(s.p(x, 6), s.p(x, 22), s.p(x + 10, 14), IM_COL32(250, 240, 220, 230));
+    }
+    s.text(64, 8, 5.4f, CREAM, "Z");
+}
+void member_down(const S &s, int kind)
+{
+    s.ground();
+    if (kind == 0) {   /* a member fallen */
+        s.rect(30, 44, 56, 50, OURS, 1); s.dl->AddCircleFilled(s.p(60, 47), 3.6f * s.k, IM_COL32(230, 190, 150, 255), 12);
+        s.figure(80, 52, FOE);
+    } else {           /* enemies coming out of a door */
+        s.rect(4, 8, 30, 52, IM_COL32(70, 60, 50, 255)); s.rect(8, 14, 26, 52, IM_COL32(20, 14, 10, 255));
+        s.figure(40, 54, FOE); s.figure(56, 50, FOE);
+    }
+    s.rect(62, 4, 96, 16, IM_COL32(244, 232, 200, 240), 1); s.text(64, 5, 4.8f, INK, "Paused");
+}
+void level_map(const S &s)
+{
+    s.rect(0, 0, 100, 60, IM_COL32(28, 22, 16, 255));
+    const ImU32 FL = IM_COL32(196, 176, 136, 255), WL = IM_COL32(90, 70, 46, 255);
+    struct R { float x0, y0, x1, y1; } rooms[5] = { { 6, 8, 30, 26 }, { 30, 14, 58, 20 }, { 58, 6, 86, 30 }, { 68, 30, 74, 46 }, { 56, 46, 92, 56 } };
+    for (const R &r : rooms) { s.rect(r.x0, r.y0, r.x1, r.y1, FL); s.frame(r.x0, r.y0, r.x1, r.y1, WL, 1.0f); }
+    s.rect(10, 34, 36, 54, IM_COL32(60, 52, 42, 255));            /* (not yet seen) */
+    for (int k = 0; k < 4; k++) s.dl->AddCircleFilled(s.p(14 + k * 4.5f, 18), 1.6f * s.k, OURS, 10);
+    s.dl->AddCircleFilled(s.p(78, 52), 1.8f * s.k, FOE, 10);
+    s.text(78, 10, 4.2f, INK, "stairs"); s.rect(80, 18, 84, 24, WL);
+    s.pointer(64, 40);
+}
 } // namespace
 
-/* the switch's picture, off or on, in a..b (its height about 0.6 of its width); false: none */
-bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on)
+/* what a switch turns on, as up to four small pictures with a word under each (settings.cpp
+   option_row): the number of pictures, 0 for none; caps[i] the words */
+int ui_option_pics(const char *key, const char **caps)
 {
-    struct E { const char *key; int id; };
-    static const E T[] = { { "battle.controls", 5 }, { "battle.helpers", 9 }, { "assist.card_helpers", 18 }, { "map.names", 10 }, { "map.quest_marks", 11 } };
-    int id = 0;
-    for (const E &e : T) if (!strcmp(e.key, key)) id = e.id;
-    if (!id) return false;
-    if (!dl) return true;
+    struct E { const char *key; int n; const char *cap[4]; };
+    static const E T[] = {
+        { "battle.helpers", 4, { "Pointing at an enemy", "The line of a shot", "Skill gains, reloading", "The battle log" } },
+        { "battle.controls", 4, { "One click to attack", "Shoot or fight", "Order buttons", "Z: fast-forward" } },
+        { "battle.pauses", 2, { "A member falls", "Enemies come out" } },
+        { "assist.level_map", 1, { "Tab: the level map; a click walks there" } },
+        { "assist.card_helpers", 1, { "Chances, and who would try" } },
+    };
+    for (const E &e : T) if (!strcmp(e.key, key)) { for (int i = 0; i < e.n; i++) caps[i] = e.cap[i]; return e.n; }
+    return 0;
+}
+void ui_option_pic(const char *key, int i, ImDrawList *dl, ImVec2 a, ImVec2 b)
+{
     S s{ dl, a, (b.x - a.x) / 100.0f };
     dl->PushClipRect(a, b, true);
-    switch (id) {
-    case 5: click_hint(s, on); break;
-    case 9: battle_info(s, on); break;
-    case 10: map_scene(s, on, false); break;
-    case 11: map_scene(s, true, on); break;
-    case 18: card_helpers(s, on); break;
-    }
+    if (!strcmp(key, "battle.helpers")) { if (i == 0) battle_info(s, true); else if (i == 1) los_line(s); else if (i == 2) skill_gain(s); else battle_log(s); }
+    else if (!strcmp(key, "battle.controls")) { if (i == 0) click_hint(s, true); else if (i == 1) shoot_switch(s); else if (i == 2) order_bar(s); else fast_forward(s); }
+    else if (!strcmp(key, "battle.pauses")) member_down(s, i);
+    else if (!strcmp(key, "assist.level_map")) level_map(s);
+    else if (!strcmp(key, "assist.card_helpers")) card_helpers(s, true);
+    else if (!strcmp(key, "map.names")) map_scene(s, true, false);
+    else if (!strcmp(key, "map.quest_marks")) map_scene(s, true, true);
     dl->PopClipRect();
-    return true;
 }

@@ -1,5 +1,5 @@
 /* cutcards.c - encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice:
- * F12 > Settings > Restored, experimental, off by default; the catalogue of what the game holds
+ * F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds
  * unused is docs/cut_content.md).
  *
  * "Fehde!" ($MeetF00): soldiers of a private war lie in ambush on the road. The text is the

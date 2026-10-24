@@ -114,7 +114,7 @@ extern "C" void figpick_window(void)
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
         if (ui_font_small) ImGui::PushFont(ui_font_small);
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Click a sprite (or use the arrow keys and Enter). The first four are the original party sprites; the others are enemy sprites. The 1st, 2nd and 3rd color buttons recolour them afterwards.");
+        ImGui::TextWrapped("Click a sprite (or use the arrow keys and Enter). The first four are the original party sprites; the others are enemy sprites. The 1st, 2nd and 3rd color buttons recolor them afterwards. A save with a member using an enemy sprite loads only in Darklands+ (the original game stops at the missing picture).");
         ImGui::PopStyleColor();
         if (ui_font_small) ImGui::PopFont();
         ImGui::Spacing();

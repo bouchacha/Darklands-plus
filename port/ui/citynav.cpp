@@ -142,27 +142,27 @@ static const DestInfo DEST[D_N] = {
     { "Jeweller", "", 0, -1, 7, TI_FOREIGN },
     { "Artificer", "Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild.", 0, -1, 6, TI_TOOLS },
     { "Clothmaker", "Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild.", 0, -1, 8, TI_CLOTH },   /* (shown with the cardopts fix: by day its shopfronts are switched off in 483.07) */
-    { "Alchemist", "Astrologists' Lane: formulae to buy or trade, a better philosopher's stone, lessons in Alchemy.", 3, -1, -1, TI_ALCHEMIST },
+    { "Alchemist", "Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy.", 3, -1, -1, TI_ALCHEMIST },
     { "Herbalist", "", 3, -1, -1, TI_PHARMACY },
     { "Pharmacist", "Stalls with herbs and rare materials: alchemical components.", 0, -1, -1, TI_PHARMACY },
     { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical components bought and sold.", 3, -1, -1, TI_PHYSICIAN },
-    { "Fugger bank", "Heavy coin changed into a letter of credit that weighs nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
-    { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
+    { "Fugger bank", "Heavy coin changed into bank notes that weigh nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
+    { "Medici bank", "The Medici representative: bank notes, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
     { "Hanseatic League", "The offices of the league of northern merchant towns: quests for pay. Asking politely counts your standing with the Hanse, boldly your reputation here and your fame; collecting a reward politely also raises your standing.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
     { "Cathedral", "Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
     { "Church", "Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you.", 2, -1, -1, TI_CHURCH },
     { "Monastery", "The monks' library (Religion, Latin) and prayers for Divine Favor.", 2, 7, -1, TI_MONASTERY },
-    { "University", "New saints and alchemical formulae to learn, rare alchemical materials, a better philosopher's stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
+    { "University", "New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
     { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only.", 3, -1, -1, TI_PHYSICIAN },
-    { "Inn", "Meals and a bed, news and rumours, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
+    { "Inn", "Meals and a bed, news and rumors, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
     { "Town square", "Notices, gossip and news.", 4, 1, -1, TI_SQUARE },
     { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 1, 1, -1, TI_TOWNHALL },
     { "Prison", "The city's prison.", 4, 1, -1, TI_PRISON },
     { "Barracks", "The city guard's headquarters: people to join the party, weapons training.", 4, 1, -1, TI_BARRACKS },
     { "Fortress", "The lord's fortress: an audience with the lord, prisoners in the dungeons.", 1, 2, -1, TI_FORTRESS },
     { "Docks", "Boats to other towns, for a fee (each leaves on its own day).", 4, 11, -1, TI_DOCKS },
-    { "Slums", "A dangerous slum: rumours, and a room for next to nothing.", 4, 6, -1, TI_SLUMS },
+    { "Slums", "A dangerous slum: rumors, and a room for next to nothing.", 4, 6, -1, TI_SLUMS },
     { "Grove", "A quiet corner where the party can wait: an hour, three hours, or until nightfall.", 4, -1, -1, TI_GROVE },
     { "City wall", "An alley to a stretch of the wall: a way out when you cannot use the gates.", 4, -1, -1, TI_WALL },
     { "City gate", "Leave the city by one of its gates.", 4, -1, -1, TI_GATE },
@@ -386,7 +386,7 @@ static void leaving_tick(void)
         if (o >= 0 && o < (int)opts.size() && walk_out_option(opts[o])) { LOG("leaving: %s\n", opts[o].c_str()); click_line(i); leaving = 0; return; }
     }
     leaving = 0;
-    ui_notice("The gate: choose how to get out, and the journey begins on the map.");
+    ui_notice("The gate: choose how to get out, and the journey begins in the overland view.");
 }
 static int leaving_flag(int v) { int o = leaving; if (v >= 0) leaving = v; return o; }
 extern "C" void citynav_leave_town(void)
@@ -678,7 +678,7 @@ static void place_pane(float w, float h, float scale)
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 6 * scale);
     ImGui::BeginChild("detail", ImVec2(w, h), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
     ImGui::PushTextWrapPos(0);
-    if (pane_d < 0) ImGui::TextDisabled("Point at a place to read about it here: what it offers, its tasks, its teachers.");
+    if (pane_d < 0) ImGui::TextDisabled("Point at a place to read about it here: what it offers, its quests, its teachers.");
     else {
         if (ui_font_bold) ImGui::PushFont(ui_font_bold);
         ImGui::TextUnformatted(DEST[pane_d].label);
@@ -783,10 +783,10 @@ extern "C" int citynav_window(void)
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
-                case OFS_ASK: snprintf(b, sizeof b, "Task chance %d%%", os.chance); c = GREEN;
+                case OFS_ASK: snprintf(b, sizeof b, "Quest chance %d%%", os.chance); c = GREEN;
                     if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Quests", "A merchant may offer a quest after you have bought or sold something." }); break;
                 case OFS_SHUT: snprintf(b, sizeof b, "No quests until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
-                case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
+                case OFS_ON_TASK: snprintf(b, sizeof b, "On a quest for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
                 case OFS_BARRED: snprintf(b, sizeof b, "No quests: reputation too low"); c = REDD; break;
                 default: b[0] = 0; break;
@@ -801,8 +801,8 @@ extern "C" int citynav_window(void)
             if (tk != tasks.end() && !tk->second.empty()) {
                 T.task_cat = tk->second[0].cat;
                 for (const DestTask &x : tk->second) {
-                    T.lines.push_back({ "Your task: " + (x.title.empty() ? std::string("see the journal") : x.title), BLUE });
-                    T.tip.push_back({ "Your task", x.text });
+                    T.lines.push_back({ "Your quest: " + (x.title.empty() ? std::string("see the world map (M)") : x.title), BLUE });
+                    T.tip.push_back({ "Your quest", x.text });
                 }
             }
             /* a teacher to be had here (ui/teachersui.h) */
@@ -911,7 +911,7 @@ extern "C" int citynav_window(void)
             };
             bool first = true;
             if (any_teach) { mark(0, "A teacher to hire (faint: not available now)"); first = false; }
-            if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A task of yours leads here"); }
+            if (any_task) { if (!first) ImGui::SameLine(0, 24 * scale); mark(1, "A quest of yours leads here"); }
         }
         ImGui::EndChild();
         float tiles_h = ImGui::GetItemRectSize().y;

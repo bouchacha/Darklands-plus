@@ -1,4 +1,4 @@
-// saves.cpp - the saves' preferences (F12 > Settings > Window, sound and saves); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in
+// saves.cpp - the saves' preferences (F12 > Settings); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in
 // it and its comment, newest first; load or delete any of them; quick save / quick load and
 // the autosave settings (mods/saves.c does the work through the game's own routines).
 #include <stdio.h>
@@ -44,7 +44,7 @@ static std::string when(long long t)
 }
 
 extern "C" int saves_restart;
-/* the saves' preferences: F12 > Settings > Window, sound and saves (the saving and loading itself:
+/* the saves' preferences: F12 > Settings (the saving and loading itself:
    the game's Save and Load, redrawn, from the right-click menu) */
 extern "C" void saves_prefs(void)
 {
@@ -52,9 +52,9 @@ extern "C" void saves_prefs(void)
     bool on = saves_on != 0;
     if (ImGui::Checkbox("Quick save, quick load and autosaves", &on)) saves_enable(on);
     { bool rs = saves_restart != 0;
-      if (ImGui::Checkbox("When the party's journey ends, return to the title screen (the original game quits)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
+      if (ImGui::Checkbox("When the party's journey ends, return to the start screen (the original game quits)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
     if (on) {
-        ImGui::TextDisabled("Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quicksave.");
+        ImGui::TextDisabled("Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quick save.");
         ImGui::Indent(UIS(20));
         bool a = saves_auto_arrive != 0, b = saves_auto_battle != 0;
         if (ImGui::Checkbox("Autosave on arriving at a city, castle, village ...", &a)) { saves_auto_arrive = a; config_set_int("saves.autosave_arrive", a); }
@@ -62,15 +62,15 @@ extern "C" void saves_prefs(void)
         ImGui::SetNextItemWidth(UIS(160));
         if (ImGui::SliderInt("autosaves kept", &saves_keep_auto, 1, 9)) config_set_int("saves.keep_auto", saves_keep_auto);
         ImGui::SameLine(0, UIS(30)); ImGui::SetNextItemWidth(UIS(160));
-        if (ImGui::SliderInt("quicksaves kept", &saves_keep_quick, 1, 9)) config_set_int("saves.keep_quick", saves_keep_quick);
+        if (ImGui::SliderInt("quick saves kept", &saves_keep_quick, 1, 9)) config_set_int("saves.keep_quick", saves_keep_quick);
         ImGui::Unindent(UIS(20));
         if (in_game) {
             if (ImGui::Button("Save now")) { saves_quick_save(); ui_toggle(); }
             ImGui::SameLine();
-            ImGui::TextDisabled("as a quicksave, when the game next allows saving (not in shops or during conversations).");
+            ImGui::TextDisabled("as a quick save, when the game next allows saving (not in shops or during conversations).");
         }
     }
-    ImGui::TextDisabled("Save and Load: the right-click menu's Game menu (or Alt+S, Alt+L); Quick save and Quick load are in its Darklands+ menu too.");
+    ImGui::TextDisabled("Save and Load: the Game menu (right-click), or Alt+S and Alt+L. Quick save and Quick load are also in the Darklands+ menu.");
 }
 
 extern "C" void tab_saves(void)

@@ -37,7 +37,7 @@ extern char dlp_user_dir[];
 void sound_lock(int on);
 extern int sound_music_volume;
 
-int musicpack_on = 1;                            /* sound.music_pack */
+int musicpack_on = 0;                            /* sound.music_pack */
 #define MAXV 4                                   /* versions of one piece, played in turn (27: the driver has four) */
 static char file[NSONG][MAXV][1300];             /* each piece's recordings ("" none) */
 static int nvar[NSONG], turn[NSONG];
@@ -129,8 +129,8 @@ const char *musicpack_desc(int n)
     case 16: return "the shell game";
     case 17: return "the fortress";
     case 18: return "the party's end";
-    case 19: return "the map (one of two at random)";
-    case 20: return "the map (one of two at random); making the party";
+    case 19: return "the overland view (one of two at random)";
+    case 20: return "the overland view (one of two at random); making the party";
     case 22: return "the dungeon";
     case 23: return "a grove in town by day";
     case 24: return "the dragon's lair";
@@ -416,6 +416,6 @@ void musicpack_set(int on) { musicpack_on = on; config_set_int("sound.music_pack
 void musicpack_init(void)
 {
     logon = getenv("DL_MUSIC_LOG") != 0;
-    musicpack_on = config_get_int("sound.music_pack", 1);
+    musicpack_on = config_get_int("sound.music_pack", 0);
     musicpack_reload();
 }

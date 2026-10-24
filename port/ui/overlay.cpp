@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <vector>
 #include "imgui.h"
+#include "padglyphs.h"
 #include <SDL.h>
 #include "../mods/hdart.h"
 #include "../mods/saintinfo.h"
@@ -196,9 +197,49 @@ extern "C" void ui_notice(const char *msg)
     notice_t = plat_ticks_ms(); notice_ms = 3000;
     fprintf(stderr, "notice: %s\n", msg);
 }
+/* once, soon after the start: which controller is connected, with its main buttons, or none
+   (runtime/platform_sdl.c pad_hello); small, in the bottom right corner, for a few seconds */
+static int hello_kind = -1; static char hello_name[80]; static u32 hello_t;
+extern "C" void ui_pad_hello(int kind, const char *name) { hello_kind = kind; snprintf(hello_name, sizeof hello_name, "%s", name ? name : ""); hello_t = plat_ticks_ms(); }
+static void draw_hello(void)
+{
+    if (hello_kind < 0) return;
+    u32 age = plat_ticks_ms() - hello_t, life = hello_kind ? 7000 : 4000;
+    if (age > life) { hello_kind = -1; return; }
+    float a = age + 700 < life ? 1.0f : (life - age) / 700.0f;
+    static const char *KIND[4] = { "No controller detected", "Xbox controller detected", "PlayStation controller detected", "Nintendo controller detected" };
+    ImGuiIO &io = ImGui::GetIO();
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImGui::PushFont(ui_font_overlay);
+    float lh = ImGui::GetTextLineHeight(), gh = lh * 1.15f;
+    const char *t1 = KIND[hello_kind > 3 ? 1 : hello_kind];
+    struct J { int b; const char *what; } jobs[3] = { { PB_A, "click" }, { PB_B, "menus" }, { PB_START, "Darklands+" } };
+    float w = ImGui::CalcTextSize(t1).x;
+    float w2 = 0;
+    if (hello_kind) for (const J &j : jobs) w2 += ui_pad_glyph_width(gh, j.b) + 6 + ImGui::CalcTextSize(j.what).x + 16;
+    float bw = fmaxf(w, w2) + 24, bh = (hello_kind ? lh + gh + 10 : lh) + 16;
+    ImVec2 p(io.DisplaySize.x - bw - 16, io.DisplaySize.y - bh - 16);
+    dl->AddRectFilled(p, ImVec2(p.x + bw, p.y + bh), IM_COL32(28, 20, 12, (int)(215 * a)), 6);
+    dl->AddRect(p, ImVec2(p.x + bw, p.y + bh), IM_COL32(190, 150, 90, (int)(230 * a)), 6, 0, 1.2f);
+    dl->AddText(ImVec2(p.x + 12, p.y + 8), IM_COL32(250, 232, 190, (int)(255 * a)), t1);
+    if (hello_kind) {
+        int keep = ui_pad_style_force; ui_pad_style_force = hello_kind;
+        float x = p.x + 12, y = p.y + 8 + lh + 6 + gh * 0.5f;
+        for (const J &j : jobs) {
+            float gw = ui_pad_glyph_width(gh, j.b);
+            ui_pad_glyph(dl, ImVec2(x + gw * 0.5f, y), gh, j.b);
+            x += gw + 6;
+            dl->AddText(ImVec2(x, y - lh * 0.5f), IM_COL32(236, 222, 186, (int)(255 * a)), j.what);
+            x += ImGui::CalcTextSize(j.what).x + 16;
+        }
+        ui_pad_style_force = keep;
+    }
+    ImGui::PopFont();
+}
 extern "C" void ui_draw_notice(void)
 {
     draw_lcd();
+    draw_hello();
     if (!notice[0]) return;
     u32 age = plat_ticks_ms() - notice_t;
     if (age > notice_ms) { notice[0] = 0; return; }
@@ -578,7 +619,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                 const Formula &F = gamedata.formulas[formula];
                 const ItemDef *pd = 95 + formula / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + formula / 3] : nullptr;
                 static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
-                ImGui::TextDisabled("%s - difficulty %d, %s", pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
+                ImGui::TextDisabled("%s - mystic number %d, %s", pd ? game_text(pd->name.c_str(), pd->name.size()).c_str() : "", F.mystic, RISK[F.risk >= 0 && F.risk < 3 ? F.risk : 0]);
                 /* its place among the potion's three formulae (by difficulty) */
                 int base = formula / 3 * 3, rank = 0, n3 = 0;
                 for (int k = base; k < base + 3 && k < (int)gamedata.formulas.size(); k++) {
@@ -674,7 +715,7 @@ static void draw_creation_guide(void)
     if (!ui_creation_guide || config_get_int("original", 0) || !hdart_on_screen("CHARGEN")) return;
     int st = (s16)g_rw(GV_create_state);
     static const char *T[5] = {
-        "Making a character: name and sex first, then the family background, the attributes, and "
+        "Making a character: name and gender first, then the family background, the attributes, and "
         "one profession after another, five years each, until you begin adventuring. Older characters "
         "know more, but age costs attributes.",
         "The family decides the first attributes and skills. The right side shows what the background "

@@ -1,5 +1,5 @@
 /* battleend.c - the end of a battle said in words (battle.end_words, on by default; F12 >
- * Settings > Game > Battles).
+ * Settings > Battles).
  *
  * The game closes a battle (s002 0e76, after the loot) with show_message("BattleResults -
  * victory", 150): a box with the words of its programmers' log, held for 150 timer ticks

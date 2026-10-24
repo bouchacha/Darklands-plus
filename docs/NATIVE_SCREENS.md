@@ -13,7 +13,7 @@ would have. This is the OpenRCT2 route: replace the original one piece at a time
 game playable at every step, and keep a switch that brings back the original for every piece.
 
 The first native screen is the **card screen** (`port/mods/cardview.c`,
-`port/ui/cardview.cpp`): F12 > Settings > Game > "Cards drawn by Darklands+". "Play the original
+`port/ui/cardview.cpp`): F12 > Settings > "Cards drawn by Darklands+". "Play the original
 game" turns it off.
 
 ## The card screen, as a worked example

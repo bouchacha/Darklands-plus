@@ -10,7 +10,7 @@
 
 ORIGINALS is art/original as F12 > Settings > Display > "Export the original pictures" writes it. OUT
 becomes a mod folder (mod.txt, art/NAME.png or .jpg) to put into the mods folder and tick in
-F12 > Settings > Mods; it also gets review.html (each original beside its new picture, with the prompt) and
+F12 > Mods; it also gets review.html (each original beside its new picture, with the prompt) and
 aiart.json (what was asked for each picture, so a run can be repeated or continued).
 
 How a picture is made:

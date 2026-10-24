@@ -1,5 +1,5 @@
 /* levelwalk.c - a click on the level map (Tab, ui/levelmap.cpp) walks the party there.
- * assist.level_map_walk, on by default.
+ * Always with the map (but in the original game); the party also takes the stairs together.
  *
  * The party is put to Travel Single File (Q, as the key does: s016 1ef8:0cdc) and its leader is
  * given the walk a click on the floor gives in that mode (combat_mouse, s014 19cd:0006): the
@@ -97,7 +97,7 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
 {
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int from = (s8)g_rb((u16)(GV_cbt_floor + (who >= 0 && who < 13 ? who : 0)));
-    int explore = !g_rb(GV_real_combat) && who >= 0 && who < 5 && !following && config_get_int("assist.stairs_together", 1);
+    int explore = !g_rb(GV_real_combat) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
     hook_call_original();
     if (ns_unwinding || !explore) return;
     following = 1;
@@ -122,7 +122,7 @@ static int on_stairs(int i) { return stairs_under(i) >= 0; }
 static void keys_hook(void)                /* combat_keys (): U with nobody on the stairs */
 {
     extern int bios_kbd_avail(void); extern u16 bios_kbd_get(int);
-    if (!bios_kbd_avail() || g_rb(GV_real_combat) || !config_get_int("assist.stairs_together", 1)) { hook_call_original(); return; }
+    if (!bios_kbd_avail() || g_rb(GV_real_combat) || !!config_get_int("original", 0)) { hook_call_original(); return; }
     u16 k = bios_kbd_get(0);
     if (k != 0x1655 && k != 0x1675) { hook_call_original(); return; }
     int fl = (s8)g_rb(GV_floor_shown), lead = (s8)g_rb(GV_marching_order);

@@ -5,7 +5,16 @@
 #include <string>
 #include <vector>
 
-static int style(void) { int s = plat_prompts(); return s >= 1 && s <= 3 ? s : 1; }
+int ui_pad_style_force;                        /* (a kind to draw whatever is in use: the settings' pictures, the start's note) */
+static int style(void) { if (ui_pad_style_force >= 1 && ui_pad_style_force <= 3) return ui_pad_style_force; int s = plat_prompts(); return s >= 1 && s <= 3 ? s : 1; }
+/* the button that does job b now (the player may have given the buttons other jobs: platform_sdl.c) */
+extern "C" int plat_pad_bind(int k);
+int ui_pad_button_for(int b)
+{
+    if (b < PB_A || b > PB_LS) return b;
+    for (int k = PB_A; k <= PB_LS; k++) if (plat_pad_bind(k) == b) return k;
+    return b;
+}
 
 /* what the face buttons say, by kind: Xbox's letters, PlayStation's shapes, Nintendo's letters */
 static const char *XB_NAME[PB_COUNT] = { "A", "B", "X", "Y", "LB", "RB", "Menu", "View", "LS", "RT", "Left stick", "Right stick", "D-pad" };
@@ -15,6 +24,7 @@ static const char *NS_NAME[PB_COUNT] = { "A", "B", "X", "Y", "L", "R", "+", "-",
 const char *ui_pad_name(int b)
 {
     if (b < 0 || b >= PB_COUNT) return "";
+    b = ui_pad_button_for(b);
     int s = style();
     return s == 2 ? PS_NAME[b] : s == 3 ? NS_NAME[b] : XB_NAME[b];
 }
@@ -33,7 +43,9 @@ static const char *pill_text(int b)
     return "";
 }
 
-float ui_pad_glyph_width(float h, int b)
+static float width_of(float h, int b);
+float ui_pad_glyph_width(float h, int b) { return width_of(h, ui_pad_button_for(b)); }
+static float width_of(float h, int b)
 {
     if (pill(b)) { ImFont *f = ImGui::GetFont(); return f->CalcTextSizeA(h * 0.58f, FLT_MAX, 0, pill_text(b)).x + h * 0.7f; }
     if (b == PB_START || b == PB_BACK) return style() == 2 ? h * 1.5f : h;
@@ -47,10 +59,13 @@ static void label(ImDrawList *dl, ImVec2 c, float sz, ImU32 col, const char *t)
     dl->AddText(f, sz, ImVec2(roundf(c.x - ts.x * 0.5f), roundf(c.y - ts.y * 0.5f)), col, t);
 }
 
-float ui_pad_glyph(ImDrawList *dl, ImVec2 c, float h, int b)
+static float glyph_of(ImDrawList *dl, ImVec2 c, float h, int b);
+float ui_pad_glyph(ImDrawList *dl, ImVec2 c, float h, int b) { return glyph_of(dl, c, h, ui_pad_button_for(b)); }
+float ui_pad_button_glyph(ImDrawList *dl, ImVec2 c, float h, int k) { return glyph_of(dl, c, h, k); }   /* (the button itself, whatever its job) */
+static float glyph_of(ImDrawList *dl, ImVec2 c, float h, int b)
 {
     int s = style();
-    float r = h * 0.5f, w = ui_pad_glyph_width(h, b), th = fmaxf(1.0f, h * 0.09f);
+    float r = h * 0.5f, w = width_of(h, b), th = fmaxf(1.0f, h * 0.09f);
     const ImU32 DARK = IM_COL32(38, 38, 44, 255), RIM = IM_COL32(0, 0, 0, 110), WHITE = IM_COL32(245, 245, 245, 255);
     if (face(b)) {
         if (s == 1) {                                   /* Xbox: the letter on its colour */

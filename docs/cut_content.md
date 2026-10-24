@@ -23,7 +23,7 @@ encounter tables and the other scripts.
 | **Honor Roll of Glory** | An unfinished hall of fame | *Honor Roll of Glory* |
 | **Black Cloud in battle** | The party's battle menu leaves Black Cloud out ("the screen takes too long", the manual says), though its smoke is in the battle's rules and enemies throw it | *Black Cloud in battle* |
 
-All of them are on a page of their own, F12 > Settings > Restored (experimental): each a switch, off
+All of them are on a page of their own, F12 > Reconstructed Content: each a switch, off
 unless ticked, and off in every preset. Only what was plainly a coding error is put right among the
 fixes instead (the saints' texts, the option lines that ran the next one's choice, and the like).
 

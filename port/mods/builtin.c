@@ -104,7 +104,7 @@ Mod MODS[] = {
     { "cheap_inn", "Half-price inns", "Towns", "Lodging costs half as much.", cheap_inn, 0, 0 },
     { "quick_learning", "Quick learning", "Skills", "Skills improve about twice as often through use, on cards and in battles (slow skills such as Streetwise and Latin no longer take ages to rise).", quick_learning, 0, 0 },
     { "heavy_blows", "Double damage against enemies", "Combat", "Every hit on an enemy does double damage. Hits on the party are unchanged.", heavy_blows, 0, 0 },
-    { "strong_party", "Strong Quickstart party", "New game", "The four Quickstart characters start with 60 in every attribute and 75 in every skill.", strong_party, 0, 1 },
+    { "strong_party", "Strong Quickstart party", "New game", "The four members of the Quickstart party start with 60 in every attribute and 75 in every skill.", strong_party, 0, 1 },
     { "rich_start", "Rich start", "New game", "A party made with Create a New World starts with 5000 florins instead of 200.", rich_start, 0, 1 },
 };
 int MOD_COUNT = sizeof MODS / sizeof MODS[0];
@@ -126,7 +126,7 @@ void hdart_init(void);
 void sfx_init(void);
 void saves_init(void);
 /* 1.3: what MicroProse left unused and Darklands+ put back is experimental and off unless chosen
-   (F12 > Settings > Restored). Black Cloud in battle and the Honor Roll were on by default before:
+   (F12 > Reconstructed Content). Black Cloud in battle and the Honor Roll were on by default before:
    once, a value left at that old default goes off (a player who wants them ticks them again) */
 static void restored_migrate(void)
 {

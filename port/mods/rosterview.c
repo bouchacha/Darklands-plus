@@ -193,7 +193,7 @@ static int run(void)
                     if (r->sel < 0 || r->sel >= r->n || r->ch[r->sel].slot < 0) break;
                     if (!r->ch[r->sel].can_leave) {
                         char t[200], nk[16]; snprintf(nk, sizeof nk, "%s", r->ch[r->sel].nick[0] ? r->ch[r->sel].nick : r->ch[r->sel].name);
-                        snprintf(t, sizeof t, "%s joined elsewhere, so can't stay behind here. To part: Done, then \"allow %s to retire\".", nk, nk);
+                        snprintf(t, sizeof t, "%s joined the party at another inn, so cannot be left at this one. To part with them: Done, then \"allow %s to retire\".", nk, nk);
                         note(t); break;
                     }
                     a.a = 0x1e41; lo = 'A';
@@ -221,7 +221,7 @@ static int run(void)
                    second colour keys' colours (the game's own keys: each goes on from the last it gave). At the
                    inn mods/memberlooks.c does it (or gives back the look a member had before). */
                 const RosterChar *c = r->sel >= 0 && r->sel < r->n ? &r->ch[r->sel] : 0;
-                if (!r->inn && c && c->slot >= 0 && config_get_int("party.new_member_looks", 1)) {
+                if (!r->inn && c && c->slot >= 0 ) {
                     if (c->female && !strncmp(r->figure[c->slot], "F01", 3)) { looks_pick_next("F60"); key(0x1f53); }
                     if (!ns_unwinding && r->party_n > 1) { key(0x0231); if (!ns_unwinding) key(0x0332); }   /* (hair, and the main colour) */
                     if (!ns_unwinding) build();

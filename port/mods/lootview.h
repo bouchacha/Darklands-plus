@@ -27,7 +27,7 @@ typedef struct {
     int nitems;
     LvItem item[200];
     int room;                        /* the member shown (the party, shared) can take another kind of thing */
-    int assist;                      /* Take all / Share out offered (F12 > Settings > Game) */
+    int assist;                      /* Take all / Share out offered (F12 > Settings) */
     unsigned seq;
     char note[160];
     unsigned note_t;

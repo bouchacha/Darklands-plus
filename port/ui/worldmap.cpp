@@ -12,6 +12,7 @@
 #include <float.h>
 #include <limits.h>
 #include <string>
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <SDL.h>
@@ -69,10 +70,11 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
-extern "C" int journal_where_to_buy(float width), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
+std::string journal_travel_days(int loc);   /* ui/journal.cpp: "3 days" */
+extern "C" int journal_buy_window(bool *open), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
-static bool show_names = true, show_quests = true, show_icons = true, show_boats = true;
+static bool show_names = true, show_quests = true, show_icons = true, show_boats = true, show_days = false;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
 
 /* "Towns with ...": the towns that have a place most lack (ui/townicons.h TI_UNIVERSITY .. TI_BANK)
@@ -138,7 +140,7 @@ static void party_tile(int *x, int *y)
 /* opened from a city or encounter (M on a card): the route waits for the travel map */
 extern "C" void ui_notice(const char *msg);
 extern "C" int travel_preview_loc(int loc, short *xs, short *ys, int max);
-static void route_note(void) { if (game_mode() != GM_MAP) ui_notice("Route planned: the party sets off once it is on the travel map."); }
+static void route_note(void) { if (game_mode() != GM_MAP) ui_notice("Route planned: the party sets off once it is in the overland view."); }
 
 extern "C" int worldmap_open(void)
 {
@@ -234,16 +236,21 @@ static void place_details(const Place &p, float wrap)
             ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
         }
     }
-    if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "In the town journal" : "Not visited yet");
+    if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "Visited" : "Not visited yet");
 }
 
 
 /* the frame round the map, after the printed map that came with the game: a checkered green and
    white rule, then a band of coloured fields lettered A-H along the top and the foot and numbered
    1-8 down the sides, a thin dark line each side; a compass rose at the lower left */
-static bool *const LAYER[4] = { &show_names, &show_quests, &show_boats, &show_icons };
-static const char *const LAYER_NAME[4] = { "Names", "Quests", "Boats", "Icons" };
-static const char *const LAYER_TIP[4] = { "Place names", "Quest marks", "Boats between the towns' docks", "Each place as an icon of its kind (else a dot)" };
+/* what the map shows, switched by the buttons on it; the fifth (off at first: busy) the days of
+   travel under every town */
+#define NLAYER 5
+static bool *const LAYER[NLAYER] = { &show_names, &show_quests, &show_boats, &show_icons, &show_days };
+static const char *const LAYER_NAME[NLAYER] = { "Names", "Quests", "Boats", "Icons", "Days away" };
+static const char *const LAYER_TIP[NLAYER] = { "Place names", "Quest markers", "Boat routes between the towns' docks", "Each place as an icon of its kind (else a dot)",
+                                               "The days of travel from the party to every town, under its name (busy: off at first)" };
+static const bool LAYER_DEF[NLAYER] = { true, true, true, true, false };
 extern "C" void worldmap_draw(void)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -470,6 +477,19 @@ extern "C" void worldmap_draw(void)
                 if (dx || dy) dl->AddText(fs, fsize, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 220), p.name.c_str());
             dl->AddText(fs, fsize, tp, g == 0 ? (unseen ? IM_COL32(205, 192, 168, 255) : IM_COL32(255, 244, 214, 255)) : IM_COL32(235, 225, 205, 255), p.name.c_str());
         }
+        if (show_days && g == 0) {                           /* the days of travel to it, under its name */
+            static std::map<int, std::string> days; static int df = -1000;      /* (worked out again every two seconds or so) */
+            if (ImGui::GetFrameCount() - df > 120) { days.clear(); df = ImGui::GetFrameCount(); }
+            auto it = days.find(p.loc);
+            if (it == days.end()) it = days.emplace(p.loc, journal_travel_days(p.loc)).first;
+            const std::string &t = it->second;
+            if (!t.empty()) {
+                float fs2 = fsize * 0.8f; ImVec2 ts = fs->CalcTextSizeA(fs2, FLT_MAX, 0, t.c_str());
+                ImVec2 tp(s.x - ts.x * 0.5f, s.y + r + 2 + fsize * ((label || p.loc == selected) ? 1.05f : 0.0f));
+                dl->AddRectFilled(ImVec2(tp.x - 3, tp.y), ImVec2(tp.x + ts.x + 3, tp.y + ts.y), IM_COL32(40, 26, 12, 200), 3);
+                dl->AddText(fs, fs2, tp, IM_COL32(250, 214, 120, 255), t.c_str());
+            }
+        }
         if (fade < 1.0f)                                     /* (coming in: all it drew, faint) */
             for (int vi = v_fade; vi < dl->VtxBuffer.Size; vi++) { ImU32 &cc = dl->VtxBuffer[vi].col; int al = (int)((cc >> IM_COL32_A_SHIFT) & 255); cc = (cc & ~IM_COL32_A_MASK) | ((ImU32)(al * fade) << IM_COL32_A_SHIFT); }
     }
@@ -578,14 +598,14 @@ extern "C" void worldmap_draw(void)
             ImGui::SameLine(bx - bw);
             if (ImGui::Button(lb)) ImGui::OpenPopup("##leavetravel");
         } else {
-            const char *t = "Travel from the travel map, or from a town's streets";
+            const char *t = "Travel from the overland view, or from a town's streets";
             ImGui::SameLine(bx - ImGui::CalcTextSize(t).x); ImGui::TextDisabled("%s", t);
         }
         if (ImGui::BeginPopupModal("##leavetravel", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
             int cur = (s16)g_rw(G_CUR_LOC);
             std::string town = cur >= 0 && cur < (int)gamedata.cities.size() ? gamedata.cities[cur].name : std::string("the town");
             ImGui::Text("Walk out of %s's gate and travel to %s?", town.c_str(), p.name.c_str());
-            ImGui::TextDisabled("The party walks through the streets to a gate and out; on the travel map the journey begins.");
+            ImGui::TextDisabled("The party walks through the streets to a gate and out; in the overland view the journey begins.");
             if (ImGui::Button("Leave and travel")) {
                 void citynav_leave_town(void);
                 travel_after_leaving(p.loc, p.name.c_str());
@@ -654,40 +674,67 @@ extern "C" void worldmap_draw(void)
     wm_panel_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - o.x;
     ImGui::SetWindowFontScale(pk);
     ImGui::TextUnformatted("The Holy Roman Empire");
-    if (ui_pad_prompts()) ui_pad_text("{LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the map.", true);
+    if (ui_pad_prompts()) ui_pad_text("{LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map.", true);
     else ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
     if (travel.active) {                                   /* the journey under way */
-        ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.12f, 1), "Travelling to %s", travel.name);
+        ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.12f, 1), "Traveling to %s", travel.name);
         ImGui::SameLine();
         if (ImGui::SmallButton("Stop")) travel_stop();
     }
-    {   /* the party's tasks: a click shows the place (and chooses it, for Travel there) */
+    {   /* the party's quests, in groups by kind (a reward waiting first), each folding away and sorted
+           nearest first, or soonest due for a kind that has deadlines; then the rumors heard. A click
+           shows the place (and chooses it, for Travel there) */
         static std::vector<QuestRow> qr; static int qf = -1000;
-        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, config_get_int("quests.sort", QSORT_DEADLINE) % QSORT_N, true); quest_merge(qr); qf = ImGui::GetFrameCount(); }
-        bool none = true;
-        for (int part = 0; part < 2; part++) {                  /* the tasks; the rumours heard (marked on the map too) */
-        bool any = false;
-        auto in_part = [&](const QuestRow &r) { return r.loc >= 0 && (part ? r.group == 2 || r.group == 4 : r.group <= 1); };
-        for (const QuestRow &r : qr) if (in_part(r)) { any = true; break; }
-        if (any) none = false;
-        if (any && fold_head(part ? "Rumors" : "Quests", part ? FOLD_RUMOURS : FOLD_TASKS)) {
-            for (const QuestRow &r : qr) {
-                if (!in_part(r)) continue;
-                std::string d = quest_days(r);
-                float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
-                std::string pad2((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
-                char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad2.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
-                bool sl = ImGui::Selectable(lb, selected == r.loc);
-                { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
-                if (sl) {
-                    for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
-                    selected = r.loc;
-                }
-                if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+        if (ImGui::GetFrameCount() - qf > 30) { quest_rows(qr, QSORT_NEAREST, true); quest_merge(qr); qf = ImGui::GetFrameCount(); }
+        auto row = [&](const QuestRow &r) {
+            std::string d = quest_days(r);
+            float isz = ImGui::GetTextLineHeight() * 1.15f, sp = ImGui::CalcTextSize(" ").x;
+            std::string pad2((size_t)ceilf((isz + sp) / sp), ' ');      /* (room for the picture) */
+            char lb[192]; snprintf(lb, sizeof lb, "%s%s%s%s##q%s", pad2.c_str(), r.title.c_str(), d.empty() ? "" : "   ", d.c_str(), r.id.c_str());
+            bool sl = ImGui::Selectable(lb, selected == r.loc);
+            { ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + isz * 0.5f, (a.y + b.y) * 0.5f), isz, r.cat); }
+            if (sl) {
+                for (const Place &p : P) if (p.loc == r.loc) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
+                selected = r.loc;
             }
+            if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(r.text.c_str()); if (!r.when.empty()) ImGui::TextDisabled("%s", r.when.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip(); }
+        };
+        bool none = true;
+        static const int ORDER[] = { QC_REWARD, QC_ROBBER, QC_RETRIEVE, QC_PAPERS, QC_SABBAT, QC_POLITICS, QC_WAR, QC_MINE, QC_DRAGON, QC_HUNT, QC_NONE };
+        static const char *const HEAD[] = { "Collect your reward", "Robber knights", "Treasures to fetch", "Papers to get in a town", "Sabbats", "City politics", "Cities at war", "Mines", "Dragons", "The Wild Hunt", "Other quests" };
+        bool qopen = false; int nq = 0;
+        for (const QuestRow &r : qr) if (r.loc >= 0 && r.group <= 1) nq++;
+        if (nq) { none = false; qopen = fold_head("Quests", FOLD_TASKS); }
+        for (int g = 0; qopen && g < (int)(sizeof ORDER / sizeof ORDER[0]); g++) {
+            std::vector<const QuestRow *> v; bool dated = false;
+            for (const QuestRow &r : qr) {
+                if (r.loc < 0 || r.group > 1) continue;
+                bool known = false; for (int c : ORDER) if (c == r.cat && c != QC_NONE) known = true;
+                if (ORDER[g] == QC_NONE ? known : r.cat != ORDER[g]) continue;
+                v.push_back(&r); if (r.days_left >= 0) dated = true;
+            }
+            if (v.empty()) continue;
+            char key[32]; snprintf(key, sizeof key, "map.qsort.%d", ORDER[g]);
+            int soon = dated ? config_get_int(key, 0) : 0;
+            if (soon) std::stable_sort(v.begin(), v.end(), [](const QuestRow *a, const QuestRow *b) {
+                int da = a->days_left < 0 ? 1 << 30 : a->days_left, db = b->days_left < 0 ? 1 << 30 : b->days_left; return da < db; });
+            ImGui::PushID(g);
+            char lab[96]; snprintf(lab, sizeof lab, "%s (%d)###qg", HEAD[g], (int)v.size());
+            bool open = ImGui::TreeNodeEx(lab, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth);
+            if (dated && v.size() > 1) {   /* nearest or soonest due: a click on the word flips it */
+                const char *w = soon ? "soonest due" : "nearest";
+                ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(w).x - ImGui::GetStyle().FramePadding.x * 2);
+                if (ImGui::SmallButton(w)) { config_set_int(key, !soon); extern int ui_dirty_config; ui_dirty_config = 1; }
+                if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sorted %s first: click for %s first.", w, soon ? "the nearest" : "the soonest due");
+            }
+            if (open) { for (const QuestRow *r : v) row(*r); ImGui::TreePop(); }
+            ImGui::PopID();
         }
+        {   /* the rumors heard (marked on the map too) */
+            bool any = false; for (const QuestRow &r : qr) if (r.loc >= 0 && (r.group == 2 || r.group == 4)) any = true;
+            if (any) { none = false; if (fold_head("Rumors", FOLD_RUMOURS)) for (const QuestRow &r : qr) if (r.loc >= 0 && (r.group == 2 || r.group == 4)) row(r); }
         }
-        if (none) ImGui::TextDisabled("No tasks or rumours yet.");
+        if (none) ImGui::TextDisabled("No quests or rumors yet.");
     }
     ImGui::End();
 
@@ -765,9 +812,13 @@ extern "C" void worldmap_draw(void)
         return click;
     };
     ImGui::Spacing();
-    if (fold_head("Where to buy ...", FOLD_BUY)) {                /* the wares noted in the towns' shops (ui/journal.cpp): a click shows the town */
-        int pick = journal_where_to_buy(rw);
-        if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+    {   /* Where to buy: a window of its own (ui/journal.cpp), the ingredients carried and missing; a click on a town shows it here */
+        static bool buy_open;
+        if (ImGui::Button("Where to buy ingredients and wares", ImVec2(rw, 0))) buy_open = !buy_open;
+        if (buy_open) {
+            int pick = journal_buy_window(&buy_open);
+            if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+        }
     }
     if (fold_head("Places on the map", FOLD_LEGEND)) {           /* the legend */
         if (ui_font_small) ImGui::PushFont(ui_font_small);       /* (smaller than the panel's text: the map is the point) */
@@ -831,28 +882,39 @@ extern "C" void worldmap_draw(void)
         }
     }
     ImGui::End();
-    {                                                             /* the map's switches: buttons on the map, under the top right panel, always at hand */
+    {   /* what the map shows: five switches on the map, under the top right panel, each a button with
+           its name beside it ("Show on the map" over them); a struck-out button is hidden */
         static bool loaded;
-        if (!loaded) { loaded = true; for (int k = 0; k < 4; k++) { char key[32]; snprintf(key, sizeof key, "map.show_%d", k); *LAYER[k] = config_get_int(key, 1) != 0; } }
+        if (!loaded) { loaded = true; for (int k = 0; k < NLAYER; k++) { char key[32]; snprintf(key, sizeof key, "map.show_%d", k); *LAYER[k] = config_get_int(key, LAYER_DEF[k]) != 0; } }
         float bs = fmaxf(34.0f, ui_text_px() * 1.6f), gap = bs * 0.18f;
-        float x0 = o.x + sz.x - pad - bs, y0 = o.y + wm_find_bottom + pad;
-        ImGui::SetNextWindowPos(ImVec2(x0 - gap, y0 - gap));
-        ImGui::SetNextWindowSize(ImVec2(bs + 2 * gap, 4 * bs + 5 * gap));
+        ImFont *lf = ui_font_bold ? ui_font_bold : ImGui::GetFont(); float lfs = fmaxf(15.0f, ui_text_px());
+        float lw = 0; for (int k = 0; k < NLAYER; k++) lw = fmaxf(lw, lf->CalcTextSizeA(lfs, FLT_MAX, 0, LAYER_NAME[k]).x);
+        const char *head = "Show on the map";
+        float hh = lfs * 1.3f, hw = lf->CalcTextSizeA(lfs, FLT_MAX, 0, head).x;
+        float x0 = o.x + sz.x - pad - bs, y0 = o.y + wm_find_bottom + pad + hh;
+        float wx0 = x0 - fmaxf(lw + gap * 2, hw - bs) - gap;
+        ImGui::SetNextWindowPos(ImVec2(wx0 - gap, y0 - hh - gap));
+        ImGui::SetNextWindowSize(ImVec2(x0 + bs + gap - wx0 + gap, NLAYER * bs + (NLAYER + 1) * gap + hh));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::Begin("##wmlayers", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
         ImGui::PopStyleVar();
         ImDrawList *bl = ImGui::GetWindowDrawList();
-        for (int k = 0; k < 4; k++) {
+        bl->AddRectFilled(ImVec2(wx0 - gap * 0.5f, y0 - hh - gap * 0.5f), ImVec2(x0 + bs + gap * 0.5f, y0 + NLAYER * (bs + gap)), IM_COL32(244, 234, 210, 215), bs * 0.2f);
+        bl->AddRect(ImVec2(wx0 - gap * 0.5f, y0 - hh - gap * 0.5f), ImVec2(x0 + bs + gap * 0.5f, y0 + NLAYER * (bs + gap)), IM_COL32(150, 96, 44, 200), bs * 0.2f, 0, 1.2f);
+        bl->AddText(lf, lfs, ImVec2(x0 + bs - hw, y0 - hh), IM_COL32(110, 60, 24, 255), head);
+        for (int k = 0; k < NLAYER; k++) {
             ImVec2 a(x0, y0 + k * (bs + gap)), b(a.x + bs, a.y + bs);
-            ImGui::SetCursorScreenPos(a);
+            ImGui::SetCursorScreenPos(ImVec2(wx0, a.y));
             ImGui::PushID(400 + k);
-            if (ImGui::InvisibleButton("##lay", ImVec2(bs, bs))) {
+            if (ImGui::InvisibleButton("##lay", ImVec2(b.x - wx0, bs))) {    /* (the name is part of the button) */
                 *LAYER[k] = !*LAYER[k];
                 char key[32]; snprintf(key, sizeof key, "map.show_%d", k); config_set_int(key, *LAYER[k]); extern int ui_dirty_config; ui_dirty_config = 1;   /* (kept) */
             }
             bool hv = ImGui::IsItemHovered(), on = *LAYER[k];
             if (hv) ImGui::SetTooltip("%s: %s", LAYER_TIP[k], on ? "shown (click to hide)" : "hidden (click to show)");
             ImGui::PopID();
+            ImVec2 ls = lf->CalcTextSizeA(lfs, FLT_MAX, 0, LAYER_NAME[k]);
+            bl->AddText(lf, lfs, ImVec2(x0 - gap - ls.x, (a.y + b.y - ls.y) * 0.5f), on ? IM_COL32(44, 26, 10, 255) : IM_COL32(130, 112, 92, 255), LAYER_NAME[k]);
             bl->AddRectFilled(ImVec2(a.x + 1.5f, a.y + 2.0f), ImVec2(b.x + 1.5f, b.y + 2.0f), IM_COL32(0, 0, 0, 70), bs * 0.18f);
             bl->AddRectFilled(a, b, on ? IM_COL32(244, 234, 210, 250) : IM_COL32(200, 188, 164, 220), bs * 0.18f);
             bl->AddRect(a, b, on ? IM_COL32(150, 96, 44, 255) : IM_COL32(120, 100, 80, 200), bs * 0.18f, 0, on ? 2.0f : 1.2f);

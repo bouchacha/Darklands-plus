@@ -46,7 +46,7 @@ void ui_hint(const char *fmt, ...);      /* a line of explanation under a settin
    together; true when they are clicked */
 bool ui_title_desc(const char *title, const char *desc, bool dim = false, const char *id = "##td");
 int ui_original_mode(void);              /* "Play the original game" */
-bool ui_modding(void);                   /* the editing tools shown (F12 > Settings > Game > Editor): the Editor tab, and changing weapons, items and foes in Records */
+bool ui_modding(void);                   /* the editing tools shown (F12 > Settings > Editor): the Editor tab, and changing weapons, items and foes in Records */
 void ui_set_original(bool on);
 void tab_mods(void);
 void tab_helpers(void);

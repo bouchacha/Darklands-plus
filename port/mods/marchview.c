@@ -5,7 +5,7 @@
  * takes a click on a member's box (or F1..F5, or the member's figure in a battle) for each, the
  * last one following by itself; then marching_order[] holds them and marching_len their number,
  * and in single file (move_mode 2) the line is formed again (single_file). Here the able members
- * are listed in their present order (those not in it after) and moved up and down; Done writes
+ * are listed in their present order (those not in it after) and dragged by a handle; Done writes
  * the same two variables and forms the line as the original does, Cancel (Esc) keeps the order
  * as it was. */
 #include <stdio.h>
@@ -80,6 +80,12 @@ static void screen_hook(void)                 /* choose_party_order (), s022 1ef
             int k = a.a;
             if (a.type == MV_UP && k > 0 && k < m->n) { int t = m->order[k - 1]; m->order[k - 1] = m->order[k]; m->order[k] = t; m->seq++; }
             else if (a.type == MV_DOWN && k >= 0 && k + 1 < m->n) { int t = m->order[k + 1]; m->order[k + 1] = m->order[k]; m->order[k] = t; m->seq++; }
+            else if (a.type == MV_MOVE && k >= 0 && k < m->n && a.b >= 0 && a.b < m->n && a.b != k) {   /* (dragged by its handle from k to b) */
+                int t = m->order[k];
+                if (a.b < k) for (int j = k; j > a.b; j--) m->order[j] = m->order[j - 1];
+                else for (int j = k; j < a.b; j++) m->order[j] = m->order[j + 1];
+                m->order[a.b] = t; m->seq++;
+            }
             else if (a.type == MV_DONE) done = 1;
             else if (a.type == MV_CANCEL) done = 2;
         }

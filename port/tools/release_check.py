@@ -55,7 +55,7 @@ STEPS = [
     ('marching order (Party menu, native)', 'ucmd umenu:3,1; wait 3; wshot 15_march; ucmd unspush:2,0; wait 1; ucmd unspush:3; wait 2', [r'marching order: open', r'marching order: closed \(set\)']),
     ('a room at the inn (native lodging)', 'ucmd urand:7; ucmd ugoto:23; wait 18; key 3; wait 5; wshot 16_inn', [r'lodging: open']),
     ('a day there, then leave', 'ucmd unspush:4; wait 6; wshot 17_day; ucmd unspush:6; wait 4', [r'lodging: closed \(1 days\)']),
-    ('F12 > Guide', 'key F12; wait 2; ucmd utab:8; wait 2; wshot 18_guide; key F12; wait 2', [r'.']),
+    ('F12 > New Player Guide', 'key F12; wait 2; ucmd utab:8; wait 2; wshot 18_guide; key F12; wait 2', [r'.']),
     ('the world map (M), Find a town', 'ucmd ukey:M; wait 2; ucmd ufind:Koln; wait 2; wshot 19_map; ucmd ukey:M; wait 2', [r'world map: open', r'world map: found K', r'world map: closed']),
 ]
 

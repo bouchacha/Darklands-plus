@@ -1,4 +1,4 @@
-/* soundpreview.c - hearing a sound device before choosing it (F12 > Settings > Window, sound and saves):
+/* soundpreview.c - hearing a sound device before choosing it (F12 > Settings):
  * a piece of music, or a few battle sounds, played through that device now, then the chosen one
  * back. The game's own way of changing its sound driver (as it does going into a battle and out,
  * s002 0e76): stop it (047c:0791, 00a9), let go of it (08f9), load xSOUND.DLC or .DLB (07ce: the
@@ -43,6 +43,8 @@ static void load_driver(int battle)
     for (int i = 0; i < 16; i++) g_wb((u16)(GV_msg_buf + i), keep[i]);
 }
 static void play(int n) { call(0x078a, 1, (u16)n, 0, 0, 0, 0, 0, 0); }
+void opl_silence(void); void mpu_all_notes_off(void);
+static void hush(void) { opl_silence(); mpu_all_notes_off(); }   /* (no note left hanging from the driver let go) */
 
 static const char *const DEV[] = { "mt32", "fm", "adlib", "speaker", "midi" };
 #define NDEVS 5
@@ -59,10 +61,10 @@ static void begin(int dev, int w, int c, int d)
     int fp; prev = musicpack_now(&fp);
     snprintf(over, sizeof over, "%s", DEV[dev]);
     musicpack_hold(1);
-    play(1);
+    play(1); hush();
     load_driver(w);
     active = 1; what = w; step = 0; t0 = plat_ticks_ms();
-    if (!w) play(11);                      /* the market's tune: lively, every device has it */
+    if (!w) play(20);                      /* the second tune of the overland view: every device has it */
     fprintf(stderr, "sound preview: %s, %s\n", DEV[dev], w ? "battle sounds" : "music");
 }
 static void end(int a, int b, int c, int d)
@@ -70,7 +72,7 @@ static void end(int a, int b, int c, int d)
     (void)a; (void)b; (void)c; (void)d;
     if (!active) return;
     active = 0;
-    play(1);
+    play(1); hush();
     over[0] = 0;
     load_driver(0);
     musicpack_hold(0);
@@ -89,6 +91,7 @@ void soundpreview_start(const char *dev, int w)
 }
 void soundpreview_stop(void) { if (active) ns_defer(end, 0, 0, 0, 0); }
 int soundpreview_playing(const char *dev, int w) { return active && over[0] && !strcmp(over, dev) && what == w; }
+int soundpreview_active(void) { return active != 0; }
 int soundpreview_possible(void) { return game_mode() != GM_BATTLE && game_mode() != GM_OTHER; }
 /* each frame (ui/ui.cpp): the battle sounds one after another; the end after a while */
 void soundpreview_tick(void)

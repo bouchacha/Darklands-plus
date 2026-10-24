@@ -1,5 +1,5 @@
 /* memberlooks.c - characters keep their figure and colours when they rejoin the party
- * (party.keep_looks), and newcomers at an inn get a look of their own (party.new_member_looks).
+ * (always, but in the original game), and newcomers at an inn get a look of their own.
  *
  * The figure (DS:a668, 4 bytes a party slot) and the colours (far 20a5:33fc, 24 bytes a slot)
  * belong to the party slot, not to the character: the inn's party screen (s038 1462:0000; its
@@ -24,7 +24,7 @@
 #define PAL(m) ((u16)(0x33fc + (m) * 24))
 #define FIG(m) ((u16)(GV_member_shield + (m) * 4))
 
-static int on(void) { return config_get_int("party.keep_looks", 1) && !config_get_int("original", 0); }
+static int on(void) { return !config_get_int("original", 0); }          /* (always, but in the original game; party.keep_looks retired) */
 
 static void name_of(int m, char *out, int n)
 {
@@ -88,7 +88,7 @@ static void key_hook(void)                  /* s038 1462:02f8 (key) */
         if (strlen(v) == 56 && unhex(v, look, 28) && look[0] >= 'A' && look[0] <= 'Z') {
             write_look(m, look);
             fprintf(stderr, "looks: %s joins again with %.3s and their colors\n", nm, (const char *)look);
-        } else if (config_get_int("party.new_member_looks", 1)) {
+        } else {
             /* a newcomer: as at a new game (rosterview.c) - a woman the woman figure, the next colours */
             int female = g_rb((u16)(G_MEMBER(m) + 3)) != 0;
             if (female) looks_set_figure(m, "F60");

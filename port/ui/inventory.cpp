@@ -553,7 +553,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder", minst, maxst, maxst);
             else ImGui::Text("Strength %d: below that, each point short costs 1 aim and hits are softer", minst);
         } else {
-            ImGui::Text("Skill needed %d: each point short costs 2 melee rating (attack and defence hand to hand)", minsk);
+            ImGui::Text("Skill needed %d: each point short costs 2 melee rating (attack and defense hand to hand)", minsk);
             if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 3 melee rating and blows hit softer;\nabove %d, each point adds 2 melee rating and blows hit harder", minst, maxst, maxst);
             else ImGui::Text("Strength %d: below that, each point short costs 3 melee rating and blows hit softer", minst);
         }
@@ -608,12 +608,12 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
     }
     if (d && d->type >= 95 && d->type <= 97) {             /* a shield: what each size adds to the defence (mods/gamemodel.h, the game's to-hit rolls) */
         ImGui::Separator();
-        ImGui::TextUnformatted("Adds to its bearer's defence, more the better it is made; unusable with a two-handed weapon.");
+        ImGui::TextUnformatted("Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon.");
         if (q < 0) q = d->quality;
         static const char *SZ[3] = { "Small", "Medium", "Large" };
         for (int t = 95; t <= 97; t++)
             (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
-        ImGui::TextDisabled("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defence is the shield plus twice Agility (less under a load).");
+        ImGui::TextDisabled("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice Agility (less under a load).");
     }
     if (d && d->kind == K_POTION) {
         int p = id - 95;

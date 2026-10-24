@@ -1,12 +1,12 @@
 /* datamods.c - mod folders: game files replaced without touching the game's own.
  *
  * <game>/mods/<Mod name>/ holds files laid out like the game folder; while the mod is switched
- * on (F12 > Settings > Mods) the game reads them instead of its own:
+ * on (F12 > Mods) the game reads them instead of its own:
  *   mods/My mod/DARKLAND.LST           the whole item list
  *   mods/My mod/PICS/CASTLE1.PIC       one picture
  *   mods/My mod/MSGFILES/$MILCR00.MSG  one file inside a catalogue (MSGFILES, *.CAT, BC, LCASTLE);
  *                                      new names are added to it
- *   mods/My mod/MSGFILES/$MILCR00.TXT  a card file as text (F12 > Settings > Mods > "Export the card texts")
+ *   mods/My mod/MSGFILES/$MILCR00.TXT  a card file as text (F12 > Mods > "Export the card texts")
  *   mods/My mod/art/, sounds/          replacement art and sounds, as in the game folder
  *   mods/My mod/music/                 recordings in place of the game's music (musicpack.c)
  *   mods/My mod/mod.txt                first line: the name shown; the rest: a description
@@ -164,7 +164,7 @@ void datamods_set(int i, int on)
     mods_changed();
 }
 int datamods_generation(void) { return generation; }
-/* "Play the original game" (F12 > Settings > Game) leaves the mods out too */
+/* "Play the original game" (F12 > Settings) leaves the mods out too */
 int datamods_enabled(void) { return !config_get_int("original", 0); }
 int datamods_active(void) { if (!datamods_enabled()) return 0; for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }
 
@@ -394,12 +394,12 @@ int datamods_new(const char *name, char *where, size_t wn)
     FILE *f = fopen(t, "wb");
     if (f) {
         fprintf(f, "%s\n"
-                   "Describe your mod here (these lines show in F12 > Settings > Mods).\n"
+                   "Describe your mod here (these lines show in F12 > Mods).\n"
                    "\n"
                    "Put files into this folder laid out like the game folder; while the mod is on, the game reads them\n"
                    "instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card\n"
                    "files (.MSG, or .TXT as written by \"Export the card texts\"), art/ and sounds/ as in the game folder,\n"
-                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings > Window, sound and saves).\n", name);
+                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings).\n", name);
         fclose(f);
     }
     datamods_scan();

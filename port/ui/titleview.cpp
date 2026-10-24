@@ -83,7 +83,7 @@ extern "C" void titleview_draw(void)
     } else items[n++] = { TV_LOAD, "Load a saved game", "No saved games yet", false };
     items[n++] = { TV_NEW, "A new party", "Create a New World: up to four characters of your own", true };
     items[n++] = { TV_QUICK, "Quickstart", "Start at once with four ready-made characters", true };
-    items[n++] = { TV_SETTINGS, "Settings", "Darklands+ options, display and sound (F12)", true };
+    items[n++] = { TV_SETTINGS, "Settings", "Darklands+ switches, mods, window and sound (F12)", true };
     items[n++] = { TV_QUIT, "Quit", "Back to the desktop", true };
 
     float y = 50, ih = 21;

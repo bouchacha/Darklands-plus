@@ -426,7 +426,7 @@ static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
-    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Game)."); return; }
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings)."); return; }
     static bool nav_open = true;
     if (ImGui::SmallButton(nav_open ? "Hide the list of days" : "Show the list of days")) nav_open = !nav_open;
     ImGui::SameLine();
@@ -798,48 +798,6 @@ extern "C" void journal_town_wares(int loc)
         ImGui::PopID();
     }
 }
-/* the world map's "Where to buy" (ui/worldmap.cpp): a search among the wares noted in the towns' shops
-   (or every ingredient), each hit with its town and the days of travel, the nearest first; a click on
-   one returns its town (-1 none) */
-extern "C" int journal_where_to_buy(float width)
-{
-    ensure_game();
-    static char q_buf[48]; static bool ingr;
-    ImGui::SetNextItemWidth(width * 0.62f);
-    ImGui::InputTextWithHint("##wtb", "an item's name", q_buf, sizeof q_buf);
-    ImGui::SameLine(); ImGui::Checkbox("Ingredients", &ingr);
-    std::string q = q_buf; std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
-    if (!nshops) { ImGui::TextDisabled("Nothing noted yet: the wares of each shop are noted as the party sees them."); return -1; }
-    if (q.empty() && !ingr) { ImGui::TextDisabled("Type a name, or tick Ingredients."); return -1; }
-    struct H { int id, q, price, loc, min; std::string shop; };
-    std::vector<H> hits;
-    for (auto &kv : towns)
-        for (const Shop &s : kv.second.shops)
-            for (const SeenItem &i : s.items) {
-                if (ingr && (i.id < 72 || i.id > 94)) continue;
-                std::string n = item_name(i.id); std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-                if (!q.empty() && n.find(q) == std::string::npos) continue;
-                int m = travel_min_to(kv.first);
-                hits.push_back({ i.id, i.q, i.price, kv.first, m >= 0 ? m : 1 << 29, s.name });
-            }
-    std::stable_sort(hits.begin(), hits.end(), [](const H &a, const H &b) { return a.id != b.id ? item_name(a.id) < item_name(b.id) : a.min < b.min; });
-    if (hits.empty()) { ImGui::TextDisabled("Not seen in any shop yet."); return -1; }
-    int pick = -1, shown = 0;
-    ImGui::BeginChild("##wtbl", ImVec2(width, fminf(UIS(260), (ImGui::GetTextLineHeightWithSpacing() + 2) * (float)hits.size() + 4)));
-    for (const H &h : hits) {
-        if (++shown > 120) { ImGui::TextDisabled("... more: narrow the search"); break; }
-        ImGui::PushID(shown);
-        std::string t = travel_days(h.min < (1 << 29) ? h.min : -1);
-        char lb[200]; snprintf(lb, sizeof lb, "%s %dq  -  %s%s%s", item_name(h.id).c_str(), h.q, loc_name(h.loc).c_str(), t.empty() ? "" : ", ", t.c_str());
-        if (ImGui::Selectable(lb)) pick = h.loc;
-        if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::Text("%s, %s: %s", loc_name(h.loc).c_str(), h.shop.c_str(), money(h.price).c_str()); ImGui::EndTooltip(); }
-        ImGui::PopID();
-    }
-    ImGui::EndChild();
-    return pick;
-}
-
 struct Hit { SeenItem it; int loc; std::string shop, date; };
 
 
@@ -929,7 +887,7 @@ static void storage_page(void)
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
     {
-      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Game).");
+      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (a Darklands+ switch: F12 > Settings).");
       else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
                               "The original game shows a store room only while the party is in it."); }
     ImGui::Spacing();
@@ -998,12 +956,20 @@ extern "C" void tab_journal(void)
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
     ImGui::TextDisabled("The quests and every town (its shops, the wares noted, where to buy a thing) are on the world map (M).");
+    {   /* the two switches of what is noted (on unless switched off here) */
+        bool tj = journal_on != 0, ch = config_get_int("journal.chronicle", 1) != 0;
+        if (ImGui::Checkbox("Note each town's shops and wares", &tj)) { journal_set(tj); ui_dirty_config = 1; }
+        ImGui::SameLine(0, 24);
+        ImGui::BeginDisabled(!tj);
+        if (ImGui::Checkbox("Keep the chronicle (every card's text)", &ch)) { config_set_int("journal.chronicle", ch); ui_dirty_config = 1; }
+        ImGui::EndDisabled();
+    }
     if (ui_subtabs_begin("jtabs")) {
         if (ui_subtab("Chronicle", want == 7)) { chronicle_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Notes", want == 8)) { notes_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Stored", want == 6)) { storage_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Battle log", want == 5)) { battlelog_tab(); ImGui::EndTabItem(); }
-        if (config_get_int("assist.hall_of_fame", 0) && !config_get_int("original", 0) && ui_subtab("Honor Roll", want == 4)) {   /* (restored: F12 > Settings > Restored) */
+        if (config_get_int("assist.hall_of_fame", 0) && !config_get_int("original", 0) && ui_subtab("Honor Roll", want == 4)) {   /* (restored: F12 > Reconstructed Content) */
             ImGui::TextWrapped("The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, "
                                "but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). "
                                "A party enters it when its journey ends, or now with the button.");
@@ -1033,4 +999,101 @@ extern "C" void journal_test_where(int id)   /* test (uwhere:id): where an item 
 {
     fprintf(stderr, "where %d: %s\n", id, journal_where_sold(id).c_str());
     for (int c = 0; c < 92; c += 13) fprintf(stderr, "travel to %s: %s (%d min)\n", loc_name(c).c_str(), journal_travel_days(c).c_str(), travel_min_to(c));
+}
+
+/* the world map's Where to buy (ui/worldmap.cpp, its button): a window of its own. First every
+   alchemical ingredient - how many the party carries, the nearest town seen selling it with the
+   days of travel, the other towns -; then any other ware, found by name, one row a town (the best
+   quality seen there). A click on a town returns it (-1 none), for the map to show it. */
+extern "C" int journal_buy_window(bool *open)
+{
+    ensure_game();
+    int pick = -1;
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(fminf(io.DisplaySize.x * 0.8f, UIS(1000)), fminf(io.DisplaySize.y * 0.8f, UIS(760))), ImGuiCond_Appearing);
+    if (!ImGui::Begin("Where to buy", open, ImGuiWindowFlags_NoCollapse)) { ImGui::End(); return -1; }
+    int px = 0, py = 0; bool here = party_where(&px, &py);
+    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
+    if (!nshops) ImGui::TextDisabled("Nothing noted yet: the wares of each shop are noted as the party sees them.");
+    int have[200] = {};                                    /* what the party carries now (all its members) */
+    { GmItem g; for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count; }
+    auto town_link = [&](int loc, const char *id) {        /* a town's name: a click shows it on the map */
+        ImGui::PushID(id); ImGui::PushID(loc);
+        if (ImGui::SmallButton(loc_name(loc).c_str())) pick = loc;
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show %s on the map", loc_name(loc).c_str());
+        ImGui::PopID(); ImGui::PopID();
+    };
+    if (ImGui::CollapsingHeader("Alchemical ingredients", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextDisabled("Bought ingredients are always quality 25. The nearest town first%s.", here ? "" : " (where the party is not known: by name)");
+        if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
+            ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
+            ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed, UIS(70));
+            ImGui::TableSetupColumn("Nearest town", ImGuiTableColumnFlags_WidthFixed, UIS(230));
+            ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableHeadersRow();
+            for (int id = 72; id <= 94; id++) {
+                struct Seen { int loc, dist; };
+                std::vector<Seen> at;
+                for (auto &kv : towns) {
+                    bool sold = false;
+                    for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) if (i.id == id) sold = true;
+                    if (sold) { int m = travel_min_to(kv.first); at.push_back({ kv.first, m >= 0 ? m : here ? loc_distance(kv.first, px, py) * 600 : 1 << 29 }); }
+                }
+                std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn(); icon_name_cell(id, item_name(id).c_str());
+                ImGui::TableNextColumn();
+                if (have[id]) ImGui::Text("%d", have[id]); else ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "none");
+                ImGui::TableNextColumn();
+                if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
+                town_link(at[0].loc, "n");
+                { std::string t = travel_days(travel_min_to(at[0].loc)); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
+                ImGui::TableNextColumn();
+                for (size_t k = 1; k < at.size() && k < 7; k++) { if (k > 1) ImGui::SameLine(); town_link(at[k].loc, "a"); }
+                if (at.size() > 7) { ImGui::SameLine(); ImGui::TextDisabled("and %d more", (int)at.size() - 7); }
+                if (at.size() < 2) ImGui::TextDisabled("-");
+            }
+            ImGui::EndTable();
+        }
+    }
+    if (ImGui::CollapsingHeader("Any other ware", ImGuiTreeNodeFlags_DefaultOpen)) {
+        static char q_buf[48];
+        ImGui::SetNextItemWidth(UIS(320));
+        ImGui::InputTextWithHint("##wtb", "a ware's name, e.g. plate or crossbow", q_buf, sizeof q_buf);
+        std::string q = q_buf; std::transform(q.begin(), q.end(), q.begin(), ::tolower);
+        if (!q.empty()) {
+            struct H { int id, q, loc, min; std::string shop; };
+            std::map<std::pair<int, int>, H> best;              /* one row a ware and a town: its best quality there */
+            for (auto &kv : towns) for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) {
+                std::string n = item_name(i.id); std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+                if (n.find(q) == std::string::npos) continue;
+                auto key = std::make_pair(i.id, kv.first);
+                auto it = best.find(key);
+                if (it == best.end() || i.q > it->second.q) { int m = travel_min_to(kv.first); best[key] = { i.id, i.q, kv.first, m >= 0 ? m : 1 << 29, sh.name }; }
+            }
+            std::vector<H> hits; for (auto &kv : best) hits.push_back(kv.second);
+            std::stable_sort(hits.begin(), hits.end(), [](const H &a, const H &b) { return a.id != b.id ? item_name(a.id) < item_name(b.id) : a.min < b.min; });
+            if (hits.empty()) ImGui::TextDisabled("Not seen in any shop yet.");
+            else if (ImGui::BeginTable("wares", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
+                ImGui::TableSetupColumn("Ware", ImGuiTableColumnFlags_WidthFixed, UIS(260));
+                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(70));
+                ImGui::TableSetupColumn("Town", ImGuiTableColumnFlags_WidthFixed, UIS(230));
+                ImGui::TableSetupColumn("Shop", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableHeadersRow();
+                int shown = 0;
+                for (const H &h : hits) {
+                    if (++shown > 150) break;
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn(); icon_name_cell(h.id, item_name(h.id).c_str());
+                    ImGui::TableNextColumn(); ImGui::Text("%dq", h.q);
+                    ImGui::TableNextColumn(); town_link(h.loc, "w"); { std::string t = travel_days(h.min < (1 << 29) ? h.min : -1); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
+                    ImGui::TableNextColumn(); ImGui::TextUnformatted(h.shop.c_str());
+                }
+                ImGui::EndTable();
+            }
+        } else ImGui::TextDisabled("Type a name: every town seen selling it, the nearest first.");
+    }
+    ImGui::End();
+    return pick;
 }

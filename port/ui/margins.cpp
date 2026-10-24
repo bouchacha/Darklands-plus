@@ -66,7 +66,7 @@ static std::string place_name(void)
             if (d < bd) { bd = d; best = k; }
         }
         if (best < 0 || bd > 60 * 60) return "In the wilds";
-        return "Travelling, near " + loc_display_name(best);
+        return "Traveling, near " + loc_display_name(best);
     }
     return loc_display_name(cur);
 }
@@ -186,9 +186,9 @@ static void place_quests(int cur);
  * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
  * no tooltip can show: the world map's tooltip on a town). */
 static const char *TOWN_OFFER_TIP[6] = {
-    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better philosopher's stone, teachers to hire (it expects Latin and a sharp mind).",
+    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind).",
     "Cathedral: donations for Divine Favor (and maybe Virtue), a relic from the canon, the patron saint's story, sanctuary.",
-    "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in Alchemy.",
+    "An alchemist: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy.",
     "A physician: wounds treated for a fee, lessons in Healing, alchemical components bought and sold.",
     "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
     "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; quests for the bold." };
@@ -523,7 +523,7 @@ static void right_panel(int size)
                     std::string t = "Changes seen since this game was loaded:";
                     for (int k = (int)L.size() - 1, n = 0; k >= 0 && n < 6; k--, n++) {
                         const RepChange &c = L[k]; char b[64]; snprintf(b, sizeof b, "\n%+d on %d.%d.%d", c.delta, c.day, c.month + 1, c.year); t += b;
-                        t += c.choice.empty() ? " (" + std::string(c.card[0] == '$' ? "a card" : "the map") + ")" : ", after choosing \"" + c.choice + "\"";
+                        t += c.choice.empty() ? " (" + std::string(c.card[0] == '$' ? "a card" : "the overland view") + ")" : ", after choosing \"" + c.choice + "\"";
                     }
                     margin_tip(t.c_str());
                 }
@@ -543,7 +543,7 @@ static void right_panel(int size)
             ImGui::Indent(is + lh * 0.3f);
             ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
             if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
-                                                                                       : "The watch is after the party: guards who recognise the party try to arrest it, and talking or bribing your way out is harder.");
+                                                                                       : "The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
         {   /* a season of city politics (mods/politics.c, experimental): the town in turmoil, until the party takes a side
@@ -567,10 +567,10 @@ static void right_panel(int size)
                 ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, QC_WAR);
                 ImGui::Indent(is + lh * 0.3f);
                 ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s", w == 1 ? "Preparing for war" : "At war");
-                if (item_hovered()) margin_tip(w == 1 ? "Prices are a quarter higher, the gate turns travellers away and patrols watch the walls; "
+                if (item_hovered()) margin_tip(w == 1 ? "Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; "
                                                         "Soldiers' Road and its market are open, and few boats take passengers."
                                                       : "Prices are 50% higher, food is short and the docks are barricaded; "
-                                                        "the gate turns travellers away and patrols watch the walls. Soldiers' Road and its market are open.");
+                                                        "the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open.");
                 ImGui::Unindent(is + lh * 0.3f);
             }
         }
@@ -762,7 +762,7 @@ static void night_streets(bool night)
         snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, "
                  "and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s "
                  "(depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
-                 often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Game" : "");
+                 often, pct != 100 ? ", as set in F12 > Mods (Night encounters in the streets)" : "");
         margin_tip(b);
     }
 }
@@ -844,7 +844,7 @@ extern "C" void ui_margins(void)
         {   /* the hints, at the foot of the margin (always in the same place) */
             const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
             char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right-click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > Guide.";
+            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > New Player Guide.";
             const char *h3 = pad ? nullptr : "F11: the keys and clicks of this screen.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
             float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0)

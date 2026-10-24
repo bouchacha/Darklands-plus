@@ -245,7 +245,7 @@ static void battle_intro(void)
              "The bow or sword on their picture at the left switches them to melee from the start.\n\n"
              "Against armor their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armor) by themselves.\n\n"
              "Point at an order button in the right margin to see what it does.",
-             "Improved combat can be switched off (the game's own ways): F12 > Settings > Game > Battles. F11 lists the battle's keys and clicks.");
+             "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
 }
 
 /* battle.foe_arrow: no enemy of the fight on the screen, but some on this floor - an arrow at the

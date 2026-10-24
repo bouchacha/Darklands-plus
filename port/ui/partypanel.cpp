@@ -211,7 +211,7 @@ static const char *order_word(char c, int place, bool shortw)
     switch (c) {
     case 'A': W("attacks", "attacks (Std Attack, a standard attack)");
     case 'V': W("vulnerable", "attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land");
-    case 'B': W("berserk", "is berserk: attacks without thought of defence");
+    case 'B': W("berserk", "is berserk: attacks without thought of defense");
     case 'P':
         if (place == 3) W("picks", "picks the lock of the door given");
         if (place == 6) W("picks", "picks the lock of the chest given");
@@ -410,7 +410,7 @@ extern "C" void partypanel_draw(void)
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
                 const char *ui_load_effect(int band);
-                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength).\n%s %s.",
+                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength; only equipped items count).\n%s %s.",
                                   name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2, ui_load_effect(band),
                                   battle && config_get_int("battle.panel_select", 1) ? "Right-click to open the sheet" : "Click to open the sheet");
             }

@@ -202,7 +202,7 @@ extern "C" void createview_draw(void)
         if (!c.nlist) P.text(fo, NsDraw::FS_SMALL, LX0 + 3, ly - 7, NsDraw::RED, "No profession is open to this character now.");
     } else if (c.state == 2) {
         title("Attributes");
-        snprintf(b, sizeof b, "%d of %d EPs left. Use + and - on a row (- only takes back this step's points). A point costs 1 EP, 2 at 29+, 3 at 39+; an attribute can reach 40 at most.", c.ep, c.ep_step);
+        snprintf(b, sizeof b, "%d of %d EP (experience points) left. Use + and - on a row (- only takes back this step's points). A point costs 1 EP, 2 at 29+, 3 at 39+; an attribute can reach 40 at most.", c.ep, c.ep_step);
         note(b);
         y += 1;
         for (int i = 0; i < 6; i++) {
@@ -226,7 +226,7 @@ extern "C" void createview_draw(void)
         if (P.button(LX0 + 3, Y1 - 15, LX1 - 3, Y1 - 3, "On to the profession", GREEN, NsDraw::FS_HEADBTN)) ns_push(CG_KEY, 1, 0, 0);
     } else if (c.state == 4) {
         title("Skills");
-        snprintf(b, sizeof b, "%d of %d EPs left. A point costs 1 EP, 2 at 49+, 3 at 79+. Room: how many more points this profession still lets you add to the skill.", c.ep, c.ep_step);
+        snprintf(b, sizeof b, "%d of %d EP left. A point costs 1 EP, 2 at 49+, 3 at 79+. Room: how many more points this profession still lets you add to the skill.", c.ep, c.ep_step);
         note(b);
         const CgProf &ad = c.adult[c.prof >= 0 && c.prof < 37 ? c.prof : 0];
         float cw = (LX1 - LX0 - 6) / 2.0f, rh = 9.4f;
@@ -280,7 +280,7 @@ extern "C" void createview_draw(void)
             P.tag(RX1 - 3 - P.tag_width(tag), ry - 1.5f, 10, tag, offered ? NsDraw::GREEN : NsDraw::RED);
         }
         ry += 9.5f;
-        snprintf(b, sizeof b, c.state == 1 ? "%d EPs for the attributes, then age %d." : "%d EPs for the skills, then age %d.", pv.ep, c.age + (c.state == 1 ? 15 : 5));
+        snprintf(b, sizeof b, c.state == 1 ? "%d EP for the attributes, then age %d." : "%d EP for the skills, then age %d.", pv.ep, c.age + (c.state == 1 ? 15 : 5));
         P.text(fo, NsDraw::FS_BODY, RX0 + 3, ry, soft, b);
         ry += 7;
         if (c.state == 3 && c.age + 5 > 30) { P.text(fo, NsDraw::FS_SMALL, RX0 + 3, ry, NsDraw::RED, "Over 30, aging lowers attributes (shown below)."); ry += 6.5f; }
@@ -362,7 +362,7 @@ extern "C" void createview_draw(void)
             }
         }
         ry += 10 * rh + 2;
-        if (room) { ry += P.para(fo, NsDraw::FS_SMALL - 0.4f, RX0 + 3, ry, RW, dim, "teaches: the points the five years give; room: how many more points skill EPs can add afterwards.") + 1.5f; }
+        if (room) { ry += P.para(fo, NsDraw::FS_SMALL - 0.4f, RX0 + 3, ry, RW, dim, "teaches: the points the five years give; room: how many more points skill EP can add afterwards.") + 1.5f; }
     }
 
     /* the past: professions, virtues, saints */

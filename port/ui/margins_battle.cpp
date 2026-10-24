@@ -97,7 +97,7 @@ static const char *order_tip(int kind)
     case OI_CANCEL: return "Stop giving this member an order (the key: Esc); the battle stays paused.";
     case OI_ATTACK: return "Then click an enemy: a standard attack, balanced between blows and guard.";
     case OI_VULNERABLE: return "Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land.";
-    case OI_BERSERK: return "Then click an enemy: quick, furious blows without thought of defence.";
+    case OI_BERSERK: return "Then click an enemy: quick, furious blows without thought of defense.";
     case OI_PARRY: return "Then click an enemy: the member mostly defends, hard to hit, striking back only now and then.";
     case OI_MISSILE: return "Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed).";
     }
@@ -265,7 +265,7 @@ void battle_panel(float width, float fs)
         ImGui::TextDisabled("None in sight yet.");
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s.",
-                           !levelmap_available() ? "" : config_get_int("assist.level_map_walk", 1) ? "; Tab shows a map of the level as far as the party has seen it, and a click on the map walks the party there" : "; Tab shows a map of the level as far as the party has seen it");
+                           !levelmap_available() ? "" : "; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there");
         ImGui::PopStyleColor();
     }
     else if (down == shown) {

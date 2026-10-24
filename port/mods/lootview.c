@@ -161,7 +161,7 @@ static void pack_put(int r, int all)
     if (r < 0 || r >= loot_model.nitems) return;
     int id = loot_model.item[r].id, q = loot_model.item[r].qual, shown = who_now(), done = 0;
     char nm[32], t[160]; gm_itemdef_name(id, nm, sizeof nm);
-    if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is marked Keep on the character sheet: it stays in the pack.", nm); note(t); return; }
+    if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is marked Keep on the character sheet: it stays in the party's pack.", nm); note(t); return; }
     for (int k = 0; k < (all ? 255 * 5 : 1); k++) {
         int m, rec;
         if (!gm_pack_find(shown, id, q, &m, &rec)) break;
@@ -176,7 +176,7 @@ static void pack_put(int r, int all)
     }
     g_ww(GV_loot_who, (u16)shown);
     if (done) snprintf(t, sizeof t, "%d %s back into the pile.", done, nm);
-    else snprintf(t, sizeof t, "The %s stays in the pack.", nm);
+    else snprintf(t, sizeof t, "The %s stays in the party's pack.", nm);
     note(t);
 }
 

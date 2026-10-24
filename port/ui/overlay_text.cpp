@@ -323,7 +323,7 @@ static int attr_of(const char *t)
 
 /* mods' text.txt: words on the screen said differently ("Purchase an item => Kaufen"), for
  * translations and renamings of the menus the game writes from its program; and, for
- * translators, a list of every line shown (F12 > Settings > Mods: "Collect the texts shown") */
+ * translators, a list of every line shown (F12 > Mods: "Collect the texts shown") */
 #include <unordered_map>
 #include <unordered_set>
 int ui_collect_texts;

@@ -19,7 +19,7 @@ enum OptClass {
     OC_SHOW,        /* draws a screen anew or tells more; what happens is the game's own */
     OC_EASE,        /* saves clicks and waiting: what the player could do by hand */
     OC_PLUS,        /* changes a rule a little, for less chore (one pack for the party ...) */
-    OC_EASY,        /* makes the game easier: a built-in mod (F12 > Settings > Mods), no preset turns it on */
+    OC_EASY,        /* makes the game easier: a built-in mod (F12 > Mods), no preset turns it on */
     OC_EXPERIMENT,  /* not yet sure to work well: off in every preset */
     OC_TASTE,       /* a matter of taste (speed, typeface, pictures): as the original in the
                        purist presets, the player's own in the others */
@@ -65,7 +65,7 @@ void options_set_listener(void (*fn)(const char *key, int v));
 
 /* ---------------------------------------------------------------- presets */
 enum { PRESET_CUSTOM = -1, PRESET_BUGGY_PURIST = 0, PRESET_PURIST, PRESET_PLUS, PRESET_COUNT };
-/* (the easier play, class OC_EASY, is no preset's: it is offered as built-in mods, F12 > Settings > Mods;
+/* (the easier play, class OC_EASY, is no preset's: it is offered as built-in mods, F12 > Mods;
    Full Original and Purist turn it off, Darklands+ leaves it as the player set it) */
 typedef struct { const char *name, *desc, *saves; } Preset;
 extern const Preset PRESETS[PRESET_COUNT];

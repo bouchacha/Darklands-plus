@@ -103,6 +103,8 @@ static void screen_hook(void)                 /* party_info (), s034 1550:0006 *
         while (ns_call(GF_key_pressed, 0)) {
             int k = (u16)ns_call(GF_get_key, 0);
             if (k == 0x011b || k == 0x1c0d || k == 0x3920) done = 1;    /* Esc, Enter, Space */
+            else if (k == 0x4800 || k == 0x5000) ns_in.wheel += k == 0x4800 ? 1 : -1;   /* (the mouse wheel comes as Up / Down: the towns' list) */
+            else if (k == 0x4900 || k == 0x5100) ns_in.wheel += k == 0x4900 ? 4 : -4;
         }
         NsAction a;
         while (ns_pop(&a)) if (a.type == IV_CLOSE) done = 1;

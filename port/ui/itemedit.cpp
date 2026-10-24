@@ -48,7 +48,7 @@ void itemedit_tab(void)
     const bool edit = ui_modding();
     if (edit) ImGui::TextWrapped("Every item of the game. Change names, weight, quality, rarity and value here, then save the list "
                                  "into a mod folder; it takes effect when the game is started again with that mod ticked.");
-    else ImGui::TextWrapped("Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod: F12 > Settings > Game > Editing tools).");
+    else ImGui::TextWrapped("Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod: F12 > Settings > Editing tools).");
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##flt", "find an item", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < nitems(); i++) if (memcmp(rec(i), &orig[3 + (size_t)i * 46], 46)) changed++;
     if (edit) { ImGui::SameLine(); ImGui::TextDisabled("%d changed", changed); }
@@ -129,7 +129,7 @@ void itemedit_tab(void)
         std::string p = std::string(w) + "/DARKLAND.LST";
         FILE *f = r < 0 ? nullptr : fopen(p.c_str(), "wb");
         if (!f) msg = "Could not write " + p + ".";
-        else { fwrite(lst.data(), 1, lst.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Settings > Mods) and start the game again."; }
+        else { fwrite(lst.data(), 1, lst.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Mods) and start the game again."; }
     }
     ImGui::SameLine();
     if (ImGui::Button("Undo all changes")) { lst = orig; msg.clear(); }

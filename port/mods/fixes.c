@@ -1,5 +1,5 @@
 /* fixes.c - fixes for bugs that are still in the last official version (483.07). Each can
- * be switched off (F12 > Settings > Game > Fixes); "play the original" switches them all off.
+ * be switched off (F12 > Settings > Fixes); "play the original" switches them all off.
  *
  *  blessing  Saint blessings (and potions) that raise an attribute record how much they
  *            added before the attribute is capped (raise_attr_temp, s029 0e76:4c04: the cap
@@ -228,33 +228,33 @@
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
-      "A second blessing on the same attribute, or one near 99, used to take points away when it wore off. A boost to Endurance or Strength was taken off in full when it ran out, even after a night's rest or a wound had already used it up (a badly wounded member could die of it). A lowering given to the whole party (the Cavern of Fire and Hail) stopped at the first member boosted above it.", 1 },
+      "In the original, a second blessing on the same attribute, or one near 99, took points away for good when it wore off. A boost to Endurance or Strength was taken off in full when it ran out, even after a night's rest or a wound had already used it up (a badly wounded member could die of it). A lowering given to the whole party (the Cavern of Fire and Hail) stopped at the first member boosted above it. Now a blessing takes back only what it really added and what is still above the maximum, and a lowering reaches every member and is given back when it ends.", 1 },
     { "fireward", "No invulnerability from fire protection",
-      "The fire protection from St. Polycarp, Firewall and the like no longer turns into permanent armor (+16 to +64).", 1 },
+      "In the original, the fire protection from St. Polycarp, Firewall and the like also counted as armor (+16 to +64) that never wore off. It now protects against fire only.", 1 },
     { "nullitem", "No \"(null)\" or empty items",
-      "Items with a code beyond the end of the game's item list (shown as \"(null)\") and empty stacks are no longer added to an inventory.", 1 },
+      "In the original, items with a code beyond the end of the game's item list (shown as \"(null)\") and empty stacks could turn up among a member's items, where they could be neither used nor sold. They are no longer added.", 1 },
     { "castle", "Castle battles end when the knight dies",
-      "This now holds even if the game was saved and loaded during the battle.", 1 },
+      "In a castle battle only the knight's death ends the fight, but the original did not save it: after saving and loading during the battle, the knight was dead yet leaving always counted as fleeing. His death now counts after loading too.", 1 },
     { "bounty", "Robber-knight bounties from merchants pay out properly",
-      "The original looked up the wrong quest giver, which garbled names, corrupted memory and let the reward be claimed again and again.", 1 },
+      "The original looked up the wrong quest giver, which garbled names, corrupted memory and let the reward be claimed again and again. It now finds the right one.", 1 },
     { "alchemy", "Brewing uses up all the ingredients",
-      "The original took only part of them when an ingredient was spread over several stacks.", 1 },
-    { "fullpack", "No more items lost to a full pack",
-      "A character carries at most 64 kinds of items; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room. Buying when nobody had room took the money for nothing, and taking an item from a store room into a full pack lost it: both are now refused.", 1 },
+      "The original took only part of them when an ingredient was spread over several stacks; now it takes them all.", 1 },
+    { "fullpack", "No more items lost to a member with no room",
+      "A member carries at most 64 kinds of items; in the original, what the game gave to a member who already had 64 simply vanished (quest items too). It now goes to someone with room. Buying when nobody had room took the money for nothing, and taking an item from a store room for a member with no room lost it: both are now refused.", 1 },
     { "innsave", "Saving and loading stay possible after the inn",
-      "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened.", 1 },
-    { "colors", "Characters keep their colors (the \"neon hair\" bug)",
-      "Characters' colors and sprites sometimes change to garish ones after an encounter. Their own colors are now kept and put back.", 1 },
+      "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened. They are now enabled again on leaving.", 1 },
+    { "colors", "Members keep their colors (the \"neon hair\" bug)",
+      "In the original, members' colors and sprites sometimes changed to garish ones after an encounter. Their own colors are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
     { "potions", "Weapon potions wear off and don't ruin weapons",
-      "Deadly Blade, Strongedge and Great Power never wore off, and their bonuses overflowed: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day and add up properly.", 1 },
-    { "offmap", "No quest destinations off the edge of the map",
-      "One cave lies a row beyond the bottom of the map, so quests sent there could never be finished. It is moved onto the map.", 1 },
+      "Deadly Blade, Strongedge and Great Power never wore off, and their bonuses overflowed: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day, and several at once add up without overflowing.", 1 },
+    { "offmap", "No quest destinations off the edge of the land",
+      "One cave lies a row beyond the bottom edge of the land, so quests sent there could never be finished. It is moved onto the land.", 1 },
     { "bestweapon", "Weapon practice trains the leader's best weapon skill",
-      "Where a card lets the leader practise with the weapon he or she is best at, the original always trained Missile Devices.", 1 },
+      "Where a card lets the leader practice with the weapon he or she is best at, the original always trained Missile Devices. Now it trains the leader's best weapon skill.", 1 },
     { "itemcount", "Robbers take only what is there (no crash afterwards)",
-      "When robbers took the party's items, the game removed one item too many; a character left with nothing ended up with -1 items, and if he or she later died in battle, the game overwrote its own memory and crashed. Fixed; saved games with the fault are repaired automatically.", 1 },
+      "When robbers took the party's items, the game removed one item too many; a member left with nothing ended up with -1 items, and if he or she later died in battle, the game overwrote its own memory and crashed. Now only what is there is taken; saved games with the fault are repaired automatically.", 1 },
     { "store room", "Nothing lost in store rooms",
       "A store room holds 100 kinds of items, and its count of any one item ran over past 127 (shown as a negative number, then lost). Putting more in is now refused, with a message saying why.", 1 },
     { "testcard", "No crash on the developers' test card",
@@ -263,26 +263,26 @@ Fix FIXES[] = {
       "Identical pieces of armor are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers.", 1 },
     { "teachers", "Training at the inn finds the town's teachers",
       "When another town also had teachers at the same time, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learned. The inn now lists this town's teachers and charges their fee.", 1 },
-    { "cardopts", "Card options no longer greyed out by mistake",
-      "Getting out over a city wall, the bribe could be offered without the money (the money check was on the option to crawl out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed out when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each option from the second on did what the option below it should do (three \"abandon the horses\" options the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but \"leave\": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, once woken, at a cost in reputation; they are open by day now.", 1 },
+    { "cardopts", "Card options no longer grayed out by mistake",
+      "Getting out over a city wall, the bribe could be offered without the money (the money check was on the option to crawl out through the sewer instead); at a rebel crowd's fortress the climb with a rope was grayed out when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each option from the second on did what the option below it should do (three \"abandon the horses\" options the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but \"leave\": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, once woken, at a cost in reputation; they are open by day now.", 1 },
     { "patronsaint", "Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learned",
-      "Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game wrote it for \"member -1\": nobody learned the saint, and the fifth member was marked as knowing a formula instead.", 1 },
+      "Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game wrote it for \"member -1\": nobody learned the saint, and the fifth member was marked as knowing a formula instead. Now the saint is learned.", 1 },
     { "debtnote", "Debt notes are where the merchant says",
       "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
-    { "alchrisk", "The risk levels of alchemy formulae work the right way round",
+    { "alchrisk", "The risk levels of alchemy formulae work the right way around",
       "Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failed low-risk formula exploded three times in four, a failed high-risk one only half the time. Now a failure explodes one time in four at low risk, one in three at medium risk and one in two at high risk.", 1 },
     { "bishop", "Errands from a cathedral are the bishop's, not the merchants'",
       "A cathedral's canon gave out errands as if for the town's merchants: the merchants paid for them (and gave no more errands of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished task could be taken again and again. Now the errand counts as the bishop's, and his relic is the reward, given once.", 1 },
     { "altar", "No errands to a purged pagan altar",
-      "A pagan altar the party has destroyed vanishes from the map, but errands could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; errands already sent to one go to the nearest altar still standing.", 1 },
+      "A pagan altar the party has destroyed vanishes from the overland view, but errands could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; errands already sent to one go to the nearest altar still standing.", 1 },
     { "tomb", "The item taken from a tomb goes to the winner of the fight",
       "Taking the item an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins.", 1 },
     { "lordreward", "The lord pays for his tasks",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
-      "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) wrote their protection against fire where the battle reads armor: +32 or +48 armor for good (or nothing, with the fire protection fix on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
+      "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) wrote their protection against fire where the battle reads armor: +32 or +48 armor for good (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
-      "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
+      "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
       "The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no tasks), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save, in space the game leaves unused (the original game still reads such saves).", 1 },
     { "battlesaints", "A saint's help called in a battle wears off",
@@ -296,7 +296,7 @@ Fix FIXES[] = {
     { "pauls", "The two St. Pauls do what their texts say",
       "St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: Virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; Virtue 19, as the manual says) was in the game's code but never used. Now each does what its text says.", 1 },
     { "saintrep", "A saint's reputation bonus goes to the right town",
-      "Called on in Prag, St. John Nepomuk raised the reputation of a place chosen by whatever value happened to be in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised the reputation of a \"place\" before the first one in the list, writing into memory that is not a place. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints.", 1 },
+      "Called on in Prag, St. John Nepomuk raised the reputation of a place chosen by whatever value happened to be in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (in the overland view) raised the reputation of a \"place\" before the first one in the list, writing into memory that is not a place. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints.", 1 },
     { "sainttexts", "Saints do what their texts say",
       "For 43 saints, the help the game's code gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md describe each one). The armor and fire saints need the fix \"Armor and fire protection from potions and saints last a day\".", 1 },
     { "nightbowyer", "The bowyer sells bows at night too",
@@ -312,13 +312,13 @@ Fix FIXES[] = {
     { "university", "A failed search for formulae at a university shuts that search, not the saints'",
       "Asking a university about alchemical formulae and failing marked the question about saints as asked instead: asking about saints was refused for a week, and the formulae could be asked about again at once. It now marks the question about formulae.", 1 },
     { "partyitems", "An item given to the whole party is given once",
-      "Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack.", 1 },
+      "Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once.", 1 },
     { "itemflags", "A mount's quality helps when fleeing on horseback",
       "Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked up the kind of the first item in its list instead of each one's, and so added nothing. It now finds the mounts.", 1 },
     { "membervalue", "A church tithe blesses the right member",
       "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value was taken for the member), past the party, into the game's memory; and sneaking into a guild leader's house at night named a member by the lowest Agility value (a garbled name). Both now use the member who has that value.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practise once for each member.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says.", 1 },
     { "nightwall", "Climbing a city wall at night uses the right chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -326,7 +326,7 @@ Fix FIXES[] = {
     { "enemygroups", "No group of enemies goes missing from a battle",
       "When setting up a battle, the game drops the groups of enemies that turned out empty, but a mistake dropped every group after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty groups are dropped.", 1 },
     { "cityalert", "A town on alert remembers the trouble",
-      "After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The game's test for the alert was the wrong way round, so the alert never counted.", 1 },
+      "After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The original's test for the alert was the wrong way around, so the alert never counted. Now it does.", 1 },
     { "dayjobs", "The friars' day jobs are offered",
       "Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a mistake in the test closed them everywhere. Now a member who qualifies can be offered them.", 1 },
     { "cloudline", "Shots through smoke clouds are tested correctly",
@@ -334,7 +334,7 @@ Fix FIXES[] = {
     { "attrsum", "Cards that test two attributes add both",
       "Three cards look for the member best at two attributes added together (a dungeon's passage, $Dunge00; a town's $CityM00; the country's $Count02): the game took the first attribute twice instead, from whichever member it compared last. Now each member's two attributes are added and the best sum counts.", 1 },
     { "lootcount", "No loot lost past 255 of a kind",
-      "Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the count wrapped round and the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row.", 1 },
+      "Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the count wrapped around and the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row.", 1 },
     { "corridors", "Castle corridor decorations in the right place",
       "When laying out a castle, the game picks a spot along each passage's wall to decorate, counted from the passage's far end instead of its start: all but one possible roll put the spot past the passage's end, in another room. Now the spot is on the passage.", 1 },
     { "battledead", "A hireling killed in battle doesn't later send away his replacement",
@@ -1100,8 +1100,8 @@ const char *storeroom_put_refusal(int key)
                 u16 e = (u16)(0x37f4 + 4 * i);
                 if ((rw(G_FAR2E38, e) & 0xfff) == id && rb(G_FAR2E38, (u16)(e + 2)) == q) { found = (int)i; break; }
             }
-            return found >= 0 ? ((s8)rb(G_FAR2E38, (u16)(0x37f4 + 4 * found + 3)) >= 127 ? "The store room keeps at most 127 of one thing." : 0)
-                              : (n >= 100 ? "The store room is full: it keeps 100 kinds of things." : 0);
+            return found >= 0 ? ((s8)rb(G_FAR2E38, (u16)(0x37f4 + 4 * found + 3)) >= 127 ? "The store room keeps at most 127 of one item." : 0)
+                              : (n >= 100 ? "The store room is full: it keeps 100 kinds of items." : 0);
         }
     }
     return 0;
@@ -2283,7 +2283,7 @@ static void buy_room_hook(void)
             if (!room_anywhere(m, id, q)) {
                 if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix fullpack: no room to buy item %d\n", id);
                 int barterview_on(void);
-                if (!barterview_on()) ui_notice("No room in the pack for another kind of thing: not bought.");   /* (the shop drawn anew says it itself) */
+                if (!barterview_on()) ui_notice("Not bought: nobody in the party has room for another kind of item.");   /* (the shop drawn anew says it itself) */
                 AX = (u16)k; hook_return_far(0); return;
             }
         }
@@ -2301,7 +2301,7 @@ static void store_get_room_hook(void)
             u16 o = (u16)(0x37f4 + 4 * e);
             if (!room_anywhere(m, rw(G_FAR2E38, o) & 0xfff, rb(G_FAR2E38, (u16)(o + 2)))) {
                 int cacheview_is_on(void);
-                if (!cacheview_is_on()) ui_notice("No room in the pack for another kind of thing.");
+                if (!cacheview_is_on()) ui_notice("Nobody in the party has room for another kind of item.");
                 hook_return_far(0); return;
             }
         }

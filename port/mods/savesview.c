@@ -108,6 +108,7 @@ static int ok_or_cancel(int loading)
                 else if (k == 0x5300) delete_save(S, S->sel);        /* (Del: as the row's Delete) */
                 continue;
             }
+            if (k == 0x4800 || k == 0x5000) { ns_in.wheel += k == 0x4800 ? 1 : -1; continue; }   /* (the mouse wheel comes as Up / Down: the list) */
             int c = k & 0xff;
             if (S->fresh && (k == 0x0e08 || (c >= 32 && c < 127))) S->comment[0] = 0;   /* (the first key replaces the suggestion) */
             S->fresh = 0;

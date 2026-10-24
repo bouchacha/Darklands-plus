@@ -28,7 +28,10 @@ enum PadButton {
 extern "C" int plat_prompts(void);            /* 0 keys and mouse; 1 Xbox, 2 PlayStation, 3 Nintendo */
 inline bool ui_pad_prompts() { return plat_prompts() != 0; }
 
-/* the button b, about h pixels tall, centred on c; returns its width */
+extern int ui_pad_style_force;                /* 1..3: draw as that kind, whatever is in use (0: as in use) */
+int ui_pad_button_for(int b);                 /* the button that does job b now (remapped) */
+float ui_pad_button_glyph(ImDrawList *dl, ImVec2 c, float h, int k);   /* button k itself, whatever its job */
+/* the button doing job b, about h pixels tall, centred on c; returns its width */
 float ui_pad_glyph(ImDrawList *dl, ImVec2 c, float h, int b);
 float ui_pad_glyph_width(float h, int b);
 /* the button's name in words ("A", "Cross", "Menu" ...), for tooltips and plain text */

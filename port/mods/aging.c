@@ -82,7 +82,7 @@ void aging_month(int n)
     if (getenv("DL_AGING_LOG")) fprintf(stderr, "aging: %d month(s): %s\n", n, any ? body : "nothing");
     if (any) ui_alert("The years take their toll", body,
                       "These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. "
-                      "(Aging: F12 > Settings > Game > The party and its items.)");
+                      "(Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.)");
 }
 
 static void month_hook(void)                 /* s029 0e76:281c (months): a month has begun; birthdays counted */

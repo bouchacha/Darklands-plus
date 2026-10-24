@@ -94,11 +94,17 @@ static void build(int who)
     }
     memset(s->have, 0, sizeof s->have);
     memset(s->ingr, 0, sizeof s->ingr);
+    s->npots = 0;
     for (int m = 0; m < s->npar && m < 5; m++)
         for (int i = 0; i < gm_item_count(m); i++) {
             GmItem g; if (!gm_item(m, i, &g) || g.id < 0 || g.id >= 200) continue;
             s->have[g.id] += g.count;
             if (g.id >= 72 && g.id <= 94) s->ingr[m][g.id - 72] += g.count;
+            if (g.id >= 95 && g.id < 95 + 22) {
+                int k = 0; while (k < s->npots && !(s->pots[k].id == g.id && s->pots[k].qual == g.qual)) k++;
+                if (k == s->npots && k < 64) { s->pots[k].id = (short)g.id; s->pots[k].qual = (short)g.qual; s->pots[k].count = 0; s->npots++; }
+                if (k < 64) s->pots[k].count = (short)(s->pots[k].count + g.count);
+            }
         }
     gm_member_fullname(who, s->fullname, sizeof s->fullname);
     s->female = gm_member_female(who);
@@ -203,7 +209,7 @@ static int record_of(int m, int id, int q, int unequipped_first)
 static int pack_fetch(int w, int id, int q, const char *nm, char *t, size_t tn)
 {
     int h, i;
-    if (!pack_holder(w, id, q, &h, &i)) { snprintf(t, tn, "No %s is left in the pack.", nm); return -1; }
+    if (!pack_holder(w, id, q, &h, &i)) { snprintf(t, tn, "No %s is left in the party's pack.", nm); return -1; }
     if (h != w) {
         if (gm_item_count(w) >= 64 && record_of(w, id, q, 0) < 0) { snprintf(t, tn, "%s cannot carry another kind of item.", sheet_model.names[w]); return -1; }
         ns_call(GF_give_one, 4, h, w, i, 9);

@@ -12,6 +12,8 @@
 #include <vector>
 #include <functional>
 #include "imgui.h"
+#include "padglyphs.h"
+#include "../mods/fixgroups.h"
 #include "skillicons.h"
 #include "gamepics.h"
 #include "ornament.h"
@@ -64,6 +66,32 @@ extern "C" int encounters_count(void);
 extern "C" int opening_mode(void);                 /* mods/opening.c */
 extern "C" void opening_set_mode(int);
 extern "C" int encounters_errors(void);
+static void replacement_art(void)
+{
+    bool ha = hdart_on;
+    if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
+    {
+        extern char game_dir[1024];
+        int n = hdart_count();
+        extern char dlp_user_dir[];
+        if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        else ui_hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
+        static char msg[600];
+        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
+        ImGui::SameLine();
+        if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
+        if (msg[0]) ui_hint("%s", msg);
+        bool sn = hdart_show_names;
+        if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
+        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the "
+             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
+             "to art%soriginal as a template, in its own colors. Whatever the game draws over a picture (text, the "
+             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
+        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
+             "(Heraldry, when making a party). A save with a member using one of these crests loads only in Darklands+.", PATH_SEP);
+    }
+
+}
 static void option_row(const Option *o, int depth);
 int ui_original_mode(void);
 void tab_mods(void)
@@ -162,9 +190,12 @@ void tab_mods(void)
         ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs crisp text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         ui_hint("Mods are applied in the order of the list above: where two change the same file, the lower one wins. "
-             "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
+             "Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. "
              "Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts.");
     }
+    ImGui::Spacing();
+    ImGui::PushFont(ui_font_head); orn_septext("Replacement art (for artists)"); ImGui::PopFont();
+    replacement_art();
     /* the built-in mods: easier play, no preset's (each its own switch, as a mod folder is) */
     ImGui::Spacing();
     ImGui::PushFont(ui_font_head); orn_septext("Built-in mods: easier play"); ImGui::PopFont();
@@ -178,7 +209,7 @@ void tab_mods(void)
 /* the presets (mods/options.h): "the original game" is Full Original; the player's own choices are
    kept when a preset replaces them (Custom) */
 int ui_original_mode(void) { return config_get_int("original", 0); }
-bool ui_modding(void) { return config_get_int("editor.show", 0) && !ui_original_mode(); }
+bool ui_modding(void) { return !ui_original_mode(); }      /* (the Editor: always but in the original game; editor.show retired) */
 void ui_set_original(bool on)
 {
     if (on) preset_apply(PRESET_BUGGY_PURIST);
@@ -228,8 +259,13 @@ bool ui_title_desc(const char *title, const char *desc, bool dim, const char *id
     return clicked;
 }
 
-bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on);   /* ui/optpreview.cpp */
+int ui_option_pics(const char *key, const char **caps);                           /* ui/optpreview.cpp */
+void ui_option_pic(const char *key, int i, ImDrawList *dl, ImVec2 a, ImVec2 b);
+static const char *pcaps[4];
 extern "C" bool screenpics_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);   /* ui/screenpics.cpp */
+extern "C" bool screenpics_scaling(ImDrawList *dl, ImVec2 a, ImVec2 b, int mode);
+extern "C" bool screenpics_map_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);
+extern "C" bool screenpics_land_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);
 extern "C" void saves_prefs(void);   /* ui/saves.cpp */
 static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
 static void option_row(const Option *o, int depth);
@@ -286,23 +322,33 @@ static void option_row(const Option *o, int depth)
         if (screenpics_draw(ImGui::GetWindowDrawList(), a, ImVec2(a.x + pw, a.y + ph))) ImGui::Dummy(ImVec2(pw, ph + UIS(4)));
         else ui_hint("Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy.");
         ImGui::Unindent(ti);
-    } else if (!o->choices && ui_option_preview(o->key, nullptr, ImVec2(), ImVec2(), false)) {   /* its picture, off and on (a click chooses) */
+    } else if (!strcmp(o->key, "map.key_m")) {          /* the world map as the player last saw it (ui/screenpics.cpp) */
         ImGui::Indent(ti);
-        float pw = UIS(200), ph = pw * 0.6f;
-        for (int st = 0; st < 2; st++) {
-            if (st) ImGui::SameLine(0, UIS(14));
-            ImGui::PushID(st);
+        float pw = fminf(UIS(420), ImGui::GetContentRegionAvail().x), ph = pw * 9 / 16;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        if (screenpics_map_draw(ImGui::GetWindowDrawList(), a, ImVec2(a.x + pw, a.y + ph))) ImGui::Dummy(ImVec2(pw, ph + UIS(4)));
+        else ui_hint("A picture of the world map appears here once you have opened it (M) in your game.");
+        ImGui::Unindent(ti);
+    } else if (!strcmp(o->key, "map.names")) {          /* the overland view as the player last saw it, names and quest marks on it */
+        ImGui::Indent(ti);
+        float pw = fminf(UIS(420), ImGui::GetContentRegionAvail().x), ph = pw * 9 / 16;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        if (screenpics_land_draw(ImGui::GetWindowDrawList(), a, ImVec2(a.x + pw, a.y + ph))) ImGui::Dummy(ImVec2(pw, ph + UIS(4)));
+        else ui_hint("A picture of the overland view, with the names and quest markers on it, appears here once the party has been out in the land.");
+        ImGui::Unindent(ti);
+    } else if (int np = ui_option_pics(o->key, pcaps)) {   /* what it turns on, in pictures */
+        ImGui::Indent(ti);
+        float gap = UIS(10), pw = fminf(UIS(np == 1 ? 260 : 170), (ImGui::GetContentRegionAvail().x - gap * (np - 1)) / np), ph = pw * 0.6f;
+        for (int k = 0; k < np; k++) {
+            if (k) ImGui::SameLine(0, gap);
             ImVec2 a = ImGui::GetCursorScreenPos();
-            if (ImGui::InvisibleButton("##pv", ImVec2(pw, ph + ImGui::GetTextLineHeightWithSpacing()))) opt_set(o, st);
-            bool hv = ImGui::IsItemHovered();
+            ImGui::Dummy(ImVec2(pw, ph + ImGui::GetTextLineHeightWithSpacing()));
             ImDrawList *dl = ImGui::GetWindowDrawList();
-            ui_option_preview(o->key, dl, a, ImVec2(a.x + pw, a.y + ph), st != 0);
-            bool cur = (v != 0) == (st != 0);
-            dl->AddRect(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + pw + 1, a.y + ph + 1), cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(120, 100, 80, 160), 3, 0, cur ? 3.0f : 1.0f);
-            const char *lb = st ? "On" : "Off";
-            ImVec2 ts = ImGui::CalcTextSize(lb);
-            dl->AddText(ImVec2(a.x + (pw - ts.x) * 0.5f, a.y + ph + 2), ImGui::GetColorU32(cur ? ImGuiCol_Text : ImGuiCol_TextDisabled), lb);
-            ImGui::PopID();
+            ui_option_pic(o->key, k, dl, a, ImVec2(a.x + pw, a.y + ph));
+            dl->AddRect(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + pw + 1, a.y + ph + 1), IM_COL32(120, 100, 80, 160), 3);
+            ImVec2 ts = ImGui::CalcTextSize(pcaps[k]);
+            float sc = ts.x > pw ? pw / ts.x : 1.0f;
+            dl->AddText(ImGui::GetFont(), ImGui::GetFontSize() * sc, ImVec2(a.x + (pw - ts.x * sc) * 0.5f, a.y + ph + 2), ImGui::GetColorU32(ImGuiCol_Text), pcaps[k]);
         }
         ImGui::Unindent(ti);
     }
@@ -311,16 +357,6 @@ static void option_row(const Option *o, int depth)
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.62f, 0.32f, 0.08f, 1));
         ImGui::TextWrapped("%s", o->note);
         ImGui::PopStyleColor();
-        ImGui::Unindent(ti);
-    }
-    if (!strcmp(o->key, "input.gamepad")) {
-        ImGui::Indent(ti); ui_hint(plat_controller_connected() ? "A controller is connected." : "No controller connected now.");
-        /* the button prompts (ui/padglyphs.h): the controller's buttons on screen while it is in use */
-        static const char *PM[5] = { "Match the device in use", "Keys and mouse always", "Xbox always", "PlayStation always", "Nintendo always" };
-        int pm = config_get_int("input.prompts", 0); if (pm < 0 || pm > 4) pm = 0;
-        ImGui::SetNextItemWidth(UIS(260));
-        if (ImGui::Combo("Button prompts", &pm, PM, 5)) { config_set_int("input.prompts", pm); ui_dirty_config = 1; }
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("While a controller is in use, the hints and on-screen buttons show its buttons (Xbox, PlayStation or Nintendo, matching the controller). The \"always\" choices are for a Steam Deck played with its trackpads, which count as a mouse.");
         ImGui::Unindent(ti);
     }
     if (ind > 0) ImGui::Unindent(ind);
@@ -378,14 +414,27 @@ static void presets_block(void)
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
     ImGui::SameLine();
-    ImGui::TextWrapped("a save with a member using an enemy sprite (Darklands+ offers them) loads only in Darklands+.");
+    ImGui::TextWrapped("a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+.");
 }
 
-static void display_icons(void); static void look_text(void); static void look_pictures(void); static void look_ornaments(void); static void look_clock(void);
-static void look_icons(void) { display_icons(); }
-static const char *const LOOKS[] = { "Text", "Pictures", "Ornaments", "Clock", "Icons" };
-static void (*const LOOK_FN[])(void) = { look_text, look_pictures, look_ornaments, look_clock, look_icons };
-static int look_index(const char *s) { for (int i = 0; i < 5; i++) if (!strcmp(s, LOOKS[i])) return i; return -1; }
+static void display_icons(void); static void look_text(void); static void look_ornaments(void); static void look_clock(void);
+/* the frames, the buttons, the clock and the potions' grade marks: one section */
+static void look_all(void)
+{
+    ImGui::TextUnformatted("The band around the windows");
+    look_ornaments();
+    ImGui::Spacing(); ImGui::TextUnformatted("The clock while hours pass");
+    look_clock();
+    ImGui::Spacing();
+    display_icons();
+}
+static const char *const LOOKS[] = { "Text", "Frames and clock" };
+static void (*const LOOK_FN[])(void) = { look_text, look_all };
+static int look_index(const char *s) { for (int i = 0; i < 2; i++) if (!strcmp(s, LOOKS[i])) return i; return -1; }
+void ui_section_icon(ImDrawList *dl, ImVec2 c, float s, const char *name);   /* ui/skillicons.cpp */
+static char h_jump_to[64];
+extern "C" void settings_helpers_jump(const char *name) { snprintf(h_jump_to, sizeof h_jump_to, "%s", name); }   /* (test: uhsect) */
+static void setup_screen(void); static void setup_intro(void); static void setup_sound(void); static void controller_prefs(void);
 void tab_helpers(void)
 {
     /* the sections, from the switches' table: bookmarks at the left (a click opens the section and
@@ -393,6 +442,9 @@ void tab_helpers(void)
        section at the top of the view is marked */
     std::vector<const char *> sect; sect.push_back("Preset");
     bool orig = ui_original_mode();
+    static const char *const SETUP[] = { "Screen", "Intro", "Sound", "Controller" };   /* (the computer's side: shown in every preset) */
+    static void (*const SETUP_FN[])(void) = { setup_screen, setup_intro, setup_sound, controller_prefs };
+    auto setup_index = [](const char *s) { for (int i = 0; i < 4; i++) if (!strcmp(s, SETUP[i])) return i; return -1; };
     if (!orig) {
         int n = options_count();
         for (int i = 0; i < n; i++) {
@@ -404,18 +456,21 @@ void tab_helpers(void)
                 for (const char *l : LOOKS) sect.push_back(l);
         }
     }
+    for (const char *l : SETUP) sect.push_back(l);
     const int NSECT = (int)sect.size();
     static int jump = -1, at_top = 0;
+    if (h_jump_to[0]) { for (int i = 0; i < NSECT; i++) if (!strcmp(sect[i], h_jump_to)) jump = i; h_jump_to[0] = 0; }
     static bool fold_all = false;
-    ImGui::BeginChild("##hnav", ImVec2(UIS(210), 0), ImGuiChildFlags_Borders);
-    ImGui::TextDisabled("Sections");
+    ImGui::BeginChild("##hnav", ImVec2(UIS(230), 0), ImGuiChildFlags_Borders);
+    float ih = ImGui::GetTextLineHeight();
     for (int i = 0; i < NSECT; i++) {
-        const char *s = sect[i]; char lab[64];
-        snprintf(lab, sizeof lab, "%s", !strcmp(s, "Fixes for bugs of the original") ? "Fixes" : s);
+        const char *s = sect[i]; char lab[80];
+        snprintf(lab, sizeof lab, "%s###nav%d", !strcmp(s, "Fixes for bugs of the original") ? "Fixes" : s, i);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ih * 1.5f);           /* (room for the section's picture) */
         if (ImGui::Selectable(lab, i == at_top)) jump = i;
+        ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
+        ui_section_icon(ImGui::GetWindowDrawList(), ImVec2(a.x - ih * 0.8f, (a.y + b.y) * 0.5f), ih * 1.1f, s);
     }
-    ImGui::Spacing();
-    if (NSECT > 1 && ImGui::SmallButton("Fold all")) fold_all = true;
     ImGui::EndChild();
     ImGui::SameLine();
     ImGui::BeginChild("##hbody", ImVec2(0, 0));
@@ -438,27 +493,43 @@ void tab_helpers(void)
     if (orig) {
         ImGui::Spacing();
         ui_hint("Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches.");
-    } else {
+    }
+    {
         int n = options_count();
         for (int k = 1; k < NSECT; k++) {
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
             {   int l = look_index(sect[k]);
                 if (l >= 0) { LOOK_FN[l](); continue; } }
+            {   int l = setup_index(sect[k]);
+                if (l >= 0) { SETUP_FN[l](); continue; } }
             bool fixes = !strcmp(sect[k], "Fixes for bugs of the original");
             if (fixes) {                                  /* (a long list, each its own switch since what counts as a bug is open to argument: folded) */
                 int nf = 0, on = 0;
                 for (int i = 0; i < n; i++) { const Option *o = options_get(i); if (o->cls == OC_FIX && !strcmp(o->section, sect[k])) { nf++; on += option_value(o) != 0; } }
-                ui_hint("The original game's bugs put right. Each is its own switch, since what counts as a bug (and how to mend it) is open to argument.");
-                char lab[96]; snprintf(lab, sizeof lab, "Every fix, one by one (%d of %d on)###fixlist", on, nf);
-                if (!ImGui::TreeNodeEx(lab, ImGuiTreeNodeFlags_SpanAvailWidth)) continue;
+                ui_hint("The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; "
+                        "they are sorted from the plainly broken to the arguable.", on, nf);
+                for (int g = 0; g < FIX_NGROUPS; g++) {     /* (fixgroups.c) */
+                    int gn = 0, gon = 0;
+                    for (int i = 0; i < n; i++) { const Option *o = options_get(i); if (o->cls == OC_FIX && !strcmp(o->section, sect[k]) && fix_group(o->key + 4) == g) { gn++; gon += option_value(o) != 0; } }
+                    if (!gn) continue;
+                    char lab[128]; snprintf(lab, sizeof lab, "%s (%d of %d on)###fixg%d", FIX_GROUPS[g].name, gon, gn, g);
+                    if (!ImGui::TreeNodeEx(lab, ImGuiTreeNodeFlags_SpanAvailWidth)) continue;
+                    ui_hint("%s", FIX_GROUPS[g].what);
+                    for (int i = 0; i < n; i++) {
+                        const Option *o = options_get(i);
+                        if (o->cls != OC_FIX || strcmp(o->section, sect[k]) || o->parent || fix_group(o->key + 4) != g) continue;
+                        option_row(o, 0);
+                    }
+                    ImGui::TreePop();
+                }
+                continue;
             }
             for (int i = 0; i < n; i++) {
                 const Option *o = options_get(i);
                 if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, sect[k])) continue;
                 option_row(o, 0);
             }
-            if (fixes) ImGui::TreePop();
         }
     }
     at_top = top_found < 0 ? 0 : top_found;
@@ -466,23 +537,32 @@ void tab_helpers(void)
     ImGui::EndChild();
 }
 
-/* what MicroProse wrote, coded or left unfinished and never switched on, put back by Darklands+:
-   a page of its own, experimental, every switch off by default and in every preset */
+/* what MicroProse wrote, coded or left unfinished and never switched on, reconstructed by
+   Darklands+: a page of its own, experimental, every switch off by default and in every preset;
+   in two parts, by how much Darklands+ had to supply (docs/cut_content.md) */
 void tab_restored(void)
 {
-    ImGui::PushFont(ui_font_head); orn_septext("Restored cut content"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Reconstructed content"); ImGui::PopFont();
     ImGui::TextColored(ImVec4(0.75f, 0.35f, 0.1f, 1), "Experimental.");
     ImGui::SameLine();
-    ImGui::TextWrapped("What MicroProse wrote, coded or left unfinished and never switched on, put back by Darklands+. Nobody played it in 1992: "
+    ImGui::TextWrapped("What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: "
                        "expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again.");
     ui_hint("What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md).");
     ImGui::Spacing();
     if (ui_original_mode()) { ui_hint("Off while playing the original game (Full Original): pick another preset to tick these."); return; }
+    static const char *const FINISHED[] = { "rules.politics", "rules.war", "battle.black_cloud", 0 };   /* (the rest: rules.fehde, rules.hospice, assist.hall_of_fame) */
+    auto finished = [](const char *k) { for (int i = 0; FINISHED[i]; i++) if (!strcmp(FINISHED[i], k)) return true; return false; };
     int n = options_count();
-    for (int i = 0; i < n; i++) {
-        const Option *o = options_get(i);
-        if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, "Restored cut content")) continue;
-        option_row(o, 0);
+    for (int part = 0; part < 2; part++) {
+        ImGui::PushFont(ui_font_head); orn_septext(part ? "Written, but never wired up" : "Finished, but never switched on"); ImGui::PopFont();
+        ui_hint(part ? "The texts or pictures are in the game's files, but the code that would show them was never written or never finished: Darklands+ supplies the missing pieces."
+                     : "Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on.");
+        for (int i = 0; i < n; i++) {
+            const Option *o = options_get(i);
+            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, "Restored cut content") || finished(o->key) != (part == 0)) continue;
+            option_row(o, 0);
+        }
+        ImGui::Spacing();
     }
 }
 
@@ -518,18 +598,58 @@ static void pic_choice(const char *id, const char *key, int def, const int *vals
     ImGui::PopID();
 }
 
-/* the Display page's sections: bookmarks at the left, as the Helpers page (a click brings the
-   section to the top; the one at the top of the view is marked) */
-static const char *DSECT[] = { "Screen", "Sound", "Saves" };
-static const int NDSECT = (int)(sizeof DSECT / sizeof DSECT[0]);
-static int d_jump = -1, d_top = 0, d_found = -1; static float d_view;
-extern "C" void settings_display_jump(int k) { d_jump = k; }   /* (test: udsect) */
-static void dsec(const char *name)
+extern "C" void settings_helpers_jump(const char *name);
+extern "C" void settings_display_jump(int k) { static const char *N[4] = { "Screen", "Intro", "Sound", "Controller" }; if (k >= 0 && k < 4) settings_helpers_jump(N[k]); }   /* (test: udsect) */
+/* a game controller: always on (but in the original game's menus it is a mouse too); which one is
+   connected, its buttons drawn as any of the three kinds, and the jobs of the main ones to change */
+extern "C" int plat_controller_kind(const char **name);
+extern "C" int plat_pad_bind(int k);
+extern "C" void plat_pad_bind_set(int k, int a);
+int settings_pack_preview;                 /* (a pack previewed: ui/ui.cpp lets the music through) */
+static void controller_prefs(void)
 {
-    int i = 0; while (i < NDSECT && strcmp(DSECT[i], name)) i++;
-    ImGui::PushFont(ui_font_head); orn_septext(name); ImGui::PopFont();
-    if (d_jump == i) { ImGui::SetScrollHereY(0.0f); d_jump = -1; }
-    if (ImGui::GetItemRectMin().y <= d_view) d_found = i;
+    const char *nm; int kind = plat_controller_kind(&nm);
+    static const char *KIND[4] = { "", "Xbox", "PlayStation", "Nintendo" };
+    if (kind) ImGui::Text("Connected: %s (%s style)", nm, KIND[kind]);
+    else ImGui::TextUnformatted("No controller connected now: plug one in at any time. The buttons below can be set up beforehand.");
+    static int view = 0;
+    if (!view) view = kind ? kind : 1;
+    ImGui::TextUnformatted("Show the buttons as:"); 
+    for (int k = 1; k <= 3; k++) { ImGui::SameLine(); if (ImGui::RadioButton(KIND[k], view == k)) view = k; }
+    static const char *JOB[9] = { "Click", "Right-click (the menus)", "Enter", "Esc", "Tab (the level map)", "Space (pause)", "F12 (Darklands+)", "M (the world map)", "F11 (keys and clicks)" };
+    int keep = ui_pad_style_force; ui_pad_style_force = view;
+    float gh = ImGui::GetFrameHeight();
+    if (ImGui::BeginTable("##padmap", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("b", ImGuiTableColumnFlags_WidthFixed, UIS(70));
+        ImGui::TableSetupColumn("j", ImGuiTableColumnFlags_WidthFixed, UIS(440));
+        auto glyph = [&](int k, bool phys) {
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            float w = ui_pad_glyph_width(gh * 0.9f, k);
+            ImGui::Dummy(ImVec2(UIS(60), gh));
+            if (phys) ui_pad_button_glyph(ImGui::GetWindowDrawList(), ImVec2(p.x + w * 0.5f + 4, p.y + gh * 0.5f), gh * 0.9f, k);
+            else ui_pad_glyph(ImGui::GetWindowDrawList(), ImVec2(p.x + w * 0.5f + 4, p.y + gh * 0.5f), gh * 0.9f, k);
+        };
+        for (int k = PB_A; k <= PB_LS; k++) {
+            ImGui::TableNextRow(); ImGui::TableNextColumn(); glyph(k, true);
+            ImGui::TableNextColumn();
+            int a = plat_pad_bind(k);
+            ImGui::PushID(k); ImGui::SetNextItemWidth(UIS(290));
+            if (ImGui::Combo("##job", &a, JOB, 9)) { plat_pad_bind_set(k, a); ui_dirty_config = 1; }
+            ImGui::PopID();
+        }
+        struct F { int b; const char *what; } fixed[4] = { { PB_LSTICK, "the pointer (the left trigger held: slowly)" }, { PB_RSTICK, "scrolls lists; pressed: Z (fast-forward)" },
+                                                            { PB_DPAD, "the arrow keys" }, { PB_RT, "held: Ctrl (Ctrl+click in the overland view travels there)" } };
+        for (const F &f : fixed) { ImGui::TableNextRow(); ImGui::TableNextColumn(); glyph(f.b, true); ImGui::TableNextColumn(); ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted(f.what); }
+        ImGui::EndTable();
+    }
+    ui_pad_style_force = keep;
+    if (ImGui::Button("Back to the usual buttons")) { for (int k = PB_A; k <= PB_LS; k++) plat_pad_bind_set(k, k); ui_dirty_config = 1; }
+    /* the button prompts (ui/padglyphs.h): the controller's buttons on screen while it is in use */
+    static const char *PM[5] = { "Match the device in use", "Keys and mouse always", "Xbox always", "PlayStation always", "Nintendo always" };
+    int pm = config_get_int("input.prompts", 0); if (pm < 0 || pm > 4) pm = 0;
+    ImGui::SetNextItemWidth(UIS(260));
+    if (ImGui::Combo("Buttons shown in hints", &pm, PM, 5)) { config_set_int("input.prompts", pm); ui_dirty_config = 1; }
+    ui_hint("While a controller is in use, the hints and on-screen buttons show its buttons. The \"always\" choices are for a Steam Deck played with its trackpads, which count as a mouse.");
 }
 static void display_icons(void)
 {
@@ -545,33 +665,73 @@ static void display_icons(void)
         for (int k = 0; k < 3; k++) ui_item_icon_tier(dl, ImVec2(a.x + (b.x - a.x) * (0.2f + k * 0.3f), (a.y + b.y) * 0.5f), s, k == 0 ? 99 : k == 1 ? 95 : 104, k + 1);
         potion_grade_preview = -1;
     });
-    ImGui::TextUnformatted("The pictures of the attributes and skills");
-    static const int SKV[2] = { 2, 0 };
-    static const char *SKL[2] = { "Heraldic", "In color" };
-    pic_choice("skillicons", "display.skill_icon_look", 2, SKV, SKL, 2, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-        void ui_icon_style_preview(int st); extern int ui_icon_disc;
-        dl->AddRectFilled(a, b, IM_COL32(246, 236, 212, 255), 4);
-        ui_icon_style_preview(v); int keep = ui_icon_disc; ui_icon_disc = 0;
-        float s2 = (b.y - a.y) * 0.32f;
-        static const int K[6] = { 0, 3, 7, 14, 8, 17 };   /* (attributes 0 and 3; skills Edged, Healing, Religion, Woodwise) */
-        for (int i = 0; i < 6; i++) {
-            ImVec2 c(a.x + (b.x - a.x) * (0.18f + (i % 3) * 0.32f), a.y + (b.y - a.y) * (i < 3 ? 0.3f : 0.72f));
-            if (i < 2) ui_attr_icon(dl, c, s2, K[i]); else ui_skill_icon(dl, c, s2, K[i] - 7);
-        }
-        ui_icon_style_preview(-1); ui_icon_disc = keep;
-    });
 }
 
 /* what things look like (shown among the switches, tab_helpers) */
+/* the text: the game's own lettering, or the new text with all that goes with it (outlined letters,
+   abbreviations spelled out, armor named by where it is worn, faint text darkened, icons beside the
+   skills, the default typeface); only the money's look is a choice of its own */
+extern "C" int hdtext_lettering(int font, const char *s, unsigned char *out, int w, int h);
+extern "C" int hdtext_font_height(int font);
+static void text_look_set(bool fresh)
+{
+    extern int ui_skill_icons, ui_text_contrast;
+    hdtext_set(fresh ? 2 : 0);
+    config_set_int("display.overlay_font_follow", 1); ui_overlay_font_update();
+    ui_spell_out = fresh; config_set_int("display.spell_out", fresh);
+    config_set_int("display.full_names", fresh); config_set_int("display.armour_worn", fresh); gamedata_names();
+    ui_text_edge = fresh ? 2 : 0; config_set_int("display.text_edge", ui_text_edge);
+    ui_skill_icons = fresh; config_set_int("display.skill_icons", fresh);
+    ui_text_contrast = fresh; config_set_int("display.text_contrast", fresh);
+    config_set_int("display.skill_icon_look", 2);
+    ui_dirty_config = 1;
+}
 static void look_text(void)
 {
-    int hm = hdtext_mode;
-    if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
-    if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
-    if (ImGui::RadioButton("The original lettering", hm == 0)) { hdtext_set(0); ui_dirty_config = 1; }
-    if (hm) {
+    static const char *SAMPLE = "The gate of the town stands open.";
+    float cw = fminf((ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) / 2, UIS(360));
+    static const char *L[2] = { "The original lettering", "New text" };
+    int cur = hdtext_mode ? 1 : 0;
+    float ph = cw * 0.36f, ch = ph + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+    for (int j = 0; j < 2; j++) {
+        if (j) ImGui::SameLine();
+        ImGui::PushID(300 + j);
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        if (ImGui::InvisibleButton("tl", ImVec2(cw, ch)) && cur != j) { text_look_set(j != 0); cur = j; }
+        bool hv = ImGui::IsItemHovered();
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), j == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+        float m = cw * 0.04f;
+        ImVec2 a(p.x + m, p.y + m), b(p.x + cw - m, p.y + ph - m * 0.4f);
+        dl->AddRectFilled(a, b, IM_COL32(232, 214, 176, 255), 3);           /* (a card's parchment) */
+        ImU32 ink = IM_COL32(52, 30, 14, 255);
+        if (!j) {   /* the game's own 7-pixel letters (FONTS.FNT, the cards' font), as they look scaled up: each pixel a square */
+            enum { PW = 220, PH = 12 };
+            static unsigned char px[PW * PH]; static int pw = -1, fh;
+            if (pw < 0) { fh = hdtext_font_height(3); if (fh > PH) fh = PH; pw = fh ? hdtext_lettering(3, SAMPLE, px, PW, PH) : 0; }
+            if (pw > 0) {
+                float k = fminf((b.x - a.x) * 0.92f / pw, (b.y - a.y) * 0.5f / fh);
+                ImVec2 o(a.x + ((b.x - a.x) - pw * k) * 0.5f, a.y + ((b.y - a.y) - fh * k) * 0.5f);
+                for (int y = 0; y < fh; y++) for (int x = 0; x < pw; x++)
+                    if (px[y * PW + x]) dl->AddRectFilled(ImVec2(o.x + x * k, o.y + y * k), ImVec2(o.x + (x + 1) * k, o.y + (y + 1) * k), ink);
+            } else dl->AddText(ImVec2(a.x + 8, a.y + 8), ink, "(the game's fonts were not found)");
+        } else {    /* the same words in the new text */
+            ImFont *f = ui_font_game[ui_game_font] ? ui_font_game[ui_game_font] : ImGui::GetFont();
+            float fs = (b.y - a.y) * 0.36f;
+            ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, SAMPLE);
+            if (ts.x > (b.x - a.x) * 0.92f) { fs *= (b.x - a.x) * 0.92f / ts.x; ts = f->CalcTextSizeA(fs, FLT_MAX, 0, SAMPLE); }
+            dl->AddText(f, fs, ImVec2(a.x + ((b.x - a.x) - ts.x) * 0.5f, a.y + ((b.y - a.y) - ts.y) * 0.5f), ink, SAMPLE);
+        }
+        ImVec2 ts = ImGui::CalcTextSize(L[j]);
+        dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), L[j]);
+        ImGui::PopID();
+    }
+    if (cur) {
+        ui_hint("New text: the same words drawn sharp at the window's resolution, outlined over pictures and darkened where faint; "
+                "the character sheet's abbreviations spelled out (wPol: Polearm Wpns), names in full where the game cut them short, "
+                "armor named by where it is worn (Chainmail (body) for V:Chainmail), and icons beside the skills.");
         ImGui::SetNextItemWidth(UIS(380));
-        if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
+        if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {      /* (the picture above follows) */
             for (int i = 0; i < UI_GAME_FONTS; i++) {
                 ImGui::PushFont(ui_font_game[i]);
                 if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); ui_overlay_font_update(); ui_dirty_config = 1; }
@@ -579,59 +739,10 @@ static void look_text(void)
             }
             ImGui::EndCombo();
         }
-        { bool of = config_get_int("display.overlay_font_follow", 1) != 0;
-          if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); ui_overlay_font_update(); ui_dirty_config = 1; } }
-        { bool so = ui_spell_out != 0;
-          if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); ui_dirty_config = 1; } }
-        { bool fn = config_get_int("display.full_names", 1) != 0, aw = config_get_int("display.armour_worn", 1) != 0;
-          if (ImGui::Checkbox("Names in full where the game cut them short (Studded Leather, Illuminated Gospel, St. Gregory Thaumaturgus, Raimundus Lullus' Sunburst)", &fn)) {
-              config_set_int("display.full_names", fn); gamedata_names(); ui_dirty_config = 1; }
-          ImGui::Indent(); if (!fn) ImGui::BeginDisabled();
-          if (ImGui::Checkbox("Armor by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
-              config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
-          if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
-        { bool co = money_coins();
-          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; in a description, a price also shows its total in pfennigs", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
-        ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
-        static const char *E[3] = { "plain", "shadow", "outline" };
-        for (int i = 0; i < 3; i++) {
-            if (i) ImGui::SameLine();
-            if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); ui_dirty_config = 1; }
-        }
-        { extern int ui_skill_icons; bool si = ui_skill_icons != 0;
-          if (ImGui::Checkbox("Small pictures beside the skills of the character sheet", &si)) { ui_skill_icons = si; config_set_int("display.skill_icons", si); ui_dirty_config = 1; } }
-        { extern int ui_text_contrast; bool tc = ui_text_contrast != 0;
-          if (ImGui::Checkbox("Darken (or lighten) faint text against its background", &tc)) { ui_text_contrast = tc; config_set_int("display.text_contrast", tc); ui_dirty_config = 1; } }
-    }
-    ui_hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
-         "the window's resolution; anything it cannot match exactly is left as the game drew it.");
-
-}
-static void look_pictures(void)
-{
-    bool ha = hdart_on;
-    if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
-    {
-        extern char game_dir[1024];
-        int n = hdart_count();
-        extern char dlp_user_dir[];
-        if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else ui_hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
-        static char msg[600];
-        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
-        ImGui::SameLine();
-        if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
-        if (msg[0]) ui_hint("%s", msg);
-        bool sn = hdart_show_names;
-        if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
-        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the "
-             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
-             "to art%soriginal as a template, in its own colors. Whatever the game draws over a picture (text, the "
-             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
-        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
-             "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
-    }
-
+        bool co = money_coins();
+        if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " instead of 1fl 12gr 4pf (florins, groschen, pfennigs)", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; }
+    } else
+        ui_hint("The game's own 7-pixel blackletter, as in 1992: true to the original, and hard to read when scaled up.");
 }
 static void look_ornaments(void)
 {
@@ -683,7 +794,7 @@ static void look_ornaments(void)
                 }
             });
         }
-        ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
+        ui_hint("The band around the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
                 "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
                 "and the frames and buttons are as chosen here.");
     }
@@ -716,45 +827,52 @@ static void look_clock(void)
             dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
             ImGui::PopID();
         }
-        ui_hint("Shown while hours pass (at the inn, waiting, travelling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
+        ui_hint("Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
                 "the game's own clock looks most like an astrolabe, here also drawn anew at the window's resolution.");
     }
 
 }
 
-void tab_display(void)
+/* the setup of the game on this computer: four sections of the Settings page (tab_helpers) */
+static void setup_screen(void)
 {
-    ImGui::BeginChild("##dnav", ImVec2(UIS(170), 0), ImGuiChildFlags_Borders);
-    ImGui::TextDisabled("Sections");
-    for (int k = 0; k < NDSECT; k++) if (ImGui::Selectable(DSECT[k], k == d_top)) d_jump = k;
-    ImGui::EndChild();
-    ImGui::SameLine();
-    ImGui::BeginChild("##dbody", ImVec2(0, 0));
-    d_found = -1; d_view = ImGui::GetWindowPos().y + UIS(30);
-    dsec("Screen");
-    bool s = ui_settings.smooth, n = ui_settings.integer;   /* (the picture is always 4:3, as on a 1992 monitor) */
-    if (ImGui::Checkbox("Smooth scaling", &s)) { ui_settings.smooth = s; config_set_int("display.smooth", s); ui_dirty_config = 1; }
-    if (ImGui::Checkbox("Whole-number scaling (sharpest pixels)", &n)) { ui_settings.integer = n; config_set_int("display.integer_scale", n); ui_dirty_config = 1; }
-    {
-        ImGui::TextUnformatted("Pixel edges:"); ImGui::SameLine();
-        static const char *SC[3] = { "as drawn", "smoothed (Scale2x)", "smoothed more (Scale4x)" };
-        for (int i = 0; i < 3; i++) {
-            if (i) ImGui::SameLine();
-            if (ImGui::RadioButton(SC[i], ui_settings.scaler == i)) { ui_settings.scaler = i; config_set_int("display.scaler", i); ui_dirty_config = 1; }
+    {   /* the game's picture scaled up: three ways, each shown on a piece of the screen now (ui/screenpics.cpp);
+           (the picture is always 4:3, as on a 1992 monitor) */
+        int cur = ui_settings.scaler ? 1 : ui_settings.smooth ? 2 : 0;
+        static const char *L[3] = { "Sharp pixels", "Rounded edges", "Soft" };
+        float cw = fminf((ImGui::GetContentRegionAvail().x - 2 * ImGui::GetStyle().ItemSpacing.x) / 3, UIS(240)), ph = cw * 0.625f, ch = ph + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+        for (int j = 0; j < 3; j++) {
+            if (j) ImGui::SameLine();
+            ImGui::PushID(400 + j);
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("sc", ImVec2(cw, ch))) {
+                ui_settings.scaler = j == 1 ? 2 : 0; ui_settings.smooth = j != 0; ui_settings.integer = 0;
+                config_set_int("display.scaler", ui_settings.scaler); config_set_int("display.smooth", ui_settings.smooth); config_set_int("display.integer_scale", 0);
+                ui_dirty_config = 1; cur = j;
+            }
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), j == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+            float m = cw * 0.04f;
+            if (!screenpics_scaling(dl, ImVec2(p.x + m, p.y + m), ImVec2(p.x + cw - m, p.y + ph - m * 0.4f), j))
+                dl->AddText(ImVec2(p.x + 10, p.y + 10), IM_COL32(246, 236, 214, 255), "(no picture yet)");
+            ImVec2 ts = ImGui::CalcTextSize(L[j]);
+            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), L[j]);
+            ImGui::PopID();
         }
-        ui_hint("Rounds off the stair-steps of diagonal edges in the pictures and sprites without blurring them "
-             ""
-             "Scale4x needs a graphics card: without one (a virtual machine, say) the game slows down.");
+        ui_hint(cur == 0 ? "Every pixel a crisp square, as the game drew it."
+              : cur == 1 ? "The stair-steps of diagonal edges rounded off, without blurring (Scale4x). It needs a graphics card: without one (a virtual machine, say) the game slows down."
+                         : "Blurred a little, as an old monitor would.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
-      if (ImGui::Checkbox("On wide screens, show the date, place, purse, tasks, town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; } }
+      if (ImGui::Checkbox("On wide screens, show the date, place, purse, quests, town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; } }
     {   /* grows with the picture; this scales it */
         static const int P[] = { 70, 80, 90, 100, 115, 130, 150, 175, 200 };
         int cur = config_get_int("display.text_size", 100), sel = 3;
         for (int i = 0; i < 9; i++) if (P[i] == cur) sel = i;
         char lab[16]; snprintf(lab, sizeof lab, "%d%%", P[sel]);
         ImGui::SetNextItemWidth(UIS(160));
-        if (ImGui::BeginCombo("text size in the margins, tooltips and on the map", lab)) {
+        if (ImGui::BeginCombo("text size in the margins, tooltips and place names", lab)) {
             for (int i = 0; i < 9; i++) { char t[16]; snprintf(t, sizeof t, "%d%%", P[i]); if (ImGui::Selectable(t, i == sel)) { config_set_int("display.text_size", P[i]); ui_dirty_config = 1; } }
             ImGui::EndCombo();
         }
@@ -769,191 +887,190 @@ void tab_display(void)
         ImGui::SetNextItemWidth(UIS(260));
         if (ImGui::Combo("size of these menus (after a restart)", &sel, N, 7)) { config_set_int("display.ui_scale", P[sel]); ui_dirty_config = 1; }
     }
-    { bool ir = idle_rest != 0;
-      if (ImGui::Checkbox("Let the computer rest while the game waits for a click or a key (less CPU, quieter fans)", &ir)) { idle_rest = ir; config_set_int("display.idle_rest", ir); ui_dirty_config = 1; } }
     { bool pu = config_get_int("display.pause_unfocused", 1) != 0;
       if (ImGui::Checkbox("Pause the game while its window is in the background", &pu)) { config_set_int("display.pause_unfocused", pu); ui_dirty_config = 1; } }
-    {   /* the opening at start (mods/opening.c): the first start plays it whole */
-        static const char *N[] = { "nothing: straight to the start screen", "the last scene: the lady of the Darklands and her welcome", "the whole opening (a click skips to the lady's welcome)" };
-        int m = opening_mode();
-        ImGui::SetNextItemWidth(UIS(420));
-        if (ImGui::Combo("at start-up", &m, N, 3)) { opening_set_mode(m); ui_dirty_config = 1; }
-        ImGui::SameLine(); ImGui::TextDisabled(m == 2 ? "(a click skips to the welcome, another to the start screen)" : "(a key or a click ends it)");
-    }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    dsec("Sound");
-    {   /* Darklands was composed for the MT-32: while it isn't heard, say so first, plainly, with the way to it */
-        const char *dv = config_get("sound.device", "auto");
-        bool on_mt32 = (!strcmp(dv, "auto") || !strcmp(dv, "mt32")) && mt32_available();
-        if (!on_mt32 && strcmp(dv, "midi")) {
-            ImVec2 a = ImGui::GetCursorScreenPos(); float w = ImGui::GetContentRegionAvail().x;
-            ImGui::GetWindowDrawList()->ChannelsSplit(2); ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
-            ImGui::Indent(UIS(14)); ImGui::Dummy(ImVec2(0, UIS(4)));
-            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 30, 16, 255));
-            ImGui::TextWrapped("You are not hearing Darklands as it was composed.");
-            ImGui::PopStyleColor();
-            ImGui::TextWrapped("Its music and battle sounds were written for the Roland MT-32; every other choice below is a lesser version of them. "
-                               "Darklands+ has the MT-32 built in and only needs its two ROM files, which belong to Roland and can't be included.");
-            if (ImGui::Button("Get the MT-32 working...")) ui_show_mt32_help();
-            ImGui::Dummy(ImVec2(0, UIS(4))); ImGui::Unindent(UIS(14));
-            ImGui::GetWindowDrawList()->ChannelsSetCurrent(0);
-            ImVec2 b(a.x + w, ImGui::GetCursorScreenPos().y);
-            ImGui::GetWindowDrawList()->AddRectFilled(a, b, IM_COL32(246, 222, 180, 255), 6);
-            ImGui::GetWindowDrawList()->AddRect(a, b, IM_COL32(150, 60, 30, 255), 6, 0, 2.0f);
-            ImGui::GetWindowDrawList()->ChannelsMerge();
-            ImGui::Spacing();
-        }
+}
+static void setup_intro(void)
+{
+    {   /* the opening at start (mods/opening.c): the first start plays it whole */
+        static const char *N[] = { "None: straight to the start screen", "Only the last scene: the lady of the Darklands and her welcome", "The whole intro" };
+        int m = opening_mode();
+        for (int i = 0; i < 3; i++) if (ImGui::RadioButton(N[i], m == i)) { opening_set_mode(i); ui_dirty_config = 1; }
+        ui_hint("Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead.");
     }
-    /* the devices, in three tiers: the best (the MT-32, as composed), a good one (the Sound Blaster,
-       as most heard it in 1992), and those for history's sake; each to be heard before it is chosen
-       (mods/soundpreview.c: a tune, or a few battle sounds, through that device now) */
+}
+static void setup_sound(void)
+{
+    /* two previews, at the top right of the section: what the sound chosen below sounds like now (the
+       second tune of the overland view, or a few battle sounds), through the device chosen, or the
+       custom pack when it is ticked (mods/soundpreview.c, mods/musicpack.c, mods/sfx.c) */
     const char *cur = config_get("sound.device", "auto");
     bool can_hear = soundpreview_possible() != 0;
-    auto listen = [&](const char *dev) {                  /* the two Listen buttons beside a device */
-        for (int w = 0; w < 2; w++) {
-            ImGui::SameLine();
-            ImGui::PushID(w);
-            bool on = soundpreview_playing(dev, w) != 0;
-            ImGui::BeginDisabled(!can_hear);
-            if (ImGui::SmallButton(on ? "Stop" : w ? "Listen: battle" : "Listen: music")) { if (on) soundpreview_stop(); else soundpreview_start(dev, w); }
-            ImGui::EndDisabled();
-            if (!can_hear && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("With a game under way, outside a battle.");
-            ImGui::PopID();
+    static u32 pack_until; static bool pack_on;
+    static u32 seq_t; static int seq_k = -1;
+    static const int SEQ[] = { 1, 2, 0, 3, 5, 4 };   /* parry, hit, miss, knock-back, bow, death */
+    if (pack_on && plat_ticks_ms() > pack_until) { musicpack_preview(-1); pack_on = false; }
+    if (seq_k >= 0 && plat_ticks_ms() >= seq_t) { sfx_preview(SEQ[seq_k]); seq_t = plat_ticks_ms() + 650; if (++seq_k >= 6) seq_k = -1; }
+    settings_pack_preview = pack_on || seq_k >= 0;
+    {
+        const char *dev = !strcmp(cur, "auto") || !strcmp(cur, "game") ? (mt32_available() ? "mt32" : "fm") : cur;
+        bool off = !strcmp(cur, "off");
+        bool pack_music = musicpack_on && musicpack_versions(20) > 0, pack_sfx = sfx_mode != 0;
+        float bw = ImGui::CalcTextSize("Preview: Battle Sounds").x + ImGui::GetStyle().FramePadding.x * 2;
+        float bm = ImGui::CalcTextSize("Preview: Music").x + ImGui::GetStyle().FramePadding.x * 2;
+        float x = ImGui::GetContentRegionMax().x - bw - bm - ImGui::GetStyle().ItemSpacing.x;
+        ImGui::SetCursorPosX(x);
+        ImGui::BeginDisabled(off || (!can_hear && !pack_music));
+        bool mon = pack_music ? pack_on : soundpreview_playing(dev, 0) != 0;
+        if (ImGui::Button(mon ? "Stop##pm" : "Preview: Music", ImVec2(bm, 0))) {
+            if (mon) { if (pack_on) { musicpack_preview(-1); pack_on = false; } else soundpreview_stop(); }
+            else if (pack_music) { musicpack_preview(20); pack_on = true; pack_until = plat_ticks_ms() + 15000; }
+            else soundpreview_start(dev, 0);
         }
-    };
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::BeginDisabled(off || (!can_hear && !pack_sfx));
+        bool bon = pack_sfx ? seq_k >= 0 : soundpreview_playing(dev, 1) != 0;
+        if (ImGui::Button(bon ? "Stop##pb" : "Preview: Battle Sounds", ImVec2(bw, 0))) {
+            if (bon) { if (seq_k >= 0) seq_k = -1; else soundpreview_stop(); }
+            else if (pack_sfx) { seq_k = 0; seq_t = 0; }
+            else soundpreview_start(dev, 1);
+        }
+        ImGui::EndDisabled();
+        if (!can_hear && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("A preview needs a game under way, outside a battle.");
+    }
+    /* the devices, in three tiers: the best (the MT-32, as composed), an OK one (the Sound Blaster,
+       as most heard it in 1992), and those for history's sake */
     auto device = [&](const char *id, const char *title, const char *what, bool chosen) {
         ImGui::PushID(id);
         if (ImGui::RadioButton(title, chosen)) { config_set("sound.device", id); ui_dirty_config = 1; }
-        if (strcmp(id, "off") && strcmp(id, "game")) listen(id);
         if (what) { ImGui::Indent(UIS(30)); ui_hint("%s", what); ImGui::Unindent(UIS(30)); }
         ImGui::PopID();
     };
     auto tier = [&](const char *t) { ImGui::Spacing(); ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
     tier("Best");
-    device("mt32", "Roland MT-32 (emulated)", "The music and the battle sounds as composed. Needs the synthesizer's two ROM files; until they are found, the Sound Blaster plays.",
+    device("mt32", "Roland MT-32", "The synthesizer Darklands was composed for: the music and the battle sounds as intended.",
            !strcmp(cur, "mt32") || !strcmp(cur, "auto"));
-    if (!strcmp(cur, "auto") || !strcmp(cur, "mt32") || !strcmp(cur, "midi")) {
+    {
         ImGui::Indent(UIS(30));
-        ui_hint("%s", mt32_status());
-        static char romdir[1024]; static bool init;
-        if (!init) { snprintf(romdir, sizeof romdir, "%s", config_get("sound.mt32_roms", "")); init = true; }
-        ImGui::SetNextItemWidth(UIS(420));
-        if (ImGui::InputTextWithHint("##mt32roms", "the folder with the ROM files, if they are elsewhere", romdir, sizeof romdir)) { config_set("sound.mt32_roms", romdir); ui_dirty_config = 1; }
-        ImGui::SameLine();
-        if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
-        if (mt32_families() == 3) {                /* both: which one */
-            const char *m = config_get("sound.mt32_model", "mt32");
-            if (ImGui::RadioButton("MT-32 (the battle sounds as blows and grunts, as composed)", !strcmp(m, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-            if (ImGui::RadioButton("CM-32L / LAPC-I, a curiosity (chimes and odd noises for the battle sounds)", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+        bool roms = mt32_available() != 0;
+        static bool more;
+        if (!roms) {      /* the one thing that pokes out: in red, a click for the rest */
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(170, 30, 20, 255));
+            if (ImGui::Selectable(more ? "MT-32 ROMs not found (click to close)" : "MT-32 ROMs not found (click for how to get it working)", more, 0, ImVec2(ImGui::CalcTextSize("MT-32 ROMs not found (click for how to get it working)").x, 0))) more = !more;
+            ImGui::PopStyleColor();
         }
-        {   bool lcd = config_get_int("sound.mt32_lcd", 1);
-            if (ImGui::Checkbox("Show the synthesizer's display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
-        if (ImGui::TreeNode("A real MT-32, or another synthesizer, on a MIDI output")) {
-            device("midi", "MIDI out", "A real MT-32 on a MIDI interface, or Munt installed as a MIDI device. A General MIDI synthesizer (Windows' own) plays the wrong instruments.", !strcmp(cur, "midi"));
+        if (roms) { ImGui::SetNextItemOpen(more); more = ImGui::TreeNode("MT-32 details"); if (more) ImGui::TreePop(); }
+        if (more) {
+            ImGui::Indent(UIS(14));
+            if (!roms) {
+                ImGui::TextWrapped("The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it, and every other choice here is a "
+                                   "lesser version. Darklands+ has it built in (the Munt emulator) and only needs the synthesizer's two ROM files, which belong to Roland "
+                                   "and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays.");
+                if (ImGui::Button("Where to find them...")) ui_show_mt32_help();
+            } else ui_hint("%s", mt32_status());
+            static char romdir[1024]; static bool init;
+            if (!init) { snprintf(romdir, sizeof romdir, "%s", config_get("sound.mt32_roms", "")); init = true; }
+            ImGui::SetNextItemWidth(UIS(420));
+            if (ImGui::InputTextWithHint("##mt32roms", "the folder with the ROM files", romdir, sizeof romdir)) { config_set("sound.mt32_roms", romdir); ui_dirty_config = 1; }
+            ImGui::SameLine();
+            if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
+            ui_hint("Darklands+ finds them by their contents, whatever their names, in that folder and in:");
+            for (int i = 0; i < mt32_dir_count(); i++) ui_hint("    %s", mt32_dir(i));
+            if (mt32_families() == 3) {                /* both: which one */
+                const char *m = config_get("sound.mt32_model", "mt32");
+                if (ImGui::RadioButton("MT-32 (the battle sounds as blows and grunts, as composed)", !strcmp(m, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                if (ImGui::RadioButton("CM-32L / LAPC-I, a curiosity (chimes and odd noises for the battle sounds)", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            }
+            {   bool lcd = config_get_int("sound.mt32_lcd", 1);
+                if (ImGui::Checkbox("Show the synthesizer's little display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
+            device("midi", "Through a MIDI output instead", "For a synthesizer plugged into the computer (an MT-32 itself, or Munt installed as a MIDI device). "
+                   "A General MIDI synthesizer, such as Windows' own, plays the wrong instruments.", !strcmp(cur, "midi"));
             if (!strcmp(cur, "midi")) {
                 int n = mpu_out_count();
                 const char *out = config_get("sound.midi_out", "");
-                if (!n) ui_hint("No MIDI outputs on this system (Windows lists them here).");
+                if (!n) ui_hint("No MIDI outputs on this system.");
                 else {
                     ImGui::SetNextItemWidth(UIS(420));
-                    if (ImGui::BeginCombo("MIDI output", out[0] ? out : "Windows' default")) {
-                        if (ImGui::Selectable("Windows' default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
+                    if (ImGui::BeginCombo("MIDI output", out[0] ? out : "the system's default")) {
+                        if (ImGui::Selectable("the system's default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
                         for (int i = 0; i < n; i++) { const char *nm = mpu_out_name(i); if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); ui_dirty_config = 1; } }
                         ImGui::EndCombo();
                     }
                 }
             }
-            ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("About the MT-32")) {
-            ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own instruments into the synthesizer and plays the music "
-                               "and the battle sounds with them. Munt's emulator is built into Darklands+, but it needs the synthesizer's two ROM images (control and PCM), "
-                               "which belong to Roland and cannot come with Darklands+. If you use Munt or DOSBox with an MT-32 you already have them: Darklands+ finds "
-                               "them by their contents (any file names) in these folders:");
-            for (int i = 0; i < mt32_dir_count(); i++) ui_hint("%s", mt32_dir(i));
-            ImGui::TreePop();
+            ImGui::Unindent(UIS(14));
         }
         ImGui::Unindent(UIS(30));
     }
-    tier("Good");
-    device("fm", "Sound Blaster Pro (FM, emulated)", "What most players heard in 1992: the score arranged for an FM chip, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
+    tier("OK");
+    device("fm", "Sound Blaster Pro", "What most players heard in 1992: the score arranged for an FM chip, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
     tier("For history's sake");
-    device("adlib", "AdLib (the older FM chip)", "Much the same music; the battle sounds are FM noises too.", !strcmp(cur, "adlib"));
+    device("adlib", "AdLib (the older FM card)", "Much the same music; the battle sounds are FM noises too.", !strcmp(cur, "adlib"));
     device("speaker", "PC speaker", "Beeps.", !strcmp(cur, "speaker"));
     device("game", "As the game's own setup says (INSTALL)", 0, !strcmp(cur, "game"));
     device("off", "Off", 0, !strcmp(cur, "off"));
-    ui_hint("A change is heard from the next battle, or the next start. The game has no Tandy driver.");
+    ui_hint("A change is heard from the next battle, or the next start.");
     {
         int v = sound_music_volume;
         ImGui::SetNextItemWidth(UIS(260));
         if (ImGui::SliderInt("Volume of the music", &v, 0, 150, "%d%%")) { sound_music_volume = v; config_set_int("sound.music_volume", v); ui_dirty_config = 1; }
     }
 
-    /* the packs: recordings in place of the synthesizer's music, or of the battle sounds; each to be heard */
+    /* custom packs: recordings in place of the synthesizer's music, or of the battle sounds (folded away) */
     ImGui::Spacing();
-    tier("Sound packs");
     extern char dlp_user_dir[];
-    {   /* music packs (mods/musicpack.c) */
-        static u32 pack_until; static bool pack_on;
-        if (pack_on && plat_ticks_ms() > pack_until) { musicpack_preview(-1); pack_on = false; }
-        bool mp = musicpack_on;
-        if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); ui_dirty_config = 1; }
-        int n = musicpack_count(), first = musicpack_first_piece();
-        ImGui::SameLine(); ImGui::BeginDisabled(first < 0);
-        if (ImGui::SmallButton(pack_on ? "Stop##mp" : "Listen##mp")) { if (pack_on) { musicpack_preview(-1); pack_on = false; } else { musicpack_preview(first); pack_on = true; pack_until = plat_ticks_ms() + 15000; } }
-        ImGui::EndDisabled();
-        if (n) {
-            const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
-            ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
-        }
-        else ui_hint("No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, \"11 market.ogg\"). "
-                     "Darklands+ comes with none.", dlp_user_dir, PATH_SEP);
-        if (ImGui::TreeNode("The pieces")) {
-            ui_hint("A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). "
-                    "Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent.");
-            for (int k = 8; k <= 47; k++) {
-                const char *f = musicpack_file(k), *d = musicpack_desc(k);
-                const char *bn = f + strlen(f); while (bn > f && bn[-1] != '/' && bn[-1] != '\\') bn--;
-                ui_hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
-                if (f[0]) { ImGui::SameLine(); int nv = musicpack_versions(k); if (nv > 1) ImGui::Text("  %s and %d more, in turn", bn, nv - 1); else ImGui::Text("  %s", bn); }
+    if (ImGui::TreeNode("Custom sound packs")) {
+        ui_hint("Recordings that replace the synthesizer's music or battle sounds. Darklands+ comes with none; the previews above play them when ticked.");
+        {   /* music packs (mods/musicpack.c) */
+            bool mp = musicpack_on;
+            if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); ui_dirty_config = 1; }
+            int n = musicpack_count();
+            if (n) {
+                const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
+                ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
             }
-            if (ImGui::SmallButton("Look again##music")) musicpack_reload();
-            ImGui::TreePop();
+            else ui_hint("No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, \"11 market.ogg\").", dlp_user_dir, PATH_SEP);
+            if (ImGui::TreeNode("The pieces")) {
+                ui_hint("A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). "
+                        "Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent.");
+                for (int k = 8; k <= 47; k++) {
+                    const char *f = musicpack_file(k), *d = musicpack_desc(k);
+                    const char *bn = f + strlen(f); while (bn > f && bn[-1] != '/' && bn[-1] != '\\') bn--;
+                    ui_hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
+                    if (f[0]) { ImGui::SameLine(); int nv = musicpack_versions(k); if (nv > 1) ImGui::Text("  %s and %d more, in turn", bn, nv - 1); else ImGui::Text("  %s", bn); }
+                }
+                if (ImGui::SmallButton("Look again##music")) musicpack_reload();
+                ImGui::TreePop();
+            }
         }
+        {   /* battle sounds packs (mods/sfx.c) */
+            ImGui::Spacing();
+            bool sp = sfx_mode, hs = sfx_added_hits;
+            if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
+            int n = sfx_user_count();
+            if (n) ui_hint("%d sound%s in %s%ssounds; the built-in ones for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+            else ui_hint("Recorded blows, parries and cries in place of the synthesizer's (built in; or a pack in %s%ssounds, or the \"Battle sounds\" mod).", dlp_user_dir, PATH_SEP);
+            if (sp) {
+                ImGui::Indent(UIS(30));
+                if (ImGui::Checkbox("A sound for every blow that hits (the original game plays none for an ordinary hit, only for misses, parries and falls)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
+                int v = sfx_volume;
+                ImGui::SetNextItemWidth(UIS(260));
+                if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }
+                static char msg[400];
+                if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sound%s found.", sfx_user_count(), sfx_user_count() == 1 ? "" : "s"); }
+                if (msg[0]) ui_hint("%s", msg);
+                ImGui::Unindent(UIS(30));
+            }
+            if (ImGui::TreeNode("File names for a sound pack")) {
+                for (int k = 0; k < SFX_COUNT; k++) ui_hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
+                ui_hint("Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random.");
+                ImGui::TreePop();
+            }
+        }
+        ImGui::TreePop();
     }
-    {   /* battle sounds packs (mods/sfx.c) */
-        static u32 seq_t; static int seq_k = -1;
-        static const int SEQ[] = { 1, 2, 0, 3, 5, 4 };   /* parry, hit, miss, knock-back, bow, death */
-        if (seq_k >= 0 && plat_ticks_ms() >= seq_t) { sfx_preview(SEQ[seq_k]); seq_t = plat_ticks_ms() + 650; if (++seq_k >= 6) seq_k = -1; }
-        ImGui::Spacing();
-        bool sp = sfx_mode, hs = sfx_added_hits;
-        if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
-        ImGui::SameLine();
-        if (ImGui::SmallButton(seq_k >= 0 ? "Stop##sfx" : "Listen##sfx")) { if (seq_k >= 0) seq_k = -1; else { seq_k = 0; seq_t = 0; } }
-        int n = sfx_user_count();
-        if (n) ui_hint("%d sound%s in %s%ssounds; the built-in ones for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else ui_hint("Recorded-style blows, parries and cries in place of the synthesizer's (built in; or a pack in %s%ssounds, or the \"Battle sounds\" mod).", dlp_user_dir, PATH_SEP);
-        if (sp) {
-            ImGui::Indent(UIS(30));
-            if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
-            int v = sfx_volume;
-            ImGui::SetNextItemWidth(UIS(260));
-            if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }
-            static char msg[400];
-            if (ImGui::Button("Look again##sfx")) { sfx_reload(); snprintf(msg, sizeof msg, "%d sound%s found.", sfx_user_count(), sfx_user_count() == 1 ? "" : "s"); }
-            if (msg[0]) ui_hint("%s", msg);
-            ImGui::Unindent(UIS(30));
-        }
-        if (ImGui::TreeNode("File names for a sound pack")) {
-            for (int k = 0; k < SFX_COUNT; k++) ui_hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
-            ui_hint("Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random.");
-            ImGui::TreePop();
-        }
-    }
-    dsec("Saves");
-    saves_prefs();
-    d_top = d_found < 0 ? 0 : d_found;
-    ImGui::EndChild();
 }
 

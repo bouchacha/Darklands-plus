@@ -727,6 +727,26 @@ static void merge_runs(void)
     hdtext_nruns = n;
 }
 
+/* the game's own lettering of s in font f (1-based, as FONTS.FNT: 3 the cards'), one byte a pixel
+   (1 ink) into out (w x h), for the settings' picture of it; the width drawn, 0 without the fonts */
+int hdtext_lettering(int f, const char *s, unsigned char *out, int w, int h)
+{
+    static int tried; if (!nfnt && !tried) { tried = 1; load_fonts(); }
+    if (f < 1 || f > nfnt) return 0;
+    const Fnt *F = &fnt[f - 1];
+    memset(out, 0, (size_t)w * h);
+    int x = 0;
+    for (; *s; s++) {
+        int c = (unsigned char)*s, gw = glyph_w(F, c);
+        for (int yy = 0; yy < F->height && yy < h; yy++)
+            for (int xx = 0; xx < gw && x + xx < w; xx++) if (glyph_bit(F, c, xx, yy)) out[yy * w + x + xx] = 1;
+        x += gw + F->cspace;
+        if (x >= w) break;
+    }
+    return x < w ? x : w;
+}
+int hdtext_font_height(int f) { return f >= 1 && f <= nfnt ? fnt[f - 1].height : 0; }
+
 void hdtext_set(int mode) { hdtext_mode = mode; config_set_int("display.crisp_text", mode); }
 
 void hdtext_init(void)

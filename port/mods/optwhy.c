@@ -16,7 +16,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "battle.scrolling", "The original's view jumps and races, which loses the player's bearings." },
     { "assist.card_helpers", "The original hides the odds and what a card accepts behind Shift and the manual; the game's own numbers, shown." },
     /* screens */
-    { "display.shop_compare", "Comparing a ware with what is worn meant opening the sheet." },
+    { "display.shop_compare", "Comparing a ware with what is equipped meant opening the sheet." },
     { "display.native_panel", "The original panel shows bars without numbers." },
     { "display.panel_picture", "A matter of taste: portrait, sprite or crest." },
     { "display.tooltip_delay", "A matter of taste." },
@@ -38,10 +38,10 @@ static const struct { const char *key, *why; } WHY[] = {
     { "display.native_info", "The original shows one town's reputation at a time." },
     { "display.native_march", "The original sets the order by clicking each member in turn." },
     { "display.native_enemyinfo", "The original Enemy Info is one enemy at a time, without armor or weapons." },
-    { "display.native_mapmsg", "The travel map's messages were in the old style among the new screens." },
+    { "display.native_mapmsg", "The overland view's messages were in the old style among the new screens." },
     { "display.native_saves", "The original lists only nine saves, without their place or party." },
     /* the party and its items */
-    { "inventory.shared", "Juggling items between members is busywork the original enforces only through weight; the pack keeps what is worn counting." },
+    { "inventory.shared", "Moving spare items from member to member is busywork; with one pack for the party, each member's equipped items still count toward their load." },
     { "store.shared", "A store room per town made stored items as good as lost." },
     { "assist.inn_earn", "A rested member relaxing gains nothing; earning was the better choice the player always had to make by hand." },
     { "assist.best_leader", "The original tests only the leader, so the player swaps leaders before each card by hand." },
@@ -60,14 +60,9 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.infinite_ammo", "Counting arrows is bookkeeping, not play; enemies still run out." },
     { "assist.infinite_thrown", "The same for thrown weapons." },
     { "assist.loot_all", "Taking or sharing the whole loot was one click per item." },
-    { "party.new_member_looks", "In the original every member looks the same and cannot be told apart in battle." },
-    { "party.keep_looks", "A member rejoining lost their looks." },
-    { "party.more_figures", "Four party sprites are few; the enemies' human sprites fit." },
-    { "party.figure_picker", "Choosing among many sprites needs to see them." },
     { "rules.aging", "Creation ages characters but play does not, so old characters were free; this keeps age a cost." },
     { "assist.loss_alerts", "Permanent losses happen silently in the original." },
     { "assist.more_jobs", "Jobs written into the game's tables and never offered." },
-    { "assist.stairs_together", "The original moves only whoever stands on the stairs." },
     /* battles */
     { "battle.pause_down", "(part of Pauses in battle)" },
     { "battle.pause_hurt", "(part of Pauses in battle)" },
@@ -97,24 +92,19 @@ static const struct { const char *key, *why; } WHY[] = {
     { "battle.foes_left", "Easier: knowledge the party could not have." },
     { "assist.level_map", "Dungeons and castles are hard to find one's way in without a map." },
     { "assist.level_map_all", "Easier: the parts not yet seen." },
-    { "assist.level_map_walk", "Walking across a level is many clicks." },
     { "fix.pathfinding", "The original's wall-following gets members stuck in mines and long rooms." },
     { "battle.speed", "A matter of taste: the original's battles are slow on today's machines' timing." },
-    { "battle.fast_key", "Battles already won take long to finish." },
+    { "battle.fast_key", "(part of Easier battle controls) Battles already won take long to finish." },
     /* travel */
-    { "travel.auto", "Steering across the map tile by tile is many key presses the player could do by hand." },
+    { "travel.auto", "Steering across the overland view tile by tile is many key presses the player could do by hand." },
     { "travel.fast", "A matter of taste." },
-    { "map.names", "The original map names nothing." },
+    { "map.names", "The original overland view names nothing." },
     { "map.quest_marks", "Where a quest leads was in the player's notes only." },
     { "map.offers_unvisited", "Easier: knowledge the party could not have." },
     { "map.key_m", "The original has no map of the whole land." },
     { "travel.encounters", "Easier: fewer interruptions." },
     { "travel.street_encounters", "Easier: the original's night streets are near-certain ambushes." },
     /* controls, tools, elsewhere */
-    { "assist.wheel_lists", "The mouse wheel did nothing in the original." },
-    { "assist.menu_click", "The original menu bar needs the right button held." },
-    { "input.gamepad", "To play from a couch or a handheld PC." },
-    { "editor.show", "To repair characters hit by old bugs, to cheat, and to edit data for mods." },
     { "display.crisp_text", "The original 7-pixel lettering is hard to read scaled up." },
     { "display.hd_art", "Replacement pictures, for those who make them." },
     { "sound.effects", "A matter of taste." },
@@ -142,6 +132,12 @@ const char *const OPTIONS_RETIRED[] = {
     "map.icon_set",                  /* the world map's place pictures: the seals only */
     "map.boat_style",                /* boat routes: red ink with ships only */
     "display.card_numbers",          /* the card options' key marks: red numerals only */
+    "party.new_member_looks", "party.keep_looks",   /* members' own sprites and colors: always, but in the original game */
+    "party.more_figures", "party.figure_picker",    /* enemy sprites offered, in a picker: always, but in the original game */
+    "assist.level_map_walk",         /* a click on the level map walks there: always, with the map */
+    "assist.stairs_together",        /* the party takes the stairs together: always, but in the original game */
+    "assist.wheel_lists", "assist.menu_click", "input.gamepad",   /* controls: always, but in the original game (the controller always) */
+    "editor.show",                   /* the Editor tab: always, but in the original game */
     0 };
 
 const char *option_why(const Option *o)

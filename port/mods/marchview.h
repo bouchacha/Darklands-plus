@@ -17,7 +17,7 @@ typedef struct {
 
 extern MarchModel march_model;
 
-enum { MV_UP = 1, MV_DOWN, MV_DONE, MV_CANCEL };
+enum { MV_UP = 1, MV_DOWN, MV_DONE, MV_CANCEL, MV_MOVE };   /* MV_MOVE k, b: the k-th dragged to place b */
 /* MV_UP / MV_DOWN k: the k-th in the order a place earlier / later */
 
 void marchview_init(void);

@@ -1,4 +1,4 @@
-// bestiary.cpp - F12 > Guide > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204
+// bestiary.cpp - F12 > New Player Guide > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204
 // bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its
 // attributes, weapon skills, armour (and how hard it is against which weapons), shield and
 // weapons. The numbers can be changed and saved as a mod folder's DARKLAND.ENM; the game reads
@@ -104,7 +104,7 @@ static void details(int ti)
     int hv = hardness(t[0x92]), hl = hardness(t[0x93]);
     static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
     std::string va = item_name(t[0x92], t[0x94], "natural armor"), la = item_name(t[0x93], t[0x95], "natural armor");
-    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armor %dq",
+    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armor quality %d",
                 va.empty() ? "nothing" : va.c_str(), hv, hv >= 0 && hv < 6 ? HN[hv] : "?",
                 la.empty() ? "nothing" : la.c_str(), hl, hl >= 0 && hl < 6 ? HN[hl] : "?", t[0x96]);
     std::string through;
@@ -116,10 +116,10 @@ static void details(int ti)
     }
     ImGui::TextWrapped("Weapons that pierce its body armor: %s", through.empty() ? "none" : through.c_str());
     std::string sh = item_name(t[0x97], t[0x98], "a natural shield");
-    if (!sh.empty()) ImGui::Text("Shield: %s, %dq", sh.c_str(), t[0x99]);
+    if (!sh.empty()) ImGui::Text("Shield: %s, quality %d", sh.c_str(), t[0x99]);
     std::string mw = item_name(t[0x9a], t[0x9b], "a natural missile");
-    if (!mw.empty()) { std::string am = item_name(t[0x9d], t[0x9e], "ammunition"); ImGui::Text("Missile: %s, %dq, %d %s", mw.c_str(), t[0x9c], t[0x9f], am.c_str()); }
-    ImGui::TextWrapped("Melee: %s, %dq", weapons_of(t).c_str(), t[0xac]);
+    if (!mw.empty()) { std::string am = item_name(t[0x9d], t[0x9e], "ammunition"); ImGui::Text("Missile: %s, quality %d, %d %s", mw.c_str(), t[0x9c], t[0x9f], am.c_str()); }
+    ImGui::TextWrapped("Melee: %s, quality %d", weapons_of(t).c_str(), t[0xac]);
 }
 
 void bestiary_tab(void)
@@ -232,7 +232,7 @@ void bestiary_tab(void)
         std::string p = std::string(w) + "/DARKLAND.ENM";
         FILE *f = r < 0 ? nullptr : fopen(p.c_str(), "wb");
         if (!f) msg = "Could not write " + p + ".";
-        else { fwrite(enm.data(), 1, enm.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Settings > Mods) and start the game again."; }
+        else { fwrite(enm.data(), 1, enm.size(), f); fclose(f); msg = "Saved " + p + ". Tick the mod (F12 > Mods) and start the game again."; }
     }
     ImGui::SameLine();
     if (ImGui::Button("Undo all changes##enm")) { enm = orig; msg.clear(); }

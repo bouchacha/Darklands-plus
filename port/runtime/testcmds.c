@@ -54,7 +54,7 @@ int testcmd_run(const char *cmd, const char *arg)
     (void)x; (void)y;
     if (0) {}
         else if (!strcmp(cmd, "ugive")) { int a = 0, b = 0, c = 0; sscanf(arg, "%d,%d,%d", &a, &b, &c); void ui_give(int, int, int); ui_give(a, b, c); }
-        else if (!strcmp(cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Settings > Mods) */
+        else if (!strcmp(cmd, "umods")) { void datamods_scan(void); int encounters_count(void); datamods_scan(); fprintf(stderr, "mods scanned: %d new encounters\n", encounters_count()); }   /* test: "Look for mods again" (F12 > Mods) */
         else if (!strcmp(cmd, "upreset")) { void preset_apply(int); preset_apply(atoi(arg)); void config_save(void); config_save(); fprintf(stderr, "preset %d (saved)\n", atoi(arg)); }   /* test: a preset (0 Buggy Purist, 1 Purist, 2 Purist + interface ...) */
         else if (!strcmp(cmd, "uset")) { char k[64]; int v = 0; if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
         else if (!strcmp(cmd, "uenemyinv")) {          /* test: enemy i's items (far 2e38:0dbe [i-5][16], count at +7e) */
@@ -81,6 +81,7 @@ int testcmd_run(const char *cmd, const char *arg)
             for (int f = 1; f < 16; f++) if (hist[f]) fprintf(stderr, " %d:%d", f, hist[f]);
             fprintf(stderr, "\n");
         }
+        else if (!strcmp(cmd, "uhsect")) { void settings_helpers_jump(const char *); settings_helpers_jump(arg); }   /* test: the Game page at the section named */
         else if (!strcmp(cmd, "udsect")) { void settings_display_jump(int); settings_display_jump(atoi(arg)); }   /* test: the Display page at section N */
         else if (!strcmp(cmd, "ulosall")) {            /* test: from every member to every foe, the game's line test against mods/losaim.c's */
             typedef LosBox B;

@@ -209,7 +209,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `saves.autosave_arrive` | Autosave on arriving | convenience | saves.c, saves.cpp |
 | `saves.autosave_battle` | Autosave before a battle | convenience | saves.c, saves.cpp |
 | `saves.restart_on_end` | Start again at the end | convenience | saves.c, saves.cpp |
-| **Restored cut content** (their own page, F12 > Settings > Restored) | | | |
+| **Restored cut content** (their own page, F12 > Reconstructed Content) | | | |
 | `rules.fehde` | "Fehde!" ambush | experimental | cutcards.c |
 | `rules.hospice` | Town hospice | experimental | cutcards.c, encounters.c, citynav.cpp |
 | `rules.war` | Cities at war | experimental | war.c |

@@ -6,7 +6,7 @@ which ends in an arrest, a march on the town hall or the fortress, and a new (or
 government. Its 19 `$Revol` cards and a dozen helper cards are in the game, written and
 coded. None of it ever happens, because the one routine that starts it is never called.
 
-Darklands+ restores it as an experimental option, off by default: F12 > Settings > Restored
+Darklands+ restores it as an experimental option, off by default: F12 > Reconstructed Content
 (experimental) > **City politics** (`rules.politics`; port/mods/politics.c). This page charts
 what the game has, what was broken or missing, and what Darklands+ wrote or put right. Both
 sides were played through in Dortmund: the rumours, the job offers, the interviews, the

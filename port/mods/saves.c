@@ -211,7 +211,7 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
         if (g_rb(D_SAVE_OK) == 1) do_save("Quicksave");
         else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back)." :
                        g_rb(D_IN_BATTLE) == 1 ? "The game does not allow saving during a battle." :
-                       "The game does not allow saving on this screen: leave it first (saving works on a card, on the travel map or in a town).");
+                       "The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town).");
     } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;

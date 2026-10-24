@@ -3,9 +3,9 @@
 
   soundpack.py OUT [--src AUDIO] [--cache DIR]
 
-OUT becomes a mod folder (put it in Darklands+'s mods folder and tick it in F12 > Settings > Mods):
+OUT becomes a mod folder (put it in Darklands+'s mods folder and tick it in F12 > Mods):
 
-  OUT/mod.txt              the name and description shown in F12 > Settings > Mods
+  OUT/mod.txt              the name and description shown in F12 > Mods
   OUT/sounds/NAME_N.ogg    the battle sounds (miss, parry, hit, knockback, death, bow, gun,
                            burst, magic, ambush, cantgo), several takes of each
   OUT/CREDITS.txt          where every sound comes from, and the licence

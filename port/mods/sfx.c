@@ -38,7 +38,7 @@
 extern char game_dir[1024];
 extern char dlp_user_dir[];
 #define USER_DIR (dlp_user_dir[0] ? dlp_user_dir : game_dir)     /* the player's sounds folder lives here */
-int sfx_mode = 1;               /* 0 the game's own sounds only, 1 a sound pack where it has a sound */
+int sfx_mode = 0;               /* 0 the game's own sounds only, 1 a sound pack where it has a sound */
 int sfx_synth = 0;              /* built-in synthesized sounds for what the pack lacks (experimental) */
 int sfx_volume = 100;
 int sfx_added_hits = 1;         /* hits make a sound too */
@@ -586,7 +586,7 @@ int sfx_export(char *msg, int n)
 void sfx_init(void)
 {
     logon = getenv("DL_SFX_LOG") != 0;
-    sfx_mode = config_get_int("sound.effects", 1);
+    sfx_mode = config_get_int("sound.effects", 0);
     sfx_volume = config_get_int("sound.effects_volume", 100);
     sfx_added_hits = config_get_int("sound.hit_sounds", 1);
     sfx_synth = 0;                  /* (the made-up sounds: no longer offered; a sound the pack lacks is the game's own) */

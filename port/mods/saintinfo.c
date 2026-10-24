@@ -78,7 +78,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Charisma and Perception +1 to 15, Speak Common +10 to 29.",
       "",
       0, 0, 0, 12 },   /* 17 St.Catherine of Siena */
-    { "Charisma +3 to 10. @INSTR, the reputation of the town the party is in (on the map: the nearest) may rise by 20 to 59.",
+    { "Charisma +3 to 10. @INSTR, the reputation of the town the party is in (in the overland view: the nearest) may rise by 20 to 59.",
       "",
       0, 0, 0, 7 },   /* 18 St.Cecilia */
     { "Perception and Intelligence +3 to 5, Strength +6 to 11, every weapon skill and Latin +6 to 11.",
@@ -139,7 +139,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 11 },   /* 37 St.Dorothy of Montau */
     { "Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. For a week no ambush takes the party by surprise (bandits and the like).",
-      "Not in the game: faster travel. Instead, a week safe from ambushes.",
+      "No faster travel; instead, a week safe from ambushes.",
       "The party travels half again as fast for a week. Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39.", "", 0, 1 },   /* 38 St.Drogo */
     { "Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. @ARM1",
       "The text says the quality of all metal armor in the party; the game gives the one prayed for armor one level thicker.",
@@ -148,7 +148,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 2 },   /* 40 St.Dymphna */
     { "Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.",
-      "Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the code counts only part of the purse).",
+      "Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the game counts only part of the purse).",
       "Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.", "", 0, 6 },   /* 41 St.Edward, Confessor */
     { "Artifice +25 to 74, Alchemy +8 to 15.",
       "",
@@ -166,7 +166,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "No reputation in Sweden, which is not in the game.",
       0, 0, 0, 6 },   /* 46 St.Eric */
     { "Riding +10 to 19, Woodwise +40 to 69, Edged, Thrown and Bows +6 to 11.",
-      "Not in the game: faster travel through woods. The weapon skills are only Edged, Thrown and Bows.",
+      "No faster travel through woods, and the weapon skills are only Edged, Thrown and Bows.",
       "The party travels twice as fast through woods and forests for a week. Riding +10 to 19, Woodwise +40 to 69, Edged, Polearms, Thrown, Bows and Missile Devices +15 to 29.", "", 0, 2 },   /* 47 St.Eustace */
     { "Agility +8 to 15, Stealth +40 to 119, Woodwise +10 to 19.",
       "",
@@ -181,7 +181,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land.", "", 0, 3 },   /* 51 St.Florian */
     { "Heals 30% of lost Endurance and 10% of lost Strength. Perception and Endurance +6 to 11, Charisma +15 to 29, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23.",
-      "Not in the game: the Virtue and the loss of cash. Instead Healing, Artifice and Woodwise.",
+      "No Virtue and no loss of money; instead Healing, Artifice and Woodwise.",
       "Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money.", "", 0, 1 },   /* 52 St.Francis */
     { "Intelligence and Perception +10 to 29.",
       "",
@@ -195,11 +195,11 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39.",
       "No Charisma, and only the skills of the weapons in hand, not all weapon skills.",
       "Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11.", "", 0, 0 },   /* 56 St.Gerlac */
-    { "Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step on the map it is carried to the nearest town.",
+    { "Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step in the overland view it is carried to the nearest town.",
       "",
       0, 0, 0, 4 },   /* 57 St.Gertrude o'Nivelles */
     { "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89.",
-      "Woodwise and Streetwise the other way round (the text: a little Streetwise, a tremendous Woodwise); no money.",
+      "Woodwise and Streetwise the other way around (the text: a little Streetwise, a tremendous Woodwise); no money.",
       "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen.", "", 0, 0 },   /* 58 St.Giles */
     { "Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good.",
       "",
@@ -295,7 +295,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Endurance is raised, not spent.",
       "Costs 5 to 9 Endurance (not below 1). Charisma +6 to 11, Perception +8 to 15, Virtue +6 to 17.", "", 0, 53 },   /* 89 St.Lutgardis */
     { "A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength.",
-      "Not in the game: the protection from flames.",
+      "No protection from flames.",
       "Fire protection 90 for the one prayed for. A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength.", "", 1, 3 },   /* 90 St.Margaret */
     { "Heals all lost Endurance and 40% of lost Strength. Healing +20 to 39, Speak Common +10 to 19.",
       "",
@@ -400,7 +400,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 124 St.Thomas the Apostle */
     { "Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19.",
-      "Not in the game: Religion and the reputation at monasteries and universities. Instead Speak Common and Healing.",
+      "No Religion and no reputation at monasteries and universities; instead Speak Common and Healing.",
       "In a town with a monastery or a university, may raise its reputation by 10 to 19. Intelligence +12 to 23, Latin +12 to 26, Read & Write +15 to 29, Religion +25 to 49.", "", 0, 3 },   /* 125 St.Thomas Aquinas */
     { "Heals 10% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Stealth, Healing and Speak Common +6 to 11.",
       "",
@@ -408,14 +408,14 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Heals all lost Endurance and 20% of lost Strength. Charisma +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +10 to 19.",
       "",
       0, 0, 0, 0 },   /* 127 St.Victor o'Marseilles */
-    { "Charisma +10 to 19, Agility +12 to 23. At the party's next step on the map it is carried to the nearest town.",
+    { "Charisma +10 to 19, Agility +12 to 23. At the party's next step in the overland view it is carried to the nearest town.",
       "No Endurance lost.",
-      "Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step on the map it is carried to the nearest town.", "", 0, 40 },   /* 128 St.Vitus */
+      "Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step in the overland view it is carried to the nearest town.", "", 0, 40 },   /* 128 St.Vitus */
     { "May raise the reputation by 15 to 24 in St. Joachimsthal, Bürglitz, Prag, Kuttenberg, Olmütz or Brünn (nowhere else). Perception and Strength +6 to 11, Intelligence +8 to 13, the skills of the weapons in hand +8 to 15, Riding +8 to 15.",
       "No reputation with nobles in its help.",
       0, 0, 0, 3 },   /* 129 St.Wenceslaus */
     { "Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. For a week no ambush takes the party by surprise (bandits and the like).",
-      "Not in the game: faster travel. Instead, a week safe from ambushes.",
+      "No faster travel; instead, a week safe from ambushes.",
       "The party travels twice as fast for a week. Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39.", "", 0, 2 },   /* 130 St.Wilfrid */
     { "Agility +8 to 15, Woodwise +8 to 15, Riding +10 to 19. For a week no ambush takes the party by surprise (bandits and the like).",
       "",
@@ -439,9 +439,9 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
 {
     int arm = fix_is_on("armorday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
     (void)s;
-    if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If the party carries a musical instrument (the shared pack: anyone's counts, whoever is prayed for)" : "If the one prayed for carries a musical instrument";
+    if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If the party carries a musical instrument (with the party's pack (Darklands+), anyone's counts, whoever is prayed for)" : "If the one prayed for carries a musical instrument";
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
-        fire ? "Meant as protection against fire, but the code writes it into the armor, for good (with the fire protection fix on, it does nothing)."
+        fire ? "Meant as protection against fire, but the game adds it to the armor instead, for good (with the fix \"No invulnerability from fire protection\" on, it does nothing)."
              : "Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good.";
     if (!strcmp(tok, "CRISPIN")) return arm ? "Every member's worn armor counts 10 points better in quality."
                                             : "Every member's worn body and leg armor +10 quality, for good, piling up with each prayer.";
@@ -452,7 +452,7 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
     if (!strcmp(tok, "PAUL")) return pauls ? "Heals 10% of lost Strength. Endurance +5 to 9, Charisma +8 to 15, Speak Common +20 to 39, Latin +10 to 19, Read & Write +40 to 79." : "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum.";
     if (!strcmp(tok, "SIMPLE")) return pauls ? "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum." : "Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19.";
     if (!strcmp(tok, "POLYCARP")) return arm ? "Every member: fire protection 90." :
-        fire ? "Every member: fire protection 90 for good (and armor bits the fire protection fix hides)."
+        fire ? "Every member: fire protection 90 for good (and an armor bonus, which the fix \"No invulnerability from fire protection\" cancels)."
              : "Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire).";
     snprintf(buf, n, "?");
     return buf;

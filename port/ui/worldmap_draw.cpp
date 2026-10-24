@@ -370,6 +370,14 @@ void layer_glyph(ImDrawList *dl, ImVec2 c, float s, int which, ImU32 ink)
               dl->AddTriangle(ImVec2(c.x, c.y - h * 1.45f), ImVec2(c.x, c.y + h * 0.05f), ImVec2(c.x + h * 1.05f, c.y - h * 0.1f), IM_COL32(60, 36, 16, 200), 1.0f);
               break; }
     case 3: draw_icon(dl, c, s * 0.9f, 0); break;
+    case 4: {   /* days away: an hourglass */
+              float w = s * 0.34f, h = s * 0.46f; ImU32 sand = IM_COL32(214, 168, 70, 255);
+              dl->AddLine(ImVec2(c.x - w, c.y - h), ImVec2(c.x + w, c.y - h), ink, fmaxf(1.5f, s * 0.08f)); dl->AddLine(ImVec2(c.x - w, c.y + h), ImVec2(c.x + w, c.y + h), ink, fmaxf(1.5f, s * 0.08f));
+              dl->AddTriangleFilled(ImVec2(c.x - w * 0.8f, c.y - h * 0.85f), ImVec2(c.x + w * 0.8f, c.y - h * 0.85f), ImVec2(c.x, c.y), IM_COL32(236, 228, 206, 255));
+              dl->AddTriangleFilled(ImVec2(c.x - w * 0.8f, c.y + h * 0.85f), ImVec2(c.x, c.y), ImVec2(c.x + w * 0.8f, c.y + h * 0.85f), sand);
+              dl->AddTriangle(ImVec2(c.x - w * 0.8f, c.y - h * 0.85f), ImVec2(c.x + w * 0.8f, c.y - h * 0.85f), ImVec2(c.x, c.y), ink, 1.0f);
+              dl->AddTriangle(ImVec2(c.x - w * 0.8f, c.y + h * 0.85f), ImVec2(c.x, c.y), ImVec2(c.x + w * 0.8f, c.y + h * 0.85f), ink, 1.0f);
+              break; }
     }
 }
 void layer_struck(ImDrawList *dl, ImVec2 c, float s)

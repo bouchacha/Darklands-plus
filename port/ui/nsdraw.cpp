@@ -23,7 +23,7 @@ std::string ns_item_line(int id, int q)
     if (!d) return "";
     if (d->type >= 95 && d->type <= 97) {                  /* a shield: its defence, by size and quality (mods/gamemodel.h) */
         if (q < 0) q = d->quality;
-        return "Defence " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
+        return "Defense " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
                " against shots and throws; unusable with a two-handed weapon";
     }
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
@@ -88,7 +88,7 @@ std::string ns_item_compare(int id, int q, int m)
         if (slot(missile ? 0x0e : 0x3d, missile ? 0x46 : 0x44, t, wq) && t <= 62) {
             int cp = rb(G_FAR20A5, (u16)(0x76a8 + t)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + t));
             r += " In hand now: " + name_of(t, wq) + " (damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15) + ", " + std::to_string(wq) + "q).";
-        } else r += missile ? " No missile weapon ready now." : " Nothing in hand now.";
+        } else r += missile ? " No missile weapon equipped." : " Nothing in hand now.";
         return r;
     }
     return "";
@@ -229,7 +229,7 @@ std::string ns_item_use(int id)
     case 0x94: return "A skeleton near a cemetery wants its bone back: give it this and it will talk with you.";
     case 0x95: return "The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure.";
     }
-    if (id >= 129 && id <= 139) return "Wanted by whoever sent you to fetch it: bring it to them (the journal, F12, says who and where).";
+    if (id >= 129 && id <= 139) return "Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where).";
     return "";
 }
 
@@ -258,7 +258,7 @@ std::string ns_potion_effect(int id)
     case 106: if (fix_is_on("oilweapons")) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, as the manual says, " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original") + ";" + day;
               return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
     case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun, as the manual says" : "including bows, guns and fists") + ", for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first.";
-              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the byte holding both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
+              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the one number that holds both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
     case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first.";
     case 109: if (fix_is_on("armorday")) return "Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, as the manual says, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger.";
               return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently: the game never removes it, and doses add up.";
@@ -268,7 +268,7 @@ std::string ns_potion_effect(int id)
         static const char *const AMT[4] = { "9-14, 15-21 or 22-29", "6-11, 8-13 or 10-15", "6-11, 8-13 or 10-15", "6-11, 8-15 or 10-17" };
         int a = id - 111;
         std::string t = std::string("Drunk: ") + ATT[a] + " up by " + AMT[a] + " (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change. ";
-        if (a == 1 || a == 2) t += std::string("On a wounded member it heals: ") + (fix_is_on("blessing") ? "when it wears off, only the part still above the maximum is lost, so the healing stays." : "but when it wears off the game takes the whole amount back, healed or not (the Blessings fix keeps the healed part).");
+        if (a == 1 || a == 2) t += std::string("On a wounded member it heals: ") + (fix_is_on("blessing") ? "when it wears off, only the part still above the maximum is lost, so the healing stays." : "but when it wears off the game takes the whole amount back, healed or not (the Darklands+ fix \"Blessings no longer cost attribute points for good\" keeps the healed part).");
         else t += "When it wears off, what it added is lost.";
         return t + " A second dose while the first is active adds only what goes beyond it.";
     }

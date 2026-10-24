@@ -52,9 +52,11 @@ extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 /* "Go to" in cities (ui/citynav.cpp): G on a city card */
 static bool goto_allowed(void) { return config_get_int("assist.city_goto", 1) && !config_get_int("original", 0) && citynav_available(); }
 extern "C" void ui_open_goto(void) { if (goto_allowed()) { open_goto = true; open_menu = false; open_map = false; } }
+extern "C" int soundpreview_active(void); extern "C" volatile int sound_music_hushed; extern int settings_pack_preview;
+static bool settings_shown;                 /* the Settings tab drawn this frame (the music hushed) */
 static int want_tab = -1;                  /* a page (ui/uitabs.h) to show; kept until its group's tabs have drawn it */
 static int want_frames;
-extern "C" void ui_select_tab(int t) { want_tab = t % 100; want_frames = 0; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
+extern "C" void ui_select_tab(int t) { if (t % 100 == UI_PAGE_DISPLAY) t = UI_PAGE_HELPERS; want_tab = t % 100; want_frames = 0; if (t >= 100) ui_want_subtab = t / 100 - 1; }   /* 100*(sub+1) + page */
 ImFont *font_body, *font_head, *font_tab, *font_tab_small;   /* (ui/ui_windows.cpp too) */
 /* tabs inside a page (the Journal's, Settings' ...): in the smaller face of the window's own
    tabs, under them in the order of things; the page's text in the body face */
@@ -70,6 +72,19 @@ bool ui_subtab(const char *label, bool select)
 {
     ImGui::PushFont(subtab_font ? subtab_font : font_tab_small);
     bool r = ImGui::BeginTabItem(label, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0);
+    ImGui::PopFont(); return r;
+}
+
+/* a page's tab with its picture (ui_page_icon) at the start of the label */
+void ui_page_icon(ImDrawList *dl, ImVec2 c, float s, int page);   /* ui/skillicons.cpp */
+bool ui_subtab_icon(const char *label, bool select, int page)
+{
+    ImGui::PushFont(subtab_font ? subtab_font : font_tab_small);
+    int nsp = (int)ceilf(ImGui::GetFontSize() * 1.3f / fmaxf(1.0f, ImGui::CalcTextSize(" ").x)); if (nsp > 12) nsp = 12;
+    char lab[96]; snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", label, label);
+    bool r = ImGui::BeginTabItem(lab, nullptr, select ? ImGuiTabItemFlags_SetSelected : 0);
+    ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
+    ui_page_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.55f, (a.y + b.y) * 0.5f), fs * 0.62f, page);
     ImGui::PopFont(); return r;
 }
 
@@ -237,12 +252,12 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     options_set_listener(ui_options_reload);
     ui_spell_out = config_get_int("display.spell_out", 1);
     ui_sys_cursor = config_get_int("display.system_cursor", 0);
-    idle_rest = config_get_int("display.idle_rest", 1);
+    idle_rest = 1;                      /* (always: the game waits without spinning; display.idle_rest retired, DL_NO_SPIN_REST for tests) */
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
-        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (darklands_port.log in the game folder says what went wrong). Your saved games are safe: load the latest one from Load in the game (right-click, Game menu) (autosaves are made on arriving in a town and before battles).", 30000);
-        else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the game (right-click, Game menu).", 20000);
+        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (the session log, darklands_port.log, says what went wrong; F12 > About shows where it is). Your saved games are safe: load the latest one with Load in the Game menu (right-click). Autosaves are made on arriving in a town and before battles.", 30000);
+        else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the Game menu (right-click).", 20000);
     }
     halloffame_set_renderer(ren);
     gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
@@ -255,7 +270,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     if (ui_scale != 1.0f) ImGui::GetStyle().ScaleAllSizes(ui_scale);
     ui_settings.aspect = 1;            /* always 4:3: the game was drawn for a 1992 monitor's tall pixels (the square-pixel option distorted it) */
     ui_settings.smooth = config_get_int("display.smooth", 0);
-    ui_settings.integer = config_get_int("display.integer_scale", 0);
+    ui_settings.integer = 0;            /* (display.integer_scale retired: three ways to scale, F12 > Settings) */
     ui_settings.scaler = config_get_int("display.scaler", 0);
 }
 
@@ -284,9 +299,9 @@ extern "C" void ui_toggle_map(void)
     if (open_map) { open_map = false; fprintf(stderr, "world map: closed\n"); return; }
     int gm = game_mode();                                   /* (battles and their loot reuse the places' memory) */
     if (gm != GM_CARD && gm != GM_MAP) {
-        ui_notice(gm == GM_BATTLE ? "The world map can only be opened from the travel map or a card, not in a battle."
-                  : gm == GM_SCREEN ? "The world map can only be opened from the travel map or a card: close this screen first."
-                                    : "The world map can only be opened from the travel map or a card, once a game is under way.");
+        ui_notice(gm == GM_BATTLE ? "The world map can only be opened from the overland view or a card, not in a battle."
+                  : gm == GM_SCREEN ? "The world map can only be opened from the overland view or a card: close this screen first."
+                                    : "The world map can only be opened from the overland view or a card, once a game is under way.");
         return;
     }
     if (worldmap_open()) { open_map = true; if (open_menu) ui_toggle(); open_map = true; fprintf(stderr, "world map: open\n"); }
@@ -391,7 +406,7 @@ static void item_name(int id, char *out, int n)
     g_str((u16)(d >> 16), (u16)d, out, n);
 }
 
-/* F12 > Guide: how the game works, then the reference tables (the weapons, the enemies) */
+/* F12 > New Player Guide: how the game works, then the reference tables (the weapons, the enemies) */
 static void tab_guide_all(void)
 {
     if (!ui_subtabs_begin("guide")) return;
@@ -403,6 +418,10 @@ static void tab_guide_all(void)
 /* F12 > Editor (with the editing tools on): the characters, and the item table for a mod */
 static void tab_editor_all(void)
 {
+    ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "A deep editor, for fixing and modding:");
+    ImGui::SameLine();
+    ImGui::TextWrapped("it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play.");
+    ImGui::Spacing();
     if (!ui_subtabs_begin("editor")) return;
     if (ui_subtab("Characters")) { tab_editor(); ImGui::EndTabItem(); }
     if (ui_subtab("Items (for a mod)")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
@@ -539,7 +558,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
     { void soundpreview_tick(void); soundpreview_tick(); }   /* (mods/soundpreview.c) */
-    { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news); }   /* (ui/screenpics.cpp) */
+    {   /* the music quiet while the settings are open, so that what a preview plays is what is heard */
+        sound_music_hushed = open_menu && settings_shown && !soundpreview_active() && !settings_pack_preview;
+    }
+    { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news);
+      void screenpics_map_frame(int, int); screenpics_map_frame(open_map, open_menu || open_goto || open_help || open_welcome || open_news);
+      void screenpics_land_frame(int); screenpics_land_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news || levelmap_is_open()); }   /* (ui/screenpics.cpp) */
     ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
@@ -549,6 +573,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::PushFont(font_body);
         bool keep = true;
+        settings_shown = false;
         if (ImGui::Begin("Darklands+", &keep, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
             /* the pages (ui/uitabs.h), and the window's tabs: one a page, or a group of them with
                tabs of its own (Settings). The labels in the tabs' face, the smaller one when they
@@ -556,15 +581,16 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
             static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },   /* (Saves, Records: no tab of their own now: the game's Save and Load, the right-click menu; the Guide and the Editor) */
-                { "Game", tab_helpers }, { "Mods", tab_mods }, { "Window, sound and saves", tab_display }, { "Records", tab_guide_all },
-                { "About", tab_about }, { "Editor", tab_editor_all }, { "Guide", tab_guide_all }, { "Restored (experimental)", tab_restored } };
+                { "Improvements", tab_helpers }, { "Mods", tab_mods }, { "Setup", tab_helpers }, { "Records", tab_guide_all },
+                { "About", tab_about }, { "Editor", tab_editor_all }, { "Guide", tab_guide_all }, { "Reconstructed content", tab_restored } };
             struct Group { const char *name; int icon; int page[5]; int n; };
-            static const Group groups[] = {
-                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
-                { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
-                { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS, UI_PAGE_RESTORED, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 5 } };
+            static const Group groups[] = {      /* (one page each: no tabs under tabs) */
+                { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS }, 1 },
+                { "Reconstructed Content", UI_PAGE_RESTORED, { UI_PAGE_RESTORED }, 1 }, { "Mods", UI_PAGE_MODS, { UI_PAGE_MODS }, 1 },
+                { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "New Player Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
+                { "About", UI_PAGE_ABOUT, { UI_PAGE_ABOUT }, 1 } };
             const int NG = (int)(sizeof groups / sizeof groups[0]);
-            auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || (config_get_int("editor.show", 0) && !ui_original_mode()); };
+            auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || !ui_original_mode(); };
             ImFont *tf = font_tab;
             {   /* every label whole, with its picture: the smaller face when the window is narrow */
                 float need = 0, avail = ImGui::GetContentRegionAvail().x;
@@ -585,7 +611,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                     snprintf(lab, sizeof lab, "%.*s%s###%s", nsp, "            ", G.name, G.name);
                     bool open_t = ImGui::BeginTabItem(lab, nullptr, want_sub >= 0 && want_frames == 0 ? ImGuiTabItemFlags_SetSelected : 0);
                     {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax(); float fs = ImGui::GetFontSize();
-                        ui_tab_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, G.icon); }
+                        ui_page_icon(ImGui::GetWindowDrawList(), ImVec2(a.x + UIS(6) + fs * 0.5f, (a.y + b.y) * 0.5f), fs * 0.6f, G.icon); }
+                    if (open_t && G.icon == UI_PAGE_HELPERS) settings_shown = true;
                     if (open_t) {
                         ImGui::PushFont(font_body); ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(UIS(8), UIS(4)));
                         /* the page in a region of its own: a long one scrolls under the tabs, not with them */
@@ -593,7 +620,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                         if (G.n == 1) page(G.page[0]);
                         else if (ui_subtabs_begin(G.name)) {
                             for (int j = 0; j < G.n; j++)
-                                if (ui_subtab(pages[G.page[j]].name, j == want_sub)) { page(G.page[j]); ImGui::EndTabItem(); }
+                                if (ui_subtab_icon(pages[G.page[j]].name, j == want_sub, G.page[j])) { page(G.page[j]); ImGui::EndTabItem(); }
                             ImGui::EndTabBar();
                         }
                         if (want_sub >= 0) want_tab = -1;           /* (drawn, its sub-tab chosen: done) */

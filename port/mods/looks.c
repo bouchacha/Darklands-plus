@@ -33,8 +33,8 @@
  *
  * The figure code is kept where the game keeps it (charactr.tmp, the save's party figures), so
  * saves stay ordinary; a party with these figures needs Darklands+ to show them (the original
- * would stop at the missing pictures). Offering them is switchable (party.more_figures; off in
- * "Play the original game"); a party that has them keeps working either way. */
+ * would stop at the missing pictures). Offered always, but not in
+ * Full Original; a party that has them keeps working either way. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -601,7 +601,7 @@ static Look *look_find(const char *code)
 }
 
 /* ------------------------------------------------------------------ the public side */
-int looks_offered(void) { return config_get_int("party.more_figures", 1) && !config_get_int("original", 0); }
+int looks_offered(void) { return !config_get_int("original", 0); }      /* (always, but in the original game; party.more_figures retired) */
 int looks_count(void) { list_init(); return nlooks; }
 const char *looks_code(int i) { list_init(); return i >= 0 && i < nlooks ? looks[i].code : ""; }
 const char *looks_title(int i) { list_init(); return i >= 0 && i < nlooks ? looks[i].title : ""; }
@@ -698,7 +698,7 @@ static const char *dye_next(int m, int part, int show)
 int figpick_open(int member, int count);                /* (ui) opens it: 1 */
 static int view_file(const char *file, const Look *L, int dir, int maxw, int maxh, u8 *out, int *w, int *h);
 static char pending[4]; static int pending_on;
-int looks_picker_on(void) { return looks_offered() && config_get_int("party.figure_picker", 1); }
+int looks_picker_on(void) { return looks_offered(); }                    /* (party.figure_picker retired) */
 
 /* the figures Select Character Image offers, in its order: the game's list, then these */
 int looks_list(char out[][4], int max)
@@ -819,8 +819,8 @@ static void key_hook(int ovl)
                 Look *L = look_find(now);
                 char msg[160];
                 if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite%s)", k, n, L->title,
-                                L->npart > 2 ? "; the 1st, 2nd and 3rd color buttons recolour it" : L->npart > 1 ? "; the 1st and 2nd color buttons recolour it" :
-                                L->npart ? "; the 1st color button recolours it" : "");
+                                L->npart > 2 ? "; the 1st, 2nd and 3rd color buttons recolor it" : L->npart > 1 ? "; the 1st and 2nd color buttons recolor it" :
+                                L->npart ? "; the 1st color button recolors it" : "");
                 else snprintf(msg, sizeof msg, "Sprite %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);
                 figure_notice(msg);
             }

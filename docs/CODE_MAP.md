@@ -29,13 +29,13 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/native.c` | 35 | native functions the game calls through far pointers (native.h) |
 | `runtime/overrides.c` | 31 | hand-written replacements for the few original routines whose tricks the static recompiler cannot express (listed in port/recomp/overrides.txt). |
 | `runtime/ovl.c` | 199 | RTLink/Plus overlay sections: loaded into memory on demand, as RTLink does. |
-| `runtime/platform_sdl.c` | 1291 | window, screen, input and time on SDL2. |
+| `runtime/platform_sdl.c` | 1357 | window, screen, input and time on SDL2. |
 | `runtime/prepare_run.c` | 154 | the first start of a release (DL_RTSPLIT): the game module is made from the player's DARKLAND.EXE by port/tools/prepare.py (the bundled Python and TinyCC), with a progress window. |
 | `runtime/sb.c` | 218 | the digital half of a Sound Blaster Pro: DSP (ports base+6/A/C/E), 8237 DMA controller and the transfer-complete interrupt. |
-| `runtime/sound.c` | 131 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
+| `runtime/sound.c` | 142 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 414 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 415 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
@@ -49,23 +49,24 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/assist.c` | 371 | playing aids of the native port that watch the game through hooks: |
 | `mods/autopause.c` | 104 | battles pause themselves (as if Space were pressed) when a member of the party falls, or is badly hurt, or when foes waiting in a castle, dungeon or mine come out to fight (a group of the shown floor's activations steps out: their count, DS:d6cc, falls while the floor stays the same; see mods/foesleft.c), so the player can give new orders in time. |
 | `mods/barterview.c` | 319 | the shop screen as a native screen (nscreen.h). |
-| `mods/battleend.c` | 102 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Game > Battles). |
-| `mods/battlerules.c` | 323 | rules of the battles, switches (F12 > Settings > Game > Battles). |
+| `mods/battleend.c` | 102 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
+| `mods/battlerules.c` | 323 | rules of the battles, switches (F12 > Settings > Battles). |
 | `mods/battlescroll.c` | 144 | scrolling the battle map at a pace a person can follow. |
 | `mods/builtin.c` | 190 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
 | `mods/cacheview.c` | 317 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 606 | the card screen drawn by Darklands+ itself. |
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
-| `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Settings > Restored, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
+| `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 409 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 1529 | new encounters written as data. |
 | `mods/enemyview.c` | 118 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
 | `mods/fixes.c` | 2576 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixgroups.c` | 34 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foesleft.c` | 131 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
 | `mods/gamemodel.c` | 285 |  |
 | `mods/hdart.c` | 1058 | replacement art. A picture file PICS\NAME.PIC can be replaced by art\NAME.png of any size (true colour, with transparency); it is drawn at window resolution wherever the game shows that picture, with the game's own pixel |
-| `mods/hdtext.c` | 739 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
-| `mods/infoview.c` | 123 | the party information screen as a native page (display.native_info; the view is ui/infoview.cpp). |
+| `mods/hdtext.c` | 759 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
+| `mods/infoview.c` | 125 | the party information screen as a native page (display.native_info; the view is ui/infoview.cpp). |
 | `mods/keep.c` | 60 | things the player marks "keep": never sold (one by one, Sell spare gear) or dropped by the screens of Darklands+, until unmarked. |
 | `mods/levelwalk.c` | 153 | a click on the level map (Tab, ui/levelmap.cpp) walks the party there. |
 | `mods/lodgeview.c` | 486 | staying at an inn, camping, as a native screen (display.native_lodge; the view is ui/lodgeview.cpp). |
@@ -75,16 +76,16 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/losaim.c` | 105 | battle.los_line: while a member is about to shoot or throw at a foe (the pointer on it, order mode), the line the game tests for a clear shot and what stands across it (ui/battleoverlay.cpp draws them). |
 | `mods/losses.c` | 131 | what is lost for good is told in a window to click through (the game waits): - an attribute's maximum or a skill lowered, by whatever does it (a card, a curse ...): the members' maxima and skills are watched from one moment to the next. |
 | `mods/mapmsg.c` | 73 | the travel map's messages (a robber knight's land, a blighted country ...) as a native box (display.native_mapmsg; the view is ui/mapmsg.cpp). |
-| `mods/marchview.c` | 103 | Change Marching Order as a native dialog (display.native_march; the view is ui/marchview.cpp). |
-| `mods/memberlooks.c` | 109 | characters keep their figure and colours when they rejoin the party (party.keep_looks), and newcomers at an inn get a look of their own (party.new_member_looks). |
+| `mods/marchview.c` | 109 | Change Marching Order as a native dialog (display.native_march; the view is ui/marchview.cpp). |
+| `mods/memberlooks.c` | 109 | characters keep their figure and colours when they rejoin the party (always, but in the original game), and newcomers at an inn get a look of their own. |
 | `mods/menuview.c` | 358 | the game's menu bar (Game, Orders, Attack, Party on the battle field; the menus of the map and the cards) drawn and used by Darklands+ (display.native_menu; "Play the original game" keeps the game's). |
 | `mods/musicpack.c` | 421 | music packs: recordings played in place of the game's synthesizer music. |
 | `mods/nscreen.c` | 235 | the frame for native screens (see nscreen.h). |
 | `mods/offices.c` | 102 | whether a town's task givers have work now, or when again (offices.h). |
-| `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > Window, sound and saves > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
-| `mods/options.c` | 487 | the table of Darklands+'s switches and the presets (options.h). |
-| `mods/optwhy.c` | 154 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
-| `mods/orders.c` | 731 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings > Game; "Play the original game" leaves the game's way). |
+| `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
+| `mods/options.c` | 476 | the table of Darklands+'s switches and the presets (options.h). |
+| `mods/optwhy.c` | 150 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
+| `mods/orders.c` | 731 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; "Play the original game" leaves the game's way). |
 | `mods/pack.c` | 355 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
 | `mods/pathfix.c` | 772 | better pathfinding in battles and dungeons. |
 | `mods/politics.c` | 729 | the political campaign MicroProse wrote and never switched on (docs/cut_politics.md), restored as an experimental option (rules.politics, off in every preset). |
@@ -93,11 +94,11 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/saintinfo.c` | 502 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 434 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
 | `mods/saves.c` | 505 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
-| `mods/savesview.c` | 168 | the game's Save and Load as native dialogs (display.native_saves; "Play the original game" keeps the game's). |
+| `mods/savesview.c` | 169 | the game's Save and Load as native dialogs (display.native_saves; "Play the original game" keeps the game's). |
 | `mods/sfx.c` | 598 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
-| `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings > Game; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
-| `mods/sheetview.c` | 446 | a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp, which draws the whole page anew: the doll from the game's pictures, the things, the stats, the party's saints and formulae). |
-| `mods/soundpreview.c` | 103 | hearing a sound device before choosing it (F12 > Settings > Window, sound and saves): a piece of music, or a few battle sounds, played through that device now, then the chosen one back. |
+| `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
+| `mods/sheetview.c` | 452 | a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp, which draws the whole page anew: the doll from the game's pictures, the things, the stats, the party's saints and formulae). |
+| `mods/soundpreview.c` | 106 | hearing a sound device before choosing it (F12 > Settings): a piece of music, or a few battle sounds, played through that device now, then the chosen one back. |
 | `mods/teachers.c` | 269 | the teachers a town can offer, and the card options that bring them (teachers.h). |
 | `mods/titleview.c` | 126 | the start screen as a native page (display.native_title; the view is ui/titleview.cpp). |
 | `mods/travel.c` | 658 | travelling on the overland map by itself, along roads and over bridges. |
@@ -118,7 +119,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/barterview.cpp` | 418 | draws the shop screen (mods/barterview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/battlelog.cpp` | 347 | what happens in a battle, line by line. |
 | `ui/battleoverlay.cpp` | 422 | drawn over a battle: a bar over each fighter (endurance, and strength once it is down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's weapons), and the fast-forward badge (Z). |
-| `ui/bestiary.cpp` | 240 | F12 > Guide > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204 bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its attributes, weapon skills, armour (and how hard it is against which weapons), shield and weapons. |
+| `ui/bestiary.cpp` | 240 | F12 > New Player Guide > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204 bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its attributes, weapon skills, armour (and how hard it is against which weapons), shield and weapons. |
 | `ui/cacheview.cpp` | 142 | draws the store room (mods/cacheview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/cardhints.cpp` | 40 | why an option of a card is greyed: the cards' scripts (src/c) show some options without letting them be chosen - something done already, the time of day, a fact the party has yet to learn, money - and the game never says which. |
 | `ui/cardview.cpp` | 541 | draws the card screen (mods/cardview.c runs it): the card's picture stays the game's own (with its palette, frame and any replacement art), the text and the options are set here in the chosen typeface, sized to the text block the card file gives for them. |
@@ -131,31 +132,31 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/figures.cpp` | 168 | the figure picker of the creation menus: Select Character Image (S) shows every figure at once (the game's own four and the enemies' fourteen, mods/looks.c), each in the colours the member would have; a click (or Enter) takes one, Esc keeps the old. |
 | `ui/gamedata.cpp` | 274 | see gamedata.h |
 | `ui/gamepics.cpp` | 176 | the game's pictures as textures (see gamepics.h). |
-| `ui/guide.cpp` | 98 | F12 > Guide: how Darklands works, in short, for a new player (the game was sold with a thick manual and does not explain itself). |
+| `ui/guide.cpp` | 134 | F12 > New Player Guide: how Darklands works, in short, for a new player (the game was sold with a thick manual and does not explain itself). |
 | `ui/halloffame.cpp` | 188 | the Honor Roll of Glory, a part of the game MicroProse left unfinished: the picture (pics\hallfame.pic, "Honor Roll of Glory" ... |
 | `ui/hourglass.cpp` | 396 | the game's time-passing clock (the "hourglass" of pass_hours_hourglass, s043 150b:2a04), drawn by the interface wherever a Darklands+ page stands over the game's own: the armillary of TIMER01.PIC with the sun-and-moon disc (TIMER03/04/05.PIC, turned by flipping them as hourglass_frame 150b:2d3a does, one of eight positions for each three hours), and the bell, the day and the month in its boxes. |
 | `ui/infoview.cpp` | 152 | the party information page drawn by Darklands+ (mods/infoview.c runs it): the party's fame and its title, the time and date, where it is and its reputation there, its wealth, and its reputation in every city (sorted by reputation or by name; the city the party is in or nearest marked). |
 | `ui/inventory.cpp` | 646 | the things' pictures, drawn by kind (weapons, armour, ingredients, potions ...) for every screen that lists them; what a thing is good for (ui_item_details: the numbers of a weapon, armour or shield and who in the party could use it); the tidy order of a pack; and giving a thing to another member through the game's own routine (give_stack, s031 18e7:007c: the test command ugive). |
 | `ui/itemedit.cpp` | 137 | F12 > Editor > Items (for a mod): the item list (DARKLAND.LST: 200 records of 46 bytes, then the saints' and formulas' names) as an editable table. |
-| `ui/journal.cpp` | 1036 | the town journal: as the party travels, it notes the towns it reaches (with the shops each one has, from DARKLAND.CTY) and the full stock of every shop whose wares it looks at, with qualities and prices. |
+| `ui/journal.cpp` | 1099 | the town journal: as the party travels, it notes the towns it reaches (with the shops each one has, from DARKLAND.CTY) and the full stock of every shop whose wares it looks at, with qualities and prices. |
 | `ui/levelmap.cpp` | 313 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture. |
 | `ui/libraries.cpp` | 126 | see libraries.h. Which places have a library the party can study in: the saint card ($Learn00, card 0x39) is reached from a town's monastery ($CityM00), its university ($Unive00) and a monastery in the country ($Count04) |
 | `ui/lodgeview.cpp` | 375 | an inn's room or a camp drawn by Darklands+ (mods/lodgeview.c runs it): the members with each one's day, what the chosen member can do (the original's words; greyed with the reason where not), the town's teachers with their fees, what a day costs against the purse, and Spend a day, Until rested and Leave. |
 | `ui/lootview.cpp` | 166 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/mapmsg.cpp` | 43 | a message of the travel map (mods/mapmsg.c runs it) in the cards' style: the text in the game's typeface on parchment over the map, and what goes on. |
-| `ui/marchview.cpp` | 67 | Change Marching Order drawn by Darklands+ (mods/marchview.c runs it): a dialog with the members in their order, each with its figure and buttons to move it up or down; Done keeps the new order, Cancel the old. |
+| `ui/marchview.cpp` | 90 | Change Marching Order drawn by Darklands+ (mods/marchview.c runs it): a dialog with the members in their order, each with its figure and a handle to drag it to its place; Done keeps the new order, Cancel the old. |
 | `ui/margins.cpp` | 875 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
 | `ui/margins_battle.cpp` | 314 | the margins in a battle: the right margin's fighters, their orders as buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of the field when the window has no margin. |
 | `ui/menuview.cpp` | 172 | the game's menu bar drawn by Darklands+ (mods/menuview.c runs it): the bar over the top of the picture, the open menu under its title, a sub-menu beside its item. |
 | `ui/money.cpp` | 124 | see money.h. |
 | `ui/niche.cpp` | 272 | the character sheet's stone niche drawn anew (with the period ornaments): the game's ARMSBACK.PIC (136 x 170) at the window's resolution. |
 | `ui/nsdraw.cpp` | 536 | see nsdraw.h |
-| `ui/optpreview.cpp` | 110 | small pictures of what a switch in the settings does: the same little scene drawn with it off and on, side by side under the switch (ui/settings.cpp option_row). |
+| `ui/optpreview.cpp` | 198 | small pictures of what a switch in the settings turns on, up to four in a row under the switch, each with a word (ui/settings.cpp option_row). |
 | `ui/ordericons.cpp` | 258 | the pictures on the battle's order buttons (ui/margins.cpp: the game's Orders and Attack menus as buttons): a sword for Std Attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender ... |
 | `ui/ornament.cpp` | 544 | the period ornaments (ornament.h) |
-| `ui/overlay.cpp` | 750 | things the port draws over the running game when the Darklands+ menu is closed: the chances of success next to card options (mods/assist.c computes them). |
+| `ui/overlay.cpp` | 791 | things the port draws over the running game when the Darklands+ menu is closed: the chances of success next to card options (mods/assist.c computes them). |
 | `ui/overlay_text.cpp` | 490 | crisp text over the game's own screens (mods/hdtext.c finds the game's text runs; here they are drawn again at the window's resolution in the chosen typeface, with the abbreviations spelled out and the skills' pictures), the chances beside the original cards' options, and the pointer drawn live. |
-| `ui/padglyphs.cpp` | 165 | a game controller's buttons drawn on screen (padglyphs.h) |
+| `ui/padglyphs.cpp` | 180 | a game controller's buttons drawn on screen (padglyphs.h) |
 | `ui/party.cpp` | 30 | a short word on what each attribute and skill is for (the character sheet's Skills page shows it under the pointer, with the whole party's values). |
 | `ui/partypanel.cpp` | 483 | the party panel drawn by Darklands+ (display.native_panel; "Play the original game" keeps the game's). |
 | `ui/prayview.cpp` | 119 | the prayer screen drawn by Darklands+ (mods/prayview.c runs it): the saint's statue, legend and what the saint does, the favor to spend with - and +, the chance of success, and Pray (for a member, when the saint helps one) or Don't pray. |
@@ -167,20 +168,20 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/rosterview.cpp` | 259 | the party of a new game, drawn by Darklands+ (mods/rosterview.c runs it). |
 | `ui/rules.cpp` | 260 | game rules as data. The weapon numbers live in tables of the game's code (far segment 20a5, read by the battle module s014: skill used, time for a blow, hands and penetration, damage, skill and strength wanted, reload ti |
 | `ui/saints.cpp` | 242 | the saints as Darklands+ tells them (the character sheet's Saints, the prayer screen, the tooltips): where a description's legend ends and its promise begins, the game's description with what the help really does (mods/saintinfo.h), whether encounters call on a saint; and the blessings and potions at work now and how long they last (effects_now: the margin's "In force"). |
-| `ui/saves.cpp` | 123 | the saves' preferences (F12 > Settings > Window, sound and saves); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in it and its comment, newest first; load or delete any of them; quick save / quick load and the autosave settings (mods/saves.c does the work through the game's own routines). |
-| `ui/savesview.cpp` | 161 | the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the comment to save under, and the saves there are, newest first, each with its comment, where and when in the game, who, the purse and how long ago it was written. |
-| `ui/screenpics.cpp` | 88 | pictures of the new screens from the player's own game, for the settings' "New screens" switch: the first time a card, a shop, a character sheet, the inn and the alchemy screen have stood still on screen for a moment (no window of Darklands+'s over them), the whole window is kept, small, in <data>/previews/<name>.png. |
-| `ui/settings.cpp` | 959 | the Darklands+ window's settings pages (F12): Mods, Helpers and Display. |
-| `ui/sheetview.cpp` | 1020 |  |
-| `ui/skillicons.cpp` | 261 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
+| `ui/saves.cpp` | 123 | the saves' preferences (F12 > Settings); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in it and its comment, newest first; load or delete any of them; quick save / quick load and the autosave settings (mods/saves.c does the work through the game's own routines). |
+| `ui/savesview.cpp` | 171 | the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the comment to save under, and the saves there are, newest first, each with its comment, where and when in the game, who, the purse and how long ago it was written. |
+| `ui/screenpics.cpp` | 210 | pictures of the new screens from the player's own game, for the settings' "New screens" switch: the first time a card, a shop, a character sheet, the inn and the alchemy screen have stood still on screen for a moment (no window of Darklands+'s over them), the whole window is kept, small, in <data>/previews/<name>.png. |
+| `ui/settings.cpp` | 1076 | the Darklands+ window's settings pages (F12): Mods, Helpers and Display. |
+| `ui/sheetview.cpp` | 1033 |  |
+| `ui/skillicons.cpp` | 351 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
 | `ui/teachersui.cpp` | 142 | the teachers a town can offer, as shown (ui/teachersui.h). |
 | `ui/titleview.cpp` | 110 | the start screen, drawn by Darklands+ (mods/titleview.c runs it): laid out as the game lays out a card, the words on the parchment at the left and a picture at the right (the castle at dusk the game shows on the road to a town, pics\aproch1.pic), the Darklands lettering of the original start screen (pics\startscr.pic) cut from its stone. |
 | `ui/townicons.cpp` | 383 | see townicons.h. Drawn with ImGui's shapes (pen.h) in the manner of the quests' pictures: bold shapes with an ink outline, readable at the size of a line of text. |
 | `ui/travel.cpp` | 37 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen). |
-| `ui/ui.cpp` | 690 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
+| `ui/ui.cpp` | 717 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
 | `ui/ui_windows.cpp` | 422 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
-| `ui/worldmap.cpp` | 1005 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
-| `ui/worldmap_draw.cpp` | 476 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
+| `ui/worldmap.cpp` | 1067 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
+| `ui/worldmap_draw.cpp` | 484 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
 
 ## tools
 
@@ -194,6 +195,7 @@ Tools: tests, checks, the harness.
 | `tools/bin2c.py` | 13 | bin2c.py OUT.c NAME=FILE ...: embed files as const byte arrays (NAME, NAME_SIZE). |
 | `tools/check_switches.py` | 24 | check_switches.py OLD.md NEW.md - fails if a switch key in OLD (docs/SWITCHES.md as committed) is missing from NEW (as the game now writes it) without being listed under "Retired keys" there: a switch's key is its name for good (saved settings, presets and other engines know it by it). |
 | `tools/code_map.py` | 38 | writes docs/CODE_MAP.md: every source file of the port with the first sentence of its header comment (each file starts with one saying what it is), by folder, with its size. |
+| `tools/copy_catalog.py` | 61 | every text a player can read that Darklands+ itself writes (not the game's own), by file and line: docs/COPY.md. |
 | `tools/encfuzz.py` | 48 | encfuzz.py ENCCHECK [SEED] [CASES]: feeds build/enccheck (port/tools/enccheck.c, built with -fsanitize=address,undefined) mutated copies of the shipped encounter scripts; a batch whose run fails (a sanitizer report, a crash) is kept in encfuzz-crash/ with its log. |
 | `tools/gen_gamevars.py` | 69 | port/runtime/gamevars.h from the decompilation's names. |
 | `tools/make_icon.py` | 40 | make_icon.py OUT.ico [OUT.png] - the Darklands+ icon: a red shield with a gold rim and a Fraktur "D+" (DL Fraktur, SIL OFL). |

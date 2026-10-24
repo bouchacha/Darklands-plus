@@ -313,7 +313,7 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x24 && e.tag == 10)
             add(item_name(e.item) + " to " + place, "Bring the " + item_name(e.item) + " to " + by + " in " + place + ".", "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 4)
-            add("Dragon near " + nearest_town(e.loc), "A dragon terrorises the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
+            add("Dragon near " + nearest_town(e.loc), "A dragon terrorizes the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
         else if (e.kind == 8 && e.tag == 12)
             add("Mine @ " + place, "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc, false, QC_MINE);
         else if (e.kind == 8 && e.tag == 7)
@@ -321,7 +321,7 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognise the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
+            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognize the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {
             int known = sab_what(e), w = spoilers ? 3 : known, g = known ? 0 : 4;    /* (learned: among the tasks; else a secret) */
             if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);

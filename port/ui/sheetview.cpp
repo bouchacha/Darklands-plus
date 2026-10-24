@@ -156,7 +156,7 @@ extern "C" int sheetview_pointed_item(void);
 extern "C" const char *ui_load_effect(int band)
 {
     switch (band) {
-    case 0: return "Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts: the weapons, armor and shield in use.";
+    case 0: return "Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing.";
     case 1: return "Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds.";
     case 2: return "Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (the game forgets to slow them in this band).";
     default: return "Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength.";
@@ -239,7 +239,7 @@ static std::string load_effects(const SheetModel &s)
     const char *swing = (L > capm / 2 && L <= capm) ? "a little slower (the attack rate falls)" : L > 3 * capm / 2 ? "much slower (the attack rate falls a lot)" : "at the usual pace";
     char b[900];
     snprintf(b, sizeof b,
-             "Load %d: the weight of what %s has equipped (weapons, armor, shield). Spare items in the pack weigh nothing.\n"
+             "Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing.\n"
              "Compared with Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.\n\n"
              "Now:\n"
              "- Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d).\n"
@@ -366,14 +366,14 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence it gives this member (mods/gamemodel.h) */
             int sb = gm_shield_defence(d->type, it.qual, 0), sh = gm_shield_defence(d->type, it.qual, 1), ag = gm_member_fight_agility(s.who), a = s.attr[2];
             char b[240];
-            snprintf(b, sizeof b, "%s's defence with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sb, sh, ag, sh + 2 * ag,
+            snprintf(b, sizeof b, "%s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s", ns_gtext(s.names[s.who]).c_str(), sb, sh, ag, sh + 2 * ag,
                      ag < a ? " (the load lowers Agility)" : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
         } else if (l2.empty() && it.drinkable && it.id >= 95 && 3 * (it.id - 95) < (int)gamedata.formulas.size())
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, game_text(gamedata.formulas[3 * (it.id - 95)].text.c_str(), gamedata.formulas[3 * (it.id - 95)].text.size()));
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
-        if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = (V.which >= 4 ? "Aim with " : "Attack and defence hand to hand with ") + (w.empty() ? std::string("these weapons") : w) + "."; }
+        if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = (V.which >= 4 ? "Aim with " : "Attack and defense hand to hand with ") + (w.empty() ? std::string("these weapons") : w) + "."; }
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, gm_skill_name(V.which)) + 0.5f;
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, help) + 0.8f;
         y += raised_line(P, s, false, V.which, SX0 + 2.5f, y, SW);
@@ -801,6 +801,16 @@ static int batches_of(const SheetModel &s, int k)
     return b == INT_MAX ? 0 : b;
 }
 
+/* the potions of formula k the party carries: of its kind, at its grade */
+static int carried_of(const SheetModel &s, int k)
+{
+    int ui_potion_tier(int q, int base);
+    int id = 95 + k / 3, n = 0;
+    const ItemDef *d = ns_itemdef(id);
+    for (int i = 0; i < s.npots; i++) if (s.pots[i].id == id && ui_potion_tier(s.pots[i].qual, d ? d->quality : 0) == k % 3 + 1) n += s.pots[i].count;
+    return n;
+}
+
 /* an ingredient on the shelf: what the party has of it, who carries it, where it is sold, what uses it */
 static void ingredient_tip(const SheetModel &s, int id)
 {
@@ -879,16 +889,19 @@ static void formulae(NsDraw &P, const SheetModel &s)
         if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = V.pin_formula == k ? -1 : k;
         P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3, -1, k % 3 + 1);
         float end = cx0 - 1;
-        int b = kn ? batches_of(s, k) : 0;
-        if (b) {                                         /* what can be brewed now: how many batches */
-            std::string bs = std::to_string(b) + "x";
-            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, NsDraw::GREEN, bs, end);
-            end -= P.width(fo, NsDraw::FS_SMALL, bs) + 1.5f;
+        int b = kn ? batches_of(s, k) : 0, have = carried_of(s, k);
+        if (kn || have) {                                /* how many carried, and how many batches the ingredients carried make */
+            std::string bs = "brew " + std::to_string(b);
+            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, b ? NsDraw::GREEN : dim, bs, end);
+            end -= P.width(fo, NsDraw::FS_SMALL, bs) + 2.5f;
+            std::string hs = "have " + std::to_string(have);
+            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, have ? ink : dim, hs, end);
+            end -= P.width(fo, NsDraw::FS_SMALL, hs) + 1.5f;
         }
         if (!kn && (sold[0] == k || sold[1] == k || sold[2] == k || sold[3] == k)) {
             end -= small_tag(P, end, ry, ROWH, "sold here") + 1;
         }
-        P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn ? ink : dim, gamedata.formula_names[k], -1, end);
+        P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn && have ? ink : dim, gamedata.formula_names[k], -1, end);   /* (grey: none carried, or not known) */
         for (size_t a = 0; a < al.size(); a++) {
             if (!s.formula[al[a]][k]) continue;
             ImVec2 c = NsDraw::w(cx0 + colw * a + colw * 0.5f, ry + ROWH * 0.5f);

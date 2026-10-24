@@ -40,14 +40,14 @@ extern "C" void cacheview_draw(void)
 
     /* the header */
     P.text(f, NsDraw::FS_TITLE, 65, 3, cream, "The store room");
-    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, "The party's items: the same store at every inn.");
+    if (l.every_inn) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, "The party's items: one store room shared by every inn (Darklands+).");
     else if (l.place[0]) P.text(fo, NsDraw::FS_BODY, 65, 12.5f, cream_soft, "The party's items kept in " + ns_gtext(l.place) + ", for when it returns.");
     float bx = 284;
     if (P.button(bx, 4, 315, 15, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(CV_LEAVE, 0, 0, 0);
     if (l.nitems && P.button(bx - 46, 4, bx - 3, 15, "Put away", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN)) ns_push(CV_PUTAWAY, 0, 0, 0);
     if (l.nitems && P.over(bx - 46, 4, bx - 3, 15)) {
         if (l.shared) ImGui::SetTooltip("Everything in the party's pack goes into the store, except kept items (Keep on the character sheet) and potions.");
-        else ImGui::SetTooltip("Everything %s carries that is not in use goes into the store.", ns_gtext(l.names[l.who]).c_str());
+        else ImGui::SetTooltip("Everything %s carries that is not equipped goes into the store.", ns_gtext(l.names[l.who]).c_str());
     }
 
     /* the member tabs */

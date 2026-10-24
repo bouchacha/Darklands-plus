@@ -250,7 +250,7 @@ extern "C" void levelmap_draw(void)
     }
     /* a click on a floor cell, a door or stairs the party has seen: the party walks there
        (mods/levelwalk.c) */
-    bool walk = config_get_int("assist.level_map_walk", 1) != 0;
+    bool walk = true;                                   /* (always with the map; assist.level_map_walk retired) */
     if (walk && ImGui::IsWindowHovered()) {
         ImVec2 mp = io.MousePos;
         float Yf = (mp.y - org.y) / s / YY, Xf = ((mp.x - org.x) / s - Yf * YX) / SX;
@@ -308,6 +308,6 @@ extern "C" void levelmap_draw(void)
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
     if (all) legend(HIDDEN, "not yet revealed", false);
-    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "Click the floor to walk the party there. Tab or Esc closes the map; the game is paused until then." : "Tab or Esc closes the map; the game is paused until then.");
+    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.");
     ImGui::End();
 }

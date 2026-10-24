@@ -3,7 +3,7 @@
 Grades 1, 2 and 3 are the qualities 25, 35 and 45 a brew can have ("All potions are rated quality
 25, 35 or 45", manual). Drunk and applied potions go through `use_potion` (s031 1462:43b2); thrown
 ones through the battle's effect code (s019). "A day" in the code is an event of 19 to 21 hours
-(`rand_mod(3) + 24 - 5`). The switches are in F12 > Settings > Game > Fixes.
+(`rand_mod(3) + 24 - 5`). The switches are in F12 > Settings > Fixes.
 
 | Potion (item) | 483.07 code | Manual | Darklands+ |
 |---|---|---|---|

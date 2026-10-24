@@ -42,6 +42,7 @@ extern "C" int savesview_showing(int *loading)
     return 1;
 }
 
+extern "C" void saves_prefs(void);   /* ui/saves.cpp */
 extern "C" void savesview_draw(void)
 {
     SavesModel &S = saves_model;
@@ -70,6 +71,15 @@ extern "C" void savesview_draw(void)
     if (P.button(bx, 4, 315, 15, "Cancel", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) savesview_push(SVV_CANCEL, 0);
     if (S.loading) { if (S.sel >= 0 && P.button(bx - 34, 4, bx - 3, 15, "Load", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN, PB_X)) savesview_push(SVV_OK, S.sel); }
     else if (P.button(bx - 34, 4, bx - 3, 15, "Save", IM_COL32(40, 92, 34, 235), NsDraw::FS_HEADBTN, PB_X)) savesview_push(SVV_OK, 0);
+    static bool opts;                                         /* the saving options (quick save, autosaves): here, by the saves */
+    if (P.button(bx - 94, 4, bx - 38, 15, opts ? "Close options" : "Saving options", IM_COL32(120, 92, 70, 220), NsDraw::FS_HEADBTN)) opts = !opts;
+    if (opts) {
+        ImGuiIO &io = ImGui::GetIO();
+        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(fminf(io.DisplaySize.x * 0.8f, 900), 0), ImGuiCond_Appearing);
+        if (ImGui::Begin("Saving options", &opts, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) saves_prefs();
+        ImGui::End();
+    }
 
     float LY0 = 22;
     if (!S.loading) {
@@ -85,7 +95,7 @@ extern "C" void savesview_draw(void)
         }
         LY0 = 40;
         P.text(f, NsDraw::FS_HEAD, 65 + L, LY0 - 3.5f, ink_t, "Existing saves");
-        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft_t, S.sel >= 0 ? "click it again to keep it" : "click one to replace it with this save", 316);
+        P.text(fo, NsDraw::FS_SMALL, 0, LY0 - 2.2f, soft_t, S.sel >= 0 ? "click it again not to replace it" : "click one to replace it with this save", 316);
         LY0 += 5;
     }
     else P.text(fo, NsDraw::FS_SMALL, 65 + L, 15.5f, soft_t, "Double-click a save to load it.");

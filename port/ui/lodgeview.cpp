@@ -180,7 +180,7 @@ extern "C" void lodgeview_draw(void)
             P.dl->AddTriangleFilled(ImVec2(c.x - wd * u, c.y + 1.5f * u), ImVec2(c.x + 0.8f * sinf(ph * 1.3f) * u, c.y - hgt * u), ImVec2(c.x + wd * u, c.y + 1.5f * u), col);
         }
     }
-    if (camp) snprintf(b, sizeof b, "Living off the land, the lord may hear of it: after %d day%s the risk is %d of 10.", m.days, m.days == 1 ? "" : "s", m.risk);
+    if (camp) snprintf(b, sizeof b, "Living off the land, the lord may hear of it: after %d day%s the risk is %d in 10.", m.days, m.days == 1 ? "" : "s", m.risk);
     else snprintf(b, sizeof b, "The room: %s a day.%s", money(m.lodging).c_str(), m.days ? ("   Days stayed: " + std::to_string(m.days)).c_str() : "");
     P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 186);
 
@@ -234,10 +234,10 @@ extern "C" void lodgeview_draw(void)
         snprintf(b, sizeof b, "%s's day", ns_gtext(p.name).c_str());
         P.text(f, NsDraw::FS_HEAD, RX0, TY - 1.5f, ink, b);
         static const char *ACT[7] = { "Regain Endurance", "Regain Strength", "Pray for Divine Favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
-        static const char *WHY[7] = { "Endurance is full: earning money is the better day.", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teacher in this place now." };
+        static const char *WHY[7] = { "Endurance is full: earning money is the better day.", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teachers retained in this town." };
         static const char *WHAT[7] = { "Rest: Endurance comes back to full. Nothing else is gained.", "Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too).",
             "Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day.", "Make potions from a known formula (the ingredients are used up). Endurance does not come back that day.",
-            "Work in the town: the job that pays this member best, by its attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day.",
+            "Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day.",
             "Keep watch and find food: the camp is safer.", "Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day." };
         /* the teachers, one row a skill: the one who teaches it (the best, with the bestteacher fix) */
         int tl[LV_TEACHERS], ntl = 0;
@@ -264,7 +264,7 @@ extern "C" void lodgeview_draw(void)
             else if (h && can) P.rect(x0, ay, x1, ay + ah - 0.6f, HOVER, 1.2f);
             act_icon(P.dl, NsDraw::w(x0 + 4, ay + ah * 0.48f), ah * 0.72f * P.k, a);
             P.text(f, NsDraw::FS_NAME * fminf(1.0f, ah / 9.4f) * 0.95f, x0 + 10, ay + ah * 0.16f, cur && a != 6 ? NsDraw::LIGHT : can ? ink : dim, ACT[a]);
-            if (!can && (WHY[a][0] || a == 0)) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a <= 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "no teacher" : "", x1 - 1.5f);
+            if (!can && (WHY[a][0] || a == 0)) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a <= 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "none retained" : "", x1 - 1.5f);
             if (can && a != 6 && P.hit(x0, ay, x1, ay + ah - 0.6f) && !cur) ns_push(LV_ACT, a, m.sel, 0);
             ay += ah;
             if (a == 6 && can) {
@@ -304,7 +304,7 @@ extern "C" void lodgeview_draw(void)
                          sk, T.val, T.days_left, T.days_left == 1 ? "" : "s", c, days, days == 1 ? "" : "s", fix_is_on("teachcap") ? ", up to the teacher's skill" : "",
                          ns_gtext(p.name).c_str(), now, same > 1 ? (fix_is_on("bestteacher") ? " (The best of the teachers of it hired here teaches.)" : " (The one hired first teaches.)") : "");
             about = b;
-        } else if (hover_act < 0) about = m.nteach == 0 && !camp ? "No teacher in this town now: ask a guild's masters, the university, the monks, the physician or an alchemist (a lectern marks the option on their cards); a teacher stays a week."
+        } else if (hover_act < 0) about = m.nteach == 0 && !camp ? "No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (a lectern marks the option on their cards); a teacher stays a week."
                                                                : "Point at a choice to see what it does.";
         P.para(fo, NsDraw::FS_SMALL, RX0, BY - 25, RX1 - RX0, hover_act < 0 ? dim : soft, about);
     }

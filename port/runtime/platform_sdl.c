@@ -300,6 +300,26 @@ static void scale2x(const u32 *src, int w, int h, u32 *dst)
     }
 }
 
+void plat_scale2x(const unsigned *src, int w, int h, unsigned *dst) { scale2x(src, w, h, dst); }
+/* a piece of the game's picture (cw x ch, 0xAARRGGBB), for the settings' preview of the scaling:
+   of nine places, the one with the most colours (most edges to show) */
+int plat_frame_crop(unsigned *out, int cw, int ch)
+{
+    int best = -1, bx = 0, by = 0;
+    for (int j = 0; j < 3; j++) for (int i = 0; i < 3; i++) {
+        int x0 = 20 + i * (280 - cw) / 2, y0 = 20 + j * (160 - ch) / 2;
+        int n = 0; u32 seen[64]; int ns = 0;
+        for (int y = y0; y < y0 + ch; y += 2) for (int x = x0; x < x0 + cw; x += 2) {
+            u32 c = frame[y * 320 + x]; int k = 0; while (k < ns && seen[k] != c) k++;
+            if (k == ns && ns < 64) seen[ns++] = c;
+        }
+        n = ns;
+        if (n > best) { best = n; bx = x0; by = y0; }
+    }
+    for (int y = 0; y < ch; y++) for (int x = 0; x < cw; x++) out[y * cw + x] = frame[(by + y) * 320 + bx + x] | 0xff000000u;
+    return best;
+}
+
 /* the frame as textures, smoothed when asked. The smoothed picture goes up in tiles of
  * 640x400 (each in a 1024x512 texture): Direct3D 9 under Wine shows nothing from wider
  * textures, and tiles cost nothing elsewhere. Returns the number of tiles (1 unsmoothed). */
@@ -833,7 +853,7 @@ static int menu_click(const SDL_Event *e)
         return 1;
     }
     int menuview_is_on(void);
-    if (!right || config_get_int("original", 0) || !config_get_int("assist.menu_click", 1) || menuview_is_on()) return 0;   /* (the menus drawn by Darklands+ stay open by themselves) */
+    if (!right || config_get_int("original", 0) || menuview_is_on()) return 0;   /* (the menus drawn by Darklands+ stay open by themselves) */
     if (e->type == SDL_MOUSEBUTTONDOWN) { rdown_t = plat_ticks_ms(); rup_wait = 0; return 0; }
     if (plat_ticks_ms() - rdown_t < 350) {          /* short: held a little longer, until the game has its bar up */
         rup_wait = plat_ticks_ms();
@@ -875,7 +895,7 @@ static SDL_Scancode swallow_key; static int swallow_button;   /* the key or clic
  *   d-pad        arrow keys                                 LB / RB      Tab (level map) / Space (pause)
  *   Start        F12 (Darklands+ menu)                      Back         M (world map)
  *   right trigger held: Ctrl (Ctrl+click on the map travels there)   left stick pressed: F1 (keys)
- * "input.gamepad" (F12 > Settings > Game) switches it off. */
+ * Always on; F12 > Settings > Controller shows the buttons and remaps them. */
 static SDL_GameController *pads[4];
 static int pad_test_axis[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };   /* test: axis values set by ucmd upadaxis */
 static double pad_fx, pad_fy, pad_wheel; static u32 pad_last; static int pad_ctrl;
@@ -910,7 +930,7 @@ int plat_prompts(void)
 {
     int m = config_get_int("input.prompts", 0);
     if (m >= 2 && m <= 4) return m - 1;
-    if (m == 1 || !config_get_int("input.gamepad", 1)) return 0;
+    if (m == 1) return 0;
     return input_pad ? pad_style : 0;
 }
 static void pad_used(SDL_JoystickID id)
@@ -919,7 +939,7 @@ static void pad_used(SDL_JoystickID id)
     for (int i = 0; i < 4; i++) if (pads[i] && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(pads[i])) == id) pad_style = style_of(pads[i]);
 }
 
-static int pad_enabled(void) { return !headless && config_get_int("input.gamepad", 1); }
+static int pad_enabled(void) { return !headless; }      /* (always; input.gamepad retired) */
 static void pad_key(SDL_Scancode sc, int up)
 {
     SDL_Event ev; memset(&ev, 0, sizeof ev);
@@ -988,14 +1008,48 @@ static void pad_tick(void)
     } else pad_wheel = 0;
 }
 /* controller events become mouse and key events; 1 if the event was a controller's */
+/* the buttons the player may give other jobs (F12 > Settings > Controller):
+   A, B, X, Y, LB, RB, Start, Back, the left stick pressed (in the order of ui/padglyphs.h's PB_A ...
+   PB_LS); each does one of the same nine jobs, its own unless changed (pad.bind.N). The d-pad, the
+   sticks, the right trigger and the right stick pressed keep theirs. */
+#define PAD_BINDS 9
+static const int PAD_PHYS[PAD_BINDS] = { SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y,
+    SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_BACK, SDL_CONTROLLER_BUTTON_LEFTSTICK };
+int plat_pad_bind(int k)
+{
+    char key[16]; snprintf(key, sizeof key, "pad.bind.%d", k);
+    int a = config_get_int(key, k);
+    return a >= 0 && a < PAD_BINDS ? a : k;
+}
+void plat_pad_bind_set(int k, int a) { char key[16]; snprintf(key, sizeof key, "pad.bind.%d", k); config_set_int(key, a); }
+static void pad_do(int a, int up)
+{
+    switch (a) {
+    case 0: pad_button(SDL_BUTTON_LEFT, up); break;
+    case 1: pad_button(SDL_BUTTON_RIGHT, up); break;
+    case 2: pad_key(SDL_SCANCODE_RETURN, up); break;
+    case 3: pad_key(SDL_SCANCODE_ESCAPE, up); break;
+    case 4: pad_key(SDL_SCANCODE_TAB, up); break;
+    case 5: pad_key(SDL_SCANCODE_SPACE, up); break;
+    case 6: pad_key(SDL_SCANCODE_F12, up); break;
+    case 7: pad_key(SDL_SCANCODE_M, up); break;
+    case 8: pad_key(SDL_SCANCODE_F11, up); break;   /* (the keys of the moment: F1 ... F5 are the game's) */
+    }
+}
+/* the controller's name and kind (1 Xbox, 2 PlayStation, 3 Nintendo), 0 when none is connected */
+int plat_controller_kind(const char **name)
+{
+    for (int i = 0; i < 4; i++) if (pads[i]) { if (name) *name = SDL_GameControllerName(pads[i]); return style_of(pads[i]); }
+    if (name) *name = "";
+    return 0;
+}
 static int pad_event(const SDL_Event *e)
 {
     if (e->type == SDL_CONTROLLERDEVICEADDED) {
         for (int i = 0; i < 4; i++) if (!pads[i]) { pads[i] = SDL_GameControllerOpen(e->cdevice.which);
             if (pads[i]) {
                 fprintf(stderr, "controller: %s\n", SDL_GameControllerName(pads[i]));
-                static int told; void ui_notice(const char *msg);
-                if (!told++ && pad_enabled()) ui_notice("Controller connected: the left stick moves the pointer, A clicks (F1 lists the buttons)");
+                void pad_hello(void); pad_hello();
             }
             break; }
         return 1;
@@ -1016,24 +1070,27 @@ static int pad_event(const SDL_Event *e)
     if (!pad_enabled()) return 1;
     int up = e->type == SDL_CONTROLLERBUTTONUP;
     if (!up) pad_used(e->cbutton.which);
+    for (int k = 0; k < PAD_BINDS; k++) if (e->cbutton.button == PAD_PHYS[k]) { pad_do(plat_pad_bind(k), up); return 1; }
     switch (e->cbutton.button) {
-    case SDL_CONTROLLER_BUTTON_A: pad_button(SDL_BUTTON_LEFT, up); break;
-    case SDL_CONTROLLER_BUTTON_B: pad_button(SDL_BUTTON_RIGHT, up); break;
-    case SDL_CONTROLLER_BUTTON_X: pad_key(SDL_SCANCODE_RETURN, up); break;
-    case SDL_CONTROLLER_BUTTON_Y: pad_key(SDL_SCANCODE_ESCAPE, up); break;
     case SDL_CONTROLLER_BUTTON_DPAD_UP: pad_key(SDL_SCANCODE_UP, up); break;
     case SDL_CONTROLLER_BUTTON_DPAD_DOWN: pad_key(SDL_SCANCODE_DOWN, up); break;
     case SDL_CONTROLLER_BUTTON_DPAD_LEFT: pad_key(SDL_SCANCODE_LEFT, up); break;
     case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: pad_key(SDL_SCANCODE_RIGHT, up); break;
-    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: pad_key(SDL_SCANCODE_TAB, up); break;
-    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: pad_key(SDL_SCANCODE_SPACE, up); break;
-    case SDL_CONTROLLER_BUTTON_START: pad_key(SDL_SCANCODE_F12, up); break;
-    case SDL_CONTROLLER_BUTTON_BACK: pad_key(SDL_SCANCODE_M, up); break;
-    case SDL_CONTROLLER_BUTTON_LEFTSTICK: pad_key(SDL_SCANCODE_F11, up); break;   /* (the keys of the moment: F1 ... F5 are the game's) */
     case SDL_CONTROLLER_BUTTON_RIGHTSTICK: pad_key(SDL_SCANCODE_Z, up); break;   /* (Z: fast forward in a battle) */
     default: break;
     }
     return 1;
+}
+/* once, a few seconds after the start (or when one is plugged in): which controller, if any */
+void ui_pad_hello(int kind, const char *name);   /* (ui/overlay.cpp) */
+static int hello_done;
+void pad_hello(void)
+{
+    if (hello_done || headless) return;
+    const char *nm; int k = plat_controller_kind(&nm);
+    if (!k && plat_ticks_ms() < 4000) return;
+    hello_done = 1;
+    ui_pad_hello(k, nm);
 }
 int plat_controller_connected(void) { for (int i = 0; i < 4; i++) if (pads[i]) return 1; return 0; }
 
@@ -1043,6 +1100,7 @@ void plat_events(void)
     run_ctl();
     run_script();
     menu_click_poll();
+    if (!hello_done) pad_hello();
     pad_tick();
     while (SDL_PollEvent(&e)) {
         if (pad_event(&e)) continue;
@@ -1119,7 +1177,7 @@ void plat_events(void)
             /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
                the shops' wares): Up / Down, the keys those lists answer; only on such screens, not
                on cards, the map or in battles, where the arrow keys do other things */
-            if (e.wheel.y && game_mode() == GM_SCREEN && config_get_int("assist.wheel_lists", 1) && !config_get_int("original", 0)) {
+            if (e.wheel.y && game_mode() == GM_SCREEN && !config_get_int("original", 0)) {
                 int n = e.wheel.y > 0 ? e.wheel.y : -e.wheel.y; if (n > 3) n = 3;
                 for (int i = 0; i < n; i++) plat_press_key(e.wheel.y > 0 ? SDL_SCANCODE_UP : SDL_SCANCODE_DOWN);
             }

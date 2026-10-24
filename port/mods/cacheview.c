@@ -198,7 +198,7 @@ static int pack_put(int id, int q, int all, int quiet)
     if (!quiet) {
         char nm[32], t[160]; gm_itemdef_name(id, nm, sizeof nm);
         if (done) snprintf(t, sizeof t, "%d %s stored.", done, nm);
-        else snprintf(t, sizeof t, "The store is full: the %s stays in the pack.", nm);
+        else snprintf(t, sizeof t, "The store room is full: the %s stays in the party's pack.", nm);
         note(t);
     }
     return done;
@@ -215,8 +215,8 @@ static void put_away(void)                   /* everything the member does not h
             if (d) { kinds++; units += d; }
         }
         char t[160];
-        if (units) snprintf(t, sizeof t, "Stored %d item%s (%d kind%s); potions%s and items in use stay in the pack.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? ", kept items" : "");
-        else snprintf(t, sizeof t, kept ? "Nothing to store: the pack holds only kept items." : "Nothing to store: the pack is empty.");
+        if (units) snprintf(t, sizeof t, "Stored %d item%s (%d kind%s); potions%s and equipped items are not stored.", units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s", kept ? ", items marked Keep" : "");
+        else snprintf(t, sizeof t, kept ? "Nothing to store: the party's pack holds only items marked Keep." : "Nothing to store: the party's pack is empty.");
         note(t);
         return;
     }
@@ -227,8 +227,8 @@ static void put_away(void)                   /* everything the member does not h
         if (d) { kinds++; units += d; }
     }
     char t[160];
-    if (units) snprintf(t, sizeof t, "%s stores %d item%s (%d kind%s); items in use stay.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
-    else snprintf(t, sizeof t, "Nothing to store: everything %s carries is in use.", cache_model.names[m]);
+    if (units) snprintf(t, sizeof t, "%s stores %d item%s (%d kind%s); equipped items stay with them.", cache_model.names[m], units, units == 1 ? "" : "s", kinds, kinds == 1 ? "" : "s");
+    else snprintf(t, sizeof t, "Nothing to store: everything %s carries is equipped.", cache_model.names[m]);
     note(t);
 }
 

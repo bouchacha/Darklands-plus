@@ -33,7 +33,7 @@ static void midi_open(void)
     if (lg && !midi_log && (midi_log = fopen(lg, "wb"))) setvbuf(midi_log, NULL, _IONBF, 0);
     if (sound_use_mt32() && mt32_open(44100)) { midi_ok = 2; return; }
 #ifdef _WIN32
-    /* the output named in F12 > Settings > Window, sound and saves (sound.midi_out; a real MT-32 on a MIDI interface, a
+    /* the output named in F12 > Settings (sound.midi_out; a real MT-32 on a MIDI interface, a
      * software synthesizer ...), else Windows' default */
     static int win = -1; static char opened[64];
     const char *want = config_get("sound.midi_out", "");
@@ -55,7 +55,7 @@ static void midi_open(void)
 /* a driver is being loaded (sounddev.c): where the MIDI goes is decided again at its first byte */
 void mpu_reconsider(void) { midi_ok = -1; }
 
-/* the system's MIDI outputs, for F12 > Settings > Window, sound and saves */
+/* the system's MIDI outputs, for F12 > Settings */
 int mpu_out_count(void)
 {
 #ifdef _WIN32

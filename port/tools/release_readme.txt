@@ -26,7 +26,7 @@ INSTALLING
    Windows does not let programs change that folder - GOG Galaxy installs under Program
    Files - the game's saves and other files go to the VirtualStore folder Windows keeps for
    it, %LOCALAPPDATA%\VirtualStore\...; saves that GOG's DOSBox was redirected there show
-   up too. F12 > Settings > About shows the place.)
+   up too. F12 > About shows the place.)
 3. Double-click darklands.exe. Darklands+ finds a GOG or Steam installation by itself;
    otherwise it asks you for the Darklands folder once. The original game files are not
    changed. Windows may warn about a program from an unknown publisher (Darklands+ is not
@@ -89,18 +89,18 @@ chimes); you can switch between them there while playing.
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of
 swords, shields, blows, cries, the bow and the handgun in place of the synthesizer notes. Tick
-it in F12 > Settings > Mods (F12 > Settings > Display sets the volume). The recordings are from 0 A.D. by Wildfire
+it in F12 > Mods (F12 > Settings > Display sets the volume). The recordings are from 0 A.D. by Wildfire
 Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
 
 NEW ENCOUNTERS
 The mods folder also holds "New encounters": sixteen new wilderness encounters (the gallows
 oak, a herb-wife, flagellants, a robber knight's toll bridge, kobolds at a mine, deserters,
 a knight's feud and more),
-balanced against the game's own and coming up among them. Tick it in F12 > Settings > Mods; a small red
-seal marks a new encounter's card. F12 > Settings > Mods sets how often they come up.
+balanced against the game's own and coming up among them. Tick it in F12 > Mods; a small red
+seal marks a new encounter's card. F12 > Mods sets how often they come up.
 
 MAKING MODS (in the Darklands folder)
-  mods\My mod\mod.txt               first line: the name shown in F12 > Settings > Mods
+  mods\My mod\mod.txt               first line: the name shown in F12 > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)
   mods\My mod\MSGFILES\$MAINS01.TXT one card's text (the other cards stay)
   mods\My mod\text.txt              menu lines said differently (translations)
@@ -109,7 +109,7 @@ MAKING MODS (in the Darklands folder)
   mods\My mod\music\                recordings in place of the game's music, named by the
                                     piece's number (10.ogg, "11 market.ogg"; F12 > Settings > Display)
   mods\My mod\ENCOUNTERS\           new encounters as scripts (see mods\New encounters)
-  F12 > Settings > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
+  F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 
 IF SOMETHING GOES WRONG
 Darklands+ writes darklands_port.log into the game folder. If the first start fails, the log says
