@@ -466,7 +466,7 @@ static int day_changed(const LodgeModel *was, const LodgeModel *now, int until_r
             for (int t = 0; t < now->nteach; t++) if (now->t[t].skill == a->skill && now->t[t].days_left > 0) there = 1;
             if (!there || b->act != 6) { snprintf(msg, sizeof msg, "The days stop: %s's teacher has gone.", nm); break; }
         }
-        if (a->act != b->act) { snprintf(msg, sizeof msg, "The days stop: %s's day changed.", nm); break; }
+        if (a->act != b->act) { snprintf(msg, sizeof msg, "The days stop: what %s does each day has changed.", nm); break; }
         if (until_rested) continue;                             /* (Until rested runs on while anyone still rests) */
         if (b->act == 1 && a->str < a->str_max && b->str >= b->str_max) snprintf(msg, sizeof msg, "The days stop: %s has regained all Strength.", nm);
         if (b->act == 2 && a->df < a->df_max && b->df >= b->df_max) snprintf(msg, sizeof msg, "The days stop: %s's Divine Favor is full.", nm);

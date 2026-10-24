@@ -235,8 +235,8 @@ void ui_saint_info(int s)
 const char *saint_encounters_line(int s)
 {
     int n = saint_info_cards(s);
-    return n >= 10 ? "Many encounters let you call on this saint (its other powers work there)."
-         : n >= 3 ? "Some encounters let you call on this saint (its other powers work there)."
-         : n >= 1 ? "A few encounters let you call on this saint (its other powers work there)."
+    return n >= 10 ? "Many encounters offer this saint as a choice, and there it can do more than the help above."
+         : n >= 3 ? "Some encounters offer this saint as a choice, and there it can do more than the help above."
+         : n >= 1 ? "A few encounters offer this saint as a choice, and there it can do more than the help above."
          : "No encounter calls for this saint: its help above is all it does.";
 }

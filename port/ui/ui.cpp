@@ -256,7 +256,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
-        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (the session log, darklands_port.log, says what went wrong; F12 > About shows where it is). Your saved games are safe: load the latest one with Load in the Game menu (right-click). Autosaves are made on arriving in a town and before battles.", 30000);
+        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (see darklands_port.log; F12 > About says where it is). Your saves are safe: Load is in the Game menu (right-click).", 30000);
         else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the Game menu (right-click).", 20000);
     }
     halloffame_set_renderer(ren);
@@ -581,8 +581,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
             static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },   /* (Saves, Records: no tab of their own now: the game's Save and Load, the right-click menu; the Guide and the Editor) */
-                { "Improvements", tab_helpers }, { "Mods", tab_mods }, { "Setup", tab_helpers }, { "Records", tab_guide_all },
-                { "About", tab_about }, { "Editor", tab_editor_all }, { "Guide", tab_guide_all }, { "Reconstructed content", tab_restored } };
+                { "Settings", tab_helpers }, { "Mods", tab_mods }, { "Settings", tab_helpers }, { "New Player Guide", tab_guide_all },
+                { "About", tab_about }, { "Editor", tab_editor_all }, { "New Player Guide", tab_guide_all }, { "Reconstructed Content", tab_restored } };
             struct Group { const char *name; int icon; int page[5]; int n; };
             static const Group groups[] = {      /* (one page each: no tabs under tabs) */
                 { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS }, 1 },

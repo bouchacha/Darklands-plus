@@ -187,9 +187,9 @@ static void place_quests(int cur);
  * no tooltip can show: the world map's tooltip on a town). */
 static const char *TOWN_OFFER_TIP[6] = {
     "University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind).",
-    "Cathedral: donations for Divine Favor (and maybe Virtue), a relic from the canon, the patron saint's story, sanctuary.",
+    "Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary.",
     "An alchemist: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy.",
-    "A physician: wounds treated for a fee, lessons in Healing, alchemical components bought and sold.",
+    "A physician: wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold.",
     "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
     "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; quests for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
@@ -541,7 +541,7 @@ static void right_panel(int size)
             ImVec2 p0 = ImGui::GetCursorScreenPos();
             ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
             ImGui::Indent(is + lh * 0.3f);
-            ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Barred" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
+            ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
             if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
                                                                                        : "The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
@@ -601,7 +601,7 @@ static void right_panel(int size)
     std::vector<Eff> e = effects_now(size);
     if (!e.empty()) {
         if (any) ImGui::Separator();
-        heading("In force");
+        heading("Blessings and potions");
         /* one paragraph a member: what is at work, then how long it lasts (from the soonest to the last) */
         auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
         for (int m = 0; m < 5; m++) {
@@ -737,7 +737,7 @@ static void tasks_section(bool tables)
         std::string id = r.id;
         mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
     }
-    if (q.size() > 10) ImGui::TextDisabled("... %d more (M: the world map)", (int)q.size() - 10);
+    if (q.size() > 10) ImGui::TextDisabled("... %d more on the world map (M)", (int)q.size() - 10);
 }
 
 /* in a town at night: the streets' dangers (mods/travel.c has the rolls: the night watch at each
@@ -844,7 +844,7 @@ extern "C" void ui_margins(void)
         {   /* the hints, at the foot of the margin (always in the same place) */
             const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
             char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right-click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > New Player Guide.";
+            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > New Player Guide." : "New to Darklands? F12 > New Player Guide.";
             const char *h3 = pad ? nullptr : "F11: the keys and clicks of this screen.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
             float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0)

@@ -8,7 +8,7 @@ static const char *ATTR_HELP[7] = {
     "Alertness: noticing things, people and dangers.",
     "Wits and learning.",
     "Presence: how people take to the character.",
-    "The saints' goodwill. Praying to a saint uses it up; it comes back with time.",
+    "The saints' goodwill. Calling on a saint spends it; praying at an inn, and time, bring it back.",
 };
 static const char *SKILL_HELP[19] = {
     0, 0, 0, 0, 0, 0, 0,

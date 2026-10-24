@@ -818,7 +818,7 @@ static void key_hook(int ovl)
                 for (int i = 0; i < nlooks; i++) if (look_find(looks[i].code)) { n++; if (!strncasecmp(looks[i].code, now, 3)) k = n; }
                 Look *L = look_find(now);
                 char msg[160];
-                if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite%s)", k, n, L->title,
+                if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite, added by Darklands+%s)", k, n, L->title,
                                 L->npart > 2 ? "; the 1st, 2nd and 3rd color buttons recolor it" : L->npart > 1 ? "; the 1st and 2nd color buttons recolor it" :
                                 L->npart ? "; the 1st color button recolors it" : "");
                 else snprintf(msg, sizeof msg, "Sprite %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);

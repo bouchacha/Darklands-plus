@@ -22,7 +22,7 @@ int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the 
 int spin_polls;         /* the game asked for a click (int 33h, 5 and 6), a key (int 16h, 1) or the time (int 21h, 2Ah / 2Ch) */
 static u32 screen_changed;  /* when the picture or the palette last changed */
 static int spin_limit(void) { static int v = -1; if (v < 0) { const char *e = getenv("DL_SPIN_LIMIT"); v = e ? atoi(e) : 150; } return v; }
-int idle_rest = 1;      /* display.idle_rest: rest while the game only waits (Display tab) */
+int idle_rest = 1;      /* rest while the game only waits (always; DL_NO_SPIN_REST for tests) */
 static int getenv_spin_off(void) { static int v = -1; if (v < 0) v = getenv("DL_NO_SPIN_REST") != 0; return v || !idle_rest; }
 u8 vga_dac[768];
 int video_mode = 3;

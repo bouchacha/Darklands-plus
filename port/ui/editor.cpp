@@ -57,7 +57,7 @@ extern "C" void tab_editor(void)
         int bn = (s16)g_rw(GV_party_notes), fame = (s16)g_rw(GV_party_fame), ps = (s16)g_rw(GV_philosophers_stone);
         ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("florins in bank notes", &bn)) g_ww(GV_party_notes, (u16)(bn < 0 ? 0 : bn));
         ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("fame", &fame)) g_ww(GV_party_fame, (u16)fame);
-        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("philosopher's stone quality", &ps)) g_ww(GV_philosophers_stone, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
+        ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("Philosopher's Stone quality", &ps)) g_ww(GV_philosophers_stone, (u16)(ps < 0 ? 0 : ps > 99 ? 99 : ps));
         int loc = (s16)g_rw(G_CUR_LOC);
         u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
         if (lr) {
@@ -77,14 +77,14 @@ extern "C" void tab_editor(void)
         if (!ui_subtab(tabname.c_str())) continue;
         ImGui::BeginChild("edm", ImVec2(0, 0));
         u16 r = rec(m);
-        if (ImGui::CollapsingHeader("Name, age, shield and sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Name, age, crest and sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
             name_edit("full name", (u16)(r + 0x25), 25);
             name_edit("nickname", (u16)(r + 0x3e), 11);
             int age = (s16)g_rw((u16)(r + 0x12));
             ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("age", &age)) g_ww((u16)(r + 0x12), (u16)age);
             int sh = g_rb((u16)(r + 0x15)) - 'A';
             ImGui::SetNextItemWidth(UIS(110));
-            if (ImGui::SliderInt("shield (A..O)", &sh, 0, 14, "")) g_wb((u16)(r + 0x15), (u8)('A' + sh));
+            if (ImGui::SliderInt("crest (A..O)", &sh, 0, 14, "")) g_wb((u16)(r + 0x15), (u8)('A' + sh));
             ImGui::SameLine(); ImGui::Text("%c", 'A' + sh);
             char fig[4]; g_str(G_DGROUP, (u16)(0xa668 + 4 * m), fig, sizeof fig);
             ImGui::SetNextItemWidth(UIS(110));

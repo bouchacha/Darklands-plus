@@ -180,6 +180,27 @@ static void save_bmp(const char *path)
 /* where the 320x200 picture goes in the window (renderer output pixels) */
 static SDL_Rect dest;
 static char pending_small[1300]; static int pending_small_w;   /* plat_capture_small: the window, small, as a PNG */
+typedef struct { unsigned char *px; int w, h, max_w; char path[1300]; } SmallJob;
+static int small_job(void *arg)                  /* each pixel the average of f x f (a whole factor), then the PNG */
+{
+    SmallJob *j = arg;
+    int f = (j->w + j->max_w - 1) / j->max_w; if (f < 1) f = 1;
+    int w = j->w / f, h = j->h / f;
+    unsigned char *sm = malloc((size_t)w * h * 4);
+    if (sm) {
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) for (int c = 0; c < 3; c++) {
+            unsigned sum = 0;
+            for (int jj = 0; jj < f; jj++) for (int i = 0; i < f; i++) sum += j->px[((size_t)(y * f + jj) * j->w + x * f + i) * 4 + c];
+            sm[((size_t)y * w + x) * 4 + c] = (unsigned char)(sum / (f * f));
+            sm[((size_t)y * w + x) * 4 + 3] = 255;
+        }
+        int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
+        if (stbi_write_png(j->path, w, h, 4, sm, w * 4)) fprintf(stderr, "screen picture kept: %s\n", j->path);
+        free(sm);
+    }
+    free(j->px); free(j);
+    return 0;
+}
 void plat_capture_small(const char *path, int max_w) { snprintf(pending_small, sizeof pending_small, "%s", path); pending_small_w = max_w; }
 static char pending_wshot[300];     /* whole-window screenshot (interface included) at the next present */
 static int pending_shot;             /* Ctrl+F12: the window as the player sees it, a PNG in screenshots/ */
@@ -510,19 +531,11 @@ void plat_present(const u8 *vga, const u8 *pal)
     if (pending_small[0]) {                     /* (ui/screenpics.cpp: the settings' pictures of the new screens) */
         unsigned char *px = malloc((size_t)out_w * out_h * 4);
         if (px && SDL_RenderReadPixels(ren, 0, SDL_PIXELFORMAT_ABGR8888, px, out_w * 4) == 0) {
-            int f = (out_w + pending_small_w - 1) / pending_small_w; if (f < 1) f = 1;     /* a whole factor, each pixel the average of f x f */
-            int w = out_w / f, h = out_h / f;
-            unsigned char *sm = malloc((size_t)w * h * 4);
-            if (sm) {
-                for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) for (int c = 0; c < 3; c++) {
-                    unsigned sum = 0;
-                    for (int j = 0; j < f; j++) for (int i = 0; i < f; i++) sum += px[((size_t)(y * f + j) * out_w + x * f + i) * 4 + c];
-                    sm[((size_t)y * w + x) * 4 + c] = (unsigned char)(sum / (f * f));
-                    sm[((size_t)y * w + x) * 4 + 3] = 255;
-                }
-                int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
-                if (stbi_write_png(pending_small, w, h, 4, sm, w * 4)) fprintf(stderr, "screen picture kept: %s\n", pending_small);
-                free(sm);
+            SmallJob *j = malloc(sizeof *j);              /* made small and written on a thread of its own: no hitch */
+            if (j) {
+                j->px = px; j->w = out_w; j->h = out_h; j->max_w = pending_small_w; snprintf(j->path, sizeof j->path, "%s", pending_small);
+                SDL_Thread *t = SDL_CreateThread(small_job, "screenpic", j);
+                if (t) { SDL_DetachThread(t); px = 0; } else free(j);
             }
         }
         free(px);
@@ -868,7 +881,7 @@ static void menu_click_poll(void)
     if (menu_bar_up()) {
         rup_wait = 0; menu_sticky = 1;
         static int told;                            /* the game takes no keys while its menus are open: say how they close */
-        if (told++ < 2 && !getenv("DL_CTL")) { void ui_notice(const char *); ui_notice("The menu stays open: click an entry, or anywhere else (or any key) to close it."); }
+        if (told++ < 2 && !getenv("DL_CTL")) { void ui_notice(const char *); ui_notice("The menu stays open (Darklands+): click an entry to choose it; click anywhere else, or press any key, to close it."); }
         return;
     }
     if (plat_ticks_ms() - rup_wait > 200) { rup_wait = 0; mouse_b &= ~2; send_mouse(); }
@@ -1352,6 +1365,6 @@ void plat_error_box(const char *msg)
 {
     char buf[700];
     snprintf(buf, sizeof buf, "The game stopped because of an internal error:\n\n%s\n\n"
-             "Details are in darklands_port.log in the game folder.", msg);
+             "Details are in darklands_port.log, in the game folder (or, if Darklands+ may not write there, in its own data folder).", msg);
     if (!headless) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Darklands", buf, win);
 }

@@ -439,7 +439,7 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
 {
     int arm = fix_is_on("armorday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
     (void)s;
-    if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If the party carries a musical instrument (with the party's pack (Darklands+), anyone's counts, whoever is prayed for)" : "If the one prayed for carries a musical instrument";
+    if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If anyone in the party carries a musical instrument (with Darklands+'s shared pack, it need not be the one prayed for)" : "If the one prayed for carries a musical instrument";
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
         fire ? "Meant as protection against fire, but the game adds it to the armor instead, for good (with the fix \"No invulnerability from fire protection\" on, it does nothing)."
              : "Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good.";

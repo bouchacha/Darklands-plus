@@ -180,7 +180,7 @@ extern "C" void lodgeview_draw(void)
             P.dl->AddTriangleFilled(ImVec2(c.x - wd * u, c.y + 1.5f * u), ImVec2(c.x + 0.8f * sinf(ph * 1.3f) * u, c.y - hgt * u), ImVec2(c.x + wd * u, c.y + 1.5f * u), col);
         }
     }
-    if (camp) snprintf(b, sizeof b, "Living off the land, the lord may hear of it: after %d day%s the risk is %d in 10.", m.days, m.days == 1 ? "" : "s", m.risk);
+    if (camp) snprintf(b, sizeof b, "The party lives off the land, and the lord may hear of it: after %d day%s the risk is %d in 10.", m.days, m.days == 1 ? "" : "s", m.risk);
     else snprintf(b, sizeof b, "The room: %s a day.%s", money(m.lodging).c_str(), m.days ? ("   Days stayed: " + std::to_string(m.days)).c_str() : "");
     P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 186);
 
@@ -304,7 +304,7 @@ extern "C" void lodgeview_draw(void)
                          sk, T.val, T.days_left, T.days_left == 1 ? "" : "s", c, days, days == 1 ? "" : "s", fix_is_on("teachcap") ? ", up to the teacher's skill" : "",
                          ns_gtext(p.name).c_str(), now, same > 1 ? (fix_is_on("bestteacher") ? " (The best of the teachers of it hired here teaches.)" : " (The one hired first teaches.)") : "");
             about = b;
-        } else if (hover_act < 0) about = m.nteach == 0 && !camp ? "No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (a lectern marks the option on their cards); a teacher stays a week."
+        } else if (hover_act < 0) about = m.nteach == 0 && !camp ? "No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch \"Teachers\" on, a lectern marks the option on their cards); a teacher stays a week."
                                                                : "Point at a choice to see what it does.";
         P.para(fo, NsDraw::FS_SMALL, RX0, BY - 25, RX1 - RX0, hover_act < 0 ? dim : soft, about);
     }

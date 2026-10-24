@@ -70,7 +70,7 @@ int prepare_run(const char *game_dir, const char *module_path, char *err, int er
 {
     char py[1200], script[1200];
     if (!find_preparer(py, script, sizeof py)) {
-        snprintf(err, errn, "The game module (%s) is missing, and the files that make it (darklands_plus folder) are not next to the program.", module_path);
+        snprintf(err, errn, "The game module (%s), which Darklands+ makes from your DARKLAND.EXE, is missing, and the darklands_plus folder needed to make it is not next to darklands.exe.", module_path);
         return 0;
     }
     fprintf(stderr, "preparing the game module: %s %s\n", py, script);

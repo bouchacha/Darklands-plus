@@ -100,7 +100,7 @@ extern "C" void enemyview_draw(void)
                     if (mw < 0 || mw > 62) continue;
                     int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
                     if (r < best) best = r;
-                    s += std::string(s.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is deflected");
+                    s += std::string(s.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected");
                 }
                 if (best == 3) continue;
                 ImU32 c = best == 0 ? IM_COL32(40, 96, 34, 255) : best == 1 ? IM_COL32(150, 100, 10, 255) : NsDraw::RED;

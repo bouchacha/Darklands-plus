@@ -169,7 +169,7 @@ static int do_save(const char *comment)
     if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: %s -> %s\n", comment, name);
     if (!strncmp(comment, "Quicksave", 9)) prune("Quicksave", saves_keep_quick);
     else if (!strncmp(comment, "Autosave", 8)) prune("Autosave", saves_keep_auto);
-    char m[80]; snprintf(m, sizeof m, "%s saved (%s)", !strncmp(comment, "Quick", 5) ? "Game" : "Autosave", name);
+    char m[80]; snprintf(m, sizeof m, "%s (%s)", !strncmp(comment, "Quick", 5) ? "Game saved" : "Autosaved", name);
     ui_notice(m);
     return 1;
 }

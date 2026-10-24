@@ -146,7 +146,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_PHYSICIAN; o->who = "Physician";
         o->ask = "In the daytime, go to the physician and choose \"beg him to allow you to be his students\".";
-        o->cond = "He takes no one who already heals better than he does himself (his own Healing changes from week to week; a visit tells it). Some years he takes no students.";
+        o->cond = "He takes no one who already heals better than he does himself (his own Healing changes from week to week; visiting him shows it). Some years he takes no students.";
         o->strength = 50;
         add(o, SK_HEALING, 60);
         int year = (s16)g_rw(G_CUR_YEAR);
@@ -165,7 +165,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
             else if (best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
             else snprintf(o->now, sizeof o->now, "His own Healing is %d this week: he will teach you.", P);
         } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
-        else if (best > lo) snprintf(o->now, sizeof o->now, "His own Healing is %d to %d this week (a visit tells): he teaches only if it is at least the party's best, %d.", lo, hi, best);
+        else if (best > lo) snprintf(o->now, sizeof o->now, "His own Healing is %d to %d this week (visiting him shows which): he teaches only if it is at least the party's best, %d.", lo, hi, best);
     }
     if (t->alchemist) {
         TchSource *o = NEXT(); if (!o) return n;

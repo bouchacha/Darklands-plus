@@ -124,7 +124,7 @@ static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality
 void losses_battle_frame(void)
 {
     if (!worn_len) return;
-    ui_alert("Armor ruined", worn, "Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought.");
+    ui_alert("Armor worn down", worn, "Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought.");
     worn_len = 0; worn[0] = 0;
 }
 

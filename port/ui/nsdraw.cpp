@@ -241,24 +241,24 @@ std::string ns_item_use(int id)
 std::string ns_potion_effect(int id)
 {
     bool fixed = fix_is_on("potions") != 0;
-    std::string day = fixed ? " for about a day (19 to 21 hours)." : " permanently, adding up with the next dose (the original game never removes them).";
+    std::string day = fixed ? " for about a day (19 to 21 hours; a Darklands+ fix: in the original it never wears off)." : " permanently, adding up with the next dose (the original game never removes them).";
     switch (id) {
     case 95: return "Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their Agility, Perception and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades).";
     case 96: return "Thrown: blinding powder. The target loses a third of their Agility, Perception and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades.";
     case 97: return "Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.)";
     case 98: return "Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades.";
-    case 99: return "Thrown: acid that eats the target's armor, lowering its quality by 1d8 + 4, 6 or 8 (grade 1, 2, 3); armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks.";
+    case 99: return "Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks.";
     case 100: return "Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades.";
     case 101: return "Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared.";
-    case 102: return "Thrown: it bursts with great force: damage 1d8 + 4, 6 or 8 (grade 1, 2, 3), penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage.";
-    case 103: return "Thrown: burning pitch that no armor stops: damage 1d6 + 4, 6 or 8 (grade 1, 2, 3), a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down.";
+    case 102: return "Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage.";
+    case 103: return "Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down.";
     case 104: return "Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while.";
     case 105: if (fix_is_on("oilweapons")) return std::string("Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail, as the manual says. Damage only, not the chance to hit;") + day;
               return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: the game ties it to the member, not a blade, so bows, guns, impact weapons and fists gain too (its label says non-impact weapons). Damage only, not the chance to hit;" + day;
-    case 106: if (fix_is_on("oilweapons")) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, as the manual says, " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original") + ";" + day;
-              return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "wrapping past 15 in the original (a bow's 6 + 10 hit as 0)") + ";" + day;
+    case 106: if (fix_is_on("oilweapons")) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, as the manual says, " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0, as in the original") + ";" + day;
+              return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon (its label says blades and poles), " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0, as in the original (a bow's 6 + 10 hits as 0)") + ";" + day;
     case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun, as the manual says" : "including bows, guns and fists") + ", for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first.";
-              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the game adds 14, 22 or 30 to the one number that holds both). " + std::string(fixed ? "Penetration counts up to 15 in all" : "In the original, penetration wraps past 15, so grades 1 and 3 lowered a bow's") + ";" + day;
+              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration (the manual promises +14, +22 or +30 to the weapon's quality instead). " + std::string(fixed ? "Penetration counts up to 15 in all" : "As in the original, penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration") + ";" + day;
     case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first.";
     case 109: if (fix_is_on("armorday")) return "Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, as the manual says, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger.";
               return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently: the game never removes it, and doses add up.";
@@ -268,14 +268,14 @@ std::string ns_potion_effect(int id)
         static const char *const AMT[4] = { "9-14, 15-21 or 22-29", "6-11, 8-13 or 10-15", "6-11, 8-13 or 10-15", "6-11, 8-15 or 10-17" };
         int a = id - 111;
         std::string t = std::string("Drunk: ") + ATT[a] + " up by " + AMT[a] + " (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change. ";
-        if (a == 1 || a == 2) t += std::string("On a wounded member it heals: ") + (fix_is_on("blessing") ? "when it wears off, only the part still above the maximum is lost, so the healing stays." : "but when it wears off the game takes the whole amount back, healed or not (the Darklands+ fix \"Blessings no longer cost attribute points for good\" keeps the healed part).");
+        if (a == 1 || a == 2) t += std::string("On a wounded member it heals: ") + (fix_is_on("blessing") ? "when it wears off, only the part still above the maximum is lost, so the healing stays." : "but when it wears off the game takes the whole amount back, healed or not (the Darklands+ fix \"Blessings no longer cost attribute points for good\", in F12 > Settings > Fixes, keeps the healed part).");
         else t += "When it wears off, what it added is lost.";
         return t + " A second dose while the first is active adds only what goes beyond it.";
     }
     case 115: return "Drunk: permanently heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), and raises Endurance by 9-14, 15-21 or 22-29 for about 30 hours.";
     case 116: {
         if (fix_is_on("armorday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger.";
-        return std::string("Drunk: permanent protection against fire (the game never removes it): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " In the original it also adds 16 to the armor permanently (a bug Darklands+ fixes)."); }
+        return std::string("Drunk: permanent protection against fire (the game never removes it): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " As in the original, it also adds 16 to the armor permanently (a bug; the fix \"No invulnerability from fire protection\" in F12 > Settings > Fixes removes it)."); }
     }
     return "";
 }
@@ -347,8 +347,8 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
             if (other) line += other == 2 ? "; the other two grades don't use it" : "; the other grade doesn't use it";
         } else {
             int nk = 0; for (const Use &u : uses) nk += u.known[0] || u.known[1] || u.known[2];
-            line = "Pips: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more.";
-            if (!nk) line = "Nobody in the party knows a formula with it. Pips: the grades (1 to 3) that use it; point at a potion for more.";
+            line = "Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more.";
+            if (!nk) line = "Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more.";
         }
         P.text(P.fo, NsDraw::FS_SMALL, 79, y + sz + 4.2f, hov >= 0 ? ink : NsDraw::INK_DIM, line, -1, 314);
         return;
@@ -472,7 +472,7 @@ int ns_item_section(int id)
 }
 const char *ns_item_section_name(int sec)
 {
-    static const char *N[6] = { "Equipped", "Potions", "Spare equipment", "Utility", "Trophies and quest things", "Ingredients" };
+    static const char *N[6] = { "Equipped", "Potions", "Spare equipment", "Tools and other goods", "Trophies and quest items", "Ingredients" };
     return sec >= 0 && sec < 6 ? N[sec] : "";
 }
 

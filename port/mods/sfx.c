@@ -3,7 +3,7 @@
  * swords"). Here they are played as recorded-style sounds instead: built-in ones synthesized
  * at start-up (no recordings ship with the port), or the player's own files
  * sounds\NAME.wav / NAME.ogg (NAME2.wav, NAME_3.ogg ... for variations, one picked at random).
- * Also new: hits make a sound (in the original only misses, parries and knock-backs do).
+ * Hits make a sound too (the fix "hitsound": in the original only misses, parries and knock-backs do).
  *
  * The game's calls (s014): battle_sound(n) 0e76:465e checks the sound options and calls
  * the driver's sound_play(n) (047c:078a). n: 10 death, 11 handgun shot, 12 potion/cloud,
@@ -31,6 +31,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "sfx.h"
+#include "fixes.h"
 #include "datamods.h"
 #include "musicpack.h"
 
@@ -546,14 +547,16 @@ static void melee_hook(void)                 /* melee_step(i, set, *again), near
     hook_call_original();
     if (land && tg >= 0 && tg < 13) { void battlelog_blow(int, int, int, int, int, int, int); battlelog_blow(i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
     if (land && getenv("DL_BLOW_LOG") && tg >= 0 && tg < 13) { u32 plat_ticks_ms(void); fprintf(stderr, "blow %u: %d -> %d anim %d: end %d -> %d, str %d -> %d\n", plat_ticks_ms(), i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
-    if (land && (anim == 1 || anim == 2) && !impact_done && sfx_mode && sfx_added_hits && g_rb(GV_opt_sound) == 1)
-        play(S_HIT, anim == 2 ? 1.0f : 0.7f);
+    if (land && (anim == 1 || anim == 2) && !impact_done && fix_is_on("hitsound") && g_rb(GV_opt_sound) == 1) {   /* (an ordinary hit: the original is silent) */
+        if (sfx_mode) play(S_HIT, anim == 2 ? 1.0f : 0.7f);
+        else { int ns_call(int, u16, u16, int, ...); ns_call(GF_battle_sound, 1, 16); }      /* (the knock-back's blow, through the game's driver) */
+    }
     impact = oi; impact_anim = oa; impact_done = od;
 }
 
 void sfx_set(int mode) { sfx_mode = mode; config_set_int("sound.effects", mode); }
 void sfx_set_volume(int v) { sfx_volume = v; config_set_int("sound.effects_volume", v); }
-void sfx_set_hits(int on) { sfx_added_hits = on; config_set_int("sound.hit_sounds", on); }
+void sfx_set_hits(int on) { sfx_added_hits = on; }   /* (unused: the fix "hitsound" decides; sound.hit_sounds retired) */
 void sfx_set_synth(int on) { sfx_synth = on; config_set_int("sound.synth_effects", on); sfx_reload(); }
 
 /* write the built-in sounds as .wav (for listening, or as a start for one's own) */
@@ -588,7 +591,6 @@ void sfx_init(void)
     logon = getenv("DL_SFX_LOG") != 0;
     sfx_mode = config_get_int("sound.effects", 0);
     sfx_volume = config_get_int("sound.effects_volume", 100);
-    sfx_added_hits = config_get_int("sound.hit_sounds", 1);
     sfx_synth = 0;                  /* (the made-up sounds: no longer offered; a sound the pack lacks is the game's own) */
     sfx_reload();
     hook_install(14, 0x0e76, 0x465e, battle_sound_hook);

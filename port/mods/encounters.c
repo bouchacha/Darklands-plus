@@ -273,7 +273,7 @@ static void exit_to_map(void) { g_ww(G_CUR_LOC, 0xffff); g_ww(V_NEXT_CARD, 0x0c)
 static void script_error_at(const char *file)     /* a script error while it runs: the encounter ends, the player is never stuck in it */
 {
     fprintf(stderr, "encounters: %s: an error while running: back to the map\n", file);
-    ui_notice("A new encounter stopped: its script has an error (see darklands_port.log).");
+    ui_notice("A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view.");
     exit_to_map();
 }
 #define script_error(e) script_error_at((e)->file)

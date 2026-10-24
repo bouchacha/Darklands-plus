@@ -214,7 +214,7 @@ static void give_back_thrown(void)
         }
         if (got && ml < (int)sizeof msg - 40) {
             char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-            ml += snprintf(msg + ml, sizeof msg - ml, "%s%s %d", ml ? ", " : "Thrown weapons given back: ", nm, got);
+            ml += snprintf(msg + ml, sizeof msg - ml, "%s%s %d", ml ? ", " : "Thrown weapons picked up after the battle (Darklands+): ", nm, got);
         }
     }
     if (!given) return;

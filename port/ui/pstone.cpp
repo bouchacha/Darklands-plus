@@ -211,7 +211,7 @@ int ui_pstone_look(void) { int v = config_get_int("display.pstone_look", 2); ret
 const char *ui_pstone_look_name(int k) { static const char *N[3] = { "The philosophers' egg", "The stone itself", "The squared circle" }; return k >= 0 && k <= 2 ? N[k] : "?"; }
 const char *ui_pstone_stage_name(int q)
 {
-    static const char *N[5] = { "none yet", "black (nigredo): the raven", "white (albedo): the swan", "yellow (citrinitas): the peacock's colors", "red (rubedo): the phoenix" };
+    static const char *N[5] = { "none yet", "black (nigredo), the raven", "white (albedo), the swan", "yellow (citrinitas), the peacock's colors", "red (rubedo), the phoenix" };
     return N[stage_of(q)];
 }
 

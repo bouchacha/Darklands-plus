@@ -242,8 +242,8 @@ static void battle_intro(void)
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
              "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, "
              "moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. "
-             "The bow or sword on their picture at the left switches them to melee from the start.\n\n"
-             "Against armor their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armor) by themselves.\n\n"
+             "A click on the bow or sword on their box at the left has them fight hand to hand instead.\n\n"
+             "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "Point at an order button in the right margin to see what it does.",
              "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
 }
@@ -391,7 +391,7 @@ void ui_draw_battle_info(void)
                         if (wn.empty()) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
                         if (r < worst) worst = r;
-                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is deflected");
+                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected");
                     }
                     if (worst == 3) continue;
                     ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);

@@ -153,7 +153,7 @@ static const Portrait *portrait(const std::string &name)
  * menus' portrait): its colours 0xeb..0xf2 are the member's own (the colour keys, member_palette),
  * the rest the battle's common colours (in the PIC's own palette, else in another figure's, else
  * the screen's). Kept per cache slot (made again when the code or the colours change). */
-struct FigTex { GamePic pic; std::string key; };
+struct FigTex { GamePic pic; std::string key; float hx0 = 0, hy0 = 0, hx1 = 1, hy1 = 1; };   /* h..: the head, as fractions of the picture */
 static std::map<int, FigTex> figtex;
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix)
 {
@@ -191,10 +191,34 @@ const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *m
         argb[i] = 0xff000000u | c;
     }
     free(img);
+    {   /* the head and shoulders: the top of the figure, squared about its opaque pixels */
+        int ty = -1, by = -1;
+        for (int y = 0; y < h && ty < 0; y++) for (int x = 0; x < w; x++) if (argb[(size_t)y * w + x]) { ty = y; break; }
+        for (int y = h - 1; y >= 0 && by < 0; y--) for (int x = 0; x < w; x++) if (argb[(size_t)y * w + x]) { by = y; break; }
+        int xw = strcmp(suffix, "SMALL") ? w : w / 2;      /* (SMALL: the front, at the left; the back at the right) */
+        if (ty >= 0 && by > ty) {
+            int hh = std::max(4, (int)((by - ty + 1) * 0.3f)), x0 = w, x1 = -1;   /* (the head and shoulders: their colors tell the members apart) */
+            for (int y = ty; y < ty + hh && y < h; y++) for (int x = 0; x < xw; x++) if (argb[(size_t)y * w + x]) { x0 = std::min(x0, x); x1 = std::max(x1, x); }
+            if (x1 >= x0) {
+                int side = std::max(hh, x1 - x0 + 1), cx = (x0 + x1 + 1) / 2;
+                f.hx0 = (float)(cx - side / 2) / w; f.hx1 = (float)(cx - side / 2 + side) / w;
+                f.hy0 = (float)ty / h; f.hy1 = (float)(ty + side) / h;
+            }
+        }
+    }
     f.pic.w = w; f.pic.h = h;
     f.pic.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
     if (f.pic.tex) { SDL_UpdateTexture(f.pic.tex, 0, argb.data(), w * 4); SDL_SetTextureBlendMode(f.pic.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(f.pic.tex, SDL_ScaleModeNearest); }
     return f.pic.tex ? &f.pic : nullptr;
+}
+/* the head of a figure made by ns_figure_pic in that cache slot: its picture and where the head is in it */
+const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *mp, ImVec2 *uv0, ImVec2 *uv1)
+{
+    const GamePic *g = ns_figure_pic(cache, code, mp, "SMALL");             /* (the creation menus' portrait: the larger one) */
+    if (!g) return nullptr;
+    const FigTex &f = figtex[cache];
+    *uv0 = ImVec2(f.hx0, f.hy0); *uv1 = ImVec2(f.hx1, f.hy1);
+    return g;
 }
 /* a member's figure beside a battle */
 static const GamePic *figure(int m)

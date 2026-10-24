@@ -14,7 +14,7 @@ using pen::C;
 using pen::Pen;
 
 const char *QUEST_CAT_NAME[QC_N] = {
-    "Quest", "Robber knight", "Reward waiting", "A thing to fetch", "Papers to get in a town", "Mine",
+    "Quest", "Robber knight", "Reward waiting", "A treasure to fetch", "Papers to get in a town", "Mine",
     "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics", "City at war"
 };
 

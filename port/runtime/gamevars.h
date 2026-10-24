@@ -480,6 +480,7 @@
 #define GF_key_pressed                  -1, 0x047c, 0x073d    /* (): 1 when a key is waiting */
 #define GF_get_key                      -1, 0x047c, 0x0744    /* (): next key (scan code << 8 | ASCII) */
 #define GF_sound_play                   -1, 0x047c, 0x078a    /* (n): play a sound (1: stop the music) */
+#define GF_battle_sound                 14, 0x0e76, 0x465e    /* (n): a battle sound, if the sound options allow it (10 death ... 16 knock-back, 17 miss or parry) */
 #define GF_distance3                    -1, 0x047c, 0x1120    /* (dx, dy, dz): integer approximation of sqrt(dx*dx + dy*dy + dz*dz) */
 #define GF_mouse_set_cursor             -1, 0x047c, 0x124f    /* (x, y, cursor): hot spot and pointer */
 #define GF_mouse_move                   -1, 0x047c, 0x1266    /* ? (x, y) */

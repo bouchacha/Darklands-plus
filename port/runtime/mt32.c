@@ -202,7 +202,7 @@ static mt32emu_context make_synth(int rate)
     mt32emu_set_stereo_output_samplerate(c, rate);
     mt32emu_set_samplerate_conversion_quality(c, MT32EMU_SRCQ_GOOD);
     mt32emu_set_analog_output_mode(c, MT32EMU_AOM_ACCURATE);
-    if (mt32emu_open_synth(c) != MT32EMU_RC_OK) { snprintf(why, sizeof why, "the emulator did not start"); mt32emu_free_context(c); return 0; }
+    if (mt32emu_open_synth(c) != MT32EMU_RC_OK) { snprintf(why, sizeof why, "these ROM files did not work"); mt32emu_free_context(c); return 0; }
     mt32emu_set_midi_event_queue_size(c, 8192);              /* (room for a burst: a song's timbres, several songs at once) */
     snprintf(found_desc, sizeof found_desc, "%s, %s", ri.control_rom_description ? ri.control_rom_description : ri.control_rom_id,
              ri.pcm_rom_description ? ri.pcm_rom_description : ri.pcm_rom_id);
@@ -221,7 +221,7 @@ int mt32_open(int rate)
     {   /* say so once, the first time it plays */
         void ui_notice(const char *msg);
         if (!config_get_int("sound.mt32_told", 0)) {
-            const char *m = "The music plays on the Roland MT-32, with the ROM files found on this computer (F12 > Settings)";
+            const char *m = "The music now plays as on a Roland MT-32, the 1987 synthesizer it was written for (F12 > Settings > Sound)";
             void ui_mt32_caption(const char *text);
             if (config_get_int("sound.mt32_lcd", 1)) ui_mt32_caption(m);   /* under its display, which shows the game's greeting */
             else ui_notice(m);
@@ -345,8 +345,8 @@ static const char *machine_desc(const char *m)
 const char *mt32_status(void)
 {
     static char s[1600];
-    if (state > 0) snprintf(s, sizeof s, "Playing on a %s (%s; from %s).", machine_desc(playing), found_desc, found_dir);
-    else if (mt32_available()) snprintf(s, sizeof s, "Found the ROM files of a %s in %s.", machine_desc(machine), found_dir[0] ? found_dir : "several folders");
+    if (state > 0) snprintf(s, sizeof s, "Playing as on the %s (%s; from %s).", machine_desc(playing), found_desc, found_dir);
+    else if (mt32_available()) snprintf(s, sizeof s, "Found the ROM files of the %s in %s.", machine_desc(machine), found_dir[0] ? found_dir : "several folders");
     else if (state < 0 && why[0] && !strstr(why, "no MT-32")) snprintf(s, sizeof s, "The MT-32 could not start: %s.", why);
     else snprintf(s, sizeof s, "No MT-32 or CM-32L ROM files found. Put the two files (control and PCM, any names) into %s/roms, "
                   "or name their folder here.", dlp_user_dir[0] ? dlp_user_dir : game_dir);

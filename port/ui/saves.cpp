@@ -70,7 +70,7 @@ extern "C" void saves_prefs(void)
             ImGui::TextDisabled("as a quick save, when the game next allows saving (not in shops or during conversations).");
         }
     }
-    ImGui::TextDisabled("Save and Load: the Game menu (right-click), or Alt+S and Alt+L. Quick save and Quick load are also in the Darklands+ menu.");
+    ImGui::TextDisabled("Save and Load: the Game menu (right-click), or Alt+S and Alt+L. Quick save and Quick load are also in the menu bar's Darklands+ menu.");
 }
 
 extern "C" void tab_saves(void)

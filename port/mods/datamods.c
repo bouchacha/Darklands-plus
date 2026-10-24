@@ -399,7 +399,7 @@ int datamods_new(const char *name, char *where, size_t wn)
                    "Put files into this folder laid out like the game folder; while the mod is on, the game reads them\n"
                    "instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card\n"
                    "files (.MSG, or .TXT as written by \"Export the card texts\"), art/ and sounds/ as in the game folder,\n"
-                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings).\n", name);
+                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings > Sound).\n", name);
         fclose(f);
     }
     datamods_scan();

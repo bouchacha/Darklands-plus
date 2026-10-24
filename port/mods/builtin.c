@@ -102,7 +102,7 @@ static void quick_learning(int on)
 Mod MODS[] = {
     { "swift_travel", "Faster overland travel", "Travel", "Overland travel takes a third of the time.", swift_travel, 0, 0 },
     { "cheap_inn", "Half-price inns", "Towns", "Lodging costs half as much.", cheap_inn, 0, 0 },
-    { "quick_learning", "Quick learning", "Skills", "Skills improve about twice as often through use, on cards and in battles (slow skills such as Streetwise and Latin no longer take ages to rise).", quick_learning, 0, 0 },
+    { "quick_learning", "Quick learning", "Skills", "Skills improve about twice as often through use, on cards and in battles (slow ones such as Streetwise and Latin too).", quick_learning, 0, 0 },
     { "heavy_blows", "Double damage against enemies", "Combat", "Every hit on an enemy does double damage. Hits on the party are unchanged.", heavy_blows, 0, 0 },
     { "strong_party", "Strong Quickstart party", "New game", "The four members of the Quickstart party start with 60 in every attribute and 75 in every skill.", strong_party, 0, 1 },
     { "rich_start", "Rich start", "New game", "A party made with Create a New World starts with 5000 florins instead of 200.", rich_start, 0, 1 },

@@ -144,11 +144,11 @@ static const DestInfo DEST[D_N] = {
     { "Clothmaker", "Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild.", 0, -1, 8, TI_CLOTH },   /* (shown with the cardopts fix: by day its shopfronts are switched off in 483.07) */
     { "Alchemist", "Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy.", 3, -1, -1, TI_ALCHEMIST },
     { "Herbalist", "", 3, -1, -1, TI_PHARMACY },
-    { "Pharmacist", "Stalls with herbs and rare materials: alchemical components.", 0, -1, -1, TI_PHARMACY },
-    { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical components bought and sold.", 3, -1, -1, TI_PHYSICIAN },
+    { "Pharmacist", "Stalls with herbs and rare materials: alchemical ingredients.", 0, -1, -1, TI_PHARMACY },
+    { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold.", 3, -1, -1, TI_PHYSICIAN },
     { "Fugger bank", "Heavy coin changed into bank notes that weigh nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
     { "Medici bank", "The Medici representative: bank notes, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
-    { "Hanseatic League", "The offices of the league of northern merchant towns: quests for pay. Asking politely counts your standing with the Hanse, boldly your reputation here and your fame; collecting a reward politely also raises your standing.", 1, -1, -1, TI_HANSE },
+    { "Hanseatic League", "The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
     { "Cathedral", "Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
     { "Church", "Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you.", 2, -1, -1, TI_CHURCH },
@@ -462,7 +462,7 @@ extern "C" void citynav_tick(void)
     for (const Rule &r : RULES) if (r.hub == H_MARKET && r.to == goal) market_goal = true;
     if (hub == H_MARKET && (night_closed(goal) || (card == "$MARKE01" && market_goal))) {    /* the marketplace by night ($MARKE01): its stalls shut, the offices upstairs to be reached past the guards */
         bool office = goal == D_MERCHANT || goal == D_FUGGER || goal == D_MEDICI || goal == D_HANSE;
-        stop(office ? "the marketplace by night: choose how to get past the guards to the offices upstairs (G again there goes on to the office)."
+        stop(office ? "the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office)."
                     : "the marketplace by night: its stalls are shut until 5:00.");
         return;
     }

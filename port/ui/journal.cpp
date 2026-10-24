@@ -426,7 +426,7 @@ static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
-    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings)."); return; }
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off: tick both boxes above (the Full Original preset keeps it off)."); return; }
     static bool nav_open = true;
     if (ImGui::SmallButton(nav_open ? "Hide the list of days" : "Show the list of days")) nav_open = !nav_open;
     ImGui::SameLine();
@@ -887,7 +887,7 @@ static void storage_page(void)
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
     {
-      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (a Darklands+ switch: F12 > Settings).");
+      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (the Darklands+ switch \"One store room shared by every inn\" in F12 > Settings > New screens).");
       else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
                               "The original game shows a store room only while the party is in it."); }
     ImGui::Spacing();
@@ -955,7 +955,7 @@ extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
-    ImGui::TextDisabled("The quests and every town (its shops, the wares noted, where to buy a thing) are on the world map (M).");
+    ImGui::TextDisabled("The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M).");
     {   /* the two switches of what is noted (on unless switched off here) */
         bool tj = journal_on != 0, ch = config_get_int("journal.chronicle", 1) != 0;
         if (ImGui::Checkbox("Note each town's shops and wares", &tj)) { journal_set(tj); ui_dirty_config = 1; }
@@ -1021,11 +1021,11 @@ extern "C" int journal_buy_window(bool *open)
     auto town_link = [&](int loc, const char *id) {        /* a town's name: a click shows it on the map */
         ImGui::PushID(id); ImGui::PushID(loc);
         if (ImGui::SmallButton(loc_name(loc).c_str())) pick = loc;
-        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show %s on the map", loc_name(loc).c_str());
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show %s on the world map", loc_name(loc).c_str());
         ImGui::PopID(); ImGui::PopID();
     };
     if (ImGui::CollapsingHeader("Alchemical ingredients", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::TextDisabled("Bought ingredients are always quality 25. The nearest town first%s.", here ? "" : " (where the party is not known: by name)");
+        ImGui::TextDisabled("Bought ingredients are always quality 25. The nearest town first%s.", here ? "" : " (for now by name: the party's position is not known)");
         if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
             ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
             ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed, UIS(70));

@@ -67,10 +67,10 @@ void tab_about(void)
 {
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
-    ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
+    ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the "
                        "game files of your own copy; everything Darklands+ adds can be switched off (F12 > Settings: the Full Original preset is the game as it was).");
     ImGui::Spacing();
-    ImGui::TextWrapped("F11: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
+    ImGui::TextWrapped("F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
     ImGui::PushFont(font_head); orn_septext("Files"); ImGui::PopFont();
     {   extern char dos_shadow[];
@@ -117,11 +117,11 @@ void welcome_window(void)
     if (ImGui::Begin("Welcome to Darklands+", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         extern char dos_shadow[];
         if (dos_shadow[0])
-            ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
+            ImGui::TextWrapped("This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. "
                                "Windows does not let programs write to the game folder where it is installed, so your saved games go to %s "
                                "(the ones already in the game folder can be loaded as always).", dos_shadow);
         else
-            ImGui::TextWrapped("This is Darklands (MicroProse, 1992) running natively, with the game files of your own copy. "
+            ImGui::TextWrapped("This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. "
                                "Your saved games stay in the game folder as always.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ adds what players have long wished for (crisp text, chances on the cards, a character sheet "
@@ -147,7 +147,7 @@ void welcome_window(void)
         }
         ImGui::Spacing();
         ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
-        ImGui::BulletText("F12: the Darklands+ menu (the game waits while it is open)");
+        ImGui::BulletText("F12: the Darklands+ window (the game waits while it is open)");
         ImGui::BulletText("F11: the keys and clicks for the current screen, including the game's hidden ones");
         ImGui::BulletText("F12 > New Player Guide: how Darklands works, for a new player");
         ImGui::BulletText("Click a party member on the left: their character sheet, with the whole party's saints and formulae");
@@ -182,7 +182,7 @@ void news_window(void)
     std::string title = "New in Darklands+ " + news_key();
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
-            "City politics, restored (experimental, off by default): the campaign MicroProse wrote and never switched on. Take the rebels' side "
+            "City politics (experimental, off by default): the campaign MicroProse wrote and never switched on, reconstructed by Darklands+. Take the rebels' side "
             "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Reconstructed Content.",
             "More of what MicroProse left unused, on a page of its own (F12 > Reconstructed Content, experimental, all off by default): cities preparing for war or "
             "under siege, \"Fehde!\", soldiers of a private war waiting in ambush on the road, and a town's hospice.",
@@ -194,7 +194,7 @@ void news_window(void)
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Every change can be switched off: F12 > Settings. F12 > New Player Guide explains the game; F11 lists the keys for the current screen.");
+        ImGui::TextWrapped("Changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen.");
         ImGui::PopStyleColor();
         ImGui::Spacing();
         bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);
@@ -215,16 +215,16 @@ void mt32_window(void)
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::PushFont(font_body);
     if (ImGui::Begin("Darklands sounds best on a Roland MT-32", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::TextWrapped("Darklands was composed for the Roland MT-32 (and its sibling the LAPC-I). The game loads its own "
+        ImGui::TextWrapped("Darklands was composed for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). The game loads its own "
                            "instruments into it: the music is played as written, with flutes, strings and horns, and the battles "
                            "sound like swords and shields.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster plays simpler FM versions of the music and "
-                           "only rough imitations of the battle sounds; a General MIDI synthesizer such as Windows' own plays the "
+        ImGui::TextWrapped("Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and "
+                           "only rough imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the "
                            "wrong instruments altogether.");
         ImGui::Spacing();
-        ImGui::TextWrapped("Darklands+ has the MT-32 built in (Munt's emulator). It only needs the synthesizer's two ROM files, "
-                           "control and PCM, of an MT-32 or a CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come "
+        ImGui::TextWrapped("Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: "
+                           "control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come "
                            "with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: "
                            "show Darklands+ the folder.");
         ImGui::Spacing();
@@ -262,7 +262,7 @@ void mt32_window(void)
             ImGui::SameLine();
             if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
         }
-        ImGui::TextDisabled("F12 > Settings has all of this too.");
+        ImGui::TextDisabled("F12 > Settings > Sound has all of this too.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_mt32 = false; config_save(); }
     }
@@ -293,7 +293,7 @@ void help_window(void)
         if (savesview_showing(&sv_loading)) {
             orn_septext(sv_loading ? "Now: loading a game" : "Now: saving the game");
             if (sv_loading) { row("Double-click a save", "load it (or click it, then Load)"); row("Up, Down, Enter", "choose a save, load it"); }
-            else { row("Type", "a name for the save (22 letters at most; Backspace deletes one)"); row("Enter or Save", "save it"); }
+            else { row("Type", "a name for the save (22 characters at most; Backspace deletes one)"); row("Enter or Save", "save it"); }
             row("Esc or Cancel", "back to the game as it was");
         } else if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
             orn_septext(lodgeview_camping() ? "Now: a camp" : "Now: a stay at the inn");
@@ -304,18 +304,18 @@ void help_window(void)
         } else if (gm == GM_CARD) {
             orn_septext("Now: a card");
             row("Click an option", "or press its number, 1 to 9");
-            row("Hold Shift over an option", "the chance of success as the original game shows it (the badges show every option's chance)");
-            row("G", "go to a place in this city");
-            row("M", "world map");
-            row("Town pictures", "(in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers");
+            row("Hold Shift over an option", "the chance of success as the original game shows it (Darklands+'s badges show every option's chance)");
+            row("G", "go to a place in this city (Darklands+)");
+            row("M", "the world map (Darklands+)");
+            row("Town icons", "(in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers");
         } else if (gm == GM_MAP) {
             orn_septext("Now: the overland view");
             row("Click", "walk towards that spot");
-            row("Ctrl+click", "travel there along the roads (any key or click stops)");
-            row("M", "world map: find a place, double-click to travel there");
-            row("Point at a quest's picture", "the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party)");
+            row("Ctrl+click", "travel there along the roads (Darklands+; any key or click stops)");
+            row("M", "the world map (Darklands+): find a place, double-click to travel there");
+            row("Point at a quest's icon", "the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party)");
             row("A quest in the left margin", "click to open it, then Travel there");
-            row("Town pictures", "(in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers)");
+            row("Town icons", "(in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers)");
         } else if (gm == GM_BATTLE) {
             orn_septext("Now: a battle");
             row("Space", "pause / resume; orders can be given while paused");
@@ -329,9 +329,9 @@ void help_window(void)
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
             row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
-            if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it");
-            if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed");
-            { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal keeps it all"); }
+            if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it (Darklands+)");
+            if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed (Darklands+)");
+            { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all"); }
         } else if (loot_active && lootview_showing()) {
             orn_septext("Now: the loot");
             row("Take / Put back", "on the row under the pointer: the whole stack (1: just one)");
@@ -342,7 +342,7 @@ void help_window(void)
         } else if (loot_active) {
             orn_septext("Now: the loot");
             row("G / P", "get the chosen item from the pile / put one back (the cursor's list)");
-            row("D", "hand out to the next member");
+            row("D", "switch to the next member (the one who gets what you take)");
             if (loot_enabled()) { row("A", "take the whole pile for the member shown"); row("S", "share the pile out: each item to whoever has some already, else whoever has the most room"); }
             row("L or Esc", "leave (what is left stays behind)");
         } else if (barter_active && barterview_showing()) {
@@ -362,15 +362,15 @@ void help_window(void)
             row("Take / Put", "on the row under the pointer: the whole stack (1: just one)");
             row("Put away", "every item not equipped (with the party's pack, Darklands+: except kept items and potions)");
             if (cacheview_shared_pack()) row("Potions", "a potion taken goes to the member shown above the right list; the rest into the party's pack");
-            if (cacheview_every_inn()) row("The store room", "the same at every inn (F12 > Settings)");
+            if (cacheview_every_inn()) row("The store room", "the same at every inn (Darklands+; F12 > Settings > New screens)");
             row("L, Esc or Leave", "leave");
         } else if (sheetview_showing()) {
             orn_septext("Now: a character sheet");
-            if (sheet_model.shared) { row("Ready / Unequip / Drink / Keep / Drop", "on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are the whole party's, and Ready first hands the item to this member (Drop with Shift: all of them)");
+            if (sheet_model.shared) { row("Equip / Unequip / Drink / Keep / Drop", "on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them)");
                                       row("Potions", "each member's own: drag one onto someone at the left to give it");
                                       row("Keep", "marks an item never to be sold or dropped (a small seal on its row)");
                                       row("The load", "only equipped items count toward the load, as in the original"); }
-            else row("Ready / Unequip / Drink / Give / Drop", "on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack)");
+            else row("Equip / Unequip / Drink / Give / Drop", "on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack)");
             row("Items, Skills, Saints, Formulae", "the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page)");
             row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
@@ -386,14 +386,14 @@ void help_window(void)
         orn_septext("Keys of the original game");
         if (!ui_original_mode()) row("Right-click", "the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard");
         else row("Right mouse button", "the menu bar, while it is held: let go on an entry (F10 with the keyboard)");
-        row("Alt+S / Alt+L", "save / load (with a comment, nine saves)");
-        row("Alt+O", "order of the party");
+        row("Alt+S / Alt+L", "save / load, with a comment (the original's screens list nine saves)");
+        row("Alt+O", "the marching order");
         row("Alt+D", "difficulty    Alt+M music    Alt+F sound effects");
         row("Alt+C", "messages about saints' changes on / off");
-        row("F6", "the party's information");
+        row("F6", "Party Info");
         row("Alt+Q", "quit to the desktop");
         orn_septext("Darklands+");
-        row("F12", "the Darklands+ menu (pauses the game)");
+        row("F12", "the Darklands+ window (pauses the game)");
         row("Ctrl+S / F9 or Ctrl+L", "quick save / quick load");
         row("Alt+Enter", "full screen    Ctrl+F12 screenshot");
         { if ((plat_controller_connected() || ui_pad_prompts()) ) {
@@ -410,7 +410,7 @@ void help_window(void)
             prow("{X} {Y}", "Enter / Esc");
             prow("{DPAD}", "the arrow keys");
             prow("{LB} {RB}", "Tab (the level map) / Space (pause)");
-            prow("{START} {BACK}", "F12 (this menu) / M (the world map)");
+            prow("{START} {BACK}", "F12 (the Darklands+ window) / M (the world map)");
             prow("{RT}", "held: Ctrl (in the overland view: Ctrl+click travels there)");
             prow("{LS}", "pressed: F11 (this list)");
           } }

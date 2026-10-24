@@ -158,7 +158,7 @@ void tab_mods(void)
             int ne = encounters_count(), nerr = encounters_errors();
             if (ne || nerr) {
                 ImGui::Spacing();
-                ImGui::TextWrapped("New encounters in use: %d%s", ne, nerr ? "" : ".");
+                ImGui::TextWrapped("New encounters from mods: %d%s", ne, nerr ? "" : ".");
                 if (nerr) { ImGui::SameLine(); ImGui::TextColored(ImVec4(1, 0.6f, 0.4f, 1), "(%d file%s with errors left out: see darklands_port.log)", nerr, nerr == 1 ? "" : "s"); }
                 ImGui::Indent(UIS(34));
                 int share = config_get_int("encounters.share", 100);
@@ -187,7 +187,7 @@ void tab_mods(void)
         ImGui::SameLine(); ui_hint("every town and encounter text, editable, with its options");
         { extern int ui_collect_texts; bool ct = ui_collect_texts != 0;
           if (ImGui::Checkbox("Write every text shown to a file (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
-        ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs crisp text).");
+        ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         ui_hint("Mods are applied in the order of the list above: where two change the same file, the lower one wins. "
              "Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. "
@@ -409,7 +409,7 @@ static void presets_block(void)
     ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     ImGui::TextWrapped("Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; "
-                       "what Darklands+ records on top (Sabbats learned, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets "
+                       "what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets "
                        "or single switches at any time is safe.");
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
@@ -449,7 +449,7 @@ void tab_helpers(void)
         int n = options_count();
         for (int i = 0; i < n; i++) {
             const Option *o = options_get(i);
-            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->cls == OC_EASY || !strcmp(o->section, "Restored cut content")) continue;   /* (those: their own pages, tab_restored, tab_mods) */
+            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->cls == OC_EASY || !strcmp(o->section, "Reconstructed Content")) continue;   /* (those: their own pages, tab_restored, tab_mods) */
             bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
             if (!seen) sect.push_back(o->section);
             if (!seen && !strcmp(o->section, "New screens"))      /* what things look like, after the screens */
@@ -542,7 +542,7 @@ void tab_helpers(void)
    in two parts, by how much Darklands+ had to supply (docs/cut_content.md) */
 void tab_restored(void)
 {
-    ImGui::PushFont(ui_font_head); orn_septext("Reconstructed content"); ImGui::PopFont();
+    ImGui::PushFont(ui_font_head); orn_septext("Reconstructed Content"); ImGui::PopFont();
     ImGui::TextColored(ImVec4(0.75f, 0.35f, 0.1f, 1), "Experimental.");
     ImGui::SameLine();
     ImGui::TextWrapped("What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: "
@@ -554,12 +554,12 @@ void tab_restored(void)
     auto finished = [](const char *k) { for (int i = 0; FINISHED[i]; i++) if (!strcmp(FINISHED[i], k)) return true; return false; };
     int n = options_count();
     for (int part = 0; part < 2; part++) {
-        ImGui::PushFont(ui_font_head); orn_septext(part ? "Written, but never wired up" : "Finished, but never switched on"); ImGui::PopFont();
-        ui_hint(part ? "The texts or pictures are in the game's files, but the code that would show them was never written or never finished: Darklands+ supplies the missing pieces."
+        ImGui::PushFont(ui_font_head); orn_septext(part ? "Written, but never finished" : "Finished, but never switched on"); ImGui::PopFont();
+        ui_hint(part ? "The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces."
                      : "Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on.");
         for (int i = 0; i < n; i++) {
             const Option *o = options_get(i);
-            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, "Restored cut content") || finished(o->key) != (part == 0)) continue;
+            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, "Reconstructed Content") || finished(o->key) != (part == 0)) continue;
             option_row(o, 0);
         }
         ImGui::Spacing();
@@ -616,7 +616,7 @@ static void controller_prefs(void)
     if (!view) view = kind ? kind : 1;
     ImGui::TextUnformatted("Show the buttons as:"); 
     for (int k = 1; k <= 3; k++) { ImGui::SameLine(); if (ImGui::RadioButton(KIND[k], view == k)) view = k; }
-    static const char *JOB[9] = { "Click", "Right-click (the menus)", "Enter", "Esc", "Tab (the level map)", "Space (pause)", "F12 (Darklands+)", "M (the world map)", "F11 (keys and clicks)" };
+    static const char *JOB[9] = { "Click", "Right-click (the menus)", "Enter", "Esc", "Tab (the level map)", "Space (pause)", "F12 (the Darklands+ window)", "M (the world map)", "F11 (keys and clicks)" };
     int keep = ui_pad_style_force; ui_pad_style_force = view;
     float gh = ImGui::GetFrameHeight();
     if (ImGui::BeginTable("##padmap", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
@@ -727,7 +727,7 @@ static void look_text(void)
         ImGui::PopID();
     }
     if (cur) {
-        ui_hint("New text: the same words drawn sharp at the window's resolution, outlined over pictures and darkened where faint; "
+        ui_hint("New text: the same words drawn sharp at any window size, outlined over pictures and darkened where faint; "
                 "the character sheet's abbreviations spelled out (wPol: Polearm Wpns), names in full where the game cut them short, "
                 "armor named by where it is worn (Chainmail (body) for V:Chainmail), and icons beside the skills.");
         ImGui::SetNextItemWidth(UIS(380));
@@ -742,7 +742,7 @@ static void look_text(void)
         bool co = money_coins();
         if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " instead of 1fl 12gr 4pf (florins, groschen, pfennigs)", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; }
     } else
-        ui_hint("The game's own 7-pixel blackletter, as in 1992: true to the original, and hard to read when scaled up.");
+        ui_hint("The game's own small blackletter, as in 1992: true to the original, but hard to read on a large screen.");
 }
 static void look_ornaments(void)
 {
@@ -770,8 +770,8 @@ static void look_ornaments(void)
         {   /* the frames round tooltips and panels, and the buttons (with any band) */
             float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
             static const int V4[4] = { 0, 1, 2, 3 };
-            static const char *FR[4] = { "Gilt rule", "Rubricated", "Pen flourishes", "Blind tooling" };
-            static const char *BT[4] = { "Metal plaques", "Rubrics", "Seal tabs", "Lettered" };
+            static const char *FR[4] = { "Gold lines", "Red lines", "Pen flourishes", "Stamped leather" };
+            static const char *BT[4] = { "Metal plaques", "Flat, gold-edged", "Rounded tabs", "Words only" };
             ImGui::TextUnformatted("Frames (tooltips, the card text, the new screens' pages)");
             pic_choice("ornfr", "display.frame_style", 0, V4, FR, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
                 dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
@@ -795,7 +795,7 @@ static void look_ornaments(void)
             });
         }
         ui_hint("The band around the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
-                "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
+                "the illuminated capitals' vermilion and gold, the stone niche around the figure on the character sheet. With any of them, the lines and corners are gilt "
                 "and the frames and buttons are as chosen here.");
     }
 
@@ -828,7 +828,7 @@ static void look_clock(void)
             ImGui::PopID();
         }
         ui_hint("Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
-                "the game's own clock looks most like an astrolabe, here also drawn anew at the window's resolution.");
+                "the copper astrolabe is the game's own clock, drawn anew so that it stays sharp.");
     }
 
 }
@@ -861,7 +861,7 @@ static void setup_screen(void)
             ImGui::PopID();
         }
         ui_hint(cur == 0 ? "Every pixel a crisp square, as the game drew it."
-              : cur == 1 ? "The stair-steps of diagonal edges rounded off, without blurring (Scale4x). It needs a graphics card: without one (a virtual machine, say) the game slows down."
+              : cur == 1 ? "The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this."
                          : "Blurred a little, as an old monitor would.");
     }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0;
@@ -951,7 +951,7 @@ static void setup_sound(void)
     };
     auto tier = [&](const char *t) { ImGui::Spacing(); ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
     tier("Best");
-    device("mt32", "Roland MT-32", "The synthesizer Darklands was composed for: the music and the battle sounds as intended.",
+    device("mt32", "Roland MT-32", "Roland's synthesizer of 1987, the one Darklands' music and battle sounds were written for: they sound as intended.",
            !strcmp(cur, "mt32") || !strcmp(cur, "auto"));
     {
         ImGui::Indent(UIS(30));
@@ -967,7 +967,7 @@ static void setup_sound(void)
             ImGui::Indent(UIS(14));
             if (!roms) {
                 ImGui::TextWrapped("The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it, and every other choice here is a "
-                                   "lesser version. Darklands+ has it built in (the Munt emulator) and only needs the synthesizer's two ROM files, which belong to Roland "
+                                   "lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland "
                                    "and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays.");
                 if (ImGui::Button("Where to find them...")) ui_show_mt32_help();
             } else ui_hint("%s", mt32_status());
@@ -982,16 +982,16 @@ static void setup_sound(void)
             if (mt32_families() == 3) {                /* both: which one */
                 const char *m = config_get("sound.mt32_model", "mt32");
                 if (ImGui::RadioButton("MT-32 (the battle sounds as blows and grunts, as composed)", !strcmp(m, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-                if (ImGui::RadioButton("CM-32L / LAPC-I, a curiosity (chimes and odd noises for the battle sounds)", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                if (ImGui::RadioButton("CM-32L / LAPC-I (later Roland models), a curiosity: chimes and odd noises for the battle sounds", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
             }
             {   bool lcd = config_get_int("sound.mt32_lcd", 1);
-                if (ImGui::Checkbox("Show the synthesizer's little display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
-            device("midi", "Through a MIDI output instead", "For a synthesizer plugged into the computer (an MT-32 itself, or Munt installed as a MIDI device). "
-                   "A General MIDI synthesizer, such as Windows' own, plays the wrong instruments.", !strcmp(cur, "midi"));
+                if (ImGui::Checkbox("Show the MT-32's little display (top right) when the game puts a message on it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
+            device("midi", "A synthesizer outside Darklands+ (MIDI)", "For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. "
+                   "An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.", !strcmp(cur, "midi"));
             if (!strcmp(cur, "midi")) {
                 int n = mpu_out_count();
                 const char *out = config_get("sound.midi_out", "");
-                if (!n) ui_hint("No MIDI outputs on this system.");
+                if (!n) ui_hint("No MIDI outputs (connections to a synthesizer) on this computer.");
                 else {
                     ImGui::SetNextItemWidth(UIS(420));
                     if (ImGui::BeginCombo("MIDI output", out[0] ? out : "the system's default")) {
@@ -1006,11 +1006,11 @@ static void setup_sound(void)
         ImGui::Unindent(UIS(30));
     }
     tier("OK");
-    device("fm", "Sound Blaster Pro", "What most players heard in 1992: the score arranged for an FM chip, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
+    device("fm", "Sound Blaster Pro", "The sound card most players had in 1992: the music arranged for its simpler synthesizer, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
     tier("For history's sake");
-    device("adlib", "AdLib (the older FM card)", "Much the same music; the battle sounds are FM noises too.", !strcmp(cur, "adlib"));
+    device("adlib", "AdLib (an older sound card)", "Much the same music; the battle sounds are rough imitations too.", !strcmp(cur, "adlib"));
     device("speaker", "PC speaker", "Beeps.", !strcmp(cur, "speaker"));
-    device("game", "As the game's own setup says (INSTALL)", 0, !strcmp(cur, "game"));
+    device("game", "As set in the original game's INSTALL program", 0, !strcmp(cur, "game"));
     device("off", "Off", 0, !strcmp(cur, "off"));
     ui_hint("A change is heard from the next battle, or the next start.");
     {
@@ -1023,7 +1023,7 @@ static void setup_sound(void)
     ImGui::Spacing();
     extern char dlp_user_dir[];
     if (ImGui::TreeNode("Custom sound packs")) {
-        ui_hint("Recordings that replace the synthesizer's music or battle sounds. Darklands+ comes with none; the previews above play them when ticked.");
+        ui_hint("Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked.");
         {   /* music packs (mods/musicpack.c) */
             bool mp = musicpack_on;
             if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); ui_dirty_config = 1; }
@@ -1048,14 +1048,13 @@ static void setup_sound(void)
         }
         {   /* battle sounds packs (mods/sfx.c) */
             ImGui::Spacing();
-            bool sp = sfx_mode, hs = sfx_added_hits;
+            bool sp = sfx_mode;   /* (hits: the fix "Ordinary hits make a sound") */
             if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
             int n = sfx_user_count();
-            if (n) ui_hint("%d sound%s in %s%ssounds; the built-in ones for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-            else ui_hint("Recorded blows, parries and cries in place of the synthesizer's (built in; or a pack in %s%ssounds, or the \"Battle sounds\" mod).", dlp_user_dir, PATH_SEP);
+            if (n) ui_hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+            else ui_hint("Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the \"Battle sounds\" mod (F12 > Mods).", dlp_user_dir, PATH_SEP);
             if (sp) {
                 ImGui::Indent(UIS(30));
-                if (ImGui::Checkbox("A sound for every blow that hits (the original game plays none for an ordinary hit, only for misses, parries and falls)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
                 int v = sfx_volume;
                 ImGui::SetNextItemWidth(UIS(260));
                 if (ImGui::SliderInt("Volume of the pack", &v, 0, 150, "%d%%")) { sfx_set_volume(v); ui_dirty_config = 1; }

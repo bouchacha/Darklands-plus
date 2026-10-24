@@ -52,7 +52,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.card_keys", "Choosing with the keyboard is quicker than clicking." },
     { "assist.goto_work", "Finding which office has work meant visiting each." },
     { "assist.teachers", "Teachers are easy to miss: nothing in the original says an option brings one." },
-    { "assist.city_goto", "Walking through a town's menus to one place is many clicks the player could do by hand." },
+    { "assist.city_goto", "Reaching one place in a town took many clicks through its menus, none of them a real choice." },
     { "assist.docks_map", "Boat destinations are names without a map." },
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
@@ -60,7 +60,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.infinite_ammo", "Counting arrows is bookkeeping, not play; enemies still run out." },
     { "assist.infinite_thrown", "The same for thrown weapons." },
     { "assist.loot_all", "Taking or sharing the whole loot was one click per item." },
-    { "rules.aging", "Creation ages characters but play does not, so old characters were free; this keeps age a cost." },
+    { "rules.aging", "Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost." },
     { "assist.loss_alerts", "Permanent losses happen silently in the original." },
     { "assist.more_jobs", "Jobs written into the game's tables and never offered." },
     /* battles */
@@ -92,11 +92,11 @@ static const struct { const char *key, *why; } WHY[] = {
     { "battle.foes_left", "Easier: knowledge the party could not have." },
     { "assist.level_map", "Dungeons and castles are hard to find one's way in without a map." },
     { "assist.level_map_all", "Easier: the parts not yet seen." },
-    { "fix.pathfinding", "The original's wall-following gets members stuck in mines and long rooms." },
-    { "battle.speed", "A matter of taste: the original's battles are slow on today's machines' timing." },
+    { "fix.pathfinding", "In the original, fighters get stuck in mines and long rooms." },
+    { "battle.speed", "A matter of taste: some find the original's battles slow." },
     { "battle.fast_key", "(part of Easier battle controls) Battles already won take long to finish." },
     /* travel */
-    { "travel.auto", "Steering across the overland view tile by tile is many key presses the player could do by hand." },
+    { "travel.auto", "Steering across the overland view step by step took many key presses, none of them a real choice." },
     { "travel.fast", "A matter of taste." },
     { "map.names", "The original overland view names nothing." },
     { "map.quest_marks", "Where a quest leads was in the player's notes only." },
@@ -105,7 +105,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "travel.encounters", "Easier: fewer interruptions." },
     { "travel.street_encounters", "Easier: the original's night streets are near-certain ambushes." },
     /* controls, tools, elsewhere */
-    { "display.crisp_text", "The original 7-pixel lettering is hard to read scaled up." },
+    { "display.crisp_text", "The original's small lettering is hard to read on a large screen." },
     { "display.hd_art", "Replacement pictures, for those who make them." },
     { "sound.effects", "A matter of taste." },
     { "display.margins", "Wide screens have room the original left black." },
@@ -138,6 +138,9 @@ const char *const OPTIONS_RETIRED[] = {
     "assist.stairs_together",        /* the party takes the stairs together: always, but in the original game */
     "assist.wheel_lists", "assist.menu_click", "input.gamepad",   /* controls: always, but in the original game (the controller always) */
     "editor.show",                   /* the Editor tab: always, but in the original game */
+    "display.integer_scale",         /* whole-number scaling: three ways to scale instead (Sharp pixels, Rounded edges, Soft) */
+    "display.idle_rest",             /* the game waits without spinning: always */
+    "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */
     0 };
 
 const char *option_why(const Option *o)

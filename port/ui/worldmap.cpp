@@ -86,7 +86,7 @@ static const TownFind TFIND[] = {
     { "a university", TI_UNIVERSITY, -1, "University" }, { "a cathedral", TI_CATHEDRAL, -1, "Cathedral" }, { "an alchemist", TI_ALCHEMIST, -1, "Alchemist" },
     { "a physician", TI_PHYSICIAN, -1, "Physician" }, { "docks (boats)", TI_DOCKS, -1, "Docks" }, { "a bank", TI_BANK, -1, "Bank" },
     { "a swordsmith of 30q+", TI_SWORD, 2, "Swords 30q+" }, { "an armorer of 30q+", TI_ARMOUR, 3, "Armor 30q+" }, { "a bowyer of 30q+", TI_BOW, 5, "Bows 30q+" },
-    { "an artificer of 30q+", TI_TOOLS, 6, "Tools 30q+" } };   /* (a library: nearly every town has one; the character sheet's Saints say where each saint is taught) */
+    { "an artificer of 30q+", TI_TOOLS, 6, "Artificer 30q+" } };   /* (a library: nearly every town has one; the character sheet's Saints say where each saint is taught) */
 static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
 static int tfind = -1;                                    /* -1: off */
 /* the panels' sections folded (map.folded, kept): a bit each */
@@ -249,7 +249,7 @@ static void place_details(const Place &p, float wrap)
 static bool *const LAYER[NLAYER] = { &show_names, &show_quests, &show_boats, &show_icons, &show_days };
 static const char *const LAYER_NAME[NLAYER] = { "Names", "Quests", "Boats", "Icons", "Days away" };
 static const char *const LAYER_TIP[NLAYER] = { "Place names", "Quest markers", "Boat routes between the towns' docks", "Each place as an icon of its kind (else a dot)",
-                                               "The days of travel from the party to every town, under its name (busy: off at first)" };
+                                               "The days of travel from the party to every town, under its name (off at first: it crowds the map)" };
 static const bool LAYER_DEF[NLAYER] = { true, true, true, true, false };
 extern "C" void worldmap_draw(void)
 {
@@ -598,7 +598,7 @@ extern "C" void worldmap_draw(void)
             ImGui::SameLine(bx - bw);
             if (ImGui::Button(lb)) ImGui::OpenPopup("##leavetravel");
         } else {
-            const char *t = "Travel from the overland view, or from a town's streets";
+            const char *t = "To travel, be in the overland view or in a town's streets";
             ImGui::SameLine(bx - ImGui::CalcTextSize(t).x); ImGui::TextDisabled("%s", t);
         }
         if (ImGui::BeginPopupModal("##leavetravel", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
@@ -649,7 +649,7 @@ extern "C" void worldmap_draw(void)
                 for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) out.push_back(town.docks[k]);   /* (Groningen's lists itself) */
                 for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
                 boat_row("Boats leaving here for:", out, 0);
-                if (out.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (so the game has it).");
+                if (out.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (the original game has none either).");
                 if (!in.empty()) { if (!out.empty()) ImGui::Spacing(); boat_row("Boats arriving here from:", in, 1); }
                 if (!out.empty() || !in.empty()) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
             }
@@ -855,7 +855,7 @@ extern "C" void worldmap_draw(void)
     }
     if (fold_head(tfind < 0 ? "Towns with ..." : (std::string("Towns with ") + TFIND[tfind].label + "###tw").c_str(), FOLD_TOWNS)) {
         if (ui_font_small) ImGui::PushFont(ui_font_small);
-        ImGui::TextDisabled("Click one to ring those towns on the map.");
+        ImGui::TextDisabled("Click one to circle those towns on the map.");
         for (int k = 0; k < NTFIND; k++)
             if (grid_entry(100 + k, true, tfind == k, TFIND[k].shrt, [&](ImDrawList *pl, ImVec2 c, float is) { ui_draw_town_icon(pl, c, is * 1.1f, TFIND[k].icon); }))
                 tfind = tfind == k ? -1 : k;
@@ -871,7 +871,7 @@ extern "C" void worldmap_draw(void)
             float wmax = rw, linew = 0, sp = ImGui::GetStyle().ItemSpacing.x;
             int listed = 0;
             for (auto &e : m) {
-                if (++listed > 18) { ImGui::TextDisabled("... and %d more (ringed on the map)", (int)m.size() - 18); break; }
+                if (++listed > 18) { ImGui::TextDisabled("... and %d more (circled on the map)", (int)m.size() - 18); break; }
                 char lb[64]; if (TFIND[tfind].shop >= 0) snprintf(lb, sizeof lb, "%s %dq##tl%d", e.second->name.c_str(), e.first, e.second->loc);
                 else snprintf(lb, sizeof lb, "%s##tl%d", e.second->name.c_str(), e.second->loc);
                 float w = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;

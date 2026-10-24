@@ -77,7 +77,7 @@ extern "C" void alchemyview_draw(void)
         P.text(f, NsDraw::FS_NAME, 233, 3, a.stone ? IM_COL32(255, 196, 150, 255) : cream_soft, a.stone ? "Stone +" + std::to_string(a.stone) : std::string("No Stone"));
         P.text(fo, NsDraw::FS_SMALL, 233, 11.5f, cream_soft, a.stone ? "to every batch" : "yet", -1, 278);
         if (P.over(216, 2, 279, 19))
-            ns_tip(a.stone ? ("The party's Philosopher's Stone, of quality " + std::to_string(a.stone) + ": it adds " + std::to_string(a.stone) + " to the chance of every batch, whoever mixes. It stands at the " + std::string(ui_pstone_stage_name(a.stone)) + " stage of the Work. An alchemist (up to 25) or a university (up to 29, depending on the town) can make it better, for a price.").c_str()
+            ns_tip(a.stone ? ("The party's Philosopher's Stone, of quality " + std::to_string(a.stone) + ": it adds " + std::to_string(a.stone) + " to the chance of every batch, whoever mixes. Its picture shows the stage of the alchemists' Great Work its quality has reached: " + std::string(ui_pstone_stage_name(a.stone)) + ". An alchemist (up to 25) or a university (up to 29, depending on the town) can make it better, for a price.").c_str()
                            : "The party has no Philosopher's Stone yet. An alchemist (up to quality 25) or a university (up to 29) makes one, for a price; its quality adds to the chance of every batch.");
     }
     if (P.button(282, 4, 316, 16, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
@@ -133,7 +133,7 @@ extern "C" void alchemyview_draw(void)
         float ty0 = y;
         y += P.para(f, NsDraw::FS_HEAD * 0.92f, RX0 + 10, y, RX1 - RX0 - 10, ink, nm) + 0.5f;
         if (y < ty0 + 10.5f) y = ty0 + 10.5f;                        /* (below the flask) */
-        static const char *RISK[3] = { "low risk", "some risk", "high risk" };
+        static const char *RISK[3] = { "low risk", "medium risk", "high risk" };
         char rl[64]; snprintf(rl, sizeof rl, "Mystic number %d, %s", a.mystic, a.risk >= 0 && a.risk < 3 ? RISK[a.risk] : "?");
         P.text(fo, NsDraw::FS_SMALL, RX0, y, a.risk >= 2 ? red : soft, rl);
         risk_hover = P.over(RX0, y, RX1, y + 6);
@@ -253,7 +253,7 @@ extern "C" void alchemyview_draw(void)
         static const char *IN[5] = { "", "one time", "two times", "three times", "" }, *OF[5] = { "", "", "two", "three", "four" };
         int num, den; fixes_alchemy_blast_odds(a.risk, &num, &den);
         char t[400];
-        snprintf(t, sizeof t, "The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two goes wrong: "
+        snprintf(t, sizeof t, "The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: "
                  "%s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). "
                  "In a camp in the wild a failure only costs the ingredients.", IN[num], OF[den]);
         ns_tip(t);

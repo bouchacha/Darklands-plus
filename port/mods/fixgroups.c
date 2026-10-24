@@ -10,8 +10,8 @@ const FixGroup FIX_GROUPS[FIX_NGROUPS] = {
     { "Game-breaking", "Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these." },
     { "Plain mistakes", "Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way." },
     { "As the manual and the game's texts say", "The game does something other than what its manual, or its own texts, say it does. Fixed to match the words." },
-    { "Exploits closed", "Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks." },
-    { "Not a bug", "Left over from 1992, and nobody misses it." },
+    { "Old tricks closed", "Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks." },
+    { "Left over from 1992", "Not bugs, but nobody misses them: the question from the printed manual before the party first sets out." },
 };
 
 static const struct { const char *id; int g; } G[] = {
@@ -25,6 +25,7 @@ static const struct { const char *id; int g; } G[] = {
     { "fireward", 3 }, { "confession", 3 }, { "rkonce", 3 }, { "bounty", 3 },
     /* not a bug */
     { "copyprot", 4 },
+    /* (hitsound: a plain mistake, the default) */
 };
 
 int fix_group(const char *id)

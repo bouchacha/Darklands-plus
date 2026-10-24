@@ -113,7 +113,7 @@ extern "C" void rosterview_draw(void)
             "talking: bargaining, persuading, most people on the cards", "talking with the learned, the clergy and the nobility",
             "reading letters, books, papers and inscriptions", "tending wounds after a fight", "locks, traps and devices",
             "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumors, the streets at night",
-            "riding: faster travel, mounted fights", "the wilds: finding the way, hunting, tracking, keeping out of danger" };
+            "riding: faster travel, outriding pursuers on the cards", "the wilds: finding the way, hunting, tracking, keeping out of danger" };
         const float SY = 75.5f, CX0 = 52, CW = (316 - CX0) / 12.0f;
         P.text(fo, 4.4f, 6, SY + 1.2f, soft, "The party's best skills");
         std::string desc = r.party_n ? "Each skill's best level in the party. Point at one to see what it is for." : "Add characters to the party to see its skills together.";
