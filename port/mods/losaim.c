@@ -82,7 +82,7 @@ int los_trace(int a, int b, int mode, LosBox *out, int max)
             if ((b1 & 0xf) != 0 && (b1 & 0xf) < 12) { bx0 = xp; bx1 = xp + 2; by0 = yp; by1 = yp + 0x11; n = add(out, n, max, LOS_WALL, 0); }
             int f = (b0 >> 4) & 0xf;
             if (f >= first) {
-                int o = (w2 >> 12) & 3;
+                int o = ((s8)rb(g_rw(0x7db0), (u16)(k + 3)) >> 4) & 3;   /* (its facing: from the map's other table, segment DS:7db0, as the game reads it at 1d69:0208) */
                 int ox = (s8)g_rb((u16)(0xd7be + f * 4 + o)), oy = (s8)g_rb((u16)(0xd802 + f * 4 + o));
                 bx0 = ox + xp + 1; by0 = oy + yp + 1;
                 bx1 = ox + (s8)g_rb((u16)(0xc12f + f)) + xp + 1; by1 = oy + (s8)g_rb((u16)(0xc11d + f)) + yp + 1;

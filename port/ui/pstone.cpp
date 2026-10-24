@@ -81,33 +81,47 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
            and you will have the Philosophers' Stone" - drawn inward as the stone grows: the circle, then the
            square in it, the triangle, the small circle; the ink black, white, gold, red by the stage; the
            stone's quality in the middle */
-        float R = 18 * u, q = (float)quality, full = quality >= 29 ? 1.0f : 0.0f;
-        ImU32 ink = st == 0 ? IM_COL32(120, 100, 80, 110) : st == 1 ? IM_COL32(24, 20, 22, 255) : st == 2 ? IM_COL32(236, 238, 244, 255)
-                  : st == 3 ? IM_COL32(222, 170, 40, 255) : IM_COL32(190, 24, 30, 255);
-        ImU32 back = st == 2 ? IM_COL32(60, 64, 76, 255) : IM_COL32(244, 234, 208, 255);
+        /* p: how far the Work has come, 0..4 over the qualities 0..29 (the best the game makes), without
+           steps: the ink passes slowly from black to white to gold to red, each figure fades in over its
+           span, the light grows */
+        float R = 18 * u, p = fminf(4.0f, quality * 4.0f / 29.0f), q = (float)quality;
+        auto mix = [](ImU32 a, ImU32 b, float t) {
+            t = t < 0 ? 0 : t > 1 ? 1 : t;
+            int r = (int)((a & 255) * (1 - t) + (b & 255) * t), g = (int)((a >> 8 & 255) * (1 - t) + (b >> 8 & 255) * t), bl = (int)((a >> 16 & 255) * (1 - t) + (b >> 16 & 255) * t), al = (int)((a >> 24 & 255) * (1 - t) + (b >> 24 & 255) * t);
+            return IM_COL32(r, g, bl, al); };
+        static const ImU32 INK[5] = { IM_COL32(120, 100, 80, 110), IM_COL32(24, 20, 22, 255), IM_COL32(236, 238, 244, 255), IM_COL32(222, 170, 40, 255), IM_COL32(190, 24, 30, 255) };
+        static const ImU32 BACK[5] = { IM_COL32(244, 234, 208, 255), IM_COL32(244, 234, 208, 255), IM_COL32(60, 64, 76, 255), IM_COL32(244, 234, 208, 255), IM_COL32(244, 234, 208, 255) };
+        int lo = (int)floorf(p); lo = lo < 1 ? 1 : lo > 3 ? 3 : lo;   /* (black up to 1, white at 2, gold at 3, red at 4) */
+        int hi = lo + 1; float fr = p <= 1 ? 0.0f : fminf(1.0f, p - lo);
+        ImU32 ink = quality <= 0 ? INK[0] : mix(INK[lo], INK[hi], fr), back = mix(BACK[lo], BACK[hi], fr);
         float lw = fmaxf(1.0f, 1.5f * u);
-        if (st == 4) glow(dl, c, R * 1.5f, IM_COL32(255, 60, 40, 255), (0.6f + 0.4f * full) * pulse);
-        else if (st == 3) glow(dl, c, R * 1.4f, IM_COL32(255, 200, 60, 255), 0.5f * pulse);
+        auto fade = [&](float from) { float t = (p - from) / 0.9f; return t < 0 ? 0.0f : t > 1 ? 1.0f : t; };
+        float gl = fade(2.2f);                                      /* (the light: from the gold onwards, redder and brighter to the end) */
+        if (gl > 0) glow(dl, c, R * (1.3f + 0.25f * fade(3.0f)), mix(IM_COL32(255, 200, 60, 255), IM_COL32(255, 60, 40, 255), fade(3.0f)), (0.4f + 0.5f * fade(3.0f) + 0.1f * fade(3.9f)) * gl * pulse);
         dl->AddCircleFilled(c, R, back, 48);
         dl->AddCircle(c, R, ink, 48, lw * 1.3f);
         float sq = R * 0.7071f;                                    /* the square, its corners on the circle */
         ImVec2 S[4] = { P(-sq / u, -sq / u), P(sq / u, -sq / u), P(sq / u, sq / u), P(-sq / u, sq / u) };
-        if (st >= 2 || (st == 1 && q >= 4)) dl->AddPolyline(S, 4, ink, ImDrawFlags_Closed, lw);
+        if (fade(0.4f) > 0) dl->AddPolyline(S, 4, A(ink, fade(0.4f)), ImDrawFlags_Closed, lw);
         /* the triangle, its corners on the square's sides: point up, base on the square's foot */
         ImVec2 T[3] = { P(0, -sq / u), P(sq / u, sq / u), P(-sq / u, sq / u) };
-        if (st >= 3 || (st == 2 && q >= 11)) dl->AddPolyline(T, 3, ink, ImDrawFlags_Closed, lw);
+        if (fade(1.4f) > 0) dl->AddPolyline(T, 3, A(ink, fade(1.4f)), ImDrawFlags_Closed, lw);
         /* the small circle in the triangle (its incircle) */
         float ir = sq * 2 * 0.3090f, icy = c.y + sq - ir;     /* (inradius of that triangle: base 2sq, height 2sq) */
-        if (st >= 4 || (st == 3 && q >= 18)) {
-            dl->AddCircleFilled(ImVec2(c.x, icy), ir, st == 4 ? IM_COL32(200, 30, 30, 255) : IM_COL32(236, 196, 70, 255), 32);
-            dl->AddCircle(ImVec2(c.x, icy), ir, ink, 32, lw);
+        float fi = fade(2.4f);
+        if (fi > 0) {
+            dl->AddCircleFilled(ImVec2(c.x, icy), ir, A(mix(IM_COL32(236, 196, 70, 255), IM_COL32(200, 30, 30, 255), fade(3.1f)), fi), 32);
+            dl->AddCircle(ImVec2(c.x, icy), ir, A(ink, fi), 32, lw);
         }
+        int st2 = fi > 0.5f ? 4 : p >= 1 && p < 2 ? 2 : 1;          /* (the number's colours: light on the filled circle or the dark ground) */
+        st = st2 == 4 ? 4 : (back & 255) < 128 ? 2 : 1;
         /* the number: the stone's quality, in the middle */
         if (quality > 0) {
-            char b[8]; snprintf(b, sizeof b, "%d", quality);
+            char b[16]; snprintf(b, sizeof b, "%d", quality);
             ImFont *f = ImGui::GetFont(); float fs = R * 0.82f;     /* (large: it must read when the figure is small) */
             ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, b);
-            ImU32 nc = st >= 3 && (st == 4 || q >= 18) ? IM_COL32(255, 248, 230, 255) : st == 2 ? IM_COL32(240, 240, 248, 255) : IM_COL32(30, 24, 20, 255);
+            ImU32 nc = st == 4 || st == 2 ? IM_COL32(255, 248, 230, 255) : IM_COL32(30, 24, 20, 255);
+            (void)q;
             ImU32 oc = (nc & 0xff) > 128 ? IM_COL32(40, 10, 10, 220) : IM_COL32(250, 240, 220, 220);
             ImVec2 tp(c.x - ts.x * 0.5f, icy - ts.y * 0.52f);
             float o = fmaxf(1.0f, fs * 0.06f);
@@ -188,6 +202,13 @@ extern "C" void ui_pstone_sheet_draw(void)
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(242, 230, 200, 255));
     static const int Q[5] = { 0, 5, 12, 19, 29 };
+    if (atoi(getenv("DL_PSTONE_SHEET")) == 2) {               /* the squared circle at every quality, 0..29 */
+        for (int q = 0; q < 30; q++) {
+            float cx = ds.x * (0.1f + (q % 6) * 0.16f), cy = ds.y * (0.11f + (q / 6) * 0.19f);
+            ui_pstone_draw(dl, ImVec2(cx, cy), ds.y * 0.15f, 2, q, (float)ImGui::GetTime());
+        }
+        return;
+    }
     static const char *SN[5] = { "none yet", "5 (1-7: black)", "12 (8-14: white)", "19 (15-21: yellow)", "29 (22-29: red)" };
     float colw = ds.x / 5.4f;
     for (int look = 0; look < 3; look++) {
