@@ -510,9 +510,9 @@ static void display_icons(void)
         potion_grade_preview = -1;
     });
     ImGui::TextUnformatted("The pictures of the attributes and skills");
-    static const int SKV[3] = { 0, 1, 2 };
-    static const char *SKL[3] = { "In colour", "Woodcut", "Heraldic" };
-    pic_choice("skillicons", "display.skill_icons", 0, SKV, SKL, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+    static const int SKV[2] = { 2, 0 };
+    static const char *SKL[2] = { "Heraldic", "In colour" };
+    pic_choice("skillicons", "display.skill_icon_look", 2, SKV, SKL, 2, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
         void ui_icon_style_preview(int st); extern int ui_icon_disc;
         dl->AddRectFilled(a, b, IM_COL32(246, 236, 212, 255), 4);
         ui_icon_style_preview(v); int keep = ui_icon_disc; ui_icon_disc = 0;

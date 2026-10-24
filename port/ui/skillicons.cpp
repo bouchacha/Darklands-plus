@@ -113,23 +113,23 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
     }
 }
 
-/* the look of the skills' and attributes' pictures (display.skill_icons): 0 drawn in colour, 1 a
+/* the look of the skills' and attributes' pictures (display.skill_icon_look): 0 drawn in colour, 1 a
    woodcut (the shapes in ink alone, as the prints of the age), 2 heraldic (a charge in gold on a
    shield, its tincture by the group: sable the attributes, gules the weapons, azure knowledge, vert
    the abilities). ui_icon_disc: the dark disc behind a coloured one, where it must read on any ground */
 int ui_icon_disc = 1;
 #include "../runtime/config.h"
-static int icon_style(void) { int v = config_get_int("display.skill_icons", 0); return v >= 0 && v <= 2 ? v : 0; }
+static int icon_style(void) { int v = config_get_int("display.skill_icon_look", 2); return v == 0 ? 0 : 2; }   /* (0 in colour, 2 heraldic, the default; the woodcut look (1) was dropped) */
 static int style_override = -1;
 void ui_icon_style_preview(int st) { style_override = st; }
 /* two tones: the light parts of a picture (a page, a flame's heart, a lens) become `light`, the rest
    `col`, so the detail drawn in pale paint stays visible instead of filling in */
-static void recolor_since(ImDrawList *dl, int v0, ImU32 col, ImU32 light)
+static void recolor_since(ImDrawList *dl, int v0, ImU32 col, ImU32 light, int threshold = 185, ImU32 dark = 0, int dark_below = -1)
 {
     for (int i = v0; i < dl->VtxBuffer.Size; i++) {
         ImU32 &c = dl->VtxBuffer[i].col; int a = (int)(c >> IM_COL32_A_SHIFT) & 255;
-        int r = c & 255, g = (c >> 8) & 255, b = (c >> 16) & 255;
-        ImU32 to = (r * 3 + g * 6 + b) / 10 >= 185 ? light : col;
+        int r = c & 255, g = (c >> 8) & 255, b = (c >> 16) & 255, lum = (r * 3 + g * 6 + b) / 10;
+        ImU32 to = lum >= threshold ? light : lum < dark_below ? dark : col;   /* (dark: the picture's ink lines stay dark, its detail kept) */
         c = (to & ~IM_COL32_A_MASK) | ((ImU32)a << IM_COL32_A_SHIFT);
     }
 }
@@ -152,9 +152,17 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
     if (st == 2) {
         static const ImU32 FIELD[4] = { IM_COL32(36, 30, 30, 255), IM_COL32(160, 30, 30, 255), IM_COL32(30, 60, 140, 255), IM_COL32(30, 110, 50, 255) };
         shield(dl, c, s, FIELD[group]);
+        /* the charge: as large as the shield allows, in gold with a dark edge under it (it must read when
+           small); only near-white details (a page, a highlight) take the field's colour, so a steel key
+           or a blade stays gold */
+        float cs = s * 0.74f, sh = fmaxf(1.0f, s * 0.045f);
+        ImVec2 cc(c.x, c.y - s * 0.05f);
         int v0 = dl->VtxBuffer.Size;
-        body(dl, ImVec2(c.x, c.y - s * 0.03f), s * 0.66f, k);
-        recolor_since(dl, v0, IM_COL32(236, 196, 80, 255), FIELD[group]);
+        body(dl, ImVec2(cc.x + sh, cc.y + sh), cs, k);
+        recolor_since(dl, v0, IM_COL32(20, 10, 4, 230), IM_COL32(20, 10, 4, 230), 256);
+        v0 = dl->VtxBuffer.Size;
+        body(dl, cc, cs, k);
+        recolor_since(dl, v0, IM_COL32(240, 202, 86, 255), FIELD[group], 236, IM_COL32(60, 34, 10, 255), 45);
         return;
     }
     if (st == 1) {

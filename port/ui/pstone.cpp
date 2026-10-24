@@ -115,18 +115,36 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
         }
         int st2 = fi > 0.5f ? 4 : p >= 1 && p < 2 ? 2 : 1;          /* (the number's colours: light on the filled circle or the dark ground) */
         st = st2 == 4 ? 4 : (back & 255) < 128 ? 2 : 1;
-        /* the number: the stone's quality, in the middle */
+        /* the stone at its best (29, the finest a university makes): a crown of golden rays turning slowly
+           round the figure, sparks along the circle */
+        if (quality >= 29) {
+            float rot = t * 0.25f;
+            for (int k = 0; k < 16; k++) {
+                float a = rot + k * PI / 8, l = (k & 1) ? 0.22f : 0.36f;
+                ImVec2 d(cosf(a), sinf(a)), n(-d.y, d.x);
+                ImVec2 b0(c.x + d.x * R * 1.06f + n.x * R * 0.07f, c.y + d.y * R * 1.06f + n.y * R * 0.07f), b1(c.x + d.x * R * 1.06f - n.x * R * 0.07f, c.y + d.y * R * 1.06f - n.y * R * 0.07f);
+                dl->AddTriangleFilled(b0, ImVec2(c.x + d.x * R * (1.06f + l), c.y + d.y * R * (1.06f + l)), b1, IM_COL32(240, 196, 70, (int)(200 * pulse)));
+            }
+            for (int k = 0; k < 4; k++) {
+                float a = -rot * 1.7f + k * PI / 2;
+                ImVec2 sp(c.x + cosf(a) * R, c.y + sinf(a) * R);
+                dl->AddCircleFilled(sp, R * 0.07f, IM_COL32(255, 250, 220, 230), 8);
+            }
+        }
+        /* the number: the stone's quality, in the middle, as an alchemist would ink it (MedievalSharp, the
+           manuscript hand of the game's fonts), dark ink on a halo of parchment so it reads on any stage */
         if (quality > 0) {
             char b[16]; snprintf(b, sizeof b, "%d", quality);
-            ImFont *f = ImGui::GetFont(); float fs = R * 0.82f;     /* (large: it must read when the figure is small) */
+            extern ImFont *ui_font_game[];
+            ImFont *f = ui_font_game[4] ? ui_font_game[4] : ImGui::GetFont();
+            float fs = R * (quality >= 10 ? 0.82f : 0.95f);
             ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, b);
-            ImU32 nc = st == 4 || st == 2 ? IM_COL32(255, 248, 230, 255) : IM_COL32(30, 24, 20, 255);
-            (void)q;
-            ImU32 oc = (nc & 0xff) > 128 ? IM_COL32(40, 10, 10, 220) : IM_COL32(250, 240, 220, 220);
-            ImVec2 tp(c.x - ts.x * 0.5f, icy - ts.y * 0.52f);
-            float o = fmaxf(1.0f, fs * 0.06f);
-            for (int k = 0; k < 8; k++) { float a = k * PI / 4; dl->AddText(f, fs, ImVec2(tp.x + cosf(a) * o, tp.y + sinf(a) * o), oc, b); }
-            dl->AddText(f, fs, tp, nc, b);
+            ImVec2 tp(c.x - ts.x * 0.5f, icy - ts.y * 0.55f);
+            dl->AddEllipseFilled(ImVec2(c.x, icy), ImVec2(fmaxf(ts.x * 0.62f, ir * 0.9f), ir * 0.82f), IM_COL32(250, 242, 222, 225), 0, 28);
+            dl->AddEllipse(ImVec2(c.x, icy), ImVec2(fmaxf(ts.x * 0.62f, ir * 0.9f), ir * 0.82f), A(ink, 0.8f), 0, 28, fmaxf(1.0f, lw * 0.6f));
+            dl->AddText(f, fs, tp, IM_COL32(40, 20, 12, 255), b);
+            dl->AddText(f, fs, ImVec2(tp.x + fmaxf(0.5f, fs * 0.02f), tp.y), IM_COL32(40, 20, 12, 255), b);   /* (a heavier stroke) */
+            (void)q; (void)st;
         }
         return;
     }
