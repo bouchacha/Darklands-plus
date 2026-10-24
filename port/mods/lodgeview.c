@@ -127,11 +127,45 @@ static void hourglass_hook(void)            /* pass_hours_hourglass (hours), s04
    a fortress (0x04: a lord's household), a town hall (0x08: the council's clerks and players), a
    city of size 6 or more (0x10: a great house's scribes and guards), size 4 or more (0x20: crowds
    to entertain), a monastery (0x40: preaching friars). */
+/* the day jobs' names, made to say what the job is by the skills it pays for (the pay and the choice
+   are the game's own, unchanged): a job the table has twice (a plain one and a better-paid one where
+   the town has a fortress, a town hall, a great house, a monastery) is told apart by that place.
+   Not in the original game. */
+static void job_rename(int who, u8 marks)
+{
+    if (who < 0 || who > 4 || config_get_int("original", 0)) return;
+    u16 o = (u16)(0x8a4e + who * 20);
+    char nm[20]; g_str(G_DGROUP, o, nm, sizeof nm);
+    static const struct { const char *was; u8 mark; const char *with, *without; } R[] = {
+        { "Bodyguard", 0x04, "Castle Guard", "Bodyguard" },          /* Endurance, edged and impact weapons */
+        { "Clerk", 0x08, "Town Clerk", "Clerk" },                    /* Intelligence, speaking and writing */
+        { "Scribe", 0x10, "Notary", "Scribe" },                      /* Intelligence, Latin and writing */
+        { "Servant", 0x04, "Castle Servant", "Servant" },            /* Perception, Streetwise, Virtue */
+        { "Courtier", 0x04, "Castle Steward", "House Steward" },     /* the same, better paid: running a household */
+        { "Preaching Friar", 0x40, "Preaching Friar", "Street Preacher" },   /* Charisma, speaking, Religion or Virtue */
+        { "Guard Sergeant", 0, "Mounted Sergeant", 0 },              /* Strength, polearms, Riding */
+        { "Taskmaster", 0, "Overseer", 0 },                          /* Perception, Streetwise, flails (the whip) */
+        { "Troubador", 0, "Juggler", 0 },                            /* Agility, speaking, thrown weapons */
+        { "Entertainer", 0, "Street Performer", 0 },                 /* the same, in a crowd */
+        { "Mendicant Friar", 0, "Hospital Helper", 0 },              /* Perception, Healing, Virtue */
+        { "Militiaman", 0, "Town Militia", 0 },                      /* Strength, edged weapons, polearms */
+    };
+    for (size_t i = 0; i < sizeof R / sizeof R[0]; i++) {
+        if (strcmp(nm, R[i].was)) continue;
+        const char *t = !R[i].mark || (marks & R[i].mark) || !R[i].without ? R[i].with : R[i].without;
+        for (int k = 0; k < 20; k++) { g_wb((u16)(o + k), (u8)t[k]); if (!t[k]) break; }
+        return;
+    }
+}
 static void job_hook(void)                   /* s036 1462:197e (who) */
 {
+    int who = (s16)rw(SS, (u16)(SP + 4));
     int cur = (s16)g_rw(G_CUR_LOC);
     u32 lr = cur >= 0 ? g_location(cur) : 0;
-    if (!lr || !config_get_int("assist.more_jobs", 1) || config_get_int("original", 0)) { hook_call_original(); return; }
+    if (!lr || !config_get_int("assist.more_jobs", 1) || config_get_int("original", 0)) {
+        u8 marks = lr ? rb((u16)(lr >> 16), (u16)((u16)lr + 0x14)) : 0;
+        hook_call_original(); job_rename(who, marks); return;
+    }
     int citynav_town_facts(int loc, int *size), size = 0, b = citynav_town_facts(cur, &size);
     u16 ls = (u16)(lr >> 16), lo = (u16)((u16)lr + 0x14);
     u8 was = rb(ls, lo), add = 0;
@@ -144,6 +178,7 @@ static void job_hook(void)                   /* s036 1462:197e (who) */
     wb(ls, lo, (u8)(was | add));
     hook_call_original();
     wb(ls, lo, was);
+    job_rename(who, (u8)(was | add));
 }
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 #define ev_ptr g_event

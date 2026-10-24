@@ -102,43 +102,41 @@ std::string ui_teachers_hired_line(int loc)
     return r;
 }
 
-/* a lectern: a book lying open on its slanted desk (the pages bowed up from the spine, a ribbon
-   hanging), the desk on a turned post with a knop, three feet. ink: the wood and the lines; page */
+/* a lectern: a big book lying open on it (its cover showing under the pages, the gutter shaded, a
+   ribbon hanging), on a short slanted desk, a turned column with two rings, a broad foot. ink: the
+   wood, the cover and the lines; page: the paper */
 void ui_draw_teach_mark(ImDrawList *dl, ImVec2 c, float s, unsigned ink, unsigned page)
 {
     auto P = [&](float x, float y) { return ImVec2(c.x + x * s, c.y + y * s); };
-    float th = s * 0.07f > 1.0f ? s * 0.07f : 1.0f;
-    /* the desk: a slanted board, seen a little from above */
-    ImVec2 desk[4] = { P(-0.46f, -0.04f), P(0.46f, -0.04f), P(0.40f, 0.07f), P(-0.40f, 0.07f) };
-    dl->AddConvexPolyFilled(desk, 4, ink);
-    /* the book: each page a curve up from the spine to its outer edge */
+    float th = s * 0.06f > 1.0f ? s * 0.06f : 1.0f;
+    /* the cover, a little larger than the pages, under them */
+    ImVec2 cov[6] = { P(-0.56f, -0.38f), P(0.0f, -0.29f), P(0.56f, -0.38f), P(0.56f, 0.03f), P(0.0f, 0.10f), P(-0.56f, 0.03f) };
+    { ImVec2 l[4] = { cov[0], cov[1], cov[4], cov[5] }, r[4] = { cov[1], cov[2], cov[3], cov[4] };
+      dl->AddConvexPolyFilled(l, 4, ink); dl->AddConvexPolyFilled(r, 4, ink); }
+    /* the pages: each bowed up from the gutter */
     for (int side = -1; side <= 1; side += 2) {
         float sx = (float)side;
         dl->PathClear();
-        dl->PathLineTo(P(0.0f, -0.22f));                                    /* the spine, top */
-        dl->PathBezierCubicCurveTo(P(sx * 0.14f, -0.34f), P(sx * 0.34f, -0.36f), P(sx * 0.50f, -0.30f), 8);   /* the top edge */
-        dl->PathLineTo(P(sx * 0.48f, 0.00f));                               /* the outer edge */
-        dl->PathBezierCubicCurveTo(P(sx * 0.32f, -0.06f), P(sx * 0.12f, -0.04f), P(0.0f, 0.04f), 8);          /* the bottom edge */
+        dl->PathLineTo(P(0.0f, -0.27f));
+        dl->PathBezierCubicCurveTo(P(sx * 0.16f, -0.38f), P(sx * 0.36f, -0.40f), P(sx * 0.51f, -0.35f), 10);
+        dl->PathLineTo(P(sx * 0.51f, -0.02f));
+        dl->PathBezierCubicCurveTo(P(sx * 0.36f, -0.07f), P(sx * 0.16f, -0.05f), P(0.0f, 0.05f), 10);
         dl->PathFillConcave(page);
-        dl->PathClear();
-        dl->PathLineTo(P(0.0f, -0.22f));
-        dl->PathBezierCubicCurveTo(P(sx * 0.14f, -0.34f), P(sx * 0.34f, -0.36f), P(sx * 0.50f, -0.30f), 8);
-        dl->PathLineTo(P(sx * 0.48f, 0.00f));
-        dl->PathBezierCubicCurveTo(P(sx * 0.32f, -0.06f), P(sx * 0.12f, -0.04f), P(0.0f, 0.04f), 8);
-        dl->PathStroke(ink, ImDrawFlags_Closed, th);
-        for (int k = 0; k < 3; k++) {                                       /* lines of writing */
-            float y = -0.20f + k * 0.065f;
-            dl->AddLine(P(sx * 0.10f, y), P(sx * 0.40f, y - 0.03f), ink, th * 0.55f);
+        for (int k = 0; k < 4; k++) {                                  /* lines of writing, following the page's bow */
+            float y = -0.27f + k * 0.065f;
+            dl->AddBezierQuadratic(P(sx * 0.09f, y + 0.02f), P(sx * 0.24f, y - 0.05f), P(sx * 0.43f, y - 0.03f), ink, th * 0.5f, 6);
         }
     }
-    dl->AddLine(P(0.0f, -0.22f), P(0.0f, 0.04f), ink, th);                 /* the spine */
-    dl->AddLine(P(0.02f, 0.04f), P(0.06f, 0.16f), IM_COL32(170, 40, 30, 255), th * 1.2f);   /* the ribbon */
-    /* the post: turned, a knop halfway */
-    ImVec2 post[4] = { P(-0.045f, 0.07f), P(0.045f, 0.07f), P(0.035f, 0.40f), P(-0.035f, 0.40f) };
-    dl->AddConvexPolyFilled(post, 4, ink);
-    dl->AddEllipseFilled(P(0.0f, 0.22f), ImVec2(0.08f * s, 0.04f * s), ink);
-    /* the feet */
-    dl->AddLine(P(0.0f, 0.39f), P(-0.24f, 0.47f), ink, th * 1.3f);
-    dl->AddLine(P(0.0f, 0.39f), P(0.24f, 0.47f), ink, th * 1.3f);
-    dl->AddLine(P(0.0f, 0.39f), P(0.0f, 0.47f), ink, th * 1.3f);
+    dl->AddLine(P(0.0f, -0.27f), P(0.0f, 0.05f), ink, th * 1.2f);      /* the gutter */
+    dl->AddLine(P(0.03f, 0.05f), P(0.07f, 0.20f), IM_COL32(176, 40, 30, 255), th * 1.3f);   /* the ribbon */
+    /* the desk under the book */
+    ImVec2 desk[4] = { P(-0.40f, 0.08f), P(0.40f, 0.08f), P(0.30f, 0.16f), P(-0.30f, 0.16f) };
+    dl->AddConvexPolyFilled(desk, 4, ink);
+    /* the column, two rings, the foot */
+    ImVec2 col[4] = { P(-0.055f, 0.16f), P(0.055f, 0.16f), P(0.045f, 0.40f), P(-0.045f, 0.40f) };
+    dl->AddConvexPolyFilled(col, 4, ink);
+    dl->AddRectFilled(P(-0.10f, 0.22f), P(0.10f, 0.25f), ink, s * 0.01f);
+    dl->AddRectFilled(P(-0.10f, 0.35f), P(0.10f, 0.38f), ink, s * 0.01f);
+    ImVec2 foot[4] = { P(-0.10f, 0.40f), P(0.10f, 0.40f), P(0.26f, 0.48f), P(-0.26f, 0.48f) };
+    dl->AddConvexPolyFilled(foot, 4, ink);
 }

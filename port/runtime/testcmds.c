@@ -397,6 +397,16 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "utravel")) {             /* test: auto-travel to place loc (the world map's Travel there); the time as it sets off */
             int travel_to_loc(int, const char *), travel_minutes_loc(int, int *, int *); int l = atoi(arg);
             fprintf(stderr, "utravel %d: %d minutes planned, %d (day %d hour %d)\n", l, travel_minutes_loc(l, 0, 0), travel_to_loc(l, "test"), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR)); }
+        else if (!strcmp(cmd, "ujobs")) {               /* test: the day jobs' table (DS:3ace, 31 x 18 bytes; names F_290e_219b) */
+            for (int i = 0; i < 31; i++) {
+                u16 o = (u16)(0x3ace + i * 18);
+                int ni = g_rb(o);
+                u16 no = rw((u16)(LOADSEG + 0x290e), (u16)(0x219b + ni * 4)), ns = rw((u16)(LOADSEG + 0x290e), (u16)(0x219b + ni * 4 + 2));
+                char nm[40]; g_str(ns, no, nm, sizeof nm);
+                fprintf(stderr, "job %2d %-22s cats %08x/%08x flags %02x attr %d>=%d sk %d>=%d sk %d>=%d pay %d\n", i, nm,
+                        (unsigned)(g_rw((u16)(o + 2)) | (u32)g_rw((u16)(o + 4)) << 16), (unsigned)(g_rw((u16)(o + 6)) | (u32)g_rw((u16)(o + 8)) << 16),
+                        g_rb((u16)(o + 10)), g_rb((u16)(o + 11)), g_rb((u16)(o + 12)), g_rb((u16)(o + 13)), g_rb((u16)(o + 14)), g_rb((u16)(o + 15)), g_rb((u16)(o + 16)), g_rb((u16)(o + 17)));
+            } }
         else if (!strcmp(cmd, "uwhen")) fprintf(stderr, "when: day %d month %d hour %d, place %d\n", (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_LOC));   /* test: the date */
         else if (!strcmp(cmd, "urestart")) { void plat_restart(void); if (!getenv("DL_RESTARTED")) plat_restart(); }   /* test: start again (once) */
     else return 0;

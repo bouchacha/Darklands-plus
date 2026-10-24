@@ -85,7 +85,7 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
     float u = s / 20.0f;
     auto Q = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
     switch (a) {
-    case 0:                                                    /* Just Relax: a tankard of ale */
+    case 0:                                                    /* Regain Endurance: a tankard of ale */
         dl->AddRectFilled(Q(-6, -6), Q(5, 9), IM_COL32(140, 96, 52, 255), 1.5f * u);
         for (int i = 0; i < 3; i++) dl->AddLine(Q(-6, -3 + i * 5), Q(5, -3 + i * 5), IM_COL32(70, 70, 76, 255), 1.6f * u);
         dl->AddEllipseFilled(Q(-0.5f, -6.5f), ImVec2(6.2f * u, 2.6f * u), IM_COL32(250, 244, 226, 255));
@@ -233,8 +233,8 @@ extern "C" void lodgeview_draw(void)
         const LodgeMember &p = m.m[m.sel];
         snprintf(b, sizeof b, "%s's day", ns_gtext(p.name).c_str());
         P.text(f, NsDraw::FS_HEAD, RX0, TY - 1.5f, ink, b);
-        static const char *ACT[7] = { "Just Relax", "Regain Strength", "Pray for Divine Favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
-        static const char *WHY[7] = { "", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teacher in this place now." };
+        static const char *ACT[7] = { "Regain Endurance", "Regain Strength", "Pray for Divine Favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
+        static const char *WHY[7] = { "Endurance is full: earning money is the better day.", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teacher in this place now." };
         static const char *WHAT[7] = { "Rest: Endurance comes back to full. Nothing else is gained.", "Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too).",
             "Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day.", "Make potions from a known formula (the ingredients are used up). Endurance does not come back that day.",
             "Work in the town: the job that pays this member best, by its attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day.",
@@ -254,6 +254,7 @@ extern "C" void lodgeview_draw(void)
         float ay = LTOP;
         for (int a = 0; a < 7; a++) {
             bool can = p.can[a], cur = p.act == a;
+            if (a == 0 && p.end >= p.end_max && p.can[4]) can = false;   /* (rested, with work to be had: nothing to regain) */
             if (camp && a == 4) continue;                             /* (no work in the wild; no guard at an inn) */
             if (!camp && a == 5) continue;
             float x0 = RX0, x1 = RX1;
@@ -263,8 +264,7 @@ extern "C" void lodgeview_draw(void)
             else if (h && can) P.rect(x0, ay, x1, ay + ah - 0.6f, HOVER, 1.2f);
             act_icon(P.dl, NsDraw::w(x0 + 4, ay + ah * 0.48f), ah * 0.72f * P.k, a);
             P.text(f, NsDraw::FS_NAME * fminf(1.0f, ah / 9.4f) * 0.95f, x0 + 10, ay + ah * 0.16f, cur && a != 6 ? NsDraw::LIGHT : can ? ink : dim, ACT[a]);
-            if (!can && WHY[a][0]) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a == 1 ? "full" : a == 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "no teacher" : "", x1 - 1.5f);
-            else if (a == 0) P.text(fo, 3.6f, 0, ay + ah * 0.3f, cur ? IM_COL32(244, 226, 190, 255) : soft, "restores Endurance", x1 - 1.5f);
+            if (!can && (WHY[a][0] || a == 0)) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a <= 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "no teacher" : "", x1 - 1.5f);
             if (can && a != 6 && P.hit(x0, ay, x1, ay + ah - 0.6f) && !cur) ns_push(LV_ACT, a, m.sel, 0);
             ay += ah;
             if (a == 6 && can) {
@@ -289,7 +289,7 @@ extern "C" void lodgeview_draw(void)
         }
         /* about the one under the pointer, in its own space at the page's foot */
         std::string about;
-        if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] ? "" : std::string(" ") + WHY[hover_act]);
+        if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
         if (hover_act == 3 && !camp) about += " At an inn a failed batch can blow up; in a camp in the wild it cannot.";
         else if (hover_act >= 100) {
             const auto &T = m.t[hover_act - 100];
