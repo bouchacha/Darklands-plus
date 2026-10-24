@@ -93,6 +93,7 @@ void options_sync_bundles(void)
 #define S_CONTROL "Controls"
 #define S_EDIT    "Editing tools"
 #define S_OTHER   "Elsewhere"
+#define S_EASYPLAY "Easier play"   /* offered as built-in mods (F12 > Settings > Mods), no preset's */
 #define S_RESTORED "Restored cut content"   /* their own page, F12 > Settings > Restored (experimental): off by default and in every preset */
 
 /* key, section, parent, title, description, class, original, Darklands+, Easy, choices, values, apply, note, flags */
@@ -175,17 +176,17 @@ static Option OPTIONS[] = {
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer races to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling without Shift", "resting the pointer on the edge of the screen scrolls the battle map; no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
     { "battle.info", S_BATTLE, 0, "Info under the pointer", "a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
-    { "battle.info_numbers", S_BATTLE, "battle.helpers", "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
+    { "battle.info_numbers", S_EASYPLAY, 0, "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
     { "battle.foe_arrow", S_BATTLE, 0, "Arrow to enemies off screen", "when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there.", OC_EASE, 0, 1, 1 },
     { "battle.skill_gains", S_BATTLE, 0, "Show skill gains", "a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel.", OC_SHOW, 0, 1, 1 },
     { "battle.reload_bar", S_BATTLE, 0, "Reload bar", "a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot.", OC_SHOW, 0, 1, 1 },
     { "battle.log", S_BATTLE, 0, "Battle log", "every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal keeps it).", OC_SHOW, 0, 1, 1 },
     { "assist.level_map", S_BATTLE, 0, "Level map (Tab)", "Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it.", OC_SHOW, 0, 1, 1 },
-    { "assist.level_map_all", S_BATTLE, "assist.level_map", "Show the whole level", "the whole level on the map, not only what the party has seen.", OC_EASY, 0, 0, 1 },
+    { "assist.level_map_all", S_EASYPLAY, 0, "The whole level on the level map", "Tab shows the whole level, not only what the party has seen.", OC_EASY, 0, 0, 1 },
     { "assist.level_map_walk", S_BATTLE, "assist.level_map", "Click the map to walk there", "a click on the level map walks the party there.", OC_EASE, 0, 1, 1 },
     { "assist.more_jobs", S_PARTY, 0, "More day jobs", "nine jobs the original never offers (mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer, preaching friar) turn up in towns with the right places: soldiers' jobs by an arsenal or fortress, a lord's household at a fortress, clerks at a town hall, the great houses in a big city, friars by a monastery. Each member still takes the best-paid job they qualify for.", OC_EASE, 0, 1, 1 },
     { "assist.stairs_together", S_BATTLE, 0, "Stairs: the party goes together", "outside a fight, when one member takes the stairs the others on that floor follow, and U with nobody on the stairs walks the party to the nearest stairs (the original moved only whoever stood on them).", OC_EASE, 0, 1, 1 },
-    { "battle.foes_left", S_BATTLE, 0, "Enemies still waiting", "under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have).", OC_EASY, 0, 0, 1 },
+    { "battle.foes_left", S_EASYPLAY, 0, "Enemies still waiting", "under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have).", OC_EASY, 0, 0, 1 },
     { "battle.end_words", S_BATTLE, 0, "Shorter wait at the end of a battle", "when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and \"Victory! The battle is won.\" (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze.", OC_SHOW, 0, 1, 1 },
     { "fix.pathfinding", S_BATTLE, 0, "Better pathfinding", "fighters plan their way around walls, furniture and each other, instead of the original's wall-following, which gives up on long or winding routes (members stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour.", OC_FIX, 0, 1, 1, 0, 0, pf_set },
     { "battle.speed", S_BATTLE, 0, "Battle speed", "walking (in dungeons, castles and mines too), attacks, potions and saints all run faster; pausing (Space) works as before.", OC_TASTE, 100, 100, 100, "as the original|1.5x|2x|3x", V_SPEED, battle_speed_set },
@@ -195,10 +196,10 @@ static Option OPTIONS[] = {
     { "travel.fast", S_TRAVEL, "travel.auto", "Auto-travel speed", "", OC_TASTE, 0, 1, 1, "walking pace|4x|instant", V_PACE, tr_fast },
     { "map.names", S_TRAVEL, 0, "Place names on the map", "the towns and places named on the travel map.", OC_SHOW, 0, 1, 1 },
     { "map.quest_marks", S_TRAVEL, 0, "Quest markers on the map", "each quest's picture above its place on the travel map, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1 },
-    { "map.offers_unvisited", S_TRAVEL, 0, "What unvisited places offer", "the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.)", OC_EASY, 0, 0, 1 },
+    { "map.offers_unvisited", S_EASYPLAY, 0, "What unvisited places offer", "the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.)", OC_EASY, 0, 0, 1 },
     { "map.key_m", S_TRAVEL, 0, "World map (M)", "M opens a map of the whole land (the towns, the quests, where saints and formulae are found).", OC_SHOW, 0, 1, 1 },
-    { "travel.encounters", S_TRAVEL, 0, "Encounters on the road", "how often travel brings an encounter.", OC_EASY, 100, 100, 50, "a quarter|half|as the original|double", V_RATE },
-    { "travel.street_encounters", S_TRAVEL, 0, "Night encounters in the streets", "how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street).", OC_EASY, 100, 100, 50, "a quarter|half|as the original|double", V_RATE },
+    { "travel.encounters", S_EASYPLAY, 0, "Encounters on the road", "how often travel brings an encounter.", OC_EASY, 100, 100, 50, "a quarter|half|as the original|double", V_RATE },
+    { "travel.street_encounters", S_EASYPLAY, 0, "Night encounters in the streets", "how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street).", OC_EASY, 100, 100, 50, "a quarter|half|as the original|double", V_RATE },
 
     { "assist.wheel_lists", S_CONTROL, 0, "Mouse wheel in lists", "scrolls the original game's lists (equipment, shops ...).", OC_SHOW, 0, 1, 1 },
     { "assist.menu_click", S_CONTROL, 0, "Right-click for the menus", "a right-click opens the menu bar, the next click chooses and Esc closes it; F10 opens it from the keyboard.", OC_SHOW, 0, 1, 1 },
@@ -278,10 +279,10 @@ static void build_dyn(void)
     dyn = calloc((size_t)(n ? n : 1), sizeof *dyn); dyn_key = calloc((size_t)(n ? n : 1), sizeof *dyn_key);
     ndyn = 0;
     if (!dyn || !dyn_key) return;
-    for (int i = 0; i < MOD_COUNT; i++) {            /* (the Easy preset takes the ones that make the game easier, not the new-game strong party or swift travel) */
+    for (int i = 0; i < MOD_COUNT; i++) {            /* (easy: the ones once in the Easy preset; kept as the Easy column of docs/SWITCHES.md) */
         Option *o = &dyn[ndyn]; snprintf(dyn_key[ndyn], sizeof dyn_key[0], "mod.%s", MODS[i].id);
         int easy = !strcmp(MODS[i].id, "cheap_inn") || !strcmp(MODS[i].id, "quick_learning") || !strcmp(MODS[i].id, "heavy_blows") || !strcmp(MODS[i].id, "rich_start");
-        o->key = dyn_key[ndyn]; o->section = "Easier rules"; o->title = MODS[i].name; o->desc = MODS[i].desc;
+        o->key = dyn_key[ndyn]; o->section = "Easier play"; o->title = MODS[i].name; o->desc = MODS[i].desc;
         o->cls = OC_EASY; o->orig = 0; o->def = 0; o->easy = easy; o->arg = i; o->apply_i = mod_apply;
         o->note = MODS[i].needs_new_game ? "Takes effect when the next new game starts." : 0;
         ndyn++;
@@ -335,17 +336,11 @@ const char *option_choice(const Option *o, int k, char *buf, int n)
 
 /* ---------------------------------------------------------------- presets */
 const Preset PRESETS[PRESET_COUNT] = {
-    { "Buggy Purist", "Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used.",
+    { "Full Original", "Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used.",
       "Saves load in the original game and back." },
     { "Purist", "The original game with its bugs fixed: its own screens, rules and graphics.",
       "Saves load in the original game and back." },
-    { "Purist + interface", "The original rules and odds, with the new screens, crisp text, and on screen what the original keeps behind keys or in the manual (chances, tooltips, the journal, battle info). Nothing changes what happens.",
-      "Saves load in the original game and back." },
-    { "Semi-Purist", "Purist + interface, plus what saves clicks and waiting: auto-travel, Go to, the best member speaking for the party, thrown weapons returned after a battle, pauses in battles, autosaves. Only what you could do by hand.",
-      "Saves load in the original game and back." },
-    { "Darklands+", "The standard set: Semi-Purist plus one shared pack for the party, one store room shared by every inn, endless ammunition, and enemy sprites for your own characters.",
-      "Saves load in the original game and back, unless a member uses an enemy sprite." },
-    { "Easy", "For the story more than the struggle: fewer encounters on the road and in the streets, quick learning, half-price inns, double damage against enemies, a rich start, shooters firing past friends; and what the party could not know: the whole level on the map, the enemies a castle still holds, what unvisited places offer, the enemies' Endurance as numbers.",
+    { "Darklands+", "The original rules with its bugs fixed, the new screens, what the original keeps behind keys or in the manual shown on screen, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered apart, as built-in mods (Settings > Mods).",
       "Saves load in the original game and back, unless a member uses an enemy sprite." },
 };
 
@@ -354,12 +349,12 @@ int preset_value(const Option *o, int p)
     { int g = bundle_of(o->key); if (g >= 0) { const Option *m = options_find(BUNDLES[g].key); return m && preset_value(m, p) ? o->def : o->orig; } }
     if (o->cls == OC_TOOL || o->cls == OC_LOOK) return PRESET_KEEP;
     if (o->cls == OC_TASTE) return p <= PRESET_PURIST ? o->orig : PRESET_KEEP;
-    if (p == PRESET_EASY && o->cls != OC_EXPERIMENT) return o->easy;
+    if (o->cls == OC_EASY) return p <= PRESET_PURIST ? o->orig : PRESET_KEEP;   /* (a built-in mod: the player's own, but not in the originals) */
     int on = 0;
     switch (o->cls) {
     case OC_FIX: on = p >= PRESET_PURIST; break;
-    case OC_SHOW: on = p >= PRESET_PURIST_UI; break;
-    case OC_EASE: on = p >= PRESET_SEMI; break;
+    case OC_SHOW: on = p >= PRESET_PLUS; break;
+    case OC_EASE: on = p >= PRESET_PLUS; break;
     case OC_PLUS: on = p >= PRESET_PLUS; break;
     default: on = 0; break;
     }
@@ -471,7 +466,7 @@ int options_dump_markdown(const char *path)
     fputs("# Darklands+ switches\n\n"
           "Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group\n"
           "switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste,\n"
-          "tool) and its value in the original game / Darklands+ / the Easy preset. Made by the game itself\n"
+          "tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself\n"
           "(`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py`\n"
           "fails if a key disappears without being listed as retired.\n\n", f);
     const char *last = "";

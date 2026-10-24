@@ -15,7 +15,7 @@ struct Library {
 
 /* whether the party knows what place loc offers (the saints its library teaches, the formulae its
    alchemist sells, the goods its shops will have): it is there or has been there (the journal's
-   record), or the switch "What unvisited places offer" (map.offers_unvisited: off, but in the Easy
+   record), or the switch "What unvisited places offer" (map.offers_unvisited: off, a built-in mod; once in the Easy
    preset) is on. The lists below name only such places. */
 bool place_offers_known(int loc);
 

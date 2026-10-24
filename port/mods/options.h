@@ -1,7 +1,7 @@
 /* options.h - every switch Darklands+ adds, in one table: where it is kept (a config key), what it
  * is called and how it is explained, what kind of change it is, and its value in the original game,
- * in Darklands+ and in the Easy preset. The F12 pages draw the table (ui/settings.cpp) and the
- * presets set it whole (Buggy Purist ... Easy). No interface here: a host draws the table its own way.
+ * in Darklands+ and for easy play. The F12 pages draw the table (ui/settings.cpp) and the
+ * presets set it whole (Full Original, Purist, Darklands+). No interface here: a host draws the table its own way.
  *
  * Adding a switch: one line in OPTIONS[] (options.c) - the key the feature reads, its section and
  * class, a short title and the description. The page, the presets and "Custom" follow by
@@ -19,7 +19,7 @@ enum OptClass {
     OC_SHOW,        /* draws a screen anew or tells more; what happens is the game's own */
     OC_EASE,        /* saves clicks and waiting: what the player could do by hand */
     OC_PLUS,        /* changes a rule a little, for less chore (one pack for the party ...) */
-    OC_EASY,        /* makes the game easier: the Easy preset only */
+    OC_EASY,        /* makes the game easier: a built-in mod (F12 > Settings > Mods), no preset turns it on */
     OC_EXPERIMENT,  /* not yet sure to work well: off in every preset */
     OC_TASTE,       /* a matter of taste (speed, typeface, pictures): as the original in the
                        purist presets, the player's own in the others */
@@ -64,8 +64,9 @@ const char *option_choice(const Option *o, int k, char *buf, int n);   /* label 
 void options_set_listener(void (*fn)(const char *key, int v));
 
 /* ---------------------------------------------------------------- presets */
-enum { PRESET_CUSTOM = -1, PRESET_BUGGY_PURIST = 0, PRESET_PURIST, PRESET_PURIST_UI, PRESET_SEMI,
-       PRESET_PLUS, PRESET_EASY, PRESET_COUNT };
+enum { PRESET_CUSTOM = -1, PRESET_BUGGY_PURIST = 0, PRESET_PURIST, PRESET_PLUS, PRESET_COUNT };
+/* (the easier play, class OC_EASY, is no preset's: it is offered as built-in mods, F12 > Settings > Mods;
+   Full Original and Purist turn it off, Darklands+ leaves it as the player set it) */
 typedef struct { const char *name, *desc, *saves; } Preset;
 extern const Preset PRESETS[PRESET_COUNT];
 #define PRESET_KEEP (-999999)                /* preset_value: the player's own (OC_TASTE, OC_TOOL) */

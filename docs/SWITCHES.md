@@ -2,7 +2,7 @@
 
 Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group
 switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste,
-tool) and its value in the original game / Darklands+ / the Easy preset. Made by the game itself
+tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself
 (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py`
 fails if a key disappears without being listed as retired.
 
@@ -110,13 +110,33 @@ fails if a key disappears without being listed as retired.
 | `battle.scroll_paced` | Steady scrolling | the battle map scrolls at a steady pace (Shift at the edge no longer races to the end of the field). | (part of Smooth, steady scrolling) | `battle.scrolling` | show | 0 / 1 / 1 |
 | `battle.scroll_rest` | Edge scrolling without Shift | resting the pointer on the edge of the screen scrolls the battle map; no Shift needed. | (part of Smooth, steady scrolling) | `battle.scrolling` | show | 0 / 1 / 1 |
 | `battle.info` | Info under the pointer | a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
+
+## Easier play
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `battle.info_numbers` | Enemy Endurance as numbers | Enemy Endurance as numbers | Easier: exact numbers the party could not know. |  | easy | 0 / 0 / 1 |
+
+## Battles
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `battle.foe_arrow` | Arrow to enemies off screen | when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there. | (part of Battle info on screen) | `battle.helpers` | ease | 0 / 1 / 1 |
 | `battle.skill_gains` | Show skill gains | a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
 | `battle.reload_bar` | Reload bar | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
 | `battle.log` | Battle log | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal keeps it). | (part of Battle info on screen) | `battle.helpers` | show | 0 / 1 / 1 |
 | `assist.level_map` | Level map (Tab) | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it. | Dungeons and castles are hard to find one's way in without a map. |  | show | 0 / 1 / 1 |
-| `assist.level_map_all` | Show the whole level | the whole level on the map, not only what the party has seen. | Easier: the parts not yet seen. |  | easy | 0 / 0 / 1 |
+
+## Easier play
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
+| `assist.level_map_all` | The whole level on the level map | Tab shows the whole level, not only what the party has seen. | Easier: the parts not yet seen. |  | easy | 0 / 0 / 1 |
+
+## Battles
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `assist.level_map_walk` | Click the map to walk there | a click on the level map walks the party there. | Walking across a level is many clicks. |  | ease | 0 / 1 / 1 |
 
 ## The party and its items
@@ -130,7 +150,17 @@ fails if a key disappears without being listed as retired.
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
 | `assist.stairs_together` | Stairs: the party goes together | outside a fight, when one member takes the stairs the others on that floor follow, and U with nobody on the stairs walks the party to the nearest stairs (the original moved only whoever stood on them). | The original moves only whoever stands on the stairs. |  | ease | 0 / 1 / 1 |
+
+## Easier play
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `battle.foes_left` | Enemies still waiting | under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have). | Easier: knowledge the party could not have. |  | easy | 0 / 0 / 1 |
+
+## Battles
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `battle.end_words` | Shorter wait at the end of a battle | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. | (part of Easier battle controls) The original's long wait at the end looked like a freeze. | `battle.controls` | show | 0 / 1 / 1 |
 | `fix.pathfinding` | Better pathfinding | fighters plan their way around walls, furniture and each other, instead of the original's wall-following, which gives up on long or winding routes (members stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. | Puts right a bug of the original (the description says which). |  | fix | 0 / 1 / 1 |
 | `battle.speed` | Battle speed | walking (in dungeons, castles and mines too), attacks, potions and saints all run faster; pausing (Space) works as before. | A matter of taste: the original's battles are slow on today's machines' timing. |  | taste | 100 / 100 / 100 |
@@ -144,8 +174,23 @@ fails if a key disappears without being listed as retired.
 | `travel.fast` | Auto-travel speed | Auto-travel speed | A matter of taste. |  | taste | 0 / 1 / 1 |
 | `map.names` | Place names on the map | the towns and places named on the travel map. | The original map names nothing. |  | show | 0 / 1 / 1 |
 | `map.quest_marks` | Quest markers on the map | each quest's picture above its place on the travel map, and a sign beside a town that bars the party or where the watch is after it. | Where a quest leads was in the player's notes only. |  | show | 0 / 1 / 1 |
+
+## Easier play
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `map.offers_unvisited` | What unvisited places offer | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) | Easier: knowledge the party could not have. |  | easy | 0 / 0 / 1 |
+
+## Travel
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `map.key_m` | World map (M) | M opens a map of the whole land (the towns, the quests, where saints and formulae are found). | The original has no map of the whole land. |  | show | 0 / 1 / 1 |
+
+## Easier play
+
+| Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
+|---|---|---|---|---|---|---|
 | `travel.encounters` | Encounters on the road | how often travel brings an encounter. | Easier: fewer interruptions. |  | easy | 100 / 100 / 50 |
 | `travel.street_encounters` | Night encounters in the streets | how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street). | Easier: the original's night streets are near-certain ambushes. |  | easy | 100 / 100 / 50 |
 
@@ -228,16 +273,16 @@ fails if a key disappears without being listed as retired.
 | `battle.black_cloud` | Black Cloud in battle | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. | Left out in 1992 for the machines' speed; the rules handle it. |  | experiment | 0 / 0 / 0 |
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal shows it. | Left unfinished in the game's files. |  | experiment | 0 / 0 / 0 |
 
-## Easier rules
+## Easier play
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
-| `mod.swift_travel` | Faster overland travel | Overland travel takes a third of the time. | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 0 |
-| `mod.cheap_inn` | Half-price inns | Lodging costs half as much. | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 1 |
-| `mod.quick_learning` | Quick learning | Skills improve about twice as often through use, on cards and in battles (slow skills such as Streetwise and Latin no longer take ages to rise). | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 1 |
-| `mod.heavy_blows` | Double damage against enemies | Every hit on an enemy does double damage. Hits on the party are unchanged. | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 1 |
-| `mod.strong_party` | Strong Quickstart party | The four Quickstart characters start with 60 in every attribute and 75 in every skill. | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 0 |
-| `mod.rich_start` | Rich start | A party made with Create a New World starts with 5000 florins instead of 200. | Easier: for the story more than the struggle (the Easy preset). |  | easy | 0 / 0 / 1 |
+| `mod.swift_travel` | Faster overland travel | Overland travel takes a third of the time. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
+| `mod.cheap_inn` | Half-price inns | Lodging costs half as much. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.quick_learning` | Quick learning | Skills improve about twice as often through use, on cards and in battles (slow skills such as Streetwise and Latin no longer take ages to rise). | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.heavy_blows` | Double damage against enemies | Every hit on an enemy does double damage. Hits on the party are unchanged. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
+| `mod.strong_party` | Strong Quickstart party | The four Quickstart characters start with 60 in every attribute and 75 in every skill. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 0 |
+| `mod.rich_start` | Rich start | A party made with Create a New World starts with 5000 florins instead of 200. | Easier: for the story more than the struggle (a built-in mod). |  | easy | 0 / 0 / 1 |
 
 ## Fixes for bugs of the original
 

@@ -62,6 +62,8 @@ extern "C" int encounters_count(void);
 extern "C" int opening_mode(void);                 /* mods/opening.c */
 extern "C" void opening_set_mode(int);
 extern "C" int encounters_errors(void);
+static void option_row(const Option *o, int depth);
+int ui_original_mode(void);
 void tab_mods(void)
 {
     ImGui::PushFont(ui_font_head); orn_septext("Mod folders"); ImGui::PopFont();
@@ -161,11 +163,17 @@ void tab_mods(void)
              "Single files inside MSGFILES and the .CAT catalogues can be replaced by a folder of that name holding just those files. "
              "Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts.");
     }
+    /* the built-in mods: easier play, no preset's (each its own switch, as a mod folder is) */
     ImGui::Spacing();
-    ui_hint("The built-in changes to the rules (swift travel, half-price inns, quick learning ...) are under Helpers > Easier rules.");
+    ImGui::PushFont(ui_font_head); orn_septext("Built-in mods: easier play"); ImGui::PopFont();
+    if (ui_original_mode()) { ui_hint("Off while playing the original game (Full Original): pick another preset to tick these."); return; }
+    ui_hint("For the story more than the struggle. Each is its own switch; no preset turns them on, and Full Original and Purist turn them off. "
+            "Some take effect only when the next new game starts (their note says so).");
+    int n = options_count();
+    for (int i = 0; i < n; i++) { const Option *o = options_get(i); if (o->cls == OC_EASY) option_row(o, 0); }
 }
 
-/* the presets (mods/options.h): "the original game" is Buggy Purist; the player's own choices are
+/* the presets (mods/options.h): "the original game" is Full Original; the player's own choices are
    kept when a preset replaces them (Custom) */
 int ui_original_mode(void) { return config_get_int("original", 0); }
 bool ui_modding(void) { return config_get_int("editor.show", 0) && !ui_original_mode(); }
@@ -386,7 +394,7 @@ void tab_helpers(void)
         int n = options_count();
         for (int i = 0; i < n; i++) {
             const Option *o = options_get(i);
-            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || !strcmp(o->section, "Restored cut content")) continue;   /* (that one: its own page, tab_restored) */
+            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->cls == OC_EASY || !strcmp(o->section, "Restored cut content")) continue;   /* (those: their own pages, tab_restored, tab_mods) */
             bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
             if (!seen) sect.push_back(o->section);
             if (!seen && !strcmp(o->section, "New screens"))      /* what things look like, after the screens */
@@ -432,7 +440,6 @@ void tab_helpers(void)
         for (int k = 1; k < NSECT; k++) {
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
-            if (!strcmp(sect[k], "Easier rules")) ui_hint("Rule changes that make the game easier; the Easy preset turns on the ones marked for it. Some take effect only when the next new game starts (their note says so).");
             {   int l = look_index(sect[k]);
                 if (l >= 0) { LOOK_FN[l](); continue; } }
             bool fixes = !strcmp(sect[k], "Fixes for bugs of the original");
@@ -467,7 +474,7 @@ void tab_restored(void)
                        "expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again.");
     ui_hint("What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md).");
     ImGui::Spacing();
-    if (ui_original_mode()) { ui_hint("Off while playing the original game (Buggy Purist): pick another preset to tick these."); return; }
+    if (ui_original_mode()) { ui_hint("Off while playing the original game (Full Original): pick another preset to tick these."); return; }
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);

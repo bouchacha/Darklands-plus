@@ -552,7 +552,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Game: the Buggy Purist preset is the game as it was).");
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Game: the Full Original preset is the game as it was).");
     ImGui::Spacing();
     ImGui::TextWrapped("F11: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
