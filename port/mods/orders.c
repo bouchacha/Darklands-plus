@@ -8,6 +8,7 @@
  * that click (and the pointer over the enemy) is taken as Std Attack (0x12, what the menu's first
  * attack sets) on that enemy, or as Use Missile (0x80) for a member better with the missile weapon
  * (battle.click_best); the rest is the game's own order (walk there and fight, or shoot). */
+#include "gamemodel.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "../runtime/cpu.h"
@@ -284,6 +285,39 @@ static int shot_target(int i, int *clear_out)
     if (clear_out) *clear_out = best_clear;
     return best;
 }
+/* a foe within a few paces (near_foe_of) fighting one of the party hand to hand, where that friend
+   needs the help - two or more foes on it, or its Endurance below 60%, or the fight right beside the
+   shooter (some three paces) - and the foe has fewer than two of the party on it already: the
+   shooter puts the bow away and joins in rather than loose into the melee from close by. Of
+   several, the one beside the friend most set upon (the most foes, then the least Endurance), then
+   the nearest. -1 none */
+static int rescue_target(int i)
+{
+    int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1; long bs = 0;
+    for (int j = 5; j < 13; j++) {
+        if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !near_foe_of(i, j)) continue;
+        long dx = (s16)g_rw((u16)(D_CBT + j * 0x80 + 4)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 4));
+        long dy = 2 * ((s16)g_rw((u16)(D_CBT + j * 0x80 + 6)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 6)));
+        long dd = dx * dx + dy * dy;
+        int close = dd <= (long)(NEAR_PX * 3 / 5) * (NEAR_PX * 3 / 5), on_it = 0;
+        long sc = -1;
+        for (int p = 0; p < 5; p++) {
+            if (p == i || g_rb((u16)(D_CBT + p * 0x80 + 0x14)) != 1 || !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) continue;
+            on_it++;
+            int n = 0;
+            for (int k = 5; k < 13; k++) if (g_rb((u16)(D_CBT + k * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + k))) n++;
+            int cur = 0, mx = 0; gm_member_attr(p, 0, &cur, &mx);           /* (Endurance: the share left) */
+            int low = mx > 0 && cur * 10 < mx * 6;
+            if (n < 2 && !low && !close) continue;                           /* (holding its own: the shooter shoots) */
+            long v = (long)n * 1000 + (mx > 0 ? 999 - 999L * (cur < 0 ? 0 : cur > mx ? mx : cur) / mx : 0);
+            if (v > sc) sc = v;
+        }
+        if (sc < 0 || on_it >= 2) continue;
+        sc = sc * 100000 - dd / 16;
+        if (best < 0 || sc > bs) { best = j; bs = sc; }
+    }
+    return best;
+}
 /* a shooter who fought a foe beside it: with none beside it now, the missile weapon again, at the
    next foe (as the game readies it for Use Missile, s014 19cd order_mode_leave) */
 static void back_to_bow(void)
@@ -306,6 +340,7 @@ static void back_to_bow(void)
         { int coming = 0;
           for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && near_foe_of(i, j) && (s8)g_rb((u16)(D_CBT + j * 0x80 + 0x4a)) == i) coming = 1;
           if (coming) continue; }
+        if (rescue_target(i) >= 0) continue;              /* (a friend set upon close by: stays to help, rescue_target) */
         /* the game took the bow away again just after it was given back: let the game have its way
            for a while (its AI sees a fight the member is in) */
         { u16 now = g_rw(GV_combat_clock);
@@ -389,6 +424,9 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         for (int j = 5; j < 13; j++)
             if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { if (near < 0 || j == t) near = j; }
         if (near >= 0) { to_melee(i, near, 1); continue; }
+        { int r = rescue_target(i);                                       /* a friend fighting a few paces off: help it */
+          if (ns_unwinding) return;
+          if (r >= 0) { fprintf(stderr, "orders: member %d goes to help: %d fights one of the party a few paces off\n", i, r); to_melee(i, r, 0); continue; } }
         /* (a foe some paces off, coming: the shooter goes on shooting it, and fights hand to hand once it is beside) */
         if (t < 5 || t >= 13 || g_rb((u16)(D_CBT + t * 0x80 + 0x14)) != 1) continue;
         int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;

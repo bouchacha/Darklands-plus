@@ -921,7 +921,7 @@ extern "C" void worldmap_draw(void)
         float r = (g == 0 ? 4.5f : 3.0f) * fmaxf(ks, 1.0f);
         /* the towns at every zoom; every other place comes in slowly as one zooms closer (far out the map
            would be all icons) */
-        float fade = g == 0 ? 1.0f : fminf(1.0f, fmaxf(0.0f, (zoom - 0.38f) / 0.3f));
+        float fade = g == 0 ? 1.0f : fminf(1.0f, fmaxf(0.0f, (zoom - 0.61f) / 0.48f));
         if (fade <= 0.02f && p.loc != selected) continue;
         if (p.loc == selected) fade = 1.0f;
         int v_fade = dl->VtxBuffer.Size;

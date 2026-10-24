@@ -41,6 +41,29 @@ static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
 
+
+/* "New screens": one switch for every redrawn screen and what goes with them (a screen at a time was
+   more to choose than anyone wants, and more ways for the screens to meet untested). The members
+   are kept as their own keys, which the modules read, but not shown: the master sets them all. */
+static const char *const BUNDLE[] = {
+    "display.native_panel", "display.shop_compare", "display.native_menu", "display.native_title", "display.native_cards",
+    "display.native_shops", "display.native_sheet", "display.native_loot", "assist.loot_worth", "display.native_alchemy",
+    "assist.where_sold", "display.native_cache", "display.native_lodge", "display.native_pray", "display.native_create",
+    "assist.creation_guide", "display.native_roster", "display.native_info", "display.native_march", "display.native_enemyinfo",
+    "display.native_mapmsg", "display.native_saves", 0 };
+int option_bundled(const Option *o) { for (int i = 0; BUNDLE[i]; i++) if (!strcmp(o->key, BUNDLE[i])) return 1; return 0; }
+static void screens_set(int v)
+{
+    for (int i = 0; BUNDLE[i]; i++) { const Option *o = options_find(BUNDLE[i]); if (o) option_set(o, v ? o->def : o->orig); }
+}
+/* at start: the members as the master says (a config from before the master: on unless the cards were off) */
+void options_sync_bundles(void)
+{
+    int v = config_get_int("display.native_screens", config_get_int("display.native_cards", 1));
+    config_set_int("display.native_screens", v);
+    for (int i = 0; BUNDLE[i]; i++) { const Option *o = options_find(BUNDLE[i]); if (o) config_set_int(o->key, v ? o->def : o->orig); }
+}
+
 #define S_SCREENS "New screens"
 #define S_CARDS   "Cards and towns"
 #define S_PARTY   "The party and its items"
@@ -53,23 +76,23 @@ static const int V_RATE[] = { 25, 50, 100, 200 };
 
 /* key, section, parent, title, description, class, original, Darklands+, Easy, choices, values, apply, note, flags */
 static Option OPTIONS[] = {
+    { "display.native_screens", S_SCREENS, 0, "New screens", "every screen of the game drawn anew, in the game's own style: the party panel, the menus, the start screen, cards, shops, the character sheet, loot, alchemy, the store room, the inn and camp, prayer, character creation, the party roster, Party Info, the marching order, Enemy Info, the travel map's messages, and Save and Load. More on screen (chances, what an item is worth, where an ingredient is sold), the same game underneath. Off: the original screens.", OC_SHOW, 0, 1, 1, 0, 0, screens_set },
     { "display.shop_compare", S_SCREENS, 0, "Wares weighed against what is worn", "in a shop, a green arrow by a weapon, armour or shield that is better than what the member has there now, a red one by a worse one (an empty arrow: nothing there now); pointing at a ware lights what it would replace.", OC_SHOW, 0, 1, 1 },
     { "display.native_panel", S_SCREENS, 0, "New party panel", "each member's Endurance, Strength and Divine Favor as labelled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name.", OC_SHOW, 0, 1, 1 },
-    { "display.panel_losses", S_SCREENS, "display.native_panel", "Losses shown pale in the party panel", "the Endurance and Strength a member has lost show as a pale part at the end of the bar, so even a point or two lost stands out (as the original's white against the blue).", OC_SHOW, 0, 1, 1 },
-    { "display.panel_picture", S_SCREENS, "display.native_panel", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "your portrait, else the battle sprite, else the crest|the battle sprite, else the crest|the crest|no picture", V_PICTURE, 0, 0, OF_COMBO },
+    { "display.panel_picture", S_SCREENS, "display.native_screens", "Picture in the party panel", "beside each member", OC_TASTE, 0, 0, 0, "your portrait, else the battle sprite, else the crest|the battle sprite, else the crest|the crest|no picture", V_PICTURE, 0, 0, OF_COMBO },
     { "display.tooltip_delay", S_SCREENS, 0, "Tooltips", "the notes that appear by the pointer: how long the pointer rests on something before its note shows (once one shows, the next is at once).", OC_TASTE, 0, 500, 500, "at once|after a moment|after a second", V_TIPDELAY, 0, 0, OF_COMBO },
     { "display.native_menu", S_SCREENS, 0, "New menus", "the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held.", OC_SHOW, 0, 1, 1, 0, 0, menuview_set },
     { "display.native_title", S_SCREENS, 0, "New start screen", "Continue (loads the newest save), Load, New party and Quickstart, over the original game's art.", OC_SHOW, 0, 1, 1, 0, 0, titleview_set },
     { "display.native_cards", S_SCREENS, 0, "New card screens", "card text in the typeface you choose, the options as rows to click with their chances beside them; an option that uses an item or a saint lists who can. The game still decides every outcome. When off: the original cards (with crisp text drawn over them).", OC_SHOW, 0, 1, 1, 0, 0, cardview_set },
     { "display.native_shops", S_SCREENS, 0, "New shop screen", "all the wares and all your items in two lists, with Buy and Sell on each row and the items in use marked; the bottom of the screen describes whatever is under the pointer. Stock and prices are unchanged.", OC_SHOW, 0, 1, 1, 0, 0, barterview_set },
     { "display.native_sheet", S_SCREENS, 0, "New character sheet", "the paper doll and the items with Ready, Unequip, Drink and Drop, all the skills on one page, the party's saints and formulae. Drag an item onto a member in the party panel to give it (hold Shift to give one from a stack). Equipping, giving and drinking work as in the original.", OC_SHOW, 0, 1, 1, 0, 0, sheetview_set },
-    { "inventory.shared", S_SCREENS, "display.native_sheet", "One shared pack for the party", "each member carries only what they use; Ready and Drink take from the shared pack, and selling in a shop takes from it. Spare items weigh nothing (only what is in use counts towards the load); potions stay with each member. When the game needs a particular member to have an item (lock picks at a lock, a mount, arrows before a battle), it is handed to them first. Keep marks an item so it is never sold or dropped.", OC_PLUS, 0, 1, 1 },
+    { "inventory.shared", S_SCREENS, "display.native_screens", "One shared pack for the party", "each member carries only what they use; Ready and Drink take from the shared pack, and selling in a shop takes from it. Spare items weigh nothing (only what is in use counts towards the load); potions stay with each member. When the game needs a particular member to have an item (lock picks at a lock, a mount, arrows before a battle), it is handed to them first. Keep marks an item so it is never sold or dropped.", OC_PLUS, 0, 1, 1 },
     { "display.native_loot", S_SCREENS, 0, "New loot screen", "the whole pile and each member's items in two lists; a whole stack moves in one click. The original keys G and P still move every item.", OC_SHOW, 0, 1, 1, 0, 0, lootview_set },
     { "assist.loot_worth", S_SCREENS, "display.native_loot", "Shop value in the loot screen", "under the lists, about what a shop would pay for the item under the pointer.", OC_SHOW, 0, 1, 1 },
     { "display.native_alchemy", S_SCREENS, 0, "New alchemy screen", "every known formula in one list, with its ingredients at hand, batches set with - and +, and the chance of success. The chance and the brewing are unchanged.", OC_SHOW, 0, 1, 1, 0, 0, alchemyview_set },
     { "assist.where_sold", S_SCREENS, "display.native_alchemy", "Where to buy missing ingredients", "beside an ingredient that runs short, the nearest town seen selling it.", OC_SHOW, 0, 1, 1 },
     { "display.native_cache", S_SCREENS, 0, "New store room screen", "everything stored and everything the member carries in two lists, with Take and Put on each row (one or the whole stack), and Put away for everything not in use. When off: the original screen, four items at a time.", OC_SHOW, 0, 1, 1, 0, 0, cacheview_set },
-    { "store.shared", S_SCREENS, "display.native_cache", "One store room shared by every inn", "what you leave with one innkeeper is there at every other inn, like a chest that follows the party (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened.", OC_PLUS, 0, 1, 1 },
+    { "store.shared", S_SCREENS, "display.native_screens", "One store room shared by every inn", "what you leave with one innkeeper is there at every other inn, like a chest that follows the party (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened.", OC_PLUS, 0, 1, 1 },
     { "assist.inn_earn", S_CARDS, 0, "At the inn, the rested earn money", "a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen.", OC_EASE, 0, 1, 1 },
     { "display.native_lodge", S_SCREENS, 0, "New inn and camp screen", "each member's activity for the day, its cost, the teachers and their fees, and \"Until rested\".", OC_SHOW, 0, 1, 1, 0, 0, lodgeview_set },
     { "display.native_pray", S_SCREENS, 0, "New prayer screen", "the saint's statue, what the saint does, the Divine Favor to spend and the chance (by the original game's rules).", OC_SHOW, 0, 1, 1, 0, 0, prayview_set },
@@ -125,7 +148,7 @@ static Option OPTIONS[] = {
     { "battle.smooth_scroll", S_BATTLE, 0, "Smooth scrolling", "the battle view slides to each new place instead of jumping.", OC_SHOW, 0, 1, 1 },
     { "battle.scroll_paced", S_BATTLE, 0, "Steady scrolling", "the battle map scrolls at a steady pace (Shift at the edge no longer races to the end of the field).", OC_SHOW, 0, 1, 1, 0, 0, bs_paced },
     { "battle.scroll_rest", S_BATTLE, "battle.scroll_paced", "Edge scrolling without Shift", "resting the pointer on the edge of the screen scrolls the battle map; no Shift needed.", OC_SHOW, 0, 1, 1, 0, 0, bs_rest },
-    { "battle.info", S_BATTLE, 0, "Info under the pointer", "pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
+    { "battle.info", S_BATTLE, 0, "Info under the pointer", "a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defence hand to hand), their aim with a missile weapon, and their weapons.", OC_SHOW, 0, 1, 1 },
     { "battle.info_numbers", S_BATTLE, "battle.info", "Enemy Endurance as numbers", "", OC_EASY, 0, 0, 1 },
     { "battle.foe_arrow", S_BATTLE, 0, "Arrow to enemies off screen", "when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there.", OC_EASE, 0, 1, 1 },
     { "battle.skill_gains", S_BATTLE, 0, "Show skill gains", "a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel.", OC_SHOW, 0, 1, 1 },
@@ -263,6 +286,7 @@ const Preset PRESETS[PRESET_COUNT] = {
 
 int preset_value(const Option *o, int p)
 {
+    if (option_bundled(o)) { const Option *m = options_find("display.native_screens"); return m && preset_value(m, p) ? o->def : o->orig; }
     if (o->cls == OC_TOOL) return PRESET_KEEP;
     if (o->cls == OC_TASTE) return p <= PRESET_PURIST ? o->orig : PRESET_KEEP;
     if (p == PRESET_EASY && o->cls != OC_EXPERIMENT) return o->easy;

@@ -165,7 +165,8 @@ void ui_draw_battle_bars(void)
     }
     bool reload = config_get_int("battle.reload_bar", 1) != 0;
     if (game_mode() != GM_BATTLE) floats.clear();
-    if ((!reload && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
+    bool foe_bars = config_get_int("battle.info", 1) != 0;   /* (the enemies' Endurance: who is near falling) */
+    if ((!reload && !foe_bars && floats.empty()) || game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     u32 nowms = plat_ticks_ms();
     while (!floats.empty() && nowms > floats.front().t0 + 5000) floats.erase(floats.begin());
     int n = (s8)g_rb(GV_hotspot_count);
@@ -180,7 +181,7 @@ void ui_draw_battle_bars(void)
         if (m >= 13 || done[m]) continue;
         done[m] = true;
         u16 b = (u16)(GV_combatants + m * 0x80);
-        int st = g_rb((u16)(b + 0x14)), endm = (s8)g_rb((u16)(b + 0x64));
+        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64));
         if (st != 1 || endm <= 0) continue;
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
         if (x1 <= x0 || x1 - x0 > 60) continue;
@@ -189,6 +190,13 @@ void ui_draw_battle_bars(void)
         ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
         float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x, below = a.y;
         for (const Float &f : floats) if (f.m == m) draw_float(dl, f, cx, gy, k, nowms);
+        if (foe_bars && m >= 5 && (end < endm || ImGui::GetIO().KeyAlt)) {   /* an enemy's Endurance left, once it is hurt (Alt: all) */
+            float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
+            ImU32 col = fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235);
+            dl->AddRectFilled(ImVec2(a.x - 1, a.y - 1), ImVec2(a.x + bw + 1, a.y + h + 1), IM_COL32(10, 6, 2, 200));
+            if (fe > 0) dl->AddRectFilled(a, ImVec2(a.x + bw * fe, a.y + h), col);
+            below = a.y + h + 1;
+        }
         int act = g_rb((u16)(GV_cbt_action + m));
         if (reload && m < 5 && (act == 9 || act == 10)) {         /* reloading and aiming: a thin amber line filling up */
             u16 s0 = (u16)(g_rw((u16)(0xd948 + 2 * m)) - 10), e0 = g_rw((u16)(0xdaa3 + 2 * m));

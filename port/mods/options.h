@@ -47,6 +47,8 @@ typedef struct Option {
     void (*apply_i)(int arg, int v);
 } Option;
 
+int option_bundled(const Option *o);       /* set by "New screens", not shown on its own */
+void options_sync_bundles(void);            /* at start, before the modules read their keys */
 int options_count(void);                    /* the table, then the fixes (FIXES[]) and the built-in changes (MODS[]) */
 const Option *options_get(int i);
 const Option *options_find(const char *key);

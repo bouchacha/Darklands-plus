@@ -40,24 +40,30 @@ struct S {                                     /* the scene's box: x, y in 0..10
     }
 };
 
-void panel_losses(const S &s, bool on)
+/* New screens: the original's card (pixel text in a box on black) beside the same card drawn anew
+   (parchment in the plaited frame, the initial, the options as rows) */
+void native_screens(const S &s, bool on)
 {
-    s.rect(0, 0, 100, 60, PANEL);
-    s.text(6, 3, 6, GOLD, "Gunther");
-    s.text(6, 17, 4.6f, CREAM, "End"); s.text(72, 17, 4.6f, CREAM, "30/39");
-    s.bar(6, 26, 88, 30.0f / 39, END_C, on);
-    s.text(6, 34, 4.6f, CREAM, "Str"); s.text(72, 34, 4.6f, CREAM, "35/40");
-    s.bar(6, 43, 88, 35.0f / 40, STR_C, on);
-}
-void bars(const S &s, bool on, bool hurt_only)
-{
-    s.ground();
-    float xs[3] = { 20, 50, 80 }, f[3] = { 1.0f, 0.55f, 1.0f };
-    for (int i = 0; i < 3; i++) {
-        s.figure(xs[i], 54, i == 1 ? FOE : OURS);
-        if (on && (!hurt_only || f[i] < 1)) s.bar(xs[i] - 8, 18, 16, f[i], f[i] < 0.6f ? IM_COL32(220, 80, 50, 255) : STR_C, false);
+    if (!on) {
+        s.rect(0, 0, 100, 60, IM_COL32(8, 8, 8, 255));
+        s.rect(8, 6, 92, 54, IM_COL32(150, 150, 150, 255)); s.rect(9.5f, 7.5f, 90.5f, 52.5f, IM_COL32(20, 20, 120, 255));
+        const char *L[4] = { "Before you lies the", "walled city of Worms.", "1. Enter the city", "2. Leave" };
+        for (int i = 0; i < 4; i++) s.text(13, 10 + i * 10 + (i >= 2 ? 3 : 0), 5.2f, i < 2 ? IM_COL32(230, 230, 230, 255) : IM_COL32(250, 230, 90, 255), L[i]);
+        return;
     }
+    s.rect(0, 0, 100, 60, IM_COL32(52, 34, 18, 255));
+    for (int i = 0; i < 26; i++) {                                   /* the plaited band, roughly */
+        float x = 2 + i * 3.8f;
+        s.dl->AddCircle(s.p(x, 2.6f), 1.6f * s.k, GOLD, 8, 0.8f * s.k); s.dl->AddCircle(s.p(x, 57.4f), 1.6f * s.k, GOLD, 8, 0.8f * s.k);
+    }
+    s.rect(6, 6, 94, 54, IM_COL32(236, 222, 190, 255), 1.5f); s.frame(6, 6, 94, 54, IM_COL32(150, 110, 60, 255), 1, 1.5f);
+    s.rect(9, 9, 18, 19, IM_COL32(140, 30, 18, 255), 1); s.text(10.6f, 9.6f, 6.5f, GOLD, "B");
+    s.text(20, 9, 4.8f, INK, "efore you lies the walled"); s.text(20, 15, 4.8f, INK, "city of Worms. You...");
+    s.rect(9, 30, 91, 39, IM_COL32(214, 170, 60, 110), 1);
+    s.text(11, 31, 4.8f, IM_COL32(140, 30, 18, 255), "1."); s.text(17, 31, 4.8f, INK, "...enter the city.");
+    s.text(11, 42, 4.8f, IM_COL32(140, 30, 18, 255), "2."); s.text(17, 42, 4.8f, INK, "...leave this place.");
 }
+
 void reload_bar(const S &s, bool on)
 {
     s.ground();
@@ -212,7 +218,7 @@ void shop_compare(const S &s, bool on)
 bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on)
 {
     struct E { const char *key; int id; };
-    static const E T[] = { { "display.panel_losses", 1 }, { "battle.reload_bar", 4 },
+    static const E T[] = { { "display.native_screens", 1 }, { "battle.reload_bar", 4 },
                            { "battle.click_hint", 5 }, { "battle.order_icons", 6 }, { "battle.skill_gains", 7 }, { "battle.log", 8 },
                            { "battle.info", 9 }, { "map.names", 10 }, { "map.quest_marks", 11 }, { "display.full_names", 12 }, { "battle.volley_toggle", 13 }, { "battle.order_bar", 14 }, { "battle.los_line", 15 }, { "display.shop_compare", 17 } };
     int id = 0;
@@ -222,9 +228,7 @@ bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool
     S s{ dl, a, (b.x - a.x) / 100.0f };
     dl->PushClipRect(a, b, true);
     switch (id) {
-    case 1: panel_losses(s, on); break;
-    case 2: bars(s, on, false); break;
-    case 3: bars(s, true, on); break;
+    case 1: native_screens(s, on); break;
     case 4: reload_bar(s, on); break;
     case 5: click_hint(s, on); break;
     case 6: order_icons(s, on); break;

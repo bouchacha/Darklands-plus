@@ -469,9 +469,9 @@ extern "C" void partypanel_draw(void)
             P.text(P.fo, NsDraw::FS_SMALL, 0, ry - 0.6f, out ? GREY : CREAM, v, bx1);
             float f = mx > 0 ? fminf(1.0f, fmaxf(0.0f, (float)cur / mx)) : 0;
             P.rect(bx0, ry + 5.0f, bx1, ry + 7.2f, IM_COL32(64, 52, 40, 255), 0.8f);
-            /* what is lost of Endurance and Strength, pale (display.panel_losses): even a point or two
+            /* what is lost of Endurance and Strength, pale : even a point or two
                shows at a glance, as the original's white against the blue */
-            if (r < 2 && !out && cur < mx && mx > 0 && config_get_int("display.panel_losses", 1))
+            if (r < 2 && !out && cur < mx && mx > 0)
                 P.rect(bx0 + (bx1 - bx0) * f, ry + 5.0f, bx1, ry + 7.2f, IM_COL32(236, 230, 214, 255), 0.8f);
             if (f > 0) P.rect(bx0, ry + 5.0f, bx0 + (bx1 - bx0) * f, ry + 7.2f, out ? IM_COL32(120, 112, 104, 255) : COL[r], 0.8f);
             if (cur > mx && mx > 0) P.text(P.fo, NsDraw::FS_SMALL, bx0 + P.width(P.fo, NsDraw::FS_SMALL, LBL[r]) + 0.8f, ry - 0.6f, GOLD, "+");

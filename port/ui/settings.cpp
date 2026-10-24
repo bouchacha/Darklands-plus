@@ -373,7 +373,7 @@ void tab_helpers(void)
         int n = options_count();
         for (int i = 0; i < n; i++) {
             const Option *o = options_get(i);
-            if ((o->flags & OF_ELSEWHERE) || !strcmp(o->section, "Restored cut content")) continue;   /* (that one: its own page, tab_restored) */
+            if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || !strcmp(o->section, "Restored cut content")) continue;   /* (that one: its own page, tab_restored) */
             bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
             if (!seen) sect.push_back(o->section);
         }
@@ -420,7 +420,7 @@ void tab_helpers(void)
             if (!strcmp(sect[k], "Easier rules")) ui_hint("Rule changes that make the game easier; the Easy preset turns on the ones marked for it. Some take effect only when the next new game starts (their note says so).");
             for (int i = 0; i < n; i++) {
                 const Option *o = options_get(i);
-                if ((o->flags & OF_ELSEWHERE) || o->parent || strcmp(o->section, sect[k])) continue;
+                if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, sect[k])) continue;
                 option_row(o, 0);
             }
         }
@@ -445,7 +445,7 @@ void tab_restored(void)
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
-        if ((o->flags & OF_ELSEWHERE) || o->parent || strcmp(o->section, "Restored cut content")) continue;
+        if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || o->parent || strcmp(o->section, "Restored cut content")) continue;
         option_row(o, 0);
     }
 }

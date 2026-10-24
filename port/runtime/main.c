@@ -315,6 +315,7 @@ int main(int argc, char **argv)
 
     { void ui_late_init(void); ui_late_init(); }
     { void saves_backup_once(void); saves_backup_once(); }   /* the saves copied once a version, before it writes any (mods/saves.c) */
+    { void options_sync_bundles(void); options_sync_bundles(); }   /* (New screens: its members as it says, before the modules read them) */
     mods_init();
     { void rules_apply(void); rules_apply(); }       /* mods' rules.ini (ui/rules.cpp) */
 
