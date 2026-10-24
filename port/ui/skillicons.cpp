@@ -350,6 +350,8 @@ void ui_lodge_act_icon(ImDrawList *, ImVec2, float, int); void ui_campfire_icon(
 void draw_icon_seal(ImDrawList *, ImVec2, float, int); void layer_glyph(ImDrawList *, ImVec2, float, int, ImU32);
 void ui_compass_icon(ImDrawList *, ImVec2, float, float); void ui_boot_icon(ImDrawList *, ImVec2, float, unsigned int);
 void ui_draw_teach_mark(ImDrawList *, ImVec2, float, unsigned, unsigned); void ui_item_icon(ImDrawList *, ImVec2, float, int);
+extern int ingredient_style_preview; bool ui_draw_ingredient(ImDrawList *, ImVec2, float, int);   /* ui/alchemyicons.cpp */
+void draw_icon_wax(ImDrawList *, ImVec2, float, int, int);   /* ui/worldmap_draw.cpp (a proposal) */
 extern "C" void ui_icon_styles_draw(void)
 {
     if (!sheet_on) return;
@@ -372,6 +374,57 @@ extern "C" void ui_icon_styles_draw(void)
         n = (n + 13) / 14 * 14;                                                          /* the inn's and camp's day choices, the camp's fire */
         for (int i = 0; i < 7; i++) ui_lodge_act_icon(dl, at(n++), sz * 0.9f, i);
         ui_campfire_icon(dl, at(n++), sz * 0.8f);
+        return;
+    }
+    if (sheet_on == 5) {   /* the world map's place seals: the present set and three proposals (uiconstyles:5), on the map's parchment beside a quest's roundel */
+        dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(222, 202, 158, 255));
+        for (int k = 0; k < 40; k++) dl->AddLine(ImVec2(0, ds.y * k / 40.0f), ImVec2(ds.x, ds.y * k / 40.0f + 30), IM_COL32(190, 165, 120, 60), 1.0f);   /* (a hint of the map's texture) */
+        static const char *ROW[4] = { "Now: coloured discs, the picture painted", "1. Red wax, the picture pressed in", "2. Wax by kind of place, the picture pressed in", "3. Wax by kind of place, the picture painted on it" };
+        static const char *KIND[12] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
+        ImFont *f = ImGui::GetFont(); float fs = ds.y / 48, big = ds.y / 12.5f, small = ds.y / 40, y = fs * 0.5f;
+        const ImU32 INK = IM_COL32(60, 40, 20, 255);
+        for (int st = 0; st < 4; st++) {
+            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, ROW[st]);
+            y += fs * 1.6f;
+            for (int k = 0; k < 12; k++) {
+                ImVec2 c(fs + big * 0.6f + k * big * 1.18f, y + big * 0.55f);
+                if (st == 0) draw_icon_seal(dl, c, big, k); else draw_icon_wax(dl, c, big, k, st);
+                if (st == 0) { float w = f->CalcTextSizeA(fs * 0.8f, 1e9f, 0, KIND[k]).x; dl->AddText(f, fs * 0.8f, ImVec2(c.x - w * 0.5f, y + big * 1.12f), INK, KIND[k]); }
+            }
+            float x = fs + 12 * big * 1.18f + big * 0.4f;                 /* at the map's size, beside a quest's and a town feature's roundel */
+            for (int k = 0; k < 4; k++) { ImVec2 c(x + k * small * 1.5f, y + big * 0.55f); if (st == 0) draw_icon_seal(dl, c, small, k); else draw_icon_wax(dl, c, small, k, st); }
+            ui_draw_quest_icon(dl, ImVec2(x + 4 * small * 1.5f, y + big * 0.55f), small * 1.1f, 2);
+            ui_draw_town_icon(dl, ImVec2(x + 5 * small * 1.5f, y + big * 0.55f), small * 1.1f, 3);
+            y += big * 1.12f + fs * (st == 0 ? 2.4f : 1.4f);
+        }
+        return;
+    }
+    if (sheet_on == 4) {   /* the ingredients' proposal by family (uiconstyles:4), the present ones below */
+        struct Fam { const char *name, *what; int ids[8]; };
+        static const Fam FAM[] = {
+            { "The four bases", "the elements' triangles", { 91, 92, 93, 94, 0 } },
+            { "Metals and their ores", "the planets' signs", { 72, 89, 87, 88, 78, 77, 73, 0 } },
+            { "Sulphurs, salts and poisons", "their own signs", { 90, 79, 80, 85, 0 } },
+            { "Waters, oils and vapours", "their own signs", { 82, 74, 83, 75, 0 } },
+            { "Herbs", "no sign: a drawing in the same line", { 76, 81, 84, 86, 0 } } };
+        static const char *NM[23] = { "Pure Gold", "Manganes", "Naptha", "Marsh Vapor", "E. Black Bean", "Zincblende", "Antimoni", "Orpiment", "White Cinnabar",
+                                      "Solanaceae", "Aqua Regia", "Gum", "Mondragora", "Alum", "Camomile", "Nikel", "Pitchblende", "Zinken", "Brimstone",
+                                      "Choleric Base", "Phlegmatic Base", "Sanguine Base", "Melancholic Base" };
+        ImFont *f = ImGui::GetFont(); float fs = ds.y / 46, sz = ds.y / 11.5f, y = fs * 0.6f;
+        const ImU32 INK = IM_COL32(60, 40, 20, 255), SOFT = IM_COL32(120, 90, 60, 255);
+        for (const Fam &F : FAM) {
+            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, F.name); 
+            dl->AddText(f, fs * 0.9f, ImVec2(fs + f->CalcTextSizeA(fs * 1.15f, 1e9f, 0, F.name).x + fs * 0.8f, y + fs * 0.2f), SOFT, F.what);
+            y += fs * 1.5f;
+            float x = fs + sz * 0.5f;
+            for (int k = 0; F.ids[k]; k++, x += sz * 1.45f) {
+                ingredient_style_preview = 1; ui_draw_ingredient(dl, ImVec2(x, y + sz * 0.5f), sz, F.ids[k]); ingredient_style_preview = 0;
+                ui_draw_ingredient(dl, ImVec2(x + sz * 0.55f, y + sz * 0.95f), sz * 0.36f, F.ids[k]);   /* (the present one, small, beside) */
+                const char *n = NM[F.ids[k] - 72]; float w = f->CalcTextSizeA(fs * 0.85f, 1e9f, 0, n).x;
+                dl->AddText(f, fs * 0.85f, ImVec2(x - w * 0.5f, y + sz * 1.08f), INK, n);
+            }
+            y += sz * 1.08f + fs * 1.9f;
+        }
         return;
     }
     if (sheet_on == 3) {   /* the rest (uiconstyles:3): battle orders, the world map's, ingredients and potions */
