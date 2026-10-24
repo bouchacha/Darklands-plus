@@ -164,7 +164,7 @@ void datamods_set(int i, int on)
     mods_changed();
 }
 int datamods_generation(void) { return generation; }
-/* "Play the original game" (F12 > Settings > Helpers) leaves the mods out too */
+/* "Play the original game" (F12 > Settings > Game) leaves the mods out too */
 int datamods_enabled(void) { return !config_get_int("original", 0); }
 int datamods_active(void) { if (!datamods_enabled()) return 0; for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }
 
@@ -399,7 +399,7 @@ int datamods_new(const char *name, char *where, size_t wn)
                    "Put files into this folder laid out like the game folder; while the mod is on, the game reads them\n"
                    "instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card\n"
                    "files (.MSG, or .TXT as written by \"Export the card texts\"), art/ and sounds/ as in the game folder,\n"
-                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings > Display > Sound).\n", name);
+                   "music/ with recordings named by the piece's number (10.ogg, \"11 market.ogg\"; see F12 > Settings > Window and sound).\n", name);
         fclose(f);
     }
     datamods_scan();

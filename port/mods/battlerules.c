@@ -1,4 +1,4 @@
-/* battlerules.c - rules of the battles, switches (F12 > Settings > Helpers > Battles).
+/* battlerules.c - rules of the battles, switches (F12 > Settings > Game > Battles).
  *
  * People in the line of fire block a shot, friend or foe, as the game has it (line_blocked, s014
  *   1d69:000c: walls, furniture, then every active body on the floor shown but the shooter and the

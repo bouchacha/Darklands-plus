@@ -1,5 +1,5 @@
 /* opening.c - the opening (the MicroProse logo, the animations, the music and the digitized
- * speech), F12 > Settings > Display > "At start": the whole opening (the default), its last
+ * speech), F12 > Settings > Window and sound > "At start": the whole opening (the default), its last
  * scene alone (the lady of the Darklands and her welcome), or nothing.
  * "Play the original game" plays it whole. Played whole (the default), a key or a click during the
  * gargoyles and the rest goes on to the lady's welcome (opening8 and 9), and one there ends it; the
@@ -61,7 +61,7 @@ static void mainloop_hook(void)                 /* root 03a1:000a: the opening, 
     int mode = config_get_int("original", 0) || !config_get_int("display.opening_seen", 0) ? 2 : opening_mode();
     if (!config_get_int("display.opening_seen", 0)) { config_set_int("display.opening_seen", 1); config_save(); }
     end_only = mode == 1;
-    if (mode == 0 && !g_rw(D_QUICK)) { g_ww(D_QUICK, 1); set_by_us = 1; fprintf(stderr, "opening: skipped (F12 > Settings > Display plays it)\n"); }
+    if (mode == 0 && !g_rw(D_QUICK)) { g_ww(D_QUICK, 1); set_by_us = 1; fprintf(stderr, "opening: skipped (F12 > Settings > Window and sound plays it)\n"); }
     else { opening_playing = 1; fprintf(stderr, "opening: %s\n", end_only ? "the last scene" : "whole"); }
     hook_call_original();
 }

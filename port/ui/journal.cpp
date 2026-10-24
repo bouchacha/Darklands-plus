@@ -426,7 +426,7 @@ static void chronicle_page(void)
 {
     int seed = g_rw(G_PARTY_SEED);
     if (game_mode() != GM_OTHER && seed != chron_seed) chron_load(seed);
-    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Helpers)."); return; }
+    if (!chron_on()) { ImGui::TextWrapped("The chronicle is off (F12 > Settings > Game)."); return; }
     static bool nav_open = true;
     if (ImGui::SmallButton(nav_open ? "Hide the list of days" : "Show the list of days")) nav_open = !nav_open;
     ImGui::SameLine();
@@ -1019,7 +1019,7 @@ static void storage_page(void)
       if (f) { unsigned char b[4096]; size_t n; while ((n = fread(b, 1, sizeof b, f)) > 0) buf.insert(buf.end(), b, b + n); fclose(f); } }
     int ncache = buf.size() > 1 ? buf[1] : 0;
     {
-      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Helpers).");
+      if (sharedstore_on()) ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn): one store room, the same at every inn (F12 > Settings > Game).");
       else ImGui::TextWrapped("What the party has left with innkeepers (\"store items with the innkeeper\" at a town's inn), and where. "
                               "The original game shows a store room only while the party is in it."); }
     ImGui::Spacing();

@@ -219,6 +219,7 @@ bool ui_title_desc(const char *title, const char *desc, bool dim, const char *id
 }
 
 bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on);   /* ui/optpreview.cpp */
+extern "C" bool screenpics_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);   /* ui/screenpics.cpp */
 static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
 static void option_row(const Option *o, int depth);
 static void option_children(const Option *o, int depth)
@@ -267,7 +268,14 @@ static void option_row(const Option *o, int depth)
         ImGui::Unindent(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x);
     }
     float ti = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x;
-    if (!o->choices && ui_option_preview(o->key, nullptr, ImVec2(), ImVec2(), false)) {   /* its picture, off and on (a click chooses) */
+    if (!strcmp(o->key, "display.native_screens")) {     /* pictures of the new screens, from this game (ui/screenpics.cpp) */
+        ImGui::Indent(ti);
+        float pw = fminf(UIS(480), ImGui::GetContentRegionAvail().x), ph = pw * 9 / 16;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        if (screenpics_draw(ImGui::GetWindowDrawList(), a, ImVec2(a.x + pw, a.y + ph))) ImGui::Dummy(ImVec2(pw, ph + UIS(4)));
+        else ui_hint("Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy.");
+        ImGui::Unindent(ti);
+    } else if (!o->choices && ui_option_preview(o->key, nullptr, ImVec2(), ImVec2(), false)) {   /* its picture, off and on (a click chooses) */
         ImGui::Indent(ti);
         float pw = UIS(200), ph = pw * 0.6f;
         for (int st = 0; st < 2; st++) {
@@ -362,6 +370,11 @@ static void presets_block(void)
     ImGui::TextWrapped("a save with a member using an enemy sprite (Darklands+ and Easy offer them) loads only in Darklands+.");
 }
 
+static void display_icons(void); static void look_text(void); static void look_pictures(void); static void look_ornaments(void); static void look_clock(void);
+static void look_icons(void) { display_icons(); }
+static const char *const LOOKS[] = { "Text", "Pictures", "Ornaments", "Clock", "Icons" };
+static void (*const LOOK_FN[])(void) = { look_text, look_pictures, look_ornaments, look_clock, look_icons };
+static int look_index(const char *s) { for (int i = 0; i < 5; i++) if (!strcmp(s, LOOKS[i])) return i; return -1; }
 void tab_helpers(void)
 {
     /* the sections, from the switches' table: bookmarks at the left (a click opens the section and
@@ -376,6 +389,8 @@ void tab_helpers(void)
             if ((o->flags & OF_ELSEWHERE) || option_bundled(o) || !strcmp(o->section, "Restored cut content")) continue;   /* (that one: its own page, tab_restored) */
             bool seen = false; for (const char *s : sect) if (!strcmp(s, o->section)) seen = true;
             if (!seen) sect.push_back(o->section);
+            if (!seen && !strcmp(o->section, "New screens"))      /* what things look like, after the screens */
+                for (const char *l : LOOKS) sect.push_back(l);
         }
     }
     const int NSECT = (int)sect.size();
@@ -418,6 +433,8 @@ void tab_helpers(void)
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
             if (!strcmp(sect[k], "Easier rules")) ui_hint("Rule changes that make the game easier; the Easy preset turns on the ones marked for it. Some take effect only when the next new game starts (their note says so).");
+            {   int l = look_index(sect[k]);
+                if (l >= 0) { LOOK_FN[l](); continue; } }
             bool fixes = !strcmp(sect[k], "Fixes for bugs of the original");
             if (fixes) {                                  /* (a long list, each its own switch since what counts as a bug is open to argument: folded) */
                 int nf = 0, on = 0;
@@ -493,7 +510,7 @@ static void pic_choice(const char *id, const char *key, int def, const int *vals
 
 /* the Display page's sections: bookmarks at the left, as the Helpers page (a click brings the
    section to the top; the one at the top of the view is marked) */
-static const char *DSECT[] = { "Screen", "Text", "Pictures", "Ornaments", "Clock", "Icons", "Sound" };
+static const char *DSECT[] = { "Screen", "Sound" };
 static const int NDSECT = (int)(sizeof DSECT / sizeof DSECT[0]);
 static int d_jump = -1, d_top = 0, d_found = -1; static float d_view;
 extern "C" void settings_display_jump(int k) { d_jump = k; }   /* (test: udsect) */
@@ -533,21 +550,166 @@ static void display_icons(void)
         }
         ui_icon_style_preview(-1); ui_icon_disc = keep;
     });
-    ImGui::TextUnformatted("The number keys' marks beside a card's options");
-    static const int NV[5] = { 1, 0, 2, 3, 4 };
-    static const char *NL[5] = { "Red numerals", "Rings", "Gilt lozenges", "Faint", "None" };
-    float cw5 = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170));
-    pic_choice("cardnums", "display.card_numbers", 1, NV, NL, 5, cw5, cw5 * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-        void cardview_key_mark_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int ms);
-        cardview_key_mark_preview(dl, a, b, v);
-    });
-    ImGui::TextUnformatted("The boats' routes on the world map");
-    static const int BSV[3] = { 2, 1, 0 };
-    static const char *BSL[3] = { "Red ink with ships", "Red ink", "Amber on black" };
-    pic_choice("boatstyle", "map.boat_style", 2, BSV, BSL, 3, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-        void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style);
-        worldmap_boat_style_preview(dl, a, b, v);
-    });
+}
+
+/* what things look like (shown among the switches, tab_helpers) */
+static void look_text(void)
+{
+    int hm = hdtext_mode;
+    if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
+    if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
+    if (ImGui::RadioButton("The original lettering", hm == 0)) { hdtext_set(0); ui_dirty_config = 1; }
+    if (hm) {
+        ImGui::SetNextItemWidth(UIS(380));
+        if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
+            for (int i = 0; i < UI_GAME_FONTS; i++) {
+                ImGui::PushFont(ui_font_game[i]);
+                if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); ui_overlay_font_update(); ui_dirty_config = 1; }
+                ImGui::PopFont();
+            }
+            ImGui::EndCombo();
+        }
+        { bool of = config_get_int("display.overlay_font_follow", 1) != 0;
+          if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); ui_overlay_font_update(); ui_dirty_config = 1; } }
+        { bool so = ui_spell_out != 0;
+          if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); ui_dirty_config = 1; } }
+        { bool fn = config_get_int("display.full_names", 1) != 0, aw = config_get_int("display.armour_worn", 1) != 0;
+          if (ImGui::Checkbox("Names in full where the game cut them short (Studded Leather, Illuminated Gospel, St. Gregory Thaumaturgus, Raimundus Lullus' Sunburst)", &fn)) {
+              config_set_int("display.full_names", fn); gamedata_names(); ui_dirty_config = 1; }
+          ImGui::Indent(); if (!fn) ImGui::BeginDisabled();
+          if (ImGui::Checkbox("Armour by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
+              config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
+          if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
+        { bool co = money_coins();
+          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; in a description, a price also shows its total in pfennigs", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
+        ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
+        static const char *E[3] = { "plain", "shadow", "outline" };
+        for (int i = 0; i < 3; i++) {
+            if (i) ImGui::SameLine();
+            if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); ui_dirty_config = 1; }
+        }
+        { extern int ui_skill_icons; bool si = ui_skill_icons != 0;
+          if (ImGui::Checkbox("Small pictures beside the skills of the character sheet", &si)) { ui_skill_icons = si; config_set_int("display.skill_icons", si); ui_dirty_config = 1; } }
+        { extern int ui_text_contrast; bool tc = ui_text_contrast != 0;
+          if (ImGui::Checkbox("Darken (or lighten) faint text against its background", &tc)) { ui_text_contrast = tc; config_set_int("display.text_contrast", tc); ui_dirty_config = 1; } }
+    }
+    ui_hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
+         "the window's resolution; anything it cannot match exactly is left as the game drew it.");
+
+}
+static void look_pictures(void)
+{
+    bool ha = hdart_on;
+    if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
+    {
+        extern char game_dir[1024];
+        int n = hdart_count();
+        extern char dlp_user_dir[];
+        if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        else ui_hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
+        static char msg[600];
+        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
+        ImGui::SameLine();
+        if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
+        if (msg[0]) ui_hint("%s", msg);
+        bool sn = hdart_show_names;
+        if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
+        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has colour 0) replaces the "
+             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
+             "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
+             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
+        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
+             "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
+    }
+
+}
+static void look_ornaments(void)
+{
+    {   /* the band round the windows (ui/ornament.cpp): a picture of each to choose from */
+        int cur = orn_style();
+        float cw = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170)), ch = cw * 0.78f + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+        static const int ORDER[5] = { 1, 2, 3, 4, 0 };
+        for (int j = 0; j < 5; j++) {
+            int st = ORDER[j];
+            if (j) ImGui::SameLine();
+            ImGui::PushID(100 + st);
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("orn", ImVec2(cw, ch))) { config_set_int("display.ornate", st); ui_dirty_config = 1; cur = st; }
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+            float m = cw * 0.08f;
+            extern ImFont *ui_font_overlay;
+            orn_preview(dl, ImVec2(p.x + m, p.y + m), ImVec2(p.x + cw - m, p.y + cw * 0.78f - m * 0.4f), st, ui_font_overlay);
+            const char *n = orn_style_name(st);
+            ImVec2 ts = ImGui::CalcTextSize(n);
+            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
+            ImGui::PopID();
+        }
+        {   /* the frames round tooltips and panels, and the buttons (with any band) */
+            float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
+            static const int V4[4] = { 0, 1, 2, 3 };
+            static const char *FR[4] = { "Gilt rule", "Rubricated", "Pen flourishes", "Blind tooling" };
+            static const char *BT[4] = { "Metal plaques", "Rubrics", "Seal tabs", "Lettered" };
+            ImGui::TextUnformatted("Frames (tooltips, the card text, the new screens' pages)");
+            pic_choice("ornfr", "display.frame_style", 0, V4, FR, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+                dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
+                orn_parchment_edges(dl, a, b, (b.y - a.y) * 0.12f);
+                orn_frame_style_box(dl, a, b, (b.x - a.x) * 0.09f, v);
+                dl->AddText(ImVec2(a.x + (b.x - a.x) * 0.2f, a.y + (b.y - a.y) * 0.35f), IM_COL32(60, 40, 20, 255), "St. Adrian");
+            });
+            ImGui::TextUnformatted("Buttons");
+            pic_choice("ornbt", "display.button_style", 0, V4, BT, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+                dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 4);
+                static const ImU32 C[2] = { IM_COL32(112, 40, 22, 235), IM_COL32(40, 92, 34, 235) };
+                static const char *L[2] = { "Leave", "Buy" };
+                float h = (b.y - a.y) * 0.3f;
+                for (int k = 0; k < 2; k++) {
+                    ImVec2 p0(a.x + (b.x - a.x) * 0.15f, a.y + (b.y - a.y) * (0.14f + k * 0.46f)), p1(b.x - (b.x - a.x) * 0.15f, p0.y + h);
+                    orn_button_style(dl, p0, p1, C[k], k == 1, true, v);
+                    ImU32 tc = v == 3 ? (C[k] | IM_COL32(0, 0, 0, 255)) : IM_COL32(250, 240, 220, 255);
+                    ImVec2 ts = ImGui::CalcTextSize(L[k]);
+                    dl->AddText(ImVec2((p0.x + p1.x - ts.x) * 0.5f, (p0.y + p1.y - ts.y) * 0.5f), tc, L[k]);
+                }
+            });
+        }
+        ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
+                "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
+                "and the frames and buttons are as chosen here.");
+    }
+
+}
+static void look_clock(void)
+{
+    {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
+        void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
+        const char *ui_clock_name(int k);
+        int cur = config_get_int("display.clock", 1);
+        float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
+        static const int ORDER[3] = { 1, 3, 0 };
+        if (cur == 2 || cur == 4) cur = 1;                          /* (dropped clocks: the tower dial) */
+        if (cur == 5) cur = 3;                                      /* (and the copper astrolabe) */
+        for (int j = 0; j < 3; j++) {
+            int st = ORDER[j];
+            if (j % 3) ImGui::SameLine();
+            ImGui::PushID(st);
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            if (ImGui::InvisibleButton("clk", ImVec2(cw, ch))) { config_set_int("display.clock", st); ui_dirty_config = 1; cur = st; }
+            bool hv = ImGui::IsItemHovered();
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
+            dl->PushClipRect(p, ImVec2(p.x + cw, p.y + ch), true);
+            ui_draw_clock_style(st, dl, ImVec2(p.x + 10 * k, p.y + 6 * k), k, k, (int)(ImGui::GetTime() * 1.5) % 24, 10, 11);   /* (moving: a day in sixteen seconds) */
+            dl->PopClipRect();
+            const char *n = ui_clock_name(st);
+            ImVec2 ts = ImGui::CalcTextSize(n);
+            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
+            ImGui::PopID();
+        }
+        ui_hint("Shown while hours pass (at the inn, waiting, travelling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
+                "the game's own clock looks most like an astrolabe, here also drawn anew at the window's resolution.");
+    }
+
 }
 
 void tab_display(void)
@@ -610,159 +772,6 @@ void tab_display(void)
     }
     bool fs = (SDL_GetWindowFlags(ui_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
     if (ImGui::Checkbox("Full screen (Alt+Enter)", &fs)) SDL_SetWindowFullscreen(ui_window, fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    dsec("Text");
-    int hm = hdtext_mode;
-    if (ImGui::RadioButton("Crisp text on story cards only", hm == 1)) { hdtext_set(1); ui_dirty_config = 1; }
-    if (ImGui::RadioButton("Crisp text everywhere (cards, party, sheets, menus, shops)", hm == 2)) { hdtext_set(2); ui_dirty_config = 1; }
-    if (ImGui::RadioButton("The original lettering", hm == 0)) { hdtext_set(0); ui_dirty_config = 1; }
-    if (hm) {
-        ImGui::SetNextItemWidth(UIS(380));
-        if (ImGui::BeginCombo("Typeface", UI_GAME_FONT_NAMES[ui_game_font])) {
-            for (int i = 0; i < UI_GAME_FONTS; i++) {
-                ImGui::PushFont(ui_font_game[i]);
-                if (ImGui::Selectable(UI_GAME_FONT_NAMES[i], i == ui_game_font)) { ui_game_font = i; config_set_int("display.text_font", i); ui_overlay_font_update(); ui_dirty_config = 1; }
-                ImGui::PopFont();
-            }
-            ImGui::EndCombo();
-        }
-        { bool of = config_get_int("display.overlay_font_follow", 1) != 0;
-          if (ImGui::Checkbox("The same typeface for the side panels, tooltips and names on the maps", &of)) { config_set_int("display.overlay_font_follow", of); ui_overlay_font_update(); ui_dirty_config = 1; } }
-        { bool so = ui_spell_out != 0;
-          if (ImGui::Checkbox("Spell out the character sheet's abbreviations (wPol -> Polearm Wpns, R&W -> Read & Write)", &so)) { ui_spell_out = so; config_set_int("display.spell_out", so); ui_dirty_config = 1; } }
-        { bool fn = config_get_int("display.full_names", 1) != 0, aw = config_get_int("display.armour_worn", 1) != 0;
-          if (ImGui::Checkbox("Names in full where the game cut them short (Studded Leather, Illuminated Gospel, St. Gregory Thaumaturgus, Raimundus Lullus' Sunburst)", &fn)) {
-              config_set_int("display.full_names", fn); gamedata_names(); ui_dirty_config = 1; }
-          ImGui::Indent(); if (!fn) ImGui::BeginDisabled();
-          if (ImGui::Checkbox("Armour by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
-              config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
-          if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
-        { bool co = money_coins();
-          if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " (florins, groschen, pfennigs) instead of 1fl 12gr 4pf; in a description, a price also shows its total in pfennigs", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; } }
-        ImGui::TextUnformatted("Letter edges:"); ImGui::SameLine();
-        static const char *E[3] = { "plain", "shadow", "outline" };
-        for (int i = 0; i < 3; i++) {
-            if (i) ImGui::SameLine();
-            if (ImGui::RadioButton(E[i], ui_text_edge == i)) { ui_text_edge = i; config_set_int("display.text_edge", i); ui_dirty_config = 1; }
-        }
-        { extern int ui_skill_icons; bool si = ui_skill_icons != 0;
-          if (ImGui::Checkbox("Small pictures beside the skills of the character sheet", &si)) { ui_skill_icons = si; config_set_int("display.skill_icons", si); ui_dirty_config = 1; } }
-        { extern int ui_text_contrast; bool tc = ui_text_contrast != 0;
-          if (ImGui::Checkbox("Darken (or lighten) faint text against its background", &tc)) { ui_text_contrast = tc; config_set_int("display.text_contrast", tc); ui_dirty_config = 1; } }
-    }
-    ui_hint("The original 7-pixel blackletter is hard to read when scaled up. Crisp text draws the same words at "
-         "the window's resolution; anything it cannot match exactly is left as the game drew it.");
-
-    dsec("Pictures");
-    bool ha = hdart_on;
-    if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
-    {
-        extern char game_dir[1024];
-        int n = hdart_count();
-        extern char dlp_user_dir[];
-        if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else ui_hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
-        static char msg[600];
-        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
-        ImGui::SameLine();
-        if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
-        if (msg[0]) ui_hint("%s", msg);
-        bool sn = hdart_show_names;
-        if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
-        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has colour 0) replaces the "
-             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
-             "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
-             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
-        ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
-             "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);
-    }
-
-    dsec("Ornaments");
-    {   /* the band round the windows (ui/ornament.cpp): a picture of each to choose from */
-        int cur = orn_style();
-        float cw = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170)), ch = cw * 0.78f + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
-        static const int ORDER[5] = { 1, 2, 3, 4, 0 };
-        for (int j = 0; j < 5; j++) {
-            int st = ORDER[j];
-            if (j) ImGui::SameLine();
-            ImGui::PushID(100 + st);
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            if (ImGui::InvisibleButton("orn", ImVec2(cw, ch))) { config_set_int("display.ornate", st); ui_dirty_config = 1; cur = st; }
-            bool hv = ImGui::IsItemHovered();
-            ImDrawList *dl = ImGui::GetWindowDrawList();
-            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
-            float m = cw * 0.08f;
-            extern ImFont *ui_font_overlay;
-            orn_preview(dl, ImVec2(p.x + m, p.y + m), ImVec2(p.x + cw - m, p.y + cw * 0.78f - m * 0.4f), st, ui_font_overlay);
-            const char *n = orn_style_name(st);
-            ImVec2 ts = ImGui::CalcTextSize(n);
-            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
-            ImGui::PopID();
-        }
-        {   /* the frames round tooltips and panels, and the buttons (with any band) */
-            float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
-            static const int V4[4] = { 0, 1, 2, 3 };
-            static const char *FR[4] = { "Gilt rule", "Rubricated", "Pen flourishes", "Blind tooling" };
-            static const char *BT[4] = { "Metal plaques", "Rubrics", "Seal tabs", "Lettered" };
-            ImGui::TextUnformatted("Frames (tooltips, the card text, the new screens' pages)");
-            pic_choice("ornfr", "display.frame_style", 0, V4, FR, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-                dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
-                orn_parchment_edges(dl, a, b, (b.y - a.y) * 0.12f);
-                orn_frame_style_box(dl, a, b, (b.x - a.x) * 0.09f, v);
-                dl->AddText(ImVec2(a.x + (b.x - a.x) * 0.2f, a.y + (b.y - a.y) * 0.35f), IM_COL32(60, 40, 20, 255), "St. Adrian");
-            });
-            ImGui::TextUnformatted("Buttons");
-            pic_choice("ornbt", "display.button_style", 0, V4, BT, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
-                dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 4);
-                static const ImU32 C[2] = { IM_COL32(112, 40, 22, 235), IM_COL32(40, 92, 34, 235) };
-                static const char *L[2] = { "Leave", "Buy" };
-                float h = (b.y - a.y) * 0.3f;
-                for (int k = 0; k < 2; k++) {
-                    ImVec2 p0(a.x + (b.x - a.x) * 0.15f, a.y + (b.y - a.y) * (0.14f + k * 0.46f)), p1(b.x - (b.x - a.x) * 0.15f, p0.y + h);
-                    orn_button_style(dl, p0, p1, C[k], k == 1, true, v);
-                    ImU32 tc = v == 3 ? (C[k] | IM_COL32(0, 0, 0, 255)) : IM_COL32(250, 240, 220, 255);
-                    ImVec2 ts = ImGui::CalcTextSize(L[k]);
-                    dl->AddText(ImVec2((p0.x + p1.x - ts.x) * 0.5f, (p0.y + p1.y - ts.y) * 0.5f), tc, L[k]);
-                }
-            });
-        }
-        ui_hint("The band round the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, "
-                "the illuminated capitals' vermilion and gold, the paper doll's carved stone. With any of them, rules and corners are gilt "
-                "and the frames and buttons are as chosen here.");
-    }
-
-    dsec("Clock");
-    {   /* the clock shown while hours pass: a picture of each to choose from (ui/hourglass.cpp) */
-        void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);
-        const char *ui_clock_name(int k);
-        int cur = config_get_int("display.clock", 1);
-        float cw = fminf(ImGui::GetContentRegionAvail().x / 3 - ImGui::GetStyle().ItemSpacing.x, UIS(240)), k = cw / 140.0f, ch = 120 * k + ImGui::GetTextLineHeightWithSpacing() * 1.3f;
-        static const int ORDER[3] = { 1, 3, 0 };
-        if (cur == 2 || cur == 4) cur = 1;                          /* (dropped clocks: the tower dial) */
-        if (cur == 5) cur = 3;                                      /* (and the copper astrolabe) */
-        for (int j = 0; j < 3; j++) {
-            int st = ORDER[j];
-            if (j % 3) ImGui::SameLine();
-            ImGui::PushID(st);
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            if (ImGui::InvisibleButton("clk", ImVec2(cw, ch))) { config_set_int("display.clock", st); ui_dirty_config = 1; cur = st; }
-            bool hv = ImGui::IsItemHovered();
-            ImDrawList *dl = ImGui::GetWindowDrawList();
-            dl->AddRectFilled(p, ImVec2(p.x + cw, p.y + ch), st == cur ? IM_COL32(140, 61, 33, 255) : hv ? IM_COL32(200, 170, 120, 255) : IM_COL32(60, 44, 30, 255), 6);
-            dl->PushClipRect(p, ImVec2(p.x + cw, p.y + ch), true);
-            ui_draw_clock_style(st, dl, ImVec2(p.x + 10 * k, p.y + 6 * k), k, k, (int)(ImGui::GetTime() * 1.5) % 24, 10, 11);   /* (moving: a day in sixteen seconds) */
-            dl->PopClipRect();
-            const char *n = ui_clock_name(st);
-            ImVec2 ts = ImGui::CalcTextSize(n);
-            dl->AddText(ImVec2(p.x + (cw - ts.x) * 0.5f, p.y + ch - ImGui::GetTextLineHeightWithSpacing() * 1.1f), IM_COL32(246, 236, 214, 255), n);
-            ImGui::PopID();
-        }
-        ui_hint("Shown while hours pass (at the inn, waiting, travelling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
-                "the game's own clock looks most like an astrolabe, here also drawn anew at the window's resolution.");
-    }
-
-    dsec("Icons");
-    display_icons();
-
     dsec("Sound");
     {   /* Darklands was composed for the MT-32: while it isn't heard, say so first, plainly, with the way to it */
         const char *dv = config_get("sound.device", "auto");

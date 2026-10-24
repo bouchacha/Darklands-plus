@@ -47,7 +47,7 @@ void ui_guide_tab(void)
     topic("Towns", {
         "G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...) to walk to directly.",
         "The inn: a room for the night, or take up residence for days: rest, regain strength, pray, brew, earn a little or study with a teacher (the page shows each member's day and what it costs). \"Until rested\" spends the days for you.",
-        "The innkeeper keeps items for the party (store items, recover items stored here): Darklands+ makes it one store room shared by every inn, so what is left in one town is there in all of them (F12 > Settings > Helpers; F12 > Journal > Stored lists it).",
+        "The innkeeper keeps items for the party (store items, recover items stored here): Darklands+ makes it one store room shared by every inn, so what is left in one town is there in all of them (F12 > Settings > Game; F12 > Journal > Stored lists it).",
         "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armourer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
         "Each shop's goods have a quality, written like 29q: most shops' weapons and armour are about 25q, the best in the land near 38q. The right margin names a town's notable shops (30q and better) with their pictures; F12 > Journal > Towns lists them all. Darklands+ compares a weapon or armour with what the member has now.",
         "Under a town's name, the margin shows pictures of what the town has that most towns lack: a university, a cathedral, an alchemist, a physician, docks with boats, a bank (point at one to see what it offers); the world map (M) can find every town that has one. Almost every town has a monastery, where the monks teach saints, pray for the party and heal.",
@@ -80,13 +80,13 @@ void ui_guide_tab(void)
         "The view scrolls when the pointer rests on its edge (or with Shift). To find a member out of sight, Ctrl+click their portrait: the view then follows them.",
         "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon whose penetration is above it pierces and wounds, one equal to it is halved, one below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of enemy on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
-        "Missile weapons need ammunition (Darklands+ can give the party an endless supply: F12 > Settings > Helpers). A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear. (An experimental helper in F12 > Settings > Helpers lets a shooter find a clear line by itself.)",
+        "Missile weapons need ammunition (Darklands+ can give the party an endless supply: F12 > Settings > Game). A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear. (An experimental helper in F12 > Settings > Game lets a shooter find a clear line by itself.)",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
         "In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over, or when the party walks out (which the game counts as fleeing). The battle margin marks the master, lists the enemies still waiting there floor by floor, and says where the master waits; the battle pauses when a group of them comes out to fight.",
     });
     topic("Travel", {
         "On the travel map, clicking a spot walks the party towards it; Ctrl+click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there.",
-        "Each step costs time, and the road brings encounters (F12 > Settings > Helpers sets how often). Roads are quickest, marsh and mountains slowest. St. Christopher, St. Drogo and St. Wilfrid make the party travel faster for a week, St. Eustace through woods (with the fix \"Saints do what their texts say\"): fewer days pass on the way.",
+        "Each step costs time, and the road brings encounters (F12 > Settings > Game sets how often). Roads are quickest, marsh and mountains slowest. St. Christopher, St. Drogo and St. Wilfrid make the party travel faster for a week, St. Eustace through woods (with the fix \"Saints do what their texts say\"): fewer days pass on the way.",
         "Winter is hard on the road: from November to March a blizzard can catch the party in the open (in the high mountains from October to April). Keep going, call on a saint, or camp and wait it out.",
         "Castles, monasteries, mines and the rest open their own card when the party steps on them.",
     });

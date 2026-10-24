@@ -988,7 +988,7 @@ static void night_streets(bool night)
         snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, "
                  "and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s "
                  "(depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
-                 often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Helpers" : "");
+                 often, pct != 100 ? ", with street trouble made rarer in F12 > Settings > Game" : "");
         margin_tip(b);
     }
 }

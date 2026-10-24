@@ -502,13 +502,11 @@ static void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b)
     if (r > 14) compass_rose(dl, ImVec2(o0.x + r * 0.35f, o1.y - r * 0.35f), r);   /* (over the lower left corner, as on the printed map) */
 }
 
-/* a boat's way, in the chosen look (map.boat_style): 0 amber dashes on a dark casing, moving; 1 a
-   chart's red ink, as the rhumb lines of a portolan, its dots running along; 2 a ship's wake: white
-   dots, a little cog now and then sailing along it. al: 255 for
-   a boat leaving today (or any, on the world map), less for one leaving later; lit: the one chosen;
-   both_ways: boats sail it both ways (most do): the dashes breathe in place rather than run one way,
-   and the little ships sail both ways */
-static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float lw, bool lit, int al, float t, int style, bool both_ways = false)
+/* a boat's way: a chart's red ink, as the rhumb lines of a portolan, its dots running along, and a
+   little ship now and then sailing on it. al: 255 for a boat leaving today (or any, on the world map),
+   less for one leaving later; lit: the one chosen; both_ways: boats sail it both ways (most do): two
+   rows of dots running opposite ways, and the ships sail both ways */
+static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float lw, bool lit, int al, float t, bool both_ways = false)
 {
     if (pts.size() < 2) return;
     int n = (int)pts.size();
@@ -523,54 +521,14 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
             acc += L;
         }
     };
-    /* the way moved aside by off (its left, as it runs), for a second lane */
-    auto offset = [&](float off) {
-        std::vector<ImVec2> q(n);
-        for (int k = 0; k < n; k++) {
-            ImVec2 d0 = k > 0 ? ImVec2(pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y) : ImVec2(0, 0);
-            ImVec2 d1 = k + 1 < n ? ImVec2(pts[k + 1].x - pts[k].x, pts[k + 1].y - pts[k].y) : ImVec2(0, 0);
-            float l0 = sqrtf(d0.x * d0.x + d0.y * d0.y), l1 = sqrtf(d1.x * d1.x + d1.y * d1.y);
-            ImVec2 d(0, 0);
-            if (l0 > 0) { d.x += d0.x / l0; d.y += d0.y / l0; }
-            if (l1 > 0) { d.x += d1.x / l1; d.y += d1.y / l1; }
-            float l = sqrtf(d.x * d.x + d.y * d.y);
-            if (l <= 0) { q[k] = pts[k]; continue; }
-            q[k] = ImVec2(pts[k].x + d.y / l * off, pts[k].y - d.x / l * off);
-        }
-        return q;
-    };
-    auto dash_run = [&](const std::vector<ImVec2> &P, float dash, float gap, float speed, ImU32 c, float w) {
-        ImDrawListFlags fl = dl->Flags; dl->Flags &= ~ImDrawListFlags_AntiAliasedLines;   /* (short dashes: plain quads, a quarter of the vertices) */
-        struct Restore { ImDrawList *d; ImDrawListFlags f; ~Restore() { d->Flags = f; } } restore{ dl, fl };
-        float acc = -fmodf(t * speed + 10000 * (dash + gap), dash + gap);
-        for (int k = 1; k < (int)P.size(); k++) {
-            ImVec2 p0 = P[k - 1], p1 = P[k];
-            float L = sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
-            if (L <= 0) continue;
-            for (float s0 = 0; s0 < L;) {
-                float cyc = fmodf(acc + s0 + 10000 * (dash + gap), dash + gap);
-                float run = cyc < dash ? fminf(dash - cyc, L - s0) : fminf(dash + gap - cyc, L - s0);
-                if (cyc < dash) dl->AddLine(ImVec2(p0.x + (p1.x - p0.x) * s0 / L, p0.y + (p1.y - p0.y) * s0 / L), ImVec2(p0.x + (p1.x - p0.x) * (s0 + run) / L, p0.y + (p1.y - p0.y) * (s0 + run) / L), c, w);
-                s0 += fmaxf(run, 0.5f);
-            }
-            acc += L;
-        }
-    };
-    /* the moving dashes; both ways: two lanes side by side, running opposite ways (as two streams of boats) */
-    auto dashes = [&](float dash, float gap, float speed, ImU32 c, float w) {
-        if (!both_ways) { dash_run(pts, dash, gap, speed, c, w); return; }
-        float off = w * 0.55f, w2 = w * 0.62f;
-        dash_run(offset(off), dash * 0.8f, gap * 0.8f, speed, c, w2);
-        dash_run(offset(-off), dash * 0.8f, gap * 0.8f, -speed, c, w2);
-    };
     if (lit) {                                                    /* the chosen way glows */
         float pulse = 0.75f + 0.25f * sinf(t * 4.0f);
         dl->AddPolyline(pts.data(), n, IM_COL32(255, 220, 120, (int)(70 * pulse)), 0, lw * 7.0f);
         dl->AddPolyline(pts.data(), n, IM_COL32(255, 236, 160, (int)(110 * pulse)), 0, lw * 4.0f);
     }
     auto red_ink = [&]() {                                        /* the way inked in red, as on the maps of the age; dots running along it */
-        dl->AddPolyline(pts.data(), n, IM_COL32(250, 236, 200, al / 2), 0, lw * 2.2f);
-        dl->AddPolyline(pts.data(), n, lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al), 0, lw * 1.1f);
+        dl->AddPolyline(pts.data(), n, IM_COL32(250, 236, 200, al / 2), 0, lw * 3.0f);
+        dl->AddPolyline(pts.data(), n, lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al), 0, lw * 1.6f);
         {   /* the dots run along it, as the ink of a ship's track drawn on: both ways, two rows of them going opposite ways */
             ImU32 dc = lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al);
             if (!both_ways) along(lw * 16, -t * lw * 8, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.95f, dc, 8); });
@@ -581,40 +539,17 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
                 });
         }
     };
-    switch (style) {
-    case 1:                                                       /* red ink */
-        red_ink();
-        break;
-    case 2:                                                       /* the red ink, and ships sailing on it */
-        red_ink();
-        for (int dir = 0; dir < (both_ways ? 2 : 1); dir++)     /* (both ways: half of them sail back) */
-        along(lw * 200, dir ? lw * 100 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {   /* (a ship every so often, not a fleet) */
-            if (dir) d = ImVec2(-d.x, -d.y);
-            float h = lw * 2.6f; bool right = d.x >= 0;
-            ImVec2 hull[4] = { ImVec2(p.x - h * 1.1f, p.y), ImVec2(p.x + h * 1.1f, p.y), ImVec2(p.x + h * 0.7f, p.y + h * 0.55f), ImVec2(p.x - h * 0.7f, p.y + h * 0.55f) };
-            dl->AddConvexPolyFilled(hull, 4, IM_COL32(110, 64, 30, al));
-            dl->AddLine(ImVec2(p.x, p.y), ImVec2(p.x, p.y - h * 1.5f), IM_COL32(60, 36, 16, al), fmaxf(1.0f, lw * 0.35f));
-            float sx = right ? 1.0f : -1.0f;
-            dl->AddTriangleFilled(ImVec2(p.x, p.y - h * 1.45f), ImVec2(p.x, p.y - h * 0.2f), ImVec2(p.x + sx * h * 0.95f, p.y - h * 0.35f), IM_COL32(250, 246, 232, al));
-        });
-        break;
-    default:                                                      /* amber dashes on a dark casing */
-        dl->AddPolyline(pts.data(), n, IM_COL32(40, 22, 8, lit ? 190 : al * 2 / 3), 0, lw * 2.6f);
-        dashes(9 * lw, 6 * lw, 18 * lw, lit ? IM_COL32(255, 244, 190, 255) : IM_COL32(250, 204, 104, al), lw);
-        break;
-    }
-}
-static int boat_style(void) { int v = config_get_int("map.boat_style", 2); return v >= 0 && v <= 2 ? v : 2; }
-/* the settings' picture of a boat style: a way over a strip of sea and shore, moving (ui/settings.cpp) */
-void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style)
-{
-    dl->AddRectFilled(a, b, IM_COL32(40, 80, 170, 255), 4);
-    float w = b.x - a.x, h = b.y - a.y;
-    dl->AddRectFilled(ImVec2(a.x, a.y + h * 0.72f), b, IM_COL32(70, 130, 60, 255), 4, ImDrawFlags_RoundCornersBottom);
-    std::vector<ImVec2> pts;
-    for (int k = 0; k <= 16; k++) { float u = k / 16.0f; pts.push_back(ImVec2(a.x + w * (0.1f + 0.8f * u), a.y + h * (0.6f - 0.35f * sinf(u * 3.1416f)))); }
-    boat_way_draw(dl, pts, fmaxf(2.0f, h * 0.05f), false, 255, (float)ImGui::GetTime(), style, true);
-    for (int e = 0; e < 2; e++) dl->AddCircleFilled(pts[e ? pts.size() - 1 : 0], h * 0.06f, IM_COL32(240, 230, 210, 255), 12);
+    red_ink();
+    for (int dir = 0; dir < (both_ways ? 2 : 1); dir++)     /* (both ways: half of them sail back) */
+    along(lw * 200, dir ? lw * 100 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {   /* (a ship every so often, not a fleet) */
+        if (dir) d = ImVec2(-d.x, -d.y);
+        float h = lw * 2.6f; bool right = d.x >= 0;
+        ImVec2 hull[4] = { ImVec2(p.x - h * 1.1f, p.y), ImVec2(p.x + h * 1.1f, p.y), ImVec2(p.x + h * 0.7f, p.y + h * 0.55f), ImVec2(p.x - h * 0.7f, p.y + h * 0.55f) };
+        dl->AddConvexPolyFilled(hull, 4, IM_COL32(110, 64, 30, al));
+        dl->AddLine(ImVec2(p.x, p.y), ImVec2(p.x, p.y - h * 1.5f), IM_COL32(60, 36, 16, al), fmaxf(1.0f, lw * 0.35f));
+        float sx = right ? 1.0f : -1.0f;
+        dl->AddTriangleFilled(ImVec2(p.x, p.y - h * 1.45f), ImVec2(p.x, p.y - h * 0.2f), ImVec2(p.x + sx * h * 0.95f, p.y - h * 0.35f), IM_COL32(250, 246, 232, al));
+    });
 }
 
 /* the four things the map can show or not (names, quest marks, boats, the places' icons): buttons
@@ -770,7 +705,7 @@ extern "C" void worldmap_draw(void)
                     pts.swap(q);
                 }
                 int al = selected >= 0 && !lit ? 90 : 255;
-                boat_way_draw(dl, pts, lw, lit, al, t, boat_style(), both);
+                boat_way_draw(dl, pts, lw, lit, al, t, both);
             }
     }
 
@@ -1421,7 +1356,7 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
             else { pts.push_back(to_scr(hx, hy)); pts.push_back(dpos[i]); }
             float lw = lit ? 3.2f : 2.2f;
             int al = state[i] == 1 ? 255 : 110;
-            boat_way_draw(dl, pts, lw, lit, al, t, boat_style());
+            boat_way_draw(dl, pts, lw, lit, al, t);
         }
     auto label = [&](ImVec2 c, const std::string &s, ImU32 col, bool bold) {
         float fs2 = fsz * tk * (bold ? 1.0f : 0.9f);

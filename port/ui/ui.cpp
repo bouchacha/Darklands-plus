@@ -336,6 +336,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     }
     halloffame_set_renderer(ren);
     gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
+    { void screenpics_set_renderer(SDL_Renderer *); screenpics_set_renderer(ren); }
     figures_set_renderer(ren);
     if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
     ImGui_ImplSDL2_InitForSDLRenderer(win, ren);
@@ -551,7 +552,7 @@ static void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, recompiled to run natively, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Helpers: the Buggy Purist preset is the game as it was).");
+                       "game files of your own copy; everything Darklands+ adds can be switched off (Settings > Game: the Buggy Purist preset is the game as it was).");
     ImGui::Spacing();
     ImGui::TextWrapped("F11: the keys for the current screen.  F12: this menu (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
@@ -623,8 +624,8 @@ static void welcome_window(void)
                 ImGui::PopID();
             }
             ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game whichever you choose.");
-            if (ui_pad_prompts()) ui_pad_text("Change it at any time, or turn single features on or off: {START} > Settings > Helpers. {LSTICK} moves the pointer, {A} clicks.", true);
-            else ImGui::TextDisabled("Change it at any time, or turn single features on or off: F12 > Settings > Helpers.");
+            if (ui_pad_prompts()) ui_pad_text("Change it at any time, or turn single features on or off: {START} > Settings > Game. {LSTICK} moves the pointer, {A} clicks.", true);
+            else ImGui::TextDisabled("Change it at any time, or turn single features on or off: F12 > Settings > Game.");
             ImGui::Spacing();
             if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
         }
@@ -745,7 +746,7 @@ static void mt32_window(void)
             ImGui::SameLine();
             if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
         }
-        ImGui::TextDisabled("F12 > Settings > Display > Sound has all of this too.");
+        ImGui::TextDisabled("F12 > Settings > Window and sound has all of this too.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_mt32 = false; config_save(); }
     }
@@ -845,7 +846,7 @@ static void help_window(void)
             row("Take / Put", "on the row under the pointer: the whole stack (1: just one)");
             row("Put away", "every item not in use, except kept items and potions");
             if (cacheview_shared_pack()) row("Potions", "a potion taken goes to the member shown above the right list; the rest into the party's pack");
-            if (cacheview_every_inn()) row("The store room", "the same at every inn (F12 > Settings > Helpers)");
+            if (cacheview_every_inn()) row("The store room", "the same at every inn (F12 > Settings > Game)");
             row("L, Esc or Leave", "leave");
         } else if (sheetview_showing()) {
             orn_septext("Now: a character sheet");
@@ -1035,6 +1036,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
+    { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news); }   /* (ui/screenpics.cpp) */
     ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
@@ -1051,7 +1053,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
             static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },
-                { "Helpers", tab_helpers }, { "Mods", tab_mods }, { "Display", tab_display }, { "Records", tab_party },
+                { "Game", tab_helpers }, { "Mods", tab_mods }, { "Window and sound", tab_display }, { "Records", tab_party },
                 { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab }, { "Restored (experimental)", tab_restored } };
             struct Group { const char *name; int icon; int page[5]; int n; };
             static const Group groups[] = {
