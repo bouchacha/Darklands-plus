@@ -207,6 +207,45 @@ static Option OPTIONS[] = {
     { "editor.show", S_EDIT, 0, "Editing tools", "the Editor tab, to change a character's money, name, attributes, skills, saints, formulae, items, colors, shield and sprite (as the community's save editors do: to repair characters hit by old bugs, or to cheat), and F12 > Records, to edit weapons, items and enemies for a mod.", OC_TOOL, 0, 0, 0 },
 
     /* on other pages (Display, Sound, Saves): the presets set them */
+    { "display.text_font", S_OTHER, 0, "Typeface", "the typeface of the cards and the new screens (the game's own lettering drawn crisp, or one of several period hands).", OC_LOOK, 6, 6, 6, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.overlay_font_follow", S_OTHER, 0, "The same typeface for the margins", "the side panels, tooltips and map names in the chosen typeface too.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.spell_out", S_OTHER, 0, "Spell out abbreviations", "the character sheet's abbreviations written out (wPol: Polearm Wpns).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.coins", S_OTHER, 0, "Money as coins", "florins, groschen and pfennigs as small coins (1 12 4) instead of 1fl 12gr 4pf.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.text_edge", S_OTHER, 0, "Letter edges", "plain, a shadow or an outline round the letters drawn over pictures (0 plain, 1 shadow, 2 outline).", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.text_contrast", S_OTHER, 0, "Darken faint text", "faint text darkened (or lightened) against its background so it stays readable.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.text_size", S_OTHER, 0, "Text size", "the size of the margins', tooltips' and map's text, in percent.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.skill_icons", S_OTHER, 0, "Pictures beside the skills", "small pictures beside the skills and attributes.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.skill_icon_look", S_OTHER, 0, "Skill pictures' look", "on the character sheet: heraldic charges (2) or in color (0); in color elsewhere.", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.potion_grade", S_OTHER, 0, "A potion's grade", "how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots).", OC_LOOK, 4, 4, 4, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.pstone_look", S_OTHER, 0, "The Philosopher's Stone", "how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg).", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.clock", S_OTHER, 0, "Clock", "the clock shown while hours pass (styles by number).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.ornate", S_OTHER, 0, "Ornaments", "the plaited band and the gilt corners round the windows.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.frame_style", S_OTHER, 0, "Frame style", "the band round the windows (styles by number).", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.button_style", S_OTHER, 0, "Button style", "the look of the buttons (styles by number).", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.art_names", S_OTHER, 0, "Replacement art: show file names", "the file each picture would be replaced from, for those making replacement art.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.smooth", S_OTHER, 0, "Smooth scaling", "the game's picture scaled smoothly rather than in sharp pixels.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.integer_scale", S_OTHER, 0, "Whole-number scaling", "the game's picture scaled by whole numbers only (sharpest pixels).", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.scaler", S_OTHER, 0, "Pixel edges", "diagonal edges smoothed: 0 as drawn, 1 Scale2x, 2 Scale4x.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.system_cursor", S_OTHER, 0, "System pointer", "the system's mouse pointer over the game too.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.live_pointer", S_OTHER, 0, "Live pointer", "the game's pointer drawn at the window's rate, not the game's.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.ui_scale", S_OTHER, 0, "Size of the menus", "the size of Darklands+'s menus in percent (0: the system's scale), after a restart.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.idle_rest", S_OTHER, 0, "Let the computer rest", "less CPU while the game waits for a click or a key.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.pause_unfocused", S_OTHER, 0, "Pause in the background", "the game pauses while its window is in the background.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.opening", S_OTHER, 0, "At start-up", "the opening: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time).", OC_LOOK, -1, -1, -1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.draw_cache", S_OTHER, 0, "Drawing cache", "heavy ornament drawn once and kept: 1 automatic, 0 off, 2 as pictures, 3 as triangles.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "encounters.new", S_OTHER, 0, "New encounters marked", "encounters the party has not met before are marked.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "encounters.seal", S_OTHER, 0, "A seal on new encounters", "a seal in the corner of a card the party has not seen before.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "encounters.share", S_OTHER, 0, "Share of new encounters", "how often the road prefers encounters not yet met, in percent.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "input.prompts", S_OTHER, 0, "Button prompts", "the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "saves.backup", S_OTHER, 0, "Back up saves", "a copy of each save before it is overwritten.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "saves.keep_auto", S_OTHER, 0, "Autosaves kept", "how many autosaves are kept.", OC_LOOK, 3, 3, 3, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "saves.keep_quick", S_OTHER, 0, "Quick saves kept", "how many quick saves are kept.", OC_LOOK, 3, 3, 3, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "sound.music_volume", S_OTHER, 0, "Music volume", "in percent.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "sound.effects_volume", S_OTHER, 0, "Effects volume", "in percent.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "sound.hit_sounds", S_OTHER, 0, "Hit sounds", "the sounds of blows in battle.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "sound.music_in_menus", S_OTHER, 0, "Music in the menus", "the music goes on while Darklands+'s menus are open.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "sound.mt32_lcd", S_OTHER, 0, "MT-32 display", "the MT-32's display messages shown.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "quests.sort", S_OTHER, 0, "Tasks sorted by", "the margin's tasks: 0 by deadline, 1 nearest first, 2 as taken.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.crisp_text", S_OTHER, 0, "Crisp text", "", OC_TASTE, 0, 2, 2, 0, 0, hdtext_set, 0, OF_ELSEWHERE },
     { "display.hd_art", S_OTHER, 0, "Pictures", "", OC_TASTE, 0, 1, 1, 0, 0, hdart_set, 0, OF_ELSEWHERE },
     { "sound.effects", S_OTHER, 0, "Sound effects", "", OC_TASTE, 0, 1, 1, 0, 0, sfx_set, 0, OF_ELSEWHERE },
@@ -313,7 +352,7 @@ const Preset PRESETS[PRESET_COUNT] = {
 int preset_value(const Option *o, int p)
 {
     { int g = bundle_of(o->key); if (g >= 0) { const Option *m = options_find(BUNDLES[g].key); return m && preset_value(m, p) ? o->def : o->orig; } }
-    if (o->cls == OC_TOOL) return PRESET_KEEP;
+    if (o->cls == OC_TOOL || o->cls == OC_LOOK) return PRESET_KEEP;
     if (o->cls == OC_TASTE) return p <= PRESET_PURIST ? o->orig : PRESET_KEEP;
     if (p == PRESET_EASY && o->cls != OC_EXPERIMENT) return o->easy;
     int on = 0;
@@ -360,6 +399,7 @@ static void save_custom(void)
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i); int v = option_value(o);
+        if (o->cls == OC_LOOK) continue;                 /* (no preset touches those: nothing to keep) */
         snprintf(k, sizeof k, "custom.%s", o->key);
         if (v != o->def) config_set_int(k, v); else config_unset(k);
     }
@@ -375,6 +415,7 @@ void preset_restore_custom(void)
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
+        if (o->cls == OC_LOOK) continue;
         snprintf(k, sizeof k, "custom.%s", o->key);
         int v = config_get_int(k, o->def);
         if (v != option_value(o)) option_set(o, v);
@@ -419,7 +460,7 @@ extern const char *const OPTIONS_RETIRED[];
 static const char *cls_name(int c)
 {
     switch (c) { case OC_FIX: return "fix"; case OC_SHOW: return "show"; case OC_EASE: return "ease"; case OC_PLUS: return "plus";
-                 case OC_EASY: return "easy"; case OC_EXPERIMENT: return "experiment"; case OC_TASTE: return "taste"; case OC_TOOL: return "tool"; }
+                 case OC_EASY: return "easy"; case OC_EXPERIMENT: return "experiment"; case OC_TASTE: return "taste"; case OC_TOOL: return "tool"; case OC_LOOK: return "look"; }
     return "?";
 }
 static void md(FILE *f, const char *t) { for (; t && *t; t++) { if (*t == '|') fputs("\\|", f); else if (*t == '\n') fputc(' ', f); else fputc(*t, f); } }

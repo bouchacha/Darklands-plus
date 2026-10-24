@@ -167,6 +167,45 @@ fails if a key disappears without being listed as retired.
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
+| `display.text_font` | Typeface | the typeface of the cards and the new screens (the game's own lettering drawn crisp, or one of several period hands). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 6 / 6 / 6 |
+| `display.overlay_font_follow` | The same typeface for the margins | the side panels, tooltips and map names in the chosen typeface too. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.spell_out` | Spell out abbreviations | the character sheet's abbreviations written out (wPol: Polearm Wpns). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.coins` | Money as coins | florins, groschen and pfennigs as small coins (1 12 4) instead of 1fl 12gr 4pf. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.text_edge` | Letter edges | plain, a shadow or an outline round the letters drawn over pictures (0 plain, 1 shadow, 2 outline). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 2 / 2 / 2 |
+| `display.text_contrast` | Darken faint text | faint text darkened (or lightened) against its background so it stays readable. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.text_size` | Text size | the size of the margins', tooltips' and map's text, in percent. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 100 / 100 / 100 |
+| `display.skill_icons` | Pictures beside the skills | small pictures beside the skills and attributes. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.skill_icon_look` | Skill pictures' look | on the character sheet: heraldic charges (2) or in color (0); in color elsewhere. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 2 / 2 / 2 |
+| `display.potion_grade` | A potion's grade | how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 4 / 4 / 4 |
+| `display.pstone_look` | The Philosopher's Stone | how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 2 / 2 / 2 |
+| `display.clock` | Clock | the clock shown while hours pass (styles by number). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.ornate` | Ornaments | the plaited band and the gilt corners round the windows. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.frame_style` | Frame style | the band round the windows (styles by number). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.button_style` | Button style | the look of the buttons (styles by number). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.art_names` | Replacement art: show file names | the file each picture would be replaced from, for those making replacement art. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.smooth` | Smooth scaling | the game's picture scaled smoothly rather than in sharp pixels. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.integer_scale` | Whole-number scaling | the game's picture scaled by whole numbers only (sharpest pixels). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.scaler` | Pixel edges | diagonal edges smoothed: 0 as drawn, 1 Scale2x, 2 Scale4x. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.system_cursor` | System pointer | the system's mouse pointer over the game too. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.live_pointer` | Live pointer | the game's pointer drawn at the window's rate, not the game's. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.ui_scale` | Size of the menus | the size of Darklands+'s menus in percent (0: the system's scale), after a restart. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `display.idle_rest` | Let the computer rest | less CPU while the game waits for a click or a key. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.pause_unfocused` | Pause in the background | the game pauses while its window is in the background. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `display.opening` | At start-up | the opening: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | -1 / -1 / -1 |
+| `display.draw_cache` | Drawing cache | heavy ornament drawn once and kept: 1 automatic, 0 off, 2 as pictures, 3 as triangles. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `encounters.new` | New encounters marked | encounters the party has not met before are marked. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `encounters.seal` | A seal on new encounters | a seal in the corner of a card the party has not seen before. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `encounters.share` | Share of new encounters | how often the road prefers encounters not yet met, in percent. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 100 / 100 / 100 |
+| `input.prompts` | Button prompts | the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
+| `saves.backup` | Back up saves | a copy of each save before it is overwritten. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `saves.keep_auto` | Autosaves kept | how many autosaves are kept. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 3 / 3 / 3 |
+| `saves.keep_quick` | Quick saves kept | how many quick saves are kept. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 3 / 3 / 3 |
+| `sound.music_volume` | Music volume | in percent. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 100 / 100 / 100 |
+| `sound.effects_volume` | Effects volume | in percent. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 100 / 100 / 100 |
+| `sound.hit_sounds` | Hit sounds | the sounds of blows in battle. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `sound.music_in_menus` | Music in the menus | the music goes on while Darklands+'s menus are open. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `sound.mt32_lcd` | MT-32 display | the MT-32's display messages shown. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
+| `quests.sort` | Tasks sorted by | the margin's tasks: 0 by deadline, 1 nearest first, 2 as taken. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
 | `display.crisp_text` | Crisp text | Crisp text | The original 7-pixel lettering is hard to read scaled up. |  | taste | 0 / 2 / 2 |
 | `display.hd_art` | Pictures | Pictures | Replacement pictures, for those who make them. |  | taste | 0 / 1 / 1 |
 | `sound.effects` | Sound effects | Sound effects | A matter of taste. |  | taste | 0 / 1 / 1 |

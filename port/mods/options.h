@@ -24,6 +24,8 @@ enum OptClass {
     OC_TASTE,       /* a matter of taste (speed, typeface, pictures): as the original in the
                        purist presets, the player's own in the others */
     OC_TOOL,        /* a tool (the editor): no preset touches it */
+    OC_LOOK,        /* a look or a preference of the window, the sound, the saves: no preset touches it
+                       (drawn by the settings pages themselves: OF_ELSEWHERE) */
 };
 enum {
     OF_ELSEWHERE = 1,   /* shown on another page (Display, Sound, Saves, Travel): the presets set it */

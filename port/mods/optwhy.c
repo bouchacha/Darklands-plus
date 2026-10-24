@@ -147,6 +147,7 @@ const char *const OPTIONS_RETIRED[] = {
 const char *option_why(const Option *o)
 {
     if (o->cls == OC_FIX) return "Puts right a bug of the original (the description says which).";
+    if (o->cls == OC_LOOK) return "A matter of taste, or of the computer it runs on; no preset touches it.";
     if (!strncmp(o->key, "mod.", 4)) return "Easier: for the story more than the struggle (the Easy preset).";
     for (size_t i = 0; i < sizeof WHY / sizeof WHY[0]; i++) if (!strcmp(WHY[i].key, o->key)) return WHY[i].why;
     return "";
