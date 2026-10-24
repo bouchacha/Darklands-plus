@@ -1,7 +1,7 @@
 // rules.cpp - game rules as data. The weapon numbers live in tables of the game's code (far
 // segment 20a5, read by the battle module s014: skill used, time for a blow, hands and
 // penetration, damage, skill and strength wanted, reload time); here they are listed in the
-// menu (F12 > Records > Weapons) and changed by a mod folder's rules.ini:
+// menu (F12 > Guide > Weapons) and changed by a mod folder's rules.ini:
 //
 //   [weapon Short Sword]        (an item name of DARKLAND.LST, or [weapon 3] by number)
 //   damage = 9
@@ -181,7 +181,7 @@ static bool write_rules(const char *path)
 {
     FILE *f = fopen(path, "wb");
     if (!f) return false;
-    fprintf(f, "# Weapon numbers (F12 > Records > Weapons). Change what you like and delete the rest;\n"
+    fprintf(f, "# Weapon numbers (F12 > Guide > Weapons). Change what you like and delete the rest;\n"
                "# the original game's numbers stay for any weapon not named here.\n"
                "# skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker).\n"
                "# strength = min-max: below min each point costs 3 melee rating (1 aim for a missile weapon); above max, 2 melee rating more and harder blows.\n\n");
@@ -199,7 +199,7 @@ static bool write_rules(const char *path)
     return true;
 }
 
-/* F12 > Records > Weapons */
+/* F12 > Guide > Weapons */
 void rules_tab(void)
 {
     ImGui::TextWrapped("The battle numbers of every weapon, as the game uses them now%s.", rules_changed ? " (changed by a mod)" : "");

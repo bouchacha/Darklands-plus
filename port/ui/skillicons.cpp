@@ -197,15 +197,6 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         dl->AddRectFilled(P(-4.5f, -1.4f), P(9, 1.4f), C(70, 36, 16));                     /* the strap */
         dl->AddRect(P(6.4f, -2.2f), P(9.4f, 2.2f), gold, 0, 0, 0.9f * u);                  /* the buckle */
         dl->AddRectFilled(P(-1, -9), P(1, -11.5f), red); break; }                          /* the ribbon */
-    case UI_PAGE_SAVES: {  /* saves: an hourglass, a moment kept (not the quests' sealed letter) */
-        dl->AddRectFilled(P(-7, -10), P(7, -8), wood, 0.6f * u); dl->AddRectFilled(P(-7, 8), P(7, 10), wood, 0.6f * u);
-        dl->AddLine(P(-5.5f, -8), P(-5.5f, 8), wood, 1.2f * u); dl->AddLine(P(5.5f, -8), P(5.5f, 8), wood, 1.2f * u);
-        ImVec2 g1[3] = { P(-4, -8), P(4, -8), P(0, 0) }, g2[3] = { P(0, 0), P(4, 8), P(-4, 8) };
-        dl->AddConvexPolyFilled(g1, 3, C(220, 236, 240, 200)); dl->AddConvexPolyFilled(g2, 3, C(220, 236, 240, 200));
-        dl->AddTriangleFilled(P(-2.2f, -4.5f), P(2.2f, -4.5f), P(0, -0.6f), C(214, 170, 90));   /* the sand above */
-        dl->AddTriangleFilled(P(0, 4.2f), P(3.4f, 8), P(-3.4f, 8), C(214, 170, 90));            /* and below */
-        dl->AddLine(P(0, -0.6f), P(0, 4.2f), C(214, 170, 90), 0.7f * u);
-        dl->AddPolyline(g1, 3, ink, ImDrawFlags_Closed, 0.7f * u); dl->AddPolyline(g2, 3, ink, ImDrawFlags_Closed, 0.7f * u); break; }
     case UI_PAGE_HELPERS: {  /* the game's settings: a mill's gear wheel (not Intelligence's candle) */
         const int N = 8;
         for (int i = 0; i < N; i++) {
@@ -227,17 +218,6 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
         dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
         dl->AddRect(P(-9, -7), P(9, 7), gold, 0, 0, 1.8f * u); break;
-    case UI_PAGE_RECORDS: {  /* records: a laurel wreath (not Charisma's crown) */
-        const ImU32 leaf = C(80, 130, 50), leaf_d = C(50, 90, 30);
-        for (int side = -1; side <= 1; side += 2)
-            for (int i = 0; i < 5; i++) {
-                float a = 1.9f + i * 0.42f;                           /* up each side from the bottom */
-                ImVec2 p(side * cosf(a) * -7.5f, sinf(a) * 7.5f - 0.5f);
-                ImVec2 q(p.x * 0.82f, p.y * 0.82f);
-                dl->AddEllipseFilled(P(p.x, p.y), ImVec2(3.0f * u, 1.5f * u), i & 1 ? leaf : leaf_d, side * (a + 1.57f), 10);
-                (void)q;
-            }
-        dl->AddTriangleFilled(P(-2, 6.5f), P(2, 6.5f), P(0, 9.5f), red); break; }
     case UI_PAGE_ABOUT: /* about: i in a circle */
         dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
         dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;

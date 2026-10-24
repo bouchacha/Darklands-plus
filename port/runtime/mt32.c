@@ -12,11 +12,11 @@
  *
  * The emulator needs the synthesizer's two ROM images (control and PCM), which are Roland's and
  * do not come with Darklands+. They are looked for, by their contents (any file names), in
- * mt32_dirs(): the folder set in F12 > Settings > Window and sound, "roms" folders of Darklands+ and of the game,
+ * mt32_dirs(): the folder set in F12 > Settings > Window, sound and saves, "roms" folders of Darklands+ and of the game,
  * Munt's own ROM folder (its registry setting, or %USERPROFILE%\roms) and DOSBox Staging's
  * mt32-roms folder. An MT-32 pair is preferred by default: on a CM-32L / LAPC-I the battle sounds'
  * notes reach its extra sound-effect samples and come out as chimes instead of blows and grunts;
- * F12 > Settings > Window and sound can prefer the CM-32L. */
+ * F12 > Settings > Window, sound and saves can prefer the CM-32L. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -221,7 +221,7 @@ int mt32_open(int rate)
     {   /* say so once, the first time it plays */
         void ui_notice(const char *msg);
         if (!config_get_int("sound.mt32_told", 0)) {
-            const char *m = "The music plays on the Roland MT-32, with the ROM files found on this computer (F12 > Settings > Window and sound)";
+            const char *m = "The music plays on the Roland MT-32, with the ROM files found on this computer (F12 > Settings > Window, sound and saves)";
             void ui_mt32_caption(const char *text);
             if (config_get_int("sound.mt32_lcd", 1)) ui_mt32_caption(m);   /* under its display, which shows the game's greeting */
             else ui_notice(m);
@@ -244,7 +244,7 @@ static uint32_t rendered, cb_frames;    /* output frames made so far (that buffe
 static uint32_t last_ts;
 
 /* What the game has set up in the synthesizer, so that another machine can take over in the
- * middle of the game (F12 > Settings > Window and sound): the SysEx (its patches, timbres and settings; a
+ * middle of the game (F12 > Settings > Window, sound and saves): the SysEx (its patches, timbres and settings; a
  * later one to the same address replaces an earlier one) and each channel's program, controllers
  * and pitch bend. */
 typedef struct { unsigned char *b; int n; } Sx;
@@ -341,7 +341,7 @@ static const char *machine_desc(const char *m)
     return m;
 }
 
-/* for F12 > Settings > Window and sound */
+/* for F12 > Settings > Window, sound and saves */
 const char *mt32_status(void)
 {
     static char s[1600];

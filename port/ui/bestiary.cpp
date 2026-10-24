@@ -1,4 +1,4 @@
-// bestiary.cpp - F12 > Records > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204
+// bestiary.cpp - F12 > Guide > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204
 // bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its
 // attributes, weapon skills, armour (and how hard it is against which weapons), shield and
 // weapons. The numbers can be changed and saved as a mod folder's DARKLAND.ENM; the game reads

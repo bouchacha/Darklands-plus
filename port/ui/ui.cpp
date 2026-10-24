@@ -331,8 +331,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
-        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (darklands_port.log in the game folder says what went wrong). Your saved games are safe: load the latest one from F12 > Saves, or with Load in the game (autosaves are made on arriving in a town and before battles).", 30000);
-        else ui_notice_for("The party's journey has ended. Load a saved game to go on: F12 > Saves, or Load in the game.", 20000);
+        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (darklands_port.log in the game folder says what went wrong). Your saved games are safe: load the latest one from Load in the game (right-click, Game menu) (autosaves are made on arriving in a town and before battles).", 30000);
+        else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the game (right-click, Game menu).", 20000);
     }
     halloffame_set_renderer(ren);
     gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
@@ -496,53 +496,21 @@ static void item_name(int id, char *out, int n)
 }
 
 void rules_tab(void);
-static void tab_party(void)
+/* F12 > Guide: how the game works, then the reference tables (the weapons, the enemies) */
+static void tab_guide_all(void)
 {
-    if (!ui_subtabs_begin("records")) return;
+    if (!ui_subtabs_begin("guide")) return;
+    if (ui_subtab("How Darklands works")) { ui_guide_tab(); ImGui::EndTabItem(); }
     if (ui_subtab("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
-    if (ui_subtab("Items")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
     if (ui_subtab("Enemies")) { void bestiary_tab(void); bestiary_tab(); ImGui::EndTabItem(); }
-    if (!ui_subtab("The party's items")) { ImGui::EndTabBar(); return; }
-    ImGui::TextWrapped("The party's possessions, read live from the game.");
-    if (ui_subtabs_begin("members")) {
-        for (int m = 0; m < 5; m++) {
-            char name[32];
-            g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_FULLNAME), name, sizeof name);
-            if (!name[0]) continue;
-            if (ui_subtab(name)) {
-                int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
-                if (n > 64) n = 64;
-                if (ImGui::BeginTable("inv", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti,
-                                      ImVec2(0, UIS(360)))) {
-                    ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
-                    ImGui::TableSetupColumn("id"); ImGui::TableSetupColumn("type"); ImGui::TableSetupColumn("quality");
-                    ImGui::TableSetupColumn("count"); ImGui::TableSetupColumn("weight");
-                    ImGui::TableHeadersRow();
-                    std::vector<int> rows; for (int i = 0; i < n; i++) rows.push_back(i);
-                    static TableSort ts[5];
-                    auto key = [&](int i, int c) -> SortKey {
-                        u16 r = G_ITEM(m, i); int id = rw(G_FAR2E38, r);
-                        if (c == 0) { char nm[48]; item_name(id, nm, sizeof nm); return nm; }
-                        if (c == 1) return id;
-                        return (int)rb(G_FAR2E38, (u16)(r + c));
-                    };
-                    for (int i : table_order(ts[m], rows, key)) {
-                        u16 r = G_ITEM(m, i);
-                        int id = rw(G_FAR2E38, r);
-                        char nm[48]; item_name(id, nm, sizeof nm);
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn(); ImGui::TextUnformatted(nm);
-                        ImGui::TableNextColumn(); ImGui::Text("%d", id);
-                        for (int k = 2; k < 6; k++) { ImGui::TableNextColumn(); ImGui::Text("%d", rb(G_FAR2E38, (u16)(r + k))); }
-                    }
-                    ImGui::EndTable();
-                }
-                ImGui::EndTabItem();
-            }
-        }
-        ImGui::EndTabBar();
-    }
-    ImGui::EndTabItem();
+    ImGui::EndTabBar();
+}
+/* F12 > Editor (with the editing tools on): the characters, and the item table for a mod */
+static void tab_editor_all(void)
+{
+    if (!ui_subtabs_begin("editor")) return;
+    if (ui_subtab("Characters")) { tab_editor(); ImGui::EndTabItem(); }
+    if (ui_subtab("Items (for a mod)")) { void itemedit_tab(void); itemedit_tab(); ImGui::EndTabItem(); }
     ImGui::EndTabBar();
 }
 
@@ -746,7 +714,7 @@ static void mt32_window(void)
             ImGui::SameLine();
             if (ImGui::Button("Don't remind me again")) { config_set_int("sound.mt32_prompt", 0); done = true; }
         }
-        ImGui::TextDisabled("F12 > Settings > Window and sound has all of this too.");
+        ImGui::TextDisabled("F12 > Settings > Window, sound and saves has all of this too.");
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
         if (done) { open_mt32 = false; config_save(); }
     }
@@ -1052,13 +1020,12 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                would not all show (the whole bar in that face: ImGui measures the tabs again when
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
-            static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },
-                { "Game", tab_helpers }, { "Mods", tab_mods }, { "Window and sound", tab_display }, { "Records", tab_party },
-                { "About", tab_about }, { "Editor", tab_editor }, { "Guide", ui_guide_tab }, { "Restored (experimental)", tab_restored } };
+            static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },   /* (Saves, Records: no tab of their own now: the game's Save and Load, the right-click menu; the Guide and the Editor) */
+                { "Game", tab_helpers }, { "Mods", tab_mods }, { "Window, sound and saves", tab_display }, { "Records", tab_guide_all },
+                { "About", tab_about }, { "Editor", tab_editor_all }, { "Guide", tab_guide_all }, { "Restored (experimental)", tab_restored } };
             struct Group { const char *name; int icon; int page[5]; int n; };
             static const Group groups[] = {
                 { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
-                { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
                 { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
                 { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS, UI_PAGE_RESTORED, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 5 } };
             const int NG = (int)(sizeof groups / sizeof groups[0]);

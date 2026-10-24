@@ -228,6 +228,7 @@ bool ui_title_desc(const char *title, const char *desc, bool dim, const char *id
 
 bool ui_option_preview(const char *key, ImDrawList *dl, ImVec2 a, ImVec2 b, bool on);   /* ui/optpreview.cpp */
 extern "C" bool screenpics_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);   /* ui/screenpics.cpp */
+extern "C" void saves_prefs(void);   /* ui/saves.cpp */
 static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
 static void option_row(const Option *o, int depth);
 static void option_children(const Option *o, int depth)
@@ -517,7 +518,7 @@ static void pic_choice(const char *id, const char *key, int def, const int *vals
 
 /* the Display page's sections: bookmarks at the left, as the Helpers page (a click brings the
    section to the top; the one at the top of the view is marked) */
-static const char *DSECT[] = { "Screen", "Sound" };
+static const char *DSECT[] = { "Screen", "Sound", "Saves" };
 static const int NDSECT = (int)(sizeof DSECT / sizeof DSECT[0]);
 static int d_jump = -1, d_top = 0, d_found = -1; static float d_view;
 extern "C" void settings_display_jump(int k) { d_jump = k; }   /* (test: udsect) */
@@ -942,6 +943,8 @@ void tab_display(void)
             ImGui::TreePop();
         }
     }
+    dsec("Saves");
+    saves_prefs();
     d_top = d_found < 0 ? 0 : d_found;
     ImGui::EndChild();
 }

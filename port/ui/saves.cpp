@@ -1,4 +1,4 @@
-// saves.cpp - the Saves tab (F12 > Saves): every saved game with where and when, the party in
+// saves.cpp - the saves' preferences (F12 > Settings > Window, sound and saves); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in
 // it and its comment, newest first; load or delete any of them; quick save / quick load and
 // the autosave settings (mods/saves.c does the work through the game's own routines).
 #include <stdio.h>
@@ -44,12 +44,11 @@ static std::string when(long long t)
 }
 
 extern "C" int saves_restart;
-extern "C" void tab_saves(void)
+/* the saves' preferences: F12 > Settings > Window, sound and saves (the saving and loading itself:
+   the game's Save and Load, redrawn, from the right-click menu) */
+extern "C" void saves_prefs(void)
 {
-    if (nlist < 0 || plat_ticks_ms() - listed_at > 3000) refresh();
     bool in_game = game_mode() != GM_OTHER;
-    char cur[16]; g_str(G_DGROUP, 0xa680, cur, sizeof cur);
-
     bool on = saves_on != 0;
     if (ImGui::Checkbox("Quick save, quick load and autosaves", &on)) saves_enable(on);
     { bool rs = saves_restart != 0;
@@ -71,7 +70,14 @@ extern "C" void tab_saves(void)
             ImGui::TextDisabled("as a quicksave, when the game next allows saving (not in shops or during conversations).");
         }
     }
-    ImGui::Separator();
+    ImGui::TextDisabled("Save and Load: the right-click menu's Game menu (or Alt+S, Alt+L); Quick save and Quick load are in its Darklands+ menu too.");
+}
+
+extern "C" void tab_saves(void)
+{
+    if (nlist < 0 || plat_ticks_ms() - listed_at > 3000) refresh();
+    bool in_game = game_mode() != GM_OTHER;
+    char cur[16]; g_str(G_DGROUP, 0xa680, cur, sizeof cur);
     if (nlist == 0) { ImGui::TextDisabled("No saved games yet."); return; }
     ImGui::Text("%d saved game%s, newest first", nlist, nlist == 1 ? "" : "s");
     ImGui::SameLine(); if (ImGui::SmallButton("Refresh")) refresh();

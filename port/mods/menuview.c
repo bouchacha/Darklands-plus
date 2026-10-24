@@ -42,7 +42,7 @@ static int mv_on = 1;
 
 /* Darklands+'s own menu: its entries' actions (in place of a game handler: segment NATIVE_SEG) */
 #define NATIVE_SEG 0xffff
-enum { NA_WINDOW = 1, NA_QUESTS, NA_MAP, NA_HELPERS, NA_GUIDE, NA_HELP };
+enum { NA_WINDOW = 1, NA_QUESTS, NA_MAP, NA_HELPERS, NA_GUIDE, NA_HELP, NA_QSAVE, NA_QLOAD };
 #include "../ui/uitabs.h"
 void ui_open_tab(int t);
 void ui_toggle_map(void);
@@ -56,6 +56,8 @@ static void native_action(int a)
     case NA_HELPERS: ui_open_tab(UI_PAGE_HELPERS); break;
     case NA_GUIDE: ui_open_tab(UI_PAGE_GUIDE); break;
     case NA_HELP: ui_toggle_help(); break;
+    case NA_QSAVE: { void saves_quick_save(void); saves_quick_save(); } break;
+    case NA_QLOAD: { void saves_quick_load(void); saves_quick_load(); } break;
     }
 }
 typedef struct { u16 seg, off; } MvFn;
@@ -165,7 +167,8 @@ static void build_into(u16 mp, MenuModel *M, MvFn *fn)
     /* Darklands+'s own menu, at the right end: its window and pages (handled here, not the game's) */
     static const struct { const char *name, *key; int act; } DP[] = {
         { "Darklands+ window", "F12", NA_WINDOW }, { "Quests", "", NA_QUESTS }, { "World map", "M", NA_MAP },
-        { "Helpers (settings)", "", NA_HELPERS }, { "Guide", "", NA_GUIDE }, { "Keys and clicks on this screen", "F11", NA_HELP },
+        { "Quick save", "Ctrl+S", NA_QSAVE }, { "Quick load", "F9", NA_QLOAD },
+        { "Settings", "", NA_HELPERS }, { "Guide", "", NA_GUIDE }, { "Keys and clicks on this screen", "F11", NA_HELP },
     };
     int nd = (int)(sizeof DP / sizeof DP[0]);
     if (M->nmenus < 7 && M->nitems + nd <= 96) {

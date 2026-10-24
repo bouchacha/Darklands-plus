@@ -19,7 +19,7 @@ static uint8_t t1_val, t2_val, t_ctrl, status;
 static uint64_t t1_start, t2_start;
 
 static FILE *wav; static uint32_t wav_bytes;
-int sound_music_volume = 100;                                /* percent, F12 > Settings > Window and sound (sound.music_volume) */
+int sound_music_volume = 100;                                /* percent, F12 > Settings > Window, sound and saves (sound.music_volume) */
 /* pause (the game held while the menu or the world map is open): the chip, the sample
  * channel and the effects stop where they are, after a short fade, and go on after it */
 static volatile int paused; static int fade;              /* fade: 0 none, 1 out, 2 in */
