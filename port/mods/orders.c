@@ -331,8 +331,9 @@ static void idle_shooters(void)
     if (!combat_improved()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || g_rb((u16)(GV_cbt_action + i)) != 0) continue;
-        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1 || orders_member_mode(i) != 1) continue;
+        int act = g_rb((u16)(GV_cbt_action + i));             /* (0: the battle's start; 7: "ready", an order carried out. Halt keeps its order, 0x400) */
+        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
+        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1 || orders_member_mode(i) != 1 || player_melee[i]) continue;   /* (held; set to fight hand to hand; sent to by the player) */
         int wm = (s8)g_rb((u16)(c + 0x22)), beside = 0;
         if (wm < 0 || wm > 62) continue;
         for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;

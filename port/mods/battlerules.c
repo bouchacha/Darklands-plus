@@ -241,7 +241,7 @@ static void arrive_hook(void)                 /* cbt_ready (i), s014 0e76:2fa2: 
     int was = i >= 0 && i < 5 ? walk_for[i] : -1;
     u16 c = i >= 0 && i < 5 ? CBT(i) : 0;
     int still = was >= 0 && g_rw((u16)(c + 0x10)) == 1 && (s8)g_rb((u16)(c + 0x4a)) == -1        /* (no other order since: */
-                && (s16)g_rw((u16)(c + 8)) == walk_x[i] && (s16)g_rw((u16)(c + 0xa)) == walk_y[i]       /*  still that walk, */
+                && abs((s16)g_rw((u16)(c + 8)) - walk_x[i]) <= 8 && abs((s16)g_rw((u16)(c + 0xa)) - walk_y[i]) <= 4   /*  still that walk (its end a pixel or two off), */
                 && (u16)(g_rw(GV_combat_clock) - walk_since[i]) < 600;                                  /*  not long ago) */
     if (i >= 0 && i < 5) walk_for[i] = -1, approach[i] = 0;
     hook_call_original();
