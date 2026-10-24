@@ -84,6 +84,7 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
+extern "C" int journal_where_to_buy(float width), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true;
@@ -100,10 +101,10 @@ static const TownFind TFIND[] = {
 static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
 static int tfind = -1;                                    /* -1: off */
 /* the panels' sections folded (map.folded, kept): a bit each */
-enum { FOLD_TASKS = 1, FOLD_RUMOURS = 2, FOLD_LEGEND = 4, FOLD_TOWNS = 8, FOLD_SHOW = 16 };
+enum { FOLD_TASKS = 1, FOLD_RUMOURS = 2, FOLD_LEGEND = 4, FOLD_TOWNS = 8, FOLD_SHOW = 16, FOLD_BUY = 32 };
 static bool fold_head(const char *label, int bit)
 {
-    int f = config_get_int("map.folded", FOLD_LEGEND | FOLD_TOWNS);   /* (folded at first: the map in view) */
+    int f = config_get_int("map.folded", FOLD_LEGEND | FOLD_TOWNS | FOLD_BUY);   /* (folded at first: the map in view) */
     ImGui::SetNextItemOpen(!(f & bit), ImGuiCond_Always);
     bool open = ImGui::CollapsingHeader(label);
     if (open == !!(f & bit)) { config_set_int("map.folded", open ? f & ~bit : f | bit); extern int ui_dirty_config; ui_dirty_config = 1; }
@@ -938,6 +939,11 @@ extern "C" void worldmap_draw(void)
         if (ImGui::BeginTable("##wmpt", 2, ImGuiTableFlags_SizingStretchSame)) {
             ImGui::TableNextColumn();
             place_details(p, colw - 8);
+            {   /* the wares noted in its shops (ui/journal.cpp) */
+                int ns = journal_town_noted(p.loc);
+                if (ns) { char lb[64]; snprintf(lb, sizeof lb, "The wares noted here (%d shop%s)", ns, ns == 1 ? "" : "s");
+                          if (ImGui::TreeNode(lb)) { journal_town_wares(p.loc); ImGui::TreePop(); } }
+            }
             ImGui::TableNextColumn();
             ImGui::PushTextWrapPos(0);
             if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
@@ -1095,6 +1101,10 @@ extern "C" void worldmap_draw(void)
         return click;
     };
     ImGui::Spacing();
+    if (fold_head("Where to buy ...", FOLD_BUY)) {                /* the wares noted in the towns' shops (ui/journal.cpp): a click shows the town */
+        int pick = journal_where_to_buy(rw);
+        if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+    }
     if (fold_head("Places on the map", FOLD_LEGEND)) {           /* the legend */
         if (ui_font_small) ImGui::PushFont(ui_font_small);       /* (smaller than the panel's text: the map is the point) */
         ImGui::TextDisabled("Click a kind to show or hide it.");
@@ -1402,6 +1412,13 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
 /* test: every place picture of each set, large (ucmd uiconsheet:) */
 static int icon_sheet;
 extern "C" void worldmap_icon_sheet(void) { icon_sheet = !icon_sheet; }
+extern "C" int ui_map_open(void);   /* ui/ui.cpp */
+/* the right-click menu's Quests: the world map with its quests unfolded */
+extern "C" void worldmap_open_quests(void)
+{
+    config_set_int("map.folded", config_get_int("map.folded", FOLD_LEGEND | FOLD_TOWNS | FOLD_BUY) & ~FOLD_TASKS);
+    if (!ui_map_open()) ui_toggle_map();
+}
 extern "C" void worldmap_icon_sheet_draw(void)
 {
     if (!icon_sheet) return;

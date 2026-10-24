@@ -180,7 +180,7 @@ static void place_quests(int cur);
  * towns), a cathedral, an alchemist, a physician (some towns, some games), the docks' boats, a
  * Fugger or Medici bank. Not shown: what nearly every town has (a monastery: 90 of 92) or what
  * only pays later with reputation (the town hall's and the fortress's audiences); the rest is in
- * F12 > Journal > Towns. Then the notable shops: those whose wares come out at 30q or better (the
+ * the world map (the place panel). Then the notable shops: those whose wares come out at 30q or better (the
  * standard is 25q), a picture and the quality each. `tables`: the location table may be read;
  * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
  * no tooltip can show: the world map's tooltip on a town). */
@@ -963,7 +963,7 @@ static void tasks_section(bool tables)
         std::string id = r.id;
         mclick(a, ImVec2(b.x, ty1), [id]() { if (open.count(id)) open.erase(id); else open.insert(id); });
     }
-    if (q.size() > 10) ImGui::TextDisabled("... %d more (F12 > Journal)", (int)q.size() - 10);
+    if (q.size() > 10) ImGui::TextDisabled("... %d more (M: the world map)", (int)q.size() - 10);
 }
 
 /* in a town at night: the streets' dangers (mods/travel.c has the rolls: the night watch at each

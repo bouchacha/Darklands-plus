@@ -51,7 +51,7 @@ static void native_action(int a)
 {
     switch (a) {
     case NA_WINDOW: ui_open_tab(-1); break;
-    case NA_QUESTS: ui_open_tab(UI_PAGE_SUB(UI_PAGE_JOURNAL, UI_JOURNAL_QUESTS)); break;
+    case NA_QUESTS: { void worldmap_open_quests(void); worldmap_open_quests(); } break;   /* (the world map, its quests unfolded) */
     case NA_MAP: ui_toggle_map(); break;
     case NA_HELPERS: ui_open_tab(UI_PAGE_HELPERS); break;
     case NA_GUIDE: ui_open_tab(UI_PAGE_GUIDE); break;

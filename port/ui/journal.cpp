@@ -717,23 +717,7 @@ extern "C" void journal_init(void)
 }
 
 /* ---------------------------------------------------------------- the Journal tab */
-static int sel_town = -1;
-static char find_buf[64];
 
-static void town_list(void)
-{
-    std::vector<int> v;
-    for (auto &kv : towns) if (kv.second.visited || !kv.second.shops.empty()) v.push_back(kv.first);
-    std::sort(v.begin(), v.end(), [](int a, int b) { return loc_name(a) < loc_name(b); });
-    if (v.empty()) { ImGui::TextDisabled("No towns visited yet."); return; }
-    if (sel_town < 0 || !towns.count(sel_town)) sel_town = v[0];
-    for (int loc : v) {
-        const Town &t = towns[loc];
-        std::string lab = loc_name(loc);
-        if (ImGui::Selectable((lab + "##" + std::to_string(loc)).c_str(), sel_town == loc)) sel_town = loc;
-        if (!t.shops.empty()) { ImGui::SameLine(); ImGui::TextDisabled("(%d)", (int)t.shops.size()); }
-    }
-}
 
 /* how long the party would travel to loc: from where it stands on the map, or from the town it is
    in (mods/travel.c's search, cached per start); -1 no way or not known */
@@ -785,36 +769,23 @@ static void item_row(const SeenItem &i, const char *where = nullptr, const char 
     if (where) { ImGui::TableNextColumn(); ImGui::TextUnformatted(where); }
 }
 
-static void town_page(int loc)
+
+/* for the world map's place panel (ui/worldmap.cpp): the shops of town loc whose wares were noted, and
+   those wares (a table a shop) */
+extern "C" int journal_town_noted(int loc) { ensure_game(); return towns.count(loc) ? (int)towns[loc].shops.size() : 0; }
+extern "C" void journal_town_wares(int loc)
 {
+    if (!towns.count(loc)) return;
     const Town &t = towns[loc];
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
-    ImGui::TextUnformatted(loc_name(loc).c_str());
-    ImGui::PopFont();
-    if (t.visited) ImGui::TextDisabled("First visited %s, last visited %s (%d visit%s).", t.first.c_str(), t.last.c_str(), t.visits, t.visits == 1 ? "" : "s");
-    if (loc >= 0 && loc < (int)gamedata.cities.size()) {
-        const City &c = gamedata.cities[loc];
-        std::string citynav_town_has(int loc);
-        std::string b = citynav_town_has(loc);                 /* (as Go to lists the town's places: ui/citynav.cpp) */
-        ImGui::TextWrapped("Size %d.%s%s", c.size, b.empty() ? "" : " Has: ", b.c_str());
-        std::string sh;
-        for (int k = 0; k < 9; k++) if (c.shopq[k] && shop_open_ever(k)) {
-            char e[80]; snprintf(e, sizeof e, "%s%s %dq", sh.empty() ? "" : ",  ", SHOP_NAMES[k], shop_wares_q(c.shopq[k]));
-            sh += e;
-        }
-        ImGui::TextWrapped("Shops: %s", sh.c_str());
-        ImGui::TextDisabled("The number after each shop is the quality of its weapons, armor and most wares (ammunition and ingredients are always 25q).");
-    }
-    if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {
         const Shop &s = t.shops[k];
         ImGui::PushID((int)k);
         char hd[160]; snprintf(hd, sizeof hd, "%s  (%d wares, noted %s)", s.name.c_str(), (int)s.items.size(), s.date.c_str());
-        if (ImGui::CollapsingHeader(hd, ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
+        if (ImGui::TreeNodeEx(hd, ImGuiTreeNodeFlags_SpanAvailWidth)) {
+            if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(80));
-                ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(140));
+                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(70));
+                ImGui::TableSetupColumn("Price", ImGuiTableColumnFlags_WidthFixed, UIS(130));
                 ImGui::TableHeadersRow();
                 std::vector<int> rows; for (int r = 0; r < (int)s.items.size(); r++) rows.push_back(r);
                 static std::map<std::string, TableSort> sorts;
@@ -822,58 +793,55 @@ static void town_page(int loc)
                 for (int r : table_order(sorts[loc_name(loc) + "/" + s.name], rows, key)) item_row(s.items[r]);
                 ImGui::EndTable();
             }
+            ImGui::TreePop();
         }
         ImGui::PopID();
     }
 }
-
-struct Hit { SeenItem it; int loc; std::string shop, date; };
-
-static void find_page(void)
+/* the world map's "Where to buy" (ui/worldmap.cpp): a search among the wares noted in the towns' shops
+   (or every ingredient), each hit with its town and the days of travel, the nearest first; a click on
+   one returns its town (-1 none) */
+extern "C" int journal_where_to_buy(float width)
 {
-    ImGui::SetNextItemWidth(UIS(320));
-    ImGui::InputTextWithHint("##find", "item name, e.g. plate or brimstone", find_buf, sizeof find_buf);
-    std::string q = find_buf;
-    std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-    std::vector<Hit> hits;
+    ensure_game();
+    static char q_buf[48]; static bool ingr;
+    ImGui::SetNextItemWidth(width * 0.62f);
+    ImGui::InputTextWithHint("##wtb", "an item's name", q_buf, sizeof q_buf);
+    ImGui::SameLine(); ImGui::Checkbox("Ingredients", &ingr);
+    std::string q = q_buf; std::transform(q.begin(), q.end(), q.begin(), ::tolower);
+    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
+    if (!nshops) { ImGui::TextDisabled("Nothing noted yet: the wares of each shop are noted as the party sees them."); return -1; }
+    if (q.empty() && !ingr) { ImGui::TextDisabled("Type a name, or tick Ingredients."); return -1; }
+    struct H { int id, q, price, loc, min; std::string shop; };
+    std::vector<H> hits;
     for (auto &kv : towns)
         for (const Shop &s : kv.second.shops)
             for (const SeenItem &i : s.items) {
-                std::string n = item_name(i.id);
-                std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-                if (q.empty() || n.find(q) != std::string::npos) hits.push_back({ i, kv.first, s.name, s.date });
+                if (ingr && (i.id < 72 || i.id > 94)) continue;
+                std::string n = item_name(i.id); std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+                if (!q.empty() && n.find(q) == std::string::npos) continue;
+                int m = travel_min_to(kv.first);
+                hits.push_back({ i.id, i.q, i.price, kv.first, m >= 0 ? m : 1 << 29, s.name });
             }
-    size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
-    if (!nshops) { ImGui::SameLine(); ImGui::TextDisabled("Nothing noted yet: the journal notes a shop's wares as the party sees them."); return; }
-    ImGui::SameLine(); ImGui::TextDisabled(q.empty() ? "%d seen in shops" : "%d found", (int)hits.size());
-    if (ImGui::BeginTable("hits", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY,
-                          ImVec2(0, ImGui::GetContentRegionAvail().y))) {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, 1.0f);
-        ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_DefaultSort,
-                                ImGui::CalcTextSize("Quality").x + ImGui::GetFontSize() * 1.3f);
-        ImGui::TableSetupColumn("Travel", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("under a day").x + UIS(8));
-        ImGui::TableSetupColumn("Where", ImGuiTableColumnFlags_WidthStretch, 1.25f);
-        ImGui::TableHeadersRow();
-        ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs();
-        int col = 1; bool desc = true;
-        if (ss && ss->SpecsCount) { col = ss->Specs[0].ColumnIndex; desc = ss->Specs[0].SortDirection == ImGuiSortDirection_Descending; }
-        std::map<int, int> mins;
-        for (const Hit &h : hits) if (!mins.count(h.loc)) { int m = travel_min_to(h.loc); mins[h.loc] = m >= 0 ? m : 1 << 29; }
-        std::stable_sort(hits.begin(), hits.end(), [&](const Hit &a, const Hit &b) {
-            int c = 0;
-            switch (col) {
-            case 0: c = item_name(a.it.id).compare(item_name(b.it.id)); break;
-            case 1: c = a.it.q - b.it.q; break;
-            case 2: c = mins[b.loc] < mins[a.loc] ? 1 : mins[b.loc] > mins[a.loc] ? -1 : 0; c = -c; break;
-            default: c = loc_name(a.loc).compare(loc_name(b.loc)); break;
-            }
-            return desc ? c > 0 : c < 0;
-        });
-        for (const Hit &h : hits) { std::string w = loc_name(h.loc) + ", " + h.shop, t = travel_days(mins[h.loc] < (1 << 29) ? mins[h.loc] : -1); item_row(h.it, w.c_str(), t.c_str()); }
-        ImGui::EndTable();
+    std::stable_sort(hits.begin(), hits.end(), [](const H &a, const H &b) { return a.id != b.id ? item_name(a.id) < item_name(b.id) : a.min < b.min; });
+    if (hits.empty()) { ImGui::TextDisabled("Not seen in any shop yet."); return -1; }
+    int pick = -1, shown = 0;
+    ImGui::BeginChild("##wtbl", ImVec2(width, fminf(UIS(260), (ImGui::GetTextLineHeightWithSpacing() + 2) * (float)hits.size() + 4)));
+    for (const H &h : hits) {
+        if (++shown > 120) { ImGui::TextDisabled("... more: narrow the search"); break; }
+        ImGui::PushID(shown);
+        std::string t = travel_days(h.min < (1 << 29) ? h.min : -1);
+        char lb[200]; snprintf(lb, sizeof lb, "%s %dq  -  %s%s%s", item_name(h.id).c_str(), h.q, loc_name(h.loc).c_str(), t.empty() ? "" : ", ", t.c_str());
+        if (ImGui::Selectable(lb)) pick = h.loc;
+        if (ImGui::IsItemHovered()) { ImGui::BeginTooltip(); ImGui::Text("%s, %s: %s", loc_name(h.loc).c_str(), h.shop.c_str(), money(h.price).c_str()); ImGui::EndTooltip(); }
+        ImGui::PopID();
     }
+    ImGui::EndChild();
+    return pick;
 }
+
+struct Hit { SeenItem it; int loc; std::string shop, date; };
+
 
 /* where the party is: the town it is in, else its tile on the map */
 static bool party_where(int *x, int *y)
@@ -941,64 +909,6 @@ std::string journal_where_sold(int id)
     return loc_name(best) + (t.empty() ? "" : ", " + t + " away") + " (expected)";
 }
 
-static void ingredients_page(void)
-{
-    int px = 0, py = 0; bool here = party_where(&px, &py);
-    ImGui::TextWrapped("How many of each alchemical ingredient the party carries, and where each is sold in the towns the party has visited (bought ingredients are always "
-                       "quality 25)%s.", here ? ", with the days of travel to each: the nearest first; hold the pointer over a row to see every town" : "");
-    int have[200] = {};                                    /* what the party carries now (all its members) */
-    { GmItem g; for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count; }
-    if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY,
-                          ImVec2(0, ImGui::GetContentRegionAvail().y))) {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-        ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed, UIS(70));
-        ImGui::TableSetupColumn(here ? "Nearest town" : "Sold at", ImGuiTableColumnFlags_WidthStretch, 1.0f);
-        ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch, 1.2f);
-        ImGui::TableHeadersRow();
-        for (int id = 72; id <= 94; id++) {
-            struct Seen { int loc, price, dist; };
-            std::vector<Seen> at;
-            for (auto &kv : towns) {
-                int best = -1;
-                for (const Shop &s : kv.second.shops) for (const SeenItem &i : s.items) if (i.id == id && (best < 0 || i.price < best)) best = i.price;
-                if (best >= 0) { int m = travel_min_to(kv.first); at.push_back({ kv.first, best, m >= 0 ? m : here ? loc_distance(kv.first, px, py) * 600 : 1 << 29 }); }
-            }
-            std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            icon_name_cell(id, item_name(id).c_str());
-            ImGui::TableNextColumn();
-            if (have[id]) ImGui::Text("%d", have[id]); else ImGui::TextDisabled("none");
-            ImGui::TableNextColumn();
-            if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
-            {   std::string t = travel_days(travel_min_to(at[0].loc));
-                ImGui::TextUnformatted(loc_name(at[0].loc).c_str());
-                if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t == "here" ? "(here)" : t.c_str()); } }
-            ImGui::TableNextColumn();
-            /* the other towns, the nearest first, without their prices: as many as fit on the line,
-               then "..."; every town with its price under the pointer */
-            std::string more;
-            float room = ImGui::GetContentRegionAvail().x, ell = ImGui::CalcTextSize(", ...").x;
-            size_t k = 1;
-            for (; k < at.size(); k++) {
-                std::string next = (more.empty() ? "" : ", ") + loc_name(at[k].loc);
-                bool last = k + 1 == at.size();
-                if (ImGui::CalcTextSize((more + next).c_str()).x + (last ? 0 : ell) > room) break;
-                more += next;
-            }
-            if (k < at.size()) more += more.empty() ? "..." : ", ...";
-            ImGui::TextUnformatted(more.empty() ? "-" : more.c_str());
-            if (ImGui::IsItemHovered() && at.size() > 1) {
-                ImGui::BeginTooltip();
-                ImGui::TextDisabled(here ? "Every town seen selling it, the nearest first:" : "Every town seen selling it:");
-                for (size_t j = 0; j < at.size(); j++) { std::string t = travel_days(travel_min_to(at[j].loc)); ImGui::Text("%s%s%s", loc_name(at[j].loc).c_str(), t.empty() ? "" : "  -  ", t.c_str()); }
-                ImGui::EndTooltip();
-            }
-        }
-        ImGui::EndTable();
-    }
-}
 
 /* ---------------------------------------------------------------- stored goods
  * What the party has left with innkeepers (the store rooms of s035): the game keeps them in
@@ -1080,7 +990,6 @@ static void storage_page(void)
 
 extern "C" void battlelog_tab(void);
 int ui_want_subtab = -1;
-extern "C" void journal_quests(void);               /* scripted tests: utab 2.1 */
 
 extern "C" void halloffame_open(void);
 extern "C" int halloffame_record(void);
@@ -1088,29 +997,10 @@ extern "C" void tab_journal(void)
 {
     if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
+    ImGui::TextDisabled("The quests and every town (its shops, the wares noted, where to buy a thing) are on the world map (M).");
     if (ui_subtabs_begin("jtabs")) {
-        if (ui_subtab("Quests", want == 3)) {
-            ImGui::BeginChild("q", ImVec2(0, 0));
-            journal_quests();
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-        if (ui_subtab("Towns", want == 0)) {
-            ImGui::BeginChild("list", ImVec2(UIS(250), 0), ImGuiChildFlags_Border);
-            town_list();
-            ImGui::EndChild();
-            ImGui::SameLine();
-            ImGui::BeginChild("page", ImVec2(0, 0), ImGuiChildFlags_Border);
-            if (sel_town >= 0 && towns.count(sel_town)) town_page(sel_town);
-            else ImGui::TextWrapped("The towns the party reaches are noted here, with their shops, and the wares of "
-                                    "every shop you look at (quality and price).");
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
         if (ui_subtab("Chronicle", want == 7)) { chronicle_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Notes", want == 8)) { notes_page(); ImGui::EndTabItem(); }
-        if (ui_subtab("Find goods", want == 1)) { find_page(); ImGui::EndTabItem(); }
-        if (ui_subtab("Ingredients", want == 2)) { ingredients_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Stored", want == 6)) { storage_page(); ImGui::EndTabItem(); }
         if (ui_subtab("Battle log", want == 5)) { battlelog_tab(); ImGui::EndTabItem(); }
         if (config_get_int("assist.hall_of_fame", 0) && !config_get_int("original", 0) && ui_subtab("Honor Roll", want == 4)) {   /* (restored: F12 > Settings > Restored) */
