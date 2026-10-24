@@ -54,7 +54,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 ## Status
 
-Actively developed. Bug reports, suggestions and contributions are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). The author directs and play-tests; the code is written by an AI (Anthropic's Claude). See [LICENSE](LICENSE).
+Actively developed. Bug reports, suggestions and contributions are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). Yassine Meskhout directs and play-tests; the code is written by an AI (Anthropic's Claude). See [LICENSE](LICENSE).
 
 ## For developers
 
