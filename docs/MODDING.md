@@ -262,14 +262,14 @@ palette gives the colours). The portrait (`ExxSMALL.PIC`) and the little battle 
 ## Replacement art and sounds
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
-drawn at window resolution; F12 > Settings > Display can export all original pictures as templates
+drawn at window resolution; F12 > Settings > Window and sound can export all original pictures as templates
 and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
-for variations) replaces a battle sound; the names are listed in F12 > Settings > Display. Mods can
+for variations) replaces a battle sound; the names are listed in F12 > Settings > Window and sound. Mods can
 carry both folders; a mod's files win over the game folder's.
 
 ### Making a whole art pack
 
-`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Settings > Display > "Export
+`port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Settings > Window and sound > "Export
 the original pictures", which writes `art/original`) into a mod folder: `OUT/mod.txt` and
 `OUT/art/NAME.png` at four times the size. A *style* decides what becomes of each picture; the
 sample style `clown` dresses every piece of armour on the character sheet as a clown costume
@@ -321,7 +321,7 @@ number the game asks its sound driver for, with anything after it: `10.ogg`, `11
 `08 church.wav` (Ogg Vorbis, or PCM .wav of 8, 16 or 24 bits; any sample rate, mono or stereo).
 Up to four files for one number are played in turn (`27 a.ogg`, `27 b.ogg` ...; the game's own
 piece 27 is one of four tunes in turn).
-The pieces are the same for every sound device. F12 > Settings > Display > Sound lists the numbers that
+The pieces are the same for every sound device. F12 > Settings > Window and sound lists the numbers that
 are known (a church 8, the inn 9 and 10, the market 11, the guilds and craftsmen 12, praying 13,
 the city square 14, the university 15, the fortress 17, the map 19 and 20, the dungeon 22, before
 a city 27 and 28, a village 41, the ending 45, the opening 47 ...; 8 to 47 in all) and names

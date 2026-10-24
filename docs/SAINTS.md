@@ -27,7 +27,7 @@ Darklands+ shows all of this beside each description (the character sheet, the p
 the margins): the description in ink, **What it does** (below) in blue, and
 **Unlike the text** where the description promises what the code does not
 (`port/mods/saintinfo.c`). A boost lasts about a day, so the texts name only other spans (a week,
-some hours, for good); a note says so beside each help that wears off. The switches are in F12 > Settings > Helpers >
+some hours, for good); a note says so beside each help that wears off. The switches are in F12 > Settings > Game >
 Fixes.
 
 ## Fixed
