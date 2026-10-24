@@ -54,6 +54,10 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 #include "ornament.h"
 
 extern bool open_help, open_welcome, open_mt32, open_news;
+static void bulletf(const char *fmt, ...)   /* a bullet whose text wraps (ImGui's BulletText does not) */
+{
+    va_list ap; va_start(ap, fmt); ImGui::Bullet(); ImGui::TextWrappedV(fmt, ap); va_end(ap);
+}
 #include "ui_decls.h"
 extern ImFont *ui_font_small, *ui_font_text, *ui_font_overlay, *ui_font_head, *ui_font_bold;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -68,25 +72,25 @@ void tab_about(void)
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the "
-                       "game files of your own copy; everything Darklands+ adds can be switched off (F12 > Settings: the Full Original preset is the game as it was).");
+                       "game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds.");
     ImGui::Spacing();
     ImGui::TextWrapped("F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
     ImGui::PushFont(font_head); orn_septext("Files"); ImGui::PopFont();
     {   extern char dos_shadow[];
-        if (dos_shadow[0]) ImGui::BulletText("saved games, and every other file the game writes: %s (Darklands+ cannot write to the game "
+        if (dos_shadow[0]) bulletf("saved games, and every other file the game writes: %s (Darklands+ cannot write to the game "
                                              "folder; the saved games in its SAVES folder can still be loaded)", dos_shadow);
-        else ImGui::BulletText("saved games: the SAVES folder of the game folder, as in the original"); }
+        else bulletf("saved games: the SAVES folder of the game folder, as in the original"); }
     {   extern char dlp_data_dir[];
         bool own = strcmp(dlp_data_dir, game_dir) != 0;    /* the game folder could not be written */
-        ImGui::BulletText("the game: %s", game_dir);
-        ImGui::BulletText("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
+        bulletf("the game: %s", game_dir);
+        bulletf("settings: darklands_port.ini in %s", own ? dlp_data_dir : "the game folder");
         extern char dlp_user_dir[];
-        ImGui::BulletText("mods, replacement art and sounds: the mods, art and sounds folders in %s", own ? dlp_user_dir : "the game folder");
-        ImGui::BulletText("screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s", own ? dlp_data_dir : "the game folder");
-        ImGui::BulletText("the session log: darklands_port.log (Windows) in %s; send it along when you report a problem", own ? dlp_data_dir : "the game folder");
+        bulletf("mods, replacement art and sounds: the mods, art and sounds folders in %s", own ? dlp_user_dir : "the game folder");
+        bulletf("screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s", own ? dlp_data_dir : "the game folder");
+        bulletf("the session log: darklands_port.log (Windows) in %s; send it along when you report a problem", own ? dlp_data_dir : "the game folder");
 #ifdef DL_RTSPLIT
-        ImGui::BulletText("the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again)",
+        bulletf("the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again)",
 #ifdef _WIN32
                           "darklands_game.dll");
 #else
@@ -187,19 +191,20 @@ void news_window(void)
     std::string title = "New in Darklands+ " + news_key();
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
-            "City politics (experimental, off by default): the campaign MicroProse wrote and never switched on, reconstructed by Darklands+. Take the rebels' side "
-            "or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Reconstructed Content.",
-            "More of what MicroProse left unused, on a page of its own (F12 > Reconstructed Content, experimental, all off by default): cities preparing for war or "
-            "under siege, \"Fehde!\", soldiers of a private war waiting in ambush on the road, and a town's hospice.",
-            "With a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.",
-            "M: the world map. Choose a place on it to see what it offers, with a Travel there button at the top.",
-            "Calling on a saint says why the chance is zero: too little Virtue, or too little Divine Favor.",
-            "Your saved games are copied into \"Darklands+ save backups\" the first time each new version starts.",
-            "Click a party member on the left: the character sheet, the one place for the party's items, skills, saints and formulae." };
+            "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. "
+            "Settings is one page, its sections listed on the left.",
+            "The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares.",
+            "Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there.",
+            "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon.",
+            "More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info.",
+            "City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off "
+            "until you tick them): F12 > Reconstructed Content.",
+            "A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller.",
+            "Your saved games are copied into \"Darklands+ save backups\" the first time each new version starts." };
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen.");
+        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen.");
         ImGui::PopStyleColor();
         ImGui::Spacing();
         bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);

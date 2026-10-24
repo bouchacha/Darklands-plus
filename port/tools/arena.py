@@ -37,9 +37,9 @@ BOW, LONGBOW, XBOW, ARBALEST, GUN, JAVELIN, KNIFE = 28, 27, 30, 29, 31, 24, 1
 # least so many shots loosed)]
 S = []
 def sc(name, what, bf=CLEARING, seed=11, groups=(BANDIT, 2, 6, 0, 1, 0, -1, 0, 0), arms=(), set=(), place=(), orders=(), secs=70, end=True,
-       expect=(), shots=()):
+       expect=(), shots=(), forbid=()):
     S.append(dict(name=name, what=what, bf=bf, seed=seed, groups=groups, arms=list(arms), set=list(set), place=list(place),
-                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots)))
+                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots), forbid=list(forbid)))
 
 sc('volley', 'one archer, three swords against six bandits in the open: shoot, then the sword when they close, the bow again after',
    arms=[(2, BOW, 30)])
@@ -74,12 +74,30 @@ sc('hemmed_in', 'the shooter boxed in by its own friends, no way out and no line
 sc('boss', 'a robber captain and his men in the wilds: long fight, many changes of target',
    arms=[(1, ARBALEST, 20), (2, BOW, 30)], groups=(CAPTAIN, 3, 1, BANDIT, 2, 6, -1, 0, 0), bf=WILDS, secs=110)
 sc('player_melee', 'the player sends the archer at a foe hand to hand: it fights, and does not take up the bow again by itself',
-   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'])
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'],
+   forbid=[r'orders: member 2 (had no orders|has no foe beside it now|.s mark fell|stood idle with its bow)'])
 sc('held', 'the archer told to hold, its line blocked by a friend: it stays put (no stepping aside) and does not freeze the others',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10), (7, 200, -10)], orders=['ushoot:2,5', 'uhold:2,1'])
 sc('no_ammo', 'endless ammunition off and three arrows: the archer shoots them, then draws the sword and walks to its mark',
    arms=[(2, BOW, 3)], set=['assist.endless=0'], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0))
+sc('blocked_and_moving', 'the line blocked by a friend while the mark walks across it, others closing from both sides: step aside, follow the mark, no dithering',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 180, 0), (6, 150, 80), (7, 150, -80)], orders=['ushoot:2,5'], end=False,
+   expect=[r'battlerules: 2 (steps aside|walks|has no line)'], shots=[(2, 1)])
+sc('mark_dies_on_the_way', 'the archer walks for a line and its mark dies before it gets there: a new mark, shooting, not standing',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 220, 30), (7, 220, -30)], orders=['ushoot:2,5', 'wait 2', 'ukill:5'], end=False,
+   shots=[(2, 1)])
+sc('player_overrides', 'the player sends the archer at a foe hand to hand while it walks for a line: the order stands, no bow again by itself',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 120, 40), (7, 220, -30)], orders=['ushoot:2,5', 'wait 2', 'uattack:2,6'], end=False,
+   expect=[r'orders: test: 2 attacks 6 hand to hand'], forbid=[r'orders: member 2 (had no orders|has no foe beside it now|.s mark fell|stood idle with its bow)'])
+sc('last_arrow', 'one arrow and no endless ammunition, the line blocked: step aside, loose it, then the sword',
+   arms=[(2, BOW, 1)], set=['assist.endless=0'], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10)], orders=['ushoot:2,5'], end=False, shots=[(2, 1)])
+sc('many_shooters_woods', 'four shooters against eight in the trees: lines blocked by trunks and friends, many changes of mark, the frame time steady',
+   arms=[(0, BOW, 30), (1, XBOW, 30), (2, LONGBOW, 30), (3, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0), bf=WILDS, secs=90)
 sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
    arms=[(2, BOW, 30)], set=['battle.improved=0'], end=False)
 
@@ -98,7 +116,7 @@ def run(s, game, exe, out):
     steps += ['ucmd ufight:%d,%d,%s' % (s['bf'], s['seed'], g), 'ucmd ugoto:24', 'wait 14', 'ucmd ucbt:']
     if s['place']:
         steps += ['ucmd uarenaplace:%s' % '/'.join('%d,%d,%d' % p for p in s['place'])]
-    steps += ['ucmd %s' % o for o in s['orders']]
+    steps += [o if o.startswith('wait ') else 'ucmd %s' % o for o in s['orders']]   # ('wait N': a pause between orders)
     steps += ['ucmd uarenalog:10', 'ucmd uunpause:', 'wait 1', 'key z']
     secs = s['secs']
     for k in range(0, secs, 10):
@@ -189,11 +207,17 @@ def check(s, log):
     for rx in s.get('expect', []):
         if not re.search(rx, log):
             probs.append('never logged: %s' % rx)
+    for rx in s.get('forbid', []):
+        m = re.search(rx, log)
+        if m:
+            probs.append('logged what should not happen: %s' % m.group(0))
     last = ticks[-1][1]
     foes_left = [j for j in last if j >= 5]
     party_left = [j for j in last if j < 5]
     ended = 'battle end:' in log
-    if s['end'] and not ended and foes_left and party_left:
+    if s['end'] and not ended and foes_left and party_left and ticks[-1][0] < 40 * s['secs']:
+        probs.append('slow run: the battle clock reached only %d in %ds (the machine busy?): not judged' % (ticks[-1][0], s['secs']))
+    elif s['end'] and not ended and foes_left and party_left:
         probs.append('battle not over after %ds (%d foes and %d of the party still standing)' % (s['secs'], len(foes_left), len(party_left)))
     return probs
 
