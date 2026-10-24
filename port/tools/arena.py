@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""arena.py - a combat test arena: battles set up to push Improved combat (battle.improved, mods/orders.c,
+mods/battlerules.c) to its limits, run in the game (nctl, X11), logged and checked.
+
+  arena.py --game DIR [--only NAME[,NAME]] [--out DIR] [--seeds N]
+
+Each scenario: a battlefield and enemy groups (ufight), the Quickstart party armed as it asks (uarm:
+member, missile weapon, ammunition), the fighters placed (uplace) and given orders (ushoot, ...) once
+the battle is on, then the battle run (fast-forward, Z) for a while with the combatants' state logged
+every few ticks (uarenalog). The checks, on the log:
+  idle shooter   a party shooter with a Use Missile order, a foe standing and nothing beside it, that
+                 neither shoots, walks nor changes its mind for a long time
+  point blank    a party shooter still ordered to shoot with a foe beside it for a while
+  flip-flop      a member's weapon put away and taken up again too often
+  stuck walker   a member walking but not moving for a long time
+  no end         the battle not over by the end of the scenario (when it should be)
+  crash          the game gone
+Prints one line a scenario and the problems found; the logs are kept in --out.
+"""
+import argparse, os, re, subprocess, sys, time, json
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
+START = ('QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; '
+         'key Return; wait 3; key Return; wait 3')
+
+# battlefields (DARKLAND.ENM numbering, docs/MODDING.md): 0x2e clearing, 0x2f the wilds (trees), 0x30 surrounded
+CLEARING, WILDS, SURROUNDED = 0x2e, 0x2f, 0x30
+# enemies: 7 bandit, 2 archer, 0x0c thug, 0x0f mercenary, 0x2a wolf, 0x16 robber captain, 3 guard
+BANDIT, ARCHER, THUG, MERC, WOLF, CAPTAIN, GUARD = 7, 2, 0x0c, 0x0f, 0x2a, 0x16, 3
+BOW, LONGBOW, XBOW, ARBALEST, GUN, JAVELIN, KNIFE = 28, 27, 30, 29, 31, 24, 1
+
+# a scenario: name, what it pushes, battlefield, seed, groups (type, quality, number) x3, arms
+# [(member, weapon, ammo)], set (config before the battle), place [(i, dx, dy)] relative to the party's
+# first member once the battle is on (None: as the game puts them), orders [ucmd ...], seconds, end
+# (True: the battle should be over by then)
+S = []
+def sc(name, what, bf=CLEARING, seed=11, groups=(BANDIT, 2, 6, 0, 1, 0, -1, 0, 0), arms=(), set=(), place=(), orders=(), secs=70, end=True):
+    S.append(dict(name=name, what=what, bf=bf, seed=seed, groups=groups, arms=list(arms), set=list(set), place=list(place),
+                  orders=list(orders), secs=secs, end=end))
+
+sc('volley', 'one archer, three swords against six bandits in the open: shoot, then the sword when they close, the bow again after',
+   arms=[(2, BOW, 30)])
+sc('all_shooters', 'every member a shooter against six bandits: nobody shooting at point blank, nobody idle',
+   arms=[(0, BOW, 30), (1, XBOW, 30), (2, LONGBOW, 30), (3, JAVELIN, 6)])
+sc('friend_in_line', 'the archer behind a friend, the foe straight beyond: step aside for a line, then shoot',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10)], orders=['ushoot:2,5'])
+sc('moving_target', 'the archer must find a line while its mark walks behind the melee: wolves run fast and circle',
+   arms=[(2, LONGBOW, 30)], groups=(WOLF, 2, 5, 0, 1, 0, -1, 0, 0), bf=WILDS)
+sc('surrounded', 'enemies on every side, two shooters in the middle: put the bow away for a foe beside, help a friend set upon',
+   bf=SURROUNDED, arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0))
+sc('rescue', 'a friend set upon by three a few paces off while the archer shoots at another: go and help',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 1, 4, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)], orders=['ushoot:2,8'])
+sc('handgun', 'a slow handgun with foes closing: no putting away and taking up again over and over (each change starts the reloading anew)',
+   arms=[(2, GUN, 20)], groups=(THUG, 2, 6, 0, 1, 0, -1, 0, 0))
+sc('enemy_archers', 'enemy archers at range and swords coming: our archer duels theirs, our swords close in',
+   arms=[(2, LONGBOW, 30)], groups=(ARCHER, 2, 3, BANDIT, 2, 4, -1, 0, 0), bf=WILDS)
+sc('thrown', 'javelins and throwing knives: thrown, then the melee weapon, picked up after the battle',
+   arms=[(0, JAVELIN, 4), (2, KNIFE, 6)], groups=(BANDIT, 2, 5, 0, 1, 0, -1, 0, 0))
+sc('crowded_line', 'three shooters in a column, each blocked by the one before: they spread out to shoot',
+   arms=[(0, BOW, 30), (1, BOW, 30), (2, BOW, 30)], groups=(MERC, 2, 4, 0, 1, 0, -1, 0, 0),
+   place=[(0, 0, 0), (1, -16, 0), (2, -32, 0), (3, 16, 0), (5, 240, 0), (6, 250, 8), (7, 240, -8), (8, 260, 0)],
+   orders=['ushoot:0,5', 'ushoot:1,5', 'ushoot:2,5'])
+sc('mark_falls', 'the mark dies before the shot: the next foe, the nearest with a clear line',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 0, 5, 0, 1, 0, -1, 0, 0), orders=['ushoot:2,5', 'ukill:5'])
+sc('hemmed_in', 'the shooter boxed in by its own friends, no way out and no line: no freezing, no walking into walls',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (1, -16, 0), (3, 0, 8), (5, 200, 0), (6, 200, 20), (7, 200, -20)], orders=['ushoot:2,5'])
+sc('boss', 'a robber captain and his men in the wilds: long fight, many changes of target',
+   arms=[(1, ARBALEST, 20), (2, BOW, 30)], groups=(CAPTAIN, 3, 1, BANDIT, 2, 6, -1, 0, 0), bf=WILDS, secs=110)
+sc('player_melee', 'the player sends the archer at a foe hand to hand: it fights, and does not take up the bow again by itself',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'])
+sc('held', 'the archer told to hold, its line blocked by a friend: it stays put (no stepping aside) and does not freeze the others',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10), (7, 200, -10)], orders=['ushoot:2,5', 'uhold:2,1'])
+sc('no_ammo', 'endless ammunition off and three arrows: the archer shoots them, then draws the sword and walks to its mark',
+   arms=[(2, BOW, 3)], set=['assist.endless=0'], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0))
+sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
+   arms=[(2, BOW, 30)], set=['battle.improved=0'], end=False)
+
+def nctl(*a, timeout=600):
+    return subprocess.run(NCTL + list(a), capture_output=True, text=True, timeout=timeout)
+
+def run(s, game, exe, out):
+    name = 'ar_' + s['name']
+    nctl('stop', name)
+    env = dict(os.environ, DL_ORDERS_LOG='1', DL_BATTLE_LOG='1')
+    r = subprocess.run(NCTL + ['start', name, '--game', game, '--x11'] + (['--exe', exe] if exe else []), capture_output=True, text=True, env=env, timeout=200)
+    steps = [START]
+    steps += ['ucmd uopt:%s' % kv for kv in s['set']]
+    steps += ['ucmd uarm:%d,%d,%d' % a for a in s['arms']]
+    g = ','.join(str(x) for x in s['groups'])
+    steps += ['ucmd ufight:%d,%d,%s' % (s['bf'], s['seed'], g), 'ucmd ugoto:24', 'wait 14', 'ucmd ucbt:']
+    if s['place']:
+        steps += ['ucmd uarenaplace:%s' % '/'.join('%d,%d,%d' % p for p in s['place'])]
+    steps += ['ucmd %s' % o for o in s['orders']]
+    steps += ['ucmd uarenalog:10', 'ucmd uunpause:', 'wait 1', 'key z']
+    secs = s['secs']
+    for k in range(0, secs, 10):
+        steps += ['wait 10', 'ucmd ucbt:' if k % 30 == 20 else 'ucmd uparty:']
+    steps += ['wshot %s_end' % name]
+    t0 = time.time()
+    r = nctl('do', name, '; '.join(steps), timeout=secs * 3 + 400)
+    logf = '/tmp/nctl/%s/out.txt' % name
+    log = open(logf, errors='replace').read() if os.path.exists(logf) else ''
+    alive = nctl('stop', name).returncode == 0
+    os.makedirs(out, exist_ok=True)
+    open(os.path.join(out, name + '.log'), 'w').write(log)
+    return check(s, log), time.time() - t0
+
+def parse(log):
+    ticks = []
+    for line in log.splitlines():
+        if not line.startswith('ARENA t='):
+            continue
+        parts = line.split(' |')
+        t = int(parts[0][8:])
+        cb = {}
+        for p in parts[1:]:
+            m = re.match(r'(\d+):(-?\d+),(-?\d+) o([0-9a-f]+) t(-?\d+) a(\d+) s(\d+) m(\d+) w(-?\d+) e(-?\d+) b(\d+)', p)
+            if m:
+                v = [int(x) if k != 3 else int(x, 16) for k, x in enumerate(m.groups())]
+                cb[v[0]] = dict(x=v[1], y=v[2], o=v[3], t=v[4], a=v[5], s=v[6], m=v[7], w=v[8], e=v[9], b=v[10])
+        ticks.append((t, cb))
+    return ticks
+
+def check(s, log):
+    probs = []
+    if 'Segmentation' in log or 'SIGSEGV' in log or 'fatal' in log.lower() and 'fatal error' in log.lower():
+        probs.append('crash')
+    ticks = parse(log)
+    if not ticks:
+        return ['no battle log (the battle never started?)']
+    # per party member: runs of the same state
+    for i in range(5):
+        idle = blank = stuck = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = 0
+        prev_w_ord = None
+        for t, cb in ticks:
+            c = cb.get(i)
+            if not c:
+                idle = blank = stuck = 0; last = None; continue
+            foes = [j for j in cb if j >= 5]
+            shooting_order = c['o'] == 0x80
+            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] == 0:
+                idle += 10; worst_idle = max(worst_idle, idle)
+            else:
+                idle = 0
+            if shooting_order and c['b'] > 0:
+                blank += 10; worst_blank = max(worst_blank, blank)
+            else:
+                blank = 0
+            if c['m'] and last and (c['x'], c['y']) == (last['x'], last['y']):
+                stuck += 10; worst_stuck = max(worst_stuck, stuck)
+            else:
+                stuck = 0
+            ordk = 'shoot' if shooting_order else 'other'
+            if prev_w_ord and ordk != prev_w_ord:
+                flips.append(t)
+            prev_w_ord = ordk
+            last = c
+        if worst_idle >= 150:
+            probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
+        if worst_blank >= 60:
+            probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
+        if worst_stuck >= 150:
+            probs.append('member %d walking without moving for %d ticks' % (i, worst_stuck))
+        # flip-flop: more than 6 changes between shooting and not within 600 ticks
+        for k in range(len(flips)):
+            n = sum(1 for f in flips if flips[k] <= f < flips[k] + 600)
+            if n > 6:
+                probs.append('member %d switched between shooting and not %d times in 600 ticks (from t=%d)' % (i, n, flips[k])); break
+    last = ticks[-1][1]
+    foes_left = [j for j in last if j >= 5]
+    party_left = [j for j in last if j < 5]
+    ended = 'battle end:' in log
+    if s['end'] and not ended and foes_left and party_left:
+        probs.append('battle not over after %ds (%d foes and %d of the party still standing)' % (s['secs'], len(foes_left), len(party_left)))
+    return probs
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--game', required=True); ap.add_argument('--exe'); ap.add_argument('--only'); ap.add_argument('--out', default='/tmp/arena')
+    ap.add_argument('--seeds', type=int, default=1, help='run each scenario with this many battle seeds')
+    a = ap.parse_args()
+    todo = [s for s in S if not a.only or s['name'] in a.only.split(',')]
+    total = 0
+    for s in todo:
+        for k in range(a.seeds):
+            s2 = dict(s, seed=s['seed'] + k * 7, name=s['name'] + ('' if k == 0 else '_%d' % k))
+            probs, dt = run(s2, a.game, a.exe, a.out)
+            total += len(probs)
+            print('%-22s %4.0fs  %s' % (s2['name'], dt, 'OK' if not probs else '; '.join(probs)), flush=True)
+    print('%d problem%s' % (total, '' if total == 1 else 's'))
+
+if __name__ == '__main__':
+    main()

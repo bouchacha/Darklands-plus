@@ -209,6 +209,52 @@ int testcmd_run(const char *cmd, const char *arg)
             int v = n >= 3 ? game_call_far(sect, (u16)sg, (u16)of, n - 3 > 0 ? n - 3 : 0, args) : -1;
             fprintf(stderr, "call s%d %04x:%04x: %d\n", sect, sg, of, v);
         }
+        else if (!strcmp(cmd, "uarm")) {               /* test (before a battle): member m's missile weapon w (item code), with n of its ammunition (or n more of a thrown weapon) */
+            int m = 0, w = 27, n = 20; sscanf(arg, "%d,%d,%d", &m, &w, &n);
+            int ammo = w >= 26 && w <= 28 ? 33 : w >= 29 && w <= 30 ? 34 : w >= 31 && w <= 32 ? 35 : w;
+            if (m >= 0 && m < 5) {
+                g_wb((u16)(G_MEMBER(m) + 0x0e), (u8)w);
+                for (int k = 0; k < 2; k++) {
+                    int code = k ? ammo : w, cnt = k ? n : 1, ni = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+                    if (k && ammo == w) break;
+                    if (ni >= 64) break;
+                    u16 o = G_ITEM(m, ni);
+                    ww(G_FAR2E38, o, (u16)code); wb(G_FAR2E38, (u16)(o + 2), 0); wb(G_FAR2E38, (u16)(o + 3), 30); wb(G_FAR2E38, (u16)(o + 4), (u8)cnt); wb(G_FAR2E38, (u16)(o + 5), 0);
+                    g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(ni + 1));
+                }
+                fprintf(stderr, "arena: member %d armed with %d (ammunition %d x %d)\n", m, w, ammo, n);
+            }
+        }
+        else if (!strcmp(cmd, "uplace")) {             /* test (in battle): combatant i put at x, y (battle map pixels), standing */
+            int i = 0, x = 0, y = 0; sscanf(arg, "%d,%d,%d", &i, &x, &y);
+            if (i >= 0 && i < 13) { u16 c = (u16)(GV_combatants + i * 0x80);
+                g_ww((u16)(c + 4), (u16)x); g_ww((u16)(c + 6), (u16)y); g_ww((u16)(c + 8), (u16)x); g_ww((u16)(c + 0x0a), (u16)y);
+                g_wb((u16)(GV_cbt_moving + i), 0); fprintf(stderr, "arena: %d placed at %d,%d\n", i, x, y); }
+        }
+        else if (!strcmp(cmd, "uarenaplace")) {        /* test (in battle): "i,dx,dy/..." each combatant put at member 0's spot + dx, dy, standing */
+            int x0 = (s16)g_rw((u16)(GV_combatants + 4)), y0 = (s16)g_rw((u16)(GV_combatants + 6));
+            for (const char *q = arg; *q; ) {
+                int i = 0, dx = 0, dy = 0;
+                if (sscanf(q, "%d,%d,%d", &i, &dx, &dy) == 3 && i >= 0 && i < 13 && g_rb((u16)(GV_combatants + i * 0x80 + 0x14)) == 1) {
+                    u16 c = (u16)(GV_combatants + i * 0x80);
+                    g_ww((u16)(c + 4), (u16)(x0 + dx)); g_ww((u16)(c + 6), (u16)(y0 + dy)); g_ww((u16)(c + 8), (u16)(x0 + dx)); g_ww((u16)(c + 0x0a), (u16)(y0 + dy));
+                    g_wb((u16)(GV_cbt_moving + i), 0);
+                    fprintf(stderr, "arena: %d placed at %d,%d\n", i, x0 + dx, y0 + dy);
+                }
+                const char *n = strchr(q, '/'); if (!n) break; q = n + 1;
+            }
+        }
+        else if (!strcmp(cmd, "uattack")) { int i = 0, t = 5; sscanf(arg, "%d,%d", &i, &t); void orders_test_attack(int, int); orders_test_attack(i, t); }   /* test (in battle): member i attacks t hand to hand (the player's order) */
+        else if (!strcmp(cmd, "uhold")) { int i = 0, on = 1; sscanf(arg, "%d,%d", &i, &on); void orders_test_hold(int, int); orders_test_hold(i, on); }   /* test (in battle): member i told to hold */
+        else if (!strcmp(cmd, "uopt")) {               /* test: a switch set as the settings set it (its own effect applied): key=value */
+            char k[64]; int v = 0;
+            if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { const struct Option *options_find(const char *); void option_set(const struct Option *, int);
+                const struct Option *o = options_find(k); if (o) { option_set(o, v); fprintf(stderr, "option %s = %d\n", k, v); } else fprintf(stderr, "option %s: none\n", k); }
+        }
+        else if (!strcmp(cmd, "uremove")) {            /* test (in battle): combatant i taken off the field (as fallen, without the fall) */
+            int i = atoi(arg); if (i >= 0 && i < 13) { g_wb((u16)(GV_combatants + i * 0x80 + 0x14), 0); fprintf(stderr, "arena: %d removed\n", i); }
+        }
+        else if (!strcmp(cmd, "uarenalog")) { extern int arena_log_every; arena_log_every = atoi(arg); }   /* test: the combatants' state every N ticks (orders.c melee_hook) */
         else if (!strcmp(cmd, "uhit")) {                /* test (in battle): hit_damage(a, t, r, loc), s014 18bf:0778 */
             int a = 0, t = 5, r = 1, loc = 0; sscanf(arg, "%d,%d,%d,%d", &a, &t, &r, &loc);
             u16 args[4] = { (u16)a, (u16)t, (u16)r, (u16)loc };
@@ -412,4 +458,25 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "urestart")) { void plat_restart(void); if (!getenv("DL_RESTARTED")) plat_restart(); }   /* test: start again (once) */
     else return 0;
     return 1;
+}
+
+/* the arena's log (uarenalog:N): every N ticks of the battle clock, each combatant standing - where,
+   its order and target, action, state, walking, its weapon in hand, Endurance, and the foes beside it -
+   one line for tools/arena.py to read */
+int arena_log_every;
+void arena_tick(void)
+{
+    static u16 last;
+    u16 now = g_rw(GV_combat_clock);
+    if (arena_log_every <= 0 || (u16)(now - last) < (u16)arena_log_every) return;
+    last = now;
+    fprintf(stderr, "ARENA t=%u", now);
+    for (int i = 0; i < 13; i++) {
+        u16 c = (u16)(GV_combatants + i * 0x80);
+        if (g_rb((u16)(c + 0x14)) != 1) continue;
+        int beside = 0; for (int j = 0; j < 13; j++) if (j != i && (i < 5) != (j < 5) && g_rb((u16)(GV_combatants + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside++;
+        fprintf(stderr, " |%d:%d,%d o%x t%d a%d s%d m%d w%d e%d b%d", i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)), g_rw((u16)(c + 0x10)), (s8)g_rb((u16)(c + 0x4a)),
+                g_rb((u16)(GV_cbt_action + i)), i < 5 ? g_rb((u16)(GV_cbt_state + i)) : 0, g_rb((u16)(GV_cbt_moving + i)), (s8)g_rb((u16)(c + 0x22)), (s8)g_rb((u16)(c + 0x5d)), beside);
+    }
+    fprintf(stderr, "\n");
 }

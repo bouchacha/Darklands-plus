@@ -321,6 +321,36 @@ static int rescue_target(int i)
     }
     return best;
 }
+/* a member with a missile weapon left without orders (the battle let run before the player gave any,
+   or an order carried out): it opens fire at the nearest foe it can see, rather than stand with the
+   bow until a foe reaches it - the volley before the lines meet. Not one told to hold, walking, set
+   to fight hand to hand by its own switch (orders_member_mode 0), with a foe beside it, or with
+   nothing to loose */
+static void idle_shooters(void)
+{
+    if (!combat_improved()) return;
+    for (int i = 0; i < 5; i++) {
+        u16 c = (u16)(D_CBT + i * 0x80);
+        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || g_rb((u16)(GV_cbt_action + i)) != 0) continue;
+        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1 || orders_member_mode(i) != 1) continue;
+        int wm = (s8)g_rb((u16)(c + 0x22)), beside = 0;
+        if (wm < 0 || wm > 62) continue;
+        for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+        if (beside) continue;
+        if (!ns_call(GF_can_fire, 1, i)) { if (ns_unwinding) return; continue; }
+        int clear = 0, t = shot_target(i, &clear);
+        if (ns_unwinding) return;
+        if (t < 0) continue;
+        ns_call(GF_weapon_ready, 3, i, wm, 0x80);
+        g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+        g_wb((u16)(GV_cbt_state + i), 0);
+        g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
+        g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+        g_wb((u16)(GV_cbt_action + i), 7);
+        player_melee[i] = 0;
+        fprintf(stderr, "orders: member %d had no orders: opens fire at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
+    }
+}
 /* a shooter who fought a foe beside it: with none beside it now, the missile weapon again, at the
    next foe (as the game readies it for Use Missile, s014 19cd order_mode_leave) */
 static void back_to_bow(void)
@@ -364,6 +394,22 @@ static void back_to_bow(void)
         fprintf(stderr, "orders: member %d has no foe beside it now: the missile weapon again, at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
     }
 }
+/* test (uattack:i,t): member i told to fight t hand to hand, as the player's order gives it (Std Attack;
+   the bow is not taken up again for it) */
+void orders_test_attack(int i, int t)
+{
+    if (i < 0 || i > 4 || t < 5 || t > 12) return;
+    to_melee(i, t, rb(G_FAR20A5, (u16)(0x7900 + i * 13 + t)) != 0);
+    by_volley[i] = 0; player_melee[i] = 1;
+    fprintf(stderr, "orders: test: %d attacks %d hand to hand\n", i, t);
+}
+/* test (uhold:i,on): member i told to hold its ground (as the game's Hold modifier) */
+void orders_test_hold(int i, int on)
+{
+    if (i < 0 || i > 4) return;
+    g_wb((u16)(GV_cbt_mods + 0x12 * i + 9), (u8)(on ? 1 : 0));
+    fprintf(stderr, "orders: test: %d %s\n", i, on ? "holds" : "no longer holds");
+}
 /* test (ushoot:i,t): member i told to shoot at t, as the order's click gives it */
 void orders_test_shoot(int i, int t)
 {
@@ -399,6 +445,7 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
 {
     hook_call_original();
     if (ns_unwinding || g_rb(GV_ai_paused)) return;
+    { extern int arena_log_every; void arena_tick(void); if (arena_log_every) arena_tick(); }   /* (the test arena's log: runtime/testcmds.c) */
     keep_kinds();
     retarget_shooters();
     if (combat_improved()) {                    /* a shooter standing idle with its order (Use Missile, action 0, not walking): made ready */
@@ -417,6 +464,8 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         }
     }
     if (combat_improved()) back_to_bow();
+    if (ns_unwinding) return;
+    idle_shooters();
     if (ns_unwinding) return;
     if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {
