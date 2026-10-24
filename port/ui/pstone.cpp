@@ -140,8 +140,9 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
             float fs = R * (quality >= 10 ? 0.82f : 0.95f);
             ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, b);
             ImVec2 tp(c.x - ts.x * 0.5f, icy - ts.y * 0.55f);
-            dl->AddEllipseFilled(ImVec2(c.x, icy), ImVec2(fmaxf(ts.x * 0.62f, ir * 0.9f), ir * 0.82f), IM_COL32(250, 242, 222, 225), 0, 28);
-            dl->AddEllipse(ImVec2(c.x, icy), ImVec2(fmaxf(ts.x * 0.62f, ir * 0.9f), ir * 0.82f), A(ink, 0.8f), 0, 28, fmaxf(1.0f, lw * 0.6f));
+            float ry = fmaxf(ir * 0.85f, ts.y * 0.5f), rx = fmaxf(ts.x * 0.72f, ry);   /* (the halo wider than the number: no line crosses it) */
+            dl->AddEllipseFilled(ImVec2(c.x, icy), ImVec2(rx, ry), IM_COL32(250, 242, 222, 235), 0, 28);
+            dl->AddEllipse(ImVec2(c.x, icy), ImVec2(rx, ry), A(ink, 0.35f), 0, 28, fmaxf(1.0f, lw * 0.5f));
             dl->AddText(f, fs, tp, IM_COL32(40, 20, 12, 255), b);
             dl->AddText(f, fs, ImVec2(tp.x + fmaxf(0.5f, fs * 0.02f), tp.y), IM_COL32(40, 20, 12, 255), b);   /* (a heavier stroke) */
             (void)q; (void)st;
