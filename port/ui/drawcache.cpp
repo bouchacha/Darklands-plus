@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <vector>
 extern "C" SDL_Renderer *plat_renderer(void);
 
@@ -17,12 +18,16 @@ void dc_reset(void)
     for (DcEnt &e : cache) if (e.t) SDL_DestroyTexture(e.t);
     cache.clear();
 }
+/* (after the frame is built: pictures not used for a few seconds are let go; never during the
+   frame, when the draw lists may still point at them) */
 void dc_frame_end(void)
 {
     frame_no++;
+    int made_now = 0;
     for (size_t i = 0; i < cache.size();)
-        if (frame_no - cache[i].used > 300) { SDL_DestroyTexture(cache[i].t); cache[i] = cache.back(); cache.pop_back(); }
+        if (frame_no - cache[i].used > 120 || (cache.size() > 160 && frame_no - cache[i].used > 2)) { SDL_DestroyTexture(cache[i].t); cache[i] = cache.back(); cache.pop_back(); }
         else i++;
+    (void)made_now;
 }
 
 void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const std::function<void(ImDrawList *)> &fn)
@@ -34,14 +39,20 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
     }
     float x0 = floorf(lo.x), y0 = floorf(lo.y);
     int w = (int)ceilf(hi.x) - (int)x0, h = (int)ceilf(hi.y) - (int)y0;
-    if (!usable || w <= 0 || h <= 0 || w > 4096 || h > 4096) { fn(dl); return; }
+    auto direct = [&]() { dl->PushClipRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + h), true); fn(dl); dl->PopClipRect(); };   /* (drawn as it is, kept to its box) */
+    if (!usable || w <= 0 || h <= 0 || w > 4096 || h > 4096) { direct(); return; }
     key = dc_key(dc_key(dc_key(key, w), h * 7919.0), (lo.x - x0) * 31 + (lo.y - y0) * 977);
     DcEnt *e = nullptr;
     for (DcEnt &c : cache) if (c.key == key && c.w == w && c.h == h) { e = &c; break; }
     if (!e) {
-        if (cache.size() > 256) dc_reset();
+        /* a picture whose size changes from frame to frame (a tooltip's frame growing) would make a new one each
+           frame: at most a few new ones a frame, and not past the cap; else drawn as it is */
+        static int made_frame = -1, made_n = 0;
+        if (made_frame != frame_no) { made_frame = frame_no; made_n = 0; }
+        if (cache.size() >= 192 || made_n >= 8) { direct(); return; }
         SDL_Texture *t = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
-        if (!t) { fn(dl); return; }
+        if (!t) { direct(); return; }
+        made_n++;
         SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
         ImDrawList tmp(ImGui::GetDrawListSharedData());
         tmp._ResetForNewFrame();
@@ -55,7 +66,10 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
         dd.DisplayPos = ImVec2(x0, y0); dd.DisplaySize = ImVec2((float)w, (float)h); dd.FramebufferScale = ImVec2(1, 1);
         SDL_Texture *old = SDL_GetRenderTarget(r);
         float sx, sy; SDL_RenderGetScale(r, &sx, &sy);
-        SDL_SetRenderTarget(r, t);
+        if (SDL_SetRenderTarget(r, t) != 0) {                   /* (the renderer cannot draw into it after all: never again) */
+            SDL_DestroyTexture(t); usable = 0; fprintf(stderr, "drawcache: cannot draw into a picture (%s): drawn directly\n", SDL_GetError());
+            direct(); return;
+        }
         SDL_RenderSetScale(r, 1, 1);
         SDL_SetRenderDrawColor(r, 0, 0, 0, 0); SDL_RenderClear(r);
         ImGui_ImplSDLRenderer2_RenderDrawData(&dd, r);

@@ -659,8 +659,7 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
         dl->AddPolyline(pts.data(), n, IM_COL32(255, 220, 120, (int)(70 * pulse)), 0, lw * 7.0f);
         dl->AddPolyline(pts.data(), n, IM_COL32(255, 236, 160, (int)(110 * pulse)), 0, lw * 4.0f);
     }
-    switch (style) {
-    case 1:                                                       /* red ink */
+    auto red_ink = [&]() {                                        /* the way inked in red, as on the maps of the age; dots running along it */
         dl->AddPolyline(pts.data(), n, IM_COL32(250, 236, 200, al / 2), 0, lw * 2.2f);
         dl->AddPolyline(pts.data(), n, lit ? IM_COL32(190, 30, 16, 255) : IM_COL32(150, 34, 20, al), 0, lw * 1.1f);
         {   /* the dots run along it, as the ink of a ship's track drawn on: both ways, two rows of them going opposite ways */
@@ -672,9 +671,13 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
                     dl->AddCircleFilled(ImVec2(p.x + d.y * o, p.y - d.x * o), lw * 0.8f, dc, 8);
                 });
         }
+    };
+    switch (style) {
+    case 1:                                                       /* red ink */
+        red_ink();
         break;
-    case 2:                                                       /* a ship's wake, and the ships on it */
-        along(lw * 4.2f, 0, [&](ImVec2 p, ImVec2) { dl->AddCircleFilled(p, lw * 0.6f, IM_COL32(255, 255, 255, lit ? 255 : al * 4 / 5), 6); });
+    case 2:                                                       /* the red ink, and ships sailing on it */
+        red_ink();
         for (int dir = 0; dir < (both_ways ? 2 : 1); dir++)     /* (both ways: half of them sail back) */
         along(lw * 200, dir ? lw * 100 - t * lw * 10 : t * lw * 10, [&](ImVec2 p, ImVec2 d) {   /* (a ship every so often, not a fleet) */
             if (dir) d = ImVec2(-d.x, -d.y);
@@ -692,7 +695,7 @@ static void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float 
         break;
     }
 }
-static int boat_style(void) { int v = config_get_int("map.boat_style", 0); return v >= 0 && v <= 2 ? v : 0; }
+static int boat_style(void) { int v = config_get_int("map.boat_style", 2); return v >= 0 && v <= 2 ? v : 2; }
 /* the settings' picture of a boat style: a way over a strip of sea and shore, moving (ui/settings.cpp) */
 void worldmap_boat_style_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style)
 {
@@ -916,7 +919,12 @@ extern "C" void worldmap_draw(void)
         ImVec2 s = to_scr(x, y);
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
         float r = (g == 0 ? 4.5f : 3.0f) * fmaxf(ks, 1.0f);
-        if (g != 0 && zoom < 0.22f) continue;
+        /* the towns at every zoom; every other place comes in slowly as one zooms closer (far out the map
+           would be all icons) */
+        float fade = g == 0 ? 1.0f : fminf(1.0f, fmaxf(0.0f, (zoom - 0.38f) / 0.3f));
+        if (fade <= 0.02f && p.loc != selected) continue;
+        if (p.loc == selected) fade = 1.0f;
+        int v_fade = dl->VtxBuffer.Size;
         bool unseen = g == 0 && p.loc < 92 && !journal_visited(p.loc);   /* a town the party has not been to: faded, a ring */
         if (show_icons) {                                    /* an icon for its kind, bigger as one zooms in */
             float is = r * 4.4f * fminf(fmaxf(powf(zoom / fitz, 0.25f), 1.0f), 1.6f);
@@ -942,7 +950,7 @@ extern "C" void worldmap_draw(void)
         }
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
         float hr = 14 * fmaxf(ks, 1.0f);
-        if (hovered && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
+        if (hovered && fade > 0.5f && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
         int big = p.loc < (int)gamedata.cities.size() ? gamedata.cities[p.loc].size : 0;
         bool label = show_names && (g == 0 ? (zoom >= 0.3f || (zoom >= 0.14f && big >= 6)) : zoom >= 0.9f);
         if (label || p.loc == selected) {
@@ -953,6 +961,8 @@ extern "C" void worldmap_draw(void)
                 if (dx || dy) dl->AddText(fs, fsize, ImVec2(tp.x + dx * ow, tp.y + dy * ow), IM_COL32(0, 0, 0, 220), p.name.c_str());
             dl->AddText(fs, fsize, tp, g == 0 ? (unseen ? IM_COL32(205, 192, 168, 255) : IM_COL32(255, 244, 214, 255)) : IM_COL32(235, 225, 205, 255), p.name.c_str());
         }
+        if (fade < 1.0f)                                     /* (coming in: all it drew, faint) */
+            for (int vi = v_fade; vi < dl->VtxBuffer.Size; vi++) { ImU32 &cc = dl->VtxBuffer[vi].col; int al = (int)((cc >> IM_COL32_A_SHIFT) & 255); cc = (cc & ~IM_COL32_A_MASK) | ((ImU32)(al * fade) << IM_COL32_A_SHIFT); }
     }
     // quest marks
     if (show_quests)                                         /* the quest's picture on a pin above the place (several: side by side) */
@@ -969,6 +979,10 @@ extern "C" void worldmap_draw(void)
             dl->AddTriangleFilled(ImVec2(c.x - 4 * k, c.y + is * 0.3f), ImVec2(c.x + 4 * k, c.y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
             quest_glow(dl, c, is);
             ui_draw_quest_icon(dl, c, is, i < mark_cats.size() ? mark_cats[i] : 0);
+            /* the pin is the place too: pointed at, clicked (the place chosen), double-clicked (travel there),
+               even with the places' icons hidden */
+            float qd = (io.MousePos.x - c.x) * (io.MousePos.x - c.x) + (io.MousePos.y - c.y) * (io.MousePos.y - c.y);
+            if (hovered && qd < is * is * 0.36f) { hd = 0; hover = m.first; }
         }
     // the party
     {
