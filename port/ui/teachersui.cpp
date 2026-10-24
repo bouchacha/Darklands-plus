@@ -37,7 +37,7 @@ int ui_town_teachers(int loc, TchSource *out, int max)
 
 const char *ui_teacher_short(int src)
 {
-    static const char *const N[] = { "Blacksmiths", "Swordsmiths", "Armourers", "Bowyers", "Artificers", "The guild",
+    static const char *const N[] = { "Blacksmiths", "Swordsmiths", "Armorers", "Bowyers", "Artificers", "The guild",
                                      "University", "Monastery", "Physician", "Alchemists" };
     return src >= 0 && src < (int)(sizeof N / sizeof N[0]) ? N[src] : "?";
 }

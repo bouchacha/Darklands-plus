@@ -112,7 +112,7 @@ static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality
     char nm[24], nu[80], it[40], iu[80];
     gm_member_name(i, nm, sizeof nm); ui_text_utf8(nm, nu, sizeof nu);
     gm_itemdef_name(id, it, sizeof it); ui_text_utf8(it, iu, sizeof iu);
-    if (!iu[0]) snprintf(iu, sizeof iu, "armour");
+    if (!iu[0]) snprintf(iu, sizeof iu, "armor");
     int nq = q - amt;
     worn_len += (size_t)snprintf(worn + worn_len, sizeof worn - worn_len, "%s%s's %s: ", worn_len ? "\n" : "", nu, iu);
     if (worn_len >= sizeof worn) worn_len = sizeof worn - 1;
@@ -124,7 +124,7 @@ static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality
 void losses_battle_frame(void)
 {
     if (!worn_len) return;
-    ui_alert("Armour ruined", worn, "Acid and fire wear armour down for good: a smith's work cannot mend it; a better piece must be bought.");
+    ui_alert("Armor ruined", worn, "Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought.");
     worn_len = 0; worn[0] = 0;
 }
 

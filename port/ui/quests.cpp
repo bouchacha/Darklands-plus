@@ -485,7 +485,7 @@ std::string quest_distance(const QuestRow &r)
     if (r.dist < 1.5) return "here";
     double days = r.dist / 10.0;                              /* (on foot, about ten map columns a day) */
     char b[64];
-    if (days < 0.6) snprintf(b, sizeof b, "%s, less than a day away", r.dir.c_str());
+    if (days < 0.6) snprintf(b, sizeof b, "%s, under a day away", r.dir.c_str());
     else snprintf(b, sizeof b, "%s, about %d day%s away", r.dir.c_str(), (int)(days + 0.5), (int)(days + 0.5) == 1 ? "" : "s");
     return b;
 }
@@ -531,7 +531,7 @@ void quest_way_inline(const QuestRow &r)
     ui_compass_icon(dl, ImVec2(p.x + h * 0.5f, p.y + h * 0.52f), h * 0.92f, r.ang);
     ui_boot_icon(dl, ImVec2(p.x + h * 1.6f, p.y + h * 0.52f), h * 0.82f, IM_COL32(120, 80, 44, 255));
     dl->AddText(ImVec2(p.x + h * 2.15f, p.y), ImGui::GetColorU32(ImGuiCol_TextDisabled), b);
-    if (hov) ImGui::SetTooltip("%s", (std::string(r.dir) + ", " + (days < 0.6 ? std::string("less than a day") : "about " + std::to_string(d) + (d == 1 ? " day" : " days")) + " on foot as the crow flies (roads and rivers make it longer)").c_str());
+    if (hov) ImGui::SetTooltip("%s", (std::string(r.dir) + ", " + (days < 0.6 ? std::string("under a day") : "about " + std::to_string(d) + (d == 1 ? " day" : " days")) + " on foot as the crow flies (roads and rivers make it longer)").c_str());
 }
 
 /* the tasks and rewards waiting (text, when): kept for anything that wants the plain list */

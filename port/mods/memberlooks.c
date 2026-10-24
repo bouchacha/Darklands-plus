@@ -87,7 +87,7 @@ static void key_hook(void)                  /* s038 1462:02f8 (key) */
         const char *v = config_get(key, "");
         if (strlen(v) == 56 && unhex(v, look, 28) && look[0] >= 'A' && look[0] <= 'Z') {
             write_look(m, look);
-            fprintf(stderr, "looks: %s joins again with %.3s and their colours\n", nm, (const char *)look);
+            fprintf(stderr, "looks: %s joins again with %.3s and their colors\n", nm, (const char *)look);
         } else if (config_get_int("party.new_member_looks", 1)) {
             /* a newcomer: as at a new game (rosterview.c) - a woman the woman figure, the next colours */
             int female = g_rb((u16)(G_MEMBER(m) + 3)) != 0;

@@ -156,7 +156,7 @@ extern "C" int sheetview_pointed_item(void);
 extern "C" const char *ui_load_effect(int band)
 {
     switch (band) {
-    case 0: return "Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts: the weapons, armour and shield in use.";
+    case 0: return "Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts: the weapons, armor and shield in use.";
     case 1: return "Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds.";
     case 2: return "Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (the game forgets to slow them in this band).";
     default: return "Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength.";
@@ -205,7 +205,7 @@ static void header(NsDraw &P, const SheetModel &s)
     if (P.over(lx, 11.6f, lx + (s.who == s.leader ? 17 : 26), 18.8f))
         ns_tip(config_get_int("assist.best_leader", 1) && !config_get_int("original", 0)
             ? "On cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. "
-              "The leader is still the one meant by \"the leader\" on a card (a mine's traps, a church's favour, an item handed over), "
+              "The leader is still the one meant by \"the leader\" on a card (a mine's traps, a church's favor, an item handed over), "
               "and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement."
             : "The leader speaks and acts for the party on the cards and bargains in the shops.");
     static const char *TABS[4] = { "Items", "Skills", "Saints", "Formulae" };
@@ -239,7 +239,7 @@ static std::string load_effects(const SheetModel &s)
     const char *swing = (L > capm / 2 && L <= capm) ? "a little slower (the attack rate falls)" : L > 3 * capm / 2 ? "much slower (the attack rate falls a lot)" : "at the usual pace";
     char b[900];
     snprintf(b, sizeof b,
-             "Load %d: the weight of what %s has equipped (weapons, armour, shield). Spare items in the pack weigh nothing.\n"
+             "Load %d: the weight of what %s has equipped (weapons, armor, shield). Spare items in the pack weigh nothing.\n"
              "Compared with Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.\n\n"
              "Now:\n"
              "- Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d).\n"
@@ -774,7 +774,7 @@ static void saints(NsDraw &P, const SheetModel &s)
             float bw = P.width(P.fo, NsDraw::FS_SMALL, lb) + 6;
             if (bx + bw > DX1 - 1 && bx > tx) { bx = tx; ty += bh + 1; }
             if (P.button(bx, ty, bx + bw, ty + bh, lb, IM_COL32(40, 70, 130, 235))) ns_push(SV_PRAY, m, t, 0);
-            if (P.over(bx, ty, bx + bw, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much divine favor to spend.", 20);
+            if (P.over(bx, ty, bx + bw, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend.", 20);
             bx += bw + 1.5f;
         }
         ty += bh + 2;

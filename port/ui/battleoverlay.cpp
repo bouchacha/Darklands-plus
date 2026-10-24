@@ -243,7 +243,7 @@ static void battle_intro(void)
              "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, "
              "moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. "
              "The bow or sword on their picture at the left switches them to melee from the start.\n\n"
-             "Against armour their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armour) by themselves.\n\n"
+             "Against armor their weapon cannot pierce, members attack Vulnerable (aimed at the gaps in the armor) by themselves.\n\n"
              "Point at an order button in the right margin to see what it does.",
              "Improved combat can be switched off (the game's own ways): F12 > Settings > Game > Battles. F11 lists the battle's keys and clicks.");
 }
@@ -375,7 +375,7 @@ void ui_draw_battle_info(void)
                tooltips: penetration below the hardness deflects most of the blow, equal halves it,
                above pierces and wounds strength) */
             int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
-            static const char *HN[6] = { "no armour", "soft armour", "stiff armour", "scale armour", "mail", "plate" };
+            static const char *HN[6] = { "no armor", "soft armor", "stiff armor", "scale armor", "mail", "plate" };
             if (h >= 0 && h < 6) {
                 ImGui::Text("%s (hardness %d)", HN[h], h);
                 int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;

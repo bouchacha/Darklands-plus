@@ -1,7 +1,7 @@
 // editor.cpp - the character editor (F12 > Editor, switched on under Helpers): what the
 // save-game editors of the community (Darklands Companion, EDITOR.EXE, CharacterEditor) change,
 // done on the running game: money, names, attributes, skills, saints, formulas, a character's
-// colours (the "garish colours" bug), shield and figure, items' quality and number.
+// colours (the "garish colors" bug), shield and figure, items' quality and number.
 // Party: fame DS:9082, bank notes DS:9072, philosopher's stone quality DS:9078 (the save header's
 // 0x7a, 0x8c, 0x92), local reputation location +0x12.
 // Member record DS:9c55 + 0x80*m (the save's character record 0x00..0x7f: +0x12 age, +0x15
@@ -98,8 +98,8 @@ extern "C" void tab_editor(void)
                 for (int i = 0; i < looks_count(); i++) if (looks_usable(i)) item(looks_code(i));
                 ImGui::EndCombo();
             }
-            if (looks_is_extra(fig)) { ImGui::SameLine(); ImGui::TextDisabled("(an enemy's sprite: its colours below are its own shades)"); }
-            ImGui::TextDisabled("Colours of the sprite and its portrait (battles and the party panel):");
+            if (looks_is_extra(fig)) { ImGui::SameLine(); ImGui::TextDisabled("(an enemy's sprite: its colors below are its own shades)"); }
+            ImGui::TextDisabled("Colors of the sprite and its portrait (battles and the party panel):");
             for (int c = 0; c < 8; c++) {
                 u16 o = (u16)(0x33fc + m * 24 + c * 3);
                 float col[3] = { (rb(G_FAR20A5, o) & 63) / 63.0f, (rb(G_FAR20A5, (u16)(o + 1)) & 63) / 63.0f, (rb(G_FAR20A5, (u16)(o + 2)) & 63) / 63.0f };

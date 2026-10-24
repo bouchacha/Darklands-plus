@@ -192,9 +192,9 @@ static const char *TOWN_OFFER_TIP[6] = {
     "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
     "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; tasks for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
-    { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armour and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
+    { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armor and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
     { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
-    { 8, TI_CLOTH, "clothing and soft armour (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
+    { 8, TI_CLOTH, "clothing and soft armor (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
 enum { NOTABLE_Q = 30 };
 static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
 /* what was drawn into dl since vertex v0, faded to alpha k (a known formula, a teacher nobody needs) */
@@ -463,7 +463,7 @@ static const char *order_tip(int kind)
     switch (kind) {
     case OI_RESUME: return "The battle runs again (the key: Space). Any order being given is given first.";
     case OI_DONE: return "This member's order is given; the battle stays paused, to give others theirs (the key: Enter).";
-    case OI_INFO: return "Every kind of enemy on the field: attributes, weapons, armour (the key: E).";
+    case OI_INFO: return "Every kind of enemy on the field: attributes, weapons, armor (the key: E).";
     case OI_WALK: return "Then click a spot: the member walks there.";
     case OI_FLEE: return "Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee).";
     case OI_HALT: return "The member stops where they are and waits.";
@@ -480,7 +480,7 @@ static const char *order_tip(int kind)
     case OI_EXIT: return "Leave the battlefield by the way out beside the member.";
     case OI_CANCEL: return "Stop giving this member an order (the key: Esc); the battle stays paused.";
     case OI_ATTACK: return "Then click an enemy: a standard attack, balanced between blows and guard.";
-    case OI_VULNERABLE: return "Then click an enemy: blows aimed at the gaps in the armour (1 to 4 more penetration), but slower and a little less likely to land.";
+    case OI_VULNERABLE: return "Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land.";
     case OI_BERSERK: return "Then click an enemy: quick, furious blows without thought of defence.";
     case OI_PARRY: return "Then click an enemy: the member mostly defends, hard to hit, striking back only now and then.";
     case OI_MISSILE: return "Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed).";

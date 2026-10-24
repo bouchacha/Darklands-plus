@@ -14,7 +14,7 @@ typedef struct {
     char name[24];                    /* game charset */
     int act, val;                     /* the day's activity (0 relax .. 6 train) and its number */
     char detail[24];                  /* the game's word for it (a job, "potions", "50pfs") */
-    char line[64];                    /* the game's own line for it ("Regain strength (gain 2)") */
+    char line[64];                    /* the game's own line for it ("Regain Strength (gain 2)") */
     int str, str_max, df, df_max, end, end_max;
     int can[7];                       /* each activity possible (the original's bright or dim word) */
     int skill;                        /* training: the skill (-1 none) */

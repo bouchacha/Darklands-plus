@@ -166,7 +166,7 @@ int testcmd_run(const char *cmd, const char *arg)
                 u16 a[2] = { (u16)m, (u16)n };
                 game_call_far(31, 0x1462, 0x43b2, 2, a);
                 g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)n);
-                fprintf(stderr, "potion %x q%d for %d: bonus byte %02x, armour byte %02x, fire %d\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)), g_rb((u16)(G_MEMBER(m) + 0x41)), (s8)g_rb((u16)(G_MEMBER(m) + 0x10)));
+                fprintf(stderr, "potion %x q%d for %d: bonus byte %02x, armor byte %02x, fire %d\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)), g_rb((u16)(G_MEMBER(m) + 0x41)), (s8)g_rb((u16)(G_MEMBER(m) + 0x10)));
             }
         }
         else if (!strcmp(cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
@@ -353,7 +353,7 @@ int testcmd_run(const char *cmd, const char *arg)
             fprintf(stderr, "inv %d (%d):", m, n);
             for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(m, k); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
             u16 cb = (u16)(0x9c55 + m * 0x80);
-            fprintf(stderr, " | armour %d q%d, %d q%d\n", (s8)g_rb((u16)(cb + 0x4b)), (s8)g_rb((u16)(cb + 0x4f)), (s8)g_rb((u16)(cb + 0x4c)), (s8)g_rb((u16)(cb + 0x50)));
+            fprintf(stderr, " | armor %d q%d, %d q%d\n", (s8)g_rb((u16)(cb + 0x4b)), (s8)g_rb((u16)(cb + 0x4f)), (s8)g_rb((u16)(cb + 0x4c)), (s8)g_rb((u16)(cb + 0x50)));
         }
         else if (!strcmp(cmd, "urand")) { unsigned v = (unsigned)atol(arg); g_ww(0x7b20, (u16)v); g_ww(0x7b22, (u16)(v >> 16)); fprintf(stderr, "rand seed %u\n", v); }   /* test: the C library's rand() state */
         else if (!strcmp(cmd, "ucv")) { void cardview_dump(void); cardview_dump(); }      /* test: the native card screen */

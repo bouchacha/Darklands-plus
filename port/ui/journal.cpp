@@ -202,7 +202,7 @@ static std::vector<SeenItem> predict_stock(int city, int seed, int shopq, u32 ma
 struct ShopKind { int shop; u32 cats; const char *name; };
 static const ShopKind SHOPS[] = {          /* what each town shop sells (the cards' barter calls) */
     { 0, 0x040000ffu, "Blacksmith" }, { 1, 0x0002c100u, "Goods merchant" }, { 2, 0x040000ffu, "Swordsmith" },
-    { 3, 0x040000ffu, "Armourer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
+    { 3, 0x040000ffu, "Armorer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
     { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Pharmacist" } };
 
 /* every shop of the town the party has just reached; prices from the game's own rule
@@ -803,7 +803,7 @@ static void town_page(int loc)
             sh += e;
         }
         ImGui::TextWrapped("Shops: %s", sh.c_str());
-        ImGui::TextDisabled("The number after each shop is the quality of its weapons, armour and most wares (ammunition and ingredients are always 25q).");
+        ImGui::TextDisabled("The number after each shop is the quality of its weapons, armor and most wares (ammunition and ingredients are always 25q).");
     }
     if (t.shops.empty()) { ImGui::Spacing(); ImGui::TextDisabled("Look at a shop's wares and they are noted here."); return; }
     for (size_t k = 0; k < t.shops.size(); k++) {

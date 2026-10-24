@@ -316,7 +316,7 @@ extern "C" void createview_draw(void)
         for (int i = 0; i < 7; i++) {
             float x = RX0 + 3 + (i % ncol) * cw, yy = ry + (i / ncol) * rh;
             ui_attr_icon(P.dl, NsDraw::w(x + 2.8f, yy + 3), 5.0f * P.k, i);
-            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, i == 6 ? "Div. Favor" : gm_attr_name(i));
+            P.text(fo, NsDraw::FS_SMALL, x + 7.5f, yy + 0.6f, soft, i == 6 ? "Divine Favor" : gm_attr_name(i));
             int now = c.attr[i], after = i < 6 ? pv.attr[i] : now;
             snprintf(b, sizeof b, "%d", now);
             float vx = x + (one_col ? 52 : cw * 0.80f);

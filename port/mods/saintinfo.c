@@ -109,8 +109,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 27 St.Cosmas */
     { "@CRISPIN",
-      "The text says non-metal armour; the game raises all armour.",
-      "Every member's leather and cloth armour counts 10 points better in quality.", "", 1, 0 },   /* 28 St.Crispin */
+      "The text says non-metal armor; the game raises all armor.",
+      "Every member's leather and cloth armor counts 10 points better in quality.", "", 1, 0 },   /* 28 St.Crispin */
     { "Intelligence +5 to 9, Alchemy +5 to 9.",
       "",
       0, 0, 0, 3 },   /* 29 St.Cyprian */
@@ -142,8 +142,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Not in the game: faster travel. Instead, a week safe from ambushes.",
       "The party travels half again as fast for a week. Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39.", "", 0, 1 },   /* 38 St.Drogo */
     { "Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. @ARM1",
-      "The text says the quality of all metal armour in the party; the game gives the one prayed for armour one level thicker.",
-      "Every member's metal armour (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14.", "", 1, 0 },   /* 39 St.Dunstan */
+      "The text says the quality of all metal armor in the party; the game gives the one prayed for armor one level thicker.",
+      "Every member's metal armor (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14.", "", 1, 0 },   /* 39 St.Dunstan */
     { "Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19.",
       "",
       0, 0, 0, 2 },   /* 40 St.Dymphna */
@@ -191,7 +191,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 22 },   /* 54 St.Genevieve */
     { "Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.",
       "",
-      "The weapon and the armour of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.", "", 1, 0 },   /* 55 St.George */
+      "The weapon and the armor of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.", "", 1, 0 },   /* 55 St.George */
     { "Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39.",
       "No Charisma, and only the skills of the weapons in hand, not all weapon skills.",
       "Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11.", "", 0, 0 },   /* 56 St.Gerlac */
@@ -305,7 +305,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 92 St.Mark */
     { "Heals 30% of lost Endurance and 30% of lost Strength. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39.",
       "",
-      "One who wears armour has 30% of lost Endurance and Strength healed. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39.", "", 0, 10 },   /* 93 St.Martin of Tours */
+      "One who wears armor has 30% of lost Endurance and Strength healed. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39.", "", 0, 10 },   /* 93 St.Martin of Tours */
     { "Intelligence +8 to 15, Latin +15 to 29, Read & Write +25 to 49. The party's standing with the Fugger and with the Medici rises by 20 to 39 each.",
       "",
       0, 0, 0, 0 },   /* 94 St.Matthew */
@@ -313,8 +313,8 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       "An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19.", "", 0, 0 },   /* 95 St.Maurice */
     { "May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.",
-      "In combat it raises the skills of the weapons in hand, not the quality of the weapons and armour.",
-      "Every member's weapon and armour count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "", 1, 0 },   /* 96 St.Michael */
+      "In combat it raises the skills of the weapons in hand, not the quality of the weapons and armor.",
+      "Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "", 1, 0 },   /* 96 St.Michael */
     { "Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land.",
       "",
       0, 0, 0, 53 },   /* 97 St.Milburga */
@@ -335,10 +335,10 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 102 St.Olaf */
     { "@FIRE1 Heals 30% of lost Endurance and 30% of lost Strength. Charisma +6 to 11, Alchemy +10 to 19, Healing +15 to 29. The party can cross water as if it were land.",
       "The fire protection is only for the one prayed for, not the party; the crossing of water is not in the text; nothing against animals.",
-      "Fire protection 50 for every member. One who wears armour has 30% of lost Endurance and Strength healed. Alchemy +10 to 19, Healing +15 to 29.", "Nothing against animals.", 1, 5 },   /* 103 St.Pantaleon */
+      "Fire protection 50 for every member. One who wears armor has 30% of lost Endurance and Strength healed. Alchemy +10 to 19, Healing +15 to 29.", "Nothing against animals.", 1, 5 },   /* 103 St.Pantaleon */
     { "Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. @ARM2",
-      "The armour is against every blow, not only missiles.",
-      "Armour two levels thicker against missiles. Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29.", "", 1, 0 },   /* 104 St.Patrick */
+      "The armor is against every blow, not only missiles.",
+      "Armor two levels thicker against missiles. Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29.", "", 1, 0 },   /* 104 St.Patrick */
     { "@PAUL",
       "No reputation in Greece and Malta, which are not in the game.",
       0, 0, 0, 0 },   /* 105 St.Paul */
@@ -437,29 +437,29 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
 /* the help that depends on a fix */
 static const char *special(int s, const char *tok, char *buf, size_t n)
 {
-    int arm = fix_is_on("armourday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
+    int arm = fix_is_on("armorday"), fire = fix_is_on("fireward"), pauls = fix_is_on("pauls"), nep = fix_is_on("saintrep");
     (void)s;
     if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If the party carries a musical instrument (the shared pack: anyone's counts, whoever is prayed for)" : "If the one prayed for carries a musical instrument";
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
-        fire ? "Meant as protection against fire, but the code writes it into the armour, for good (with the fire protection fix on, it does nothing)."
-             : "Meant as protection against fire, it gives the one prayed for armour +32 in battle instead, for good.";
-    if (!strcmp(tok, "CRISPIN")) return arm ? "Every member's worn armour counts 10 points better in quality."
-                                            : "Every member's worn body and leg armour +10 quality, for good, piling up with each prayer.";
-    if (!strcmp(tok, "ARM1")) return arm ? "Armour one level thicker." : "Armour one level thicker, for good, piling up.";
-    if (!strcmp(tok, "ARM2")) return arm ? "Armour two levels thicker." : "Armour two levels thicker, for good, piling up.";
+        fire ? "Meant as protection against fire, but the code writes it into the armor, for good (with the fire protection fix on, it does nothing)."
+             : "Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good.";
+    if (!strcmp(tok, "CRISPIN")) return arm ? "Every member's worn armor counts 10 points better in quality."
+                                            : "Every member's worn body and leg armor +10 quality, for good, piling up with each prayer.";
+    if (!strcmp(tok, "ARM1")) return arm ? "Armor one level thicker." : "Armor one level thicker, for good, piling up.";
+    if (!strcmp(tok, "ARM2")) return arm ? "Armor two levels thicker." : "Armor two levels thicker, for good, piling up.";
     if (!strcmp(tok, "NEPOMUK")) return nep ? "May raise the reputation by 15 to 24 in Prag, and by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else)."
         : "May raise the reputation by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else); in Prag it goes to a place picked at random.";
     if (!strcmp(tok, "PAUL")) return pauls ? "Heals 10% of lost Strength. Endurance +5 to 9, Charisma +8 to 15, Speak Common +20 to 39, Latin +10 to 19, Read & Write +40 to 79." : "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum.";
     if (!strcmp(tok, "SIMPLE")) return pauls ? "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum." : "Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19.";
     if (!strcmp(tok, "POLYCARP")) return arm ? "Every member: fire protection 90." :
-        fire ? "Every member: fire protection 90 for good (and armour bits the fire protection fix hides)."
-             : "Every member: fire protection 90 for good, and armour +48 for good (meant as protection against fire).";
+        fire ? "Every member: fire protection 90 for good (and armor bits the fire protection fix hides)."
+             : "Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire).";
     snprintf(buf, n, "?");
     return buf;
 }
 
 /* the sainttexts fix gives this saint the help its text describes */
-static int st(int s) { return INFO[s].st_does && fix_is_on("sainttexts") && (!INFO[s].st_arm || fix_is_on("armourday")); }
+static int st(int s) { return INFO[s].st_does && fix_is_on("sainttexts") && (!INFO[s].st_arm || fix_is_on("armorday")); }
 
 const char *saint_info_does(int s)
 {

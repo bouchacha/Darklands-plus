@@ -103,8 +103,8 @@ static void details(int ti)
     if (!names.empty()) ImGui::TextWrapped("Enemies of this kind: %s", names.c_str());
     int hv = hardness(t[0x92]), hl = hardness(t[0x93]);
     static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
-    std::string va = item_name(t[0x92], t[0x94], "natural armour"), la = item_name(t[0x93], t[0x95], "natural armour");
-    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armour %dq",
+    std::string va = item_name(t[0x92], t[0x94], "natural armor"), la = item_name(t[0x93], t[0x95], "natural armor");
+    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armor %dq",
                 va.empty() ? "nothing" : va.c_str(), hv, hv >= 0 && hv < 6 ? HN[hv] : "?",
                 la.empty() ? "nothing" : la.c_str(), hl, hl >= 0 && hl < 6 ? HN[hl] : "?", t[0x96]);
     std::string through;
@@ -114,7 +114,7 @@ static void details(int ti)
         for (const ItemDef &d : gamedata.items)
             if (d.type == w && !d.name.empty() && (d.kind == K_WEAPON || d.kind == K_MISSILE)) { through += (through.empty() ? "" : ", ") + game_text(d.name.c_str(), d.name.size()); break; }
     }
-    ImGui::TextWrapped("Weapons that pierce its body armour: %s", through.empty() ? "none" : through.c_str());
+    ImGui::TextWrapped("Weapons that pierce its body armor: %s", through.empty() ? "none" : through.c_str());
     std::string sh = item_name(t[0x97], t[0x98], "a natural shield");
     if (!sh.empty()) ImGui::Text("Shield: %s, %dq", sh.c_str(), t[0x99]);
     std::string mw = item_name(t[0x9a], t[0x9b], "a natural missile");
@@ -129,8 +129,8 @@ void bestiary_tab(void)
     if (!loaded) load();
     if (enm.empty()) { ImGui::TextWrapped("%s", msg.c_str()); return; }
     const bool edit = ui_modding();
-    ImGui::TextWrapped(edit ? "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Click a name to see its armour and weapons. The numbers can be changed and saved into a mod folder; enemies of one kind share their numbers, so a change applies to every enemy of that kind."
-                            : "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Point at a name to see its picture; click it to see its armour and weapons.");
+    ImGui::TextWrapped(edit ? "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Click a name to see its armor and weapons. The numbers can be changed and saved into a mod folder; enemies of one kind share their numbers, so a change applies to every enemy of that kind."
+                            : "Every enemy in the game, with its numbers as the game's data file has them (in a fight, dice rolls and the difficulty level also count). Point at a name to see its picture; click it to see its armor and weapons.");
     ImGui::SetNextItemWidth(UIS(220)); ImGui::InputTextWithHint("##eflt", "find an enemy", filter, sizeof filter);
     int changed = 0; for (int i = 0; i < NT; i++) if (memcmp(type_rec(i), &orig[(size_t)i * TSZ], TSZ)) changed++;
     if (edit) { ImGui::SameLine(); ImGui::TextDisabled("%d kind%s changed", changed, changed == 1 ? "" : "s"); }
@@ -143,7 +143,7 @@ void bestiary_tab(void)
         ImGui::TableSetupColumn("Enemy", ImGuiTableColumnFlags_WidthFixed, namew + UIS(16));
         for (int a = 0; a < 7; a++) ImGui::TableSetupColumn(gm_attr_name(a), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         for (int k = 0; k < 7; k++) ImGui::TableSetupColumn(gm_skill_short(k), ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
-        ImGui::TableSetupColumn("Armour quality", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
+        ImGui::TableSetupColumn("Armor quality", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, numw);
         ImGui::TableSetupColumn("Weapons", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
         ImGui::TableSetupScrollFreeze(1, 2);
         ImGui::TableAngledHeadersRow();

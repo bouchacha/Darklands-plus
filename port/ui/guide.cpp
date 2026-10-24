@@ -22,10 +22,10 @@ void ui_guide_tab(void)
         }
     };
     topic("First steps", {
-        "A new party has little money and light armour. Paid tasks come from a town's merchants, foreign traders and pharmacists (at the marketplace), the Fugger, the Medici, the Hanse, the town council and the cathedral: robber knights to kill, items to fetch. The left margin lists the party's tasks.",
-        "Armour before anything: a weapon whose penetration is below an armour's hardness is mostly deflected. Buy the hardest armour the purse allows before travelling far (Battle, below).",
+        "A new party has little money and light armor. Paid tasks come from a town's merchants, foreign traders and pharmacists (at the marketplace), the Fugger, the Medici, the Hanse, the town council and the cathedral: robber knights to kill, items to fetch. The left margin lists the party's tasks.",
+        "Armor before anything: a weapon whose penetration is below an armor's hardness is mostly deflected. Buy the hardest armor the purse allows before travelling far (Battle, below).",
         "Rest at an inn when Strength is low, and set out with it full. After dark, wait for morning at the inn rather than in the streets.",
-        "Sell what nobody uses: in a shop, the Sell spare gear button sells every unused weapon, armour and shield at once.",
+        "Sell what nobody uses: in a shop, the Sell spare gear button sells every unused weapon, armor and shield at once.",
         "Save often in towns; Darklands+ also saves by itself on arriving in a town and before a battle.",
     }, true);
     topic("The party: Endurance, Strength, Divine Favor", {
@@ -35,7 +35,7 @@ void ui_guide_tab(void)
         "Each member's attributes and skills are on the character sheet (click the portrait, or press F1 ... F5); the bars on the party panel show End, Str and DF all the time.",
         "The party has room for four characters of your own: at an inn, \"reconsider the composition of your party\" creates a new one for an empty slot or dismisses one. A fifth slot is for companions some cards bring along for a while (a village's headman, a knight).",
         "The pack is the whole party's: a member keeps only what they use, the horse or mule they ride and their own potions; whatever else the game asks one member for (lock picks, a mount) is handed to them as it is needed. Only items in use count toward the load.",
-        "On a card, each test is made by the member best at it (the chance and that member's name are beside the option). The leader still gets whatever a card gives \"the leader\" (a mine's traps, a church's favour), and in a battle or a dungeon, while unpaused, deals with doors, chests and locks and leads the group's moves.",
+        "On a card, each test is made by the member best at it (the chance and that member's name are beside the option). The leader still gets whatever a card gives \"the leader\" (a mine's traps, a church's favor), and in a battle or a dungeon, while unpaused, deals with doors, chests and locks and leads the group's moves.",
     });
     topic("Money and reputation", {
         "1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you.",
@@ -48,8 +48,8 @@ void ui_guide_tab(void)
         "G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...) to walk to directly.",
         "The inn: a room for the night, or take up residence for days: rest, regain strength, pray, brew, earn a little or study with a teacher (the page shows each member's day and what it costs). \"Until rested\" spends the days for you.",
         "The innkeeper keeps items for the party (store items, recover items stored here): Darklands+ makes it one store room shared by every inn, so what is left in one town is there in all of them (F12 > Settings > Game; F12 > Journal > Stored lists it).",
-        "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armourer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
-        "Each shop's goods have a quality, written like 29q: most shops' weapons and armour are about 25q, the best in the land near 38q. The right margin names a town's notable shops (30q and better) with their pictures; F12 > Journal > Towns lists them all. Darklands+ compares a weapon or armour with what the member has now.",
+        "Teachers: ask for tutoring or instruction at a monastery, university, guild, the town council or a craftsman (armorer, swordsmith, blacksmith, bowyer, artificer); those found then teach at the inn for a while, for a fee each day.",
+        "Each shop's goods have a quality, written like 29q: most shops' weapons and armor are about 25q, the best in the land near 38q. The right margin names a town's notable shops (30q and better) with their pictures; F12 > Journal > Towns lists them all. Darklands+ compares a weapon or armor with what the member has now.",
         "Under a town's name, the margin shows pictures of what the town has that most towns lack: a university, a cathedral, an alchemist, a physician, docks with boats, a bank (point at one to see what it offers); the world map (M) can find every town that has one. Almost every town has a monastery, where the monks teach saints, pray for the party and heal.",
         "Night falls at 19:00 and lasts until 5:00. At night the streets have the night watch, cutthroats lie in wait for a party leaving a side street (a stealthy, streetwise party slips past them), and gates may be closed: an inn is the safe place to wait for morning. The margin then shows \"Night in the streets\" with the party's chances.",
         "Merchants, officials and others give tasks; the left margin and F12 > Journal > Quests list them with their places and time limits, each with a picture of its kind (the world map's legend explains the pictures). A town that bars the party, or whose watch wants the party, has a sign beside its name on the maps.",
@@ -78,7 +78,7 @@ void ui_guide_tab(void)
     topic("Battle", {
         "Battles run in real time; Space pauses. To give an order, click a member (on the field, or their box at the left; a right-click on the box opens their sheet), then an enemy to attack or a spot to walk to: that click gives the order, and if selecting the member paused the battle, it goes on. While the battle is paused, the next member without an order is selected, so a battle's first orders take one click each. A member with a bow, crossbow, gun or thrown weapon has a bow or a sword on their picture at the left: click it to choose whether a click on an enemy makes them shoot or fight hand to hand. Shooters draw their melee weapon by themselves once the enemies close in, so the volleys before the lines meet need no further orders. The buttons in the right margin hold the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt and more); for a member already fighting, an attack chosen there is given against that enemy at once. Z fast-forwards (Z again goes back to the chosen speed).",
         "The view scrolls when the pointer rests on its edge (or with Shift). To find a member out of sight, Ctrl+click their portrait: the view then follows them.",
-        "Armour has a hardness (soft, stiff, scale, mail, plate); a weapon whose penetration is above it pierces and wounds, one equal to it is halved, one below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of enemy on the field.",
+        "Armor has a hardness (soft, stiff, scale, mail, plate); a weapon whose penetration is above it pierces and wounds, one equal to it is halved, one below it is mostly deflected. Point at an enemy to see this for your weapons; E (Enemy Info) shows it for every kind of enemy on the field.",
         "Skills grow with use in battle (and with lessons at an inn); the gains show on the member's box when the fight ends.",
         "Missile weapons need ammunition (Darklands+ can give the party an endless supply: F12 > Settings > Game). A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear. (An experimental helper in F12 > Settings > Game lets a shooter find a clear line by itself.)",
         "After a fight in a street or a dungeon, walk the party out through an exit to go on.",

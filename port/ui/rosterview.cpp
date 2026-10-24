@@ -109,7 +109,7 @@ extern "C" void rosterview_draw(void)
     {
         static const int PK[12] = { 10, 11, 12, 13, 14, 15, 16, 18, 17, 7, 8, 9 };
         static const char *FOR[19] = { "", "", "", "", "", "", "", "brewing potions from the formulae the party knows",
-            "the saints: learning them and calling on them; churches and the clergy", "standing firm against evil; the saints' favour; some cards",
+            "the saints: learning them and calling on them; churches and the clergy", "standing firm against evil; the saints' favor; some cards",
             "talking: bargaining, persuading, most people on the cards", "talking with the learned, the clergy and the nobility",
             "reading letters, books, papers and inscriptions", "tending wounds after a fight", "locks, traps and devices",
             "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumours, the streets at night",
@@ -236,8 +236,8 @@ extern "C" void rosterview_draw(void)
             if (P.button(bx + 38, by, bx + 74, by + bh, "Heraldry >", BROWN)) ns_push(RV_KEY, K_HERALD, 0, 0);
             draw_pic(P, her, bx + 75, by - 0.5f, bx + 84, by + bh + 0.5f);
             float cx = bx + 87;
-            P.text(fo, 4.2f, cx, by + 2, soft, "Colours");
-            cx += P.width(fo, 4.2f, "Colours") + 2;
+            P.text(fo, 4.2f, cx, by + 2, soft, "Colors");
+            cx += P.width(fo, 4.2f, "Colors") + 2;
             static const int CK[3] = { K_C1, K_C2, K_C3 };
             for (int k = 0; k < 3; k++) {
                 std::string tip = word(r, 4 + k, "");
@@ -245,7 +245,7 @@ extern "C" void rosterview_draw(void)
                 if (P.over(cx, by, cx + 9, by + bh) && !tip.empty()) P.text(fo, 3.9f, 0, by - 5, dim, tip, DX1 - 3);
                 cx += 10.5f;
             }
-        } else P.text(fo, 4.0f, bx, by + 2, dim, "Add to the party to set sprite, heraldry and colours.");
+        } else P.text(fo, 4.0f, bx, by + 2, dim, "Add to the party to set sprite, heraldry and colors.");
     } else P.text(fo, NsDraw::FS_SMALL, DX0 + 4, DY0 + 4, soft, r.n ? "Choose a character on the left." : "");
 
     /* along the bottom */

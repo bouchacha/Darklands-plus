@@ -68,11 +68,11 @@ static std::vector<Eff> effects_table(int size)
             /* (a saint's, mods/sainttexts.c: 0x16f-0x173 armour and weapon quality, 0x175 armour against
                missiles, 0x177 / 0x178 the party's travel faster) */
             static const struct { int k; const char *f; } SAINTLY[] = {
-                { 0x16d, "%+d armour (from a saint)" }, { 0x16e, "worn armour %+d quality (from a saint)" },
-                { 0x16f, "metal armour %+d quality (from a saint)" }, { 0x170, "leather and cloth armour %+d quality (from a saint)" },
+                { 0x16d, "%+d armor (from a saint)" }, { 0x16e, "worn armor %+d quality (from a saint)" },
+                { 0x16f, "metal armor %+d quality (from a saint)" }, { 0x170, "leather and cloth armor %+d quality (from a saint)" },
                 { 0x171, "weapon %+d quality (from a saint)" }, { 0x172, "edged weapon %+d quality (from a saint)" },
                 { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (from a saint)" },
-                { 0x174, "fire protection %d (from a saint)" }, { 0x175, "%+d armour against missiles (from a saint)" },
+                { 0x174, "fire protection %d (from a saint)" }, { 0x175, "%+d armor against missiles (from a saint)" },
                 { 0x177, "the party travels %d%% faster (from a saint)" }, { 0x178, "the party travels %d%% faster in woods (from a saint)" },
                 { 0x179, "no death from wounds (from a saint)" } };
             bool done = false;
@@ -87,7 +87,7 @@ static std::vector<Eff> effects_table(int size)
             if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
             else if (item == 0x6a) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t);
             else if (item == 0x6d) { static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 }; int g = t < 1 ? 1 : t > 3 ? 3 : t;
-                snprintf(b, sizeof b, "%s: armour %+d thickness, %+d quality", n.c_str(), T[g], Q[g]); }
+                snprintf(b, sizeof b, "%s: armor %+d thickness, %+d quality", n.c_str(), T[g], Q[g]); }
             else if (item == 0x74) snprintf(b, sizeof b, "%s: fire protection %d", n.c_str(), t);
             else if (fix_is_on("greatpower")) snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t);
             else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);

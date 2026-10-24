@@ -168,7 +168,7 @@
 { "$MEETP00", 1, "You do not have that much money to give." },
 { "$MEETP00", 2, "Only when every member of your party has a horse or mule to give." },
 { "$MEETP01", 0, "You have no money at all to buy them food and clothing." },
-{ "$MEETP02", 0, "Needs a polearm or staff, a bow or metal armour to rig a rope; not after the rope or stripping attempt has failed." },
+{ "$MEETP02", 0, "Needs a polearm or staff, a bow or metal armor to rig a rope; not after the rope or stripping attempt has failed." },
 { "$MEETP02", 1, "Not after a rescue by rope, by hand or by stripping off gear has already failed." },
 { "$MEETP02", 2, "You have already tried stripping off all the gear, and it did not work." },
 { "$MEETS00", 4, "A leftover blank option: it is only active when your party includes a woman." },

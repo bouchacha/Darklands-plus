@@ -374,7 +374,7 @@ extern "C" void barterview_draw(void)
     spare_lit = spare_h;
     if (spare_h && V.fnote.empty()) {
         char t[200];
-        snprintf(t, sizeof t, "%d item%s not in use (weapons, armour, shields; not ammunition or throwing weapons), for about %s in all: the ones pulsing in the list.%s",
+        snprintf(t, sizeof t, "%d item%s not in use (weapons, armor, shields; not ammunition or throwing weapons), for about %s in all: the ones pulsing in the list.%s",
                  spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
         V.fnote = t; V.fhead = "Spare gear";
     }

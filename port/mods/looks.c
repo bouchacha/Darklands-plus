@@ -82,7 +82,7 @@ static int logon;
 
 /* ------------------------------------------------------------------ the figures */
 static const struct { const char *code, *title; } KNOWN[] = {
-    { "E05", "Grey-haired fighter" }, { "E07", "Brown-haired woman" }, { "E12", "Blond fighter" },
+    { "E05", "Gray-haired fighter" }, { "E07", "Brown-haired woman" }, { "E12", "Blond fighter" },
     { "E00", "Sergeant" }, { "E02", "Town guard" }, { "E04", "Mercenary" }, { "E03", "Bandit" },
     { "E10", "Knight" }, { "E11", "Knight in plate" }, { "E13", "Templar" }, { "E09", "Monk" },
     { "E06", "Alchemist" }, { "E08", "Witch" }, { "E17", "Cultist" },
@@ -435,7 +435,7 @@ static void analyse(Look *L)
         if (n && up * 10 > n * 7) {
             float h = hs / n, sa = ss / n;
             if ((h >= 0.02f && h <= 0.18f && sa >= 0.25f) || sa < 0.2f) {
-                if (logon) fprintf(stderr, "figures: %s: a family of %d colours is hair (%ld %% at the top)\n", L->code, (int)n, up * 100 / n);
+                if (logon) fprintf(stderr, "figures: %s: a family of %d colors is hair (%ld %% at the top)\n", L->code, (int)n, up * 100 / n);
                 continue;
             }
         }
@@ -493,7 +493,7 @@ static void analyse(Look *L)
         }
         int keep = 0;
         for (int pp = 0; pp < L->npart; pp++) {
-            if (fall && fpart[pp] * 100 < fall * 4) { if (logon) fprintf(stderr, "figures: %s: part %d hardly shows (%ld of %ld pixels): no colour key\n", L->code, pp, fpart[pp], fall); continue; }
+            if (fall && fpart[pp] * 100 < fall * 4) { if (logon) fprintf(stderr, "figures: %s: part %d hardly shows (%ld of %ld pixels): no color key\n", L->code, pp, fpart[pp], fall); continue; }
             if (keep != pp) { memcpy(L->part[keep], L->part[pp], sizeof L->part[0]); L->partn[keep] = L->partn[pp]; L->neutral[keep] = L->neutral[pp]; }
             keep++;
         }
@@ -546,7 +546,7 @@ static void analyse(Look *L)
         }
     }
     if (logon) {
-        fprintf(stderr, "figures: %s (%s): colours %d..%d, %d own shades in %d parts, weapons", L->code, L->title, L->S, L->S + 15, L->nslot, L->npart);
+        fprintf(stderr, "figures: %s (%s): colors %d..%d, %d own shades in %d parts, weapons", L->code, L->title, L->S, L->S + 15, L->nslot, L->npart);
         for (int i = 0; i < L->nweap; i++) fprintf(stderr, " %s", L->weap[i]);
         fprintf(stderr, ", pictures from %s\n  ", L->pic_file);
         for (int i = 0; i < 16; i++) if (L->cnt[i]) fprintf(stderr, " %d:%s%d(%ld/%ld)", i, L->slot[i] >= 0 ? "slot" : "fix", L->slot[i] >= 0 ? L->slot[i] : L->fix[i], fcnt[i], L->cnt[i]);
@@ -819,8 +819,8 @@ static void key_hook(int ovl)
                 Look *L = look_find(now);
                 char msg[160];
                 if (L) snprintf(msg, sizeof msg, "Sprite %d of %d: %s (an enemy's sprite%s)", k, n, L->title,
-                                L->npart > 2 ? "; the 1st, 2nd and 3rd colour buttons recolour it" : L->npart > 1 ? "; the 1st and 2nd colour buttons recolour it" :
-                                L->npart ? "; the 1st colour button recolours it" : "");
+                                L->npart > 2 ? "; the 1st, 2nd and 3rd color buttons recolour it" : L->npart > 1 ? "; the 1st and 2nd color buttons recolour it" :
+                                L->npart ? "; the 1st color button recolours it" : "");
                 else snprintf(msg, sizeof msg, "Sprite %d of %d: %s", k, n, looks_title_of(now)[0] ? looks_title_of(now) : now);
                 figure_notice(msg);
             }
@@ -839,7 +839,7 @@ static void key_hook(int ovl)
             if (d) { char msg[80]; snprintf(msg, sizeof msg, "%s color: %s", part == 0 ? "1st" : part == 1 ? "2nd" : "3rd", d); figure_notice(msg); }
             else {
                 char code[4]; looks_member_figure(m, code);
-                if (look_find(code)) figure_notice(part ? "This sprite has no more colours that can be changed." : "This sprite's colours are fixed: they cannot be changed.");
+                if (look_find(code)) figure_notice(part ? "This sprite has no more colors that can be changed." : "This sprite's colors are fixed: they cannot be changed.");
             }
         }
         AX = ax;
@@ -918,7 +918,7 @@ void looks_sprite_loaded(const char *name, u16 frames, int slot)
             o = (u16)(o + 2 + c);
         }
     }
-    LOG("figures: %s in slot %d: %d frames, %d pixels to the member's colours\n", name, slot, ns, changed);
+    LOG("figures: %s in slot %d: %d frames, %d pixels to the member's colors\n", name, slot, ns, changed);
 }
 
 /* ------------------------------------------------------------------ pictures */

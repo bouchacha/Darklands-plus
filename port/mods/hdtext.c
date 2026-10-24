@@ -351,7 +351,7 @@ static void clean_old_letters(Rec *r, const Fnt *F)
             }
             if (v >= 0) r->bg[p] = (u8)v;
         }
-    if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: text at %d,%d over the same letters (colour %02x): their background guessed\n", r->x0, r->y0, c);
+    if (getenv("DL_HD_LOG")) fprintf(stderr, "hd: text at %d,%d over the same letters (color %02x): their background guessed\n", r->x0, r->y0, c);
 }
 
 static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
@@ -400,7 +400,7 @@ static void text_hook(void)                 /* gfx_text(win, x, y, char *s) */
     if (drawn_in(&fnt[font - 1], &lay[font - 1], pm, big, sx, sy, bw, bh, xr)) used = font - 1;
     else for (int f = 0; f < nfnt && used < 0; f++) if (f != font - 1 && sx + lw[f] <= 320 && drawn_in(&fnt[f], &lay[f], pm, big, sx, sy, bw, bh, xr)) used = f;
     if (getenv("DL_HD_LOG")) { char t[100]; int k; for (k = 0; k < lay[font - 1].n && k < 99; k++) t[k] = (char)lay[font - 1].ch[k]; t[k] = 0;
-        fprintf(stderr, "hd: text at %d,%d mode %d colour %02x font %d (drawn in %d) page %d win %04x: %s\n", sx, sy, mode, defcol, font, used + 1, page, w, t); }
+        fprintf(stderr, "hd: text at %d,%d mode %d color %02x font %d (drawn in %d) page %d win %04x: %s\n", sx, sy, mode, defcol, font, used + 1, page, w, t); }
     if (used < 0) { drop_covered(page, sx, sy, lw[font - 1], fnt[font - 1].height); free(big); return; }
     const Fnt *F = &fnt[used];
     Rec r = lay[used];

@@ -236,7 +236,7 @@ extern "C" void ui_icon_styles_draw(void)
     if (!sheet_on) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(246, 236, 212, 255));
-    static const char *TITLE[3] = { "Drawn in colour (no disc)", "Woodcut", "Heraldic" };
+    static const char *TITLE[3] = { "Drawn in color (no disc)", "Woodcut", "Heraldic" };
     float colw = ds.x / 3, row = ds.y / 27.5f, sz = row * 0.8f;
     for (int st = 0; st < 3; st++) {
         float x = st * colw + 20;

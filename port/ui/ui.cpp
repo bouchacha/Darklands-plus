@@ -782,8 +782,8 @@ static void help_window(void)
         } else if (lodgeview_showing()) {          /* (a stay: the game counts it as a card) */
             orn_septext(lodgeview_camping() ? "Now: a camp" : "Now: a stay at the inn");
             row("A member, or 1 ... 5", "choose the member whose day you are planning");
-            row("J R P A E G T", "Just relax, Regain strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
-            row("S or A day", "one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain strength, then days pass until nobody is regaining Strength or praying");
+            row("J R P A E G T", "Just relax, Regain Strength, Pray, Alchemy, Earn money, Guard the camp, Train (the original's keys)");
+            row("S or A day", "one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying");
             row("L, Esc or Leave", "leave");
         } else if (gm == GM_CARD) {
             orn_septext("Now: a card");

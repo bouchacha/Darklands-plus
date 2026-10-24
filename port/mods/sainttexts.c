@@ -339,7 +339,7 @@ static void saint_hook(void)                 /* a saint's function (who, x, what
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8)), k = -1;
     for (int i = 0; i < NSAINTS; i++) if (by_hook[i] == hook_current) k = i;
-    if (what != 8 || k < 0 || !present(who) || (SAINTS[k].arm && !fix_is_on("armourday"))) { hook_call_original(); return; }
+    if (what != 8 || k < 0 || !present(who) || (SAINTS[k].arm && !fix_is_on("armorday"))) { hook_call_original(); return; }
     SAINTS[k].fn(who);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix sainttexts: saint %d's help, as its text, for member %d\n", SAINTS[k].saint, who);
     AX = 0; DX = 0;
@@ -349,7 +349,7 @@ static void saint_hook(void)                 /* a saint's function (who, x, what
 int sainttexts_handles(int saint)
 {
     if (!sainttexts_on) return 0;
-    for (int i = 0; i < NSAINTS; i++) if (SAINTS[i].saint == saint) return !SAINTS[i].arm || fix_is_on("armourday");
+    for (int i = 0; i < NSAINTS; i++) if (SAINTS[i].saint == saint) return !SAINTS[i].arm || fix_is_on("armorday");
     return 0;
 }
 

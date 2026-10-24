@@ -362,7 +362,7 @@ static void presets_block(void)
     ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     ImGui::TextWrapped("Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; "
-                       "what Darklands+ records on top (Sabbats learned, items marked Keep, sprites and colours) goes into separate files of its own. Switching presets "
+                       "what Darklands+ records on top (Sabbats learned, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets "
                        "or single switches at any time is safe.");
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
@@ -537,7 +537,7 @@ static void display_icons(void)
     });
     ImGui::TextUnformatted("The pictures of the attributes and skills");
     static const int SKV[2] = { 2, 0 };
-    static const char *SKL[2] = { "Heraldic", "In colour" };
+    static const char *SKL[2] = { "Heraldic", "In color" };
     pic_choice("skillicons", "display.skill_icon_look", 2, SKV, SKL, 2, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
         void ui_icon_style_preview(int st); extern int ui_icon_disc;
         dl->AddRectFilled(a, b, IM_COL32(246, 236, 212, 255), 4);
@@ -577,7 +577,7 @@ static void look_text(void)
           if (ImGui::Checkbox("Names in full where the game cut them short (Studded Leather, Illuminated Gospel, St. Gregory Thaumaturgus, Raimundus Lullus' Sunburst)", &fn)) {
               config_set_int("display.full_names", fn); gamedata_names(); ui_dirty_config = 1; }
           ImGui::Indent(); if (!fn) ImGui::BeginDisabled();
-          if (ImGui::Checkbox("Armour by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
+          if (ImGui::Checkbox("Armor by where it is worn: Chainmail (body) and Chainmail (legs), instead of V:Chainmail and L:Chainmail", &aw)) {
               config_set_int("display.armour_worn", aw); gamedata_names(); ui_dirty_config = 1; }
           if (!fn) ImGui::EndDisabled(); ImGui::Unindent(); }
         { bool co = money_coins();
@@ -614,9 +614,9 @@ static void look_pictures(void)
         if (msg[0]) ui_hint("%s", msg);
         bool sn = hdart_show_names;
         if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
-        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has colour 0) replaces the "
+        ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the "
              "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
-             "to art%soriginal as a template, in its own colours. Whatever the game draws over a picture (text, the "
+             "to art%soriginal as a template, in its own colors. Whatever the game draws over a picture (text, the "
              "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
         ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
              "(Heraldry, when making a party). A save with a character using one of these crests loads only in Darklands+.", PATH_SEP);

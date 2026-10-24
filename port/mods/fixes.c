@@ -230,7 +230,7 @@ Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points for good",
       "A second blessing on the same attribute, or one near 99, used to take points away when it wore off. A boost to Endurance or Strength was taken off in full when it ran out, even after a night's rest or a wound had already used it up (a badly wounded member could die of it). A lowering given to the whole party (the Cavern of Fire and Hail) stopped at the first member boosted above it.", 1 },
     { "fireward", "No invulnerability from fire protection",
-      "The fire protection from St. Polycarp, Firewall and the like no longer turns into permanent armour (+16 to +64).", 1 },
+      "The fire protection from St. Polycarp, Firewall and the like no longer turns into permanent armor (+16 to +64).", 1 },
     { "nullitem", "No \"(null)\" or empty items",
       "Items with a code beyond the end of the game's item list (shown as \"(null)\") and empty stacks are no longer added to an inventory.", 1 },
     { "castle", "Castle battles end when the knight dies",
@@ -243,8 +243,8 @@ Fix FIXES[] = {
       "A character carries at most 64 kinds of items; what the game gave to a full pack simply vanished (quest items too). It now goes to someone with room. Buying when nobody had room took the money for nothing, and taking an item from a store room into a full pack lost it: both are now refused.", 1 },
     { "innsave", "Saving and loading stay possible after the inn",
       "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened.", 1 },
-    { "colours", "Characters keep their colours (the \"neon hair\" bug)",
-      "Characters' colours and sprites sometimes change to garish ones after an encounter. Their own colours are now kept and put back.", 1 },
+    { "colors", "Characters keep their colors (the \"neon hair\" bug)",
+      "Characters' colors and sprites sometimes change to garish ones after an encounter. Their own colors are now kept and put back.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
     { "potions", "Weapon potions wear off and don't ruin weapons",
@@ -255,18 +255,18 @@ Fix FIXES[] = {
       "Where a card lets the leader practise with the weapon he or she is best at, the original always trained Missile Devices.", 1 },
     { "itemcount", "Robbers take only what is there (no crash afterwards)",
       "When robbers took the party's items, the game removed one item too many; a character left with nothing ended up with -1 items, and if he or she later died in battle, the game overwrote its own memory and crashed. Fixed; saved games with the fault are repaired automatically.", 1 },
-    { "storeroom", "Nothing lost in store rooms",
+    { "store room", "Nothing lost in store rooms",
       "A store room holds 100 kinds of items, and its count of any one item ran over past 127 (shown as a negative number, then lost). Putting more in is now refused, with a message saying why.", 1 },
     { "testcard", "No crash on the developers' test card",
       "Card 0 is the developers' test card ($Initi00, \"Try it...you will like it!\"). A card that returns to the card it came from went to card 0 when it had come from no card, and the game stopped on the test card's missing picture (pics\\xhouse3.pic). It now goes on to the map, or to the town the party is in.", 1 },
-    { "armourwear", "Only the armour worn wears out",
-      "Identical pieces of armour are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers.", 1 },
+    { "armorwear", "Only the armor worn wears out",
+      "Identical pieces of armor are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers.", 1 },
     { "teachers", "Training at the inn finds the town's teachers",
-      "When another town also had teachers at the same time, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learnt. The inn now lists this town's teachers and charges their fee.", 1 },
+      "When another town also had teachers at the same time, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learned. The inn now lists this town's teachers and charges their fee.", 1 },
     { "cardopts", "Card options no longer greyed out by mistake",
       "Getting out over a city wall, the bribe could be offered without the money (the money check was on the option to crawl out through the sewer instead); at a rebel crowd's fortress the climb with a rope was greyed out when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each option from the second on did what the option below it should do (three \"abandon the horses\" options the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but \"leave\": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, once woken, at a cost in reputation; they are open by day now.", 1 },
-    { "patronsaint", "Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learnt",
-      "Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game wrote it for \"member -1\": nobody learnt the saint, and the fifth member was marked as knowing a formula instead.", 1 },
+    { "patronsaint", "Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learned",
+      "Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game wrote it for \"member -1\": nobody learned the saint, and the fifth member was marked as knowing a formula instead.", 1 },
     { "debtnote", "Debt notes are where the merchant says",
       "A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named.", 1 },
     { "alchrisk", "The risk levels of alchemy formulae work the right way round",
@@ -279,8 +279,8 @@ Fix FIXES[] = {
       "Taking the item an errand seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins.", 1 },
     { "lordreward", "The lord pays for his tasks",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a task's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
-    { "armourday", "Armour and fire protection from potions and saints last a day; Hardarmor works as the manual says",
-      "Hardarmor (+1 to +3 armour), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armour) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) wrote their protection against fire where the battle reads armour: +32 or +48 armour for good (or nothing, with the fire protection fix on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armour 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
+    { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
+      "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) wrote their protection against fire where the battle reads armor: +32 or +48 armor for good (or nothing, with the fire protection fix on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The game added those points to the byte that holds the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
@@ -298,9 +298,9 @@ Fix FIXES[] = {
     { "saintrep", "A saint's reputation bonus goes to the right town",
       "Called on in Prag, St. John Nepomuk raised the reputation of a place chosen by whatever value happened to be in memory (another town, or memory past the list of places) instead of Prag's; St. Cecilia called on away from any town (on the map) raised the reputation of a \"place\" before the first one in the list, writing into memory that is not a place. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints.", 1 },
     { "sainttexts", "Saints do what their texts say",
-      "For 43 saints, the help the game's code gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armour; St. Crispin improved metal armour, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md describe each one). The armour and fire saints need the fix \"Armour and fire protection from potions and saints last a day\".", 1 },
+      "For 43 saints, the help the game's code gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the character sheet and docs/SAINTS.md describe each one). The armor and fire saints need the fix \"Armor and fire protection from potions and saints last a day\".", 1 },
     { "nightbowyer", "The bowyer sells bows at night too",
-      "Woken at night, a bowyer opened a shop of the smiths' weapons and armour and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
+      "Woken at night, a bowyer opened a shop of the smiths' weapons and armor and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
     { "confession", "Confession always takes at least an hour",
       "The better the party's reputation in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes at least an hour.", 1 },
     { "appointment", "An audience promised for tomorrow is kept",
@@ -318,7 +318,7 @@ Fix FIXES[] = {
     { "membervalue", "A church tithe blesses the right member",
       "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to \"member\" 40 or so (the skill's value was taken for the member), past the party, into the game's memory; and sneaking into a guild leader's house at night named a member by the lowest Agility value (a garbled name). Both now use the member who has that value.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armour, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practise once for each member.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practise once for each member.", 1 },
     { "nightwall", "Climbing a city wall at night uses the right chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -572,7 +572,7 @@ static void col_read(u8 cur[5][28])
 }
 static void colours_frame(void)
 {
-    if (!fix_on("colours")) { col_have = 0; return; }
+    if (!fix_on("colors")) { col_have = 0; return; }
     u8 cur[5][28]; col_read(cur);
     extern unsigned dos_save_read_ms; u32 plat_ticks_ms(void);
     /* a game was loaded (quick load, autosave, the save browser, Alt-L, Quickstart): its colours
@@ -598,7 +598,7 @@ static void colours_frame(void)
         if (!memcmp(cur[m], col_good[m], 28)) continue;
         if (col_good[m][24] < 'A' || col_good[m][24] > 'Z') continue;    /* the slot was empty: a new member */
         { int z = 1; for (int i = 0; i < 24; i++) if (col_good[m][i]) z = 0; if (z) continue; }   /* (no colours kept yet: nothing to put back) */
-        fprintf(stderr, "fix colours: member %d's colours/figure changed outside creation and loading (mode %d): put back\n", m, game_mode());
+        fprintf(stderr, "fix colors: member %d's colors/figure changed outside creation and loading (mode %d): put back\n", m, game_mode());
         if (getenv("DL_FIX_LOG")) {
             fprintf(stderr, "  was:"); for (int i = 0; i < 28; i++) fprintf(stderr, " %02x", col_good[m][i]);
             fprintf(stderr, "\n  now:"); for (int i = 0; i < 28; i++) fprintf(stderr, " %02x", cur[m][i]);
@@ -675,7 +675,7 @@ void fixes_frame(void)
     if (fix_on("potions")) potions_frame();
     if (fix_on("offmap")) offmap_frame();
     if (fix_on("altar")) altar_frame();
-    if (fix_on("armourday")) armourday_frame();
+    if (fix_on("armorday")) armourday_frame();
     if (fix_on("greatpower") || sainttexts_on) greatpower_frame();
 }
 
@@ -727,7 +727,7 @@ static int pot_all(PotEv *out, int max)
         for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
     return n;
 }
-static int any_potion_fix(void) { return fix_on("potions") || fix_on("armourday") || fix_on("greatpower") || sainttexts_on; }   /* (their kind 0x4a events kept over a battle) */
+static int any_potion_fix(void) { return fix_on("potions") || fix_on("armorday") || fix_on("greatpower") || sainttexts_on; }   /* (their kind 0x4a events kept over a battle) */
 static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e */
 {
     pot_nkept = any_potion_fix() ? pot_table(pot_kept, 64) : 0;
@@ -857,7 +857,7 @@ static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), idx = (s16)rw(SS, (u16)(SP + 6));
     int code = who >= 0 && who < 5 && idx >= 0 && idx < 64 ? rw(G_FAR2E38, G_ITEM(who, idx)) & 0xfff : -1;
-    int arm = fix_on("armourday") && (code == 0x6d || code == 0x74), gp = fix_on("greatpower") && code == 0x6b;
+    int arm = fix_on("armorday") && (code == 0x6d || code == 0x74), gp = fix_on("greatpower") && code == 0x6b;
     if (!arm && !gp) { hook_call_original(); return; }
     u16 mb = (u16)G_MEMBER(who);
     u8 a41 = g_rb((u16)(mb + 0x41)), b34 = g_rb((u16)(mb + 0x34)), had[300];
@@ -868,12 +868,12 @@ static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43
         g_wb((u16)(mb + 0x41), a41);                    /* (the frame puts what the running ones give) */
         int q = rb(G_FAR2E38, (u16)(G_ITEM(who, idx) + 3)), grade = q <= 25 ? 1 : q <= 35 ? 2 : 3;
         record_potion(who, 0x6d, grade);                /* (the grade: hardarmor_give) */
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Hardarmor grade %d for a day\n", who, grade);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d Hardarmor grade %d for a day\n", who, grade);
     } else if (code == 0x74) {
         int t = (s8)g_rb((u16)(mb + 0x10));
         g_wb((u16)(mb + 0x41), a41);                    /* (its +16 armour: fireward's, gone with it) */
         if (t > 0) record_potion(who, 0x74, t);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d Firewall %d for a day\n", who, t);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d Firewall %d for a day\n", who, t);
     } else {
         g_wb((u16)(mb + 0x34), b34);                    /* (the byte as it was) */
         for (int i = 0; i < 300; i++) {                 /* the event it made: marked Greatpower's */
@@ -900,7 +900,7 @@ static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's
     g_wb((u16)(mb + 0x41), a41);
     record_potion(who, 0x16d, add);                     /* (0x16d: a saint's armour, added to Hardarmor's) */
     AX = ax; DX = dx;
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d blessed with +%d armour for a day\n", who, add);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d blessed with +%d armor for a day\n", who, add);
 }
 static void dunstan_hook(void) { saint_armour(1); }
 static void patrick_hook(void) { saint_armour(2); }
@@ -963,7 +963,7 @@ static void crispin_hook(void)
         g_wb((u16)(G_MEMBER(m) + 0x3b), q[m][0]); g_wb((u16)(G_MEMBER(m) + 0x3c), q[m][1]);
         if (!g_rb(G_MEMBER(m))) continue;
         record_potion(m, 0x16e, 10);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d armour quality +10 (St. Crispin) for a day\n", m);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d armor quality +10 (St. Crispin) for a day\n", m);
     }
     AX = ax; DX = dx;
 }
@@ -986,7 +986,7 @@ static void fire_saint(int whole, int saint)
         g_wb((u16)(G_MEMBER(m) + 0x41), a41[m]); g_wb((u16)(G_MEMBER(m) + 0x10), f10[m]);
         if (!g_rb(G_MEMBER(m)) || (!whole && m != who)) continue;
         record_potion(m, 0x174, 90);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d fire protection 90 (a saint's) for a day\n", m);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d fire protection 90 (a saint's) for a day\n", m);
     }
     AX = ax; DX = dx;
 }
@@ -1008,11 +1008,11 @@ static void armourday_frame(void)
         hardarmor_give(m, &arm, &q);
         u8 was = g_rb((u16)(mb + 0x41)), v = (u8)((was & 0xf0) | arm);
         if (v != was) {
-            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d armour bonus %d -> %d\n", m, was & 15, arm);
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d armor bonus %d -> %d\n", m, was & 15, arm);
             g_wb((u16)(mb + 0x41), v);
         }
         if ((s8)g_rb((u16)(mb + 0x10)) != fire) {
-            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourday: member %d fire protection %d -> %d\n", m, (s8)g_rb((u16)(mb + 0x10)), fire);
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorday: member %d fire protection %d -> %d\n", m, (s8)g_rb((u16)(mb + 0x10)), fire);
             g_wb((u16)(mb + 0x10), (u8)fire);
         }
     }
@@ -1106,13 +1106,13 @@ const char *storeroom_put_refusal(int key)
     }
     return 0;
 }
-int storeroom_fix_on(void) { return fix_on("storeroom"); }
+int storeroom_fix_on(void) { return fix_on("store room"); }
 static void storeroom_hook(void)           /* cache_key(key), s035 1462:0a46 */
 {
     const char *why = storeroom_put_refusal(rw(SS, (u16)(SP + 4)) & 0xff);
     if (why) {
         ui_notice(why);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix storeroom: %s\n", why);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix store room: %s\n", why);
         hook_return_far(0);
         return;
     }
@@ -1203,7 +1203,7 @@ static void armourwear_hook(void)          /* s019 1ef8:0968 (i, type, quality, 
         g_wb(CB_NITEMS(i), (u8)(n + 1));
     } else { hook_call_original(); return; }                 /* (a full pack: as the original) */
     wb(G_FAR2E38, (u16)(o + 4), (u8)(cnt - 1));
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourwear: member %d, one of %d (type %d, q%d) worn to q%d alone\n", i, cnt, type, q, (s8)nq);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorwear: member %d, one of %d (type %d, q%d) worn to q%d alone\n", i, cnt, type, q, (s8)nq);
     hook_return_far(0);
 }
 static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away worn-out armour */
@@ -1222,7 +1222,7 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
                 for (int j = k; j < n - 1; j++) for (int b = 0; b < 6; b++) wb(G_FAR2E38, (u16)(G_ITEM(i, j) + b), rb(G_FAR2E38, (u16)(G_ITEM(i, j + 1) + b)));
                 g_wb(CB_NITEMS(i), (u8)(n - 1));
             }
-            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armourwear: member %d's worn-out armour thrown away (%d left of it)\n", i, cnt - 1);
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorwear: member %d's worn-out armor thrown away (%d left of it)\n", i, cnt - 1);
         }
         g_wb((u16)(cb + 0x4b + s), 0xff); g_wb((u16)(cb + 0x4d + s), 0); g_wb((u16)(cb + 0x4f + s), 0x19);
     }
@@ -1654,7 +1654,7 @@ static void teachcap_hook(void)            /* camp_spend_day(mode), s036 1462:14
         g_ww((u16)(GV_camp_activity + 2 * i), 0);       /* rests */
         char name[32], msg[160];
         gm_member_name(i, name, sizeof name);
-        snprintf(msg, sizeof msg, "%s has learnt all the teacher of %s can teach (ability %d), and rests instead.", name, gm_skill_name(k), a);
+        snprintf(msg, sizeof msg, "%s has learned all the teacher of %s can teach (ability %d), and rests instead.", name, gm_skill_name(k), a);
         ui_notice_for(msg, 6000);
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix teachcap: member %d's %s (%d) has reached the teacher's %d\n", i, gm_skill_name(k), (s8)g_rb((u16)(G_MEMBER(i) + G_M_SKILLS + k)), a);
     }
@@ -2509,13 +2509,13 @@ _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0],
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
-    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armourwear", 19, 0x1ef8, 0x0914, wornout_hook },
+    { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armorwear", 19, 0x1ef8, 0x0914, wornout_hook },
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
     { "bishop", 39, 0x1462, 0x1712, errand_hook }, { "bishop", 56, 0x19c4, 0x0e0a, relic_hook },
-    { "armourday", 39, 0x165c, 0x2052, dunstan_hook }, { "armourday", 39, 0x165c, 0x5b82, patrick_hook },
-    { "armourday", GF_hit_damage, armour_hit_hook }, { "armourday", 39, 0x165c, 0x1868, crispin_hook },
-    { "armourday", 39, 0x165c, 0x125a, charity_hook }, { "armourday", 39, 0x165c, 0x2628, erasmus_hook },
-    { "armourday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armourday", 39, 0x165c, 0x6122, polycarp_hook },
+    { "armorday", 39, 0x165c, 0x2052, dunstan_hook }, { "armorday", 39, 0x165c, 0x5b82, patrick_hook },
+    { "armorday", GF_hit_damage, armour_hit_hook }, { "armorday", 39, 0x165c, 0x1868, crispin_hook },
+    { "armorday", 39, 0x165c, 0x125a, charity_hook }, { "armorday", 39, 0x165c, 0x2628, erasmus_hook },
+    { "armorday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armorday", 39, 0x165c, 0x6122, polycarp_hook },
     { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "saintrep", GF_loc_reputation_adj, repadj_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook },
     { "membervalue", 71, 0x1838, 0x02a8, mv_wrap_hook }, { "membervalue", GF_party_max_skill, mv_query_hook },

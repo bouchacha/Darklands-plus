@@ -95,7 +95,7 @@ struct TownFind { const char *label; int icon; int shop; const char *shrt; };   
 static const TownFind TFIND[] = {
     { "a university", TI_UNIVERSITY, -1, "University" }, { "a cathedral", TI_CATHEDRAL, -1, "Cathedral" }, { "an alchemist", TI_ALCHEMIST, -1, "Alchemist" },
     { "a physician", TI_PHYSICIAN, -1, "Physician" }, { "docks (boats)", TI_DOCKS, -1, "Docks" }, { "a bank", TI_BANK, -1, "Bank" },
-    { "a swordsmith of 30q+", TI_SWORD, 2, "Swords 30q+" }, { "an armourer of 30q+", TI_ARMOUR, 3, "Armour 30q+" }, { "a bowyer of 30q+", TI_BOW, 5, "Bows 30q+" },
+    { "a swordsmith of 30q+", TI_SWORD, 2, "Swords 30q+" }, { "an armorer of 30q+", TI_ARMOUR, 3, "Armor 30q+" }, { "a bowyer of 30q+", TI_BOW, 5, "Bows 30q+" },
     { "an artificer of 30q+", TI_TOOLS, 6, "Tools 30q+" } };   /* (a library: nearly every town has one; the character sheet's Saints say where each saint is taught) */
 static const int NTFIND = (int)(sizeof TFIND / sizeof TFIND[0]);
 static int tfind = -1;                                    /* -1: off */

@@ -118,7 +118,7 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
     if (anim == 1 || anim == 2) {
         int de = e0 - e1, ds = s0 - s1;
         bool back = g_rb((u16)(GV_cbt_anim + t)) == 3;       /* a heavy blow pushes the target back a step */
-        if (de <= 0 && ds <= 0) add(kind, a + " hits " + d + ", the armour holds" + (back ? "; knocked back" : ""));
+        if (de <= 0 && ds <= 0) add(kind, a + " hits " + d + ", the armor holds" + (back ? "; knocked back" : ""));
         else add(t < 5 ? 2 : kind, a + (ds > 0 ? " wounds " : " hits ") + d + " (" + cost(de, ds) + ")" + (back ? ", knocked back" : ""));
     }
     else if (anim == 6) add(kind, a + " misses " + d);
@@ -252,7 +252,7 @@ extern "C" void battlelog_frame(void)
         }
         if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
             int by = shot_by[i]; shot_by[i] = -1;
-            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, name_of(by) + shot_word(by) + " hits " + name_of(i) + ", the armour holds");
+            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, name_of(by) + shot_word(by) + " hits " + name_of(i) + ", the armor holds");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
         if (st) last_st[i] = st;

@@ -56,7 +56,7 @@ static std::vector<unsigned char> read_all(FILE *f)
 
 static int w16(const unsigned char *p) { return p[0] | (p[1] << 8); }
 
-const char *SHOP_NAMES[9] = { "Blacksmith", "Goods merchant", "Swordsmith", "Armourer", "Gunsmith", "Bowyer",
+const char *SHOP_NAMES[9] = { "Blacksmith", "Goods merchant", "Swordsmith", "Armorer", "Gunsmith", "Bowyer",
                               "Artificer", "Jeweller", "Clothmaker" };
 
 std::string game_text(const char *s, size_t n)
@@ -103,13 +103,13 @@ static ItemKind classify(const ItemDef &d)
 
 const char *kind_name(ItemKind k)
 {
-    static const char *n[] = { "Weapons", "Missile weapons", "Armour", "Shields", "Gear", "Tools", "Instruments",
+    static const char *n[] = { "Weapons", "Missile weapons", "Armor", "Shields", "Gear", "Tools", "Instruments",
                                "Alchemical ingredients", "Potions", "Relics", "Horses", "Documents", "Curiosities", "Other" };
     return n[k];
 }
 const char *kind_name_one(ItemKind k)
 {
-    static const char *n[] = { "Weapon", "Missile weapon", "Armour", "Shield", "Gear", "Tool", "Instrument",
+    static const char *n[] = { "Weapon", "Missile weapon", "Armor", "Shield", "Gear", "Tool", "Instrument",
                                "Alchemical ingredient", "Potion", "Relic", "Horse", "Document", "Curiosity", "Item" };
     return n[k];
 }

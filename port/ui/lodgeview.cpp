@@ -233,7 +233,7 @@ extern "C" void lodgeview_draw(void)
         const LodgeMember &p = m.m[m.sel];
         snprintf(b, sizeof b, "%s's day", ns_gtext(p.name).c_str());
         P.text(f, NsDraw::FS_HEAD, RX0, TY - 1.5f, ink, b);
-        static const char *ACT[7] = { "Just Relax", "Regain Strength", "Pray for divine favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
+        static const char *ACT[7] = { "Just Relax", "Regain Strength", "Pray for Divine Favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
         static const char *WHY[7] = { "", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teacher in this place now." };
         static const char *WHAT[7] = { "Rest: Endurance comes back to full. Nothing else is gained.", "Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too).",
             "Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day.", "Make potions from a known formula (the ingredients are used up). Endurance does not come back that day.",
@@ -278,7 +278,7 @@ extern "C" void lodgeview_draw(void)
                     ImU32 tcol = tc ? NsDraw::LIGHT : capped ? dim : ink, scol = tc ? IM_COL32(244, 226, 190, 255) : capped ? dim : soft;
                     ui_skill_icon(P.dl, NsDraw::w(x0 + 11, ay + th * 0.48f), th * 0.48f * P.k, T.skill);
                     P.text(fo, NsDraw::FS_BODY * fminf(1.0f, th / 9.0f), x0 + 16, ay + th * 0.14f, tcol, gm_skill_name(T.skill), -1, x0 + 46);
-                    if (capped) snprintf(b, sizeof b, "learnt all (%d)", T.val);
+                    if (capped) snprintf(b, sizeof b, "learned all (%d)", T.val);
                     else snprintf(b, sizeof b, "%d%%  \xc2\xb7  to %d  \xc2\xb7  %s  \xc2\xb7  %d day%s", teach_chance(T.val), T.val, money_str(T.fee).c_str(), T.days_left, T.days_left == 1 ? "" : "s");
                     P.text(fo, NsDraw::FS_SMALL * fminf(1.0f, th / 9.0f), 0, ay + th * 0.2f, scol, b, x1 - 1.5f);
                     if (thv) hover_act = 100 + t;

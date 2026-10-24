@@ -62,7 +62,7 @@ static int best_quality(int m, int id)
     return q;
 }
 
-/* a card that sells formulae ($Alche01: "the following formulas can be purchased"): its four
+/* a card that sells formulae ($Alche01: "the following formulae can be purchased"): its four
  * card_items are the potions, $Text1..4 the formulae's names, $Money1..4 their prices; the formula
  * of slot s (gamedata order, potion 95 + f / 3), or -1 */
 static int cv_formula_of_slot(int s)

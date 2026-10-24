@@ -32,7 +32,7 @@ extern "C" void enemyview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM;
-    static const char *HN[6] = { "no armour", "soft", "stiff", "scale", "mail", "plate" };
+    static const char *HN[6] = { "no armor", "soft", "stiff", "scale", "mail", "plate" };
     int cols = m.n > 3 ? 2 : 1, rows = (m.n + cols - 1) / cols;
     const float X0 = 64, X1 = 318, Y0 = 3;
     float ch = (197 - Y0 - 16 - (rows - 1) * 3) / (rows ? rows : 1);
@@ -85,7 +85,7 @@ extern "C" void enemyview_draw(void)
             if (e.weapon_magic && !w.empty()) w += " (enchanted)";
             if (!w.empty()) line(w, ink);
         } else {
-            line(std::string("Natural armour") + (m.difficulty != 2 ? std::string(" - ") + m.quality[e.natural] : ""), ink);
+            line(std::string("Natural armor") + (m.difficulty != 2 ? std::string(" - ") + m.quality[e.natural] : ""), ink);
             line("Natural weapons" + word_m, ink);
         }
         /* the party's weapons against its body armour (the game's rule: penetration above the
