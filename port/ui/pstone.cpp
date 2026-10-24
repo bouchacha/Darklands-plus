@@ -72,6 +72,8 @@ void bird(ImDrawList *dl, ImVec2 c, float u, int st, float t)
 
 void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t)
 {
+    bool numbered = quality > 0;                        /* (a quality below 0: that stone, without its number) */
+    if (quality < 0) quality = quality == -1 ? 0 : -quality;
     float u = s / 40.0f;
     int st = stage_of(quality);
     float pulse = 0.85f + 0.15f * sinf(t * 2.2f);
@@ -133,7 +135,7 @@ void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, fl
         }
         /* the number: the stone's quality, in the middle, as an alchemist would ink it (MedievalSharp, the
            manuscript hand of the game's fonts), dark ink on a halo of parchment so it reads on any stage */
-        if (quality > 0) {
+        if (numbered && quality > 0) {
             char b[16]; snprintf(b, sizeof b, "%d", quality);
             extern ImFont *ui_font_game[];
             ImFont *f = ui_font_game[4] ? ui_font_game[4] : ImGui::GetFont();

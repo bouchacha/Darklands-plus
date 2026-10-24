@@ -207,6 +207,7 @@ static void day_line(char *out, int n, int act, int val, const char *detail)
     out[o] = 0;
 }
 
+static int day_changed(const LodgeModel *was, const LodgeModel *now, int until_rested);
 static void build(void)
 {
     LodgeModel *m = &lodge_model;
@@ -382,10 +383,12 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                     if (a.type == LV_REST && !m->resting) break;
                     if (m->cost > m->purse) break;                      /* (a day the purse cannot pay: the game passes no time but counts it) */
                     int before = (s16)g_rw(LV_NDAYS);
+                    LodgeModel was = *m;                                /* (to see what the day changed) */
                     m->pass_n = d + 1; m->pass_of = a.type == LV_DAYS ? a.a : 0;
                     leave = key(0x1f53, 0);
                     if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */
                     build();
+                    if (d + 1 < (a.type == LV_DAYS ? a.a : 14) && day_changed(&was, m, a.type == LV_REST)) break;   /* (the days stop where a choice would be made anew) */
                     for (int w = 0; w < 30 && !skip_run; w++) {         /* (a moment to see each day: the hours went by on the page) */
                         dl_poll(); plat_sleep_ms(4);
                         ns_input_poll();
@@ -410,6 +413,33 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     call(0x082c, 1, mode, 0);                                   /* the original's leaving */
     fprintf(stderr, "lodging: closed (%d days)\n", (s16)g_rw(LV_NDAYS));
     hook_return_far(0);
+}
+
+/* a run of days (A week, Until rested) stops when the day's choices no longer hold: a member's
+   activity changed by the game (a teacher gone, nothing left to do), a teacher in use leaving, or
+   someone regaining Strength or praying now full. Said in a notice. 1: stop */
+static int day_changed(const LodgeModel *was, const LodgeModel *now, int until_rested)
+{
+    void ui_notice(const char *);
+    char msg[160]; msg[0] = 0;
+    for (int i = 0; i < 5 && !msg[0]; i++) {
+        const LodgeMember *a = &was->m[i], *b = &now->m[i];
+        if (!a->present || !b->present) continue;
+        char nm[24]; snprintf(nm, sizeof nm, "%s", b->name);
+        if (a->act == 6 && a->skill >= 0) {
+            int there = 0;
+            for (int t = 0; t < now->nteach; t++) if (now->t[t].skill == a->skill && now->t[t].days_left > 0) there = 1;
+            if (!there || b->act != 6) { snprintf(msg, sizeof msg, "The days stop: %s's teacher has gone.", nm); break; }
+        }
+        if (a->act != b->act) { snprintf(msg, sizeof msg, "The days stop: %s's day changed.", nm); break; }
+        if (until_rested) continue;                             /* (Until rested runs on while anyone still rests) */
+        if (b->act == 1 && a->str < a->str_max && b->str >= b->str_max) snprintf(msg, sizeof msg, "The days stop: %s has regained all Strength.", nm);
+        if (b->act == 2 && a->df < a->df_max && b->df >= b->df_max) snprintf(msg, sizeof msg, "The days stop: %s's Divine Favor is full.", nm);
+    }
+    if (!msg[0]) return 0;
+    fprintf(stderr, "lodging: %s\n", msg);
+    ui_notice(msg);
+    return 1;
 }
 
 void lodgeview_init(void)

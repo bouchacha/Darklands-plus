@@ -14,6 +14,7 @@ void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, i
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 extern "C" {
 #include "../runtime/cpu.h"
+#include "../runtime/game.h"
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
 #include "money.h"
@@ -91,26 +92,53 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         dl->AddEllipseFilled(Q(-3, -8), ImVec2(3 * u, 2 * u), IM_COL32(250, 244, 226, 255));
         dl->PathArcTo(Q(5, 1.5f), 4.2f * u, -1.4f, 1.4f, 10); dl->PathStroke(IM_COL32(70, 70, 76, 255), 0, 2 * u);
         break;
-    case 1: ui_attr_icon(dl, c, s * 0.62f, 1); break;                  /* Regain Strength */
-    case 2: ui_attr_icon(dl, c, s * 0.62f, 6); break;                  /* Pray: Divine Favor's chalice */
-    case 3: ui_skill_icon(dl, c, s * 0.62f, 7); break;                 /* Alchemy */
-    case 4:                                                    /* Earn a little money: a purse and coins */
-        dl->AddCircleFilled(Q(0, 3), 7 * u, IM_COL32(150, 100, 52, 255), 20);
-        dl->AddTriangleFilled(Q(-4, -3), Q(4, -3), Q(0, 1), IM_COL32(150, 100, 52, 255));
-        dl->AddLine(Q(-4, -3.5f), Q(4, -3.5f), IM_COL32(90, 50, 20, 255), 1.6f * u);
-        dl->AddEllipseFilled(Q(-3, -6), ImVec2(2.2f * u, 1.6f * u), IM_COL32(150, 100, 52, 255));
-        dl->AddEllipseFilled(Q(3, -6), ImVec2(2.2f * u, 1.6f * u), IM_COL32(150, 100, 52, 255));
-        dl->AddCircleFilled(Q(6, 7), 3.2f * u, IM_COL32(226, 182, 64, 255), 14); dl->AddCircle(Q(6, 7), 3.2f * u, IM_COL32(150, 110, 30, 255), 14, 0.8f * u);
-        dl->AddCircleFilled(Q(-6, 8), 2.8f * u, IM_COL32(200, 200, 208, 255), 14); dl->AddCircle(Q(-6, 8), 2.8f * u, IM_COL32(120, 120, 128, 255), 14, 0.8f * u);
-        break;
+    case 1: {                                                  /* Regain Strength: a bed, its pillow and blanket */
+        const ImU32 WOOD = IM_COL32(120, 76, 38, 255), WOOD_D = IM_COL32(78, 48, 22, 255);
+        dl->AddRectFilled(Q(-9, -6), Q(-6.5f, 8), WOOD, 0.8f * u);                    /* the headboard */
+        dl->AddRectFilled(Q(6.8f, -1), Q(9, 8), WOOD, 0.8f * u);                       /* the foot */
+        dl->AddRectFilled(Q(-7, 1.5f), Q(7.5f, 5), WOOD_D);                            /* the frame */
+        dl->AddEllipseFilled(Q(-3.8f, -0.6f), ImVec2(3.0f * u, 1.9f * u), IM_COL32(248, 242, 226, 255));   /* the pillow */
+        dl->AddRectFilled(Q(-1.2f, -1.6f), Q(7.6f, 2.2f), IM_COL32(150, 44, 32, 255), 1.2f * u);         /* the blanket */
+        dl->AddLine(Q(-1.2f, 0.2f), Q(7.6f, 0.2f), IM_COL32(220, 170, 90, 255), 0.7f * u);
+        break; }
+    case 2: {                                                  /* Pray: a rosary, its beads in a ring and the cross hanging */
+        const ImU32 BEAD = IM_COL32(110, 64, 30, 255), CROSS = IM_COL32(190, 150, 60, 255);
+        for (int i = 0; i < 12; i++) {
+            float an = -1.5708f + 0.45f + i * (6.2832f - 0.9f) / 11;
+            dl->AddCircleFilled(Q(cosf(an) * 6.2f, -2 + sinf(an) * 5.4f), 1.25f * u, BEAD, 8);
+        }
+        dl->AddLine(Q(-1.9f, 3.2f), Q(0, 5), BEAD, 0.8f * u); dl->AddLine(Q(1.9f, 3.2f), Q(0, 5), BEAD, 0.8f * u);
+        dl->AddRectFilled(Q(-0.7f, 5), Q(0.7f, 10), CROSS); dl->AddRectFilled(Q(-2.3f, 6.4f), Q(2.3f, 7.7f), CROSS);
+        break; }
+    case 3: {                                                  /* Alchemy: the party's Philosopher's Stone (ui/pstone.cpp), without its number */
+        void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t);
+        int q = (s16)g_rw(0x9078);
+        ui_pstone_draw(dl, c, s * 0.92f, 2, q > 0 ? -q : -1, (float)ImGui::GetTime());
+        break; }
+    case 4: {                                                  /* Earn a little money: a leather purse tied at the neck, a coin before it */
+        const ImU32 LEATHER = IM_COL32(150, 98, 50, 255), DARK = IM_COL32(92, 56, 24, 255);
+        dl->PathClear();                                       /* the body: narrow at the neck, round below */
+        dl->PathLineTo(Q(-2.2f, -3.5f));
+        dl->PathBezierCubicCurveTo(Q(-8.5f, 0), Q(-8.5f, 9), Q(0, 9), 12);
+        dl->PathBezierCubicCurveTo(Q(8.5f, 9), Q(8.5f, 0), Q(2.2f, -3.5f), 12);
+        dl->PathFillConvex(LEATHER);
+        dl->PathClear();
+        dl->PathLineTo(Q(-2.2f, -3.5f)); dl->PathBezierCubicCurveTo(Q(-8.5f, 0), Q(-8.5f, 9), Q(0, 9), 12);
+        dl->PathBezierCubicCurveTo(Q(8.5f, 9), Q(8.5f, 0), Q(2.2f, -3.5f), 12);
+        dl->PathStroke(DARK, ImDrawFlags_Closed, 0.8f * u);
+        ImVec2 top[4] = { Q(-2.4f, -3.6f), Q(-4.2f, -7.5f), Q(4.2f, -7.5f), Q(2.4f, -3.6f) };   /* the gathered top */
+        dl->AddConvexPolyFilled(top, 4, LEATHER); dl->AddPolyline(top, 4, DARK, ImDrawFlags_Closed, 0.7f * u);
+        dl->AddLine(Q(-3, -3.8f), Q(3, -3.8f), IM_COL32(200, 160, 80, 255), 1.4f * u);   /* the cord */
+        dl->AddLine(Q(2.6f, -3.8f), Q(4.6f, -1.5f), IM_COL32(200, 160, 80, 255), 0.9f * u);
+        dl->AddCircleFilled(Q(5.6f, 6.6f), 3.0f * u, IM_COL32(226, 182, 64, 255), 16);   /* a florin */
+        dl->AddCircle(Q(5.6f, 6.6f), 3.0f * u, IM_COL32(150, 110, 30, 255), 16, 0.8f * u);
+        dl->AddCircle(Q(5.6f, 6.6f), 1.9f * u, IM_COL32(170, 128, 40, 200), 12, 0.5f * u);
+        break; }
     case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
-    default:                                                   /* Train or study: an open book */
-        dl->AddQuadFilled(Q(-9, -5), Q(0, -3), Q(0, 8), Q(-9, 6), IM_COL32(246, 236, 210, 255));
-        dl->AddQuadFilled(Q(0, -3), Q(9, -5), Q(9, 6), Q(0, 8), IM_COL32(236, 224, 194, 255));
-        dl->AddQuad(Q(-9, -5), Q(0, -3), Q(0, 8), Q(-9, 6), IM_COL32(90, 60, 30, 255), 0.8f * u);
-        dl->AddQuad(Q(0, -3), Q(9, -5), Q(9, 6), Q(0, 8), IM_COL32(90, 60, 30, 255), 0.8f * u);
-        for (int i = 0; i < 3; i++) { dl->AddLine(Q(-7, -1.5f + i * 2.5f), Q(-2, -0.6f + i * 2.5f), IM_COL32(120, 90, 60, 200), 0.6f * u); dl->AddLine(Q(2, -0.6f + i * 2.5f), Q(7, -1.5f + i * 2.5f), IM_COL32(120, 90, 60, 200), 0.6f * u); }
-        break;
+    default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */
+        void ui_draw_teach_mark(ImDrawList *dl, ImVec2 c, float s, unsigned ink, unsigned page);
+        ui_draw_teach_mark(dl, Q(0, -0.5f), s * 0.98f, IM_COL32(96, 60, 28, 255), IM_COL32(252, 246, 228, 255));
+        break; }
     }
 }
 
@@ -236,6 +264,7 @@ extern "C" void lodgeview_draw(void)
             act_icon(P.dl, NsDraw::w(x0 + 4, ay + ah * 0.48f), ah * 0.72f * P.k, a);
             P.text(f, NsDraw::FS_NAME * fminf(1.0f, ah / 9.4f) * 0.95f, x0 + 10, ay + ah * 0.16f, cur && a != 6 ? NsDraw::LIGHT : can ? ink : dim, ACT[a]);
             if (!can && WHY[a][0]) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a == 1 ? "full" : a == 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "no teacher" : "", x1 - 1.5f);
+            else if (a == 0) P.text(fo, 3.6f, 0, ay + ah * 0.3f, cur ? IM_COL32(244, 226, 190, 255) : soft, "restores Endurance", x1 - 1.5f);
             if (can && a != 6 && P.hit(x0, ay, x1, ay + ah - 0.6f) && !cur) ns_push(LV_ACT, a, m.sel, 0);
             ay += ah;
             if (a == 6 && can) {
@@ -280,15 +309,9 @@ extern "C" void lodgeview_draw(void)
         P.para(fo, NsDraw::FS_SMALL, RX0, BY - 25, RX1 - RX0, hover_act < 0 ? dim : soft, about);
     }
 
-    /* on the table: the reckoning, the buttons */
-    long after = m.purse - m.cost;
-    b[0] = 0;
-    if (m.cost > m.purse) snprintf(b, sizeof b, "A day costs %s in all: more than the purse holds.", money(m.cost).c_str());
-    else if (m.cost) snprintf(b, sizeof b, "A day %s %s; the purse %s %s.", m.cost < 0 ? "earns" : "costs", money(m.cost < 0 ? -m.cost : m.cost).c_str(), m.cost < 0 ? "will hold" : "keeps", money(after).c_str());
-    else snprintf(b, sizeof b, "A day costs nothing.");
-    P.rect(64, 172, 196, 197, IM_COL32(236, 222, 188, 235), 1.5f);
-    P.text(fo, NsDraw::FS_BODY, 67, 173.5f, m.cost > m.purse ? NsDraw::RED : ink, b, -1, 195);
-    {   /* the day's sum, piece by piece: the room, the lessons, the wages */
+    /* on the table: the day's reckoning as a ledger (the purse, what comes in, what goes out, a
+       line, what is left), and the buttons */
+    {
         long fees = 0, wages = 0;
         for (int i = 0; i < 5; i++) {
             const LodgeMember &p = m.m[i];
@@ -296,12 +319,26 @@ extern "C" void lodgeview_draw(void)
             if (p.act == 6) { for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill && m.t[t].used) fees += m.t[t].fee; }
             if (p.act == 4) wages += p.val;
         }
-        std::string sum = (camp ? std::string("Food from the land") : "Room " + money(m.lodging));
-        if (fees) sum += ",  lessons " + money(fees);
-        if (wages) sum += ",  wages earned " + money(wages);
-        P.text(fo, NsDraw::FS_SMALL, 67, 181, soft, sum, -1, 195);
-        snprintf(b, sizeof b, "In the purse now: %s", money(m.purse).c_str());
-        P.text(fo, NsDraw::FS_SMALL, 67, 188, soft, b, -1, 195);
+        long out = m.lodging + fees, after = m.purse - m.cost;
+        bool short_ = m.cost > m.purse;
+        P.rect(64, 172, 196, 197, IM_COL32(236, 222, 188, 235), 1.5f);
+        const float LX = 67, RX_ = 128;                       /* the labels; the amounts' right edge */
+        auto row = [&](float y, const char *sign, const std::string &label, long v, ImU32 c) {
+            P.text(fo, NsDraw::FS_SMALL, LX, y, c, std::string(sign) + label);
+            P.text(fo, NsDraw::FS_SMALL, 0, y, c, v ? money(v) : std::string("-"), RX_);
+        };
+        row(173.0f, "", "In the purse", m.purse, soft);
+        row(178.4f, "+ ", "Wages", wages, wages ? GREEN : dim);
+        row(183.8f, "- ", camp ? (fees ? "Lessons" : "Food: from the land") : fees ? "Room and lessons" : "Room", out, out ? RED : dim);
+        P.rect(LX, 189.6f, RX_, 189.9f, IM_COL32(120, 80, 36, 160));
+        P.text(fo, NsDraw::FS_SMALL, LX, 190.6f, ink, "After a day");
+        P.text(fo, NsDraw::FS_SMALL, 0, 190.6f, short_ ? NsDraw::RED : ink, short_ ? std::string("cannot pay") : money(after), RX_);
+        /* at the right: the day's sum alone, large */
+        P.rect(132, 174, 132.3f, 195, IM_COL32(120, 80, 36, 90));
+        const char *hd = m.cost < 0 ? "A day earns" : m.cost > 0 ? "A day costs" : "A day costs";
+        P.text(fo, NsDraw::FS_SMALL, 136, 175, soft, hd);
+        std::string amt = m.cost ? money(m.cost < 0 ? -m.cost : m.cost) : std::string("nothing");
+        P.text(fo, NsDraw::FS_HEAD, 136, 182, short_ ? NsDraw::RED : m.cost < 0 ? GREEN : ink, amt);
     }
     bool pay = m.cost <= m.purse;
     float bx = 199;
@@ -316,7 +353,6 @@ extern "C" void lodgeview_draw(void)
     else if (P.over(bx + 50, 174, bx + 84, 184)) tip = m.resting || hurt ? "Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens)." : "Nobody is short of Strength, regaining it or praying.";
     else if (P.over(bx + 24, 174, bx + 48, 184)) tip = "Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid).";
     if (tip) P.para(fo, 3.9f, 199, 186.5f, 117, TABLE_INK, tip);
-    else P.text(fo, 3.9f, 199, 188, IM_COL32(220, 200, 160, 200), "F11: list of keys");
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
 
     /* the hours going by: the game's own clock (ui/hourglass.cpp), with the day of a run of days

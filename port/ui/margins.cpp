@@ -1100,8 +1100,10 @@ extern "C" void ui_margins(void)
             const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
             char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right-click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
             const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > Guide." : "New to Darklands? F12 > Guide.";
+            const char *h3 = pad ? nullptr : "F11: the keys and clicks of this screen.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
-            float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0) + sp * 2;
+            float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0)
+                     + (h3 ? sp + ImGui::CalcTextSize(h3, nullptr, false, ww).y : 0) + sp * 2;
             float foot = ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - hh;
             if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
             ImGui::Separator();
@@ -1109,6 +1111,7 @@ extern "C" void ui_margins(void)
             else {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
                 ImGui::TextWrapped("%s", h1);
+                if (h3) ImGui::TextWrapped("%s", h3);
                 if (h2) ImGui::TextWrapped("%s", h2);
                 ImGui::PopStyleColor();
             }
