@@ -196,28 +196,63 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
     auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
     ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), red = C(170, 40, 30), steel = C(190, 194, 204), wood = C(150, 100, 52);
     switch (tab) {
-    case UI_PAGE_JOURNAL: ui_skill_icon(dl, c, s, 11); break;   /* journal: the book */
-    case UI_PAGE_SAVES:  /* saves: a sealed letter */
-        dl->AddRectFilled(P(-9, -6), P(9, 7), parch); dl->AddRect(P(-9, -6), P(9, 7), ink, 0, 0, 1.0f * u);
-        dl->AddLine(P(-9, -6), P(0, 1), ink, 0.9f * u); dl->AddLine(P(9, -6), P(0, 1), ink, 0.9f * u);
-        dl->AddCircleFilled(P(0, 2), 3.4f * u, red); break;
-    case UI_PAGE_HELPERS:  /* helpers: a lit candle */
-        dl->AddRectFilled(P(-2.5f, -2), P(2.5f, 9), parch); dl->AddRect(P(-2.5f, -2), P(2.5f, 9), ink, 0, 0, 0.8f * u);
-        dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
-        dl->AddTriangleFilled(P(0, -11), P(-2.6f, -5), P(2.6f, -5), C(250, 190, 60)); dl->AddCircleFilled(P(0, -5.5f), 2.6f * u, C(250, 150, 40)); break;
-    case UI_PAGE_MODS: ui_skill_icon(dl, c, s, 14); break;                /* mods: the cog */
+    case UI_PAGE_JOURNAL: {  /* journal: a travelling diary, closed, its strap buckled (not Speak Latin's open book) */
+        dl->AddRectFilled(P(-7, -9), P(7, 9), C(120, 62, 30), 1.5f * u);
+        dl->AddRectFilled(P(-7, -9), P(-4.5f, 9), C(90, 44, 20));                         /* the spine */
+        dl->AddRect(P(-7, -9), P(7, 9), ink, 1.5f * u, 0, 0.9f * u);
+        dl->AddRectFilled(P(5.5f, -8), P(7.6f, 8), parch);                                 /* the pages' edge */
+        dl->AddRectFilled(P(-4.5f, -1.4f), P(9, 1.4f), C(70, 36, 16));                     /* the strap */
+        dl->AddRect(P(6.4f, -2.2f), P(9.4f, 2.2f), gold, 0, 0, 0.9f * u);                  /* the buckle */
+        dl->AddRectFilled(P(-1, -9), P(1, -11.5f), red); break; }                          /* the ribbon */
+    case UI_PAGE_SAVES: {  /* saves: an hourglass, a moment kept (not the quests' sealed letter) */
+        dl->AddRectFilled(P(-7, -10), P(7, -8), wood, 0.6f * u); dl->AddRectFilled(P(-7, 8), P(7, 10), wood, 0.6f * u);
+        dl->AddLine(P(-5.5f, -8), P(-5.5f, 8), wood, 1.2f * u); dl->AddLine(P(5.5f, -8), P(5.5f, 8), wood, 1.2f * u);
+        ImVec2 g1[3] = { P(-4, -8), P(4, -8), P(0, 0) }, g2[3] = { P(0, 0), P(4, 8), P(-4, 8) };
+        dl->AddConvexPolyFilled(g1, 3, C(220, 236, 240, 200)); dl->AddConvexPolyFilled(g2, 3, C(220, 236, 240, 200));
+        dl->AddTriangleFilled(P(-2.2f, -4.5f), P(2.2f, -4.5f), P(0, -0.6f), C(214, 170, 90));   /* the sand above */
+        dl->AddTriangleFilled(P(0, 4.2f), P(3.4f, 8), P(-3.4f, 8), C(214, 170, 90));            /* and below */
+        dl->AddLine(P(0, -0.6f), P(0, 4.2f), C(214, 170, 90), 0.7f * u);
+        dl->AddPolyline(g1, 3, ink, ImDrawFlags_Closed, 0.7f * u); dl->AddPolyline(g2, 3, ink, ImDrawFlags_Closed, 0.7f * u); break; }
+    case UI_PAGE_HELPERS: {  /* the game's settings: a mill's gear wheel (not Intelligence's candle) */
+        const int N = 8;
+        for (int i = 0; i < N; i++) {
+            float a = i * 6.2832f / N;
+            ImVec2 d(cosf(a), sinf(a)), n(-sinf(a), cosf(a));
+            ImVec2 q[4] = { P(d.x * 6 + n.x * 1.8f, d.y * 6 + n.y * 1.8f), P(d.x * 9.5f + n.x * 1.4f, d.y * 9.5f + n.y * 1.4f),
+                            P(d.x * 9.5f - n.x * 1.4f, d.y * 9.5f - n.y * 1.4f), P(d.x * 6 - n.x * 1.8f, d.y * 6 - n.y * 1.8f) };
+            dl->AddConvexPolyFilled(q, 4, wood);
+        }
+        dl->AddCircleFilled(P(0, 0), 7 * u, wood, 20); dl->AddCircle(P(0, 0), 7 * u, ink, 20, 0.8f * u);
+        dl->AddCircleFilled(P(0, 0), 2.6f * u, parch, 12); dl->AddCircle(P(0, 0), 2.6f * u, ink, 12, 0.7f * u); break; }
+    case UI_PAGE_MODS: {  /* mods: a chest, its lid open (not Artifice's key) */
+        dl->AddRectFilled(P(-9, -1), P(9, 8), wood, 0.8f * u); dl->AddRect(P(-9, -1), P(9, 8), ink, 0.8f * u, 0, 0.8f * u);
+        ImVec2 lid[4] = { P(-9, -1), P(9, -1), P(7, -8), P(-7, -8) };
+        dl->AddConvexPolyFilled(lid, 4, C(170, 118, 64)); dl->AddPolyline(lid, 4, ink, ImDrawFlags_Closed, 0.8f * u);
+        dl->AddRectFilled(P(-9, 2), P(9, 3.4f), steel); dl->AddRectFilled(P(-1.6f, 1), P(1.6f, 5), gold);   /* the band, the lock */
+        dl->AddCircleFilled(P(-3, -2.5f), 1.4f * u, gold); dl->AddCircleFilled(P(2.5f, -3), 1.2f * u, C(120, 170, 220)); break; }
     case UI_PAGE_DISPLAY:  /* display: a framed picture */
         dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
         dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
         dl->AddRect(P(-9, -7), P(9, 7), gold, 0, 0, 1.8f * u); break;
-    case UI_PAGE_RECORDS: /* records: a crown */
-        dl->AddRectFilled(P(-8, 2), P(8, 7), gold);
-        dl->AddTriangleFilled(P(-8, 2), P(-8, -7), P(-3, 2), gold); dl->AddTriangleFilled(P(-4, 2), P(0, -8), P(4, 2), gold); dl->AddTriangleFilled(P(3, 2), P(8, -7), P(8, 2), gold);
-        dl->AddCircleFilled(P(0, 4.5f), 1.4f * u, red); dl->AddRect(P(-8, 2), P(8, 7), ink, 0, 0, 0.8f * u); break;
+    case UI_PAGE_RECORDS: {  /* records: a laurel wreath (not Charisma's crown) */
+        const ImU32 leaf = C(80, 130, 50), leaf_d = C(50, 90, 30);
+        for (int side = -1; side <= 1; side += 2)
+            for (int i = 0; i < 5; i++) {
+                float a = 1.9f + i * 0.42f;                           /* up each side from the bottom */
+                ImVec2 p(side * cosf(a) * -7.5f, sinf(a) * 7.5f - 0.5f);
+                ImVec2 q(p.x * 0.82f, p.y * 0.82f);
+                dl->AddEllipseFilled(P(p.x, p.y), ImVec2(3.0f * u, 1.5f * u), i & 1 ? leaf : leaf_d, side * (a + 1.57f), 10);
+                (void)q;
+            }
+        dl->AddTriangleFilled(P(-2, 6.5f), P(2, 6.5f), P(0, 9.5f), red); break; }
     case UI_PAGE_ABOUT: /* about: i in a circle */
         dl->AddCircleFilled(P(0, 0), 8.5f * u, C(60, 90, 140)); dl->AddCircle(P(0, 0), 8.5f * u, ink, 0, 0.8f * u);
         dl->AddRectFilled(P(-1.3f, -1.5f), P(1.3f, 5.5f), parch); dl->AddCircleFilled(P(0, -4.5f), 1.5f * u, parch); break;
-    case UI_PAGE_EDITOR: ui_skill_icon(dl, c, s, 12); break;               /* editor: the quill */
+    case UI_PAGE_EDITOR: {  /* editor: a pair of dividers, as a draughtsman measures and redraws (not Read & Write's quill) */
+        dl->AddLine(P(0, -8), P(-6, 9), steel, 1.6f * u); dl->AddLine(P(0, -8), P(6, 9), steel, 1.6f * u);
+        dl->AddLine(P(-6, 9), P(-6.6f, 10.5f), ink, 0.9f * u); dl->AddLine(P(6, 9), P(6.6f, 10.5f), ink, 0.9f * u);
+        dl->AddLine(P(-3.5f, 2), P(3.5f, 2), C(150, 120, 80), 1.0f * u);                 /* the arc that holds them */
+        dl->AddCircleFilled(P(0, -8), 2.2f * u, gold); dl->AddCircle(P(0, -8), 2.2f * u, ink, 12, 0.7f * u); break; }
     case UI_PAGE_GUIDE: /* guide: an open book */
         dl->AddQuadFilled(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), parch); dl->AddQuadFilled(P(0, -4), P(9, -6), P(9, 6), P(0, 8), C(226, 214, 184));
         dl->AddQuad(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), ink, 0.8f * u); dl->AddQuad(P(0, -4), P(9, -6), P(9, 6), P(0, 8), ink, 0.8f * u);

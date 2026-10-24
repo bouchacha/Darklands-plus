@@ -550,7 +550,7 @@ extern "C" void journal_quests(void)
     if (game_mode() == GM_CARD || game_mode() == GM_MAP) { quest_rows(v, config_get_int("quests.sort", sort) % QSORT_N, true); quest_merge(v); }
     else quest_sort(v, config_get_int("quests.sort", sort) % QSORT_N);
     sort = config_get_int("quests.sort", sort) % QSORT_N;
-    static const char *HEAD[5] = { "Tasks", "Rewards waiting", "Rumours", "Unwelcome or wanted", "Secrets" };
+    static const char *HEAD[5] = { "Quests", "Rewards waiting", "Rumors", "Unwelcome or wanted", "Secrets" };
     ImGui::TextDisabled("In order of:"); ImGui::SameLine();
     for (int k = 0; k < QSORT_N; k++) {
         if (k) ImGui::SameLine();

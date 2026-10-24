@@ -148,7 +148,7 @@ static const DestInfo DEST[D_N] = {
     { "Physician", "Wounds treated for a fee, lessons in Healing, alchemical components bought and sold.", 3, -1, -1, TI_PHYSICIAN },
     { "Fugger bank", "Heavy coin changed into a letter of credit that weighs nothing, and back, for a fee.", 1, -1, -1, TI_FUGGER },
     { "Medici bank", "The Medici representative: letters of credit, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
-    { "Hanseatic League", "The offices of the league of northern merchant towns: tasks for pay. Asking politely counts your standing with the Hanse, boldly your reputation here and your fame; collecting a reward politely also raises your standing.", 1, -1, -1, TI_HANSE },
+    { "Hanseatic League", "The offices of the league of northern merchant towns: quests for pay. Asking politely counts your standing with the Hanse, boldly your reputation here and your fame; collecting a reward politely also raises your standing.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
     { "Cathedral", "Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
     { "Church", "Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you.", 2, -1, -1, TI_CHURCH },
@@ -784,17 +784,17 @@ extern "C" int citynav_window(void)
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
                 case OFS_ASK: snprintf(b, sizeof b, "Task chance %d%%", os.chance); c = GREEN;
-                    if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Tasks", "A merchant may offer a task after you have bought or sold something." }); break;
-                case OFS_SHUT: snprintf(b, sizeof b, "No tasks until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
+                    if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Quests", "A merchant may offer a quest after you have bought or sold something." }); break;
+                case OFS_SHUT: snprintf(b, sizeof b, "No quests until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
                 case OFS_ON_TASK: snprintf(b, sizeof b, "On a task for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
-                case OFS_BARRED: snprintf(b, sizeof b, "No tasks: reputation too low"); c = REDD; break;
+                case OFS_BARRED: snprintf(b, sizeof b, "No quests: reputation too low"); c = REDD; break;
                 default: b[0] = 0; break;
                 }
                 if (b[0]) T.lines.push_back({ b, c });
                 std::string n = os.note;
                 if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, gm_month_short((os.month % 12 + 12) % 12), os.hour); n += u; }
-                if (!n.empty()) T.tip.push_back({ "Tasks", n });
+                if (!n.empty()) T.tip.push_back({ "Quests", n });
             }
             /* the party's own tasks that lead here */
             auto tk = tasks.find(d);

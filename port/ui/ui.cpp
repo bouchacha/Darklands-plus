@@ -1060,7 +1060,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                 { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 },
                 { "Saves", UI_PAGE_SAVES, { UI_PAGE_SAVES }, 1 }, { "Records", UI_PAGE_RECORDS, { UI_PAGE_RECORDS }, 1 },
                 { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
-                { "Settings", UI_PAGE_MODS, { UI_PAGE_HELPERS, UI_PAGE_RESTORED, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 5 } };
+                { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS, UI_PAGE_RESTORED, UI_PAGE_MODS, UI_PAGE_DISPLAY, UI_PAGE_ABOUT }, 5 } };
             const int NG = (int)(sizeof groups / sizeof groups[0]);
             auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || (config_get_int("editor.show", 0) && !ui_original_mode()); };
             ImFont *tf = font_tab;

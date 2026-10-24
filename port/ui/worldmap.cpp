@@ -1000,7 +1000,7 @@ extern "C" void worldmap_draw(void)
         auto in_part = [&](const QuestRow &r) { return r.loc >= 0 && (part ? r.group == 2 || r.group == 4 : r.group <= 1); };
         for (const QuestRow &r : qr) if (in_part(r)) { any = true; break; }
         if (any) none = false;
-        if (any && fold_head(part ? "Rumours" : "Tasks", part ? FOLD_RUMOURS : FOLD_TASKS)) {
+        if (any && fold_head(part ? "Rumors" : "Quests", part ? FOLD_RUMOURS : FOLD_TASKS)) {
             for (const QuestRow &r : qr) {
                 if (!in_part(r)) continue;
                 std::string d = quest_days(r);

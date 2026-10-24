@@ -112,7 +112,7 @@ extern "C" void rosterview_draw(void)
             "the saints: learning them and calling on them; churches and the clergy", "standing firm against evil; the saints' favor; some cards",
             "talking: bargaining, persuading, most people on the cards", "talking with the learned, the clergy and the nobility",
             "reading letters, books, papers and inscriptions", "tending wounds after a fight", "locks, traps and devices",
-            "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumours, the streets at night",
+            "sneaking, hiding, getting in unseen", "the towns' underside: thieves, rumors, the streets at night",
             "riding: faster travel, mounted fights", "the wilds: finding the way, hunting, tracking, keeping out of danger" };
         const float SY = 75.5f, CX0 = 52, CW = (316 - CX0) / 12.0f;
         P.text(fo, 4.4f, 6, SY + 1.2f, soft, "The party's best skills");

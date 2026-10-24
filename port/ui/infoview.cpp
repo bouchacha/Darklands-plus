@@ -84,7 +84,7 @@ extern "C" void infoview_draw(void)
     y += 4;
     head("Wealth");
     y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, money_fgp(m.money[0], m.money[1], m.money[2])) + 0.5f;
-    snprintf(b, sizeof b, "%ld pfennigs in all", m.total_pf);
+    snprintf(b, sizeof b, "%s in all", money_str(m.total_pf).c_str());
     P.text(fo, NsDraw::FS_SMALL, x, y, soft, b); y += 7.5f;
     if (m.notes > 0) {                                      /* (none: nothing to say) */
         snprintf(b, sizeof b, "Bank notes: %s", money_fgp(m.notes, 0, 0).c_str());

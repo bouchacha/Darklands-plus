@@ -190,7 +190,7 @@ static const char *TOWN_OFFER_TIP[6] = {
     "An alchemist: formulae to buy or trade, a better philosopher's stone, lessons in Alchemy.",
     "A physician: wounds treated for a fee, lessons in Healing, alchemical components bought and sold.",
     "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
-    "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; tasks for the bold." };
+    "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; quests for the bold." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armor and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
     { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
@@ -375,7 +375,7 @@ static void formulae_line(int town)
         if (item_hovered()) {
             const std::string &t = gamedata.formula_names[f];
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
-            char head[200]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %d florin%s.\n%s\n\n", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, pr[k], pr[k] == 1 ? "" : "s",
+            char head[200]; snprintf(head, sizeof head, "%s: %s, grade %d of 3, %s.\n%s\n\n", t.c_str(), pd ? pd->name.c_str() : "?", f % 3 + 1, money_str(pr[k] * 240L).c_str(),
                                      known ? "Someone in the party knows this formula." : "Nobody in the party knows this formula.");
             std::string tip = head + (f < (int)gamedata.formulas.size() ? gamedata.formulas[f].text : std::string());
             { std::string enc = ns_item_encounters(95 + f / 3, nullptr); if (!enc.empty()) tip += "\n\n" + enc; }
@@ -781,7 +781,7 @@ static void right_panel(int size)
                 ImGui::Indent(is + lh * 0.3f);
                 ImGui::TextColored(ImVec4(0.95f, 0.78f, 0.45f, 1), "In turmoil");
                 if (item_hovered()) margin_tip("Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) "
-                                               "and its rumours of special jobs lead to them; so does the guild where the agitators meet.");
+                                               "and its rumors of special jobs lead to them; so does the guild where the agitators meet.");
                 ImGui::Unindent(is + lh * 0.3f);
             }
         }
@@ -903,7 +903,7 @@ static void tasks_section(bool tables)
     auto over = [&](ImVec2 a, ImVec2 b) { return mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y; };
     {   /* the heading, and the order at its right */
         ImVec2 h0 = ImGui::GetCursorScreenPos();
-        heading("Tasks");
+        heading("Quests");
         if (q.size() > 1) {
             std::string t = std::string("by ") + QSORT_NAME[sort];
             float tw = ImGui::CalcTextSize(t.c_str()).x;

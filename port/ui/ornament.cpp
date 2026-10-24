@@ -413,7 +413,7 @@ void orn_preview(ImDrawList *dl, ImVec2 a, ImVec2 b, int style, ImFont *f)
         lozenge(dl, ImVec2(b.x - w * 1.9f, y), w * 0.3f, false);
     }
     float ui_face_k(ImFont *f);
-    if (f) dl->AddText(f, w * 1.6f * ui_face_k(f), ImVec2(a.x + w * (style ? 2.6f : 1.6f), a.y + w * 2.3f), IM_COL32(44, 26, 10, 255), "Tasks");
+    if (f) dl->AddText(f, w * 1.6f * ui_face_k(f), ImVec2(a.x + w * (style ? 2.6f : 1.6f), a.y + w * 2.3f), IM_COL32(44, 26, 10, 255), "Quests");
     for (int i = 0; i < 3; i++) {                                  /* lines of text */
         float y = a.y + w * (5.2f + i * 1.4f);
         dl->AddRectFilled(ImVec2(a.x + w * 1.8f, y), ImVec2(a.x + w * (1.8f + 9 - i * 2.2f), y + w * 0.5f), IM_COL32(120, 92, 60, 150), 2);

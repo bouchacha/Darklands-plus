@@ -974,8 +974,8 @@ static void formulae(NsDraw &P, const SheetModel &s)
         else {
             int d = (int)(sh[0].days + 0.5);
             bool here = sh[0].days >= 0 && sh[0].days < 0.6;
-            w = here ? "Sold here, " + std::to_string(sh[0].price_fl) + " florins."
-                     : "Sold by the alchemist of " + sh[0].name + (sh[0].days < 0 ? "" : ", " + std::to_string(d) + (d == 1 ? " day away" : " days away")) + ", " + std::to_string(sh[0].price_fl) + " florins.";
+            w = here ? "Sold here, " + money_str(sh[0].price_fl * 240L) + "."
+                     : "Sold by the alchemist of " + sh[0].name + (sh[0].days < 0 ? "" : ", " + std::to_string(d) + (d == 1 ? " day away" : " days away")) + ", " + money_str(sh[0].price_fl * 240L) + ".";
             if (sh.size() > 1) {
                 w += " Also in ";
                 for (size_t i = 1; i < sh.size() && i < 4; i++) w += (i > 1 ? ", " : "") + sh[i].name;
