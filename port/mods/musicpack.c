@@ -362,6 +362,7 @@ void musicpack_cmd(int n)
 {
     if (logon) { u32 plat_ticks_ms(void); fprintf(stderr, "music %u: %d%s\n", plat_ticks_ms(), n, in_battle ? " (battle driver)" : ""); }
     if (in_battle) return;
+    { extern int musicpack_held; if (musicpack_held) return; }   /* (a sound device heard on its own: mods/soundpreview.c) */
     if (n >= 8 && n <= LAST_PIECE && !is_overlay(n)) { last_song = n; last_from_pack = musicpack_on && nvar[n] > 0; }
     else if (n == 0 || n == 1 || n == 6) last_song = -1;
     if (!musicpack_on || !nfiles) { if (owns || st[0].on || st[1].on || st[2].on) stop_all(0.3f, 1); return; }
@@ -396,6 +397,20 @@ void musicpack_driver(const char *filename)
 /* the last piece the game started, and whether the pack played it */
 int musicpack_now(int *from_pack) { if (from_pack) *from_pack = last_from_pack; return last_song; }
 
+void musicpack_hold(int on) { if (on) stop_all(0.2f, 1); }
+/* the settings' preview of the pack: piece n from its recording for a while (n < 0: stop) */
+void musicpack_preview(int n)
+{
+    if (n < 0 || n >= NSONG || !nvar[n]) { stop_all(0.5f, 1); return; }
+    start(n);
+}
+int musicpack_first_piece(void)
+{
+    static const int PREF[] = { 11, 9, 10, 27, 19, 20, 12, 14 };
+    for (int i = 0; i < 8; i++) if (nvar[PREF[i]]) return PREF[i];
+    for (int k = 8; k <= LAST_PIECE; k++) if (nvar[k]) return k;
+    return -1;
+}
 void musicpack_set(int on) { musicpack_on = on; config_set_int("sound.music_pack", on); if (!on) stop_all(0.5f, 1); }
 
 void musicpack_init(void)

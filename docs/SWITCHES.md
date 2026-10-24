@@ -206,7 +206,7 @@ fails if a key disappears without being listed as retired.
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
-| `editor.show` | Editing tools | the Editor tab, to change a character's money, name, attributes, skills, saints, formulae, items, colors, shield and sprite (as the community's save editors do: to repair characters hit by old bugs, or to cheat), and F12 > Records, to edit weapons, items and enemies for a mod. | To repair characters hit by old bugs, to cheat, and to edit data for mods. |  | tool | 0 / 0 / 0 |
+| `editor.show` | Editing tools | the Editor tab, to change a character's money, name, attributes, skills, saints, formulae, items, colors, shield and sprite (as the community's save editors do: to repair characters hit by old bugs, or to cheat), and the item table for a mod (F12 > Editor; the weapons and enemies are in F12 > Guide). | To repair characters hit by old bugs, to cheat, and to edit data for mods. |  | tool | 0 / 0 / 0 |
 
 ## Elsewhere
 

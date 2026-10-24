@@ -462,6 +462,9 @@ static int play(int k, float gain)
     return 1;
 }
 
+/* the settings' preview of the battle sounds pack: sound k (SFX_NAMES) as a battle would play it */
+void sfx_preview(int k) { if (k >= 0 && k < NS) play(k, 1.0f); }
+
 /* called from the audio callback: add the effects to the stereo stream */
 void sfx_mix(short *out, int frames)
 {

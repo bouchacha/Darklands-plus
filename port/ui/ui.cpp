@@ -1005,6 +1005,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
+    { void soundpreview_tick(void); soundpreview_tick(); }   /* (mods/soundpreview.c) */
     { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news); }   /* (ui/screenpics.cpp) */
     ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {

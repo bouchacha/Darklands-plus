@@ -35,6 +35,8 @@ extern "C" {
 #include "../mods/musicpack.h"
 #include "../mods/hdart.h"
 #include "../mods/sfx.h"
+void soundpreview_start(const char *dev, int what); void soundpreview_stop(void); int soundpreview_playing(const char *dev, int what); int soundpreview_possible(void);
+void musicpack_preview(int n); int musicpack_first_piece(void); void sfx_preview(int k); u32 plat_ticks_ms(void);
 #include "../mods/datamods.h"
 #include "../mods/lootview.h"
 #include "../mods/sheetview.h"
@@ -803,56 +805,35 @@ void tab_display(void)
             ImGui::Spacing();
         }
     }
-    /* the choices, best first, each with what it lacks in plain words */
-    static const char *ids[] = { "mt32", "auto", "fm", "adlib", "midi", "speaker", "off", "game" };
-    static const char *labels[] = {
-        "Roland MT-32, emulated - recommended: the music and battle sounds as composed (needs the MT-32 ROM files)",
-        "Automatic: the MT-32 when its ROM files are found, otherwise the Sound Blaster Pro",
-        "Sound Blaster Pro (OPL3 FM chip, emulated)",
-        "AdLib (OPL2 FM chip, emulated)",
-        "Roland MIDI out, to a device on your system",
-        "PC speaker",
-        "Off",
-        "As in the game's own setup (INSTALL)" };
-    static const char *limits[] = {
-        0, 0,
-        "What most players heard in 1992: the score arranged for an FM chip, and recorded (digitized) battle sounds. Thinner and buzzier than the MT-32.",
-        "The older FM chip: music much like the Sound Blaster's, but no recorded sounds at all, so the battle sounds are FM noises too. Only for the nostalgic.",
-        "Only for a real MT-32 on a MIDI interface, or Munt installed as a MIDI device. A General MIDI synthesizer (Windows' own) plays the wrong instruments: \"random notes rather than clashing swords\".",
-        "Beeps only.", 0, 0 };
+    /* the devices, in three tiers: the best (the MT-32, as composed), a good one (the Sound Blaster,
+       as most heard it in 1992), and those for history's sake; each to be heard before it is chosen
+       (mods/soundpreview.c: a tune, or a few battle sounds, through that device now) */
     const char *cur = config_get("sound.device", "auto");
-    for (int i = 0; i < 8; i++) {
-        if (ImGui::RadioButton(labels[i], !strcmp(cur, ids[i]))) { config_set("sound.device", ids[i]); ui_dirty_config = 1; }
-        if (limits[i]) { ImGui::Indent(UIS(30)); ui_hint("%s", limits[i]); ImGui::Unindent(UIS(30)); }
-    }
-    ui_hint("Takes effect after the next battle, or when the game is started again.");
-    if (!strcmp(cur, "midi")) {                     /* which MIDI output */
-        ImGui::Indent(UIS(30));
-        int n = mpu_out_count();
-        const char *out = config_get("sound.midi_out", "");
-        if (!n) ui_hint("No MIDI outputs on this system (Windows lists them here).");
-        else {
-            ImGui::SetNextItemWidth(UIS(420));
-            if (ImGui::BeginCombo("MIDI output", out[0] ? out : "Windows' default")) {
-                if (ImGui::Selectable("Windows' default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
-                for (int i = 0; i < n; i++) {
-                    const char *nm = mpu_out_name(i);
-                    if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); ui_dirty_config = 1; }
-                }
-                ImGui::EndCombo();
-            }
-            ui_hint("A real MT-32 on a MIDI interface, or a synthesizer installed as a MIDI device (Munt's mt32emu driver, "
-                 "a Sound Canvas ...). The game's Roland driver loads its instruments when it starts, so the choice takes "
-                 "effect after the next battle, or at the next start.");
+    bool can_hear = soundpreview_possible() != 0;
+    auto listen = [&](const char *dev) {                  /* the two Listen buttons beside a device */
+        for (int w = 0; w < 2; w++) {
+            ImGui::SameLine();
+            ImGui::PushID(w);
+            bool on = soundpreview_playing(dev, w) != 0;
+            ImGui::BeginDisabled(!can_hear);
+            if (ImGui::SmallButton(on ? "Stop" : w ? "Listen: battle" : "Listen: music")) { if (on) soundpreview_stop(); else soundpreview_start(dev, w); }
+            ImGui::EndDisabled();
+            if (!can_hear && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("With a game under way, outside a battle.");
+            ImGui::PopID();
         }
-        ImGui::Unindent(UIS(30));
-    }
-    {
-        int v = sound_music_volume;
-        ImGui::SetNextItemWidth(UIS(260));
-        if (ImGui::SliderInt("Volume of the music", &v, 0, 150, "%d%%")) { sound_music_volume = v; config_set_int("sound.music_volume", v); ui_dirty_config = 1; }
-    }
-    if (!strcmp(cur, "auto") || !strcmp(cur, "mt32")) {
+    };
+    auto device = [&](const char *id, const char *title, const char *what, bool chosen) {
+        ImGui::PushID(id);
+        if (ImGui::RadioButton(title, chosen)) { config_set("sound.device", id); ui_dirty_config = 1; }
+        if (strcmp(id, "off") && strcmp(id, "game")) listen(id);
+        if (what) { ImGui::Indent(UIS(30)); ui_hint("%s", what); ImGui::Unindent(UIS(30)); }
+        ImGui::PopID();
+    };
+    auto tier = [&](const char *t) { ImGui::Spacing(); ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
+    tier("Best");
+    device("mt32", "Roland MT-32 (emulated)", "The music and the battle sounds as composed. Needs the synthesizer's two ROM files; until they are found, the Sound Blaster plays.",
+           !strcmp(cur, "mt32") || !strcmp(cur, "auto"));
+    if (!strcmp(cur, "auto") || !strcmp(cur, "mt32") || !strcmp(cur, "midi")) {
         ImGui::Indent(UIS(30));
         ui_hint("%s", mt32_status());
         static char romdir[1024]; static bool init;
@@ -862,37 +843,97 @@ void tab_display(void)
         ImGui::SameLine();
         if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
         if (mt32_families() == 3) {                /* both: which one */
-            const char *cur = config_get("sound.mt32_model", "mt32");
-            ImGui::TextUnformatted("Both ROM sets found; play on the:");
-            ImGui::Indent();
-            if (ImGui::RadioButton("MT-32 (recommended: the battle sounds as blows and grunts, as composed)", !strcmp(cur, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-            if (ImGui::RadioButton("CM-32L / LAPC-I, as a curiosity (its own sound effects stand in for the battle sounds: chimes and odd noises)", !strcmp(cur, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-            ImGui::Unindent();
+            const char *m = config_get("sound.mt32_model", "mt32");
+            if (ImGui::RadioButton("MT-32 (the battle sounds as blows and grunts, as composed)", !strcmp(m, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+            if (ImGui::RadioButton("CM-32L / LAPC-I, a curiosity (chimes and odd noises for the battle sounds)", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
         }
         {   bool lcd = config_get_int("sound.mt32_lcd", 1);
             if (ImGui::Checkbox("Show the synthesizer's display when the game writes to it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
+        if (ImGui::TreeNode("A real MT-32, or another synthesizer, on a MIDI output")) {
+            device("midi", "MIDI out", "A real MT-32 on a MIDI interface, or Munt installed as a MIDI device. A General MIDI synthesizer (Windows' own) plays the wrong instruments.", !strcmp(cur, "midi"));
+            if (!strcmp(cur, "midi")) {
+                int n = mpu_out_count();
+                const char *out = config_get("sound.midi_out", "");
+                if (!n) ui_hint("No MIDI outputs on this system (Windows lists them here).");
+                else {
+                    ImGui::SetNextItemWidth(UIS(420));
+                    if (ImGui::BeginCombo("MIDI output", out[0] ? out : "Windows' default")) {
+                        if (ImGui::Selectable("Windows' default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
+                        for (int i = 0; i < n; i++) { const char *nm = mpu_out_name(i); if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); ui_dirty_config = 1; } }
+                        ImGui::EndCombo();
+                    }
+                }
+            }
+            ImGui::TreePop();
+        }
         if (ImGui::TreeNode("About the MT-32")) {
-            ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own "
-                               "instruments into the synthesizer and plays the music and the battle sounds with them. Munt's "
-                               "emulator of the MT-32, CM-32L and LAPC-I is built into Darklands+, but it needs the synthesizer's "
-                               "two ROM images (control and PCM), which belong to Roland and cannot come with Darklands+. If you "
-                               "use Munt or DOSBox with an MT-32, you already have them: Darklands+ finds them by their contents "
-                               "(any file names) in these folders, a CM-32L / LAPC-I pair first:");
+            ImGui::TextWrapped("Darklands was composed for the Roland MT-32 and LAPC-I: its Roland driver loads its own instruments into the synthesizer and plays the music "
+                               "and the battle sounds with them. Munt's emulator is built into Darklands+, but it needs the synthesizer's two ROM images (control and PCM), "
+                               "which belong to Roland and cannot come with Darklands+. If you use Munt or DOSBox with an MT-32 you already have them: Darklands+ finds "
+                               "them by their contents (any file names) in these folders:");
             for (int i = 0; i < mt32_dir_count(); i++) ui_hint("%s", mt32_dir(i));
             ImGui::TreePop();
         }
         ImGui::Unindent(UIS(30));
     }
+    tier("Good");
+    device("fm", "Sound Blaster Pro (FM, emulated)", "What most players heard in 1992: the score arranged for an FM chip, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
+    tier("For history's sake");
+    device("adlib", "AdLib (the older FM chip)", "Much the same music; the battle sounds are FM noises too.", !strcmp(cur, "adlib"));
+    device("speaker", "PC speaker", "Beeps.", !strcmp(cur, "speaker"));
+    device("game", "As the game's own setup says (INSTALL)", 0, !strcmp(cur, "game"));
+    device("off", "Off", 0, !strcmp(cur, "off"));
+    ui_hint("A change is heard from the next battle, or the next start. The game has no Tandy driver.");
     {
+        int v = sound_music_volume;
+        ImGui::SetNextItemWidth(UIS(260));
+        if (ImGui::SliderInt("Volume of the music", &v, 0, 150, "%d%%")) { sound_music_volume = v; config_set_int("sound.music_volume", v); ui_dirty_config = 1; }
+    }
+
+    /* the packs: recordings in place of the synthesizer's music, or of the battle sounds; each to be heard */
+    ImGui::Spacing();
+    tier("Sound packs");
+    extern char dlp_user_dir[];
+    {   /* music packs (mods/musicpack.c) */
+        static u32 pack_until; static bool pack_on;
+        if (pack_on && plat_ticks_ms() > pack_until) { musicpack_preview(-1); pack_on = false; }
+        bool mp = musicpack_on;
+        if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); ui_dirty_config = 1; }
+        int n = musicpack_count(), first = musicpack_first_piece();
+        ImGui::SameLine(); ImGui::BeginDisabled(first < 0);
+        if (ImGui::SmallButton(pack_on ? "Stop##mp" : "Listen##mp")) { if (pack_on) { musicpack_preview(-1); pack_on = false; } else { musicpack_preview(first); pack_on = true; pack_until = plat_ticks_ms() + 15000; } }
+        ImGui::EndDisabled();
+        if (n) {
+            const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
+            ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
+        }
+        else ui_hint("No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, \"11 market.ogg\"). "
+                     "Darklands+ comes with none.", dlp_user_dir, PATH_SEP);
+        if (ImGui::TreeNode("The pieces")) {
+            ui_hint("A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). "
+                    "Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent.");
+            for (int k = 8; k <= 47; k++) {
+                const char *f = musicpack_file(k), *d = musicpack_desc(k);
+                const char *bn = f + strlen(f); while (bn > f && bn[-1] != '/' && bn[-1] != '\\') bn--;
+                ui_hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
+                if (f[0]) { ImGui::SameLine(); int nv = musicpack_versions(k); if (nv > 1) ImGui::Text("  %s and %d more, in turn", bn, nv - 1); else ImGui::Text("  %s", bn); }
+            }
+            if (ImGui::SmallButton("Look again##music")) musicpack_reload();
+            ImGui::TreePop();
+        }
+    }
+    {   /* battle sounds packs (mods/sfx.c) */
+        static u32 seq_t; static int seq_k = -1;
+        static const int SEQ[] = { 1, 2, 0, 3, 5, 4 };   /* parry, hit, miss, knock-back, bow, death */
+        if (seq_k >= 0 && plat_ticks_ms() >= seq_t) { sfx_preview(SEQ[seq_k]); seq_t = plat_ticks_ms() + 650; if (++seq_k >= 6) seq_k = -1; }
         ImGui::Spacing();
-        bool sp = sfx_mode, hs = sfx_added_hits, sy = sfx_synth;
-        extern char game_dir[1024];
+        bool sp = sfx_mode, hs = sfx_added_hits;
         if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
-        ImGui::Indent(UIS(34)); ui_hint("A sound pack is a set of recordings (.wav or .ogg) that replace the game's battle sounds: blows, parries, cries. Darklands+ comes with one, the \"Battle sounds\" mod (F12 > Settings > Mods)."); ImGui::Unindent(UIS(34));
+        ImGui::SameLine();
+        if (ImGui::SmallButton(seq_k >= 0 ? "Stop##sfx" : "Listen##sfx")) { if (seq_k >= 0) seq_k = -1; else { seq_k = 0; seq_t = 0; } }
         int n = sfx_user_count();
-        extern char dlp_user_dir[];
-        if (n) ui_hint("%d sound%s in %s%ssounds; the original sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-        else ui_hint("No sound pack in use: put one into %s%ssounds, or tick a sound mod in F12 > Settings > Mods (\"Battle sounds\" comes with Darklands+).", dlp_user_dir, PATH_SEP);
+        if (n) ui_hint("%d sound%s in %s%ssounds; the built-in ones for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
+        else ui_hint("Recorded-style blows, parries and cries in place of the synthesizer's (built in; or a pack in %s%ssounds, or the \"Battle sounds\" mod).", dlp_user_dir, PATH_SEP);
         if (sp) {
             ImGui::Indent(UIS(30));
             if (ImGui::Checkbox("Blows that land make a sound too (the original is silent there)", &hs)) { sfx_set_hits(hs); ui_dirty_config = 1; }
@@ -907,39 +948,6 @@ void tab_display(void)
         if (ImGui::TreeNode("File names for a sound pack")) {
             for (int k = 0; k < SFX_COUNT; k++) ui_hint("%s.wav or .ogg: %s", SFX_NAMES[k], SFX_DESC[k]);
             ui_hint("Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random.");
-            ImGui::TreePop();
-        }
-    }
-    {   /* music packs (mods/musicpack.c) */
-        ImGui::Spacing();
-        bool mp = musicpack_on;
-        extern char dlp_user_dir[];
-        if (ImGui::Checkbox("Music from a music pack (recordings in a \"music\" folder)", &mp)) { musicpack_set(mp); ui_dirty_config = 1; }
-        int n = musicpack_count();
-        if (n) {
-            const char *f0 = ""; for (int k = 0; k < 60 && !f0[0]; k++) f0 = musicpack_from(k);
-            ui_hint("%d piece%s in the pack (%s); the synthesizer plays the others.", n, n == 1 ? "" : "s", strcmp(f0, "music") ? f0 : "the music folder");
-        }
-        else ui_hint("No music pack found. A music pack is a mod's music folder, or %s%smusic, with a recording for each piece named by its number "
-                  "(10.ogg, \"11 market.ogg\", .ogg or .wav). Darklands+ comes with none.", dlp_user_dir, PATH_SEP);
-        int fp = 0, now = musicpack_now(&fp);
-        if (now >= 0) {
-            const char *d = musicpack_desc(now);
-            ui_hint("The last piece started: %d%s%s%s, from the %s.", now, d[0] ? " (" : "", d, d[0] ? ")" : "", fp ? "music pack" : "synthesizer");
-        }
-        if (ImGui::TreeNode("The pieces")) {
-            ui_hint("A recording replaces a piece when its file name starts with the number (up to four for one number, "
-                 "played in turn: \"27 a.ogg\", \"27 b.ogg\" ...). The pieces that loop in the game "
-                 "loop in the pack (the whole file again), the others play once. While a piece of the pack is on, the "
-                 "synthesizer is silent; a piece the pack lacks is played by the synthesizer.");
-            for (int k = 8; k <= 47; k++) {
-                const char *f = musicpack_file(k), *d = musicpack_desc(k);
-                const char *b = f + strlen(f); while (b > f && b[-1] != '/' && b[-1] != '\\') b--;
-                ui_hint("%2d  %s%s%s", k, d, d[0] ? ", " : "", musicpack_loops(k) ? "loops" : "plays once");
-                if (f[0]) { ImGui::SameLine(); int nv = musicpack_versions(k); if (nv > 1) ImGui::Text("  %s and %d more, in turn", b, nv - 1); else ImGui::Text("  %s", b); }
-            }
-            ui_hint("The pieces without a name are heard elsewhere in towns and on the road; the line above names each piece as it starts.");
-            if (ImGui::SmallButton("Look again##music")) musicpack_reload();
             ImGui::TreePop();
         }
     }

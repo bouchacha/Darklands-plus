@@ -77,10 +77,15 @@ static void scan(void)
                 found[dev][0][0] ? found[dev][0] : "-", found[dev][1][0] ? found[dev][1] : "-");
 }
 
+static const char *dev_cfg(void)          /* the device in force (a preview's meanwhile: mods/soundpreview.c) */
+{
+    const char *sound_device_override(void), *o = sound_device_override();
+    return o ? o : config_get("sound.device", "auto");
+}
 int sound_device(void)
 {
     if (getenv("DL_NOSOUND")) return -1;
-    const char *c = config_get("sound.device", "auto");
+    const char *c = dev_cfg();
     int mt32_available(void);
     if (!strcmp(c, "auto") || !strcmp(c, "mt32")) return mt32_available() ? DEV_MIDI : DEV_FM;
     if (!strcmp(c, "fm")) return DEV_FM;
@@ -94,7 +99,7 @@ int sound_device(void)
 /* the MIDI goes to the emulated MT-32 (mpu.c) */
 int sound_use_mt32(void)
 {
-    const char *c = config_get("sound.device", "auto");
+    const char *c = dev_cfg();
     int mt32_available(void);
     return (!strcmp(c, "auto") || !strcmp(c, "mt32")) && mt32_available();
 }
