@@ -109,7 +109,7 @@ def run(s, game, exe, out):
     nctl('stop', name)
     env = dict(os.environ, DL_ORDERS_LOG='1', DL_BATTLE_LOG='1')
     r = subprocess.run(NCTL + ['start', name, '--game', game, '--x11'] + (['--exe', exe] if exe else []), capture_output=True, text=True, env=env, timeout=200)
-    steps = [START]
+    steps = [START, 'ucmd uoption:battle.pause_down=0', 'ucmd uoption:battle.pause_hurt=0', 'ucmd uoption:battle.pause_foes=0']   # (no automatic pauses: nobody to resume)
     steps += ['ucmd uoption:%s' % kv for kv in s['set']]
     steps += ['ucmd uarm:%d,%d,%d' % a for a in s['arms']]
     g = ','.join(str(x) for x in s['groups'])
@@ -120,7 +120,7 @@ def run(s, game, exe, out):
     steps += ['ucmd uarenalog:10', 'ucmd uunpause:', 'wait 1', 'key z']
     secs = s['secs']
     for k in range(0, secs, 10):
-        steps += ['wait 10', 'ucmd ucbt:' if k % 30 == 20 else 'ucmd uparty:']
+        steps += ['wait 10', 'ucmd uunpause:', 'ucmd ucbt:' if k % 30 == 20 else 'ucmd uparty:']
     steps += ['wshot %s_end' % name]
     t0 = time.time()
     r = nctl('do', name, '; '.join(steps), timeout=secs * 3 + 400)
