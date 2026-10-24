@@ -31,9 +31,12 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddQuadFilled(P(-5, 1.5f), P(3, 1.5f), P(3, 8), P(-5, 8), C(170, 40, 30));
         dl->AddTriangleFilled(P(-5, 8), P(3, 8), P(-1, 5.5f), C(238, 226, 196, 0) ); dl->AddLine(P(-5, 8), P(-1, 5.5f), ink, 0.6f * u); dl->AddLine(P(3, 8), P(-1, 5.5f), ink, 0.6f * u);
         dl->AddCircleFilled(P(-1, 4.3f), 1.3f * u, gold); break;
-    case 11: /* speak Latin: a book */
-        dl->AddRectFilled(P(-9, -7), P(9, 7), C(120, 40, 30)); dl->AddRectFilled(P(-8, -6), P(-0.6f, 6), parch); dl->AddRectFilled(P(0.6f, -6), P(8, 6), parch);
-        for (int i = 0; i < 3; i++) { dl->AddLine(P(-6.5f, -3 + i * 3), P(-2, -3 + i * 3), ink, 0.7f * u); dl->AddLine(P(2, -3 + i * 3), P(6.5f, -3 + i * 3), ink, 0.7f * u); } break;
+    case 11: /* speak Latin: a Roman stone tablet, lettered (not a book: the university has it) */
+        dl->AddRectFilled(P(-8, -6), P(8, 10), C(196, 188, 170)); dl->AddCircleFilled(P(0, -6), 8.0f * u, C(196, 188, 170), 20);
+        dl->PathArcTo(P(0, -6), 8.0f * u, 3.1416f, 6.2832f, 16); dl->PathLineTo(P(8, 10)); dl->PathLineTo(P(-8, 10)); dl->PathStroke(ink, ImDrawFlags_Closed, 0.9f * u);
+        dl->AddLine(P(-5, -6), P(-3, -1), ink, 1.1f * u); dl->AddLine(P(-3, -1), P(-1, -6), ink, 1.1f * u);                  /* V */
+        dl->AddLine(P(1, -6), P(1, -1), ink, 1.1f * u); dl->AddLine(P(1, -1), P(4.5f, -1), ink, 1.1f * u);                   /* L */
+        for (int i = 0; i < 3; i++) dl->AddLine(P(-5, 2.5f + i * 2.4f), P(5, 2.5f + i * 2.4f), C(110, 100, 86), 0.8f * u); break;
     case 12: /* read & write: a quill */
         dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(2, -10), C(245, 245, 240)); dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(8, -4), C(220, 220, 214));
         dl->AddLine(P(-8, 10), P(7, -9), ink, 1.0f * u); break;
@@ -52,9 +55,11 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddCircleFilled(P(0, -1), 4.6f * u, C(70, 60, 70));
         dl->AddEllipseFilled(P(0, 0), ImVec2(3.0f * u, 3.8f * u), C(20, 16, 22));
         dl->AddCircleFilled(P(-1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); dl->AddCircleFilled(P(1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); break;
-    case 16: /* streetwise: a purse */
-        dl->AddCircleFilled(P(0, 3), 7.0f * u, C(150, 104, 56)); dl->AddTriangleFilled(P(-3.5f, -5), P(3.5f, -5), P(0, -1), C(150, 104, 56));
-        dl->AddLine(P(-4, -4), P(4, -4), ink, 1.2f * u); dl->AddCircle(P(0, 3), 7.0f * u, ink, 0, 0.8f * u); dl->AddCircleFilled(P(0, 4), 1.8f * u, gold); break;
+    case 16: /* streetwise: a thief's mask (not a purse: earning at the inn has it) */
+        dl->AddEllipseFilled(P(-4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40)); dl->AddEllipseFilled(P(4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40));
+        dl->AddRectFilled(P(-2, -2.5f), P(2, 1.5f), C(40, 34, 40));
+        dl->AddEllipseFilled(P(-4.4f, -0.4f), ImVec2(2.2f * u, 1.4f * u), C(230, 214, 180)); dl->AddEllipseFilled(P(4.4f, -0.4f), ImVec2(2.2f * u, 1.4f * u), C(230, 214, 180));
+        dl->AddLine(P(-9.6f, 0), P(-11.5f, 4), C(40, 34, 40), 1.2f * u); dl->AddLine(P(9.6f, 0), P(11.5f, 4), C(40, 34, 40), 1.2f * u); break;
     case 17: /* riding: a horseshoe */
         dl->PathArcTo(P(0, -1), 7.0f * u, 3.1416f * 0.95f, 3.1416f * 2.05f, 16); dl->PathStroke(steel, 0, 3.4f * u);
         dl->AddLine(P(-7, -1), P(-6, 8), steel, 3.4f * u); dl->AddLine(P(7, -1), P(6, 8), steel, 3.4f * u);
@@ -99,12 +104,16 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
         dl->AddTriangleFilled(P(-2.4f, -4.5f), P(2.4f, -4.5f), P(0, -11), C(255, 200, 70));
         dl->AddCircleFilled(P(0, -5.2f), 2.4f * u, C(255, 200, 70)); dl->AddCircleFilled(P(0, -5.5f), 1.1f * u, C(255, 250, 210)); break;
-    case 5: /* charisma: a crown */
-        dl->AddQuadFilled(P(-9, 6), P(9, 6), P(9, -5), P(-9, -5), gold);
-        dl->AddTriangleFilled(P(-9, -5), P(-4, -5), P(-6.5f, -10), gold); dl->AddTriangleFilled(P(-2.5f, -5), P(2.5f, -5), P(0, -11), gold);
-        dl->AddTriangleFilled(P(4, -5), P(9, -5), P(6.5f, -10), gold);
-        dl->AddRect(P(-9, -5), P(9, 6), ink, 0, 0, 0.8f * u);
-        dl->AddCircleFilled(P(0, 0.5f), 1.8f * u, C(190, 40, 40)); dl->AddCircleFilled(P(-5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); dl->AddCircleFilled(P(5.5f, 0.5f), 1.3f * u, C(60, 110, 200)); break;
+    case 5: /* charisma: a laurel wreath (not a crown: the nobility's) */
+        for (int sd = -1; sd <= 1; sd += 2) {
+            dl->PathArcTo(P(0, 1), 8.0f * u, sd < 0 ? 1.75f : 1.39f, sd < 0 ? 3.95f : -0.81f, 14); dl->PathStroke(C(70, 110, 40), 0, 1.0f * u);
+            for (int i = 0; i < 5; i++) {
+                float a = sd < 0 ? 1.95f + i * 0.42f : 1.19f - i * 0.42f;
+                ImVec2 c0 = P(cosf(a) * 8.0f, 1 + sinf(a) * 8.0f);
+                dl->AddEllipseFilled(c0, ImVec2(2.6f * u, 1.2f * u), C(84, 150, 62), a + 1.5708f + sd * 0.5f);
+            }
+        }
+        dl->AddCircleFilled(P(0, 9), 1.5f * u, C(190, 40, 40)); break;
     case 6: /* divine favor: a chalice */
         dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
         dl->AddQuadFilled(P(-7, -9), P(7, -9), P(5, -1), P(-5, -1), gold);
@@ -208,12 +217,11 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         }
         dl->AddCircleFilled(P(0, 0), 7 * u, wood, 20); dl->AddCircle(P(0, 0), 7 * u, ink, 20, 0.8f * u);
         dl->AddCircleFilled(P(0, 0), 2.6f * u, parch, 12); dl->AddCircle(P(0, 0), 2.6f * u, ink, 12, 0.7f * u); break; }
-    case UI_PAGE_MODS: {  /* mods: a chest, its lid open (not Artifice's key) */
-        dl->AddRectFilled(P(-9, -1), P(9, 8), wood, 0.8f * u); dl->AddRect(P(-9, -1), P(9, 8), ink, 0.8f * u, 0, 0.8f * u);
-        ImVec2 lid[4] = { P(-9, -1), P(9, -1), P(7, -8), P(-7, -8) };
-        dl->AddConvexPolyFilled(lid, 4, C(170, 118, 64)); dl->AddPolyline(lid, 4, ink, ImDrawFlags_Closed, 0.8f * u);
-        dl->AddRectFilled(P(-9, 2), P(9, 3.4f), steel); dl->AddRectFilled(P(-1.6f, 1), P(1.6f, 5), gold);   /* the band, the lock */
-        dl->AddCircleFilled(P(-3, -2.5f), 1.4f * u, gold); dl->AddCircleFilled(P(2.5f, -3), 1.2f * u, C(120, 170, 220)); break; }
+    case UI_PAGE_MODS: {  /* mods: a parcel tied with string, things added from elsewhere (not a chest: the treasures to fetch) */
+        dl->AddRectFilled(P(-9, -6), P(9, 8), C(196, 156, 100)); dl->AddRect(P(-9, -6), P(9, 8), ink, 0, 0, 0.8f * u);
+        dl->AddQuadFilled(P(-9, -6), P(9, -6), P(6, -10), P(-6, -10), C(214, 176, 120)); dl->AddQuad(P(-9, -6), P(9, -6), P(6, -10), P(-6, -10), ink, 0.8f * u);
+        dl->AddLine(P(0, -10), P(0, 8), C(150, 40, 30), 1.4f * u); dl->AddLine(P(-9, 1), P(9, 1), C(150, 40, 30), 1.4f * u);
+        dl->AddCircleFilled(P(0, 1), 1.8f * u, C(170, 40, 30)); break; }
     case UI_PAGE_DISPLAY:  /* display: a framed picture */
         dl->AddRectFilled(P(-9, -7), P(9, 7), C(110, 160, 210)); dl->AddTriangleFilled(P(-8, 6), P(-2, -2), P(4, 6), C(70, 120, 60));
         dl->AddTriangleFilled(P(0, 6), P(4, 1), P(8, 6), C(90, 140, 70)); dl->AddCircleFilled(P(4, -3), 1.8f * u, C(250, 230, 120));
@@ -226,11 +234,12 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         dl->AddLine(P(-6, 9), P(-6.6f, 10.5f), ink, 0.9f * u); dl->AddLine(P(6, 9), P(6.6f, 10.5f), ink, 0.9f * u);
         dl->AddLine(P(-3.5f, 2), P(3.5f, 2), C(150, 120, 80), 1.0f * u);                 /* the arc that holds them */
         dl->AddCircleFilled(P(0, -8), 2.2f * u, gold); dl->AddCircle(P(0, -8), 2.2f * u, ink, 12, 0.7f * u); break; }
-    case UI_PAGE_GUIDE: /* guide: an open book */
-        dl->AddQuadFilled(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), parch); dl->AddQuadFilled(P(0, -4), P(9, -6), P(9, 6), P(0, 8), C(226, 214, 184));
-        dl->AddQuad(P(-9, -6), P(0, -4), P(0, 8), P(-9, 6), ink, 0.8f * u); dl->AddQuad(P(0, -4), P(9, -6), P(9, 6), P(0, 8), ink, 0.8f * u);
-        for (int i = 0; i < 3; i++) { dl->AddLine(P(-7, -2 + i * 3.0f), P(-2, -1 + i * 3.0f), C(120, 100, 80), 0.7f * u); dl->AddLine(P(2, -1 + i * 3.0f), P(7, -2 + i * 3.0f), C(120, 100, 80), 0.7f * u); }
-        break;
+    case UI_PAGE_GUIDE: { /* New Player Guide: a lantern, to see one's way (not a book: the university's) */
+        dl->AddLine(P(0, -11), P(0, -8), ink, 1.0f * u); dl->AddCircle(P(0, -12), 1.4f * u, ink, 10, 0.8f * u);
+        dl->AddTriangleFilled(P(-6, -5), P(6, -5), P(0, -9), C(90, 70, 40));
+        dl->AddRectFilled(P(-5.5f, -5), P(5.5f, 8), C(255, 214, 110)); dl->AddCircleFilled(P(0, 2), 2.6f * u, C(255, 246, 200));
+        dl->AddRect(P(-5.5f, -5), P(5.5f, 8), ink, 0, 0, 0.9f * u); dl->AddLine(P(0, -5), P(0, 8), C(90, 70, 40), 0.8f * u);
+        dl->AddRectFilled(P(-6.5f, 8), P(6.5f, 10), C(90, 70, 40)); break; }
     default: (void)steel; (void)wood; break;
     }
 }
@@ -285,11 +294,12 @@ void ui_section_icon(ImDrawList *dl, ImVec2 c, float s, const char *name)
         dl->AddRectFilled(P(-7, -4), P(7, 2), C(120, 76, 36), 2 * u);
         dl->AddRectFilled(P(-1.4f, 0), P(1.4f, 4), gold);
         dl->PathArcTo(P(0, -4), 4 * u, 3.1416f, 6.2832f, 12); dl->PathStroke(C(90, 56, 26), 0, 1.4f * u);
-    } else if (is("Battles")) {          /* a great helm, its eye slit and breaths */
-        dl->AddRectFilled(P(-6.5f, -6), P(6.5f, 8), steel, 2 * u); dl->AddCircleFilled(P(0, -5), 6.5f * u, steel, 18);
-        dl->AddRect(P(-6.5f, -6), P(6.5f, 8), ink, 2 * u, 0, 0.8f * u);
-        dl->AddRectFilled(P(-6.5f, -1.5f), P(6.5f, 0.2f), ink); dl->AddLine(P(0, -11), P(0, 8), C(120, 126, 140), 0.9f * u);
-        for (int i = 0; i < 3; i++) dl->AddCircleFilled(P(3, 3 + i * 1.8f), 0.6f * u, ink, 6);
+    } else if (is("Battles")) {          /* a war drum and its sticks (not a helm: the robber knights' quest has it) */
+        dl->AddRectFilled(P(-7, -3), P(7, 8), red); dl->AddEllipseFilled(P(0, 8), ImVec2(7.0f * u, 2.2f * u), red);
+        for (int i = 0; i < 4; i++) dl->AddLine(P(-7 + i * 4.6f, -3), P(-4.7f + i * 4.6f, 8), gold, 0.8f * u);   /* the cords */
+        dl->AddEllipseFilled(P(0, -3), ImVec2(7.0f * u, 2.4f * u), parch); dl->AddEllipse(P(0, -3), ImVec2(7.0f * u, 2.4f * u), ink, 0, 0, 0.8f * u);
+        dl->AddLine(P(-9, -10), P(-2, -4), wood, 1.4f * u); dl->AddLine(P(9, -10), P(2, -4), wood, 1.4f * u);
+        dl->AddCircleFilled(P(-9, -10), 1.3f * u, parch); dl->AddCircleFilled(P(9, -10), 1.3f * u, parch);
     } else if (is("Travel")) {           /* a signpost, two arms */
         dl->AddRectFilled(P(-1, -8), P(1, 10), wood);
         ImVec2 a1[5] = { P(-1, -7), P(7, -7), P(9.5f, -5), P(7, -3), P(-1, -3) }; dl->AddConvexPolyFilled(a1, 5, parch); dl->AddPolyline(a1, 5, ink, ImDrawFlags_Closed, 0.7f * u);
@@ -299,19 +309,23 @@ void ui_section_icon(ImDrawList *dl, ImVec2 c, float s, const char *name)
         ImVec2 h[4] = { P(-8, -3), P(-2, -9), P(1, -6), P(-5, 0) }; dl->AddConvexPolyFilled(h, 4, wood); dl->AddPolyline(h, 4, ink, ImDrawFlags_Closed, 0.7f * u);
         dl->AddLine(P(-2, -3), P(8, 8), C(110, 76, 40), 2.0f * u);
         dl->AddLine(P(3, 9), P(9, 9), steel, 1.4f * u);
-    } else if (is("Screen")) {           /* a reading glass */
-        dl->AddLine(P(3.5f, 3.5f), P(9, 9), wood, 2.4f * u);
-        dl->AddCircleFilled(P(-2, -2), 6.5f * u, C(190, 220, 236), 20); dl->AddCircle(P(-2, -2), 6.5f * u, gold, 20, 1.6f * u);
-        dl->AddLine(P(-5, -5), P(-2.5f, -6.5f), C(250, 250, 250), 1.0f * u);
+    } else if (is("Screen")) {           /* spectacles: how the picture looks (not a lens: Artifice's key reads as one) */
+        dl->AddCircleFilled(P(-5, 1), 4.4f * u, C(200, 226, 240)); dl->AddCircleFilled(P(5, 1), 4.4f * u, C(200, 226, 240));
+        dl->AddCircle(P(-5, 1), 4.4f * u, ink, 18, 1.3f * u); dl->AddCircle(P(5, 1), 4.4f * u, ink, 18, 1.3f * u);
+        dl->AddBezierQuadratic(P(-1, -0.5f), P(0, -2.5f), P(1, -0.5f), ink, 1.1f * u);
+        dl->AddLine(P(-6.6f, -0.6f), P(-5.2f, -1.6f), C(255, 255, 255), 0.8f * u); dl->AddLine(P(3.4f, -0.6f), P(4.8f, -1.6f), C(255, 255, 255), 0.8f * u);
     } else if (is("Intro")) {            /* a stage's curtains drawn apart */
-        dl->AddRectFilled(P(-9, -8), P(9, 9), C(40, 30, 24)); dl->AddRectFilled(P(-9, -9), P(9, -6), red);
+        dl->AddRectFilled(P(-9, -8), P(9, 9), C(250, 222, 150)); dl->AddRectFilled(P(-9, -9), P(9, -6), red);   /* (the lit stage behind) */
         ImVec2 l[3] = { P(-9, -6), P(-2, -6), P(-9, 9) }, r[3] = { P(9, -6), P(2, -6), P(9, 9) };
         dl->AddTriangleFilled(l[0], l[1], l[2], red); dl->AddTriangleFilled(r[0], r[2], r[1], red);
         dl->AddRect(P(-9, -9), P(9, 9), gold, 0, 0, 0.8f * u);
-    } else if (is("Sound")) {            /* a hunting horn */
-        dl->PathArcTo(P(1, 2), 7 * u, 3.4f, 6.0f, 16); dl->PathStroke(gold, 0, 2.2f * u);
-        ImVec2 bell[3] = { P(7.3f, -1), P(10, -6), P(5, -3.5f) }; dl->AddTriangleFilled(bell[0], bell[1], bell[2], gold);
-        dl->AddCircleFilled(P(-6, 0), 1.3f * u, ink, 8);
+    } else if (is("Sound")) {            /* a lute: the music (its pear-shaped body, the rose, the bent neck) */
+        dl->AddEllipseFilled(P(-2.0f, 3.0f), ImVec2(6.4f * u, 7.4f * u), C(170, 110, 50), -0.6f);
+        dl->AddEllipse(P(-2.0f, 3.0f), ImVec2(6.4f * u, 7.4f * u), ink, -0.6f, 0, 0.8f * u);
+        dl->AddCircleFilled(P(-1.4f, 1.6f), 1.8f * u, C(60, 36, 16)); dl->AddCircle(P(-1.4f, 1.6f), 2.4f * u, gold, 12, 0.6f * u);
+        dl->AddLine(P(2.0f, -2.6f), P(8.0f, -9.0f), C(110, 70, 30), 2.2f * u);                       /* the neck */
+        dl->AddLine(P(8.0f, -9.0f), P(10.6f, -7.2f), C(110, 70, 30), 2.2f * u);                      /* its bent head */
+        dl->AddLine(P(-4.6f, 6.4f), P(8.0f, -9.0f), parch, 0.5f * u);                                /* the strings */
     } else if (is("Controller")) {       /* a game controller (an object of today: drawn plain) */
         dl->AddRectFilled(P(-8, -4), P(8, 4), C(70, 70, 80), 4 * u); dl->AddCircleFilled(P(-6, 3), 3.5f * u, C(70, 70, 80), 12); dl->AddCircleFilled(P(6, 3), 3.5f * u, C(70, 70, 80), 12);
         dl->AddRectFilled(P(-6.5f, -0.6f), P(-2.5f, 0.6f), parch); dl->AddRectFilled(P(-5.1f, -2), P(-3.9f, 2), parch);
@@ -325,6 +339,8 @@ void ui_section_icon(ImDrawList *dl, ImVec2 c, float s, const char *name)
     }
 }
 
+#include "townicons.h"
+#include "quests.h"
 /* test (uiconstyles): the pictures in each look, side by side */
 static int sheet_on;
 extern "C" void ui_icon_styles_sheet(int on) { sheet_on = on; }
@@ -334,6 +350,22 @@ extern "C" void ui_icon_styles_draw(void)
     if (!sheet_on) return;
     ImDrawList *dl = ImGui::GetForegroundDrawList(); ImVec2 ds = ImGui::GetIO().DisplaySize;
     dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(246, 236, 212, 255));
+    if (sheet_on == 2) {   /* every other set of icons, to look for one drawn twice for two things (uiconstyles:2) */
+        static const char *SECT[] = { "Preset", "New screens", "Text", "Frames and clock", "Cards and towns", "The party and its items", "Battles", "Travel",
+                                      "Fixes for bugs of the original", "Screen", "Intro", "Sound", "Controller" };
+        float cell = ds.x / 14, sz = cell * 0.5f; int n = 0;
+        auto at = [&](int k) { return ImVec2(cell * 0.5f + (k % 14) * cell, cell * 0.45f + (k / 14) * cell * 0.9f); };
+        for (int i = 0; i < 40; i++) ui_draw_town_icon(dl, at(n++), sz, i);                 /* (the town icons: as many as there are) */
+        n = (n + 13) / 14 * 14;
+        for (int i = 1; i < 13; i++) ui_draw_quest_icon(dl, at(n++), sz, i);
+        n = (n + 13) / 14 * 14;
+        for (int i = 0; i < 8; i++) ui_draw_career_icon(dl, at(n++), sz, i);
+        n = (n + 13) / 14 * 14;
+        for (int i = 0; i < 10; i++) ui_page_icon(dl, at(n++), sz * 0.8f, i);
+        n = (n + 13) / 14 * 14;
+        for (const char *t : SECT) ui_section_icon(dl, at(n++), sz * 0.8f, t);
+        return;
+    }
     static const char *TITLE[2] = { "Drawn in color (no disc)", "Heraldic" }; static const int ST[2] = { 0, 2 };
     float colw = ds.x / 2, row = ds.y / 27.5f, sz = row * 0.8f;
     for (int j = 0; j < 2; j++) {

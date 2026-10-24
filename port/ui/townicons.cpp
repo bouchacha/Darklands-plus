@@ -273,16 +273,17 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
         p.line(-2.0f, 6.0f, -2.0f, 12.0f, INK, 0.6f); p.line(2.0f, 6.0f, 2.0f, 12.0f, INK, 0.6f);   // the scapular
         p.line(-1.0f, 8.0f, -1.0f, 12.0f, C(0.86f, 0.74f, 0.46f), 0.8f);    // a cord
         break; }
-    case TI_INN: {                                                          /* a tankard of ale, its foam */
-        ImU32 pewter = C(0.66f, 0.66f, 0.70f), shade = C(0.50f, 0.50f, 0.56f), foam = C(0.99f, 0.97f, 0.90f);
-        p.ring(8.4f, 2.0f, 4.6f, INK, 3.2f); p.ring(8.4f, 2.0f, 4.6f, pewter, 1.8f);   // the handle
-        p.rect(-8.6f - o, -6.0f - o, 6.6f + o, 12.0f + o, INK, 1.4f);
-        p.rect(-8.6f, -6.0f, 6.6f, 12.0f, pewter, 1.4f);
-        p.rect(1.8f, -6.0f, 6.6f, 12.0f, shade, 1.4f);
-        p.line(-8.6f, -2.0f, 6.6f, -2.0f, INK, 0.6f); p.line(-8.6f, 8.0f, 6.6f, 8.0f, INK, 0.6f);   // its hoops
-        p.disc(-6.0f, -7.0f, 3.2f + o, INK); p.disc(-1.4f, -8.6f, 3.6f + o, INK); p.disc(3.6f, -7.2f, 3.2f + o, INK);
-        p.disc(-6.0f, -7.0f, 3.2f, foam); p.disc(-1.4f, -8.6f, 3.6f, foam); p.disc(3.6f, -7.2f, 3.2f, foam);   // the foam
-        p.rect(-8.6f, -7.0f, 6.6f, -5.4f, foam);
+    case TI_INN: {                                                          /* an inn's signboard, hung from its iron arm, a star painted on it (not the tankard: Regain Endurance's) */
+        ImU32 board = C(0.62f, 0.40f, 0.20f), dark = C(0.44f, 0.27f, 0.12f);
+        p.line(-12.0f, -11.0f, 11.0f, -11.0f, INK, 2.6f); p.line(-12.0f, -11.0f, 11.0f, -11.0f, IRON, 1.4f);   // the arm
+        p.line(-12.0f, -4.0f, -4.0f, -11.0f, INK, 1.8f); p.line(-12.0f, -4.0f, -4.0f, -11.0f, IRON, 0.9f);     // its brace
+        p.line(-6.0f, -11.0f, -6.0f, -6.0f, INK, 1.0f); p.line(7.0f, -11.0f, 7.0f, -6.0f, INK, 1.0f);           // the chains
+        p.rect(-9.5f - o, -6.0f - o, 10.5f + o, 11.0f + o, INK, 1.6f); p.rect(-9.5f, -6.0f, 10.5f, 11.0f, board, 1.6f);
+        p.rect_line(-8.0f, -4.5f, 9.0f, 9.5f, dark, 0.8f, 1.0f);
+        {   const float cx = 0.5f, cy = 2.6f, R = 5.4f, r = 2.2f; float pts[20];   // the star
+            for (int k = 0; k < 10; k++) { float a = -1.5708f + k * 0.62832f, rr = k % 2 ? r : R; pts[2 * k] = cx + cosf(a) * rr; pts[2 * k + 1] = cy + sinf(a) * rr; }
+            for (int k = 0; k < 10; k++) p.dl->PathLineTo(p.P(pts[2 * k], pts[2 * k + 1]));
+            p.dl->PathFillConcave(GOLD); }
         break; }
     case TI_SQUARE: {                                                       /* a notice board on its posts: news and gossip */
         ImU32 paper = C(0.98f, 0.95f, 0.86f), board = C(0.58f, 0.38f, 0.20f);

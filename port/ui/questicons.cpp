@@ -64,13 +64,15 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.rect(-5.0f, -1.6f, -1.6f, 0.2f, INK); p.rect(1.6f, -1.6f, 5.0f, 0.2f, INK);   // the eye slits
         for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) p.disc(2.4f + i * 1.7f, 3.4f + j * 1.8f, 0.55f, INK);
         break; }
-    case QC_REWARD: {                                                       /* a purse and its florins */
-        p.ellipse(-1.0f, 3.5f, 8.6f + o, 7.6f + o, INK); p.ellipse(-1.0f, 3.5f, 8.6f, 7.6f, LEATHER);
-        p.ellipse(-3.5f, 1.5f, 3.0f, 2.2f, C(0.70f, 0.47f, 0.25f));          // a sheen
-        p.poly({ -6.5f, -8.5f, 4.5f, -8.5f, 2.2f, -3.5f, -4.2f, -3.5f }, INK);
-        p.poly({ -5.6f, -7.8f, 3.6f, -7.8f, 1.7f, -3.8f, -3.7f, -3.8f }, C(0.66f, 0.42f, 0.21f));
-        p.line(-4.6f, -3.6f, 2.6f, -3.6f, GOLD, 1.3f); p.line(2.0f, -3.4f, 5.2f, -0.6f, GOLD, 0.9f);
-        coin(p, 6.6f, 9.0f, 3.2f, o); coin(p, 9.6f, 5.2f, 2.6f, o);
+    case QC_REWARD: {                                                       /* florins stacked high, waiting to be paid out (not a purse: earning at the inn has it) */
+        for (int st = 0; st < 2; st++) {
+            float x = st ? 4.2f : -4.6f, base = st ? 10.0f : 11.0f; int n = st ? 4 : 6;
+            for (int k = 0; k < n; k++) {
+                float y = base - k * 2.6f;
+                p.ellipse(x, y, 6.4f + o, 2.2f + o, INK); p.ellipse(x, y, 6.4f, 2.2f, k == n - 1 ? GOLD : C(0.80f, 0.58f, 0.14f));
+            }
+            p.ellipse(x, base - (n - 1) * 2.6f, 3.6f, 1.1f, C(0.98f, 0.86f, 0.40f));   // the top coin's face
+        }
         break; }
     case QC_RETRIEVE: {                                                     /* an iron-bound chest */
         ImU32 oak = C(0.58f, 0.38f, 0.18f), dark = C(0.42f, 0.26f, 0.12f);

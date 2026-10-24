@@ -69,17 +69,14 @@ void ui_draw_career_icon(ImDrawList *dl, ImVec2 c, float s, int kind)
         p.poly({ -6.0f, 12.0f, -3.6f, 8.6f, 3.6f, 8.6f, 6.0f, 12.0f }, C(0.80f, 0.60f, 0.18f));
         p.disc(0, -4.7f, 1.3f, RED);
         break; }
-    case 3: {                                                   /* trade: a merchant's purse and its coins */
-        p.poly({ -9.4f, 11.6f, -11.4f, 3.0f, -6.4f, -4.4f, 6.4f, -4.4f, 11.4f, 3.0f, 9.4f, 11.6f }, INK);
-        p.poly({ -8.6f, 10.8f, -10.4f, 3.0f, -5.8f, -3.6f, 5.8f, -3.6f, 10.4f, 3.0f, 8.6f, 10.8f }, LEATHER);
-        p.poly({ -4.6f, -4.0f, -6.6f, -10.4f, 6.6f, -10.4f, 4.6f, -4.0f }, INK);       // the gathered neck
-        p.poly({ -3.8f, -4.4f, -5.6f, -9.6f, 5.6f, -9.6f, 3.8f, -4.4f }, C(0.62f, 0.42f, 0.24f));
-        p.rect(-6.2f, -5.4f, 6.2f, -3.6f, RED, 0.4f);                              // the cord
-        p.line(-6.0f, 3.0f, 6.0f, 3.0f, C(0.40f, 0.25f, 0.12f), 0.6f);              // a seam
-        for (int k = 0; k < 3; k++) {                                             // the coins before it
-            float x = 7.6f + k * 1.2f, y = 10.6f - k * 2.4f;
-            p.disc(x, y, 3.0f + o * 0.5f, INK); p.disc(x, y, 3.0f, GOLD); p.ring(x, y, 1.8f, C(0.70f, 0.50f, 0.10f), 0.5f);
-        }
+    case 3: {                                                   /* trade: a merchant's bale, corded, his mark on it (not a purse or a balance: the inn's earning, the money changers') */
+        ImU32 cloth = C(0.86f, 0.80f, 0.64f), shade = C(0.72f, 0.66f, 0.50f);
+        p.rect(-11.0f - o, -7.0f - o, 11.0f + o, 9.0f + o, INK, 2.4f); p.rect(-11.0f, -7.0f, 11.0f, 9.0f, cloth, 2.4f);
+        p.rect(4.0f, -7.0f, 11.0f, 9.0f, shade, 2.4f);
+        p.line(-11.0f, -1.0f, 11.0f, -1.0f, WOOD, 1.2f); p.line(-11.0f, 4.0f, 11.0f, 4.0f, WOOD, 1.2f);   // the cords
+        p.line(-4.0f, -7.0f, -4.0f, 9.0f, WOOD, 1.2f); p.line(4.0f, -7.0f, 4.0f, 9.0f, WOOD, 1.2f);
+        p.line(-2.0f, -5.0f, -2.0f, 2.6f, INK, 0.8f); p.line(-2.0f, -5.0f, 1.6f, -2.6f, INK, 0.8f); p.line(-2.0f, -1.2f, 1.6f, -1.2f, INK, 0.8f);   // the merchant's mark
+        p.disc(-7.5f, -9.0f, 1.6f, RED);                                            // a seal on its cord
         break; }
     case 6: {                                                   /* common folk: a pitchfork and a sheaf */
         for (int k = -2; k <= 2; k++) p.line(-4.0f + k * 1.6f, 11.0f, -2.0f + k * 1.0f, -6.0f, C(0.85f, 0.70f, 0.30f), 1.4f);   // the sheaf's stalks

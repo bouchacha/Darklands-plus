@@ -877,7 +877,7 @@ extern "C" int citynav_window(void)
                         any_teach = true;
                         int a = T.teach_off ? 110 : 255;
                         ui_draw_teach_mark(dl, ImVec2(rx - ms * 0.5f, ny + lh * 0.5f), ms * 0.95f,
-                                           hov ? IM_COL32(252, 242, 220, a) : IM_COL32(32, 62, 120, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
+                                           hov ? IM_COL32(252, 242, 220, a) : IM_COL32(80, 50, 24, a), hov ? IM_COL32(140, 61, 33, a) : IM_COL32(252, 246, 228, a));
                         rx -= ms + 3 * scale;
                     }
                     ImU32 fg = hov ? IM_COL32(252, 242, 220, 255) : T.here ? IM_COL32(51, 31, 15, 255) : IM_COL32(150, 134, 112, 255);
@@ -904,7 +904,7 @@ extern "C" int citynav_window(void)
                 ImVec2 a = ImGui::GetCursorScreenPos();
                 ImGui::Dummy(ImVec2(ms, ms));
                 if (kind) ui_draw_quest_icon(dl, ImVec2(a.x + ms * 0.5f, a.y + ms * 0.5f), ms, 0);
-                else ui_draw_teach_mark(dl, ImVec2(a.x + ms * 0.5f, a.y + ms * 0.5f), ms * 0.9f, IM_COL32(32, 62, 120, 255), IM_COL32(252, 246, 228, 255));
+                else ui_draw_teach_mark(dl, ImVec2(a.x + ms * 0.5f, a.y + ms * 0.5f), ms * 0.9f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
                 ImGui::SameLine(0, 4 * scale);
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextDisabled("%s", text);

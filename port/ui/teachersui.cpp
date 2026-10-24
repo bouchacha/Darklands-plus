@@ -105,6 +105,7 @@ std::string ui_teachers_hired_line(int loc)
 /* a lectern: a big book lying open on it (its cover showing under the pages, the gutter shaded, a
    ribbon hanging), on a short slanted desk, a turned column with two rings, a broad foot. ink: the
    wood, the cover and the lines; page: the paper */
+/* (the same ink everywhere on light ground, IM_COL32(80, 50, 24): the cards, Go to, the inn, the margin) */
 void ui_draw_teach_mark(ImDrawList *dl, ImVec2 c, float s, unsigned ink, unsigned page)
 {
     auto P = [&](float x, float y) { return ImVec2(c.x + x * s, c.y + y * s); };

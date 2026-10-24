@@ -266,7 +266,7 @@ static void teachers_chip(int loc, bool &first, float isz, float gap, float x0, 
     ImVec2 c(a.x + isz * 0.5f, a.y + isz * 0.5f);              /* on a parchment roundel, as the town's other icons */
     dl->AddCircleFilled(c, isz * 0.48f, IM_COL32(240, 228, 198, 255), 24);
     dl->AddCircle(c, isz * 0.48f, IM_COL32(92, 60, 30, 255), 24, fmaxf(1.0f, isz * 0.05f));
-    ui_draw_teach_mark(dl, ImVec2(c.x, c.y + isz * 0.02f), isz * 0.72f, IM_COL32(70, 44, 20, 255), IM_COL32(252, 246, 228, 255));
+    ui_draw_teach_mark(dl, ImVec2(c.x, c.y + isz * 0.02f), isz * 0.72f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
     dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), num);
     if (!useful) dim_since(dl, v0, 0.38f);                   /* nobody would learn anything now: dim, as a known saint */
     if (item_hovered()) {                                    /* a row a teacher: who would learn, or why not now */

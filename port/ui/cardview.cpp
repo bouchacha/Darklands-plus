@@ -315,7 +315,7 @@ extern "C" void cardview_draw(void)
         if (teaches[j]) {                                          /* brings a teacher: a lectern (left of the blades, if both) */
             ImVec2 cpos(X1 - 0.9f * size - (p.type == -1 && p.state == 1 ? 1.6f * size : 0), (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
             int a = p.state == 1 ? 235 : 110;
-            ImU32 ti = dark ? IM_COL32(170, 200, 245, a) : IM_COL32(32, 62, 120, a), tp = dark ? IM_COL32(238, 230, 208, a) : IM_COL32(252, 246, 228, a);
+            ImU32 ti = dark ? IM_COL32(236, 210, 160, a) : IM_COL32(80, 50, 24, a), tp = dark ? IM_COL32(238, 230, 208, a) : IM_COL32(252, 246, 228, a);
             ui_draw_teach_mark(dl, cpos, size * 1.05f, ti, tp);
         }
         for (const Line &l : la.lines) dl->AddText(f, size, ImVec2(l.x, l.y - shift), col, l.t.c_str());

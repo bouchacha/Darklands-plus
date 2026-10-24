@@ -137,7 +137,7 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
     case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
     default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */
         void ui_draw_teach_mark(ImDrawList *dl, ImVec2 c, float s, unsigned ink, unsigned page);
-        ui_draw_teach_mark(dl, Q(0, -0.5f), s * 0.98f, IM_COL32(96, 60, 28, 255), IM_COL32(252, 246, 228, 255));
+        ui_draw_teach_mark(dl, Q(0, -0.5f), s * 0.98f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
         break; }
     }
 }
