@@ -312,6 +312,9 @@ static int rescue_target(int i)
             long v = (long)n * 1000 + (mx > 0 ? 999 - 999L * (cur < 0 ? 0 : cur > mx ? mx : cur) / mx : 0);
             if (v > sc) sc = v;
         }
+        for (int p = 0; p < 5; p++)                                           /* (and those on their way to it) */
+            if (p != i && g_rb((u16)(D_CBT + p * 0x80 + 0x14)) == 1 && !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))
+                && (s8)g_rb((u16)(D_CBT + p * 0x80 + 0x4a)) == j && g_rb((u16)(GV_cbt_moving + p)) && g_rw((u16)(D_CBT + p * 0x80 + 0x10)) != MISSILE) on_it++;
         if (sc < 0 || on_it >= 2) continue;
         sc = sc * 100000 - dd / 16;
         if (best < 0 || sc > bs) { best = j; bs = sc; }
