@@ -378,7 +378,7 @@ static void presets_block(void)
     ImGui::PopStyleColor();
     ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "One exception:");
     ImGui::SameLine();
-    ImGui::TextWrapped("a save with a member using an enemy sprite (Darklands+ and Easy offer them) loads only in Darklands+.");
+    ImGui::TextWrapped("a save with a member using an enemy sprite (Darklands+ offers them) loads only in Darklands+.");
 }
 
 static void display_icons(void); static void look_text(void); static void look_pictures(void); static void look_ornaments(void); static void look_clock(void);
