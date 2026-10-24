@@ -363,6 +363,7 @@ static int pit_write_hi, pit_latch_hi; static u16 pit_latch, pit_new;
 static double tick_us_acc;
 static u32 last_ms;
 static double pit_period_us(void) { return (pit_div ? pit_div : 65536) * 1e6 / 1193182.0; }
+double bios_tick_us(void) { return pit_period_us(); }
 
 /* channel 0 counter, from real time; every latch also advances a virtual clock a little so
  * that code timing a short loop between two latches (sound driver CPU-speed calibration)
@@ -602,6 +603,18 @@ void bios_snapshot_free(void *p) { free(p); }
 /* ---------------------------------------------------------------- poll */
 static int in_irq;
 int dl_in_irq(void) { return in_irq; }
+/* the soundtrack's player (mods/playlist.c): the timer interrupts that drive the music driver,
+   counted while a piece plays; held back while it is paused; a burst of them at once to move
+   through a piece (the notes held back meanwhile: music_ff, runtime/mpu.c, runtime/sound.c) */
+volatile u32 music_ticks; int music_hold;
+double bios_tick_us(void);
+void bios_timer_burst(int n)
+{
+    if (!R.iflag || !ivt_hooked(8)) return;
+    int was = in_irq; in_irq = 1;
+    for (int k = 0; k < n; k++) { call_handler(8); music_ticks++; }
+    in_irq = was;
+}
 static u32 last_present;
 extern int poll_count_events;
 
@@ -660,7 +673,8 @@ void dl_poll(void)
                driver) keeps coming while the game itself waits; in a battle (its clock counts those
                ticks) and with the window in the background, the sound stops as before */
             int game_mode(void), plat_in_background(void);
-            int keep = config_get_int("sound.music_in_menus", 1) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8);
+            int soundpreview_active(void);
+            int keep = (config_get_int("sound.music_in_menus", 1) || soundpreview_active()) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8);
             void sound_pause(int);
             if (!keep) sound_pause(1);
             u32 lt = plat_ticks_ms(); double acc = 0;
@@ -670,12 +684,12 @@ void dl_poll(void)
                 int bg = plat_in_background();
                 if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
                 { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); }
-                if (keep && !bg) {
+                if (keep && !bg && !music_hold) {
                     u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 500) d = 500;
                     acc += d * 1000.0;
                     double per = pit_period_us();
                     in_irq = 1;
-                    for (int n = 0; acc >= per && n < 32; n++) { acc -= per; call_handler(8); }   /* (all that fell due: the music keeps its tempo) */
+                    for (int n = 0; acc >= per && n < 32; n++) { acc -= per; call_handler(8); music_ticks++; }   /* (all that fell due: the music keeps its tempo) */
                     if (acc > 500000.0) acc = 0;
                     { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }
                     in_irq = 0;
@@ -698,6 +712,7 @@ void dl_poll(void)
         tick_us_acc -= per;
         delivered++;
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
+        music_ticks++;
     }
     static u32 st_deliv, st_drop, st_t; static int st_on = -1;
     if (st_on < 0) st_on = getenv("DL_TRACE_PIT") != 0;

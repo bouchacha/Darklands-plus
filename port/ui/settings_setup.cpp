@@ -1,5 +1,6 @@
 // settings_setup.cpp - the Settings page's sections on the game on this computer (ui/settings.cpp
 // draws the page): Screen, Intro, Sound and Controller.
+#include "../mods/playlist.h"
 #include <SDL.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -293,6 +294,63 @@ void setup_sound(void)
         int v = sound_music_volume;
         ImGui::SetNextItemWidth(UIS(260));
         if (ImGui::SliderInt("Volume of the music", &v, 0, 150, "%d%%")) { sound_music_volume = v; config_set_int("sound.music_volume", v); ui_dirty_config = 1; }
+    }
+
+    /* the soundtrack: every piece of the game's music, through the device chosen above (mods/playlist.c) */
+    {
+        ImGui::Spacing();
+        const char *pdev = !strcmp(cur, "auto") || !strcmp(cur, "game") ? (mt32_available() ? "mt32" : "fm") : cur;
+        bool can = soundpreview_possible() && strcmp(cur, "off") != 0;
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted("Soundtrack"); ImGui::PopStyleColor();
+        ui_hint(can ? "Every piece of the game's music, played through the device chosen above. Click a piece to hear it."
+                    : "Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle.");
+        auto mmss = [](int ms) { char t[16]; int s2 = ms / 1000; snprintf(t, sizeof t, "%d:%02d", s2 / 60, s2 % 60); return std::string(t); };
+        int now = playlist_now(), len = now >= 0 ? playlist_length_ms(now) : -1;
+        bool paused = playlist_paused() != 0, meas = playlist_measuring() != 0;
+        ImGui::BeginDisabled(!can || now < 0 || meas);
+        if (ImGui::Button(now >= 0 && !paused ? "Pause##st" : "Play##st", ImVec2(UIS(64), 0))) playlist_pause(!paused);
+        ImGui::SameLine();
+        if (ImGui::Button("Stop##st", ImVec2(UIS(56), 0))) playlist_stop();
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        if (now >= 0) {
+            const char *d = musicpack_desc(now);
+            ImGui::Text("%d  %s", now, d[0] ? d : "");
+            static int drag = -1;
+            int pos = drag >= 0 ? drag : playlist_pos_ms();
+            ImGui::TextUnformatted(meas ? "-:--" : mmss(pos).c_str());
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(UIS(300));
+            int v = pos;
+            ImGui::BeginDisabled(meas || len <= 0);
+            if (ImGui::SliderInt("##seek", &v, 0, len > 0 ? len : 1, "")) drag = v;
+            if (ImGui::IsItemDeactivatedAfterEdit() && drag >= 0) { playlist_seek(drag); drag = -1; }
+            else if (!ImGui::IsItemActive()) drag = -1;
+            ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (meas) ui_hint("finding its length (silent, a few seconds)");
+            else ImGui::TextUnformatted(len > 0 ? (mmss(len) + (musicpack_loops(now) ? ", then again" : "")).c_str() : len == -2 ? "repeats" : "");
+        } else ImGui::TextDisabled("no piece playing");
+        ImGui::BeginDisabled(!can);
+        if (ImGui::BeginChild("##pieces", ImVec2(0, UIS(210)), ImGuiChildFlags_Borders)) {
+            for (int k = 8; k <= 47; k++) {
+                const char *d = musicpack_desc(k);
+                ImGui::PushID(k);
+                float x0 = ImGui::GetCursorPosX();
+                if (ImGui::Selectable("##piece", now == k)) playlist_play(pdev, k);
+                ImGui::SameLine(x0 + UIS(4)); ImGui::TextDisabled("%d", k);   /* (the numbers in a column of their own) */
+                ImGui::SameLine(x0 + UIS(40)); ImGui::TextUnformatted(d[0] ? d : "(a piece without a known place)");
+                ImGui::PopID();
+                int l = playlist_length_ms(k);
+                if (l > 0 || l == -2) {
+                    std::string t = l > 0 ? mmss(l) : std::string("repeats");
+                    ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(t.c_str()).x - UIS(6));
+                    ImGui::TextDisabled("%s", t.c_str());
+                }
+            }
+        }
+        ImGui::EndChild();
+        ImGui::EndDisabled();
     }
 
     /* custom packs: recordings in place of the synthesizer's music, or of the battle sounds (folded away) */

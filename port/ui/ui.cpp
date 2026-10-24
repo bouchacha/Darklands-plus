@@ -561,6 +561,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     { void soundpreview_tick(void); soundpreview_tick(); }   /* (mods/soundpreview.c) */
     {   /* the music quiet while the settings are open, so that what a preview plays is what is heard */
         sound_music_hushed = open_menu && settings_shown && !soundpreview_active() && !settings_pack_preview;
+        { void playlist_frame(int); playlist_frame(open_menu && settings_shown); }   /* (the soundtrack's player stops with the settings: mods/playlist.c) */
     }
     { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news);
       void screenpics_map_frame(int, int); screenpics_map_frame(open_map, open_menu || open_goto || open_help || open_welcome || open_news);

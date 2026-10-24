@@ -43,8 +43,9 @@ static void load_driver(int battle)
     for (int i = 0; i < 16; i++) g_wb((u16)(GV_msg_buf + i), keep[i]);
 }
 static void play(int n) { call(0x078a, 1, (u16)n, 0, 0, 0, 0, 0, 0); }
-void opl_silence(void); void mpu_all_notes_off(void);
+void opl_silence(void); void mpu_all_notes_off(void); void opl_keys_off(void);
 static void hush(void) { opl_silence(); mpu_all_notes_off(); }   /* (no note left hanging from the driver let go) */
+static void soft_hush(void) { opl_keys_off(); mpu_all_notes_off(); }   /* (the same driver going on: every key let go, its instruments kept) */
 
 static const char *const DEV[] = { "mt32", "fm", "adlib", "speaker", "midi" };
 #define NDEVS 5
@@ -54,18 +55,21 @@ static const int BATTLE[] = { 17, 16, 17, 15, 11, 10 };   /* a miss or parry, a 
 
 int musicpack_now(int *from_pack);
 void musicpack_hold(int on);
+static int music_was = -1;               /* the game's own music switch (Alt+M), on for a preview of the music, as it was after */
 static void begin(int dev, int w, int c, int d)
 {
-    (void)c; (void)d;
+    (void)d;
     if (game_mode() == GM_BATTLE || dev < 0 || dev >= NDEVS || !g_rw(0x9417)) return;
     int fp; prev = musicpack_now(&fp);
     snprintf(over, sizeof over, "%s", DEV[dev]);
     musicpack_hold(1);
     play(1); hush();
-    load_driver(w);
+    load_driver(w == 1);                 /* (the battle sounds: the battles' driver; the music: the towns') */
     active = 1; what = w; step = 0; t0 = plat_ticks_ms();
+    if (w != 1 && music_was < 0) { music_was = g_rb(GV_opt_music); g_wb(GV_opt_music, 1); }
     if (!w) play(20);                      /* the second tune of the overland view: every device has it */
-    fprintf(stderr, "sound preview: %s, %s\n", DEV[dev], w ? "battle sounds" : "music");
+    if (w == 2) { play(c); void playlist_started(int); playlist_started(c); }   /* (the soundtrack's player: piece c, until stopped) */
+    fprintf(stderr, "sound preview: %s, %s\n", DEV[dev], w == 1 ? "battle sounds" : w == 2 ? "the soundtrack" : "music");
 }
 static void end(int a, int b, int c, int d)
 {
@@ -74,12 +78,26 @@ static void end(int a, int b, int c, int d)
     active = 0;
     play(1); hush();
     over[0] = 0;
+    if (music_was >= 0) { g_wb(GV_opt_music, (u8)music_was); music_was = -1; }
     load_driver(0);
     musicpack_hold(0);
     if (prev >= 8) play(prev);
     fprintf(stderr, "sound preview: done\n");
 }
 static void beat(int n, int b, int c, int d) { (void)b; (void)c; (void)d; if (active) play(n); }
+
+/* the soundtrack's player (mods/playlist.c): piece n through device dev until stopped; within a
+   deferred call, a piece started again from its beginning, the notes of the last one silenced */
+void soundpreview_piece(const char *dev, int n)
+{
+    int k = -1; for (int i = 0; i < NDEVS; i++) if (!strcmp(dev, DEV[i])) k = i;
+    if (k < 0) return;
+    if (active) ns_defer(end, 0, 0, 0, 0);
+    ns_defer(begin, k, 2, n, 0);
+}
+void soundpreview_replay(int n) { if (active) { play(1); soft_hush(); play(n); } }
+void soundpreview_hush(void) { soft_hush(); }
+int soundpreview_device(void) { for (int i = 0; i < NDEVS; i++) if (active && !strcmp(over, DEV[i])) return i; return -1; }
 
 /* the settings' buttons: hear device dev ("mt32", "fm" ...) play music (0) or battle sounds (1) */
 void soundpreview_start(const char *dev, int w)
@@ -102,5 +120,5 @@ void soundpreview_tick(void)
         int n = (int)(sizeof BATTLE / sizeof BATTLE[0]);
         if (step < n && dt >= (u32)(300 + step * 700)) { ns_defer(beat, BATTLE[step], 0, 0, 0); step++; }
         if (dt > (u32)(300 + n * 700 + 800)) { ns_defer(end, 0, 0, 0, 0); active = 2; }
-    } else if (dt > 15000 && active == 1) { ns_defer(end, 0, 0, 0, 0); active = 2; }
+    } else if (what == 0 && dt > 15000 && active == 1) { ns_defer(end, 0, 0, 0, 0); active = 2; }   /* (the soundtrack's player plays until stopped) */
 }

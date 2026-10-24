@@ -76,8 +76,11 @@ const char *mpu_out_name(int i)
 #endif
 }
 
+int music_ff;                                    /* moving through a piece (mods/playlist.c): its notes held back, noted */
+void playlist_heard(int key);
 static void midi_short(u8 a, u8 b, u8 c, int n)
 {
+    if (music_ff && (a & 0xf0) == 0x90 && c) { playlist_heard((a & 0x0f) << 8 | b); return; }
     if (midi_log) { u8 m[3] = {a, b, c}; fwrite(m, 1, (size_t)n, midi_log); }
     if (midi_ok == 2) { u8 m[3] = {a, b, c}; mt32_msg(m, n); return; }
 #ifdef _WIN32

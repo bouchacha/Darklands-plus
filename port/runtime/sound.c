@@ -99,6 +99,7 @@ static void update_timers(void)
 }
 
 static int nwrites, nreads;
+int opl_write_count(void) { return nwrites; }
 static void stats(void) { if (getenv("DL_TRACE_OPL")) fprintf(stderr, "opl: %d writes, %d status reads\n", nwrites, nreads); }
 /* the FM chip silenced at once (a note held when its driver was let go would sound on for ever):
    the sound preview (mods/soundpreview.c) changes drivers in the middle of the music */
@@ -107,6 +108,16 @@ void opl_silence(void)
     if (!ok) return;
     SDL_LockAudioDevice(dev);
     OPL3_Reset(&chip, chip_rate);
+    SDL_UnlockAudioDevice(dev);
+}
+extern int music_ff;
+void playlist_heard(int key);
+static u8 opl_keys[2][9], opl_fnum[2][9];        /* the key-on registers last written (0xb0 ...), for opl_keys_off; the frequencies' low bytes (0xa0 ...) */
+void opl_keys_off(void)                          /* every channel's key released (the instruments kept, as a reset would not) */
+{
+    if (!ok) return;
+    SDL_LockAudioDevice(dev);
+    for (int b = 0; b < 2; b++) for (int ch = 0; ch < 9; ch++) OPL3_WriteRegBuffered(&chip, (uint16_t)((0xb0 + ch) | (b << 8)), opl_keys[b][ch] & ~0x20);
     SDL_UnlockAudioDevice(dev);
 }
 void opl_out(u16 port, u8 v)
@@ -125,6 +136,11 @@ void opl_out(u16 port, u8 v)
         if ((v & 2) && !(t_ctrl & 2)) t2_start = now;
         t_ctrl = v;
         return;
+    }
+    if (reg >= 0xa0 && reg <= 0xa8) opl_fnum[bank][reg - 0xa0] = v;
+    if (reg >= 0xb0 && reg <= 0xb8) {
+        if (music_ff) { if ((v & 0x20) && !(opl_keys[bank][reg - 0xb0] & 0x20)) playlist_heard(0x10000 | (v & 0x1f) << 8 | opl_fnum[bank][reg - 0xb0]); v &= ~0x20; }   /* (moving through a piece: no key sounds; its pitch noted, whatever the channel) */
+        opl_keys[bank][reg - 0xb0] = v;
     }
     if (!ok) return;
     SDL_LockAudioDevice(dev);
