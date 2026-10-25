@@ -93,3 +93,9 @@ covered and found, and what it could not check.
   asked), Charisma a rose, Latin a column, Read & Write a quill on a sheet, Stealth the mask, Streetwise a cat,
   Reputation the medal, Fame the trumpet, Speak Common a speech bubble. A triskelion tried for Agility was
   dropped (it reads as an extremist emblem): check a new emblem for that too.
+- 2026-10-24 (RC23, then a pass): the ingredients' old pictures removed now the signs are settled (the four
+  bases moved among the signs); the icon sheets (test only) moved out of skillicons.cpp into iconsheets.cpp;
+  the build's one warning fixed. Settled since the last pass: F12's sub-tabs (Journal and Editor tabbed, the
+  Guide a list at the left). The arena's misses were its own: a shot's draw and loosing between two samples
+  (now counted from the battle log too), a held member "walking" toward a foe out of reach (the game's Hold),
+  the seeds' runs of 'original' not exempt as the first.
