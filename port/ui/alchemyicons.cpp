@@ -241,9 +241,7 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier)
    the four bases the elements' triangles in their colours; the metals and their ores the planets'
    signs, all in one pewter (gold in gold); the sulphurs, salts and poisons their own signs in their
    own colours; the waters, oils and vapours their signs (aqua regia's has Water's triangle); the
-   herbs, which have no sign, one made as the tables make theirs, in the same green line.
-   ingredient_style_preview 2: the pictures they had before (the comparison sheet, uiconstyles:4) */
-int ingredient_style_preview = 0;
+   herbs, which have no sign, one made as the tables make theirs, in the same green line */
 static bool draw_ingredient_signs(Pen &p, int id)
 {
     const float W = 1.5f;
@@ -251,7 +249,7 @@ static bool draw_ingredient_signs(Pen &p, int id)
     ImU32 steel = metal, copper = metal, lead = metal;
     ImU32 sulphur = C(0.62f, 0.46f, 0.02f), orpi = C(0.72f, 0.50f, 0.00f), vermilion = C(0.70f, 0.14f, 0.08f), salt = C(0.30f, 0.30f, 0.34f);
     ImU32 water = C(0.20f, 0.35f, 0.62f), oil = C(0.22f, 0.16f, 0.10f), amber = C(0.70f, 0.40f, 0.04f), marsh = C(0.26f, 0.40f, 0.34f);
-    ImU32 herb = C(0.24f, 0.46f, 0.16f), ink = C(0.20f, 0.12f, 0.07f);
+    ImU32 herb = C(0.24f, 0.46f, 0.16f), ink = C(0.20f, 0.12f, 0.07f), fire = C(0.80f, 0.38f, 0.02f), blood = C(0.66f, 0.12f, 0.08f);
     /* crisp strokes, as a table's engraved signs (round ends read as a comic's lettering). A line of
        the drawing that turns a corner is one stroke, its corners mitred (two strokes that only touch
        leave a notch at the corner); a stroke that ends on another ends inside it */
@@ -323,73 +321,23 @@ static bool draw_ingredient_signs(Pen &p, int id)
     case 86: p.ring(0, 0, 2.8f, herb, W);                                                                    // Camomile: the flower's heart, its petals six dots
         for (int r = 0; r < 6; r++) { float a = -1.5708f + r * 1.0472f; p.disc(cosf(a) * 5.4f, sinf(a) * 5.4f, 1.1f, herb); }
         break;
-    /* the bases: the elements, as before */
+    /* the bases: the elements' triangles in their humours' colours */
+    case 91: p.tri_line(-5.5f, 4.5f, 5.5f, 4.5f, 0, -6.0f, fire, W); break;                                    // Choleric Base: Fire (yellow bile)
+    case 92: p.tri_line(-5.5f, -4.5f, 5.5f, -4.5f, 0, 6.0f, water, W); break;                                  // Phlegmatic Base: Water
+    case 93: p.tri_line(-5.5f, 4.5f, 5.5f, 4.5f, 0, -6.0f, blood, W); L(-6.8f, 0.6f, 6.8f, 0.6f, blood); break;   // Sanguine Base: Air (blood)
+    case 94: p.tri_line(-5.5f, -4.5f, 5.5f, -4.5f, 0, 6.0f, ink, W); L(-6.8f, -0.6f, 6.8f, -0.6f, ink); break;    // Melancholic Base: Earth (black bile)
     default: return false;
     }
-    (void)ink;
     return true;
 }
 
-/* the ingredients, 72..94 */
+/* the ingredients, 72..94: each its sign on a parchment medallion */
 bool ui_draw_ingredient(ImDrawList *dl, ImVec2 c, float s, int id)
 {
     if (id < 72 || id > 94) return false;
-    if (ingredient_style_preview != 2 && id < 91) {   /* (the signs; 2: the earlier pictures, for the comparison sheet) */
-        Pen q{ dl, c, s / 16.0f * 0.92f };
-        q.disc(0, 0, 10.2f, C(0.95f, 0.90f, 0.76f)); q.ring(0, 0, 10.2f, C(0.45f, 0.30f, 0.15f), 0.9f); q.ring(0, 0, 9.0f, C(0.45f, 0.30f, 0.15f, 0.35f), 0.4f);
-        if (draw_ingredient_signs(q, id)) return true;
-    }
-    Pen p{ dl, c, s / 16.0f * 0.92f };            // (the medallion, ring included, inside the icon's square: item pictures are clipped to it)
-    ImU32 parch = C(0.95f, 0.90f, 0.76f), edge = C(0.45f, 0.30f, 0.15f);
-    ImU32 ink = C(0.20f, 0.12f, 0.07f), red = C(0.66f, 0.12f, 0.08f), gold = C(0.66f, 0.45f, 0.04f), green = C(0.28f, 0.48f, 0.20f), blue = C(0.20f, 0.35f, 0.62f);
-    ImU32 sulphur = C(0.62f, 0.46f, 0.02f), fire = C(0.80f, 0.38f, 0.02f);   /* (dark enough on the parchment: contrast 3.5 and more) */
-    p.disc(0, 0, 10.2f, parch); p.ring(0, 0, 10.2f, edge, 0.9f); p.ring(0, 0, 9.0f, C(0.45f, 0.30f, 0.15f, 0.35f), 0.4f);
-    const float W = 1.5f;                          // the symbols' stroke
-    auto cross = [&](float x, float y, float h, ImU32 k) { p.line(x, y - h, x, y + h, k, W); p.line(x - h, y, x + h, y, k, W); };
-    switch (id) {
-    case 72: p.ring(0, 0, 5.5f, gold, W); p.disc(0, 0, 1.4f, gold); break;                        // Pure Gold: the Sun
-    case 73: p.ring(0, -1.5f, 4.0f, ink, W); p.line(0, -5.5f, 0, 7.5f, ink, W); p.line(-3, 5.5f, 3, 5.5f, ink, W); break;   // Manganes: the "magnesia" sign
-    case 74: p.tri(-1.8f, 5.0f, 1.8f, 5.0f, 0, -1.0f, C(0.20f, 0.18f, 0.15f)); p.disc(0, 5.6f, 1.9f, C(0.20f, 0.18f, 0.15f));   // Naptha: oil, a drop with a flame
-        p.tri(-1.6f, -2.2f, 1.6f, -2.2f, 0, -7.6f, C(0.86f, 0.36f, 0.04f)); p.disc(0, -2.6f, 1.6f, C(0.86f, 0.36f, 0.04f)); break;
-    case 75: p.tri_line(-5.5f, 4.5f, 5.5f, 4.5f, 0, -6.0f, blue, W); p.line(-6.8f, 0.6f, 6.8f, 0.6f, blue, W); break;   // Marsh Vapor: Air
-    case 76: for (int k = 0; k < 2; k++) { float x = k ? 2.6f : -2.6f, y = k ? 1.4f : -1.4f;     // Eastern Black Bean: two beans
-        p.disc(x, y, 3.0f, C(0.10f, 0.08f, 0.08f)); p.arc(x + 0.4f, y, 1.6f, 2.2f, 4.0f, C(0.85f, 0.80f, 0.70f), 0.6f); } break;
-    case 77: p.line(-4, -5, 4, -5, ink, W); p.line(4, -5, -4, 5, ink, W); p.line(-4, 5, 4, 5, ink, W); p.line(-2.5f, 0, 2.5f, 0, ink, W); break;   // Zincblende: the zinc sign
-    case 78: p.ring(0, 2.0f, 4.3f, ink, W); cross(0, -5.5f, 2.2f, ink); break;                       // Antimoni: the orb and cross
-    case 79: p.tri_line(-5, 5, 5, 5, 0, -4.5f, sulphur, W); p.line(-3.2f, 2.0f, 3.2f, 2.0f, sulphur, W);   // Orpiment: arsenic's mark
-        p.ring(0, -6.2f, 1.6f, sulphur, 1.0f); break;
-    case 80: p.ring(0, 0.5f, 3.2f, red, W); p.arc(0, -5.0f, 2.6f, 0.3f, 2.84f, red, W); cross(0, 6.5f, 1.8f, red); break;   // White Cinnabar: Mercury's sign in vermilion
-    case 81: p.bez(-6, 7, -1, 0, 4, -6, green, 1.1f);                                            // Solanaceae: nightshade, berries and leaves
-        p.disc(-3.0f, -2.5f, 2.3f, C(0.35f, 0.55f, 0.25f)); p.disc(4.2f, 2.0f, 1.9f, C(0.35f, 0.55f, 0.25f));
-        p.disc(-0.5f, 3.6f, 1.7f, C(0.12f, 0.08f, 0.15f)); p.disc(2.2f, 5.6f, 1.6f, C(0.12f, 0.08f, 0.15f)); p.disc(-2.8f, 5.8f, 1.5f, C(0.12f, 0.08f, 0.15f)); break;
-    case 82: p.tri_line(-5.5f, -3.0f, 5.5f, -3.0f, 0, 7.0f, blue, W);                           // Aqua Regia: Water crowned (the royal water)
-        p.line(-4, -5, 4, -5, gold, 1.2f); p.line(-4, -5, -4.5f, -8, gold, 1.2f); p.line(0, -5, 0, -8.5f, gold, 1.2f); p.line(4, -5, 4.5f, -8, gold, 1.2f); break;
-    case 83: p.tri(-3.2f, 3.0f, 3.2f, 3.0f, 0, -6.5f, C(0.74f, 0.42f, 0.06f)); p.disc(0, 3.4f, 3.3f, C(0.74f, 0.42f, 0.06f));   // Gum: a tear of resin
-        p.disc(-1.2f, 2.0f, 0.9f, C(1, 0.95f, 0.75f, 0.8f)); break;
-    case 84: { ImU32 root = C(0.62f, 0.45f, 0.28f);                                              // Mondragora: the mandrake, a little man of root
-        p.disc(0, -2.5f, 1.8f, root); p.rect(-1.6f, -1.0f, 1.6f, 3.5f, root, 1.0f);
-        p.line(-1.4f, 0, -4.2f, 2.5f, root, 1.1f); p.line(1.4f, 0, 4.2f, 2.5f, root, 1.1f);
-        p.line(-0.8f, 3.4f, -2.4f, 7.5f, root, 1.2f); p.line(0.8f, 3.4f, 2.4f, 7.5f, root, 1.2f);
-        for (int l = 0; l < 3; l++) p.bez(0, -4.0f, -3.0f + l * 3.0f, -7.0f, -3.5f + l * 3.5f, -8.0f, green, 1.1f); break; }
-    case 85: p.ring(0, 0, 5.0f, ink, W); cross(0, 0, 5.0f, ink);                                    // Alum: the quartered circle, a grain in each
-        p.disc(-2.4f, -2.4f, 0.8f, ink); p.disc(2.4f, -2.4f, 0.8f, ink); p.disc(-2.4f, 2.4f, 0.8f, ink); p.disc(2.4f, 2.4f, 0.8f, ink); break;
-    case 86: p.bez(0, 8, 0.5f, 3, 0, 1.5f, green, 1.0f);                                           // Camomile: the flower
-        for (int k = 0; k < 10; k++) { float a = k * 0.6283f; p.disc(cosf(a) * 3.3f, -1.5f + sinf(a) * 3.3f, 1.7f, C(0.45f, 0.36f, 0.22f)); }   /* the petals' outline */
-        for (int k = 0; k < 10; k++) { float a = k * 0.6283f; p.disc(cosf(a) * 3.3f, -1.5f + sinf(a) * 3.3f, 1.25f, C(1.0f, 1.0f, 0.98f)); }
-        p.disc(0, -1.5f, 2.0f, C(0.88f, 0.60f, 0.04f)); p.ring(0, -1.5f, 2.0f, C(0.45f, 0.30f, 0.10f), 0.4f); break;
-    case 87: p.ring(0, -1.8f, 3.4f, C(0.70f, 0.40f, 0.15f), W); cross(0, 4.6f, 2.2f, C(0.70f, 0.40f, 0.15f));   // Nikel: Venus's copper sign with the devil's horns ("Kupfernickel")
-        p.bez(-2.2f, -4.4f, -3.8f, -6.4f, -2.6f, -8.2f, red, 1.0f); p.bez(2.2f, -4.4f, 3.8f, -6.4f, 2.6f, -8.2f, red, 1.0f); break;
-    case 88: p.disc(0, 0.5f, 5.6f, C(0.12f, 0.11f, 0.10f));                                       // Pitchblende: a black, pitch-bright lump
-        p.disc(-2.0f, -1.6f, 1.2f, C(0.55f, 0.55f, 0.50f, 0.7f)); p.line(-1.5f, 3.0f, 3.0f, -0.6f, C(0.40f, 0.36f, 0.30f), 0.6f); break;
-    case 89: p.line(-1, -6, -1, 6, ink, W); p.line(-1, 2, 5, 2, ink, W); p.bez(-1, -6, 4.5f, -5.5f, -4, -1, ink, W); break;   // Zinken: Jupiter's sign (tin and zinc)
-    case 90: p.tri_line(-4.2f, -1.5f, 4.2f, -1.5f, 0, -8.0f, sulphur, W);         // Brimstone: sulphur, the triangle on the cross
-        p.line(0, -1.5f, 0, 8, sulphur, W); p.line(-3.5f, 2.5f, 3.5f, 2.5f, sulphur, W); p.line(-2.5f, 5.5f, 2.5f, 5.5f, sulphur, W); break;
-    case 91: p.tri_line(-5.5f, 4.5f, 5.5f, 4.5f, 0, -6.0f, fire, W); break;      // Choleric Base: Fire (yellow bile)
-    case 92: p.tri_line(-5.5f, -4.5f, 5.5f, -4.5f, 0, 6.0f, blue, W); break;                       // Phlegmatic Base: Water
-    case 93: p.tri_line(-5.5f, 4.5f, 5.5f, 4.5f, 0, -6.0f, red, W); p.line(-6.8f, 0.6f, 6.8f, 0.6f, red, W); break;   // Sanguine Base: Air (blood)
-    case 94: p.tri_line(-5.5f, -4.5f, 5.5f, -4.5f, 0, 6.0f, ink, W); p.line(-6.8f, -0.6f, 6.8f, -0.6f, ink, W); break;   // Melancholic Base: Earth (black bile)
-    }
-    return true;
+    Pen q{ dl, c, s / 16.0f * 0.92f };            // (the medallion, ring included, inside the icon's square: item pictures are clipped to it)
+    q.disc(0, 0, 10.2f, C(0.95f, 0.90f, 0.76f)); q.ring(0, 0, 10.2f, C(0.45f, 0.30f, 0.15f), 0.9f); q.ring(0, 0, 9.0f, C(0.45f, 0.30f, 0.15f, 0.35f), 0.4f);
+    return draw_ingredient_signs(q, id);
 }
 
 /* the grade of a potion of quality q (base: the item's own quality in DARKLAND.LST) */

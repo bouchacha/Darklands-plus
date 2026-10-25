@@ -1071,6 +1071,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/hourglass.cpp:322` | Copper astrolabe |
 | `ui/hourglass.cpp:322` | Town clock (Prague, 1410) |
 | `ui/hourglass.cpp:322` | The game's, drawn true |
+| `ui/iconsheets.cpp:32` | Frames and clock |
+| `ui/iconsheets.cpp:32` | Cards and towns |
+| `ui/iconsheets.cpp:32` | The party and its items |
+| `ui/iconsheets.cpp:33` | Fixes for bugs of the original |
+| `ui/iconsheets.cpp:82` | The four bases: the elements' triangles |
+| `ui/iconsheets.cpp:83` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
+| `ui/iconsheets.cpp:84` | Sulphurs, salts and poisons |
+| `ui/iconsheets.cpp:85` | Waters, oils and vapours |
+| `ui/iconsheets.cpp:86` | Herbs: no sign in the tables, one made as theirs are |
+| `ui/iconsheets.cpp:87` | E. Black Bean |
+| `ui/iconsheets.cpp:87` | White Cinnabar |
+| `ui/iconsheets.cpp:89` | Choleric Base |
+| `ui/iconsheets.cpp:89` | Phlegmatic Base |
+| `ui/iconsheets.cpp:89` | Sanguine Base |
+| `ui/iconsheets.cpp:89` | Melancholic Base |
+| `ui/iconsheets.cpp:118` | Drawn in color (no disc) |
 | `ui/infoview.cpp:71` | %d (the next title at %d) |
 | `ui/infoview.cpp:81` | Reputation here: %s (%d) |
 | `ui/infoview.cpp:90` | Bank notes: %s |
@@ -2022,28 +2038,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:991` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:992` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:997` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:413` | Frames and clock |
-| `ui/skillicons.cpp:417` | Cards and towns |
-| `ui/skillicons.cpp:422` | The party and its items |
-| `ui/skillicons.cpp:438` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:489` | Frames and clock |
-| `ui/skillicons.cpp:489` | Cards and towns |
-| `ui/skillicons.cpp:489` | The party and its items |
-| `ui/skillicons.cpp:490` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:512` | C. A laurel wreath, larger |
-| `ui/skillicons.cpp:559` | The four bases: the elements' triangles |
-| `ui/skillicons.cpp:560` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
-| `ui/skillicons.cpp:561` | Sulphurs, salts and poisons |
-| `ui/skillicons.cpp:562` | Waters, oils and vapours |
-| `ui/skillicons.cpp:563` | Herbs: no sign in the tables, one made as theirs are |
-| `ui/skillicons.cpp:564` | E. Black Bean |
-| `ui/skillicons.cpp:564` | White Cinnabar |
-| `ui/skillicons.cpp:566` | Choleric Base |
-| `ui/skillicons.cpp:566` | Phlegmatic Base |
-| `ui/skillicons.cpp:566` | Sanguine Base |
-| `ui/skillicons.cpp:566` | Melancholic Base |
-| `ui/skillicons.cpp:569` | Each ingredient: its sign now (left), and the picture it had before (right) |
-| `ui/skillicons.cpp:598` | Drawn in color (no disc) |
+| `ui/skillicons.cpp:384` | Frames and clock |
+| `ui/skillicons.cpp:388` | Cards and towns |
+| `ui/skillicons.cpp:393` | The party and its items |
+| `ui/skillicons.cpp:409` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
