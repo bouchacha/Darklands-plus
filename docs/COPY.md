@@ -237,7 +237,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:225` | Intro at start-up |
 | `mods/options.c:225` | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). |
 | `mods/options.c:226` | Drawing cache |
-| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 automatic, 0 off; 2 and 3 are two other ways of keeping them, to try if frames look wrong on a computer. |
+| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (kept as triangles, the default), 0 off, 2 kept as pictures on the graphics card (faster, but showed as a wash over the screen on some computers). |
 | `mods/options.c:227` | Encounters from mods |
 | `mods/options.c:227` | the new encounters that mods add (F12 > Mods) come up on the road. |
 | `mods/options.c:228` | A seal on encounters from mods |
@@ -1269,71 +1269,71 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/mapmsg.cpp:42` | press a key or click to go on |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
-| `ui/margins.cpp:68` | In the wilds |
-| `ui/margins.cpp:69` | Traveling, near  |
-| `ui/margins.cpp:189` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind). |
-| `ui/margins.cpp:190` | Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:192` | armor and shields |
-| `ui/margins.cpp:192` | bows, crossbows and guns |
-| `ui/margins.cpp:193` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:194` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:232` | the party (best  |
-| `ui/margins.cpp:249` | %s: %s to %d |
-| `ui/margins.cpp:271` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:277` | Would teach %s |
-| `ui/margins.cpp:278` | Nobody in the party would learn anything |
-| `ui/margins.cpp:317` | Notable shops |
-| `ui/margins.cpp:317` | Notable shops |
-| `ui/margins.cpp:319` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:324` | St.Edward, Confessor |
-| `ui/margins.cpp:330` | Saints taught here |
-| `ui/margins.cpp:343` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:343` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:358` | Formulae sold here |
-| `ui/margins.cpp:377` | Someone in the party knows this formula. |
-| `ui/margins.cpp:377` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:396` | Teachers: some at the inn now |
-| `ui/margins.cpp:397` | Teachers: %d here |
-| `ui/margins.cpp:398` | Teachers: none to be had now |
-| `ui/margins.cpp:401` | At the inn now:  |
-| `ui/margins.cpp:401` |  Hired teachers give lessons at the inn: set a member to "Train or study" there, a lesson a day, for a fee.   |
-| `ui/margins.cpp:508` | Reputation %d |
-| `ui/margins.cpp:522` | Changes seen since this game was loaded: |
-| `ui/margins.cpp:525` | the overland view |
-| `ui/margins.cpp:525` | , after choosing " |
-| `ui/margins.cpp:530` | The town hates the party: guards, shopkeepers and its people will turn on you. |
-| `ui/margins.cpp:530` | The town distrusts the party: expect cold welcomes and worse. |
-| `ui/margins.cpp:530` | The town is wary of the party. |
-| `ui/margins.cpp:530` | The party is well thought of here. |
-| `ui/margins.cpp:530` | The town's opinion of the party (rises with good deeds here, falls with crimes). |
-| `ui/margins.cpp:544` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:545` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:556` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:568` | Preparing for war |
-| `ui/margins.cpp:569` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:571` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:596` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:603` | Blessings and potions |
-| `ui/margins.cpp:621` | No blessings or potions at work. |
-| `ui/margins.cpp:630` | C: camp here |
-| `ui/margins.cpp:631` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:635` | Go to a place here |
-| `ui/margins.cpp:635` | G: go to a place here |
-| `ui/margins.cpp:641` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:690` | None taken on. |
-| `ui/margins.cpp:722` | Travel there |
-| `ui/margins.cpp:739` | ... %d more on the world map (M) |
-| `ui/margins.cpp:755` | Night in the streets |
-| `ui/margins.cpp:759` | almost always |
-| `ui/margins.cpp:760` | about %d time%s in 10 |
-| `ui/margins.cpp:761` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:764` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:804` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:804` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:806` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:806` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:833` | %s in bank notes |
-| `ui/margins.cpp:847` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:69` | In the wilds |
+| `ui/margins.cpp:70` | Traveling, near  |
+| `ui/margins.cpp:190` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind). |
+| `ui/margins.cpp:191` | Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:193` | armor and shields |
+| `ui/margins.cpp:193` | bows, crossbows and guns |
+| `ui/margins.cpp:194` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:195` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:233` | the party (best  |
+| `ui/margins.cpp:250` | %s: %s to %d |
+| `ui/margins.cpp:272` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:278` | Would teach %s |
+| `ui/margins.cpp:279` | Nobody in the party would learn anything |
+| `ui/margins.cpp:318` | Notable shops |
+| `ui/margins.cpp:318` | Notable shops |
+| `ui/margins.cpp:320` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:325` | St.Edward, Confessor |
+| `ui/margins.cpp:331` | Saints taught here |
+| `ui/margins.cpp:344` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:344` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:359` | Formulae sold here |
+| `ui/margins.cpp:378` | Someone in the party knows this formula. |
+| `ui/margins.cpp:378` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:397` | Teachers: some at the inn now |
+| `ui/margins.cpp:398` | Teachers: %d here |
+| `ui/margins.cpp:399` | Teachers: none to be had now |
+| `ui/margins.cpp:402` | At the inn now:  |
+| `ui/margins.cpp:402` |  Hired teachers give lessons at the inn: set a member to "Train or study" there, a lesson a day, for a fee.   |
+| `ui/margins.cpp:518` | Reputation %d |
+| `ui/margins.cpp:532` | Changes seen since this game was loaded: |
+| `ui/margins.cpp:535` | the overland view |
+| `ui/margins.cpp:535` | , after choosing " |
+| `ui/margins.cpp:540` | The town hates the party: guards, shopkeepers and its people will turn on you. |
+| `ui/margins.cpp:540` | The town distrusts the party: expect cold welcomes and worse. |
+| `ui/margins.cpp:540` | The town is wary of the party. |
+| `ui/margins.cpp:540` | The party is well thought of here. |
+| `ui/margins.cpp:540` | The town's opinion of the party (rises with good deeds here, falls with crimes). |
+| `ui/margins.cpp:560` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:561` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:572` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:584` | Preparing for war |
+| `ui/margins.cpp:585` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:587` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:612` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:619` | Blessings and potions |
+| `ui/margins.cpp:637` | No blessings or potions at work. |
+| `ui/margins.cpp:646` | C: camp here |
+| `ui/margins.cpp:647` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:651` | Go to a place here |
+| `ui/margins.cpp:651` | G: go to a place here |
+| `ui/margins.cpp:657` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:706` | None taken on. |
+| `ui/margins.cpp:738` | Travel there |
+| `ui/margins.cpp:755` | ... %d more on the world map (M) |
+| `ui/margins.cpp:771` | Night in the streets |
+| `ui/margins.cpp:775` | almost always |
+| `ui/margins.cpp:776` | about %d time%s in 10 |
+| `ui/margins.cpp:777` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:780` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:820` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:820` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:822` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:822` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:849` | %s in bank notes |
+| `ui/margins.cpp:863` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |

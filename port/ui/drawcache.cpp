@@ -14,10 +14,12 @@ extern "C" SDL_Renderer *plat_renderer(void);
 struct DcEnt { unsigned long long key; int w, h; SDL_Texture *t; int used; };
 static std::vector<DcEnt> cache;
 static int frame_no, usable = -1;
-/* the other way of keeping a drawing (display.draw_cache 3, and on Direct3D 11, where a picture drawn
-   into showed as a wash over the screen on a player's machine): its triangles, made once, copied into
-   the frame each time - the same pixels, none of the work of making them, no picture on the card */
-struct DcGeo { unsigned long long key; std::vector<ImDrawVert> v; std::vector<ImDrawIdx> i; std::vector<int> cmd_n, cmd_vlo, cmd_vhi; ImTextureID tex; int used; };
+/* the way of keeping a drawing used by default (display.draw_cache 1 and 3): its triangles, made once,
+   copied into the frame each time - the same pixels, none of the work of making them, no picture on the
+   graphics card. A picture drawn into (2) showed as a wash over the inn, the camp and the margins on a
+   player's machines, on Direct3D 11 first and then on a laptop: pictures only when asked for. Each of
+   the drawing's commands keeps its own clip rectangle and texture */
+struct DcGeo { unsigned long long key; std::vector<ImDrawVert> v; std::vector<ImDrawIdx> i; std::vector<int> cmd_n, cmd_vlo, cmd_vhi; std::vector<ImVec4> cmd_clip; std::vector<ImTextureID> cmd_tex; ImTextureID tex; int used; };
 static std::vector<DcGeo> geos;
 static int mode = -1;                          /* 0 none, 2 pictures, 3 triangles */
 
@@ -45,23 +47,27 @@ static void geo_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long ke
             for (unsigned k = 0; k < cmd.ElemCount; k++) { int vi = (int)cmd.VtxOffset + tmp.IdxBuffer[cmd.IdxOffset + k]; vlo = vi < vlo ? vi : vlo; vhi = vi > vhi ? vi : vhi; }
             for (unsigned k = 0; k < cmd.ElemCount; k++) n.i.push_back((ImDrawIdx)((int)cmd.VtxOffset + tmp.IdxBuffer[cmd.IdxOffset + k] - vlo));
             n.cmd_n.push_back((int)cmd.ElemCount); n.cmd_vlo.push_back(vlo); n.cmd_vhi.push_back(vhi);
+            n.cmd_clip.push_back(cmd.ClipRect); n.cmd_tex.push_back(cmd.TextureId);
         }
         geos.push_back(std::move(n));
         g = &geos.back();
     }
     g->used = frame_no;
-    dl->PushClipRect(lo, hi, true);
     size_t ip = 0;
-    for (size_t c = 0; c < g->cmd_n.size(); c++) {             /* (each of its commands: its own run of vertices) */
+    for (size_t c = 0; c < g->cmd_n.size(); c++) {             /* (each of its commands: its own run of vertices, clip rectangle and texture) */
         int nv = g->cmd_vhi[c] - g->cmd_vlo[c] + 1, ni = g->cmd_n[c];
+        const ImVec4 &cr = g->cmd_clip[c];
+        dl->PushClipRect(ImVec2(fmaxf(cr.x, lo.x), fmaxf(cr.y, lo.y)), ImVec2(fminf(cr.z, hi.x), fminf(cr.w, hi.y)), true);
+        dl->PushTextureID(g->cmd_tex[c]);
         dl->PrimReserve(ni, nv);
         ImDrawIdx base = (ImDrawIdx)dl->_VtxCurrentIdx;
         memcpy(dl->_VtxWritePtr, &g->v[g->cmd_vlo[c]], nv * sizeof(ImDrawVert));
         for (int k = 0; k < ni; k++) dl->_IdxWritePtr[k] = (ImDrawIdx)(base + g->i[ip + k]);
         dl->_VtxWritePtr += nv; dl->_IdxWritePtr += ni; dl->_VtxCurrentIdx += nv;
         ip += ni;
+        dl->PopTextureID();
+        dl->PopClipRect();
     }
-    dl->PopClipRect();
 }
 /* (after the frame is built: pictures not used for a few seconds are let go; never during the
    frame, when the draw lists may still point at them) */
@@ -81,10 +87,10 @@ void dc_frame_end(void)
 void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const std::function<void(ImDrawList *)> &fn)
 {
     SDL_Renderer *r = plat_renderer();
-    if (mode < 0) {                            /* display.draw_cache: 1 (the default) pictures, triangles on Direct3D 11; 0 off; 2 pictures; 3 triangles */
+    if (mode < 0) {                            /* display.draw_cache: 1 (the default) and 3 triangles; 0 off; 2 pictures */
         SDL_RendererInfo ri; int have = r && SDL_GetRendererInfo(r, &ri) == 0;
         int want = getenv("DL_NO_DRAWCACHE") ? 0 : getenv("DL_DRAWCACHE") ? atoi(getenv("DL_DRAWCACHE")) : config_get_int("display.draw_cache", 1);
-        if (want == 1) want = have && !strcmp(ri.name, "direct3d11") ? 3 : 2;
+        if (want == 1) want = 3;
         if (want == 2 && !(have && (ri.flags & SDL_RENDERER_TARGETTEXTURE))) want = 3;
         mode = want;
         fprintf(stderr, "drawcache: %s\n", mode == 0 ? "off" : mode == 2 ? "pictures" : "triangles");

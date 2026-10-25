@@ -12,6 +12,7 @@
 #include "padglyphs.h"
 #include "imgui.h"
 #include "gamedata.h"
+#include "skillicons.h"
 #include "teachersui.h"
 #include "ordericons.h"
 #include "ui.h"
@@ -500,11 +501,20 @@ static void right_panel(int size)
         u32 lr = g_location(cur);
         if (lr && (gm == GM_CARD || gm == GM_MAP)) rep_seen[cur] = (s16)rw((u16)(lr >> 16), (u16)((u16)lr + 0x12));
         int fame = (s16)g_rw(GV_party_fame);
+        /* each with its picture, as a card's chance shows them when it rests on them (the medal, Fame's
+           trumpet: ui_standing_icon), so the pictures are known there */
+        auto standing = [](int k) {
+            float s = ImGui::GetFontSize(); ImVec2 p = ImGui::GetCursorScreenPos();
+            ImGui::Dummy(ImVec2(s * 1.1f, s));
+            ui_standing_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + s * 0.52f, p.y + s * 0.5f), s * 0.72f, k);
+            ImGui::SameLine(0, s * 0.2f);
+        };
         auto rp = rep_seen.find(cur);
         if (rp != rep_seen.end()) {                                   /* coloured by how the town sees the party */
             int r = rp->second;
             ImVec4 col = r <= -30 ? ImVec4(0.95f, 0.22f, 0.16f, 1) : r < -10 ? ImVec4(0.95f, 0.45f, 0.35f, 1) : r < 0 ? ImVec4(0.95f, 0.68f, 0.55f, 1)
                        : r >= 30 ? ImVec4(0.55f, 0.88f, 0.50f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            standing(0);
             ImGui::TextColored(col, "Reputation %d", r);
             bool rep_hov = item_hovered();
             const RepChange *rc = repwatch_last(cur);
@@ -528,9 +538,15 @@ static void right_panel(int size)
                 }
             }
             if (rep_hov && !repwatch_last(cur)) margin_tip(r <= -30 ? "The town hates the party: guards, shopkeepers and its people will turn on you." : r < -10 ? "The town distrusts the party: expect cold welcomes and worse." : r < 0 ? "The town is wary of the party." : r >= 30 ? "The party is well thought of here." : "The town's opinion of the party (rises with good deeds here, falls with crimes).");
-            ImGui::SameLine(); ImGui::TextDisabled(" fame %d", fame);
+            {   /* fame beside it, or under it where the margin is too narrow */
+                char ft[24]; snprintf(ft, sizeof ft, "fame %d", fame);
+                float need = ImGui::GetFontSize() * (0.6f + 1.3f) + ImGui::CalcTextSize(ft).x;
+                ImGui::SameLine(0, ImGui::GetFontSize() * 0.6f);
+                if (ImGui::GetContentRegionAvail().x < need - ImGui::GetFontSize() * 0.6f) { ImGui::NewLine(); ft[0] = 'F'; }   /* (a line of its own: "Fame") */
+                standing(1); ImGui::TextDisabled("%s", ft);
+            }
         }
-        else ImGui::TextDisabled("Fame %d", fame);
+        else { standing(1); ImGui::TextDisabled("Fame %d", fame); }
         /* the town's attitude: it bars the party, or its watch wants it (its sign, a short line, the
            meaning under the pointer) */
         static std::vector<TownMark> tm; static int tmf = -1000;

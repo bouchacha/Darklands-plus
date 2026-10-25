@@ -20,6 +20,8 @@
 - **Music while the Darklands+ window is open** (the previews, the soundtrack, music in menus): the music driver's timer ticks go to it a millisecond at a time instead of in bursts after each frame, and every note, MT-32 or FM, is timed by when its tick fell due (in the game too): the previews played unevenly and could slow down.
 - **FM music** (Sound Blaster, AdLib): each change to the chip at its moment, instead of every change in 23 ms of sound at once.
 - **Battle tooltips beside the pointer** (what a click would do, an enemy's info) start past the game's hand, not over it.
+- **Reputation and fame in the right margin** carry their pictures (the medal, Fame's trumpet), the same as under a card's chance that rests on them.
+- **The ornate frames and backdrops are kept as triangles on every computer** (they were kept as pictures drawn on the graphics card, which showed as a cream wash over the inn, the camp and the margins on some machines, a laptop among them); display.draw_cache 2 still asks for pictures.
 - **The character sheet draws faster:** the game's text hidden under it is no longer drawn (three quarters of what the sheet drew each frame).
 - **The town icons** (margin, world map) show what most towns lack: a university (13 of 92) or a cathedral (48). An alchemist (80), a physician (88), docks (79) and the banks' offices (all 92) are in nearly every town; the world map still finds each.
 - **An ingredient's description** shows the potions it goes into as pictures (on the character sheet too), no longer as a list in words; the alchemy screen's ingredient pictures are no longer clipped.
