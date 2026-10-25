@@ -510,12 +510,8 @@ extern "C" void ui_icon_styles_draw(void)
         }
         return;
     }
-    if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id; +100 per herb try) */
-        extern int herb_variant;
-        int id = (sheet_on - 1000) % 100, v = (sheet_on - 1000) / 100;
-        herb_variant = v; ingredient_style_preview = 1;
-        ui_draw_ingredient(dl, ImVec2(ds.x * 0.5f, ds.y * 0.5f), ds.y * 0.8f, id);
-        ingredient_style_preview = 0; herb_variant = 0;
+    if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */
+        ui_draw_ingredient(dl, ImVec2(ds.x * 0.5f, ds.y * 0.5f), ds.y * 0.8f, (sheet_on - 1000) % 100);
         return;
     }
     if (sheet_on == 8) {   /* the attributes, skills and the party's standing large (uiconstyles:8): in colour, and heraldic beside */
@@ -536,60 +532,39 @@ extern "C" void ui_icon_styles_draw(void)
         cell(2, 0, "Reputation"); cell(2, 1, "Fame");
         return;
     }
-    if (sheet_on == 7) {   /* the ingredients' proposal large, to look at the strokes' joins (uiconstyles:7): the signs, then the herbs' three tries */
-        extern int herb_variant;
-        static const int IDS[] = { 89, 87, 88, 78, 77, 73, 90, 79, 80, 85, 82, 74, 83, 75 };
+    if (sheet_on == 7) {   /* the ingredients' signs large, to look at the strokes' joins (uiconstyles:7) */
+        static const int IDS[] = { 91, 92, 93, 94, 72, 89, 87, 88, 78, 77, 73, 90, 79, 80, 85, 82, 74, 83, 75, 76, 81, 84, 86 };
         float sz = fminf(ds.y / 5.0f, ds.x / 8.75f); int n = 0;          /* (a roundel is 1.17 sizes across) */
         auto at = [&](int k) { return ImVec2(sz * 0.65f + (k % 7) * sz * 1.25f, sz * 0.65f + (k / 7) * sz * 1.22f); };
-        for (int id : IDS) { ingredient_style_preview = 1; ui_draw_ingredient(dl, at(n++), sz, id); ingredient_style_preview = 0; }
-        for (int h : { 76, 81, 84, 86 }) for (int v = 0; v < 3; v++) {
-            if (n % 7 == 6 && v == 0) n++;
-            herb_variant = v; ingredient_style_preview = 1; ui_draw_ingredient(dl, at(n++), sz * 0.8f, h); ingredient_style_preview = 0; }
-        herb_variant = 0;
+        for (int id : IDS) ui_draw_ingredient(dl, at(n++), sz, id);
         return;
     }
-    if (sheet_on == 4) {   /* the ingredients' proposal by family (uiconstyles:4), the present ones below */
-        struct Fam { const char *name, *what; int ids[8]; };
+    if (sheet_on == 4) {   /* the ingredients by family (uiconstyles:4): each sign now, its name, and the picture it had before */
+        struct Fam { const char *name; int ids[8]; };
         static const Fam FAM[] = {
-            { "The four bases", "the elements' triangles", { 91, 92, 93, 94, 0 } },
-            { "Metals and their ores", "the planets' signs", { 72, 89, 87, 88, 78, 77, 73, 0 } },
-            { "Sulphurs, salts and poisons", "their own signs", { 90, 79, 80, 85, 0 } },
-            { "Waters, oils and vapours", "their own signs", { 82, 74, 83, 75, 0 } },
-            { "Herbs", "no sign: a drawing in the same line", { 76, 81, 84, 86, 0 } } };
+            { "The four bases: the elements' triangles", { 91, 92, 93, 94, 0 } },
+            { "Metals and their ores: the planets' signs, in pewter (gold in gold)", { 72, 89, 87, 88, 78, 77, 73, 0 } },
+            { "Sulphurs, salts and poisons", { 90, 79, 80, 85, 0 } },
+            { "Waters, oils and vapours", { 82, 74, 83, 75, 0 } },
+            { "Herbs: no sign in the tables, one made as theirs are", { 76, 81, 84, 86, 0 } } };
         static const char *NM[23] = { "Pure Gold", "Manganes", "Naptha", "Marsh Vapor", "E. Black Bean", "Zincblende", "Antimoni", "Orpiment", "White Cinnabar",
                                       "Solanaceae", "Aqua Regia", "Gum", "Mondragora", "Alum", "Camomile", "Nikel", "Pitchblende", "Zinken", "Brimstone",
                                       "Choleric Base", "Phlegmatic Base", "Sanguine Base", "Melancholic Base" };
-        ImFont *f = ImGui::GetFont(); float fs = ds.y / 46, sz = ds.y / 11.5f, y = fs * 0.6f;
-        const ImU32 INK = IM_COL32(60, 40, 20, 255), SOFT = IM_COL32(120, 90, 60, 255);
+        ImFont *f = ImGui::GetFont(); const ImU32 INK = IM_COL32(60, 40, 20, 255), SOFT = IM_COL32(120, 90, 60, 255);
+        const int COLS = 4; float cw = ds.x / COLS, fs = ds.y / 52, sz = fminf(cw * 0.28f, ds.y / 13.5f), rh = sz * 1.32f + fs * 1.3f, y = fs * 0.5f;
+        dl->AddText(f, fs * 1.1f, ImVec2(fs, y), INK, "Each ingredient: its sign now (left), and the picture it had before (right)"); y += fs * 1.6f;
         for (const Fam &F : FAM) {
-            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, F.name); 
-            dl->AddText(f, fs * 0.9f, ImVec2(fs + f->CalcTextSizeA(fs * 1.15f, 1e9f, 0, F.name).x + fs * 0.8f, y + fs * 0.2f), SOFT, F.what);
-            y += fs * 1.5f;
-            float x = fs + sz * 0.5f;
-            for (int k = 0; F.ids[k]; k++, x += sz * 1.45f) {
-                ingredient_style_preview = 1; ui_draw_ingredient(dl, ImVec2(x, y + sz * 0.5f), sz, F.ids[k]); ingredient_style_preview = 0;
-                ui_draw_ingredient(dl, ImVec2(x + sz * 0.55f, y + sz * 0.95f), sz * 0.36f, F.ids[k]);   /* (the present one, small, beside) */
-                const char *n = NM[F.ids[k] - 72]; float w = f->CalcTextSizeA(fs * 0.85f, 1e9f, 0, n).x;
-                dl->AddText(f, fs * 0.85f, ImVec2(x - w * 0.5f, y + sz * 1.08f), INK, n);
+            dl->AddText(f, fs * 0.95f, ImVec2(fs, y), SOFT, F.name); y += fs * 1.25f;
+            int k = 0;
+            for (; F.ids[k]; k++) {
+                float x = (k % COLS) * cw, yy = y + (k / COLS) * rh;
+                ImVec2 a(x + cw * 0.5f - sz * 0.62f, yy + sz * 0.6f), b(x + cw * 0.5f + sz * 0.62f, yy + sz * 0.6f);
+                ui_draw_ingredient(dl, a, sz, F.ids[k]);
+                ingredient_style_preview = 2; ui_draw_ingredient(dl, b, sz, F.ids[k]); ingredient_style_preview = 0;
+                const char *n = NM[F.ids[k] - 72]; float w = f->CalcTextSizeA(fs, 1e9f, 0, n).x;
+                dl->AddText(f, fs, ImVec2(x + cw * 0.5f - w * 0.5f, yy + sz * 1.2f), INK, n);
             }
-            y += sz * 1.08f + fs * 1.9f;
-        }
-        {   /* the herbs: three tries each (the first above) */
-            extern int herb_variant;
-            static const int HERBS[4] = { 76, 81, 84, 86 }; static const char *TRY[3] = { "A", "B", "C" };
-            float x0 = ds.x * 0.52f; float yy = fs * 0.6f;
-            dl->AddText(f, fs * 1.15f, ImVec2(x0, yy), INK, "Herbs: three tries each"); yy += fs * 1.6f;
-            for (int h = 0; h < 4; h++) {
-                const char *n = NM[HERBS[h] - 72];
-                dl->AddText(f, fs * 0.9f, ImVec2(x0, yy + sz * 0.42f), INK, n);
-                for (int v = 0; v < 3; v++) {
-                    ImVec2 c(x0 + sz * 1.9f + v * sz * 1.25f, yy + sz * 0.5f);
-                    herb_variant = v; ingredient_style_preview = 1; ui_draw_ingredient(dl, c, sz, HERBS[h]); ingredient_style_preview = 0;
-                    dl->AddText(f, fs * 0.8f, ImVec2(c.x - fs * 0.25f, yy + sz * 1.02f), SOFT, TRY[v]);
-                }
-                herb_variant = 0;
-                yy += sz * 1.35f;
-            }
+            y += ((k + COLS - 1) / COLS) * rh + fs * 0.3f;
         }
         return;
     }
