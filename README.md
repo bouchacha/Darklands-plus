@@ -4,16 +4,15 @@
 
 > Darklands+ is not a remake and does not contain the game. You need your own copy of Darklands from GOG or Steam.
 
-<p>
-<img width="49%" alt="A card drawn by Darklands+: crisp text, chances of success, the party and the town beside it" src="https://github.com/user-attachments/assets/29a43f4c-0ce2-49cf-9259-314aeca98485" />
-<img width="49%" alt="A battle with its log and the enemies' state" src="https://github.com/user-attachments/assets/d66df731-a125-4f05-93ec-c9dedd4256a7" />
-<img width="49%" alt="The character sheet: skills, with the whole party compared" src="https://github.com/user-attachments/assets/3d781e1a-8ae0-446a-889c-401f86e1caf2" />
-<img width="49%" alt="The world map: find a place, see how far it is, travel there" src="https://github.com/user-attachments/assets/1e8f79bf-ed3a-4dc9-9d79-0433c587f512" />
-<img width="49%" alt="Go to: every place in a city, with what it teaches, sells and offers" src="https://github.com/user-attachments/assets/a4c11405-f2b7-4cc5-8c06-11e76b55a809" />
-<img width="49%" alt="A shop rebuilt for the mouse" src="https://github.com/user-attachments/assets/dcd05e9f-c89f-4b01-9053-af56b7177452" />
-<img width="49%" alt="Alchemy: each formula's ingredients, how many the party has, and the chance of success" src="https://github.com/user-attachments/assets/45b148ee-e593-41ec-be9e-23ce6151c342" />
-<img width="49%" alt="Calling on a saint: what the saint really does, the favor to spend and the chance" src="https://github.com/user-attachments/assets/5bbf5bd5-6469-473c-85c3-1e34ada84bf6" />
-</p>
+<img width="1600" height="900" alt="01-card" src="https://github.com/user-attachments/assets/4e1414e0-0255-41a8-8e98-5df6d034efbc" />
+<img width="1600" height="900" alt="07-shop" src="https://github.com/user-attachments/assets/fe17b8b3-7327-4f29-886b-83e165445d69" />
+<img width="1600" height="900" alt="08-alchemy" src="https://github.com/user-attachments/assets/449549f7-8d03-427b-876c-3ec72f355609" />
+<img width="1600" height="900" alt="09-goto" src="https://github.com/user-attachments/assets/fdbcae88-95ba-4e86-9604-0947fecc79b8" />
+<img width="1600" height="900" alt="04-worldmap" src="https://github.com/user-attachments/assets/d66192bd-a052-45d1-9521-ef1aee1f3ba2" />
+<img width="1600" height="900" alt="03-sheet" src="https://github.com/user-attachments/assets/a8c2b7db-4f9c-407d-a6bb-e6d78f6aa94d" />
+<img width="1600" height="900" alt="02-battle" src="https://github.com/user-attachments/assets/543a7d52-c5d9-4eca-9108-63e2fd9d01b7" />
+<img width="1600" height="900" alt="10-saint" src="https://github.com/user-attachments/assets/1f556415-549b-48be-8969-5944dd12794f" />
+
 
 ## What is Darklands?
 
