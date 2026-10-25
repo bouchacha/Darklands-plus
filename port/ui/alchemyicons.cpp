@@ -288,7 +288,7 @@ static bool draw_ingredient_signs(Pen &p, int id)
     /* the sulphurs, salts and poisons */
     case 90: p.tri_line(-4.2f, -1.5f, 4.2f, -1.5f, 0, -8.0f, sulphur, W);                                    // Brimstone: sulphur, the triangle on the cross
         L(0, -1.5f, 0, 8, sulphur); L(-3.5f, 2.5f, 3.5f, 2.5f, sulphur); L(-2.5f, 5.5f, 2.5f, 5.5f, sulphur); break;
-    case 79: p.rect_line(-7.4f, -2.6f, 7.4f, 2.6f, orpi, W, 2.6f); p.ring(-4.4f, 0, 1.3f, orpi, 1.2f); p.ring(4.4f, 0, 1.3f, orpi, 1.2f); break;   // Orpiment: auripigment's sign
+    case 79: p.rect_line(-7.6f, -3.3f, 7.6f, 3.3f, orpi, W, 3.3f); p.ring(-4.3f, 0, 1.25f, orpi, 1.0f); p.ring(4.3f, 0, 1.25f, orpi, 1.0f); break;   // Orpiment: auripigment's sign (each ring in the middle of an end: the same gap all round)
     case 80: for (int k = 0; k < 2; k++) { float x = k ? 3.4f : -3.4f;                                     // White Cinnabar: cinnabar's sign (two threes, barred):
             S.to(x - 2.4f, -5.6f).to(x + 2.2f, -5.6f).arc(x - 0.2f, 2.1f, 3.5f, -1.75f, 2.5f).done(vermilion, W); }   //   the top, down to the bowl, the bowl
         p.line(-6.8f, -3.4f, 6.8f, -3.4f, vermilion, W * 0.8f); break;
