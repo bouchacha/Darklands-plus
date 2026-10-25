@@ -173,7 +173,7 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
            frame: at most a few new ones a frame, and not past the cap; else drawn as it is */
         static int made_frame = -1, made_n = 0; static Uint32 made_ms = 0;
         if (made_frame != frame_no) { made_frame = frame_no; made_n = 0; made_ms = 0; }
-        if (mode == 4 && made_ms > 12) { as_triangles(); return; }   /* (pictures made by the processor: some 12 ms a frame at most, the rest in the frames after; no stall at 4K) */
+        if (mode == 4 && made_ms > 4) { as_triangles(); return; }   /* (pictures made by the processor: some 5 ms a frame at most, the rest in the frames after; no stall at 4K) */
         if (cache.size() >= 192 || made_n >= 8) { if (mode == 4) as_triangles(); else direct(); return; }   /* (the rest the next frames) */
         ImDrawList tmp(ImGui::GetDrawListSharedData());
         tmp._ResetForNewFrame();

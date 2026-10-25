@@ -311,7 +311,7 @@ void dos_restore(void *p)
         else if (lg && handles[i] && ftell(handles[i]) != d->pos[i]) fprintf(stderr, "eval: file handle %d moved\n", i);
         if (handles[i] && handles[i] != d->h[i] && !held_by_snapshot(handles[i])) fclose(handles[i]);   /* opened by the evaluation */
         handles[i] = d->h[i];
-        if (handles[i]) fseek(handles[i], d->pos[i], SEEK_SET);
+        if (handles[i] && ftell(handles[i]) != d->pos[i]) fseek(handles[i], d->pos[i], SEEK_SET);   /* (only a file moved: a seek drops the stream's buffer and asks the system, a dozen times a second for each open file) */
     }
     /* a file the evaluation opened in a slot it then left could still be held elsewhere: no */
     memcpy(handle_cfg, d->cfg, sizeof handle_cfg); ems_dev_open = d->ems_dev;

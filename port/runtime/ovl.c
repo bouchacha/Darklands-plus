@@ -15,6 +15,7 @@ int ovl_loaded[256];
 static u32 ovl_gen;                         /* counts loads (ovl_restore: nothing to do when none happened) */
 static FILE *exef;
 static u32 sect_file_off[256];
+static u8 *sect_file[256];                  /* each section's relocations and bytes as in the EXE, once read */
 
 static u16 le16(const u8 *p) { return (u16)(p[0] | (p[1] << 8)); }
 
@@ -82,22 +83,30 @@ static void load_sect(int i, int with_parent)
     if (with_parent && s->parent != 0xffff && s->parent < nsect && !ovl_loaded[s->parent]) load_sect(s->parent, 1);
     u32 rbytes = s->nrelocs * 4u;
     u32 pad = (16 - rbytes % 16) % 16;
-    u8 *rel = malloc(rbytes + 1);
-    fseek(exef, sect_file_off[i], SEEK_SET);
-    fread(rel, 1, rbytes, exef);
-    fseek(exef, sect_file_off[i] + rbytes + pad, SEEK_SET);
     u32 dst = ((u32)LOADSEG + s->load_seg) * 16u;
     u32 fsz = s->file_paras * 16u, msz = s->mem_paras * 16u;
     if (dst + msz > MEM_SIZE) fatal("overlay %d out of memory", i);
+    /* the section's relocation table and bytes, read from the EXE once and kept: a battle loads
+       sections thousands of times a second (some 3,000 seeks and reads a second, mostly the same few) */
+    if (!sect_file[i]) {
+        u8 *b = malloc(rbytes + fsz + 1);
+        fseek(exef, sect_file_off[i], SEEK_SET);
+        size_t got = fread(b, 1, rbytes, exef);
+        fseek(exef, sect_file_off[i] + rbytes + pad, SEEK_SET);
+        got += fread(b + rbytes, 1, fsz, exef);
+        if (got < rbytes) memset(b + got, 0, rbytes - got);
+        else if (got < rbytes + fsz) memset(b + got, 0, rbytes + fsz - got);
+        sect_file[i] = b;
+    }
+    const u8 *rel = sect_file[i];
     memset(M + dst, 0, msz);
-    fread(M + dst, 1, fsz, exef);
+    memcpy(M + dst, sect_file[i] + rbytes, fsz);
     for (u32 k = 0; k < s->nrelocs; k++) {
         u16 off = le16(rel + 4 * k), seg = le16(rel + 4 * k + 2);
         u32 a = ((u32)LOADSEG + seg) * 16u + off;
         u16 v = (u16)(M[a] | (M[a + 1] << 8)) + LOADSEG;
         M[a] = (u8)v; M[a + 1] = (u8)(v >> 8);
     }
-    free(rel);
     /* sections overlapping this one are gone, and with them their descendants in the overlay
        tree (whose memory may be untouched, but whose code calls its ancestors directly): as in
        RTLink, a section is present only with its whole chain of parents, so that putting back

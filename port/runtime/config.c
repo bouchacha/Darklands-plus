@@ -10,11 +10,25 @@ static Entry entries[MAXE];
 static int n;
 static char path[1100];
 
+/* an index by key (the interface asks for settings some thousands of times a frame, most of them not in
+   the file - the default - which a search along the list answered only after comparing every key) */
+#define HSIZE 4096                                  /* (a power of two, well above MAXE) */
+static short hidx[HSIZE];                           /* entry + 1; 0 empty */
+static unsigned hkey(const char *k) { unsigned h = 2166136261u; while (*k) h = (h ^ (unsigned char)*k++) * 16777619u; return h; }
+static void hput(int i) { unsigned h = hkey(entries[i].key) & (HSIZE - 1); while (hidx[h]) h = (h + 1) & (HSIZE - 1); hidx[h] = (short)(i + 1); }
+static void hbuild(void) { memset(hidx, 0, sizeof hidx); for (int i = 0; i < n; i++) hput(i); }
+static int hfind(const char *key)
+{
+    for (unsigned h = hkey(key) & (HSIZE - 1); hidx[h]; h = (h + 1) & (HSIZE - 1))
+        if (!strcmp(entries[hidx[h] - 1].key, key)) return hidx[h] - 1;
+    return -1;
+}
+
 void config_load(const char *dir)
 {
     snprintf(path, sizeof path, "%s/darklands_port.ini", dir);
     FILE *f = fopen(path, "r");
-    n = 0;
+    n = 0; memset(hidx, 0, sizeof hidx);
     if (!f) return;
     char line[300];
     while (fgets(line, sizeof line, f) && n < MAXE) {
@@ -28,6 +42,8 @@ void config_load(const char *dir)
         for (char *e = v + strlen(v); e > v && (e[-1] == '\n' || e[-1] == '\r' || e[-1] == ' '); ) *--e = 0;
         snprintf(entries[n].key, sizeof entries[n].key, "%s", k);
         snprintf(entries[n].val, sizeof entries[n].val, "%s", v);
+        if (hfind(entries[n].key) >= 0) continue;   /* (a key twice in the file: the first stands, as always) */
+        hput(n);
         n++;
     }
     fclose(f);
@@ -45,8 +61,8 @@ void config_save(void)
 
 const char *config_get(const char *key, const char *def)
 {
-    for (int i = 0; i < n; i++) if (!strcmp(entries[i].key, key)) return entries[i].val;
-    return def;
+    int i = hfind(key);
+    return i >= 0 ? entries[i].val : def;
 }
 
 int config_get_int(const char *key, int def)
@@ -57,13 +73,15 @@ int config_get_int(const char *key, int def)
 
 void config_set(const char *key, const char *val)
 {
-    for (int i = 0; i < n; i++) if (!strcmp(entries[i].key, key)) { snprintf(entries[i].val, sizeof entries[i].val, "%s", val); return; }
-    if (n < MAXE) { snprintf(entries[n].key, sizeof entries[n].key, "%s", key); snprintf(entries[n].val, sizeof entries[n].val, "%s", val); n++; }
+    int i = hfind(key);
+    if (i >= 0) { snprintf(entries[i].val, sizeof entries[i].val, "%s", val); return; }
+    if (n < MAXE) { snprintf(entries[n].key, sizeof entries[n].key, "%s", key); snprintf(entries[n].val, sizeof entries[n].val, "%s", val); hput(n); n++; }
 }
 
 void config_unset(const char *key)
 {
-    for (int i = 0; i < n; i++) if (!strcmp(entries[i].key, key)) { entries[i] = entries[--n]; return; }
+    int i = hfind(key);
+    if (i >= 0) { entries[i] = entries[--n]; hbuild(); }
 }
 int config_count_prefix(const char *prefix, void (*each)(const char *key, const char *val))
 {

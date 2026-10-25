@@ -123,24 +123,27 @@ static bool game_panel_shown(void)
 }
 
 /* a member's own portrait, from the portraits folder (by short or full name) */
-struct Portrait { SDL_Texture *tex = nullptr; int w = 0, h = 0; long mtime = -1; };
+struct Portrait { SDL_Texture *tex = nullptr; int w = 0, h = 0; long mtime = -1; Uint32 looked = 0; bool seen = false; };
 static std::map<std::string, Portrait> portraits;
 static SDL_Renderer *pp_ren;
 extern "C" void partypanel_set_renderer(SDL_Renderer *r) { pp_ren = r; }
 static const Portrait *portrait(const std::string &name)
 {
     if (name.empty() || !pp_ren) return nullptr;
+    Portrait &p = portraits[name];
+    Uint32 now = SDL_GetTicks();                     /* (the folder looked at again every two seconds, not at each drawing: five names in five spellings each, several times a second) */
+    if (p.seen && now - p.looked < 2000) return p.tex ? &p : nullptr;
+    p.seen = true; p.looked = now;
     static const char *EXT[] = { ".png", ".jpg", ".jpeg", ".PNG", ".JPG" };
     std::string path; struct stat st; long mt = -1;
     for (const char *e : EXT) {
         path = user_folder() + "/portraits/" + name + e;
         if (stat(path.c_str(), &st) == 0) { mt = (long)st.st_mtime; break; }
     }
-    Portrait &p = portraits[name];
-    if (mt < 0) { if (p.tex) SDL_DestroyTexture(p.tex); p = Portrait(); return nullptr; }
+    if (mt < 0) { if (p.tex) SDL_DestroyTexture(p.tex); p = Portrait(); p.seen = true; p.looked = now; return nullptr; }
     if (p.mtime == mt) return p.tex ? &p : nullptr;
     if (p.tex) SDL_DestroyTexture(p.tex);
-    p = Portrait(); p.mtime = mt;
+    p = Portrait(); p.mtime = mt; p.seen = true; p.looked = now;
     int n; unsigned char *px = stbi_load(path.c_str(), &p.w, &p.h, &n, 4);
     if (!px) return nullptr;
     p.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, p.w, p.h);
