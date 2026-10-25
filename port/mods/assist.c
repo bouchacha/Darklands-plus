@@ -241,6 +241,23 @@ static u32 option_reads(u16 seg, u16 off, int opt, void *snap, int p0)
     return reads;
 }
 
+/* options where the leader the player chose always speaks, however much better another would do:
+   what comes of them goes to the speaker, not to the party. The alchemist's formulae ($Alche00):
+   a trade (option 3), and the free trade an alchemist sometimes makes when asked to sell (option 2),
+   offer a formula the speaker does not know yet and teach it to the speaker (s066 190c:067c,
+   $ChosenThreeName = the leader) - the player makes the alchemist the leader for it, as in the
+   original. (Buying from the list is not affected: the list names who learns each formula.) */
+static const struct { const char *card; int opts; } LEADER_KEEPS[] = {
+    { "$Alche00", 1 << 2 | 1 << 3 },
+};
+static int leader_keeps(int opt)
+{
+    const char *card = (const char *)M + LIN(G_DGROUP, 0xe3d4);
+    for (size_t k = 0; k < sizeof LEADER_KEEPS / sizeof LEADER_KEEPS[0]; k++)
+        if (!strncmp(card, LEADER_KEEPS[k].card, 12) && opt >= 0 && opt < 20 && (LEADER_KEEPS[k].opts >> opt & 1)) return 1;
+    return 0;
+}
+
 extern int dos_no_writes;
 static void evaluate(void)
 {
@@ -292,7 +309,7 @@ static void evaluate(void)
             }
         }
         int lead = -1;
-        if (assist_best_leader && pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0)) {   /* each able member as leader */
+        if (assist_best_leader && pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0) && !leader_keeps(opt)) {   /* each able member as leader */
             int cur = (s8)g_rb(G_LEADER), bestp = pct, dep = 0;
             for (int m = 0; m < 5; m++) {
                 if (m == cur || !leader_able(m)) continue;
