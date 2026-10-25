@@ -548,6 +548,11 @@ void plat_present(const u8 *vga, const u8 *pal)
         pending_wshot[0] = 0;
     }
     SDL_RenderPresent(ren);
+    {   /* what the renderer refused when it drew the frame (ui/ui.cpp says the same of the interface's draws) */
+        const char *e = SDL_GetError(); static char last[256]; static int said;
+        if (e && e[0] && strcmp(e, last) && said < 20) { snprintf(last, sizeof last, "%s", e); said++; fprintf(stderr, "renderer (present): %s\n", e); }
+        SDL_ClearError();
+    }
     if (ptime) { static uint64_t acc, mx, cnt, a1, a2, a3, ab, mb, vx, vm, cm; extern int ui_vtx, ui_cmds; vx += ui_vtx; if ((uint64_t)ui_vtx > vm) vm = ui_vtx; if ((uint64_t)ui_cmds > cm) cm = ui_cmds; uint64_t t4 = plat_ticks_us(), d = t4 - pt0; acc += d; if (d > mx) mx = d;
                  a1 += pt1 - pt0; a2 += pt3 - pt2; a3 += t4 - pt3; { uint64_t b = ptb > pt2 && ptb <= pt3 ? ptb - pt2 : pt3 - pt2; ab += b; if (b > mb) mb = b; }
                  static int pn; if (!pn) { pn = atoi(getenv("DL_PRESENT_TIME")); if (pn < 10) pn = 100; }

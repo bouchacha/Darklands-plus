@@ -25,7 +25,9 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
     float half = w * 0.85f;                                     /* half a period: crossing to crossing */
     int m = (int)roundf(L / half); if (m < 2) m = 2;
     half = L / m;
-    float A = w * 0.24f, th = fmaxf(1.5f, w * 0.30f);
+    /* (whole-pixel line widths: Dear ImGui draws those from its baked line texture, two vertices a
+       point instead of four - a margin's braid was some 150 000 vertices a frame at 4K) */
+    float A = w * 0.24f, th = fmaxf(2.0f, roundf(w * 0.30f));
     ImVec2 c0 = mix(P, d, 0, n, -w * 0.5f), c1 = mix(Q, d, 0, n, w * 0.5f);
     ImVec2 lo(fminf(c0.x, c1.x), fminf(c0.y, c1.y)), hi(fmaxf(c0.x, c1.x), fmaxf(c0.y, c1.y));
     unsigned long long key = 0xb4a1dull;                       /* (drawn once, kept as a picture: ui/drawcache.h) */
@@ -33,14 +35,13 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
     dc_draw(dl, lo, hi, key, [&](ImDrawList *dl) {
     dl->AddRectFilled(lo, hi, BAND);
     dl->PushClipRect(lo, hi, true);
-    const int S = 8;
-    ImVec2 pts[S + 1];
-    auto strand = [&](float t0, float t1, float sg, bool edge = true) {
+    ImVec2 pts[9];
+    auto strand = [&](float t0, float t1, float sg, bool edge = true, int S = 6) {
         for (int i = 0; i <= S; i++) { float t = t0 + (t1 - t0) * i / S; pts[i] = mix(P, d, t, n, sg * A * sinf(3.14159265f * t / half)); }
-        if (edge) dl->AddPolyline(pts, S + 1, STRAND_EDGE, 0, th + fmaxf(1.0f, w * 0.12f));
+        if (edge) dl->AddPolyline(pts, S + 1, STRAND_EDGE, 0, th + fmaxf(1.0f, roundf(w * 0.12f)));
         dl->AddPolyline(pts, S + 1, COPPER, 0, th);
         for (int i = 0; i <= S; i++) { pts[i].x -= n.x * th * 0.22f; pts[i].y -= n.y * th * 0.22f; }
-        dl->AddPolyline(pts, S + 1, COPPER_LIT, 0, fmaxf(1.0f, th * 0.28f));
+        dl->AddPolyline(pts, S + 1, COPPER_LIT, 0, fmaxf(1.0f, roundf(th * 0.28f)));
     };
     for (int k = 0; k <= m; k++) {                              /* each crossing: the strand under, then the one over */
         float t0 = (k - 0.5f) * half, t1 = (k + 0.5f) * half;
@@ -50,7 +51,7 @@ static void braid_side(ImDrawList *dl, ImVec2 P, ImVec2 Q, float w)
     }
     for (int k = 0; k <= m; k++) {                              /* (the joins fall on the crests: drawn over again, whole) */
         float c = (k + 0.5f) * half, e = half * 0.22f;
-        strand(c - e, c + e, 1.0f, true); strand(c - e, c + e, -1.0f, true);
+        strand(c - e, c + e, 1.0f, true, 2); strand(c - e, c + e, -1.0f, true, 2);   /* (a short piece: two segments) */
     }
     dl->PopClipRect();
     });

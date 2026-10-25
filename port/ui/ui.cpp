@@ -695,7 +695,49 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui::Render();
     ui_build_us = SDL_GetPerformanceCounter();
     { ImDrawData *dd = ImGui::GetDrawData(); ui_vtx = dd->TotalVtxCount; ui_cmds = 0; for (int i = 0; i < dd->CmdListsCount; i++) ui_cmds += dd->CmdLists[i]->CmdBuffer.Size; }
+    {   /* test (DL_DRAW_CHECK): every draw command's triangles, their extent: one far past the window, or not
+           a number, is reported once (a wash over the screen on some graphics cards was looked for so) */
+        static int chk = -1; if (chk < 0) chk = getenv("DL_DRAW_CHECK") != 0;
+        if (chk) {
+            ImDrawData *dd = ImGui::GetDrawData(); ImVec2 ds = ImGui::GetIO().DisplaySize;
+            { static u32 lt; u32 t = SDL_GetTicks(); if (t - lt > 2000) { lt = t; int big = 0, bigv = 0; for (int li = 0; li < dd->CmdListsCount; li++) if (dd->CmdLists[li]->VtxBuffer.Size > bigv) { bigv = dd->CmdLists[li]->VtxBuffer.Size; big = li; }
+                fprintf(stderr, "draw check: %d vertices, %d indices, %d lists; the most in list %d (%s): %d\n", dd->TotalVtxCount, dd->TotalIdxCount, dd->CmdListsCount, big, dd->CmdListsCount ? (dd->CmdLists[big]->_OwnerName ? dd->CmdLists[big]->_OwnerName : "?") : "", bigv); } }
+            for (int li = 0; li < dd->CmdListsCount; li++) {
+                const ImDrawList *L = dd->CmdLists[li];
+                for (int ci = 0; ci < L->CmdBuffer.Size; ci++) {
+                    const ImDrawCmd &c = L->CmdBuffer[ci];
+                    if (c.UserCallback || !c.ElemCount) continue;
+                    float x0 = 1e30f, y0 = 1e30f, x1 = -1e30f, y1 = -1e30f; int bad = 0, maxi = 0;
+                    for (unsigned k = 0; k < c.ElemCount; k++) {
+                        unsigned vi = c.VtxOffset + L->IdxBuffer[c.IdxOffset + k];
+                        if ((int)vi >= L->VtxBuffer.Size) { bad = 2; break; }
+                        if ((int)vi > maxi) maxi = (int)vi;
+                        ImVec2 p = L->VtxBuffer[vi].pos;
+                        if (!(p.x == p.x) || !(p.y == p.y)) { bad = 1; continue; }
+                        x0 = fminf(x0, p.x); y0 = fminf(y0, p.y); x1 = fmaxf(x1, p.x); y1 = fmaxf(y1, p.y);
+                    }
+                    bool huge = x1 - x0 > ds.x * 1.5f || y1 - y0 > ds.y * 1.5f || x0 < -ds.x || y0 < -ds.y || x1 > 2 * ds.x || y1 > 2 * ds.y;
+                    if (bad || huge) {
+                        static int said; if (said++ < 40)
+                            fprintf(stderr, "draw check: list %d (%s) cmd %d: %s, %u indices, box %.0f,%.0f - %.0f,%.0f, texture %p, clip %.0f,%.0f-%.0f,%.0f\n", li, L->_OwnerName ? L->_OwnerName : "?", ci,
+                                    bad == 2 ? "an index past the vertices" : bad ? "not a number" : "far past the window", c.ElemCount, x0, y0, x1, y1, (void *)c.GetTexID(), c.ClipRect.x, c.ClipRect.y, c.ClipRect.z, c.ClipRect.w);
+                    }
+                }
+            }
+        }
+    }
+    SDL_ClearError();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
+    {   /* what the renderer refused this frame (a draw it could not make: on some graphics cards the
+           screen was washed out over the inn and the camp): said in the log, each new message once */
+        const char *e = SDL_GetError();
+        static char last[256]; static int said;
+        if (e && e[0] && strcmp(e, last) && said < 20) {
+            snprintf(last, sizeof last, "%s", e); said++;
+            ImDrawData *dd = ImGui::GetDrawData();
+            fprintf(stderr, "renderer: %s (a frame of %d vertices, %d indices)\n", e, dd->TotalVtxCount, dd->TotalIdxCount);
+        }
+    }
 }
 
 /* the first start of a release: the game module is being made (runtime/prepare_run.c) */
