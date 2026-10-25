@@ -504,6 +504,7 @@ static void battle_sound_hook(void)          /* battle_sound(n) */
 {
     int old = want;
     want = (s16)rw(SS, (u16)(SP + 4));
+    if (logon) { u32 plat_ticks_ms(void); fprintf(stderr, "sfx: battle_sound %d at %u ms, tick %u\n", want, plat_ticks_ms(), g_rw(GV_battle_tick)); }   /* (a battle's sounds and their times: the device preview's, mods/soundpreview.c) */
     hook_call_original();
     want = old;
 }

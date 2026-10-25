@@ -181,7 +181,7 @@ void setup_intro(void)
 void setup_sound(void)
 {
     /* two previews, at the top right of the section: what the sound chosen below sounds like now (the
-       second tune of the overland view, or a few battle sounds), through the device chosen, or the
+       second tune of the overland view, or ten seconds of a real battle's sounds), through the device chosen, or the
        custom pack when it is ticked (mods/soundpreview.c, mods/musicpack.c, mods/sfx.c) */
     const char *cur = config_get("sound.device", "auto");
     bool can_hear = soundpreview_possible() != 0;

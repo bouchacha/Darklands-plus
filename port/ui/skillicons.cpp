@@ -14,8 +14,8 @@ struct IconPath {
         for (int i = 1; i <= n; i++) { float t = (float)i / n, w = 1 - t; v.push_back(ImVec2(w * w * a.x + 2 * w * t * c.x + t * t * p.x, w * w * a.y + 2 * w * t * c.y + t * t * p.y)); } return *this; }
     void fill(ImDrawList *dl, ImU32 k, ImU32 edge, float w) { dl->AddConcavePolyFilled(v.Data, v.Size, k); if (w > 0) dl->AddPolyline(v.Data, v.Size, edge, ImDrawFlags_Closed, w); }
 };
-/* Agility's and Speak Latin's pictures, while the choice is open (uiconstyles:9 shows them all) */
-int ui_agility_look = 0, ui_latin_look = 0;
+/* Charisma's picture, while the choice is open (uiconstyles:9 shows them all) */
+int ui_charisma_look = 0;
 
 static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
@@ -63,51 +63,26 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         for (int i = 0; i <= 40; i++) { float a = 2.30f + (6.2832f - 0.52f) * i / 40; b.to(P(cx + cosf(a) * rx, cy + sinf(a) * ry)); }
         b.quad(P(-3.6f, 8.0f), P(-8.8f, 9.8f), 8).quad(P(-6.6f, 6.8f), P(-6.26f, 3.17f), 8);   /* the tail, down to the left */
         b.fill(dl, parch, ink, 0.9f * u); break; }
-    case 11: { /* speak Latin, the options (ui_latin_look): 0 an Ionic column, the ancients' tongue; 1 Rome's eagle on its
-                  standard; 2 the letter Æ, a Latin ligature; 3 a bishop's mitre, the Church's tongue. (Not a book: the
-                  university has it; not a scroll: a quest's; not SPQR: too literal) */
-        ImU32 stone = C(214, 204, 182), cloth = C(226, 218, 200), gilt = C(214, 168, 60);
-        if (ui_latin_look == 0) {
-            dl->AddRectFilled(P(-5.6f, 7.4f), P(5.6f, 9.0f), stone); dl->AddRect(P(-5.6f, 7.4f), P(5.6f, 9.0f), ink, 0, 0, 0.7f * u);   /* the base */
-            dl->AddRectFilled(P(-6.8f, 9.0f), P(6.8f, 10.8f), stone); dl->AddRect(P(-6.8f, 9.0f), P(6.8f, 10.8f), ink, 0, 0, 0.7f * u);
-            ImVec2 sh[4] = { P(-3.7f, -6.0f), P(3.7f, -6.0f), P(4.3f, 7.4f), P(-4.3f, 7.4f) };                         /* the shaft, tapering */
-            dl->AddConvexPolyFilled(sh, 4, stone); dl->AddPolyline(sh, 4, ink, ImDrawFlags_Closed, 0.7f * u);
-            for (int f = -1; f <= 1; f++) dl->AddLine(P(f * 1.7f, -5.4f), P(f * 2.0f, 6.8f), ink, 0.55f * u);      /* its flutes */
-            dl->AddRectFilled(P(-5.6f, -8.2f), P(5.6f, -6.0f), stone); dl->AddRect(P(-5.6f, -8.2f), P(5.6f, -6.0f), ink, 0, 0, 0.7f * u);   /* the capital */
-            for (int sd = -1; sd <= 1; sd += 2) {                                                                  /* its volutes */
-                dl->AddCircleFilled(P(sd * 6.0f, -6.4f), 2.4f * u, stone); dl->AddCircle(P(sd * 6.0f, -6.4f), 2.4f * u, ink, 0, 0.7f * u);
-                dl->AddCircle(P(sd * 6.0f, -6.4f), 1.2f * u, ink, 0, 0.6f * u); dl->AddCircleFilled(P(sd * 6.0f, -6.4f), 0.45f * u, ink); }
-            dl->AddRectFilled(P(-7.4f, -10.6f), P(7.4f, -8.4f), stone); dl->AddRect(P(-7.4f, -10.6f), P(7.4f, -8.4f), ink, 0, 0, 0.7f * u);   /* the slab on top */
-        } else if (ui_latin_look == 1) {
-            dl->AddRectFilled(P(-0.8f, -1.0f), P(0.8f, 10.8f), C(134, 88, 46)); dl->AddRect(P(-0.8f, -1.0f), P(0.8f, 10.8f), ink, 0, 0, 0.6f * u);   /* the staff */
-            dl->AddRectFilled(P(-4.0f, 2.4f), P(4.0f, 5.6f), gilt); dl->AddRect(P(-4.0f, 2.4f), P(4.0f, 5.6f), ink, 0, 0, 0.7f * u);          /* the plate */
-            for (int sd = -1; sd <= 1; sd += 2) {                                                                  /* the wings, raised */
-                IconPath w; w.to(P(sd * 1.2f, -4.6f)).quad(P(sd * 6.0f, -5.2f), P(sd * 9.6f, -10.4f), 8).to(P(sd * 8.6f, -7.0f)).to(P(sd * 9.4f, -7.2f))
-                    .to(P(sd * 7.8f, -4.4f)).to(P(sd * 8.6f, -4.4f)).to(P(sd * 6.4f, -2.2f)).to(P(sd * 7.0f, -2.0f)).quad(P(sd * 3.6f, -0.6f), P(sd * 1.0f, -1.4f), 6);
-                w.fill(dl, gilt, ink, 0.7f * u); }
-            dl->AddEllipseFilled(P(0, -2.8f), ImVec2(2.0f * u, 3.0f * u), gilt); dl->AddEllipse(P(0, -2.8f), ImVec2(2.0f * u, 3.0f * u), ink, 0, 0, 0.7f * u);   /* the body */
-            dl->AddCircleFilled(P(0.6f, -6.6f), 1.6f * u, gilt); dl->AddCircle(P(0.6f, -6.6f), 1.6f * u, ink, 0, 0.7f * u);   /* the head, turned */
-            dl->AddTriangleFilled(P(1.9f, -7.2f), P(3.8f, -6.4f), P(1.9f, -5.8f), gilt); dl->AddTriangle(P(1.9f, -7.2f), P(3.8f, -6.4f), P(1.9f, -5.8f), ink, 0.6f * u);
-            dl->AddTriangleFilled(P(-1.6f, 0), P(1.6f, 0), P(0, 2.4f), gilt);                                     /* the tail on the plate */
-        } else if (ui_latin_look == 2) {
-            ImU32 k = stone; float th = 2.6f * u, tn = 1.3f * u;                                                    /* thick and thin, as cut in stone */
-            dl->AddLine(P(-8.4f, 9.0f), P(-0.6f, -8.8f), k, th); dl->AddLine(P(-5.0f, 2.4f), P(0.6f, 2.4f), k, tn);   /* the A */
-            dl->AddLine(P(0.6f, -8.8f), P(0.6f, 9.0f), k, th);                                                      /* the E, sharing the A's right leg */
-            dl->AddLine(P(-0.6f, -8.8f + tn / u * 0.5f), P(8.2f, -8.8f + tn / u * 0.5f), k, tn); dl->AddLine(P(0.6f, 0.2f), P(6.2f, 0.2f), k, tn);
-            dl->AddLine(P(0.6f, 9.0f - tn / u * 0.5f), P(8.6f, 9.0f - tn / u * 0.5f), k, tn);
-            dl->AddLine(P(8.2f, -8.8f), P(8.2f, -6.6f), k, tn); dl->AddLine(P(8.6f, 9.0f), P(8.6f, 6.4f), k, tn);        /* the serifs */
-            dl->AddLine(P(-10.2f, 9.0f - tn / u * 0.5f), P(-6.4f, 9.0f - tn / u * 0.5f), k, tn);
-        } else {
-            IconPath m; m.to(P(-6.4f, 8.6f)).to(P(-6.8f, -2.0f)).quad(P(-5.4f, -8.0f), P(-0.4f, -11.0f), 8).to(P(0.4f, -11.0f)).quad(P(5.4f, -8.0f), P(6.8f, -2.0f), 8).to(P(6.4f, 8.6f));
-            m.fill(dl, cloth, ink, 0.8f * u);                                                                      /* the mitre, its two points one before the other */
-            dl->AddRectFilled(P(-1.2f, -9.6f), P(1.2f, 8.6f), gilt); dl->AddRect(P(-1.2f, -9.6f), P(1.2f, 8.6f), ink, 0, 0, 0.6f * u);   /* its gilt bands */
-            dl->AddRectFilled(P(-6.6f, 5.0f), P(6.6f, 7.4f), gilt); dl->AddRect(P(-6.6f, 5.0f), P(6.6f, 7.4f), ink, 0, 0, 0.6f * u);
-            for (int sd = -1; sd <= 1; sd += 2) { ImVec2 l[4] = { P(sd * 2.6f, 8.6f), P(sd * 5.0f, 8.6f), P(sd * 5.6f, 11.6f), P(sd * 3.2f, 11.6f) };   /* the lappets */
-                dl->AddConvexPolyFilled(l, 4, gilt); dl->AddPolyline(l, 4, ink, ImDrawFlags_Closed, 0.6f * u); }
-        }
+    case 11: { /* speak Latin: an Ionic column, the tongue of the ancients and of learning - the universities' and scholars' as
+                  much as the clergy's. (Not a book: the university has it; not a scroll: a quest's; not SPQR: too literal) */
+        ImU32 stone = C(214, 204, 182);
+        dl->AddRectFilled(P(-5.6f, 7.4f), P(5.6f, 9.0f), stone); dl->AddRect(P(-5.6f, 7.4f), P(5.6f, 9.0f), ink, 0, 0, 0.7f * u);   /* the base */
+        dl->AddRectFilled(P(-6.8f, 9.0f), P(6.8f, 10.8f), stone); dl->AddRect(P(-6.8f, 9.0f), P(6.8f, 10.8f), ink, 0, 0, 0.7f * u);
+        ImVec2 sh[4] = { P(-3.7f, -6.0f), P(3.7f, -6.0f), P(4.3f, 7.4f), P(-4.3f, 7.4f) };                             /* the shaft, tapering */
+        dl->AddConvexPolyFilled(sh, 4, stone); dl->AddPolyline(sh, 4, ink, ImDrawFlags_Closed, 0.7f * u);
+        for (int fl = -1; fl <= 1; fl++) dl->AddLine(P(fl * 1.7f, -5.4f), P(fl * 2.0f, 6.8f), ink, 0.55f * u);          /* its flutes */
+        dl->AddRectFilled(P(-5.6f, -8.2f), P(5.6f, -6.0f), stone); dl->AddRect(P(-5.6f, -8.2f), P(5.6f, -6.0f), ink, 0, 0, 0.7f * u);   /* the capital */
+        for (int sd = -1; sd <= 1; sd += 2) {                                                                          /* its volutes */
+            dl->AddCircleFilled(P(sd * 6.0f, -6.4f), 2.4f * u, stone); dl->AddCircle(P(sd * 6.0f, -6.4f), 2.4f * u, ink, 0, 0.7f * u);
+            dl->AddCircle(P(sd * 6.0f, -6.4f), 1.2f * u, ink, 0, 0.6f * u); dl->AddCircleFilled(P(sd * 6.0f, -6.4f), 0.45f * u, ink); }
+        dl->AddRectFilled(P(-7.4f, -10.6f), P(7.4f, -8.4f), stone); dl->AddRect(P(-7.4f, -10.6f), P(7.4f, -8.4f), ink, 0, 0, 0.7f * u);   /* the slab on top */
         break; }
-    case 12: { /* read & write: a quill, alone (its vane, barbs and shaft, the nib cut; not a blade) */
-        ImU32 vane = C(228, 216, 186);
+    case 12: { /* read & write: a quill on a blank sheet (its vane, barbs and shaft, the nib cut; not a blade) */
+        ImU32 vane = C(228, 216, 186), paper = C(248, 244, 232);
+        { const float ca = cosf(-0.14f), sa = sinf(-0.14f), cx = -2.6f, cy = 2.2f, hw = 5.4f, hh = 7.0f;            /* the sheet, a little askew */
+          ImVec2 q[4]; const float X[4] = { -hw, hw, hw, -hw }, Y[4] = { -hh, -hh, hh, hh };
+          for (int i = 0; i < 4; i++) q[i] = P(cx + X[i] * ca - Y[i] * sa, cy + X[i] * sa + Y[i] * ca);
+          dl->AddConvexPolyFilled(q, 4, paper); dl->AddPolyline(q, 4, ink, ImDrawFlags_Closed, 0.75f * u); }
         float ax = -9.0f, ay = 10.0f, bx = 9.4f, by = -10.6f, len = sqrtf((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
         float dx = (bx - ax) / len, dy = (by - ay) / len, nx = -dy, ny = dx;          /* along the shaft; across it (n: up left) */
         ImVec2 pts[26]; int n = 0;
@@ -182,34 +157,10 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
         dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
         dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
-    case 2: {  /* agility, the options (ui_agility_look): 0 a swallow in flight (the heralds' martlet, swiftness); 1 a leap over a
-                  hurdle; 2 a hare made of plain shapes. (Not a wing: it read
-                  as stairs; not a winged foot: Quickmove's) */
-        ImU32 slate = C(70, 96, 150), fur = C(176, 140, 100), wood = C(134, 88, 46), arrow = C(200, 120, 40);
-        if (ui_agility_look == 0) {
-            static const float R[] = { 0, -7.4f, 1.0f, -6.6f, 1.5f, -4.6f, 4.6f, -4.6f, 8.2f, -3.2f, 11.0f, -0.4f, 7.8f, -1.0f, 4.4f, -0.6f, 1.8f, 0.8f, 1.4f, 3.4f, 3.2f, 9.6f, 0, 5.2f };
-            ImVec2 q[22]; int n = 0; const float ca = cosf(0.5f), sa = sinf(0.5f), k = 0.88f;   /* the right half, then the left, turned to fly up and right */
-            auto put = [&](float x, float y) { q[n++] = P(k * (x * ca - y * sa), k * (x * sa + y * ca)); };
-            for (int i = 0; i < 12; i++) put(R[i * 2], R[i * 2 + 1]);
-            for (int i = 10; i >= 1; i--) put(-R[i * 2], R[i * 2 + 1]);
-            dl->AddConcavePolyFilled(q, n, slate); dl->AddPolyline(q, n, ink, ImDrawFlags_Closed, 0.8f * u);
-        } else if (ui_agility_look == 1) {
-            for (int sd = -1; sd <= 1; sd += 2) { dl->AddLine(P(sd * 3.4f, 3.4f), P(sd * 3.4f, 10.4f), ink, 1.7f * u); dl->AddLine(P(sd * 3.4f, 3.4f), P(sd * 3.4f, 10.4f), wood, 0.9f * u); }
-            for (int r = 0; r < 2; r++) { float ry = 4.6f + r * 2.8f; dl->AddLine(P(-4.6f, ry), P(4.6f, ry), ink, 1.7f * u); dl->AddLine(P(-4.6f, ry), P(4.6f, ry), wood, 0.9f * u); }   /* the hurdle, two rails */
-            dl->AddBezierQuadratic(P(-10.0f, 8.4f), P(-0.6f, -18.0f), P(7.4f, 4.4f), ink, 3.0f * u); dl->AddBezierQuadratic(P(-10.0f, 8.4f), P(-0.6f, -18.0f), P(7.4f, 4.4f), arrow, 1.9f * u);   /* the leap */
-            ImVec2 h[3] = { P(9.4f, 9.2f), P(4.4f, 4.8f), P(9.4f, 2.6f) };                                        /* its head, coming down */
-            dl->AddTriangleFilled(h[0], h[1], h[2], arrow); dl->AddTriangle(h[0], h[1], h[2], ink, 0.7f * u);
-        } else {
-            auto leaf = [&](float x, float y, float dx, float dy, float L, float w) { ImVec2 q[16]; int n = 0; float nx = -dy, ny = dx;
-                for (int i = 0; i <= 8; i++) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f + nx * h, y + dy * t * L * 0.5f + ny * h); }
-                for (int i = 7; i >= 1; i--) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f - nx * h, y + dy * t * L * 0.5f - ny * h); }
-                dl->AddConvexPolyFilled(q, n, fur); dl->AddPolyline(q, n, ink, ImDrawFlags_Closed, 0.6f * u); };
-            leaf(-7.8f, 5.0f, -0.88f, 0.47f, 7.0f, 2.4f);                                                          /* the hind legs, back */
-            leaf(6.4f, 3.6f, 0.80f, 0.60f, 6.0f, 1.8f);                                                            /* the forelegs, reaching */
-            dl->AddEllipseFilled(P(-0.6f, 1.6f), ImVec2(7.0f * u, 3.4f * u), fur, -0.36f); dl->AddEllipse(P(-0.6f, 1.6f), ImVec2(7.0f * u, 3.4f * u), ink, -0.36f, 0, 0.7f * u);
-            leaf(2.2f, -7.4f, -0.55f, -0.84f, 7.0f, 1.8f); leaf(3.6f, -7.8f, -0.36f, -0.93f, 6.6f, 1.7f);          /* the ears */
-            dl->AddCircleFilled(P(5.6f, -2.8f), 2.7f * u, fur); dl->AddCircle(P(5.6f, -2.8f), 2.7f * u, ink, 0, 0.7f * u);   /* the head */
-        }
+    case 2: {  /* agility: a flight of steps, in outline (light of foot). (Battles' "use stairs" order is solid stone steps) */
+        ImU32 stone = C(214, 204, 182);
+        ImVec2 st[10] = { P(-8.0f, 7.6f), P(-8.0f, 3.6f), P(-4.0f, 3.6f), P(-4.0f, -0.4f), P(0, -0.4f), P(0, -4.4f), P(4.0f, -4.4f), P(4.0f, -8.4f), P(8.0f, -8.4f), P(8.0f, 7.6f) };
+        dl->AddPolyline(st, 10, ink, ImDrawFlags_Closed, 3.0f * u); dl->AddPolyline(st, 10, stone, ImDrawFlags_Closed, 1.9f * u);
         break; }
     case 3: /* perception: an open eye */
         dl->AddBezierQuadratic(P(-10, 0), P(0, -9), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 9), P(10, 0), parch, 1.6f * u);
@@ -220,29 +171,48 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
         dl->AddTriangleFilled(P(-2.4f, -4.5f), P(2.4f, -4.5f), P(0, -11), C(255, 200, 70));
         dl->AddCircleFilled(P(0, -5.2f), 2.4f * u, C(255, 200, 70)); dl->AddCircleFilled(P(0, -5.5f), 1.1f * u, C(255, 250, 210)); break;
-    case 5: { /* charisma: a laurel wreath, its leaves in pairs along two branches, tied below with a ribbon (not a crown: the nobility's) */
-        ImU32 leafc = C(84, 150, 62), stem = C(60, 100, 36), red = C(190, 40, 40); const float R = 7.3f, cy = 0.0f;
-        auto leaf = [&](float x, float y, float dx, float dy, float L, float w) { ImVec2 q[16]; int n = 0; float nx = -dy, ny = dx;
+    case 5: { /* charisma, the options (ui_charisma_look): 0 a rose, the heralds' (grace, charm); 1 lips; 2 a laurel wreath, large.
+                 (Not a crown: the nobility's; not a heart: Endurance's) */
+        ImU32 red = C(190, 40, 46), leafc = C(84, 150, 62), stem = C(60, 100, 36), seed = C(226, 182, 64);
+        auto leaf = [&](float x, float y, float dx, float dy, float L, float w, ImU32 k) { ImVec2 q[16]; int n = 0; float nx = -dy, ny = dx;
             for (int i = 0; i <= 8; i++) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f + nx * h, y + dy * t * L * 0.5f + ny * h); }
             for (int i = 7; i >= 1; i--) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f - nx * h, y + dy * t * L * 0.5f - ny * h); }
-            dl->AddConvexPolyFilled(q, n, leafc); dl->AddPolyline(q, n, ink, ImDrawFlags_Closed, 0.5f * u); };
-        for (int sd = -1; sd <= 1; sd += 2) {
-            auto ang = [&](float t) { return 1.5708f - sd * (0.10f + t * (3.1416f - 0.62f)); };                     /* from the knot below, up round the side */
-            dl->PathArcTo(P(0, cy), R * u, ang(-0.05f), ang(1.0f), 20); dl->PathStroke(stem, 0, 1.1f * u);
-            for (int i = 0; i <= 6; i++) {
-                float t = i < 6 ? 0.07f + i * 0.155f : 1.0f, a = ang(t), bx = cosf(a) * R, by = cy + sinf(a) * R;
-                float tx = sd * sinf(a), ty = -sd * cosf(a), ox = cosf(a), oy = sinf(a);                           /* along the branch (up); outward */
-                if (i == 6) { leaf(bx + tx * 1.7f, by + ty * 1.7f, tx, ty, 3.4f, 1.5f); break; }                  /* the last leaf, at the tip */
-                for (int side = -1; side <= 1; side += 2) {
-                    float dx = tx * 0.77f + side * ox * 0.64f, dy = ty * 0.77f + side * oy * 0.64f;
-                    leaf(bx + dx * 1.6f, by + dy * 1.6f, dx, dy, side > 0 ? 3.4f : 3.0f, 1.45f); }
+            dl->AddConvexPolyFilled(q, n, k); dl->AddPolyline(q, n, ink, ImDrawFlags_Closed, 0.55f * u); };
+        if (ui_charisma_look == 0) {
+            for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                  /* the barbs, between the petals */
+                leaf(cosf(a) * 7.6f, sinf(a) * 7.6f, cosf(a), sinf(a), 4.2f, 1.7f, leafc); }
+            for (int i = 0; i < 5; i++) { float a = -1.5708f + i * 1.2566f;                                           /* the outer petals */
+                dl->AddCircleFilled(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, red); dl->AddCircle(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, ink, 0, 0.7f * u); }
+            dl->AddCircleFilled(P(0, 0), 5.4f * u, red);                                                            /* (their inner edges hidden) */
+            for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                  /* the inner petals */
+                dl->AddCircleFilled(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, red); dl->AddCircle(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, ink, 0, 0.6f * u); }
+            dl->AddCircleFilled(P(0, 0), 2.2f * u, seed); dl->AddCircle(P(0, 0), 2.2f * u, ink, 0, 0.6f * u);       /* the seeds */
+        } else if (ui_charisma_look == 1) {
+            IconPath up; up.to(P(-10.0f, 0.6f)).quad(P(-6.4f, -5.6f), P(-2.6f, -4.6f), 8).quad(P(-1.0f, -4.2f), P(0, -2.8f), 4).quad(P(1.0f, -4.2f), P(2.6f, -4.6f), 4)
+                .quad(P(6.4f, -5.6f), P(10.0f, 0.6f), 8).quad(P(0, -0.6f), P(-10.0f, 0.6f), 10);
+            up.fill(dl, red, ink, 0.8f * u);                                                                       /* the upper lip, its bow */
+            IconPath lo; lo.to(P(-10.0f, 0.6f)).quad(P(0, 1.2f), P(10.0f, 0.6f), 10).quad(P(7.0f, 7.8f), P(0, 7.6f), 10).quad(P(-7.0f, 7.8f), P(-10.0f, 0.6f), 10);
+            lo.fill(dl, red, ink, 0.8f * u);                                                                       /* the lower */
+            dl->AddEllipseFilled(P(2.6f, 4.0f), ImVec2(2.2f * u, 0.9f * u), C(236, 150, 150), -0.1f);               /* its gleam (in colour) */
+        } else {
+            const float R = 8.3f;
+            for (int sd = -1; sd <= 1; sd += 2) {
+                auto ang = [&](float t) { return 1.5708f - sd * (0.10f + t * (3.1416f - 0.75f)); };                 /* from the knot below, up round the side */
+                dl->PathArcTo(P(0, 0.4f), R * u, ang(-0.05f), ang(1.0f), 24); dl->PathStroke(stem, 0, 1.3f * u);
+                for (int i = 0; i <= 6; i++) {
+                    float t = i < 6 ? 0.08f + i * 0.152f : 1.0f, a = ang(t), bx = cosf(a) * R, by = 0.4f + sinf(a) * R;
+                    float tx = sd * sinf(a), ty = -sd * cosf(a), ox = cosf(a), oy = sinf(a);
+                    if (i == 6) { leaf(bx + tx * 2.0f, by + ty * 2.0f, tx, ty, 4.2f, 2.0f, leafc); break; }
+                    for (int side = -1; side <= 1; side += 2) {
+                        float dx = tx * 0.74f + side * ox * 0.67f, dy = ty * 0.74f + side * oy * 0.67f;
+                        leaf(bx + dx * 2.0f, by + dy * 2.0f, dx, dy, side > 0 ? 4.4f : 3.8f, 1.9f, leafc); }
+                }
             }
+            for (int sd = -1; sd <= 1; sd += 2) {                                                                  /* the ribbon */
+                ImVec2 t3[3] = { P(sd * 0.3f, R + 0.6f), P(sd * 3.0f, R + 3.0f), P(sd * 1.2f, R + 3.2f) };
+                dl->AddTriangleFilled(t3[0], t3[1], t3[2], red); dl->AddTriangle(t3[0], t3[1], t3[2], ink, 0.5f * u); }
+            dl->AddCircleFilled(P(0, R + 0.4f), 1.1f * u, red); dl->AddCircle(P(0, R + 0.4f), 1.1f * u, ink, 0, 0.5f * u);
         }
-        for (int sd = -1; sd <= 1; sd += 2) {                                                                      /* the ribbon: two loops, two ends */
-            ImVec2 t3[3] = { P(sd * 0.3f, R + 0.2f), P(sd * 2.9f, R + 3.2f), P(sd * 1.3f, R + 3.5f) };
-            dl->AddTriangleFilled(t3[0], t3[1], t3[2], red); dl->AddTriangle(t3[0], t3[1], t3[2], ink, 0.5f * u);
-            dl->AddEllipseFilled(P(sd * 1.7f, R - 0.2f), ImVec2(1.5f * u, 0.9f * u), red, sd * 0.35f); dl->AddEllipse(P(sd * 1.7f, R - 0.2f), ImVec2(1.5f * u, 0.9f * u), ink, sd * 0.35f, 0, 0.5f * u); }
-        dl->AddCircleFilled(P(0, R), 0.9f * u, red); dl->AddCircle(P(0, R), 0.9f * u, ink, 0, 0.5f * u);
         break; }
     case 6: /* divine favor: a chalice */
         dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
@@ -538,30 +508,24 @@ extern "C" void ui_icon_styles_draw(void)
         ui_draw_ingredient(dl, ImVec2(ds.x * 0.5f, ds.y * 0.5f), ds.y * 0.8f, (sheet_on - 1000) % 100);
         return;
     }
-    if (sheet_on == 9) {   /* Agility's and Speak Latin's options large (uiconstyles:9): in colour, and heraldic beside */
-        static const char *AG[4] = { "A. A swallow in flight", "B. A leap over a hurdle", "C. A hare, plain shapes", 0 };
-        static const char *LA[4] = { "A. An Ionic column", "B. Rome's eagle", "C. The letter AE", "D. A bishop's mitre" };
-        ImFont *f = ImGui::GetFont(); float cw = ds.x / 4, sz = fminf(cw * 0.3f, ds.y / 6.5f), fs = sz * 0.22f; const ImU32 INK = IM_COL32(60, 40, 20, 255);
-        int ka = ui_agility_look, kl = ui_latin_look;
-        for (int row = 0; row < 2; row++) {
-            float y = row * ds.y * 0.5f;
-            dl->AddText(f, fs * 1.3f, ImVec2(fs, y + fs * 0.4f), INK, row ? "Speak Latin" : "Agility");
-            for (int v = 0; v < 4; v++) {
-                if (!row && !AG[v]) break;
-                if (row) ui_latin_look = v; else ui_agility_look = v;
-                ImVec2 a2(cw * v + cw * 0.27f, y + ds.y * 0.24f), b2(cw * v + cw * 0.73f, y + ds.y * 0.24f);
-                ui_icon_style_preview(0); if (row) ui_skill_icon(dl, a2, sz, 11); else ui_attr_icon(dl, a2, sz, 2);
-                ui_icon_style_preview(2); if (row) ui_skill_icon(dl, b2, sz, 11); else ui_attr_icon(dl, b2, sz, 2);
-                ui_icon_style_preview(-1);
-                for (int sm = 0; sm < 3; sm++) {                                                       /* and small, as on the sheet and a card */
-                    ImVec2 c3(cw * v + cw * 0.38f + sm * sz * 0.36f, y + ds.y * 0.24f + sz * 1.05f); ui_icon_style_preview(sm == 2 ? 0 : 2);
-                    float s3 = sm == 0 ? sz * 0.22f : sz * 0.16f; if (row) ui_skill_icon(dl, c3, s3, 11); else ui_attr_icon(dl, c3, s3, 2); }
-                ui_icon_style_preview(-1);
-                const char *n = row ? LA[v] : AG[v]; float w = f->CalcTextSizeA(fs, 1e9f, 0, n).x;
-                dl->AddText(f, fs, ImVec2(cw * v + cw * 0.5f - w * 0.5f, y + ds.y * 0.24f + sz * 1.35f), INK, n);
-            }
+    if (sheet_on == 9) {   /* Charisma's options large (uiconstyles:9): in colour, and heraldic beside; then small */
+        static const char *CH[3] = { "A. A rose", "B. Lips", "C. A laurel wreath, larger" };
+        ImFont *f = ImGui::GetFont(); float cw = ds.x / 3, sz = fminf(cw * 0.3f, ds.y / 4.0f), fs = sz * 0.2f; const ImU32 INK = IM_COL32(60, 40, 20, 255);
+        int keep = ui_charisma_look;
+        dl->AddText(f, fs * 1.3f, ImVec2(fs, fs * 0.4f), INK, "Charisma");
+        for (int v = 0; v < 3; v++) {
+            ui_charisma_look = v;
+            ImVec2 a2(cw * v + cw * 0.28f, ds.y * 0.36f), b2(cw * v + cw * 0.72f, ds.y * 0.36f);
+            ui_icon_style_preview(0); ui_attr_icon(dl, a2, sz, 5);
+            ui_icon_style_preview(2); ui_attr_icon(dl, b2, sz, 5);
+            for (int sm = 0; sm < 3; sm++) {                                                       /* and small, as on the sheet and a card */
+                ImVec2 c3(cw * v + cw * 0.38f + sm * sz * 0.36f, ds.y * 0.36f + sz * 1.1f); ui_icon_style_preview(sm == 2 ? 0 : 2);
+                ui_attr_icon(dl, c3, sm == 0 ? sz * 0.22f : sz * 0.16f, 5); }
+            ui_icon_style_preview(-1);
+            float w = f->CalcTextSizeA(fs, 1e9f, 0, CH[v]).x;
+            dl->AddText(f, fs, ImVec2(cw * v + cw * 0.5f - w * 0.5f, ds.y * 0.36f + sz * 1.45f), INK, CH[v]);
         }
-        ui_agility_look = ka; ui_latin_look = kl;
+        ui_charisma_look = keep;
         return;
     }
     if (sheet_on == 8) {   /* the attributes, skills and the party's standing large (uiconstyles:8): in colour, and heraldic beside */

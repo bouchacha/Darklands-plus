@@ -1,5 +1,5 @@
 /* soundpreview.c - hearing a sound device before choosing it (F12 > Settings):
- * a piece of music, or a few battle sounds, played through that device now, then the chosen one
+ * a piece of music, or ten seconds of a real battle's sounds, played through that device now, then the chosen one
  * back. The game's own way of changing its sound driver (as it does going into a battle and out,
  * s002 0e76): stop it (047c:0791, 00a9), let go of it (08f9), load xSOUND.DLC or .DLB (07ce: the
  * driver file is picked by the device, runtime/sounddev.c, which reads the device to hear from
@@ -8,6 +8,7 @@
  * back meanwhile, so the device itself is heard. Also the packs' own previews (a recording from
  * the music pack, the battle sounds pack). */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -51,7 +52,32 @@ static const char *const DEV[] = { "mt32", "fm", "adlib", "speaker", "midi" };
 #define NDEVS 5
 static int active, what, step, prev;     /* a preview under way: music (0) or battle sounds (1), its step, the piece before */
 static u32 t0;
-static const int BATTLE[] = { 17, 16, 17, 15, 11, 10 };   /* a miss or parry, a knock-back, another, a bow, a gun, a death */
+/* the battle sounds: ten seconds of a real battle as heard, each sound at its time (battle_sound(n)
+   logged with DL_SFX_LOG=1, the game at its own pace, Improved combat on): a melee against six bandits,
+   or one against archers and bandits as the shooting turns to blows; one of the two at random. n: 10 a
+   death, 15 a bow or crossbow, 16 a knock-back, 17 a blow that misses or is parried (hits make no sound
+   in the original) */
+typedef struct { short ms; signed char n; } Beat;
+static const Beat MELEE[] = {
+    { 0, 16 }, { 0, 16 }, { 140, 17 }, { 280, 17 }, { 280, 17 }, { 280, 16 }, { 950, 17 }, { 1080, 17 },
+    { 1220, 17 }, { 1510, 17 }, { 1510, 17 }, { 1630, 17 }, { 2050, 16 }, { 2050, 17 }, { 2350, 16 }, { 2350, 17 },
+    { 2500, 17 }, { 2920, 16 }, { 3390, 17 }, { 3540, 16 }, { 3540, 17 }, { 3670, 17 }, { 3670, 10 }, { 3800, 17 },
+    { 3800, 17 }, { 3930, 17 }, { 3930, 16 }, { 4780, 17 }, { 4780, 17 }, { 4780, 17 }, { 4910, 17 }, { 4910, 16 },
+    { 5170, 17 }, { 5430, 17 }, { 5840, 17 }, { 5970, 17 }, { 6100, 17 }, { 6100, 17 }, { 6100, 17 }, { 6630, 17 },
+    { 6910, 17 }, { 7030, 17 }, { 7170, 17 }, { 7170, 17 }, { 7170, 16 }, { 7170, 17 }, { 7460, 17 }, { 8020, 16 },
+    { 8530, 17 }, { 8680, 17 }, { 8680, 17 }, { 8680, 17 }, { 8680, 17 }, { 8800, 17 }, { 9330, 17 }, { 9610, 17 },
+    { 9870, 17 }, { 9870, 17 }, { 9870, 17 }
+};
+static const Beat ARCHERS[] = {
+    { 0, 17 }, { 0, 17 }, { 130, 15 }, { 130, 17 }, { 420, 17 }, { 670, 17 }, { 1480, 17 }, { 1610, 17 },
+    { 1610, 17 }, { 1750, 16 }, { 1880, 17 }, { 2160, 16 }, { 2950, 17 }, { 3350, 17 }, { 3350, 17 }, { 3750, 17 },
+    { 3880, 17 }, { 3880, 16 }, { 4420, 17 }, { 4700, 17 }, { 4830, 17 }, { 4830, 17 }, { 5130, 17 }, { 5260, 17 },
+    { 5260, 16 }, { 5510, 16 }, { 5860, 16 }, { 5870, 17 }, { 6240, 16 }, { 6420, 17 }, { 6590, 17 }, { 6590, 17 },
+    { 7090, 17 }, { 7500, 16 }, { 7500, 17 }, { 7720, 10 }, { 7920, 17 }, { 7920, 17 }, { 7920, 17 }, { 8120, 17 },
+    { 8120, 17 }, { 8120, 17 }, { 8280, 17 }, { 8430, 17 }, { 8790, 16 }, { 8980, 17 }, { 8980, 17 }, { 8980, 16 },
+    { 8990, 17 }, { 9140, 17 }, { 9280, 17 }, { 9280, 17 }, { 9280, 16 }, { 9710, 17 }
+};
+static int seg;                          /* (which of the two) */
 
 int musicpack_now(int *from_pack);
 void musicpack_hold(int on);
@@ -65,7 +91,7 @@ static void begin(int dev, int w, int c, int d)
     musicpack_hold(1);
     play(1); hush();
     load_driver(w == 1);                 /* (the battle sounds: the battles' driver; the music: the towns') */
-    active = 1; what = w; step = 0; t0 = plat_ticks_ms();
+    active = 1; what = w; step = 0; t0 = plat_ticks_ms(); seg = rand() & 1;
     if (w != 1 && music_was < 0) { music_was = g_rb(GV_opt_music); g_wb(GV_opt_music, 1); }
     if (!w) play(20);                      /* the second tune of the overland view: every device has it */
     if (w == 2) { play(c); void playlist_started(int); playlist_started(c); }   /* (the soundtrack's player: piece c, until stopped) */
@@ -117,8 +143,8 @@ void soundpreview_tick(void)
     if (!active) return;
     u32 dt = plat_ticks_ms() - t0;
     if (what == 1) {
-        int n = (int)(sizeof BATTLE / sizeof BATTLE[0]);
-        if (step < n && dt >= (u32)(300 + step * 700)) { ns_defer(beat, BATTLE[step], 0, 0, 0); step++; }
-        if (dt > (u32)(300 + n * 700 + 800)) { ns_defer(end, 0, 0, 0, 0); active = 2; }
+        const Beat *b = seg ? ARCHERS : MELEE; int n = seg ? (int)(sizeof ARCHERS / sizeof ARCHERS[0]) : (int)(sizeof MELEE / sizeof MELEE[0]);
+        for (int q = 0; step < n && dt >= (u32)(300 + b[step].ms) && q < 6; q++) { ns_defer(beat, b[step].n, 0, 0, 0); step++; }   /* (as many as are due, a few a frame) */
+        if (step >= n && dt > 300u + 10000u + 900u) { ns_defer(end, 0, 0, 0, 0); active = 2; }
     } else if (what == 0 && dt > 15000 && active == 1) { ns_defer(end, 0, 0, 0, 0); active = 2; }   /* (the soundtrack's player plays until stopped) */
 }
