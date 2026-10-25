@@ -334,7 +334,7 @@ extern "C" void cardview_draw(void)
             if (over) {
                 char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
                 std::string who = game_text(nm, strlen(nm));
-                ImGui::SetNextWindowPos(ImVec2(q0.x, q1.y + 4 * k));
+                ImGui::SetNextWindowPos(ImVec2(fminf(q0.x, ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * 23.5f), q1.y + 4 * k));   /* (inside the window) */
                 ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                 ImGui::TextUnformatted((who + " speaks for the party" + (m == leader ? " (the leader)" : "") + (formula ? ". A formula traded is " + who + "'s to know." : ".")).c_str());
                 ImGui::TextDisabled("Click to choose this with %s speaking.", who.c_str());
@@ -576,7 +576,7 @@ extern "C" void cardview_draw(void)
         if (reads & CC_REP) r += std::string(r.empty() ? "" : ", ") + "the town's opinion of the party (its reputation here)";
         if (reads & CC_FAME) r += std::string(r.empty() ? "" : ", ") + "the party's fame";
         if (!w.empty() || !r.empty()) {
-            ImGui::SetNextWindowPos(chance_tip_at);
+            ImGui::SetNextWindowPos(ImVec2(fminf(chance_tip_at.x, ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * 23.5f), chance_tip_at.y));   /* (inside the window) */
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
