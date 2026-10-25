@@ -110,7 +110,7 @@ static void end(int a, int b, int c, int d)
     if (prev >= 8) play(prev);
     fprintf(stderr, "sound preview: done\n");
 }
-static void beat(int n, int b, int c, int d) { (void)b; (void)c; (void)d; if (active) play(n); }
+static void beat(int n, int b, int c, int d) { (void)b; (void)c; (void)d; if (active) { play(n); if (getenv("DL_SFX_LOG")) fprintf(stderr, "sound preview: %d at %u ms\n", n, plat_ticks_ms() - t0); } }
 
 /* the soundtrack's player (mods/playlist.c): piece n through device dev until stopped; within a
    deferred call, a piece started again from its beginning, the notes of the last one silenced */

@@ -103,6 +103,7 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "ushoot")) { int i = 0, t = 5; sscanf(arg, "%d,%d", &i, &t); void orders_test_shoot(int, int); orders_test_shoot(i, t); }   /* test: member i shoots at t (as ordered) */
         else if (!strcmp(cmd, "uskysheet")) { void banner_sky_sheet(int); banner_sky_sheet(atoi(arg)); }   /* test: the travel map's sky box at every second hour */
+        else if (!strcmp(cmd, "usndprev")) { char d[16] = ""; int w = 1; sscanf(arg, "%15[^,],%d", d, &w); void soundpreview_start(const char *, int); soundpreview_start(d, w); }   /* test: hear device d (mt32, fm ...) play music (0) or the battle sounds (1) */
         else if (!strcmp(cmd, "uiconstyles")) { void ui_icon_styles_sheet(int); ui_icon_styles_sheet(atoi(arg)); }   /* test: the pictures of the skills in each look */
         else if (!strcmp(cmd, "uaim")) {               /* test: who shoots, and the aim under the pointer */
             extern int orders_member_mode(int m); extern int orders_aim(int *who, int *foe);

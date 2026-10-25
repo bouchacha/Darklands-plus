@@ -439,7 +439,11 @@ extern "C" void cardview_draw(void)
             if (nh) sub[0] = 0;                                     /* (the heads say who: no name) */
             ImVec2 mt = fs->CalcTextSizeA(ms, FLT_MAX, 0, main), st = sub[0] ? fs->CalcTextSizeA(ss, FLT_MAX, 0, sub) : ImVec2(0, 0);
             const float shw = isz * 1.25f, step = shw + 0.24f * ms;           /* (a shield is 1.25 sizes wide: apart by a little more) */
-            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * step - 0.24f * ms : 0), bh = fmaxf(ms * 1.02f, fmaxf(nh ? hsz * 1.06f : 0, ni ? isz * 1.56f : 0));
+            /* a chance that is the speaker's: a chevron at the box's end; pointing at it slides out every member's
+               chance under the box, to pick who speaks (the one who speaks unless picked: ringed) */
+            bool slide = cc.line[p.line].dep && p.state == 1 && menu && !ui_is_open();
+            const float chw = slide ? 1.15f * ms : 0;
+            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * step - 0.24f * ms : 0) + chw, bh = fmaxf(ms * 1.02f, fmaxf(nh ? hsz * 1.06f : 0, ni ? isz * 1.56f : 0));
             /* beside the box, level with the option's first line: a tab on the card's edge */
             float cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
             float bxl = X1 + 4.5f * k, bxr = bxl + bw;
@@ -466,19 +470,26 @@ extern "C" void cardview_draw(void)
             }
             ui_icon_heraldic_here = 0;
             bool on_box = menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false);
-            /* a chance that is the speaker's: under the pointer, every member's slides out beside it, to pick who
-               speaks (the one who speaks unless picked: ringed) */
-            bool slide = cc.line[p.line].dep && p.state == 1 && menu && !ui_is_open();
             float row_h = 0;
             if (slide) {                                            /* (in a row under the box, on a dark band, over the options below) */
+                ImVec2 c0(bxr - chw, q0.y), c1 = q1;                /* the chevron's part of the box */
+                bool on_chev = ImGui::IsMouseHoveringRect(c0, c1, false);
                 float sms = ms * 0.9f, sw = chips_width(sms, p.line), room = ImGui::GetIO().DisplaySize.x - bxl - 6 * k;
                 if (sw > room && sw > 0) { sms *= fmaxf(0.6f, room / sw); sw = chips_width(sms, p.line); }
                 row_h = sms * 1.25f * 1.06f + 0.5f * ms;
                 ImVec2 s0(bxl, q0.y), s1(fmaxf(bxr, bxl + sw + 0.3f * ms), q1.y + row_h);
                 bool keep = slide_line == j && ImGui::IsMouseHoveringRect(s0, s1, false);
-                if (on_box || keep) { if (slide_line != j) { slide_line = j; slide_t = 0; } }
+                if (on_chev || keep) { if (slide_line != j) { slide_line = j; slide_t = 0; } }
                 else if (slide_line == j) slide_line = -1;
-                if (slide_line == j) {
+                bool open = slide_line == j;
+                dl->AddLine(ImVec2(c0.x, q0.y + bh * 0.2f), ImVec2(c0.x, q1.y - bh * 0.2f), IM_COL32(150, 110, 60, 160), fmaxf(1.0f, 0.2f * k));
+                float ccx = c0.x + chw * 0.5f, r = 0.3f * ms;
+                ImU32 cc2 = open || on_chev ? IM_COL32(250, 220, 140, 255) : IM_COL32(215, 175, 100, 230);
+                ImVec2 v[3];                                        /* > pointing on; once open, down to the row */
+                if (open) { v[0] = ImVec2(ccx - r, cy - r * 0.45f); v[1] = ImVec2(ccx, cy + r * 0.55f); v[2] = ImVec2(ccx + r, cy - r * 0.45f); }
+                else { v[0] = ImVec2(ccx - r * 0.45f, cy - r); v[1] = ImVec2(ccx + r * 0.55f, cy); v[2] = ImVec2(ccx - r * 0.45f, cy + r); }
+                dl->AddPolyline(v, 3, cc2, 0, fmaxf(1.5f, 0.16f * ms));
+                if (open) {
                     slide_t = fminf(1.0f, slide_t + ImGui::GetIO().DeltaTime / 0.14f); float e = 1 - (1 - slide_t) * (1 - slide_t);
                     slide_out.on = true; slide_out.x = bxl + 0.15f * ms; slide_out.cy = q1.y + row_h * 0.5f + 0.1f * ms; slide_out.ms = sms; slide_out.e = e;
                     slide_out.line = p.line; slide_out.opt = p.opt; slide_out.r0 = ImVec2(bxl, q1.y + 0.1f * ms); slide_out.r1 = ImVec2(bxl + sw + 0.3f * ms, q1.y + row_h + 0.15f * ms);
@@ -581,8 +592,8 @@ extern "C" void cardview_draw(void)
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
             if (!r.empty()) ImGui::TextUnformatted(("It rests on: " + r + ".").c_str());
-            if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you click another member's chance below."
-                                                                           : "Whoever speaks for the party tries it: the leader, unless you click another member's chance below.");
+            if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance)."
+                                                                           : "Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance).");
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }

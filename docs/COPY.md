@@ -78,7 +78,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:133` | beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held). |
 | `mods/options.c:133` | Always, as numbers\|As the difficulty level allows\|Off |
 | `mods/options.c:134` | The best member speaks for the party |
-| `mods/options.c:134` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. Pointing at the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and pointing at the chance still lets you pick another.) |
+| `mods/options.c:134` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. The arrow at the end of the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and the arrow still lets you pick another.) |
 | `mods/options.c:135` | Saints and items on cards |
 | `mods/options.c:135` | which saints and items a card accepts, and who knows or carries them (as the Darklands Companion, a players' reference, did: saints are listed even when nobody knows them yet). |
 | `mods/options.c:136` | what the item, saint or formula under the pointer is good for (in shops, the loot screen, character sheets, and the prayer and alchemy screens). |
@@ -687,33 +687,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardview.cpp:339` | . A formula traded is  |
 | `ui/cardview.cpp:340` | Click to choose this with %s speaking. |
 | `ui/cardview.cpp:380` | not possible |
-| `ui/cardview.cpp:494` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:494` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:521` | knows it already |
-| `ui/cardview.cpp:529` | knows the formula but carries none |
-| `ui/cardview.cpp:530` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:530` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:531` | knows this saint already |
-| `ui/cardview.cpp:573` | Each member tries it |
-| `ui/cardview.cpp:576` | the town's opinion of the party (its reputation here) |
-| `ui/cardview.cpp:577` | the party's fame |
-| `ui/cardview.cpp:583` | It rests on:  |
-| `ui/cardview.cpp:584` | Whoever speaks for the party tries it: the best at it, unless you click another member's chance below. |
-| `ui/cardview.cpp:585` | Whoever speaks for the party tries it: the leader, unless you click another member's chance below. |
-| `ui/cardview.cpp:596` | Brings a teacher to the inn |
-| `ui/cardview.cpp:600` | Hired here now: %s. |
-| `ui/cardview.cpp:601` | Not possible now |
-| `ui/cardview.cpp:608` | Not possible now |
-| `ui/cardview.cpp:637` | nobody knows it yet |
-| `ui/cardview.cpp:650` | nobody knows this saint |
-| `ui/cardview.cpp:650` | nobody carries one |
-| `ui/cardview.cpp:655` | Saints who help here |
-| `ui/cardview.cpp:655` | Formulae for sale |
-| `ui/cardview.cpp:655` | Items that help here |
-| `ui/cardview.cpp:660` | Not possible now |
-| `ui/cardview.cpp:664` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:665` | (click to choose who) |
-| `ui/cardview.cpp:681` | ..., for 3 groschen. |
+| `ui/cardview.cpp:505` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:505` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:532` | knows it already |
+| `ui/cardview.cpp:540` | knows the formula but carries none |
+| `ui/cardview.cpp:541` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:541` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:542` | knows this saint already |
+| `ui/cardview.cpp:584` | Each member tries it |
+| `ui/cardview.cpp:587` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:588` | the party's fame |
+| `ui/cardview.cpp:594` | It rests on:  |
+| `ui/cardview.cpp:595` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:596` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:607` | Brings a teacher to the inn |
+| `ui/cardview.cpp:611` | Hired here now: %s. |
+| `ui/cardview.cpp:612` | Not possible now |
+| `ui/cardview.cpp:619` | Not possible now |
+| `ui/cardview.cpp:648` | nobody knows it yet |
+| `ui/cardview.cpp:661` | nobody knows this saint |
+| `ui/cardview.cpp:661` | nobody carries one |
+| `ui/cardview.cpp:666` | Saints who help here |
+| `ui/cardview.cpp:666` | Formulae for sale |
+| `ui/cardview.cpp:666` | Items that help here |
+| `ui/cardview.cpp:671` | Not possible now |
+| `ui/cardview.cpp:675` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:676` | (click to choose who) |
+| `ui/cardview.cpp:692` | ..., for 3 groschen. |
 | `ui/citynav.cpp:135` | Market stalls: everyday goods to buy and sell. |
 | `ui/citynav.cpp:136` | Foreign trader |
 | `ui/citynav.cpp:136` | Pavilions of traders from distant lands: goods to buy and sell. |
@@ -1000,7 +1000,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/guide.cpp:78` | Each member carries their own items. Only equipped items (weapons, armor, shield) count toward a member's load, and a heavy load slows them in battle. |
 | `ui/guide.cpp:79` | +With the shared pack (Darklands+), everything not equipped goes into one pack for the whole party, so nobody has to pass items between members. Each member keeps their equipped weapons and armor, their mount and their own potions. When the game needs a particular member to have something (lock picks at a lock, arrows before a battle, a horse), Darklands+ hands it to them from the pack first. |
 | `ui/guide.cpp:80` | On a card, the test is made by the leader. |
-| `ui/guide.cpp:80` | +Darklands+ has the member best at it take the test instead (F12 > Settings > Cards and towns: The best member speaks for the party), with the chance and that member's head beside the option; pointing at the chance shows every member's, and a click on one has that member speak instead. Whoever speaks also bears what comes of it, as the card's text says: wounds, a trap's lasting harm, a shrine's favor. On the alchemist's formula options you pick who speaks (each member with their own chance), since what is traded is learned by the one who speaks. In a battle or a dungeon, while unpaused, the leader deals with doors, chests and locks. |
+| `ui/guide.cpp:80` | +Darklands+ has the member best at it take the test instead (F12 > Settings > Cards and towns: The best member speaks for the party), with the chance and that member's head beside the option; the arrow at the end of the chance shows every member's, and a click on one has that member speak instead. Whoever speaks also bears what comes of it, as the card's text says: wounds, a trap's lasting harm, a shrine's favor. On the alchemist's formula options you pick who speaks (each member with their own chance), since what is traded is learned by the one who speaks. In a battle or a dungeon, while unpaused, the leader deals with doors, chests and locks. |
 | `ui/guide.cpp:82` | Money and reputation |
 | `ui/guide.cpp:83` | 1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you. |
 | `ui/guide.cpp:84` | The party has a separate reputation in each town: good deeds there raise it, crimes and brawls lower it. A bad reputation brings trouble with the watch and higher prices. |
@@ -2022,34 +2022,28 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:991` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:992` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:997` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:443` | Frames and clock |
-| `ui/skillicons.cpp:447` | Cards and towns |
-| `ui/skillicons.cpp:452` | The party and its items |
-| `ui/skillicons.cpp:468` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:519` | Frames and clock |
-| `ui/skillicons.cpp:519` | Cards and towns |
-| `ui/skillicons.cpp:519` | The party and its items |
-| `ui/skillicons.cpp:520` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:542` | A. A swallow in flight |
-| `ui/skillicons.cpp:542` | B. A leap over a hurdle |
-| `ui/skillicons.cpp:542` | C. A hare, plain shapes |
-| `ui/skillicons.cpp:543` | A. An Ionic column |
-| `ui/skillicons.cpp:543` | B. Rome's eagle |
-| `ui/skillicons.cpp:543` | C. The letter AE |
-| `ui/skillicons.cpp:543` | D. A bishop's mitre |
-| `ui/skillicons.cpp:595` | The four bases: the elements' triangles |
-| `ui/skillicons.cpp:596` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
-| `ui/skillicons.cpp:597` | Sulphurs, salts and poisons |
-| `ui/skillicons.cpp:598` | Waters, oils and vapours |
-| `ui/skillicons.cpp:599` | Herbs: no sign in the tables, one made as theirs are |
-| `ui/skillicons.cpp:600` | E. Black Bean |
-| `ui/skillicons.cpp:600` | White Cinnabar |
-| `ui/skillicons.cpp:602` | Choleric Base |
-| `ui/skillicons.cpp:602` | Phlegmatic Base |
-| `ui/skillicons.cpp:602` | Sanguine Base |
-| `ui/skillicons.cpp:602` | Melancholic Base |
-| `ui/skillicons.cpp:605` | Each ingredient: its sign now (left), and the picture it had before (right) |
-| `ui/skillicons.cpp:634` | Drawn in color (no disc) |
+| `ui/skillicons.cpp:413` | Frames and clock |
+| `ui/skillicons.cpp:417` | Cards and towns |
+| `ui/skillicons.cpp:422` | The party and its items |
+| `ui/skillicons.cpp:438` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:489` | Frames and clock |
+| `ui/skillicons.cpp:489` | Cards and towns |
+| `ui/skillicons.cpp:489` | The party and its items |
+| `ui/skillicons.cpp:490` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:512` | C. A laurel wreath, larger |
+| `ui/skillicons.cpp:559` | The four bases: the elements' triangles |
+| `ui/skillicons.cpp:560` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
+| `ui/skillicons.cpp:561` | Sulphurs, salts and poisons |
+| `ui/skillicons.cpp:562` | Waters, oils and vapours |
+| `ui/skillicons.cpp:563` | Herbs: no sign in the tables, one made as theirs are |
+| `ui/skillicons.cpp:564` | E. Black Bean |
+| `ui/skillicons.cpp:564` | White Cinnabar |
+| `ui/skillicons.cpp:566` | Choleric Base |
+| `ui/skillicons.cpp:566` | Phlegmatic Base |
+| `ui/skillicons.cpp:566` | Sanguine Base |
+| `ui/skillicons.cpp:566` | Melancholic Base |
+| `ui/skillicons.cpp:569` | Each ingredient: its sign now (left), and the picture it had before (right) |
+| `ui/skillicons.cpp:598` | Drawn in color (no disc) |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -3001,7 +2995,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sfx.c:52` | a magical effect |
 | `mods/sfx.c:52` | hidden enemies appear |
 | `mods/sfx.c:52` | "cannot go there" |
-| `mods/sfx.c:585` | %d sounds written to %s |
+| `mods/sfx.c:586` | %d sounds written to %s |
 | `mods/sharedstore.c:121` | This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out. |
 | `mods/sheetview.c:212` | No %s is left in the party's pack. |
 | `mods/sheetview.c:214` | %s cannot carry another kind of item. |
