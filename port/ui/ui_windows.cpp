@@ -198,10 +198,10 @@ void news_window(void)
         static const char *NEWS[] = {
             "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, Appendices, About. "
             "Settings lists its sections on the left.",
-            "The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares.",
+            "The quests are on the world map (M), grouped by kind and nearest first, with windows to find alchemical ingredients and any ware.",
             "Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there.",
             "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; "
-            "a member with no orders joins a fight beside it. The first battle explains it.",
+            "a member with no orders joins a fight beside it. Orders take one click (a member, then an enemy or a spot). The first battle explains it.",
             "On a card, beside each chance: the head of who tries it, and what it rests on (skills, attributes, the town's opinion, fame).",
             "Ironman: one save, kept by the game itself as you go, no loading back (F12 > Settings > Preset, for your next new game).",
             "The whole soundtrack can be played in F12 > Settings > Sound, on the device you choose.",
@@ -243,7 +243,7 @@ void mt32_window(void)
                            "wrong instruments altogether.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: "
-                           "control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). "
+                           "control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, Darklands+ plays the MT-32). "
                            "They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. "
                            "They belong to Roland, so they cannot come "
                            "with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: "

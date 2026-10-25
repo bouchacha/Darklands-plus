@@ -6,27 +6,53 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **New in 1.3**
 
-- **Improved combat** (on by default, F12 > Settings > Battles): the party fights on sensibly between orders. A member with a bow, crossbow, gun or thrown weapon opens fire by itself and keeps shooting, at the next enemy when its target falls, and steps aside or walks nearer when a wall, a tree or someone blocks the line. It draws its melee weapon when an enemy comes beside it, when nothing is left to shoot, or when a friend a few paces off is fighting one (instead of shooting into the melee); members with no orders join a fight beside them.
-- **Battle orders in one click:** select a member, click an enemy or a spot, and the order is given (no Enter); if selecting the member paused the battle, it goes on. While paused, the next member without an order is selected, so a battle's first orders take one click each. Each member with a bow, crossbow, gun or thrown weapon has a bow or a sword on their picture: click it to choose whether they shoot or fight hand to hand. A label by the pointer says what a click will do. The selected member's orders are buttons at the foot of the field, grouped by what they do; Fast forward and Resume stay at the top of the right margin.
-- **Cards say who tries an option and what it rests on:** the head of the member who tries it, the skills and attributes as heraldic shields, the town's opinion and the party's fame. Where any member may speak for the party, every member's chance slides out and a click has that member speak; at an alchemist's, a formula traded goes to the member chosen.
-- **City politics, restored (experimental, off by default):** the political campaign MicroProse wrote and never switched on: take the rebels' side or the government's in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders.
-- **More cut content:** "Fehde!", an ambush by soldiers of a private war that MicroProse wrote and never used, a town's hospice, and **cities at war**: now and then a city prepares for war or stands a siege, with soaring prices, a soldiers' street, barricaded docks, and a gate that turns travelers away (or the walls, where patrols take you for spies). All of it, and the political campaign, is on a page of its own, F12 > Reconstructed Content: experimental, and off unless you tick it.
-- **Ironman** (F12 > Settings > Preset, for the next new game): one save that the game keeps itself, saved over on every card, place and battle; no loading back.
-- **The world map:** towns on wax seals (washed out until visited), windows to find alchemical ingredients and any ware, several quests at one place on an arc over it, a button back to the party, a view that no longer scrolls past the map's edges, and journey times that read "22 hours" or "1.4 days".
-- **Sound:** every piece of the game's music to play in F12 > Settings > Sound, with its length and a bar to move through it; previews of each device's music and of ten seconds of a real battle's sounds; evener music (each note timed by when its tick fell due, the FM chip's changes made at their moment; the previews no longer played unevenly or slowed down); and a preview now leaves the MT-32 and the FM chip set up as they were (they could lose their instruments). The MT-32 and the CM-32L are no longer a choice (they sound alike), and MIDI out is a device of its own.
-- **Shops** say what the member's load would come to with a weapon or armor worn, and which load that is. With ammunition or thrown weapons that run out, each member's are their own, listed with them like potions.
-- **Pictures:** skills and attributes are heraldic shields wherever they appear, the ingredients are signs as in the alchemists' tables, and tooltips open beside what they describe, never over it or the pointer.
-- **The inn's day** names the potions a member makes, a teacher's row the member's level, and the right margin shows the party's fame above the town's name and the town's reputation beside it.
-- **Your saves are backed up:** the first start of each new version copies them into a "Darklands+ save backups" folder.
-- **Controller button prompts:** while you play with a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them.
-- **More of the original's bugs fixed**, many found by Arkana Mechanika (Darklands Restoration): climbing a city wall at night (everyone always made it, the climber with a rope always fell), claiming friendship with Hussites (1 in 100 whatever the chance), mounts that never helped outrun wolves, the Templars' desk teaching formulae you knew, a footpads' potion never used up, a church's tenth blessing nobody, an audience "fixed for tomorrow" that never happened, four more saints that strayed from their texts, a town's alert after a fight at its gate, which never counted, shots stopped by clouds that were not in the way, money lost buying into a full pack, and a dozen more.
-- **A day at the inn or in camp** no longer looks frozen: the page shows the hours going by, and a click skips it.
-- **Calling on a saint** says why there is no chance (too little Virtue, or too little favor).
-- **Battles:** fighters in a melee crowd no longer stand still for seconds when someone is in their way, enemies at the back wait or pick another target instead of taking a long detour, and planning their routes no longer makes the battle stutter; a member's sheet keeps the battle log and the enemies beside it, and enemies out of view are no longer counted as down. The to-hit rules are shown the way the game uses them (a melee rating both ways hand to hand, aim against the shield and Agility for a shot).
-- **The New Player Guide is withdrawn** until each of its statements has been checked in play.
-- Smaller fixes to Go to, cards and quest texts, and Comic Sans as an eighth typeface (we are so sorry).
+**Battles**
 
-Every change in detail: `docs/changes-1.3.md`.
+- **Improved combat** (on by default): the party fights on sensibly between orders. Shooters open fire by themselves, take a new mark when theirs falls, step aside for a clear line, and draw their melee weapon when a foe closes in or a friend a few paces off is fighting one. Members with no orders join a fight beside them. One switch replaces 1.2's separate shooting switches.
+- **Orders in one click:** select a member (on the field or their box), then click an enemy or a spot. The orders are buttons with pictures at the foot of the field, a bow or sword on each shooter's box chooses shooting or melee, a label by the pointer says what a click will do, and a shot's line shows what blocks it.
+- **Walking in a crowd:** fighters no longer stand still for seconds behind someone, enemies no longer take long detours, and planning their routes no longer makes the battle stutter.
+- **Battle info:** the to-hit numbers are the ones the game uses (1.2 had attack and defense swapped), the weapons named are the ones in hand (1.2 named others), and each of your weapons against an enemy's armor is colored: pierces, half damage, or mostly deflected.
+
+**Cards, towns and the party**
+
+- **Cards say who tries an option and what it rests on:** the member's head, the skills and attributes as heraldic shields, the town's opinion and the party's fame. Where any member may speak for the party, a click on another member's chance has them speak (an alchemist's formula trade too).
+- **Screens redrawn in period style:** alchemy as an alchemist's workbench with the Philosopher's Stone pictured; the inn and camp as a ledger that names the potions made and shows the hours going by (1.2's page looked frozen); the shop at its counter, the store room in a cellar, Party Info, Save and Load, marching order and enemy info.
+- **Shops and the character sheet:** items in sections; the load a weapon or armor would bring before you buy it; ingredients ten at a time, with how many the party has; a spare horse given to a member with Ride, a drag, or their number.
+- **Ammunition that runs out** (with the shared pack): each member's arrows, quarrels, balls and thrown weapons are their own.
+- **Go to** works by night, says why a place is shut, and shows the party walking instead of flashing the cards on the way.
+- **Calling on a saint:** the favor to spend on a bar with the best chance marked, the reason when there is no chance, and prayers from the character sheet.
+- **Docks:** a small map of where the boats go, with each fare. **More day jobs:** nine jobs the original never offers turn up in towns with the right places.
+- **Right margin:** the party's fame, the town's reputation with what changed it, and the formulae and teachers to be had in town as pictures.
+
+**The world map**
+
+- **Quests and towns live on the world map** (the Journal's pages for them are gone): boat routes along the rivers and coasts, windows to find alchemical ingredients or any ware, towns on wax seals, several quests at one place on an arc over it, the way the party would take, Snap to party, and a view that stays on the map.
+
+**Look and sound**
+
+- **Period ornaments:** plaited frames and gilt corners, clocks to choose for passing time, skills and attributes as heraldic shields everywhere, ingredients as the alchemists' signs, potion grades as chevrons, and Comic Sans as an eighth typeface (we are so sorry).
+- **Tooltips** open beside what they describe, never over it or the pointer.
+- **Sound:** the whole soundtrack to play in Settings; previews of each device's music and battle sounds; evener music timing; the PC speaker heard at last (1.2 played nothing on it). The MT-32 and the CM-32L are one choice, and MIDI out is a device of its own.
+
+**Settings and saving**
+
+- **One Settings page** with a picture beside each section. Presets are Full Original, Purist and Darklands+; easier play comes as built-in mods (F12 > Mods, with a load order to drag).
+- **Saving and loading** in the game's own Save and Load screens, redrawn; F12 no longer has a Saves page. The first start of each version backs your saves up.
+- **Ironman** (for a new game): one save that the game keeps itself, with no loading back.
+- **Controller button prompts**, drawn as an Xbox, PlayStation or Nintendo controller has them.
+
+**Restored content** (F12 > Reconstructed Content, experimental, off by default)
+
+- City politics, cities at war, the "Fehde!" ambush and a town's hospice: written by MicroProse and never switched on.
+
+**Bugs of the original game**
+
+- 23 more fixed (60 in all), most from the list Arkana Mechanika (Darklands Restoration) keep: climbing a city wall at night, mounts that never helped outrun wolves, a church's tenth that blessed nobody, an audience "fixed for tomorrow" that never came, bands of enemies missing from battles, shots stopped by clouds not in the way, loot lost past 255 of a kind, ordinary hits that made no sound, and more.
+
+**Withdrawn**
+
+- The New Player Guide, until every statement in it has been checked in play.
+
 
 **New in 1.2**
 
