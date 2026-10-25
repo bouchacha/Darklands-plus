@@ -21,7 +21,62 @@ static int frame_no, usable = -1;
    the drawing's commands keeps its own clip rectangle and texture */
 struct DcGeo { unsigned long long key; std::vector<ImDrawVert> v; std::vector<ImDrawIdx> i; std::vector<int> cmd_n, cmd_vlo, cmd_vhi; std::vector<ImVec4> cmd_clip; std::vector<ImTextureID> cmd_tex; ImTextureID tex; int used; };
 static std::vector<DcGeo> geos;
-static int mode = -1;                          /* 0 none, 2 pictures, 3 triangles */
+static int mode = -1;                          /* 0 none, 2 pictures drawn by the graphics card, 3 triangles, 4 pictures drawn by the processor */
+
+/* mode 4 (the default): the drawing made into a picture by SDL's software renderer, in memory, then
+   given to the graphics card as an ordinary picture (as the game's own pictures are: no drawing into a
+   picture on the card, which washed the screen over on some machines) - 4 vertices a frame instead of
+   the drawing's tens of thousands. One software renderer on a surface as large as the largest drawing
+   asked for so far, with its own copy of the font atlas (the thick lines are drawn from its texture) */
+static SDL_Surface *sw_surf;
+static SDL_Renderer *sw_ren;
+static SDL_Texture *sw_font;
+static bool sw_ready(int w, int h)
+{
+    if (sw_surf && sw_surf->w >= w && sw_surf->h >= h) return true;
+    int nw = sw_surf && sw_surf->w > w ? sw_surf->w : w, nh = sw_surf && sw_surf->h > h ? sw_surf->h : h;
+    if (sw_font) { SDL_DestroyTexture(sw_font); sw_font = nullptr; }
+    if (sw_ren) { SDL_DestroyRenderer(sw_ren); sw_ren = nullptr; }
+    if (sw_surf) { SDL_FreeSurface(sw_surf); sw_surf = nullptr; }
+    sw_surf = SDL_CreateRGBSurfaceWithFormat(0, nw, nh, 32, SDL_PIXELFORMAT_ARGB8888);
+    if (!sw_surf) return false;
+    sw_ren = SDL_CreateSoftwareRenderer(sw_surf);
+    if (!sw_ren) { SDL_FreeSurface(sw_surf); sw_surf = nullptr; return false; }
+    unsigned char *px; int fw, fh;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&px, &fw, &fh);
+    sw_font = SDL_CreateTexture(sw_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, fw, fh);
+    if (!sw_font) { SDL_DestroyRenderer(sw_ren); sw_ren = nullptr; SDL_FreeSurface(sw_surf); sw_surf = nullptr; return false; }
+    SDL_UpdateTexture(sw_font, nullptr, px, fw * 4);
+    SDL_SetTextureBlendMode(sw_font, SDL_BLENDMODE_BLEND);
+    return true;
+}
+/* the drawing in tmp (moved to 0,0) as a picture for the graphics card, or null */
+static SDL_Texture *sw_picture(SDL_Renderer *r, ImDrawList &tmp, float x0, float y0, int w, int h)
+{
+    if (!sw_ready(w, h)) return nullptr;
+    ImTextureID font = ImGui::GetIO().Fonts->TexID;
+    for (ImDrawCmd &c : tmp.CmdBuffer) {                        /* (only the font atlas can be drawn with here: a drawing using another picture is not kept so) */
+        if (c.UserCallback) return nullptr;
+        if (c.TextureId == font) c.TextureId = (ImTextureID)(intptr_t)sw_font;
+        else if (c.ElemCount) return nullptr;
+    }
+    for (ImDrawVert &v : tmp.VtxBuffer) { v.pos.x -= x0; v.pos.y -= y0; }   /* (drawn from 0,0; the backend moves the clip rectangles itself) */
+    SDL_Rect all = { 0, 0, w, h };
+    SDL_RenderSetViewport(sw_ren, nullptr); SDL_RenderSetClipRect(sw_ren, &all);
+    SDL_SetRenderDrawBlendMode(sw_ren, SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawColor(sw_ren, 0, 0, 0, 0); SDL_RenderFillRect(sw_ren, &all);
+    ImDrawData dd;
+    dd.Valid = true; dd.CmdLists.push_back(&tmp); dd.CmdListsCount = 1;
+    dd.TotalVtxCount = tmp.VtxBuffer.Size; dd.TotalIdxCount = tmp.IdxBuffer.Size;
+    dd.DisplayPos = ImVec2(x0, y0); dd.DisplaySize = ImVec2((float)w, (float)h); dd.FramebufferScale = ImVec2(1, 1);
+    ImGui_ImplSDLRenderer2_RenderDrawData(&dd, sw_ren);
+    SDL_RenderFlush(sw_ren);
+    SDL_Texture *t = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+    if (!t) return nullptr;
+    SDL_UpdateTexture(t, nullptr, sw_surf->pixels, sw_surf->pitch);   /* (the first w x h of each row: the pitch steps over the rest) */
+    SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
+    return t;
+}
 
 void dc_reset(void)
 {
@@ -75,8 +130,14 @@ void dc_frame_end(void)
 {
     frame_no++;
     int made_now = 0;
+    /* (pictures drawn by the processor cost a moment to make: kept a minute unless they pass 160 MB) */
+    long long bytes = 0; for (const DcEnt &e : cache) bytes += (long long)e.w * e.h * 4;
+    const int keep = mode == 4 ? 3600 : 120;
     for (size_t i = 0; i < cache.size();)
-        if (frame_no - cache[i].used > 120 || (cache.size() > 160 && frame_no - cache[i].used > 2)) { SDL_DestroyTexture(cache[i].t); cache[i] = cache.back(); cache.pop_back(); }
+        if (frame_no - cache[i].used > keep || (cache.size() > 160 && frame_no - cache[i].used > 2) || (bytes > (160ll << 20) && frame_no - cache[i].used > 2)) {
+            bytes -= (long long)cache[i].w * cache[i].h * 4;
+            SDL_DestroyTexture(cache[i].t); cache[i] = cache.back(); cache.pop_back();
+        }
         else i++;
     for (size_t i = 0; i < geos.size();)
         if (frame_no - geos[i].used > 120 || (geos.size() > 160 && frame_no - geos[i].used > 2)) { geos[i] = std::move(geos.back()); geos.pop_back(); }
@@ -90,10 +151,10 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
     if (mode < 0) {                            /* display.draw_cache: 1 (the default) and 3 triangles; 0 off; 2 pictures */
         SDL_RendererInfo ri; int have = r && SDL_GetRendererInfo(r, &ri) == 0;
         int want = getenv("DL_NO_DRAWCACHE") ? 0 : getenv("DL_DRAWCACHE") ? atoi(getenv("DL_DRAWCACHE")) : config_get_int("display.draw_cache", 1);
-        if (want == 1) want = 3;
-        if (want == 2 && !(have && (ri.flags & SDL_RENDERER_TARGETTEXTURE))) want = 3;
+        if (want == 1 || want > 4 || want < 0) want = 4;
+        if (want == 2 && !(have && (ri.flags & SDL_RENDERER_TARGETTEXTURE))) want = 4;
         mode = want;
-        fprintf(stderr, "drawcache: %s\n", mode == 0 ? "off" : mode == 2 ? "pictures" : "triangles");
+        fprintf(stderr, "drawcache: %s\n", mode == 0 ? "off" : mode == 2 ? "pictures drawn by the graphics card" : mode == 4 ? "pictures drawn by the processor" : "triangles");
     }
     if (mode == 0) { dl->PushClipRect(lo, hi, true); fn(dl); dl->PopClipRect(); return; }
     if (mode == 3) { geo_draw(dl, lo, hi, dc_key(dc_key(dc_key(key, lo.x), lo.y), hi.x * 7 + hi.y * 13), fn); return; }
@@ -101,6 +162,8 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
     float x0 = floorf(lo.x), y0 = floorf(lo.y);
     int w = (int)ceilf(hi.x) - (int)x0, h = (int)ceilf(hi.y) - (int)y0;
     auto direct = [&]() { dl->PushClipRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + h), true); fn(dl); dl->PopClipRect(); };   /* (drawn as it is, kept to its box) */
+    auto as_triangles = [&]() { geo_draw(dl, lo, hi, dc_key(dc_key(dc_key(key, lo.x), lo.y), hi.x * 7 + hi.y * 13), fn); };
+    if (mode == 4 && (w <= 0 || h <= 0 || w > 8192 || h > 4096)) { as_triangles(); return; }
     if (!usable || w <= 0 || h <= 0 || w > 4096 || h > 4096) { direct(); return; }
     key = dc_key(dc_key(dc_key(key, w), h * 7919.0), (lo.x - x0) * 31 + (lo.y - y0) * 977);
     DcEnt *e = nullptr;
@@ -108,18 +171,35 @@ void dc_draw(ImDrawList *dl, ImVec2 lo, ImVec2 hi, unsigned long long key, const
     if (!e) {
         /* a picture whose size changes from frame to frame (a tooltip's frame growing) would make a new one each
            frame: at most a few new ones a frame, and not past the cap; else drawn as it is */
-        static int made_frame = -1, made_n = 0;
-        if (made_frame != frame_no) { made_frame = frame_no; made_n = 0; }
-        if (cache.size() >= 192 || made_n >= 8) { direct(); return; }
+        static int made_frame = -1, made_n = 0; static Uint32 made_ms = 0;
+        if (made_frame != frame_no) { made_frame = frame_no; made_n = 0; made_ms = 0; }
+        if (mode == 4 && made_ms > 12) { as_triangles(); return; }   /* (pictures made by the processor: some 12 ms a frame at most, the rest in the frames after; no stall at 4K) */
+        if (cache.size() >= 192 || made_n >= 8) { if (mode == 4) as_triangles(); else direct(); return; }   /* (the rest the next frames) */
+        ImDrawList tmp(ImGui::GetDrawListSharedData());
+        tmp._ResetForNewFrame();
+        if (mode == 4) tmp.Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;   /* (thick lines as triangles with soft edges: the software renderer samples a texture without smoothing) */
+        tmp.PushClipRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + h));
+        tmp.PushTextureID(ImGui::GetIO().Fonts->TexID);
+        fn(&tmp);
+        if (mode == 4) {                                        /* (drawn by the processor: see sw_picture) */
+            /* a large drawing of few vertices (a desk, a table: a second to draw on the processor at 4K) is
+               kept as triangles; a dense one (a plaited band: thousands of vertices over a narrow strip) as
+               a picture */
+            if ((long long)tmp.VtxBuffer.Size * 40 < (long long)w * h || (long long)w * h > 2000000) { as_triangles(); return; }
+            Uint32 t0 = SDL_GetTicks();
+            SDL_Texture *t = sw_picture(r, tmp, x0, y0, w, h);
+            if (!t) { as_triangles(); return; }                 /* (as triangles, then) */
+            made_n++; made_ms += SDL_GetTicks() - t0;
+            static int said; if (getenv("DL_DRAWCACHE_LOG") && said++ < 400) fprintf(stderr, "drawcache: %dx%d picture, %d vertices, %u ms\n", w, h, tmp.VtxBuffer.Size, SDL_GetTicks() - t0);
+            cache.push_back(DcEnt{ key, w, h, t, frame_no });
+            cache.back().used = frame_no;
+            dl->AddImage((ImTextureID)(intptr_t)t, ImVec2(x0, y0), ImVec2(x0 + w, y0 + h));
+            return;
+        }
         SDL_Texture *t = SDL_CreateTexture(r, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
         if (!t) { direct(); return; }
         made_n++;
         SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
-        ImDrawList tmp(ImGui::GetDrawListSharedData());
-        tmp._ResetForNewFrame();
-        tmp.PushClipRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + h));
-        tmp.PushTextureID(ImGui::GetIO().Fonts->TexID);
-        fn(&tmp);
         for (ImDrawVert &v : tmp.VtxBuffer) { v.pos.x -= x0; v.pos.y -= y0; }   /* (the backend draws from 0,0; the clip rects it moves itself) */
         ImDrawData dd;
         dd.Valid = true; dd.CmdLists.push_back(&tmp); dd.CmdListsCount = 1;

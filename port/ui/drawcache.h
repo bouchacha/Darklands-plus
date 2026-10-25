@@ -1,5 +1,7 @@
-/* drawcache.h - heavy ornament drawn once into a picture kept on the graphics card, then that
-   picture each frame (a plaited band is ~100,000 vertices a frame drawn afresh, 4 as a picture) */
+/* drawcache.h - heavy ornament drawn once and kept (a plaited band is ~100,000 vertices a frame drawn
+   afresh, 4 as a picture): by default a dense drawing is made into a picture by the processor (SDL's
+   software renderer) and handed to the graphics card as an ordinary picture, a large sparse one is kept
+   as its triangles (display.draw_cache, ui/drawcache.cpp) */
 #pragma once
 #include "imgui.h"
 #include <functional>
