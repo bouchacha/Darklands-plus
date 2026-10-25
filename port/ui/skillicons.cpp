@@ -9,12 +9,34 @@
 static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
     static const int WT[7] = { 3, 14, 17, 19, 23, 28, 31 };     /* a weapon of each class (LST type) */
-    if (k < 7) { ui_equip_icon(dl, c, s * 1.25f, WT[k]); return; }
+    if (k < 7 && k != 3 && k != 4) { ui_equip_icon(dl, c, s * 1.25f, WT[k]); return; }   /* (polearms and thrown weapons drawn here: as items they looked alike) */
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
     auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
     ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196), green = C(84, 150, 62), steel = C(190, 194, 204), wood = C(134, 88, 46);
     switch (k) {
+    case 3: {  /* polearms: a halberd on a long, heavy shaft, set as a bend (lower left to upper right) */
+        float dx = 0.645f, dy = -0.766f, nx = 0.766f, ny = 0.645f, hx = 3.6f, hy = -4.6f;   /* the shaft's way, across it, the head */
+        auto H = [&](float a, float b) { return P(hx + dx * a + nx * b, hy + dy * a + ny * b); };   /* a along the shaft, b across (down right) */
+        dl->AddLine(P(-9.0f, 10.4f), H(1.5f, 0), ink, 3.4f * u); dl->AddLine(P(-9.0f, 10.4f), H(1.5f, 0), wood, 2.2f * u);   /* the shaft */
+        ImVec2 blade[9] = { H(1.3f, -0.4f), H(4.4f, -4.6f), H(3.4f, -6.2f), H(0.8f, -6.9f), H(-1.8f, -6.8f), H(-4.2f, -5.8f), H(-4.8f, -4.4f), H(-1.4f, -0.4f), H(0, -0.2f) };   /* the axe blade: narrow at the shaft, its edge curved, outward (upper left) */
+        dl->AddConcavePolyFilled(blade, 9, steel); dl->AddPolyline(blade, 9, ink, ImDrawFlags_Closed, 0.8f * u);
+        ImVec2 fluke[3] = { H(1.2f, 0.6f), H(-1.2f, 0.6f), H(-0.6f, 4.8f) };                      /* the back spike */
+        dl->AddTriangleFilled(fluke[0], fluke[1], fluke[2], steel); dl->AddTriangle(fluke[0], fluke[1], fluke[2], ink, 0.8f * u);
+        ImVec2 top[3] = { H(1.0f, -1.0f), H(1.0f, 1.0f), H(7.4f, 0) };                            /* the point */
+        dl->AddTriangleFilled(top[0], top[1], top[2], steel); dl->AddTriangle(top[0], top[1], top[2], ink, 0.8f * u);
+        break; }
+    case 4: {  /* thrown weapons: a throwing axe in flight toward the upper left, the lines of its spin behind */
+        float dx = -0.6f, dy = -0.8f, qx = -0.8f, qy = 0.6f, tx = -2.6f, ty = -4.8f;          /* toward the head; across, to the left; the head */
+        auto T = [&](float a, float b) { return P(tx + dx * a + qx * b, ty + dy * a + qy * b); };
+        dl->AddLine(P(7.0f, 8.0f), T(1.4f, 0), ink, 3.0f * u); dl->AddLine(P(7.0f, 8.0f), T(1.4f, 0), wood, 1.9f * u);   /* the haft, short */
+        ImVec2 head[8] = { T(1.2f, 0.6f), T(3.0f, 5.0f), T(1.6f, 6.4f), T(-0.8f, 6.8f), T(-3.0f, 6.0f), T(-4.4f, 4.4f), T(-2.4f, 2.4f), T(-1.4f, 0.6f) };   /* the head, bearded, its edge to the left */
+        dl->AddConcavePolyFilled(head, 8, steel); dl->AddPolyline(head, 8, ink, ImDrawFlags_Closed, 0.8f * u);
+        for (int i = 0; i < 2; i++) {                                                               /* the spin, behind it */
+            float r = 7.6f + i * 2.2f;
+            dl->PathArcTo(P(0.4f, 0.4f), r * u, 0.15f + i * 0.12f, 1.42f - i * 0.12f, 14); dl->PathStroke(steel, 0, 1.0f * u);
+        }
+        break; }
     case 7:  /* alchemy: a flask */
         dl->AddCircleFilled(P(0, 4), 6.2f * u, C(120, 200, 150)); dl->AddRectFilled(P(-1.8f, -9), P(1.8f, -1), C(200, 220, 225));
         dl->AddCircle(P(0, 4), 6.2f * u, ink, 0, 1.0f * u); dl->AddRect(P(-1.8f, -9), P(1.8f, -1.5f), ink, 0, 0, 1.0f * u);
@@ -32,15 +54,31 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddQuadFilled(P(-5, 1.5f), P(3, 1.5f), P(3, 8), P(-5, 8), C(170, 40, 30));
         dl->AddTriangleFilled(P(-5, 8), P(3, 8), P(-1, 5.5f), C(238, 226, 196, 0) ); dl->AddLine(P(-5, 8), P(-1, 5.5f), ink, 0.6f * u); dl->AddLine(P(3, 8), P(-1, 5.5f), ink, 0.6f * u);
         dl->AddCircleFilled(P(-1, 4.3f), 1.3f * u, gold); break;
-    case 11: /* speak Latin: a Roman stone tablet, lettered (not a book: the university has it) */
-        dl->AddRectFilled(P(-8, -6), P(8, 10), C(196, 188, 170)); dl->AddCircleFilled(P(0, -6), 8.0f * u, C(196, 188, 170), 20);
-        dl->PathArcTo(P(0, -6), 8.0f * u, 3.1416f, 6.2832f, 16); dl->PathLineTo(P(8, 10)); dl->PathLineTo(P(-8, 10)); dl->PathStroke(ink, ImDrawFlags_Closed, 0.9f * u);
-        dl->AddLine(P(-5, -6), P(-3, -1), ink, 1.1f * u); dl->AddLine(P(-3, -1), P(-1, -6), ink, 1.1f * u);                  /* V */
-        dl->AddLine(P(1, -6), P(1, -1), ink, 1.1f * u); dl->AddLine(P(1, -1), P(4.5f, -1), ink, 1.1f * u);                   /* L */
-        for (int i = 0; i < 3; i++) dl->AddLine(P(-5, 2.5f + i * 2.4f), P(5, 2.5f + i * 2.4f), C(110, 100, 86), 0.8f * u); break;
-    case 12: /* read & write: a quill */
-        dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(2, -10), C(245, 245, 240)); dl->AddTriangleFilled(P(-7, 9), P(8, -10), P(8, -4), C(220, 220, 214));
-        dl->AddLine(P(-8, 10), P(7, -9), ink, 1.0f * u); break;
+    case 11: { /* speak Latin: a Roman inscription, the plaque with its two dovetail handles (tabula ansata) lettered SPQR (not a
+                  book: the university has it; not a round-topped tablet: that read as the Commandments) */
+        ImU32 stone = C(200, 190, 168);
+        ImVec2 l[4] = { P(-7, -2.6f), P(-11.5f, -5.0f), P(-11.5f, 5.0f), P(-7, 2.6f) }, r[4] = { P(7, -2.6f), P(11.5f, -5.0f), P(11.5f, 5.0f), P(7, 2.6f) };
+        dl->AddConvexPolyFilled(l, 4, stone); dl->AddPolyline(l, 4, ink, ImDrawFlags_Closed, 0.8f * u);
+        dl->AddConvexPolyFilled(r, 4, stone); dl->AddPolyline(r, 4, ink, ImDrawFlags_Closed, 0.8f * u);
+        dl->AddRectFilled(P(-7.6f, -5.6f), P(7.6f, 5.6f), stone); dl->AddRect(P(-7.6f, -5.6f), P(7.6f, 5.6f), ink, 0, 0, 0.9f * u);
+        dl->AddRect(P(-6.3f, -4.3f), P(6.3f, 4.3f), C(110, 100, 86), 0, 0, 0.6f * u);
+        ImFont *f = ImGui::GetFont(); float fs = 5.6f * u; const char *t = "SPQR";
+        ImVec2 ts = f->CalcTextSizeA(fs, 1e9f, 0, t); dl->AddText(f, fs, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), ink, t);
+        break; }
+    case 12: { /* read & write: a quill in its inkpot (a feather, its barbs and shaft, not a blade) */
+        ImU32 pot = C(92, 98, 122), vane = C(228, 216, 186);
+        float ax = -3.4f, ay = 1.4f, bx = 9.6f, by = -10.6f, len = sqrtf((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+        float dx = (bx - ax) / len, dy = (by - ay) / len, nx = -dy, ny = dx;          /* along the shaft; across it (n: up left) */
+        ImVec2 pts[24]; int n = 0;
+        for (int i = 0; i <= 10; i++) { float t = 0.18f + 0.82f * i / 10.0f, w = 3.6f * sinf(3.1416f * powf((t - 0.18f) / 0.82f, 0.75f)), x = ax + dx * len * t, y = ay + dy * len * t; pts[n++] = P(x + nx * w, y + ny * w); }
+        for (int i = 10; i >= 0; i--) { float t = 0.18f + 0.82f * i / 10.0f, w = 1.5f * sinf(3.1416f * (t - 0.18f) / 0.82f), x = ax + dx * len * t, y = ay + dy * len * t; pts[n++] = P(x - nx * w, y - ny * w); }
+        dl->AddConcavePolyFilled(pts, n, vane); dl->AddPolyline(pts, n, ink, ImDrawFlags_Closed, 0.7f * u);
+        for (int i = 0; i < 4; i++) { float t = 0.36f + i * 0.14f, x = ax + dx * len * t, y = ay + dy * len * t;   /* the barbs, swept back */
+            dl->AddLine(P(x, y), P(x + nx * 2.6f - dx * 1.6f, y + ny * 2.6f - dy * 1.6f), ink, 0.6f * u); }
+        dl->AddLine(P(ax - dx * 3.4f, ay - dy * 3.4f), P(bx, by), ink, 0.9f * u);           /* the shaft, down into the pot */
+        dl->AddRectFilled(P(-9.6f, 3.6f), P(-1.8f, 10.4f), pot, 1.6f * u); dl->AddRect(P(-9.6f, 3.6f), P(-1.8f, 10.4f), ink, 1.6f * u, 0, 0.8f * u);   /* the inkpot */
+        dl->AddRectFilled(P(-7.6f, 2.0f), P(-3.8f, 3.8f), pot); dl->AddRect(P(-7.6f, 2.0f), P(-3.8f, 3.8f), ink, 0, 0, 0.7f * u);
+        break; }
     case 13: /* healing: a sprig of herbs */
         dl->AddLine(P(0, 10), P(0, -8), C(60, 110, 40), 1.4f * u);
         for (int i = 0; i < 3; i++) { float y = -5 + i * 5.0f;
@@ -51,11 +89,18 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(-3, -3), P(7.5f, 7.5f), steel, 2.2f * u);
         dl->AddLine(P(4.5f, 4.5f), P(2, 7), steel, 2.0f * u); dl->AddLine(P(6.5f, 6.5f), P(4.5f, 9), steel, 2.0f * u);
         dl->AddCircle(P(-5.5f, -5.5f), 4.8f * u, ink, 0, 0.6f * u); break;
-    case 15: /* stealth: a dark hood, the face in shadow */
-        dl->AddTriangleFilled(P(0, -10), P(-8, 9), P(8, 9), C(70, 60, 70));
-        dl->AddCircleFilled(P(0, -1), 4.6f * u, C(70, 60, 70));
-        dl->AddEllipseFilled(P(0, 0), ImVec2(3.0f * u, 3.8f * u), C(20, 16, 22));
-        dl->AddCircleFilled(P(-1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); dl->AddCircleFilled(P(1.2f, -0.4f), 0.55f * u, C(230, 220, 190)); break;
+    case 15: { /* stealth: a cat creeping, low, its tail up (not a hood: beside Streetwise's mask, two faces in shadow read alike) */
+        ImU32 fur = C(128, 120, 138), eye = C(250, 246, 200);
+        dl->AddBezierQuadratic(P(-6.0f, 2.6f), P(-11.6f, 1.0f), P(-9.6f, -7.0f), ink, 2.6f * u); dl->AddBezierQuadratic(P(-6.0f, 2.6f), P(-11.6f, 1.0f), P(-9.6f, -7.0f), fur, 1.6f * u);   /* the tail */
+        for (int i = 0; i < 4; i++) { float x = i < 2 ? -4.8f + i * 1.9f : 2.6f + (i - 2) * 1.9f;   /* the legs, crouched */
+            dl->AddRectFilled(P(x - 0.85f, 3.0f), P(x + 0.85f, 8.6f), fur); dl->AddRect(P(x - 0.85f, 3.0f), P(x + 0.85f, 8.6f), ink, 0, 0, 0.6f * u); }
+        dl->AddEllipseFilled(P(-0.6f, 3.0f), ImVec2(6.8f * u, 2.9f * u), fur); dl->AddEllipse(P(-0.6f, 3.0f), ImVec2(6.8f * u, 2.9f * u), ink, 0, 0, 0.7f * u);   /* the body */
+        ImVec2 e1[3] = { P(5.0f, -0.6f), P(5.6f, -4.6f), P(7.4f, -1.4f) }, e2[3] = { P(7.6f, -1.4f), P(9.6f, -4.4f), P(9.8f, -0.2f) };   /* the ears */
+        dl->AddTriangleFilled(e1[0], e1[1], e1[2], fur); dl->AddTriangle(e1[0], e1[1], e1[2], ink, 0.6f * u);
+        dl->AddTriangleFilled(e2[0], e2[1], e2[2], fur); dl->AddTriangle(e2[0], e2[1], e2[2], ink, 0.6f * u);
+        dl->AddCircleFilled(P(7.4f, 1.0f), 2.9f * u, fur); dl->AddCircle(P(7.4f, 1.0f), 2.9f * u, ink, 0, 0.7f * u);   /* the head, low */
+        dl->AddEllipseFilled(P(8.5f, 0.6f), ImVec2(0.95f * u, 0.55f * u), eye); dl->AddLine(P(8.5f, 0.1f), P(8.5f, 1.1f), ink, 0.45f * u);   /* an eye, slit */
+        break; }
     case 16: /* streetwise: a thief's mask (not a purse: a quest's reward has it) */
         dl->AddEllipseFilled(P(-4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40)); dl->AddEllipseFilled(P(4.2f, 0), ImVec2(5.6f * u, 4.2f * u), C(40, 34, 40));
         dl->AddRectFilled(P(-2, -2.5f), P(2, 1.5f), C(40, 34, 40));
@@ -89,13 +134,17 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
         dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
         dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
-    case 2: /* agility: a wing */
-        for (int i = 0; i < 3; i++) {
-            float y = -6 + i * 4.5f, x = 9 - i * 3.0f;
-            dl->AddTriangleFilled(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), parch);
-            dl->AddTriangle(P(-8, -8 + i * 1.5f), P(-8, y + 4.5f), P(x, y + 1), ink, 0.7f * u);
-        }
-        break;
+    case 2: {  /* agility: a hare leaping (not a wing: it read as stairs) */
+        ImU32 fur = C(176, 140, 100);
+        auto ell = [&](float x, float y, float rx, float ry, float rot) { dl->AddEllipseFilled(P(x, y), ImVec2(rx * u, ry * u), fur, rot); dl->AddEllipse(P(x, y), ImVec2(rx * u, ry * u), ink, rot, 0, 0.7f * u); };
+        ell(-6.4f, 5.2f, 4.6f, 1.4f, 0.62f);                                                   /* the hind legs, stretched back */
+        ell(5.8f, 3.6f, 3.6f, 1.0f, 1.05f);                                                     /* the forelegs, reaching */
+        ell(-0.6f, 1.2f, 7.0f, 3.6f, -0.42f);                                                   /* the body, rising */
+        ell(3.6f, -10.0f, 1.0f, 3.6f, -0.95f); ell(5.2f, -9.4f, 1.1f, 3.8f, -0.6f);            /* the long ears, laid back */
+        ell(6.6f, -4.6f, 3.0f, 2.2f, -0.35f);                                                   /* the head */
+        dl->AddCircleFilled(P(7.4f, -5.2f), 0.6f * u, ink);                                    /* the eye */
+        dl->AddCircleFilled(P(-7.0f, 0.6f), 1.6f * u, C(236, 228, 214)); dl->AddCircle(P(-7.0f, 0.6f), 1.6f * u, ink, 0, 0.6f * u);   /* the scut */
+        break; }
     case 3: /* perception: an open eye */
         dl->AddBezierQuadratic(P(-10, 0), P(0, -9), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 9), P(10, 0), parch, 1.6f * u);
         dl->AddCircleFilled(P(0, 0), 4.0f * u, C(80, 130, 200)); dl->AddCircleFilled(P(0, 0), 1.8f * u, C(15, 15, 20));
@@ -180,7 +229,7 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
     body(dl, c, s, k);
 }
 /* the party's standing, which some cards weigh: 0 the town's opinion of the party (its reputation here),
-   two hands clasped; 1 the party's fame, a herald's trumpet with its banner */
+   two hands clasped; 1 the party's fame, a medal on its ribbon */
 static void standing_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
     float u = s / 16.0f;
@@ -197,15 +246,16 @@ static void standing_body(ImDrawList *dl, ImVec2 c, float s, int k)
         for (int f = 0; f < 3; f++) dl->AddLine(P(-1.6f + f * 1.6f, -2.8f), P(-0.8f + f * 1.6f, 1.6f), INK, 0.7f * u);   /* (the fingers over the other hand) */
         dl->AddLine(P(-4.0f, -2.2f), P(-2.4f, 1.4f), IM_COL32(240, 230, 210, 255), 1.0f * u);   /* (the cuffs) */
         dl->AddLine(P(4.0f, -2.2f), P(2.4f, 1.4f), IM_COL32(240, 230, 210, 255), 1.0f * u);
-    } else {
-        const ImU32 BRASS = IM_COL32(214, 168, 60, 255), CLOTH = IM_COL32(170, 40, 40, 255);
-        ImVec2 b[5] = { P(-4.6f, -4.2f), P(4.6f, -4.2f), P(4.6f, 3.8f), P(0, 1.8f), P(-4.6f, 3.8f) };   /* the banner, swallow-tailed */
-        dl->AddConcavePolyFilled(b, 5, CLOTH); dl->AddPolyline(b, 5, INK, ImDrawFlags_Closed, 0.9f * u);
-        dl->AddLine(P(-9.0f, -5.0f), P(6.0f, -5.0f), INK, 2.6f * u);                       /* the tube */
-        dl->AddLine(P(-9.0f, -5.0f), P(6.0f, -5.0f), BRASS, 1.5f * u);
-        ImVec2 bell[3] = { P(5.0f, -5.0f), P(9.6f, -8.4f), P(9.6f, -1.6f) };
-        dl->AddTriangleFilled(bell[0], bell[1], bell[2], BRASS); dl->AddTriangle(bell[0], bell[1], bell[2], INK, 0.9f * u);
-        dl->AddCircleFilled(P(-9.4f, -5.0f), 1.1f * u, BRASS); dl->AddCircle(P(-9.4f, -5.0f), 1.1f * u, INK, 0, 0.7f * u);   /* the mouthpiece */
+    } else {                                                                              /* a medal on its ribbon (not a trumpet: Speak Common's) */
+        const ImU32 GOLD = IM_COL32(214, 168, 60, 255), CLOTH = IM_COL32(170, 40, 40, 255), CUT = IM_COL32(246, 240, 226, 255);
+        ImVec2 rl[4] = { P(-6.6f, -10.6f), P(-2.4f, -10.6f), P(1.8f, -1.0f), P(-2.4f, -1.0f) }, rr[4] = { P(6.6f, -10.6f), P(2.4f, -10.6f), P(-1.8f, -1.0f), P(2.4f, -1.0f) };
+        dl->AddConvexPolyFilled(rr, 4, CLOTH); dl->AddPolyline(rr, 4, INK, ImDrawFlags_Closed, 0.8f * u);   /* the ribbon, crossed */
+        dl->AddConvexPolyFilled(rl, 4, CLOTH); dl->AddPolyline(rl, 4, INK, ImDrawFlags_Closed, 0.8f * u);
+        dl->AddCircleFilled(P(0, 3.8f), 6.2f * u, GOLD); dl->AddCircle(P(0, 3.8f), 6.2f * u, INK, 0, 0.9f * u);   /* the medal */
+        dl->AddCircle(P(0, 3.8f), 4.6f * u, INK, 0, 0.6f * u);
+        ImVec2 st[10];                                                                          /* a star struck on it */
+        for (int i = 0; i < 10; i++) { float a = -1.5708f + i * 0.6283f, r = i & 1 ? 1.4f : 3.4f; st[i] = P(cosf(a) * r, 3.8f + sinf(a) * r); }
+        dl->AddConcavePolyFilled(st, 10, CUT);
     }
 }
 void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 4, standing_body, k); }
@@ -458,6 +508,24 @@ extern "C" void ui_icon_styles_draw(void)
             ui_draw_town_icon(dl, ImVec2(x + 5 * small * 1.5f, y + big * 0.55f), small * 1.1f, 3);
             y += big * 1.12f + fs * (st == 0 ? 2.4f : 1.4f);
         }
+        return;
+    }
+    if (sheet_on == 8) {   /* the attributes, skills and the party's standing large (uiconstyles:8): in colour, and heraldic beside */
+        ImFont *f = ImGui::GetFont(); float cw = ds.x / 7, sz = fminf(cw * 0.36f, ds.y / 11.5f), fs = sz * 0.32f; int n = 0;
+        auto cell = [&](int kind, int k, const char *name) {
+            ImVec2 o(cw * (n % 7), (n / 7) * sz * 1.75f); n++;
+            ImVec2 a(o.x + cw * 0.27f, o.y + sz * 0.75f), b(o.x + cw * 0.72f, o.y + sz * 0.75f);
+            for (int st = 0; st < 2; st++) {
+                ImVec2 c = st ? b : a; ui_icon_style_preview(st ? 2 : 0);
+                if (kind == 0) ui_attr_icon(dl, c, sz, k); else if (kind == 1) ui_skill_icon(dl, c, sz, k); else ui_standing_icon(dl, c, sz, k);
+            }
+            ui_icon_style_preview(-1);
+            float w = f->CalcTextSizeA(fs, 1e9f, 0, name).x;
+            dl->AddText(f, fs, ImVec2(o.x + cw * 0.5f - w * 0.5f, o.y + sz * 1.38f), IM_COL32(60, 40, 20, 255), name);
+        };
+        for (int k = 0; k < 7; k++) cell(0, k, gm_attr_name(k));
+        for (int k = 0; k < 19; k++) cell(1, k, gm_skill_name(k));
+        cell(2, 0, "Reputation"); cell(2, 1, "Fame");
         return;
     }
     if (sheet_on == 7) {   /* the ingredients' proposal large, to look at the strokes' joins (uiconstyles:7): the signs, then the herbs' three tries */
