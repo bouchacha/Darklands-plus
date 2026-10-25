@@ -57,8 +57,10 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
 {
     tips_title_reached();
     void saves_title_reached(void), saves_title_left(void);     /* (mods/saves.c: is the game that begins an Ironman game?) */
+    extern int title_screen_up;                                  /* (runtime/gamecall.c: game_mode() says no game while it is up) */
     saves_title_reached();
-    if (!tv_on || !ns_active()) { hook_call_original(); if (!unw_active) saves_title_left(); return; }
+    title_screen_up = 1;
+    if (!tv_on || !ns_active()) { hook_call_original(); title_screen_up = 0; if (!unw_active) saves_title_left(); return; }
     TitleModel *m = &title_model;
     ns_unwinding = 0;
     ns_call(-1, 0x047c, 0x0568, 0);                                  /* (the original's setup) */
@@ -66,7 +68,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
     ns_call(GF_title_setup, 0);
     ns_call(GF_title_redraw, 0);
     ns_call(-1, 0x047c, 0x056f, 0);
-    if (ns_unwinding) return;
+    if (ns_unwinding) { title_screen_up = 0; return; }
     build();
     m->open = 1;
     fprintf(stderr, "title: open (%d saves)\n", m->nsaves);
@@ -116,6 +118,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
         }
     }
     m->open = 0;
+    title_screen_up = 0;
     ns_leave();
     fprintf(stderr, "title: closed%s\n", begin ? " (the game begins)" : "");
     if (begin) saves_title_left();

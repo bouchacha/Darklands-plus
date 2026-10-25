@@ -57,8 +57,10 @@ int game_call_far(int sect, u16 seg, u16 off, int nargs, const u16 *args)
     return ax;
 }
 
+int title_screen_up;                     /* the start screen is up (mods/titleview.c): no game under way yet, whatever is loaded */
 int game_mode(void)
 {
+    if (title_screen_up) return GM_OTHER;
     if (ovl_loaded[14] || ovl_loaded[2] || ovl_loaded[4]) return GM_BATTLE;
     if (!ovl_loaded[29]) return GM_OTHER;
     if (ovl_loaded[43]) return GM_CARD;
