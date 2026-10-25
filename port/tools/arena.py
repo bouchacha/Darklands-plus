@@ -78,7 +78,7 @@ sc('boss', 'a robber captain and his men in the wilds: long fight, many changes 
    arms=[(1, ARBALEST, 20), (2, BOW, 30)], groups=(CAPTAIN, 3, 1, BANDIT, 2, 6, -1, 0, 0), bf=WILDS, secs=180)   # (the captain's armor can hold out against the last two for a long while: still fighting is not a stall)
 sc('player_melee', 'the player sends the archer at a foe hand to hand: it fights, and does not take up the bow again by itself',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'],
-   forbid=[r'orders: member 2 (had no orders|has no foe beside it now|.s mark fell|stood idle with its bow)'])
+   forbid=[r'orders: member 2 (had no orders: opens fire|has no foe beside it now|.s mark fell|stood idle with its bow)'])
 sc('held', 'the archer told to hold, its line blocked by a friend: it stays put (no stepping aside) and does not freeze the others',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10), (7, 200, -10)], orders=['ushoot:2,5', 'uhold:2,1'])
@@ -95,7 +95,7 @@ sc('mark_dies_on_the_way', 'the archer walks for a line and its mark dies before
 sc('player_overrides', 'the player sends the archer at a foe hand to hand while it walks for a line: the order stands, no bow again by itself',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 120, 40), (7, 220, -30)], orders=['ushoot:2,5', 'wait 2', 'uattack:2,6'], end=False,
-   expect=[r'orders: test: 2 attacks 6 hand to hand'], forbid=[r'orders: member 2 (had no orders|has no foe beside it now|.s mark fell|stood idle with its bow)'])
+   expect=[r'orders: test: 2 attacks 6 hand to hand'], forbid=[r'orders: member 2 (had no orders: opens fire|has no foe beside it now|.s mark fell|stood idle with its bow)'])
 sc('last_arrow', 'one arrow and no endless ammunition, the line blocked: step aside, loose it, then the sword',
    arms=[(2, BOW, 1)], set=['assist.endless=0'], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 10)], orders=['ushoot:2,5'], end=False, shots=[(2, 1)])
@@ -185,6 +185,9 @@ def check(s, log):
     standing_at_end = {j for j in ticks[-1][1] if j >= 5}
     if first and s.get('foes_move', True) and (len(still) == len(first) or (len(still) * 2 >= len(first) and still & standing_at_end)):
         return ['layout: %d of the %d foes never moved (walled off from the party?)' % (len(still), len(first))]   # (half or more, and some of them still there at the end: the battle cannot end for them)
+    # a mark that never moved and that the shooter found no way to and no line to: walled off by the layout
+    # (it cannot reach the party either), not a shooter waiting for nothing
+    walled = {(int(t), int(m)) for m, t in re.findall(r'battlerules: (\d+) finds no spot near \S+ with a line to (\d+), nor a way to it', log) if int(t) in still}
     # per party member: runs of the same state
     for i in range(5):
         idle = blank = stuck = bowidle = noline = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = worst_noline = 0; nshots = 0
@@ -201,7 +204,7 @@ def check(s, log):
                 idle += 10; worst_idle = max(worst_idle, idle)
             else:
                 idle = 0
-            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] == 7 and c['s'] == 1:
+            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] == 7 and c['s'] == 1 and (c['t'], i) not in walled:
                 noline += 10; worst_noline = max(worst_noline, noline)
             elif not (shooting_order and c['a'] == 7 and c['m'] == 0):
                 noline = 0
