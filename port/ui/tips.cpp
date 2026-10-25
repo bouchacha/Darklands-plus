@@ -2,7 +2,7 @@
 // start screen, the way to the New Player Guide (the welcome instead, the very first time); at the
 // first battle of a session with Improved combat, how the party fights now. Each shows at every
 // start until "Never show again" is ticked, which a player can only do from the fourth start
-// (ui.launches counts them), so a new player sees them a few times. The MT-32 window before the
+// (ui.launches counts them; the box says how many more times it comes first), so a new player sees them a few times. The MT-32 window before the
 // intro (ui/ui_windows.cpp) takes the same box. Not in the test sessions (DL_CTL, DL_SCRIPT)
 // unless DL_TIPS; the test command utip:N opens one.
 #include <stdio.h>
@@ -45,13 +45,16 @@ extern "C" void tips_init(void)
 
 extern "C" int tips_open(void) { return open_tip != TIP_NONE; }
 
-/* "Never show again", for a window shown at every start: greyed until the fourth start */
+/* "Never show again", for a window shown at every start: greyed until the fourth start, saying how
+   many more times the window comes first */
 bool tips_never_box(bool *never)
 {
     bool can = launches > 3;
     if (!can) *never = false;
     ImGui::BeginDisabled(!can);
-    ImGui::Checkbox(can ? "Never show again" : "Never show again (can be ticked from the fourth start)", never);
+    int more = 4 - (launches > 0 ? launches : 1);
+    char l[96]; snprintf(l, sizeof l, "Never show again (this will nag you %d more time%s)", more, more == 1 ? "" : "s");
+    ImGui::Checkbox(can ? "Never show again" : l, never);
     ImGui::EndDisabled();
     return *never;
 }

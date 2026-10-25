@@ -510,7 +510,6 @@ void draw_icon_seal(ImDrawList *, ImVec2, float, int); void layer_glyph(ImDrawLi
 void ui_compass_icon(ImDrawList *, ImVec2, float, float); void ui_boot_icon(ImDrawList *, ImVec2, float, unsigned int);
 void ui_draw_teach_mark(ImDrawList *, ImVec2, float, unsigned, unsigned); void ui_item_icon(ImDrawList *, ImVec2, float, int);
 extern int ingredient_style_preview; bool ui_draw_ingredient(ImDrawList *, ImVec2, float, int);   /* ui/alchemyicons.cpp */
-void draw_icon_wax(ImDrawList *, ImVec2, float, int, int); float draw_town_wax(ImDrawList *, ImVec2, float, int, bool, int);   /* ui/worldmap_draw.cpp (proposals) */
 extern "C" void ui_icon_styles_draw(void)
 {
     if (!sheet_on) return;
@@ -533,59 +532,6 @@ extern "C" void ui_icon_styles_draw(void)
         n = (n + 13) / 14 * 14;                                                          /* the inn's and camp's day choices, the camp's fire */
         for (int i = 0; i < 7; i++) ui_lodge_act_icon(dl, at(n++), sz * 0.9f, i);
         ui_campfire_icon(dl, at(n++), sz * 0.8f);
-        return;
-    }
-    bool seal_v2 = sheet_on == 6; if (seal_v2) sheet_on = 5;   /* (uiconstyles:6: the seals' second round) */
-    struct Restore { int &v; bool on; ~Restore() { if (on) v = 6; } } restore_sheet{ sheet_on, seal_v2 };
-    if (sheet_on == 5) {   /* the world map's place seals: the present set and three proposals (uiconstyles:5), on the map's parchment beside a quest's roundel */
-        dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(222, 202, 158, 255));
-        for (int k = 0; k < 40; k++) dl->AddLine(ImVec2(0, ds.y * k / 40.0f), ImVec2(ds.x, ds.y * k / 40.0f + 30), IM_COL32(190, 165, 120, 60), 1.0f);   /* (a hint of the map's texture) */
-        if (seal_v2) {   /* the second round: the discs kept (castles now as villages and ruins); the towns on muted wax, sized, visited or not three ways */
-            static const char *KIND2[12] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
-            static const char *WAYS[3] = { "1. Not visited: cold grey wax; visited: warm wax", "2. Not visited: the ribbon of a letter still unopened", "3. Visited: the party's ring pressed into the wax" };
-            ImFont *f = ImGui::GetFont(); float fs = ds.y / 48, big = ds.y / 13.0f, y = fs * 0.5f;
-            const ImU32 INK = IM_COL32(60, 40, 20, 255), SOFT = IM_COL32(110, 85, 60, 255);
-            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, "The places, as now, castles in the villages' colour (the towns on wax below)"); y += fs * 1.6f;
-            for (int k = 1; k < 12; k++) {
-                ImVec2 c(fs + big * 0.6f + (k - 1) * big * 1.18f, y + big * 0.55f);
-                draw_icon_seal(dl, c, big, k);
-                float w = f->CalcTextSizeA(fs * 0.8f, 1e9f, 0, KIND2[k]).x; dl->AddText(f, fs * 0.8f, ImVec2(c.x - w * 0.5f, y + big * 1.12f), INK, KIND2[k]);
-            }
-            y += big * 1.12f + fs * 2.2f;
-            for (int w2 = 0; w2 < 3; w2++) {
-                dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, WAYS[w2]); y += fs * 1.7f;
-                float x = fs + big * 0.7f;
-                for (int vis = 0; vis < 2; vis++) {
-                    dl->AddText(f, fs * 0.85f, ImVec2(x - big * 0.5f, y + big * 1.35f), SOFT, vis ? "visited: small, medium, large" : "not visited: small, medium, large");
-                    for (int sz = 0; sz < 3; sz++, x += big * 1.45f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big, sz, vis != 0, w2 + 1);
-                    x += big * 0.6f;
-                }
-                for (int sz = 0; sz < 3; sz++, x += big * 0.62f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big * 0.42f, sz, false, w2 + 1);   /* (at the map's size) */
-                x += big * 0.3f;
-                for (int sz = 0; sz < 3; sz++, x += big * 0.62f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big * 0.42f, sz, true, w2 + 1);
-                ui_draw_quest_icon(dl, ImVec2(x + big * 0.2f, y + big * 0.6f), big * 0.42f, 2);
-                y += big * 1.35f + fs * 2.2f;
-            }
-            return;
-        }
-        static const char *ROW[4] = { "Now: coloured discs, the picture painted", "1. Red wax, the picture pressed in", "2. Wax by kind of place, the picture pressed in", "3. Wax by kind of place, the picture painted on it" };
-        static const char *KIND[12] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
-        ImFont *f = ImGui::GetFont(); float fs = ds.y / 48, big = ds.y / 12.5f, small = ds.y / 40, y = fs * 0.5f;
-        const ImU32 INK = IM_COL32(60, 40, 20, 255);
-        for (int st = 0; st < 4; st++) {
-            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, ROW[st]);
-            y += fs * 1.6f;
-            for (int k = 0; k < 12; k++) {
-                ImVec2 c(fs + big * 0.6f + k * big * 1.18f, y + big * 0.55f);
-                if (st == 0) draw_icon_seal(dl, c, big, k); else draw_icon_wax(dl, c, big, k, st);
-                if (st == 0) { float w = f->CalcTextSizeA(fs * 0.8f, 1e9f, 0, KIND[k]).x; dl->AddText(f, fs * 0.8f, ImVec2(c.x - w * 0.5f, y + big * 1.12f), INK, KIND[k]); }
-            }
-            float x = fs + 12 * big * 1.18f + big * 0.4f;                 /* at the map's size, beside a quest's and a town feature's roundel */
-            for (int k = 0; k < 4; k++) { ImVec2 c(x + k * small * 1.5f, y + big * 0.55f); if (st == 0) draw_icon_seal(dl, c, small, k); else draw_icon_wax(dl, c, small, k, st); }
-            ui_draw_quest_icon(dl, ImVec2(x + 4 * small * 1.5f, y + big * 0.55f), small * 1.1f, 2);
-            ui_draw_town_icon(dl, ImVec2(x + 5 * small * 1.5f, y + big * 0.55f), small * 1.1f, 3);
-            y += big * 1.12f + fs * (st == 0 ? 2.4f : 1.4f);
-        }
         return;
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */

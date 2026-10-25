@@ -81,13 +81,14 @@ static void leader_for_choice(int sel)
 {
     int po = picked_opt, pm = picked_m;
     picked_opt = picked_m = -1;
-    if (!assist_best_leader || !card_chances.active || config_get_int("original", 0)) return;
+    if (!card_chances.active || config_get_int("original", 0)) return;
     if (po == sel && leader_able(pm)) {                 /* (picked by the player: that member speaks, whatever comes of it is theirs) */
         if (pm == (s8)g_rb(G_LEADER)) return;
         speak(pm);
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party, picked (leader %d)\n", sel, pm, saved_leader);
         return;
     }
+    if (!assist_best_leader) return;
     for (int i = 0; i < card_chances.n && i < 20; i++)
         if (card_chances.line[i].opt == sel && card_chances.line[i].lead >= 0) {
             int m = card_chances.line[i].lead;
@@ -331,8 +332,10 @@ static void evaluate(void)
             }
         }
         int lead = -1;
-        if (assist_best_leader && pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0) && !leader_keeps(opt)) {   /* each able member as leader */
+        for (int m = 0; m < 5; m++) c.line[i].per[m] = -1;
+        if (pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0) && !leader_keeps(opt)) {   /* each able member as leader */
             int cur = (s8)g_rb(G_LEADER), bestp = pct, dep = 0;
+            if (leader_able(cur)) c.line[i].per[cur] = (signed char)(pct > 100 ? 100 : pct);
             for (int m = 0; m < 5; m++) {
                 if (m == cur || !leader_able(m)) continue;
                 g_wb(G_LEADER, (u8)m);
@@ -341,13 +344,16 @@ static void evaluate(void)
                 eval_restore(snap);
                 if (game_call_timed_out) break;
                 int pm = (s16)(rm & 0xffff);
+                c.line[i].per[m] = (signed char)(pm < 0 ? 0 : pm > 100 ? 100 : pm);
                 if (pm != pct) dep = 1;                                 /* (the leader's own check) */
                 if (pm > bestp) { bestp = pm; lead = m; }
             }
+            c.line[i].dep = dep && !game_call_timed_out;               /* (each member's chance: the card shows them, to pick who speaks) */
+            if (!assist_best_leader) lead = -1;                        /* (the leader speaks, unless the player picks another) */
             if (dep) who = lead >= 0 ? lead : cur;                     /* the chance is that member's: their name beside it, not "all" */
             if (lead >= 0) { if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% with %d as leader (%d%% with %d)\n", i, opt, bestp, lead, pct, cur); pct = bestp; }
         }
-        if (pct >= 0 && r != 0xffffffffu && assist_best_leader && !config_get_int("original", 0) && leader_keeps(opt)) {   /* (the player picks who speaks: each member's chance) */
+        if (pct >= 0 && r != 0xffffffffu && !config_get_int("original", 0) && leader_keeps(opt)) {   /* (the player picks who speaks: each member's chance) */
             int cur = (s8)g_rb(G_LEADER);
             c.line[i].pick = 1;
             for (int m = 0; m < 5; m++) {

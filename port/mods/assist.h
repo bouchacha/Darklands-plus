@@ -8,9 +8,10 @@ extern "C" {
 typedef struct {
     int active, n, seq;
     u32 polled;                       /* plat_ticks_ms() of the last menu poll */
-    struct { int show, pct, who, opt, lead; u32 reads; int pick; signed char per[5]; } line[20];   /* lead: the member who would do best as leader (-1: the leader is best);
+    struct { int show, pct, who, opt, lead; u32 reads; int pick, dep; signed char per[5]; } line[20];   /* lead: the member who would do best as leader (-1: the leader is best);
                                                                          reads: what the chance depends on (CC_SKILL(k) bits 0-18, CC_ATTR(a) 19-25, CC_REP, CC_FAME);
-                                                                         pick: the player picks who speaks (what comes of it is theirs), per: each member's chance (-1: not able) */
+                                                                         pick: the player picks who speaks (what comes of it is theirs), per: each member's chance (-1: not able);
+                                                                         dep: the chance is the speaker's (per[] filled: the card shows them all under the pointer, to pick one) */
 } CardChances;
 extern CardChances card_chances;
 #define CC_SKILL(k) (1u << (k))

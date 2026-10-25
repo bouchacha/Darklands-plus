@@ -276,27 +276,15 @@ static bool draw_ingredient_signs(Pen &p, int id)
     };
     Stroke S{ p };
     auto L = [&](float x0, float y0, float x1, float y1, ImU32 k, float w = 1.5f) { p.line(x0, y0, x1, y1, k, w); };
-    /* a horn: solid, along a curve from its root to its point, `w` wide at the root */
-    auto horn = [&](float bx, float by, float qx, float qy, float tx, float ty, float w, ImU32 k) {
-        const int n = 28; ImVector<ImVec2> side, other;
-        for (int i = 0; i <= n; i++) { float t = (float)i / n, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t;
-            float x = a * bx + b * qx + c * tx, y = a * by + b * qy + c * ty;
-            float dx = 2 * (1 - t) * (qx - bx) + 2 * t * (tx - qx), dy = 2 * (1 - t) * (qy - by) + 2 * t * (ty - qy), d = hypotf(dx, dy);
-            float h = 0.5f * w * powf(1 - t, 0.85f); dx /= d; dy /= d;
-            side.push_back(p.P(x - dy * h, y + dx * h)); if (i < n) other.push_back(p.P(x + dy * h, y - dx * h)); }
-        for (int i = other.Size - 1; i >= 0; i--) side.push_back(other[i]);
-        p.dl->AddConcavePolyFilled(side.Data, side.Size, k); };
     auto ellipse_line = [&](float x, float y, float rx, float ry, float rot, ImU32 k, float w = 1.5f) { p.dl->AddEllipse(p.P(x, y), ImVec2(rx * p.u, ry * p.u), k, rot, 0, p.W(w)); };
     switch (id) {
     /* the metals and their ores: the planets' signs */
     case 72: p.ring(0, 0, 5.5f, gold, W); p.disc(0, 0, 1.4f, gold); break;                                     // Pure Gold: the Sun
     case 89: S.arc(-1.6f, -4.2f, 2.6f, 3.4f, 6.6f, 10).to(-4.6f, 2.8f).to(5.8f, 2.8f).done(steel, W);          // Zinken: Jupiter (tin): the hook, down to the bar, the bar;
         L(2.6f, -2.2f, 2.6f, 7.8f, steel); break;                                                                  //   the stroke through it
-    case 87: { const float cx = -0.6f, cy = -1.6f;                                                          // Nikel: copper ore (Venus, the ore's ring) with the goblin's horns
-        p.ring(cx, cy, 3.0f, copper, W); L(cx, cy + 3.0f, cx, 8.0f, copper); L(-3.4f, 5.2f, 2.2f, 5.2f, copper);  //   (Kupfernickel, the ore that yields no copper): two solid horns,
-        p.ring(4.4f, 5.2f, 1.3f, copper, 1.1f);                                                               //   thick at the head and pointed, out from its sides and up -
-        for (int s = -1; s <= 1; s += 2) horn(cx + s * 2.26f, cy - 2.26f, cx + s * 5.0f, cy - 2.6f, cx + s * 3.8f, cy - 5.4f, 1.6f, copper);   //   not Mercury's thin cup
-        break; }
+    case 87:                                                                                                  // Nikel: copper ore turned over (Kupfernickel, the ore that
+        p.ring(0.6f, 3.0f, 3.0f, copper, W); L(0.6f, 0, 0.6f, -7.2f, copper); L(-2.2f, -4.2f, 3.4f, -4.2f, copper);   //   looks like copper's and yields none): Venus upside down,
+        p.ring(-4.4f, -4.2f, 1.3f, copper, 1.1f); break;                                                      //   the ore's ring with it (Antimoni's orb has none)
     case 88: L(-2, -7, -2, 2.5f, lead); L(-4.6f, -4.4f, 0.6f, -4.4f, lead);                                    // Pitchblende: lead ore (Saturn, the ore's ring)
         S.to(-2, -0.2f).quad(3.8f, -2.2f, 2.6f, 3.6f, 8).quad(1.8f, 6.0f, 4.6f, 7.0f, 8).done(lead, W); p.ring(3.8f, -5.6f, 1.3f, lead, 1.1f); break;
     case 78: p.ring(0, 2.2f, 4.3f, steel, W); L(0, -8.2f, 0, -1.5f, steel); L(-2.4f, -5.6f, 2.4f, -5.6f, steel); break;   // Antimoni: the orb and cross

@@ -78,7 +78,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:133` | beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held). |
 | `mods/options.c:133` | Always, as numbers\|As the difficulty level allows\|Off |
 | `mods/options.c:134` | The best member speaks for the party |
-| `mods/options.c:134` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their name. After the card, your chosen leader is leader again. |
+| `mods/options.c:134` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. Pointing at the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and pointing at the chance still lets you pick another.) |
 | `mods/options.c:135` | Saints and items on cards |
 | `mods/options.c:135` | which saints and items a card accepts, and who knows or carries them (as the Darklands Companion, a players' reference, did: saints are listed even when nobody knows them yet). |
 | `mods/options.c:136` | what the item, saint or formula under the pointer is good for (in shops, the loot screen, character sheets, and the prayer and alchemy screens). |
@@ -682,32 +682,38 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:23` | Needs a rope. |
 | `ui/cardhints.cpp:26` | Not for about three weeks after a sewer grate here defeated you. |
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
-| `ui/cardview.cpp:322` | not possible |
-| `ui/cardview.cpp:408` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:408` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:435` | knows it already |
-| `ui/cardview.cpp:443` | knows the formula but carries none |
-| `ui/cardview.cpp:444` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:444` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:445` | knows this saint already |
-| `ui/cardview.cpp:483` | Each member tries it |
-| `ui/cardview.cpp:486` | the town's opinion of the party (its reputation here) |
-| `ui/cardview.cpp:487` | the party's fame |
-| `ui/cardview.cpp:493` | It rests on:  |
-| `ui/cardview.cpp:504` | Brings a teacher to the inn |
-| `ui/cardview.cpp:508` | Hired here now: %s. |
-| `ui/cardview.cpp:509` | Not possible now |
-| `ui/cardview.cpp:516` | Not possible now |
-| `ui/cardview.cpp:545` | nobody knows it yet |
-| `ui/cardview.cpp:558` | nobody knows this saint |
-| `ui/cardview.cpp:558` | nobody carries one |
-| `ui/cardview.cpp:563` | Saints who help here |
-| `ui/cardview.cpp:563` | Formulae for sale |
-| `ui/cardview.cpp:563` | Items that help here |
-| `ui/cardview.cpp:568` | Not possible now |
-| `ui/cardview.cpp:572` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:573` | (click to choose who) |
-| `ui/cardview.cpp:589` | ..., for 3 groschen. |
+| `ui/cardview.cpp:339` |  speaks for the party |
+| `ui/cardview.cpp:339` |  (the leader) |
+| `ui/cardview.cpp:339` | . A formula traded is  |
+| `ui/cardview.cpp:340` | Click to choose this with %s speaking. |
+| `ui/cardview.cpp:380` | not possible |
+| `ui/cardview.cpp:494` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:494` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:521` | knows it already |
+| `ui/cardview.cpp:529` | knows the formula but carries none |
+| `ui/cardview.cpp:530` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:530` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:531` | knows this saint already |
+| `ui/cardview.cpp:573` | Each member tries it |
+| `ui/cardview.cpp:576` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:577` | the party's fame |
+| `ui/cardview.cpp:583` | It rests on:  |
+| `ui/cardview.cpp:584` | Whoever speaks for the party tries it: the best at it, unless you click another member's chance below. |
+| `ui/cardview.cpp:585` | Whoever speaks for the party tries it: the leader, unless you click another member's chance below. |
+| `ui/cardview.cpp:596` | Brings a teacher to the inn |
+| `ui/cardview.cpp:600` | Hired here now: %s. |
+| `ui/cardview.cpp:601` | Not possible now |
+| `ui/cardview.cpp:608` | Not possible now |
+| `ui/cardview.cpp:637` | nobody knows it yet |
+| `ui/cardview.cpp:650` | nobody knows this saint |
+| `ui/cardview.cpp:650` | nobody carries one |
+| `ui/cardview.cpp:655` | Saints who help here |
+| `ui/cardview.cpp:655` | Formulae for sale |
+| `ui/cardview.cpp:655` | Items that help here |
+| `ui/cardview.cpp:660` | Not possible now |
+| `ui/cardview.cpp:664` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:665` | (click to choose who) |
+| `ui/cardview.cpp:681` | ..., for 3 groschen. |
 | `ui/citynav.cpp:135` | Market stalls: everyday goods to buy and sell. |
 | `ui/citynav.cpp:136` | Foreign trader |
 | `ui/citynav.cpp:136` | Pavilions of traders from distant lands: goods to buy and sell. |
@@ -970,93 +976,95 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/gamedata.cpp:213` | Michael Scot's |
 | `ui/gamedata.cpp:214` | Essence o'Grace |
 | `ui/gamedata.cpp:214` | Essence of Grace |
-| `ui/guide.cpp:18` | Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus. |
-| `ui/guide.cpp:20` | Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings). |
-| `ui/guide.cpp:37` | A new party has little money and light armor. Buy the best armor the purse allows before anything else (studded leather or mail if you can): a weapon whose penetration is below an armor's hardness is mostly turned aside (Battle, below). |
-| `ui/guide.cpp:38` | The usual way to toughen a new party: walk a town's side streets and docks at night. Thugs and cutthroats attack; each fight raises weapon skills quickly, and their weapons and armor sell well (cloth armor sells for little). The worst the night watch does is fine you. Go back to the inn to rest between rounds. |
-| `ui/guide.cpp:39` | +Darklands+ can make these night ambushes rarer (F12 > Mods: Night encounters in the streets); leave it as the original if you mean to train this way. |
-| `ui/guide.cpp:40` | Quests (paid work) come from a town's merchants, foreign traders and pharmacists (at the marketplace), the Fugger, the Medici, the Hanse, the town council and the cathedral: robber knights to kill, items to fetch. The banks' and the council's pay best. Note down what you were asked to do and where. |
-| `ui/guide.cpp:41` | +The left margin lists the party's quests, and the world map (M) marks where each one leads. |
-| `ui/guide.cpp:42` | Rest at an inn when Strength is low, and set out with it full. In the wilds, camping costs nothing. |
-| `ui/guide.cpp:43` | Keep the party's Virtue up and never attack a priest or a monk: the Church remembers. Cleared streets and good deeds raise the town's opinion of the party. |
-| `ui/guide.cpp:44` | A good party has a leader with high Charisma who speaks the common tongue well, someone who reads Latin, and a woodsman (Woodwise) for the road. Nürnberg, in the middle of the land, is a good home town. |
-| `ui/guide.cpp:45` | +Sell what nobody uses: in a shop, the Sell spare gear button sells at once every weapon, armor and shield that is not equipped and that the shop buys (not ammunition, throwing weapons or items marked Keep). |
-| `ui/guide.cpp:46` | Save often in towns. |
-| `ui/guide.cpp:47` | +Darklands+ also saves by itself on arriving at a town or any other place, and before a battle. |
-| `ui/guide.cpp:49` | The party: Endurance, Strength, Divine Favor |
-| `ui/guide.cpp:50` | Endurance (End) is breath and bruises: blows take it first and rest brings it back. At 0 a member falls unconscious. |
-| `ui/guide.cpp:51` | Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Below half, keep that member out of the fight. |
-| `ui/guide.cpp:52` | Divine Favor (DF) is spent calling on saints and comes back with prayer (and slowly by itself). |
-| `ui/guide.cpp:53` | Each member's attributes and skills are on the character sheet (click the member in the party panel at the left, or press F1 ... F5). |
-| `ui/guide.cpp:54` | +The bars on the party panel show End, Str and DF all the time, with numbers. |
-| `ui/guide.cpp:55` | The party has room for four characters of your own: at an inn, "reconsider the composition of your party" creates a new one for an empty slot or dismisses one. A fifth slot is for companions some cards bring along for a while (a village's headman, a knight). |
-| `ui/guide.cpp:56` | Each member carries their own items. Only equipped items (weapons, armor, shield) count toward a member's load, and a heavy load slows them in battle. |
-| `ui/guide.cpp:57` | +With the shared pack (Darklands+), everything not equipped goes into one pack for the whole party, so nobody has to pass items between members. Each member keeps their equipped weapons and armor, their mount and their own potions. When the game needs a particular member to have something (lock picks at a lock, arrows before a battle, a horse), Darklands+ hands it to them from the pack first. |
-| `ui/guide.cpp:58` | On a card, the test is made by the leader. |
-| `ui/guide.cpp:58` | +Darklands+ has the member best at it take the test instead (F12 > Settings > Cards and towns: The best member speaks for the party), with the chance and that member's name beside the option. The leader still gets whatever a card gives "the leader" (a mine's traps, a church's favor), and in a battle or a dungeon, while unpaused, deals with doors, chests and locks. |
-| `ui/guide.cpp:60` | Money and reputation |
-| `ui/guide.cpp:61` | 1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you. |
-| `ui/guide.cpp:62` | The party has a separate reputation in each town: good deeds there raise it, crimes and brawls lower it. A bad reputation brings trouble with the watch and higher prices. |
-| `ui/guide.cpp:63` | A reputation runs from -99 to 99, in six named levels: hunted (-75 and below), wanted, suspected, unknown (-9 to 10), respected (11 to 50) and a local hero (above 50). Most deeds and saints move it by a random amount, and the further it is from 0 the likelier it stays as it is: at 50 one deed in two counts, at 90 one in ten. |
-| `ui/guide.cpp:64` | Fame is the party's renown everywhere; it brings a new title every 50 points. |
-| `ui/guide.cpp:65` | Party Info (F6, or the Party menu) shows the fame, the money and the reputation in the town the party is in; on its small map, point at a town to see the reputation there. |
-| `ui/guide.cpp:65` | +Darklands+'s Party Info lists the reputation in every town at once. |
-| `ui/guide.cpp:68` | +G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...); pick one and Darklands+ takes the party there, choosing the town's menu entries for you. |
-| `ui/guide.cpp:69` | The inn: a room for the night, or stay for days to rest, regain Strength, pray, brew, earn a little or study with a teacher. |
-| `ui/guide.cpp:70` | +The inn's screen shows each member's day and what it costs; "Until rested" and "A week" spend the days for you, stopping when something changes. |
-| `ui/guide.cpp:71` | The innkeeper keeps items for the party (store items, recover items stored here), in a store room of each town's own. |
-| `ui/guide.cpp:72` | +With the shared store room (Darklands+), one store room serves every inn: what is left in one town is there in all of them (F12 > Journal > Stored lists it). |
-| `ui/guide.cpp:73` | Teachers: a guild's masters (blacksmiths, swordsmiths, armorers, bowyers, artificers), the university, the monks, the physician and the alchemists can be asked to teach; a teacher found stays in town for a week and teaches at the inn, for a fee each day. |
-| `ui/guide.cpp:74` | Each shop's goods have a quality, written like 29q: most shops' weapons and armor are about 25q, the best in the land near 38q. |
-| `ui/guide.cpp:75` | +The right margin marks a town's notable shops (30q and better) with an icon and their quality; the world map (M) lists them all and finds where to buy a thing. In a shop, a weapon or armor is compared with what the member has equipped. |
-| `ui/guide.cpp:76` | Almost every town has a monastery, where the monks teach saints, pray for the party and heal. Only some towns have a university, a cathedral, an alchemist, a physician, docks with boats or a bank. |
-| `ui/guide.cpp:77` | +Under a town's name, the margin shows icons for what the town has that most towns lack (point at one to see what it offers); the world map (M) finds every town that has one. |
-| `ui/guide.cpp:78` | Night falls at 19:00 and lasts until 5:00. At night the streets have the night watch, cutthroats lie in wait for a party leaving a side street (a stealthy, streetwise party slips past them), and gates may be closed. |
-| `ui/guide.cpp:79` | +At night the margin shows "Night in the streets" with the party's chances. |
-| `ui/guide.cpp:80` | Witches gather at Sabbats on set nights at places in the wilds. Now and then a card gives away a Sabbat's night or place (a captured villager, a dying cultist, a witch's letter). |
-| `ui/guide.cpp:81` | +Once the party has heard of a Sabbat, it is listed among the quests and its place is marked on the world map (M) and in the overland view. A town that bars the party, or whose watch wants the party, has a sign beside its name on both. |
-| `ui/guide.cpp:83` | Healing and rest |
-| `ui/guide.cpp:84` | At an inn, a member who relaxes or regains Strength has full Endurance again the next morning. Regain Strength adds (the party's best Healing skill) / 15 Strength a day (at least 1). |
-| `ui/guide.cpp:85` | Praying (at an inn) adds (Religion + Virtue) / 12 + 1 Divine Favor a day. |
-| `ui/guide.cpp:86` | A wounded party should not travel far: an encounter on the road at low Strength can kill. |
-| `ui/guide.cpp:89` | Alchemy is strong but slow to build up: each member knows formulae of their own, and a formula makes one potion. Alchemists sell formulae. |
-| `ui/guide.cpp:90` | Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one Thunderbolt formula are ever sold: the others are traded for or found. |
-| `ui/guide.cpp:91` | +The character sheet's Formulae page, set to All formulae, names the nearest visited alchemist that sells each formula the party lacks; the margin ("Formulae sold here", with the prices) and the world map's tooltip on a town list what its alchemist sells. |
-| `ui/guide.cpp:92` | The ingredients are bought from pharmacists, herbalists and alchemists; ingredients carried by any member count. |
-| `ui/guide.cpp:93` | +In such a shop, the Formulae button lists the party's formulae; +1 or +5 beside one buys the ingredients for one or five more batches. |
-| `ui/guide.cpp:94` | A batch's chance of success: 100 + the Philosopher's Stone's quality + Intelligence + Alchemy - the formula's mystic number. The 100 is less when more batches are made at once: 50 for four or five, 33 for six or seven, and so on. The party has one Philosopher's Stone at most (Party Info, F6, shows its quality). Brewing takes a day of alchemy at an inn or in camp. |
-| `ui/guide.cpp:95` | A failed batch at an inn, in a village or a hideout ends in a mishap one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). The formula's risk (low, medium, high) makes it an explosion one time in four, three or two. In a camp in the wilds a failure only costs the ingredients: brew there when the chance is poor. |
-| `ui/guide.cpp:96` | A potion is as good as the formula it was brewed with: each potion has three formulae, of grade 1, 2 and 3. |
-| `ui/guide.cpp:97` | +The marks on a flask (one, two or three) show its grade (their look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance. |
-| `ui/guide.cpp:100` | Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; calling on one takes Religion, Virtue and Divine Favor. |
-| `ui/guide.cpp:101` | Each library teaches four saints, the same for the whole game. |
-| `ui/guide.cpp:102` | +The character sheet's Saints page, set to All saints, names the libraries visited that teach each saint the party lacks, and says what each saint really does; the margin ("Saints taught here") and the world map say what a town's library teaches. |
-| `ui/guide.cpp:103` | +Darklands+ shows the chance on the prayer screen and in a card's options. |
-| `ui/guide.cpp:104` | A saint's help lasts about a day. Some saints ask a price for it, a loss of Perception, Intelligence, Agility or Charisma for that day (the saint's legend says so); the lost points come back when the help runs out. |
-| `ui/guide.cpp:105` | +The margin's "Blessings and potions" shows what is at work on each member, and for how long; on the character sheet's Skills page a raised value is blue. |
-| `ui/guide.cpp:108` | Battles run in real time; Space pauses. To give an order, select a member (click them, or press 1 to 5), pick the order from the menus (Std Attack, Vulnerable, Berserk, Parry, Use Missile, Walk towards, Halt and more), click the enemy or the spot it is for, then press Enter. |
-| `ui/guide.cpp:109` | +With Easier battle controls (Darklands+), a click on an enemy (to attack it) or a spot (to walk there) gives the order at once, with no menu and no Enter, and if selecting the member paused the battle, it goes on; while the battle is paused, the next member without an order is selected. A shooter's box at the left has a bow or a sword on it: click it to choose whether a click on an enemy makes them shoot or fight hand to hand. Z fast-forwards. |
-| `ui/guide.cpp:109` | +The right margin shows the selected member's orders as buttons, so the menus are not needed. |
-| `ui/guide.cpp:110` | +With Improved combat (Darklands+), members fight on sensibly between orders: a shooter keeps shooting (at the nearest enemy in sight when the target falls), steps aside for a clear line, and draws a melee weapon once an enemy is close, or to help a party member nearby who is set upon by two or more or badly hurt; a member whose enemy falls turns on one close by. |
-| `ui/guide.cpp:111` | Ctrl+click a member and the view follows them. |
-| `ui/guide.cpp:111` | +The view scrolls when the pointer rests on its edge (the original needs Shift held there), and selecting a member does not move it: press their number twice to bring the view to them. |
-| `ui/guide.cpp:112` | Armor has a hardness (soft, stiff, scale, mail, plate); a weapon whose penetration is above it pierces and wounds, one equal to it is halved, one below it is mostly turned aside. Short swords and daggers do little against plate. E (Enemy Info) shows each kind of enemy. |
-| `ui/guide.cpp:113` | +Point at an enemy to see how your weapons fare against its armor; Enemy Info shows it for every kind of enemy on the field. |
-| `ui/guide.cpp:114` | Skills grow with use in battle (and with lessons at an inn); when a fight ends, each gain shows in the member's box at the left. |
-| `ui/guide.cpp:115` | +Darklands+ also shows each gain rising in gold over the fighter's head (+2 Edged). |
-| `ui/guide.cpp:116` | Missile weapons need ammunition. A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear. |
-| `ui/guide.cpp:117` | +Darklands+ can give the party endless ammunition (F12 > Settings > The party and its items). |
-| `ui/guide.cpp:118` | After a fight in a street or a dungeon, walk the party out through an exit to go on. |
-| `ui/guide.cpp:119` | In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over, or when the party walks out (which the game counts as fleeing). |
-| `ui/guide.cpp:120` | +The battle margin marks the master among the enemies, and the battle pauses when a group of enemies comes out to fight. With Enemies still waiting (F12 > Mods), it also counts the enemies not yet met, floor by floor, and says on which floor the master waits. |
-| `ui/guide.cpp:123` | In the overland view, clicking a spot walks the party towards it. |
-| `ui/guide.cpp:124` | +Ctrl+click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there. |
-| `ui/guide.cpp:125` | Each step costs time, and the road brings encounters. Roads are quickest, marsh and mountains slowest. The texts of St. Christopher, St. Drogo and St. Wilfrid promise faster travel, and St. Eustace's faster travel through woods, but in the original game they do not speed the party. |
-| `ui/guide.cpp:126` | +The fix "Saints do what their texts say" (Darklands+, F12 > Settings > Fixes) makes these saints keep their texts' promise: faster travel for a week, so fewer days pass on the way. |
-| `ui/guide.cpp:127` | Winter is hard on the road: from November to March a blizzard can catch the party in the open (in the high mountains from October to April). Keep going, call on a saint, or camp and wait it out. |
-| `ui/guide.cpp:128` | Castles, monasteries, mines and the rest open their own card when the party steps on them. |
-| `ui/guide.cpp:131` | Alt+S saves, with a comment, and Alt+L loads; each save is kept as a new one. Some places do not allow saving (in the middle of a card); save often in towns. |
-| `ui/guide.cpp:132` | +Ctrl+S quick-saves; F9 or Ctrl+L loads the quick save. On Darklands+'s Save screen, clicking an old save replaces it with the new one, and the Load screen has a Delete button. |
+| `ui/guide.cpp:28` | The party: Endurance, ... |
+| `ui/guide.cpp:36` | Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus. |
+| `ui/guide.cpp:39` | Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings). |
+| `ui/guide.cpp:59` | A new party has little money and light armor. Buy the best armor the purse allows before anything else (studded leather or mail if you can): a weapon whose penetration is below an armor's hardness is mostly turned aside (Battle, below). |
+| `ui/guide.cpp:60` | The usual way to toughen a new party: walk a town's side streets and docks at night. Thugs and cutthroats attack; each fight raises weapon skills quickly, and their weapons and armor sell well (cloth armor sells for little). The worst the night watch does is fine you. Go back to the inn to rest between rounds. |
+| `ui/guide.cpp:61` | +Darklands+ can make these night ambushes rarer (F12 > Mods: Night encounters in the streets); leave it as the original if you mean to train this way. |
+| `ui/guide.cpp:62` | Quests (paid work) come from a town's merchants, foreign traders and pharmacists (at the marketplace), the Fugger, the Medici, the Hanse, the town council and the cathedral: robber knights to kill, items to fetch. The banks' and the council's pay best. Note down what you were asked to do and where. |
+| `ui/guide.cpp:63` | +The left margin lists the party's quests, and the world map (M) marks where each one leads. |
+| `ui/guide.cpp:64` | Rest at an inn when Strength is low, and set out with it full. In the wilds, camping costs nothing. |
+| `ui/guide.cpp:65` | Keep the party's Virtue up and never attack a priest or a monk: the Church remembers. Cleared streets and good deeds raise the town's opinion of the party. |
+| `ui/guide.cpp:66` | A good party has a leader with high Charisma who speaks the common tongue well, someone who reads Latin, and a woodsman (Woodwise) for the road. Nürnberg, in the middle of the land, is a good home town. |
+| `ui/guide.cpp:67` | +Sell what nobody uses: in a shop, the Sell spare gear button sells at once every weapon, armor and shield that is not equipped and that the shop buys (not ammunition, throwing weapons or items marked Keep). |
+| `ui/guide.cpp:68` | Save often in towns. |
+| `ui/guide.cpp:69` | +Darklands+ also saves by itself on arriving at a town or any other place, and before a battle. |
+| `ui/guide.cpp:71` | The party: Endurance, Strength, Divine Favor |
+| `ui/guide.cpp:72` | Endurance (End) is breath and bruises: blows take it first and rest brings it back. At 0 a member falls unconscious. |
+| `ui/guide.cpp:73` | Strength (Str) is real wounds: it falls with heavy blows and comes back slowly. At 0 the member is dead. Below half, keep that member out of the fight. |
+| `ui/guide.cpp:74` | Divine Favor (DF) is spent calling on saints and comes back with prayer (and slowly by itself). |
+| `ui/guide.cpp:75` | Each member's attributes and skills are on the character sheet (click the member in the party panel at the left, or press F1 ... F5). |
+| `ui/guide.cpp:76` | +The bars on the party panel show End, Str and DF all the time, with numbers. |
+| `ui/guide.cpp:77` | The party has room for four characters of your own: at an inn, "reconsider the composition of your party" creates a new one for an empty slot or dismisses one. A fifth slot is for companions some cards bring along for a while (a village's headman, a knight). |
+| `ui/guide.cpp:78` | Each member carries their own items. Only equipped items (weapons, armor, shield) count toward a member's load, and a heavy load slows them in battle. |
+| `ui/guide.cpp:79` | +With the shared pack (Darklands+), everything not equipped goes into one pack for the whole party, so nobody has to pass items between members. Each member keeps their equipped weapons and armor, their mount and their own potions. When the game needs a particular member to have something (lock picks at a lock, arrows before a battle, a horse), Darklands+ hands it to them from the pack first. |
+| `ui/guide.cpp:80` | On a card, the test is made by the leader. |
+| `ui/guide.cpp:80` | +Darklands+ has the member best at it take the test instead (F12 > Settings > Cards and towns: The best member speaks for the party), with the chance and that member's head beside the option; pointing at the chance shows every member's, and a click on one has that member speak instead. Whoever speaks also bears what comes of it, as the card's text says: wounds, a trap's lasting harm, a shrine's favor. On the alchemist's formula options you pick who speaks (each member with their own chance), since what is traded is learned by the one who speaks. In a battle or a dungeon, while unpaused, the leader deals with doors, chests and locks. |
+| `ui/guide.cpp:82` | Money and reputation |
+| `ui/guide.cpp:83` | 1 florin = 20 groschen; 1 groschen = 12 pfennigs. The purse is the party's; prices change with the town's opinion of you. |
+| `ui/guide.cpp:84` | The party has a separate reputation in each town: good deeds there raise it, crimes and brawls lower it. A bad reputation brings trouble with the watch and higher prices. |
+| `ui/guide.cpp:85` | A reputation runs from -99 to 99, in six named levels: hunted (-75 and below), wanted, suspected, unknown (-9 to 10), respected (11 to 50) and a local hero (above 50). Most deeds and saints move it by a random amount, and the further it is from 0 the likelier it stays as it is: at 50 one deed in two counts, at 90 one in ten. |
+| `ui/guide.cpp:86` | Fame is the party's renown everywhere; it brings a new title every 50 points. |
+| `ui/guide.cpp:87` | Party Info (F6, or the Party menu) shows the fame, the money and the reputation in the town the party is in; on its small map, point at a town to see the reputation there. |
+| `ui/guide.cpp:87` | +Darklands+'s Party Info lists the reputation in every town at once. |
+| `ui/guide.cpp:90` | +G opens Go to: a list of the town's places (shops, churches, the inn, the gates ...); pick one and Darklands+ takes the party there, choosing the town's menu entries for you. |
+| `ui/guide.cpp:91` | The inn: a room for the night, or stay for days to rest, regain Strength, pray, brew, earn a little or study with a teacher. |
+| `ui/guide.cpp:92` | +The inn's screen shows each member's day and what it costs; "Until rested" and "A week" spend the days for you, stopping when something changes. |
+| `ui/guide.cpp:93` | The innkeeper keeps items for the party (store items, recover items stored here), in a store room of each town's own. |
+| `ui/guide.cpp:94` | +With the shared store room (Darklands+), one store room serves every inn: what is left in one town is there in all of them (F12 > Journal > Stored lists it). |
+| `ui/guide.cpp:95` | Teachers: a guild's masters (blacksmiths, swordsmiths, armorers, bowyers, artificers), the university, the monks, the physician and the alchemists can be asked to teach; a teacher found stays in town for a week and teaches at the inn, for a fee each day. |
+| `ui/guide.cpp:96` | Each shop's goods have a quality, written like 29q: most shops' weapons and armor are about 25q, the best in the land near 38q. |
+| `ui/guide.cpp:97` | +The right margin marks a town's notable shops (30q and better) with an icon and their quality; the world map (M) lists them all and finds where to buy a thing. In a shop, a weapon or armor is compared with what the member has equipped. |
+| `ui/guide.cpp:98` | Almost every town has a monastery, where the monks teach saints, pray for the party and heal. Only some towns have a university, a cathedral, an alchemist, a physician, docks with boats or a bank. |
+| `ui/guide.cpp:99` | +Under a town's name, the margin shows icons for what the town has that most towns lack (point at one to see what it offers); the world map (M) finds every town that has one. |
+| `ui/guide.cpp:100` | Night falls at 19:00 and lasts until 5:00. At night the streets have the night watch, cutthroats lie in wait for a party leaving a side street (a stealthy, streetwise party slips past them), and gates may be closed. |
+| `ui/guide.cpp:101` | +At night the margin shows "Night in the streets" with the party's chances. |
+| `ui/guide.cpp:102` | Witches gather at Sabbats on set nights at places in the wilds. Now and then a card gives away a Sabbat's night or place (a captured villager, a dying cultist, a witch's letter). |
+| `ui/guide.cpp:103` | +Once the party has heard of a Sabbat, it is listed among the quests and its place is marked on the world map (M) and in the overland view. A town that bars the party, or whose watch wants the party, has a sign beside its name on both. |
+| `ui/guide.cpp:105` | Healing and rest |
+| `ui/guide.cpp:106` | At an inn, a member who relaxes or regains Strength has full Endurance again the next morning. Regain Strength adds (the party's best Healing skill) / 15 Strength a day (at least 1). |
+| `ui/guide.cpp:107` | Praying (at an inn) adds (Religion + Virtue) / 12 + 1 Divine Favor a day. |
+| `ui/guide.cpp:108` | A wounded party should not travel far: an encounter on the road at low Strength can kill. |
+| `ui/guide.cpp:111` | Alchemy is strong but slow to build up: each member knows formulae of their own, and a formula makes one potion. Alchemists sell formulae. |
+| `ui/guide.cpp:112` | Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one Thunderbolt formula are ever sold: the others are traded for or found. |
+| `ui/guide.cpp:113` | +The character sheet's Formulae page, set to All formulae, names the nearest visited alchemist that sells each formula the party lacks; the margin ("Formulae sold here", with the prices) and the world map's tooltip on a town list what its alchemist sells. |
+| `ui/guide.cpp:114` | The ingredients are bought from pharmacists, herbalists and alchemists; ingredients carried by any member count. |
+| `ui/guide.cpp:115` | +In such a shop, the Formulae button lists the party's formulae; +1 or +5 beside one buys the ingredients for one or five more batches. |
+| `ui/guide.cpp:116` | A batch's chance of success: 100 + the Philosopher's Stone's quality + Intelligence + Alchemy - the formula's mystic number. The 100 is less when more batches are made at once: 50 for four or five, 33 for six or seven, and so on. The party has one Philosopher's Stone at most (Party Info, F6, shows its quality). Brewing takes a day of alchemy at an inn or in camp. |
+| `ui/guide.cpp:117` | A failed batch at an inn, in a village or a hideout ends in a mishap one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). The formula's risk (low, medium, high) makes it an explosion one time in four, three or two. In a camp in the wilds a failure only costs the ingredients: brew there when the chance is poor. |
+| `ui/guide.cpp:118` | A potion is as good as the formula it was brewed with: each potion has three formulae, of grade 1, 2 and 3. |
+| `ui/guide.cpp:119` | +The marks on a flask (one, two or three) show its grade (their look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance. |
+| `ui/guide.cpp:122` | Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; calling on one takes Religion, Virtue and Divine Favor. |
+| `ui/guide.cpp:123` | Each library teaches four saints, the same for the whole game. |
+| `ui/guide.cpp:124` | +The character sheet's Saints page, set to All saints, names the libraries visited that teach each saint the party lacks, and says what each saint really does; the margin ("Saints taught here") and the world map say what a town's library teaches. |
+| `ui/guide.cpp:125` | +Darklands+ shows the chance on the prayer screen and in a card's options. |
+| `ui/guide.cpp:126` | A saint's help lasts about a day. Some saints ask a price for it, a loss of Perception, Intelligence, Agility or Charisma for that day (the saint's legend says so); the lost points come back when the help runs out. |
+| `ui/guide.cpp:127` | +The margin's "Blessings and potions" shows what is at work on each member, and for how long; on the character sheet's Skills page a raised value is blue. |
+| `ui/guide.cpp:130` | Battles run in real time; Space pauses. To give an order, select a member (click them, or press 1 to 5), pick the order from the menus (Std Attack, Vulnerable, Berserk, Parry, Use Missile, Walk towards, Halt and more), click the enemy or the spot it is for, then press Enter. |
+| `ui/guide.cpp:131` | +With Easier battle controls (Darklands+), a click on an enemy (to attack it) or a spot (to walk there) gives the order at once, with no menu and no Enter, and if selecting the member paused the battle, it goes on; while the battle is paused, the next member without an order is selected. A shooter's box at the left has a bow or a sword on it: click it to choose whether a click on an enemy makes them shoot or fight hand to hand. Z fast-forwards. |
+| `ui/guide.cpp:131` | +The right margin shows the selected member's orders as buttons, so the menus are not needed. |
+| `ui/guide.cpp:132` | +With Improved combat (Darklands+), members fight on sensibly between orders: a shooter keeps shooting (at the nearest enemy in sight when the target falls), steps aside for a clear line, and draws a melee weapon once an enemy is close, or to help a party member nearby who is set upon by two or more or badly hurt; a member whose enemy falls turns on one close by. |
+| `ui/guide.cpp:133` | Ctrl+click a member and the view follows them. |
+| `ui/guide.cpp:133` | +The view scrolls when the pointer rests on its edge (the original needs Shift held there), and selecting a member does not move it: press their number twice to bring the view to them. |
+| `ui/guide.cpp:134` | Armor has a hardness (soft, stiff, scale, mail, plate); a weapon whose penetration is above it pierces and wounds, one equal to it is halved, one below it is mostly turned aside. Short swords and daggers do little against plate. E (Enemy Info) shows each kind of enemy. |
+| `ui/guide.cpp:135` | +Point at an enemy to see how your weapons fare against its armor; Enemy Info shows it for every kind of enemy on the field. |
+| `ui/guide.cpp:136` | Skills grow with use in battle (and with lessons at an inn); when a fight ends, each gain shows in the member's box at the left. |
+| `ui/guide.cpp:137` | +Darklands+ also shows each gain rising in gold over the fighter's head (+2 Edged). |
+| `ui/guide.cpp:138` | Missile weapons need ammunition. A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear. |
+| `ui/guide.cpp:139` | +Darklands+ can give the party endless ammunition (F12 > Settings > The party and its items). |
+| `ui/guide.cpp:140` | After a fight in a street or a dungeon, walk the party out through an exit to go on. |
+| `ui/guide.cpp:141` | In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over, or when the party walks out (which the game counts as fleeing). |
+| `ui/guide.cpp:142` | +The battle margin marks the master among the enemies, and the battle pauses when a group of enemies comes out to fight. With Enemies still waiting (F12 > Mods), it also counts the enemies not yet met, floor by floor, and says on which floor the master waits. |
+| `ui/guide.cpp:145` | In the overland view, clicking a spot walks the party towards it. |
+| `ui/guide.cpp:146` | +Ctrl+click travels there along the roads, around rivers (any key or click stops). M opens the world map: double-click a place to go there. |
+| `ui/guide.cpp:147` | Each step costs time, and the road brings encounters. Roads are quickest, marsh and mountains slowest. The texts of St. Christopher, St. Drogo and St. Wilfrid promise faster travel, and St. Eustace's faster travel through woods, but in the original game they do not speed the party. |
+| `ui/guide.cpp:148` | +The fix "Saints do what their texts say" (Darklands+, F12 > Settings > Fixes) makes these saints keep their texts' promise: faster travel for a week, so fewer days pass on the way. |
+| `ui/guide.cpp:149` | Winter is hard on the road: from November to March a blizzard can catch the party in the open (in the high mountains from October to April). Keep going, call on a saint, or camp and wait it out. |
+| `ui/guide.cpp:150` | Castles, monasteries, mines and the rest open their own card when the party steps on them. |
+| `ui/guide.cpp:153` | Alt+S saves, with a comment, and Alt+L loads; each save is kept as a new one. Some places do not allow saving (in the middle of a card); save often in towns. |
+| `ui/guide.cpp:154` | +Ctrl+S quick-saves; F9 or Ctrl+L loads the quick save. On Darklands+'s Save screen, clicking an old save replaces it with the new one, and the Load screen has a Delete button. |
+| `ui/guide.cpp:155` | +Ironman (F12 > Settings > Preset, for the next new game): the game keeps one save and saves over it as you go (every card, each arrival, before each battle, on quitting). There is no loading back, and when the party's journey ends its save is deleted. |
 | `ui/hourglass.cpp:322` | The game's own |
 | `ui/hourglass.cpp:322` | Tower dial (about 1400) |
 | `ui/hourglass.cpp:322` | Armillary, drawn anew |
@@ -2014,43 +2022,34 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:991` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:992` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:997` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:365` | Frames and clock |
-| `ui/skillicons.cpp:369` | Cards and towns |
-| `ui/skillicons.cpp:374` | The party and its items |
-| `ui/skillicons.cpp:390` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:442` | Frames and clock |
-| `ui/skillicons.cpp:442` | Cards and towns |
-| `ui/skillicons.cpp:442` | The party and its items |
-| `ui/skillicons.cpp:443` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:466` | Spring, lake |
-| `ui/skillicons.cpp:467` | 1. Not visited: cold grey wax; visited: warm wax |
-| `ui/skillicons.cpp:467` | 2. Not visited: the ribbon of a letter still unopened |
-| `ui/skillicons.cpp:467` | 3. Visited: the party's ring pressed into the wax |
-| `ui/skillicons.cpp:470` | The places, as now, castles in the villages' colour (the towns on wax below) |
-| `ui/skillicons.cpp:481` | visited: small, medium, large |
-| `ui/skillicons.cpp:481` | not visited: small, medium, large |
-| `ui/skillicons.cpp:493` | Now: coloured discs, the picture painted |
-| `ui/skillicons.cpp:493` | 1. Red wax, the picture pressed in |
-| `ui/skillicons.cpp:493` | 2. Wax by kind of place, the picture pressed in |
-| `ui/skillicons.cpp:493` | 3. Wax by kind of place, the picture painted on it |
-| `ui/skillicons.cpp:494` | Spring, lake |
-| `ui/skillicons.cpp:546` | The four bases |
-| `ui/skillicons.cpp:546` | the elements' triangles |
-| `ui/skillicons.cpp:547` | Metals and their ores |
-| `ui/skillicons.cpp:547` | the planets' signs |
-| `ui/skillicons.cpp:548` | Sulphurs, salts and poisons |
-| `ui/skillicons.cpp:548` | their own signs |
-| `ui/skillicons.cpp:549` | Waters, oils and vapours |
-| `ui/skillicons.cpp:549` | their own signs |
-| `ui/skillicons.cpp:550` | no sign: a drawing in the same line |
-| `ui/skillicons.cpp:551` | E. Black Bean |
-| `ui/skillicons.cpp:551` | White Cinnabar |
-| `ui/skillicons.cpp:553` | Choleric Base |
-| `ui/skillicons.cpp:553` | Phlegmatic Base |
-| `ui/skillicons.cpp:553` | Sanguine Base |
-| `ui/skillicons.cpp:553` | Melancholic Base |
-| `ui/skillicons.cpp:573` | Herbs: three tries each |
-| `ui/skillicons.cpp:601` | Drawn in color (no disc) |
+| `ui/skillicons.cpp:443` | Frames and clock |
+| `ui/skillicons.cpp:447` | Cards and towns |
+| `ui/skillicons.cpp:452` | The party and its items |
+| `ui/skillicons.cpp:468` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:519` | Frames and clock |
+| `ui/skillicons.cpp:519` | Cards and towns |
+| `ui/skillicons.cpp:519` | The party and its items |
+| `ui/skillicons.cpp:520` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:542` | A. A swallow in flight |
+| `ui/skillicons.cpp:542` | B. A leap over a hurdle |
+| `ui/skillicons.cpp:542` | C. A hare, plain shapes |
+| `ui/skillicons.cpp:543` | A. An Ionic column |
+| `ui/skillicons.cpp:543` | B. Rome's eagle |
+| `ui/skillicons.cpp:543` | C. The letter AE |
+| `ui/skillicons.cpp:543` | D. A bishop's mitre |
+| `ui/skillicons.cpp:595` | The four bases: the elements' triangles |
+| `ui/skillicons.cpp:596` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
+| `ui/skillicons.cpp:597` | Sulphurs, salts and poisons |
+| `ui/skillicons.cpp:598` | Waters, oils and vapours |
+| `ui/skillicons.cpp:599` | Herbs: no sign in the tables, one made as theirs are |
+| `ui/skillicons.cpp:600` | E. Black Bean |
+| `ui/skillicons.cpp:600` | White Cinnabar |
+| `ui/skillicons.cpp:602` | Choleric Base |
+| `ui/skillicons.cpp:602` | Phlegmatic Base |
+| `ui/skillicons.cpp:602` | Sanguine Base |
+| `ui/skillicons.cpp:602` | Melancholic Base |
+| `ui/skillicons.cpp:605` | Each ingredient: its sign now (left), and the picture it had before (right) |
+| `ui/skillicons.cpp:634` | Drawn in color (no disc) |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2064,31 +2063,31 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/teachersui.cpp:86` |  Who they accept:  |
 | `ui/teachersui.cpp:87` |  Right now:  |
 | `ui/teachersui.cpp:99` | %s (until %d %s) |
-| `ui/tips.cpp:54` | Never show again |
-| `ui/tips.cpp:54` | Never show again (can be ticked from the fourth start) |
-| `ui/tips.cpp:115` | New to Darklands? |
-| `ui/tips.cpp:116` | Darklands came with a thick manual and explains little by itself. The New Player Guide sums up how it works: the first steps, the party, money, towns, healing, alchemy, saints, battle, travel and saving, with the advice players have long given one another. |
-| `ui/tips.cpp:119` | It is in the Darklands+ window: {START} > New Player Guide. |
-| `ui/tips.cpp:120` | It is in the Darklands+ window at any time: F12 > New Player Guide. F11 lists the keys of the screen in view. |
-| `ui/tips.cpp:122` |   Read the New Player Guide   |
-| `ui/tips.cpp:140` | Battles, with Improved combat |
-| `ui/tips.cpp:141` | Your people fight on between orders |
-| `ui/tips.cpp:142` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
-| `ui/tips.cpp:143` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
-| `ui/tips.cpp:144` | Shooters draw a melee weapon once an enemy is close, or to help a friend nearby who is set upon or badly hurt. |
-| `ui/tips.cpp:145` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
-| `ui/tips.cpp:147` | {START} > New Player Guide > Battle explains the rest; F11 on a keyboard lists the keys. |
-| `ui/tips.cpp:148` | Space pauses and resumes. Orders can be given while paused. |
-| `ui/tips.cpp:150` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
-| `ui/tips.cpp:151` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
-| `ui/tips.cpp:152` | F11 lists every key |
-| `ui/tips.cpp:153` | ; Tab, the level map |
-| `ui/tips.cpp:157` | Std Attack: blows and guard in balance. |
-| `ui/tips.cpp:158` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
-| `ui/tips.cpp:159` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
-| `ui/tips.cpp:160` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
-| `ui/tips.cpp:162` | Improved combat can be switched off in F12 > Settings > Battles. |
-| `ui/tips.cpp:164` |   To battle   |
+| `ui/tips.cpp:56` | Never show again (this will nag you %d more time%s) |
+| `ui/tips.cpp:57` | Never show again |
+| `ui/tips.cpp:118` | New to Darklands? |
+| `ui/tips.cpp:119` | Darklands came with a thick manual and explains little by itself. The New Player Guide sums up how it works: the first steps, the party, money, towns, healing, alchemy, saints, battle, travel and saving, with the advice players have long given one another. |
+| `ui/tips.cpp:122` | It is in the Darklands+ window: {START} > New Player Guide. |
+| `ui/tips.cpp:123` | It is in the Darklands+ window at any time: F12 > New Player Guide. F11 lists the keys of the screen in view. |
+| `ui/tips.cpp:125` |   Read the New Player Guide   |
+| `ui/tips.cpp:143` | Battles, with Improved combat |
+| `ui/tips.cpp:144` | Your people fight on between orders |
+| `ui/tips.cpp:145` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
+| `ui/tips.cpp:146` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
+| `ui/tips.cpp:147` | Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt. |
+| `ui/tips.cpp:148` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
+| `ui/tips.cpp:150` | {START} > New Player Guide > Battle explains the rest; F11 on a keyboard lists the keys. |
+| `ui/tips.cpp:151` | Space pauses and resumes. Orders can be given while paused. |
+| `ui/tips.cpp:153` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
+| `ui/tips.cpp:154` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
+| `ui/tips.cpp:155` | F11 lists every key |
+| `ui/tips.cpp:156` | ; Tab, the level map |
+| `ui/tips.cpp:160` | Std Attack: blows and guard in balance. |
+| `ui/tips.cpp:161` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
+| `ui/tips.cpp:162` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
+| `ui/tips.cpp:163` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
+| `ui/tips.cpp:165` | Improved combat can be switched off in F12 > Settings > Battles. |
+| `ui/tips.cpp:167` |   To battle   |
 | `ui/titleview.cpp:26` | saved today at %d:%02d |
 | `ui/titleview.cpp:27` | saved yesterday at %d:%02d |
 | `ui/titleview.cpp:28` | saved %d %s %d |
@@ -2160,172 +2159,176 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:131` | Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; most of it can also be switched on or off one by one. |
 | `ui/ui_windows.cpp:136` | How would you like to play? |
 | `ui/ui_windows.cpp:141` |  (recommended) |
-| `ui/ui_windows.cpp:147` | Saved games stay compatible with the original game whichever you choose. |
-| `ui/ui_windows.cpp:148` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
-| `ui/ui_windows.cpp:149` | Change it at any time, or turn single features on or off: F12 > Settings. |
-| `ui/ui_windows.cpp:154` |   Read the New Player Guide first   |
-| `ui/ui_windows.cpp:159` | F12: the Darklands+ window (the game waits while it is open) |
-| `ui/ui_windows.cpp:160` | F11: the keys and clicks for the current screen, including the game's hidden ones |
-| `ui/ui_windows.cpp:161` | F12 > New Player Guide: how Darklands works, for a new player |
-| `ui/ui_windows.cpp:162` | Click a party member on the left: their character sheet, with the whole party's saints and formulae |
-| `ui/ui_windows.cpp:163` | M: the world map, to find a place and travel there |
-| `ui/ui_windows.cpp:164` | Right-click: the game's menu bar (save, load, orders in battle) |
-| `ui/ui_windows.cpp:165` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
-| `ui/ui_windows.cpp:191` | New in Darklands+  |
-| `ui/ui_windows.cpp:194` | The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. Settings is one page, its sections listed on the left. |
-| `ui/ui_windows.cpp:196` | The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares. |
-| `ui/ui_windows.cpp:197` | Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there. |
-| `ui/ui_windows.cpp:198` | Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon. |
-| `ui/ui_windows.cpp:199` | More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info. |
-| `ui/ui_windows.cpp:200` | City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off until you tick them): F12 > Reconstructed Content. |
-| `ui/ui_windows.cpp:202` | A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller. |
-| `ui/ui_windows.cpp:203` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
-| `ui/ui_windows.cpp:207` | Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen. |
-| `ui/ui_windows.cpp:210` |   Back to the game   |
-| `ui/ui_windows.cpp:227` | Darklands sounds best on a Roland MT-32 |
-| `ui/ui_windows.cpp:228` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
-| `ui/ui_windows.cpp:232` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
-| `ui/ui_windows.cpp:236` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
-| `ui/ui_windows.cpp:248` | Choose the folder with the ROM files... |
-| `ui/ui_windows.cpp:250` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
-| `ui/ui_windows.cpp:252` | No MT-32 or CM-32L ROM files in that folder. |
-| `ui/ui_windows.cpp:260` | No ROM files found there yet. |
-| `ui/ui_windows.cpp:262` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
-| `ui/ui_windows.cpp:267` | Restart with the MT-32 |
-| `ui/ui_windows.cpp:273` | F12 > Settings > Sound has all of this too. |
-| `ui/ui_windows.cpp:289` | Keys and clicks (F11) |
-| `ui/ui_windows.cpp:302` | Now: loading a game |
-| `ui/ui_windows.cpp:302` | Now: saving the game |
-| `ui/ui_windows.cpp:303` | Double-click a save |
-| `ui/ui_windows.cpp:303` | load it (or click it, then Load) |
-| `ui/ui_windows.cpp:303` | Up, Down, Enter |
-| `ui/ui_windows.cpp:303` | choose a save, load it |
-| `ui/ui_windows.cpp:304` | a name for the save (22 characters at most; Backspace deletes one) |
-| `ui/ui_windows.cpp:304` | Enter or Save |
-| `ui/ui_windows.cpp:305` | Esc or Cancel |
-| `ui/ui_windows.cpp:305` | back to the game as it was |
-| `ui/ui_windows.cpp:307` | Now: a stay at the inn |
-| `ui/ui_windows.cpp:308` | A member, or 1 ... 5 |
-| `ui/ui_windows.cpp:308` | choose the member whose day you are planning |
-| `ui/ui_windows.cpp:309` | J R P A E G T |
-| `ui/ui_windows.cpp:309` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
-| `ui/ui_windows.cpp:310` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
-| `ui/ui_windows.cpp:311` | L, Esc or Leave |
-| `ui/ui_windows.cpp:314` | Click an option |
-| `ui/ui_windows.cpp:314` | or press its number, 1 to 9 |
-| `ui/ui_windows.cpp:315` | Hold Shift over an option |
-| `ui/ui_windows.cpp:315` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
-| `ui/ui_windows.cpp:316` | go to a place in this city (Darklands+) |
-| `ui/ui_windows.cpp:317` | the world map (Darklands+) |
-| `ui/ui_windows.cpp:318` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
-| `ui/ui_windows.cpp:320` | Now: the overland view |
-| `ui/ui_windows.cpp:321` | walk towards that spot |
-| `ui/ui_windows.cpp:322` | travel there along the roads (Darklands+; any key or click stops) |
-| `ui/ui_windows.cpp:323` | the world map (Darklands+): find a place, double-click to travel there |
-| `ui/ui_windows.cpp:324` | Point at a quest's icon |
-| `ui/ui_windows.cpp:324` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
-| `ui/ui_windows.cpp:325` | A quest in the left margin |
-| `ui/ui_windows.cpp:325` | click to open it, then Travel there |
-| `ui/ui_windows.cpp:326` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
-| `ui/ui_windows.cpp:328` | Now: a battle |
-| `ui/ui_windows.cpp:329` | pause / resume; orders can be given while paused |
-| `ui/ui_windows.cpp:331` | Click a member |
-| `ui/ui_windows.cpp:331` | then click an enemy (attack) or a spot (walk there): that click gives the order |
-| `ui/ui_windows.cpp:332` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:335` | The right margin's buttons |
-| `ui/ui_windows.cpp:335` | the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once |
-| `ui/ui_windows.cpp:337` | Click a member |
-| `ui/ui_windows.cpp:337` | then click an enemy, a spot or a menu choice; Enter gives the order |
-| `ui/ui_windows.cpp:338` | Ctrl+click a member |
-| `ui/ui_windows.cpp:338` | make that member the active one: the view follows them (scrolling at an edge stops it) |
-| `ui/ui_windows.cpp:339` | Point at anyone |
-| `ui/ui_windows.cpp:339` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:340` | a map of the level as far as the party has seen it (Darklands+) |
-| `ui/ui_windows.cpp:342` | The battle log |
-| `ui/ui_windows.cpp:342` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:344` | Now: the loot |
-| `ui/ui_windows.cpp:345` | Take / Put back |
-| `ui/ui_windows.cpp:345` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:346` | everything into the party's pack |
-| `ui/ui_windows.cpp:346` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:347` | Take all / Share out |
-| `ui/ui_windows.cpp:347` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:348` | Names above the right list, D |
-| `ui/ui_windows.cpp:348` | switch to another member |
-| `ui/ui_windows.cpp:349` | L, Esc or Leave |
-| `ui/ui_windows.cpp:349` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:351` | Now: the loot |
-| `ui/ui_windows.cpp:352` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:353` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:354` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:354` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:355` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:358` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:359` | Names above your list |
-| `ui/ui_windows.cpp:359` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:360` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:360` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:361` | L, Esc or Leave |
-| `ui/ui_windows.cpp:364` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:365` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:365` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:366` | barter for the next member |
-| `ui/ui_windows.cpp:369` | Now: the store room |
-| `ui/ui_windows.cpp:370` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:371` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:372` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:373` | The store room |
-| `ui/ui_windows.cpp:373` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:374` | L, Esc or Leave |
-| `ui/ui_windows.cpp:376` | Now: a character sheet |
-| `ui/ui_windows.cpp:377` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:377` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:378` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:379` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:380` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:381` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:381` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:382` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:382` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:383` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:383` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:384` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:384` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:385` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:385` | scroll the list |
-| `ui/ui_windows.cpp:387` | Now: a character sheet |
-| `ui/ui_windows.cpp:388` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:388` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:389` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:389` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:390` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:391` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:392` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:394` | Keys of the original game |
-| `ui/ui_windows.cpp:395` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:396` | Right mouse button |
-| `ui/ui_windows.cpp:396` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:397` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:397` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:398` | the marching order |
-| `ui/ui_windows.cpp:399` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:400` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:402` | quit to the desktop |
-| `ui/ui_windows.cpp:404` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:405` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:405` | quick save / quick load |
-| `ui/ui_windows.cpp:406` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:409` | The controller |
-| `ui/ui_windows.cpp:415` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:416` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:417` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:419` | the arrow keys |
-| `ui/ui_windows.cpp:420` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:421` | {START} {BACK} |
-| `ui/ui_windows.cpp:421` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:422` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:423` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:425` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:152` | one save, kept by the game itself as you go; no loading back. For your next new game, with any of the three. |
+| `ui/ui_windows.cpp:156` | Saved games stay compatible with the original game whichever you choose. |
+| `ui/ui_windows.cpp:157` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
+| `ui/ui_windows.cpp:158` | Change it at any time, or turn single features on or off: F12 > Settings. |
+| `ui/ui_windows.cpp:163` |   Read the New Player Guide first   |
+| `ui/ui_windows.cpp:168` | F12: the Darklands+ window (the game waits while it is open) |
+| `ui/ui_windows.cpp:169` | F11: the keys and clicks for the current screen, including the game's hidden ones |
+| `ui/ui_windows.cpp:170` | F12 > New Player Guide: how Darklands works, for a new player |
+| `ui/ui_windows.cpp:171` | Click a party member on the left: their character sheet, with the whole party's saints and formulae |
+| `ui/ui_windows.cpp:172` | M: the world map, to find a place and travel there |
+| `ui/ui_windows.cpp:173` | Right-click: the game's menu bar (save, load, orders in battle) |
+| `ui/ui_windows.cpp:174` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
+| `ui/ui_windows.cpp:200` | New in Darklands+  |
+| `ui/ui_windows.cpp:203` | The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. Settings and the New Player Guide list their sections on the left. |
+| `ui/ui_windows.cpp:205` | The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares. |
+| `ui/ui_windows.cpp:206` | Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there. |
+| `ui/ui_windows.cpp:207` | Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; a member with no orders joins a fight beside it. The first battle explains it. |
+| `ui/ui_windows.cpp:209` | On a card, beside each chance: the head of who tries it, and what it rests on (skills, attributes, the town's opinion, fame). |
+| `ui/ui_windows.cpp:210` | Ironman: one save, kept by the game itself as you go, no loading back (F12 > Settings > Preset, for your next new game). |
+| `ui/ui_windows.cpp:211` | The whole soundtrack can be played in F12 > Settings > Sound, on the device you choose. |
+| `ui/ui_windows.cpp:212` | More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info. |
+| `ui/ui_windows.cpp:213` | City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off until you tick them): F12 > Reconstructed Content. |
+| `ui/ui_windows.cpp:215` | A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller. |
+| `ui/ui_windows.cpp:216` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
+| `ui/ui_windows.cpp:220` | Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen. |
+| `ui/ui_windows.cpp:223` |   Back to the game   |
+| `ui/ui_windows.cpp:240` | Darklands sounds best on a Roland MT-32 |
+| `ui/ui_windows.cpp:241` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
+| `ui/ui_windows.cpp:245` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
+| `ui/ui_windows.cpp:249` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
+| `ui/ui_windows.cpp:263` | Choose the folder with the ROM files... |
+| `ui/ui_windows.cpp:265` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
+| `ui/ui_windows.cpp:267` | No MT-32 or CM-32L ROM files in that folder. |
+| `ui/ui_windows.cpp:275` | No ROM files found there yet. |
+| `ui/ui_windows.cpp:277` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
+| `ui/ui_windows.cpp:282` | Restart with the MT-32 |
+| `ui/ui_windows.cpp:288` | F12 > Settings > Sound has all of this too. |
+| `ui/ui_windows.cpp:304` | Keys and clicks (F11) |
+| `ui/ui_windows.cpp:317` | Now: loading a game |
+| `ui/ui_windows.cpp:317` | Now: saving the game |
+| `ui/ui_windows.cpp:318` | Double-click a save |
+| `ui/ui_windows.cpp:318` | load it (or click it, then Load) |
+| `ui/ui_windows.cpp:318` | Up, Down, Enter |
+| `ui/ui_windows.cpp:318` | choose a save, load it |
+| `ui/ui_windows.cpp:319` | a name for the save (22 characters at most; Backspace deletes one) |
+| `ui/ui_windows.cpp:319` | Enter or Save |
+| `ui/ui_windows.cpp:320` | Esc or Cancel |
+| `ui/ui_windows.cpp:320` | back to the game as it was |
+| `ui/ui_windows.cpp:322` | Now: a stay at the inn |
+| `ui/ui_windows.cpp:323` | A member, or 1 ... 5 |
+| `ui/ui_windows.cpp:323` | choose the member whose day you are planning |
+| `ui/ui_windows.cpp:324` | J R P A E G T |
+| `ui/ui_windows.cpp:324` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
+| `ui/ui_windows.cpp:325` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
+| `ui/ui_windows.cpp:326` | L, Esc or Leave |
+| `ui/ui_windows.cpp:329` | Click an option |
+| `ui/ui_windows.cpp:329` | or press its number, 1 to 9 |
+| `ui/ui_windows.cpp:330` | Hold Shift over an option |
+| `ui/ui_windows.cpp:330` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
+| `ui/ui_windows.cpp:331` | go to a place in this city (Darklands+) |
+| `ui/ui_windows.cpp:332` | the world map (Darklands+) |
+| `ui/ui_windows.cpp:333` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
+| `ui/ui_windows.cpp:335` | Now: the overland view |
+| `ui/ui_windows.cpp:336` | walk towards that spot |
+| `ui/ui_windows.cpp:337` | travel there along the roads (Darklands+; any key or click stops) |
+| `ui/ui_windows.cpp:338` | the world map (Darklands+): find a place, double-click to travel there |
+| `ui/ui_windows.cpp:339` | Point at a quest's icon |
+| `ui/ui_windows.cpp:339` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
+| `ui/ui_windows.cpp:340` | A quest in the left margin |
+| `ui/ui_windows.cpp:340` | click to open it, then Travel there |
+| `ui/ui_windows.cpp:341` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
+| `ui/ui_windows.cpp:343` | Now: a battle |
+| `ui/ui_windows.cpp:344` | pause / resume; orders can be given while paused |
+| `ui/ui_windows.cpp:346` | Click a member |
+| `ui/ui_windows.cpp:346` | then click an enemy (attack) or a spot (walk there): that click gives the order |
+| `ui/ui_windows.cpp:347` | select a member; Esc: cancel the order being given |
+| `ui/ui_windows.cpp:350` | The right margin's buttons |
+| `ui/ui_windows.cpp:350` | the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once |
+| `ui/ui_windows.cpp:352` | Click a member |
+| `ui/ui_windows.cpp:352` | then click an enemy, a spot or a menu choice; Enter gives the order |
+| `ui/ui_windows.cpp:353` | Ctrl+click a member |
+| `ui/ui_windows.cpp:353` | make that member the active one: the view follows them (scrolling at an edge stops it) |
+| `ui/ui_windows.cpp:354` | Point at anyone |
+| `ui/ui_windows.cpp:354` | who it is and how badly hurt |
+| `ui/ui_windows.cpp:355` | a map of the level as far as the party has seen it (Darklands+) |
+| `ui/ui_windows.cpp:357` | The battle log |
+| `ui/ui_windows.cpp:357` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:359` | Now: the loot |
+| `ui/ui_windows.cpp:360` | Take / Put back |
+| `ui/ui_windows.cpp:360` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:361` | everything into the party's pack |
+| `ui/ui_windows.cpp:361` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:362` | Take all / Share out |
+| `ui/ui_windows.cpp:362` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:363` | Names above the right list, D |
+| `ui/ui_windows.cpp:363` | switch to another member |
+| `ui/ui_windows.cpp:364` | L, Esc or Leave |
+| `ui/ui_windows.cpp:364` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:366` | Now: the loot |
+| `ui/ui_windows.cpp:367` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:368` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:369` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:369` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:370` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:373` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:374` | Names above your list |
+| `ui/ui_windows.cpp:374` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:375` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:375` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:376` | L, Esc or Leave |
+| `ui/ui_windows.cpp:379` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:380` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:380` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:381` | barter for the next member |
+| `ui/ui_windows.cpp:384` | Now: the store room |
+| `ui/ui_windows.cpp:385` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:386` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:387` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:388` | The store room |
+| `ui/ui_windows.cpp:388` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:389` | L, Esc or Leave |
+| `ui/ui_windows.cpp:391` | Now: a character sheet |
+| `ui/ui_windows.cpp:392` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:392` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:393` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:394` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:395` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:396` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:396` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:397` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:397` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:398` | Portraits, F1 ... F5 |
+| `ui/ui_windows.cpp:398` | another member's sheet; this member's own portrait, Esc or Close: back |
+| `ui/ui_windows.cpp:399` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:399` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:400` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:400` | scroll the list |
+| `ui/ui_windows.cpp:402` | Now: a character sheet |
+| `ui/ui_windows.cpp:403` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:403` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:404` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:404` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:405` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:406` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:407` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:409` | Keys of the original game |
+| `ui/ui_windows.cpp:410` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:411` | Right mouse button |
+| `ui/ui_windows.cpp:411` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:412` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:412` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:413` | the marching order |
+| `ui/ui_windows.cpp:414` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:415` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:417` | quit to the desktop |
+| `ui/ui_windows.cpp:419` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:420` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:420` | quick save / quick load |
+| `ui/ui_windows.cpp:421` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:424` | The controller |
+| `ui/ui_windows.cpp:430` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:431` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:432` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:434` | the arrow keys |
+| `ui/ui_windows.cpp:435` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:436` | {START} {BACK} |
+| `ui/ui_windows.cpp:436` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:437` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:438` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:440` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:86` | a university |
 | `ui/worldmap.cpp:86` | an alchemist |
 | `ui/worldmap.cpp:87` | docks (boats) |
@@ -2405,8 +2408,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap_draw.cpp:81` | standing stone |
 | `ui/worldmap_draw.cpp:81` | witches' meeting place |
 | `ui/worldmap_draw.cpp:110` | Spring or lake |
-| `ui/worldmap_draw.cpp:390` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:521` | About %s of travel |
+| `ui/worldmap_draw.cpp:332` | Map of Greater Germany |
+| `ui/worldmap_draw.cpp:463` | About %s of travel |
 
 ## The game side (mods/)
 
@@ -2416,7 +2419,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/aging.c:84` | These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. (Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.) |
 | `mods/alchemyview.c:171` | Choose a formula and at least one batch first. |
 | `mods/alchemyview.c:173` | %s starts %d batch%s. |
-| `mods/assist.c:421` | keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d |
+| `mods/assist.c:466` | keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d |
 | `mods/autopause.c:73` | Paused: enemies come out to fight |
 | `mods/autopause.c:88` | Paused: %s has fallen |
 | `mods/autopause.c:88` | Paused: %s is badly hurt |
@@ -2692,20 +2695,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:595` | Click: throw here |
-| `mods/orders.c:595` | Click: flee here |
-| `mods/orders.c:596` | No clear throw |
-| `mods/orders.c:596` | Can't walk there |
-| `mods/orders.c:597` | No clear shot |
-| `mods/orders.c:597` | No clear throw |
-| `mods/orders.c:597` | No way there |
-| `mods/orders.c:604` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:605` | Click: shoot |
-| `mods/orders.c:607` | Click: throw |
-| `mods/orders.c:608` | Click: attack (Vulnerable) |
-| `mods/orders.c:609` | Click: attack (Berserk) |
-| `mods/orders.c:610` | Click: parry its blows |
-| `mods/orders.c:614` | No clear shot: walks up to fight |
+| `mods/orders.c:609` | Click: throw here |
+| `mods/orders.c:609` | Click: flee here |
+| `mods/orders.c:610` | No clear throw |
+| `mods/orders.c:610` | Can't walk there |
+| `mods/orders.c:611` | No clear shot |
+| `mods/orders.c:611` | No clear throw |
+| `mods/orders.c:611` | No way there |
+| `mods/orders.c:618` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:619` | Click: shoot |
+| `mods/orders.c:621` | Click: throw |
+| `mods/orders.c:622` | Click: attack (Vulnerable) |
+| `mods/orders.c:623` | Click: attack (Berserk) |
+| `mods/orders.c:624` | Click: parry its blows |
+| `mods/orders.c:628` | No clear shot: walks up to fight |
 | `mods/pathfix.c:448` |  (stuck: around everyone) |
 | `mods/pathfix.c:628` | cells unreachable |
 | `mods/pathfix.c:628` | search gave up |

@@ -43,6 +43,7 @@ const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *
 extern int ui_icon_heraldic_here;
 /* the chips of who speaks (an option where the player picks): where they were drawn, for the click (ui_event) */
 static float chip_r[25][4]; static int chip_opt[25], chip_m[25], n_chips;
+static int slide_line = -1; static float slide_t;                /* (the option whose members' chances are slid out under the pointer, and how far) */
 extern "C" int cardview_chip_click(int wx, int wy)
 {
     for (int i = 0; i < n_chips; i++)
@@ -306,6 +307,51 @@ extern "C" void cardview_draw(void)
 
     int tip_item = -1, tip_saint = -1, tip_formula = -1; ImVec2 tip_at;
     int chance_tip = -1; ImVec2 chance_tip_at;                   /* (the pointer on an option's chance: who tries it, and what it rests on) */
+    /* each member's chip, their head and their chance: a click on one chooses the option with that member
+       speaking. x: where they begin; t: how far slid out (0..1, the hover's); returns where they end */
+    auto chips = [&](float x, float cy, float ms, int line, int opt, bool formula, float t) -> float {
+        int leader = (s8)g_rb(G_LEADER), best = cc.line[line].lead >= 0 ? cc.line[line].lead : leader;
+        float hsz = ms * 1.25f, bh = hsz * 1.06f, x0 = x;
+        for (int m = 0; m < 5 && m < members; m++) {
+            int pm = cc.line[line].per[m];
+            if (pm < 0) continue;
+            char t2[16];
+            if (cmode == 0) snprintf(t2, sizeof t2, "%d%%", pm);
+            else { int q = pm / 20; if (q > 6) q = 6; u16 pp = g_rw((u16)(GV_quality_words + 2 * q)); if (pm <= 0) snprintf(t2, sizeof t2, "hopeless"); else g_str(G_DGROUP, pp, t2, sizeof t2); }
+            ImVec2 tt = fs->CalcTextSizeA(ms, FLT_MAX, 0, t2);
+            float w = hsz * 1.05f + tt.x + 0.45f * ms, xs = x0 + (x - x0) * t;   /* (sliding out from the box's edge) */
+            ImVec2 q0(xs, cy - bh * 0.5f), q1(xs + w, cy + bh * 0.5f);
+            int a = (int)(255 * t);
+            bool over = t > 0.9f && ImGui::IsMouseHoveringRect(q0, q1, false);
+            ImU32 fg = cmode == 1 ? IM_COL32(245, 228, 185, a) : pm >= 70 ? IM_COL32(150, 230, 120, a) : pm >= 40 ? IM_COL32(250, 210, 95, a) : IM_COL32(250, 125, 100, a);
+            dl->AddRectFilled(q0, q1, over ? IM_COL32(60, 40, 20, 240 * a / 255) : IM_COL32(28, 18, 10, 228 * a / 255), bh * 0.3f);
+            dl->AddRect(q0, q1, over ? IM_COL32(240, 200, 120, a) : m == best ? IM_COL32(210, 160, 80, 230 * a / 255) : IM_COL32(150, 110, 60, 190 * a / 255), bh * 0.3f, 0, fmaxf(1.0f, (m == best ? 0.45f : 0.3f) * k));
+            if (t > 0.5f && !member_head(dl, m, ImVec2(q0.x + 0.25f * ms, cy - hsz * 0.5f), hsz)) {
+                char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm); nm[1] = 0;
+                dl->AddText(fs, ms, ImVec2(q0.x + 0.5f * ms, cy - ms * 0.5f), IM_COL32(215, 195, 160, a), game_text(nm, 1).c_str());
+            }
+            dl->AddText(fs, ms, ImVec2(q0.x + 0.25f * ms + hsz * 0.95f, cy - tt.y * 0.52f), fg, t2);
+            if (over) {
+                char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
+                std::string who = game_text(nm, strlen(nm));
+                ImGui::SetNextWindowPos(ImVec2(q0.x, q1.y + 4 * k));
+                ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+                ImGui::TextUnformatted((who + " speaks for the party" + (m == leader ? " (the leader)" : "") + (formula ? ". A formula traded is " + who + "'s to know." : ".")).c_str());
+                ImGui::TextDisabled("Click to choose this with %s speaking.", who.c_str());
+                ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+            }
+            if (t > 0.9f && n_chips < 25) { chip_r[n_chips][0] = q0.x; chip_r[n_chips][1] = q0.y; chip_r[n_chips][2] = q1.x; chip_r[n_chips][3] = q1.y; chip_opt[n_chips] = opt; chip_m[n_chips] = m; n_chips++; }
+            x += w + 0.25f * ms;
+        }
+        return x0 + (x - x0) * t;
+    };
+    auto chips_width = [&](float ms, int line) {
+        float w = 0;
+        for (int m = 0; m < 5 && m < members; m++) { int pm = cc.line[line].per[m]; if (pm < 0) continue; char t2[16]; snprintf(t2, sizeof t2, cmode == 0 ? "%d%%" : "hopeless", pm);
+            w += ms * 1.25f * 1.05f + fs->CalcTextSizeA(ms, FLT_MAX, 0, t2).x + 0.45f * ms + 0.25f * ms; }
+        return w;
+    };
+    struct { bool on; float x, cy, ms, e; int line, opt; ImVec2 r0, r1; } slide_out = {};   /* (drawn over the options after them) */
     for (int j = 0; j < c.npieces; j++) {
         const CvPiece &p = c.piece[j];
         Laid &la = laid[j];
@@ -357,47 +403,13 @@ extern "C" void cardview_draw(void)
         }
         if (p.is_opt) { c.row_y0[j] = wy2g(y0); c.row_y1[j] = wy2g(y1); }
         else c.row_y0[j] = c.row_y1[j] = -1;
-        /* who speaks, picked by the player (the alchemist's formulae: what comes of it is the speaker's): a chip for
-           each member, their head and their chance; a click on one chooses the option with that member speaking */
+        /* who speaks, picked by the player (the alchemist's formulae: what comes of it is the speaker's): every
+           member's chip, always */
         if (p.is_opt && p.state == 1 && chance_shown(p.line) && cc.line[p.line].pick && menu && !ui_is_open()) {
-            float ms = size * 0.82f, cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
-            float x = X1 + 4.5f * k;
-            int leader = (s8)g_rb(G_LEADER), nchips = 0;
-            for (int m = 0; m < 5 && m < members; m++) if (cc.line[p.line].per[m] >= 0) nchips++;
-            {   /* (all the chips beside the card, within the window: smaller if need be) */
-                float room = ImGui::GetIO().DisplaySize.x - x - 6 * k, want = nchips * ms * (1.25f * 1.05f + 2.2f + 0.85f);
-                if (want > room && want > 0) ms *= fmaxf(0.6f, room / want);
-            }
-            float hsz = ms * 1.25f, bh = hsz * 1.06f;
-            for (int m = 0; m < 5 && m < members; m++) {
-                int pm = cc.line[p.line].per[m];
-                if (pm < 0) continue;
-                char t[16];
-                if (cmode == 0) snprintf(t, sizeof t, "%d%%", pm);
-                else { int q = pm / 20; if (q > 6) q = 6; u16 pp = g_rw((u16)(GV_quality_words + 2 * q)); if (pm <= 0) snprintf(t, sizeof t, "hopeless"); else g_str(G_DGROUP, pp, t, sizeof t); }
-                ImVec2 tt = fs->CalcTextSizeA(ms, FLT_MAX, 0, t);
-                ImVec2 q0(x, cy - bh * 0.5f), q1(x + hsz * 1.05f + tt.x + 0.45f * ms, cy + bh * 0.5f);
-                bool over = menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false);
-                ImU32 fg = cmode == 1 ? IM_COL32(245, 228, 185, 255) : pm >= 70 ? IM_COL32(150, 230, 120, 255) : pm >= 40 ? IM_COL32(250, 210, 95, 255) : IM_COL32(250, 125, 100, 255);
-                dl->AddRectFilled(q0, q1, over ? IM_COL32(60, 40, 20, 240) : IM_COL32(28, 18, 10, 228), bh * 0.3f);
-                dl->AddRect(q0, q1, over ? IM_COL32(240, 200, 120, 255) : m == leader ? IM_COL32(210, 160, 80, 230) : IM_COL32(150, 110, 60, 190), bh * 0.3f, 0, fmaxf(1.0f, (m == leader ? 0.45f : 0.3f) * k));
-                if (!member_head(dl, m, ImVec2(q0.x + 0.25f * ms, cy - hsz * 0.5f), hsz)) {
-                    char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm); nm[1] = 0;
-                    dl->AddText(fs, ms, ImVec2(q0.x + 0.5f * ms, cy - ms * 0.5f), IM_COL32(215, 195, 160, 240), game_text(nm, 1).c_str());
-                }
-                dl->AddText(fs, ms, ImVec2(q0.x + 0.25f * ms + hsz * 0.95f, cy - tt.y * 0.52f), fg, t);
-                if (over) {
-                    char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-                    std::string who = game_text(nm, strlen(nm));
-                    ImGui::SetNextWindowPos(ImVec2(q1.x + 4 * k, q0.y));
-                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
-                    ImGui::TextUnformatted((who + " speaks for the party" + (m == leader ? " (the leader)" : "") + ". A formula traded is " + who + "'s to know.").c_str());
-                    ImGui::TextDisabled("Click to choose this with %s speaking.", who.c_str());
-                    ImGui::PopTextWrapPos(); ImGui::EndTooltip();
-                }
-                if (n_chips < 25) { chip_r[n_chips][0] = q0.x; chip_r[n_chips][1] = q0.y; chip_r[n_chips][2] = q1.x; chip_r[n_chips][3] = q1.y; chip_opt[n_chips] = p.opt; chip_m[n_chips] = m; n_chips++; }
-                x = q1.x + 0.25f * ms;
-            }
+            float ms = size * 0.82f, cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f, x = X1 + 4.5f * k;
+            float room = ImGui::GetIO().DisplaySize.x - x - 6 * k, want = chips_width(ms, p.line);   /* (all beside the card, within the window: smaller if need be) */
+            if (want > room && want > 0) ms *= fmaxf(0.6f, room / want);
+            chips(x, cy, ms, p.line, p.opt, true, 1.0f);
         }
         /* the chance of success */
         else if (p.is_opt && chance_shown(p.line)) {
@@ -426,7 +438,8 @@ extern "C" void cardview_draw(void)
             float hsz = ms * 1.4f, isz = ms * 0.95f, gap = 0.28f * ms;          /* (a head large enough to tell who; a shield is 1.44 sizes tall) */
             if (nh) sub[0] = 0;                                     /* (the heads say who: no name) */
             ImVec2 mt = fs->CalcTextSizeA(ms, FLT_MAX, 0, main), st = sub[0] ? fs->CalcTextSizeA(ss, FLT_MAX, 0, sub) : ImVec2(0, 0);
-            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * (isz + 0.12f * ms) : 0), bh = fmaxf(ms * 1.02f, fmaxf(nh ? hsz * 1.06f : 0, ni ? isz * 1.56f : 0));
+            const float shw = isz * 1.25f, step = shw + 0.24f * ms;           /* (a shield is 1.25 sizes wide: apart by a little more) */
+            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * step - 0.24f * ms : 0), bh = fmaxf(ms * 1.02f, fmaxf(nh ? hsz * 1.06f : 0, ni ? isz * 1.56f : 0));
             /* beside the box, level with the option's first line: a tab on the card's edge */
             float cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
             float bxl = X1 + 4.5f * k, bxr = bxl + bw;
@@ -445,14 +458,33 @@ extern "C" void cardview_draw(void)
                 }
             if (nh) hx += gap * 0.5f;
             ui_icon_heraldic_here = 1;
-            for (int q = 0; q < ni; q++, hx += isz + 0.12f * ms) {
-                ImVec2 ic(hx + isz * 0.5f, cy - isz * 0.03f);
+            for (int q = 0; q < ni; q++, hx += step) {
+                ImVec2 ic(hx + shw * 0.5f, cy - isz * 0.03f);
                 if (icons[q] < 100) ui_skill_icon(dl, ic, isz, icons[q]);
                 else if (icons[q] < 200) ui_attr_icon(dl, ic, isz, icons[q] - 100);
                 else ui_standing_icon(dl, ic, isz, icons[q] - 200);
             }
             ui_icon_heraldic_here = 0;
-            if (menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false)) { chance_tip = j; chance_tip_at = ImVec2(q1.x + 4 * k, q0.y); }
+            bool on_box = menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false);
+            /* a chance that is the speaker's: under the pointer, every member's slides out beside it, to pick who
+               speaks (the one who speaks unless picked: ringed) */
+            bool slide = cc.line[p.line].dep && p.state == 1 && menu && !ui_is_open();
+            float row_h = 0;
+            if (slide) {                                            /* (in a row under the box, on a dark band, over the options below) */
+                float sms = ms * 0.9f, sw = chips_width(sms, p.line), room = ImGui::GetIO().DisplaySize.x - bxl - 6 * k;
+                if (sw > room && sw > 0) { sms *= fmaxf(0.6f, room / sw); sw = chips_width(sms, p.line); }
+                row_h = sms * 1.25f * 1.06f + 0.5f * ms;
+                ImVec2 s0(bxl, q0.y), s1(fmaxf(bxr, bxl + sw + 0.3f * ms), q1.y + row_h);
+                bool keep = slide_line == j && ImGui::IsMouseHoveringRect(s0, s1, false);
+                if (on_box || keep) { if (slide_line != j) { slide_line = j; slide_t = 0; } }
+                else if (slide_line == j) slide_line = -1;
+                if (slide_line == j) {
+                    slide_t = fminf(1.0f, slide_t + ImGui::GetIO().DeltaTime / 0.14f); float e = 1 - (1 - slide_t) * (1 - slide_t);
+                    slide_out.on = true; slide_out.x = bxl + 0.15f * ms; slide_out.cy = q1.y + row_h * 0.5f + 0.1f * ms; slide_out.ms = sms; slide_out.e = e;
+                    slide_out.line = p.line; slide_out.opt = p.opt; slide_out.r0 = ImVec2(bxl, q1.y + 0.1f * ms); slide_out.r1 = ImVec2(bxl + sw + 0.3f * ms, q1.y + row_h + 0.15f * ms);
+                } else row_h = 0;
+            }
+            if (on_box) { chance_tip = j; chance_tip_at = row_h > 0 ? ImVec2(q0.x, q1.y + row_h + 6 * k) : ImVec2(q1.x + 4 * k, q0.y); }
         }
         /* the list under it */
         if (p.is_opt && c.popup_piece == j) {
@@ -529,6 +561,10 @@ extern "C" void cardview_draw(void)
     };
     const bool tipmenu = menu && !ui_is_open();                  /* (no card tooltips over the Darklands+ window, the world map, Go to ...) */
     if (ui_is_open()) tip_formula = tip_item = tip_saint = -1;
+    if (slide_out.on) {                                         /* every member's chance, slid out under the pointer's option */
+        dl->AddRectFilled(slide_out.r0, ImVec2(slide_out.r0.x + (slide_out.r1.x - slide_out.r0.x) * slide_out.e, slide_out.r1.y), IM_COL32(14, 9, 5, (int)(200 * slide_out.e)), 4 * k);
+        chips(slide_out.x, slide_out.cy, slide_out.ms, slide_out.line, slide_out.opt, false, slide_out.e);
+    }
     if (chance_tip >= 0 && !ui_is_open()) {
         const CvPiece &p = c.piece[chance_tip];
         int who = cc.line[p.line].who; u32 reads = cc.line[p.line].reads;
@@ -545,6 +581,8 @@ extern "C" void cardview_draw(void)
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
             if (!r.empty()) ImGui::TextUnformatted(("It rests on: " + r + ".").c_str());
+            if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you click another member's chance below."
+                                                                           : "Whoever speaks for the party tries it: the leader, unless you click another member's chance below.");
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
