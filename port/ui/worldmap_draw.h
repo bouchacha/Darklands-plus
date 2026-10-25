@@ -6,6 +6,7 @@
 #include "imgui.h"
 
 struct Place { int loc, kind, x, y; std::string name; };
+float draw_town_seal(ImDrawList *dl, ImVec2 c, float s, int city_size, bool visited);   /* a town on its seal of wax: its radius */
 enum IconKind { IK_TOWN, IK_VILLAGE, IK_CASTLE, IK_MONASTERY, IK_SHRINE, IK_CAVE, IK_MINE, IK_WATER, IK_TOMB, IK_STONES, IK_RUIN, IK_OTHER, IK_N };
 extern const char *IK_LABEL[IK_N];
 

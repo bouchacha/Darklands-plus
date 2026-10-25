@@ -194,6 +194,53 @@ void draw_icon_seal(ImDrawList *dl, ImVec2 c, float s, int ik)
 
 void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik) { draw_icon_seal(dl, c, s, ik); }   /* (the seals: the one set) */
 
+/* a town on a seal of muted wax (style 3, in use: draw_town_seal; 1 and 2 were the other proposals), its size the
+   town's (small, medium, large: DARKLAND.CTY), and been there or not, three ways - 1 the wax cold and
+   grey until the party has been there, warm red after; 2 a ribbon hanging from the seal of a town not
+   yet visited (a letter still unopened); 3 the wax pressed with the party's ring once visited, smooth before */
+static void wax_blob(ImDrawList *dl, ImVec2 c, float r, ImU32 wax, int seed)
+{
+    const int N = 40; ImVec2 pts[N], sh[N];
+    for (int k = 0; k < N; k++) {
+        float th = k * 6.2832f / N, rr = r * (1.0f + 0.05f * sinf(5 * th + seed) + 0.03f * sinf(9 * th + 2.0f * seed));
+        pts[k] = ImVec2(c.x + cosf(th) * rr, c.y + sinf(th) * rr);
+        sh[k] = ImVec2(pts[k].x + r * 0.07f, pts[k].y + r * 0.09f);
+    }
+    dl->AddConcavePolyFilled(sh, N, IM_COL32(0, 0, 0, 70));
+    dl->AddConcavePolyFilled(pts, N, wax);
+    dl->AddPolyline(pts, N, IM_COL32(60, 30, 24, 200), ImDrawFlags_Closed, fmaxf(1.0f, r * 0.05f));
+}
+float draw_town_wax(ImDrawList *dl, ImVec2 c, float s, int size, bool visited, int style)
+{
+    static const float K[3] = { 0.86f, 1.0f, 1.18f };
+    s *= K[size < 0 ? 0 : size > 2 ? 2 : size];
+    float r = s * 0.62f;
+    ImU32 warm = IM_COL32(150, 74, 62, 255), cold = IM_COL32(128, 120, 112, 255);
+    if (style == 3 && !visited) warm = IM_COL32(186, 150, 130, 255);   /* (not yet visited: the wax washed out as the town's picture is) */
+    if (style == 2 && !visited) {                    /* the ribbon of a letter not yet opened */
+        ImVec2 a(c.x - r * 0.25f, c.y + r * 0.5f), b(c.x + r * 0.25f, c.y + r * 0.5f);
+        ImVec2 rib[4] = { a, b, ImVec2(c.x + r * 0.55f, c.y + r * 1.45f), ImVec2(c.x + r * 0.05f, c.y + r * 1.25f) };
+        dl->AddConvexPolyFilled(rib, 4, IM_COL32(170, 150, 96, 255)); dl->AddPolyline(rib, 4, IM_COL32(60, 40, 24, 200), ImDrawFlags_Closed, 1.0f);
+        ImVec2 rib2[4] = { a, b, ImVec2(c.x - r * 0.05f, c.y + r * 1.25f), ImVec2(c.x - r * 0.55f, c.y + r * 1.45f) };
+        dl->AddConvexPolyFilled(rib2, 4, IM_COL32(180, 160, 104, 255)); dl->AddPolyline(rib2, 4, IM_COL32(60, 40, 24, 200), ImDrawFlags_Closed, 1.0f);
+    }
+    wax_blob(dl, c, r, style == 1 && !visited ? cold : warm, 3);
+    if (style == 3 && visited) {                     /* the party's ring pressed into it */
+        dl->AddCircle(c, r * 0.86f, IM_COL32(90, 40, 32, 220), 0, fmaxf(1.0f, r * 0.08f));
+        dl->AddCircle(c, r * 0.86f + fmaxf(1.0f, r * 0.06f), IM_COL32(196, 120, 100, 160), 0, fmaxf(1.0f, r * 0.04f));
+    }
+    draw_icon_seal(dl, c, s * 0.82f, IK_TOWN);
+    if (!visited && style != 2 && style != 1) dl->AddCircleFilled(c, s * 0.37f, IM_COL32(236, 226, 204, 120), 20);
+    return r;
+}
+/* a town on the world map: on its seal of wax, as large as the town (DARKLAND.CTY's size: up to 4
+   small, 6 medium, more large), the party's ring pressed into the wax once it has been there; before,
+   the wax washed out as the town's picture is */
+float draw_town_seal(ImDrawList *dl, ImVec2 c, float s, int city_size, bool visited)
+{
+    return draw_town_wax(dl, c, s, city_size <= 4 ? 0 : city_size <= 6 ? 1 : 2, visited, 3);
+}
+
 /* proposals for review (the icon sheet uiconstyles:5), not in use: seals of poured wax, told apart
    from the parchment roundels (quests, a town's features) by their uneven edge, the wax's deep
    colour and the picture pressed into it. style 1: red wax for every place, the picture pressed in
@@ -248,8 +295,8 @@ int kind_group(int k)        // 0 town 1 village 2 castle 3 holy 4 other
 }
 ImU32 kind_colour(int g)
 {
-    static const ImU32 C[5] = { IM_COL32(250, 236, 200, 255), IM_COL32(222, 190, 120, 255), IM_COL32(230, 90, 70, 255),
-                                IM_COL32(150, 190, 255, 255), IM_COL32(200, 160, 220, 255) };
+    static const ImU32 C[5] = { IM_COL32(250, 236, 200, 255), IM_COL32(222, 190, 120, 255), IM_COL32(222, 190, 120, 255),   /* (castles as villages and ruins: */
+                                IM_COL32(150, 190, 255, 255), IM_COL32(200, 160, 220, 255) };                               /*  red, they outshone the towns) */
     return C[g];
 }
 

@@ -444,9 +444,13 @@ extern "C" void worldmap_draw(void)
         bool unseen = g == 0 && p.loc < 92 && !journal_visited(p.loc);   /* a town the party has not been to: faded, a ring */
         if (show_icons) {                                    /* an icon for its kind, bigger as one zooms in */
             float is = r * 4.4f * fminf(fmaxf(powf(zoom / fitz, 0.25f), 1.0f), 1.6f);
-            draw_icon(dl, s, is, icon_kind(p.kind));
-            r = is * 0.5f;
-            if (unseen) dl->AddCircleFilled(s, r * 0.9f, IM_COL32(236, 226, 204, 150), 20);   /* (washed out, as not yet seen) */
+            if (g == 0 && p.loc < (int)gamedata.cities.size()) {   /* a town: on its seal of wax, as large as the town, the party's ring pressed in once visited */
+                r = draw_town_seal(dl, s, is, gamedata.cities[p.loc].size, !unseen);
+            } else {
+                draw_icon(dl, s, is, icon_kind(p.kind));
+                r = is * 0.5f;
+                if (unseen) dl->AddCircleFilled(s, r * 0.9f, IM_COL32(236, 226, 204, 150), 20);   /* (washed out, as not yet seen) */
+            }
         } else if (unseen) {
             dl->AddCircle(s, r, IM_COL32(0, 0, 0, 200), 0, 3.0f);
             dl->AddCircle(s, r, kind_colour(g), 0, 1.6f);
