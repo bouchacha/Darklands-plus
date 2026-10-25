@@ -201,10 +201,14 @@ void news_window(void)
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
             "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. "
-            "Settings is one page, its sections listed on the left.",
+            "Settings and the New Player Guide list their sections on the left.",
             "The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares.",
             "Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there.",
-            "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon.",
+            "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; "
+            "a member with no orders joins a fight beside it. The first battle explains it.",
+            "On a card, beside each chance: the head of who tries it, and what it rests on (skills, attributes, the town's opinion, fame).",
+            "Ironman: one save, kept by the game itself as you go, no loading back (F12 > Settings > Preset, for your next new game).",
+            "The whole soundtrack can be played in F12 > Settings > Sound, on the device you choose.",
             "More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info.",
             "City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off "
             "until you tick them): F12 > Reconstructed Content.",
