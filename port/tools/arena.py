@@ -186,7 +186,7 @@ def check(s, log):
         return ['layout: %d of the %d foes never moved (walled off from the party?)' % (len(still), len(first))]   # (half or more, and some of them still there at the end: the battle cannot end for them)
     # per party member: runs of the same state
     for i in range(5):
-        idle = blank = stuck = bowidle = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = 0; nshots = 0
+        idle = blank = stuck = bowidle = noline = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = worst_noline = 0; nshots = 0
         prev_w_ord = None
         for t, cb in ticks:
             c = cb.get(i)
@@ -194,10 +194,16 @@ def check(s, log):
                 idle = blank = stuck = 0; last = None; continue
             foes = [j for j in cb if j >= 5]
             shooting_order = c['o'] == 0x80
-            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] in (0, 7):   # (7: ready, and the loosing never comes)
+            # (7: ready, and the loosing never comes - unless the game found the line blocked (state 1): then it
+            #  waits and tries again, and battlerules steps aside or picks another mark; that wait is the next check's)
+            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and (c['a'] == 0 or (c['a'] == 7 and c['s'] == 0)):
                 idle += 10; worst_idle = max(worst_idle, idle)
             else:
                 idle = 0
+            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] == 7 and c['s'] == 1:
+                noline += 10; worst_noline = max(worst_noline, noline)
+            elif not (shooting_order and c['a'] == 7 and c['m'] == 0):
+                noline = 0
             if shooting_order and c['b'] > 0:
                 blank += 10; worst_blank = max(worst_blank, blank)
             else:
@@ -221,6 +227,8 @@ def check(s, log):
         held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
         if worst_idle >= 150 and not held_i:                         # (held, its line blocked: ready to loose and never loosing is right)
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
+        if worst_noline >= 600 and not held_i:                       # (a line blocked for long, the shooter neither stepping aside nor picking another mark)
+            probs.append('member %d waited for a clear line for %d ticks' % (i, worst_noline))
         if worst_blank >= 60:
             probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
         if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original' and not held_i:   # (the seeds' runs too: original_1 ...)
