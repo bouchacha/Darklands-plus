@@ -60,7 +60,7 @@ sc('rescue', 'a friend set upon by three a few paces off while the archer shoots
 sc('handgun', 'a slow handgun with foes closing: no putting away and taking up again over and over (each change starts the reloading anew)',
    arms=[(2, GUN, 20)], groups=(THUG, 2, 6, 0, 1, 0, -1, 0, 0))
 sc('enemy_archers', 'enemy archers at range and swords coming: our archer duels theirs, our swords close in',
-   arms=[(2, LONGBOW, 30)], groups=(ARCHER, 2, 3, BANDIT, 2, 4, -1, 0, 0), bf=WILDS)
+   arms=[(2, LONGBOW, 30)], groups=(ARCHER, 2, 3, BANDIT, 2, 4, -1, 0, 0), bf=WILDS, secs=100)   # (seven foes on four: a close fight can still be on at 70 s)
 sc('thrown', 'javelins and throwing knives: thrown, then the melee weapon, picked up after the battle',
    arms=[(0, JAVELIN, 4), (2, KNIFE, 6)], groups=(BANDIT, 2, 5, 0, 1, 0, -1, 0, 0))
 sc('crowded_line', 'three shooters in a column, each blocked by the one before: they spread out to shoot',
@@ -170,8 +170,10 @@ def check(s, log):
     # the battlefield's layout varies from run to run: foes placed behind a wall or a stand of trees never
     # move, and no line reaches them; that is the layout, not the shooting (main tries another seed)
     first = {j: (c['x'], c['y']) for j, c in ticks[0][1].items() if j >= 5}
-    if first and s.get('foes_move', True) and all((c['x'], c['y']) == first.get(j, (c['x'], c['y'])) for t, cb in ticks for j, c in cb.items() if j >= 5):
-        return ['layout: the foes never moved (walled off from the party?)']
+    still = {j for j in first if all(cb[j]['x'] == first[j][0] and cb[j]['y'] == first[j][1] for t, cb in ticks if j in cb)}
+    standing_at_end = {j for j in ticks[-1][1] if j >= 5}
+    if first and s.get('foes_move', True) and (len(still) == len(first) or (len(still) * 2 >= len(first) and still & standing_at_end)):
+        return ['layout: %d of the %d foes never moved (walled off from the party?)' % (len(still), len(first))]   # (half or more, and some of them still there at the end: the battle cannot end for them)
     # per party member: runs of the same state
     for i in range(5):
         idle = blank = stuck = bowidle = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = 0; nshots = 0
