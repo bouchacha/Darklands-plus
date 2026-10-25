@@ -155,10 +155,10 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
         dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
         dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
-    case 2: {  /* agility: a flight of steps, in outline (light of foot). (Battles' "use stairs" order is solid stone steps) */
+    case 2: {  /* agility: steps, their treads and risers only, one line climbing (light of foot) */
         ImU32 stone = C(214, 204, 182);
-        ImVec2 st[10] = { P(-8.0f, 7.6f), P(-8.0f, 3.6f), P(-4.0f, 3.6f), P(-4.0f, -0.4f), P(0, -0.4f), P(0, -4.4f), P(4.0f, -4.4f), P(4.0f, -8.4f), P(8.0f, -8.4f), P(8.0f, 7.6f) };
-        dl->AddPolyline(st, 10, ink, ImDrawFlags_Closed, 3.0f * u); dl->AddPolyline(st, 10, stone, ImDrawFlags_Closed, 1.9f * u);
+        ImVec2 st[8] = { P(-8.5f, 6.4f), P(-4.25f, 6.4f), P(-4.25f, 2.1f), P(0, 2.1f), P(0, -2.1f), P(4.25f, -2.1f), P(4.25f, -6.4f), P(8.5f, -6.4f) };
+        dl->AddPolyline(st, 8, ink, 0, 3.2f * u); dl->AddPolyline(st, 8, stone, 0, 2.1f * u);
         break; }
     case 3: /* perception: an open eye */
         dl->AddBezierQuadratic(P(-10, 0), P(0, -9), P(10, 0), parch, 1.6f * u); dl->AddBezierQuadratic(P(-10, 0), P(0, 9), P(10, 0), parch, 1.6f * u);
