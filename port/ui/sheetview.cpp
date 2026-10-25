@@ -356,7 +356,15 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
         if (d && d->kind == K_INGREDIENT) y += ns_ingredient_row(P, SX0 + 2.5f, y + 0.5f, SX0 + 2.5f + SW, it.id) + 1.0f;
         { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
-        if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
+        if (it.type == 108) {                                       /* a horse or mule: how riding works (mods/pack.c: party_get(5), the chases) */
+            std::string r = "Each member rides the best horse or mule they carry; the party travels mounted only when every member has one.";
+            if (s.shared) r += " A member without one is given the best spare one when the game needs it (setting out on the road, a chase).";
+            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, r) + 0.5f;
+            if (s.npar > 1) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM,
+                                        it.holder < 0 ? "For a member to ride it, drag it onto them, or press their number (1 to 5)."
+                                                      : "For another member to ride it, drag it onto them, or press their number (1 to 5).") + 0.5f;
+        }
+        else if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
             y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") + 0.5f;
         if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
@@ -469,14 +477,18 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         V.drag_row = -1;
         if (ns_in.px >= RX0 && ns_in.px < RX1 - 40 && ns_in.py >= LY0 && ns_in.py < LY1) {
             int r = (int)((ns_in.py - LY0) / ROWH) + sc;
-            if (r >= 0 && r < n && rows[r] >= 0 && s.item[rows[r]].holder >= 0) V.drag_row = rows[r];   /* (the shared pack's rows are nobody's to give) */
+            if (r >= 0 && r < n && rows[r] >= 0) V.drag_row = rows[r];   /* (the shared pack's too: a mount goes to whoever it is dropped on; the rest is everyone's already) */
         }
     }
     if (V.drag_row >= 0 && ns_in.down && !V.dragging && (abs(ns_in.x - ns_in.px) + abs(ns_in.y - ns_in.py)) > 4) { V.dragging = true; sheetview_dragging = 1; }
     if (!ns_in.down && !P.click && V.dragging) { V.dragging = false; sheetview_dragging = 0; V.drag_row = -1; }
     if (V.dragging && P.click) {                         /* let go: on a member at the left, a give */
         int to = partypanel_member_at(P.cx, P.cy);
-        if (to >= 0 && to != s.who && V.drag_row < s.nitems) ns_push(SV_GIVE, s.item[V.drag_row].idx, to, P.shift ? 1 : 255);   /* (the member's record, not the row) */
+        if (to >= 0 && V.drag_row < s.nitems) {
+            const SvItem &it = s.item[V.drag_row];
+            if (it.holder >= 0 && to != s.who) ns_push(SV_GIVE, it.idx, to, P.shift ? 1 : 255);   /* (the member's record, not the row) */
+            else if (it.holder < 0 && it.type == 108) ns_push(SV_PTAKE, it.id, it.qual, to);     /* (a spare mount of the pack: theirs to ride) */
+        }
         P.click = false; V.dragging = false; sheetview_dragging = 0; V.drag_row = -1;
     }
     int tip_i = -1;
@@ -550,6 +562,10 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, it.idx, 0, 0); } }
         else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, it.idx, 0, 0); }
         else if (it.equipped == 2) P.text(fo, NsDraw::FS_SMALL, x + 2, y + 2.4f, soft, "rides it");   /* (the shared pack: their own mount) */
+        else if (pack && it.type == 108) {                 /* a spare mount: this member rides it (a better one than theirs) */
+            int rq = -1; for (int k = 0; k < s.nitems; k++) if (s.item[k].equipped == 2 && s.item[k].holder == s.who) rq = s.item[k].qual;
+            if (it.qual > rq && P.button(x, y + 1, x + 18, y + ROWH - 1, "Ride", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_PTAKE, it.id, it.qual, s.who);
+        }
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Equip", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, it.idx, 0, 0); } }
         x += 19;
         if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
@@ -581,10 +597,13 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     if (V.dragging && V.drag_row >= 0 && V.drag_row < s.nitems) {
         const SvItem &it = s.item[V.drag_row];
         int to = partypanel_member_at(ns_in.x, ns_in.y);
-        bool ok = to >= 0 && to != s.who;
+        bool packrow = it.holder < 0, mount = it.type == 108;
+        bool ok = to >= 0 && (packrow ? mount : to != s.who);
         if (ok) P.dl->AddRect(NsDraw::w(1.2f, 40.0f * to + 1.2f), NsDraw::w(58.8f, 40.0f * to + 38.8f), IM_COL32(120, 220, 110, 255), 2 * P.k, 0, fmaxf(2.0f, 0.9f * P.k));
         float gx = ns_in.x + 5, gy = ns_in.y + 9;                  /* (below the pointer, not under it) */
-        std::string l = ok ? "Give to " + ns_gtext(s.names[to]) + (P.shift || it.count == 1 ? "" : " (all " + std::to_string(it.count) + ")")
+        std::string l = ok ? (packrow ? "For " + ns_gtext(s.names[to]) + " to ride"
+                                      : "Give to " + ns_gtext(s.names[to]) + (P.shift || it.count == 1 ? "" : " (all " + std::to_string(it.count) + ")"))
+                           : packrow && !mount ? ns_item_name(it.id) + ": the party's pack is everyone's already"
                            : ns_item_name(it.id) + (to == s.who ? "" : ": drop it on a member at the left");
         float lw = P.width(P.fo, NsDraw::FS_SMALL, l);
         if (gx + 12 + lw > 318) gx = 318 - 12 - lw;

@@ -224,10 +224,24 @@ static void act(const NsAction *a, int *who)
 {
     int w = *who, idx = a->a;
     GmItem g; char nm[32] = "", t[160];
-    if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP) {
+    if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP || a->type == SV_PTAKE) {
         int id = a->a, q = a->b;
         item_name(id, nm, sizeof nm);
         switch (a->type) {
+        case SV_PTAKE: {                                 /* a spare mount of the pack to member a->c, to ride (each rides the best they carry) */
+            int to = a->c, h, i;
+            if (to < 0 || to > 4 || !gm_member_present(to) || gm_member_status(to) == 5) return;
+            if (!pack_holder(-1, id, q, &h, &i)) { snprintf(t, sizeof t, "No spare %s is left in the party's pack.", nm); break; }
+            GmItem g2; if (!gm_item(h, i, &g2) || g2.type != 108) return;
+            int r = h == to ? i : pack_fetch(to, id, q, nm, t, sizeof t);
+            if (ns_unwinding) return;
+            if (r < 0) break;
+            int best = -1; GmItem x;                     /* (the one they ride now: the best they carry) */
+            for (int k = 0; k < gm_item_count(to); k++) if (gm_item(to, k, &x) && x.type == 108 && gm_item_riding(to, k)) best = k;
+            if (best == r) snprintf(t, sizeof t, "%s rides the %s.", sheet_model.names[to], nm);
+            else { char bn[32] = "mount"; if (best >= 0 && gm_item(to, best, &x)) item_name(x.id, bn, sizeof bn);
+                   snprintf(t, sizeof t, "%s carries the %s, but rides the better %s.", sheet_model.names[to], nm, bn); }
+            break; }
         case SV_KEEP:
             keep_set(id, q, a->c);
             snprintf(t, sizeof t, a->c ? "The %s is marked Keep: it will not be sold or dropped until you unmark it." : "The %s may be sold and dropped again.", nm);
@@ -415,8 +429,10 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
                 int sheetview_pointed_item(void);
                 int r = sheetview_pointed_item(), to = (k >> 8) - 2, one = !((k & 0xff) >= '1' && (k & 0xff) <= '5');
                 const SheetModel *sm = &sheet_model;
-                if (r >= 0 && r < sm->nitems && sm->item[r].holder >= 0 && !sm->item[r].equipped && to != who) {
+                if (r >= 0 && r < sm->nitems && sm->item[r].holder >= 0 && sm->item[r].equipped != 1 && to != who) {   /* (a mount ridden too: 2) */
                     NsAction g = { SV_GIVE, sm->item[r].idx, to, one ? 1 : 255 }; act(&g, &who); build(who);
+                } else if (r >= 0 && r < sm->nitems && sm->item[r].holder < 0 && sm->item[r].type == 108) {             /* a spare mount of the pack: theirs to ride */
+                    NsAction g = { SV_PTAKE, sm->item[r].id, sm->item[r].qual, to }; act(&g, &who); build(who);
                 }
             }
         }

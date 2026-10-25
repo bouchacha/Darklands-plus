@@ -508,10 +508,14 @@ static void right_panel(int size)
             ui_standing_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + s * 0.52f, p.y + s * 0.5f), s * 0.72f, k);
             ImGui::SameLine(0, s * 0.2f);
         };
-        /* the party's fame first, over the town's name: it is the party's, the same in every town */
-        standing(1); ImGui::TextDisabled("Fame %d", fame);
-        if (item_hovered()) margin_tip("The party's fame: the same in every town (the town's own opinion of the party is its Reputation, beside its name).");
-        /* the town's name, and beside it the town's opinion of the party (its own) */
+        /* the party's fame first, at the right over the town's name: it is the party's, the same in every town */
+        {   char ft[32]; snprintf(ft, sizeof ft, "Fame %d", fame);
+            float fs = ImGui::GetFontSize(), w = fs * 1.3f + ImGui::CalcTextSize(ft).x, room = ImGui::GetContentRegionAvail().x;
+            if (room > w) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + room - w);
+            standing(1); ImGui::TextDisabled("%s", ft);
+            if (item_hovered()) margin_tip("The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name).");
+        }
+        /* the town's name, and under it the town's opinion of the party (its own) */
         heading(((near ? "Near " : "") + c.name).c_str());
         auto rp = rep_seen.find(cur);
         if (rp != rep_seen.end()) {                                   /* coloured by how the town sees the party */
@@ -519,9 +523,6 @@ static void right_panel(int size)
             ImVec4 col = r <= -30 ? ImVec4(0.95f, 0.22f, 0.16f, 1) : r < -10 ? ImVec4(0.95f, 0.45f, 0.35f, 1) : r < 0 ? ImVec4(0.95f, 0.68f, 0.55f, 1)
                        : r >= 30 ? ImVec4(0.55f, 0.88f, 0.50f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_Text);
             char rt[32]; snprintf(rt, sizeof rt, "Reputation %d", r);
-            float need = ImGui::GetFontSize() * 1.3f + ImGui::CalcTextSize(rt).x;
-            ImGui::SameLine(0, ImGui::GetFontSize() * 0.6f);
-            if (ImGui::GetContentRegionAvail().x < need) ImGui::NewLine();   /* (a narrow margin: under the name) */
             standing(0);
             ImGui::TextColored(col, "%s", rt);
             bool rep_hov = item_hovered();
