@@ -39,6 +39,13 @@ static int cm_depth, cm_dirty;
  * the map. Prices are asked with the best charisma as leader (buy_price, sell_price). */
 int assist_best_leader = 1;
 static int saved_leader = -1;           /* the player's leader, while another speaks */
+static int stand_in = -1;               /* who speaks for the party meanwhile: if the leader is changed since (Shift+F1..F5,
+                                           a leader who died), that change stands */
+static void speak(int m)
+{
+    if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
+    g_wb(G_LEADER, (u8)m); stand_in = m;
+}
 static int leader_able(int m)
 {
     if (m < 0 || m >= 5 || m >= (s16)g_rw(G_PARTY_SIZE)) return 0;
@@ -58,6 +65,12 @@ int assist_bargainer(void) { return assist_best_leader && !config_get_int("origi
 void assist_leader_restore(void)
 {
     if (saved_leader < 0) return;
+    if (stand_in >= 0 && (s8)g_rb(G_LEADER) != stand_in) {                  /* (the leader changed since: by the player or the game) */
+        if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: the leader was changed to %d meanwhile: kept\n", (s8)g_rb(G_LEADER));
+        saved_leader = stand_in = -1;
+        return;
+    }
+    stand_in = -1;
     if (leader_able(saved_leader)) g_wb(G_LEADER, (u8)saved_leader);
     if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: leader %d again\n", saved_leader);
     saved_leader = -1;
@@ -71,8 +84,7 @@ static void leader_for_choice(int sel)
     if (!assist_best_leader || !card_chances.active || config_get_int("original", 0)) return;
     if (po == sel && leader_able(pm)) {                 /* (picked by the player: that member speaks, whatever comes of it is theirs) */
         if (pm == (s8)g_rb(G_LEADER)) return;
-        if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
-        g_wb(G_LEADER, (u8)pm);
+        speak(pm);
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party, picked (leader %d)\n", sel, pm, saved_leader);
         return;
     }
@@ -80,8 +92,7 @@ static void leader_for_choice(int sel)
         if (card_chances.line[i].opt == sel && card_chances.line[i].lead >= 0) {
             int m = card_chances.line[i].lead;
             if (!leader_able(m)) return;
-            if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
-            g_wb(G_LEADER, (u8)m);
+            speak(m);
             if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party (leader %d)\n", sel, m, saved_leader);
             return;
         }
@@ -110,8 +121,7 @@ static void entry_best(int skill, int attr)
         if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
     }
     if (best == cur || !leader_able(best)) return;
-    if (saved_leader < 0) saved_leader = cur;
-    g_wb(G_LEADER, (u8)best);
+    speak(best);
     if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: a card's opening roll: %d speaks for the party (leader %d)\n", best, saved_leader);
 }
 static void raubi02_hook(void) { entry_best(0x12, -1); if (ns_unwinding) return; hook_call_original(); }
@@ -129,7 +139,7 @@ static void villa07_hook(void)
             if (ns_unwinding) return;
             if (v > bv || (v == bv && m == cur)) { bv = v; best = m; }
         }
-        if (best != cur && leader_able(best)) { if (saved_leader < 0) saved_leader = cur; g_wb(G_LEADER, (u8)best); }
+        if (best != cur && leader_able(best)) speak(best);
     }
     hook_call_original();
 }
