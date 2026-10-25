@@ -611,6 +611,7 @@ int dl_in_irq(void) { return in_irq; }
    counted while a piece plays; held back while it is paused; a burst of them at once to move
    through a piece (the notes held back meanwhile: music_ff, runtime/mpu.c, runtime/sound.c) */
 volatile u32 music_ticks; int music_hold;
+volatile u32 sound_tick_late_us;          /* the tick being delivered fell due so long ago (the sound's timestamps go back by it) */
 double bios_tick_us(void);
 void bios_timer_burst(int n)
 {
@@ -681,23 +682,31 @@ void dl_poll(void)
             int keep = (config_get_int("sound.music_in_menus", 1) || soundpreview_active()) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8);
             void sound_pause(int);
             if (!keep) sound_pause(1);
-            u32 lt = plat_ticks_ms(); double acc = 0;
-            int paused_bg = 0;
+            /* while music plays (a preview, the soundtrack's player, the music in menus) the timer's
+               ticks go to the driver as they fall due, a millisecond at a time, and each is dated to
+               when it fell due (sound_tick_late_us: the MT-32's messages and the FM chip's writes are
+               placed by it), with the window drawn every 14 ms between: the ticks came in bursts
+               after each frame and its 15 ms rest before, at most 32 at once (a fast timer lost
+               ticks: the music slowed and its notes bunched) */
+            u32 lt = plat_ticks_ms(), drawn = 0; double acc = 0;
+            int paused_bg = 0, first = 1;
             while (plat_menu_open()) {
-                plat_events(); plat_present(M + 0xa0000, vga_dac);
+                int playing = keep && !paused_bg && !music_hold;
+                u32 now2 = plat_ticks_ms();
+                if (first || !playing || now2 - drawn >= 14) { plat_events(); plat_present(M + 0xa0000, vga_dac); drawn = plat_ticks_ms(); first = 0; }
                 int bg = plat_in_background();
                 if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
-                { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); }
                 if (keep && !bg && !music_hold) {
                     u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 500) d = 500;
                     acc += d * 1000.0;
                     double per = pit_period_us();
                     in_irq = 1;
-                    for (int n = 0; acc >= per && n < 32; n++) { acc -= per; call_handler(8); music_ticks++; }   /* (all that fell due: the music keeps its tempo) */
-                    if (acc > 500000.0) acc = 0;
+                    while (acc >= per) { acc -= per; sound_tick_late_us = (u32)acc; call_handler(8); music_ticks++; }   /* (all that fell due: the music keeps its tempo) */
+                    sound_tick_late_us = 0;
                     { int sb_poll(void); int v = sb_poll(); if (v && ivt_hooked(v)) call_handler(v); }
                     in_irq = 0;
-                } else lt = plat_ticks_ms();
+                    plat_sleep_ms(1);
+                } else { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); lt = plat_ticks_ms(); }
             }
             sound_pause(0);
             last_ms = now = present_end = plat_ticks_ms();
@@ -715,9 +724,11 @@ void dl_poll(void)
     while (tick_us_acc >= per && delivered < 32) {
         tick_us_acc -= per;
         delivered++;
+        sound_tick_late_us = tick_us_acc < 200000.0 ? (u32)tick_us_acc : 0;   /* (each dated to when it fell due) */
         if (ivt_hooked(8)) call_handler(8); else bios_int8();
         music_ticks++;
     }
+    sound_tick_late_us = 0;
     static u32 st_deliv, st_drop, st_t; static int st_on = -1;
     if (st_on < 0) st_on = getenv("DL_TRACE_PIT") != 0;
     if (st_on) { st_deliv += (u32)delivered; if (tick_us_acc > 500000.0) st_drop += (u32)(tick_us_acc / per) - 1;

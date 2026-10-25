@@ -431,12 +431,18 @@ static void tab_editor_all(void)
 
 /* one cursor at a time: over the game picture the game draws its own, so the system cursor
  * is hidden there; it shows with the menu or the world map open, and outside the picture */
+/* a Darklands+ window over the game (the menu, the world map, a tip ...): the system's pointer
+   there, and the game's hand not drawn, so the one pointer seen is where a click lands */
+static bool windows_up(void)
+{
+    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open();
+}
 static void ui_cursor(void)
 {
     int mx, my; SDL_GetMouseState(&mx, &my);
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     bool over_game = mx >= x0 && mx < x1 && my >= y0 && my < y1;
-    bool show = open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || !over_game || ui_sys_cursor
+    bool show = windows_up() || !over_game || ui_sys_cursor
                 || (ns_showing() && !hdtext_live_pointer);     /* (a Darklands+ page where the game hides its pointer, the saints from a card: the system's) */
     static int shown = -1;
     if (shown != (int)show) { SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE); shown = show; }
@@ -528,7 +534,7 @@ static void draw_icon_grid(void)
 
 
 #include "vtrace.h"
-int vt_on = -1, vt_frame, vt_last_mark;
+int vt_on = -1, vt_frame, vt_last_mark, vt_time = -1;
 unsigned long long ui_build_us;
 extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
 extern "C" void ui_draw(SDL_Renderer *ren)
@@ -537,7 +543,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ImGui_ImplSDL2_NewFrame();
     ImGui::GetStyle().HoverDelayNormal = config_get_int("display.tooltip_delay", 500) / 1000.0f;   /* (third_party/imgui: a tooltip waits so long) */
     ImGui::NewFrame();
-    if (vt_on < 0) vt_on = getenv("DL_VTX_TRACE") != 0;
+    if (vt_on < 0) { vt_on = getenv("DL_VTX_TRACE") != 0; vt_time = getenv("DL_UI_TIME") != 0; }
     vt_frame++;
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
     if (!open_menu && !open_map && !open_goto) citynav_tick();
@@ -555,7 +561,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else { VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(savesview_draw()); VT(menuview_draw()); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) VT(ui_overlay());
     {
-        if (!open_menu && !open_map && !open_goto && !open_help && !levelmap_is_open() && !halloffame_is_open() && !figpick_is_open()) hdtext_draw_cursor();
+        if (!windows_up()) hdtext_draw_cursor();
         else hdtext_pointer_off();
         hdtext_pointer_frame_end(); }
     { void soundpreview_tick(void); soundpreview_tick(); }   /* (mods/soundpreview.c) */

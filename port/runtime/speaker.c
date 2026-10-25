@@ -32,8 +32,10 @@ static void change(void)
     int on = (p61 & 3) == 3;
     if (trace) fprintf(stderr, "speaker: %s, divisor %u (%.0f Hz)\n", on ? "on" : "off", div2, 1193182.0 / (div2 ? div2 : 65536));
     sound_lock(1);
-    uint64_t dt = plat_ticks_us() - cb_us;
-    if (dt > 2 * 1000000ull * cb_frames / 44100) dt = 2 * 1000000ull * cb_frames / 44100;   /* (after a pause) */
+    extern volatile uint32_t sound_tick_late_us;           /* (runtime/bios.c: dated back by a late timer tick, as the music) */
+    int64_t dt = (int64_t)(plat_ticks_us() - cb_us) - (int64_t)sound_tick_late_us + 8000;
+    if (dt < 0) dt = 0;
+    if (dt > 2 * 1000000ll * cb_frames / 44100) dt = 2 * 1000000ll * cb_frames / 44100;   /* (after a pause) */
     if (ev_w - ev_r < NEV) { Ev *e = &ev[ev_w % NEV]; e->pos = rendered + (uint32_t)(dt * 44100 / 1000000); e->div = div2; e->on = (uint8_t)on; ev_w++; }
     sound_lock(0);
 }

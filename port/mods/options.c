@@ -208,7 +208,7 @@ static Option OPTIONS[] = {
     { "display.text_contrast", S_OTHER, 0, "Darken faint text", "faint text darkened (or lightened) against its background so it stays readable.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.text_size", S_OTHER, 0, "Text size", "the size of the text in the margins, the tooltips and the place names (world map and overland view), in percent.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.skill_icons", S_OTHER, 0, "Icons beside the skills", "small icons beside the skills and attributes.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
-    { "display.skill_icon_look", S_OTHER, 0, "Skill icons' look", "on the character sheet: heraldic charges (2) or in color (0); in color elsewhere.", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.skill_icon_look", S_OTHER, 0, "Skill icons' look", "heraldic charges on shields (2) or in color (0), wherever a skill or attribute is shown.", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.potion_grade", S_OTHER, 0, "A potion's grade", "how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots).", OC_LOOK, 4, 4, 4, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.pstone_look", S_OTHER, 0, "The Philosopher's Stone", "how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg).", OC_LOOK, 2, 2, 2, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.clock", S_OTHER, 0, "Clock", "the clock shown while hours pass (styles by number).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },

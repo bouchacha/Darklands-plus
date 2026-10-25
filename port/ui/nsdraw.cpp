@@ -179,41 +179,7 @@ std::string ns_item_use(int id)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d) return "";
-    if (d->kind == K_INGREDIENT) {
-        /* each potion with the grades of its formulae (1 to 3, the dots on its flask) that take it */
-        struct Use { int potion; bool need[3]; bool known[3]; };
-        std::vector<Use> uses;
-        for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
-            bool takes = false;
-            for (const FormulaIngr &g : gamedata.formulas[f].ingr) if (g.item == id) takes = true;
-            if (!takes) continue;
-            int potion = 95 + f / 3; size_t k = 0;
-            while (k < uses.size() && uses[k].potion != potion) k++;
-            if (k == uses.size()) uses.push_back({ potion, { false, false, false }, { false, false, false } });
-            uses[k].need[f % 3] = true;
-            for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_knows_formula(m, f)) uses[k].known[f % 3] = true;
-        }
-        if (uses.empty()) return "No formula uses it.";
-        auto grades = [](const bool g[3], const char *all) {   /* "" (or `all`) for every grade; else " (grade 2 only)" */
-            int n = 0; for (int i = 0; i < 3; i++) n += g[i];
-            if (n == 3) return std::string(all);
-            std::string r = n == 1 ? " (grade " : " (grades ";
-            bool first = true; for (int i = 0; i < 3; i++) if (g[i]) { r += (first ? "" : " and ") + std::to_string(i + 1); first = false; }
-            return r + " only)";
-        };
-        std::string r = "Goes into ", kn;
-        for (size_t i = 0; i < uses.size(); i++) {
-            r += (i ? (i + 1 == uses.size() ? " and " : ", ") : "") + ns_item_name(uses[i].potion) + grades(uses[i].need, "");
-            if (uses[i].known[0] || uses[i].known[1] || uses[i].known[2]) {
-                std::string g = grades(uses[i].known, " (every grade)");
-                if (g.size() > 6 && g.compare(g.size() - 6, 6, " only)") == 0) g = g.substr(0, g.size() - 6) + ")";
-                kn += (kn.empty() ? "" : ", ") + ns_item_name(uses[i].potion) + g;
-            }
-        }
-        r += ".";
-        if (!kn.empty()) r += " The party knows the formulae for " + kn + ".";
-        return r;
-    }
+    if (d->kind == K_INGREDIENT) return "";                 /* (the potions it goes into are pictures: ns_ingredient_row) */
     if (id >= 95 && id <= 116) return ns_potion_effect(id);
     switch (id) {
     case 0x3b: return "For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough.";
@@ -231,6 +197,64 @@ std::string ns_item_use(int id)
     }
     if (id >= 129 && id <= 139) return "Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where).";
     return "";
+}
+
+/* an ingredient: the potions it goes into, as pictures (each potion has three formulae, of grade 1,
+   2 and 3, the dots on its flask; under each picture three pips, one a grade: filled where that
+   grade's formula takes this ingredient, gold where someone in the party knows that formula), and
+   under them a line about the one under the pointer; from x0 to x1 at y, the height it takes */
+float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id)
+{
+    const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT;
+    struct Use { int potion; int need[3]; bool known[3]; };
+    std::vector<Use> uses;
+    for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
+        int need = 0;
+        for (const FormulaIngr &g : gamedata.formulas[f].ingr) if (g.item == id) need += g.count;
+        if (!need) continue;
+        int potion = 95 + f / 3; size_t k = 0;
+        while (k < uses.size() && uses[k].potion != potion) k++;
+        if (k == uses.size()) uses.push_back({ potion, { 0, 0, 0 }, { false, false, false } });
+        uses[k].need[f % 3] = need;
+        for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_knows_formula(m, f)) uses[k].known[f % 3] = true;
+    }
+    if (uses.empty()) { P.text(P.fo, NsDraw::FS_BODY, x0, y, soft, "No formula uses it."); return 7; }
+    const char *lab = "Goes into";
+    P.text(P.fo, NsDraw::FS_SMALL, x0, y + 3.0f, soft, lab);
+    float x = x0 + P.width(P.fo, NsDraw::FS_SMALL, lab) + 3, sz = 9.0f;
+    float step = fminf(11.0f, (x1 - x) / (float)uses.size());
+    int hov = -1;
+    for (size_t k = 0; k < uses.size(); k++) {
+        const Use &u = uses[k];
+        float cx = x + k * step + step * 0.5f, cy = y + sz * 0.5f;
+        bool any_known = u.known[0] || u.known[1] || u.known[2];
+        P.icon(cx, cy, sz, u.potion);
+        if (!any_known) P.rect(cx - sz * 0.55f, cy - sz * 0.62f, cx + sz * 0.55f, cy + sz * 0.62f, IM_COL32(230, 214, 178, 185));   /* (no formula with it known: washed out) */
+        for (int g = 0; g < 3; g++) {                     /* the grades' pips */
+            ImVec2 pc = NsDraw::w(cx + (g - 1) * 2.4f, cy + sz * 0.62f + 1.6f);
+            float r = 0.85f * P.k;
+            if (u.need[g]) P.dl->AddCircleFilled(pc, r, u.known[g] ? IM_COL32(196, 146, 30, 255) : IM_COL32(70, 48, 26, 230));
+            else P.dl->AddCircle(pc, r, IM_COL32(120, 96, 66, 150), 0, 0.25f * P.k);
+        }
+        if (P.over(cx - step * 0.5f, cy - sz * 0.6f, cx + step * 0.5f, cy + sz * 0.6f + 3.5f)) hov = (int)k;
+    }
+    std::string line;
+    if (hov >= 0) {                                         /* the potion's grades that take it, how many a batch, which are known */
+        const Use &u = uses[hov];
+        line = ns_item_name(u.potion) + ": ";
+        bool first = true;
+        for (int g = 0; g < 3; g++) if (u.need[g]) {
+            char b[64]; snprintf(b, sizeof b, "%sgrade %d (%d a batch%s)", first ? "" : ", ", g + 1, u.need[g], u.known[g] ? ", known" : "");
+            line += b; first = false;
+        }
+        int other = 0; for (int g = 0; g < 3; g++) if (!u.need[g]) other++;
+        if (other) line += other == 2 ? "; the other two grades don't use it" : "; the other grade doesn't use it";
+    } else {
+        int nk = 0; for (const Use &u : uses) nk += u.known[0] || u.known[1] || u.known[2];
+        line = "Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more.";
+        if (!nk) line = "Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more.";
+    }
+    return sz + 4.2f + P.para(P.fo, NsDraw::FS_SMALL, x0, y + sz + 4.2f, x1 - x0, hov >= 0 ? ink : NsDraw::INK_DIM, line);
 }
 
 /* what a potion does, as the game's code does it (use_potion s031 1462:43b2; thrown: effect_spell
@@ -298,61 +322,7 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l1); y += 7;
     std::string l2 = ns_item_line(t.id, t.qual);
     if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
-    if (d && d->kind == K_INGREDIENT) {                     /* an ingredient: the potions it goes into, as pictures */
-        /* each potion has three formulae, of grade 1, 2 and 3 (the dots on its flask); under each
-           picture three pips, one a grade: filled where that grade's formula takes this ingredient,
-           gold where someone in the party knows that formula */
-        struct Use { int potion; int need[3]; bool known[3]; };
-        std::vector<Use> uses;
-        for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
-            int need = 0;
-            for (const FormulaIngr &g : gamedata.formulas[f].ingr) if (g.item == t.id) need += g.count;
-            if (!need) continue;
-            int potion = 95 + f / 3; size_t k = 0;
-            while (k < uses.size() && uses[k].potion != potion) k++;
-            if (k == uses.size()) uses.push_back({ potion, { 0, 0, 0 }, { false, false, false } });
-            uses[k].need[f % 3] = need;
-            for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_knows_formula(m, f)) uses[k].known[f % 3] = true;
-        }
-        if (uses.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, "No formula uses it."); return; }
-        const char *lab = "Goes into";
-        P.text(P.fo, NsDraw::FS_SMALL, 79, y + 3.0f, soft, lab);
-        float x = 79 + P.width(P.fo, NsDraw::FS_SMALL, lab) + 3, sz = 9.0f;
-        float step = fminf(11.0f, (314 - x) / (float)uses.size());
-        int hov = -1;
-        for (size_t k = 0; k < uses.size(); k++) {
-            const Use &u = uses[k];
-            float cx = x + k * step + step * 0.5f, cy = y + sz * 0.5f;
-            bool any_known = u.known[0] || u.known[1] || u.known[2];
-            P.icon(cx, cy, sz, u.potion);
-            if (!any_known) P.rect(cx - sz * 0.55f, cy - sz * 0.62f, cx + sz * 0.55f, cy + sz * 0.62f, IM_COL32(230, 214, 178, 185));   /* (no formula with it known: washed out) */
-            for (int g = 0; g < 3; g++) {                     /* the grades' pips */
-                ImVec2 pc = NsDraw::w(cx + (g - 1) * 2.4f, cy + sz * 0.62f + 1.6f);
-                float r = 0.85f * P.k;
-                if (u.need[g]) P.dl->AddCircleFilled(pc, r, u.known[g] ? IM_COL32(196, 146, 30, 255) : IM_COL32(70, 48, 26, 230));
-                else P.dl->AddCircle(pc, r, IM_COL32(120, 96, 66, 150), 0, 0.25f * P.k);
-            }
-            if (P.over(cx - step * 0.5f, cy - sz * 0.6f, cx + step * 0.5f, cy + sz * 0.6f + 3.5f)) hov = (int)k;
-        }
-        std::string line;
-        if (hov >= 0) {                                         /* the potion's grades that take it, how many a batch, which are known */
-            const Use &u = uses[hov];
-            line = ns_item_name(u.potion) + ": ";
-            bool first = true;
-            for (int g = 0; g < 3; g++) if (u.need[g]) {
-                char b[64]; snprintf(b, sizeof b, "%sgrade %d (%d a batch%s)", first ? "" : ", ", g + 1, u.need[g], u.known[g] ? ", known" : "");
-                line += b; first = false;
-            }
-            int other = 0; for (int g = 0; g < 3; g++) if (!u.need[g]) other++;
-            if (other) line += other == 2 ? "; the other two grades don't use it" : "; the other grade doesn't use it";
-        } else {
-            int nk = 0; for (const Use &u : uses) nk += u.known[0] || u.known[1] || u.known[2];
-            line = "Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more.";
-            if (!nk) line = "Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more.";
-        }
-        P.text(P.fo, NsDraw::FS_SMALL, 79, y + sz + 4.2f, hov >= 0 ? ink : NsDraw::INK_DIM, line, -1, 314);
-        return;
-    }
+    if (d && d->kind == K_INGREDIENT) { ns_ingredient_row(P, 79, y, 314, t.id); return; }   /* an ingredient: the potions it goes into, as pictures */
     std::string use = ns_item_use(t.id);                    /* what it is good for (rope, lockpicks ...) */
     if (!use.empty()) {
         float h = P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
@@ -483,6 +453,7 @@ const char *ns_item_section_name(int sec)
    kept (ui/drawcache.h). */
 #include "alchemydesk.h"
 #include "drawcache.h"
+int ns_page_frame = -10;                 /* the frame NsDraw::page was last drawn */
 void ns_counter_backdrop(NsDraw &P, float wall_to, ImU32 awning, bool stone)
 {
     ImVec2 o = NsDraw::w(60, 0), e = NsDraw::w(320, 200);

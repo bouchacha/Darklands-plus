@@ -18,6 +18,7 @@ extern "C" {
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
 #include "money.h"
+#include "gamedata.h"
 extern "C" {
 #include "../mods/teachers.h"
 #include "../mods/fixes.h"
@@ -117,21 +118,13 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         int q = (s16)g_rw(0x9078);
         ui_pstone_draw(dl, c, s * 0.92f, 2, q > 0 ? -q : -1, (float)ImGui::GetTime());
         break; }
-    case 4: {                                                  /* Earn a little money: a few small coins, silver groschen and copper pfennigs (a day's
-                                                                  wage, not a fortune: a quest's reward is the purse, ui/questicons.cpp) */
-        const ImU32 SILVER = IM_COL32(208, 208, 214, 255), SILVER_D = IM_COL32(112, 112, 124, 255), COPPER = IM_COL32(190, 112, 58, 255), COPPER_D = IM_COL32(106, 56, 24, 255);
-        struct Co { float x, y, r; bool silver; };
-        static const Co COINS[] = { { -6.6f, -2.4f, 2.5f, false }, { 3.2f, 6.4f, 2.6f, false }, { -1.6f, -6.2f, 2.4f, false }, { -4.2f, 4.6f, 3.5f, true }, { 4.6f, -1.2f, 3.5f, true } };
-        for (const Co &k : COINS) {
-            ImU32 f = k.silver ? SILVER : COPPER, d = k.silver ? SILVER_D : COPPER_D;
-            dl->AddCircleFilled(Q(k.x + 0.5f, k.y + 0.6f), k.r * u, IM_COL32(60, 40, 20, 90), 16);     /* (its shadow on the table) */
-            dl->AddCircleFilled(Q(k.x, k.y), k.r * u, f, 16);
-            dl->AddCircle(Q(k.x, k.y), k.r * u, d, 16, 0.8f * u);
-            if (k.silver) {                                    /* a groschen's cross */
-                dl->AddLine(Q(k.x - k.r * 0.5f, k.y), Q(k.x + k.r * 0.5f, k.y), d, 0.8f * u);
-                dl->AddLine(Q(k.x, k.y - k.r * 0.5f), Q(k.x, k.y + k.r * 0.5f), d, 0.8f * u);
-            } else dl->AddCircleFilled(Q(k.x, k.y), 0.7f * u, d, 8);   /* a pfennig's boss */
-        }
+    case 4: {                                                  /* Earn a little money: a day's wage, not a fortune (a quest's reward is the purse,
+                                                                  ui/questicons.cpp): three small coins touching, silver groschen and a copper
+                                                                  pfennig, drawn as the money's coins are (ui/money.cpp) */
+        const float R = 4.1f, H = R * 1.7320508f;
+        money_coin_draw(dl, Q(0, 3.4f - H), R * u, 1);
+        money_coin_draw(dl, Q(-R, 3.4f), R * u, 2);
+        money_coin_draw(dl, Q(R, 3.4f), R * u, 1);
         break; }
     case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
     default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */
@@ -211,6 +204,12 @@ extern "C" void lodgeview_draw(void)
                 snprintf(b, sizeof b, "%d now, %d%% a day for +1, up to %d; %s a day", now, c, T.val, money_str(T.fee).c_str());
                 more = b;
             }
+        } else if (act == 3 && p.nbrew > 0) {                            /* the potions by name, not the game's "Make 3 potions" */
+            line = "Makes ";
+            for (int k = 0; k < p.nbrew; k++) {
+                int fm = p.brew_f[k];
+                line += (k ? ", " : "") + std::to_string(p.brew_n[k]) + " " + (fm >= 0 && fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : std::string("?"));
+            }
         } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "Endurance back to full (" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + ")" : p.can[4] ? "Already rested: earning would be better" : "Already rested"; if (p.end >= p.end_max && p.can[4]) mc = IM_COL32(150, 70, 20, 255); }
         else if (act == 1) more = "Strength " + std::to_string(p.str) + " of " + std::to_string(p.str_max);
         else if (act == 2) more = "Divine Favor " + std::to_string(p.df) + " of " + std::to_string(p.df_max);
@@ -278,7 +277,7 @@ extern "C" void lodgeview_draw(void)
                     ui_skill_icon(P.dl, NsDraw::w(x0 + 11, ay + th * 0.48f), th * 0.48f * P.k, T.skill);
                     P.text(fo, NsDraw::FS_BODY * fminf(1.0f, th / 9.0f), x0 + 16, ay + th * 0.14f, tcol, gm_skill_name(T.skill), -1, x0 + 46);
                     if (capped) snprintf(b, sizeof b, "learned all (%d)", T.val);
-                    else snprintf(b, sizeof b, "%d%%  \xc2\xb7  to %d  \xc2\xb7  %s  \xc2\xb7  %d day%s", teach_chance(T.val), T.val, money_str(T.fee).c_str(), T.days_left, T.days_left == 1 ? "" : "s");
+                    else snprintf(b, sizeof b, "now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s", gm_member_skill(m.sel, T.skill), T.val, teach_chance(T.val), money_str(T.fee).c_str(), T.days_left, T.days_left == 1 ? "" : "s");
                     P.text(fo, NsDraw::FS_SMALL * fminf(1.0f, th / 9.0f), 0, ay + th * 0.2f, scol, b, x1 - 1.5f);
                     if (thv) hover_act = 100 + t;
                     if (P.hit(x0 + 6, ay, x1, ay + th - 0.6f) && !tc && !capped) ns_push(LV_TEACH, t, m.sel, 0);

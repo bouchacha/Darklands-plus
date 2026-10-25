@@ -292,11 +292,15 @@ void mt32_msg(const unsigned char *m, int n)
 {
     if (state <= 0) return;
     sound_lock(1);
-    uint64_t dt = plat_ticks_us() - cb_us;
-    if (dt > 2 * 1000000ull * cb_frames / 44100) dt = 2 * 1000000ull * cb_frames / 44100;   /* after a pause */
+    extern volatile uint32_t sound_tick_late_us;           /* (runtime/bios.c: the timer tick being delivered was late by so much; dated back by it) */
+    int64_t dt = (int64_t)(plat_ticks_us() - cb_us) - (int64_t)sound_tick_late_us + 8000;   /* (8 ms more than a buffer later: room to date back a late tick) */
+    if (dt < 0) dt = 0;
+    if (dt > 2 * 1000000ll * cb_frames / 44100) dt = 2 * 1000000ll * cb_frames / 44100;   /* after a pause */
     uint32_t ts = mt32emu_convert_output_to_synth_timestamp(ctx, rendered + (uint32_t)(dt * 44100 / 1000000));
     if ((int32_t)(ts - last_ts) < 0) ts = last_ts;
     last_ts = ts;
+    { static int lg = -1; if (lg < 0) lg = getenv("DL_MIDI_LOG") != 0;    /* (a test: each note's tick and where it was placed, for the timing) */
+      if (lg && (m[0] & 0xf0) == 0x90 && n > 2 && m[2]) { extern volatile uint32_t music_ticks; fprintf(stderr, "midi note %u %u %u %llu\n", music_ticks, ts, (unsigned)(plat_ticks_us() / 1000), (unsigned long long)(plat_ticks_us() - sound_tick_late_us)); } }
     /* the queue full (a burst: several songs started at once, each uploading its timbres): the
        message goes in at once rather than being lost (a lost timbre upload would leave an
        instrument wrong for the session). (Safe here: the lock keeps the renderer out.) */

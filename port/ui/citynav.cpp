@@ -607,6 +607,14 @@ bool citynav_town_offers(int loc, int icon)
     return false;
 }
 
+/* test (ucmd utownoffers): how many towns have each of the places the town icons mark */
+extern "C" void citynav_offer_counts(void)
+{
+    static const char *NM[6] = { "university", "cathedral", "alchemist", "physician", "docks", "bank" };
+    int n = (int)gamedata.cities.size();
+    for (int k = 0; k < 6; k++) { int c = 0; for (int l = 0; l < n; l++) c += citynav_town_offers(l, k); fprintf(stderr, "town offers: %s in %d of %d towns\n", NM[k], c, n); }
+}
+
 /* the party's tasks in this town, by the place they lead to: a reward waiting with its giver (the
    giver's house: a bank's, the Hanse's, the cathedral, the council), a thing kept in an office above
    the marketplace (reached at night) */

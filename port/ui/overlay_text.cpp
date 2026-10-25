@@ -384,10 +384,16 @@ extern "C" void hdtext_draw(void)
     const FaceMetrics fm = face_metrics(font);
     { float a, b0, c, d; plat_game_to_win(0, 0, &a, &b0); plat_game_to_win(0, 6, &c, &d); spell_columns(sp, font, (d - b0) * 1.18f * fm.k); }
     float prev_end = 0; int prev = -1, skip = -1, on_sheet = -1;
+    /* a Darklands+ page over the picture (the character sheet, the loot, a prayer: NsDraw::page,
+       opaque from x 60 on) last frame and still up: the game's text under it is not drawn (the
+       sheet's ran to 26,000 vertices a frame, all hidden) */
+    extern int ns_page_frame;
+    const bool paged = ImGui::GetFrameCount() - ns_page_frame <= 1 && ns_showing();
     auto joins = [](const HdRun &q, const HdRun &r) { int gap = r.x - (q.x + q.w); return q.y == r.y && q.h == r.h && q.font == r.font && gap >= 0 && gap <= 3; };
     for (int i = 0; i < hdtext_nruns; i++) {
         if (i == skip) continue;
         HdRun r = hdtext_runs[i];
+        if (paged && r.x >= 60) continue;
         std::string t = utf8(r.text);
         if (t.empty()) continue;
         /* a hotkey letter and the rest of its word ("P" + "urchase an item") count as one line */

@@ -18,5 +18,10 @@ extern float ui_scale;                  /* the menus' size: 1 at 96 dpi (display
 float ui_text_px(void);                 /* text size beside and over the picture (side panels, tooltips, map names) */
 #ifdef __cplusplus
 }
+struct ImVec2;
+/* the next tooltip beside the thing a0..a1 (window pixels): below it, or above when there is no
+   room below, never over it nor over the pointer (ui/tipplace.cpp). Every tooltip that belongs to a
+   thing on screen is placed with it. */
+void ui_tip_beside(ImVec2 a0, ImVec2 a1);
 #endif
 #endif

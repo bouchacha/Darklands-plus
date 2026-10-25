@@ -164,7 +164,7 @@ extern "C" void alchemyview_draw(void)
         P.text(fo, 4.3f, RX0, y + 0.5f, soft, "For a batch: at hand / needed"); y += 6.5f;
         for (int kk = 0; kk < a.ningr; kk++) {
             const AvIngr &q = a.ingr[kk];
-            P.icon(RX0 + 3.5f, y + 3.2f, 6.0f, q.item);
+            P.icon(RX0 + 3.3f, y + 3.3f, 5.4f, q.item);   /* (a gap between the medallions, and before the name) */
             P.text(fo, NsDraw::FS_BODY, RX0 + 8.5f, y + 0.6f, ink, ns_item_name(q.item), -1, RX1 - 14);
             char v[16]; snprintf(v, sizeof v, "%d / %d", q.have, q.need);
             P.text(fo, NsDraw::FS_BODY, 0, y + 0.6f, q.have >= q.need ? green : red, v, RX1);

@@ -17,7 +17,8 @@ std::string money_with_total(long pf);           // money_str, and "(105 pf)" af
 std::string money_total(long pf);                // "388 pfennigs in all" (for a tooltip or a strip)
 void money_tooltip(long pf);                     // that, as a tooltip, when the last ImGui item is hovered and the amount has two parts or more
 
-struct ImFontAtlas;
+struct ImFontAtlas; struct ImDrawList; struct ImVec2;
+void money_coin_draw(ImDrawList *dl, ImVec2 c, float r, int kind);   // a coin as the glyphs draw it, r its radius (kind 0 gold, 1 silver, 2 copper)
 void money_glyphs_add(ImFontAtlas *atlas);       // before the atlas is built: room for the coins in every font
 void money_glyphs_paint(ImFontAtlas *atlas);     // after: the coins painted, their place on the line set
 }

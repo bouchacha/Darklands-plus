@@ -156,14 +156,15 @@ struct NsDraw {
     {
         void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
         void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
-        ImVec2 c = w(x, y); float s = size * k, h = s * 0.62f;
-        dl->PushClipRect(ImVec2(c.x - h, c.y - h * 1.15f), ImVec2(c.x + h, c.y + h), true);
+        ImVec2 c = w(x, y); float s = size * k, h = s * 0.62f, aa = 1.5f;   /* (aa: room for a round picture's soft edge, a pixel past its line, which was cut) */
+        dl->PushClipRect(ImVec2(c.x - h - aa, c.y - h * 1.15f - aa), ImVec2(c.x + h + aa, c.y + h + aa), true);
         if (tier > 0) ui_item_icon_tier(dl, c, s, id, tier); else ui_item_icon_q(dl, c, s, id, qual);
         dl->PopClipRect();
     }
     /* the page under a native screen (over the picture beside the party panel) */
     void page()
     {
+        extern int ns_page_frame; ns_page_frame = ImGui::GetFrameCount();   /* (the game's picture right of the party panel is covered: ui/overlay_text.cpp draws no crisp text there) */
         rect(60, 0, 320, 200, IM_COL32(236, 222, 188, 255));
         rect(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(242, 230, 200, 255), 2);
         frame(61.5f, 1.5f, 318.5f, 198.5f, IM_COL32(120, 80, 36, 150), 2);
@@ -208,6 +209,7 @@ std::string ns_quality_tag(int id, int qual);
 /* what a thing is good for, where its kind does not say it (ingredients: the potions; rope,
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
+float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id);   /* an ingredient: the potions it goes into, as pictures; the height taken */
 int ns_item_section(int id);              /* the section of the items list: 1 potions, 2 spare equipment, 3 utility, 4 trophies and quest things, 5 ingredients */
 const char *ns_item_section_name(int sec);   /* (0 "Equipped") */
 int ns_slot_of(int id);                    /* where a thing is worn or held: 1 body, 2 limbs, 3 shield, 4 weapon in hand, 5 missile weapon; 0 none */

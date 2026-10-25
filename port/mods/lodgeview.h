@@ -18,6 +18,7 @@ typedef struct {
     int str, str_max, df, df_max, end, end_max;
     int can[7];                       /* each activity possible (the original's bright or dim word) */
     int skill;                        /* training: the skill (-1 none) */
+    int nbrew, brew_f[4], brew_n[4];  /* alchemy: the batches set (their formula and count; the game's line says only "Make 3 potions") */
 } LodgeMember;
 
 typedef struct {

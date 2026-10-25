@@ -234,6 +234,7 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "umoney")) { g_ww(G_MONEY, (u16)atoi(arg)); }   /* test: the party's florins */
         else if (!strcmp(cmd, "uleader")) { int m = atoi(arg); if (m >= 0 && m < 5) g_wb(G_LEADER, (u8)m); fprintf(stderr, "leader now %d\n", (s8)g_rb(G_LEADER)); }   /* test: the party's leader */
+        else if (!strcmp(cmd, "utownoffers")) { void citynav_offer_counts(void); citynav_offer_counts(); }   /* test: how many towns have a university, a cathedral ... (the town icons) */
         else if (!strcmp(cmd, "uknows")) {             /* test: what each member knows: formulae (a byte a potion, 3 bits) and saints */
             for (int m = 0; m < 5; m++) {
                 fprintf(stderr, "knows %d: formulae", m);

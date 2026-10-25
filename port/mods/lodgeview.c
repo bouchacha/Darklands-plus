@@ -268,6 +268,13 @@ static void build(void)
         p->skill = -1;
         if (p->act >= 0 && p->act <= 6) day_line(p->line, sizeof p->line, p->act, p->val, p->detail);
         if (p->act == 6) { p->skill = p->val; fees += fee_of(p->val); }
+        if (p->act == 3)                                                  /* the batches under way: events of kind 29 owned by the member (+0 the formula, +0x20 the count) */
+            for (int e = 0; e < G_NEVENTS && p->nbrew < 4; e++) {
+                u32 ev = g_event(e); if (!ev) continue;
+                u16 s = (u16)(ev >> 16), o = (u16)ev;
+                if ((s16)rw(s, (u16)(o + G_EV_KIND)) != 29 || (s16)rw(s, (u16)(o + G_EV_OWNER)) != i) continue;
+                p->brew_f[p->nbrew] = (s16)rw(s, o); p->brew_n[p->nbrew] = (s16)rw(s, (u16)(o + 0x20)); p->nbrew++;
+            }
         if (p->act == 4) earn += p->val;
         if (p->act == 1 || p->act == 2) m->resting = 1;
         p->can[0] = 1;

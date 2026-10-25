@@ -178,26 +178,22 @@ static void place_quests(int cur);
 
 /* what a town offers that is worth a detour, as a row of pictures (what each offers under the
  * pointer, in the words of the town's own cards): the places most towns lack - a university (13
- * towns), a cathedral, an alchemist, a physician (some towns, some games), the docks' boats, a
- * Fugger or Medici bank. Not shown: what nearly every town has (a monastery: 90 of 92) or what
+ * of 92 towns) and a cathedral (48). Not shown: what nearly every town has (ucmd utownoffers counts
+ * them: a monastery 90, a physician 88, an alchemist 80, docks 79, the banks' offices all 92) or what
  * only pays later with reputation (the town hall's and the fortress's audiences); the rest is in
- * the world map (the place panel). Then the notable shops: those whose wares come out at 30q or better (the
+ * the world map (the place panel, and its finder for each). Then the notable shops: those whose wares come out at 30q or better (the
  * standard is 25q), a picture and the quality each. `tables`: the location table may be read;
  * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
  * no tooltip can show: the world map's tooltip on a town). */
-static const char *TOWN_OFFER_TIP[6] = {
+static const char *TOWN_OFFER_TIP[2] = {
     "University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind).",
-    "Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary.",
-    "An alchemist: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy.",
-    "A physician: wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold.",
-    "Docks: boats to other towns, for a fee (each boat leaves on its own day).",
-    "A bank (Fugger or Medici): heavy coins changed into a bank note that weighs nothing, and back, for a fee; quests for the bold." };
+    "Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armor and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
     { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
     { 8, TI_CLOTH, "clothing and soft armor (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
 enum { NOTABLE_Q = 30 };
-static const char *TOWN_OFFER_WORD[6] = { "University", "Cathedral", "Alchemist", "Physician", "Docks", "Bank" };
+static const char *TOWN_OFFER_WORD[2] = { "University", "Cathedral" };
 /* what was drawn into dl since vertex v0, faded to alpha k (a known formula, a teacher nobody needs) */
 static void dim_since(ImDrawList *dl, int v0, float k)
 {
@@ -288,12 +284,13 @@ static void teachers_chip(int loc, bool &first, float isz, float gap, float x0, 
 }
 void ui_town_offers(int loc, bool tables, float width, bool words)
 {
-    static int seen_loc = -1; static bool has[6];
-    if (tables || seen_loc != loc) { for (int k = 0; k < 6; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
+    static int seen_loc = -1; static bool has[2];
+    if (tables || seen_loc != loc) { for (int k = 0; k < 2; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
     const City &c = gamedata.cities[loc];
     float lh = ImGui::GetTextLineHeight(), gap = lh * 0.3f;
     float x0 = ImGui::GetCursorScreenPos().x, w = width > 0 ? width : ImGui::GetContentRegionAvail().x;
-    int nf = 0; for (int k = 0; k < 6; k++) nf += has[k];
+    const int NRARE = 2;                                     /* (the university and the cathedral: TOWN_OFFER_TIP's first two) */
+    int nf = 0; for (int k = 0; k < NRARE; k++) nf += has[k];
     if (margin_town_row && ui_teachers_on()) nf++;                /* (the lectern too) */
     float isz = lh * 1.35f;                                 /* (smaller, down to a line's height, to keep the row on one line) */
     float wn = margin_town_row ? w - lh * 1.0f : w;              /* (the lectern's number beside it) */
@@ -311,7 +308,7 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
         if (item_hovered()) margin_tip(tip);
     };
     bool first = true;
-    for (int k = 0; k < 6; k++) if (has[k]) chip(first, k, words ? TOWN_OFFER_WORD[k] : nullptr, TOWN_OFFER_TIP[k]);
+    for (int k = 0; k < NRARE; k++) if (has[k]) chip(first, k, words ? TOWN_OFFER_WORD[k] : nullptr, TOWN_OFFER_TIP[k]);
     if (!words && margin_town_row) teachers_chip(loc, first, isz, gap, x0, w);   /* (the margin: the lectern and how many) */
     bool head = false;
     for (const auto &s : NOTABLE_SHOPS) {

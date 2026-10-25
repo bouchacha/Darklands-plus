@@ -261,8 +261,7 @@ void setup_sound(void)
             if (ImGui::InputTextWithHint("##mt32roms", "the folder with the ROM files", romdir, sizeof romdir)) { config_set("sound.mt32_roms", romdir); ui_dirty_config = 1; }
             ImGui::SameLine();
             if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
-            ui_hint("Darklands+ finds them by their contents, whatever their names, in that folder and in:");
-            for (int i = 0; i < mt32_dir_count(); i++) ui_hint("    %s", mt32_dir(i));
+            ui_hint("Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its \"roms\" folder, and where Munt and DOSBox keep them.");
             if (mt32_families() == 3) {                /* both: which one */
                 const char *m = config_get("sound.mt32_model", "mt32");
                 auto model = [&](const char *id, const char *title, const char *what) {   /* (the words wrapped beside the button) */

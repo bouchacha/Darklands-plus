@@ -24,12 +24,39 @@ int sound_music_volume = 100;                                /* percent, F12 > S
  * channel and the effects stop where they are, after a short fade, and go on after it */
 volatile int sound_music_hushed;                          /* the music quiet while the settings are open (but a preview) */
 static volatile int paused; static int fade;              /* fade: 0 none, 1 out, 2 in */
+
+/* The FM chip's writes, each at its moment: the audio is made a buffer (23 ms) at a time, and a
+ * write went into the chip at once, so every note of a buffer's time started together at its
+ * beginning. As the MT-32's messages (runtime/mt32.c): each write is placed where it was made
+ * (dated back by sound_tick_late_us when its timer tick was late), one buffer later and a
+ * little more (SOUND_LEAD_US), and the chip is run up to each in turn. */
+#define NOW 8192
+static struct { uint32_t pos; uint16_t reg; uint8_t v; } ow[NOW];
+static unsigned ow_r, ow_w;
+static uint64_t ocb_us; static uint32_t orendered, ocb_frames = 1024;
+static void ow_flush(void)                                   /* (the lock held) every write waiting, now, in order */
+{
+    while (ow_r != ow_w) { OPL3_WriteRegBuffered(&chip, ow[ow_r % NOW].reg, ow[ow_r % NOW].v); ow_r++; }
+}
+static void opl_run(int16_t *s16, int n)
+{
+    ocb_us = plat_ticks_us(); ocb_frames = (uint32_t)n;
+    int done = 0;
+    while (done < n) {
+        while (ow_r != ow_w && (int32_t)(ow[ow_r % NOW].pos - (orendered + (uint32_t)done)) <= 0) { OPL3_WriteRegBuffered(&chip, ow[ow_r % NOW].reg, ow[ow_r % NOW].v); ow_r++; }
+        int upto = n;
+        if (ow_r != ow_w) { int32_t k = (int32_t)(ow[ow_r % NOW].pos - orendered); if (k < upto) upto = k; }
+        OPL3_GenerateStream(&chip, s16 + 2 * done, (uint32_t)(upto - done));
+        done = upto;
+    }
+    orendered += (uint32_t)n;
+}
 static void callback(void *u, Uint8 *stream, int len)
 {
     (void)u;
     int16_t *s16 = (int16_t *)stream; int n = len / 4;
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
-    OPL3_GenerateStream(&chip, s16, (uint32_t)n);
+    opl_run(s16, n);
     { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
     { void spk_mix(int16_t *, int); spk_mix(s16, n); }        /* the PC speaker (runtime/speaker.c) */
     if (musicpack_mutes() || sound_music_hushed) memset(stream, 0, (size_t)len);   /* a music pack's piece plays instead; or the settings are open */
@@ -108,6 +135,7 @@ void opl_silence(void)
 {
     if (!ok) return;
     SDL_LockAudioDevice(dev);
+    ow_r = ow_w;                                             /* (the writes waiting dropped with it) */
     OPL3_Reset(&chip, chip_rate);
     SDL_UnlockAudioDevice(dev);
 }
@@ -118,13 +146,17 @@ void opl_keys_off(void)                          /* every channel's key released
 {
     if (!ok) return;
     SDL_LockAudioDevice(dev);
+    ow_flush();
     for (int b = 0; b < 2; b++) for (int ch = 0; ch < 9; ch++) OPL3_WriteRegBuffered(&chip, (uint16_t)((0xb0 + ch) | (b << 8)), opl_keys[b][ch] & ~0x20);
     SDL_UnlockAudioDevice(dev);
 }
+extern volatile u32 sound_tick_late_us;
+#define SOUND_LEAD_US 8000
 void opl_out(u16 port, u8 v)
 {
+    static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_OPL") != 0;
     if (!nwrites++) atexit(stats);
-    if (getenv("DL_TRACE_OPL") && nwrites < 40) fprintf(stderr, "opl out %03x %02x\n", port, v);
+    if (tr && nwrites < 40) fprintf(stderr, "opl out %03x %02x\n", port, v);
     int bank = (port & 2) ? 1 : 0;
     if (!(port & 1)) { opl_index[bank] = v; return; }
     int reg = opl_index[bank];
@@ -145,7 +177,16 @@ void opl_out(u16 port, u8 v)
     }
     if (!ok) return;
     SDL_LockAudioDevice(dev);
-    OPL3_WriteRegBuffered(&chip, (uint16_t)(reg | (bank << 8)), v);
+    if (music_ff || paused || ow_w - ow_r >= NOW) { ow_flush(); OPL3_WriteRegBuffered(&chip, (uint16_t)(reg | (bank << 8)), v); }   /* (moving through a piece, or held: at once) */
+    else {
+        int64_t dt = (int64_t)(plat_ticks_us() - ocb_us) - (int64_t)sound_tick_late_us + SOUND_LEAD_US;
+        int64_t most = 2 * 1000000ll * ocb_frames / chip_rate;
+        if (dt < 0) dt = 0;
+        if (dt > most) dt = most;
+        uint32_t pos = orendered + (uint32_t)(dt * chip_rate / 1000000);
+        if (ow_r != ow_w && (int32_t)(pos - ow[(ow_w - 1) % NOW].pos) < 0) pos = ow[(ow_w - 1) % NOW].pos;   /* (never before the last: in order) */
+        ow[ow_w % NOW].pos = pos; ow[ow_w % NOW].reg = (uint16_t)(reg | (bank << 8)); ow[ow_w % NOW].v = v; ow_w++;
+    }
     SDL_UnlockAudioDevice(dev);
 }
 

@@ -586,6 +586,16 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
     if (tl.y + last_size.y > io.DisplaySize.y) tl.y = io.DisplaySize.y - last_size.y;
     if (tl.x < 0) tl.x = 0;
     if (tl.y < 0) tl.y = 0;
+    {   /* never over the pointer (kept inside the window, it can come over it): to its other side */
+        ImVec2 m = io.MousePos, plo(m.x - 4, m.y - 4), phi(m.x + 22, m.y + 26);
+        if (ImGui::GetFrameCount() - ptr_frame <= 2) { plo = ptr_lo; phi = ptr_hi; }   /* (the game's hand, where it is drawn) */
+        if (ImGui::IsMousePosValid() && tl.x < phi.x && tl.x + last_size.x > plo.x && tl.y < phi.y && tl.y + last_size.y > plo.y) {
+            if (phi.x + 6 + last_size.x <= io.DisplaySize.x) tl.x = phi.x + 6;
+            else if (plo.x - 6 - last_size.x >= 0) tl.x = plo.x - 6 - last_size.x;
+            else if (phi.y + 6 + last_size.y <= io.DisplaySize.y) tl.y = phi.y + 6;
+            else if (plo.y - 6 - last_size.y >= 0) tl.y = plo.y - 6 - last_size.y;
+        }
+    }
     ImGui::SetNextWindowPos(tl, ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowBgAlpha(0.97f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));

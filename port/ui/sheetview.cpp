@@ -354,6 +354,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
         std::string use = ns_item_use(it.id);
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
+        if (d && d->kind == K_INGREDIENT) y += ns_ingredient_row(P, SX0 + 2.5f, y + 0.5f, SX0 + 2.5f + SW, it.id) + 1.0f;
         { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
         if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
             y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") + 0.5f;
@@ -1024,7 +1025,7 @@ extern "C" void sheetview_draw(void)
     if (V.tab == TAB_THINGS || V.tab == TAB_SKILLS) {
         VT(doll(P, s));
         if (V.tab == TAB_THINGS) VT(things(P, s, new_what, new_which));
-        else { extern int ui_icon_heraldic_here; ui_icon_heraldic_here = 1; VT(skills(P, s, new_what, new_which)); ui_icon_heraldic_here = 0; }
+        else VT(skills(P, s, new_what, new_which));
         if (new_what) { V.what = new_what; V.which = new_which; V.seq = s.seq; }
         else if (V.seq != s.seq) V.what = 0;
         else if (!P.over(200, 21, 318, 197)) V.what = 0;

@@ -40,7 +40,6 @@ extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 extern "C" int cardview_dialog, game_dialog_kind;
 extern "C" { void gm_member_figure_code(int m, char *out, int n); void gm_member_palette(int m, unsigned char *mp); const char *gm_skill_name(int k); const char *gm_attr_name(int a); }
 const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *mp, ImVec2 *uv0, ImVec2 *uv1);   /* ui/partypanel.cpp */
-extern int ui_icon_heraldic_here;
 /* the chips of who speaks (an option where the player picks): where they were drawn, for the click (ui_event) */
 static float chip_r[25][4]; static int chip_opt[25], chip_m[25], n_chips;
 static int slide_line = -1; static float slide_t;                /* (the option whose members' chances are slid out under the pointer, and how far) */
@@ -306,7 +305,7 @@ extern "C" void cardview_draw(void)
     }
 
     int tip_item = -1, tip_saint = -1, tip_formula = -1; ImVec2 tip_at;
-    int chance_tip = -1; ImVec2 chance_tip_at;                   /* (the pointer on an option's chance: who tries it, and what it rests on) */
+    int chance_tip = -1; ImVec2 chance_tip_a0, chance_tip_a1;                   /* (the pointer on an option's chance: who tries it, and what it rests on) */
     /* each member's chip, their head and their chance: a click on one chooses the option with that member
        speaking. x: where they begin; t: how far slid out (0..1, the hover's); returns where they end */
     auto chips = [&](float x, float cy, float ms, int line, int opt, bool formula, float t) -> float {
@@ -334,7 +333,7 @@ extern "C" void cardview_draw(void)
             if (over) {
                 char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
                 std::string who = game_text(nm, strlen(nm));
-                ImGui::SetNextWindowPos(ImVec2(fminf(q0.x, ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * 23.5f), q1.y + 4 * k));   /* (inside the window) */
+                ui_tip_beside(q0, q1);
                 ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                 ImGui::TextUnformatted((who + " speaks for the party" + (m == leader ? " (the leader)" : "") + (formula ? ". A formula traded is " + who + "'s to know." : ".")).c_str());
                 ImGui::TextDisabled("Click to choose this with %s speaking.", who.c_str());
@@ -461,14 +460,12 @@ extern "C" void cardview_draw(void)
                     dl->AddText(fs, ss, ImVec2(hx + hsz * 0.25f, cy - ss * 0.5f), IM_COL32(215, 195, 160, 240), game_text(nm, 1).c_str());
                 }
             if (nh) hx += gap * 0.5f;
-            ui_icon_heraldic_here = 1;
             for (int q = 0; q < ni; q++, hx += step) {
                 ImVec2 ic(hx + shw * 0.5f, cy - isz * 0.03f);
                 if (icons[q] < 100) ui_skill_icon(dl, ic, isz, icons[q]);
                 else if (icons[q] < 200) ui_attr_icon(dl, ic, isz, icons[q] - 100);
                 else ui_standing_icon(dl, ic, isz, icons[q] - 200);
             }
-            ui_icon_heraldic_here = 0;
             bool on_box = menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false);
             float row_h = 0;
             if (slide) {                                            /* (in a row under the box, on a dark band, over the options below) */
@@ -495,7 +492,7 @@ extern "C" void cardview_draw(void)
                     slide_out.line = p.line; slide_out.opt = p.opt; slide_out.r0 = ImVec2(bxl, q1.y + 0.1f * ms); slide_out.r1 = ImVec2(bxl + sw + 0.3f * ms, q1.y + row_h + 0.15f * ms);
                 } else row_h = 0;
             }
-            if (on_box) { chance_tip = j; chance_tip_at = row_h > 0 ? ImVec2(q0.x, q1.y + row_h + 6 * k) : ImVec2(q1.x + 4 * k, q0.y); }
+            if (on_box) { chance_tip = j; chance_tip_a0 = q0; chance_tip_a1 = ImVec2(q1.x, q1.y + row_h); }   /* (the box, and the members' row under it when open) */
         }
         /* the list under it */
         if (p.is_opt && c.popup_piece == j) {
@@ -587,7 +584,7 @@ extern "C" void cardview_draw(void)
         if (reads & CC_REP) r += std::string(r.empty() ? "" : ", ") + "the town's opinion of the party (its reputation here)";
         if (reads & CC_FAME) r += std::string(r.empty() ? "" : ", ") + "the party's fame";
         if (!w.empty() || !r.empty()) {
-            ImGui::SetNextWindowPos(ImVec2(fminf(chance_tip_at.x, ImGui::GetIO().DisplaySize.x - ImGui::GetFontSize() * 23.5f), chance_tip_at.y));   /* (inside the window) */
+            ui_tip_beside(chance_tip_a0, chance_tip_a1);
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());

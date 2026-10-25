@@ -322,7 +322,7 @@ Fix FIXES[] = {
     { "nightwall", "Climbing a city wall at night uses the right chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
-      "Each member on guard at camp lowers the risk of an attack, by one point more when skilled (30 or more) with a weapon; but the game forgot to count impact weapons (maces, hammers, axes). Now they count too.", 1 },
+      "Each member on guard at camp lowers the risk of an attack, by one point more when skilled (30 or more) with a weapon; but the game forgot to count impact weapons (clubs, maces and hammers). Now they count too.", 1 },
     { "enemygroups", "No group of enemies goes missing from a battle",
       "When setting up a battle, the game drops the groups of enemies that turned out empty, but a mistake dropped every group after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty groups are dropped.", 1 },
     { "cityalert", "A town on alert remembers the trouble",
