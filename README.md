@@ -21,14 +21,15 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 ## What Darklands+ changes
 
-- **It runs on today's PCs.** Natively on Windows 10 and 11, in a window of any size or full screen, with crisp text up to 4K. The Roland MT-32 music is built in (with your own ROM files), and game controllers and the Steam Deck work.
-- **Screens made for the mouse.** The cards, shops, character sheet, loot, inn, alchemy, saints, saving and loading are redrawn: click an option, drag an item, point at anything for an explanation.
-- **What the game kept hidden.** The chance of success beside each option, why an option is greyed, what every saint and potion really does (with numbers), and what an enemy's armor stops.
-- **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town, and from the world map the party travels to any place you pick.
+- **It runs on today's PCs.** Natively on Windows 10 and 11, in a window of any size or full screen, with crisp text up to 4K. The Roland MT-32 music is built in (with your own ROM files), the whole soundtrack can be played from the settings, and game controllers and the Steam Deck work.
+- **Screens made for the mouse.** The cards, shops, character sheet, loot, inn and camp, alchemy, saints, saving and loading are redrawn: click an option, drag an item, point at anything for an explanation. Skills and attributes are heraldic shields wherever they appear.
+- **What the game kept hidden.** The chance of success beside each option, who in the party will try it and what it rests on, why an option is grayed, what every saint and potion really does (with numbers), what an enemy's armor stops, and what a piece of armor would do to a member's load before you buy it.
+- **Less busywork.** The party's best member takes each test the game puts to the leader, so you no longer swap leaders. One pack serves the whole party. Go to walks you through a town; from the world map the party travels to any place you pick, and you can look up where to buy alchemical ingredients or any ware.
 - **Quests you can follow.** Each quest has a title, a deadline and a marker on the map, and the world map (M) lists them all, with a record of each town. A journal keeps every text the game has shown you, and your own notes.
-- **Better battles.** A log of every blow, fast-forward, smarter pathfinding, a click on an enemy to attack it, and a map of the level.
-- **Bugs fixed.** 57 fixes for bugs of the original, and 43 saints that now do what their descriptions say.
+- **Better battles.** The party fights on sensibly between orders: shooters open fire by themselves, step aside for a clear line and join a friend's melee instead of shooting into it. Orders take one click, from buttons at the foot of the field. A log of every blow, fast-forward, smarter pathfinding and a map of the level.
+- **Bugs fixed.** 60 fixes for bugs of the original, among them 43 saints that now do what their descriptions say.
 - **What MicroProse left unfinished**, on a page of its own (F12 > Reconstructed Content), experimental and off unless you tick it: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices, an ambush by soldiers of a private war ("Fehde!"), a town's hospice, Black Cloud in battle and the Honor Roll of Glory the game never showed. [What else the game holds unused](docs/cut_content.md).
+- **Ironman**, if you want it: one save that the game keeps itself, with no loading back.
 - **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
 
 **You decide how much changes.** F12 > Settings > Preset offers presets, from *Full Original* (the original game exactly, bugs and all) and *Purist* (its bugs fixed) to *Darklands+* (recommended), and every switch one by one; easier play comes as built-in mods in F12 > Mods.

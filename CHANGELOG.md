@@ -1,6 +1,8 @@
 # Darklands+ changelog
 
-## Since 1.2
+## 1.3 (not yet released)
+
+The same entries by subject, with the main things first: [docs/changes-1.3.md](docs/changes-1.3.md).
 
 - **Ironman** (F12 > Settings > Preset, for the next new game, any preset): the game keeps one save and saves over it itself, on every card, on arriving at a place, before each battle and when you quit or close the window (once it can: not in a battle or a shop). Loading back is off while that game runs (the game's Save, Ctrl+S and Save now save over its one save); the start screen offers it as "Continue (Ironman)"; when the party's journey ends, its save is deleted.
 - **Alchemists' formulae:** on the alchemist's two formula options (trading, and the free trade an alchemist sometimes offers when asked to sell), each member is offered with their own chance: click the one who should speak. The game offers a formula the speaker does not know and teaches it to the speaker, so letting the best talker speak gave the formula to the wrong member, or found nothing worth trading. (Buying from the list was never affected: it names who learns each formula.)
@@ -161,6 +163,7 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
 
 ## Per version
 
+- **1.3 (to come):** Improved combat and one-click orders, cards that show who tries an option and what it rests on, the restored city politics, cities at war, Ironman, the soundtrack and sound previews, the world map's finders, and more of the original's bugs fixed ([in detail](docs/changes-1.3.md)).
 - **1.2 (previews):** the rebuilt screens, the best member, the shared pack and store room, quests at a glance, endless ammunition, potion pictures, the Guide, the card fixes and hints.
 - **1.1.1:** fixed a crash on loading with the side margins on. Smoother battle-map scrolling, thrown weapons returned after battles, and missed shots in the battle log.
 - **1.1:** cards drawn by Darklands+ with clickable options, chances and an illuminated initial.
