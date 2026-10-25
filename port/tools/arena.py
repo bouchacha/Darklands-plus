@@ -218,11 +218,11 @@ def check(s, log):
                 flips.append(t)
             prev_w_ord = ordk
             last = c
-        if worst_idle >= 150:
+        held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
+        if worst_idle >= 150 and not held_i:                         # (held, its line blocked: ready to loose and never loosing is right)
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
         if worst_blank >= 60:
             probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
-        held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
         if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original' and not held_i:   # (the seeds' runs too: original_1 ...)
             probs.append('member %d stood with its missile weapon and no orders for %d ticks' % (i, worst_bowidle))
         # (a shot's draw and loosing can fall between two samples: the battle log's "<name>'s shot" lines count too)
