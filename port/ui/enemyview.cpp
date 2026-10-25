@@ -93,18 +93,27 @@ extern "C" void enemyview_draw(void)
         if (e.human) {
             for (int p = 0; p < size; p++) {
                 if (!gm_member_present(p) || gm_member_status(p) != 1) continue;
-                std::string s; int best = 3;
+                /* the member's name, then each weapon in its own colour: green pierces, amber does half
+                   damage, red is mostly deflected (a line, wrapped by the clause where it runs long) */
+                std::vector<std::pair<std::string, ImU32>> seg;
                 char nm[24]; gm_member_name(p, nm, sizeof nm);
                 for (int k = 0; k < 2; k++) {
                     int mw = (s8)g_rb((u16)(G_MEMBER(p) + (k ? 0x0e : 0x3d)));
                     if (mw < 0 || mw > 62) continue;
                     int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                    if (r < best) best = r;
-                    s += std::string(s.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected");
+                    seg.push_back({ std::string(seg.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected"),
+                                    r == 0 ? IM_COL32(40, 96, 34, 255) : r == 1 ? IM_COL32(176, 124, 0, 255) : NsDraw::RED });
                 }
-                if (best == 3) continue;
-                ImU32 c = best == 0 ? IM_COL32(40, 96, 34, 255) : best == 1 ? IM_COL32(150, 100, 10, 255) : NsDraw::RED;
-                line(ns_gtext(nm) + ": " + s, c);
+                if (seg.empty() || ly >= y + ch - 4) continue;
+                float lh2 = P.para_height(fo, 4.4f, 1000, "X"), lx = tx;
+                std::string head = ns_gtext(nm) + ": ";
+                P.text(fo, 4.4f, lx, ly, NsDraw::INK, head); lx += P.width(fo, 4.4f, head);
+                for (auto &g : seg) {
+                    float w = P.width(fo, 4.4f, g.first);
+                    if (lx > tx && lx + w > tx + lw) { lx = tx + 4; ly += lh2; }
+                    P.text(fo, 4.4f, lx, ly, g.second, g.first); lx += w;
+                }
+                ly += lh2 + 0.3f;
             }
         }
     }

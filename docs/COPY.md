@@ -133,9 +133,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:165` | Then select the next member without orders |
 | `mods/options.c:165` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
 | `mods/options.c:166` | Order buttons over the field |
-| `mods/options.c:166` | when the window has no room for a right margin (narrower than 16:9), the order buttons appear in a strip at the bottom of the battlefield while a member is selected, so no right-click menu is needed. |
+| `mods/options.c:166` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, grouped by what they do (attacks, moving, the things at hand, potions and items, the battle), so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
 | `mods/options.c:167` | Icons on the order buttons |
-| `mods/options.c:167` | each order button in the right margin (or over the field) shows an icon beside its name: a sword for Std Attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender. |
+| `mods/options.c:167` | each order button shows an icon beside its name: a sword for a standard attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender. |
 | `mods/options.c:168` | Show the line of a shot |
 | `mods/options.c:168` | when a member is about to shoot or throw at the enemy under the pointer, a line runs from them to it. Anything in the way (a wall, a tree, someone standing between) is outlined in red, and the line turns red past it: the shot can't be taken from there. |
 | `mods/options.c:169` | Say what a click will do |
@@ -626,7 +626,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:216` | Click: attack |
 | `ui/battleoverlay.cpp:216` | No clear shot |
 | `ui/battleoverlay.cpp:245` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:246` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  Point at an order button in the right margin to see what it does. |
+| `ui/battleoverlay.cpp:246` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
 | `ui/battleoverlay.cpp:253` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
 | `ui/battleoverlay.cpp:314` | The nearest enemy is this way: click to look |
 | `ui/battleoverlay.cpp:355` | a little hurt |
@@ -635,8 +635,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:366` | Melee rating %d |
 | `ui/battleoverlay.cpp:368` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
 | `ui/battleoverlay.cpp:385` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:399` |  does half damage |
-| `ui/battleoverlay.cpp:399` |  is mostly deflected |
+| `ui/battleoverlay.cpp:398` |  does half damage |
+| `ui/battleoverlay.cpp:398` |  is mostly deflected |
 | `ui/battleoverlay.cpp:419` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
 | `ui/battleoverlay.cpp:422` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
@@ -873,8 +873,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/enemyview.cpp:85` |  (enchanted) |
 | `ui/enemyview.cpp:88` | Natural armor |
 | `ui/enemyview.cpp:89` | Natural weapons |
-| `ui/enemyview.cpp:103` |  does half damage |
-| `ui/enemyview.cpp:103` |  is mostly deflected |
+| `ui/enemyview.cpp:104` |  does half damage |
+| `ui/enemyview.cpp:104` |  is mostly deflected |
 | `ui/figures.cpp:32` | two-handed sword |
 | `ui/figures.cpp:33` | great hammer |
 | `ui/figures.cpp:34` | potion throw |
@@ -1053,7 +1053,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/guide.cpp:133` | +The margin's "Blessings and potions" shows what is at work on each member, and for how long; on the character sheet's Skills page a raised value is blue. |
 | `ui/guide.cpp:136` | Battles run in real time; Space pauses. To give an order, select a member (click them, or press 1 to 5), pick the order from the menus (Std Attack, Vulnerable, Berserk, Parry, Use Missile, Walk towards, Halt and more), click the enemy or the spot it is for, then press Enter. |
 | `ui/guide.cpp:137` | +With Easier battle controls (Darklands+), a click on an enemy (to attack it) or a spot (to walk there) gives the order at once, with no menu and no Enter, and if selecting the member paused the battle, it goes on; while the battle is paused, the next member without an order is selected. A shooter's box at the left has a bow or a sword on it: click it to choose whether a click on an enemy makes them shoot or fight hand to hand. Z fast-forwards. |
-| `ui/guide.cpp:137` | +The right margin shows the selected member's orders as buttons, so the menus are not needed. |
+| `ui/guide.cpp:137` | +The selected member's orders are buttons at the foot of the field, grouped by what they do, so the menus are not needed; Fast forward and Resume are at the top of the right margin. |
 | `ui/guide.cpp:138` | +With Improved combat (Darklands+), members fight on sensibly between orders: a shooter keeps shooting (at the nearest enemy in sight when the target falls), steps aside for a clear line, and draws a melee weapon once an enemy is close, or to help a party member nearby who is set upon by two or more or badly hurt; a member whose enemy falls turns on one close by. |
 | `ui/guide.cpp:139` | Ctrl+click a member and the view follows them. |
 | `ui/guide.cpp:139` | +The view scrolls when the pointer rests on its edge (the original needs Shift held there), and selecting a member does not move it: press their number twice to bring the view to them. |
@@ -1334,12 +1334,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:776` | about %d time%s in 10 |
 | `ui/margins.cpp:777` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
 | `ui/margins.cpp:780` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:820` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:820` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:822` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:822` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:849` | %s in bank notes |
-| `ui/margins.cpp:863` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:819` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:819` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:821` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:821` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:848` | %s in bank notes |
+| `ui/margins.cpp:862` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1363,26 +1363,29 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:100` | Then click an enemy: quick, furious blows without thought of defense. |
 | `ui/margins_battle.cpp:101` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
 | `ui/margins_battle.cpp:102` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
-| `ui/margins_battle.cpp:135` | <name> finished |
-| `ui/margins_battle.cpp:165` | does not end |
-| `ui/margins_battle.cpp:174` | Enemies not yet met |
-| `ui/margins_battle.cpp:176` | No one else waits in this place. |
-| `ui/margins_battle.cpp:180` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:184` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:187` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:190` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:191` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:210` | Back to the chosen speed |
-| `ui/margins_battle.cpp:210` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:210` | Fast forward |
-| `ui/margins_battle.cpp:210` | Fast forward (Z) |
-| `ui/margins_battle.cpp:254` | a little hurt |
-| `ui/margins_battle.cpp:255` | gravely wounded |
-| `ui/margins_battle.cpp:260` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:265` | None in sight yet. |
-| `ui/margins_battle.cpp:267` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
-| `ui/margins_battle.cpp:268` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
-| `ui/margins_battle.cpp:277` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
+| `ui/margins_battle.cpp:190` | <name> finished |
+| `ui/margins_battle.cpp:195` | Potions and items |
+| `ui/margins_battle.cpp:234` | Back to the chosen speed |
+| `ui/margins_battle.cpp:234` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:234` | Fast forward |
+| `ui/margins_battle.cpp:234` | Fast forward (Z) |
+| `ui/margins_battle.cpp:249` | Resume (Space) |
+| `ui/margins_battle.cpp:256` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:264` | does not end |
+| `ui/margins_battle.cpp:273` | Enemies not yet met |
+| `ui/margins_battle.cpp:275` | No one else waits in this place. |
+| `ui/margins_battle.cpp:279` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:283` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:286` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:289` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:290` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:337` | a little hurt |
+| `ui/margins_battle.cpp:338` | gravely wounded |
+| `ui/margins_battle.cpp:343` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:348` | None in sight yet. |
+| `ui/margins_battle.cpp:350` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
+| `ui/margins_battle.cpp:351` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:360` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:45` | %ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs) |
@@ -2234,8 +2237,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:342` | Click a member |
 | `ui/ui_windows.cpp:342` | then click an enemy (attack) or a spot (walk there): that click gives the order |
 | `ui/ui_windows.cpp:343` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:346` | The right margin's buttons |
-| `ui/ui_windows.cpp:346` | the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once |
+| `ui/ui_windows.cpp:346` | The buttons at the foot of the field |
+| `ui/ui_windows.cpp:346` | the selected member's orders, grouped (Attack, Move, Here, Potions and items, Battle); for a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
 | `ui/ui_windows.cpp:348` | Click a member |
 | `ui/ui_windows.cpp:348` | then click an enemy, a spot or a menu choice; Enter gives the order |
 | `ui/ui_windows.cpp:349` | Ctrl+click a member |

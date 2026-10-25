@@ -791,8 +791,7 @@ extern "C" void ui_margins(void)
     ImGuiIO &io = ImGui::GetIO();
     float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     float left = x0, right = io.DisplaySize.x - x1;
-    if (!ui_margins_on || right < 150) order_bar(x0 + (x1 - x0) * 60 / 320, x1, y1);   /* (the field: right of the party's panel) */
-    else ui_orderbar_top = 0;
+    order_bar(x0 + (x1 - x0) * 60 / 320, x1, y1, !ui_margins_on || right < 150);   /* (the field: right of the party's panel; Resume at the top of the right margin when there is one) */
     if (!ui_margins_on) return;
     if (left < 150 && right < 150) return;
     float h = io.DisplaySize.y;

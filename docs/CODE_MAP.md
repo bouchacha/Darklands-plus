@@ -130,7 +130,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/createview.cpp` | 382 | making a character, drawn by Darklands+ (mods/createview.c runs it), over the whole screen. |
 | `ui/drawcache.cpp` | 144 | see drawcache.h |
 | `ui/editor.cpp` | 168 | the character editor (F12 > Editor, switched on under Helpers): what the save-game editors of the community (Darklands Companion, EDITOR.EXE, CharacterEditor) change, done on the running game: money, names, attributes, skills, saints, formulas, a character's colours (the "garish colors" bug), shield and figure, items' quality and number. |
-| `ui/enemyview.cpp` | 111 | the battle's Enemy Info drawn by Darklands+ (mods/enemyview.c runs it): every kind of foe on the field with its picture, how many and how many still fight, its armour, shield and weapons (with the game's word for its skill, but not at Expert), and what each of the party's weapons does against its body armour. |
+| `ui/enemyview.cpp` | 120 | the battle's Enemy Info drawn by Darklands+ (mods/enemyview.c runs it): every kind of foe on the field with its picture, how many and how many still fight, its armour, shield and weapons (with the game's word for its skill, but not at Expert), and what each of the party's weapons does against its body armour. |
 | `ui/figures.cpp` | 168 | the figure picker of the creation menus: Select Character Image (S) shows every figure at once (the game's own four and the enemies' fourteen, mods/looks.c), each in the colours the member would have; a click (or Enter) takes one, Esc keeps the old. |
 | `ui/gamedata.cpp` | 274 | see gamedata.h |
 | `ui/gamepics.cpp` | 176 | the game's pictures as textures (see gamepics.h). |
@@ -148,8 +148,8 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/lootview.cpp` | 167 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/mapmsg.cpp` | 43 | a message of the travel map (mods/mapmsg.c runs it) in the cards' style: the text in the game's typeface on parchment over the map, and what goes on. |
 | `ui/marchview.cpp` | 90 | Change Marching Order drawn by Darklands+ (mods/marchview.c runs it): a dialog with the members in their order, each with its figure and a handle to drag it to its place; Done keeps the new order, Cancel the old. |
-| `ui/margins.cpp` | 890 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
-| `ui/margins_battle.cpp` | 314 | the margins in a battle: the right margin's fighters, their orders as buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of the field when the window has no margin. |
+| `ui/margins.cpp` | 889 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
+| `ui/margins_battle.cpp` | 397 | the margins in a battle: the right margin's fighters, their orders as buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of the field when the window has no margin. |
 | `ui/menuview.cpp` | 172 | the game's menu bar drawn by Darklands+ (mods/menuview.c runs it): the bar over the top of the picture, the open menu under its title, a sub-menu beside its item. |
 | `ui/money.cpp` | 158 | see money.h. |
 | `ui/niche.cpp` | 272 | the character sheet's stone niche drawn anew (with the period ornaments): the game's ARMSBACK.PIC (136 x 170) at the window's resolution. |

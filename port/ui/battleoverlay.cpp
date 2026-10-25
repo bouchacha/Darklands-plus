@@ -249,7 +249,7 @@ static void battle_intro(void)
              "moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. "
              "A click on the bow or sword on their box at the left has them fight hand to hand instead.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
-             "Point at an order button in the right margin to see what it does.",
+             "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
              "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
 }
 
@@ -388,19 +388,19 @@ void ui_draw_battle_info(void)
                     u16 mb = (u16)(0x9c55 + m * 0x80);
                     if (g_rb((u16)(mb + 0x14)) != 1) continue;
                     char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-                    std::string line = game_text(nm, sizeof nm) + ":";
-                    int worst = 3;                                   /* the colour: the best of the member's weapons */
+                    /* each weapon in its own colour: green pierces, amber does half damage, red is mostly deflected */
+                    std::vector<std::pair<std::string, ImVec4>> seg;
                     for (int k = 0; k < 2; k++) {
                         int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x23)));
                         std::string wn = wname(mw);
                         if (wn.empty()) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                        if (r < worst) worst = r;
-                        line += std::string(line.back() == ':' ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected");
+                        seg.push_back({ std::string(seg.empty() ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected"),
+                                        r == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : r == 1 ? ImVec4(0.69f, 0.49f, 0.0f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1) });
                     }
-                    if (worst == 3) continue;
-                    ImVec4 c = worst == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : worst == 1 ? ImVec4(0.6f, 0.42f, 0.08f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1);
-                    ImGui::TextColored(c, "%s", line.c_str());
+                    if (seg.empty()) continue;
+                    ImGui::TextUnformatted((game_text(nm, sizeof nm) + ":").c_str());
+                    for (auto &g : seg) { ImGui::SameLine(0, 0); ImGui::TextColored(g.second, "%s", g.first.c_str()); }
                 }
             }
         }
