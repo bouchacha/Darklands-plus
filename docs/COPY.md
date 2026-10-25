@@ -562,16 +562,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:116` |  batches set |
 | `ui/alchemyview.cpp:137` | Mystic number %d, %s |
 | `ui/alchemyview.cpp:164` | For a batch: at hand / needed |
-| `ui/alchemyview.cpp:181` | The party's ingredients |
-| `ui/alchemyview.cpp:210` | The party carries %d. |
-| `ui/alchemyview.cpp:210` | The party has none. |
-| `ui/alchemyview.cpp:232` | not enough for more |
-| `ui/alchemyview.cpp:234` | Chance, one batch: %d%% |
-| `ui/alchemyview.cpp:239` | %d (fewer batches: higher) + %d Int + %d Alchemy + %d Stone - %d mystic |
-| `ui/alchemyview.cpp:243` | Choose a formula in the book. |
-| `ui/alchemyview.cpp:249` | Start mixing |
+| `ui/alchemyview.cpp:182` | The party's ingredients |
+| `ui/alchemyview.cpp:211` | The party carries %d. |
+| `ui/alchemyview.cpp:211` | The party has none. |
+| `ui/alchemyview.cpp:233` | not enough for more |
+| `ui/alchemyview.cpp:235` | Chance, one batch: %d%% |
+| `ui/alchemyview.cpp:240` | %d (fewer batches: higher) + %d Int + %d Alchemy + %d Stone - %d mystic |
+| `ui/alchemyview.cpp:244` | Choose a formula in the book. |
 | `ui/alchemyview.cpp:250` | Start mixing |
-| `ui/alchemyview.cpp:256` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
+| `ui/alchemyview.cpp:251` | Start mixing |
+| `ui/alchemyview.cpp:257` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
 | `ui/alerts.cpp:52` |   Next (%d more)   |
 | `ui/alerts.cpp:52` |   Continue   |
 | `ui/alerts.cpp:101` | Y: yes     N: no |
@@ -1151,53 +1151,53 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/itemedit.cpp:132` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/itemedit.cpp:135` | Undo all changes |
 | `ui/journal.cpp:211` | Goods merchant |
-| `ui/journal.cpp:396` | the countryside |
-| `ui/journal.cpp:454` | the countryside |
-| `ui/journal.cpp:457` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
-| `ui/journal.cpp:467` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
-| `ui/journal.cpp:469` | Hide the list of days |
-| `ui/journal.cpp:469` | Show the list of days |
-| `ui/journal.cpp:472` | %d text%s read in this game |
-| `ui/journal.cpp:475` | Save as a text file |
-| `ui/journal.cpp:489` | Could not write the file. |
-| `ui/journal.cpp:502` | Every text the cards show is kept here, with the date, the place and the choice you made. |
-| `ui/journal.cpp:502` | Nothing found. |
-| `ui/journal.cpp:550` | < Day before |
-| `ui/journal.cpp:554` |  (matching texts only) |
-| `ui/journal.cpp:632` | a complete idiot: worse than none |
-| `ui/journal.cpp:635` | can raise a Philosopher's Stone to  |
-| `ui/journal.cpp:636` | no better Philosopher's Stone than the party's |
-| `ui/journal.cpp:666` | Start or load a game first: each game has its own notes. |
-| `ui/journal.cpp:672` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
-| `ui/journal.cpp:827` | %s  (%d wares, noted %s) |
-| `ui/journal.cpp:906` | sold here (expected) |
-| `ui/journal.cpp:926` | Start or load a game first. |
-| `ui/journal.cpp:927` | Available after the battle. |
-| `ui/journal.cpp:934` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
-| `ui/journal.cpp:935` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
-| `ui/journal.cpp:935` | The original game shows a store room only while the party is in it. |
-| `ui/journal.cpp:964` | Nothing stored anywhere. |
-| `ui/journal.cpp:970` |  kind of item |
-| `ui/journal.cpp:970` |  kinds of items |
-| `ui/journal.cpp:971` | Every inn's store room  -   |
-| `ui/journal.cpp:1002` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
-| `ui/journal.cpp:1005` | Note each town's shops and wares |
-| `ui/journal.cpp:1017` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
-| `ui/journal.cpp:1021` | Show the Honor Roll of Glory |
-| `ui/journal.cpp:1025` | Enter the party now |
-| `ui/journal.cpp:1025` | The party is on the roll. |
-| `ui/journal.cpp:1025` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
-| `ui/journal.cpp:1071` | Find alchemical ingredients###wtb0 |
-| `ui/journal.cpp:1071` | Find any ware###wtb1 |
-| `ui/journal.cpp:1074` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
-| `ui/journal.cpp:1080` | Show %s on the world map |
-| `ui/journal.cpp:1084` | Bought ingredients are always quality 25. The nearest town first%s. |
-| `ui/journal.cpp:1084` |  (for now by name: the party's position is not known) |
-| `ui/journal.cpp:1088` | Nearest town |
-| `ui/journal.cpp:1089` | Also sold at |
-| `ui/journal.cpp:1106` | not seen in a shop yet |
-| `ui/journal.cpp:1136` | Not seen in any shop yet. |
-| `ui/journal.cpp:1154` | Type a name: every town seen selling it, the nearest first. |
+| `ui/journal.cpp:399` | the countryside |
+| `ui/journal.cpp:457` | the countryside |
+| `ui/journal.cpp:460` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
+| `ui/journal.cpp:470` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
+| `ui/journal.cpp:472` | Hide the list of days |
+| `ui/journal.cpp:472` | Show the list of days |
+| `ui/journal.cpp:475` | %d text%s read in this game |
+| `ui/journal.cpp:478` | Save as a text file |
+| `ui/journal.cpp:492` | Could not write the file. |
+| `ui/journal.cpp:505` | Every text the cards show is kept here, with the date, the place and the choice you made. |
+| `ui/journal.cpp:505` | Nothing found. |
+| `ui/journal.cpp:553` | < Day before |
+| `ui/journal.cpp:557` |  (matching texts only) |
+| `ui/journal.cpp:635` | a complete idiot: worse than none |
+| `ui/journal.cpp:638` | can raise a Philosopher's Stone to  |
+| `ui/journal.cpp:639` | no better Philosopher's Stone than the party's |
+| `ui/journal.cpp:669` | Start or load a game first: each game has its own notes. |
+| `ui/journal.cpp:675` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
+| `ui/journal.cpp:830` | %s  (%d wares, noted %s) |
+| `ui/journal.cpp:909` | sold here (expected) |
+| `ui/journal.cpp:929` | Start or load a game first. |
+| `ui/journal.cpp:930` | Available after the battle. |
+| `ui/journal.cpp:937` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
+| `ui/journal.cpp:938` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
+| `ui/journal.cpp:938` | The original game shows a store room only while the party is in it. |
+| `ui/journal.cpp:967` | Nothing stored anywhere. |
+| `ui/journal.cpp:973` |  kind of item |
+| `ui/journal.cpp:973` |  kinds of items |
+| `ui/journal.cpp:974` | Every inn's store room  -   |
+| `ui/journal.cpp:1005` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
+| `ui/journal.cpp:1008` | Note each town's shops and wares |
+| `ui/journal.cpp:1020` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
+| `ui/journal.cpp:1024` | Show the Honor Roll of Glory |
+| `ui/journal.cpp:1028` | Enter the party now |
+| `ui/journal.cpp:1028` | The party is on the roll. |
+| `ui/journal.cpp:1028` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
+| `ui/journal.cpp:1076` | Find alchemical ingredients###wtb0 |
+| `ui/journal.cpp:1076` | Find any ware###wtb1 |
+| `ui/journal.cpp:1079` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
+| `ui/journal.cpp:1085` | Show %s on the world map |
+| `ui/journal.cpp:1089` | Bought ingredients are always quality 25. The nearest town first%s. |
+| `ui/journal.cpp:1089` |  (for now by name: the party's position is not known) |
+| `ui/journal.cpp:1093` | Nearest town |
+| `ui/journal.cpp:1094` | Also sold at |
+| `ui/journal.cpp:1111` | not seen in a shop yet |
+| `ui/journal.cpp:1141` | Not seen in any shop yet. |
+| `ui/journal.cpp:1159` | Type a name: every town seen selling it, the nearest first. |
 | `ui/levelmap.cpp:295` | The whole level  (floor %d) |
 | `ui/levelmap.cpp:295` | The level, as far as the party has seen it  (floor %d) |
 | `ui/levelmap.cpp:304` | enemies seen |
@@ -1361,29 +1361,29 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:100` | Then click an enemy: quick, furious blows without thought of defense. |
 | `ui/margins_battle.cpp:101` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
 | `ui/margins_battle.cpp:102` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
-| `ui/margins_battle.cpp:190` | <name> finished |
-| `ui/margins_battle.cpp:195` | Potions and items |
-| `ui/margins_battle.cpp:234` | Back to the chosen speed |
-| `ui/margins_battle.cpp:234` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:234` | Fast forward |
-| `ui/margins_battle.cpp:234` | Fast forward (Z) |
-| `ui/margins_battle.cpp:249` | Resume (Space) |
-| `ui/margins_battle.cpp:256` | The battle is running: Space pauses it, or click one of the party. |
-| `ui/margins_battle.cpp:264` | does not end |
-| `ui/margins_battle.cpp:273` | Enemies not yet met |
-| `ui/margins_battle.cpp:275` | No one else waits in this place. |
-| `ui/margins_battle.cpp:279` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:283` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:286` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:289` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:290` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:337` | a little hurt |
-| `ui/margins_battle.cpp:338` | gravely wounded |
-| `ui/margins_battle.cpp:343` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:348` | None in sight yet. |
-| `ui/margins_battle.cpp:350` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
-| `ui/margins_battle.cpp:351` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
-| `ui/margins_battle.cpp:360` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
+| `ui/margins_battle.cpp:194` | <name> finished |
+| `ui/margins_battle.cpp:199` | Potions and items |
+| `ui/margins_battle.cpp:239` | Back to the chosen speed |
+| `ui/margins_battle.cpp:239` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:239` | Fast forward |
+| `ui/margins_battle.cpp:239` | Fast forward (Z) |
+| `ui/margins_battle.cpp:254` | Resume (Space) |
+| `ui/margins_battle.cpp:261` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:269` | does not end |
+| `ui/margins_battle.cpp:278` | Enemies not yet met |
+| `ui/margins_battle.cpp:280` | No one else waits in this place. |
+| `ui/margins_battle.cpp:284` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:288` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:291` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:294` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:295` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:342` | a little hurt |
+| `ui/margins_battle.cpp:343` | gravely wounded |
+| `ui/margins_battle.cpp:348` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:353` | None in sight yet. |
+| `ui/margins_battle.cpp:355` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
+| `ui/margins_battle.cpp:356` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:365` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:45` | %ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs) |
