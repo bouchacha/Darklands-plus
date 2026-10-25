@@ -62,9 +62,20 @@ void assist_leader_restore(void)
     if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: leader %d again\n", saved_leader);
     saved_leader = -1;
 }
+static int picked_opt = -1, picked_m = -1;     /* the player's pick of who speaks (assist_pick_speaker), for the option chosen next */
+void assist_pick_speaker(int opt, int m) { picked_opt = opt; picked_m = m; }
 static void leader_for_choice(int sel)
 {
+    int po = picked_opt, pm = picked_m;
+    picked_opt = picked_m = -1;
     if (!assist_best_leader || !card_chances.active || config_get_int("original", 0)) return;
+    if (po == sel && leader_able(pm)) {                 /* (picked by the player: that member speaks, whatever comes of it is theirs) */
+        if (pm == (s8)g_rb(G_LEADER)) return;
+        if (saved_leader < 0) saved_leader = (s8)g_rb(G_LEADER);
+        g_wb(G_LEADER, (u8)pm);
+        if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: option %d: %d speaks for the party, picked (leader %d)\n", sel, pm, saved_leader);
+        return;
+    }
     for (int i = 0; i < card_chances.n && i < 20; i++)
         if (card_chances.line[i].opt == sel && card_chances.line[i].lead >= 0) {
             int m = card_chances.line[i].lead;
@@ -162,6 +173,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         if (f) game_call_live(f, 11, args);
     }
     assist_leader_restore();            /* (a new card: the player's leader again; asked anew below) */
+    picked_opt = picked_m = -1;
     cm_depth++; cm_dirty = 1;
     void chronicle_capture(void), chronicle_choice(int);
     chronicle_capture();                 /* the text on show (ui/journal.cpp) */
@@ -324,6 +336,23 @@ static void evaluate(void)
             }
             if (dep) who = lead >= 0 ? lead : cur;                     /* the chance is that member's: their name beside it, not "all" */
             if (lead >= 0) { if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: line %d opt %d: %d%% with %d as leader (%d%% with %d)\n", i, opt, bestp, lead, pct, cur); pct = bestp; }
+        }
+        if (pct >= 0 && r != 0xffffffffu && assist_best_leader && !config_get_int("original", 0) && leader_keeps(opt)) {   /* (the player picks who speaks: each member's chance) */
+            int cur = (s8)g_rb(G_LEADER);
+            c.line[i].pick = 1;
+            for (int m = 0; m < 5; m++) {
+                c.line[i].per[m] = -1;
+                if (!leader_able(m)) continue;
+                if (m == cur) { c.line[i].per[m] = (signed char)(pct > 100 ? 100 : pct); continue; }
+                g_wb(G_LEADER, (u8)m);
+                g_ww(GV_menu_member, (u16)(opt / 4)); g_ww(GV_menu_slot, (u16)(opt % 4));
+                u32 rm = game_call_ptr(seg, off, 0, 0, 0x5a);
+                eval_restore(snap);
+                if (game_call_timed_out) break;
+                int pm = (s16)(rm & 0xffff);
+                c.line[i].per[m] = (signed char)(pm < 0 ? 0 : pm > 100 ? 100 : pm);
+            }
+            g_wb(G_LEADER, (u8)cur);
         }
         if (getenv("DL_ASSIST_LOG")) { int ovl_section_at(u32); fprintf(stderr, "assist: card %.12s line %d opt %d kind %d fn %04x:%04x (s%03d) -> %d%% member %d\n",
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }

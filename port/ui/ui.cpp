@@ -381,7 +381,7 @@ extern "C" int ui_event(const SDL_Event *e)
     if (!open_menu) {
         if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && overlay_click(e->button.x, e->button.y)) return 1;
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
-        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y))) { margin_click_taken = 1; return 1; }
+        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y) || cardview_chip_click(e->button.x, e->button.y))) { margin_click_taken = 1; return 1; }
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && margin_click_taken) { margin_click_taken = 0; return 1; }
         {   /* a right-click on a member's box in a battle: their sheet (ui/partypanel.cpp) */
             static int rtaken;

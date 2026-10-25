@@ -41,6 +41,17 @@ extern "C" int cardview_dialog, game_dialog_kind;
 extern "C" { void gm_member_figure_code(int m, char *out, int n); void gm_member_palette(int m, unsigned char *mp); const char *gm_skill_name(int k); const char *gm_attr_name(int a); }
 const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *mp, ImVec2 *uv0, ImVec2 *uv1);   /* ui/partypanel.cpp */
 extern int ui_icon_heraldic_here;
+/* the chips of who speaks (an option where the player picks): where they were drawn, for the click (ui_event) */
+static float chip_r[25][4]; static int chip_opt[25], chip_m[25], n_chips;
+extern "C" int cardview_chip_click(int wx, int wy)
+{
+    for (int i = 0; i < n_chips; i++)
+        if (wx >= chip_r[i][0] && wx < chip_r[i][2] && wy >= chip_r[i][1] && wy < chip_r[i][3]) {
+            assist_pick_speaker(chip_opt[i], chip_m[i]); cardview_choose(chip_opt[i]); n_chips = 0;
+            return 1;
+        }
+    return 0;
+}
 /* who tries an option: the member's head, as on the character sheet's saints (from the figure beside a battle) */
 static bool member_head(ImDrawList *dl, int m, ImVec2 p0, float sz)
 {
@@ -150,6 +161,7 @@ static void card_key_mark(ImDrawList *dl, ImFont *f, ImVec2 cpos, float size, co
 
 extern "C" void cardview_draw(void)
 {
+    n_chips = 0;                                                   /* (drawn anew below, or none) */
     CardView &c = cardview;
     if (!c.phase || (cardview_dialog && !game_dialog_kind)) return;
     if (ns_screen != NS_CARD || ns_hidden()) return;           /* a member's sheet ..., the menu bar or what it opened (mods/nscreen.h) */
@@ -345,8 +357,50 @@ extern "C" void cardview_draw(void)
         }
         if (p.is_opt) { c.row_y0[j] = wy2g(y0); c.row_y1[j] = wy2g(y1); }
         else c.row_y0[j] = c.row_y1[j] = -1;
+        /* who speaks, picked by the player (the alchemist's formulae: what comes of it is the speaker's): a chip for
+           each member, their head and their chance; a click on one chooses the option with that member speaking */
+        if (p.is_opt && p.state == 1 && chance_shown(p.line) && cc.line[p.line].pick && menu && !ui_is_open()) {
+            float ms = size * 0.82f, cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
+            float x = X1 + 4.5f * k;
+            int leader = (s8)g_rb(G_LEADER), nchips = 0;
+            for (int m = 0; m < 5 && m < members; m++) if (cc.line[p.line].per[m] >= 0) nchips++;
+            {   /* (all the chips beside the card, within the window: smaller if need be) */
+                float room = ImGui::GetIO().DisplaySize.x - x - 6 * k, want = nchips * ms * (1.25f * 1.05f + 2.2f + 0.85f);
+                if (want > room && want > 0) ms *= fmaxf(0.6f, room / want);
+            }
+            float hsz = ms * 1.25f, bh = hsz * 1.06f;
+            for (int m = 0; m < 5 && m < members; m++) {
+                int pm = cc.line[p.line].per[m];
+                if (pm < 0) continue;
+                char t[16];
+                if (cmode == 0) snprintf(t, sizeof t, "%d%%", pm);
+                else { int q = pm / 20; if (q > 6) q = 6; u16 pp = g_rw((u16)(GV_quality_words + 2 * q)); if (pm <= 0) snprintf(t, sizeof t, "hopeless"); else g_str(G_DGROUP, pp, t, sizeof t); }
+                ImVec2 tt = fs->CalcTextSizeA(ms, FLT_MAX, 0, t);
+                ImVec2 q0(x, cy - bh * 0.5f), q1(x + hsz * 1.05f + tt.x + 0.45f * ms, cy + bh * 0.5f);
+                bool over = menu && !ui_is_open() && ImGui::IsMouseHoveringRect(q0, q1, false);
+                ImU32 fg = cmode == 1 ? IM_COL32(245, 228, 185, 255) : pm >= 70 ? IM_COL32(150, 230, 120, 255) : pm >= 40 ? IM_COL32(250, 210, 95, 255) : IM_COL32(250, 125, 100, 255);
+                dl->AddRectFilled(q0, q1, over ? IM_COL32(60, 40, 20, 240) : IM_COL32(28, 18, 10, 228), bh * 0.3f);
+                dl->AddRect(q0, q1, over ? IM_COL32(240, 200, 120, 255) : m == leader ? IM_COL32(210, 160, 80, 230) : IM_COL32(150, 110, 60, 190), bh * 0.3f, 0, fmaxf(1.0f, (m == leader ? 0.45f : 0.3f) * k));
+                if (!member_head(dl, m, ImVec2(q0.x + 0.25f * ms, cy - hsz * 0.5f), hsz)) {
+                    char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm); nm[1] = 0;
+                    dl->AddText(fs, ms, ImVec2(q0.x + 0.5f * ms, cy - ms * 0.5f), IM_COL32(215, 195, 160, 240), game_text(nm, 1).c_str());
+                }
+                dl->AddText(fs, ms, ImVec2(q0.x + 0.25f * ms + hsz * 0.95f, cy - tt.y * 0.52f), fg, t);
+                if (over) {
+                    char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
+                    std::string who = game_text(nm, strlen(nm));
+                    ImGui::SetNextWindowPos(ImVec2(q1.x + 4 * k, q0.y));
+                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+                    ImGui::TextUnformatted((who + " speaks for the party" + (m == leader ? " (the leader)" : "") + ". A formula traded is " + who + "'s to know.").c_str());
+                    ImGui::TextDisabled("Click to choose this with %s speaking.", who.c_str());
+                    ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                }
+                if (n_chips < 25) { chip_r[n_chips][0] = q0.x; chip_r[n_chips][1] = q0.y; chip_r[n_chips][2] = q1.x; chip_r[n_chips][3] = q1.y; chip_opt[n_chips] = p.opt; chip_m[n_chips] = m; n_chips++; }
+                x = q1.x + 0.25f * ms;
+            }
+        }
         /* the chance of success */
-        if (p.is_opt && chance_shown(p.line)) {
+        else if (p.is_opt && chance_shown(p.line)) {
             int pct = cc.line[p.line].pct, who = cc.line[p.line].who;
             char main[40], sub[24] = "";
             if (cmode == 0) snprintf(main, sizeof main, "%d%%", pct);

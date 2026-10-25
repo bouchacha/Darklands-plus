@@ -107,6 +107,7 @@ extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
 extern "C" int ns_showing(void);
 extern "C" int margins_click(int x, int y);           /* ui/margins.cpp: the battle's order buttons */
 extern "C" int partypanel_click(int x, int y);        /* ui/partypanel.cpp: shoot or melee on a member's box; in a battle the box chooses them */
+extern "C" int cardview_chip_click(int x, int y);    /* ui/cardview.cpp: who speaks for the party, on an option where the player picks */
 extern "C" int partypanel_rclick(int x, int y);       /* ui/partypanel.cpp: in a battle, the sheet */
 extern "C" int plat_win_outside(int wx, int wy);
 extern "C" { extern int loot_active, barter_active; int loot_enabled(void); }
