@@ -491,7 +491,6 @@ static void right_panel(int size)
     else if (cur >= 0 && encounters_card_active() && !encounters_builtin(encounters_card_active() - 1)) near = true;    /* (a new encounter on the road out of town; not the restored hospice, a place in town) */
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
-        heading(((near ? "Near " : "") + c.name).c_str());
         goto_hint = !near && citynav_available() && config_get_int("assist.city_goto", 1);   /* (at the foot, as the left margin's hints) */
         /* the location table is read while a card or the map is up; battles and their loot
            reuse that memory, so meanwhile the last value read stands */
@@ -509,13 +508,22 @@ static void right_panel(int size)
             ui_standing_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + s * 0.52f, p.y + s * 0.5f), s * 0.72f, k);
             ImGui::SameLine(0, s * 0.2f);
         };
+        /* the party's fame first, over the town's name: it is the party's, the same in every town */
+        standing(1); ImGui::TextDisabled("Fame %d", fame);
+        if (item_hovered()) margin_tip("The party's fame: the same in every town (the town's own opinion of the party is its Reputation, beside its name).");
+        /* the town's name, and beside it the town's opinion of the party (its own) */
+        heading(((near ? "Near " : "") + c.name).c_str());
         auto rp = rep_seen.find(cur);
         if (rp != rep_seen.end()) {                                   /* coloured by how the town sees the party */
             int r = rp->second;
             ImVec4 col = r <= -30 ? ImVec4(0.95f, 0.22f, 0.16f, 1) : r < -10 ? ImVec4(0.95f, 0.45f, 0.35f, 1) : r < 0 ? ImVec4(0.95f, 0.68f, 0.55f, 1)
                        : r >= 30 ? ImVec4(0.55f, 0.88f, 0.50f, 1) : ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            char rt[32]; snprintf(rt, sizeof rt, "Reputation %d", r);
+            float need = ImGui::GetFontSize() * 1.3f + ImGui::CalcTextSize(rt).x;
+            ImGui::SameLine(0, ImGui::GetFontSize() * 0.6f);
+            if (ImGui::GetContentRegionAvail().x < need) ImGui::NewLine();   /* (a narrow margin: under the name) */
             standing(0);
-            ImGui::TextColored(col, "Reputation %d", r);
+            ImGui::TextColored(col, "%s", rt);
             bool rep_hov = item_hovered();
             const RepChange *rc = repwatch_last(cur);
             u32 rage = rc ? plat_ticks_ms() - rc->t : 999999;
@@ -527,26 +535,23 @@ static void right_panel(int size)
                 rep_hov = rep_hov || item_hovered();
             }
             if (rep_hov) {
+                /* what it does, from the game's code: the town's cards weigh it (cur_loc_query 0, 86
+                   times in 38 card modules), and below 0 the shops ask more and pay less - 1% for each
+                   two points, up to 9% (buy_price, sell_price s032; above 0 the game's integer
+                   rounding leaves the prices as they are) */
+                std::string t = "The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it. "
+                                "Below 0 its shops ask more and pay less (up to 9% from about -20 down).";
                 std::vector<RepChange> L; repwatch_list(cur, L);
                 if (!L.empty()) {
-                    std::string t = "Changes seen since this game was loaded:";
+                    t += "\n\nChanges seen since this game was loaded:";
                     for (int k = (int)L.size() - 1, n = 0; k >= 0 && n < 6; k--, n++) {
                         const RepChange &c = L[k]; char b[64]; snprintf(b, sizeof b, "\n%+d on %d.%d.%d", c.delta, c.day, c.month + 1, c.year); t += b;
                         t += c.choice.empty() ? " (" + std::string(c.card[0] == '$' ? "a card" : "the overland view") + ")" : ", after choosing \"" + c.choice + "\"";
                     }
-                    margin_tip(t.c_str());
                 }
-            }
-            if (rep_hov && !repwatch_last(cur)) margin_tip(r <= -30 ? "The town hates the party: guards, shopkeepers and its people will turn on you." : r < -10 ? "The town distrusts the party: expect cold welcomes and worse." : r < 0 ? "The town is wary of the party." : r >= 30 ? "The party is well thought of here." : "The town's opinion of the party (rises with good deeds here, falls with crimes).");
-            {   /* fame beside it, or under it where the margin is too narrow */
-                char ft[24]; snprintf(ft, sizeof ft, "fame %d", fame);
-                float need = ImGui::GetFontSize() * (0.6f + 1.3f) + ImGui::CalcTextSize(ft).x;
-                ImGui::SameLine(0, ImGui::GetFontSize() * 0.6f);
-                if (ImGui::GetContentRegionAvail().x < need - ImGui::GetFontSize() * 0.6f) { ImGui::NewLine(); ft[0] = 'F'; }   /* (a line of its own: "Fame") */
-                standing(1); ImGui::TextDisabled("%s", ft);
+                margin_tip(t.c_str());
             }
         }
-        else { standing(1); ImGui::TextDisabled("Fame %d", fame); }
         /* the town's attitude: it bars the party, or its watch wants it (its sign, a short line, the
            meaning under the pointer) */
         static std::vector<TownMark> tm; static int tmf = -1000;

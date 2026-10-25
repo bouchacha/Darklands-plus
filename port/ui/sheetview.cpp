@@ -436,15 +436,25 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     std::vector<int> rows;                                 /* item index; -1 - section: a section's heading */
     /* each section in the tidy order of the party's inventory page: by kind, then name, the better first */
     auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
-    for (int sec = 0; sec < 6; sec++) {
-        if (sec == 1 && s.shared) {                       /* (the pack's sections under one heading) */
-            bool more = false; for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped) more = true;
-            if (more) rows.push_back(-10);
-        }
+    /* with the shared pack: what is in use, then the member's own things not in use (the potions
+       kept with them: SvItem.potion) in their sections, then the pack under its own heading */
+    auto section = [&](int sec, int part) {               /* part 0 in use, 1 the member's own, 2 the pack (or all the rest) */
         size_t head = rows.size(); rows.push_back(-1 - sec);
-        for (int i = 0; i < s.nitems; i++) if ((sec == 0) == (s.item[i].equipped != 0) && (sec == 0 || ns_item_section(s.item[i].id) == sec)) rows.push_back(i);
+        for (int i = 0; i < s.nitems; i++) {
+            const SvItem &it = s.item[i];
+            bool in = part == 0 ? it.equipped != 0
+                    : it.equipped == 0 && ns_item_section(it.id) == sec && (!s.shared || (part == 1) == (it.holder >= 0));
+            if (in) rows.push_back(i);
+        }
         if (rows.size() == head + 1) rows.pop_back(); else tidy(head + 1);
-    }
+    };
+    section(0, 0);
+    if (s.shared) {
+        for (int sec = 1; sec < 6; sec++) section(sec, 1);
+        bool more = false; for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].holder < 0) more = true;
+        if (more) rows.push_back(-10);                     /* (the pack's sections under one heading) */
+        for (int sec = 1; sec < 6; sec++) section(sec, 2);
+    } else for (int sec = 1; sec < 6; sec++) section(sec, 2);
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -481,9 +491,15 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (i < 0) {                                       /* a heading */
             int sec = -1 - i;
             std::string hds = ns_item_section_name(sec);
-            if (i == -10) {                                   /* the shared pack's own heading, once, above its sections */
-                P.text(f, NsDraw::FS_HEAD * 0.85f, RX0 + 3, y + 1.0f, ink, "The party's pack");
-                P.rect(RX0 + 3 + P.width(f, NsDraw::FS_HEAD * 0.85f, "The party's pack") + 2, y + 4.6f, RX1 - 3, y + 5.2f, IM_COL32(120, 80, 36, 160));
+            if (i == -10) {                                   /* the shared pack's own heading, once, above its sections: a band across, a pack and the words in the middle */
+                const char *pk = "The party's pack";
+                float fs = NsDraw::FS_HEAD * 0.85f, tw = P.width(f, fs, pk), ih = 6.6f, iw = ih * 0.9f * P.k / P.kx, gapw = 2.0f;
+                float cx = (RX0 + RX1) * 0.5f, x0 = cx - (iw + gapw + tw) * 0.5f;
+                P.rect(RX0 + 1, y + 0.6f, RX1 - 1, y + ROWH - 0.6f, IM_COL32(222, 198, 150, 255));       /* (the band) */
+                P.rect(RX0 + 1, y + 0.6f, RX1 - 1, y + 1.1f, IM_COL32(120, 80, 36, 200));
+                P.rect(RX0 + 1, y + ROWH - 1.1f, RX1 - 1, y + ROWH - 0.6f, IM_COL32(120, 80, 36, 200));
+                ns_backpack_icon(P, x0 + iw * 0.5f, y + ROWH * 0.5f, ih);
+                P.text(f, fs, x0 + iw + gapw, y + 1.2f, ink, pk);
                 continue;
             }
             const char *hd = hds.c_str();

@@ -526,3 +526,22 @@ void ns_sheet(NsDraw &P, float x0, float y0, float x1, float y1, ImU32 paper)
     P.dl->AddRectFilled(NsDraw::w(x0, y0), NsDraw::w(x1, y1), paper, 1.5f * P.k);
     P.dl->AddRectFilledMultiColor(NsDraw::w(x0, y1 - 4), NsDraw::w(x1, y1), 0, 0, IM_COL32(120, 90, 50, 40), IM_COL32(120, 90, 50, 40));
 }
+
+/* the party's pack: a leather pack with its flap, buckle and shoulder strap (drawn, as the order and
+   skill pictures, so it keeps sharp at any size) */
+void ns_backpack_icon(NsDraw &P, float cx, float cy, float s)
+{
+    ImDrawList *dl = P.dl;
+    auto W = [&](float x, float y) { return NsDraw::w(cx + x * s * P.k / P.kx, cy + y * s); };   /* (square on screen: a column is narrower than a row) */
+    float r = 0.12f * s * P.k;
+    const ImU32 strap = IM_COL32(92, 52, 22, 255), body = IM_COL32(150, 92, 44, 255), flap = IM_COL32(118, 68, 30, 255),
+                edge = IM_COL32(60, 34, 14, 255), gold = IM_COL32(214, 172, 74, 255);
+    dl->AddBezierCubic(W(-0.22f, -0.30f), W(-0.22f, -0.58f), W(0.22f, -0.58f), W(0.22f, -0.30f), strap, fmaxf(1.0f, 0.09f * s * P.k));   /* (the carrying loop) */
+    dl->AddRectFilled(W(-0.40f, -0.34f), W(0.40f, 0.50f), body, r);                      /* (the bag) */
+    dl->AddRectFilled(W(-0.40f, 0.18f), W(0.40f, 0.50f), IM_COL32(132, 80, 36, 255), r, ImDrawFlags_RoundCornersBottom);   /* (its pocket) */
+    dl->AddRect(W(-0.40f, -0.34f), W(0.40f, 0.50f), edge, r, 0, fmaxf(1.0f, 0.05f * s * P.k));
+    dl->AddRectFilled(W(-0.42f, -0.36f), W(0.42f, 0.06f), flap, r, ImDrawFlags_RoundCornersAll);   /* (the flap over it) */
+    dl->AddRect(W(-0.42f, -0.36f), W(0.42f, 0.06f), edge, r, 0, fmaxf(1.0f, 0.05f * s * P.k));
+    dl->AddRectFilled(W(-0.05f, -0.06f), W(0.05f, 0.30f), strap);                        /* (the strap down the flap) */
+    dl->AddRect(W(-0.10f, 0.02f), W(0.10f, 0.16f), gold, 0, 0, fmaxf(1.0f, 0.05f * s * P.k));   /* (its buckle) */
+}

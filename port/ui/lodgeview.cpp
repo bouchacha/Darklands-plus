@@ -119,12 +119,13 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         ui_pstone_draw(dl, c, s * 0.92f, 2, q > 0 ? -q : -1, (float)ImGui::GetTime());
         break; }
     case 4: {                                                  /* Earn a little money: a day's wage, not a fortune (a quest's reward is the purse,
-                                                                  ui/questicons.cpp): three small coins touching, silver groschen and a copper
-                                                                  pfennig, drawn as the money's coins are (ui/money.cpp) */
-        const float R = 4.1f, H = R * 1.7320508f;
-        money_coin_draw(dl, Q(0, 3.4f - H), R * u, 1);
-        money_coin_draw(dl, Q(-R, 3.4f), R * u, 2);
-        money_coin_draw(dl, Q(R, 3.4f), R * u, 1);
+                                                                  ui/questicons.cpp): a few small coins dropped in a heap, one over another,
+                                                                  silver groschen and copper pfennigs, drawn as the money's coins are (ui/money.cpp) */
+        dl->AddEllipseFilled(Q(0.4f, 7.6f), ImVec2(8.6f * u, 2.4f * u), IM_COL32(40, 24, 10, 70));   /* (their shadow on the table) */
+        money_coin_draw(dl, Q(3.4f, 0.6f), 3.5f * u, 2);       /* (the back: a pfennig) */
+        money_coin_draw(dl, Q(-2.7f, 1.6f), 4.0f * u, 1);      /* (a groschen over its edge) */
+        money_coin_draw(dl, Q(4.0f, 5.0f), 3.3f * u, 2);       /* (a pfennig fallen to the right) */
+        money_coin_draw(dl, Q(-0.3f, 5.4f), 4.0f * u, 1);      /* (and a groschen on top) */
         break; }
     case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
     default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */

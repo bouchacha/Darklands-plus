@@ -1206,63 +1206,63 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/levelmap.cpp:310` | not yet revealed |
 | `ui/levelmap.cpp:311` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
 | `ui/levelmap.cpp:311` | Tab or Esc closes the level map; the game is paused until then. |
-| `ui/lodgeview.cpp:154` | Camping in the wild |
-| `ui/lodgeview.cpp:154` | Staying here |
-| `ui/lodgeview.cpp:175` | The party lives off the land, and the lord may hear of it: after %d day%s the risk is %d in 10. |
-| `ui/lodgeview.cpp:176` | The room: %s a day.%s |
-| `ui/lodgeview.cpp:176` |    Days stayed:  |
-| `ui/lodgeview.cpp:204` | %d now, %d%% a day for +1, up to %d; %s a day |
-| `ui/lodgeview.cpp:207` | Make 3 potions |
-| `ui/lodgeview.cpp:213` | Endurance back to full ( |
-| `ui/lodgeview.cpp:213` | Already rested: earning would be better |
-| `ui/lodgeview.cpp:213` | Already rested |
-| `ui/lodgeview.cpp:215` | Divine Favor  |
-| `ui/lodgeview.cpp:216` | Endurance stays down ( |
-| `ui/lodgeview.cpp:234` | Regain Endurance |
-| `ui/lodgeview.cpp:234` | Regain Strength |
-| `ui/lodgeview.cpp:234` | Pray for Divine Favor |
-| `ui/lodgeview.cpp:234` | Alchemy work |
-| `ui/lodgeview.cpp:234` | Earn a little money |
-| `ui/lodgeview.cpp:234` | Guard the camp |
-| `ui/lodgeview.cpp:234` | Train or study |
-| `ui/lodgeview.cpp:235` | Endurance is full: earning money is the better day. |
-| `ui/lodgeview.cpp:235` | Already at full Strength. |
-| `ui/lodgeview.cpp:235` | Divine Favor is full. |
-| `ui/lodgeview.cpp:235` | Knows no formula to make. |
-| `ui/lodgeview.cpp:235` | Only at an inn in a town. |
-| `ui/lodgeview.cpp:235` | Only when camping in the wild. |
-| `ui/lodgeview.cpp:235` | No teachers retained in this town. |
-| `ui/lodgeview.cpp:236` | Rest: Endurance comes back to full. Nothing else is gained. |
-| `ui/lodgeview.cpp:236` | Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too). |
-| `ui/lodgeview.cpp:237` | Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day. |
-| `ui/lodgeview.cpp:237` | Make potions from a known formula (the ingredients are used up). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:238` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:239` | Keep watch and find food: the camp is safer. |
-| `ui/lodgeview.cpp:239` | Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day. |
-| `ui/lodgeview.cpp:265` | none retained |
-| `ui/lodgeview.cpp:279` | learned all (%d) |
-| `ui/lodgeview.cpp:280` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
-| `ui/lodgeview.cpp:291` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
-| `ui/lodgeview.cpp:299` | The teacher of %s knows %d; %s has %d already: nothing more to learn here. |
-| `ui/lodgeview.cpp:301` | Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
-| `ui/lodgeview.cpp:302` | , up to the teacher's skill |
-| `ui/lodgeview.cpp:303` |  (The best of the teachers of it hired here teaches.) |
-| `ui/lodgeview.cpp:303` |  (The one hired first teaches.) |
-| `ui/lodgeview.cpp:305` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
-| `ui/lodgeview.cpp:306` | Point at a choice to see what it does. |
-| `ui/lodgeview.cpp:328` | In the purse |
-| `ui/lodgeview.cpp:330` | Food: from the land |
-| `ui/lodgeview.cpp:330` | Room and lessons |
-| `ui/lodgeview.cpp:348` | Until rested |
-| `ui/lodgeview.cpp:350` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
-| `ui/lodgeview.cpp:351` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
-| `ui/lodgeview.cpp:351` | Nobody is short of Strength, regaining it or praying. |
-| `ui/lodgeview.cpp:352` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
-| `ui/lodgeview.cpp:361` | A day in camp |
-| `ui/lodgeview.cpp:361` | A day at the inn |
-| `ui/lodgeview.cpp:363` | , until rested |
-| `ui/lodgeview.cpp:368` | Click or press a key to skip to the end |
-| `ui/lodgeview.cpp:368` | Click or press a key to skip |
+| `ui/lodgeview.cpp:155` | Camping in the wild |
+| `ui/lodgeview.cpp:155` | Staying here |
+| `ui/lodgeview.cpp:176` | The party lives off the land, and the lord may hear of it: after %d day%s the risk is %d in 10. |
+| `ui/lodgeview.cpp:177` | The room: %s a day.%s |
+| `ui/lodgeview.cpp:177` |    Days stayed:  |
+| `ui/lodgeview.cpp:205` | %d now, %d%% a day for +1, up to %d; %s a day |
+| `ui/lodgeview.cpp:208` | Make 3 potions |
+| `ui/lodgeview.cpp:214` | Endurance back to full ( |
+| `ui/lodgeview.cpp:214` | Already rested: earning would be better |
+| `ui/lodgeview.cpp:214` | Already rested |
+| `ui/lodgeview.cpp:216` | Divine Favor  |
+| `ui/lodgeview.cpp:217` | Endurance stays down ( |
+| `ui/lodgeview.cpp:235` | Regain Endurance |
+| `ui/lodgeview.cpp:235` | Regain Strength |
+| `ui/lodgeview.cpp:235` | Pray for Divine Favor |
+| `ui/lodgeview.cpp:235` | Alchemy work |
+| `ui/lodgeview.cpp:235` | Earn a little money |
+| `ui/lodgeview.cpp:235` | Guard the camp |
+| `ui/lodgeview.cpp:235` | Train or study |
+| `ui/lodgeview.cpp:236` | Endurance is full: earning money is the better day. |
+| `ui/lodgeview.cpp:236` | Already at full Strength. |
+| `ui/lodgeview.cpp:236` | Divine Favor is full. |
+| `ui/lodgeview.cpp:236` | Knows no formula to make. |
+| `ui/lodgeview.cpp:236` | Only at an inn in a town. |
+| `ui/lodgeview.cpp:236` | Only when camping in the wild. |
+| `ui/lodgeview.cpp:236` | No teachers retained in this town. |
+| `ui/lodgeview.cpp:237` | Rest: Endurance comes back to full. Nothing else is gained. |
+| `ui/lodgeview.cpp:237` | Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too). |
+| `ui/lodgeview.cpp:238` | Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day. |
+| `ui/lodgeview.cpp:238` | Make potions from a known formula (the ingredients are used up). Endurance does not come back that day. |
+| `ui/lodgeview.cpp:239` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day. |
+| `ui/lodgeview.cpp:240` | Keep watch and find food: the camp is safer. |
+| `ui/lodgeview.cpp:240` | Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day. |
+| `ui/lodgeview.cpp:266` | none retained |
+| `ui/lodgeview.cpp:280` | learned all (%d) |
+| `ui/lodgeview.cpp:281` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
+| `ui/lodgeview.cpp:292` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
+| `ui/lodgeview.cpp:300` | The teacher of %s knows %d; %s has %d already: nothing more to learn here. |
+| `ui/lodgeview.cpp:302` | Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
+| `ui/lodgeview.cpp:303` | , up to the teacher's skill |
+| `ui/lodgeview.cpp:304` |  (The best of the teachers of it hired here teaches.) |
+| `ui/lodgeview.cpp:304` |  (The one hired first teaches.) |
+| `ui/lodgeview.cpp:306` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
+| `ui/lodgeview.cpp:307` | Point at a choice to see what it does. |
+| `ui/lodgeview.cpp:329` | In the purse |
+| `ui/lodgeview.cpp:331` | Food: from the land |
+| `ui/lodgeview.cpp:331` | Room and lessons |
+| `ui/lodgeview.cpp:349` | Until rested |
+| `ui/lodgeview.cpp:351` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
+| `ui/lodgeview.cpp:352` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
+| `ui/lodgeview.cpp:352` | Nobody is short of Strength, regaining it or praying. |
+| `ui/lodgeview.cpp:353` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
+| `ui/lodgeview.cpp:362` | A day in camp |
+| `ui/lodgeview.cpp:362` | A day at the inn |
+| `ui/lodgeview.cpp:364` | , until rested |
+| `ui/lodgeview.cpp:369` | Click or press a key to skip to the end |
+| `ui/lodgeview.cpp:369` | Click or press a key to skip |
 | `ui/lootview.cpp:61` |  in cash (added to the purse). |
 | `ui/lootview.cpp:61` | No money found. |
 | `ui/lootview.cpp:76` | The party's pack |
@@ -1303,43 +1303,41 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:399` | Teachers: none to be had now |
 | `ui/margins.cpp:402` | At the inn now:  |
 | `ui/margins.cpp:402` |  Hired teachers give lessons at the inn: set a member to "Train or study" there, a lesson a day, for a fee.   |
-| `ui/margins.cpp:518` | Reputation %d |
-| `ui/margins.cpp:532` | Changes seen since this game was loaded: |
-| `ui/margins.cpp:535` | the overland view |
-| `ui/margins.cpp:535` | , after choosing " |
-| `ui/margins.cpp:540` | The town hates the party: guards, shopkeepers and its people will turn on you. |
-| `ui/margins.cpp:540` | The town distrusts the party: expect cold welcomes and worse. |
-| `ui/margins.cpp:540` | The town is wary of the party. |
-| `ui/margins.cpp:540` | The party is well thought of here. |
-| `ui/margins.cpp:540` | The town's opinion of the party (rises with good deeds here, falls with crimes). |
-| `ui/margins.cpp:560` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:561` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:572` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:584` | Preparing for war |
-| `ui/margins.cpp:585` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:587` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:612` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:619` | Blessings and potions |
-| `ui/margins.cpp:637` | No blessings or potions at work. |
-| `ui/margins.cpp:646` | C: camp here |
-| `ui/margins.cpp:647` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:651` | Go to a place here |
-| `ui/margins.cpp:651` | G: go to a place here |
-| `ui/margins.cpp:657` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:706` | None taken on. |
-| `ui/margins.cpp:738` | Travel there |
-| `ui/margins.cpp:755` | ... %d more on the world map (M) |
-| `ui/margins.cpp:771` | Night in the streets |
-| `ui/margins.cpp:775` | almost always |
-| `ui/margins.cpp:776` | about %d time%s in 10 |
-| `ui/margins.cpp:777` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:780` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:819` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:819` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:821` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:821` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:848` | %s in bank notes |
-| `ui/margins.cpp:862` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:513` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, beside its name). |
+| `ui/margins.cpp:521` | Reputation %d |
+| `ui/margins.cpp:542` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:542` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:546` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:549` | the overland view |
+| `ui/margins.cpp:549` | , after choosing " |
+| `ui/margins.cpp:565` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:566` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:577` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:589` | Preparing for war |
+| `ui/margins.cpp:590` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:592` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:617` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:624` | Blessings and potions |
+| `ui/margins.cpp:642` | No blessings or potions at work. |
+| `ui/margins.cpp:651` | C: camp here |
+| `ui/margins.cpp:652` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:656` | Go to a place here |
+| `ui/margins.cpp:656` | G: go to a place here |
+| `ui/margins.cpp:662` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:711` | None taken on. |
+| `ui/margins.cpp:743` | Travel there |
+| `ui/margins.cpp:760` | ... %d more on the world map (M) |
+| `ui/margins.cpp:776` | Night in the streets |
+| `ui/margins.cpp:780` | almost always |
+| `ui/margins.cpp:781` | about %d time%s in 10 |
+| `ui/margins.cpp:782` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:785` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:824` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:824` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:826` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:826` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:853` | %s in bank notes |
+| `ui/margins.cpp:867` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -2020,43 +2018,42 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:397` | In effect now:  |
 | `ui/sheetview.cpp:399` |  more (see "Blessings and potions" in the margin). |
 | `ui/sheetview.cpp:424` | Worth about %s |
-| `ui/sheetview.cpp:455` | Carries nothing. |
-| `ui/sheetview.cpp:485` | The party's pack |
-| `ui/sheetview.cpp:486` | The party's pack |
-| `ui/sheetview.cpp:540` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:541` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:572` | : drop it on a member at the left |
-| `ui/sheetview.cpp:645` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:672` | Known in the party |
-| `ui/sheetview.cpp:708` | No saint helps with that. |
-| `ui/sheetview.cpp:708` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
-| `ui/sheetview.cpp:749` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:751` | Taught in the library of  |
-| `ui/sheetview.cpp:774` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:778` | Asks a Virtue of %d. |
-| `ui/sheetview.cpp:778` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
-| `ui/sheetview.cpp:790` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:797` | Differs from the description:  |
-| `ui/sheetview.cpp:835` | The party has none. |
-| `ui/sheetview.cpp:836` | The party has %d. |
-| `ui/sheetview.cpp:837` | The party has %d (%s). |
-| `ui/sheetview.cpp:839` | Where to buy: %s |
-| `ui/sheetview.cpp:865` | All formulae |
-| `ui/sheetview.cpp:865` | Known in the party |
-| `ui/sheetview.cpp:886` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
-| `ui/sheetview.cpp:928` | The party's ingredients |
-| `ui/sheetview.cpp:958` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:958` | risk unknown |
-| `ui/sheetview.cpp:961` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:966` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:977` | Enough for %d batch%s. |
-| `ui/sheetview.cpp:978` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:978` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:980` | Chance of brewing one batch |
-| `ui/sheetview.cpp:989` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:992` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:993` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:998` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:465` | Carries nothing. |
+| `ui/sheetview.cpp:495` | The party's pack |
+| `ui/sheetview.cpp:556` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:557` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:588` | : drop it on a member at the left |
+| `ui/sheetview.cpp:661` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:688` | Known in the party |
+| `ui/sheetview.cpp:724` | No saint helps with that. |
+| `ui/sheetview.cpp:724` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
+| `ui/sheetview.cpp:765` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:767` | Taught in the library of  |
+| `ui/sheetview.cpp:790` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:794` | Asks a Virtue of %d. |
+| `ui/sheetview.cpp:794` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
+| `ui/sheetview.cpp:806` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:813` | Differs from the description:  |
+| `ui/sheetview.cpp:851` | The party has none. |
+| `ui/sheetview.cpp:852` | The party has %d. |
+| `ui/sheetview.cpp:853` | The party has %d (%s). |
+| `ui/sheetview.cpp:855` | Where to buy: %s |
+| `ui/sheetview.cpp:881` | All formulae |
+| `ui/sheetview.cpp:881` | Known in the party |
+| `ui/sheetview.cpp:902` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
+| `ui/sheetview.cpp:944` | The party's ingredients |
+| `ui/sheetview.cpp:974` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:974` | risk unknown |
+| `ui/sheetview.cpp:977` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:982` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:993` | Enough for %d batch%s. |
+| `ui/sheetview.cpp:994` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:994` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:996` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1005` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1008` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1009` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1014` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:383` | Frames and clock |
 | `ui/skillicons.cpp:387` | Cards and towns |
 | `ui/skillicons.cpp:392` | The party and its items |

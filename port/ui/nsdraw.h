@@ -236,7 +236,8 @@ struct NsStripThing {
     ImU32 right_col = NsDraw::INK_SOFT;
     float y_max = 0;                  /* the panel's room ends here (0: no limit): the lesser lines that would pass it are left out */
 };
-float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);   /* the y its last line ends at */
+float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);
+void ns_backpack_icon(NsDraw &P, float cx, float cy, float s);   /* a leather pack, s game pixels tall, centred at (cx, cy): the party's pack */   /* the y its last line ends at */
 
 #endif
 /* the counter of a shop (the store room): a timber wall to wall_to (rows), an awning's edge in
