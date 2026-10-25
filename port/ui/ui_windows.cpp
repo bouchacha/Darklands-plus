@@ -73,7 +73,7 @@ void tab_about(void)
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
     ImGui::TextWrapped("Darklands+ is made by Yassine Meskhout.");
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the "
-                       "game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds.");
+                       "game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds.");
     ImGui::Spacing();
     ImGui::TextWrapped("F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  "
                        "Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities).");
@@ -213,7 +213,7 @@ void news_window(void)
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F11 lists the keys for the current screen.");
+        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns off all that changes the play). F11 lists the keys for the current screen.");
         ImGui::PopStyleColor();
         ImGui::Spacing();
         bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);

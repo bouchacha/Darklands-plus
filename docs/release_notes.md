@@ -1,4 +1,4 @@
-Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox, from your own copy of the game. It adds the things players have asked for over the years, and most additions can be switched off. **F12 > Settings** offers presets, from **Full Original** (the game exactly as it was in 1993, bugs and all) and **Purist** (the same with its bugs fixed) to the standard **Darklands+**, and every switch one by one; easier play is offered as built-in mods in **F12 > Mods**.
+Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox, from your own copy of the game. It adds the things players have asked for over the years, and most additions can be switched off. **F12 > Settings** offers presets, from **Full Original** (the game as it played in 1993, bugs and all; the look stays yours to choose) and **Purist** (the same with its bugs fixed) to the standard **Darklands+**, and every switch one by one; easier play is offered as built-in mods in **F12 > Mods**.
 
 **You need** your own Darklands 483.07 (GOG or Steam) and 64-bit Windows 10 or 11. This download contains nothing from the game.
 

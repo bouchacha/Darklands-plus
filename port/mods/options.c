@@ -326,7 +326,7 @@ const char *option_choice(const Option *o, int k, char *buf, int n)
 
 /* ---------------------------------------------------------------- presets */
 const Preset PRESETS[PRESET_COUNT] = {
-    { "Full Original", "Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used.",
+    { "Full Original", "Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections.",
       "Saves load in the original game and back." },
     { "Purist", "The original game with its bugs fixed: its own screens, rules and graphics.",
       "Saves load in the original game and back." },

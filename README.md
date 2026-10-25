@@ -32,7 +32,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 - **Ironman**, if you want it: one save that the game keeps itself, with no loading back.
 - **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
 
-**You decide how much changes.** F12 > Settings > Preset offers presets, from *Full Original* (the original game exactly, bugs and all) and *Purist* (its bugs fixed) to *Darklands+* (recommended), and every switch one by one; easier play comes as built-in mods in F12 > Mods.
+**You decide how much changes.** F12 > Settings > Preset offers presets, from *Full Original* (the original game's play exactly, bugs and all; the look stays yours to choose) and *Purist* (its bugs fixed) to *Darklands+* (recommended), and every switch one by one; easier play comes as built-in mods in F12 > Mods.
 
 ## Install
 

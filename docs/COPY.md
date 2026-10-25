@@ -237,7 +237,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:225` | Intro at start-up |
 | `mods/options.c:225` | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). |
 | `mods/options.c:226` | Drawing cache |
-| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (kept as triangles, the default), 0 off, 2 kept as pictures on the graphics card (faster, but showed as a wash over the screen on some computers). |
+| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (the default: the plaited bands made into pictures by the processor, the rest kept as triangles), 0 off, 3 everything kept as triangles, 2 kept as pictures drawn by the graphics card (showed as a wash over the screen on some computers). |
 | `mods/options.c:227` | Encounters from mods |
 | `mods/options.c:227` | the new encounters that mods add (F12 > Mods) come up on the road. |
 | `mods/options.c:228` | A seal on encounters from mods |
@@ -285,7 +285,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:277` | Takes effect when the next new game starts. |
 | `mods/options.c:282` | Fixes for bugs of the original |
 | `mods/options.c:329` | Full Original |
-| `mods/options.c:329` | Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used. |
+| `mods/options.c:329` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
 | `mods/options.c:330` | Saves load in the original game and back. |
 | `mods/options.c:331` | The original game with its bugs fixed: its own screens, rules and graphics. |
 | `mods/options.c:332` | Saves load in the original game and back. |
@@ -2145,7 +2145,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:754` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
 | `ui/ui.cpp:760` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
-| `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds. |
+| `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
 | `ui/ui_windows.cpp:82` | saved games, and every other file the game writes: %s (Darklands+ cannot write to the game folder; the saved games in its SAVES folder can still be loaded) |
 | `ui/ui_windows.cpp:84` | saved games: the SAVES folder of the game folder, as in the original |
@@ -2190,7 +2190,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:209` | City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off until you tick them): F12 > Reconstructed Content. |
 | `ui/ui_windows.cpp:211` | A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller. |
 | `ui/ui_windows.cpp:212` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
-| `ui/ui_windows.cpp:216` | Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F11 lists the keys for the current screen. |
+| `ui/ui_windows.cpp:216` | Most changes can be switched off in F12 > Settings (the Full Original preset turns off all that changes the play). F11 lists the keys for the current screen. |
 | `ui/ui_windows.cpp:219` |   Back to the game   |
 | `ui/ui_windows.cpp:236` | Darklands sounds best on a Roland MT-32 |
 | `ui/ui_windows.cpp:237` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |

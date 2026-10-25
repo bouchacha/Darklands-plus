@@ -12,7 +12,7 @@ pictures, sounds and rules. What is new since 1.0: CHANGELOG.md on the GitHub pa
 
 Most of what is new can be switched off. The first start asks how you would like to play:
 "Darklands+" (recommended), "Purist" (the original game with its bugs fixed) or "Full Original"
-(the game exactly as it was); F12 > Settings > Preset changes it, or any switch one by one.
+(the game as it played, bugs and all); F12 > Settings > Preset changes it, or any switch one by one.
 Easier play is offered separately, as built-in mods (F12 > Mods).
 
 WHAT YOU NEED
