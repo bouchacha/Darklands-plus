@@ -136,7 +136,7 @@ void welcome_window(void)
             ImGui::PushFont(font_head); orn_septext("How would you like to play?"); ImGui::PopFont();
             static int pick = -1;
             if (pick < 0) { pick = preset_current(); if (pick < 0) pick = PRESET_PLUS; }
-            for (int p = 0; p < PRESET_COUNT; p++) {
+            for (int p : PRESET_SHOWN) {                /* (Darklands+ first, Full Original last) */
                 ImGui::PushID(p);
                 std::string nm = std::string(PRESETS[p].name) + (p == PRESET_PLUS ? " (recommended)" : "");
                 if (ImGui::RadioButton("##p", pick == p)) pick = p;

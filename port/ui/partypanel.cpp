@@ -239,7 +239,7 @@ static const char *order_word(char c, int place, bool shortw)
     case 'P':
         if (place == 3) W("picks", "picks the lock of the door given");
         if (place == 6) W("picks", "picks the lock of the chest given");
-        W("parries", "parries: defends and does not strike");
+        W("parries", "parries: mostly defends, hard to hit, striking back slower and less surely");
     case 'M': W("shoots", "shoots at the target given");
     case 'T': W("throws", "throws a potion at the target given");
     case 'W': W("walks", "walks to the spot given");

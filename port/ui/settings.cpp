@@ -372,7 +372,7 @@ static void option_row(const Option *o, int depth)
 static void presets_block(void)
 {
     int cur = preset_current();
-    for (int p = 0; p < PRESET_COUNT; p++) {
+    for (int p : PRESET_SHOWN) {                    /* (Darklands+ first, Full Original last) */
         ImGui::PushID(p);
         if (ImGui::RadioButton("##p", cur == p)) { preset_apply(p); ui_dirty_config = 1; cur = preset_current(); }
         ImGui::SameLine();

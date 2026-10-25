@@ -69,6 +69,9 @@ enum { PRESET_CUSTOM = -1, PRESET_BUGGY_PURIST = 0, PRESET_PURIST, PRESET_PLUS, 
    Full Original and Purist turn it off, Darklands+ leaves it as the player set it) */
 typedef struct { const char *name, *desc, *saves; } Preset;
 extern const Preset PRESETS[PRESET_COUNT];
+#ifdef __cplusplus
+static const int PRESET_SHOWN[PRESET_COUNT] = { PRESET_PLUS, PRESET_PURIST, PRESET_BUGGY_PURIST };   /* the order they are offered in: the recommended first */
+#endif
 #define PRESET_KEEP (-999999)                /* preset_value: the player's own (OC_TASTE, OC_TOOL) */
 int preset_value(const Option *o, int preset);
 int preset_differences(int preset);         /* how many switches differ from the preset (0: it is in force) */
